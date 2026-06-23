@@ -1,4 +1,4 @@
-import type { Call, CallId } from "@domain/index.js";
+import type { Call, CallId, TransferSession } from "@domain/index.js";
 import { isEstablishedCall } from "@domain/index.js";
 import { createPlatformError } from "@shared/errors/index.js";
 import { err, ok, type Result } from "@shared/result/index.js";
@@ -11,6 +11,7 @@ import { err, ok, type Result } from "@shared/result/index.js";
 export class CallTracker {
   private activeIncomingCall: Call | null = null;
   private readonly trackedCalls = new Map<CallId, Call>();
+  private transferSession: TransferSession | null = null;
 
   trackCall(call: Call): void {
     this.trackedCalls.set(call.id, call);
@@ -67,5 +68,13 @@ export class CallTracker {
 
   countEstablishedCalls(): number {
     return this.getEstablishedCalls().length;
+  }
+
+  getTransferSession(): TransferSession | null {
+    return this.transferSession;
+  }
+
+  setTransferSession(session: TransferSession | null): void {
+    this.transferSession = session;
   }
 }

@@ -50,6 +50,19 @@ export type BlindTransferInput = Readonly<{
   correlationId?: CorrelationId;
 }>;
 
+export type StartConsultationInput = Readonly<{
+  sourceCallId: CallId;
+  targetNumber: string;
+  consultationCallId?: CallId;
+  correlationId?: CorrelationId;
+}>;
+
+export type AttendedTransferInput = Readonly<{
+  sourceCallId: CallId;
+  consultationCallId: CallId;
+  correlationId?: CorrelationId;
+}>;
+
 export type HandleCallProgressInput = Readonly<{
   call: Call;
   progressCode: number;

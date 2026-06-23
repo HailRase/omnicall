@@ -27,6 +27,7 @@ export type {
   ResumeCallCommand,
   SendDtmfCommand,
   BlindTransferCommand,
+  AttendedTransferCommand,
   TelephonyCallEndedNotification,
   TelephonyIncomingCallNotification,
   TelephonyGateway,

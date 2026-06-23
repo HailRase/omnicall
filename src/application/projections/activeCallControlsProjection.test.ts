@@ -188,6 +188,100 @@ describe("activeCallControlsProjection", () => {
     expect(restored.resumeDisabledReason).toBe("resume_requires_held");
   });
 
+  it("disables hold, resume, mute, and unmute during attended transfer", () => {
+    const held = reduceActiveCallControlsProjection(
+      reduceActiveCallControlsProjection(initialActiveCallControlsProjection(), {
+        type: "CallAnswered",
+        callId: "call-att-1",
+        correlationId: createCorrelationId(),
+        occurredAt: new Date().toISOString(),
+      }),
+      {
+        type: "CallHeld",
+        callId: "call-att-1",
+        correlationId: createCorrelationId(),
+        occurredAt: new Date().toISOString(),
+      },
+    );
+    const consultationActive = reduceActiveCallControlsProjection(held, {
+      type: "ConsultationCallStarted",
+      consultationCallId: "call-att-consult-1",
+      sourceCallId: "call-att-1",
+      correlationId: createCorrelationId(),
+      occurredAt: new Date().toISOString(),
+    });
+    const transferring = reduceActiveCallControlsProjection(consultationActive, {
+      type: "AttendedTransferRequested",
+      sourceCallId: "call-att-1",
+      consultationCallId: "call-att-consult-1",
+      correlationId: createCorrelationId(),
+      occurredAt: new Date().toISOString(),
+    });
+
+    expect(transferring.callState).toBe("Transferring");
+    expect(transferring.callId).toBe("call-att-1");
+    expect(transferring.holdDisabledReason).toBe("transfer_in_progress");
+    expect(transferring.muteDisabledReason).toBe("transfer_in_progress");
+    expect(transferring.hangupDisabledReason).toBeNull();
+  });
+
+  it("restores source state from AttendedTransferFailed payload", () => {
+    const transferring = reduceActiveCallControlsProjection(
+      reduceActiveCallControlsProjection(initialActiveCallControlsProjection(), {
+        type: "ConsultationCallStarted",
+        consultationCallId: "call-att-consult-2",
+        sourceCallId: "call-att-2",
+        correlationId: createCorrelationId(),
+        occurredAt: new Date().toISOString(),
+      }),
+      {
+        type: "AttendedTransferRequested",
+        sourceCallId: "call-att-2",
+        consultationCallId: "call-att-consult-2",
+        correlationId: createCorrelationId(),
+        occurredAt: new Date().toISOString(),
+      },
+    );
+    const restored = reduceActiveCallControlsProjection(transferring, {
+      type: "AttendedTransferFailed",
+      sourceCallId: "call-att-2",
+      consultationCallId: "call-att-consult-2",
+      reason: "REFER rejected",
+      restoredSourceState: "Held",
+      correlationId: createCorrelationId(),
+      occurredAt: new Date().toISOString(),
+    });
+
+    expect(restored.callState).toBe("Held");
+    expect(restored.callId).toBe("call-att-2");
+    expect(restored.resumeDisabledReason).toBeNull();
+    expect(restored.holdDisabledReason).toBe("hold_requires_active");
+  });
+
+  it("restores Active source state from ConsultationCallFailed payload", () => {
+    const failed = reduceActiveCallControlsProjection(
+      reduceActiveCallControlsProjection(initialActiveCallControlsProjection(), {
+        type: "CallAnswered",
+        callId: "call-consult-fail-1",
+        correlationId: createCorrelationId(),
+        occurredAt: new Date().toISOString(),
+      }),
+      {
+        type: "ConsultationCallFailed",
+        sourceCallId: "call-consult-fail-1",
+        consultationCallId: "call-consult-fail-consult",
+        reason: "consultation_start_requires_dialing",
+        restoredSourceState: "Active",
+        correlationId: createCorrelationId(),
+        occurredAt: new Date().toISOString(),
+      },
+    );
+
+    expect(failed.callState).toBe("Active");
+    expect(failed.holdDisabledReason).toBeNull();
+    expect(failed.resumeDisabledReason).toBe("resume_requires_held");
+  });
+
   it("clears controls after successful blind transfer", () => {
     const transferring = reduceActiveCallControlsProjection(
       reduceActiveCallControlsProjection(initialActiveCallControlsProjection(), {

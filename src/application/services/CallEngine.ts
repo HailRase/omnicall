@@ -28,6 +28,8 @@ import type {
   SendDtmfInput,
   UnmuteCallInput,
   BlindTransferInput,
+  StartConsultationInput,
+  AttendedTransferInput,
 } from "./callEngineTypes.js";
 import { DtmfOrchestrator } from "./DtmfOrchestrator.js";
 import { IncomingCallOrchestrator } from "./IncomingCallOrchestrator.js";
@@ -49,6 +51,8 @@ export type {
   SendDtmfInput,
   UnmuteCallInput,
   BlindTransferInput,
+  StartConsultationInput,
+  AttendedTransferInput,
 } from "./callEngineTypes.js";
 
 /**
@@ -123,11 +127,16 @@ export class CallEngine {
     this.transferCallControlService = new TransferCallControlService({
       telephonyGateway,
       mediaGateway,
+      settingsRepository,
       eventPublisher,
       logger,
       resolveTrackedCall: (callId) => this.callTracker.getTrackedCall(callId),
       trackCall: (call) => this.callTracker.trackCall(call),
       clearIncomingCallById: (callId) => this.callTracker.clearIncomingCallById(callId),
+      getTransferSession: () => this.callTracker.getTransferSession(),
+      setTransferSession: (session) => this.callTracker.setTransferSession(session),
+      makeCall: (input) => this.outgoingCallOrchestrator.makeCall(input),
+      hangupCall: (input) => this.activeCallControlService.hangupCall(input),
     });
   }
 
@@ -217,5 +226,17 @@ export class CallEngine {
     input: BlindTransferInput,
   ): Promise<Result<Call, ReturnType<typeof createPlatformError>>> {
     return this.transferCallControlService.blindTransfer(input);
+  }
+
+  startConsultation(
+    input: StartConsultationInput,
+  ): Promise<Result<Call, ReturnType<typeof createPlatformError>>> {
+    return this.transferCallControlService.startConsultation(input);
+  }
+
+  attendedTransfer(
+    input: AttendedTransferInput,
+  ): Promise<Result<Call, ReturnType<typeof createPlatformError>>> {
+    return this.transferCallControlService.attendedTransfer(input);
   }
 }

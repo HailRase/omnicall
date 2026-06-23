@@ -36,10 +36,7 @@ describe("MultiCallPolicy", () => {
       ended,
     ];
     expect(shouldHoldAllBeforeOutgoing(calls)).toBe(true);
-    expect(getCallsToHoldBeforeOutgoing(calls).map((call) => call.id)).toEqual([
-      "a",
-      "b",
-    ]);
+    expect(getCallsToHoldBeforeOutgoing(calls).map((call) => call.id)).toEqual(["a"]);
     expect(countEstablishedCalls(calls)).toBe(2);
   });
 

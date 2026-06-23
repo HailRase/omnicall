@@ -6,13 +6,19 @@ export type TransferPhase =
   | "transfer_requested"
   | "transferring"
   | "transferred"
-  | "transfer_failed";
+  | "transfer_failed"
+  | "consultation_dialing"
+  | "consultation_active"
+  | "attended_transfer_in_progress"
+  | "attended_transfer_failed";
 
 export type TransferProjection = Readonly<{
   phase: TransferPhase;
   callId: string | null;
   targetNumber: string | null;
-  transferType: "blind" | null;
+  transferType: "blind" | "attended" | null;
+  sourceCallId: string | null;
+  consultationCallId: string | null;
   lastFailureReason: string | null;
 }>;
 
@@ -27,6 +33,8 @@ export function initialTransferProjection(): TransferProjection {
     callId: null,
     targetNumber: null,
     transferType: null,
+    sourceCallId: null,
+    consultationCallId: null,
     lastFailureReason: null,
   };
 }
@@ -42,6 +50,8 @@ export function reduceTransferProjection(
         callId: asOptionalString(event["callId"]),
         targetNumber: asOptionalString(event["targetNumber"]),
         transferType: readTransferType(event["transferType"]),
+        sourceCallId: null,
+        consultationCallId: null,
         lastFailureReason: null,
       };
     case "CallTransferred":
@@ -50,6 +60,8 @@ export function reduceTransferProjection(
         callId: asOptionalString(event["callId"]),
         targetNumber: asOptionalString(event["targetNumber"]),
         transferType: readTransferType(event["transferType"]),
+        sourceCallId: null,
+        consultationCallId: null,
         lastFailureReason: null,
       };
     case "CallTransferFailed":
@@ -58,6 +70,63 @@ export function reduceTransferProjection(
         callId: asOptionalString(event["callId"]),
         targetNumber: asOptionalString(event["targetNumber"]),
         transferType: readTransferType(event["transferType"]),
+        sourceCallId: null,
+        consultationCallId: null,
+        lastFailureReason: asOptionalString(event["reason"]),
+      };
+    case "ConsultationCallRequested":
+      return {
+        phase: "consultation_dialing",
+        callId: asOptionalString(event["consultationCallId"]),
+        targetNumber: asOptionalString(event["targetNumber"]),
+        transferType: "attended",
+        sourceCallId: asOptionalString(event["sourceCallId"]),
+        consultationCallId: asOptionalString(event["consultationCallId"]),
+        lastFailureReason: null,
+      };
+    case "ConsultationCallStarted":
+      return {
+        ...projection,
+        phase: "consultation_active",
+        transferType: "attended",
+        sourceCallId: asOptionalString(event["sourceCallId"]) ?? projection.sourceCallId,
+        consultationCallId:
+          asOptionalString(event["consultationCallId"]) ?? projection.consultationCallId,
+        lastFailureReason: null,
+      };
+    case "ConsultationCallFailed":
+      return {
+        ...initialTransferProjection(),
+        lastFailureReason: asOptionalString(event["reason"]),
+      };
+    case "AttendedTransferRequested":
+      return {
+        ...projection,
+        phase: "attended_transfer_in_progress",
+        transferType: "attended",
+        sourceCallId: asOptionalString(event["sourceCallId"]) ?? projection.sourceCallId,
+        consultationCallId:
+          asOptionalString(event["consultationCallId"]) ?? projection.consultationCallId,
+        lastFailureReason: null,
+      };
+    case "AttendedTransferCompleted":
+      return {
+        phase: "transferred",
+        callId: asOptionalString(event["sourceCallId"]),
+        targetNumber: projection.targetNumber,
+        transferType: "attended",
+        sourceCallId: asOptionalString(event["sourceCallId"]),
+        consultationCallId: asOptionalString(event["consultationCallId"]),
+        lastFailureReason: null,
+      };
+    case "AttendedTransferFailed":
+      return {
+        ...projection,
+        phase: "attended_transfer_failed",
+        transferType: "attended",
+        sourceCallId: asOptionalString(event["sourceCallId"]) ?? projection.sourceCallId,
+        consultationCallId:
+          asOptionalString(event["consultationCallId"]) ?? projection.consultationCallId,
         lastFailureReason: asOptionalString(event["reason"]),
       };
     case "CallEnded":
@@ -95,6 +164,9 @@ function asOptionalString(value: unknown): string | null {
   return typeof value === "string" ? value : null;
 }
 
-function readTransferType(value: unknown): "blind" | null {
-  return value === "blind" ? "blind" : null;
+function readTransferType(value: unknown): "blind" | "attended" | null {
+  if (value === "blind" || value === "attended") {
+    return value;
+  }
+  return null;
 }

@@ -6,6 +6,7 @@
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { createDomainEvent } from "@domain/shared/DomainEvent.js";
 import type { CallId } from "../CallId.js";
+import type { CallState } from "../CallState.js";
 import type { CallFailureReason } from "../CallFailureReason.js";
 import type { DtmfTone } from "../DtmfTone.js";
 import type { PhoneNumber } from "../PhoneNumber.js";
@@ -83,7 +84,25 @@ export type CallTransferRequestedEvent = ReturnType<
 >;
 export type CallTransferredEvent = ReturnType<typeof createCallTransferredEvent>;
 export type CallTransferFailedEvent = ReturnType<typeof createCallTransferFailedEvent>;
-export type TransferType = "blind";
+export type ConsultationCallRequestedEvent = ReturnType<
+  typeof createConsultationCallRequestedEvent
+>;
+export type ConsultationCallStartedEvent = ReturnType<
+  typeof createConsultationCallStartedEvent
+>;
+export type ConsultationCallFailedEvent = ReturnType<
+  typeof createConsultationCallFailedEvent
+>;
+export type AttendedTransferRequestedEvent = ReturnType<
+  typeof createAttendedTransferRequestedEvent
+>;
+export type AttendedTransferCompletedEvent = ReturnType<
+  typeof createAttendedTransferCompletedEvent
+>;
+export type AttendedTransferFailedEvent = ReturnType<
+  typeof createAttendedTransferFailedEvent
+>;
+export type TransferType = "blind" | "attended";
 export type HoldAllPhase = "in_progress" | "completed" | "failed";
 export type HoldAllTrigger = "before_outgoing";
 
@@ -120,7 +139,13 @@ export type OutgoingCallDomainEvent =
   | SecondSessionBlockedEvent
   | CallTransferRequestedEvent
   | CallTransferredEvent
-  | CallTransferFailedEvent;
+  | CallTransferFailedEvent
+  | ConsultationCallRequestedEvent
+  | ConsultationCallStartedEvent
+  | ConsultationCallFailedEvent
+  | AttendedTransferRequestedEvent
+  | AttendedTransferCompletedEvent
+  | AttendedTransferFailedEvent;
 
 export type IncomingCallDomainEvent =
   | IncomingCallReceivedEvent
@@ -144,7 +169,13 @@ export type IncomingCallDomainEvent =
   | SecondSessionBlockedEvent
   | CallTransferRequestedEvent
   | CallTransferredEvent
-  | CallTransferFailedEvent;
+  | CallTransferFailedEvent
+  | ConsultationCallRequestedEvent
+  | ConsultationCallStartedEvent
+  | ConsultationCallFailedEvent
+  | AttendedTransferRequestedEvent
+  | AttendedTransferCompletedEvent
+  | AttendedTransferFailedEvent;
 
 export type CallDomainEvent = OutgoingCallDomainEvent | IncomingCallDomainEvent;
 
@@ -479,5 +510,70 @@ export function createCallTransferFailedEvent(
   }>,
 ): ReturnType<typeof createDomainEvent<"CallTransferFailed", typeof payload>> {
   return createDomainEvent("CallTransferFailed", correlationId, payload);
+}
+
+export function createConsultationCallRequestedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    sourceCallId: CallId;
+    consultationCallId: CallId;
+    targetNumber: PhoneNumber;
+  }>,
+): ReturnType<typeof createDomainEvent<"ConsultationCallRequested", typeof payload>> {
+  return createDomainEvent("ConsultationCallRequested", correlationId, payload);
+}
+
+export function createConsultationCallStartedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    sourceCallId: CallId;
+    consultationCallId: CallId;
+  }>,
+): ReturnType<typeof createDomainEvent<"ConsultationCallStarted", typeof payload>> {
+  return createDomainEvent("ConsultationCallStarted", correlationId, payload);
+}
+
+export function createConsultationCallFailedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    sourceCallId: CallId;
+    consultationCallId: CallId;
+    reason: string;
+    restoredSourceState: CallState;
+  }>,
+): ReturnType<typeof createDomainEvent<"ConsultationCallFailed", typeof payload>> {
+  return createDomainEvent("ConsultationCallFailed", correlationId, payload);
+}
+
+export function createAttendedTransferRequestedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    sourceCallId: CallId;
+    consultationCallId: CallId;
+  }>,
+): ReturnType<typeof createDomainEvent<"AttendedTransferRequested", typeof payload>> {
+  return createDomainEvent("AttendedTransferRequested", correlationId, payload);
+}
+
+export function createAttendedTransferCompletedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    sourceCallId: CallId;
+    consultationCallId: CallId;
+  }>,
+): ReturnType<typeof createDomainEvent<"AttendedTransferCompleted", typeof payload>> {
+  return createDomainEvent("AttendedTransferCompleted", correlationId, payload);
+}
+
+export function createAttendedTransferFailedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    sourceCallId: CallId;
+    consultationCallId: CallId;
+    reason: string;
+    restoredSourceState: CallState;
+  }>,
+): ReturnType<typeof createDomainEvent<"AttendedTransferFailed", typeof payload>> {
+  return createDomainEvent("AttendedTransferFailed", correlationId, payload);
 }
 

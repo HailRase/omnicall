@@ -110,6 +110,39 @@ export function reduceActiveCallControlsProjection(
         muted: projection.muted,
         lastOperationError: null,
       });
+    case "AttendedTransferRequested":
+      return createActiveCallControlsProjection({
+        callId: asOptionalString(event["sourceCallId"]),
+        callState: "Transferring",
+        muted: projection.muted,
+        lastOperationError: null,
+      });
+    case "AttendedTransferFailed":
+      return createActiveCallControlsProjection({
+        callId: asOptionalString(event["sourceCallId"]) ?? projection.callId,
+        callState: parseRestoredSourceState(event["restoredSourceState"]),
+        muted: projection.muted,
+        lastOperationError: null,
+      });
+    case "AttendedTransferCompleted":
+      return createActiveCallControlsProjection({
+        callId: asOptionalString(event["sourceCallId"]),
+        callState: "Ended",
+        muted: false,
+      });
+    case "ConsultationCallStarted":
+      return createActiveCallControlsProjection({
+        callId: asOptionalString(event["consultationCallId"]),
+        callState: "Active",
+        muted: projection.muted,
+      });
+    case "ConsultationCallFailed":
+      return createActiveCallControlsProjection({
+        callId: asOptionalString(event["sourceCallId"]) ?? projection.callId,
+        callState: parseRestoredSourceState(event["restoredSourceState"]),
+        muted: projection.muted,
+        lastOperationError: null,
+      });
     case "CallTransferred":
       return createActiveCallControlsProjection({
         callId: asOptionalString(event["callId"]),
@@ -268,6 +301,13 @@ function resolveHangupDisabledReason(base: {
     return "call_ending";
   }
   return null;
+}
+
+function parseRestoredSourceState(value: unknown): CallState {
+  if (value === "Active" || value === "Held") {
+    return value;
+  }
+  return "Active";
 }
 
 function asOptionalString(value: unknown): string | null {

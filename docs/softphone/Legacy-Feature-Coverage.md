@@ -72,7 +72,7 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-026 | P02 | UI | Low | Long press 0 produces plus | `DialPad` | Dialpad supports international number input. |
 | LF-027 | P04 | Telephony | Critical | Hang up call | `handleHangup` | Hangup transitions any valid active call to terminal state. |
 | LF-028 | P05 | Telephony | High | Blind transfer | `ControlPanel`, `onReferHandler` | WU2: `BlindTransferUseCase`, transfer events, mock gateway — see `handoffs/P05-WU2-Transfer-Domain-Handoff.md`. |
-| LF-029 | P05 | Telephony | High | Attended transfer with multiple lines | `ActiveCall`, `onReferHandler` | Consultation call can complete attended transfer. |
+| LF-029 | P05 | Telephony | High | Attended transfer with multiple lines | `ActiveCall`, `onReferHandler` | WU3: `handoffs/P05-WU3-Attended-Transfer-Handoff.md` — consultation + attended transfer via mock gateway. |
 | LF-030 | P05 | UI | Medium | Cancel transfer mode | `ActiveCall` | Transfer mode can be cancelled without invalid state. |
 | LF-031 | P05 | Telephony | Medium | Auto-unhold after failed transfer | user config | Failed transfer restores previous valid call state. |
 | LF-032 | P05 | Telephony | High | Block second session when disabled | `isMultiSessions` | WU1: `evaluateSecondSessionBlock`, `SecondSessionBlocked`, `multiCallProjection` — see `handoffs/P05-WU1-Multi-Call-Policy-Handoff.md`. |

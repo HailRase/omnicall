@@ -53,7 +53,7 @@ export function evaluateSecondSessionBlock(
 export function getCallsToHoldBeforeOutgoing(
   calls: ReadonlyArray<Call>,
 ): ReadonlyArray<Call> {
-  return calls.filter(isEstablishedCall);
+  return calls.filter((call) => call.state === "Active");
 }
 
 export function shouldHoldAllBeforeOutgoing(calls: ReadonlyArray<Call>): boolean {

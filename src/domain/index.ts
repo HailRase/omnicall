@@ -107,6 +107,30 @@ export type {
   BlindTransferEligibilityResult,
 } from "./telephony/TransferEligibility.js";
 export { evaluateBlindTransferEligibility } from "./telephony/TransferEligibility.js";
+export type {
+  AttendedTransferDisabledReason,
+  StartConsultationEligibilityInput,
+  StartConsultationEligibilityResult,
+  CompleteAttendedTransferEligibilityInput,
+  CompleteAttendedTransferEligibilityResult,
+} from "./telephony/AttendedTransferEligibility.js";
+export {
+  evaluateStartConsultationEligibility,
+  evaluateCompleteAttendedTransferEligibility,
+  isConsultationEligibleSourceState,
+} from "./telephony/AttendedTransferEligibility.js";
+export type {
+  CallRole,
+  TransferSessionPhase,
+  TransferSession,
+  TransferSessionTransition,
+  TransferSessionTransitionResult,
+} from "./telephony/CallRelationship.js";
+export {
+  createTransferSession,
+  transitionTransferSession,
+  isTransferSessionBlockingSecondConsultation,
+} from "./telephony/CallRelationship.js";
 export type { Call } from "./telephony/Call.js";
 export {
   applyCallTransition,
@@ -180,6 +204,12 @@ export type {
   CallTransferRequestedEvent,
   CallTransferredEvent,
   CallTransferFailedEvent,
+  ConsultationCallRequestedEvent,
+  ConsultationCallStartedEvent,
+  ConsultationCallFailedEvent,
+  AttendedTransferRequestedEvent,
+  AttendedTransferCompletedEvent,
+  AttendedTransferFailedEvent,
   TransferType,
   HoldAllPhase,
   HoldAllTrigger,
@@ -218,6 +248,12 @@ export {
   createCallTransferRequestedEvent,
   createCallTransferredEvent,
   createCallTransferFailedEvent,
+  createConsultationCallRequestedEvent,
+  createConsultationCallStartedEvent,
+  createConsultationCallFailedEvent,
+  createAttendedTransferRequestedEvent,
+  createAttendedTransferCompletedEvent,
+  createAttendedTransferFailedEvent,
 } from "./telephony/events/callEvents.js";
 export type {
   AccessDeniedDetectedEvent,

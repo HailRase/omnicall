@@ -21,6 +21,8 @@ import { ResolveStartupModeUseCase } from "../use-cases/ResolveStartupModeUseCas
 import { SendDtmfUseCase } from "../use-cases/SendDtmfUseCase.js";
 import { UnmuteCallUseCase } from "../use-cases/UnmuteCallUseCase.js";
 import { BlindTransferUseCase } from "../use-cases/BlindTransferUseCase.js";
+import { StartConsultationUseCase } from "../use-cases/StartConsultationUseCase.js";
+import { AttendedTransferUseCase } from "../use-cases/AttendedTransferUseCase.js";
 import type {
   DomainEventPublisher,
   HostIntegrationGateway,
@@ -61,6 +63,8 @@ export class AccountBootstrapFacade {
   readonly rejectCallUseCase: RejectCallUseCase;
   readonly sendDtmfUseCase: SendDtmfUseCase;
   readonly blindTransferUseCase: BlindTransferUseCase;
+  readonly startConsultationUseCase: StartConsultationUseCase;
+  readonly attendedTransferUseCase: AttendedTransferUseCase;
 
   private readonly processedCredentialEvents = new Set<string>();
   private readonly callEngine: CallEngine;
@@ -113,6 +117,8 @@ export class AccountBootstrapFacade {
     );
     this.sendDtmfUseCase = new SendDtmfUseCase(this.callEngine, deps.logger);
     this.blindTransferUseCase = new BlindTransferUseCase(this.callEngine, deps.logger);
+    this.startConsultationUseCase = new StartConsultationUseCase(this.callEngine, deps.logger);
+    this.attendedTransferUseCase = new AttendedTransferUseCase(this.callEngine, deps.logger);
 
     deps.telephonyGateway.setIncomingCallHandler(async (notification) => {
       await this.callEngine.handleIncomingReceived({ notification });
@@ -266,6 +272,48 @@ export class AccountBootstrapFacade {
     targetNumber: string,
   ): Promise<Result<Call, PlatformError>> {
     return this.blindTransfer(createCallId(callId), targetNumber);
+  }
+
+  async startConsultation(
+    sourceCallId: CallId,
+    targetNumber: string,
+    consultationCallId?: CallId,
+  ): Promise<Result<Call, PlatformError>> {
+    const input =
+      consultationCallId === undefined
+        ? { sourceCallId, targetNumber }
+        : { sourceCallId, targetNumber, consultationCallId };
+    return this.startConsultationUseCase.execute(input);
+  }
+
+  async startConsultationByIds(
+    sourceCallId: string,
+    targetNumber: string,
+    consultationCallId?: string,
+  ): Promise<Result<Call, PlatformError>> {
+    const parsedSourceCallId = createCallId(sourceCallId);
+    if (consultationCallId === undefined) {
+      return this.startConsultation(parsedSourceCallId, targetNumber);
+    }
+    return this.startConsultation(
+      parsedSourceCallId,
+      targetNumber,
+      createCallId(consultationCallId),
+    );
+  }
+
+  async attendedTransfer(
+    sourceCallId: CallId,
+    consultationCallId: CallId,
+  ): Promise<Result<Call, PlatformError>> {
+    return this.attendedTransferUseCase.execute({ sourceCallId, consultationCallId });
+  }
+
+  async attendedTransferByIds(
+    sourceCallId: string,
+    consultationCallId: string,
+  ): Promise<Result<Call, PlatformError>> {
+    return this.attendedTransfer(createCallId(sourceCallId), createCallId(consultationCallId));
   }
 
   async answerCall(callId: CallId): Promise<Result<Call, PlatformError>> {
