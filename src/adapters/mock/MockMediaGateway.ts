@@ -3,7 +3,10 @@ import type {
   MediaGateway,
   PlayBusyToneCommand,
   PlayFailedToneCommand,
+  PlayIncomingRingtoneCommand,
+  PlayRingtoneCommand,
   PlayRingbackToneCommand,
+  StopRingtoneCommand,
   StopToneCommand,
 } from "@ports/index.js";
 import { createPlatformError } from "@shared/errors/index.js";
@@ -22,6 +25,7 @@ export class MockMediaGateway implements MediaGateway {
   private scenario: MockMediaScenario;
   private readonly remoteAudioAttachedCalls = new Set<string>();
   private readonly ringbackCalls = new Set<string>();
+  private readonly incomingRingtoneCalls = new Set<string>();
   private readonly busyToneCalls = new Set<string>();
   private readonly failureTones: string[] = [];
 
@@ -39,6 +43,10 @@ export class MockMediaGateway implements MediaGateway {
 
   isRingbackPlaying(callId: string): boolean {
     return this.ringbackCalls.has(callId);
+  }
+
+  isIncomingRingtonePlaying(callId: string): boolean {
+    return this.incomingRingtoneCalls.has(callId);
   }
 
   getFailureTones(): ReadonlyArray<string> {
@@ -83,6 +91,28 @@ export class MockMediaGateway implements MediaGateway {
 
     this.ringbackCalls.add(command.callId);
     return Promise.resolve(ok(undefined));
+  }
+
+  playIncomingRingtone(
+    command: PlayIncomingRingtoneCommand,
+  ): Promise<Result<void, PlatformError>> {
+    if (this.scenario === "failure") {
+      return Promise.resolve(
+        err(
+          createPlatformError(
+            "operation_failed",
+            `Incoming ringtone failed for ${command.callId}`,
+          ),
+        ),
+      );
+    }
+
+    this.incomingRingtoneCalls.add(command.callId);
+    return Promise.resolve(ok(undefined));
+  }
+
+  playRingtone(command: PlayRingtoneCommand): Promise<Result<void, PlatformError>> {
+    return this.playIncomingRingtone(command);
   }
 
   playFailedTone(
@@ -136,8 +166,15 @@ export class MockMediaGateway implements MediaGateway {
     }
 
     this.ringbackCalls.delete(command.callId);
+    this.incomingRingtoneCalls.delete(command.callId);
     this.busyToneCalls.delete(command.callId);
     return Promise.resolve(ok(undefined));
+  }
+
+  stopRingtone(
+    command: StopRingtoneCommand,
+  ): Promise<Result<void, PlatformError>> {
+    return this.stopTone(command);
   }
 }
 

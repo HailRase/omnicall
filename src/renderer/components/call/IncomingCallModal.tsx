@@ -1,0 +1,127 @@
+import { useEffect, useRef, type JSX, type KeyboardEvent } from "react";
+import type { IncomingCallUiState } from "@application/index.js";
+import { AutoAnswerCountdown } from "./AutoAnswerCountdown.js";
+import { CallerIdentityBlock } from "./CallerIdentityBlock.js";
+import { IncomingCallActions } from "./IncomingCallActions.js";
+import { IncomingCallStatusMessage } from "./IncomingCallStatusMessage.js";
+import { RejectReasonSelector } from "./RejectReasonSelector.js";
+
+export type IncomingCallModalProps = Readonly<{
+  visible: boolean;
+  callerNumber: string | null;
+  displayName: string | null;
+  queueInfo: string | null;
+  ringingState: "idle" | "ringing";
+  autoAnswerSecondsRemaining: number | null;
+  uiState: IncomingCallUiState;
+  rejectReasonRequired: boolean;
+  rejectReasons: ReadonlyArray<string>;
+  selectedBreakReason: string | null;
+  answerDisabledReason: string | null;
+  rejectDisabledReason: string | null;
+  onAnswer: () => void;
+  onReject: () => void;
+  onSelectBreakReason: (reason: string) => void;
+}>;
+
+export function IncomingCallModal({
+  visible,
+  callerNumber,
+  displayName,
+  queueInfo,
+  ringingState,
+  autoAnswerSecondsRemaining,
+  uiState,
+  rejectReasonRequired,
+  rejectReasons,
+  selectedBreakReason,
+  answerDisabledReason,
+  rejectDisabledReason,
+  onAnswer,
+  onReject,
+  onSelectBreakReason,
+}: IncomingCallModalProps): JSX.Element | null {
+  const modalRef = useRef<HTMLElement | null>(null);
+  useEffect(() => {
+    if (visible) {
+      modalRef.current?.focus();
+    }
+  }, [visible]);
+
+  if (!visible) {
+    return null;
+  }
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLElement>): void => {
+    if (event.key === "Enter" && answerDisabledReason === null) {
+      onAnswer();
+      return;
+    }
+    if (event.key === "Escape" && rejectDisabledReason === null) {
+      onReject();
+      return;
+    }
+    if (event.key !== "Tab") {
+      return;
+    }
+
+    const focusable = modalRef.current?.querySelectorAll<HTMLElement>(
+      "button, select, [tabindex]:not([tabindex='-1'])",
+    );
+    if (focusable === undefined || focusable.length === 0) {
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (first === undefined || last === undefined) {
+      return;
+    }
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+      return;
+    }
+    if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+
+  return (
+    <section
+      ref={modalRef}
+      role="dialog"
+      aria-label="Incoming call"
+      tabIndex={-1}
+      data-testid="incoming-call-modal"
+      onKeyDown={handleKeyDown}
+    >
+      <h2>Incoming Call</h2>
+      <p data-testid="ringing-indicator">
+        <strong>Ringing:</strong> {ringingState}
+      </p>
+      <CallerIdentityBlock
+        callerNumber={callerNumber}
+        displayName={displayName}
+        queueInfo={queueInfo}
+      />
+      <IncomingCallStatusMessage uiState={uiState} />
+      <AutoAnswerCountdown secondsRemaining={autoAnswerSecondsRemaining} />
+
+      <RejectReasonSelector
+        reasons={rejectReasons}
+        selectedReason={selectedBreakReason}
+        required={rejectReasonRequired}
+        disabled={rejectDisabledReason !== null}
+        onSelect={onSelectBreakReason}
+      />
+
+      <IncomingCallActions
+        answerDisabledReason={answerDisabledReason}
+        rejectDisabledReason={rejectDisabledReason}
+        onAnswer={onAnswer}
+        onReject={onReject}
+      />
+    </section>
+  );
+}

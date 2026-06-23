@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 import { InMemoryDomainEventBus } from "@application/events/InMemoryDomainEventBus.js";
 import { CallEngine } from "@application/services/CallEngine.js";
 import { SendDtmfUseCase } from "./SendDtmfUseCase.js";
-import { MockMediaGateway, MockTelephonyGateway } from "@adapters/index.js";
+import {
+  InMemorySettingsRepository,
+  MockMediaGateway,
+  MockTelephonyGateway,
+} from "@adapters/index.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
 import { createCallId } from "@domain/index.js";
 
@@ -12,6 +16,7 @@ describe("SendDtmfUseCase", () => {
       new CallEngine(
         new MockTelephonyGateway(),
         new MockMediaGateway(),
+        new InMemorySettingsRepository(),
         new InMemoryDomainEventBus(),
         createTestLogger(),
       ),
@@ -34,7 +39,13 @@ describe("SendDtmfUseCase", () => {
 
     const telephony = new MockTelephonyGateway({ dtmfScenario: "success" });
     const useCase = new SendDtmfUseCase(
-      new CallEngine(telephony, new MockMediaGateway(), events, createTestLogger()),
+      new CallEngine(
+        telephony,
+        new MockMediaGateway(),
+        new InMemorySettingsRepository(),
+        events,
+        createTestLogger(),
+      ),
       createTestLogger(),
     );
 

@@ -30,6 +30,30 @@ export type SendDtmfCommand = Readonly<{
   correlationId: CorrelationId;
 }>;
 
+export type AnswerCallCommand = Readonly<{
+  callId: CallId;
+  correlationId: CorrelationId;
+}>;
+
+export type RejectCallCommand = Readonly<{
+  callId: CallId;
+  correlationId: CorrelationId;
+  sipCode?: number;
+  reason?: string;
+}>;
+
+export type TelephonyIncomingCallNotification = Readonly<{
+  callId: CallId;
+  remoteNumber: string;
+  remoteDisplayNameRaw?: string;
+  correlationId: CorrelationId;
+}>;
+
+export type TelephonyCallEndedNotification = Readonly<{
+  callId: CallId;
+  correlationId: CorrelationId;
+}>;
+
 export type HangupCommand = Readonly<{
   callId: CallId;
   correlationId: CorrelationId;
@@ -39,6 +63,14 @@ export interface TelephonyGateway {
   register(command: RegisterAccountCommand): Promise<Result<void, PlatformError>>;
   unregister(correlationId: CorrelationId): Promise<Result<void, PlatformError>>;
   makeCall(command: MakeCallCommand): Promise<Result<MakeCallProgress, PlatformError>>;
+  answerCall(command: AnswerCallCommand): Promise<Result<void, PlatformError>>;
+  rejectCall(command: RejectCallCommand): Promise<Result<void, PlatformError>>;
   sendDtmf(command: SendDtmfCommand): Promise<Result<void, PlatformError>>;
   hangup(command: HangupCommand): Promise<Result<void, PlatformError>>;
+  setIncomingCallHandler(
+    handler: ((notification: TelephonyIncomingCallNotification) => Promise<void>) | null,
+  ): () => void;
+  setCallEndedHandler(
+    handler: ((notification: TelephonyCallEndedNotification) => Promise<void>) | null,
+  ): () => void;
 }

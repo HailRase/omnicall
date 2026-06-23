@@ -1,5 +1,5 @@
 /**
- * - Purpose: represent outgoing call and DTMF domain facts.
+ * - Purpose: represent call lifecycle and DTMF domain facts.
  * - Inputs: correlation id and typed call event payloads.
  * - Outputs: immutable domain events for projections and logs.
  */
@@ -16,10 +16,28 @@ export type OutgoingCallRequestedEvent = ReturnType<
 export type OutgoingCallStartedEvent = ReturnType<
   typeof createOutgoingCallStartedEvent
 >;
+export type IncomingCallReceivedEvent = ReturnType<
+  typeof createIncomingCallReceivedEvent
+>;
+export type IncomingCallRingingStartedEvent = ReturnType<
+  typeof createIncomingCallRingingStartedEvent
+>;
+export type IncomingCallDisplayNameResolvedEvent = ReturnType<
+  typeof createIncomingCallDisplayNameResolvedEvent
+>;
 export type CallProgressReceivedEvent = ReturnType<
   typeof createCallProgressReceivedEvent
 >;
 export type CallAnsweredEvent = ReturnType<typeof createCallAnsweredEvent>;
+export type CallRejectedEvent = ReturnType<typeof createCallRejectedEvent>;
+export type CallAutoAnsweredEvent = ReturnType<typeof createCallAutoAnsweredEvent>;
+export type CallRejectedByDndEvent = ReturnType<typeof createCallRejectedByDndEvent>;
+export type CallRejectReasonSelectedEvent = ReturnType<
+  typeof createCallRejectReasonSelectedEvent
+>;
+export type IncomingCallEndedBeforeAnswerEvent = ReturnType<
+  typeof createIncomingCallEndedBeforeAnswerEvent
+>;
 export type CallFailedEvent = ReturnType<typeof createCallFailedEvent>;
 export type CallEndedEvent = ReturnType<typeof createCallEndedEvent>;
 export type DtmfSentEvent = ReturnType<typeof createDtmfSentEvent>;
@@ -30,6 +48,12 @@ export type RemoteAudioAttachedEvent = ReturnType<
 export type RingbackToneStartedEvent = ReturnType<
   typeof createRingbackToneStartedEvent
 >;
+export type IncomingRingtoneStartedEvent = ReturnType<
+  typeof createIncomingRingtoneStartedEvent
+>;
+export type IncomingRingtoneStoppedEvent = ReturnType<
+  typeof createIncomingRingtoneStoppedEvent
+>;
 export type BusyToneStartedEvent = ReturnType<typeof createBusyToneStartedEvent>;
 export type FailedToneStartedEvent = ReturnType<
   typeof createFailedToneStartedEvent
@@ -38,16 +62,41 @@ export type FailedToneStartedEvent = ReturnType<
 export type OutgoingCallDomainEvent =
   | OutgoingCallRequestedEvent
   | OutgoingCallStartedEvent
+  | IncomingCallReceivedEvent
+  | IncomingCallRingingStartedEvent
+  | IncomingCallDisplayNameResolvedEvent
   | CallProgressReceivedEvent
   | CallAnsweredEvent
+  | CallRejectedEvent
+  | CallAutoAnsweredEvent
+  | CallRejectedByDndEvent
+  | CallRejectReasonSelectedEvent
+  | IncomingCallEndedBeforeAnswerEvent
   | CallFailedEvent
   | CallEndedEvent
   | DtmfSentEvent
   | DtmfFailedEvent
   | RemoteAudioAttachedEvent
   | RingbackToneStartedEvent
+  | IncomingRingtoneStartedEvent
+  | IncomingRingtoneStoppedEvent
   | BusyToneStartedEvent
   | FailedToneStartedEvent;
+
+export type IncomingCallDomainEvent =
+  | IncomingCallReceivedEvent
+  | IncomingCallRingingStartedEvent
+  | IncomingCallDisplayNameResolvedEvent
+  | CallAnsweredEvent
+  | CallRejectedEvent
+  | CallAutoAnsweredEvent
+  | CallRejectedByDndEvent
+  | CallRejectReasonSelectedEvent
+  | IncomingCallEndedBeforeAnswerEvent
+  | CallEndedEvent
+  | CallFailedEvent;
+
+export type CallDomainEvent = OutgoingCallDomainEvent | IncomingCallDomainEvent;
 
 export function createOutgoingCallRequestedEvent(
   correlationId: CorrelationId,
@@ -68,6 +117,41 @@ export function createOutgoingCallStartedEvent(
   return createDomainEvent("OutgoingCallStarted", correlationId, payload);
 }
 
+export function createIncomingCallReceivedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    callId: CallId;
+    phoneNumber: PhoneNumber;
+    direction: "incoming";
+  }>,
+): ReturnType<typeof createDomainEvent<"IncomingCallReceived", typeof payload>> {
+  return createDomainEvent("IncomingCallReceived", correlationId, payload);
+}
+
+export function createIncomingCallRingingStartedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    callId: CallId;
+    autoAnswerTimeoutSec: number | null;
+  }>,
+): ReturnType<
+  typeof createDomainEvent<"IncomingCallRingingStarted", typeof payload>
+> {
+  return createDomainEvent("IncomingCallRingingStarted", correlationId, payload);
+}
+
+export function createIncomingCallDisplayNameResolvedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    callId: CallId;
+    displayName: string;
+  }>,
+): ReturnType<
+  typeof createDomainEvent<"IncomingCallDisplayNameResolved", typeof payload>
+> {
+  return createDomainEvent("IncomingCallDisplayNameResolved", correlationId, payload);
+}
+
 export function createCallProgressReceivedEvent(
   correlationId: CorrelationId,
   payload: Readonly<{
@@ -85,6 +169,59 @@ export function createCallAnsweredEvent(
   }>,
 ): ReturnType<typeof createDomainEvent<"CallAnswered", typeof payload>> {
   return createDomainEvent("CallAnswered", correlationId, payload);
+}
+
+export function createCallRejectedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    callId: CallId;
+    reason: string | null;
+  }>,
+): ReturnType<typeof createDomainEvent<"CallRejected", typeof payload>> {
+  return createDomainEvent("CallRejected", correlationId, payload);
+}
+
+export function createCallAutoAnsweredEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    callId: CallId;
+    timeoutSec: number;
+  }>,
+): ReturnType<typeof createDomainEvent<"CallAutoAnswered", typeof payload>> {
+  return createDomainEvent("CallAutoAnswered", correlationId, payload);
+}
+
+export function createCallRejectedByDndEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    callId: CallId;
+    sipCode: 486;
+  }>,
+): ReturnType<typeof createDomainEvent<"CallRejectedByDnd", typeof payload>> {
+  return createDomainEvent("CallRejectedByDnd", correlationId, payload);
+}
+
+export function createCallRejectReasonSelectedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    callId: CallId;
+    breakReason: string;
+  }>,
+): ReturnType<
+  typeof createDomainEvent<"CallRejectReasonSelected", typeof payload>
+> {
+  return createDomainEvent("CallRejectReasonSelected", correlationId, payload);
+}
+
+export function createIncomingCallEndedBeforeAnswerEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    callId: CallId;
+  }>,
+): ReturnType<
+  typeof createDomainEvent<"IncomingCallEndedBeforeAnswer", typeof payload>
+> {
+  return createDomainEvent("IncomingCallEndedBeforeAnswer", correlationId, payload);
 }
 
 export function createCallFailedEvent(
@@ -144,6 +281,24 @@ export function createRingbackToneStartedEvent(
   }>,
 ): ReturnType<typeof createDomainEvent<"RingbackToneStarted", typeof payload>> {
   return createDomainEvent("RingbackToneStarted", correlationId, payload);
+}
+
+export function createIncomingRingtoneStartedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    callId: CallId;
+  }>,
+): ReturnType<typeof createDomainEvent<"IncomingRingtoneStarted", typeof payload>> {
+  return createDomainEvent("IncomingRingtoneStarted", correlationId, payload);
+}
+
+export function createIncomingRingtoneStoppedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    callId: CallId;
+  }>,
+): ReturnType<typeof createDomainEvent<"IncomingRingtoneStopped", typeof payload>> {
+  return createDomainEvent("IncomingRingtoneStopped", correlationId, payload);
 }
 
 export function createBusyToneStartedEvent(

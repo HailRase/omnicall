@@ -47,6 +47,14 @@ export {
   createSipCredentialsReceivedEvent,
 } from "./operator/events/operatorAuthEvents.js";
 export type {
+  BreakReason,
+  BreakReasonValidationError,
+} from "./operator/BreakReason.js";
+export {
+  createBreakReason,
+  validateBreakReason,
+} from "./operator/BreakReason.js";
+export type {
   SipAccount,
   SipAccountInput,
 } from "./telephony/SipAccount.js";
@@ -70,6 +78,8 @@ export type { CallId } from "./telephony/CallId.js";
 export { createCallId } from "./telephony/CallId.js";
 export type { CallDirection } from "./telephony/CallDirection.js";
 export { CALL_DIRECTIONS } from "./telephony/CallDirection.js";
+export type { CallerIdentity } from "./telephony/CallerIdentity.js";
+export { createCallerIdentity } from "./telephony/CallerIdentity.js";
 export type { CallState } from "./telephony/CallState.js";
 export { CALL_STATES, initialCallState } from "./telephony/CallState.js";
 export type { CallFailureReason } from "./telephony/CallFailureReason.js";
@@ -80,7 +90,21 @@ export {
 export type { CallTransitionEvent, CallTransitionResult } from "./telephony/CallStateMachine.js";
 export { transitionCallState } from "./telephony/CallStateMachine.js";
 export type { Call } from "./telephony/Call.js";
-export { applyCallTransition, createOutgoingCall } from "./telephony/Call.js";
+export {
+  applyCallTransition,
+  createIncomingCall,
+  createOutgoingCall,
+} from "./telephony/Call.js";
+export type { IncomingCall } from "./telephony/IncomingCall.js";
+export { asIncomingCall } from "./telephony/IncomingCall.js";
+export type {
+  RejectReason,
+  RejectReasonValidationError,
+} from "./telephony/RejectReason.js";
+export {
+  createRejectReason,
+  validateRejectReason,
+} from "./telephony/RejectReason.js";
 export type { DtmfTone, DtmfToneValidationError } from "./telephony/DtmfTone.js";
 export {
   createDtmfTone,
@@ -99,31 +123,53 @@ export {
   createRegistrationSucceededEvent,
 } from "./telephony/events/registrationEvents.js";
 export type {
+  CallAutoAnsweredEvent,
   OutgoingCallDomainEvent,
+  IncomingCallDomainEvent,
+  CallDomainEvent,
+  IncomingCallDisplayNameResolvedEvent,
+  IncomingCallReceivedEvent,
+  IncomingCallRingingStartedEvent,
   OutgoingCallRequestedEvent,
   OutgoingCallStartedEvent,
   CallProgressReceivedEvent,
   CallAnsweredEvent,
+  CallRejectedEvent,
+  CallRejectedByDndEvent,
+  CallRejectReasonSelectedEvent,
+  IncomingCallEndedBeforeAnswerEvent,
   CallFailedEvent,
   CallEndedEvent,
   DtmfSentEvent,
   DtmfFailedEvent,
   RemoteAudioAttachedEvent,
   RingbackToneStartedEvent,
+  IncomingRingtoneStartedEvent,
+  IncomingRingtoneStoppedEvent,
   BusyToneStartedEvent,
   FailedToneStartedEvent,
 } from "./telephony/events/callEvents.js";
 export {
+  createCallAutoAnsweredEvent,
   createOutgoingCallRequestedEvent,
   createOutgoingCallStartedEvent,
+  createIncomingCallDisplayNameResolvedEvent,
+  createIncomingCallReceivedEvent,
+  createIncomingCallRingingStartedEvent,
   createCallProgressReceivedEvent,
   createCallAnsweredEvent,
+  createCallRejectedByDndEvent,
+  createCallRejectedEvent,
+  createCallRejectReasonSelectedEvent,
+  createIncomingCallEndedBeforeAnswerEvent,
   createCallFailedEvent,
   createCallEndedEvent,
   createDtmfSentEvent,
   createDtmfFailedEvent,
   createRemoteAudioAttachedEvent,
   createRingbackToneStartedEvent,
+  createIncomingRingtoneStartedEvent,
+  createIncomingRingtoneStoppedEvent,
   createBusyToneStartedEvent,
   createFailedToneStartedEvent,
 } from "./telephony/events/callEvents.js";

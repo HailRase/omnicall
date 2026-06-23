@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 import { InMemoryDomainEventBus } from "@application/events/InMemoryDomainEventBus.js";
 import { CallEngine } from "@application/services/CallEngine.js";
 import { MakeCallUseCase } from "./MakeCallUseCase.js";
-import { MockMediaGateway, MockTelephonyGateway } from "@adapters/index.js";
+import {
+  InMemorySettingsRepository,
+  MockMediaGateway,
+  MockTelephonyGateway,
+} from "@adapters/index.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
 
 describe("MakeCallUseCase", () => {
@@ -12,6 +16,7 @@ describe("MakeCallUseCase", () => {
       new CallEngine(
         telephony,
         new MockMediaGateway(),
+        new InMemorySettingsRepository(),
         new InMemoryDomainEventBus(),
         createTestLogger(),
       ),
@@ -35,6 +40,7 @@ describe("MakeCallUseCase", () => {
       new CallEngine(
         telephony,
         new MockMediaGateway(),
+        new InMemorySettingsRepository(),
         events,
         createTestLogger(),
       ),

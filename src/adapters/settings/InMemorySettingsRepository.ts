@@ -1,14 +1,20 @@
 import type {
   AppBootstrapConfig,
+  BreakReason,
   PhoneStatus,
   SipAccount,
 } from "@domain/index.js";
-import type { SettingsRepository } from "@ports/index.js";
+import { createBreakReason } from "@domain/index.js";
+import {
+  type IncomingCallSettings,
+  type SettingsRepository,
+} from "@ports/index.js";
 
 export type InMemorySettingsState = Readonly<{
   bootstrapConfig: AppBootstrapConfig;
   sipAccount: SipAccount | null;
   phoneStatus: PhoneStatus;
+  incomingCallSettings: IncomingCallSettings;
 }>;
 
 export class InMemorySettingsRepository implements SettingsRepository {
@@ -19,6 +25,11 @@ export class InMemorySettingsRepository implements SettingsRepository {
       bootstrapConfig: initial?.bootstrapConfig ?? { mode: "sip-only" },
       sipAccount: initial?.sipAccount ?? null,
       phoneStatus: initial?.phoneStatus ?? "offline",
+      incomingCallSettings: initial?.incomingCallSettings ?? {
+        autoAnswerTimeoutSec: null,
+        rejectReasonRequired: false,
+        allowedBreakReasons: defaultBreakReasons(),
+      },
     };
   }
 
@@ -47,4 +58,16 @@ export class InMemorySettingsRepository implements SettingsRepository {
     this.state = { ...this.state, phoneStatus: status };
     return Promise.resolve();
   }
+
+  getIncomingCallSettings(): Promise<IncomingCallSettings> {
+    return Promise.resolve(this.state.incomingCallSettings);
+  }
+}
+
+function defaultBreakReasons(): ReadonlyArray<BreakReason> {
+  return [
+    createBreakReason("break"),
+    createBreakReason("meeting"),
+    createBreakReason("training"),
+  ];
 }

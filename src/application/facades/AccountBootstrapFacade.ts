@@ -10,11 +10,14 @@ import { AuthenticateOcpUseCase } from "../use-cases/AuthenticateOcpUseCase.js";
 import { AuthorizeSipAccountUseCase } from "../use-cases/AuthorizeSipAccountUseCase.js";
 import { ChangePhoneStatusUseCase } from "../use-cases/ChangePhoneStatusUseCase.js";
 import { MakeCallUseCase } from "../use-cases/MakeCallUseCase.js";
+import { AnswerCallUseCase } from "../use-cases/AnswerCallUseCase.js";
+import { RejectCallUseCase } from "../use-cases/RejectCallUseCase.js";
 import { RegisterAccountUseCase } from "../use-cases/RegisterAccountUseCase.js";
 import { ResolveStartupModeUseCase } from "../use-cases/ResolveStartupModeUseCase.js";
 import { SendDtmfUseCase } from "../use-cases/SendDtmfUseCase.js";
 import type {
   DomainEventPublisher,
+  HostIntegrationGateway,
   Logger,
   MediaGateway,
   OperatorPlatformGateway,
@@ -30,6 +33,7 @@ export type AccountBootstrapFacadeDeps = Readonly<{
   telephonyGateway: TelephonyGateway;
   mediaGateway: MediaGateway;
   settingsRepository: SettingsRepository;
+  hostIntegrationGateway?: HostIntegrationGateway;
   logger: Logger;
   eventPublisher?: DomainEventPublisher;
 }>;
@@ -42,9 +46,12 @@ export class AccountBootstrapFacade {
   readonly registerAccount: RegisterAccountUseCase;
   readonly changePhoneStatus: ChangePhoneStatusUseCase;
   readonly makeCallUseCase: MakeCallUseCase;
+  readonly answerCallUseCase: AnswerCallUseCase;
+  readonly rejectCallUseCase: RejectCallUseCase;
   readonly sendDtmfUseCase: SendDtmfUseCase;
 
   private readonly processedCredentialEvents = new Set<string>();
+  private readonly callEngine: CallEngine;
 
   constructor(private readonly deps: AccountBootstrapFacadeDeps) {
     this.eventPublisher = deps.eventPublisher ?? new InMemoryDomainEventBus();
@@ -72,14 +79,32 @@ export class AccountBootstrapFacade {
       this.eventPublisher,
       deps.logger,
     );
-    const callEngine = new CallEngine(
+    this.callEngine = new CallEngine(
       deps.telephonyGateway,
       deps.mediaGateway,
+      deps.settingsRepository,
       this.eventPublisher,
       deps.logger,
+      deps.hostIntegrationGateway,
     );
-    this.makeCallUseCase = new MakeCallUseCase(callEngine, deps.logger);
-    this.sendDtmfUseCase = new SendDtmfUseCase(callEngine, deps.logger);
+    this.makeCallUseCase = new MakeCallUseCase(this.callEngine, deps.logger);
+    this.answerCallUseCase = new AnswerCallUseCase(this.callEngine, deps.logger);
+    this.rejectCallUseCase = new RejectCallUseCase(
+      this.callEngine,
+      deps.settingsRepository,
+      deps.logger,
+    );
+    this.sendDtmfUseCase = new SendDtmfUseCase(this.callEngine, deps.logger);
+
+    deps.telephonyGateway.setIncomingCallHandler(async (notification) => {
+      await this.callEngine.handleIncomingReceived({ notification });
+    });
+    deps.telephonyGateway.setCallEndedHandler(async (notification) => {
+      await this.callEngine.handleCallEnded(
+        notification.callId,
+        notification.correlationId,
+      );
+    });
 
     this.eventPublisher.subscribe((event) => {
       void this.handleAutoRegistration(event);
@@ -158,6 +183,20 @@ export class AccountBootstrapFacade {
 
   async sendDtmf(callId: CallId, tone: string): Promise<Result<void, PlatformError>> {
     return this.sendDtmfUseCase.execute({ callId, tone });
+  }
+
+  async answerCall(callId: CallId): Promise<Result<Call, PlatformError>> {
+    return this.answerCallUseCase.execute({ callId });
+  }
+
+  async rejectCall(
+    callId: CallId,
+    breakReason?: string,
+  ): Promise<Result<Call, PlatformError>> {
+    if (breakReason !== undefined) {
+      return this.rejectCallUseCase.execute({ callId, breakReason });
+    }
+    return this.rejectCallUseCase.execute({ callId });
   }
 
   private async handleAutoRegistration(event: DomainEvent): Promise<void> {

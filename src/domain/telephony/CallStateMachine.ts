@@ -7,10 +7,13 @@ import type { CallState } from "./CallState.js";
 import { initialCallState } from "./CallState.js";
 
 export type CallTransitionEvent =
+  | "incoming_received"
   | "outgoing_requested"
   | "outgoing_started"
   | "progress_received"
   | "answered"
+  | "reject_requested"
+  | "reject_completed"
   | "ended"
   | "hold_requested"
   | "resumed"
@@ -31,6 +34,12 @@ export function transitionCallState(
   event: CallTransitionEvent,
 ): CallTransitionResult {
   switch (event) {
+    case "incoming_received":
+      if (current === "Idle") {
+        return { ok: true, state: "Ringing" };
+      }
+      return reject(current, "incoming_requires_idle");
+
     case "outgoing_requested":
       if (current === "Idle") {
         return { ok: true, state: "Connecting" };
@@ -54,6 +63,18 @@ export function transitionCallState(
         return { ok: true, state: "Active" };
       }
       return reject(current, "answer_requires_connecting_or_ringing");
+
+    case "reject_requested":
+      if (current === "Ringing") {
+        return { ok: true, state: "Ending" };
+      }
+      return reject(current, "reject_requires_ringing");
+
+    case "reject_completed":
+      if (current === "Ending") {
+        return { ok: true, state: "Ended" };
+      }
+      return reject(current, "reject_complete_requires_ending");
 
     case "ended":
       if (

@@ -1,4 +1,4 @@
-import { useMemo, useState, type JSX } from "react";
+import { useEffect, useMemo, useState, type JSX } from "react";
 import { createCallId, validatePhoneNumber } from "@domain/index.js";
 import { deriveDialpadDisabledReason } from "@application/index.js";
 import { useAccountBootstrapStore } from "./stores/useAccountBootstrapStore.js";
@@ -8,6 +8,7 @@ import { AccountPanel } from "./components/account/AccountPanel.js";
 import { PhoneStatusBadge } from "./components/status/PhoneStatusBadge.js";
 import { Dialpad, type DialpadMode } from "./components/dialpad/Dialpad.js";
 import { OutgoingCallCard } from "./components/call/OutgoingCallCard.js";
+import { IncomingCallModal } from "./components/call/IncomingCallModal.js";
 
 function registrationLabel(
   registrationState: string,
@@ -33,7 +34,17 @@ export function App(): JSX.Element {
   const { facade, status, errorMessage } = useAccountBootstrap();
   const projection = useAccountBootstrapStore((state) => state.projection);
   const callProjection = useAccountBootstrapStore((state) => state.callProjection);
+  const incomingCallProjection = useAccountBootstrapStore(
+    (state) => state.incomingCallProjection,
+  );
   const setCallMode = useAccountBootstrapStore((state) => state.setCallMode);
+  const setIncomingUiState = useAccountBootstrapStore((state) => state.setIncomingUiState);
+  const setIncomingBreakReason = useAccountBootstrapStore(
+    (state) => state.setIncomingBreakReason,
+  );
+  const setIncomingRejectReasonRequired = useAccountBootstrapStore(
+    (state) => state.setIncomingRejectReasonRequired,
+  );
   const [dialedNumber, setDialedNumber] = useState("");
 
   const showAccountPanel =
@@ -92,6 +103,29 @@ export function App(): JSX.Element {
       return;
     }
     void facade.sendDtmf(createCallId(callProjection.activeCallId), tone);
+  };
+
+  useEffect(() => {
+    setIncomingRejectReasonRequired(projection.isOcpMode);
+  }, [projection.isOcpMode, setIncomingRejectReasonRequired]);
+
+  const handleAnswerIncoming = (): void => {
+    if (facade === null || incomingCallProjection.callId === null) {
+      return;
+    }
+    setIncomingUiState("answering");
+    void facade.answerCall(createCallId(incomingCallProjection.callId));
+  };
+
+  const handleRejectIncoming = (): void => {
+    if (facade === null || incomingCallProjection.callId === null) {
+      return;
+    }
+    setIncomingUiState("rejecting");
+    void facade.rejectCall(
+      createCallId(incomingCallProjection.callId),
+      incomingCallProjection.selectedBreakReason ?? undefined,
+    );
   };
 
   return (
@@ -170,6 +204,36 @@ export function App(): JSX.Element {
                 data-testid="remote-audio-mount"
                 aria-label="Remote audio mount point"
                 hidden={!callProjection.remoteAudioAttached}
+              />
+
+              <IncomingCallModal
+                visible={incomingCallProjection.visible}
+                callerNumber={incomingCallProjection.callerNumber}
+                displayName={incomingCallProjection.displayName}
+                queueInfo={incomingCallProjection.queueInfo}
+                ringingState={incomingCallProjection.ringingIndicator}
+                autoAnswerSecondsRemaining={
+                  incomingCallProjection.autoAnswerSecondsRemaining
+                }
+                uiState={incomingCallProjection.uiState}
+                rejectReasonRequired={projection.isOcpMode}
+                rejectReasons={["break", "meeting", "training"]}
+                selectedBreakReason={incomingCallProjection.selectedBreakReason}
+                answerDisabledReason={
+                  incomingCallProjection.uiState === "rejecting"
+                    ? "Reject in progress"
+                    : null
+                }
+                rejectDisabledReason={
+                  incomingCallProjection.uiState === "answering"
+                    ? "Answer in progress"
+                    : null
+                }
+                onAnswer={handleAnswerIncoming}
+                onReject={handleRejectIncoming}
+                onSelectBreakReason={(reason) => {
+                  setIncomingBreakReason(reason);
+                }}
               />
             </div>
           )}

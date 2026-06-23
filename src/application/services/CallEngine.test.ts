@@ -1,9 +1,15 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { InMemoryDomainEventBus } from "@application/events/InMemoryDomainEventBus.js";
 import { CallEngine } from "./CallEngine.js";
-import { MockMediaGateway, MockTelephonyGateway } from "@adapters/index.js";
+import {
+  InMemorySettingsRepository,
+  MockHostIntegrationGateway,
+  MockMediaGateway,
+  MockTelephonyGateway,
+} from "@adapters/index.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
-import { createPhoneNumber } from "@domain/index.js";
+import { createCallId, createPhoneNumber } from "@domain/index.js";
+import { createCorrelationId } from "@shared/correlation-id/index.js";
 
 describe("CallEngine", () => {
   it("handles progress 183 and enables ringback tone", async () => {
@@ -13,7 +19,13 @@ describe("CallEngine", () => {
       makeCallScenario: "progress_183",
     });
 
-    const engine = new CallEngine(telephony, media, events, createTestLogger());
+    const engine = new CallEngine(
+      telephony,
+      media,
+      new InMemorySettingsRepository(),
+      events,
+      createTestLogger(),
+    );
     const result = await engine.makeCall({
       phoneNumber: createPhoneNumber("+12025550147"),
     });
@@ -34,7 +46,13 @@ describe("CallEngine", () => {
       makeCallScenario: "answered",
     });
 
-    const engine = new CallEngine(telephony, media, events, createTestLogger());
+    const engine = new CallEngine(
+      telephony,
+      media,
+      new InMemorySettingsRepository(),
+      events,
+      createTestLogger(),
+    );
     const result = await engine.makeCall({
       phoneNumber: createPhoneNumber("+12025550147"),
     });
@@ -66,7 +84,13 @@ describe("CallEngine", () => {
       }
     });
 
-    const engine = new CallEngine(telephony, media, events, createTestLogger());
+    const engine = new CallEngine(
+      telephony,
+      media,
+      new InMemorySettingsRepository(),
+      events,
+      createTestLogger(),
+    );
     const result = await engine.makeCall({
       phoneNumber: createPhoneNumber("+12025550147"),
     });
@@ -83,7 +107,13 @@ describe("CallEngine", () => {
     const telephony = new MockTelephonyGateway({
       makeCallScenario: "failed_rejected",
     });
-    const engine = new CallEngine(telephony, media, events, createTestLogger());
+    const engine = new CallEngine(
+      telephony,
+      media,
+      new InMemorySettingsRepository(),
+      events,
+      createTestLogger(),
+    );
     const result = await engine.makeCall({
       phoneNumber: createPhoneNumber("+12025550147"),
     });
@@ -97,12 +127,209 @@ describe("CallEngine", () => {
     const telephony = new MockTelephonyGateway({
       makeCallScenario: "failed_unavailable",
     });
-    const engine = new CallEngine(telephony, media, events, createTestLogger());
+    const engine = new CallEngine(
+      telephony,
+      media,
+      new InMemorySettingsRepository(),
+      events,
+      createTestLogger(),
+    );
     const result = await engine.makeCall({
       phoneNumber: createPhoneNumber("+12025550147"),
     });
     expect(result.ok).toBe(false);
     expect(media.getFailureTones().length).toBe(1);
+  });
+
+  it("maps incoming event to IncomingCallReceived and starts ringtone", async () => {
+    const events = new InMemoryDomainEventBus();
+    const media = new MockMediaGateway();
+    const telephony = new MockTelephonyGateway();
+    let receivedEventSeen = false;
+    events.subscribe((event) => {
+      if (event.type === "IncomingCallReceived") {
+        receivedEventSeen = true;
+      }
+    });
+
+    const engine = new CallEngine(
+      telephony,
+      media,
+      new InMemorySettingsRepository({
+        phoneStatus: "online",
+        incomingCallSettings: {
+          autoAnswerTimeoutSec: null,
+          rejectReasonRequired: false,
+          allowedBreakReasons: [],
+        },
+      }),
+      events,
+      createTestLogger(),
+    );
+
+    await engine.handleIncomingReceived({
+      notification: {
+        callId: createCallId("incoming-1"),
+        remoteNumber: "+12025550100",
+        correlationId: createCorrelationId(),
+      },
+    });
+
+    expect(receivedEventSeen).toBe(true);
+    expect(media.isIncomingRingtonePlaying("incoming-1")).toBe(true);
+  });
+
+  it("auto-rejects with 486 in dnd mode", async () => {
+    const telephony = new MockTelephonyGateway();
+    const engine = new CallEngine(
+      telephony,
+      new MockMediaGateway(),
+      new InMemorySettingsRepository({
+        phoneStatus: "dnd",
+        incomingCallSettings: {
+          autoAnswerTimeoutSec: null,
+          rejectReasonRequired: false,
+          allowedBreakReasons: [],
+        },
+      }),
+      new InMemoryDomainEventBus(),
+      createTestLogger(),
+    );
+
+    await engine.handleIncomingReceived({
+      notification: {
+        callId: createCallId("incoming-2"),
+        remoteNumber: "+12025550111",
+        correlationId: createCorrelationId(),
+      },
+    });
+
+    expect(telephony.getRejectedCalls()).toEqual([
+      { callId: "incoming-2", sipCode: 486, reason: undefined },
+    ]);
+  });
+
+  it("emits host integration event for reject reason", async () => {
+    const hostIntegration = new MockHostIntegrationGateway();
+    const engine = new CallEngine(
+      new MockTelephonyGateway(),
+      new MockMediaGateway(),
+      new InMemorySettingsRepository({
+        phoneStatus: "online",
+        incomingCallSettings: {
+          autoAnswerTimeoutSec: null,
+          rejectReasonRequired: true,
+          allowedBreakReasons: [],
+        },
+      }),
+      new InMemoryDomainEventBus(),
+      createTestLogger(),
+      hostIntegration,
+    );
+
+    await engine.handleIncomingReceived({
+      notification: {
+        callId: createCallId("incoming-3"),
+        remoteNumber: "+12025550112",
+        correlationId: createCorrelationId(),
+      },
+    });
+    await engine.rejectCall({
+      callId: createCallId("incoming-3"),
+      breakReason: "break",
+    });
+
+    expect(hostIntegration.getEmittedBreakReasons()[0]?.breakReason).toBe("break");
+  });
+
+  it("cleans auto-answer timer when call is rejected manually", async () => {
+    vi.useFakeTimers();
+    const telephony = new MockTelephonyGateway();
+    const engine = new CallEngine(
+      telephony,
+      new MockMediaGateway(),
+      new InMemorySettingsRepository({
+        phoneStatus: "online",
+        incomingCallSettings: {
+          autoAnswerTimeoutSec: 2,
+          rejectReasonRequired: false,
+          allowedBreakReasons: [],
+        },
+      }),
+      new InMemoryDomainEventBus(),
+      createTestLogger(),
+    );
+
+    const callId = createCallId("incoming-4");
+    await engine.handleIncomingReceived({
+      notification: {
+        callId,
+        remoteNumber: "+12025550113",
+        correlationId: createCorrelationId(),
+      },
+    });
+    await engine.rejectCall({ callId });
+    await vi.advanceTimersByTimeAsync(2100);
+
+    expect(telephony.getAnsweredCalls()).toHaveLength(0);
+    vi.useRealTimers();
+  });
+
+  it("auto-answers call on timeout", async () => {
+    vi.useFakeTimers();
+    const telephony = new MockTelephonyGateway();
+    const engine = new CallEngine(
+      telephony,
+      new MockMediaGateway(),
+      new InMemorySettingsRepository({
+        phoneStatus: "online",
+        incomingCallSettings: {
+          autoAnswerTimeoutSec: 1,
+          rejectReasonRequired: false,
+          allowedBreakReasons: [],
+        },
+      }),
+      new InMemoryDomainEventBus(),
+      createTestLogger(),
+    );
+
+    await engine.handleIncomingReceived({
+      notification: {
+        callId: createCallId("incoming-5"),
+        remoteNumber: "+12025550114",
+        correlationId: createCorrelationId(),
+      },
+    });
+    await vi.advanceTimersByTimeAsync(1100);
+
+    expect(telephony.getAnsweredCalls()).toContain("incoming-5");
+    vi.useRealTimers();
+  });
+
+  it("fails answer in invalid state when incoming call is missing", async () => {
+    const engine = new CallEngine(
+      new MockTelephonyGateway(),
+      new MockMediaGateway(),
+      new InMemorySettingsRepository(),
+      new InMemoryDomainEventBus(),
+      createTestLogger(),
+    );
+
+    const result = await engine.answerCall({ callId: createCallId("missing-call") });
+    expect(result.ok).toBe(false);
+  });
+
+  it("fails reject in invalid state when incoming call is missing", async () => {
+    const engine = new CallEngine(
+      new MockTelephonyGateway(),
+      new MockMediaGateway(),
+      new InMemorySettingsRepository(),
+      new InMemoryDomainEventBus(),
+      createTestLogger(),
+    );
+
+    const result = await engine.rejectCall({ callId: createCallId("missing-call") });
+    expect(result.ok).toBe(false);
   });
 });
 

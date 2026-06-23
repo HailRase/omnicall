@@ -3,6 +3,11 @@ import { initialCallState } from "./CallState.js";
 import { transitionCallState } from "./CallStateMachine.js";
 
 describe("CallStateMachine", () => {
+  it("moves incoming call from Idle to Ringing", () => {
+    const incoming = transitionCallState("Idle", "incoming_received");
+    expect(incoming).toEqual({ ok: true, state: "Ringing" });
+  });
+
   it("starts from Idle", () => {
     expect(initialCallState()).toBe("Idle");
   });
@@ -51,6 +56,22 @@ describe("CallStateMachine", () => {
 
   it("allows active call to end", () => {
     const ended = transitionCallState("Active", "ended");
+    expect(ended).toEqual({ ok: true, state: "Ended" });
+  });
+
+  it("moves ringing call to Ending and Ended on reject", () => {
+    const ending = transitionCallState("Ringing", "reject_requested");
+    expect(ending).toEqual({ ok: true, state: "Ending" });
+    if (!ending.ok) {
+      return;
+    }
+
+    const ended = transitionCallState(ending.state, "reject_completed");
+    expect(ended).toEqual({ ok: true, state: "Ended" });
+  });
+
+  it("allows ringing call to end before answer", () => {
+    const ended = transitionCallState("Ringing", "ended");
     expect(ended).toEqual({ ok: true, state: "Ended" });
   });
 

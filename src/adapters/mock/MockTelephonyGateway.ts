@@ -1,8 +1,12 @@
 import type {
+  AnswerCallCommand,
   HangupCommand,
   MakeCallCommand,
+  RejectCallCommand,
   RegisterAccountCommand,
   SendDtmfCommand,
+  TelephonyCallEndedNotification,
+  TelephonyIncomingCallNotification,
   TelephonyGateway,
 } from "@ports/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
@@ -21,11 +25,15 @@ export type MockMakeCallScenario =
   | "failed_rejected"
   | "failed_unavailable";
 export type MockDtmfScenario = "success" | "failure";
+export type MockIncomingAnswerScenario = "success" | "failure";
+export type MockIncomingRejectScenario = "success" | "failure";
 
 export type MockTelephonyGatewayOptions = Readonly<{
   registrationScenario?: MockTelephonyScenario;
   makeCallScenario?: MockMakeCallScenario;
   dtmfScenario?: MockDtmfScenario;
+  incomingAnswerScenario?: MockIncomingAnswerScenario;
+  incomingRejectScenario?: MockIncomingRejectScenario;
   delayMs?: number;
 }>;
 
@@ -33,11 +41,25 @@ export class MockTelephonyGateway implements TelephonyGateway {
   private registrationScenario: MockTelephonyScenario;
   private makeCallScenario: MockMakeCallScenario;
   private dtmfScenario: MockDtmfScenario;
+  private incomingAnswerScenario: MockIncomingAnswerScenario;
+  private incomingRejectScenario: MockIncomingRejectScenario;
   private readonly delayMs: number;
   private registered = false;
   private readonly dialedNumbers: string[] = [];
   private readonly sentTones: string[] = [];
   private readonly hangupCalls: string[] = [];
+  private readonly answeredCalls: string[] = [];
+  private readonly rejectedCalls: Array<{
+    callId: string;
+    sipCode?: number;
+    reason?: string;
+  }> = [];
+  private incomingCallHandler:
+    | ((notification: TelephonyIncomingCallNotification) => Promise<void>)
+    | null = null;
+  private callEndedHandler:
+    | ((notification: TelephonyCallEndedNotification) => Promise<void>)
+    | null = null;
 
   constructor(options: MockTelephonyGatewayOptions);
   constructor(scenario?: MockTelephonyScenario, delayMs?: number);
@@ -49,6 +71,8 @@ export class MockTelephonyGateway implements TelephonyGateway {
       this.registrationScenario = scenarioOrOptions;
       this.makeCallScenario = "answered";
       this.dtmfScenario = "success";
+      this.incomingAnswerScenario = "success";
+      this.incomingRejectScenario = "success";
       this.delayMs = delayMs;
       return;
     }
@@ -56,6 +80,10 @@ export class MockTelephonyGateway implements TelephonyGateway {
     this.registrationScenario = scenarioOrOptions.registrationScenario ?? "success";
     this.makeCallScenario = scenarioOrOptions.makeCallScenario ?? "answered";
     this.dtmfScenario = scenarioOrOptions.dtmfScenario ?? "success";
+    this.incomingAnswerScenario =
+      scenarioOrOptions.incomingAnswerScenario ?? "success";
+    this.incomingRejectScenario =
+      scenarioOrOptions.incomingRejectScenario ?? "success";
     this.delayMs = scenarioOrOptions.delayMs ?? 0;
   }
 
@@ -69,6 +97,14 @@ export class MockTelephonyGateway implements TelephonyGateway {
 
   setDtmfScenario(scenario: MockDtmfScenario): void {
     this.dtmfScenario = scenario;
+  }
+
+  setIncomingAnswerScenario(scenario: MockIncomingAnswerScenario): void {
+    this.incomingAnswerScenario = scenario;
+  }
+
+  setIncomingRejectScenario(scenario: MockIncomingRejectScenario): void {
+    this.incomingRejectScenario = scenario;
   }
 
   isRegistered(): boolean {
@@ -85,6 +121,18 @@ export class MockTelephonyGateway implements TelephonyGateway {
 
   getHangupCalls(): ReadonlyArray<string> {
     return this.hangupCalls;
+  }
+
+  getAnsweredCalls(): ReadonlyArray<string> {
+    return this.answeredCalls;
+  }
+
+  getRejectedCalls(): ReadonlyArray<{
+    callId: string;
+    sipCode?: number;
+    reason?: string;
+  }> {
+    return this.rejectedCalls;
   }
 
   async register(
@@ -184,9 +232,80 @@ export class MockTelephonyGateway implements TelephonyGateway {
     return ok(undefined);
   }
 
+  async answerCall(command: AnswerCallCommand): Promise<Result<void, PlatformError>> {
+    if (this.delayMs > 0) {
+      await sleep(this.delayMs);
+    }
+    if (this.incomingAnswerScenario === "failure") {
+      return err(
+        createPlatformError("operation_failed", `Answer failed for ${command.callId}`),
+      );
+    }
+    this.answeredCalls.push(command.callId);
+    return ok(undefined);
+  }
+
+  async rejectCall(command: RejectCallCommand): Promise<Result<void, PlatformError>> {
+    if (this.delayMs > 0) {
+      await sleep(this.delayMs);
+    }
+    if (this.incomingRejectScenario === "failure") {
+      return err(
+        createPlatformError("operation_failed", `Reject failed for ${command.callId}`),
+      );
+    }
+    const rejectedCall: {
+      callId: string;
+      sipCode?: number;
+      reason?: string;
+    } = {
+      callId: command.callId,
+    };
+    if (command.sipCode !== undefined) {
+      rejectedCall.sipCode = command.sipCode;
+    }
+    if (command.reason !== undefined) {
+      rejectedCall.reason = command.reason;
+    }
+    this.rejectedCalls.push(rejectedCall);
+    return ok(undefined);
+  }
+
   hangup(command: HangupCommand): Promise<Result<void, PlatformError>> {
     this.hangupCalls.push(command.callId);
     return Promise.resolve(ok(undefined));
+  }
+
+  setIncomingCallHandler(
+    handler: ((notification: TelephonyIncomingCallNotification) => Promise<void>) | null,
+  ): () => void {
+    this.incomingCallHandler = handler;
+    return () => {
+      this.incomingCallHandler = null;
+    };
+  }
+
+  setCallEndedHandler(
+    handler: ((notification: TelephonyCallEndedNotification) => Promise<void>) | null,
+  ): () => void {
+    this.callEndedHandler = handler;
+    return () => {
+      this.callEndedHandler = null;
+    };
+  }
+
+  async simulateIncomingCall(
+    notification: TelephonyIncomingCallNotification,
+  ): Promise<void> {
+    if (this.incomingCallHandler !== null) {
+      await this.incomingCallHandler(notification);
+    }
+  }
+
+  async simulateCallEnded(notification: TelephonyCallEndedNotification): Promise<void> {
+    if (this.callEndedHandler !== null) {
+      await this.callEndedHandler(notification);
+    }
   }
 }
 

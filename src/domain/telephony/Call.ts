@@ -30,6 +30,15 @@ export function createOutgoingCall(id: CallId, phoneNumber: PhoneNumber): Call {
   };
 }
 
+export function createIncomingCall(id: CallId, phoneNumber: PhoneNumber): Call {
+  return {
+    id,
+    direction: "incoming",
+    phoneNumber,
+    state: initialCallState(),
+  };
+}
+
 export function applyCallTransition(
   call: Call,
   event: CallTransitionEvent,

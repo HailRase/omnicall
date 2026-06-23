@@ -18,6 +18,16 @@ export type PlayRingbackToneCommand = Readonly<{
   correlationId: CorrelationId;
 }>;
 
+export type PlayIncomingRingtoneCommand = Readonly<{
+  callId: CallId;
+  correlationId: CorrelationId;
+}>;
+
+export type PlayRingtoneCommand = Readonly<{
+  callId: CallId;
+  correlationId: CorrelationId;
+}>;
+
 export type PlayFailedToneCommand = Readonly<{
   callId: CallId;
   reason: string;
@@ -34,6 +44,11 @@ export type StopToneCommand = Readonly<{
   correlationId: CorrelationId;
 }>;
 
+export type StopRingtoneCommand = Readonly<{
+  callId: CallId;
+  correlationId: CorrelationId;
+}>;
+
 export interface MediaGateway {
   attachRemoteAudio(
     command: AttachRemoteAudioCommand,
@@ -41,6 +56,10 @@ export interface MediaGateway {
   playRingbackTone(
     command: PlayRingbackToneCommand,
   ): Promise<Result<void, PlatformError>>;
+  playIncomingRingtone(
+    command: PlayIncomingRingtoneCommand,
+  ): Promise<Result<void, PlatformError>>;
+  playRingtone(command: PlayRingtoneCommand): Promise<Result<void, PlatformError>>;
   playBusyTone(
     command: PlayBusyToneCommand,
   ): Promise<Result<void, PlatformError>>;
@@ -50,5 +69,6 @@ export interface MediaGateway {
   stopTone(
     command: StopToneCommand,
   ): Promise<Result<void, PlatformError>>;
+  stopRingtone(command: StopRingtoneCommand): Promise<Result<void, PlatformError>>;
 }
 

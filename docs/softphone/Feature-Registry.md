@@ -110,18 +110,20 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-012`, `LF-013`, `LF-014`, `LF-015`, `LF-016`, `LF-017`, `LF-036`, `LF-061`, `LF-090`
 - Context: Telephony
 - Priority: critical
-- Status: planned
+- Status: implemented
 - Owner: TBD
 - Inputs: incoming session event from telephony adapter
-- Outputs: `IncomingCallReceived`, ringing projection, answer/reject commands
+- Outputs: `IncomingCallReceived`, `IncomingCallRingingStarted`, `CallAnswered`, `CallRejected`, `CallAutoAnswered`, `CallRejectedByDnd`, ringing projection, host break-reason mapping
 - Acceptance Criteria:
-  - Incoming call never enters UI directly from JsSIP.
-  - Ringing state is produced by the call state machine.
-  - UI can answer or reject only through Use Cases.
+  - Incoming adapter notification is mapped to typed Domain Events and projected to incoming modal state.
+  - Ringing state is produced by explicit transitions (`Idle -> Ringing`, `Ringing -> Active|Ended|Failed`).
+  - UI answers and rejects only through `AnswerCallUseCase` and `RejectCallUseCase`.
+  - DND incoming path auto-rejects with SIP 486 and does not expose invalid answer controls.
+  - Reject reason is validated and emitted through `HostIntegrationGateway` as `soft-phone-break-reason`.
 - Test Coverage:
-  - Unit: incoming call transition
-  - Integration: adapter event to use-case flow
-  - E2E: incoming call UI with mock gateway
+  - Unit: state machine incoming transitions, auto-answer policy, DND policy, display-name parser, reject reason validation, answer/reject use cases
+  - Integration: mock incoming adapter event to events/projection, ringtone start, answer/reject gateway calls, DND 486, host break-reason mapping, ended-before-answer recovery
+  - E2E: deferred until incoming call harness exists
 
 ## F-003: Outgoing Call
 

@@ -1,5 +1,6 @@
 import { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
+  MockHostIntegrationGateway,
   MockMediaGateway,
   MockOperatorPlatformGateway,
   MockTelephonyGateway,
@@ -26,6 +27,8 @@ export type CreateAccountBootstrapOptions = Readonly<{
     | "failed_rejected"
     | "failed_unavailable";
   dtmfScenario?: "success" | "failure";
+  incomingAnswerScenario?: "success" | "failure";
+  incomingRejectScenario?: "success" | "failure";
   mediaScenario?: "success" | "failure";
 }>;
 
@@ -45,15 +48,19 @@ export function createAccountBootstrap(
     registrationScenario: options.telephonyScenario ?? "success",
     makeCallScenario: options.makeCallScenario ?? "answered",
     dtmfScenario: options.dtmfScenario ?? "success",
+    incomingAnswerScenario: options.incomingAnswerScenario ?? "success",
+    incomingRejectScenario: options.incomingRejectScenario ?? "success",
     delayMs: 200,
   });
   const mediaGateway = new MockMediaGateway(options.mediaScenario ?? "success");
+  const hostIntegrationGateway = new MockHostIntegrationGateway();
 
   return new AccountBootstrapFacade({
     operatorGateway,
     telephonyGateway,
     mediaGateway,
     settingsRepository,
+    hostIntegrationGateway,
     logger: createTestLogger({ featureId: "F-001", boundedContext: "Telephony" }),
   });
 }
