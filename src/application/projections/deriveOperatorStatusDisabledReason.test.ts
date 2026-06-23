@@ -52,4 +52,19 @@ describe("deriveOperatorStatusDisabledReason", () => {
       ),
     ).toBeNull();
   });
+
+  it("returns break_reason_required when break target lacks reason", () => {
+    expect(
+      deriveOperatorStatusDisabledReason(
+        {
+          ...initialOperatorStatusProjection(),
+          isOcpStatusAvailable: true,
+          allowedBreakReasonsCount: 2,
+        },
+        "break",
+        "online",
+        { breakReasonProvided: false },
+      ),
+    ).toBe("break_reason_required");
+  });
 });

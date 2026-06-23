@@ -26,9 +26,13 @@ import { AttendedTransferUseCase } from "../use-cases/AttendedTransferUseCase.js
 import { StartTransferUseCase } from "../use-cases/StartTransferUseCase.js";
 import { CancelTransferUseCase } from "../use-cases/CancelTransferUseCase.js";
 import { ChangeAgentStatusUseCase } from "../use-cases/ChangeAgentStatusUseCase.js";
+import { UpdatePostCallStatusUseCase } from "../use-cases/UpdatePostCallStatusUseCase.js";
 import { InMemoryAgentStatusReadModel } from "../read-models/InMemoryAgentStatusReadModel.js";
 import { AgentStatusSyncService } from "../services/AgentStatusSyncService.js";
+import { BreakReasonsSyncService } from "../services/BreakReasonsSyncService.js";
 import { DndAgentStatusOrchestrationService } from "../services/DndAgentStatusOrchestrationService.js";
+import { OcpAuthBootstrapService } from "../services/OcpAuthBootstrapService.js";
+import { PostCallRejectOrchestrationService } from "../services/PostCallRejectOrchestrationService.js";
 import type {
   DomainEventPublisher,
   HostIntegrationGateway,
@@ -41,6 +45,7 @@ import type {
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { CallEngine } from "@application/services/CallEngine.js";
 import { createCallId, type Call, type CallId, type MultiCallSettings } from "@domain/index.js";
+import { createCorrelationId } from "@shared/correlation-id/index.js";
 
 export type AccountBootstrapFacadeDeps = Readonly<{
   operatorGateway: OperatorPlatformGateway;
@@ -74,17 +79,25 @@ export class AccountBootstrapFacade {
   readonly startTransferUseCase: StartTransferUseCase;
   readonly cancelTransferUseCase: CancelTransferUseCase;
   readonly changeAgentStatus: ChangeAgentStatusUseCase;
+  readonly updatePostCallStatus: UpdatePostCallStatusUseCase;
 
   private readonly processedCredentialEvents = new Set<string>();
   private readonly callEngine: CallEngine;
-  private readonly agentStatusSync: AgentStatusSyncService;
+  private readonly ocpAuthBootstrap: OcpAuthBootstrapService;
   private readonly dndAgentStatusOrchestration: DndAgentStatusOrchestrationService;
+  private readonly postCallRejectOrchestration: PostCallRejectOrchestrationService;
 
   constructor(private readonly deps: AccountBootstrapFacadeDeps) {
     this.eventPublisher = deps.eventPublisher ?? new InMemoryDomainEventBus();
     const agentStatusReadModel = new InMemoryAgentStatusReadModel(this.eventPublisher);
-    this.agentStatusSync = new AgentStatusSyncService(
+    const agentStatusSync = new AgentStatusSyncService(
       deps.operatorGateway,
+      this.eventPublisher,
+      deps.logger,
+    );
+    const breakReasonsSync = new BreakReasonsSyncService(
+      deps.operatorGateway,
+      deps.settingsRepository,
       this.eventPublisher,
       deps.logger,
     );
@@ -95,9 +108,29 @@ export class AccountBootstrapFacade {
       this.eventPublisher,
       deps.logger,
     );
-    this.dndAgentStatusOrchestration = new DndAgentStatusOrchestrationService(
+    const dndAgentStatusOrchestration = new DndAgentStatusOrchestrationService(
       agentStatusReadModel,
       this.changeAgentStatus,
+      deps.logger,
+    );
+    this.dndAgentStatusOrchestration = dndAgentStatusOrchestration;
+    this.ocpAuthBootstrap = new OcpAuthBootstrapService(
+      agentStatusSync,
+      breakReasonsSync,
+      dndAgentStatusOrchestration,
+      deps.settingsRepository,
+      deps.logger,
+    );
+    this.updatePostCallStatus = new UpdatePostCallStatusUseCase(
+      agentStatusReadModel,
+      deps.operatorGateway,
+      deps.settingsRepository,
+      this.eventPublisher,
+      deps.logger,
+    );
+    this.postCallRejectOrchestration = new PostCallRejectOrchestrationService(
+      agentStatusReadModel,
+      this.updatePostCallStatus,
       deps.logger,
     );
     this.resolveStartupMode = new ResolveStartupModeUseCase(
@@ -383,10 +416,21 @@ export class AccountBootstrapFacade {
     callId: CallId,
     breakReason?: string,
   ): Promise<Result<Call, PlatformError>> {
-    if (breakReason !== undefined) {
-      return this.rejectCallUseCase.execute({ callId, breakReason });
+    const correlationId = createCorrelationId();
+    const result =
+      breakReason !== undefined
+        ? await this.rejectCallUseCase.execute({ callId, breakReason, correlationId })
+        : await this.rejectCallUseCase.execute({ callId, correlationId });
+
+    if (!isErr(result) && breakReason !== undefined && breakReason.trim().length > 0) {
+      await this.postCallRejectOrchestration.handleRejectedCall(
+        callId,
+        breakReason,
+        correlationId,
+      );
     }
-    return this.rejectCallUseCase.execute({ callId });
+
+    return result;
   }
 
   async rejectCallById(
@@ -401,7 +445,7 @@ export class AccountBootstrapFacade {
       return;
     }
 
-    await this.agentStatusSync.syncAfterOcpAuth(event.correlationId);
+    await this.ocpAuthBootstrap.afterOcpAuthSucceeded(event.correlationId);
   }
 
   private async handleAutoRegistration(event: DomainEvent): Promise<void> {

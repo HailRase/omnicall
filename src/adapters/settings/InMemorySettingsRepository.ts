@@ -69,6 +69,18 @@ export class InMemorySettingsRepository implements SettingsRepository {
     return Promise.resolve(this.state.incomingCallSettings);
   }
 
+  setAllowedBreakReasons(reasons: ReadonlyArray<BreakReason>): Promise<void> {
+    this.state = {
+      ...this.state,
+      incomingCallSettings: {
+        ...this.state.incomingCallSettings,
+        allowedBreakReasons: reasons,
+        rejectReasonRequired: reasons.length > 0,
+      },
+    };
+    return Promise.resolve();
+  }
+
   getMultiCallSettings(): Promise<MultiCallSettings> {
     return Promise.resolve(this.state.multiCallSettings);
   }

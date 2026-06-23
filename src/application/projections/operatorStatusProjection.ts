@@ -2,9 +2,11 @@ import type { DomainEvent } from "@domain/index.js";
 import type { AgentStatus } from "@domain/operator/AgentStatus.js";
 import type { AgentStatusRejectionReason } from "@domain/operator/AgentStatusTransition.js";
 import type { StatusReason } from "@domain/operator/StatusReason.js";
+import { createCallId, type CallId } from "@domain/telephony/CallId.js";
 import { isAgentStatusRejectionReason } from "@domain/operator/AgentStatusTransition.js";
 import { parseOptionalStatusReason } from "@domain/operator/StatusReason.js";
 import { isAgentStatus } from "@domain/operator/AgentStatus.js";
+import { deriveStatusTimerRunning } from "./operatorStatusTimerProjection.js";
 
 export type OperatorStatusDisabledReason =
   | "ocp_not_connected"
@@ -21,6 +23,10 @@ export type OperatorStatusProjection = Readonly<{
   statusChangeInProgress: boolean;
   currentBreakReason: StatusReason | null;
   statusChangedAt: string | null;
+  timerRunning: boolean;
+  allowedBreakReasonsCount: number;
+  postCallCallId: CallId | null;
+  lastPostCallUpdatedAt: string | null;
 }>;
 
 export const initialOperatorStatusProjection = (): OperatorStatusProjection => ({
@@ -31,6 +37,10 @@ export const initialOperatorStatusProjection = (): OperatorStatusProjection => (
   statusChangeInProgress: false,
   currentBreakReason: null,
   statusChangedAt: null,
+  timerRunning: false,
+  allowedBreakReasonsCount: 0,
+  postCallCallId: null,
+  lastPostCallUpdatedAt: null,
 });
 
 function applyOcpAvailabilityEvent(
@@ -113,6 +123,35 @@ function applyAgentStatusEvent(
         lastRejectionReason: null,
         currentBreakReason: breakReason,
         statusChangedAt: changedAt,
+        timerRunning: deriveStatusTimerRunning(currentStatus, changedAt),
+      };
+    }
+    case "PostCallStatusUpdated": {
+      const postCallStatus = event["postCallStatus"];
+      const callId = event["callId"];
+      const updatedAt = event["updatedAt"];
+      if (typeof postCallStatus !== "string" || !isAgentStatus(postCallStatus)) {
+        return projection;
+      }
+      if (typeof updatedAt !== "string") {
+        return projection;
+      }
+      return {
+        ...projection,
+        currentStatus: postCallStatus,
+        postCallCallId: parsePostCallCallId(callId),
+        lastPostCallUpdatedAt: updatedAt,
+        timerRunning: deriveStatusTimerRunning(postCallStatus, projection.statusChangedAt),
+      };
+    }
+    case "BreakReasonsReceived": {
+      const reasons = event["reasons"];
+      if (!Array.isArray(reasons)) {
+        return projection;
+      }
+      return {
+        ...projection,
+        allowedBreakReasonsCount: reasons.length,
       };
     }
     case "AgentStatusChangeRejected": {
@@ -138,4 +177,11 @@ export function reduceOperatorStatusProjection(
 ): OperatorStatusProjection {
   const afterAvailability = applyOcpAvailabilityEvent(projection, event);
   return applyAgentStatusEvent(afterAvailability, event);
+}
+
+function parsePostCallCallId(value: unknown): CallId | null {
+  if (typeof value !== "string" || value.length === 0) {
+    return null;
+  }
+  return createCallId(value);
 }

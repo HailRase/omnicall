@@ -5,7 +5,9 @@ import {
   createAgentStatusChangeRequestedEvent,
   createAgentStatusChangedEvent,
 } from "@domain/operator/events/agentStatusEvents.js";
-import { createStartupModeResolvedEvent } from "@domain/index.js";
+import { createBreakReasonsReceivedEvent } from "@domain/operator/events/breakReasonsEvents.js";
+import { createPostCallStatusUpdatedEvent } from "@domain/operator/events/postCallStatusEvents.js";
+import { createStartupModeResolvedEvent, createBreakReason, createCallId } from "@domain/index.js";
 import { createStatusReason } from "@domain/operator/StatusReason.js";
 import {
   initialOperatorStatusProjection,
@@ -131,5 +133,48 @@ describe("operatorStatusProjection", () => {
     );
 
     expect(projection.lastRejectionReason).toBe("gateway_failed");
+  });
+
+  it("tracks allowed break reasons count from BreakReasonsReceived", () => {
+    const projection = reduceOperatorStatusProjection(
+      initialOperatorStatusProjection(),
+      createBreakReasonsReceivedEvent(correlationId, {
+        reasons: [createBreakReason("meeting"), createBreakReason("break")],
+      }),
+    );
+
+    expect(projection.allowedBreakReasonsCount).toBe(2);
+  });
+
+  it("tracks post-call state from PostCallStatusUpdated", () => {
+    const updatedAt = new Date().toISOString();
+    const projection = reduceOperatorStatusProjection(
+      initialOperatorStatusProjection(),
+      createPostCallStatusUpdatedEvent(correlationId, {
+        callId: createCallId("call-9"),
+        postCallStatus: "post_call",
+        reason: createBreakReason("meeting"),
+        updatedAt,
+      }),
+    );
+
+    expect(projection.currentStatus).toBe("post_call");
+    expect(projection.postCallCallId).toBe("call-9");
+    expect(projection.lastPostCallUpdatedAt).toBe(updatedAt);
+  });
+
+  it("sets timerRunning after AgentStatusChanged", () => {
+    const changedAt = new Date().toISOString();
+    const projection = reduceOperatorStatusProjection(
+      initialOperatorStatusProjection(),
+      createAgentStatusChangedEvent(correlationId, {
+        previousStatus: null,
+        currentStatus: "ready",
+        reason: null,
+        changedAt,
+      }),
+    );
+
+    expect(projection.timerRunning).toBe(true);
   });
 });

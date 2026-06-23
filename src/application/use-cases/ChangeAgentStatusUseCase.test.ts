@@ -7,6 +7,7 @@ import { InMemorySettingsRepository } from "@adapters/settings/InMemorySettingsR
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
 import {
   createAgentStatusChangedEvent,
+  createBreakReason,
   createStatusReason,
 } from "@domain/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
@@ -14,7 +15,14 @@ import { isErr } from "@shared/result/index.js";
 
 function createHarness(
   gateway = new MockOperatorPlatformGateway(),
-  settings = new InMemorySettingsRepository({ phoneStatus: "online" }),
+  settings = new InMemorySettingsRepository({
+    phoneStatus: "online",
+    incomingCallSettings: {
+      autoAnswerTimeoutSec: null,
+      rejectReasonRequired: false,
+      allowedBreakReasons: [],
+    },
+  }),
 ): Readonly<{
   events: InMemoryDomainEventBus;
   useCase: ChangeAgentStatusUseCase;
@@ -163,5 +171,89 @@ describe("ChangeAgentStatusUseCase", () => {
     expect(isErr(result)).toBe(true);
     expect(published).toContain("AgentStatusChangeRejected");
     expect(rejectedReason).toBe("ocp_not_connected");
+  });
+
+  it("publishes rejection on gateway rejected scenario with gateway_failed", async () => {
+    const { events, useCase } = createHarness(
+      new MockOperatorPlatformGateway({ statusChangeScenario: "rejected" }),
+    );
+    const published: string[] = [];
+    let rejectedReason: unknown;
+    events.subscribe((event) => {
+      published.push(event.type);
+      if (event.type === "AgentStatusChangeRejected") {
+        rejectedReason = event["reason"];
+      }
+    });
+    seedReadyStatus(events);
+    published.length = 0;
+
+    const result = await useCase.execute({ targetStatus: "break" });
+
+    expect(isErr(result)).toBe(true);
+    expect(published).toEqual([
+      "AgentStatusChangeRequested",
+      "AgentStatusChangeRejected",
+    ]);
+    expect(rejectedReason).toBe("gateway_failed");
+  });
+
+  it("requires break reason when allowed reasons configured", async () => {
+    const settings = new InMemorySettingsRepository({
+      phoneStatus: "online",
+      incomingCallSettings: {
+        autoAnswerTimeoutSec: null,
+        rejectReasonRequired: true,
+        allowedBreakReasons: [createBreakReason("meeting")],
+      },
+    });
+    const { events, useCase } = createHarness(
+      new MockOperatorPlatformGateway(),
+      settings,
+    );
+    let rejectedReason: unknown;
+    events.subscribe((event) => {
+      if (event.type === "AgentStatusChangeRejected") {
+        rejectedReason = event["reason"];
+      }
+    });
+    seedReadyStatus(events);
+
+    const result = await useCase.execute({ targetStatus: "break" });
+
+    expect(isErr(result)).toBe(true);
+    expect(rejectedReason).toBe("break_reason_required");
+  });
+
+  it("accepts break change with valid configured reason", async () => {
+    const settings = new InMemorySettingsRepository({
+      phoneStatus: "online",
+      incomingCallSettings: {
+        autoAnswerTimeoutSec: null,
+        rejectReasonRequired: true,
+        allowedBreakReasons: [createBreakReason("meeting")],
+      },
+    });
+    const { events, useCase } = createHarness(
+      new MockOperatorPlatformGateway(),
+      settings,
+    );
+    const published: string[] = [];
+    events.subscribe((event) => {
+      published.push(event.type);
+    });
+    seedReadyStatus(events);
+    published.length = 0;
+
+    const result = await useCase.execute({
+      targetStatus: "break",
+      breakReason: "meeting",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(published).toEqual([
+      "AgentStatusChangeRequested",
+      "AgentStatusChanged",
+    ]);
   });
 });

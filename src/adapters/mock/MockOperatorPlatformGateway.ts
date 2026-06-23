@@ -1,6 +1,8 @@
 import {
   createOperatorSessionId,
+  createBreakReason,
   type AgentStatus,
+  type BreakReason,
   type OcpAuthResult,
   type OperatorSession,
 } from "@domain/index.js";
@@ -8,8 +10,11 @@ import type {
   ChangeAgentStatusCommand,
   ChangeAgentStatusResult,
   GetAgentStatusCommand,
+  GetBreakReasonsCommand,
   OcpAuthenticateCommand,
   OperatorPlatformGateway,
+  UpdatePostCallStatusCommand,
+  UpdatePostCallStatusResult,
 } from "@ports/index.js";
 
 export type MockOcpScenario =
@@ -28,6 +33,8 @@ export type MockOperatorPlatformGatewayOptions = Readonly<{
   scenario?: MockOcpScenario;
   statusChangeScenario?: MockAgentStatusChangeScenario;
   initialAgentStatus?: AgentStatus;
+  breakReasons?: ReadonlyArray<string>;
+  postCallStatusScenario?: MockAgentStatusChangeScenario;
   delayMs?: number;
   sipCredentials?: Readonly<{
     uri: string;
@@ -49,7 +56,9 @@ const DEFAULT_SIP_CREDENTIALS = {
 export class MockOperatorPlatformGateway implements OperatorPlatformGateway {
   private scenario: MockOcpScenario;
   private statusChangeScenario: MockAgentStatusChangeScenario;
+  private postCallStatusScenario: MockAgentStatusChangeScenario;
   private readonly initialAgentStatus: AgentStatus;
+  private readonly breakReasons: ReadonlyArray<BreakReason>;
   private readonly delayMs: number;
   private readonly sipCredentials: NonNullable<
     MockOperatorPlatformGatewayOptions["sipCredentials"]
@@ -58,7 +67,11 @@ export class MockOperatorPlatformGateway implements OperatorPlatformGateway {
   constructor(options: MockOperatorPlatformGatewayOptions = {}) {
     this.scenario = options.scenario ?? "success";
     this.statusChangeScenario = options.statusChangeScenario ?? "success";
+    this.postCallStatusScenario = options.postCallStatusScenario ?? "success";
     this.initialAgentStatus = options.initialAgentStatus ?? "ready";
+    this.breakReasons = (options.breakReasons ?? ["break", "meeting", "training"]).map(
+      (reason) => createBreakReason(reason),
+    );
     this.delayMs = options.delayMs ?? 0;
     this.sipCredentials = options.sipCredentials ?? DEFAULT_SIP_CREDENTIALS;
   }
@@ -135,6 +148,47 @@ export class MockOperatorPlatformGateway implements OperatorPlatformGateway {
     }
 
     return this.initialAgentStatus;
+  }
+
+  async getBreakReasons(command: GetBreakReasonsCommand): Promise<ReadonlyArray<BreakReason>> {
+    void command;
+    if (this.delayMs > 0) {
+      await sleep(this.delayMs);
+    }
+
+    if (this.scenario !== "success") {
+      return [];
+    }
+
+    return this.breakReasons;
+  }
+
+  async updatePostCallStatus(
+    command: UpdatePostCallStatusCommand,
+  ): Promise<UpdatePostCallStatusResult> {
+    if (this.delayMs > 0) {
+      await sleep(this.delayMs);
+    }
+
+    switch (this.postCallStatusScenario) {
+      case "success":
+        return {
+          status: "succeeded",
+          postCallStatus: command.postCallStatus,
+        };
+      case "rejected":
+        return {
+          status: "failed",
+          reason: "gateway_failed",
+          message: "OCP rejected post-call status update",
+        };
+      case "network_error":
+        return {
+          status: "failed",
+          reason: "network_error",
+          message: "OCP network error during post-call update",
+        };
+    }
   }
 
   async changeAgentStatus(

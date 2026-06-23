@@ -97,6 +97,22 @@ export {
   createAgentStatusChangedEvent,
 } from "./operator/events/agentStatusEvents.js";
 export type {
+  BreakReasonsReceivedEvent,
+} from "./operator/events/breakReasonsEvents.js";
+export {
+  createBreakReasonsReceivedEvent,
+} from "./operator/events/breakReasonsEvents.js";
+export type {
+  PostCallStatusUpdatedEvent,
+} from "./operator/events/postCallStatusEvents.js";
+export {
+  createPostCallStatusUpdatedEvent,
+} from "./operator/events/postCallStatusEvents.js";
+export type { AgentStatusChangeTrigger } from "./operator/AgentBreakReasonPolicy.js";
+export {
+  isAgentBreakReasonRequired,
+} from "./operator/AgentBreakReasonPolicy.js";
+export type {
   SipAccount,
   SipAccountInput,
 } from "./telephony/SipAccount.js";

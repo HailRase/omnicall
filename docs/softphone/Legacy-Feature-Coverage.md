@@ -87,9 +87,9 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-041 | P06 | Operator | Critical | Operator status selector | `StatusSelector` | User can view and request allowed status transitions. |
 | LF-042 | P06 | Operator | Critical | Change status to Ready | `handleChangeToReady` | Ready command follows status rules and OCP contract. |
 | LF-043 | P06 | Operator | Critical | Change status to Break with reason | `handleChangeToBreak` | Break requires valid reason when configured. |
-| LF-044 | P06 | Operator | Critical | Post-call status while busy | `PROXY_POST_CALL_STATUS` | Busy post-call update is handled before final status. |
+| LF-044 | P06 | Operator | Critical | Post-call status while busy | `PROXY_POST_CALL_STATUS` | WU3: `UpdatePostCallStatusUseCase`, `PostCallStatusUpdated` — see `handoffs/P06-WU3-Post-Call-Break-Reasons-Handoff.md`. |
 | LF-045 | P06 | Operator | High | Status transition validation | `USER_STATUS_RULES` | WU1/WU2: `AgentStatusTransition` + `ChangeAgentStatusUseCase` — see `handoffs/P06-WU1-Operator-Status-Domain-Handoff.md`. |
-| LF-046 | P06 | UI | Medium | Status duration timer | `StatusTimer` | Current status duration is visible and stable. |
+| LF-046 | P06 | UI | Medium | Status duration timer | `StatusTimer` | WU3: `operatorStatusTimerProjection` (`deriveStatusDurationSeconds`, `timerRunning`); UI WU4. |
 | LF-047 | P06 | Operator | High | Logout with reason | `StatusReasonsModal`, `Header` | Logout captures required reason and emits logout flow. |
 | LF-048 | P08 | Operator | Critical | OCP logout cascade | `ocpLogout`, `softphoneLogoutEvent` | Logout closes OCP, SIP, calls, and projections safely. |
 | LF-049 | P08 | Operator | Critical | Server-side terminate | `useWs entity terminate` | Server termination triggers full controlled logout. |
@@ -105,7 +105,7 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-059 | P07 | UI | Medium | OCP toast notifications | `NotificationProvider` | Notifications render from typed OCP event projection. |
 | LF-060 | P11 | Settings | Low | Toast position and z-index settings | user config | User config controls notification placement. |
 | LF-061 | P03 | Operator | High | Reject reason selection | `IncomingCallModal` | Reject flow can capture valid break reason. |
-| LF-062 | P06 | Operator | High | WS post-call update on reject | `IncomingCallModal` | Reject reason sends typed post-call update. |
+| LF-062 | P06 | Operator | High | WS post-call update on reject | `IncomingCallModal` | WU3: `PostCallRejectOrchestrationService` + facade `rejectCall` — see `handoffs/P06-WU3-Post-Call-Break-Reasons-Handoff.md`. |
 | LF-063 | P07 | Operator | Critical | main_acallid synchronization | `useOCPEvents`, `useWs` | OCP call ID sync uses exact mapping and no infinite polling. |
 | LF-064 | P07 | Operator | Critical | dlg_stop on ended or failed | `handleSaveCallHistory`, `useSoftPhoneDlgStop` | Ended/failed calls send `dlg_stop` once. |
 | LF-065 | P12 | Integration | Critical | External call events to OCP | `externalEvents`, `useOCPEvents` | Internal call events map to legacy host/OCP events. |
@@ -121,7 +121,7 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-075 | P10 | Headset | Medium | Native Jabra adapter | `headsetAdapters` | Vendor implementation stays inside adapter. |
 | LF-076 | P11 | Settings | High | Auto-answer, RBT, multisession settings | `Common`, `setUserConfig` | User settings affect Use Cases through repositories. |
 | LF-077 | P11 | Settings | High | Per-user config in local storage | `JSSIP_CONFIGS` | Settings persist per account behind repository. |
-| LF-078 | P06 | Settings | Medium | Break reasons from OCP in config | `setBreakReasons` | OCP reasons populate typed settings projection. |
+| LF-078 | P06 | Settings | Medium | Break reasons from OCP in config | `setBreakReasons` | WU3: `BreakReasonsSyncService`, `BreakReasonsReceived`, `SettingsRepository.setAllowedBreakReasons` — see `handoffs/P06-WU3-Post-Call-Break-Reasons-Handoff.md`. |
 | LF-079 | P08 | Telephony | Critical | beforeunload SIP cleanup | `DisplayProvider` | App shutdown cleans calls and registration safely. |
 | LF-080 | P12 | Integration | Critical | `window.Softphone` external API | multiple files | One host adapter owns the legacy external API. |
 | LF-081 | P12 | Integration | High | `ocpModule` external status API | `useStatusSelectorAPIAdapter` | Host status API maps to operator Use Cases. |

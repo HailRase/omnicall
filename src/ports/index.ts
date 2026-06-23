@@ -4,6 +4,9 @@ export type {
   ChangeAgentStatusCommand,
   ChangeAgentStatusResult,
   GetAgentStatusCommand,
+  GetBreakReasonsCommand,
+  UpdatePostCallStatusCommand,
+  UpdatePostCallStatusResult,
   OperatorPlatformGateway,
 } from "./operator/OperatorPlatformGateway.js";
 export type {

@@ -8,6 +8,7 @@ export { AuthenticateOcpUseCase } from "./use-cases/AuthenticateOcpUseCase.js";
 export { AuthorizeSipAccountUseCase } from "./use-cases/AuthorizeSipAccountUseCase.js";
 export { ChangePhoneStatusUseCase } from "./use-cases/ChangePhoneStatusUseCase.js";
 export { ChangeAgentStatusUseCase } from "./use-cases/ChangeAgentStatusUseCase.js";
+export { UpdatePostCallStatusUseCase } from "./use-cases/UpdatePostCallStatusUseCase.js";
 export { MakeCallUseCase } from "./use-cases/MakeCallUseCase.js";
 export { AnswerCallUseCase } from "./use-cases/AnswerCallUseCase.js";
 export { RejectCallUseCase } from "./use-cases/RejectCallUseCase.js";
@@ -120,5 +121,12 @@ export {
 export { deriveOperatorStatusDisabledReason } from "./projections/deriveOperatorStatusDisabledReason.js";
 export { AgentStatusValidationService } from "./services/AgentStatusValidationService.js";
 export { AgentStatusSyncService } from "./services/AgentStatusSyncService.js";
+export { BreakReasonsSyncService } from "./services/BreakReasonsSyncService.js";
 export { DndAgentStatusOrchestrationService } from "./services/DndAgentStatusOrchestrationService.js";
+export { OcpAuthBootstrapService } from "./services/OcpAuthBootstrapService.js";
+export { PostCallRejectOrchestrationService } from "./services/PostCallRejectOrchestrationService.js";
+export {
+  deriveStatusDurationSeconds,
+  deriveStatusTimerRunning,
+} from "./projections/operatorStatusTimerProjection.js";
 export { InMemoryAgentStatusReadModel } from "./read-models/InMemoryAgentStatusReadModel.js";

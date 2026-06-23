@@ -285,9 +285,15 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - WU2: `ChangeAgentStatusUseCase` validates → requests → gateway → changed/rejected.
   - WU2: DND phone change orchestrates agent break via `DndAgentStatusOrchestrationService` (LF-018).
   - WU2: Initial agent status synced on `OcpAuthenticationSucceeded` via `AgentStatusSyncService`.
+  - WU3: `BreakReasonsReceived` syncs `allowedBreakReasons` from mock gateway (LF-078).
+  - WU3: Break reason validation uses `allowedBreakReasons` via `AgentBreakReasonPolicy` (not incoming reject flag).
+  - WU3: `UpdatePostCallStatusUseCase` + `PostCallStatusUpdated` after gateway confirm (LF-044).
+  - WU3: Reject with reason triggers post-call update in OCP mode (LF-062).
+  - WU3: Status timer projection derived from `statusChangedAt` (LF-046 prep; UI WU4).
+  - WU3: DND-at-auth orchestration after status sync (`OcpAuthBootstrapService`).
 - Test Coverage:
-  - Unit: `AgentStatusTransition.test.ts`, `DndAgentStatusPolicy.test.ts`, `agentStatusEvents.test.ts`, `operatorStatusProjection.test.ts`, `ChangeAgentStatusUseCase.test.ts`, `deriveOperatorStatusDisabledReason.test.ts` (WU1–WU2)
-  - Integration: `DndAgentStatusOrchestration.integration.test.ts`, mock operator gateway status change (WU2)
+  - Unit: WU1–WU2 suite + `breakReasonsEvents.test.ts`, `postCallStatusEvents.test.ts`, `AgentBreakReasonPolicy.test.ts`, `operatorStatusTimerProjection.test.ts`, `UpdatePostCallStatusUseCase.test.ts`, `BreakReasonsSyncService.test.ts` (WU3)
+  - Integration: `BreakReasonsAndPostCall.integration.test.ts`, `DndAgentStatusOrchestration.integration.test.ts` (WU2–WU3)
   - E2E: status selector (WU4)
 
 ## F-011: Host Integration Contract

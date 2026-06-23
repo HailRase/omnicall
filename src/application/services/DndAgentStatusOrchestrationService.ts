@@ -35,7 +35,6 @@ export class DndAgentStatusOrchestrationService {
     const operationCorrelationId = correlationId ?? createCorrelationId();
     const result = await this.changeAgentStatus.execute({
       targetStatus: "break",
-      reason: null,
       correlationId: operationCorrelationId,
       trigger: "phone_dnd",
     });

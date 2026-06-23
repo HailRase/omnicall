@@ -2,7 +2,10 @@ import {
   createAgentStatusChangeRejectedEvent,
   createAgentStatusChangeRequestedEvent,
   createAgentStatusChangedEvent,
+  createStatusReason,
+  isAgentBreakReasonRequired,
   isAgentStatus,
+  validateBreakReason,
   type AgentStatus,
   type AgentStatusRejectionReason,
   type StatusReason,
@@ -26,7 +29,7 @@ export type ChangeAgentStatusTrigger = "user" | "phone_dnd";
 
 export type ChangeAgentStatusInput = Readonly<{
   targetStatus: AgentStatus;
-  reason?: StatusReason | null;
+  breakReason?: string;
   correlationId?: CorrelationId;
   trigger?: ChangeAgentStatusTrigger;
 }>;
@@ -56,7 +59,6 @@ export class ChangeAgentStatusUseCase {
 
     const snapshot = this.agentStatusReadModel.getSnapshot();
     const previousStatus = snapshot.currentStatus;
-    const reason = input.reason ?? null;
 
     if (!snapshot.isOcpStatusAvailable) {
       return this.rejectAndReturn(correlationId, {
@@ -77,13 +79,36 @@ export class ChangeAgentStatusUseCase {
     }
 
     const incomingSettings = await this.settingsRepository.getIncomingCallSettings();
+    const allowedBreakReasons = incomingSettings.allowedBreakReasons;
+    const breakReasonRequired = isAgentBreakReasonRequired(
+      input.targetStatus,
+      allowedBreakReasons,
+      trigger,
+    );
+
+    const statusReason = resolveBreakStatusReason(
+      input.targetStatus,
+      input.breakReason,
+      allowedBreakReasons,
+      breakReasonRequired,
+    );
+
+    if (statusReason.rejectionReason !== null) {
+      return this.rejectAndReturn(correlationId, {
+        previousStatus,
+        targetStatus: input.targetStatus,
+        reason: statusReason.rejectionReason,
+        trigger,
+      });
+    }
+
     const validation = this.validationService.validateTransition(
       previousStatus,
       input.targetStatus,
       {
         phoneStatus: await this.settingsRepository.getPhoneStatus(),
-        breakReasonRequired: incomingSettings.rejectReasonRequired,
-        reason,
+        breakReasonRequired,
+        reason: statusReason.value,
       },
     );
 
@@ -100,7 +125,7 @@ export class ChangeAgentStatusUseCase {
       createAgentStatusChangeRequestedEvent(correlationId, {
         previousStatus,
         targetStatus: input.targetStatus,
-        reason,
+        reason: statusReason.value,
       }),
     );
 
@@ -118,7 +143,7 @@ export class ChangeAgentStatusUseCase {
     try {
       const gatewayResult = await this.operatorGateway.changeAgentStatus({
         targetStatus: input.targetStatus,
-        reason,
+        reason: statusReason.value,
         correlationId,
       });
 
@@ -138,7 +163,7 @@ export class ChangeAgentStatusUseCase {
         createAgentStatusChangedEvent(correlationId, {
           previousStatus,
           currentStatus: gatewayResult.currentStatus,
-          reason,
+          reason: statusReason.value,
           changedAt,
         }),
       );
@@ -213,6 +238,44 @@ export class ChangeAgentStatusUseCase {
       ),
     );
   }
+}
+
+function resolveBreakStatusReason(
+  targetStatus: AgentStatus,
+  breakReason: string | undefined,
+  allowedBreakReasons: ReadonlyArray<string>,
+  breakReasonRequired: boolean,
+): Readonly<{
+  value: StatusReason | null;
+  rejectionReason: AgentStatusRejectionReason | null;
+}> {
+  if (targetStatus !== "break") {
+    return { value: null, rejectionReason: null };
+  }
+
+  if (!breakReasonRequired) {
+    const trimmed = breakReason?.trim() ?? "";
+    if (trimmed.length === 0) {
+      return { value: null, rejectionReason: null };
+    }
+    return { value: createStatusReason(trimmed), rejectionReason: null };
+  }
+
+  const validationErrors = validateBreakReason(
+    breakReason ?? "",
+    allowedBreakReasons,
+  );
+  if (validationErrors.includes("break_reason_required")) {
+    return { value: null, rejectionReason: "break_reason_required" };
+  }
+  if (validationErrors.includes("break_reason_not_allowed")) {
+    return { value: null, rejectionReason: "break_reason_required" };
+  }
+
+  return {
+    value: createStatusReason(breakReason ?? ""),
+    rejectionReason: null,
+  };
 }
 
 function mapGatewayFailureReason(gatewayReason: string): AgentStatusRejectionReason {

@@ -19,5 +19,6 @@ export interface SettingsRepository {
   getPhoneStatus(): Promise<PhoneStatus>;
   setPhoneStatus(status: PhoneStatus): Promise<void>;
   getIncomingCallSettings(): Promise<IncomingCallSettings>;
+  setAllowedBreakReasons(reasons: ReadonlyArray<BreakReason>): Promise<void>;
   getMultiCallSettings(): Promise<MultiCallSettings>;
 }
