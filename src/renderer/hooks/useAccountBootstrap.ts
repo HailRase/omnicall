@@ -1,10 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import { createAccountBootstrap } from "@infrastructure/bootstrap/createAccountBootstrap.js";
-import {
-  setBootstrapModeInStore,
-  useAccountBootstrapStore,
-} from "../stores/useAccountBootstrapStore.js";
+import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 import { readBootstrapConfigFromUrl } from "../bootstrap/readBootstrapConfig.js";
 
 type BootstrapStatus = "loading" | "ready" | "error";
@@ -19,8 +16,12 @@ export function useAccountBootstrap(): Readonly<{
   const bindFacade = useAccountBootstrapStore((state) => state.bindFacade);
 
   const facade = useMemo(() => {
-    const bootstrapConfig = readBootstrapConfigFromUrl();
-    return createAccountBootstrap({ bootstrapConfig });
+    const bootstrap = readBootstrapConfigFromUrl();
+    return createAccountBootstrap({
+      bootstrapConfig: bootstrap.config,
+      ocpScenario: bootstrap.ocpScenario,
+      telephonyScenario: bootstrap.telephonyScenario,
+    });
   }, []);
 
   useEffect(() => {
@@ -29,16 +30,9 @@ export function useAccountBootstrap(): Readonly<{
 
     async function bootstrap(): Promise<void> {
       try {
-        const config = readBootstrapConfigFromUrl();
-        setBootstrapModeInStore(config.mode === "ocp");
+        const bootstrapOptions = readBootstrapConfigFromUrl();
         unsubscribe = bindFacade(facade);
-
-        if (config.mode === "ocp" && config.ocpToken && config.ocpDomain) {
-          await facade.authenticateOcp.execute({
-            token: config.ocpToken,
-            domain: config.ocpDomain,
-          });
-        }
+        await facade.initialize(bootstrapOptions.config);
 
         if (!cancelled) {
           setStatus("ready");

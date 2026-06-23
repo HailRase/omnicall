@@ -3,16 +3,12 @@ import type { AccountBootstrapFacade } from "@application/facades/AccountBootstr
 import {
   initialAccountBootstrapProjection,
   reduceAccountBootstrapProjection,
-  setBootstrapMode,
-  setPhoneStatusProjection,
   type AccountBootstrapProjection,
 } from "@application/projections/accountBootstrapProjection.js";
-import type { PhoneStatus } from "@domain/index.js";
 
 type AccountBootstrapStore = Readonly<{
   projection: AccountBootstrapProjection;
   bindFacade: (facade: AccountBootstrapFacade) => () => void;
-  applyPhoneStatus: (status: PhoneStatus) => void;
 }>;
 
 export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => ({
@@ -27,16 +23,4 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
 
     return unsubscribe;
   },
-
-  applyPhoneStatus: (status) => {
-    set((state) => ({
-      projection: setPhoneStatusProjection(state.projection, status),
-    }));
-  },
 }));
-
-export function setBootstrapModeInStore(isOcpMode: boolean): void {
-  useAccountBootstrapStore.setState((state) => ({
-    projection: setBootstrapMode(state.projection, isOcpMode),
-  }));
-}

@@ -21,6 +21,18 @@ export type {
   OcpSipCredentials,
   OperatorSession,
 } from "./operator/OperatorSession.js";
+export type { OperatorAuthState } from "./operator/OperatorAuthState.js";
+export {
+  initialOperatorAuthState,
+  OPERATOR_AUTH_STATES,
+  transitionOperatorAuthState,
+} from "./operator/OperatorAuthState.js";
+export type { OcpConnectionState } from "./operator/OcpConnectionState.js";
+export {
+  initialOcpConnectionState,
+  OCP_CONNECTION_STATES,
+  transitionOcpConnectionState,
+} from "./operator/OcpConnectionState.js";
 export type {
   OperatorAuthDomainEvent,
   OcpAuthenticationFailedEvent,
@@ -59,3 +71,18 @@ export {
   createRegistrationRequestedEvent,
   createRegistrationSucceededEvent,
 } from "./telephony/events/registrationEvents.js";
+export type {
+  AccessDeniedDetectedEvent,
+  AccessDeniedSource,
+  AccountBootstrapDomainEvent,
+  ManualSipAuthorizationRequestedEvent,
+  PhoneStatusChangedEvent,
+  StartupModeResolvedEvent,
+  StartupResolution,
+} from "./shared/events/accountBootstrapEvents.js";
+export {
+  createAccessDeniedDetectedEvent,
+  createManualSipAuthorizationRequestedEvent,
+  createPhoneStatusChangedEvent,
+  createStartupModeResolvedEvent,
+} from "./shared/events/accountBootstrapEvents.js";

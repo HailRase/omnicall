@@ -9,7 +9,12 @@ import type { AppBootstrapConfig } from "@domain/index.js";
 
 export type CreateAccountBootstrapOptions = Readonly<{
   bootstrapConfig?: AppBootstrapConfig;
-  ocpScenario?: "success" | "session_exists" | "invalid_token" | "access_denied";
+  ocpScenario?:
+    | "success"
+    | "session_exists"
+    | "invalid_token"
+    | "access_denied"
+    | "network_error";
   telephonyScenario?: "success" | "failure";
 }>;
 

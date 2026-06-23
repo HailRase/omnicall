@@ -28,20 +28,18 @@ function registrationLabel(
 export function App(): JSX.Element {
   const { facade, status, errorMessage } = useAccountBootstrap();
   const projection = useAccountBootstrapStore((state) => state.projection);
-  const applyPhoneStatus = useAccountBootstrapStore(
-    (state) => state.applyPhoneStatus,
-  );
 
   const showAccountPanel =
     projection.authUiState === "sip_only_ready" ||
     projection.authUiState === "sip_registration_failed" ||
-    projection.authUiState === "sip_registered";
+    projection.authUiState === "sip_registered" ||
+    projection.authUiState === "access_denied";
 
   const blockingAuthState =
+    projection.authUiState === "booting" ||
     projection.authUiState === "ocp_authenticating" ||
     projection.authUiState === "ocp_session_exists" ||
     projection.authUiState === "ocp_invalid_token" ||
-    projection.authUiState === "ocp_access_denied" ||
     projection.authUiState === "sip_registering";
 
   return (
@@ -76,7 +74,6 @@ export function App(): JSX.Element {
             )}
             disabled={blockingAuthState}
             onChange={(nextStatus) => {
-              applyPhoneStatus(nextStatus);
               void facade.setPhoneStatus(nextStatus);
             }}
           />

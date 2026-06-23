@@ -55,4 +55,51 @@ describe("AuthenticateOcpUseCase", () => {
     expect(result.ok).toBe(false);
     expect(failureReason).toBe("session_exists");
   });
+
+  it("maps invalid token to failure event", async () => {
+    const events = new InMemoryDomainEventBus();
+    let failureReason: string | undefined;
+
+    events.subscribe((event) => {
+      if (event.type === "OcpAuthenticationFailed") {
+        failureReason = String(event["reason"]);
+      }
+    });
+
+    const useCase = new AuthenticateOcpUseCase(
+      new MockOperatorPlatformGateway({ scenario: "invalid_token" }),
+      events,
+      createTestLogger(),
+    );
+
+    const result = await useCase.execute({
+      token: "token-1",
+      domain: "ocp.example",
+    });
+
+    expect(result.ok).toBe(false);
+    expect(failureReason).toBe("invalid_token");
+  });
+
+  it("publishes AccessDeniedDetected for access denied scenario", async () => {
+    const events = new InMemoryDomainEventBus();
+    const published: string[] = [];
+    events.subscribe((event) => {
+      published.push(event.type);
+    });
+
+    const useCase = new AuthenticateOcpUseCase(
+      new MockOperatorPlatformGateway({ scenario: "access_denied" }),
+      events,
+      createTestLogger(),
+    );
+
+    const result = await useCase.execute({
+      token: "token-1",
+      domain: "ocp.example",
+    });
+
+    expect(result.ok).toBe(false);
+    expect(published).toContain("AccessDeniedDetected");
+  });
 });

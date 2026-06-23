@@ -97,9 +97,12 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Registration runs through `RegisterAccountUseCase`.
   - JsSIP is hidden behind `TelephonyGateway`.
   - Registration state is derived from Domain Events.
+  - Manual SIP authorization emits `ManualSipAuthorizationRequested` and `SipCredentialsReceived`.
+  - Phone status changes run through `ChangePhoneStatusUseCase` and emit `PhoneStatusChanged`.
+  - UI phone status projection is event-derived.
 - Test Coverage:
-  - Unit: registration state transitions
-  - Integration: mock telephony gateway
+  - Unit: registration state transitions, phone status use case, manual SIP validation
+  - Integration: mock telephony gateway, SIP-only and OCP bootstrap facade flows
   - E2E: deferred until SIP sandbox exists
 
 ## F-002: Incoming Call
@@ -239,12 +242,15 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Outputs: operator session events and optional SIP credentials
 - Acceptance Criteria:
   - Core SIP phone mode works without OCP.
-  - OCP is implemented as an integration plugin.
-  - WebSocket messages are typed and validated.
+  - OCP is implemented as an integration plugin behind `OperatorPlatformGateway`.
+  - Startup mode is resolved by `ResolveStartupModeUseCase` and published as `StartupModeResolved`.
+  - OCP auth failure states map to UI: loading, session exists, invalid token, access denied.
+  - Missing OCP credentials at startup emit `AccessDeniedDetected`.
+  - Dev mock scenarios are selectable via URL query params.
 - Test Coverage:
-  - Unit: OCP message parsing
-  - Integration: mock OCP gateway
-  - E2E: optional plugin startup
+  - Unit: OCP auth success, invalid token, session exists, access denied
+  - Integration: mock OCP gateway, OCP to SIP registration chain, startup initialization
+  - E2E: deferred until harness exists
 
 ## F-010: Operator Status Management
 

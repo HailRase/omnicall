@@ -1,9 +1,16 @@
 import type { DomainEvent } from "@domain/index.js";
 import {
+  initialOcpConnectionState,
+  initialOperatorAuthState,
   initialRegistrationState,
+  transitionOcpConnectionState,
+  transitionOperatorAuthState,
   transitionRegistrationState,
+  type OcpConnectionState,
+  type OperatorAuthState,
   type PhoneStatus,
   type RegistrationState,
+  type StartupResolution,
 } from "@domain/index.js";
 
 export type AuthUiState =
@@ -12,7 +19,7 @@ export type AuthUiState =
   | "ocp_authenticating"
   | "ocp_session_exists"
   | "ocp_invalid_token"
-  | "ocp_access_denied"
+  | "access_denied"
   | "sip_registering"
   | "sip_registered"
   | "sip_registration_failed";
@@ -20,6 +27,8 @@ export type AuthUiState =
 export type AccountBootstrapProjection = Readonly<{
   authUiState: AuthUiState;
   registrationState: RegistrationState;
+  operatorAuthState: OperatorAuthState;
+  ocpConnectionState: OcpConnectionState;
   phoneStatus: PhoneStatus;
   agentId: string | null;
   lastError: string | null;
@@ -29,6 +38,8 @@ export type AccountBootstrapProjection = Readonly<{
 export const initialAccountBootstrapProjection = (): AccountBootstrapProjection => ({
   authUiState: "booting",
   registrationState: initialRegistrationState(),
+  operatorAuthState: initialOperatorAuthState(),
+  ocpConnectionState: initialOcpConnectionState(),
   phoneStatus: "offline",
   agentId: null,
   lastError: null,
@@ -89,18 +100,39 @@ function applyOperatorAuthEvent(
   event: DomainEvent,
 ): AccountBootstrapProjection {
   switch (event.type) {
-    case "OcpAuthenticationRequested":
+    case "OcpAuthenticationRequested": {
+      const authTransition = transitionOperatorAuthState(
+        projection.operatorAuthState,
+        "auth_requested",
+      );
+      const connectionTransition = transitionOcpConnectionState(
+        projection.ocpConnectionState,
+        "connect_requested",
+      );
       return {
         ...projection,
         authUiState: "ocp_authenticating",
+        operatorAuthState: authTransition.state,
+        ocpConnectionState: connectionTransition.state,
         lastError: null,
       };
+    }
     case "OcpAuthenticationSucceeded": {
       const agentId =
         typeof event["agentId"] === "string" ? event["agentId"] : null;
+      const authTransition = transitionOperatorAuthState(
+        projection.operatorAuthState,
+        "auth_succeeded",
+      );
+      const connectionTransition = transitionOcpConnectionState(
+        projection.ocpConnectionState,
+        "connected",
+      );
       return {
         ...projection,
         agentId,
+        operatorAuthState: authTransition.state,
+        ocpConnectionState: connectionTransition.state,
         lastError: null,
       };
     }
@@ -109,34 +141,88 @@ function applyOperatorAuthEvent(
       const message =
         typeof event["message"] === "string" ? event["message"] : "OCP auth failed";
 
+      const authTransition = transitionOperatorAuthState(
+        projection.operatorAuthState,
+        "auth_failed",
+      );
+      const connectionTransition = transitionOcpConnectionState(
+        projection.ocpConnectionState,
+        "disconnected",
+      );
+
+      const base = {
+        ...projection,
+        operatorAuthState: authTransition.state,
+        ocpConnectionState: connectionTransition.state,
+        lastError: message,
+      };
+
+      if (reason === "access_denied") {
+        return base;
+      }
+
       if (reason === "session_exists") {
-        return {
-          ...projection,
-          authUiState: "ocp_session_exists",
-          lastError: message,
-        };
+        return { ...base, authUiState: "ocp_session_exists" };
       }
 
       if (reason === "invalid_token") {
+        return { ...base, authUiState: "ocp_invalid_token" };
+      }
+
+      return { ...base, authUiState: "ocp_invalid_token" };
+    }
+    default:
+      return projection;
+  }
+}
+
+function applyBootstrapEvent(
+  projection: AccountBootstrapProjection,
+  event: DomainEvent,
+): AccountBootstrapProjection {
+  switch (event.type) {
+    case "StartupModeResolved": {
+      const resolution = event["resolution"] as StartupResolution | undefined;
+      if (resolution === undefined) {
+        return projection;
+      }
+
+      if (resolution.action === "sip_only_ready") {
         return {
           ...projection,
-          authUiState: "ocp_invalid_token",
-          lastError: message,
+          authUiState: "sip_only_ready",
+          isOcpMode: false,
+          lastError: null,
         };
       }
 
-      if (reason === "access_denied") {
+      if (resolution.action === "ocp_authenticate") {
         return {
           ...projection,
-          authUiState: "ocp_access_denied",
-          lastError: message,
+          isOcpMode: true,
+          lastError: null,
         };
       }
 
+      return projection;
+    }
+    case "AccessDeniedDetected": {
+      const reason =
+        typeof event["reason"] === "string" ? event["reason"] : "Access denied";
       return {
         ...projection,
-        authUiState: "ocp_access_denied",
-        lastError: message,
+        authUiState: "access_denied",
+        lastError: reason,
+      };
+    }
+    case "PhoneStatusChanged": {
+      const nextStatus = event["nextStatus"];
+      if (nextStatus !== "online" && nextStatus !== "offline" && nextStatus !== "dnd") {
+        return projection;
+      }
+      return {
+        ...projection,
+        phoneStatus: nextStatus,
       };
     }
     default:
@@ -148,7 +234,8 @@ export function reduceAccountBootstrapProjection(
   projection: AccountBootstrapProjection,
   event: DomainEvent,
 ): AccountBootstrapProjection {
-  const afterAuth = applyOperatorAuthEvent(projection, event);
+  const afterBootstrap = applyBootstrapEvent(projection, event);
+  const afterAuth = applyOperatorAuthEvent(afterBootstrap, event);
   const afterRegistration = applyRegistrationEvent(afterAuth, event);
   return afterRegistration;
 }
@@ -161,15 +248,5 @@ export function setBootstrapMode(
     ...projection,
     isOcpMode,
     authUiState: isOcpMode ? projection.authUiState : "sip_only_ready",
-  };
-}
-
-export function setPhoneStatusProjection(
-  projection: AccountBootstrapProjection,
-  phoneStatus: PhoneStatus,
-): AccountBootstrapProjection {
-  return {
-    ...projection,
-    phoneStatus,
   };
 }

@@ -1,4 +1,6 @@
 import {
+  createAccessDeniedDetectedEvent,
+  createManualSipAuthorizationRequestedEvent,
   createSipAccount,
   createSipAccountId,
   createSipCredentialsReceivedEvent,
@@ -32,6 +34,16 @@ export class AuthorizeSipAccountUseCase {
     input: AuthorizeSipAccountInput,
   ): Promise<Result<SipAccount, ReturnType<typeof createPlatformError>>> {
     const correlationId = input.correlationId ?? createCorrelationId();
+    const source = input.source ?? "manual";
+
+    if (source === "manual") {
+      this.eventPublisher.publish(
+        createManualSipAuthorizationRequestedEvent(correlationId, {
+          account: input.account,
+        }),
+      );
+    }
+
     const validationErrors = validateSipAccountInput(input.account);
 
     if (validationErrors.length > 0) {
@@ -39,6 +51,13 @@ export class AuthorizeSipAccountUseCase {
         validationErrors.includes("username_required")
           ? "Access denied: username is required"
           : "Invalid SIP account input";
+
+      this.eventPublisher.publish(
+        createAccessDeniedDetectedEvent(correlationId, {
+          source: "manual",
+          reason: message,
+        }),
+      );
 
       this.logger.warn("sip_authorization_rejected", {
         correlationId,
@@ -61,7 +80,7 @@ export class AuthorizeSipAccountUseCase {
     this.eventPublisher.publish(
       createSipCredentialsReceivedEvent(correlationId, {
         credentials: input.account,
-        source: input.source ?? "manual",
+        source,
       }),
     );
 

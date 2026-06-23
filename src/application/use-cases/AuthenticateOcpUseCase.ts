@@ -1,4 +1,5 @@
 import {
+  createAccessDeniedDetectedEvent,
   createOcpAuthenticationFailedEvent,
   createOcpAuthenticationRequestedEvent,
   createOcpAuthenticationSucceededEvent,
@@ -59,6 +60,15 @@ export class AuthenticateOcpUseCase {
             message: result.message,
           }),
         );
+
+        if (result.reason === "access_denied") {
+          this.eventPublisher.publish(
+            createAccessDeniedDetectedEvent(correlationId, {
+              source: "ocp",
+              reason: result.message,
+            }),
+          );
+        }
 
         this.logger.warn("ocp_authentication_failed", {
           correlationId,

@@ -52,7 +52,7 @@ export function AuthStateView({
           message={lastError ?? "OCP token is invalid."}
         />
       );
-    case "ocp_access_denied":
+    case "access_denied":
       return (
         <AuthScreen
           testId="auth-access-denied"

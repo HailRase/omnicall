@@ -55,6 +55,57 @@ describe("AccountBootstrapFacade integration", () => {
     await waitFor(() => telephony.isRegistered());
     expect(telephony.isRegistered()).toBe(true);
   });
+
+  it("initializes sip-only startup through ResolveStartupModeUseCase", async () => {
+    const facade = new AccountBootstrapFacade({
+      operatorGateway: new MockOperatorPlatformGateway(),
+      telephonyGateway: new MockTelephonyGateway("success"),
+      settingsRepository: new InMemorySettingsRepository({
+        bootstrapConfig: { mode: "sip-only" },
+      }),
+      logger: createTestLogger(),
+    });
+
+    await facade.initialize({ mode: "sip-only" });
+  });
+
+  it("initializes ocp startup and registers via mock gateways", async () => {
+    const telephony = new MockTelephonyGateway("success");
+    const facade = new AccountBootstrapFacade({
+      operatorGateway: new MockOperatorPlatformGateway({ scenario: "success" }),
+      telephonyGateway: telephony,
+      settingsRepository: new InMemorySettingsRepository({
+        bootstrapConfig: {
+          mode: "ocp",
+          ocpToken: "token",
+          ocpDomain: "ocp.example",
+        },
+      }),
+      logger: createTestLogger(),
+    });
+
+    await facade.initialize({
+      mode: "ocp",
+      ocpToken: "token",
+      ocpDomain: "ocp.example",
+    });
+
+    await waitFor(() => telephony.isRegistered());
+    expect(telephony.isRegistered()).toBe(true);
+  });
+
+  it("changes phone status through event-driven use case", async () => {
+    const settings = new InMemorySettingsRepository({ phoneStatus: "offline" });
+    const facade = new AccountBootstrapFacade({
+      operatorGateway: new MockOperatorPlatformGateway(),
+      telephonyGateway: new MockTelephonyGateway("success"),
+      settingsRepository: settings,
+      logger: createTestLogger(),
+    });
+
+    await facade.setPhoneStatus("dnd");
+    expect((await settings.getPhoneStatus())).toBe("dnd");
+  });
 });
 
 function waitFor(predicate: () => boolean, timeoutMs = 1000): Promise<void> {
