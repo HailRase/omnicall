@@ -1,12 +1,12 @@
 import type { Call } from "@domain/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
 import type { Result } from "@shared/result/index.js";
+import { executeMuteCall, executeUnmuteCall } from "./mediaCallControlOperations.js";
 import {
   executeHangupCall,
   executeHoldCall,
   executeResumeCall,
 } from "./telephonyCallControlOperations.js";
-import { executeMuteCall, executeUnmuteCall } from "./mediaCallControlOperations.js";
 import type {
   ActiveCallControlDeps,
   HangupCallInput,
@@ -15,6 +15,11 @@ import type {
   ResumeCallInput,
   UnmuteCallInput,
 } from "./activeCallControlTypes.js";
+
+type ExclusiveHoldEnforcer = (
+  targetCallId: ResumeCallInput["callId"],
+  correlationId: NonNullable<ResumeCallInput["correlationId"]>,
+) => Promise<Result<void, PlatformError>>;
 
 export type {
   HangupCallInput,
@@ -30,7 +35,13 @@ export type {
  * - Outputs: updated call entity or normalized platform error.
  */
 export class ActiveCallControlService {
+  private exclusiveHoldEnforcer: ExclusiveHoldEnforcer | null = null;
+
   constructor(private readonly deps: ActiveCallControlDeps) {}
+
+  setExclusiveHoldEnforcer(enforcer: ExclusiveHoldEnforcer): void {
+    this.exclusiveHoldEnforcer = enforcer;
+  }
 
   hangupCall(input: HangupCallInput): Promise<Result<Call, PlatformError>> {
     return executeHangupCall(this.deps, input);
@@ -41,7 +52,7 @@ export class ActiveCallControlService {
   }
 
   resumeCall(input: ResumeCallInput): Promise<Result<Call, PlatformError>> {
-    return executeResumeCall(this.deps, input);
+    return executeResumeCall(this.deps, input, this.exclusiveHoldEnforcer);
   }
 
   muteCall(input: MuteCallInput): Promise<Result<Call, PlatformError>> {

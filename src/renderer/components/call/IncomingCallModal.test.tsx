@@ -100,4 +100,30 @@ describe("IncomingCallModal", () => {
     expect(onAnswer).toHaveBeenCalledTimes(1);
     expect(onReject).toHaveBeenCalledTimes(1);
   });
+
+  it("shows incoming-answer-disabled-reason in modal when answer blocked", () => {
+    render(
+      <IncomingCallModal
+        visible
+        callerNumber="+12025550100"
+        displayName={null}
+        queueInfo={null}
+        ringingState="ringing"
+        autoAnswerSecondsRemaining={null}
+        uiState="incomingRinging"
+        rejectReasonRequired={false}
+        rejectReasons={["break"]}
+        selectedBreakReason={null}
+        answerDisabledReason="Second session disabled"
+        rejectDisabledReason={null}
+        onAnswer={vi.fn()}
+        onReject={vi.fn()}
+        onSelectBreakReason={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("incoming-answer-disabled-reason")).toHaveTextContent(
+      "Second session disabled",
+    );
+  });
 });

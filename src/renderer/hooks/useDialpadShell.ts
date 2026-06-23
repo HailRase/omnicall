@@ -5,6 +5,7 @@ import {
   type CallProjection,
   type AccountBootstrapProjection,
   type DialpadMode,
+  type MultiCallProjection,
 } from "@application/index.js";
 import { mapDialpadDisabledReason } from "../helpers/mapDialpadDisabledReason.js";
 
@@ -26,6 +27,7 @@ type UseDialpadShellResult = Readonly<{
 export function useDialpadShell(
   projection: AccountBootstrapProjection,
   callProjection: CallProjection,
+  multiCallProjection: MultiCallProjection,
 ): UseDialpadShellResult {
   const [dialedNumber, setDialedNumber] = useState("");
 
@@ -38,10 +40,6 @@ export function useDialpadShell(
 
   const isCalling = callProjection.state === "Connecting";
   const hasInvalidNumber = !isDialpadNumberValid(dialedNumber);
-  const secondSessionDisabled =
-    callProjection.state !== "Idle" &&
-    callProjection.state !== "Failed" &&
-    callProjection.state !== "Ended";
   const ocpReserved = projection.isOcpMode && projection.phoneStatus === "dnd";
 
   const disabledState = useMemo(
@@ -49,18 +47,19 @@ export function useDialpadShell(
       deriveDialpadDisabledReason({
         isRegistered: !blockingAuthState && projection.authUiState === "sip_registered",
         isOcpReserved: ocpReserved,
-        isSecondSessionDisabled:
-          secondSessionDisabled && callProjection.state !== "Active",
+        isSecondSessionDisabled: multiCallProjection.isSecondSessionDisabled,
+        isHoldAllInProgress: multiCallProjection.holdAllInProgress,
         isNumberValid: !hasInvalidNumber,
-        isConnecting: callProjection.state === "Connecting",
+        isConnecting: isCalling,
       }),
     [
       blockingAuthState,
-      callProjection.state,
       hasInvalidNumber,
+      isCalling,
+      multiCallProjection.holdAllInProgress,
+      multiCallProjection.isSecondSessionDisabled,
       ocpReserved,
       projection.authUiState,
-      secondSessionDisabled,
     ],
   );
 

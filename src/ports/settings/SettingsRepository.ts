@@ -1,6 +1,7 @@
 import type {
   AppBootstrapConfig,
   BreakReason,
+  MultiCallSettings,
   PhoneStatus,
   SipAccount,
 } from "@domain/index.js";
@@ -18,4 +19,5 @@ export interface SettingsRepository {
   getPhoneStatus(): Promise<PhoneStatus>;
   setPhoneStatus(status: PhoneStatus): Promise<void>;
   getIncomingCallSettings(): Promise<IncomingCallSettings>;
+  getMultiCallSettings(): Promise<MultiCallSettings>;
 }

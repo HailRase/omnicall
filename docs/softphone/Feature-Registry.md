@@ -191,36 +191,32 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-028`, `LF-030`, `LF-031`
 - Context: Telephony
 - Priority: high
-- Status: planned
+- Status: in_progress
 - Owner: TBD
 - Inputs: active call ID, target number
 - Outputs: `CallTransferRequested`, `CallTransferred`, or `CallTransferFailed`
 - Acceptance Criteria:
-  - Transfer runs through `TransferCallUseCase`.
-  - Transfer rules live in Domain.
-  - Adapter-specific REFER behavior is hidden.
+  - WU1 (policy foundation): multi-call policy domain + `AllOtherCallsHeld` / `SecondSessionBlocked` events gate outgoing and incoming second sessions (`LF-021`, `LF-032`); exclusive hold before resume (`LF-023`).
+  - WU2+: transfer runs through `TransferCallUseCase`; transfer rules live in Domain; adapter-specific REFER behavior is hidden.
 - Test Coverage:
-  - Unit: transfer eligibility
-  - Integration: mock telephony gateway transfer
-  - E2E: transfer UI with mock gateway
+  - WU1: `MultiCallPolicy.test.ts`, `CallEngine.multiCallPolicy.test.ts`, `multiCallProjection.test.ts`, `MultiCallPolicy.integration.test.ts`
+  - WU2+: unit transfer eligibility; integration mock telephony gateway transfer; E2E transfer UI with mock gateway
 
 ## F-007: Attended Transfer
 
 - Legacy IDs: `LF-029`, `LF-030`, `LF-031`, `LF-032`
 - Context: Telephony
 - Priority: high
-- Status: planned
+- Status: in_progress
 - Owner: TBD
-- Inputs: source call, consultation call, transfer command
-- Outputs: attended transfer events
+- Inputs: source call, consultation call, transfer command; WU1: `MultiCallSettings.multiSessionsEnabled`
+- Outputs: attended transfer events; WU1: `AllOtherCallsHeld`, `SecondSessionBlocked`
 - Acceptance Criteria:
-  - Multi-call relationships are explicit.
-  - No mutable flags are stored on adapter session objects.
-  - Failure returns calls to a valid state.
+  - WU1: `SettingsRepository.getMultiCallSettings()` drives second-session block (`LF-032`); hold-all before outgoing (`LF-021`); exclusive hold on resume (`LF-023`); dialpad and incoming answer disabled reasons from `multiCallProjection`.
+  - WU3+: multi-call relationships are explicit; no mutable flags on adapter session objects; failure returns calls to valid state.
 - Test Coverage:
-  - Unit: multi-call transition graph
-  - Integration: mock gateway scenario
-  - E2E: deferred until call harness exists
+  - WU1: domain policy unit tests; CallEngine hold-all / block / exclusive-resume; projection + integration chain
+  - WU3+: unit multi-call transition graph; integration mock gateway; E2E deferred until call harness exists
 
 ## F-008: DTMF
 

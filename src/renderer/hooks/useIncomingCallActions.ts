@@ -1,10 +1,15 @@
 import { useEffect } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
-import type { IncomingCallProjection } from "@application/index.js";
+import {
+  deriveIncomingAnswerDisabledReason,
+  type IncomingCallProjection,
+  type MultiCallProjection,
+} from "@application/index.js";
 
 type UseIncomingCallActionsInput = Readonly<{
   facade: AccountBootstrapFacade | null;
   incomingCallProjection: IncomingCallProjection;
+  multiCallProjection: MultiCallProjection;
   isOcpMode: boolean;
   setIncomingUiState: (state: IncomingCallProjection["uiState"]) => void;
   setIncomingRejectReasonRequired: (required: boolean) => void;
@@ -28,6 +33,7 @@ export function useIncomingCallActions(
   const {
     facade,
     incomingCallProjection,
+    multiCallProjection,
     isOcpMode,
     setIncomingUiState,
     setIncomingRejectReasonRequired,
@@ -37,8 +43,14 @@ export function useIncomingCallActions(
     setIncomingRejectReasonRequired(isOcpMode);
   }, [isOcpMode, setIncomingRejectReasonRequired]);
 
+  const policyAnswerDisabled = deriveIncomingAnswerDisabledReason(multiCallProjection);
+
   const handleAnswerIncoming = (): void => {
-    if (facade === null || incomingCallProjection.callId === null) {
+    if (
+      facade === null ||
+      incomingCallProjection.callId === null ||
+      policyAnswerDisabled !== null
+    ) {
       return;
     }
     setIncomingUiState("answering");
@@ -57,7 +69,9 @@ export function useIncomingCallActions(
   };
 
   const answerDisabledReason =
-    incomingCallProjection.uiState === "rejecting" ? "Reject in progress" : null;
+    incomingCallProjection.uiState === "rejecting"
+      ? "Reject in progress"
+      : policyAnswerDisabled;
   const rejectDisabledReason =
     incomingCallProjection.uiState === "answering" ? "Answer in progress" : null;
 

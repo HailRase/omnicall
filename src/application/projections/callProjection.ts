@@ -15,7 +15,8 @@ export type DialpadUiState =
   | "failedRejected"
   | "disabledByNotRegistered"
   | "disabledByOcpReserved"
-  | "disabledBySecondSessionPolicy";
+  | "disabledBySecondSessionPolicy"
+  | "disabledByHoldAllInProgress";
 
 export type CallProjection = Readonly<{
   activeCallId: string | null;
@@ -181,6 +182,7 @@ export type DialpadDisabledContext = Readonly<{
   isRegistered: boolean;
   isOcpReserved: boolean;
   isSecondSessionDisabled: boolean;
+  isHoldAllInProgress: boolean;
   isNumberValid: boolean;
   isConnecting: boolean;
 }>;
@@ -193,6 +195,9 @@ export function deriveDialpadDisabledReason(
   }
   if (context.isOcpReserved) {
     return "disabledByOcpReserved";
+  }
+  if (context.isHoldAllInProgress) {
+    return "disabledByHoldAllInProgress";
   }
   if (context.isSecondSessionDisabled) {
     return "disabledBySecondSessionPolicy";

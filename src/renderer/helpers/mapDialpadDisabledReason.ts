@@ -11,6 +11,8 @@ export function mapDialpadDisabledReason(disabledState: string | null): string |
       return "OCP reserved";
     case "disabledBySecondSessionPolicy":
       return "Second session disabled";
+    case "disabledByHoldAllInProgress":
+      return "Holding other calls…";
     case "calling":
       return "Call already connecting";
     default:

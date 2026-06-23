@@ -31,7 +31,7 @@ import type {
 } from "@ports/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { CallEngine } from "@application/services/CallEngine.js";
-import { createCallId, type Call, type CallId } from "@domain/index.js";
+import { createCallId, type Call, type CallId, type MultiCallSettings } from "@domain/index.js";
 
 export type AccountBootstrapFacadeDeps = Readonly<{
   operatorGateway: OperatorPlatformGateway;
@@ -183,6 +183,10 @@ export class AccountBootstrapFacade {
 
   async setPhoneStatus(status: PhoneStatus): Promise<void> {
     await this.changePhoneStatus.execute({ nextStatus: status });
+  }
+
+  getMultiCallSettings(): Promise<MultiCallSettings> {
+    return this.deps.settingsRepository.getMultiCallSettings();
   }
 
   async makeCall(number: string, callId?: CallId): Promise<Result<Call, PlatformError>> {

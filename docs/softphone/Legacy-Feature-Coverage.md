@@ -64,9 +64,9 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-018 | P06 | Operator | High | DND switches OCP to break | `useDNDValidation` | DND state maps to OCP break command when plugin is enabled. |
 | LF-019 | P06 | Operator | High | DND blocks Ready status | `StatusSelector` | Status rule prevents Ready while DND is active. |
 | LF-020 | P02 | Telephony | Critical | Outgoing call | `handleCall`, `Display` | Dialpad starts outgoing call through `MakeCallUseCase`. |
-| LF-021 | P05 | Telephony | High | Hold all calls before new call | `handleHoldAll` | Multi-call policy holds established calls before dialing. |
+| LF-021 | P05 | Telephony | High | Hold all calls before new call | `handleHoldAll` | WU1: `MultiCallPolicyService.holdAllBeforeOutgoing`, `AllOtherCallsHeld` — see `handoffs/P05-WU1-Multi-Call-Policy-Handoff.md`. |
 | LF-022 | P04 | Telephony | Critical | Hold and unhold session | `onToggleHoldHandler` | Active call can transition to Held and back. |
-| LF-023 | P05 | Telephony | High | Exclusive hold for other calls | `onToggleHoldHandler` | Only one active audio call is allowed by policy. |
+| LF-023 | P05 | Telephony | High | Exclusive hold for other calls | `onToggleHoldHandler` | WU1: `enforceExclusiveHoldBeforeResume` — see `handoffs/P05-WU1-Multi-Call-Policy-Handoff.md`. |
 | LF-024 | P04 | Media | Critical | Mute and unmute microphone | `onToggleMuteHandler` | Mute state changes through Media service and events. |
 | LF-025 | P02 | Telephony | High | DTMF from dialpad | `DialPad`, `sendDTMF` | Active call sends validated DTMF tones. |
 | LF-026 | P02 | UI | Low | Long press 0 produces plus | `DialPad` | Dialpad supports international number input. |
@@ -75,7 +75,7 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-029 | P05 | Telephony | High | Attended transfer with multiple lines | `ActiveCall`, `onReferHandler` | Consultation call can complete attended transfer. |
 | LF-030 | P05 | UI | Medium | Cancel transfer mode | `ActiveCall` | Transfer mode can be cancelled without invalid state. |
 | LF-031 | P05 | Telephony | Medium | Auto-unhold after failed transfer | user config | Failed transfer restores previous valid call state. |
-| LF-032 | P05 | Telephony | High | Block second session when disabled | `isMultiSessions` | Incoming or outgoing second call follows configured policy. |
+| LF-032 | P05 | Telephony | High | Block second session when disabled | `isMultiSessions` | WU1: `evaluateSecondSessionBlock`, `SecondSessionBlocked`, `multiCallProjection` — see `handoffs/P05-WU1-Multi-Call-Policy-Handoff.md`. |
 | LF-033 | P02 | Media | Medium | Ringback tone on 183 | `isRBT` config | Outgoing progress 183 can play configured RBT. |
 | LF-034 | P02 | Media | Medium | Busy and failed tones | `soundManager` | Failed outgoing calls play normalized failure tones. |
 | LF-035 | P02 | Media | Critical | Remote audio element | `SoftPhone`, `DisplayProvider` | Remote audio is attached by Media service, not UI business logic. |

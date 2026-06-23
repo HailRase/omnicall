@@ -27,6 +27,7 @@ import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { createPlatformError, normalizeUnknownError } from "@shared/errors/index.js";
 import { err, isErr, ok, type Result } from "@shared/result/index.js";
 import type { CallTracker } from "./CallTracker.js";
+import type { MultiCallPolicyService } from "./MultiCallPolicyService.js";
 import type {
   HandleCallAnsweredInput,
   HandleCallFailedInput,
@@ -40,6 +41,7 @@ type OutgoingCallOrchestratorDeps = Readonly<{
   eventPublisher: DomainEventPublisher;
   logger: Logger;
   callTracker: CallTracker;
+  multiCallPolicyService: MultiCallPolicyService;
 }>;
 
 export class OutgoingCallOrchestrator {
@@ -49,6 +51,22 @@ export class OutgoingCallOrchestrator {
     input: MakeCallInput,
   ): Promise<Result<Call, ReturnType<typeof createPlatformError>>> {
     const correlationId = input.correlationId ?? createCorrelationId();
+
+    const blockResult = await this.deps.multiCallPolicyService.checkSecondSessionBlocked(
+      "outgoing",
+      correlationId,
+    );
+    if (isErr(blockResult)) {
+      return err(blockResult.error);
+    }
+
+    const holdAllResult = await this.deps.multiCallPolicyService.holdAllBeforeOutgoing(
+      correlationId,
+    );
+    if (isErr(holdAllResult)) {
+      return err(holdAllResult.error);
+    }
+
     const callId = input.callId ?? createCallId(`call-${correlationId}`);
     const initialCall = createOutgoingCall(callId, input.phoneNumber);
 

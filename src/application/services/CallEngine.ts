@@ -12,6 +12,7 @@ import type { Result } from "@shared/result/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { ActiveCallControlService } from "./ActiveCallControlService.js";
 import { CallTracker } from "./CallTracker.js";
+import { MultiCallPolicyService } from "./MultiCallPolicyService.js";
 import type {
   AnswerCallInput,
   HandleCallAnsweredInput,
@@ -54,10 +55,11 @@ export type {
  */
 export class CallEngine {
   private readonly callTracker = new CallTracker();
+  private readonly activeCallControlService: ActiveCallControlService;
+  private readonly multiCallPolicyService: MultiCallPolicyService;
   private readonly outgoingCallOrchestrator: OutgoingCallOrchestrator;
   private readonly incomingCallOrchestrator: IncomingCallOrchestrator;
   private readonly dtmfOrchestrator: DtmfOrchestrator;
-  private readonly activeCallControlService: ActiveCallControlService;
 
   constructor(
     telephonyGateway: TelephonyGateway,
@@ -75,19 +77,6 @@ export class CallEngine {
       callTracker: this.callTracker,
     };
 
-    this.outgoingCallOrchestrator = new OutgoingCallOrchestrator(sharedDeps);
-    this.incomingCallOrchestrator = new IncomingCallOrchestrator({
-      ...sharedDeps,
-      settingsRepository,
-      ...(hostIntegrationGateway !== undefined
-        ? { hostIntegrationGateway }
-        : {}),
-    });
-    this.dtmfOrchestrator = new DtmfOrchestrator({
-      telephonyGateway,
-      eventPublisher,
-      logger,
-    });
     this.activeCallControlService = new ActiveCallControlService({
       telephonyGateway,
       mediaGateway,
@@ -96,6 +85,36 @@ export class CallEngine {
       resolveTrackedCall: (callId) => this.callTracker.getTrackedCall(callId),
       trackCall: (call) => this.callTracker.trackCall(call),
       clearIncomingCallById: (callId) => this.callTracker.clearIncomingCallById(callId),
+    });
+    this.multiCallPolicyService = new MultiCallPolicyService({
+      settingsRepository,
+      eventPublisher,
+      logger,
+      callTracker: this.callTracker,
+      holdCall: (input) => this.activeCallControlService.holdCall(input),
+    });
+    this.activeCallControlService.setExclusiveHoldEnforcer((targetCallId, correlationId) =>
+      this.multiCallPolicyService.enforceExclusiveHoldBeforeResume(
+        targetCallId,
+        correlationId,
+      ),
+    );
+    this.outgoingCallOrchestrator = new OutgoingCallOrchestrator({
+      ...sharedDeps,
+      multiCallPolicyService: this.multiCallPolicyService,
+    });
+    this.incomingCallOrchestrator = new IncomingCallOrchestrator({
+      ...sharedDeps,
+      settingsRepository,
+      multiCallPolicyService: this.multiCallPolicyService,
+      ...(hostIntegrationGateway !== undefined
+        ? { hostIntegrationGateway }
+        : {}),
+    });
+    this.dtmfOrchestrator = new DtmfOrchestrator({
+      telephonyGateway,
+      eventPublisher,
+      logger,
     });
   }
 

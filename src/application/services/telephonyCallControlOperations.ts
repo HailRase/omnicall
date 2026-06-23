@@ -21,6 +21,11 @@ import type {
   ResumeCallInput,
 } from "./activeCallControlTypes.js";
 
+type ExclusiveHoldEnforcer = (
+  targetCallId: ResumeCallInput["callId"],
+  correlationId: NonNullable<ResumeCallInput["correlationId"]>,
+) => Promise<Result<void, PlatformError>>;
+
 /**
  * - Purpose: telephony-side active call control (hangup, hold, resume).
  * - Inputs: active call control deps and operation-specific call id input.
@@ -207,6 +212,7 @@ export async function executeHoldCall(
 export async function executeResumeCall(
   deps: ActiveCallControlDeps,
   input: ResumeCallInput,
+  exclusiveHoldEnforcer: ExclusiveHoldEnforcer | null = null,
 ): Promise<Result<Call, PlatformError>> {
   const correlationId = input.correlationId ?? createCorrelationId();
   const trackedCallResult = deps.resolveTrackedCall(input.callId);
@@ -214,6 +220,17 @@ export async function executeResumeCall(
     return trackedCallResult;
   }
   const trackedCall = trackedCallResult.value;
+
+  if (exclusiveHoldEnforcer !== null) {
+    const exclusiveHoldResult = await exclusiveHoldEnforcer(
+      input.callId,
+      correlationId,
+    );
+    if (isErr(exclusiveHoldResult)) {
+      return err(exclusiveHoldResult.error);
+    }
+  }
+
   const resumed = applyCallTransition(trackedCall, "resumed");
   if (!resumed.transition.ok) {
     return err(createPlatformError("validation_failed", resumed.transition.reason));

@@ -25,6 +25,7 @@ describe("callProjection", () => {
       isRegistered: true,
       isOcpReserved: false,
       isSecondSessionDisabled: false,
+      isHoldAllInProgress: false,
       isNumberValid: false,
       isConnecting: false,
     });

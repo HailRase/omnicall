@@ -67,3 +67,11 @@ export {
   decideDndIncomingReject,
   type DndRejectDecision,
 } from "./policies/DndRejectPolicy.js";
+export {
+  initialMultiCallProjection,
+  reduceMultiCallProjection,
+  setMultiCallSettings,
+  deriveIncomingAnswerDisabledReason,
+  type MultiCallProjection,
+  type MultiCallDisabledReason,
+} from "./projections/multiCallProjection.js";

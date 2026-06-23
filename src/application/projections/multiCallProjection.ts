@@ -1,0 +1,196 @@
+import type { DomainEvent } from "@domain/index.js";
+import type { MultiCallSettings } from "@domain/index.js";
+import { deriveSecondSessionDialpadDisabled } from "@domain/index.js";
+
+export type MultiCallDisabledReason =
+  | "second_session_disabled"
+  | "hold_all_in_progress";
+
+export type MultiCallProjection = Readonly<{
+  multiSessionsEnabled: boolean;
+  hasEstablishedCall: boolean;
+  hasConnectingCall: boolean;
+  holdAllInProgress: boolean;
+  activeUnheldCallId: string | null;
+  establishedCallCount: number;
+  isSecondSessionDisabled: boolean;
+  secondSessionDisabledReason: MultiCallDisabledReason | null;
+  lastBlockedDirection: "outgoing" | "incoming_answer" | null;
+}>;
+
+/**
+ * - Purpose: project multi-call policy state for dialpad and incoming answer guards.
+ * - Inputs: domain events and optional settings snapshot.
+ * - Outputs: immutable multi-call projection with disabled reasons.
+ */
+export function initialMultiCallProjection(
+  settings: MultiCallSettings = { multiSessionsEnabled: true },
+): MultiCallProjection {
+  return createMultiCallProjection({
+    multiSessionsEnabled: settings.multiSessionsEnabled,
+    hasEstablishedCall: false,
+    hasConnectingCall: false,
+    holdAllInProgress: false,
+    activeUnheldCallId: null,
+    establishedCallCount: 0,
+    lastBlockedDirection: null,
+  });
+}
+
+export function setMultiCallSettings(
+  projection: MultiCallProjection,
+  settings: MultiCallSettings,
+): MultiCallProjection {
+  return createMultiCallProjection({
+    ...projection,
+    multiSessionsEnabled: settings.multiSessionsEnabled,
+  });
+}
+
+export function reduceMultiCallProjection(
+  projection: MultiCallProjection,
+  event: DomainEvent,
+): MultiCallProjection {
+  switch (event.type) {
+    case "CallAnswered":
+      return createMultiCallProjection({
+        ...projection,
+        hasEstablishedCall: true,
+        establishedCallCount: projection.establishedCallCount + 1,
+        activeUnheldCallId: asOptionalString(event["callId"]),
+        hasConnectingCall: false,
+      });
+    case "CallHeld":
+      return createMultiCallProjection({
+        ...projection,
+        activeUnheldCallId:
+          projection.activeUnheldCallId === asOptionalString(event["callId"])
+            ? null
+            : projection.activeUnheldCallId,
+      });
+    case "CallResumed":
+      return createMultiCallProjection({
+        ...projection,
+        activeUnheldCallId: asOptionalString(event["callId"]),
+      });
+    case "OutgoingCallRequested":
+      return createMultiCallProjection({
+        ...projection,
+        hasConnectingCall: true,
+        holdAllInProgress: false,
+      });
+    case "CallFailed":
+    case "CallEnded":
+      return decrementEstablishedIfNeeded(projection, asOptionalString(event["callId"]));
+    case "AllOtherCallsHeld": {
+      const phase = event["phase"];
+      if (phase === "in_progress") {
+        return createMultiCallProjection({
+          ...projection,
+          holdAllInProgress: true,
+          hasEstablishedCall: true,
+        });
+      }
+      return createMultiCallProjection({
+        ...projection,
+        holdAllInProgress: false,
+      });
+    }
+    case "SecondSessionBlocked": {
+      const direction = event["direction"];
+      const next = createMultiCallProjection({
+        ...projection,
+        lastBlockedDirection:
+          direction === "incoming_answer" ? "incoming_answer" : "outgoing",
+      });
+      return {
+        ...next,
+        isSecondSessionDisabled: true,
+        secondSessionDisabledReason: "second_session_disabled",
+      };
+    }
+    default:
+      return projection;
+  }
+}
+
+export function deriveIncomingAnswerDisabledReason(
+  projection: MultiCallProjection,
+): string | null {
+  if (
+    projection.isSecondSessionDisabled &&
+    projection.secondSessionDisabledReason === "second_session_disabled" &&
+    (projection.lastBlockedDirection === "incoming_answer" ||
+      (projection.hasEstablishedCall && !projection.multiSessionsEnabled))
+  ) {
+    return "Second session disabled";
+  }
+  if (projection.hasEstablishedCall && !projection.multiSessionsEnabled) {
+    return "Second session disabled";
+  }
+  return null;
+}
+
+type MultiCallProjectionInput = Readonly<{
+  multiSessionsEnabled: boolean;
+  hasEstablishedCall: boolean;
+  hasConnectingCall: boolean;
+  holdAllInProgress: boolean;
+  activeUnheldCallId: string | null;
+  establishedCallCount: number;
+  lastBlockedDirection: "outgoing" | "incoming_answer" | null;
+}>;
+
+function createMultiCallProjection(
+  input: MultiCallProjectionInput,
+): MultiCallProjection {
+  const dialpadState = deriveSecondSessionDialpadDisabled(
+    input.hasEstablishedCall,
+    input.hasConnectingCall,
+    input.holdAllInProgress,
+    { multiSessionsEnabled: input.multiSessionsEnabled },
+  );
+
+  return {
+    multiSessionsEnabled: input.multiSessionsEnabled,
+    hasEstablishedCall: input.hasEstablishedCall,
+    hasConnectingCall: input.hasConnectingCall,
+    holdAllInProgress: input.holdAllInProgress,
+    activeUnheldCallId: input.activeUnheldCallId,
+    establishedCallCount: input.establishedCallCount,
+    isSecondSessionDisabled: dialpadState.disabled,
+    secondSessionDisabledReason: dialpadState.reason,
+    lastBlockedDirection: input.lastBlockedDirection,
+  };
+}
+
+function decrementEstablishedIfNeeded(
+  projection: MultiCallProjection,
+  endedCallId: string | null,
+): MultiCallProjection {
+  if (endedCallId === null || projection.establishedCallCount === 0) {
+    return createMultiCallProjection({
+      ...projection,
+      hasEstablishedCall: false,
+      hasConnectingCall: false,
+      establishedCallCount: 0,
+      activeUnheldCallId: null,
+      lastBlockedDirection: null,
+    });
+  }
+
+  const nextCount = Math.max(0, projection.establishedCallCount - 1);
+  return createMultiCallProjection({
+    ...projection,
+    hasEstablishedCall: nextCount > 0,
+    hasConnectingCall: false,
+    establishedCallCount: nextCount,
+    activeUnheldCallId:
+      projection.activeUnheldCallId === endedCallId ? null : projection.activeUnheldCallId,
+    lastBlockedDirection: nextCount === 0 ? null : projection.lastBlockedDirection,
+  });
+}
+
+function asOptionalString(value: unknown): string | null {
+  return typeof value === "string" ? value : null;
+}

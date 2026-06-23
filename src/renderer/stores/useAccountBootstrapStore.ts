@@ -25,11 +25,18 @@ import {
   type IncomingCallProjection,
   type IncomingCallUiState,
 } from "@application/projections/incomingCallProjection.js";
+import {
+  initialMultiCallProjection,
+  reduceMultiCallProjection,
+  setMultiCallSettings,
+  type MultiCallProjection,
+} from "@application/projections/multiCallProjection.js";
 type AccountBootstrapStore = Readonly<{
   projection: AccountBootstrapProjection;
   callProjection: CallProjection;
   activeCallControlsProjection: ActiveCallControlsProjection;
   incomingCallProjection: IncomingCallProjection;
+  multiCallProjection: MultiCallProjection;
   bindFacade: (facade: AccountBootstrapFacade) => () => void;
   setCallMode: (mode: DialpadMode) => void;
   setIncomingUiState: (uiState: IncomingCallUiState) => void;
@@ -42,8 +49,15 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
   callProjection: initialCallProjection(),
   activeCallControlsProjection: initialActiveCallControlsProjection(),
   incomingCallProjection: initialIncomingCallProjection(),
+  multiCallProjection: initialMultiCallProjection(),
 
   bindFacade: (facade) => {
+    void facade.getMultiCallSettings().then((settings) => {
+      set((state) => ({
+        multiCallProjection: setMultiCallSettings(state.multiCallProjection, settings),
+      }));
+    });
+
     const unsubscribe = facade.eventPublisher.subscribe((event) => {
       set((state) => ({
         projection: reduceAccountBootstrapProjection(state.projection, event),
@@ -56,6 +70,7 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
           state.incomingCallProjection,
           event,
         ),
+        multiCallProjection: reduceMultiCallProjection(state.multiCallProjection, event),
       }));
     });
 

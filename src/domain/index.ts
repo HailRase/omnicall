@@ -89,6 +89,18 @@ export {
 } from "./telephony/CallFailureReason.js";
 export type { CallTransitionEvent, CallTransitionResult } from "./telephony/CallStateMachine.js";
 export { transitionCallState } from "./telephony/CallStateMachine.js";
+export type { MultiCallSettings, SecondSessionDirection } from "./telephony/MultiCallPolicy.js";
+export {
+  countEstablishedCalls,
+  deriveSecondSessionDialpadDisabled,
+  evaluateSecondSessionBlock,
+  getActiveUnheldCalls,
+  getCallsToHoldBeforeOutgoing,
+  getCallsToHoldForExclusiveResume,
+  hasConnectingCall,
+  isEstablishedCall,
+  shouldHoldAllBeforeOutgoing,
+} from "./telephony/MultiCallPolicy.js";
 export type { Call } from "./telephony/Call.js";
 export {
   applyCallTransition,
@@ -157,6 +169,10 @@ export type {
   IncomingRingtoneStoppedEvent,
   BusyToneStartedEvent,
   FailedToneStartedEvent,
+  AllOtherCallsHeldEvent,
+  SecondSessionBlockedEvent,
+  HoldAllPhase,
+  HoldAllTrigger,
 } from "./telephony/events/callEvents.js";
 export {
   createCallAutoAnsweredEvent,
@@ -187,6 +203,8 @@ export {
   createIncomingRingtoneStoppedEvent,
   createBusyToneStartedEvent,
   createFailedToneStartedEvent,
+  createAllOtherCallsHeldEvent,
+  createSecondSessionBlockedEvent,
 } from "./telephony/events/callEvents.js";
 export type {
   AccessDeniedDetectedEvent,

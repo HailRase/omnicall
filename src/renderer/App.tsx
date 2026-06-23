@@ -13,6 +13,7 @@ import { Dialpad } from "./components/dialpad/Dialpad.js";
 import { OutgoingCallCard } from "./components/call/OutgoingCallCard.js";
 import { ActiveCallControlsPanel } from "./components/call/ActiveCallControlsPanel.js";
 import { IncomingCallModal } from "./components/call/IncomingCallModal.js";
+import { MultiCallHoldAllIndicator } from "./components/call/MultiCallHoldAllIndicator.js";
 
 export function App(): JSX.Element {
   const { facade, status, errorMessage } = useAccountBootstrap();
@@ -23,6 +24,9 @@ export function App(): JSX.Element {
   );
   const incomingCallProjection = useAccountBootstrapStore(
     (state) => state.incomingCallProjection,
+  );
+  const multiCallProjection = useAccountBootstrapStore(
+    (state) => state.multiCallProjection,
   );
   const setCallMode = useAccountBootstrapStore((state) => state.setCallMode);
   const setIncomingUiState = useAccountBootstrapStore((state) => state.setIncomingUiState);
@@ -42,7 +46,7 @@ export function App(): JSX.Element {
     dialpadMode,
     isCalling,
     callDisabledReason,
-  } = useDialpadShell(projection, callProjection);
+  } = useDialpadShell(projection, callProjection, multiCallProjection);
 
   const callActions = useSoftphoneCallActions({
     facade,
@@ -55,6 +59,7 @@ export function App(): JSX.Element {
   const incomingCallActions = useIncomingCallActions({
     facade,
     incomingCallProjection,
+    multiCallProjection,
     isOcpMode: projection.isOcpMode,
     setIncomingUiState,
     setIncomingRejectReasonRequired,
@@ -105,6 +110,10 @@ export function App(): JSX.Element {
               <p className="shell__hint" data-testid="sip-registered-hint">
                 SIP account is registered via mock gateway (P01-P02 foundation).
               </p>
+
+              <MultiCallHoldAllIndicator
+                visible={multiCallProjection.holdAllInProgress}
+              />
 
               <Dialpad
                 numberValue={dialedNumber}

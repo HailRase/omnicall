@@ -15,6 +15,15 @@ export function IncomingCallActions({
 }: IncomingCallActionsProps): JSX.Element {
   return (
     <div>
+      {answerDisabledReason !== null && (
+        <p
+          data-testid="incoming-answer-disabled-reason"
+          role="status"
+          className="incoming-call__disabled-reason"
+        >
+          {answerDisabledReason}
+        </p>
+      )}
       <button
         type="button"
         data-testid="answer-call"

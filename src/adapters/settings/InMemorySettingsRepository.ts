@@ -1,6 +1,7 @@
 import type {
   AppBootstrapConfig,
   BreakReason,
+  MultiCallSettings,
   PhoneStatus,
   SipAccount,
 } from "@domain/index.js";
@@ -15,6 +16,7 @@ export type InMemorySettingsState = Readonly<{
   sipAccount: SipAccount | null;
   phoneStatus: PhoneStatus;
   incomingCallSettings: IncomingCallSettings;
+  multiCallSettings: MultiCallSettings;
 }>;
 
 export class InMemorySettingsRepository implements SettingsRepository {
@@ -29,6 +31,9 @@ export class InMemorySettingsRepository implements SettingsRepository {
         autoAnswerTimeoutSec: null,
         rejectReasonRequired: false,
         allowedBreakReasons: defaultBreakReasons(),
+      },
+      multiCallSettings: initial?.multiCallSettings ?? {
+        multiSessionsEnabled: true,
       },
     };
   }
@@ -61,6 +66,10 @@ export class InMemorySettingsRepository implements SettingsRepository {
 
   getIncomingCallSettings(): Promise<IncomingCallSettings> {
     return Promise.resolve(this.state.incomingCallSettings);
+  }
+
+  getMultiCallSettings(): Promise<MultiCallSettings> {
+    return Promise.resolve(this.state.multiCallSettings);
   }
 }
 

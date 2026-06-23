@@ -74,6 +74,12 @@ export type BusyToneStartedEvent = ReturnType<typeof createBusyToneStartedEvent>
 export type FailedToneStartedEvent = ReturnType<
   typeof createFailedToneStartedEvent
 >;
+export type AllOtherCallsHeldEvent = ReturnType<typeof createAllOtherCallsHeldEvent>;
+export type SecondSessionBlockedEvent = ReturnType<
+  typeof createSecondSessionBlockedEvent
+>;
+export type HoldAllPhase = "in_progress" | "completed" | "failed";
+export type HoldAllTrigger = "before_outgoing";
 
 export type OutgoingCallDomainEvent =
   | OutgoingCallRequestedEvent
@@ -103,7 +109,9 @@ export type OutgoingCallDomainEvent =
   | IncomingRingtoneStartedEvent
   | IncomingRingtoneStoppedEvent
   | BusyToneStartedEvent
-  | FailedToneStartedEvent;
+  | FailedToneStartedEvent
+  | AllOtherCallsHeldEvent
+  | SecondSessionBlockedEvent;
 
 export type IncomingCallDomainEvent =
   | IncomingCallReceivedEvent
@@ -122,7 +130,9 @@ export type IncomingCallDomainEvent =
   | CallMutedEvent
   | CallUnmutedEvent
   | ActiveCallControlFailedEvent
-  | CallFailedEvent;
+  | CallFailedEvent
+  | AllOtherCallsHeldEvent
+  | SecondSessionBlockedEvent;
 
 export type CallDomainEvent = OutgoingCallDomainEvent | IncomingCallDomainEvent;
 
@@ -401,5 +411,27 @@ export function createFailedToneStartedEvent(
   }>,
 ): ReturnType<typeof createDomainEvent<"FailedToneStarted", typeof payload>> {
   return createDomainEvent("FailedToneStarted", correlationId, payload);
+}
+
+export function createAllOtherCallsHeldEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    heldCallIds: ReadonlyArray<CallId>;
+    trigger: HoldAllTrigger;
+    phase: HoldAllPhase;
+  }>,
+): ReturnType<typeof createDomainEvent<"AllOtherCallsHeld", typeof payload>> {
+  return createDomainEvent("AllOtherCallsHeld", correlationId, payload);
+}
+
+export function createSecondSessionBlockedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    direction: "outgoing" | "incoming_answer";
+    reason: "multi_sessions_disabled";
+    blockingCallIds: ReadonlyArray<CallId>;
+  }>,
+): ReturnType<typeof createDomainEvent<"SecondSessionBlocked", typeof payload>> {
+  return createDomainEvent("SecondSessionBlocked", correlationId, payload);
 }
 

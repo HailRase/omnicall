@@ -1,4 +1,5 @@
 import type { Call, CallId } from "@domain/index.js";
+import { isEstablishedCall } from "@domain/index.js";
 import { createPlatformError } from "@shared/errors/index.js";
 import { err, ok, type Result } from "@shared/result/index.js";
 
@@ -45,5 +46,26 @@ export class CallTracker {
       return null;
     }
     return trackedCall;
+  }
+
+  getAllTrackedCalls(): ReadonlyArray<Call> {
+    return [...this.trackedCalls.values()];
+  }
+
+  getEstablishedCalls(): ReadonlyArray<Call> {
+    return this.getAllTrackedCalls().filter(isEstablishedCall);
+  }
+
+  getActiveUnheldCall(): Call | null {
+    for (const call of this.trackedCalls.values()) {
+      if (call.state === "Active") {
+        return call;
+      }
+    }
+    return null;
+  }
+
+  countEstablishedCalls(): number {
+    return this.getEstablishedCalls().length;
   }
 }

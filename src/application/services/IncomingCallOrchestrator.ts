@@ -33,6 +33,7 @@ import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { createPlatformError } from "@shared/errors/index.js";
 import { err, isErr, ok, type Result } from "@shared/result/index.js";
 import type { CallTracker } from "./CallTracker.js";
+import type { MultiCallPolicyService } from "./MultiCallPolicyService.js";
 import type {
   AnswerCallInput,
   HandleIncomingCallInput,
@@ -47,6 +48,7 @@ type IncomingCallOrchestratorDeps = Readonly<{
   logger: Logger;
   callTracker: CallTracker;
   hostIntegrationGateway?: HostIntegrationGateway;
+  multiCallPolicyService: MultiCallPolicyService;
 }>;
 
 export class IncomingCallOrchestrator {
@@ -144,6 +146,14 @@ export class IncomingCallOrchestrator {
     const call = this.deps.callTracker.getActiveIncomingCall();
     if (call === null || call.id !== input.callId) {
       return err(createPlatformError("validation_failed", "Incoming call not found"));
+    }
+
+    const blockResult = await this.deps.multiCallPolicyService.checkSecondSessionBlocked(
+      "incoming_answer",
+      correlationId,
+    );
+    if (isErr(blockResult)) {
+      return err(blockResult.error);
     }
 
     const answered = applyCallTransition(call, "answered");
