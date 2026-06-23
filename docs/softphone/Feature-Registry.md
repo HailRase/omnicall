@@ -379,18 +379,18 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-037`, `LF-038`, `LF-039`, `LF-040`, `LF-050`, `LF-059`, `LF-063`, `LF-064`
 - Context: Operator
 - Priority: critical
-- Status: planned
+- Status: in_progress
 - Owner: TBD
 - Inputs: OCP queue info, campaign events, reserved states, call lifecycle events
 - Outputs: queue projection, campaign modal state, OCP updates, `dlg_stop`
 - Acceptance Criteria:
-  - Queue and `main_acallid` mapping is exact.
-  - Campaign UX exists only when OCP plugin is enabled.
-  - `dlg_stop` is sent exactly once for ended or failed calls.
+  - Queue and `main_acallid` mapping is exact (WU1: domain rule + `QueueInfoReceived` + `queueInfoProjection`).
+  - Campaign UX exists only when OCP plugin is enabled (WU1: UX design + typed campaign payload skeleton).
+  - `dlg_stop` is sent exactly once for ended or failed calls (WU3+).
 - Test Coverage:
-  - Unit: OCP message mapping and ID matching
-  - Integration: mock OCP gateway
-  - E2E: campaign and queue UI with mock OCP
+  - Unit: OCP message mapping and ID matching (WU1: `MainAcallId`, `parseOcpInboundMessage`, `matchQueueInfoToCall`, `queueInfoProjection`)
+  - Integration: mock OCP gateway (WU1: `MockOcpSyncGateway`; WU2: full sync chain)
+  - E2E: campaign and queue UI with mock OCP (WU4)
 
 ## F-016: Settings And Desktop Shell UX
 

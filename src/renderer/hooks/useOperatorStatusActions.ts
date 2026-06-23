@@ -142,8 +142,10 @@ export function useOperatorStatusActions(
     if (facade === null) {
       return;
     }
-    void facade.logoutOperator.execute({ reason }).then(() => {
-      setLogoutModalOpen(false);
+    void facade.logoutOperator.execute({ reason }).then((result) => {
+      if (result.ok) {
+        setLogoutModalOpen(false);
+      }
     });
   };
 

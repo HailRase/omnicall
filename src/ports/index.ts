@@ -11,6 +11,7 @@ export type {
   RequestLogoutResult,
   OperatorPlatformGateway,
 } from "./operator/OperatorPlatformGateway.js";
+export type { OcpSyncGateway } from "./operator/OcpSyncGateway.js";
 export type {
   AgentStatusReadModel,
   AgentStatusReadModelSnapshot,

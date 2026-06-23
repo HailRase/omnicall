@@ -110,6 +110,33 @@ export {
 } from "./operator/events/postCallStatusEvents.js";
 export type { AgentLogoutRequestedEvent, AgentLogoutDomainEvent } from "./operator/events/logoutEvents.js";
 export { createAgentLogoutRequestedEvent } from "./operator/events/logoutEvents.js";
+export type { MainAcallId, MainAcallIdValidationError } from "./operator/ocp/MainAcallId.js";
+export {
+  createMainAcallId,
+  isMainAcallIdEqual,
+  parseMainAcallId,
+  validateMainAcallId,
+} from "./operator/ocp/MainAcallId.js";
+export type { OcpCallCorrelation } from "./operator/ocp/OcpCallCorrelation.js";
+export { createOcpCallCorrelation } from "./operator/ocp/OcpCallCorrelation.js";
+export type {
+  OcpInboundMessage,
+  OcpInboundMessageKind,
+  OcpQueueInfoPayload,
+  OcpCampaignEventPayload,
+  OcpInboundParseError,
+} from "./operator/ocp/OcpInboundMessages.js";
+export { parseOcpInboundMessage } from "./operator/ocp/OcpInboundMessages.js";
+export type {
+  MatchQueueInfoInput,
+  MatchQueueInfoResult,
+} from "./operator/rules/matchQueueInfoToCall.js";
+export { matchQueueInfoToCall } from "./operator/rules/matchQueueInfoToCall.js";
+export type {
+  QueueInfoReceivedEvent,
+  QueueInfoDomainEvent,
+} from "./operator/events/queueInfoEvents.js";
+export { createQueueInfoReceivedEvent } from "./operator/events/queueInfoEvents.js";
 export type { AgentStatusChangeTrigger } from "./operator/AgentBreakReasonPolicy.js";
 export {
   isAgentBreakReasonRequired,

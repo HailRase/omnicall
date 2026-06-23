@@ -118,6 +118,14 @@ export {
   type OperatorStatusProjection,
   type OperatorStatusDisabledReason,
 } from "./projections/operatorStatusProjection.js";
+export {
+  initialQueueInfoProjection,
+  reduceQueueInfoProjection,
+  getQueueNameForCall,
+  deriveQueueLabelState,
+  type QueueInfoProjection,
+  type QueueLabelState,
+} from "./projections/queueInfoProjection.js";
 export { deriveOperatorStatusDisabledReason } from "./projections/deriveOperatorStatusDisabledReason.js";
 export { AgentStatusValidationService } from "./services/AgentStatusValidationService.js";
 export { AgentStatusSyncService } from "./services/AgentStatusSyncService.js";
