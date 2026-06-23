@@ -2,7 +2,7 @@
 
 **Дата:** 2026-06-24 00:55
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `28593eb`
 
 ## Где
 - `src/application/use-cases/RetryConnectionUseCase.ts`
