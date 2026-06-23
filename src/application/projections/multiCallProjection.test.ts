@@ -91,4 +91,13 @@ describe("multiCallProjection", () => {
     );
     expect(deriveIncomingAnswerDisabledReason(projection)).toBe("Second session disabled");
   });
+
+  it("stores autoUnholdOnTransferFailure from settings", () => {
+    const projection = setMultiCallSettings(initialMultiCallProjection(), {
+      multiSessionsEnabled: true,
+      autoUnholdOnTransferFailure: false,
+    });
+
+    expect(projection.autoUnholdOnTransferFailure).toBe(false);
+  });
 });

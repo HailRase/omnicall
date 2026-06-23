@@ -8,6 +8,7 @@ export type MultiCallDisabledReason =
 
 export type MultiCallProjection = Readonly<{
   multiSessionsEnabled: boolean;
+  autoUnholdOnTransferFailure: boolean;
   hasEstablishedCall: boolean;
   hasConnectingCall: boolean;
   holdAllInProgress: boolean;
@@ -24,7 +25,10 @@ export type MultiCallProjection = Readonly<{
  * - Outputs: immutable multi-call projection with disabled reasons.
  */
 export function initialMultiCallProjection(
-  settings: MultiCallSettings = { multiSessionsEnabled: true },
+  settings: MultiCallSettings = {
+    multiSessionsEnabled: true,
+    autoUnholdOnTransferFailure: true,
+  },
 ): MultiCallProjection {
   return createMultiCallProjection({
     multiSessionsEnabled: settings.multiSessionsEnabled,
@@ -44,6 +48,7 @@ export function setMultiCallSettings(
   return createMultiCallProjection({
     ...projection,
     multiSessionsEnabled: settings.multiSessionsEnabled,
+    autoUnholdOnTransferFailure: settings.autoUnholdOnTransferFailure !== false,
   });
 }
 
@@ -133,6 +138,7 @@ export function deriveIncomingAnswerDisabledReason(
 
 type MultiCallProjectionInput = Readonly<{
   multiSessionsEnabled: boolean;
+  autoUnholdOnTransferFailure?: boolean;
   hasEstablishedCall: boolean;
   hasConnectingCall: boolean;
   holdAllInProgress: boolean;
@@ -153,6 +159,7 @@ function createMultiCallProjection(
 
   return {
     multiSessionsEnabled: input.multiSessionsEnabled,
+    autoUnholdOnTransferFailure: input.autoUnholdOnTransferFailure ?? true,
     hasEstablishedCall: input.hasEstablishedCall,
     hasConnectingCall: input.hasConnectingCall,
     holdAllInProgress: input.holdAllInProgress,

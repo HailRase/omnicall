@@ -41,6 +41,11 @@ import {
   reduceMultiLineCallProjection,
   type MultiLineCallProjection,
 } from "@application/projections/multiLineCallProjection.js";
+import {
+  initialOperatorStatusProjection,
+  reduceOperatorStatusProjection,
+  type OperatorStatusProjection,
+} from "@application/projections/operatorStatusProjection.js";
 type AccountBootstrapStore = Readonly<{
   projection: AccountBootstrapProjection;
   callProjection: CallProjection;
@@ -49,6 +54,7 @@ type AccountBootstrapStore = Readonly<{
   multiCallProjection: MultiCallProjection;
   transferProjection: TransferProjection;
   multiLineCallProjection: MultiLineCallProjection;
+  operatorStatusProjection: OperatorStatusProjection;
   bindFacade: (facade: AccountBootstrapFacade) => () => void;
   setCallMode: (mode: DialpadMode) => void;
   setIncomingUiState: (uiState: IncomingCallUiState) => void;
@@ -64,6 +70,7 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
   multiCallProjection: initialMultiCallProjection(),
   transferProjection: initialTransferProjection(),
   multiLineCallProjection: initialMultiLineCallProjection(),
+  operatorStatusProjection: initialOperatorStatusProjection(),
 
   bindFacade: (facade) => {
     void facade.getMultiCallSettings().then((settings) => {
@@ -88,6 +95,10 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
         transferProjection: reduceTransferProjection(state.transferProjection, event),
         multiLineCallProjection: reduceMultiLineCallProjection(
           state.multiLineCallProjection,
+          event,
+        ),
+        operatorStatusProjection: reduceOperatorStatusProjection(
+          state.operatorStatusProjection,
           event,
         ),
       }));

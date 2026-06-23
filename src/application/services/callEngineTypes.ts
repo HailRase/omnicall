@@ -63,6 +63,16 @@ export type AttendedTransferInput = Readonly<{
   correlationId?: CorrelationId;
 }>;
 
+export type StartTransferModeInput = Readonly<{
+  callId: CallId;
+  correlationId?: CorrelationId;
+}>;
+
+export type CancelTransferInput = Readonly<{
+  callId: CallId;
+  correlationId?: CorrelationId;
+}>;
+
 export type HandleCallProgressInput = Readonly<{
   call: Call;
   progressCode: number;

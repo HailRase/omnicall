@@ -7,6 +7,7 @@ export { phoneStatusLabel } from "@domain/index.js";
 export { AuthenticateOcpUseCase } from "./use-cases/AuthenticateOcpUseCase.js";
 export { AuthorizeSipAccountUseCase } from "./use-cases/AuthorizeSipAccountUseCase.js";
 export { ChangePhoneStatusUseCase } from "./use-cases/ChangePhoneStatusUseCase.js";
+export { ChangeAgentStatusUseCase } from "./use-cases/ChangeAgentStatusUseCase.js";
 export { MakeCallUseCase } from "./use-cases/MakeCallUseCase.js";
 export { AnswerCallUseCase } from "./use-cases/AnswerCallUseCase.js";
 export { RejectCallUseCase } from "./use-cases/RejectCallUseCase.js";
@@ -22,6 +23,8 @@ export { RejectIncomingCallByDndUseCase } from "./use-cases/RejectIncomingCallBy
 export { BlindTransferUseCase } from "./use-cases/BlindTransferUseCase.js";
 export { StartConsultationUseCase } from "./use-cases/StartConsultationUseCase.js";
 export { AttendedTransferUseCase } from "./use-cases/AttendedTransferUseCase.js";
+export { StartTransferUseCase } from "./use-cases/StartTransferUseCase.js";
+export { CancelTransferUseCase } from "./use-cases/CancelTransferUseCase.js";
 export { RegisterAccountUseCase } from "./use-cases/RegisterAccountUseCase.js";
 export { ResolveStartupModeUseCase } from "./use-cases/ResolveStartupModeUseCase.js";
 export { SendDtmfUseCase } from "./use-cases/SendDtmfUseCase.js";
@@ -82,10 +85,25 @@ export {
   initialTransferProjection,
   reduceTransferProjection,
   deriveBlindTransferDisabledReason,
+  deriveStartConsultationDisabledReason,
+  deriveAttendedTransferDisabledReason,
+  deriveStartTransferDisabledReason,
   type TransferProjection,
   type TransferPhase,
   type BlindTransferDisabledContext,
+  type StartConsultationDisabledContext,
+  type AttendedTransferDisabledContext,
+  type StartTransferDisabledContext,
 } from "./projections/transferProjection.js";
+export {
+  isTransferPanelVisible,
+  isTransferInProgress,
+  resolveTransferFailureMessage,
+} from "./projections/transferPanelProjection.js";
+export {
+  isBenignTransferFailureReason,
+  BENIGN_TRANSFER_FAILURE_REASONS,
+} from "./projections/transferFailureReasons.js";
 export {
   initialMultiLineCallProjection,
   reduceMultiLineCallProjection,
@@ -93,3 +111,14 @@ export {
   type CallLine,
   type CallLineRole,
 } from "./projections/multiLineCallProjection.js";
+export {
+  initialOperatorStatusProjection,
+  reduceOperatorStatusProjection,
+  type OperatorStatusProjection,
+  type OperatorStatusDisabledReason,
+} from "./projections/operatorStatusProjection.js";
+export { deriveOperatorStatusDisabledReason } from "./projections/deriveOperatorStatusDisabledReason.js";
+export { AgentStatusValidationService } from "./services/AgentStatusValidationService.js";
+export { AgentStatusSyncService } from "./services/AgentStatusSyncService.js";
+export { DndAgentStatusOrchestrationService } from "./services/DndAgentStatusOrchestrationService.js";
+export { InMemoryAgentStatusReadModel } from "./read-models/InMemoryAgentStatusReadModel.js";

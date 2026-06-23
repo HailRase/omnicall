@@ -23,6 +23,12 @@ import { UnmuteCallUseCase } from "../use-cases/UnmuteCallUseCase.js";
 import { BlindTransferUseCase } from "../use-cases/BlindTransferUseCase.js";
 import { StartConsultationUseCase } from "../use-cases/StartConsultationUseCase.js";
 import { AttendedTransferUseCase } from "../use-cases/AttendedTransferUseCase.js";
+import { StartTransferUseCase } from "../use-cases/StartTransferUseCase.js";
+import { CancelTransferUseCase } from "../use-cases/CancelTransferUseCase.js";
+import { ChangeAgentStatusUseCase } from "../use-cases/ChangeAgentStatusUseCase.js";
+import { InMemoryAgentStatusReadModel } from "../read-models/InMemoryAgentStatusReadModel.js";
+import { AgentStatusSyncService } from "../services/AgentStatusSyncService.js";
+import { DndAgentStatusOrchestrationService } from "../services/DndAgentStatusOrchestrationService.js";
 import type {
   DomainEventPublisher,
   HostIntegrationGateway,
@@ -65,12 +71,35 @@ export class AccountBootstrapFacade {
   readonly blindTransferUseCase: BlindTransferUseCase;
   readonly startConsultationUseCase: StartConsultationUseCase;
   readonly attendedTransferUseCase: AttendedTransferUseCase;
+  readonly startTransferUseCase: StartTransferUseCase;
+  readonly cancelTransferUseCase: CancelTransferUseCase;
+  readonly changeAgentStatus: ChangeAgentStatusUseCase;
 
   private readonly processedCredentialEvents = new Set<string>();
   private readonly callEngine: CallEngine;
+  private readonly agentStatusSync: AgentStatusSyncService;
+  private readonly dndAgentStatusOrchestration: DndAgentStatusOrchestrationService;
 
   constructor(private readonly deps: AccountBootstrapFacadeDeps) {
     this.eventPublisher = deps.eventPublisher ?? new InMemoryDomainEventBus();
+    const agentStatusReadModel = new InMemoryAgentStatusReadModel(this.eventPublisher);
+    this.agentStatusSync = new AgentStatusSyncService(
+      deps.operatorGateway,
+      this.eventPublisher,
+      deps.logger,
+    );
+    this.changeAgentStatus = new ChangeAgentStatusUseCase(
+      agentStatusReadModel,
+      deps.operatorGateway,
+      deps.settingsRepository,
+      this.eventPublisher,
+      deps.logger,
+    );
+    this.dndAgentStatusOrchestration = new DndAgentStatusOrchestrationService(
+      agentStatusReadModel,
+      this.changeAgentStatus,
+      deps.logger,
+    );
     this.resolveStartupMode = new ResolveStartupModeUseCase(
       this.eventPublisher,
       deps.logger,
@@ -119,6 +148,8 @@ export class AccountBootstrapFacade {
     this.blindTransferUseCase = new BlindTransferUseCase(this.callEngine, deps.logger);
     this.startConsultationUseCase = new StartConsultationUseCase(this.callEngine, deps.logger);
     this.attendedTransferUseCase = new AttendedTransferUseCase(this.callEngine, deps.logger);
+    this.startTransferUseCase = new StartTransferUseCase(this.callEngine, deps.logger);
+    this.cancelTransferUseCase = new CancelTransferUseCase(this.callEngine, deps.logger);
 
     deps.telephonyGateway.setIncomingCallHandler(async (notification) => {
       await this.callEngine.handleIncomingReceived({ notification });
@@ -132,6 +163,7 @@ export class AccountBootstrapFacade {
 
     this.eventPublisher.subscribe((event) => {
       void this.handleAutoRegistration(event);
+      void this.handleAgentStatusSync(event);
     });
   }
 
@@ -191,7 +223,14 @@ export class AccountBootstrapFacade {
   }
 
   async setPhoneStatus(status: PhoneStatus): Promise<void> {
-    await this.changePhoneStatus.execute({ nextStatus: status });
+    const result = await this.changePhoneStatus.execute({ nextStatus: status });
+    if (isErr(result)) {
+      return;
+    }
+
+    if (status === "dnd") {
+      await this.dndAgentStatusOrchestration.handlePhoneStatusChanged(status);
+    }
   }
 
   getMultiCallSettings(): Promise<MultiCallSettings> {
@@ -316,6 +355,22 @@ export class AccountBootstrapFacade {
     return this.attendedTransfer(createCallId(sourceCallId), createCallId(consultationCallId));
   }
 
+  startTransfer(callId: CallId): Result<void, PlatformError> {
+    return this.startTransferUseCase.execute({ callId });
+  }
+
+  startTransferById(callId: string): Result<void, PlatformError> {
+    return this.startTransfer(createCallId(callId));
+  }
+
+  async cancelTransfer(callId: CallId): Promise<Result<void, PlatformError>> {
+    return this.cancelTransferUseCase.execute({ callId });
+  }
+
+  async cancelTransferById(callId: string): Promise<Result<void, PlatformError>> {
+    return this.cancelTransfer(createCallId(callId));
+  }
+
   async answerCall(callId: CallId): Promise<Result<Call, PlatformError>> {
     return this.answerCallUseCase.execute({ callId });
   }
@@ -339,6 +394,14 @@ export class AccountBootstrapFacade {
     breakReason?: string,
   ): Promise<Result<Call, PlatformError>> {
     return this.rejectCall(createCallId(callId), breakReason);
+  }
+
+  private async handleAgentStatusSync(event: DomainEvent): Promise<void> {
+    if (event.type !== "OcpAuthenticationSucceeded") {
+      return;
+    }
+
+    await this.agentStatusSync.syncAfterOcpAuth(event.correlationId);
   }
 
   private async handleAutoRegistration(event: DomainEvent): Promise<void> {

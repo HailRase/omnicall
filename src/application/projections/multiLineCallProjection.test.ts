@@ -115,4 +115,36 @@ describe("multiLineCallProjection", () => {
     expect(failed.lines[0]?.state).toBe("Held");
     expect(failed.lastFailureReason).toBe("busy");
   });
+
+  it("clears consultation state on TransferModeCancelled without failure", () => {
+    const dialing = reduceMultiLineCallProjection(initialMultiLineCallProjection(), {
+      type: "ConsultationCallRequested",
+      correlationId: createCorrelationId(),
+      occurredAt: new Date().toISOString(),
+      sourceCallId: "src-6",
+      consultationCallId: "consult-6",
+      targetNumber: "+12025550803",
+    });
+    const active = reduceMultiLineCallProjection(dialing, {
+      type: "ConsultationCallStarted",
+      correlationId: createCorrelationId(),
+      occurredAt: new Date().toISOString(),
+      sourceCallId: "src-6",
+      consultationCallId: "consult-6",
+    });
+    const cancelled = reduceMultiLineCallProjection(active, {
+      type: "TransferModeCancelled",
+      correlationId: createCorrelationId(),
+      occurredAt: new Date().toISOString(),
+      callId: "src-6",
+      consultationCallId: "consult-6",
+      restoredSourceState: "Held",
+    });
+
+    expect(cancelled.attendedPhase).toBe("idle");
+    expect(cancelled.consultationCallId).toBeNull();
+    expect(cancelled.lastFailureReason).toBeNull();
+    expect(cancelled.lines).toHaveLength(1);
+    expect(cancelled.lines[0]?.role).toBe("primary");
+  });
 });

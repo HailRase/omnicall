@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { deriveStartTransferDisabledReason } from "@application/index.js";
 import { useAccountBootstrapStore } from "./stores/useAccountBootstrapStore.js";
 import { useAccountBootstrap } from "./hooks/useAccountBootstrap.js";
 import { useAuthShellFlags } from "./hooks/useAuthShellFlags.js";
@@ -14,6 +15,8 @@ import { OutgoingCallCard } from "./components/call/OutgoingCallCard.js";
 import { ActiveCallControlsPanel } from "./components/call/ActiveCallControlsPanel.js";
 import { IncomingCallModal } from "./components/call/IncomingCallModal.js";
 import { MultiCallHoldAllIndicator } from "./components/call/MultiCallHoldAllIndicator.js";
+import { TransferPanel } from "./components/call/TransferPanel.js";
+import { useTransferActions, useTransferPanelShell } from "./hooks/useTransferActions.js";
 
 export function App(): JSX.Element {
   const { facade, status, errorMessage } = useAccountBootstrap();
@@ -27,6 +30,10 @@ export function App(): JSX.Element {
   );
   const multiCallProjection = useAccountBootstrapStore(
     (state) => state.multiCallProjection,
+  );
+  const transferProjection = useAccountBootstrapStore((state) => state.transferProjection);
+  const multiLineCallProjection = useAccountBootstrapStore(
+    (state) => state.multiLineCallProjection,
   );
   const setCallMode = useAccountBootstrapStore((state) => state.setCallMode);
   const setIncomingUiState = useAccountBootstrapStore((state) => state.setIncomingUiState);
@@ -63,6 +70,31 @@ export function App(): JSX.Element {
     isOcpMode: projection.isOcpMode,
     setIncomingUiState,
     setIncomingRejectReasonRequired,
+  });
+
+  const transferPanelShell = useTransferPanelShell({
+    transferProjection,
+    multiLineCallProjection,
+    multiCallProjection,
+    activeCallControlsProjection,
+  });
+
+  const transferActions = useTransferActions({
+    facade,
+    sourceCallId: transferPanelShell.sourceCallId,
+    consultationCallId: transferPanelShell.consultationCallId,
+    targetNumber: transferPanelShell.targetNumber,
+    blindTransferDisabledReason: transferPanelShell.blindTransferDisabledReason,
+    startConsultationDisabledReason: transferPanelShell.startConsultationDisabledReason,
+    attendedTransferDisabledReason: transferPanelShell.attendedTransferDisabledReason,
+    cancelTransferDisabledReason: transferPanelShell.cancelTransferDisabledReason,
+    activeCallControlsProjection,
+  });
+
+  const transferDisabledReason = deriveStartTransferDisabledReason({
+    activeCallId: activeCallControlsProjection.callId,
+    activeCallState: activeCallControlsProjection.callState,
+    transferModeActive: transferProjection.transferModeActive,
   });
 
   return (
@@ -145,13 +177,35 @@ export function App(): JSX.Element {
                 muteDisabledReason={activeCallControlsProjection.muteDisabledReason}
                 unmuteDisabledReason={activeCallControlsProjection.unmuteDisabledReason}
                 hangupDisabledReason={activeCallControlsProjection.hangupDisabledReason}
+                transferDisabledReason={transferDisabledReason}
                 lastOperationError={activeCallControlsProjection.lastOperationError}
                 onHold={callActions.handleHoldCall}
                 onResume={callActions.handleResumeCall}
                 onMute={callActions.handleMuteCall}
                 onUnmute={callActions.handleUnmuteCall}
                 onHangup={callActions.handleHangupCall}
+                onTransfer={transferActions.handleStartTransfer}
                 onRetry={callActions.handleRetryLastOperation}
+              />
+              <TransferPanel
+                visible={transferPanelShell.visible}
+                targetNumber={transferPanelShell.targetNumber}
+                blindTransferDisabledReason={transferPanelShell.blindTransferDisabledReason}
+                startConsultationDisabledReason={
+                  transferPanelShell.startConsultationDisabledReason
+                }
+                attendedTransferDisabledReason={
+                  transferPanelShell.attendedTransferDisabledReason
+                }
+                cancelTransferDisabledReason={transferPanelShell.cancelTransferDisabledReason}
+                transferInProgress={transferPanelShell.transferInProgress}
+                failureMessage={transferPanelShell.failureMessage}
+                lines={multiLineCallProjection.lines}
+                onTargetChange={transferPanelShell.setTargetNumber}
+                onBlindTransfer={transferActions.handleBlindTransfer}
+                onStartConsultation={transferActions.handleStartConsultation}
+                onAttendedTransfer={transferActions.handleAttendedTransfer}
+                onCancelTransfer={transferActions.handleCancelTransfer}
               />
               <audio
                 data-testid="remote-audio-mount"

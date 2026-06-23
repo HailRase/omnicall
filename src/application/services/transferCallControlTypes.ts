@@ -10,7 +10,7 @@ import type { CorrelationId } from "@shared/correlation-id/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
 import type { Result } from "@shared/result/index.js";
 import type { MakeCallInput } from "./callEngineTypes.js";
-import type { HangupCallInput } from "./activeCallControlTypes.js";
+import type { HangupCallInput, ResumeCallInput } from "./activeCallControlTypes.js";
 
 /**
  * - Purpose: shared dependency contracts for transfer control operations.
@@ -31,6 +31,9 @@ export type MakeCallExecutor = (
 export type HangupCallExecutor = (
   input: HangupCallInput,
 ) => Promise<Result<Call, PlatformError>>;
+export type ResumeCallExecutor = (
+  input: ResumeCallInput,
+) => Promise<Result<Call, PlatformError>>;
 
 export type TransferCallControlDeps = Readonly<{
   telephonyGateway: TelephonyGateway;
@@ -45,6 +48,7 @@ export type TransferCallControlDeps = Readonly<{
   setTransferSession: TransferSessionWriter;
   makeCall: MakeCallExecutor;
   hangupCall: HangupCallExecutor;
+  resumeCall: ResumeCallExecutor;
 }>;
 
 export type BlindTransferInput = Readonly<{
@@ -63,5 +67,15 @@ export type StartConsultationInput = Readonly<{
 export type AttendedTransferInput = Readonly<{
   sourceCallId: CallId;
   consultationCallId: CallId;
+  correlationId?: CorrelationId;
+}>;
+
+export type CancelTransferInput = Readonly<{
+  callId: CallId;
+  correlationId?: CorrelationId;
+}>;
+
+export type StartTransferModeInput = Readonly<{
+  callId: CallId;
   correlationId?: CorrelationId;
 }>;

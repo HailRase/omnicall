@@ -17,6 +17,7 @@ describe("transferProjection", () => {
     });
 
     expect(projection.phase).toBe("transferring");
+    expect(projection.transferModeActive).toBe(true);
     expect(projection.callId).toBe("call-1");
     expect(projection.targetNumber).toBe("+12025550400");
     expect(projection.transferType).toBe("blind");

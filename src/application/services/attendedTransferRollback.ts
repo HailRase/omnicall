@@ -24,6 +24,23 @@ export function resolveConsultationRollbackSourceState(
 }
 
 /**
+ * - Purpose: hang up consultation leg on transfer cancel without failure semantics.
+ * - Inputs: transfer deps, call ids, correlation id.
+ * - Outputs: restored source state after session cleanup.
+ */
+export async function cleanupConsultationLegOnCancel(
+  deps: TransferCallControlDeps,
+  correlationId: CorrelationId,
+  sourceCallId: StartConsultationInput["sourceCallId"],
+  consultationCallId: Call["id"],
+): Promise<CallState> {
+  const restoredSourceState = resolveConsultationRollbackSourceState(deps, sourceCallId);
+  await deps.hangupCall({ callId: consultationCallId, correlationId });
+  deps.setTransferSession(null);
+  return restoredSourceState;
+}
+
+/**
  * - Purpose: rollback consultation start and cleanup phantom consultation leg.
  * - Inputs: transfer deps, call ids, failure reason, correlation id.
  * - Outputs: ConsultationCallFailed event and cleared transfer session.

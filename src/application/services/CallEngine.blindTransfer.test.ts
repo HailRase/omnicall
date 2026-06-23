@@ -60,6 +60,44 @@ describe("CallEngine blind transfer", () => {
     expect(holdResult.value.state).toBe("Held");
   });
 
+  it("auto-unholds held call after blind transfer failure when enabled (LF-031)", async () => {
+    const telephony = new MockTelephonyGateway({
+      makeCallScenario: "answered",
+      blindTransferScenario: "failure",
+    });
+    const events = new InMemoryDomainEventBus();
+    const publishedTypes: string[] = [];
+    events.subscribe((event) => {
+      publishedTypes.push(event.type);
+    });
+    const engine = createEngine(
+      telephony,
+      events,
+      new InMemorySettingsRepository({
+        multiCallSettings: {
+          multiSessionsEnabled: true,
+          autoUnholdOnTransferFailure: true,
+        },
+      }),
+    );
+    const callId = createCallId("xfer-unhold-1");
+    await engine.makeCall({
+      callId,
+      phoneNumber: createPhoneNumber("+12025550320"),
+    });
+    await engine.holdCall({ callId });
+
+    const transferResult = await engine.blindTransfer({
+      callId,
+      targetNumber: "+12025550321",
+    });
+    expect(transferResult.ok).toBe(false);
+    expect(publishedTypes).toContain("CallAutoUnheldAfterTransferFailure");
+
+    const tracked = await engine.holdCall({ callId });
+    expect(tracked.ok).toBe(true);
+  });
+
   it("rejects blind transfer for invalid target", async () => {
     const engine = createEngine(
       new MockTelephonyGateway({ makeCallScenario: "answered" }),
@@ -114,11 +152,12 @@ describe("CallEngine blind transfer", () => {
 function createEngine(
   telephony: MockTelephonyGateway,
   events: InMemoryDomainEventBus = new InMemoryDomainEventBus(),
+  settings: InMemorySettingsRepository = new InMemorySettingsRepository(),
 ): CallEngine {
   return new CallEngine(
     telephony,
     new MockMediaGateway(),
-    new InMemorySettingsRepository(),
+    settings,
     events,
     createTestLogger(),
   );

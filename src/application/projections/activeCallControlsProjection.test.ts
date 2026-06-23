@@ -311,4 +311,33 @@ describe("activeCallControlsProjection", () => {
     expect(transferred.callState).toBe("Ended");
     expect(transferred.hangupDisabledReason).toBe("hangup_not_allowed");
   });
+
+  it("restores source call on TransferModeCancelled after consultation cleanup", () => {
+    const consultationActive = reduceActiveCallControlsProjection(
+      reduceActiveCallControlsProjection(initialActiveCallControlsProjection(), {
+        type: "CallAnswered",
+        callId: "call-src-cancel",
+        correlationId: createCorrelationId(),
+        occurredAt: new Date().toISOString(),
+      }),
+      {
+        type: "ConsultationCallStarted",
+        sourceCallId: "call-src-cancel",
+        consultationCallId: "call-consult-cancel",
+        correlationId: createCorrelationId(),
+        occurredAt: new Date().toISOString(),
+      },
+    );
+    const restored = reduceActiveCallControlsProjection(consultationActive, {
+      type: "TransferModeCancelled",
+      callId: "call-src-cancel",
+      consultationCallId: "call-consult-cancel",
+      restoredSourceState: "Held",
+      correlationId: createCorrelationId(),
+      occurredAt: new Date().toISOString(),
+    });
+
+    expect(restored.callId).toBe("call-src-cancel");
+    expect(restored.callState).toBe("Held");
+  });
 });

@@ -191,35 +191,39 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-028`, `LF-030`, `LF-031`
 - Context: Telephony
 - Priority: high
-- Status: in_progress
+- Status: implemented
 - Owner: TBD
 - Inputs: active call ID, target number
-- Outputs: `CallTransferRequested`, `CallTransferred`, or `CallTransferFailed`
+- Outputs: `CallTransferRequested`, `CallTransferred`, `CallTransferFailed`, `TransferModeStarted`, `TransferModeCancelled`, `CallAutoUnheldAfterTransferFailure`
 - Acceptance Criteria:
   - WU1 (policy foundation): multi-call policy domain + `AllOtherCallsHeld` / `SecondSessionBlocked` events gate outgoing and incoming second sessions (`LF-021`, `LF-032`); exclusive hold before resume (`LF-023`).
   - WU2: blind transfer runs through `BlindTransferUseCase` → `CallEngine` → `TelephonyGateway.blindTransfer`; domain events `CallTransferRequested`, `CallTransferred`, `CallTransferFailed`; eligibility rules in Domain; mock adapter success/failure paths; `transferProjection` read model.
   - WU3 integration touchpoint: shared `TransferCallControlService`, multi-call hold-all before consultation outgoing; `transferType: "blind" | "attended"` on transfer events.
+  - WU4: `StartTransferUseCase` / `CancelTransferUseCase`; transfer panel UI with projection-driven disabled reasons; `LF-030` cancel without invalid state; `LF-031` auto-unhold via `MultiCallSettings.autoUnholdOnTransferFailure`.
 - Test Coverage:
   - WU1: `MultiCallPolicy.test.ts`, `CallEngine.multiCallPolicy.test.ts`, `multiCallProjection.test.ts`, `MultiCallPolicy.integration.test.ts`
   - WU2: `TransferEligibility.test.ts`, `CallStateMachine.test.ts` (transfer transitions), `MockTelephonyGateway.blindTransfer.test.ts`, `BlindTransferUseCase.test.ts`, `CallEngine.blindTransfer.test.ts`, `transferProjection.test.ts`
-  - WU4: E2E transfer UI with mock gateway (deferred)
+  - WU4: `transferProjection.transferMode.test.ts`, `CallEngine.cancelTransfer.test.ts`, `TransferPanel.test.tsx`; WU1/WU2/WU3/P04 regression green
+  - E2E transfer UI with mock gateway (deferred)
 
 ## F-007: Attended Transfer
 
 - Legacy IDs: `LF-029`, `LF-030`, `LF-031`, `LF-032`
 - Context: Telephony
 - Priority: high
-- Status: in_progress
+- Status: implemented
 - Owner: TBD
 - Inputs: source call, consultation call, transfer command; WU1: `MultiCallSettings.multiSessionsEnabled`
-- Outputs: attended transfer events; WU1: `AllOtherCallsHeld`, `SecondSessionBlocked`
+- Outputs: attended transfer events; WU1: `AllOtherCallsHeld`, `SecondSessionBlocked`; WU4: `TransferModeStarted`, `TransferModeCancelled`
 - Acceptance Criteria:
   - WU1: `SettingsRepository.getMultiCallSettings()` drives second-session block (`LF-032`); hold-all before outgoing (`LF-021`); exclusive hold on resume (`LF-023`); dialpad and incoming answer disabled reasons from `multiCallProjection`.
   - WU3: `StartConsultationUseCase` / `AttendedTransferUseCase` → `CallEngine` → `TelephonyGateway.attendedTransfer`; `CallRelationship` model; events `ConsultationCallRequested`, `ConsultationCallStarted`, `ConsultationCallFailed`, `AttendedTransferRequested`, `AttendedTransferCompleted`, `AttendedTransferFailed`; failure events carry `restoredSourceState`; `ConsultationCallFailed` rolls back projections; consultation via existing `makeCall`; `multiLineCallProjection` + extended `transferProjection`; attended gateway failure allows retry complete; blocked when multi-sessions disabled (`LF-032`).
+  - WU4: `TransferPanel`, `MultiLineCallList`, `useTransferActions`; blind/consultation/attended/cancel controls with test IDs; failure banner and in-progress indicator; `LF-030` cancel transfer mode.
 - Test Coverage:
   - WU1: domain policy unit tests; CallEngine hold-all / block / exclusive-resume; projection + integration chain
   - WU3: `CallRelationship.test.ts`, `AttendedTransferEligibility.test.ts`, `MockTelephonyGateway.attendedTransfer.test.ts`, `CallEngine.attendedTransfer.test.ts`, `attendedTransferOperations.test.ts`, `multiLineCallProjection.test.ts`, `activeCallControlsProjection.test.ts`; WU1/WU2/P04 regression green
-  - WU4: E2E transfer UI with mock gateway (deferred)
+  - WU4: `transferProjection.transferMode.test.ts`, `TransferPanel.test.tsx`, `CallEngine.cancelTransfer.test.ts`; full P05 regression green
+  - E2E transfer UI with mock gateway (deferred)
 
 ## F-008: DTMF
 
@@ -266,7 +270,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-018`, `LF-019`, `LF-041`, `LF-042`, `LF-043`, `LF-044`, `LF-045`, `LF-046`, `LF-047`, `LF-048`, `LF-049`, `LF-062`, `LF-078`
 - Context: Operator
 - Priority: critical
-- Status: planned
+- Status: in_progress
 - Owner: TBD
 - Inputs: status change command, optional reason
 - Outputs: `AgentStatusChanged` or failure event
@@ -274,10 +278,17 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Status rules are not in UI components.
   - Post-call status transitions are explicit.
   - OCP absence does not break SIP-only mode.
+  - WU1: `AgentStatus` FSM rejects invalid transitions with typed reasons (LF-045).
+  - WU1: DND blocks transition to Ready; DND→break mapping contract defined (LF-018, LF-019).
+  - WU1: WU1 domain events typed and projection skeleton represents SIP-only N/A.
+  - WU2+: `ChangeAgentStatusUseCase` confirms gateway before `AgentStatusChanged`.
+  - WU2: `ChangeAgentStatusUseCase` validates → requests → gateway → changed/rejected.
+  - WU2: DND phone change orchestrates agent break via `DndAgentStatusOrchestrationService` (LF-018).
+  - WU2: Initial agent status synced on `OcpAuthenticationSucceeded` via `AgentStatusSyncService`.
 - Test Coverage:
-  - Unit: status transition rules
-  - Integration: mock operator gateway
-  - E2E: status selector
+  - Unit: `AgentStatusTransition.test.ts`, `DndAgentStatusPolicy.test.ts`, `agentStatusEvents.test.ts`, `operatorStatusProjection.test.ts`, `ChangeAgentStatusUseCase.test.ts`, `deriveOperatorStatusDisabledReason.test.ts` (WU1–WU2)
+  - Integration: `DndAgentStatusOrchestration.integration.test.ts`, mock operator gateway status change (WU2)
+  - E2E: status selector (WU4)
 
 ## F-011: Host Integration Contract
 

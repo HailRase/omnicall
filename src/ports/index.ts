@@ -1,8 +1,15 @@
 export type { DomainEventHandler, DomainEventPublisher } from "./events/DomainEventPublisher.js";
 export type {
   OcpAuthenticateCommand,
+  ChangeAgentStatusCommand,
+  ChangeAgentStatusResult,
+  GetAgentStatusCommand,
   OperatorPlatformGateway,
 } from "./operator/OperatorPlatformGateway.js";
+export type {
+  AgentStatusReadModel,
+  AgentStatusReadModelSnapshot,
+} from "./operator/AgentStatusReadModel.js";
 export type {
   MediaGateway,
   AttachRemoteAudioCommand,

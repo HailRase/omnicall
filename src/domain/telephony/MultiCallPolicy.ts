@@ -8,6 +8,7 @@ import type { CallId } from "./CallId.js";
 
 export type MultiCallSettings = Readonly<{
   multiSessionsEnabled: boolean;
+  autoUnholdOnTransferFailure?: boolean;
 }>;
 
 export type SecondSessionDirection = "outgoing" | "incoming_answer";

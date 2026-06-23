@@ -30,6 +30,8 @@ import type {
   BlindTransferInput,
   StartConsultationInput,
   AttendedTransferInput,
+  StartTransferModeInput,
+  CancelTransferInput,
 } from "./callEngineTypes.js";
 import { DtmfOrchestrator } from "./DtmfOrchestrator.js";
 import { IncomingCallOrchestrator } from "./IncomingCallOrchestrator.js";
@@ -53,6 +55,8 @@ export type {
   BlindTransferInput,
   StartConsultationInput,
   AttendedTransferInput,
+  StartTransferModeInput,
+  CancelTransferInput,
 } from "./callEngineTypes.js";
 
 /**
@@ -137,6 +141,7 @@ export class CallEngine {
       setTransferSession: (session) => this.callTracker.setTransferSession(session),
       makeCall: (input) => this.outgoingCallOrchestrator.makeCall(input),
       hangupCall: (input) => this.activeCallControlService.hangupCall(input),
+      resumeCall: (input) => this.activeCallControlService.resumeCall(input),
     });
   }
 
@@ -238,5 +243,17 @@ export class CallEngine {
     input: AttendedTransferInput,
   ): Promise<Result<Call, ReturnType<typeof createPlatformError>>> {
     return this.transferCallControlService.attendedTransfer(input);
+  }
+
+  startTransferMode(
+    input: StartTransferModeInput,
+  ): Result<void, ReturnType<typeof createPlatformError>> {
+    return this.transferCallControlService.startTransferMode(input);
+  }
+
+  cancelTransfer(
+    input: CancelTransferInput,
+  ): Promise<Result<void, ReturnType<typeof createPlatformError>>> {
+    return this.transferCallControlService.cancelTransfer(input);
   }
 }

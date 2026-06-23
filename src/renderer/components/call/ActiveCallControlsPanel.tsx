@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import type { ActiveCallControlOperationError } from "@application/index.js";
+import { mapTransferDisabledReason } from "../../helpers/mapTransferDisabledReason.js";
 
 export type ActiveCallControlsPanelProps = Readonly<{
   visible: boolean;
@@ -9,12 +10,14 @@ export type ActiveCallControlsPanelProps = Readonly<{
   muteDisabledReason: string | null;
   unmuteDisabledReason: string | null;
   hangupDisabledReason: string | null;
+  transferDisabledReason: string | null;
   lastOperationError: ActiveCallControlOperationError | null;
   onHold: () => void;
   onResume: () => void;
   onMute: () => void;
   onUnmute: () => void;
   onHangup: () => void;
+  onTransfer: () => void;
   onRetry: () => void;
 }>;
 
@@ -31,12 +34,14 @@ export function ActiveCallControlsPanel({
   muteDisabledReason,
   unmuteDisabledReason,
   hangupDisabledReason,
+  transferDisabledReason,
   lastOperationError,
   onHold,
   onResume,
   onMute,
   onUnmute,
   onHangup,
+  onTransfer,
   onRetry,
 }: ActiveCallControlsPanelProps): JSX.Element | null {
   if (!visible) {
@@ -116,6 +121,15 @@ export function ActiveCallControlsPanel({
         >
           Hang up
         </button>
+        <button
+          type="button"
+          data-testid="control-transfer"
+          aria-label="Transfer call"
+          disabled={transferDisabledReason !== null}
+          onClick={onTransfer}
+        >
+          Transfer
+        </button>
       </div>
       {renderDisabledReason(
         holdDisabledReason,
@@ -123,6 +137,7 @@ export function ActiveCallControlsPanel({
         muteDisabledReason,
         unmuteDisabledReason,
         hangupDisabledReason,
+        transferDisabledReason,
       )}
     </section>
   );
@@ -134,13 +149,15 @@ function renderDisabledReason(
   muteDisabledReason: string | null,
   unmuteDisabledReason: string | null,
   hangupDisabledReason: string | null,
+  transferDisabledReason: string | null,
 ): JSX.Element | null {
   const reason =
     holdDisabledReason ??
     resumeDisabledReason ??
     muteDisabledReason ??
     unmuteDisabledReason ??
-    hangupDisabledReason;
+    hangupDisabledReason ??
+    transferDisabledReason;
 
   if (reason === null) {
     return null;
@@ -174,9 +191,12 @@ function mapOperationLabel(operation: ActiveCallControlOperationError["operation
 }
 
 function mapControlReason(reason: string): string {
+  const transferLabel = mapTransferDisabledReason(reason);
+  if (transferLabel !== null) {
+    return transferLabel;
+  }
+
   switch (reason) {
-    case "no_active_call":
-      return "No active call";
     case "call_ending":
       return "Call ending";
     case "hold_requires_active":
@@ -191,8 +211,6 @@ function mapControlReason(reason: string): string {
       return "Call is not muted";
     case "hangup_not_allowed":
       return "Hang up is not allowed";
-    case "transfer_in_progress":
-      return "Transfer in progress";
     default:
       return "Action unavailable";
   }

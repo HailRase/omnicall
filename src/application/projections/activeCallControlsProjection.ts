@@ -167,6 +167,25 @@ export function reduceActiveCallControlsProjection(
         },
       };
     }
+    case "CallAutoUnheldAfterTransferFailure":
+      return createActiveCallControlsProjection({
+        callId: asOptionalString(event["callId"]) ?? projection.callId,
+        callState: "Active",
+        muted: projection.muted,
+        lastOperationError: null,
+      });
+    case "TransferModeCancelled": {
+      const callId = asOptionalString(event["callId"]) ?? projection.callId;
+      if (event["restoredSourceState"] !== undefined) {
+        return createActiveCallControlsProjection({
+          callId,
+          callState: parseRestoredSourceState(event["restoredSourceState"]),
+          muted: projection.muted,
+          lastOperationError: null,
+        });
+      }
+      return projection;
+    }
     case "CallEnded":
     case "CallFailed":
     case "CallRejected":

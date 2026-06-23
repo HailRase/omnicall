@@ -54,6 +54,48 @@ export {
   createBreakReason,
   validateBreakReason,
 } from "./operator/BreakReason.js";
+export type { AgentStatus } from "./operator/AgentStatus.js";
+export {
+  AGENT_STATUSES,
+  agentStatusLabel,
+  isAgentStatus,
+} from "./operator/AgentStatus.js";
+export type {
+  StatusReason,
+  StatusReasonValidationError,
+} from "./operator/StatusReason.js";
+export {
+  createStatusReason,
+  validateStatusReason,
+  parseOptionalStatusReason,
+} from "./operator/StatusReason.js";
+export type {
+  AgentStatusRejectionReason,
+  AgentStatusTransitionContext,
+  AgentStatusTransitionResult,
+} from "./operator/AgentStatusTransition.js";
+export {
+  getAllowedAgentStatusTransitions,
+  validateAgentStatusTransition,
+  AGENT_STATUS_REJECTION_REASONS,
+  isAgentStatusRejectionReason,
+} from "./operator/AgentStatusTransition.js";
+export type { DndAgentStatusAction } from "./operator/DndAgentStatusPolicy.js";
+export {
+  isReadyBlockedByDnd,
+  mapDndToAgentBreakRequest,
+} from "./operator/DndAgentStatusPolicy.js";
+export type {
+  AgentStatusDomainEvent,
+  AgentStatusChangeRequestedEvent,
+  AgentStatusChangedEvent,
+  AgentStatusChangeRejectedEvent,
+} from "./operator/events/agentStatusEvents.js";
+export {
+  createAgentStatusChangeRejectedEvent,
+  createAgentStatusChangeRequestedEvent,
+  createAgentStatusChangedEvent,
+} from "./operator/events/agentStatusEvents.js";
 export type {
   SipAccount,
   SipAccountInput,
@@ -210,6 +252,9 @@ export type {
   AttendedTransferRequestedEvent,
   AttendedTransferCompletedEvent,
   AttendedTransferFailedEvent,
+  TransferModeStartedEvent,
+  TransferModeCancelledEvent,
+  CallAutoUnheldAfterTransferFailureEvent,
   TransferType,
   HoldAllPhase,
   HoldAllTrigger,
@@ -254,6 +299,9 @@ export {
   createAttendedTransferRequestedEvent,
   createAttendedTransferCompletedEvent,
   createAttendedTransferFailedEvent,
+  createTransferModeStartedEvent,
+  createTransferModeCancelledEvent,
+  createCallAutoUnheldAfterTransferFailureEvent,
 } from "./telephony/events/callEvents.js";
 export type {
   AccessDeniedDetectedEvent,

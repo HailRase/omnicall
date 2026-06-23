@@ -102,6 +102,11 @@ export type AttendedTransferCompletedEvent = ReturnType<
 export type AttendedTransferFailedEvent = ReturnType<
   typeof createAttendedTransferFailedEvent
 >;
+export type TransferModeStartedEvent = ReturnType<typeof createTransferModeStartedEvent>;
+export type TransferModeCancelledEvent = ReturnType<typeof createTransferModeCancelledEvent>;
+export type CallAutoUnheldAfterTransferFailureEvent = ReturnType<
+  typeof createCallAutoUnheldAfterTransferFailureEvent
+>;
 export type TransferType = "blind" | "attended";
 export type HoldAllPhase = "in_progress" | "completed" | "failed";
 export type HoldAllTrigger = "before_outgoing";
@@ -145,7 +150,10 @@ export type OutgoingCallDomainEvent =
   | ConsultationCallFailedEvent
   | AttendedTransferRequestedEvent
   | AttendedTransferCompletedEvent
-  | AttendedTransferFailedEvent;
+  | AttendedTransferFailedEvent
+  | TransferModeStartedEvent
+  | TransferModeCancelledEvent
+  | CallAutoUnheldAfterTransferFailureEvent;
 
 export type IncomingCallDomainEvent =
   | IncomingCallReceivedEvent
@@ -175,7 +183,10 @@ export type IncomingCallDomainEvent =
   | ConsultationCallFailedEvent
   | AttendedTransferRequestedEvent
   | AttendedTransferCompletedEvent
-  | AttendedTransferFailedEvent;
+  | AttendedTransferFailedEvent
+  | TransferModeStartedEvent
+  | TransferModeCancelledEvent
+  | CallAutoUnheldAfterTransferFailureEvent;
 
 export type CallDomainEvent = OutgoingCallDomainEvent | IncomingCallDomainEvent;
 
@@ -575,5 +586,36 @@ export function createAttendedTransferFailedEvent(
   }>,
 ): ReturnType<typeof createDomainEvent<"AttendedTransferFailed", typeof payload>> {
   return createDomainEvent("AttendedTransferFailed", correlationId, payload);
+}
+
+export function createTransferModeStartedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    callId: CallId;
+  }>,
+): ReturnType<typeof createDomainEvent<"TransferModeStarted", typeof payload>> {
+  return createDomainEvent("TransferModeStarted", correlationId, payload);
+}
+
+export function createTransferModeCancelledEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    callId: CallId;
+    restoredSourceState?: CallState;
+    consultationCallId?: CallId;
+  }>,
+): ReturnType<typeof createDomainEvent<"TransferModeCancelled", typeof payload>> {
+  return createDomainEvent("TransferModeCancelled", correlationId, payload);
+}
+
+export function createCallAutoUnheldAfterTransferFailureEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    callId: CallId;
+  }>,
+): ReturnType<
+  typeof createDomainEvent<"CallAutoUnheldAfterTransferFailure", typeof payload>
+> {
+  return createDomainEvent("CallAutoUnheldAfterTransferFailure", correlationId, payload);
 }
 

@@ -34,6 +34,7 @@ export class InMemorySettingsRepository implements SettingsRepository {
       },
       multiCallSettings: initial?.multiCallSettings ?? {
         multiSessionsEnabled: true,
+        autoUnholdOnTransferFailure: true,
       },
     };
   }

@@ -1,6 +1,7 @@
 export { MockOperatorPlatformGateway } from "./mock/MockOperatorPlatformGateway.js";
 export type {
   MockOcpScenario,
+  MockAgentStatusChangeScenario,
   MockOperatorPlatformGatewayOptions,
 } from "./mock/MockOperatorPlatformGateway.js";
 export { MockTelephonyGateway } from "./mock/MockTelephonyGateway.js";

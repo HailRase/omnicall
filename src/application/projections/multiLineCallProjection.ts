@@ -1,5 +1,6 @@
 import type { DomainEvent } from "@domain/index.js";
 import type { CallState } from "@domain/index.js";
+import { isBenignTransferFailureReason } from "./transferFailureReasons.js";
 
 export type CallLineRole = "source" | "consultation" | "primary";
 
@@ -63,6 +64,8 @@ export function reduceMultiLineCallProjection(
         attendedPhase: "attended_transfer_failed",
         lastFailureReason: asOptionalString(event["reason"]),
       };
+    case "TransferModeCancelled":
+      return applyTransferModeCancelled(projection, event);
     case "OutgoingCallRequested":
     case "IncomingCallReceived":
       return upsertLine(projection, {
@@ -151,7 +154,41 @@ function applyConsultationFailed(
     consultationCallId: null,
     primaryCallId: sourceCallId,
     attendedPhase: "idle",
-    lastFailureReason: asOptionalString(event["reason"]),
+    lastFailureReason: asOptionalFailureReason(event["reason"]),
+  };
+}
+
+function applyTransferModeCancelled(
+  projection: MultiLineCallProjection,
+  event: DomainEvent,
+): MultiLineCallProjection {
+  const sourceCallId = asOptionalString(event["callId"]) ?? projection.sourceCallId;
+  const consultationCallId = asOptionalString(event["consultationCallId"]);
+  const restoredSourceState = parseRestoredSourceState(event["restoredSourceState"]);
+
+  if (consultationCallId !== null && sourceCallId !== null) {
+    const lines = projection.lines
+      .filter((line) => line.callId !== consultationCallId)
+      .map((line) =>
+        line.callId === sourceCallId
+          ? { ...line, role: "primary" as const, state: restoredSourceState }
+          : line,
+      );
+    return {
+      ...projection,
+      lines,
+      sourceCallId,
+      consultationCallId: null,
+      primaryCallId: sourceCallId,
+      attendedPhase: "idle",
+      lastFailureReason: null,
+    };
+  }
+
+  return {
+    ...projection,
+    lastFailureReason: null,
+    attendedPhase: projection.consultationCallId === null ? "idle" : projection.attendedPhase,
   };
 }
 
@@ -223,6 +260,14 @@ function findLineState(
 
 function asOptionalString(value: unknown): string | null {
   return typeof value === "string" ? value : null;
+}
+
+function asOptionalFailureReason(value: unknown): string | null {
+  const reason = asOptionalString(value);
+  if (reason === null || isBenignTransferFailureReason(reason)) {
+    return null;
+  }
+  return reason;
 }
 
 function asRequiredString(value: unknown): string {

@@ -49,6 +49,21 @@ describe("ActiveCallControlsPanel", () => {
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
+  it("shows transfer_mode_active label from shared helper", () => {
+    renderPanel({
+      holdDisabledReason: null,
+      resumeDisabledReason: null,
+      muteDisabledReason: null,
+      unmuteDisabledReason: null,
+      hangupDisabledReason: null,
+      transferDisabledReason: "transfer_mode_active",
+    });
+
+    expect(screen.getByTestId("control-disabled-reason")).toHaveTextContent(
+      "Transfer mode already active",
+    );
+  });
+
   it("activates enabled control with Enter and Space", async () => {
     const user = userEvent.setup();
     const onHold = vi.fn();
@@ -76,12 +91,14 @@ function renderPanel(overrides: ActiveCallControlsOverrides = {}): void {
     muteDisabledReason: null,
     unmuteDisabledReason: "not_muted",
     hangupDisabledReason: null,
+    transferDisabledReason: "transfer_mode_active",
     lastOperationError: null,
     onHold: vi.fn(),
     onResume: vi.fn(),
     onMute: vi.fn(),
     onUnmute: vi.fn(),
     onHangup: vi.fn(),
+    onTransfer: vi.fn(),
     onRetry: vi.fn(),
     ...overrides,
   };

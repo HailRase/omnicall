@@ -3,17 +3,22 @@ import type { PlatformError } from "@shared/errors/index.js";
 import type { Result } from "@shared/result/index.js";
 import { executeAttendedTransfer, executeStartConsultation } from "./attendedTransferOperations.js";
 import { executeBlindTransfer } from "./transferCallControlOperations.js";
+import { executeCancelTransfer, executeStartTransferMode } from "./transferModeOperations.js";
 import type {
   AttendedTransferInput,
   BlindTransferInput,
+  CancelTransferInput,
   StartConsultationInput,
+  StartTransferModeInput,
   TransferCallControlDeps,
 } from "./transferCallControlTypes.js";
 
 export type {
   AttendedTransferInput,
   BlindTransferInput,
+  CancelTransferInput,
   StartConsultationInput,
+  StartTransferModeInput,
 } from "./transferCallControlTypes.js";
 
 /**
@@ -34,5 +39,13 @@ export class TransferCallControlService {
 
   attendedTransfer(input: AttendedTransferInput): Promise<Result<Call, PlatformError>> {
     return executeAttendedTransfer(this.deps, input);
+  }
+
+  startTransferMode(input: StartTransferModeInput): Result<void, PlatformError> {
+    return executeStartTransferMode(this.deps, input);
+  }
+
+  cancelTransfer(input: CancelTransferInput): Promise<Result<void, PlatformError>> {
+    return executeCancelTransfer(this.deps, input);
   }
 }

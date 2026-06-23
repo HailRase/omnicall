@@ -14,6 +14,7 @@ import {
   logBlindTransferFailure,
   publishCallTransferFailed,
 } from "./transferCallControlLogging.js";
+import { applyTransferFailureRecovery } from "./transferFailureRecovery.js";
 import type { BlindTransferInput, TransferCallControlDeps } from "./transferCallControlTypes.js";
 
 /**
@@ -71,7 +72,7 @@ export async function executeBlindTransfer(
       correlationId,
     });
     if (isErr(gatewayResult)) {
-      return handleBlindTransferGatewayFailure(
+      return await handleBlindTransferGatewayFailure(
         deps,
         transferring.call,
         input.callId,
@@ -113,7 +114,7 @@ export async function executeBlindTransfer(
     return ok(completed.call);
   } catch (error: unknown) {
     const normalizedError = normalizeUnknownError(error);
-    return handleBlindTransferGatewayFailure(
+    return await handleBlindTransferGatewayFailure(
       deps,
       transferring.call,
       input.callId,
@@ -125,7 +126,7 @@ export async function executeBlindTransfer(
   }
 }
 
-function handleBlindTransferGatewayFailure(
+async function handleBlindTransferGatewayFailure(
   deps: TransferCallControlDeps,
   transferringCall: Call,
   callId: BlindTransferInput["callId"],
@@ -133,7 +134,7 @@ function handleBlindTransferGatewayFailure(
   previousState: Call["state"],
   error: PlatformError,
   correlationId: ReturnType<typeof createCorrelationId>,
-): Result<Call, PlatformError> {
+): Promise<Result<Call, PlatformError>> {
   const restored = applyCallTransition(transferringCall, "transfer_failed");
   if (!restored.transition.ok) {
     logBlindTransferFailure(
@@ -150,6 +151,7 @@ function handleBlindTransferGatewayFailure(
 
   publishCallTransferFailed(deps.eventPublisher, correlationId, callId, targetNumber, error);
   deps.trackCall(restored.call);
+  await applyTransferFailureRecovery(deps, callId, previousState, correlationId);
   logBlindTransferFailure(
     deps.logger,
     "blind_transfer_failed",

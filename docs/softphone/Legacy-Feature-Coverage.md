@@ -61,8 +61,8 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-015 | P03 | Telephony | Critical | Reject incoming call | `handleHangup` | Reject command ends ringing call and emits reason. |
 | LF-016 | P03 | Telephony | High | Auto-answer timeout | user config, `DisplayProvider` | Configured timeout answers call deterministically. |
 | LF-017 | P03 | Telephony | High | DND auto-reject with 486 | `DisplayProvider`, `localStorage isDND` | DND rejects incoming call without UI bypass. |
-| LF-018 | P06 | Operator | High | DND switches OCP to break | `useDNDValidation` | DND state maps to OCP break command when plugin is enabled. |
-| LF-019 | P06 | Operator | High | DND blocks Ready status | `StatusSelector` | Status rule prevents Ready while DND is active. |
+| LF-018 | P06 | Operator | High | DND switches OCP to break | `useDNDValidation` | WU2: `DndAgentStatusOrchestrationService`, `AccountBootstrapFacade.setPhoneStatus` → `ChangeAgentStatusUseCase` — see `handoffs/P06-WU2-Change-Agent-Status-Handoff.md`. |
+| LF-019 | P06 | Operator | High | DND blocks Ready status | `StatusSelector` | WU1/WU2: `AgentStatusTransition` + `ChangeAgentStatusUseCase` reject `dnd_blocks_ready` — see `handoffs/P06-WU1-Operator-Status-Domain-Handoff.md`. |
 | LF-020 | P02 | Telephony | Critical | Outgoing call | `handleCall`, `Display` | Dialpad starts outgoing call through `MakeCallUseCase`. |
 | LF-021 | P05 | Telephony | High | Hold all calls before new call | `handleHoldAll` | WU1: `MultiCallPolicyService.holdAllBeforeOutgoing`, `AllOtherCallsHeld` — see `handoffs/P05-WU1-Multi-Call-Policy-Handoff.md`. |
 | LF-022 | P04 | Telephony | Critical | Hold and unhold session | `onToggleHoldHandler` | Active call can transition to Held and back. |
@@ -73,8 +73,8 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-027 | P04 | Telephony | Critical | Hang up call | `handleHangup` | Hangup transitions any valid active call to terminal state. |
 | LF-028 | P05 | Telephony | High | Blind transfer | `ControlPanel`, `onReferHandler` | WU2: `BlindTransferUseCase`, transfer events, mock gateway — see `handoffs/P05-WU2-Transfer-Domain-Handoff.md`. |
 | LF-029 | P05 | Telephony | High | Attended transfer with multiple lines | `ActiveCall`, `onReferHandler` | WU3: `handoffs/P05-WU3-Attended-Transfer-Handoff.md` — consultation + attended transfer via mock gateway. |
-| LF-030 | P05 | UI | Medium | Cancel transfer mode | `ActiveCall` | Transfer mode can be cancelled without invalid state. |
-| LF-031 | P05 | Telephony | Medium | Auto-unhold after failed transfer | user config | Failed transfer restores previous valid call state. |
+| LF-030 | P05 | UI | Medium | Cancel transfer mode | `ActiveCall` | WU4: `CancelTransferUseCase`, `control-cancel-transfer`, `TransferModeCancelled` — see `handoffs/P05-WU4-Transfer-Panel-Handoff.md`. |
+| LF-031 | P05 | Telephony | Medium | Auto-unhold after failed transfer | user config | WU4: `CallAutoUnheldAfterTransferFailure`, `MultiCallSettings.autoUnholdOnTransferFailure`, `transferFailureRecovery.ts`. |
 | LF-032 | P05 | Telephony | High | Block second session when disabled | `isMultiSessions` | WU1: `evaluateSecondSessionBlock`, `SecondSessionBlocked`, `multiCallProjection` — see `handoffs/P05-WU1-Multi-Call-Policy-Handoff.md`. |
 | LF-033 | P02 | Media | Medium | Ringback tone on 183 | `isRBT` config | Outgoing progress 183 can play configured RBT. |
 | LF-034 | P02 | Media | Medium | Busy and failed tones | `soundManager` | Failed outgoing calls play normalized failure tones. |
@@ -88,7 +88,7 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-042 | P06 | Operator | Critical | Change status to Ready | `handleChangeToReady` | Ready command follows status rules and OCP contract. |
 | LF-043 | P06 | Operator | Critical | Change status to Break with reason | `handleChangeToBreak` | Break requires valid reason when configured. |
 | LF-044 | P06 | Operator | Critical | Post-call status while busy | `PROXY_POST_CALL_STATUS` | Busy post-call update is handled before final status. |
-| LF-045 | P06 | Operator | High | Status transition validation | `USER_STATUS_RULES` | Invalid status transitions are impossible. |
+| LF-045 | P06 | Operator | High | Status transition validation | `USER_STATUS_RULES` | WU1/WU2: `AgentStatusTransition` + `ChangeAgentStatusUseCase` — see `handoffs/P06-WU1-Operator-Status-Domain-Handoff.md`. |
 | LF-046 | P06 | UI | Medium | Status duration timer | `StatusTimer` | Current status duration is visible and stable. |
 | LF-047 | P06 | Operator | High | Logout with reason | `StatusReasonsModal`, `Header` | Logout captures required reason and emits logout flow. |
 | LF-048 | P08 | Operator | Critical | OCP logout cascade | `ocpLogout`, `softphoneLogoutEvent` | Logout closes OCP, SIP, calls, and projections safely. |
