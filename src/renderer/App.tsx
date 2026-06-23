@@ -1,70 +1,97 @@
 import type { JSX } from "react";
-import { useEffect, useState } from "react";
-import type { PlatformVersionResponse } from "@shared/ipc/IpcChannels.js";
+import { useAccountBootstrapStore } from "./stores/useAccountBootstrapStore.js";
+import { useAccountBootstrap } from "./hooks/useAccountBootstrap.js";
+import { AuthStateView } from "./components/auth/AuthStateView.js";
+import { AccountPanel } from "./components/account/AccountPanel.js";
+import { PhoneStatusBadge } from "./components/status/PhoneStatusBadge.js";
 
-type BootState =
-  | { status: "loading" }
-  | { status: "ready"; platform: PlatformVersionResponse }
-  | { status: "error"; message: string };
+function registrationLabel(
+  registrationState: string,
+  authUiState: string,
+): string {
+  if (authUiState === "sip_registering") {
+    return "Registering";
+  }
+
+  switch (registrationState) {
+    case "registered":
+      return "Registered";
+    case "failed":
+      return "Failed";
+    case "registering":
+      return "Registering";
+    default:
+      return "Not registered";
+  }
+}
 
 export function App(): JSX.Element {
-  const [bootState, setBootState] = useState<BootState>({ status: "loading" });
+  const { facade, status, errorMessage } = useAccountBootstrap();
+  const projection = useAccountBootstrapStore((state) => state.projection);
+  const applyPhoneStatus = useAccountBootstrapStore(
+    (state) => state.applyPhoneStatus,
+  );
 
-  useEffect(() => {
-    let cancelled = false;
+  const showAccountPanel =
+    projection.authUiState === "sip_only_ready" ||
+    projection.authUiState === "sip_registration_failed" ||
+    projection.authUiState === "sip_registered";
 
-    async function loadPlatformInfo(): Promise<void> {
-      try {
-        const platform = await window.softphone.getPlatformVersion();
-        if (!cancelled) {
-          setBootState({ status: "ready", platform });
-        }
-      } catch (error: unknown) {
-        const message =
-          error instanceof Error ? error.message : "Platform bootstrap failed";
-        if (!cancelled) {
-          setBootState({ status: "error", message });
-        }
-      }
-    }
-
-    void loadPlatformInfo();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const blockingAuthState =
+    projection.authUiState === "ocp_authenticating" ||
+    projection.authUiState === "ocp_session_exists" ||
+    projection.authUiState === "ocp_invalid_token" ||
+    projection.authUiState === "ocp_access_denied" ||
+    projection.authUiState === "sip_registering";
 
   return (
     <main className="shell" data-testid="softphone-shell">
       <header className="shell__header">
         <h1 className="shell__title">Enterprise Softphone</h1>
-        <p className="shell__subtitle">Platform Foundation</p>
+        <p className="shell__subtitle">Authorization &amp; Account Bootstrap</p>
       </header>
 
-      <section className="shell__content" aria-live="polite">
-        {bootState.status === "loading" && (
-          <p data-testid="boot-loading">Booting platform shell…</p>
-        )}
+      {status === "loading" && (
+        <p data-testid="bootstrap-loading">Booting application…</p>
+      )}
 
-        {bootState.status === "ready" && (
-          <div data-testid="boot-ready">
-            <p>
-              <strong>{bootState.platform.name}</strong> v
-              {bootState.platform.version}
-            </p>
-            <p className="shell__hint">
-              Telephony features will be added in later roadmap phases.
-            </p>
-          </div>
-        )}
+      {status === "error" && (
+        <p className="shell__error" data-testid="bootstrap-error" role="alert">
+          {errorMessage}
+        </p>
+      )}
 
-        {bootState.status === "error" && (
-          <p className="shell__error" data-testid="boot-error" role="alert">
-            {bootState.message}
-          </p>
-        )}
-      </section>
+      {status === "ready" && facade !== null && (
+        <>
+          <AuthStateView
+            state={projection.authUiState}
+            lastError={projection.lastError}
+          />
+
+          <PhoneStatusBadge
+            status={projection.phoneStatus}
+            registrationLabel={registrationLabel(
+              projection.registrationState,
+              projection.authUiState,
+            )}
+            disabled={blockingAuthState}
+            onChange={(nextStatus) => {
+              applyPhoneStatus(nextStatus);
+              void facade.setPhoneStatus(nextStatus);
+            }}
+          />
+
+          {showAccountPanel && !blockingAuthState && (
+            <AccountPanel facade={facade} />
+          )}
+
+          {projection.authUiState === "sip_registered" && (
+            <p className="shell__hint" data-testid="sip-registered-hint">
+              SIP account is registered via mock gateway (P01).
+            </p>
+          )}
+        </>
+      )}
     </main>
   );
 }

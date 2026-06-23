@@ -54,3 +54,65 @@ body {
 .shell__error {
   color: #ff8f8f;
 }
+
+.account-panel,
+.auth-screen,
+.phone-status {
+  border: 1px solid #2a3344;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.account-panel form {
+  display: grid;
+  gap: 12px;
+}
+
+.account-panel label {
+  display: grid;
+  gap: 4px;
+}
+
+.account-panel input {
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #2a3344;
+  background: #0d121c;
+  color: inherit;
+}
+
+.account-panel button,
+.phone-status__actions button {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #3a4a66;
+  background: #1a2435;
+  color: inherit;
+  cursor: pointer;
+}
+
+.account-panel button:disabled,
+.phone-status__actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.phone-status__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.account-panel__error,
+.auth-screen p {
+  color: #ffb4b4;
+}
+
+.auth-screen h2 {
+  margin-top: 0;
+}
+
+.shell__content {
+  display: grid;
+  gap: 16px;
+}

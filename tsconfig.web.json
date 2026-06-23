@@ -10,6 +10,10 @@
     "src/renderer/**/*.ts",
     "src/renderer/**/*.tsx",
     "src/application/**/*.ts",
-    "src/shared/**/*.ts"
+    "src/domain/**/*.ts",
+    "src/infrastructure/**/*.ts",
+    "src/adapters/**/*.ts",
+    "src/shared/**/*.ts",
+    "src/ports/**/*.ts"
   ]
 }

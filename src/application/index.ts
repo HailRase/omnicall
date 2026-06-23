@@ -1,5 +1,16 @@
-/**
- * Application layer entry point.
- * Use Cases are added in later phases.
- */
-export const APPLICATION_LAYER = "application" as const;
+export { InMemoryDomainEventBus } from "./events/InMemoryDomainEventBus.js";
+export { AuthenticateOcpUseCase } from "./use-cases/AuthenticateOcpUseCase.js";
+export { AuthorizeSipAccountUseCase } from "./use-cases/AuthorizeSipAccountUseCase.js";
+export { RegisterAccountUseCase } from "./use-cases/RegisterAccountUseCase.js";
+export {
+  AccountBootstrapFacade,
+  type AccountBootstrapFacadeDeps,
+} from "./facades/AccountBootstrapFacade.js";
+export {
+  initialAccountBootstrapProjection,
+  reduceAccountBootstrapProjection,
+  setBootstrapMode,
+  setPhoneStatusProjection,
+  type AccountBootstrapProjection,
+  type AuthUiState,
+} from "./projections/accountBootstrapProjection.js";

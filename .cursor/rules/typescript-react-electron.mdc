@@ -23,6 +23,26 @@ Never use:
 - untyped event payloads
 - untyped IPC payloads
 - untyped WebSocket payloads
+- **any API, type, prop, export, or pattern marked `@deprecated`** in TypeScript, React, Electron, Node, DOM, or project dependencies
+
+## No Deprecated APIs
+
+Applies to **all layers**: Domain, Application, UI, Adapters, Infrastructure, tests.
+
+Before using a library symbol:
+
+1. Check IDE strikethrough and `@deprecated` JSDoc.
+2. Use the documented replacement.
+3. Do not suppress deprecation warnings (`@ts-ignore`, eslint-disable) without an ADR.
+
+Forbidden examples (not exhaustive):
+
+- React: `FormEvent`, `FormEventHandler`, string refs, legacy class lifecycle methods
+- DOM events: prefer specific handlers (`SubmitEvent`, `ChangeEvent`, `InputEvent`) over deprecated aliases
+- Electron / Node: modules and APIs marked deprecated in current runtime docs
+- Dependencies: exports flagged deprecated in installed `@types` or package docs
+
+If no replacement exists, create an ADR before keeping the deprecated API.
 
 Use:
 
@@ -160,6 +180,8 @@ Domain must not import either.
 Before finishing a TypeScript change verify:
 
 - no `any`
+- no `@deprecated` APIs or types in new or touched code
+- `npm run lint` passes (`@typescript-eslint/no-deprecated`)
 - no direct infrastructure import in Domain
 - no direct SIP call in UI or store
 - IPC is typed and validated

@@ -1,5 +1,9 @@
-/**
- * Adapters layer entry point.
- * External system adapters are added in later phases.
- */
-export const ADAPTERS_LAYER = "adapters" as const;
+export { MockOperatorPlatformGateway } from "./mock/MockOperatorPlatformGateway.js";
+export type {
+  MockOcpScenario,
+  MockOperatorPlatformGatewayOptions,
+} from "./mock/MockOperatorPlatformGateway.js";
+export { MockTelephonyGateway } from "./mock/MockTelephonyGateway.js";
+export type { MockTelephonyScenario } from "./mock/MockTelephonyGateway.js";
+export { InMemorySettingsRepository } from "./settings/InMemorySettingsRepository.js";
+export type { InMemorySettingsState } from "./settings/InMemorySettingsRepository.js";

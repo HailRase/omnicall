@@ -30,6 +30,10 @@ export default defineConfig({
       alias: {
         "@renderer": resolve(srcRoot, "renderer"),
         "@application": resolve(srcRoot, "application"),
+        "@domain": resolve(srcRoot, "domain"),
+        "@infrastructure": resolve(srcRoot, "infrastructure"),
+        "@adapters": resolve(srcRoot, "adapters"),
+        "@ports": resolve(srcRoot, "ports"),
         "@shared": resolve(srcRoot, "shared"),
       },
     },

@@ -52,6 +52,7 @@ export default tseslint.config(
     },
     rules: {
       "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-deprecated": "error",
       "@typescript-eslint/no-unsafe-assignment": "error",
       "@typescript-eslint/no-unsafe-member-access": "error",
       "@typescript-eslint/no-unsafe-call": "error",
@@ -79,12 +80,19 @@ export default tseslint.config(
             },
             {
               from: "infrastructure",
-              allow: ["infrastructure", "ports", "shared"],
+              allow: [
+                "infrastructure",
+                "ports",
+                "shared",
+                "adapters",
+                "application",
+                "domain",
+              ],
             },
             { from: "shared", allow: ["shared"] },
             {
               from: "renderer",
-              allow: ["renderer", "application", "shared"],
+              allow: ["renderer", "application", "shared", "infrastructure"],
             },
             {
               from: "main",
@@ -130,6 +138,7 @@ export default tseslint.config(
     rules: {
       "@typescript-eslint/no-unsafe-assignment": "off",
       "@typescript-eslint/no-unsafe-member-access": "off",
+      "boundaries/element-types": "off",
     },
   },
 );

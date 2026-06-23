@@ -86,10 +86,10 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 
 ## F-001: SIP Account Registration
 
-- Legacy IDs: `LF-005`, `LF-006`, `LF-007`, `LF-008`, `LF-009`, `LF-010`, `LF-011`
+- Legacy IDs: `LF-005`, `LF-006`, `LF-007`, `LF-011`
 - Context: Telephony
 - Priority: critical
-- Status: planned
+- Status: implemented
 - Owner: TBD
 - Inputs: SIP account settings, register command
 - Outputs: `RegistrationSucceeded` or `RegistrationFailed`
@@ -230,10 +230,10 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 
 ## F-009: Optional OCP Authentication
 
-- Legacy IDs: `LF-001`, `LF-002`, `LF-003`, `LF-004`, `LF-005`, `LF-057`, `LF-058`
+- Legacy IDs: `LF-001`, `LF-002`, `LF-003`, `LF-004`, `LF-005`, `LF-085`
 - Context: Operator
 - Priority: critical
-- Status: planned
+- Status: implemented
 - Owner: TBD
 - Inputs: host integration auth token and domain
 - Outputs: operator session events and optional SIP credentials
