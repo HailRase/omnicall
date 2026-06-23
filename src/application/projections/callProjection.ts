@@ -159,6 +159,30 @@ export function reduceCallProjection(
         ...projection,
         lastError: asOptionalString(event["reason"]) ?? "DTMF failed",
       };
+    case "CallTransferRequested":
+      return {
+        ...projection,
+        activeCallId: asOptionalString(event["callId"]),
+        state: "Transferring",
+      };
+    case "CallTransferred":
+      return {
+        ...projection,
+        activeCallId: asOptionalString(event["callId"]),
+        state: "Ended",
+        mode: "number",
+        uiState: "idle",
+        muted: false,
+        toneIndicator: "none",
+        remoteAudioAttached: false,
+      };
+    case "CallTransferFailed":
+      return {
+        ...projection,
+        activeCallId: asOptionalString(event["callId"]),
+        state: "Active",
+        lastError: asOptionalString(event["reason"]),
+      };
     default:
       return projection;
   }

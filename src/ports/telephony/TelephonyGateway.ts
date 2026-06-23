@@ -69,6 +69,12 @@ export type ResumeCallCommand = Readonly<{
   correlationId: CorrelationId;
 }>;
 
+export type BlindTransferCommand = Readonly<{
+  callId: CallId;
+  targetNumber: PhoneNumber;
+  correlationId: CorrelationId;
+}>;
+
 export interface TelephonyGateway {
   register(command: RegisterAccountCommand): Promise<Result<void, PlatformError>>;
   unregister(correlationId: CorrelationId): Promise<Result<void, PlatformError>>;
@@ -79,6 +85,7 @@ export interface TelephonyGateway {
   hangup(command: HangupCommand): Promise<Result<void, PlatformError>>;
   holdCall(command: HoldCallCommand): Promise<Result<void, PlatformError>>;
   resumeCall(command: ResumeCallCommand): Promise<Result<void, PlatformError>>;
+  blindTransfer(command: BlindTransferCommand): Promise<Result<void, PlatformError>>;
   setIncomingCallHandler(
     handler: ((notification: TelephonyIncomingCallNotification) => Promise<void>) | null,
   ): () => void;

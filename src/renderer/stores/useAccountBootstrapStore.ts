@@ -31,12 +31,18 @@ import {
   setMultiCallSettings,
   type MultiCallProjection,
 } from "@application/projections/multiCallProjection.js";
+import {
+  initialTransferProjection,
+  reduceTransferProjection,
+  type TransferProjection,
+} from "@application/projections/transferProjection.js";
 type AccountBootstrapStore = Readonly<{
   projection: AccountBootstrapProjection;
   callProjection: CallProjection;
   activeCallControlsProjection: ActiveCallControlsProjection;
   incomingCallProjection: IncomingCallProjection;
   multiCallProjection: MultiCallProjection;
+  transferProjection: TransferProjection;
   bindFacade: (facade: AccountBootstrapFacade) => () => void;
   setCallMode: (mode: DialpadMode) => void;
   setIncomingUiState: (uiState: IncomingCallUiState) => void;
@@ -50,6 +56,7 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
   activeCallControlsProjection: initialActiveCallControlsProjection(),
   incomingCallProjection: initialIncomingCallProjection(),
   multiCallProjection: initialMultiCallProjection(),
+  transferProjection: initialTransferProjection(),
 
   bindFacade: (facade) => {
     void facade.getMultiCallSettings().then((settings) => {
@@ -71,6 +78,7 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
           event,
         ),
         multiCallProjection: reduceMultiCallProjection(state.multiCallProjection, event),
+        transferProjection: reduceTransferProjection(state.transferProjection, event),
       }));
     });
 

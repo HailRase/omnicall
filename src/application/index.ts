@@ -19,6 +19,7 @@ export { HandleIncomingCallUseCase } from "./use-cases/HandleIncomingCallUseCase
 export { SelectRejectReasonUseCase } from "./use-cases/SelectRejectReasonUseCase.js";
 export { AutoAnswerIncomingCallUseCase } from "./use-cases/AutoAnswerIncomingCallUseCase.js";
 export { RejectIncomingCallByDndUseCase } from "./use-cases/RejectIncomingCallByDndUseCase.js";
+export { BlindTransferUseCase } from "./use-cases/BlindTransferUseCase.js";
 export { RegisterAccountUseCase } from "./use-cases/RegisterAccountUseCase.js";
 export { ResolveStartupModeUseCase } from "./use-cases/ResolveStartupModeUseCase.js";
 export { SendDtmfUseCase } from "./use-cases/SendDtmfUseCase.js";
@@ -75,3 +76,11 @@ export {
   type MultiCallProjection,
   type MultiCallDisabledReason,
 } from "./projections/multiCallProjection.js";
+export {
+  initialTransferProjection,
+  reduceTransferProjection,
+  deriveBlindTransferDisabledReason,
+  type TransferProjection,
+  type TransferPhase,
+  type BlindTransferDisabledContext,
+} from "./projections/transferProjection.js";

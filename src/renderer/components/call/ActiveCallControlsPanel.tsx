@@ -191,6 +191,8 @@ function mapControlReason(reason: string): string {
       return "Call is not muted";
     case "hangup_not_allowed":
       return "Hang up is not allowed";
+    case "transfer_in_progress":
+      return "Transfer in progress";
     default:
       return "Action unavailable";
   }

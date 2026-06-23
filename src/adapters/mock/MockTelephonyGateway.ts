@@ -1,5 +1,6 @@
 import type {
   AnswerCallCommand,
+  BlindTransferCommand,
   HangupCommand,
   HoldCallCommand,
   MakeCallCommand,
@@ -32,6 +33,7 @@ export type MockIncomingRejectScenario = "success" | "failure";
 export type MockHoldScenario = "success" | "failure";
 export type MockResumeScenario = "success" | "failure";
 export type MockHangupScenario = "success" | "failure";
+export type MockBlindTransferScenario = "success" | "failure";
 
 export type MockTelephonyGatewayOptions = Readonly<{
   registrationScenario?: MockTelephonyScenario;
@@ -42,6 +44,7 @@ export type MockTelephonyGatewayOptions = Readonly<{
   holdScenario?: MockHoldScenario;
   resumeScenario?: MockResumeScenario;
   hangupScenario?: MockHangupScenario;
+  blindTransferScenario?: MockBlindTransferScenario;
   delayMs?: number;
 }>;
 
@@ -54,6 +57,7 @@ export class MockTelephonyGateway implements TelephonyGateway {
   private holdScenario: MockHoldScenario;
   private resumeScenario: MockResumeScenario;
   private hangupScenario: MockHangupScenario;
+  private blindTransferScenario: MockBlindTransferScenario;
   private readonly delayMs: number;
   private registered = false;
   private readonly dialedNumbers: string[] = [];
@@ -62,6 +66,10 @@ export class MockTelephonyGateway implements TelephonyGateway {
   private readonly answeredCalls: string[] = [];
   private readonly heldCalls: string[] = [];
   private readonly resumedCalls: string[] = [];
+  private readonly blindTransferCalls: Array<{
+    callId: string;
+    targetNumber: string;
+  }> = [];
   private readonly rejectedCalls: Array<{
     callId: string;
     sipCode?: number;
@@ -89,6 +97,7 @@ export class MockTelephonyGateway implements TelephonyGateway {
       this.holdScenario = "success";
       this.resumeScenario = "success";
       this.hangupScenario = "success";
+      this.blindTransferScenario = "success";
       this.delayMs = delayMs;
       return;
     }
@@ -103,6 +112,7 @@ export class MockTelephonyGateway implements TelephonyGateway {
     this.holdScenario = scenarioOrOptions.holdScenario ?? "success";
     this.resumeScenario = scenarioOrOptions.resumeScenario ?? "success";
     this.hangupScenario = scenarioOrOptions.hangupScenario ?? "success";
+    this.blindTransferScenario = scenarioOrOptions.blindTransferScenario ?? "success";
     this.delayMs = scenarioOrOptions.delayMs ?? 0;
   }
 
@@ -138,6 +148,10 @@ export class MockTelephonyGateway implements TelephonyGateway {
     this.hangupScenario = scenario;
   }
 
+  setBlindTransferScenario(scenario: MockBlindTransferScenario): void {
+    this.blindTransferScenario = scenario;
+  }
+
   isRegistered(): boolean {
     return this.registered;
   }
@@ -164,6 +178,13 @@ export class MockTelephonyGateway implements TelephonyGateway {
 
   getResumedCalls(): ReadonlyArray<string> {
     return this.resumedCalls;
+  }
+
+  getBlindTransferCalls(): ReadonlyArray<{
+    callId: string;
+    targetNumber: string;
+  }> {
+    return this.blindTransferCalls;
   }
 
   getRejectedCalls(): ReadonlyArray<{
@@ -350,6 +371,25 @@ export class MockTelephonyGateway implements TelephonyGateway {
     }
 
     this.resumedCalls.push(command.callId);
+    return Promise.resolve(ok(undefined));
+  }
+
+  blindTransfer(command: BlindTransferCommand): Promise<Result<void, PlatformError>> {
+    if (this.blindTransferScenario === "failure") {
+      return Promise.resolve(
+        err(
+          createPlatformError(
+            "operation_failed",
+            `Blind transfer failed for ${command.callId} to ${command.targetNumber}`,
+          ),
+        ),
+      );
+    }
+
+    this.blindTransferCalls.push({
+      callId: command.callId,
+      targetNumber: command.targetNumber,
+    });
     return Promise.resolve(ok(undefined));
   }
 

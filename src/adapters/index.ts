@@ -11,6 +11,7 @@ export type {
   MockResumeScenario,
   MockTelephonyGatewayOptions,
   MockTelephonyScenario,
+  MockBlindTransferScenario,
 } from "./mock/MockTelephonyGateway.js";
 export { MockMediaGateway } from "./mock/MockMediaGateway.js";
 export type { MockMediaScenario } from "./mock/MockMediaGateway.js";

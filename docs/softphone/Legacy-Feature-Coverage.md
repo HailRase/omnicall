@@ -71,7 +71,7 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-025 | P02 | Telephony | High | DTMF from dialpad | `DialPad`, `sendDTMF` | Active call sends validated DTMF tones. |
 | LF-026 | P02 | UI | Low | Long press 0 produces plus | `DialPad` | Dialpad supports international number input. |
 | LF-027 | P04 | Telephony | Critical | Hang up call | `handleHangup` | Hangup transitions any valid active call to terminal state. |
-| LF-028 | P05 | Telephony | High | Blind transfer | `ControlPanel`, `onReferHandler` | Active call transfers to target number through Use Case. |
+| LF-028 | P05 | Telephony | High | Blind transfer | `ControlPanel`, `onReferHandler` | WU2: `BlindTransferUseCase`, transfer events, mock gateway — see `handoffs/P05-WU2-Transfer-Domain-Handoff.md`. |
 | LF-029 | P05 | Telephony | High | Attended transfer with multiple lines | `ActiveCall`, `onReferHandler` | Consultation call can complete attended transfer. |
 | LF-030 | P05 | UI | Medium | Cancel transfer mode | `ActiveCall` | Transfer mode can be cancelled without invalid state. |
 | LF-031 | P05 | Telephony | Medium | Auto-unhold after failed transfer | user config | Failed transfer restores previous valid call state. |

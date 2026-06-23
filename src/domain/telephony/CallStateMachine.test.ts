@@ -113,5 +113,52 @@ describe("CallStateMachine", () => {
     const invalid = transitionCallState("Active", "outgoing_requested");
     expect(invalid.ok).toBe(false);
   });
+
+  it("moves active call to Transferring on transfer_requested", () => {
+    const transferring = transitionCallState("Active", "transfer_requested");
+    expect(transferring).toEqual({ ok: true, state: "Transferring" });
+  });
+
+  it("moves held call to Transferring on transfer_requested", () => {
+    const transferring = transitionCallState("Held", "transfer_requested");
+    expect(transferring).toEqual({ ok: true, state: "Transferring" });
+  });
+
+  it("rejects transfer_requested from Ringing", () => {
+    const invalid = transitionCallState("Ringing", "transfer_requested");
+    expect(invalid.ok).toBe(false);
+    if (invalid.ok) {
+      return;
+    }
+    expect(invalid.reason).toBe("transfer_requires_active_or_held");
+  });
+
+  it("completes blind transfer to Ended", () => {
+    const completed = transitionCallState("Transferring", "transfer_completed");
+    expect(completed).toEqual({ ok: true, state: "Ended" });
+  });
+
+  it("rejects transfer_completed from Active", () => {
+    const invalid = transitionCallState("Active", "transfer_completed");
+    expect(invalid.ok).toBe(false);
+    if (invalid.ok) {
+      return;
+    }
+    expect(invalid.reason).toBe("transfer_complete_requires_transferring");
+  });
+
+  it("restores Active on transfer_failed from Transferring", () => {
+    const restored = transitionCallState("Transferring", "transfer_failed");
+    expect(restored).toEqual({ ok: true, state: "Active" });
+  });
+
+  it("rejects transfer_failed from non-transferring state", () => {
+    const invalid = transitionCallState("Active", "transfer_failed");
+    expect(invalid.ok).toBe(false);
+    if (invalid.ok) {
+      return;
+    }
+    expect(invalid.reason).toBe("transfer_failed_requires_transferring");
+  });
 });
 

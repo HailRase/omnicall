@@ -20,6 +20,7 @@ import { RegisterAccountUseCase } from "../use-cases/RegisterAccountUseCase.js";
 import { ResolveStartupModeUseCase } from "../use-cases/ResolveStartupModeUseCase.js";
 import { SendDtmfUseCase } from "../use-cases/SendDtmfUseCase.js";
 import { UnmuteCallUseCase } from "../use-cases/UnmuteCallUseCase.js";
+import { BlindTransferUseCase } from "../use-cases/BlindTransferUseCase.js";
 import type {
   DomainEventPublisher,
   HostIntegrationGateway,
@@ -59,6 +60,7 @@ export class AccountBootstrapFacade {
   readonly answerCallUseCase: AnswerCallUseCase;
   readonly rejectCallUseCase: RejectCallUseCase;
   readonly sendDtmfUseCase: SendDtmfUseCase;
+  readonly blindTransferUseCase: BlindTransferUseCase;
 
   private readonly processedCredentialEvents = new Set<string>();
   private readonly callEngine: CallEngine;
@@ -110,6 +112,7 @@ export class AccountBootstrapFacade {
       deps.logger,
     );
     this.sendDtmfUseCase = new SendDtmfUseCase(this.callEngine, deps.logger);
+    this.blindTransferUseCase = new BlindTransferUseCase(this.callEngine, deps.logger);
 
     deps.telephonyGateway.setIncomingCallHandler(async (notification) => {
       await this.callEngine.handleIncomingReceived({ notification });
@@ -249,6 +252,20 @@ export class AccountBootstrapFacade {
 
   async unmuteCallById(callId: string): Promise<Result<Call, PlatformError>> {
     return this.unmuteCall(createCallId(callId));
+  }
+
+  async blindTransfer(
+    callId: CallId,
+    targetNumber: string,
+  ): Promise<Result<Call, PlatformError>> {
+    return this.blindTransferUseCase.execute({ callId, targetNumber });
+  }
+
+  async blindTransferById(
+    callId: string,
+    targetNumber: string,
+  ): Promise<Result<Call, PlatformError>> {
+    return this.blindTransfer(createCallId(callId), targetNumber);
   }
 
   async answerCall(callId: CallId): Promise<Result<Call, PlatformError>> {

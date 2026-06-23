@@ -101,6 +101,12 @@ export {
   isEstablishedCall,
   shouldHoldAllBeforeOutgoing,
 } from "./telephony/MultiCallPolicy.js";
+export type {
+  BlindTransferDisabledReason,
+  BlindTransferEligibilityInput,
+  BlindTransferEligibilityResult,
+} from "./telephony/TransferEligibility.js";
+export { evaluateBlindTransferEligibility } from "./telephony/TransferEligibility.js";
 export type { Call } from "./telephony/Call.js";
 export {
   applyCallTransition,
@@ -171,6 +177,10 @@ export type {
   FailedToneStartedEvent,
   AllOtherCallsHeldEvent,
   SecondSessionBlockedEvent,
+  CallTransferRequestedEvent,
+  CallTransferredEvent,
+  CallTransferFailedEvent,
+  TransferType,
   HoldAllPhase,
   HoldAllTrigger,
 } from "./telephony/events/callEvents.js";
@@ -205,6 +215,9 @@ export {
   createFailedToneStartedEvent,
   createAllOtherCallsHeldEvent,
   createSecondSessionBlockedEvent,
+  createCallTransferRequestedEvent,
+  createCallTransferredEvent,
+  createCallTransferFailedEvent,
 } from "./telephony/events/callEvents.js";
 export type {
   AccessDeniedDetectedEvent,

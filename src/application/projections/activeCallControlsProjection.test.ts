@@ -127,4 +127,94 @@ describe("activeCallControlsProjection", () => {
     expect(failed.lastOperationError).toBeNull();
     expect(failed.callState).toBe("Active");
   });
+
+  it("disables hold, resume, mute, and unmute during blind transfer", () => {
+    const active = reduceActiveCallControlsProjection(
+      initialActiveCallControlsProjection(),
+      {
+        type: "CallAnswered",
+        callId: "call-xfer-1",
+        correlationId: createCorrelationId(),
+        occurredAt: new Date().toISOString(),
+      },
+    );
+    const transferring = reduceActiveCallControlsProjection(active, {
+      type: "CallTransferRequested",
+      callId: "call-xfer-1",
+      targetNumber: "+12025550500",
+      transferType: "blind",
+      correlationId: createCorrelationId(),
+      occurredAt: new Date().toISOString(),
+    });
+
+    expect(transferring.callState).toBe("Transferring");
+    expect(transferring.holdDisabledReason).toBe("transfer_in_progress");
+    expect(transferring.resumeDisabledReason).toBe("transfer_in_progress");
+    expect(transferring.muteDisabledReason).toBe("transfer_in_progress");
+    expect(transferring.unmuteDisabledReason).toBe("transfer_in_progress");
+    expect(transferring.hangupDisabledReason).toBeNull();
+  });
+
+  it("restores active controls after transfer failure", () => {
+    const transferring = reduceActiveCallControlsProjection(
+      reduceActiveCallControlsProjection(initialActiveCallControlsProjection(), {
+        type: "CallAnswered",
+        callId: "call-xfer-2",
+        correlationId: createCorrelationId(),
+        occurredAt: new Date().toISOString(),
+      }),
+      {
+        type: "CallTransferRequested",
+        callId: "call-xfer-2",
+        targetNumber: "+12025550501",
+        transferType: "blind",
+        correlationId: createCorrelationId(),
+        occurredAt: new Date().toISOString(),
+      },
+    );
+    const restored = reduceActiveCallControlsProjection(transferring, {
+      type: "CallTransferFailed",
+      callId: "call-xfer-2",
+      targetNumber: "+12025550501",
+      transferType: "blind",
+      reason: "REFER rejected",
+      correlationId: createCorrelationId(),
+      occurredAt: new Date().toISOString(),
+    });
+
+    expect(restored.callState).toBe("Active");
+    expect(restored.holdDisabledReason).toBeNull();
+    expect(restored.muteDisabledReason).toBeNull();
+    expect(restored.resumeDisabledReason).toBe("resume_requires_held");
+  });
+
+  it("clears controls after successful blind transfer", () => {
+    const transferring = reduceActiveCallControlsProjection(
+      reduceActiveCallControlsProjection(initialActiveCallControlsProjection(), {
+        type: "CallAnswered",
+        callId: "call-xfer-3",
+        correlationId: createCorrelationId(),
+        occurredAt: new Date().toISOString(),
+      }),
+      {
+        type: "CallTransferRequested",
+        callId: "call-xfer-3",
+        targetNumber: "+12025550502",
+        transferType: "blind",
+        correlationId: createCorrelationId(),
+        occurredAt: new Date().toISOString(),
+      },
+    );
+    const transferred = reduceActiveCallControlsProjection(transferring, {
+      type: "CallTransferred",
+      callId: "call-xfer-3",
+      targetNumber: "+12025550502",
+      transferType: "blind",
+      correlationId: createCorrelationId(),
+      occurredAt: new Date().toISOString(),
+    });
+
+    expect(transferred.callState).toBe("Ended");
+    expect(transferred.hangupDisabledReason).toBe("hangup_not_allowed");
+  });
 });

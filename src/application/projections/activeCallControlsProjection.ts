@@ -5,6 +5,7 @@ import type { CallState } from "@domain/index.js";
 export type ActiveControlDisabledReason =
   | "no_active_call"
   | "call_ending"
+  | "transfer_in_progress"
   | "hold_requires_active"
   | "resume_requires_held"
   | "mute_requires_active_or_held"
@@ -95,6 +96,26 @@ export function reduceActiveCallControlsProjection(
         callState: "Ending",
         muted: projection.muted,
       });
+    case "CallTransferRequested":
+      return createActiveCallControlsProjection({
+        callId: asOptionalString(event["callId"]),
+        callState: "Transferring",
+        muted: projection.muted,
+        lastOperationError: null,
+      });
+    case "CallTransferFailed":
+      return createActiveCallControlsProjection({
+        callId: asOptionalString(event["callId"]) ?? projection.callId,
+        callState: "Active",
+        muted: projection.muted,
+        lastOperationError: null,
+      });
+    case "CallTransferred":
+      return createActiveCallControlsProjection({
+        callId: asOptionalString(event["callId"]),
+        callState: "Ended",
+        muted: false,
+      });
     case "ActiveCallControlFailed": {
       const operation = parseActiveCallControlOperation(event["operation"]);
       const base = createActiveCallControlsProjection({
@@ -155,6 +176,9 @@ function resolveHoldDisabledReason(base: {
   if (base.callState === "Ending") {
     return "call_ending";
   }
+  if (base.callState === "Transferring") {
+    return "transfer_in_progress";
+  }
   if (base.callState !== "Active") {
     return "hold_requires_active";
   }
@@ -170,6 +194,9 @@ function resolveResumeDisabledReason(base: {
   }
   if (base.callState === "Ending") {
     return "call_ending";
+  }
+  if (base.callState === "Transferring") {
+    return "transfer_in_progress";
   }
   if (base.callState !== "Held") {
     return "resume_requires_held";
@@ -187,6 +214,9 @@ function resolveMuteDisabledReason(base: {
   }
   if (base.callState === "Ending") {
     return "call_ending";
+  }
+  if (base.callState === "Transferring") {
+    return "transfer_in_progress";
   }
   if (base.muted) {
     return "already_muted";
@@ -207,6 +237,9 @@ function resolveUnmuteDisabledReason(base: {
   }
   if (base.callState === "Ending") {
     return "call_ending";
+  }
+  if (base.callState === "Transferring") {
+    return "transfer_in_progress";
   }
   if (!base.muted) {
     return "not_muted";

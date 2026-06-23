@@ -44,6 +44,12 @@ export type UnmuteCallInput = Readonly<{
   correlationId?: CorrelationId;
 }>;
 
+export type BlindTransferInput = Readonly<{
+  callId: CallId;
+  targetNumber: string;
+  correlationId?: CorrelationId;
+}>;
+
 export type HandleCallProgressInput = Readonly<{
   call: Call;
   progressCode: number;

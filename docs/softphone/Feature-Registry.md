@@ -197,10 +197,11 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Outputs: `CallTransferRequested`, `CallTransferred`, or `CallTransferFailed`
 - Acceptance Criteria:
   - WU1 (policy foundation): multi-call policy domain + `AllOtherCallsHeld` / `SecondSessionBlocked` events gate outgoing and incoming second sessions (`LF-021`, `LF-032`); exclusive hold before resume (`LF-023`).
-  - WU2+: transfer runs through `TransferCallUseCase`; transfer rules live in Domain; adapter-specific REFER behavior is hidden.
+  - WU2: blind transfer runs through `BlindTransferUseCase` → `CallEngine` → `TelephonyGateway.blindTransfer`; domain events `CallTransferRequested`, `CallTransferred`, `CallTransferFailed`; eligibility rules in Domain; mock adapter success/failure paths; `transferProjection` read model.
 - Test Coverage:
   - WU1: `MultiCallPolicy.test.ts`, `CallEngine.multiCallPolicy.test.ts`, `multiCallProjection.test.ts`, `MultiCallPolicy.integration.test.ts`
-  - WU2+: unit transfer eligibility; integration mock telephony gateway transfer; E2E transfer UI with mock gateway
+  - WU2: `TransferEligibility.test.ts`, `CallStateMachine.test.ts` (transfer transitions), `MockTelephonyGateway.blindTransfer.test.ts`, `BlindTransferUseCase.test.ts`, `CallEngine.blindTransfer.test.ts`, `transferProjection.test.ts`
+  - WU4: E2E transfer UI with mock gateway (deferred)
 
 ## F-007: Attended Transfer
 
@@ -213,7 +214,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Outputs: attended transfer events; WU1: `AllOtherCallsHeld`, `SecondSessionBlocked`
 - Acceptance Criteria:
   - WU1: `SettingsRepository.getMultiCallSettings()` drives second-session block (`LF-032`); hold-all before outgoing (`LF-021`); exclusive hold on resume (`LF-023`); dialpad and incoming answer disabled reasons from `multiCallProjection`.
-  - WU3+: multi-call relationships are explicit; no mutable flags on adapter session objects; failure returns calls to valid state.
+  - WU3+: attended transfer orchestration (`AttendedTransferUseCase`), consultation call model, multi-line read model; failure returns calls to valid state.
 - Test Coverage:
   - WU1: domain policy unit tests; CallEngine hold-all / block / exclusive-resume; projection + integration chain
   - WU3+: unit multi-call transition graph; integration mock gateway; E2E deferred until call harness exists
