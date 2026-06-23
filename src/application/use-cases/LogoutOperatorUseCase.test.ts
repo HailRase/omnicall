@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { InMemoryDomainEventBus } from "../events/InMemoryDomainEventBus.js";
 import { InMemoryAgentStatusReadModel } from "../read-models/InMemoryAgentStatusReadModel.js";
-import { UpdatePostCallStatusUseCase } from "./UpdatePostCallStatusUseCase.js";
+import { LogoutOperatorUseCase } from "./LogoutOperatorUseCase.js";
 import { MockOperatorPlatformGateway } from "@adapters/mock/MockOperatorPlatformGateway.js";
 import { InMemorySettingsRepository } from "@adapters/settings/InMemorySettingsRepository.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
-import { createCallId, createBreakReason } from "@domain/index.js";
+import { createBreakReason } from "@domain/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { isErr } from "@shared/result/index.js";
 
@@ -19,8 +19,8 @@ function seedOcpReady(events: InMemoryDomainEventBus): void {
   });
 }
 
-describe("UpdatePostCallStatusUseCase", () => {
-  it("publishes PostCallStatusUpdated and AgentStatusChanged after gateway success", async () => {
+describe("LogoutOperatorUseCase", () => {
+  it("publishes AgentLogoutRequested and calls gateway on success", async () => {
     const events = new InMemoryDomainEventBus();
     const readModel = new InMemoryAgentStatusReadModel(events);
     seedOcpReady(events);
@@ -28,38 +28,34 @@ describe("UpdatePostCallStatusUseCase", () => {
     events.subscribe((event) => {
       published.push(event.type);
     });
-    const settings = new InMemorySettingsRepository({
-      incomingCallSettings: {
-        autoAnswerTimeoutSec: null,
-        rejectReasonRequired: true,
-        allowedBreakReasons: [createBreakReason("meeting")],
-      },
-    });
-    const useCase = new UpdatePostCallStatusUseCase(
+    const useCase = new LogoutOperatorUseCase(
       readModel,
       new MockOperatorPlatformGateway(),
-      settings,
+      new InMemorySettingsRepository({
+        incomingCallSettings: {
+          autoAnswerTimeoutSec: null,
+          rejectReasonRequired: false,
+          allowedBreakReasons: [],
+        },
+      }),
       events,
       createTestLogger(),
     );
 
     published.length = 0;
-    const result = await useCase.execute({
-      callId: createCallId("call-1"),
-      breakReason: "meeting",
-    });
+    const result = await useCase.execute({ reason: "end_of_shift" });
 
     expect(result.ok).toBe(true);
-    expect(published).toEqual(["PostCallStatusUpdated", "AgentStatusChanged"]);
+    expect(published).toEqual(["AgentLogoutRequested"]);
   });
 
-  it("no-ops when OCP unavailable", async () => {
+  it("rejects when OCP unavailable", async () => {
     const events = new InMemoryDomainEventBus();
     const published: string[] = [];
     events.subscribe((event) => {
       published.push(event.type);
     });
-    const useCase = new UpdatePostCallStatusUseCase(
+    const useCase = new LogoutOperatorUseCase(
       new InMemoryAgentStatusReadModel(events),
       new MockOperatorPlatformGateway(),
       new InMemorySettingsRepository(),
@@ -67,16 +63,13 @@ describe("UpdatePostCallStatusUseCase", () => {
       createTestLogger(),
     );
 
-    const result = await useCase.execute({
-      callId: createCallId("call-2"),
-      breakReason: "meeting",
-    });
+    const result = await useCase.execute({ reason: "end_of_shift" });
 
-    expect(result.ok).toBe(true);
+    expect(isErr(result)).toBe(true);
     expect(published).toHaveLength(0);
   });
 
-  it("returns validation error for invalid break reason", async () => {
+  it("validates logout reason when break reasons configured", async () => {
     const events = new InMemoryDomainEventBus();
     const readModel = new InMemoryAgentStatusReadModel(events);
     seedOcpReady(events);
@@ -87,7 +80,7 @@ describe("UpdatePostCallStatusUseCase", () => {
         allowedBreakReasons: [createBreakReason("meeting")],
       },
     });
-    const useCase = new UpdatePostCallStatusUseCase(
+    const useCase = new LogoutOperatorUseCase(
       readModel,
       new MockOperatorPlatformGateway(),
       settings,
@@ -95,15 +88,12 @@ describe("UpdatePostCallStatusUseCase", () => {
       createTestLogger(),
     );
 
-    const result = await useCase.execute({
-      callId: createCallId("call-3"),
-      breakReason: "invalid",
-    });
+    const result = await useCase.execute({ reason: "invalid" });
 
     expect(isErr(result)).toBe(true);
   });
 
-  it("does not publish events when gateway fails", async () => {
+  it("returns gateway failure without additional events", async () => {
     const events = new InMemoryDomainEventBus();
     const readModel = new InMemoryAgentStatusReadModel(events);
     seedOcpReady(events);
@@ -111,24 +101,25 @@ describe("UpdatePostCallStatusUseCase", () => {
     events.subscribe((event) => {
       published.push(event.type);
     });
-    const gateway = new MockOperatorPlatformGateway({
-      postCallStatusScenario: "rejected",
-    });
-    const useCase = new UpdatePostCallStatusUseCase(
+    const gateway = new MockOperatorPlatformGateway({ logoutScenario: "rejected" });
+    const useCase = new LogoutOperatorUseCase(
       readModel,
       gateway,
-      new InMemorySettingsRepository(),
+      new InMemorySettingsRepository({
+        incomingCallSettings: {
+          autoAnswerTimeoutSec: null,
+          rejectReasonRequired: false,
+          allowedBreakReasons: [],
+        },
+      }),
       events,
       createTestLogger(),
     );
 
     published.length = 0;
-    const result = await useCase.execute({
-      callId: createCallId("call-fail"),
-      breakReason: "meeting",
-    });
+    const result = await useCase.execute({ reason: "end_of_shift" });
 
     expect(isErr(result)).toBe(true);
-    expect(published).toHaveLength(0);
+    expect(published).toEqual(["AgentLogoutRequested"]);
   });
 });

@@ -15,6 +15,8 @@ import type {
   OperatorPlatformGateway,
   UpdatePostCallStatusCommand,
   UpdatePostCallStatusResult,
+  RequestLogoutCommand,
+  RequestLogoutResult,
 } from "@ports/index.js";
 
 export type MockOcpScenario =
@@ -29,12 +31,15 @@ export type MockAgentStatusChangeScenario =
   | "rejected"
   | "network_error";
 
+export type MockLogoutScenario = "success" | "rejected" | "network_error";
+
 export type MockOperatorPlatformGatewayOptions = Readonly<{
   scenario?: MockOcpScenario;
   statusChangeScenario?: MockAgentStatusChangeScenario;
   initialAgentStatus?: AgentStatus;
   breakReasons?: ReadonlyArray<string>;
   postCallStatusScenario?: MockAgentStatusChangeScenario;
+  logoutScenario?: MockLogoutScenario;
   delayMs?: number;
   sipCredentials?: Readonly<{
     uri: string;
@@ -57,6 +62,7 @@ export class MockOperatorPlatformGateway implements OperatorPlatformGateway {
   private scenario: MockOcpScenario;
   private statusChangeScenario: MockAgentStatusChangeScenario;
   private postCallStatusScenario: MockAgentStatusChangeScenario;
+  private logoutScenario: MockLogoutScenario;
   private readonly initialAgentStatus: AgentStatus;
   private readonly breakReasons: ReadonlyArray<BreakReason>;
   private readonly delayMs: number;
@@ -68,6 +74,7 @@ export class MockOperatorPlatformGateway implements OperatorPlatformGateway {
     this.scenario = options.scenario ?? "success";
     this.statusChangeScenario = options.statusChangeScenario ?? "success";
     this.postCallStatusScenario = options.postCallStatusScenario ?? "success";
+    this.logoutScenario = options.logoutScenario ?? "success";
     this.initialAgentStatus = options.initialAgentStatus ?? "ready";
     this.breakReasons = (options.breakReasons ?? ["break", "meeting", "training"]).map(
       (reason) => createBreakReason(reason),
@@ -215,6 +222,30 @@ export class MockOperatorPlatformGateway implements OperatorPlatformGateway {
           status: "failed",
           reason: "network_error",
           message: "OCP network error during status change",
+        };
+    }
+  }
+
+  async requestLogout(command: RequestLogoutCommand): Promise<RequestLogoutResult> {
+    void command;
+    if (this.delayMs > 0) {
+      await sleep(this.delayMs);
+    }
+
+    switch (this.logoutScenario) {
+      case "success":
+        return { status: "succeeded" };
+      case "rejected":
+        return {
+          status: "failed",
+          reason: "gateway_failed",
+          message: "OCP rejected logout request",
+        };
+      case "network_error":
+        return {
+          status: "failed",
+          reason: "network_error",
+          message: "OCP network error during logout",
         };
     }
   }

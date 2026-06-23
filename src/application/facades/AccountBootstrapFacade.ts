@@ -27,6 +27,7 @@ import { StartTransferUseCase } from "../use-cases/StartTransferUseCase.js";
 import { CancelTransferUseCase } from "../use-cases/CancelTransferUseCase.js";
 import { ChangeAgentStatusUseCase } from "../use-cases/ChangeAgentStatusUseCase.js";
 import { UpdatePostCallStatusUseCase } from "../use-cases/UpdatePostCallStatusUseCase.js";
+import { LogoutOperatorUseCase } from "../use-cases/LogoutOperatorUseCase.js";
 import { InMemoryAgentStatusReadModel } from "../read-models/InMemoryAgentStatusReadModel.js";
 import { AgentStatusSyncService } from "../services/AgentStatusSyncService.js";
 import { BreakReasonsSyncService } from "../services/BreakReasonsSyncService.js";
@@ -80,6 +81,7 @@ export class AccountBootstrapFacade {
   readonly cancelTransferUseCase: CancelTransferUseCase;
   readonly changeAgentStatus: ChangeAgentStatusUseCase;
   readonly updatePostCallStatus: UpdatePostCallStatusUseCase;
+  readonly logoutOperator: LogoutOperatorUseCase;
 
   private readonly processedCredentialEvents = new Set<string>();
   private readonly callEngine: CallEngine;
@@ -122,6 +124,13 @@ export class AccountBootstrapFacade {
       deps.logger,
     );
     this.updatePostCallStatus = new UpdatePostCallStatusUseCase(
+      agentStatusReadModel,
+      deps.operatorGateway,
+      deps.settingsRepository,
+      this.eventPublisher,
+      deps.logger,
+    );
+    this.logoutOperator = new LogoutOperatorUseCase(
       agentStatusReadModel,
       deps.operatorGateway,
       deps.settingsRepository,

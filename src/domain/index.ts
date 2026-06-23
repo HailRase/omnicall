@@ -108,6 +108,8 @@ export type {
 export {
   createPostCallStatusUpdatedEvent,
 } from "./operator/events/postCallStatusEvents.js";
+export type { AgentLogoutRequestedEvent, AgentLogoutDomainEvent } from "./operator/events/logoutEvents.js";
+export { createAgentLogoutRequestedEvent } from "./operator/events/logoutEvents.js";
 export type { AgentStatusChangeTrigger } from "./operator/AgentBreakReasonPolicy.js";
 export {
   isAgentBreakReasonRequired,

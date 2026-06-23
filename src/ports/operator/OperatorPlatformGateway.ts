@@ -42,6 +42,15 @@ export type UpdatePostCallStatusResult =
   | Readonly<{ status: "succeeded"; postCallStatus: AgentStatus }>
   | Readonly<{ status: "failed"; reason: string; message: string }>;
 
+export type RequestLogoutCommand = Readonly<{
+  reason: StatusReason | null;
+  correlationId: CorrelationId;
+}>;
+
+export type RequestLogoutResult =
+  | Readonly<{ status: "succeeded" }>
+  | Readonly<{ status: "failed"; reason: string; message: string }>;
+
 export interface OperatorPlatformGateway {
   authenticate(command: OcpAuthenticateCommand): Promise<OcpAuthResult>;
   changeAgentStatus(command: ChangeAgentStatusCommand): Promise<ChangeAgentStatusResult>;
@@ -50,4 +59,5 @@ export interface OperatorPlatformGateway {
   updatePostCallStatus(
     command: UpdatePostCallStatusCommand,
   ): Promise<UpdatePostCallStatusResult>;
+  requestLogout(command: RequestLogoutCommand): Promise<RequestLogoutResult>;
 }

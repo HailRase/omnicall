@@ -7,6 +7,8 @@ export type {
   GetBreakReasonsCommand,
   UpdatePostCallStatusCommand,
   UpdatePostCallStatusResult,
+  RequestLogoutCommand,
+  RequestLogoutResult,
   OperatorPlatformGateway,
 } from "./operator/OperatorPlatformGateway.js";
 export type {

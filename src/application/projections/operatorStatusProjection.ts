@@ -25,6 +25,7 @@ export type OperatorStatusProjection = Readonly<{
   statusChangedAt: string | null;
   timerRunning: boolean;
   allowedBreakReasonsCount: number;
+  allowedBreakReasons: ReadonlyArray<string>;
   postCallCallId: CallId | null;
   lastPostCallUpdatedAt: string | null;
 }>;
@@ -39,6 +40,7 @@ export const initialOperatorStatusProjection = (): OperatorStatusProjection => (
   statusChangedAt: null,
   timerRunning: false,
   allowedBreakReasonsCount: 0,
+  allowedBreakReasons: [],
   postCallCallId: null,
   lastPostCallUpdatedAt: null,
 });
@@ -149,9 +151,14 @@ function applyAgentStatusEvent(
       if (!Array.isArray(reasons)) {
         return projection;
       }
+      const reasonCodes = reasons
+        .filter((reason): reason is string => typeof reason === "string")
+        .map((reason) => reason.trim())
+        .filter((reason) => reason.length > 0);
       return {
         ...projection,
-        allowedBreakReasonsCount: reasons.length,
+        allowedBreakReasonsCount: reasonCodes.length,
+        allowedBreakReasons: reasonCodes,
       };
     }
     case "AgentStatusChangeRejected": {

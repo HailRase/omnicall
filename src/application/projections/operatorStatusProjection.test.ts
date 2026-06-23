@@ -144,6 +144,7 @@ describe("operatorStatusProjection", () => {
     );
 
     expect(projection.allowedBreakReasonsCount).toBe(2);
+    expect(projection.allowedBreakReasons).toEqual(["meeting", "break"]);
   });
 
   it("tracks post-call state from PostCallStatusUpdated", () => {

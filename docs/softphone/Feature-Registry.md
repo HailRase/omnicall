@@ -270,7 +270,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-018`, `LF-019`, `LF-041`, `LF-042`, `LF-043`, `LF-044`, `LF-045`, `LF-046`, `LF-047`, `LF-048`, `LF-049`, `LF-062`, `LF-078`
 - Context: Operator
 - Priority: critical
-- Status: in_progress
+- Status: implemented (partial — LF-048 cascade P08)
 - Owner: TBD
 - Inputs: status change command, optional reason
 - Outputs: `AgentStatusChanged` or failure event
@@ -291,10 +291,16 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - WU3: Reject with reason triggers post-call update in OCP mode (LF-062).
   - WU3: Status timer projection derived from `statusChangedAt` (LF-046 prep; UI WU4).
   - WU3: DND-at-auth orchestration after status sync (`OcpAuthBootstrapService`).
+  - WU4: Status selector React UI in OCP mode, hidden SIP-only (LF-041).
+  - WU4: Ready/Break invoke `ChangeAgentStatusUseCase` with projection disabled reasons (LF-042, LF-043).
+  - WU4: Break reason picker when `allowedBreakReasonsCount > 0`.
+  - WU4: Status timer component via `useOperatorStatusTimer` (LF-046).
+  - WU4: Logout reason modal + `LogoutOperatorUseCase` + `AgentLogoutRequested` (LF-047).
+  - WU4: LF-048 logout cascade deferred to P08.
 - Test Coverage:
-  - Unit: WU1–WU2 suite + `breakReasonsEvents.test.ts`, `postCallStatusEvents.test.ts`, `AgentBreakReasonPolicy.test.ts`, `operatorStatusTimerProjection.test.ts`, `UpdatePostCallStatusUseCase.test.ts`, `BreakReasonsSyncService.test.ts` (WU3)
+  - Unit: WU1–WU3 suite + `logoutEvents.test.ts`, `LogoutOperatorUseCase.test.ts`, `mapOperatorStatusDisabledReason.test.ts`, `StatusSelector.test.tsx`, `StatusTimer.test.tsx`, `LogoutReasonModal.test.tsx` (WU4)
   - Integration: `BreakReasonsAndPostCall.integration.test.ts`, `DndAgentStatusOrchestration.integration.test.ts` (WU2–WU3)
-  - E2E: status selector (WU4)
+  - E2E: deferred until harness exists
 
 ## F-011: Host Integration Contract
 

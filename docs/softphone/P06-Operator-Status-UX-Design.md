@@ -103,3 +103,28 @@ View current OCP agent status, request allowed transitions, see duration in stat
 
 - Hide or fully disable `status-selector`; projection `isOcpStatusAvailable: false`.
 - No broken OCP-only controls; `PhoneStatusBadge` unchanged.
+
+## WU4 Implementation Notes
+
+### Break reason picker (LF-043)
+
+- Shown when user clicks Break and `allowedBreakReasonsCount > 0`.
+- Inline `break-reason-picker` with `RejectReasonSelector` pattern; confirm via `control-confirm-break`.
+- Break button stays enabled to open picker; `break_reason_required` applies to confirm only.
+
+### Rejection banner
+
+- Maps `lastRejectionReason` via `mapAgentStatusRejectionReason` (e.g. `gateway_failed`, `dnd_blocks_ready`, `invalid_transition`).
+- Cleared on new `AgentStatusChangeRequested` (projection); cancel logout ≠ rejection banner.
+
+### SIP-only
+
+- `StatusSelector` returns null when `isOcpStatusAvailable === false`; `StatusTimer` hidden without `currentStatus`.
+
+### Loading
+
+- `statusChangeInProgress` disables Ready/Break and shows `status-change-in-progress` indicator.
+
+### OCP-driven post-call
+
+- OCP may transition `ready → post_call` without user FSM path; `PostCallStatusUpdated` updates projection intentionally (LF-044).

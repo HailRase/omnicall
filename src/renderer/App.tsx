@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { useState } from "react";
 import { deriveStartTransferDisabledReason } from "@application/index.js";
 import { useAccountBootstrapStore } from "./stores/useAccountBootstrapStore.js";
 import { useAccountBootstrap } from "./hooks/useAccountBootstrap.js";
@@ -17,6 +18,10 @@ import { IncomingCallModal } from "./components/call/IncomingCallModal.js";
 import { MultiCallHoldAllIndicator } from "./components/call/MultiCallHoldAllIndicator.js";
 import { TransferPanel } from "./components/call/TransferPanel.js";
 import { useTransferActions, useTransferPanelShell } from "./hooks/useTransferActions.js";
+import { StatusSelector } from "./components/status/StatusSelector.js";
+import { StatusTimer } from "./components/status/StatusTimer.js";
+import { LogoutReasonModal } from "./components/status/LogoutReasonModal.js";
+import { useOperatorStatusActions } from "./hooks/useOperatorStatusActions.js";
 
 export function App(): JSX.Element {
   const { facade, status, errorMessage } = useAccountBootstrap();
@@ -34,6 +39,9 @@ export function App(): JSX.Element {
   const transferProjection = useAccountBootstrapStore((state) => state.transferProjection);
   const multiLineCallProjection = useAccountBootstrapStore(
     (state) => state.multiLineCallProjection,
+  );
+  const operatorStatusProjection = useAccountBootstrapStore(
+    (state) => state.operatorStatusProjection,
   );
   const setCallMode = useAccountBootstrapStore((state) => state.setCallMode);
   const setIncomingUiState = useAccountBootstrapStore((state) => state.setIncomingUiState);
@@ -97,6 +105,14 @@ export function App(): JSX.Element {
     transferModeActive: transferProjection.transferModeActive,
   });
 
+  const [logoutSelectedReason, setLogoutSelectedReason] = useState<string | null>(null);
+
+  const operatorStatusActions = useOperatorStatusActions({
+    facade,
+    operatorStatusProjection,
+    accountProjection: projection,
+  });
+
   return (
     <main className="shell" data-testid="softphone-shell">
       <header className="shell__header">
@@ -130,6 +146,46 @@ export function App(): JSX.Element {
             disabled={blockingAuthState}
             onChange={(nextStatus) => {
               void facade.setPhoneStatus(nextStatus);
+            }}
+          />
+
+          <StatusSelector
+            visible={operatorStatusActions.visible}
+            currentStatus={operatorStatusActions.currentStatus}
+            pendingStatus={operatorStatusActions.pendingStatus}
+            statusChangeInProgress={operatorStatusActions.statusChangeInProgress}
+            readyDisabledReason={operatorStatusActions.readyDisabledReason}
+            breakDisabledReason={operatorStatusActions.breakDisabledReason}
+            rejectionBanner={operatorStatusActions.rejectionBanner}
+            breakReasonPickerVisible={operatorStatusActions.breakReasonPickerVisible}
+            breakReasons={operatorStatusActions.breakReasons}
+            selectedBreakReason={operatorStatusActions.selectedBreakReason}
+            onReady={operatorStatusActions.handleReady}
+            onBreak={operatorStatusActions.handleBreak}
+            onSelectBreakReason={operatorStatusActions.handleSelectBreakReason}
+            onConfirmBreak={operatorStatusActions.handleConfirmBreak}
+            onOpenLogout={operatorStatusActions.handleOpenLogout}
+          />
+
+          <StatusTimer
+            statusChangedAt={operatorStatusProjection.statusChangedAt}
+            timerRunning={operatorStatusProjection.timerRunning}
+            currentStatus={operatorStatusProjection.currentStatus}
+          />
+
+          <LogoutReasonModal
+            open={operatorStatusActions.logoutModalOpen}
+            reasons={operatorStatusActions.breakReasons}
+            reasonRequired={operatorStatusProjection.allowedBreakReasonsCount > 0}
+            selectedReason={logoutSelectedReason}
+            onSelectReason={setLogoutSelectedReason}
+            onSubmit={() => {
+              operatorStatusActions.handleLogoutSubmit(logoutSelectedReason ?? "");
+              setLogoutSelectedReason(null);
+            }}
+            onClose={() => {
+              operatorStatusActions.handleCloseLogout();
+              setLogoutSelectedReason(null);
             }}
           />
 

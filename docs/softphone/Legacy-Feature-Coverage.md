@@ -84,13 +84,13 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-038 | P07 | Operator | High | Campaign data on incoming call | `useCampaignEvent`, `IncomingModal` | Incoming call can show campaign context from OCP. |
 | LF-039 | P07 | UI | High | Non-progressive campaign request modal | `CampaignEventModal` | Campaign request modal supports accept/reject UX. |
 | LF-040 | P07 | Operator | High | Campaign answer or reject update | `CampaignEventModal` -> WS update | Campaign decision sends typed OCP update. |
-| LF-041 | P06 | Operator | Critical | Operator status selector | `StatusSelector` | User can view and request allowed status transitions. |
-| LF-042 | P06 | Operator | Critical | Change status to Ready | `handleChangeToReady` | Ready command follows status rules and OCP contract. |
-| LF-043 | P06 | Operator | Critical | Change status to Break with reason | `handleChangeToBreak` | Break requires valid reason when configured. |
+| LF-041 | P06 | Operator | Critical | Operator status selector | `StatusSelector` | WU4: `StatusSelector.tsx`, `useOperatorStatusActions` — see `handoffs/P06-WU4-Operator-Status-UI-Handoff.md`. |
+| LF-042 | P06 | Operator | Critical | Change status to Ready | `handleChangeToReady` | WU4: `control-change-ready` → `ChangeAgentStatusUseCase` — see WU4 handoff. |
+| LF-043 | P06 | Operator | Critical | Change status to Break with reason | `handleChangeToBreak` | WU4: `BreakReasonPicker` + `ChangeAgentStatusUseCase` — see WU4 handoff. |
 | LF-044 | P06 | Operator | Critical | Post-call status while busy | `PROXY_POST_CALL_STATUS` | WU3: `UpdatePostCallStatusUseCase`, `PostCallStatusUpdated` — see `handoffs/P06-WU3-Post-Call-Break-Reasons-Handoff.md`. |
 | LF-045 | P06 | Operator | High | Status transition validation | `USER_STATUS_RULES` | WU1/WU2: `AgentStatusTransition` + `ChangeAgentStatusUseCase` — see `handoffs/P06-WU1-Operator-Status-Domain-Handoff.md`. |
-| LF-046 | P06 | UI | Medium | Status duration timer | `StatusTimer` | WU3: `operatorStatusTimerProjection` (`deriveStatusDurationSeconds`, `timerRunning`); UI WU4. |
-| LF-047 | P06 | Operator | High | Logout with reason | `StatusReasonsModal`, `Header` | Logout captures required reason and emits logout flow. |
+| LF-046 | P06 | UI | Medium | Status duration timer | `StatusTimer` | WU4: `StatusTimer.tsx`, `useOperatorStatusTimer` — see WU4 handoff. |
+| LF-047 | P06 | Operator | High | Logout with reason | `StatusReasonsModal`, `Header` | WU4: `LogoutReasonModal`, `LogoutOperatorUseCase`, `AgentLogoutRequested` — see WU4 handoff. LF-048 cascade P08. |
 | LF-048 | P08 | Operator | Critical | OCP logout cascade | `ocpLogout`, `softphoneLogoutEvent` | Logout closes OCP, SIP, calls, and projections safely. |
 | LF-049 | P08 | Operator | Critical | Server-side terminate | `useWs entity terminate` | Server termination triggers full controlled logout. |
 | LF-050 | P07 | Operator | High | Block call button from OCP RESERVED | `useBlockedCallButton` | OCP reserved state disables calling deterministically. |
