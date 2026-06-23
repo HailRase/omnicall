@@ -32,6 +32,8 @@ import { RegisterOcpCallCorrelationUseCase } from "../use-cases/RegisterOcpCallC
 import { ProcessOcpInboundMessageUseCase } from "../use-cases/ProcessOcpInboundMessageUseCase.js";
 import type { ProcessOcpInboundMessageOutcome } from "../use-cases/ProcessOcpInboundMessageUseCase.js";
 import { RespondToCampaignUseCase } from "../use-cases/RespondToCampaignUseCase.js";
+import { SendDlgStopUseCase } from "../use-cases/SendDlgStopUseCase.js";
+import { CallEndDlgStopOrchestrationService } from "../services/CallEndDlgStopOrchestrationService.js";
 import { InMemoryAgentStatusReadModel } from "../read-models/InMemoryAgentStatusReadModel.js";
 import { InMemoryOcpCallCorrelationRegistry } from "../read-models/InMemoryOcpCallCorrelationRegistry.js";
 import { InMemoryOcpSyncReadModel } from "../read-models/InMemoryOcpSyncReadModel.js";
@@ -96,20 +98,36 @@ export class AccountBootstrapFacade {
   readonly registerOcpCallCorrelation: RegisterOcpCallCorrelationUseCase;
   readonly processOcpInboundMessage: ProcessOcpInboundMessageUseCase;
   readonly respondToCampaign: RespondToCampaignUseCase;
+  readonly sendDlgStop: SendDlgStopUseCase;
 
   private readonly processedCredentialEvents = new Set<string>();
   private readonly callEngine: CallEngine;
   private readonly ocpAuthBootstrap: OcpAuthBootstrapService;
   private readonly dndAgentStatusOrchestration: DndAgentStatusOrchestrationService;
   private readonly postCallRejectOrchestration: PostCallRejectOrchestrationService;
+  private readonly callEndDlgStopOrchestration: CallEndDlgStopOrchestrationService;
 
   constructor(private readonly deps: AccountBootstrapFacadeDeps) {
     this.eventPublisher = deps.eventPublisher ?? new InMemoryDomainEventBus();
     const ocpSyncGateway = deps.ocpSyncGateway ?? new MockOcpSyncGateway();
     const ocpCallCorrelationRegistry =
-      deps.ocpCallCorrelationRegistry ??
-      new InMemoryOcpCallCorrelationRegistry(this.eventPublisher);
+      deps.ocpCallCorrelationRegistry ?? new InMemoryOcpCallCorrelationRegistry();
     const ocpSyncReadModel = new InMemoryOcpSyncReadModel(this.eventPublisher);
+    this.sendDlgStop = new SendDlgStopUseCase(
+      ocpSyncGateway,
+      ocpSyncReadModel,
+      this.eventPublisher,
+      deps.logger,
+    );
+    this.callEndDlgStopOrchestration = new CallEndDlgStopOrchestrationService(
+      this.sendDlgStop,
+      ocpCallCorrelationRegistry,
+      deps.logger,
+    );
+    this.callEndDlgStopOrchestration.subscribe(this.eventPublisher);
+    if (deps.ocpCallCorrelationRegistry === undefined) {
+      ocpCallCorrelationRegistry.bindLifecycleEvents(this.eventPublisher);
+    }
     this.registerOcpCallCorrelation = new RegisterOcpCallCorrelationUseCase(
       ocpCallCorrelationRegistry,
       this.eventPublisher,

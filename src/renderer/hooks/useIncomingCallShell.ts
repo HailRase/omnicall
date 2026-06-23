@@ -5,9 +5,11 @@ import type {
 } from "@application/index.js";
 import {
   deriveQueueLabelState,
+  getQueueLoadingSinceForCall,
   getQueueNameForCall,
 } from "@application/index.js";
 import { mapQueueLabelState } from "../helpers/mapQueueLabelState.js";
+import { useQueueLabelNaTimer } from "./useQueueLabelNaTimer.js";
 
 type UseIncomingCallShellInput = Readonly<{
   isOcpMode: boolean;
@@ -30,13 +32,30 @@ export function useIncomingCallShell(
   input: UseIncomingCallShellInput,
 ): UseIncomingCallShellResult {
   const { isOcpMode, incomingCallProjection, queueInfoProjection } = input;
+  const callId = incomingCallProjection.callId;
+
+  const baseQueueLabelState = useMemo(() => {
+    if (!isOcpMode) {
+      return "hidden" as const;
+    }
+    return deriveQueueLabelState(queueInfoProjection, callId);
+  }, [isOcpMode, queueInfoProjection, callId]);
+
+  const loadingSinceMs = useMemo(() => {
+    if (!isOcpMode) {
+      return null;
+    }
+    return getQueueLoadingSinceForCall(queueInfoProjection, callId);
+  }, [isOcpMode, queueInfoProjection, callId]);
+
+  const nowMs = useQueueLabelNaTimer(baseQueueLabelState, callId, loadingSinceMs);
 
   const queueLabelState = useMemo(() => {
     if (!isOcpMode) {
       return "hidden" as const;
     }
-    return deriveQueueLabelState(queueInfoProjection, incomingCallProjection.callId);
-  }, [isOcpMode, queueInfoProjection, incomingCallProjection.callId]);
+    return deriveQueueLabelState(queueInfoProjection, callId, { nowMs });
+  }, [isOcpMode, queueInfoProjection, callId, nowMs]);
 
   const queueName = useMemo(() => {
     if (queueLabelState !== "ready") {

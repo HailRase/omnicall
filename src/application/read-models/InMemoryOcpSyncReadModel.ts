@@ -26,7 +26,11 @@ export class InMemoryOcpSyncReadModel implements OcpSyncReadModel {
 
   private applyEvent(event: DomainEvent): void {
     const next = reduceQueueInfoProjection(
-      { isOcpSyncAvailable: this.isOcpSyncAvailable, queueNameByCallId: new Map() },
+      {
+        isOcpSyncAvailable: this.isOcpSyncAvailable,
+        queueNameByCallId: new Map(),
+        queueLoadingSinceByCallId: new Map(),
+      },
       event,
     );
     this.isOcpSyncAvailable = next.isOcpSyncAvailable;

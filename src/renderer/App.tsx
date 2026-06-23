@@ -21,6 +21,8 @@ import { TransferPanel } from "./components/call/TransferPanel.js";
 import { useTransferActions, useTransferPanelShell } from "./hooks/useTransferActions.js";
 import { useIncomingCallShell } from "./hooks/useIncomingCallShell.js";
 import { useCampaignActions } from "./hooks/useCampaignActions.js";
+import { useOcpNotifications } from "./hooks/useOcpNotifications.js";
+import { OcpToastStack } from "./components/ocp/OcpToastStack.js";
 import { StatusSelector } from "./components/status/StatusSelector.js";
 import { StatusTimer } from "./components/status/StatusTimer.js";
 import { LogoutReasonModal } from "./components/status/LogoutReasonModal.js";
@@ -41,6 +43,9 @@ export function App(): JSX.Element {
   );
   const campaignProjection = useAccountBootstrapStore(
     (state) => state.campaignProjection,
+  );
+  const ocpNotificationProjection = useAccountBootstrapStore(
+    (state) => state.ocpNotificationProjection,
   );
   const multiCallProjection = useAccountBootstrapStore(
     (state) => state.multiCallProjection,
@@ -102,6 +107,11 @@ export function App(): JSX.Element {
     campaignProjection,
   });
 
+  const ocpNotifications = useOcpNotifications({
+    isOcpMode: projection.isOcpMode,
+    ocpNotificationProjection,
+  });
+
   const transferPanelShell = useTransferPanelShell({
     transferProjection,
     multiLineCallProjection,
@@ -154,6 +164,11 @@ export function App(): JSX.Element {
 
       {status === "ready" && facade !== null && (
         <>
+          <OcpToastStack
+            toasts={ocpNotifications.visibleToasts}
+            onDismiss={ocpNotifications.dismissToast}
+          />
+
           <AuthStateView
             state={projection.authUiState}
             lastError={projection.lastError}

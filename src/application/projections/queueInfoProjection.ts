@@ -6,11 +6,15 @@ export type QueueLabelState = "hidden" | "loading" | "ready" | "na";
 export type QueueInfoProjection = Readonly<{
   isOcpSyncAvailable: boolean;
   queueNameByCallId: ReadonlyMap<string, string>;
+  queueLoadingSinceByCallId: ReadonlyMap<string, number>;
 }>;
+
+export const QUEUE_LABEL_NA_TIMEOUT_MS = 5000;
 
 export const initialQueueInfoProjection = (): QueueInfoProjection => ({
   isOcpSyncAvailable: false,
   queueNameByCallId: new Map(),
+  queueLoadingSinceByCallId: new Map(),
 });
 
 /**
@@ -52,7 +56,14 @@ export function reduceQueueInfoProjection(
       if (callId === null || queueName === null) {
         return projection;
       }
-      return setQueueName(projection, callId, queueName);
+      return clearQueueLoadingSince(setQueueName(projection, callId, queueName), callId);
+    }
+    case "IncomingCallReceived": {
+      const callId = parseCallId(event["callId"]);
+      if (callId === null || !projection.isOcpSyncAvailable) {
+        return projection;
+      }
+      return setQueueLoadingSince(projection, callId, parseOccurredAtMs(event.occurredAt));
     }
     case "CallEnded":
     case "IncomingCallEndedBeforeAnswer": {
@@ -60,11 +71,21 @@ export function reduceQueueInfoProjection(
       if (callId === null) {
         return projection;
       }
-      return clearQueueName(projection, callId);
+      return clearQueueEntry(projection, callId);
     }
     default:
       return projection;
   }
+}
+
+export function getQueueLoadingSinceForCall(
+  projection: QueueInfoProjection,
+  callId: CallId | string | null,
+): number | null {
+  if (callId === null || callId.length === 0) {
+    return null;
+  }
+  return projection.queueLoadingSinceByCallId.get(callId) ?? null;
 }
 
 export function getQueueNameForCall(
@@ -80,6 +101,7 @@ export function getQueueNameForCall(
 export function deriveQueueLabelState(
   projection: QueueInfoProjection,
   callId: CallId | string | null,
+  options?: Readonly<{ nowMs?: number; naTimeoutMs?: number }>,
 ): QueueLabelState {
   if (!projection.isOcpSyncAvailable) {
     return "hidden";
@@ -91,7 +113,57 @@ export function deriveQueueLabelState(
   if (queueName !== null) {
     return "ready";
   }
+  const loadingSince = getQueueLoadingSinceForCall(projection, callId);
+  if (loadingSince === null) {
+    return "loading";
+  }
+  const nowMs = options?.nowMs ?? Date.now();
+  const naTimeoutMs = options?.naTimeoutMs ?? QUEUE_LABEL_NA_TIMEOUT_MS;
+  if (nowMs - loadingSince >= naTimeoutMs) {
+    return "na";
+  }
   return "loading";
+}
+
+function clearQueueEntry(
+  projection: QueueInfoProjection,
+  callId: CallId,
+): QueueInfoProjection {
+  const clearedName = clearQueueName(projection, callId);
+  return clearQueueLoadingSince(clearedName, callId);
+}
+
+function setQueueLoadingSince(
+  projection: QueueInfoProjection,
+  callId: CallId,
+  sinceMs: number,
+): QueueInfoProjection {
+  const nextMap = new Map(projection.queueLoadingSinceByCallId);
+  nextMap.set(callId, sinceMs);
+  return {
+    ...projection,
+    queueLoadingSinceByCallId: nextMap,
+  };
+}
+
+function clearQueueLoadingSince(
+  projection: QueueInfoProjection,
+  callId: CallId,
+): QueueInfoProjection {
+  if (!projection.queueLoadingSinceByCallId.has(callId)) {
+    return projection;
+  }
+  const nextMap = new Map(projection.queueLoadingSinceByCallId);
+  nextMap.delete(callId);
+  return {
+    ...projection,
+    queueLoadingSinceByCallId: nextMap,
+  };
+}
+
+function parseOccurredAtMs(occurredAt: string): number {
+  const parsed = Date.parse(occurredAt);
+  return Number.isNaN(parsed) ? Date.now() : parsed;
 }
 
 function setQueueName(

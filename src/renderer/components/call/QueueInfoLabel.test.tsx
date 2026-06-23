@@ -30,4 +30,11 @@ describe("QueueInfoLabel", () => {
     expect(label).toHaveTextContent("VIP Queue");
     expect(label).toHaveAttribute("aria-busy", "false");
   });
+
+  it("renders N/A when na", () => {
+    render(<QueueInfoLabel labelState="na" queueName={null} />);
+    const label = screen.getByTestId("queue-info-label");
+    expect(label).toHaveTextContent("N/A");
+    expect(label).toHaveAttribute("aria-busy", "false");
+  });
 });

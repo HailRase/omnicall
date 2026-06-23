@@ -1,8 +1,8 @@
-# P07 OCP Call Sync UX Design (WU1–WU3)
+# P07 OCP Call Sync UX Design (WU1–WU4)
 
-- Phase: `P07` WU3; Feature: `F-015`; Legacy: `LF-037`–`LF-040`.
-- Primary context: `Operator`; projections: `queueInfoProjection`, `campaignProjection`, `incomingCallProjection`, `accountBootstrapProjection` (`isOcpMode`).
-- Out of scope WU3: real OCP WebSocket, `dlg_stop`, toast notifications (LF-059), P08 reconnect overlay.
+- Phase: `P07` WU4 complete; Feature: `F-015`; Legacy: `LF-037`–`LF-040`, `LF-059`, `LF-063`, `LF-064`.
+- Primary context: `Operator`; projections: `queueInfoProjection`, `campaignProjection`, `ocpNotificationProjection`, `incomingCallProjection`, `accountBootstrapProjection` (`isOcpMode`).
+- Out of scope WU4: real OCP WebSocket, P08 reconnect overlay, `LF-050`, `LF-065`.
 
 ## User Goal
 
@@ -15,7 +15,7 @@ See the correct queue name on incoming/active calls when OCP is connected; under
 | `hidden` | SIP-only or OCP sync unavailable | `isOcpSyncAvailable` false |
 | `loading` | Call active, queue name not yet mapped | call exists, no `queueNameByCallId` entry |
 | `ready` | Queue name resolved | `QueueInfoReceived` mapped by exact `main_acallid` |
-| `na` | OCP connected but no queue for this call | timeout or explicit empty (WU2+) |
+| `na` | OCP connected but no queue for this call | 5s loading timeout (`QUEUE_LABEL_NA_TIMEOUT_MS`) |
 
 ## Campaign Context States (`LF-038`)
 
@@ -68,6 +68,8 @@ See the correct queue name on incoming/active calls when OCP is connected; under
 | `campaign-event-modal` | Non-progressive campaign request |
 | `campaign-accept` | Accept campaign request |
 | `campaign-reject` | Reject campaign request |
+| `ocp-toast` | OCP notification toast item |
+| `ocp-toast-stack` | Toast container region |
 
 ## Accessibility (WU3)
 
@@ -90,9 +92,18 @@ See the correct queue name on incoming/active calls when OCP is connected; under
 | hidden | SIP-only / no call | not rendered | `QueueInfoLabel` |
 | loading | OCP on, no `queueNameByCallId` | "Pending" + `aria-busy` | `QueueInfoLabel` |
 | ready | exact match in projection | queue name | `QueueInfoLabel` |
-| na | WU4+ timeout path | "N/A" | reserved |
+| na | WU4 timeout path | "N/A" | `QueueInfoLabel` |
 
-Hook: `useIncomingCallShell` composes `queueInfoProjection` + `incomingCallProjection.callId`.
+Hook: `useIncomingCallShell` + `useQueueLabelNaTimer` composes `queueInfoProjection` + `incomingCallProjection.callId`.
+
+### OCP toasts (`LF-059`)
+
+| UI state | Projection driver | Component |
+| --- | --- | --- |
+| hidden | SIP-only / `!isOcpSyncAvailable` | not rendered |
+| visible | `OcpNotificationReceived` | `OcpToastStack` (`data-testid="ocp-toast"`) |
+
+Dismiss is UI-only via `useOcpNotifications`; projection retains history until cap (5).
 
 ### Campaign modal flow (`LF-038`–`LF-040`)
 
@@ -101,14 +112,18 @@ Hook: `useIncomingCallShell` composes `queueInfoProjection` + `incomingCallProje
 3. Accept/reject → `RespondToCampaignUseCase` → `OcpSyncGateway.respondToCampaign` → `CampaignEventAnswered`.
 4. Gateway failure → error banner in modal; no success event before confirm.
 5. SIP-only → `campaignProjection.isOcpSyncAvailable` false → hidden context + no modal.
+6. **Close** dismisses modal without gateway call (WU4 product rule); Reject sends gateway reject.
 
-## Domain Events — Backlog
+## Domain Events — WU4 Implemented
+
+- `DlgStopRequested` / `DlgStopSent` — exactly-once `dlg_stop` (LF-064)
+- `OcpNotificationReceived` — toast projection (LF-059)
+
+## Domain Events — Deferred
 
 | Event | Work Unit | Legacy |
 | --- | --- | --- |
-| `CallButtonBlocked` | WU4+ | LF-050 |
-| `OcpNotificationReceived` | WU4+ | LF-059 |
-| `DlgStopRequested` / `DlgStopSent` | WU4+ | LF-063–065 |
+| `CallButtonBlocked` | P12 / optional | LF-050 |
 
 ## SIP-Only Rules
 

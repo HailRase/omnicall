@@ -80,7 +80,7 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-034 | P02 | Media | Medium | Busy and failed tones | `soundManager` | Failed outgoing calls play normalized failure tones. |
 | LF-035 | P02 | Media | Critical | Remote audio element | `SoftPhone`, `DisplayProvider` | Remote audio is attached by Media service, not UI business logic. |
 | LF-036 | P03 | Telephony | High | Display name from SIP | `parseDisplayName` | SIP display metadata is parsed and projected safely. |
-| LF-037 | P07 | Operator | High | Queue name display | `useQueueInfoListeners` | WU3: `QueueInfoLabel`, `useIncomingCallShell`, `deriveQueueLabelState` — see `handoffs/P07-WU3-OCP-Sync-UI-Handoff.md`. |
+| LF-037 | P07 | Operator | High | Queue name display | `useQueueInfoListeners` | WU3–WU4: `QueueInfoLabel`, `deriveQueueLabelState`, `na` timeout — see `handoffs/P07-WU4-OCP-Sync-Polish-Handoff.md`. |
 | LF-038 | P07 | Operator | High | Campaign data on incoming call | `useCampaignEvent`, `IncomingModal` | WU3: campaign context line in `CallerIdentityBlock` — see `handoffs/P07-WU3-OCP-Sync-UI-Handoff.md`. |
 | LF-039 | P07 | UI | High | Non-progressive campaign request modal | `CampaignEventModal` | WU3: `CampaignEventModal.tsx`, `useCampaignActions` — see `handoffs/P07-WU3-OCP-Sync-UI-Handoff.md`. |
 | LF-040 | P07 | Operator | High | Campaign answer or reject update | `CampaignEventModal` -> WS update | WU3: `RespondToCampaignUseCase`, `CampaignEventAnswered` — see `handoffs/P07-WU3-OCP-Sync-UI-Handoff.md`. |
@@ -102,12 +102,12 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-056 | P11 | UI | Low | Draggable widget | `DraggableButton` | Widget/window drag behavior is predictable in Electron. |
 | LF-057 | P08 | UI | High | Lost WS overlay | `WSConnectionOverlay` | OCP disconnect shows clear recovery UI. |
 | LF-058 | P08 | Operator | High | WS reconnect 6 attempts by 5 seconds | `useWs` | Reconnect policy preserves legacy behavior or ADR changes it. |
-| LF-059 | P07 | UI | Medium | OCP toast notifications | `NotificationProvider` | Notifications render from typed OCP event projection. |
+| LF-059 | P07 | UI | Medium | OCP toast notifications | `NotificationProvider` | WU4: `OcpToastStack`, `ocpNotificationProjection`, `useOcpNotifications` — see `handoffs/P07-WU4-OCP-Sync-Polish-Handoff.md`. |
 | LF-060 | P11 | Settings | Low | Toast position and z-index settings | user config | User config controls notification placement. |
 | LF-061 | P03 | Operator | High | Reject reason selection | `IncomingCallModal` | Reject flow can capture valid break reason. |
 | LF-062 | P06 | Operator | High | WS post-call update on reject | `IncomingCallModal` | WU3: `PostCallRejectOrchestrationService` + facade `rejectCall` — see `handoffs/P06-WU3-Post-Call-Break-Reasons-Handoff.md`. |
-| LF-063 | P07 | Operator | Critical | main_acallid synchronization | `useOCPEvents`, `useWs` | OCP call ID sync uses exact mapping and no infinite polling. |
-| LF-064 | P07 | Operator | Critical | dlg_stop on ended or failed | `handleSaveCallHistory`, `useSoftPhoneDlgStop` | Ended/failed calls send `dlg_stop` once. |
+| LF-063 | P07 | Operator | Critical | main_acallid synchronization | `useOCPEvents`, `useWs` | WU1–WU4: exact correlation registry + `dlg_stop` orchestration — see `handoffs/P07-WU4-OCP-Sync-Polish-Handoff.md`. |
+| LF-064 | P07 | Operator | Critical | dlg_stop on ended or failed | `handleSaveCallHistory`, `useSoftPhoneDlgStop` | WU4: `SendDlgStopUseCase`, `DlgStopPolicy`, `CallEndDlgStopOrchestrationService` — see `handoffs/P07-WU4-OCP-Sync-Polish-Handoff.md`. |
 | LF-065 | P12 | Integration | Critical | External call events to OCP | `externalEvents`, `useOCPEvents` | Internal call events map to legacy host/OCP events. |
 | LF-066 | P09 | Integration | Medium | User action logging in IndexedDB | `loggerDB` | User actions persist through logging repository. |
 | LF-067 | P09 | Integration | Medium | Send logs to OCP | `window.ws.sendLog` | OCP logging uses typed gateway, not global `window.ws`. |

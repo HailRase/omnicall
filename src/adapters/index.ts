@@ -27,10 +27,12 @@ export { InMemorySettingsRepository } from "./settings/InMemorySettingsRepositor
 export { InMemorySettingsRepository as MockSettingsRepository } from "./settings/InMemorySettingsRepository.js";
 export type { InMemorySettingsState } from "./settings/InMemorySettingsRepository.js";
 export { MockOcpSyncGateway } from "./mock/MockOcpSyncGateway.js";
-export type { MockOcpSyncScenario, MockOcpCampaignRespondScenario } from "./mock/MockOcpSyncGateway.js";
+export type { MockOcpSyncScenario, MockOcpCampaignRespondScenario, MockDlgStopScenario } from "./mock/MockOcpSyncGateway.js";
 export {
   createSampleOcpQueueInfoRawMessage,
   createSampleOcpCampaignEventRawMessage,
+  createSampleOcpNotificationRawMessage,
   SAMPLE_OCP_QUEUE_INFO_MESSAGE,
   SAMPLE_OCP_CAMPAIGN_EVENT_MESSAGE,
+  SAMPLE_OCP_NOTIFICATION_MESSAGE,
 } from "./mock/MockOcpSyncGateway.js";

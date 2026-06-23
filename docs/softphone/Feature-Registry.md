@@ -379,19 +379,21 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-037`, `LF-038`, `LF-039`, `LF-040`, `LF-050`, `LF-059`, `LF-063`, `LF-064`
 - Context: Operator
 - Priority: critical
-- Status: in_progress
+- Status: implemented (mock gateway; real OCP WebSocket + E2E deferred)
 - Owner: TBD
-- Inputs: OCP queue info, campaign events, reserved states, call lifecycle events
-- Outputs: queue projection, campaign modal state, OCP updates, `dlg_stop`
+- Inputs: OCP queue info, campaign events, notifications, call lifecycle events
+- Outputs: queue projection, campaign modal state, OCP toasts, `dlg_stop`
 - Acceptance Criteria:
-  - Queue and `main_acallid` mapping is exact (WU1: domain rule; WU2: `ProcessOcpInboundMessageUseCase` + correlation registry + `incomingCallProjection.queueInfo`; WU3: `QueueInfoLabel` + `useIncomingCallShell`).
-  - Campaign UX exists only when OCP plugin is enabled (WU3: `CampaignEventModal`, `useCampaignActions`, SIP-only hide).
-  - Campaign accept/reject sends OCP update via gateway before `CampaignEventAnswered` (WU3: `RespondToCampaignUseCase`).
-  - `dlg_stop` is sent exactly once for ended or failed calls (WU4+).
+  - Queue and `main_acallid` mapping is exact (WU1–WU3).
+  - Campaign UX exists only when OCP plugin is enabled (WU3).
+  - Campaign accept/reject sends OCP update via gateway before `CampaignEventAnswered` (WU3).
+  - `dlg_stop` is sent exactly once for ended or failed calls with OCP correlation (WU4: `SendDlgStopUseCase`, `DlgStopPolicy`, `CallEndDlgStopOrchestrationService`).
+  - OCP notifications render from typed projection; SIP-only hides toasts (WU4: `OcpToastStack`, `ocpNotificationProjection`).
+  - Queue label transitions `loading` → `na` after timeout without polling (WU4: `QUEUE_LABEL_NA_TIMEOUT_MS`, `useQueueLabelNaTimer`).
 - Test Coverage:
-  - Unit: OCP message mapping and ID matching (WU1: domain; WU2: Use Cases, registry, projections; WU3: `RespondToCampaignUseCase`, UI components)
-  - Integration: mock OCP gateway full sync chain (WU2: `OcpQueueInfoSync.integration.test.ts`; WU3: `OcpCampaignSync.integration.test.ts`)
-  - E2E: campaign and queue UI with mock OCP (WU4)
+  - Unit: OCP message mapping, `DlgStopPolicy`, `SendDlgStopUseCase`, queue NA derivation, toast projection
+  - Integration: `OcpQueueInfoSync`, `OcpCampaignSync`, `OcpDlgStopSync`, `OcpNotificationSync`
+  - E2E: deferred until harness exists (WU4 handoff)
 
 ## F-016: Settings And Desktop Shell UX
 

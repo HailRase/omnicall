@@ -13,13 +13,22 @@ import type { DomainEventPublisher } from "@ports/index.js";
 export class InMemoryOcpCallCorrelationRegistry implements OcpCallCorrelationRegistry {
   private readonly byCallId = new Map<string, OcpCallCorrelation>();
   private readonly byMainAcallId = new Map<string, OcpCallCorrelation>();
+  private lifecycleBound = false;
 
   constructor(eventPublisher?: DomainEventPublisher) {
     if (eventPublisher !== undefined) {
-      eventPublisher.subscribe((event) => {
-        this.applyLifecycleEvent(event);
-      });
+      this.bindLifecycleEvents(eventPublisher);
     }
+  }
+
+  bindLifecycleEvents(eventPublisher: DomainEventPublisher): void {
+    if (this.lifecycleBound) {
+      return;
+    }
+    this.lifecycleBound = true;
+    eventPublisher.subscribe((event) => {
+      this.applyLifecycleEvent(event);
+    });
   }
 
   register(correlation: OcpCallCorrelation): void {

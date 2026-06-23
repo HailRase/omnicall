@@ -5,6 +5,8 @@ import type {
   OcpSyncGateway,
   RespondToCampaignCommand,
   RespondToCampaignResult,
+  SendDlgStopCommand,
+  SendDlgStopResult,
 } from "@ports/operator/OcpSyncGateway.js";
 
 export const SAMPLE_OCP_QUEUE_INFO_MESSAGE: OcpInboundMessage = {
@@ -21,11 +23,19 @@ export const SAMPLE_OCP_CAMPAIGN_EVENT_MESSAGE: OcpInboundMessage = {
   progressive: false,
 };
 
+export const SAMPLE_OCP_NOTIFICATION_MESSAGE: OcpInboundMessage = {
+  kind: "notification",
+  notificationId: "notif-sample-1",
+  message: "Queue assignment updated",
+  level: "info",
+};
+
 export type MockOcpSyncScenario =
   | Readonly<{ type: "return_null" }>
   | Readonly<{ type: "fixture"; message: OcpInboundMessage }>;
 
 export type MockOcpCampaignRespondScenario = "success" | "failed" | "network_error";
+export type MockDlgStopScenario = "success" | "failed" | "network_error";
 
 /**
  * - Purpose: mock OCP sync gateway for tests and dev bootstrap.
@@ -35,7 +45,10 @@ export type MockOcpCampaignRespondScenario = "success" | "failed" | "network_err
 export class MockOcpSyncGateway implements OcpSyncGateway {
   private scenario: MockOcpSyncScenario | null = null;
   private campaignRespondScenario: MockOcpCampaignRespondScenario = "success";
+  private dlgStopScenario: MockDlgStopScenario = "success";
   private lastCampaignRespondCommand: RespondToCampaignCommand | null = null;
+  private lastDlgStopCommand: SendDlgStopCommand | null = null;
+  private dlgStopSendCount = 0;
 
   setScenario(scenario: MockOcpSyncScenario | null): void {
     this.scenario = scenario;
@@ -43,6 +56,18 @@ export class MockOcpSyncGateway implements OcpSyncGateway {
 
   setCampaignRespondScenario(scenario: MockOcpCampaignRespondScenario): void {
     this.campaignRespondScenario = scenario;
+  }
+
+  setDlgStopScenario(scenario: MockDlgStopScenario): void {
+    this.dlgStopScenario = scenario;
+  }
+
+  getLastDlgStopCommand(): SendDlgStopCommand | null {
+    return this.lastDlgStopCommand;
+  }
+
+  getDlgStopSendCount(): number {
+    return this.dlgStopSendCount;
   }
 
   getLastCampaignRespondCommand(): RespondToCampaignCommand | null {
@@ -81,6 +106,25 @@ export class MockOcpSyncGateway implements OcpSyncGateway {
 
     return Promise.resolve({ status: "succeeded" });
   }
+
+  sendDlgStop(command: SendDlgStopCommand): Promise<SendDlgStopResult> {
+    this.lastDlgStopCommand = command;
+    this.dlgStopSendCount += 1;
+
+    if (this.dlgStopScenario === "network_error") {
+      return Promise.reject(new Error("dlg_stop network error"));
+    }
+
+    if (this.dlgStopScenario === "failed") {
+      return Promise.resolve({
+        status: "failed",
+        reason: "rejected",
+        message: "dlg_stop rejected",
+      });
+    }
+
+    return Promise.resolve({ status: "succeeded" });
+  }
 }
 
 export function createSampleOcpQueueInfoRawMessage(
@@ -109,4 +153,20 @@ export function createSampleOcpCampaignEventRawMessage(
     message["main_acallid"] = mainAcallId;
   }
   return message;
+}
+
+export function createSampleOcpNotificationRawMessage(
+  message: string,
+  level: "info" | "warn" | "error" = "info",
+  notificationId?: string,
+): Record<string, string> {
+  const payload: Record<string, string> = {
+    event: "notification",
+    message,
+    level,
+  };
+  if (notificationId !== undefined) {
+    payload["notification_id"] = notificationId;
+  }
+  return payload;
 }

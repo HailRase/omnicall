@@ -34,6 +34,22 @@ describe("parseOcpInboundMessage", () => {
     });
   });
 
+  it("parses notification message", () => {
+    const result = parseOcpInboundMessage({
+      event: "notification",
+      notification_id: "n-1",
+      message: "Agent ready",
+      level: "warn",
+    });
+
+    expect(result).toEqual({
+      kind: "notification",
+      notificationId: "n-1",
+      message: "Agent ready",
+      level: "warn",
+    });
+  });
+
   it("rejects invalid queue payload", () => {
     expect(parseOcpInboundMessage(null)).toBe("invalid_payload");
     expect(parseOcpInboundMessage({ event: "queue_info" })).toBe("invalid_payload");

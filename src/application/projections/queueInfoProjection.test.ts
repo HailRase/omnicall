@@ -73,6 +73,36 @@ describe("queueInfoProjection", () => {
     expect(deriveQueueLabelState(cleared, callId)).toBe("loading");
   });
 
+  it("derives na after loading timeout", () => {
+    const occurredAt = new Date("2026-06-24T10:00:00.000Z").toISOString();
+    let projection = reduceQueueInfoProjection(initialQueueInfoProjection(), {
+      type: "OcpAuthenticationSucceeded",
+      correlationId,
+      occurredAt,
+      agentId: "agent-1",
+    });
+    projection = reduceQueueInfoProjection(projection, {
+      type: "IncomingCallReceived",
+      correlationId,
+      occurredAt,
+      callId,
+      direction: "incoming",
+      phoneNumber: "+12025550100",
+    });
+
+    const beforeTimeout = deriveQueueLabelState(projection, callId, {
+      nowMs: Date.parse(occurredAt) + 1000,
+      naTimeoutMs: 5000,
+    });
+    expect(beforeTimeout).toBe("loading");
+
+    const afterTimeout = deriveQueueLabelState(projection, callId, {
+      nowMs: Date.parse(occurredAt) + 5000,
+      naTimeoutMs: 5000,
+    });
+    expect(afterTimeout).toBe("na");
+  });
+
   it("resets on SIP-only startup resolution", () => {
     let projection = reduceQueueInfoProjection(initialQueueInfoProjection(), {
       type: "OcpAuthenticationSucceeded",

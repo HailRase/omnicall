@@ -1,7 +1,9 @@
 import type { MainAcallId } from "./MainAcallId.js";
 import { parseMainAcallId } from "./MainAcallId.js";
 
-export type OcpInboundMessageKind = "queue_info" | "campaign_event";
+export type OcpInboundMessageKind = "queue_info" | "campaign_event" | "notification";
+
+export type OcpNotificationLevel = "info" | "warn" | "error";
 
 export type OcpQueueInfoPayload = Readonly<{
   kind: "queue_info";
@@ -17,13 +19,24 @@ export type OcpCampaignEventPayload = Readonly<{
   progressive: boolean;
 }>;
 
-export type OcpInboundMessage = OcpQueueInfoPayload | OcpCampaignEventPayload;
+export type OcpNotificationPayload = Readonly<{
+  kind: "notification";
+  notificationId: string;
+  message: string;
+  level: OcpNotificationLevel;
+}>;
+
+export type OcpInboundMessage =
+  | OcpQueueInfoPayload
+  | OcpCampaignEventPayload
+  | OcpNotificationPayload;
 
 export type OcpInboundParseError =
   | "invalid_payload"
   | "unknown_message_kind"
   | "queue_name_required"
-  | "campaign_id_required";
+  | "campaign_id_required"
+  | "notification_message_required";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -58,6 +71,38 @@ function parseQueueInfoMessage(
     kind: "queue_info",
     mainAcallId,
     queueName: queueNameRaw.trim(),
+  };
+}
+
+function parseNotificationLevel(value: unknown): OcpNotificationLevel {
+  if (value === "warn" || value === "warning") {
+    return "warn";
+  }
+  if (value === "error") {
+    return "error";
+  }
+  return "info";
+}
+
+function parseNotificationMessage(
+  record: Record<string, unknown>,
+): OcpNotificationPayload | OcpInboundParseError {
+  const messageRaw = record["message"] ?? record["text"] ?? record["body"];
+  if (typeof messageRaw !== "string" || messageRaw.trim().length === 0) {
+    return "notification_message_required";
+  }
+
+  const idRaw = record["notification_id"] ?? record["notificationId"] ?? record["id"];
+  const notificationId =
+    typeof idRaw === "string" && idRaw.trim().length > 0
+      ? idRaw.trim()
+      : `notif-${Date.now()}`;
+
+  return {
+    kind: "notification",
+    notificationId,
+    message: messageRaw.trim(),
+    level: parseNotificationLevel(record["level"] ?? record["severity"]),
   };
 }
 
@@ -110,6 +155,10 @@ export function parseOcpInboundMessage(
 
   if (kind === "campaign_event" || kind === "campaignEvent") {
     return parseCampaignEventMessage(raw);
+  }
+
+  if (kind === "notification" || kind === "ocp_notification") {
+    return parseNotificationMessage(raw);
   }
 
   return "unknown_message_kind";

@@ -122,10 +122,18 @@ export {
   initialQueueInfoProjection,
   reduceQueueInfoProjection,
   getQueueNameForCall,
+  getQueueLoadingSinceForCall,
   deriveQueueLabelState,
+  QUEUE_LABEL_NA_TIMEOUT_MS,
   type QueueInfoProjection,
   type QueueLabelState,
 } from "./projections/queueInfoProjection.js";
+export {
+  initialOcpNotificationProjection,
+  reduceOcpNotificationProjection,
+  type OcpNotificationProjection,
+  type OcpToastItem,
+} from "./projections/ocpNotificationProjection.js";
 export {
   initialCampaignProjection,
   reduceCampaignProjection,
@@ -139,6 +147,8 @@ export { RegisterOcpCallCorrelationUseCase } from "./use-cases/RegisterOcpCallCo
 export { ProcessOcpInboundMessageUseCase } from "./use-cases/ProcessOcpInboundMessageUseCase.js";
 export type { ProcessOcpInboundMessageOutcome } from "./use-cases/ProcessOcpInboundMessageUseCase.js";
 export { RespondToCampaignUseCase } from "./use-cases/RespondToCampaignUseCase.js";
+export { SendDlgStopUseCase } from "./use-cases/SendDlgStopUseCase.js";
+export { CallEndDlgStopOrchestrationService } from "./services/CallEndDlgStopOrchestrationService.js";
 export { InMemoryOcpCallCorrelationRegistry } from "./read-models/InMemoryOcpCallCorrelationRegistry.js";
 export { InMemoryOcpSyncReadModel } from "./read-models/InMemoryOcpSyncReadModel.js";
 export { deriveOperatorStatusDisabledReason } from "./projections/deriveOperatorStatusDisabledReason.js";

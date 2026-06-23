@@ -124,6 +124,7 @@ export type {
   OcpInboundMessageKind,
   OcpQueueInfoPayload,
   OcpCampaignEventPayload,
+  OcpNotificationPayload,
   OcpInboundParseError,
 } from "./operator/ocp/OcpInboundMessages.js";
 export { parseOcpInboundMessage } from "./operator/ocp/OcpInboundMessages.js";
@@ -150,6 +151,30 @@ export {
   createCampaignEventReceivedEvent,
   createCampaignEventAnsweredEvent,
 } from "./operator/events/campaignEvents.js";
+export type {
+  DlgStopTrigger,
+  DlgStopRequestedEvent,
+  DlgStopSentEvent,
+} from "./operator/events/dlgStopEvents.js";
+export {
+  createDlgStopRequestedEvent,
+  createDlgStopSentEvent,
+} from "./operator/events/dlgStopEvents.js";
+export type {
+  DlgStopPolicyState,
+} from "./operator/policies/DlgStopPolicy.js";
+export {
+  canRequestDlgStop,
+  initialDlgStopPolicyState,
+  markDlgStopSent,
+} from "./operator/policies/DlgStopPolicy.js";
+export type {
+  OcpNotificationLevel,
+  OcpNotificationReceivedEvent,
+} from "./operator/events/ocpNotificationEvents.js";
+export {
+  createOcpNotificationReceivedEvent,
+} from "./operator/events/ocpNotificationEvents.js";
 export type { AgentStatusChangeTrigger } from "./operator/AgentBreakReasonPolicy.js";
 export {
   isAgentBreakReasonRequired,

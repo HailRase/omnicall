@@ -1,9 +1,11 @@
 import {
   createCampaignEventReceivedEvent,
+  createOcpNotificationReceivedEvent,
   createQueueInfoReceivedEvent,
   matchQueueInfoToCall,
   type CallId,
   type OcpCampaignEventPayload,
+  type OcpNotificationPayload,
 } from "@domain/index.js";
 import type {
   DomainEventPublisher,
@@ -29,7 +31,8 @@ export type ProcessOcpInboundMessageOutcome =
       reason: "no_correlation" | "main_acallid_mismatch";
     }>
   | Readonly<{ action: "queue_info_published"; callId: CallId }>
-  | Readonly<{ action: "campaign_published"; callId: CallId | null }>;
+  | Readonly<{ action: "campaign_published"; callId: CallId | null }>
+  | Readonly<{ action: "notification_published"; notificationId: string }>;
 
 /**
  * - Purpose: parse inbound OCP sync messages and publish matched domain events.
@@ -79,6 +82,10 @@ export class ProcessOcpInboundMessageUseCase {
 
     if (parsed.kind === "campaign_event") {
       return ok(this.handleCampaignEvent(parsed, correlationId, isOcpMode));
+    }
+
+    if (parsed.kind === "notification") {
+      return ok(this.handleNotification(parsed, correlationId, isOcpMode));
     }
 
     this.logger.warn("ocp_inbound_message_unknown_kind", {
@@ -180,5 +187,34 @@ export class ProcessOcpInboundMessageUseCase {
     });
 
     return { action: "campaign_published", callId: matchedCallId };
+  }
+
+  private handleNotification(
+    payload: OcpNotificationPayload,
+    correlationId: CorrelationId,
+    isOcpMode: boolean,
+  ): ProcessOcpInboundMessageOutcome {
+    if (!isOcpMode) {
+      return { action: "noop", reason: "sip_only" };
+    }
+
+    this.eventPublisher.publish(
+      createOcpNotificationReceivedEvent(correlationId, {
+        notificationId: payload.notificationId,
+        message: payload.message,
+        level: payload.level,
+      }),
+    );
+
+    this.logger.info("ocp_notification_received", {
+      correlationId,
+      featureId: "F-015",
+      boundedContext: "Operator",
+      operation: "process_ocp_inbound",
+      result: "succeeded",
+      notificationId: payload.notificationId,
+    });
+
+    return { action: "notification_published", notificationId: payload.notificationId };
   }
 }
