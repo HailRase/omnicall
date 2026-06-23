@@ -11,6 +11,7 @@ import type {
   SendDtmfCommand,
   TelephonyCallEndedNotification,
   TelephonyIncomingCallNotification,
+  TelephonyTransportDisconnectedNotification,
   TelephonyGateway,
 } from "@ports/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
@@ -88,6 +89,9 @@ export class MockTelephonyGateway implements TelephonyGateway {
     | null = null;
   private callEndedHandler:
     | ((notification: TelephonyCallEndedNotification) => Promise<void>)
+    | null = null;
+  private transportDisconnectedHandler:
+    | ((notification: TelephonyTransportDisconnectedNotification) => Promise<void>)
     | null = null;
 
   constructor(options: MockTelephonyGatewayOptions);
@@ -452,6 +456,24 @@ export class MockTelephonyGateway implements TelephonyGateway {
     return () => {
       this.callEndedHandler = null;
     };
+  }
+
+  /** P08 WU2: simulate SIP transport disconnect for integration tests. */
+  setTransportDisconnectedHandler(
+    handler: ((notification: TelephonyTransportDisconnectedNotification) => Promise<void>) | null,
+  ): () => void {
+    this.transportDisconnectedHandler = handler;
+    return () => {
+      this.transportDisconnectedHandler = null;
+    };
+  }
+
+  async simulateTransportDisconnected(
+    notification: TelephonyTransportDisconnectedNotification,
+  ): Promise<void> {
+    if (this.transportDisconnectedHandler !== null) {
+      await this.transportDisconnectedHandler(notification);
+    }
   }
 
   async simulateIncomingCall(

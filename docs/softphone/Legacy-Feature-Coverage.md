@@ -51,7 +51,7 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-005 | P01 | Telephony | Critical | Auto SIP authorization from WS credentials | `StatusesProvider`, `authorize` | OCP credentials trigger SIP registration through Use Cases. |
 | LF-006 | P01 | Telephony | High | Manual SIP authorization from Account tab | `Account`, `authorize` | SIP-only mode can authorize without OCP. |
 | LF-007 | P01 | Telephony | Critical | SIP registration on SBC | `DisplayProvider`, `initUAConfig` | Registration uses `TelephonyGateway` and emits registration events. |
-| LF-008 | P08 | Telephony | High | Repeat SIP registration after failure | `DisplayProvider`, user config | Retry policy is explicit, observable, and configurable. |
+| LF-008 | P08 | Telephony | High | Repeat SIP registration after failure | `DisplayProvider`, user config | WU1: `SIP_RECONNECT_POLICY_CONFIG`, `sipRecoveryEvents`, `connectionRecoveryProjection` — see `handoffs/P08-WU1-Recovery-Domain-Handoff.md`. |
 | LF-009 | P08 | UI | Medium | Re-registration timer UI | `RegisterTimer` | UI displays retry countdown from recovery projection. |
 | LF-010 | P08 | Telephony | Medium | Manual re-registration from menu | `Header`, `UserMenu` | User can trigger re-registration through Use Case. |
 | LF-011 | P01 | UI | High | phoneStatus Online/Offline/DND display | `DisplayProvider` | Status projection shows telephony availability accurately. |
@@ -91,7 +91,7 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-045 | P06 | Operator | High | Status transition validation | `USER_STATUS_RULES` | WU1/WU2: `AgentStatusTransition` + `ChangeAgentStatusUseCase` — see `handoffs/P06-WU1-Operator-Status-Domain-Handoff.md`. |
 | LF-046 | P06 | UI | Medium | Status duration timer | `StatusTimer` | WU4: `StatusTimer.tsx`, `useOperatorStatusTimer` — see WU4 handoff. |
 | LF-047 | P06 | Operator | High | Logout with reason | `StatusReasonsModal`, `Header` | WU4: `LogoutReasonModal`, `LogoutOperatorUseCase`, `AgentLogoutRequested` — see WU4 handoff. LF-048 cascade P08. |
-| LF-048 | P08 | Operator | Critical | OCP logout cascade | `ocpLogout`, `softphoneLogoutEvent` | Logout closes OCP, SIP, calls, and projections safely. |
+| LF-048 | P08 | Operator | Critical | OCP logout cascade | `ocpLogout`, `softphoneLogoutEvent` | WU1 design note in `P08-Recovery-UX-Design.md`; cascade implementation WU3+. |
 | LF-049 | P08 | Operator | Critical | Server-side terminate | `useWs entity terminate` | Server termination triggers full controlled logout. |
 | LF-050 | P07 | Operator | High | Block call button from OCP RESERVED | `useBlockedCallButton` | OCP reserved state disables calling deterministically. |
 | LF-051 | P12 | Integration | High | External call button block | `setCallButtonDisabled` | Host API can block call button through typed adapter. |
@@ -100,8 +100,8 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-054 | P09 | Settings | Low | Limit call history to 100 records | `saveCall` | Repository enforces retention policy. |
 | LF-055 | P11 | UI | Medium | Collapse and expand UI | `CollapseButton`, `Display` | Desktop shell supports compact softphone mode. |
 | LF-056 | P11 | UI | Low | Draggable widget | `DraggableButton` | Widget/window drag behavior is predictable in Electron. |
-| LF-057 | P08 | UI | High | Lost WS overlay | `WSConnectionOverlay` | OCP disconnect shows clear recovery UI. |
-| LF-058 | P08 | Operator | High | WS reconnect 6 attempts by 5 seconds | `useWs` | Reconnect policy preserves legacy behavior or ADR changes it. |
+| LF-057 | P08 | UI | High | Lost WS overlay | `WSConnectionOverlay` | WU1 UX: `P08-Recovery-UX-Design.md`, `connectionRecoveryProjection`; React overlay WU3. |
+| LF-058 | P08 | Operator | High | WS reconnect 6 attempts by 5 seconds | `useWs` | WU1: `OCP_RECONNECT_POLICY_CONFIG` (6×5s + jitter); scheduler WU2. |
 | LF-059 | P07 | UI | Medium | OCP toast notifications | `NotificationProvider` | WU4: `OcpToastStack`, `ocpNotificationProjection`, `useOcpNotifications` — see `handoffs/P07-WU4-OCP-Sync-Polish-Handoff.md`. |
 | LF-060 | P11 | Settings | Low | Toast position and z-index settings | user config | User config controls notification placement. |
 | LF-061 | P03 | Operator | High | Reject reason selection | `IncomingCallModal` | Reject flow can capture valid break reason. |

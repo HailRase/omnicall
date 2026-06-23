@@ -9,6 +9,7 @@ export type {
   UpdatePostCallStatusResult,
   RequestLogoutCommand,
   RequestLogoutResult,
+  OcpTransportDisconnectedNotification,
   OperatorPlatformGateway,
 } from "./operator/OperatorPlatformGateway.js";
 export type { OcpSyncGateway, RespondToCampaignCommand, RespondToCampaignResult, SendDlgStopCommand, SendDlgStopResult } from "./operator/OcpSyncGateway.js";
@@ -45,6 +46,7 @@ export type {
   AttendedTransferCommand,
   TelephonyCallEndedNotification,
   TelephonyIncomingCallNotification,
+  TelephonyTransportDisconnectedNotification,
   TelephonyGateway,
 } from "./telephony/TelephonyGateway.js";
 export type {

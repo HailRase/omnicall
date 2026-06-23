@@ -56,6 +56,11 @@ export type TelephonyCallEndedNotification = Readonly<{
   correlationId: CorrelationId;
 }>;
 
+export type TelephonyTransportDisconnectedNotification = Readonly<{
+  correlationId: CorrelationId;
+  reason: string;
+}>;
+
 export type HangupCommand = Readonly<{
   callId: CallId;
   correlationId: CorrelationId;
@@ -100,5 +105,9 @@ export interface TelephonyGateway {
   ): () => void;
   setCallEndedHandler(
     handler: ((notification: TelephonyCallEndedNotification) => Promise<void>) | null,
+  ): () => void;
+  /** WU2: adapter invokes on SIP transport disconnect (LF-008). */
+  setTransportDisconnectedHandler(
+    handler: ((notification: TelephonyTransportDisconnectedNotification) => Promise<void>) | null,
   ): () => void;
 }

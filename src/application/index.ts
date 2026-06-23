@@ -135,6 +135,12 @@ export {
   type OcpToastItem,
 } from "./projections/ocpNotificationProjection.js";
 export {
+  initialConnectionRecoveryProjection,
+  reduceConnectionRecoveryProjection,
+  type ConnectionRecoveryProjection,
+  type ConnectionState,
+} from "./projections/connectionRecoveryProjection.js";
+export {
   initialCampaignProjection,
   reduceCampaignProjection,
   getCampaignForCall,

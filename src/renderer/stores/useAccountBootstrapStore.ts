@@ -61,6 +61,11 @@ import {
   reduceOcpNotificationProjection,
   type OcpNotificationProjection,
 } from "@application/projections/ocpNotificationProjection.js";
+import {
+  initialConnectionRecoveryProjection,
+  reduceConnectionRecoveryProjection,
+  type ConnectionRecoveryProjection,
+} from "@application/projections/connectionRecoveryProjection.js";
 type AccountBootstrapStore = Readonly<{
   projection: AccountBootstrapProjection;
   callProjection: CallProjection;
@@ -73,6 +78,7 @@ type AccountBootstrapStore = Readonly<{
   queueInfoProjection: QueueInfoProjection;
   campaignProjection: CampaignProjection;
   ocpNotificationProjection: OcpNotificationProjection;
+  connectionRecoveryProjection: ConnectionRecoveryProjection;
   bindFacade: (facade: AccountBootstrapFacade) => () => void;
   setCallMode: (mode: DialpadMode) => void;
   setIncomingUiState: (uiState: IncomingCallUiState) => void;
@@ -92,6 +98,7 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
   queueInfoProjection: initialQueueInfoProjection(),
   campaignProjection: initialCampaignProjection(),
   ocpNotificationProjection: initialOcpNotificationProjection(),
+  connectionRecoveryProjection: initialConnectionRecoveryProjection(),
 
   bindFacade: (facade) => {
     void facade.getMultiCallSettings().then((settings) => {
@@ -132,6 +139,10 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
         ),
         ocpNotificationProjection: reduceOcpNotificationProjection(
           state.ocpNotificationProjection,
+          event,
+        ),
+        connectionRecoveryProjection: reduceConnectionRecoveryProjection(
+          state.connectionRecoveryProjection,
           event,
         ),
       }));

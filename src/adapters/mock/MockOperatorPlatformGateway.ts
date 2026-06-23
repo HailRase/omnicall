@@ -13,6 +13,7 @@ import type {
   GetBreakReasonsCommand,
   OcpAuthenticateCommand,
   OperatorPlatformGateway,
+  OcpTransportDisconnectedNotification,
   UpdatePostCallStatusCommand,
   UpdatePostCallStatusResult,
   RequestLogoutCommand,
@@ -248,6 +249,14 @@ export class MockOperatorPlatformGateway implements OperatorPlatformGateway {
           message: "OCP network error during logout",
         };
     }
+  }
+
+  /** P08 WU2: OCP WebSocket disconnect hook — no-op stub until recovery orchestration. */
+  setTransportDisconnectedHandler(
+    handler: ((notification: OcpTransportDisconnectedNotification) => Promise<void>) | null,
+  ): () => void {
+    void handler;
+    return () => undefined;
   }
 }
 

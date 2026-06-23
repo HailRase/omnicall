@@ -361,17 +361,22 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-008`, `LF-009`, `LF-010`, `LF-048`, `LF-049`, `LF-057`, `LF-058`, `LF-079`
 - Context: Telephony
 - Priority: critical
-- Status: planned
+- Status: in_progress
 - Owner: TBD
 - Inputs: transport disconnects, registration failure, renderer restart
 - Outputs: recovery events and restored projections
 - Acceptance Criteria:
-  - Reconnect policy is explicit.
-  - Retry behavior uses backoff and jitter.
+  - Reconnect policy is explicit with OCP (6×5s LF-058) and SIP backoff presets (LF-008).
+  - Retry behavior uses backoff and jitter (`ReconnectPolicy`).
+  - WU1 recovery domain events typed and tested (`OcpDisconnected`, `*Reconnect*`, `ServerTerminateReceived`).
+  - `connectionRecoveryProjection` skeleton wired to store; SIP-only OCP fields N/A.
+  - Port disconnect hooks declared on `TelephonyGateway` / `OperatorPlatformGateway` (WU2 wiring).
   - Recovery flow is observable with correlation IDs.
+  - Lost connection overlay UX designed (`P08-Recovery-UX-Design.md`, LF-057); UI WU3.
+  - Logout cascade design note for LF-048 (implementation WU3+).
 - Test Coverage:
-  - Unit: retry policy
-  - Integration: gateway reconnect simulation
+  - Unit: `ReconnectPolicy`, recovery events, `connectionRecoveryProjection`
+  - Integration: gateway reconnect simulation (WU2)
   - E2E: deferred until harness exists
 
 ## F-015: OCP Call Synchronization And Campaigns

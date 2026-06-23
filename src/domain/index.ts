@@ -175,6 +175,25 @@ export type {
 export {
   createOcpNotificationReceivedEvent,
 } from "./operator/events/ocpNotificationEvents.js";
+export type {
+  OcpDisconnectReason,
+  OcpDisconnectedEvent,
+  OcpReconnectScheduledEvent,
+  OcpReconnectSucceededEvent,
+  OcpReconnectFailedEvent,
+  OcpRecoveryDomainEvent,
+} from "./operator/events/ocpRecoveryEvents.js";
+export {
+  createOcpDisconnectedEvent,
+  createOcpReconnectScheduledEvent,
+  createOcpReconnectSucceededEvent,
+  createOcpReconnectFailedEvent,
+} from "./operator/events/ocpRecoveryEvents.js";
+export type {
+  ServerTerminatePayload,
+  ServerTerminateReceivedEvent,
+} from "./operator/events/serverTerminateEvents.js";
+export { createServerTerminateReceivedEvent } from "./operator/events/serverTerminateEvents.js";
 export type { AgentStatusChangeTrigger } from "./operator/AgentBreakReasonPolicy.js";
 export {
   isAgentBreakReasonRequired,
@@ -292,6 +311,17 @@ export {
   createRegistrationSucceededEvent,
 } from "./telephony/events/registrationEvents.js";
 export type {
+  SipReconnectScheduledEvent,
+  SipReconnectSucceededEvent,
+  SipReconnectFailedEvent,
+  SipRecoveryDomainEvent,
+} from "./telephony/events/sipRecoveryEvents.js";
+export {
+  createSipReconnectScheduledEvent,
+  createSipReconnectSucceededEvent,
+  createSipReconnectFailedEvent,
+} from "./telephony/events/sipRecoveryEvents.js";
+export type {
   CallAutoAnsweredEvent,
   OutgoingCallDomainEvent,
   IncomingCallDomainEvent,
@@ -401,3 +431,15 @@ export {
   createPhoneStatusChangedEvent,
   createStartupModeResolvedEvent,
 } from "./shared/events/accountBootstrapEvents.js";
+export type { ReconnectPolicyConfig, ReconnectSchedulePlan, RandomSource } from "./shared/recovery/ReconnectPolicy.js";
+export {
+  OCP_RECONNECT_POLICY_CONFIG,
+  SIP_RECONNECT_POLICY_CONFIG,
+  canScheduleReconnectAttempt,
+  computeBaseBackoffDelayMs,
+  computeReconnectDelayBounds,
+  computeReconnectDelayMs,
+  defaultRandomSource,
+  isTerminalReconnectFailure,
+  planReconnectAttempt,
+} from "./shared/recovery/ReconnectPolicy.js";

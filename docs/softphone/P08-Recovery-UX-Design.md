@@ -1,0 +1,102 @@
+# P08 Recovery UX Design (WU1 — design only)
+
+- Phase: `P08` WU1; Feature: `F-014`; Legacy: `LF-008`, `LF-057`, `LF-048` (design note), `LF-058`.
+- Primary context: `Telephony` + `Operator`; projection: `connectionRecoveryProjection` (WU1 skeleton).
+- Out of scope WU1: React overlay (WU3), retry scheduler wiring (WU2), logout cascade impl (WU3+), manual menu re-register (WU4).
+
+## User Goal
+
+Understand which connection failed (OCP, SIP, or both), see automatic retry progress, manually retry when allowed, and reach a safe terminal state without hidden failures.
+
+## Connection Overlay States (`LF-057`)
+
+| State key | Meaning | Projection driver |
+| --- | --- | --- |
+| `connected` | OCP (if enabled) and SIP transports healthy | no pending reconnect; `RegistrationSucceeded` / `OcpReconnectSucceeded` |
+| `ocp_disconnected` | OCP WebSocket lost; SIP may still work | `OcpDisconnected`; OCP-only overlay copy |
+| `sip_disconnected` | SIP registration/transport lost; OCP may still work | `RegistrationFailed` or SIP reconnect chain |
+| `reconnecting` | Automatic retry in progress | `OcpReconnectScheduled` / `SipReconnectScheduled` |
+| `reconnect_failed` | Max attempts exhausted | `OcpReconnectFailed` / `SipReconnectFailed` with `isTerminal: true` |
+| `manual_retry_available` | User may trigger retry Use Case (WU4) | terminal failure + manual retry policy |
+| `server_terminate` | Server forced logout (`LF-049`) | `ServerTerminateReceived` |
+
+## SIP-Only vs OCP Mode
+
+| Mode | Overlay scope | OCP fields |
+| --- | --- | --- |
+| SIP-only (`StartupModeResolved.sip_only_ready`) | SIP disconnect/reconnect only; no OCP overlay | `ocpReconnectAttempt` N/A; OCP events no-op in projection |
+| OCP enabled | Combined overlay when either channel fails | Shows OCP attempt + countdown; SIP row when both affected |
+
+Active SIP call controls remain reachable during OCP-only disconnect unless SIP is also down (blueprint rule).
+
+## Loading States
+
+- `reconnecting`: spinner + attempt `n` of `max` + countdown from `nextRetryAt`.
+- Initial disconnect: brief transition before first `*ReconnectScheduled` event.
+
+## Error States
+
+| Feedback | When |
+| --- | --- |
+| Channel label (OCP / SIP) | `ocp_disconnected` vs `sip_disconnected` |
+| `lastFailureReason` text | terminal or last failed attempt |
+| `reconnect_failed` banner | max attempts reached |
+| `server_terminate` | non-dismissable until cascade completes (WU3) |
+
+## Disabled States
+
+| Control | Disabled reason |
+| --- | --- |
+| `control-retry-connection` | `reconnecting` in progress |
+| `control-retry-connection` | not in `manual_retry_available` |
+| Dialpad / call (optional) | SIP not registered — existing projection |
+
+## Recovery States
+
+- Auto-retry driven by `ReconnectPolicy` (WU1 domain); scheduler emits `*ReconnectScheduled` (WU2).
+- Success: `*ReconnectSucceeded` → `connected`.
+- Manual retry (WU4): `RetryConnectionUseCase` resets attempt counter.
+- Logout cascade (`LF-048`): design note — `ServerTerminateReceived` / `AgentLoggedOut` triggers ordered teardown WU3+; overlay shows safe logout path.
+
+## Layout (WU3 — reserved)
+
+```txt
+[ConnectionOverlay] data-testid="connection-overlay"
+  channel-status-row (OCP | SIP)
+  reconnect-countdown data-testid="reconnect-countdown"
+  control-retry-connection data-testid="control-retry-connection"
+  optional safe-logout (LF-048 WU3)
+```
+
+## Components (reserved test IDs)
+
+| Test ID | Purpose |
+| --- | --- |
+| `connection-overlay` | Full-screen or semi-modal lost-connection panel |
+| `control-retry-connection` | Manual retry button (WU4 wiring) |
+| `reconnect-countdown` | Seconds until next automatic attempt |
+
+## Accessibility (WU3)
+
+- Overlay: `role="alertdialog"` when blocking; `aria-live="polite"` for countdown updates.
+- Retry button: `aria-label="Retry connection"`; keyboard Enter/Space.
+- Non-color-only: text channel name + attempt fraction, not color alone.
+- Focus trap only when SIP controls are unsafe; otherwise non-modal banner.
+
+## Callbacks → Use Cases (WU2–WU4)
+
+| Callback | Use Case |
+| --- | --- |
+| `onManualRetry` | `RetryConnectionUseCase` (WU4) |
+| `onSafeLogout` | `LogoutOperatorUseCase` cascade (WU3) |
+
+## Correlation IDs
+
+All recovery domain events carry `correlationId`; overlay reads projection only (no adapter access).
+
+## Domain Events — WU1 Implemented
+
+- `OcpDisconnected`, `OcpReconnectScheduled`, `OcpReconnectSucceeded`, `OcpReconnectFailed`
+- `SipReconnectScheduled`, `SipReconnectSucceeded`, `SipReconnectFailed`
+- `ServerTerminateReceived`
+- Backlog WU3+: `AppShutdownRequested`, `AgentLoggedOut` (`LF-048`)

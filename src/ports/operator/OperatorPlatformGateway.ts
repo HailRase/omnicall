@@ -51,6 +51,11 @@ export type RequestLogoutResult =
   | Readonly<{ status: "succeeded" }>
   | Readonly<{ status: "failed"; reason: string; message: string }>;
 
+export type OcpTransportDisconnectedNotification = Readonly<{
+  correlationId: CorrelationId;
+  reason: string;
+}>;
+
 export interface OperatorPlatformGateway {
   authenticate(command: OcpAuthenticateCommand): Promise<OcpAuthResult>;
   changeAgentStatus(command: ChangeAgentStatusCommand): Promise<ChangeAgentStatusResult>;
@@ -60,4 +65,8 @@ export interface OperatorPlatformGateway {
     command: UpdatePostCallStatusCommand,
   ): Promise<UpdatePostCallStatusResult>;
   requestLogout(command: RequestLogoutCommand): Promise<RequestLogoutResult>;
+  /** WU2: adapter invokes on OCP WebSocket disconnect (LF-057, LF-058). */
+  setTransportDisconnectedHandler(
+    handler: ((notification: OcpTransportDisconnectedNotification) => Promise<void>) | null,
+  ): () => void;
 }
