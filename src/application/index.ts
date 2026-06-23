@@ -155,6 +155,10 @@ export type { ProcessOcpInboundMessageOutcome } from "./use-cases/ProcessOcpInbo
 export { RespondToCampaignUseCase } from "./use-cases/RespondToCampaignUseCase.js";
 export { SendDlgStopUseCase } from "./use-cases/SendDlgStopUseCase.js";
 export { CallEndDlgStopOrchestrationService } from "./services/CallEndDlgStopOrchestrationService.js";
+export { ConnectionRecoveryOrchestrationService } from "./services/ConnectionRecoveryOrchestrationService.js";
+export type { ConnectionRecoveryOrchestrationDeps } from "./services/ConnectionRecoveryOrchestrationService.js";
+export { ReconnectScheduler } from "./infrastructure/ReconnectScheduler.js";
+export type { SchedulerTimerFns, TimerHandle } from "./infrastructure/ReconnectScheduler.js";
 export { InMemoryOcpCallCorrelationRegistry } from "./read-models/InMemoryOcpCallCorrelationRegistry.js";
 export { InMemoryOcpSyncReadModel } from "./read-models/InMemoryOcpSyncReadModel.js";
 export { deriveOperatorStatusDisabledReason } from "./projections/deriveOperatorStatusDisabledReason.js";

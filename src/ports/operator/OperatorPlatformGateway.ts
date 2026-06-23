@@ -6,6 +6,8 @@ import type {
 } from "@domain/index.js";
 import type { CallId } from "@domain/telephony/CallId.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
+import type { PlatformError } from "@shared/errors/index.js";
+import type { Result } from "@shared/result/index.js";
 
 export type OcpAuthenticateCommand = Readonly<{
   token: string;
@@ -69,4 +71,9 @@ export interface OperatorPlatformGateway {
   setTransportDisconnectedHandler(
     handler: ((notification: OcpTransportDisconnectedNotification) => Promise<void>) | null,
   ): () => void;
+  /**
+   * Re-establish OCP WebSocket after disconnect (LF-058).
+   * Real adapter restores session; mock maps to reconnectScenario.
+   */
+  reconnectTransport(correlationId: CorrelationId): Promise<Result<void, PlatformError>>;
 }

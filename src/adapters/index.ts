@@ -2,6 +2,7 @@ export { MockOperatorPlatformGateway } from "./mock/MockOperatorPlatformGateway.
 export type {
   MockOcpScenario,
   MockAgentStatusChangeScenario,
+  MockOcpReconnectScenario,
   MockOperatorPlatformGatewayOptions,
 } from "./mock/MockOperatorPlatformGateway.js";
 export { MockTelephonyGateway } from "./mock/MockTelephonyGateway.js";
@@ -9,6 +10,7 @@ export type {
   MockDtmfScenario,
   MockHoldScenario,
   MockMakeCallScenario,
+  MockReconnectScenario,
   MockResumeScenario,
   MockTelephonyGatewayOptions,
   MockTelephonyScenario,

@@ -21,6 +21,7 @@ import type { Result } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
 
 export type MockTelephonyScenario = "success" | "failure";
+export type MockReconnectScenario = "success" | "failure";
 export type MockMakeCallScenario =
   | "connecting"
   | "progress_180"
@@ -40,6 +41,7 @@ export type MockAttendedTransferScenario = "success" | "failure";
 
 export type MockTelephonyGatewayOptions = Readonly<{
   registrationScenario?: MockTelephonyScenario;
+  reconnectScenario?: MockReconnectScenario;
   makeCallScenario?: MockMakeCallScenario;
   dtmfScenario?: MockDtmfScenario;
   incomingAnswerScenario?: MockIncomingAnswerScenario;
@@ -54,6 +56,7 @@ export type MockTelephonyGatewayOptions = Readonly<{
 
 export class MockTelephonyGateway implements TelephonyGateway {
   private registrationScenario: MockTelephonyScenario;
+  private reconnectScenario: MockReconnectScenario;
   private makeCallScenario: MockMakeCallScenario;
   private dtmfScenario: MockDtmfScenario;
   private incomingAnswerScenario: MockIncomingAnswerScenario;
@@ -102,6 +105,7 @@ export class MockTelephonyGateway implements TelephonyGateway {
   ) {
     if (typeof scenarioOrOptions === "string") {
       this.registrationScenario = scenarioOrOptions;
+      this.reconnectScenario = scenarioOrOptions === "failure" ? "failure" : "success";
       this.makeCallScenario = "answered";
       this.dtmfScenario = "success";
       this.incomingAnswerScenario = "success";
@@ -116,6 +120,7 @@ export class MockTelephonyGateway implements TelephonyGateway {
     }
 
     this.registrationScenario = scenarioOrOptions.registrationScenario ?? "success";
+    this.reconnectScenario = scenarioOrOptions.reconnectScenario ?? "success";
     this.makeCallScenario = scenarioOrOptions.makeCallScenario ?? "answered";
     this.dtmfScenario = scenarioOrOptions.dtmfScenario ?? "success";
     this.incomingAnswerScenario =
@@ -133,6 +138,10 @@ export class MockTelephonyGateway implements TelephonyGateway {
 
   setScenario(scenario: MockTelephonyScenario): void {
     this.registrationScenario = scenario;
+  }
+
+  setReconnectScenario(scenario: MockReconnectScenario): void {
+    this.reconnectScenario = scenario;
   }
 
   setMakeCallScenario(scenario: MockMakeCallScenario): void {
@@ -234,6 +243,22 @@ export class MockTelephonyGateway implements TelephonyGateway {
           "operation_failed",
           `SIP registration failed for ${command.account.username}`,
         ),
+      );
+    }
+
+    this.registered = true;
+    return ok(undefined);
+  }
+
+  async reconnectTransport(correlationId: CorrelationId): Promise<Result<void, PlatformError>> {
+    void correlationId;
+    if (this.delayMs > 0) {
+      await sleep(this.delayMs);
+    }
+
+    if (this.reconnectScenario === "failure") {
+      return err(
+        createPlatformError("operation_failed", "SIP transport reconnect failed"),
       );
     }
 

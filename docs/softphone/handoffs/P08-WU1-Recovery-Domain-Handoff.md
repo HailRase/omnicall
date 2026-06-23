@@ -61,8 +61,8 @@ Every recovery event factory requires `correlationId`. Scheduler/orchestration s
 
 | Item | Legacy | Target WU |
 | --- | --- | --- |
-| Retry scheduler with timer cleanup | LF-008, LF-058 | WU2 |
-| `ConnectionRecoveryOrchestrationService` | — | WU2 |
+| Retry scheduler with timer cleanup | LF-008, LF-058 | WU2 ✓ |
+| `ConnectionRecoveryOrchestrationService` | — | WU2 ✓ |
 | Lost connection overlay React | LF-057 | WU3 |
 | Logout cascade | LF-048 | WU3+ |
 | Manual retry Use Case + menu | LF-009, LF-010 | WU4 |
@@ -85,4 +85,4 @@ Every recovery event factory requires `correlationId`. Scheduler/orchestration s
 npm run test && npm run lint && npm run typecheck
 ```
 
-Baseline 424 → see test output after WU1.
+Baseline 424 → **451 tests** after WU1 (see WU2 handoff for current count).

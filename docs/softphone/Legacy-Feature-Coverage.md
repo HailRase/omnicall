@@ -51,7 +51,7 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-005 | P01 | Telephony | Critical | Auto SIP authorization from WS credentials | `StatusesProvider`, `authorize` | OCP credentials trigger SIP registration through Use Cases. |
 | LF-006 | P01 | Telephony | High | Manual SIP authorization from Account tab | `Account`, `authorize` | SIP-only mode can authorize without OCP. |
 | LF-007 | P01 | Telephony | Critical | SIP registration on SBC | `DisplayProvider`, `initUAConfig` | Registration uses `TelephonyGateway` and emits registration events. |
-| LF-008 | P08 | Telephony | High | Repeat SIP registration after failure | `DisplayProvider`, user config | WU1: `SIP_RECONNECT_POLICY_CONFIG`, `sipRecoveryEvents`, `connectionRecoveryProjection` — see `handoffs/P08-WU1-Recovery-Domain-Handoff.md`. |
+| LF-008 | P08 | Telephony | High | Repeat SIP registration after failure | `DisplayProvider`, user config | WU2: `ConnectionRecoveryOrchestrationService`, `ReconnectScheduler`, `SipReconnect*`, `reconnectTransport` — see `handoffs/P08-WU2-Recovery-Orchestration-Handoff.md`. |
 | LF-009 | P08 | UI | Medium | Re-registration timer UI | `RegisterTimer` | UI displays retry countdown from recovery projection. |
 | LF-010 | P08 | Telephony | Medium | Manual re-registration from menu | `Header`, `UserMenu` | User can trigger re-registration through Use Case. |
 | LF-011 | P01 | UI | High | phoneStatus Online/Offline/DND display | `DisplayProvider` | Status projection shows telephony availability accurately. |
@@ -101,7 +101,7 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-055 | P11 | UI | Medium | Collapse and expand UI | `CollapseButton`, `Display` | Desktop shell supports compact softphone mode. |
 | LF-056 | P11 | UI | Low | Draggable widget | `DraggableButton` | Widget/window drag behavior is predictable in Electron. |
 | LF-057 | P08 | UI | High | Lost WS overlay | `WSConnectionOverlay` | WU1 UX: `P08-Recovery-UX-Design.md`, `connectionRecoveryProjection`; React overlay WU3. |
-| LF-058 | P08 | Operator | High | WS reconnect 6 attempts by 5 seconds | `useWs` | WU1: `OCP_RECONNECT_POLICY_CONFIG` (6×5s + jitter); scheduler WU2. |
+| LF-058 | P08 | Operator | High | WS reconnect 6 attempts by 5 seconds | `useWs` | WU2: `OCP_RECONNECT_POLICY_CONFIG`, `OcpReconnect*`, orchestration + integration test — see `handoffs/P08-WU2-Recovery-Orchestration-Handoff.md`. |
 | LF-059 | P07 | UI | Medium | OCP toast notifications | `NotificationProvider` | WU4: `OcpToastStack`, `ocpNotificationProjection`, `useOcpNotifications` — see `handoffs/P07-WU4-OCP-Sync-Polish-Handoff.md`. |
 | LF-060 | P11 | Settings | Low | Toast position and z-index settings | user config | User config controls notification placement. |
 | LF-061 | P03 | Operator | High | Reject reason selection | `IncomingCallModal` | Reject flow can capture valid break reason. |

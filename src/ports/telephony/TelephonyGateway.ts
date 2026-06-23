@@ -110,4 +110,9 @@ export interface TelephonyGateway {
   setTransportDisconnectedHandler(
     handler: ((notification: TelephonyTransportDisconnectedNotification) => Promise<void>) | null,
   ): () => void;
+  /**
+   * Re-establish SIP transport after disconnect (LF-008).
+   * Real adapter reuses stored registration; mock maps to registrationScenario.
+   */
+  reconnectTransport(correlationId: CorrelationId): Promise<Result<void, PlatformError>>;
 }

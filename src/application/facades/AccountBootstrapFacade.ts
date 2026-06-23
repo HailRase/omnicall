@@ -34,10 +34,13 @@ import type { ProcessOcpInboundMessageOutcome } from "../use-cases/ProcessOcpInb
 import { RespondToCampaignUseCase } from "../use-cases/RespondToCampaignUseCase.js";
 import { SendDlgStopUseCase } from "../use-cases/SendDlgStopUseCase.js";
 import { CallEndDlgStopOrchestrationService } from "../services/CallEndDlgStopOrchestrationService.js";
+import { ConnectionRecoveryOrchestrationService } from "../services/ConnectionRecoveryOrchestrationService.js";
 import { InMemoryAgentStatusReadModel } from "../read-models/InMemoryAgentStatusReadModel.js";
 import { InMemoryOcpCallCorrelationRegistry } from "../read-models/InMemoryOcpCallCorrelationRegistry.js";
 import { InMemoryOcpSyncReadModel } from "../read-models/InMemoryOcpSyncReadModel.js";
 import { MockOcpSyncGateway } from "@adapters/mock/MockOcpSyncGateway.js";
+import { MockOperatorPlatformGateway } from "@adapters/mock/MockOperatorPlatformGateway.js";
+import { MockTelephonyGateway } from "@adapters/mock/MockTelephonyGateway.js";
 import { AgentStatusSyncService } from "../services/AgentStatusSyncService.js";
 import { BreakReasonsSyncService } from "../services/BreakReasonsSyncService.js";
 import { DndAgentStatusOrchestrationService } from "../services/DndAgentStatusOrchestrationService.js";
@@ -106,6 +109,7 @@ export class AccountBootstrapFacade {
   private readonly dndAgentStatusOrchestration: DndAgentStatusOrchestrationService;
   private readonly postCallRejectOrchestration: PostCallRejectOrchestrationService;
   private readonly callEndDlgStopOrchestration: CallEndDlgStopOrchestrationService;
+  private readonly connectionRecoveryOrchestration: ConnectionRecoveryOrchestrationService;
 
   constructor(private readonly deps: AccountBootstrapFacadeDeps) {
     this.eventPublisher = deps.eventPublisher ?? new InMemoryDomainEventBus();
@@ -264,6 +268,15 @@ export class AccountBootstrapFacade {
         notification.correlationId,
       );
     });
+
+    this.connectionRecoveryOrchestration = new ConnectionRecoveryOrchestrationService({
+      telephonyGateway: deps.telephonyGateway,
+      operatorGateway: deps.operatorGateway,
+      eventPublisher: this.eventPublisher,
+      logger: deps.logger,
+    });
+    this.connectionRecoveryOrchestration.bindTransportHandlers();
+    this.connectionRecoveryOrchestration.subscribe(this.eventPublisher);
 
     this.eventPublisher.subscribe((event) => {
       void this.handleAutoRegistration(event);
@@ -546,6 +559,32 @@ export class AccountBootstrapFacade {
       return this.respondToCampaign.execute({ ...base, correlationId });
     }
     return this.respondToCampaign.execute(base);
+  }
+
+  /** Dev/test helper: simulate SIP transport disconnect (LF-008). */
+  async simulateSipTransportDisconnected(
+    correlationId: CorrelationId = createCorrelationId(),
+    reason = "transport_closed",
+  ): Promise<void> {
+    const gateway = this.deps.telephonyGateway;
+    if (gateway instanceof MockTelephonyGateway) {
+      await gateway.simulateTransportDisconnected({ correlationId, reason });
+      return;
+    }
+    throw new Error("simulateSipTransportDisconnected requires MockTelephonyGateway");
+  }
+
+  /** Dev/test helper: simulate OCP WebSocket disconnect (LF-058). */
+  async simulateOcpTransportDisconnected(
+    correlationId: CorrelationId = createCorrelationId(),
+    reason = "transport_closed",
+  ): Promise<void> {
+    const gateway = this.deps.operatorGateway;
+    if (gateway instanceof MockOperatorPlatformGateway) {
+      await gateway.simulateOcpTransportDisconnected({ correlationId, reason });
+      return;
+    }
+    throw new Error("simulateOcpTransportDisconnected requires MockOperatorPlatformGateway");
   }
 
   private async handleAgentStatusSync(event: DomainEvent): Promise<void> {

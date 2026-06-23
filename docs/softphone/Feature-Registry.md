@@ -370,13 +370,16 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Retry behavior uses backoff and jitter (`ReconnectPolicy`).
   - WU1 recovery domain events typed and tested (`OcpDisconnected`, `*Reconnect*`, `ServerTerminateReceived`).
   - `connectionRecoveryProjection` skeleton wired to store; SIP-only OCP fields N/A.
-  - Port disconnect hooks declared on `TelephonyGateway` / `OperatorPlatformGateway` (WU2 wiring).
+  - Port disconnect hooks wired in `ConnectionRecoveryOrchestrationService` (WU2).
+  - `ReconnectScheduler` schedules one-shot retries with cleanup on success/terminal/terminate (WU2).
+  - SIP disconnect → `SipReconnectScheduled` → `reconnectTransport` → `SipReconnectSucceeded` / `SipReconnectFailed` (LF-008).
+  - OCP disconnect → `OcpDisconnected` → 6×5s retry → terminal `reconnect_failed` (LF-058).
   - Recovery flow is observable with correlation IDs.
   - Lost connection overlay UX designed (`P08-Recovery-UX-Design.md`, LF-057); UI WU3.
   - Logout cascade design note for LF-048 (implementation WU3+).
 - Test Coverage:
-  - Unit: `ReconnectPolicy`, recovery events, `connectionRecoveryProjection`
-  - Integration: gateway reconnect simulation (WU2)
+  - Unit: `ReconnectPolicy`, recovery events, `connectionRecoveryProjection`, `ReconnectScheduler`
+  - Integration: `SipRecoveryOrchestration`, `OcpRecoveryOrchestration` (WU2)
   - E2E: deferred until harness exists
 
 ## F-015: OCP Call Synchronization And Campaigns

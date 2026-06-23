@@ -6,6 +6,11 @@ import {
   type OcpAuthResult,
   type OperatorSession,
 } from "@domain/index.js";
+import type { CorrelationId } from "@shared/correlation-id/index.js";
+import { createPlatformError } from "@shared/errors/index.js";
+import { err, ok } from "@shared/result/index.js";
+import type { PlatformError } from "@shared/errors/index.js";
+import type { Result } from "@shared/result/index.js";
 import type {
   ChangeAgentStatusCommand,
   ChangeAgentStatusResult,
@@ -34,8 +39,11 @@ export type MockAgentStatusChangeScenario =
 
 export type MockLogoutScenario = "success" | "rejected" | "network_error";
 
+export type MockOcpReconnectScenario = "success" | "failure";
+
 export type MockOperatorPlatformGatewayOptions = Readonly<{
   scenario?: MockOcpScenario;
+  reconnectScenario?: MockOcpReconnectScenario;
   statusChangeScenario?: MockAgentStatusChangeScenario;
   initialAgentStatus?: AgentStatus;
   breakReasons?: ReadonlyArray<string>;
@@ -61,6 +69,7 @@ const DEFAULT_SIP_CREDENTIALS = {
 
 export class MockOperatorPlatformGateway implements OperatorPlatformGateway {
   private scenario: MockOcpScenario;
+  private reconnectScenario: MockOcpReconnectScenario;
   private statusChangeScenario: MockAgentStatusChangeScenario;
   private postCallStatusScenario: MockAgentStatusChangeScenario;
   private logoutScenario: MockLogoutScenario;
@@ -70,9 +79,13 @@ export class MockOperatorPlatformGateway implements OperatorPlatformGateway {
   private readonly sipCredentials: NonNullable<
     MockOperatorPlatformGatewayOptions["sipCredentials"]
   >;
+  private transportDisconnectedHandler:
+    | ((notification: OcpTransportDisconnectedNotification) => Promise<void>)
+    | null = null;
 
   constructor(options: MockOperatorPlatformGatewayOptions = {}) {
     this.scenario = options.scenario ?? "success";
+    this.reconnectScenario = options.reconnectScenario ?? "success";
     this.statusChangeScenario = options.statusChangeScenario ?? "success";
     this.postCallStatusScenario = options.postCallStatusScenario ?? "success";
     this.logoutScenario = options.logoutScenario ?? "success";
@@ -86,6 +99,10 @@ export class MockOperatorPlatformGateway implements OperatorPlatformGateway {
 
   setScenario(scenario: MockOcpScenario): void {
     this.scenario = scenario;
+  }
+
+  setReconnectScenario(scenario: MockOcpReconnectScenario): void {
+    this.reconnectScenario = scenario;
   }
 
   setStatusChangeScenario(scenario: MockAgentStatusChangeScenario): void {
@@ -251,12 +268,37 @@ export class MockOperatorPlatformGateway implements OperatorPlatformGateway {
     }
   }
 
-  /** P08 WU2: OCP WebSocket disconnect hook — no-op stub until recovery orchestration. */
+  /** P08 WU2: OCP WebSocket disconnect hook for recovery orchestration. */
   setTransportDisconnectedHandler(
     handler: ((notification: OcpTransportDisconnectedNotification) => Promise<void>) | null,
   ): () => void {
-    void handler;
-    return () => undefined;
+    this.transportDisconnectedHandler = handler;
+    return () => {
+      this.transportDisconnectedHandler = null;
+    };
+  }
+
+  async reconnectTransport(correlationId: CorrelationId): Promise<Result<void, PlatformError>> {
+    void correlationId;
+    if (this.delayMs > 0) {
+      await sleep(this.delayMs);
+    }
+
+    if (this.reconnectScenario === "failure") {
+      return err(
+        createPlatformError("operation_failed", "OCP transport reconnect failed"),
+      );
+    }
+
+    return ok(undefined);
+  }
+
+  async simulateOcpTransportDisconnected(
+    notification: OcpTransportDisconnectedNotification,
+  ): Promise<void> {
+    if (this.transportDisconnectedHandler !== null) {
+      await this.transportDisconnectedHandler(notification);
+    }
   }
 }
 
