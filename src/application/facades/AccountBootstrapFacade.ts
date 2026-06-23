@@ -28,7 +28,14 @@ import { CancelTransferUseCase } from "../use-cases/CancelTransferUseCase.js";
 import { ChangeAgentStatusUseCase } from "../use-cases/ChangeAgentStatusUseCase.js";
 import { UpdatePostCallStatusUseCase } from "../use-cases/UpdatePostCallStatusUseCase.js";
 import { LogoutOperatorUseCase } from "../use-cases/LogoutOperatorUseCase.js";
+import { RegisterOcpCallCorrelationUseCase } from "../use-cases/RegisterOcpCallCorrelationUseCase.js";
+import { ProcessOcpInboundMessageUseCase } from "../use-cases/ProcessOcpInboundMessageUseCase.js";
+import type { ProcessOcpInboundMessageOutcome } from "../use-cases/ProcessOcpInboundMessageUseCase.js";
+import { RespondToCampaignUseCase } from "../use-cases/RespondToCampaignUseCase.js";
 import { InMemoryAgentStatusReadModel } from "../read-models/InMemoryAgentStatusReadModel.js";
+import { InMemoryOcpCallCorrelationRegistry } from "../read-models/InMemoryOcpCallCorrelationRegistry.js";
+import { InMemoryOcpSyncReadModel } from "../read-models/InMemoryOcpSyncReadModel.js";
+import { MockOcpSyncGateway } from "@adapters/mock/MockOcpSyncGateway.js";
 import { AgentStatusSyncService } from "../services/AgentStatusSyncService.js";
 import { BreakReasonsSyncService } from "../services/BreakReasonsSyncService.js";
 import { DndAgentStatusOrchestrationService } from "../services/DndAgentStatusOrchestrationService.js";
@@ -38,6 +45,8 @@ import type {
   DomainEventPublisher,
   HostIntegrationGateway,
   Logger,
+  OcpCallCorrelationRegistry,
+  OcpSyncGateway,
   MediaGateway,
   OperatorPlatformGateway,
   SettingsRepository,
@@ -45,7 +54,7 @@ import type {
 } from "@ports/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { CallEngine } from "@application/services/CallEngine.js";
-import { createCallId, type Call, type CallId, type MultiCallSettings } from "@domain/index.js";
+import { createCallId, type Call, type CallId, type CampaignDecision, type MultiCallSettings } from "@domain/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 
 export type AccountBootstrapFacadeDeps = Readonly<{
@@ -54,6 +63,8 @@ export type AccountBootstrapFacadeDeps = Readonly<{
   mediaGateway: MediaGateway;
   settingsRepository: SettingsRepository;
   hostIntegrationGateway?: HostIntegrationGateway;
+  ocpSyncGateway?: OcpSyncGateway;
+  ocpCallCorrelationRegistry?: OcpCallCorrelationRegistry;
   logger: Logger;
   eventPublisher?: DomainEventPublisher;
 }>;
@@ -82,6 +93,9 @@ export class AccountBootstrapFacade {
   readonly changeAgentStatus: ChangeAgentStatusUseCase;
   readonly updatePostCallStatus: UpdatePostCallStatusUseCase;
   readonly logoutOperator: LogoutOperatorUseCase;
+  readonly registerOcpCallCorrelation: RegisterOcpCallCorrelationUseCase;
+  readonly processOcpInboundMessage: ProcessOcpInboundMessageUseCase;
+  readonly respondToCampaign: RespondToCampaignUseCase;
 
   private readonly processedCredentialEvents = new Set<string>();
   private readonly callEngine: CallEngine;
@@ -91,6 +105,29 @@ export class AccountBootstrapFacade {
 
   constructor(private readonly deps: AccountBootstrapFacadeDeps) {
     this.eventPublisher = deps.eventPublisher ?? new InMemoryDomainEventBus();
+    const ocpSyncGateway = deps.ocpSyncGateway ?? new MockOcpSyncGateway();
+    const ocpCallCorrelationRegistry =
+      deps.ocpCallCorrelationRegistry ??
+      new InMemoryOcpCallCorrelationRegistry(this.eventPublisher);
+    const ocpSyncReadModel = new InMemoryOcpSyncReadModel(this.eventPublisher);
+    this.registerOcpCallCorrelation = new RegisterOcpCallCorrelationUseCase(
+      ocpCallCorrelationRegistry,
+      this.eventPublisher,
+      deps.logger,
+    );
+    this.processOcpInboundMessage = new ProcessOcpInboundMessageUseCase(
+      ocpSyncGateway,
+      ocpCallCorrelationRegistry,
+      ocpSyncReadModel,
+      this.eventPublisher,
+      deps.logger,
+    );
+    this.respondToCampaign = new RespondToCampaignUseCase(
+      ocpSyncGateway,
+      ocpSyncReadModel,
+      this.eventPublisher,
+      deps.logger,
+    );
     const agentStatusReadModel = new InMemoryAgentStatusReadModel(this.eventPublisher);
     const agentStatusSync = new AgentStatusSyncService(
       deps.operatorGateway,
@@ -195,6 +232,13 @@ export class AccountBootstrapFacade {
 
     deps.telephonyGateway.setIncomingCallHandler(async (notification) => {
       await this.callEngine.handleIncomingReceived({ notification });
+      if (notification.mainAcallId !== undefined) {
+        this.registerOcpCallCorrelation.execute({
+          callId: notification.callId,
+          mainAcallId: notification.mainAcallId,
+          correlationId: notification.correlationId,
+        });
+      }
     });
     deps.telephonyGateway.setCallEndedHandler(async (notification) => {
       await this.callEngine.handleCallEnded(
@@ -447,6 +491,43 @@ export class AccountBootstrapFacade {
     breakReason?: string,
   ): Promise<Result<Call, PlatformError>> {
     return this.rejectCall(createCallId(callId), breakReason);
+  }
+
+  processOcpInboundMessageRaw(
+    raw: unknown,
+    correlationId?: CorrelationId,
+  ): Result<ProcessOcpInboundMessageOutcome, never> {
+    const input =
+      correlationId === undefined
+        ? { raw }
+        : { raw, correlationId };
+    return this.processOcpInboundMessage.execute(input);
+  }
+
+  respondToCampaignById(
+    campaignId: string,
+    decision: CampaignDecision,
+    callId?: string,
+    correlationId?: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    const base = { campaignId, decision };
+    if (callId !== undefined && correlationId !== undefined) {
+      return this.respondToCampaign.execute({
+        ...base,
+        callId: createCallId(callId),
+        correlationId,
+      });
+    }
+    if (callId !== undefined) {
+      return this.respondToCampaign.execute({
+        ...base,
+        callId: createCallId(callId),
+      });
+    }
+    if (correlationId !== undefined) {
+      return this.respondToCampaign.execute({ ...base, correlationId });
+    }
+    return this.respondToCampaign.execute(base);
   }
 
   private async handleAgentStatusSync(event: DomainEvent): Promise<void> {

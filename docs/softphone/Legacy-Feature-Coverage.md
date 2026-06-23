@@ -80,10 +80,10 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-034 | P02 | Media | Medium | Busy and failed tones | `soundManager` | Failed outgoing calls play normalized failure tones. |
 | LF-035 | P02 | Media | Critical | Remote audio element | `SoftPhone`, `DisplayProvider` | Remote audio is attached by Media service, not UI business logic. |
 | LF-036 | P03 | Telephony | High | Display name from SIP | `parseDisplayName` | SIP display metadata is parsed and projected safely. |
-| LF-037 | P07 | Operator | High | Queue name display | `useQueueInfoListeners` | WU1: `MainAcallId`, `matchQueueInfoToCall`, `QueueInfoReceived`, `queueInfoProjection` — see `handoffs/P07-WU1-OCP-Sync-Domain-Handoff.md`. |
-| LF-038 | P07 | Operator | High | Campaign data on incoming call | `useCampaignEvent`, `IncomingModal` | WU1 design: `P07-OCP-Sync-UX-Design.md`, `OcpInboundMessages` campaign skeleton — UI WU3–WU4. |
-| LF-039 | P07 | UI | High | Non-progressive campaign request modal | `CampaignEventModal` | WU1 design: `P07-OCP-Sync-UX-Design.md` — modal UI WU4. |
-| LF-040 | P07 | Operator | High | Campaign answer or reject update | `CampaignEventModal` -> WS update | Campaign decision sends typed OCP update. |
+| LF-037 | P07 | Operator | High | Queue name display | `useQueueInfoListeners` | WU3: `QueueInfoLabel`, `useIncomingCallShell`, `deriveQueueLabelState` — see `handoffs/P07-WU3-OCP-Sync-UI-Handoff.md`. |
+| LF-038 | P07 | Operator | High | Campaign data on incoming call | `useCampaignEvent`, `IncomingModal` | WU3: campaign context line in `CallerIdentityBlock` — see `handoffs/P07-WU3-OCP-Sync-UI-Handoff.md`. |
+| LF-039 | P07 | UI | High | Non-progressive campaign request modal | `CampaignEventModal` | WU3: `CampaignEventModal.tsx`, `useCampaignActions` — see `handoffs/P07-WU3-OCP-Sync-UI-Handoff.md`. |
+| LF-040 | P07 | Operator | High | Campaign answer or reject update | `CampaignEventModal` -> WS update | WU3: `RespondToCampaignUseCase`, `CampaignEventAnswered` — see `handoffs/P07-WU3-OCP-Sync-UI-Handoff.md`. |
 | LF-041 | P06 | Operator | Critical | Operator status selector | `StatusSelector` | WU4: `StatusSelector.tsx`, `useOperatorStatusActions` — see `handoffs/P06-WU4-Operator-Status-UI-Handoff.md`. |
 | LF-042 | P06 | Operator | Critical | Change status to Ready | `handleChangeToReady` | WU4: `control-change-ready` → `ChangeAgentStatusUseCase` — see WU4 handoff. |
 | LF-043 | P06 | Operator | Critical | Change status to Break with reason | `handleChangeToBreak` | WU4: `BreakReasonPicker` + `ChangeAgentStatusUseCase` — see WU4 handoff. |

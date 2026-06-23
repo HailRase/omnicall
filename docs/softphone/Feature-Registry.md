@@ -384,12 +384,13 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Inputs: OCP queue info, campaign events, reserved states, call lifecycle events
 - Outputs: queue projection, campaign modal state, OCP updates, `dlg_stop`
 - Acceptance Criteria:
-  - Queue and `main_acallid` mapping is exact (WU1: domain rule + `QueueInfoReceived` + `queueInfoProjection`).
-  - Campaign UX exists only when OCP plugin is enabled (WU1: UX design + typed campaign payload skeleton).
-  - `dlg_stop` is sent exactly once for ended or failed calls (WU3+).
+  - Queue and `main_acallid` mapping is exact (WU1: domain rule; WU2: `ProcessOcpInboundMessageUseCase` + correlation registry + `incomingCallProjection.queueInfo`; WU3: `QueueInfoLabel` + `useIncomingCallShell`).
+  - Campaign UX exists only when OCP plugin is enabled (WU3: `CampaignEventModal`, `useCampaignActions`, SIP-only hide).
+  - Campaign accept/reject sends OCP update via gateway before `CampaignEventAnswered` (WU3: `RespondToCampaignUseCase`).
+  - `dlg_stop` is sent exactly once for ended or failed calls (WU4+).
 - Test Coverage:
-  - Unit: OCP message mapping and ID matching (WU1: `MainAcallId`, `parseOcpInboundMessage`, `matchQueueInfoToCall`, `queueInfoProjection`)
-  - Integration: mock OCP gateway (WU1: `MockOcpSyncGateway`; WU2: full sync chain)
+  - Unit: OCP message mapping and ID matching (WU1: domain; WU2: Use Cases, registry, projections; WU3: `RespondToCampaignUseCase`, UI components)
+  - Integration: mock OCP gateway full sync chain (WU2: `OcpQueueInfoSync.integration.test.ts`; WU3: `OcpCampaignSync.integration.test.ts`)
   - E2E: campaign and queue UI with mock OCP (WU4)
 
 ## F-016: Settings And Desktop Shell UX

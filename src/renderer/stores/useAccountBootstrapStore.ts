@@ -51,6 +51,11 @@ import {
   reduceQueueInfoProjection,
   type QueueInfoProjection,
 } from "@application/projections/queueInfoProjection.js";
+import {
+  initialCampaignProjection,
+  reduceCampaignProjection,
+  type CampaignProjection,
+} from "@application/projections/campaignProjection.js";
 type AccountBootstrapStore = Readonly<{
   projection: AccountBootstrapProjection;
   callProjection: CallProjection;
@@ -61,6 +66,7 @@ type AccountBootstrapStore = Readonly<{
   multiLineCallProjection: MultiLineCallProjection;
   operatorStatusProjection: OperatorStatusProjection;
   queueInfoProjection: QueueInfoProjection;
+  campaignProjection: CampaignProjection;
   bindFacade: (facade: AccountBootstrapFacade) => () => void;
   setCallMode: (mode: DialpadMode) => void;
   setIncomingUiState: (uiState: IncomingCallUiState) => void;
@@ -78,6 +84,7 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
   multiLineCallProjection: initialMultiLineCallProjection(),
   operatorStatusProjection: initialOperatorStatusProjection(),
   queueInfoProjection: initialQueueInfoProjection(),
+  campaignProjection: initialCampaignProjection(),
 
   bindFacade: (facade) => {
     void facade.getMultiCallSettings().then((settings) => {
@@ -110,6 +117,10 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
         ),
         queueInfoProjection: reduceQueueInfoProjection(
           state.queueInfoProjection,
+          event,
+        ),
+        campaignProjection: reduceCampaignProjection(
+          state.campaignProjection,
           event,
         ),
       }));

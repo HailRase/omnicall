@@ -1,5 +1,5 @@
 import { useEffect, useRef, type JSX, type KeyboardEvent } from "react";
-import type { IncomingCallUiState } from "@application/index.js";
+import type { IncomingCallUiState, QueueLabelState } from "@application/index.js";
 import { AutoAnswerCountdown } from "./AutoAnswerCountdown.js";
 import { CallerIdentityBlock } from "./CallerIdentityBlock.js";
 import { IncomingCallActions } from "./IncomingCallActions.js";
@@ -10,7 +10,9 @@ export type IncomingCallModalProps = Readonly<{
   visible: boolean;
   callerNumber: string | null;
   displayName: string | null;
-  queueInfo: string | null;
+  queueLabelState: QueueLabelState;
+  queueName: string | null;
+  campaignContextTitle: string | null;
   ringingState: "idle" | "ringing";
   autoAnswerSecondsRemaining: number | null;
   uiState: IncomingCallUiState;
@@ -28,7 +30,9 @@ export function IncomingCallModal({
   visible,
   callerNumber,
   displayName,
-  queueInfo,
+  queueLabelState,
+  queueName,
+  campaignContextTitle,
   ringingState,
   autoAnswerSecondsRemaining,
   uiState,
@@ -103,7 +107,9 @@ export function IncomingCallModal({
       <CallerIdentityBlock
         callerNumber={callerNumber}
         displayName={displayName}
-        queueInfo={queueInfo}
+        queueLabelState={queueLabelState}
+        queueName={queueName}
+        campaignContextTitle={campaignContextTitle}
       />
       <IncomingCallStatusMessage uiState={uiState} />
       <AutoAnswerCountdown secondsRemaining={autoAnswerSecondsRemaining} />

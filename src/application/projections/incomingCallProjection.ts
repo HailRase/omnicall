@@ -21,6 +21,7 @@ export type IncomingCallProjection = Readonly<{
   callerNumber: string | null;
   displayName: string | null;
   queueInfo: string | null;
+  isOcpSyncAvailable: boolean;
   uiState: IncomingCallUiState;
   autoAnswerSecondsRemaining: number | null;
   rejectReasonRequired: boolean;
@@ -35,6 +36,7 @@ export function initialIncomingCallProjection(): IncomingCallProjection {
     callerNumber: null,
     displayName: null,
     queueInfo: null,
+    isOcpSyncAvailable: false,
     uiState: "noIncomingCall",
     autoAnswerSecondsRemaining: null,
     rejectReasonRequired: false,
@@ -48,6 +50,34 @@ export function reduceIncomingCallProjection(
   event: DomainEvent,
 ): IncomingCallProjection {
   switch (event.type) {
+    case "StartupModeResolved": {
+      const resolution = event["resolution"];
+      if (
+        resolution !== undefined &&
+        typeof resolution === "object" &&
+        resolution !== null &&
+        "action" in resolution &&
+        resolution.action === "sip_only_ready"
+      ) {
+        return {
+          ...projection,
+          isOcpSyncAvailable: false,
+          queueInfo: null,
+        };
+      }
+      return projection;
+    }
+    case "OcpAuthenticationSucceeded":
+      return {
+        ...projection,
+        isOcpSyncAvailable: true,
+      };
+    case "OcpAuthenticationFailed":
+      return {
+        ...projection,
+        isOcpSyncAvailable: false,
+        queueInfo: null,
+      };
     case "IncomingCallReceived":
       return {
         ...projection,
@@ -73,8 +103,20 @@ export function reduceIncomingCallProjection(
       return {
         ...projection,
         displayName: asOptionalString(event["displayName"]),
-        uiState: "callerIdentityResolved",
+        uiState: resolveIdentityUiState(projection),
       };
+    case "QueueInfoReceived": {
+      const callId = asOptionalString(event["callId"]);
+      const queueName = asNonEmptyString(event["queueName"]);
+      if (callId === null || queueName === null || projection.callId !== callId) {
+        return projection;
+      }
+      return {
+        ...projection,
+        queueInfo: queueName,
+        uiState: resolveQueueInfoUiState(projection),
+      };
+    }
     case "CallRejectReasonSelected":
       return {
         ...projection,
@@ -145,8 +187,31 @@ export function setIncomingRejectReasonRequired(
   };
 }
 
+function resolveIdentityUiState(projection: IncomingCallProjection): IncomingCallUiState {
+  if (projection.isOcpSyncAvailable && projection.queueInfo === null) {
+    return "queueInfoPending";
+  }
+  return "callerIdentityResolved";
+}
+
+function resolveQueueInfoUiState(
+  projection: IncomingCallProjection,
+): IncomingCallUiState {
+  if (
+    projection.uiState === "autoAnswerCountdown" ||
+    projection.uiState === "incomingRinging"
+  ) {
+    return projection.uiState;
+  }
+  return "callerIdentityResolved";
+}
+
 function asOptionalString(value: unknown): string | null {
   return typeof value === "string" ? value : null;
+}
+
+function asNonEmptyString(value: unknown): string | null {
+  return typeof value === "string" && value.length > 0 ? value : null;
 }
 
 function asOptionalNumber(value: unknown): number | null {

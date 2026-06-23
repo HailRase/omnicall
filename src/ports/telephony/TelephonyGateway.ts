@@ -1,6 +1,7 @@
 import type {
   CallId,
   DtmfTone,
+  MainAcallId,
   PhoneNumber,
   SipAccount,
 } from "@domain/index.js";
@@ -46,6 +47,7 @@ export type TelephonyIncomingCallNotification = Readonly<{
   callId: CallId;
   remoteNumber: string;
   remoteDisplayNameRaw?: string;
+  mainAcallId?: MainAcallId;
   correlationId: CorrelationId;
 }>;
 

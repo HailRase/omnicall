@@ -137,6 +137,19 @@ export type {
   QueueInfoDomainEvent,
 } from "./operator/events/queueInfoEvents.js";
 export { createQueueInfoReceivedEvent } from "./operator/events/queueInfoEvents.js";
+export type {
+  OcpCallCorrelationRegisteredEvent,
+} from "./operator/events/ocpCallCorrelationEvents.js";
+export { createOcpCallCorrelationRegisteredEvent } from "./operator/events/ocpCallCorrelationEvents.js";
+export type {
+  CampaignEventReceivedEvent,
+  CampaignEventAnsweredEvent,
+  CampaignDecision,
+} from "./operator/events/campaignEvents.js";
+export {
+  createCampaignEventReceivedEvent,
+  createCampaignEventAnsweredEvent,
+} from "./operator/events/campaignEvents.js";
 export type { AgentStatusChangeTrigger } from "./operator/AgentBreakReasonPolicy.js";
 export {
   isAgentBreakReasonRequired,

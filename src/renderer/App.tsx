@@ -15,9 +15,12 @@ import { Dialpad } from "./components/dialpad/Dialpad.js";
 import { OutgoingCallCard } from "./components/call/OutgoingCallCard.js";
 import { ActiveCallControlsPanel } from "./components/call/ActiveCallControlsPanel.js";
 import { IncomingCallModal } from "./components/call/IncomingCallModal.js";
+import { CampaignEventModal } from "./components/call/CampaignEventModal.js";
 import { MultiCallHoldAllIndicator } from "./components/call/MultiCallHoldAllIndicator.js";
 import { TransferPanel } from "./components/call/TransferPanel.js";
 import { useTransferActions, useTransferPanelShell } from "./hooks/useTransferActions.js";
+import { useIncomingCallShell } from "./hooks/useIncomingCallShell.js";
+import { useCampaignActions } from "./hooks/useCampaignActions.js";
 import { StatusSelector } from "./components/status/StatusSelector.js";
 import { StatusTimer } from "./components/status/StatusTimer.js";
 import { LogoutReasonModal } from "./components/status/LogoutReasonModal.js";
@@ -32,6 +35,12 @@ export function App(): JSX.Element {
   );
   const incomingCallProjection = useAccountBootstrapStore(
     (state) => state.incomingCallProjection,
+  );
+  const queueInfoProjection = useAccountBootstrapStore(
+    (state) => state.queueInfoProjection,
+  );
+  const campaignProjection = useAccountBootstrapStore(
+    (state) => state.campaignProjection,
   );
   const multiCallProjection = useAccountBootstrapStore(
     (state) => state.multiCallProjection,
@@ -78,6 +87,19 @@ export function App(): JSX.Element {
     isOcpMode: projection.isOcpMode,
     setIncomingUiState,
     setIncomingRejectReasonRequired,
+  });
+
+  const incomingCallShell = useIncomingCallShell({
+    isOcpMode: projection.isOcpMode,
+    incomingCallProjection,
+    queueInfoProjection,
+  });
+
+  const campaignActions = useCampaignActions({
+    facade,
+    isOcpMode: projection.isOcpMode,
+    incomingCallProjection,
+    campaignProjection,
   });
 
   const transferPanelShell = useTransferPanelShell({
@@ -273,7 +295,9 @@ export function App(): JSX.Element {
                 visible={incomingCallProjection.visible}
                 callerNumber={incomingCallProjection.callerNumber}
                 displayName={incomingCallProjection.displayName}
-                queueInfo={incomingCallProjection.queueInfo}
+                queueLabelState={incomingCallShell.queueLabelState}
+                queueName={incomingCallShell.queueName}
+                campaignContextTitle={campaignActions.campaignContextTitle}
                 ringingState={incomingCallProjection.ringingIndicator}
                 autoAnswerSecondsRemaining={
                   incomingCallProjection.autoAnswerSecondsRemaining
@@ -289,6 +313,18 @@ export function App(): JSX.Element {
                 onSelectBreakReason={(reason) => {
                   setIncomingBreakReason(reason);
                 }}
+              />
+
+              <CampaignEventModal
+                open={campaignActions.modalOpen}
+                title={campaignActions.modalTitle}
+                progressive={campaignActions.progressive}
+                acceptDisabledReason={campaignActions.acceptDisabledReason}
+                rejectDisabledReason={campaignActions.rejectDisabledReason}
+                responseError={campaignActions.responseError}
+                onAccept={campaignActions.handleAccept}
+                onReject={campaignActions.handleReject}
+                onClose={campaignActions.handleCloseModal}
               />
             </div>
           )}

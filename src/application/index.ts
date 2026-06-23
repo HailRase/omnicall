@@ -126,6 +126,21 @@ export {
   type QueueInfoProjection,
   type QueueLabelState,
 } from "./projections/queueInfoProjection.js";
+export {
+  initialCampaignProjection,
+  reduceCampaignProjection,
+  getCampaignForCall,
+  deriveCampaignContextState,
+  type CampaignProjection,
+  type CampaignContext,
+  type CampaignContextState,
+} from "./projections/campaignProjection.js";
+export { RegisterOcpCallCorrelationUseCase } from "./use-cases/RegisterOcpCallCorrelationUseCase.js";
+export { ProcessOcpInboundMessageUseCase } from "./use-cases/ProcessOcpInboundMessageUseCase.js";
+export type { ProcessOcpInboundMessageOutcome } from "./use-cases/ProcessOcpInboundMessageUseCase.js";
+export { RespondToCampaignUseCase } from "./use-cases/RespondToCampaignUseCase.js";
+export { InMemoryOcpCallCorrelationRegistry } from "./read-models/InMemoryOcpCallCorrelationRegistry.js";
+export { InMemoryOcpSyncReadModel } from "./read-models/InMemoryOcpSyncReadModel.js";
 export { deriveOperatorStatusDisabledReason } from "./projections/deriveOperatorStatusDisabledReason.js";
 export { AgentStatusValidationService } from "./services/AgentStatusValidationService.js";
 export { AgentStatusSyncService } from "./services/AgentStatusSyncService.js";

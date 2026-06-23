@@ -26,3 +26,11 @@ export { parseDisplayName } from "./telephony/parseDisplayName.js";
 export { InMemorySettingsRepository } from "./settings/InMemorySettingsRepository.js";
 export { InMemorySettingsRepository as MockSettingsRepository } from "./settings/InMemorySettingsRepository.js";
 export type { InMemorySettingsState } from "./settings/InMemorySettingsRepository.js";
+export { MockOcpSyncGateway } from "./mock/MockOcpSyncGateway.js";
+export type { MockOcpSyncScenario, MockOcpCampaignRespondScenario } from "./mock/MockOcpSyncGateway.js";
+export {
+  createSampleOcpQueueInfoRawMessage,
+  createSampleOcpCampaignEventRawMessage,
+  SAMPLE_OCP_QUEUE_INFO_MESSAGE,
+  SAMPLE_OCP_CAMPAIGN_EVENT_MESSAGE,
+} from "./mock/MockOcpSyncGateway.js";
