@@ -52,6 +52,7 @@ export function useAccountBootstrap(): Readonly<{
     return () => {
       cancelled = true;
       unsubscribe();
+      facade.dispose();
     };
   }, [bindFacade, facade]);
 

@@ -20,6 +20,10 @@ export type {
   AgentStatusReadModelSnapshot,
 } from "./operator/AgentStatusReadModel.js";
 export type {
+  ConnectionRecoveryReadModel,
+  ConnectionRecoveryReadModelSnapshot,
+} from "./operator/ConnectionRecoveryReadModel.js";
+export type {
   MediaGateway,
   AttachRemoteAudioCommand,
   PlayIncomingRingtoneCommand,

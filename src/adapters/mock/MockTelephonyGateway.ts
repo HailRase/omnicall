@@ -87,6 +87,7 @@ export class MockTelephonyGateway implements TelephonyGateway {
     sipCode?: number;
     reason?: string;
   }> = [];
+  private readonly unregisterInvocations: CorrelationId[] = [];
   private incomingCallHandler:
     | ((notification: TelephonyIncomingCallNotification) => Promise<void>)
     | null = null;
@@ -267,9 +268,13 @@ export class MockTelephonyGateway implements TelephonyGateway {
   }
 
   unregister(correlationId: CorrelationId): Promise<Result<void, PlatformError>> {
-    void correlationId;
+    this.unregisterInvocations.push(correlationId);
     this.registered = false;
     return Promise.resolve(ok(undefined));
+  }
+
+  getUnregisterInvocations(): ReadonlyArray<CorrelationId> {
+    return this.unregisterInvocations;
   }
 
   async makeCall(command: MakeCallCommand): Promise<Result<{

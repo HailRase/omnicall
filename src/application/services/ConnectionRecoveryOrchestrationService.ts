@@ -13,6 +13,7 @@ import {
   type RandomSource,
   type ReconnectPolicyConfig,
 } from "@domain/shared/recovery/ReconnectPolicy.js";
+import { createManualReconnectRequestedEvent } from "@domain/shared/recovery/manualRecoveryEvents.js";
 import {
   createSipReconnectFailedEvent,
   createSipReconnectScheduledEvent,
@@ -34,6 +35,7 @@ import {
 const FEATURE_ID = "F-014";
 
 type RecoveryChannel = "sip" | "ocp";
+type ManualRetryChannel = RecoveryChannel | "both";
 
 type RecoverySession = Readonly<{
   correlationId: CorrelationId;
@@ -107,6 +109,42 @@ export class ConnectionRecoveryOrchestrationService {
 
   getScheduler(): ReconnectScheduler {
     return this.scheduler;
+  }
+
+  async requestManualRetry(
+    channel: ManualRetryChannel,
+    correlationId: CorrelationId,
+  ): Promise<void> {
+    const channels = resolveManualRetryChannels(channel);
+
+    for (const targetChannel of channels) {
+      if (targetChannel === "ocp" && !this.ocpModeEnabled) {
+        continue;
+      }
+
+      this.clearChannel(targetChannel);
+
+      this.deps.eventPublisher.publish(
+        createManualReconnectRequestedEvent(correlationId, { channel: targetChannel }),
+      );
+
+      this.deps.logger.info("manual_reconnect_requested", {
+        correlationId,
+        featureId: FEATURE_ID,
+        boundedContext: targetChannel === "sip" ? "Telephony" : "Operator",
+        operation: "manual_reconnect_requested",
+        channel: targetChannel,
+        attemptNumber: 1,
+      });
+
+      this.setSession(targetChannel, {
+        correlationId,
+        nextAttemptNumber: 1,
+        timerHandle: null,
+      });
+
+      await this.executeReconnectAttempt(targetChannel, 1);
+    }
   }
 
   private handleDomainEvent(event: DomainEvent): void {
@@ -408,6 +446,15 @@ export class ConnectionRecoveryOrchestrationService {
   private getPolicy(channel: RecoveryChannel): ReconnectPolicyConfig {
     return channel === "sip" ? this.sipPolicy : this.ocpPolicy;
   }
+}
+
+function resolveManualRetryChannels(
+  channel: ManualRetryChannel,
+): ReadonlyArray<RecoveryChannel> {
+  if (channel === "both") {
+    return ["sip", "ocp"];
+  }
+  return [channel];
 }
 
 function mapOcpDisconnectReason(

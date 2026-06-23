@@ -13,6 +13,7 @@ import {
   createSipReconnectScheduledEvent,
   createSipReconnectSucceededEvent,
 } from "@domain/telephony/events/sipRecoveryEvents.js";
+import { createManualReconnectRequestedEvent } from "@domain/shared/recovery/manualRecoveryEvents.js";
 import {
   initialConnectionRecoveryProjection,
   reduceConnectionRecoveryProjection,
@@ -115,7 +116,7 @@ describe("connectionRecoveryProjection", () => {
       }),
     );
 
-    expect(projection.connectionState).toBe("reconnect_failed");
+    expect(projection.connectionState).toBe("manual_retry_available");
     expect(projection.lastFailureReason).toBe("max_attempts");
   });
 
@@ -147,8 +148,27 @@ describe("connectionRecoveryProjection", () => {
       }),
     );
 
-    expect(projection.connectionState).toBe("reconnect_failed");
+    expect(projection.connectionState).toBe("manual_retry_available");
     expect(projection.sipReconnectAttempt).toBe(10);
+  });
+
+  it("enters reconnecting on ManualReconnectRequested", () => {
+    let projection = reduceConnectionRecoveryProjection(
+      initialConnectionRecoveryProjection(),
+      createSipReconnectFailedEvent(correlationId, {
+        attemptNumber: 10,
+        reason: "registration_timeout",
+        isTerminal: true,
+      }),
+    );
+
+    projection = reduceConnectionRecoveryProjection(
+      projection,
+      createManualReconnectRequestedEvent(correlationId, { channel: "sip" }),
+    );
+
+    expect(projection.connectionState).toBe("reconnecting");
+    expect(projection.sipReconnectAttempt).toBe(1);
   });
 
   it("sets sip_disconnected on RegistrationFailed", () => {

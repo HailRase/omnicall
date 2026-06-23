@@ -195,6 +195,16 @@ export type {
   ServerTerminateReceivedEvent,
 } from "./operator/events/serverTerminateEvents.js";
 export { createServerTerminateReceivedEvent } from "./operator/events/serverTerminateEvents.js";
+export type {
+  ManualReconnectChannel,
+  ManualReconnectRequestedEvent,
+} from "./shared/recovery/manualRecoveryEvents.js";
+export { createManualReconnectRequestedEvent } from "./shared/recovery/manualRecoveryEvents.js";
+export type {
+  AppShutdownSource,
+  AppShutdownRequestedEvent,
+} from "./platform/appLifecycleEvents.js";
+export { createAppShutdownRequestedEvent } from "./platform/appLifecycleEvents.js";
 export type { AgentStatusChangeTrigger } from "./operator/AgentBreakReasonPolicy.js";
 export {
   isAgentBreakReasonRequired,

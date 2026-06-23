@@ -20,6 +20,7 @@ export type ConnectionOverlayProps = Readonly<{
   reconnectCountdownSeconds: number | null;
   lastFailureReason: string | null;
   retryDisabledReason: string | null;
+  safeLogoutDisabledReason?: string | null;
   onManualRetry?: () => void;
   onSafeLogout?: () => void;
 }>;
@@ -41,6 +42,7 @@ export function ConnectionOverlay({
   reconnectCountdownSeconds,
   lastFailureReason,
   retryDisabledReason,
+  safeLogoutDisabledReason = "Safe logout not available",
   onManualRetry,
   onSafeLogout,
 }: ConnectionOverlayProps): JSX.Element | null {
@@ -141,8 +143,8 @@ export function ConnectionOverlay({
             type="button"
             data-testid="control-safe-logout"
             aria-label="Safe logout"
-            disabled
-            title="Safe logout will be available in a future update"
+            disabled={safeLogoutDisabledReason !== null}
+            title={safeLogoutDisabledReason ?? undefined}
             onClick={() => {
               onSafeLogout();
             }}

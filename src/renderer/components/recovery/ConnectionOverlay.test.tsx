@@ -78,6 +78,24 @@ describe("ConnectionOverlay", () => {
     expect(screen.getByTestId("connection-channel-sip")).toBeInTheDocument();
   });
 
+  it("renders enabled retry when manual retry is available", () => {
+    const onManualRetry = vi.fn();
+
+    render(
+      <ConnectionOverlay
+        {...baseProps}
+        connectionState="manual_retry_available"
+        retryDisabledReason={null}
+        onManualRetry={onManualRetry}
+      />,
+    );
+
+    const retryButton = screen.getByTestId("control-retry-connection");
+    expect(retryButton).toBeEnabled();
+    retryButton.click();
+    expect(onManualRetry).toHaveBeenCalledTimes(1);
+  });
+
   it("renders non-dismissable server terminate copy", () => {
     render(
       <ConnectionOverlay
@@ -86,11 +104,14 @@ describe("ConnectionOverlay", () => {
         isBlocking
         lastFailureReason="session_revoked"
         retryDisabledReason="Session ended by server"
+        safeLogoutDisabledReason={null}
+        onSafeLogout={vi.fn()}
       />,
     );
 
     expect(screen.getByTestId("connection-server-terminate")).toBeInTheDocument();
     expect(screen.getByTestId("control-retry-connection")).toBeDisabled();
+    expect(screen.getByTestId("control-safe-logout")).toBeEnabled();
     expect(screen.getByRole("alertdialog")).toBeInTheDocument();
   });
 

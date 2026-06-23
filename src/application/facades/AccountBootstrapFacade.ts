@@ -28,6 +28,9 @@ import { CancelTransferUseCase } from "../use-cases/CancelTransferUseCase.js";
 import { ChangeAgentStatusUseCase } from "../use-cases/ChangeAgentStatusUseCase.js";
 import { UpdatePostCallStatusUseCase } from "../use-cases/UpdatePostCallStatusUseCase.js";
 import { LogoutOperatorUseCase } from "../use-cases/LogoutOperatorUseCase.js";
+import { SafeLogoutUseCase } from "../use-cases/SafeLogoutUseCase.js";
+import { RetryConnectionUseCase } from "../use-cases/RetryConnectionUseCase.js";
+import { ShutdownCleanupUseCase } from "../use-cases/ShutdownCleanupUseCase.js";
 import { RegisterOcpCallCorrelationUseCase } from "../use-cases/RegisterOcpCallCorrelationUseCase.js";
 import { ProcessOcpInboundMessageUseCase } from "../use-cases/ProcessOcpInboundMessageUseCase.js";
 import type { ProcessOcpInboundMessageOutcome } from "../use-cases/ProcessOcpInboundMessageUseCase.js";
@@ -35,7 +38,9 @@ import { RespondToCampaignUseCase } from "../use-cases/RespondToCampaignUseCase.
 import { SendDlgStopUseCase } from "../use-cases/SendDlgStopUseCase.js";
 import { CallEndDlgStopOrchestrationService } from "../services/CallEndDlgStopOrchestrationService.js";
 import { ConnectionRecoveryOrchestrationService } from "../services/ConnectionRecoveryOrchestrationService.js";
+import { ServerTerminateCleanupService } from "../services/ServerTerminateCleanupService.js";
 import { InMemoryAgentStatusReadModel } from "../read-models/InMemoryAgentStatusReadModel.js";
+import { InMemoryConnectionRecoveryReadModel } from "../read-models/InMemoryConnectionRecoveryReadModel.js";
 import { InMemoryOcpCallCorrelationRegistry } from "../read-models/InMemoryOcpCallCorrelationRegistry.js";
 import { InMemoryOcpSyncReadModel } from "../read-models/InMemoryOcpSyncReadModel.js";
 import { MockOcpSyncGateway, createSampleOcpServerTerminateRawMessage } from "@adapters/mock/MockOcpSyncGateway.js";
@@ -98,6 +103,9 @@ export class AccountBootstrapFacade {
   readonly changeAgentStatus: ChangeAgentStatusUseCase;
   readonly updatePostCallStatus: UpdatePostCallStatusUseCase;
   readonly logoutOperator: LogoutOperatorUseCase;
+  readonly retryConnection: RetryConnectionUseCase;
+  readonly safeLogout: SafeLogoutUseCase;
+  readonly shutdownCleanup: ShutdownCleanupUseCase;
   readonly registerOcpCallCorrelation: RegisterOcpCallCorrelationUseCase;
   readonly processOcpInboundMessage: ProcessOcpInboundMessageUseCase;
   readonly respondToCampaign: RespondToCampaignUseCase;
@@ -110,6 +118,7 @@ export class AccountBootstrapFacade {
   private readonly postCallRejectOrchestration: PostCallRejectOrchestrationService;
   private readonly callEndDlgStopOrchestration: CallEndDlgStopOrchestrationService;
   private readonly connectionRecoveryOrchestration: ConnectionRecoveryOrchestrationService;
+  private readonly serverTerminateCleanup: ServerTerminateCleanupService;
 
   constructor(private readonly deps: AccountBootstrapFacadeDeps) {
     this.eventPublisher = deps.eventPublisher ?? new InMemoryDomainEventBus();
@@ -151,6 +160,9 @@ export class AccountBootstrapFacade {
       deps.logger,
     );
     const agentStatusReadModel = new InMemoryAgentStatusReadModel(this.eventPublisher);
+    const connectionRecoveryReadModel = new InMemoryConnectionRecoveryReadModel(
+      this.eventPublisher,
+    );
     const agentStatusSync = new AgentStatusSyncService(
       deps.operatorGateway,
       this.eventPublisher,
@@ -277,6 +289,38 @@ export class AccountBootstrapFacade {
     });
     this.connectionRecoveryOrchestration.bindTransportHandlers();
     this.connectionRecoveryOrchestration.subscribe(this.eventPublisher);
+
+    this.retryConnection = new RetryConnectionUseCase(
+      connectionRecoveryReadModel,
+      this.connectionRecoveryOrchestration,
+      deps.logger,
+    );
+    this.safeLogout = new SafeLogoutUseCase(
+      this.callEngine,
+      deps.telephonyGateway,
+      deps.operatorGateway,
+      agentStatusReadModel,
+      this.eventPublisher,
+      deps.logger,
+    );
+    this.shutdownCleanup = new ShutdownCleanupUseCase(
+      this.callEngine,
+      deps.telephonyGateway,
+      deps.operatorGateway,
+      agentStatusReadModel,
+      this.connectionRecoveryOrchestration,
+      this.eventPublisher,
+      deps.logger,
+    );
+    this.serverTerminateCleanup = new ServerTerminateCleanupService({
+      callEngine: this.callEngine,
+      telephonyGateway: deps.telephonyGateway,
+      operatorGateway: deps.operatorGateway,
+      agentStatusReadModel,
+      connectionRecoveryOrchestration: this.connectionRecoveryOrchestration,
+      logger: deps.logger,
+    });
+    this.serverTerminateCleanup.subscribe(this.eventPublisher);
 
     if (deps.operatorGateway instanceof MockOperatorPlatformGateway) {
       deps.operatorGateway.setInboundRawHandler((raw, correlationId) => {
@@ -607,6 +651,10 @@ export class AccountBootstrapFacade {
 
   getReconnectScheduler() {
     return this.connectionRecoveryOrchestration.getScheduler();
+  }
+
+  dispose(): void {
+    this.connectionRecoveryOrchestration.dispose();
   }
 
   private async handleAgentStatusSync(event: DomainEvent): Promise<void> {

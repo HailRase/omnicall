@@ -84,7 +84,7 @@ describe("OcpRecoveryOrchestration integration", () => {
       );
     }
 
-    expect(projection.connectionState).toBe("reconnect_failed");
+    expect(projection.connectionState).toBe("manual_retry_available");
     expect(projection.ocpReconnectAttempt).toBe(OCP_RECONNECT_POLICY_CONFIG.maxAttempts);
 
     const scheduledCount = published.filter(

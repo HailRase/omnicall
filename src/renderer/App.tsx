@@ -28,6 +28,8 @@ import { StatusTimer } from "./components/status/StatusTimer.js";
 import { LogoutReasonModal } from "./components/status/LogoutReasonModal.js";
 import { useOperatorStatusActions } from "./hooks/useOperatorStatusActions.js";
 import { useConnectionRecoveryShell } from "./hooks/useConnectionRecoveryShell.js";
+import { useConnectionRecoveryActions } from "./hooks/useConnectionRecoveryActions.js";
+import { useAppShutdown } from "./hooks/useAppShutdown.js";
 import { ConnectionOverlay } from "./components/recovery/ConnectionOverlay.js";
 
 export function App(): JSX.Element {
@@ -151,12 +153,31 @@ export function App(): JSX.Element {
   });
 
   const connectionRecoveryShell = useConnectionRecoveryShell(connectionRecoveryProjection);
+  const connectionRecoveryActions = useConnectionRecoveryActions({
+    facade,
+    projection: connectionRecoveryProjection,
+  });
+
+  useAppShutdown({ facade });
 
   return (
     <main className="shell" data-testid="softphone-shell">
       <header className="shell__header">
         <h1 className="shell__title">Enterprise Softphone</h1>
         <p className="shell__subtitle">Authorization &amp; Account Bootstrap</p>
+        {connectionRecoveryShell.showReregisterSipControl && (
+          <button
+            type="button"
+            className="shell__reregister"
+            data-testid="control-reregister-sip"
+            aria-label="Re-register SIP"
+            disabled={connectionRecoveryShell.reregisterDisabledReason !== null}
+            title={connectionRecoveryShell.reregisterDisabledReason ?? undefined}
+            onClick={connectionRecoveryActions.onReregisterSip}
+          >
+            Re-register SIP
+          </button>
+        )}
       </header>
 
       {status === "loading" && (
@@ -189,6 +210,9 @@ export function App(): JSX.Element {
               reconnectCountdownSeconds={connectionRecoveryShell.reconnectCountdownSeconds}
               lastFailureReason={connectionRecoveryShell.lastFailureReason}
               retryDisabledReason={connectionRecoveryShell.retryDisabledReason}
+              safeLogoutDisabledReason={connectionRecoveryShell.safeLogoutDisabledReason}
+              onManualRetry={connectionRecoveryActions.onManualRetry}
+              onSafeLogout={connectionRecoveryActions.onSafeLogout}
             />
           )}
 

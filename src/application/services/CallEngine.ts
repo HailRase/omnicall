@@ -256,4 +256,27 @@ export class CallEngine {
   ): Promise<Result<void, ReturnType<typeof createPlatformError>>> {
     return this.transferCallControlService.cancelTransfer(input);
   }
+
+  async hangupAllCalls(correlationId: CorrelationId): Promise<void> {
+    const callIds = new Set<CallId>();
+
+    for (const call of this.callTracker.getAllTrackedCalls()) {
+      if (call.state !== "Ended" && call.state !== "Failed") {
+        callIds.add(call.id);
+      }
+    }
+
+    const incomingCall = this.callTracker.getActiveIncomingCall();
+    if (
+      incomingCall !== null &&
+      incomingCall.state !== "Ended" &&
+      incomingCall.state !== "Failed"
+    ) {
+      callIds.add(incomingCall.id);
+    }
+
+    for (const callId of callIds) {
+      await this.hangupCall({ callId, correlationId });
+    }
+  }
 }

@@ -10,6 +10,7 @@ import {
   createOcpReconnectScheduledEvent,
 } from "@domain/operator/events/ocpRecoveryEvents.js";
 import {
+  createSipReconnectFailedEvent,
   createSipReconnectScheduledEvent,
 } from "@domain/telephony/events/sipRecoveryEvents.js";
 
@@ -78,5 +79,28 @@ describe("deriveConnectionRecoveryShell", () => {
     expect(shell.showOcpRow).toBe(true);
     expect(shell.showSipRow).toBe(false);
     expect(shell.retryDisabledReason).toBe("Automatic reconnect in progress");
+  });
+
+  it("enables retry when manual_retry_available", () => {
+    let projection = reduceConnectionRecoveryProjection(initialConnectionRecoveryProjection(), {
+      type: "RegistrationFailed",
+      correlationId,
+      occurredAt: new Date().toISOString(),
+      accountId: "acc-1",
+      reason: "transport_closed",
+    });
+    projection = reduceConnectionRecoveryProjection(
+      projection,
+      createSipReconnectFailedEvent(correlationId, {
+        attemptNumber: 10,
+        reason: "registration_timeout",
+        isTerminal: true,
+      }),
+    );
+
+    const shell = deriveConnectionRecoveryShell(projection);
+    expect(shell.retryDisabledReason).toBeNull();
+    expect(shell.showReregisterSipControl).toBe(true);
+    expect(shell.reregisterDisabledReason).toBeNull();
   });
 });

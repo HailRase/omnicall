@@ -86,6 +86,7 @@ export class MockOperatorPlatformGateway implements OperatorPlatformGateway {
   private inboundRawHandler:
     | ((raw: unknown, correlationId: CorrelationId) => void)
     | null = null;
+  private readonly logoutInvocations: RequestLogoutCommand[] = [];
 
   constructor(options: MockOperatorPlatformGatewayOptions = {}) {
     this.scenario = options.scenario ?? "success";
@@ -249,7 +250,7 @@ export class MockOperatorPlatformGateway implements OperatorPlatformGateway {
   }
 
   async requestLogout(command: RequestLogoutCommand): Promise<RequestLogoutResult> {
-    void command;
+    this.logoutInvocations.push(command);
     if (this.delayMs > 0) {
       await sleep(this.delayMs);
     }
@@ -270,6 +271,10 @@ export class MockOperatorPlatformGateway implements OperatorPlatformGateway {
           message: "OCP network error during logout",
         };
     }
+  }
+
+  getLogoutInvocations(): ReadonlyArray<RequestLogoutCommand> {
+    return this.logoutInvocations;
   }
 
   /** P08 WU2: OCP WebSocket disconnect hook for recovery orchestration. */

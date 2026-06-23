@@ -78,6 +78,8 @@ export function reduceConnectionRecoveryProjection(
       return applySipReconnectSucceeded(projection);
     case "SipReconnectFailed":
       return applySipReconnectFailed(projection, event);
+    case "ManualReconnectRequested":
+      return applyManualReconnectRequested(projection, event);
     case "ServerTerminateReceived":
       return {
         ...projection,
@@ -157,7 +159,7 @@ function applyOcpReconnectFailed(
   const isTerminal = event["isTerminal"] === true;
   return {
     ...projection,
-    connectionState: isTerminal ? "reconnect_failed" : "ocp_disconnected",
+    connectionState: isTerminal ? "manual_retry_available" : "ocp_disconnected",
     reconnectAttempt: attemptNumber,
     ocpReconnectAttempt: attemptNumber,
     nextRetryAt: null,
@@ -223,11 +225,34 @@ function applySipReconnectFailed(
   const isTerminal = event["isTerminal"] === true;
   return {
     ...projection,
-    connectionState: isTerminal ? "reconnect_failed" : "sip_disconnected",
+    connectionState: isTerminal ? "manual_retry_available" : "sip_disconnected",
     reconnectAttempt: attemptNumber,
     sipReconnectAttempt: attemptNumber,
     nextRetryAt: null,
     lastFailureReason: reason,
+  };
+}
+
+function applyManualReconnectRequested(
+  projection: ConnectionRecoveryProjection,
+  event: DomainEvent,
+): ConnectionRecoveryProjection {
+  const channel = event["channel"];
+  if (channel !== "sip" && channel !== "ocp") {
+    return projection;
+  }
+
+  if (channel === "ocp" && !projection.isOcpMode) {
+    return projection;
+  }
+
+  return {
+    ...projection,
+    connectionState: "reconnecting",
+    reconnectAttempt: 1,
+    nextRetryAt: null,
+    lastFailureReason: null,
+    ...(channel === "sip" ? { sipReconnectAttempt: 1 } : { ocpReconnectAttempt: 1 }),
   };
 }
 
@@ -238,7 +263,8 @@ function applySipConnected(
     projection.isOcpMode &&
     (projection.connectionState === "ocp_disconnected" ||
       projection.connectionState === "reconnecting" ||
-      projection.connectionState === "reconnect_failed");
+      projection.connectionState === "reconnect_failed" ||
+      projection.connectionState === "manual_retry_available");
   if (ocpChannelDown) {
     return {
       ...projection,

@@ -43,6 +43,21 @@ body {
   color: #9aa8bf;
 }
 
+.shell__reregister {
+  margin-top: 12px;
+  padding: 6px 12px;
+  border: 1px solid #3d4f6a;
+  border-radius: 6px;
+  background: #1a2332;
+  color: #e8eef7;
+  cursor: pointer;
+}
+
+.shell__reregister:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .shell__content {
   flex: 1;
 }

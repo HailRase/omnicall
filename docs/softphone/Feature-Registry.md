@@ -361,9 +361,9 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-008`, `LF-009`, `LF-010`, `LF-048`, `LF-049`, `LF-057`, `LF-058`, `LF-079`
 - Context: Telephony
 - Priority: critical
-- Status: in_progress
+- Status: implemented
 - Owner: TBD
-- Inputs: transport disconnects, registration failure, renderer restart
+- Inputs: transport disconnects, registration failure, renderer restart, app close
 - Outputs: recovery events and restored projections
 - Acceptance Criteria:
   - Reconnect policy is explicit with OCP (6×5s LF-058) and SIP backoff presets (LF-008).
@@ -373,15 +373,16 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Port disconnect hooks wired in `ConnectionRecoveryOrchestrationService` (WU2).
   - `ReconnectScheduler` schedules one-shot retries with cleanup on success/terminal/terminate (WU2).
   - SIP disconnect → `SipReconnectScheduled` → `reconnectTransport` → `SipReconnectSucceeded` / `SipReconnectFailed` (LF-008).
-  - OCP disconnect → `OcpDisconnected` → 6×5s retry → terminal `reconnect_failed` (LF-058).
+  - OCP disconnect → `OcpDisconnected` → 6×5s retry → terminal `manual_retry_available` (LF-058).
   - Recovery flow is observable with correlation IDs.
-  - Lost connection overlay renders projection states with channel rows, countdown, disabled retry (LF-057, WU3).
-  - OCP `server_terminate` inbound publishes `ServerTerminateReceived` and stops pending retries (LF-049, WU3).
-  - Logout cascade design note for LF-048 (implementation WU3+).
+  - Lost connection overlay renders projection states with channel rows, countdown, manual retry when available (LF-057, LF-009, WU3–WU4).
+  - OCP `server_terminate` inbound publishes `ServerTerminateReceived`, stops retries, and triggers safe teardown (LF-049, LF-048, WU3–WU4).
+  - Manual retry via `RetryConnectionUseCase` from overlay and shell re-register control (LF-010, WU4).
+  - App shutdown IPC triggers `ShutdownCleanupUseCase` with hangup, unregister, scheduler dispose (LF-079, WU4).
 - Test Coverage:
-  - Unit: `ReconnectPolicy`, recovery events, `connectionRecoveryProjection`, `ReconnectScheduler`, `deriveConnectionRecoveryShell`, `useReconnectCountdown`
-  - Integration: `SipRecoveryOrchestration`, `OcpRecoveryOrchestration`, `ServerTerminate` (WU3)
-  - Component: `ConnectionOverlay` (WU3)
+  - Unit: `ReconnectPolicy`, recovery events, `connectionRecoveryProjection`, `ReconnectScheduler`, `deriveConnectionRecoveryShell`, `useReconnectCountdown`, `RetryConnectionUseCase`, `AppShutdownContract`
+  - Integration: `SipRecoveryOrchestration`, `OcpRecoveryOrchestration`, `ServerTerminate`, `ServerTerminateCleanup`, `ShutdownCleanup` (WU3–WU4)
+  - Component: `ConnectionOverlay` (WU3–WU4)
   - E2E: deferred until harness exists
 
 ## F-015: OCP Call Synchronization And Campaigns

@@ -13,6 +13,9 @@ export type ConnectionRecoveryShellView = Readonly<{
   showOcpRow: boolean;
   showSipRow: boolean;
   retryDisabledReason: string | null;
+  showReregisterSipControl: boolean;
+  reregisterDisabledReason: string | null;
+  safeLogoutDisabledReason: string | null;
   ocpMaxAttempts: number;
   sipMaxAttempts: number;
 }>;
@@ -33,6 +36,9 @@ export function deriveConnectionRecoveryShell(
     showOcpRow: deriveShowOcpRow(projection),
     showSipRow: deriveShowSipRow(projection),
     retryDisabledReason: deriveRetryConnectionDisabledReason(connectionState),
+    showReregisterSipControl: deriveShowReregisterSipControl(connectionState),
+    reregisterDisabledReason: deriveReregisterSipDisabledReason(projection),
+    safeLogoutDisabledReason: deriveSafeLogoutDisabledReason(connectionState),
     ocpMaxAttempts: OCP_RECONNECT_POLICY_CONFIG.maxAttempts,
     sipMaxAttempts: SIP_RECONNECT_POLICY_CONFIG.maxAttempts,
   };
@@ -115,4 +121,44 @@ function deriveRetryConnectionDisabledReason(
   }
 
   return "Manual retry not available yet";
+}
+
+function deriveShowReregisterSipControl(connectionState: ConnectionState): boolean {
+  return (
+    connectionState === "sip_disconnected" ||
+    connectionState === "manual_retry_available" ||
+    connectionState === "reconnect_failed"
+  );
+}
+
+function deriveReregisterSipDisabledReason(
+  projection: ConnectionRecoveryProjection,
+): string | null {
+  const { connectionState } = projection;
+
+  if (connectionState === "manual_retry_available") {
+    return null;
+  }
+
+  if (connectionState === "reconnecting") {
+    return "Automatic reconnect in progress";
+  }
+
+  if (connectionState === "server_terminate") {
+    return "Session ended by server";
+  }
+
+  if (connectionState === "sip_disconnected") {
+    return "Waiting for automatic retry";
+  }
+
+  return "Re-registration not available";
+}
+
+function deriveSafeLogoutDisabledReason(connectionState: ConnectionState): string | null {
+  if (connectionState === "server_terminate") {
+    return null;
+  }
+
+  return "Safe logout not available";
 }

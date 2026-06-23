@@ -52,8 +52,8 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-006 | P01 | Telephony | High | Manual SIP authorization from Account tab | `Account`, `authorize` | SIP-only mode can authorize without OCP. |
 | LF-007 | P01 | Telephony | Critical | SIP registration on SBC | `DisplayProvider`, `initUAConfig` | Registration uses `TelephonyGateway` and emits registration events. |
 | LF-008 | P08 | Telephony | High | Repeat SIP registration after failure | `DisplayProvider`, user config | WU2: `ConnectionRecoveryOrchestrationService`, `ReconnectScheduler`, `SipReconnect*`, `reconnectTransport` — see `handoffs/P08-WU2-Recovery-Orchestration-Handoff.md`. |
-| LF-009 | P08 | UI | Medium | Re-registration timer UI | `RegisterTimer` | UI displays retry countdown from recovery projection. |
-| LF-010 | P08 | Telephony | Medium | Manual re-registration from menu | `Header`, `UserMenu` | User can trigger re-registration through Use Case. |
+| LF-009 | P08 | UI | Medium | Re-registration timer UI | `RegisterTimer` | WU4: `useReconnectCountdown`, `ConnectionOverlay` countdown from `nextRetryAt` (LF-057 parity) — see `handoffs/P08-WU4-Recovery-Manual-Shutdown-Handoff.md`. |
+| LF-010 | P08 | Telephony | Medium | Manual re-registration from menu | `Header`, `UserMenu` | WU4: `RetryConnectionUseCase`, `control-reregister-sip`, `control-retry-connection` — see `handoffs/P08-WU4-Recovery-Manual-Shutdown-Handoff.md`. |
 | LF-011 | P01 | UI | High | phoneStatus Online/Offline/DND display | `DisplayProvider` | Status projection shows telephony availability accurately. |
 | LF-012 | P03 | Media | Critical | Incoming call ringtone | `soundManager`, `newRTCSession` | Incoming call starts ringing through Media service. |
 | LF-013 | P03 | UI | Critical | Incoming call modal | `IncomingCallModal` | Incoming call appears with caller details and actions. |
@@ -91,7 +91,7 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-045 | P06 | Operator | High | Status transition validation | `USER_STATUS_RULES` | WU1/WU2: `AgentStatusTransition` + `ChangeAgentStatusUseCase` — see `handoffs/P06-WU1-Operator-Status-Domain-Handoff.md`. |
 | LF-046 | P06 | UI | Medium | Status duration timer | `StatusTimer` | WU4: `StatusTimer.tsx`, `useOperatorStatusTimer` — see WU4 handoff. |
 | LF-047 | P06 | Operator | High | Logout with reason | `StatusReasonsModal`, `Header` | WU4: `LogoutReasonModal`, `LogoutOperatorUseCase`, `AgentLogoutRequested` — see WU4 handoff. LF-048 cascade P08. |
-| LF-048 | P08 | Operator | Critical | OCP logout cascade | `ocpLogout`, `softphoneLogoutEvent` | WU1 design note in `P08-Recovery-UX-Design.md`; cascade implementation WU3+. |
+| LF-048 | P08 | Operator | Critical | OCP logout cascade | `ocpLogout`, `softphoneLogoutEvent` | WU4: `ServerTerminateCleanupService`, `SafeLogoutUseCase`, `control-safe-logout` — see `handoffs/P08-WU4-Recovery-Manual-Shutdown-Handoff.md`. |
 | LF-049 | P08 | Operator | Critical | Server-side terminate | `useWs entity terminate` | WU3: `parseOcpInboundMessage` server_terminate → `ProcessOcpInboundMessageUseCase` → `ServerTerminateReceived`; overlay `server_terminate`; scheduler stop — see `handoffs/P08-WU3-Recovery-Overlay-Handoff.md`. |
 | LF-050 | P07 | Operator | High | Block call button from OCP RESERVED | `useBlockedCallButton` | OCP reserved state disables calling deterministically. |
 | LF-051 | P12 | Integration | High | External call button block | `setCallButtonDisabled` | Host API can block call button through typed adapter. |
@@ -122,7 +122,7 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-076 | P11 | Settings | High | Auto-answer, RBT, multisession settings | `Common`, `setUserConfig` | User settings affect Use Cases through repositories. |
 | LF-077 | P11 | Settings | High | Per-user config in local storage | `JSSIP_CONFIGS` | Settings persist per account behind repository. |
 | LF-078 | P06 | Settings | Medium | Break reasons from OCP in config | `setBreakReasons` | WU3: `BreakReasonsSyncService`, `BreakReasonsReceived`, `SettingsRepository.setAllowedBreakReasons` — see `handoffs/P06-WU3-Post-Call-Break-Reasons-Handoff.md`. |
-| LF-079 | P08 | Telephony | Critical | beforeunload SIP cleanup | `DisplayProvider` | App shutdown cleans calls and registration safely. |
+| LF-079 | P08 | Telephony | Critical | beforeunload SIP cleanup | `DisplayProvider` | WU4: `ShutdownCleanupUseCase`, IPC `app:before-close`, `useAppShutdown` — see `handoffs/P08-WU4-Recovery-Manual-Shutdown-Handoff.md`. |
 | LF-080 | P12 | Integration | Critical | `window.Softphone` external API | multiple files | One host adapter owns the legacy external API. |
 | LF-081 | P12 | Integration | High | `ocpModule` external status API | `useStatusSelectorAPIAdapter` | Host status API maps to operator Use Cases. |
 | LF-082 | P11 | Settings | Low | Light and dark theme placeholder | `ThemeProvider` | Theme is persisted and applied consistently. |
