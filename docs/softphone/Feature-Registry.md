@@ -130,54 +130,61 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-020`, `LF-025`, `LF-026`, `LF-033`, `LF-034`, `LF-035`
 - Context: Telephony
 - Priority: critical
-- Status: in-progress
+- Status: implemented
 - Owner: TBD
 - Inputs: phone number, make-call command
 - Outputs: `OutgoingCallStarted`, `CallConnecting`, `CallAnswered`, `CallFailed`
 - Acceptance Criteria:
   - Dialpad calls `MakeCallUseCase`.
   - Phone number is validated before adapter invocation.
-  - Other active calls follow explicit hold policy.
+  - Outgoing flow runs through mock `TelephonyGateway` and mock `MediaGateway` with deterministic events/projection updates.
+  - Real JsSIP adapter remains deferred behind `TelephonyGateway` until dedicated adapter task.
 - Test Coverage:
   - Unit: number validation and transitions
-  - Integration: mock gateway call invocation
-  - E2E: Dialpad with mock gateway
+  - Integration: mock gateway make-call progress/answer/failure + media tones
+  - E2E: deferred until dedicated Electron E2E harness exists
 
-## F-004: Hold And Resume
+## F-004: Active Call Hold, Resume, Hangup
 
-- Legacy IDs: `LF-021`, `LF-022`, `LF-023`
+- Legacy IDs: `LF-022`, `LF-027`
 - Context: Telephony
 - Priority: critical
-- Status: planned
+- Status: implemented
 - Owner: TBD
-- Inputs: call ID, hold/resume command
-- Outputs: `CallHeld` or `CallResumed`
+- Inputs: call ID, hold/resume/hangup commands
+- Outputs: `CallHeld`, `CallResumed`, `CallHangupRequested`, `CallEnded`, `ActiveCallControlFailed`
 - Acceptance Criteria:
   - Invalid transitions are impossible.
-  - Hold policy for multiple sessions is explicit.
+  - Commands enter only via `HoldCallUseCase`, `ResumeCallUseCase`, `HangupCallUseCase`.
+  - `CallEngine` logs operation, correlationId, featureId, context, previous/next state, result, normalized error on failure.
+  - Hangup publishes `CallHangupRequested` only after successful gateway hangup; failed hangup keeps call state and projection out of `Ending`.
+  - UI surfaces `ActiveCallControlFailed` via projection with retry action.
   - UI does not inspect raw SIP session state.
 - Test Coverage:
-  - Unit: state machine transitions
-  - Integration: mock gateway hold/resume
-  - E2E: active call controls
+  - Unit: state machine valid/invalid transitions + use case command tests (including `ActiveCallControlFailed` on gateway failure)
+  - Integration: mock telephony hold/resume/hangup success and failure paths
+  - Renderer: `ActiveCallControlsPanel` disabled reasons, error banner, retry, keyboard Enter/Space on enabled control
+  - E2E: deferred until dedicated Electron E2E harness exists
 
 ## F-005: Mute And Unmute
 
-- Legacy IDs: `LF-024`, `LF-073`
+- Legacy IDs: `LF-024`
 - Context: Media
 - Priority: critical
-- Status: planned
+- Status: implemented
 - Owner: TBD
 - Inputs: call ID, mute/unmute command
-- Outputs: `CallMuted` or `CallUnmuted`
+- Outputs: `CallMuted`, `CallUnmuted`, or `ActiveCallControlFailed`
 - Acceptance Criteria:
-  - Media operation is isolated from SIP session objects.
+  - Media operation is isolated from SIP session objects and executed via `MediaGateway`.
+  - Commands enter only via `MuteCallUseCase` and `UnmuteCallUseCase`.
   - Headset LED sync consumes events, not adapter internals.
-  - UI state is a projection.
+  - UI state, disabled reasons, and failure recovery are projection-driven.
 - Test Coverage:
-  - Unit: media state transitions
-  - Integration: media gateway mock
-  - E2E: call controls
+  - Unit: use case and projection mute/unmute transitions (including invalid `ActiveCallControlFailed` operation payload guard)
+  - Integration: mock media mute/unmute success and failure paths
+  - Renderer: error banner and retry via `lastOperationError` projection
+  - E2E: deferred until dedicated Electron E2E harness exists
 
 ## F-006: Blind Transfer
 
@@ -220,7 +227,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-025`
 - Context: Telephony
 - Priority: high
-- Status: in-progress
+- Status: implemented
 - Owner: TBD
 - Inputs: active call ID, tone
 - Outputs: `DtmfSent` or `DtmfFailed`
@@ -228,10 +235,11 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Tone is validated before gateway call.
   - UI cannot call SIP session directly.
   - Errors are observable.
+  - Real JsSIP tone sending remains deferred behind `TelephonyGateway` until dedicated adapter task.
 - Test Coverage:
   - Unit: tone validation
   - Integration: mock gateway DTMF
-  - E2E: dialpad in active call
+  - E2E: deferred until dedicated Electron E2E harness exists
 
 ## F-009: Optional OCP Authentication
 

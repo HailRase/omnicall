@@ -9,6 +9,11 @@ import {
 import { createTestLogger } from "@infrastructure/logging/index.js";
 import type { AppBootstrapConfig } from "@domain/index.js";
 
+/**
+ * - Purpose: compose mock-based AccountBootstrapFacade for dev/renderer bootstrap.
+ * - Inputs: optional bootstrap config and mock adapter scenario overrides.
+ * - Outputs: wired AccountBootstrapFacade ready for initialize().
+ */
 export type CreateAccountBootstrapOptions = Readonly<{
   bootstrapConfig?: AppBootstrapConfig;
   ocpScenario?:
@@ -29,6 +34,9 @@ export type CreateAccountBootstrapOptions = Readonly<{
   dtmfScenario?: "success" | "failure";
   incomingAnswerScenario?: "success" | "failure";
   incomingRejectScenario?: "success" | "failure";
+  holdScenario?: "success" | "failure";
+  resumeScenario?: "success" | "failure";
+  hangupScenario?: "success" | "failure";
   mediaScenario?: "success" | "failure";
 }>;
 
@@ -50,6 +58,9 @@ export function createAccountBootstrap(
     dtmfScenario: options.dtmfScenario ?? "success",
     incomingAnswerScenario: options.incomingAnswerScenario ?? "success",
     incomingRejectScenario: options.incomingRejectScenario ?? "success",
+    holdScenario: options.holdScenario ?? "success",
+    resumeScenario: options.resumeScenario ?? "success",
+    hangupScenario: options.hangupScenario ?? "success",
     delayMs: 200,
   });
   const mediaGateway = new MockMediaGateway(options.mediaScenario ?? "success");

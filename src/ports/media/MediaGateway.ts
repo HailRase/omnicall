@@ -49,6 +49,16 @@ export type StopRingtoneCommand = Readonly<{
   correlationId: CorrelationId;
 }>;
 
+export type MuteCallCommand = Readonly<{
+  callId: CallId;
+  correlationId: CorrelationId;
+}>;
+
+export type UnmuteCallCommand = Readonly<{
+  callId: CallId;
+  correlationId: CorrelationId;
+}>;
+
 export interface MediaGateway {
   attachRemoteAudio(
     command: AttachRemoteAudioCommand,
@@ -70,5 +80,7 @@ export interface MediaGateway {
     command: StopToneCommand,
   ): Promise<Result<void, PlatformError>>;
   stopRingtone(command: StopRingtoneCommand): Promise<Result<void, PlatformError>>;
+  muteCall(command: MuteCallCommand): Promise<Result<void, PlatformError>>;
+  unmuteCall(command: UnmuteCallCommand): Promise<Result<void, PlatformError>>;
 }
 

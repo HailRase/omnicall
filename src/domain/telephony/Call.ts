@@ -19,6 +19,7 @@ export type Call = Readonly<{
   direction: CallDirection;
   phoneNumber: PhoneNumber;
   state: CallState;
+  muted: boolean;
 }>;
 
 export function createOutgoingCall(id: CallId, phoneNumber: PhoneNumber): Call {
@@ -27,6 +28,7 @@ export function createOutgoingCall(id: CallId, phoneNumber: PhoneNumber): Call {
     direction: "outgoing",
     phoneNumber,
     state: initialCallState(),
+    muted: false,
   };
 }
 
@@ -36,6 +38,7 @@ export function createIncomingCall(id: CallId, phoneNumber: PhoneNumber): Call {
     direction: "incoming",
     phoneNumber,
     state: initialCallState(),
+    muted: false,
   };
 }
 
@@ -57,6 +60,20 @@ export function applyCallTransition(
       state: transition.state,
     },
     transition,
+  };
+}
+
+export function setCallMuted(call: Call): Call {
+  return {
+    ...call,
+    muted: true,
+  };
+}
+
+export function setCallUnmuted(call: Call): Call {
+  return {
+    ...call,
+    muted: false,
   };
 }
 

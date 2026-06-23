@@ -13,6 +13,11 @@ import {
   type DialpadMode,
 } from "@application/projections/callProjection.js";
 import {
+  initialActiveCallControlsProjection,
+  reduceActiveCallControlsProjection,
+  type ActiveCallControlsProjection,
+} from "@application/projections/activeCallControlsProjection.js";
+import {
   initialIncomingCallProjection,
   reduceIncomingCallProjection,
   setIncomingCallUiState,
@@ -23,6 +28,7 @@ import {
 type AccountBootstrapStore = Readonly<{
   projection: AccountBootstrapProjection;
   callProjection: CallProjection;
+  activeCallControlsProjection: ActiveCallControlsProjection;
   incomingCallProjection: IncomingCallProjection;
   bindFacade: (facade: AccountBootstrapFacade) => () => void;
   setCallMode: (mode: DialpadMode) => void;
@@ -34,6 +40,7 @@ type AccountBootstrapStore = Readonly<{
 export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => ({
   projection: initialAccountBootstrapProjection(),
   callProjection: initialCallProjection(),
+  activeCallControlsProjection: initialActiveCallControlsProjection(),
   incomingCallProjection: initialIncomingCallProjection(),
 
   bindFacade: (facade) => {
@@ -41,6 +48,10 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
       set((state) => ({
         projection: reduceAccountBootstrapProjection(state.projection, event),
         callProjection: reduceCallProjection(state.callProjection, event),
+        activeCallControlsProjection: reduceActiveCallControlsProjection(
+          state.activeCallControlsProjection,
+          event,
+        ),
         incomingCallProjection: reduceIncomingCallProjection(
           state.incomingCallProjection,
           event,

@@ -13,14 +13,18 @@ export type {
   PlayRingbackToneCommand,
   StopRingtoneCommand,
   StopToneCommand,
+  MuteCallCommand,
+  UnmuteCallCommand,
 } from "./media/MediaGateway.js";
 export type {
   AnswerCallCommand,
   HangupCommand,
+  HoldCallCommand,
   MakeCallCommand,
   MakeCallProgress,
   RegisterAccountCommand,
   RejectCallCommand,
+  ResumeCallCommand,
   SendDtmfCommand,
   TelephonyCallEndedNotification,
   TelephonyIncomingCallNotification,

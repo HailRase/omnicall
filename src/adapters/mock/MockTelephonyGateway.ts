@@ -1,9 +1,11 @@
 import type {
   AnswerCallCommand,
   HangupCommand,
+  HoldCallCommand,
   MakeCallCommand,
   RejectCallCommand,
   RegisterAccountCommand,
+  ResumeCallCommand,
   SendDtmfCommand,
   TelephonyCallEndedNotification,
   TelephonyIncomingCallNotification,
@@ -27,6 +29,9 @@ export type MockMakeCallScenario =
 export type MockDtmfScenario = "success" | "failure";
 export type MockIncomingAnswerScenario = "success" | "failure";
 export type MockIncomingRejectScenario = "success" | "failure";
+export type MockHoldScenario = "success" | "failure";
+export type MockResumeScenario = "success" | "failure";
+export type MockHangupScenario = "success" | "failure";
 
 export type MockTelephonyGatewayOptions = Readonly<{
   registrationScenario?: MockTelephonyScenario;
@@ -34,6 +39,9 @@ export type MockTelephonyGatewayOptions = Readonly<{
   dtmfScenario?: MockDtmfScenario;
   incomingAnswerScenario?: MockIncomingAnswerScenario;
   incomingRejectScenario?: MockIncomingRejectScenario;
+  holdScenario?: MockHoldScenario;
+  resumeScenario?: MockResumeScenario;
+  hangupScenario?: MockHangupScenario;
   delayMs?: number;
 }>;
 
@@ -43,12 +51,17 @@ export class MockTelephonyGateway implements TelephonyGateway {
   private dtmfScenario: MockDtmfScenario;
   private incomingAnswerScenario: MockIncomingAnswerScenario;
   private incomingRejectScenario: MockIncomingRejectScenario;
+  private holdScenario: MockHoldScenario;
+  private resumeScenario: MockResumeScenario;
+  private hangupScenario: MockHangupScenario;
   private readonly delayMs: number;
   private registered = false;
   private readonly dialedNumbers: string[] = [];
   private readonly sentTones: string[] = [];
   private readonly hangupCalls: string[] = [];
   private readonly answeredCalls: string[] = [];
+  private readonly heldCalls: string[] = [];
+  private readonly resumedCalls: string[] = [];
   private readonly rejectedCalls: Array<{
     callId: string;
     sipCode?: number;
@@ -73,6 +86,9 @@ export class MockTelephonyGateway implements TelephonyGateway {
       this.dtmfScenario = "success";
       this.incomingAnswerScenario = "success";
       this.incomingRejectScenario = "success";
+      this.holdScenario = "success";
+      this.resumeScenario = "success";
+      this.hangupScenario = "success";
       this.delayMs = delayMs;
       return;
     }
@@ -84,6 +100,9 @@ export class MockTelephonyGateway implements TelephonyGateway {
       scenarioOrOptions.incomingAnswerScenario ?? "success";
     this.incomingRejectScenario =
       scenarioOrOptions.incomingRejectScenario ?? "success";
+    this.holdScenario = scenarioOrOptions.holdScenario ?? "success";
+    this.resumeScenario = scenarioOrOptions.resumeScenario ?? "success";
+    this.hangupScenario = scenarioOrOptions.hangupScenario ?? "success";
     this.delayMs = scenarioOrOptions.delayMs ?? 0;
   }
 
@@ -107,6 +126,18 @@ export class MockTelephonyGateway implements TelephonyGateway {
     this.incomingRejectScenario = scenario;
   }
 
+  setHoldScenario(scenario: MockHoldScenario): void {
+    this.holdScenario = scenario;
+  }
+
+  setResumeScenario(scenario: MockResumeScenario): void {
+    this.resumeScenario = scenario;
+  }
+
+  setHangupScenario(scenario: MockHangupScenario): void {
+    this.hangupScenario = scenario;
+  }
+
   isRegistered(): boolean {
     return this.registered;
   }
@@ -125,6 +156,14 @@ export class MockTelephonyGateway implements TelephonyGateway {
 
   getAnsweredCalls(): ReadonlyArray<string> {
     return this.answeredCalls;
+  }
+
+  getHeldCalls(): ReadonlyArray<string> {
+    return this.heldCalls;
+  }
+
+  getResumedCalls(): ReadonlyArray<string> {
+    return this.resumedCalls;
   }
 
   getRejectedCalls(): ReadonlyArray<{
@@ -272,7 +311,45 @@ export class MockTelephonyGateway implements TelephonyGateway {
   }
 
   hangup(command: HangupCommand): Promise<Result<void, PlatformError>> {
+    if (this.hangupScenario === "failure") {
+      return Promise.resolve(
+        err(
+          createPlatformError(
+            "operation_failed",
+            `Hangup failed for ${command.callId}`,
+          ),
+        ),
+      );
+    }
+
     this.hangupCalls.push(command.callId);
+    return Promise.resolve(ok(undefined));
+  }
+
+  holdCall(command: HoldCallCommand): Promise<Result<void, PlatformError>> {
+    if (this.holdScenario === "failure") {
+      return Promise.resolve(
+        err(createPlatformError("operation_failed", `Hold failed for ${command.callId}`)),
+      );
+    }
+
+    this.heldCalls.push(command.callId);
+    return Promise.resolve(ok(undefined));
+  }
+
+  resumeCall(command: ResumeCallCommand): Promise<Result<void, PlatformError>> {
+    if (this.resumeScenario === "failure") {
+      return Promise.resolve(
+        err(
+          createPlatformError(
+            "operation_failed",
+            `Resume failed for ${command.callId}`,
+          ),
+        ),
+      );
+    }
+
+    this.resumedCalls.push(command.callId);
     return Promise.resolve(ok(undefined));
   }
 

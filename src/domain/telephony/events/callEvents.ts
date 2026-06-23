@@ -39,7 +39,23 @@ export type IncomingCallEndedBeforeAnswerEvent = ReturnType<
   typeof createIncomingCallEndedBeforeAnswerEvent
 >;
 export type CallFailedEvent = ReturnType<typeof createCallFailedEvent>;
+export type CallHangupRequestedEvent = ReturnType<
+  typeof createCallHangupRequestedEvent
+>;
 export type CallEndedEvent = ReturnType<typeof createCallEndedEvent>;
+export type CallHeldEvent = ReturnType<typeof createCallHeldEvent>;
+export type CallResumedEvent = ReturnType<typeof createCallResumedEvent>;
+export type CallMutedEvent = ReturnType<typeof createCallMutedEvent>;
+export type CallUnmutedEvent = ReturnType<typeof createCallUnmutedEvent>;
+export type ActiveCallControlOperation =
+  | "hold"
+  | "resume"
+  | "mute"
+  | "unmute"
+  | "hangup";
+export type ActiveCallControlFailedEvent = ReturnType<
+  typeof createActiveCallControlFailedEvent
+>;
 export type DtmfSentEvent = ReturnType<typeof createDtmfSentEvent>;
 export type DtmfFailedEvent = ReturnType<typeof createDtmfFailedEvent>;
 export type RemoteAudioAttachedEvent = ReturnType<
@@ -73,7 +89,13 @@ export type OutgoingCallDomainEvent =
   | CallRejectReasonSelectedEvent
   | IncomingCallEndedBeforeAnswerEvent
   | CallFailedEvent
+  | CallHangupRequestedEvent
   | CallEndedEvent
+  | CallHeldEvent
+  | CallResumedEvent
+  | CallMutedEvent
+  | CallUnmutedEvent
+  | ActiveCallControlFailedEvent
   | DtmfSentEvent
   | DtmfFailedEvent
   | RemoteAudioAttachedEvent
@@ -93,7 +115,13 @@ export type IncomingCallDomainEvent =
   | CallRejectedByDndEvent
   | CallRejectReasonSelectedEvent
   | IncomingCallEndedBeforeAnswerEvent
+  | CallHangupRequestedEvent
   | CallEndedEvent
+  | CallHeldEvent
+  | CallResumedEvent
+  | CallMutedEvent
+  | CallUnmutedEvent
+  | ActiveCallControlFailedEvent
   | CallFailedEvent;
 
 export type CallDomainEvent = OutgoingCallDomainEvent | IncomingCallDomainEvent;
@@ -235,6 +263,15 @@ export function createCallFailedEvent(
   return createDomainEvent("CallFailed", correlationId, payload);
 }
 
+export function createCallHangupRequestedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    callId: CallId;
+  }>,
+): ReturnType<typeof createDomainEvent<"CallHangupRequested", typeof payload>> {
+  return createDomainEvent("CallHangupRequested", correlationId, payload);
+}
+
 export function createCallEndedEvent(
   correlationId: CorrelationId,
   payload: Readonly<{
@@ -242,6 +279,53 @@ export function createCallEndedEvent(
   }>,
 ): ReturnType<typeof createDomainEvent<"CallEnded", typeof payload>> {
   return createDomainEvent("CallEnded", correlationId, payload);
+}
+
+export function createCallHeldEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    callId: CallId;
+  }>,
+): ReturnType<typeof createDomainEvent<"CallHeld", typeof payload>> {
+  return createDomainEvent("CallHeld", correlationId, payload);
+}
+
+export function createCallResumedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    callId: CallId;
+  }>,
+): ReturnType<typeof createDomainEvent<"CallResumed", typeof payload>> {
+  return createDomainEvent("CallResumed", correlationId, payload);
+}
+
+export function createCallMutedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    callId: CallId;
+  }>,
+): ReturnType<typeof createDomainEvent<"CallMuted", typeof payload>> {
+  return createDomainEvent("CallMuted", correlationId, payload);
+}
+
+export function createCallUnmutedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    callId: CallId;
+  }>,
+): ReturnType<typeof createDomainEvent<"CallUnmuted", typeof payload>> {
+  return createDomainEvent("CallUnmuted", correlationId, payload);
+}
+
+export function createActiveCallControlFailedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    callId: CallId;
+    operation: ActiveCallControlOperation;
+    reason: string;
+  }>,
+): ReturnType<typeof createDomainEvent<"ActiveCallControlFailed", typeof payload>> {
+  return createDomainEvent("ActiveCallControlFailed", correlationId, payload);
 }
 
 export function createDtmfSentEvent(

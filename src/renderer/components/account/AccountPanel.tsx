@@ -1,6 +1,6 @@
 import { useState, type JSX, type SubmitEvent } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
-import type { SipAccountInput } from "@domain/index.js";
+import type { SipAccountInput } from "@application/index.js";
 import { isErr } from "@shared/result/index.js";
 
 type AccountPanelProps = Readonly<{

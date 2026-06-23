@@ -1,6 +1,7 @@
 import type {
   AttachRemoteAudioCommand,
   MediaGateway,
+  MuteCallCommand,
   PlayBusyToneCommand,
   PlayFailedToneCommand,
   PlayIncomingRingtoneCommand,
@@ -8,6 +9,7 @@ import type {
   PlayRingbackToneCommand,
   StopRingtoneCommand,
   StopToneCommand,
+  UnmuteCallCommand,
 } from "@ports/index.js";
 import { createPlatformError } from "@shared/errors/index.js";
 import { err, ok } from "@shared/result/index.js";
@@ -27,6 +29,7 @@ export class MockMediaGateway implements MediaGateway {
   private readonly ringbackCalls = new Set<string>();
   private readonly incomingRingtoneCalls = new Set<string>();
   private readonly busyToneCalls = new Set<string>();
+  private readonly mutedCalls = new Set<string>();
   private readonly failureTones: string[] = [];
 
   constructor(scenario: MockMediaScenario = "success") {
@@ -55,6 +58,10 @@ export class MockMediaGateway implements MediaGateway {
 
   isBusyTonePlaying(callId: string): boolean {
     return this.busyToneCalls.has(callId);
+  }
+
+  isMuted(callId: string): boolean {
+    return this.mutedCalls.has(callId);
   }
 
   attachRemoteAudio(
@@ -175,6 +182,33 @@ export class MockMediaGateway implements MediaGateway {
     command: StopRingtoneCommand,
   ): Promise<Result<void, PlatformError>> {
     return this.stopTone(command);
+  }
+
+  muteCall(command: MuteCallCommand): Promise<Result<void, PlatformError>> {
+    if (this.scenario === "failure") {
+      return Promise.resolve(
+        err(createPlatformError("operation_failed", `Mute failed for ${command.callId}`)),
+      );
+    }
+
+    this.mutedCalls.add(command.callId);
+    return Promise.resolve(ok(undefined));
+  }
+
+  unmuteCall(command: UnmuteCallCommand): Promise<Result<void, PlatformError>> {
+    if (this.scenario === "failure") {
+      return Promise.resolve(
+        err(
+          createPlatformError(
+            "operation_failed",
+            `Unmute failed for ${command.callId}`,
+          ),
+        ),
+      );
+    }
+
+    this.mutedCalls.delete(command.callId);
+    return Promise.resolve(ok(undefined));
   }
 }
 

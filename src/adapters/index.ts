@@ -6,7 +6,9 @@ export type {
 export { MockTelephonyGateway } from "./mock/MockTelephonyGateway.js";
 export type {
   MockDtmfScenario,
+  MockHoldScenario,
   MockMakeCallScenario,
+  MockResumeScenario,
   MockTelephonyGatewayOptions,
   MockTelephonyScenario,
 } from "./mock/MockTelephonyGateway.js";

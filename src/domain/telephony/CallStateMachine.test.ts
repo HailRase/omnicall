@@ -49,6 +49,33 @@ describe("CallStateMachine", () => {
     expect(resumed).toEqual({ ok: true, state: "Active" });
   });
 
+  it("rejects hold from non-active state", () => {
+    const invalidHold = transitionCallState("Ringing", "hold_requested");
+    expect(invalidHold.ok).toBe(false);
+    if (invalidHold.ok) {
+      return;
+    }
+    expect(invalidHold.reason).toBe("hold_requires_active");
+  });
+
+  it("rejects resume from non-held state", () => {
+    const invalidResume = transitionCallState("Active", "resumed");
+    expect(invalidResume.ok).toBe(false);
+    if (invalidResume.ok) {
+      return;
+    }
+    expect(invalidResume.reason).toBe("resume_requires_held");
+  });
+
+  it("rejects hangup completion when call is not ending", () => {
+    const invalidHangup = transitionCallState("Active", "hangup_completed");
+    expect(invalidHangup.ok).toBe(false);
+    if (invalidHangup.ok) {
+      return;
+    }
+    expect(invalidHangup.reason).toBe("hangup_complete_requires_ending");
+  });
+
   it("moves to Failed from ringing", () => {
     const failed = transitionCallState("Ringing", "failed");
     expect(failed).toEqual({ ok: true, state: "Failed" });

@@ -1,6 +1,13 @@
-import type { AppBootstrapConfig } from "@domain/index.js";
-import type { MockOcpScenario } from "@adapters/mock/MockOperatorPlatformGateway.js";
-import type { MockTelephonyScenario } from "@adapters/mock/MockTelephonyGateway.js";
+import type { AppBootstrapConfig } from "@application/index.js";
+
+type MockOcpScenario =
+  | "success"
+  | "session_exists"
+  | "invalid_token"
+  | "access_denied"
+  | "network_error";
+
+type MockTelephonyScenario = "success" | "failure";
 
 export type RendererBootstrapOptions = Readonly<{
   config: AppBootstrapConfig;

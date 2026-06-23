@@ -120,7 +120,8 @@ body {
 }
 
 .dialpad,
-.outgoing-card {
+.outgoing-card,
+.active-call-controls {
   border: 1px solid #2a3344;
   border-radius: 8px;
   padding: 16px;
@@ -136,7 +137,8 @@ body {
 }
 
 .dialpad__header h2,
-.outgoing-card h2 {
+.outgoing-card h2,
+.active-call-controls h2 {
   margin: 0;
   font-size: 1rem;
 }
@@ -174,6 +176,28 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.active-call-controls__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.active-call-controls__error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #5a2f2f;
+  background: #2a1515;
+  color: #ffb4b4;
+}
+
+.active-call-controls__error p {
+  margin: 0;
 }
 
 .dialpad__disabled-reason,

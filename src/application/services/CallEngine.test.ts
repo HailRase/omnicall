@@ -331,5 +331,196 @@ describe("CallEngine", () => {
     const result = await engine.rejectCall({ callId: createCallId("missing-call") });
     expect(result.ok).toBe(false);
   });
+
+  it("holds and resumes active call", async () => {
+    const telephony = new MockTelephonyGateway({ makeCallScenario: "answered" });
+    const engine = new CallEngine(
+      telephony,
+      new MockMediaGateway(),
+      new InMemorySettingsRepository(),
+      new InMemoryDomainEventBus(),
+      createTestLogger(),
+    );
+    await engine.makeCall({
+      callId: createCallId("active-1"),
+      phoneNumber: createPhoneNumber("+12025550150"),
+    });
+
+    const holdResult = await engine.holdCall({ callId: createCallId("active-1") });
+    expect(holdResult.ok).toBe(true);
+    if (!holdResult.ok) {
+      return;
+    }
+    expect(holdResult.value.state).toBe("Held");
+
+    const resumeResult = await engine.resumeCall({ callId: createCallId("active-1") });
+    expect(resumeResult.ok).toBe(true);
+    if (!resumeResult.ok) {
+      return;
+    }
+    expect(resumeResult.value.state).toBe("Active");
+  });
+
+  it("mutes and unmutes active call through media gateway", async () => {
+    const media = new MockMediaGateway();
+    const engine = new CallEngine(
+      new MockTelephonyGateway({ makeCallScenario: "answered" }),
+      media,
+      new InMemorySettingsRepository(),
+      new InMemoryDomainEventBus(),
+      createTestLogger(),
+    );
+    await engine.makeCall({
+      callId: createCallId("active-2"),
+      phoneNumber: createPhoneNumber("+12025550151"),
+    });
+
+    const muteResult = await engine.muteCall({ callId: createCallId("active-2") });
+    expect(muteResult.ok).toBe(true);
+    expect(media.isMuted("active-2")).toBe(true);
+
+    const unmuteResult = await engine.unmuteCall({ callId: createCallId("active-2") });
+    expect(unmuteResult.ok).toBe(true);
+    expect(media.isMuted("active-2")).toBe(false);
+  });
+
+  it("hangs up active call", async () => {
+    const telephony = new MockTelephonyGateway({ makeCallScenario: "answered" });
+    const engine = new CallEngine(
+      telephony,
+      new MockMediaGateway(),
+      new InMemorySettingsRepository(),
+      new InMemoryDomainEventBus(),
+      createTestLogger(),
+    );
+    await engine.makeCall({
+      callId: createCallId("active-3"),
+      phoneNumber: createPhoneNumber("+12025550152"),
+    });
+
+    const hangupResult = await engine.hangupCall({ callId: createCallId("active-3") });
+    expect(hangupResult.ok).toBe(true);
+    if (!hangupResult.ok) {
+      return;
+    }
+    expect(hangupResult.value.state).toBe("Ended");
+    expect(telephony.getHangupCalls()).toEqual(["active-3"]);
+  });
+
+  it("returns hold failure when gateway rejects command", async () => {
+    const telephony = new MockTelephonyGateway({ makeCallScenario: "answered" });
+    telephony.setHoldScenario("failure");
+    const events = new InMemoryDomainEventBus();
+    const publishedTypes: string[] = [];
+    events.subscribe((event) => {
+      publishedTypes.push(event.type);
+    });
+    const engine = new CallEngine(
+      telephony,
+      new MockMediaGateway(),
+      new InMemorySettingsRepository(),
+      events,
+      createTestLogger(),
+    );
+    await engine.makeCall({
+      callId: createCallId("active-4"),
+      phoneNumber: createPhoneNumber("+12025550153"),
+    });
+
+    const holdResult = await engine.holdCall({ callId: createCallId("active-4") });
+    expect(holdResult.ok).toBe(false);
+    expect(publishedTypes).toContain("ActiveCallControlFailed");
+  });
+
+  it("keeps call active when hangup gateway fails", async () => {
+    const telephony = new MockTelephonyGateway({ makeCallScenario: "answered" });
+    telephony.setHangupScenario("failure");
+    const events = new InMemoryDomainEventBus();
+    const publishedTypes: string[] = [];
+    events.subscribe((event) => {
+      publishedTypes.push(event.type);
+    });
+    const engine = new CallEngine(
+      telephony,
+      new MockMediaGateway(),
+      new InMemorySettingsRepository(),
+      events,
+      createTestLogger(),
+    );
+    await engine.makeCall({
+      callId: createCallId("active-5"),
+      phoneNumber: createPhoneNumber("+12025550154"),
+    });
+
+    const hangupResult = await engine.hangupCall({ callId: createCallId("active-5") });
+    expect(hangupResult.ok).toBe(false);
+    expect(publishedTypes).not.toContain("CallHangupRequested");
+    expect(publishedTypes).toContain("ActiveCallControlFailed");
+
+    const holdResult = await engine.holdCall({ callId: createCallId("active-5") });
+    expect(holdResult.ok).toBe(true);
+    if (holdResult.ok) {
+      expect(holdResult.value.state).toBe("Held");
+    }
+  });
+
+  it("returns resume failure when gateway rejects command", async () => {
+    const telephony = new MockTelephonyGateway({ makeCallScenario: "answered" });
+    const engine = new CallEngine(
+      telephony,
+      new MockMediaGateway(),
+      new InMemorySettingsRepository(),
+      new InMemoryDomainEventBus(),
+      createTestLogger(),
+    );
+    await engine.makeCall({
+      callId: createCallId("active-6"),
+      phoneNumber: createPhoneNumber("+12025550155"),
+    });
+    await engine.holdCall({ callId: createCallId("active-6") });
+    telephony.setResumeScenario("failure");
+
+    const resumeResult = await engine.resumeCall({ callId: createCallId("active-6") });
+    expect(resumeResult.ok).toBe(false);
+  });
+
+  it("returns mute failure when media gateway rejects command", async () => {
+    const media = new MockMediaGateway();
+    media.setScenario("failure");
+    const engine = new CallEngine(
+      new MockTelephonyGateway({ makeCallScenario: "answered" }),
+      media,
+      new InMemorySettingsRepository(),
+      new InMemoryDomainEventBus(),
+      createTestLogger(),
+    );
+    await engine.makeCall({
+      callId: createCallId("active-7"),
+      phoneNumber: createPhoneNumber("+12025550156"),
+    });
+
+    const muteResult = await engine.muteCall({ callId: createCallId("active-7") });
+    expect(muteResult.ok).toBe(false);
+  });
+
+  it("returns unmute failure when media gateway rejects command", async () => {
+    const media = new MockMediaGateway();
+    const engine = new CallEngine(
+      new MockTelephonyGateway({ makeCallScenario: "answered" }),
+      media,
+      new InMemorySettingsRepository(),
+      new InMemoryDomainEventBus(),
+      createTestLogger(),
+    );
+    await engine.makeCall({
+      callId: createCallId("active-8"),
+      phoneNumber: createPhoneNumber("+12025550157"),
+    });
+    await engine.muteCall({ callId: createCallId("active-8") });
+    media.setScenario("failure");
+
+    const unmuteResult = await engine.unmuteCall({ callId: createCallId("active-8") });
+    expect(unmuteResult.ok).toBe(false);
+  });
 });
 

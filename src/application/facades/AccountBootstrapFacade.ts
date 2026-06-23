@@ -10,11 +10,16 @@ import { AuthenticateOcpUseCase } from "../use-cases/AuthenticateOcpUseCase.js";
 import { AuthorizeSipAccountUseCase } from "../use-cases/AuthorizeSipAccountUseCase.js";
 import { ChangePhoneStatusUseCase } from "../use-cases/ChangePhoneStatusUseCase.js";
 import { MakeCallUseCase } from "../use-cases/MakeCallUseCase.js";
+import { HangupCallUseCase } from "../use-cases/HangupCallUseCase.js";
+import { HoldCallUseCase } from "../use-cases/HoldCallUseCase.js";
+import { MuteCallUseCase } from "../use-cases/MuteCallUseCase.js";
+import { ResumeCallUseCase } from "../use-cases/ResumeCallUseCase.js";
 import { AnswerCallUseCase } from "../use-cases/AnswerCallUseCase.js";
 import { RejectCallUseCase } from "../use-cases/RejectCallUseCase.js";
 import { RegisterAccountUseCase } from "../use-cases/RegisterAccountUseCase.js";
 import { ResolveStartupModeUseCase } from "../use-cases/ResolveStartupModeUseCase.js";
 import { SendDtmfUseCase } from "../use-cases/SendDtmfUseCase.js";
+import { UnmuteCallUseCase } from "../use-cases/UnmuteCallUseCase.js";
 import type {
   DomainEventPublisher,
   HostIntegrationGateway,
@@ -26,7 +31,7 @@ import type {
 } from "@ports/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { CallEngine } from "@application/services/CallEngine.js";
-import type { Call, CallId } from "@domain/index.js";
+import { createCallId, type Call, type CallId } from "@domain/index.js";
 
 export type AccountBootstrapFacadeDeps = Readonly<{
   operatorGateway: OperatorPlatformGateway;
@@ -46,6 +51,11 @@ export class AccountBootstrapFacade {
   readonly registerAccount: RegisterAccountUseCase;
   readonly changePhoneStatus: ChangePhoneStatusUseCase;
   readonly makeCallUseCase: MakeCallUseCase;
+  readonly hangupCallUseCase: HangupCallUseCase;
+  readonly holdCallUseCase: HoldCallUseCase;
+  readonly resumeCallUseCase: ResumeCallUseCase;
+  readonly muteCallUseCase: MuteCallUseCase;
+  readonly unmuteCallUseCase: UnmuteCallUseCase;
   readonly answerCallUseCase: AnswerCallUseCase;
   readonly rejectCallUseCase: RejectCallUseCase;
   readonly sendDtmfUseCase: SendDtmfUseCase;
@@ -88,6 +98,11 @@ export class AccountBootstrapFacade {
       deps.hostIntegrationGateway,
     );
     this.makeCallUseCase = new MakeCallUseCase(this.callEngine, deps.logger);
+    this.hangupCallUseCase = new HangupCallUseCase(this.callEngine, deps.logger);
+    this.holdCallUseCase = new HoldCallUseCase(this.callEngine, deps.logger);
+    this.resumeCallUseCase = new ResumeCallUseCase(this.callEngine, deps.logger);
+    this.muteCallUseCase = new MuteCallUseCase(this.callEngine, deps.logger);
+    this.unmuteCallUseCase = new UnmuteCallUseCase(this.callEngine, deps.logger);
     this.answerCallUseCase = new AnswerCallUseCase(this.callEngine, deps.logger);
     this.rejectCallUseCase = new RejectCallUseCase(
       this.callEngine,
@@ -185,8 +200,59 @@ export class AccountBootstrapFacade {
     return this.sendDtmfUseCase.execute({ callId, tone });
   }
 
+  async sendDtmfByCallId(
+    callId: string,
+    tone: string,
+  ): Promise<Result<void, PlatformError>> {
+    return this.sendDtmf(createCallId(callId), tone);
+  }
+
+  async hangupCall(callId: CallId): Promise<Result<Call, PlatformError>> {
+    return this.hangupCallUseCase.execute({ callId });
+  }
+
+  async hangupCallById(callId: string): Promise<Result<Call, PlatformError>> {
+    return this.hangupCall(createCallId(callId));
+  }
+
+  async holdCall(callId: CallId): Promise<Result<Call, PlatformError>> {
+    return this.holdCallUseCase.execute({ callId });
+  }
+
+  async holdCallById(callId: string): Promise<Result<Call, PlatformError>> {
+    return this.holdCall(createCallId(callId));
+  }
+
+  async resumeCall(callId: CallId): Promise<Result<Call, PlatformError>> {
+    return this.resumeCallUseCase.execute({ callId });
+  }
+
+  async resumeCallById(callId: string): Promise<Result<Call, PlatformError>> {
+    return this.resumeCall(createCallId(callId));
+  }
+
+  async muteCall(callId: CallId): Promise<Result<Call, PlatformError>> {
+    return this.muteCallUseCase.execute({ callId });
+  }
+
+  async muteCallById(callId: string): Promise<Result<Call, PlatformError>> {
+    return this.muteCall(createCallId(callId));
+  }
+
+  async unmuteCall(callId: CallId): Promise<Result<Call, PlatformError>> {
+    return this.unmuteCallUseCase.execute({ callId });
+  }
+
+  async unmuteCallById(callId: string): Promise<Result<Call, PlatformError>> {
+    return this.unmuteCall(createCallId(callId));
+  }
+
   async answerCall(callId: CallId): Promise<Result<Call, PlatformError>> {
     return this.answerCallUseCase.execute({ callId });
+  }
+
+  async answerCallById(callId: string): Promise<Result<Call, PlatformError>> {
+    return this.answerCall(createCallId(callId));
   }
 
   async rejectCall(
@@ -197,6 +263,13 @@ export class AccountBootstrapFacade {
       return this.rejectCallUseCase.execute({ callId, breakReason });
     }
     return this.rejectCallUseCase.execute({ callId });
+  }
+
+  async rejectCallById(
+    callId: string,
+    breakReason?: string,
+  ): Promise<Result<Call, PlatformError>> {
+    return this.rejectCall(createCallId(callId), breakReason);
   }
 
   private async handleAutoRegistration(event: DomainEvent): Promise<void> {

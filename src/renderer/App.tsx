@@ -1,39 +1,26 @@
-import { useEffect, useMemo, useState, type JSX } from "react";
-import { createCallId, validatePhoneNumber } from "@domain/index.js";
-import { deriveDialpadDisabledReason } from "@application/index.js";
+import type { JSX } from "react";
 import { useAccountBootstrapStore } from "./stores/useAccountBootstrapStore.js";
 import { useAccountBootstrap } from "./hooks/useAccountBootstrap.js";
+import { useAuthShellFlags } from "./hooks/useAuthShellFlags.js";
+import { useDialpadShell } from "./hooks/useDialpadShell.js";
+import { useSoftphoneCallActions } from "./hooks/useSoftphoneCallActions.js";
+import { useIncomingCallActions } from "./hooks/useIncomingCallActions.js";
+import { registrationLabel } from "./helpers/registrationLabel.js";
 import { AuthStateView } from "./components/auth/AuthStateView.js";
 import { AccountPanel } from "./components/account/AccountPanel.js";
 import { PhoneStatusBadge } from "./components/status/PhoneStatusBadge.js";
-import { Dialpad, type DialpadMode } from "./components/dialpad/Dialpad.js";
+import { Dialpad } from "./components/dialpad/Dialpad.js";
 import { OutgoingCallCard } from "./components/call/OutgoingCallCard.js";
+import { ActiveCallControlsPanel } from "./components/call/ActiveCallControlsPanel.js";
 import { IncomingCallModal } from "./components/call/IncomingCallModal.js";
-
-function registrationLabel(
-  registrationState: string,
-  authUiState: string,
-): string {
-  if (authUiState === "sip_registering") {
-    return "Registering";
-  }
-
-  switch (registrationState) {
-    case "registered":
-      return "Registered";
-    case "failed":
-      return "Failed";
-    case "registering":
-      return "Registering";
-    default:
-      return "Not registered";
-  }
-}
 
 export function App(): JSX.Element {
   const { facade, status, errorMessage } = useAccountBootstrap();
   const projection = useAccountBootstrapStore((state) => state.projection);
   const callProjection = useAccountBootstrapStore((state) => state.callProjection);
+  const activeCallControlsProjection = useAccountBootstrapStore(
+    (state) => state.activeCallControlsProjection,
+  );
   const incomingCallProjection = useAccountBootstrapStore(
     (state) => state.incomingCallProjection,
   );
@@ -45,88 +32,33 @@ export function App(): JSX.Element {
   const setIncomingRejectReasonRequired = useAccountBootstrapStore(
     (state) => state.setIncomingRejectReasonRequired,
   );
-  const [dialedNumber, setDialedNumber] = useState("");
 
-  const showAccountPanel =
-    projection.authUiState === "sip_only_ready" ||
-    projection.authUiState === "sip_registration_failed" ||
-    projection.authUiState === "sip_registered" ||
-    projection.authUiState === "access_denied";
+  const { showAccountPanel, blockingAuthState } = useAuthShellFlags();
+  const {
+    dialedNumber,
+    setDialedNumber,
+    deleteLastDialedDigit,
+    clearDialedNumber,
+    dialpadMode,
+    isCalling,
+    callDisabledReason,
+  } = useDialpadShell(projection, callProjection);
 
-  const blockingAuthState =
-    projection.authUiState === "booting" ||
-    projection.authUiState === "ocp_authenticating" ||
-    projection.authUiState === "ocp_session_exists" ||
-    projection.authUiState === "ocp_invalid_token" ||
-    projection.authUiState === "sip_registering";
+  const callActions = useSoftphoneCallActions({
+    facade,
+    callProjection,
+    activeCallControlsProjection,
+    dialedNumber,
+    callDisabledReason,
+  });
 
-  const isCalling = callProjection.state === "Connecting";
-  const hasInvalidNumber = validatePhoneNumber(dialedNumber).length > 0;
-  const secondSessionDisabled =
-    callProjection.state !== "Idle" &&
-    callProjection.state !== "Failed" &&
-    callProjection.state !== "Ended";
-  const ocpReserved = projection.isOcpMode && projection.phoneStatus === "dnd";
-
-  const disabledState = useMemo(
-    () =>
-      deriveDialpadDisabledReason({
-        isRegistered: !blockingAuthState && projection.authUiState === "sip_registered",
-        isOcpReserved: ocpReserved,
-        isSecondSessionDisabled:
-          secondSessionDisabled && callProjection.state !== "Active",
-        isNumberValid: !hasInvalidNumber,
-        isConnecting: callProjection.state === "Connecting",
-      }),
-    [
-      blockingAuthState,
-      callProjection.state,
-      hasInvalidNumber,
-      ocpReserved,
-      projection.authUiState,
-      secondSessionDisabled,
-    ],
-  );
-  const callDisabledReason = mapDisabledReason(disabledState);
-
-  const dialpadMode: DialpadMode = callProjection.mode;
-
-  const handleDialpadCall = (): void => {
-    if (facade === null || callDisabledReason !== null) {
-      return;
-    }
-    void facade.makeCall(dialedNumber);
-  };
-
-  const handleSendDtmf = (tone: string): void => {
-    if (facade === null || callProjection.activeCallId === null) {
-      return;
-    }
-    void facade.sendDtmf(createCallId(callProjection.activeCallId), tone);
-  };
-
-  useEffect(() => {
-    setIncomingRejectReasonRequired(projection.isOcpMode);
-  }, [projection.isOcpMode, setIncomingRejectReasonRequired]);
-
-  const handleAnswerIncoming = (): void => {
-    if (facade === null || incomingCallProjection.callId === null) {
-      return;
-    }
-    setIncomingUiState("answering");
-    void facade.answerCall(createCallId(incomingCallProjection.callId));
-  };
-
-  const handleRejectIncoming = (): void => {
-    if (facade === null || incomingCallProjection.callId === null) {
-      return;
-    }
-    setIncomingUiState("rejecting");
-    void facade.rejectCall(
-      createCallId(incomingCallProjection.callId),
-      incomingCallProjection.selectedBreakReason ?? undefined,
-    );
-  };
+  const incomingCallActions = useIncomingCallActions({
+    facade,
+    incomingCallProjection,
+    isOcpMode: projection.isOcpMode,
+    setIncomingUiState,
+    setIncomingRejectReasonRequired,
+  });
 
   return (
     <main className="shell" data-testid="softphone-shell">
@@ -180,14 +112,10 @@ export function App(): JSX.Element {
                 isCalling={isCalling}
                 callDisabledReason={callDisabledReason}
                 onNumberChange={setDialedNumber}
-                onDelete={() => {
-                  setDialedNumber((previous) => previous.slice(0, -1));
-                }}
-                onClear={() => {
-                  setDialedNumber("");
-                }}
-                onCall={handleDialpadCall}
-                onSendDtmf={handleSendDtmf}
+                onDelete={deleteLastDialedDigit}
+                onClear={clearDialedNumber}
+                onCall={callActions.handleDialpadCall}
+                onSendDtmf={callActions.handleSendDtmf}
                 onModeChange={setCallMode}
               />
 
@@ -199,6 +127,22 @@ export function App(): JSX.Element {
                 lastDtmfTone={callProjection.lastDtmfTone}
                 uiState={callProjection.uiState}
                 toneIndicator={callProjection.toneIndicator}
+              />
+              <ActiveCallControlsPanel
+                visible={activeCallControlsProjection.callId !== null}
+                muted={activeCallControlsProjection.muted}
+                holdDisabledReason={activeCallControlsProjection.holdDisabledReason}
+                resumeDisabledReason={activeCallControlsProjection.resumeDisabledReason}
+                muteDisabledReason={activeCallControlsProjection.muteDisabledReason}
+                unmuteDisabledReason={activeCallControlsProjection.unmuteDisabledReason}
+                hangupDisabledReason={activeCallControlsProjection.hangupDisabledReason}
+                lastOperationError={activeCallControlsProjection.lastOperationError}
+                onHold={callActions.handleHoldCall}
+                onResume={callActions.handleResumeCall}
+                onMute={callActions.handleMuteCall}
+                onUnmute={callActions.handleUnmuteCall}
+                onHangup={callActions.handleHangupCall}
+                onRetry={callActions.handleRetryLastOperation}
               />
               <audio
                 data-testid="remote-audio-mount"
@@ -219,18 +163,10 @@ export function App(): JSX.Element {
                 rejectReasonRequired={projection.isOcpMode}
                 rejectReasons={["break", "meeting", "training"]}
                 selectedBreakReason={incomingCallProjection.selectedBreakReason}
-                answerDisabledReason={
-                  incomingCallProjection.uiState === "rejecting"
-                    ? "Reject in progress"
-                    : null
-                }
-                rejectDisabledReason={
-                  incomingCallProjection.uiState === "answering"
-                    ? "Answer in progress"
-                    : null
-                }
-                onAnswer={handleAnswerIncoming}
-                onReject={handleRejectIncoming}
+                answerDisabledReason={incomingCallActions.answerDisabledReason}
+                rejectDisabledReason={incomingCallActions.rejectDisabledReason}
+                onAnswer={incomingCallActions.handleAnswerIncoming}
+                onReject={incomingCallActions.handleRejectIncoming}
                 onSelectBreakReason={(reason) => {
                   setIncomingBreakReason(reason);
                 }}
@@ -241,24 +177,4 @@ export function App(): JSX.Element {
       )}
     </main>
   );
-}
-
-function mapDisabledReason(disabledState: string | null): string | null {
-  if (disabledState === null) {
-    return null;
-  }
-  switch (disabledState) {
-    case "disabledByNotRegistered":
-      return "Not registered";
-    case "invalidNumber":
-      return "Invalid number";
-    case "disabledByOcpReserved":
-      return "OCP reserved";
-    case "disabledBySecondSessionPolicy":
-      return "Second session disabled";
-    case "calling":
-      return "Call already connecting";
-    default:
-      return "Action unavailable";
-  }
 }

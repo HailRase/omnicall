@@ -24,6 +24,7 @@ export type CallProjection = Readonly<{
   uiState: DialpadUiState;
   lastError: string | null;
   lastDtmfTone: string | null;
+  muted: boolean;
   remoteAudioAttached: boolean;
   toneIndicator: "none" | "ringback" | "busy" | "failed";
 }>;
@@ -41,6 +42,7 @@ export function initialCallProjection(): CallProjection {
     uiState: "idle",
     lastError: null,
     lastDtmfTone: null,
+    muted: false,
     remoteAudioAttached: false,
     toneIndicator: "none",
   };
@@ -59,6 +61,7 @@ export function reduceCallProjection(
         uiState: "calling",
         mode: "number",
         lastError: null,
+        muted: false,
         toneIndicator: "none",
       };
     case "CallProgressReceived":
@@ -76,6 +79,36 @@ export function reduceCallProjection(
         mode: "dtmf",
         uiState: "activeCallDtmfMode",
       };
+    case "CallHeld":
+      return {
+        ...projection,
+        activeCallId: asOptionalString(event["callId"]),
+        state: "Held",
+      };
+    case "CallResumed":
+      return {
+        ...projection,
+        activeCallId: asOptionalString(event["callId"]),
+        state: "Active",
+      };
+    case "CallHangupRequested":
+      return {
+        ...projection,
+        activeCallId: asOptionalString(event["callId"]),
+        state: "Ending",
+      };
+    case "CallMuted":
+      return {
+        ...projection,
+        activeCallId: asOptionalString(event["callId"]),
+        muted: true,
+      };
+    case "CallUnmuted":
+      return {
+        ...projection,
+        activeCallId: asOptionalString(event["callId"]),
+        muted: false,
+      };
     case "CallFailed":
       return mapFailureState(
         projection,
@@ -90,6 +123,7 @@ export function reduceCallProjection(
         state: "Ended",
         mode: "number",
         uiState: "idle",
+        muted: false,
         toneIndicator: "none",
         remoteAudioAttached: false,
       };
@@ -185,6 +219,7 @@ function mapFailureState(
       state: "Failed",
       uiState: "failedBusy",
       lastError: details ?? "Busy",
+      muted: false,
     };
   }
   if (reason === "rejected") {
@@ -194,6 +229,7 @@ function mapFailureState(
       state: "Failed",
       uiState: "failedRejected",
       lastError: details ?? "Rejected",
+      muted: false,
     };
   }
   if (reason === "unavailable") {
@@ -203,6 +239,7 @@ function mapFailureState(
       state: "Failed",
       uiState: "failedUnavailable",
       lastError: details ?? "Unavailable",
+      muted: false,
     };
   }
   return {
@@ -211,6 +248,7 @@ function mapFailureState(
     state: "Failed",
     uiState: "failedUnavailable",
     lastError: details ?? "Call failed",
+    muted: false,
   };
 }
 

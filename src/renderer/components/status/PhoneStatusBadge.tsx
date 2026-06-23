@@ -1,6 +1,6 @@
 import type { JSX } from "react";
-import type { PhoneStatus } from "@domain/index.js";
-import { phoneStatusLabel } from "@domain/index.js";
+import type { PhoneStatus } from "@application/index.js";
+import { phoneStatusLabel } from "@application/index.js";
 
 type PhoneStatusBadgeProps = Readonly<{
   status: PhoneStatus;
