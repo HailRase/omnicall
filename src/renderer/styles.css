@@ -1,0 +1,56 @@
+:root {
+  color-scheme: dark;
+  font-family:
+    "Segoe UI",
+    system-ui,
+    -apple-system,
+    sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #e8edf5;
+  background-color: #111722;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  gap: 16px;
+}
+
+.shell__header {
+  border-bottom: 1px solid #2a3344;
+  padding-bottom: 16px;
+}
+
+.shell__title {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.shell__subtitle {
+  margin: 4px 0 0;
+  color: #9aa8bf;
+}
+
+.shell__content {
+  flex: 1;
+}
+
+.shell__hint {
+  color: #9aa8bf;
+}
+
+.shell__error {
+  color: #ff8f8f;
+}

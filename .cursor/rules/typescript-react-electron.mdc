@@ -1,0 +1,166 @@
+---
+description: RULE - Enforces TypeScript, React, Electron, Zustand, and IPC safety.
+globs:
+  - "**/*.ts"
+  - "**/*.tsx"
+alwaysApply: true
+---
+
+# RULE: TypeScript, React, Electron, Zustand
+
+This is a mandatory Cursor rule.
+
+It applies to TypeScript and React code in the Enterprise Softphone Platform.
+
+## TypeScript
+
+Never use:
+
+- `any`
+- `@ts-ignore`
+- `@ts-expect-error` without a documented reason
+- `as unknown as`
+- untyped event payloads
+- untyped IPC payloads
+- untyped WebSocket payloads
+
+Use:
+
+- discriminated unions
+- branded IDs
+- explicit return types for public functions
+- `unknown` at boundaries
+- type narrowing at boundaries
+- immutable event payloads
+
+## React
+
+React components must:
+
+- render UI
+- receive props
+- call hooks
+- forward user intent
+
+React components must not:
+
+- call SIP APIs
+- call Electron APIs
+- parse OCP WebSocket messages
+- mutate business state
+- access repositories
+- own business rules
+
+## Hooks
+
+Hooks may:
+
+- compose selectors
+- bind Use Cases to UI
+- manage local UI behavior
+
+Hooks must not:
+
+- contain telephony business rules
+- own SIP sessions
+- execute infrastructure calls directly
+- mutate global contracts
+
+## Zustand
+
+Zustand stores are read-model projections.
+
+Stores may:
+
+- store derived UI-readable state
+- expose selectors
+- update from events
+
+Stores must not:
+
+- call Use Cases
+- call adapters
+- call repositories
+- call SIP
+- call Electron
+- own business rules
+
+## Electron Main Process
+
+Main process may own:
+
+- app lifecycle
+- windows
+- tray
+- auto updates
+- native notifications
+- file access
+- OS integrations
+- logging transports
+
+Main process must not own:
+
+- call business rules
+- React state
+- Domain state machines
+- OCP business rules
+
+## Electron Preload
+
+Preload must expose minimal typed APIs.
+
+Preload must:
+
+- use narrow allowlists
+- validate payloads
+- avoid exposing raw `ipcRenderer`
+- avoid exposing Node globals
+
+Renderer must never receive unrestricted Node or Electron access.
+
+## IPC
+
+IPC contracts must be typed and validated.
+
+Each IPC channel must define:
+
+- request payload
+- response payload
+- error shape
+- owning context
+- security constraints
+
+Do not create ad hoc IPC channel names in components.
+
+## External Inputs
+
+Validate all input from:
+
+- IPC
+- WebSocket
+- SIP metadata
+- host-page integration
+- configuration files
+- persisted storage
+
+Validation belongs at boundaries.
+
+Domain should receive trusted typed values.
+
+## Browser And Node APIs
+
+Browser APIs belong to UI, adapters, or infrastructure.
+
+Node APIs belong to infrastructure.
+
+Domain must not import either.
+
+## Completion Check
+
+Before finishing a TypeScript change verify:
+
+- no `any`
+- no direct infrastructure import in Domain
+- no direct SIP call in UI or store
+- IPC is typed and validated
+- external input is narrowed from `unknown`

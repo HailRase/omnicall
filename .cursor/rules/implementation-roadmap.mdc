@@ -1,0 +1,107 @@
+---
+description: RULE - Enforces phase order and implementation gates from the softphone roadmap.
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+# RULE: Implementation Roadmap
+
+This is a mandatory Cursor rule.
+
+Implementation order is defined in:
+
+```txt
+docs/softphone/Implementation-Roadmap.md
+```
+
+## Phase Order
+
+Implement phases in order:
+
+1. P00 Platform Foundation
+2. P01 Authorization And Account Bootstrap
+3. P02 Dialpad And Outgoing Call Foundation
+4. P03 Incoming Call Foundation
+5. P04 Active Call Controls
+6. P05 Multi-Call And Transfer
+7. P06 Operator Status And Post-Call Workflows
+8. P07 OCP Call Synchronization And Campaigns
+9. P08 Connection Loss, Recovery, And Cleanup
+10. P09 History, Logging, And Diagnostics
+11. P10 Headset Integration
+12. P11 Settings, Personalization, And Shell UX
+13. P12 External Host API Compatibility
+
+Do not skip phases without an ADR.
+
+## Work Unit Rule
+
+A work unit must be one of:
+
+- one roadmap phase
+- one `LF-XXX` cluster inside a phase
+- one Use Case plus tests
+- one adapter after mock tests exist
+- one UI flow after UX states are documented
+
+Never accept a vague work unit such as:
+
+```txt
+build the softphone
+```
+
+## Before Starting A Phase
+
+Confirm:
+
+- previous phase gate is satisfied
+- affected `LF-XXX` IDs are known
+- required Domain Events are listed
+- Use Cases are listed
+- ports are listed
+- UX states are listed if user-visible
+- tests are planned
+
+## Phase Gate
+
+A phase is complete only if:
+
+- all listed `LF-XXX` IDs have implementation evidence
+- acceptance focus is covered
+- critical/high features have tests
+- UX states are implemented for user-visible flows
+- no architecture boundary is violated
+- Feature Registry status is updated
+
+## Adapter Timing
+
+Implement adapters after:
+
+- Domain model exists
+- Use Case exists
+- port exists
+- mock adapter tests pass
+
+Do not start with JsSIP, OCP WebSocket, WebHID, storage, or Electron IPC.
+
+## UI Timing
+
+Implement React UI after:
+
+- Domain state exists
+- Use Case exists
+- projection exists
+- UX states are documented
+
+Do not put business rules in components.
+
+## Completion Check
+
+Before finishing any task:
+
+- cite roadmap phase
+- cite `LF-XXX` IDs
+- cite tests run
+- cite UX states affected
+- cite architecture boundaries checked

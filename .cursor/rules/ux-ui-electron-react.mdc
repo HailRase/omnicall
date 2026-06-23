@@ -1,0 +1,138 @@
+---
+description: RULE - Requires UX/UI state design before Electron and React UI implementation.
+globs:
+  - "**/*.ts"
+  - "**/*.tsx"
+  - "**/*.css"
+  - "**/*.scss"
+  - "**/*.md"
+alwaysApply: true
+---
+
+# RULE: UX/UI For Electron React Softphone
+
+This is a mandatory Cursor rule.
+
+UX/UI requirements are defined in:
+
+```txt
+docs/softphone/UX-UI-Design-Blueprint.md
+```
+
+## UX Before UI
+
+Before implementing a user-visible component define:
+
+- affected `LF-XXX` IDs
+- visual states
+- loading states
+- error states
+- disabled states
+- recovery states
+- accessibility behavior
+- test IDs
+
+Do not create React components before state design is clear.
+
+## Component Boundary
+
+React components may:
+
+- render props
+- emit callbacks
+- compose UI-only hooks
+- show projections
+
+React components must not:
+
+- call SIP
+- call Electron
+- call WebSocket
+- call repositories
+- own business rules
+- parse integration payloads
+
+## Electron UX
+
+Electron shell behavior belongs outside React business logic.
+
+Main process may own:
+
+- tray
+- window lifecycle
+- native notifications
+- app close behavior
+- minimize and restore
+
+Renderer may display:
+
+- shell projections
+- warnings
+- user controls
+
+## Required Global States
+
+The UI must represent:
+
+- booting
+- OCP authenticating
+- OCP session exists
+- OCP invalid token
+- SIP registering
+- SIP registered
+- SIP registration failed
+- DND
+- OCP disconnected
+- incoming ringing
+- active call
+- held call
+- transfer mode
+- failed operation
+- collapsed mode
+
+## Disabled Controls
+
+Every disabled critical control must have a reason.
+
+Examples:
+
+- not registered
+- OCP reserved
+- invalid number
+- second session disabled
+- DND active
+- transfer in progress
+- reconnecting
+
+Disabled state must come from projection, not local component guesses.
+
+## Accessibility
+
+Every interactive control must have:
+
+- keyboard access
+- visible focus
+- accessible label
+- non-color-only state indicator
+
+Critical actions require clear labels:
+
+- answer
+- reject
+- hang up
+- hold
+- resume
+- mute
+- transfer
+- retry
+
+## Completion Check
+
+Before finishing UI work verify:
+
+- UX state inventory exists
+- component remains presentational
+- Use Cases are called outside component internals
+- accessibility is covered
+- critical call state is visible
+- Electron behavior is not mixed with Domain logic

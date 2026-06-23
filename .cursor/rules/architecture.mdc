@@ -1,0 +1,169 @@
+---
+description: RULE - Enforces Enterprise Softphone architecture boundaries.
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+# RULE: Architecture Boundaries
+
+This is a mandatory Cursor rule.
+
+It defines what agents must never violate while working on the Enterprise Softphone Platform.
+
+## Required Layering
+
+The architecture has six layers:
+
+```txt
+UI
+↓
+Application
+↓
+Domain
+↓
+Ports
+↓
+Adapters
+↓
+Infrastructure
+```
+
+Dependencies must point inward.
+
+## Forbidden Dependencies
+
+Never introduce:
+
+- UI -> SIP library
+- UI -> Electron API
+- UI -> repository
+- UI -> filesystem
+- UI -> WebSocket protocol
+- UI -> adapter implementation
+- Domain -> React
+- Domain -> Electron
+- Domain -> JsSIP
+- Domain -> Zustand
+- Domain -> browser APIs
+- Domain -> Node APIs
+- Domain -> storage
+- Domain -> infrastructure
+- Store -> SIP library
+- Store -> Electron API
+- Store -> repository
+- Adapter -> UI
+
+## Required Entry Points
+
+Business operations must enter through Use Cases:
+
+- `MakeCallUseCase`
+- `AnswerCallUseCase`
+- `HangupCallUseCase`
+- `HoldCallUseCase`
+- `TransferCallUseCase`
+- `RegisterAccountUseCase`
+- `ChangeAgentStatusUseCase`
+
+UI may call Use Cases or UI-facing application facades only.
+
+## Telephony Boundary
+
+All telephony operations must pass through Call Engine.
+
+Never:
+
+- call JsSIP from React
+- call JsSIP from Zustand
+- mutate SIP sessions in UI
+- store raw SIP sessions in Domain
+- expose JsSIP objects through ports
+
+Allowed:
+
+- `TelephonyGateway` port
+- `JsSipTelephonyAdapter` implementation
+- typed Domain Events from adapter events
+
+## OCP Boundary
+
+OCP is optional.
+
+Core telephony must work without OCP.
+
+Never make Domain or Call Engine depend on:
+
+- OCP WebSocket
+- OCP statuses
+- OCP campaign events
+- host-page globals
+
+Use an `OperatorPlatformGateway` or integration plugin.
+
+## Headset Boundary
+
+Headset vendors are adapters.
+
+Never couple Domain or Call Engine to:
+
+- Jabra
+- Poly
+- EPOS
+- WebHID-specific payloads
+
+Hardware events must map to application commands.
+
+## Store Boundary
+
+Stores are projections.
+
+Stores may:
+
+- receive events
+- update read models
+- expose selectors
+
+Stores must not:
+
+- execute business rules
+- call SIP
+- call Electron
+- call repositories
+- call WebSocket
+- own orchestration
+
+## State Machine Boundary
+
+Call state must be explicit.
+
+Use canonical states:
+
+- `Idle`
+- `Ringing`
+- `Connecting`
+- `Active`
+- `Held`
+- `Transferring`
+- `Conference`
+- `Ending`
+- `Ended`
+- `Failed`
+
+Never use boolean flags as primary state:
+
+- `isHeld`
+- `isEnded`
+- `isConnecting`
+- `isTransferred`
+
+## Completion Check
+
+Before finishing any change, verify:
+
+- Domain remains framework-independent.
+- UI does not access adapters.
+- Stores remain projections.
+- Telephony actions pass through Call Engine.
+- OCP remains optional.
+- External library objects do not cross ports.

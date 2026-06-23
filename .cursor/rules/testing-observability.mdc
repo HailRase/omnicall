@@ -1,0 +1,136 @@
+---
+description: RULE - Requires tests, logs, correlation IDs, and recovery visibility.
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+# RULE: Testing And Observability
+
+This is a mandatory Cursor rule.
+
+Critical telephony flows must be testable and observable.
+
+## Critical Flows
+
+The following flows require logs, events, and tests:
+
+- SIP registration
+- SIP registration failure
+- incoming call
+- outgoing call
+- answer
+- reject
+- hangup
+- hold
+- resume
+- mute
+- unmute
+- transfer
+- DTMF
+- OCP authentication
+- OCP status change
+- WebSocket reconnect
+- call recovery
+- headset answer/hangup/mute
+
+## Required Logs
+
+Each critical operation must log:
+
+- operation name
+- correlation ID
+- feature ID
+- bounded context
+- previous state
+- next state
+- result
+- normalized error, if failed
+
+Logs must not contain:
+
+- SIP passwords
+- auth tokens
+- credentials
+- personally sensitive payloads beyond approved identifiers
+
+## Correlation IDs
+
+Every call flow must have a correlation ID.
+
+Use the same correlation ID across:
+
+- Domain Event
+- Use Case log
+- adapter log
+- store projection update
+- integration event
+
+## Test Layers
+
+Use:
+
+- unit tests for Domain entities, value objects, rules, and state machines
+- unit tests for Use Cases with mocked ports
+- integration tests for adapters with fake infrastructure
+- E2E tests for user-visible flows when a harness exists
+
+Do not require real SIP servers for Domain or Application tests.
+
+## State Machine Tests
+
+Each call state machine must test:
+
+- valid transitions
+- invalid transitions
+- terminal states
+- recovery transitions
+- transfer failure transitions
+
+Invalid transitions must fail predictably.
+
+## Adapter Tests
+
+Adapters must test mapping:
+
+- external event -> Domain Event
+- application command -> external library call
+- external failure -> normalized error
+
+Adapters must not leak external library objects across ports.
+
+## Reconnect And Recovery
+
+Reconnect logic must define:
+
+- retry policy
+- max attempts
+- backoff strategy
+- jitter strategy
+- terminal failure behavior
+- user-visible projection
+- logs
+
+Never create infinite polling or intervals without cleanup.
+
+## Error Handling
+
+Never swallow errors.
+
+Every critical failure must be:
+
+- classified
+- logged
+- surfaced to caller or projection
+- test-covered
+
+## Completion Check
+
+Before finishing verify:
+
+- critical path has logs
+- errors are observable
+- tests cover Domain and Use Case behavior
+- reconnect logic cleans timers
+- no infinite polling exists
+- no sensitive data is logged

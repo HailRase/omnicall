@@ -1,0 +1,92 @@
+---
+description: RULE - Enforces LF-001..LF-090 legacy feature parity during the rewrite.
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+# RULE: Legacy Feature Coverage
+
+This is a mandatory Cursor rule.
+
+The rewrite must not lose any legacy feature from the audited softphone.
+
+## Source Of Truth
+
+Legacy parity is tracked in:
+
+```txt
+docs/softphone/Legacy-Feature-Coverage.md
+```
+
+Every legacy feature has an `LF-XXX` ID.
+
+All IDs from `LF-001` through `LF-090` must be implemented or explicitly deprecated by ADR.
+
+## Before Implementation
+
+Before code changes identify:
+
+- affected `LF-XXX` IDs
+- current roadmap phase
+- bounded context
+- old modules from the audit
+- acceptance focus
+- target Use Cases
+- target Domain Events
+- tests required
+
+If no `LF-XXX` is affected, confirm the work is platform foundation or documentation.
+
+## No Feature Loss
+
+Never remove or skip:
+
+- OCP auth states
+- SIP-only auth mode
+- incoming call behavior
+- outgoing call behavior
+- hold/mute/transfer/DTMF behavior
+- operator statuses
+- post-call workflows
+- campaign workflows
+- OCP sync events
+- call history
+- logging and diagnostics
+- headset controls
+- settings
+- host API compatibility
+
+without an ADR.
+
+## Migration Evidence
+
+For every completed `LF-XXX`, leave evidence:
+
+- implementation path
+- tests
+- affected Use Cases
+- affected Domain Events
+- UX state when user-visible
+- compatibility notes when external
+
+## Coverage Check
+
+Before finishing a task verify:
+
+- no affected `LF-XXX` was missed
+- aggregate Feature Registry entry references the legacy IDs
+- acceptance focus is covered
+- SIP-only mode is not broken by OCP features
+- OCP features remain plugin-scoped
+
+## ADR Requirement
+
+Create an ADR before:
+
+- dropping a legacy feature
+- changing legacy behavior intentionally
+- replacing a legacy contract
+- changing reconnect semantics
+- removing a UI flow
+- removing a host API method

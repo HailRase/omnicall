@@ -1,0 +1,114 @@
+---
+description: RULE - Requires feature registry ownership before implementation.
+globs:
+  - "**/*"
+alwaysApply: true
+---
+
+# RULE: Feature Registry
+
+This is a mandatory Cursor rule.
+
+Every product change must map to `docs/softphone/Feature-Registry.md`.
+
+## Required Before Implementation
+
+Before creating or changing code, identify:
+
+- Feature ID
+- feature name
+- bounded context
+- priority
+- status
+- acceptance criteria
+- test coverage
+
+If the feature does not exist, update the registry first.
+
+## No Orphan Functionality
+
+Never add:
+
+- new UI behavior
+- new Use Case
+- new Domain Event
+- new adapter
+- new repository
+- new IPC channel
+- new host-page event
+- new store projection
+
+without a Feature Registry entry.
+
+## Registry Update Required
+
+Update the registry when:
+
+- a feature is added
+- a feature is removed
+- a feature changes behavior
+- acceptance criteria change
+- test strategy changes
+- status changes
+- ownership changes
+
+## Feature Scope
+
+Each feature must belong to one primary bounded context:
+
+- Telephony
+- Operator
+- Media
+- Headset
+- Settings
+- Integration
+
+If a feature spans multiple contexts, document the primary context and integration points.
+
+## Acceptance Criteria
+
+Acceptance criteria must describe observable behavior.
+
+Good:
+
+- `Incoming call produces IncomingCallReceived and appears in ringing projection.`
+- `SIP-only mode starts without OCP plugin.`
+
+Bad:
+
+- `Implement incoming call.`
+- `Refactor provider.`
+
+## Test Coverage
+
+Each feature must define:
+
+- unit coverage
+- integration coverage
+- E2E coverage or explicit deferral reason
+
+If a feature is critical, at least unit and integration coverage are required.
+
+## Refactoring
+
+Refactoring must preserve all affected Feature Registry entries.
+
+Before refactoring:
+
+- list affected features
+- list affected events
+- list affected external contracts
+
+After refactoring:
+
+- verify acceptance criteria still hold
+- update registry if behavior changed
+
+## Completion Check
+
+Do not finish a task until:
+
+- registry entry exists
+- feature status is correct
+- acceptance criteria are current
+- tests match the registry
