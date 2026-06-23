@@ -128,7 +128,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-020`, `LF-025`, `LF-026`, `LF-033`, `LF-034`, `LF-035`
 - Context: Telephony
 - Priority: critical
-- Status: planned
+- Status: in-progress
 - Owner: TBD
 - Inputs: phone number, make-call command
 - Outputs: `OutgoingCallStarted`, `CallConnecting`, `CallAnswered`, `CallFailed`
@@ -218,7 +218,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-025`
 - Context: Telephony
 - Priority: high
-- Status: planned
+- Status: in-progress
 - Owner: TBD
 - Inputs: active call ID, tone
 - Outputs: `DtmfSent` or `DtmfFailed`

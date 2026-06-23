@@ -1,9 +1,13 @@
-import type { JSX } from "react";
+import { useMemo, useState, type JSX } from "react";
+import { createCallId, validatePhoneNumber } from "@domain/index.js";
+import { deriveDialpadDisabledReason } from "@application/index.js";
 import { useAccountBootstrapStore } from "./stores/useAccountBootstrapStore.js";
 import { useAccountBootstrap } from "./hooks/useAccountBootstrap.js";
 import { AuthStateView } from "./components/auth/AuthStateView.js";
 import { AccountPanel } from "./components/account/AccountPanel.js";
 import { PhoneStatusBadge } from "./components/status/PhoneStatusBadge.js";
+import { Dialpad, type DialpadMode } from "./components/dialpad/Dialpad.js";
+import { OutgoingCallCard } from "./components/call/OutgoingCallCard.js";
 
 function registrationLabel(
   registrationState: string,
@@ -28,6 +32,9 @@ function registrationLabel(
 export function App(): JSX.Element {
   const { facade, status, errorMessage } = useAccountBootstrap();
   const projection = useAccountBootstrapStore((state) => state.projection);
+  const callProjection = useAccountBootstrapStore((state) => state.callProjection);
+  const setCallMode = useAccountBootstrapStore((state) => state.setCallMode);
+  const [dialedNumber, setDialedNumber] = useState("");
 
   const showAccountPanel =
     projection.authUiState === "sip_only_ready" ||
@@ -41,6 +48,51 @@ export function App(): JSX.Element {
     projection.authUiState === "ocp_session_exists" ||
     projection.authUiState === "ocp_invalid_token" ||
     projection.authUiState === "sip_registering";
+
+  const isCalling = callProjection.state === "Connecting";
+  const hasInvalidNumber = validatePhoneNumber(dialedNumber).length > 0;
+  const secondSessionDisabled =
+    callProjection.state !== "Idle" &&
+    callProjection.state !== "Failed" &&
+    callProjection.state !== "Ended";
+  const ocpReserved = projection.isOcpMode && projection.phoneStatus === "dnd";
+
+  const disabledState = useMemo(
+    () =>
+      deriveDialpadDisabledReason({
+        isRegistered: !blockingAuthState && projection.authUiState === "sip_registered",
+        isOcpReserved: ocpReserved,
+        isSecondSessionDisabled:
+          secondSessionDisabled && callProjection.state !== "Active",
+        isNumberValid: !hasInvalidNumber,
+        isConnecting: callProjection.state === "Connecting",
+      }),
+    [
+      blockingAuthState,
+      callProjection.state,
+      hasInvalidNumber,
+      ocpReserved,
+      projection.authUiState,
+      secondSessionDisabled,
+    ],
+  );
+  const callDisabledReason = mapDisabledReason(disabledState);
+
+  const dialpadMode: DialpadMode = callProjection.mode;
+
+  const handleDialpadCall = (): void => {
+    if (facade === null || callDisabledReason !== null) {
+      return;
+    }
+    void facade.makeCall(dialedNumber);
+  };
+
+  const handleSendDtmf = (tone: string): void => {
+    if (facade === null || callProjection.activeCallId === null) {
+      return;
+    }
+    void facade.sendDtmf(createCallId(callProjection.activeCallId), tone);
+  };
 
   return (
     <main className="shell" data-testid="softphone-shell">
@@ -83,12 +135,66 @@ export function App(): JSX.Element {
           )}
 
           {projection.authUiState === "sip_registered" && (
-            <p className="shell__hint" data-testid="sip-registered-hint">
-              SIP account is registered via mock gateway (P01).
-            </p>
+            <div className="shell__content">
+              <p className="shell__hint" data-testid="sip-registered-hint">
+                SIP account is registered via mock gateway (P01-P02 foundation).
+              </p>
+
+              <Dialpad
+                numberValue={dialedNumber}
+                mode={dialpadMode}
+                isCalling={isCalling}
+                callDisabledReason={callDisabledReason}
+                onNumberChange={setDialedNumber}
+                onDelete={() => {
+                  setDialedNumber((previous) => previous.slice(0, -1));
+                }}
+                onClear={() => {
+                  setDialedNumber("");
+                }}
+                onCall={handleDialpadCall}
+                onSendDtmf={handleSendDtmf}
+                onModeChange={setCallMode}
+              />
+
+              <OutgoingCallCard
+                callId={callProjection.activeCallId}
+                callState={callProjection.state}
+                numberValue={dialedNumber}
+                lastError={callProjection.lastError}
+                lastDtmfTone={callProjection.lastDtmfTone}
+                uiState={callProjection.uiState}
+                toneIndicator={callProjection.toneIndicator}
+              />
+              <audio
+                data-testid="remote-audio-mount"
+                aria-label="Remote audio mount point"
+                hidden={!callProjection.remoteAudioAttached}
+              />
+            </div>
           )}
         </>
       )}
     </main>
   );
+}
+
+function mapDisabledReason(disabledState: string | null): string | null {
+  if (disabledState === null) {
+    return null;
+  }
+  switch (disabledState) {
+    case "disabledByNotRegistered":
+      return "Not registered";
+    case "invalidNumber":
+      return "Invalid number";
+    case "disabledByOcpReserved":
+      return "OCP reserved";
+    case "disabledBySecondSessionPolicy":
+      return "Second session disabled";
+    case "calling":
+      return "Call already connecting";
+    default:
+      return "Action unavailable";
+  }
 }

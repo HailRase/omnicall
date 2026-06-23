@@ -82,7 +82,8 @@ body {
 }
 
 .account-panel button,
-.phone-status__actions button {
+.phone-status__actions button,
+.dialpad button {
   padding: 8px 12px;
   border-radius: 6px;
   border: 1px solid #3a4a66;
@@ -92,7 +93,8 @@ body {
 }
 
 .account-panel button:disabled,
-.phone-status__actions button:disabled {
+.phone-status__actions button:disabled,
+.dialpad button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -115,4 +117,72 @@ body {
 .shell__content {
   display: grid;
   gap: 16px;
+}
+
+.dialpad,
+.outgoing-card {
+  border: 1px solid #2a3344;
+  border-radius: 8px;
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.dialpad__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.dialpad__header h2,
+.outgoing-card h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.dialpad__mode {
+  display: flex;
+  gap: 8px;
+}
+
+.dialpad__mode .is-active {
+  border-color: #6ea6ff;
+}
+
+.dialpad__input-label {
+  font-size: 0.875rem;
+  color: #9aa8bf;
+}
+
+.dialpad__input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #2a3344;
+  background: #0d121c;
+  color: inherit;
+}
+
+.dialpad__keys {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(56px, 1fr));
+  gap: 8px;
+}
+
+.dialpad__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.dialpad__disabled-reason,
+.outgoing-card__error {
+  color: #ffb4b4;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid #79a7ff;
+  outline-offset: 2px;
 }

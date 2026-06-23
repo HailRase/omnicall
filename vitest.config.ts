@@ -20,6 +20,8 @@ export default defineConfig({
       "src/shared/**/*.test.ts",
       "src/ports/**/*.test.ts",
       "src/infrastructure/**/*.test.ts",
+      "src/renderer/**/*.test.ts",
+      "src/renderer/**/*.test.tsx",
     ],
     exclude: ["node_modules", "out", "dist"],
   },

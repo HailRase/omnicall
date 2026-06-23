@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
   InMemorySettingsRepository,
+  MockMediaGateway,
   MockOperatorPlatformGateway,
   MockTelephonyGateway,
 } from "@adapters/index.js";
@@ -14,6 +15,7 @@ describe("AccountBootstrapFacade integration", () => {
     const facade = new AccountBootstrapFacade({
       operatorGateway: new MockOperatorPlatformGateway(),
       telephonyGateway: telephony,
+      mediaGateway: new MockMediaGateway(),
       settingsRepository: new InMemorySettingsRepository({
         bootstrapConfig: { mode: "sip-only" },
       }),
@@ -36,6 +38,7 @@ describe("AccountBootstrapFacade integration", () => {
     const facade = new AccountBootstrapFacade({
       operatorGateway: new MockOperatorPlatformGateway({ scenario: "success" }),
       telephonyGateway: telephony,
+      mediaGateway: new MockMediaGateway(),
       settingsRepository: new InMemorySettingsRepository({
         bootstrapConfig: {
           mode: "ocp",
@@ -60,6 +63,7 @@ describe("AccountBootstrapFacade integration", () => {
     const facade = new AccountBootstrapFacade({
       operatorGateway: new MockOperatorPlatformGateway(),
       telephonyGateway: new MockTelephonyGateway("success"),
+      mediaGateway: new MockMediaGateway(),
       settingsRepository: new InMemorySettingsRepository({
         bootstrapConfig: { mode: "sip-only" },
       }),
@@ -74,6 +78,7 @@ describe("AccountBootstrapFacade integration", () => {
     const facade = new AccountBootstrapFacade({
       operatorGateway: new MockOperatorPlatformGateway({ scenario: "success" }),
       telephonyGateway: telephony,
+      mediaGateway: new MockMediaGateway(),
       settingsRepository: new InMemorySettingsRepository({
         bootstrapConfig: {
           mode: "ocp",
@@ -99,6 +104,7 @@ describe("AccountBootstrapFacade integration", () => {
     const facade = new AccountBootstrapFacade({
       operatorGateway: new MockOperatorPlatformGateway(),
       telephonyGateway: new MockTelephonyGateway("success"),
+      mediaGateway: new MockMediaGateway(),
       settingsRepository: settings,
       logger: createTestLogger(),
     });

@@ -9,20 +9,26 @@ import { InMemoryDomainEventBus } from "../events/InMemoryDomainEventBus.js";
 import { AuthenticateOcpUseCase } from "../use-cases/AuthenticateOcpUseCase.js";
 import { AuthorizeSipAccountUseCase } from "../use-cases/AuthorizeSipAccountUseCase.js";
 import { ChangePhoneStatusUseCase } from "../use-cases/ChangePhoneStatusUseCase.js";
+import { MakeCallUseCase } from "../use-cases/MakeCallUseCase.js";
 import { RegisterAccountUseCase } from "../use-cases/RegisterAccountUseCase.js";
 import { ResolveStartupModeUseCase } from "../use-cases/ResolveStartupModeUseCase.js";
+import { SendDtmfUseCase } from "../use-cases/SendDtmfUseCase.js";
 import type {
   DomainEventPublisher,
   Logger,
+  MediaGateway,
   OperatorPlatformGateway,
   SettingsRepository,
   TelephonyGateway,
 } from "@ports/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
+import { CallEngine } from "@application/services/CallEngine.js";
+import type { Call, CallId } from "@domain/index.js";
 
 export type AccountBootstrapFacadeDeps = Readonly<{
   operatorGateway: OperatorPlatformGateway;
   telephonyGateway: TelephonyGateway;
+  mediaGateway: MediaGateway;
   settingsRepository: SettingsRepository;
   logger: Logger;
   eventPublisher?: DomainEventPublisher;
@@ -35,6 +41,8 @@ export class AccountBootstrapFacade {
   readonly authorizeSipAccount: AuthorizeSipAccountUseCase;
   readonly registerAccount: RegisterAccountUseCase;
   readonly changePhoneStatus: ChangePhoneStatusUseCase;
+  readonly makeCallUseCase: MakeCallUseCase;
+  readonly sendDtmfUseCase: SendDtmfUseCase;
 
   private readonly processedCredentialEvents = new Set<string>();
 
@@ -64,6 +72,14 @@ export class AccountBootstrapFacade {
       this.eventPublisher,
       deps.logger,
     );
+    const callEngine = new CallEngine(
+      deps.telephonyGateway,
+      deps.mediaGateway,
+      this.eventPublisher,
+      deps.logger,
+    );
+    this.makeCallUseCase = new MakeCallUseCase(callEngine, deps.logger);
+    this.sendDtmfUseCase = new SendDtmfUseCase(callEngine, deps.logger);
 
     this.eventPublisher.subscribe((event) => {
       void this.handleAutoRegistration(event);
@@ -127,6 +143,21 @@ export class AccountBootstrapFacade {
 
   async setPhoneStatus(status: PhoneStatus): Promise<void> {
     await this.changePhoneStatus.execute({ nextStatus: status });
+  }
+
+  async makeCall(number: string, callId?: CallId): Promise<Result<Call, PlatformError>> {
+    const callInput =
+      callId === undefined
+        ? { number }
+        : {
+            number,
+            callId,
+          };
+    return this.makeCallUseCase.execute(callInput);
+  }
+
+  async sendDtmf(callId: CallId, tone: string): Promise<Result<void, PlatformError>> {
+    return this.sendDtmfUseCase.execute({ callId, tone });
   }
 
   private async handleAutoRegistration(event: DomainEvent): Promise<void> {
