@@ -11,6 +11,7 @@ import { createPlatformError } from "@shared/errors/index.js";
 import { err, ok } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
 import type { Result } from "@shared/result/index.js";
+import { createSampleOcpServerTerminateRawMessage } from "./MockOcpSyncGateway.js";
 import type {
   ChangeAgentStatusCommand,
   ChangeAgentStatusResult,
@@ -81,6 +82,9 @@ export class MockOperatorPlatformGateway implements OperatorPlatformGateway {
   >;
   private transportDisconnectedHandler:
     | ((notification: OcpTransportDisconnectedNotification) => Promise<void>)
+    | null = null;
+  private inboundRawHandler:
+    | ((raw: unknown, correlationId: CorrelationId) => void)
     | null = null;
 
   constructor(options: MockOperatorPlatformGatewayOptions = {}) {
@@ -299,6 +303,34 @@ export class MockOperatorPlatformGateway implements OperatorPlatformGateway {
     if (this.transportDisconnectedHandler !== null) {
       await this.transportDisconnectedHandler(notification);
     }
+  }
+
+  /** P08 WU3: simulate OCP server_terminate inbound (LF-049). */
+  setInboundRawHandler(
+    handler: ((raw: unknown, correlationId: CorrelationId) => void) | null,
+  ): () => void {
+    this.inboundRawHandler = handler;
+    return () => {
+      this.inboundRawHandler = null;
+    };
+  }
+
+  simulateServerTerminate(options: Readonly<{
+    correlationId: CorrelationId;
+    reason?: string;
+    entityId?: string;
+  }>): void {
+    if (this.inboundRawHandler === null) {
+      return;
+    }
+
+    this.inboundRawHandler(
+      createSampleOcpServerTerminateRawMessage(
+        options.entityId ?? "agent-001",
+        options.reason ?? "server_terminate",
+      ),
+      options.correlationId,
+    );
   }
 }
 

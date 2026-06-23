@@ -58,17 +58,31 @@ Active SIP call controls remain reachable during OCP-only disconnect unless SIP 
 - Manual retry (WU4): `RetryConnectionUseCase` resets attempt counter.
 - Logout cascade (`LF-048`): design note — `ServerTerminateReceived` / `AgentLoggedOut` triggers ordered teardown WU3+; overlay shows safe logout path.
 
-## Layout (WU3 — reserved)
+## Layout (WU3 — implemented)
 
 ```txt
 [ConnectionOverlay] data-testid="connection-overlay"
-  channel-status-row (OCP | SIP)
+  channel-status-row (OCP | SIP) — data-testid="connection-channel-ocp|sip"
   reconnect-countdown data-testid="reconnect-countdown"
-  control-retry-connection data-testid="control-retry-connection"
-  optional safe-logout (LF-048 WU3)
+  control-retry-connection data-testid="control-retry-connection" (disabled until WU4)
+  control-safe-logout data-testid="control-safe-logout" (disabled placeholder LF-048)
 ```
 
-## Components (reserved test IDs)
+## WU3 State Inventory (LF-057, LF-049)
+
+| State | Visible copy | Loading | Error | Disabled | Recovery | a11y | Test IDs |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `connected` | hidden | — | — | — | — | — | overlay not mounted |
+| `ocp_disconnected` | "OCP connection lost" | — | `lastFailureReason` | retry: not WU4 | auto-retry pending | `role="region"` banner | `connection-overlay`, `connection-channel-ocp` |
+| `sip_disconnected` | "SIP connection lost" | — | `lastFailureReason` | retry disabled | auto-retry pending | `role="alertdialog"` | `connection-channel-sip` |
+| `reconnecting` | "Reconnecting" + spinner text | attempt n of max | — | retry: in progress | countdown `nextRetryAt` | `aria-live="polite"` on countdown | `reconnect-countdown` |
+| `reconnect_failed` | "Connection could not be restored" | — | `lastFailureReason` | retry: not WU4 | manual retry WU4 | blocking if SIP affected | channel attempt rows |
+| `manual_retry_available` | "Connection failed" | — | `lastFailureReason` | retry enabled WU4 | user retry | blocking if SIP | `control-retry-connection` |
+| `server_terminate` | non-dismissable session ended | — | `lastFailureReason` | retry + safe logout disabled | cascade WU3+ | `role="alertdialog"` | `connection-server-terminate` |
+
+SIP-only: OCP row hidden; OCP inbound no-op. OCP-only disconnect: non-blocking banner; active call controls stay reachable.
+
+## Components (WU3)
 
 | Test ID | Purpose |
 | --- | --- |
@@ -76,7 +90,7 @@ Active SIP call controls remain reachable during OCP-only disconnect unless SIP 
 | `control-retry-connection` | Manual retry button (WU4 wiring) |
 | `reconnect-countdown` | Seconds until next automatic attempt |
 
-## Accessibility (WU3)
+## Accessibility (WU3 — implemented)
 
 - Overlay: `role="alertdialog"` when blocking; `aria-live="polite"` for countdown updates.
 - Retry button: `aria-label="Retry connection"`; keyboard Enter/Space.

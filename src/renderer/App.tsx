@@ -27,6 +27,8 @@ import { StatusSelector } from "./components/status/StatusSelector.js";
 import { StatusTimer } from "./components/status/StatusTimer.js";
 import { LogoutReasonModal } from "./components/status/LogoutReasonModal.js";
 import { useOperatorStatusActions } from "./hooks/useOperatorStatusActions.js";
+import { useConnectionRecoveryShell } from "./hooks/useConnectionRecoveryShell.js";
+import { ConnectionOverlay } from "./components/recovery/ConnectionOverlay.js";
 
 export function App(): JSX.Element {
   const { facade, status, errorMessage } = useAccountBootstrap();
@@ -56,6 +58,9 @@ export function App(): JSX.Element {
   );
   const operatorStatusProjection = useAccountBootstrapStore(
     (state) => state.operatorStatusProjection,
+  );
+  const connectionRecoveryProjection = useAccountBootstrapStore(
+    (state) => state.connectionRecoveryProjection,
   );
   const setCallMode = useAccountBootstrapStore((state) => state.setCallMode);
   const setIncomingUiState = useAccountBootstrapStore((state) => state.setIncomingUiState);
@@ -145,6 +150,8 @@ export function App(): JSX.Element {
     accountProjection: projection,
   });
 
+  const connectionRecoveryShell = useConnectionRecoveryShell(connectionRecoveryProjection);
+
   return (
     <main className="shell" data-testid="softphone-shell">
       <header className="shell__header">
@@ -168,6 +175,22 @@ export function App(): JSX.Element {
             toasts={ocpNotifications.visibleToasts}
             onDismiss={ocpNotifications.dismissToast}
           />
+
+          {connectionRecoveryShell.showOverlay && (
+            <ConnectionOverlay
+              connectionState={connectionRecoveryShell.connectionState}
+              isBlocking={connectionRecoveryShell.isBlocking}
+              showOcpRow={connectionRecoveryShell.showOcpRow}
+              showSipRow={connectionRecoveryShell.showSipRow}
+              ocpReconnectAttempt={connectionRecoveryShell.ocpReconnectAttempt}
+              sipReconnectAttempt={connectionRecoveryShell.sipReconnectAttempt}
+              ocpMaxAttempts={connectionRecoveryShell.ocpMaxAttempts}
+              sipMaxAttempts={connectionRecoveryShell.sipMaxAttempts}
+              reconnectCountdownSeconds={connectionRecoveryShell.reconnectCountdownSeconds}
+              lastFailureReason={connectionRecoveryShell.lastFailureReason}
+              retryDisabledReason={connectionRecoveryShell.retryDisabledReason}
+            />
+          )}
 
           <AuthStateView
             state={projection.authUiState}

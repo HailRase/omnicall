@@ -2,6 +2,7 @@ import {
   createCampaignEventReceivedEvent,
   createOcpNotificationReceivedEvent,
   createQueueInfoReceivedEvent,
+  createServerTerminateReceivedEvent,
   matchQueueInfoToCall,
   type CallId,
   type OcpCampaignEventPayload,
@@ -32,7 +33,8 @@ export type ProcessOcpInboundMessageOutcome =
     }>
   | Readonly<{ action: "queue_info_published"; callId: CallId }>
   | Readonly<{ action: "campaign_published"; callId: CallId | null }>
-  | Readonly<{ action: "notification_published"; notificationId: string }>;
+  | Readonly<{ action: "notification_published"; notificationId: string }>
+  | Readonly<{ action: "server_terminate_published"; entityId: string }>;
 
 /**
  * - Purpose: parse inbound OCP sync messages and publish matched domain events.
@@ -86,6 +88,10 @@ export class ProcessOcpInboundMessageUseCase {
 
     if (parsed.kind === "notification") {
       return ok(this.handleNotification(parsed, correlationId, isOcpMode));
+    }
+
+    if (parsed.kind === "server_terminate") {
+      return ok(this.handleServerTerminate(parsed, correlationId, isOcpMode));
     }
 
     this.logger.warn("ocp_inbound_message_unknown_kind", {
@@ -216,5 +222,34 @@ export class ProcessOcpInboundMessageUseCase {
     });
 
     return { action: "notification_published", notificationId: payload.notificationId };
+  }
+
+  private handleServerTerminate(
+    payload: Readonly<{ entityId: string; reason: string }>,
+    correlationId: CorrelationId,
+    isOcpMode: boolean,
+  ): ProcessOcpInboundMessageOutcome {
+    if (!isOcpMode) {
+      return { action: "noop", reason: "sip_only" };
+    }
+
+    this.eventPublisher.publish(
+      createServerTerminateReceivedEvent(correlationId, {
+        entityId: payload.entityId,
+        reason: payload.reason,
+      }),
+    );
+
+    this.logger.warn("ocp_server_terminate_received", {
+      correlationId,
+      featureId: "F-014",
+      boundedContext: "Operator",
+      operation: "process_ocp_inbound",
+      result: "succeeded",
+      entityId: payload.entityId,
+      reason: payload.reason,
+    });
+
+    return { action: "server_terminate_published", entityId: payload.entityId };
   }
 }

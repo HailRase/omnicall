@@ -125,6 +125,7 @@ export type {
   OcpQueueInfoPayload,
   OcpCampaignEventPayload,
   OcpNotificationPayload,
+  OcpServerTerminatePayload,
   OcpInboundParseError,
 } from "./operator/ocp/OcpInboundMessages.js";
 export { parseOcpInboundMessage } from "./operator/ocp/OcpInboundMessages.js";

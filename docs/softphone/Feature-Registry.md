@@ -375,11 +375,13 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - SIP disconnect → `SipReconnectScheduled` → `reconnectTransport` → `SipReconnectSucceeded` / `SipReconnectFailed` (LF-008).
   - OCP disconnect → `OcpDisconnected` → 6×5s retry → terminal `reconnect_failed` (LF-058).
   - Recovery flow is observable with correlation IDs.
-  - Lost connection overlay UX designed (`P08-Recovery-UX-Design.md`, LF-057); UI WU3.
+  - Lost connection overlay renders projection states with channel rows, countdown, disabled retry (LF-057, WU3).
+  - OCP `server_terminate` inbound publishes `ServerTerminateReceived` and stops pending retries (LF-049, WU3).
   - Logout cascade design note for LF-048 (implementation WU3+).
 - Test Coverage:
-  - Unit: `ReconnectPolicy`, recovery events, `connectionRecoveryProjection`, `ReconnectScheduler`
-  - Integration: `SipRecoveryOrchestration`, `OcpRecoveryOrchestration` (WU2)
+  - Unit: `ReconnectPolicy`, recovery events, `connectionRecoveryProjection`, `ReconnectScheduler`, `deriveConnectionRecoveryShell`, `useReconnectCountdown`
+  - Integration: `SipRecoveryOrchestration`, `OcpRecoveryOrchestration`, `ServerTerminate` (WU3)
+  - Component: `ConnectionOverlay` (WU3)
   - E2E: deferred until harness exists
 
 ## F-015: OCP Call Synchronization And Campaigns

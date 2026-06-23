@@ -2,7 +2,7 @@
 
 **Дата:** 2026-06-24 00:30
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `2bdd525`
 
 ## Где
 - `src/application/infrastructure/ReconnectScheduler.ts`

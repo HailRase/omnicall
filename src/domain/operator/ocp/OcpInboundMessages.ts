@@ -1,7 +1,11 @@
 import type { MainAcallId } from "./MainAcallId.js";
 import { parseMainAcallId } from "./MainAcallId.js";
 
-export type OcpInboundMessageKind = "queue_info" | "campaign_event" | "notification";
+export type OcpInboundMessageKind =
+  | "queue_info"
+  | "campaign_event"
+  | "notification"
+  | "server_terminate";
 
 export type OcpNotificationLevel = "info" | "warn" | "error";
 
@@ -26,17 +30,25 @@ export type OcpNotificationPayload = Readonly<{
   level: OcpNotificationLevel;
 }>;
 
+export type OcpServerTerminatePayload = Readonly<{
+  kind: "server_terminate";
+  entityId: string;
+  reason: string;
+}>;
+
 export type OcpInboundMessage =
   | OcpQueueInfoPayload
   | OcpCampaignEventPayload
-  | OcpNotificationPayload;
+  | OcpNotificationPayload
+  | OcpServerTerminatePayload;
 
 export type OcpInboundParseError =
   | "invalid_payload"
   | "unknown_message_kind"
   | "queue_name_required"
   | "campaign_id_required"
-  | "notification_message_required";
+  | "notification_message_required"
+  | "terminate_entity_required";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -106,6 +118,31 @@ function parseNotificationMessage(
   };
 }
 
+function parseServerTerminateMessage(
+  record: Record<string, unknown>,
+): OcpServerTerminatePayload | OcpInboundParseError {
+  const entityRaw =
+    record["entity_id"] ??
+    record["entityId"] ??
+    record["agent_id"] ??
+    record["agentId"];
+  if (typeof entityRaw !== "string" || entityRaw.trim().length === 0) {
+    return "terminate_entity_required";
+  }
+
+  const reasonRaw = record["reason"] ?? record["message"] ?? record["terminate_reason"];
+  const reason =
+    typeof reasonRaw === "string" && reasonRaw.trim().length > 0
+      ? reasonRaw.trim()
+      : "server_terminate";
+
+  return {
+    kind: "server_terminate",
+    entityId: entityRaw.trim(),
+    reason,
+  };
+}
+
 function parseCampaignEventMessage(
   record: Record<string, unknown>,
 ): OcpCampaignEventPayload | OcpInboundParseError {
@@ -159,6 +196,15 @@ export function parseOcpInboundMessage(
 
   if (kind === "notification" || kind === "ocp_notification") {
     return parseNotificationMessage(raw);
+  }
+
+  if (
+    kind === "server_terminate" ||
+    kind === "serverTerminate" ||
+    kind === "terminate" ||
+    kind === "entity_terminate"
+  ) {
+    return parseServerTerminateMessage(raw);
   }
 
   return "unknown_message_kind";

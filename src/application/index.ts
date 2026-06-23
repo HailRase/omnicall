@@ -141,6 +141,10 @@ export {
   type ConnectionState,
 } from "./projections/connectionRecoveryProjection.js";
 export {
+  deriveConnectionRecoveryShell,
+  type ConnectionRecoveryShellView,
+} from "./projections/deriveConnectionRecoveryShell.js";
+export {
   initialCampaignProjection,
   reduceCampaignProjection,
   getCampaignForCall,

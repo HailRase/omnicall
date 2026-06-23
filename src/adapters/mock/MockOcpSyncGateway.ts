@@ -30,6 +30,12 @@ export const SAMPLE_OCP_NOTIFICATION_MESSAGE: OcpInboundMessage = {
   level: "info",
 };
 
+export const SAMPLE_OCP_SERVER_TERMINATE_MESSAGE: OcpInboundMessage = {
+  kind: "server_terminate",
+  entityId: "agent-001",
+  reason: "session_revoked",
+};
+
 export type MockOcpSyncScenario =
   | Readonly<{ type: "return_null" }>
   | Readonly<{ type: "fixture"; message: OcpInboundMessage }>;
@@ -169,4 +175,15 @@ export function createSampleOcpNotificationRawMessage(
     payload["notification_id"] = notificationId;
   }
   return payload;
+}
+
+export function createSampleOcpServerTerminateRawMessage(
+  entityId: string,
+  reason = "server_terminate",
+): Record<string, string> {
+  return {
+    event: "server_terminate",
+    entity_id: entityId,
+    reason,
+  };
 }

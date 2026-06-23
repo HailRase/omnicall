@@ -92,7 +92,7 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-046 | P06 | UI | Medium | Status duration timer | `StatusTimer` | WU4: `StatusTimer.tsx`, `useOperatorStatusTimer` — see WU4 handoff. |
 | LF-047 | P06 | Operator | High | Logout with reason | `StatusReasonsModal`, `Header` | WU4: `LogoutReasonModal`, `LogoutOperatorUseCase`, `AgentLogoutRequested` — see WU4 handoff. LF-048 cascade P08. |
 | LF-048 | P08 | Operator | Critical | OCP logout cascade | `ocpLogout`, `softphoneLogoutEvent` | WU1 design note in `P08-Recovery-UX-Design.md`; cascade implementation WU3+. |
-| LF-049 | P08 | Operator | Critical | Server-side terminate | `useWs entity terminate` | Server termination triggers full controlled logout. |
+| LF-049 | P08 | Operator | Critical | Server-side terminate | `useWs entity terminate` | WU3: `parseOcpInboundMessage` server_terminate → `ProcessOcpInboundMessageUseCase` → `ServerTerminateReceived`; overlay `server_terminate`; scheduler stop — see `handoffs/P08-WU3-Recovery-Overlay-Handoff.md`. |
 | LF-050 | P07 | Operator | High | Block call button from OCP RESERVED | `useBlockedCallButton` | OCP reserved state disables calling deterministically. |
 | LF-051 | P12 | Integration | High | External call button block | `setCallButtonDisabled` | Host API can block call button through typed adapter. |
 | LF-052 | P09 | Telephony | Medium | Redial or call from journal | `Display`, `Journal` | History entries can initiate calls via Use Case. |
@@ -100,7 +100,7 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 | LF-054 | P09 | Settings | Low | Limit call history to 100 records | `saveCall` | Repository enforces retention policy. |
 | LF-055 | P11 | UI | Medium | Collapse and expand UI | `CollapseButton`, `Display` | Desktop shell supports compact softphone mode. |
 | LF-056 | P11 | UI | Low | Draggable widget | `DraggableButton` | Widget/window drag behavior is predictable in Electron. |
-| LF-057 | P08 | UI | High | Lost WS overlay | `WSConnectionOverlay` | WU1 UX: `P08-Recovery-UX-Design.md`, `connectionRecoveryProjection`; React overlay WU3. |
+| LF-057 | P08 | UI | High | Lost WS overlay | `WSConnectionOverlay` | WU3: `ConnectionOverlay`, `useConnectionRecoveryShell`, `deriveConnectionRecoveryShell` — see `handoffs/P08-WU3-Recovery-Overlay-Handoff.md`. |
 | LF-058 | P08 | Operator | High | WS reconnect 6 attempts by 5 seconds | `useWs` | WU2: `OCP_RECONNECT_POLICY_CONFIG`, `OcpReconnect*`, orchestration + integration test — see `handoffs/P08-WU2-Recovery-Orchestration-Handoff.md`. |
 | LF-059 | P07 | UI | Medium | OCP toast notifications | `NotificationProvider` | WU4: `OcpToastStack`, `ocpNotificationProjection`, `useOcpNotifications` — see `handoffs/P07-WU4-OCP-Sync-Polish-Handoff.md`. |
 | LF-060 | P11 | Settings | Low | Toast position and z-index settings | user config | User config controls notification placement. |

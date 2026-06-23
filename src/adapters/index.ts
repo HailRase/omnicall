@@ -34,7 +34,9 @@ export {
   createSampleOcpQueueInfoRawMessage,
   createSampleOcpCampaignEventRawMessage,
   createSampleOcpNotificationRawMessage,
+  createSampleOcpServerTerminateRawMessage,
   SAMPLE_OCP_QUEUE_INFO_MESSAGE,
   SAMPLE_OCP_CAMPAIGN_EVENT_MESSAGE,
   SAMPLE_OCP_NOTIFICATION_MESSAGE,
+  SAMPLE_OCP_SERVER_TERMINATE_MESSAGE,
 } from "./mock/MockOcpSyncGateway.js";

@@ -38,7 +38,7 @@ import { ConnectionRecoveryOrchestrationService } from "../services/ConnectionRe
 import { InMemoryAgentStatusReadModel } from "../read-models/InMemoryAgentStatusReadModel.js";
 import { InMemoryOcpCallCorrelationRegistry } from "../read-models/InMemoryOcpCallCorrelationRegistry.js";
 import { InMemoryOcpSyncReadModel } from "../read-models/InMemoryOcpSyncReadModel.js";
-import { MockOcpSyncGateway } from "@adapters/mock/MockOcpSyncGateway.js";
+import { MockOcpSyncGateway, createSampleOcpServerTerminateRawMessage } from "@adapters/mock/MockOcpSyncGateway.js";
 import { MockOperatorPlatformGateway } from "@adapters/mock/MockOperatorPlatformGateway.js";
 import { MockTelephonyGateway } from "@adapters/mock/MockTelephonyGateway.js";
 import { AgentStatusSyncService } from "../services/AgentStatusSyncService.js";
@@ -277,6 +277,12 @@ export class AccountBootstrapFacade {
     });
     this.connectionRecoveryOrchestration.bindTransportHandlers();
     this.connectionRecoveryOrchestration.subscribe(this.eventPublisher);
+
+    if (deps.operatorGateway instanceof MockOperatorPlatformGateway) {
+      deps.operatorGateway.setInboundRawHandler((raw, correlationId) => {
+        this.processOcpInboundMessageRaw(raw, correlationId);
+      });
+    }
 
     this.eventPublisher.subscribe((event) => {
       void this.handleAutoRegistration(event);
@@ -585,6 +591,22 @@ export class AccountBootstrapFacade {
       return;
     }
     throw new Error("simulateOcpTransportDisconnected requires MockOperatorPlatformGateway");
+  }
+
+  /** Dev/test helper: simulate OCP server_terminate inbound (LF-049). */
+  simulateServerTerminate(
+    correlationId: CorrelationId = createCorrelationId(),
+    reason = "server_terminate",
+    entityId = "agent-001",
+  ): Result<ProcessOcpInboundMessageOutcome, never> {
+    return this.processOcpInboundMessageRaw(
+      createSampleOcpServerTerminateRawMessage(entityId, reason),
+      correlationId,
+    );
+  }
+
+  getReconnectScheduler() {
+    return this.connectionRecoveryOrchestration.getScheduler();
   }
 
   private async handleAgentStatusSync(event: DomainEvent): Promise<void> {

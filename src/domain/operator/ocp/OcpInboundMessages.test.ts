@@ -50,6 +50,20 @@ describe("parseOcpInboundMessage", () => {
     });
   });
 
+  it("parses server_terminate message", () => {
+    const result = parseOcpInboundMessage({
+      event: "server_terminate",
+      entity_id: "agent-42",
+      reason: "forced_logout",
+    });
+
+    expect(result).toEqual({
+      kind: "server_terminate",
+      entityId: "agent-42",
+      reason: "forced_logout",
+    });
+  });
+
   it("rejects invalid queue payload", () => {
     expect(parseOcpInboundMessage(null)).toBe("invalid_payload");
     expect(parseOcpInboundMessage({ event: "queue_info" })).toBe("invalid_payload");

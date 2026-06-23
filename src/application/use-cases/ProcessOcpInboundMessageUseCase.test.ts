@@ -6,6 +6,7 @@ import { InMemoryOcpSyncReadModel } from "../read-models/InMemoryOcpSyncReadMode
 import {
   MockOcpSyncGateway,
   createSampleOcpQueueInfoRawMessage,
+  createSampleOcpServerTerminateRawMessage,
 } from "@adapters/mock/MockOcpSyncGateway.js";
 import {
   createCallId,
@@ -120,5 +121,37 @@ describe("ProcessOcpInboundMessageUseCase", () => {
     }
     expect(result.value).toEqual({ action: "noop", reason: "sip_only" });
     expect(published).toHaveLength(0);
+  });
+
+  it("publishes ServerTerminateReceived for server_terminate inbound", () => {
+    const events = new InMemoryDomainEventBus();
+    const ocpSyncReadModel = new InMemoryOcpSyncReadModel(events);
+    seedOcpReady(events);
+    const registry = new InMemoryOcpCallCorrelationRegistry(events);
+    const published: string[] = [];
+    events.subscribe((event) => {
+      published.push(event.type);
+    });
+    const useCase = new ProcessOcpInboundMessageUseCase(
+      new MockOcpSyncGateway(),
+      registry,
+      ocpSyncReadModel,
+      events,
+      createTestLogger(),
+    );
+
+    const result = useCase.execute({
+      raw: createSampleOcpServerTerminateRawMessage("agent-001", "session_revoked"),
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value).toEqual({
+      action: "server_terminate_published",
+      entityId: "agent-001",
+    });
+    expect(published).toContain("ServerTerminateReceived");
   });
 });
