@@ -2,7 +2,7 @@
 
 **Дата:** 2026-06-24 17:35
 **Статус:** выполнено
-**Коммит:** (after push)
+**Коммит:** `98287f7`
 
 ## Где
 - `docs/softphone/real-integration/PROGRESS.md`

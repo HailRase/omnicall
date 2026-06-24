@@ -30,6 +30,20 @@ describe("ConnectionOverlay", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
+  it("renders in-progress state when reconnecting without countdown", () => {
+    render(
+      <ConnectionOverlay
+        {...baseProps}
+        connectionState="reconnecting"
+        reconnectCountdownSeconds={null}
+        retryDisabledReason="Automatic reconnect in progress"
+      />,
+    );
+
+    expect(screen.getByTestId("reconnect-in-progress")).toHaveTextContent("Reconnecting now…");
+    expect(screen.queryByTestId("reconnect-countdown")).not.toBeInTheDocument();
+  });
+
   it("renders overlay with test id and disabled retry for reconnecting", () => {
     render(
       <ConnectionOverlay

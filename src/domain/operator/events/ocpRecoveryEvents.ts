@@ -9,6 +9,9 @@ export type OcpDisconnectReason =
 
 export type OcpDisconnectedEvent = ReturnType<typeof createOcpDisconnectedEvent>;
 export type OcpReconnectScheduledEvent = ReturnType<typeof createOcpReconnectScheduledEvent>;
+export type OcpReconnectAttemptStartedEvent = ReturnType<
+  typeof createOcpReconnectAttemptStartedEvent
+>;
 export type OcpReconnectSucceededEvent = ReturnType<typeof createOcpReconnectSucceededEvent>;
 export type OcpReconnectFailedEvent = ReturnType<typeof createOcpReconnectFailedEvent>;
 
@@ -40,6 +43,20 @@ export function createOcpReconnectScheduledEvent(
   }>,
 ) {
   return createDomainEvent("OcpReconnectScheduled", correlationId, payload);
+}
+
+/**
+ * - Purpose: announce in-flight OCP reconnect attempt execution (LF-057).
+ * - Inputs: correlationId, attemptNumber.
+ * - Outputs: OcpReconnectAttemptStarted domain event.
+ */
+export function createOcpReconnectAttemptStartedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    attemptNumber: number;
+  }>,
+) {
+  return createDomainEvent("OcpReconnectAttemptStarted", correlationId, payload);
 }
 
 /**
@@ -75,5 +92,6 @@ export function createOcpReconnectFailedEvent(
 export type OcpRecoveryDomainEvent =
   | OcpDisconnectedEvent
   | OcpReconnectScheduledEvent
+  | OcpReconnectAttemptStartedEvent
   | OcpReconnectSucceededEvent
   | OcpReconnectFailedEvent;

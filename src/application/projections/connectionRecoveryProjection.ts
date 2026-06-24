@@ -68,12 +68,16 @@ export function reduceConnectionRecoveryProjection(
       );
     case "OcpReconnectScheduled":
       return applyOcpReconnectScheduled(projection, event);
+    case "OcpReconnectAttemptStarted":
+      return applyOcpReconnectAttemptStarted(projection, event);
     case "OcpReconnectSucceeded":
       return applyOcpReconnectSucceeded(projection);
     case "OcpReconnectFailed":
       return applyOcpReconnectFailed(projection, event);
     case "SipReconnectScheduled":
       return applySipReconnectScheduled(projection, event);
+    case "SipReconnectAttemptStarted":
+      return applySipReconnectAttemptStarted(projection, event);
     case "SipReconnectSucceeded":
       return applySipReconnectSucceeded(projection);
     case "SipReconnectFailed":
@@ -130,6 +134,27 @@ function applyOcpReconnectScheduled(
   };
 }
 
+function applyOcpReconnectAttemptStarted(
+  projection: ConnectionRecoveryProjection,
+  event: DomainEvent,
+): ConnectionRecoveryProjection {
+  if (!projection.isOcpMode) {
+    return projection;
+  }
+  const attemptNumber = parseAttemptNumber(event["attemptNumber"]);
+  if (attemptNumber === null) {
+    return projection;
+  }
+  return {
+    ...projection,
+    connectionState: "reconnecting",
+    reconnectAttempt: attemptNumber,
+    ocpReconnectAttempt: attemptNumber,
+    nextRetryAt: null,
+    lastFailureReason: null,
+  };
+}
+
 function applyOcpReconnectSucceeded(
   projection: ConnectionRecoveryProjection,
 ): ConnectionRecoveryProjection {
@@ -159,7 +184,7 @@ function applyOcpReconnectFailed(
   const isTerminal = event["isTerminal"] === true;
   return {
     ...projection,
-    connectionState: isTerminal ? "manual_retry_available" : "ocp_disconnected",
+    connectionState: isTerminal ? "manual_retry_available" : "reconnecting",
     reconnectAttempt: attemptNumber,
     ocpReconnectAttempt: attemptNumber,
     nextRetryAt: null,
@@ -199,6 +224,24 @@ function applySipReconnectScheduled(
   };
 }
 
+function applySipReconnectAttemptStarted(
+  projection: ConnectionRecoveryProjection,
+  event: DomainEvent,
+): ConnectionRecoveryProjection {
+  const attemptNumber = parseAttemptNumber(event["attemptNumber"]);
+  if (attemptNumber === null) {
+    return projection;
+  }
+  return {
+    ...projection,
+    connectionState: "reconnecting",
+    reconnectAttempt: attemptNumber,
+    sipReconnectAttempt: attemptNumber,
+    nextRetryAt: null,
+    lastFailureReason: null,
+  };
+}
+
 function applySipReconnectSucceeded(
   projection: ConnectionRecoveryProjection,
 ): ConnectionRecoveryProjection {
@@ -225,7 +268,7 @@ function applySipReconnectFailed(
   const isTerminal = event["isTerminal"] === true;
   return {
     ...projection,
-    connectionState: isTerminal ? "manual_retry_available" : "sip_disconnected",
+    connectionState: isTerminal ? "manual_retry_available" : "reconnecting",
     reconnectAttempt: attemptNumber,
     sipReconnectAttempt: attemptNumber,
     nextRetryAt: null,

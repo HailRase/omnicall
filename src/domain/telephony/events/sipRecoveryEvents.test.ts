@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import {
+  createSipReconnectAttemptStartedEvent,
   createSipReconnectFailedEvent,
   createSipReconnectScheduledEvent,
   createSipReconnectSucceededEvent,
@@ -18,6 +19,15 @@ describe("sipRecoveryEvents", () => {
     expect(event.type).toBe("SipReconnectScheduled");
     expect(event.attemptNumber).toBe(1);
     expect(event.delayMs).toBe(2000);
+  });
+
+  it("creates SipReconnectAttemptStarted", () => {
+    const event = createSipReconnectAttemptStartedEvent(correlationId, {
+      attemptNumber: 3,
+    });
+
+    expect(event.type).toBe("SipReconnectAttemptStarted");
+    expect(event.attemptNumber).toBe(3);
   });
 
   it("creates SipReconnectSucceeded", () => {

@@ -9,6 +9,7 @@ import {
 } from "@domain/operator/events/ocpRecoveryEvents.js";
 import { createServerTerminateReceivedEvent } from "@domain/operator/events/serverTerminateEvents.js";
 import {
+  createSipReconnectAttemptStartedEvent,
   createSipReconnectFailedEvent,
   createSipReconnectScheduledEvent,
   createSipReconnectSucceededEvent,
@@ -118,6 +119,47 @@ describe("connectionRecoveryProjection", () => {
 
     expect(projection.connectionState).toBe("manual_retry_available");
     expect(projection.lastFailureReason).toBe("max_attempts");
+  });
+
+  it("enters in-progress reconnecting on SipReconnectAttemptStarted", () => {
+    let projection = reduceConnectionRecoveryProjection(
+      initialConnectionRecoveryProjection(),
+      createSipReconnectScheduledEvent(correlationId, {
+        attemptNumber: 1,
+        delayMs: 5000,
+      }),
+    );
+
+    projection = reduceConnectionRecoveryProjection(
+      projection,
+      createSipReconnectAttemptStartedEvent(correlationId, { attemptNumber: 1 }),
+    );
+
+    expect(projection.connectionState).toBe("reconnecting");
+    expect(projection.sipReconnectAttempt).toBe(1);
+    expect(projection.nextRetryAt).toBeNull();
+  });
+
+  it("stays reconnecting on non-terminal SIP failure", () => {
+    let projection = reduceConnectionRecoveryProjection(
+      initialConnectionRecoveryProjection(),
+      createSipReconnectScheduledEvent(correlationId, {
+        attemptNumber: 1,
+        delayMs: 2000,
+      }),
+    );
+
+    projection = reduceConnectionRecoveryProjection(
+      projection,
+      createSipReconnectFailedEvent(correlationId, {
+        attemptNumber: 1,
+        reason: "registration_timeout",
+        isTerminal: false,
+      }),
+    );
+
+    expect(projection.connectionState).toBe("reconnecting");
+    expect(projection.sipReconnectAttempt).toBe(1);
   });
 
   it("handles SIP reconnect schedule and success", () => {

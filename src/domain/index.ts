@@ -180,6 +180,7 @@ export type {
   OcpDisconnectReason,
   OcpDisconnectedEvent,
   OcpReconnectScheduledEvent,
+  OcpReconnectAttemptStartedEvent,
   OcpReconnectSucceededEvent,
   OcpReconnectFailedEvent,
   OcpRecoveryDomainEvent,
@@ -187,6 +188,7 @@ export type {
 export {
   createOcpDisconnectedEvent,
   createOcpReconnectScheduledEvent,
+  createOcpReconnectAttemptStartedEvent,
   createOcpReconnectSucceededEvent,
   createOcpReconnectFailedEvent,
 } from "./operator/events/ocpRecoveryEvents.js";
@@ -323,12 +325,14 @@ export {
 } from "./telephony/events/registrationEvents.js";
 export type {
   SipReconnectScheduledEvent,
+  SipReconnectAttemptStartedEvent,
   SipReconnectSucceededEvent,
   SipReconnectFailedEvent,
   SipRecoveryDomainEvent,
 } from "./telephony/events/sipRecoveryEvents.js";
 export {
   createSipReconnectScheduledEvent,
+  createSipReconnectAttemptStartedEvent,
   createSipReconnectSucceededEvent,
   createSipReconnectFailedEvent,
 } from "./telephony/events/sipRecoveryEvents.js";

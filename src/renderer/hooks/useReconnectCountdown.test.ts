@@ -25,7 +25,34 @@ describe("useReconnectCountdown", () => {
     expect(result.current).toBe(5);
   });
 
-  it("updates to zero after one-shot timeout without setInterval", () => {
+  it("ticks down each second while reconnecting", () => {
+    const { result } = renderHook(() =>
+      useReconnectCountdown("2026-06-24T12:00:05.000Z", "reconnecting"),
+    );
+    expect(result.current).toBe(5);
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(result.current).toBe(4);
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(result.current).toBe(3);
+
+    act(() => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(result.current).toBe(2);
+
+    act(() => {
+      vi.advanceTimersByTime(2000);
+    });
+    expect(result.current).toBeNull();
+  });
+
+  it("returns null at zero instead of showing frozen countdown", () => {
     const { result } = renderHook(() =>
       useReconnectCountdown("2026-06-24T12:00:03.000Z", "reconnecting"),
     );
@@ -34,12 +61,11 @@ describe("useReconnectCountdown", () => {
     act(() => {
       vi.advanceTimersByTime(3000);
     });
-
-    expect(result.current).toBe(0);
+    expect(result.current).toBeNull();
   });
 
-  it("cleans up timer on unmount", () => {
-    const clearSpy = vi.spyOn(globalThis, "clearTimeout");
+  it("cleans up interval on unmount", () => {
+    const clearSpy = vi.spyOn(globalThis, "clearInterval");
     const { unmount } = renderHook(() =>
       useReconnectCountdown("2026-06-24T12:00:10.000Z", "reconnecting"),
     );

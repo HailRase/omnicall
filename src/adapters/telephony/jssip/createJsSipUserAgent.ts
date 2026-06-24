@@ -11,6 +11,7 @@ import { resolveJsSipTransportUrl } from "./resolveJsSipTransportUrl.js";
  * - Purpose: build JsSIP UA configuration and instance from domain SipAccount.
  * - Inputs: SipAccount with server WebSocket URL, domain, and SIP credentials.
  * - Outputs: JsSIP UA port ready for start/register (register=false in config).
+ * - Reconnect: connection_recovery_* is transport-level only; app orchestration owns retry policy.
  */
 export function buildJsSipUaConfiguration(account: SipAccount): {
   sockets: [InstanceType<typeof JsSIP.WebSocketInterface>];

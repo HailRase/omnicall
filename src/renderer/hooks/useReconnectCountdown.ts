@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import type { ConnectionState } from "@application/index.js";
 
+const TICK_INTERVAL_MS = 1000;
+
 /**
- * - Purpose: one-shot countdown tick for reconnect overlay (LF-057).
+ * - Purpose: per-second countdown tick for reconnect overlay (LF-057).
  * - Inputs: nextRetryAt ISO timestamp, connection state.
  * - Outputs: seconds remaining until next retry, or null when inactive.
  */
@@ -24,18 +26,12 @@ export function useReconnectCountdown(
       return;
     }
 
-    const remainingMs = targetMs - Date.now();
-    if (remainingMs <= 0) {
+    const interval = setInterval(() => {
       setTickMs(Date.now());
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setTickMs(Date.now());
-    }, remainingMs);
+    }, TICK_INTERVAL_MS);
 
     return () => {
-      clearTimeout(timer);
+      clearInterval(interval);
     };
   }, [connectionState, nextRetryAt]);
 
@@ -49,5 +45,8 @@ export function useReconnectCountdown(
   }
 
   const remainingSeconds = Math.ceil((targetMs - tickMs) / 1000);
-  return Math.max(0, remainingSeconds);
+  if (remainingSeconds <= 0) {
+    return null;
+  }
+  return remainingSeconds;
 }

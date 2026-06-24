@@ -2,6 +2,9 @@ import { createDomainEvent } from "../../shared/DomainEvent.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 
 export type SipReconnectScheduledEvent = ReturnType<typeof createSipReconnectScheduledEvent>;
+export type SipReconnectAttemptStartedEvent = ReturnType<
+  typeof createSipReconnectAttemptStartedEvent
+>;
 export type SipReconnectSucceededEvent = ReturnType<typeof createSipReconnectSucceededEvent>;
 export type SipReconnectFailedEvent = ReturnType<typeof createSipReconnectFailedEvent>;
 
@@ -18,6 +21,20 @@ export function createSipReconnectScheduledEvent(
   }>,
 ) {
   return createDomainEvent("SipReconnectScheduled", correlationId, payload);
+}
+
+/**
+ * - Purpose: announce in-flight SIP reconnect attempt execution (LF-057).
+ * - Inputs: correlationId, attemptNumber.
+ * - Outputs: SipReconnectAttemptStarted domain event.
+ */
+export function createSipReconnectAttemptStartedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    attemptNumber: number;
+  }>,
+) {
+  return createDomainEvent("SipReconnectAttemptStarted", correlationId, payload);
 }
 
 /**
@@ -52,5 +69,6 @@ export function createSipReconnectFailedEvent(
 
 export type SipRecoveryDomainEvent =
   | SipReconnectScheduledEvent
+  | SipReconnectAttemptStartedEvent
   | SipReconnectSucceededEvent
   | SipReconnectFailedEvent;

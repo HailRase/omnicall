@@ -67,6 +67,12 @@ export function ConnectionOverlay({
     sipMaxAttempts,
   });
 
+  const showCountdown =
+    connectionState === "reconnecting" &&
+    reconnectCountdownSeconds !== null &&
+    reconnectCountdownSeconds > 0;
+  const showInProgress = connectionState === "reconnecting" && !showCountdown;
+
   return (
     <section
       className={overlayClass}
@@ -108,7 +114,7 @@ export function ConnectionOverlay({
         ))}
       </ul>
 
-      {connectionState === "reconnecting" && reconnectCountdownSeconds !== null && (
+      {showCountdown && (
         <p
           className="connection-overlay__countdown"
           data-testid="reconnect-countdown"
@@ -119,9 +125,14 @@ export function ConnectionOverlay({
         </p>
       )}
 
-      {connectionState === "reconnecting" && (
-        <p className="connection-overlay__loading" role="status">
-          Reconnecting…
+      {showInProgress && (
+        <p
+          className="connection-overlay__loading"
+          data-testid="reconnect-in-progress"
+          aria-live="polite"
+          role="status"
+        >
+          Reconnecting now…
         </p>
       )}
 

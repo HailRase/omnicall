@@ -16,13 +16,13 @@
 
 | 01 Adapter mode bootstrap | done | 2026-06-24 | adapterMode resolver; createSoftphoneComposition dispatcher; mock extracted; real stub; renderer wired | 496 (+8) | n/a |
 
-| 02 JsSIP registration | done | 2026-06-24 | JsSipTelephonyAdapter; resolveJsSipTransportUrl (legacy parity); registration lifecycle fix; Electron CSP/preload/CJS; createRealAccountBootstrap; readSipEnvDefaults | 508 (+20) | R1 **pass** (partial — see notes) |
+| 02 JsSIP registration | done | 2026-06-24 | JsSipTelephonyAdapter; resolveJsSipTransportUrl; registration lifecycle; reconnect UX (countdown/in-progress); createRealAccountBootstrap | 558 | R1 **pass** (manual 2026-06-24) |
 
-| 03 Browser media | done | 2026-06-24 | BrowserMediaAdapter (WebAudio tones, hidden audio, mute/unmute); JsSip peer-connection hook; real bootstrap wired | 551 | R2 **pass** (manual 2026-06-24) |
+| 03 Browser media | done | 2026-06-24 | BrowserMediaAdapter (WebAudio tones, hidden audio, mute/unmute); JsSip peer-connection hook; real bootstrap wired | 558 | R2 **pass** (manual 2026-06-24) |
 
-| 04 Call lifecycle in/out | done | 2026-06-24 | makeCall/incoming/answer/reject/hangup/callEnded; bindPeerConnection; outbound `confirmed` bridge; `ensureJsSipRtcSessionPort` incoming | 551 | R3 **pass** (manual 2026-06-24) |
+| 04 Call lifecycle in/out | done | 2026-06-24 | makeCall/incoming/answer/reject/hangup/callEnded; bindPeerConnection; outbound `confirmed` bridge; `ensureJsSipRtcSessionPort` incoming | 558 | R3 **pass** (manual 2026-06-24) |
 
-| 05 Hold / mute real | done | 2026-06-24 | holdCall/resumeCall re-INVITE; BrowserMediaAdapter mute verified; error banner already wired | 551 | R4 **pass** (manual 2026-06-24) |
+| 05 Hold / mute real | done | 2026-06-24 | holdCall/resumeCall re-INVITE; BrowserMediaAdapter mute verified; error banner already wired | 558 | R4 **pass** (manual 2026-06-24) |
 
 | 06 OCP WebSocket | pending | | | | |
 
@@ -32,9 +32,13 @@
 
 ## Current blocker
 
-
-
 (none)
+
+## Where we stopped (2026-06-24)
+
+- **Manual smoke R1–R4:** all checklist items **PASS** on dev SBC (sip-only, `VITE_ADAPTER_MODE=real`).
+- **R1-5:** auto-reconnect on network restore **PASS**; reconnect overlay UX improved (countdown tick, in-progress phase, attempt events) — manual retry button still only after terminal / `manual_retry_available` (not re-tested offline to exhaustion).
+- **Next:** RAT **step 06** — real OCP WebSocket adapter + smoke **R5** (auth, Ready/Break, queue, campaign modal).
 
 
 
@@ -58,11 +62,11 @@
 
 | PhoneStatusBadge → Online | **OK** — registration succeeded |
 
-| Wrong password → RegistrationFailed | not verified this session |
+| Wrong password → RegistrationFailed | **PASS** — manual smoke 2026-06-24 |
 
-| Disconnect network → ConnectionOverlay SIP | not verified this session |
+| Disconnect network → ConnectionOverlay SIP | **PASS** — `connection-overlay` + `connection-channel-sip` Reconnecting |
 
-| Reconnect / manual retry | not verified this session |
+| Reconnect / manual retry | **PASS (auto)** — network restore clears overlay; manual retry N/A (auto in progress); UX fixes in reconnect phase |
 
 
 
@@ -148,11 +152,21 @@
 | R4-1 | Hold / resume | **PASS** | outgoing retest R3-1 |
 | R4-2 | Mute / unmute | **PASS** | outgoing retest R3-1 |
 
-**R1 carry-over (optional):** wrong password, disconnect overlay, reconnect — not verified this session.
+## Manual smoke session R1 carry-over — 2026-06-24
 
-**R2+R3+R4 gate:** **closed** (all checklist items PASS on dev SBC, 2026-06-24).
+| ID | Checklist | Result | Notes |
+| --- | --- | --- | --- |
+| R1-3 | Wrong password → RegistrationFailed | **PASS** | |
+| R1-4 | Disconnect network → ConnectionOverlay SIP | **PASS** | SIP row Reconnecting, attempt counter |
+| R1-5 | Reconnect / manual retry | **PASS (auto)** | overlay cleared on network restore; manual retry not exercised (disabled during auto-reconnect) |
 
-**Next track work:** RAT step 06 — R5 OCP WebSocket manual smoke (after implementation).
+**UX follow-up (implemented same day):** `SipReconnectAttemptStarted` / countdown 1s tick / «Reconnecting now…» in-progress phase; debounce duplicate transport disconnect in orchestration.
+
+**R1 gate:** **closed** (sip-only dev SBC).
+
+**R2+R3+R4 gate:** **closed** (see session below).
+
+**Next track work:** RAT step 06 — R5 OCP WebSocket (implementation + manual smoke).
 
 ## Dev credentials
 

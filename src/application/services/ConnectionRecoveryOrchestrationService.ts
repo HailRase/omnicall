@@ -1,6 +1,7 @@
 import type { DomainEvent } from "@domain/index.js";
 import {
   createOcpDisconnectedEvent,
+  createOcpReconnectAttemptStartedEvent,
   createOcpReconnectFailedEvent,
   createOcpReconnectScheduledEvent,
   createOcpReconnectSucceededEvent,
@@ -15,6 +16,7 @@ import {
 } from "@domain/shared/recovery/ReconnectPolicy.js";
 import { createManualReconnectRequestedEvent } from "@domain/shared/recovery/manualRecoveryEvents.js";
 import {
+  createSipReconnectAttemptStartedEvent,
   createSipReconnectFailedEvent,
   createSipReconnectScheduledEvent,
   createSipReconnectSucceededEvent,
@@ -58,6 +60,8 @@ export type ConnectionRecoveryOrchestrationDeps = Readonly<{
  * - Purpose: orchestrate SIP/OCP reconnect scheduling and gateway retries (LF-008, LF-058).
  * - Inputs: transport disconnect notifications, ServerTerminateReceived.
  * - Outputs: recovery domain events via publisher; gateway reconnectTransport calls.
+ * - Ownership: app layer owns attempt counting and UI scheduling; JsSIP connection_recovery
+ *   retries WebSocket transport only and may emit duplicate disconnect events — deduped here.
  */
 export class ConnectionRecoveryOrchestrationService {
   private readonly scheduler: ReconnectScheduler;
@@ -180,7 +184,17 @@ export class ConnectionRecoveryOrchestrationService {
     correlationId: CorrelationId,
     reason: string,
   ): void {
-    this.clearChannel("sip");
+    if (this.isRecoveryInFlight("sip")) {
+      this.deps.logger.warn("sip_transport_disconnect_deduplicated", {
+        correlationId,
+        featureId: FEATURE_ID,
+        boundedContext: "Telephony",
+        operation: "sip_transport_disconnect_deduplicated",
+        reason,
+      });
+      return;
+    }
+
     this.sipSession = {
       correlationId,
       nextAttemptNumber: 1,
@@ -206,7 +220,17 @@ export class ConnectionRecoveryOrchestrationService {
       return;
     }
 
-    this.clearChannel("ocp");
+    if (this.isRecoveryInFlight("ocp")) {
+      this.deps.logger.warn("ocp_transport_disconnect_deduplicated", {
+        correlationId,
+        featureId: FEATURE_ID,
+        boundedContext: "Operator",
+        operation: "ocp_transport_disconnect_deduplicated",
+        reason,
+      });
+      return;
+    }
+
     this.ocpSession = {
       correlationId,
       nextAttemptNumber: 1,
@@ -284,6 +308,8 @@ export class ConnectionRecoveryOrchestrationService {
       timerHandle: null,
     });
 
+    this.publishAttemptStarted(channel, session.correlationId, attemptNumber);
+
     const gatewayResult =
       channel === "sip"
         ? await this.deps.telephonyGateway.reconnectTransport(session.correlationId)
@@ -349,6 +375,23 @@ export class ConnectionRecoveryOrchestrationService {
 
     this.deps.eventPublisher.publish(
       createOcpReconnectScheduledEvent(correlationId, { attemptNumber, delayMs }),
+    );
+  }
+
+  private publishAttemptStarted(
+    channel: RecoveryChannel,
+    correlationId: CorrelationId,
+    attemptNumber: number,
+  ): void {
+    if (channel === "sip") {
+      this.deps.eventPublisher.publish(
+        createSipReconnectAttemptStartedEvent(correlationId, { attemptNumber }),
+      );
+      return;
+    }
+
+    this.deps.eventPublisher.publish(
+      createOcpReconnectAttemptStartedEvent(correlationId, { attemptNumber }),
     );
   }
 
@@ -445,6 +488,10 @@ export class ConnectionRecoveryOrchestrationService {
 
   private getPolicy(channel: RecoveryChannel): ReconnectPolicyConfig {
     return channel === "sip" ? this.sipPolicy : this.ocpPolicy;
+  }
+
+  private isRecoveryInFlight(channel: RecoveryChannel): boolean {
+    return this.getSession(channel) !== null;
   }
 }
 
