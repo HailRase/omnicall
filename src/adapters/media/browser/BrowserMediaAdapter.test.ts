@@ -130,6 +130,9 @@ describe("BrowserMediaAdapter", () => {
 
     const result = await adapter.attachRemoteAudio({ callId, correlationId });
     expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toBe("attached");
+    }
     expect(adapter.isRemoteAudioElementAttached(callId)).toBe(true);
 
     const audioElement = rootElement.querySelector(`audio[data-call-id="${callId}"]`);
@@ -139,14 +142,71 @@ describe("BrowserMediaAdapter", () => {
     adapter.dispose();
   });
 
-  it("returns ok when peer connection is missing but still prepares audio element", async () => {
+  it("returns deferred when peer connection is missing but still prepares audio element", async () => {
     const adapter = createAdapter(() => null);
     const callId = createCallId("call-missing-pc");
     const correlationId = createCorrelationId();
 
     const result = await adapter.attachRemoteAudio({ callId, correlationId });
     expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toBe("deferred");
+    }
     expect(adapter.isRemoteAudioElementAttached(callId)).toBe(true);
+    expect(adapter.isRemoteAudioStreamWired(callId)).toBe(false);
+
+    adapter.dispose();
+  });
+
+  it("wires remote audio when peer connection becomes available after deferred attach", async () => {
+    const playSpy = vi.spyOn(HTMLAudioElement.prototype, "play").mockResolvedValue(undefined);
+    class TestMediaStream {
+      private readonly tracks: MediaStreamTrack[];
+
+      constructor(tracks: MediaStreamTrack[] = []) {
+        this.tracks = [...tracks];
+      }
+
+      addTrack(track: MediaStreamTrack): void {
+        this.tracks.push(track);
+      }
+
+      getTracks(): MediaStreamTrack[] {
+        return this.tracks;
+      }
+    }
+
+    vi.stubGlobal("MediaStream", TestMediaStream);
+
+    const track = { kind: "audio", enabled: true } as MediaStreamTrack;
+    const connection = {
+      getReceivers: () => [{ track }],
+      getSenders: () => [],
+      addEventListener: vi.fn(),
+    };
+
+    let peerConnection: unknown = null;
+    const adapter = createAdapter((callId) => {
+      void callId;
+      return peerConnection;
+    });
+    const callId = createCallId("call-deferred-pc");
+    const correlationId = createCorrelationId();
+
+    const deferredResult = await adapter.attachRemoteAudio({ callId, correlationId });
+    expect(deferredResult.ok).toBe(true);
+    if (deferredResult.ok) {
+      expect(deferredResult.value).toBe("deferred");
+    }
+
+    peerConnection = connection;
+    const attachedResult = await adapter.attachRemoteAudio({ callId, correlationId });
+    expect(attachedResult.ok).toBe(true);
+    if (attachedResult.ok) {
+      expect(attachedResult.value).toBe("attached");
+    }
+    expect(adapter.isRemoteAudioStreamWired(callId)).toBe(true);
+    expect(playSpy).toHaveBeenCalled();
 
     adapter.dispose();
   });

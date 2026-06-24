@@ -10,6 +10,7 @@ import type {
   ResumeCallCommand,
   SendDtmfCommand,
   TelephonyCallEndedNotification,
+  TelephonyCallAnsweredNotification,
   TelephonyIncomingCallNotification,
   TelephonyTransportDisconnectedNotification,
   TelephonyGateway,
@@ -93,6 +94,9 @@ export class MockTelephonyGateway implements TelephonyGateway {
     | null = null;
   private callEndedHandler:
     | ((notification: TelephonyCallEndedNotification) => Promise<void>)
+    | null = null;
+  private callAnsweredHandler:
+    | ((notification: TelephonyCallAnsweredNotification) => Promise<void>)
     | null = null;
   private transportDisconnectedHandler:
     | ((notification: TelephonyTransportDisconnectedNotification) => Promise<void>)
@@ -488,6 +492,15 @@ export class MockTelephonyGateway implements TelephonyGateway {
     };
   }
 
+  setCallAnsweredHandler(
+    handler: ((notification: TelephonyCallAnsweredNotification) => Promise<void>) | null,
+  ): () => void {
+    this.callAnsweredHandler = handler;
+    return () => {
+      this.callAnsweredHandler = null;
+    };
+  }
+
   /** P08 WU2: simulate SIP transport disconnect for integration tests. */
   setTransportDisconnectedHandler(
     handler: ((notification: TelephonyTransportDisconnectedNotification) => Promise<void>) | null,
@@ -517,6 +530,14 @@ export class MockTelephonyGateway implements TelephonyGateway {
   async simulateCallEnded(notification: TelephonyCallEndedNotification): Promise<void> {
     if (this.callEndedHandler !== null) {
       await this.callEndedHandler(notification);
+    }
+  }
+
+  async simulateCallAnswered(
+    notification: TelephonyCallAnsweredNotification,
+  ): Promise<void> {
+    if (this.callAnsweredHandler !== null) {
+      await this.callAnsweredHandler(notification);
     }
   }
 }

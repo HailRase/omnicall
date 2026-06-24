@@ -7,6 +7,7 @@ import type {
   PlayIncomingRingtoneCommand,
   PlayRingtoneCommand,
   PlayRingbackToneCommand,
+  RemoteAudioAttachOutcome,
   StopRingtoneCommand,
   StopToneCommand,
   UnmuteCallCommand,
@@ -66,7 +67,7 @@ export class MockMediaGateway implements MediaGateway {
 
   attachRemoteAudio(
     command: AttachRemoteAudioCommand,
-  ): Promise<Result<void, PlatformError>> {
+  ): Promise<Result<RemoteAudioAttachOutcome, PlatformError>> {
     if (this.scenario === "failure") {
       return Promise.resolve(
         err(
@@ -79,7 +80,7 @@ export class MockMediaGateway implements MediaGateway {
     }
 
     this.remoteAudioAttachedCalls.add(command.callId);
-    return Promise.resolve(ok(undefined));
+    return Promise.resolve(ok("attached"));
   }
 
   playRingbackTone(

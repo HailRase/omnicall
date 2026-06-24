@@ -13,6 +13,7 @@ export type WireJsSipRtcSessionLifecycleOptions = Readonly<{
   logger: Logger;
   onPeerConnection: (callId: CallId, connection: unknown) => void;
   onSessionEnded: (callId: CallId, correlationId: CorrelationId) => void;
+  onSessionConfirmed?: (callId: CallId, correlationId: CorrelationId) => void;
 }>;
 
 /**
@@ -31,9 +32,11 @@ export function wireJsSipRtcSessionLifecycle(
     logger,
     onPeerConnection,
     onSessionEnded,
+    onSessionConfirmed,
   } = options;
 
   let ended = false;
+  let confirmed = false;
 
   const handlePeerConnection = (...args: unknown[]): void => {
     const connection = extractPeerConnection(args[0]);
@@ -51,12 +54,22 @@ export function wireJsSipRtcSessionLifecycle(
     });
   };
 
+  const handleSessionAnswered = (): void => {
+    if (confirmed || onSessionConfirmed === undefined) {
+      return;
+    }
+    confirmed = true;
+    onSessionConfirmed(callId, correlationId);
+  };
+
   const handleSessionEnd = (): void => {
     if (ended) {
       return;
     }
     ended = true;
     session.off("peerconnection", handlePeerConnection);
+    session.off("accepted", handleSessionAnswered);
+    session.off("confirmed", handleSessionAnswered);
     session.off("ended", handleEnded);
     session.off("failed", handleFailed);
     onSessionEnded(callId, correlationId);
@@ -71,6 +84,10 @@ export function wireJsSipRtcSessionLifecycle(
   };
 
   session.on("peerconnection", handlePeerConnection);
+  if (onSessionConfirmed !== undefined) {
+    session.on("accepted", handleSessionAnswered);
+    session.on("confirmed", handleSessionAnswered);
+  }
   session.on("ended", handleEnded);
   session.on("failed", handleFailed);
 

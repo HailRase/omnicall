@@ -11,6 +11,7 @@ import type {
   ResumeCallCommand,
   SendDtmfCommand,
   TelephonyCallEndedNotification,
+  TelephonyCallAnsweredNotification,
   TelephonyGateway,
   TelephonyIncomingCallNotification,
   TelephonyTransportDisconnectedNotification,
@@ -32,6 +33,7 @@ import { executeJsSipHoldResume } from "./executeJsSipHoldResume.js";
 import type { JsSipNewRtcSessionEvent, JsSipRtcSessionPort } from "./JsSipRtcSessionPort.js";
 import { wireJsSipRtcSessionLifecycle } from "./wireJsSipRtcSessionLifecycle.js";
 import { createJsSipUserAgent } from "./createJsSipUserAgent.js";
+import { ensureJsSipRtcSessionPort } from "./wrapJsSipRtcSession.js";
 import { telephonyNotImplementedError } from "./telephonyNotImplementedError.js";
 import { awaitJsSipRegistration } from "./awaitJsSipRegistration.js";
 import { resolveJsSipTransportUrl } from "./resolveJsSipTransportUrl.js";
@@ -49,6 +51,11 @@ const DEFAULT_CALL_MEDIA_OPTIONS = {
 export type JsSipTelephonyAdapterOptions = Readonly<{
   logger: Logger;
   createUserAgent?: JsSipUserAgentFactory;
+}>;
+
+export type TelephonyPeerConnectionBoundNotification = Readonly<{
+  callId: CallId;
+  correlationId: CorrelationId;
 }>;
 
 /**
@@ -73,6 +80,12 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     | null = null;
   private callEndedHandler:
     | ((notification: TelephonyCallEndedNotification) => Promise<void>)
+    | null = null;
+  private callAnsweredHandler:
+    | ((notification: TelephonyCallAnsweredNotification) => Promise<void>)
+    | null = null;
+  private peerConnectionBoundHandler:
+    | ((notification: TelephonyPeerConnectionBoundNotification) => Promise<void>)
     | null = null;
   private transportDisconnectedHandler:
     | ((notification: TelephonyTransportDisconnectedNotification) => Promise<void>)
@@ -250,7 +263,13 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     try {
       const session = this.ua.call(target, DEFAULT_CALL_MEDIA_OPTIONS);
       this.registerSession(callId, session, correlationId);
-      this.attachSessionLifecycle(callId, session, correlationId, FEATURE_ID_OUTGOING);
+      this.attachSessionLifecycle(
+        callId,
+        session,
+        correlationId,
+        FEATURE_ID_OUTGOING,
+        { notifyOnConfirmed: true },
+      );
 
       const progressResult = await executeJsSipOutboundCall(session);
 
@@ -558,6 +577,24 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     };
   }
 
+  setCallAnsweredHandler(
+    handler: ((notification: TelephonyCallAnsweredNotification) => Promise<void>) | null,
+  ): () => void {
+    this.callAnsweredHandler = handler;
+    return () => {
+      this.callAnsweredHandler = null;
+    };
+  }
+
+  setPeerConnectionBoundHandler(
+    handler: ((notification: TelephonyPeerConnectionBoundNotification) => Promise<void>) | null,
+  ): () => void {
+    this.peerConnectionBoundHandler = handler;
+    return () => {
+      this.peerConnectionBoundHandler = null;
+    };
+  }
+
   setTransportDisconnectedHandler(
     handler: ((notification: TelephonyTransportDisconnectedNotification) => Promise<void>) | null,
   ): () => void {
@@ -586,6 +623,13 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       operation: "jssip_peer_connection_bound",
       callId,
     });
+
+    const correlationId = this.callCorrelations.get(callId);
+    if (this.peerConnectionBoundHandler === null || correlationId === undefined) {
+      return;
+    }
+
+    void this.peerConnectionBoundHandler({ callId, correlationId });
   }
 
   /**
@@ -623,6 +667,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     session: JsSipRtcSessionPort,
     correlationId: CorrelationId,
     featureId: string,
+    options?: Readonly<{ notifyOnConfirmed?: boolean }>,
   ): void {
     wireJsSipRtcSessionLifecycle({
       callId,
@@ -636,6 +681,13 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       onSessionEnded: (endedCallId, endedCorrelationId) => {
         void this.handleSessionEnded(endedCallId, endedCorrelationId);
       },
+      ...(options?.notifyOnConfirmed === true
+        ? {
+            onSessionConfirmed: (confirmedCallId, confirmedCorrelationId) => {
+              void this.handleSessionConfirmed(confirmedCallId, confirmedCorrelationId);
+            },
+          }
+        : {}),
     });
   }
 
@@ -670,16 +722,17 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       return;
     }
 
-    const callId = createCallId(event.session.id);
+    const session = ensureJsSipRtcSessionPort(event.session);
+    const callId = createCallId(session.id);
     const correlationId = createCorrelationId();
     this.lastCorrelationId = correlationId;
 
-    this.registerSession(callId, event.session, correlationId);
-    this.attachSessionLifecycle(callId, event.session, correlationId, FEATURE_ID_INCOMING);
+    this.registerSession(callId, session, correlationId);
+    this.attachSessionLifecycle(callId, session, correlationId, FEATURE_ID_INCOMING);
 
-    const remoteHeader = event.session.getRemoteIdentityHeader();
+    const remoteHeader = session.getRemoteIdentityHeader();
     const notification = mapTelephonyIncomingNotification({
-      callId: event.session.id,
+      callId: session.id,
       fromHeader: remoteHeader,
       remoteNumber: remoteHeader,
       correlationId,
@@ -694,6 +747,25 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     });
 
     await this.incomingCallHandler(notification);
+  }
+
+  private async handleSessionConfirmed(
+    callId: CallId,
+    correlationId: CorrelationId,
+  ): Promise<void> {
+    if (this.callAnsweredHandler === null) {
+      return;
+    }
+
+    this.logger.info("jssip_call_answered", {
+      correlationId,
+      featureId: FEATURE_ID_OUTGOING,
+      boundedContext: "Telephony",
+      operation: "jssip_call_answered",
+      callId,
+    });
+
+    await this.callAnsweredHandler({ callId, correlationId });
   }
 
   private async handleSessionEnded(

@@ -280,6 +280,12 @@ export class AccountBootstrapFacade {
         notification.correlationId,
       );
     });
+    deps.telephonyGateway.setCallAnsweredHandler(async (notification) => {
+      await this.callEngine.handleOutboundCallAnswered(
+        notification.callId,
+        notification.correlationId,
+      );
+    });
 
     this.connectionRecoveryOrchestration = new ConnectionRecoveryOrchestrationService({
       telephonyGateway: deps.telephonyGateway,
@@ -687,6 +693,13 @@ export class AccountBootstrapFacade {
     }
 
     await this.authorizeManualAccount(credentials, event.correlationId);
+  }
+
+  notifyPeerConnectionAvailable(
+    callId: CallId,
+    correlationId: CorrelationId,
+  ): Promise<void> {
+    return this.callEngine.handlePeerConnectionAvailable(callId, correlationId);
   }
 }
 

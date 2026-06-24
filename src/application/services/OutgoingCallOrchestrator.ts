@@ -9,7 +9,6 @@ import {
   createOutgoingCall,
   createOutgoingCallRequestedEvent,
   createOutgoingCallStartedEvent,
-  createRemoteAudioAttachedEvent,
   createRingbackToneStartedEvent,
   mapCallFailureReason,
   type Call,
@@ -32,6 +31,7 @@ import {
   cancelScheduledTonePlaybackStop,
   scheduleTonePlaybackStop,
 } from "./scheduleTonePlaybackStop.js";
+import { attachRemoteAudioWhenReady } from "./remoteAudioAttach.js";
 import { resolveTerminalFailureToneDuration } from "../policies/tonePlaybackPolicy.js";
 import type {
   HandleCallAnsweredInput,
@@ -173,7 +173,7 @@ export class OutgoingCallOrchestrator {
       );
     }
 
-    if (input.progressCode === 183) {
+    if (input.progressCode === 183 || input.progressCode === 180) {
       await this.deps.mediaGateway.playRingbackTone({
         callId: input.call.id,
         correlationId,
@@ -203,17 +203,30 @@ export class OutgoingCallOrchestrator {
 
     cancelScheduledTonePlaybackStop(input.call.id);
     await this.deps.mediaGateway.stopTone({ callId: input.call.id, correlationId });
-    await this.deps.mediaGateway.attachRemoteAudio({
-      callId: input.call.id,
+    await attachRemoteAudioWhenReady(
+      {
+        mediaGateway: this.deps.mediaGateway,
+        eventPublisher: this.deps.eventPublisher,
+      },
+      input.call.id,
       correlationId,
-    });
-    this.deps.eventPublisher.publish(
-      createRemoteAudioAttachedEvent(correlationId, {
-        callId: input.call.id,
-      }),
     );
     this.deps.callTracker.trackCall(answered.call);
     return ok(answered.call);
+  }
+
+  async retryRemoteAudioAttach(
+    input: HandleCallAnsweredInput,
+  ): Promise<void> {
+    const correlationId = input.correlationId ?? createCorrelationId();
+    await attachRemoteAudioWhenReady(
+      {
+        mediaGateway: this.deps.mediaGateway,
+        eventPublisher: this.deps.eventPublisher,
+      },
+      input.call.id,
+      correlationId,
+    );
   }
 
   async handleFailed(

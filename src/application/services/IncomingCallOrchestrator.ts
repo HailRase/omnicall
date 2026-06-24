@@ -14,7 +14,6 @@ import {
   createIncomingRingtoneStartedEvent,
   createIncomingRingtoneStoppedEvent,
   createPhoneNumber,
-  createRemoteAudioAttachedEvent,
   type Call,
   type CallId,
 } from "@domain/index.js";
@@ -35,8 +34,10 @@ import { err, isErr, ok, type Result } from "@shared/result/index.js";
 import type { CallTracker } from "./CallTracker.js";
 import type { MultiCallPolicyService } from "./MultiCallPolicyService.js";
 import { cancelScheduledTonePlaybackStop } from "./scheduleTonePlaybackStop.js";
+import { attachRemoteAudioWhenReady } from "./remoteAudioAttach.js";
 import type {
   AnswerCallInput,
+  HandleCallAnsweredInput,
   HandleIncomingCallInput,
   RejectCallInput,
 } from "./callEngineTypes.js";
@@ -178,14 +179,13 @@ export class IncomingCallOrchestrator {
         callId: input.callId,
       }),
     );
-    await this.deps.mediaGateway.attachRemoteAudio({
-      callId: input.callId,
+    await attachRemoteAudioWhenReady(
+      {
+        mediaGateway: this.deps.mediaGateway,
+        eventPublisher: this.deps.eventPublisher,
+      },
+      input.callId,
       correlationId,
-    });
-    this.deps.eventPublisher.publish(
-      createRemoteAudioAttachedEvent(correlationId, {
-        callId: input.callId,
-      }),
     );
     this.deps.eventPublisher.publish(
       createCallAnsweredEvent(correlationId, { callId: input.callId }),
@@ -212,6 +212,18 @@ export class IncomingCallOrchestrator {
     });
 
     return ok(answered.call);
+  }
+
+  async retryRemoteAudioAttach(input: HandleCallAnsweredInput): Promise<void> {
+    const correlationId = input.correlationId ?? createCorrelationId();
+    await attachRemoteAudioWhenReady(
+      {
+        mediaGateway: this.deps.mediaGateway,
+        eventPublisher: this.deps.eventPublisher,
+      },
+      input.call.id,
+      correlationId,
+    );
   }
 
   async rejectCall(

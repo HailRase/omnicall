@@ -6,6 +6,7 @@
 export type JsSipRtcSessionEventName =
   | "peerconnection"
   | "progress"
+  | "accepted"
   | "confirmed"
   | "ended"
   | "failed"

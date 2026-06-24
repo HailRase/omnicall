@@ -59,10 +59,12 @@ export type UnmuteCallCommand = Readonly<{
   correlationId: CorrelationId;
 }>;
 
+export type RemoteAudioAttachOutcome = "attached" | "deferred";
+
 export interface MediaGateway {
   attachRemoteAudio(
     command: AttachRemoteAudioCommand,
-  ): Promise<Result<void, PlatformError>>;
+  ): Promise<Result<RemoteAudioAttachOutcome, PlatformError>>;
   playRingbackTone(
     command: PlayRingbackToneCommand,
   ): Promise<Result<void, PlatformError>>;

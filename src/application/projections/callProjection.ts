@@ -69,7 +69,7 @@ export function reduceCallProjection(
       return {
         ...projection,
         activeCallId: asOptionalString(event["callId"]),
-        state: "Connecting",
+        state: "Ringing",
         uiState: "progress",
       };
     case "CallAnswered":

@@ -56,6 +56,11 @@ export type TelephonyCallEndedNotification = Readonly<{
   correlationId: CorrelationId;
 }>;
 
+export type TelephonyCallAnsweredNotification = Readonly<{
+  callId: CallId;
+  correlationId: CorrelationId;
+}>;
+
 export type TelephonyTransportDisconnectedNotification = Readonly<{
   correlationId: CorrelationId;
   reason: string;
@@ -105,6 +110,10 @@ export interface TelephonyGateway {
   ): () => void;
   setCallEndedHandler(
     handler: ((notification: TelephonyCallEndedNotification) => Promise<void>) | null,
+  ): () => void;
+  /** Outbound: adapter invokes when JsSIP session confirms after async progress. */
+  setCallAnsweredHandler(
+    handler: ((notification: TelephonyCallAnsweredNotification) => Promise<void>) | null,
   ): () => void;
   /** WU2: adapter invokes on SIP transport disconnect (LF-008). */
   setTransportDisconnectedHandler(

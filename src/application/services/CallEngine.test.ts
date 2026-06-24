@@ -12,6 +12,38 @@ import { createCallId, createPhoneNumber } from "@domain/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 
 describe("CallEngine", () => {
+  it("activates outbound call on deferred answer after progress 180", async () => {
+    const events = new InMemoryDomainEventBus();
+    const media = new MockMediaGateway();
+    const telephony = new MockTelephonyGateway({
+      makeCallScenario: "progress_180",
+    });
+
+    const engine = new CallEngine(
+      telephony,
+      media,
+      new InMemorySettingsRepository(),
+      events,
+      createTestLogger(),
+    );
+    const result = await engine.makeCall({
+      phoneNumber: createPhoneNumber("+12025550147"),
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.value.state).toBe("Ringing");
+    expect(media.isRingbackPlaying(result.value.id)).toBe(true);
+
+    await engine.handleOutboundCallAnswered(result.value.id);
+
+    expect(media.isRingbackPlaying(result.value.id)).toBe(false);
+    expect(media.isRemoteAudioAttached(result.value.id)).toBe(true);
+  });
+
   it("handles progress 183 and enables ringback tone", async () => {
     const events = new InMemoryDomainEventBus();
     const media = new MockMediaGateway();

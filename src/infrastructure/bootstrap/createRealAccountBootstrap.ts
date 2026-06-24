@@ -6,8 +6,14 @@ import {
   JsSipTelephonyAdapter,
   InMemorySettingsRepository,
 } from "@adapters/index.js";
-import { createTestLogger } from "@infrastructure/logging/index.js";
+import { createConsoleLogger } from "@infrastructure/logging/index.js";
+import type { Logger } from "@ports/index.js";
+import type { LogContext } from "@ports/index.js";
 import type { CreateAccountBootstrapOptions } from "./createMockAccountBootstrap.js";
+
+function createBootstrapLogger(context: LogContext): Logger {
+  return createConsoleLogger(context);
+}
 
 /**
  * - Purpose: compose real-adapter AccountBootstrapFacade with JsSIP telephony gateway.
@@ -27,20 +33,29 @@ export function createRealAccountBootstrap(
   });
 
   const telephonyGateway = new JsSipTelephonyAdapter({
-    logger: createTestLogger({ featureId: "F-001", boundedContext: "Telephony" }),
+    logger: createBootstrapLogger({ featureId: "F-001", boundedContext: "Telephony" }),
   });
   const mediaGateway = new BrowserMediaAdapter({
-    logger: createTestLogger({ featureId: "F-005", boundedContext: "Media" }),
+    logger: createBootstrapLogger({ featureId: "F-005", boundedContext: "Media" }),
     getPeerConnection: (callId) => telephonyGateway.getPeerConnectionForCall(callId),
   });
   const hostIntegrationGateway = new MockHostIntegrationGateway();
 
-  return new AccountBootstrapFacade({
+  const facade = new AccountBootstrapFacade({
     operatorGateway,
     telephonyGateway,
     mediaGateway,
     settingsRepository,
     hostIntegrationGateway,
-    logger: createTestLogger({ featureId: "F-001", boundedContext: "Telephony" }),
+    logger: createBootstrapLogger({ featureId: "F-001", boundedContext: "Telephony" }),
   });
+
+  telephonyGateway.setPeerConnectionBoundHandler(async (notification) => {
+    await facade.notifyPeerConnectionAvailable(
+      notification.callId,
+      notification.correlationId,
+    );
+  });
+
+  return facade;
 }

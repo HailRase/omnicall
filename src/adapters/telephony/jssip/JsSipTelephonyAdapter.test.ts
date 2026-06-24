@@ -242,6 +242,43 @@ class MockJsSipUa implements JsSipUaPort {
   }
 }
 
+type RawLikeJsSipRtcSession = Readonly<{
+  id: string;
+  connection: unknown;
+  remote_identity: { toString: () => string };
+  on: (event: string, listener: (...args: unknown[]) => void) => void;
+  off: (event: string, listener: (...args: unknown[]) => void) => void;
+  answer: ReturnType<typeof vi.fn>;
+  terminate: ReturnType<typeof vi.fn>;
+  hold: () => boolean;
+  unhold: () => boolean;
+}>;
+
+function createRawLikeJsSipRtcSession(
+  id: string,
+  remoteIdentity = '"Alice" <sip:101@pbx.example>',
+): RawLikeJsSipRtcSession {
+  const listeners = new Map<string, Set<(...args: unknown[]) => void>>();
+
+  return {
+    id,
+    connection: null,
+    remote_identity: { toString: () => remoteIdentity },
+    on(event: string, listener: (...args: unknown[]) => void) {
+      const bucket = listeners.get(event) ?? new Set();
+      bucket.add(listener);
+      listeners.set(event, bucket);
+    },
+    off(event: string, listener: (...args: unknown[]) => void) {
+      listeners.get(event)?.delete(listener);
+    },
+    answer: vi.fn(),
+    terminate: vi.fn(),
+    hold: () => false,
+    unhold: () => false,
+  };
+}
+
 describe("JsSipTelephonyAdapter", () => {
   const account = createSipAccount(createSipAccountId("agent"), {
     username: "agent",
@@ -481,6 +518,95 @@ describe("JsSipTelephonyAdapter", () => {
     }
   });
 
+  it("invokes call answered handler when session confirms after progress", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const callAnsweredHandler = vi.fn(() => Promise.resolve());
+    adapter.setCallAnsweredHandler(callAnsweredHandler);
+
+    const callId = createCallId("out-deferred-answer");
+    const correlationId = createCorrelationId();
+    const makePromise = adapter.makeCall({
+      callId,
+      number: createPhoneNumber("203"),
+      correlationId,
+    });
+
+    const session = mockUa.callInvocations[0]?.session;
+    session?.emit("progress", { response: { status_code: 180 } });
+
+    const progressResult = await makePromise;
+    expect(progressResult.ok).toBe(true);
+    if (progressResult.ok) {
+      expect(progressResult.value).toEqual({ stage: "progress", progressCode: 180 });
+    }
+    expect(callAnsweredHandler).not.toHaveBeenCalled();
+
+    session?.emit("confirmed");
+    await Promise.resolve();
+
+    expect(callAnsweredHandler).toHaveBeenCalledWith({
+      callId,
+      correlationId,
+    });
+  });
+
+  it("invokes call answered handler once when session accepts after progress 180", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const callAnsweredHandler = vi.fn(() => Promise.resolve());
+    adapter.setCallAnsweredHandler(callAnsweredHandler);
+
+    const callId = createCallId("out-accepted-only");
+    const correlationId = createCorrelationId();
+    const makePromise = adapter.makeCall({
+      callId,
+      number: createPhoneNumber("204"),
+      correlationId,
+    });
+
+    const session = mockUa.callInvocations[0]?.session;
+    session?.emit("progress", { response: { status_code: 180 } });
+    await makePromise;
+
+    session?.emit("accepted");
+    session?.emit("accepted");
+    await Promise.resolve();
+
+    expect(callAnsweredHandler).toHaveBeenCalledTimes(1);
+    expect(callAnsweredHandler).toHaveBeenCalledWith({ callId, correlationId });
+  });
+
+  it("invokes peer connection bound handler when session exposes peer connection", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const peerConnectionHandler = vi.fn(() => Promise.resolve());
+    adapter.setPeerConnectionBoundHandler(peerConnectionHandler);
+
+    const callId = createCallId("out-pc-bound");
+    const correlationId = createCorrelationId();
+    const makePromise = adapter.makeCall({
+      callId,
+      number: createPhoneNumber("205"),
+      correlationId,
+    });
+
+    const session = mockUa.callInvocations[0]?.session;
+    const connection = { id: "pc-outbound" };
+    session?.emit("peerconnection", { peerconnection: connection });
+    session?.emit("progress", { response: { status_code: 180 } });
+    await makePromise;
+
+    expect(peerConnectionHandler).toHaveBeenCalledWith({ callId, correlationId });
+    expect(adapter.getPeerConnectionForCall(callId)).toBe(connection);
+  });
+
   it("makeCall returns failure when session fails", async () => {
     const mockUa = new MockJsSipUa();
     const adapter = createAdapter(mockUa);
@@ -511,6 +637,31 @@ describe("JsSipTelephonyAdapter", () => {
 
     const session = new MockJsSipRtcSession("incoming-1", '"Alice" <sip:101@pbx.example>');
     mockUa.emitIncomingSession(session);
+
+    await Promise.resolve();
+
+    expect(incomingHandler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        remoteNumber: "101",
+        remoteDisplayNameRaw: "Alice",
+      }),
+    );
+  });
+
+  it("wraps raw JsSIP-like session on remote newRTCSession before lifecycle wiring", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const incomingHandler = vi.fn(() => Promise.resolve());
+    adapter.setIncomingCallHandler(incomingHandler);
+
+    const rawSession = createRawLikeJsSipRtcSession("incoming-raw");
+    mockUa.emit("newRTCSession", {
+      originator: "remote",
+      session: rawSession,
+      request: {},
+    });
 
     await Promise.resolve();
 

@@ -191,6 +191,53 @@ export class CallEngine {
     return this.incomingCallOrchestrator.handleCallEnded(callId, correlationId);
   }
 
+  async handleOutboundCallAnswered(
+    callId: CallId,
+    correlationId?: CorrelationId,
+  ): Promise<void> {
+    const trackedResult = this.callTracker.getTrackedCall(callId);
+    if (!trackedResult.ok) {
+      return;
+    }
+
+    const tracked = trackedResult.value;
+    if (tracked.state === "Active") {
+      return;
+    }
+
+    await this.outgoingCallOrchestrator.handleAnswered({
+      call: tracked,
+      ...(correlationId !== undefined ? { correlationId } : {}),
+    });
+  }
+
+  async handlePeerConnectionAvailable(
+    callId: CallId,
+    correlationId?: CorrelationId,
+  ): Promise<void> {
+    const trackedResult = this.callTracker.getTrackedCall(callId);
+    if (!trackedResult.ok) {
+      return;
+    }
+
+    const tracked = trackedResult.value;
+    if (tracked.state !== "Active") {
+      return;
+    }
+
+    const input = {
+      call: tracked,
+      ...(correlationId !== undefined ? { correlationId } : {}),
+    };
+
+    if (tracked.direction === "outgoing") {
+      await this.outgoingCallOrchestrator.retryRemoteAudioAttach(input);
+      return;
+    }
+
+    await this.incomingCallOrchestrator.retryRemoteAudioAttach(input);
+  }
+
   hangupCall(
     input: HangupCallInput,
   ): Promise<Result<Call, ReturnType<typeof createPlatformError>>> {

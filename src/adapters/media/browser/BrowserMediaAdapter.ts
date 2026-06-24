@@ -8,6 +8,7 @@ import type {
   PlayIncomingRingtoneCommand,
   PlayRingbackToneCommand,
   PlayRingtoneCommand,
+  RemoteAudioAttachOutcome,
   StopRingtoneCommand,
   StopToneCommand,
   UnmuteCallCommand,
@@ -52,6 +53,7 @@ export class BrowserMediaAdapter implements MediaGateway {
   private readonly tonePlayer: WebAudioTonePlayer;
   private readonly callStates = new Map<CallId, CallMediaState>();
   private readonly mutedCalls = new Set<CallId>();
+  private readonly wiredRemoteAudioCalls = new Set<CallId>();
 
   constructor(options: BrowserMediaAdapterOptions) {
     this.logger = options.logger;
@@ -60,13 +62,13 @@ export class BrowserMediaAdapter implements MediaGateway {
     this.tonePlayer = options.tonePlayer ?? new WebAudioTonePlayer();
   }
 
-  async attachRemoteAudio(
+  attachRemoteAudio(
     command: AttachRemoteAudioCommand,
-  ): Promise<Result<void, PlatformError>> {
-    return this.runMediaOperation(command.callId, command.correlationId, "attach_remote_audio", () => {
+  ): Promise<Result<RemoteAudioAttachOutcome, PlatformError>> {
+    try {
       const audioResult = this.tryEnsureRemoteAudioElement(command.callId);
       if (!audioResult.ok) {
-        return audioResult;
+        return Promise.resolve(audioResult);
       }
 
       const connection = this.getPeerConnection(command.callId);
@@ -79,17 +81,30 @@ export class BrowserMediaAdapter implements MediaGateway {
           operation: "attach_remote_audio",
           callId: command.callId,
         });
-        return ok(undefined);
+        return Promise.resolve(ok("deferred"));
       }
 
       const wired = wirePeerConnectionRemoteAudio(connection, audioResult.value);
       if (!wired) {
-        return err(
+        const failure = err(
           createPlatformError(
             "operation_failed",
             `Remote audio attach failed for ${command.callId}: invalid peer connection`,
           ),
         );
+        this.logger.error(
+          "browser_media_operation_failed",
+          {
+            correlationId: command.correlationId,
+            featureId: FEATURE_ID,
+            boundedContext: "Media",
+            operation: "attach_remote_audio",
+            callId: command.callId,
+            result: failure.error.code,
+          },
+          failure.error,
+        );
+        return Promise.resolve(failure);
       }
 
       this.logger.info("browser_media_remote_audio_attached", {
@@ -100,8 +115,24 @@ export class BrowserMediaAdapter implements MediaGateway {
         callId: command.callId,
         result: "succeeded",
       });
-      return ok(undefined);
-    });
+      this.wiredRemoteAudioCalls.add(command.callId);
+      return Promise.resolve(ok("attached"));
+    } catch (error: unknown) {
+      const normalized = normalizeUnknownError(error);
+      this.logger.error(
+        "browser_media_operation_failed",
+        {
+          correlationId: command.correlationId,
+          featureId: FEATURE_ID,
+          boundedContext: "Media",
+          operation: "attach_remote_audio",
+          callId: command.callId,
+          result: normalized.code,
+        },
+        error,
+      );
+      return Promise.resolve(err(normalized));
+    }
   }
 
   async playRingbackTone(
@@ -171,6 +202,10 @@ export class BrowserMediaAdapter implements MediaGateway {
     return this.callStates.has(callId);
   }
 
+  isRemoteAudioStreamWired(callId: CallId): boolean {
+    return this.wiredRemoteAudioCalls.has(callId);
+  }
+
   isTonePlaying(callId: CallId): boolean {
     return this.tonePlayer.isPlaying(callId);
   }
@@ -189,6 +224,7 @@ export class BrowserMediaAdapter implements MediaGateway {
       state.remoteAudioElement.srcObject = null;
       state.remoteAudioElement.remove();
       this.callStates.delete(callId);
+      this.wiredRemoteAudioCalls.delete(callId);
     }
 
     this.tonePlayer.dispose();
