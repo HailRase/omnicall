@@ -20,7 +20,7 @@
 
 | 03 Browser media | done | 2026-06-24 | BrowserMediaAdapter (WebAudio tones, hidden audio, mute/unmute); JsSip peer-connection hook; real bootstrap wired | 515 (+7) | R2 **partial** (see notes) |
 
-| 04 Call lifecycle in/out | pending | | | | |
+| 04 Call lifecycle in/out | done | 2026-06-24 | makeCall/incoming/answer/reject/hangup/callEnded; bindPeerConnection on session lifecycle; mapTelephonyIncomingNotification wired | 525 (+10) | R2+R3 **pending manual** (see notes) |
 
 | 05 Hold / mute real | pending | | | | |
 
@@ -83,6 +83,28 @@
 | Remote audio audible both directions | **blocked** until step 04 (`bindPeerConnection` + answer flow) |
 
 **Implemented this step:** `BrowserMediaAdapter` wired in `createRealAccountBootstrap`; adapter-private `getPeerConnectionForCall` / `bindPeerConnection` on `JsSipTelephonyAdapter`; unit tests for tones, attachRemoteAudio, mute/unmute.
+
+## Step 04 smoke notes (R2 close-out + R3) — 2026-06-24
+
+**Environment:** Electron `npm run dev`, `VITE_ADAPTER_MODE=real`, `.env.local` (dev SBC).
+
+**Automated:** `npm run test` 525 passed, 1 skipped; lint/typecheck green.
+
+| R2 checklist (unblocked) | Result |
+| --- | --- |
+| Incoming ringtone audible | **pending manual** — incoming handler + `playRingtone` path wired |
+| Ringtone stops on answer | **pending manual** — answer + `stopRingtone` path wired |
+| Remote audio audible both directions | **pending manual** — `bindPeerConnection` on session + `attachRemoteAudio` wired |
+
+| R3 checklist | Result |
+| --- | --- |
+| Outgoing answered call | **pending manual** |
+| Incoming answered call | **pending manual** |
+| Reject incoming | **pending manual** |
+| Hangup ends call, UI → idle | **pending manual** |
+| DND rejects with 486 | **pending manual** |
+
+**Implemented this step:** `JsSipTelephonyAdapter` call lifecycle (makeCall progress/answered/failed, newRTCSession incoming, answer/reject/hangup, setCallEndedHandler); peer-connection bind/unbind on RTC session lifecycle; adapter unit tests (+10).
 
 ## Dev credentials
 

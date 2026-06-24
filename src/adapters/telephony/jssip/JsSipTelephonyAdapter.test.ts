@@ -8,7 +8,80 @@ import {
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
 import { JsSipTelephonyAdapter } from "./JsSipTelephonyAdapter.js";
-import type { JsSipDisconnectEvent, JsSipUaEventName, JsSipUaListener, JsSipUaPort } from "./JsSipUaPort.js";
+import type {
+  JsSipDisconnectEvent,
+  JsSipUaEventName,
+  JsSipUaListener,
+  JsSipUaPort,
+} from "./JsSipUaPort.js";
+import type {
+  JsSipNewRtcSessionEvent,
+  JsSipRtcSessionEventName,
+  JsSipRtcSessionListener,
+  JsSipRtcSessionPort,
+} from "./JsSipRtcSessionPort.js";
+
+class MockJsSipRtcSession implements JsSipRtcSessionPort {
+  private readonly listeners = new Map<
+    JsSipRtcSessionEventName,
+    Set<JsSipRtcSessionListener>
+  >();
+  readonly id: string;
+  answerOptions: Readonly<Record<string, unknown>> | undefined;
+  terminateOptions: Readonly<Record<string, unknown>> | undefined;
+  answerCalls = 0;
+  terminateCalls = 0;
+  private connection: unknown = null;
+  private readonly remoteIdentityHeader: string;
+
+  constructor(id: string, remoteIdentityHeader = '"Caller" <sip:100@pbx.example>') {
+    this.id = id;
+    this.remoteIdentityHeader = remoteIdentityHeader;
+  }
+
+  on(event: JsSipRtcSessionEventName, listener: JsSipRtcSessionListener): void {
+    const bucket = this.listeners.get(event) ?? new Set<JsSipRtcSessionListener>();
+    bucket.add(listener);
+    this.listeners.set(event, bucket);
+  }
+
+  off(event: JsSipRtcSessionEventName, listener: JsSipRtcSessionListener): void {
+    this.listeners.get(event)?.delete(listener);
+  }
+
+  emit(event: JsSipRtcSessionEventName, payload?: unknown): void {
+    const bucket = this.listeners.get(event);
+    if (bucket === undefined) {
+      return;
+    }
+    for (const listener of bucket) {
+      listener(payload);
+    }
+  }
+
+  answer(options?: Readonly<Record<string, unknown>>): void {
+    this.answerCalls += 1;
+    this.answerOptions = options;
+  }
+
+  terminate(options?: Readonly<Record<string, unknown>>): void {
+    this.terminateCalls += 1;
+    this.terminateOptions = options;
+    this.emit("ended");
+  }
+
+  getConnection(): unknown {
+    return this.connection;
+  }
+
+  setConnection(connection: unknown): void {
+    this.connection = connection;
+  }
+
+  getRemoteIdentityHeader(): string {
+    return this.remoteIdentityHeader;
+  }
+}
 
 class MockJsSipUa implements JsSipUaPort {
   private readonly listeners = new Map<JsSipUaEventName, Set<JsSipUaListener>>();
@@ -19,6 +92,11 @@ class MockJsSipUa implements JsSipUaPort {
   stopCalls = 0;
   registerCalls = 0;
   unregisterCalls = 0;
+  readonly callInvocations: Array<{
+    target: string;
+    options?: Readonly<Record<string, unknown>>;
+    session: MockJsSipRtcSession;
+  }> = [];
 
   setRegistrationOutcome(outcome: "success" | "failure" | "hang"): void {
     this.registrationOutcome = outcome;
@@ -98,6 +176,37 @@ class MockJsSipUa implements JsSipUaPort {
     this.connected = false;
     this.emit("disconnected", event);
   }
+
+  call(target: string, options?: Readonly<Record<string, unknown>>): JsSipRtcSessionPort {
+    const session = new MockJsSipRtcSession(`session-${this.callInvocations.length}`);
+    const invocation: {
+      target: string;
+      options?: Readonly<Record<string, unknown>>;
+      session: MockJsSipRtcSession;
+    } = { target, session };
+    if (options !== undefined) {
+      invocation.options = options;
+    }
+    this.callInvocations.push(invocation);
+    const rtcEvent: JsSipNewRtcSessionEvent = {
+      originator: "local",
+      session,
+      request: {},
+    };
+    queueMicrotask(() => {
+      this.emit("newRTCSession", rtcEvent);
+    });
+    return session;
+  }
+
+  emitIncomingSession(session: MockJsSipRtcSession): void {
+    const rtcEvent: JsSipNewRtcSessionEvent = {
+      originator: "remote",
+      session,
+      request: {},
+    };
+    this.emit("newRTCSession", rtcEvent);
+  }
 }
 
 describe("JsSipTelephonyAdapter", () => {
@@ -114,6 +223,12 @@ describe("JsSipTelephonyAdapter", () => {
       logger: createTestLogger({ featureId: "F-001", boundedContext: "Telephony" }),
       createUserAgent: () => mockUa,
     });
+  }
+
+  async function registerAdapter(adapter: JsSipTelephonyAdapter, mockUa: MockJsSipUa): Promise<void> {
+    const result = await adapter.register({ account, correlationId: createCorrelationId() });
+    expect(result.ok).toBe(true);
+    expect(mockUa.isRegistered()).toBe(true);
   }
 
   it("registers successfully when UA emits registered", async () => {
@@ -209,19 +324,15 @@ describe("JsSipTelephonyAdapter", () => {
     expect(handler).not.toHaveBeenCalled();
   });
 
-  it("returns not_implemented for deferred call operations", async () => {
+  it("returns not_implemented for deferred hold and transfer operations", async () => {
     const adapter = createAdapter(new MockJsSipUa());
     const correlationId = createCorrelationId();
+    const callId = createCallId("call-1");
 
-    const makeCallResult = await adapter.makeCall({
-      callId: createCallId("call-1"),
-      number: createPhoneNumber("100"),
-      correlationId,
-    });
-
-    expect(makeCallResult.ok).toBe(false);
-    if (!makeCallResult.ok) {
-      expect(makeCallResult.error.code).toBe("not_implemented");
+    const holdResult = await adapter.holdCall({ callId, correlationId });
+    expect(holdResult.ok).toBe(false);
+    if (!holdResult.ok) {
+      expect(holdResult.error.code).toBe("not_implemented");
     }
   });
 
@@ -260,6 +371,198 @@ describe("JsSipTelephonyAdapter", () => {
     expect(adapter.getPeerConnectionForCall(callId)).toBe(connection);
 
     adapter.unbindPeerConnection(callId);
+    expect(adapter.getPeerConnectionForCall(callId)).toBeNull();
+  });
+
+  it("makeCall returns answered when session confirms", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const callId = createCallId("out-1");
+    const correlationId = createCorrelationId();
+    const makePromise = adapter.makeCall({
+      callId,
+      number: createPhoneNumber("200"),
+      correlationId,
+    });
+
+    const session = mockUa.callInvocations[0]?.session;
+    expect(session).toBeDefined();
+    session?.emit("confirmed");
+
+    const result = await makePromise;
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.stage).toBe("answered");
+    }
+    expect(mockUa.callInvocations[0]?.target).toBe("sip:200@pbx.example");
+  });
+
+  it("makeCall returns progress 183 when session emits early media", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const makePromise = adapter.makeCall({
+      callId: createCallId("out-progress"),
+      number: createPhoneNumber("201"),
+      correlationId: createCorrelationId(),
+    });
+
+    const session = mockUa.callInvocations[0]?.session;
+    session?.emit("progress", { response: { status_code: 183 } });
+
+    const result = await makePromise;
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toEqual({ stage: "progress", progressCode: 183 });
+    }
+  });
+
+  it("makeCall returns failure when session fails", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const makePromise = adapter.makeCall({
+      callId: createCallId("out-fail"),
+      number: createPhoneNumber("202"),
+      correlationId: createCorrelationId(),
+    });
+
+    mockUa.callInvocations[0]?.session.emit("failed", { cause: "Busy" });
+
+    const result = await makePromise;
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.message).toContain("Busy");
+    }
+  });
+
+  it("invokes incoming handler for remote newRTCSession", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const incomingHandler = vi.fn(() => Promise.resolve());
+    adapter.setIncomingCallHandler(incomingHandler);
+
+    const session = new MockJsSipRtcSession("incoming-1", '"Alice" <sip:101@pbx.example>');
+    mockUa.emitIncomingSession(session);
+
+    await Promise.resolve();
+
+    expect(incomingHandler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        remoteNumber: "101",
+        remoteDisplayNameRaw: "Alice",
+      }),
+    );
+  });
+
+  it("answerCall invokes session answer with audio constraints", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    adapter.setIncomingCallHandler(() => Promise.resolve());
+
+    const callId = createCallId("incoming-answer");
+    const session = new MockJsSipRtcSession("incoming-answer");
+    mockUa.emitIncomingSession(session);
+    await Promise.resolve();
+
+    const result = await adapter.answerCall({
+      callId,
+      correlationId: createCorrelationId(),
+    });
+
+    expect(result.ok).toBe(true);
+    expect(session.answerCalls).toBe(1);
+    expect(session.answerOptions).toEqual(
+      expect.objectContaining({
+        mediaConstraints: { audio: true, video: false },
+      }),
+    );
+  });
+
+  it("rejectCall terminates session with sip code", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const session = new MockJsSipRtcSession("incoming-reject");
+    adapter.setIncomingCallHandler(() => Promise.resolve());
+    mockUa.emitIncomingSession(session);
+    await Promise.resolve();
+
+    const callId = createCallId(session.id);
+    const result = await adapter.rejectCall({
+      callId,
+      correlationId: createCorrelationId(),
+      sipCode: 486,
+      reason: "Busy Here",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(session.terminateCalls).toBe(1);
+    expect(session.terminateOptions).toEqual(
+      expect.objectContaining({
+        status_code: 486,
+        reason_phrase: "Busy Here",
+      }),
+    );
+  });
+
+  it("hangup terminates active session", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const callId = createCallId("hangup-call");
+    const makePromise = adapter.makeCall({
+      callId,
+      number: createPhoneNumber("300"),
+      correlationId: createCorrelationId(),
+    });
+    mockUa.callInvocations[0]?.session.emit("confirmed");
+    await makePromise;
+
+    const result = await adapter.hangup({
+      callId,
+      correlationId: createCorrelationId(),
+    });
+
+    expect(result.ok).toBe(true);
+    expect(mockUa.callInvocations[0]?.session.terminateCalls).toBe(1);
+  });
+
+  it("invokes call ended handler and unbinds peer connection on session end", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const callEndedHandler = vi.fn(() => Promise.resolve());
+    adapter.setCallEndedHandler(callEndedHandler);
+    adapter.setIncomingCallHandler(() => Promise.resolve());
+
+    const session = new MockJsSipRtcSession("ended-session");
+    const connection = { id: "pc-ended" };
+    session.setConnection(connection);
+    mockUa.emitIncomingSession(session);
+    await Promise.resolve();
+
+    session.emit("peerconnection", { peerconnection: connection });
+    const callId = createCallId(session.id);
+    expect(adapter.getPeerConnectionForCall(callId)).toBe(connection);
+
+    session.emit("ended");
+    await Promise.resolve();
+
+    expect(callEndedHandler).toHaveBeenCalledWith(
+      expect.objectContaining({ callId }),
+    );
     expect(adapter.getPeerConnectionForCall(callId)).toBeNull();
   });
 });

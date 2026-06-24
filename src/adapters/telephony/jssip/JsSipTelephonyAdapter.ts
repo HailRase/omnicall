@@ -16,6 +16,7 @@ import type {
   TelephonyTransportDisconnectedNotification,
 } from "@ports/index.js";
 import type { CallId, SipAccount } from "@domain/index.js";
+import { createCallId } from "@domain/index.js";
 import type { Logger } from "@ports/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
@@ -24,11 +25,23 @@ import { err, ok } from "@shared/result/index.js";
 import type { Result } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
 import type { JsSipDisconnectEvent, JsSipUaPort, JsSipUserAgentFactory } from "./JsSipUaPort.js";
+import { mapTelephonyIncomingNotification } from "../mapTelephonyIncomingNotification.js";
+import { buildOutgoingSipTarget } from "./buildOutgoingSipTarget.js";
+import { executeJsSipOutboundCall } from "./executeJsSipOutboundCall.js";
+import type { JsSipNewRtcSessionEvent, JsSipRtcSessionPort } from "./JsSipRtcSessionPort.js";
+import { wireJsSipRtcSessionLifecycle } from "./wireJsSipRtcSessionLifecycle.js";
 import { createJsSipUserAgent } from "./createJsSipUserAgent.js";
 import { telephonyNotImplementedError } from "./telephonyNotImplementedError.js";
 import { resolveJsSipTransportUrl } from "./resolveJsSipTransportUrl.js";
 
-const FEATURE_ID = "F-001";
+const FEATURE_ID_REGISTRATION = "F-001";
+const FEATURE_ID_INCOMING = "F-002";
+const FEATURE_ID_OUTGOING = "F-003";
+
+const DEFAULT_CALL_MEDIA_OPTIONS = {
+  mediaConstraints: { audio: true, video: false },
+  rtcOfferConstraints: { offerToReceiveAudio: true, offerToReceiveVideo: false },
+} as const;
 
 export type JsSipTelephonyAdapterOptions = Readonly<{
   logger: Logger;
@@ -36,20 +49,28 @@ export type JsSipTelephonyAdapterOptions = Readonly<{
 }>;
 
 /**
- * - Purpose: real SIP telephony via JsSIP behind TelephonyGateway (RAT R1).
- * - Inputs: register/unregister/reconnect commands; transport disconnect handler.
- * - Outputs: registration results; transport notifications; stub errors for call ops.
+ * - Purpose: real SIP telephony via JsSIP behind TelephonyGateway (RAT R1–R3).
+ * - Inputs: register/call commands; incoming and ended session handlers.
+ * - Outputs: registration results; call progress; transport notifications.
  */
 export class JsSipTelephonyAdapter implements TelephonyGateway {
   private readonly logger: Logger;
   private readonly createUserAgent: JsSipUserAgentFactory;
-  private readonly sessions = new Map<CallId, unknown>();
+  private readonly sessions = new Map<CallId, JsSipRtcSessionPort>();
   private readonly peerConnections = new Map<CallId, unknown>();
+  private readonly callCorrelations = new Map<CallId, CorrelationId>();
+  private readonly callIdBySessionId = new Map<string, CallId>();
   private ua: JsSipUaPort | null = null;
   private storedAccount: SipAccount | null = null;
   private lastCorrelationId: CorrelationId = createCorrelationId();
   private intentionalShutdown = false;
   private registrationInFlight = false;
+  private incomingCallHandler:
+    | ((notification: TelephonyIncomingCallNotification) => Promise<void>)
+    | null = null;
+  private callEndedHandler:
+    | ((notification: TelephonyCallEndedNotification) => Promise<void>)
+    | null = null;
   private transportDisconnectedHandler:
     | ((notification: TelephonyTransportDisconnectedNotification) => Promise<void>)
     | null = null;
@@ -67,7 +88,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
 
     this.logger.info("jssip_register_start", {
       correlationId,
-      featureId: FEATURE_ID,
+      featureId: FEATURE_ID_REGISTRATION,
       boundedContext: "Telephony",
       operation: "jssip_register",
       username: account.username,
@@ -87,7 +108,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       const transportUrl = resolveJsSipTransportUrl(account.registrar);
       this.logger.info("jssip_transport_url_resolved", {
         correlationId,
-        featureId: FEATURE_ID,
+        featureId: FEATURE_ID_REGISTRATION,
         boundedContext: "Telephony",
         operation: "jssip_transport_url_resolved",
         registrar: account.registrar,
@@ -98,7 +119,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       if (!registrationResult.ok) {
         this.logger.error("jssip_register_failed", {
           correlationId,
-          featureId: FEATURE_ID,
+          featureId: FEATURE_ID_REGISTRATION,
           boundedContext: "Telephony",
           operation: "jssip_register",
           result: registrationResult.error.code,
@@ -108,7 +129,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
 
       this.logger.info("jssip_register_succeeded", {
         correlationId,
-        featureId: FEATURE_ID,
+        featureId: FEATURE_ID_REGISTRATION,
         boundedContext: "Telephony",
         operation: "jssip_register",
         result: "succeeded",
@@ -122,7 +143,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
         "jssip_register_failed",
         {
           correlationId,
-          featureId: FEATURE_ID,
+          featureId: FEATURE_ID_REGISTRATION,
           boundedContext: "Telephony",
           operation: "jssip_register",
           result: normalized.code,
@@ -151,10 +172,12 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       this.storedAccount = null;
       this.sessions.clear();
       this.peerConnections.clear();
+      this.callCorrelations.clear();
+      this.callIdBySessionId.clear();
 
       this.logger.info("jssip_unregister_succeeded", {
         correlationId,
-        featureId: FEATURE_ID,
+        featureId: FEATURE_ID_REGISTRATION,
         boundedContext: "Telephony",
         operation: "jssip_unregister",
         result: "succeeded",
@@ -199,19 +222,163 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     });
   }
 
-  makeCall(command: MakeCallCommand): Promise<Result<MakeCallProgress, PlatformError>> {
-    void command;
-    return Promise.resolve(err(telephonyNotImplementedError("makeCall")));
+  async makeCall(command: MakeCallCommand): Promise<Result<MakeCallProgress, PlatformError>> {
+    const { callId, number, correlationId } = command;
+    this.lastCorrelationId = correlationId;
+
+    if (this.ua === null || !this.ua.isRegistered() || this.storedAccount === null) {
+      return err(
+        createPlatformError("operation_failed", "SIP not registered for outbound call"),
+      );
+    }
+
+    const target = buildOutgoingSipTarget(number, this.storedAccount);
+
+    this.logger.info("jssip_make_call_start", {
+      correlationId,
+      featureId: FEATURE_ID_OUTGOING,
+      boundedContext: "Telephony",
+      operation: "jssip_make_call",
+      callId,
+      target,
+    });
+
+    try {
+      const session = this.ua.call(target, DEFAULT_CALL_MEDIA_OPTIONS);
+      this.registerSession(callId, session, correlationId);
+      this.attachSessionLifecycle(callId, session, correlationId, FEATURE_ID_OUTGOING);
+
+      const progressResult = await executeJsSipOutboundCall(session);
+
+      this.logger.info("jssip_make_call_result", {
+        correlationId,
+        featureId: FEATURE_ID_OUTGOING,
+        boundedContext: "Telephony",
+        operation: "jssip_make_call",
+        callId,
+        result: progressResult.ok ? progressResult.value.stage : progressResult.error.code,
+      });
+
+      return progressResult;
+    } catch (error: unknown) {
+      const normalized = normalizeUnknownError(error);
+      this.logger.error(
+        "jssip_make_call_failed",
+        {
+          correlationId,
+          featureId: FEATURE_ID_OUTGOING,
+          boundedContext: "Telephony",
+          operation: "jssip_make_call",
+          callId,
+          result: normalized.code,
+        },
+        error,
+      );
+      return err(normalized);
+    }
   }
 
   answerCall(command: AnswerCallCommand): Promise<Result<void, PlatformError>> {
-    void command;
-    return Promise.resolve(err(telephonyNotImplementedError("answerCall")));
+    const { callId, correlationId } = command;
+    this.lastCorrelationId = correlationId;
+
+    const session = this.sessions.get(callId);
+    if (session === undefined) {
+      return Promise.resolve(
+        err(createPlatformError("operation_failed", `SIP session not found for ${callId}`)),
+      );
+    }
+
+    this.logger.info("jssip_answer_call_start", {
+      correlationId,
+      featureId: FEATURE_ID_INCOMING,
+      boundedContext: "Telephony",
+      operation: "jssip_answer_call",
+      callId,
+    });
+
+    try {
+      session.answer(DEFAULT_CALL_MEDIA_OPTIONS);
+      this.logger.info("jssip_answer_call_succeeded", {
+        correlationId,
+        featureId: FEATURE_ID_INCOMING,
+        boundedContext: "Telephony",
+        operation: "jssip_answer_call",
+        callId,
+        result: "succeeded",
+      });
+      return Promise.resolve(ok(undefined));
+    } catch (error: unknown) {
+      const normalized = normalizeUnknownError(error);
+      this.logger.error(
+        "jssip_answer_call_failed",
+        {
+          correlationId,
+          featureId: FEATURE_ID_INCOMING,
+          boundedContext: "Telephony",
+          operation: "jssip_answer_call",
+          callId,
+          result: normalized.code,
+        },
+        error,
+      );
+      return Promise.resolve(err(normalized));
+    }
   }
 
   rejectCall(command: RejectCallCommand): Promise<Result<void, PlatformError>> {
-    void command;
-    return Promise.resolve(err(telephonyNotImplementedError("rejectCall")));
+    const { callId, correlationId, sipCode, reason } = command;
+    this.lastCorrelationId = correlationId;
+
+    const session = this.sessions.get(callId);
+    if (session === undefined) {
+      return Promise.resolve(
+        err(createPlatformError("operation_failed", `SIP session not found for ${callId}`)),
+      );
+    }
+
+    const statusCode = sipCode ?? 486;
+    const reasonPhrase = reason ?? "Busy Here";
+
+    this.logger.info("jssip_reject_call_start", {
+      correlationId,
+      featureId: FEATURE_ID_INCOMING,
+      boundedContext: "Telephony",
+      operation: "jssip_reject_call",
+      callId,
+      sipCode: statusCode,
+    });
+
+    try {
+      session.terminate({
+        status_code: statusCode,
+        reason_phrase: reasonPhrase,
+      });
+      this.logger.info("jssip_reject_call_succeeded", {
+        correlationId,
+        featureId: FEATURE_ID_INCOMING,
+        boundedContext: "Telephony",
+        operation: "jssip_reject_call",
+        callId,
+        result: "succeeded",
+      });
+      return Promise.resolve(ok(undefined));
+    } catch (error: unknown) {
+      const normalized = normalizeUnknownError(error);
+      this.logger.error(
+        "jssip_reject_call_failed",
+        {
+          correlationId,
+          featureId: FEATURE_ID_INCOMING,
+          boundedContext: "Telephony",
+          operation: "jssip_reject_call",
+          callId,
+          result: normalized.code,
+        },
+        error,
+      );
+      return Promise.resolve(err(normalized));
+    }
   }
 
   sendDtmf(command: SendDtmfCommand): Promise<Result<void, PlatformError>> {
@@ -220,8 +387,51 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
   }
 
   hangup(command: HangupCommand): Promise<Result<void, PlatformError>> {
-    void command;
-    return Promise.resolve(err(telephonyNotImplementedError("hangup")));
+    const { callId, correlationId } = command;
+    this.lastCorrelationId = correlationId;
+
+    const session = this.sessions.get(callId);
+    if (session === undefined) {
+      return Promise.resolve(
+        err(createPlatformError("operation_failed", `SIP session not found for ${callId}`)),
+      );
+    }
+
+    this.logger.info("jssip_hangup_start", {
+      correlationId,
+      featureId: FEATURE_ID_OUTGOING,
+      boundedContext: "Telephony",
+      operation: "jssip_hangup",
+      callId,
+    });
+
+    try {
+      session.terminate();
+      this.logger.info("jssip_hangup_succeeded", {
+        correlationId,
+        featureId: FEATURE_ID_OUTGOING,
+        boundedContext: "Telephony",
+        operation: "jssip_hangup",
+        callId,
+        result: "succeeded",
+      });
+      return Promise.resolve(ok(undefined));
+    } catch (error: unknown) {
+      const normalized = normalizeUnknownError(error);
+      this.logger.error(
+        "jssip_hangup_failed",
+        {
+          correlationId,
+          featureId: FEATURE_ID_OUTGOING,
+          boundedContext: "Telephony",
+          operation: "jssip_hangup",
+          callId,
+          result: normalized.code,
+        },
+        error,
+      );
+      return Promise.resolve(err(normalized));
+    }
   }
 
   holdCall(command: HoldCallCommand): Promise<Result<void, PlatformError>> {
@@ -247,15 +457,19 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
   setIncomingCallHandler(
     handler: ((notification: TelephonyIncomingCallNotification) => Promise<void>) | null,
   ): () => void {
-    void handler;
-    return () => undefined;
+    this.incomingCallHandler = handler;
+    return () => {
+      this.incomingCallHandler = null;
+    };
   }
 
   setCallEndedHandler(
     handler: ((notification: TelephonyCallEndedNotification) => Promise<void>) | null,
   ): () => void {
-    void handler;
-    return () => undefined;
+    this.callEndedHandler = handler;
+    return () => {
+      this.callEndedHandler = null;
+    };
   }
 
   setTransportDisconnectedHandler(
@@ -281,7 +495,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     this.peerConnections.set(callId, connection);
     this.logger.debug("jssip_peer_connection_bound", {
       correlationId: this.lastCorrelationId,
-      featureId: FEATURE_ID,
+      featureId: FEATURE_ID_REGISTRATION,
       boundedContext: "Telephony",
       operation: "jssip_peer_connection_bound",
       callId,
@@ -292,14 +506,50 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
    * Adapter-private hook invoked when a JsSIP RTC session ends (RAT R4+).
    */
   unbindPeerConnection(callId: CallId): void {
+    const session = this.sessions.get(callId);
+    if (session !== undefined) {
+      this.callIdBySessionId.delete(session.id);
+    }
     this.peerConnections.delete(callId);
     this.sessions.delete(callId);
+    this.callCorrelations.delete(callId);
     this.logger.debug("jssip_peer_connection_unbound", {
       correlationId: this.lastCorrelationId,
-      featureId: FEATURE_ID,
+      featureId: FEATURE_ID_REGISTRATION,
       boundedContext: "Telephony",
       operation: "jssip_peer_connection_unbound",
       callId,
+    });
+  }
+
+  private registerSession(
+    callId: CallId,
+    session: JsSipRtcSessionPort,
+    correlationId: CorrelationId,
+  ): void {
+    this.sessions.set(callId, session);
+    this.callCorrelations.set(callId, correlationId);
+    this.callIdBySessionId.set(session.id, callId);
+  }
+
+  private attachSessionLifecycle(
+    callId: CallId,
+    session: JsSipRtcSessionPort,
+    correlationId: CorrelationId,
+    featureId: string,
+  ): void {
+    wireJsSipRtcSessionLifecycle({
+      callId,
+      correlationId,
+      featureId,
+      session,
+      logger: this.logger,
+      onPeerConnection: (boundCallId, connection) => {
+        this.bindPeerConnection(boundCallId, connection);
+      },
+      onSessionEnded: (endedCallId, endedCorrelationId) => {
+        void this.handleSessionEnded(endedCallId, endedCorrelationId);
+      },
     });
   }
 
@@ -311,6 +561,74 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       }
       void this.handleTransportDisconnected(event);
     });
+
+    ua.on("newRTCSession", (...args: unknown[]) => {
+      const event = args[0];
+      if (!isJsSipNewRtcSessionEvent(event)) {
+        return;
+      }
+      void this.handleNewRtcSession(event);
+    });
+  }
+
+  private async handleNewRtcSession(event: JsSipNewRtcSessionEvent): Promise<void> {
+    if (event.originator === "local") {
+      if (this.callIdBySessionId.has(event.session.id)) {
+        return;
+      }
+      return;
+    }
+
+    if (this.incomingCallHandler === null) {
+      event.session.terminate({ status_code: 486, reason_phrase: "Busy Here" });
+      return;
+    }
+
+    const callId = createCallId(event.session.id);
+    const correlationId = createCorrelationId();
+    this.lastCorrelationId = correlationId;
+
+    this.registerSession(callId, event.session, correlationId);
+    this.attachSessionLifecycle(callId, event.session, correlationId, FEATURE_ID_INCOMING);
+
+    const remoteHeader = event.session.getRemoteIdentityHeader();
+    const notification = mapTelephonyIncomingNotification({
+      callId: event.session.id,
+      fromHeader: remoteHeader,
+      remoteNumber: remoteHeader,
+      correlationId,
+    });
+
+    this.logger.info("jssip_incoming_call_received", {
+      correlationId,
+      featureId: FEATURE_ID_INCOMING,
+      boundedContext: "Telephony",
+      operation: "jssip_incoming_call",
+      callId,
+    });
+
+    await this.incomingCallHandler(notification);
+  }
+
+  private async handleSessionEnded(
+    callId: CallId,
+    correlationId: CorrelationId,
+  ): Promise<void> {
+    this.unbindPeerConnection(callId);
+
+    if (this.callEndedHandler === null) {
+      return;
+    }
+
+    this.logger.info("jssip_call_ended", {
+      correlationId,
+      featureId: FEATURE_ID_OUTGOING,
+      boundedContext: "Telephony",
+      operation: "jssip_call_ended",
+      callId,
+    });
+
+    await this.callEndedHandler({ callId, correlationId });
   }
 
   private async handleTransportDisconnected(event: JsSipDisconnectEvent): Promise<void> {
@@ -326,7 +644,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
 
     this.logger.warn("jssip_transport_disconnected", {
       correlationId: this.lastCorrelationId,
-      featureId: FEATURE_ID,
+      featureId: FEATURE_ID_REGISTRATION,
       boundedContext: "Telephony",
       operation: "jssip_transport_disconnected",
       reason,
@@ -431,4 +749,26 @@ function isJsSipDisconnectEvent(value: unknown): value is JsSipDisconnectEvent {
 
   const candidate = value as { error?: unknown };
   return typeof candidate.error === "boolean";
+}
+
+function isJsSipNewRtcSessionEvent(value: unknown): value is JsSipNewRtcSessionEvent {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const candidate = value as {
+    originator?: unknown;
+    session?: unknown;
+  };
+
+  if (candidate.originator !== "local" && candidate.originator !== "remote") {
+    return false;
+  }
+
+  if (typeof candidate.session !== "object" || candidate.session === null) {
+    return false;
+  }
+
+  const session = candidate.session as { id?: unknown };
+  return typeof session.id === "string";
 }

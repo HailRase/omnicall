@@ -17,9 +17,12 @@ export type JsSipUaEventName =
   | "disconnected"
   | "registered"
   | "registrationFailed"
-  | "unregistered";
+  | "unregistered"
+  | "newRTCSession";
 
 export type JsSipUaListener = (...args: unknown[]) => void;
+
+import type { JsSipRtcSessionPort } from "./JsSipRtcSessionPort.js";
 
 export type JsSipUaPort = Readonly<{
   on(event: JsSipUaEventName, listener: JsSipUaListener): void;
@@ -30,6 +33,7 @@ export type JsSipUaPort = Readonly<{
   unregister(options?: Readonly<{ all?: boolean }>): void;
   isRegistered(): boolean;
   isConnected(): boolean;
+  call(target: string, options?: Readonly<Record<string, unknown>>): JsSipRtcSessionPort;
 }>;
 
 export type JsSipUserAgentFactory = (
