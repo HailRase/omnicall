@@ -14,7 +14,6 @@ describe.skipIf(!sandboxEnabled)("JsSipTelephonyAdapter integration", () => {
   const username = process.env["VITE_SIP_USERNAME"] ?? "";
   const password = process.env["VITE_SIP_PASSWORD"] ?? "";
   const uri = process.env["VITE_SIP_URI"] ?? "";
-  const displayName = process.env["VITE_SIP_DISPLAY_NAME"] ?? "Sandbox Agent";
 
   it("registers against configured SIP sandbox", async () => {
     if (registrar.length === 0 || username.length === 0 || password.length === 0) {
@@ -25,7 +24,6 @@ describe.skipIf(!sandboxEnabled)("JsSipTelephonyAdapter integration", () => {
       uri: uri.length > 0 ? uri : `sip:${username}@sandbox`,
       username,
       password,
-      displayName,
       registrar,
     });
 

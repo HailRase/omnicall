@@ -13,7 +13,6 @@ const EMPTY_FORM: SipAccountInput = {
   uri: "",
   username: "",
   password: "",
-  displayName: "",
   registrar: "",
 };
 
@@ -90,19 +89,6 @@ export function AccountPanel({
             disabled={disabled || submitting}
             onChange={(event) => {
               setForm((current) => ({ ...current, uri: event.target.value }));
-            }}
-          />
-        </label>
-        <label>
-          Display name
-          <input
-            value={form.displayName}
-            disabled={disabled || submitting}
-            onChange={(event) => {
-              setForm((current) => ({
-                ...current,
-                displayName: event.target.value,
-              }));
             }}
           />
         </label>

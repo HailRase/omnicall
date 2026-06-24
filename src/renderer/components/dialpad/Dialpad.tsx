@@ -32,6 +32,7 @@ export function Dialpad({
 }: DialpadProps): JSX.Element {
   const zeroPressTimeout = useRef<number | null>(null);
   const longPressTriggered = useRef(false);
+  const isZeroPressing = useRef(false);
 
   const handleKeyPress = (key: string): void => {
     if (mode === "dtmf") {
@@ -72,6 +73,7 @@ export function Dialpad({
       return;
     }
 
+    isZeroPressing.current = true;
     longPressTriggered.current = false;
     zeroPressTimeout.current = window.setTimeout(() => {
       longPressTriggered.current = true;
@@ -80,6 +82,12 @@ export function Dialpad({
   };
 
   const handleZeroPressEnd = (): void => {
+    if (!isZeroPressing.current) {
+      return;
+    }
+
+    isZeroPressing.current = false;
+
     if (zeroPressTimeout.current !== null) {
       window.clearTimeout(zeroPressTimeout.current);
       zeroPressTimeout.current = null;
@@ -134,12 +142,26 @@ export function Dialpad({
       <div className="dialpad__keys" role="group" aria-label="Dialpad keys">
         {KEYS.map((key) => {
           if (key === "0") {
+            if (mode === "dtmf") {
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  data-testid="dialpad-key-0"
+                  aria-label="DTMF 0"
+                  onClick={() => handleKeyPress("0")}
+                >
+                  0
+                </button>
+              );
+            }
+
             return (
               <button
                 key={key}
                 type="button"
                 data-testid="dialpad-key-0"
-                aria-label={mode === "dtmf" ? "DTMF 0" : "Dial 0"}
+                aria-label="Dial 0"
                 onMouseDown={handleZeroPressStart}
                 onMouseUp={handleZeroPressEnd}
                 onMouseLeave={handleZeroPressEnd}

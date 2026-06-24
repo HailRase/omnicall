@@ -17,6 +17,25 @@ describe("Dialpad", () => {
     );
   });
 
+  it("does not insert zero on hover leave without press", () => {
+    const onNumberChange = vi.fn();
+    renderDialpad({ onNumberChange });
+
+    fireEvent.mouseLeave(screen.getByTestId("dialpad-key-0"));
+
+    expect(onNumberChange).not.toHaveBeenCalled();
+  });
+
+  it("inserts zero on short press", () => {
+    const onNumberChange = vi.fn();
+    renderDialpad({ onNumberChange, numberValue: "12" });
+
+    fireEvent.mouseDown(screen.getByTestId("dialpad-key-0"));
+    fireEvent.mouseUp(screen.getByTestId("dialpad-key-0"));
+
+    expect(onNumberChange).toHaveBeenCalledWith("120");
+  });
+
   it("inserts plus on long press zero", () => {
     vi.useFakeTimers();
     const onNumberChange = vi.fn();
@@ -54,6 +73,17 @@ describe("Dialpad", () => {
     renderDialpad({ mode: "dtmf", onSendDtmf });
     fireEvent.click(screen.getByTestId("dialpad-key-5"));
     expect(onSendDtmf).toHaveBeenCalledWith("5");
+  });
+
+  it("sends DTMF zero on click without hover side effects", () => {
+    const onSendDtmf = vi.fn();
+    renderDialpad({ mode: "dtmf", onSendDtmf });
+
+    fireEvent.mouseLeave(screen.getByTestId("dialpad-key-0"));
+    fireEvent.click(screen.getByTestId("dialpad-key-0"));
+
+    expect(onSendDtmf).toHaveBeenCalledTimes(1);
+    expect(onSendDtmf).toHaveBeenCalledWith("0");
   });
 });
 

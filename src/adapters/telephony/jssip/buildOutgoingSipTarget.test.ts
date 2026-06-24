@@ -7,7 +7,6 @@ describe("buildOutgoingSipTarget", () => {
     uri: "sip:agent@pbx.example",
     username: "agent",
     password: "secret",
-    displayName: "Agent",
     registrar: "wss://pbx.example:7443",
   });
 

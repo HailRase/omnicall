@@ -5,7 +5,6 @@ export type SipAccount = Readonly<{
   uri: string;
   username: string;
   password: string;
-  displayName: string;
   registrar: string;
 }>;
 
@@ -13,7 +12,6 @@ export type SipAccountInput = Readonly<{
   uri: string;
   username: string;
   password: string;
-  displayName: string;
   registrar: string;
 }>;
 
@@ -26,7 +24,6 @@ export function createSipAccount(
     uri: input.uri.trim(),
     username: input.username.trim(),
     password: input.password,
-    displayName: input.displayName.trim(),
     registrar: input.registrar.trim(),
   };
 }

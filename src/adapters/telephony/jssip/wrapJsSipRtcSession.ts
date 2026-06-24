@@ -22,6 +22,8 @@ export function wrapJsSipRtcSession(session: RTCSession): JsSipRtcSessionPort {
     terminate: (options) => {
       session.terminate(options);
     },
+    hold: (options, done) => session.hold(options, done),
+    unhold: (options, done) => session.unhold(options, done),
     getConnection: () => session.connection ?? null,
     getRemoteIdentityHeader: () => session.remote_identity.toString(),
   };

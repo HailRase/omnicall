@@ -700,7 +700,6 @@ function isSipAccountInput(value: unknown): value is SipAccountInput {
     typeof candidate["uri"] === "string" &&
     typeof candidate["username"] === "string" &&
     typeof candidate["password"] === "string" &&
-    typeof candidate["displayName"] === "string" &&
     typeof candidate["registrar"] === "string"
   );
 }

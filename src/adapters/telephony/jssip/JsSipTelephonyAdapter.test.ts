@@ -31,6 +31,11 @@ class MockJsSipRtcSession implements JsSipRtcSessionPort {
   terminateOptions: Readonly<Record<string, unknown>> | undefined;
   answerCalls = 0;
   terminateCalls = 0;
+  holdCalls = 0;
+  unholdCalls = 0;
+  holdAvailable = true;
+  unholdAvailable = true;
+  private localHold = false;
   private connection: unknown = null;
   private readonly remoteIdentityHeader: string;
 
@@ -68,6 +73,34 @@ class MockJsSipRtcSession implements JsSipRtcSessionPort {
     this.terminateCalls += 1;
     this.terminateOptions = options;
     this.emit("ended");
+  }
+
+  hold(_options?: Readonly<Record<string, unknown>>, done?: () => void): boolean {
+    if (!this.holdAvailable || this.localHold) {
+      return false;
+    }
+    this.holdCalls += 1;
+    this.localHold = true;
+    if (done !== undefined) {
+      queueMicrotask(() => {
+        done();
+      });
+    }
+    return true;
+  }
+
+  unhold(_options?: Readonly<Record<string, unknown>>, done?: () => void): boolean {
+    if (!this.unholdAvailable || !this.localHold) {
+      return false;
+    }
+    this.unholdCalls += 1;
+    this.localHold = false;
+    if (done !== undefined) {
+      queueMicrotask(() => {
+        done();
+      });
+    }
+    return true;
   }
 
   getConnection(): unknown {
@@ -214,7 +247,6 @@ describe("JsSipTelephonyAdapter", () => {
     uri: "sip:agent@pbx.example",
     username: "agent",
     password: "secret",
-    displayName: "Agent",
     registrar: "wss://pbx.example:7443",
   });
 
@@ -349,15 +381,19 @@ describe("JsSipTelephonyAdapter", () => {
     expect(handler).not.toHaveBeenCalled();
   });
 
-  it("returns not_implemented for deferred hold and transfer operations", async () => {
+  it("returns not_implemented for deferred transfer operations", async () => {
     const adapter = createAdapter(new MockJsSipUa());
     const correlationId = createCorrelationId();
     const callId = createCallId("call-1");
 
-    const holdResult = await adapter.holdCall({ callId, correlationId });
-    expect(holdResult.ok).toBe(false);
-    if (!holdResult.ok) {
-      expect(holdResult.error.code).toBe("not_implemented");
+    const blindResult = await adapter.blindTransfer({
+      callId,
+      correlationId,
+      targetNumber: createPhoneNumber("400"),
+    });
+    expect(blindResult.ok).toBe(false);
+    if (!blindResult.ok) {
+      expect(blindResult.error.code).toBe("not_implemented");
     }
   });
 
@@ -538,6 +574,133 @@ describe("JsSipTelephonyAdapter", () => {
         reason_phrase: "Busy Here",
       }),
     );
+  });
+
+  it("holdCall invokes session hold re-INVITE and succeeds", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const callId = createCallId("hold-call");
+    const makePromise = adapter.makeCall({
+      callId,
+      number: createPhoneNumber("310"),
+      correlationId: createCorrelationId(),
+    });
+    const session = mockUa.callInvocations[0]?.session;
+    session?.emit("confirmed");
+    await makePromise;
+
+    const result = await adapter.holdCall({
+      callId,
+      correlationId: createCorrelationId(),
+    });
+
+    expect(result.ok).toBe(true);
+    expect(session?.holdCalls).toBe(1);
+  });
+
+  it("resumeCall invokes session unhold re-INVITE after hold", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const callId = createCallId("resume-call");
+    const makePromise = adapter.makeCall({
+      callId,
+      number: createPhoneNumber("311"),
+      correlationId: createCorrelationId(),
+    });
+    const session = mockUa.callInvocations[0]?.session;
+    session?.emit("confirmed");
+    await makePromise;
+
+    await adapter.holdCall({ callId, correlationId: createCorrelationId() });
+
+    const result = await adapter.resumeCall({
+      callId,
+      correlationId: createCorrelationId(),
+    });
+
+    expect(result.ok).toBe(true);
+    expect(session?.unholdCalls).toBe(1);
+  });
+
+  it("holdCall fails when session is missing", async () => {
+    const adapter = createAdapter(new MockJsSipUa());
+    const result = await adapter.holdCall({
+      callId: createCallId("missing-hold"),
+      correlationId: createCorrelationId(),
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.message).toContain("SIP session not found");
+    }
+  });
+
+  it("holdCall fails when JsSIP hold is unavailable", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const callId = createCallId("hold-unavailable");
+    const makePromise = adapter.makeCall({
+      callId,
+      number: createPhoneNumber("312"),
+      correlationId: createCorrelationId(),
+    });
+    const session = mockUa.callInvocations[0]?.session;
+    session?.emit("confirmed");
+    await makePromise;
+    if (session !== undefined) {
+      session.holdAvailable = false;
+    }
+
+    const result = await adapter.holdCall({
+      callId,
+      correlationId: createCorrelationId(),
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.message).toContain("hold is not available");
+    }
+  });
+
+  it("holdCall fails when hold re-INVITE fails", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const callId = createCallId("hold-failed");
+    const makePromise = adapter.makeCall({
+      callId,
+      number: createPhoneNumber("313"),
+      correlationId: createCorrelationId(),
+    });
+    const session = mockUa.callInvocations[0]?.session;
+    session?.emit("confirmed");
+    await makePromise;
+    if (session !== undefined) {
+      session.hold = () => {
+        session.holdCalls += 1;
+        queueMicrotask(() => {
+          session.emit("failed", { cause: "WebRTC Error" });
+        });
+        return true;
+      };
+    }
+
+    const result = await adapter.holdCall({
+      callId,
+      correlationId: createCorrelationId(),
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.message).toContain("hold failed");
+    }
   });
 
   it("hangup terminates active session", async () => {

@@ -13,7 +13,6 @@ describe("RegisterAccountUseCase", () => {
     uri: "sip:agent@pbx",
     username: "agent",
     password: "secret",
-    displayName: "Agent",
     registrar: "sip:pbx",
   });
 

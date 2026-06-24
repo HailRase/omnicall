@@ -55,7 +55,6 @@ export type MockOperatorPlatformGatewayOptions = Readonly<{
     uri: string;
     username: string;
     password: string;
-    displayName: string;
     registrar: string;
   }>;
 }>;
@@ -64,7 +63,6 @@ const DEFAULT_SIP_CREDENTIALS = {
   uri: "sip:agent@pbx.example",
   username: "agent",
   password: "secret",
-  displayName: "Agent",
   registrar: "sip:pbx.example",
 } as const;
 
@@ -135,7 +133,6 @@ export class MockOperatorPlatformGateway implements OperatorPlatformGateway {
             uri: this.sipCredentials.uri,
             username: this.sipCredentials.username,
             password: this.sipCredentials.password,
-            displayName: this.sipCredentials.displayName,
             registrar: this.sipCredentials.registrar,
           },
         };

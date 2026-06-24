@@ -21,8 +21,5 @@ export function readSipEnvDefaults(): Partial<SipAccountInput> {
     ...(typeof env.VITE_SIP_URI === "string" && env.VITE_SIP_URI.length > 0
       ? { uri: env.VITE_SIP_URI }
       : {}),
-    ...(typeof env.VITE_SIP_DISPLAY_NAME === "string" && env.VITE_SIP_DISPLAY_NAME.length > 0
-      ? { displayName: env.VITE_SIP_DISPLAY_NAME }
-      : {}),
   };
 }

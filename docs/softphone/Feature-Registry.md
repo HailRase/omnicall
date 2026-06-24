@@ -168,6 +168,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Integration: mock telephony hold/resume/hangup success and failure paths
   - Renderer: `ActiveCallControlsPanel` disabled reasons, error banner, retry, keyboard Enter/Space on enabled control
   - E2E: deferred until dedicated Electron E2E harness exists
+- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R4 step 05 — `JsSipTelephonyAdapter.holdCall`/`resumeCall` via re-INVITE; smoke pending manual on dev SBC)
 
 ## F-005: Mute And Unmute
 
@@ -188,7 +189,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Integration: mock media mute/unmute success and failure paths
   - Renderer: error banner and retry via `lastOperationError` projection
   - E2E: deferred until dedicated Electron E2E harness exists
-- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R2 — `BrowserMediaAdapter.muteCall`/`unmuteCall` via local track.enabled; smoke blocked until step 04)
+- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R4 step 05 — `BrowserMediaAdapter.muteCall`/`unmuteCall` end-to-end via `getPeerConnectionForCall`; smoke pending manual on dev SBC)
 
 ## F-006: Blind Transfer
 

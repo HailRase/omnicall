@@ -22,7 +22,7 @@
 
 | 04 Call lifecycle in/out | done | 2026-06-24 | makeCall/incoming/answer/reject/hangup/callEnded; bindPeerConnection on session lifecycle; mapTelephonyIncomingNotification wired | 525 (+10) | R2+R3 **pending manual** (see notes) |
 
-| 05 Hold / mute real | pending | | | | |
+| 05 Hold / mute real | done | 2026-06-24 | holdCall/resumeCall re-INVITE; BrowserMediaAdapter mute verified; error banner already wired | 541 (+16) | R4 **pending manual** (see notes) |
 
 | 06 OCP WebSocket | pending | | | | |
 
@@ -105,6 +105,24 @@
 | DND rejects with 486 | **pending manual** |
 
 **Implemented this step:** `JsSipTelephonyAdapter` call lifecycle (makeCall progress/answered/failed, newRTCSession incoming, answer/reject/hangup, setCallEndedHandler); peer-connection bind/unbind on RTC session lifecycle; adapter unit tests (+10).
+
+## Step 05 smoke notes (R4) — 2026-06-24
+
+**Environment:** Electron `npm run dev`, `VITE_ADAPTER_MODE=real`, `.env.local` (dev SBC).
+
+**Automated:** `npm run test` 541 passed, 1 skipped; lint/typecheck green.
+
+| R4 checklist | Result |
+| --- | --- |
+| Hold / resume | **pending manual** — `holdCall`/`resumeCall` re-INVITE wired |
+| Mute / unmute | **pending manual** — local `track.enabled` via `BrowserMediaAdapter` |
+
+| R2+R3 (carry-over) | Result |
+| --- | --- |
+| Incoming ringtone / remote audio | **pending manual** |
+| Outgoing/incoming answer, reject, hangup, DND | **pending manual** |
+
+**Implemented this step:** `JsSipTelephonyAdapter.holdCall`/`resumeCall` via `executeJsSipHoldResume`; `JsSipRtcSessionPort` hold/unhold; adapter unit tests (+16); `ActiveCallControlsPanel` error banner verified (existing P04 wiring).
 
 ## Dev credentials
 

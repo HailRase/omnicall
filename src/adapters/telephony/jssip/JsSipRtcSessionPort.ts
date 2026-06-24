@@ -8,7 +8,9 @@ export type JsSipRtcSessionEventName =
   | "progress"
   | "confirmed"
   | "ended"
-  | "failed";
+  | "failed"
+  | "hold"
+  | "unhold";
 
 export type JsSipRtcSessionListener = (...args: unknown[]) => void;
 
@@ -18,6 +20,8 @@ export type JsSipRtcSessionPort = Readonly<{
   off(event: JsSipRtcSessionEventName, listener: JsSipRtcSessionListener): void;
   answer(options?: Readonly<Record<string, unknown>>): void;
   terminate(options?: Readonly<Record<string, unknown>>): void;
+  hold(options?: Readonly<Record<string, unknown>>, done?: () => void): boolean;
+  unhold(options?: Readonly<Record<string, unknown>>, done?: () => void): boolean;
   getConnection(): unknown;
   getRemoteIdentityHeader(): string;
 }>;

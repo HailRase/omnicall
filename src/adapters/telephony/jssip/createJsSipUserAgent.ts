@@ -29,8 +29,6 @@ export function buildJsSipUaConfiguration(account: SipAccount): {
 
   authorization_user: string;
 
-  display_name: string;
-
   register: false;
 
   connection_recovery_min_interval: number;
@@ -56,8 +54,6 @@ export function buildJsSipUaConfiguration(account: SipAccount): {
     password: account.password,
 
     authorization_user: account.username,
-
-    display_name: account.displayName,
 
     register: false,
 

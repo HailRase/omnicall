@@ -28,6 +28,7 @@ import type { JsSipDisconnectEvent, JsSipUaPort, JsSipUserAgentFactory } from ".
 import { mapTelephonyIncomingNotification } from "../mapTelephonyIncomingNotification.js";
 import { buildOutgoingSipTarget } from "./buildOutgoingSipTarget.js";
 import { executeJsSipOutboundCall } from "./executeJsSipOutboundCall.js";
+import { executeJsSipHoldResume } from "./executeJsSipHoldResume.js";
 import type { JsSipNewRtcSessionEvent, JsSipRtcSessionPort } from "./JsSipRtcSessionPort.js";
 import { wireJsSipRtcSessionLifecycle } from "./wireJsSipRtcSessionLifecycle.js";
 import { createJsSipUserAgent } from "./createJsSipUserAgent.js";
@@ -38,6 +39,7 @@ import { resolveJsSipTransportUrl } from "./resolveJsSipTransportUrl.js";
 const FEATURE_ID_REGISTRATION = "F-001";
 const FEATURE_ID_INCOMING = "F-002";
 const FEATURE_ID_OUTGOING = "F-003";
+const FEATURE_ID_HOLD = "F-004";
 
 const DEFAULT_CALL_MEDIA_OPTIONS = {
   mediaConstraints: { audio: true, video: false },
@@ -435,14 +437,96 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     }
   }
 
-  holdCall(command: HoldCallCommand): Promise<Result<void, PlatformError>> {
-    void command;
-    return Promise.resolve(err(telephonyNotImplementedError("holdCall")));
+  async holdCall(command: HoldCallCommand): Promise<Result<void, PlatformError>> {
+    const { callId, correlationId } = command;
+    this.lastCorrelationId = correlationId;
+
+    const session = this.sessions.get(callId);
+    if (session === undefined) {
+      return err(createPlatformError("operation_failed", `SIP session not found for ${callId}`));
+    }
+
+    this.logger.info("jssip_hold_call_start", {
+      correlationId,
+      featureId: FEATURE_ID_HOLD,
+      boundedContext: "Telephony",
+      operation: "jssip_hold_call",
+      callId,
+    });
+
+    const holdResult = await executeJsSipHoldResume(session, "hold");
+
+    if (holdResult.ok) {
+      this.logger.info("jssip_hold_call_succeeded", {
+        correlationId,
+        featureId: FEATURE_ID_HOLD,
+        boundedContext: "Telephony",
+        operation: "jssip_hold_call",
+        callId,
+        result: "succeeded",
+      });
+      return holdResult;
+    }
+
+    this.logger.error(
+      "jssip_hold_call_failed",
+      {
+        correlationId,
+        featureId: FEATURE_ID_HOLD,
+        boundedContext: "Telephony",
+        operation: "jssip_hold_call",
+        callId,
+        result: holdResult.error.code,
+      },
+      holdResult.error,
+    );
+    return holdResult;
   }
 
-  resumeCall(command: ResumeCallCommand): Promise<Result<void, PlatformError>> {
-    void command;
-    return Promise.resolve(err(telephonyNotImplementedError("resumeCall")));
+  async resumeCall(command: ResumeCallCommand): Promise<Result<void, PlatformError>> {
+    const { callId, correlationId } = command;
+    this.lastCorrelationId = correlationId;
+
+    const session = this.sessions.get(callId);
+    if (session === undefined) {
+      return err(createPlatformError("operation_failed", `SIP session not found for ${callId}`));
+    }
+
+    this.logger.info("jssip_resume_call_start", {
+      correlationId,
+      featureId: FEATURE_ID_HOLD,
+      boundedContext: "Telephony",
+      operation: "jssip_resume_call",
+      callId,
+    });
+
+    const resumeResult = await executeJsSipHoldResume(session, "unhold");
+
+    if (resumeResult.ok) {
+      this.logger.info("jssip_resume_call_succeeded", {
+        correlationId,
+        featureId: FEATURE_ID_HOLD,
+        boundedContext: "Telephony",
+        operation: "jssip_resume_call",
+        callId,
+        result: "succeeded",
+      });
+      return resumeResult;
+    }
+
+    this.logger.error(
+      "jssip_resume_call_failed",
+      {
+        correlationId,
+        featureId: FEATURE_ID_HOLD,
+        boundedContext: "Telephony",
+        operation: "jssip_resume_call",
+        callId,
+        result: resumeResult.error.code,
+      },
+      resumeResult.error,
+    );
+    return resumeResult;
   }
 
   blindTransfer(command: BlindTransferCommand): Promise<Result<void, PlatformError>> {
