@@ -134,6 +134,14 @@ export default tseslint.config(
     },
   },
   {
+    files: ["src/adapters/media/browser/**/*.ts"],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+      },
+    },
+  },
+  {
     files: ["**/*.test.ts"],
     rules: {
       "@typescript-eslint/no-unsafe-assignment": "off",

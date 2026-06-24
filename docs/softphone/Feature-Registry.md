@@ -125,7 +125,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Unit: state machine incoming transitions, auto-answer policy, DND policy, display-name parser, reject reason validation, answer/reject use cases
   - Integration: mock incoming adapter event to events/projection, ringtone start, answer/reject gateway calls, DND 486, host break-reason mapping, ended-before-answer recovery
   - E2E: deferred until incoming call harness exists
-- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R3)
+- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R2 partial — BrowserMediaAdapter + JsSIP peer-connection hook; ringtone/remote audio smoke blocked until RAT R3 step 04)
 
 ## F-003: Outgoing Call
 
@@ -145,7 +145,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Unit: number validation and transitions
   - Integration: mock gateway make-call progress/answer/failure + media tones
   - E2E: deferred until dedicated Electron E2E harness exists
-- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R3)
+- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R2 partial — BrowserMediaAdapter + JsSIP peer-connection hook; ringtone/remote audio smoke blocked until RAT R3 step 04)
 
 ## F-004: Active Call Hold, Resume, Hangup
 
@@ -188,6 +188,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Integration: mock media mute/unmute success and failure paths
   - Renderer: error banner and retry via `lastOperationError` projection
   - E2E: deferred until dedicated Electron E2E harness exists
+- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R2 — `BrowserMediaAdapter.muteCall`/`unmuteCall` via local track.enabled; smoke blocked until step 04)
 
 ## F-006: Blind Transfer
 

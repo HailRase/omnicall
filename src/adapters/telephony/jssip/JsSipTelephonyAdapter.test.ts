@@ -245,4 +245,21 @@ describe("JsSipTelephonyAdapter", () => {
     expect(serialized).not.toContain("secret");
     expect(serialized).not.toContain(account.password);
   });
+
+  it("binds and resolves peer connections per call id", () => {
+    const adapter = new JsSipTelephonyAdapter({
+      logger: createTestLogger({ featureId: "F-001", boundedContext: "Telephony" }),
+      createUserAgent: () => new MockJsSipUa(),
+    });
+    const callId = createCallId("pc-call");
+    const connection = { id: "pc-1" };
+
+    expect(adapter.getPeerConnectionForCall(callId)).toBeNull();
+
+    adapter.bindPeerConnection(callId, connection);
+    expect(adapter.getPeerConnectionForCall(callId)).toBe(connection);
+
+    adapter.unbindPeerConnection(callId);
+    expect(adapter.getPeerConnectionForCall(callId)).toBeNull();
+  });
 });

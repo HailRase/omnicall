@@ -18,6 +18,11 @@ export type {
 } from "./mock/MockTelephonyGateway.js";
 export { MockMediaGateway } from "./mock/MockMediaGateway.js";
 export type { MockMediaScenario } from "./mock/MockMediaGateway.js";
+export { BrowserMediaAdapter } from "./media/browser/BrowserMediaAdapter.js";
+export type {
+  BrowserMediaAdapterOptions,
+  PeerConnectionProvider,
+} from "./media/browser/BrowserMediaAdapter.js";
 export { MockHostIntegrationGateway } from "./mock/MockHostIntegrationGateway.js";
 export { HostIntegrationGatewayAdapter } from "./integration/HostIntegrationGatewayAdapter.js";
 export {

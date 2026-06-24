@@ -44,6 +44,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
   private readonly logger: Logger;
   private readonly createUserAgent: JsSipUserAgentFactory;
   private readonly sessions = new Map<CallId, unknown>();
+  private readonly peerConnections = new Map<CallId, unknown>();
   private ua: JsSipUaPort | null = null;
   private storedAccount: SipAccount | null = null;
   private lastCorrelationId: CorrelationId = createCorrelationId();
@@ -149,6 +150,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       this.ua = null;
       this.storedAccount = null;
       this.sessions.clear();
+      this.peerConnections.clear();
 
       this.logger.info("jssip_unregister_succeeded", {
         correlationId,
@@ -263,6 +265,42 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     return () => {
       this.transportDisconnectedHandler = null;
     };
+  }
+
+  /**
+   * Adapter-private hook for BrowserMediaAdapter (RAT R2). Not part of TelephonyGateway.
+   */
+  getPeerConnectionForCall(callId: CallId): unknown {
+    return this.peerConnections.get(callId) ?? null;
+  }
+
+  /**
+   * Adapter-private hook invoked when a JsSIP RTC session is created (RAT R4+).
+   */
+  bindPeerConnection(callId: CallId, connection: unknown): void {
+    this.peerConnections.set(callId, connection);
+    this.logger.debug("jssip_peer_connection_bound", {
+      correlationId: this.lastCorrelationId,
+      featureId: FEATURE_ID,
+      boundedContext: "Telephony",
+      operation: "jssip_peer_connection_bound",
+      callId,
+    });
+  }
+
+  /**
+   * Adapter-private hook invoked when a JsSIP RTC session ends (RAT R4+).
+   */
+  unbindPeerConnection(callId: CallId): void {
+    this.peerConnections.delete(callId);
+    this.sessions.delete(callId);
+    this.logger.debug("jssip_peer_connection_unbound", {
+      correlationId: this.lastCorrelationId,
+      featureId: FEATURE_ID,
+      boundedContext: "Telephony",
+      operation: "jssip_peer_connection_unbound",
+      callId,
+    });
   }
 
   private attachUaListeners(ua: JsSipUaPort): void {
