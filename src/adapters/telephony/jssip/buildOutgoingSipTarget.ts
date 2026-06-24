@@ -14,24 +14,5 @@ export function buildOutgoingSipTarget(
     return normalized;
   }
 
-  const host = extractSipDomainHost(account.registrar);
-  return `sip:${normalized}@${host}`;
-}
-
-function extractSipDomainHost(registrar: string): string {
-  const trimmed = registrar.trim();
-  if (trimmed.length === 0) {
-    return "localhost";
-  }
-
-  try {
-    const url = new URL(
-      trimmed.startsWith("ws") || trimmed.startsWith("http")
-        ? trimmed
-        : `wss://${trimmed}`,
-    );
-    return url.hostname;
-  } catch {
-    return trimmed.replace(/^wss?:\/\//u, "").split("/")[0]?.split(":")[0] ?? "localhost";
-  }
+  return `sip:${normalized}@${account.domain}`;
 }

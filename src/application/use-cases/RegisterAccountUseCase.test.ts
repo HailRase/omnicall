@@ -10,10 +10,10 @@ import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
 
 describe("RegisterAccountUseCase", () => {
   const account = createSipAccount(createSipAccountId("agent"), {
-    uri: "sip:agent@pbx",
     username: "agent",
     password: "secret",
-    registrar: "sip:pbx",
+    domain: "pbx",
+    server: "sip:pbx",
   });
 
   it("publishes registration success events", async () => {

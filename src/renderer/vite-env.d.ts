@@ -2,10 +2,10 @@
 
 interface ImportMetaEnv {
   readonly VITE_ADAPTER_MODE?: string;
-  readonly VITE_SIP_REGISTRAR?: string;
+  readonly VITE_SIP_SERVER?: string;
+  readonly VITE_SIP_DOMAIN?: string;
   readonly VITE_SIP_USERNAME?: string;
   readonly VITE_SIP_PASSWORD?: string;
-  readonly VITE_SIP_URI?: string;
 }
 
 interface ImportMeta {

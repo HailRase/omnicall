@@ -4,15 +4,15 @@ import { buildOutgoingSipTarget } from "./buildOutgoingSipTarget.js";
 
 describe("buildOutgoingSipTarget", () => {
   const account = createSipAccount(createSipAccountId("agent"), {
-    uri: "sip:agent@pbx.example",
     username: "agent",
     password: "secret",
-    registrar: "wss://pbx.example:7443",
+    domain: "dev-qms.onedemoserver.online",
+    server: "wss://onedemoserver.online:7443",
   });
 
-  it("builds sip uri from phone number and registrar host", () => {
+  it("builds sip uri from phone number and account domain", () => {
     expect(buildOutgoingSipTarget(createPhoneNumber("200"), account)).toBe(
-      "sip:200@pbx.example",
+      "sip:200@dev-qms.onedemoserver.online",
     );
   });
 

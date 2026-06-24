@@ -52,18 +52,18 @@ export type MockOperatorPlatformGatewayOptions = Readonly<{
   logoutScenario?: MockLogoutScenario;
   delayMs?: number;
   sipCredentials?: Readonly<{
-    uri: string;
     username: string;
     password: string;
-    registrar: string;
+    domain: string;
+    server: string;
   }>;
 }>;
 
 const DEFAULT_SIP_CREDENTIALS = {
-  uri: "sip:agent@pbx.example",
   username: "agent",
   password: "secret",
-  registrar: "sip:pbx.example",
+  domain: "pbx.example",
+  server: "wss://onedemoserver.online:5063",
 } as const;
 
 export class MockOperatorPlatformGateway implements OperatorPlatformGateway {
@@ -130,10 +130,10 @@ export class MockOperatorPlatformGateway implements OperatorPlatformGateway {
           status: "succeeded",
           session,
           sipCredentials: {
-            uri: this.sipCredentials.uri,
             username: this.sipCredentials.username,
             password: this.sipCredentials.password,
-            registrar: this.sipCredentials.registrar,
+            domain: this.sipCredentials.domain,
+            server: this.sipCredentials.server,
           },
         };
       }

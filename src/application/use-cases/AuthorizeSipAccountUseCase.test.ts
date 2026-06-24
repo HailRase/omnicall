@@ -21,10 +21,10 @@ describe("AuthorizeSipAccountUseCase", () => {
 
     const result = await useCase.execute({
       account: {
-        uri: "",
         username: "",
         password: "secret",
-        registrar: "sip:pbx",
+        domain: "pbx",
+        server: "sip:pbx",
       },
       source: "manual",
     });
@@ -54,10 +54,10 @@ describe("AuthorizeSipAccountUseCase", () => {
 
     const result = await useCase.execute({
       account: {
-        uri: "sip:agent@pbx",
         username: "agent",
         password: "secret",
-        registrar: "sip:pbx",
+        domain: "pbx",
+        server: "sip:pbx",
       },
       source: "manual",
     });

@@ -10,21 +10,28 @@ import { JsSipTelephonyAdapter } from "./JsSipTelephonyAdapter.js";
 const sandboxEnabled = process.env["SIP_SANDBOX"] === "1";
 
 describe.skipIf(!sandboxEnabled)("JsSipTelephonyAdapter integration", () => {
-  const registrar = process.env["VITE_SIP_REGISTRAR"] ?? "";
+  const server = process.env["VITE_SIP_SERVER"] ?? "";
+  const domain = process.env["VITE_SIP_DOMAIN"] ?? "";
   const username = process.env["VITE_SIP_USERNAME"] ?? "";
   const password = process.env["VITE_SIP_PASSWORD"] ?? "";
-  const uri = process.env["VITE_SIP_URI"] ?? "";
 
   it("registers against configured SIP sandbox", async () => {
-    if (registrar.length === 0 || username.length === 0 || password.length === 0) {
-      throw new Error("SIP_SANDBOX requires VITE_SIP_REGISTRAR, VITE_SIP_USERNAME, VITE_SIP_PASSWORD");
+    if (
+      server.length === 0 ||
+      domain.length === 0 ||
+      username.length === 0 ||
+      password.length === 0
+    ) {
+      throw new Error(
+        "SIP_SANDBOX requires VITE_SIP_SERVER, VITE_SIP_DOMAIN, VITE_SIP_USERNAME, VITE_SIP_PASSWORD",
+      );
     }
 
     const account = createSipAccount(createSipAccountId(username), {
-      uri: uri.length > 0 ? uri : `sip:${username}@sandbox`,
       username,
       password,
-      registrar,
+      domain,
+      server,
     });
 
     const adapter = new JsSipTelephonyAdapter({

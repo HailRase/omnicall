@@ -244,10 +244,10 @@ class MockJsSipUa implements JsSipUaPort {
 
 describe("JsSipTelephonyAdapter", () => {
   const account = createSipAccount(createSipAccountId("agent"), {
-    uri: "sip:agent@pbx.example",
     username: "agent",
     password: "secret",
-    registrar: "wss://pbx.example:7443",
+    domain: "pbx.example",
+    server: "wss://onedemoserver.online:7443",
   });
 
   function createAdapter(mockUa: MockJsSipUa): JsSipTelephonyAdapter {

@@ -10,10 +10,10 @@ type AccountPanelProps = Readonly<{
 }>;
 
 const EMPTY_FORM: SipAccountInput = {
-  uri: "",
   username: "",
   password: "",
-  registrar: "",
+  domain: "",
+  server: "",
 };
 
 function buildInitialForm(): SipAccountInput {
@@ -70,29 +70,6 @@ export function AccountPanel({
           />
         </label>
         <label>
-          Registrar
-          <input
-            value={form.registrar}
-            disabled={disabled || submitting}
-            onChange={(event) => {
-              setForm((current) => ({
-                ...current,
-                registrar: event.target.value,
-              }));
-            }}
-          />
-        </label>
-        <label>
-          URI
-          <input
-            value={form.uri}
-            disabled={disabled || submitting}
-            onChange={(event) => {
-              setForm((current) => ({ ...current, uri: event.target.value }));
-            }}
-          />
-        </label>
-        <label>
           Password
           <input
             type="password"
@@ -102,6 +79,32 @@ export function AccountPanel({
               setForm((current) => ({
                 ...current,
                 password: event.target.value,
+              }));
+            }}
+          />
+        </label>
+        <label>
+          Domain
+          <input
+            value={form.domain}
+            disabled={disabled || submitting}
+            onChange={(event) => {
+              setForm((current) => ({
+                ...current,
+                domain: event.target.value,
+              }));
+            }}
+          />
+        </label>
+        <label>
+          Server
+          <input
+            value={form.server}
+            disabled={disabled || submitting}
+            onChange={(event) => {
+              setForm((current) => ({
+                ...current,
+                server: event.target.value,
               }));
             }}
           />

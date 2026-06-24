@@ -95,7 +95,8 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       boundedContext: "Telephony",
       operation: "jssip_register",
       username: account.username,
-      registrar: account.registrar,
+      server: account.server,
+      domain: account.domain,
     });
 
     await this.teardownUa();
@@ -108,13 +109,13 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       this.storedAccount = account;
       this.attachUaListeners(ua);
 
-      const transportUrl = resolveJsSipTransportUrl(account.registrar);
+      const transportUrl = resolveJsSipTransportUrl(account.server);
       this.logger.info("jssip_transport_url_resolved", {
         correlationId,
         featureId: FEATURE_ID_REGISTRATION,
         boundedContext: "Telephony",
         operation: "jssip_transport_url_resolved",
-        registrar: account.registrar,
+        server: account.server,
         transportUrl,
       });
 

@@ -50,10 +50,10 @@ describe("ServerTerminateCleanup integration", () => {
 
     await facade.authorizeManualAccount(
       {
-        uri: "sip:agent@pbx",
         username: "agent",
         password: "secret",
-        registrar: "sip:pbx",
+        domain: "pbx",
+        server: "sip:pbx",
       },
       correlationId,
     );

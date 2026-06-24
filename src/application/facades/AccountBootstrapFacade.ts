@@ -697,9 +697,9 @@ function isSipAccountInput(value: unknown): value is SipAccountInput {
 
   const candidate = value as Record<string, unknown>;
   return (
-    typeof candidate["uri"] === "string" &&
     typeof candidate["username"] === "string" &&
     typeof candidate["password"] === "string" &&
-    typeof candidate["registrar"] === "string"
+    typeof candidate["domain"] === "string" &&
+    typeof candidate["server"] === "string"
   );
 }
