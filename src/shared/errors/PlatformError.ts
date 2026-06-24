@@ -2,6 +2,7 @@ export type PlatformErrorCode =
   | "unknown"
   | "validation_failed"
   | "operation_failed"
+  | "not_implemented"
   | "not_found"
   | "unauthorized"
   | "forbidden"

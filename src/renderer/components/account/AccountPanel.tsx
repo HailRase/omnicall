@@ -2,6 +2,7 @@ import { useState, type JSX, type SubmitEvent } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import type { SipAccountInput } from "@application/index.js";
 import { isErr } from "@shared/result/index.js";
+import { readSipEnvDefaults } from "../../bootstrap/readSipEnvDefaults.js";
 
 type AccountPanelProps = Readonly<{
   facade: AccountBootstrapFacade;
@@ -16,11 +17,18 @@ const EMPTY_FORM: SipAccountInput = {
   registrar: "",
 };
 
+function buildInitialForm(): SipAccountInput {
+  return {
+    ...EMPTY_FORM,
+    ...readSipEnvDefaults(),
+  };
+}
+
 export function AccountPanel({
   facade,
   disabled = false,
 }: AccountPanelProps): JSX.Element {
-  const [form, setForm] = useState<SipAccountInput>(EMPTY_FORM);
+  const [form, setForm] = useState<SipAccountInput>(buildInitialForm);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

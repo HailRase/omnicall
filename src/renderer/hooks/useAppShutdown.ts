@@ -19,7 +19,12 @@ export function useAppShutdown(input: UseAppShutdownInput): void {
       return undefined;
     }
 
-    const unsubscribe = window.softphone.onBeforeClose((payload) => {
+    const softphone = window.softphone;
+    if (softphone === undefined) {
+      return undefined;
+    }
+
+    const unsubscribe = softphone.onBeforeClose((payload) => {
       void (async () => {
         const result = await facade.shutdownCleanup.execute({
           source: payload.source,
@@ -30,7 +35,7 @@ export function useAppShutdown(input: UseAppShutdownInput): void {
           return;
         }
 
-        await window.softphone.acknowledgeShutdown(payload.correlationId);
+        await softphone.acknowledgeShutdown(payload.correlationId);
       })();
     });
 

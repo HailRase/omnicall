@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createAccountBootstrap } from "./createAccountBootstrap.js";
 import { createSoftphoneComposition } from "./createSoftphoneComposition.js";
-import { RealAdapterBootstrapNotReadyError } from "./createRealAccountBootstrap.js";
+import { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 
 describe("createSoftphoneComposition", () => {
   it("mock mode matches createAccountBootstrap behavior", () => {
@@ -20,24 +20,14 @@ describe("createSoftphoneComposition", () => {
     expect(typeof viaComposition.dispose).toBe("function");
   });
 
-  it("real mode throws typed stub error without crashing the caller", () => {
-    expect(() =>
-      createSoftphoneComposition({
-        mode: "real",
-        bootstrapConfig: { mode: "sip-only" },
-      }),
-    ).toThrow(RealAdapterBootstrapNotReadyError);
+  it("real mode returns AccountBootstrapFacade with JsSIP telephony wiring", () => {
+    const facade = createSoftphoneComposition({
+      mode: "real",
+      bootstrapConfig: { mode: "sip-only" },
+    });
 
-    try {
-      createSoftphoneComposition({
-        mode: "real",
-        bootstrapConfig: { mode: "sip-only" },
-      });
-    } catch (error: unknown) {
-      expect(error).toBeInstanceOf(RealAdapterBootstrapNotReadyError);
-      if (error instanceof RealAdapterBootstrapNotReadyError) {
-        expect(error.code).toBe("REAL_ADAPTER_BOOTSTRAP_NOT_READY");
-      }
-    }
+    expect(facade).toBeInstanceOf(AccountBootstrapFacade);
+    expect(typeof facade.registerAccount.execute).toBe("function");
+    expect(typeof facade.authorizeManualAccount).toBe("function");
   });
 });
