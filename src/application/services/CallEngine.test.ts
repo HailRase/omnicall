@@ -67,6 +67,7 @@ describe("CallEngine", () => {
   });
 
   it("plays busy tone for busy failures", async () => {
+    vi.useFakeTimers();
     const events = new InMemoryDomainEventBus();
     const media = new MockMediaGateway();
     const telephony = new MockTelephonyGateway({
@@ -99,6 +100,11 @@ describe("CallEngine", () => {
     expect(failedReason).toBe("busy");
     expect(media.isBusyTonePlaying(failedCallId)).toBe(true);
     expect(media.getFailureTones().length).toBe(0);
+
+    await vi.advanceTimersByTimeAsync(3_000);
+
+    expect(media.isBusyTonePlaying(failedCallId)).toBe(false);
+    vi.useRealTimers();
   });
 
   it("maps rejected failures to failed tone", async () => {

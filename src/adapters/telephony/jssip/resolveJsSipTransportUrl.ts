@@ -11,13 +11,36 @@ export function resolveJsSipTransportUrl(server: string): string {
 
   const serverUrl = parseServerUrl(normalizedServer);
   const serverHost = serverUrl.hostname;
-  const serverPort = serverUrl.port.length > 0 ? Number(serverUrl.port) : undefined;
   const isSecure =
     serverUrl.protocol === "wss:" || serverUrl.protocol === "https:";
   const transportProtocol = isSecure ? "wss" : "ws";
-  const transportPort = serverPort ?? (isSecure ? 5063 : 5062);
+  const inputHasUrlScheme = hasUrlSchemeInInput(normalizedServer);
+  const explicitPort =
+    serverUrl.port.length > 0 ? Number(serverUrl.port) : null;
+  const transportPort =
+    explicitPort ??
+    (inputHasUrlScheme ? (isSecure ? 443 : 80) : isSecure ? 5063 : 5062);
+  const transportPath = normalizeTransportPath(serverUrl.pathname);
 
-  return `${transportProtocol}://${serverHost}:${transportPort}/`;
+  return `${transportProtocol}://${serverHost}:${transportPort}${transportPath}`;
+}
+
+function normalizeTransportPath(pathname: string): string {
+  if (pathname.length === 0 || pathname === "/") {
+    return "/";
+  }
+
+  const withoutTrailingSlashes = pathname.replace(/\/+$/u, "");
+  return `${withoutTrailingSlashes}/`;
+}
+
+function hasUrlSchemeInInput(normalizedServer: string): boolean {
+  return (
+    normalizedServer.startsWith("http://") ||
+    normalizedServer.startsWith("https://") ||
+    normalizedServer.startsWith("ws://") ||
+    normalizedServer.startsWith("wss://")
+  );
 }
 
 function parseServerUrl(normalizedServer: string): URL {

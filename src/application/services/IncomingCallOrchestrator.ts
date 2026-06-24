@@ -34,6 +34,7 @@ import { createPlatformError } from "@shared/errors/index.js";
 import { err, isErr, ok, type Result } from "@shared/result/index.js";
 import type { CallTracker } from "./CallTracker.js";
 import type { MultiCallPolicyService } from "./MultiCallPolicyService.js";
+import { cancelScheduledTonePlaybackStop } from "./scheduleTonePlaybackStop.js";
 import type {
   AnswerCallInput,
   HandleIncomingCallInput,
@@ -170,7 +171,8 @@ export class IncomingCallOrchestrator {
     }
 
     this.clearAutoAnswerTimer();
-    await this.deps.mediaGateway.stopRingtone({ callId: input.callId, correlationId });
+    cancelScheduledTonePlaybackStop(input.callId);
+    await this.deps.mediaGateway.stopTone({ callId: input.callId, correlationId });
     this.deps.eventPublisher.publish(
       createIncomingRingtoneStoppedEvent(correlationId, {
         callId: input.callId,
@@ -252,7 +254,8 @@ export class IncomingCallOrchestrator {
     }
 
     this.clearAutoAnswerTimer();
-    await this.deps.mediaGateway.stopRingtone({ callId: input.callId, correlationId });
+    cancelScheduledTonePlaybackStop(input.callId);
+    await this.deps.mediaGateway.stopTone({ callId: input.callId, correlationId });
     this.deps.eventPublisher.publish(
       createIncomingRingtoneStoppedEvent(correlationId, {
         callId: input.callId,
@@ -318,7 +321,8 @@ export class IncomingCallOrchestrator {
     }
 
     this.clearAutoAnswerTimer();
-    await this.deps.mediaGateway.stopRingtone({
+    cancelScheduledTonePlaybackStop(callId);
+    await this.deps.mediaGateway.stopTone({
       callId,
       correlationId: resolvedCorrelationId,
     });

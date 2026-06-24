@@ -32,6 +32,7 @@ import type { JsSipNewRtcSessionEvent, JsSipRtcSessionPort } from "./JsSipRtcSes
 import { wireJsSipRtcSessionLifecycle } from "./wireJsSipRtcSessionLifecycle.js";
 import { createJsSipUserAgent } from "./createJsSipUserAgent.js";
 import { telephonyNotImplementedError } from "./telephonyNotImplementedError.js";
+import { awaitJsSipRegistration } from "./awaitJsSipRegistration.js";
 import { resolveJsSipTransportUrl } from "./resolveJsSipTransportUrl.js";
 
 const FEATURE_ID_REGISTRATION = "F-001";
@@ -662,40 +663,9 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
   }
 
   private registerWithUa(ua: JsSipUaPort): Promise<Result<void, PlatformError>> {
-    return new Promise((resolve) => {
-      const onRegistered = (): void => {
-        cleanup();
-        resolve(ok(undefined));
-      };
-
-      const onFailed = (...args: unknown[]): void => {
-        cleanup();
-        const event = args[0];
-        const cause =
-          typeof event === "object" &&
-          event !== null &&
-          "cause" in event &&
-          typeof event.cause === "string"
-            ? event.cause
-            : "registration_failed";
-        resolve(
-          err(
-            createPlatformError(
-              "operation_failed",
-              `SIP registration failed for ${this.storedAccount?.username ?? "account"}: ${cause}`,
-            ),
-          ),
-        );
-      };
-
-      const cleanup = (): void => {
-        ua.off("registered", onRegistered);
-        ua.off("registrationFailed", onFailed);
-      };
-
-      ua.on("registered", onRegistered);
-      ua.on("registrationFailed", onFailed);
-      ua.register();
+    return awaitJsSipRegistration({
+      ua,
+      username: this.storedAccount?.username ?? "account",
     });
   }
 

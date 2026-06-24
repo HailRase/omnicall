@@ -148,6 +148,11 @@ export function reduceCallProjection(
         ...projection,
         toneIndicator: "failed",
       };
+    case "ToneStopped":
+      return {
+        ...projection,
+        toneIndicator: "none",
+      };
     case "DtmfSent":
       return {
         ...projection,

@@ -20,6 +20,7 @@ import type {
   HoldCallInput,
   ResumeCallInput,
 } from "./activeCallControlTypes.js";
+import { cancelScheduledTonePlaybackStop } from "./scheduleTonePlaybackStop.js";
 
 type ExclusiveHoldEnforcer = (
   targetCallId: ResumeCallInput["callId"],
@@ -91,6 +92,7 @@ export async function executeHangupCall(
       return err(createPlatformError("validation_failed", ended.transition.reason));
     }
 
+    cancelScheduledTonePlaybackStop(input.callId);
     await deps.mediaGateway.stopTone({ callId: input.callId, correlationId });
     deps.eventPublisher.publish(
       createCallEndedEvent(correlationId, { callId: input.callId }),

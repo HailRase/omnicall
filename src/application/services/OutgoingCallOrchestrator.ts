@@ -28,6 +28,11 @@ import { createPlatformError, normalizeUnknownError } from "@shared/errors/index
 import { err, isErr, ok, type Result } from "@shared/result/index.js";
 import type { CallTracker } from "./CallTracker.js";
 import type { MultiCallPolicyService } from "./MultiCallPolicyService.js";
+import {
+  cancelScheduledTonePlaybackStop,
+  scheduleTonePlaybackStop,
+} from "./scheduleTonePlaybackStop.js";
+import { resolveTerminalFailureToneDuration } from "../policies/tonePlaybackPolicy.js";
 import type {
   HandleCallAnsweredInput,
   HandleCallFailedInput,
@@ -196,6 +201,7 @@ export class OutgoingCallOrchestrator {
       return err(createPlatformError("validation_failed", answered.transition.reason));
     }
 
+    cancelScheduledTonePlaybackStop(input.call.id);
     await this.deps.mediaGateway.stopTone({ callId: input.call.id, correlationId });
     await this.deps.mediaGateway.attachRemoteAudio({
       callId: input.call.id,
@@ -245,6 +251,9 @@ export class OutgoingCallOrchestrator {
       normalizedError: details,
     });
 
+    cancelScheduledTonePlaybackStop(call.id);
+    await this.deps.mediaGateway.stopTone({ callId: call.id, correlationId });
+
     await this.playFailureTone(call.id, correlationId, reason, details);
     this.deps.callTracker.trackCall(failedCall);
 
@@ -264,6 +273,15 @@ export class OutgoingCallOrchestrator {
           callId,
         }),
       );
+      scheduleTonePlaybackStop(
+        {
+          mediaGateway: this.deps.mediaGateway,
+          eventPublisher: this.deps.eventPublisher,
+        },
+        callId,
+        correlationId,
+        resolveTerminalFailureToneDuration("busy"),
+      );
       return;
     }
 
@@ -276,6 +294,15 @@ export class OutgoingCallOrchestrator {
       createFailedToneStartedEvent(correlationId, {
         callId,
       }),
+    );
+    scheduleTonePlaybackStop(
+      {
+        mediaGateway: this.deps.mediaGateway,
+        eventPublisher: this.deps.eventPublisher,
+      },
+      callId,
+      correlationId,
+      resolveTerminalFailureToneDuration("failed"),
     );
   }
 }

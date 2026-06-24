@@ -40,6 +40,15 @@ export function mapCallFailureReason(value: string): CallFailureReason {
     return "network";
   }
 
+  if (
+    normalized.includes("denied media") ||
+    normalized.includes("notallowederror") ||
+    normalized.includes("permission denied") ||
+    normalized.includes("not allowed")
+  ) {
+    return "network";
+  }
+
   return "unknown";
 }
 

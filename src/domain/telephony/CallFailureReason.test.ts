@@ -14,8 +14,8 @@ describe("CallFailureReason", () => {
     expect(mapCallFailureReason("480 Temporarily unavailable")).toBe("unavailable");
   });
 
-  it("maps unknown failure fallback", () => {
-    expect(mapCallFailureReason("unexpected")).toBe("unknown");
+  it("maps media permission denial to network failure", () => {
+    expect(mapCallFailureReason("User Denied Media Access")).toBe("network");
   });
 });
 

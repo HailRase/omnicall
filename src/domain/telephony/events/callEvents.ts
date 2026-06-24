@@ -75,6 +75,7 @@ export type BusyToneStartedEvent = ReturnType<typeof createBusyToneStartedEvent>
 export type FailedToneStartedEvent = ReturnType<
   typeof createFailedToneStartedEvent
 >;
+export type ToneStoppedEvent = ReturnType<typeof createToneStoppedEvent>;
 export type AllOtherCallsHeldEvent = ReturnType<typeof createAllOtherCallsHeldEvent>;
 export type SecondSessionBlockedEvent = ReturnType<
   typeof createSecondSessionBlockedEvent
@@ -140,6 +141,7 @@ export type OutgoingCallDomainEvent =
   | IncomingRingtoneStoppedEvent
   | BusyToneStartedEvent
   | FailedToneStartedEvent
+  | ToneStoppedEvent
   | AllOtherCallsHeldEvent
   | SecondSessionBlockedEvent
   | CallTransferRequestedEvent
@@ -465,6 +467,15 @@ export function createFailedToneStartedEvent(
   }>,
 ): ReturnType<typeof createDomainEvent<"FailedToneStarted", typeof payload>> {
   return createDomainEvent("FailedToneStarted", correlationId, payload);
+}
+
+export function createToneStoppedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    callId: CallId;
+  }>,
+): ReturnType<typeof createDomainEvent<"ToneStopped", typeof payload>> {
+  return createDomainEvent("ToneStopped", correlationId, payload);
 }
 
 export function createAllOtherCallsHeldEvent(

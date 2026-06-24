@@ -280,9 +280,34 @@ describe("JsSipTelephonyAdapter", () => {
     expect(handler).not.toHaveBeenCalled();
 
     mockUa.emit("registrationFailed", { cause: "Connection Error" });
+    mockUa.emit("registrationFailed", { cause: "Authentication Error" });
 
     const result = await registerPromise;
     expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.message).toContain("Authentication Error");
+    }
+  });
+
+  it("succeeds when transient Connection Error precedes registered", async () => {
+    const mockUa = new MockJsSipUa();
+    mockUa.setRegistrationOutcome("hang");
+    const adapter = createAdapter(mockUa);
+
+    const registerPromise = adapter.register({
+      account,
+      correlationId: createCorrelationId(),
+    });
+
+    await Promise.resolve();
+
+    mockUa.emit("registrationFailed", { cause: "Connection Error" });
+    mockUa.emit("registrationFailed", { cause: "Connection Error" });
+    mockUa.markRegistered();
+    mockUa.emit("registered");
+
+    const result = await registerPromise;
+    expect(result.ok).toBe(true);
   });
 
   it("invokes transport disconnect handler on UA disconnected event", async () => {

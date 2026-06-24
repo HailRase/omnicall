@@ -20,6 +20,25 @@ describe("callProjection", () => {
     expect(projection.uiState).toBe("failedBusy");
   });
 
+  it("clears tone indicator when tone stops", () => {
+    const correlationId = createCorrelationId();
+    const withFailedTone = reduceCallProjection(initialCallProjection(), {
+      type: "FailedToneStarted",
+      callId: "call-1",
+      correlationId,
+      occurredAt: new Date().toISOString(),
+    });
+
+    const stopped = reduceCallProjection(withFailedTone, {
+      type: "ToneStopped",
+      callId: "call-1",
+      correlationId,
+      occurredAt: new Date().toISOString(),
+    });
+
+    expect(stopped.toneIndicator).toBe("none");
+  });
+
   it("derives disabled reason for invalid number", () => {
     const reason = deriveDialpadDisabledReason({
       isRegistered: true,
