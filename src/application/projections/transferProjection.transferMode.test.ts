@@ -7,6 +7,10 @@ import {
   initialTransferProjection,
   reduceTransferProjection,
 } from "./transferProjection.js";
+import {
+  initialMultiLineCallProjection,
+  reduceMultiLineCallProjection,
+} from "./multiLineCallProjection.js";
 
 describe("transferProjection transfer mode", () => {
   it("activates transfer mode on TransferModeStarted", () => {
@@ -77,5 +81,50 @@ describe("transferProjection disabled reasons", () => {
     });
 
     expect(reason).toBe("consultation_not_active");
+  });
+
+  it("allows blind transfer retry after CallTransferFailed restores line state", () => {
+    const correlationId = createCorrelationId();
+    const occurredAt = new Date().toISOString();
+    let multiLine = reduceMultiLineCallProjection(initialMultiLineCallProjection(), {
+      type: "OutgoingCallRequested",
+      correlationId,
+      occurredAt,
+      callId: "call-retry",
+      phoneNumber: "+12025550111",
+    });
+    multiLine = reduceMultiLineCallProjection(multiLine, {
+      type: "CallAnswered",
+      correlationId,
+      occurredAt,
+      callId: "call-retry",
+    });
+    multiLine = reduceMultiLineCallProjection(multiLine, {
+      type: "CallTransferRequested",
+      correlationId,
+      occurredAt,
+      callId: "call-retry",
+      targetNumber: "+12025550222",
+      transferType: "blind",
+    });
+    multiLine = reduceMultiLineCallProjection(multiLine, {
+      type: "CallTransferFailed",
+      correlationId,
+      occurredAt,
+      callId: "call-retry",
+      targetNumber: "+12025550222",
+      transferType: "blind",
+      reason: "Transfer target canceled or did not answer",
+      restoredSourceState: "Active",
+    });
+
+    const reason = deriveBlindTransferDisabledReason({
+      callId: "call-retry",
+      callState: multiLine.lines.find((line) => line.callId === "call-retry")?.state ?? "Idle",
+      targetNumber: "+12025550222",
+      transferInProgress: false,
+    });
+
+    expect(reason).toBeNull();
   });
 });

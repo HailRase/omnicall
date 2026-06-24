@@ -25,11 +25,15 @@ import { createPlatformError, normalizeUnknownError } from "@shared/errors/index
 import { err, ok } from "@shared/result/index.js";
 import type { Result } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
+import type { RTCSession } from "@hailrase/jssip/lib/RTCSession.js";
 import type { JsSipDisconnectEvent, JsSipUaPort, JsSipUserAgentFactory } from "./JsSipUaPort.js";
 import { mapTelephonyIncomingNotification } from "../mapTelephonyIncomingNotification.js";
+import { buildAttendedReferTarget } from "./buildAttendedReferTarget.js";
+import { buildBlindReferTarget } from "./buildBlindReferTarget.js";
 import { buildOutgoingSipTarget } from "./buildOutgoingSipTarget.js";
 import { executeJsSipOutboundCall } from "./executeJsSipOutboundCall.js";
 import { executeJsSipHoldResume } from "./executeJsSipHoldResume.js";
+import { executeJsSipRefer } from "./executeJsSipRefer.js";
 import type { JsSipNewRtcSessionEvent, JsSipRtcSessionPort } from "./JsSipRtcSessionPort.js";
 import { wireJsSipRtcSessionLifecycle } from "./wireJsSipRtcSessionLifecycle.js";
 import { createJsSipUserAgent } from "./createJsSipUserAgent.js";
@@ -42,6 +46,8 @@ const FEATURE_ID_REGISTRATION = "F-001";
 const FEATURE_ID_INCOMING = "F-002";
 const FEATURE_ID_OUTGOING = "F-003";
 const FEATURE_ID_HOLD = "F-004";
+const FEATURE_ID_BLIND_TRANSFER = "F-006";
+const FEATURE_ID_ATTENDED_TRANSFER = "F-007";
 
 const DEFAULT_CALL_MEDIA_OPTIONS = {
   mediaConstraints: { audio: true, video: false },
@@ -67,9 +73,11 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
   private readonly logger: Logger;
   private readonly createUserAgent: JsSipUserAgentFactory;
   private readonly sessions = new Map<CallId, JsSipRtcSessionPort>();
+  private readonly replacesSessions = new Map<CallId, unknown>();
   private readonly peerConnections = new Map<CallId, unknown>();
   private readonly callCorrelations = new Map<CallId, CorrelationId>();
   private readonly callIdBySessionId = new Map<string, CallId>();
+  private readonly referInFlightCallIds = new Set<CallId>();
   private ua: JsSipUaPort | null = null;
   private storedAccount: SipAccount | null = null;
   private lastCorrelationId: CorrelationId = createCorrelationId();
@@ -188,6 +196,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       this.ua = null;
       this.storedAccount = null;
       this.sessions.clear();
+      this.replacesSessions.clear();
       this.peerConnections.clear();
       this.callCorrelations.clear();
       this.callIdBySessionId.clear();
@@ -549,14 +558,150 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     return resumeResult;
   }
 
-  blindTransfer(command: BlindTransferCommand): Promise<Result<void, PlatformError>> {
-    void command;
-    return Promise.resolve(err(telephonyNotImplementedError("blindTransfer")));
+  async blindTransfer(command: BlindTransferCommand): Promise<Result<void, PlatformError>> {
+    const { callId, targetNumber, correlationId } = command;
+    this.lastCorrelationId = correlationId;
+
+    const session = this.sessions.get(callId);
+    if (session === undefined) {
+      return err(createPlatformError("operation_failed", `SIP session not found for ${callId}`));
+    }
+
+    if (this.storedAccount === null) {
+      return err(createPlatformError("operation_failed", "SIP account not available for transfer"));
+    }
+
+    const { target: referTarget, kind: referTargetKind } = buildBlindReferTarget(
+      targetNumber,
+      this.storedAccount,
+    );
+
+    this.logger.info("jssip_blind_transfer_start", {
+      correlationId,
+      featureId: FEATURE_ID_BLIND_TRANSFER,
+      boundedContext: "Telephony",
+      operation: "jssip_blind_transfer",
+      callId,
+      referTarget,
+      referTargetKind,
+    });
+
+    this.referInFlightCallIds.add(callId);
+    try {
+      const referResult = await executeJsSipRefer(session, referTarget);
+
+      if (referResult.ok) {
+        this.logger.info("jssip_blind_transfer_succeeded", {
+          correlationId,
+          featureId: FEATURE_ID_BLIND_TRANSFER,
+          boundedContext: "Telephony",
+          operation: "jssip_blind_transfer",
+          callId,
+          result: "succeeded",
+        });
+        return referResult;
+      }
+
+      this.logger.error(
+        "jssip_blind_transfer_failed",
+        {
+          correlationId,
+          featureId: FEATURE_ID_BLIND_TRANSFER,
+          boundedContext: "Telephony",
+          operation: "jssip_blind_transfer",
+          callId,
+          result: referResult.error.code,
+          normalizedError: referResult.error.message,
+        },
+        referResult.error,
+      );
+      return referResult;
+    } finally {
+      this.referInFlightCallIds.delete(callId);
+    }
   }
 
-  attendedTransfer(command: AttendedTransferCommand): Promise<Result<void, PlatformError>> {
-    void command;
-    return Promise.resolve(err(telephonyNotImplementedError("attendedTransfer")));
+  async attendedTransfer(
+    command: AttendedTransferCommand,
+  ): Promise<Result<void, PlatformError>> {
+    const { sourceCallId, consultationCallId, correlationId } = command;
+    this.lastCorrelationId = correlationId;
+
+    const sourceSession = this.sessions.get(sourceCallId);
+    if (sourceSession === undefined) {
+      return err(
+        createPlatformError("operation_failed", `SIP session not found for ${sourceCallId}`),
+      );
+    }
+
+    const consultationSession = this.sessions.get(consultationCallId);
+    if (consultationSession === undefined) {
+      return err(
+        createPlatformError(
+          "operation_failed",
+          `SIP consultation session not found for ${consultationCallId}`,
+        ),
+      );
+    }
+
+    const replacesSession = this.replacesSessions.get(consultationCallId);
+    if (replacesSession === undefined) {
+      return err(
+        createPlatformError(
+          "operation_failed",
+          "SIP consultation session unavailable for attended transfer",
+        ),
+      );
+    }
+
+    const target = buildAttendedReferTarget(consultationSession.getRemoteIdentityHeader());
+
+    this.logger.info("jssip_attended_transfer_start", {
+      correlationId,
+      featureId: FEATURE_ID_ATTENDED_TRANSFER,
+      boundedContext: "Telephony",
+      operation: "jssip_attended_transfer",
+      sourceCallId,
+      consultationCallId,
+      target,
+    });
+
+    this.referInFlightCallIds.add(sourceCallId);
+    try {
+      const referResult = await executeJsSipRefer(sourceSession, target, {
+        replacesRawSession: replacesSession,
+      });
+
+      if (referResult.ok) {
+        this.logger.info("jssip_attended_transfer_succeeded", {
+          correlationId,
+          featureId: FEATURE_ID_ATTENDED_TRANSFER,
+          boundedContext: "Telephony",
+          operation: "jssip_attended_transfer",
+          sourceCallId,
+          consultationCallId,
+          result: "succeeded",
+        });
+        return referResult;
+      }
+
+      this.logger.error(
+        "jssip_attended_transfer_failed",
+        {
+          correlationId,
+          featureId: FEATURE_ID_ATTENDED_TRANSFER,
+          boundedContext: "Telephony",
+          operation: "jssip_attended_transfer",
+          sourceCallId,
+          consultationCallId,
+          result: referResult.error.code,
+        },
+        referResult.error,
+      );
+      return referResult;
+    } finally {
+      this.referInFlightCallIds.delete(sourceCallId);
+    }
   }
 
   setIncomingCallHandler(
@@ -642,6 +787,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     }
     this.peerConnections.delete(callId);
     this.sessions.delete(callId);
+    this.replacesSessions.delete(callId);
     this.callCorrelations.delete(callId);
     this.logger.debug("jssip_peer_connection_unbound", {
       correlationId: this.lastCorrelationId,
@@ -654,12 +800,14 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
 
   private registerSession(
     callId: CallId,
-    session: JsSipRtcSessionPort,
+    session: JsSipRtcSessionPort | RTCSession,
     correlationId: CorrelationId,
   ): void {
-    this.sessions.set(callId, session);
+    const port = ensureJsSipRtcSessionPort(session);
+    this.replacesSessions.set(callId, session);
+    this.sessions.set(callId, port);
     this.callCorrelations.set(callId, correlationId);
-    this.callIdBySessionId.set(session.id, callId);
+    this.callIdBySessionId.set(port.id, callId);
   }
 
   private attachSessionLifecycle(
@@ -772,6 +920,10 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     callId: CallId,
     correlationId: CorrelationId,
   ): Promise<void> {
+    if (this.referInFlightCallIds.has(callId)) {
+      return;
+    }
+
     this.unbindPeerConnection(callId);
 
     if (this.callEndedHandler === null) {

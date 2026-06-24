@@ -328,12 +328,6 @@ export class AccountBootstrapFacade {
     });
     this.serverTerminateCleanup.subscribe(this.eventPublisher);
 
-    if (deps.operatorGateway instanceof MockOperatorPlatformGateway) {
-      deps.operatorGateway.setInboundRawHandler((raw, correlationId) => {
-        this.processOcpInboundMessageRaw(raw, correlationId);
-      });
-    }
-
     this.eventPublisher.subscribe((event) => {
       void this.handleAutoRegistration(event);
       void this.handleAgentStatusSync(event);

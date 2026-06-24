@@ -13,7 +13,12 @@ Implementation order is defined in:
 
 ```txt
 docs/softphone/Implementation-Roadmap.md
+docs/softphone/OCP-PLUGIN-BACKLOG.md
 ```
+
+## OCP plugin (deferred)
+
+OCP Operator integration is **DEFERRED** (ADR-0002). Do not implement P06/P07 real OCP or RAT R5 unless user resumes `OCP-PLUGIN-BACKLOG.md`. SIP-only phases remain active.
 
 ## Phase Order
 

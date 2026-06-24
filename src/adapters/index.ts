@@ -47,3 +47,14 @@ export {
   SAMPLE_OCP_NOTIFICATION_MESSAGE,
   SAMPLE_OCP_SERVER_TERMINATE_MESSAGE,
 } from "./mock/MockOcpSyncGateway.js";
+export { OcpWebSocketTransport } from "./operator/websocket/OcpWebSocketTransport.js";
+export type {
+  OcpWebSocketPort,
+  OcpWebSocketFactory,
+  OcpWebSocketTransportOptions,
+} from "./operator/websocket/OcpWebSocketTransport.js";
+export { WebSocketOperatorPlatformGateway } from "./operator/websocket/WebSocketOperatorPlatformGateway.js";
+export type { WebSocketOperatorPlatformGatewayOptions } from "./operator/websocket/WebSocketOperatorPlatformGateway.js";
+export { WebSocketOcpSyncGateway } from "./operator/websocket/WebSocketOcpSyncGateway.js";
+export type { WebSocketOcpSyncGatewayOptions } from "./operator/websocket/WebSocketOcpSyncGateway.js";
+export { resolveOcpWebSocketUrl } from "./operator/websocket/resolveOcpWebSocketUrl.js";

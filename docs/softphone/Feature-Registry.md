@@ -125,7 +125,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Unit: state machine incoming transitions, auto-answer policy, DND policy, display-name parser, reject reason validation, answer/reject use cases
   - Integration: mock incoming adapter event to events/projection, ringtone start, answer/reject gateway calls, DND 486, host break-reason mapping, ended-before-answer recovery
   - E2E: deferred until incoming call harness exists
-- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R3 step 04 — JsSipTelephonyAdapter incoming/answer/reject + peer-connection bind; ringtone/remote audio smoke pending manual on dev SBC)
+- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R2+R3 steps 03–04 — JsSipTelephonyAdapter incoming/answer/reject/DND + `BrowserMediaAdapter` ringtone/remote audio; manual SBC smoke PASS 2026-06-24 — R2-1/2/3, R3-2/3/5)
 
 ## F-003: Outgoing Call
 
@@ -145,7 +145,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Unit: number validation and transitions
   - Integration: mock gateway make-call progress/answer/failure + media tones
   - E2E: deferred until dedicated Electron E2E harness exists
-- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R3 step 04 — JsSipTelephonyAdapter makeCall/outgoing progress/answered/failed; call smoke pending manual on dev SBC)
+- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R3 step 04 — JsSipTelephonyAdapter makeCall/outgoing progress/answered/failed; manual SBC smoke PASS 2026-06-24 — R3-1/R3-4)
 
 ## F-004: Active Call Hold, Resume, Hangup
 
@@ -168,7 +168,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Integration: mock telephony hold/resume/hangup success and failure paths
   - Renderer: `ActiveCallControlsPanel` disabled reasons, error banner, retry, keyboard Enter/Space on enabled control
   - E2E: deferred until dedicated Electron E2E harness exists
-- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R4 step 05 — `JsSipTelephonyAdapter.holdCall`/`resumeCall` via re-INVITE; smoke pending manual on dev SBC)
+- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R4 step 05 — `JsSipTelephonyAdapter.holdCall`/`resumeCall` via re-INVITE; manual SBC smoke PASS 2026-06-24 — R4-1)
 
 ## F-005: Mute And Unmute
 
@@ -189,7 +189,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Integration: mock media mute/unmute success and failure paths
   - Renderer: error banner and retry via `lastOperationError` projection
   - E2E: deferred until dedicated Electron E2E harness exists
-- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R4 step 05 — `BrowserMediaAdapter.muteCall`/`unmuteCall` end-to-end via `getPeerConnectionForCall`; smoke pending manual on dev SBC)
+- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R4 step 05 — `BrowserMediaAdapter.muteCall`/`unmuteCall` end-to-end via `getPeerConnectionForCall`; manual SBC smoke PASS 2026-06-24 — R4-2)
 
 ## F-006: Blind Transfer
 
@@ -210,6 +210,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - WU2: `TransferEligibility.test.ts`, `CallStateMachine.test.ts` (transfer transitions), `MockTelephonyGateway.blindTransfer.test.ts`, `BlindTransferUseCase.test.ts`, `CallEngine.blindTransfer.test.ts`, `transferProjection.test.ts`
   - WU4: `transferProjection.transferMode.test.ts`, `CallEngine.cancelTransfer.test.ts`, `TransferPanel.test.tsx`; WU1/WU2/WU3/P04 regression green
   - E2E transfer UI with mock gateway (deferred)
+- Real Adapter Track: in_progress (RAT step 07b — `buildBlindReferTarget` off-net `tel:` Refer-To; on-net `sip:@domain` unchanged; ADR-0003 amended; manual R6 smoke matrix A–D **pending**)
 
 ## F-007: Attended Transfer
 
@@ -227,8 +228,8 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Test Coverage:
   - WU1: domain policy unit tests; CallEngine hold-all / block / exclusive-resume; projection + integration chain
   - WU3: `CallRelationship.test.ts`, `AttendedTransferEligibility.test.ts`, `MockTelephonyGateway.attendedTransfer.test.ts`, `CallEngine.attendedTransfer.test.ts`, `attendedTransferOperations.test.ts`, `multiLineCallProjection.test.ts`, `activeCallControlsProjection.test.ts`; WU1/WU2/P04 regression green
-  - WU4: `transferProjection.transferMode.test.ts`, `TransferPanel.test.tsx`, `CallEngine.cancelTransfer.test.ts`; full P05 regression green
   - E2E transfer UI with mock gateway (deferred)
+- Real Adapter Track: in_progress (RAT step 07 — `JsSipTelephonyAdapter.attendedTransfer` via REFER + Replaces; ADR-0003; unit tests green 2026-06-24; manual R6 smoke **pending**)
 
 ## F-008: DTMF
 
@@ -254,7 +255,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-001`, `LF-002`, `LF-003`, `LF-004`, `LF-005`, `LF-085`
 - Context: Operator
 - Priority: critical
-- Status: implemented
+- Status: implemented (mock); **Product status: deferred_backlog** (ADR-0002)
 - Owner: TBD
 - Inputs: host integration auth token and domain
 - Outputs: operator session events and optional SIP credentials
@@ -269,14 +270,14 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Unit: OCP auth success, invalid token, session exists, access denied
   - Integration: mock OCP gateway, OCP to SIP registration chain, startup initialization
   - E2E: deferred until harness exists
-- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R5)
+- Real Adapter Track: **deferred** (ADR-0002; code in step 06; R5 smoke out of scope — see `OCP-PLUGIN-BACKLOG.md`)
 
 ## F-010: Operator Status Management
 
 - Legacy IDs: `LF-018`, `LF-019`, `LF-041`, `LF-042`, `LF-043`, `LF-044`, `LF-045`, `LF-046`, `LF-047`, `LF-048`, `LF-049`, `LF-062`, `LF-078`
 - Context: Operator
 - Priority: critical
-- Status: implemented (partial — LF-048 cascade P08)
+- Status: implemented (mock; partial — LF-048 cascade P08); **Product status: deferred_backlog** (ADR-0002)
 - Owner: TBD
 - Inputs: status change command, optional reason
 - Outputs: `AgentStatusChanged` or failure event
@@ -307,6 +308,8 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Unit: WU1–WU3 suite + `logoutEvents.test.ts`, `LogoutOperatorUseCase.test.ts`, `mapOperatorStatusDisabledReason.test.ts`, `StatusSelector.test.tsx`, `StatusTimer.test.tsx`, `LogoutReasonModal.test.tsx` (WU4)
   - Integration: `BreakReasonsAndPostCall.integration.test.ts`, `DndAgentStatusOrchestration.integration.test.ts` (WU2–WU3)
   - E2E: deferred until harness exists
+
+- Real Adapter Track: **deferred** (ADR-0002; real WS commands in step 06 code; manual R5 out of scope — see `OCP-PLUGIN-BACKLOG.md`)
 
 ## F-011: Host Integration Contract
 
@@ -396,7 +399,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-037`, `LF-038`, `LF-039`, `LF-040`, `LF-050`, `LF-059`, `LF-063`, `LF-064`
 - Context: Operator
 - Priority: critical
-- Status: implemented (mock gateway; real OCP WebSocket + E2E deferred)
+- Status: implemented (mock gateway); **Product status: deferred_backlog** (ADR-0002; real WS R5 smoke deferred)
 - Owner: TBD
 - Inputs: OCP queue info, campaign events, notifications, call lifecycle events
 - Outputs: queue projection, campaign modal state, OCP toasts, `dlg_stop`
@@ -411,6 +414,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Unit: OCP message mapping, `DlgStopPolicy`, `SendDlgStopUseCase`, queue NA derivation, toast projection
   - Integration: `OcpQueueInfoSync`, `OcpCampaignSync`, `OcpDlgStopSync`, `OcpNotificationSync`
   - E2E: deferred until harness exists (WU4 handoff)
+- Real Adapter Track: **deferred** (ADR-0002; `WebSocketOcpSyncGateway` in repo; R5 smoke out of scope — see `OCP-PLUGIN-BACKLOG.md`)
 
 ## F-016: Settings And Desktop Shell UX
 

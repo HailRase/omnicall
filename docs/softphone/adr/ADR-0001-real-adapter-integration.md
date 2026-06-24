@@ -19,6 +19,7 @@ The platform implements F-000 through F-015 on mock gateways (488+ tests). Produ
 7. **Secrets** in `.env.local` (gitignored); never logged.
 8. Port contract changes require ADR before implementation.
 9. **SIP library:** use npm package `@hailrase/jssip` (fork of versatica/JsSIP with a micro-fix). See `docs/softphone/real-integration/JSSIP-FORK.md`. Do not depend on upstream `jssip` without ADR.
+10. **OCP plugin:** product-deferred per [ADR-0002](./ADR-0002-defer-ocp-plugin.md); see `../OCP-PLUGIN-BACKLOG.md`. RAT R5 / step 06 smoke not an active gate.
 
 ## Consequences
 

@@ -10,6 +10,7 @@ export type {
   RequestLogoutCommand,
   RequestLogoutResult,
   OcpTransportDisconnectedNotification,
+  OcpInboundRawHandler,
   OperatorPlatformGateway,
 } from "./operator/OperatorPlatformGateway.js";
 export type { OcpSyncGateway, RespondToCampaignCommand, RespondToCampaignResult, SendDlgStopCommand, SendDlgStopResult } from "./operator/OcpSyncGateway.js";

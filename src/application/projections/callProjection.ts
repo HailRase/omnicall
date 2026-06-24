@@ -169,6 +169,7 @@ export function reduceCallProjection(
         ...projection,
         activeCallId: asOptionalString(event["callId"]),
         state: "Transferring",
+        lastError: null,
       };
     case "CallTransferred":
       return {

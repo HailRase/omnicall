@@ -16,6 +16,7 @@ type MockTelephonyScenario = "success" | "failure";
 export type RendererBootstrapOptions = Readonly<{
   config: AppBootstrapConfig;
   adapterMode: AdapterMode;
+  ocpWsUrl?: string;
   ocpScenario: MockOcpScenario;
   telephonyScenario: MockTelephonyScenario;
 }>;
@@ -40,8 +41,11 @@ export function readBootstrapConfigFromUrl(): RendererBootstrapOptions {
     envAdapterMode: import.meta.env.VITE_ADAPTER_MODE,
   });
   const mode = params.get("mode") === "ocp" ? "ocp" : "sip-only";
-  const ocpToken = params.get("token") ?? undefined;
-  const ocpDomain = params.get("domain") ?? undefined;
+  const ocpToken =
+    params.get("token") ?? readEnvString(import.meta.env["VITE_OCP_TOKEN"]) ?? undefined;
+  const ocpDomain =
+    params.get("domain") ?? readEnvString(import.meta.env["VITE_OCP_DOMAIN"]) ?? undefined;
+  const ocpWsUrl = readEnvString(import.meta.env["VITE_OCP_WS_URL"]);
   const ocpScenarioParam = params.get("ocpScenario") ?? "success";
   const telephonyScenarioParam = params.get("telephonyScenario") ?? "success";
 
@@ -63,6 +67,7 @@ export function readBootstrapConfigFromUrl(): RendererBootstrapOptions {
         ...(ocpDomain !== undefined ? { ocpDomain } : {}),
       },
       adapterMode,
+      ...(ocpWsUrl !== undefined ? { ocpWsUrl } : {}),
       ocpScenario,
       telephonyScenario,
     };
@@ -71,7 +76,16 @@ export function readBootstrapConfigFromUrl(): RendererBootstrapOptions {
   return {
     config: { mode: "sip-only" },
     adapterMode,
+    ...(ocpWsUrl !== undefined ? { ocpWsUrl } : {}),
     ocpScenario,
     telephonyScenario,
   };
+}
+
+function readEnvString(value: unknown): string | undefined {
+  if (typeof value !== "string") {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
 }

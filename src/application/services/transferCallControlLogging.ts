@@ -1,4 +1,4 @@
-import type { CallId, PhoneNumber } from "@domain/index.js";
+import type { CallId, CallState, PhoneNumber } from "@domain/index.js";
 import { createCallTransferFailedEvent } from "@domain/index.js";
 import type { DomainEventPublisher, Logger } from "@ports/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
@@ -41,6 +41,7 @@ export function publishCallTransferFailed(
   callId: CallId,
   targetNumber: PhoneNumber,
   error: PlatformError,
+  restoredSourceState?: CallState,
 ): void {
   eventPublisher.publish(
     createCallTransferFailedEvent(correlationId, {
@@ -48,6 +49,7 @@ export function publishCallTransferFailed(
       targetNumber,
       transferType: "blind",
       reason: error.message,
+      ...(restoredSourceState !== undefined ? { restoredSourceState } : {}),
     }),
   );
 }

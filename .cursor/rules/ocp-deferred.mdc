@@ -1,0 +1,29 @@
+---
+description: OCP plugin is deferred; do not implement or gate core work on OCP
+alwaysApply: true
+---
+
+# RULE: OCP Plugin Deferred
+
+Read before any OCP or Operator integration work:
+
+```txt
+docs/softphone/OCP-PLUGIN-BACKLOG.md
+docs/softphone/adr/ADR-0002-defer-ocp-plugin.md
+```
+
+## Mandatory behavior
+
+- Default product path: **SIP-only** (`mode: "sip-only"`).
+- Do **not** implement OCP WebSocket, R5 smoke, real operator status, campaigns, or queue sync unless the user explicitly resumes the OCP backlog.
+- Do **not** ask whether to implement OCP — status is **DEFERRED** in backlog doc.
+- Do **not** block SIP telephony, transfer, headset, or settings work on OCP gaps.
+- Do **not** remove OCP ports, mock gateways, or `domain/operator/` — plugin architecture stays.
+
+## Active priority
+
+Core telephony: F-001–F-008, RAT R1–R4, RAT step 07+ (transfer), SIP recovery channel.
+
+## Resume
+
+Only when user says «resume OCP backlog» or cites `OCP-PLUGIN-BACKLOG.md`.

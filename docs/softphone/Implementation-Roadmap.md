@@ -6,6 +6,14 @@ DOCUMENT.
 
 This document defines the implementation order for the Electron rewrite.
 
+## Product priority (ADR-0002)
+
+**OCP plugin is DEFERRED.** See `OCP-PLUGIN-BACKLOG.md`.
+
+Active track: core SIP telephony (P02–P05), SIP recovery (P08 SIP channel), headset/settings/host (P10–P12), RAT transfer (step 07).
+
+**Not in active scope:** P06/P07 real OCP integration, RAT step 06 R5 smoke, operator platform on production stand — until user resumes OCP backlog.
+
 ## Roadmap Rules
 
 - Implement phases in order unless an ADR approves a change.

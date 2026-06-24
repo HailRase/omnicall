@@ -529,6 +529,7 @@ export function createCallTransferFailedEvent(
     targetNumber: PhoneNumber;
     transferType: TransferType;
     reason: string;
+    restoredSourceState?: CallState;
   }>,
 ): ReturnType<typeof createDomainEvent<"CallTransferFailed", typeof payload>> {
   return createDomainEvent("CallTransferFailed", correlationId, payload);

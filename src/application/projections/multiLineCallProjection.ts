@@ -81,6 +81,8 @@ export function reduceMultiLineCallProjection(
       return updateLineState(projection, asRequiredString(event["callId"]), "Active");
     case "CallTransferRequested":
       return updateLineState(projection, asRequiredString(event["callId"]), "Transferring");
+    case "CallTransferFailed":
+      return applyBlindTransferFailed(projection, event);
     case "CallTransferred":
     case "CallEnded":
     case "CallFailed":
@@ -130,6 +132,19 @@ function applyConsultationStarted(
     consultationCallId,
     primaryCallId: consultationCallId,
     attendedPhase: "consultation_active",
+  };
+}
+
+function applyBlindTransferFailed(
+  projection: MultiLineCallProjection,
+  event: DomainEvent,
+): MultiLineCallProjection {
+  const callId = asRequiredString(event["callId"]);
+  const restoredSourceState = parseRestoredSourceState(event["restoredSourceState"]);
+  const next = updateLineState(projection, callId, restoredSourceState);
+  return {
+    ...next,
+    lastFailureReason: asOptionalFailureReason(event["reason"]),
   };
 }
 

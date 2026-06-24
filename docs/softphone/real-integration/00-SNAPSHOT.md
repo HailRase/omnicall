@@ -9,10 +9,15 @@
 
 ## Not implemented (real)
 
-- JsSIP / WebRTC / OCP WebSocket
 - Persisted settings (`InMemorySettingsRepository` only)
 - E2E harness
 - F-016 Settings, F-017 Diagnostics
+
+## Real adapters (RAT, 2026-06-24)
+
+- **Done (active):** JsSIP registration R1, browser media R2, call lifecycle R3, hold/mute R4
+- **Deferred (ADR-0002):** OCP WebSocket R5 — see `OCP-PLUGIN-BACKLOG.md`
+- **Next (active):** real SIP transfer R6 / step 07
 
 ## Real SIP library (RAT)
 
@@ -40,5 +45,5 @@
 | R2 | Browser media (ringtone, remote audio) | LF-012, LF-033 |
 | R3 | Outgoing + incoming + hangup | LF-013–017, LF-020 |
 | R4 | Hold / mute real | LF-022, LF-024, LF-027 |
-| R5 | OCP WebSocket | LF-001–004, LF-037–040 |
-| R6 | Transfer (deferred) | LF-028, LF-029 |
+| R5 | OCP WebSocket — **DEFERRED** (ADR-0002) | LF-001–004, LF-037–040 |
+| R6 | Transfer (active next) | LF-028, LF-029 |

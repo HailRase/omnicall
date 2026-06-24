@@ -14,6 +14,7 @@ import type { DomainEvent } from "@domain/index.js";
 import { OCP_RECONNECT_POLICY_CONFIG } from "@domain/shared/recovery/ReconnectPolicy.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
+import { wireOcpInboundToFacade } from "@infrastructure/bootstrap/wireOcpInboundToFacade.js";
 import { isErr } from "@shared/result/index.js";
 
 describe("ServerTerminate integration", () => {
@@ -114,6 +115,7 @@ describe("ServerTerminate integration", () => {
       }),
       logger: createTestLogger(),
     });
+    wireOcpInboundToFacade(facade, operatorGateway);
 
     facade.eventPublisher.subscribe((event) => {
       published.push(event.type);

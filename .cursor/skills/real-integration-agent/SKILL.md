@@ -42,15 +42,17 @@ If step is unspecified, read `PROGRESS.md` and review the latest step marked `do
 
 Read in order:
 
-1. `docs/softphone/real-integration/PROGRESS.md` — step statuses, smoke, test count, blockers
-2. `docs/softphone/real-integration/00-SNAPSHOT.md` — frozen baseline (488 tests)
-3. Matching `docs/softphone/real-integration/step-NN-*.md` for the step under review
-4. `docs/softphone/adr/ADR-0001-real-adapter-integration.md`
-5. Latest `work-history/**/rat-step-*` or `rat-integration-*` for the step
-6. `docs/softphone/Feature-Registry.md` — F-001, F-002, F-003, F-009 real-track notes
-7. `docs/softphone/Legacy-Feature-Coverage.md` — LF-XXX cited in step
-8. Git branch: must be `feature/real-adapters` for implementation work (review may run on any branch)
-9. Spot-check code: grep + read files listed in step **Expected files** (never trust PROGRESS alone)
+1. `docs/softphone/OCP-PLUGIN-BACKLOG.md` — **OCP deferred; active track is SIP + step 07**
+2. `docs/softphone/real-integration/PROGRESS.md` — step statuses, smoke, test count, blockers
+3. `docs/softphone/real-integration/00-SNAPSHOT.md` — frozen baseline (488 tests)
+4. Matching `docs/softphone/real-integration/step-NN-*.md` for the step under review
+5. `docs/softphone/adr/ADR-0001-real-adapter-integration.md`
+6. `docs/softphone/adr/ADR-0002-defer-ocp-plugin.md`
+7. Latest `work-history/**/rat-step-*` or `rat-integration-*` for the step
+8. `docs/softphone/Feature-Registry.md` — F-001–F-008 SIP real-track; F-009/F-010/F-015 deferred
+9. `docs/softphone/Legacy-Feature-Coverage.md` — LF-XXX cited in step
+10. Git branch: must be `feature/real-adapters` for implementation work (review may run on any branch)
+11. Spot-check code: grep + read files listed in step **Expected files** (never trust PROGRESS alone)
 
 Run when independent verification is needed:
 
@@ -180,16 +182,16 @@ Step FAIL → **Refactor Prompt** only. Do not issue next step prompt.
 
 ## Step map (quick reference)
 
-| Step | Slice | Primary LF / F |
-| --- | --- | --- |
-| 00 | Branch & guardrails | ADR, registry prep |
-| 01 | Adapter mode bootstrap | F-000 composition |
-| 02 | JsSIP registration | F-001, LF-005–008, LF-011 |
-| 03 | Browser media | LF-012, LF-033 |
-| 04 | Call lifecycle | F-002, F-003, LF-013–017, LF-020 |
-| 05 | Hold / mute | LF-022, LF-024, LF-027 |
-| 06 | OCP WebSocket | F-009, LF-001–004, LF-037–040 |
-| 07 | Transfer (deferred) | LF-028, LF-029 |
+| Step | Slice | Primary LF / F | Active |
+| --- | --- | --- | --- |
+| 00 | Branch & guardrails | ADR, registry prep | done |
+| 01 | Adapter mode bootstrap | F-000 composition | done |
+| 02 | JsSIP registration | F-001, LF-005–008, LF-011 | done |
+| 03 | Browser media | LF-012, LF-033 | done |
+| 04 | Call lifecycle | F-002, F-003, LF-013–017, LF-020 | done |
+| 05 | Hold / mute | LF-022, LF-024, LF-027 | done |
+| 06 | OCP WebSocket | F-009, LF-001–004, LF-037–040 | **deferred** (ADR-0002) |
+| 07 | Transfer | LF-028, LF-029 | **active next** |
 
 ## Onboarding for Continuation Prompts
 
@@ -208,7 +210,8 @@ Always list for implementation agent:
 - Issue next step prompt on FAIL
 - Implement adapters in reviewer mode
 - Create work-history for review-only sessions
-- Merge to master without smoke for current slice
+- Merge to master without smoke for current **SIP** slice (R1–R4 closed; R5 deferred)
+- Prompt or gate on OCP / R5 unless user resumes `OCP-PLUGIN-BACKLOG.md`
 
 ## Decision flow
 
@@ -228,7 +231,8 @@ Full **Refactor Prompt** and **Continuation Prompt**: [templates.md](templates.m
 | --- | --- |
 | Branch | `feature/real-adapters` |
 | Baseline tests | 488 (00-SNAPSHOT) |
-| PROGRESS | all steps `pending` (docs-only scaffold) |
-| Implementation | none — composition/bootstrap not started |
+| OCP | **deferred** (ADR-0002) |
+| Active RAT step | **07 transfer** |
+| SIP smoke R1–R4 | closed |
 
 Refresh from repo during Discovery; do not treat this table as authoritative.

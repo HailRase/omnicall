@@ -116,6 +116,46 @@ describe("multiLineCallProjection", () => {
     expect(failed.lastFailureReason).toBe("busy");
   });
 
+  it("restores source line state on CallTransferFailed", () => {
+    const correlationId = createCorrelationId();
+    const occurredAt = new Date().toISOString();
+    let projection = reduceMultiLineCallProjection(initialMultiLineCallProjection(), {
+      type: "OutgoingCallRequested",
+      correlationId,
+      occurredAt,
+      callId: "call-7",
+      phoneNumber: "+12025550804",
+    });
+    projection = reduceMultiLineCallProjection(projection, {
+      type: "CallAnswered",
+      correlationId,
+      occurredAt,
+      callId: "call-7",
+    });
+    projection = reduceMultiLineCallProjection(projection, {
+      type: "CallTransferRequested",
+      correlationId,
+      occurredAt,
+      callId: "call-7",
+      targetNumber: "+12025550805",
+      transferType: "blind",
+    });
+    const failed = reduceMultiLineCallProjection(projection, {
+      type: "CallTransferFailed",
+      correlationId,
+      occurredAt,
+      callId: "call-7",
+      targetNumber: "+12025550805",
+      transferType: "blind",
+      reason: "Transfer target canceled or did not answer",
+      restoredSourceState: "Active",
+    });
+
+    const line = failed.lines.find((entry) => entry.callId === "call-7");
+    expect(line?.state).toBe("Active");
+    expect(failed.lastFailureReason).toBe("Transfer target canceled or did not answer");
+  });
+
   it("clears consultation state on TransferModeCancelled without failure", () => {
     const dialing = reduceMultiLineCallProjection(initialMultiLineCallProjection(), {
       type: "ConsultationCallRequested",

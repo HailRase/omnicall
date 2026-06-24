@@ -2,14 +2,17 @@
 
 You implement **real external adapters** for Enterprise Softphone Platform on branch `feature/real-adapters`.
 
+> **OCP is DEFERRED** (ADR-0002). Read `docs/softphone/OCP-PLUGIN-BACKLOG.md`. Do not implement or smoke-test OCP unless user resumes that backlog. Active RAT: SIP slices R1–R4 (done), **step 07 transfer**.
+
 ## Mission
 
-Connect real SIP (JsSIP), browser media (WebRTC audio), and later OCP WebSocket — **without breaking** the existing mock-based architecture, tests, or Domain/Application layers.
+Connect real SIP (JsSIP) and browser media (WebRTC audio) — **without breaking** the existing mock-based architecture, tests, or Domain/Application layers. OCP WebSocket is **out of active scope**.
 
 ## Mandatory reading (in order)
 
 1. `docs/softphone/Architecture-Constitution.md`
-2. `docs/softphone/Feature-Registry.md`
+2. `docs/softphone/OCP-PLUGIN-BACKLOG.md` — **OCP deferred; do not scope-creep**
+3. `docs/softphone/Feature-Registry.md`
 3. `docs/softphone/UX-UI-Design-Blueprint.md`
 4. `docs/softphone/real-integration/00-SNAPSHOT.md`
 5. `docs/softphone/real-integration/PROGRESS.md` — resume from first unchecked step
@@ -25,12 +28,12 @@ Connect real SIP (JsSIP), browser media (WebRTC audio), and later OCP WebSocket 
 - **UI stays presentational** — projections + disabled reasons; user actions → facade Use Cases only.
 - **Do not add lines to AccountBootstrapFacade** except wiring new ports if unavoidable; prefer bootstrap factory.
 - **Secrets:** never log passwords/tokens; use `.env.local` at repo root (gitignored) for dev SBC credentials.
-- **LF-XXX / Feature Registry:** update when real adapter satisfies acceptance criteria (extend F-001, F-002, F-003, F-009 — do not create orphan features).
+- **LF-XXX / Feature Registry:** update when real adapter satisfies acceptance criteria (F-001–F-008 SIP core; **not F-009/F-010/F-015** unless OCP backlog resumed).
 - After each completed step: update `PROGRESS.md` + `work-history/YYYY-MM-DD/rat-step-NN_*.md`.
 
 ## Work protocol
 
-1. Read `PROGRESS.md` — find first step with status `pending` or `in_progress`.
+1. Read `PROGRESS.md` — find first step with status `pending` or `in_progress` (**skip step 06 unless OCP backlog resumed**).
 2. Open matching `step-NN-*.md` — implement only that scope.
 3. Run `npm run test && npm run lint && npm run typecheck`.
 4. Manual smoke per `SMOKE-CHECKLIST.md` for that slice (document results in PROGRESS).
@@ -54,15 +57,17 @@ Every slice must preserve:
 ```txt
 createSoftphoneComposition(mode)
   mock → existing Mock* gateways (CI default)
-  real → JsSipTelephonyAdapter (`@hailrase/jssip` fork — see JSSIP-FORK.md) + BrowserMediaAdapter (+ later OCP WS)
+  real → JsSipTelephonyAdapter (`@hailrase/jssip` fork — see JSSIP-FORK.md) + BrowserMediaAdapter
+  real OCP WS → dormant (ADR-0002); only when user resumes OCP backlog
 
-Renderer: useAccountBootstrap reads ?adapters=real|mock
-Main: unchanged until R5+ (optional later: move composition to main)
+Renderer: useAccountBootstrap reads ?adapters=real|mock; default sip-only
+Main: unchanged until transfer/headset slices stabilize
 ```
 
-## Out of scope until step-07
+## Out of scope (active track)
 
-- Blind/attended transfer on real SIP
+- OCP WebSocket, R5 smoke, operator status on real stand (ADR-0002 — `OCP-PLUGIN-BACKLOG.md`)
+- Blind/attended transfer on real SIP — **in scope as step 07** when user requests
 - Headset WebHID
 - Call history persistence
 - Full E2E harness

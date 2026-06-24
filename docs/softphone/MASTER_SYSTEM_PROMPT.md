@@ -23,7 +23,7 @@ The platform must support:
 - call history
 - headset integration
 - operator statuses
-- optional OCP integration
+- optional OCP integration (**product: DEFERRED** — ADR-0002, `OCP-PLUGIN-BACKLOG.md`)
 - future CRM/contact-center integrations
 
 The system must remain maintainable, observable, testable, and replaceable over long-term product evolution.

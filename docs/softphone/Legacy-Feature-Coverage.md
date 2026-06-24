@@ -15,6 +15,14 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 - Aggregated features in `Feature-Registry.md` must link back to these legacy IDs.
 - Product parity requires all `LF-001` through `LF-090` to be implemented or explicitly deprecated by ADR.
 
+## Deferred by product decision (ADR-0002)
+
+**OCP plugin is DEFERRED** to far backlog. See `OCP-PLUGIN-BACKLOG.md`.
+
+Operator-context legacy features remain in the matrix below for **future parity** when backlog resumes. They are **not** in active implementation scope. Core telephony (`LF-006`–`LF-008`, `LF-011`–`LF-035`, etc.) stays priority.
+
+Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-018`–`LF-019`, `LF-037`–`LF-040`, `LF-041`–`LF-049`, `LF-050`, `LF-059`, `LF-062`–`LF-064`, `LF-078`, `LF-085` (OCP auth path). SIP recovery (`LF-008`, `LF-057` SIP row) remains active.
+
 ## Context Values
 
 - `Operator`: OCP auth, statuses, campaigns, post-call processing.

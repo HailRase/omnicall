@@ -55,6 +55,10 @@ class TestRtcSession implements JsSipRtcSessionPort {
     return this.hold(_options, done);
   }
 
+  refer(): unknown {
+    return false;
+  }
+
   getConnection(): unknown {
     return null;
   }

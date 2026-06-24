@@ -385,6 +385,8 @@ Stores must never:
 
 OCP is optional.
 
+**Product status (2026-06-24):** OCP plugin is **DEFERRED** to far backlog per ADR-0002 and `OCP-PLUGIN-BACKLOG.md`. Core delivery does not require OCP implementation or smoke.
+
 The platform must fully work as a SIP phone without OCP.
 
 Allowed direction:

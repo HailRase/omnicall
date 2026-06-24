@@ -81,7 +81,8 @@ export function transitionCallState(
         current === "Connecting" ||
         current === "Ringing" ||
         current === "Active" ||
-        current === "Ending"
+        current === "Ending" ||
+        current === "Transferring"
       ) {
         return { ok: true, state: "Ended" };
       }

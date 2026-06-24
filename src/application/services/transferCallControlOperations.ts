@@ -135,6 +135,45 @@ async function handleBlindTransferGatewayFailure(
   error: PlatformError,
   correlationId: ReturnType<typeof createCorrelationId>,
 ): Promise<Result<Call, PlatformError>> {
+  if (isReferSessionTerminatedBeforeAcceptError(error)) {
+    const ended = applyCallTransition(transferringCall, "ended");
+    if (!ended.transition.ok) {
+      logBlindTransferFailure(
+        deps.logger,
+        "blind_transfer_failed",
+        "blind_transfer",
+        transferringCall.state,
+        transferringCall.state,
+        error,
+        correlationId,
+      );
+      return err(error);
+    }
+
+    publishCallTransferFailed(
+      deps.eventPublisher,
+      correlationId,
+      callId,
+      targetNumber,
+      error,
+      previousState,
+    );
+    await deps.mediaGateway.stopTone({ callId, correlationId });
+    deps.eventPublisher.publish(createCallEndedEvent(correlationId, { callId }));
+    deps.trackCall(ended.call);
+    deps.clearIncomingCallById(callId);
+    logBlindTransferFailure(
+      deps.logger,
+      "blind_transfer_failed",
+      "blind_transfer",
+      previousState,
+      ended.call.state,
+      error,
+      correlationId,
+    );
+    return err(error);
+  }
+
   const restored = applyCallTransition(transferringCall, "transfer_failed");
   if (!restored.transition.ok) {
     logBlindTransferFailure(
@@ -149,7 +188,14 @@ async function handleBlindTransferGatewayFailure(
     return err(error);
   }
 
-  publishCallTransferFailed(deps.eventPublisher, correlationId, callId, targetNumber, error);
+  publishCallTransferFailed(
+    deps.eventPublisher,
+    correlationId,
+    callId,
+    targetNumber,
+    error,
+    previousState,
+  );
   deps.trackCall(restored.call);
   await applyTransferFailureRecovery(deps, callId, previousState, correlationId);
   logBlindTransferFailure(
@@ -162,4 +208,8 @@ async function handleBlindTransferGatewayFailure(
     correlationId,
   );
   return err(error);
+}
+
+function isReferSessionTerminatedBeforeAcceptError(error: PlatformError): boolean {
+  return error.message === "SIP session ended before REFER completed";
 }

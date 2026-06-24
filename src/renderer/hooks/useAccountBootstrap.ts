@@ -29,6 +29,9 @@ export function useAccountBootstrap(): Readonly<{
           bootstrapConfig: bootstrapOptions.config,
           ocpScenario: bootstrapOptions.ocpScenario,
           telephonyScenario: bootstrapOptions.telephonyScenario,
+          ...(bootstrapOptions.ocpWsUrl !== undefined
+            ? { ocpWsUrl: bootstrapOptions.ocpWsUrl }
+            : {}),
         });
         setFacade(activeFacade);
         unsubscribe = bindFacade(activeFacade);

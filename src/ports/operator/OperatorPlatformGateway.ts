@@ -58,6 +58,11 @@ export type OcpTransportDisconnectedNotification = Readonly<{
   reason: string;
 }>;
 
+export type OcpInboundRawHandler = (
+  raw: unknown,
+  correlationId: CorrelationId,
+) => void;
+
 export interface OperatorPlatformGateway {
   authenticate(command: OcpAuthenticateCommand): Promise<OcpAuthResult>;
   changeAgentStatus(command: ChangeAgentStatusCommand): Promise<ChangeAgentStatusResult>;
@@ -76,4 +81,9 @@ export interface OperatorPlatformGateway {
    * Real adapter restores session; mock maps to reconnectScenario.
    */
   reconnectTransport(correlationId: CorrelationId): Promise<Result<void, PlatformError>>;
+  /**
+   * RAT R5: deliver unsolicited OCP inbound payloads to ProcessOcpInboundMessageUseCase.
+   * Wired in bootstrap factories, not AccountBootstrapFacade.
+   */
+  setInboundRawHandler(handler: OcpInboundRawHandler | null): () => void;
 }

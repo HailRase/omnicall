@@ -3,7 +3,7 @@
 - Purpose: define architecture, rules, and agent workflows for the rewrite.
 - Inputs: audit findings, product requirements, telephony constraints.
 - Outputs: project constitution, Cursor rules, reusable agent skills.
-- Scope: Electron desktop softphone with optional OCP integration.
+- Scope: Electron desktop softphone; **OCP plugin DEFERRED** (see `OCP-PLUGIN-BACKLOG.md`).
 - Priority: call reliability, replaceability, observability, testability.
 - Rule/Skill split: rules are mandatory; skills are task procedures.
 
@@ -12,6 +12,8 @@
 | Type | Path | Purpose |
 |------|------|---------|
 | DOCUMENT | `MASTER_SYSTEM_PROMPT.md` | Product mission and non-negotiable goals |
+| DOCUMENT | `OCP-PLUGIN-BACKLOG.md` | **OCP plugin DEFERRED** — agents read before Operator work |
+| DOCUMENT | `adr/ADR-0002-defer-ocp-plugin.md` | Product decision to defer OCP to far backlog |
 | DOCUMENT | `Architecture-Constitution.md` | System layers, contexts, and boundaries |
 | DOCUMENT | `Engineering-Principles.md` | Decision-making principles |
 | DOCUMENT | `Feature-Registry.md` | Feature ownership and acceptance registry |
@@ -42,7 +44,7 @@
 2. Keep SIP, OCP, headset vendors, storage, and Electron outside the Domain layer.
 3. Replace raw `CustomEvent` and `window` mutation with typed integration adapters.
 4. Model calls through explicit events and finite state transitions.
-5. Treat OCP as an optional plugin, not a core dependency.
+5. Treat OCP as an optional plugin, not a core dependency (**product: DEFERRED** per ADR-0002).
 6. Start implementation with a narrow telephony vertical slice before JsSIP integration.
 7. Track all legacy features through `LF-001` to `LF-090`.
 8. Follow the roadmap phase order unless an ADR approves a deviation.

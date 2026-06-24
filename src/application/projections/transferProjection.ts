@@ -179,6 +179,18 @@ export function reduceTransferProjection(
       if (projection.phase === "transferred") {
         return initialTransferProjection();
       }
+      if (projection.phase === "transferring") {
+        return {
+          ...initialTransferProjection(),
+          transferModeActive: projection.transferModeActive,
+          phase: "transfer_failed",
+          callId: projection.callId,
+          targetNumber: projection.targetNumber,
+          transferType: projection.transferType,
+          sourceCallId: projection.sourceCallId,
+          lastFailureReason: "Call ended during transfer",
+        };
+      }
       return projection;
     default:
       return projection;

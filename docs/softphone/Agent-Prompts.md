@@ -10,6 +10,7 @@ This document provides reusable prompts for future implementation agents.
 
 - Every prompt must name the roadmap phase.
 - Every prompt must name affected `LF-XXX` IDs.
+- Skip Operator/OCP `LF-XXX` unless user resumes `OCP-PLUGIN-BACKLOG.md` (ADR-0002).
 - Every prompt must mention architecture boundaries.
 - Every prompt must require tests.
 - Every UI prompt must require UX state design first.
@@ -22,6 +23,7 @@ You are implementing Enterprise Softphone roadmap phase <PXX>.
 
 Read first:
 - docs/softphone/MASTER_SYSTEM_PROMPT.md
+- docs/softphone/OCP-PLUGIN-BACKLOG.md (OCP deferred — skip Operator work unless resumed)
 - docs/softphone/Architecture-Constitution.md
 - docs/softphone/Engineering-Principles.md
 - docs/softphone/Feature-Registry.md

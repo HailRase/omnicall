@@ -152,6 +152,11 @@ describe("CallStateMachine", () => {
     expect(restored).toEqual({ ok: true, state: "Active" });
   });
 
+  it("ends call on ended from Transferring", () => {
+    const ended = transitionCallState("Transferring", "ended");
+    expect(ended).toEqual({ ok: true, state: "Ended" });
+  });
+
   it("rejects transfer_failed from non-transferring state", () => {
     const invalid = transitionCallState("Active", "transfer_failed");
     expect(invalid.ok).toBe(false);

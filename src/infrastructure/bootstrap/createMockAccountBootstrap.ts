@@ -8,6 +8,7 @@ import {
 } from "@adapters/index.js";
 import { createTestLogger } from "@infrastructure/logging/index.js";
 import type { AppBootstrapConfig } from "@domain/index.js";
+import { wireOcpInboundToFacade } from "./wireOcpInboundToFacade.js";
 
 /**
  * - Purpose: compose mock-based AccountBootstrapFacade for dev, tests, and renderer bootstrap.
@@ -16,6 +17,7 @@ import type { AppBootstrapConfig } from "@domain/index.js";
  */
 export type CreateAccountBootstrapOptions = Readonly<{
   bootstrapConfig?: AppBootstrapConfig;
+  ocpWsUrl?: string;
   ocpScenario?:
     | "success"
     | "session_exists"
@@ -66,7 +68,7 @@ export function createMockAccountBootstrap(
   const mediaGateway = new MockMediaGateway(options.mediaScenario ?? "success");
   const hostIntegrationGateway = new MockHostIntegrationGateway();
 
-  return new AccountBootstrapFacade({
+  const facade = new AccountBootstrapFacade({
     operatorGateway,
     telephonyGateway,
     mediaGateway,
@@ -74,4 +76,8 @@ export function createMockAccountBootstrap(
     hostIntegrationGateway,
     logger: createTestLogger({ featureId: "F-001", boundedContext: "Telephony" }),
   });
+
+  wireOcpInboundToFacade(facade, operatorGateway);
+
+  return facade;
 }

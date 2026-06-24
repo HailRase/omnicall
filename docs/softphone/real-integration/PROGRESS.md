@@ -1,11 +1,12 @@
 # RAT Progress
 
-
+> **OCP (step 06 / R5): DEFERRED** per [ADR-0002](../adr/ADR-0002-defer-ocp-plugin.md) and [OCP-PLUGIN-BACKLOG.md](../OCP-PLUGIN-BACKLOG.md). Active RAT track: **step 07** (transfer).
 
 **Branch:** feature/real-adapters
 
 **Base snapshot:** `00-SNAPSHOT.md` (2026-06-24, 488 tests)
 
+**Canonical automated tests (2026-06-24):** **599 passed, 1 skipped** — authoritative count for summary table and gates. Per-step `Automated:` lines below are historical snapshots unless they match 599.
 
 
 | Step | Status | Date | Agent notes | Tests | Smoke |
@@ -24,35 +25,34 @@
 
 | 05 Hold / mute real | done | 2026-06-24 | holdCall/resumeCall re-INVITE; BrowserMediaAdapter mute verified; error banner already wired | 558 | R4 **pass** (manual 2026-06-24) |
 
-| 06 OCP WebSocket | pending | | | | |
+| 06 OCP WebSocket | **deferred** | 2026-06-24 | Code landed (WS adapters); R5 smoke **out of scope** per ADR-0002 — resume via OCP-PLUGIN-BACKLOG | 574 | R5 **deferred** |
 
-| 07 Transfer (deferred) | pending | | | | |
+| 07 Transfer (deferred) | in_progress | 2026-06-24 | JsSIP REFER blind/attended; ADR-0003; recovery + NOTIFY mapping | 599 | R6 partial (A,D pass) |
+| 07b External Refer-To | in_progress | 2026-06-24 | `buildBlindReferTarget`; REFER lifecycle; off-net still FAIL on SBC | 599 | R6 B,C **FAIL** |
 
 
 
 ## Current blocker
 
-(none)
+**External blind transfer (R6 scenarios B, C):** on-net extension Refer-To works; off-net/PSTN client target fails on dev SBC after `buildBlindReferTarget` + REFER lifecycle fixes. Next: SIP trace diff (INVITE vs Refer-To), ADR-0003 amend, step-07b research — see `step-07b-external-blind-transfer-refer-target.md`.
 
 ## Where we stopped (2026-06-24)
 
-- **Manual smoke R1–R4:** all checklist items **PASS** on dev SBC (sip-only, `VITE_ADAPTER_MODE=real`).
-- **R1-5:** auto-reconnect on network restore **PASS**; reconnect overlay UX improved (countdown tick, in-progress phase, attempt events) — manual retry button still only after terminal / `manual_retry_available` (not re-tested offline to exhaustion).
-- **Next:** RAT **step 06** — real OCP WebSocket adapter + smoke **R5** (auth, Ready/Break, queue, campaign modal).
+- **OCP / R5:** deferred (ADR-0002).
+- **SIP core R1–R4:** closed.
+- **R6 partial:** internal blind transfer **PASS** (A,D); external **FAIL** (B,C) — user manual smoke.
+- **Next:** step 07b — external Refer-To / SBC routing (blocked on trace or SBC policy).
+- **Canonical tests:** 599 passed, 1 skipped; lint/typecheck green.
 
 
 
 ## Step 02 smoke notes (R1) — 2026-06-24
 
-
+> **Superseded counts:** automated line below is a step snapshot; canonical **558 passed, 1 skipped**.
 
 **Environment:** Electron `npm run dev`, `VITE_ADAPTER_MODE=real`, `.env.local` (onedemoserver.online:5063 → `wss://…:5063/`).
 
-
-
-**Automated:** `npm run test` 508 passed, 1 skipped (`SIP_SANDBOX`); lint/typecheck green.
-
-
+**Automated (step snapshot):** `npm run test` 508 passed, 1 skipped (`SIP_SANDBOX`); lint/typecheck green.
 
 | R1 checklist | Result |
 
@@ -76,63 +76,71 @@
 
 ## Step 03 smoke notes (R2) — 2026-06-24
 
+> **Superseded:** R2 items below were blocked at step 03; closed in manual session R2+R3+R4 (see end of file). Canonical tests **558 passed, 1 skipped**.
+
 **Environment:** Electron `npm run dev`, `VITE_ADAPTER_MODE=real`, `.env.local` (dev SBC).
 
-**Automated:** `npm run test` 515 passed, 1 skipped; lint/typecheck green.
+**Automated (step snapshot):** `npm run test` 515 passed, 1 skipped; lint/typecheck green.
 
 | R2 checklist | Result |
 | --- | --- |
-| Incoming ringtone audible | **blocked** until RAT step 04 (incoming call handler + `playRingtone` path) |
-| Ringtone stops on answer | **blocked** until step 04 |
-| Remote audio audible both directions | **blocked** until step 04 (`bindPeerConnection` + answer flow) |
+| Incoming ringtone audible | **PASS** — manual R2+R3+R4 session (R2-1) |
+| Ringtone stops on answer | **PASS** — manual R2+R3+R4 session (R2-2) |
+| Remote audio audible both directions | **PASS** — manual R2+R3+R4 session (R2-3) |
 
 **Implemented this step:** `BrowserMediaAdapter` wired in `createRealAccountBootstrap`; adapter-private `getPeerConnectionForCall` / `bindPeerConnection` on `JsSipTelephonyAdapter`; unit tests for tones, attachRemoteAudio, mute/unmute.
 
 ## Step 04 smoke notes (R2 close-out + R3) — 2026-06-24
 
+> **Superseded:** `pending manual` rows below closed in manual session R2+R3+R4. Canonical tests **558 passed, 1 skipped**.
+
 **Environment:** Electron `npm run dev`, `VITE_ADAPTER_MODE=real`, `.env.local` (dev SBC).
 
-**Automated:** `npm run test` 525 passed, 1 skipped; lint/typecheck green.
+**Automated (step snapshot):** `npm run test` 525 passed, 1 skipped; lint/typecheck green.
 
 | R2 checklist (unblocked) | Result |
 | --- | --- |
-| Incoming ringtone audible | **pending manual** — incoming handler + `playRingtone` path wired |
-| Ringtone stops on answer | **pending manual** — answer + `stopRingtone` path wired |
-| Remote audio audible both directions | **pending manual** — `bindPeerConnection` on session + `attachRemoteAudio` wired |
+| Incoming ringtone audible | **PASS** — manual R2+R3+R4 session (R2-1) |
+| Ringtone stops on answer | **PASS** — manual R2+R3+R4 session (R2-2) |
+| Remote audio audible both directions | **PASS** — manual R2+R3+R4 session (R2-3) |
 
 | R3 checklist | Result |
 | --- | --- |
-| Outgoing answered call | **pending manual** |
-| Incoming answered call | **pending manual** |
-| Reject incoming | **pending manual** |
-| Hangup ends call, UI → idle | **pending manual** |
-| DND rejects with 486 | **pending manual** |
+| Outgoing answered call | **PASS** — manual R2+R3+R4 session (R3-1) |
+| Incoming answered call | **PASS** — manual R2+R3+R4 session (R3-2) |
+| Reject incoming | **PASS** — manual R2+R3+R4 session (R3-3) |
+| Hangup ends call, UI → idle | **PASS** — manual R2+R3+R4 session (R3-4) |
+| DND rejects with 486 | **PASS** — manual R2+R3+R4 session (R3-5) |
 
 **Implemented this step:** `JsSipTelephonyAdapter` call lifecycle (makeCall progress/answered/failed, newRTCSession incoming, answer/reject/hangup, setCallEndedHandler); peer-connection bind/unbind on RTC session lifecycle; adapter unit tests (+10).
 
 ## Step 05 smoke notes (R4) — 2026-06-24
 
+> **Superseded:** `pending manual` rows below closed in manual session R2+R3+R4. Canonical tests **558 passed, 1 skipped**.
+
 **Environment:** Electron `npm run dev`, `VITE_ADAPTER_MODE=real`, `.env.local` (dev SBC).
 
-**Automated:** `npm run test` 541 passed, 1 skipped; lint/typecheck green.
+**Automated (step snapshot):** `npm run test` 541 passed, 1 skipped; lint/typecheck green.
 
 | R4 checklist | Result |
 | --- | --- |
-| Hold / resume | **pending manual** — `holdCall`/`resumeCall` re-INVITE wired |
-| Mute / unmute | **pending manual** — local `track.enabled` via `BrowserMediaAdapter` |
+| Hold / resume | **PASS** — manual R2+R3+R4 session (R4-1) |
+| Mute / unmute | **PASS** — manual R2+R3+R4 session (R4-2) |
 
 | R2+R3 (carry-over) | Result |
 | --- | --- |
-| Incoming ringtone / remote audio | **pending manual** |
-| Outgoing/incoming answer, reject, hangup, DND | **pending manual** |
+| Incoming ringtone / remote audio | **PASS** — R2-1/2/3 |
+| Outgoing/incoming answer, reject, hangup, DND | **PASS** — R3-1/2/3/4/5 |
 
 **Implemented this step:** `JsSipTelephonyAdapter.holdCall`/`resumeCall` via `executeJsSipHoldResume`; `JsSipRtcSessionPort` hold/unhold; adapter unit tests (+16); `ActiveCallControlsPanel` error banner verified (existing P04 wiring).
 
 ## Manual smoke session R2+R3+R4 — 2026-06-24
 
+> **Superseded counts:** automated line below is a post-fix snapshot; canonical **558 passed, 1 skipped**.
+
 **Environment:** Electron `npm run dev`, `VITE_ADAPTER_MODE=real`, `.env.local` (dev SBC onedemoserver.online).
 
-**Automated (post-fix):** `npm run test` 551 passed, 1 skipped; lint/typecheck green.
+**Automated (post-fix snapshot):** `npm run test` 551 passed, 1 skipped; lint/typecheck green.
 
 **Fixes applied during smoke (before/during retest):**
 
@@ -166,7 +174,61 @@
 
 **R2+R3+R4 gate:** **closed** (see session below).
 
-**Next track work:** RAT step 06 — R5 OCP WebSocket (implementation + manual smoke).
+**Next track work:** RAT **step 07** — real SIP transfer (LF-028, LF-029). OCP step 06 / R5 **deferred** (ADR-0002).
+
+## Step 06 notes (R5 — DEFERRED) — 2026-06-24
+
+> **Superseded by ADR-0002.** R5 manual smoke is **not** an active gate. Resume via `OCP-PLUGIN-BACKLOG.md`.
+
+**Code landed (dormant):** `OcpWebSocketTransport`; `WebSocketOperatorPlatformGateway`; `WebSocketOcpSyncGateway`; `setInboundRawHandler`; `wireOcpInboundToFacade`; `VITE_OCP_*` env.
+
+**Automated:** 574 passed, 1 skipped; lint/typecheck green.
+
+| R5 checklist | Result |
+| --- | --- |
+| OCP auth success path | **deferred** |
+| Status Ready / Break | **deferred** |
+| Queue name on incoming | **deferred** |
+| Campaign modal accept/reject | **deferred** |
+
+**R5 gate:** **deferred** — not required for SIP core delivery.
+
+## Step 07 smoke notes (R6) — 2026-06-24
+
+**Environment:** Electron `npm run dev`, `?adapters=real`, `.env.local` (dev SBC onedemoserver.online); two test extensions required.
+
+**Automated:** `npm run test` 582 passed, 1 skipped; lint/typecheck green.
+
+**Implemented this step:** `executeJsSipRefer`; `JsSipTelephonyAdapter.blindTransfer` / `attendedTransfer` via REFER + Replaces; ADR-0003 REFER semantics; adapter unit tests (+8).
+
+| R6 checklist | Result |
+| --- | --- |
+| Blind transfer to second extension | **pending manual** |
+| Attended transfer with consultation | **pending manual** |
+| Transfer failure banner + retry | **pending manual** |
+
+**R6 gate:** **open** — close after manual smoke matrix A–D on dev SBC.
+
+## Step 07b notes (external Refer-To) — 2026-06-24
+
+**Environment:** Electron `npm run dev`, `?adapters=real`, `.env.local` (dev SBC onedemoserver.online).
+
+**Automated:** `npm run test` 599 passed, 1 skipped; lint/typecheck green.
+
+**Implemented:** `buildBlindReferTarget` + `classifyReferTargetKind`; `executeJsSipRefer` NOTIFY mapping + 202/ended lifecycle; `referInFlightCallIds`; transfer projection recovery; ADR-0003; step-07b prompt doc.
+
+**User manual smoke matrix (final session 2026-06-24):**
+
+| ID | Scenario | Result | Notes |
+| --- | --- | --- | --- |
+| A | Incoming client → blind transfer internal operator | **PASS** | on-net extension |
+| B | Incoming operator → blind transfer external client | **FAIL** | off-net / PSTN |
+| C | Outgoing to operator → blind transfer external client | **FAIL** | off-net / PSTN |
+| D | Outgoing to client → blind transfer internal operator | **PASS** | on-net extension |
+
+**R6 gate:** **open** — external blind transfer (B,C) blocked; internal (A,D) verified.
+
+**07b gate:** **open** — requires SIP trace (working INVITE to external vs failing REFER Refer-To) before next URI experiment.
 
 ## Dev credentials
 

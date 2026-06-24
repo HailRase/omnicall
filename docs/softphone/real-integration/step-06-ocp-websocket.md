@@ -1,5 +1,7 @@
 # Step 06: Real OCP WebSocket (R5)
 
+> **STATUS: DEFERRED** (ADR-0002). Code may exist in repo; **R5 smoke and further OCP work are out of active scope**. Resume via `docs/softphone/OCP-PLUGIN-BACKLOG.md`. Active RAT continues at **step 07**.
+
 ## Goal
 
 OCP auth, status change, queue sync, campaigns on real WebSocket.
@@ -32,6 +34,12 @@ See `SMOKE-CHECKLIST.md` § R5.
 - SIP-only works without OCP
 - OCP smoke on dev stand
 
+## Connection model
+
+Legacy `useWs` uses **one** WebSocket. `WebSocketOperatorPlatformGateway` and
+`WebSocketOcpSyncGateway` share `OcpWebSocketTransport` — see
+`src/adapters/operator/websocket/CONNECTION.md`.
+
 ## Update PROGRESS
 
-Mark step 06 `done`.
+When OCP backlog resumes: mark step 06 `done` after R5 smoke. Until then status remains **deferred**.

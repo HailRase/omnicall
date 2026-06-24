@@ -16,6 +16,7 @@ import type {
 } from "./JsSipUaPort.js";
 import type {
   JsSipNewRtcSessionEvent,
+  JsSipReferCommandOptions,
   JsSipRtcSessionEventName,
   JsSipRtcSessionListener,
   JsSipRtcSessionPort,
@@ -35,6 +36,12 @@ class MockJsSipRtcSession implements JsSipRtcSessionPort {
   unholdCalls = 0;
   holdAvailable = true;
   unholdAvailable = true;
+  referAvailable = true;
+  referScenario: "success" | "request_failed" | "notify_failed" | "unavailable" = "success";
+  readonly referInvocations: Array<{
+    target: string;
+    options?: JsSipReferCommandOptions;
+  }> = [];
   private localHold = false;
   private connection: unknown = null;
   private readonly remoteIdentityHeader: string;
@@ -113,6 +120,34 @@ class MockJsSipRtcSession implements JsSipRtcSessionPort {
 
   getRemoteIdentityHeader(): string {
     return this.remoteIdentityHeader;
+  }
+
+  refer(target: string, options?: JsSipReferCommandOptions): unknown {
+    if (options !== undefined) {
+      this.referInvocations.push({ target, options });
+    } else {
+      this.referInvocations.push({ target });
+    }
+
+    if (!this.referAvailable || this.referScenario === "unavailable") {
+      return false;
+    }
+
+    const handlers = options?.eventHandlers;
+    queueMicrotask(() => {
+      if (this.referScenario === "request_failed") {
+        handlers?.["requestFailed"]?.({ cause: "REJECTED" });
+        return;
+      }
+      handlers?.["requestSucceeded"]?.({ response: { status_code: 202 } });
+      if (this.referScenario === "notify_failed") {
+        handlers?.["failed"]?.({ status_line: { status_code: 603, reason_phrase: "Decline" } });
+        return;
+      }
+      handlers?.["accepted"]?.({ status_line: { status_code: 200, reason_phrase: "OK" } });
+    });
+
+    return { id: "refer-subscriber" };
   }
 }
 
@@ -418,19 +453,176 @@ describe("JsSipTelephonyAdapter", () => {
     expect(handler).not.toHaveBeenCalled();
   });
 
-  it("returns not_implemented for deferred transfer operations", async () => {
-    const adapter = createAdapter(new MockJsSipUa());
-    const correlationId = createCorrelationId();
-    const callId = createCallId("call-1");
+  it("blindTransfer sends REFER to target URI and succeeds on NOTIFY accepted", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
 
-    const blindResult = await adapter.blindTransfer({
+    const callId = createCallId("blind-transfer");
+    const makePromise = adapter.makeCall({
       callId,
-      correlationId,
-      targetNumber: createPhoneNumber("400"),
+      number: createPhoneNumber("400"),
+      correlationId: createCorrelationId(),
     });
-    expect(blindResult.ok).toBe(false);
-    if (!blindResult.ok) {
-      expect(blindResult.error.code).toBe("not_implemented");
+    const session = mockUa.callInvocations[0]?.session;
+    session?.emit("confirmed");
+    await makePromise;
+
+    const result = await adapter.blindTransfer({
+      callId,
+      targetNumber: createPhoneNumber("401"),
+      correlationId: createCorrelationId(),
+    });
+
+    expect(result.ok).toBe(true);
+    expect(session?.referInvocations).toHaveLength(1);
+    expect(session?.referInvocations[0]?.target).toBe("sip:401@pbx.example");
+  });
+
+  it("blindTransfer sends tel Refer-To for external E.164 target", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const callId = createCallId("blind-transfer-external");
+    const makePromise = adapter.makeCall({
+      callId,
+      number: createPhoneNumber("400"),
+      correlationId: createCorrelationId(),
+    });
+    const session = mockUa.callInvocations[0]?.session;
+    session?.emit("confirmed");
+    await makePromise;
+
+    const result = await adapter.blindTransfer({
+      callId,
+      targetNumber: createPhoneNumber("+79001234567"),
+      correlationId: createCorrelationId(),
+    });
+
+    expect(result.ok).toBe(true);
+    expect(session?.referInvocations).toHaveLength(1);
+    expect(session?.referInvocations[0]?.target).toBe("sip:+79001234567@pbx.example");
+  });
+
+  it("blindTransfer fails when REFER request is rejected", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const callId = createCallId("blind-transfer-fail");
+    const makePromise = adapter.makeCall({
+      callId,
+      number: createPhoneNumber("402"),
+      correlationId: createCorrelationId(),
+    });
+    const session = mockUa.callInvocations[0]?.session;
+    session?.emit("confirmed");
+    await makePromise;
+    if (session !== undefined) {
+      session.referScenario = "request_failed";
+    }
+
+    const result = await adapter.blindTransfer({
+      callId,
+      targetNumber: createPhoneNumber("403"),
+      correlationId: createCorrelationId(),
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.message).toContain("REFER failed");
+    }
+  });
+
+  it("blindTransfer fails when session is missing", async () => {
+    const adapter = createAdapter(new MockJsSipUa());
+    const result = await adapter.blindTransfer({
+      callId: createCallId("missing-blind"),
+      targetNumber: createPhoneNumber("404"),
+      correlationId: createCorrelationId(),
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.message).toContain("SIP session not found");
+    }
+  });
+
+  it("attendedTransfer sends REFER with Replaces and succeeds on NOTIFY accepted", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const sourceCallId = createCallId("source-attended");
+    const sourcePromise = adapter.makeCall({
+      callId: sourceCallId,
+      number: createPhoneNumber("500"),
+      correlationId: createCorrelationId(),
+    });
+    const sourceSession = mockUa.callInvocations[0]?.session;
+    sourceSession?.emit("confirmed");
+    await sourcePromise;
+
+    const consultationCallId = createCallId("consult-attended");
+    const consultationPromise = adapter.makeCall({
+      callId: consultationCallId,
+      number: createPhoneNumber("501"),
+      correlationId: createCorrelationId(),
+    });
+    const consultationSession = mockUa.callInvocations[1]?.session;
+    consultationSession?.emit("confirmed");
+    await consultationPromise;
+
+    const result = await adapter.attendedTransfer({
+      sourceCallId,
+      consultationCallId,
+      correlationId: createCorrelationId(),
+    });
+
+    expect(result.ok).toBe(true);
+    expect(sourceSession?.referInvocations).toHaveLength(1);
+    expect(sourceSession?.referInvocations[0]?.target).toBe("sip:100@pbx.example");
+    expect(sourceSession?.referInvocations[0]?.options?.replaces).toBe(consultationSession);
+  });
+
+  it("attendedTransfer fails when NOTIFY reports failure", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const sourceCallId = createCallId("source-attended-fail");
+    const sourcePromise = adapter.makeCall({
+      callId: sourceCallId,
+      number: createPhoneNumber("502"),
+      correlationId: createCorrelationId(),
+    });
+    const sourceSession = mockUa.callInvocations[0]?.session;
+    sourceSession?.emit("confirmed");
+    await sourcePromise;
+
+    const consultationCallId = createCallId("consult-attended-fail");
+    const consultationPromise = adapter.makeCall({
+      callId: consultationCallId,
+      number: createPhoneNumber("503"),
+      correlationId: createCorrelationId(),
+    });
+    const consultationSession = mockUa.callInvocations[1]?.session;
+    consultationSession?.emit("confirmed");
+    await consultationPromise;
+    if (sourceSession !== undefined) {
+      sourceSession.referScenario = "notify_failed";
+    }
+
+    const result = await adapter.attendedTransfer({
+      sourceCallId,
+      consultationCallId,
+      correlationId: createCorrelationId(),
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.message).toContain("Transfer target declined");
     }
   });
 

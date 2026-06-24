@@ -1,3 +1,4 @@
+import type { ReferOptions } from "@hailrase/jssip/lib/RTCSession.js";
 import type { RTCSession } from "@hailrase/jssip/lib/RTCSession.js";
 
 import type { JsSipRtcSessionPort } from "./JsSipRtcSessionPort.js";
@@ -53,7 +54,35 @@ export function wrapJsSipRtcSession(session: RTCSession): JsSipRtcSessionPort {
     },
     hold: (options, done) => session.hold(options, done),
     unhold: (options, done) => session.unhold(options, done),
+    refer: (target, options) => {
+      const referOptions = mapReferOptions(options);
+      return session.refer(target, referOptions);
+    },
     getConnection: () => session.connection ?? null,
     getRemoteIdentityHeader: () => session.remote_identity.toString(),
   };
+}
+
+function mapReferOptions(
+  options?: Readonly<{
+    eventHandlers?: Readonly<Record<string, (...args: unknown[]) => void>>;
+    replaces?: unknown;
+    extraHeaders?: readonly string[];
+  }>,
+): ReferOptions | undefined {
+  if (options === undefined) {
+    return undefined;
+  }
+
+  const mapped: ReferOptions = {};
+  if (options.eventHandlers !== undefined) {
+    mapped.eventHandlers = options.eventHandlers;
+  }
+  if (options.extraHeaders !== undefined) {
+    mapped.extraHeaders = [...options.extraHeaders];
+  }
+  if (options.replaces !== undefined) {
+    mapped.replaces = options.replaces as RTCSession;
+  }
+  return mapped;
 }

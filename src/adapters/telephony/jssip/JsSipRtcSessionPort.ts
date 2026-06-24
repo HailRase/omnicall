@@ -15,6 +15,12 @@ export type JsSipRtcSessionEventName =
 
 export type JsSipRtcSessionListener = (...args: unknown[]) => void;
 
+export type JsSipReferCommandOptions = Readonly<{
+  eventHandlers?: Readonly<Record<string, JsSipRtcSessionListener>>;
+  replaces?: unknown;
+  extraHeaders?: readonly string[];
+}>;
+
 export type JsSipRtcSessionPort = Readonly<{
   id: string;
   on(event: JsSipRtcSessionEventName, listener: JsSipRtcSessionListener): void;
@@ -23,6 +29,7 @@ export type JsSipRtcSessionPort = Readonly<{
   terminate(options?: Readonly<Record<string, unknown>>): void;
   hold(options?: Readonly<Record<string, unknown>>, done?: () => void): boolean;
   unhold(options?: Readonly<Record<string, unknown>>, done?: () => void): boolean;
+  refer(target: string, options?: JsSipReferCommandOptions): unknown;
   getConnection(): unknown;
   getRemoteIdentityHeader(): string;
 }>;

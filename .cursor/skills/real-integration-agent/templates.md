@@ -134,6 +134,6 @@ Baseline 488 → ожидай +X–Y
 **Stop after Step NN gate. Do NOT implement Step N+1.**
 ```
 
-## Slice complete handoff (optional, after step 06+)
+## Slice complete handoff (optional, after SIP slices)
 
-When a major slice (R1–R5) completes, summarize in PROGRESS **Current blocker** section and suggest smoke re-run before merge to master.
+When a major **SIP** slice (R1–R4, step 07) completes, summarize in PROGRESS **Current blocker** section and suggest smoke re-run before merge to master. **R5 OCP is deferred** (ADR-0002) — not a merge gate.
