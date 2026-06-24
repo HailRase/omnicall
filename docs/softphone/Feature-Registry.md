@@ -104,7 +104,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Unit: registration state transitions, phone status use case, manual SIP validation
   - Integration: mock telephony gateway, SIP-only and OCP bootstrap facade flows
   - E2E: deferred until SIP sandbox exists
-- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R1 done — JsSipTelephonyAdapter register/unregister/reconnect + transport disconnect; call ops stubbed; manual SBC smoke pending)
+- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R1 done — JsSipTelephonyAdapter register/unregister/reconnect + transport disconnect + legacy transport URL; call ops stubbed; manual SBC smoke pass 2026-06-24 — register/Online verified)
 
 ## F-002: Incoming Call
 
