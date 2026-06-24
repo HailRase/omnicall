@@ -18,6 +18,7 @@ The platform implements F-000 through F-015 on mock gateways (488+ tests). Produ
 6. **AccountBootstrapFacade** is not extended for adapter logic; only bootstrap wiring changes.
 7. **Secrets** in `.env.local` (gitignored); never logged.
 8. Port contract changes require ADR before implementation.
+9. **SIP library:** use npm package `@hailrase/jssip` (fork of versatica/JsSIP with a micro-fix). See `docs/softphone/real-integration/JSSIP-FORK.md`. Do not depend on upstream `jssip` without ADR.
 
 ## Consequences
 

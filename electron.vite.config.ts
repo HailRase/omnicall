@@ -33,6 +33,9 @@ export default defineConfig({
   },
   renderer: {
     plugins: [react()],
+    optimizeDeps: {
+      include: ["@hailrase/jssip", "@hailrase/jssip/lib/RTCSession.js"],
+    },
     resolve: {
       alias: {
         "@renderer": resolve(srcRoot, "renderer"),

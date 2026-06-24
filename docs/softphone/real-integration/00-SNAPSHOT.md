@@ -14,6 +14,10 @@
 - E2E harness
 - F-016 Settings, F-017 Diagnostics
 
+## Real SIP library (RAT)
+
+- Dependency: `@hailrase/jssip` — fork of upstream JsSIP with a micro-fix (`docs/softphone/real-integration/JSSIP-FORK.md`).
+
 ## Key paths
 
 | Layer | Path |

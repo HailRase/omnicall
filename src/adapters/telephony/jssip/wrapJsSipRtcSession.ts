@@ -1,4 +1,4 @@
-import type { RTCSession } from "jssip/lib/RTCSession.js";
+import type { RTCSession } from "@hailrase/jssip/lib/RTCSession.js";
 
 import type { JsSipRtcSessionPort } from "./JsSipRtcSessionPort.js";
 

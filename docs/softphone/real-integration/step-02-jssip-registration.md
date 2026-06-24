@@ -10,7 +10,7 @@ F-001 (real path), LF-005, LF-006, LF-007, LF-011
 
 ## Tasks
 
-1. Add `jssip` dependency (non-deprecated API only).
+1. Add `@hailrase/jssip` dependency — fork of upstream JsSIP with a micro-fix; see `JSSIP-FORK.md` (non-deprecated API only).
 2. Implement `src/adapters/telephony/jssip/JsSipTelephonyAdapter.ts`:
    - `register`, `unregister`, `reconnectTransport`
    - `setTransportDisconnectedHandler` — fire on WebSocket disconnect

@@ -13,7 +13,8 @@ Connect real SIP (JsSIP), browser media (WebRTC audio), and later OCP WebSocket 
 3. `docs/softphone/UX-UI-Design-Blueprint.md`
 4. `docs/softphone/real-integration/00-SNAPSHOT.md`
 5. `docs/softphone/real-integration/PROGRESS.md` — resume from first unchecked step
-6. Current step file: `docs/softphone/real-integration/step-NN-*.md`
+6. `docs/softphone/real-integration/JSSIP-FORK.md` — `@hailrase/jssip` fork policy
+7. Current step file: `docs/softphone/real-integration/step-NN-*.md`
 
 ## Non-negotiable rules
 
@@ -53,7 +54,7 @@ Every slice must preserve:
 ```txt
 createSoftphoneComposition(mode)
   mock → existing Mock* gateways (CI default)
-  real → JsSipTelephonyAdapter + BrowserMediaAdapter (+ later OCP WS)
+  real → JsSipTelephonyAdapter (`@hailrase/jssip` fork — see JSSIP-FORK.md) + BrowserMediaAdapter (+ later OCP WS)
 
 Renderer: useAccountBootstrap reads ?adapters=real|mock
 Main: unchanged until R5+ (optional later: move composition to main)

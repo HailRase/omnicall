@@ -433,7 +433,7 @@ The following must always be true:
 - Domain owns business rules.
 - Infrastructure owns technology concerns.
 - OCP can be removed.
-- JsSIP can be replaced.
+- JsSIP can be replaced (real track uses `@hailrase/jssip` fork — see `docs/softphone/real-integration/JSSIP-FORK.md`).
 - Headset vendors can be replaced.
 
 Any violation is an architectural defect.

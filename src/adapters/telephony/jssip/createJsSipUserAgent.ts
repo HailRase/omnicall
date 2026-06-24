@@ -1,4 +1,4 @@
-import JsSIP from "jssip";
+import JsSIP from "@hailrase/jssip";
 
 import type { SipAccount } from "@domain/index.js";
 
