@@ -5,8 +5,8 @@
 
 | Step | Status | Date | Agent notes | Tests | Smoke |
 | --- | --- | --- | --- | --- | --- |
-| 00 Branch & guardrails | pending | | | | |
-| 01 Adapter mode bootstrap | pending | | | | |
+| 00 Branch & guardrails | done | 2026-06-24 | Registry RAT notes F-001/002/003/009; guardrails closed; no src/ changes; commit — | 488 | n/a |
+| 01 Adapter mode bootstrap | done | 2026-06-24 | adapterMode resolver; createSoftphoneComposition dispatcher; mock extracted; real stub; renderer wired | 496 (+8) | n/a |
 | 02 JsSIP registration | pending | | | | |
 | 03 Browser media | pending | | | | |
 | 04 Call lifecycle in/out | pending | | | | |

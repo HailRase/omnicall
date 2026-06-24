@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
-import { createAccountBootstrap } from "@infrastructure/bootstrap/createAccountBootstrap.js";
+import { createSoftphoneComposition } from "@infrastructure/bootstrap/createSoftphoneComposition.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 import { readBootstrapConfigFromUrl } from "../bootstrap/readBootstrapConfig.js";
 
@@ -13,26 +13,26 @@ export function useAccountBootstrap(): Readonly<{
 }> {
   const [status, setStatus] = useState<BootstrapStatus>("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [facade, setFacade] = useState<AccountBootstrapFacade | null>(null);
   const bindFacade = useAccountBootstrapStore((state) => state.bindFacade);
-
-  const facade = useMemo(() => {
-    const bootstrap = readBootstrapConfigFromUrl();
-    return createAccountBootstrap({
-      bootstrapConfig: bootstrap.config,
-      ocpScenario: bootstrap.ocpScenario,
-      telephonyScenario: bootstrap.telephonyScenario,
-    });
-  }, []);
 
   useEffect(() => {
     let unsubscribe = (): void => undefined;
     let cancelled = false;
+    let activeFacade: AccountBootstrapFacade | null = null;
 
     async function bootstrap(): Promise<void> {
       try {
         const bootstrapOptions = readBootstrapConfigFromUrl();
-        unsubscribe = bindFacade(facade);
-        await facade.initialize(bootstrapOptions.config);
+        activeFacade = createSoftphoneComposition({
+          mode: bootstrapOptions.adapterMode,
+          bootstrapConfig: bootstrapOptions.config,
+          ocpScenario: bootstrapOptions.ocpScenario,
+          telephonyScenario: bootstrapOptions.telephonyScenario,
+        });
+        setFacade(activeFacade);
+        unsubscribe = bindFacade(activeFacade);
+        await activeFacade.initialize(bootstrapOptions.config);
 
         if (!cancelled) {
           setStatus("ready");
@@ -52,9 +52,9 @@ export function useAccountBootstrap(): Readonly<{
     return () => {
       cancelled = true;
       unsubscribe();
-      facade.dispose();
+      activeFacade?.dispose();
     };
-  }, [bindFacade, facade]);
+  }, [bindFacade]);
 
   return { facade, status, errorMessage };
 }

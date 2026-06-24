@@ -8,6 +8,16 @@ Parallel track to connect production adapters without breaking mock/CI on `main`
 2. Read `PROGRESS.md` — what is done in this branch.
 3. Give the agent **`MASTER-AGENT-PROMPT.md`**.
 4. Execute steps in order; after each step update `PROGRESS.md`.
+5. After each step, run **`@real-integration-agent`** — gate review and next prompt.
+
+## Agents
+
+| Agent | Role | Trigger |
+| --- | --- | --- |
+| Implementation | Code + tests per step | `MASTER-AGENT-PROMPT.md` |
+| Reviewer | Gate check, refactor or continuation prompt | `@real-integration-agent` |
+
+Reviewer skill: `.cursor/skills/real-integration-agent/SKILL.md`
 
 ## Rules
 
