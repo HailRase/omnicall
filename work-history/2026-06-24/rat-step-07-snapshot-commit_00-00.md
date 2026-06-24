@@ -2,7 +2,7 @@
 
 **Дата:** 2026-06-24 23:55
 **Статус:** выполнено
-**Коммит:** `89e0185`
+**Коммит:** `bc0bd29`
 
 ## Где
 - `src/adapters/telephony/jssip/` — REFER transfer, buildBlindReferTarget, executeJsSipRefer
