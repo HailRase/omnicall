@@ -20,15 +20,15 @@ export function CallerIdentityBlock({
   return (
     <section data-testid="caller-identity">
       <p>
-        <strong>Caller:</strong> {callerNumber ?? "Unknown"}
+        <strong>Абонент:</strong> {callerNumber ?? "Неизвестно"}
       </p>
       <p>
-        <strong>Name:</strong> {displayName ?? "Unavailable"}
+        <strong>Имя:</strong> {displayName ?? "Недоступно"}
       </p>
       <QueueInfoLabel labelState={queueLabelState} queueName={queueName} />
       {campaignContextTitle !== null && (
-        <p data-testid="incoming-campaign-context" aria-label="Campaign">
-          <strong>Campaign:</strong> {campaignContextTitle}
+        <p data-testid="incoming-campaign-context" aria-label="Кампания">
+          <strong>Кампания:</strong> {campaignContextTitle}
         </p>
       )}
     </section>

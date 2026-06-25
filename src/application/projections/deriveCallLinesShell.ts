@@ -182,16 +182,16 @@ function mapPolicyViolationMessage(
   }
   switch (violation.scenario) {
     case "connecting_in_progress":
-      return "Operation blocked while a call is connecting.";
+      return "Операция заблокирована: выполняется соединение.";
     case "hold_all_in_progress":
-      return "Operation blocked while holding other calls.";
+      return "Операция заблокирована: удержание других звонков.";
     case "hold_all_failed":
-      return "Could not hold all calls. Try again.";
+      return "Не удалось удержать все звонки. Повторите попытку.";
     case "hold_all_rollback_failed":
-      return "Hold-all failed and rollback was incomplete.";
+      return "Удержание всех звонков не удалось, откат выполнен не полностью.";
     case "auto_answer_blocked":
-      return "Auto-answer blocked while another call is active.";
+      return "Автоответ заблокирован: другой звонок активен.";
     default:
-      return violation.reason.length > 0 ? violation.reason : "Multi-call operation not allowed.";
+      return violation.reason.length > 0 ? violation.reason : "Операция с несколькими звонками недоступна.";
   }
 }

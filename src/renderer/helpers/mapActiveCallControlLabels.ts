@@ -8,7 +8,7 @@ import { mapTransferDisabledReason } from "./mapTransferDisabledReason.js";
  */
 export function mapActiveCallControlDisabledReason(
   reason: string,
-  fallback = "Action unavailable",
+  fallback = "Действие недоступно",
 ): string {
   const transferLabel = mapTransferDisabledReason(reason);
   if (transferLabel !== null) {
@@ -17,19 +17,19 @@ export function mapActiveCallControlDisabledReason(
 
   switch (reason) {
     case "call_ending":
-      return "Call ending";
+      return "Завершение звонка";
     case "hold_requires_active":
-      return "Hold requires active call";
+      return "Удержание доступно только на активном звонке";
     case "resume_requires_held":
-      return "Resume requires held call";
+      return "Возобновление доступно только на удержанном звонке";
     case "mute_requires_active_or_held":
-      return "Mute requires active or held call";
+      return "Отключение микрофона доступно на активном или удержанном звонке";
     case "already_muted":
-      return "Call already muted";
+      return "Микрофон уже отключён";
     case "not_muted":
-      return "Call is not muted";
+      return "Микрофон не отключён";
     case "hangup_not_allowed":
-      return "Hang up is not allowed";
+      return "Завершение звонка недоступно";
     default:
       return fallback;
   }
@@ -44,7 +44,7 @@ export function mapActiveCallControlOperationError(
   error: ActiveCallControlOperationError,
 ): string {
   const label = mapActiveCallControlOperationLabel(error.operation);
-  return `${label} failed: ${error.message}`;
+  return `${label}: ошибка — ${error.message}`;
 }
 
 function mapActiveCallControlOperationLabel(
@@ -52,14 +52,14 @@ function mapActiveCallControlOperationLabel(
 ): string {
   switch (operation) {
     case "hold":
-      return "Hold";
+      return "Удержание";
     case "resume":
-      return "Resume";
+      return "Возобновление";
     case "mute":
-      return "Mute";
+      return "Отключение микрофона";
     case "unmute":
-      return "Unmute";
+      return "Включение микрофона";
     case "hangup":
-      return "Hang up";
+      return "Завершение звонка";
   }
 }

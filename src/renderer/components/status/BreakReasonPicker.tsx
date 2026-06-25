@@ -34,8 +34,8 @@ export function BreakReasonPicker({
       />
       <IconControlButton
         iconId="action.confirm"
-        ariaLabel="Confirm break with selected reason"
-        tooltipLabel="Confirm break"
+        ariaLabel="Подтвердить перерыв с выбранной причиной"
+        tooltipLabel="Подтвердить перерыв"
         testId="control-confirm-break"
         className={styles["iconButton"]}
         disabled={confirmDisabled}

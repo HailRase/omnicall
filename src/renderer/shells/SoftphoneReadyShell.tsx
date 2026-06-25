@@ -122,7 +122,7 @@ export function SoftphoneReadyShell({
           <CallOverlayShell bindings={callBindings} />
           <ShellOverlaySheet
             open={overlayShell.settingsOpen}
-            title="Settings"
+            title="Настройки"
             testId="settings-overlay"
             onClose={overlayShell.closeOverlay}
           >
@@ -138,7 +138,7 @@ export function SoftphoneReadyShell({
           </ShellOverlaySheet>
           <ShellOverlaySheet
             open={overlayShell.diagnosticsOpen}
-            title="Diagnostics"
+            title="Диагностика"
             testId="diagnostics-overlay"
             onClose={overlayShell.closeOverlay}
           />

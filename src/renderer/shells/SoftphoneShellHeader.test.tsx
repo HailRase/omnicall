@@ -102,7 +102,7 @@ describe("SoftphoneShellHeader", () => {
     expect(screen.queryByTestId("control-reregister-sip")).not.toBeInTheDocument();
     expect(screen.getByTestId("control-toggle-collapse")).toHaveAttribute(
       "aria-label",
-      "Expand softphone",
+      "Развернуть софтфон",
     );
   });
 });

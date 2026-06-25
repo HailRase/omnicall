@@ -97,7 +97,7 @@ export function IncomingCallModal({
     <section
       ref={modalRef}
       role="dialog"
-      aria-label="Incoming call"
+      aria-label="Входящий звонок"
       tabIndex={-1}
       className={styles["modal"]}
       data-testid="incoming-call-modal"
@@ -107,10 +107,10 @@ export function IncomingCallModal({
         <span className={styles["titleIcon"]}>
           <AppIcon id="call.incoming" decorative />
         </span>
-        Incoming Call
+        Входящий звонок
       </h2>
       <p data-testid="ringing-indicator">
-        <strong>Ringing:</strong> {ringingState}
+        <strong>Вызов:</strong> {ringingState === "ringing" ? "звонит" : "ожидание"}
       </p>
       <CallerIdentityBlock
         callerNumber={callerNumber}

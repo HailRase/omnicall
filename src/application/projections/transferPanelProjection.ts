@@ -51,21 +51,21 @@ export function resolveTransferFailureMessage(
 function resolveFailureBannerPrefix(
   transferProjection: TransferProjection,
   multiLineFailureReason: string | null,
-): "Transfer failed" | "Consultation failed" {
+): string {
   if (
     transferProjection.phase === "transfer_failed" ||
     transferProjection.phase === "attended_transfer_failed"
   ) {
-    return "Transfer failed";
+    return "Ошибка перевода";
   }
 
   if (transferProjection.lastFailureReason !== null) {
-    return transferProjection.phase === "idle" ? "Consultation failed" : "Transfer failed";
+    return transferProjection.phase === "idle" ? "Ошибка консультации" : "Ошибка перевода";
   }
 
   if (multiLineFailureReason !== null) {
-    return "Consultation failed";
+    return "Ошибка консультации";
   }
 
-  return "Transfer failed";
+  return "Ошибка перевода";
 }

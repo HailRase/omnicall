@@ -25,10 +25,10 @@ export function QueueInfoLabel({
   return (
     <p
       data-testid="queue-info-label"
-      aria-label="Queue"
+      aria-label="Очередь"
       aria-busy={display.ariaBusy}
     >
-      <strong>Queue:</strong> {display.text}
+      <strong>Очередь:</strong> {display.text}
     </p>
   );
 }

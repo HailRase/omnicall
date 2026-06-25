@@ -47,7 +47,7 @@ describe("CampaignEventModal", () => {
     expect(screen.getByTestId("campaign-accept")).toBeDisabled();
     expect(screen.getByTestId("campaign-reject")).toBeDisabled();
     expect(screen.getByTestId("campaign-disabled-reason")).toHaveTextContent(
-      "Campaign response in progress",
+      "Ответ на кампанию выполняется",
     );
   });
 

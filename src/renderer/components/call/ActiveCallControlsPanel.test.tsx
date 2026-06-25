@@ -28,7 +28,7 @@ describe("ActiveCallControlsPanel", () => {
 
     expect(screen.getByTestId("control-hold")).toBeDisabled();
     expect(screen.getByTestId("control-disabled-reason")).toHaveTextContent(
-      "Hold requires active call",
+      "Удержание доступно только на активном звонке",
     );
   });
 
@@ -43,7 +43,7 @@ describe("ActiveCallControlsPanel", () => {
     });
 
     expect(screen.getByTestId("active-call-control-error")).toHaveTextContent(
-      "Hold failed: Hold failed for call-1",
+      "Удержание: ошибка — Hold failed for call-1",
     );
     fireEvent.click(screen.getByTestId("control-retry"));
     expect(onRetry).toHaveBeenCalledTimes(1);
@@ -60,7 +60,7 @@ describe("ActiveCallControlsPanel", () => {
     });
 
     expect(screen.getByTestId("control-disabled-reason")).toHaveTextContent(
-      "Transfer mode already active",
+      "Режим перевода уже активен",
     );
   });
 

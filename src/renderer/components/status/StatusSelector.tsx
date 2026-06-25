@@ -59,10 +59,10 @@ export function StatusSelector({
     <section
       className={styles["panel"]}
       data-testid="status-selector"
-      aria-label="Operator status"
+      aria-label="Статус оператора"
     >
       <p data-testid="status-selector-current">
-        Agent status:{" "}
+        Статус агента:{" "}
         <strong>{displayStatus === null ? "—" : agentStatusLabel(displayStatus)}</strong>
       </p>
 
@@ -73,7 +73,7 @@ export function StatusSelector({
           role="status"
           aria-live="polite"
         >
-          Status change in progress…
+          Смена статуса выполняется…
         </p>
       )}
 
@@ -87,10 +87,10 @@ export function StatusSelector({
         </div>
       )}
 
-      <div className={styles["actions"]} role="group" aria-label="Change agent status">
+      <div className={styles["actions"]} role="group" aria-label="Смена статуса агента">
         <IconControlButton
           iconId="operator.ready"
-          ariaLabel="Change to Ready"
+          ariaLabel="Перейти в «Готов»"
           testId="control-change-ready"
           className={styles["iconButton"]}
           disabledReason={
@@ -102,7 +102,7 @@ export function StatusSelector({
         />
         <IconControlButton
           iconId="operator.break"
-          ariaLabel="Change to Break"
+          ariaLabel="Перейти в «Перерыв»"
           testId="control-change-break"
           className={styles["iconButton"]}
           disabledReason={
@@ -114,7 +114,7 @@ export function StatusSelector({
         />
         <IconControlButton
           iconId="operator.logout"
-          ariaLabel="Logout from operator platform"
+          ariaLabel="Выйти с платформы оператора"
           testId="control-request-logout"
           className={styles["iconButton"]}
           disabled={statusChangeInProgress}

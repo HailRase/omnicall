@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import type { CallLine } from "@application/index.js";
+import { deriveCallLineStatusLabel } from "@application/index.js";
 import styles from "./MultiLineCallList.module.css";
 
 export type MultiLineCallListProps = Readonly<{
@@ -20,7 +21,7 @@ export function MultiLineCallList({ lines }: MultiLineCallListProps): JSX.Elemen
     <ul
       className={styles["list"]}
       data-testid="multi-line-call-list"
-      aria-label="Active call lines"
+      aria-label="Активные линии звонков"
     >
       {lines.map((line) => (
         <li
@@ -29,7 +30,9 @@ export function MultiLineCallList({ lines }: MultiLineCallListProps): JSX.Elemen
           data-testid={`call-line-${line.callId}`}
         >
           <span className={styles["role"]}>{mapRoleLabel(line.role)}</span>
-          <span className={styles["state"]}>{line.state}</span>
+          <span className={styles["state"]}>
+            {deriveCallLineStatusLabel({ state: line.state })}
+          </span>
         </li>
       ))}
     </ul>
@@ -39,10 +42,10 @@ export function MultiLineCallList({ lines }: MultiLineCallListProps): JSX.Elemen
 function mapRoleLabel(role: CallLine["role"]): string {
   switch (role) {
     case "source":
-      return "Source";
+      return "Исходный";
     case "consultation":
-      return "Consultation";
+      return "Консультация";
     case "primary":
-      return "Primary";
+      return "Основной";
   }
 }

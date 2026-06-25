@@ -20,6 +20,13 @@ Visual and composition rules for the Electron renderer. Complements `UI-Architec
 | Docs / visual contract | **Storybook 8** | 5–7 critical stories |
 | Catalog | `npm run ui:catalog` | Generated from sources |
 
+## Language
+
+- **Russian only** for all user-visible UI copy (labels, errors, banners, disabled reasons, tooltips, `aria-label`).
+- Map projection reason keys to Russian in renderer helpers or shell derivations; keep keys English.
+- v1: no i18n library — inline Russian strings; add ADR before multi-locale support.
+- Agent rule: `.cursor/rules/ux-ui-electron-react.mdc` → **Language (Russian UI)**.
+
 ## Design Tokens
 
 File: `src/renderer/styles/tokens.css` (semantic variables on `:root`).

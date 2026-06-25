@@ -26,12 +26,12 @@ export function PhoneStatusBadge({
   return (
     <section className={panelStyles["panel"]} data-testid="phone-status-badge">
       <p>
-        Phone: <strong>{phoneStatusLabel(status)}</strong>
+        Телефон: <strong>{phoneStatusLabel(status)}</strong>
       </p>
       <p>
-        Registration: <strong>{registrationLabel}</strong>
+        Регистрация: <strong>{registrationLabel}</strong>
       </p>
-      <div className={styles["actions"]} role="group" aria-label="Phone status">
+      <div className={styles["actions"]} role="group" aria-label="Статус телефона">
         {STATUS_OPTIONS.map((option) => (
           <button
             key={option}

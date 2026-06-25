@@ -82,7 +82,7 @@ describe("deriveConnectionRecoveryShell", () => {
     const shell = deriveConnectionRecoveryShell(projection);
     expect(shell.showOcpRow).toBe(true);
     expect(shell.showSipRow).toBe(false);
-    expect(shell.retryDisabledReason).toBe("Automatic reconnect in progress");
+    expect(shell.retryDisabledReason).toBe("Автоматическое переподключение выполняется");
   });
 
   it("enables retry when manual_retry_available", () => {

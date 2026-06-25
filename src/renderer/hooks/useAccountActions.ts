@@ -66,7 +66,7 @@ export function useAccountActions(
         }
       } catch (submitError: unknown) {
         const message =
-          submitError instanceof Error ? submitError.message : "Authorization failed";
+          submitError instanceof Error ? submitError.message : "Ошибка авторизации";
         setError(message);
       } finally {
         setSubmitting(false);

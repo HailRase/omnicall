@@ -11,7 +11,7 @@ describe("deriveHeaderChromeShell", () => {
     });
 
     expect(shell.registrationDotVariant).toBe("registering");
-    expect(shell.registrationStatusLabel).toBe("Registering");
+    expect(shell.registrationStatusLabel).toBe("Регистрация");
     expect(shell.avatarInitials).toBe("AG");
   });
 
@@ -24,9 +24,9 @@ describe("deriveHeaderChromeShell", () => {
     });
 
     expect(shell.registrationDotVariant).toBe("registered_online");
-    expect(shell.registrationStatusLabel).toBe("Registered");
-    expect(shell.phoneStatusLabel).toBe("Online");
-    expect(shell.registrationDotAriaLabel).toContain("Registered");
+    expect(shell.registrationStatusLabel).toBe("Зарегистрирован");
+    expect(shell.phoneStatusLabel).toBe("В сети");
+    expect(shell.registrationDotAriaLabel).toContain("Зарегистрирован");
   });
 
   it("derives DND dot when registered with dnd phone status", () => {
@@ -50,7 +50,7 @@ describe("deriveHeaderChromeShell", () => {
     });
 
     expect(shell.registrationDotVariant).toBe("failed");
-    expect(shell.registrationStatusLabel).toBe("Failed");
+    expect(shell.registrationStatusLabel).toBe("Ошибка");
     expect(shell.avatarInitials).toBe("AL");
   });
 
@@ -63,7 +63,7 @@ describe("deriveHeaderChromeShell", () => {
     });
 
     expect(shell.registrationDotVariant).toBe("not_registered");
-    expect(shell.registrationStatusLabel).toBe("Not registered");
+    expect(shell.registrationStatusLabel).toBe("Не зарегистрирован");
     expect(shell.avatarInitials).toBe("BS");
   });
 });

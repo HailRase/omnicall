@@ -29,7 +29,7 @@ export function IncomingCallActions({
       <div className={styles["buttonGroup"]}>
         <IconControlButton
           iconId="call.answer"
-          ariaLabel="Answer incoming call"
+          ariaLabel="Ответить на входящий звонок"
           testId="answer-call"
           className={styles["iconButton"]}
           disabledReason={answerDisabledReason}
@@ -37,7 +37,7 @@ export function IncomingCallActions({
         />
         <IconControlButton
           iconId="call.reject"
-          ariaLabel="Reject incoming call"
+          ariaLabel="Отклонить входящий звонок"
           testId="reject-call"
           className={styles["iconButton"]}
           disabledReason={rejectDisabledReason}

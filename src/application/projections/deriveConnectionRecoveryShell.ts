@@ -119,20 +119,20 @@ function deriveRetryConnectionDisabledReason(
   }
 
   if (connectionState === "reconnecting") {
-    return "Automatic reconnect in progress";
+    return "Автоматическое переподключение выполняется";
   }
 
   if (connectionState === "server_terminate") {
-    return "Session ended by server";
+    return "Сессия завершена сервером";
   }
 
   if (connectionState === "sip_registration_failed") {
     return projection.sipRecoveryMode === "registration"
-      ? "Automatic re-registration in progress"
-      : "Manual retry not available yet";
+      ? "Автоматическая перерегистрация выполняется"
+      : "Ручная повторная попытка пока недоступна";
   }
 
-  return "Manual retry not available yet";
+  return "Ручная повторная попытка пока недоступна";
 }
 
 function deriveShowReregisterSipControl(connectionState: ConnectionState): boolean {
@@ -158,18 +158,18 @@ function deriveReregisterSipDisabledReason(
   }
 
   if (connectionState === "reconnecting") {
-    return "Automatic reconnect in progress";
+    return "Автоматическое переподключение выполняется";
   }
 
   if (connectionState === "server_terminate") {
-    return "Session ended by server";
+    return "Сессия завершена сервером";
   }
 
   if (connectionState === "sip_disconnected") {
-    return "Waiting for automatic retry";
+    return "Ожидание автоматической повторной попытки";
   }
 
-  return "Re-registration not available";
+  return "Перерегистрация недоступна";
 }
 
 function deriveSafeLogoutDisabledReason(connectionState: ConnectionState): string | null {
@@ -177,5 +177,5 @@ function deriveSafeLogoutDisabledReason(connectionState: ConnectionState): strin
     return null;
   }
 
-  return "Safe logout not available";
+  return "Безопасный выход недоступен";
 }

@@ -151,10 +151,10 @@ export function deriveIncomingAnswerDisabledReason(
   projection: MultiCallProjection,
 ): string | null {
   if (projection.holdAllInProgress) {
-    return "Holding other calls…";
+    return "Удержание других звонков…";
   }
   if (projection.hasConnectingCall) {
-    return "Call connecting…";
+    return "Соединение…";
   }
   if (
     projection.isSecondSessionDisabled &&
@@ -162,10 +162,10 @@ export function deriveIncomingAnswerDisabledReason(
     (projection.lastBlockedDirection === "incoming_answer" ||
       (projection.hasEstablishedCall && !projection.multiSessionsEnabled))
   ) {
-    return "Second session disabled";
+    return "Вторая сессия отключена";
   }
   if (projection.hasEstablishedCall && !projection.multiSessionsEnabled) {
-    return "Second session disabled";
+    return "Вторая сессия отключена";
   }
   return null;
 }
@@ -174,10 +174,10 @@ export function deriveResumeMultiCallDisabledReason(
   projection: MultiCallProjection,
 ): string | null {
   if (projection.holdAllInProgress) {
-    return "Holding other calls…";
+    return "Удержание других звонков…";
   }
   if (projection.hasConnectingCall) {
-    return "Call connecting…";
+    return "Соединение…";
   }
   return null;
 }

@@ -106,18 +106,18 @@ export function Dialpad({
       className={styles["panel"]}
       data-testid="dialpad-panel"
       onKeyDown={handleKeyboard}
-      aria-label="Dialpad panel"
+      aria-label="Панель набора номера"
     >
       <header className={styles["header"]}>
-        <h2 className={styles["headerTitle"]}>Dialpad</h2>
-        <div className={styles["mode"]} role="group" aria-label="Dialpad mode">
+        <h2 className={styles["headerTitle"]}>Набор номера</h2>
+        <div className={styles["mode"]} role="group" aria-label="Режим набора">
           <button
             type="button"
             className={clsx(mode === "number" && styles["modeActive"])}
             onClick={() => onModeChange("number")}
             data-testid="dialpad-mode-number"
           >
-            Number
+            Номер
           </button>
           <button
             type="button"
@@ -131,7 +131,7 @@ export function Dialpad({
       </header>
 
       <label className={styles["inputLabel"]} htmlFor="dialpad-input">
-        Number
+        Номер
       </label>
       <input
         id="dialpad-input"
@@ -139,10 +139,10 @@ export function Dialpad({
         value={numberValue}
         onChange={(event) => onNumberChange(event.currentTarget.value)}
         data-testid="dialpad-input"
-        aria-label="Phone number input"
+        aria-label="Поле ввода номера"
       />
 
-      <div className={styles["keys"]} role="group" aria-label="Dialpad keys">
+      <div className={styles["keys"]} role="group" aria-label="Клавиши набора">
         {KEYS.map((key) => {
           if (key === "0") {
             if (mode === "dtmf") {
@@ -164,7 +164,7 @@ export function Dialpad({
                 key={key}
                 type="button"
                 data-testid="dialpad-key-0"
-                aria-label="Dial 0"
+                aria-label="Набрать 0"
                 onMouseDown={handleZeroPressStart}
                 onMouseUp={handleZeroPressEnd}
                 onMouseLeave={handleZeroPressEnd}
@@ -179,7 +179,7 @@ export function Dialpad({
               key={key}
               type="button"
               data-testid={`dialpad-key-${key}`}
-              aria-label={mode === "dtmf" ? `DTMF ${key}` : `Dial ${key}`}
+              aria-label={mode === "dtmf" ? `DTMF ${key}` : `Набрать ${key}`}
               onClick={() => handleKeyPress(key)}
             >
               {key}
@@ -191,22 +191,22 @@ export function Dialpad({
       <div className={styles["actions"]}>
         <IconControlButton
           iconId="dial.delete"
-          ariaLabel="Delete digit"
+          ariaLabel="Удалить цифру"
           testId="dialpad-delete"
           className={styles["iconButton"]}
           onClick={onDelete}
         />
         <IconControlButton
           iconId="dial.clear"
-          ariaLabel="Clear number"
+          ariaLabel="Очистить номер"
           testId="dialpad-clear"
           className={styles["iconButton"]}
           onClick={onClear}
         />
         <IconControlButton
           iconId="dial.call"
-          ariaLabel={isCalling ? "Calling in progress" : "Call"}
-          tooltipLabel={isCalling ? "Calling in progress" : "Call"}
+          ariaLabel={isCalling ? "Соединение выполняется" : "Позвонить"}
+          tooltipLabel={isCalling ? "Соединение выполняется" : "Позвонить"}
           testId="dialpad-call"
           className={clsx(styles["iconButton"], styles["callButton"])}
           disabledReason={callDisabledReason}

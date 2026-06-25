@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { deriveCallLineStatusLabel } from "@application/index.js";
 import { AppIcon } from "../icons/index.js";
 import styles from "./OutgoingCallCard.module.css";
 
@@ -32,30 +33,30 @@ export function OutgoingCallCard({
         <span className={styles["titleIcon"]}>
           <AppIcon id="call.outgoing" decorative />
         </span>
-        Outgoing call
+        Исходящий звонок
       </h2>
       <p data-testid="call-state-label">
-        <strong>State:</strong> {callState}
+        <strong>Состояние:</strong> {mapCallStateLabel(callState)}
       </p>
       {toneIndicator !== "none" ? (
         <p data-testid="tone-state-indicator">
-          <strong>Tone:</strong> {toneIndicator}
+          <strong>Сигнал:</strong> {mapToneLabel(toneIndicator)}
         </p>
       ) : null}
       <p data-testid="call-ui-state-label">
-        <strong>UI state:</strong> {uiState}
+        <strong>UI:</strong> {uiState}
       </p>
       <p>
-        <strong>Target:</strong> {numberValue || "Unknown"}
+        <strong>Номер:</strong> {numberValue || "Неизвестно"}
       </p>
       {callId !== null ? (
         <p>
-          <strong>Call ID:</strong> {callId}
+          <strong>ID звонка:</strong> {callId}
         </p>
       ) : null}
       {lastDtmfTone !== null && (
         <p>
-          <strong>Last DTMF:</strong> {lastDtmfTone}
+          <strong>Последний DTMF:</strong> {lastDtmfTone}
         </p>
       )}
       {lastError !== null && (
@@ -65,4 +66,24 @@ export function OutgoingCallCard({
       )}
     </section>
   );
+}
+
+function mapCallStateLabel(callState: string): string {
+  if (callState === "Idle") {
+    return deriveCallLineStatusLabel({ state: "Idle" });
+  }
+  return deriveCallLineStatusLabel({
+    state: callState as Parameters<typeof deriveCallLineStatusLabel>[0]["state"],
+  });
+}
+
+function mapToneLabel(tone: "ringback" | "busy" | "failed"): string {
+  switch (tone) {
+    case "ringback":
+      return "Гудки";
+    case "busy":
+      return "Занято";
+    case "failed":
+      return "Ошибка";
+  }
 }

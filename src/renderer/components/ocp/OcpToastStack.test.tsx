@@ -31,7 +31,7 @@ describe("OcpToastStack", () => {
     );
 
     expect(screen.getByTestId("ocp-toast")).toHaveTextContent("Queue updated");
-    screen.getByRole("button", { name: "Dismiss notification" }).click();
+    screen.getByRole("button", { name: "Закрыть уведомление" }).click();
     expect(onDismiss).toHaveBeenCalledWith("t1");
   });
 });

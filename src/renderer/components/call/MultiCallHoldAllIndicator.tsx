@@ -28,7 +28,7 @@ export function MultiCallHoldAllIndicator({
       <span className={styles["icon"]}>
         <AppIcon id="call.hold" decorative />
       </span>
-      Holding other calls…
+      Удержание других звонков…
     </div>
   );
 }

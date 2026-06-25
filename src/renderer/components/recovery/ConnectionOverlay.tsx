@@ -47,7 +47,7 @@ export function ConnectionOverlay({
   reconnectCountdownSeconds,
   lastFailureReason,
   retryDisabledReason,
-  safeLogoutDisabledReason = "Safe logout not available",
+  safeLogoutDisabledReason = "Безопасный выход недоступен",
   onManualRetry,
   onSafeLogout,
 }: ConnectionOverlayProps): JSX.Element | null {
@@ -94,7 +94,7 @@ export function ConnectionOverlay({
           isBlocking ? styles["overlayBlocking"] : styles["overlayBanner"],
         )}
         role={role}
-        aria-label="Connection status"
+        aria-label="Состояние подключения"
         data-testid="connection-overlay"
         aria-modal={isBlocking ? "true" : undefined}
       >
@@ -107,8 +107,7 @@ export function ConnectionOverlay({
 
         {isServerTerminate && (
           <p className={styles["message"]} data-testid="connection-server-terminate">
-            Your session was ended by the server. Please wait while the application reaches a safe
-            state.
+            Сессия завершена сервером. Дождитесь безопасного состояния приложения.
           </p>
         )}
 
@@ -118,7 +117,7 @@ export function ConnectionOverlay({
           </p>
         )}
 
-        <ul className={styles["channels"]} aria-label="Connection channels">
+        <ul className={styles["channels"]} aria-label="Каналы подключения">
           {channelRows.map((row) => (
             <li
               key={row.channel}
@@ -129,21 +128,20 @@ export function ConnectionOverlay({
               <span className={styles["channelStatus"]}>{row.statusLabel}</span>
               {row.attempt !== null && (
                 <span className={styles["channelAttempt"]}>
-                  Attempt {row.attempt} of {row.maxAttempts}
+                  Попытка {row.attempt} из {row.maxAttempts}
                 </span>
               )}
             </li>
           ))}
         </ul>
 
-        {showCountdown && (
+        {showCountdown && reconnectCountdownSeconds !== null && (
           <p
             className={styles["countdown"]}
             data-testid="reconnect-countdown"
             aria-live="polite"
           >
-            Next attempt in {reconnectCountdownSeconds} second
-            {reconnectCountdownSeconds === 1 ? "" : "s"}
+            {formatCountdownMessage(reconnectCountdownSeconds)}
           </p>
         )}
 
@@ -158,14 +156,16 @@ export function ConnectionOverlay({
             aria-live="polite"
             role="status"
           >
-            {sipRecoveryMode === "registration" ? "Re-registering now…" : "Reconnecting now…"}
+            {sipRecoveryMode === "registration"
+              ? "Перерегистрация выполняется…"
+              : "Переподключение выполняется…"}
           </p>
         )}
 
         <div className={styles["actions"]}>
           <IconControlButton
             iconId="connection.retry"
-            ariaLabel="Retry connection"
+            ariaLabel="Повторить подключение"
             testId="control-retry-connection"
             className={styles["iconButton"]}
             disabledReason={retryDisabledReason}
@@ -177,8 +177,8 @@ export function ConnectionOverlay({
           {isServerTerminate && onSafeLogout !== undefined && (
             <IconControlButton
               iconId="session.end"
-              ariaLabel="Safe logout"
-              tooltipLabel="Safe logout"
+              ariaLabel="Безопасный выход"
+              tooltipLabel="Безопасный выход"
               testId="control-safe-logout"
               className={styles["iconButton"]}
               disabledReason={safeLogoutDisabledReason}
@@ -199,27 +199,41 @@ export function ConnectionOverlay({
   );
 }
 
+function formatCountdownMessage(seconds: number): string {
+  const mod10 = seconds % 10;
+  const mod100 = seconds % 100;
+  let suffix = "секунд";
+  if (mod100 < 11 || mod100 > 14) {
+    if (mod10 === 1) {
+      suffix = "секунду";
+    } else if (mod10 >= 2 && mod10 <= 4) {
+      suffix = "секунды";
+    }
+  }
+  return `Следующая попытка через ${seconds} ${suffix}`;
+}
+
 function resolveOverlayTitle(
   connectionState: ConnectionState,
   sipRecoveryMode: SipRecoveryMode | null,
 ): string {
   switch (connectionState) {
     case "ocp_disconnected":
-      return "OCP connection lost";
+      return "Соединение OCP потеряно";
     case "sip_disconnected":
-      return "SIP connection lost";
+      return "Соединение SIP потеряно";
     case "sip_registration_failed":
-      return "SIP registration failed";
+      return "Ошибка регистрации SIP";
     case "reconnecting":
-      return sipRecoveryMode === "registration" ? "Re-registering SIP" : "Reconnecting";
+      return sipRecoveryMode === "registration" ? "Перерегистрация SIP" : "Переподключение";
     case "reconnect_failed":
-      return "Connection could not be restored";
+      return "Не удалось восстановить соединение";
     case "manual_retry_available":
-      return "Connection failed";
+      return "Ошибка подключения";
     case "server_terminate":
-      return "Session ended";
+      return "Сессия завершена";
     default:
-      return "Connection status";
+      return "Состояние подключения";
   }
 }
 
@@ -273,31 +287,31 @@ function resolveChannelStatus(
   attempt: number | null,
 ): string {
   if (connectionState === "server_terminate") {
-    return "Session ended";
+    return "Сессия завершена";
   }
 
   if (connectionState === "sip_registration_failed") {
-    return channel === "SIP" ? "Registration failed" : "Disconnected";
+    return channel === "SIP" ? "Ошибка регистрации" : "Отключено";
   }
 
   if (connectionState === "reconnecting" && attempt !== null) {
     if (channel === "SIP" && sipRecoveryMode === "registration") {
-      return "Re-registering";
+      return "Перерегистрация";
     }
-    return "Reconnecting";
+    return "Переподключение";
   }
 
   if (connectionState === "reconnect_failed" && attempt !== null) {
-    return "Failed";
+    return "Ошибка";
   }
 
   if (channel === "OCP" && connectionState === "ocp_disconnected") {
-    return "Disconnected";
+    return "Отключено";
   }
 
   if (channel === "SIP" && connectionState === "sip_disconnected") {
-    return "Disconnected";
+    return "Отключено";
   }
 
-  return "Unavailable";
+  return "Недоступно";
 }

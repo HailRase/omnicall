@@ -14,20 +14,20 @@ export function mapAgentStatusRejectionReason(
 
   switch (reason) {
     case "invalid_transition":
-      return "This status change is not allowed.";
+      return "Эта смена статуса недоступна.";
     case "dnd_blocks_ready":
-      return "Cannot switch to Ready while Do Not Disturb is active.";
+      return "Нельзя перейти в «Готов» при активном режиме «Не беспокоить».";
     case "break_reason_required":
-      return "A valid break reason is required.";
+      return "Требуется корректная причина перерыва.";
     case "already_in_status":
-      return "You are already in this status.";
+      return "Вы уже в этом статусе.";
     case "gateway_failed":
-      return "Operator platform rejected the status change.";
+      return "Платформа оператора отклонила смену статуса.";
     case "ocp_not_connected":
-      return "Operator platform is unavailable.";
+      return "Платформа оператора недоступна.";
     case "network_error":
-      return "Network error while changing status. Try again.";
+      return "Сетевая ошибка при смене статуса. Повторите попытку.";
     default:
-      return "Status change failed.";
+      return "Не удалось сменить статус.";
   }
 }

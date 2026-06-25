@@ -34,7 +34,7 @@ export function useAccountBootstrap(): Readonly<{
       } catch (error: unknown) {
         if (!cancelled) {
           const message =
-            error instanceof Error ? error.message : "Bootstrap failed";
+            error instanceof Error ? error.message : "Ошибка инициализации";
           setErrorMessage(message);
           setStatus("error");
         }

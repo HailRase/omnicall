@@ -47,7 +47,7 @@ export function CallLinesShell({
     <section
       className={styles["panel"]}
       data-testid="call-lines-panel"
-      aria-label="Active call lines"
+      aria-label="Активные линии звонков"
     >
       {shell.policyErrorMessage !== null && !compact ? (
         <p

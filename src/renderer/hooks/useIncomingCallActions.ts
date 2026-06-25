@@ -70,10 +70,10 @@ export function useIncomingCallActions(
 
   const answerDisabledReason =
     incomingCallProjection.uiState === "rejecting"
-      ? "Reject in progress"
+      ? "Отклонение выполняется"
       : policyAnswerDisabled;
   const rejectDisabledReason =
-    incomingCallProjection.uiState === "answering" ? "Answer in progress" : null;
+    incomingCallProjection.uiState === "answering" ? "Ответ выполняется" : null;
 
   return {
     handleAnswerIncoming,

@@ -70,7 +70,7 @@ export function LogoutActiveSessionConfirmationModal({
     <section
       ref={modalRef}
       role="dialog"
-      aria-label="Confirm end session"
+      aria-label="Подтверждение завершения сессии"
       aria-modal="true"
       tabIndex={-1}
       className={dialogStyles["modal"]}
@@ -81,22 +81,22 @@ export function LogoutActiveSessionConfirmationModal({
         <span className={styles["titleIcon"]}>
           <AppIcon id="session.end" decorative />
         </span>
-        End session
+        Завершить сессию
       </h2>
       <p>Есть активный звонок. Завершить звонки и выйти?</p>
 
       <div className={dialogStyles["actions"]}>
         <IconControlButton
           iconId="session.end"
-          ariaLabel="Confirm end session"
+          ariaLabel="Подтвердить завершение сессии"
           testId="control-logout-confirm"
           className={styles["iconButton"]}
           onClick={onConfirm}
         />
         <IconControlButton
           iconId="overlay.close"
-          ariaLabel="Cancel end session"
-          tooltipLabel="Cancel"
+          ariaLabel="Отменить завершение сессии"
+          tooltipLabel="Отмена"
           testId="control-logout-cancel"
           className={styles["iconButton"]}
           onClick={onCancel}

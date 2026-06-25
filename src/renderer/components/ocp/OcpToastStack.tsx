@@ -22,7 +22,7 @@ export function OcpToastStack({ toasts, onDismiss }: OcpToastStackProps): JSX.El
   return (
     <section
       className={styles["stack"]}
-      aria-label="OCP notifications"
+      aria-label="Уведомления OCP"
       data-testid="ocp-toast-stack"
     >
       {toasts.map((toast) => (
@@ -41,8 +41,8 @@ export function OcpToastStack({ toasts, onDismiss }: OcpToastStackProps): JSX.El
           <p className={styles["message"]}>{toast.message}</p>
           <IconControlButton
             iconId="overlay.close"
-            ariaLabel="Dismiss notification"
-            tooltipLabel="Dismiss"
+            ariaLabel="Закрыть уведомление"
+            tooltipLabel="Закрыть"
             className={styles["dismiss"]}
             onClick={() => {
               onDismiss(toast.id);

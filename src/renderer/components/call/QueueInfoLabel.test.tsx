@@ -19,9 +19,9 @@ describe("QueueInfoLabel", () => {
   it("renders pending with aria-busy when loading", () => {
     render(<QueueInfoLabel labelState="loading" queueName={null} />);
     const label = screen.getByTestId("queue-info-label");
-    expect(label).toHaveTextContent("Pending");
+    expect(label).toHaveTextContent("Ожидание");
     expect(label).toHaveAttribute("aria-busy", "true");
-    expect(label).toHaveAttribute("aria-label", "Queue");
+    expect(label).toHaveAttribute("aria-label", "Очередь");
   });
 
   it("renders queue name when ready", () => {
@@ -34,7 +34,7 @@ describe("QueueInfoLabel", () => {
   it("renders N/A when na", () => {
     render(<QueueInfoLabel labelState="na" queueName={null} />);
     const label = screen.getByTestId("queue-info-label");
-    expect(label).toHaveTextContent("N/A");
+    expect(label).toHaveTextContent("Н/Д");
     expect(label).toHaveAttribute("aria-busy", "false");
   });
 });

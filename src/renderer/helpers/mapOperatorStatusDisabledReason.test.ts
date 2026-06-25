@@ -7,19 +7,19 @@ import {
 describe("mapOperatorStatusDisabledReason", () => {
   it("maps known disabled reason keys", () => {
     expect(mapOperatorStatusDisabledReason("ocp_not_connected")).toBe(
-      "Operator platform unavailable",
+      "Платформа оператора недоступна",
     );
     expect(mapOperatorStatusDisabledReason("invalid_transition")).toBe(
-      "Status change not allowed",
+      "Смена статуса недоступна",
     );
     expect(mapOperatorStatusDisabledReason("dnd_blocks_ready")).toBe(
-      "Ready unavailable while DND",
+      "«Готов» недоступен в режиме «Не беспокоить»",
     );
     expect(mapOperatorStatusDisabledReason("status_change_in_progress")).toBe(
-      "Status change in progress",
+      "Смена статуса выполняется",
     );
     expect(mapOperatorStatusDisabledReason("break_reason_required")).toBe(
-      "Break reason required",
+      "Требуется причина перерыва",
     );
   });
 
@@ -29,7 +29,7 @@ describe("mapOperatorStatusDisabledReason", () => {
 
   it("uses fallback for unknown keys via withFallback helper", () => {
     expect(mapOperatorStatusDisabledReasonWithFallback("unknown_reason")).toBe(
-      "Action unavailable",
+      "Действие недоступно",
     );
   });
 });

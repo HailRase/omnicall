@@ -19,14 +19,14 @@ export function mapQueueLabelState(
     case "hidden":
       return { visible: false, text: "", ariaBusy: false };
     case "loading":
-      return { visible: true, text: "Pending", ariaBusy: true };
+      return { visible: true, text: "Ожидание", ariaBusy: true };
     case "ready":
       return {
         visible: true,
-        text: queueName ?? "Unknown",
+        text: queueName ?? "Неизвестно",
         ariaBusy: false,
       };
     case "na":
-      return { visible: true, text: "N/A", ariaBusy: false };
+      return { visible: true, text: "Н/Д", ariaBusy: false };
   }
 }

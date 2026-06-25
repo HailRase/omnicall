@@ -42,7 +42,9 @@ describe("ConnectionOverlay", () => {
       />,
     );
 
-    expect(screen.getByTestId("reconnect-in-progress")).toHaveTextContent("Reconnecting now…");
+    expect(screen.getByTestId("reconnect-in-progress")).toHaveTextContent(
+      "Переподключение выполняется…",
+    );
     expect(screen.queryByTestId("reconnect-countdown")).not.toBeInTheDocument();
   });
 
@@ -57,11 +59,13 @@ describe("ConnectionOverlay", () => {
     );
 
     expect(screen.getByTestId("connection-overlay")).toBeInTheDocument();
-    expect(screen.getByTestId("reconnect-countdown")).toHaveTextContent("Next attempt in 4 seconds");
+    expect(screen.getByTestId("reconnect-countdown")).toHaveTextContent(
+      "Следующая попытка через 4 секунды",
+    );
     expect(screen.getByTestId("control-retry-connection")).toBeDisabled();
     expect(screen.getByTestId("control-retry-connection")).toHaveAttribute(
       "aria-label",
-      "Retry connection",
+      "Повторить подключение",
     );
   });
 
@@ -143,7 +147,7 @@ describe("ConnectionOverlay", () => {
       />,
     );
 
-    expect(screen.getByRole("region", { name: "Connection status" })).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: "Состояние подключения" })).toBeInTheDocument();
   });
 
   it("renders sip registration failed state with Russian failure reason", () => {
@@ -164,7 +168,7 @@ describe("ConnectionOverlay", () => {
     );
 
     expect(screen.getByRole("alertdialog")).toBeInTheDocument();
-    expect(screen.getByText("SIP registration failed")).toBeInTheDocument();
+    expect(screen.getByText("Ошибка регистрации SIP")).toBeInTheDocument();
     expect(screen.getByText(failureReason)).toBeInTheDocument();
     expect(screen.queryByTestId("reconnect-in-progress")).not.toBeInTheDocument();
   });
@@ -181,7 +185,7 @@ describe("ConnectionOverlay", () => {
     );
 
     expect(screen.getByTestId("reregister-in-progress")).toHaveTextContent(
-      "Re-registering now…",
+      "Перерегистрация выполняется…",
     );
     expect(screen.queryByTestId("reconnect-in-progress")).not.toBeInTheDocument();
   });

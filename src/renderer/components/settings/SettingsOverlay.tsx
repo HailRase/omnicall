@@ -56,7 +56,7 @@ export function SettingsOverlay({
           <span className={styles["legendIcon"]}>
             <AppIcon id="shell.settings" decorative />
           </span>
-          Call sessions
+          Сессии звонков
         </legend>
         <label className={styles["toggle"]} htmlFor="settings-multi-sessions">
           <input
@@ -67,15 +67,15 @@ export function SettingsOverlay({
             checked={multiSessionsEnabled}
             onChange={handleMultiSessionsChange}
           />
-          <span className={styles["toggleLabel"]}>Allow multiple call sessions</span>
+          <span className={styles["toggleLabel"]}>Разрешить несколько сессий звонков</span>
         </label>
         <p className={styles["hint"]} data-testid="settings-multi-sessions-hint">
-          When disabled, a second incoming or outgoing call is blocked while a call is active.
+          Если отключено, второй входящий или исходящий звонок блокируется при активном звонке.
         </p>
       </fieldset>
 
       <fieldset className={styles["fieldset"]}>
-        <legend className={styles["legend"]}>SIP recovery</legend>
+        <legend className={styles["legend"]}>Восстановление SIP</legend>
         <label className={styles["toggle"]} htmlFor="settings-sip-auto-reregister">
           <input
             id="settings-sip-auto-reregister"
@@ -85,10 +85,10 @@ export function SettingsOverlay({
             checked={sipAutoReregisterEnabled}
             onChange={handleSipAutoReregisterChange}
           />
-          <span className={styles["toggleLabel"]}>Automatic SIP re-registration</span>
+          <span className={styles["toggleLabel"]}>Автоматическая перерегистрация SIP</span>
         </label>
         <label className={styles["field"]} htmlFor="settings-sip-reregister-interval">
-          <span className={styles["fieldLabel"]}>Retry interval (seconds)</span>
+          <span className={styles["fieldLabel"]}>Интервал повтора (секунды)</span>
           <input
             id="settings-sip-reregister-interval"
             type="number"
@@ -101,8 +101,8 @@ export function SettingsOverlay({
           />
         </label>
         <p className={styles["hint"]} data-testid="settings-sip-recovery-hint">
-          Flat retry delay for SIP transport reconnect and registration failures (minimum{" "}
-          {MIN_SIP_REREGISTER_INTERVAL_SEC}s).
+          Фиксированная задержка повтора при потере SIP-транспорта и ошибках регистрации (минимум{" "}
+          {MIN_SIP_REREGISTER_INTERVAL_SEC} с).
         </p>
       </fieldset>
     </form>

@@ -34,40 +34,40 @@ export function AuthStateView({
       return (
         <AuthScreen
           testId="auth-loading"
-          title="Loading"
-          message="Authorization in progress…"
+          title="Загрузка"
+          message="Выполняется авторизация…"
         />
       );
     case "ocp_session_exists":
       return (
         <AuthScreen
           testId="auth-session-exists"
-          title="Session already exists"
-          message={lastError ?? "Another OCP session is active."}
+          title="Сессия уже существует"
+          message={lastError ?? "Активна другая сессия OCP."}
         />
       );
     case "ocp_invalid_token":
       return (
         <AuthScreen
           testId="auth-invalid-token"
-          title="Invalid token"
-          message={lastError ?? "OCP token is invalid."}
+          title="Недействительный токен"
+          message={lastError ?? "Токен OCP недействителен."}
         />
       );
     case "access_denied":
       return (
         <AuthScreen
           testId="auth-access-denied"
-          title="Access denied"
-          message={lastError ?? "Access denied without valid account identity."}
+          title="Доступ запрещён"
+          message={lastError ?? "Доступ запрещён: нет корректной учётной записи."}
         />
       );
     case "sip_registration_failed":
       return (
         <AuthScreen
           testId="auth-registration-failed"
-          title="Registration failed"
-          message={lastError ?? "SIP registration failed."}
+          title="Ошибка регистрации"
+          message={lastError ?? "Не удалось зарегистрировать SIP."}
         />
       );
     default:

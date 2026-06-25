@@ -13,7 +13,7 @@ export function AutoAnswerCountdown({
 
   return (
     <p data-testid="auto-answer-countdown" aria-live="polite">
-      Auto answer in {secondsRemaining}s
+      Автоответ через {secondsRemaining} с
     </p>
   );
 }

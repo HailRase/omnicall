@@ -52,7 +52,7 @@ describe("TransferPanel", () => {
 
     const reason = screen.getByTestId("transfer-disabled-reason");
     expect(reason).toHaveAttribute("role", "status");
-    expect(reason).toHaveTextContent("Transfer in progress");
+    expect(reason).toHaveTextContent("Перевод выполняется");
   });
 
   it("disables controls when projection supplies disabled reasons", () => {

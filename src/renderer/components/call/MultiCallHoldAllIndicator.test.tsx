@@ -12,7 +12,7 @@ describe("MultiCallHoldAllIndicator", () => {
   it("shows multi-call-hold-all-indicator when visible", () => {
     render(<MultiCallHoldAllIndicator visible />);
     expect(screen.getByTestId("multi-call-hold-all-indicator")).toHaveTextContent(
-      "Holding other calls…",
+      "Удержание других звонков…",
     );
   });
 

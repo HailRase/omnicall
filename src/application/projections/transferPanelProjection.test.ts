@@ -75,7 +75,7 @@ describe("transferPanelProjection", () => {
     });
 
     expect(resolveTransferFailureMessage(transfer, null)).toBe(
-      "Transfer failed: REFER rejected",
+      "Ошибка перевода: REFER rejected",
     );
   });
 
@@ -91,7 +91,7 @@ describe("transferPanelProjection", () => {
     });
 
     expect(resolveTransferFailureMessage(transfer, "busy")).toBe(
-      "Consultation failed: busy",
+      "Ошибка консультации: busy",
     );
   });
 

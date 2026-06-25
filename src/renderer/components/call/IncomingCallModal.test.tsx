@@ -34,7 +34,7 @@ describe("IncomingCallModal", () => {
 
     expect(screen.getByTestId("incoming-call-modal")).toBeInTheDocument();
     expect(screen.getByTestId("caller-identity")).toHaveTextContent("Alice");
-    expect(screen.getByTestId("auto-answer-countdown")).toHaveTextContent("3s");
+    expect(screen.getByTestId("auto-answer-countdown")).toHaveTextContent("Автоответ через 3 с");
   });
 
   it("shows queue-info-label when OCP queue is loading", () => {
@@ -60,7 +60,7 @@ describe("IncomingCallModal", () => {
       />,
     );
 
-    expect(screen.getByTestId("queue-info-label")).toHaveTextContent("Pending");
+    expect(screen.getByTestId("queue-info-label")).toHaveTextContent("Ожидание");
   });
 
   it("shows campaign context line when provided", () => {

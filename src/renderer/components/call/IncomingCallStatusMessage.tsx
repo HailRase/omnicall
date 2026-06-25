@@ -10,7 +10,7 @@ export function IncomingCallStatusMessage({
 }: IncomingCallStatusMessageProps): JSX.Element {
   return (
     <p data-testid="incoming-call-status">
-      <strong>Status:</strong> {toStatusLabel(uiState)}
+      <strong>Статус:</strong> {toStatusLabel(uiState)}
     </p>
   );
 }
@@ -18,18 +18,18 @@ export function IncomingCallStatusMessage({
 function toStatusLabel(uiState: IncomingCallUiState): string {
   switch (uiState) {
     case "answerFailed":
-      return "Answer failed";
+      return "Ошибка ответа";
     case "rejectFailed":
-      return "Reject failed";
+      return "Ошибка отклонения";
     case "dndAutoRejecting":
-      return "Auto rejecting by DND";
+      return "Автоотклонение по режиму «Не беспокоить»";
     case "incomingEndedBeforeAnswer":
-      return "Ended before answer";
+      return "Завершён до ответа";
     case "answering":
-      return "Answering";
+      return "Ответ выполняется";
     case "rejecting":
-      return "Rejecting";
+      return "Отклонение выполняется";
     default:
-      return "Ringing";
+      return "Вызов";
   }
 }

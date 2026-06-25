@@ -16,7 +16,7 @@ export type UserAvatarProps = Readonly<{
  */
 export function UserAvatar({
   initials,
-  ariaLabel = "User avatar",
+  ariaLabel = "Аватар пользователя",
   onClick,
 }: UserAvatarProps): JSX.Element {
   const className = clsx(

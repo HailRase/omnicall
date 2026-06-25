@@ -22,10 +22,10 @@ export function SessionFeatureShell({
           {sessionLogoutActions.shell.logoutErrorMessage}
           <button
             type="button"
-            aria-label="Retry end session"
+            aria-label="Повторить завершение сессии"
             onClick={sessionLogoutActions.handleRetryLogout}
           >
-            Retry
+            Повторить
           </button>
         </p>
       )}

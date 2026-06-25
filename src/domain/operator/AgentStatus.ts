@@ -18,10 +18,10 @@ export function isAgentStatus(value: string): value is AgentStatus {
 export function agentStatusLabel(status: AgentStatus): string {
   switch (status) {
     case "ready":
-      return "Ready";
+      return "Готов";
     case "break":
-      return "Break";
+      return "Перерыв";
     case "post_call":
-      return "Post-call";
+      return "Постобработка";
   }
 }

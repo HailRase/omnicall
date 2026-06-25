@@ -33,9 +33,9 @@ export function StatusTimer({
       data-testid="status-timer"
       role="status"
       aria-live="off"
-      aria-label={`Time in status: ${formattedDuration}`}
+      aria-label={`Время в статусе: ${formattedDuration}`}
     >
-      In status: <strong>{formattedDuration}</strong>
+      В статусе: <strong>{formattedDuration}</strong>
     </p>
   );
 }

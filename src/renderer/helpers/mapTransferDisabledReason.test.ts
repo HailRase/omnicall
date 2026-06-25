@@ -7,16 +7,16 @@ import {
 describe("mapTransferDisabledReason", () => {
   it("maps transfer_mode_active", () => {
     expect(mapTransferDisabledReason("transfer_mode_active")).toBe(
-      "Transfer mode already active",
+      "Режим перевода уже активен",
     );
   });
 
   it("maps transfer_in_progress", () => {
-    expect(mapTransferDisabledReason("transfer_in_progress")).toBe("Transfer in progress");
+    expect(mapTransferDisabledReason("transfer_in_progress")).toBe("Перевод выполняется");
   });
 
   it("maps transfer_not_allowed", () => {
-    expect(mapTransferDisabledReason("transfer_not_allowed")).toBe("Transfer not available");
+    expect(mapTransferDisabledReason("transfer_not_allowed")).toBe("Перевод недоступен");
   });
 
   it("returns null for non-transfer keys", () => {
@@ -24,6 +24,6 @@ describe("mapTransferDisabledReason", () => {
   });
 
   it("uses fallback for unknown keys", () => {
-    expect(mapTransferDisabledReasonWithFallback("unknown_reason")).toBe("Action unavailable");
+    expect(mapTransferDisabledReasonWithFallback("unknown_reason")).toBe("Действие недоступно");
   });
 });

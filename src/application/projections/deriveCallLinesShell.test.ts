@@ -54,7 +54,7 @@ describe("deriveCallLinesShell", () => {
     expect(shell.visible).toBe(true);
     expect(shell.lines).toHaveLength(1);
     expect(shell.lines[0]?.displayName).toBe("+12025550100");
-    expect(shell.lines[0]?.statusLabel).toBe("On line");
+    expect(shell.lines[0]?.statusLabel).toBe("На линии");
     expect(shell.lines[0]?.primaryAction).toBe("hangup");
     expect(shell.lines[0]?.showIconRow).toBe(true);
   });

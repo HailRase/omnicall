@@ -6,25 +6,25 @@
 export function mapTransferDisabledReason(reason: string): string | null {
   switch (reason) {
     case "no_active_call":
-      return "No active call";
+      return "Нет активного звонка";
     case "transfer_not_allowed":
-      return "Transfer not available";
+      return "Перевод недоступен";
     case "invalid_target":
-      return "Invalid transfer target";
+      return "Некорректный номер перевода";
     case "transfer_in_progress":
-      return "Transfer in progress";
+      return "Перевод выполняется";
     case "consultation_in_progress":
-      return "Consultation in progress";
+      return "Консультация выполняется";
     case "second_session_disabled":
-      return "Second session disabled";
+      return "Вторая сессия отключена";
     case "consultation_not_active":
-      return "Consultation not ready";
+      return "Консультация не готова";
     case "relationship_invalid":
-      return "Transfer relationship invalid";
+      return "Некорректная связь звонков для перевода";
     case "no_source_call":
-      return "No source call";
+      return "Нет исходного звонка";
     case "transfer_mode_active":
-      return "Transfer mode already active";
+      return "Режим перевода уже активен";
     default:
       return null;
   }
@@ -32,7 +32,7 @@ export function mapTransferDisabledReason(reason: string): string | null {
 
 export function mapTransferDisabledReasonWithFallback(
   reason: string,
-  fallback = "Action unavailable",
+  fallback = "Действие недоступно",
 ): string {
   return mapTransferDisabledReason(reason) ?? fallback;
 }

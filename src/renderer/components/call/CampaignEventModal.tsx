@@ -82,7 +82,7 @@ export function CampaignEventModal({
     <section
       ref={modalRef}
       role="dialog"
-      aria-label="Campaign request"
+      aria-label="Запрос кампании"
       aria-modal="true"
       tabIndex={-1}
       className={dialogStyles["modal"]}
@@ -90,7 +90,7 @@ export function CampaignEventModal({
       onKeyDown={handleKeyDown}
     >
       <h2>{title}</h2>
-      <p>Accept or reject this campaign request.</p>
+      <p>Примите или отклоните этот запрос кампании.</p>
 
       {responseError !== null && (
         <div className={styles["error"]} role="alert" data-testid="campaign-modal-error">
@@ -101,8 +101,8 @@ export function CampaignEventModal({
       <div className={dialogStyles["actions"]}>
         <IconControlButton
           iconId="action.confirm"
-          ariaLabel="Accept campaign request"
-          tooltipLabel="Accept"
+          ariaLabel="Принять запрос кампании"
+          tooltipLabel="Принять"
           testId="campaign-accept"
           className={styles["iconButton"]}
           disabledReason={
@@ -114,8 +114,8 @@ export function CampaignEventModal({
         />
         <IconControlButton
           iconId="call.reject"
-          ariaLabel="Reject campaign request"
-          tooltipLabel="Reject"
+          ariaLabel="Отклонить запрос кампании"
+          tooltipLabel="Отклонить"
           testId="campaign-reject"
           className={styles["iconButton"]}
           disabledReason={
@@ -127,7 +127,7 @@ export function CampaignEventModal({
         />
         <IconControlButton
           iconId="overlay.close"
-          ariaLabel="Close campaign request"
+          ariaLabel="Закрыть запрос кампании"
           testId="campaign-modal-close"
           className={styles["closeButton"]}
           disabled={!closeAllowed}

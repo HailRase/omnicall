@@ -21,7 +21,7 @@ describe("StatusSelector", () => {
     expect(screen.getByTestId("status-selector")).toBeInTheDocument();
     expect(screen.getByTestId("control-change-ready")).toBeInTheDocument();
     expect(screen.getByTestId("control-change-break")).toBeInTheDocument();
-    expect(screen.getByLabelText("Operator status")).toBeInTheDocument();
+    expect(screen.getByLabelText("Статус оператора")).toBeInTheDocument();
   });
 
   it("shows in-progress indicator when status change is pending", () => {
@@ -29,7 +29,7 @@ describe("StatusSelector", () => {
 
     const indicator = screen.getByTestId("status-change-in-progress");
     expect(indicator).toHaveAttribute("role", "status");
-    expect(indicator).toHaveTextContent("Status change in progress");
+    expect(indicator).toHaveTextContent("Смена статуса выполняется…");
   });
 
   it("shows rejection banner from last rejection reason", () => {
@@ -56,7 +56,7 @@ describe("StatusSelector", () => {
     renderSelector({ readyDisabledReason: "dnd_blocks_ready" });
 
     expect(screen.getByTestId("status-disabled-reason")).toHaveTextContent(
-      "Ready unavailable while DND",
+      "«Готов» недоступен в режиме «Не беспокоить»",
     );
   });
 

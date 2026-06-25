@@ -57,11 +57,11 @@ export function ActiveCallControlsPanel({
     <section
       className={styles["panel"]}
       data-testid="active-call-controls"
-      aria-label="Active call controls"
+      aria-label="Управление активным звонком"
     >
-      <h2 className={styles["title"]}>Active Call Controls</h2>
+      <h2 className={styles["title"]}>Управление звонком</h2>
       <p data-testid="active-call-mute-indicator">
-        <strong>Microphone:</strong> {muted ? "Muted" : "Unmuted"}
+        <strong>Микрофон:</strong> {muted ? "отключён" : "включён"}
       </p>
       {lastOperationError !== null && (
         <div
@@ -75,7 +75,7 @@ export function ActiveCallControlsPanel({
           <IconControlButton
             iconId="action.retry"
             ariaLabel={`Retry ${lastOperationError.operation}`}
-            tooltipLabel="Retry"
+            tooltipLabel="Повторить"
             testId="control-retry"
             className={styles["iconButton"]}
             onClick={onRetry}
@@ -85,7 +85,7 @@ export function ActiveCallControlsPanel({
       <div className={styles["actions"]}>
         <IconControlButton
           iconId="call.hold"
-          ariaLabel="Hold call"
+          ariaLabel="Удержать звонок"
           testId="control-hold"
           className={styles["iconButton"]}
           disabledReason={mapDisabledReason(holdDisabledReason)}
@@ -93,7 +93,7 @@ export function ActiveCallControlsPanel({
         />
         <IconControlButton
           iconId="call.resume"
-          ariaLabel="Resume call"
+          ariaLabel="Возобновить звонок"
           testId="control-resume"
           className={styles["iconButton"]}
           disabledReason={mapDisabledReason(resumeDisabledReason)}
@@ -101,7 +101,7 @@ export function ActiveCallControlsPanel({
         />
         <IconControlButton
           iconId="call.mute"
-          ariaLabel="Mute microphone"
+          ariaLabel="Отключить микрофон"
           testId="control-mute"
           className={styles["iconButton"]}
           disabledReason={mapDisabledReason(muteDisabledReason)}
@@ -109,7 +109,7 @@ export function ActiveCallControlsPanel({
         />
         <IconControlButton
           iconId="call.unmute"
-          ariaLabel="Unmute microphone"
+          ariaLabel="Включить микрофон"
           testId="control-unmute"
           className={styles["iconButton"]}
           disabledReason={mapDisabledReason(unmuteDisabledReason)}
@@ -117,7 +117,7 @@ export function ActiveCallControlsPanel({
         />
         <IconControlButton
           iconId="call.hangup"
-          ariaLabel="Hang up call"
+          ariaLabel="Завершить звонок"
           testId="control-hangup"
           className={styles["iconButton"]}
           disabledReason={mapDisabledReason(hangupDisabledReason)}
@@ -125,7 +125,7 @@ export function ActiveCallControlsPanel({
         />
         <IconControlButton
           iconId="call.transfer"
-          ariaLabel="Transfer call"
+          ariaLabel="Перевести звонок"
           testId="control-transfer"
           className={styles["iconButton"]}
           disabledReason={mapDisabledReason(transferDisabledReason)}

@@ -4,20 +4,20 @@ export function mapDialpadDisabledReason(disabledState: string | null): string |
   }
   switch (disabledState) {
     case "disabledByNotRegistered":
-      return "Not registered";
+      return "Не зарегистрирован";
     case "invalidNumber":
-      return "Invalid number";
+      return "Некорректный номер";
     case "disabledByOcpReserved":
-      return "OCP reserved";
+      return "Зарезервировано OCP";
     case "disabledBySecondSessionPolicy":
-      return "Second session disabled";
+      return "Вторая сессия отключена";
     case "disabledByHoldAllInProgress":
-      return "Holding other calls…";
+      return "Удержание других звонков…";
     case "disabledByConnectingInProgress":
-      return "Call connecting…";
+      return "Соединение…";
     case "calling":
-      return "Call already connecting";
+      return "Звонок уже соединяется";
     default:
-      return "Action unavailable";
+      return "Действие недоступно";
   }
 }

@@ -110,6 +110,20 @@ Examples:
 
 Disabled state must come from projection, not local component guesses.
 
+## Language (Russian UI)
+
+All user-visible copy must be in **Russian**:
+
+- labels, buttons, headings, hints, placeholders
+- error and policy banners, disabled reasons, tooltips
+- `aria-label`, `aria-labelledby`, and live-region messages
+
+Technical identifiers stay English: `data-testid`, projection reason keys, Domain enums.
+
+v1: inline Russian strings in renderer helpers, projections, and components — no i18n framework unless an ADR adds one.
+
+New UI work: assert Russian copy in component tests; do not introduce English user-facing strings.
+
 ## Accessibility
 
 Every interactive control must have:

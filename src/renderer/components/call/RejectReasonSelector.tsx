@@ -17,10 +17,10 @@ export function RejectReasonSelector({
 }: RejectReasonSelectorProps): JSX.Element {
   return (
     <label>
-      Reject reason
+      Причина отклонения
       <select
         data-testid="reject-reason-select"
-        aria-label="Reject reason"
+        aria-label="Причина отклонения"
         required={required}
         disabled={disabled}
         value={selectedReason ?? ""}
@@ -28,7 +28,7 @@ export function RejectReasonSelector({
           onSelect(event.target.value);
         }}
       >
-        <option value="">Select reason</option>
+        <option value="">Выберите причину</option>
         {reasons.map((reason) => (
           <option key={reason} value={reason}>
             {reason}

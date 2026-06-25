@@ -3,17 +3,17 @@ export function registrationLabel(
   authUiState: string,
 ): string {
   if (authUiState === "sip_registering") {
-    return "Registering";
+    return "Регистрация";
   }
 
   switch (registrationState) {
     case "registered":
-      return "Registered";
+      return "Зарегистрирован";
     case "failed":
-      return "Failed";
+      return "Ошибка";
     case "registering":
-      return "Registering";
+      return "Регистрация";
     default:
-      return "Not registered";
+      return "Не зарегистрирован";
   }
 }

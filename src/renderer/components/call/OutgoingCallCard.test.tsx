@@ -18,7 +18,7 @@ describe("OutgoingCallCard", () => {
       />,
     );
 
-    expect(screen.getByTestId("call-state-label")).toHaveTextContent("Failed");
+    expect(screen.getByTestId("call-state-label")).toHaveTextContent("Ошибка");
     expect(screen.getByTestId("call-failed-alert")).toHaveTextContent("Busy");
   });
 });

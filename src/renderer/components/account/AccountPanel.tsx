@@ -32,10 +32,10 @@ export function AccountPanel({
 
   return (
     <section className={panelStyles["panel"]} data-testid="account-panel">
-      <h2>SIP Account</h2>
+      <h2>SIP-аккаунт</h2>
       <form className={styles["form"]} onSubmit={handleSubmit}>
         <label className={styles["label"]}>
-          Username
+          Имя пользователя
           <input
             className={styles["input"]}
             value={form.username}
@@ -46,7 +46,7 @@ export function AccountPanel({
           />
         </label>
         <label className={styles["label"]}>
-          Password
+          Пароль
           <input
             className={styles["input"]}
             type="password"
@@ -58,7 +58,7 @@ export function AccountPanel({
           />
         </label>
         <label className={styles["label"]}>
-          Domain
+          Домен
           <input
             className={styles["input"]}
             value={form.domain}
@@ -69,7 +69,7 @@ export function AccountPanel({
           />
         </label>
         <label className={styles["label"]}>
-          Server
+          Сервер
           <input
             className={styles["input"]}
             value={form.server}
@@ -80,7 +80,7 @@ export function AccountPanel({
           />
         </label>
         <button type="submit" disabled={disabled || submitting}>
-          Authorize and register
+          Авторизоваться и зарегистрироваться
         </button>
       </form>
       {error !== null && (

@@ -13,10 +13,10 @@ export function isPhoneStatus(value: string): value is PhoneStatus {
 export function phoneStatusLabel(status: PhoneStatus): string {
   switch (status) {
     case "online":
-      return "Online";
+      return "В сети";
     case "offline":
-      return "Offline";
+      return "Не в сети";
     case "dnd":
-      return "DND";
+      return "Не беспокоить";
   }
 }

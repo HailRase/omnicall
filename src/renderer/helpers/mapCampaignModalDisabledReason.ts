@@ -6,9 +6,9 @@
 export function mapCampaignModalDisabledReason(reason: string): string | null {
   switch (reason) {
     case "campaign_response_in_progress":
-      return "Campaign response in progress";
+      return "Ответ на кампанию выполняется";
     case "ocp_unavailable":
-      return "OCP unavailable";
+      return "OCP недоступен";
     default:
       return null;
   }
@@ -16,7 +16,7 @@ export function mapCampaignModalDisabledReason(reason: string): string | null {
 
 export function mapCampaignModalDisabledReasonWithFallback(
   reason: string,
-  fallback = "Action unavailable",
+  fallback = "Действие недоступно",
 ): string {
   return mapCampaignModalDisabledReason(reason) ?? fallback;
 }

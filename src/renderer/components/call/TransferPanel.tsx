@@ -51,13 +51,13 @@ export function TransferPanel({
     <section
       className={styles["panel"]}
       data-testid="transfer-panel"
-      aria-label="Transfer call"
+      aria-label="Перевод звонка"
     >
       <h2 className={styles["title"]}>
         <span className={styles["titleIcon"]}>
           <AppIcon id="call.transfer" decorative />
         </span>
-        Transfer Call
+        Перевод звонка
       </h2>
 
       {transferInProgress && (
@@ -67,7 +67,7 @@ export function TransferPanel({
           role="status"
           aria-live="polite"
         >
-          Transfer in progress…
+          Перевод выполняется…
         </p>
       )}
 
@@ -84,7 +84,7 @@ export function TransferPanel({
       <MultiLineCallList lines={lines} />
 
       <label className={styles["targetLabel"]} htmlFor="transfer-target-input">
-        Transfer target
+        Номер перевода
       </label>
       <input
         id="transfer-target-input"
@@ -92,7 +92,7 @@ export function TransferPanel({
         data-testid="transfer-target-input"
         type="tel"
         value={targetNumber}
-        aria-label="Transfer target number"
+        aria-label="Номер для перевода"
         onChange={(event) => {
           onTargetChange(event.currentTarget.value);
         }}
@@ -101,8 +101,8 @@ export function TransferPanel({
       <div className={styles["actions"]}>
         <IconControlButton
           iconId="call.transfer"
-          ariaLabel="Blind transfer"
-          tooltipLabel="Blind transfer"
+          ariaLabel="Слепой перевод"
+          tooltipLabel="Слепой перевод"
           testId="control-blind-transfer"
           className={styles["iconButton"]}
           disabledReason={
@@ -114,7 +114,7 @@ export function TransferPanel({
         />
         <IconControlButton
           iconId="transfer.consultation"
-          ariaLabel="Start consultation"
+          ariaLabel="Начать консультацию"
           testId="control-start-consultation"
           className={styles["iconButton"]}
           disabledReason={
@@ -126,8 +126,8 @@ export function TransferPanel({
         />
         <IconControlButton
           iconId="action.confirm"
-          ariaLabel="Complete attended transfer"
-          tooltipLabel="Complete attended transfer"
+          ariaLabel="Завершить перевод с консультацией"
+          tooltipLabel="Завершить перевод с консультацией"
           testId="control-attended-transfer"
           className={styles["iconButton"]}
           disabledReason={
@@ -139,8 +139,8 @@ export function TransferPanel({
         />
         <IconControlButton
           iconId="overlay.close"
-          ariaLabel="Cancel transfer"
-          tooltipLabel="Cancel transfer"
+          ariaLabel="Отменить перевод"
+          tooltipLabel="Отменить перевод"
           testId="control-cancel-transfer"
           className={styles["iconButton"]}
           disabledReason={

@@ -158,7 +158,7 @@ export function useCampaignActions(
   return {
     campaignContextTitle,
     modalOpen: modalOpen && campaign !== null && !campaign.progressive,
-    modalTitle: campaign?.title ?? "Campaign request",
+    modalTitle: campaign?.title ?? "Запрос кампании",
     progressive: campaign?.progressive ?? false,
     acceptDisabledReason,
     rejectDisabledReason,

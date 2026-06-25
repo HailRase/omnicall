@@ -12,29 +12,29 @@ export type CallLineStatusInput = Readonly<{
  */
 export function deriveCallLineStatusLabel(input: CallLineStatusInput): string {
   if (input.isRemoteHold === true) {
-    return "On remote hold";
+    return "На удалённом удержании";
   }
 
   switch (input.state) {
     case "Connecting":
-      return "Connecting";
+      return "Соединение";
     case "Ringing":
-      return "Ringing";
+      return "Вызов";
     case "Active":
-      return "On line";
+      return "На линии";
     case "Held":
-      return "On hold";
+      return "На удержании";
     case "Transferring":
-      return "Transferring";
+      return "Перевод";
     case "Ending":
-      return "Ending";
+      return "Завершение";
     case "Ended":
-      return "Ended";
+      return "Завершён";
     case "Failed":
-      return "Failed";
+      return "Ошибка";
     case "Idle":
-      return "Idle";
+      return "Ожидание";
     default:
-      return "Unknown";
+      return "Неизвестно";
   }
 }

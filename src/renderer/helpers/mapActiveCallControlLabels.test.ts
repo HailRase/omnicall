@@ -7,13 +7,13 @@ import {
 describe("mapActiveCallControlLabels", () => {
   it("maps hold_requires_active reason", () => {
     expect(mapActiveCallControlDisabledReason("hold_requires_active")).toBe(
-      "Hold requires active call",
+      "Удержание доступно только на активном звонке",
     );
   });
 
   it("maps transfer_mode_active via transfer helper", () => {
     expect(mapActiveCallControlDisabledReason("transfer_mode_active")).toBe(
-      "Transfer mode already active",
+      "Режим перевода уже активен",
     );
   });
 
@@ -23,6 +23,6 @@ describe("mapActiveCallControlLabels", () => {
         operation: "hold",
         message: "Hold failed for call-1",
       }),
-    ).toBe("Hold failed: Hold failed for call-1");
+    ).toBe("Удержание: ошибка — Hold failed for call-1");
   });
 });

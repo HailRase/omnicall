@@ -98,11 +98,11 @@ function deriveLogoutConfirmationRequired(input: SessionLogoutShellInput): boole
 
 function deriveEndSessionDisabledReason(input: SessionLogoutShellInput): string | null {
   if (input.logoutInProgress) {
-    return "Logout in progress";
+    return "Выход выполняется";
   }
 
   if (input.authUiState === "sip_registering") {
-    return "Registration in progress";
+    return "Регистрация выполняется";
   }
 
   return null;

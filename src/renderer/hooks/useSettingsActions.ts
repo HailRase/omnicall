@@ -22,7 +22,7 @@ type UseSettingsActionsResult = Readonly<{
 }>;
 
 function resolveSettingsUpdateError(error: unknown): string {
-  return error instanceof Error ? error.message : "Failed to save settings";
+  return error instanceof Error ? error.message : "Не удалось сохранить настройки";
 }
 
 /**

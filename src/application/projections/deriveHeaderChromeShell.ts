@@ -30,18 +30,18 @@ function deriveRegistrationStatusLabel(
   registrationState: RegistrationState,
 ): string {
   if (authUiState === "sip_registering") {
-    return "Registering";
+    return "Регистрация";
   }
 
   switch (registrationState) {
     case "registered":
-      return "Registered";
+      return "Зарегистрирован";
     case "failed":
-      return "Failed";
+      return "Ошибка";
     case "registering":
-      return "Registering";
+      return "Регистрация";
     default:
-      return "Not registered";
+      return "Не зарегистрирован";
   }
 }
 
@@ -109,6 +109,6 @@ export function deriveHeaderChromeShell(
     registrationStatusLabel,
     phoneStatusLabel: phoneLabel,
     avatarInitials: deriveAvatarInitials(input.agentId),
-    registrationDotAriaLabel: `Registration ${registrationStatusLabel}, phone ${phoneLabel}`,
+    registrationDotAriaLabel: `Регистрация: ${registrationStatusLabel}, телефон: ${phoneLabel}`,
   };
 }

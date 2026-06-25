@@ -38,7 +38,7 @@ export function ShellOverlaySheet({
       <button
         type="button"
         className={styles["backdrop"]}
-        aria-label="Close overlay"
+        aria-label="Закрыть панель"
         onClick={onClose}
       />
       <section className={styles["panel"]}>
@@ -46,7 +46,7 @@ export function ShellOverlaySheet({
           <h2 className={styles["title"]}>{title}</h2>
           <IconControlButton
             iconId="overlay.close"
-            ariaLabel={`Close ${title}`}
+            ariaLabel={`Закрыть: ${title}`}
             testId={`${testId}-close`}
             className={styles["closeButton"]}
             onClick={onClose}
@@ -55,7 +55,7 @@ export function ShellOverlaySheet({
         <div className={styles["body"]}>
           {children ?? (
             <p className={styles["placeholder"]} data-testid={`${testId}-placeholder`}>
-              Content will be added in a later work unit.
+              Содержимое будет добавлено в следующей рабочей единице.
             </p>
           )}
         </div>
