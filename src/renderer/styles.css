@@ -116,8 +116,7 @@
 }
 
 .account-panel button,
-.phone-status__actions button,
-.dialpad button {
+.phone-status__actions button {
   padding: 8px 12px;
   border-radius: 6px;
   border: 1px solid var(--color-border-control);
@@ -127,8 +126,7 @@
 }
 
 .account-panel button:disabled,
-.phone-status__actions button:disabled,
-.dialpad button:disabled {
+.phone-status__actions button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -153,7 +151,6 @@
   gap: 16px;
 }
 
-.dialpad,
 .outgoing-card,
 .active-call-controls {
   border: 1px solid var(--color-border-subtle);
@@ -163,53 +160,10 @@
   gap: 12px;
 }
 
-.dialpad__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.dialpad__header h2,
 .outgoing-card h2,
 .active-call-controls h2 {
   margin: 0;
   font-size: 1rem;
-}
-
-.dialpad__mode {
-  display: flex;
-  gap: 8px;
-}
-
-.dialpad__mode .is-active {
-  border-color: var(--color-border-focus);
-}
-
-.dialpad__input-label {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-}
-
-.dialpad__input {
-  width: 100%;
-  padding: 8px;
-  border-radius: 6px;
-  border: 1px solid var(--color-border-subtle);
-  background: var(--color-bg-surface-deep);
-  color: inherit;
-}
-
-.dialpad__keys {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(56px, 1fr));
-  gap: 8px;
-}
-
-.dialpad__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
 }
 
 .active-call-controls__actions {
@@ -234,7 +188,6 @@
   margin: 0;
 }
 
-.dialpad__disabled-reason,
 .outgoing-card__error {
   color: var(--color-text-danger);
 }

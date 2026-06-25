@@ -1,4 +1,6 @@
+import clsx from "clsx";
 import { useRef, type JSX, type KeyboardEvent } from "react";
+import styles from "./Dialpad.module.css";
 
 export type DialpadMode = "number" | "dtmf";
 
@@ -100,17 +102,17 @@ export function Dialpad({
 
   return (
     <section
-      className="dialpad"
+      className={styles["panel"]}
       data-testid="dialpad-panel"
       onKeyDown={handleKeyboard}
       aria-label="Dialpad panel"
     >
-      <header className="dialpad__header">
-        <h2>Dialpad</h2>
-        <div className="dialpad__mode" role="group" aria-label="Dialpad mode">
+      <header className={styles["header"]}>
+        <h2 className={styles["headerTitle"]}>Dialpad</h2>
+        <div className={styles["mode"]} role="group" aria-label="Dialpad mode">
           <button
             type="button"
-            className={mode === "number" ? "is-active" : ""}
+            className={clsx(mode === "number" && styles["modeActive"])}
             onClick={() => onModeChange("number")}
             data-testid="dialpad-mode-number"
           >
@@ -118,7 +120,7 @@ export function Dialpad({
           </button>
           <button
             type="button"
-            className={mode === "dtmf" ? "is-active" : ""}
+            className={clsx(mode === "dtmf" && styles["modeActive"])}
             onClick={() => onModeChange("dtmf")}
             data-testid="call-dtmf-toggle"
           >
@@ -127,19 +129,19 @@ export function Dialpad({
         </div>
       </header>
 
-      <label className="dialpad__input-label" htmlFor="dialpad-input">
+      <label className={styles["inputLabel"]} htmlFor="dialpad-input">
         Number
       </label>
       <input
         id="dialpad-input"
-        className="dialpad__input"
+        className={styles["input"]}
         value={numberValue}
         onChange={(event) => onNumberChange(event.currentTarget.value)}
         data-testid="dialpad-input"
         aria-label="Phone number input"
       />
 
-      <div className="dialpad__keys" role="group" aria-label="Dialpad keys">
+      <div className={styles["keys"]} role="group" aria-label="Dialpad keys">
         {KEYS.map((key) => {
           if (key === "0") {
             if (mode === "dtmf") {
@@ -185,7 +187,7 @@ export function Dialpad({
         })}
       </div>
 
-      <div className="dialpad__actions">
+      <div className={styles["actions"]}>
         <button type="button" onClick={onDelete} data-testid="dialpad-delete">
           Delete
         </button>
@@ -205,7 +207,7 @@ export function Dialpad({
 
       {callDisabledReason !== null && (
         <p
-          className="dialpad__disabled-reason"
+          className={styles["disabledReason"]}
           data-testid="dialpad-disabled-reason"
           role="status"
         >
@@ -215,4 +217,3 @@ export function Dialpad({
     </section>
   );
 }
-

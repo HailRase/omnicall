@@ -28,7 +28,8 @@ Related: **F-016**, UI phase **UI-4**. Foundation introduced 2026-06-25.
 | done | `SoftphoneShellHeader` | Slice A — header chrome module (WU5) |
 | done | `SettingsOverlay`, `ShellOverlaySheet` | Slice B — overlay sheets (WU5) |
 | done | `CallLineRow` | Slice C — call line row (WU5) |
-| next | `Dialpad.tsx`, controls | `.dialpad*` |
+| done | `Dialpad` | Slice D — dialpad panel (WU5) |
+| next | `ActiveCallControlsPanel`, `OutgoingCallCard` | remaining control panels |
 | last | Delete `styles.css` when empty | Gate UI-4 complete |
 
 ## Token reference
