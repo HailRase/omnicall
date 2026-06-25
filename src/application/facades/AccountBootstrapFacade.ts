@@ -17,6 +17,7 @@ import { ResumeCallUseCase } from "../use-cases/ResumeCallUseCase.js";
 import { AnswerCallUseCase } from "../use-cases/AnswerCallUseCase.js";
 import { RejectCallUseCase } from "../use-cases/RejectCallUseCase.js";
 import { RegisterAccountUseCase } from "../use-cases/RegisterAccountUseCase.js";
+import { UnregisterAccountUseCase } from "../use-cases/UnregisterAccountUseCase.js";
 import { ResolveStartupModeUseCase } from "../use-cases/ResolveStartupModeUseCase.js";
 import { SendDtmfUseCase } from "../use-cases/SendDtmfUseCase.js";
 import { UnmuteCallUseCase } from "../use-cases/UnmuteCallUseCase.js";
@@ -29,6 +30,7 @@ import { ChangeAgentStatusUseCase } from "../use-cases/ChangeAgentStatusUseCase.
 import { UpdatePostCallStatusUseCase } from "../use-cases/UpdatePostCallStatusUseCase.js";
 import { LogoutOperatorUseCase } from "../use-cases/LogoutOperatorUseCase.js";
 import { SafeLogoutUseCase } from "../use-cases/SafeLogoutUseCase.js";
+import { EndUserSessionUseCase } from "../use-cases/EndUserSessionUseCase.js";
 import { RetryConnectionUseCase } from "../use-cases/RetryConnectionUseCase.js";
 import { ShutdownCleanupUseCase } from "../use-cases/ShutdownCleanupUseCase.js";
 import { RegisterOcpCallCorrelationUseCase } from "../use-cases/RegisterOcpCallCorrelationUseCase.js";
@@ -39,6 +41,7 @@ import { SendDlgStopUseCase } from "../use-cases/SendDlgStopUseCase.js";
 import { CallEndDlgStopOrchestrationService } from "../services/CallEndDlgStopOrchestrationService.js";
 import { ConnectionRecoveryOrchestrationService } from "../services/ConnectionRecoveryOrchestrationService.js";
 import { ServerTerminateCleanupService } from "../services/ServerTerminateCleanupService.js";
+import { SessionTeardownOrchestrationService } from "../services/SessionTeardownOrchestrationService.js";
 import { InMemoryAgentStatusReadModel } from "../read-models/InMemoryAgentStatusReadModel.js";
 import { InMemoryConnectionRecoveryReadModel } from "../read-models/InMemoryConnectionRecoveryReadModel.js";
 import { InMemoryOcpCallCorrelationRegistry } from "../read-models/InMemoryOcpCallCorrelationRegistry.js";
@@ -85,6 +88,7 @@ export class AccountBootstrapFacade {
   readonly authenticateOcp: AuthenticateOcpUseCase;
   readonly authorizeSipAccount: AuthorizeSipAccountUseCase;
   readonly registerAccount: RegisterAccountUseCase;
+  readonly unregisterAccount: UnregisterAccountUseCase;
   readonly changePhoneStatus: ChangePhoneStatusUseCase;
   readonly makeCallUseCase: MakeCallUseCase;
   readonly hangupCallUseCase: HangupCallUseCase;
@@ -105,6 +109,7 @@ export class AccountBootstrapFacade {
   readonly logoutOperator: LogoutOperatorUseCase;
   readonly retryConnection: RetryConnectionUseCase;
   readonly safeLogout: SafeLogoutUseCase;
+  readonly endUserSession: EndUserSessionUseCase;
   readonly shutdownCleanup: ShutdownCleanupUseCase;
   readonly registerOcpCallCorrelation: RegisterOcpCallCorrelationUseCase;
   readonly processOcpInboundMessage: ProcessOcpInboundMessageUseCase;
@@ -232,6 +237,11 @@ export class AccountBootstrapFacade {
       this.eventPublisher,
       deps.logger,
     );
+    this.unregisterAccount = new UnregisterAccountUseCase(
+      deps.telephonyGateway,
+      this.eventPublisher,
+      deps.logger,
+    );
     this.changePhoneStatus = new ChangePhoneStatusUseCase(
       deps.settingsRepository,
       this.eventPublisher,
@@ -301,29 +311,38 @@ export class AccountBootstrapFacade {
       this.connectionRecoveryOrchestration,
       deps.logger,
     );
+
+    const sessionTeardownOrchestration = new SessionTeardownOrchestrationService({
+      connectionRecoveryOrchestration: this.connectionRecoveryOrchestration,
+      callEngine: this.callEngine,
+      mediaGateway: deps.mediaGateway,
+      unregisterAccount: this.unregisterAccount,
+      logger: deps.logger,
+    });
+
+    this.endUserSession = new EndUserSessionUseCase(
+      sessionTeardownOrchestration,
+      this.eventPublisher,
+      deps.logger,
+    );
     this.safeLogout = new SafeLogoutUseCase(
-      this.callEngine,
-      deps.telephonyGateway,
+      sessionTeardownOrchestration,
       deps.operatorGateway,
       agentStatusReadModel,
       this.eventPublisher,
       deps.logger,
     );
     this.shutdownCleanup = new ShutdownCleanupUseCase(
-      this.callEngine,
-      deps.telephonyGateway,
+      sessionTeardownOrchestration,
       deps.operatorGateway,
       agentStatusReadModel,
-      this.connectionRecoveryOrchestration,
       this.eventPublisher,
       deps.logger,
     );
     this.serverTerminateCleanup = new ServerTerminateCleanupService({
-      callEngine: this.callEngine,
-      telephonyGateway: deps.telephonyGateway,
+      sessionTeardown: sessionTeardownOrchestration,
       operatorGateway: deps.operatorGateway,
       agentStatusReadModel,
-      connectionRecoveryOrchestration: this.connectionRecoveryOrchestration,
       logger: deps.logger,
     });
     this.serverTerminateCleanup.subscribe(this.eventPublisher);
@@ -386,7 +405,8 @@ export class AccountBootstrapFacade {
         ? { account: authorizeResult.value }
         : { account: authorizeResult.value, correlationId };
 
-    return this.registerAccount.execute(registerInput);
+    const registerResult = await this.registerAccount.execute(registerInput);
+    return registerResult;
   }
 
   async setPhoneStatus(status: PhoneStatus): Promise<void> {
@@ -651,6 +671,12 @@ export class AccountBootstrapFacade {
 
   getReconnectScheduler() {
     return this.connectionRecoveryOrchestration.getScheduler();
+  }
+
+  endUserSessionCommand(correlationId?: CorrelationId) {
+    return this.endUserSession.execute(
+      correlationId === undefined ? {} : { correlationId },
+    );
   }
 
   dispose(): void {

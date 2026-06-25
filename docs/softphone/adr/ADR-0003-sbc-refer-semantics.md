@@ -6,7 +6,7 @@ DOCUMENT.
 
 ## Status
 
-Accepted
+Accepted — **partial on real SBC**; external off-net blind transfer and attended manual smoke moved to [TRANSFER-REAL-ADAPTER-BACKLOG.md](../real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md) (2026-06-25).
 
 ## Context
 

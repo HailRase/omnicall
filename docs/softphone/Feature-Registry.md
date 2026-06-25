@@ -210,7 +210,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - WU2: `TransferEligibility.test.ts`, `CallStateMachine.test.ts` (transfer transitions), `MockTelephonyGateway.blindTransfer.test.ts`, `BlindTransferUseCase.test.ts`, `CallEngine.blindTransfer.test.ts`, `transferProjection.test.ts`
   - WU4: `transferProjection.transferMode.test.ts`, `CallEngine.cancelTransfer.test.ts`, `TransferPanel.test.tsx`; WU1/WU2/WU3/P04 regression green
   - E2E transfer UI with mock gateway (deferred)
-- Real Adapter Track: in_progress (RAT step 07b — `buildBlindReferTarget` off-net `tel:` Refer-To; on-net `sip:@domain` unchanged; ADR-0003 amended; manual R6 smoke matrix A–D **pending**)
+- Real Adapter Track: **backlog** (RAT step 07/07b paused 2026-06-25). **Works on real SBC:** blind transfer to on-net extension (R6 A,D); failure banner + retry. **Does not work:** blind to off-net PSTN (R6 B,C). **Not verified:** attended transfer manual smoke. Mock path + unit tests green. Resume: `TRANSFER-REAL-ADAPTER-BACKLOG.md`.
 
 ## F-007: Attended Transfer
 
@@ -229,7 +229,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - WU1: domain policy unit tests; CallEngine hold-all / block / exclusive-resume; projection + integration chain
   - WU3: `CallRelationship.test.ts`, `AttendedTransferEligibility.test.ts`, `MockTelephonyGateway.attendedTransfer.test.ts`, `CallEngine.attendedTransfer.test.ts`, `attendedTransferOperations.test.ts`, `multiLineCallProjection.test.ts`, `activeCallControlsProjection.test.ts`; WU1/WU2/P04 regression green
   - E2E transfer UI with mock gateway (deferred)
-- Real Adapter Track: in_progress (RAT step 07 — `JsSipTelephonyAdapter.attendedTransfer` via REFER + Replaces; ADR-0003; unit tests green 2026-06-24; manual R6 smoke **pending**)
+- Real Adapter Track: **backlog** (RAT step 07 paused 2026-06-25). Adapter code landed (`attendedTransfer` REFER+Replaces); manual R6 **not run**. Resume: `TRANSFER-REAL-ADAPTER-BACKLOG.md`.
 
 ## F-008: DTMF
 
@@ -388,10 +388,12 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - OCP `server_terminate` inbound publishes `ServerTerminateReceived`, stops retries, and triggers safe teardown (LF-049, LF-048, WU3–WU4).
   - Manual retry via `RetryConnectionUseCase` from overlay and shell re-register control (LF-010, WU4).
   - App shutdown IPC triggers `ShutdownCleanupUseCase` with hangup, unregister, scheduler dispose (LF-079, WU4).
+  - SIP-only user logout via `EndUserSessionUseCase` and `SessionTeardownOrchestrationService`: dispose → hangupAll → `MediaGateway.releaseAll` → unregister → `UserSessionEnded` (LF-079, WU5).
+  - `control-end-session` with confirmation modal when active telephony; projections reset to `sip_only_ready` (WU5).
 - Test Coverage:
-  - Unit: `ReconnectPolicy`, recovery events, `connectionRecoveryProjection`, `ReconnectScheduler`, `deriveConnectionRecoveryShell`, `useReconnectCountdown`, `RetryConnectionUseCase`, `AppShutdownContract`
-  - Integration: `SipRecoveryOrchestration`, `OcpRecoveryOrchestration`, `ServerTerminate`, `ServerTerminateCleanup`, `ShutdownCleanup` (WU3–WU4)
-  - Component: `ConnectionOverlay` (WU3–WU4)
+  - Unit: `ReconnectPolicy`, recovery events, `connectionRecoveryProjection`, `ReconnectScheduler`, `deriveConnectionRecoveryShell`, `deriveSessionLogoutShell`, `useReconnectCountdown`, `RetryConnectionUseCase`, `EndUserSessionUseCase`, `SessionTeardownOrchestrationService`, `AppShutdownContract`
+  - Integration: `SipRecoveryOrchestration`, `OcpRecoveryOrchestration`, `ServerTerminate`, `ServerTerminateCleanup`, `ShutdownCleanup`, `SessionTeardown` (WU3–WU5)
+  - Component: `ConnectionOverlay` (WU3–WU4), `LogoutActiveSessionConfirmationModal` (WU5)
   - E2E: deferred until harness exists
 
 ## F-015: OCP Call Synchronization And Campaigns

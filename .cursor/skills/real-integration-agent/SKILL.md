@@ -42,7 +42,8 @@ If step is unspecified, read `PROGRESS.md` and review the latest step marked `do
 
 Read in order:
 
-1. `docs/softphone/OCP-PLUGIN-BACKLOG.md` — **OCP deferred; active track is SIP + step 07**
+1. `docs/softphone/OCP-PLUGIN-BACKLOG.md` — **OCP deferred; active track is SIP R1–R4 + main roadmap**
+2. `docs/softphone/real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md` — **transfer backlog**
 2. `docs/softphone/real-integration/PROGRESS.md` — step statuses, smoke, test count, blockers
 3. `docs/softphone/real-integration/00-SNAPSHOT.md` — frozen baseline (488 tests)
 4. Matching `docs/softphone/real-integration/step-NN-*.md` for the step under review
@@ -191,7 +192,7 @@ Step FAIL → **Refactor Prompt** only. Do not issue next step prompt.
 | 04 | Call lifecycle | F-002, F-003, LF-013–017, LF-020 | done |
 | 05 | Hold / mute | LF-022, LF-024, LF-027 | done |
 | 06 | OCP WebSocket | F-009, LF-001–004, LF-037–040 | **deferred** (ADR-0002) |
-| 07 | Transfer | LF-028, LF-029 | **active next** |
+| 07 | Transfer | LF-028, LF-029 | **backlog** |
 
 ## Onboarding for Continuation Prompts
 
@@ -212,6 +213,7 @@ Always list for implementation agent:
 - Create work-history for review-only sessions
 - Merge to master without smoke for current **SIP** slice (R1–R4 closed; R5 deferred)
 - Prompt or gate on OCP / R5 unless user resumes `OCP-PLUGIN-BACKLOG.md`
+- Prompt or gate on transfer / R6 unless user resumes `TRANSFER-REAL-ADAPTER-BACKLOG.md`
 
 ## Decision flow
 
@@ -232,7 +234,8 @@ Full **Refactor Prompt** and **Continuation Prompt**: [templates.md](templates.m
 | Branch | `feature/real-adapters` |
 | Baseline tests | 488 (00-SNAPSHOT) |
 | OCP | **deferred** (ADR-0002) |
-| Active RAT step | **07 transfer** |
+| Transfer R6 | **backlog** |
+| Active RAT | **R1–R4 closed**; main roadmap next |
 | SIP smoke R1–R4 | closed |
 
 Refresh from repo during Discovery; do not treat this table as authoritative.

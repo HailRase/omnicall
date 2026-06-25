@@ -59,6 +59,10 @@ export type UnmuteCallCommand = Readonly<{
   correlationId: CorrelationId;
 }>;
 
+export type ReleaseAllMediaCommand = Readonly<{
+  correlationId: CorrelationId;
+}>;
+
 export type RemoteAudioAttachOutcome = "attached" | "deferred";
 
 export interface MediaGateway {
@@ -84,5 +88,6 @@ export interface MediaGateway {
   stopRingtone(command: StopRingtoneCommand): Promise<Result<void, PlatformError>>;
   muteCall(command: MuteCallCommand): Promise<Result<void, PlatformError>>;
   unmuteCall(command: UnmuteCallCommand): Promise<Result<void, PlatformError>>;
+  releaseAll(command: ReleaseAllMediaCommand): Promise<Result<void, PlatformError>>;
 }
 

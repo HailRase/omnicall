@@ -1,0 +1,29 @@
+---
+description: Real SIP transfer (RAT step 07) is backlog; do not gate core work on R6
+alwaysApply: true
+---
+
+# RULE: Transfer Real Adapter Backlog
+
+Read before any real-adapter transfer work:
+
+```txt
+docs/softphone/real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md
+docs/softphone/adr/ADR-0003-sbc-refer-semantics.md
+```
+
+## Mandatory behavior
+
+- Mock transfer (P05) remains **complete** in CI — do not regress.
+- Real adapter transfer is **partial** — on-net blind works; off-net blind fails; attended not smoke-verified.
+- Do **not** implement or smoke-gate other work on R6 completion unless user resumes transfer backlog.
+- Do **not** ask whether to finish transfer — status is **BACKLOG** in backlog doc.
+- Do **not** remove transfer adapter code, ports, or ADR-0003 without ADR.
+
+## Active priority
+
+Core telephony: F-001–F-005 RAT R1–R4 (closed), F-008 DTMF real, P08 SIP recovery, P10 headset, branch merge for SIP core slice.
+
+## Resume
+
+Only when user says «resume transfer backlog» or cites `TRANSFER-REAL-ADAPTER-BACKLOG.md`.

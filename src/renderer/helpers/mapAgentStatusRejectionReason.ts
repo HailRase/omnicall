@@ -1,4 +1,4 @@
-import type { AgentStatusRejectionReason } from "@domain/index.js";
+import type { AgentStatusRejectionReason } from "@application/index.js";
 
 /**
  * - Purpose: map agent status rejection reason keys to user-visible banner copy.

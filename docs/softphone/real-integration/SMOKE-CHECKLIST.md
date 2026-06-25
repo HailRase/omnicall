@@ -36,11 +36,13 @@
 - [x] Hold / resume
 - [x] Mute / unmute
 
-## R6 Transfer (RAT step 07 / 07b)
+## R6 Transfer (RAT step 07 / 07b — **BACKLOG**)
+
+> Paused 2026-06-25. Not an active gate. Resume via `TRANSFER-REAL-ADAPTER-BACKLOG.md`.
 
 - [x] Blind transfer on-net extension (A,D) — **PASS** 2026-06-24
-- [ ] Blind transfer off-net PSTN (B,C) — **FAIL** 2026-06-24 (Refer-To / SBC open)
-- [ ] Attended transfer with consultation leg — **pending manual**
+- [ ] Blind transfer off-net PSTN (B,C) — **FAIL** 2026-06-24 (backlog)
+- [ ] Attended transfer with consultation leg — **backlog** (not verified)
 - [x] Transfer failure surfaces banner + retry — **PASS** (NOTIFY 487 mapped; projection recovery)
 
 ## R5 OCP (DEFERRED — ADR-0002)
@@ -68,7 +70,7 @@ Record results in `PROGRESS.md` per step.
 | R2 Media | **PASS** | Manual smoke session R2+R3+R4 — R2-1/2/3 |
 | R3 Calls | **PASS** | Manual smoke session R2+R3+R4 — R3-1/2/3/4/5 |
 | R4 Controls | **PASS** | Manual smoke session R2+R3+R4 — R4-1/2 |
-| R6 Transfer | **partial** | On-net blind PASS (A,D); off-net FAIL (B,C); attended pending |
+| R6 Transfer | **backlog** | On-net blind PASS (A,D); off-net FAIL (B,C); attended not verified — `TRANSFER-REAL-ADAPTER-BACKLOG.md` |
 | R5 OCP | **deferred** | ADR-0002 — see `OCP-PLUGIN-BACKLOG.md`; not a RAT gate |
 
 **R1-5 note:** auto-reconnect on network restore PASS; manual retry button not exercised to exhaustion (auto-reconnect in progress).

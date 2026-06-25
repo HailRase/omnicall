@@ -131,6 +131,18 @@ export default tseslint.config(
         "warn",
         { allowConstantExport: true },
       ],
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@domain", "@domain/*"],
+              message:
+                "Renderer must not import Domain directly. Use @application view-models and projections (see docs/softphone/UI-Architecture.md).",
+            },
+          ],
+        },
+      ],
     },
   },
   {

@@ -1,6 +1,7 @@
 import type { DomainEvent } from "@domain/index.js";
 import type { ActiveCallControlOperation } from "@domain/index.js";
 import type { CallState } from "@domain/index.js";
+import { isSessionResetEvent } from "./sessionResetEvents.js";
 
 export type ActiveControlDisabledReason =
   | "no_active_call"
@@ -47,6 +48,10 @@ export function reduceActiveCallControlsProjection(
   projection: ActiveCallControlsProjection,
   event: DomainEvent,
 ): ActiveCallControlsProjection {
+  if (isSessionResetEvent(event)) {
+    return initialActiveCallControlsProjection();
+  }
+
   switch (event.type) {
     case "OutgoingCallRequested":
       return createActiveCallControlsProjection({

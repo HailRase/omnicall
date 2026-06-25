@@ -27,6 +27,8 @@ export { AttendedTransferUseCase } from "./use-cases/AttendedTransferUseCase.js"
 export { StartTransferUseCase } from "./use-cases/StartTransferUseCase.js";
 export { CancelTransferUseCase } from "./use-cases/CancelTransferUseCase.js";
 export { RegisterAccountUseCase } from "./use-cases/RegisterAccountUseCase.js";
+export { UnregisterAccountUseCase } from "./use-cases/UnregisterAccountUseCase.js";
+export type { UnregisterAccountInput } from "./use-cases/UnregisterAccountUseCase.js";
 export { ResolveStartupModeUseCase } from "./use-cases/ResolveStartupModeUseCase.js";
 export { SendDtmfUseCase } from "./use-cases/SendDtmfUseCase.js";
 export {
@@ -145,6 +147,11 @@ export {
   type ConnectionRecoveryShellView,
 } from "./projections/deriveConnectionRecoveryShell.js";
 export {
+  deriveSessionLogoutShell,
+  type SessionLogoutShellInput,
+  type SessionLogoutShellView,
+} from "./projections/deriveSessionLogoutShell.js";
+export {
   initialCampaignProjection,
   reduceCampaignProjection,
   getCampaignForCall,
@@ -162,10 +169,18 @@ export { CallEndDlgStopOrchestrationService } from "./services/CallEndDlgStopOrc
 export { ConnectionRecoveryOrchestrationService } from "./services/ConnectionRecoveryOrchestrationService.js";
 export type { ConnectionRecoveryOrchestrationDeps } from "./services/ConnectionRecoveryOrchestrationService.js";
 export { ServerTerminateCleanupService } from "./services/ServerTerminateCleanupService.js";
+export { SessionTeardownOrchestrationService } from "./services/SessionTeardownOrchestrationService.js";
+export type {
+  SessionTeardownInput,
+  SessionTeardownOutcome,
+  SessionTeardownOperation,
+} from "./services/SessionTeardownOrchestrationService.js";
 export { InMemoryConnectionRecoveryReadModel } from "./read-models/InMemoryConnectionRecoveryReadModel.js";
 export { RetryConnectionUseCase } from "./use-cases/RetryConnectionUseCase.js";
 export type { RetryConnectionInput, RetryConnectionChannel } from "./use-cases/RetryConnectionUseCase.js";
 export { SafeLogoutUseCase } from "./use-cases/SafeLogoutUseCase.js";
+export { EndUserSessionUseCase } from "./use-cases/EndUserSessionUseCase.js";
+export type { EndUserSessionInput } from "./use-cases/EndUserSessionUseCase.js";
 export { ShutdownCleanupUseCase } from "./use-cases/ShutdownCleanupUseCase.js";
 export type { ShutdownCleanupInput } from "./use-cases/ShutdownCleanupUseCase.js";
 export { ReconnectScheduler } from "./infrastructure/ReconnectScheduler.js";
@@ -173,6 +188,17 @@ export type { SchedulerTimerFns, TimerHandle } from "./infrastructure/ReconnectS
 export { InMemoryOcpCallCorrelationRegistry } from "./read-models/InMemoryOcpCallCorrelationRegistry.js";
 export { InMemoryOcpSyncReadModel } from "./read-models/InMemoryOcpSyncReadModel.js";
 export { deriveOperatorStatusDisabledReason } from "./projections/deriveOperatorStatusDisabledReason.js";
+export {
+  buildOperatorBreakReasonContext,
+  deriveOperatorControlDisabledReason,
+} from "./projections/deriveOperatorControlDisabledReason.js";
+export { deriveAuthShellFlags } from "./projections/deriveAuthShellFlags.js";
+export { deriveActiveCallControlsShell } from "./projections/deriveActiveCallControlsShell.js";
+export {
+  agentStatusLabel,
+  type AgentStatus,
+  type AgentStatusRejectionReason,
+} from "./view-models/operatorStatusViewModel.js";
 export { AgentStatusValidationService } from "./services/AgentStatusValidationService.js";
 export { AgentStatusSyncService } from "./services/AgentStatusSyncService.js";
 export { BreakReasonsSyncService } from "./services/BreakReasonsSyncService.js";

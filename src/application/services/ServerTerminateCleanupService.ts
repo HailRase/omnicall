@@ -1,29 +1,25 @@
-import type { CallEngine } from "@application/services/CallEngine.js";
 import type {
   AgentStatusReadModel,
   DomainEventPublisher,
   Logger,
   OperatorPlatformGateway,
-  TelephonyGateway,
 } from "@ports/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
-import type { ConnectionRecoveryOrchestrationService } from "./ConnectionRecoveryOrchestrationService.js";
+import type { SessionTeardownOrchestrationService } from "./SessionTeardownOrchestrationService.js";
 
 const FEATURE_ID = "F-014";
 
 export type ServerTerminateCleanupDeps = Readonly<{
-  callEngine: CallEngine;
-  telephonyGateway: TelephonyGateway;
+  sessionTeardown: SessionTeardownOrchestrationService;
   operatorGateway: OperatorPlatformGateway;
   agentStatusReadModel: AgentStatusReadModel;
-  connectionRecoveryOrchestration: ConnectionRecoveryOrchestrationService;
   logger: Logger;
 }>;
 
 /**
  * - Purpose: ordered teardown on OCP server terminate (LF-048).
  * - Inputs: ServerTerminateReceived via subscription.
- * - Outputs: hangup calls, SIP unregister, OCP logout when connected.
+ * - Outputs: SIP teardown via orchestrator; OCP logout when connected.
  */
 export class ServerTerminateCleanupService {
   private cleanupInProgress = false;
@@ -61,16 +57,20 @@ export class ServerTerminateCleanupService {
       nextState: "cleanup_in_progress",
     });
 
-    await this.deps.callEngine.hangupAllCalls(correlationId);
-
-    const unregisterResult = await this.deps.telephonyGateway.unregister(correlationId);
-    this.deps.logger.info("server_terminate_sip_unregister", {
+    const teardownResult = await this.deps.sessionTeardown.execute({
       correlationId,
-      featureId: FEATURE_ID,
-      boundedContext: "Telephony",
       operation: "server_terminate_cleanup",
-      result: unregisterResult.ok ? "succeeded" : unregisterResult.error.code,
     });
+
+    if (!teardownResult.ok) {
+      this.deps.logger.warn("server_terminate_sip_partial_failure", {
+        correlationId,
+        featureId: FEATURE_ID,
+        boundedContext: "Telephony",
+        operation: "server_terminate_cleanup",
+        result: teardownResult.error.code,
+      });
+    }
 
     const snapshot = this.deps.agentStatusReadModel.getSnapshot();
     if (snapshot.isOcpStatusAvailable) {
@@ -86,6 +86,8 @@ export class ServerTerminateCleanupService {
         result: logoutResult.status,
       });
     }
+
+    this.cleanupInProgress = false;
 
     this.deps.logger.info("server_terminate_cleanup_completed", {
       correlationId,

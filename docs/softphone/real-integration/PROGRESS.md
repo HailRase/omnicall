@@ -1,6 +1,8 @@
 # RAT Progress
 
-> **OCP (step 06 / R5): DEFERRED** per [ADR-0002](../adr/ADR-0002-defer-ocp-plugin.md) and [OCP-PLUGIN-BACKLOG.md](../OCP-PLUGIN-BACKLOG.md). Active RAT track: **step 07** (transfer).
+> **OCP (step 06 / R5): DEFERRED** per [ADR-0002](../adr/ADR-0002-defer-ocp-plugin.md) and [OCP-PLUGIN-BACKLOG.md](../OCP-PLUGIN-BACKLOG.md).
+> **Transfer (step 07 / 07b / R6): BACKLOG** per [TRANSFER-REAL-ADAPTER-BACKLOG.md](./TRANSFER-REAL-ADAPTER-BACKLOG.md).
+> **Active track:** RAT R1–R4 closed; continue main roadmap (P08 SIP recovery, F-008 DTMF real, P10 headset, branch merge).
 
 **Branch:** feature/real-adapters
 
@@ -27,21 +29,30 @@
 
 | 06 OCP WebSocket | **deferred** | 2026-06-24 | Code landed (WS adapters); R5 smoke **out of scope** per ADR-0002 — resume via OCP-PLUGIN-BACKLOG | 574 | R5 **deferred** |
 
-| 07 Transfer (deferred) | in_progress | 2026-06-24 | JsSIP REFER blind/attended; ADR-0003; recovery + NOTIFY mapping | 599 | R6 partial (A,D pass) |
-| 07b External Refer-To | in_progress | 2026-06-24 | `buildBlindReferTarget`; REFER lifecycle; off-net still FAIL on SBC | 599 | R6 B,C **FAIL** |
+| 07 Transfer | **backlog** | 2026-06-25 | JsSIP REFER blind/attended landed; on-net blind PASS; attended unverified — see TRANSFER-REAL-ADAPTER-BACKLOG | 599 | R6 partial |
+| 07b External Refer-To | **backlog** | 2026-06-25 | `buildBlindReferTarget`; off-net B,C FAIL — paused per user; resume via backlog doc | 599 | R6 B,C **FAIL** |
 
 
 
-## Current blocker
+## Current focus (2026-06-25)
 
-**External blind transfer (R6 scenarios B, C):** on-net extension Refer-To works; off-net/PSTN client target fails on dev SBC after `buildBlindReferTarget` + REFER lifecycle fixes. Next: SIP trace diff (INVITE vs Refer-To), ADR-0003 amend, step-07b research — see `step-07b-external-blind-transfer-refer-target.md`.
+Transfer real-adapter work **paused → backlog** (`TRANSFER-REAL-ADAPTER-BACKLOG.md`). Team continues without R6 gate.
 
-## Where we stopped (2026-06-24)
+| Transfer (real SBC) | Status |
+| --- | --- |
+| Blind → on-net extension (A, D) | **works** |
+| Blind → off-net PSTN (B, C) | **does not work** |
+| Failure banner + retry | **works** |
+| Attended transfer | **not verified** (code + unit tests only) |
+| Mock / CI transfer (P05) | **works** |
+
+**Next (active):** main roadmap — P08 SIP recovery hardening, F-008 DTMF real adapter, P10 headset, or merge `feature/real-adapters` for R1–R4 slice. Resume transfer: «resume transfer backlog».
+
+## Where we stopped (2026-06-25)
 
 - **OCP / R5:** deferred (ADR-0002).
 - **SIP core R1–R4:** closed.
-- **R6 partial:** internal blind transfer **PASS** (A,D); external **FAIL** (B,C) — user manual smoke.
-- **Next:** step 07b — external Refer-To / SBC routing (blocked on trace or SBC policy).
+- **R6 transfer:** backlog — partial (A,D pass; B,C fail; attended pending).
 - **Canonical tests:** 599 passed, 1 skipped; lint/typecheck green.
 
 
@@ -174,7 +185,7 @@
 
 **R2+R3+R4 gate:** **closed** (see session below).
 
-**Next track work:** RAT **step 07** — real SIP transfer (LF-028, LF-029). OCP step 06 / R5 **deferred** (ADR-0002).
+**Next track work:** main roadmap — P08 SIP recovery, F-008 DTMF real, P10 headset, merge `feature/real-adapters` for R1–R4. Transfer: **backlog** (`TRANSFER-REAL-ADAPTER-BACKLOG.md`). OCP step 06 / R5 **deferred** (ADR-0002).
 
 ## Step 06 notes (R5 — DEFERRED) — 2026-06-24
 
@@ -226,9 +237,9 @@
 | C | Outgoing to operator → blind transfer external client | **FAIL** | off-net / PSTN |
 | D | Outgoing to client → blind transfer internal operator | **PASS** | on-net extension |
 
-**R6 gate:** **open** — external blind transfer (B,C) blocked; internal (A,D) verified.
+**R6 gate:** **backlog** — see `TRANSFER-REAL-ADAPTER-BACKLOG.md`.
 
-**07b gate:** **open** — requires SIP trace (working INVITE to external vs failing REFER Refer-To) before next URI experiment.
+**07b gate:** **backlog** — paused 2026-06-25; resume via SIP trace + `TRANSFER-REAL-ADAPTER-BACKLOG.md`.
 
 ## Dev credentials
 

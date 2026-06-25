@@ -35,7 +35,37 @@ export function createRegistrationFailedEvent(
   return createDomainEvent("RegistrationFailed", correlationId, payload);
 }
 
+export type UnregistrationRequestedEvent = ReturnType<
+  typeof createUnregistrationRequestedEvent
+>;
+
+export function createUnregistrationRequestedEvent(correlationId: CorrelationId) {
+  return createDomainEvent("UnregistrationRequested", correlationId, {});
+}
+
+export type UnregistrationSucceededEvent = ReturnType<
+  typeof createUnregistrationSucceededEvent
+>;
+
+export function createUnregistrationSucceededEvent(correlationId: CorrelationId) {
+  return createDomainEvent("UnregistrationSucceeded", correlationId, {});
+}
+
+export type UnregistrationFailedEvent = ReturnType<
+  typeof createUnregistrationFailedEvent
+>;
+
+export function createUnregistrationFailedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{ reason: string }>,
+) {
+  return createDomainEvent("UnregistrationFailed", correlationId, payload);
+}
+
 export type RegistrationDomainEvent =
   | RegistrationRequestedEvent
   | RegistrationSucceededEvent
-  | RegistrationFailedEvent;
+  | RegistrationFailedEvent
+  | UnregistrationRequestedEvent
+  | UnregistrationSucceededEvent
+  | UnregistrationFailedEvent;

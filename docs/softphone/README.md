@@ -20,6 +20,7 @@
 | DOCUMENT | `Legacy-Feature-Coverage.md` | Full LF-001..LF-090 legacy parity registry |
 | DOCUMENT | `Implementation-Roadmap.md` | Ordered phase-by-phase implementation plan |
 | DOCUMENT | `UX-UI-Design-Blueprint.md` | Electron + React UX/UI state design |
+| DOCUMENT | `UI-Architecture.md` | Renderer layers, hooks, shells, dumb-UI contract |
 | DOCUMENT | `Agent-Prompts.md` | Reusable prompts for future implementation agents |
 | DOCUMENT | `adr/ADR-0000-template.md` | Architecture decision record template |
 | RULE | `.cursor/rules/architecture.mdc` | Enforce dependency and layer boundaries |
@@ -29,7 +30,7 @@
 | RULE | `.cursor/rules/implementation-roadmap.mdc` | Enforce roadmap order and phase gates |
 | RULE | `.cursor/rules/typescript-react-electron.mdc` | Enforce stack-specific safety rules |
 | RULE | `.cursor/rules/testing-observability.mdc` | Enforce tests, logs, and diagnostics |
-| RULE | `.cursor/rules/ux-ui-electron-react.mdc` | Enforce UX/UI state design before components |
+| RULE | `.cursor/rules/ux-ui-electron-react.mdc` | Enforce UX/UI state design before components; read `UI-Architecture.md` |
 | SKILL | `.cursor/skills/softphone-architecture-review/SKILL.md` | Review architecture before changes |
 | SKILL | `.cursor/skills/feature-slice-design/SKILL.md` | Design a vertical feature slice |
 | SKILL | `.cursor/skills/telephony-flow-review/SKILL.md` | Review call lifecycle behavior |

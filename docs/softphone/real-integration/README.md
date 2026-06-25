@@ -2,7 +2,9 @@
 
 Parallel track to connect production adapters without breaking mock/CI on `main`.
 
-> **OCP (step 06 / R5): DEFERRED** — [ADR-0002](../adr/ADR-0002-defer-ocp-plugin.md), [OCP-PLUGIN-BACKLOG.md](../OCP-PLUGIN-BACKLOG.md). Active track: **SIP R1–R4 + step 07 transfer**.
+> **OCP (step 06 / R5): DEFERRED** — [ADR-0002](../adr/ADR-0002-defer-ocp-plugin.md), [OCP-PLUGIN-BACKLOG.md](../OCP-PLUGIN-BACKLOG.md).
+> **Transfer (step 07 / R6): BACKLOG** — [TRANSFER-REAL-ADAPTER-BACKLOG.md](./TRANSFER-REAL-ADAPTER-BACKLOG.md).
+> **Active track:** RAT R1–R4 closed; main roadmap (P08, F-008 DTMF, P10 headset).
 
 ## Start here
 

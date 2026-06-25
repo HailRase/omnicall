@@ -9,6 +9,8 @@ Use this skill before building UI components, layouts, modals, panels, and Elect
 
 The goal is to design states and interactions before writing React code.
 
+Read `docs/softphone/UI-Architecture.md` for renderer layering (shells, hooks, components).
+
 ## Inputs
 
 - affected `LF-XXX` IDs

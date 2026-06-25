@@ -1,4 +1,5 @@
 import type { DomainEvent } from "@domain/index.js";
+import { isSessionResetEvent } from "./sessionResetEvents.js";
 
 export type ConnectionState =
   | "connected"
@@ -38,6 +39,13 @@ export function reduceConnectionRecoveryProjection(
   projection: ConnectionRecoveryProjection,
   event: DomainEvent,
 ): ConnectionRecoveryProjection {
+  if (isSessionResetEvent(event)) {
+    return {
+      ...initialConnectionRecoveryProjection(),
+      isOcpMode: projection.isOcpMode,
+    };
+  }
+
   switch (event.type) {
     case "StartupModeResolved": {
       const resolution = event["resolution"];

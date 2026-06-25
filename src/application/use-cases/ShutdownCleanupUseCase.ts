@@ -1,12 +1,10 @@
 import { createAppShutdownRequestedEvent } from "@domain/platform/appLifecycleEvents.js";
 import type { AppShutdownSource } from "@domain/platform/appLifecycleEvents.js";
-import type { CallEngine } from "@application/services/CallEngine.js";
 import type {
   AgentStatusReadModel,
   DomainEventPublisher,
   Logger,
   OperatorPlatformGateway,
-  TelephonyGateway,
 } from "@ports/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
@@ -14,7 +12,7 @@ import { normalizeUnknownError } from "@shared/errors/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
 import { err, ok } from "@shared/result/index.js";
 import type { Result } from "@shared/result/index.js";
-import type { ConnectionRecoveryOrchestrationService } from "../services/ConnectionRecoveryOrchestrationService.js";
+import type { SessionTeardownOrchestrationService } from "../services/SessionTeardownOrchestrationService.js";
 
 const FEATURE_ID = "F-014";
 
@@ -26,17 +24,15 @@ export type ShutdownCleanupInput = Readonly<{
 /**
  * - Purpose: ordered app shutdown cleanup for SIP/OCP sessions (LF-079).
  * - Inputs: shutdown source and optional correlation id.
- * - Outputs: hangup, unregister, scheduler dispose, OCP logout; AppShutdownRequested event.
+ * - Outputs: SIP teardown via orchestrator, scheduler dispose, OCP logout; AppShutdownRequested.
  */
 export class ShutdownCleanupUseCase {
   private cleanupCompleted = false;
 
   constructor(
-    private readonly callEngine: CallEngine,
-    private readonly telephonyGateway: TelephonyGateway,
+    private readonly sessionTeardown: SessionTeardownOrchestrationService,
     private readonly operatorGateway: OperatorPlatformGateway,
     private readonly agentStatusReadModel: AgentStatusReadModel,
-    private readonly connectionRecoveryOrchestration: ConnectionRecoveryOrchestrationService,
     private readonly eventPublisher: DomainEventPublisher,
     private readonly logger: Logger,
   ) {}
@@ -70,18 +66,20 @@ export class ShutdownCleanupUseCase {
     });
 
     try {
-      await this.callEngine.hangupAllCalls(correlationId);
-
-      const unregisterResult = await this.telephonyGateway.unregister(correlationId);
-      this.logger.info("shutdown_sip_unregister", {
+      const teardownResult = await this.sessionTeardown.execute({
         correlationId,
-        featureId: FEATURE_ID,
-        boundedContext: "Telephony",
         operation: "shutdown_cleanup",
-        result: unregisterResult.ok ? "succeeded" : unregisterResult.error.code,
       });
 
-      this.connectionRecoveryOrchestration.dispose();
+      if (!teardownResult.ok) {
+        this.logger.warn("shutdown_cleanup_partial_failure", {
+          correlationId,
+          featureId: FEATURE_ID,
+          boundedContext: "Telephony",
+          operation: "shutdown_cleanup",
+          result: teardownResult.error.code,
+        });
+      }
 
       const snapshot = this.agentStatusReadModel.getSnapshot();
       if (snapshot.isOcpStatusAvailable) {

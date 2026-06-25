@@ -27,6 +27,7 @@ Read and follow:
 .cursor/skills/real-integration-agent/templates.md
 docs/softphone/real-integration/MASTER-AGENT-PROMPT.md
 docs/softphone/OCP-PLUGIN-BACKLOG.md
+docs/softphone/real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md
 docs/softphone/adr/ADR-0002-defer-ocp-plugin.md
 ```
 
@@ -55,6 +56,7 @@ docs/softphone/adr/ADR-0002-defer-ocp-plugin.md
 - Use severity: Blocker / High / Low
 - Mock must remain default; 488+ tests baseline unless PROGRESS documents new total
 - **Step 06 / R5 OCP is DEFERRED** (ADR-0002) — do not issue R5 prompts or block on OCP smoke
+- **Step 07 / R6 transfer is BACKLOG** — do not issue transfer prompts or block on R6 unless user resumes transfer backlog
 
 ## Reviewer vs implementation agent
 

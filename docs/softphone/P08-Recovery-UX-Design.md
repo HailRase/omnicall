@@ -108,6 +108,19 @@ SIP-only: OCP row hidden; OCP inbound no-op. OCP-only disconnect: non-blocking b
 
 All recovery domain events carry `correlationId`; overlay reads projection only (no adapter access).
 
+## WU5 — SIP User Session Logout (LF-079)
+
+| State | UI | Test ID |
+| --- | --- | --- |
+| idle, no calls | End session enabled | `control-end-session` |
+| active telephony | Confirmation modal | `logout-active-session-modal` |
+| confirm / cancel | Modal actions | `control-logout-confirm`, `control-logout-cancel` |
+| logout in progress | Control disabled, reason "Logout in progress" | `control-end-session` |
+| completed | Account panel, registration offline | `account-panel` |
+| failed | Error banner + retry | `logout-error-banner` |
+
+SIP-only: `deriveSessionLogoutShell` drives confirmation requirement from telephony projections. `EndUserSessionUseCase` → `SessionTeardownOrchestrationService` → `UserSessionEnded`.
+
 ## Domain Events — WU1 Implemented
 
 - `OcpDisconnected`, `OcpReconnectScheduled`, `OcpReconnectSucceeded`, `OcpReconnectFailed`

@@ -1,10 +1,8 @@
-import type { CallEngine } from "@application/services/CallEngine.js";
 import type {
   AgentStatusReadModel,
   DomainEventPublisher,
   Logger,
   OperatorPlatformGateway,
-  TelephonyGateway,
 } from "@ports/index.js";
 import { createAgentLogoutRequestedEvent } from "@domain/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
@@ -13,6 +11,7 @@ import { createPlatformError, normalizeUnknownError } from "@shared/errors/index
 import type { PlatformError } from "@shared/errors/index.js";
 import { err, ok } from "@shared/result/index.js";
 import type { Result } from "@shared/result/index.js";
+import type { SessionTeardownOrchestrationService } from "../services/SessionTeardownOrchestrationService.js";
 
 const FEATURE_ID = "F-014";
 
@@ -23,12 +22,11 @@ export type SafeLogoutInput = Readonly<{
 /**
  * - Purpose: user-initiated safe logout after server terminate (LF-048).
  * - Inputs: optional correlation id.
- * - Outputs: hangup calls, SIP unregister, OCP logout; AgentLogoutRequested event.
+ * - Outputs: SIP teardown via orchestrator; OCP logout when connected.
  */
 export class SafeLogoutUseCase {
   constructor(
-    private readonly callEngine: CallEngine,
-    private readonly telephonyGateway: TelephonyGateway,
+    private readonly sessionTeardown: SessionTeardownOrchestrationService,
     private readonly operatorGateway: OperatorPlatformGateway,
     private readonly agentStatusReadModel: AgentStatusReadModel,
     private readonly eventPublisher: DomainEventPublisher,
@@ -52,16 +50,20 @@ export class SafeLogoutUseCase {
     });
 
     try {
-      await this.callEngine.hangupAllCalls(correlationId);
-
-      const unregisterResult = await this.telephonyGateway.unregister(correlationId);
-      this.logger.info("safe_logout_sip_unregister", {
+      const teardownResult = await this.sessionTeardown.execute({
         correlationId,
-        featureId: FEATURE_ID,
-        boundedContext: "Telephony",
         operation: "safe_logout",
-        result: unregisterResult.ok ? "succeeded" : unregisterResult.error.code,
       });
+
+      if (!teardownResult.ok) {
+        this.logger.warn("safe_logout_sip_partial_failure", {
+          correlationId,
+          featureId: FEATURE_ID,
+          boundedContext: "Telephony",
+          operation: "safe_logout",
+          result: teardownResult.error.code,
+        });
+      }
 
       const snapshot = this.agentStatusReadModel.getSnapshot();
       if (snapshot.isOcpStatusAvailable) {

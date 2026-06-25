@@ -22,9 +22,10 @@
 
 Core softphone without OCP:
 
-- SIP registration, media, calls, hold/mute, transfer (RAT R1–R4, step 07+)
+- SIP registration, media, calls, hold/mute (RAT R1–R4 closed)
 - SIP recovery (F-014 SIP channel)
 - Headset, settings, host API (roadmap P10–P12)
+- Real SIP transfer: **backlog** (`real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md`)
 
 ## Scope when backlog resumes (full legacy parity)
 

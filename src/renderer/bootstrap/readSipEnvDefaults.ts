@@ -1,4 +1,4 @@
-import type { SipAccountInput } from "@domain/index.js";
+import type { SipAccountInput } from "@application/index.js";
 
 /**
  * - Purpose: read optional SIP form defaults from Vite env (.env.local).

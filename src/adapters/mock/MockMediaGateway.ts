@@ -8,6 +8,7 @@ import type {
   PlayRingtoneCommand,
   PlayRingbackToneCommand,
   RemoteAudioAttachOutcome,
+  ReleaseAllMediaCommand,
   StopRingtoneCommand,
   StopToneCommand,
   UnmuteCallCommand,
@@ -32,6 +33,7 @@ export class MockMediaGateway implements MediaGateway {
   private readonly busyToneCalls = new Set<string>();
   private readonly mutedCalls = new Set<string>();
   private readonly failureTones: string[] = [];
+  private releaseAllInvocations = 0;
 
   constructor(scenario: MockMediaScenario = "success") {
     this.scenario = scenario;
@@ -63,6 +65,10 @@ export class MockMediaGateway implements MediaGateway {
 
   isMuted(callId: string): boolean {
     return this.mutedCalls.has(callId);
+  }
+
+  getReleaseAllInvocations(): number {
+    return this.releaseAllInvocations;
   }
 
   attachRemoteAudio(
@@ -209,6 +215,20 @@ export class MockMediaGateway implements MediaGateway {
     }
 
     this.mutedCalls.delete(command.callId);
+    return Promise.resolve(ok(undefined));
+  }
+
+  releaseAll(
+    command: ReleaseAllMediaCommand,
+  ): Promise<Result<void, PlatformError>> {
+    void command;
+    this.releaseAllInvocations += 1;
+    this.remoteAudioAttachedCalls.clear();
+    this.ringbackCalls.clear();
+    this.incomingRingtoneCalls.clear();
+    this.busyToneCalls.clear();
+    this.mutedCalls.clear();
+    this.failureTones.length = 0;
     return Promise.resolve(ok(undefined));
   }
 }

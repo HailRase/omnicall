@@ -1,156 +1,29 @@
-import type { JSX } from "react";
-import { useState } from "react";
-import { deriveStartTransferDisabledReason } from "@application/index.js";
-import { useAccountBootstrapStore } from "./stores/useAccountBootstrapStore.js";
+import { useMemo, type JSX } from "react";
 import { useAccountBootstrap } from "./hooks/useAccountBootstrap.js";
-import { useAuthShellFlags } from "./hooks/useAuthShellFlags.js";
-import { useDialpadShell } from "./hooks/useDialpadShell.js";
-import { useSoftphoneCallActions } from "./hooks/useSoftphoneCallActions.js";
-import { useIncomingCallActions } from "./hooks/useIncomingCallActions.js";
-import { registrationLabel } from "./helpers/registrationLabel.js";
-import { AuthStateView } from "./components/auth/AuthStateView.js";
-import { AccountPanel } from "./components/account/AccountPanel.js";
-import { PhoneStatusBadge } from "./components/status/PhoneStatusBadge.js";
-import { Dialpad } from "./components/dialpad/Dialpad.js";
-import { OutgoingCallCard } from "./components/call/OutgoingCallCard.js";
-import { ActiveCallControlsPanel } from "./components/call/ActiveCallControlsPanel.js";
-import { IncomingCallModal } from "./components/call/IncomingCallModal.js";
-import { CampaignEventModal } from "./components/call/CampaignEventModal.js";
-import { MultiCallHoldAllIndicator } from "./components/call/MultiCallHoldAllIndicator.js";
-import { TransferPanel } from "./components/call/TransferPanel.js";
-import { useTransferActions, useTransferPanelShell } from "./hooks/useTransferActions.js";
-import { useIncomingCallShell } from "./hooks/useIncomingCallShell.js";
-import { useCampaignActions } from "./hooks/useCampaignActions.js";
-import { useOcpNotifications } from "./hooks/useOcpNotifications.js";
-import { OcpToastStack } from "./components/ocp/OcpToastStack.js";
-import { StatusSelector } from "./components/status/StatusSelector.js";
-import { StatusTimer } from "./components/status/StatusTimer.js";
-import { LogoutReasonModal } from "./components/status/LogoutReasonModal.js";
-import { useOperatorStatusActions } from "./hooks/useOperatorStatusActions.js";
-import { useConnectionRecoveryShell } from "./hooks/useConnectionRecoveryShell.js";
-import { useConnectionRecoveryActions } from "./hooks/useConnectionRecoveryActions.js";
 import { useAppShutdown } from "./hooks/useAppShutdown.js";
-import { ConnectionOverlay } from "./components/recovery/ConnectionOverlay.js";
+import { useConnectionRecoveryActions } from "./hooks/useConnectionRecoveryActions.js";
+import { useConnectionRecoveryShell } from "./hooks/useConnectionRecoveryShell.js";
+import { useSessionLogoutActions } from "./hooks/useSessionLogoutActions.js";
+import { useAccountBootstrapStore } from "./stores/useAccountBootstrapStore.js";
+import { SoftphoneReadyShell } from "./shells/SoftphoneReadyShell.js";
+import { SoftphoneShellHeader } from "./shells/SoftphoneShellHeader.js";
 
 export function App(): JSX.Element {
   const { facade, status, errorMessage } = useAccountBootstrap();
+  const connectionRecoveryProjection = useAccountBootstrapStore(
+    (state) => state.connectionRecoveryProjection,
+  );
   const projection = useAccountBootstrapStore((state) => state.projection);
-  const callProjection = useAccountBootstrapStore((state) => state.callProjection);
-  const activeCallControlsProjection = useAccountBootstrapStore(
-    (state) => state.activeCallControlsProjection,
+  const multiCallProjection = useAccountBootstrapStore(
+    (state) => state.multiCallProjection,
   );
   const incomingCallProjection = useAccountBootstrapStore(
     (state) => state.incomingCallProjection,
-  );
-  const queueInfoProjection = useAccountBootstrapStore(
-    (state) => state.queueInfoProjection,
-  );
-  const campaignProjection = useAccountBootstrapStore(
-    (state) => state.campaignProjection,
-  );
-  const ocpNotificationProjection = useAccountBootstrapStore(
-    (state) => state.ocpNotificationProjection,
-  );
-  const multiCallProjection = useAccountBootstrapStore(
-    (state) => state.multiCallProjection,
   );
   const transferProjection = useAccountBootstrapStore((state) => state.transferProjection);
   const multiLineCallProjection = useAccountBootstrapStore(
     (state) => state.multiLineCallProjection,
   );
-  const operatorStatusProjection = useAccountBootstrapStore(
-    (state) => state.operatorStatusProjection,
-  );
-  const connectionRecoveryProjection = useAccountBootstrapStore(
-    (state) => state.connectionRecoveryProjection,
-  );
-  const setCallMode = useAccountBootstrapStore((state) => state.setCallMode);
-  const setIncomingUiState = useAccountBootstrapStore((state) => state.setIncomingUiState);
-  const setIncomingBreakReason = useAccountBootstrapStore(
-    (state) => state.setIncomingBreakReason,
-  );
-  const setIncomingRejectReasonRequired = useAccountBootstrapStore(
-    (state) => state.setIncomingRejectReasonRequired,
-  );
-
-  const { showAccountPanel, blockingAuthState } = useAuthShellFlags();
-  const {
-    dialedNumber,
-    setDialedNumber,
-    deleteLastDialedDigit,
-    clearDialedNumber,
-    dialpadMode,
-    isCalling,
-    callDisabledReason,
-  } = useDialpadShell(projection, callProjection, multiCallProjection);
-
-  const callActions = useSoftphoneCallActions({
-    facade,
-    callProjection,
-    activeCallControlsProjection,
-    dialedNumber,
-    callDisabledReason,
-  });
-
-  const incomingCallActions = useIncomingCallActions({
-    facade,
-    incomingCallProjection,
-    multiCallProjection,
-    isOcpMode: projection.isOcpMode,
-    setIncomingUiState,
-    setIncomingRejectReasonRequired,
-  });
-
-  const incomingCallShell = useIncomingCallShell({
-    isOcpMode: projection.isOcpMode,
-    incomingCallProjection,
-    queueInfoProjection,
-  });
-
-  const campaignActions = useCampaignActions({
-    facade,
-    isOcpMode: projection.isOcpMode,
-    incomingCallProjection,
-    campaignProjection,
-  });
-
-  const ocpNotifications = useOcpNotifications({
-    isOcpMode: projection.isOcpMode,
-    ocpNotificationProjection,
-  });
-
-  const transferPanelShell = useTransferPanelShell({
-    transferProjection,
-    multiLineCallProjection,
-    multiCallProjection,
-    activeCallControlsProjection,
-  });
-
-  const transferActions = useTransferActions({
-    facade,
-    sourceCallId: transferPanelShell.sourceCallId,
-    consultationCallId: transferPanelShell.consultationCallId,
-    targetNumber: transferPanelShell.targetNumber,
-    blindTransferDisabledReason: transferPanelShell.blindTransferDisabledReason,
-    startConsultationDisabledReason: transferPanelShell.startConsultationDisabledReason,
-    attendedTransferDisabledReason: transferPanelShell.attendedTransferDisabledReason,
-    cancelTransferDisabledReason: transferPanelShell.cancelTransferDisabledReason,
-    activeCallControlsProjection,
-  });
-
-  const transferDisabledReason = deriveStartTransferDisabledReason({
-    activeCallId: activeCallControlsProjection.callId,
-    activeCallState: activeCallControlsProjection.callState,
-    transferModeActive: transferProjection.transferModeActive,
-  });
-
-  const [logoutSelectedReason, setLogoutSelectedReason] = useState<string | null>(null);
-
-  const operatorStatusActions = useOperatorStatusActions({
-    facade,
-    operatorStatusProjection,
-    accountProjection: projection,
-  });
 
   const connectionRecoveryShell = useConnectionRecoveryShell(connectionRecoveryProjection);
   const connectionRecoveryActions = useConnectionRecoveryActions({
@@ -158,27 +31,39 @@ export function App(): JSX.Element {
     projection: connectionRecoveryProjection,
   });
 
+  const sessionLogoutShellInput = useMemo(
+    () => ({
+      isOcpMode: projection.isOcpMode,
+      authUiState: projection.authUiState,
+      multiCallProjection,
+      incomingCallProjection,
+      transferProjection,
+      multiLineCallProjection,
+    }),
+    [
+      projection.isOcpMode,
+      projection.authUiState,
+      multiCallProjection,
+      incomingCallProjection,
+      transferProjection,
+      multiLineCallProjection,
+    ],
+  );
+
+  const sessionLogoutActions = useSessionLogoutActions({
+    facade,
+    shellInput: sessionLogoutShellInput,
+  });
+
   useAppShutdown({ facade });
 
   return (
     <main className="shell" data-testid="softphone-shell">
-      <header className="shell__header">
-        <h1 className="shell__title">Enterprise Softphone</h1>
-        <p className="shell__subtitle">Authorization &amp; Account Bootstrap</p>
-        {connectionRecoveryShell.showReregisterSipControl && (
-          <button
-            type="button"
-            className="shell__reregister"
-            data-testid="control-reregister-sip"
-            aria-label="Re-register SIP"
-            disabled={connectionRecoveryShell.reregisterDisabledReason !== null}
-            title={connectionRecoveryShell.reregisterDisabledReason ?? undefined}
-            onClick={connectionRecoveryActions.onReregisterSip}
-          >
-            Re-register SIP
-          </button>
-        )}
-      </header>
+      <SoftphoneShellHeader
+        connectionRecoveryShell={connectionRecoveryShell}
+        connectionRecoveryActions={connectionRecoveryActions}
+        sessionLogoutActions={sessionLogoutActions}
+      />
 
       {status === "loading" && (
         <p data-testid="bootstrap-loading">Booting application…</p>
@@ -191,206 +76,7 @@ export function App(): JSX.Element {
       )}
 
       {status === "ready" && facade !== null && (
-        <>
-          <OcpToastStack
-            toasts={ocpNotifications.visibleToasts}
-            onDismiss={ocpNotifications.dismissToast}
-          />
-
-          {connectionRecoveryShell.showOverlay && (
-            <ConnectionOverlay
-              connectionState={connectionRecoveryShell.connectionState}
-              isBlocking={connectionRecoveryShell.isBlocking}
-              showOcpRow={connectionRecoveryShell.showOcpRow}
-              showSipRow={connectionRecoveryShell.showSipRow}
-              ocpReconnectAttempt={connectionRecoveryShell.ocpReconnectAttempt}
-              sipReconnectAttempt={connectionRecoveryShell.sipReconnectAttempt}
-              ocpMaxAttempts={connectionRecoveryShell.ocpMaxAttempts}
-              sipMaxAttempts={connectionRecoveryShell.sipMaxAttempts}
-              reconnectCountdownSeconds={connectionRecoveryShell.reconnectCountdownSeconds}
-              lastFailureReason={connectionRecoveryShell.lastFailureReason}
-              retryDisabledReason={connectionRecoveryShell.retryDisabledReason}
-              safeLogoutDisabledReason={connectionRecoveryShell.safeLogoutDisabledReason}
-              onManualRetry={connectionRecoveryActions.onManualRetry}
-              onSafeLogout={connectionRecoveryActions.onSafeLogout}
-            />
-          )}
-
-          <AuthStateView
-            state={projection.authUiState}
-            lastError={projection.lastError}
-          />
-
-          <PhoneStatusBadge
-            status={projection.phoneStatus}
-            registrationLabel={registrationLabel(
-              projection.registrationState,
-              projection.authUiState,
-            )}
-            disabled={blockingAuthState}
-            onChange={(nextStatus) => {
-              void facade.setPhoneStatus(nextStatus);
-            }}
-          />
-
-          <StatusSelector
-            visible={operatorStatusActions.visible}
-            currentStatus={operatorStatusActions.currentStatus}
-            pendingStatus={operatorStatusActions.pendingStatus}
-            statusChangeInProgress={operatorStatusActions.statusChangeInProgress}
-            readyDisabledReason={operatorStatusActions.readyDisabledReason}
-            breakDisabledReason={operatorStatusActions.breakDisabledReason}
-            rejectionBanner={operatorStatusActions.rejectionBanner}
-            breakReasonPickerVisible={operatorStatusActions.breakReasonPickerVisible}
-            breakReasons={operatorStatusActions.breakReasons}
-            selectedBreakReason={operatorStatusActions.selectedBreakReason}
-            onReady={operatorStatusActions.handleReady}
-            onBreak={operatorStatusActions.handleBreak}
-            onSelectBreakReason={operatorStatusActions.handleSelectBreakReason}
-            onConfirmBreak={operatorStatusActions.handleConfirmBreak}
-            onOpenLogout={operatorStatusActions.handleOpenLogout}
-          />
-
-          <StatusTimer
-            statusChangedAt={operatorStatusProjection.statusChangedAt}
-            timerRunning={operatorStatusProjection.timerRunning}
-            currentStatus={operatorStatusProjection.currentStatus}
-          />
-
-          <LogoutReasonModal
-            open={operatorStatusActions.logoutModalOpen}
-            reasons={operatorStatusActions.breakReasons}
-            reasonRequired={operatorStatusProjection.allowedBreakReasonsCount > 0}
-            selectedReason={logoutSelectedReason}
-            onSelectReason={setLogoutSelectedReason}
-            onSubmit={() => {
-              operatorStatusActions.handleLogoutSubmit(logoutSelectedReason ?? "");
-              setLogoutSelectedReason(null);
-            }}
-            onClose={() => {
-              operatorStatusActions.handleCloseLogout();
-              setLogoutSelectedReason(null);
-            }}
-          />
-
-          {showAccountPanel && !blockingAuthState && (
-            <AccountPanel facade={facade} />
-          )}
-
-          {projection.authUiState === "sip_registered" && (
-            <div className="shell__content">
-              <p className="shell__hint" data-testid="sip-registered-hint">
-                SIP account is registered via mock gateway (P01-P02 foundation).
-              </p>
-
-              <MultiCallHoldAllIndicator
-                visible={multiCallProjection.holdAllInProgress}
-              />
-
-              <Dialpad
-                numberValue={dialedNumber}
-                mode={dialpadMode}
-                isCalling={isCalling}
-                callDisabledReason={callDisabledReason}
-                onNumberChange={setDialedNumber}
-                onDelete={deleteLastDialedDigit}
-                onClear={clearDialedNumber}
-                onCall={callActions.handleDialpadCall}
-                onSendDtmf={callActions.handleSendDtmf}
-                onModeChange={setCallMode}
-              />
-
-              <OutgoingCallCard
-                callId={callProjection.activeCallId}
-                callState={callProjection.state}
-                numberValue={dialedNumber}
-                lastError={callProjection.lastError}
-                lastDtmfTone={callProjection.lastDtmfTone}
-                uiState={callProjection.uiState}
-                toneIndicator={callProjection.toneIndicator}
-              />
-              <ActiveCallControlsPanel
-                visible={activeCallControlsProjection.callId !== null}
-                muted={activeCallControlsProjection.muted}
-                holdDisabledReason={activeCallControlsProjection.holdDisabledReason}
-                resumeDisabledReason={activeCallControlsProjection.resumeDisabledReason}
-                muteDisabledReason={activeCallControlsProjection.muteDisabledReason}
-                unmuteDisabledReason={activeCallControlsProjection.unmuteDisabledReason}
-                hangupDisabledReason={activeCallControlsProjection.hangupDisabledReason}
-                transferDisabledReason={transferDisabledReason}
-                lastOperationError={activeCallControlsProjection.lastOperationError}
-                onHold={callActions.handleHoldCall}
-                onResume={callActions.handleResumeCall}
-                onMute={callActions.handleMuteCall}
-                onUnmute={callActions.handleUnmuteCall}
-                onHangup={callActions.handleHangupCall}
-                onTransfer={transferActions.handleStartTransfer}
-                onRetry={callActions.handleRetryLastOperation}
-              />
-              <TransferPanel
-                visible={transferPanelShell.visible}
-                targetNumber={transferPanelShell.targetNumber}
-                blindTransferDisabledReason={transferPanelShell.blindTransferDisabledReason}
-                startConsultationDisabledReason={
-                  transferPanelShell.startConsultationDisabledReason
-                }
-                attendedTransferDisabledReason={
-                  transferPanelShell.attendedTransferDisabledReason
-                }
-                cancelTransferDisabledReason={transferPanelShell.cancelTransferDisabledReason}
-                transferInProgress={transferPanelShell.transferInProgress}
-                failureMessage={transferPanelShell.failureMessage}
-                lines={multiLineCallProjection.lines}
-                onTargetChange={transferPanelShell.setTargetNumber}
-                onBlindTransfer={transferActions.handleBlindTransfer}
-                onStartConsultation={transferActions.handleStartConsultation}
-                onAttendedTransfer={transferActions.handleAttendedTransfer}
-                onCancelTransfer={transferActions.handleCancelTransfer}
-              />
-              <audio
-                data-testid="remote-audio-mount"
-                aria-label="Remote audio mount point"
-                hidden={!callProjection.remoteAudioAttached}
-              />
-
-              <IncomingCallModal
-                visible={incomingCallProjection.visible}
-                callerNumber={incomingCallProjection.callerNumber}
-                displayName={incomingCallProjection.displayName}
-                queueLabelState={incomingCallShell.queueLabelState}
-                queueName={incomingCallShell.queueName}
-                campaignContextTitle={campaignActions.campaignContextTitle}
-                ringingState={incomingCallProjection.ringingIndicator}
-                autoAnswerSecondsRemaining={
-                  incomingCallProjection.autoAnswerSecondsRemaining
-                }
-                uiState={incomingCallProjection.uiState}
-                rejectReasonRequired={projection.isOcpMode}
-                rejectReasons={["break", "meeting", "training"]}
-                selectedBreakReason={incomingCallProjection.selectedBreakReason}
-                answerDisabledReason={incomingCallActions.answerDisabledReason}
-                rejectDisabledReason={incomingCallActions.rejectDisabledReason}
-                onAnswer={incomingCallActions.handleAnswerIncoming}
-                onReject={incomingCallActions.handleRejectIncoming}
-                onSelectBreakReason={(reason) => {
-                  setIncomingBreakReason(reason);
-                }}
-              />
-
-              <CampaignEventModal
-                open={campaignActions.modalOpen}
-                title={campaignActions.modalTitle}
-                progressive={campaignActions.progressive}
-                acceptDisabledReason={campaignActions.acceptDisabledReason}
-                rejectDisabledReason={campaignActions.rejectDisabledReason}
-                responseError={campaignActions.responseError}
-                onAccept={campaignActions.handleAccept}
-                onReject={campaignActions.handleReject}
-                onClose={campaignActions.handleCloseModal}
-              />
-            </div>
-          )}
-        </>
+        <SoftphoneReadyShell facade={facade} sessionLogoutActions={sessionLogoutActions} />
       )}
     </main>
   );

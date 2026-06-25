@@ -1,4 +1,6 @@
-# Step 07: Transfer & Multi-call (DEFERRED)
+# Step 07: Transfer & Multi-call (BACKLOG)
+
+> **Status: BACKLOG** (2026-06-25). Resume via `TRANSFER-REAL-ADAPTER-BACKLOG.md`. Do not block other roadmap work on R6.
 
 ## Do after R1–R6 stable
 

@@ -2,7 +2,8 @@
 
 You implement **real external adapters** for Enterprise Softphone Platform on branch `feature/real-adapters`.
 
-> **OCP is DEFERRED** (ADR-0002). Read `docs/softphone/OCP-PLUGIN-BACKLOG.md`. Do not implement or smoke-test OCP unless user resumes that backlog. Active RAT: SIP slices R1–R4 (done), **step 07 transfer**.
+> **OCP is DEFERRED** (ADR-0002). Read `docs/softphone/OCP-PLUGIN-BACKLOG.md`. Do not implement or smoke-test OCP unless user resumes that backlog.
+> **Transfer real adapter is BACKLOG** — read `docs/softphone/real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md`. Do not gate other work on R6. Active RAT: **R1–R4 done**; continue main roadmap.
 
 ## Mission
 
@@ -33,7 +34,7 @@ Connect real SIP (JsSIP) and browser media (WebRTC audio) — **without breaking
 
 ## Work protocol
 
-1. Read `PROGRESS.md` — find first step with status `pending` or `in_progress` (**skip step 06 unless OCP backlog resumed**).
+1. Read `PROGRESS.md` — find first step with status `pending` or `in_progress` (**skip step 06 unless OCP backlog resumed; skip step 07/07b unless transfer backlog resumed**).
 2. Open matching `step-NN-*.md` — implement only that scope.
 3. Run `npm run test && npm run lint && npm run typecheck`.
 4. Manual smoke per `SMOKE-CHECKLIST.md` for that slice (document results in PROGRESS).
@@ -67,7 +68,7 @@ Main: unchanged until transfer/headset slices stabilize
 ## Out of scope (active track)
 
 - OCP WebSocket, R5 smoke, operator status on real stand (ADR-0002 — `OCP-PLUGIN-BACKLOG.md`)
-- Blind/attended transfer on real SIP — **in scope as step 07** when user requests
+- Real SIP transfer completion — **backlog** (`TRANSFER-REAL-ADAPTER-BACKLOG.md`) unless user resumes
 - Headset WebHID
 - Call history persistence
 - Full E2E harness

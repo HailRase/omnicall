@@ -30,6 +30,7 @@ describe("attachRemoteAudioWhenReady", () => {
       stopRingtone: () => Promise.resolve(ok(undefined)),
       muteCall: () => Promise.resolve(ok(undefined)),
       unmuteCall: () => Promise.resolve(ok(undefined)),
+      releaseAll: () => Promise.resolve(ok(undefined)),
     };
 
     const callId = createCallId("remote-audio-retry");

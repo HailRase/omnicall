@@ -1,6 +1,6 @@
 import type { JSX } from "react";
-import type { AgentStatus } from "@domain/index.js";
-import { agentStatusLabel } from "@domain/index.js";
+import type { AgentStatus } from "@application/index.js";
+import { agentStatusLabel } from "@application/index.js";
 import type { OperatorStatusDisabledReason } from "@application/index.js";
 import {
   mapOperatorStatusDisabledReasonWithFallback,

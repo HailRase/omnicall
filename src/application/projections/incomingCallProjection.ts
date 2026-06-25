@@ -1,4 +1,5 @@
 import type { DomainEvent } from "@domain/index.js";
+import { isSessionResetEvent } from "./sessionResetEvents.js";
 
 export type IncomingCallUiState =
   | "noIncomingCall"
@@ -49,6 +50,10 @@ export function reduceIncomingCallProjection(
   projection: IncomingCallProjection,
   event: DomainEvent,
 ): IncomingCallProjection {
+  if (isSessionResetEvent(event)) {
+    return initialIncomingCallProjection();
+  }
+
   switch (event.type) {
     case "StartupModeResolved": {
       const resolution = event["resolution"];

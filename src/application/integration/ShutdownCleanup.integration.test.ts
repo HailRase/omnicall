@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ShutdownCleanupUseCase } from "@application/use-cases/ShutdownCleanupUseCase.js";
+import { SessionTeardownOrchestrationService } from "@application/services/SessionTeardownOrchestrationService.js";
+import { UnregisterAccountUseCase } from "@application/use-cases/UnregisterAccountUseCase.js";
 import { ConnectionRecoveryOrchestrationService } from "@application/services/ConnectionRecoveryOrchestrationService.js";
 import { CallEngine } from "@application/services/CallEngine.js";
 import { InMemoryDomainEventBus } from "@application/events/InMemoryDomainEventBus.js";
@@ -22,6 +24,7 @@ describe("ShutdownCleanup integration", () => {
       registrationScenario: "success",
     });
     const operatorGateway = new MockOperatorPlatformGateway({ scenario: "success" });
+    const mediaGateway = new MockMediaGateway();
     const settingsRepository = new InMemorySettingsRepository({
       bootstrapConfig: {
         mode: "ocp",
@@ -38,11 +41,23 @@ describe("ShutdownCleanup integration", () => {
     });
     const callEngine = new CallEngine(
       telephonyGateway,
-      new MockMediaGateway(),
+      mediaGateway,
       settingsRepository,
       eventPublisher,
       createTestLogger(),
     );
+    const unregisterAccount = new UnregisterAccountUseCase(
+      telephonyGateway,
+      eventPublisher,
+      createTestLogger(),
+    );
+    const sessionTeardown = new SessionTeardownOrchestrationService({
+      connectionRecoveryOrchestration: orchestration,
+      callEngine,
+      mediaGateway,
+      unregisterAccount,
+      logger: createTestLogger(),
+    });
 
     eventPublisher.publish({
       type: "OcpAuthenticationSucceeded",
@@ -57,11 +72,9 @@ describe("ShutdownCleanup integration", () => {
     });
 
     const useCase = new ShutdownCleanupUseCase(
-      callEngine,
-      telephonyGateway,
+      sessionTeardown,
       operatorGateway,
       agentStatusReadModel,
-      orchestration,
       eventPublisher,
       createTestLogger(),
     );
@@ -73,7 +86,9 @@ describe("ShutdownCleanup integration", () => {
 
     expect(isErr(result)).toBe(false);
     expect(published).toContain("AppShutdownRequested");
+    expect(published).toContain("UnregistrationSucceeded");
     expect(telephonyGateway.getUnregisterInvocations()).toContain(correlationId);
+    expect(mediaGateway.getReleaseAllInvocations()).toBe(1);
     expect(operatorGateway.getLogoutInvocations()).toHaveLength(1);
     expect(orchestration.getScheduler().getPendingCount()).toBe(0);
   });

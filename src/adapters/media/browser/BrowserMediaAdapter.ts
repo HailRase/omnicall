@@ -12,6 +12,7 @@ import type {
   StopRingtoneCommand,
   StopToneCommand,
   UnmuteCallCommand,
+  ReleaseAllMediaCommand,
 } from "@ports/index.js";
 import type { Logger } from "@ports/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
@@ -198,6 +199,34 @@ export class BrowserMediaAdapter implements MediaGateway {
     return this.setCallMuted(command.callId, command.correlationId, false, "unmute_call");
   }
 
+  releaseAll(command: ReleaseAllMediaCommand): Promise<Result<void, PlatformError>> {
+    try {
+      this.releaseAllInternal();
+      this.logger.info("browser_media_released_all", {
+        correlationId: command.correlationId,
+        featureId: FEATURE_ID,
+        boundedContext: "Media",
+        operation: "release_all_media",
+        result: "succeeded",
+      });
+      return Promise.resolve(ok(undefined));
+    } catch (error: unknown) {
+      const normalized = normalizeUnknownError(error);
+      this.logger.error(
+        "browser_media_operation_failed",
+        {
+          correlationId: command.correlationId,
+          featureId: FEATURE_ID,
+          boundedContext: "Media",
+          operation: "release_all_media",
+          result: normalized.code,
+        },
+        error,
+      );
+      return Promise.resolve(err(normalized));
+    }
+  }
+
   isRemoteAudioElementAttached(callId: CallId): boolean {
     return this.callStates.has(callId);
   }
@@ -215,6 +244,10 @@ export class BrowserMediaAdapter implements MediaGateway {
   }
 
   dispose(): void {
+    this.releaseAllInternal();
+  }
+
+  private releaseAllInternal(): void {
     for (const [callId, state] of this.callStates) {
       try {
         state.remoteAudioElement.pause();
@@ -228,6 +261,7 @@ export class BrowserMediaAdapter implements MediaGateway {
     }
 
     this.tonePlayer.dispose();
+    this.mutedCalls.clear();
   }
 
   private async playTone(

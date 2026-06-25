@@ -56,6 +56,8 @@ Forbidden:
 
 UI must only call Use Cases or UI-facing application facades.
 
+Renderer implementation guide: `docs/softphone/UI-Architecture.md`.
+
 ## Application Layer
 
 Purpose:

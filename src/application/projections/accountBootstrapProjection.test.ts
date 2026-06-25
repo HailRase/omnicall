@@ -132,4 +132,24 @@ describe("accountBootstrapProjection", () => {
 
     expect(projection.phoneStatus).toBe("dnd");
   });
+
+  it("resets to sip_only_ready on UserSessionEnded", () => {
+    const sessionCorrelationId = createCorrelationId();
+    let projection = initialAccountBootstrapProjection();
+    projection = reduceAccountBootstrapProjection(projection, {
+      type: "RegistrationSucceeded",
+      correlationId: sessionCorrelationId,
+      occurredAt: new Date().toISOString(),
+      accountId: "acc-1",
+    });
+    projection = reduceAccountBootstrapProjection(projection, {
+      type: "UserSessionEnded",
+      correlationId: sessionCorrelationId,
+      occurredAt: new Date().toISOString(),
+    });
+
+    expect(projection.authUiState).toBe("sip_only_ready");
+    expect(projection.registrationState).toBe("idle");
+    expect(projection.phoneStatus).toBe("offline");
+  });
 });

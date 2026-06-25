@@ -99,7 +99,7 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 | LF-045 | P06 | Operator | High | Status transition validation | `USER_STATUS_RULES` | WU1/WU2: `AgentStatusTransition` + `ChangeAgentStatusUseCase` — see `handoffs/P06-WU1-Operator-Status-Domain-Handoff.md`. |
 | LF-046 | P06 | UI | Medium | Status duration timer | `StatusTimer` | WU4: `StatusTimer.tsx`, `useOperatorStatusTimer` — see WU4 handoff. |
 | LF-047 | P06 | Operator | High | Logout with reason | `StatusReasonsModal`, `Header` | WU4: `LogoutReasonModal`, `LogoutOperatorUseCase`, `AgentLogoutRequested` — see WU4 handoff. LF-048 cascade P08. |
-| LF-048 | P08 | Operator | Critical | OCP logout cascade | `ocpLogout`, `softphoneLogoutEvent` | WU4: `ServerTerminateCleanupService`, `SafeLogoutUseCase`, `control-safe-logout` — see `handoffs/P08-WU4-Recovery-Manual-Shutdown-Handoff.md`. |
+| LF-048 | P08 | Operator | Critical | OCP logout cascade | `ocpLogout`, `softphoneLogoutEvent` | WU4–WU5: `ServerTerminateCleanupService`, `SafeLogoutUseCase`, `SessionTeardownOrchestrationService` (SIP cascade) — see `handoffs/P08-WU4-Recovery-Manual-Shutdown-Handoff.md`, `P08-WU5-User-Session-Logout-Handoff.md`. |
 | LF-049 | P08 | Operator | Critical | Server-side terminate | `useWs entity terminate` | WU3: `parseOcpInboundMessage` server_terminate → `ProcessOcpInboundMessageUseCase` → `ServerTerminateReceived`; overlay `server_terminate`; scheduler stop — see `handoffs/P08-WU3-Recovery-Overlay-Handoff.md`. |
 | LF-050 | P07 | Operator | High | Block call button from OCP RESERVED | `useBlockedCallButton` | OCP reserved state disables calling deterministically. |
 | LF-051 | P12 | Integration | High | External call button block | `setCallButtonDisabled` | Host API can block call button through typed adapter. |
@@ -130,7 +130,7 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 | LF-076 | P11 | Settings | High | Auto-answer, RBT, multisession settings | `Common`, `setUserConfig` | User settings affect Use Cases through repositories. |
 | LF-077 | P11 | Settings | High | Per-user config in local storage | `JSSIP_CONFIGS` | Settings persist per account behind repository. |
 | LF-078 | P06 | Settings | Medium | Break reasons from OCP in config | `setBreakReasons` | WU3: `BreakReasonsSyncService`, `BreakReasonsReceived`, `SettingsRepository.setAllowedBreakReasons` — see `handoffs/P06-WU3-Post-Call-Break-Reasons-Handoff.md`. |
-| LF-079 | P08 | Telephony | Critical | beforeunload SIP cleanup | `DisplayProvider` | WU4: `ShutdownCleanupUseCase`, IPC `app:before-close`, `useAppShutdown` — see `handoffs/P08-WU4-Recovery-Manual-Shutdown-Handoff.md`. |
+| LF-079 | P08 | Telephony | Critical | beforeunload SIP cleanup | `DisplayProvider` | WU4–WU5: `ShutdownCleanupUseCase`, `EndUserSessionUseCase`, `SessionTeardownOrchestrationService`, IPC `app:before-close`, `useAppShutdown`, `control-end-session` — see `handoffs/P08-WU4-Recovery-Manual-Shutdown-Handoff.md`, `P08-WU5-User-Session-Logout-Handoff.md`. |
 | LF-080 | P12 | Integration | Critical | `window.Softphone` external API | multiple files | One host adapter owns the legacy external API. |
 | LF-081 | P12 | Integration | High | `ocpModule` external status API | `useStatusSelectorAPIAdapter` | Host status API maps to operator Use Cases. |
 | LF-082 | P11 | Settings | Low | Light and dark theme placeholder | `ThemeProvider` | Theme is persisted and applied consistently. |

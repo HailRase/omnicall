@@ -1,6 +1,7 @@
 import type { DomainEvent } from "@domain/index.js";
 import type { CallState } from "@domain/index.js";
 import { isBenignTransferFailureReason } from "./transferFailureReasons.js";
+import { isSessionResetEvent } from "./sessionResetEvents.js";
 
 export type CallLineRole = "source" | "consultation" | "primary";
 
@@ -44,6 +45,10 @@ export function reduceMultiLineCallProjection(
   projection: MultiLineCallProjection,
   event: DomainEvent,
 ): MultiLineCallProjection {
+  if (isSessionResetEvent(event)) {
+    return initialMultiLineCallProjection();
+  }
+
   switch (event.type) {
     case "ConsultationCallRequested":
       return applyConsultationRequested(projection, event);

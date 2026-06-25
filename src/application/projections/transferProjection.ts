@@ -13,6 +13,7 @@ import {
   evaluateStartConsultationEligibility,
 } from "@domain/index.js";
 import { isBenignTransferFailureReason } from "./transferFailureReasons.js";
+import { isSessionResetEvent } from "./sessionResetEvents.js";
 
 export type TransferPhase =
   | "idle"
@@ -58,6 +59,10 @@ export function reduceTransferProjection(
   projection: TransferProjection,
   event: DomainEvent,
 ): TransferProjection {
+  if (isSessionResetEvent(event)) {
+    return initialTransferProjection();
+  }
+
   switch (event.type) {
     case "TransferModeStarted":
       return {

@@ -5,10 +5,10 @@ import type {
   OperatorStatusProjection,
 } from "@application/index.js";
 import {
-  deriveOperatorStatusDisabledReason,
+  buildOperatorBreakReasonContext,
+  deriveOperatorControlDisabledReason,
 } from "@application/index.js";
 import type { OperatorStatusDisabledReason } from "@application/index.js";
-import { getAllowedAgentStatusTransitions } from "@domain/index.js";
 import { mapAgentStatusRejectionReason } from "../helpers/mapAgentStatusRejectionReason.js";
 
 type UseOperatorStatusActionsInput = Readonly<{
@@ -57,23 +57,29 @@ export function useOperatorStatusActions(
 
   const readyDisabledReason = useMemo(
     () =>
-      deriveControlDisabledReason(
+      deriveOperatorControlDisabledReason(
         operatorStatusProjection,
         "ready",
         phoneStatus,
-        breakReasonRequired,
-        selectedBreakReason,
+        buildOperatorBreakReasonContext(
+          "ready",
+          breakReasonRequired,
+          selectedBreakReason,
+        ),
       ),
     [operatorStatusProjection, phoneStatus, breakReasonRequired, selectedBreakReason],
   );
 
   const breakDisabledReason = useMemo(() => {
-    const reason = deriveControlDisabledReason(
+    const reason = deriveOperatorControlDisabledReason(
       operatorStatusProjection,
       "break",
       phoneStatus,
-      breakReasonRequired,
-      selectedBreakReason,
+      buildOperatorBreakReasonContext(
+        "break",
+        breakReasonRequired,
+        selectedBreakReason,
+      ),
     );
     if (reason === "break_reason_required") {
       return null;
@@ -168,51 +174,5 @@ export function useOperatorStatusActions(
     handleOpenLogout,
     handleCloseLogout,
     handleLogoutSubmit,
-  };
-}
-
-function deriveControlDisabledReason(
-  projection: OperatorStatusProjection,
-  targetStatus: "ready" | "break",
-  phoneStatus: AccountBootstrapProjection["phoneStatus"],
-  breakReasonRequired: boolean,
-  selectedBreakReason: string | null,
-): OperatorStatusDisabledReason | null {
-  const projectionReason = deriveOperatorStatusDisabledReason(
-    projection,
-    targetStatus,
-    phoneStatus,
-    buildBreakReasonContext(targetStatus, breakReasonRequired, selectedBreakReason),
-  );
-
-  if (projectionReason !== null) {
-    return projectionReason;
-  }
-
-  const currentStatus = projection.currentStatus;
-  if (currentStatus === null) {
-    return "invalid_transition";
-  }
-
-  const allowed = getAllowedAgentStatusTransitions(currentStatus);
-  if (!allowed.includes(targetStatus)) {
-    return "invalid_transition";
-  }
-
-  return null;
-}
-
-function buildBreakReasonContext(
-  targetStatus: "ready" | "break",
-  breakReasonRequired: boolean,
-  selectedBreakReason: string | null,
-): Readonly<{ breakReasonProvided?: boolean }> {
-  if (targetStatus !== "break" || !breakReasonRequired) {
-    return {};
-  }
-
-  return {
-    breakReasonProvided:
-      selectedBreakReason !== null && selectedBreakReason.length > 0,
   };
 }

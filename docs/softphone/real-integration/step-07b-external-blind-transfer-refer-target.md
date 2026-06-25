@@ -1,6 +1,7 @@
-# RAT Step 07b — External Blind Transfer Refer-To (Research → Plan → Implement)
+# RAT Step 07b — External Blind Transfer Refer-To (BACKLOG)
 
-> **Sub-slice of step 07.** Do not start step 08. OCP deferred (ADR-0002).
+> **Status: BACKLOG** (2026-06-25). Paused by product decision. Resume via `TRANSFER-REAL-ADAPTER-BACKLOG.md`.
+> **Sub-slice of step 07.** OCP deferred (ADR-0002).
 
 ## Agent mode
 

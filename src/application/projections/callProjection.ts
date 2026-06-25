@@ -1,5 +1,6 @@
 import type { DomainEvent } from "@domain/index.js";
 import type { CallState } from "@domain/index.js";
+import { isSessionResetEvent } from "./sessionResetEvents.js";
 
 export type DialpadMode = "number" | "dtmf";
 export type DialpadUiState =
@@ -53,6 +54,10 @@ export function reduceCallProjection(
   projection: CallProjection,
   event: DomainEvent,
 ): CallProjection {
+  if (isSessionResetEvent(event)) {
+    return initialCallProjection();
+  }
+
   switch (event.type) {
     case "OutgoingCallRequested":
       return {

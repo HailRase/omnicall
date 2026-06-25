@@ -1,6 +1,7 @@
 import type { DomainEvent } from "@domain/index.js";
 import type { MultiCallSettings } from "@domain/index.js";
 import { deriveSecondSessionDialpadDisabled } from "@domain/index.js";
+import { isSessionResetEvent } from "./sessionResetEvents.js";
 
 export type MultiCallDisabledReason =
   | "second_session_disabled"
@@ -56,6 +57,13 @@ export function reduceMultiCallProjection(
   projection: MultiCallProjection,
   event: DomainEvent,
 ): MultiCallProjection {
+  if (isSessionResetEvent(event)) {
+    return initialMultiCallProjection({
+      multiSessionsEnabled: projection.multiSessionsEnabled,
+      autoUnholdOnTransferFailure: projection.autoUnholdOnTransferFailure,
+    });
+  }
+
   switch (event.type) {
     case "CallAnswered":
       return createMultiCallProjection({

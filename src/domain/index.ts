@@ -207,6 +207,8 @@ export type {
   AppShutdownRequestedEvent,
 } from "./platform/appLifecycleEvents.js";
 export { createAppShutdownRequestedEvent } from "./platform/appLifecycleEvents.js";
+export type { UserSessionEndedEvent } from "./platform/userSessionEvents.js";
+export { createUserSessionEndedEvent } from "./platform/userSessionEvents.js";
 export type { AgentStatusChangeTrigger } from "./operator/AgentBreakReasonPolicy.js";
 export {
   isAgentBreakReasonRequired,
@@ -317,11 +319,17 @@ export type {
   RegistrationFailedEvent,
   RegistrationRequestedEvent,
   RegistrationSucceededEvent,
+  UnregistrationFailedEvent,
+  UnregistrationRequestedEvent,
+  UnregistrationSucceededEvent,
 } from "./telephony/events/registrationEvents.js";
 export {
   createRegistrationFailedEvent,
   createRegistrationRequestedEvent,
   createRegistrationSucceededEvent,
+  createUnregistrationFailedEvent,
+  createUnregistrationRequestedEvent,
+  createUnregistrationSucceededEvent,
 } from "./telephony/events/registrationEvents.js";
 export type {
   SipReconnectScheduledEvent,

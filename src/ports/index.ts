@@ -37,6 +37,7 @@ export type {
   StopToneCommand,
   MuteCallCommand,
   UnmuteCallCommand,
+  ReleaseAllMediaCommand,
 } from "./media/MediaGateway.js";
 export type {
   AnswerCallCommand,

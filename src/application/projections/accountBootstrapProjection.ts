@@ -90,6 +90,25 @@ function applyRegistrationEvent(
         lastError: reason,
       };
     }
+    case "UnregistrationSucceeded": {
+      const transition = transitionRegistrationState(
+        projection.registrationState,
+        "unregister",
+      );
+      return {
+        ...projection,
+        registrationState: transition.state,
+        lastError: null,
+      };
+    }
+    case "UnregistrationFailed": {
+      const reason =
+        typeof event["reason"] === "string" ? event["reason"] : "Unregistration failed";
+      return {
+        ...projection,
+        lastError: reason,
+      };
+    }
     default:
       return projection;
   }
@@ -223,6 +242,19 @@ function applyBootstrapEvent(
       return {
         ...projection,
         phoneStatus: nextStatus,
+      };
+    }
+    case "UserSessionEnded": {
+      const regTransition = transitionRegistrationState(
+        projection.registrationState,
+        "unregister",
+      );
+      return {
+        ...projection,
+        authUiState: "sip_only_ready",
+        registrationState: regTransition.state,
+        phoneStatus: "offline",
+        lastError: null,
       };
     }
     default:
