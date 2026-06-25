@@ -165,11 +165,12 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Hangup publishes `CallHangupRequested` only after successful gateway hangup; failed hangup keeps call state and projection out of `Ending`.
   - UI surfaces `ActiveCallControlFailed` via projection with retry action.
   - UI does not inspect raw SIP session state.
-  - **WU6 (done):** exclusive resume (LF-023); hangup Active does not auto-resume Held (D1 — no auto-resume code path); per-call mute on `CallLine` / `multiLineCallProjection`; `CallLinesShell` per-line resume/hangup — `deriveCallLinesShell.ts`, `CallLinesShell.tsx`.
+  - **WU6 (done):** exclusive resume (LF-023); hangup Active does not auto-resume Held (D1 — no auto-resume code path); per-call mute on `CallLine` / `multiLineCallProjection`; per-line resume/hangup — `deriveCallLinesShell.ts`, `CallLinesShell.tsx`.
+  - **WU2 (done):** operator controls on `CallLineRow` in ContextZone (hold/mute/transfer/hangup/resume); human status via `deriveCallLineStatusLabel`; single-line visibility `lines.length >= 1`.
 - Test Coverage:
   - Unit: state machine valid/invalid transitions + use case command tests (including `ActiveCallControlFailed` on gateway failure)
   - Integration: mock telephony hold/resume/hangup success and failure paths
-  - Renderer: `ActiveCallControlsPanel` disabled reasons, error banner, retry, keyboard Enter/Space on enabled control
+  - Renderer: `CallLineRow` disabled reasons, error banner, retry, icon row; `ActiveCallControlsPanel` retained for Storybook/tests only (removed from ControlsZone)
   - E2E: deferred until dedicated Electron E2E harness exists
 - Real Adapter Track: **done** (RAT step 08, 2026-06-25) — multi-session R7-1…R7-5 PASS dev SBC; `multiSessionsEnabled` UI deferred P11
 
@@ -426,7 +427,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-055`, `LF-056`, `LF-060`, `LF-076`, `LF-077`, `LF-082`, `LF-084`, `LF-085`, `LF-086`, `LF-087`, `LF-032` (multi-session toggle)
 - Context: Settings
 - Priority: high
-- Status: **in_progress** (P11 WU1 settings overlay + multiSessions toggle 2026-06-25)
+- Status: **in_progress** (P11 WU2 call line UX 2026-06-25; WU0 layout + WU1 settings overlay done)
 - Owner: TBD
 - Inputs: user settings, account identity, shell interactions
 - Outputs: persisted settings, collapsed UI state, theme, menu projections
@@ -442,7 +443,8 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Component: `SettingsOverlay` toggle; Storybook layout + settings overlay (WU0+)
   - E2E: settings and collapsed shell UX
 - Implementation evidence (WU1): `SettingsRepository.setMultiCallSettings`, `AccountBootstrapFacade.updateMultiCallSettings`, `useSettingsActions`, `SettingsOverlay`, `applyMultiCallSettings` store refresh
-- UI docs: `UI-Architecture.md`, `UI-Design-System.md`, `handoffs/P11-WU0-Shell-Layout-Handoff.md`, `handoffs/P11-WU1-Settings-Overlay-Handoff.md`
+- Implementation evidence (WU2): `CallLineRow`, `deriveCallLineStatusLabel`, `deriveCallLinesShell` (visible `>=1` line), `useCallLineRowShell`, `useCallLinesActions` per-line hold/mute/transfer, `ConnectionOverlay` blocking scrim, `OutgoingCallCard` pre-line-only
+- UI docs: `UI-Architecture.md`, `UI-Design-System.md`, `P11-Call-Line-UX-Design.md`, `handoffs/P11-WU0-Shell-Layout-Handoff.md`, `handoffs/P11-WU1-Settings-Overlay-Handoff.md`, `handoffs/P11-WU2-Call-Line-UX-Handoff.md`
 
 ## F-017: Diagnostics And Logging
 

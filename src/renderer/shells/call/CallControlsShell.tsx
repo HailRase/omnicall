@@ -1,6 +1,5 @@
 import type { JSX } from "react";
 import { Dialpad } from "../../components/dialpad/Dialpad.js";
-import { ActiveCallControlsPanel } from "../../components/call/ActiveCallControlsPanel.js";
 import { TransferPanel } from "../../components/call/TransferPanel.js";
 import type { CallFeatureShellBindings } from "../../hooks/useCallFeatureShell.js";
 
@@ -9,9 +8,9 @@ type CallControlsShellProps = Readonly<{
 }>;
 
 /**
- * - Purpose: render dialpad and active-call controls in the controls zone.
+ * - Purpose: render dialpad and transfer panel in the controls zone.
  * - Inputs: call feature shell bindings from useCallFeatureShell.
- * - Outputs: controls zone markup for registered SIP telephony.
+ * - Outputs: controls zone markup; per-line controls live in CallLineRow.
  */
 export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Element | null {
   if (!bindings.sipRegistered) {
@@ -20,7 +19,6 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
 
   const {
     callProjection,
-    activeCallControlsProjection,
     multiLineCallProjection,
     dialedNumber,
     dialpadMode,
@@ -29,8 +27,6 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
     callActions,
     transferPanelShell,
     transferActions,
-    activeCallControlsShell,
-    combinedResumeDisabledReason,
     setCallMode,
     setDialedNumber,
     deleteLastDialedDigit,
@@ -50,25 +46,6 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
         onCall={callActions.handleDialpadCall}
         onSendDtmf={callActions.handleSendDtmf}
         onModeChange={setCallMode}
-      />
-
-      <ActiveCallControlsPanel
-        visible={activeCallControlsProjection.callId !== null}
-        muted={activeCallControlsProjection.muted}
-        holdDisabledReason={activeCallControlsProjection.holdDisabledReason}
-        resumeDisabledReason={combinedResumeDisabledReason}
-        muteDisabledReason={activeCallControlsProjection.muteDisabledReason}
-        unmuteDisabledReason={activeCallControlsProjection.unmuteDisabledReason}
-        hangupDisabledReason={activeCallControlsProjection.hangupDisabledReason}
-        transferDisabledReason={activeCallControlsShell.transferDisabledReason}
-        lastOperationError={activeCallControlsProjection.lastOperationError}
-        onHold={callActions.handleHoldCall}
-        onResume={callActions.handleResumeCall}
-        onMute={callActions.handleMuteCall}
-        onUnmute={callActions.handleUnmuteCall}
-        onHangup={callActions.handleHangupCall}
-        onTransfer={transferActions.handleStartTransfer}
-        onRetry={callActions.handleRetryLastOperation}
       />
 
       <TransferPanel

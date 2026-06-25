@@ -87,8 +87,14 @@ export {
   type MultiCallPolicyViolation,
 } from "./projections/multiCallProjection.js";
 export {
+  deriveCallLineStatusLabel,
+  type CallLineStatusInput,
+} from "./projections/deriveCallLineStatusLabel.js";
+export {
   deriveCallLinesShell,
   type CallLineCardViewModel,
+  type CallLinePrimaryAction,
+  type CallLinesShellDeriveInput,
   type CallLinesShellViewModel,
 } from "./projections/deriveCallLinesShell.js";
 export {

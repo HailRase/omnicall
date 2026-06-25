@@ -74,13 +74,26 @@ export function ConnectionOverlay({
   const showInProgress = connectionState === "reconnecting" && !showCountdown;
 
   return (
-    <section
-      className={overlayClass}
-      role={role}
-      aria-label="Connection status"
-      data-testid="connection-overlay"
-      aria-modal={isBlocking ? "true" : undefined}
+    <div
+      className={
+        isBlocking ? "connection-overlay-host connection-overlay-host--blocking" : "connection-overlay-host"
+      }
+      data-testid="connection-overlay-host"
     >
+      {isBlocking ? (
+        <div
+          className="connection-overlay-host__scrim"
+          data-testid="connection-overlay-scrim"
+          aria-hidden="true"
+        />
+      ) : null}
+      <section
+        className={overlayClass}
+        role={role}
+        aria-label="Connection status"
+        data-testid="connection-overlay"
+        aria-modal={isBlocking ? "true" : undefined}
+      >
       <h2 className="connection-overlay__title">{title}</h2>
 
       {isServerTerminate && (
@@ -170,7 +183,8 @@ export function ConnectionOverlay({
           {retryDisabledReason}
         </p>
       )}
-    </section>
+      </section>
+    </div>
   );
 }
 

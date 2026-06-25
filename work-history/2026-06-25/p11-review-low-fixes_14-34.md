@@ -2,7 +2,7 @@
 
 **Дата:** 2026-06-25 14:34
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `142e2ab`
 
 ## Где
 - `docs/softphone/handoffs/P11-WU1-Settings-Overlay-Handoff.md`

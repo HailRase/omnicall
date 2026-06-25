@@ -18,7 +18,24 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
     return null;
   }
 
-  const { callProjection, multiCallProjection, callLinesShell, callLinesActions } = bindings;
+  const {
+    callProjection,
+    multiCallProjection,
+    activeCallControlsProjection,
+    callLinesShell,
+    callLinesActions,
+    callActions,
+    handleTransferLine,
+  } = bindings;
+
+  const hasLineForActiveCall =
+    callProjection.activeCallId !== null &&
+    callLinesShell.lines.some((line) => line.callId === callProjection.activeCallId);
+
+  const showOutgoingCard =
+    callProjection.lastError !== null ||
+    ((callProjection.state === "Connecting" || callProjection.state === "Failed") &&
+      !hasLineForActiveCall);
 
   return (
     <div className="call-context-zone" data-testid="call-context-zone">
@@ -32,19 +49,28 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
 
       <CallLinesShell
         shell={callLinesShell}
+        lastOperationError={activeCallControlsProjection.lastOperationError}
         onResumeLine={callLinesActions.handleResumeLine}
         onHangupLine={callLinesActions.handleHangupLine}
+        onHoldLine={callLinesActions.handleHoldLine}
+        onMuteLine={callLinesActions.handleMuteLine}
+        onUnmuteLine={callLinesActions.handleUnmuteLine}
+        onTransferLine={handleTransferLine}
+        onAnswerLine={callLinesActions.handleAnswerLine}
+        onRetryOperation={callActions.handleRetryLastOperation}
       />
 
-      <OutgoingCallCard
-        callId={callProjection.activeCallId}
-        callState={callProjection.state}
-        numberValue={bindings.dialedNumber}
-        lastError={callProjection.lastError}
-        lastDtmfTone={callProjection.lastDtmfTone}
-        uiState={callProjection.uiState}
-        toneIndicator={callProjection.toneIndicator}
-      />
+      {showOutgoingCard ? (
+        <OutgoingCallCard
+          callId={callProjection.activeCallId}
+          callState={callProjection.state}
+          numberValue={bindings.dialedNumber}
+          lastError={callProjection.lastError}
+          lastDtmfTone={callProjection.lastDtmfTone}
+          uiState={callProjection.uiState}
+          toneIndicator={callProjection.toneIndicator}
+        />
+      ) : null}
     </div>
   );
 }

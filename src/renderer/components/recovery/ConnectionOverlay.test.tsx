@@ -143,4 +143,20 @@ describe("ConnectionOverlay", () => {
 
     expect(screen.getByRole("region", { name: "Connection status" })).toBeInTheDocument();
   });
+
+  it("renders full-screen scrim when blocking to prevent click-through", () => {
+    render(
+      <ConnectionOverlay
+        {...baseProps}
+        connectionState="sip_disconnected"
+        isBlocking
+        lastFailureReason="transport_closed"
+      />,
+    );
+
+    expect(screen.getByTestId("connection-overlay-scrim")).toBeInTheDocument();
+    expect(screen.getByTestId("connection-overlay-host")).toHaveClass(
+      "connection-overlay-host--blocking",
+    );
+  });
 });

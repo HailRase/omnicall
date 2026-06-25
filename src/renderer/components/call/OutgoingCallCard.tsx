@@ -10,6 +10,11 @@ export type OutgoingCallCardProps = Readonly<{
   lastDtmfTone: string | null;
 }>;
 
+/**
+ * - Purpose: show pre-connect progress and failure details before a call line row exists.
+ * - Inputs: call projection fields and dialed number.
+ * - Outputs: compact status card for connecting or failed outgoing attempts.
+ */
 export function OutgoingCallCard({
   callId,
   callState,
@@ -19,33 +24,28 @@ export function OutgoingCallCard({
   lastError,
   lastDtmfTone,
 }: OutgoingCallCardProps): JSX.Element {
-  if (callId === null && callState === "Idle") {
-    return (
-      <section className="outgoing-card" data-testid="outgoing-call-card">
-        <h2>Outgoing call</h2>
-        <p>No active outgoing call.</p>
-      </section>
-    );
-  }
-
   return (
     <section className="outgoing-card" data-testid="outgoing-call-card">
       <h2>Outgoing call</h2>
       <p data-testid="call-state-label">
         <strong>State:</strong> {callState}
       </p>
-      <p data-testid="tone-state-indicator">
-        <strong>Tone:</strong> {toneIndicator}
-      </p>
+      {toneIndicator !== "none" ? (
+        <p data-testid="tone-state-indicator">
+          <strong>Tone:</strong> {toneIndicator}
+        </p>
+      ) : null}
       <p data-testid="call-ui-state-label">
         <strong>UI state:</strong> {uiState}
       </p>
       <p>
         <strong>Target:</strong> {numberValue || "Unknown"}
       </p>
-      <p>
-        <strong>Call ID:</strong> {callId ?? "N/A"}
-      </p>
+      {callId !== null ? (
+        <p>
+          <strong>Call ID:</strong> {callId}
+        </p>
+      ) : null}
       {lastDtmfTone !== null && (
         <p>
           <strong>Last DTMF:</strong> {lastDtmfTone}
@@ -59,4 +59,3 @@ export function OutgoingCallCard({
     </section>
   );
 }
-

@@ -184,6 +184,8 @@ The modal must not directly call adapter methods.
 
 ## Active Call UX
 
+Active call presentation is unified in **ContextZone** via `CallLineRow` / `CallLinesShell` (single and multi-line). See **`docs/softphone/P11-Call-Line-UX-Design.md`** for state inventory, wireframe, and test IDs.
+
 Active call card must show:
 
 - call direction

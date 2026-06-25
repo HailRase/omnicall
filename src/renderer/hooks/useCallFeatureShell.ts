@@ -7,7 +7,7 @@ import {
 import { mapActiveCallControlDisabledReason } from "../helpers/mapActiveCallControlLabels.js";
 import { useTransferActions, useTransferPanelShell } from "./useTransferActions.js";
 import { useCallLinesActions } from "./useCallLinesActions.js";
-import { useCallLinesShell } from "./useCallLinesShell.js";
+import { useCallLineRowShell } from "./useCallLineRowShell.js";
 import { useIncomingCallShell } from "./useIncomingCallShell.js";
 import { useCampaignActions } from "./useCampaignActions.js";
 import { useDialpadShell } from "./useDialpadShell.js";
@@ -106,8 +106,23 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     [activeCallControlsProjection, transferProjection],
   );
 
-  const callLinesShell = useCallLinesShell(multiLineCallProjection, multiCallProjection);
+  const callLinesShell = useCallLineRowShell({
+    multiLineCallProjection,
+    multiCallProjection,
+    queueInfoProjection,
+    activeCallControlsProjection,
+    transferProjection,
+    isOcpMode: projection.isOcpMode,
+  });
   const callLinesActions = useCallLinesActions({ facade, shell: callLinesShell });
+
+  const handleTransferLine = (callId: string): void => {
+    const line = callLinesShell.lines.find((entry) => entry.callId === callId);
+    if (line?.isActiveUnheld !== true) {
+      return;
+    }
+    transferActions.handleStartTransfer();
+  };
 
   const combinedResumeDisabledReason = useMemo(() => {
     const multiCallReason = deriveResumeMultiCallDisabledReason(multiCallProjection);
@@ -150,6 +165,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     activeCallControlsShell,
     callLinesShell,
     callLinesActions,
+    handleTransferLine,
     combinedResumeDisabledReason,
     incomingRejectReasons,
     setCallMode,

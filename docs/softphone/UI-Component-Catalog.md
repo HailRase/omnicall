@@ -2,7 +2,7 @@
 
 > **Auto-generated.** Do not edit by hand. Run: `npm run ui:catalog`
 
-Last generated: 2026-06-25 11:33
+Last generated: 2026-06-25 12:03
 
 ## Index
 
@@ -13,7 +13,7 @@ Last generated: 2026-06-25 11:33
 | `AuthStateView` | `src/renderer/components/auth/AuthStateView.tsx` | `—` | — | — |
 | `ActiveCallControlsPanel` | `src/renderer/components/call/ActiveCallControlsPanel.tsx` | `ActiveCallControlsPanelProps` | active-call-controls, active-call-mute-indicator, active-call-control-error, control-retry, control-hold, control-resume, control-mute, control-unmute, control-hangup, control-transfer, control-disabled-reason | — |
 | `AutoAnswerCountdown` | `src/renderer/components/call/AutoAnswerCountdown.tsx` | `AutoAnswerCountdownProps` | auto-answer-countdown | — |
-| `CallLineCard` | `src/renderer/components/call/CallLineCard.tsx` | `CallLineCardProps` | — | — |
+| `CallLineRow` | `src/renderer/components/call/CallLineRow.tsx` | `CallLineRowProps` | — | lf=LF-011,LF-021,LF-022,LF-023 f=F-016 smoke=R7- |
 | `CallLinesShell` | `src/renderer/components/call/CallLinesShell.tsx` | `CallLinesShellProps` | call-lines-panel, multi-call-policy-error | — |
 | `CallerIdentityBlock` | `src/renderer/components/call/CallerIdentityBlock.tsx` | `CallerIdentityBlockProps` | caller-identity, incoming-campaign-context | — |
 | `CampaignEventModal` | `src/renderer/components/call/CampaignEventModal.tsx` | `CampaignEventModalProps` | campaign-event-modal, campaign-modal-error, campaign-accept, campaign-reject, campaign-modal-close, campaign-disabled-reason | — |
@@ -22,13 +22,13 @@ Last generated: 2026-06-25 11:33
 | `IncomingCallStatusMessage` | `src/renderer/components/call/IncomingCallStatusMessage.tsx` | `IncomingCallStatusMessageProps` | incoming-call-status | — |
 | `MultiCallHoldAllIndicator` | `src/renderer/components/call/MultiCallHoldAllIndicator.tsx` | `MultiCallHoldAllIndicatorProps` | multi-call-hold-all-indicator | — |
 | `MultiLineCallList` | `src/renderer/components/call/MultiLineCallList.tsx` | `MultiLineCallListProps` | multi-line-call-list | — |
-| `OutgoingCallCard` | `src/renderer/components/call/OutgoingCallCard.tsx` | `OutgoingCallCardProps` | outgoing-call-card, outgoing-call-card, call-state-label, tone-state-indicator, call-ui-state-label, call-failed-alert | — |
+| `OutgoingCallCard` | `src/renderer/components/call/OutgoingCallCard.tsx` | `OutgoingCallCardProps` | outgoing-call-card, call-state-label, tone-state-indicator, call-ui-state-label, call-failed-alert | — |
 | `QueueInfoLabel` | `src/renderer/components/call/QueueInfoLabel.tsx` | `QueueInfoLabelProps` | queue-info-label | — |
 | `RejectReasonSelector` | `src/renderer/components/call/RejectReasonSelector.tsx` | `RejectReasonSelectorProps` | reject-reason-select | — |
 | `TransferPanel` | `src/renderer/components/call/TransferPanel.tsx` | `TransferPanelProps` | transfer-panel, transfer-in-progress-indicator, transfer-failure-banner, transfer-target-input, control-blind-transfer, control-start-consultation, control-attended-transfer, control-cancel-transfer, transfer-disabled-reason | — |
 | `Dialpad` | `src/renderer/components/dialpad/Dialpad.tsx` | `DialpadProps` | dialpad-panel, dialpad-mode-number, call-dtmf-toggle, dialpad-input, dialpad-key-0, dialpad-key-0, dialpad-delete, dialpad-clear, dialpad-call, dialpad-disabled-reason | — |
 | `OcpToastStack` | `src/renderer/components/ocp/OcpToastStack.tsx` | `OcpToastStackProps` | ocp-toast-stack, ocp-toast | — |
-| `ConnectionOverlay` | `src/renderer/components/recovery/ConnectionOverlay.tsx` | `ConnectionOverlayProps` | connection-overlay, connection-server-terminate, reconnect-countdown, reconnect-in-progress, control-retry-connection, control-safe-logout | — |
+| `ConnectionOverlay` | `src/renderer/components/recovery/ConnectionOverlay.tsx` | `ConnectionOverlayProps` | connection-overlay-host, connection-overlay-scrim, connection-overlay, connection-server-terminate, reconnect-countdown, reconnect-in-progress, control-retry-connection, control-safe-logout | — |
 | `LogoutActiveSessionConfirmationModal` | `src/renderer/components/session/LogoutActiveSessionConfirmationModal.tsx` | `LogoutActiveSessionConfirmationModalProps` | logout-active-session-modal, control-logout-confirm, control-logout-cancel | — |
 | `SettingsOverlay` | `src/renderer/components/settings/SettingsOverlay.tsx` | `SettingsOverlayProps` | settings-overlay-body, settings-update-error, settings-multi-sessions-toggle, settings-multi-sessions-hint | lf=LF-032,LF-076 f=F-016 smoke=R7-5 |
 | `ShellOverlaySheet` | `src/renderer/components/shell/ShellOverlaySheet.tsx` | `ShellOverlaySheetProps` | — | f=F-016 smoke=settings-overlay,diagnostics-overlay |

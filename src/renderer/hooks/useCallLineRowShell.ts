@@ -8,19 +8,32 @@ import {
   type TransferProjection,
 } from "@application/index.js";
 
+export type CallLineRowShellInput = Readonly<{
+  multiLineCallProjection: MultiLineCallProjection;
+  multiCallProjection: MultiCallProjection;
+  queueInfoProjection: QueueInfoProjection;
+  activeCallControlsProjection: ActiveCallControlsProjection;
+  transferProjection: TransferProjection;
+  isOcpMode: boolean;
+}>;
+
 /**
- * - Purpose: derive call lines panel view-model from store projections.
+ * - Purpose: derive call line row shell view-model from store projections.
  * - Inputs: multi-line, queue, controls, and transfer projections.
- * - Outputs: shell visibility, line rows, policy error message.
+ * - Outputs: visible lines with labels, actions, and disabled reasons.
  */
-export function useCallLinesShell(
-  multiLineCallProjection: MultiLineCallProjection,
-  multiCallProjection: MultiCallProjection,
-  queueInfoProjection: QueueInfoProjection,
-  activeCallControlsProjection: ActiveCallControlsProjection,
-  transferProjection: TransferProjection,
-  isOcpMode: boolean,
+export function useCallLineRowShell(
+  input: CallLineRowShellInput,
 ): ReturnType<typeof deriveCallLinesShell> {
+  const {
+    multiLineCallProjection,
+    multiCallProjection,
+    queueInfoProjection,
+    activeCallControlsProjection,
+    transferProjection,
+    isOcpMode,
+  } = input;
+
   return useMemo(
     () =>
       deriveCallLinesShell({

@@ -142,7 +142,7 @@ Disabled state and reason must come from Application projections or `derive*` he
 
 ## Multi-Line UI Unification
 
-- Primary interactive list: `CallLinesShell` + `CallLineCard` (WU6).
+- Primary interactive list: `CallLinesShell` + `CallLineRow` (P11 WU2).
 - `MultiLineCallList` (transfer read-only) → migrate to shared `CallLineRow` with optional action slot.
 
 ## UX Before Code

@@ -10,6 +10,9 @@ export type CallLine = Readonly<{
   role: CallLineRole;
   state: CallState | "Idle";
   muted: boolean;
+  displayLabel: string | null;
+  activeSinceMs: number | null;
+  isRemoteHold: boolean;
 }>;
 
 export type MultiLineCallProjection = Readonly<{
@@ -54,7 +57,12 @@ export function reduceMultiLineCallProjection(
     case "ConsultationCallRequested":
       return applyConsultationRequested(projection, event);
     case "ConsultationCallStarted":
-      return applyConsultationStarted(projection, event);
+      return setLineActiveSince(
+        applyConsultationStarted(projection, event),
+        asRequiredString(event["consultationCallId"]),
+        "Active",
+        parseOccurredAtMs(event.occurredAt),
+      );
     case "ConsultationCallFailed":
       return applyConsultationFailed(projection, event);
     case "AttendedTransferRequested":
@@ -73,14 +81,32 @@ export function reduceMultiLineCallProjection(
     case "TransferModeCancelled":
       return applyTransferModeCancelled(projection, event);
     case "OutgoingCallRequested":
+      return upsertLine(projection, {
+        callId: asRequiredString(event["callId"]),
+        role: projection.sourceCallId === null ? "primary" : "consultation",
+        state: "Connecting",
+        displayLabel: asOptionalString(event["phoneNumber"]),
+      });
     case "IncomingCallReceived":
       return upsertLine(projection, {
         callId: asRequiredString(event["callId"]),
         role: projection.sourceCallId === null ? "primary" : "consultation",
-        state: event.type === "OutgoingCallRequested" ? "Connecting" : "Ringing",
+        state: "Ringing",
+        displayLabel: asOptionalString(event["phoneNumber"]),
       });
+    case "IncomingCallDisplayNameResolved":
+      return updateLineDisplayLabel(
+        projection,
+        asRequiredString(event["callId"]),
+        asRequiredString(event["displayName"]),
+      );
     case "CallAnswered":
-      return updateLineState(projection, asRequiredString(event["callId"]), "Active");
+      return setLineActiveSince(
+        projection,
+        asRequiredString(event["callId"]),
+        "Active",
+        parseOccurredAtMs(event.occurredAt),
+      );
     case "CallHeld":
       return updateLineState(projection, asRequiredString(event["callId"]), "Held");
     case "CallResumed":
@@ -118,6 +144,7 @@ function applyConsultationRequested(
     callId: consultationCallId,
     role: "consultation",
     state: "Connecting",
+    displayLabel: asOptionalString(event["targetNumber"]),
   });
   return {
     ...next,
@@ -135,7 +162,13 @@ function applyConsultationStarted(
 ): MultiLineCallProjection {
   const consultationCallId = asRequiredString(event["consultationCallId"]);
   const sourceCallId = asRequiredString(event["sourceCallId"]);
-  const next = updateLineState(projection, consultationCallId, "Active");
+  const targetNumber = asOptionalString(event["targetNumber"]);
+  const next = upsertLine(updateLineState(projection, consultationCallId, "Active"), {
+    callId: consultationCallId,
+    role: "consultation",
+    state: "Active",
+    displayLabel: targetNumber,
+  });
   return {
     ...next,
     sourceCallId,
@@ -219,13 +252,17 @@ function applyTransferModeCancelled(
 
 function upsertLine(
   projection: MultiLineCallProjection,
-  line: Omit<CallLine, "muted"> & { muted?: boolean },
+  line: Partial<CallLine> & Pick<CallLine, "callId" | "role" | "state">,
 ): MultiLineCallProjection {
+  const existing = projection.lines.find((entry) => entry.callId === line.callId);
   const normalizedLine: CallLine = {
     callId: line.callId,
     role: line.role,
     state: line.state,
-    muted: line.muted ?? findLineMuted(projection, line.callId) ?? false,
+    muted: line.muted ?? existing?.muted ?? false,
+    displayLabel: line.displayLabel ?? existing?.displayLabel ?? null,
+    activeSinceMs: line.activeSinceMs ?? existing?.activeSinceMs ?? null,
+    isRemoteHold: line.isRemoteHold ?? existing?.isRemoteHold ?? false,
   };
   const existingIndex = projection.lines.findIndex((entry) => entry.callId === line.callId);
   if (existingIndex === -1) {
@@ -284,14 +321,6 @@ function removeLine(
   };
 }
 
-function findLineMuted(
-  projection: MultiLineCallProjection,
-  callId: string,
-): boolean | null {
-  const line = projection.lines.find((entry) => entry.callId === callId);
-  return line?.muted ?? null;
-}
-
 function setLineMuted(
   projection: MultiLineCallProjection,
   callId: string,
@@ -325,6 +354,34 @@ function asOptionalFailureReason(value: unknown): string | null {
 
 function asRequiredString(value: unknown): string {
   return typeof value === "string" ? value : "";
+}
+
+function parseOccurredAtMs(occurredAt: string): number {
+  const parsed = Date.parse(occurredAt);
+  return Number.isFinite(parsed) ? parsed : Date.now();
+}
+
+function updateLineDisplayLabel(
+  projection: MultiLineCallProjection,
+  callId: string,
+  displayLabel: string,
+): MultiLineCallProjection {
+  const lines = projection.lines.map((line) =>
+    line.callId === callId ? { ...line, displayLabel } : line,
+  );
+  return { ...projection, lines };
+}
+
+function setLineActiveSince(
+  projection: MultiLineCallProjection,
+  callId: string,
+  state: CallState | "Idle",
+  activeSinceMs: number,
+): MultiLineCallProjection {
+  const lines = projection.lines.map((line) =>
+    line.callId === callId ? { ...line, state, activeSinceMs } : line,
+  );
+  return { ...projection, lines };
 }
 
 function parseRestoredSourceState(value: unknown): CallState | "Idle" {
