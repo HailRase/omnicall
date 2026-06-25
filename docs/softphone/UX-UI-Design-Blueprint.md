@@ -90,23 +90,38 @@ React owns presentation only.
 
 ## Navigation Model
 
-Use a small panel model, not route-heavy navigation.
+Use a small panel model, not route-heavy navigation. See `UI-Architecture.md` and `UI-Design-System.md`.
 
-Primary panels:
+### Panel navigation (limited)
 
-- Call
-- History
-- Settings
-- Diagnostics
+- **Call** — default surface (always available).
+- **History** — full-screen panel only when **idle** (no established/connecting call). Disabled or overlay when call active.
 
-Modal flows:
+### Overlay sheets (not panel swap)
+
+Open **on top of** ContextZone; never unmount active call UI during established call:
+
+- **Settings** — behavior, multi-session, auto-answer (P11 WU1+). v1: portal Panel; Radix optional later.
+- **Diagnostics** — dev / `?debug=1` projection readout (P09 deferral for full product diagnostics).
+
+### Modal flows (Radix Dialog v1)
 
 - incoming call
-- reject reason
+- reject reason (within incoming modal)
 - campaign request
 - logout reason
 - access denied
-- lost connection
+- lost connection (existing `ConnectionOverlay`)
+
+### Shell → zone map
+
+| Blueprint zone | Widget / shell |
+| --- | --- |
+| Header | `SoftphoneShellHeader`, `PhoneStatusBadge`, operator status |
+| Context Area | `CallLinesShell`, `OutgoingCallCard`, policy banners |
+| Dialpad / Controls | `Dialpad`, `ActiveCallControlsPanel`, `TransferPanel` |
+| Footer actions | Settings / Diagnostics triggers → overlay |
+| Overlays | incoming, campaign, recovery, settings sheet |
 
 ## Global Visual States
 

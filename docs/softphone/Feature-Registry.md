@@ -423,21 +423,25 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 
 ## F-016: Settings And Desktop Shell UX
 
-- Legacy IDs: `LF-055`, `LF-056`, `LF-060`, `LF-076`, `LF-077`, `LF-082`, `LF-084`, `LF-085`, `LF-086`, `LF-087`
+- Legacy IDs: `LF-055`, `LF-056`, `LF-060`, `LF-076`, `LF-077`, `LF-082`, `LF-084`, `LF-085`, `LF-086`, `LF-087`, `LF-032` (multi-session toggle)
 - Context: Settings
 - Priority: high
-- Status: planned
+- Status: **in_progress** (P11 WU0 docs + deps 2026-06-25)
 - Owner: TBD
 - Inputs: user settings, account identity, shell interactions
 - Outputs: persisted settings, collapsed UI state, theme, menu projections
 - Acceptance Criteria:
   - Settings are per-user and validated.
+  - **Overlay navigation:** settings/diagnostics do not unmount call context during established call (`UI-Architecture.md`).
+  - **`multiSessionsEnabled` toggle** in settings UI (facade + port; no Use Case) — enables R7-5 re-smoke without repo hack.
   - Collapsed mode preserves critical call/status visibility.
   - Electron shell behavior does not contain business logic.
 - Test Coverage:
   - Unit: settings validation and migration
-  - Integration: settings repository
+  - Integration: settings repository `setMultiCallSettings`
+  - Component: Storybook for layout + settings overlay (WU0+)
   - E2E: settings and collapsed shell UX
+- UI docs: `UI-Architecture.md`, `UI-Design-System.md`, `handoffs/P11-WU0-Shell-Layout-Agent-Prompt.md`
 
 ## F-017: Diagnostics And Logging
 

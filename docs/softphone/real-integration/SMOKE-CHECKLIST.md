@@ -44,7 +44,7 @@
 - [x] R7-2 Answer incoming with active held — **PASS**
 - [x] R7-3 Exclusive resume swap — **PASS**
 - [x] R7-4 Hangup active, held remains (D1) — **PASS**
-- [x] R7-5 multiSessions OFF → auto-486 — **PASS** 2026-06-25 (temp `InMemorySettingsRepository` default; P11 UI backlog)
+- [x] R7-5 multiSessions OFF → auto-486 — **PASS** 2026-06-25 (temp repo default; **re-smoke via P11 WU1 settings UI** — `UI-SMOKE-ENABLERS.md`)
 
 ## R6 Transfer (RAT step 07 / 07b — **BACKLOG**)
 

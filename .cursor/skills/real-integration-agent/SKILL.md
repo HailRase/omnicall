@@ -194,13 +194,13 @@ Step FAIL → **Refactor Prompt** only. Do not issue next step prompt.
 | 05 | Hold / mute | LF-022, LF-024, LF-027 | done |
 | 06 | OCP WebSocket | F-009, LF-001–004, LF-037–040 | **deferred** (ADR-0002) |
 | 07 | Transfer | LF-028, LF-029 | **backlog** |
-| 08 | Multi-call real | LF-021, LF-023, LF-032 | **pending** (after P05 WU6) |
+| 08 | Multi-call real | LF-021, LF-023, LF-032 | **done** |
 
 ## Active track priority (2026-06-25)
 
-1. **P05 WU6** — multi-call completeness mock (`handoffs/P05-WU6-Multi-Call-Completeness-Agent-Prompt.md`)
-2. **RAT step 08** — real multi-call smoke R7 (`step-08-multi-call-real.md`)
-3. P08 / F-008 DTMF / P10 headset / branch merge
+1. **P11 WU0** — shell layout + overlay UX (`handoffs/P11-WU0-Shell-Layout-Agent-Prompt.md`, `UI-SMOKE-ENABLERS.md`)
+2. **F-008 DTMF real** — `JsSipTelephonyAdapter.sendDtmf` (RAT adapter track continues post step 08)
+3. P10 headset / branch merge
 4. Transfer backlog / OCP backlog — only on user resume
 
 ## Onboarding for Continuation Prompts
@@ -245,9 +245,9 @@ Full **Refactor Prompt** and **Continuation Prompt**: [templates.md](templates.m
 | Baseline tests | 488 (00-SNAPSHOT) |
 | OCP | **deferred** (ADR-0002) |
 | Transfer R6 | **backlog** |
-| Multi-call WU6 | **active** (mock) |
-| RAT step 08 | **pending** after WU6 |
-| Active RAT | R1–R4 **closed** |
-| SIP smoke R1–R4 | closed |
+| Multi-call WU6 | **done** |
+| RAT step 08 | **done** |
+| P11 UI WU0 | **active** (layout) |
+| Active RAT | steps 00–08 **closed**; next **F-008 DTMF** |
 
 Refresh from repo during Discovery; do not treat this table as authoritative.

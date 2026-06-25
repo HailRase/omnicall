@@ -544,14 +544,19 @@ Legacy IDs:
 - `LF-084`
 - `LF-086`
 - `LF-087`
+- `LF-032` (multi-session toggle — UI enabler for R7-5 re-smoke)
 
 Goal:
 
 Complete user configuration and desktop shell UX.
 
+**UI foundation (2026-06-25):** docs `UI-Architecture.md`, `UI-Design-System.md`, `UI-Component-Catalog.md`; Storybook 8; overlay navigation (settings/diagnostics do not unmount call context).
+
 Order:
 
-1. Define settings schema.
+0. **WU0:** `SoftphoneLayout` zones + dev cleanup — `handoffs/P11-WU0-Shell-Layout-Agent-Prompt.md`
+1. **WU1:** Settings overlay + `multiSessionsEnabled` (facade + port; no Use Case) — `UI-SMOKE-ENABLERS.md`
+2. Define settings schema.
 2. Define settings migration strategy.
 3. Implement settings repository.
 4. Build settings UX:

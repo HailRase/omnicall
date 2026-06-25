@@ -4,8 +4,8 @@ You implement **real external adapters** for Enterprise Softphone Platform on br
 
 > **OCP is DEFERRED** (ADR-0002). Read `docs/softphone/OCP-PLUGIN-BACKLOG.md`. Do not implement or smoke-test OCP unless user resumes that backlog.
 > **Transfer real adapter is BACKLOG** — `TRANSFER-REAL-ADAPTER-BACKLOG.md`.
-> **Multi-call product law:** `P05-Multi-Call-Product-Decisions.md`. **P05 WU6** (mock) before **RAT step 08**.
-> Active RAT after WU6: **step 08** multi-call real (not step 07 unless transfer backlog resumed).
+> **RAT steps 00–08:** **closed** (R7 PASS 2026-06-25). **UI track:** P11 WU0 layout → WU1 settings (`UI-SMOKE-ENABLERS.md`) before re-smoke R7-5 in prod UI.
+> **Next adapter work:** F-008 DTMF real. Transfer step 07 = **backlog**.
 
 ## Mission
 
@@ -16,7 +16,8 @@ Connect real SIP (JsSIP) and browser media (WebRTC audio) — **without breaking
 1. `docs/softphone/Architecture-Constitution.md`
 2. `docs/softphone/OCP-PLUGIN-BACKLOG.md` — **OCP deferred; do not scope-creep**
 3. `docs/softphone/Feature-Registry.md`
-3. `docs/softphone/UX-UI-Design-Blueprint.md`
+3. `docs/softphone/UI-Architecture.md` + `UI-Design-System.md` (renderer changes)
+4. `docs/softphone/UX-UI-Design-Blueprint.md`
 4. `docs/softphone/real-integration/00-SNAPSHOT.md`
 5. `docs/softphone/real-integration/PROGRESS.md` — resume from first unchecked step
 6. `docs/softphone/real-integration/JSSIP-FORK.md` — `@hailrase/jssip` fork policy
@@ -36,7 +37,7 @@ Connect real SIP (JsSIP) and browser media (WebRTC audio) — **without breaking
 
 ## Work protocol
 
-1. Read `PROGRESS.md` — find first step with status `pending` or `in_progress` (**skip 06 OCP; skip 07/07b transfer backlog; step 08 only after P05 WU6 mock gate**).
+1. Read `PROGRESS.md` — RAT steps 00–08 closed. **Next adapter slice:** F-008 DTMF real (`JsSipTelephonyAdapter.sendDtmf`). Skip 06 OCP; skip 07/07b transfer backlog.
 2. Open matching `step-NN-*.md` — implement only that scope.
 3. Run `npm run test && npm run lint && npm run typecheck`.
 4. Manual smoke per `SMOKE-CHECKLIST.md` for that slice (document results in PROGRESS).
@@ -71,7 +72,7 @@ Main: unchanged until transfer/headset slices stabilize
 
 - OCP WebSocket, R5 smoke, operator status on real stand (ADR-0002 — `OCP-PLUGIN-BACKLOG.md`)
 - Real SIP transfer completion — **backlog** (`TRANSFER-REAL-ADAPTER-BACKLOG.md`)
-- P05 WU6 multi-call mock — **roadmap agent** (`P05-WU6-Multi-Call-Completeness-Agent-Prompt.md`), not RAT until step 08
+- P11 shell/settings UI — **roadmap agent** (`P11-WU0-Shell-Layout-Agent-Prompt.md`); parallel to F-008 DTMF
 - Headset WebHID
 - Call history persistence
 - Full E2E harness

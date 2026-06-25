@@ -4,7 +4,7 @@ Parallel track to connect production adapters without breaking mock/CI on `main`
 
 > **OCP (step 06 / R5): DEFERRED** — [ADR-0002](../adr/ADR-0002-defer-ocp-plugin.md), [OCP-PLUGIN-BACKLOG.md](../OCP-PLUGIN-BACKLOG.md).
 > **Transfer (step 07 / R6): BACKLOG** — [TRANSFER-REAL-ADAPTER-BACKLOG.md](./TRANSFER-REAL-ADAPTER-BACKLOG.md).
-> **Active track:** **P05 WU6** multi-call → **RAT step 08**; transfer/OCP backlog.
+> **RAT steps 00–08:** closed. **UI track:** P11 WU0/WU1 — [UI-SMOKE-ENABLERS.md](./UI-SMOKE-ENABLERS.md). **Next adapter:** F-008 DTMF real.
 
 ## Start here
 

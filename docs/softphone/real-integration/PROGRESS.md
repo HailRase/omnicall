@@ -2,7 +2,7 @@
 
 > **OCP (step 06 / R5): DEFERRED** per [ADR-0002](../adr/ADR-0002-defer-ocp-plugin.md) and [OCP-PLUGIN-BACKLOG.md](../OCP-PLUGIN-BACKLOG.md).
 > **Transfer (step 07 / 07b / R6): BACKLOG** per [TRANSFER-REAL-ADAPTER-BACKLOG.md](./TRANSFER-REAL-ADAPTER-BACKLOG.md).
-> **Active track:** **P05 WU6** multi-call completeness (mock) → **RAT step 08** multi-call real; then P08 / F-008 DTMF / P10 headset.
+> **Active track:** **P11 WU0** shell layout + overlay UX → **F-008 DTMF real** → P10 headset. RAT steps 00–08 **closed**.
 
 **Branch:** feature/real-adapters
 
@@ -37,16 +37,19 @@
 
 ## Current focus (2026-06-25)
 
-**RAT SIP core (steps 00–08):** **closed** — R7 multi-call PASS (R7-1…R7-5); P11 settings UI for `multiSessionsEnabled` still backlog.
+**RAT SIP core (steps 00–08):** **closed** — R7 multi-call PASS (R7-1…R7-5).
 
-**Next:** F-008 DTMF real, P10 headset, merge `feature/real-adapters` for SIP core slice.
+**UI track (P11):** WU0 shell layout — `handoffs/P11-WU0-Shell-Layout-Agent-Prompt.md`, `UI-Architecture.md`, `UI-Design-System.md`. WU1: Settings overlay + `multiSessionsEnabled` (re-smoke R7-5 without repo hack). See `UI-SMOKE-ENABLERS.md`.
 
-**Backlog:** transfer R6 (`TRANSFER-REAL-ADAPTER-BACKLOG.md`); OCP R5 (ADR-0002); Tone FSM (`MULTI-CALL-BACKLOG.md`).
+**Next adapter:** F-008 DTMF real, P10 headset, merge `feature/real-adapters`.
+
+**Backlog:** transfer R6; OCP R5 (ADR-0002); Tone FSM (`MULTI-CALL-BACKLOG.md`).
 
 | Area | Status |
 | --- | --- |
-| WU1 multi-call policy (mock) | done — LF-021 outgoing hold-all, LF-023 exclusive resume, LF-032 partial |
-| WU6 gaps | incoming hold-all, connecting block, auto-486, fail-safe event, call lines UI |
+| P05 WU6 multi-call (mock) | done |
+| P11 WU0 shell layout | **pending** — docs + deps ready |
+| P11 WU1 settings overlay | pending after WU0 |
 | Transfer real SBC | backlog |
 | P08 WU5 logout | done |
 

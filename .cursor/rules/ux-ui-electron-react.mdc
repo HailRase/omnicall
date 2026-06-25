@@ -18,6 +18,8 @@ UX/UI requirements are defined in:
 ```txt
 docs/softphone/UX-UI-Design-Blueprint.md
 docs/softphone/UI-Architecture.md
+docs/softphone/UI-Design-System.md
+docs/softphone/UI-Component-Catalog.md
 ```
 
 Read `UI-Architecture.md` before any renderer change (hooks, shells, components, stores).

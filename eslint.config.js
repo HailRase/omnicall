@@ -27,7 +27,7 @@ const boundaryElements = [
 
 export default tseslint.config(
   {
-    ignores: ["out/**", "dist/**", "node_modules/**"],
+    ignores: ["out/**", "dist/**", "node_modules/**", "scripts/**", ".storybook/**"],
   },
   js.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
@@ -139,6 +139,54 @@ export default tseslint.config(
               group: ["@domain", "@domain/*"],
               message:
                 "Renderer must not import Domain directly. Use @application view-models and projections (see docs/softphone/UI-Architecture.md).",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: [
+      "src/renderer/components/**/*.{ts,tsx}",
+      "src/renderer/shared/ui/**/*.{ts,tsx}",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@domain", "@domain/*"],
+              message: "Components must not import Domain.",
+            },
+            {
+              group: ["@adapters", "@adapters/*", "@ports", "@ports/*"],
+              message: "Components must not import adapters or ports.",
+            },
+            {
+              group: ["**/facades/**", "**/use-cases/**", "**/*UseCase*"],
+              message:
+                "Components must not import facades or Use Cases. Use *Actions hooks.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["src/renderer/hooks/**/*Actions.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["@domain", "@domain/*"],
+              message: "Renderer must not import Domain directly.",
+            },
+            {
+              group: ["@adapters", "@adapters/*", "@ports", "@ports/*"],
+              message: "Actions hooks use facade only, not adapters/ports.",
             },
           ],
         },
