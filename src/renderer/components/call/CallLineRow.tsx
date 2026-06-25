@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { JSX } from "react";
 import type {
   ActiveCallControlOperationError,
@@ -10,6 +11,7 @@ import {
 } from "../../helpers/mapActiveCallControlLabels.js";
 import { mapQueueLabelState } from "../../helpers/mapQueueLabelState.js";
 import { mapTransferDisabledReason } from "../../helpers/mapTransferDisabledReason.js";
+import styles from "./CallLineRow.module.css";
 
 export type CallLineRowProps = Readonly<{
   line: CallLineCardViewModel;
@@ -46,39 +48,38 @@ export function CallLineRow({
 }: CallLineRowProps): JSX.Element {
   const queueLabel = mapQueueLabelState(line.queueLabelState, line.queueName);
   const showError = !compact && line.isActiveUnheld && lastOperationError !== null;
-  const rowClassName = compact ? "call-line-row call-line-row--compact" : "call-line-row";
 
   return (
     <li
-      className={rowClassName}
+      className={clsx(compact ? styles["rowCompact"] : styles["row"])}
       data-testid={`call-line-${line.callId}`}
       aria-label={`Call line ${line.displayName}`}
     >
-      <div className="call-line-row__main">
-        <div className="call-line-row__info">
-          <strong className="call-line-row__name">{line.displayName}</strong>
+      <div className={styles["main"]}>
+        <div className={styles["info"]}>
+          <strong className={styles["name"]}>{line.displayName}</strong>
           {!compact && queueLabel.visible ? (
             <span
-              className="call-line-row__queue"
+              className={styles["queue"]}
               data-testid={`call-line-queue-${line.callId}`}
               aria-busy={queueLabel.ariaBusy}
             >
               {queueLabel.text}
             </span>
           ) : null}
-          <div className="call-line-row__meta">
+          <div className={styles["meta"]}>
             <CallLineDuration startedAtMs={line.durationStartedAt} callId={line.callId} />
-            <span className="call-line-row__status">{line.statusLabel}</span>
+            <span>{line.statusLabel}</span>
             {line.muted ? (
-              <span className="call-line-row__badge" data-testid={`call-line-muted-${line.callId}`}>
+              <span className={styles["badge"]} data-testid={`call-line-muted-${line.callId}`}>
                 Muted
               </span>
             ) : null}
           </div>
         </div>
-        <div className="call-line-row__actions">
+        <div className={styles["actions"]}>
           {!compact && line.showIconRow ? (
-            <div className="call-line-row__icon-row" aria-label="Call controls">
+            <div className={styles["iconRow"]} aria-label="Call controls">
               <IconActionButton
                 testId={`control-transfer-line-${line.callId}`}
                 label="Transfer call"
@@ -135,7 +136,7 @@ export function CallLineRow({
       </div>
       {showError ? (
         <div
-          className="call-line-row__error"
+          className={styles["error"]}
           data-testid={`call-line-error-${line.callId}`}
           role="alert"
         >
@@ -151,7 +152,7 @@ export function CallLineRow({
         </div>
       ) : null}
       {line.resumeDisabledReason !== null ? (
-        <p className="call-line-row__disabled-reason" role="status">
+        <p className={styles["disabledReason"]} role="status">
           {line.resumeDisabledReason}
         </p>
       ) : null}
@@ -170,7 +171,7 @@ function CallLineDuration({ startedAtMs, callId }: CallLineDurationProps): JSX.E
     return null;
   }
   return (
-    <span className="call-line-row__duration" data-testid={`call-line-duration-${callId}`}>
+    <span className={styles["duration"]} data-testid={`call-line-duration-${callId}`}>
       {duration}
     </span>
   );
@@ -194,7 +195,7 @@ function IconActionButton({
   return (
     <button
       type="button"
-      className="call-line-row__icon-btn"
+      className={styles["iconButton"]}
       data-testid={testId}
       aria-label={label}
       title={disabledReason ?? undefined}
@@ -222,7 +223,7 @@ function PrimaryCta({ line, onResume, onHangup, onAnswer }: PrimaryCtaProps): JS
     return (
       <button
         type="button"
-        className="call-line-row__primary call-line-row__primary--resume"
+        className={styles["primaryResume"]}
         data-testid={`control-resume-line-${line.callId}`}
         disabled={line.resumeDisabledReason !== null}
         aria-label={`Resume call ${line.displayName}`}
@@ -239,7 +240,7 @@ function PrimaryCta({ line, onResume, onHangup, onAnswer }: PrimaryCtaProps): JS
     return (
       <button
         type="button"
-        className="call-line-row__primary call-line-row__primary--answer"
+        className={styles["primaryAnswer"]}
         data-testid={`control-answer-line-${line.callId}`}
         aria-label={`Answer call ${line.displayName}`}
         onClick={() => {
@@ -254,7 +255,7 @@ function PrimaryCta({ line, onResume, onHangup, onAnswer }: PrimaryCtaProps): JS
   return (
     <button
       type="button"
-      className="call-line-row__primary call-line-row__primary--hangup"
+      className={styles["primaryHangup"]}
       data-testid={`control-hangup-line-${line.callId}`}
       disabled={line.hangupDisabledReason !== null}
       aria-label={`Hang up call ${line.displayName}`}
