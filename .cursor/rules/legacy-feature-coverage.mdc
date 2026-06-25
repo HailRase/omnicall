@@ -1,8 +1,12 @@
 ---
 description: RULE - Enforces LF-001..LF-090 legacy feature parity during the rewrite.
 globs:
-  - "**/*"
-alwaysApply: true
+  - "src/domain/**"
+  - "src/application/**"
+  - "src/adapters/**"
+  - "docs/softphone/Legacy-Feature-Coverage.md"
+  - "docs/softphone/Feature-Registry.md"
+alwaysApply: false
 ---
 
 # RULE: Legacy Feature Coverage

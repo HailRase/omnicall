@@ -1,8 +1,9 @@
 ---
 description: RULE - Requires feature registry ownership before implementation.
 globs:
-  - "**/*"
-alwaysApply: true
+  - "src/**"
+  - "docs/softphone/Feature-Registry.md"
+alwaysApply: false
 ---
 
 # RULE: Feature Registry

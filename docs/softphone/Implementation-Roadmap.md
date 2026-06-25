@@ -10,7 +10,7 @@ This document defines the implementation order for the Electron rewrite.
 
 **OCP plugin is DEFERRED.** See `OCP-PLUGIN-BACKLOG.md`.
 
-Active track: core SIP telephony (P02–P05), **P05 WU6 multi-call completeness**, SIP recovery (P08 SIP channel), headset/settings/host (P10–P12), RAT R1–R4 (closed). **RAT transfer (step 07): backlog** — `real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md`. **RAT step 08:** multi-call real after WU6.
+Active track: **P11** shell/settings UX (**WU0–WU5 + UI-4 done**), **F-008 DTMF real**, P10 headset, P12 host API. RAT R1–R4 + step 08 **closed**. **RAT transfer (step 07): backlog** — `real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md`. See `STATUS.md`.
 
 **Not in active scope:** P06/P07 real OCP integration, RAT step 06 R5 smoke, operator platform on production stand — until user resumes OCP backlog.
 
@@ -550,30 +550,28 @@ Goal:
 
 Complete user configuration and desktop shell UX.
 
-**UI foundation (2026-06-25):** docs `UI-Architecture.md`, `UI-Design-System.md`, `UI-Component-Catalog.md`; Storybook 8; overlay navigation (settings/diagnostics do not unmount call context).
+**UI foundation (2026-06-25):** docs `UI-Architecture.md`, `UI-Design-System.md`, `UI-Component-Catalog.md`; Storybook 8; overlay navigation; CSS Modules UI-4 **complete**.
 
-Order:
+**Completed work units (sync with `STATUS.md`):**
 
-0. **WU0:** `SoftphoneLayout` zones + dev cleanup — `handoffs/P11-WU0-Shell-Layout-Agent-Prompt.md`
-1. **WU1:** Settings overlay + `multiSessionsEnabled` (facade + port; no Use Case) — `UI-SMOKE-ENABLERS.md`
-2. Define settings schema.
-2. Define settings migration strategy.
-3. Implement settings repository.
-4. Build settings UX:
-   - account
-   - behavior
-   - audio
-   - notifications
-   - diagnostics
-   - codecs placeholder or ADR
-5. Implement collapse/expand behavior.
-6. Implement draggable widget or Electron window drag alternative.
-7. Implement toast placement settings.
-8. Implement theme.
-9. Implement avatar and user menu.
-10. Implement collapsed header state.
+| WU | Topic | Handoff |
+| --- | --- | --- |
+| WU0 | Shell layout zones | `handoffs/P11-WU0-Shell-Layout-Handoff.md` |
+| WU1 | Settings overlay + multiSessions | `handoffs/P11-WU1-Settings-Overlay-Handoff.md` |
+| WU2 | Call line UX | `handoffs/P11-WU2-Call-Line-UX-Handoff.md` |
+| WU3 | Header collapsed | `handoffs/P11-WU3-Header-Collapsed-Handoff.md` |
+| WU4 | Settings schema v1 | `handoffs/P11-WU4-Settings-Schema-Handoff.md` |
+| WU5 | UI-4 CSS Modules slices A–I | `handoffs/P11-WU5-UI-4-Final-Gate-Handoff.md` |
 
-Gate:
+**Remaining (priority order — see `TASK-QUEUE.md`):**
+
+1. Icon tooltips + `AppIcon` wiring — `/ui` — `handoffs/P11-Icon-Tooltips-Agent-Prompt.md`
+2. Settings UX completeness (account, behavior, audio, notifications, diagnostics panels)
+3. Collapse/expand polish, theme, toast placement
+4. Draggable widget or Electron window drag (ADR if needed)
+5. Codecs placeholder or ADR
+
+Gate (phase):
 
 - Settings are per-user.
 - Settings changes produce explicit events.

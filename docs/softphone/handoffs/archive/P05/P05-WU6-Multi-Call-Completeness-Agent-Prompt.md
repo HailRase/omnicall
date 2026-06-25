@@ -20,21 +20,20 @@ Complete contact-center multi-session behavior on **mock + application + domain*
 
 ### Rules
 
-- `.cursor/rules/architecture.mdc`
+- `.cursor/rules/00-core.mdc`
 - `.cursor/rules/typescript-react-electron.mdc`
 - `.cursor/rules/testing-observability.mdc`
 - `.cursor/rules/legacy-feature-coverage.mdc`
 - `.cursor/rules/feature-registry.mdc`
 - `.cursor/rules/ux-ui-electron-react.mdc`
-- `.cursor/rules/ocp-deferred.mdc`
-- `.cursor/rules/transfer-real-backlog.mdc`
+- `.cursor/rules/00-core.mdc` (includes OCP deferred + transfer backlog)
 
 ### Docs
 
 - `docs/softphone/P05-Multi-Call-Product-Decisions.md` — **law**
 - `docs/softphone/P05-Multi-Call-Policy-UX-Design.md` — WU6 UX
 - `docs/softphone/UI-Architecture.md` — shells/hooks pattern
-- `docs/softphone/handoffs/P05-WU1-Multi-Call-Policy-Handoff.md` — WU1 baseline
+- `docs/softphone/handoffs/archive/P05/P05-WU1-Multi-Call-Policy-Handoff.md` — WU1 baseline
 - `docs/softphone/Feature-Registry.md` — F-002, F-003, F-004
 - `docs/softphone/Legacy-Feature-Coverage.md` — LF-021, LF-023, LF-032
 - `docs/softphone/real-integration/step-08-multi-call-real.md` — after WU6 mock gate
@@ -117,7 +116,7 @@ Complete contact-center multi-session behavior on **mock + application + domain*
 - Extend `CallEngine.multiCallPolicy.test.ts` matrix per Product Decisions table.
 - `MultiCallCompleteness.integration.test.ts`
 - Update `Feature-Registry.md`, `Legacy-Feature-Coverage.md`, `P05-Multi-Call-Policy-UX-Design.md`
-- Handoff: `handoffs/P05-WU6-Multi-Call-Completeness-Handoff.md`
+- Handoff: `handoffs/archive/P05/P05-WU6-Multi-Call-Completeness-Handoff.md`
 - `work-history/YYYY-MM-DD/p05-wu6-multi-call_*.md`
 
 **Stop WU6.** Do not start RAT step 08 in same session unless user asks.

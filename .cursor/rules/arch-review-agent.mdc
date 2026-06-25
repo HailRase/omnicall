@@ -1,0 +1,29 @@
+---
+description: >-
+  Architecture review before refactors, new layers, or dependency changes. Activate
+  on /arch-review. Read .cursor/skills/softphone-architecture-review/SKILL.md.
+globs:
+  - "src/**"
+  - "docs/softphone/Architecture-Constitution.md"
+alwaysApply: false
+---
+
+# RULE: Architecture Review Agent
+
+Read-only design review before structural changes.
+
+```txt
+.cursor/skills/softphone-architecture-review/SKILL.md
+.cursor/skills/_shared/response-contract.md
+docs/softphone/Architecture-Constitution.md
+```
+
+## Triggers
+
+- `/arch-review`
+- «Проверь архитектуру», «arch review»
+
+## Constraints
+
+- No production code; respond in Russian
+- Output: risks, ADR need, test plan — use response-contract

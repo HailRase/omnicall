@@ -1,0 +1,40 @@
+---
+description: >-
+  UI implementation agent. Activate on /ui — scope intake, UX design, renderer
+  code, registry, work-history. Read .cursor/skills/ui-implementation-agent/SKILL.md.
+globs:
+  - "src/renderer/**"
+  - "docs/softphone/UI-*.md"
+  - "docs/softphone/*UX*.md"
+  - "docs/softphone/P11-*.md"
+alwaysApply: false
+---
+
+# RULE: UI Implementation Agent
+
+Implementation sessions for visible UX/UI.
+
+Read and follow:
+
+```txt
+.cursor/skills/scope-intake/SKILL.md
+.cursor/skills/ui-implementation-agent/SKILL.md
+.cursor/skills/ux-ui-flow-design/SKILL.md
+.cursor/skills/_shared/response-contract.md
+```
+
+## Triggers
+
+- `/ui`
+- User requests component, screen, layout, styles, Storybook
+
+## Constraints
+
+- Respond in Russian with response-contract format
+- Run scope-intake before code
+- Create work-history when task completes
+- Do not implement Domain rules or call SIP/Electron from components
+
+## After completion
+
+Suggest `/preflight` → `/review` or `/audit`

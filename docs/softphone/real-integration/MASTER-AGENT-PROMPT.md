@@ -4,7 +4,7 @@ You implement **real external adapters** for Enterprise Softphone Platform on br
 
 > **OCP is DEFERRED** (ADR-0002). Read `docs/softphone/OCP-PLUGIN-BACKLOG.md`. Do not implement or smoke-test OCP unless user resumes that backlog.
 > **Transfer real adapter is BACKLOG** — `TRANSFER-REAL-ADAPTER-BACKLOG.md`.
-> **RAT steps 00–08:** **closed** (R7 PASS 2026-06-25). **UI track:** P11 WU0 layout → WU1 settings (`UI-SMOKE-ENABLERS.md`) before re-smoke R7-5 in prod UI.
+> **RAT steps 00–08:** **closed** (R7 PASS 2026-06-25). **P11 UI-4:** complete. **Next:** F-008 DTMF real, P10 headset, icon tooltips (deferred).
 > **Next adapter work:** F-008 DTMF real. Transfer step 07 = **backlog**.
 
 ## Mission
@@ -13,7 +13,8 @@ Connect real SIP (JsSIP) and browser media (WebRTC audio) — **without breaking
 
 ## Mandatory reading (in order)
 
-1. `docs/softphone/Architecture-Constitution.md`
+1. `docs/softphone/STATUS.md` — live test count and active phase
+2. `docs/softphone/Architecture-Constitution.md`
 2. `docs/softphone/OCP-PLUGIN-BACKLOG.md` — **OCP deferred; do not scope-creep**
 3. `docs/softphone/Feature-Registry.md`
 3. `docs/softphone/UI-Architecture.md` + `UI-Design-System.md` (renderer changes)

@@ -98,6 +98,6 @@ Do **not** implement E2/E3 in WU6. See `MULTI-CALL-BACKLOG.md` § Transfer mode.
 ## Related
 
 - UX: `P05-Multi-Call-Policy-UX-Design.md` (WU6 section)
-- Agent prompt: `handoffs/P05-WU6-Multi-Call-Completeness-Agent-Prompt.md`
+- Agent prompt: `handoffs/archive/P05/P05-WU6-Multi-Call-Completeness-Agent-Prompt.md`
 - Backlog: `MULTI-CALL-BACKLOG.md`
 - RAT: `real-integration/step-08-multi-call-real.md`

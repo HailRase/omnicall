@@ -1,5 +1,7 @@
 # Baseline Snapshot — 2026-06-24
 
+> **HISTORICAL** baseline only. **Live status:** `../STATUS.md`. Test count here (488) is frozen; current: 694 passed.
+
 ## Implemented (mock)
 
 - F-000 … F-015, F-014: platform through recovery — mock gateways

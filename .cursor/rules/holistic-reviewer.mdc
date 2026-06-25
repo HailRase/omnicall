@@ -1,0 +1,38 @@
+---
+description: >-
+  Super reviewer for full audit. Activate on /audit or «полный аудит». Read
+  .cursor/skills/holistic-reviewer/SKILL.md. Does not replace /review WU gate.
+globs:
+  - "**/*"
+alwaysApply: false
+---
+
+# RULE: Holistic Reviewer
+
+Full-project audit — broader than WU or RAT gate.
+
+Read and follow:
+
+```txt
+.cursor/skills/holistic-reviewer/SKILL.md
+.cursor/skills/holistic-reviewer/templates.md
+.cursor/skills/_shared/response-contract.md
+```
+
+## Triggers
+
+- `/audit`
+- «Полный аудит», «audit PR»
+
+## Constraints
+
+- Respond in Russian; severity Blocker / High / Low / Info
+- No production code, commit, or work-history
+- Prefer readonly; run test/lint in Agent mode when verifying
+
+## vs /review
+
+| `/review` | `/audit` |
+| --- | --- |
+| WU handoff gate | Any scope, merge-ready check |
+| Next WU prompt | Findings + recommendation |

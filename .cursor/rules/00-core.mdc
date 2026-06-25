@@ -1,0 +1,60 @@
+---
+description: Core architecture, agent protocol, and backlog guardrails (compressed)
+alwaysApply: true
+---
+
+# RULE: Core Platform
+
+Mandatory. Full detail: `docs/softphone/Architecture-Constitution.md`, `Engineering-Principles.md`, `STATUS.md`.
+
+## Mission
+
+Telephony platform — not a generic Electron app. Optimize: reliability, maintainability, replaceability, observability, testability.
+
+## Layers (deps inward only)
+
+```txt
+UI → Application → Domain → Ports → Adapters → Infrastructure
+```
+
+## Before code
+
+1. Feature Registry entry (`docs/softphone/Feature-Registry.md`)
+2. Bounded context: Telephony | Operator | Media | Headset | Settings | Integration
+3. Layer (renderer: read `docs/softphone/UI-Architecture.md`)
+4. Existing abstractions, I/O, side effects, required tests
+5. LF-XXX if legacy-affected (`Legacy-Feature-Coverage.md`)
+
+Mapping: business logic→Domain; orchestration→Application; external tech→Adapters/Infrastructure; presentation→UI; contracts→Ports.
+
+## Never
+
+- UI→SIP/Electron/repository/filesystem/WebSocket/adapter
+- Domain→React/Electron/JsSIP/Zustand/browser/Node/storage/infrastructure
+- Store→Use Cases/adapters/SIP/Electron/repositories/orchestration
+- Adapter→UI; JsSIP or raw SIP sessions in React or Domain
+- Business rules in React, stores, or adapters
+- Boolean flags as primary call state — use: Idle, Ringing, Connecting, Active, Held, Transferring, Conference, Ending, Ended, Failed
+- `any`, `@ts-ignore`, `as unknown as`
+- State change without Domain Event
+
+## Always
+
+- Business ops via Use Cases (`MakeCallUseCase`, `AnswerCallUseCase`, etc.); telephony via Call Engine
+- Stores = projections only; hooks compose selectors/Use Cases/UI behavior
+- OCP optional (`OperatorPlatformGateway`); SIP-only must work without OCP
+- Headset vendors behind adapters; hardware events→application commands
+- Refactoring: no feature loss; list feature/event/adapter impacts first
+- Errors: never swallow; `catch (error: unknown)` + log in critical flows
+- Completion: feature works, boundaries preserved, registry+tests updated, critical logs present
+
+## File size (split if exceeded)
+
+component 150 | hook 200 | file 300 | function 30 lines
+
+## Backlog (no scope creep)
+
+- **OCP DEFERRED** (ADR-0002): `docs/softphone/OCP-PLUGIN-BACKLOG.md` — resume only when user cites it
+- **Transfer R6 BACKLOG**: `docs/softphone/real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md` — resume only when user cites it
+- Do not block SIP/headset/settings on OCP or transfer gaps
+- Do not remove OCP ports, transfer code, or `domain/operator/` without ADR

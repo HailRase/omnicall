@@ -45,7 +45,7 @@ npm run test && npm run lint && npm run typecheck
 - + phase-specific: telephony-flow-review, ux-ui-flow-design, legacy-feature-migration, integration-contract-review
 
 ### Rules
-- .cursor/rules/architecture.mdc
+- .cursor/rules/00-core.mdc
 - .cursor/rules/implementation-roadmap.mdc
 - .cursor/rules/legacy-feature-coverage.mdc
 - .cursor/rules/feature-registry.mdc

@@ -24,6 +24,8 @@ Do **not** write production code, commit, push, or create `work-history` for rev
 
 Respond to the user in **Russian**. Implementation prompts may use Russian or English; paths and IDs stay as in the repo.
 
+Use response format: `.cursor/skills/_shared/response-contract.md` (session status, progress table, severity).
+
 ## Triggers
 
 | User command | Action |
@@ -37,13 +39,15 @@ If WU is unspecified, run Discovery and pick the latest handoff + work-history.
 
 ## Discovery (mandatory)
 
-1. Latest `work-history/YYYY-MM-DD/p*-wu*_*.md` — status, test count, paths.
-2. Latest `docs/softphone/handoffs/P{NN}-WU{M}-*-Handoff.md` or `P{NN}-Agent-Continuation-Handoff.md`.
-3. Git status (if available) vs handoff deliverables.
-4. `docs/softphone/Feature-Registry.md` — Feature ID, status, acceptance.
-5. `docs/softphone/Legacy-Feature-Coverage.md` — LF-XXX evidence.
-6. `docs/softphone/Implementation-Roadmap.md` — phase gate criteria.
-7. Spot-check code: grep + read key files from handoff (never trust handoff blindly).
+1. `docs/softphone/STATUS.md` — authoritative test count, active phase, next work.
+2. Latest `work-history/YYYY-MM-DD/p*-wu*_*.md` — status, test count, paths.
+3. Latest `docs/softphone/handoffs/P{NN}-WU{M}-*-Handoff.md` or `P{NN}-Agent-Continuation-Handoff.md` (archived: `handoffs/archive/P0N/`).
+4. Git status (if available) vs handoff deliverables.
+5. `docs/softphone/Feature-Registry.md` — Feature ID, status, acceptance.
+6. `docs/softphone/Legacy-Feature-Coverage.md` — LF-XXX evidence.
+7. `docs/softphone/TASK-QUEUE.md` — claimed → done for completed WU
+8. `docs/softphone/Implementation-Roadmap.md` — phase gate criteria
+9. Spot-check code: grep + read key files from handoff (never trust handoff blindly).
 
 Handoff vs work-history test count mismatch alone = **Low doc drift**, not a blocker.
 
@@ -115,29 +119,14 @@ Flag violations:
 
 ## User response format
 
-```markdown
-## Вердикт: P{NN} WU{M} — gate закрыт | gate не закрыт
+**Mandatory:** [response-contract.md](../_shared/response-contract.md) — base template + **WU gate extension**.
 
-Краткое резюме. Test count, lint/typecheck.
+- Session status: `gate_pass` or `gate_fail`
+- Progress table: each handoff gate criterion as a row
+- On PASS: append full **Next Implementation Prompt** from [templates.md](templates.md)
+- On FAIL: append **Refactor Prompt** only — no next WU
 
-| Критерий | Статус |
-| --- | --- |
-| ... | ✓ / ✗ |
-
-**Blockers:** (if any)
-**Low (не блокируют):** (if any)
-
----
-
-## Промт для implementation-agent: ...
-(полный промт — см. [templates.md](templates.md))
-
----
-
-Запись WU: `work-history/...`
-```
-
-Gate FAIL → **Refactor Prompt** instead of next WU prompt.
+Also verify **TASK-QUEUE.md**: claimed task → `done` if WU matches.
 
 ## Phase gate (last WU of phase)
 
@@ -181,16 +170,6 @@ Typical order: UX design → Domain → Application → Projections → mock ada
 ## Prompt templates
 
 Full **Refactor Prompt** and **Next Implementation Prompt** templates: [templates.md](templates.md).
-
-## Project snapshot (update each review)
-
-| Phase | Status | Last handoff | Tests (last known) |
-| --- | --- | --- | --- |
-| P06 | complete | P06-Agent-Continuation | 424 |
-| P07 | complete | P07-Agent-Continuation | 424 |
-| P08 | WU4 delivered — verify on next review | P08-WU4-Recovery-Manual-Shutdown | 488 claimed |
-
-Refresh from latest handoffs during Discovery; do not treat this table as authoritative.
 
 ## Prompt quality self-check
 

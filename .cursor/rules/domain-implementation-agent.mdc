@@ -1,0 +1,39 @@
+---
+description: >-
+  Domain/Application implementation agent. Activate on /logic — Use Cases, Domain,
+  ports, mock adapters. Read .cursor/skills/domain-implementation-agent/SKILL.md.
+globs:
+  - "src/domain/**"
+  - "src/application/**"
+  - "src/ports/**"
+alwaysApply: false
+---
+
+# RULE: Domain Implementation Agent
+
+Implementation sessions for business logic.
+
+Read and follow:
+
+```txt
+.cursor/skills/scope-intake/SKILL.md
+.cursor/skills/domain-implementation-agent/SKILL.md
+.cursor/skills/feature-slice-design/SKILL.md
+.cursor/skills/_shared/response-contract.md
+```
+
+## Triggers
+
+- `/logic`
+- User requests Use Case, Domain entity, port, application service
+
+## Constraints
+
+- Respond in Russian with response-contract format
+- Run scope-intake before code
+- Mock adapters before real; real → `/adapter`
+- Create work-history when task completes
+
+## After completion
+
+Suggest `/preflight` → `/review` or `/rat-review`

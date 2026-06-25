@@ -61,7 +61,7 @@ Hand implementation agent `docs/softphone/real-integration/MASTER-AGENT-PROMPT.m
 - + .cursor/skills/ux-ui-flow-design/SKILL.md (если user-visible)
 
 ### Rules
-- .cursor/rules/architecture.mdc
+- .cursor/rules/00-core.mdc
 - .cursor/rules/typescript-react-electron.mdc
 - .cursor/rules/testing-observability.mdc
 - .cursor/rules/legacy-feature-coverage.mdc

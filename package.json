@@ -15,7 +15,9 @@
     "typecheck": "tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p tsconfig.web.json",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "ui:catalog": "node scripts/generate-ui-catalog.mjs"
+    "ui:catalog": "node scripts/generate-ui-catalog.mjs",
+    "ui:catalog:check": "npm run ui:catalog && git diff --exit-code docs/softphone/UI-Component-Catalog.md",
+    "registry:check": "node scripts/check-registry-paths.mjs"
   },
   "dependencies": {
     "@hailrase/jssip": "^3.10.2",

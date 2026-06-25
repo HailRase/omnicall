@@ -1,12 +1,11 @@
 ---
 description: RULE - Requires UX/UI state design before Electron and React UI implementation.
 globs:
-  - "**/*.ts"
-  - "**/*.tsx"
-  - "**/*.css"
-  - "**/*.scss"
-  - "**/*.md"
-alwaysApply: true
+  - "src/renderer/**"
+  - "docs/softphone/*UX*.md"
+  - "docs/softphone/UI-*.md"
+  - "docs/softphone/P11-*.md"
+alwaysApply: false
 ---
 
 # RULE: UX/UI For Electron React Softphone

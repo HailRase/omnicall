@@ -1,8 +1,10 @@
 ---
 description: RULE - Enforces phase order and implementation gates from the softphone roadmap.
 globs:
-  - "**/*"
-alwaysApply: true
+  - "docs/softphone/**"
+  - "work-history/**"
+  - "src/**"
+alwaysApply: false
 ---
 
 # RULE: Implementation Roadmap

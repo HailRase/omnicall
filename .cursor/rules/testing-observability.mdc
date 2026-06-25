@@ -1,8 +1,10 @@
 ---
 description: RULE - Requires tests, logs, correlation IDs, and recovery visibility.
 globs:
-  - "**/*"
-alwaysApply: true
+  - "src/**"
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+alwaysApply: false
 ---
 
 # RULE: Testing And Observability

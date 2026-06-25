@@ -1,5 +1,5 @@
 ---
-description: RULE - Enforces TypeScript, React, Electron, Zustand, and IPC safety.
+description: TypeScript, React, Electron, Zustand, IPC safety (compressed)
 globs:
   - "**/*.ts"
   - "**/*.tsx"
@@ -8,181 +8,43 @@ alwaysApply: true
 
 # RULE: TypeScript, React, Electron, Zustand
 
-This is a mandatory Cursor rule.
-
-It applies to TypeScript and React code in the Enterprise Softphone Platform.
+Applies to TypeScript/React code. Architecture boundaries: `.cursor/rules/00-core.mdc`.
 
 ## TypeScript
 
-Never use:
+Never: `any`, `@ts-ignore`, `as unknown as`, untyped IPC/WebSocket/event payloads, **any `@deprecated` API** in TS/React/Electron/Node/DOM/deps.
 
-- `any`
-- `@ts-ignore`
-- `@ts-expect-error` without a documented reason
-- `as unknown as`
-- untyped event payloads
-- untyped IPC payloads
-- untyped WebSocket payloads
-- **any API, type, prop, export, or pattern marked `@deprecated`** in TypeScript, React, Electron, Node, DOM, or project dependencies
+Before using a library symbol: check `@deprecated` JSDoc; use replacement; no suppress without ADR.
 
-## No Deprecated APIs
+Prefer: discriminated unions, branded IDs, explicit public return types, `unknown` at boundaries + narrowing, immutable event payloads.
 
-Applies to **all layers**: Domain, Application, UI, Adapters, Infrastructure, tests.
+Forbidden examples: React `FormEvent`/`FormEventHandler`; DOM prefer `SubmitEvent`/`ChangeEvent`/`InputEvent`.
 
-Before using a library symbol:
+## React / Hooks / Zustand
 
-1. Check IDE strikethrough and `@deprecated` JSDoc.
-2. Use the documented replacement.
-3. Do not suppress deprecation warnings (`@ts-ignore`, eslint-disable) without an ADR.
+Components: render, props, hooks, forward intent — no SIP/Electron/repos/business rules/OCP parsing.
 
-Forbidden examples (not exhaustive):
+Hooks: selectors, Use Case binding, local UI — no telephony rules, SIP sessions, infra calls.
 
-- React: `FormEvent`, `FormEventHandler`, string refs, legacy class lifecycle methods
-- DOM events: prefer specific handlers (`SubmitEvent`, `ChangeEvent`, `InputEvent`) over deprecated aliases
-- Electron / Node: modules and APIs marked deprecated in current runtime docs
-- Dependencies: exports flagged deprecated in installed `@types` or package docs
+Zustand: projections only — no Use Cases/adapters/repos/SIP/Electron/business rules.
 
-If no replacement exists, create an ADR before keeping the deprecated API.
+## Electron
 
-Use:
+**Main:** lifecycle, windows, tray, updates, notifications, files, OS — no call rules, React/Domain state, OCP rules.
 
-- discriminated unions
-- branded IDs
-- explicit return types for public functions
-- `unknown` at boundaries
-- type narrowing at boundaries
-- immutable event payloads
+**Preload:** minimal typed APIs, narrow allowlists, validate payloads — no raw `ipcRenderer`, no Node globals in renderer.
 
-## React
+**IPC:** typed channels with request/response/error shape, owning context, security — no ad hoc channel names in components.
 
-React components must:
+## External inputs
 
-- render UI
-- receive props
-- call hooks
-- forward user intent
+Validate at boundaries (narrow from `unknown`): IPC, WebSocket, SIP metadata, host-page, config, storage. Domain receives trusted typed values.
 
-React components must not:
+Browser APIs → UI/adapters/infra. Node APIs → infra. Domain imports neither.
 
-- call SIP APIs
-- call Electron APIs
-- parse OCP WebSocket messages
-- mutate business state
-- access repositories
-- own business rules
+## Completion check
 
-## Hooks
-
-Hooks may:
-
-- compose selectors
-- bind Use Cases to UI
-- manage local UI behavior
-
-Hooks must not:
-
-- contain telephony business rules
-- own SIP sessions
-- execute infrastructure calls directly
-- mutate global contracts
-
-## Zustand
-
-Zustand stores are read-model projections.
-
-Stores may:
-
-- store derived UI-readable state
-- expose selectors
-- update from events
-
-Stores must not:
-
-- call Use Cases
-- call adapters
-- call repositories
-- call SIP
-- call Electron
-- own business rules
-
-## Electron Main Process
-
-Main process may own:
-
-- app lifecycle
-- windows
-- tray
-- auto updates
-- native notifications
-- file access
-- OS integrations
-- logging transports
-
-Main process must not own:
-
-- call business rules
-- React state
-- Domain state machines
-- OCP business rules
-
-## Electron Preload
-
-Preload must expose minimal typed APIs.
-
-Preload must:
-
-- use narrow allowlists
-- validate payloads
-- avoid exposing raw `ipcRenderer`
-- avoid exposing Node globals
-
-Renderer must never receive unrestricted Node or Electron access.
-
-## IPC
-
-IPC contracts must be typed and validated.
-
-Each IPC channel must define:
-
-- request payload
-- response payload
-- error shape
-- owning context
-- security constraints
-
-Do not create ad hoc IPC channel names in components.
-
-## External Inputs
-
-Validate all input from:
-
-- IPC
-- WebSocket
-- SIP metadata
-- host-page integration
-- configuration files
-- persisted storage
-
-Validation belongs at boundaries.
-
-Domain should receive trusted typed values.
-
-## Browser And Node APIs
-
-Browser APIs belong to UI, adapters, or infrastructure.
-
-Node APIs belong to infrastructure.
-
-Domain must not import either.
-
-## Completion Check
-
-Before finishing a TypeScript change verify:
-
-- no `any`
-- no `@deprecated` APIs or types in new or touched code
+- No `any` or `@deprecated` in touched code
 - `npm run lint` passes (`@typescript-eslint/no-deprecated`)
-- no direct infrastructure import in Domain
-- no direct SIP call in UI or store
-- IPC is typed and validated
-- external input is narrowed from `unknown`
+- No infra import in Domain; no SIP in UI/store
+- IPC typed and validated

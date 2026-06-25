@@ -18,7 +18,7 @@ Introduce `SoftphoneLayout` with Header / Context / Controls / Overlay zones; re
 
 ### Rules
 
-- `.cursor/rules/architecture.mdc`
+- `.cursor/rules/00-core.mdc`
 - `.cursor/rules/ux-ui-electron-react.mdc`
 - `.cursor/rules/typescript-react-electron.mdc`
 
@@ -26,7 +26,7 @@ Introduce `SoftphoneLayout` with Header / Context / Controls / Overlay zones; re
 
 - `docs/softphone/UI-Design-System.md` — stack, phases, overlay rules
 - `docs/softphone/real-integration/UI-SMOKE-ENABLERS.md`
-- `docs/softphone/handoffs/P05-WU6-Multi-Call-Completeness-Handoff.md` — call lines panel
+- `docs/softphone/handoffs/archive/P05/P05-WU6-Multi-Call-Completeness-Handoff.md` — call lines panel
 
 ## Context
 

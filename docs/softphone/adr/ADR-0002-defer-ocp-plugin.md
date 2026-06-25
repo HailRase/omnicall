@@ -18,7 +18,7 @@ Agents repeatedly treated OCP (RAT R5 smoke, real WS, operator status) as blocki
 4. **RAT step 06** status: `deferred` — code may exist; **R5 manual smoke is out of active scope** until backlog resumes.
 5. **Active RAT track** continues from **step 07** (real SIP transfer) and SIP slices R1–R4 maintenance.
 6. Feature Registry F-009, F-010, F-015: `Product status: deferred_backlog` (mock implementation remains; real OCP parity deferred).
-7. Cursor rule `.cursor/rules/ocp-deferred.mdc` applies to all agents.
+7. Cursor rule `.cursor/rules/00-core.mdc` applies to all agents (OCP + transfer backlog guardrails).
 
 ## Consequences
 

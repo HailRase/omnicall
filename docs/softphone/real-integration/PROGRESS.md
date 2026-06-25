@@ -1,14 +1,15 @@
 # RAT Progress
 
+> **Live status:** `../STATUS.md` — authoritative test count and active phase.
 > **OCP (step 06 / R5): DEFERRED** per [ADR-0002](../adr/ADR-0002-defer-ocp-plugin.md) and [OCP-PLUGIN-BACKLOG.md](../OCP-PLUGIN-BACKLOG.md).
 > **Transfer (step 07 / 07b / R6): BACKLOG** per [TRANSFER-REAL-ADAPTER-BACKLOG.md](./TRANSFER-REAL-ADAPTER-BACKLOG.md).
-> **Active track:** **P11 WU0** shell layout + overlay UX → **F-008 DTMF real** → P10 headset. RAT steps 00–08 **closed**.
+> **Active track:** P11 UI-4 **complete** → **F-008 DTMF real** → P10 headset. RAT steps 00–08 **closed**.
 
 **Branch:** feature/real-adapters
 
 **Base snapshot:** `00-SNAPSHOT.md` (2026-06-24, 488 tests)
 
-**Canonical automated tests (2026-06-25):** **640 passed, 1 skipped** — authoritative count for summary table and gates. Per-step `Automated:` lines below are historical snapshots unless they match 640.
+**Canonical automated tests (2026-06-25):** **694 passed, 1 skipped** — authoritative count. See `../STATUS.md`. Per-step `Automated:` lines below are historical snapshots.
 
 
 | Step | Status | Date | Agent notes | Tests | Smoke |
@@ -39,7 +40,7 @@
 
 **RAT SIP core (steps 00–08):** **closed** — R7 multi-call PASS (R7-1…R7-5).
 
-**UI track (P11):** WU0 shell layout — `handoffs/P11-WU0-Shell-Layout-Agent-Prompt.md`, `UI-Architecture.md`, `UI-Design-System.md`. WU1: Settings overlay + `multiSessionsEnabled` (re-smoke R7-5 without repo hack). See `UI-SMOKE-ENABLERS.md`.
+**UI track (P11):** WU0–WU5 + UI-4 **complete** — see `../STATUS.md`. Next: icon tooltips (deferred), F-008 DTMF, P10 headset.
 
 **Next adapter:** F-008 DTMF real, P10 headset, merge `feature/real-adapters`.
 
@@ -48,8 +49,7 @@
 | Area | Status |
 | --- | --- |
 | P05 WU6 multi-call (mock) | done |
-| P11 WU0 shell layout | **pending** — docs + deps ready |
-| P11 WU1 settings overlay | pending after WU0 |
+| P11 WU0–WU5 + UI-4 | **done** |
 | Transfer real SBC | backlog |
 | P08 WU5 logout | done |
 

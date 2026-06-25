@@ -24,7 +24,7 @@ After each RAT step (00–08):
 
 Do **not** write production code, commit, push, or create `work-history` for review-only turns.
 
-Respond to the user in **Russian**. Prompts may use Russian or English; paths and IDs stay as in the repo.
+Respond to the user in **Russian**. Use [response-contract](../_shared/response-contract.md) + **RAT gate extension**.
 
 ## Triggers
 
@@ -42,19 +42,20 @@ If step is unspecified, read `PROGRESS.md` and review the latest step marked `do
 
 Read in order:
 
-1. `docs/softphone/OCP-PLUGIN-BACKLOG.md` — **OCP deferred; active track is SIP R1–R4 + main roadmap**
-2. `docs/softphone/real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md` — transfer backlog
-3. `docs/softphone/P05-Multi-Call-Product-Decisions.md` — multi-call law; **WU6 before RAT step 08**
-4. `docs/softphone/real-integration/PROGRESS.md` — step statuses, smoke, test count, blockers
-3. `docs/softphone/real-integration/00-SNAPSHOT.md` — frozen baseline (488 tests)
-4. Matching `docs/softphone/real-integration/step-NN-*.md` for the step under review
-5. `docs/softphone/adr/ADR-0001-real-adapter-integration.md`
-6. `docs/softphone/adr/ADR-0002-defer-ocp-plugin.md`
-7. Latest `work-history/**/rat-step-*` or `rat-integration-*` for the step
-8. `docs/softphone/Feature-Registry.md` — F-001–F-008 SIP real-track; F-009/F-010/F-015 deferred
-9. `docs/softphone/Legacy-Feature-Coverage.md` — LF-XXX cited in step
-10. Git branch: must be `feature/real-adapters` for implementation work (review may run on any branch)
-11. Spot-check code: grep + read files listed in step **Expected files** (never trust PROGRESS alone)
+1. `docs/softphone/STATUS.md` — authoritative test count, active phase, next work
+2. `docs/softphone/OCP-PLUGIN-BACKLOG.md` — **OCP deferred; active track is SIP R1–R4 + main roadmap**
+3. `docs/softphone/real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md` — transfer backlog
+4. `docs/softphone/P05-Multi-Call-Product-Decisions.md` — multi-call law; **WU6 before RAT step 08**
+5. `docs/softphone/real-integration/PROGRESS.md` — step statuses, smoke, test count, blockers
+6. `docs/softphone/real-integration/00-SNAPSHOT.md` — frozen baseline (historical)
+7. Matching `docs/softphone/real-integration/step-NN-*.md` for the step under review
+8. `docs/softphone/adr/ADR-0001-real-adapter-integration.md`
+9. `docs/softphone/adr/ADR-0002-defer-ocp-plugin.md`
+10. Latest `work-history/**/rat-step-*` or `rat-integration-*` for the step
+11. `docs/softphone/Feature-Registry.md` — F-001–F-008 SIP real-track; F-009/F-010/F-015 deferred
+12. `docs/softphone/Legacy-Feature-Coverage.md` — LF-XXX cited in step
+13. Git branch: must be `feature/real-adapters` for implementation work (review may run on any branch)
+14. Spot-check code: grep + read files listed in step **Expected files** (never trust PROGRESS alone)
 
 Run when independent verification is needed:
 
@@ -158,29 +159,11 @@ Per `MASTER-AGENT-PROMPT.md` UX requirements:
 
 ## User response format
 
-```markdown
-## Вердикт: RAT Step NN — gate закрыт | gate не закрыт | трек не начат
+**Mandatory:** [response-contract.md](../_shared/response-contract.md) — base template + **RAT gate extension**.
 
-Краткое резюме. Branch, test count, текущий шаг в PROGRESS.
-
-| Критерий | Статус |
-| --- | --- |
-| ... | ✓ / ✗ |
-
-**Blockers:** (if any)
-**High / Low:** (if any)
-
----
-
-## Промт для implementation-agent
-(полный промт — см. [templates.md](templates.md))
-
----
-
-PROGRESS: `docs/softphone/real-integration/PROGRESS.md`
-```
-
-Step FAIL → **Refactor Prompt** only. Do not issue next step prompt.
+- Session status: `gate_pass`, `gate_fail`, or track-not-started
+- On PASS: Continuation Prompt from [templates.md](templates.md)
+- On FAIL: Refactor Prompt only
 
 ## Step map (quick reference)
 
@@ -196,12 +179,9 @@ Step FAIL → **Refactor Prompt** only. Do not issue next step prompt.
 | 07 | Transfer | LF-028, LF-029 | **backlog** |
 | 08 | Multi-call real | LF-021, LF-023, LF-032 | **done** |
 
-## Active track priority (2026-06-25)
+## Active track priority
 
-1. **P11 WU0** — shell layout + overlay UX (`handoffs/P11-WU0-Shell-Layout-Agent-Prompt.md`, `UI-SMOKE-ENABLERS.md`)
-2. **F-008 DTMF real** — `JsSipTelephonyAdapter.sendDtmf` (RAT adapter track continues post step 08)
-3. P10 headset / branch merge
-4. Transfer backlog / OCP backlog — only on user resume
+Read `docs/softphone/STATUS.md` for current next work (F-008 DTMF, P10 headset, icon tooltips).
 
 ## Onboarding for Continuation Prompts
 
@@ -209,7 +189,7 @@ Always list for implementation agent:
 
 **Skills:** `feature-slice-design`, `telephony-flow-review`, `integration-contract-review`, `legacy-feature-migration`, `ux-ui-flow-design` (if UI-visible)
 
-**Rules:** `architecture`, `typescript-react-electron`, `testing-observability`, `legacy-feature-coverage`, `feature-registry`, `ux-ui-electron-react`
+**Rules:** `00-core`, `typescript-react-electron`, `testing-observability`, `legacy-feature-coverage`, `feature-registry`, `ux-ui-electron-react`
 
 **Docs:** `MASTER-AGENT-PROMPT.md`, current `step-NN-*.md`, `SMOKE-CHECKLIST.md`, ADR-0001
 
@@ -236,18 +216,3 @@ Always list for implementation agent:
 ## Prompt templates
 
 Full **Refactor Prompt** and **Continuation Prompt**: [templates.md](templates.md).
-
-## Project snapshot (refresh each review)
-
-| Item | Last known |
-| --- | --- |
-| Branch | `feature/real-adapters` |
-| Baseline tests | 488 (00-SNAPSHOT) |
-| OCP | **deferred** (ADR-0002) |
-| Transfer R6 | **backlog** |
-| Multi-call WU6 | **done** |
-| RAT step 08 | **done** |
-| P11 UI WU0 | **active** (layout) |
-| Active RAT | steps 00–08 **closed**; next **F-008 DTMF** |
-
-Refresh from repo during Discovery; do not treat this table as authoritative.
