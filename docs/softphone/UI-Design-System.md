@@ -12,7 +12,7 @@ Visual and composition rules for the Electron renderer. Complements `UI-Architec
 | --- | --- | --- |
 | Runtime | React 19 | Existing |
 | State read-model | Zustand projections | Not replaced |
-| Styling | **CSS Modules** + semantic tokens | **Mandatory** for new/touched components; see `P11-CSS-Modules-Tokens-Migration.md` |
+| Styling | **CSS Modules** + semantic tokens | Mandatory; see `P11-CSS-Modules-Tokens-Migration.md` (UI-4 **complete**) |
 | Primitives a11y | **@radix-ui/react-dialog** | Incoming + campaign modals only (v1) |
 | Motion | **framer-motion** | Presentational; wraps Radix content |
 | Class merge | **clsx** | Conditional classes |
@@ -24,9 +24,9 @@ Visual and composition rules for the Electron renderer. Complements `UI-Architec
 
 File: `src/renderer/styles/tokens.css` (semantic variables on `:root`).
 
-Globals: `src/renderer/styles/globals.css` (reset, body).
+Globals: `src/renderer/styles/globals.css` (reset, body, focus ring).
 
-Legacy bridge: `src/renderer/styles.css` imports tokens and uses `var(--*)`; **shrinking** — no new global classes.
+Component styles: co-located `*.module.css` (UI-4 complete; legacy `styles.css` removed).
 
 Semantic names only:
 
@@ -37,7 +37,7 @@ Semantic names only:
 - `--radius-control`, `--radius-panel`
 - `--z-overlay`, `--z-modal`, `--z-toast`
 
-Migrate values from legacy `styles.css` without visual redesign in UI-1.
+Migrate values from legacy globals without visual redesign in UI-1 (done via WU5).
 
 ## Primitives (`shared/ui/` — target)
 
@@ -120,7 +120,7 @@ See `eslint.config.js` and `UI-Architecture.md`.
 | UI-1 | `SoftphoneLayout` + zones; remove dev hints |
 | UI-2 | Settings overlay + `multiSessionsEnabled` (unblocks R7-5 without repo hack) |
 | UI-3 | Split `CallFeatureShell`; unify `CallLineRow` |
-| UI-4 | tokens + CSS Modules migration (**foundation done**; incremental per `P11-WU5-CSS-Modules-Tokens-Agent-Prompt.md`) |
+| UI-4 | tokens + CSS Modules migration (**complete** WU5 2026-06-25) |
 | UI-5 | Storybook stories + catalog script |
 | UI-6 | Radix Dialog + motion on incoming/campaign |
 | UI-7 | Diagnostics overlay (`import.meta.env.DEV` or `?debug=1`) |

@@ -17,7 +17,7 @@ shells/        feature widgets: compose hooks, pass props to components
 hooks/         Shell hooks + Actions hooks (facade / Use Cases)
 helpers/       reason codes → user-visible strings
 components/    presentational UI only (props in, callbacks out)
-styles/        tokens.css, globals.css; co-located *.module.css (legacy styles.css shrinking — UI-4)
+styles/        tokens.css, globals.css; co-located *.module.css (UI-4 complete)
 ```
 
 **`entities/` does not exist in renderer.** UI view-models come from `@application` `derive*` / projection types. Widget-local UI state only in `widgets/<name>/model.ts` if ever needed.
