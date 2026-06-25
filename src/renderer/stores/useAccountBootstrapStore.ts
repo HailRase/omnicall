@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
+import type { MultiCallSettings } from "@application/index.js";
 import {
   initialAccountBootstrapProjection,
   reduceAccountBootstrapProjection,
@@ -84,6 +85,7 @@ type AccountBootstrapStore = Readonly<{
   setIncomingUiState: (uiState: IncomingCallUiState) => void;
   setIncomingRejectReasonRequired: (required: boolean) => void;
   setIncomingBreakReason: (reason: string | null) => void;
+  applyMultiCallSettings: (settings: MultiCallSettings) => void;
 }>;
 
 export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => ({
@@ -181,6 +183,12 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
         ...state.incomingCallProjection,
         selectedBreakReason: reason,
       },
+    }));
+  },
+
+  applyMultiCallSettings: (settings) => {
+    set((state) => ({
+      multiCallProjection: setMultiCallSettings(state.multiCallProjection, settings),
     }));
   },
 }));

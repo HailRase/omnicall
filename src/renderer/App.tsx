@@ -3,23 +3,15 @@ import { useAccountBootstrap } from "./hooks/useAccountBootstrap.js";
 import { useAppShutdown } from "./hooks/useAppShutdown.js";
 import { useSoftphoneShellChrome } from "./hooks/useSoftphoneShellChrome.js";
 import { SoftphoneReadyShell } from "./shells/SoftphoneReadyShell.js";
-import { SoftphoneShellHeader } from "./shells/SoftphoneShellHeader.js";
 
 export function App(): JSX.Element {
   const { facade, status, errorMessage } = useAccountBootstrap();
-  const { connectionRecoveryShell, connectionRecoveryActions, sessionLogoutActions } =
-    useSoftphoneShellChrome({ facade });
+  const shellChrome = useSoftphoneShellChrome({ facade });
 
   useAppShutdown({ facade });
 
   return (
     <main className="shell" data-testid="softphone-shell">
-      <SoftphoneShellHeader
-        connectionRecoveryShell={connectionRecoveryShell}
-        connectionRecoveryActions={connectionRecoveryActions}
-        sessionLogoutActions={sessionLogoutActions}
-      />
-
       {status === "loading" && (
         <p data-testid="bootstrap-loading">Booting application…</p>
       )}
@@ -31,7 +23,7 @@ export function App(): JSX.Element {
       )}
 
       {status === "ready" && facade !== null && (
-        <SoftphoneReadyShell facade={facade} sessionLogoutActions={sessionLogoutActions} />
+        <SoftphoneReadyShell facade={facade} shellChrome={shellChrome} />
       )}
     </main>
   );

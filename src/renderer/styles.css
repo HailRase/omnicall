@@ -33,6 +33,197 @@ body {
   padding-bottom: 16px;
 }
 
+.shell__header-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.shell__header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.shell__header-action,
+.shell__end-session {
+  padding: 6px 12px;
+  border: 1px solid #3d4f6a;
+  border-radius: 6px;
+  background: #1a2332;
+  color: #e8eef7;
+  cursor: pointer;
+}
+
+.shell__header-action:disabled,
+.shell__end-session:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.shell__header-recovery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.softphone-layout {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 16px;
+  min-height: 0;
+}
+
+.softphone-layout__header,
+.softphone-layout__context,
+.softphone-layout__controls {
+  display: grid;
+  gap: 16px;
+}
+
+.softphone-layout__main {
+  display: grid;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
+
+.softphone-layout__context {
+  border: 1px dashed #2f3d52;
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 4rem;
+}
+
+.softphone-layout__controls {
+  border: 1px dashed #2f3d52;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.softphone-layout__overlays {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.softphone-layout__overlays > * {
+  pointer-events: auto;
+}
+
+.shell-overlay-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+}
+
+.shell-overlay-sheet__backdrop {
+  position: absolute;
+  inset: 0;
+  border: none;
+  background: rgb(8 12 20 / 55%);
+  cursor: pointer;
+}
+
+.shell-overlay-sheet__panel {
+  position: relative;
+  z-index: 1;
+  width: min(22rem, 92vw);
+  margin: 16px;
+  border: 1px solid #2a3344;
+  border-radius: 8px;
+  background: #151d2b;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  max-height: calc(100vh - 32px);
+}
+
+.shell-overlay-sheet__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #2a3344;
+}
+
+.shell-overlay-sheet__title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.shell-overlay-sheet__close {
+  padding: 4px 10px;
+  border: 1px solid #3d4f6a;
+  border-radius: 6px;
+  background: #1a2332;
+  color: inherit;
+  cursor: pointer;
+}
+
+.shell-overlay-sheet__body {
+  padding: 16px;
+  overflow: auto;
+}
+
+.shell-overlay-sheet__placeholder {
+  margin: 0;
+  color: #9aa8bf;
+}
+
+.settings-overlay {
+  margin: 0;
+}
+
+.settings-overlay__fieldset {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.settings-overlay__legend {
+  margin: 0 0 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #c5d0e0;
+}
+
+.settings-overlay__toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.settings-overlay__checkbox {
+  margin-top: 2px;
+  width: 1rem;
+  height: 1rem;
+  accent-color: #4a7fd4;
+}
+
+.settings-overlay__toggle-label {
+  font-size: 0.9375rem;
+}
+
+.settings-overlay__hint {
+  margin: 8px 0 0 26px;
+  font-size: 0.8125rem;
+  color: #9aa8bf;
+}
+
+.settings-overlay__error {
+  margin: 0 0 12px;
+  color: #ffb4b4;
+}
+
 .shell__title {
   margin: 0;
   font-size: 1.5rem;

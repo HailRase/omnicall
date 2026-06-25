@@ -67,7 +67,8 @@ import type {
 } from "@ports/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { CallEngine } from "@application/services/CallEngine.js";
-import { createCallId, type Call, type CallId, type CampaignDecision, type MultiCallSettings } from "@domain/index.js";
+import type { MultiCallSettings } from "@domain/index.js";
+import { createCallId, type Call, type CallId, type CampaignDecision } from "@domain/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 
 export type AccountBootstrapFacadeDeps = Readonly<{
@@ -422,6 +423,15 @@ export class AccountBootstrapFacade {
 
   getMultiCallSettings(): Promise<MultiCallSettings> {
     return this.deps.settingsRepository.getMultiCallSettings();
+  }
+
+  async updateMultiCallSettings(settings: MultiCallSettings): Promise<MultiCallSettings> {
+    const normalized: MultiCallSettings = {
+      multiSessionsEnabled: settings.multiSessionsEnabled,
+      autoUnholdOnTransferFailure: settings.autoUnholdOnTransferFailure !== false,
+    };
+    await this.deps.settingsRepository.setMultiCallSettings(normalized);
+    return normalized;
   }
 
   async makeCall(number: string, callId?: CallId): Promise<Result<Call, PlatformError>> {

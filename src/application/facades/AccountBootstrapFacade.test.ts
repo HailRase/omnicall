@@ -111,6 +111,33 @@ describe("AccountBootstrapFacade integration", () => {
     await facade.setPhoneStatus("dnd");
     expect((await settings.getPhoneStatus())).toBe("dnd");
   });
+
+  it("updates multi-call settings through facade without Use Case", async () => {
+    const settings = new InMemorySettingsRepository({
+      multiCallSettings: {
+        multiSessionsEnabled: true,
+        autoUnholdOnTransferFailure: true,
+      },
+    });
+    const facade = new AccountBootstrapFacade({
+      operatorGateway: new MockOperatorPlatformGateway(),
+      telephonyGateway: new MockTelephonyGateway("success"),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: settings,
+      logger: createTestLogger(),
+    });
+
+    const updated = await facade.updateMultiCallSettings({
+      multiSessionsEnabled: false,
+      autoUnholdOnTransferFailure: true,
+    });
+
+    expect(updated).toEqual({
+      multiSessionsEnabled: false,
+      autoUnholdOnTransferFailure: true,
+    });
+    expect(await settings.getMultiCallSettings()).toEqual(updated);
+  });
 });
 
 function waitFor(predicate: () => boolean, timeoutMs = 1000): Promise<void> {

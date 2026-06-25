@@ -44,6 +44,9 @@ export function useSoftphoneProjections() {
   const setIncomingRejectReasonRequired = useAccountBootstrapStore(
     (state) => state.setIncomingRejectReasonRequired,
   );
+  const applyMultiCallSettings = useAccountBootstrapStore(
+    (state) => state.applyMultiCallSettings,
+  );
 
   return {
     projection,
@@ -62,6 +65,7 @@ export function useSoftphoneProjections() {
     setIncomingUiState,
     setIncomingBreakReason,
     setIncomingRejectReasonRequired,
+    applyMultiCallSettings,
   };
 }
 

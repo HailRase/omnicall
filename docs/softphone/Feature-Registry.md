@@ -426,7 +426,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-055`, `LF-056`, `LF-060`, `LF-076`, `LF-077`, `LF-082`, `LF-084`, `LF-085`, `LF-086`, `LF-087`, `LF-032` (multi-session toggle)
 - Context: Settings
 - Priority: high
-- Status: **in_progress** (P11 WU0 docs + deps 2026-06-25)
+- Status: **in_progress** (P11 WU1 settings overlay + multiSessions toggle 2026-06-25)
 - Owner: TBD
 - Inputs: user settings, account identity, shell interactions
 - Outputs: persisted settings, collapsed UI state, theme, menu projections
@@ -437,11 +437,12 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Collapsed mode preserves critical call/status visibility.
   - Electron shell behavior does not contain business logic.
 - Test Coverage:
-  - Unit: settings validation and migration
-  - Integration: settings repository `setMultiCallSettings`
-  - Component: Storybook for layout + settings overlay (WU0+)
+  - Unit: settings validation and migration; `InMemorySettingsRepository.setMultiCallSettings`
+  - Integration: facade `updateMultiCallSettings` → repository persistence
+  - Component: `SettingsOverlay` toggle; Storybook layout + settings overlay (WU0+)
   - E2E: settings and collapsed shell UX
-- UI docs: `UI-Architecture.md`, `UI-Design-System.md`, `handoffs/P11-WU0-Shell-Layout-Agent-Prompt.md`
+- Implementation evidence (WU1): `SettingsRepository.setMultiCallSettings`, `AccountBootstrapFacade.updateMultiCallSettings`, `useSettingsActions`, `SettingsOverlay`, `applyMultiCallSettings` store refresh
+- UI docs: `UI-Architecture.md`, `UI-Design-System.md`, `handoffs/P11-WU0-Shell-Layout-Handoff.md`, `handoffs/P11-WU1-Settings-Overlay-Handoff.md`
 
 ## F-017: Diagnostics And Logging
 

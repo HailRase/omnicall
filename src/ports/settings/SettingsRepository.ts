@@ -21,4 +21,5 @@ export interface SettingsRepository {
   getIncomingCallSettings(): Promise<IncomingCallSettings>;
   setAllowedBreakReasons(reasons: ReadonlyArray<BreakReason>): Promise<void>;
   getMultiCallSettings(): Promise<MultiCallSettings>;
+  setMultiCallSettings(settings: MultiCallSettings): Promise<void>;
 }

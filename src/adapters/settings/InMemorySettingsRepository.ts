@@ -84,6 +84,17 @@ export class InMemorySettingsRepository implements SettingsRepository {
   getMultiCallSettings(): Promise<MultiCallSettings> {
     return Promise.resolve(this.state.multiCallSettings);
   }
+
+  setMultiCallSettings(settings: MultiCallSettings): Promise<void> {
+    this.state = {
+      ...this.state,
+      multiCallSettings: {
+        multiSessionsEnabled: settings.multiSessionsEnabled,
+        autoUnholdOnTransferFailure: settings.autoUnholdOnTransferFailure !== false,
+      },
+    };
+    return Promise.resolve();
+  }
 }
 
 function defaultBreakReasons(): ReadonlyArray<BreakReason> {
