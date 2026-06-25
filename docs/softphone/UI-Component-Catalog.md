@@ -2,7 +2,7 @@
 
 > **Auto-generated.** Do not edit by hand. Run: `npm run ui:catalog`
 
-Last generated: 2026-06-25 13:40
+Last generated: 2026-06-25 16:49
 
 ## Index
 
@@ -29,6 +29,7 @@ Last generated: 2026-06-25 13:40
 | `Dialpad` | `src/renderer/components/dialpad/Dialpad.tsx` | `DialpadProps` | dialpad-panel, dialpad-mode-number, call-dtmf-toggle, dialpad-input, dialpad-key-0, dialpad-key-0, dialpad-delete, dialpad-clear, dialpad-call, dialpad-disabled-reason | — |
 | `RegistrationStatusDot` | `src/renderer/components/header/RegistrationStatusDot.tsx` | `RegistrationStatusDotProps` | registration-status-dot | lf=LF-011 f=F-016 smoke=R7- |
 | `UserAvatar` | `src/renderer/components/header/UserAvatar.tsx` | `UserAvatarProps` | user-avatar, user-avatar | lf=LF-086 f=F-016 smoke=R7- |
+| `AppIcon` | `src/renderer/components/icons/AppIcon.tsx` | `AppIconProps` | — | — |
 | `OcpToastStack` | `src/renderer/components/ocp/OcpToastStack.tsx` | `OcpToastStackProps` | ocp-toast-stack, ocp-toast | — |
 | `ConnectionOverlay` | `src/renderer/components/recovery/ConnectionOverlay.tsx` | `ConnectionOverlayProps` | connection-overlay-host, connection-overlay-scrim, connection-overlay, connection-server-terminate, reconnect-countdown, reconnect-in-progress, control-retry-connection, control-safe-logout | — |
 | `LogoutActiveSessionConfirmationModal` | `src/renderer/components/session/LogoutActiveSessionConfirmationModal.tsx` | `LogoutActiveSessionConfirmationModalProps` | logout-active-session-modal, control-logout-confirm, control-logout-cancel | — |

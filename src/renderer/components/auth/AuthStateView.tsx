@@ -1,5 +1,7 @@
 import type { JSX } from "react";
 import type { AuthUiState } from "@application/projections/accountBootstrapProjection.js";
+import panelStyles from "../shell/BootstrapPanel.module.css";
+import styles from "./AuthStateView.module.css";
 
 type AuthScreenProps = Readonly<{
   title: string;
@@ -9,9 +11,9 @@ type AuthScreenProps = Readonly<{
 
 function AuthScreen({ title, message, testId }: AuthScreenProps): JSX.Element {
   return (
-    <section className="auth-screen" data-testid={testId}>
-      <h2>{title}</h2>
-      <p>{message}</p>
+    <section className={panelStyles["panel"]} data-testid={testId}>
+      <h2 className={styles["title"]}>{title}</h2>
+      <p className={styles["message"]}>{message}</p>
     </section>
   );
 }

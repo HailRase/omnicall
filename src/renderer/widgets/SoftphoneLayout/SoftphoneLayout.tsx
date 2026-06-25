@@ -1,4 +1,6 @@
+import clsx from "clsx";
 import type { JSX, ReactNode } from "react";
+import styles from "./SoftphoneLayout.module.css";
 
 export type SoftphoneLayoutProps = Readonly<{
   header: ReactNode;
@@ -21,28 +23,24 @@ export function SoftphoneLayout({
   overlays,
   collapsed = false,
 }: SoftphoneLayoutProps): JSX.Element {
-  const layoutClassName = collapsed
-    ? "softphone-layout softphone-layout--collapsed"
-    : "softphone-layout";
-
   return (
     <div
-      className={layoutClassName}
+      className={clsx(styles["layout"], collapsed && styles["layoutCollapsed"])}
       data-testid="softphone-layout"
       data-collapsed={collapsed ? "true" : "false"}
     >
-      <div className="softphone-layout__header" data-testid="layout-header-zone">
+      <div className={styles["header"]} data-testid="layout-header-zone">
         {header}
       </div>
-      <div className="softphone-layout__main">
-        <div className="softphone-layout__context" data-testid="layout-context-zone">
+      <div className={styles["main"]}>
+        <div className={styles["context"]} data-testid="layout-context-zone">
           {context}
         </div>
-        <div className="softphone-layout__controls" data-testid="layout-controls-zone">
+        <div className={styles["controls"]} data-testid="layout-controls-zone">
           {controls}
         </div>
       </div>
-      <div className="softphone-layout__overlays" data-testid="layout-overlay-layer">
+      <div className={styles["overlays"]} data-testid="layout-overlay-layer">
         {overlays}
       </div>
     </div>

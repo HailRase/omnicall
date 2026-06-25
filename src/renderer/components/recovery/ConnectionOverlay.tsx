@@ -1,5 +1,7 @@
+import clsx from "clsx";
 import type { JSX } from "react";
 import type { ConnectionState } from "@application/index.js";
+import styles from "./ConnectionOverlay.module.css";
 
 export type ConnectionChannelRow = Readonly<{
   channel: "OCP" | "SIP";
@@ -53,9 +55,6 @@ export function ConnectionOverlay({
   const title = resolveOverlayTitle(connectionState);
   const isServerTerminate = connectionState === "server_terminate";
   const role = isBlocking ? "alertdialog" : "region";
-  const overlayClass = isBlocking
-    ? "connection-overlay connection-overlay--blocking"
-    : "connection-overlay connection-overlay--banner";
 
   const channelRows = buildChannelRows({
     connectionState,
@@ -75,114 +74,115 @@ export function ConnectionOverlay({
 
   return (
     <div
-      className={
-        isBlocking ? "connection-overlay-host connection-overlay-host--blocking" : "connection-overlay-host"
-      }
+      className={clsx(styles["host"], isBlocking && styles["hostBlocking"])}
       data-testid="connection-overlay-host"
     >
       {isBlocking ? (
         <div
-          className="connection-overlay-host__scrim"
+          className={styles["scrim"]}
           data-testid="connection-overlay-scrim"
           aria-hidden="true"
         />
       ) : null}
       <section
-        className={overlayClass}
+        className={clsx(
+          styles["overlay"],
+          isBlocking ? styles["overlayBlocking"] : styles["overlayBanner"],
+        )}
         role={role}
         aria-label="Connection status"
         data-testid="connection-overlay"
         aria-modal={isBlocking ? "true" : undefined}
       >
-      <h2 className="connection-overlay__title">{title}</h2>
+        <h2 className={styles["title"]}>{title}</h2>
 
-      {isServerTerminate && (
-        <p className="connection-overlay__message" data-testid="connection-server-terminate">
-          Your session was ended by the server. Please wait while the application reaches a safe
-          state.
-        </p>
-      )}
+        {isServerTerminate && (
+          <p className={styles["message"]} data-testid="connection-server-terminate">
+            Your session was ended by the server. Please wait while the application reaches a safe
+            state.
+          </p>
+        )}
 
-      {lastFailureReason !== null && connectionState !== "reconnecting" && (
-        <p className="connection-overlay__reason" role="status">
-          {lastFailureReason}
-        </p>
-      )}
+        {lastFailureReason !== null && connectionState !== "reconnecting" && (
+          <p className={styles["reason"]} role="status">
+            {lastFailureReason}
+          </p>
+        )}
 
-      <ul className="connection-overlay__channels" aria-label="Connection channels">
-        {channelRows.map((row) => (
-          <li
-            key={row.channel}
-            className="connection-overlay__channel"
-            data-testid={`connection-channel-${row.channel.toLowerCase()}`}
+        <ul className={styles["channels"]} aria-label="Connection channels">
+          {channelRows.map((row) => (
+            <li
+              key={row.channel}
+              className={styles["channel"]}
+              data-testid={`connection-channel-${row.channel.toLowerCase()}`}
+            >
+              <span className={styles["channelName"]}>{row.channel}</span>
+              <span className={styles["channelStatus"]}>{row.statusLabel}</span>
+              {row.attempt !== null && (
+                <span className={styles["channelAttempt"]}>
+                  Attempt {row.attempt} of {row.maxAttempts}
+                </span>
+              )}
+            </li>
+          ))}
+        </ul>
+
+        {showCountdown && (
+          <p
+            className={styles["countdown"]}
+            data-testid="reconnect-countdown"
+            aria-live="polite"
           >
-            <span className="connection-overlay__channel-name">{row.channel}</span>
-            <span className="connection-overlay__channel-status">{row.statusLabel}</span>
-            {row.attempt !== null && (
-              <span className="connection-overlay__channel-attempt">
-                Attempt {row.attempt} of {row.maxAttempts}
-              </span>
-            )}
-          </li>
-        ))}
-      </ul>
+            Next attempt in {reconnectCountdownSeconds} second
+            {reconnectCountdownSeconds === 1 ? "" : "s"}
+          </p>
+        )}
 
-      {showCountdown && (
-        <p
-          className="connection-overlay__countdown"
-          data-testid="reconnect-countdown"
-          aria-live="polite"
-        >
-          Next attempt in {reconnectCountdownSeconds} second
-          {reconnectCountdownSeconds === 1 ? "" : "s"}
-        </p>
-      )}
+        {showInProgress && (
+          <p
+            className={styles["loading"]}
+            data-testid="reconnect-in-progress"
+            aria-live="polite"
+            role="status"
+          >
+            Reconnecting now…
+          </p>
+        )}
 
-      {showInProgress && (
-        <p
-          className="connection-overlay__loading"
-          data-testid="reconnect-in-progress"
-          aria-live="polite"
-          role="status"
-        >
-          Reconnecting now…
-        </p>
-      )}
-
-      <div className="connection-overlay__actions">
-        <button
-          type="button"
-          data-testid="control-retry-connection"
-          aria-label="Retry connection"
-          disabled={retryDisabledReason !== null}
-          onClick={() => {
-            onManualRetry?.();
-          }}
-        >
-          Retry connection
-        </button>
-
-        {isServerTerminate && onSafeLogout !== undefined && (
+        <div className={styles["actions"]}>
           <button
             type="button"
-            data-testid="control-safe-logout"
-            aria-label="Safe logout"
-            disabled={safeLogoutDisabledReason !== null}
-            title={safeLogoutDisabledReason ?? undefined}
+            data-testid="control-retry-connection"
+            aria-label="Retry connection"
+            disabled={retryDisabledReason !== null}
             onClick={() => {
-              onSafeLogout();
+              onManualRetry?.();
             }}
           >
-            Safe logout
+            Retry connection
           </button>
-        )}
-      </div>
 
-      {retryDisabledReason !== null && (
-        <p className="connection-overlay__disabled-reason" role="status">
-          {retryDisabledReason}
-        </p>
-      )}
+          {isServerTerminate && onSafeLogout !== undefined && (
+            <button
+              type="button"
+              data-testid="control-safe-logout"
+              aria-label="Safe logout"
+              disabled={safeLogoutDisabledReason !== null}
+              title={safeLogoutDisabledReason ?? undefined}
+              onClick={() => {
+                onSafeLogout();
+              }}
+            >
+              Safe logout
+            </button>
+          )}
+        </div>
+
+        {retryDisabledReason !== null && (
+          <p className={styles["disabledReason"]} role="status">
+            {retryDisabledReason}
+          </p>
+        )}
       </section>
     </div>
   );

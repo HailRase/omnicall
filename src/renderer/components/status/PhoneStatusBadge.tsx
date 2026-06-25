@@ -1,6 +1,8 @@
 import type { JSX } from "react";
 import type { PhoneStatus } from "@application/index.js";
 import { phoneStatusLabel } from "@application/index.js";
+import panelStyles from "../shell/BootstrapPanel.module.css";
+import styles from "./PhoneStatusBadge.module.css";
 
 type PhoneStatusBadgeProps = Readonly<{
   status: PhoneStatus;
@@ -22,14 +24,14 @@ export function PhoneStatusBadge({
   disabled = false,
 }: PhoneStatusBadgeProps): JSX.Element {
   return (
-    <section className="phone-status" data-testid="phone-status-badge">
+    <section className={panelStyles["panel"]} data-testid="phone-status-badge">
       <p>
         Phone: <strong>{phoneStatusLabel(status)}</strong>
       </p>
       <p>
         Registration: <strong>{registrationLabel}</strong>
       </p>
-      <div className="phone-status__actions" role="group" aria-label="Phone status">
+      <div className={styles["actions"]} role="group" aria-label="Phone status">
         {STATUS_OPTIONS.map((option) => (
           <button
             key={option}

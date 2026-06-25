@@ -155,8 +155,6 @@ describe("ConnectionOverlay", () => {
     );
 
     expect(screen.getByTestId("connection-overlay-scrim")).toBeInTheDocument();
-    expect(screen.getByTestId("connection-overlay-host")).toHaveClass(
-      "connection-overlay-host--blocking",
-    );
+    expect(screen.getByTestId("connection-overlay")).toHaveAttribute("aria-modal", "true");
   });
 });

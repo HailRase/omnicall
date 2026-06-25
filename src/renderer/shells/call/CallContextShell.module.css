@@ -1,0 +1,10 @@
+.zone {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.zoneCollapsed {
+  padding: 0;
+  border: none;
+  background: transparent;
+}

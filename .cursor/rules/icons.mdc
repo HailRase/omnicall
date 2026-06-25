@@ -1,0 +1,43 @@
+---
+description: RULE - Mandatory Lucide icon usage for renderer UI agents.
+globs:
+  - "src/renderer/**/*.tsx"
+  - "src/renderer/**/*.ts"
+  - "docs/softphone/Icon-Registry.md"
+alwaysApply: false
+---
+
+# RULE: UI Icons (Lucide)
+
+Read before any renderer UI task that adds or changes icons.
+
+## Source of truth
+
+```txt
+docs/softphone/Icon-Agent-Guide.md
+docs/softphone/Icon-Registry.md
+src/renderer/components/icons/iconCatalog.ts
+```
+
+## Mandatory
+
+1. Use `AppIcon` with **semantic id** from `IconSemanticId` — no direct `lucide-react` / `lucide-animated` imports in `components/`, `shells/`, `widgets/`.
+2. Prefer **animated** when catalog provides `animated`; else static.
+3. Update **registry + catalog** in the same PR when adding icons.
+4. Icon-only controls: `aria-label` on interactive parent; `AppIcon decorative`.
+5. Sizes: `var(--icon-size-sm|md|lg)` or explicit `size` prop.
+
+## Forbidden
+
+- Raw Lucide imports in feature UI files
+- New icons without registry entry
+- Text + icon duplication on icon-only buttons (labels deferred to tooltip WU)
+- Icons in Domain, Application, adapters, or stores
+
+## Deferred
+
+Semantic icon-only UI + 1s hover tooltips → `handoffs/P11-Icon-Tooltips-Agent-Prompt.md` (do not implement without explicit user request).
+
+## Skill
+
+`.cursor/skills/icons/SKILL.md`

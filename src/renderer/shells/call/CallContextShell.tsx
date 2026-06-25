@@ -1,8 +1,11 @@
+import clsx from "clsx";
 import type { JSX } from "react";
 import { MultiCallHoldAllIndicator } from "../../components/call/MultiCallHoldAllIndicator.js";
 import { CallLinesShell } from "../../components/call/CallLinesShell.js";
 import { OutgoingCallCard } from "../../components/call/OutgoingCallCard.js";
+import chromeTextStyles from "../../components/shell/ShellChromeText.module.css";
 import type { CallFeatureShellBindings } from "../../hooks/useCallFeatureShell.js";
+import styles from "./CallContextShell.module.css";
 
 type CallContextShellProps = Readonly<{
   bindings: CallFeatureShellBindings;
@@ -43,11 +46,11 @@ export function CallContextShell({
 
   return (
     <div
-      className={`call-context-zone${collapsed ? " call-context-zone--collapsed" : ""}`}
+      className={clsx(styles["zone"], collapsed && styles["zoneCollapsed"])}
       data-testid="call-context-zone"
     >
       {!collapsed && import.meta.env.DEV ? (
-        <p className="shell__hint" data-testid="sip-registered-hint">
+        <p className={chromeTextStyles["hint"]} data-testid="sip-registered-hint">
           SIP account is registered via mock gateway (P01-P02 foundation).
         </p>
       ) : null}

@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import chromeTextStyles from "../shell/ShellChromeText.module.css";
 
 export type MultiCallHoldAllIndicatorProps = Readonly<{
   visible: boolean;
@@ -18,7 +19,7 @@ export function MultiCallHoldAllIndicator({
 
   return (
     <p
-      className="shell__hint"
+      className={chromeTextStyles["hint"]}
       data-testid="multi-call-hold-all-indicator"
       role="status"
     >

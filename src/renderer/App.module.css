@@ -1,0 +1,16 @@
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-lg);
+  gap: var(--space-md);
+}
+
+.shellCollapsed {
+  padding: var(--space-xs) var(--space-sm);
+  gap: var(--space-xs);
+}
+
+.error {
+  color: var(--color-text-danger-soft);
+}

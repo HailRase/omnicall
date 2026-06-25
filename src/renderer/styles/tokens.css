@@ -40,6 +40,7 @@
 
   /* Overlay */
   --color-overlay-scrim: rgb(8 12 20 / 55%);
+  --color-overlay-scrim-strong: rgb(8 12 20 / 65%);
 
   /* Registration / phone status */
   --color-status-registering: #f0b429;
@@ -72,4 +73,9 @@
   --z-overlay: 100;
   --z-modal: 200;
   --z-toast: 300;
+
+  /* Icons */
+  --icon-size-sm: 16px;
+  --icon-size-md: 20px;
+  --icon-size-lg: 24px;
 }

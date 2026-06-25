@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import type { HeaderChromeShellViewModel } from "@application/index.js";
+import headerStyles from "../../shells/SoftphoneShellHeader.module.css";
 import { RegistrationStatusDot } from "./RegistrationStatusDot.js";
 import { UserAvatar } from "./UserAvatar.js";
 import { SoftphoneShellHeader } from "../../shells/SoftphoneShellHeader.js";
@@ -98,8 +99,8 @@ export const AvatarAndDot: Story = {
   args: baseHeaderArgs,
   render: () => (
     <div
-      className="shell__avatar-group"
-      style={{ position: "relative", width: 36, height: 36, padding: 16, background: "#111722" }}
+      className={headerStyles["avatarGroup"]}
+      style={{ padding: 16, background: "var(--color-bg-app)" }}
     >
       <UserAvatar initials="AO" />
       <RegistrationStatusDot

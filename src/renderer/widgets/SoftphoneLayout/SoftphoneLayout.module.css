@@ -1,0 +1,63 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: var(--space-md);
+  min-height: 0;
+}
+
+.header,
+.context,
+.controls {
+  display: grid;
+  gap: var(--space-md);
+}
+
+.main {
+  display: grid;
+  gap: var(--space-md);
+  flex: 1;
+  min-height: 0;
+}
+
+.context {
+  border: 1px dashed var(--color-border-dashed);
+  border-radius: var(--radius-panel);
+  padding: var(--space-sm);
+  min-height: 4rem;
+}
+
+.controls {
+  border: 1px dashed var(--color-border-dashed);
+  border-radius: var(--radius-panel);
+  padding: var(--space-sm);
+}
+
+.overlays {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  pointer-events: none;
+}
+
+.overlays > * {
+  pointer-events: auto;
+}
+
+.layoutCollapsed {
+  gap: var(--space-xs);
+}
+
+.layoutCollapsed .header {
+  gap: 0;
+}
+
+.layoutCollapsed .context {
+  padding: 6px var(--space-xs);
+  min-height: auto;
+  border-style: solid;
+}
+
+.layoutCollapsed .controls {
+  display: none;
+}

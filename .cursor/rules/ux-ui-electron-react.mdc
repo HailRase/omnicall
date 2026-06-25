@@ -140,6 +140,12 @@ Mandatory for renderer UI work after 2026-06-25 foundation:
 - Do **not** add new global classes to `styles.css`; remove migrated blocks when moving a component to modules.
 - Use `clsx` for conditional/variant classes.
 
+## Icons
+
+- Read `docs/softphone/Icon-Agent-Guide.md` and `Icon-Registry.md` before adding icons.
+- Use `AppIcon` with semantic id; rule: `.cursor/rules/icons.mdc`, skill: `.cursor/skills/icons/SKILL.md`.
+- Icon-only tooltips (1s delay): deferred → `handoffs/P11-Icon-Tooltips-Agent-Prompt.md`.
+
 ## Completion Check
 
 Before finishing UI work verify:

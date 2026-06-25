@@ -1,0 +1,21 @@
+.form {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.label {
+  display: grid;
+  gap: var(--space-2xs);
+}
+
+.input {
+  padding: var(--space-xs);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-surface-deep);
+  color: inherit;
+}
+
+.error {
+  color: var(--color-text-danger);
+}

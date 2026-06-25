@@ -30,7 +30,10 @@ Related: **F-016**, UI phase **UI-4**. Foundation introduced 2026-06-25.
 | done | `CallLineRow` | Slice C — call line row (WU5) |
 | done | `Dialpad` | Slice D — dialpad panel (WU5) |
 | done | `ActiveCallControlsPanel`, `OutgoingCallCard`, `IncomingCallModal`, `IncomingCallActions` | Slice E — call panels + incoming modal (WU5) |
-| next | `ConnectionOverlay`, modals, layout shells | remaining `styles.css` blocks |
+| done | `ConnectionOverlay` | Slice F — recovery overlay + blocking scrim (WU5) |
+| done | `App`, `SoftphoneLayout`, `ShellChromeText`, `CallLinesShell`, `CallContextShell` | Slice G — layout shell (WU5) |
+| done | `AccountPanel`, `AuthStateView`, `PhoneStatusBadge`, `BootstrapPanel` | Slice H — auth bootstrap panels (WU5) |
+| next | unstyled modals, layout shells | remaining global className without modules |
 | last | Delete `styles.css` when empty | Gate UI-4 complete |
 
 ## Token reference

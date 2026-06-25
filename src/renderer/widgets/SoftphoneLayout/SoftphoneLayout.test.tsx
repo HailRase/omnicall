@@ -38,8 +38,5 @@ describe("SoftphoneLayout", () => {
     );
 
     expect(screen.getByTestId("softphone-layout")).toHaveAttribute("data-collapsed", "true");
-    expect(screen.getByTestId("softphone-layout").className).toContain(
-      "softphone-layout--collapsed",
-    );
   });
 });

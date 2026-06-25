@@ -22,6 +22,9 @@
     "@radix-ui/react-dialog": "^1.1.17",
     "clsx": "^2.1.1",
     "framer-motion": "^12.41.0",
+    "lucide-animated": "^1.0.4",
+    "lucide-react": "^1.21.0",
+    "motion": "^12.42.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "zustand": "^5.0.14"

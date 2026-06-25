@@ -3,7 +3,9 @@ import type {
   ActiveCallControlOperationError,
   CallLinesShellViewModel,
 } from "@application/index.js";
+import chromeTextStyles from "../shell/ShellChromeText.module.css";
 import { CallLineRow } from "./CallLineRow.js";
+import styles from "./CallLinesShell.module.css";
 
 export type CallLinesShellProps = Readonly<{
   shell: CallLinesShellViewModel;
@@ -43,20 +45,20 @@ export function CallLinesShell({
 
   return (
     <section
-      className="call-lines-shell"
+      className={styles["panel"]}
       data-testid="call-lines-panel"
       aria-label="Active call lines"
     >
       {shell.policyErrorMessage !== null && !compact ? (
         <p
-          className="shell__hint shell__hint--error"
+          className={chromeTextStyles["hintError"]}
           data-testid="multi-call-policy-error"
           role="alert"
         >
           {shell.policyErrorMessage}
         </p>
       ) : null}
-      <ul className="call-lines-shell__list">
+      <ul className={styles["list"]}>
         {shell.lines.map((line) => (
           <CallLineRow
             key={line.callId}

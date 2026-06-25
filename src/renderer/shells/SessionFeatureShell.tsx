@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import chromeTextStyles from "../components/shell/ShellChromeText.module.css";
 import { LogoutActiveSessionConfirmationModal } from "../components/session/LogoutActiveSessionConfirmationModal.js";
 import type { UseSessionLogoutActionsResult } from "../hooks/useSessionLogoutActions.js";
 
@@ -17,7 +18,7 @@ export function SessionFeatureShell({
   return (
     <>
       {sessionLogoutActions.shell.showLogoutErrorBanner && (
-        <p className="shell__error" role="alert" data-testid="logout-error-banner">
+        <p className={chromeTextStyles["error"]} role="alert" data-testid="logout-error-banner">
           {sessionLogoutActions.shell.logoutErrorMessage}
           <button
             type="button"

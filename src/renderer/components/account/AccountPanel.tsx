@@ -1,5 +1,7 @@
 import type { JSX, SubmitEvent } from "react";
 import type { SipAccountInput } from "@application/index.js";
+import panelStyles from "../shell/BootstrapPanel.module.css";
+import styles from "./AccountPanel.module.css";
 
 type AccountPanelProps = Readonly<{
   form: SipAccountInput;
@@ -29,12 +31,13 @@ export function AccountPanel({
   }
 
   return (
-    <section className="account-panel" data-testid="account-panel">
+    <section className={panelStyles["panel"]} data-testid="account-panel">
       <h2>SIP Account</h2>
-      <form onSubmit={handleSubmit}>
-        <label>
+      <form className={styles["form"]} onSubmit={handleSubmit}>
+        <label className={styles["label"]}>
           Username
           <input
+            className={styles["input"]}
             value={form.username}
             disabled={disabled || submitting}
             onChange={(event) => {
@@ -42,9 +45,10 @@ export function AccountPanel({
             }}
           />
         </label>
-        <label>
+        <label className={styles["label"]}>
           Password
           <input
+            className={styles["input"]}
             type="password"
             value={form.password}
             disabled={disabled || submitting}
@@ -53,9 +57,10 @@ export function AccountPanel({
             }}
           />
         </label>
-        <label>
+        <label className={styles["label"]}>
           Domain
           <input
+            className={styles["input"]}
             value={form.domain}
             disabled={disabled || submitting}
             onChange={(event) => {
@@ -63,9 +68,10 @@ export function AccountPanel({
             }}
           />
         </label>
-        <label>
+        <label className={styles["label"]}>
           Server
           <input
+            className={styles["input"]}
             value={form.server}
             disabled={disabled || submitting}
             onChange={(event) => {
@@ -78,7 +84,7 @@ export function AccountPanel({
         </button>
       </form>
       {error !== null && (
-        <p className="account-panel__error" role="alert" data-testid="account-error">
+        <p className={styles["error"]} role="alert" data-testid="account-error">
           {error}
         </p>
       )}

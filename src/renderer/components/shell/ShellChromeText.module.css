@@ -1,0 +1,11 @@
+.hint {
+  color: var(--color-text-secondary);
+}
+
+.hintError {
+  color: var(--color-text-danger);
+}
+
+.error {
+  color: var(--color-text-danger-soft);
+}
