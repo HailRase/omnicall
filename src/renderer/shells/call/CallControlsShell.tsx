@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import { Dialpad } from "../../components/dialpad/Dialpad.js";
 import { TransferPanel } from "../../components/call/TransferPanel.js";
 import type { CallFeatureShellBindings } from "../../hooks/useCallFeatureShell.js";
+import styles from "./CallControlsShell.module.css";
 
 type CallControlsShellProps = Readonly<{
   bindings: CallFeatureShellBindings;
@@ -34,7 +35,7 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
   } = bindings;
 
   return (
-    <div className="call-controls-zone" data-testid="call-controls-zone">
+    <div className={styles["zone"]} data-testid="call-controls-zone">
       <Dialpad
         numberValue={dialedNumber}
         mode={dialpadMode}

@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { RejectReasonSelector } from "../call/RejectReasonSelector.js";
+import styles from "./BreakReasonPicker.module.css";
 
 export type BreakReasonPickerProps = Readonly<{
   reasons: ReadonlyArray<string>;
@@ -22,7 +23,7 @@ export function BreakReasonPicker({
   onConfirm,
 }: BreakReasonPickerProps): JSX.Element {
   return (
-    <div className="break-reason-picker" data-testid="break-reason-picker">
+    <div className={styles["picker"]} data-testid="break-reason-picker">
       <RejectReasonSelector
         reasons={reasons}
         selectedReason={selectedReason}

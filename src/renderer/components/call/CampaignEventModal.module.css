@@ -1,0 +1,13 @@
+.error {
+  margin: 0;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border-danger);
+  background: var(--color-bg-danger);
+  color: var(--color-text-danger);
+}
+
+.disabledReason {
+  margin: 0;
+  color: var(--color-text-secondary);
+}

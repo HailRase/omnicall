@@ -1,0 +1,56 @@
+.stack {
+  position: fixed;
+  right: var(--space-md);
+  bottom: var(--space-md);
+  z-index: var(--z-toast);
+  display: grid;
+  gap: var(--space-xs);
+  max-width: min(24rem, 92vw);
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-panel);
+  padding: var(--space-sm);
+  display: grid;
+  gap: var(--space-xs);
+  background: var(--color-bg-surface-elevated);
+}
+
+.toastInfo {
+  border-color: var(--color-border-control);
+}
+
+.toastWarn {
+  border-color: var(--color-border-default);
+  background: var(--color-bg-surface-highlight);
+}
+
+.toastError {
+  border-color: var(--color-border-danger);
+  background: var(--color-bg-danger);
+}
+
+.message {
+  margin: 0;
+}
+
+.toastWarn .message {
+  color: var(--color-text-warning);
+}
+
+.toastError .message {
+  color: var(--color-text-danger);
+}
+
+.dismiss {
+  justify-self: start;
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border-control);
+  background: var(--color-bg-surface-alt);
+  color: inherit;
+  cursor: pointer;
+}

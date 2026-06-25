@@ -33,7 +33,7 @@ Related: **F-016**, UI phase **UI-4**. Foundation introduced 2026-06-25.
 | done | `ConnectionOverlay` | Slice F — recovery overlay + blocking scrim (WU5) |
 | done | `App`, `SoftphoneLayout`, `ShellChromeText`, `CallLinesShell`, `CallContextShell` | Slice G — layout shell (WU5) |
 | done | `AccountPanel`, `AuthStateView`, `PhoneStatusBadge`, `BootstrapPanel` | Slice H — auth bootstrap panels (WU5) |
-| next | unstyled modals, layout shells | remaining global className without modules |
+| done | `TransferPanel`, `StatusSelector`, modals, `OcpToastStack`, shells | Slice I — unstyled panels/modals (WU5) |
 | last | Delete `styles.css` when empty | Gate UI-4 complete |
 
 ## Token reference

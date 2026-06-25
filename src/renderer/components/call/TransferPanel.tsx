@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import type { CallLine } from "@application/index.js";
 import { mapTransferDisabledReasonWithFallback } from "../../helpers/mapTransferDisabledReason.js";
 import { MultiLineCallList } from "./MultiLineCallList.js";
+import styles from "./TransferPanel.module.css";
 
 export type TransferPanelProps = Readonly<{
   visible: boolean;
@@ -47,15 +48,15 @@ export function TransferPanel({
 
   return (
     <section
-      className="transfer-panel"
+      className={styles["panel"]}
       data-testid="transfer-panel"
       aria-label="Transfer call"
     >
-      <h2>Transfer Call</h2>
+      <h2 className={styles["title"]}>Transfer Call</h2>
 
       {transferInProgress && (
         <p
-          className="transfer-panel__progress"
+          className={styles["progress"]}
           data-testid="transfer-in-progress-indicator"
           role="status"
           aria-live="polite"
@@ -66,7 +67,7 @@ export function TransferPanel({
 
       {failureMessage !== null && (
         <div
-          className="transfer-panel__failure"
+          className={styles["failure"]}
           data-testid="transfer-failure-banner"
           role="alert"
         >
@@ -76,12 +77,12 @@ export function TransferPanel({
 
       <MultiLineCallList lines={lines} />
 
-      <label className="transfer-panel__target-label" htmlFor="transfer-target-input">
+      <label className={styles["targetLabel"]} htmlFor="transfer-target-input">
         Transfer target
       </label>
       <input
         id="transfer-target-input"
-        className="transfer-panel__target-input"
+        className={styles["targetInput"]}
         data-testid="transfer-target-input"
         type="tel"
         value={targetNumber}
@@ -91,7 +92,7 @@ export function TransferPanel({
         }}
       />
 
-      <div className="transfer-panel__actions">
+      <div className={styles["actions"]}>
         <button
           type="button"
           data-testid="control-blind-transfer"
@@ -152,7 +153,7 @@ function renderDisabledReason(
   }
 
   return (
-    <p data-testid="transfer-disabled-reason" role="status">
+    <p className={styles["disabledReason"]} data-testid="transfer-disabled-reason" role="status">
       {mapTransferDisabledReasonWithFallback(reason)}
     </p>
   );

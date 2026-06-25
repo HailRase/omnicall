@@ -1,0 +1,46 @@
+.modal {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-panel);
+  padding: var(--space-md);
+  display: grid;
+  gap: var(--space-sm);
+  background: var(--color-bg-surface);
+}
+
+.modal:focus-visible {
+  outline: 2px solid var(--color-outline-focus);
+  outline-offset: 2px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.modal button {
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border-control);
+  background: var(--color-bg-surface-alt);
+  color: inherit;
+  cursor: pointer;
+}
+
+.modal button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.modal label {
+  display: grid;
+  gap: var(--space-2xs);
+}
+
+.modal input {
+  padding: var(--space-xs);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-surface-deep);
+  color: inherit;
+}

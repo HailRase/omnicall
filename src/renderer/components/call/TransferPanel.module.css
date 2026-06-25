@@ -1,0 +1,67 @@
+.panel {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-panel);
+  padding: var(--space-md);
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.progress {
+  margin: 0;
+  color: var(--color-text-secondary);
+}
+
+.failure {
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border-danger);
+  background: var(--color-bg-danger);
+  color: var(--color-text-danger);
+}
+
+.failure p {
+  margin: 0;
+}
+
+.targetLabel {
+  display: grid;
+  gap: var(--space-2xs);
+}
+
+.targetInput {
+  padding: var(--space-xs);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-surface-deep);
+  color: inherit;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.panel button {
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border-control);
+  background: var(--color-bg-surface-alt);
+  color: inherit;
+  cursor: pointer;
+}
+
+.panel button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.disabledReason {
+  margin: 0;
+  color: var(--color-text-secondary);
+}

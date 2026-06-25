@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import type { CallLine } from "@application/index.js";
+import styles from "./MultiLineCallList.module.css";
 
 export type MultiLineCallListProps = Readonly<{
   lines: ReadonlyArray<CallLine>;
@@ -17,18 +18,18 @@ export function MultiLineCallList({ lines }: MultiLineCallListProps): JSX.Elemen
 
   return (
     <ul
-      className="multi-line-call-list"
+      className={styles["list"]}
       data-testid="multi-line-call-list"
       aria-label="Active call lines"
     >
       {lines.map((line) => (
         <li
           key={line.callId}
-          className="multi-line-call-list__item"
+          className={styles["item"]}
           data-testid={`call-line-${line.callId}`}
         >
-          <span className="multi-line-call-list__role">{mapRoleLabel(line.role)}</span>
-          <span className="multi-line-call-list__state">{line.state}</span>
+          <span className={styles["role"]}>{mapRoleLabel(line.role)}</span>
+          <span className={styles["state"]}>{line.state}</span>
         </li>
       ))}
     </ul>

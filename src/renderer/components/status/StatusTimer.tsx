@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { useOperatorStatusTimer } from "../../hooks/useOperatorStatusTimer.js";
+import styles from "./StatusTimer.module.css";
 
 export type StatusTimerProps = Readonly<{
   statusChangedAt: string | null;
@@ -28,7 +29,7 @@ export function StatusTimer({
 
   return (
     <p
-      className="status-timer"
+      className={styles["timer"]}
       data-testid="status-timer"
       role="status"
       aria-live="off"

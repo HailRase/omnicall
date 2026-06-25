@@ -1,5 +1,7 @@
 import { useEffect, useRef, type JSX, type KeyboardEvent } from "react";
 import { mapCampaignModalDisabledReasonWithFallback } from "../../helpers/mapCampaignModalDisabledReason.js";
+import dialogStyles from "../shell/DialogPanel.module.css";
+import styles from "./CampaignEventModal.module.css";
 
 export type CampaignEventModalProps = Readonly<{
   open: boolean;
@@ -82,7 +84,7 @@ export function CampaignEventModal({
       aria-label="Campaign request"
       aria-modal="true"
       tabIndex={-1}
-      className="campaign-event-modal"
+      className={dialogStyles["modal"]}
       data-testid="campaign-event-modal"
       onKeyDown={handleKeyDown}
     >
@@ -90,12 +92,12 @@ export function CampaignEventModal({
       <p>Accept or reject this campaign request.</p>
 
       {responseError !== null && (
-        <div role="alert" data-testid="campaign-modal-error">
+        <div className={styles["error"]} role="alert" data-testid="campaign-modal-error">
           {responseError}
         </div>
       )}
 
-      <div className="campaign-event-modal__actions">
+      <div className={dialogStyles["actions"]}>
         <button
           type="button"
           data-testid="campaign-accept"
@@ -140,7 +142,7 @@ function renderDisabledReason(
   }
 
   return (
-    <p data-testid="campaign-disabled-reason" role="status">
+    <p className={styles["disabledReason"]} data-testid="campaign-disabled-reason" role="status">
       {mapCampaignModalDisabledReasonWithFallback(reason)}
     </p>
   );

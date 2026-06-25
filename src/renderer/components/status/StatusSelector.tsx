@@ -6,6 +6,7 @@ import {
   mapOperatorStatusDisabledReasonWithFallback,
 } from "../../helpers/mapOperatorStatusDisabledReason.js";
 import { BreakReasonPicker } from "./BreakReasonPicker.js";
+import styles from "./StatusSelector.module.css";
 
 export type StatusSelectorProps = Readonly<{
   visible: boolean;
@@ -55,7 +56,7 @@ export function StatusSelector({
 
   return (
     <section
-      className="status-selector"
+      className={styles["panel"]}
       data-testid="status-selector"
       aria-label="Operator status"
     >
@@ -66,7 +67,7 @@ export function StatusSelector({
 
       {statusChangeInProgress && (
         <p
-          className="status-selector__progress"
+          className={styles["progress"]}
           data-testid="status-change-in-progress"
           role="status"
           aria-live="polite"
@@ -77,7 +78,7 @@ export function StatusSelector({
 
       {rejectionBanner !== null && (
         <div
-          className="status-selector__rejection"
+          className={styles["rejection"]}
           data-testid="status-rejection-banner"
           role="alert"
         >
@@ -85,7 +86,7 @@ export function StatusSelector({
         </div>
       )}
 
-      <div className="status-selector__actions" role="group" aria-label="Change agent status">
+      <div className={styles["actions"]} role="group" aria-label="Change agent status">
         <button
           type="button"
           data-testid="control-change-ready"
@@ -152,7 +153,7 @@ function renderDisabledReason(
   }
 
   return (
-    <p data-testid="status-disabled-reason" role="status">
+    <p className={styles["disabledReason"]} data-testid="status-disabled-reason" role="status">
       {mapOperatorStatusDisabledReasonWithFallback(reason)}
     </p>
   );

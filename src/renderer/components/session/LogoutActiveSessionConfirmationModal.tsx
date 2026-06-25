@@ -1,4 +1,5 @@
 import { useEffect, useRef, type JSX, type KeyboardEvent } from "react";
+import dialogStyles from "../shell/DialogPanel.module.css";
 
 export type LogoutActiveSessionConfirmationModalProps = Readonly<{
   open: boolean;
@@ -70,14 +71,14 @@ export function LogoutActiveSessionConfirmationModal({
       aria-label="Confirm end session"
       aria-modal="true"
       tabIndex={-1}
-      className="logout-active-session-modal"
+      className={dialogStyles["modal"]}
       data-testid="logout-active-session-modal"
       onKeyDown={handleKeyDown}
     >
       <h2>End session</h2>
       <p>Есть активный звонок. Завершить звонки и выйти?</p>
 
-      <div className="logout-active-session-modal__actions">
+      <div className={dialogStyles["actions"]}>
         <button
           type="button"
           data-testid="control-logout-confirm"

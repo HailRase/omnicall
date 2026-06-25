@@ -2,7 +2,7 @@
 
 > **Auto-generated.** Do not edit by hand. Run: `npm run ui:catalog`
 
-Last generated: 2026-06-25 16:49
+Last generated: 2026-06-25 16:54
 
 ## Index
 

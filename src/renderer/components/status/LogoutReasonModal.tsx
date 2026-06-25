@@ -1,5 +1,6 @@
 import { useEffect, useRef, type JSX } from "react";
 import { RejectReasonSelector } from "../call/RejectReasonSelector.js";
+import dialogStyles from "../shell/DialogPanel.module.css";
 
 export type LogoutReasonModalProps = Readonly<{
   open: boolean;
@@ -47,7 +48,7 @@ export function LogoutReasonModal({
       aria-label="Logout reason"
       aria-modal="true"
       tabIndex={-1}
-      className="logout-reason-modal"
+      className={dialogStyles["modal"]}
       data-testid="logout-reason-modal"
     >
       <h2>Logout</h2>
@@ -76,7 +77,7 @@ export function LogoutReasonModal({
         </label>
       )}
 
-      <div className="logout-reason-modal__actions">
+      <div className={dialogStyles["actions"]}>
         <button
           type="button"
           data-testid="control-logout-submit"

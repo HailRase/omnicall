@@ -1,5 +1,7 @@
+import clsx from "clsx";
 import type { JSX } from "react";
 import type { OcpToastItem } from "@application/index.js";
+import styles from "./OcpToastStack.module.css";
 
 export type OcpToastStackProps = Readonly<{
   toasts: ReadonlyArray<OcpToastItem>;
@@ -18,22 +20,27 @@ export function OcpToastStack({ toasts, onDismiss }: OcpToastStackProps): JSX.El
 
   return (
     <section
-      className="ocp-toast-stack"
+      className={styles["stack"]}
       aria-label="OCP notifications"
       data-testid="ocp-toast-stack"
     >
       {toasts.map((toast) => (
         <article
           key={toast.id}
-          className={`ocp-toast ocp-toast--${toast.level}`}
+          className={clsx(
+            styles["toast"],
+            toast.level === "info" && styles["toastInfo"],
+            toast.level === "warn" && styles["toastWarn"],
+            toast.level === "error" && styles["toastError"],
+          )}
           data-testid="ocp-toast"
           role="status"
           aria-live="polite"
         >
-          <p className="ocp-toast__message">{toast.message}</p>
+          <p className={styles["message"]}>{toast.message}</p>
           <button
             type="button"
-            className="ocp-toast__dismiss"
+            className={styles["dismiss"]}
             aria-label="Dismiss notification"
             onClick={() => {
               onDismiss(toast.id);
