@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import styles from "./OutgoingCallCard.module.css";
 
 export type OutgoingCallCardProps = Readonly<{
   callId: string | null;
@@ -25,8 +26,8 @@ export function OutgoingCallCard({
   lastDtmfTone,
 }: OutgoingCallCardProps): JSX.Element {
   return (
-    <section className="outgoing-card" data-testid="outgoing-call-card">
-      <h2>Outgoing call</h2>
+    <section className={styles["card"]} data-testid="outgoing-call-card">
+      <h2 className={styles["title"]}>Outgoing call</h2>
       <p data-testid="call-state-label">
         <strong>State:</strong> {callState}
       </p>
@@ -52,7 +53,7 @@ export function OutgoingCallCard({
         </p>
       )}
       {lastError !== null && (
-        <p className="outgoing-card__error" data-testid="call-failed-alert" role="alert">
+        <p className={styles["error"]} data-testid="call-failed-alert" role="alert">
           {lastError}
         </p>
       )}

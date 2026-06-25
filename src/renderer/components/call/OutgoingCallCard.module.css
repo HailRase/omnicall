@@ -1,0 +1,16 @@
+.card {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-panel);
+  padding: var(--space-md);
+  display: grid;
+  gap: var(--space-sm);
+}
+
+.title {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.error {
+  color: var(--color-text-danger);
+}

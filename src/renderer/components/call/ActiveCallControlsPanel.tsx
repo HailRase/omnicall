@@ -4,6 +4,7 @@ import {
   mapActiveCallControlDisabledReason,
   mapActiveCallControlOperationError,
 } from "../../helpers/mapActiveCallControlLabels.js";
+import styles from "./ActiveCallControlsPanel.module.css";
 
 export type ActiveCallControlsPanelProps = Readonly<{
   visible: boolean;
@@ -53,21 +54,23 @@ export function ActiveCallControlsPanel({
 
   return (
     <section
-      className="active-call-controls"
+      className={styles["panel"]}
       data-testid="active-call-controls"
       aria-label="Active call controls"
     >
-      <h2>Active Call Controls</h2>
+      <h2 className={styles["title"]}>Active Call Controls</h2>
       <p data-testid="active-call-mute-indicator">
         <strong>Microphone:</strong> {muted ? "Muted" : "Unmuted"}
       </p>
       {lastOperationError !== null && (
         <div
-          className="active-call-controls__error"
+          className={styles["error"]}
           data-testid="active-call-control-error"
           role="alert"
         >
-          <p>{mapActiveCallControlOperationError(lastOperationError)}</p>
+          <p className={styles["errorMessage"]}>
+            {mapActiveCallControlOperationError(lastOperationError)}
+          </p>
           <button
             type="button"
             data-testid="control-retry"
@@ -78,7 +81,7 @@ export function ActiveCallControlsPanel({
           </button>
         </div>
       )}
-      <div className="active-call-controls__actions">
+      <div className={styles["actions"]}>
         <button
           type="button"
           data-testid="control-hold"
@@ -172,4 +175,3 @@ function renderDisabledReason(
     </p>
   );
 }
-

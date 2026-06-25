@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import styles from "./IncomingCallActions.module.css";
 
 export type IncomingCallActionsProps = Readonly<{
   answerDisabledReason: string | null;
@@ -14,36 +15,38 @@ export function IncomingCallActions({
   onReject,
 }: IncomingCallActionsProps): JSX.Element {
   return (
-    <div>
+    <div className={styles["actions"]}>
       {answerDisabledReason !== null && (
         <p
           data-testid="incoming-answer-disabled-reason"
           role="status"
-          className="incoming-call__disabled-reason"
+          className={styles["disabledReason"]}
         >
           {answerDisabledReason}
         </p>
       )}
-      <button
-        type="button"
-        data-testid="answer-call"
-        aria-label="Answer incoming call"
-        disabled={answerDisabledReason !== null}
-        title={answerDisabledReason ?? undefined}
-        onClick={onAnswer}
-      >
-        Answer
-      </button>
-      <button
-        type="button"
-        data-testid="reject-call"
-        aria-label="Reject incoming call"
-        disabled={rejectDisabledReason !== null}
-        title={rejectDisabledReason ?? undefined}
-        onClick={onReject}
-      >
-        Reject
-      </button>
+      <div className={styles["buttonGroup"]}>
+        <button
+          type="button"
+          data-testid="answer-call"
+          aria-label="Answer incoming call"
+          disabled={answerDisabledReason !== null}
+          title={answerDisabledReason ?? undefined}
+          onClick={onAnswer}
+        >
+          Answer
+        </button>
+        <button
+          type="button"
+          data-testid="reject-call"
+          aria-label="Reject incoming call"
+          disabled={rejectDisabledReason !== null}
+          title={rejectDisabledReason ?? undefined}
+          onClick={onReject}
+        >
+          Reject
+        </button>
+      </div>
     </div>
   );
 }

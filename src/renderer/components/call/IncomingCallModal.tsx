@@ -5,6 +5,7 @@ import { CallerIdentityBlock } from "./CallerIdentityBlock.js";
 import { IncomingCallActions } from "./IncomingCallActions.js";
 import { IncomingCallStatusMessage } from "./IncomingCallStatusMessage.js";
 import { RejectReasonSelector } from "./RejectReasonSelector.js";
+import styles from "./IncomingCallModal.module.css";
 
 export type IncomingCallModalProps = Readonly<{
   visible: boolean;
@@ -97,10 +98,11 @@ export function IncomingCallModal({
       role="dialog"
       aria-label="Incoming call"
       tabIndex={-1}
+      className={styles["modal"]}
       data-testid="incoming-call-modal"
       onKeyDown={handleKeyDown}
     >
-      <h2>Incoming Call</h2>
+      <h2 className={styles["title"]}>Incoming Call</h2>
       <p data-testid="ringing-indicator">
         <strong>Ringing:</strong> {ringingState}
       </p>

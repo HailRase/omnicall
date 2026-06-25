@@ -151,47 +151,6 @@
   gap: 16px;
 }
 
-.outgoing-card,
-.active-call-controls {
-  border: 1px solid var(--color-border-subtle);
-  border-radius: 8px;
-  padding: 16px;
-  display: grid;
-  gap: 12px;
-}
-
-.outgoing-card h2,
-.active-call-controls h2 {
-  margin: 0;
-  font-size: 1rem;
-}
-
-.active-call-controls__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.active-call-controls__error {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--color-border-danger);
-  background: var(--color-bg-danger);
-  color: var(--color-text-danger);
-}
-
-.active-call-controls__error p {
-  margin: 0;
-}
-
-.outgoing-card__error {
-  color: var(--color-text-danger);
-}
-
 button:focus-visible,
 input:focus-visible {
   outline: 2px solid var(--color-outline-focus);

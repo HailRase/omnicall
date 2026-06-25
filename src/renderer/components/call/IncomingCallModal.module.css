@@ -1,0 +1,18 @@
+.modal {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-panel);
+  padding: var(--space-md);
+  display: grid;
+  gap: var(--space-sm);
+  background: var(--color-bg-surface);
+}
+
+.modal:focus-visible {
+  outline: 2px solid var(--color-outline-focus);
+  outline-offset: 2px;
+}
+
+.title {
+  margin: 0;
+  font-size: 1rem;
+}

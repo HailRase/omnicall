@@ -1,0 +1,29 @@
+.actions {
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.buttonGroup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.buttonGroup button {
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border-control);
+  background: var(--color-bg-surface-alt);
+  color: inherit;
+  cursor: pointer;
+}
+
+.actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.disabledReason {
+  margin: 0 0 var(--space-xs);
+  color: var(--color-text-secondary);
+}
