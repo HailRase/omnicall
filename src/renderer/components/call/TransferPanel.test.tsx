@@ -111,8 +111,8 @@ function renderPanel(overrides: TransferPanelOverrides = {}): void {
     transferInProgress: false,
     failureMessage: null,
     lines: [
-      { callId: "call-1", role: "source", state: "Held" },
-      { callId: "call-2", role: "consultation", state: "Active" },
+      { callId: "call-1", role: "source", state: "Held", muted: false },
+      { callId: "call-2", role: "consultation", state: "Active", muted: false },
     ],
     onTargetChange: vi.fn(),
     onBlindTransfer: vi.fn(),

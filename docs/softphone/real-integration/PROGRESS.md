@@ -2,7 +2,7 @@
 
 > **OCP (step 06 / R5): DEFERRED** per [ADR-0002](../adr/ADR-0002-defer-ocp-plugin.md) and [OCP-PLUGIN-BACKLOG.md](../OCP-PLUGIN-BACKLOG.md).
 > **Transfer (step 07 / 07b / R6): BACKLOG** per [TRANSFER-REAL-ADAPTER-BACKLOG.md](./TRANSFER-REAL-ADAPTER-BACKLOG.md).
-> **Active track:** RAT R1–R4 closed; continue main roadmap (P08 SIP recovery, F-008 DTMF real, P10 headset, branch merge).
+> **Active track:** **P05 WU6** multi-call completeness (mock) → **RAT step 08** multi-call real; then P08 / F-008 DTMF / P10 headset.
 
 **Branch:** feature/real-adapters
 
@@ -31,22 +31,24 @@
 
 | 07 Transfer | **backlog** | 2026-06-25 | JsSIP REFER blind/attended landed; on-net blind PASS; attended unverified — see TRANSFER-REAL-ADAPTER-BACKLOG | 599 | R6 partial |
 | 07b External Refer-To | **backlog** | 2026-06-25 | `buildBlindReferTarget`; off-net B,C FAIL — paused per user; resume via backlog doc | 599 | R6 B,C **FAIL** |
+| 08 Multi-call real | **pending** | — | After P05 WU6 mock gate; R7 smoke — `step-08-multi-call-real.md` | — | R7 **pending** |
 
 
 
 ## Current focus (2026-06-25)
 
-Transfer real-adapter work **paused → backlog** (`TRANSFER-REAL-ADAPTER-BACKLOG.md`). Team continues without R6 gate.
+**Primary:** P05 **WU6** multi-call completeness — `docs/softphone/handoffs/P05-WU6-Multi-Call-Completeness-Agent-Prompt.md` + `P05-Multi-Call-Product-Decisions.md`.
 
-| Transfer (real SBC) | Status |
+**RAT:** step **08** multi-call real after WU6 gate (`step-08-multi-call-real.md`, smoke R7).
+
+**Backlog:** transfer R6 (`TRANSFER-REAL-ADAPTER-BACKLOG.md`); Tone FSM + transfer-mode refactor (`MULTI-CALL-BACKLOG.md`).
+
+| Area | Status |
 | --- | --- |
-| Blind → on-net extension (A, D) | **works** |
-| Blind → off-net PSTN (B, C) | **does not work** |
-| Failure banner + retry | **works** |
-| Attended transfer | **not verified** (code + unit tests only) |
-| Mock / CI transfer (P05) | **works** |
-
-**Next (active):** main roadmap — P08 SIP recovery hardening, F-008 DTMF real adapter, P10 headset, or merge `feature/real-adapters` for R1–R4 slice. Resume transfer: «resume transfer backlog».
+| WU1 multi-call policy (mock) | done — LF-021 outgoing hold-all, LF-023 exclusive resume, LF-032 partial |
+| WU6 gaps | incoming hold-all, connecting block, auto-486, fail-safe event, call lines UI |
+| Transfer real SBC | backlog |
+| P08 WU5 logout | done |
 
 ## Where we stopped (2026-06-25)
 

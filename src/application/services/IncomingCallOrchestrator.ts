@@ -1,5 +1,6 @@
 import {
   applyCallTransition,
+  countEstablishedCalls,
   createCallAnsweredEvent,
   createCallAutoAnsweredEvent,
   createCallEndedEvent,
@@ -95,6 +96,18 @@ export class IncomingCallOrchestrator {
       });
     }
 
+    const multiCallSettings = await this.deps.settingsRepository.getMultiCallSettings();
+    const establishedCount = countEstablishedCalls(
+      this.deps.callTracker.getEstablishedCalls(),
+    );
+    if (!multiCallSettings.multiSessionsEnabled && establishedCount > 0) {
+      return this.rejectCall({
+        callId: ringingTransition.call.id,
+        correlationId,
+        sipCode: 486,
+      });
+    }
+
     const incomingSettings = await this.deps.settingsRepository.getIncomingCallSettings();
     const autoAnswerDecision = decideAutoAnswer(incomingSettings);
     this.deps.eventPublisher.publish(
@@ -125,7 +138,14 @@ export class IncomingCallOrchestrator {
     }
 
     if (autoAnswerDecision !== null) {
-      this.scheduleAutoAnswer(ringingTransition.call.id, autoAnswerDecision.timeoutSec);
+      if (this.deps.callTracker.countEstablishedCalls() > 0) {
+        this.deps.multiCallPolicyService.publishAutoAnswerBlocked(
+          ringingTransition.call.id,
+          correlationId,
+        );
+      } else {
+        this.scheduleAutoAnswer(ringingTransition.call.id, autoAnswerDecision.timeoutSec);
+      }
     }
 
     this.deps.logger.info("incoming_call_received", {
@@ -150,12 +170,28 @@ export class IncomingCallOrchestrator {
       return err(createPlatformError("validation_failed", "Incoming call not found"));
     }
 
+    const connectingBlock = await this.deps.multiCallPolicyService.checkConflictingOperationBlocked(
+      "incoming_answer",
+      correlationId,
+    );
+    if (isErr(connectingBlock)) {
+      return err(connectingBlock.error);
+    }
+
     const blockResult = await this.deps.multiCallPolicyService.checkSecondSessionBlocked(
       "incoming_answer",
       correlationId,
     );
     if (isErr(blockResult)) {
       return err(blockResult.error);
+    }
+
+    const holdAllResult = await this.deps.multiCallPolicyService.holdAllActiveLines(
+      correlationId,
+      "before_incoming_answer",
+    );
+    if (isErr(holdAllResult)) {
+      return err(holdAllResult.error);
     }
 
     const answered = applyCallTransition(call, "answered");
@@ -356,6 +392,13 @@ export class IncomingCallOrchestrator {
   private scheduleAutoAnswer(callId: CallId, timeoutSec: number): void {
     this.clearAutoAnswerTimer();
     this.autoAnswerTimer = setTimeout(() => {
+      if (this.deps.callTracker.countEstablishedCalls() > 0) {
+        this.deps.multiCallPolicyService.publishAutoAnswerBlocked(
+          callId,
+          createCorrelationId(),
+        );
+        return;
+      }
       void this.answerCall({
         callId,
         autoAnswered: true,

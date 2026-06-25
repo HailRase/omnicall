@@ -2,13 +2,13 @@ import { useCallback, useMemo, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
   deriveSessionLogoutShell,
-  type SessionLogoutShellInput,
+  type SessionLogoutProjectionInput,
 } from "@application/projections/deriveSessionLogoutShell.js";
 import { isErr } from "@shared/result/index.js";
 
 type UseSessionLogoutActionsInput = Readonly<{
   facade: AccountBootstrapFacade | null;
-  shellInput: Omit<SessionLogoutShellInput, "logoutInProgress" | "logoutError">;
+  shellInput: SessionLogoutProjectionInput;
 }>;
 
 export type UseSessionLogoutActionsResult = Readonly<{

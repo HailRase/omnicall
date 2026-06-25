@@ -61,14 +61,32 @@ Components must not receive or call:
 
 ## Feature Shell Pattern
 
-`App.tsx` stays a thin shell (< 120 lines). Feature wiring lives in `src/renderer/shells/`:
+`App.tsx` stays a thin shell (< 60 lines). Feature wiring lives in `src/renderer/shells/`:
 
-- `SoftphoneReadyShell` — post-bootstrap global UI
+- `SoftphoneReadyShell` — post-bootstrap global UI orchestration
+- `SoftphoneShellHeader` — global header controls (re-register, end session)
+- `RecoveryFeatureShell` — connection loss overlay
+- `SessionFeatureShell` — logout banner and confirmation modal
 - `CallFeatureShell` — dialpad, active call, transfer, incoming
 - `OperatorFeatureShell` — status selector, timer, logout modal
 - `AuthAccountShell` — account panel when auth allows
 
 Shells may use hooks and facades; components inside shells remain dumb.
+
+## Store Selectors
+
+Use `useSoftphoneProjections()` for all Zustand projection slices and UI setters.
+Do not duplicate store selectors across shells.
+
+## Shell Chrome
+
+Use `useSoftphoneShellChrome({ facade })` in `App` for header-level recovery and session logout hooks.
+Pass `sessionLogoutActions` into `SoftphoneReadyShell` so header and modal share one hook instance.
+
+## Composition Root
+
+Renderer bootstrap lives in `src/renderer/bootstrap/createRendererComposition.ts`.
+`useAccountBootstrap` binds the facade to the store; it must not contain feature UI.
 
 ## Disabled Controls
 

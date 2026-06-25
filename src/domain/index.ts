@@ -252,6 +252,7 @@ export type { MultiCallSettings, SecondSessionDirection } from "./telephony/Mult
 export {
   countEstablishedCalls,
   deriveSecondSessionDialpadDisabled,
+  type MultiCallDisabledReason,
   evaluateSecondSessionBlock,
   getActiveUnheldCalls,
   getCallsToHoldBeforeOutgoing,
@@ -396,6 +397,11 @@ export type {
   HoldAllPhase,
   HoldAllTrigger,
 } from "./telephony/events/callEvents.js";
+export type {
+  MultiCallOperationScenario,
+  MultiCallOperationRejectedEvent,
+} from "./telephony/events/MultiCallOperationRejected.js";
+export { createMultiCallOperationRejectedEvent } from "./telephony/events/MultiCallOperationRejected.js";
 export {
   createCallAutoAnsweredEvent,
   createOutgoingCallRequestedEvent,

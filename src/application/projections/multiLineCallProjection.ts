@@ -9,6 +9,7 @@ export type CallLine = Readonly<{
   callId: string;
   role: CallLineRole;
   state: CallState | "Idle";
+  muted: boolean;
 }>;
 
 export type MultiLineCallProjection = Readonly<{
@@ -84,6 +85,10 @@ export function reduceMultiLineCallProjection(
       return updateLineState(projection, asRequiredString(event["callId"]), "Held");
     case "CallResumed":
       return updateLineState(projection, asRequiredString(event["callId"]), "Active");
+    case "CallMuted":
+      return setLineMuted(projection, asRequiredString(event["callId"]), true);
+    case "CallUnmuted":
+      return setLineMuted(projection, asRequiredString(event["callId"]), false);
     case "CallTransferRequested":
       return updateLineState(projection, asRequiredString(event["callId"]), "Transferring");
     case "CallTransferFailed":
@@ -214,19 +219,28 @@ function applyTransferModeCancelled(
 
 function upsertLine(
   projection: MultiLineCallProjection,
-  line: CallLine,
+  line: Omit<CallLine, "muted"> & { muted?: boolean },
 ): MultiLineCallProjection {
+  const normalizedLine: CallLine = {
+    callId: line.callId,
+    role: line.role,
+    state: line.state,
+    muted: line.muted ?? findLineMuted(projection, line.callId) ?? false,
+  };
   const existingIndex = projection.lines.findIndex((entry) => entry.callId === line.callId);
   if (existingIndex === -1) {
     return {
       ...projection,
-      lines: [...projection.lines, line],
-      primaryCallId: line.role === "consultation" ? line.callId : projection.primaryCallId,
+      lines: [...projection.lines, normalizedLine],
+      primaryCallId:
+        normalizedLine.role === "consultation"
+          ? normalizedLine.callId
+          : projection.primaryCallId,
     };
   }
 
   const lines = projection.lines.map((entry, index) =>
-    index === existingIndex ? { ...entry, ...line } : entry,
+    index === existingIndex ? { ...entry, ...normalizedLine } : entry,
   );
   return { ...projection, lines };
 }
@@ -268,6 +282,25 @@ function removeLine(
     primaryCallId,
     attendedPhase,
   };
+}
+
+function findLineMuted(
+  projection: MultiLineCallProjection,
+  callId: string,
+): boolean | null {
+  const line = projection.lines.find((entry) => entry.callId === callId);
+  return line?.muted ?? null;
+}
+
+function setLineMuted(
+  projection: MultiLineCallProjection,
+  callId: string,
+  muted: boolean,
+): MultiLineCallProjection {
+  const lines = projection.lines.map((line) =>
+    line.callId === callId ? { ...line, muted } : line,
+  );
+  return { ...projection, lines };
 }
 
 function findLineState(

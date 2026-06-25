@@ -1,75 +1,52 @@
 import { useMemo, type JSX } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
-import {
-  deriveActiveCallControlsShell,
-  type AccountBootstrapProjection,
-  type ActiveCallControlsProjection,
-  type CallProjection,
-  type CampaignProjection,
-  type IncomingCallProjection,
-  type MultiCallProjection,
-  type MultiLineCallProjection,
-  type OperatorStatusProjection,
-  type QueueInfoProjection,
-  type TransferProjection,
-} from "@application/index.js";
+import { deriveActiveCallControlsShell, deriveResumeMultiCallDisabledReason } from "@application/index.js";
+import { mapActiveCallControlDisabledReason } from "../helpers/mapActiveCallControlLabels.js";
 import { Dialpad } from "../components/dialpad/Dialpad.js";
 import { OutgoingCallCard } from "../components/call/OutgoingCallCard.js";
 import { ActiveCallControlsPanel } from "../components/call/ActiveCallControlsPanel.js";
 import { IncomingCallModal } from "../components/call/IncomingCallModal.js";
 import { CampaignEventModal } from "../components/call/CampaignEventModal.js";
 import { MultiCallHoldAllIndicator } from "../components/call/MultiCallHoldAllIndicator.js";
+import { CallLinesShell } from "../components/call/CallLinesShell.js";
 import { TransferPanel } from "../components/call/TransferPanel.js";
 import { useTransferActions, useTransferPanelShell } from "../hooks/useTransferActions.js";
+import { useCallLinesActions } from "../hooks/useCallLinesActions.js";
+import { useCallLinesShell } from "../hooks/useCallLinesShell.js";
 import { useIncomingCallShell } from "../hooks/useIncomingCallShell.js";
 import { useCampaignActions } from "../hooks/useCampaignActions.js";
 import { useDialpadShell } from "../hooks/useDialpadShell.js";
 import { useSoftphoneCallActions } from "../hooks/useSoftphoneCallActions.js";
 import { useIncomingCallActions } from "../hooks/useIncomingCallActions.js";
-import type { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
+import { useSoftphoneProjections } from "../hooks/useSoftphoneProjections.js";
 
 type CallFeatureShellProps = Readonly<{
   facade: AccountBootstrapFacade;
-  projection: AccountBootstrapProjection;
-  callProjection: CallProjection;
-  activeCallControlsProjection: ActiveCallControlsProjection;
-  incomingCallProjection: IncomingCallProjection;
-  queueInfoProjection: QueueInfoProjection;
-  campaignProjection: CampaignProjection;
-  multiCallProjection: MultiCallProjection;
-  transferProjection: TransferProjection;
-  multiLineCallProjection: MultiLineCallProjection;
-  operatorStatusProjection: OperatorStatusProjection;
-  setCallMode: ReturnType<typeof useAccountBootstrapStore.getState>["setCallMode"];
-  setIncomingUiState: ReturnType<typeof useAccountBootstrapStore.getState>["setIncomingUiState"];
-  setIncomingBreakReason: ReturnType<typeof useAccountBootstrapStore.getState>["setIncomingBreakReason"];
-  setIncomingRejectReasonRequired: ReturnType<
-    typeof useAccountBootstrapStore.getState
-  >["setIncomingRejectReasonRequired"];
 }>;
 
 /**
  * - Purpose: compose registered-SIP telephony UI (dialpad, calls, transfer, incoming).
- * - Inputs: facade, projections, and store setters for call/incoming UI state.
+ * - Inputs: account bootstrap facade.
  * - Outputs: call feature panel when SIP is registered.
  */
-export function CallFeatureShell({
-  facade,
-  projection,
-  callProjection,
-  activeCallControlsProjection,
-  incomingCallProjection,
-  queueInfoProjection,
-  campaignProjection,
-  multiCallProjection,
-  transferProjection,
-  multiLineCallProjection,
-  operatorStatusProjection,
-  setCallMode,
-  setIncomingUiState,
-  setIncomingBreakReason,
-  setIncomingRejectReasonRequired,
-}: CallFeatureShellProps): JSX.Element | null {
+export function CallFeatureShell({ facade }: CallFeatureShellProps): JSX.Element | null {
+  const {
+    projection,
+    callProjection,
+    activeCallControlsProjection,
+    incomingCallProjection,
+    queueInfoProjection,
+    campaignProjection,
+    multiCallProjection,
+    transferProjection,
+    multiLineCallProjection,
+    operatorStatusProjection,
+    setCallMode,
+    setIncomingUiState,
+    setIncomingBreakReason,
+    setIncomingRejectReasonRequired,
+  } = useSoftphoneProjections();
+
   const {
     dialedNumber,
     setDialedNumber,
@@ -134,6 +111,20 @@ export function CallFeatureShell({
     [activeCallControlsProjection, transferProjection],
   );
 
+  const callLinesShell = useCallLinesShell(multiLineCallProjection, multiCallProjection);
+  const callLinesActions = useCallLinesActions({ facade, shell: callLinesShell });
+
+  const combinedResumeDisabledReason = useMemo(() => {
+    const multiCallReason = deriveResumeMultiCallDisabledReason(multiCallProjection);
+    if (multiCallReason !== null) {
+      return multiCallReason;
+    }
+    const controlReason = activeCallControlsProjection.resumeDisabledReason;
+    return controlReason === null
+      ? null
+      : mapActiveCallControlDisabledReason(controlReason);
+  }, [activeCallControlsProjection.resumeDisabledReason, multiCallProjection]);
+
   const incomingRejectReasons = projection.isOcpMode
     ? operatorStatusProjection.allowedBreakReasons
     : [];
@@ -149,6 +140,12 @@ export function CallFeatureShell({
       </p>
 
       <MultiCallHoldAllIndicator visible={multiCallProjection.holdAllInProgress} />
+
+      <CallLinesShell
+        shell={callLinesShell}
+        onResumeLine={callLinesActions.handleResumeLine}
+        onHangupLine={callLinesActions.handleHangupLine}
+      />
 
       <Dialpad
         numberValue={dialedNumber}
@@ -177,7 +174,7 @@ export function CallFeatureShell({
         visible={activeCallControlsProjection.callId !== null}
         muted={activeCallControlsProjection.muted}
         holdDisabledReason={activeCallControlsProjection.holdDisabledReason}
-        resumeDisabledReason={activeCallControlsProjection.resumeDisabledReason}
+        resumeDisabledReason={combinedResumeDisabledReason}
         muteDisabledReason={activeCallControlsProjection.muteDisabledReason}
         unmuteDisabledReason={activeCallControlsProjection.unmuteDisabledReason}
         hangupDisabledReason={activeCallControlsProjection.hangupDisabledReason}

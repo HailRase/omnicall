@@ -15,6 +15,22 @@ export type SessionLogoutShellInput = Readonly<{
   logoutError: string | null;
 }>;
 
+export type SessionLogoutProjectionInput = Omit<
+  SessionLogoutShellInput,
+  "logoutInProgress" | "logoutError"
+>;
+
+/**
+ * - Purpose: pick projection fields required for session logout shell derivation.
+ * - Inputs: bootstrap and telephony read models from store.
+ * - Outputs: projection input without ephemeral logout UI state.
+ */
+export function pickSessionLogoutProjectionInput(
+  input: SessionLogoutProjectionInput,
+): SessionLogoutProjectionInput {
+  return input;
+}
+
 export type SessionLogoutShellView = Readonly<{
   showEndSessionControl: boolean;
   endSessionDisabledReason: string | null;

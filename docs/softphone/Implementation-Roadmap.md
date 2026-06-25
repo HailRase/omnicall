@@ -10,7 +10,7 @@ This document defines the implementation order for the Electron rewrite.
 
 **OCP plugin is DEFERRED.** See `OCP-PLUGIN-BACKLOG.md`.
 
-Active track: core SIP telephony (P02–P05), SIP recovery (P08 SIP channel), headset/settings/host (P10–P12), RAT R1–R4 (closed). **RAT transfer (step 07): backlog** — `real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md`.
+Active track: core SIP telephony (P02–P05), **P05 WU6 multi-call completeness**, SIP recovery (P08 SIP channel), headset/settings/host (P10–P12), RAT R1–R4 (closed). **RAT transfer (step 07): backlog** — `real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md`. **RAT step 08:** multi-call real after WU6.
 
 **Not in active scope:** P06/P07 real OCP integration, RAT step 06 R5 smoke, operator platform on production stand — until user resumes OCP backlog.
 
@@ -323,6 +323,8 @@ Order:
    - cancel transfer
    - failure recovery banner
 6. Add multisession settings dependency.
+7. **WU6:** Multi-call completeness per `P05-Multi-Call-Product-Decisions.md` (incoming hold-all, fail-safe, UI lines panel).
+8. **RAT step 08:** Real multi-call smoke (`step-08-multi-call-real.md`).
 
 Gate:
 

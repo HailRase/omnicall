@@ -1,6 +1,9 @@
 import type { JSX } from "react";
 import type { ActiveCallControlOperationError } from "@application/index.js";
-import { mapTransferDisabledReason } from "../../helpers/mapTransferDisabledReason.js";
+import {
+  mapActiveCallControlDisabledReason,
+  mapActiveCallControlOperationError,
+} from "../../helpers/mapActiveCallControlLabels.js";
 
 export type ActiveCallControlsPanelProps = Readonly<{
   visible: boolean;
@@ -64,7 +67,7 @@ export function ActiveCallControlsPanel({
           data-testid="active-call-control-error"
           role="alert"
         >
-          <p>{mapOperationError(lastOperationError)}</p>
+          <p>{mapActiveCallControlOperationError(lastOperationError)}</p>
           <button
             type="button"
             data-testid="control-retry"
@@ -165,53 +168,8 @@ function renderDisabledReason(
 
   return (
     <p data-testid="control-disabled-reason" role="status">
-      {mapControlReason(reason)}
+      {mapActiveCallControlDisabledReason(reason)}
     </p>
   );
 }
 
-function mapOperationError(error: ActiveCallControlOperationError): string {
-  const label = mapOperationLabel(error.operation);
-  return `${label} failed: ${error.message}`;
-}
-
-function mapOperationLabel(operation: ActiveCallControlOperationError["operation"]): string {
-  switch (operation) {
-    case "hold":
-      return "Hold";
-    case "resume":
-      return "Resume";
-    case "mute":
-      return "Mute";
-    case "unmute":
-      return "Unmute";
-    case "hangup":
-      return "Hang up";
-  }
-}
-
-function mapControlReason(reason: string): string {
-  const transferLabel = mapTransferDisabledReason(reason);
-  if (transferLabel !== null) {
-    return transferLabel;
-  }
-
-  switch (reason) {
-    case "call_ending":
-      return "Call ending";
-    case "hold_requires_active":
-      return "Hold requires active call";
-    case "resume_requires_held":
-      return "Resume requires held call";
-    case "mute_requires_active_or_held":
-      return "Mute requires active or held call";
-    case "already_muted":
-      return "Call already muted";
-    case "not_muted":
-      return "Call is not muted";
-    case "hangup_not_allowed":
-      return "Hang up is not allowed";
-    default:
-      return "Action unavailable";
-  }
-}

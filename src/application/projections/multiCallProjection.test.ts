@@ -100,4 +100,22 @@ describe("multiCallProjection", () => {
 
     expect(projection.autoUnholdOnTransferFailure).toBe(false);
   });
+
+  it("maps MultiCallOperationRejected to lastPolicyViolation", () => {
+    const projection = reduceMultiCallProjection(initialMultiCallProjection(), {
+      type: "MultiCallOperationRejected",
+      correlationId: createCorrelationId(),
+      occurredAt: new Date().toISOString(),
+      scenario: "hold_all_failed",
+      reason: "Hold failed",
+      affectedCallIds: ["call-a"],
+    });
+
+    expect(projection.lastPolicyViolation).toEqual({
+      scenario: "hold_all_failed",
+      reason: "Hold failed",
+      affectedCallIds: ["call-a"],
+      occurredAt: expect.any(String),
+    });
+  });
 });

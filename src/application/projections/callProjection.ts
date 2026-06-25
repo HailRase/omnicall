@@ -17,7 +17,8 @@ export type DialpadUiState =
   | "disabledByNotRegistered"
   | "disabledByOcpReserved"
   | "disabledBySecondSessionPolicy"
-  | "disabledByHoldAllInProgress";
+  | "disabledByHoldAllInProgress"
+  | "disabledByConnectingInProgress";
 
 export type CallProjection = Readonly<{
   activeCallId: string | null;
@@ -90,6 +91,7 @@ export function reduceCallProjection(
         ...projection,
         activeCallId: asOptionalString(event["callId"]),
         state: "Held",
+        remoteAudioAttached: false,
       };
     case "CallResumed":
       return {
@@ -217,6 +219,7 @@ export type DialpadDisabledContext = Readonly<{
   isRegistered: boolean;
   isOcpReserved: boolean;
   isSecondSessionDisabled: boolean;
+  secondSessionDisabledReason: "second_session_disabled" | "hold_all_in_progress" | "connecting_in_progress" | null;
   isHoldAllInProgress: boolean;
   isNumberValid: boolean;
   isConnecting: boolean;
@@ -235,6 +238,9 @@ export function deriveDialpadDisabledReason(
     return "disabledByHoldAllInProgress";
   }
   if (context.isSecondSessionDisabled) {
+    if (context.secondSessionDisabledReason === "connecting_in_progress") {
+      return "disabledByConnectingInProgress";
+    }
     return "disabledBySecondSessionPolicy";
   }
   if (context.isConnecting) {

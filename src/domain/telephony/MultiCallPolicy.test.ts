@@ -71,7 +71,7 @@ describe("MultiCallPolicy", () => {
     ).toEqual({ disabled: false, reason: null });
     expect(
       deriveSecondSessionDialpadDisabled(false, true, false, settingsEnabled),
-    ).toEqual({ disabled: true, reason: "second_session_disabled" });
+    ).toEqual({ disabled: true, reason: "connecting_in_progress" });
     expect(
       deriveSecondSessionDialpadDisabled(true, false, true, settingsEnabled),
     ).toEqual({ disabled: true, reason: "hold_all_in_progress" });

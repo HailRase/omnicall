@@ -85,6 +85,7 @@ export class MockMediaGateway implements MediaGateway {
       );
     }
 
+    this.remoteAudioAttachedCalls.clear();
     this.remoteAudioAttachedCalls.add(command.callId);
     return Promise.resolve(ok("attached"));
   }

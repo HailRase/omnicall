@@ -13,6 +13,8 @@ export function mapDialpadDisabledReason(disabledState: string | null): string |
       return "Second session disabled";
     case "disabledByHoldAllInProgress":
       return "Holding other calls…";
+    case "disabledByConnectingInProgress":
+      return "Call connecting…";
     case "calling":
       return "Call already connecting";
     default:

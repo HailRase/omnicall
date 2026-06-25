@@ -36,6 +36,16 @@
 - [x] Hold / resume
 - [x] Mute / unmute
 
+## R7 Multi-call (RAT step 08 — **pending WU6**)
+
+> Requires P05 WU6 mock gate. See `step-08-multi-call-real.md`, `P05-Multi-Call-Product-Decisions.md`.
+
+- [ ] R7-1 Second outgoing with first held
+- [ ] R7-2 Answer incoming with active held
+- [ ] R7-3 Exclusive resume swap
+- [ ] R7-4 Hangup active, held remains (D1)
+- [ ] R7-5 multiSessions OFF → auto-486
+
 ## R6 Transfer (RAT step 07 / 07b — **BACKLOG**)
 
 > Paused 2026-06-25. Not an active gate. Resume via `TRANSFER-REAL-ADAPTER-BACKLOG.md`.
@@ -70,7 +80,8 @@ Record results in `PROGRESS.md` per step.
 | R2 Media | **PASS** | Manual smoke session R2+R3+R4 — R2-1/2/3 |
 | R3 Calls | **PASS** | Manual smoke session R2+R3+R4 — R3-1/2/3/4/5 |
 | R4 Controls | **PASS** | Manual smoke session R2+R3+R4 — R4-1/2 |
-| R6 Transfer | **backlog** | On-net blind PASS (A,D); off-net FAIL (B,C); attended not verified — `TRANSFER-REAL-ADAPTER-BACKLOG.md` |
+| R6 Transfer | **backlog** | `TRANSFER-REAL-ADAPTER-BACKLOG.md` |
+| R7 Multi-call | **pending** | After P05 WU6 — step 08 |
 | R5 OCP | **deferred** | ADR-0002 — see `OCP-PLUGIN-BACKLOG.md`; not a RAT gate |
 
 **R1-5 note:** auto-reconnect on network restore PASS; manual retry button not exercised to exhaustion (auto-reconnect in progress).

@@ -79,7 +79,7 @@ describe("CallEngine multi-call policy", () => {
     expect(publishedTypes.filter((type) => type === "OutgoingCallRequested")).toHaveLength(1);
   });
 
-  it("LF-032 blocks incoming answer when multi-sessions disabled and call active", async () => {
+  it("LF-032 auto-rejects incoming when multi-sessions disabled and call active", async () => {
     const telephony = new MockTelephonyGateway({ makeCallScenario: "answered" });
     const events = new InMemoryDomainEventBus();
     const publishedTypes: string[] = [];
@@ -111,9 +111,10 @@ describe("CallEngine multi-call policy", () => {
       },
     });
 
-    const answerResult = await engine.answerCall({ callId: incomingId });
-    expect(answerResult.ok).toBe(false);
-    expect(publishedTypes).toContain("SecondSessionBlocked");
+    expect(publishedTypes).toContain("CallRejectedByDnd");
+    expect(telephony.getRejectedCalls()).toEqual(
+      expect.arrayContaining([expect.objectContaining({ callId: "incoming-blocked", sipCode: 486 })]),
+    );
     expect(telephony.getAnsweredCalls()).not.toContain("incoming-blocked");
   });
 
@@ -141,6 +142,44 @@ describe("CallEngine multi-call policy", () => {
     const resumeResult = await engine.resumeCall({ callId: createCallId("line-1") });
     expect(resumeResult.ok).toBe(true);
     expect(telephony.getHeldCalls()).toContain("line-2");
+  });
+
+  it("LF-021 holds established call before incoming answer", async () => {
+    const telephony = new MockTelephonyGateway({ makeCallScenario: "answered" });
+    const events = new InMemoryDomainEventBus();
+    const publishedTypes: string[] = [];
+    events.subscribe((event) => {
+      publishedTypes.push(event.type);
+    });
+    const engine = new CallEngine(
+      telephony,
+      new MockMediaGateway(),
+      new InMemorySettingsRepository({
+        multiCallSettings: { multiSessionsEnabled: true },
+        phoneStatus: "online",
+      }),
+      events,
+      createTestLogger(),
+    );
+
+    await engine.makeCall({
+      callId: createCallId("active-incoming-hold"),
+      phoneNumber: createPhoneNumber("+12025550180"),
+    });
+
+    const incomingId = createCallId("incoming-hold-b");
+    await engine.handleIncomingReceived({
+      notification: {
+        callId: incomingId,
+        remoteNumber: "+12025550181",
+        correlationId: createCorrelationId(),
+      },
+    });
+
+    const answerResult = await engine.answerCall({ callId: incomingId });
+    expect(answerResult.ok).toBe(true);
+    expect(publishedTypes).toContain("AllOtherCallsHeld");
+    expect(telephony.getHeldCalls()).toContain("active-incoming-hold");
   });
 
   it("rolls back hold-all on gateway failure without starting outgoing dial", async () => {

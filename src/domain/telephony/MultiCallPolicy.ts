@@ -68,17 +68,22 @@ export function getCallsToHoldForExclusiveResume(
   return getActiveUnheldCalls(calls, targetCallId);
 }
 
+export type MultiCallDisabledReason =
+  | "second_session_disabled"
+  | "hold_all_in_progress"
+  | "connecting_in_progress";
+
 export function deriveSecondSessionDialpadDisabled(
   hasEstablishedCall: boolean,
   hasConnectingCall: boolean,
   holdAllInProgress: boolean,
   settings: MultiCallSettings,
-): Readonly<{ disabled: boolean; reason: "second_session_disabled" | "hold_all_in_progress" | null }> {
+): Readonly<{ disabled: boolean; reason: MultiCallDisabledReason | null }> {
   if (holdAllInProgress) {
     return { disabled: true, reason: "hold_all_in_progress" };
   }
   if (hasConnectingCall) {
-    return { disabled: true, reason: "second_session_disabled" };
+    return { disabled: true, reason: "connecting_in_progress" };
   }
   if (hasEstablishedCall && !settings.multiSessionsEnabled) {
     return { disabled: true, reason: "second_session_disabled" };

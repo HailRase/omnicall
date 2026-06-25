@@ -5,6 +5,7 @@
  */
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { createDomainEvent } from "@domain/shared/DomainEvent.js";
+import type { MultiCallOperationRejectedEvent } from "./MultiCallOperationRejected.js";
 import type { CallId } from "../CallId.js";
 import type { CallState } from "../CallState.js";
 import type { CallFailureReason } from "../CallFailureReason.js";
@@ -110,7 +111,7 @@ export type CallAutoUnheldAfterTransferFailureEvent = ReturnType<
 >;
 export type TransferType = "blind" | "attended";
 export type HoldAllPhase = "in_progress" | "completed" | "failed";
-export type HoldAllTrigger = "before_outgoing";
+export type HoldAllTrigger = "before_outgoing" | "before_incoming_answer";
 
 export type OutgoingCallDomainEvent =
   | OutgoingCallRequestedEvent
@@ -144,6 +145,7 @@ export type OutgoingCallDomainEvent =
   | ToneStoppedEvent
   | AllOtherCallsHeldEvent
   | SecondSessionBlockedEvent
+  | MultiCallOperationRejectedEvent
   | CallTransferRequestedEvent
   | CallTransferredEvent
   | CallTransferFailedEvent
@@ -177,6 +179,7 @@ export type IncomingCallDomainEvent =
   | CallFailedEvent
   | AllOtherCallsHeldEvent
   | SecondSessionBlockedEvent
+  | MultiCallOperationRejectedEvent
   | CallTransferRequestedEvent
   | CallTransferredEvent
   | CallTransferFailedEvent

@@ -57,6 +57,14 @@ export class OutgoingCallOrchestrator {
   ): Promise<Result<Call, ReturnType<typeof createPlatformError>>> {
     const correlationId = input.correlationId ?? createCorrelationId();
 
+    const connectingBlock = await this.deps.multiCallPolicyService.checkConflictingOperationBlocked(
+      "outgoing",
+      correlationId,
+    );
+    if (isErr(connectingBlock)) {
+      return err(connectingBlock.error);
+    }
+
     const blockResult = await this.deps.multiCallPolicyService.checkSecondSessionBlocked(
       "outgoing",
       correlationId,
@@ -65,8 +73,9 @@ export class OutgoingCallOrchestrator {
       return err(blockResult.error);
     }
 
-    const holdAllResult = await this.deps.multiCallPolicyService.holdAllBeforeOutgoing(
+    const holdAllResult = await this.deps.multiCallPolicyService.holdAllActiveLines(
       correlationId,
+      "before_outgoing",
     );
     if (isErr(holdAllResult)) {
       return err(holdAllResult.error);

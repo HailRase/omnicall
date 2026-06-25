@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
-import { createSoftphoneComposition } from "@infrastructure/bootstrap/createSoftphoneComposition.js";
+import { createRendererComposition } from "../bootstrap/createRendererComposition.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
-import { readBootstrapConfigFromUrl } from "../bootstrap/readBootstrapConfig.js";
 
 type BootstrapStatus = "loading" | "ready" | "error";
 
@@ -23,16 +22,8 @@ export function useAccountBootstrap(): Readonly<{
 
     async function bootstrap(): Promise<void> {
       try {
-        const bootstrapOptions = readBootstrapConfigFromUrl();
-        activeFacade = createSoftphoneComposition({
-          mode: bootstrapOptions.adapterMode,
-          bootstrapConfig: bootstrapOptions.config,
-          ocpScenario: bootstrapOptions.ocpScenario,
-          telephonyScenario: bootstrapOptions.telephonyScenario,
-          ...(bootstrapOptions.ocpWsUrl !== undefined
-            ? { ocpWsUrl: bootstrapOptions.ocpWsUrl }
-            : {}),
-        });
+        const { facade: composedFacade, bootstrapOptions } = createRendererComposition();
+        activeFacade = composedFacade;
         setFacade(activeFacade);
         unsubscribe = bindFacade(activeFacade);
         await activeFacade.initialize(bootstrapOptions.config);

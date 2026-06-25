@@ -120,6 +120,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Ringing state is produced by explicit transitions (`Idle -> Ringing`, `Ringing -> Active|Ended|Failed`).
   - UI answers and rejects only through `AnswerCallUseCase` and `RejectCallUseCase`.
   - DND incoming path auto-rejects with SIP 486 and does not expose invalid answer controls.
+  - **WU6 (done):** answer while multi-sessions ON holds all other Active lines (`IncomingCallOrchestrator` + `holdAllActiveLines`); multi-sessions OFF + established call → auto-486 second incoming; `MultiCallOperationRejected` fail-safe — `src/domain/telephony/events/MultiCallOperationRejected.ts`, `MultiCallCompleteness.integration.test.ts`.
   - Reject reason is validated and emitted through `HostIntegrationGateway` as `soft-phone-break-reason`.
 - Test Coverage:
   - Unit: state machine incoming transitions, auto-answer policy, DND policy, display-name parser, reject reason validation, answer/reject use cases
@@ -141,6 +142,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Phone number is validated before adapter invocation.
   - Outgoing flow runs through mock `TelephonyGateway` and mock `MediaGateway` with deterministic events/projection updates.
   - Real JsSIP adapter remains deferred behind `TelephonyGateway` until dedicated adapter task.
+  - **WU6 (done):** hold-all before second outgoing when Active exists; block dial while Connecting — `MultiCallPolicyService.checkConflictingOperationBlocked`, `CallEngine.multiCallPolicy.test.ts`.
 - Test Coverage:
   - Unit: number validation and transitions
   - Integration: mock gateway make-call progress/answer/failure + media tones
@@ -163,6 +165,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Hangup publishes `CallHangupRequested` only after successful gateway hangup; failed hangup keeps call state and projection out of `Ending`.
   - UI surfaces `ActiveCallControlFailed` via projection with retry action.
   - UI does not inspect raw SIP session state.
+  - **WU6 (done):** exclusive resume (LF-023); hangup Active does not auto-resume Held (D1 — no auto-resume code path); per-call mute on `CallLine` / `multiLineCallProjection`; `CallLinesShell` per-line resume/hangup — `deriveCallLinesShell.ts`, `CallLinesShell.tsx`.
 - Test Coverage:
   - Unit: state machine valid/invalid transitions + use case command tests (including `ActiveCallControlFailed` on gateway failure)
   - Integration: mock telephony hold/resume/hangup success and failure paths

@@ -81,9 +81,16 @@ export {
   reduceMultiCallProjection,
   setMultiCallSettings,
   deriveIncomingAnswerDisabledReason,
+  deriveResumeMultiCallDisabledReason,
   type MultiCallProjection,
   type MultiCallDisabledReason,
+  type MultiCallPolicyViolation,
 } from "./projections/multiCallProjection.js";
+export {
+  deriveCallLinesShell,
+  type CallLineCardViewModel,
+  type CallLinesShellViewModel,
+} from "./projections/deriveCallLinesShell.js";
 export {
   initialTransferProjection,
   reduceTransferProjection,
@@ -148,7 +155,9 @@ export {
 } from "./projections/deriveConnectionRecoveryShell.js";
 export {
   deriveSessionLogoutShell,
+  pickSessionLogoutProjectionInput,
   type SessionLogoutShellInput,
+  type SessionLogoutProjectionInput,
   type SessionLogoutShellView,
 } from "./projections/deriveSessionLogoutShell.js";
 export {

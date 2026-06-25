@@ -103,7 +103,9 @@ export class CallEngine {
       eventPublisher,
       logger,
       callTracker: this.callTracker,
+      mediaGateway,
       holdCall: (input) => this.activeCallControlService.holdCall(input),
+      resumeCall: (input) => this.activeCallControlService.resumeCall(input),
     });
     this.activeCallControlService.setExclusiveHoldEnforcer((targetCallId, correlationId) =>
       this.multiCallPolicyService.enforceExclusiveHoldBeforeResume(

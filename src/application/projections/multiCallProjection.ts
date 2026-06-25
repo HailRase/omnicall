@@ -5,7 +5,15 @@ import { isSessionResetEvent } from "./sessionResetEvents.js";
 
 export type MultiCallDisabledReason =
   | "second_session_disabled"
-  | "hold_all_in_progress";
+  | "hold_all_in_progress"
+  | "connecting_in_progress";
+
+export type MultiCallPolicyViolation = Readonly<{
+  scenario: string;
+  reason: string;
+  affectedCallIds: ReadonlyArray<string>;
+  occurredAt: string;
+}>;
 
 export type MultiCallProjection = Readonly<{
   multiSessionsEnabled: boolean;
@@ -18,6 +26,7 @@ export type MultiCallProjection = Readonly<{
   isSecondSessionDisabled: boolean;
   secondSessionDisabledReason: MultiCallDisabledReason | null;
   lastBlockedDirection: "outgoing" | "incoming_answer" | null;
+  lastPolicyViolation: MultiCallPolicyViolation | null;
 }>;
 
 /**
@@ -39,6 +48,7 @@ export function initialMultiCallProjection(
     activeUnheldCallId: null,
     establishedCallCount: 0,
     lastBlockedDirection: null,
+    lastPolicyViolation: null,
   });
 }
 
@@ -122,6 +132,16 @@ export function reduceMultiCallProjection(
         secondSessionDisabledReason: "second_session_disabled",
       };
     }
+    case "MultiCallOperationRejected":
+      return createMultiCallProjection({
+        ...projection,
+        lastPolicyViolation: {
+          scenario: asRequiredString(event["scenario"]),
+          reason: asRequiredString(event["reason"]),
+          affectedCallIds: asStringArray(event["affectedCallIds"]),
+          occurredAt: asRequiredString(event["occurredAt"]),
+        },
+      });
     default:
       return projection;
   }
@@ -130,6 +150,12 @@ export function reduceMultiCallProjection(
 export function deriveIncomingAnswerDisabledReason(
   projection: MultiCallProjection,
 ): string | null {
+  if (projection.holdAllInProgress) {
+    return "Holding other calls…";
+  }
+  if (projection.hasConnectingCall) {
+    return "Call connecting…";
+  }
   if (
     projection.isSecondSessionDisabled &&
     projection.secondSessionDisabledReason === "second_session_disabled" &&
@@ -144,6 +170,18 @@ export function deriveIncomingAnswerDisabledReason(
   return null;
 }
 
+export function deriveResumeMultiCallDisabledReason(
+  projection: MultiCallProjection,
+): string | null {
+  if (projection.holdAllInProgress) {
+    return "Holding other calls…";
+  }
+  if (projection.hasConnectingCall) {
+    return "Call connecting…";
+  }
+  return null;
+}
+
 type MultiCallProjectionInput = Readonly<{
   multiSessionsEnabled: boolean;
   autoUnholdOnTransferFailure?: boolean;
@@ -153,6 +191,7 @@ type MultiCallProjectionInput = Readonly<{
   activeUnheldCallId: string | null;
   establishedCallCount: number;
   lastBlockedDirection: "outgoing" | "incoming_answer" | null;
+  lastPolicyViolation?: MultiCallPolicyViolation | null;
 }>;
 
 function createMultiCallProjection(
@@ -176,6 +215,7 @@ function createMultiCallProjection(
     isSecondSessionDisabled: dialpadState.disabled,
     secondSessionDisabledReason: dialpadState.reason,
     lastBlockedDirection: input.lastBlockedDirection,
+    lastPolicyViolation: input.lastPolicyViolation ?? null,
   };
 }
 
@@ -208,4 +248,15 @@ function decrementEstablishedIfNeeded(
 
 function asOptionalString(value: unknown): string | null {
   return typeof value === "string" ? value : null;
+}
+
+function asRequiredString(value: unknown): string {
+  return typeof value === "string" ? value : "";
+}
+
+function asStringArray(value: unknown): ReadonlyArray<string> {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+  return value.filter((entry): entry is string => typeof entry === "string");
 }
