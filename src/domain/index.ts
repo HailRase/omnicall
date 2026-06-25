@@ -1,4 +1,28 @@
 export type { BootstrapMode, AppBootstrapConfig } from "./settings/BootstrapConfig.js";
+export type { SettingsAccountKey } from "./settings/SettingsAccountKey.js";
+export {
+  ANONYMOUS_SETTINGS_ACCOUNT,
+  createSettingsAccountKey,
+} from "./settings/SettingsAccountKey.js";
+export type { SettingsSchemaVersion, UserSettings } from "./settings/UserSettings.js";
+export {
+  createDefaultUserSettings,
+  MAX_AUTO_ANSWER_TIMEOUT_SEC,
+  SETTINGS_SCHEMA_VERSION,
+} from "./settings/UserSettings.js";
+export type { ValidateUserSettingsResult } from "./settings/validateUserSettings.js";
+export { validateUserSettings } from "./settings/validateUserSettings.js";
+export type {
+  MigrateUserSettingsResult,
+  SettingsMigrationError,
+  UserSettingsV0Legacy,
+} from "./settings/migrateUserSettings.js";
+export { migrateUserSettings } from "./settings/migrateUserSettings.js";
+export {
+  mergeMultiCallIntoUserSettings,
+  toAutoAnswerTimeoutSec,
+  toMultiCallSettings,
+} from "./settings/userSettingsMapping.js";
 export type { DomainEvent, DomainEventBase } from "./shared/DomainEvent.js";
 export { createDomainEvent } from "./shared/DomainEvent.js";
 export type {

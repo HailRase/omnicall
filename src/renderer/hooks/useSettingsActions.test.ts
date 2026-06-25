@@ -51,7 +51,7 @@ describe("useSettingsActions", () => {
   it("surfaces error when facade update fails", async () => {
     const applyMultiCallSettings = vi.fn();
     const settings = new InMemorySettingsRepository();
-    vi.spyOn(settings, "setMultiCallSettings").mockRejectedValue(
+    vi.spyOn(settings, "saveUserSettings").mockRejectedValue(
       new Error("Repository unavailable"),
     );
     const facade = createFacade(settings);

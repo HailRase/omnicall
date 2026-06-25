@@ -35,6 +35,8 @@ export type { JsSipTelephonyAdapterOptions } from "./telephony/jssip/JsSipTeleph
 export { InMemorySettingsRepository } from "./settings/InMemorySettingsRepository.js";
 export { InMemorySettingsRepository as MockSettingsRepository } from "./settings/InMemorySettingsRepository.js";
 export type { InMemorySettingsState } from "./settings/InMemorySettingsRepository.js";
+export { FileSettingsRepository } from "./settings/FileSettingsRepository.js";
+export type { FileSettingsRepositoryOptions } from "./settings/FileSettingsRepository.js";
 export { MockOcpSyncGateway } from "./mock/MockOcpSyncGateway.js";
 export type { MockOcpSyncScenario, MockOcpCampaignRespondScenario, MockDlgStopScenario } from "./mock/MockOcpSyncGateway.js";
 export {

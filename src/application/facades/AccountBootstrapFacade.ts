@@ -2,9 +2,9 @@ import type { DomainEvent } from "@domain/index.js";
 import type { AppBootstrapConfig } from "@domain/index.js";
 import type { SipAccountInput } from "@domain/index.js";
 import type { PhoneStatus } from "@domain/index.js";
-import { isErr } from "@shared/result/index.js";
-import type { Result } from "@shared/result/index.js";
+import { err, isErr, ok, type Result } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
+import { normalizeUnknownError } from "@shared/errors/index.js";
 import { InMemoryDomainEventBus } from "../events/InMemoryDomainEventBus.js";
 import { AuthenticateOcpUseCase } from "../use-cases/AuthenticateOcpUseCase.js";
 import { AuthorizeSipAccountUseCase } from "../use-cases/AuthorizeSipAccountUseCase.js";
@@ -68,7 +68,18 @@ import type {
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { CallEngine } from "@application/services/CallEngine.js";
 import type { MultiCallSettings } from "@domain/index.js";
-import { createCallId, type Call, type CallId, type CampaignDecision } from "@domain/index.js";
+import type { SettingsAccountKey, UserSettings } from "@domain/index.js";
+import {
+  ANONYMOUS_SETTINGS_ACCOUNT,
+  createCallId,
+  createSettingsAccountKey,
+  mergeMultiCallIntoUserSettings,
+  toMultiCallSettings,
+  validateUserSettings,
+  type Call,
+  type CallId,
+  type CampaignDecision,
+} from "@domain/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 
 export type AccountBootstrapFacadeDeps = Readonly<{
@@ -426,12 +437,64 @@ export class AccountBootstrapFacade {
   }
 
   async updateMultiCallSettings(settings: MultiCallSettings): Promise<MultiCallSettings> {
-    const normalized: MultiCallSettings = {
+    const accountKey = await this.resolveSettingsAccountKey();
+    const current = await this.deps.settingsRepository.getUserSettings(accountKey);
+    const next = mergeMultiCallIntoUserSettings(current, {
       multiSessionsEnabled: settings.multiSessionsEnabled,
       autoUnholdOnTransferFailure: settings.autoUnholdOnTransferFailure !== false,
-    };
-    await this.deps.settingsRepository.setMultiCallSettings(normalized);
-    return normalized;
+    });
+    const saved = await this.saveUserSettingsInternal(accountKey, next);
+    return toMultiCallSettings(saved);
+  }
+
+  async getUserSettingsForAccount(): Promise<Result<UserSettings, PlatformError>> {
+    try {
+      const accountKey = await this.resolveSettingsAccountKey();
+      const settings = await this.deps.settingsRepository.getUserSettings(accountKey);
+      return ok(settings);
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+  }
+
+  async saveUserSettings(
+    settings: UserSettings,
+  ): Promise<Result<UserSettings, PlatformError>> {
+    try {
+      const accountKey = await this.resolveSettingsAccountKey();
+      const saved = await this.saveUserSettingsInternal(accountKey, settings);
+      return ok(saved);
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+  }
+
+  async refreshUserSettingsProjections(handlers: Readonly<{
+    applyMultiCallSettings: (settings: MultiCallSettings) => void;
+  }>): Promise<void> {
+    const accountKey = await this.resolveSettingsAccountKey();
+    const userSettings = await this.deps.settingsRepository.getUserSettings(accountKey);
+    handlers.applyMultiCallSettings(toMultiCallSettings(userSettings));
+  }
+
+  private async resolveSettingsAccountKey(): Promise<SettingsAccountKey> {
+    const account = await this.deps.settingsRepository.getSipAccount();
+    if (account === null) {
+      return createSettingsAccountKey(ANONYMOUS_SETTINGS_ACCOUNT);
+    }
+    return createSettingsAccountKey(account.username);
+  }
+
+  private async saveUserSettingsInternal(
+    accountKey: SettingsAccountKey,
+    settings: UserSettings,
+  ): Promise<UserSettings> {
+    const validated = validateUserSettings(settings);
+    if (!validated.ok) {
+      throw new Error(`settings_validation_failed:${validated.errors.join(",")}`);
+    }
+    await this.deps.settingsRepository.saveUserSettings(accountKey, validated.value);
+    return validated.value;
   }
 
   async makeCall(number: string, callId?: CallId): Promise<Result<Call, PlatformError>> {

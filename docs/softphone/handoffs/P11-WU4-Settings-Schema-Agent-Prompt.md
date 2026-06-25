@@ -116,13 +116,13 @@ Manual smoke:
 
 ## Gate WU4
 
-- [ ] `P11-Settings-Schema-Design.md` created
-- [ ] Versioned schema + validation tests
-- [ ] Migration v0→v1 tested
-- [ ] Repository aggregate read/write
-- [ ] Facade + projection refresh
-- [ ] WU1 multi-session regression green
-- [ ] LF-077 evidence in Legacy-Feature-Coverage
-- [ ] Feature Registry F-016 updated
+- [x] `P11-Settings-Schema-Design.md` created
+- [x] Versioned schema + validation tests
+- [x] Migration v0→v1 tested
+- [x] Repository aggregate read/write
+- [x] Facade + projection refresh
+- [x] WU1 multi-session regression green
+- [x] LF-077 evidence in Legacy-Feature-Coverage
+- [x] Feature Registry F-016 updated
 
-**STOP after WU4 gate.**
+**STOP after WU4 gate.** See `handoffs/P11-WU4-Settings-Schema-Handoff.md`.

@@ -3,7 +3,9 @@ import type {
   BreakReason,
   MultiCallSettings,
   PhoneStatus,
+  SettingsAccountKey,
   SipAccount,
+  UserSettings,
 } from "@domain/index.js";
 
 export type IncomingCallSettings = Readonly<{
@@ -22,4 +24,6 @@ export interface SettingsRepository {
   setAllowedBreakReasons(reasons: ReadonlyArray<BreakReason>): Promise<void>;
   getMultiCallSettings(): Promise<MultiCallSettings>;
   setMultiCallSettings(settings: MultiCallSettings): Promise<void>;
+  getUserSettings(accountKey: SettingsAccountKey): Promise<UserSettings>;
+  saveUserSettings(accountKey: SettingsAccountKey, settings: UserSettings): Promise<void>;
 }

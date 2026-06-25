@@ -138,6 +138,62 @@ describe("AccountBootstrapFacade integration", () => {
     });
     expect(await settings.getMultiCallSettings()).toEqual(updated);
   });
+
+  it("reads and saves user settings aggregate through facade", async () => {
+    const settings = new InMemorySettingsRepository();
+    const facade = new AccountBootstrapFacade({
+      operatorGateway: new MockOperatorPlatformGateway(),
+      telephonyGateway: new MockTelephonyGateway("success"),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: settings,
+      logger: createTestLogger(),
+    });
+
+    const loaded = await facade.getUserSettingsForAccount();
+    expect(loaded.ok).toBe(true);
+    if (!loaded.ok) {
+      return;
+    }
+
+    const saved = await facade.saveUserSettings({
+      ...loaded.value,
+      multiSessionsEnabled: false,
+      autoAnswerTimeoutSec: 4,
+    });
+    expect(saved.ok).toBe(true);
+    if (saved.ok) {
+      expect(saved.value.multiSessionsEnabled).toBe(false);
+      expect(saved.value.autoAnswerTimeoutSec).toBe(4);
+    }
+  });
+
+  it("refreshes multi-call projection from persisted user settings", async () => {
+    const settings = new InMemorySettingsRepository();
+    const facade = new AccountBootstrapFacade({
+      operatorGateway: new MockOperatorPlatformGateway(),
+      telephonyGateway: new MockTelephonyGateway("success"),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: settings,
+      logger: createTestLogger(),
+    });
+
+    await facade.updateMultiCallSettings({
+      multiSessionsEnabled: false,
+      autoUnholdOnTransferFailure: true,
+    });
+
+    let projection: { multiSessionsEnabled: boolean } | null = null;
+    await facade.refreshUserSettingsProjections({
+      applyMultiCallSettings: (value) => {
+        projection = value;
+      },
+    });
+
+    expect(projection).toEqual({
+      multiSessionsEnabled: false,
+      autoUnholdOnTransferFailure: true,
+    });
+  });
 });
 
 function waitFor(predicate: () => boolean, timeoutMs = 1000): Promise<void> {
