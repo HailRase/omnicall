@@ -208,6 +208,12 @@ export {
   deriveOperatorControlDisabledReason,
 } from "./projections/deriveOperatorControlDisabledReason.js";
 export { deriveAuthShellFlags } from "./projections/deriveAuthShellFlags.js";
+export {
+  deriveHeaderChromeShell,
+  type HeaderChromeShellInput,
+  type HeaderChromeShellViewModel,
+  type RegistrationDotVariant,
+} from "./projections/deriveHeaderChromeShell.js";
 export { deriveActiveCallControlsShell } from "./projections/deriveActiveCallControlsShell.js";
 export {
   agentStatusLabel,

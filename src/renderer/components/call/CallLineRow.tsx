@@ -14,6 +14,7 @@ import { mapTransferDisabledReason } from "../../helpers/mapTransferDisabledReas
 export type CallLineRowProps = Readonly<{
   line: CallLineCardViewModel;
   lastOperationError: ActiveCallControlOperationError | null;
+  compact?: boolean;
   onResume: (callId: string) => void;
   onHangup: (callId: string) => void;
   onHold: (callId: string) => void;
@@ -33,6 +34,7 @@ export type CallLineRowProps = Readonly<{
 export function CallLineRow({
   line,
   lastOperationError,
+  compact = false,
   onResume,
   onHangup,
   onHold,
@@ -43,18 +45,19 @@ export function CallLineRow({
   onRetryOperation,
 }: CallLineRowProps): JSX.Element {
   const queueLabel = mapQueueLabelState(line.queueLabelState, line.queueName);
-  const showError = line.isActiveUnheld && lastOperationError !== null;
+  const showError = !compact && line.isActiveUnheld && lastOperationError !== null;
+  const rowClassName = compact ? "call-line-row call-line-row--compact" : "call-line-row";
 
   return (
     <li
-      className="call-line-row"
+      className={rowClassName}
       data-testid={`call-line-${line.callId}`}
       aria-label={`Call line ${line.displayName}`}
     >
       <div className="call-line-row__main">
         <div className="call-line-row__info">
           <strong className="call-line-row__name">{line.displayName}</strong>
-          {queueLabel.visible ? (
+          {!compact && queueLabel.visible ? (
             <span
               className="call-line-row__queue"
               data-testid={`call-line-queue-${line.callId}`}
@@ -74,7 +77,7 @@ export function CallLineRow({
           </div>
         </div>
         <div className="call-line-row__actions">
-          {line.showIconRow ? (
+          {!compact && line.showIconRow ? (
             <div className="call-line-row__icon-row" aria-label="Call controls">
               <IconActionButton
                 testId={`control-transfer-line-${line.callId}`}

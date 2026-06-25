@@ -8,11 +8,13 @@ import { SettingsOverlay } from "../components/settings/SettingsOverlay.js";
 import { registrationLabel } from "../helpers/registrationLabel.js";
 import { useAuthShellFlags } from "../hooks/useAuthShellFlags.js";
 import { useCallFeatureShell } from "../hooks/useCallFeatureShell.js";
+import { useHeaderChromeShell } from "../hooks/useHeaderChromeShell.js";
 import { useOcpNotifications } from "../hooks/useOcpNotifications.js";
 import { useOverlayShell } from "../hooks/useOverlayShell.js";
 import { usePhoneStatusActions } from "../hooks/usePhoneStatusActions.js";
 import { useSettingsActions } from "../hooks/useSettingsActions.js";
 import type { useSoftphoneShellChrome } from "../hooks/useSoftphoneShellChrome.js";
+import { useShellCollapse } from "../hooks/useShellCollapse.js";
 import { useSoftphoneProjections } from "../hooks/useSoftphoneProjections.js";
 import { SoftphoneLayout } from "../widgets/SoftphoneLayout/SoftphoneLayout.js";
 import { AuthAccountShell } from "./AuthAccountShell.js";
@@ -45,6 +47,8 @@ export function SoftphoneReadyShell({
   const { showAccountPanel, blockingAuthState } = useAuthShellFlags();
   const phoneStatusActions = usePhoneStatusActions({ facade, disabled: blockingAuthState });
   const overlayShell = useOverlayShell();
+  const { collapsed, toggleCollapsed } = useShellCollapse();
+  const headerChrome = useHeaderChromeShell();
   const callBindings = useCallFeatureShell({ facade });
   const settingsActions = useSettingsActions({
     facade,
@@ -62,40 +66,52 @@ export function SoftphoneReadyShell({
 
   return (
     <SoftphoneLayout
+      collapsed={collapsed}
       header={
         <>
           <SoftphoneShellHeader
+            headerChrome={headerChrome}
+            collapsed={collapsed}
             connectionRecoveryShell={connectionRecoveryShell}
             connectionRecoveryActions={connectionRecoveryActions}
             sessionLogoutActions={sessionLogoutActions}
+            onToggleCollapse={toggleCollapsed}
             onOpenSettings={overlayShell.openSettings}
             onOpenDiagnostics={overlayShell.openDiagnostics}
           />
-          <PhoneStatusBadge
-            status={projection.phoneStatus}
-            registrationLabel={registrationLabel(
-              projection.registrationState,
-              projection.authUiState,
-            )}
-            disabled={blockingAuthState}
-            onChange={phoneStatusActions.handlePhoneStatusChange}
-          />
-          <OperatorFeatureShell facade={facade} />
+          {!collapsed ? (
+            <>
+              <PhoneStatusBadge
+                status={projection.phoneStatus}
+                registrationLabel={registrationLabel(
+                  projection.registrationState,
+                  projection.authUiState,
+                )}
+                disabled={blockingAuthState}
+                onChange={phoneStatusActions.handlePhoneStatusChange}
+              />
+              <OperatorFeatureShell facade={facade} />
+            </>
+          ) : null}
         </>
       }
       context={
         <>
-          <AuthStateView state={projection.authUiState} lastError={projection.lastError} />
-          <SessionFeatureShell sessionLogoutActions={sessionLogoutActions} />
-          <AuthAccountShell
-            facade={facade}
-            visible={showAccountPanel && !blockingAuthState}
-            disabled={false}
-          />
-          <CallContextShell bindings={callBindings} />
+          {!collapsed ? (
+            <>
+              <AuthStateView state={projection.authUiState} lastError={projection.lastError} />
+              <SessionFeatureShell sessionLogoutActions={sessionLogoutActions} />
+              <AuthAccountShell
+                facade={facade}
+                visible={showAccountPanel && !blockingAuthState}
+                disabled={false}
+              />
+            </>
+          ) : null}
+          <CallContextShell bindings={callBindings} collapsed={collapsed} />
         </>
       }
-      controls={<CallControlsShell bindings={callBindings} />}
+      controls={collapsed ? null : <CallControlsShell bindings={callBindings} />}
       overlays={
         <>
           <OcpToastStack

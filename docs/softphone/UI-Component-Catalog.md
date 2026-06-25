@@ -2,7 +2,7 @@
 
 > **Auto-generated.** Do not edit by hand. Run: `npm run ui:catalog`
 
-Last generated: 2026-06-25 12:03
+Last generated: 2026-06-25 12:24
 
 ## Index
 
@@ -27,6 +27,8 @@ Last generated: 2026-06-25 12:03
 | `RejectReasonSelector` | `src/renderer/components/call/RejectReasonSelector.tsx` | `RejectReasonSelectorProps` | reject-reason-select | — |
 | `TransferPanel` | `src/renderer/components/call/TransferPanel.tsx` | `TransferPanelProps` | transfer-panel, transfer-in-progress-indicator, transfer-failure-banner, transfer-target-input, control-blind-transfer, control-start-consultation, control-attended-transfer, control-cancel-transfer, transfer-disabled-reason | — |
 | `Dialpad` | `src/renderer/components/dialpad/Dialpad.tsx` | `DialpadProps` | dialpad-panel, dialpad-mode-number, call-dtmf-toggle, dialpad-input, dialpad-key-0, dialpad-key-0, dialpad-delete, dialpad-clear, dialpad-call, dialpad-disabled-reason | — |
+| `RegistrationStatusDot` | `src/renderer/components/header/RegistrationStatusDot.tsx` | `RegistrationStatusDotProps` | registration-status-dot | lf=LF-011 f=F-016 smoke=R7- |
+| `UserAvatar` | `src/renderer/components/header/UserAvatar.tsx` | `UserAvatarProps` | user-avatar, user-avatar | lf=LF-086 f=F-016 smoke=R7- |
 | `OcpToastStack` | `src/renderer/components/ocp/OcpToastStack.tsx` | `OcpToastStackProps` | ocp-toast-stack, ocp-toast | — |
 | `ConnectionOverlay` | `src/renderer/components/recovery/ConnectionOverlay.tsx` | `ConnectionOverlayProps` | connection-overlay-host, connection-overlay-scrim, connection-overlay, connection-server-terminate, reconnect-countdown, reconnect-in-progress, control-retry-connection, control-safe-logout | — |
 | `LogoutActiveSessionConfirmationModal` | `src/renderer/components/session/LogoutActiveSessionConfirmationModal.tsx` | `LogoutActiveSessionConfirmationModalProps` | logout-active-session-modal, control-logout-confirm, control-logout-cancel | — |
@@ -42,7 +44,7 @@ Last generated: 2026-06-25 12:03
 | `RecoveryFeatureShell` | `src/renderer/shells/RecoveryFeatureShell.tsx` | `—` | — | — |
 | `SessionFeatureShell` | `src/renderer/shells/SessionFeatureShell.tsx` | `—` | logout-error-banner | — |
 | `SoftphoneReadyShell` | `src/renderer/shells/SoftphoneReadyShell.tsx` | `—` | — | — |
-| `SoftphoneShellHeader` | `src/renderer/shells/SoftphoneShellHeader.tsx` | `—` | control-open-settings, control-open-diagnostics, control-reregister-sip, control-end-session | — |
+| `SoftphoneShellHeader` | `src/renderer/shells/SoftphoneShellHeader.tsx` | `—` | shell-header, control-open-settings, control-open-diagnostics, control-toggle-collapse, control-reregister-sip, control-end-session | lf=LF-011,LF-076,LF-086 f=F-016 smoke=R7- |
 | `CallContextShell` | `src/renderer/shells/call/CallContextShell.tsx` | `—` | call-context-zone, sip-registered-hint | — |
 | `CallControlsShell` | `src/renderer/shells/call/CallControlsShell.tsx` | `—` | call-controls-zone, remote-audio-mount | — |
 | `CallOverlayShell` | `src/renderer/shells/call/CallOverlayShell.tsx` | `—` | — | — |

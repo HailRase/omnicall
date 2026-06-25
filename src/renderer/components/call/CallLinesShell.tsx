@@ -8,6 +8,7 @@ import { CallLineRow } from "./CallLineRow.js";
 export type CallLinesShellProps = Readonly<{
   shell: CallLinesShellViewModel;
   lastOperationError: ActiveCallControlOperationError | null;
+  compact?: boolean;
   onResumeLine: (callId: string) => void;
   onHangupLine: (callId: string) => void;
   onHoldLine: (callId: string) => void;
@@ -26,6 +27,7 @@ export type CallLinesShellProps = Readonly<{
 export function CallLinesShell({
   shell,
   lastOperationError,
+  compact = false,
   onResumeLine,
   onHangupLine,
   onHoldLine,
@@ -45,7 +47,7 @@ export function CallLinesShell({
       data-testid="call-lines-panel"
       aria-label="Active call lines"
     >
-      {shell.policyErrorMessage !== null ? (
+      {shell.policyErrorMessage !== null && !compact ? (
         <p
           className="shell__hint shell__hint--error"
           data-testid="multi-call-policy-error"
@@ -59,6 +61,7 @@ export function CallLinesShell({
           <CallLineRow
             key={line.callId}
             line={line}
+            compact={compact}
             lastOperationError={line.isActiveUnheld ? lastOperationError : null}
             onResume={onResumeLine}
             onHangup={onHangupLine}

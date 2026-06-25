@@ -62,7 +62,7 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 | LF-008 | P08 | Telephony | High | Repeat SIP registration after failure | `DisplayProvider`, user config | WU2: `ConnectionRecoveryOrchestrationService`, `ReconnectScheduler`, `SipReconnect*`, `reconnectTransport` — see `handoffs/P08-WU2-Recovery-Orchestration-Handoff.md`. |
 | LF-009 | P08 | UI | Medium | Re-registration timer UI | `RegisterTimer` | WU4: `useReconnectCountdown`, `ConnectionOverlay` countdown from `nextRetryAt` (LF-057 parity) — see `handoffs/P08-WU4-Recovery-Manual-Shutdown-Handoff.md`. |
 | LF-010 | P08 | Telephony | Medium | Manual re-registration from menu | `Header`, `UserMenu` | WU4: `RetryConnectionUseCase`, `control-reregister-sip`, `control-retry-connection` — see `handoffs/P08-WU4-Recovery-Manual-Shutdown-Handoff.md`. |
-| LF-011 | P01 | UI | High | phoneStatus Online/Offline/DND display | `DisplayProvider` | Status projection shows telephony availability accurately. |
+| LF-011 | P01 | UI | High | phoneStatus Online/Offline/DND display | `DisplayProvider` | WU3: `deriveHeaderChromeShell`, `RegistrationStatusDot` on avatar + expanded `PhoneStatusBadge` — see `P11-Header-Collapsed-UX-Design.md`. |
 | LF-012 | P03 | Media | Critical | Incoming call ringtone | `soundManager`, `newRTCSession` | Incoming call starts ringing through Media service. |
 | LF-013 | P03 | UI | Critical | Incoming call modal | `IncomingCallModal` | Incoming call appears with caller details and actions. |
 | LF-014 | P03 | Telephony | Critical | Accept incoming call | `handleAnswer` | Answer command transitions call to active via Call Engine. |
@@ -73,7 +73,7 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 | LF-019 | P06 | Operator | High | DND blocks Ready status | `StatusSelector` | WU1/WU2: `AgentStatusTransition` + `ChangeAgentStatusUseCase` reject `dnd_blocks_ready` — see `handoffs/P06-WU1-Operator-Status-Domain-Handoff.md`. |
 | LF-020 | P02 | Telephony | Critical | Outgoing call | `handleCall`, `Display` | Dialpad starts outgoing call through `MakeCallUseCase`. |
 | LF-021 | P05 | Telephony | High | Hold all calls before new call | `handleHoldAll` | WU1+**WU6:** mock + integration tests. **RAT 08:** real SBC R7-1/R7-2 **PASS** 2026-06-25. |
-| LF-022 | P04 | Telephony | Critical | Hold and unhold session | `onToggleHoldHandler` | Active call can transition to Held and back. |
+| LF-022 | P04 | Telephony | Critical | Hold and unhold session | `onToggleHoldHandler` | P11 WU2: per-line hold on `CallLineRow` — `P11-Call-Line-UX-Design.md`. |
 | LF-023 | P05 | Telephony | High | Exclusive hold for other calls | `onToggleHoldHandler` | WU1+WU6 mock. **RAT 08:** real SBC R7-3 **PASS** 2026-06-25. |
 | LF-024 | P04 | Media | Critical | Mute and unmute microphone | `onToggleMuteHandler` | Mute state changes through Media service and events. |
 | LF-025 | P02 | Telephony | High | DTMF from dialpad | `DialPad`, `sendDTMF` | Active call sends validated DTMF tones. |
@@ -108,7 +108,7 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 | LF-054 | P09 | Settings | Low | Limit call history to 100 records | `saveCall` | Repository enforces retention policy. |
 | LF-055 | P11 | UI | Medium | Collapse and expand UI | `CollapseButton`, `Display` | Desktop shell supports compact softphone mode. |
 | LF-056 | P11 | UI | Low | Draggable widget | `DraggableButton` | Widget/window drag behavior is predictable in Electron. |
-| LF-057 | P08 | UI | High | Lost WS overlay | `WSConnectionOverlay` | WU3: `ConnectionOverlay`, `useConnectionRecoveryShell`, `deriveConnectionRecoveryShell` — see `handoffs/P08-WU3-Recovery-Overlay-Handoff.md`. |
+| LF-057 | P08 | UI | High | Lost WS overlay | `WSConnectionOverlay` | WU3: `ConnectionOverlay`, `useConnectionRecoveryShell`, `deriveConnectionRecoveryShell` — see `handoffs/P08-WU3-Recovery-Overlay-Handoff.md`. P11 WU2: blocking scrim `connection-overlay-host__scrim` — `P11-Call-Line-UX-Design.md`. |
 | LF-058 | P08 | Operator | High | WS reconnect 6 attempts by 5 seconds | `useWs` | WU2: `OCP_RECONNECT_POLICY_CONFIG`, `OcpReconnect*`, orchestration + integration test — see `handoffs/P08-WU2-Recovery-Orchestration-Handoff.md`. |
 | LF-059 | P07 | UI | Medium | OCP toast notifications | `NotificationProvider` | WU4: `OcpToastStack`, `ocpNotificationProjection`, `useOcpNotifications` — see `handoffs/P07-WU4-OCP-Sync-Polish-Handoff.md`. |
 | LF-060 | P11 | Settings | Low | Toast position and z-index settings | user config | User config controls notification placement. |
@@ -127,7 +127,7 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 | LF-073 | P10 | Headset | Medium | HID mute sync and LED | `ledOutputSync`, `useHidLedSync` | LED state follows media projection. |
 | LF-074 | P10 | UI | Medium | Headset UI block during sync | `useHeadsetCallController` | UI prevents conflicting actions during headset sync. |
 | LF-075 | P10 | Headset | Medium | Native Jabra adapter | `headsetAdapters` | Vendor implementation stays inside adapter. |
-| LF-076 | P11 | Settings | High | Auto-answer, RBT, multisession settings | `Common`, `setUserConfig` | User settings affect Use Cases through repositories. |
+| LF-076 | P11 | Settings | High | Auto-answer, RBT, multisession settings | `Common`, `setUserConfig` | WU1: `SettingsOverlay` multi-session toggle. WU3: settings entry preserved in collapsed header — `P11-Header-Collapsed-UX-Design.md`. |
 | LF-077 | P11 | Settings | High | Per-user config in local storage | `JSSIP_CONFIGS` | Settings persist per account behind repository. |
 | LF-078 | P06 | Settings | Medium | Break reasons from OCP in config | `setBreakReasons` | WU3: `BreakReasonsSyncService`, `BreakReasonsReceived`, `SettingsRepository.setAllowedBreakReasons` — see `handoffs/P06-WU3-Post-Call-Break-Reasons-Handoff.md`. |
 | LF-079 | P08 | Telephony | Critical | beforeunload SIP cleanup | `DisplayProvider` | WU4–WU5: `ShutdownCleanupUseCase`, `EndUserSessionUseCase`, `SessionTeardownOrchestrationService`, IPC `app:before-close`, `useAppShutdown`, `control-end-session` — see `handoffs/P08-WU4-Recovery-Manual-Shutdown-Handoff.md`, `P08-WU5-User-Session-Logout-Handoff.md`. |
@@ -137,7 +137,7 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 | LF-083 | P09 | Settings | Low | Debug JsSIP setting | Common settings | Debug flag controls SIP diagnostics safely. |
 | LF-084 | P11 | Settings | Low | Disabled codecs tab | `SettingModal` | Codecs tab is either implemented or explicitly hidden by ADR. |
 | LF-085 | P01 | UI | Low | AccessDenied without username | `Common`, `Account` | Missing account identity shows deterministic access state. |
-| LF-086 | P11 | UI | Medium | Avatar and user menu | `Avatar`, `UserMenu` | Account menu exposes user and actions clearly. |
+| LF-086 | P11 | UI | Medium | Avatar and user menu | `Avatar`, `UserMenu` | WU3 partial: `UserAvatar` placeholder + `RegistrationStatusDot`; full menu deferred — `P11-Header-Collapsed-UX-Design.md`. |
 | LF-087 | P11 | UI | Medium | Status in collapsed header | `Header` | Collapsed mode still shows operator/phone state. |
 | LF-088 | P09 | Media | Low | Audio debug logger | `audioLogger` | Audio diagnostics are available without production noise. |
 | LF-089 | P09 | Integration | Low | Clear logs older than 8 hours | `addUserActionLog` | Log retention policy is enforced. |

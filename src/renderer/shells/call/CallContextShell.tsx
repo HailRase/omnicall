@@ -6,6 +6,7 @@ import type { CallFeatureShellBindings } from "../../hooks/useCallFeatureShell.j
 
 type CallContextShellProps = Readonly<{
   bindings: CallFeatureShellBindings;
+  collapsed?: boolean;
 }>;
 
 /**
@@ -13,7 +14,10 @@ type CallContextShellProps = Readonly<{
  * - Inputs: call feature shell bindings from useCallFeatureShell.
  * - Outputs: context zone markup; stays mounted when settings overlay opens.
  */
-export function CallContextShell({ bindings }: CallContextShellProps): JSX.Element | null {
+export function CallContextShell({
+  bindings,
+  collapsed = false,
+}: CallContextShellProps): JSX.Element | null {
   if (!bindings.sipRegistered) {
     return null;
   }
@@ -38,17 +42,23 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
       !hasLineForActiveCall);
 
   return (
-    <div className="call-context-zone" data-testid="call-context-zone">
-      {import.meta.env.DEV && (
+    <div
+      className={`call-context-zone${collapsed ? " call-context-zone--collapsed" : ""}`}
+      data-testid="call-context-zone"
+    >
+      {!collapsed && import.meta.env.DEV ? (
         <p className="shell__hint" data-testid="sip-registered-hint">
           SIP account is registered via mock gateway (P01-P02 foundation).
         </p>
-      )}
+      ) : null}
 
-      <MultiCallHoldAllIndicator visible={multiCallProjection.holdAllInProgress} />
+      {!collapsed ? (
+        <MultiCallHoldAllIndicator visible={multiCallProjection.holdAllInProgress} />
+      ) : null}
 
       <CallLinesShell
         shell={callLinesShell}
+        compact={collapsed}
         lastOperationError={activeCallControlsProjection.lastOperationError}
         onResumeLine={callLinesActions.handleResumeLine}
         onHangupLine={callLinesActions.handleHangupLine}
@@ -60,7 +70,7 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
         onRetryOperation={callActions.handleRetryLastOperation}
       />
 
-      {showOutgoingCard ? (
+      {showOutgoingCard && !collapsed ? (
         <OutgoingCallCard
           callId={callProjection.activeCallId}
           callState={callProjection.state}

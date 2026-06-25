@@ -5,6 +5,7 @@ export type SoftphoneLayoutProps = Readonly<{
   context: ReactNode;
   controls: ReactNode;
   overlays: ReactNode;
+  collapsed?: boolean;
 }>;
 
 /**
@@ -18,9 +19,18 @@ export function SoftphoneLayout({
   context,
   controls,
   overlays,
+  collapsed = false,
 }: SoftphoneLayoutProps): JSX.Element {
+  const layoutClassName = collapsed
+    ? "softphone-layout softphone-layout--collapsed"
+    : "softphone-layout";
+
   return (
-    <div className="softphone-layout" data-testid="softphone-layout">
+    <div
+      className={layoutClassName}
+      data-testid="softphone-layout"
+      data-collapsed={collapsed ? "true" : "false"}
+    >
       <div className="softphone-layout__header" data-testid="layout-header-zone">
         {header}
       </div>

@@ -28,9 +28,49 @@ body {
   gap: 16px;
 }
 
+.shell--collapsed {
+  padding: 8px 12px;
+  gap: 8px;
+}
+
 .shell__header {
   border-bottom: 1px solid #2a3344;
   padding-bottom: 16px;
+}
+
+.shell__header--collapsed {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.shell__header-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 40px;
+}
+
+.shell__header--collapsed .shell__header-bar {
+  min-height: 40px;
+}
+
+.shell__header-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.shell__avatar-group {
+  position: relative;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+}
+
+.shell__header-titles {
+  min-width: 0;
 }
 
 .shell__header-top {
@@ -113,6 +153,84 @@ body {
 
 .softphone-layout__overlays > * {
   pointer-events: auto;
+}
+
+.softphone-layout--collapsed {
+  gap: 8px;
+}
+
+.softphone-layout--collapsed .softphone-layout__header {
+  gap: 0;
+}
+
+.softphone-layout--collapsed .softphone-layout__context {
+  padding: 6px 8px;
+  min-height: auto;
+  border-style: solid;
+}
+
+.softphone-layout--collapsed .softphone-layout__controls {
+  display: none;
+}
+
+.user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #3d4f6a;
+  background: #1a2332;
+  color: #e8eef7;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: default;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+button.user-avatar {
+  cursor: pointer;
+}
+
+.user-avatar__initials {
+  line-height: 1;
+}
+
+.registration-status-dot {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid #111722;
+  box-sizing: content-box;
+}
+
+.registration-status-dot--registering {
+  background: #f0b429;
+}
+
+.registration-status-dot--registered_online {
+  background: #3ecf8e;
+}
+
+.registration-status-dot--registered_offline {
+  background: #7a879c;
+}
+
+.registration-status-dot--registered_dnd {
+  background: #f59e0b;
+}
+
+.registration-status-dot--failed {
+  background: #ff6b6b;
+}
+
+.registration-status-dot--not_registered {
+  background: #5c6b82;
 }
 
 .shell-overlay-sheet {
@@ -650,4 +768,45 @@ input:focus-visible {
   margin: 0;
   font-size: 0.8rem;
   color: #9aa8bf;
+}
+
+.call-line-row--compact {
+  padding: 6px 10px;
+  border-radius: 6px;
+  gap: 0;
+}
+
+.call-line-row--compact .call-line-row__main {
+  align-items: center;
+}
+
+.call-line-row--compact .call-line-row__info {
+  grid-template-columns: auto 1fr;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.call-line-row--compact .call-line-row__name {
+  font-size: 0.875rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.call-line-row--compact .call-line-row__meta {
+  flex-wrap: nowrap;
+  font-size: 0.75rem;
+}
+
+.call-line-row--compact .call-line-row__primary {
+  min-width: auto;
+  padding: 6px 10px;
+  font-size: 0.8125rem;
+}
+
+.call-context-zone--collapsed {
+  padding: 0;
+  border: none;
+  background: transparent;
 }
