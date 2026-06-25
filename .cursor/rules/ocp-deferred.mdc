@@ -22,7 +22,7 @@ docs/softphone/adr/ADR-0002-defer-ocp-plugin.md
 
 ## Active priority
 
-Core telephony: F-001–F-008, RAT R1–R4 (closed), SIP recovery channel, F-008 DTMF real, P10 headset. Transfer real adapter: **backlog** (`TRANSFER-REAL-ADAPTER-BACKLOG.md`).
+Core telephony: F-001–F-008, RAT R1–R4 (closed), **P05 WU6 multi-call**, RAT step 08, SIP recovery, F-008 DTMF, P10 headset. Transfer + OCP: **backlog**.
 
 ## Resume
 

@@ -2,7 +2,7 @@
 
 **Дата:** 2026-06-25 11:46
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `32565fc`
 
 ## Где
 - `src/domain/telephony/events/MultiCallOperationRejected.ts`

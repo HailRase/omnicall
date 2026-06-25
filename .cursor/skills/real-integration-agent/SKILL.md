@@ -16,7 +16,7 @@ You are a **reviewer / gate keeper** for the Real Adapter Track (RAT), not an im
 
 ## Mission
 
-After each RAT step (00–07):
+After each RAT step (00–08):
 
 1. Verify deliverables against step file, ADR-0001, architecture, and legacy parity.
 2. Close or reject the step gate.
@@ -32,7 +32,7 @@ Respond to the user in **Russian**. Prompts may use Russian or English; paths an
 | --- | --- |
 | **@real-integration-agent** | Full RAT discovery + review current step |
 | **Проверяй RAT** | Same as above |
-| **Проверяй step NN** | Review specific step (00–07) |
+| **Проверяй step NN** | Review specific step (00–08) |
 | **RAT gate** | Review latest completed step in PROGRESS |
 | **Составь промт для real-integration** | Continuation prompt only, no review |
 
@@ -43,8 +43,9 @@ If step is unspecified, read `PROGRESS.md` and review the latest step marked `do
 Read in order:
 
 1. `docs/softphone/OCP-PLUGIN-BACKLOG.md` — **OCP deferred; active track is SIP R1–R4 + main roadmap**
-2. `docs/softphone/real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md` — **transfer backlog**
-2. `docs/softphone/real-integration/PROGRESS.md` — step statuses, smoke, test count, blockers
+2. `docs/softphone/real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md` — transfer backlog
+3. `docs/softphone/P05-Multi-Call-Product-Decisions.md` — multi-call law; **WU6 before RAT step 08**
+4. `docs/softphone/real-integration/PROGRESS.md` — step statuses, smoke, test count, blockers
 3. `docs/softphone/real-integration/00-SNAPSHOT.md` — frozen baseline (488 tests)
 4. Matching `docs/softphone/real-integration/step-NN-*.md` for the step under review
 5. `docs/softphone/adr/ADR-0001-real-adapter-integration.md`
@@ -193,6 +194,14 @@ Step FAIL → **Refactor Prompt** only. Do not issue next step prompt.
 | 05 | Hold / mute | LF-022, LF-024, LF-027 | done |
 | 06 | OCP WebSocket | F-009, LF-001–004, LF-037–040 | **deferred** (ADR-0002) |
 | 07 | Transfer | LF-028, LF-029 | **backlog** |
+| 08 | Multi-call real | LF-021, LF-023, LF-032 | **pending** (after P05 WU6) |
+
+## Active track priority (2026-06-25)
+
+1. **P05 WU6** — multi-call completeness mock (`handoffs/P05-WU6-Multi-Call-Completeness-Agent-Prompt.md`)
+2. **RAT step 08** — real multi-call smoke R7 (`step-08-multi-call-real.md`)
+3. P08 / F-008 DTMF / P10 headset / branch merge
+4. Transfer backlog / OCP backlog — only on user resume
 
 ## Onboarding for Continuation Prompts
 
@@ -214,6 +223,7 @@ Always list for implementation agent:
 - Merge to master without smoke for current **SIP** slice (R1–R4 closed; R5 deferred)
 - Prompt or gate on OCP / R5 unless user resumes `OCP-PLUGIN-BACKLOG.md`
 - Prompt or gate on transfer / R6 unless user resumes `TRANSFER-REAL-ADAPTER-BACKLOG.md`
+- Issue RAT step 08 before P05 WU6 mock gate is closed
 
 ## Decision flow
 
@@ -235,7 +245,9 @@ Full **Refactor Prompt** and **Continuation Prompt**: [templates.md](templates.m
 | Baseline tests | 488 (00-SNAPSHOT) |
 | OCP | **deferred** (ADR-0002) |
 | Transfer R6 | **backlog** |
-| Active RAT | **R1–R4 closed**; main roadmap next |
+| Multi-call WU6 | **active** (mock) |
+| RAT step 08 | **pending** after WU6 |
+| Active RAT | R1–R4 **closed** |
 | SIP smoke R1–R4 | closed |
 
 Refresh from repo during Discovery; do not treat this table as authoritative.
