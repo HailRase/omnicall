@@ -17,7 +17,7 @@ shells/        feature widgets: compose hooks, pass props to components
 hooks/         Shell hooks + Actions hooks (facade / Use Cases)
 helpers/       reason codes → user-visible strings
 components/    presentational UI only (props in, callbacks out)
-styles/        tokens + globals (target; legacy styles.css until UI-4)
+styles/        tokens.css, globals.css; co-located *.module.css (legacy styles.css shrinking — UI-4)
 ```
 
 **`entities/` does not exist in renderer.** UI view-models come from `@application` `derive*` / projection types. Widget-local UI state only in `widgets/<name>/model.ts` if ever needed.
@@ -159,7 +159,7 @@ Use skill: `.cursor/skills/ux-ui-flow-design/SKILL.md`.
 
 ## UI Implementation Phases (P11 WU0+)
 
-See `UI-Design-System.md` — order: **Layout first**, tokens/CSS Modules after.
+See `UI-Design-System.md` — **UI-4 foundation live** (`tokens.css`, `globals.css`, CSS Modules mandatory for touched components). Incremental migration: `P11-CSS-Modules-Tokens-Migration.md`, agent prompt `handoffs/P11-WU5-CSS-Modules-Tokens-Agent-Prompt.md`.
 
 Handoff: `docs/softphone/handoffs/P11-WU0-Shell-Layout-Agent-Prompt.md`.
 
@@ -177,4 +177,5 @@ UI change is complete when:
 - `data-testid` and a11y preserved
 - Storybook updated for touched primitives (when UI-5+ started)
 - `npm run ui:catalog` if components/testids changed
+- **CSS:** new/touched components use `*.module.css` + tokens only (`P11-CSS-Modules-Tokens-Migration.md`)
 - tests pass

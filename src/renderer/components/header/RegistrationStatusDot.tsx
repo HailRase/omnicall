@@ -1,10 +1,21 @@
+import clsx from "clsx";
 import type { JSX } from "react";
 import type { RegistrationDotVariant } from "@application/index.js";
+import styles from "./RegistrationStatusDot.module.css";
 
 export type RegistrationStatusDotProps = Readonly<{
   variant: RegistrationDotVariant;
   label: string;
 }>;
+
+const VARIANT_CLASS: Record<RegistrationDotVariant, string> = {
+  registering: styles["variant_registering"] ?? "",
+  registered_online: styles["variant_registered_online"] ?? "",
+  registered_offline: styles["variant_registered_offline"] ?? "",
+  registered_dnd: styles["variant_registered_dnd"] ?? "",
+  failed: styles["variant_failed"] ?? "",
+  not_registered: styles["variant_not_registered"] ?? "",
+};
 
 /**
  * - Purpose: compact registration and phone status indicator for header (LF-011).
@@ -20,7 +31,7 @@ export function RegistrationStatusDot({
 
   return (
     <span
-      className={`registration-status-dot registration-status-dot--${variant}`}
+      className={clsx(styles["dot"], VARIANT_CLASS[variant])}
       data-testid="registration-status-dot"
       data-variant={variant}
       role="status"

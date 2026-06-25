@@ -48,14 +48,6 @@ export function SoftphoneShellHeader({
               label={headerChrome.registrationDotAriaLabel}
             />
           </div>
-          {!collapsed ? (
-            <div className="shell__header-titles">
-              <h1 className="shell__title">Enterprise Softphone</h1>
-              {import.meta.env.DEV ? (
-                <p className="shell__subtitle">Authorization &amp; Account Bootstrap</p>
-              ) : null}
-            </div>
-          ) : null}
         </div>
         <div className="shell__header-actions">
           <button

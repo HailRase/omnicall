@@ -1,0 +1,34 @@
+.dot {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--color-bg-app);
+  box-sizing: content-box;
+}
+
+.variant_registering {
+  background: var(--color-status-registering);
+}
+
+.variant_registered_online {
+  background: var(--color-status-online);
+}
+
+.variant_registered_offline {
+  background: var(--color-status-offline);
+}
+
+.variant_registered_dnd {
+  background: var(--color-status-dnd);
+}
+
+.variant_failed {
+  background: var(--color-status-failed);
+}
+
+.variant_not_registered {
+  background: var(--color-status-not-registered);
+}

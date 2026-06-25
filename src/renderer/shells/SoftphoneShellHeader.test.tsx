@@ -75,7 +75,7 @@ describe("SoftphoneShellHeader", () => {
     expect(onToggleCollapse).toHaveBeenCalledOnce();
   });
 
-  it("hides expanded title and recovery row when collapsed", () => {
+  it("hides recovery row when collapsed", () => {
     render(
       <SoftphoneShellHeader
         headerChrome={headerChrome}
@@ -98,7 +98,6 @@ describe("SoftphoneShellHeader", () => {
       />,
     );
 
-    expect(screen.queryByText("Enterprise Softphone")).not.toBeInTheDocument();
     expect(screen.queryByTestId("control-reregister-sip")).not.toBeInTheDocument();
     expect(screen.getByTestId("control-toggle-collapse")).toHaveAttribute(
       "aria-label",

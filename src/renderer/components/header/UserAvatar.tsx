@@ -1,4 +1,6 @@
+import clsx from "clsx";
 import type { JSX } from "react";
+import styles from "./UserAvatar.module.css";
 
 export type UserAvatarProps = Readonly<{
   initials: string;
@@ -17,9 +19,12 @@ export function UserAvatar({
   ariaLabel = "User avatar",
   onClick,
 }: UserAvatarProps): JSX.Element {
-  const className = "user-avatar";
+  const className = clsx(
+    styles["avatar"],
+    onClick !== undefined && styles["interactive"],
+  );
   const content = (
-    <span className="user-avatar__initials" aria-hidden="true">
+    <span className={styles["initials"]} aria-hidden="true">
       {initials}
     </span>
   );

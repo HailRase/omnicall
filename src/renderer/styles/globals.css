@@ -1,0 +1,15 @@
+@import "./tokens.css";
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font-family-ui);
+  line-height: var(--line-height-ui);
+  font-weight: 400;
+  color: var(--color-text-primary);
+  background-color: var(--color-bg-app);
+}

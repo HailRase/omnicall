@@ -427,12 +427,14 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-055`, `LF-056`, `LF-060`, `LF-076`, `LF-077`, `LF-082`, `LF-084`, `LF-085`, `LF-086`, `LF-087`, `LF-032` (multi-session toggle)
 - Context: Settings
 - Priority: high
-- Status: **in_progress** (P11 WU3 header/collapse 2026-06-25; WU0 layout + WU1 settings + WU2 call line UX done)
+- Status: **in_progress** (P11 WU4 settings schema 2026-06-25; WU3 header/collapse; WU0 layout + WU1 settings + WU2 call line UX done)
 - Owner: TBD
 - Inputs: user settings, account identity, shell interactions
 - Outputs: persisted settings, collapsed UI state, theme, menu projections
 - Acceptance Criteria:
   - Settings are per-user and validated.
+  - **UserSettings v1** aggregate persisted per `SettingsAccountKey` with migration from v0 fragments.
+  - Corrupt or unsupported schema version surfaces observable error (no silent security-sensitive defaults).
   - **Overlay navigation:** settings/diagnostics do not unmount call context during established call (`UI-Architecture.md`).
   - **`multiSessionsEnabled` toggle** in settings UI (facade + port; no Use Case) — enables R7-5 re-smoke without repo hack.
   - Collapsed mode preserves critical call/status visibility.
@@ -440,14 +442,16 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - **Collapse toggle** minimizes shell to ~56px strip; ContextZone compact `CallLineRow` stays mounted.
   - Electron shell behavior does not contain business logic.
 - Test Coverage:
-  - Unit: settings validation and migration; `InMemorySettingsRepository.setMultiCallSettings`
-  - Integration: facade `updateMultiCallSettings` → repository persistence
+  - Unit: `validateUserSettings`, `migrateUserSettings`, `InMemorySettingsRepository` / `FileSettingsRepository` round-trip
+  - Integration: facade `updateMultiCallSettings`, `getUserSettingsForAccount`, `saveUserSettings`, `refreshUserSettingsProjections`
   - Component: `SettingsOverlay` toggle; `UserAvatar`, `RegistrationStatusDot`, collapsed `SoftphoneShellHeader`; Storybook layout + settings overlay (WU0+)
   - E2E: settings and collapsed shell UX
 - Implementation evidence (WU1): `SettingsRepository.setMultiCallSettings`, `AccountBootstrapFacade.updateMultiCallSettings`, `useSettingsActions`, `SettingsOverlay`, `applyMultiCallSettings` store refresh
 - Implementation evidence (WU2): `CallLineRow`, `deriveCallLineStatusLabel`, `deriveCallLinesShell` (visible `>=1` line), `useCallLineRowShell`, `useCallLinesActions` per-line hold/mute/transfer, `ConnectionOverlay` blocking scrim, `OutgoingCallCard` pre-line-only
 - Implementation evidence (WU3): `deriveHeaderChromeShell`, `useHeaderChromeShell`, `useShellCollapse`, `UserAvatar`, `RegistrationStatusDot`, collapsed `SoftphoneLayout`, `CallLineRow` compact variant, `P11-Header-Collapsed-UX-Design.md`
-- UI docs: `UI-Architecture.md`, `UI-Design-System.md`, `P11-Call-Line-UX-Design.md`, `P11-Header-Collapsed-UX-Design.md`, `handoffs/P11-WU0-Shell-Layout-Handoff.md`, `handoffs/P11-WU1-Settings-Overlay-Handoff.md`, `handoffs/P11-WU2-Call-Line-UX-Handoff.md`, `handoffs/P11-WU3-Header-Collapsed-Handoff.md`
+- Implementation evidence (WU4): `UserSettings` v1, `validateUserSettings`, `migrateUserSettings`, `SettingsRepository.getUserSettings`/`saveUserSettings`, `FileSettingsRepository`, facade `getUserSettingsForAccount`/`saveUserSettings`/`refreshUserSettingsProjections`, `P11-Settings-Schema-Design.md`
+- Implementation evidence (UI-4 foundation): `src/renderer/styles/tokens.css`, `globals.css`, `UserAvatar.module.css`, `RegistrationStatusDot.module.css`, `P11-CSS-Modules-Tokens-Migration.md`, `handoffs/P11-WU5-CSS-Modules-Tokens-Agent-Prompt.md`
+- UI docs: `UI-Architecture.md`, `UI-Design-System.md`, `P11-Call-Line-UX-Design.md`, `P11-Header-Collapsed-UX-Design.md`, `P11-Settings-Schema-Design.md`, `P11-CSS-Modules-Tokens-Migration.md`, `handoffs/P11-WU0-Shell-Layout-Handoff.md`, `handoffs/P11-WU1-Settings-Overlay-Handoff.md`, `handoffs/P11-WU2-Call-Line-UX-Handoff.md`, `handoffs/P11-WU3-Header-Collapsed-Handoff.md`, `handoffs/P11-WU4-Settings-Schema-Handoff.md`, `handoffs/P11-WU5-CSS-Modules-Tokens-Agent-Prompt.md`
 
 ## F-017: Diagnostics And Logging
 

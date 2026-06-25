@@ -131,6 +131,15 @@ Critical actions require clear labels:
 - transfer
 - retry
 
+## CSS Modules And Tokens (UI-4)
+
+Mandatory for renderer UI work after 2026-06-25 foundation:
+
+- Read `docs/softphone/P11-CSS-Modules-Tokens-Migration.md` before styling changes.
+- New or touched `components/**`, `shells/**`, `widgets/**` → co-located `*.module.css` + `var(--*)` from `src/renderer/styles/tokens.css`.
+- Do **not** add new global classes to `styles.css`; remove migrated blocks when moving a component to modules.
+- Use `clsx` for conditional/variant classes.
+
 ## Completion Check
 
 Before finishing UI work verify:
