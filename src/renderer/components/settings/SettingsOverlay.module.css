@@ -1,0 +1,45 @@
+.overlay {
+  margin: 0;
+}
+
+.fieldset {
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.legend {
+  margin: 0 0 var(--space-sm);
+  font-size: 0.875rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+}
+
+.toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.checkbox {
+  margin-top: 2px;
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--color-accent-primary);
+}
+
+.toggleLabel {
+  font-size: 0.9375rem;
+}
+
+.hint {
+  margin: var(--space-xs) 0 0 26px;
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+}
+
+.error {
+  margin: 0 0 var(--space-sm);
+  color: var(--color-text-danger);
+}

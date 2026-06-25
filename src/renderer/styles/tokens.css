@@ -38,6 +38,9 @@
   /* Accent */
   --color-accent-primary: #4a7fd4;
 
+  /* Overlay */
+  --color-overlay-scrim: rgb(8 12 20 / 55%);
+
   /* Registration / phone status */
   --color-status-registering: #f0b429;
   --color-status-online: #3ecf8e;

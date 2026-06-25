@@ -1,4 +1,5 @@
 import type { ChangeEvent, JSX } from "react";
+import styles from "./SettingsOverlay.module.css";
 
 export type SettingsOverlayProps = Readonly<{
   multiSessionsEnabled: boolean;
@@ -22,26 +23,26 @@ export function SettingsOverlay({
   };
 
   return (
-    <form className="settings-overlay" data-testid="settings-overlay-body">
+    <form className={styles["overlay"]} data-testid="settings-overlay-body">
       {updateError !== null && (
-        <p className="settings-overlay__error" role="alert" data-testid="settings-update-error">
+        <p className={styles["error"]} role="alert" data-testid="settings-update-error">
           {updateError}
         </p>
       )}
-      <fieldset className="settings-overlay__fieldset">
-        <legend className="settings-overlay__legend">Call sessions</legend>
-        <label className="settings-overlay__toggle" htmlFor="settings-multi-sessions">
+      <fieldset className={styles["fieldset"]}>
+        <legend className={styles["legend"]}>Call sessions</legend>
+        <label className={styles["toggle"]} htmlFor="settings-multi-sessions">
           <input
             id="settings-multi-sessions"
             type="checkbox"
-            className="settings-overlay__checkbox"
+            className={styles["checkbox"]}
             data-testid="settings-multi-sessions-toggle"
             checked={multiSessionsEnabled}
             onChange={handleMultiSessionsChange}
           />
-          <span className="settings-overlay__toggle-label">Allow multiple call sessions</span>
+          <span className={styles["toggleLabel"]}>Allow multiple call sessions</span>
         </label>
-        <p className="settings-overlay__hint" data-testid="settings-multi-sessions-hint">
+        <p className={styles["hint"]} data-testid="settings-multi-sessions-hint">
           When disabled, a second incoming or outgoing call is blocked while a call is active.
         </p>
       </fieldset>

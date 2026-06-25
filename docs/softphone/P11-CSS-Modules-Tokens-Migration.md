@@ -26,8 +26,8 @@ Related: **F-016**, UI phase **UI-4**. Foundation introduced 2026-06-25.
 | --- | --- | --- |
 | done | `UserAvatar`, `RegistrationStatusDot` | Pilot modules (WU5 foundation) |
 | done | `SoftphoneShellHeader` | Slice A — header chrome module (WU5) |
-| next | `SettingsOverlay`, `ShellOverlaySheet` | Overlay sheets |
-| next | Call line / dialpad / modals | Largest `styles.css` blocks |
+| done | `SettingsOverlay`, `ShellOverlaySheet` | Slice B — overlay sheets (WU5) |
+| next | `CallLineRow`, call line | `.call-line-row*` |
 | last | Delete `styles.css` when empty | Gate UI-4 complete |
 
 ## Token reference

@@ -1,4 +1,5 @@
 import type { JSX, ReactNode } from "react";
+import styles from "./ShellOverlaySheet.module.css";
 
 export type ShellOverlaySheetProps = Readonly<{
   open: boolean;
@@ -27,7 +28,7 @@ export function ShellOverlaySheet({
 
   return (
     <div
-      className="shell-overlay-sheet"
+      className={styles["sheet"]}
       data-testid={testId}
       role="dialog"
       aria-modal="true"
@@ -35,16 +36,16 @@ export function ShellOverlaySheet({
     >
       <button
         type="button"
-        className="shell-overlay-sheet__backdrop"
+        className={styles["backdrop"]}
         aria-label="Close overlay"
         onClick={onClose}
       />
-      <section className="shell-overlay-sheet__panel">
-        <header className="shell-overlay-sheet__header">
-          <h2 className="shell-overlay-sheet__title">{title}</h2>
+      <section className={styles["panel"]}>
+        <header className={styles["header"]}>
+          <h2 className={styles["title"]}>{title}</h2>
           <button
             type="button"
-            className="shell-overlay-sheet__close"
+            className={styles["closeButton"]}
             data-testid={`${testId}-close`}
             aria-label={`Close ${title}`}
             onClick={onClose}
@@ -52,9 +53,9 @@ export function ShellOverlaySheet({
             Close
           </button>
         </header>
-        <div className="shell-overlay-sheet__body">
+        <div className={styles["body"]}>
           {children ?? (
-            <p className="shell-overlay-sheet__placeholder" data-testid={`${testId}-placeholder`}>
+            <p className={styles["placeholder"]} data-testid={`${testId}-placeholder`}>
               Content will be added in a later work unit.
             </p>
           )}
