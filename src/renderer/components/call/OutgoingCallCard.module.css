@@ -7,8 +7,15 @@
 }
 
 .title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
   margin: 0;
   font-size: 1rem;
+}
+
+.titleIcon {
+  flex-shrink: 0;
 }
 
 .error {

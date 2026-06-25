@@ -15,13 +15,13 @@ export const OCP_RECONNECT_POLICY_CONFIG: ReconnectPolicyConfig = {
   jitterFraction: 0.1,
 } as const;
 
-/** SIP registration retry with exponential backoff (LF-008). */
+/** SIP flat retry defaults when user settings are unavailable (LF-008). */
 export const SIP_RECONNECT_POLICY_CONFIG: ReconnectPolicyConfig = {
-  maxAttempts: 10,
-  baseDelayMs: 2000,
-  backoffMultiplier: 2,
-  maxDelayMs: 60000,
-  jitterFraction: 0.15,
+  maxAttempts: 5,
+  baseDelayMs: 5000,
+  backoffMultiplier: 1,
+  maxDelayMs: 5000,
+  jitterFraction: 0,
 } as const;
 
 export type RandomSource = () => number;

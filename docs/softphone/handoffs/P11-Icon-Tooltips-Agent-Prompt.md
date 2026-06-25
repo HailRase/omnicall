@@ -1,6 +1,6 @@
 # P11 Icon Tooltips — Deferred Agent Prompt
 
-**Status:** DEFERRED — start only after explicit user request or WU5 CSS migration gate.
+**Status:** DONE — `IconTooltip` + `IconControlButton` (2026-06-25).
 
 ## Mission
 
@@ -42,10 +42,25 @@ Replace visible text labels on **icon-only** controls with semantic `AppIcon` + 
 - Tests for delay behavior (fake timers)
 - Handoff + work-history
 
-## Verification
+## T-001 Gate
+
+- [x] `IconTooltip.tsx` + `IconTooltip.module.css` (tokens; no raw colors)
+- [x] `IconControlButton` + `iconTooltipDelay.ts` (1000ms delay; `prefers-reduced-motion: reduce` → instant)
+- [x] `resolveIconTooltipLabel` in `iconCatalog.ts` (catalog label / disabled reason)
+- [x] Wired icon-only controls: shell header, call controls, overlays, dialpad, operator, recovery, transfer, toasts
+- [x] `aria-label` preserved on all icon-only buttons
+- [x] `prefers-reduced-transparency: reduce` → solid tooltip background
+- [x] Tests: `IconTooltip.test.tsx` (fake timers — show, hide-before-delay, reduced-motion)
+- [x] Feature Registry F-016 icon-tooltips evidence
+- [x] TASK-QUEUE T-001 → `done`
+- [x] `work-history/2026-06-25/icon-tooltips-t001_21-07.md`
+- [x] 697 tests pass
+
+## Verification (last run)
 
 ```bash
 npm run test && npm run lint && npm run typecheck
+# 697 passed, 1 skipped — 2026-06-25
 ```
 
 ## Related

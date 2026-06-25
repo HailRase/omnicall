@@ -1,4 +1,5 @@
 import type { JSX, ReactNode } from "react";
+import { IconControlButton } from "../icons/index.js";
 import styles from "./ShellOverlaySheet.module.css";
 
 export type ShellOverlaySheetProps = Readonly<{
@@ -43,15 +44,13 @@ export function ShellOverlaySheet({
       <section className={styles["panel"]}>
         <header className={styles["header"]}>
           <h2 className={styles["title"]}>{title}</h2>
-          <button
-            type="button"
+          <IconControlButton
+            iconId="overlay.close"
+            ariaLabel={`Close ${title}`}
+            testId={`${testId}-close`}
             className={styles["closeButton"]}
-            data-testid={`${testId}-close`}
-            aria-label={`Close ${title}`}
             onClick={onClose}
-          >
-            Close
-          </button>
+          />
         </header>
         <div className={styles["body"]}>
           {children ?? (

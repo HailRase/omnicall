@@ -1,5 +1,7 @@
 import { useEffect, useRef, type JSX, type KeyboardEvent } from "react";
+import { AppIcon, IconControlButton } from "../icons/index.js";
 import dialogStyles from "../shell/DialogPanel.module.css";
+import styles from "./LogoutActiveSessionConfirmationModal.module.css";
 
 export type LogoutActiveSessionConfirmationModalProps = Readonly<{
   open: boolean;
@@ -75,26 +77,30 @@ export function LogoutActiveSessionConfirmationModal({
       data-testid="logout-active-session-modal"
       onKeyDown={handleKeyDown}
     >
-      <h2>End session</h2>
+      <h2 className={styles["title"]}>
+        <span className={styles["titleIcon"]}>
+          <AppIcon id="session.end" decorative />
+        </span>
+        End session
+      </h2>
       <p>Есть активный звонок. Завершить звонки и выйти?</p>
 
       <div className={dialogStyles["actions"]}>
-        <button
-          type="button"
-          data-testid="control-logout-confirm"
-          aria-label="Confirm end session"
+        <IconControlButton
+          iconId="session.end"
+          ariaLabel="Confirm end session"
+          testId="control-logout-confirm"
+          className={styles["iconButton"]}
           onClick={onConfirm}
-        >
-          End session
-        </button>
-        <button
-          type="button"
-          data-testid="control-logout-cancel"
-          aria-label="Cancel end session"
+        />
+        <IconControlButton
+          iconId="overlay.close"
+          ariaLabel="Cancel end session"
+          tooltipLabel="Cancel"
+          testId="control-logout-cancel"
+          className={styles["iconButton"]}
           onClick={onCancel}
-        >
-          Cancel
-        </button>
+        />
       </div>
     </section>
   );

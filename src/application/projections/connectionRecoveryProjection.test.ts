@@ -213,17 +213,18 @@ describe("connectionRecoveryProjection", () => {
     expect(projection.sipReconnectAttempt).toBe(1);
   });
 
-  it("sets sip_disconnected on RegistrationFailed", () => {
+  it("sets sip_registration_failed on RegistrationFailed", () => {
     const projection = reduceConnectionRecoveryProjection(initialConnectionRecoveryProjection(), {
       type: "RegistrationFailed",
       correlationId,
       occurredAt: new Date().toISOString(),
       accountId: createSipAccountId("acc-1"),
-      reason: "transport_error",
+      reason: "authentication_error",
     });
 
-    expect(projection.connectionState).toBe("sip_disconnected");
-    expect(projection.lastFailureReason).toBe("transport_error");
+    expect(projection.connectionState).toBe("sip_registration_failed");
+    expect(projection.sipRecoveryMode).toBe("registration");
+    expect(projection.lastFailureReason).toBe("authentication_error");
   });
 
   it("enters server_terminate state", () => {

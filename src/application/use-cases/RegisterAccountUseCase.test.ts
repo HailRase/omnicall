@@ -55,6 +55,6 @@ describe("RegisterAccountUseCase", () => {
 
     const result = await useCase.execute({ account });
     expect(result.ok).toBe(false);
-    expect(failureReason).toContain("SIP registration failed");
+    expect(failureReason).toBe("registration_failed");
   });
 });

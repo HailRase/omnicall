@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { RejectReasonSelector } from "../call/RejectReasonSelector.js";
+import { IconControlButton } from "../icons/index.js";
 import styles from "./BreakReasonPicker.module.css";
 
 export type BreakReasonPickerProps = Readonly<{
@@ -31,15 +32,15 @@ export function BreakReasonPicker({
         disabled={false}
         onSelect={onSelect}
       />
-      <button
-        type="button"
-        data-testid="control-confirm-break"
-        aria-label="Confirm break with selected reason"
+      <IconControlButton
+        iconId="action.confirm"
+        ariaLabel="Confirm break with selected reason"
+        tooltipLabel="Confirm break"
+        testId="control-confirm-break"
+        className={styles["iconButton"]}
         disabled={confirmDisabled}
         onClick={onConfirm}
-      >
-        Confirm break
-      </button>
+      />
     </div>
   );
 }

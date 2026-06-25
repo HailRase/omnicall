@@ -13,10 +13,18 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
+const sipRecoveryDefaults = {
+  sipAutoReregisterEnabled: true,
+  onSipAutoReregisterChange: () => undefined,
+  sipReregisterIntervalSec: 5,
+  onSipReregisterIntervalChange: () => undefined,
+} as const;
+
 export const MultiSessionsEnabled: Story = {
   args: {
     multiSessionsEnabled: true,
     onMultiSessionsChange: () => undefined,
+    ...sipRecoveryDefaults,
   },
 };
 
@@ -24,5 +32,6 @@ export const MultiSessionsDisabled: Story = {
   args: {
     multiSessionsEnabled: false,
     onMultiSessionsChange: () => undefined,
+    ...sipRecoveryDefaults,
   },
 };

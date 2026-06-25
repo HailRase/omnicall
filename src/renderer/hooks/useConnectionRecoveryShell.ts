@@ -3,11 +3,13 @@ import {
   deriveConnectionRecoveryShell,
   type ConnectionRecoveryProjection,
 } from "@application/index.js";
+import { mapSipRegistrationFailureReason } from "../helpers/mapSipRegistrationFailureReason.js";
 import { useReconnectCountdown } from "./useReconnectCountdown.js";
 
 export type ConnectionRecoveryShellResult = ReturnType<typeof deriveConnectionRecoveryShell> &
   Readonly<{
     connectionState: ConnectionRecoveryProjection["connectionState"];
+    sipRecoveryMode: ConnectionRecoveryProjection["sipRecoveryMode"];
     reconnectCountdownSeconds: number | null;
     lastFailureReason: string | null;
     ocpReconnectAttempt: number | null;
@@ -35,9 +37,13 @@ export function useConnectionRecoveryShell(
     ...shell,
     connectionState: projection.connectionState,
     reconnectCountdownSeconds,
-    lastFailureReason: projection.lastFailureReason,
+    lastFailureReason:
+      projection.lastFailureReason === null
+        ? null
+        : mapSipRegistrationFailureReason(projection.lastFailureReason),
     ocpReconnectAttempt: projection.ocpReconnectAttempt,
     sipReconnectAttempt: projection.sipReconnectAttempt,
+    sipRecoveryMode: projection.sipRecoveryMode,
     nextRetryAt: projection.nextRetryAt,
     isOcpMode: projection.isOcpMode,
   };

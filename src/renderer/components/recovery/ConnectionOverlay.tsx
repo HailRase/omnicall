@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import type { JSX } from "react";
-import type { ConnectionState } from "@application/index.js";
+import type { ConnectionState, SipRecoveryMode } from "@application/index.js";
+import { AppIcon, IconControlButton } from "../icons/index.js";
 import styles from "./ConnectionOverlay.module.css";
 
 export type ConnectionChannelRow = Readonly<{
@@ -12,6 +13,7 @@ export type ConnectionChannelRow = Readonly<{
 
 export type ConnectionOverlayProps = Readonly<{
   connectionState: ConnectionState;
+  sipRecoveryMode: SipRecoveryMode | null;
   isBlocking: boolean;
   showOcpRow: boolean;
   showSipRow: boolean;
@@ -34,6 +36,7 @@ export type ConnectionOverlayProps = Readonly<{
  */
 export function ConnectionOverlay({
   connectionState,
+  sipRecoveryMode,
   isBlocking,
   showOcpRow,
   showSipRow,
@@ -52,12 +55,13 @@ export function ConnectionOverlay({
     return null;
   }
 
-  const title = resolveOverlayTitle(connectionState);
+  const title = resolveOverlayTitle(connectionState, sipRecoveryMode);
   const isServerTerminate = connectionState === "server_terminate";
   const role = isBlocking ? "alertdialog" : "region";
 
   const channelRows = buildChannelRows({
     connectionState,
+    sipRecoveryMode,
     showOcpRow,
     showSipRow,
     ocpReconnectAttempt,
@@ -94,7 +98,12 @@ export function ConnectionOverlay({
         data-testid="connection-overlay"
         aria-modal={isBlocking ? "true" : undefined}
       >
-        <h2 className={styles["title"]}>{title}</h2>
+        <h2 className={styles["title"]}>
+          <span className={styles["titleIcon"]}>
+            <AppIcon id="call.phone-off" decorative />
+          </span>
+          {title}
+        </h2>
 
         {isServerTerminate && (
           <p className={styles["message"]} data-testid="connection-server-terminate">
@@ -141,40 +150,42 @@ export function ConnectionOverlay({
         {showInProgress && (
           <p
             className={styles["loading"]}
-            data-testid="reconnect-in-progress"
+            data-testid={
+              sipRecoveryMode === "registration"
+                ? "reregister-in-progress"
+                : "reconnect-in-progress"
+            }
             aria-live="polite"
             role="status"
           >
-            Reconnecting now…
+            {sipRecoveryMode === "registration" ? "Re-registering now…" : "Reconnecting now…"}
           </p>
         )}
 
         <div className={styles["actions"]}>
-          <button
-            type="button"
-            data-testid="control-retry-connection"
-            aria-label="Retry connection"
-            disabled={retryDisabledReason !== null}
+          <IconControlButton
+            iconId="connection.retry"
+            ariaLabel="Retry connection"
+            testId="control-retry-connection"
+            className={styles["iconButton"]}
+            disabledReason={retryDisabledReason}
             onClick={() => {
               onManualRetry?.();
             }}
-          >
-            Retry connection
-          </button>
+          />
 
           {isServerTerminate && onSafeLogout !== undefined && (
-            <button
-              type="button"
-              data-testid="control-safe-logout"
-              aria-label="Safe logout"
-              disabled={safeLogoutDisabledReason !== null}
-              title={safeLogoutDisabledReason ?? undefined}
+            <IconControlButton
+              iconId="session.end"
+              ariaLabel="Safe logout"
+              tooltipLabel="Safe logout"
+              testId="control-safe-logout"
+              className={styles["iconButton"]}
+              disabledReason={safeLogoutDisabledReason}
               onClick={() => {
                 onSafeLogout();
               }}
-            >
-              Safe logout
-            </button>
+            />
           )}
         </div>
 
@@ -188,14 +199,19 @@ export function ConnectionOverlay({
   );
 }
 
-function resolveOverlayTitle(connectionState: ConnectionState): string {
+function resolveOverlayTitle(
+  connectionState: ConnectionState,
+  sipRecoveryMode: SipRecoveryMode | null,
+): string {
   switch (connectionState) {
     case "ocp_disconnected":
       return "OCP connection lost";
     case "sip_disconnected":
       return "SIP connection lost";
+    case "sip_registration_failed":
+      return "SIP registration failed";
     case "reconnecting":
-      return "Reconnecting";
+      return sipRecoveryMode === "registration" ? "Re-registering SIP" : "Reconnecting";
     case "reconnect_failed":
       return "Connection could not be restored";
     case "manual_retry_available":
@@ -209,6 +225,7 @@ function resolveOverlayTitle(connectionState: ConnectionState): string {
 
 function buildChannelRows(input: Readonly<{
   connectionState: ConnectionState;
+  sipRecoveryMode: SipRecoveryMode | null;
   showOcpRow: boolean;
   showSipRow: boolean;
   ocpReconnectAttempt: number | null;
@@ -221,7 +238,12 @@ function buildChannelRows(input: Readonly<{
   if (input.showOcpRow) {
     rows.push({
       channel: "OCP",
-      statusLabel: resolveChannelStatus("OCP", input.connectionState, input.ocpReconnectAttempt),
+      statusLabel: resolveChannelStatus(
+        "OCP",
+        input.connectionState,
+        null,
+        input.ocpReconnectAttempt,
+      ),
       attempt: input.ocpReconnectAttempt,
       maxAttempts: input.ocpMaxAttempts,
     });
@@ -230,7 +252,12 @@ function buildChannelRows(input: Readonly<{
   if (input.showSipRow) {
     rows.push({
       channel: "SIP",
-      statusLabel: resolveChannelStatus("SIP", input.connectionState, input.sipReconnectAttempt),
+      statusLabel: resolveChannelStatus(
+        "SIP",
+        input.connectionState,
+        input.sipRecoveryMode,
+        input.sipReconnectAttempt,
+      ),
       attempt: input.sipReconnectAttempt,
       maxAttempts: input.sipMaxAttempts,
     });
@@ -242,13 +269,21 @@ function buildChannelRows(input: Readonly<{
 function resolveChannelStatus(
   channel: "OCP" | "SIP",
   connectionState: ConnectionState,
+  sipRecoveryMode: SipRecoveryMode | null,
   attempt: number | null,
 ): string {
   if (connectionState === "server_terminate") {
     return "Session ended";
   }
 
+  if (connectionState === "sip_registration_failed") {
+    return channel === "SIP" ? "Registration failed" : "Disconnected";
+  }
+
   if (connectionState === "reconnecting" && attempt !== null) {
+    if (channel === "SIP" && sipRecoveryMode === "registration") {
+      return "Re-registering";
+    }
     return "Reconnecting";
   }
 

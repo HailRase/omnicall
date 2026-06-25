@@ -46,8 +46,13 @@
 }
 
 .dismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
   justify-self: start;
-  padding: var(--space-2xs) var(--space-xs);
   border-radius: var(--radius-control);
   border: 1px solid var(--color-border-control);
   background: var(--color-bg-surface-alt);

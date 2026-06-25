@@ -2,6 +2,7 @@ import {
   createRegistrationFailedEvent,
   createRegistrationRequestedEvent,
   createRegistrationSucceededEvent,
+  mapSipRegistrationFailureKey,
 } from "@domain/index.js";
 import type { SipAccount } from "@domain/index.js";
 import type { DomainEventPublisher } from "@ports/index.js";
@@ -55,7 +56,7 @@ export class RegisterAccountUseCase {
         this.eventPublisher.publish(
           createRegistrationFailedEvent(correlationId, {
             accountId: input.account.id,
-            reason: gatewayResult.error.message,
+            reason: mapSipRegistrationFailureKey(gatewayResult.error.message),
           }),
         );
 
@@ -95,7 +96,7 @@ export class RegisterAccountUseCase {
       this.eventPublisher.publish(
         createRegistrationFailedEvent(correlationId, {
           accountId: input.account.id,
-          reason: normalized.message,
+          reason: mapSipRegistrationFailureKey(normalized.message),
         }),
       );
 

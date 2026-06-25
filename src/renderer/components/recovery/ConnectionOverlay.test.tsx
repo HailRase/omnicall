@@ -3,15 +3,17 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { ConnectionOverlay } from "./ConnectionOverlay.js";
+import { mapSipRegistrationFailureReason } from "../../helpers/mapSipRegistrationFailureReason.js";
 
 const baseProps = {
+  sipRecoveryMode: null,
   isBlocking: true,
   showOcpRow: true,
   showSipRow: true,
   ocpReconnectAttempt: 2,
   sipReconnectAttempt: 1,
   ocpMaxAttempts: 6,
-  sipMaxAttempts: 10,
+  sipMaxAttempts: 5,
   reconnectCountdownSeconds: null,
   lastFailureReason: null,
   retryDisabledReason: "Manual retry not available yet",
@@ -142,6 +144,46 @@ describe("ConnectionOverlay", () => {
     );
 
     expect(screen.getByRole("region", { name: "Connection status" })).toBeInTheDocument();
+  });
+
+  it("renders sip registration failed state with Russian failure reason", () => {
+    const failureReason = mapSipRegistrationFailureReason("authentication_error");
+
+    render(
+      <ConnectionOverlay
+        {...baseProps}
+        connectionState="sip_registration_failed"
+        sipRecoveryMode="registration"
+        isBlocking
+        showSipRow
+        showOcpRow={false}
+        sipReconnectAttempt={null}
+        lastFailureReason={failureReason}
+        retryDisabledReason="Manual retry not available yet"
+      />,
+    );
+
+    expect(screen.getByRole("alertdialog")).toBeInTheDocument();
+    expect(screen.getByText("SIP registration failed")).toBeInTheDocument();
+    expect(screen.getByText(failureReason)).toBeInTheDocument();
+    expect(screen.queryByTestId("reconnect-in-progress")).not.toBeInTheDocument();
+  });
+
+  it("renders registration retry in-progress copy", () => {
+    render(
+      <ConnectionOverlay
+        {...baseProps}
+        connectionState="reconnecting"
+        sipRecoveryMode="registration"
+        reconnectCountdownSeconds={null}
+        retryDisabledReason="Automatic re-registration in progress"
+      />,
+    );
+
+    expect(screen.getByTestId("reregister-in-progress")).toHaveTextContent(
+      "Re-registering now…",
+    );
+    expect(screen.queryByTestId("reconnect-in-progress")).not.toBeInTheDocument();
   });
 
   it("renders full-screen scrim when blocking to prevent click-through", () => {

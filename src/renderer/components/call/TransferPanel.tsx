@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 import type { CallLine } from "@application/index.js";
 import { mapTransferDisabledReasonWithFallback } from "../../helpers/mapTransferDisabledReason.js";
+import { AppIcon, IconControlButton } from "../icons/index.js";
 import { MultiLineCallList } from "./MultiLineCallList.js";
 import styles from "./TransferPanel.module.css";
 
@@ -52,7 +53,12 @@ export function TransferPanel({
       data-testid="transfer-panel"
       aria-label="Transfer call"
     >
-      <h2 className={styles["title"]}>Transfer Call</h2>
+      <h2 className={styles["title"]}>
+        <span className={styles["titleIcon"]}>
+          <AppIcon id="call.transfer" decorative />
+        </span>
+        Transfer Call
+      </h2>
 
       {transferInProgress && (
         <p
@@ -93,42 +99,57 @@ export function TransferPanel({
       />
 
       <div className={styles["actions"]}>
-        <button
-          type="button"
-          data-testid="control-blind-transfer"
-          aria-label="Blind transfer"
-          disabled={blindTransferDisabledReason !== null}
+        <IconControlButton
+          iconId="call.transfer"
+          ariaLabel="Blind transfer"
+          tooltipLabel="Blind transfer"
+          testId="control-blind-transfer"
+          className={styles["iconButton"]}
+          disabledReason={
+            blindTransferDisabledReason === null
+              ? null
+              : mapTransferDisabledReasonWithFallback(blindTransferDisabledReason)
+          }
           onClick={onBlindTransfer}
-        >
-          Blind transfer
-        </button>
-        <button
-          type="button"
-          data-testid="control-start-consultation"
-          aria-label="Start consultation"
-          disabled={startConsultationDisabledReason !== null}
+        />
+        <IconControlButton
+          iconId="transfer.consultation"
+          ariaLabel="Start consultation"
+          testId="control-start-consultation"
+          className={styles["iconButton"]}
+          disabledReason={
+            startConsultationDisabledReason === null
+              ? null
+              : mapTransferDisabledReasonWithFallback(startConsultationDisabledReason)
+          }
           onClick={onStartConsultation}
-        >
-          Start consultation
-        </button>
-        <button
-          type="button"
-          data-testid="control-attended-transfer"
-          aria-label="Complete attended transfer"
-          disabled={attendedTransferDisabledReason !== null}
+        />
+        <IconControlButton
+          iconId="action.confirm"
+          ariaLabel="Complete attended transfer"
+          tooltipLabel="Complete attended transfer"
+          testId="control-attended-transfer"
+          className={styles["iconButton"]}
+          disabledReason={
+            attendedTransferDisabledReason === null
+              ? null
+              : mapTransferDisabledReasonWithFallback(attendedTransferDisabledReason)
+          }
           onClick={onAttendedTransfer}
-        >
-          Complete attended transfer
-        </button>
-        <button
-          type="button"
-          data-testid="control-cancel-transfer"
-          aria-label="Cancel transfer"
-          disabled={cancelTransferDisabledReason !== null}
+        />
+        <IconControlButton
+          iconId="overlay.close"
+          ariaLabel="Cancel transfer"
+          tooltipLabel="Cancel transfer"
+          testId="control-cancel-transfer"
+          className={styles["iconButton"]}
+          disabledReason={
+            cancelTransferDisabledReason === null
+              ? null
+              : mapTransferDisabledReasonWithFallback(cancelTransferDisabledReason)
+          }
           onClick={onCancelTransfer}
-        >
-          Cancel transfer
-        </button>
+        />
       </div>
 
       {renderDisabledReason(

@@ -1,0 +1,5 @@
+.icon {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-right: var(--space-2xs);
+}

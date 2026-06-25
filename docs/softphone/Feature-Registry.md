@@ -379,8 +379,13 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Inputs: transport disconnects, registration failure, renderer restart, app close
 - Outputs: recovery events and restored projections
 - Acceptance Criteria:
-  - Reconnect policy is explicit with OCP (6×5s LF-058) and SIP backoff presets (LF-008).
-  - Retry behavior uses backoff and jitter (`ReconnectPolicy`).
+  - Reconnect policy is explicit with OCP (6×5s LF-058) and SIP flat retry per user settings (LF-008): 5 attempts × configurable interval (min 5s), no exponential backoff.
+  - Transport disconnect and registration failure are separate recovery paths (`SipReconnect*` vs `SipRegistrationRetry*`); overlay uses `sip_registration_failed` when transport stays up.
+  - `RegistrationFailed` triggers orchestration; mid-session `registrationFailed` via `setRegistrationFailedHandler`; retry uses `reregister()` (same WebSocket) not full `register()`.
+  - User settings: `sipAutoReregisterEnabled`, `sipReregisterIntervalSec`, `sipReregisterMaxAttempts` (per-user); timer reset on settings save; auto-off clears pending timers.
+  - Retry pauses while active telephony sessions exist; resumes after `CallEnded`.
+  - Manual re-register via `ReregisterSipUseCase` / `control-reregister-sip`; transport manual retry via `RetryConnectionUseCase`.
+  - Failure reasons normalized (`mapSipRegistrationFailureKey`) and shown in Russian in overlay.
   - WU1 recovery domain events typed and tested (`OcpDisconnected`, `*Reconnect*`, `ServerTerminateReceived`).
   - `connectionRecoveryProjection` skeleton wired to store; SIP-only OCP fields N/A.
   - Port disconnect hooks wired in `ConnectionRecoveryOrchestrationService` (WU2).
@@ -427,7 +432,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-055`, `LF-056`, `LF-060`, `LF-076`, `LF-077`, `LF-082`, `LF-084`, `LF-085`, `LF-086`, `LF-087`, `LF-032` (multi-session toggle)
 - Context: Settings
 - Priority: high
-- Status: **in_progress** (P11 WU4 settings schema + **UI-4 CSS Modules complete** 2026-06-25; WU3 header/collapse; WU0–WU2 done)
+- Status: **in_progress** (P11 WU0–WU5 + UI-4 **done**; **T-001 icon tooltips done**, **T-002 AppIcon wired done** 2026-06-25; open: settings UX polish, UI-6 Radix modals, theme)
 - Owner: TBD
 - Inputs: user settings, account identity, shell interactions
 - Outputs: persisted settings, collapsed UI state, theme, menu projections
@@ -440,11 +445,12 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Collapsed mode preserves critical call/status visibility.
   - **Compact registration dot** on header avatar reflects SIP registration and phone status (LF-011).
   - **Collapse toggle** minimizes shell to ~56px strip; ContextZone compact `CallLineRow` stays mounted.
+  - **Icon-only controls:** semantic `AppIcon` + 1s hover tooltip via `IconControlButton`; `aria-label` preserved (T-001 done).
   - Electron shell behavior does not contain business logic.
 - Test Coverage:
   - Unit: `validateUserSettings`, `migrateUserSettings`, `InMemorySettingsRepository` / `FileSettingsRepository` round-trip
   - Integration: facade `updateMultiCallSettings`, `getUserSettingsForAccount`, `saveUserSettings`, `refreshUserSettingsProjections`
-  - Component: `SettingsOverlay` toggle; `UserAvatar`, `RegistrationStatusDot`, collapsed `SoftphoneShellHeader`; Storybook layout + settings overlay (WU0+)
+  - Component: `SettingsOverlay` toggle; `UserAvatar`, `RegistrationStatusDot`, collapsed `SoftphoneShellHeader`; `IconTooltip.test.tsx` (T-001); Storybook layout + settings overlay (WU0+)
   - E2E: settings and collapsed shell UX
 - Implementation evidence (WU1): `SettingsRepository.setMultiCallSettings`, `AccountBootstrapFacade.updateMultiCallSettings`, `useSettingsActions`, `SettingsOverlay`, `applyMultiCallSettings` store refresh
 - Implementation evidence (WU2): `CallLineRow`, `deriveCallLineStatusLabel`, `deriveCallLinesShell` (visible `>=1` line), `useCallLineRowShell`, `useCallLinesActions` per-line hold/mute/transfer, `ConnectionOverlay` blocking scrim, `OutgoingCallCard` pre-line-only
@@ -452,8 +458,10 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (WU4): `UserSettings` v1, `validateUserSettings`, `migrateUserSettings`, `SettingsRepository.getUserSettings`/`saveUserSettings`, `FileSettingsRepository`, facade `getUserSettingsForAccount`/`saveUserSettings`/`refreshUserSettingsProjections`, `P11-Settings-Schema-Design.md`
 - Implementation evidence (UI-4 **complete**): WU5 slices A–I + final gate — `styles.css` deleted; `globals.css` owns reset/body/focus-visible; all renderer panels/modals/shells on `*.module.css`; `handoffs/P11-WU5-UI-4-Final-Gate-Handoff.md`
 - Implementation evidence (UI-4 modules): `src/renderer/styles/tokens.css`, `globals.css`, `UserAvatar.module.css`, `RegistrationStatusDot.module.css`, `SoftphoneShellHeader.module.css` (WU5 Slice A), `SettingsOverlay.module.css`, `ShellOverlaySheet.module.css` (WU5 Slice B), `CallLineRow.module.css` (WU5 Slice C), `Dialpad.module.css` (WU5 Slice D), `ActiveCallControlsPanel.module.css`, `OutgoingCallCard.module.css`, `IncomingCallModal.module.css`, `IncomingCallActions.module.css` (WU5 Slice E), `ConnectionOverlay.module.css` (WU5 Slice F), `App.module.css`, `SoftphoneLayout.module.css`, `ShellChromeText.module.css`, `CallLinesShell.module.css`, `CallContextShell.module.css` (WU5 Slice G), `BootstrapPanel.module.css`, `AccountPanel.module.css`, `AuthStateView.module.css`, `PhoneStatusBadge.module.css` (WU5 Slice H), `DialogPanel.module.css`, `TransferPanel.module.css`, `StatusSelector.module.css`, `OcpToastStack.module.css`, modals + `CallControlsShell.module.css` (WU5 Slice I), `P11-CSS-Modules-Tokens-Migration.md`, WU5 slice handoffs `P11-WU5-Slice-A` through `P11-WU5-Slice-I`
-- Implementation evidence (icons foundation): `lucide-react`, `lucide-animated`, `motion`, `AppIcon`, `iconCatalog.ts`, `Icon-Registry.md`, `Icon-Agent-Guide.md`, `.cursor/rules/icons.mdc`, `.cursor/skills/icons/SKILL.md`; tooltips deferred → `handoffs/P11-Icon-Tooltips-Agent-Prompt.md`
-- UI docs: `UI-Architecture.md`, `UI-Design-System.md`, `P11-Call-Line-UX-Design.md`, `P11-Header-Collapsed-UX-Design.md`, `P11-Settings-Schema-Design.md`, `P11-CSS-Modules-Tokens-Migration.md`, `handoffs/P11-WU0-Shell-Layout-Handoff.md`, `handoffs/P11-WU1-Settings-Overlay-Handoff.md`, `handoffs/P11-WU2-Call-Line-UX-Handoff.md`, `handoffs/P11-WU3-Header-Collapsed-Handoff.md`, `handoffs/P11-WU4-Settings-Schema-Handoff.md`, `handoffs/P11-WU5-CSS-Modules-Tokens-Agent-Prompt.md`
+- Implementation evidence (icon tooltips **T-001 done**): `IconTooltip`, `IconControlButton`, `iconTooltipDelay.ts`, `IconTooltip.test.tsx`; 1s hover delay (`prefers-reduced-motion: reduce` → instant); wired on all icon-only controls; gate `handoffs/P11-Icon-Tooltips-Agent-Prompt.md` (2026-06-25)
+- Implementation evidence (icons wired **T-002 done**): `AppIcon` across shell, call, dialpad, operator status, recovery, settings, transfer, campaign, session modals, OCP toasts; `Icon-Registry.md` 27 semantic ids **active** (2026-06-25)
+- Implementation evidence (icons foundation): `lucide-react`, `lucide-animated`, `motion`, `AppIcon`, `iconCatalog.ts`, `Icon-Registry.md`, `Icon-Agent-Guide.md`, `.cursor/rules/icons.mdc`, `.cursor/skills/icons/SKILL.md`
+- UI docs: `UI-Architecture.md`, `UI-Design-System.md`, `P11-Call-Line-UX-Design.md`, `P11-Header-Collapsed-UX-Design.md`, `P11-Settings-Schema-Design.md`, `P11-CSS-Modules-Tokens-Migration.md`, `handoffs/P11-WU0-Shell-Layout-Handoff.md`, `handoffs/P11-WU1-Settings-Overlay-Handoff.md`, `handoffs/P11-WU2-Call-Line-UX-Handoff.md`, `handoffs/P11-WU3-Header-Collapsed-Handoff.md`, `handoffs/P11-WU4-Settings-Schema-Handoff.md`, `handoffs/P11-WU5-UI-4-Final-Gate-Handoff.md`, `handoffs/P11-Icon-Tooltips-Agent-Prompt.md` (T-001 gate)
 
 ## F-017: Diagnostics And Logging
 

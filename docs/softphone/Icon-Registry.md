@@ -7,30 +7,40 @@
 1. One **semantic id** per distinct UI meaning (not per Lucide glyph).
 2. Prefer `lucide-animated` when `animated` column is set; else `lucide-react`.
 3. Update this table **and** `iconCatalog.ts` in the same change.
-4. Icon-only buttons: `aria-label` on button; icon decorative. Tooltips: deferred WU.
+4. Icon-only buttons: `aria-label` on button; icon decorative; hover tooltip via `IconTooltip` / `IconControlButton` (1s delay).
 
 ## Registry
 
 | Semantic ID | Purpose | Static | Animated | Used in | Status |
 | --- | --- | --- | --- | --- | --- |
-| `shell.settings` | Open settings overlay | `Settings` | `SettingsIcon` | `SoftphoneShellHeader` → `control-open-settings` | planned |
-| `shell.diagnostics` | Open diagnostics overlay | `Activity` | `ActivityIcon` | `SoftphoneShellHeader` → `control-open-diagnostics` | planned |
-| `shell.collapse` | Collapse shell strip | `PanelLeftClose` | `PanelLeftCloseIcon` | `SoftphoneShellHeader` → `control-toggle-collapse` | planned |
-| `shell.expand` | Expand shell | `PanelLeftOpen` | `PanelLeftOpenIcon` | `SoftphoneShellHeader` → `control-toggle-collapse` | planned |
-| `session.end` | End user session | `LogOut` | `LogoutIcon` | `SoftphoneShellHeader` → `control-end-session` | planned |
-| `sip.reregister` | Manual SIP re-register | `RefreshCcw` | `RefreshCcwIcon` | `SoftphoneShellHeader` → `control-reregister-sip` | planned |
-| `call.answer` | Answer ringing call | `PhoneCall` | `PhoneCallIcon` | `IncomingCallActions`, `CallLineRow` | planned |
-| `call.reject` | Reject incoming call | `PhoneOff` | `PhoneOffIcon` | `IncomingCallActions` | planned |
-| `call.hangup` | Hang up active call | `PhoneOff` | `PhoneOffIcon` | `CallLineRow`, `ActiveCallControlsPanel` | planned |
-| `call.hold` | Hold call | `Pause` | `PauseIcon` | `CallLineRow`, `ActiveCallControlsPanel` | planned |
-| `call.resume` | Resume held call | `Play` | `PlayIcon` | `CallLineRow`, `ActiveCallControlsPanel` | planned |
-| `call.mute` | Mute microphone | `MicOff` | `MicOffIcon` | `CallLineRow`, `ActiveCallControlsPanel` | planned |
-| `call.unmute` | Unmute microphone | `Mic` | `MicIcon` | `CallLineRow`, `ActiveCallControlsPanel` | planned |
-| `call.transfer` | Start transfer | `PhoneForwarded` | `PhoneForwardedIcon` | `CallLineRow`, `TransferPanel` | planned |
-| `call.incoming` | Incoming call indicator | `PhoneIncoming` | `PhoneIncomingIcon` | `IncomingCallModal` | planned |
-| `call.outgoing` | Outgoing call indicator | `Phone` | `PhoneIcon` | `OutgoingCallCard` | planned |
-| `call.phone-off` | Connection lost | `PhoneOff` | `PhoneOffIcon` | `ConnectionOverlay` | planned |
-| `overlay.close` | Close overlay/modal | `X` | `XIcon` | `ShellOverlaySheet`, modals | planned |
+| `shell.settings` | Open settings overlay | `Settings` | `SettingsIcon` | `SoftphoneShellHeader`, `SettingsOverlay` | active |
+| `shell.diagnostics` | Open diagnostics overlay | `Activity` | `ActivityIcon` | `SoftphoneShellHeader` | active |
+| `shell.collapse` | Collapse shell strip | `PanelLeftClose` | `PanelLeftCloseIcon` | `SoftphoneShellHeader` | active |
+| `shell.expand` | Expand shell | `PanelLeftOpen` | `PanelLeftOpenIcon` | `SoftphoneShellHeader` | active |
+| `session.end` | End user session | `LogOut` | `LogoutIcon` | `SoftphoneShellHeader`, `LogoutActiveSessionConfirmationModal`, `ConnectionOverlay` | active |
+| `sip.reregister` | Manual SIP re-register | `RefreshCcw` | `RefreshCcwIcon` | `SoftphoneShellHeader` | active |
+| `call.answer` | Answer ringing call | `PhoneCall` | `PhoneCallIcon` | `IncomingCallActions`, `CallLineRow` | active |
+| `call.reject` | Reject incoming call | `PhoneOff` | `PhoneOffIcon` | `IncomingCallActions`, `CampaignEventModal` | active |
+| `call.hangup` | Hang up active call | `PhoneOff` | `PhoneOffIcon` | `CallLineRow`, `ActiveCallControlsPanel` | active |
+| `call.hold` | Hold call | `Pause` | `PauseIcon` | `CallLineRow`, `ActiveCallControlsPanel`, `MultiCallHoldAllIndicator` | active |
+| `call.resume` | Resume held call | `Play` | `PlayIcon` | `CallLineRow`, `ActiveCallControlsPanel` | active |
+| `call.mute` | Mute microphone | `MicOff` | `MicOffIcon` | `CallLineRow`, `ActiveCallControlsPanel` | active |
+| `call.unmute` | Unmute microphone | `Mic` | `MicIcon` | `CallLineRow`, `ActiveCallControlsPanel` | active |
+| `call.transfer` | Start transfer | `PhoneForwarded` | `PhoneForwardedIcon` | `CallLineRow`, `TransferPanel` | active |
+| `call.incoming` | Incoming call indicator | `PhoneIncoming` | `PhoneIncomingIcon` | `IncomingCallModal` | active |
+| `call.outgoing` | Outgoing call indicator | `Phone` | `PhoneIcon` | `OutgoingCallCard` | active |
+| `call.phone-off` | Connection lost | `PhoneOff` | `PhoneOffIcon` | `ConnectionOverlay` | active |
+| `overlay.close` | Close overlay/modal | `X` | `XIcon` | `ShellOverlaySheet`, modals, `OcpToastStack`, transfer cancel | active |
+| `dial.call` | Place outgoing call | `PhoneOutgoing` | — | `Dialpad` | active |
+| `dial.delete` | Delete last digit | `Delete` | `DeleteIcon` | `Dialpad` | active |
+| `dial.clear` | Clear dialed number | `Eraser` | — | `Dialpad` | active |
+| `operator.ready` | Agent ready status | `CircleCheck` | `CircleCheckIcon` | `StatusSelector` | active |
+| `operator.break` | Agent break status | `Coffee` | `CoffeeIcon` | `StatusSelector` | active |
+| `operator.logout` | Operator platform logout | `LogOut` | `LogoutIcon` | `StatusSelector`, `LogoutReasonModal` | active |
+| `action.confirm` | Confirm action | `Check` | `CheckIcon` | `BreakReasonPicker`, `CampaignEventModal`, `TransferPanel` | active |
+| `action.retry` | Retry failed operation | `RotateCcw` | `RotateCcwIcon` | `CallLineRow`, `ActiveCallControlsPanel` | active |
+| `transfer.consultation` | Start consultation call | `PhoneCall` | `PhoneCallIcon` | `TransferPanel` | active |
+| `connection.retry` | Retry connection | `RotateCcw` | `RotateCcwIcon` | `ConnectionOverlay` | active |
 
 ## Adding an entry
 

@@ -16,8 +16,11 @@ Single entry point for UI agents working with icons in the Enterprise Softphone 
 2. Use semantic id via `AppIcon` from `src/renderer/components/icons/` — **never** import Lucide directly in feature components.
 3. Pick animated variant when listed in registry; otherwise static `lucide-react` via catalog.
 4. Register every new icon in **both** `iconCatalog.ts` and `Icon-Registry.md` with `usage` paths.
-5. Icon-only controls: parent `button` keeps `aria-label`; icon is `decorative` (`aria-hidden`).
-6. Do **not** add text labels on icon-only controls until tooltip WU — see `handoffs/P11-Icon-Tooltips-Agent-Prompt.md`.
+5. Icon-only controls: parent `button` keeps `aria-label`; icon is `decorative`; use `IconControlButton` for delayed hover tooltip.
+
+## Tooltips
+
+`IconControlButton` wraps `IconTooltip` — 1s delay; instant when `prefers-reduced-motion: reduce`.
 
 ## Files
 
@@ -45,4 +48,4 @@ Use `var(--icon-size-sm|md|lg)` from `tokens.css` for default sizes.
 
 - `UI-Design-System.md` — stack + tokens
 - `P11-CSS-Modules-Tokens-Migration.md` — styling rules
-- `handoffs/P11-Icon-Tooltips-Agent-Prompt.md` — deferred tooltip WU
+- `handoffs/P11-Icon-Tooltips-Agent-Prompt.md` — tooltip WU (done 2026-06-25)

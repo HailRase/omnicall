@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { AppIcon } from "../icons/index.js";
 import styles from "./OutgoingCallCard.module.css";
 
 export type OutgoingCallCardProps = Readonly<{
@@ -27,7 +28,12 @@ export function OutgoingCallCard({
 }: OutgoingCallCardProps): JSX.Element {
   return (
     <section className={styles["card"]} data-testid="outgoing-call-card">
-      <h2 className={styles["title"]}>Outgoing call</h2>
+      <h2 className={styles["title"]}>
+        <span className={styles["titleIcon"]}>
+          <AppIcon id="call.outgoing" decorative />
+        </span>
+        Outgoing call
+      </h2>
       <p data-testid="call-state-label">
         <strong>State:</strong> {callState}
       </p>

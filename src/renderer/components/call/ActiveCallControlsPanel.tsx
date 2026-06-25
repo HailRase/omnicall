@@ -4,6 +4,7 @@ import {
   mapActiveCallControlDisabledReason,
   mapActiveCallControlOperationError,
 } from "../../helpers/mapActiveCallControlLabels.js";
+import { IconControlButton } from "../icons/index.js";
 import styles from "./ActiveCallControlsPanel.module.css";
 
 export type ActiveCallControlsPanelProps = Readonly<{
@@ -71,71 +72,65 @@ export function ActiveCallControlsPanel({
           <p className={styles["errorMessage"]}>
             {mapActiveCallControlOperationError(lastOperationError)}
           </p>
-          <button
-            type="button"
-            data-testid="control-retry"
-            aria-label={`Retry ${lastOperationError.operation}`}
+          <IconControlButton
+            iconId="action.retry"
+            ariaLabel={`Retry ${lastOperationError.operation}`}
+            tooltipLabel="Retry"
+            testId="control-retry"
+            className={styles["iconButton"]}
             onClick={onRetry}
-          >
-            Retry
-          </button>
+          />
         </div>
       )}
       <div className={styles["actions"]}>
-        <button
-          type="button"
-          data-testid="control-hold"
-          aria-label="Hold call"
-          disabled={holdDisabledReason !== null}
+        <IconControlButton
+          iconId="call.hold"
+          ariaLabel="Hold call"
+          testId="control-hold"
+          className={styles["iconButton"]}
+          disabledReason={mapDisabledReason(holdDisabledReason)}
           onClick={onHold}
-        >
-          Hold
-        </button>
-        <button
-          type="button"
-          data-testid="control-resume"
-          aria-label="Resume call"
-          disabled={resumeDisabledReason !== null}
+        />
+        <IconControlButton
+          iconId="call.resume"
+          ariaLabel="Resume call"
+          testId="control-resume"
+          className={styles["iconButton"]}
+          disabledReason={mapDisabledReason(resumeDisabledReason)}
           onClick={onResume}
-        >
-          Resume
-        </button>
-        <button
-          type="button"
-          data-testid="control-mute"
-          aria-label="Mute microphone"
-          disabled={muteDisabledReason !== null}
+        />
+        <IconControlButton
+          iconId="call.mute"
+          ariaLabel="Mute microphone"
+          testId="control-mute"
+          className={styles["iconButton"]}
+          disabledReason={mapDisabledReason(muteDisabledReason)}
           onClick={onMute}
-        >
-          Mute
-        </button>
-        <button
-          type="button"
-          data-testid="control-unmute"
-          aria-label="Unmute microphone"
-          disabled={unmuteDisabledReason !== null}
+        />
+        <IconControlButton
+          iconId="call.unmute"
+          ariaLabel="Unmute microphone"
+          testId="control-unmute"
+          className={styles["iconButton"]}
+          disabledReason={mapDisabledReason(unmuteDisabledReason)}
           onClick={onUnmute}
-        >
-          Unmute
-        </button>
-        <button
-          type="button"
-          data-testid="control-hangup"
-          aria-label="Hang up call"
-          disabled={hangupDisabledReason !== null}
+        />
+        <IconControlButton
+          iconId="call.hangup"
+          ariaLabel="Hang up call"
+          testId="control-hangup"
+          className={styles["iconButton"]}
+          disabledReason={mapDisabledReason(hangupDisabledReason)}
           onClick={onHangup}
-        >
-          Hang up
-        </button>
-        <button
-          type="button"
-          data-testid="control-transfer"
-          aria-label="Transfer call"
-          disabled={transferDisabledReason !== null}
+        />
+        <IconControlButton
+          iconId="call.transfer"
+          ariaLabel="Transfer call"
+          testId="control-transfer"
+          className={styles["iconButton"]}
+          disabledReason={mapDisabledReason(transferDisabledReason)}
           onClick={onTransfer}
-        >
-          Transfer
-        </button>
+        />
       </div>
       {renderDisabledReason(
         holdDisabledReason,
@@ -147,6 +142,13 @@ export function ActiveCallControlsPanel({
       )}
     </section>
   );
+}
+
+function mapDisabledReason(reason: string | null): string | null {
+  if (reason === null) {
+    return null;
+  }
+  return mapActiveCallControlDisabledReason(reason);
 }
 
 function renderDisabledReason(

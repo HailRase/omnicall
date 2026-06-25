@@ -90,4 +90,109 @@ describe("SipRecoveryOrchestration integration", () => {
       published.filter((event) => event.type === "SipReconnectScheduled").length,
     ).toBe(scheduledCount);
   });
+
+  it("registration failed (transport up) → scheduled → reregister success → connected (F-014)", async () => {
+    const correlationId = createCorrelationId();
+    const telephony = new MockTelephonyGateway({
+      registrationScenario: "success",
+      reconnectScenario: "success",
+    });
+    const published: DomainEvent[] = [];
+    let projection = initialConnectionRecoveryProjection();
+
+    const facade = new AccountBootstrapFacade({
+      operatorGateway: new MockOperatorPlatformGateway(),
+      telephonyGateway: telephony,
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({
+        bootstrapConfig: { mode: "sip-only" },
+      }),
+      logger: createTestLogger(),
+    });
+
+    facade.eventPublisher.subscribe((event) => {
+      published.push(event);
+      projection = reduceConnectionRecoveryProjection(projection, event);
+    });
+
+    await facade.initialize({ mode: "sip-only" });
+    await facade.authorizeManualAccount(
+      {
+        username: "agent",
+        password: "secret",
+        domain: "pbx",
+        server: "sip:pbx",
+      },
+      correlationId,
+    );
+
+    published.length = 0;
+
+    await facade.simulateSipRegistrationFailed(correlationId, "authentication_error");
+
+    expect(published.map((event) => event.type)).toContain("SipRegistrationRetryScheduled");
+    expect(projection.connectionState).toBe("reconnecting");
+    expect(projection.sipRecoveryMode).toBe("registration");
+
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(published.map((event) => event.type)).toContain("SipRegistrationRetrySucceeded");
+    expect(projection.connectionState).toBe("connected");
+    expect(telephony.isRegistered()).toBe(true);
+  });
+
+  it("terminal registration retry failure → manual_retry_available (F-014)", async () => {
+    const correlationId = createCorrelationId();
+    const telephony = new MockTelephonyGateway({
+      registrationScenario: "success",
+      reconnectScenario: "success",
+    });
+    const published: DomainEvent[] = [];
+    let projection = initialConnectionRecoveryProjection();
+
+    const facade = new AccountBootstrapFacade({
+      operatorGateway: new MockOperatorPlatformGateway(),
+      telephonyGateway: telephony,
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({
+        bootstrapConfig: { mode: "sip-only" },
+      }),
+      logger: createTestLogger(),
+    });
+
+    facade.eventPublisher.subscribe((event) => {
+      published.push(event);
+      projection = reduceConnectionRecoveryProjection(projection, event);
+    });
+
+    await facade.initialize({ mode: "sip-only" });
+    await facade.authorizeManualAccount(
+      {
+        username: "agent",
+        password: "secret",
+        domain: "pbx",
+        server: "sip:pbx",
+      },
+      correlationId,
+    );
+
+    const settingsResult = await facade.getUserSettingsForAccount();
+    expect(settingsResult.ok).toBe(true);
+    if (settingsResult.ok) {
+      await facade.saveUserSettings({
+        ...settingsResult.value,
+        sipReregisterMaxAttempts: 1,
+      });
+    }
+
+    published.length = 0;
+    telephony.setScenario("failure");
+
+    await facade.simulateSipRegistrationFailed(correlationId, "authentication_error");
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(published.map((event) => event.type)).toContain("SipRegistrationRetryFailed");
+    expect(projection.connectionState).toBe("manual_retry_available");
+    expect(projection.sipRecoveryMode).toBe("registration");
+  });
 });

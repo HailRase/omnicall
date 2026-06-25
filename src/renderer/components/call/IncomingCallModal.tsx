@@ -1,5 +1,6 @@
 import { useEffect, useRef, type JSX, type KeyboardEvent } from "react";
 import type { IncomingCallUiState, QueueLabelState } from "@application/index.js";
+import { AppIcon } from "../icons/index.js";
 import { AutoAnswerCountdown } from "./AutoAnswerCountdown.js";
 import { CallerIdentityBlock } from "./CallerIdentityBlock.js";
 import { IncomingCallActions } from "./IncomingCallActions.js";
@@ -102,7 +103,12 @@ export function IncomingCallModal({
       data-testid="incoming-call-modal"
       onKeyDown={handleKeyDown}
     >
-      <h2 className={styles["title"]}>Incoming Call</h2>
+      <h2 className={styles["title"]}>
+        <span className={styles["titleIcon"]}>
+          <AppIcon id="call.incoming" decorative />
+        </span>
+        Incoming Call
+      </h2>
       <p data-testid="ringing-indicator">
         <strong>Ringing:</strong> {ringingState}
       </p>

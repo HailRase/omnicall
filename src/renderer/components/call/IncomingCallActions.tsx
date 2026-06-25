@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { IconControlButton } from "../icons/index.js";
 import styles from "./IncomingCallActions.module.css";
 
 export type IncomingCallActionsProps = Readonly<{
@@ -26,26 +27,22 @@ export function IncomingCallActions({
         </p>
       )}
       <div className={styles["buttonGroup"]}>
-        <button
-          type="button"
-          data-testid="answer-call"
-          aria-label="Answer incoming call"
-          disabled={answerDisabledReason !== null}
-          title={answerDisabledReason ?? undefined}
+        <IconControlButton
+          iconId="call.answer"
+          ariaLabel="Answer incoming call"
+          testId="answer-call"
+          className={styles["iconButton"]}
+          disabledReason={answerDisabledReason}
           onClick={onAnswer}
-        >
-          Answer
-        </button>
-        <button
-          type="button"
-          data-testid="reject-call"
-          aria-label="Reject incoming call"
-          disabled={rejectDisabledReason !== null}
-          title={rejectDisabledReason ?? undefined}
+        />
+        <IconControlButton
+          iconId="call.reject"
+          ariaLabel="Reject incoming call"
+          testId="reject-call"
+          className={styles["iconButton"]}
+          disabledReason={rejectDisabledReason}
           onClick={onReject}
-        >
-          Reject
-        </button>
+        />
       </div>
     </div>
   );

@@ -35,7 +35,7 @@ export function deriveConnectionRecoveryShell(
     isBlocking: deriveIsBlockingOverlay(projection),
     showOcpRow: deriveShowOcpRow(projection),
     showSipRow: deriveShowSipRow(projection),
-    retryDisabledReason: deriveRetryConnectionDisabledReason(connectionState),
+    retryDisabledReason: deriveRetryConnectionDisabledReason(projection),
     showReregisterSipControl: deriveShowReregisterSipControl(connectionState),
     reregisterDisabledReason: deriveReregisterSipDisabledReason(projection),
     safeLogoutDisabledReason: deriveSafeLogoutDisabledReason(connectionState),
@@ -51,7 +51,7 @@ function deriveIsBlockingOverlay(projection: ConnectionRecoveryProjection): bool
     return true;
   }
 
-  if (connectionState === "sip_disconnected") {
+  if (connectionState === "sip_disconnected" || connectionState === "sip_registration_failed") {
     return true;
   }
 
@@ -98,7 +98,11 @@ function deriveShowOcpRow(projection: ConnectionRecoveryProjection): boolean {
 function deriveShowSipRow(projection: ConnectionRecoveryProjection): boolean {
   const { connectionState, sipReconnectAttempt } = projection;
 
-  if (connectionState === "sip_disconnected" || connectionState === "server_terminate") {
+  if (
+    connectionState === "sip_disconnected" ||
+    connectionState === "sip_registration_failed" ||
+    connectionState === "server_terminate"
+  ) {
     return true;
   }
 
@@ -106,8 +110,10 @@ function deriveShowSipRow(projection: ConnectionRecoveryProjection): boolean {
 }
 
 function deriveRetryConnectionDisabledReason(
-  connectionState: ConnectionState,
+  projection: ConnectionRecoveryProjection,
 ): string | null {
+  const { connectionState } = projection;
+
   if (connectionState === "manual_retry_available") {
     return null;
   }
@@ -120,12 +126,19 @@ function deriveRetryConnectionDisabledReason(
     return "Session ended by server";
   }
 
+  if (connectionState === "sip_registration_failed") {
+    return projection.sipRecoveryMode === "registration"
+      ? "Automatic re-registration in progress"
+      : "Manual retry not available yet";
+  }
+
   return "Manual retry not available yet";
 }
 
 function deriveShowReregisterSipControl(connectionState: ConnectionState): boolean {
   return (
     connectionState === "sip_disconnected" ||
+    connectionState === "sip_registration_failed" ||
     connectionState === "manual_retry_available" ||
     connectionState === "reconnect_failed"
   );
@@ -137,6 +150,10 @@ function deriveReregisterSipDisabledReason(
   const { connectionState } = projection;
 
   if (connectionState === "manual_retry_available") {
+    return null;
+  }
+
+  if (connectionState === "sip_registration_failed") {
     return null;
   }
 

@@ -38,7 +38,7 @@ export function useConnectionRecoveryActions(
       return;
     }
 
-    void facade.retryConnection.execute({ channel: "sip" });
+    void facade.reregisterSipAccount();
   }, [facade]);
 
   const onSafeLogout = useCallback(() => {

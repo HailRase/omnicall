@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { useRef, type JSX, type KeyboardEvent } from "react";
+import { IconControlButton } from "../icons/index.js";
 import styles from "./Dialpad.module.css";
 
 export type DialpadMode = "number" | "dtmf";
@@ -188,21 +189,30 @@ export function Dialpad({
       </div>
 
       <div className={styles["actions"]}>
-        <button type="button" onClick={onDelete} data-testid="dialpad-delete">
-          Delete
-        </button>
-        <button type="button" onClick={onClear} data-testid="dialpad-clear">
-          Clear
-        </button>
-        <button
-          type="button"
+        <IconControlButton
+          iconId="dial.delete"
+          ariaLabel="Delete digit"
+          testId="dialpad-delete"
+          className={styles["iconButton"]}
+          onClick={onDelete}
+        />
+        <IconControlButton
+          iconId="dial.clear"
+          ariaLabel="Clear number"
+          testId="dialpad-clear"
+          className={styles["iconButton"]}
+          onClick={onClear}
+        />
+        <IconControlButton
+          iconId="dial.call"
+          ariaLabel={isCalling ? "Calling in progress" : "Call"}
+          tooltipLabel={isCalling ? "Calling in progress" : "Call"}
+          testId="dialpad-call"
+          className={clsx(styles["iconButton"], styles["callButton"])}
+          disabledReason={callDisabledReason}
+          disabled={isCalling}
           onClick={onCall}
-          data-testid="dialpad-call"
-          disabled={callDisabledReason !== null || isCalling}
-          aria-label="Call"
-        >
-          {isCalling ? "Calling..." : "Call"}
-        </button>
+        />
       </div>
 
       {callDisabledReason !== null && (

@@ -49,7 +49,6 @@ for (const file of files.sort()) {
   if (row) rows.push(row);
 }
 
-const timestamp = new Date().toISOString().slice(0, 16).replace("T", " ");
 const table = rows
   .map(
     (r) =>
@@ -60,8 +59,6 @@ const table = rows
 const md = `# UI Component Catalog
 
 > **Auto-generated.** Do not edit by hand. Run: \`npm run ui:catalog\`
-
-Last generated: ${timestamp}
 
 ## Index
 

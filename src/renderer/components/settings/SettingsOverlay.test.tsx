@@ -11,7 +11,14 @@ describe("SettingsOverlay", () => {
     const onMultiSessionsChange = vi.fn();
 
     const { rerender } = render(
-      <SettingsOverlay multiSessionsEnabled onMultiSessionsChange={onMultiSessionsChange} />,
+      <SettingsOverlay
+        multiSessionsEnabled
+        onMultiSessionsChange={onMultiSessionsChange}
+        sipAutoReregisterEnabled
+        onSipAutoReregisterChange={() => undefined}
+        sipReregisterIntervalSec={5}
+        onSipReregisterIntervalChange={() => undefined}
+      />,
     );
 
     const toggle = screen.getByTestId("settings-multi-sessions-toggle");
@@ -24,6 +31,10 @@ describe("SettingsOverlay", () => {
       <SettingsOverlay
         multiSessionsEnabled={false}
         onMultiSessionsChange={onMultiSessionsChange}
+        sipAutoReregisterEnabled
+        onSipAutoReregisterChange={() => undefined}
+        sipReregisterIntervalSec={5}
+        onSipReregisterIntervalChange={() => undefined}
       />,
     );
     expect(screen.getByTestId("settings-multi-sessions-toggle")).not.toBeChecked();
@@ -34,6 +45,10 @@ describe("SettingsOverlay", () => {
       <SettingsOverlay
         multiSessionsEnabled
         onMultiSessionsChange={() => undefined}
+        sipAutoReregisterEnabled
+        onSipAutoReregisterChange={() => undefined}
+        sipReregisterIntervalSec={5}
+        onSipReregisterIntervalChange={() => undefined}
         updateError="Repository unavailable"
       />,
     );

@@ -5,6 +5,7 @@ import type { OperatorStatusDisabledReason } from "@application/index.js";
 import {
   mapOperatorStatusDisabledReasonWithFallback,
 } from "../../helpers/mapOperatorStatusDisabledReason.js";
+import { IconControlButton } from "../icons/index.js";
 import { BreakReasonPicker } from "./BreakReasonPicker.js";
 import styles from "./StatusSelector.module.css";
 
@@ -87,45 +88,38 @@ export function StatusSelector({
       )}
 
       <div className={styles["actions"]} role="group" aria-label="Change agent status">
-        <button
-          type="button"
-          data-testid="control-change-ready"
-          aria-label="Change to Ready"
-          aria-disabled={readyDisabledReason !== null}
-          title={
+        <IconControlButton
+          iconId="operator.ready"
+          ariaLabel="Change to Ready"
+          testId="control-change-ready"
+          className={styles["iconButton"]}
+          disabledReason={
             readyDisabledReason === null
-              ? undefined
+              ? null
               : mapOperatorStatusDisabledReasonWithFallback(readyDisabledReason)
           }
-          disabled={readyDisabledReason !== null}
           onClick={onReady}
-        >
-          Ready
-        </button>
-        <button
-          type="button"
-          data-testid="control-change-break"
-          aria-label="Change to Break"
-          aria-disabled={breakDisabledReason !== null}
-          title={
+        />
+        <IconControlButton
+          iconId="operator.break"
+          ariaLabel="Change to Break"
+          testId="control-change-break"
+          className={styles["iconButton"]}
+          disabledReason={
             breakDisabledReason === null
-              ? undefined
+              ? null
               : mapOperatorStatusDisabledReasonWithFallback(breakDisabledReason)
           }
-          disabled={breakDisabledReason !== null}
           onClick={onBreak}
-        >
-          Break
-        </button>
-        <button
-          type="button"
-          data-testid="control-request-logout"
-          aria-label="Logout from operator platform"
+        />
+        <IconControlButton
+          iconId="operator.logout"
+          ariaLabel="Logout from operator platform"
+          testId="control-request-logout"
+          className={styles["iconButton"]}
           disabled={statusChangeInProgress}
           onClick={onOpenLogout}
-        >
-          Logout
-        </button>
+        />
       </div>
 
       {breakReasonPickerVisible && (

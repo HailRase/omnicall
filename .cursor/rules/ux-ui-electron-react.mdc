@@ -143,7 +143,7 @@ Mandatory for renderer UI work after 2026-06-25 foundation:
 
 - Read `docs/softphone/Icon-Agent-Guide.md` and `Icon-Registry.md` before adding icons.
 - Use `AppIcon` with semantic id; rule: `.cursor/rules/icons.mdc`, skill: `.cursor/skills/icons/SKILL.md`.
-- Icon-only tooltips (1s delay): deferred → `handoffs/P11-Icon-Tooltips-Agent-Prompt.md`.
+- Icon-only controls: `IconControlButton` + `IconTooltip` (1s delay); see `handoffs/P11-Icon-Tooltips-Agent-Prompt.md` (done T-001).
 
 ## Completion Check
 

@@ -154,6 +154,7 @@ export {
   reduceConnectionRecoveryProjection,
   type ConnectionRecoveryProjection,
   type ConnectionState,
+  type SipRecoveryMode,
 } from "./projections/connectionRecoveryProjection.js";
 export {
   deriveConnectionRecoveryShell,
@@ -193,6 +194,14 @@ export type {
 export { InMemoryConnectionRecoveryReadModel } from "./read-models/InMemoryConnectionRecoveryReadModel.js";
 export { RetryConnectionUseCase } from "./use-cases/RetryConnectionUseCase.js";
 export type { RetryConnectionInput, RetryConnectionChannel } from "./use-cases/RetryConnectionUseCase.js";
+export { ReregisterSipUseCase } from "./use-cases/ReregisterSipUseCase.js";
+export type { ReregisterSipInput } from "./use-cases/ReregisterSipUseCase.js";
+export {
+  MIN_SIP_REREGISTER_INTERVAL_SEC,
+  DEFAULT_SIP_REREGISTER_INTERVAL_SEC,
+  DEFAULT_SIP_REREGISTER_MAX_ATTEMPTS,
+} from "@domain/settings/SipRecoverySettings.js";
+export { createDefaultUserSettings, type UserSettings } from "@domain/settings/UserSettings.js";
 export { SafeLogoutUseCase } from "./use-cases/SafeLogoutUseCase.js";
 export { EndUserSessionUseCase } from "./use-cases/EndUserSessionUseCase.js";
 export type { EndUserSessionInput } from "./use-cases/EndUserSessionUseCase.js";

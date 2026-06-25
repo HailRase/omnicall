@@ -1,5 +1,6 @@
 import { useEffect, useRef, type JSX, type KeyboardEvent } from "react";
 import { mapCampaignModalDisabledReasonWithFallback } from "../../helpers/mapCampaignModalDisabledReason.js";
+import { IconControlButton } from "../icons/index.js";
 import dialogStyles from "../shell/DialogPanel.module.css";
 import styles from "./CampaignEventModal.module.css";
 
@@ -98,33 +99,40 @@ export function CampaignEventModal({
       )}
 
       <div className={dialogStyles["actions"]}>
-        <button
-          type="button"
-          data-testid="campaign-accept"
-          aria-label="Accept campaign request"
-          disabled={acceptDisabledReason !== null}
+        <IconControlButton
+          iconId="action.confirm"
+          ariaLabel="Accept campaign request"
+          tooltipLabel="Accept"
+          testId="campaign-accept"
+          className={styles["iconButton"]}
+          disabledReason={
+            acceptDisabledReason === null
+              ? null
+              : mapCampaignModalDisabledReasonWithFallback(acceptDisabledReason)
+          }
           onClick={onAccept}
-        >
-          Accept
-        </button>
-        <button
-          type="button"
-          data-testid="campaign-reject"
-          aria-label="Reject campaign request"
-          disabled={rejectDisabledReason !== null}
+        />
+        <IconControlButton
+          iconId="call.reject"
+          ariaLabel="Reject campaign request"
+          tooltipLabel="Reject"
+          testId="campaign-reject"
+          className={styles["iconButton"]}
+          disabledReason={
+            rejectDisabledReason === null
+              ? null
+              : mapCampaignModalDisabledReasonWithFallback(rejectDisabledReason)
+          }
           onClick={onReject}
-        >
-          Reject
-        </button>
-        <button
-          type="button"
-          data-testid="campaign-modal-close"
-          aria-label="Close campaign request"
+        />
+        <IconControlButton
+          iconId="overlay.close"
+          ariaLabel="Close campaign request"
+          testId="campaign-modal-close"
+          className={styles["closeButton"]}
           disabled={!closeAllowed}
           onClick={onClose}
-        >
-          Close
-        </button>
+        />
       </div>
 
       {renderDisabledReason(acceptDisabledReason, rejectDisabledReason)}

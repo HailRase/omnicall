@@ -154,7 +154,7 @@ Stop gate. Только <X>. Out of scope: <Y>.
 | Симптом | Причина | Что делать |
 |---------|---------|------------|
 | Агент пишет код в `/review` | Смешанный чат | Новый чат, только `/review`, readonly |
-| Baseline 488 tests | Устаревший промт | `/status` → читать STATUS.md (694) |
+| Baseline 488 tests | Устаревший промт | `/status` → читать STATUS.md (697) |
 | Handoff not found | Архив P02–P08 | `handoffs/archive/P0N/` |
 | UI агент лезет в Use Case | Нет escalation | «Stop → `/logic`»; см. ui-implementation-agent |
 | OCP внезапно в scope | Scope creep | «OCP DEFERRED» + ADR-0002 |

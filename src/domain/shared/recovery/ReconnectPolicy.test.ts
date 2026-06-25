@@ -33,10 +33,9 @@ describe("ReconnectPolicy", () => {
   });
 
   describe("SIP preset (LF-008)", () => {
-    it("applies exponential backoff capped at maxDelayMs", () => {
-      expect(computeBaseBackoffDelayMs(1, SIP_RECONNECT_POLICY_CONFIG)).toBe(2000);
-      expect(computeBaseBackoffDelayMs(2, SIP_RECONNECT_POLICY_CONFIG)).toBe(4000);
-      expect(computeBaseBackoffDelayMs(10, SIP_RECONNECT_POLICY_CONFIG)).toBe(60000);
+    it("uses flat 5s base delay for each attempt", () => {
+      expect(computeBaseBackoffDelayMs(1, SIP_RECONNECT_POLICY_CONFIG)).toBe(5000);
+      expect(computeBaseBackoffDelayMs(5, SIP_RECONNECT_POLICY_CONFIG)).toBe(5000);
     });
   });
 

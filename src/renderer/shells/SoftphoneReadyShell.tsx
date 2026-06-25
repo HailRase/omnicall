@@ -129,6 +129,10 @@ export function SoftphoneReadyShell({
             <SettingsOverlay
               multiSessionsEnabled={multiCallProjection.multiSessionsEnabled}
               onMultiSessionsChange={settingsActions.onMultiSessionsToggle}
+              sipAutoReregisterEnabled={settingsActions.userSettings.sipAutoReregisterEnabled}
+              onSipAutoReregisterChange={settingsActions.onSipAutoReregisterToggle}
+              sipReregisterIntervalSec={settingsActions.userSettings.sipReregisterIntervalSec}
+              onSipReregisterIntervalChange={settingsActions.onSipReregisterIntervalChange}
               updateError={settingsActions.settingsUpdateError}
             />
           </ShellOverlaySheet>

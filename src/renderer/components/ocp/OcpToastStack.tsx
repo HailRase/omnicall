@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import type { JSX } from "react";
 import type { OcpToastItem } from "@application/index.js";
+import { IconControlButton } from "../icons/index.js";
 import styles from "./OcpToastStack.module.css";
 
 export type OcpToastStackProps = Readonly<{
@@ -38,16 +39,15 @@ export function OcpToastStack({ toasts, onDismiss }: OcpToastStackProps): JSX.El
           aria-live="polite"
         >
           <p className={styles["message"]}>{toast.message}</p>
-          <button
-            type="button"
+          <IconControlButton
+            iconId="overlay.close"
+            ariaLabel="Dismiss notification"
+            tooltipLabel="Dismiss"
             className={styles["dismiss"]}
-            aria-label="Dismiss notification"
             onClick={() => {
               onDismiss(toast.id);
             }}
-          >
-            Dismiss
-          </button>
+          />
         </article>
       ))}
     </section>

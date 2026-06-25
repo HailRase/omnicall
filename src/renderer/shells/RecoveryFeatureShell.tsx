@@ -29,6 +29,7 @@ export function RecoveryFeatureShell({ facade }: RecoveryFeatureShellProps): JSX
   return (
     <ConnectionOverlay
       connectionState={connectionRecoveryShell.connectionState}
+      sipRecoveryMode={connectionRecoveryShell.sipRecoveryMode}
       isBlocking={connectionRecoveryShell.isBlocking}
       showOcpRow={connectionRecoveryShell.showOcpRow}
       showSipRow={connectionRecoveryShell.showSipRow}

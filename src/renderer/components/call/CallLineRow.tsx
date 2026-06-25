@@ -11,6 +11,7 @@ import {
 } from "../../helpers/mapActiveCallControlLabels.js";
 import { mapQueueLabelState } from "../../helpers/mapQueueLabelState.js";
 import { mapTransferDisabledReason } from "../../helpers/mapTransferDisabledReason.js";
+import { IconControlButton } from "../icons/index.js";
 import styles from "./CallLineRow.module.css";
 
 export type CallLineRowProps = Readonly<{
@@ -80,9 +81,11 @@ export function CallLineRow({
         <div className={styles["actions"]}>
           {!compact && line.showIconRow ? (
             <div className={styles["iconRow"]} aria-label="Call controls">
-              <IconActionButton
+              <IconControlButton
+                iconId="call.transfer"
+                ariaLabel="Transfer call"
                 testId={`control-transfer-line-${line.callId}`}
-                label="Transfer call"
+                className={styles["iconButton"]}
                 disabledReason={
                   line.transferDisabledReason === null
                     ? null
@@ -91,26 +94,26 @@ export function CallLineRow({
                 onClick={() => {
                   onTransfer(line.callId);
                 }}
-              >
-                ⇄
-              </IconActionButton>
-              <IconActionButton
+              />
+              <IconControlButton
+                iconId="call.hold"
+                ariaLabel="Hold call"
                 testId={`control-hold-line-${line.callId}`}
-                label="Hold call"
+                className={styles["iconButton"]}
                 disabledReason={mapControlReason(line.holdDisabledReason)}
                 onClick={() => {
                   onHold(line.callId);
                 }}
-              >
-                ‖
-              </IconActionButton>
-              <IconActionButton
+              />
+              <IconControlButton
+                iconId={line.muted ? "call.unmute" : "call.mute"}
+                ariaLabel={line.muted ? "Unmute microphone" : "Mute microphone"}
                 testId={
                   line.muted
                     ? `control-unmute-line-${line.callId}`
                     : `control-mute-line-${line.callId}`
                 }
-                label={line.muted ? "Unmute microphone" : "Mute microphone"}
+                className={styles["iconButton"]}
                 disabledReason={mapControlReason(
                   line.muted ? line.unmuteDisabledReason : line.muteDisabledReason,
                 )}
@@ -121,9 +124,7 @@ export function CallLineRow({
                     onMute(line.callId);
                   }
                 }}
-              >
-                {line.muted ? "🔇" : "🎤"}
-              </IconActionButton>
+              />
             </div>
           ) : null}
           <PrimaryCta
@@ -141,14 +142,14 @@ export function CallLineRow({
           role="alert"
         >
           <p>{mapActiveCallControlOperationError(lastOperationError)}</p>
-          <button
-            type="button"
-            data-testid={`control-retry-line-${line.callId}`}
-            aria-label={`Retry ${lastOperationError.operation}`}
+          <IconControlButton
+            iconId="action.retry"
+            ariaLabel={`Retry ${lastOperationError.operation}`}
+            tooltipLabel="Retry"
+            testId={`control-retry-line-${line.callId}`}
+            className={styles["iconButton"]}
             onClick={onRetryOperation}
-          >
-            Retry
-          </button>
+          />
         </div>
       ) : null}
       {line.resumeDisabledReason !== null ? (
@@ -177,36 +178,6 @@ function CallLineDuration({ startedAtMs, callId }: CallLineDurationProps): JSX.E
   );
 }
 
-type IconActionButtonProps = Readonly<{
-  testId: string;
-  label: string;
-  disabledReason: string | null;
-  onClick: () => void;
-  children: string;
-}>;
-
-function IconActionButton({
-  testId,
-  label,
-  disabledReason,
-  onClick,
-  children,
-}: IconActionButtonProps): JSX.Element {
-  return (
-    <button
-      type="button"
-      className={styles["iconButton"]}
-      data-testid={testId}
-      aria-label={label}
-      title={disabledReason ?? undefined}
-      disabled={disabledReason !== null}
-      onClick={onClick}
-    >
-      {children}
-    </button>
-  );
-}
-
 type PrimaryCtaProps = Readonly<{
   line: CallLineCardViewModel;
   onResume: (callId: string) => void;
@@ -221,50 +192,44 @@ function PrimaryCta({ line, onResume, onHangup, onAnswer }: PrimaryCtaProps): JS
 
   if (line.primaryAction === "resume") {
     return (
-      <button
-        type="button"
-        className={styles["primaryResume"]}
-        data-testid={`control-resume-line-${line.callId}`}
-        disabled={line.resumeDisabledReason !== null}
-        aria-label={`Resume call ${line.displayName}`}
+      <IconControlButton
+        iconId="call.resume"
+        ariaLabel={`Resume call ${line.displayName}`}
+        testId={`control-resume-line-${line.callId}`}
+        className={clsx(styles["primaryIconButton"], styles["primaryResume"])}
+        disabledReason={line.resumeDisabledReason}
         onClick={() => {
           onResume(line.callId);
         }}
-      >
-        Resume
-      </button>
+      />
     );
   }
 
   if (line.primaryAction === "answer") {
     return (
-      <button
-        type="button"
-        className={styles["primaryAnswer"]}
-        data-testid={`control-answer-line-${line.callId}`}
-        aria-label={`Answer call ${line.displayName}`}
+      <IconControlButton
+        iconId="call.answer"
+        ariaLabel={`Answer call ${line.displayName}`}
+        testId={`control-answer-line-${line.callId}`}
+        className={clsx(styles["primaryIconButton"], styles["primaryAnswer"])}
         onClick={() => {
           onAnswer(line.callId);
         }}
-      >
-        Answer
-      </button>
+      />
     );
   }
 
   return (
-    <button
-      type="button"
-      className={styles["primaryHangup"]}
-      data-testid={`control-hangup-line-${line.callId}`}
-      disabled={line.hangupDisabledReason !== null}
-      aria-label={`Hang up call ${line.displayName}`}
+    <IconControlButton
+      iconId="call.hangup"
+      ariaLabel={`Hang up call ${line.displayName}`}
+      testId={`control-hangup-line-${line.callId}`}
+      className={clsx(styles["primaryIconButton"], styles["primaryHangup"])}
+      disabledReason={line.hangupDisabledReason}
       onClick={() => {
         onHangup(line.callId);
       }}
-    >
-      Hang up
-    </button>
+    />
   );
 }
 

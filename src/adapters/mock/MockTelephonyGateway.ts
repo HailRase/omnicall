@@ -12,6 +12,7 @@ import type {
   TelephonyCallEndedNotification,
   TelephonyCallAnsweredNotification,
   TelephonyIncomingCallNotification,
+  TelephonyRegistrationFailedNotification,
   TelephonyTransportDisconnectedNotification,
   TelephonyGateway,
 } from "@ports/index.js";
@@ -100,6 +101,9 @@ export class MockTelephonyGateway implements TelephonyGateway {
     | null = null;
   private transportDisconnectedHandler:
     | ((notification: TelephonyTransportDisconnectedNotification) => Promise<void>)
+    | null = null;
+  private registrationFailedHandler:
+    | ((notification: TelephonyRegistrationFailedNotification) => Promise<void>)
     | null = null;
 
   constructor(options: MockTelephonyGatewayOptions);
@@ -264,6 +268,25 @@ export class MockTelephonyGateway implements TelephonyGateway {
     if (this.reconnectScenario === "failure") {
       return err(
         createPlatformError("operation_failed", "SIP transport reconnect failed"),
+      );
+    }
+
+    this.registered = true;
+    return ok(undefined);
+  }
+
+  async reregister(correlationId: CorrelationId): Promise<Result<void, PlatformError>> {
+    void correlationId;
+    if (this.delayMs > 0) {
+      await sleep(this.delayMs);
+    }
+
+    if (this.registrationScenario === "failure") {
+      return err(
+        createPlatformError(
+          "operation_failed",
+          "SIP registration failed for reregister: Authentication Error",
+        ),
       );
     }
 
@@ -511,11 +534,28 @@ export class MockTelephonyGateway implements TelephonyGateway {
     };
   }
 
+  setRegistrationFailedHandler(
+    handler: ((notification: TelephonyRegistrationFailedNotification) => Promise<void>) | null,
+  ): () => void {
+    this.registrationFailedHandler = handler;
+    return () => {
+      this.registrationFailedHandler = null;
+    };
+  }
+
   async simulateTransportDisconnected(
     notification: TelephonyTransportDisconnectedNotification,
   ): Promise<void> {
     if (this.transportDisconnectedHandler !== null) {
       await this.transportDisconnectedHandler(notification);
+    }
+  }
+
+  async simulateRegistrationFailed(
+    notification: TelephonyRegistrationFailedNotification,
+  ): Promise<void> {
+    if (this.registrationFailedHandler !== null) {
+      await this.registrationFailedHandler(notification);
     }
   }
 

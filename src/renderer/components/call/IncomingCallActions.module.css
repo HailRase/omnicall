@@ -9,13 +9,22 @@
   gap: var(--space-xs);
 }
 
-.buttonGroup button {
-  padding: var(--space-xs) var(--space-sm);
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
   border-radius: var(--radius-control);
   border: 1px solid var(--color-border-control);
   background: var(--color-bg-surface-alt);
   color: inherit;
   cursor: pointer;
+}
+
+.buttonGroup button {
+  composes: iconButton;
 }
 
 .actions button:disabled {

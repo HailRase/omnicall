@@ -5,10 +5,13 @@ export type ConnectionState =
   | "connected"
   | "ocp_disconnected"
   | "sip_disconnected"
+  | "sip_registration_failed"
   | "reconnecting"
   | "reconnect_failed"
   | "manual_retry_available"
   | "server_terminate";
+
+export type SipRecoveryMode = "transport" | "registration";
 
 export type ConnectionRecoveryProjection = Readonly<{
   connectionState: ConnectionState;
@@ -18,6 +21,7 @@ export type ConnectionRecoveryProjection = Readonly<{
   isOcpMode: boolean;
   ocpReconnectAttempt: number | null;
   sipReconnectAttempt: number | null;
+  sipRecoveryMode: SipRecoveryMode | null;
 }>;
 
 export const initialConnectionRecoveryProjection = (): ConnectionRecoveryProjection => ({
@@ -28,6 +32,7 @@ export const initialConnectionRecoveryProjection = (): ConnectionRecoveryProject
   isOcpMode: false,
   ocpReconnectAttempt: null,
   sipReconnectAttempt: null,
+  sipRecoveryMode: null,
 });
 
 /**
@@ -68,7 +73,10 @@ export function reduceConnectionRecoveryProjection(
     case "RegistrationSucceeded":
       return applySipConnected(projection);
     case "RegistrationFailed":
-      return applySipDisconnected(projection, asOptionalString(event["reason"]) ?? "registration_failed");
+      return applySipRegistrationFailed(
+        projection,
+        asOptionalString(event["reason"]) ?? "registration_failed",
+      );
     case "OcpDisconnected":
       return applyOcpDisconnected(
         projection,
@@ -83,13 +91,21 @@ export function reduceConnectionRecoveryProjection(
     case "OcpReconnectFailed":
       return applyOcpReconnectFailed(projection, event);
     case "SipReconnectScheduled":
-      return applySipReconnectScheduled(projection, event);
+      return applySipRecoveryScheduled(projection, event, "transport");
     case "SipReconnectAttemptStarted":
-      return applySipReconnectAttemptStarted(projection, event);
+      return applySipRecoveryAttemptStarted(projection, event, "transport");
     case "SipReconnectSucceeded":
-      return applySipReconnectSucceeded(projection);
+      return applySipRecoverySucceeded(projection);
     case "SipReconnectFailed":
-      return applySipReconnectFailed(projection, event);
+      return applySipRecoveryFailed(projection, event);
+    case "SipRegistrationRetryScheduled":
+      return applySipRecoveryScheduled(projection, event, "registration");
+    case "SipRegistrationRetryAttemptStarted":
+      return applySipRecoveryAttemptStarted(projection, event, "registration");
+    case "SipRegistrationRetrySucceeded":
+      return applySipRecoverySucceeded(projection);
+    case "SipRegistrationRetryFailed":
+      return applySipRecoveryFailed(projection, event);
     case "ManualReconnectRequested":
       return applyManualReconnectRequested(projection, event);
     case "ServerTerminateReceived":
@@ -98,6 +114,7 @@ export function reduceConnectionRecoveryProjection(
         connectionState: "server_terminate",
         nextRetryAt: null,
         lastFailureReason: asOptionalString(event["reason"]) ?? "server_terminate",
+        sipRecoveryMode: null,
       };
     default:
       return projection;
@@ -172,11 +189,12 @@ function applyOcpReconnectSucceeded(
   const sipStillDown = projection.sipReconnectAttempt !== null;
   return {
     ...projection,
-    connectionState: sipStillDown ? "sip_disconnected" : "connected",
+    connectionState: sipStillDown ? resolveSipDownState(projection) : "connected",
     reconnectAttempt: 0,
     ocpReconnectAttempt: null,
     nextRetryAt: null,
     lastFailureReason: null,
+    sipRecoveryMode: sipStillDown ? projection.sipRecoveryMode : null,
   };
 }
 
@@ -200,22 +218,24 @@ function applyOcpReconnectFailed(
   };
 }
 
-function applySipDisconnected(
+function applySipRegistrationFailed(
   projection: ConnectionRecoveryProjection,
   reason: string,
 ): ConnectionRecoveryProjection {
   return {
     ...projection,
-    connectionState: "sip_disconnected",
+    connectionState: "sip_registration_failed",
     lastFailureReason: reason,
     nextRetryAt: null,
     sipReconnectAttempt: null,
+    sipRecoveryMode: "registration",
   };
 }
 
-function applySipReconnectScheduled(
+function applySipRecoveryScheduled(
   projection: ConnectionRecoveryProjection,
   event: DomainEvent,
+  mode: SipRecoveryMode,
 ): ConnectionRecoveryProjection {
   const attemptNumber = parseAttemptNumber(event["attemptNumber"]);
   const delayMs = parseDelayMs(event["delayMs"]);
@@ -227,14 +247,16 @@ function applySipReconnectScheduled(
     connectionState: "reconnecting",
     reconnectAttempt: attemptNumber,
     sipReconnectAttempt: attemptNumber,
+    sipRecoveryMode: mode,
     nextRetryAt: computeNextRetryAt(event.occurredAt, delayMs),
     lastFailureReason: null,
   };
 }
 
-function applySipReconnectAttemptStarted(
+function applySipRecoveryAttemptStarted(
   projection: ConnectionRecoveryProjection,
   event: DomainEvent,
+  mode: SipRecoveryMode,
 ): ConnectionRecoveryProjection {
   const attemptNumber = parseAttemptNumber(event["attemptNumber"]);
   if (attemptNumber === null) {
@@ -245,12 +267,13 @@ function applySipReconnectAttemptStarted(
     connectionState: "reconnecting",
     reconnectAttempt: attemptNumber,
     sipReconnectAttempt: attemptNumber,
+    sipRecoveryMode: mode,
     nextRetryAt: null,
     lastFailureReason: null,
   };
 }
 
-function applySipReconnectSucceeded(
+function applySipRecoverySucceeded(
   projection: ConnectionRecoveryProjection,
 ): ConnectionRecoveryProjection {
   const ocpStillDown =
@@ -262,23 +285,26 @@ function applySipReconnectSucceeded(
     connectionState: ocpStillDown ? "ocp_disconnected" : "connected",
     reconnectAttempt: 0,
     sipReconnectAttempt: null,
+    sipRecoveryMode: null,
     nextRetryAt: null,
     lastFailureReason: null,
   };
 }
 
-function applySipReconnectFailed(
+function applySipRecoveryFailed(
   projection: ConnectionRecoveryProjection,
   event: DomainEvent,
 ): ConnectionRecoveryProjection {
   const attemptNumber = parseAttemptNumber(event["attemptNumber"]) ?? projection.reconnectAttempt;
-  const reason = asOptionalString(event["reason"]) ?? "sip_reconnect_failed";
+  const reason = asOptionalString(event["reason"]) ?? "sip_recovery_failed";
   const isTerminal = event["isTerminal"] === true;
+  const mode = projection.sipRecoveryMode ?? "transport";
   return {
     ...projection,
     connectionState: isTerminal ? "manual_retry_available" : "reconnecting",
     reconnectAttempt: attemptNumber,
     sipReconnectAttempt: attemptNumber,
+    sipRecoveryMode: mode,
     nextRetryAt: null,
     lastFailureReason: reason,
   };
@@ -303,7 +329,12 @@ function applyManualReconnectRequested(
     reconnectAttempt: 1,
     nextRetryAt: null,
     lastFailureReason: null,
-    ...(channel === "sip" ? { sipReconnectAttempt: 1 } : { ocpReconnectAttempt: 1 }),
+    ...(channel === "sip"
+      ? {
+          sipReconnectAttempt: 1,
+          sipRecoveryMode: projection.sipRecoveryMode ?? "transport",
+        }
+      : { ocpReconnectAttempt: 1 }),
   };
 }
 
@@ -320,6 +351,7 @@ function applySipConnected(
     return {
       ...projection,
       sipReconnectAttempt: null,
+      sipRecoveryMode: null,
     };
   }
   return {
@@ -327,9 +359,17 @@ function applySipConnected(
     connectionState: "connected",
     reconnectAttempt: 0,
     sipReconnectAttempt: null,
+    sipRecoveryMode: null,
     nextRetryAt: null,
     lastFailureReason: null,
   };
+}
+
+function resolveSipDownState(projection: ConnectionRecoveryProjection): ConnectionState {
+  if (projection.sipRecoveryMode === "registration") {
+    return "sip_registration_failed";
+  }
+  return "sip_disconnected";
 }
 
 function computeNextRetryAt(occurredAt: string, delayMs: number): string {

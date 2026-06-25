@@ -1,6 +1,8 @@
 import { useEffect, useRef, type JSX } from "react";
 import { RejectReasonSelector } from "../call/RejectReasonSelector.js";
+import { AppIcon, IconControlButton } from "../icons/index.js";
 import dialogStyles from "../shell/DialogPanel.module.css";
+import styles from "./LogoutReasonModal.module.css";
 
 export type LogoutReasonModalProps = Readonly<{
   open: boolean;
@@ -51,7 +53,12 @@ export function LogoutReasonModal({
       className={dialogStyles["modal"]}
       data-testid="logout-reason-modal"
     >
-      <h2>Logout</h2>
+      <h2 className={styles["title"]}>
+        <span className={styles["titleIcon"]}>
+          <AppIcon id="operator.logout" decorative />
+        </span>
+        Logout
+      </h2>
       <p>Select a reason before logging out from the operator platform.</p>
 
       {reasonRequired ? (
@@ -78,23 +85,22 @@ export function LogoutReasonModal({
       )}
 
       <div className={dialogStyles["actions"]}>
-        <button
-          type="button"
-          data-testid="control-logout-submit"
-          aria-label="Confirm logout"
+        <IconControlButton
+          iconId="operator.logout"
+          ariaLabel="Confirm logout"
+          testId="control-logout-submit"
+          className={styles["iconButton"]}
           disabled={submitDisabled}
           onClick={onSubmit}
-        >
-          Logout
-        </button>
-        <button
-          type="button"
-          data-testid="control-logout-cancel"
-          aria-label="Cancel logout"
+        />
+        <IconControlButton
+          iconId="overlay.close"
+          ariaLabel="Cancel logout"
+          tooltipLabel="Cancel"
+          testId="control-logout-cancel"
+          className={styles["iconButton"]}
           onClick={onClose}
-        >
-          Cancel
-        </button>
+        />
       </div>
     </section>
   );

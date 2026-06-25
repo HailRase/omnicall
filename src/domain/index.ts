@@ -370,6 +370,26 @@ export {
   createSipReconnectFailedEvent,
 } from "./telephony/events/sipRecoveryEvents.js";
 export type {
+  SipRegistrationRetryScheduledEvent,
+  SipRegistrationRetryAttemptStartedEvent,
+  SipRegistrationRetrySucceededEvent,
+  SipRegistrationRetryFailedEvent,
+  SipRegistrationRetryDomainEvent,
+} from "./telephony/events/sipRegistrationRetryEvents.js";
+export {
+  createSipRegistrationRetryScheduledEvent,
+  createSipRegistrationRetryAttemptStartedEvent,
+  createSipRegistrationRetrySucceededEvent,
+  createSipRegistrationRetryFailedEvent,
+} from "./telephony/events/sipRegistrationRetryEvents.js";
+export { mapSipRegistrationFailureKey } from "./telephony/mapSipRegistrationFailureKey.js";
+export {
+  buildSipRecoveryPolicyFromUserSettings,
+  DEFAULT_SIP_REREGISTER_INTERVAL_SEC,
+  DEFAULT_SIP_REREGISTER_MAX_ATTEMPTS,
+  MIN_SIP_REREGISTER_INTERVAL_SEC,
+} from "./settings/SipRecoverySettings.js";
+export type {
   CallAutoAnsweredEvent,
   OutgoingCallDomainEvent,
   IncomingCallDomainEvent,

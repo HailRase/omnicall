@@ -55,6 +55,7 @@ export type {
   TelephonyCallAnsweredNotification,
   TelephonyIncomingCallNotification,
   TelephonyTransportDisconnectedNotification,
+  TelephonyRegistrationFailedNotification,
   TelephonyGateway,
 } from "./telephony/TelephonyGateway.js";
 export type {

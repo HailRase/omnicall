@@ -31,8 +31,8 @@ export function buildJsSipUaConfiguration(account: SipAccount): {
     password: account.password,
     authorization_user: account.username,
     register: false,
-    connection_recovery_min_interval: 2,
-    connection_recovery_max_interval: 30,
+    connection_recovery_min_interval: 300,
+    connection_recovery_max_interval: 300,
   };
 }
 

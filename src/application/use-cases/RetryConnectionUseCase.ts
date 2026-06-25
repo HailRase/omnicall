@@ -43,7 +43,8 @@ export class RetryConnectionUseCase {
 
     if (
       snapshot.connectionState !== "manual_retry_available" &&
-      snapshot.connectionState !== "reconnect_failed"
+      snapshot.connectionState !== "reconnect_failed" &&
+      snapshot.connectionState !== "sip_registration_failed"
     ) {
       return err(
         createPlatformError("operation_failed", "Manual retry not available", {

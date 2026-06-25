@@ -39,9 +39,12 @@ Use before wiring icons in `components/`, `shells/`, or `widgets/`.
 - Decorative in buttons: parent has `aria-label` matching registry `defaultLabel`.
 - Standalone informative icon: `decorative={false}` + `label`.
 
+## Tooltips
+
+Use `IconControlButton` (wraps `IconTooltip`, 1s delay).
+
 ## Out of scope
 
-- 1s hover tooltips → separate WU (`P11-Icon-Tooltips-Agent-Prompt.md`)
 - Business logic, SIP, Electron APIs
 
 ## Related

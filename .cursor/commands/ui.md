@@ -2,14 +2,14 @@
 
 ## Обязательно прочитать (до кода)
 
-1. `docs/softphone/STATUS.md` — baseline tests (сейчас ~694 passed, 1 skipped)
+1. `docs/softphone/STATUS.md` — baseline tests (сейчас ~697 passed, 1 skipped)
 2. `.cursor/skills/scope-intake/SKILL.md` — intake первым
 3. `.cursor/skills/ui-implementation-agent/SKILL.md`
 4. `.cursor/skills/_shared/response-contract.md`
 
 ## Stop gates
 
-- **Не кодить** без завершённого intake (`needs_input` → спроси; иначе default: TASK-QUEUE #1)
+- **Не кодить** без завершённого intake (`needs_input` → спроси какую задачу выполнить, если пользователь не указал задачу; иначе default: TASK-QUEUE #1)
 - **Не расширять scope** за пределы одного WU
 - **Не трогать** Domain/Use Cases — эскалация → `/logic`
 - OCP / real transfer — **out of scope** (ADR-0002, backlog)

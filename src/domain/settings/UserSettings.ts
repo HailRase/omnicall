@@ -1,3 +1,9 @@
+import {
+  DEFAULT_SIP_REREGISTER_INTERVAL_SEC,
+  DEFAULT_SIP_REREGISTER_MAX_ATTEMPTS,
+  MIN_SIP_REREGISTER_INTERVAL_SEC,
+} from "./SipRecoverySettings.js";
+
 export const SETTINGS_SCHEMA_VERSION = 1 as const;
 
 export type SettingsSchemaVersion = typeof SETTINGS_SCHEMA_VERSION;
@@ -11,7 +17,12 @@ export type UserSettings = Readonly<{
   autoUnholdOnTransferFailure: boolean;
   autoAnswerTimeoutSec: number | null;
   ringbackToneEnabled: boolean;
+  sipAutoReregisterEnabled: boolean;
+  sipReregisterIntervalSec: number;
+  sipReregisterMaxAttempts: number;
 }>;
+
+export { MIN_SIP_REREGISTER_INTERVAL_SEC };
 
 /**
  * - Purpose: default v1 user settings for fresh install.
@@ -25,5 +36,8 @@ export function createDefaultUserSettings(): UserSettings {
     autoUnholdOnTransferFailure: true,
     autoAnswerTimeoutSec: null,
     ringbackToneEnabled: true,
+    sipAutoReregisterEnabled: true,
+    sipReregisterIntervalSec: DEFAULT_SIP_REREGISTER_INTERVAL_SEC,
+    sipReregisterMaxAttempts: DEFAULT_SIP_REREGISTER_MAX_ATTEMPTS,
   };
 }

@@ -93,6 +93,9 @@ function migrateFromLegacy(legacy?: UserSettingsV0Legacy): UserSettings {
       legacy.multiCallSettings.autoUnholdOnTransferFailure !== false,
     autoAnswerTimeoutSec: legacy.autoAnswerTimeoutSec,
     ringbackToneEnabled: defaults.ringbackToneEnabled,
+    sipAutoReregisterEnabled: defaults.sipAutoReregisterEnabled,
+    sipReregisterIntervalSec: defaults.sipReregisterIntervalSec,
+    sipReregisterMaxAttempts: defaults.sipReregisterMaxAttempts,
   };
 }
 

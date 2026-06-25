@@ -4,6 +4,7 @@ import type {
   MainAcallId,
   PhoneNumber,
   SipAccount,
+  SipAccountId,
 } from "@domain/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
@@ -66,6 +67,12 @@ export type TelephonyTransportDisconnectedNotification = Readonly<{
   reason: string;
 }>;
 
+export type TelephonyRegistrationFailedNotification = Readonly<{
+  correlationId: CorrelationId;
+  reason: string;
+  accountId: SipAccountId | null;
+}>;
+
 export type HangupCommand = Readonly<{
   callId: CallId;
   correlationId: CorrelationId;
@@ -119,9 +126,17 @@ export interface TelephonyGateway {
   setTransportDisconnectedHandler(
     handler: ((notification: TelephonyTransportDisconnectedNotification) => Promise<void>) | null,
   ): () => void;
+  /** Mid-session REGISTER failure while transport stays up (LF-008). */
+  setRegistrationFailedHandler(
+    handler: ((notification: TelephonyRegistrationFailedNotification) => Promise<void>) | null,
+  ): () => void;
   /**
    * Re-establish SIP transport after disconnect (LF-008).
    * Real adapter reuses stored registration; mock maps to registrationScenario.
    */
   reconnectTransport(correlationId: CorrelationId): Promise<Result<void, PlatformError>>;
+  /**
+   * Retry SIP REGISTER on existing UA when transport is connected (LF-008).
+   */
+  reregister(correlationId: CorrelationId): Promise<Result<void, PlatformError>>;
 }

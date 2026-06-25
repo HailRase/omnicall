@@ -23,6 +23,10 @@ describe("settings overlay with layout zones", () => {
             <SettingsOverlay
               multiSessionsEnabled
               onMultiSessionsChange={() => undefined}
+              sipAutoReregisterEnabled
+              onSipAutoReregisterChange={() => undefined}
+              sipReregisterIntervalSec={5}
+              onSipReregisterIntervalChange={() => undefined}
             />
           </ShellOverlaySheet>
         }

@@ -35,6 +35,7 @@ const recoveryShell = {
   sipReconnectAttempt: null,
   nextRetryAt: null,
   isOcpMode: false,
+  sipRecoveryMode: null,
 };
 
 const sessionLogoutActions = {

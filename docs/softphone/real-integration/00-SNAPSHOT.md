@@ -1,6 +1,6 @@
 # Baseline Snapshot — 2026-06-24
 
-> **HISTORICAL** baseline only. **Live status:** `../STATUS.md`. Test count here (488) is frozen; current: 694 passed.
+> **HISTORICAL** baseline only. **Live status:** `../STATUS.md`. Test count here (488) is frozen; current: 697 passed.
 
 ## Implemented (mock)
 

@@ -60,6 +60,9 @@
 }
 
 .iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 40px;
   height: 40px;
   border-radius: var(--radius-panel);
@@ -67,8 +70,7 @@
   background: var(--color-bg-surface-alt);
   color: inherit;
   cursor: pointer;
-  font-size: 1rem;
-  line-height: 1;
+  padding: 0;
 }
 
 .iconButton:disabled {
@@ -104,6 +106,17 @@
   background: var(--color-bg-success);
   border-color: var(--color-border-success);
   color: var(--color-text-success);
+}
+
+.primaryIconButton {
+  composes: primary;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
 }
 
 .primary:disabled {

@@ -1,6 +1,11 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import type { MultiCallSettings } from "@application/index.js";
+import {
+  createDefaultUserSettings,
+  MIN_SIP_REREGISTER_INTERVAL_SEC,
+  type UserSettings,
+} from "@application/index.js";
 
 type UseSettingsActionsInput = Readonly<{
   facade: AccountBootstrapFacade | null;
@@ -9,7 +14,10 @@ type UseSettingsActionsInput = Readonly<{
 }>;
 
 type UseSettingsActionsResult = Readonly<{
+  userSettings: UserSettings;
   onMultiSessionsToggle: (enabled: boolean) => void;
+  onSipAutoReregisterToggle: (enabled: boolean) => void;
+  onSipReregisterIntervalChange: (intervalSec: number) => void;
   settingsUpdateError: string | null;
 }>;
 
@@ -18,40 +26,95 @@ function resolveSettingsUpdateError(error: unknown): string {
 }
 
 /**
- * - Purpose: bind settings overlay toggles to facade config updates (LF-032, LF-076).
+ * - Purpose: bind settings overlay toggles to facade user settings (LF-032, LF-076, F-014).
  * - Inputs: facade, current multi-call settings, store projection applier.
- * - Outputs: multi-sessions toggle callback and observable save errors.
+ * - Outputs: settings callbacks and observable save errors.
  */
 export function useSettingsActions(
   input: UseSettingsActionsInput,
 ): UseSettingsActionsResult {
   const { facade, currentSettings, applyMultiCallSettings } = input;
   const [settingsUpdateError, setSettingsUpdateError] = useState<string | null>(null);
+  const [userSettings, setUserSettings] = useState<UserSettings>(createDefaultUserSettings());
 
-  const onMultiSessionsToggle = useCallback(
-    (enabled: boolean): void => {
+  useEffect(() => {
+    if (facade === null) {
+      return;
+    }
+
+    void facade.getUserSettingsForAccount().then((result) => {
+      if (result.ok) {
+        setUserSettings(result.value);
+      }
+    });
+  }, [facade]);
+
+  const persistUserSettings = useCallback(
+    (next: UserSettings): void => {
       if (facade === null) {
         return;
       }
 
-      const nextSettings: MultiCallSettings = {
-        multiSessionsEnabled: enabled,
-        autoUnholdOnTransferFailure:
-          currentSettings.autoUnholdOnTransferFailure !== false,
-      };
-
       void facade
-        .updateMultiCallSettings(nextSettings)
-        .then((savedSettings) => {
+        .saveUserSettings(next)
+        .then((result) => {
+          if (!result.ok) {
+            setSettingsUpdateError(result.error.message);
+            return;
+          }
+
           setSettingsUpdateError(null);
-          applyMultiCallSettings(savedSettings);
+          setUserSettings(result.value);
+          applyMultiCallSettings({
+            multiSessionsEnabled: result.value.multiSessionsEnabled,
+            autoUnholdOnTransferFailure: result.value.autoUnholdOnTransferFailure,
+          });
         })
         .catch((error: unknown) => {
           setSettingsUpdateError(resolveSettingsUpdateError(error));
         });
     },
-    [applyMultiCallSettings, currentSettings.autoUnholdOnTransferFailure, facade],
+    [applyMultiCallSettings, facade],
   );
 
-  return { onMultiSessionsToggle, settingsUpdateError };
+  const onMultiSessionsToggle = useCallback(
+    (enabled: boolean): void => {
+      persistUserSettings({
+        ...userSettings,
+        multiSessionsEnabled: enabled,
+        autoUnholdOnTransferFailure:
+          currentSettings.autoUnholdOnTransferFailure !== false,
+      });
+    },
+    [currentSettings.autoUnholdOnTransferFailure, persistUserSettings, userSettings],
+  );
+
+  const onSipAutoReregisterToggle = useCallback(
+    (enabled: boolean): void => {
+      persistUserSettings({
+        ...userSettings,
+        sipAutoReregisterEnabled: enabled,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onSipReregisterIntervalChange = useCallback(
+    (intervalSec: number): void => {
+      const normalized = Math.max(MIN_SIP_REREGISTER_INTERVAL_SEC, intervalSec);
+      persistUserSettings({
+        ...userSettings,
+        sipReregisterIntervalSec: normalized,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  return {
+    userSettings,
+    onMultiSessionsToggle,
+    onSipAutoReregisterToggle,
+    onSipReregisterIntervalChange,
+    settingsUpdateError,
+  };
 }

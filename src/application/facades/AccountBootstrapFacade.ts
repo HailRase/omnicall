@@ -1,6 +1,6 @@
 import type { DomainEvent } from "@domain/index.js";
 import type { AppBootstrapConfig } from "@domain/index.js";
-import type { SipAccountInput } from "@domain/index.js";
+import type { SipAccountId, SipAccountInput } from "@domain/index.js";
 import type { PhoneStatus } from "@domain/index.js";
 import { err, isErr, ok, type Result } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
@@ -32,6 +32,7 @@ import { LogoutOperatorUseCase } from "../use-cases/LogoutOperatorUseCase.js";
 import { SafeLogoutUseCase } from "../use-cases/SafeLogoutUseCase.js";
 import { EndUserSessionUseCase } from "../use-cases/EndUserSessionUseCase.js";
 import { RetryConnectionUseCase } from "../use-cases/RetryConnectionUseCase.js";
+import { ReregisterSipUseCase } from "../use-cases/ReregisterSipUseCase.js";
 import { ShutdownCleanupUseCase } from "../use-cases/ShutdownCleanupUseCase.js";
 import { RegisterOcpCallCorrelationUseCase } from "../use-cases/RegisterOcpCallCorrelationUseCase.js";
 import { ProcessOcpInboundMessageUseCase } from "../use-cases/ProcessOcpInboundMessageUseCase.js";
@@ -120,6 +121,7 @@ export class AccountBootstrapFacade {
   readonly updatePostCallStatus: UpdatePostCallStatusUseCase;
   readonly logoutOperator: LogoutOperatorUseCase;
   readonly retryConnection: RetryConnectionUseCase;
+  readonly reregisterSip: ReregisterSipUseCase;
   readonly safeLogout: SafeLogoutUseCase;
   readonly endUserSession: EndUserSessionUseCase;
   readonly shutdownCleanup: ShutdownCleanupUseCase;
@@ -317,10 +319,16 @@ export class AccountBootstrapFacade {
     });
     this.connectionRecoveryOrchestration.bindTransportHandlers();
     this.connectionRecoveryOrchestration.subscribe(this.eventPublisher);
+    void this.applySipRecoverySettingsFromRepository();
 
     this.retryConnection = new RetryConnectionUseCase(
       connectionRecoveryReadModel,
       this.connectionRecoveryOrchestration,
+      deps.logger,
+    );
+    this.reregisterSip = new ReregisterSipUseCase(
+      deps.telephonyGateway,
+      this.eventPublisher,
       deps.logger,
     );
 
@@ -494,7 +502,24 @@ export class AccountBootstrapFacade {
       throw new Error(`settings_validation_failed:${validated.errors.join(",")}`);
     }
     await this.deps.settingsRepository.saveUserSettings(accountKey, validated.value);
+    this.connectionRecoveryOrchestration.applyRecoverySettings(validated.value);
     return validated.value;
+  }
+
+  private async applySipRecoverySettingsFromRepository(): Promise<void> {
+    const accountKey = await this.resolveSettingsAccountKey();
+    const settings = await this.deps.settingsRepository.getUserSettings(accountKey);
+    this.connectionRecoveryOrchestration.applyRecoverySettings(settings);
+  }
+
+  async reregisterSipAccount(
+    correlationId?: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    const account = await this.deps.settingsRepository.getSipAccount();
+    return this.reregisterSip.execute({
+      ...(correlationId !== undefined ? { correlationId } : {}),
+      ...(account !== null ? { accountId: account.id } : {}),
+    });
   }
 
   async makeCall(number: string, callId?: CallId): Promise<Result<Call, PlatformError>> {
@@ -715,6 +740,20 @@ export class AccountBootstrapFacade {
       return;
     }
     throw new Error("simulateSipTransportDisconnected requires MockTelephonyGateway");
+  }
+
+  /** Dev/test helper: simulate SIP REGISTER failure with live transport (F-014). */
+  async simulateSipRegistrationFailed(
+    correlationId: CorrelationId = createCorrelationId(),
+    reason = "authentication_error",
+    accountId: SipAccountId | null = null,
+  ): Promise<void> {
+    const gateway = this.deps.telephonyGateway;
+    if (gateway instanceof MockTelephonyGateway) {
+      await gateway.simulateRegistrationFailed({ correlationId, reason, accountId });
+      return;
+    }
+    throw new Error("simulateSipRegistrationFailed requires MockTelephonyGateway");
   }
 
   /** Dev/test helper: simulate OCP WebSocket disconnect (LF-058). */

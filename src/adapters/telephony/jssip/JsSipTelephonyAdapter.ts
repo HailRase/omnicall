@@ -15,9 +15,10 @@ import type {
   TelephonyGateway,
   TelephonyIncomingCallNotification,
   TelephonyTransportDisconnectedNotification,
+  TelephonyRegistrationFailedNotification,
 } from "@ports/index.js";
 import type { CallId, SipAccount } from "@domain/index.js";
-import { createCallId } from "@domain/index.js";
+import { createCallId, mapSipRegistrationFailureKey } from "@domain/index.js";
 import type { Logger } from "@ports/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
@@ -97,6 +98,9 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     | null = null;
   private transportDisconnectedHandler:
     | ((notification: TelephonyTransportDisconnectedNotification) => Promise<void>)
+    | null = null;
+  private registrationFailedHandler:
+    | ((notification: TelephonyRegistrationFailedNotification) => Promise<void>)
     | null = null;
 
   constructor(options: JsSipTelephonyAdapterOptions) {
@@ -246,6 +250,29 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       account: this.storedAccount,
       correlationId,
     });
+  }
+
+  async reregister(
+    correlationId: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    this.lastCorrelationId = correlationId;
+
+    const ua = this.ua;
+    if (ua === null) {
+      return err(
+        createPlatformError("operation_failed", "SIP reregister failed: UA not started"),
+      );
+    }
+
+    if (ua.isRegistered()) {
+      return ok(undefined);
+    }
+
+    if (!ua.isConnected()) {
+      return this.reconnectTransport(correlationId);
+    }
+
+    return this.registerWithUa(ua);
   }
 
   async makeCall(command: MakeCallCommand): Promise<Result<MakeCallProgress, PlatformError>> {
@@ -749,6 +776,15 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     };
   }
 
+  setRegistrationFailedHandler(
+    handler: ((notification: TelephonyRegistrationFailedNotification) => Promise<void>) | null,
+  ): () => void {
+    this.registrationFailedHandler = handler;
+    return () => {
+      this.registrationFailedHandler = null;
+    };
+  }
+
   /**
    * Adapter-private hook for BrowserMediaAdapter (RAT R2). Not part of TelephonyGateway.
    */
@@ -846,6 +882,10 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
         return;
       }
       void this.handleTransportDisconnected(event);
+    });
+
+    ua.on("registrationFailed", (...args: unknown[]) => {
+      void this.handleRegistrationFailed(args[0]);
     });
 
     ua.on("newRTCSession", (...args: unknown[]) => {
@@ -966,6 +1006,38 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     });
   }
 
+  private async handleRegistrationFailed(event: unknown): Promise<void> {
+    if (
+      this.intentionalShutdown ||
+      this.registrationInFlight ||
+      this.registrationFailedHandler === null
+    ) {
+      return;
+    }
+
+    const ua = this.ua;
+    if (ua !== null && ua.isRegistered()) {
+      return;
+    }
+
+    const cause = extractRegistrationFailureCause(event);
+    const reason = mapSipRegistrationFailureKey(cause);
+
+    this.logger.warn("jssip_registration_failed_runtime", {
+      correlationId: this.lastCorrelationId,
+      featureId: FEATURE_ID_REGISTRATION,
+      boundedContext: "Telephony",
+      operation: "jssip_registration_failed_runtime",
+      reason,
+    });
+
+    await this.registrationFailedHandler({
+      correlationId: this.lastCorrelationId,
+      reason,
+      accountId: this.storedAccount?.id ?? null,
+    });
+  }
+
   private async startAndRegister(ua: JsSipUaPort): Promise<Result<void, PlatformError>> {
     ua.start();
     return this.registerWithUa(ua);
@@ -1050,4 +1122,17 @@ function isJsSipNewRtcSessionEvent(value: unknown): value is JsSipNewRtcSessionE
 
   const session = candidate.session as { id?: unknown };
   return typeof session.id === "string";
+}
+
+function extractRegistrationFailureCause(event: unknown): string {
+  if (
+    typeof event === "object" &&
+    event !== null &&
+    "cause" in event &&
+    typeof event.cause === "string"
+  ) {
+    return event.cause;
+  }
+
+  return "registration_failed";
 }

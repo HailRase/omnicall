@@ -45,8 +45,15 @@
 }
 
 .title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
   margin: 0;
   font-size: 1.125rem;
+}
+
+.titleIcon {
+  flex-shrink: 0;
 }
 
 .message,
@@ -111,4 +118,13 @@
 .overlay button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
 }

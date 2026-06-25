@@ -2,7 +2,7 @@
 
 ## Обязательно прочитать (до кода)
 
-1. `docs/softphone/STATUS.md` — baseline tests (~694 passed, 1 skipped)
+1. `docs/softphone/STATUS.md` — baseline tests (~697 passed, 1 skipped)
 2. `.cursor/skills/scope-intake/SKILL.md` — intake первым
 3. `.cursor/skills/domain-implementation-agent/SKILL.md`
 4. `.cursor/skills/feature-slice-design/SKILL.md`
@@ -10,7 +10,7 @@
 
 ## Stop gates
 
-- **Не кодить** без intake; default: TASK-QUEUE / F-008 DTMF
+- **Не кодить** без завершённого intake (`needs_input` → спроси какую задачу выполнить, если пользователь не указал задачу; иначе default: TASK-QUEUE #1)
 - **Не писать React** — эскалация UI wiring → `/ui`
 - Real JsSIP — только `/adapter`, не здесь
 - OCP / transfer — out of scope

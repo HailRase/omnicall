@@ -10,7 +10,7 @@ This document defines the implementation order for the Electron rewrite.
 
 **OCP plugin is DEFERRED.** See `OCP-PLUGIN-BACKLOG.md`.
 
-Active track: **P11** shell/settings UX (**WU0–WU5 + UI-4 done**), **F-008 DTMF real**, P10 headset, P12 host API. RAT R1–R4 + step 08 **closed**. **RAT transfer (step 07): backlog** — `real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md`. See `STATUS.md`.
+Active track: **P11** shell/settings UX (**WU0–WU5 + UI-4 + icons/tooltips done**), **F-008 DTMF real**, P10 headset, P12 host API. RAT R1–R4 + step 08 **closed**. **RAT transfer (step 07): backlog** — `real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md`. See `STATUS.md`.
 
 **Not in active scope:** P06/P07 real OCP integration, RAT step 06 R5 smoke, operator platform on production stand — until user resumes OCP backlog.
 
@@ -563,13 +563,22 @@ Complete user configuration and desktop shell UX.
 | WU4 | Settings schema v1 | `handoffs/P11-WU4-Settings-Schema-Handoff.md` |
 | WU5 | UI-4 CSS Modules slices A–I | `handoffs/P11-WU5-UI-4-Final-Gate-Handoff.md` |
 
+**Completed (TASK-QUEUE — sync with `STATUS.md`):**
+
+| ID | Topic | Handoff / evidence |
+| --- | --- | --- |
+| T-001 | Icon tooltips (1s delay) | `handoffs/P11-Icon-Tooltips-Agent-Prompt.md` |
+| T-002 | AppIcon wiring | `Icon-Registry.md`, `iconCatalog.ts` |
+
 **Remaining (priority order — see `TASK-QUEUE.md`):**
 
-1. Icon tooltips + `AppIcon` wiring — `/ui` — `handoffs/P11-Icon-Tooltips-Agent-Prompt.md`
+1. **F-008 DTMF real** — `/adapter` — T-003, `JsSipTelephonyAdapter.sendDtmf`
 2. Settings UX completeness (account, behavior, audio, notifications, diagnostics panels)
-3. Collapse/expand polish, theme, toast placement
-4. Draggable widget or Electron window drag (ADR if needed)
-5. Codecs placeholder or ADR
+3. UI-6 Radix + motion on incoming/campaign modals
+4. Collapse/expand polish, theme, toast placement
+5. **P10** headset foundation — `/logic` — T-004
+6. Draggable widget or Electron window drag (ADR if needed)
+7. Codecs placeholder or ADR
 
 Gate (phase):
 

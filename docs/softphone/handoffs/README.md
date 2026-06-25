@@ -15,7 +15,7 @@
 | `P11-WU3-Header-Collapsed-Handoff.md` | Collapsed header |
 | `P11-WU4-Settings-Schema-Handoff.md` | Settings schema |
 | `P11-WU5-*` | UI-4 CSS Modules slices + final gate |
-| `P11-Icon-Tooltips-Agent-Prompt.md` | Deferred — icon tooltips |
+| `P11-Icon-Tooltips-Agent-Prompt.md` | Icon tooltips (done T-001) |
 
 ## Archive
 

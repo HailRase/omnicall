@@ -10,9 +10,9 @@ import {
   createOcpReconnectScheduledEvent,
 } from "@domain/operator/events/ocpRecoveryEvents.js";
 import {
-  createSipReconnectFailedEvent,
-  createSipReconnectScheduledEvent,
-} from "@domain/telephony/events/sipRecoveryEvents.js";
+  createSipRegistrationRetryFailedEvent,
+  createSipRegistrationRetryScheduledEvent,
+} from "@domain/telephony/events/sipRegistrationRetryEvents.js";
 
 describe("deriveConnectionRecoveryShell", () => {
   const correlationId = createCorrelationId();
@@ -55,12 +55,16 @@ describe("deriveConnectionRecoveryShell", () => {
     });
     projection = reduceConnectionRecoveryProjection(
       projection,
-      createSipReconnectScheduledEvent(correlationId, { attemptNumber: 1, delayMs: 5000 }),
+      createSipRegistrationRetryScheduledEvent(correlationId, {
+        attemptNumber: 1,
+        delayMs: 5000,
+      }),
     );
 
     const shell = deriveConnectionRecoveryShell(projection);
     expect(shell.isBlocking).toBe(true);
     expect(shell.showSipRow).toBe(true);
+    expect(projection.sipRecoveryMode).toBe("registration");
   });
 
   it("shows OCP row only during OCP reconnect in OCP mode", () => {
@@ -91,8 +95,8 @@ describe("deriveConnectionRecoveryShell", () => {
     });
     projection = reduceConnectionRecoveryProjection(
       projection,
-      createSipReconnectFailedEvent(correlationId, {
-        attemptNumber: 10,
+      createSipRegistrationRetryFailedEvent(correlationId, {
+        attemptNumber: 5,
         reason: "registration_timeout",
         isTerminal: true,
       }),
