@@ -1,0 +1,67 @@
+.header {
+  border-bottom: 1px solid var(--color-border-subtle);
+  padding-bottom: var(--space-md);
+}
+
+.headerCollapsed {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.headerBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  min-height: 40px;
+}
+
+.headerCollapsed .headerBar {
+  min-height: 40px;
+}
+
+.headerBrand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
+.avatarGroup {
+  position: relative;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+}
+
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.actionButton {
+  padding: 6px var(--space-sm);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-control);
+  background: var(--color-bg-control);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.actionButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.headerRecovery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  margin-top: var(--space-sm);
+}
+
+.reregisterButton {
+  composes: actionButton;
+  margin-top: var(--space-sm);
+}
