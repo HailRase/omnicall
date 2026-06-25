@@ -1096,4 +1096,123 @@ describe("JsSipTelephonyAdapter", () => {
     );
     expect(adapter.getPeerConnectionForCall(callId)).toBeNull();
   });
+
+  it("supports hold on first session while second outbound session connects (RAT R7-1)", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const callIdA = createCallId("r7-out-a");
+    const callIdB = createCallId("r7-out-b");
+
+    const makePromiseA = adapter.makeCall({
+      callId: callIdA,
+      number: createPhoneNumber("410"),
+      correlationId: createCorrelationId(),
+    });
+    const sessionA = mockUa.callInvocations[0]?.session;
+    sessionA?.emit("confirmed");
+    await makePromiseA;
+
+    const holdResult = await adapter.holdCall({
+      callId: callIdA,
+      correlationId: createCorrelationId(),
+    });
+    expect(holdResult.ok).toBe(true);
+    expect(sessionA?.holdCalls).toBe(1);
+
+    const makePromiseB = adapter.makeCall({
+      callId: callIdB,
+      number: createPhoneNumber("411"),
+      correlationId: createCorrelationId(),
+    });
+    const sessionB = mockUa.callInvocations[1]?.session;
+    sessionB?.emit("confirmed");
+    await makePromiseB;
+
+    expect(mockUa.callInvocations).toHaveLength(2);
+    expect(sessionB?.holdCalls).toBe(0);
+  });
+
+  it("hangup active session leaves held session operable for resume (RAT R7-4)", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const callIdHeld = createCallId("r7-held");
+    const callIdActive = createCallId("r7-active");
+
+    const makeHeld = adapter.makeCall({
+      callId: callIdHeld,
+      number: createPhoneNumber("420"),
+      correlationId: createCorrelationId(),
+    });
+    const heldSession = mockUa.callInvocations[0]?.session;
+    heldSession?.emit("confirmed");
+    await makeHeld;
+
+    await adapter.holdCall({
+      callId: callIdHeld,
+      correlationId: createCorrelationId(),
+    });
+
+    const makeActive = adapter.makeCall({
+      callId: callIdActive,
+      number: createPhoneNumber("421"),
+      correlationId: createCorrelationId(),
+    });
+    const activeSession = mockUa.callInvocations[1]?.session;
+    activeSession?.emit("confirmed");
+    await makeActive;
+
+    const hangupResult = await adapter.hangup({
+      callId: callIdActive,
+      correlationId: createCorrelationId(),
+    });
+    expect(hangupResult.ok).toBe(true);
+    await Promise.resolve();
+
+    const resumeResult = await adapter.resumeCall({
+      callId: callIdHeld,
+      correlationId: createCorrelationId(),
+    });
+    expect(resumeResult.ok).toBe(true);
+    expect(heldSession?.unholdCalls).toBe(1);
+    expect(activeSession?.terminateCalls).toBe(1);
+  });
+
+  it("registers incoming session while outbound session remains tracked (RAT R7-2)", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+    adapter.setIncomingCallHandler(() => Promise.resolve());
+
+    const callIdOutbound = createCallId("r7-outbound");
+    const makeOutbound = adapter.makeCall({
+      callId: callIdOutbound,
+      number: createPhoneNumber("430"),
+      correlationId: createCorrelationId(),
+    });
+    mockUa.callInvocations[0]?.session.emit("confirmed");
+    await makeOutbound;
+
+    const incomingSession = new MockJsSipRtcSession("r7-incoming");
+    mockUa.emitIncomingSession(incomingSession);
+    await Promise.resolve();
+
+    const callIdIncoming = createCallId(incomingSession.id);
+    const holdOutbound = await adapter.holdCall({
+      callId: callIdOutbound,
+      correlationId: createCorrelationId(),
+    });
+    expect(holdOutbound.ok).toBe(true);
+
+    const answerResult = await adapter.answerCall({
+      callId: callIdIncoming,
+      correlationId: createCorrelationId(),
+    });
+    expect(answerResult.ok).toBe(true);
+    expect(incomingSession.answerCalls).toBe(1);
+    expect(mockUa.callInvocations[0]?.session.holdCalls).toBe(1);
+  });
 });

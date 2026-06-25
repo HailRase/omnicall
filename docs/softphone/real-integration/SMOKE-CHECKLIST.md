@@ -36,15 +36,15 @@
 - [x] Hold / resume
 - [x] Mute / unmute
 
-## R7 Multi-call (RAT step 08 — **pending WU6**)
+## R7 Multi-call (RAT step 08 — **closed** 2026-06-25)
 
-> Requires P05 WU6 mock gate. See `step-08-multi-call-real.md`, `P05-Multi-Call-Product-Decisions.md`.
+> Manual dev SBC (onedemoserver.online, two extensions). Minimum gate R7-1…R7-3 PASS.
 
-- [ ] R7-1 Second outgoing with first held
-- [ ] R7-2 Answer incoming with active held
-- [ ] R7-3 Exclusive resume swap
-- [ ] R7-4 Hangup active, held remains (D1)
-- [ ] R7-5 multiSessions OFF → auto-486
+- [x] R7-1 Second outgoing with first held — **PASS**
+- [x] R7-2 Answer incoming with active held — **PASS**
+- [x] R7-3 Exclusive resume swap — **PASS**
+- [x] R7-4 Hangup active, held remains (D1) — **PASS**
+- [x] R7-5 multiSessions OFF → auto-486 — **PASS** 2026-06-25 (temp `InMemorySettingsRepository` default; P11 UI backlog)
 
 ## R6 Transfer (RAT step 07 / 07b — **BACKLOG**)
 
@@ -72,7 +72,7 @@ Record results in `PROGRESS.md` per step.
 
 **Environment:** Electron `npm run dev`, `VITE_ADAPTER_MODE=real`, `.env.local` (onedemoserver.online).
 
-**Automated (canonical):** 599 passed, 1 skipped; lint/typecheck green.
+**Automated (canonical):** 640 passed, 1 skipped; lint/typecheck green.
 
 | Gate | Status | Source in PROGRESS |
 | --- | --- | --- |
@@ -81,7 +81,7 @@ Record results in `PROGRESS.md` per step.
 | R3 Calls | **PASS** | Manual smoke session R2+R3+R4 — R3-1/2/3/4/5 |
 | R4 Controls | **PASS** | Manual smoke session R2+R3+R4 — R4-1/2 |
 | R6 Transfer | **backlog** | `TRANSFER-REAL-ADAPTER-BACKLOG.md` |
-| R7 Multi-call | **pending** | After P05 WU6 — step 08 |
+| R7 Multi-call | **PASS** (R7-1…R7-5) | Step 08 smoke notes 2026-06-25 |
 | R5 OCP | **deferred** | ADR-0002 — see `OCP-PLUGIN-BACKLOG.md`; not a RAT gate |
 
 **R1-5 note:** auto-reconnect on network restore PASS; manual retry button not exercised to exhaustion (auto-reconnect in progress).

@@ -171,7 +171,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Integration: mock telephony hold/resume/hangup success and failure paths
   - Renderer: `ActiveCallControlsPanel` disabled reasons, error banner, retry, keyboard Enter/Space on enabled control
   - E2E: deferred until dedicated Electron E2E harness exists
-- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R4 step 05 — `JsSipTelephonyAdapter.holdCall`/`resumeCall` via re-INVITE; manual SBC smoke PASS 2026-06-24 — R4-1)
+- Real Adapter Track: **done** (RAT step 08, 2026-06-25) — multi-session R7-1…R7-5 PASS dev SBC; `multiSessionsEnabled` UI deferred P11
 
 ## F-005: Mute And Unmute
 

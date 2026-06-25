@@ -20,6 +20,7 @@ import type {
   HoldCallInput,
   ResumeCallInput,
 } from "./activeCallControlTypes.js";
+import { attachRemoteAudioWhenReady } from "./remoteAudioAttach.js";
 import { cancelScheduledTonePlaybackStop } from "./scheduleTonePlaybackStop.js";
 
 type ExclusiveHoldEnforcer = (
@@ -266,6 +267,14 @@ export async function executeResumeCall(
 
     deps.eventPublisher.publish(
       createCallResumedEvent(correlationId, { callId: input.callId }),
+    );
+    await attachRemoteAudioWhenReady(
+      {
+        mediaGateway: deps.mediaGateway,
+        eventPublisher: deps.eventPublisher,
+      },
+      input.callId,
+      correlationId,
     );
     deps.trackCall(resumed.call);
     deps.logger.info("call_resume_succeeded", {

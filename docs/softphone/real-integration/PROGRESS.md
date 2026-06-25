@@ -8,7 +8,7 @@
 
 **Base snapshot:** `00-SNAPSHOT.md` (2026-06-24, 488 tests)
 
-**Canonical automated tests (2026-06-24):** **599 passed, 1 skipped** — authoritative count for summary table and gates. Per-step `Automated:` lines below are historical snapshots unless they match 599.
+**Canonical automated tests (2026-06-25):** **640 passed, 1 skipped** — authoritative count for summary table and gates. Per-step `Automated:` lines below are historical snapshots unless they match 640.
 
 
 | Step | Status | Date | Agent notes | Tests | Smoke |
@@ -31,17 +31,17 @@
 
 | 07 Transfer | **backlog** | 2026-06-25 | JsSIP REFER blind/attended landed; on-net blind PASS; attended unverified — see TRANSFER-REAL-ADAPTER-BACKLOG | 599 | R6 partial |
 | 07b External Refer-To | **backlog** | 2026-06-25 | `buildBlindReferTarget`; off-net B,C FAIL — paused per user; resume via backlog doc | 599 | R6 B,C **FAIL** |
-| 08 Multi-call real | **pending** | — | After P05 WU6 mock gate; R7 smoke — `step-08-multi-call-real.md` | — | R7 **pending** |
+| 08 Multi-call real | **done** | 2026-06-25 | R7-1…R7-5 PASS manual dev SBC; R7-5 via temp `InMemorySettingsRepository` default | 640 | R7 **closed** |
 
 
 
 ## Current focus (2026-06-25)
 
-**Primary:** P05 **WU6** multi-call completeness — `docs/softphone/handoffs/P05-WU6-Multi-Call-Completeness-Agent-Prompt.md` + `P05-Multi-Call-Product-Decisions.md`.
+**RAT SIP core (steps 00–08):** **closed** — R7 multi-call PASS (R7-1…R7-5); P11 settings UI for `multiSessionsEnabled` still backlog.
 
-**RAT:** step **08** multi-call real after WU6 gate (`step-08-multi-call-real.md`, smoke R7).
+**Next:** F-008 DTMF real, P10 headset, merge `feature/real-adapters` for SIP core slice.
 
-**Backlog:** transfer R6 (`TRANSFER-REAL-ADAPTER-BACKLOG.md`); Tone FSM + transfer-mode refactor (`MULTI-CALL-BACKLOG.md`).
+**Backlog:** transfer R6 (`TRANSFER-REAL-ADAPTER-BACKLOG.md`); OCP R5 (ADR-0002); Tone FSM (`MULTI-CALL-BACKLOG.md`).
 
 | Area | Status |
 | --- | --- |
@@ -55,7 +55,8 @@
 - **OCP / R5:** deferred (ADR-0002).
 - **SIP core R1–R4:** closed.
 - **R6 transfer:** backlog — partial (A,D pass; B,C fail; attended pending).
-- **Canonical tests:** 599 passed, 1 skipped; lint/typecheck green.
+- **Canonical tests:** 640 passed, 1 skipped; lint/typecheck green.
+- **RAT step 08:** **done** — R7-1…R7-5 PASS manual 2026-06-25 (R7-5: temp repo default `multiSessionsEnabled=false`).
 
 
 
@@ -242,6 +243,28 @@
 **R6 gate:** **backlog** — see `TRANSFER-REAL-ADAPTER-BACKLOG.md`.
 
 **07b gate:** **backlog** — paused 2026-06-25; resume via SIP trace + `TRANSFER-REAL-ADAPTER-BACKLOG.md`.
+
+## Step 08 notes (R7 multi-call) — 2026-06-25
+
+**Environment:** Electron `npm run dev`, `?adapters=real`, `.env.local` (dev SBC onedemoserver.online); two test extensions required.
+
+**Automated:** `npm run test` 640 passed, 1 skipped; lint/typecheck green.
+
+**Implemented this step:**
+
+- `JsSipTelephonyAdapter` audit: per-call `sessions` Map; independent hold/resume re-INVITE; hangup unbinds one session only (+3 adapter unit tests: R7-1, R7-2, R7-4 scenarios).
+- `BrowserMediaAdapter`: exclusive remote audio attach (C1) — pauses other lines on active attach (+1 unit test).
+- `telephonyCallControlOperations.executeResumeCall`: `attachRemoteAudioWhenReady` after successful unhold (R7-3 audio swap).
+
+| R7 checklist | Result |
+| --- | --- |
+| R7-1 Second outgoing with first held | **PASS** — manual 2026-06-25 |
+| R7-2 Answer incoming with active held | **PASS** — manual 2026-06-25 |
+| R7-3 Exclusive resume swap | **PASS** — manual 2026-06-25 |
+| R7-4 Hangup active, held remains (D1) | **PASS** — manual 2026-06-25 |
+| R7-5 multiSessions OFF → auto-486 | **PASS** — manual 2026-06-25; smoke via temp `InMemorySettingsRepository` default `false` (no settings UI yet) |
+
+**R7 gate:** **closed** (R7-1…R7-5 PASS). Follow-up: P11 UI for `multiSessionsEnabled` toggle.
 
 ## Dev credentials
 

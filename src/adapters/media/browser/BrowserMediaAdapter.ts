@@ -108,6 +108,7 @@ export class BrowserMediaAdapter implements MediaGateway {
         return Promise.resolve(failure);
       }
 
+      this.pauseOtherRemoteAudio(command.callId);
       this.logger.info("browser_media_remote_audio_attached", {
         correlationId: command.correlationId,
         featureId: FEATURE_ID,
@@ -245,6 +246,19 @@ export class BrowserMediaAdapter implements MediaGateway {
 
   dispose(): void {
     this.releaseAllInternal();
+  }
+
+  private pauseOtherRemoteAudio(activeCallId: CallId): void {
+    for (const [callId, state] of this.callStates) {
+      if (callId === activeCallId) {
+        continue;
+      }
+      try {
+        state.remoteAudioElement.pause();
+      } catch {
+        // jsdom may not implement HTMLMediaElement.pause.
+      }
+    }
   }
 
   private releaseAllInternal(): void {

@@ -142,6 +142,53 @@ describe("BrowserMediaAdapter", () => {
     adapter.dispose();
   });
 
+  it("pauses other lines when attaching exclusive active remote audio (C1)", async () => {
+    const pauseSpy = vi.spyOn(HTMLAudioElement.prototype, "pause").mockImplementation(() => {});
+    const playSpy = vi.spyOn(HTMLAudioElement.prototype, "play").mockResolvedValue(undefined);
+    class TestMediaStream {
+      private readonly tracks: MediaStreamTrack[];
+
+      constructor(tracks: MediaStreamTrack[] = []) {
+        this.tracks = [...tracks];
+      }
+
+      addTrack(track: MediaStreamTrack): void {
+        this.tracks.push(track);
+      }
+
+      getTracks(): MediaStreamTrack[] {
+        return this.tracks;
+      }
+    }
+
+    vi.stubGlobal("MediaStream", TestMediaStream);
+
+    const track = { kind: "audio", enabled: true } as MediaStreamTrack;
+    const connection = {
+      getReceivers: () => [{ track }],
+      getSenders: () => [],
+      addEventListener: vi.fn(),
+    };
+
+    const adapter = createAdapter(() => connection);
+    const callIdA = createCallId("exclusive-a");
+    const callIdB = createCallId("exclusive-b");
+    const correlationId = createCorrelationId();
+
+    await adapter.attachRemoteAudio({ callId: callIdA, correlationId });
+    pauseSpy.mockClear();
+
+    await adapter.attachRemoteAudio({ callId: callIdB, correlationId });
+
+    expect(pauseSpy).toHaveBeenCalled();
+    expect(adapter.isRemoteAudioStreamWired(callIdA)).toBe(true);
+    expect(adapter.isRemoteAudioStreamWired(callIdB)).toBe(true);
+
+    playSpy.mockRestore();
+    pauseSpy.mockRestore();
+    adapter.dispose();
+  });
+
   it("returns deferred when peer connection is missing but still prepares audio element", async () => {
     const adapter = createAdapter(() => null);
     const callId = createCallId("call-missing-pc");
