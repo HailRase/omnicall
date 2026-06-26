@@ -10,7 +10,7 @@ This document defines the implementation order for the Electron rewrite.
 
 **OCP plugin is DEFERRED.** See `OCP-PLUGIN-BACKLOG.md`.
 
-Active track: **P11** shell/settings UX (**WU0–WU5 + UI-4 + icons/tooltips done**), **F-008 DTMF real**, P10 headset, P12 host API. RAT R1–R4 + step 08 **closed**. **RAT transfer (step 07): backlog** — `real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md`. See `STATUS.md`.
+Active track: **P11** shell/settings UX (**WU0–WU5 + UI-4 + post-WU5 polish done**), **F-008 DTMF real**, P10 headset, P12 host API. RAT R1–R4 + step 08 **closed**. **RAT transfer (step 07): backlog** — `real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md`. See `STATUS.md`.
 
 **Not in active scope:** P06/P07 real OCP integration, RAT step 06 R5 smoke, operator platform on production stand — until user resumes OCP backlog.
 
@@ -563,12 +563,19 @@ Complete user configuration and desktop shell UX.
 | WU4 | Settings schema v1 | `handoffs/P11-WU4-Settings-Schema-Handoff.md` |
 | WU5 | UI-4 CSS Modules slices A–I | `handoffs/P11-WU5-UI-4-Final-Gate-Handoff.md` |
 
+**Completed (post-WU5 polish — sync with `STATUS.md`):**
+
+| Topic | Handoff |
+| --- | --- |
+| Dialpad home + session tabs + avatar recovery ring | `handoffs/P11-Post-WU5-Shell-Polish-Handoff.md` |
+
 **Completed (TASK-QUEUE — sync with `STATUS.md`):**
 
 | ID | Topic | Handoff / evidence |
 | --- | --- | --- |
 | T-001 | Icon tooltips (1s delay) | `handoffs/P11-Icon-Tooltips-Agent-Prompt.md` |
 | T-002 | AppIcon wiring | `Icon-Registry.md`, `iconCatalog.ts` |
+| T-005 | Fullscreen settings panel | `work-history/2026-06-26/fullscreen-settings-sidebar_12-40.md` |
 
 **Remaining (priority order — see `TASK-QUEUE.md`):**
 
@@ -585,6 +592,8 @@ Gate (phase):
 - Settings are per-user.
 - Settings changes produce explicit events.
 - Electron shell UX does not leak business logic.
+
+**Phase gate status (2026-06-26):** WU0–WU5 + post-WU5 polish **closed** (743 tests). **Open for phase close:** UI-6 Radix modals, theme LF-082, draggable LF-056, toast placement LF-060, codecs placeholder LF-084.
 
 ## Phase 12: External Host API Compatibility
 

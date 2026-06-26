@@ -18,6 +18,9 @@
 | WU3 Header collapsed | done | `handoffs/P11-WU3-Header-Collapsed-Handoff.md` |
 | WU4 Settings schema | done | `handoffs/P11-WU4-Settings-Schema-Handoff.md` |
 | WU5 UI-4 CSS Modules | done | `handoffs/P11-WU5-UI-4-Final-Gate-Handoff.md` |
+| Post-WU5 shell polish | done | `handoffs/P11-Post-WU5-Shell-Polish-Handoff.md` |
+
+**P11 phase gate:** WU0–WU5 + post-WU5 polish **done**. Remaining for phase close: UI-6 Radix modals, theme (LF-082), draggable widget (LF-056), toast placement (LF-060), codecs placeholder (LF-084).
 
 ## Next work (priority)
 
@@ -28,7 +31,7 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 3. P11 polish: UI-6 Radix modals — `/ui`
 4. Merge `feature/real-adapters` branch
 
-**Recently closed (TASK-QUEUE):** T-005 fullscreen settings panel (`work-history/2026-06-26/fullscreen-settings-sidebar_12-40.md`), T-001 icon tooltips (`handoffs/P11-Icon-Tooltips-Agent-Prompt.md`), T-002 AppIcon wiring (`Icon-Registry.md`), **F-014 SIP registration retry** (`handoffs/P08-SIP-Registration-Retry-Handoff.md`).
+**Recently closed (TASK-QUEUE):** post-WU5 shell polish (`handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`), T-005 fullscreen settings panel (`work-history/2026-06-26/fullscreen-settings-sidebar_12-40.md`), T-001 icon tooltips (`handoffs/P11-Icon-Tooltips-Agent-Prompt.md`), T-002 AppIcon wiring (`Icon-Registry.md`), **F-014 SIP registration retry** (`handoffs/P08-SIP-Registration-Retry-Handoff.md`).
 
 ## RAT (Real Adapter Track)
 
