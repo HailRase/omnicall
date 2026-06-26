@@ -75,7 +75,7 @@ OverlayLayer   — modals and sheets (z-index stack)
 PanelNav       — Call | History only (History full-screen in idle)
 ```
 
-**Settings** and **Diagnostics**: overlay sheets in `OverlayLayer`, not panel swap. ContextZone stays visible (min. collapsed strip during established call).
+**Settings** and **Diagnostics**: overlay sheets in `OverlayLayer`, not panel swap. ContextZone stays visible during established call.
 
 ## Radix Scope (v1)
 

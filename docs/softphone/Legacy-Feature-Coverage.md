@@ -31,7 +31,7 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 - `Headset`: WebHID, native headset adapters, headset synchronization.
 - `Settings`: user configuration, theme, debug options, history limits.
 - `Integration`: host-page API, DOM events, external contracts, logging export.
-- `UI`: shell behavior, overlays, collapsed mode, menus, visual states.
+- `UI`: shell behavior, overlays, menus, visual states.
 
 ## Phase Values
 
@@ -127,7 +127,7 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 | LF-073 | P10 | Headset | Medium | HID mute sync and LED | `ledOutputSync`, `useHidLedSync` | LED state follows media projection. |
 | LF-074 | P10 | UI | Medium | Headset UI block during sync | `useHeadsetCallController` | UI prevents conflicting actions during headset sync. |
 | LF-075 | P10 | Headset | Medium | Native Jabra adapter | `headsetAdapters` | Vendor implementation stays inside adapter. |
-| LF-076 | P11 | Settings | High | Auto-answer, RBT, multisession settings | `Common`, `setUserConfig` | WU1: `SettingsOverlay` multi-session toggle. WU3: settings entry preserved in collapsed header — `P11-Header-Collapsed-UX-Design.md`. WU4: schema fields `autoAnswerTimeoutSec`, `ringbackToneEnabled`, `multiSessionsEnabled` in `UserSettings` v1 — `P11-Settings-Schema-Design.md`. |
+| LF-076 | P11 | Settings | High | Auto-answer, RBT, multisession settings | `Common`, `setUserConfig` | WU1: `SettingsOverlay` multi-session toggle. WU3: settings via avatar menu. WU4: schema fields `autoAnswerTimeoutSec`, `ringbackToneEnabled`, `multiSessionsEnabled` in `UserSettings` v1 — `P11-Settings-Schema-Design.md`. |
 | LF-077 | P11 | Settings | High | Per-user config in local storage | `JSSIP_CONFIGS` | WU4: typed `UserSettings` v1 schema, `validateUserSettings`, v0→v1 migration, `getUserSettings`/`saveUserSettings` on port, `FileSettingsRepository` stub — `P11-Settings-Schema-Design.md`. |
 | LF-078 | P06 | Settings | Medium | Break reasons from OCP in config | `setBreakReasons` | WU3: `BreakReasonsSyncService`, `BreakReasonsReceived`, `SettingsRepository.setAllowedBreakReasons` — see `handoffs/archive/P06/P06-WU3-Post-Call-Break-Reasons-Handoff.md`. |
 | LF-079 | P08 | Telephony | Critical | beforeunload SIP cleanup | `DisplayProvider` | WU4–WU5: `ShutdownCleanupUseCase`, `EndUserSessionUseCase`, `SessionTeardownOrchestrationService`, IPC `app:before-close`, `useAppShutdown`, `control-end-session` — see `handoffs/archive/P08/P08-WU4-Recovery-Manual-Shutdown-Handoff.md`, `handoffs/archive/P08/P08-WU5-User-Session-Logout-Handoff.md`. |
@@ -138,7 +138,7 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 | LF-084 | P11 | Settings | Low | Disabled codecs tab | `SettingModal` | Codecs tab is either implemented or explicitly hidden by ADR. |
 | LF-085 | P01 | UI | Low | AccessDenied without username | `Common`, `Account` | Missing account identity shows deterministic access state. |
 | LF-086 | P11 | UI | Medium | Avatar and user menu | `Avatar`, `UserMenu` | `UserAvatar` + `UserAvatarMenu` on avatar click (settings, DND toggle, logout); `PhoneStatusBadge` removed from header — `P11-Header-Collapsed-UX-Design.md`. |
-| LF-087 | P11 | UI | Medium | Status in collapsed header | `Header` | Collapsed mode still shows operator/phone state. |
+| LF-087 | P11 | UI | Medium | Status in header | `Header` | Operator/phone state visible in always-expanded shell (2026-06-26). |
 | LF-088 | P09 | Media | Low | Audio debug logger | `audioLogger` | Audio diagnostics are available without production noise. |
 | LF-089 | P09 | Integration | Low | Clear logs older than 8 hours | `addUserActionLog` | Log retention policy is enforced. |
 | LF-090 | P03 | Integration | Medium | `soft-phone-break-reason` event | `IncomingCallModal` | Reject reason is emitted through typed host adapter. |

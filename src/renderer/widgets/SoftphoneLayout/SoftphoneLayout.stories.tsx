@@ -21,13 +21,3 @@ export const Zones: Story = {
     overlays: <p>Overlay layer — modals and sheets</p>,
   },
 };
-
-export const Collapsed: Story = {
-  args: {
-    collapsed: true,
-    header: <p>Collapsed header strip</p>,
-    context: <p>Compact call line strip</p>,
-    controls: <p>Hidden in collapsed mode</p>,
-    overlays: null,
-  },
-};

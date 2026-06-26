@@ -17,8 +17,8 @@ let shellWindowController: ShellWindowController | null = null;
 
 function createMainWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
-    width: 420,
-    height: 720,
+    width: 380,
+    height: 600,
     minWidth: 360,
     minHeight: 560,
     show: false,

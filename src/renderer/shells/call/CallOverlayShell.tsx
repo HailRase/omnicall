@@ -12,11 +12,7 @@ type CallOverlayShellProps = Readonly<{
  * - Inputs: call feature shell bindings from useCallFeatureShell.
  * - Outputs: modal overlays; does not replace context zone content.
  */
-export function CallOverlayShell({ bindings }: CallOverlayShellProps): JSX.Element | null {
-  if (!bindings.sipRegistered) {
-    return null;
-  }
-
+export function CallOverlayShell({ bindings }: CallOverlayShellProps): JSX.Element {
   const {
     projection,
     incomingCallProjection,

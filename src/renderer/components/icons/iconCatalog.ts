@@ -12,13 +12,12 @@ import {
   Coffee,
   Delete,
   Eraser,
+  Grid3x3,
   Headphones,
   Layers,
   LogOut,
   Mic,
   MicOff,
-  PanelLeftClose,
-  PanelLeftOpen,
   Pause,
   Phone,
   PhoneCall,
@@ -47,8 +46,6 @@ import {
   LogoutIcon,
   MicIcon,
   MicOffIcon,
-  PanelLeftCloseIcon,
-  PanelLeftOpenIcon,
   PauseIcon,
   PhoneCallIcon,
   PhoneForwardedIcon,
@@ -71,8 +68,6 @@ export type AnimatedIconComponent = ComponentType<
 export type IconSemanticId =
   | "shell.settings"
   | "shell.diagnostics"
-  | "shell.collapse"
-  | "shell.expand"
   | "settings.account"
   | "settings.general"
   | "settings.sessions"
@@ -97,6 +92,7 @@ export type IconSemanticId =
   | "dial.call"
   | "dial.delete"
   | "dial.clear"
+  | "dial.dtmf"
   | "operator.ready"
   | "operator.break"
   | "operator.logout"
@@ -177,20 +173,6 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabel: "Свернуть меню",
     defaultSize: 20,
     usage: ["SettingsSidebar: settings-sidebar-collapse"],
-  },
-  "shell.collapse": {
-    static: PanelLeftClose,
-    animated: PanelLeftCloseIcon,
-    defaultLabel: "Свернуть софтфон",
-    defaultSize: 20,
-    usage: ["SoftphoneShellHeader: control-toggle-collapse collapsed=false"],
-  },
-  "shell.expand": {
-    static: PanelLeftOpen,
-    animated: PanelLeftOpenIcon,
-    defaultLabel: "Развернуть софтфон",
-    defaultSize: 20,
-    usage: ["SoftphoneShellHeader: control-toggle-collapse collapsed=true"],
   },
   "session.end": {
     static: LogOut,
@@ -319,6 +301,12 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabel: "Очистить номер",
     defaultSize: 20,
     usage: ["Dialpad: dialpad-clear"],
+  },
+  "dial.dtmf": {
+    static: Grid3x3,
+    defaultLabel: "Тоновый набор",
+    defaultSize: 20,
+    usage: ["CallControlsBar: control-show-dtmf"],
   },
   "operator.ready": {
     static: CircleCheck,

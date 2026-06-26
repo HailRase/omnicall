@@ -137,7 +137,7 @@ Disabled state and reason must come from Application projections or `derive*` he
 
 ## Dev vs Prod UI
 
-- Dev-only hints (`sip-registered-hint`, bootstrap subtitles) — `import.meta.env.DEV` only.
+- No dev-only diagnostic copy in production UI (`sip-registered-hint` removed).
 - Diagnostics overlay — DEV or `?debug=1`.
 
 ## Multi-Line UI Unification

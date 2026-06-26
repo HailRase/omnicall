@@ -60,7 +60,7 @@ For every flow define:
 - error state
 - disabled state
 - reconnect/recovery state when relevant
-- collapsed mode state when relevant
+- shell layout states when relevant
 
 ## Softphone-Specific UX Checks
 

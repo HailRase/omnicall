@@ -1,118 +1,46 @@
 .panel {
   display: grid;
-  gap: var(--space-sm);
-  max-width: 18rem;
-  margin-inline: auto;
+  gap: var(--space-xs);
   width: 100%;
+  margin-top: auto;
 }
 
-.modeRow {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.mode {
-  display: inline-flex;
-  gap: 2px;
-  padding: 2px;
-  border-radius: var(--radius-control);
-  background: var(--color-bg-surface-deep);
-  border: 1px solid var(--color-border-subtle);
-}
-
-.modeButton {
-  padding: 4px var(--space-xs);
-  border-radius: calc(var(--radius-control) - 2px);
-  border: none;
-  background: transparent;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-xs);
-  cursor: pointer;
-}
-
-.modeActive {
-  background: var(--color-bg-surface-highlight);
-  color: var(--color-text-primary);
-}
-
-.splitRow {
-  display: flex;
-  align-items: stretch;
-  gap: 0;
-}
-
-.inputGroup {
-  position: relative;
-  flex: 1;
-  min-width: 0;
+.inputRow {
   display: flex;
   align-items: center;
-}
-
-.input {
-  width: 100%;
-  padding: var(--space-xs) 2.25rem var(--space-xs) var(--space-sm);
-  border-radius: var(--radius-control) 0 0 var(--radius-control);
+  gap: var(--space-xs);
+  height: 2.75rem;
+  padding: 0 var(--space-sm);
+  border-radius: var(--radius-control);
   border: 1px solid var(--color-border-subtle);
-  border-right: none;
   background: var(--color-bg-surface-deep);
-  color: inherit;
-  font-size: 1rem;
+}
+
+.inputDisplay {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.inputValue {
+  display: block;
+  font-size: 1.125rem;
   font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.input:focus {
-  outline: 2px solid var(--color-outline-focus);
-  outline-offset: -1px;
-  z-index: 1;
-}
-
-.input::placeholder {
-  color: var(--color-text-secondary);
+.inputPlaceholder {
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
 }
 
 .deleteButton {
-  position: absolute;
-  right: 2px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-}
-
-.deleteButton:hover {
-  color: var(--color-text-primary);
-}
-
-.callButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  min-width: 48px;
-  padding: 0;
-  border-radius: 0 var(--radius-control) var(--radius-control) 0;
-  border: 1px solid var(--color-border-success);
-  background: var(--color-bg-success);
-  color: var(--color-text-success);
-  cursor: pointer;
-}
-
-.callButton:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.callButtonBusy {
-  background: var(--color-bg-surface-highlight);
-  border-color: var(--color-border-control);
-  color: var(--color-text-secondary);
+  flex-shrink: 0;
+  color: var(--color-text-muted);
 }
 
 .keys {
@@ -122,15 +50,18 @@
 }
 
 .key {
-  aspect-ratio: 1.15;
-  padding: var(--space-xs);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 3rem;
+  padding: var(--space-2xs);
   border-radius: var(--radius-control);
   border: 1px solid var(--color-border-control);
   background: var(--color-bg-surface-alt);
-  color: inherit;
-  font-size: 1.125rem;
-  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
   cursor: pointer;
+  user-select: none;
   transition:
     background 120ms ease,
     border-color 120ms ease;
@@ -142,12 +73,70 @@
 }
 
 .key:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
 }
 
-.disabledReason {
-  margin: 0;
-  font-size: var(--font-size-xs);
-  color: var(--color-text-danger);
-  text-align: center;
+.keyDigit {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.keySub {
+  margin-top: 2px;
+  font-size: 0.5rem;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  color: var(--color-text-muted);
+}
+
+.callButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  width: 100%;
+  height: 3rem;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-surface-deep);
+  color: var(--color-text-muted);
+  cursor: default;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    transform 80ms ease;
+}
+
+.callButtonReady {
+  border-color: var(--color-border-success);
+  background: var(--color-status-online);
+  color: #fff;
+  cursor: pointer;
+  box-shadow: var(--shadow-control-knob);
+}
+
+.callButtonReady:hover {
+  filter: brightness(1.05);
+}
+
+.callButtonReady:active {
+  transform: scale(0.98);
+}
+
+.callButtonBusy {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.callButtonLabel {
+  font-size: 0.8125rem;
+  font-weight: var(--font-weight-semibold);
+}
+
+.callButtonReason {
+  font-size: 0.6875rem;
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

@@ -2,38 +2,37 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  gap: var(--space-md);
+  gap: var(--space-xs);
   min-height: 0;
 }
 
-.header,
-.context,
-.controls {
+.header {
   display: grid;
-  gap: var(--space-md);
+  gap: var(--space-xs);
 }
 
 .main {
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
   flex: 1;
   min-height: 0;
-}
-
-.controls {
-  flex: 1;
-  border: none;
-  border-radius: var(--radius-panel);
-  padding: var(--space-sm) var(--space-md);
-  min-height: 0;
+  gap: 0;
 }
 
 .context {
-  border: 1px dashed var(--color-border-dashed);
-  border-radius: var(--radius-panel);
-  padding: var(--space-sm);
-  min-height: auto;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--space-2xs) var(--space-xs) 0;
+}
+
+.controls {
+  display: grid;
+  gap: var(--space-xs);
+  flex-shrink: 0;
+  padding: var(--space-xs) var(--space-2xs) var(--space-2xs);
 }
 
 .overlays {
@@ -45,22 +44,4 @@
 
 .overlays > * {
   pointer-events: auto;
-}
-
-.layoutCollapsed {
-  gap: var(--space-xs);
-}
-
-.layoutCollapsed .header {
-  gap: 0;
-}
-
-.layoutCollapsed .context {
-  padding: 6px var(--space-xs);
-  min-height: auto;
-  border-style: solid;
-}
-
-.layoutCollapsed .controls {
-  display: none;
 }

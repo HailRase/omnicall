@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { JSX } from "react";
 import { deriveCallLineStatusLabel } from "@application/index.js";
 import { AppIcon } from "../icons/index.js";
@@ -16,54 +17,39 @@ export type OutgoingCallCardProps = Readonly<{
 /**
  * - Purpose: show pre-connect progress and failure details before a call line row exists.
  * - Inputs: call projection fields and dialed number.
- * - Outputs: compact status card for connecting or failed outgoing attempts.
+ * - Outputs: operator-facing status card without technical diagnostics.
  */
 export function OutgoingCallCard({
-  callId,
   callState,
-  uiState,
   toneIndicator,
   numberValue,
   lastError,
-  lastDtmfTone,
 }: OutgoingCallCardProps): JSX.Element {
+  const statusLabel = mapCallStateLabel(callState);
+  const isFailed = callState === "Failed" || toneIndicator === "failed" || lastError !== null;
+
   return (
-    <section className={styles["card"]} data-testid="outgoing-call-card">
-      <h2 className={styles["title"]}>
-        <span className={styles["titleIcon"]}>
-          <AppIcon id="call.outgoing" decorative />
+    <section
+      className={clsx(styles["card"], isFailed && styles["cardFailed"])}
+      data-testid="outgoing-call-card"
+      aria-label="Исходящий звонок"
+    >
+      <div className={styles["header"]}>
+        <span className={styles["avatar"]} aria-hidden>
+          <AppIcon id="call.outgoing" size={16} decorative />
         </span>
-        Исходящий звонок
-      </h2>
-      <p data-testid="call-state-label">
-        <strong>Состояние:</strong> {mapCallStateLabel(callState)}
-      </p>
-      {toneIndicator !== "none" ? (
-        <p data-testid="tone-state-indicator">
-          <strong>Сигнал:</strong> {mapToneLabel(toneIndicator)}
-        </p>
-      ) : null}
-      <p data-testid="call-ui-state-label">
-        <strong>UI:</strong> {uiState}
-      </p>
-      <p>
-        <strong>Номер:</strong> {numberValue || "Неизвестно"}
-      </p>
-      {callId !== null ? (
-        <p>
-          <strong>ID звонка:</strong> {callId}
-        </p>
-      ) : null}
-      {lastDtmfTone !== null && (
-        <p>
-          <strong>Последний DTMF:</strong> {lastDtmfTone}
-        </p>
-      )}
-      {lastError !== null && (
+        <div className={styles["identity"]}>
+          <p className={styles["number"]}>{numberValue || "Неизвестный номер"}</p>
+          <p className={styles["status"]} data-testid="call-state-label">
+            {toneIndicator !== "none" ? mapToneLabel(toneIndicator) : statusLabel}
+          </p>
+        </div>
+      </div>
+      {lastError !== null ? (
         <p className={styles["error"]} data-testid="call-failed-alert" role="alert">
           {lastError}
         </p>
-      )}
+      ) : null}
     </section>
   );
 }

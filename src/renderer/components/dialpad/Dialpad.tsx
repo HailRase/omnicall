@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { useRef, type JSX, type KeyboardEvent } from "react";
+import { AppIcon } from "../icons/AppIcon.js";
 import { IconControlButton } from "../icons/index.js";
 import styles from "./Dialpad.module.css";
 
@@ -10,6 +11,7 @@ export type DialpadProps = Readonly<{
   mode: DialpadMode;
   isCalling: boolean;
   callDisabledReason: string | null;
+  hasEstablishedCall?: boolean;
   onNumberChange: (value: string) => void;
   onDelete: () => void;
   onCall: () => void;
@@ -17,12 +19,26 @@ export type DialpadProps = Readonly<{
   onModeChange: (mode: DialpadMode) => void;
 }>;
 
-const KEYS: ReadonlyArray<string> = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"];
+const KEYS: ReadonlyArray<readonly [string, string | null]> = [
+  ["1", null],
+  ["2", "ABC"],
+  ["3", "DEF"],
+  ["4", "GHI"],
+  ["5", "JKL"],
+  ["6", "MNO"],
+  ["7", "PQRS"],
+  ["8", "TUV"],
+  ["9", "WXYZ"],
+  ["*", null],
+  ["0", null],
+  ["#", null],
+];
+
 const LONG_PRESS_ZERO_MS = 450;
 
 /**
- * - Purpose: primary home-screen dialpad with split input and call action.
- * - Inputs: number value, mode, disabled reasons, and dial callbacks.
+ * - Purpose: reference-aligned number dialpad with full-width call action.
+ * - Inputs: number value, disabled reasons, established-call flag, dial callbacks.
  * - Outputs: accessible dialpad UI without business logic.
  * @uiMeta lf=LF-020 f=F-003,F-016 smoke=R7-*
  */
@@ -31,27 +47,28 @@ export function Dialpad({
   mode,
   isCalling,
   callDisabledReason,
+  hasEstablishedCall = false,
   onNumberChange,
   onDelete,
   onCall,
-  onSendDtmf,
-  onModeChange,
-}: DialpadProps): JSX.Element {
+}: DialpadProps): JSX.Element | null {
   const zeroPressTimeout = useRef<number | null>(null);
   const longPressTriggered = useRef(false);
   const isZeroPressing = useRef(false);
 
-  const handleKeyPress = (key: string): void => {
-    if (mode === "dtmf") {
-      onSendDtmf(key);
-      return;
-    }
+  if (mode === "dtmf") {
+    return null;
+  }
 
+  const showKeys = !hasEstablishedCall || numberValue.length > 0;
+  const canDial = callDisabledReason === null && numberValue.trim().length > 0 && !isCalling;
+
+  const handleKeyPress = (key: string): void => {
     onNumberChange(numberValue + key);
   };
 
   const handleKeyboard = (event: KeyboardEvent<HTMLElement>): void => {
-    if (event.key === "Enter" && callDisabledReason === null) {
+    if (event.key === "Enter" && canDial) {
       event.preventDefault();
       onCall();
       return;
@@ -63,23 +80,20 @@ export function Dialpad({
       return;
     }
 
-    if (event.key === "+" && mode === "number") {
+    if (event.key === "+") {
       event.preventDefault();
       onNumberChange(numberValue + "+");
       return;
     }
 
-    if (KEYS.includes(event.key)) {
+    const digit = KEYS.find(([key]) => key === event.key);
+    if (digit !== undefined) {
       event.preventDefault();
-      handleKeyPress(event.key);
+      handleKeyPress(digit[0]);
     }
   };
 
   const handleZeroPressStart = (): void => {
-    if (mode !== "number") {
-      return;
-    }
-
     isZeroPressing.current = true;
     longPressTriggered.current = false;
     zeroPressTimeout.current = window.setTimeout(() => {
@@ -112,75 +126,42 @@ export function Dialpad({
       onKeyDown={handleKeyboard}
       aria-label="Панель набора номера"
     >
-      <div className={styles["modeRow"]}>
-        <div className={styles["mode"]} role="group" aria-label="Режим набора">
-          <button
-            type="button"
-            className={clsx(styles["modeButton"], mode === "number" && styles["modeActive"])}
-            onClick={() => onModeChange("number")}
-            data-testid="dialpad-mode-number"
-          >
-            Номер
-          </button>
-          <button
-            type="button"
-            className={clsx(styles["modeButton"], mode === "dtmf" && styles["modeActive"])}
-            onClick={() => onModeChange("dtmf")}
-            data-testid="call-dtmf-toggle"
-          >
-            DTMF
-          </button>
-        </div>
-      </div>
-
-      <div className={styles["splitRow"]}>
-        <div className={styles["inputGroup"]}>
-          <input
-            id="dialpad-input"
-            className={styles["input"]}
-            value={numberValue}
-            onChange={(event) => onNumberChange(event.currentTarget.value)}
-            data-testid="dialpad-input"
-            aria-label="Поле ввода номера"
-            placeholder="Номер"
-          />
+      <div className={styles["inputRow"]}>
+        <span className={styles["inputDisplay"]} data-testid="dialpad-input" aria-label="Поле ввода номера">
           {numberValue.length > 0 ? (
-            <IconControlButton
-              iconId="overlay.close"
-              ariaLabel="Удалить цифру"
-              tooltipLabel="Удалить цифру"
-              testId="dialpad-delete"
-              className={styles["deleteButton"]}
-              onClick={onDelete}
-            />
-          ) : null}
-        </div>
-        <IconControlButton
-          iconId="dial.call"
-          ariaLabel={isCalling ? "Соединение выполняется" : "Позвонить"}
-          tooltipLabel={isCalling ? "Соединение выполняется" : "Позвонить"}
-          testId="dialpad-call"
-          className={clsx(styles["callButton"], isCalling && styles["callButtonBusy"])}
-          disabledReason={callDisabledReason}
-          disabled={isCalling}
-          onClick={onCall}
-        />
+            <span className={styles["inputValue"]}>{numberValue}</span>
+          ) : (
+            <span className={styles["inputPlaceholder"]}>Введите номер</span>
+          )}
+        </span>
+        {numberValue.length > 0 ? (
+          <IconControlButton
+            iconId="dial.delete"
+            ariaLabel="Удалить символ"
+            tooltipLabel="Удалить символ"
+            testId="dialpad-delete"
+            className={styles["deleteButton"]}
+            onClick={onDelete}
+          />
+        ) : null}
       </div>
 
-      <div className={styles["keys"]} role="group" aria-label="Клавиши набора">
-        {KEYS.map((key) => {
-          if (key === "0") {
-            if (mode === "dtmf") {
+      {showKeys ? (
+        <div className={styles["keys"]} role="group" aria-label="Клавиши набора">
+          {KEYS.map(([key, sublabel]) => {
+            if (key === "0") {
               return (
                 <button
                   key={key}
                   type="button"
                   className={styles["key"]}
                   data-testid="dialpad-key-0"
-                  aria-label="DTMF 0"
-                  onClick={() => handleKeyPress("0")}
+                  aria-label="Набрать 0"
+                  onMouseDown={handleZeroPressStart}
+                  onMouseUp={handleZeroPressEnd}
+                  onMouseLeave={handleZeroPressEnd}
                 >
-                  0
+                  <span className={styles["keyDigit"]}>0</span>
                 </button>
               );
             }
@@ -190,41 +171,42 @@ export function Dialpad({
                 key={key}
                 type="button"
                 className={styles["key"]}
-                data-testid="dialpad-key-0"
-                aria-label="Набрать 0"
-                onMouseDown={handleZeroPressStart}
-                onMouseUp={handleZeroPressEnd}
-                onMouseLeave={handleZeroPressEnd}
+                data-testid={`dialpad-key-${key}`}
+                aria-label={`Набрать ${key}`}
+                onClick={() => {
+                  handleKeyPress(key);
+                }}
               >
-                0
+                <span className={styles["keyDigit"]}>{key}</span>
+                {sublabel !== null ? (
+                  <span className={styles["keySub"]}>{sublabel}</span>
+                ) : null}
               </button>
             );
-          }
+          })}
+        </div>
+      ) : null}
 
-          return (
-            <button
-              key={key}
-              type="button"
-              className={styles["key"]}
-              data-testid={`dialpad-key-${key}`}
-              aria-label={mode === "dtmf" ? `DTMF ${key}` : `Набрать ${key}`}
-              onClick={() => handleKeyPress(key)}
-            >
-              {key}
-            </button>
-          );
-        })}
-      </div>
-
-      {callDisabledReason !== null && (
-        <p
-          className={styles["disabledReason"]}
-          data-testid="dialpad-disabled-reason"
-          role="status"
-        >
-          {callDisabledReason}
-        </p>
-      )}
+      <button
+        type="button"
+        className={clsx(
+          styles["callButton"],
+          canDial && styles["callButtonReady"],
+          isCalling && styles["callButtonBusy"],
+        )}
+        data-testid="dialpad-call"
+        aria-label={isCalling ? "Соединение выполняется" : "Позвонить"}
+        disabled={!canDial}
+        title={callDisabledReason ?? "Позвонить"}
+        onClick={onCall}
+      >
+        <AppIcon id="dial.call" size={18} decorative />
+        {!canDial && callDisabledReason !== null && numberValue.length === 0 ? (
+          <span className={styles["callButtonReason"]}>{callDisabledReason}</span>
+        ) : (
+          <span className={styles["callButtonLabel"]}>Позвонить</span>
+        )}
+      </button>
     </section>
   );
 }

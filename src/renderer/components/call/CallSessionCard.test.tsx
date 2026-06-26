@@ -1,0 +1,63 @@
+// @vitest-environment jsdom
+import "@testing-library/jest-dom/vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import type { CallLineCardViewModel } from "@application/index.js";
+import { CallSessionCard } from "./CallSessionCard.js";
+
+afterEach(() => {
+  cleanup();
+  vi.useRealTimers();
+});
+
+const line: CallLineCardViewModel = {
+  callId: "call-1",
+  role: "primary",
+  state: "Active",
+  muted: true,
+  isActiveUnheld: true,
+  displayName: "+12025550100",
+  statusLabel: "На линии",
+  durationStartedAt: Date.now() - 65_000,
+  queueLabelState: "ready",
+  queueName: "Продажи",
+  primaryAction: "hangup",
+  showIconRow: true,
+  resumeDisabledReason: null,
+  hangupDisabledReason: null,
+  holdDisabledReason: null,
+  muteDisabledReason: null,
+  unmuteDisabledReason: null,
+  transferDisabledReason: null,
+};
+
+describe("CallSessionCard", () => {
+  it("renders full card with status and mute badge", () => {
+    render(<CallSessionCard line={line} isActive />);
+
+    expect(screen.getByTestId("call-session-card-call-1")).toBeInTheDocument();
+    expect(screen.getByTestId("call-session-status-call-1")).toHaveTextContent("На линии");
+    expect(screen.getByTestId("call-session-muted-call-1")).toHaveTextContent("Микрофон выкл");
+    expect(screen.getByText("Продажи")).toBeInTheDocument();
+  });
+
+  it("renders compact held hint", () => {
+    render(
+      <CallSessionCard
+        line={{
+          ...line,
+          state: "Held",
+          isActiveUnheld: false,
+          statusLabel: "На удержании",
+          muted: false,
+        }}
+        compact
+        onClick={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("call-session-status-call-1")).toHaveTextContent(
+      "▶ Снять с удержания",
+    );
+  });
+});

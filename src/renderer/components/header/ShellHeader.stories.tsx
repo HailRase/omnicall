@@ -42,14 +42,12 @@ const noop = (): void => undefined;
 
 const baseHeaderArgs = {
   headerChrome,
-  collapsed: false,
   connectionRecoveryShell: recoveryShell,
   connectionRecoveryActions: {
     onManualRetry: noop,
     onSafeLogout: noop,
     onReregisterSip: noop,
   },
-  onToggleCollapse: noop,
   userAvatarMenu: {
     open: false,
     anchorRef: { current: null },
@@ -87,15 +85,8 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Expanded: Story = {
+export const Default: Story = {
   args: baseHeaderArgs,
-};
-
-export const Collapsed: Story = {
-  args: {
-    ...baseHeaderArgs,
-    collapsed: true,
-  },
 };
 
 export const AvatarAndDot: Story = {

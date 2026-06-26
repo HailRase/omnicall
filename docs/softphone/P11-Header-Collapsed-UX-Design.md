@@ -1,5 +1,7 @@
 # P11 WU3 — Header, Avatar, Collapsed Shell UX Design
 
+> **Superseded 2026-06-26:** shell collapse mode removed. Shell is always expanded; see `UX-UI-Design-Blueprint.md` § Shell layout.
+
 Phase **P11 WU3**. Legacy-inspired compact header strip and collapse behavior.
 
 Related: **LF-011**, **LF-076**, **LF-086** (avatar partial), collapse (P11 roadmap item 5/10). Feature: **F-016**.

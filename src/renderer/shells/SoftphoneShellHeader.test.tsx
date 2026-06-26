@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { HeaderChromeShellViewModel } from "@application/index.js";
 import { SoftphoneShellHeader } from "./SoftphoneShellHeader.js";
@@ -60,17 +60,14 @@ const userAvatarMenuActions = {
 };
 
 describe("SoftphoneShellHeader", () => {
-  it("renders avatar, registration dot, and collapse toggle", () => {
-    const onToggleCollapse = vi.fn();
+  it("renders avatar and registration dot", () => {
     render(
       <SoftphoneShellHeader
         headerChrome={headerChrome}
-        collapsed={false}
         connectionRecoveryShell={recoveryShell}
         connectionRecoveryActions={{ onReregisterSip: vi.fn(), onManualRetry: vi.fn(), onSafeLogout: vi.fn() }}
         userAvatarMenu={userAvatarMenu}
         userAvatarMenuActions={userAvatarMenuActions}
-        onToggleCollapse={onToggleCollapse}
       />,
     );
 
@@ -79,15 +76,13 @@ describe("SoftphoneShellHeader", () => {
     expect(screen.getByTestId("registration-status-dot")).toBeInTheDocument();
     expect(screen.queryByTestId("control-open-settings")).not.toBeInTheDocument();
     expect(screen.queryByTestId("control-end-session")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByTestId("control-toggle-collapse"));
-    expect(onToggleCollapse).toHaveBeenCalledOnce();
+    expect(screen.queryByTestId("control-toggle-collapse")).not.toBeInTheDocument();
   });
 
-  it("hides recovery row when collapsed", () => {
+  it("shows SIP re-register control when recovery shell requests it", () => {
     render(
       <SoftphoneShellHeader
         headerChrome={headerChrome}
-        collapsed
         connectionRecoveryShell={{
           ...recoveryShell,
           showReregisterSipControl: true,
@@ -95,15 +90,10 @@ describe("SoftphoneShellHeader", () => {
         connectionRecoveryActions={{ onReregisterSip: vi.fn(), onManualRetry: vi.fn(), onSafeLogout: vi.fn() }}
         userAvatarMenu={userAvatarMenu}
         userAvatarMenuActions={userAvatarMenuActions}
-        onToggleCollapse={vi.fn()}
       />,
     );
 
-    expect(screen.queryByTestId("control-reregister-sip")).not.toBeInTheDocument();
-    expect(screen.getByTestId("control-toggle-collapse")).toHaveAttribute(
-      "aria-label",
-      "Развернуть софтфон",
-    );
+    expect(screen.getByTestId("control-reregister-sip")).toBeInTheDocument();
   });
 
   it("shows avatar recovery ring during SIP re-registration countdown", () => {
@@ -113,7 +103,6 @@ describe("SoftphoneShellHeader", () => {
           ...headerChrome,
           registrationDotVariant: "failed",
         }}
-        collapsed={false}
         connectionRecoveryShell={{
           ...recoveryShell,
           showAvatarRecoveryRing: true,
@@ -127,7 +116,6 @@ describe("SoftphoneShellHeader", () => {
         connectionRecoveryActions={{ onReregisterSip: vi.fn(), onManualRetry: vi.fn(), onSafeLogout: vi.fn() }}
         userAvatarMenu={userAvatarMenu}
         userAvatarMenuActions={userAvatarMenuActions}
-        onToggleCollapse={vi.fn()}
       />,
     );
 
@@ -142,7 +130,6 @@ describe("SoftphoneShellHeader", () => {
           ...headerChrome,
           registrationDotVariant: "failed",
         }}
-        collapsed={false}
         connectionRecoveryShell={{
           ...recoveryShell,
           showAvatarRecoveryRing: true,
@@ -155,7 +142,6 @@ describe("SoftphoneShellHeader", () => {
         connectionRecoveryActions={{ onReregisterSip: vi.fn(), onManualRetry: vi.fn(), onSafeLogout: vi.fn() }}
         userAvatarMenu={userAvatarMenu}
         userAvatarMenuActions={userAvatarMenuActions}
-        onToggleCollapse={vi.fn()}
       />,
     );
 

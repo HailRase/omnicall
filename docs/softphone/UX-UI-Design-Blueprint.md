@@ -57,18 +57,9 @@ Desktop softphone shell:
 └──────────────────────────────┘
 ```
 
-## Collapsed Layout
+## Shell layout (always expanded)
 
-Collapsed shell must show:
-
-- operator status
-- phone status
-- active call indicator
-- ringing indicator
-- reconnect indicator
-- quick expand action
-
-Collapsed mode must not hide critical failure state.
+The main softphone shell is **always fully expanded**. Dialpad and call context remain visible even when SIP is not registered; outbound call is disabled with a visible reason until registration succeeds.
 
 ## Electron Window UX
 

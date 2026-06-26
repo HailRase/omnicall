@@ -16,7 +16,6 @@ import { useSettingsActions } from "../hooks/useSettingsActions.js";
 import { useUserAvatarMenu } from "../hooks/useUserAvatarMenu.js";
 import { useUserAvatarMenuActions } from "../hooks/useUserAvatarMenuActions.js";
 import type { useSoftphoneShellChrome } from "../hooks/useSoftphoneShellChrome.js";
-import { useShellCollapse } from "../hooks/useShellCollapse.js";
 import { useSoftphoneProjections } from "../hooks/useSoftphoneProjections.js";
 import { SoftphoneLayout } from "../widgets/SoftphoneLayout/SoftphoneLayout.js";
 import { CallContextShell } from "./call/CallContextShell.js";
@@ -57,7 +56,6 @@ export function SoftphoneReadyShell({
     sessionLogoutActions,
   });
   const [settingsSidebarExpanded, setSettingsSidebarExpanded] = useState(false);
-  const { collapsed, toggleCollapsed } = useShellCollapse();
   const headerChrome = useHeaderChromeShell();
   const userAvatarMenu = useUserAvatarMenu();
   const userAvatarMenuActions = useUserAvatarMenuActions({
@@ -87,33 +85,26 @@ export function SoftphoneReadyShell({
 
   return (
     <SoftphoneLayout
-      collapsed={collapsed}
       header={
         <>
           <SoftphoneShellHeader
             headerChrome={headerChrome}
-            collapsed={collapsed}
             connectionRecoveryShell={connectionRecoveryShell}
             connectionRecoveryActions={connectionRecoveryActions}
             userAvatarMenu={userAvatarMenu}
             userAvatarMenuActions={userAvatarMenuActions}
-            onToggleCollapse={toggleCollapsed}
           />
-          {!collapsed ? <OperatorFeatureShell facade={facade} /> : null}
+          <OperatorFeatureShell facade={facade} />
         </>
       }
       context={
         <>
-          {!collapsed ? (
-            <>
-              <AuthStateView state={projection.authUiState} lastError={projection.lastError} />
-              <SessionFeatureShell sessionLogoutActions={sessionLogoutActions} />
-            </>
-          ) : null}
-          <CallContextShell bindings={callBindings} collapsed={collapsed} />
+          <AuthStateView state={projection.authUiState} lastError={projection.lastError} />
+          <SessionFeatureShell sessionLogoutActions={sessionLogoutActions} />
+          <CallContextShell bindings={callBindings} />
         </>
       }
-      controls={collapsed ? null : <CallControlsShell bindings={callBindings} />}
+      controls={<CallControlsShell bindings={callBindings} />}
       overlays={
         <>
           <OcpToastStack

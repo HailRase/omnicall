@@ -22,9 +22,7 @@
 | `settings.headset` | Settings headset section | `Headphones` | — | `SettingsSidebar` | active |
 | `settings.nav.expand` | Expand settings sidebar | `ChevronRight` | `ChevronRightIcon` | `SettingsSidebar` | active |
 | `settings.nav.collapse` | Collapse settings sidebar | `ChevronLeft` | `ChevronLeftIcon` | `SettingsSidebar` | active |
-| `shell.collapse` | Collapse shell strip | `PanelLeftClose` | `PanelLeftCloseIcon` | `SoftphoneShellHeader` | active |
-| `shell.expand` | Expand shell | `PanelLeftOpen` | `PanelLeftOpenIcon` | `SoftphoneShellHeader` | active |
-| `session.end` | End user session | `LogOut` | `LogoutIcon` | `SoftphoneShellHeader`, `LogoutActiveSessionConfirmationModal`, `ConnectionOverlay` | active |
+| `session.end` | End user session | `LogOut` | `LogoutIcon` | `UserAvatarMenu`, `LogoutActiveSessionConfirmationModal`, `ConnectionOverlay` | active |
 | `sip.reregister` | Manual SIP re-register | `RefreshCcw` | `RefreshCcwIcon` | `SoftphoneShellHeader` | active |
 | `call.answer` | Answer ringing call | `PhoneCall` | `PhoneCallIcon` | `IncomingCallActions`, `CallLineRow` | active |
 | `call.reject` | Reject incoming call | `PhoneOff` | `PhoneOffIcon` | `IncomingCallActions`, `CampaignEventModal` | active |

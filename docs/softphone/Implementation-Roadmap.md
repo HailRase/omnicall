@@ -649,7 +649,7 @@ Before declaring parity:
 5. Check host API compatibility.
 6. Check reconnect and shutdown.
 7. Check headset flows.
-8. Check UX states for loading, error, ringing, active, failed, disconnected, collapsed.
+8. Check UX states for loading, error, ringing, active, failed, disconnected.
 9. Check no forbidden dependency exists.
 10. Check ADRs for all intentional deviations.
 

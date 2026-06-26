@@ -139,10 +139,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     ? operatorStatusProjection.allowedBreakReasons
     : [];
 
-  const sipRegistered = projection.authUiState === "sip_registered";
-
   return {
-    sipRegistered,
     projection,
     callProjection,
     activeCallControlsProjection,

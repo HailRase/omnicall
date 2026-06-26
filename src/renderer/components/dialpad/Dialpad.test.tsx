@@ -10,11 +10,14 @@ afterEach(() => {
 
 describe("Dialpad", () => {
   it("disables call button when number is invalid", () => {
-    renderDialpad({ callDisabledReason: "Invalid number" });
+    renderDialpad({ callDisabledReason: "Неверный номер", numberValue: "12" });
     expect(screen.getByTestId("dialpad-call")).toBeDisabled();
-    expect(screen.getByTestId("dialpad-disabled-reason")).toHaveTextContent(
-      "Invalid number",
-    );
+  });
+
+  it("shows disabled reason on call button when idle without digits", () => {
+    renderDialpad({ callDisabledReason: "SIP не зарегистрирован" });
+    expect(screen.getByTestId("dialpad-call")).toBeDisabled();
+    expect(screen.getByTestId("dialpad-call")).toHaveTextContent("SIP не зарегистрирован");
   });
 
   it("does not insert zero on hover leave without press", () => {
@@ -64,33 +67,25 @@ describe("Dialpad", () => {
 
   it("calls make-call binding on call button press", () => {
     const onCall = vi.fn();
-    renderDialpad({ callDisabledReason: null, onCall });
+    renderDialpad({ callDisabledReason: null, numberValue: "12345", onCall });
     fireEvent.click(screen.getByTestId("dialpad-call"));
     expect(onCall).toHaveBeenCalledTimes(1);
   });
 
-  it("sends DTMF in active call mode", () => {
-    const onSendDtmf = vi.fn();
-    renderDialpad({ mode: "dtmf", onSendDtmf });
-    fireEvent.click(screen.getByTestId("dialpad-key-5"));
-    expect(onSendDtmf).toHaveBeenCalledWith("5");
+  it("hides keypad when established call exists and input is empty", () => {
+    renderDialpad({ hasEstablishedCall: true, numberValue: "" });
+    expect(screen.queryByTestId("dialpad-key-1")).not.toBeInTheDocument();
   });
 
-  it("sends DTMF zero on click without hover side effects", () => {
-    const onSendDtmf = vi.fn();
-    renderDialpad({ mode: "dtmf", onSendDtmf });
-
-    fireEvent.mouseLeave(screen.getByTestId("dialpad-key-0"));
-    fireEvent.click(screen.getByTestId("dialpad-key-0"));
-
-    expect(onSendDtmf).toHaveBeenCalledTimes(1);
-    expect(onSendDtmf).toHaveBeenCalledWith("0");
+  it("returns null in dtmf mode", () => {
+    const { container } = renderDialpad({ mode: "dtmf" });
+    expect(container).toBeEmptyDOMElement();
   });
 });
 
 type DialpadOverrides = Partial<Parameters<typeof Dialpad>[0]>;
 
-function renderDialpad(overrides: DialpadOverrides = {}): void {
+function renderDialpad(overrides: DialpadOverrides = {}): ReturnType<typeof render> {
   const props: Parameters<typeof Dialpad>[0] = {
     numberValue: "",
     mode: "number",
@@ -103,5 +98,5 @@ function renderDialpad(overrides: DialpadOverrides = {}): void {
     onModeChange: vi.fn(),
     ...overrides,
   };
-  render(<Dialpad {...props} />);
+  return render(<Dialpad {...props} />);
 }

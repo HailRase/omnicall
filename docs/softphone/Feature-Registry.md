@@ -436,7 +436,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Status: **in_progress** (P11 WU0–WU5 + UI-4 **done**; **T-001** icon tooltips, **T-002** AppIcon, **T-005** fullscreen settings, **post-WU5 shell polish**, **LF-082 light/dark theme** done 2026-06-26; open: UI-6 Radix modals, draggable LF-056, toast LF-060)
 - Owner: TBD
 - Inputs: user settings, account identity, shell interactions
-- Outputs: persisted settings, collapsed UI state, theme, menu projections
+- Outputs: persisted settings, theme, menu projections
 - Acceptance Criteria:
   - Settings are per-user and validated.
   - **UserSettings v1** aggregate persisted per `SettingsAccountKey` with migration from v0 fragments.
@@ -449,25 +449,26 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - **Compact registration dot** on header avatar reflects SIP registration and phone status (LF-011); gray idle, red on transport/registration fault, amber while retry pending.
   - **Avatar recovery ring** shows SIP registration recovery on avatar: countdown centered with blur during auto-retry; reload icon when auto-retry off or attempts exhausted; no fullscreen overlay for registration recovery (LF-009).
   - **Avatar user menu** on click: settings (animated icon), DND toggle (orange when active), logout (LF-086); settings are not duplicated in shell header.
-  - **Dialpad home screen:** controls zone first; `CallSessionTabs` above split input+call dialpad; compact `ActiveCallQuickBar` for active line; inline delete in input (F-003/F-004 UI).
-  - **Collapse toggle** minimizes shell to ~56px strip; ContextZone compact `CallLineRow` stays mounted.
+  - **Call UI skeleton (design parity 2026-06-26):** context zone top (sessions/idle/DTMF); controls zone bottom (labeled `CallControlsBar` + reference dialpad); vertical `CallSessionStack` for multi-call; `CallSessionCard` for single call; `CallIdleEmptyState` when idle.
+  - **Shell always expanded (2026-06-26):** no collapse strip; dialpad and context visible before SIP registration; call button disabled with reason until registered.
+  - Operator status selector always visible in header zone.
   - **Icon-only controls:** semantic `AppIcon` + 1s hover tooltip via `IconControlButton`; `aria-label` preserved (T-001 done).
   - **Theme (LF-082):** light default; `theme` in UserSettings; segmented control in General settings; `applyAppTheme` sets `data-theme` on documentElement; semantic tokens in `tokens.css` for light and dark.
   - **Shell window layout (F-016):** compact mode anchors bottom-right on startup; settings overlay expands window to 1000px width centered; closing restores prior compact width at bottom-right; animation 280ms aligned with settings panel slide; `prefers-reduced-motion` skips animation.
 - Test Coverage:
   - Unit: `validateUserSettings`, `migrateUserSettings`, `InMemorySettingsRepository` / `FileSettingsRepository` round-trip; `ShellWindowLayout`, `ShellWindowLayoutService`
   - Integration: facade `updateMultiCallSettings`, `getUserSettingsForAccount`, `saveUserSettings`, `refreshUserSettingsProjections`
-  - Component: `SettingsPanel`, `SettingsFullscreenOverlay`, `SettingsSidebar`, section panels; `UserAvatar`, `RegistrationStatusDot`, collapsed `SoftphoneShellHeader`; `IconTooltip.test.tsx` (T-001); Storybook layout + settings overlay (WU0+)
-  - E2E: settings and collapsed shell UX
+  - Component: `SettingsPanel`, `SettingsFullscreenOverlay`, `SettingsSidebar`, section panels; `UserAvatar`, `RegistrationStatusDot`, `SoftphoneShellHeader`; `IconTooltip.test.tsx` (T-001); Storybook layout + settings overlay (WU0+)
+  - E2E: settings and shell UX
 - Implementation evidence (WU1): `SettingsRepository.setMultiCallSettings`, `AccountBootstrapFacade.updateMultiCallSettings`, `useSettingsActions`, `SettingsOverlay`, `applyMultiCallSettings` store refresh
 - Implementation evidence (WU2): `CallLineRow`, `deriveCallLineStatusLabel`, `deriveCallLinesShell` (visible `>=1` line), `useCallLineRowShell`, `useCallLinesActions` per-line hold/mute/transfer, `ConnectionOverlay` blocking scrim, `OutgoingCallCard` pre-line-only
-- Implementation evidence (WU3): `deriveHeaderChromeShell`, `useHeaderChromeShell`, `useShellCollapse`, `UserAvatar`, `RegistrationStatusDot`, collapsed `SoftphoneLayout`, `CallLineRow` compact variant, `P11-Header-Collapsed-UX-Design.md`
+- Implementation evidence (WU3): `deriveHeaderChromeShell`, `useHeaderChromeShell`, `UserAvatar`, `RegistrationStatusDot` — **shell collapse removed 2026-06-26**
 - Implementation evidence (WU4): `UserSettings` v1, `validateUserSettings`, `migrateUserSettings`, `SettingsRepository.getUserSettings`/`saveUserSettings`, `FileSettingsRepository`, facade `getUserSettingsForAccount`/`saveUserSettings`/`refreshUserSettingsProjections`, `P11-Settings-Schema-Design.md`
 - Implementation evidence (UI-4 **complete**): WU5 slices A–I + final gate — `styles.css` deleted; `globals.css` owns reset/body/focus-visible; all renderer panels/modals/shells on `*.module.css`; `handoffs/P11-WU5-UI-4-Final-Gate-Handoff.md`
 - Implementation evidence (UI-4 modules): `src/renderer/styles/tokens.css`, `globals.css`, `UserAvatar.module.css`, `RegistrationStatusDot.module.css`, `SoftphoneShellHeader.module.css` (WU5 Slice A), `SettingsOverlay.module.css`, `ShellOverlaySheet.module.css` (WU5 Slice B), `CallLineRow.module.css` (WU5 Slice C), `Dialpad.module.css` (WU5 Slice D), `ActiveCallControlsPanel.module.css`, `OutgoingCallCard.module.css`, `IncomingCallModal.module.css`, `IncomingCallActions.module.css` (WU5 Slice E), `ConnectionOverlay.module.css` (WU5 Slice F), `App.module.css`, `SoftphoneLayout.module.css`, `ShellChromeText.module.css`, `CallLinesShell.module.css`, `CallContextShell.module.css` (WU5 Slice G), `BootstrapPanel.module.css`, `AccountPanel.module.css`, `AuthStateView.module.css`, `PhoneStatusBadge.module.css` (WU5 Slice H), `DialogPanel.module.css`, `TransferPanel.module.css`, `StatusSelector.module.css`, `OcpToastStack.module.css`, modals + `CallControlsShell.module.css` (WU5 Slice I), `P11-CSS-Modules-Tokens-Migration.md`, WU5 slice handoffs `P11-WU5-Slice-A` through `P11-WU5-Slice-I`
 - Implementation evidence (icon tooltips **T-001 done**): `IconTooltip`, `IconControlButton`, `iconTooltipDelay.ts`, `IconTooltip.test.tsx`; 1s hover delay (`prefers-reduced-motion: reduce` → instant); wired on all icon-only controls; gate `handoffs/P11-Icon-Tooltips-Agent-Prompt.md` (2026-06-25)
 - Implementation evidence (T-005 settings UX **done**): `SettingsFullscreenOverlay`, `SettingsPanel`, `SettingsSidebar`, `settingsSections.ts`, section panels (`SettingsGeneralPanel`, `SettingsSessionsPanel`, `SettingsAccountPanel`, `SettingsDiagnosticsPanel`, `SettingsCodecsPanel`, `SettingsHeadsetPanel`); header diagnostics opens settings diagnostics section; 7 new settings nav icons in `iconCatalog.ts` (2026-06-26)
-- Implementation evidence (dialpad home **2026-06-26**): `CallSessionTab`, `CallSessionTabs`, `ActiveCallQuickBar`, redesigned `Dialpad` split input, `CallControlsShell` stack, `SoftphoneLayout` controls-first; `CallContextShell` full rows only in collapsed mode; gate `handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`
+- Implementation evidence (dialpad home **2026-06-26**): `CallSessionStack`, `CallSessionCard`, `CallControlsBar`, `DtmfKeypadPanel`, reference `Dialpad`; gate `handoffs/P11-Call-UI-Design-Parity-Handoff.md`
 - Implementation evidence (avatar recovery ring **2026-06-26**): `AvatarRecoveryRing` (countdown on avatar with blur, reload overlay), `deriveConnectionRecoveryShell` (`manual_retry_available` registration → avatar reload, no overlay), `deriveHeaderChromeShell` connection-aware dot colors; LF-009, LF-011
 - Implementation evidence (shell window layout **2026-06-26**): `ShellWindowLayout`, `ShellWindowLayoutService`, `ShellWindowGateway`, `ShellWindowController`, `shell:apply-window-layout` IPC, `useShellWindowLayout`; LF-055, LF-056 (anchor)
 - Implementation evidence (icons foundation): `lucide-react`, `lucide-animated`, `motion`, `AppIcon`, `iconCatalog.ts`, `Icon-Registry.md`, `Icon-Agent-Guide.md`, `.cursor/rules/icons.mdc`, `.cursor/skills/icons/SKILL.md`
