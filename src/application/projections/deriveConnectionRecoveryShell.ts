@@ -10,6 +10,7 @@ import type {
 export type ConnectionRecoveryShellView = Readonly<{
   showOverlay: boolean;
   isBlocking: boolean;
+  showAvatarRecoveryRing: boolean;
   showOcpRow: boolean;
   showSipRow: boolean;
   retryDisabledReason: string | null;
@@ -30,9 +31,12 @@ export function deriveConnectionRecoveryShell(
 ): ConnectionRecoveryShellView {
   const { connectionState } = projection;
 
+  const avatarRecoveryRing = isSipRegistrationRecoveryInFlight(projection);
+
   return {
-    showOverlay: connectionState !== "connected",
+    showOverlay: connectionState !== "connected" && !avatarRecoveryRing,
     isBlocking: deriveIsBlockingOverlay(projection),
+    showAvatarRecoveryRing: avatarRecoveryRing,
     showOcpRow: deriveShowOcpRow(projection),
     showSipRow: deriveShowSipRow(projection),
     retryDisabledReason: deriveRetryConnectionDisabledReason(projection),
@@ -44,8 +48,22 @@ export function deriveConnectionRecoveryShell(
   };
 }
 
+function isSipRegistrationRecoveryInFlight(
+  projection: ConnectionRecoveryProjection,
+): boolean {
+  return (
+    projection.connectionState === "reconnecting" &&
+    projection.sipRecoveryMode === "registration" &&
+    projection.sipReconnectAttempt !== null
+  );
+}
+
 function deriveIsBlockingOverlay(projection: ConnectionRecoveryProjection): boolean {
   const { connectionState, sipReconnectAttempt } = projection;
+
+  if (isSipRegistrationRecoveryInFlight(projection)) {
+    return false;
+  }
 
   if (connectionState === "server_terminate") {
     return true;

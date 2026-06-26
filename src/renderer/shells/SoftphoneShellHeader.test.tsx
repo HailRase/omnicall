@@ -20,6 +20,7 @@ const headerChrome: HeaderChromeShellViewModel = {
 const recoveryShell = {
   showOverlay: false,
   isBlocking: false,
+  showAvatarRecoveryRing: false,
   showOcpRow: false,
   showSipRow: false,
   retryDisabledReason: null,
@@ -125,5 +126,34 @@ describe("SoftphoneShellHeader", () => {
       "aria-label",
       "Развернуть софтфон",
     );
+  });
+
+  it("shows avatar recovery ring during SIP re-registration countdown", () => {
+    render(
+      <SoftphoneShellHeader
+        headerChrome={{
+          ...headerChrome,
+          registrationDotVariant: "failed",
+        }}
+        collapsed={false}
+        connectionRecoveryShell={{
+          ...recoveryShell,
+          showAvatarRecoveryRing: true,
+          connectionState: "reconnecting",
+          sipRecoveryMode: "registration",
+          reconnectCountdownSeconds: 7,
+          sipReconnectAttempt: 1,
+        }}
+        connectionRecoveryActions={{ onReregisterSip: vi.fn(), onManualRetry: vi.fn(), onSafeLogout: vi.fn() }}
+        sessionLogoutActions={sessionLogoutActions}
+        userAvatarMenu={userAvatarMenu}
+        userAvatarMenuActions={userAvatarMenuActions}
+        onToggleCollapse={vi.fn()}
+        onOpenSettings={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("avatar-recovery-ring")).toHaveAttribute("data-visible", "true");
+    expect(screen.getByTestId("avatar-recovery-countdown")).toHaveTextContent("7");
   });
 });

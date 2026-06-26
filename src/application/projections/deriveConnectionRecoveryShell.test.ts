@@ -45,7 +45,7 @@ describe("deriveConnectionRecoveryShell", () => {
     expect(shell.showSipRow).toBe(false);
   });
 
-  it("blocks overlay when SIP reconnecting", () => {
+  it("routes SIP registration recovery to avatar ring instead of blocking overlay", () => {
     let projection = reduceConnectionRecoveryProjection(initialConnectionRecoveryProjection(), {
       type: "RegistrationFailed",
       correlationId,
@@ -62,7 +62,9 @@ describe("deriveConnectionRecoveryShell", () => {
     );
 
     const shell = deriveConnectionRecoveryShell(projection);
-    expect(shell.isBlocking).toBe(true);
+    expect(shell.isBlocking).toBe(false);
+    expect(shell.showOverlay).toBe(false);
+    expect(shell.showAvatarRecoveryRing).toBe(true);
     expect(shell.showSipRow).toBe(true);
     expect(projection.sipRecoveryMode).toBe("registration");
   });

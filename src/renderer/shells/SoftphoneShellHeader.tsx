@@ -7,6 +7,7 @@ import type { UseSessionLogoutActionsResult } from "../hooks/useSessionLogoutAct
 import type { UseUserAvatarMenuActionsResult } from "../hooks/useUserAvatarMenuActions.js";
 import type { UseUserAvatarMenuResult } from "../hooks/useUserAvatarMenu.js";
 import { IconControlButton } from "../components/icons/index.js";
+import { AvatarRecoveryRing } from "../components/header/AvatarRecoveryRing.js";
 import { RegistrationStatusDot } from "../components/header/RegistrationStatusDot.js";
 import { UserAvatar } from "../components/header/UserAvatar.js";
 import { UserAvatarMenu } from "../components/header/UserAvatarMenu.js";
@@ -50,6 +51,15 @@ export function SoftphoneShellHeader({
       <div className={styles["headerBar"]}>
         <div className={styles["headerBrand"]}>
           <div className={styles["avatarGroup"]}>
+          <AvatarRecoveryRing
+            visible={connectionRecoveryShell.showAvatarRecoveryRing}
+            countdownSeconds={connectionRecoveryShell.reconnectCountdownSeconds}
+            inProgress={
+              connectionRecoveryShell.showAvatarRecoveryRing &&
+              connectionRecoveryShell.reconnectCountdownSeconds === null &&
+              connectionRecoveryShell.connectionState === "reconnecting"
+            }
+          >
             <UserAvatar
               ref={userAvatarMenu.anchorRef}
               initials={headerChrome.avatarInitials}
@@ -61,6 +71,7 @@ export function SoftphoneShellHeader({
               variant={headerChrome.registrationDotVariant}
               label={headerChrome.registrationDotAriaLabel}
             />
+          </AvatarRecoveryRing>
             <UserAvatarMenu
               open={userAvatarMenu.open}
               menuRef={userAvatarMenu.menuRef}

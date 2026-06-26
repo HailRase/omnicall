@@ -10,9 +10,12 @@
 | `AccountPanel` | `src/renderer/components/account/AccountPanel.tsx` | `—` | account-panel, account-authorize, account-logout, account-error | — |
 | `AuthStateView` | `src/renderer/components/auth/AuthStateView.tsx` | `—` | — | — |
 | `ActiveCallControlsPanel` | `src/renderer/components/call/ActiveCallControlsPanel.tsx` | `ActiveCallControlsPanelProps` | active-call-controls, active-call-mute-indicator, active-call-control-error, control-disabled-reason | — |
+| `ActiveCallQuickBar` | `src/renderer/components/call/ActiveCallQuickBar.tsx` | `ActiveCallQuickBarProps` | active-call-quick-bar | lf=LF-022,LF-023 f=F-004,F-016 smoke=R7- |
 | `AutoAnswerCountdown` | `src/renderer/components/call/AutoAnswerCountdown.tsx` | `AutoAnswerCountdownProps` | auto-answer-countdown | — |
 | `CallLineRow` | `src/renderer/components/call/CallLineRow.tsx` | `CallLineRowProps` | — | lf=LF-011,LF-021,LF-022,LF-023 f=F-016 smoke=R7- |
 | `CallLinesShell` | `src/renderer/components/call/CallLinesShell.tsx` | `CallLinesShellProps` | call-lines-panel, multi-call-policy-error | — |
+| `CallSessionTab` | `src/renderer/components/call/CallSessionTab.tsx` | `CallSessionTabProps` | — | lf=LF-021,LF-022 f=F-016 smoke=R7- |
+| `CallSessionTabs` | `src/renderer/components/call/CallSessionTabs.tsx` | `CallSessionTabsProps` | call-session-tabs, multi-call-policy-error | lf=LF-021 f=F-016 smoke=R7- |
 | `CallerIdentityBlock` | `src/renderer/components/call/CallerIdentityBlock.tsx` | `CallerIdentityBlockProps` | caller-identity, incoming-campaign-context | — |
 | `CampaignEventModal` | `src/renderer/components/call/CampaignEventModal.tsx` | `CampaignEventModalProps` | campaign-event-modal, campaign-modal-error, campaign-disabled-reason | — |
 | `IncomingCallActions` | `src/renderer/components/call/IncomingCallActions.tsx` | `IncomingCallActionsProps` | incoming-answer-disabled-reason | — |
@@ -24,7 +27,8 @@
 | `QueueInfoLabel` | `src/renderer/components/call/QueueInfoLabel.tsx` | `QueueInfoLabelProps` | queue-info-label | — |
 | `RejectReasonSelector` | `src/renderer/components/call/RejectReasonSelector.tsx` | `RejectReasonSelectorProps` | reject-reason-select | — |
 | `TransferPanel` | `src/renderer/components/call/TransferPanel.tsx` | `TransferPanelProps` | transfer-panel, transfer-in-progress-indicator, transfer-failure-banner, transfer-target-input, transfer-disabled-reason | — |
-| `Dialpad` | `src/renderer/components/dialpad/Dialpad.tsx` | `DialpadProps` | dialpad-panel, dialpad-mode-number, call-dtmf-toggle, dialpad-input, dialpad-key-0, dialpad-key-0, dialpad-disabled-reason | — |
+| `Dialpad` | `src/renderer/components/dialpad/Dialpad.tsx` | `DialpadProps` | dialpad-panel, dialpad-mode-number, call-dtmf-toggle, dialpad-input, dialpad-key-0, dialpad-key-0, dialpad-disabled-reason | lf=LF-020 f=F-003,F-016 smoke=R7- |
+| `AvatarRecoveryRing` | `src/renderer/components/header/AvatarRecoveryRing.tsx` | `AvatarRecoveryRingProps` | avatar-recovery-ring, avatar-recovery-countdown | lf=LF-009,LF-011 f=F-016 smoke=R7- |
 | `RegistrationStatusDot` | `src/renderer/components/header/RegistrationStatusDot.tsx` | `RegistrationStatusDotProps` | registration-status-dot | lf=LF-011 f=F-016 smoke=R7- |
 | `UserAvatarMenu` | `src/renderer/components/header/UserAvatarMenu.tsx` | `UserAvatarMenuProps` | user-avatar-menu, user-menu-open-settings, user-menu-toggle-dnd, user-menu-logout | lf=LF-086 f=F-016 smoke=R7- |
 | `AppIcon` | `src/renderer/components/icons/AppIcon.tsx` | `AppIconProps` | — | — |
@@ -58,7 +62,7 @@
 | `CallContextShell` | `src/renderer/shells/call/CallContextShell.tsx` | `—` | call-context-zone, sip-registered-hint | — |
 | `CallControlsShell` | `src/renderer/shells/call/CallControlsShell.tsx` | `—` | call-controls-zone, remote-audio-mount | — |
 | `CallOverlayShell` | `src/renderer/shells/call/CallOverlayShell.tsx` | `—` | — | — |
-| `SoftphoneLayout` | `src/renderer/widgets/SoftphoneLayout/SoftphoneLayout.tsx` | `SoftphoneLayoutProps` | softphone-layout, layout-header-zone, layout-context-zone, layout-controls-zone, layout-overlay-layer | lf=LF-011 f=F-014 smoke=R7- |
+| `SoftphoneLayout` | `src/renderer/widgets/SoftphoneLayout/SoftphoneLayout.tsx` | `SoftphoneLayoutProps` | softphone-layout, layout-header-zone, layout-controls-zone, layout-context-zone, layout-overlay-layer | lf=LF-011 f=F-014 smoke=R7- |
 
 ## Usage
 

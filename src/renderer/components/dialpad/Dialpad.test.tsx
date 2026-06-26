@@ -49,16 +49,17 @@ describe("Dialpad", () => {
     vi.useRealTimers();
   });
 
-  it("supports delete and clear actions", () => {
+  it("shows inline delete when number has digits", () => {
     const onDelete = vi.fn();
-    const onClear = vi.fn();
-    renderDialpad({ onDelete, onClear });
+    renderDialpad({ numberValue: "123", onDelete });
 
     fireEvent.click(screen.getByTestId("dialpad-delete"));
-    fireEvent.click(screen.getByTestId("dialpad-clear"));
-
     expect(onDelete).toHaveBeenCalledTimes(1);
-    expect(onClear).toHaveBeenCalledTimes(1);
+  });
+
+  it("hides inline delete when number is empty", () => {
+    renderDialpad({ numberValue: "" });
+    expect(screen.queryByTestId("dialpad-delete")).not.toBeInTheDocument();
   });
 
   it("calls make-call binding on call button press", () => {
@@ -97,7 +98,6 @@ function renderDialpad(overrides: DialpadOverrides = {}): void {
     callDisabledReason: null,
     onNumberChange: vi.fn(),
     onDelete: vi.fn(),
-    onClear: vi.fn(),
     onCall: vi.fn(),
     onSendDtmf: vi.fn(),
     onModeChange: vi.fn(),
@@ -105,4 +105,3 @@ function renderDialpad(overrides: DialpadOverrides = {}): void {
   };
   render(<Dialpad {...props} />);
 }
-

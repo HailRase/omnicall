@@ -3,7 +3,7 @@
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
 **Updated:** 2026-06-26  
-**Tests:** 711 passed, 1 skipped (`npm run test`) — T-005 fullscreen settings gate  
+**Tests:** 743 passed, 1 skipped (`npm run test`) — dialpad home screen with call session tabs  
 **Lint / typecheck:** green (last verified 2026-06-26)
 
 ## Active phase

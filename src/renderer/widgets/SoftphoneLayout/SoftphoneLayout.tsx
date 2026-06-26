@@ -33,11 +33,11 @@ export function SoftphoneLayout({
         {header}
       </div>
       <div className={styles["main"]}>
-        <div className={styles["context"]} data-testid="layout-context-zone">
-          {context}
-        </div>
         <div className={styles["controls"]} data-testid="layout-controls-zone">
           {controls}
+        </div>
+        <div className={styles["context"]} data-testid="layout-context-zone">
+          {context}
         </div>
       </div>
       <div className={styles["overlays"]} data-testid="layout-overlay-layer">

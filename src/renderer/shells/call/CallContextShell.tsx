@@ -59,19 +59,21 @@ export function CallContextShell({
         <MultiCallHoldAllIndicator visible={multiCallProjection.holdAllInProgress} />
       ) : null}
 
-      <CallLinesShell
-        shell={callLinesShell}
-        compact={collapsed}
-        lastOperationError={activeCallControlsProjection.lastOperationError}
-        onResumeLine={callLinesActions.handleResumeLine}
-        onHangupLine={callLinesActions.handleHangupLine}
-        onHoldLine={callLinesActions.handleHoldLine}
-        onMuteLine={callLinesActions.handleMuteLine}
-        onUnmuteLine={callLinesActions.handleUnmuteLine}
-        onTransferLine={handleTransferLine}
-        onAnswerLine={callLinesActions.handleAnswerLine}
-        onRetryOperation={callActions.handleRetryLastOperation}
-      />
+      {collapsed ? (
+        <CallLinesShell
+          shell={callLinesShell}
+          compact
+          lastOperationError={activeCallControlsProjection.lastOperationError}
+          onResumeLine={callLinesActions.handleResumeLine}
+          onHangupLine={callLinesActions.handleHangupLine}
+          onHoldLine={callLinesActions.handleHoldLine}
+          onMuteLine={callLinesActions.handleMuteLine}
+          onUnmuteLine={callLinesActions.handleUnmuteLine}
+          onTransferLine={handleTransferLine}
+          onAnswerLine={callLinesActions.handleAnswerLine}
+          onRetryOperation={callActions.handleRetryLastOperation}
+        />
+      ) : null}
 
       {showOutgoingCard && !collapsed ? (
         <OutgoingCallCard

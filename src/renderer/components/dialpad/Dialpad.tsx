@@ -12,7 +12,6 @@ export type DialpadProps = Readonly<{
   callDisabledReason: string | null;
   onNumberChange: (value: string) => void;
   onDelete: () => void;
-  onClear: () => void;
   onCall: () => void;
   onSendDtmf: (tone: string) => void;
   onModeChange: (mode: DialpadMode) => void;
@@ -21,6 +20,12 @@ export type DialpadProps = Readonly<{
 const KEYS: ReadonlyArray<string> = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "*", "0", "#"];
 const LONG_PRESS_ZERO_MS = 450;
 
+/**
+ * - Purpose: primary home-screen dialpad with split input and call action.
+ * - Inputs: number value, mode, disabled reasons, and dial callbacks.
+ * - Outputs: accessible dialpad UI without business logic.
+ * @uiMeta lf=LF-020 f=F-003,F-016 smoke=R7-*
+ */
 export function Dialpad({
   numberValue,
   mode,
@@ -28,7 +33,6 @@ export function Dialpad({
   callDisabledReason,
   onNumberChange,
   onDelete,
-  onClear,
   onCall,
   onSendDtmf,
   onModeChange,
@@ -108,12 +112,11 @@ export function Dialpad({
       onKeyDown={handleKeyboard}
       aria-label="Панель набора номера"
     >
-      <header className={styles["header"]}>
-        <h2 className={styles["headerTitle"]}>Набор номера</h2>
+      <div className={styles["modeRow"]}>
         <div className={styles["mode"]} role="group" aria-label="Режим набора">
           <button
             type="button"
-            className={clsx(mode === "number" && styles["modeActive"])}
+            className={clsx(styles["modeButton"], mode === "number" && styles["modeActive"])}
             onClick={() => onModeChange("number")}
             data-testid="dialpad-mode-number"
           >
@@ -121,26 +124,48 @@ export function Dialpad({
           </button>
           <button
             type="button"
-            className={clsx(mode === "dtmf" && styles["modeActive"])}
+            className={clsx(styles["modeButton"], mode === "dtmf" && styles["modeActive"])}
             onClick={() => onModeChange("dtmf")}
             data-testid="call-dtmf-toggle"
           >
             DTMF
           </button>
         </div>
-      </header>
+      </div>
 
-      <label className={styles["inputLabel"]} htmlFor="dialpad-input">
-        Номер
-      </label>
-      <input
-        id="dialpad-input"
-        className={styles["input"]}
-        value={numberValue}
-        onChange={(event) => onNumberChange(event.currentTarget.value)}
-        data-testid="dialpad-input"
-        aria-label="Поле ввода номера"
-      />
+      <div className={styles["splitRow"]}>
+        <div className={styles["inputGroup"]}>
+          <input
+            id="dialpad-input"
+            className={styles["input"]}
+            value={numberValue}
+            onChange={(event) => onNumberChange(event.currentTarget.value)}
+            data-testid="dialpad-input"
+            aria-label="Поле ввода номера"
+            placeholder="Номер"
+          />
+          {numberValue.length > 0 ? (
+            <IconControlButton
+              iconId="overlay.close"
+              ariaLabel="Удалить цифру"
+              tooltipLabel="Удалить цифру"
+              testId="dialpad-delete"
+              className={styles["deleteButton"]}
+              onClick={onDelete}
+            />
+          ) : null}
+        </div>
+        <IconControlButton
+          iconId="dial.call"
+          ariaLabel={isCalling ? "Соединение выполняется" : "Позвонить"}
+          tooltipLabel={isCalling ? "Соединение выполняется" : "Позвонить"}
+          testId="dialpad-call"
+          className={clsx(styles["callButton"], isCalling && styles["callButtonBusy"])}
+          disabledReason={callDisabledReason}
+          disabled={isCalling}
+          onClick={onCall}
+        />
+      </div>
 
       <div className={styles["keys"]} role="group" aria-label="Клавиши набора">
         {KEYS.map((key) => {
@@ -150,6 +175,7 @@ export function Dialpad({
                 <button
                   key={key}
                   type="button"
+                  className={styles["key"]}
                   data-testid="dialpad-key-0"
                   aria-label="DTMF 0"
                   onClick={() => handleKeyPress("0")}
@@ -163,6 +189,7 @@ export function Dialpad({
               <button
                 key={key}
                 type="button"
+                className={styles["key"]}
                 data-testid="dialpad-key-0"
                 aria-label="Набрать 0"
                 onMouseDown={handleZeroPressStart}
@@ -178,6 +205,7 @@ export function Dialpad({
             <button
               key={key}
               type="button"
+              className={styles["key"]}
               data-testid={`dialpad-key-${key}`}
               aria-label={mode === "dtmf" ? `DTMF ${key}` : `Набрать ${key}`}
               onClick={() => handleKeyPress(key)}
@@ -186,33 +214,6 @@ export function Dialpad({
             </button>
           );
         })}
-      </div>
-
-      <div className={styles["actions"]}>
-        <IconControlButton
-          iconId="dial.delete"
-          ariaLabel="Удалить цифру"
-          testId="dialpad-delete"
-          className={styles["iconButton"]}
-          onClick={onDelete}
-        />
-        <IconControlButton
-          iconId="dial.clear"
-          ariaLabel="Очистить номер"
-          testId="dialpad-clear"
-          className={styles["iconButton"]}
-          onClick={onClear}
-        />
-        <IconControlButton
-          iconId="dial.call"
-          ariaLabel={isCalling ? "Соединение выполняется" : "Позвонить"}
-          tooltipLabel={isCalling ? "Соединение выполняется" : "Позвонить"}
-          testId="dialpad-call"
-          className={clsx(styles["iconButton"], styles["callButton"])}
-          disabledReason={callDisabledReason}
-          disabled={isCalling}
-          onClick={onCall}
-        />
       </div>
 
       {callDisabledReason !== null && (

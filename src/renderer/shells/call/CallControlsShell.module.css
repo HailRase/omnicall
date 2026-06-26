@@ -1,4 +1,5 @@
 .zone {
   display: grid;
-  gap: var(--space-md);
+  gap: var(--space-sm);
+  justify-items: stretch;
 }

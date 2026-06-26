@@ -17,6 +17,7 @@ const headerChrome: HeaderChromeShellViewModel = {
 const recoveryShell = {
   showOverlay: false,
   isBlocking: false,
+  showAvatarRecoveryRing: false,
   showOcpRow: false,
   showSipRow: false,
   retryDisabledReason: null,
@@ -114,15 +115,33 @@ export const Collapsed: Story = {
 export const AvatarAndDot: Story = {
   args: baseHeaderArgs,
   render: () => (
-    <div
-      className={headerStyles["avatarGroup"]}
-      style={{ padding: 16, background: "var(--color-bg-app)" }}
-    >
-      <UserAvatar initials="AO" />
-      <RegistrationStatusDot
-        variant="registered_dnd"
-        label="Registration Registered, phone DND"
-      />
+    <div style={{ padding: 16, background: "var(--color-bg-app)" }}>
+      <div className={headerStyles["avatarGroup"]}>
+        <UserAvatar initials="AO" />
+        <RegistrationStatusDot
+          variant="registered_dnd"
+          label="Registration Registered, phone DND"
+        />
+      </div>
     </div>
   ),
+};
+
+export const AvatarRecoveryCountdown: Story = {
+  args: {
+    ...baseHeaderArgs,
+    headerChrome: {
+      ...headerChrome,
+      registrationDotVariant: "failed",
+      registrationDotAriaLabel: "Регистрация: Ошибка, телефон: В сети",
+    },
+    connectionRecoveryShell: {
+      ...recoveryShell,
+      showAvatarRecoveryRing: true,
+      connectionState: "reconnecting",
+      sipRecoveryMode: "registration",
+      reconnectCountdownSeconds: 8,
+      sipReconnectAttempt: 2,
+    },
+  },
 };

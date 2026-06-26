@@ -30,8 +30,8 @@
 .avatarGroup {
   position: relative;
   flex-shrink: 0;
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
 }
 
 .headerActions {

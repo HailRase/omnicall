@@ -1,4 +1,6 @@
-import type { JSX } from "react";
+import { useMemo, type JSX } from "react";
+import { ActiveCallQuickBar } from "../../components/call/ActiveCallQuickBar.js";
+import { CallSessionTabs } from "../../components/call/CallSessionTabs.js";
 import { Dialpad } from "../../components/dialpad/Dialpad.js";
 import { TransferPanel } from "../../components/call/TransferPanel.js";
 import type { CallFeatureShellBindings } from "../../hooks/useCallFeatureShell.js";
@@ -9,33 +11,69 @@ type CallControlsShellProps = Readonly<{
 }>;
 
 /**
- * - Purpose: render dialpad and transfer panel in the controls zone.
+ * - Purpose: render home-screen dialpad stack with session tabs and transfer panel.
  * - Inputs: call feature shell bindings from useCallFeatureShell.
- * - Outputs: controls zone markup; per-line controls live in CallLineRow.
+ * - Outputs: controls zone markup with tabs, quick bar, and dialpad.
  */
 export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Element | null {
-  if (!bindings.sipRegistered) {
-    return null;
-  }
-
   const {
     callProjection,
     multiLineCallProjection,
+    activeCallControlsProjection,
     dialedNumber,
     dialpadMode,
     isCalling,
     callDisabledReason,
     callActions,
+    callLinesShell,
+    callLinesActions,
     transferPanelShell,
     transferActions,
+    handleTransferLine,
     setCallMode,
     setDialedNumber,
     deleteLastDialedDigit,
-    clearDialedNumber,
+    sipRegistered,
   } = bindings;
+
+  const activeLine = useMemo(
+    () => callLinesShell.lines.find((line) => line.isActiveUnheld) ?? null,
+    [callLinesShell.lines],
+  );
+
+  if (!sipRegistered) {
+    return null;
+  }
+
+  const handleSelectLine = (callId: string): void => {
+    const line = callLinesShell.lines.find((entry) => entry.callId === callId);
+    if (line === undefined) {
+      return;
+    }
+    if (line.state === "Held") {
+      callLinesActions.handleResumeLine(callId);
+      return;
+    }
+    if (line.primaryAction === "answer") {
+      callLinesActions.handleAnswerLine(callId);
+    }
+  };
 
   return (
     <div className={styles["zone"]} data-testid="call-controls-zone">
+      <CallSessionTabs shell={callLinesShell} onSelectLine={handleSelectLine} />
+
+      <ActiveCallQuickBar
+        line={activeLine}
+        lastOperationError={activeCallControlsProjection.lastOperationError}
+        onHold={callLinesActions.handleHoldLine}
+        onMute={callLinesActions.handleMuteLine}
+        onUnmute={callLinesActions.handleUnmuteLine}
+        onHangup={callLinesActions.handleHangupLine}
+        onTransfer={handleTransferLine}
+        onRetryOperation={callActions.handleRetryLastOperation}
+      />
+
       <Dialpad
         numberValue={dialedNumber}
         mode={dialpadMode}
@@ -43,7 +81,6 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
         callDisabledReason={callDisabledReason}
         onNumberChange={setDialedNumber}
         onDelete={deleteLastDialedDigit}
-        onClear={clearDialedNumber}
         onCall={callActions.handleDialpadCall}
         onSendDtmf={callActions.handleSendDtmf}
         onModeChange={setCallMode}
