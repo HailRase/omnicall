@@ -21,6 +21,11 @@ const emptyAccount = {
   onLogout: vi.fn(),
 } as const;
 
+const themeDefaults = {
+  theme: "light" as const,
+  onThemeChange: vi.fn(),
+} as const;
+
 const sipRecoveryDefaults = {
   sipAutoReregisterEnabled: true,
   onSipAutoReregisterChange: vi.fn(),
@@ -37,11 +42,13 @@ describe("SettingsPanel", () => {
       <SettingsPanel
         activeSection="sessions"
         sidebarExpanded={false}
+        onClose={vi.fn()}
         onSectionChange={vi.fn()}
         onSidebarExpandedChange={vi.fn()}
         multiSessionsEnabled
         onMultiSessionsChange={onMultiSessionsChange}
         account={emptyAccount}
+        {...themeDefaults}
         {...sipRecoveryDefaults}
       />,
     );
@@ -56,11 +63,13 @@ describe("SettingsPanel", () => {
       <SettingsPanel
         activeSection="sessions"
         sidebarExpanded={false}
+        onClose={vi.fn()}
         onSectionChange={vi.fn()}
         onSidebarExpandedChange={vi.fn()}
         multiSessionsEnabled={false}
         onMultiSessionsChange={onMultiSessionsChange}
         account={emptyAccount}
+        {...themeDefaults}
         {...sipRecoveryDefaults}
       />,
     );
@@ -72,11 +81,13 @@ describe("SettingsPanel", () => {
       <SettingsPanel
         activeSection="general"
         sidebarExpanded={false}
+        onClose={vi.fn()}
         onSectionChange={vi.fn()}
         onSidebarExpandedChange={vi.fn()}
         multiSessionsEnabled
         onMultiSessionsChange={vi.fn()}
         account={emptyAccount}
+        {...themeDefaults}
         {...sipRecoveryDefaults}
         updateError="Repository unavailable"
       />,
@@ -87,6 +98,48 @@ describe("SettingsPanel", () => {
     );
   });
 
+  it("shows breadcrumb title with section name", () => {
+    render(
+      <SettingsPanel
+        activeSection="general"
+        sidebarExpanded={false}
+        onClose={vi.fn()}
+        onSectionChange={vi.fn()}
+        onSidebarExpandedChange={vi.fn()}
+        multiSessionsEnabled
+        onMultiSessionsChange={vi.fn()}
+        account={emptyAccount}
+        {...themeDefaults}
+        {...sipRecoveryDefaults}
+      />,
+    );
+
+    expect(screen.getByTestId("settings-section-title")).toHaveTextContent("Настройки (Общее)");
+  });
+
+  it("closes settings from content header button", async () => {
+    const user = userEvent.setup();
+    const onClose = vi.fn();
+
+    render(
+      <SettingsPanel
+        activeSection="account"
+        sidebarExpanded={false}
+        onClose={onClose}
+        onSectionChange={vi.fn()}
+        onSidebarExpandedChange={vi.fn()}
+        multiSessionsEnabled
+        onMultiSessionsChange={vi.fn()}
+        account={emptyAccount}
+        {...themeDefaults}
+        {...sipRecoveryDefaults}
+      />,
+    );
+
+    await user.click(screen.getByTestId("settings-overlay-close"));
+    expect(onClose).toHaveBeenCalledOnce();
+  });
+
   it("switches sections via sidebar navigation", async () => {
     const user = userEvent.setup();
     const onSectionChange = vi.fn();
@@ -95,11 +148,13 @@ describe("SettingsPanel", () => {
       <SettingsPanel
         activeSection="general"
         sidebarExpanded={false}
+        onClose={vi.fn()}
         onSectionChange={onSectionChange}
         onSidebarExpandedChange={vi.fn()}
         multiSessionsEnabled
         onMultiSessionsChange={vi.fn()}
         account={emptyAccount}
+        {...themeDefaults}
         {...sipRecoveryDefaults}
       />,
     );

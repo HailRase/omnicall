@@ -18,6 +18,8 @@ const recoveryShell = {
   showOverlay: false,
   isBlocking: false,
   showAvatarRecoveryRing: false,
+  avatarRecoveryRingTone: null,
+  avatarRecoveryOverlayMode: null,
   showOcpRow: false,
   showSipRow: false,
   retryDisabledReason: null,
@@ -47,23 +49,7 @@ const baseHeaderArgs = {
     onSafeLogout: noop,
     onReregisterSip: noop,
   },
-  sessionLogoutActions: {
-    shell: {
-      showEndSessionControl: false,
-      endSessionDisabledReason: null,
-      logoutConfirmationRequired: false,
-      logoutInProgress: false,
-      showLogoutErrorBanner: false,
-      logoutErrorMessage: null,
-    },
-    confirmationModalOpen: false,
-    handleEndSession: noop,
-    handleConfirmLogout: noop,
-    handleCancelLogout: noop,
-    handleRetryLogout: noop,
-  },
   onToggleCollapse: noop,
-  onOpenSettings: noop,
   userAvatarMenu: {
     open: false,
     anchorRef: { current: null },
@@ -138,10 +124,33 @@ export const AvatarRecoveryCountdown: Story = {
     connectionRecoveryShell: {
       ...recoveryShell,
       showAvatarRecoveryRing: true,
+      avatarRecoveryRingTone: "failed",
+      avatarRecoveryOverlayMode: "countdown",
       connectionState: "reconnecting",
       sipRecoveryMode: "registration",
       reconnectCountdownSeconds: 8,
       sipReconnectAttempt: 2,
+    },
+  },
+};
+
+export const AvatarRecoveryReload: Story = {
+  args: {
+    ...baseHeaderArgs,
+    headerChrome: {
+      ...headerChrome,
+      registrationDotVariant: "failed",
+      registrationDotAriaLabel: "Регистрация: Ошибка, телефон: В сети",
+    },
+    connectionRecoveryShell: {
+      ...recoveryShell,
+      showAvatarRecoveryRing: true,
+      avatarRecoveryRingTone: "failed",
+      avatarRecoveryOverlayMode: "reload",
+      connectionState: "manual_retry_available",
+      sipRecoveryMode: "registration",
+      showReregisterSipControl: true,
+      sipReconnectAttempt: 5,
     },
   },
 };

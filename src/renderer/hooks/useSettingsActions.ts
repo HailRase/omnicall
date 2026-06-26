@@ -4,8 +4,10 @@ import type { MultiCallSettings } from "@application/index.js";
 import {
   createDefaultUserSettings,
   MIN_SIP_REREGISTER_INTERVAL_SEC,
+  type AppTheme,
   type UserSettings,
 } from "@application/index.js";
+import { applyAppTheme } from "../theme/applyAppTheme.js";
 
 type UseSettingsActionsInput = Readonly<{
   facade: AccountBootstrapFacade | null;
@@ -15,6 +17,7 @@ type UseSettingsActionsInput = Readonly<{
 
 type UseSettingsActionsResult = Readonly<{
   userSettings: UserSettings;
+  onThemeChange: (theme: AppTheme) => void;
   onMultiSessionsToggle: (enabled: boolean) => void;
   onSipAutoReregisterToggle: (enabled: boolean) => void;
   onSipReregisterIntervalChange: (intervalSec: number) => void;
@@ -45,6 +48,7 @@ export function useSettingsActions(
     void facade.getUserSettingsForAccount().then((result) => {
       if (result.ok) {
         setUserSettings(result.value);
+        applyAppTheme(result.value.theme);
       }
     });
   }, [facade]);
@@ -65,6 +69,7 @@ export function useSettingsActions(
 
           setSettingsUpdateError(null);
           setUserSettings(result.value);
+          applyAppTheme(result.value.theme);
           applyMultiCallSettings({
             multiSessionsEnabled: result.value.multiSessionsEnabled,
             autoUnholdOnTransferFailure: result.value.autoUnholdOnTransferFailure,
@@ -75,6 +80,17 @@ export function useSettingsActions(
         });
     },
     [applyMultiCallSettings, facade],
+  );
+
+  const onThemeChange = useCallback(
+    (theme: AppTheme): void => {
+      applyAppTheme(theme);
+      persistUserSettings({
+        ...userSettings,
+        theme,
+      });
+    },
+    [persistUserSettings, userSettings],
   );
 
   const onMultiSessionsToggle = useCallback(
@@ -112,6 +128,7 @@ export function useSettingsActions(
 
   return {
     userSettings,
+    onThemeChange,
     onMultiSessionsToggle,
     onSipAutoReregisterToggle,
     onSipReregisterIntervalChange,

@@ -1,6 +1,7 @@
 import { phoneStatusLabel } from "@domain/index.js";
 import type { PhoneStatus, RegistrationState } from "@domain/index.js";
 import type { AuthUiState } from "./accountBootstrapProjection.js";
+import type { ConnectionState, SipRecoveryMode } from "./connectionRecoveryProjection.js";
 
 export type RegistrationDotVariant =
   | "registering"
@@ -15,6 +16,8 @@ export type HeaderChromeShellInput = Readonly<{
   registrationState: RegistrationState;
   phoneStatus: PhoneStatus;
   agentId: string | null;
+  connectionState?: ConnectionState;
+  sipRecoveryMode?: SipRecoveryMode | null;
 }>;
 
 export type HeaderChromeShellViewModel = Readonly<{
@@ -49,12 +52,29 @@ function deriveRegistrationDotVariant(
   authUiState: AuthUiState,
   registrationState: RegistrationState,
   phoneStatus: PhoneStatus,
+  connectionState: ConnectionState = "connected",
+  sipRecoveryMode: SipRecoveryMode | null = null,
 ): RegistrationDotVariant {
   if (authUiState === "sip_registering" || registrationState === "registering") {
     return "registering";
   }
 
+  if (
+    connectionState === "reconnecting" &&
+    sipRecoveryMode === "registration"
+  ) {
+    return "registering";
+  }
+
   if (authUiState === "sip_registration_failed" || registrationState === "failed") {
+    return "failed";
+  }
+
+  if (connectionState === "sip_disconnected" || connectionState === "reconnect_failed") {
+    return "failed";
+  }
+
+  if (connectionState === "sip_registration_failed") {
     return "failed";
   }
 
@@ -101,6 +121,8 @@ export function deriveHeaderChromeShell(
     input.authUiState,
     input.registrationState,
     input.phoneStatus,
+    input.connectionState ?? "connected",
+    input.sipRecoveryMode ?? null,
   );
   const phoneLabel = phoneStatusLabel(input.phoneStatus);
 

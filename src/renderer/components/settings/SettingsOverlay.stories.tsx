@@ -33,6 +33,11 @@ const accountDefaults = {
   onLogout: () => undefined,
 } as const;
 
+const themeDefaults = {
+  theme: "light" as const,
+  onThemeChange: () => undefined,
+} as const;
+
 const sipRecoveryDefaults = {
   sipAutoReregisterEnabled: true,
   onSipAutoReregisterChange: () => undefined,
@@ -44,11 +49,13 @@ export const GeneralSection: Story = {
   args: {
     activeSection: "general",
     sidebarExpanded: false,
+    onClose: () => undefined,
     onSectionChange: () => undefined,
     onSidebarExpandedChange: () => undefined,
     multiSessionsEnabled: true,
     onMultiSessionsChange: () => undefined,
     account: accountDefaults,
+    ...themeDefaults,
     ...sipRecoveryDefaults,
   },
 };
@@ -57,11 +64,13 @@ export const SessionsSection: Story = {
   args: {
     activeSection: "sessions",
     sidebarExpanded: false,
+    onClose: () => undefined,
     onSectionChange: () => undefined,
     onSidebarExpandedChange: () => undefined,
     multiSessionsEnabled: false,
     onMultiSessionsChange: () => undefined,
     account: accountDefaults,
+    ...themeDefaults,
     ...sipRecoveryDefaults,
   },
 };
@@ -70,11 +79,13 @@ export const SidebarExpanded: Story = {
   args: {
     activeSection: "account",
     sidebarExpanded: true,
+    onClose: () => undefined,
     onSectionChange: () => undefined,
     onSidebarExpandedChange: () => undefined,
     multiSessionsEnabled: true,
     onMultiSessionsChange: () => undefined,
     account: accountDefaults,
+    ...themeDefaults,
     ...sipRecoveryDefaults,
   },
 };

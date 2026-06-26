@@ -121,7 +121,7 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     animated: SettingsIcon,
     defaultLabel: "Настройки",
     defaultSize: 20,
-    usage: ["SoftphoneShellHeader: control-open-settings", "SettingsPanel"],
+    usage: ["UserAvatarMenu: user-menu-open-settings", "SettingsSidebar"],
   },
   "shell.diagnostics": {
     static: Activity,
@@ -198,7 +198,7 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabel: "Завершить сессию",
     defaultSize: 20,
     usage: [
-      "SoftphoneShellHeader: control-end-session",
+      "UserAvatarMenu: user-menu-logout",
       "LogoutActiveSessionConfirmationModal",
       "ConnectionOverlay: control-safe-logout",
     ],

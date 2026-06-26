@@ -1,7 +1,9 @@
+import clsx from "clsx";
 import type { JSX, MouseEvent } from "react";
 import { AppIcon } from "./AppIcon.js";
 import { IconTooltip } from "./IconTooltip.js";
 import { resolveIconEntry, resolveIconTooltipLabel, type IconSemanticId } from "./iconCatalog.js";
+import styles from "./IconControlButton.module.css";
 
 export type IconControlButtonProps = Readonly<{
   iconId: IconSemanticId;
@@ -41,7 +43,7 @@ export function IconControlButton({
     <IconTooltip label={tooltip}>
       <button
         type="button"
-        className={className}
+        className={clsx(styles["button"], className)}
         data-testid={testId}
         aria-label={ariaLabel}
         disabled={isDisabled}

@@ -66,4 +66,29 @@ describe("deriveHeaderChromeShell", () => {
     expect(shell.registrationStatusLabel).toBe("Не зарегистрирован");
     expect(shell.avatarInitials).toBe("BS");
   });
+
+  it("derives failed dot when SIP transport is disconnected", () => {
+    const shell = deriveHeaderChromeShell({
+      authUiState: "sip_only_ready",
+      registrationState: "idle",
+      phoneStatus: "offline",
+      agentId: "agent-1",
+      connectionState: "sip_disconnected",
+    });
+
+    expect(shell.registrationDotVariant).toBe("failed");
+  });
+
+  it("derives registering dot during registration retry countdown", () => {
+    const shell = deriveHeaderChromeShell({
+      authUiState: "sip_registration_failed",
+      registrationState: "failed",
+      phoneStatus: "offline",
+      agentId: "agent-1",
+      connectionState: "reconnecting",
+      sipRecoveryMode: "registration",
+    });
+
+    expect(shell.registrationDotVariant).toBe("registering");
+  });
 });

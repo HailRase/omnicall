@@ -29,11 +29,13 @@ Visual and composition rules for the Electron renderer. Complements `UI-Architec
 
 ## Design Tokens
 
-File: `src/renderer/styles/tokens.css` (semantic variables on `:root`).
+File: `src/renderer/styles/tokens.css` (semantic variables on `:root` for **light** default; `[data-theme="dark"]` overrides).
 
 Globals: `src/renderer/styles/globals.css` (reset, body, focus ring).
 
 Component styles: co-located `*.module.css` (UI-4 complete; legacy `styles.css` removed).
+
+**Themes (LF-082):** default `light`; user selects `light` | `dark` in Settings → General; applied via `data-theme` on `documentElement`. All new UI must work in both themes using semantic tokens only.
 
 Semantic names only:
 

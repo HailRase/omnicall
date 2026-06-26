@@ -153,6 +153,18 @@ Mandatory for renderer UI work after 2026-06-25 foundation:
 - Do **not** add legacy global component stylesheets; use co-located `*.module.css` + `var(--*)` from `src/renderer/styles/tokens.css`.
 - Use `clsx` for conditional/variant classes.
 
+## Color Themes (LF-082)
+
+The app supports **light** (default) and **dark** themes via `data-theme` on `documentElement` and semantic tokens in `tokens.css`.
+
+Mandatory for every `/ui` session that touches visible styles:
+
+- Implement and verify **both** `light` and `dark` — never ship UI styled for a single theme only.
+- Use semantic `var(--color-*)` tokens only; no hardcoded hex/rgb in component CSS (shadows: `--shadow-*`).
+- Do not branch theme colors in React — switch tokens via `data-theme`, not inline styles.
+- Storybook: add or update stories for both themes when changing critical surfaces.
+- Settings write path: `theme` in `UserSettings` → `useSettingsActions.onThemeChange` → `applyAppTheme`.
+
 ## Icons
 
 - Read `docs/softphone/Icon-Agent-Guide.md` and `Icon-Registry.md` before adding icons.

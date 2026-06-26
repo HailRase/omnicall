@@ -30,5 +30,5 @@
 }
 
 .variant_not_registered {
-  background: var(--color-status-failed);
+  background: var(--color-status-not-registered);
 }

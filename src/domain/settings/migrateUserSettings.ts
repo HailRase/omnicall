@@ -88,6 +88,7 @@ function migrateFromLegacy(legacy?: UserSettingsV0Legacy): UserSettings {
 
   return {
     schemaVersion: defaults.schemaVersion,
+    theme: defaults.theme,
     multiSessionsEnabled: legacy.multiCallSettings.multiSessionsEnabled,
     autoUnholdOnTransferFailure:
       legacy.multiCallSettings.autoUnholdOnTransferFailure !== false,

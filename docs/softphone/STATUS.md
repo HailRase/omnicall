@@ -3,7 +3,7 @@
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
 **Updated:** 2026-06-26  
-**Tests:** 743 passed, 1 skipped (`npm run test`) — dialpad home screen with call session tabs  
+**Tests:** 762 passed, 1 skipped (`npm run test`) — LF-082 light/dark theme  
 **Lint / typecheck:** green (last verified 2026-06-26)
 
 ## Active phase
@@ -20,7 +20,7 @@
 | WU5 UI-4 CSS Modules | done | `handoffs/P11-WU5-UI-4-Final-Gate-Handoff.md` |
 | Post-WU5 shell polish | done | `handoffs/P11-Post-WU5-Shell-Polish-Handoff.md` |
 
-**P11 phase gate:** WU0–WU5 + post-WU5 polish **done**. Remaining for phase close: UI-6 Radix modals, theme (LF-082), draggable widget (LF-056), toast placement (LF-060), codecs placeholder (LF-084).
+**P11 phase gate:** WU0–WU5 + post-WU5 polish **done**. Remaining for phase close: UI-6 Radix modals, draggable widget (LF-056), toast placement (LF-060), codecs placeholder (LF-084). **LF-082 theme** done 2026-06-26.
 
 ## Next work (priority)
 

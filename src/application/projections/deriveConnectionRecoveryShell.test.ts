@@ -65,8 +65,50 @@ describe("deriveConnectionRecoveryShell", () => {
     expect(shell.isBlocking).toBe(false);
     expect(shell.showOverlay).toBe(false);
     expect(shell.showAvatarRecoveryRing).toBe(true);
+    expect(shell.avatarRecoveryRingTone).toBe("failed");
+    expect(shell.avatarRecoveryOverlayMode).toBe("countdown");
     expect(shell.showSipRow).toBe(true);
     expect(projection.sipRecoveryMode).toBe("registration");
+  });
+
+  it("routes sip_registration_failed to avatar ring without connection overlay", () => {
+    const projection = reduceConnectionRecoveryProjection(initialConnectionRecoveryProjection(), {
+      type: "RegistrationFailed",
+      correlationId,
+      occurredAt: new Date().toISOString(),
+      accountId: "acc-1",
+      reason: "authentication_error",
+    });
+
+    const shell = deriveConnectionRecoveryShell(projection);
+    expect(projection.connectionState).toBe("sip_registration_failed");
+    expect(shell.showOverlay).toBe(false);
+    expect(shell.isBlocking).toBe(false);
+    expect(shell.showAvatarRecoveryRing).toBe(true);
+    expect(shell.avatarRecoveryRingTone).toBe("failed");
+    expect(shell.avatarRecoveryOverlayMode).toBe("in_progress");
+  });
+
+  it("keeps blocking overlay for sip transport disconnect", () => {
+    let projection = reduceConnectionRecoveryProjection(initialConnectionRecoveryProjection(), {
+      type: "SipReconnectFailed",
+      correlationId,
+      occurredAt: new Date().toISOString(),
+      attemptNumber: 1,
+      reason: "transport_closed",
+      isTerminal: false,
+    });
+
+    projection = {
+      ...projection,
+      connectionState: "sip_disconnected",
+      lastFailureReason: "transport_closed",
+    };
+
+    const shell = deriveConnectionRecoveryShell(projection);
+    expect(shell.showOverlay).toBe(true);
+    expect(shell.isBlocking).toBe(true);
+    expect(shell.showAvatarRecoveryRing).toBe(false);
   });
 
   it("shows OCP row only during OCP reconnect in OCP mode", () => {
@@ -108,5 +150,8 @@ describe("deriveConnectionRecoveryShell", () => {
     expect(shell.retryDisabledReason).toBeNull();
     expect(shell.showReregisterSipControl).toBe(true);
     expect(shell.reregisterDisabledReason).toBeNull();
+    expect(shell.showOverlay).toBe(false);
+    expect(shell.showAvatarRecoveryRing).toBe(true);
+    expect(shell.avatarRecoveryOverlayMode).toBe("reload");
   });
 });

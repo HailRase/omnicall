@@ -68,3 +68,8 @@ export function resolveSettingsSectionTitle(sectionId: SettingsSectionId): strin
   const item = SETTINGS_NAV_ITEMS.find((entry) => entry.id === sectionId);
   return item?.label ?? "Настройки";
 }
+
+export function resolveSettingsContentHeaderTitle(sectionId: SettingsSectionId): string {
+  const sectionTitle = resolveSettingsSectionTitle(sectionId);
+  return `Настройки (${sectionTitle})`;
+}

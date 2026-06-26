@@ -20,22 +20,34 @@ export function SettingsSessionsPanel({
   };
 
   return (
-    <fieldset className={formStyles["fieldset"]} data-testid="settings-sessions-panel">
-      <legend className={formStyles["legend"]}>Сессии звонков</legend>
-      <label className={formStyles["toggle"]} htmlFor="settings-multi-sessions">
-        <input
-          id="settings-multi-sessions"
-          type="checkbox"
-          className={formStyles["checkbox"]}
-          data-testid="settings-multi-sessions-toggle"
-          checked={multiSessionsEnabled}
-          onChange={handleMultiSessionsChange}
-        />
-        <span className={formStyles["toggleLabel"]}>Разрешить несколько сессий звонков</span>
-      </label>
-      <p className={formStyles["hint"]} data-testid="settings-multi-sessions-hint">
-        Если отключено, второй входящий или исходящий звонок блокируется при активном звонке.
-      </p>
+    <fieldset className={formStyles["sectionCard"]} data-testid="settings-sessions-panel">
+      <legend className={formStyles["sectionTitle"]}>Сессии звонков</legend>
+      <div className={formStyles["settingsGroup"]}>
+        <div className={formStyles["settingBlock"]}>
+          <label className={formStyles["toggleRow"]} htmlFor="settings-multi-sessions">
+            <span className={formStyles["toggleText"]}>
+              <span className={formStyles["toggleLabel"]}>Разрешить несколько сессий звонков</span>
+              <span className={formStyles["toggleDescription"]}>
+                Второй звонок при активной линии
+              </span>
+            </span>
+            <span className={formStyles["switch"]}>
+              <input
+                id="settings-multi-sessions"
+                type="checkbox"
+                className={formStyles["switchInput"]}
+                data-testid="settings-multi-sessions-toggle"
+                checked={multiSessionsEnabled}
+                onChange={handleMultiSessionsChange}
+              />
+              <span className={formStyles["switchSlider"]} aria-hidden="true" />
+            </span>
+          </label>
+          <p className={formStyles["blockHint"]} data-testid="settings-multi-sessions-hint">
+            Если отключено, второй входящий или исходящий звонок блокируется при активном звонке.
+          </p>
+        </div>
+      </div>
     </fieldset>
   );
 }

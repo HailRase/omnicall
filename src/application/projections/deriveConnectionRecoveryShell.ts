@@ -7,10 +7,14 @@ import type {
   ConnectionState,
 } from "./connectionRecoveryProjection.js";
 
+export type AvatarRecoveryOverlayMode = "countdown" | "reload" | "in_progress" | null;
+
 export type ConnectionRecoveryShellView = Readonly<{
   showOverlay: boolean;
   isBlocking: boolean;
   showAvatarRecoveryRing: boolean;
+  avatarRecoveryRingTone: "failed" | null;
+  avatarRecoveryOverlayMode: AvatarRecoveryOverlayMode;
   showOcpRow: boolean;
   showSipRow: boolean;
   retryDisabledReason: string | null;
@@ -31,12 +35,16 @@ export function deriveConnectionRecoveryShell(
 ): ConnectionRecoveryShellView {
   const { connectionState } = projection;
 
-  const avatarRecoveryRing = isSipRegistrationRecoveryInFlight(projection);
+  const avatarRecoveryRing = isSipRegistrationRecoveryOnAvatar(projection);
 
   return {
     showOverlay: connectionState !== "connected" && !avatarRecoveryRing,
     isBlocking: deriveIsBlockingOverlay(projection),
     showAvatarRecoveryRing: avatarRecoveryRing,
+    avatarRecoveryRingTone: avatarRecoveryRing ? "failed" : null,
+    avatarRecoveryOverlayMode: avatarRecoveryRing
+      ? deriveAvatarRecoveryOverlayMode(projection)
+      : null,
     showOcpRow: deriveShowOcpRow(projection),
     showSipRow: deriveShowSipRow(projection),
     retryDisabledReason: deriveRetryConnectionDisabledReason(projection),
@@ -46,6 +54,55 @@ export function deriveConnectionRecoveryShell(
     ocpMaxAttempts: OCP_RECONNECT_POLICY_CONFIG.maxAttempts,
     sipMaxAttempts: SIP_RECONNECT_POLICY_CONFIG.maxAttempts,
   };
+}
+
+function isSipRegistrationRecoveryOnAvatar(
+  projection: ConnectionRecoveryProjection,
+): boolean {
+  if (projection.connectionState === "sip_registration_failed") {
+    return true;
+  }
+
+  if (
+    projection.connectionState === "manual_retry_available" &&
+    projection.sipRecoveryMode === "registration"
+  ) {
+    return true;
+  }
+
+  return isSipRegistrationRecoveryInFlight(projection);
+}
+
+function deriveAvatarRecoveryOverlayMode(
+  projection: ConnectionRecoveryProjection,
+): AvatarRecoveryOverlayMode {
+  if (
+    projection.connectionState === "manual_retry_available" &&
+    projection.sipRecoveryMode === "registration"
+  ) {
+    return "reload";
+  }
+
+  if (
+    projection.connectionState === "reconnecting" &&
+    projection.sipRecoveryMode === "registration" &&
+    projection.nextRetryAt !== null
+  ) {
+    return "countdown";
+  }
+
+  if (
+    projection.connectionState === "reconnecting" &&
+    projection.sipRecoveryMode === "registration"
+  ) {
+    return "in_progress";
+  }
+
+  if (projection.connectionState === "sip_registration_failed") {
+    return "in_progress";
+  }
+
+  return null;
 }
 
 function isSipRegistrationRecoveryInFlight(
@@ -61,7 +118,7 @@ function isSipRegistrationRecoveryInFlight(
 function deriveIsBlockingOverlay(projection: ConnectionRecoveryProjection): boolean {
   const { connectionState, sipReconnectAttempt } = projection;
 
-  if (isSipRegistrationRecoveryInFlight(projection)) {
+  if (isSipRegistrationRecoveryOnAvatar(projection)) {
     return false;
   }
 
@@ -69,7 +126,7 @@ function deriveIsBlockingOverlay(projection: ConnectionRecoveryProjection): bool
     return true;
   }
 
-  if (connectionState === "sip_disconnected" || connectionState === "sip_registration_failed") {
+  if (connectionState === "sip_disconnected") {
     return true;
   }
 

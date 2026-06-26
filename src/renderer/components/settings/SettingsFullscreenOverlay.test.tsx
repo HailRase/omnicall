@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { SettingsFullscreenOverlay } from "./SettingsFullscreenOverlay.js";
@@ -9,8 +9,11 @@ import { SettingsPanel } from "./SettingsPanel.js";
 const panelProps = {
   activeSection: "general" as const,
   sidebarExpanded: false,
+  onClose: vi.fn(),
   onSectionChange: vi.fn(),
   onSidebarExpandedChange: vi.fn(),
+  theme: "light" as const,
+  onThemeChange: vi.fn(),
   multiSessionsEnabled: true,
   onMultiSessionsChange: vi.fn(),
   sipAutoReregisterEnabled: true,
@@ -37,7 +40,7 @@ describe("SettingsFullscreenOverlay", () => {
 
     const { rerender } = render(
       <SettingsFullscreenOverlay open={false} onClose={onClose}>
-        <SettingsPanel {...panelProps} />
+        <SettingsPanel {...panelProps} onClose={onClose} />
       </SettingsFullscreenOverlay>,
     );
 
@@ -45,7 +48,7 @@ describe("SettingsFullscreenOverlay", () => {
 
     rerender(
       <SettingsFullscreenOverlay open onClose={onClose}>
-        <SettingsPanel {...panelProps} />
+        <SettingsPanel {...panelProps} onClose={onClose} />
       </SettingsFullscreenOverlay>,
     );
 
@@ -54,5 +57,32 @@ describe("SettingsFullscreenOverlay", () => {
 
     await user.click(screen.getByTestId("settings-overlay-close"));
     expect(onClose).toHaveBeenCalledOnce();
+  });
+
+  it("plays exit animation before unmounting when closed", () => {
+    const onClose = vi.fn();
+
+    const { container, rerender } = render(
+      <SettingsFullscreenOverlay open onClose={onClose}>
+        <SettingsPanel {...panelProps} onClose={onClose} />
+      </SettingsFullscreenOverlay>,
+    );
+
+    rerender(
+      <SettingsFullscreenOverlay open={false} onClose={onClose}>
+        <SettingsPanel {...panelProps} onClose={onClose} />
+      </SettingsFullscreenOverlay>,
+    );
+
+    const overlay = container.querySelector('[data-testid="settings-overlay"]');
+    expect(overlay).not.toBeNull();
+    expect(overlay).toHaveAttribute("data-closing", "true");
+
+    const panel = overlay?.querySelector("section");
+    if (panel !== null && panel !== undefined) {
+      fireEvent.animationEnd(panel);
+    }
+
+    expect(container.querySelector('[data-testid="settings-overlay"]')).toBeNull();
   });
 });

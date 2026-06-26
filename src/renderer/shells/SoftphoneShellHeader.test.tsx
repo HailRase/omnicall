@@ -21,6 +21,8 @@ const recoveryShell = {
   showOverlay: false,
   isBlocking: false,
   showAvatarRecoveryRing: false,
+  avatarRecoveryRingTone: null,
+  avatarRecoveryOverlayMode: null,
   showOcpRow: false,
   showSipRow: false,
   retryDisabledReason: null,
@@ -37,22 +39,6 @@ const recoveryShell = {
   nextRetryAt: null,
   isOcpMode: false,
   sipRecoveryMode: null,
-};
-
-const sessionLogoutActions = {
-  shell: {
-    showEndSessionControl: true,
-    endSessionDisabledReason: null,
-    logoutConfirmationRequired: false,
-    logoutInProgress: false,
-    showLogoutErrorBanner: false,
-    logoutErrorMessage: null,
-  },
-  confirmationModalOpen: false,
-  handleEndSession: vi.fn(),
-  handleConfirmLogout: vi.fn(),
-  handleCancelLogout: vi.fn(),
-  handleRetryLogout: vi.fn(),
 };
 
 const userAvatarMenu = {
@@ -82,17 +68,17 @@ describe("SoftphoneShellHeader", () => {
         collapsed={false}
         connectionRecoveryShell={recoveryShell}
         connectionRecoveryActions={{ onReregisterSip: vi.fn(), onManualRetry: vi.fn(), onSafeLogout: vi.fn() }}
-        sessionLogoutActions={sessionLogoutActions}
         userAvatarMenu={userAvatarMenu}
         userAvatarMenuActions={userAvatarMenuActions}
         onToggleCollapse={onToggleCollapse}
-        onOpenSettings={vi.fn()}
       />,
     );
 
     expect(screen.getByTestId("user-avatar")).toHaveTextContent("AB");
     expect(screen.getByTestId("user-avatar")).toHaveAttribute("aria-haspopup", "menu");
     expect(screen.getByTestId("registration-status-dot")).toBeInTheDocument();
+    expect(screen.queryByTestId("control-open-settings")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("control-end-session")).not.toBeInTheDocument();
     fireEvent.click(screen.getByTestId("control-toggle-collapse"));
     expect(onToggleCollapse).toHaveBeenCalledOnce();
   });
@@ -107,17 +93,9 @@ describe("SoftphoneShellHeader", () => {
           showReregisterSipControl: true,
         }}
         connectionRecoveryActions={{ onReregisterSip: vi.fn(), onManualRetry: vi.fn(), onSafeLogout: vi.fn() }}
-        sessionLogoutActions={{
-          ...sessionLogoutActions,
-          shell: {
-            ...sessionLogoutActions.shell,
-            showEndSessionControl: true,
-          },
-        }}
         userAvatarMenu={userAvatarMenu}
         userAvatarMenuActions={userAvatarMenuActions}
         onToggleCollapse={vi.fn()}
-        onOpenSettings={vi.fn()}
       />,
     );
 
@@ -139,21 +117,49 @@ describe("SoftphoneShellHeader", () => {
         connectionRecoveryShell={{
           ...recoveryShell,
           showAvatarRecoveryRing: true,
+          avatarRecoveryRingTone: "failed",
+          avatarRecoveryOverlayMode: "countdown",
           connectionState: "reconnecting",
           sipRecoveryMode: "registration",
           reconnectCountdownSeconds: 7,
           sipReconnectAttempt: 1,
         }}
         connectionRecoveryActions={{ onReregisterSip: vi.fn(), onManualRetry: vi.fn(), onSafeLogout: vi.fn() }}
-        sessionLogoutActions={sessionLogoutActions}
         userAvatarMenu={userAvatarMenu}
         userAvatarMenuActions={userAvatarMenuActions}
         onToggleCollapse={vi.fn()}
-        onOpenSettings={vi.fn()}
       />,
     );
 
     expect(screen.getByTestId("avatar-recovery-ring")).toHaveAttribute("data-visible", "true");
     expect(screen.getByTestId("avatar-recovery-countdown")).toHaveTextContent("7");
+  });
+
+  it("shows avatar reload after exhausted SIP registration attempts", () => {
+    render(
+      <SoftphoneShellHeader
+        headerChrome={{
+          ...headerChrome,
+          registrationDotVariant: "failed",
+        }}
+        collapsed={false}
+        connectionRecoveryShell={{
+          ...recoveryShell,
+          showAvatarRecoveryRing: true,
+          avatarRecoveryRingTone: "failed",
+          avatarRecoveryOverlayMode: "reload",
+          connectionState: "manual_retry_available",
+          sipRecoveryMode: "registration",
+          sipReconnectAttempt: 5,
+        }}
+        connectionRecoveryActions={{ onReregisterSip: vi.fn(), onManualRetry: vi.fn(), onSafeLogout: vi.fn() }}
+        userAvatarMenu={userAvatarMenu}
+        userAvatarMenuActions={userAvatarMenuActions}
+        onToggleCollapse={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("avatar-recovery-reload")).toBeInTheDocument();
+    expect(screen.queryByTestId("connection-overlay")).not.toBeInTheDocument();
   });
 });

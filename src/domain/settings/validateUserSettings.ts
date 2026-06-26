@@ -1,4 +1,9 @@
 import {
+  DEFAULT_APP_THEME,
+  parseAppTheme,
+  type AppTheme,
+} from "./AppTheme.js";
+import {
   DEFAULT_SIP_REREGISTER_INTERVAL_SEC,
   DEFAULT_SIP_REREGISTER_MAX_ATTEMPTS,
   MIN_SIP_REREGISTER_INTERVAL_SEC,
@@ -32,6 +37,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
 
   const errors: string[] = [];
 
+  const theme = readTheme(record, errors);
   const multiSessionsEnabled = readBoolean(record, "multiSessionsEnabled", errors);
   const autoUnholdOnTransferFailure = readBoolean(
     record,
@@ -62,6 +68,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
     ok: true,
     value: {
       schemaVersion: SETTINGS_SCHEMA_VERSION,
+      theme,
       multiSessionsEnabled,
       autoUnholdOnTransferFailure,
       autoAnswerTimeoutSec,
@@ -71,6 +78,19 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
       sipReregisterMaxAttempts,
     },
   };
+}
+
+function readTheme(record: Record<string, unknown>, errors: string[]): AppTheme {
+  const raw = record["theme"];
+  if (raw === undefined) {
+    return DEFAULT_APP_THEME;
+  }
+  const parsed = parseAppTheme(raw);
+  if (parsed === null) {
+    errors.push("theme_invalid");
+    return DEFAULT_APP_THEME;
+  }
+  return parsed;
 }
 
 function readBoolean(

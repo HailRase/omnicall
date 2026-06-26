@@ -158,6 +158,7 @@ export {
 } from "./projections/connectionRecoveryProjection.js";
 export {
   deriveConnectionRecoveryShell,
+  type AvatarRecoveryOverlayMode,
   type ConnectionRecoveryShellView,
 } from "./projections/deriveConnectionRecoveryShell.js";
 export {
@@ -201,6 +202,7 @@ export {
   DEFAULT_SIP_REREGISTER_INTERVAL_SEC,
   DEFAULT_SIP_REREGISTER_MAX_ATTEMPTS,
 } from "@domain/settings/SipRecoverySettings.js";
+export { APP_THEMES, DEFAULT_APP_THEME, parseAppTheme, type AppTheme } from "@domain/settings/AppTheme.js";
 export { createDefaultUserSettings, type UserSettings } from "@domain/settings/UserSettings.js";
 export { SafeLogoutUseCase } from "./use-cases/SafeLogoutUseCase.js";
 export { EndUserSessionUseCase } from "./use-cases/EndUserSessionUseCase.js";

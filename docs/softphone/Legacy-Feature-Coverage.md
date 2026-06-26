@@ -133,7 +133,7 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 | LF-079 | P08 | Telephony | Critical | beforeunload SIP cleanup | `DisplayProvider` | WU4–WU5: `ShutdownCleanupUseCase`, `EndUserSessionUseCase`, `SessionTeardownOrchestrationService`, IPC `app:before-close`, `useAppShutdown`, `control-end-session` — see `handoffs/archive/P08/P08-WU4-Recovery-Manual-Shutdown-Handoff.md`, `handoffs/archive/P08/P08-WU5-User-Session-Logout-Handoff.md`. |
 | LF-080 | P12 | Integration | Critical | `window.Softphone` external API | multiple files | One host adapter owns the legacy external API. |
 | LF-081 | P12 | Integration | High | `ocpModule` external status API | `useStatusSelectorAPIAdapter` | Host status API maps to operator Use Cases. |
-| LF-082 | P11 | Settings | Low | Light and dark theme placeholder | `ThemeProvider` | Theme is persisted and applied consistently. |
+| LF-082 | P11 | Settings | Low | Light and dark theme | `applyAppTheme`, `UserSettings.theme` | Theme persisted per account; light default; General settings segmented control; `data-theme` + `tokens.css` light/dark tokens. Evidence: `src/domain/settings/AppTheme.ts`, `src/renderer/theme/applyAppTheme.ts`, `SettingsGeneralPanel`, `validateUserSettings.test.ts`. |
 | LF-083 | P09 | Settings | Low | Debug JsSIP setting | Common settings | Debug flag controls SIP diagnostics safely. |
 | LF-084 | P11 | Settings | Low | Disabled codecs tab | `SettingModal` | Codecs tab is either implemented or explicitly hidden by ADR. |
 | LF-085 | P01 | UI | Low | AccessDenied without username | `Common`, `Account` | Missing account identity shows deterministic access state. |

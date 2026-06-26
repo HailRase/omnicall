@@ -3,7 +3,6 @@ import type { JSX } from "react";
 import type { HeaderChromeShellViewModel } from "@application/index.js";
 import type { useConnectionRecoveryActions } from "../hooks/useConnectionRecoveryActions.js";
 import type { ConnectionRecoveryShellResult } from "../hooks/useConnectionRecoveryShell.js";
-import type { UseSessionLogoutActionsResult } from "../hooks/useSessionLogoutActions.js";
 import type { UseUserAvatarMenuActionsResult } from "../hooks/useUserAvatarMenuActions.js";
 import type { UseUserAvatarMenuResult } from "../hooks/useUserAvatarMenu.js";
 import { IconControlButton } from "../components/icons/index.js";
@@ -18,11 +17,9 @@ type SoftphoneShellHeaderProps = Readonly<{
   collapsed: boolean;
   connectionRecoveryShell: ConnectionRecoveryShellResult;
   connectionRecoveryActions: ReturnType<typeof useConnectionRecoveryActions>;
-  sessionLogoutActions: UseSessionLogoutActionsResult;
   userAvatarMenu: UseUserAvatarMenuResult;
   userAvatarMenuActions: UseUserAvatarMenuActionsResult;
   onToggleCollapse: () => void;
-  onOpenSettings: () => void;
 }>;
 
 /**
@@ -36,11 +33,9 @@ export function SoftphoneShellHeader({
   collapsed,
   connectionRecoveryShell,
   connectionRecoveryActions,
-  sessionLogoutActions,
   userAvatarMenu,
   userAvatarMenuActions,
   onToggleCollapse,
-  onOpenSettings,
 }: SoftphoneShellHeaderProps): JSX.Element {
   return (
     <header
@@ -53,12 +48,11 @@ export function SoftphoneShellHeader({
           <div className={styles["avatarGroup"]}>
           <AvatarRecoveryRing
             visible={connectionRecoveryShell.showAvatarRecoveryRing}
+            tone={connectionRecoveryShell.avatarRecoveryRingTone}
+            overlayMode={connectionRecoveryShell.avatarRecoveryOverlayMode}
             countdownSeconds={connectionRecoveryShell.reconnectCountdownSeconds}
-            inProgress={
-              connectionRecoveryShell.showAvatarRecoveryRing &&
-              connectionRecoveryShell.reconnectCountdownSeconds === null &&
-              connectionRecoveryShell.connectionState === "reconnecting"
-            }
+            reloadDisabledReason={connectionRecoveryShell.reregisterDisabledReason}
+            onReload={connectionRecoveryActions.onReregisterSip}
           >
             <UserAvatar
               ref={userAvatarMenu.anchorRef}
@@ -87,13 +81,6 @@ export function SoftphoneShellHeader({
         </div>
         <div className={styles["headerActions"]}>
           <IconControlButton
-            iconId="shell.settings"
-            ariaLabel="Открыть настройки"
-            testId="control-open-settings"
-            className={styles["iconActionButton"]}
-            onClick={onOpenSettings}
-          />
-          <IconControlButton
             iconId={collapsed ? "shell.expand" : "shell.collapse"}
             ariaLabel={collapsed ? "Развернуть софтфон" : "Свернуть софтфон"}
             testId="control-toggle-collapse"
@@ -103,28 +90,16 @@ export function SoftphoneShellHeader({
           />
         </div>
       </div>
-      {!collapsed ? (
+      {!collapsed && connectionRecoveryShell.showReregisterSipControl ? (
         <div className={styles["headerRecovery"]}>
-          {connectionRecoveryShell.showReregisterSipControl ? (
-            <IconControlButton
-              iconId="sip.reregister"
-              ariaLabel="Перерегистрация SIP"
-              testId="control-reregister-sip"
-              className={styles["iconActionButton"]}
-              disabledReason={connectionRecoveryShell.reregisterDisabledReason}
-              onClick={connectionRecoveryActions.onReregisterSip}
-            />
-          ) : null}
-          {sessionLogoutActions.shell.showEndSessionControl ? (
-            <IconControlButton
-              iconId="session.end"
-              ariaLabel="Завершить сессию"
-              testId="control-end-session"
-              className={styles["iconActionButton"]}
-              disabledReason={sessionLogoutActions.shell.endSessionDisabledReason}
-              onClick={sessionLogoutActions.handleEndSession}
-            />
-          ) : null}
+          <IconControlButton
+            iconId="sip.reregister"
+            ariaLabel="Перерегистрация SIP"
+            testId="control-reregister-sip"
+            className={styles["iconActionButton"]}
+            disabledReason={connectionRecoveryShell.reregisterDisabledReason}
+            onClick={connectionRecoveryActions.onReregisterSip}
+          />
         </div>
       ) : null}
     </header>

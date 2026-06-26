@@ -4,6 +4,8 @@ export {
   ANONYMOUS_SETTINGS_ACCOUNT,
   createSettingsAccountKey,
 } from "./settings/SettingsAccountKey.js";
+export type { AppTheme } from "./settings/AppTheme.js";
+export { APP_THEMES, DEFAULT_APP_THEME, parseAppTheme } from "./settings/AppTheme.js";
 export type { SettingsSchemaVersion, UserSettings } from "./settings/UserSettings.js";
 export {
   createDefaultUserSettings,

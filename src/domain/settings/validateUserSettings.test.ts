@@ -51,4 +51,32 @@ describe("validateUserSettings", () => {
     });
     expect(result.ok).toBe(false);
   });
+
+  it("defaults theme to light when field is missing", () => {
+    const result = validateUserSettings({
+      schemaVersion: 1,
+      multiSessionsEnabled: true,
+      autoUnholdOnTransferFailure: true,
+      autoAnswerTimeoutSec: null,
+      ringbackToneEnabled: true,
+      sipAutoReregisterEnabled: true,
+      sipReregisterIntervalSec: 5,
+      sipReregisterMaxAttempts: 3,
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.theme).toBe("light");
+    }
+  });
+
+  it("rejects invalid theme", () => {
+    const result = validateUserSettings({
+      ...createDefaultUserSettings(),
+      theme: "sepia",
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors).toContain("theme_invalid");
+    }
+  });
 });

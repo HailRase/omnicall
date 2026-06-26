@@ -13,7 +13,7 @@
 
 | Semantic ID | Purpose | Static | Animated | Used in | Status |
 | --- | --- | --- | --- | --- | --- |
-| `shell.settings` | Open settings overlay | `Settings` | `SettingsIcon` | `SoftphoneShellHeader`, `SettingsPanel` | active |
+| `shell.settings` | Open settings overlay | `Settings` | `SettingsIcon` | `UserAvatarMenu`, `SettingsSidebar` | active |
 | `shell.diagnostics` | Settings diagnostics section | `Activity` | `ActivityIcon` | `SettingsSidebar` | active |
 | `settings.account` | Settings account section | `User` | `UserIcon` | `SettingsSidebar` | active |
 | `settings.general` | Settings general section | `SlidersHorizontal` | `SlidersHorizontalIcon` | `SettingsSidebar` | active |

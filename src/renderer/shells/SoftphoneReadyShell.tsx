@@ -93,11 +93,9 @@ export function SoftphoneReadyShell({
             collapsed={collapsed}
             connectionRecoveryShell={connectionRecoveryShell}
             connectionRecoveryActions={connectionRecoveryActions}
-            sessionLogoutActions={sessionLogoutActions}
             userAvatarMenu={userAvatarMenu}
             userAvatarMenuActions={userAvatarMenuActions}
             onToggleCollapse={toggleCollapsed}
-            onOpenSettings={overlayShell.openSettings}
           />
           {!collapsed ? <OperatorFeatureShell facade={facade} /> : null}
         </>
@@ -129,8 +127,11 @@ export function SoftphoneReadyShell({
             <SettingsPanel
               activeSection={overlayShell.settingsSection}
               sidebarExpanded={settingsSidebarExpanded}
+              onClose={overlayShell.closeOverlay}
               onSectionChange={overlayShell.setSettingsSection}
               onSidebarExpandedChange={setSettingsSidebarExpanded}
+              theme={settingsActions.userSettings.theme}
+              onThemeChange={settingsActions.onThemeChange}
               multiSessionsEnabled={multiCallProjection.multiSessionsEnabled}
               onMultiSessionsChange={settingsActions.onMultiSessionsToggle}
               sipAutoReregisterEnabled={settingsActions.userSettings.sipAutoReregisterEnabled}

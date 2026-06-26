@@ -1,3 +1,4 @@
+import { DEFAULT_APP_THEME, type AppTheme } from "./AppTheme.js";
 import {
   DEFAULT_SIP_REREGISTER_INTERVAL_SEC,
   DEFAULT_SIP_REREGISTER_MAX_ATTEMPTS,
@@ -13,6 +14,7 @@ export const MAX_AUTO_ANSWER_TIMEOUT_SEC = 300;
 
 export type UserSettings = Readonly<{
   schemaVersion: SettingsSchemaVersion;
+  theme: AppTheme;
   multiSessionsEnabled: boolean;
   autoUnholdOnTransferFailure: boolean;
   autoAnswerTimeoutSec: number | null;
@@ -32,6 +34,7 @@ export { MIN_SIP_REREGISTER_INTERVAL_SEC };
 export function createDefaultUserSettings(): UserSettings {
   return {
     schemaVersion: SETTINGS_SCHEMA_VERSION,
+    theme: DEFAULT_APP_THEME,
     multiSessionsEnabled: true,
     autoUnholdOnTransferFailure: true,
     autoAnswerTimeoutSec: null,

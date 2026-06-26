@@ -1,5 +1,5 @@
-import type { JSX, ReactNode } from "react";
-import { IconControlButton } from "../icons/index.js";
+import clsx from "clsx";
+import { useEffect, useState, type AnimationEvent, type JSX, type ReactNode } from "react";
 import styles from "./SettingsFullscreenOverlay.module.css";
 
 export type SettingsFullscreenOverlayProps = Readonly<{
@@ -7,6 +7,15 @@ export type SettingsFullscreenOverlayProps = Readonly<{
   onClose: () => void;
   children: ReactNode;
 }>;
+
+type OverlayPhase = "closed" | "open" | "closing";
+
+function prefersReducedMotion(): boolean {
+  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+    return false;
+  }
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
 
 /**
  * - Purpose: render fullscreen settings overlay with slide-in animation and scrim.
@@ -19,37 +28,56 @@ export function SettingsFullscreenOverlay({
   onClose,
   children,
 }: SettingsFullscreenOverlayProps): JSX.Element | null {
-  if (!open) {
+  const [phase, setPhase] = useState<OverlayPhase>(() => (open ? "open" : "closed"));
+
+  useEffect(() => {
+    if (open) {
+      setPhase("open");
+      return;
+    }
+
+    setPhase((current) => {
+      if (current !== "open") {
+        return current;
+      }
+      return prefersReducedMotion() ? "closed" : "closing";
+    });
+  }, [open]);
+
+  const handlePanelAnimationEnd = (event: AnimationEvent<HTMLElement>): void => {
+    if (phase !== "closing" || event.target !== event.currentTarget) {
+      return;
+    }
+    setPhase("closed");
+  };
+
+  if (phase === "closed") {
     return null;
   }
+
+  const exiting = phase === "closing";
 
   return (
     <div
       className={styles["overlay"]}
       data-testid="settings-overlay"
+      data-closing={exiting ? "true" : undefined}
       role="dialog"
       aria-modal="true"
       aria-label="Настройки"
     >
       <button
         type="button"
-        className={styles["backdrop"]}
+        className={clsx(styles["backdrop"], exiting && styles["backdropExiting"])}
         aria-label="Закрыть настройки"
         data-testid="settings-overlay-backdrop"
         onClick={onClose}
       />
-      <section className={styles["panel"]}>
-        <header className={styles["header"]}>
-          <h2 className={styles["title"]}>Настройки</h2>
-          <IconControlButton
-            iconId="overlay.close"
-            ariaLabel="Закрыть настройки"
-            testId="settings-overlay-close"
-            className={styles["closeButton"]}
-            onClick={onClose}
-          />
-        </header>
-        <div className={styles["body"]}>{children}</div>
+      <section
+        className={clsx(styles["panel"], exiting && styles["panelExiting"])}
+        onAnimationEnd={handlePanelAnimationEnd}
+      >
+        {children}
       </section>
     </div>
   );

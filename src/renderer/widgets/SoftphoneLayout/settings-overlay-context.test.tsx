@@ -18,8 +18,11 @@ describe("settings overlay with layout zones", () => {
             <SettingsPanel
               activeSection="sessions"
               sidebarExpanded={false}
+              onClose={() => undefined}
               onSectionChange={vi.fn()}
               onSidebarExpandedChange={vi.fn()}
+              theme="light"
+              onThemeChange={() => undefined}
               multiSessionsEnabled
               onMultiSessionsChange={() => undefined}
               sipAutoReregisterEnabled

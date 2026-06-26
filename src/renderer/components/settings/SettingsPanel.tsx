@@ -1,7 +1,8 @@
 import type { JSX, ReactNode } from "react";
-import type { SipAccountInput } from "@application/index.js";
+import type { AppTheme, SipAccountInput } from "@application/index.js";
+import { IconControlButton } from "../icons/index.js";
 import type { SettingsSectionId } from "./settingsSections.js";
-import { resolveSettingsSectionTitle } from "./settingsSections.js";
+import { resolveSettingsContentHeaderTitle } from "./settingsSections.js";
 import { SettingsSidebar } from "./SettingsSidebar.js";
 import { SettingsAccountPanel } from "./panels/SettingsAccountPanel.js";
 import { SettingsCodecsPanel } from "./panels/SettingsCodecsPanel.js";
@@ -15,8 +16,11 @@ import styles from "./SettingsPanel.module.css";
 export type SettingsPanelProps = Readonly<{
   activeSection: SettingsSectionId;
   sidebarExpanded: boolean;
+  onClose: () => void;
   onSectionChange: (sectionId: SettingsSectionId) => void;
   onSidebarExpandedChange: (expanded: boolean) => void;
+  theme: AppTheme;
+  onThemeChange: (theme: AppTheme) => void;
   multiSessionsEnabled: boolean;
   onMultiSessionsChange: (enabled: boolean) => void;
   sipAutoReregisterEnabled: boolean;
@@ -46,8 +50,11 @@ export type SettingsPanelProps = Readonly<{
 export function SettingsPanel({
   activeSection,
   sidebarExpanded,
+  onClose,
   onSectionChange,
   onSidebarExpandedChange,
+  theme,
+  onThemeChange,
   multiSessionsEnabled,
   onMultiSessionsChange,
   sipAutoReregisterEnabled,
@@ -81,6 +88,8 @@ export function SettingsPanel({
     case "general":
       sectionContent = (
         <SettingsGeneralPanel
+          theme={theme}
+          onThemeChange={onThemeChange}
           sipAutoReregisterEnabled={sipAutoReregisterEnabled}
           onSipAutoReregisterChange={onSipAutoReregisterChange}
           sipReregisterIntervalSec={sipReregisterIntervalSec}
@@ -122,8 +131,17 @@ export function SettingsPanel({
       <div className={styles["content"]}>
         <header className={styles["contentHeader"]}>
           <h3 className={styles["contentTitle"]} data-testid="settings-section-title">
-            {resolveSettingsSectionTitle(activeSection)}
+            {resolveSettingsContentHeaderTitle(activeSection)}
           </h3>
+          <div className={styles["closeSlot"]}>
+            <IconControlButton
+              iconId="overlay.close"
+              ariaLabel="Закрыть настройки"
+              testId="settings-overlay-close"
+              className={styles["closeButton"]}
+              onClick={onClose}
+            />
+          </div>
         </header>
         {updateError !== null ? (
           <p className={formStyles["error"]} role="alert" data-testid="settings-update-error">

@@ -38,7 +38,7 @@ docs/softphone/UX-UI-Design-Blueprint.md
 ## Implementation order
 
 1. State inventory + disabled reasons + a11y + test IDs (from ux-ui-flow-design).
-2. Co-located `*.module.css` + `var(--*)` from `tokens.css`.
+2. Co-located `*.module.css` + `var(--*)` from `tokens.css` — **both light and dark** (see `ux-ui-electron-react.mdc` → Color Themes).
 3. Dumb components: props + callbacks only; Use Cases via hooks outside components.
 4. `data-testid` on critical controls; `aria-label` on icon-only buttons.
 5. Component tests; Storybook for critical surfaces.

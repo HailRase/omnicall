@@ -398,13 +398,13 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Manual retry via `RetryConnectionUseCase` from overlay and shell re-register control (LF-010, WU4).
   - App shutdown IPC triggers `ShutdownCleanupUseCase` with hangup, unregister, scheduler dispose (LF-079, WU4).
   - SIP-only user logout via `EndUserSessionUseCase` and `SessionTeardownOrchestrationService`: dispose → hangupAll → `MediaGateway.releaseAll` → unregister → `UserSessionEnded` (LF-079, WU5).
-  - `control-end-session` with confirmation modal when active telephony; projections reset to `sip_only_ready` (WU5).
+  - `user-menu-logout` in avatar menu with confirmation modal when active telephony; projections reset to `sip_only_ready` (WU5).
 - Test Coverage:
   - Unit: `ReconnectPolicy`, recovery events, `connectionRecoveryProjection`, `ReconnectScheduler`, `deriveConnectionRecoveryShell`, `deriveSessionLogoutShell`, `useReconnectCountdown`, `RetryConnectionUseCase`, `EndUserSessionUseCase`, `SessionTeardownOrchestrationService`, `AppShutdownContract`
   - Integration: `SipRecoveryOrchestration`, `OcpRecoveryOrchestration`, `ServerTerminate`, `ServerTerminateCleanup`, `ShutdownCleanup`, `SessionTeardown` (WU3–WU5)
   - Component: `ConnectionOverlay` (WU3–WU4), `LogoutActiveSessionConfirmationModal` (WU5), `AvatarRecoveryRing` (post-WU5 polish)
   - E2E: deferred until harness exists
-- Implementation evidence (avatar recovery ring **2026-06-26**): `deriveConnectionRecoveryShell.showAvatarRecoveryRing` suppresses blocking overlay during SIP registration recovery; `AvatarRecoveryRing` on `SoftphoneShellHeader`; `deriveConnectionRecoveryShell.test.ts`, `AvatarRecoveryRing.test.tsx`; gate `handoffs/P11-Post-WU5-Shell-Polish-Handoff.md` (LF-009)
+- Implementation evidence (avatar recovery ring **2026-06-26**): `deriveConnectionRecoveryShell.showAvatarRecoveryRing` suppresses overlay during SIP registration recovery including terminal `manual_retry_available`; `AvatarRecoveryRing` countdown/reload on avatar; `deriveConnectionRecoveryShell.test.ts`, `AvatarRecoveryRing.test.tsx`; gate `handoffs/P11-Post-WU5-Shell-Polish-Handoff.md` (LF-009)
 
 ## F-015: OCP Call Synchronization And Campaigns
 
@@ -433,7 +433,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-055`, `LF-056`, `LF-060`, `LF-076`, `LF-077`, `LF-082`, `LF-084`, `LF-085`, `LF-086`, `LF-087`, `LF-032` (multi-session toggle)
 - Context: Settings
 - Priority: high
-- Status: **in_progress** (P11 WU0–WU5 + UI-4 **done**; **T-001** icon tooltips, **T-002** AppIcon, **T-005** fullscreen settings, **post-WU5 shell polish** done 2026-06-26; open: UI-6 Radix modals, theme LF-082, draggable LF-056, toast LF-060)
+- Status: **in_progress** (P11 WU0–WU5 + UI-4 **done**; **T-001** icon tooltips, **T-002** AppIcon, **T-005** fullscreen settings, **post-WU5 shell polish**, **LF-082 light/dark theme** done 2026-06-26; open: UI-6 Radix modals, draggable LF-056, toast LF-060)
 - Owner: TBD
 - Inputs: user settings, account identity, shell interactions
 - Outputs: persisted settings, collapsed UI state, theme, menu projections
@@ -442,17 +442,17 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - **UserSettings v1** aggregate persisted per `SettingsAccountKey` with migration from v0 fragments.
   - Corrupt or unsupported schema version surfaces observable error (no silent security-sensitive defaults).
   - **Overlay navigation:** settings open fullscreen over call context; diagnostics is a settings section; call context stays mounted (`UI-Architecture.md`).
-  - **Settings sidebar:** collapsed icon rail; expanded labels overlay content without shrinking the panel.
-  - **Settings sections:** Account (SIP auth), General (SIP re-register), Sessions (multi-call), Diagnostics (F-017 stub), Codecs (stub), Headset (P10 stub).
+  - **Settings sidebar:** collapsed icon rail; expanded labels overlay content without shrinking the panel; no duplicate overlay header — content header shows `Настройки ({раздел})` and a minimal close icon.
+  - **Settings sections:** Account (SIP auth), General (theme LF-082, SIP re-register), Sessions (multi-call), Diagnostics (F-017 stub), Codecs (stub), Headset (P10 stub).
   - **`multiSessionsEnabled` toggle** in settings UI (facade + port; no Use Case) — enables R7-5 re-smoke without repo hack.
   - Collapsed mode preserves critical call/status visibility.
-  - **Compact registration dot** on header avatar reflects SIP registration and phone status (LF-011); red when not registered.
-  - **Avatar recovery ring** shows SIP re-registration countdown on avatar border without fullscreen overlay (LF-009).
-  - **Avatar user menu** on click: settings, DND toggle (orange when active), logout (LF-086).
+  - **Compact registration dot** on header avatar reflects SIP registration and phone status (LF-011); gray idle, red on transport/registration fault, amber while retry pending.
+  - **Avatar recovery ring** shows SIP registration recovery on avatar: countdown centered with blur during auto-retry; reload icon when auto-retry off or attempts exhausted; no fullscreen overlay for registration recovery (LF-009).
+  - **Avatar user menu** on click: settings (animated icon), DND toggle (orange when active), logout (LF-086); settings are not duplicated in shell header.
   - **Dialpad home screen:** controls zone first; `CallSessionTabs` above split input+call dialpad; compact `ActiveCallQuickBar` for active line; inline delete in input (F-003/F-004 UI).
   - **Collapse toggle** minimizes shell to ~56px strip; ContextZone compact `CallLineRow` stays mounted.
   - **Icon-only controls:** semantic `AppIcon` + 1s hover tooltip via `IconControlButton`; `aria-label` preserved (T-001 done).
-  - Electron shell behavior does not contain business logic.
+  - **Theme (LF-082):** light default; `theme` in UserSettings; segmented control in General settings; `applyAppTheme` sets `data-theme` on documentElement; semantic tokens in `tokens.css` for light and dark.
 - Test Coverage:
   - Unit: `validateUserSettings`, `migrateUserSettings`, `InMemorySettingsRepository` / `FileSettingsRepository` round-trip
   - Integration: facade `updateMultiCallSettings`, `getUserSettingsForAccount`, `saveUserSettings`, `refreshUserSettingsProjections`
@@ -467,7 +467,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (icon tooltips **T-001 done**): `IconTooltip`, `IconControlButton`, `iconTooltipDelay.ts`, `IconTooltip.test.tsx`; 1s hover delay (`prefers-reduced-motion: reduce` → instant); wired on all icon-only controls; gate `handoffs/P11-Icon-Tooltips-Agent-Prompt.md` (2026-06-25)
 - Implementation evidence (T-005 settings UX **done**): `SettingsFullscreenOverlay`, `SettingsPanel`, `SettingsSidebar`, `settingsSections.ts`, section panels (`SettingsGeneralPanel`, `SettingsSessionsPanel`, `SettingsAccountPanel`, `SettingsDiagnosticsPanel`, `SettingsCodecsPanel`, `SettingsHeadsetPanel`); header diagnostics opens settings diagnostics section; 7 new settings nav icons in `iconCatalog.ts` (2026-06-26)
 - Implementation evidence (dialpad home **2026-06-26**): `CallSessionTab`, `CallSessionTabs`, `ActiveCallQuickBar`, redesigned `Dialpad` split input, `CallControlsShell` stack, `SoftphoneLayout` controls-first; `CallContextShell` full rows only in collapsed mode; gate `handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`
-- Implementation evidence (avatar recovery ring **2026-06-26**): `AvatarRecoveryRing`, `deriveConnectionRecoveryShell.showAvatarRecoveryRing`, `SoftphoneShellHeader` wiring, `RegistrationStatusDot` red `not_registered`; `AvatarRecoveryRing.test.tsx`, Storybook `ShellHeader.stories.tsx`; LF-009, LF-011; gate `handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`
+- Implementation evidence (avatar recovery ring **2026-06-26**): `AvatarRecoveryRing` (countdown on avatar with blur, reload overlay), `deriveConnectionRecoveryShell` (`manual_retry_available` registration → avatar reload, no overlay), `deriveHeaderChromeShell` connection-aware dot colors; LF-009, LF-011
 - Implementation evidence (icons foundation): `lucide-react`, `lucide-animated`, `motion`, `AppIcon`, `iconCatalog.ts`, `Icon-Registry.md`, `Icon-Agent-Guide.md`, `.cursor/rules/icons.mdc`, `.cursor/skills/icons/SKILL.md`
 - UI docs: `UI-Architecture.md`, `UI-Design-System.md`, `P11-Call-Line-UX-Design.md`, `P11-Header-Collapsed-UX-Design.md`, `P11-Settings-Schema-Design.md`, `P11-CSS-Modules-Tokens-Migration.md`, `handoffs/P11-WU0-Shell-Layout-Handoff.md`, `handoffs/P11-WU1-Settings-Overlay-Handoff.md`, `handoffs/P11-WU2-Call-Line-UX-Handoff.md`, `handoffs/P11-WU3-Header-Collapsed-Handoff.md`, `handoffs/P11-WU4-Settings-Schema-Handoff.md`, `handoffs/P11-WU5-UI-4-Final-Gate-Handoff.md`, `handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`, `handoffs/P11-Icon-Tooltips-Agent-Prompt.md` (T-001 gate)
 

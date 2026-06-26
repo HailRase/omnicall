@@ -8,7 +8,7 @@ import { useSoftphoneProjections } from "./useSoftphoneProjections.js";
  * - Outputs: header chrome shell view-model for presentational header components.
  */
 export function useHeaderChromeShell() {
-  const { projection } = useSoftphoneProjections();
+  const { projection, connectionRecoveryProjection } = useSoftphoneProjections();
 
   return useMemo(
     () =>
@@ -17,12 +17,16 @@ export function useHeaderChromeShell() {
         registrationState: projection.registrationState,
         phoneStatus: projection.phoneStatus,
         agentId: projection.agentId,
+        connectionState: connectionRecoveryProjection.connectionState,
+        sipRecoveryMode: connectionRecoveryProjection.sipRecoveryMode,
       }),
     [
       projection.authUiState,
       projection.registrationState,
       projection.phoneStatus,
       projection.agentId,
+      connectionRecoveryProjection.connectionState,
+      connectionRecoveryProjection.sipRecoveryMode,
     ],
   );
 }

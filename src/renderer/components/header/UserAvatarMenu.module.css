@@ -6,7 +6,7 @@
   border: 1px solid var(--color-border-default);
   border-radius: var(--radius-panel);
   background: var(--color-bg-surface-elevated);
-  box-shadow: 0 8px 24px rgb(0 0 0 / 28%);
+  box-shadow: var(--shadow-menu-elevated);
 }
 
 .item {
@@ -47,6 +47,11 @@
   justify-content: center;
   width: var(--icon-size-md);
   height: var(--icon-size-md);
+  line-height: 0;
+}
+
+.itemIcon svg {
+  display: block;
 }
 
 .itemLabel {

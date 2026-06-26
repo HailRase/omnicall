@@ -58,7 +58,7 @@ export function UserAvatarMenu({
         onClick={onOpenSettings}
       >
         <span className={styles["itemIcon"]}>
-          <AppIcon id="shell.settings" decorative preferAnimated={false} />
+          <AppIcon id="shell.settings" decorative />
         </span>
         <span className={styles["itemLabel"]}>Настройки</span>
       </button>

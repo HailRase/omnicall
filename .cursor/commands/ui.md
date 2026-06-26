@@ -11,7 +11,8 @@
 
 - **Не кодить** без завершённого intake (`needs_input` → спроси какую задачу выполнить, если пользователь не указал задачу; иначе default: TASK-QUEUE #1)
 - **Не расширять scope** за пределы одного WU
-- **Не трогать** Domain/Use Cases — эскалация → `/logic`
+- **Не трогать** Domain/Use Cases — эскалация → `/logic` (исключение: поля `UserSettings` без бизнес-правил, напр. `theme`)
+- **Две темы обязательны:** любые стили/компоненты — light + dark через токены (`ux-ui-electron-react.mdc` → Color Themes)
 - OCP / real transfer — **out of scope** (ADR-0002, backlog)
 
 ## Intake
