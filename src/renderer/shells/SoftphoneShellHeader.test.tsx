@@ -66,7 +66,6 @@ describe("SoftphoneShellHeader", () => {
         sessionLogoutActions={sessionLogoutActions}
         onToggleCollapse={onToggleCollapse}
         onOpenSettings={vi.fn()}
-        onOpenDiagnostics={vi.fn()}
       />,
     );
 
@@ -95,7 +94,6 @@ describe("SoftphoneShellHeader", () => {
         }}
         onToggleCollapse={vi.fn()}
         onOpenSettings={vi.fn()}
-        onOpenDiagnostics={vi.fn()}
       />,
     );
 

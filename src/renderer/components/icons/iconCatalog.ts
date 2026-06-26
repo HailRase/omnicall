@@ -2,11 +2,16 @@ import type { ComponentType, HTMLAttributes } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   Activity,
+  AudioLines,
   Check,
+  ChevronLeft,
+  ChevronRight,
   CircleCheck,
   Coffee,
   Delete,
   Eraser,
+  Headphones,
+  Layers,
   LogOut,
   Mic,
   MicOff,
@@ -23,14 +28,20 @@ import {
   RefreshCcw,
   RotateCcw,
   Settings,
+  SlidersHorizontal,
+  User,
   X,
 } from "lucide-react";
 import {
   ActivityIcon,
+  AudioLinesIcon,
   CheckIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   CircleCheckIcon,
   CoffeeIcon,
   DeleteIcon,
+  LayersIcon,
   LogoutIcon,
   MicIcon,
   MicOffIcon,
@@ -46,6 +57,8 @@ import {
   RefreshCcwIcon,
   RotateCcwIcon,
   SettingsIcon,
+  SlidersHorizontalIcon,
+  UserIcon,
   XIcon,
 } from "lucide-animated";
 
@@ -58,6 +71,13 @@ export type IconSemanticId =
   | "shell.diagnostics"
   | "shell.collapse"
   | "shell.expand"
+  | "settings.account"
+  | "settings.general"
+  | "settings.sessions"
+  | "settings.codecs"
+  | "settings.headset"
+  | "settings.nav.expand"
+  | "settings.nav.collapse"
   | "session.end"
   | "sip.reregister"
   | "call.answer"
@@ -97,14 +117,62 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     animated: SettingsIcon,
     defaultLabel: "Настройки",
     defaultSize: 20,
-    usage: ["SoftphoneShellHeader: control-open-settings", "SettingsOverlay"],
+    usage: ["SoftphoneShellHeader: control-open-settings", "SettingsPanel"],
   },
   "shell.diagnostics": {
     static: Activity,
     animated: ActivityIcon,
     defaultLabel: "Диагностика",
     defaultSize: 20,
-    usage: ["SoftphoneShellHeader: control-open-diagnostics"],
+    usage: ["SettingsSidebar: settings-nav-diagnostics"],
+  },
+  "settings.account": {
+    static: User,
+    animated: UserIcon,
+    defaultLabel: "Аккаунт",
+    defaultSize: 20,
+    usage: ["SettingsSidebar: settings-nav-account"],
+  },
+  "settings.general": {
+    static: SlidersHorizontal,
+    animated: SlidersHorizontalIcon,
+    defaultLabel: "Общее",
+    defaultSize: 20,
+    usage: ["SettingsSidebar: settings-nav-general"],
+  },
+  "settings.sessions": {
+    static: Layers,
+    animated: LayersIcon,
+    defaultLabel: "Сессии",
+    defaultSize: 20,
+    usage: ["SettingsSidebar: settings-nav-sessions"],
+  },
+  "settings.codecs": {
+    static: AudioLines,
+    animated: AudioLinesIcon,
+    defaultLabel: "Кодеки",
+    defaultSize: 20,
+    usage: ["SettingsSidebar: settings-nav-codecs"],
+  },
+  "settings.headset": {
+    static: Headphones,
+    defaultLabel: "Гарнитура",
+    defaultSize: 20,
+    usage: ["SettingsSidebar: settings-nav-headset"],
+  },
+  "settings.nav.expand": {
+    static: ChevronRight,
+    animated: ChevronRightIcon,
+    defaultLabel: "Развернуть меню",
+    defaultSize: 20,
+    usage: ["SettingsSidebar: settings-sidebar-expand"],
+  },
+  "settings.nav.collapse": {
+    static: ChevronLeft,
+    animated: ChevronLeftIcon,
+    defaultLabel: "Свернуть меню",
+    defaultSize: 20,
+    usage: ["SettingsSidebar: settings-sidebar-collapse"],
   },
   "shell.collapse": {
     static: PanelLeftClose,

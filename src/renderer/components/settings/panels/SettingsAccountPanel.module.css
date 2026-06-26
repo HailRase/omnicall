@@ -1,0 +1,10 @@
+.wrapper :global([data-testid="account-panel"]) {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.wrapper :global(h2) {
+  display: none;
+}

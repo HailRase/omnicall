@@ -63,7 +63,6 @@ const baseHeaderArgs = {
   },
   onToggleCollapse: noop,
   onOpenSettings: noop,
-  onOpenDiagnostics: noop,
 };
 
 const meta = {

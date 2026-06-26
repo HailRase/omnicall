@@ -1,11 +1,12 @@
-import type { JSX } from "react";
+import { useState, type JSX } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import { AuthStateView } from "../components/auth/AuthStateView.js";
 import { PhoneStatusBadge } from "../components/status/PhoneStatusBadge.js";
 import { OcpToastStack } from "../components/ocp/OcpToastStack.js";
-import { ShellOverlaySheet } from "../components/shell/ShellOverlaySheet.js";
-import { SettingsOverlay } from "../components/settings/SettingsOverlay.js";
+import { SettingsFullscreenOverlay } from "../components/settings/SettingsFullscreenOverlay.js";
+import { SettingsPanel } from "../components/settings/SettingsPanel.js";
 import { registrationLabel } from "../helpers/registrationLabel.js";
+import { useAccountActions } from "../hooks/useAccountActions.js";
 import { useAuthShellFlags } from "../hooks/useAuthShellFlags.js";
 import { useCallFeatureShell } from "../hooks/useCallFeatureShell.js";
 import { useHeaderChromeShell } from "../hooks/useHeaderChromeShell.js";
@@ -17,7 +18,6 @@ import type { useSoftphoneShellChrome } from "../hooks/useSoftphoneShellChrome.j
 import { useShellCollapse } from "../hooks/useShellCollapse.js";
 import { useSoftphoneProjections } from "../hooks/useSoftphoneProjections.js";
 import { SoftphoneLayout } from "../widgets/SoftphoneLayout/SoftphoneLayout.js";
-import { AuthAccountShell } from "./AuthAccountShell.js";
 import { CallContextShell } from "./call/CallContextShell.js";
 import { CallControlsShell } from "./call/CallControlsShell.js";
 import { CallOverlayShell } from "./call/CallOverlayShell.js";
@@ -44,9 +44,11 @@ export function SoftphoneReadyShell({
     shellChrome;
   const { projection, ocpNotificationProjection, multiCallProjection, applyMultiCallSettings } =
     useSoftphoneProjections();
-  const { showAccountPanel, blockingAuthState } = useAuthShellFlags();
+  const { blockingAuthState } = useAuthShellFlags();
   const phoneStatusActions = usePhoneStatusActions({ facade, disabled: blockingAuthState });
   const overlayShell = useOverlayShell();
+  const accountActions = useAccountActions({ facade });
+  const [settingsSidebarExpanded, setSettingsSidebarExpanded] = useState(false);
   const { collapsed, toggleCollapsed } = useShellCollapse();
   const headerChrome = useHeaderChromeShell();
   const callBindings = useCallFeatureShell({ facade });
@@ -77,7 +79,6 @@ export function SoftphoneReadyShell({
             sessionLogoutActions={sessionLogoutActions}
             onToggleCollapse={toggleCollapsed}
             onOpenSettings={overlayShell.openSettings}
-            onOpenDiagnostics={overlayShell.openDiagnostics}
           />
           {!collapsed ? (
             <>
@@ -101,11 +102,6 @@ export function SoftphoneReadyShell({
             <>
               <AuthStateView state={projection.authUiState} lastError={projection.lastError} />
               <SessionFeatureShell sessionLogoutActions={sessionLogoutActions} />
-              <AuthAccountShell
-                facade={facade}
-                visible={showAccountPanel && !blockingAuthState}
-                disabled={false}
-              />
             </>
           ) : null}
           <CallContextShell bindings={callBindings} collapsed={collapsed} />
@@ -120,13 +116,15 @@ export function SoftphoneReadyShell({
           />
           <RecoveryFeatureShell facade={facade} />
           <CallOverlayShell bindings={callBindings} />
-          <ShellOverlaySheet
+          <SettingsFullscreenOverlay
             open={overlayShell.settingsOpen}
-            title="Настройки"
-            testId="settings-overlay"
             onClose={overlayShell.closeOverlay}
           >
-            <SettingsOverlay
+            <SettingsPanel
+              activeSection={overlayShell.settingsSection}
+              sidebarExpanded={settingsSidebarExpanded}
+              onSectionChange={overlayShell.setSettingsSection}
+              onSidebarExpandedChange={setSettingsSidebarExpanded}
               multiSessionsEnabled={multiCallProjection.multiSessionsEnabled}
               onMultiSessionsChange={settingsActions.onMultiSessionsToggle}
               sipAutoReregisterEnabled={settingsActions.userSettings.sipAutoReregisterEnabled}
@@ -134,14 +132,16 @@ export function SoftphoneReadyShell({
               sipReregisterIntervalSec={settingsActions.userSettings.sipReregisterIntervalSec}
               onSipReregisterIntervalChange={settingsActions.onSipReregisterIntervalChange}
               updateError={settingsActions.settingsUpdateError}
+              account={{
+                form: accountActions.form,
+                submitting: accountActions.submitting,
+                error: accountActions.error,
+                disabled: blockingAuthState,
+                onFieldChange: accountActions.updateField,
+                onSubmit: accountActions.handleSubmit,
+              }}
             />
-          </ShellOverlaySheet>
-          <ShellOverlaySheet
-            open={overlayShell.diagnosticsOpen}
-            title="Диагностика"
-            testId="diagnostics-overlay"
-            onClose={overlayShell.closeOverlay}
-          />
+          </SettingsFullscreenOverlay>
         </>
       }
     />

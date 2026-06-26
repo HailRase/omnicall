@@ -1,17 +1,34 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { SettingsOverlay } from "./SettingsOverlay.js";
+import { SettingsFullscreenOverlay } from "./SettingsFullscreenOverlay.js";
+import { SettingsPanel } from "./SettingsPanel.js";
 
 const meta = {
-  title: "Settings/SettingsOverlay",
-  component: SettingsOverlay,
+  title: "Settings/SettingsPanel",
+  component: SettingsPanel,
   parameters: {
-    layout: "padded",
+    layout: "fullscreen",
   },
-} satisfies Meta<typeof SettingsOverlay>;
+  decorators: [
+    (Story) => (
+      <SettingsFullscreenOverlay open onClose={() => undefined}>
+        <Story />
+      </SettingsFullscreenOverlay>
+    ),
+  ],
+} satisfies Meta<typeof SettingsPanel>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
+
+const accountDefaults = {
+  form: { username: "user", password: "", domain: "example.com", server: "sip.example.com" },
+  submitting: false,
+  error: null,
+  disabled: false,
+  onFieldChange: () => undefined,
+  onSubmit: () => undefined,
+} as const;
 
 const sipRecoveryDefaults = {
   sipAutoReregisterEnabled: true,
@@ -20,18 +37,41 @@ const sipRecoveryDefaults = {
   onSipReregisterIntervalChange: () => undefined,
 } as const;
 
-export const MultiSessionsEnabled: Story = {
+export const GeneralSection: Story = {
   args: {
+    activeSection: "general",
+    sidebarExpanded: false,
+    onSectionChange: () => undefined,
+    onSidebarExpandedChange: () => undefined,
     multiSessionsEnabled: true,
     onMultiSessionsChange: () => undefined,
+    account: accountDefaults,
     ...sipRecoveryDefaults,
   },
 };
 
-export const MultiSessionsDisabled: Story = {
+export const SessionsSection: Story = {
   args: {
+    activeSection: "sessions",
+    sidebarExpanded: false,
+    onSectionChange: () => undefined,
+    onSidebarExpandedChange: () => undefined,
     multiSessionsEnabled: false,
     onMultiSessionsChange: () => undefined,
+    account: accountDefaults,
+    ...sipRecoveryDefaults,
+  },
+};
+
+export const SidebarExpanded: Story = {
+  args: {
+    activeSection: "account",
+    sidebarExpanded: true,
+    onSectionChange: () => undefined,
+    onSidebarExpandedChange: () => undefined,
+    multiSessionsEnabled: true,
+    onMultiSessionsChange: () => undefined,
+    account: accountDefaults,
     ...sipRecoveryDefaults,
   },
 };

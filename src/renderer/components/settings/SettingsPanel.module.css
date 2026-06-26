@@ -1,0 +1,35 @@
+.layout {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.content {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.contentHeader {
+  flex-shrink: 0;
+  padding: var(--space-md) var(--space-lg) var(--space-sm);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.contentTitle {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-emphasis);
+}
+
+.contentBody {
+  flex: 1;
+  overflow: auto;
+  padding: var(--space-lg);
+}

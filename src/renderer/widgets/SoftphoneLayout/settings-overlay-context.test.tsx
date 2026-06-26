@@ -1,34 +1,41 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
-import { SettingsOverlay } from "../../components/settings/SettingsOverlay.js";
-import { ShellOverlaySheet } from "../../components/shell/ShellOverlaySheet.js";
+import { describe, expect, it, vi } from "vitest";
+import { SettingsFullscreenOverlay } from "../../components/settings/SettingsFullscreenOverlay.js";
+import { SettingsPanel } from "../../components/settings/SettingsPanel.js";
 import { SoftphoneLayout } from "./SoftphoneLayout.js";
 
 describe("settings overlay with layout zones", () => {
-  it("keeps call context mounted while settings sheet is open", () => {
+  it("keeps call context mounted while settings overlay is open", () => {
     render(
       <SoftphoneLayout
         header={<span>Header</span>}
         context={<div data-testid="call-context-zone">Call context</div>}
         controls={<span>Controls</span>}
         overlays={
-          <ShellOverlaySheet
-            open
-            title="Settings"
-            testId="settings-overlay"
-            onClose={() => undefined}
-          >
-            <SettingsOverlay
+          <SettingsFullscreenOverlay open onClose={() => undefined}>
+            <SettingsPanel
+              activeSection="sessions"
+              sidebarExpanded={false}
+              onSectionChange={vi.fn()}
+              onSidebarExpandedChange={vi.fn()}
               multiSessionsEnabled
               onMultiSessionsChange={() => undefined}
               sipAutoReregisterEnabled
               onSipAutoReregisterChange={() => undefined}
               sipReregisterIntervalSec={5}
               onSipReregisterIntervalChange={() => undefined}
+              account={{
+                form: { username: "", password: "", domain: "", server: "" },
+                submitting: false,
+                error: null,
+                disabled: false,
+                onFieldChange: vi.fn(),
+                onSubmit: vi.fn(),
+              }}
             />
-          </ShellOverlaySheet>
+          </SettingsFullscreenOverlay>
         }
       />,
     );

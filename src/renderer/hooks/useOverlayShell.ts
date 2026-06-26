@@ -1,40 +1,52 @@
 import { useCallback, useState } from "react";
+import type { SettingsSectionId } from "../components/settings/settingsSections.js";
+import {
+  DEFAULT_SETTINGS_SECTION,
+  isSettingsSectionId,
+} from "../components/settings/settingsSections.js";
 
-export type ShellOverlayKind = "settings" | "diagnostics";
+export type { SettingsSectionId };
 
 export type UseOverlayShellResult = Readonly<{
   settingsOpen: boolean;
-  diagnosticsOpen: boolean;
-  openSettings: () => void;
+  settingsSection: SettingsSectionId;
+  openSettings: (section?: unknown) => void;
   openDiagnostics: () => void;
   closeOverlay: () => void;
+  setSettingsSection: (section: SettingsSectionId) => void;
 }>;
 
 /**
- * - Purpose: ephemeral UI state for settings and diagnostics overlay sheets.
+ * - Purpose: ephemeral UI state for fullscreen settings overlay and active section.
  * - Inputs: none (local React state only).
- * - Outputs: open flags and open/close handlers for shell chrome.
+ * - Outputs: open flag, section id, and open/close handlers for shell chrome.
  */
 export function useOverlayShell(): UseOverlayShellResult {
-  const [activeOverlay, setActiveOverlay] = useState<ShellOverlayKind | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsSection, setSettingsSection] =
+    useState<SettingsSectionId>(DEFAULT_SETTINGS_SECTION);
 
-  const openSettings = useCallback(() => {
-    setActiveOverlay("settings");
+  const openSettings = useCallback((section?: unknown): void => {
+    const resolved = isSettingsSectionId(section) ? section : DEFAULT_SETTINGS_SECTION;
+    setSettingsSection(resolved);
+    setSettingsOpen(true);
   }, []);
 
-  const openDiagnostics = useCallback(() => {
-    setActiveOverlay("diagnostics");
+  const openDiagnostics = useCallback((): void => {
+    setSettingsSection("diagnostics");
+    setSettingsOpen(true);
   }, []);
 
-  const closeOverlay = useCallback(() => {
-    setActiveOverlay(null);
+  const closeOverlay = useCallback((): void => {
+    setSettingsOpen(false);
   }, []);
 
   return {
-    settingsOpen: activeOverlay === "settings",
-    diagnosticsOpen: activeOverlay === "diagnostics",
+    settingsOpen,
+    settingsSection,
     openSettings,
     openDiagnostics,
     closeOverlay,
+    setSettingsSection,
   };
 }

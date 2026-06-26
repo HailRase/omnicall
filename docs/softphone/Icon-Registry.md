@@ -13,8 +13,15 @@
 
 | Semantic ID | Purpose | Static | Animated | Used in | Status |
 | --- | --- | --- | --- | --- | --- |
-| `shell.settings` | Open settings overlay | `Settings` | `SettingsIcon` | `SoftphoneShellHeader`, `SettingsOverlay` | active |
-| `shell.diagnostics` | Open diagnostics overlay | `Activity` | `ActivityIcon` | `SoftphoneShellHeader` | active |
+| `shell.settings` | Open settings overlay | `Settings` | `SettingsIcon` | `SoftphoneShellHeader`, `SettingsPanel` | active |
+| `shell.diagnostics` | Settings diagnostics section | `Activity` | `ActivityIcon` | `SettingsSidebar` | active |
+| `settings.account` | Settings account section | `User` | `UserIcon` | `SettingsSidebar` | active |
+| `settings.general` | Settings general section | `SlidersHorizontal` | `SlidersHorizontalIcon` | `SettingsSidebar` | active |
+| `settings.sessions` | Settings sessions section | `Layers` | `LayersIcon` | `SettingsSidebar` | active |
+| `settings.codecs` | Settings codecs section | `AudioLines` | `AudioLinesIcon` | `SettingsSidebar` | active |
+| `settings.headset` | Settings headset section | `Headphones` | — | `SettingsSidebar` | active |
+| `settings.nav.expand` | Expand settings sidebar | `ChevronRight` | `ChevronRightIcon` | `SettingsSidebar` | active |
+| `settings.nav.collapse` | Collapse settings sidebar | `ChevronLeft` | `ChevronLeftIcon` | `SettingsSidebar` | active |
 | `shell.collapse` | Collapse shell strip | `PanelLeftClose` | `PanelLeftCloseIcon` | `SoftphoneShellHeader` | active |
 | `shell.expand` | Expand shell | `PanelLeftOpen` | `PanelLeftOpenIcon` | `SoftphoneShellHeader` | active |
 | `session.end` | End user session | `LogOut` | `LogoutIcon` | `SoftphoneShellHeader`, `LogoutActiveSessionConfirmationModal`, `ConnectionOverlay` | active |

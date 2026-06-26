@@ -8,6 +8,7 @@ type AccountPanelProps = Readonly<{
   submitting: boolean;
   error: string | null;
   disabled?: boolean;
+  showTitle?: boolean;
   onFieldChange: (field: keyof SipAccountInput, value: string) => void;
   onSubmit: () => void;
 }>;
@@ -22,6 +23,7 @@ export function AccountPanel({
   submitting,
   error,
   disabled = false,
+  showTitle = true,
   onFieldChange,
   onSubmit,
 }: AccountPanelProps): JSX.Element {
@@ -32,7 +34,7 @@ export function AccountPanel({
 
   return (
     <section className={panelStyles["panel"]} data-testid="account-panel">
-      <h2>SIP-аккаунт</h2>
+      {showTitle ? <h2>SIP-аккаунт</h2> : null}
       <form className={styles["form"]} onSubmit={handleSubmit}>
         <label className={styles["label"]}>
           Имя пользователя

@@ -17,7 +17,6 @@ type SoftphoneShellHeaderProps = Readonly<{
   sessionLogoutActions: UseSessionLogoutActionsResult;
   onToggleCollapse: () => void;
   onOpenSettings: () => void;
-  onOpenDiagnostics: () => void;
 }>;
 
 /**
@@ -34,7 +33,6 @@ export function SoftphoneShellHeader({
   sessionLogoutActions,
   onToggleCollapse,
   onOpenSettings,
-  onOpenDiagnostics,
 }: SoftphoneShellHeaderProps): JSX.Element {
   return (
     <header
@@ -59,13 +57,6 @@ export function SoftphoneShellHeader({
             testId="control-open-settings"
             className={styles["iconActionButton"]}
             onClick={onOpenSettings}
-          />
-          <IconControlButton
-            iconId="shell.diagnostics"
-            ariaLabel="Открыть диагностику"
-            testId="control-open-diagnostics"
-            className={styles["iconActionButton"]}
-            onClick={onOpenDiagnostics}
           />
           <IconControlButton
             iconId={collapsed ? "shell.expand" : "shell.collapse"}
