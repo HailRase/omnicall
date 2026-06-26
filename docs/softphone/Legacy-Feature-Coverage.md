@@ -106,8 +106,8 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 | LF-052 | P09 | Telephony | Medium | Redial or call from journal | `Display`, `Journal` | History entries can initiate calls via Use Case. |
 | LF-053 | P09 | Settings | Medium | Call history in local storage | `call-history`, `Journal` | Call events persist through repository abstraction. |
 | LF-054 | P09 | Settings | Low | Limit call history to 100 records | `saveCall` | Repository enforces retention policy. |
-| LF-055 | P11 | UI | Medium | Collapse and expand UI | `CollapseButton`, `Display` | Desktop shell supports compact softphone mode. |
-| LF-056 | P11 | UI | Low | Draggable widget | `DraggableButton` | Widget/window drag behavior is predictable in Electron. |
+| LF-055 | P11 | UI | Medium | Collapse and expand UI | `CollapseButton`, `Display` | Desktop shell supports compact softphone mode; shell window layout expands for settings (F-016) — `ShellWindowLayout`, `ShellWindowController`. |
+| LF-056 | P11 | UI | Low | Draggable widget | `DraggableButton` | Startup/settings anchor via `ShellWindowController.placeCompactAtStartup` + `resolveShellWindowTargetBounds` (F-016); full drag handle deferred. |
 | LF-057 | P08 | UI | High | Lost WS overlay | `WSConnectionOverlay` | WU3: `ConnectionOverlay`, `useConnectionRecoveryShell`, `deriveConnectionRecoveryShell` — see `handoffs/archive/P08/P08-WU3-Recovery-Overlay-Handoff.md`. P11 WU2: blocking scrim `connection-overlay-host__scrim` — `P11-Call-Line-UX-Design.md`. |
 | LF-058 | P08 | Operator | High | WS reconnect 6 attempts by 5 seconds | `useWs` | WU2: `OCP_RECONNECT_POLICY_CONFIG`, `OcpReconnect*`, orchestration + integration test — see `handoffs/archive/P08/P08-WU2-Recovery-Orchestration-Handoff.md`. |
 | LF-059 | P07 | UI | Medium | OCP toast notifications | `NotificationProvider` | WU4: `OcpToastStack`, `ocpNotificationProjection`, `useOcpNotifications` — see `handoffs/archive/P07/P07-WU4-OCP-Sync-Polish-Handoff.md`. |

@@ -233,6 +233,20 @@ export type {
   AppShutdownRequestedEvent,
 } from "./platform/appLifecycleEvents.js";
 export { createAppShutdownRequestedEvent } from "./platform/appLifecycleEvents.js";
+export type {
+  ShellWindowLayoutMode,
+  ShellWindowLayoutEasing,
+  ShellWindowRectangle,
+  ShellWindowWorkArea,
+} from "./platform/ShellWindowLayout.js";
+export {
+  SHELL_WINDOW_LAYOUT,
+  computeBottomRightBounds,
+  computeCenteredBounds,
+  interpolateShellWindowBounds,
+  resolveShellWindowAnimationProgress,
+  resolveShellWindowTargetBounds,
+} from "./platform/ShellWindowLayout.js";
 export type { UserSessionEndedEvent } from "./platform/userSessionEvents.js";
 export { createUserSessionEndedEvent } from "./platform/userSessionEvents.js";
 export type { AgentStatusChangeTrigger } from "./operator/AgentBreakReasonPolicy.js";

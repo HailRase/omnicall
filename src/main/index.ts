@@ -1,9 +1,11 @@
-import { app, BrowserWindow, ipcMain, shell } from "electron";
+import { app, BrowserWindow, ipcMain, screen, shell } from "electron";
 import { join } from "node:path";
 import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
 import { parseAppShutdownAckPayload } from "@shared/ipc/AppShutdownContract.js";
+import { parseShellWindowLayoutPayload } from "@shared/ipc/ShellWindowLayoutContract.js";
 import { createConsoleLogger } from "@infrastructure/logging/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
+import { ShellWindowController } from "./shellWindow/ShellWindowController.js";
 
 const logger = createConsoleLogger({
   boundedContext: "Integration",
@@ -11,6 +13,7 @@ const logger = createConsoleLogger({
 });
 
 let isQuitting = false;
+let shellWindowController: ShellWindowController | null = null;
 
 function createMainWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
@@ -25,10 +28,17 @@ function createMainWindow(): BrowserWindow {
       nodeIntegration: false,
       sandbox: true,
       webSecurity: true,
+      backgroundThrottling: false,
     },
   });
 
+  shellWindowController = new ShellWindowController(mainWindow, () => {
+    const display = screen.getDisplayMatching(mainWindow.getBounds());
+    return display.workArea;
+  });
+
   mainWindow.on("ready-to-show", () => {
+    shellWindowController?.placeCompactAtStartup();
     mainWindow.show();
   });
 
@@ -86,6 +96,30 @@ function registerIpcHandlers(): void {
     version: app.getVersion(),
     name: app.getName(),
   }));
+
+  ipcMain.handle(IPC_CHANNELS.shellApplyWindowLayout, async (_event, payload: unknown) => {
+    const parsed = parseShellWindowLayoutPayload(payload);
+    if (parsed === null || shellWindowController === null) {
+      return { ok: false as const };
+    }
+
+    logger.info("shell_window_layout_requested", {
+      correlationId: createCorrelationId(),
+      operation: "shell_apply_window_layout",
+      mode: parsed.mode,
+      animationDurationMs: parsed.animationDurationMs,
+      reducedMotion: parsed.reducedMotion,
+      result: "started",
+    });
+
+    await shellWindowController.applyLayout(
+      parsed.mode,
+      parsed.animationDurationMs,
+      parsed.reducedMotion,
+    );
+
+    return { ok: true as const };
+  });
 
   ipcMain.handle(IPC_CHANNELS.appAcknowledgeShutdown, (_event, payload: unknown) => {
     const parsed = parseAppShutdownAckPayload(payload);

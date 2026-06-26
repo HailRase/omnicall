@@ -2,6 +2,7 @@ export const IPC_CHANNELS = {
   platformGetVersion: "platform:get-version",
   appBeforeClose: "app:before-close",
   appAcknowledgeShutdown: "app:acknowledge-shutdown",
+  shellApplyWindowLayout: "shell:apply-window-layout",
 } as const;
 
 export type IpcChannel =

@@ -11,6 +11,7 @@ import { useCallFeatureShell } from "../hooks/useCallFeatureShell.js";
 import { useHeaderChromeShell } from "../hooks/useHeaderChromeShell.js";
 import { useOcpNotifications } from "../hooks/useOcpNotifications.js";
 import { useOverlayShell } from "../hooks/useOverlayShell.js";
+import { useShellWindowLayout } from "../hooks/useShellWindowLayout.js";
 import { useSettingsActions } from "../hooks/useSettingsActions.js";
 import { useUserAvatarMenu } from "../hooks/useUserAvatarMenu.js";
 import { useUserAvatarMenuActions } from "../hooks/useUserAvatarMenuActions.js";
@@ -46,6 +47,7 @@ export function SoftphoneReadyShell({
     useSoftphoneProjections();
   const { blockingAuthState } = useAuthShellFlags();
   const overlayShell = useOverlayShell();
+  useShellWindowLayout({ settingsOpen: overlayShell.settingsOpen });
   const accountActions = useAccountActions({ facade });
   const accountPanelShell = useAccountPanelShell({
     form: accountActions.form,

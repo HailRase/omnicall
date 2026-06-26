@@ -24,6 +24,9 @@ export type {
   PeerConnectionProvider,
 } from "./media/browser/BrowserMediaAdapter.js";
 export { MockHostIntegrationGateway } from "./mock/MockHostIntegrationGateway.js";
+export { MockShellWindowGateway } from "./mock/MockShellWindowGateway.js";
+export type { MockShellWindowGatewayState } from "./mock/MockShellWindowGateway.js";
+export { PreloadShellWindowGateway } from "./platform/PreloadShellWindowGateway.js";
 export { HostIntegrationGatewayAdapter } from "./integration/HostIntegrationGatewayAdapter.js";
 export {
   mapTelephonyIncomingNotification,

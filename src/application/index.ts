@@ -185,6 +185,8 @@ export { SendDlgStopUseCase } from "./use-cases/SendDlgStopUseCase.js";
 export { CallEndDlgStopOrchestrationService } from "./services/CallEndDlgStopOrchestrationService.js";
 export { ConnectionRecoveryOrchestrationService } from "./services/ConnectionRecoveryOrchestrationService.js";
 export type { ConnectionRecoveryOrchestrationDeps } from "./services/ConnectionRecoveryOrchestrationService.js";
+export { ShellWindowLayoutService } from "./services/ShellWindowLayoutService.js";
+export type { ShellWindowLayoutServiceInput } from "./services/ShellWindowLayoutService.js";
 export { ServerTerminateCleanupService } from "./services/ServerTerminateCleanupService.js";
 export { SessionTeardownOrchestrationService } from "./services/SessionTeardownOrchestrationService.js";
 export type {

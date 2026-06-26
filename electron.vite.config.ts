@@ -9,6 +9,7 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()],
     resolve: {
       alias: {
+        "@domain": resolve(srcRoot, "domain"),
         "@shared": resolve(srcRoot, "shared"),
         "@infrastructure": resolve(srcRoot, "infrastructure"),
         "@ports": resolve(srcRoot, "ports"),

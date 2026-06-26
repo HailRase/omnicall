@@ -453,8 +453,9 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - **Collapse toggle** minimizes shell to ~56px strip; ContextZone compact `CallLineRow` stays mounted.
   - **Icon-only controls:** semantic `AppIcon` + 1s hover tooltip via `IconControlButton`; `aria-label` preserved (T-001 done).
   - **Theme (LF-082):** light default; `theme` in UserSettings; segmented control in General settings; `applyAppTheme` sets `data-theme` on documentElement; semantic tokens in `tokens.css` for light and dark.
+  - **Shell window layout (F-016):** compact mode anchors bottom-right on startup; settings overlay expands window to 1000px width centered; closing restores prior compact width at bottom-right; animation 280ms aligned with settings panel slide; `prefers-reduced-motion` skips animation.
 - Test Coverage:
-  - Unit: `validateUserSettings`, `migrateUserSettings`, `InMemorySettingsRepository` / `FileSettingsRepository` round-trip
+  - Unit: `validateUserSettings`, `migrateUserSettings`, `InMemorySettingsRepository` / `FileSettingsRepository` round-trip; `ShellWindowLayout`, `ShellWindowLayoutService`
   - Integration: facade `updateMultiCallSettings`, `getUserSettingsForAccount`, `saveUserSettings`, `refreshUserSettingsProjections`
   - Component: `SettingsPanel`, `SettingsFullscreenOverlay`, `SettingsSidebar`, section panels; `UserAvatar`, `RegistrationStatusDot`, collapsed `SoftphoneShellHeader`; `IconTooltip.test.tsx` (T-001); Storybook layout + settings overlay (WU0+)
   - E2E: settings and collapsed shell UX
@@ -468,6 +469,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (T-005 settings UX **done**): `SettingsFullscreenOverlay`, `SettingsPanel`, `SettingsSidebar`, `settingsSections.ts`, section panels (`SettingsGeneralPanel`, `SettingsSessionsPanel`, `SettingsAccountPanel`, `SettingsDiagnosticsPanel`, `SettingsCodecsPanel`, `SettingsHeadsetPanel`); header diagnostics opens settings diagnostics section; 7 new settings nav icons in `iconCatalog.ts` (2026-06-26)
 - Implementation evidence (dialpad home **2026-06-26**): `CallSessionTab`, `CallSessionTabs`, `ActiveCallQuickBar`, redesigned `Dialpad` split input, `CallControlsShell` stack, `SoftphoneLayout` controls-first; `CallContextShell` full rows only in collapsed mode; gate `handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`
 - Implementation evidence (avatar recovery ring **2026-06-26**): `AvatarRecoveryRing` (countdown on avatar with blur, reload overlay), `deriveConnectionRecoveryShell` (`manual_retry_available` registration → avatar reload, no overlay), `deriveHeaderChromeShell` connection-aware dot colors; LF-009, LF-011
+- Implementation evidence (shell window layout **2026-06-26**): `ShellWindowLayout`, `ShellWindowLayoutService`, `ShellWindowGateway`, `ShellWindowController`, `shell:apply-window-layout` IPC, `useShellWindowLayout`; LF-055, LF-056 (anchor)
 - Implementation evidence (icons foundation): `lucide-react`, `lucide-animated`, `motion`, `AppIcon`, `iconCatalog.ts`, `Icon-Registry.md`, `Icon-Agent-Guide.md`, `.cursor/rules/icons.mdc`, `.cursor/skills/icons/SKILL.md`
 - UI docs: `UI-Architecture.md`, `UI-Design-System.md`, `P11-Call-Line-UX-Design.md`, `P11-Header-Collapsed-UX-Design.md`, `P11-Settings-Schema-Design.md`, `P11-CSS-Modules-Tokens-Migration.md`, `handoffs/P11-WU0-Shell-Layout-Handoff.md`, `handoffs/P11-WU1-Settings-Overlay-Handoff.md`, `handoffs/P11-WU2-Call-Line-UX-Handoff.md`, `handoffs/P11-WU3-Header-Collapsed-Handoff.md`, `handoffs/P11-WU4-Settings-Schema-Handoff.md`, `handoffs/P11-WU5-UI-4-Final-Gate-Handoff.md`, `handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`, `handoffs/P11-Icon-Tooltips-Agent-Prompt.md` (T-001 gate)
 

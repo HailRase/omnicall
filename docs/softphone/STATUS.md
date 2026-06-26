@@ -3,7 +3,7 @@
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
 **Updated:** 2026-06-26  
-**Tests:** 762 passed, 1 skipped (`npm run test`) — LF-082 light/dark theme  
+**Tests:** 775 passed, 1 skipped (`npm run test`) — shell window layout F-016  
 **Lint / typecheck:** green (last verified 2026-06-26)
 
 ## Active phase

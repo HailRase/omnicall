@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
 import { parseAppShutdownPayload } from "@shared/ipc/AppShutdownContract.js";
+import { parseShellWindowLayoutPayload } from "@shared/ipc/ShellWindowLayoutContract.js";
 import type { SoftphonePreloadApi } from "@shared/ipc/PreloadApi.js";
 
 const softphoneApi: SoftphonePreloadApi = {
@@ -19,6 +20,14 @@ const softphoneApi: SoftphonePreloadApi = {
   },
   acknowledgeShutdown: async (correlationId) => {
     await ipcRenderer.invoke(IPC_CHANNELS.appAcknowledgeShutdown, { correlationId });
+  },
+  applyShellWindowLayout: async (payload) => {
+    const parsed = parseShellWindowLayoutPayload(payload);
+    if (parsed === null) {
+      return;
+    }
+
+    await ipcRenderer.invoke(IPC_CHANNELS.shellApplyWindowLayout, parsed);
   },
 };
 

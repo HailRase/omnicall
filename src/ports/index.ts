@@ -67,3 +67,7 @@ export type {
   HostIntegrationGateway,
 } from "./integration/HostIntegrationGateway.js";
 export type { Logger, LogContext, LogEntry, LogLevel } from "./logging/index.js";
+export type {
+  ApplyShellWindowLayoutCommand,
+  ShellWindowGateway,
+} from "./platform/ShellWindowGateway.js";

@@ -10,6 +10,7 @@
 | T-002 | 2 | Wire AppIcon in header/call controls | F-016 | `/ui` | done | `Icon-Registry.md` |
 | T-003 | 3 | F-008 DTMF real adapter | F-008 | `/adapter` | pending | `JsSipTelephonyAdapter.sendDtmf` |
 | T-005 | 5 | Fullscreen settings panel with sidebar sections | F-016, F-017 | `/ui` | done | P11 settings UX polish |
+| T-006 | 6 | Draggable window handle (LF-056 remainder) | F-016 | `/ui` | pending | Window anchor done in `/logic`; drag UX open |
 
 ## Status values
 
