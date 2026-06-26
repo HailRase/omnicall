@@ -1,19 +1,19 @@
 import { useState, type JSX } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import { AuthStateView } from "../components/auth/AuthStateView.js";
-import { PhoneStatusBadge } from "../components/status/PhoneStatusBadge.js";
 import { OcpToastStack } from "../components/ocp/OcpToastStack.js";
 import { SettingsFullscreenOverlay } from "../components/settings/SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "../components/settings/SettingsPanel.js";
-import { registrationLabel } from "../helpers/registrationLabel.js";
 import { useAccountActions } from "../hooks/useAccountActions.js";
+import { useAccountPanelShell } from "../hooks/useAccountPanelShell.js";
 import { useAuthShellFlags } from "../hooks/useAuthShellFlags.js";
 import { useCallFeatureShell } from "../hooks/useCallFeatureShell.js";
 import { useHeaderChromeShell } from "../hooks/useHeaderChromeShell.js";
 import { useOcpNotifications } from "../hooks/useOcpNotifications.js";
 import { useOverlayShell } from "../hooks/useOverlayShell.js";
-import { usePhoneStatusActions } from "../hooks/usePhoneStatusActions.js";
 import { useSettingsActions } from "../hooks/useSettingsActions.js";
+import { useUserAvatarMenu } from "../hooks/useUserAvatarMenu.js";
+import { useUserAvatarMenuActions } from "../hooks/useUserAvatarMenuActions.js";
 import type { useSoftphoneShellChrome } from "../hooks/useSoftphoneShellChrome.js";
 import { useShellCollapse } from "../hooks/useShellCollapse.js";
 import { useSoftphoneProjections } from "../hooks/useSoftphoneProjections.js";
@@ -45,12 +45,29 @@ export function SoftphoneReadyShell({
   const { projection, ocpNotificationProjection, multiCallProjection, applyMultiCallSettings } =
     useSoftphoneProjections();
   const { blockingAuthState } = useAuthShellFlags();
-  const phoneStatusActions = usePhoneStatusActions({ facade, disabled: blockingAuthState });
   const overlayShell = useOverlayShell();
   const accountActions = useAccountActions({ facade });
+  const accountPanelShell = useAccountPanelShell({
+    form: accountActions.form,
+    submitting: accountActions.submitting,
+    panelDisabled: blockingAuthState,
+    authUiState: projection.authUiState,
+    sessionLogoutActions,
+  });
   const [settingsSidebarExpanded, setSettingsSidebarExpanded] = useState(false);
   const { collapsed, toggleCollapsed } = useShellCollapse();
   const headerChrome = useHeaderChromeShell();
+  const userAvatarMenu = useUserAvatarMenu();
+  const userAvatarMenuActions = useUserAvatarMenuActions({
+    facade,
+    phoneStatus: projection.phoneStatus,
+    phoneStatusDisabled: blockingAuthState,
+    isOcpMode: projection.isOcpMode,
+    authUiState: projection.authUiState,
+    sessionLogoutActions,
+    onOpenSettings: overlayShell.openSettings,
+    onMenuClose: userAvatarMenu.close,
+  });
   const callBindings = useCallFeatureShell({ facade });
   const settingsActions = useSettingsActions({
     facade,
@@ -77,23 +94,12 @@ export function SoftphoneReadyShell({
             connectionRecoveryShell={connectionRecoveryShell}
             connectionRecoveryActions={connectionRecoveryActions}
             sessionLogoutActions={sessionLogoutActions}
+            userAvatarMenu={userAvatarMenu}
+            userAvatarMenuActions={userAvatarMenuActions}
             onToggleCollapse={toggleCollapsed}
             onOpenSettings={overlayShell.openSettings}
           />
-          {!collapsed ? (
-            <>
-              <PhoneStatusBadge
-                status={projection.phoneStatus}
-                registrationLabel={registrationLabel(
-                  projection.registrationState,
-                  projection.authUiState,
-                )}
-                disabled={blockingAuthState}
-                onChange={phoneStatusActions.handlePhoneStatusChange}
-              />
-              <OperatorFeatureShell facade={facade} />
-            </>
-          ) : null}
+          {!collapsed ? <OperatorFeatureShell facade={facade} /> : null}
         </>
       }
       context={
@@ -137,8 +143,11 @@ export function SoftphoneReadyShell({
                 submitting: accountActions.submitting,
                 error: accountActions.error,
                 disabled: blockingAuthState,
+                authorizeDisabledReason: accountPanelShell.authorizeDisabledReason,
+                logoutDisabledReason: accountPanelShell.logoutDisabledReason,
                 onFieldChange: accountActions.updateField,
                 onSubmit: accountActions.handleSubmit,
+                onLogout: sessionLogoutActions.handleEndSession,
               }}
             />
           </SettingsFullscreenOverlay>

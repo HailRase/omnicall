@@ -4,9 +4,12 @@ import type { HeaderChromeShellViewModel } from "@application/index.js";
 import type { useConnectionRecoveryActions } from "../hooks/useConnectionRecoveryActions.js";
 import type { ConnectionRecoveryShellResult } from "../hooks/useConnectionRecoveryShell.js";
 import type { UseSessionLogoutActionsResult } from "../hooks/useSessionLogoutActions.js";
+import type { UseUserAvatarMenuActionsResult } from "../hooks/useUserAvatarMenuActions.js";
+import type { UseUserAvatarMenuResult } from "../hooks/useUserAvatarMenu.js";
 import { IconControlButton } from "../components/icons/index.js";
 import { RegistrationStatusDot } from "../components/header/RegistrationStatusDot.js";
 import { UserAvatar } from "../components/header/UserAvatar.js";
+import { UserAvatarMenu } from "../components/header/UserAvatarMenu.js";
 import styles from "./SoftphoneShellHeader.module.css";
 
 type SoftphoneShellHeaderProps = Readonly<{
@@ -15,6 +18,8 @@ type SoftphoneShellHeaderProps = Readonly<{
   connectionRecoveryShell: ConnectionRecoveryShellResult;
   connectionRecoveryActions: ReturnType<typeof useConnectionRecoveryActions>;
   sessionLogoutActions: UseSessionLogoutActionsResult;
+  userAvatarMenu: UseUserAvatarMenuResult;
+  userAvatarMenuActions: UseUserAvatarMenuActionsResult;
   onToggleCollapse: () => void;
   onOpenSettings: () => void;
 }>;
@@ -31,6 +36,8 @@ export function SoftphoneShellHeader({
   connectionRecoveryShell,
   connectionRecoveryActions,
   sessionLogoutActions,
+  userAvatarMenu,
+  userAvatarMenuActions,
   onToggleCollapse,
   onOpenSettings,
 }: SoftphoneShellHeaderProps): JSX.Element {
@@ -43,10 +50,27 @@ export function SoftphoneShellHeader({
       <div className={styles["headerBar"]}>
         <div className={styles["headerBrand"]}>
           <div className={styles["avatarGroup"]}>
-            <UserAvatar initials={headerChrome.avatarInitials} />
+            <UserAvatar
+              ref={userAvatarMenu.anchorRef}
+              initials={headerChrome.avatarInitials}
+              ariaExpanded={userAvatarMenu.open}
+              ariaHasPopup="menu"
+              onClick={userAvatarMenu.toggle}
+            />
             <RegistrationStatusDot
               variant={headerChrome.registrationDotVariant}
               label={headerChrome.registrationDotAriaLabel}
+            />
+            <UserAvatarMenu
+              open={userAvatarMenu.open}
+              menuRef={userAvatarMenu.menuRef}
+              position={userAvatarMenu.position}
+              dndEnabled={userAvatarMenuActions.dndEnabled}
+              dndDisabledReason={userAvatarMenuActions.dndDisabledReason}
+              logoutDisabledReason={userAvatarMenuActions.logoutDisabledReason}
+              onOpenSettings={userAvatarMenuActions.handleOpenSettings}
+              onToggleDnd={userAvatarMenuActions.handleToggleDnd}
+              onLogout={userAvatarMenuActions.handleLogout}
             />
           </div>
         </div>

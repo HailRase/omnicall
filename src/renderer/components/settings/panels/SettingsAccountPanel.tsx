@@ -8,8 +8,11 @@ export type SettingsAccountPanelProps = Readonly<{
   submitting: boolean;
   error: string | null;
   disabled?: boolean;
+  authorizeDisabledReason: string | null;
+  logoutDisabledReason: string | null;
   onFieldChange: (field: keyof SipAccountInput, value: string) => void;
   onSubmit: () => void;
+  onLogout: () => void;
 }>;
 
 /**
@@ -22,8 +25,11 @@ export function SettingsAccountPanel({
   submitting,
   error,
   disabled = false,
+  authorizeDisabledReason,
+  logoutDisabledReason,
   onFieldChange,
   onSubmit,
+  onLogout,
 }: SettingsAccountPanelProps): JSX.Element {
   return (
     <div className={styles["wrapper"]} data-testid="settings-account-panel">
@@ -32,8 +38,11 @@ export function SettingsAccountPanel({
         submitting={submitting}
         error={error}
         disabled={disabled}
+        authorizeDisabledReason={authorizeDisabledReason}
+        logoutDisabledReason={logoutDisabledReason}
         onFieldChange={onFieldChange}
         onSubmit={onSubmit}
+        onLogout={onLogout}
         showTitle={false}
       />
     </div>

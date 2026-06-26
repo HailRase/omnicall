@@ -2,9 +2,9 @@
 
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
-**Updated:** 2026-06-25  
-**Tests:** 704 passed, 1 skipped (`npm run test`) — F-014 gate closure  
-**Lint / typecheck:** green (last verified 2026-06-25)
+**Updated:** 2026-06-26  
+**Tests:** 711 passed, 1 skipped (`npm run test`) — T-005 fullscreen settings gate  
+**Lint / typecheck:** green (last verified 2026-06-26)
 
 ## Active phase
 
@@ -25,10 +25,10 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 1. **F-008 DTMF real** — T-003, `JsSipTelephonyAdapter.sendDtmf` — `/adapter`
 2. **P10** headset foundation — T-004 — `/logic`
-3. P11 polish: settings UX completeness, UI-6 Radix modals — `/ui`
+3. P11 polish: UI-6 Radix modals — `/ui`
 4. Merge `feature/real-adapters` branch
 
-**Recently closed (TASK-QUEUE):** T-001 icon tooltips (`handoffs/P11-Icon-Tooltips-Agent-Prompt.md`), T-002 AppIcon wiring (`Icon-Registry.md`), **F-014 SIP registration retry** (`handoffs/P08-SIP-Registration-Retry-Handoff.md`).
+**Recently closed (TASK-QUEUE):** T-005 fullscreen settings panel (`work-history/2026-06-26/fullscreen-settings-sidebar_12-40.md`), T-001 icon tooltips (`handoffs/P11-Icon-Tooltips-Agent-Prompt.md`), T-002 AppIcon wiring (`Icon-Registry.md`), **F-014 SIP registration retry** (`handoffs/P08-SIP-Registration-Retry-Handoff.md`).
 
 ## RAT (Real Adapter Track)
 

@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { deriveAccountPanelActionsShell } from "@application/projections/deriveAccountPanelActionsShell.js";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import { AccountPanel } from "../components/account/AccountPanel.js";
 import { useAccountActions } from "../hooks/useAccountActions.js";
@@ -20,6 +21,13 @@ export function AuthAccountShell({
   disabled,
 }: AuthAccountShellProps): JSX.Element | null {
   const accountActions = useAccountActions({ facade });
+  const accountPanelShell = deriveAccountPanelActionsShell({
+    authUiState: "sip_only_ready",
+    form: accountActions.form,
+    submitting: accountActions.submitting,
+    panelDisabled: disabled,
+    sessionLogoutDisabledReason: null,
+  });
 
   if (!visible) {
     return null;
@@ -31,8 +39,11 @@ export function AuthAccountShell({
       submitting={accountActions.submitting}
       error={accountActions.error}
       disabled={disabled}
+      authorizeDisabledReason={accountPanelShell.authorizeDisabledReason}
+      logoutDisabledReason={accountPanelShell.logoutDisabledReason}
       onFieldChange={accountActions.updateField}
       onSubmit={accountActions.handleSubmit}
+      onLogout={() => undefined}
     />
   );
 }

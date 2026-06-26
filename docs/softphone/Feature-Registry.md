@@ -446,6 +446,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - **`multiSessionsEnabled` toggle** in settings UI (facade + port; no Use Case) — enables R7-5 re-smoke without repo hack.
   - Collapsed mode preserves critical call/status visibility.
   - **Compact registration dot** on header avatar reflects SIP registration and phone status (LF-011).
+  - **Avatar user menu** on click: settings, DND toggle (orange when active), logout (LF-086).
   - **Collapse toggle** minimizes shell to ~56px strip; ContextZone compact `CallLineRow` stays mounted.
   - **Icon-only controls:** semantic `AppIcon` + 1s hover tooltip via `IconControlButton`; `aria-label` preserved (T-001 done).
   - Electron shell behavior does not contain business logic.

@@ -63,6 +63,22 @@ const baseHeaderArgs = {
   },
   onToggleCollapse: noop,
   onOpenSettings: noop,
+  userAvatarMenu: {
+    open: false,
+    anchorRef: { current: null },
+    menuRef: { current: null },
+    position: { top: 0, left: 0 },
+    toggle: noop,
+    close: noop,
+  },
+  userAvatarMenuActions: {
+    dndEnabled: false,
+    dndDisabledReason: null,
+    logoutDisabledReason: null,
+    handleOpenSettings: noop,
+    handleToggleDnd: noop,
+    handleLogout: noop,
+  },
 };
 
 const meta = {

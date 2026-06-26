@@ -31,8 +31,11 @@ describe("settings overlay with layout zones", () => {
                 submitting: false,
                 error: null,
                 disabled: false,
+                authorizeDisabledReason: null,
+                logoutDisabledReason: "Заполните поля и нажмите «Авторизоваться»",
                 onFieldChange: vi.fn(),
                 onSubmit: vi.fn(),
+                onLogout: vi.fn(),
               }}
             />
           </SettingsFullscreenOverlay>

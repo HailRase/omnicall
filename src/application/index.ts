@@ -218,6 +218,11 @@ export {
 } from "./projections/deriveOperatorControlDisabledReason.js";
 export { deriveAuthShellFlags } from "./projections/deriveAuthShellFlags.js";
 export {
+  deriveAccountPanelActionsShell,
+  type AccountPanelActionsShell,
+  type AccountPanelActionsShellInput,
+} from "./projections/deriveAccountPanelActionsShell.js";
+export {
   deriveHeaderChromeShell,
   type HeaderChromeShellInput,
   type HeaderChromeShellViewModel,

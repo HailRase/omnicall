@@ -29,8 +29,11 @@ export type SettingsPanelProps = Readonly<{
     submitting: boolean;
     error: string | null;
     disabled: boolean;
+    authorizeDisabledReason: string | null;
+    logoutDisabledReason: string | null;
     onFieldChange: (field: keyof SipAccountInput, value: string) => void;
     onSubmit: () => void;
+    onLogout: () => void;
   }>;
 }>;
 
@@ -67,8 +70,11 @@ export function SettingsPanel({
           submitting={account.submitting}
           error={account.error}
           disabled={account.disabled}
+          authorizeDisabledReason={account.authorizeDisabledReason}
+          logoutDisabledReason={account.logoutDisabledReason}
           onFieldChange={account.onFieldChange}
           onSubmit={account.onSubmit}
+          onLogout={account.onLogout}
         />
       );
       break;

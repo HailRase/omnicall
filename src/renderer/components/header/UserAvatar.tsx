@@ -1,24 +1,31 @@
 import clsx from "clsx";
-import type { JSX } from "react";
+import { forwardRef, type JSX, type Ref } from "react";
 import styles from "./UserAvatar.module.css";
 
 export type UserAvatarProps = Readonly<{
   initials: string;
   ariaLabel?: string;
+  ariaExpanded?: boolean;
+  ariaHasPopup?: "menu";
   onClick?: () => void;
 }>;
 
 /**
- * - Purpose: present account avatar placeholder with initials (menu deferred).
- * - Inputs: initials string and optional click handler / aria label.
+ * - Purpose: present account avatar with initials and optional user menu trigger.
+ * - Inputs: initials, aria attributes, optional click handler.
  * - Outputs: accessible avatar surface for header chrome.
  * @uiMeta lf=LF-086 f=F-016 smoke=R7-*
  */
-export function UserAvatar({
-  initials,
-  ariaLabel = "Аватар пользователя",
-  onClick,
-}: UserAvatarProps): JSX.Element {
+export const UserAvatar = forwardRef(function UserAvatar(
+  {
+    initials,
+    ariaLabel = "Аватар пользователя",
+    ariaExpanded,
+    ariaHasPopup,
+    onClick,
+  }: UserAvatarProps,
+  ref: Ref<HTMLButtonElement>,
+): JSX.Element {
   const className = clsx(
     styles["avatar"],
     onClick !== undefined && styles["interactive"],
@@ -32,10 +39,13 @@ export function UserAvatar({
   if (onClick !== undefined) {
     return (
       <button
+        ref={ref}
         type="button"
         className={className}
         data-testid="user-avatar"
         aria-label={ariaLabel}
+        aria-expanded={ariaExpanded}
+        aria-haspopup={ariaHasPopup}
         onClick={onClick}
       >
         {content}
@@ -48,4 +58,6 @@ export function UserAvatar({
       {content}
     </span>
   );
-}
+});
+
+UserAvatar.displayName = "UserAvatar";

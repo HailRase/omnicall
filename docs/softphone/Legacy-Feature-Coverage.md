@@ -137,7 +137,7 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 | LF-083 | P09 | Settings | Low | Debug JsSIP setting | Common settings | Debug flag controls SIP diagnostics safely. |
 | LF-084 | P11 | Settings | Low | Disabled codecs tab | `SettingModal` | Codecs tab is either implemented or explicitly hidden by ADR. |
 | LF-085 | P01 | UI | Low | AccessDenied without username | `Common`, `Account` | Missing account identity shows deterministic access state. |
-| LF-086 | P11 | UI | Medium | Avatar and user menu | `Avatar`, `UserMenu` | WU3 partial: `UserAvatar` placeholder + `RegistrationStatusDot`; full menu deferred — `P11-Header-Collapsed-UX-Design.md`. |
+| LF-086 | P11 | UI | Medium | Avatar and user menu | `Avatar`, `UserMenu` | `UserAvatar` + `UserAvatarMenu` on avatar click (settings, DND toggle, logout); `PhoneStatusBadge` removed from header — `P11-Header-Collapsed-UX-Design.md`. |
 | LF-087 | P11 | UI | Medium | Status in collapsed header | `Header` | Collapsed mode still shows operator/phone state. |
 | LF-088 | P09 | Media | Low | Audio debug logger | `audioLogger` | Audio diagnostics are available without production noise. |
 | LF-089 | P09 | Integration | Low | Clear logs older than 8 hours | `addUserActionLog` | Log retention policy is enforced. |

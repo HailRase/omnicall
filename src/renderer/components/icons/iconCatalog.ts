@@ -3,6 +3,8 @@ import type { LucideIcon } from "lucide-react";
 import {
   Activity,
   AudioLines,
+  Bell,
+  BellOff,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -101,7 +103,9 @@ export type IconSemanticId =
   | "action.confirm"
   | "action.retry"
   | "transfer.consultation"
-  | "connection.retry";
+  | "connection.retry"
+  | "phone.dnd.on"
+  | "phone.dnd.off";
 
 export type IconCatalogEntry = Readonly<{
   static: LucideIcon;
@@ -372,6 +376,18 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabel: "Повторить подключение",
     defaultSize: 20,
     usage: ["ConnectionOverlay: control-retry-connection"],
+  },
+  "phone.dnd.on": {
+    static: Bell,
+    defaultLabel: "Не беспокоить включено",
+    defaultSize: 20,
+    usage: ["UserAvatarMenu: user-menu-toggle-dnd dndEnabled=true"],
+  },
+  "phone.dnd.off": {
+    static: BellOff,
+    defaultLabel: "Не беспокоить выключено",
+    defaultSize: 20,
+    usage: ["UserAvatarMenu: user-menu-toggle-dnd dndEnabled=false"],
   },
 };
 

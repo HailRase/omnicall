@@ -7,7 +7,7 @@
 | Component | Path | Exported props | Test IDs | @uiMeta |
 | --- | --- | --- | --- | --- |
 | `App` | `src/renderer/App.tsx` | `—` | softphone-shell, bootstrap-loading, bootstrap-error | — |
-| `AccountPanel` | `src/renderer/components/account/AccountPanel.tsx` | `—` | account-panel, account-error | — |
+| `AccountPanel` | `src/renderer/components/account/AccountPanel.tsx` | `—` | account-panel, account-authorize, account-logout, account-error | — |
 | `AuthStateView` | `src/renderer/components/auth/AuthStateView.tsx` | `—` | — | — |
 | `ActiveCallControlsPanel` | `src/renderer/components/call/ActiveCallControlsPanel.tsx` | `ActiveCallControlsPanelProps` | active-call-controls, active-call-mute-indicator, active-call-control-error, control-disabled-reason | — |
 | `AutoAnswerCountdown` | `src/renderer/components/call/AutoAnswerCountdown.tsx` | `AutoAnswerCountdownProps` | auto-answer-countdown | — |
@@ -26,7 +26,7 @@
 | `TransferPanel` | `src/renderer/components/call/TransferPanel.tsx` | `TransferPanelProps` | transfer-panel, transfer-in-progress-indicator, transfer-failure-banner, transfer-target-input, transfer-disabled-reason | — |
 | `Dialpad` | `src/renderer/components/dialpad/Dialpad.tsx` | `DialpadProps` | dialpad-panel, dialpad-mode-number, call-dtmf-toggle, dialpad-input, dialpad-key-0, dialpad-key-0, dialpad-disabled-reason | — |
 | `RegistrationStatusDot` | `src/renderer/components/header/RegistrationStatusDot.tsx` | `RegistrationStatusDotProps` | registration-status-dot | lf=LF-011 f=F-016 smoke=R7- |
-| `UserAvatar` | `src/renderer/components/header/UserAvatar.tsx` | `UserAvatarProps` | user-avatar, user-avatar | lf=LF-086 f=F-016 smoke=R7- |
+| `UserAvatarMenu` | `src/renderer/components/header/UserAvatarMenu.tsx` | `UserAvatarMenuProps` | user-avatar-menu, user-menu-open-settings, user-menu-toggle-dnd, user-menu-logout | lf=LF-086 f=F-016 smoke=R7- |
 | `AppIcon` | `src/renderer/components/icons/AppIcon.tsx` | `AppIconProps` | — | — |
 | `IconControlButton` | `src/renderer/components/icons/IconControlButton.tsx` | `IconControlButtonProps` | — | — |
 | `IconTooltip` | `src/renderer/components/icons/IconTooltip.tsx` | `IconTooltipProps` | icon-tooltip-host | — |

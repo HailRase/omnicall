@@ -26,8 +26,11 @@ const accountDefaults = {
   submitting: false,
   error: null,
   disabled: false,
+  authorizeDisabledReason: null,
+  logoutDisabledReason: "Сначала нажмите «Авторизоваться»",
   onFieldChange: () => undefined,
   onSubmit: () => undefined,
+  onLogout: () => undefined,
 } as const;
 
 const sipRecoveryDefaults = {

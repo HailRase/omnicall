@@ -40,7 +40,7 @@ const recoveryShell = {
 
 const sessionLogoutActions = {
   shell: {
-    showEndSessionControl: false,
+    showEndSessionControl: true,
     endSessionDisabledReason: null,
     logoutConfirmationRequired: false,
     logoutInProgress: false,
@@ -54,6 +54,24 @@ const sessionLogoutActions = {
   handleRetryLogout: vi.fn(),
 };
 
+const userAvatarMenu = {
+  open: false,
+  anchorRef: { current: null },
+  menuRef: { current: null },
+  position: { top: 0, left: 0 },
+  toggle: vi.fn(),
+  close: vi.fn(),
+};
+
+const userAvatarMenuActions = {
+  dndEnabled: false,
+  dndDisabledReason: null,
+  logoutDisabledReason: null,
+  handleOpenSettings: vi.fn(),
+  handleToggleDnd: vi.fn(),
+  handleLogout: vi.fn(),
+};
+
 describe("SoftphoneShellHeader", () => {
   it("renders avatar, registration dot, and collapse toggle", () => {
     const onToggleCollapse = vi.fn();
@@ -64,12 +82,15 @@ describe("SoftphoneShellHeader", () => {
         connectionRecoveryShell={recoveryShell}
         connectionRecoveryActions={{ onReregisterSip: vi.fn(), onManualRetry: vi.fn(), onSafeLogout: vi.fn() }}
         sessionLogoutActions={sessionLogoutActions}
+        userAvatarMenu={userAvatarMenu}
+        userAvatarMenuActions={userAvatarMenuActions}
         onToggleCollapse={onToggleCollapse}
         onOpenSettings={vi.fn()}
       />,
     );
 
     expect(screen.getByTestId("user-avatar")).toHaveTextContent("AB");
+    expect(screen.getByTestId("user-avatar")).toHaveAttribute("aria-haspopup", "menu");
     expect(screen.getByTestId("registration-status-dot")).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("control-toggle-collapse"));
     expect(onToggleCollapse).toHaveBeenCalledOnce();
@@ -92,6 +113,8 @@ describe("SoftphoneShellHeader", () => {
             showEndSessionControl: true,
           },
         }}
+        userAvatarMenu={userAvatarMenu}
+        userAvatarMenuActions={userAvatarMenuActions}
         onToggleCollapse={vi.fn()}
         onOpenSettings={vi.fn()}
       />,

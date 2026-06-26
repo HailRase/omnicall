@@ -1,0 +1,68 @@
+.menu {
+  position: fixed;
+  z-index: var(--z-tooltip);
+  min-width: 12.5rem;
+  padding: var(--space-2xs);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-panel);
+  background: var(--color-bg-surface-elevated);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 28%);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  width: 100%;
+  min-height: 36px;
+  padding: var(--space-2xs) var(--space-xs);
+  border: none;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-primary);
+  font: inherit;
+  font-size: var(--font-size-xs);
+  text-align: left;
+  cursor: pointer;
+}
+
+.item:hover:not(:disabled) {
+  background: var(--color-bg-surface-alt);
+}
+
+.item:focus-visible {
+  outline: 2px solid var(--color-outline-focus);
+  outline-offset: 1px;
+}
+
+.item:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.itemIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-size-md);
+  height: var(--icon-size-md);
+}
+
+.itemLabel {
+  flex: 1;
+}
+
+.itemDndActive {
+  color: var(--color-text-warning);
+}
+
+.itemDanger {
+  color: var(--color-text-danger);
+}
+
+.divider {
+  height: 1px;
+  margin: var(--space-2xs) var(--space-xs);
+  background: var(--color-border-subtle);
+}

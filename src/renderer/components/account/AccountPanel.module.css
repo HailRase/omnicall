@@ -1,3 +1,41 @@
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.buttonWrap {
+  display: inline-flex;
+}
+
+.primaryAction {
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border-control);
+  background: var(--color-accent-primary);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.primaryAction:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.dangerAction {
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border-danger);
+  background: var(--color-bg-danger);
+  color: var(--color-text-danger);
+  cursor: pointer;
+}
+
+.dangerAction:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .form {
   display: grid;
   gap: var(--space-sm);
