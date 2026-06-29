@@ -2,7 +2,7 @@
 
 **Дата:** 2026-06-29 09:30
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `ce9df60`
 
 ## Где
 - `src/renderer/shells/call/CallContextShell.tsx`
