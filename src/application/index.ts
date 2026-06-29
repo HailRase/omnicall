@@ -123,6 +123,10 @@ export {
   BENIGN_TRANSFER_FAILURE_REASONS,
 } from "./projections/transferFailureReasons.js";
 export {
+  isTransferSuccessCelebrationEvent,
+  TRANSFER_SUCCESS_CELEBRATION_TTL_MS,
+} from "./projections/transferSuccessCelebration.js";
+export {
   initialMultiLineCallProjection,
   reduceMultiLineCallProjection,
   type MultiLineCallProjection,

@@ -8,6 +8,7 @@ import {
 } from "@application/index.js";
 import { mapActiveCallControlDisabledReason } from "../helpers/mapActiveCallControlLabels.js";
 import { useTransferActions, useTransferPanelShell } from "./useTransferActions.js";
+import { useTransferSuccessCelebration } from "./useTransferSuccessCelebration.js";
 import { useCallLinesActions } from "./useCallLinesActions.js";
 import { useCallLineRowShell } from "./useCallLineRowShell.js";
 import { useIncomingCallShell } from "./useIncomingCallShell.js";
@@ -98,6 +99,11 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     attendedTransferDisabledReason: transferPanelShell.attendedTransferDisabledReason,
     cancelTransferDisabledReason: transferPanelShell.cancelTransferDisabledReason,
     dismissFailureBanner: transferPanelShell.dismissFailureBanner,
+  });
+
+  const transferSuccessCelebration = useTransferSuccessCelebration({
+    eventPublisher: facade.eventPublisher,
+    incomingCallVisible: incomingCallProjection.visible,
   });
 
   const activeCallControlsShell = useMemo(
@@ -231,6 +237,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     campaignActions,
     transferPanelShell,
     transferActions,
+    transferSuccessCelebration,
     activeCallControlsShell,
     callLinesShell,
     callLinesActions,

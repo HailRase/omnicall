@@ -39,9 +39,13 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
   } = bindings;
 
   const hideCallControls =
-    dialpadMode === "dtmf" || bindings.transferPanelShell.visible || numberEntryOverlayOpen;
+    dialpadMode === "dtmf" ||
+    bindings.transferPanelShell.visible ||
+    bindings.transferSuccessCelebration.visible ||
+    numberEntryOverlayOpen;
 
-  const showDialpad = numberEntryOverlayOpen || !hasCallInProgress;
+  const showDialpad =
+    (numberEntryOverlayOpen || !hasCallInProgress) && !bindings.transferSuccessCelebration.visible;
 
   return (
     <div className={styles["zone"]} data-testid="call-controls-zone">

@@ -6,6 +6,7 @@ import { CallSessionCard } from "../../components/call/CallSessionCard.js";
 import { CallSessionStack } from "../../components/call/CallSessionStack.js";
 import { OutgoingCallCard } from "../../components/call/OutgoingCallCard.js";
 import { TransferPanel } from "../../components/call/TransferPanel.js";
+import { TransferSuccessOverlay } from "../../components/call/TransferSuccessOverlay.js";
 import { mapDtmfErrorMessage } from "../../helpers/mapDtmfErrorMessage.js";
 import type { CallFeatureShellBindings } from "../../hooks/useCallFeatureShell.js";
 import styles from "./CallContextShell.module.css";
@@ -28,6 +29,7 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
     dialpadMode,
     transferPanelShell,
     transferActions,
+    transferSuccessCelebration,
     setCallMode,
     controlTargetLine,
     selectCallLine,
@@ -44,6 +46,7 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
     !hasLineForActiveCall;
 
   const isTransferMode = transferPanelShell.visible;
+  const isTransferSuccessCelebration = transferSuccessCelebration.visible;
   const isDtmfMode = dialpadMode === "dtmf" && callProjection.dtmfPanelCallId !== null;
   const isNumberEntryOverlay = bindings.numberEntryOverlayOpen;
   const dtmfLine =
@@ -53,6 +56,7 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
 
   const showIdleState =
     !isTransferMode &&
+    !isTransferSuccessCelebration &&
     !isDtmfMode &&
     !isNumberEntryOverlay &&
     !showOutgoingCard &&
@@ -64,6 +68,13 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
   return (
     <div className={styles["zone"]} data-testid="call-context-zone">
       <MultiCallHoldAllIndicator visible={multiCallProjection.holdAllInProgress} />
+
+      {isTransferSuccessCelebration ? (
+        <TransferSuccessOverlay
+          visible={transferSuccessCelebration.visible}
+          exiting={transferSuccessCelebration.exiting}
+        />
+      ) : null}
 
       {isTransferMode ? (
         <TransferPanel
@@ -85,7 +96,7 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
         />
       ) : null}
 
-      {!isTransferMode && isDtmfMode && dtmfLine !== null ? (
+      {!isTransferMode && !isTransferSuccessCelebration && isDtmfMode && dtmfLine !== null ? (
         <DtmfKeypadPanel
           displayName={dtmfLine.displayLabel ?? dtmfLine.callId}
           toneHistory={dtmfLine.dtmfHistory}
@@ -98,7 +109,7 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
         />
       ) : null}
 
-      {!isTransferMode && !isDtmfMode && !isNumberEntryOverlay ? (
+      {!isTransferMode && !isTransferSuccessCelebration && !isDtmfMode && !isNumberEntryOverlay ? (
         <CallSessionStack
           shell={callLinesShell}
           activeCallId={controlTargetCallId}
@@ -106,7 +117,11 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
         />
       ) : null}
 
-      {!isTransferMode && !isDtmfMode && !isNumberEntryOverlay && singleLine !== null ? (
+      {!isTransferMode &&
+      !isTransferSuccessCelebration &&
+      !isDtmfMode &&
+      !isNumberEntryOverlay &&
+      singleLine !== null ? (
         <div className={styles["singleCard"]}>
           <CallSessionCard
             line={singleLine}
@@ -117,7 +132,11 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
 
       {showIdleState ? <CallIdleEmptyState /> : null}
 
-      {showOutgoingCard && !isTransferMode && !isDtmfMode && !isNumberEntryOverlay ? (
+      {showOutgoingCard &&
+      !isTransferMode &&
+      !isTransferSuccessCelebration &&
+      !isDtmfMode &&
+      !isNumberEntryOverlay ? (
         <OutgoingCallCard
           callId={callProjection.activeCallId}
           callState={callProjection.state}
