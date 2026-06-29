@@ -57,7 +57,7 @@ PanelNav        — Call | History only (History full-screen when idle, no activ
 
 **Call-center rule:** Settings and Diagnostics open as **overlays**, not full panel replacement, while a call is established. Operator must keep line context.
 
-Modal flows (Radix Dialog v1): incoming call, campaign. Settings v1: portal `Panel` without Radix.
+Modal flows (Radix Dialog v1): campaign. Incoming call: non-blocking `IncomingCallOverlay` banner in header zone (see `P03-Incoming-Call-UX-Design.md`). Settings v1: portal `Panel` without Radix.
 
 ## Hook Taxonomy
 

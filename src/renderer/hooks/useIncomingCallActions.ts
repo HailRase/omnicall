@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
   deriveIncomingAnswerDisabledReason,
@@ -11,10 +10,8 @@ type UseIncomingCallActionsInput = Readonly<{
   facade: AccountBootstrapFacade | null;
   incomingCallProjection: IncomingCallProjection;
   multiCallProjection: MultiCallProjection;
-  isOcpMode: boolean;
   isSipRegistered: boolean;
   setIncomingUiState: (state: IncomingCallProjection["uiState"]) => void;
-  setIncomingRejectReasonRequired: (required: boolean) => void;
 }>;
 
 type UseIncomingCallActionsResult = Readonly<{
@@ -26,7 +23,7 @@ type UseIncomingCallActionsResult = Readonly<{
 
 /**
  * - Purpose: bind incoming call UI intents to facade and derive disabled reasons.
- * - Inputs: facade, incoming projection, OCP mode flag, store setters.
+ * - Inputs: facade, incoming projection, registration flag, store setters.
  * - Outputs: answer/reject handlers and transient UI disabled reasons.
  */
 export function useIncomingCallActions(
@@ -36,15 +33,9 @@ export function useIncomingCallActions(
     facade,
     incomingCallProjection,
     multiCallProjection,
-    isOcpMode,
     isSipRegistered,
     setIncomingUiState,
-    setIncomingRejectReasonRequired,
   } = input;
-
-  useEffect(() => {
-    setIncomingRejectReasonRequired(isOcpMode);
-  }, [isOcpMode, setIncomingRejectReasonRequired]);
 
   const policyAnswerDisabled = deriveIncomingAnswerDisabledReason(multiCallProjection);
   const registrationAnswerDisabled = isSipRegistered
@@ -69,10 +60,7 @@ export function useIncomingCallActions(
       return;
     }
     setIncomingUiState("rejecting");
-    void facade.rejectCallById(
-      incomingCallProjection.callId,
-      incomingCallProjection.selectedBreakReason ?? undefined,
-    );
+    void facade.rejectCallById(incomingCallProjection.callId);
   };
 
   const answerDisabledReason =

@@ -55,7 +55,7 @@ Per-session mute/hold state from projections — not local component state.
 ## Test IDs (WU1 surfaces)
 
 - `dialpad-disabled-reason` — dialpad disabled hint (`Dialpad.tsx`).
-- `incoming-answer-disabled-reason` — incoming modal answer disabled hint (`IncomingCallActions.tsx`).
+- `incoming-answer-disabled-reason` — incoming overlay answer disabled hint (`IncomingCallOverlay.tsx`).
 - `multi-call-hold-all-indicator` — shell status when `hold_all_in_progress` (`MultiCallHoldAllIndicator.tsx`).
 - `call-lines-panel` — WU6 multi-line shell.
 - `multi-call-policy-error` — WU6 fail-safe banner.

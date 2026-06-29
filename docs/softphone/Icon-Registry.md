@@ -24,15 +24,15 @@
 | `settings.nav.collapse` | Collapse settings sidebar | `ChevronLeft` | `ChevronLeftIcon` | `SettingsSidebar` | active |
 | `session.end` | End user session | `LogOut` | `LogoutIcon` | `UserAvatarMenu`, `LogoutActiveSessionConfirmationModal`, `ConnectionOverlay` | active |
 | `sip.reregister` | Manual SIP re-register | `RefreshCcw` | `RefreshCcwIcon` | `SoftphoneShellHeader` | active |
-| `call.answer` | Answer ringing call | `PhoneCall` | `PhoneCallIcon` | `IncomingCallActions`, `CallLineRow` | active |
-| `call.reject` | Reject incoming call | `PhoneOff` | `PhoneOffIcon` | `IncomingCallActions`, `CampaignEventModal` | active |
+| `call.answer` | Answer ringing call | `PhoneCall` | `PhoneCallIcon` | `IncomingCallOverlay`, `CallLineRow` | active |
+| `call.reject` | Reject incoming call | `PhoneOff` | `PhoneOffIcon` | `IncomingCallOverlay`, `CampaignEventModal` | active |
 | `call.hangup` | Hang up active call | `PhoneOff` | `PhoneOffIcon` | `CallLineRow`, `ActiveCallControlsPanel` | active |
 | `call.hold` | Hold call | `Pause` | `PauseIcon` | `CallLineRow`, `ActiveCallControlsPanel`, `MultiCallHoldAllIndicator` | active |
 | `call.resume` | Resume held call | `Play` | `PlayIcon` | `CallLineRow`, `ActiveCallControlsPanel` | active |
 | `call.mute` | Mute microphone | `MicOff` | `MicOffIcon` | `CallLineRow`, `ActiveCallControlsPanel` | active |
 | `call.unmute` | Unmute microphone | `Mic` | `MicIcon` | `CallLineRow`, `ActiveCallControlsPanel` | active |
 | `call.transfer` | Start transfer | `PhoneForwarded` | `PhoneForwardedIcon` | `CallLineRow`, `TransferPanel` | active |
-| `call.incoming` | Incoming call indicator | `PhoneIncoming` | `PhoneIncomingIcon` | `IncomingCallModal` | active |
+| `call.incoming` | Incoming call indicator | `PhoneIncoming` | `PhoneIncomingIcon` | `IncomingCallOverlay` | active |
 | `call.outgoing` | Outgoing call indicator | `Phone` | `PhoneIcon` | `OutgoingCallCard` | active |
 | `call.phone-off` | Connection lost | `PhoneOff` | `PhoneOffIcon` | `ConnectionOverlay` | active |
 | `overlay.close` | Close overlay/modal | `X` | `XIcon` | `ShellOverlaySheet`, modals, `OcpToastStack`, transfer cancel | active |

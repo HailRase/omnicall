@@ -1,0 +1,191 @@
+.overlay {
+  margin: var(--space-xs) var(--space-xs) 0;
+  border: 1px solid var(--color-border-success);
+  border-radius: var(--radius-panel);
+  background: var(--color-bg-success);
+  box-shadow: var(--shadow-menu-elevated);
+  overflow: hidden;
+  z-index: var(--z-modal);
+}
+
+.overlay:focus-visible {
+  outline: 2px solid var(--color-outline-focus);
+  outline-offset: 2px;
+}
+
+.autoAnswerTrack {
+  position: relative;
+  height: 4px;
+  background: var(--color-bg-surface-deep);
+}
+
+.autoAnswerFill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: var(--color-status-online);
+  transition: width 1s linear;
+}
+
+.body {
+  padding: var(--space-sm);
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+}
+
+.iconCircle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: color-mix(in srgb, var(--color-status-online) 20%, transparent);
+  color: var(--color-text-success);
+  animation: incoming-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes incoming-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.identity {
+  flex: 1;
+  min-width: 0;
+}
+
+.eyebrow {
+  margin: 0 0 var(--space-2xs);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-success);
+}
+
+.autoAnswerHint {
+  margin-left: var(--space-xs);
+  color: var(--color-text-warning);
+  font-weight: var(--font-weight-semibold);
+  text-transform: none;
+  letter-spacing: normal;
+}
+
+.primaryName {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.secondaryNumber {
+  margin: var(--space-2xs) 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+  margin-bottom: var(--space-sm);
+}
+
+.badgeQueue {
+  font-size: 0.625rem;
+  padding: 2px 6px;
+  border-radius: var(--radius-panel);
+  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 25%, transparent);
+  background: color-mix(in srgb, var(--color-accent-primary) 12%, transparent);
+  color: var(--color-text-emphasis);
+}
+
+.badgeCampaign {
+  font-size: 0.625rem;
+  padding: 2px 6px;
+  border-radius: var(--radius-panel);
+  border: 1px solid color-mix(in srgb, var(--color-text-warning) 30%, transparent);
+  background: color-mix(in srgb, var(--color-text-warning) 12%, transparent);
+  color: var(--color-text-warning);
+}
+
+.statusBlock {
+  margin-bottom: var(--space-xs);
+}
+
+.disabledReason {
+  margin: 0 0 var(--space-xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-xs);
+}
+
+.rejectButton,
+.answerButton {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2xs);
+  height: 40px;
+  border-radius: var(--radius-control);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.rejectButton {
+  border: 1px solid var(--color-border-danger-accent);
+  background: var(--color-bg-danger-strong);
+  color: var(--color-text-danger);
+}
+
+.rejectButton:hover:not(:disabled) {
+  background: var(--color-bg-danger);
+}
+
+.answerButton {
+  border: 1px solid var(--color-status-online);
+  background: var(--color-status-online);
+  color: var(--color-bg-surface);
+  box-shadow: var(--shadow-control-knob);
+}
+
+.answerButton:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.rejectButton:disabled,
+.answerButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.buttonIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+}

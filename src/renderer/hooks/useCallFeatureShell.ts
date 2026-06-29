@@ -37,11 +37,8 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     multiCallProjection,
     transferProjection,
     multiLineCallProjection,
-    operatorStatusProjection,
     setCallMode,
     setIncomingUiState,
-    setIncomingBreakReason,
-    setIncomingRejectReasonRequired,
   } = useSoftphoneProjections();
 
   const {
@@ -67,10 +64,8 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     facade,
     incomingCallProjection,
     multiCallProjection,
-    isOcpMode: projection.isOcpMode,
     isSipRegistered: deriveAuthShellFlags(projection).isSipRegistered,
     setIncomingUiState,
-    setIncomingRejectReasonRequired,
   });
 
   const incomingCallShell = useIncomingCallShell({
@@ -138,10 +133,6 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
       ? null
       : mapActiveCallControlDisabledReason(controlReason);
   }, [activeCallControlsProjection.resumeDisabledReason, multiCallProjection]);
-
-  const incomingRejectReasons = projection.isOcpMode
-    ? operatorStatusProjection.allowedBreakReasons
-    : [];
 
   const [numberEntryOverlayOpen, setNumberEntryOverlayOpen] = useState(false);
 
@@ -213,9 +204,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     callLinesActions,
     handleTransferLine,
     combinedResumeDisabledReason,
-    incomingRejectReasons,
     setCallMode,
-    setIncomingBreakReason,
     hasEstablishedCall,
     hasCallInProgress,
     controlTargetLine,

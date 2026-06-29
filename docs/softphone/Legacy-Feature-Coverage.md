@@ -64,7 +64,7 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 | LF-010 | P08 | Telephony | Medium | Manual re-registration from menu | `Header`, `UserMenu` | F-014: `ReregisterSipUseCase`, `ReregisterSipUseCase.test.ts`, `control-retry-connection` — `handoffs/P08-SIP-Registration-Retry-Handoff.md`. |
 | LF-011 | P01 | UI | High | phoneStatus Online/Offline/DND display | `DisplayProvider` | WU3: `deriveHeaderChromeShell`, `RegistrationStatusDot` on avatar + expanded `PhoneStatusBadge` — see `P11-Header-Collapsed-UX-Design.md`. |
 | LF-012 | P03 | Media | Critical | Incoming call ringtone | `soundManager`, `newRTCSession` | Incoming call starts ringing through Media service. |
-| LF-013 | P03 | UI | Critical | Incoming call modal | `IncomingCallModal` | Incoming call appears with caller details and actions. |
+| LF-013 | P03 | UI | Critical | Incoming call overlay | `IncomingCallOverlay` | Incoming call appears with caller details and accept/reject actions (banner under header). |
 | LF-014 | P03 | Telephony | Critical | Accept incoming call | `handleAnswer` | Answer command transitions call to active via Call Engine. |
 | LF-015 | P03 | Telephony | Critical | Reject incoming call | `handleHangup` | Reject command ends ringing call and emits reason. |
 | LF-016 | P03 | Telephony | High | Auto-answer timeout | user config, `DisplayProvider` | Configured timeout answers call deterministically. |
@@ -89,7 +89,7 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 | LF-035 | P02 | Media | Critical | Remote audio element | `SoftPhone`, `DisplayProvider` | Remote audio is attached by Media service, not UI business logic. |
 | LF-036 | P03 | Telephony | High | Display name from SIP | `parseDisplayName` | SIP display metadata is parsed and projected safely. |
 | LF-037 | P07 | Operator | High | Queue name display | `useQueueInfoListeners` | WU3–WU4: `QueueInfoLabel`, `deriveQueueLabelState`, `na` timeout — see `handoffs/archive/P07/P07-WU4-OCP-Sync-Polish-Handoff.md`. |
-| LF-038 | P07 | Operator | High | Campaign data on incoming call | `useCampaignEvent`, `IncomingModal` | WU3: campaign context line in `CallerIdentityBlock` — see `handoffs/archive/P07/P07-WU3-OCP-Sync-UI-Handoff.md`. |
+| LF-038 | P07 | Operator | High | Campaign data on incoming call | `useCampaignEvent`, `IncomingCallOverlay` | WU3: campaign badge in overlay — see `handoffs/archive/P07/P07-WU3-OCP-Sync-UI-Handoff.md`. |
 | LF-039 | P07 | UI | High | Non-progressive campaign request modal | `CampaignEventModal` | WU3: `CampaignEventModal.tsx`, `useCampaignActions` — see `handoffs/archive/P07/P07-WU3-OCP-Sync-UI-Handoff.md`. |
 | LF-040 | P07 | Operator | High | Campaign answer or reject update | `CampaignEventModal` -> WS update | WU3: `RespondToCampaignUseCase`, `CampaignEventAnswered` — see `handoffs/archive/P07/P07-WU3-OCP-Sync-UI-Handoff.md`. |
 | LF-041 | P06 | Operator | Critical | Operator status selector | `StatusSelector` | WU4: `StatusSelector.tsx`, `useOperatorStatusActions` — see `handoffs/archive/P06/P06-WU4-Operator-Status-UI-Handoff.md`. |
@@ -112,7 +112,7 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 | LF-058 | P08 | Operator | High | WS reconnect 6 attempts by 5 seconds | `useWs` | WU2: `OCP_RECONNECT_POLICY_CONFIG`, `OcpReconnect*`, orchestration + integration test — see `handoffs/archive/P08/P08-WU2-Recovery-Orchestration-Handoff.md`. |
 | LF-059 | P07 | UI | Medium | OCP toast notifications | `NotificationProvider` | WU4: `OcpToastStack`, `ocpNotificationProjection`, `useOcpNotifications` — see `handoffs/archive/P07/P07-WU4-OCP-Sync-Polish-Handoff.md`. |
 | LF-060 | P11 | Settings | Low | Toast position and z-index settings | user config | User config controls notification placement. |
-| LF-061 | P03 | Operator | High | Reject reason selection | `IncomingCallModal` | Reject flow can capture valid break reason. |
+| LF-061 | P03 | Operator | High | Reject reason selection | `RejectReasonSelector` (post-call/logout) | Incoming overlay rejects without reason picker; break reasons remain in post-call/logout flows. |
 | LF-062 | P06 | Operator | High | WS post-call update on reject | `IncomingCallModal` | WU3: `PostCallRejectOrchestrationService` + facade `rejectCall` — see `handoffs/archive/P06/P06-WU3-Post-Call-Break-Reasons-Handoff.md`. |
 | LF-063 | P07 | Operator | Critical | main_acallid synchronization | `useOCPEvents`, `useWs` | WU1–WU4: exact correlation registry + `dlg_stop` orchestration — see `handoffs/archive/P07/P07-WU4-OCP-Sync-Polish-Handoff.md`. |
 | LF-064 | P07 | Operator | Critical | dlg_stop on ended or failed | `handleSaveCallHistory`, `useSoftPhoneDlgStop` | WU4: `SendDlgStopUseCase`, `DlgStopPolicy`, `CallEndDlgStopOrchestrationService` — see `handoffs/archive/P07/P07-WU4-OCP-Sync-Polish-Handoff.md`. |
@@ -141,7 +141,7 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 | LF-087 | P11 | UI | Medium | Status in header | `Header` | Operator/phone state visible in always-expanded shell (2026-06-26). |
 | LF-088 | P09 | Media | Low | Audio debug logger | `audioLogger` | Audio diagnostics are available without production noise. |
 | LF-089 | P09 | Integration | Low | Clear logs older than 8 hours | `addUserActionLog` | Log retention policy is enforced. |
-| LF-090 | P03 | Integration | Medium | `soft-phone-break-reason` event | `IncomingCallModal` | Reject reason is emitted through typed host adapter. |
+| LF-090 | P03 | Integration | Medium | `soft-phone-break-reason` event | `RejectCallUseCase` / host gateway | Break reason emitted when supplied by post-call or operator flows (not incoming overlay). |
 
 ## Coverage Completion Definition
 

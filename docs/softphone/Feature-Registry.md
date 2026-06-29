@@ -121,7 +121,8 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - UI answers and rejects only through `AnswerCallUseCase` and `RejectCallUseCase`.
   - DND incoming path auto-rejects with SIP 486 and does not expose invalid answer controls.
   - **WU6 (done):** answer while multi-sessions ON holds all other Active lines (`IncomingCallOrchestrator` + `holdAllActiveLines`); multi-sessions OFF + established call → auto-486 second incoming; `MultiCallOperationRejected` fail-safe — `src/domain/telephony/events/MultiCallOperationRejected.ts`, `MultiCallCompleteness.integration.test.ts`.
-  - Reject reason is validated and emitted through `HostIntegrationGateway` as `soft-phone-break-reason`.
+  - **UI (2026-06-29):** `IncomingCallOverlay` top banner — accept/reject only; reject-reason picker removed from incoming UI (post-call / logout flows keep `RejectReasonSelector`).
+  - Reject reason is validated and emitted through `HostIntegrationGateway` as `soft-phone-break-reason` when supplied by other flows (not incoming overlay).
 - Test Coverage:
   - Unit: state machine incoming transitions, auto-answer policy, DND policy, display-name parser, reject reason validation, answer/reject use cases
   - Integration: mock incoming adapter event to events/projection, ringtone start, answer/reject gateway calls, DND 486, host break-reason mapping, ended-before-answer recovery
