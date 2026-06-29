@@ -8,7 +8,6 @@
 | --- | --- | --- | --- | --- |
 | `App` | `src/renderer/App.tsx` | `—` | softphone-shell, bootstrap-loading, bootstrap-error | — |
 | `AccountPanel` | `src/renderer/components/account/AccountPanel.tsx` | `—` | account-panel, account-authorize, account-logout, account-error | — |
-| `AuthStateView` | `src/renderer/components/auth/AuthStateView.tsx` | `—` | — | — |
 | `ActiveCallControlsPanel` | `src/renderer/components/call/ActiveCallControlsPanel.tsx` | `ActiveCallControlsPanelProps` | active-call-controls, active-call-mute-indicator, active-call-control-error, control-disabled-reason | — |
 | `ActiveCallQuickBar` | `src/renderer/components/call/ActiveCallQuickBar.tsx` | `ActiveCallQuickBarProps` | active-call-quick-bar | lf=LF-022,LF-023 f=F-004,F-016 smoke=R7- |
 | `AutoAnswerCountdown` | `src/renderer/components/call/AutoAnswerCountdown.tsx` | `AutoAnswerCountdownProps` | auto-answer-countdown | — |

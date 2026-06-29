@@ -1,6 +1,5 @@
 import { useState, type JSX } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
-import { AuthStateView } from "../components/auth/AuthStateView.js";
 import { OcpToastStack } from "../components/ocp/OcpToastStack.js";
 import { SettingsFullscreenOverlay } from "../components/settings/SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "../components/settings/SettingsPanel.js";
@@ -99,7 +98,6 @@ export function SoftphoneReadyShell({
       }
       context={
         <>
-          <AuthStateView state={projection.authUiState} lastError={projection.lastError} />
           <SessionFeatureShell sessionLogoutActions={sessionLogoutActions} />
           <CallContextShell bindings={callBindings} />
         </>
