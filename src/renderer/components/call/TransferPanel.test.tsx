@@ -15,10 +15,19 @@ describe("TransferPanel", () => {
 
     expect(screen.getByTestId("transfer-panel")).toBeInTheDocument();
     expect(screen.getByTestId("transfer-target-input")).toBeInTheDocument();
+    expect(screen.getByTestId("transfer-next-step")).toBeInTheDocument();
+    expect(screen.getByTestId("control-cancel-transfer")).toBeInTheDocument();
+  });
+
+  it("shows action buttons from step 2 after clicking next", async () => {
+    const user = userEvent.setup();
+    renderPanel();
+
+    await user.click(screen.getByTestId("transfer-next-step"));
+
     expect(screen.getByTestId("control-blind-transfer")).toBeInTheDocument();
     expect(screen.getByTestId("control-start-consultation")).toBeInTheDocument();
-    expect(screen.getByTestId("control-attended-transfer")).toBeInTheDocument();
-    expect(screen.getByTestId("control-cancel-transfer")).toBeInTheDocument();
+    expect(screen.queryByTestId("control-attended-transfer")).not.toBeInTheDocument();
   });
 
   it("shows failure banner with alert role", () => {
@@ -63,9 +72,10 @@ describe("TransferPanel", () => {
       cancelTransferDisabledReason: "transfer_in_progress",
     });
 
+    fireEvent.click(screen.getByTestId("transfer-next-step"));
+
     expect(screen.getByTestId("control-blind-transfer")).toBeDisabled();
     expect(screen.getByTestId("control-start-consultation")).toBeDisabled();
-    expect(screen.getByTestId("control-attended-transfer")).toBeDisabled();
     expect(screen.getByTestId("control-cancel-transfer")).toBeDisabled();
   });
 
@@ -80,6 +90,7 @@ describe("TransferPanel", () => {
     const onBlindTransfer = vi.fn();
     renderPanel({ onBlindTransfer });
 
+    fireEvent.click(screen.getByTestId("transfer-next-step"));
     fireEvent.click(screen.getByTestId("control-blind-transfer"));
     expect(onBlindTransfer).toHaveBeenCalledTimes(1);
   });
@@ -89,6 +100,7 @@ describe("TransferPanel", () => {
     const onBlindTransfer = vi.fn();
     renderPanel({ onBlindTransfer });
 
+    await user.click(screen.getByTestId("transfer-next-step"));
     const button = screen.getByTestId("control-blind-transfer");
     button.focus();
     await user.keyboard("{Enter}");
@@ -120,15 +132,6 @@ function renderPanel(overrides: TransferPanelOverrides = {}): void {
         activeSinceMs: null,
         isRemoteHold: false,
       },
-      {
-        callId: "call-2",
-        role: "consultation",
-        state: "Active",
-        muted: false,
-        displayLabel: "+12025550102",
-        activeSinceMs: 1_000,
-        isRemoteHold: false,
-      },
     ],
     onTargetChange: vi.fn(),
     onBlindTransfer: vi.fn(),
@@ -139,6 +142,5 @@ function renderPanel(overrides: TransferPanelOverrides = {}): void {
   };
 
   render(<TransferPanel {...props} />);
-  expect(screen.getByTestId("multi-line-call-list")).toBeInTheDocument();
-  expect(screen.getByTestId("call-line-call-1")).toBeInTheDocument();
+  expect(screen.getByTestId("transfer-source-line")).toBeInTheDocument();
 }

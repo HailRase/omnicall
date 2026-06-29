@@ -5,6 +5,7 @@ import { DtmfKeypadPanel } from "../../components/call/DtmfKeypadPanel.js";
 import { CallSessionCard } from "../../components/call/CallSessionCard.js";
 import { CallSessionStack } from "../../components/call/CallSessionStack.js";
 import { OutgoingCallCard } from "../../components/call/OutgoingCallCard.js";
+import { TransferPanel } from "../../components/call/TransferPanel.js";
 import type { CallFeatureShellBindings } from "../../hooks/useCallFeatureShell.js";
 import styles from "./CallContextShell.module.css";
 
@@ -21,9 +22,12 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
   const {
     callProjection,
     multiCallProjection,
+    multiLineCallProjection,
     callLinesShell,
     callLinesActions,
     dialpadMode,
+    transferPanelShell,
+    transferActions,
     setCallMode,
   } = bindings;
 
@@ -36,13 +40,17 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
     ((callProjection.state === "Connecting" || callProjection.state === "Failed") &&
       !hasLineForActiveCall);
 
+  const isTransferMode = transferPanelShell.visible;
   const isDtmfMode = dialpadMode === "dtmf";
   const dtmfLine =
-    callLinesShell.lines.find((line) => line.isActiveUnheld) ??
-    callLinesShell.lines.find((line) => line.state === "Active") ??
+    (isTransferMode
+      ? null
+      : callLinesShell.lines.find((line) => line.isActiveUnheld) ??
+        callLinesShell.lines.find((line) => line.state === "Active")) ??
     null;
 
-  const showIdleState = !isDtmfMode && !showOutgoingCard && !callLinesShell.visible;
+  const showIdleState =
+    !isTransferMode && !isDtmfMode && !showOutgoingCard && !callLinesShell.visible;
 
   const singleLine =
     callLinesShell.lines.length === 1 ? (callLinesShell.lines[0] ?? null) : null;
@@ -65,7 +73,26 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
     <div className={styles["zone"]} data-testid="call-context-zone">
       <MultiCallHoldAllIndicator visible={multiCallProjection.holdAllInProgress} />
 
-      {isDtmfMode && dtmfLine !== null ? (
+      {isTransferMode ? (
+        <TransferPanel
+          visible={transferPanelShell.visible}
+          targetNumber={transferPanelShell.targetNumber}
+          blindTransferDisabledReason={transferPanelShell.blindTransferDisabledReason}
+          startConsultationDisabledReason={transferPanelShell.startConsultationDisabledReason}
+          attendedTransferDisabledReason={transferPanelShell.attendedTransferDisabledReason}
+          cancelTransferDisabledReason={transferPanelShell.cancelTransferDisabledReason}
+          transferInProgress={transferPanelShell.transferInProgress}
+          failureMessage={transferPanelShell.failureMessage}
+          lines={multiLineCallProjection.lines}
+          onTargetChange={transferPanelShell.setTargetNumber}
+          onBlindTransfer={transferActions.handleBlindTransfer}
+          onStartConsultation={transferActions.handleStartConsultation}
+          onAttendedTransfer={transferActions.handleAttendedTransfer}
+          onCancelTransfer={transferActions.handleCancelTransfer}
+        />
+      ) : null}
+
+      {!isTransferMode && isDtmfMode && dtmfLine !== null ? (
         <DtmfKeypadPanel
           displayName={dtmfLine.displayName}
           lastTone={callProjection.lastDtmfTone}
@@ -76,7 +103,7 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
         />
       ) : null}
 
-      {!isDtmfMode ? (
+      {!isTransferMode && !isDtmfMode ? (
         <CallSessionStack
           shell={callLinesShell}
           onSelectLine={handleSelectLine}
@@ -84,7 +111,7 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
         />
       ) : null}
 
-      {!isDtmfMode && singleLine !== null ? (
+      {!isTransferMode && !isDtmfMode && singleLine !== null ? (
         <div className={styles["singleCard"]}>
           <CallSessionCard line={singleLine} isActive />
         </div>
@@ -92,7 +119,7 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
 
       {showIdleState ? <CallIdleEmptyState /> : null}
 
-      {showOutgoingCard && !isDtmfMode ? (
+      {showOutgoingCard && !isTransferMode && !isDtmfMode ? (
         <OutgoingCallCard
           callId={callProjection.activeCallId}
           callState={callProjection.state}

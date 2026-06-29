@@ -4,6 +4,19 @@
   padding: var(--space-md);
   display: grid;
   gap: var(--space-sm);
+  background: var(--color-bg-surface-alt);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-xs);
+}
+
+.titleWrap {
+  display: grid;
+  gap: var(--space-xs);
 }
 
 .title {
@@ -16,6 +29,49 @@
 
 .titleIcon {
   flex-shrink: 0;
+}
+
+.steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  gap: var(--space-2xs);
+}
+
+.step {
+  display: inline-flex;
+}
+
+.stepDot {
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--color-border-control);
+  background: var(--color-bg-surface-deep);
+  color: var(--color-text-muted);
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-semibold);
+}
+
+.stepDotActive {
+  border-color: var(--color-border-focus);
+  background: var(--color-accent-primary);
+  color: #fff;
+}
+
+.stepDotDone {
+  border-color: var(--color-border-success);
+  background: var(--color-status-online);
+  color: #fff;
+}
+
+.closeButton {
+  width: 2rem;
+  height: 2rem;
 }
 
 .progress {
@@ -38,6 +94,10 @@
 .targetLabel {
   display: grid;
   gap: var(--space-2xs);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 .targetInput {
@@ -48,24 +108,34 @@
   color: inherit;
 }
 
+.targetInput:focus-visible {
+  outline: 2px solid var(--color-outline-focus);
+  outline-offset: 1px;
+}
+
+.nextButton {
+  min-height: 2.5rem;
+  padding: 0 var(--space-sm);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border-focus);
+  background: var(--color-accent-primary);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+
+.nextButton:disabled {
+  border-color: var(--color-border-subtle);
+  background: var(--color-bg-surface-deep);
+  color: var(--color-text-muted);
+  cursor: not-allowed;
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-xs);
-}
-
-.panel button {
-  padding: var(--space-xs) var(--space-sm);
-  border-radius: var(--radius-control);
-  border: 1px solid var(--color-border-control);
-  background: var(--color-bg-surface-alt);
-  color: inherit;
-  cursor: pointer;
-}
-
-.panel button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .disabledReason {
@@ -80,4 +150,39 @@
   width: 40px;
   height: 40px;
   padding: 0;
+}
+
+.lineSection {
+  display: grid;
+  gap: var(--space-2xs);
+}
+
+.lineSectionTitle {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.lineCard {
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-control);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--color-bg-surface);
+  display: grid;
+  gap: 2px;
+}
+
+.lineLabel {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 0.8125rem;
+  font-weight: var(--font-weight-semibold);
+}
+
+.lineState {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 0.6875rem;
 }

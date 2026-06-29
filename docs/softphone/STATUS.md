@@ -2,9 +2,9 @@
 
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
-**Updated:** 2026-06-26  
-**Tests:** 775 passed, 1 skipped (`npm run test`) — shell window layout F-016  
-**Lint / typecheck:** green (last verified 2026-06-26)
+**Updated:** 2026-06-29  
+**Tests:** 781 passed, 1 skipped (`npm run test`) — transfer flow parity in context zone  
+**Lint / typecheck:** green (last verified 2026-06-29)
 
 ## Active phase
 

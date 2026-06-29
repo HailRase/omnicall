@@ -33,8 +33,8 @@
 | 4 | Dialpad | Full-width input + green call CTA; letter sublabels; collapse keys when active call + empty input | done |
 | 5 | DTMF mode | `DtmfKeypadPanel` overlay in context; remove dialpad Number/DTMF toggle | done |
 | 6 | Outgoing card | `OutgoingCallCard` — operator copy only (no UI state / call ID) | done |
-| 7 | Transfer polish | `TransferPanel` visual parity with reference `TransferFlow` (step chrome) | pending |
-| 8 | Gate | Storybook both themes; `npm run test && lint && typecheck && ui:catalog` | pending |
+| 7 | Transfer polish | `TransferPanel` visual parity with reference `TransferFlow` (step chrome) | done |
+| 8 | Gate | Storybook both themes; `npm run test && lint && typecheck && ui:catalog` | in_progress |
 
 ## Acceptance (per task)
 
