@@ -106,7 +106,7 @@ export function CallLineRow({
                 }}
               />
               <IconControlButton
-                iconId={line.muted ? "call.unmute" : "call.mute"}
+                iconId={line.muted ? "call.mute" : "call.unmute"}
                 ariaLabel={line.muted ? "Включить микрофон" : "Отключить микрофон"}
                 testId={
                   line.muted

@@ -68,6 +68,7 @@ class TestReferSession implements JsSipRtcSessionPort {
   unhold(): boolean {
     return true;
   }
+  sendDtmf(): void {}
   getConnection(): unknown {
     return null;
   }
@@ -107,6 +108,32 @@ describe("executeJsSipRefer", () => {
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.error.message).toContain("Transfer target canceled");
+    }
+  });
+
+  it("maps synchronous REFER throws to operation_failed", async () => {
+    const session: JsSipRtcSessionPort = {
+      id: "throwing-session",
+      on: () => undefined,
+      off: () => undefined,
+      answer: () => undefined,
+      terminate: () => undefined,
+      hold: () => true,
+      unhold: () => true,
+      refer: () => {
+        throw new TypeError("Cannot read properties of undefined (reading 'call_id')");
+      },
+      sendDtmf: () => undefined,
+      getConnection: () => null,
+      getRemoteIdentityHeader: () => '"Peer" <sip:100@pbx.example>',
+    };
+
+    const result = await executeJsSipRefer(session, "sip:401@pbx.example", {
+      replacesRawSession: {},
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.message).toContain("call_id");
     }
   });
 });

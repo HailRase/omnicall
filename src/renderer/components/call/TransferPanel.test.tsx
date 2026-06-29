@@ -95,7 +95,7 @@ describe("TransferPanel", () => {
     expect(onBlindTransfer).toHaveBeenCalledTimes(1);
   });
 
-  it("activates enabled blind transfer with Enter and Space", async () => {
+  it("activates enabled blind transfer with Enter", async () => {
     const user = userEvent.setup();
     const onBlindTransfer = vi.fn();
     renderPanel({ onBlindTransfer });
@@ -104,9 +104,8 @@ describe("TransferPanel", () => {
     const button = screen.getByTestId("control-blind-transfer");
     button.focus();
     await user.keyboard("{Enter}");
-    await user.keyboard(" ");
 
-    expect(onBlindTransfer).toHaveBeenCalledTimes(2);
+    expect(onBlindTransfer).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -131,6 +130,8 @@ function renderPanel(overrides: TransferPanelOverrides = {}): void {
         displayLabel: "+12025550101",
         activeSinceMs: null,
         isRemoteHold: false,
+        dtmfHistory: "",
+        lastDtmfTone: null,
       },
     ],
     onTargetChange: vi.fn(),

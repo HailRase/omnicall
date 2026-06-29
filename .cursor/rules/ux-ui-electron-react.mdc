@@ -152,6 +152,12 @@ Mandatory for renderer UI work after 2026-06-25 foundation:
 - Do **not** add legacy global component stylesheets; use co-located `*.module.css` + `var(--*)` from `src/renderer/styles/tokens.css`.
 - Use `clsx` for conditional/variant classes.
 
+## Layout And Scrolling
+
+- Root shell (`App`, `SoftphoneLayout`) must not scroll; use `height: 100vh` and `overflow: hidden`.
+- Each layout zone owns its padding (`header`, `context`, `controls`) — no shared outer padding on the root shell.
+- Only inner zones may scroll (e.g. `layout-context-zone` for call sessions); controls and header stay fixed-height.
+
 ## Color Themes (LF-082)
 
 The app supports **light** (default) and **dark** themes via `data-theme` on `documentElement` and semantic tokens in `tokens.css`.

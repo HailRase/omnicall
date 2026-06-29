@@ -104,7 +104,7 @@ export const AvatarAndDot: Story = {
   ),
 };
 
-export const AvatarRecoveryCountdown: Story = {
+export const SipReregisterControl: Story = {
   args: {
     ...baseHeaderArgs,
     headerChrome: {
@@ -114,30 +114,6 @@ export const AvatarRecoveryCountdown: Story = {
     },
     connectionRecoveryShell: {
       ...recoveryShell,
-      showAvatarRecoveryRing: true,
-      avatarRecoveryRingTone: "failed",
-      avatarRecoveryOverlayMode: "countdown",
-      connectionState: "reconnecting",
-      sipRecoveryMode: "registration",
-      reconnectCountdownSeconds: 8,
-      sipReconnectAttempt: 2,
-    },
-  },
-};
-
-export const AvatarRecoveryReload: Story = {
-  args: {
-    ...baseHeaderArgs,
-    headerChrome: {
-      ...headerChrome,
-      registrationDotVariant: "failed",
-      registrationDotAriaLabel: "Регистрация: Ошибка, телефон: В сети",
-    },
-    connectionRecoveryShell: {
-      ...recoveryShell,
-      showAvatarRecoveryRing: true,
-      avatarRecoveryRingTone: "failed",
-      avatarRecoveryOverlayMode: "reload",
       connectionState: "manual_retry_available",
       sipRecoveryMode: "registration",
       showReregisterSipControl: true,

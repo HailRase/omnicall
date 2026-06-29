@@ -116,6 +116,42 @@ describe("multiLineCallProjection", () => {
     expect(failed.lastFailureReason).toBe("busy");
   });
 
+  it("accumulates dtmf history per call line", () => {
+    const correlationId = createCorrelationId();
+    const occurredAt = new Date().toISOString();
+    let projection = reduceMultiLineCallProjection(initialMultiLineCallProjection(), {
+      type: "OutgoingCallRequested",
+      correlationId,
+      occurredAt,
+      callId: "call-dtmf",
+      phoneNumber: "+12025550999",
+    });
+    projection = reduceMultiLineCallProjection(projection, {
+      type: "CallAnswered",
+      correlationId,
+      occurredAt,
+      callId: "call-dtmf",
+    });
+    projection = reduceMultiLineCallProjection(projection, {
+      type: "DtmfSent",
+      correlationId,
+      occurredAt,
+      callId: "call-dtmf",
+      tone: "1",
+    });
+    projection = reduceMultiLineCallProjection(projection, {
+      type: "DtmfSent",
+      correlationId,
+      occurredAt,
+      callId: "call-dtmf",
+      tone: "2",
+    });
+
+    const line = projection.lines.find((entry) => entry.callId === "call-dtmf");
+    expect(line?.dtmfHistory).toBe("12");
+    expect(line?.lastDtmfTone).toBe("2");
+  });
+
   it("restores source line state on CallTransferFailed", () => {
     const correlationId = createCorrelationId();
     const occurredAt = new Date().toISOString();

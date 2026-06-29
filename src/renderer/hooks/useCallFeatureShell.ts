@@ -1,9 +1,10 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
   deriveActiveCallControlsShell,
   deriveAuthShellFlags,
   deriveResumeMultiCallDisabledReason,
+  type CallLineCardViewModel,
 } from "@application/index.js";
 import { mapActiveCallControlDisabledReason } from "../helpers/mapActiveCallControlLabels.js";
 import { useTransferActions, useTransferPanelShell } from "./useTransferActions.js";
@@ -142,6 +143,50 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     ? operatorStatusProjection.allowedBreakReasons
     : [];
 
+  const [numberEntryOverlayOpen, setNumberEntryOverlayOpen] = useState(false);
+
+  const hasEstablishedCall = callLinesShell.lines.some(
+    (line) => line.state === "Active" || line.state === "Held",
+  );
+
+  const hasCallInProgress = callLinesShell.visible || isCalling;
+
+  const controlTargetLine = useMemo((): CallLineCardViewModel | null => {
+    const { lines } = callLinesShell;
+    const unheld = lines.find((line) => line.isActiveUnheld);
+    if (unheld !== undefined) {
+      return unheld;
+    }
+    const connecting = lines.find((line) => line.state === "Connecting");
+    if (connecting !== undefined) {
+      return connecting;
+    }
+    const ringing = lines.find((line) => line.state === "Ringing");
+    if (ringing !== undefined) {
+      return ringing;
+    }
+    return (
+      lines.find((line) => line.state === "Active" || line.state === "Held") ?? null
+    );
+  }, [callLinesShell]);
+
+  const handleDialpadCall = useCallback((): void => {
+    callActions.handleDialpadCall();
+    clearDialedNumber();
+    if (numberEntryOverlayOpen) {
+      setNumberEntryOverlayOpen(false);
+    }
+  }, [callActions, clearDialedNumber, numberEntryOverlayOpen]);
+
+  const openNumberEntryOverlay = useCallback((): void => {
+    setNumberEntryOverlayOpen(true);
+  }, []);
+
+  const closeNumberEntryOverlay = useCallback((): void => {
+    setNumberEntryOverlayOpen(false);
+    clearDialedNumber();
+  }, [clearDialedNumber]);
+
   return {
     projection,
     callProjection,
@@ -171,6 +216,13 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     incomingRejectReasons,
     setCallMode,
     setIncomingBreakReason,
+    hasEstablishedCall,
+    hasCallInProgress,
+    controlTargetLine,
+    numberEntryOverlayOpen,
+    openNumberEntryOverlay,
+    closeNumberEntryOverlay,
+    handleDialpadCall,
   };
 }
 

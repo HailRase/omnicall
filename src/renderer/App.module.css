@@ -1,8 +1,8 @@
 .shell {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  padding: var(--space-xs);
+  overflow: hidden;
   gap: var(--space-xs);
 }
 

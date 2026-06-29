@@ -11,8 +11,10 @@ import {
   evaluateStartConsultationEligibility,
   transitionTransferSession,
   type Call,
+  type CallState,
 } from "@domain/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
+import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { createPlatformError, normalizeUnknownError } from "@shared/errors/index.js";
 import { err, isErr, ok, type Result } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
@@ -67,6 +69,7 @@ export async function executeStartConsultation(
     consultationCallId,
   );
   deps.setTransferSession(session);
+  deps.setTransferModeSourceCallId(null);
 
   deps.eventPublisher.publish(
     createConsultationCallRequestedEvent(correlationId, {
@@ -112,6 +115,20 @@ export async function executeStartConsultation(
   }
 
   const consultationCall = makeCallResult.value;
+
+  if (isConsultationDialingState(consultationCall.state)) {
+    deps.logger.info("consultation_call_dialing", {
+      correlationId,
+      featureId: "F-007",
+      boundedContext: "Telephony",
+      operation: "start_consultation",
+      previousState: "consultation_dialing",
+      nextState: consultationCall.state,
+      result: "dialing",
+    });
+    return ok(consultationCall);
+  }
+
   if (consultationCall.state !== "Active") {
     await rollbackConsultationStart(
       deps,
@@ -123,19 +140,19 @@ export async function executeStartConsultation(
     return err(createPlatformError("operation_failed", "consultation_not_active"));
   }
 
-  const currentSession = deps.getTransferSession();
-  const started = transitionTransferSession(
-    currentSession,
-    "consultation_started",
+  const activated = activateConsultationSession(
+    deps,
+    correlationId,
+    input.sourceCallId,
     consultationCallId,
   );
-  if (!started.ok) {
+  if (!activated.ok) {
     await rollbackConsultationStart(
       deps,
       correlationId,
       input.sourceCallId,
       consultationCallId,
-      started.reason,
+      activated.reason,
     );
     deps.logger.error("consultation_session_transition_failed", {
       correlationId,
@@ -145,15 +162,84 @@ export async function executeStartConsultation(
       previousState: "consultation_dialing",
       nextState: sourceCall.state,
       result: "failed",
-      normalizedError: started.reason,
+      normalizedError: activated.reason,
     });
-    return err(createPlatformError("validation_failed", started.reason));
+    return err(createPlatformError("validation_failed", activated.reason));
+  }
+
+  return ok(consultationCall);
+}
+
+/**
+ * - Purpose: promote consultation session to active after deferred outbound answer.
+ * - Inputs: transfer control deps, consultation call id, correlation id.
+ * - Outputs: ConsultationCallStarted event when session was dialing.
+ */
+export function completeConsultationWhenAnswered(
+  deps: TransferCallControlDeps,
+  consultationCallId: Call["id"],
+  correlationId: CorrelationId,
+): void {
+  const session = deps.getTransferSession();
+  if (session === null || session.phase !== "consultation_dialing") {
+    return;
+  }
+  if (session.consultationCallId !== consultationCallId) {
+    return;
+  }
+
+  const consultationResult = deps.resolveTrackedCall(consultationCallId);
+  if (isErr(consultationResult) || consultationResult.value.state !== "Active") {
+    return;
+  }
+
+  const sourceResult = deps.resolveTrackedCall(session.sourceCallId);
+
+  const activated = activateConsultationSession(
+    deps,
+    correlationId,
+    session.sourceCallId,
+    consultationCallId,
+  );
+  if (!activated.ok) {
+    const sourceState = isErr(sourceResult) ? "Held" : sourceResult.value.state;
+    deps.logger.error("consultation_session_transition_failed", {
+      correlationId,
+      featureId: "F-007",
+      boundedContext: "Telephony",
+      operation: "complete_consultation",
+      previousState: "consultation_dialing",
+      nextState: sourceState,
+      result: "failed",
+      normalizedError: activated.reason,
+    });
+  }
+}
+
+function isConsultationDialingState(state: CallState): boolean {
+  return state === "Connecting" || state === "Ringing";
+}
+
+function activateConsultationSession(
+  deps: TransferCallControlDeps,
+  correlationId: CorrelationId,
+  sourceCallId: StartConsultationInput["sourceCallId"],
+  consultationCallId: Call["id"],
+): Readonly<{ ok: true } | { ok: false; reason: string }> {
+  const currentSession = deps.getTransferSession();
+  const started = transitionTransferSession(
+    currentSession,
+    "consultation_started",
+    consultationCallId,
+  );
+  if (!started.ok) {
+    return { ok: false, reason: started.reason };
   }
   deps.setTransferSession(started.session);
 
   deps.eventPublisher.publish(
     createConsultationCallStartedEvent(correlationId, {
-      sourceCallId: input.sourceCallId,
+      sourceCallId,
       consultationCallId,
     }),
   );
@@ -166,8 +252,7 @@ export async function executeStartConsultation(
     nextState: "consultation_active",
     result: "succeeded",
   });
-
-  return ok(consultationCall);
+  return { ok: true };
 }
 
 /**

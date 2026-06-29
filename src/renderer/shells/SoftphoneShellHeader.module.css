@@ -1,5 +1,6 @@
 .header {
-  padding-bottom: var(--space-2xs);
+  padding: 10px var(--space-sm);
+  border-bottom: 1px solid var(--color-border-default);
 }
 
 .headerBar {
@@ -7,7 +8,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-xs);
-  min-height: 36px;
+  /* min-height: 36px; */
 }
 
 .headerBrand {

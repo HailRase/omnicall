@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState, type JSX } from "react";
+import { useEffect, useMemo, useState, type JSX, type MouseEvent } from "react";
 import type { CallLine } from "@application/index.js";
 import { deriveCallLineStatusLabel } from "@application/index.js";
+import clsx from "clsx";
 import { mapTransferDisabledReasonWithFallback } from "../../helpers/mapTransferDisabledReason.js";
 import { AppIcon, IconControlButton } from "../icons/index.js";
 import styles from "./TransferPanel.module.css";
@@ -59,6 +60,7 @@ export function TransferPanel({
     () => lines.find((line) => line.role === "consultation") ?? null,
     [lines],
   );
+  const consultReady = consultationLine?.state === "Active";
 
   useEffect(() => {
     if (!visible) {
@@ -82,6 +84,9 @@ export function TransferPanel({
     return null;
   }
 
+  const cancelDisabled = cancelTransferDisabledReason !== null;
+  const cancelLabel = failureMessage !== null ? "Закрыть" : "Отмена";
+
   return (
     <section
       className={styles["panel"]}
@@ -90,25 +95,24 @@ export function TransferPanel({
     >
       <header className={styles["header"]}>
         <div className={styles["titleWrap"]}>
-          <h2 className={styles["title"]}>
-            <span className={styles["titleIcon"]}>
-              <AppIcon id="call.transfer" decorative />
-            </span>
-            Перевод звонка
-          </h2>
+          <h2 className={styles["title"]}>Перевод звонка</h2>
           <ol className={styles["steps"]} aria-label="Шаги перевода">
-            <li className={styles["step"]}>
-              <span className={resolveStepDotClassName(step, 1)}>1</span>
-            </li>
-            <li className={styles["step"]}>
-              <span className={resolveStepDotClassName(step, 2)}>2</span>
-            </li>
-            <li className={styles["step"]}>
-              <span className={resolveStepDotClassName(step, 3)}>3</span>
-            </li>
-            <li className={styles["step"]}>
-              <span className={resolveStepDotClassName(step, 4)}>4</span>
-            </li>
+            {[1, 2, 3, 4].map((stepNum) => (
+              <li key={stepNum} className={styles["step"]}>
+                <span className={resolveStepDotClassName(step, stepNum as TransferStep)}>
+                  {stepNum < step ? "✓" : stepNum}
+                </span>
+                {stepNum < 4 ? (
+                  <span
+                    className={clsx(
+                      styles["stepConnector"],
+                      stepNum < step && styles["stepConnectorDone"],
+                    )}
+                    aria-hidden="true"
+                  />
+                ) : null}
+              </li>
+            ))}
           </ol>
         </div>
         <IconControlButton
@@ -129,142 +133,208 @@ export function TransferPanel({
         />
       </header>
 
-      {transferInProgress && (
-        <p
-          className={styles["progress"]}
-          data-testid="transfer-in-progress-indicator"
-          role="status"
-          aria-live="polite"
-        >
-          Перевод выполняется…
-        </p>
-      )}
-
-      {failureMessage !== null && (
-        <div
-          className={styles["failure"]}
-          data-testid="transfer-failure-banner"
-          role="alert"
-        >
-          <p>{failureMessage}</p>
-        </div>
-      )}
-
-      {sourceLine !== null ? (
-        <section className={styles["lineSection"]} data-testid="transfer-source-line">
-          <p className={styles["lineSectionTitle"]}>Исходный звонок</p>
-          <div className={styles["lineCard"]}>
-            <p className={styles["lineLabel"]}>{sourceLine.displayLabel}</p>
-            <p className={styles["lineState"]}>
-              {deriveCallLineStatusLabel({ state: sourceLine.state })}
-            </p>
+      <div className={styles["body"]}>
+        {failureMessage !== null ? (
+          <div
+            className={styles["failure"]}
+            data-testid="transfer-failure-banner"
+            role="alert"
+          >
+            <div className={styles["failureText"]}>
+              <p className={styles["failureTitle"]}>Ошибка перевода</p>
+              <p>{failureMessage}</p>
+              <p className={styles["failureHint"]}>Исходный звонок восстановлен.</p>
+            </div>
           </div>
-        </section>
-      ) : null}
+        ) : null}
 
-      {step >= 3 && consultationLine !== null ? (
-        <section className={styles["lineSection"]} data-testid="transfer-consultation-line">
-          <p className={styles["lineSectionTitle"]}>Консультационный звонок</p>
-          <div className={styles["lineCard"]}>
-            <p className={styles["lineLabel"]}>{consultationLine.displayLabel}</p>
-            <p className={styles["lineState"]}>
-              {deriveCallLineStatusLabel({ state: consultationLine.state })}
-            </p>
-          </div>
-        </section>
-      ) : null}
+        {sourceLine !== null ? (
+          <section className={styles["lineSection"]} data-testid="transfer-source-line">
+            <p className={styles["lineSectionTitle"]}>Исходный звонок</p>
+            <div className={styles["lineCard"]}>
+              <p className={styles["lineLabel"]}>{sourceLine.displayLabel}</p>
+              <p className={styles["lineState"]}>
+                {deriveCallLineStatusLabel({ state: sourceLine.state })}
+              </p>
+            </div>
+          </section>
+        ) : null}
 
-      <label className={styles["targetLabel"]} htmlFor="transfer-target-input">
-        Номер перевода
-      </label>
-      <input
-        id="transfer-target-input"
-        className={styles["targetInput"]}
-        data-testid="transfer-target-input"
-        type="tel"
-        value={targetNumber}
-        aria-label="Номер для перевода"
-        onChange={(event) => {
-          onTargetChange(event.currentTarget.value);
-        }}
-      />
-      {step === 1 ? (
+        {step === 1 ? (
+          <section className={styles["stepSection"]}>
+            <p className={styles["lineSectionTitle"]}>Кому перевести</p>
+            <input
+              id="transfer-target-input"
+              className={styles["targetInput"]}
+              data-testid="transfer-target-input"
+              type="tel"
+              value={targetNumber}
+              placeholder="+7 (___) ___-__-__"
+              aria-label="Номер для перевода"
+              onChange={(event) => {
+                onTargetChange(event.currentTarget.value);
+              }}
+            />
+            <button
+              type="button"
+              data-testid="transfer-next-step"
+              className={styles["nextButton"]}
+              disabled={targetNumber.trim().length === 0}
+              onClick={() => {
+                setStep(2);
+              }}
+            >
+              Далее
+            </button>
+          </section>
+        ) : null}
+
+        {step === 2 ? (
+          <section className={styles["stepSection"]}>
+            <p className={styles["lineSectionTitle"]}>Тип перевода</p>
+            <div className={styles["typeList"]}>
+              <TypeChoiceCard
+                iconId="call.transfer"
+                title="Слепой перевод"
+                description="Звонок сразу переводится. Оператор освобождается."
+                testId="control-blind-transfer"
+                disabledReason={
+                  blindTransferDisabledReason === null
+                    ? null
+                    : mapTransferDisabledReasonWithFallback(blindTransferDisabledReason)
+                }
+                onClick={() => {
+                  setStep(4);
+                  onBlindTransfer();
+                }}
+              />
+              <TypeChoiceCard
+                iconId="transfer.consultation"
+                title="Консультативный перевод"
+                description="Сначала поговорите с принимающей стороной, затем подтвердите перевод."
+                testId="control-start-consultation"
+                disabledReason={
+                  startConsultationDisabledReason === null
+                    ? null
+                    : mapTransferDisabledReasonWithFallback(startConsultationDisabledReason)
+                }
+                onClick={() => {
+                  setStep(3);
+                  onStartConsultation();
+                }}
+              />
+            </div>
+          </section>
+        ) : null}
+
+        {step >= 3 && consultationLine !== null ? (
+          <section className={styles["lineSection"]} data-testid="transfer-consultation-line">
+            <p className={styles["lineSectionTitle"]}>Консультационный звонок</p>
+            <div className={styles["lineCard"]}>
+              <p className={styles["lineLabel"]}>{consultationLine.displayLabel}</p>
+              <p className={styles["lineState"]}>
+                {deriveCallLineStatusLabel({ state: consultationLine.state })}
+              </p>
+            </div>
+            {!consultReady && !transferInProgress ? (
+              <p className={styles["waiting"]} role="status">
+                Ожидание ответа…
+              </p>
+            ) : null}
+          </section>
+        ) : null}
+
+        {transferInProgress ? (
+          <p
+            className={styles["progress"]}
+            data-testid="transfer-in-progress-indicator"
+            role="status"
+            aria-live="polite"
+          >
+            Перевод выполняется…
+          </p>
+        ) : null}
+
+        {renderDisabledReason(
+          blindTransferDisabledReason,
+          startConsultationDisabledReason,
+          attendedTransferDisabledReason,
+          cancelTransferDisabledReason,
+        )}
+      </div>
+
+      <footer className={styles["footer"]}>
         <button
           type="button"
-          data-testid="transfer-next-step"
-          className={styles["nextButton"]}
-          disabled={targetNumber.trim().length === 0}
+          className={styles["footerCancel"]}
+          data-testid="transfer-footer-cancel"
+          disabled={cancelDisabled}
           onClick={() => {
-            setStep(2);
+            setStep(1);
+            onCancelTransfer();
           }}
         >
-          Далее
+          {cancelLabel}
         </button>
-      ) : null}
-
-      <div className={styles["actions"]}>
-        {step >= 2 ? (
-          <>
-            <IconControlButton
-              iconId="call.transfer"
-              ariaLabel="Слепой перевод"
-              tooltipLabel="Слепой перевод"
-              testId="control-blind-transfer"
-              className={styles["iconButton"]}
-              disabledReason={
-                blindTransferDisabledReason === null
-                  ? null
-                  : mapTransferDisabledReasonWithFallback(blindTransferDisabledReason)
-              }
-              onClick={() => {
-                setStep(4);
-                onBlindTransfer();
-              }}
-            />
-            <IconControlButton
-              iconId="transfer.consultation"
-              ariaLabel="Начать консультацию"
-              testId="control-start-consultation"
-              className={styles["iconButton"]}
-              disabledReason={
-                startConsultationDisabledReason === null
-                  ? null
-                  : mapTransferDisabledReasonWithFallback(startConsultationDisabledReason)
-              }
-              onClick={() => {
-                setStep(3);
-                onStartConsultation();
-              }}
-            />
-          </>
-        ) : null}
-        {step >= 3 ? (
-          <IconControlButton
-            iconId="action.confirm"
-            ariaLabel="Завершить перевод с консультацией"
-            tooltipLabel="Завершить перевод с консультацией"
-            testId="control-attended-transfer"
-            className={styles["iconButton"]}
-            disabledReason={
+        {step >= 3 && consultReady && !transferInProgress ? (
+          <button
+            type="button"
+            className={styles["footerComplete"]}
+            data-testid="control-attended-transfer"
+            disabled={attendedTransferDisabledReason !== null}
+            title={
               attendedTransferDisabledReason === null
-                ? null
+                ? "Завершить перевод с консультацией"
                 : mapTransferDisabledReasonWithFallback(attendedTransferDisabledReason)
             }
             onClick={() => {
               setStep(4);
               onAttendedTransfer();
             }}
-          />
+          >
+            <AppIcon id="action.confirm" size={14} decorative />
+            Завершить перевод
+          </button>
         ) : null}
-      </div>
-
-      {renderDisabledReason(
-        blindTransferDisabledReason,
-        startConsultationDisabledReason,
-        attendedTransferDisabledReason,
-        cancelTransferDisabledReason,
-      )}
+      </footer>
     </section>
+  );
+}
+
+type TypeChoiceCardProps = Readonly<{
+  iconId: "call.transfer" | "transfer.consultation";
+  title: string;
+  description: string;
+  testId: string;
+  disabledReason?: string | null;
+  onClick: (event: MouseEvent<HTMLButtonElement>) => void;
+}>;
+
+function TypeChoiceCard({
+  iconId,
+  title,
+  description,
+  testId,
+  disabledReason = null,
+  onClick,
+}: TypeChoiceCardProps): JSX.Element {
+  const isDisabled = disabledReason !== null;
+
+  return (
+    <button
+      type="button"
+      className={clsx(styles["typeCard"], isDisabled && styles["typeCardDisabled"])}
+      data-testid={testId}
+      disabled={isDisabled}
+      title={isDisabled && disabledReason ? disabledReason : title}
+      onClick={onClick}
+    >
+      <span className={styles["typeCardTitle"]}>
+        <AppIcon id={iconId} size={14} decorative />
+        {title}
+      </span>
+      <span className={styles["typeCardDescription"]}>{description}</span>
+    </button>
   );
 }
 

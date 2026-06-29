@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import type {
   ActiveCallControlsProjection,
@@ -51,6 +51,28 @@ export function useTransferPanelShell(
     activeCallControlsProjection,
   } = input;
   const [targetNumber, setTargetNumber] = useState("");
+  const wasTransferModeActive = useRef(false);
+
+  useEffect(() => {
+    const active = transferProjection.transferModeActive;
+    if (active && !wasTransferModeActive.current) {
+      setTargetNumber("");
+    }
+    if (!active && wasTransferModeActive.current) {
+      setTargetNumber("");
+    }
+    wasTransferModeActive.current = active;
+  }, [transferProjection.transferModeActive]);
+
+  useEffect(() => {
+    if (
+      transferProjection.phase === "transferred" ||
+      transferProjection.phase === "consultation_dialing" ||
+      transferProjection.phase === "transferring"
+    ) {
+      setTargetNumber("");
+    }
+  }, [transferProjection.phase]);
 
   const transferInProgress = isTransferInProgress(transferProjection);
   const sourceCallId =
@@ -132,10 +154,10 @@ export function useTransferPanelShell(
   const cancelTransferDisabledReason = transferInProgress ? "transfer_in_progress" : null;
 
   return {
-    visible: isTransferPanelVisible(
-      transferProjection,
-      multiLineCallProjection.lines.length,
-    ),
+    visible: isTransferPanelVisible(transferProjection, {
+      attendedPhase: multiLineCallProjection.attendedPhase,
+      consultationCallId: multiLineCallProjection.consultationCallId,
+    }),
     targetNumber,
     setTargetNumber,
     blindTransferDisabledReason,

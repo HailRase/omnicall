@@ -94,58 +94,6 @@ describe("SoftphoneShellHeader", () => {
     );
 
     expect(screen.getByTestId("control-reregister-sip")).toBeInTheDocument();
-  });
-
-  it("shows avatar recovery ring during SIP re-registration countdown", () => {
-    render(
-      <SoftphoneShellHeader
-        headerChrome={{
-          ...headerChrome,
-          registrationDotVariant: "failed",
-        }}
-        connectionRecoveryShell={{
-          ...recoveryShell,
-          showAvatarRecoveryRing: true,
-          avatarRecoveryRingTone: "failed",
-          avatarRecoveryOverlayMode: "countdown",
-          connectionState: "reconnecting",
-          sipRecoveryMode: "registration",
-          reconnectCountdownSeconds: 7,
-          sipReconnectAttempt: 1,
-        }}
-        connectionRecoveryActions={{ onReregisterSip: vi.fn(), onManualRetry: vi.fn(), onSafeLogout: vi.fn() }}
-        userAvatarMenu={userAvatarMenu}
-        userAvatarMenuActions={userAvatarMenuActions}
-      />,
-    );
-
-    expect(screen.getByTestId("avatar-recovery-ring")).toHaveAttribute("data-visible", "true");
-    expect(screen.getByTestId("avatar-recovery-countdown")).toHaveTextContent("7");
-  });
-
-  it("shows avatar reload after exhausted SIP registration attempts", () => {
-    render(
-      <SoftphoneShellHeader
-        headerChrome={{
-          ...headerChrome,
-          registrationDotVariant: "failed",
-        }}
-        connectionRecoveryShell={{
-          ...recoveryShell,
-          showAvatarRecoveryRing: true,
-          avatarRecoveryRingTone: "failed",
-          avatarRecoveryOverlayMode: "reload",
-          connectionState: "manual_retry_available",
-          sipRecoveryMode: "registration",
-          sipReconnectAttempt: 5,
-        }}
-        connectionRecoveryActions={{ onReregisterSip: vi.fn(), onManualRetry: vi.fn(), onSafeLogout: vi.fn() }}
-        userAvatarMenu={userAvatarMenu}
-        userAvatarMenuActions={userAvatarMenuActions}
-      />,
-    );
-
-    expect(screen.getByTestId("avatar-recovery-reload")).toBeInTheDocument();
-    expect(screen.queryByTestId("connection-overlay")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("avatar-recovery-ring")).not.toBeInTheDocument();
   });
 });

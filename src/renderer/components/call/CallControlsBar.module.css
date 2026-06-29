@@ -44,16 +44,33 @@
   color: var(--color-text-primary);
 }
 
-.buttonActive {
-  background: rgb(245 158 11 / 14%);
-  border-color: rgb(245 158 11 / 40%);
-  color: var(--color-text-warning);
+.buttonResume {
+  border-color: var(--color-border-success);
+  background: var(--color-status-online);
+  color: #fff;
+  box-shadow: var(--shadow-control-knob);
+}
+
+.buttonResume:hover:not(:disabled) {
+  filter: brightness(1.05);
+  color: #fff;
+}
+
+.buttonMuted {
+  background: var(--color-bg-danger);
+  border-color: var(--color-border-danger-accent);
+  color: #fff;
+}
+
+.buttonMuted:hover:not(:disabled) {
+  filter: brightness(1.08);
+  color: #fff;
 }
 
 .buttonDanger {
   background: var(--color-status-failed);
   border-color: var(--color-border-danger-accent);
-  color: var(--color-text-danger-soft);
+  color: #fff;
   box-shadow: var(--shadow-control-knob);
 }
 

@@ -43,6 +43,7 @@ describe("CallControlsBar", () => {
         onHangup={vi.fn()}
         onTransfer={vi.fn()}
         onShowDtmf={vi.fn()}
+        onShowNumberEntry={vi.fn()}
         onRetryOperation={vi.fn()}
       />,
     );
@@ -51,6 +52,67 @@ describe("CallControlsBar", () => {
     expect(screen.getByText("Удержание")).toBeInTheDocument();
     expect(screen.getByText("Тоновый набор")).toBeInTheDocument();
     expect(screen.getByText("Завершить")).toBeInTheDocument();
+  });
+
+  it("renders resume control with green styling when line is held", () => {
+    const heldLine: CallLineCardViewModel = {
+      ...activeLine,
+      state: "Held",
+      isActiveUnheld: false,
+    };
+    render(
+      <CallControlsBar
+        line={heldLine}
+        lastOperationError={null}
+        onHold={vi.fn()}
+        onResume={vi.fn()}
+        onMute={vi.fn()}
+        onUnmute={vi.fn()}
+        onHangup={vi.fn()}
+        onTransfer={vi.fn()}
+        onShowDtmf={vi.fn()}
+        onShowNumberEntry={vi.fn()}
+        onRetryOperation={vi.fn()}
+      />,
+    );
+
+    const resumeButton = screen.getByTestId("control-resume-line-call-1");
+    expect(resumeButton).toHaveAttribute("aria-label", "Возобновить звонок");
+    expect(screen.getByText("Возобновить")).toBeInTheDocument();
+    expect(resumeButton.className).toMatch(/buttonResume/);
+  });
+
+  it("keeps all controls visible but disables hold, transfer, and dial while connecting", () => {
+    const connectingLine: CallLineCardViewModel = {
+      ...activeLine,
+      state: "Connecting",
+      isActiveUnheld: false,
+      statusLabel: "Соединение",
+      holdDisabledReason: "hold_requires_active",
+    };
+    render(
+      <CallControlsBar
+        line={connectingLine}
+        lastOperationError={null}
+        onHold={vi.fn()}
+        onResume={vi.fn()}
+        onMute={vi.fn()}
+        onUnmute={vi.fn()}
+        onHangup={vi.fn()}
+        onTransfer={vi.fn()}
+        onShowDtmf={vi.fn()}
+        onShowNumberEntry={vi.fn()}
+        onRetryOperation={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("control-mute-line-call-1")).toBeDisabled();
+    expect(screen.getByTestId("control-hangup-line-call-1")).toBeEnabled();
+    expect(screen.getByTestId("control-hold-line-call-1")).toBeDisabled();
+    expect(screen.getByTestId("control-transfer-line-call-1")).toBeDisabled();
+    expect(screen.getByTestId("control-show-number-entry")).toBeDisabled();
+    expect(screen.queryByText("Доступно после соединения")).not.toBeInTheDocument();
+    expect(screen.queryByText("Удержание доступно только на активном звонке")).not.toBeInTheDocument();
   });
 
   it("invokes DTMF callback", () => {
@@ -66,6 +128,7 @@ describe("CallControlsBar", () => {
         onHangup={vi.fn()}
         onTransfer={vi.fn()}
         onShowDtmf={onShowDtmf}
+        onShowNumberEntry={vi.fn()}
         onRetryOperation={vi.fn()}
       />,
     );

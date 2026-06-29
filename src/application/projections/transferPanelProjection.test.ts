@@ -8,9 +8,33 @@ import {
   initialTransferProjection,
   reduceTransferProjection,
 } from "./transferProjection.js";
-import { resolveTransferFailureMessage } from "./transferPanelProjection.js";
+import { resolveTransferFailureMessage, isTransferPanelVisible } from "./transferPanelProjection.js";
 
 describe("transferPanelProjection", () => {
+  it("does not show panel for two ordinary calls without transfer session", () => {
+    const visible = isTransferPanelVisible(initialTransferProjection(), {
+      attendedPhase: "idle",
+      consultationCallId: null,
+    });
+
+    expect(visible).toBe(false);
+  });
+
+  it("shows panel when transfer mode is active", () => {
+    const transfer = {
+      ...initialTransferProjection(),
+      transferModeActive: true,
+      sourceCallId: "call-1",
+    };
+
+    expect(
+      isTransferPanelVisible(transfer, {
+        attendedPhase: "idle",
+        consultationCallId: null,
+      }),
+    ).toBe(true);
+  });
+
   it("returns null after cancel and re-entering transfer mode", () => {
     let transfer = reduceTransferProjection(initialTransferProjection(), {
       type: "TransferModeStarted",

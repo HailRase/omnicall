@@ -1,4 +1,4 @@
-import { useMemo, type JSX } from "react";
+import type { JSX } from "react";
 import { CallControlsBar } from "../../components/call/CallControlsBar.js";
 import { Dialpad } from "../../components/dialpad/Dialpad.js";
 import type { CallFeatureShellBindings } from "../../hooks/useCallFeatureShell.js";
@@ -23,36 +23,30 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
     callDisabledReason,
     inputDisabledReason,
     callActions,
-    callLinesShell,
     callLinesActions,
     handleTransferLine,
     setCallMode,
     setDialedNumber,
     deleteLastDialedDigit,
+    hasEstablishedCall,
+    hasCallInProgress,
+    controlTargetLine,
+    numberEntryOverlayOpen,
+    openNumberEntryOverlay,
+    closeNumberEntryOverlay,
+    handleDialpadCall,
   } = bindings;
 
-  const controlLine = useMemo(() => {
-    const unheld = callLinesShell.lines.find((line) => line.isActiveUnheld);
-    if (unheld !== undefined) {
-      return unheld;
-    }
-    return (
-      callLinesShell.lines.find((line) => line.state === "Active" || line.state === "Held") ??
-      null
-    );
-  }, [callLinesShell.lines]);
+  const hideCallControls =
+    dialpadMode === "dtmf" || bindings.transferPanelShell.visible || numberEntryOverlayOpen;
 
-  const hasEstablishedCall = callLinesShell.lines.some(
-    (line) => line.state === "Active" || line.state === "Held",
-  );
-
-  const hideControls = dialpadMode === "dtmf" || bindings.transferPanelShell.visible;
+  const showDialpad = numberEntryOverlayOpen || !hasCallInProgress;
 
   return (
     <div className={styles["zone"]} data-testid="call-controls-zone">
-      {!hideControls ? (
+      {!hideCallControls ? (
         <CallControlsBar
-          line={controlLine}
+          line={controlTargetLine}
           lastOperationError={activeCallControlsProjection.lastOperationError}
           registrationDisabledReason={inputDisabledReason}
           onHold={callLinesActions.handleHoldLine}
@@ -62,13 +56,14 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
           onHangup={callLinesActions.handleHangupLine}
           onTransfer={handleTransferLine}
           onShowDtmf={() => {
-            setCallMode("dtmf");
+            setCallMode("dtmf", controlTargetLine?.callId ?? null);
           }}
+          onShowNumberEntry={openNumberEntryOverlay}
           onRetryOperation={callActions.handleRetryLastOperation}
         />
       ) : null}
 
-      {!hideControls ? (
+      {showDialpad ? (
         <Dialpad
           numberValue={dialedNumber}
           mode={dialpadMode}
@@ -76,11 +71,15 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
           callDisabledReason={callDisabledReason}
           inputDisabledReason={inputDisabledReason}
           hasEstablishedCall={hasEstablishedCall}
+          overlayMode={numberEntryOverlayOpen}
           onNumberChange={setDialedNumber}
           onDelete={deleteLastDialedDigit}
-          onCall={callActions.handleDialpadCall}
+          onCall={handleDialpadCall}
           onSendDtmf={callActions.handleSendDtmf}
           onModeChange={setCallMode}
+          {...(numberEntryOverlayOpen
+            ? { onClose: closeNumberEntryOverlay }
+            : {})}
         />
       ) : null}
 

@@ -5,10 +5,8 @@ import type {
   CallLineCardViewModel,
 } from "@application/index.js";
 import {
-  mapActiveCallControlDisabledReason,
   mapActiveCallControlOperationError,
 } from "../../helpers/mapActiveCallControlLabels.js";
-import { mapTransferDisabledReason } from "../../helpers/mapTransferDisabledReason.js";
 import { AppIcon } from "../icons/AppIcon.js";
 import type { IconSemanticId } from "../icons/iconCatalog.js";
 import { IconControlButton } from "../icons/IconControlButton.js";
@@ -25,6 +23,7 @@ export type CallControlsBarProps = Readonly<{
   onHangup: (callId: string) => void;
   onTransfer: (callId: string) => void;
   onShowDtmf: () => void;
+  onShowNumberEntry: () => void;
   onRetryOperation: () => void;
 }>;
 
@@ -34,9 +33,10 @@ type LabeledControlProps = Readonly<{
   ariaLabel: string;
   testId: string;
   onClick: (event: MouseEvent<HTMLButtonElement>) => void;
-  active?: boolean;
+  disabled?: boolean;
+  resume?: boolean;
   danger?: boolean;
-  disabledReason?: string | null;
+  muted?: boolean;
 }>;
 
 /**
@@ -56,15 +56,35 @@ export function CallControlsBar({
   onHangup,
   onTransfer,
   onShowDtmf,
+  onShowNumberEntry,
   onRetryOperation,
 }: CallControlsBarProps): JSX.Element | null {
-  if (line === null || (line.state !== "Active" && line.state !== "Held")) {
+  const controllableStates = new Set(["Active", "Held", "Connecting", "Ringing"]);
+  if (line === null || !controllableStates.has(line.state)) {
     return null;
   }
 
+  const isPreConnect = line.state === "Connecting" || line.state === "Ringing";
   const isHeld = line.state === "Held";
-  const canControl = line.state === "Active" || isHeld;
   const showError = line.isActiveUnheld && lastOperationError !== null;
+  const registrationBlocked = registrationDisabledReason !== null;
+
+  const muteBlocked =
+    isPreConnect ||
+    registrationBlocked ||
+    (line.muted ? line.unmuteDisabledReason : line.muteDisabledReason) !== null;
+  const holdBlocked =
+    isPreConnect ||
+    registrationBlocked ||
+    (isHeld ? line.resumeDisabledReason : line.holdDisabledReason) !== null;
+  const transferBlocked =
+    isPreConnect ||
+    registrationBlocked ||
+    !line.isActiveUnheld ||
+    line.transferDisabledReason !== null;
+  const dialBlocked = isPreConnect || registrationBlocked;
+  const hangupBlocked =
+    registrationBlocked || line.hangupDisabledReason !== null;
 
   return (
     <section
@@ -74,18 +94,12 @@ export function CallControlsBar({
     >
       <div className={styles["actions"]}>
         <LabeledControl
-          iconId={line.muted ? "call.unmute" : "call.mute"}
-          label={line.muted ? "Вкл. микрофон" : "Выкл. микрофон"}
+          iconId={line.muted ? "call.mute" : "call.unmute"}
+          label={line.muted ? "Микрофон выкл." : "Микрофон"}
           ariaLabel={line.muted ? "Включить микрофон" : "Отключить микрофон"}
           testId={line.muted ? `control-unmute-line-${line.callId}` : `control-mute-line-${line.callId}`}
-          active={line.muted}
-          disabledReason={withRegistrationGate(
-            mapControlReason(
-              line.muted ? line.unmuteDisabledReason : line.muteDisabledReason,
-              canControl ? null : "Нет актив. звонка",
-            ),
-            registrationDisabledReason,
-          )}
+          muted={line.muted}
+          disabled={muteBlocked}
           onClick={() => {
             if (line.muted) {
               onUnmute(line.callId);
@@ -96,17 +110,11 @@ export function CallControlsBar({
         />
         <LabeledControl
           iconId={isHeld ? "call.resume" : "call.hold"}
-          label={isHeld ? "Продолжить" : "Удержание"}
+          label={isHeld ? "Возобновить" : "Удержание"}
           ariaLabel={isHeld ? "Возобновить звонок" : "Удержать звонок"}
           testId={isHeld ? `control-resume-line-${line.callId}` : `control-hold-line-${line.callId}`}
-          active={isHeld}
-          disabledReason={withRegistrationGate(
-            mapControlReason(
-              isHeld ? line.resumeDisabledReason : line.holdDisabledReason,
-              canControl ? null : "Нет актив. звонка",
-            ),
-            registrationDisabledReason,
-          )}
+          resume={isHeld}
+          disabled={holdBlocked}
           onClick={() => {
             if (isHeld) {
               onResume(line.callId);
@@ -120,40 +128,37 @@ export function CallControlsBar({
           label="Перевод"
           ariaLabel="Перевести звонок"
           testId={`control-transfer-line-${line.callId}`}
-          disabledReason={withRegistrationGate(
-            !line.isActiveUnheld
-              ? "Нет актив. звонка"
-              : line.transferDisabledReason === null
-                ? null
-                : mapTransferDisabledReason(line.transferDisabledReason),
-            registrationDisabledReason,
-          )}
+          disabled={transferBlocked}
           onClick={() => {
             onTransfer(line.callId);
           }}
         />
-        <LabeledControl
-          iconId="dial.dtmf"
-          label="Тоновый набор"
-          ariaLabel="Открыть тоновый набор"
-          testId="control-show-dtmf"
-          disabledReason={withRegistrationGate(
-            line.isActiveUnheld ? null : "Нет актив. звонка",
-            registrationDisabledReason,
-          )}
-          onClick={onShowDtmf}
-        />
+        {line.isActiveUnheld ? (
+          <LabeledControl
+            iconId="dial.dtmf"
+            label="Тоновый набор"
+            ariaLabel="Открыть тоновый набор"
+            testId="control-show-dtmf"
+            disabled={dialBlocked}
+            onClick={onShowDtmf}
+          />
+        ) : (
+          <LabeledControl
+            iconId="dial.dtmf"
+            label="Набор номера"
+            ariaLabel="Открыть набор номера"
+            testId="control-show-number-entry"
+            disabled={dialBlocked}
+            onClick={onShowNumberEntry}
+          />
+        )}
         <LabeledControl
           iconId="call.hangup"
           label="Завершить"
           ariaLabel={`Завершить звонок ${line.displayName}`}
           testId={`control-hangup-line-${line.callId}`}
           danger
-          disabledReason={
-            line.hangupDisabledReason === null
-              ? null
-              : mapActiveCallControlDisabledReason(line.hangupDisabledReason)
-          }
+          disabled={hangupBlocked}
           onClick={() => {
             onHangup(line.callId);
           }}
@@ -186,58 +191,34 @@ function LabeledControl({
   ariaLabel,
   testId,
   onClick,
-  active = false,
+  disabled = false,
+  resume = false,
   danger = false,
-  disabledReason = null,
+  muted = false,
 }: LabeledControlProps): JSX.Element {
-  const isDisabled = disabledReason !== null;
-
   return (
     <div className={styles["control"]}>
       <button
         type="button"
         className={clsx(
           styles["button"],
-          active && styles["buttonActive"],
+          resume && styles["buttonResume"],
+          muted && styles["buttonMuted"],
           danger && styles["buttonDanger"],
-          isDisabled && styles["buttonDisabled"],
+          disabled && styles["buttonDisabled"],
         )}
         data-testid={testId}
         aria-label={ariaLabel}
-        disabled={isDisabled}
-        title={isDisabled && disabledReason ? disabledReason : label}
+        aria-pressed={resume || muted ? true : undefined}
+        disabled={disabled}
+        title={label}
         onClick={onClick}
       >
         <AppIcon id={iconId} size={18} decorative />
       </button>
-      <span className={clsx(styles["caption"], isDisabled && styles["captionDisabled"])}>
+      <span className={clsx(styles["caption"], disabled && styles["captionDisabled"])}>
         {label}
       </span>
-      {isDisabled && disabledReason ? (
-        <span className={styles["reason"]} role="status">
-          {disabledReason}
-        </span>
-      ) : null}
     </div>
   );
-}
-
-function mapControlReason(
-  projectionReason: string | null,
-  fallback: string | null,
-): string | null {
-  if (projectionReason !== null) {
-    return mapActiveCallControlDisabledReason(projectionReason);
-  }
-  return fallback;
-}
-
-function withRegistrationGate(
-  reason: string | null,
-  registrationDisabledReason: string | null,
-): string | null {
-  if (registrationDisabledReason !== null) {
-    return registrationDisabledReason;
-  }
-  return reason;
 }

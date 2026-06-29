@@ -8,7 +8,9 @@ const DTMF_KEYS: ReadonlyArray<string> = [
 
 export type DtmfKeypadPanelProps = Readonly<{
   displayName: string;
+  toneHistory: string;
   lastTone: string | null;
+  errorMessage?: string | null;
   onTone: (tone: string) => void;
   onClose: () => void;
 }>;
@@ -21,7 +23,9 @@ export type DtmfKeypadPanelProps = Readonly<{
  */
 export function DtmfKeypadPanel({
   displayName,
+  toneHistory,
   lastTone,
+  errorMessage = null,
   onTone,
   onClose,
 }: DtmfKeypadPanelProps): JSX.Element {
@@ -33,7 +37,14 @@ export function DtmfKeypadPanel({
           <p className={styles["subtitle"]}>{displayName}</p>
         </div>
         <div className={styles["headerAside"]}>
-          {lastTone !== null ? (
+          {toneHistory.length > 0 ? (
+            <div className={styles["lastTone"]}>
+              <span className={styles["lastToneLabel"]}>Набрано</span>
+              <span className={styles["lastToneValue"]} data-testid="dtmf-tone-history">
+                {toneHistory}
+              </span>
+            </div>
+          ) : lastTone !== null ? (
             <div className={styles["lastTone"]}>
               <span className={styles["lastToneLabel"]}>Последний тон</span>
               <span className={styles["lastToneValue"]} data-testid="dtmf-last-tone">
@@ -67,6 +78,11 @@ export function DtmfKeypadPanel({
           </button>
         ))}
       </div>
+      {errorMessage !== null ? (
+        <p className={styles["error"]} data-testid="dtmf-error-alert" role="alert">
+          {errorMessage}
+        </p>
+      ) : null}
       <p className={styles["hint"]}>Тоны передаются в активный звонок</p>
     </section>
   );

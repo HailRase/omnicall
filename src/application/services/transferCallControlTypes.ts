@@ -25,6 +25,8 @@ export type TrackCallUpdater = (call: Call) => void;
 export type IncomingCallClearer = (callId: CallId) => void;
 export type TransferSessionReader = () => TransferSession | null;
 export type TransferSessionWriter = (session: TransferSession | null) => void;
+export type TransferModeSourceCallIdReader = () => CallId | null;
+export type TransferModeSourceCallIdWriter = (callId: CallId | null) => void;
 export type MakeCallExecutor = (
   input: MakeCallInput,
 ) => Promise<Result<Call, PlatformError>>;
@@ -46,6 +48,8 @@ export type TransferCallControlDeps = Readonly<{
   clearIncomingCallById: IncomingCallClearer;
   getTransferSession: TransferSessionReader;
   setTransferSession: TransferSessionWriter;
+  getTransferModeSourceCallId: TransferModeSourceCallIdReader;
+  setTransferModeSourceCallId: TransferModeSourceCallIdWriter;
   makeCall: MakeCallExecutor;
   hangupCall: HangupCallExecutor;
   resumeCall: ResumeCallExecutor;

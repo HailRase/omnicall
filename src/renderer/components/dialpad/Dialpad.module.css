@@ -16,26 +16,61 @@
   background: var(--color-bg-surface-deep);
 }
 
-.inputDisplay {
+.inputField {
   flex: 1;
   min-width: 0;
-  overflow: hidden;
-}
-
-.inputValue {
-  display: block;
+  padding: 0;
+  border: none;
+  background: transparent;
   font-size: 1.125rem;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.04em;
   color: var(--color-text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  outline: none;
 }
 
-.inputPlaceholder {
+.inputField::placeholder {
   font-size: 0.875rem;
   color: var(--color-text-muted);
+}
+
+.inputField:disabled {
+  cursor: not-allowed;
+  color: var(--color-text-muted);
+}
+
+.overlayHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  padding: var(--space-2xs) var(--space-sm) 0;
+}
+
+.overlayTitle {
+  font-size: 0.875rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.overlayClose {
+  flex-shrink: 0;
+}
+
+.panelOverlay {
+  gap: var(--space-sm);
+}
+
+.panelOverlay .inputRow {
+  margin-inline: var(--space-sm);
+}
+
+.panelOverlay .keys {
+  padding-inline: var(--space-sm);
+}
+
+.panelOverlay .callButton {
+  margin-inline: var(--space-sm);
 }
 
 .deleteButton {

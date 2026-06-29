@@ -81,8 +81,10 @@ export function transitionCallState(
         current === "Connecting" ||
         current === "Ringing" ||
         current === "Active" ||
+        current === "Held" ||
         current === "Ending" ||
-        current === "Transferring"
+        current === "Transferring" ||
+        current === "Conference"
       ) {
         return { ok: true, state: "Ended" };
       }

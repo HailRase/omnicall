@@ -81,7 +81,7 @@ type AccountBootstrapStore = Readonly<{
   ocpNotificationProjection: OcpNotificationProjection;
   connectionRecoveryProjection: ConnectionRecoveryProjection;
   bindFacade: (facade: AccountBootstrapFacade) => () => void;
-  setCallMode: (mode: DialpadMode) => void;
+  setCallMode: (mode: DialpadMode, dtmfPanelCallId?: string | null) => void;
   setIncomingUiState: (uiState: IncomingCallUiState) => void;
   setIncomingRejectReasonRequired: (required: boolean) => void;
   setIncomingBreakReason: (reason: string | null) => void;
@@ -155,9 +155,9 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
     return unsubscribe;
   },
 
-  setCallMode: (mode) => {
+  setCallMode: (mode, dtmfPanelCallId = null) => {
     set((state) => ({
-      callProjection: setDialpadMode(state.callProjection, mode),
+      callProjection: setDialpadMode(state.callProjection, mode, dtmfPanelCallId),
     }));
   },
 

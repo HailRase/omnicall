@@ -9,6 +9,7 @@ import type {
 import type { Call, CallId } from "@domain/index.js";
 import { createPlatformError } from "@shared/errors/index.js";
 import type { Result } from "@shared/result/index.js";
+import { createCorrelationId } from "@shared/correlation-id/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { ActiveCallControlService } from "./ActiveCallControlService.js";
 import { CallTracker } from "./CallTracker.js";
@@ -37,6 +38,8 @@ import { DtmfOrchestrator } from "./DtmfOrchestrator.js";
 import { IncomingCallOrchestrator } from "./IncomingCallOrchestrator.js";
 import { OutgoingCallOrchestrator } from "./OutgoingCallOrchestrator.js";
 import { TransferCallControlService } from "./TransferCallControlService.js";
+import type { TransferCallControlDeps } from "./transferCallControlTypes.js";
+import { executeTransferCleanupOnCallEnded } from "./transferCleanupOnCallEnded.js";
 
 export type {
   AnswerCallInput,
@@ -71,6 +74,7 @@ export class CallEngine {
   private readonly outgoingCallOrchestrator: OutgoingCallOrchestrator;
   private readonly incomingCallOrchestrator: IncomingCallOrchestrator;
   private readonly dtmfOrchestrator: DtmfOrchestrator;
+  private readonly transferCallControlDeps: TransferCallControlDeps;
   private readonly transferCallControlService: TransferCallControlService;
 
   constructor(
@@ -130,7 +134,7 @@ export class CallEngine {
       eventPublisher,
       logger,
     });
-    this.transferCallControlService = new TransferCallControlService({
+    this.transferCallControlDeps = {
       telephonyGateway,
       mediaGateway,
       settingsRepository,
@@ -141,10 +145,16 @@ export class CallEngine {
       clearIncomingCallById: (callId) => this.callTracker.clearIncomingCallById(callId),
       getTransferSession: () => this.callTracker.getTransferSession(),
       setTransferSession: (session) => this.callTracker.setTransferSession(session),
+      getTransferModeSourceCallId: () => this.callTracker.getTransferModeSourceCallId(),
+      setTransferModeSourceCallId: (callId) =>
+        this.callTracker.setTransferModeSourceCallId(callId),
       makeCall: (input) => this.outgoingCallOrchestrator.makeCall(input),
       hangupCall: (input) => this.activeCallControlService.hangupCall(input),
       resumeCall: (input) => this.activeCallControlService.resumeCall(input),
-    });
+    };
+    this.transferCallControlService = new TransferCallControlService(
+      this.transferCallControlDeps,
+    );
   }
 
   makeCall(
@@ -189,8 +199,14 @@ export class CallEngine {
     return this.incomingCallOrchestrator.rejectCall(input);
   }
 
-  handleCallEnded(callId: CallId, correlationId?: CorrelationId): Promise<void> {
-    return this.incomingCallOrchestrator.handleCallEnded(callId, correlationId);
+  async handleCallEnded(callId: CallId, correlationId?: CorrelationId): Promise<void> {
+    const resolvedCorrelationId = correlationId ?? createCorrelationId();
+    await executeTransferCleanupOnCallEnded(
+      this.transferCallControlDeps,
+      callId,
+      resolvedCorrelationId,
+    );
+    await this.incomingCallOrchestrator.handleCallEnded(callId, resolvedCorrelationId);
   }
 
   async handleOutboundCallAnswered(
@@ -203,14 +219,19 @@ export class CallEngine {
     }
 
     const tracked = trackedResult.value;
-    if (tracked.state === "Active") {
-      return;
+    const wasActive = tracked.state === "Active";
+
+    if (!wasActive) {
+      await this.outgoingCallOrchestrator.handleAnswered({
+        call: tracked,
+        ...(correlationId !== undefined ? { correlationId } : {}),
+      });
     }
 
-    await this.outgoingCallOrchestrator.handleAnswered({
-      call: tracked,
-      ...(correlationId !== undefined ? { correlationId } : {}),
-    });
+    this.transferCallControlService.completeConsultationWhenAnswered(
+      callId,
+      correlationId ?? createCorrelationId(),
+    );
   }
 
   async handlePeerConnectionAvailable(

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useRef, type JSX, type KeyboardEvent } from "react";
+import { useRef, type ChangeEvent, type JSX, type KeyboardEvent } from "react";
 import { AppIcon } from "../icons/AppIcon.js";
 import { IconControlButton } from "../icons/index.js";
 import styles from "./Dialpad.module.css";
@@ -13,11 +13,13 @@ export type DialpadProps = Readonly<{
   callDisabledReason: string | null;
   inputDisabledReason: string | null;
   hasEstablishedCall?: boolean;
+  overlayMode?: boolean;
   onNumberChange: (value: string) => void;
   onDelete: () => void;
   onCall: () => void;
   onSendDtmf: (tone: string) => void;
   onModeChange: (mode: DialpadMode) => void;
+  onClose?: () => void;
 }>;
 
 const KEYS: ReadonlyArray<readonly [string, string | null]> = [
@@ -50,9 +52,11 @@ export function Dialpad({
   callDisabledReason,
   inputDisabledReason,
   hasEstablishedCall = false,
+  overlayMode = false,
   onNumberChange,
   onDelete,
   onCall,
+  onClose,
 }: DialpadProps): JSX.Element | null {
   const zeroPressTimeout = useRef<number | null>(null);
   const longPressTriggered = useRef(false);
@@ -62,7 +66,7 @@ export function Dialpad({
     return null;
   }
 
-  const showKeys = !hasEstablishedCall || numberValue.length > 0;
+  const showKeys = overlayMode || !hasEstablishedCall || numberValue.length > 0;
   const isInputDisabled = inputDisabledReason !== null;
   const canDial = callDisabledReason === null && numberValue.trim().length > 0 && !isCalling;
 
@@ -71,6 +75,13 @@ export function Dialpad({
       return;
     }
     onNumberChange(numberValue + key);
+  };
+
+  const handleInputChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    if (isInputDisabled) {
+      return;
+    }
+    onNumberChange(event.currentTarget.value);
   };
 
   const handleKeyboard = (event: KeyboardEvent<HTMLElement>): void => {
@@ -133,22 +144,41 @@ export function Dialpad({
 
   return (
     <section
-      className={clsx(styles["panel"], isInputDisabled && styles["panelInputDisabled"])}
+      className={clsx(
+        styles["panel"],
+        isInputDisabled && styles["panelInputDisabled"],
+        overlayMode && styles["panelOverlay"],
+      )}
       data-testid="dialpad-panel"
       onKeyDown={handleKeyboard}
       aria-label="Панель набора номера"
       aria-disabled={isInputDisabled}
     >
+      {onClose !== undefined ? (
+        <div className={styles["overlayHeader"]}>
+          <span className={styles["overlayTitle"]}>Набор номера</span>
+          <IconControlButton
+            iconId="overlay.close"
+            ariaLabel="Вернуться к звонкам"
+            tooltipLabel="Закрыть"
+            testId="dialpad-overlay-close"
+            className={styles["overlayClose"]}
+            onClick={onClose}
+          />
+        </div>
+      ) : null}
+
       <div className={styles["inputRow"]}>
-        <span className={styles["inputDisplay"]} data-testid="dialpad-input" aria-label="Поле ввода номера">
-          {numberValue.length > 0 ? (
-            <span className={styles["inputValue"]}>{numberValue}</span>
-          ) : (
-            <span className={styles["inputPlaceholder"]}>
-              {inputDisabledReason ?? "Введите номер"}
-            </span>
-          )}
-        </span>
+        <input
+          type="tel"
+          className={styles["inputField"]}
+          data-testid="dialpad-input"
+          value={numberValue}
+          placeholder={inputDisabledReason ?? "Введите номер"}
+          aria-label="Поле ввода номера"
+          disabled={isInputDisabled}
+          onChange={handleInputChange}
+        />
         {numberValue.length > 0 ? (
           <IconControlButton
             iconId="dial.delete"

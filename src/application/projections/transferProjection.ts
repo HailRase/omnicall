@@ -180,7 +180,8 @@ export function reduceTransferProjection(
       };
     case "CallAutoUnheldAfterTransferFailure":
       return projection;
-    case "CallEnded":
+    case "CallEnded": {
+      const endedCallId = asOptionalString(event["callId"]);
       if (projection.phase === "transferred") {
         return initialTransferProjection();
       }
@@ -196,7 +197,15 @@ export function reduceTransferProjection(
           lastFailureReason: "Call ended during transfer",
         };
       }
+      if (
+        endedCallId !== null &&
+        projection.transferModeActive &&
+        (endedCallId === projection.sourceCallId || endedCallId === projection.callId)
+      ) {
+        return initialTransferProjection();
+      }
       return projection;
+    }
     default:
       return projection;
   }

@@ -12,6 +12,7 @@ export class CallTracker {
   private activeIncomingCall: Call | null = null;
   private readonly trackedCalls = new Map<CallId, Call>();
   private transferSession: TransferSession | null = null;
+  private transferModeSourceCallId: CallId | null = null;
 
   trackCall(call: Call): void {
     this.trackedCalls.set(call.id, call);
@@ -76,5 +77,13 @@ export class CallTracker {
 
   setTransferSession(session: TransferSession | null): void {
     this.transferSession = session;
+  }
+
+  getTransferModeSourceCallId(): CallId | null {
+    return this.transferModeSourceCallId;
+  }
+
+  setTransferModeSourceCallId(callId: CallId | null): void {
+    this.transferModeSourceCallId = callId;
   }
 }

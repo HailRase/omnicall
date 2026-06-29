@@ -1,7 +1,12 @@
-import type { Call } from "@domain/index.js";
+import type { Call, CallId } from "@domain/index.js";
+import type { CorrelationId } from "@shared/correlation-id/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
 import type { Result } from "@shared/result/index.js";
-import { executeAttendedTransfer, executeStartConsultation } from "./attendedTransferOperations.js";
+import {
+  completeConsultationWhenAnswered as promoteConsultationWhenAnswered,
+  executeAttendedTransfer,
+  executeStartConsultation,
+} from "./attendedTransferOperations.js";
 import { executeBlindTransfer } from "./transferCallControlOperations.js";
 import { executeCancelTransfer, executeStartTransferMode } from "./transferModeOperations.js";
 import type {
@@ -37,6 +42,12 @@ export class TransferCallControlService {
     return executeStartConsultation(this.deps, input);
   }
 
+  completeConsultationWhenAnswered(
+    consultationCallId: CallId,
+    correlationId: CorrelationId,
+  ): void {
+    promoteConsultationWhenAnswered(this.deps, consultationCallId, correlationId);
+  }
   attendedTransfer(input: AttendedTransferInput): Promise<Result<Call, PlatformError>> {
     return executeAttendedTransfer(this.deps, input);
   }

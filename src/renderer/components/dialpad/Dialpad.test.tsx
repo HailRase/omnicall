@@ -35,7 +35,7 @@ describe("Dialpad", () => {
 
   it("shows registration reason in placeholder when input is blocked", () => {
     renderDialpad({ inputDisabledReason: "Не зарегистрирован" });
-    expect(screen.getByTestId("dialpad-input")).toHaveTextContent("Не зарегистрирован");
+    expect(screen.getByTestId("dialpad-input")).toHaveAttribute("placeholder", "Не зарегистрирован");
   });
 
   it("does not insert zero on hover leave without press", () => {

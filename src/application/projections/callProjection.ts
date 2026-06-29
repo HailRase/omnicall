@@ -24,8 +24,10 @@ export type CallProjection = Readonly<{
   activeCallId: string | null;
   state: CallState | "Idle";
   mode: DialpadMode;
+  dtmfPanelCallId: string | null;
   uiState: DialpadUiState;
   lastError: string | null;
+  lastDtmfError: string | null;
   lastDtmfTone: string | null;
   muted: boolean;
   remoteAudioAttached: boolean;
@@ -42,8 +44,10 @@ export function initialCallProjection(): CallProjection {
     activeCallId: null,
     state: "Idle",
     mode: "number",
+    dtmfPanelCallId: null,
     uiState: "idle",
     lastError: null,
+    lastDtmfError: null,
     lastDtmfTone: null,
     muted: false,
     remoteAudioAttached: false,
@@ -83,8 +87,7 @@ export function reduceCallProjection(
         ...projection,
         activeCallId: asOptionalString(event["callId"]),
         state: "Active",
-        mode: "dtmf",
-        uiState: "activeCallDtmfMode",
+        uiState: "idle",
       };
     case "CallHeld":
       return {
@@ -124,17 +127,21 @@ export function reduceCallProjection(
         asOptionalString(event["reason"]),
         asOptionalString(event["details"]),
       );
-    case "CallEnded":
+    case "CallEnded": {
+      const endedCallId = asOptionalString(event["callId"]);
       return {
         ...projection,
-        activeCallId: asOptionalString(event["callId"]),
+        activeCallId: endedCallId,
         state: "Ended",
-        mode: "number",
+        mode: projection.dtmfPanelCallId === endedCallId ? "number" : projection.mode,
+        dtmfPanelCallId:
+          projection.dtmfPanelCallId === endedCallId ? null : projection.dtmfPanelCallId,
         uiState: "idle",
         muted: false,
         toneIndicator: "none",
         remoteAudioAttached: false,
       };
+    }
     case "RemoteAudioAttached":
       return {
         ...projection,
@@ -164,12 +171,12 @@ export function reduceCallProjection(
       return {
         ...projection,
         lastDtmfTone: asOptionalString(event["tone"]),
-        lastError: null,
+        lastDtmfError: null,
       };
     case "DtmfFailed":
       return {
         ...projection,
-        lastError: asOptionalString(event["reason"]) ?? "DTMF failed",
+        lastDtmfError: asOptionalString(event["reason"]) ?? "DTMF failed",
       };
     case "CallTransferRequested":
       return {
@@ -178,17 +185,21 @@ export function reduceCallProjection(
         state: "Transferring",
         lastError: null,
       };
-    case "CallTransferred":
+    case "CallTransferred": {
+      const transferredCallId = asOptionalString(event["callId"]);
       return {
         ...projection,
-        activeCallId: asOptionalString(event["callId"]),
+        activeCallId: transferredCallId,
         state: "Ended",
-        mode: "number",
+        mode: projection.dtmfPanelCallId === transferredCallId ? "number" : projection.mode,
+        dtmfPanelCallId:
+          projection.dtmfPanelCallId === transferredCallId ? null : projection.dtmfPanelCallId,
         uiState: "idle",
         muted: false,
         toneIndicator: "none",
         remoteAudioAttached: false,
       };
+    }
     case "CallTransferFailed":
       return {
         ...projection,
@@ -204,10 +215,21 @@ export function reduceCallProjection(
 export function setDialpadMode(
   projection: CallProjection,
   mode: DialpadMode,
+  dtmfPanelCallId: string | null = null,
 ): CallProjection {
+  if (mode === "dtmf") {
+    return {
+      ...projection,
+      mode: "dtmf",
+      dtmfPanelCallId: dtmfPanelCallId ?? projection.activeCallId,
+      uiState: "activeCallDtmfMode",
+    };
+  }
   return {
     ...projection,
-    mode,
+    mode: "number",
+    dtmfPanelCallId: null,
+    uiState: projection.state === "Active" || projection.state === "Held" ? "idle" : projection.uiState,
   };
 }
 

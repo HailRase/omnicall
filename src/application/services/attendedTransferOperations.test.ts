@@ -76,6 +76,8 @@ function createMockDeps(
     clearIncomingCallById: () => undefined,
     getTransferSession: () => null,
     setTransferSession: () => undefined,
+    getTransferModeSourceCallId: () => null,
+    setTransferModeSourceCallId: () => undefined,
     makeCall: () => Promise.resolve(ok(consultationCall)),
     hangupCall,
     resumeCall: vi.fn(() => Promise.resolve(ok(sourceCall))),

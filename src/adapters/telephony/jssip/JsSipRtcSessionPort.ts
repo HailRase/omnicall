@@ -30,6 +30,7 @@ export type JsSipRtcSessionPort = Readonly<{
   hold(options?: Readonly<Record<string, unknown>>, done?: () => void): boolean;
   unhold(options?: Readonly<Record<string, unknown>>, done?: () => void): boolean;
   refer(target: string, options?: JsSipReferCommandOptions): unknown;
+  sendDtmf(tone: string, options?: Readonly<Record<string, unknown>>): void;
   getConnection(): unknown;
   getRemoteIdentityHeader(): string;
 }>;

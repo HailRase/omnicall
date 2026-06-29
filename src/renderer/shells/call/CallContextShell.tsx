@@ -6,6 +6,7 @@ import { CallSessionCard } from "../../components/call/CallSessionCard.js";
 import { CallSessionStack } from "../../components/call/CallSessionStack.js";
 import { OutgoingCallCard } from "../../components/call/OutgoingCallCard.js";
 import { TransferPanel } from "../../components/call/TransferPanel.js";
+import { mapDtmfErrorMessage } from "../../helpers/mapDtmfErrorMessage.js";
 import type { CallFeatureShellBindings } from "../../hooks/useCallFeatureShell.js";
 import styles from "./CallContextShell.module.css";
 
@@ -29,28 +30,33 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
     transferPanelShell,
     transferActions,
     setCallMode,
+    controlTargetLine,
   } = bindings;
+
+  const controlTargetCallId = controlTargetLine?.callId ?? null;
 
   const hasLineForActiveCall =
     callProjection.activeCallId !== null &&
     callLinesShell.lines.some((line) => line.callId === callProjection.activeCallId);
 
   const showOutgoingCard =
-    callProjection.lastError !== null ||
-    ((callProjection.state === "Connecting" || callProjection.state === "Failed") &&
-      !hasLineForActiveCall);
+    (callProjection.state === "Connecting" || callProjection.state === "Failed") &&
+    !hasLineForActiveCall;
 
   const isTransferMode = transferPanelShell.visible;
-  const isDtmfMode = dialpadMode === "dtmf";
+  const isDtmfMode = dialpadMode === "dtmf" && callProjection.dtmfPanelCallId !== null;
+  const isNumberEntryOverlay = bindings.numberEntryOverlayOpen;
   const dtmfLine =
-    (isTransferMode
-      ? null
-      : callLinesShell.lines.find((line) => line.isActiveUnheld) ??
-        callLinesShell.lines.find((line) => line.state === "Active")) ??
-    null;
+    multiLineCallProjection.lines.find(
+      (line) => line.callId === callProjection.dtmfPanelCallId,
+    ) ?? null;
 
   const showIdleState =
-    !isTransferMode && !isDtmfMode && !showOutgoingCard && !callLinesShell.visible;
+    !isTransferMode &&
+    !isDtmfMode &&
+    !isNumberEntryOverlay &&
+    !showOutgoingCard &&
+    !callLinesShell.visible;
 
   const singleLine =
     callLinesShell.lines.length === 1 ? (callLinesShell.lines[0] ?? null) : null;
@@ -94,8 +100,10 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
 
       {!isTransferMode && isDtmfMode && dtmfLine !== null ? (
         <DtmfKeypadPanel
-          displayName={dtmfLine.displayName}
-          lastTone={callProjection.lastDtmfTone}
+          displayName={dtmfLine.displayLabel ?? dtmfLine.callId}
+          toneHistory={dtmfLine.dtmfHistory}
+          lastTone={dtmfLine.lastDtmfTone}
+          errorMessage={mapDtmfErrorMessage(callProjection.lastDtmfError)}
           onTone={bindings.callActions.handleSendDtmf}
           onClose={() => {
             setCallMode("number");
@@ -103,23 +111,27 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
         />
       ) : null}
 
-      {!isTransferMode && !isDtmfMode ? (
+      {!isTransferMode && !isDtmfMode && !isNumberEntryOverlay ? (
         <CallSessionStack
           shell={callLinesShell}
+          activeCallId={controlTargetCallId}
           onSelectLine={handleSelectLine}
           onHangupLine={callLinesActions.handleHangupLine}
         />
       ) : null}
 
-      {!isTransferMode && !isDtmfMode && singleLine !== null ? (
+      {!isTransferMode && !isDtmfMode && !isNumberEntryOverlay && singleLine !== null ? (
         <div className={styles["singleCard"]}>
-          <CallSessionCard line={singleLine} isActive />
+          <CallSessionCard
+            line={singleLine}
+            isActive={singleLine.callId === controlTargetCallId}
+          />
         </div>
       ) : null}
 
       {showIdleState ? <CallIdleEmptyState /> : null}
 
-      {showOutgoingCard && !isTransferMode && !isDtmfMode ? (
+      {showOutgoingCard && !isTransferMode && !isDtmfMode && !isNumberEntryOverlay ? (
         <OutgoingCallCard
           callId={callProjection.activeCallId}
           callState={callProjection.state}

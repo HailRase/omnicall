@@ -1,19 +1,27 @@
 import type { TransferProjection } from "./transferProjection.js";
 import { isBenignTransferFailureReason } from "./transferFailureReasons.js";
 
+export type TransferPanelVisibilityContext = Readonly<{
+  attendedPhase: string;
+  consultationCallId: string | null;
+}>;
+
 /**
  * - Purpose: decide whether transfer panel shell should render in the UI.
- * - Inputs: transfer and multi-line projection snapshots.
+ * - Inputs: transfer projection and attended-transfer multi-line context.
  * - Outputs: boolean visibility flag for presentational panel.
  */
 export function isTransferPanelVisible(
   transferProjection: TransferProjection,
-  multiLineCount: number,
+  multiLineContext: TransferPanelVisibilityContext,
 ): boolean {
   if (transferProjection.transferModeActive) {
     return true;
   }
-  if (multiLineCount > 1) {
+  if (multiLineContext.consultationCallId !== null) {
+    return true;
+  }
+  if (multiLineContext.attendedPhase !== "idle") {
     return true;
   }
   return (

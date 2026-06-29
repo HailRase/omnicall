@@ -102,3 +102,11 @@
   text-align: center;
   color: var(--color-text-muted);
 }
+
+.error {
+  margin: 0;
+  padding: 0 var(--space-sm) var(--space-2xs);
+  font-size: var(--font-size-xs);
+  text-align: center;
+  color: var(--color-text-danger);
+}

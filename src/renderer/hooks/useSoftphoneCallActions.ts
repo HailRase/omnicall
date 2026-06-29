@@ -47,10 +47,17 @@ export function useSoftphoneCallActions(
   };
 
   const handleSendDtmf = (tone: string): void => {
-    if (facade === null || callProjection.activeCallId === null) {
+    if (facade === null) {
       return;
     }
-    void facade.sendDtmfByCallId(callProjection.activeCallId, tone);
+    const callId =
+      callProjection.mode === "dtmf"
+        ? callProjection.dtmfPanelCallId
+        : callProjection.activeCallId;
+    if (callId === null) {
+      return;
+    }
+    void facade.sendDtmfByCallId(callId, tone);
   };
 
   const handleHoldCall = (): void => {

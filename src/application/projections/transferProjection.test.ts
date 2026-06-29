@@ -51,6 +51,41 @@ describe("transferProjection", () => {
     expect(projection.lastFailureReason).toBe("REFER rejected");
   });
 
+  it("resets to idle when source call ends during attended transfer", () => {
+    const correlationId = createCorrelationId();
+    const occurredAt = new Date().toISOString();
+    let projection = reduceTransferProjection(initialTransferProjection(), {
+      type: "TransferModeStarted",
+      correlationId,
+      occurredAt,
+      callId: "src-att-1",
+    });
+    projection = reduceTransferProjection(projection, {
+      type: "ConsultationCallRequested",
+      correlationId,
+      occurredAt,
+      sourceCallId: "src-att-1",
+      consultationCallId: "consult-att-1",
+      targetNumber: "+12025550410",
+    });
+    projection = reduceTransferProjection(projection, {
+      type: "ConsultationCallStarted",
+      correlationId,
+      occurredAt,
+      sourceCallId: "src-att-1",
+      consultationCallId: "consult-att-1",
+    });
+
+    const reset = reduceTransferProjection(projection, {
+      type: "CallEnded",
+      correlationId,
+      occurredAt,
+      callId: "src-att-1",
+    });
+
+    expect(reset).toEqual(initialTransferProjection());
+  });
+
   it("resets to idle after transferred call ends", () => {
     const transferred = reduceTransferProjection(initialTransferProjection(), {
       type: "CallTransferred",

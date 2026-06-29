@@ -8,6 +8,7 @@ import styles from "./CallSessionStack.module.css";
 
 export type CallSessionStackProps = Readonly<{
   shell: CallLinesShellViewModel;
+  activeCallId: string | null;
   onSelectLine: (callId: string) => void;
   onHangupLine: (callId: string) => void;
 }>;
@@ -20,6 +21,7 @@ export type CallSessionStackProps = Readonly<{
  */
 export function CallSessionStack({
   shell,
+  activeCallId,
   onSelectLine,
   onHangupLine,
 }: CallSessionStackProps): JSX.Element | null {
@@ -52,7 +54,7 @@ export function CallSessionStack({
               <CallSessionCard
                 line={line}
                 compact
-                isActive={line.isActiveUnheld}
+                isActive={line.callId === activeCallId}
                 onClick={() => {
                   onSelectLine(line.callId);
                 }}

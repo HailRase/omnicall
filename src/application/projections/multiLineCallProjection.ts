@@ -13,6 +13,8 @@ export type CallLine = Readonly<{
   displayLabel: string | null;
   activeSinceMs: number | null;
   isRemoteHold: boolean;
+  dtmfHistory: string;
+  lastDtmfTone: string | null;
 }>;
 
 export type MultiLineCallProjection = Readonly<{
@@ -115,6 +117,12 @@ export function reduceMultiLineCallProjection(
       return setLineMuted(projection, asRequiredString(event["callId"]), true);
     case "CallUnmuted":
       return setLineMuted(projection, asRequiredString(event["callId"]), false);
+    case "DtmfSent":
+      return appendLineDtmfTone(
+        projection,
+        asRequiredString(event["callId"]),
+        asRequiredString(event["tone"]),
+      );
     case "CallTransferRequested":
       return updateLineState(projection, asRequiredString(event["callId"]), "Transferring");
     case "CallTransferFailed":
@@ -263,6 +271,8 @@ function upsertLine(
     displayLabel: line.displayLabel ?? existing?.displayLabel ?? null,
     activeSinceMs: line.activeSinceMs ?? existing?.activeSinceMs ?? null,
     isRemoteHold: line.isRemoteHold ?? existing?.isRemoteHold ?? false,
+    dtmfHistory: line.dtmfHistory ?? existing?.dtmfHistory ?? "",
+    lastDtmfTone: line.lastDtmfTone ?? existing?.lastDtmfTone ?? null,
   };
   const existingIndex = projection.lines.findIndex((entry) => entry.callId === line.callId);
   if (existingIndex === -1) {
@@ -328,6 +338,19 @@ function setLineMuted(
 ): MultiLineCallProjection {
   const lines = projection.lines.map((line) =>
     line.callId === callId ? { ...line, muted } : line,
+  );
+  return { ...projection, lines };
+}
+
+function appendLineDtmfTone(
+  projection: MultiLineCallProjection,
+  callId: string,
+  tone: string,
+): MultiLineCallProjection {
+  const lines = projection.lines.map((line) =>
+    line.callId === callId
+      ? { ...line, dtmfHistory: `${line.dtmfHistory}${tone}`, lastDtmfTone: tone }
+      : line,
   );
   return { ...projection, lines };
 }

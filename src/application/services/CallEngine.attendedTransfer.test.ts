@@ -252,6 +252,46 @@ describe("CallEngine attended transfer", () => {
       { sourceCallId: "att-src-6", consultationCallId: "att-consult-6" },
     ]);
   });
+
+  it("defers consultation active until remote answer after SIP progress", async () => {
+    const telephony = new MockTelephonyGateway({ makeCallScenario: "answered" });
+    const events = new InMemoryDomainEventBus();
+    const publishedTypes: string[] = [];
+    events.subscribe((event) => {
+      publishedTypes.push(event.type);
+    });
+    const engine = createEngine(telephony, events);
+    const sourceCallId = createCallId("att-src-7");
+    const consultationCallId = createCallId("att-consult-7");
+
+    await engine.makeCall({
+      callId: sourceCallId,
+      phoneNumber: createPhoneNumber("+12025550720"),
+    });
+
+    telephony.setMakeCallScenario("progress_180");
+    const consultationResult = await engine.startConsultation({
+      sourceCallId,
+      targetNumber: "+12025550721",
+      consultationCallId,
+    });
+    expect(consultationResult.ok).toBe(true);
+    if (!consultationResult.ok) {
+      return;
+    }
+    expect(consultationResult.value.state).toBe("Ringing");
+    expect(publishedTypes).toContain("ConsultationCallRequested");
+    expect(publishedTypes).not.toContain("ConsultationCallStarted");
+
+    await engine.handleOutboundCallAnswered(consultationCallId);
+    expect(publishedTypes).toContain("ConsultationCallStarted");
+
+    const transferResult = await engine.attendedTransfer({
+      sourceCallId,
+      consultationCallId,
+    });
+    expect(transferResult.ok).toBe(true);
+  });
 });
 
 function createEngine(

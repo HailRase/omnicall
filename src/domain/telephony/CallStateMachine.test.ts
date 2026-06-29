@@ -86,6 +86,16 @@ describe("CallStateMachine", () => {
     expect(ended).toEqual({ ok: true, state: "Ended" });
   });
 
+  it("allows held call to end on remote hangup", () => {
+    const ended = transitionCallState("Held", "ended");
+    expect(ended).toEqual({ ok: true, state: "Ended" });
+  });
+
+  it("allows conference call to end on remote hangup", () => {
+    const ended = transitionCallState("Conference", "ended");
+    expect(ended).toEqual({ ok: true, state: "Ended" });
+  });
+
   it("moves ringing call to Ending and Ended on reject", () => {
     const ending = transitionCallState("Ringing", "reject_requested");
     expect(ending).toEqual({ ok: true, state: "Ending" });

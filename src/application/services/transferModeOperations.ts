@@ -37,6 +37,7 @@ export function executeStartTransferMode(
   deps.eventPublisher.publish(
     createTransferModeStartedEvent(correlationId, { callId: input.callId }),
   );
+  deps.setTransferModeSourceCallId(input.callId);
   deps.logger.info("transfer_mode_started", {
     correlationId,
     featureId: "F-006",
@@ -103,6 +104,7 @@ export async function executeCancelTransfer(
   deps.eventPublisher.publish(
     createTransferModeCancelledEvent(correlationId, cancelPayload),
   );
+  deps.setTransferModeSourceCallId(null);
   deps.logger.info("transfer_mode_cancelled", {
     correlationId,
     featureId: "F-006",

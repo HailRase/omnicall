@@ -6,6 +6,24 @@ import {
 } from "./activeCallControlsProjection.js";
 
 describe("activeCallControlsProjection", () => {
+  it("disables mute during outgoing connecting state", () => {
+    const connecting = reduceActiveCallControlsProjection(
+      initialActiveCallControlsProjection(),
+      {
+        type: "OutgoingCallRequested",
+        callId: "call-out-1",
+        phoneNumber: "+12025550100",
+        correlationId: createCorrelationId(),
+        occurredAt: new Date().toISOString(),
+      },
+    );
+
+    expect(connecting.callState).toBe("Connecting");
+    expect(connecting.muteDisabledReason).toBe("mute_requires_active_or_held");
+    expect(connecting.hangupDisabledReason).toBeNull();
+    expect(connecting.holdDisabledReason).toBe("hold_requires_active");
+  });
+
   it("enables hold and mute on active call", () => {
     const base = reduceActiveCallControlsProjection(
       initialActiveCallControlsProjection(),

@@ -1,4 +1,4 @@
-import { createPlatformError } from "@shared/errors/index.js";
+import { createPlatformError, normalizeUnknownError } from "@shared/errors/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
 import { err, ok } from "@shared/result/index.js";
 import type { Result } from "@shared/result/index.js";
@@ -112,17 +112,22 @@ export function executeJsSipRefer(
             },
           };
 
-    const referResult = session.refer(target, referOptions);
+    try {
+      const referResult = session.refer(target, referOptions);
 
-    if (referResult === false) {
-      settle(
-        err(
-          createPlatformError(
-            "operation_failed",
-            "SIP REFER is not available for the current session state",
+      if (referResult === false) {
+        settle(
+          err(
+            createPlatformError(
+              "operation_failed",
+              "SIP REFER is not available for the current session state",
+            ),
           ),
-        ),
-      );
+        );
+      }
+    } catch (error: unknown) {
+      const normalized = normalizeUnknownError(error);
+      settle(err(createPlatformError("operation_failed", normalized.message)));
     }
   });
 }

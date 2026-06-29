@@ -38,6 +38,7 @@ class MockJsSipRtcSession implements JsSipRtcSessionPort {
   unholdAvailable = true;
   referAvailable = true;
   referScenario: "success" | "request_failed" | "notify_failed" | "unavailable" = "success";
+  readonly sentDtmfTones: string[] = [];
   readonly referInvocations: Array<{
     target: string;
     options?: JsSipReferCommandOptions;
@@ -120,6 +121,10 @@ class MockJsSipRtcSession implements JsSipRtcSessionPort {
 
   getRemoteIdentityHeader(): string {
     return this.remoteIdentityHeader;
+  }
+
+  sendDtmf(tone: string): void {
+    this.sentDtmfTones.push(tone);
   }
 
   refer(target: string, options?: JsSipReferCommandOptions): unknown {

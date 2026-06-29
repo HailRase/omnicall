@@ -30,6 +30,8 @@ const sourceLine: CallLine = {
   displayLabel: "Иван Петров · +7 (495) 123-45-67",
   activeSinceMs: null,
   isRemoteHold: false,
+  dtmfHistory: "",
+  lastDtmfTone: null,
 };
 
 const consultationLine: CallLine = {
@@ -40,6 +42,8 @@ const consultationLine: CallLine = {
   displayLabel: "Сергей Смирнов · +7 (812) 000-11-22",
   activeSinceMs: 1_000,
   isRemoteHold: false,
+  dtmfHistory: "",
+  lastDtmfTone: null,
 };
 
 const baseArgs: Story["args"] = {
@@ -57,6 +61,16 @@ const baseArgs: Story["args"] = {
   onStartConsultation: () => undefined,
   onAttendedTransfer: () => undefined,
   onCancelTransfer: () => undefined,
+};
+
+export const LightStepType: Story = {
+  args: {
+    ...baseArgs,
+    targetNumber: "+7 (812) 000-11-22",
+  },
+  parameters: {
+    theme: "light",
+  },
 };
 
 export const LightStepStart: Story = {

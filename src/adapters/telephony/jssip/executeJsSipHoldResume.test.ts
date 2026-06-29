@@ -59,6 +59,8 @@ class TestRtcSession implements JsSipRtcSessionPort {
     return false;
   }
 
+  sendDtmf(): void {}
+
   getConnection(): unknown {
     return null;
   }

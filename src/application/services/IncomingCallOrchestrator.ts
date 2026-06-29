@@ -365,6 +365,15 @@ export class IncomingCallOrchestrator {
     }
     const ended = applyCallTransition(trackedCall, "ended");
     if (!ended.transition.ok) {
+      this.deps.logger.warn("call_ended_transition_rejected", {
+        correlationId: resolvedCorrelationId,
+        featureId: "F-004",
+        boundedContext: "Telephony",
+        operation: "handle_call_ended",
+        previousState: trackedCall.state,
+        nextState: trackedCall.state,
+        result: ended.transition.reason,
+      });
       return;
     }
 

@@ -15,6 +15,7 @@ describe("DtmfKeypadPanel", () => {
     render(
       <DtmfKeypadPanel
         displayName="+12025550100"
+        toneHistory="5"
         lastTone="5"
         onTone={onTone}
         onClose={onClose}
@@ -26,6 +27,35 @@ describe("DtmfKeypadPanel", () => {
 
     expect(onTone).toHaveBeenCalledWith("3");
     expect(onClose).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId("dtmf-last-tone")).toHaveTextContent("5");
+    expect(screen.getByTestId("dtmf-tone-history")).toHaveTextContent("5");
+  });
+
+  it("shows localized dtmf error without technical details", () => {
+    render(
+      <DtmfKeypadPanel
+        displayName="+12025550100"
+        toneHistory=""
+        lastTone={null}
+        errorMessage="Не удалось отправить тон"
+        onTone={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("dtmf-error-alert")).toHaveTextContent("Не удалось отправить тон");
+  });
+
+  it("shows tone history when digits were sent", () => {
+    render(
+      <DtmfKeypadPanel
+        displayName="+12025550100"
+        toneHistory="123"
+        lastTone="3"
+        onTone={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("dtmf-tone-history")).toHaveTextContent("123");
   });
 });

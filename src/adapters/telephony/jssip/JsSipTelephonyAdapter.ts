@@ -35,11 +35,11 @@ import { buildOutgoingSipTarget } from "./buildOutgoingSipTarget.js";
 import { executeJsSipOutboundCall } from "./executeJsSipOutboundCall.js";
 import { executeJsSipHoldResume } from "./executeJsSipHoldResume.js";
 import { executeJsSipRefer } from "./executeJsSipRefer.js";
+import { executeJsSipSendDtmf } from "./executeJsSipSendDtmf.js";
 import type { JsSipNewRtcSessionEvent, JsSipRtcSessionPort } from "./JsSipRtcSessionPort.js";
 import { wireJsSipRtcSessionLifecycle } from "./wireJsSipRtcSessionLifecycle.js";
 import { createJsSipUserAgent } from "./createJsSipUserAgent.js";
-import { ensureJsSipRtcSessionPort } from "./wrapJsSipRtcSession.js";
-import { telephonyNotImplementedError } from "./telephonyNotImplementedError.js";
+import { ensureJsSipRtcSessionPort, resolveReplacesForRefer, resolveReplacesStorageTarget } from "./wrapJsSipRtcSession.js";
 import { awaitJsSipRegistration } from "./awaitJsSipRegistration.js";
 import { resolveJsSipTransportUrl } from "./resolveJsSipTransportUrl.js";
 
@@ -49,6 +49,7 @@ const FEATURE_ID_OUTGOING = "F-003";
 const FEATURE_ID_HOLD = "F-004";
 const FEATURE_ID_BLIND_TRANSFER = "F-006";
 const FEATURE_ID_ATTENDED_TRANSFER = "F-007";
+const FEATURE_ID_DTMF = "F-008";
 
 const DEFAULT_CALL_MEDIA_OPTIONS = {
   mediaConstraints: { audio: true, video: false },
@@ -441,8 +442,49 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
   }
 
   sendDtmf(command: SendDtmfCommand): Promise<Result<void, PlatformError>> {
-    void command;
-    return Promise.resolve(err(telephonyNotImplementedError("sendDtmf")));
+    const { callId, tone, correlationId } = command;
+    this.lastCorrelationId = correlationId;
+
+    const session = this.sessions.get(callId);
+    if (session === undefined) {
+      return Promise.resolve(
+        err(createPlatformError("operation_failed", `SIP session not found for ${callId}`)),
+      );
+    }
+
+    this.logger.info("jssip_send_dtmf_start", {
+      correlationId,
+      featureId: FEATURE_ID_DTMF,
+      boundedContext: "Telephony",
+      operation: "jssip_send_dtmf",
+      callId,
+      tone,
+    });
+
+    const result = executeJsSipSendDtmf(session, tone);
+    if (!result.ok) {
+      this.logger.error("jssip_send_dtmf_failed", {
+        correlationId,
+        featureId: FEATURE_ID_DTMF,
+        boundedContext: "Telephony",
+        operation: "jssip_send_dtmf",
+        callId,
+        tone,
+        result: result.error.code,
+      });
+      return Promise.resolve(result);
+    }
+
+    this.logger.info("jssip_send_dtmf_succeeded", {
+      correlationId,
+      featureId: FEATURE_ID_DTMF,
+      boundedContext: "Telephony",
+      operation: "jssip_send_dtmf",
+      callId,
+      tone,
+      result: "succeeded",
+    });
+    return Promise.resolve(ok(undefined));
   }
 
   hangup(command: HangupCommand): Promise<Result<void, PlatformError>> {
@@ -671,12 +713,13 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       );
     }
 
-    const replacesSession = this.replacesSessions.get(consultationCallId);
-    if (replacesSession === undefined) {
+    const replacesStored = this.replacesSessions.get(consultationCallId);
+    const replacesSession = resolveReplacesForRefer(replacesStored);
+    if (replacesSession === null) {
       return err(
         createPlatformError(
           "operation_failed",
-          "SIP consultation session unavailable for attended transfer",
+          "SIP consultation dialog not ready for attended transfer",
         ),
       );
     }
@@ -840,7 +883,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     correlationId: CorrelationId,
   ): void {
     const port = ensureJsSipRtcSessionPort(session);
-    this.replacesSessions.set(callId, session);
+    this.replacesSessions.set(callId, resolveReplacesStorageTarget(session));
     this.sessions.set(callId, port);
     this.callCorrelations.set(callId, correlationId);
     this.callIdBySessionId.set(port.id, callId);
@@ -910,17 +953,17 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       return;
     }
 
-    const session = ensureJsSipRtcSessionPort(event.session);
-    const callId = createCallId(session.id);
+    const port = ensureJsSipRtcSessionPort(event.session);
+    const callId = createCallId(port.id);
     const correlationId = createCorrelationId();
     this.lastCorrelationId = correlationId;
 
-    this.registerSession(callId, session, correlationId);
-    this.attachSessionLifecycle(callId, session, correlationId, FEATURE_ID_INCOMING);
+    this.registerSession(callId, event.session, correlationId);
+    this.attachSessionLifecycle(callId, port, correlationId, FEATURE_ID_INCOMING);
 
-    const remoteHeader = session.getRemoteIdentityHeader();
+    const remoteHeader = port.getRemoteIdentityHeader();
     const notification = mapTelephonyIncomingNotification({
-      callId: session.id,
+      callId: port.id,
       fromHeader: remoteHeader,
       remoteNumber: remoteHeader,
       correlationId,
