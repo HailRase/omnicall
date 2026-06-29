@@ -1,8 +1,6 @@
 import type { JSX } from "react";
 import type { CallLinesShellViewModel } from "@application/index.js";
-import { mapActiveCallControlDisabledReason } from "../../helpers/mapActiveCallControlLabels.js";
 import chromeTextStyles from "../shell/ShellChromeText.module.css";
-import { IconControlButton } from "../icons/index.js";
 import { CallSessionCard } from "./CallSessionCard.js";
 import styles from "./CallSessionStack.module.css";
 
@@ -10,20 +8,18 @@ export type CallSessionStackProps = Readonly<{
   shell: CallLinesShellViewModel;
   activeCallId: string | null;
   onSelectLine: (callId: string) => void;
-  onHangupLine: (callId: string) => void;
 }>;
 
 /**
  * - Purpose: vertical multi-session rail matching reference SessionStack layout.
- * - Inputs: call lines shell view-model and line action callbacks.
- * - Outputs: stacked compact session cards with per-line hangup control.
+ * - Inputs: call lines shell view-model and line select callback.
+ * - Outputs: stacked compact session cards for multi-call selection.
  * @uiMeta lf=LF-021 f=F-016 smoke=R7-*
  */
 export function CallSessionStack({
   shell,
   activeCallId,
   onSelectLine,
-  onHangupLine,
 }: CallSessionStackProps): JSX.Element | null {
   if (!shell.visible || shell.lines.length < 2) {
     return null;
@@ -49,30 +45,13 @@ export function CallSessionStack({
       </p>
       <ul className={styles["list"]}>
         {shell.lines.map((line) => (
-          <li key={line.callId} className={styles["row"]}>
-            <div className={styles["cardWrap"]}>
-              <CallSessionCard
-                line={line}
-                compact
-                isActive={line.callId === activeCallId}
-                onClick={() => {
-                  onSelectLine(line.callId);
-                }}
-              />
-            </div>
-            <IconControlButton
-              iconId="call.hangup"
-              ariaLabel="Завершить сессию"
-              tooltipLabel="Завершить"
-              testId={`call-session-hangup-${line.callId}`}
-              className={styles["hangupButton"]}
-              disabledReason={
-                line.hangupDisabledReason === null
-                  ? null
-                  : mapActiveCallControlDisabledReason(line.hangupDisabledReason)
-              }
+          <li key={line.callId}>
+            <CallSessionCard
+              line={line}
+              compact
+              isActive={line.callId === activeCallId}
               onClick={() => {
-                onHangupLine(line.callId);
+                onSelectLine(line.callId);
               }}
             />
           </li>

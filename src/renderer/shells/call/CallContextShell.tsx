@@ -25,7 +25,6 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
     multiCallProjection,
     multiLineCallProjection,
     callLinesShell,
-    callLinesActions,
     dialpadMode,
     transferPanelShell,
     transferActions,
@@ -104,7 +103,6 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
           shell={callLinesShell}
           activeCallId={controlTargetCallId}
           onSelectLine={selectCallLine}
-          onHangupLine={callLinesActions.handleHangupLine}
         />
       ) : null}
 
