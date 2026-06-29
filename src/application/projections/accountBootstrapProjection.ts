@@ -31,6 +31,7 @@ export type AccountBootstrapProjection = Readonly<{
   ocpConnectionState: OcpConnectionState;
   phoneStatus: PhoneStatus;
   agentId: string | null;
+  sipUsername: string | null;
   lastError: string | null;
   isOcpMode: boolean;
 }>;
@@ -42,6 +43,7 @@ export const initialAccountBootstrapProjection = (): AccountBootstrapProjection 
   ocpConnectionState: initialOcpConnectionState(),
   phoneStatus: "offline",
   agentId: null,
+  sipUsername: null,
   lastError: null,
   isOcpMode: false,
 });
@@ -56,10 +58,16 @@ function applyRegistrationEvent(
         projection.registrationState,
         "registration_requested",
       );
+      const accountId = event["accountId"];
+      const sipUsername =
+        typeof accountId === "string" && accountId.trim().length > 0
+          ? accountId.trim()
+          : projection.sipUsername;
       return {
         ...projection,
         authUiState: "sip_registering",
         registrationState: transition.state,
+        sipUsername,
         lastError: null,
       };
     }
@@ -254,7 +262,22 @@ function applyBootstrapEvent(
         authUiState: "sip_only_ready",
         registrationState: regTransition.state,
         phoneStatus: "offline",
+        sipUsername: null,
         lastError: null,
+      };
+    }
+    case "SipCredentialsReceived": {
+      const credentials = event["credentials"];
+      if (typeof credentials !== "object" || credentials === null) {
+        return projection;
+      }
+      const username = (credentials as Record<string, unknown>)["username"];
+      if (typeof username !== "string" || username.trim().length === 0) {
+        return projection;
+      }
+      return {
+        ...projection,
+        sipUsername: username.trim(),
       };
     }
     default:

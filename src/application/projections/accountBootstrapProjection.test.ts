@@ -11,7 +11,9 @@ import {
   createRegistrationFailedEvent,
   createRegistrationRequestedEvent,
   createRegistrationSucceededEvent,
+  createSipCredentialsReceivedEvent,
   createStartupModeResolvedEvent,
+  createUserSessionEndedEvent,
 } from "@domain/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { createSipAccountId } from "@domain/index.js";
@@ -151,5 +153,60 @@ describe("accountBootstrapProjection", () => {
     expect(projection.authUiState).toBe("sip_only_ready");
     expect(projection.registrationState).toBe("idle");
     expect(projection.phoneStatus).toBe("offline");
+    expect(projection.sipUsername).toBeNull();
+  });
+
+  it("stores sip username from SipCredentialsReceived", () => {
+    const correlationId = createCorrelationId();
+    const projection = reduceAccountBootstrapProjection(
+      initialAccountBootstrapProjection(),
+      createSipCredentialsReceivedEvent(correlationId, {
+        credentials: {
+          username: "alex.operator",
+          password: "secret",
+          domain: "example.com",
+          server: "sip.example.com",
+        },
+        source: "manual",
+      }),
+    );
+
+    expect(projection.sipUsername).toBe("alex.operator");
+  });
+
+  it("stores sip username from RegistrationRequested account id", () => {
+    const correlationId = createCorrelationId();
+    const projection = reduceAccountBootstrapProjection(
+      initialAccountBootstrapProjection(),
+      createRegistrationRequestedEvent(correlationId, {
+        accountId: createSipAccountId("1001"),
+      }),
+    );
+
+    expect(projection.sipUsername).toBe("1001");
+    expect(projection.authUiState).toBe("sip_registering");
+  });
+
+  it("clears sip username on UserSessionEnded", () => {
+    const correlationId = createCorrelationId();
+    let projection = reduceAccountBootstrapProjection(
+      initialAccountBootstrapProjection(),
+      createSipCredentialsReceivedEvent(correlationId, {
+        credentials: {
+          username: "agent",
+          password: "secret",
+          domain: "example.com",
+          server: "sip.example.com",
+        },
+        source: "manual",
+      }),
+    );
+
+    projection = reduceAccountBootstrapProjection(
+      projection,
+      createUserSessionEndedEvent(correlationId),
+    );
+
+    expect(projection.sipUsername).toBeNull();
   });
 });

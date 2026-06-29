@@ -11,11 +11,14 @@ export type RegistrationDotVariant =
   | "failed"
   | "not_registered";
 
+export type PresenceStatusTone = "online" | "offline" | "dnd";
+
 export type HeaderChromeShellInput = Readonly<{
   authUiState: AuthUiState;
   registrationState: RegistrationState;
   phoneStatus: PhoneStatus;
   agentId: string | null;
+  sipUsername: string | null;
   connectionState?: ConnectionState;
   sipRecoveryMode?: SipRecoveryMode | null;
 }>;
@@ -26,6 +29,10 @@ export type HeaderChromeShellViewModel = Readonly<{
   phoneStatusLabel: string;
   avatarInitials: string;
   registrationDotAriaLabel: string;
+  showUserIdentity: boolean;
+  displayName: string | null;
+  presenceStatusLabel: string | null;
+  presenceStatusTone: PresenceStatusTone | null;
 }>;
 
 function deriveRegistrationStatusLabel(
@@ -91,7 +98,14 @@ function deriveRegistrationDotVariant(
   return "not_registered";
 }
 
-function deriveAvatarInitials(agentId: string | null): string {
+function deriveAvatarInitials(
+  sipUsername: string | null,
+  agentId: string | null,
+): string {
+  if (sipUsername !== null && sipUsername.trim().length > 0) {
+    return sipUsername.trim().slice(0, 2).toUpperCase();
+  }
+
   if (agentId === null || agentId.trim().length === 0) {
     return "?";
   }
@@ -103,6 +117,19 @@ function deriveAvatarInitials(agentId: string | null): string {
   }
 
   return trimmed.slice(0, 2).toUpperCase();
+}
+
+function derivePresenceStatus(
+  phoneStatus: PhoneStatus,
+): Readonly<{ label: string; tone: PresenceStatusTone }> {
+  switch (phoneStatus) {
+    case "online":
+      return { label: "Онлайн", tone: "online" };
+    case "offline":
+      return { label: "Оффлайн", tone: "offline" };
+    case "dnd":
+      return { label: "Не беспокоить", tone: "dnd" };
+  }
 }
 
 /**
@@ -125,12 +152,21 @@ export function deriveHeaderChromeShell(
     input.sipRecoveryMode ?? null,
   );
   const phoneLabel = phoneStatusLabel(input.phoneStatus);
+  const sipUsername =
+    input.sipUsername !== null && input.sipUsername.trim().length > 0
+      ? input.sipUsername.trim()
+      : null;
+  const presence = derivePresenceStatus(input.phoneStatus);
 
   return {
     registrationDotVariant,
     registrationStatusLabel,
     phoneStatusLabel: phoneLabel,
-    avatarInitials: deriveAvatarInitials(input.agentId),
+    avatarInitials: deriveAvatarInitials(sipUsername, input.agentId),
     registrationDotAriaLabel: `Регистрация: ${registrationStatusLabel}, телефон: ${phoneLabel}`,
+    showUserIdentity: sipUsername !== null,
+    displayName: sipUsername,
+    presenceStatusLabel: sipUsername !== null ? presence.label : null,
+    presenceStatusTone: sipUsername !== null ? presence.tone : null,
   };
 }

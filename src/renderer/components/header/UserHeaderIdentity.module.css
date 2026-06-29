@@ -1,0 +1,37 @@
+.identity {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  min-width: 0;
+  max-width: 148px;
+}
+
+.displayName {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.presenceStatus {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+}
+
+.presence_online {
+  color: var(--color-status-online);
+}
+
+.presence_offline {
+  color: var(--color-text-muted);
+}
+
+.presence_dnd {
+  color: var(--color-status-dnd);
+}

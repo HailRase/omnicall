@@ -12,6 +12,10 @@ const headerChrome: HeaderChromeShellViewModel = {
   phoneStatusLabel: "Online",
   avatarInitials: "AO",
   registrationDotAriaLabel: "Registration Registered, phone Online",
+  showUserIdentity: true,
+  displayName: "alex.operator",
+  presenceStatusLabel: "Онлайн",
+  presenceStatusTone: "online",
 };
 
 const recoveryShell = {

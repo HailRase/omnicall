@@ -15,6 +15,10 @@ const headerChrome: HeaderChromeShellViewModel = {
   phoneStatusLabel: "Online",
   avatarInitials: "AB",
   registrationDotAriaLabel: "Registration Registered, phone Online",
+  showUserIdentity: true,
+  displayName: "agent",
+  presenceStatusLabel: "Онлайн",
+  presenceStatusTone: "online",
 };
 
 const recoveryShell = {
@@ -74,6 +78,8 @@ describe("SoftphoneShellHeader", () => {
     expect(screen.getByTestId("user-avatar")).toHaveTextContent("AB");
     expect(screen.getByTestId("user-avatar")).toHaveAttribute("aria-haspopup", "menu");
     expect(screen.getByTestId("registration-status-dot")).toBeInTheDocument();
+    expect(screen.getByTestId("user-header-identity")).toBeInTheDocument();
+    expect(screen.getByTestId("user-presence-status")).toHaveTextContent("Онлайн");
     expect(screen.queryByTestId("control-open-settings")).not.toBeInTheDocument();
     expect(screen.queryByTestId("control-end-session")).not.toBeInTheDocument();
     expect(screen.queryByTestId("control-toggle-collapse")).not.toBeInTheDocument();

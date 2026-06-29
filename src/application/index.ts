@@ -236,6 +236,7 @@ export {
   deriveHeaderChromeShell,
   type HeaderChromeShellInput,
   type HeaderChromeShellViewModel,
+  type PresenceStatusTone,
   type RegistrationDotVariant,
 } from "./projections/deriveHeaderChromeShell.js";
 export { deriveActiveCallControlsShell } from "./projections/deriveActiveCallControlsShell.js";
