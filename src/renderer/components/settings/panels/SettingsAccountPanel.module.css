@@ -1,8 +1,25 @@
+.wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
 .wrapper :global([data-testid="account-panel"]) {
   margin: 0;
   padding: 0;
   border: none;
   background: transparent;
+  width: 20rem;
+  max-width: 100%;
+}
+
+.wrapper :global(form) {
+  width: 100%;
+}
+
+.wrapper :global(input) {
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .wrapper :global(h2) {

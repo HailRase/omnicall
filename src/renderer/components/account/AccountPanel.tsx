@@ -92,7 +92,10 @@ export function AccountPanel({
           />
         </label>
         <div className={styles["actions"]}>
-          <IconTooltip label={authorizeDisabledReason ?? ""}>
+          <IconTooltip
+            label={authorizeDisabledReason ?? ""}
+            className={styles["actionTooltipHost"]}
+          >
             <span className={styles["buttonWrap"]}>
               <button
                 type="submit"
@@ -105,11 +108,11 @@ export function AccountPanel({
               </button>
             </span>
           </IconTooltip>
-          <IconTooltip label={logoutDisabledReason ?? ""}>
+          <IconTooltip label={logoutDisabledReason ?? ""} className={styles["actionTooltipHost"]}>
             <span className={styles["buttonWrap"]}>
               <button
                 type="button"
-                className={styles["dangerAction"]}
+                className={styles["logoutAction"]}
                 data-testid="account-logout"
                 disabled={logoutDisabled}
                 aria-label={logoutDisabledReason ?? "Выйти"}

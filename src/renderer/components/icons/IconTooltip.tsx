@@ -51,7 +51,7 @@ export function IconTooltip({ label, children, className }: IconTooltipProps): J
   }, [clearShowTimeout]);
 
   if (label.length === 0) {
-    return <>{children}</>;
+    return <span className={clsx(styles["host"], className)}>{children}</span>;
   }
 
   return (
