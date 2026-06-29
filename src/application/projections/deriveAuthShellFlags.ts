@@ -4,6 +4,7 @@ import type { AuthUiState } from "./accountBootstrapProjection.js";
 export type AuthShellFlags = Readonly<{
   showAccountPanel: boolean;
   blockingAuthState: boolean;
+  isSipRegistered: boolean;
 }>;
 
 const BLOCKING_AUTH_STATES: ReadonlyArray<AuthUiState> = [
@@ -29,8 +30,11 @@ const ACCOUNT_PANEL_STATES: ReadonlyArray<AuthUiState> = [
 export function deriveAuthShellFlags(
   projection: AccountBootstrapProjection,
 ): AuthShellFlags {
+  const blockingAuthState = BLOCKING_AUTH_STATES.includes(projection.authUiState);
+
   return {
     showAccountPanel: ACCOUNT_PANEL_STATES.includes(projection.authUiState),
-    blockingAuthState: BLOCKING_AUTH_STATES.includes(projection.authUiState),
+    blockingAuthState,
+    isSipRegistered: !blockingAuthState && projection.authUiState === "sip_registered",
   };
 }

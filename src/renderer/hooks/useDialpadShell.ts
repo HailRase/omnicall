@@ -18,6 +18,7 @@ type UseDialpadShellResult = Readonly<{
   dialpadMode: DialpadMode;
   isCalling: boolean;
   callDisabledReason: string | null;
+  inputDisabledReason: string | null;
 }>;
 
 /**
@@ -32,9 +33,7 @@ export function useDialpadShell(
 ): UseDialpadShellResult {
   const [dialedNumber, setDialedNumber] = useState("");
 
-  const { blockingAuthState } = deriveAuthShellFlags(projection);
-  const isRegistered =
-    !blockingAuthState && projection.authUiState === "sip_registered";
+  const { isSipRegistered } = deriveAuthShellFlags(projection);
   const isCalling = callProjection.state === "Connecting";
   const hasInvalidNumber = !isDialpadNumberValid(dialedNumber);
   const ocpReserved = projection.isOcpMode && projection.phoneStatus === "dnd";
@@ -42,7 +41,7 @@ export function useDialpadShell(
   const disabledState = useMemo(
     () =>
       deriveDialpadDisabledReason({
-        isRegistered,
+        isRegistered: isSipRegistered,
         isOcpReserved: ocpReserved,
         isSecondSessionDisabled: multiCallProjection.isSecondSessionDisabled,
         secondSessionDisabledReason: multiCallProjection.secondSessionDisabledReason,
@@ -51,7 +50,7 @@ export function useDialpadShell(
         isConnecting: isCalling,
       }),
     [
-      isRegistered,
+      isSipRegistered,
       hasInvalidNumber,
       isCalling,
       multiCallProjection.holdAllInProgress,
@@ -73,5 +72,8 @@ export function useDialpadShell(
     dialpadMode: callProjection.mode,
     isCalling,
     callDisabledReason: mapDialpadDisabledReason(disabledState),
+    inputDisabledReason: isSipRegistered
+      ? null
+      : mapDialpadDisabledReason("disabledByNotRegistered"),
   };
 }

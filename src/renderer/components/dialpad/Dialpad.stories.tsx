@@ -22,6 +22,7 @@ const baseArgs: Story["args"] = {
   mode: "number",
   isCalling: false,
   callDisabledReason: null,
+  inputDisabledReason: null,
   hasEstablishedCall: false,
   onNumberChange: () => undefined,
   onDelete: () => undefined,
@@ -53,7 +54,8 @@ export const Dark: Story = {
 export const DisabledReason: Story = {
   args: {
     ...baseArgs,
-    callDisabledReason: "SIP не зарегистрирован",
+    callDisabledReason: "Не зарегистрирован",
+    inputDisabledReason: "Не зарегистрирован",
   },
   parameters: {
     theme: "dark",

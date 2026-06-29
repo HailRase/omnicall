@@ -17,6 +17,7 @@ import styles from "./CallControlsBar.module.css";
 export type CallControlsBarProps = Readonly<{
   line: CallLineCardViewModel | null;
   lastOperationError: ActiveCallControlOperationError | null;
+  registrationDisabledReason?: string | null;
   onHold: (callId: string) => void;
   onResume: (callId: string) => void;
   onMute: (callId: string) => void;
@@ -47,6 +48,7 @@ type LabeledControlProps = Readonly<{
 export function CallControlsBar({
   line,
   lastOperationError,
+  registrationDisabledReason = null,
   onHold,
   onResume,
   onMute,
@@ -77,9 +79,12 @@ export function CallControlsBar({
           ariaLabel={line.muted ? "Включить микрофон" : "Отключить микрофон"}
           testId={line.muted ? `control-unmute-line-${line.callId}` : `control-mute-line-${line.callId}`}
           active={line.muted}
-          disabledReason={mapControlReason(
-            line.muted ? line.unmuteDisabledReason : line.muteDisabledReason,
-            canControl ? null : "Нет актив. звонка",
+          disabledReason={withRegistrationGate(
+            mapControlReason(
+              line.muted ? line.unmuteDisabledReason : line.muteDisabledReason,
+              canControl ? null : "Нет актив. звонка",
+            ),
+            registrationDisabledReason,
           )}
           onClick={() => {
             if (line.muted) {
@@ -95,9 +100,12 @@ export function CallControlsBar({
           ariaLabel={isHeld ? "Возобновить звонок" : "Удержать звонок"}
           testId={isHeld ? `control-resume-line-${line.callId}` : `control-hold-line-${line.callId}`}
           active={isHeld}
-          disabledReason={mapControlReason(
-            isHeld ? line.resumeDisabledReason : line.holdDisabledReason,
-            canControl ? null : "Нет актив. звонка",
+          disabledReason={withRegistrationGate(
+            mapControlReason(
+              isHeld ? line.resumeDisabledReason : line.holdDisabledReason,
+              canControl ? null : "Нет актив. звонка",
+            ),
+            registrationDisabledReason,
           )}
           onClick={() => {
             if (isHeld) {
@@ -112,13 +120,14 @@ export function CallControlsBar({
           label="Перевод"
           ariaLabel="Перевести звонок"
           testId={`control-transfer-line-${line.callId}`}
-          disabledReason={
+          disabledReason={withRegistrationGate(
             !line.isActiveUnheld
               ? "Нет актив. звонка"
               : line.transferDisabledReason === null
                 ? null
-                : mapTransferDisabledReason(line.transferDisabledReason)
-          }
+                : mapTransferDisabledReason(line.transferDisabledReason),
+            registrationDisabledReason,
+          )}
           onClick={() => {
             onTransfer(line.callId);
           }}
@@ -128,7 +137,10 @@ export function CallControlsBar({
           label="Тоновый набор"
           ariaLabel="Открыть тоновый набор"
           testId="control-show-dtmf"
-          disabledReason={line.isActiveUnheld ? null : "Нет актив. звонка"}
+          disabledReason={withRegistrationGate(
+            line.isActiveUnheld ? null : "Нет актив. звонка",
+            registrationDisabledReason,
+          )}
           onClick={onShowDtmf}
         />
         <LabeledControl
@@ -218,4 +230,14 @@ function mapControlReason(
     return mapActiveCallControlDisabledReason(projectionReason);
   }
   return fallback;
+}
+
+function withRegistrationGate(
+  reason: string | null,
+  registrationDisabledReason: string | null,
+): string | null {
+  if (registrationDisabledReason !== null) {
+    return registrationDisabledReason;
+  }
+  return reason;
 }

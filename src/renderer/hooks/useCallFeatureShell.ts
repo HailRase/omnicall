@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
   deriveActiveCallControlsShell,
+  deriveAuthShellFlags,
   deriveResumeMultiCallDisabledReason,
 } from "@application/index.js";
 import { mapActiveCallControlDisabledReason } from "../helpers/mapActiveCallControlLabels.js";
@@ -50,6 +51,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     dialpadMode,
     isCalling,
     callDisabledReason,
+    inputDisabledReason,
   } = useDialpadShell(projection, callProjection, multiCallProjection);
 
   const callActions = useSoftphoneCallActions({
@@ -65,6 +67,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     incomingCallProjection,
     multiCallProjection,
     isOcpMode: projection.isOcpMode,
+    isSipRegistered: deriveAuthShellFlags(projection).isSipRegistered,
     setIncomingUiState,
     setIncomingRejectReasonRequired,
   });
@@ -153,6 +156,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     dialpadMode,
     isCalling,
     callDisabledReason,
+    inputDisabledReason,
     callActions,
     incomingCallActions,
     incomingCallShell,

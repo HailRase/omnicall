@@ -5,12 +5,14 @@ import {
   type IncomingCallProjection,
   type MultiCallProjection,
 } from "@application/index.js";
+import { mapDialpadDisabledReason } from "../helpers/mapDialpadDisabledReason.js";
 
 type UseIncomingCallActionsInput = Readonly<{
   facade: AccountBootstrapFacade | null;
   incomingCallProjection: IncomingCallProjection;
   multiCallProjection: MultiCallProjection;
   isOcpMode: boolean;
+  isSipRegistered: boolean;
   setIncomingUiState: (state: IncomingCallProjection["uiState"]) => void;
   setIncomingRejectReasonRequired: (required: boolean) => void;
 }>;
@@ -35,6 +37,7 @@ export function useIncomingCallActions(
     incomingCallProjection,
     multiCallProjection,
     isOcpMode,
+    isSipRegistered,
     setIncomingUiState,
     setIncomingRejectReasonRequired,
   } = input;
@@ -44,11 +47,15 @@ export function useIncomingCallActions(
   }, [isOcpMode, setIncomingRejectReasonRequired]);
 
   const policyAnswerDisabled = deriveIncomingAnswerDisabledReason(multiCallProjection);
+  const registrationAnswerDisabled = isSipRegistered
+    ? null
+    : mapDialpadDisabledReason("disabledByNotRegistered");
 
   const handleAnswerIncoming = (): void => {
     if (
       facade === null ||
       incomingCallProjection.callId === null ||
+      registrationAnswerDisabled !== null ||
       policyAnswerDisabled !== null
     ) {
       return;
@@ -71,7 +78,7 @@ export function useIncomingCallActions(
   const answerDisabledReason =
     incomingCallProjection.uiState === "rejecting"
       ? "Отклонение выполняется"
-      : policyAnswerDisabled;
+      : (registrationAnswerDisabled ?? policyAnswerDisabled);
   const rejectDisabledReason =
     incomingCallProjection.uiState === "answering" ? "Ответ выполняется" : null;
 

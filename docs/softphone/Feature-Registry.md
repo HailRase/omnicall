@@ -450,7 +450,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - **Avatar recovery ring** shows SIP registration recovery on avatar: countdown centered with blur during auto-retry; reload icon when auto-retry off or attempts exhausted; no fullscreen overlay for registration recovery (LF-009); no auth status panel in context zone.
   - **Avatar user menu** on click: settings (animated icon), DND toggle (orange when active), logout (LF-086); settings are not duplicated in shell header.
   - **Call UI skeleton (design parity 2026-06-26):** context zone top (sessions/idle/DTMF); controls zone bottom (labeled `CallControlsBar` + reference dialpad); vertical `CallSessionStack` for multi-call; `CallSessionCard` for single call; `CallIdleEmptyState` when idle.
-  - **Shell always expanded (2026-06-26):** no collapse strip; dialpad and context visible before SIP registration; call button disabled with reason until registered.
+  - **Shell always expanded (2026-06-26):** no collapse strip; dialpad and context visible before SIP registration; dialpad input, call action, and call controls (except hangup) disabled with reason until SIP registered.
   - Operator status selector always visible in header zone.
   - **Icon-only controls:** semantic `AppIcon` + 1s hover tooltip via `IconControlButton`; `aria-label` preserved (T-001 done).
   - **Theme (LF-082):** light default; `theme` in UserSettings; segmented control in General settings; `applyAppTheme` sets `data-theme` on documentElement; semantic tokens in `tokens.css` for light and dark.

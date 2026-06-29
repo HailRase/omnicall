@@ -15,9 +15,27 @@ describe("Dialpad", () => {
   });
 
   it("shows disabled reason on call button when idle without digits", () => {
-    renderDialpad({ callDisabledReason: "SIP не зарегистрирован" });
+    renderDialpad({ callDisabledReason: "Не зарегистрирован", inputDisabledReason: "Не зарегистрирован" });
     expect(screen.getByTestId("dialpad-call")).toBeDisabled();
-    expect(screen.getByTestId("dialpad-call")).toHaveTextContent("SIP не зарегистрирован");
+    expect(screen.getByTestId("dialpad-call")).toHaveTextContent("Не зарегистрирован");
+  });
+
+  it("disables dialpad keys when input is blocked by registration", () => {
+    const onNumberChange = vi.fn();
+    renderDialpad({
+      callDisabledReason: "Не зарегистрирован",
+      inputDisabledReason: "Не зарегистрирован",
+      onNumberChange,
+    });
+
+    expect(screen.getByTestId("dialpad-key-1")).toBeDisabled();
+    fireEvent.click(screen.getByTestId("dialpad-key-1"));
+    expect(onNumberChange).not.toHaveBeenCalled();
+  });
+
+  it("shows registration reason in placeholder when input is blocked", () => {
+    renderDialpad({ inputDisabledReason: "Не зарегистрирован" });
+    expect(screen.getByTestId("dialpad-input")).toHaveTextContent("Не зарегистрирован");
   });
 
   it("does not insert zero on hover leave without press", () => {
@@ -91,6 +109,7 @@ function renderDialpad(overrides: DialpadOverrides = {}): ReturnType<typeof rend
     mode: "number",
     isCalling: false,
     callDisabledReason: null,
+    inputDisabledReason: null,
     onNumberChange: vi.fn(),
     onDelete: vi.fn(),
     onCall: vi.fn(),

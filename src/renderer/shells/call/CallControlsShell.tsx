@@ -21,6 +21,7 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
     dialpadMode,
     isCalling,
     callDisabledReason,
+    inputDisabledReason,
     callActions,
     callLinesShell,
     callLinesActions,
@@ -53,6 +54,7 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
         <CallControlsBar
           line={controlLine}
           lastOperationError={activeCallControlsProjection.lastOperationError}
+          registrationDisabledReason={inputDisabledReason}
           onHold={callLinesActions.handleHoldLine}
           onResume={callLinesActions.handleResumeLine}
           onMute={callLinesActions.handleMuteLine}
@@ -72,6 +74,7 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
           mode={dialpadMode}
           isCalling={isCalling}
           callDisabledReason={callDisabledReason}
+          inputDisabledReason={inputDisabledReason}
           hasEstablishedCall={hasEstablishedCall}
           onNumberChange={setDialedNumber}
           onDelete={deleteLastDialedDigit}

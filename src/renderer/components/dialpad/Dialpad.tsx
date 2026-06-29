@@ -11,6 +11,7 @@ export type DialpadProps = Readonly<{
   mode: DialpadMode;
   isCalling: boolean;
   callDisabledReason: string | null;
+  inputDisabledReason: string | null;
   hasEstablishedCall?: boolean;
   onNumberChange: (value: string) => void;
   onDelete: () => void;
@@ -47,6 +48,7 @@ export function Dialpad({
   mode,
   isCalling,
   callDisabledReason,
+  inputDisabledReason,
   hasEstablishedCall = false,
   onNumberChange,
   onDelete,
@@ -61,13 +63,20 @@ export function Dialpad({
   }
 
   const showKeys = !hasEstablishedCall || numberValue.length > 0;
+  const isInputDisabled = inputDisabledReason !== null;
   const canDial = callDisabledReason === null && numberValue.trim().length > 0 && !isCalling;
 
   const handleKeyPress = (key: string): void => {
+    if (isInputDisabled) {
+      return;
+    }
     onNumberChange(numberValue + key);
   };
 
   const handleKeyboard = (event: KeyboardEvent<HTMLElement>): void => {
+    if (isInputDisabled) {
+      return;
+    }
     if (event.key === "Enter" && canDial) {
       event.preventDefault();
       onCall();
@@ -94,6 +103,9 @@ export function Dialpad({
   };
 
   const handleZeroPressStart = (): void => {
+    if (isInputDisabled) {
+      return;
+    }
     isZeroPressing.current = true;
     longPressTriggered.current = false;
     zeroPressTimeout.current = window.setTimeout(() => {
@@ -121,17 +133,20 @@ export function Dialpad({
 
   return (
     <section
-      className={styles["panel"]}
+      className={clsx(styles["panel"], isInputDisabled && styles["panelInputDisabled"])}
       data-testid="dialpad-panel"
       onKeyDown={handleKeyboard}
       aria-label="Панель набора номера"
+      aria-disabled={isInputDisabled}
     >
       <div className={styles["inputRow"]}>
         <span className={styles["inputDisplay"]} data-testid="dialpad-input" aria-label="Поле ввода номера">
           {numberValue.length > 0 ? (
             <span className={styles["inputValue"]}>{numberValue}</span>
           ) : (
-            <span className={styles["inputPlaceholder"]}>Введите номер</span>
+            <span className={styles["inputPlaceholder"]}>
+              {inputDisabledReason ?? "Введите номер"}
+            </span>
           )}
         </span>
         {numberValue.length > 0 ? (
@@ -141,6 +156,7 @@ export function Dialpad({
             tooltipLabel="Удалить символ"
             testId="dialpad-delete"
             className={styles["deleteButton"]}
+            disabledReason={inputDisabledReason}
             onClick={onDelete}
           />
         ) : null}
@@ -154,9 +170,10 @@ export function Dialpad({
                 <button
                   key={key}
                   type="button"
-                  className={styles["key"]}
+                  className={clsx(styles["key"], isInputDisabled && styles["keyDisabled"])}
                   data-testid="dialpad-key-0"
                   aria-label="Набрать 0"
+                  disabled={isInputDisabled}
                   onMouseDown={handleZeroPressStart}
                   onMouseUp={handleZeroPressEnd}
                   onMouseLeave={handleZeroPressEnd}
@@ -170,9 +187,10 @@ export function Dialpad({
               <button
                 key={key}
                 type="button"
-                className={styles["key"]}
+                className={clsx(styles["key"], isInputDisabled && styles["keyDisabled"])}
                 data-testid={`dialpad-key-${key}`}
                 aria-label={`Набрать ${key}`}
+                disabled={isInputDisabled}
                 onClick={() => {
                   handleKeyPress(key);
                 }}

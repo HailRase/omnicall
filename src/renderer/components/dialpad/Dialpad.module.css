@@ -72,8 +72,25 @@
   border-color: var(--color-border-focus);
 }
 
-.key:active {
+.key:active:not(:disabled) {
   transform: scale(0.98);
+}
+
+.keyDisabled,
+.key:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.keyDisabled:hover,
+.key:disabled:hover {
+  background: var(--color-bg-surface-alt);
+  border-color: var(--color-border-control);
+}
+
+.panelInputDisabled {
+  opacity: 0.92;
 }
 
 .keyDigit {

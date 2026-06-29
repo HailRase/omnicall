@@ -29,4 +29,19 @@ describe("deriveAuthShellFlags", () => {
       }).blockingAuthState,
     ).toBe(false);
   });
+
+  it("marks sip registered only in sip_registered auth state", () => {
+    expect(
+      deriveAuthShellFlags({
+        ...initialAccountBootstrapProjection(),
+        authUiState: "sip_registered",
+      }).isSipRegistered,
+    ).toBe(true);
+    expect(
+      deriveAuthShellFlags({
+        ...initialAccountBootstrapProjection(),
+        authUiState: "sip_registration_failed",
+      }).isSipRegistered,
+    ).toBe(false);
+  });
 });
