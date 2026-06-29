@@ -39,6 +39,7 @@ import { IncomingCallOrchestrator } from "./IncomingCallOrchestrator.js";
 import { OutgoingCallOrchestrator } from "./OutgoingCallOrchestrator.js";
 import { TransferCallControlService } from "./TransferCallControlService.js";
 import type { TransferCallControlDeps } from "./transferCallControlTypes.js";
+import { publishConsultationLegAbortion } from "./attendedTransferRollback.js";
 import { executeTransferCleanupOnCallEnded } from "./transferCleanupOnCallEnded.js";
 
 export type {
@@ -178,6 +179,13 @@ export class CallEngine {
   handleFailed(
     input: HandleCallFailedInput,
   ): Promise<Result<Call, ReturnType<typeof createPlatformError>>> {
+    const correlationId = input.correlationId ?? createCorrelationId();
+    publishConsultationLegAbortion(
+      this.transferCallControlDeps,
+      correlationId,
+      input.call.id,
+      input.failure,
+    );
     return this.outgoingCallOrchestrator.handleFailed(input);
   }
 
@@ -201,6 +209,12 @@ export class CallEngine {
 
   async handleCallEnded(callId: CallId, correlationId?: CorrelationId): Promise<void> {
     const resolvedCorrelationId = correlationId ?? createCorrelationId();
+    publishConsultationLegAbortion(
+      this.transferCallControlDeps,
+      resolvedCorrelationId,
+      callId,
+      "call_ended",
+    );
     await executeTransferCleanupOnCallEnded(
       this.transferCallControlDeps,
       callId,

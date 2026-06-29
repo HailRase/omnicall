@@ -54,6 +54,7 @@ const baseArgs: Story["args"] = {
   attendedTransferDisabledReason: null,
   cancelTransferDisabledReason: null,
   transferInProgress: false,
+  failureTitle: null,
   failureMessage: null,
   lines: [sourceLine],
   onTargetChange: () => undefined,
@@ -96,7 +97,8 @@ export const DarkConsultation: Story = {
 export const DarkFailure: Story = {
   args: {
     ...baseArgs,
-    failureMessage: "Перевод не выполнен. Исходный звонок восстановлен.",
+    failureTitle: "Ошибка перевода",
+    failureMessage: "Абонент недоступен",
     transferInProgress: false,
   },
   parameters: {

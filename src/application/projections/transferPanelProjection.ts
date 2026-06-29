@@ -37,6 +37,11 @@ export function isTransferInProgress(transferProjection: TransferProjection): bo
   );
 }
 
+export type TransferFailureBanner = Readonly<{
+  title: string;
+  detail: string;
+}>;
+
 /**
  * - Purpose: map transfer failure reasons to user-visible banner copy.
  * - Inputs: transfer projection and multi-line failure reason.
@@ -46,14 +51,30 @@ export function resolveTransferFailureMessage(
   transferProjection: TransferProjection,
   multiLineFailureReason: string | null,
 ): string | null {
+  const banner = resolveTransferFailureBanner(transferProjection, multiLineFailureReason);
+  if (banner === null) {
+    return null;
+  }
+  return `${banner.title}: ${banner.detail}`;
+}
+
+/**
+ * - Purpose: split transfer failure banner into title and detail for panel rendering.
+ * - Inputs: transfer projection and multi-line failure reason.
+ * - Outputs: banner title/detail pair or null when failure should stay hidden.
+ */
+export function resolveTransferFailureBanner(
+  transferProjection: TransferProjection,
+  multiLineFailureReason: string | null,
+): TransferFailureBanner | null {
   const transferReason = transferProjection.lastFailureReason;
   const reason = transferReason ?? multiLineFailureReason;
   if (reason === null || isBenignTransferFailureReason(reason)) {
     return null;
   }
 
-  const prefix = resolveFailureBannerPrefix(transferProjection, multiLineFailureReason);
-  return `${prefix}: ${reason}`;
+  const title = resolveFailureBannerPrefix(transferProjection, multiLineFailureReason);
+  return { title, detail: reason };
 }
 
 function resolveFailureBannerPrefix(

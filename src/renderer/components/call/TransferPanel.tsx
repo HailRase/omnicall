@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type JSX, type MouseEvent } from "react";
 import type { CallLine } from "@application/index.js";
-import { deriveCallLineStatusLabel } from "@application/index.js";
+import { deriveCallLineStatusLabel, isDialpadNumberValid } from "@application/index.js";
 import clsx from "clsx";
 import { mapTransferDisabledReasonWithFallback } from "../../helpers/mapTransferDisabledReason.js";
 import { AppIcon, IconControlButton } from "../icons/index.js";
@@ -14,6 +14,7 @@ export type TransferPanelProps = Readonly<{
   attendedTransferDisabledReason: string | null;
   cancelTransferDisabledReason: string | null;
   transferInProgress: boolean;
+  failureTitle: string | null;
   failureMessage: string | null;
   lines: ReadonlyArray<CallLine>;
   onTargetChange: (value: string) => void;
@@ -38,6 +39,7 @@ export function TransferPanel({
   attendedTransferDisabledReason,
   cancelTransferDisabledReason,
   transferInProgress,
+  failureTitle,
   failureMessage,
   lines,
   onTargetChange,
@@ -61,6 +63,7 @@ export function TransferPanel({
     [lines],
   );
   const consultReady = consultationLine?.state === "Active";
+  const isTargetNumberValid = isDialpadNumberValid(targetNumber);
 
   useEffect(() => {
     if (!visible) {
@@ -75,10 +78,14 @@ export function TransferPanel({
       setStep(3);
       return;
     }
-    if (targetNumber.trim().length === 0) {
+    if (step >= 3 && !transferInProgress) {
+      setStep(2);
+      return;
+    }
+    if (!isTargetNumberValid) {
       setStep(1);
     }
-  }, [consultationLine, targetNumber, transferInProgress, visible]);
+  }, [consultationLine, isTargetNumberValid, step, transferInProgress, visible]);
 
   if (!visible) {
     return null;
@@ -141,7 +148,7 @@ export function TransferPanel({
             role="alert"
           >
             <div className={styles["failureText"]}>
-              <p className={styles["failureTitle"]}>Ошибка перевода</p>
+              <p className={styles["failureTitle"]}>{failureTitle ?? "Ошибка перевода"}</p>
               <p>{failureMessage}</p>
               <p className={styles["failureHint"]}>Исходный звонок восстановлен.</p>
             </div>
@@ -179,7 +186,7 @@ export function TransferPanel({
               type="button"
               data-testid="transfer-next-step"
               className={styles["nextButton"]}
-              disabled={targetNumber.trim().length === 0}
+              disabled={!isTargetNumberValid}
               onClick={() => {
                 setStep(2);
               }}
@@ -256,6 +263,7 @@ export function TransferPanel({
         ) : null}
 
         {renderDisabledReason(
+          step,
           blindTransferDisabledReason,
           startConsultationDisabledReason,
           attendedTransferDisabledReason,
@@ -352,12 +360,18 @@ function resolveStepDotClassName(currentStep: TransferStep, step: TransferStep):
 }
 
 function renderDisabledReason(
+  step: TransferStep,
   blindReason: string | null,
   consultationReason: string | null,
   attendedReason: string | null,
   cancelReason: string | null,
 ): JSX.Element | null {
-  const reason = blindReason ?? consultationReason ?? attendedReason ?? cancelReason;
+  const reason =
+    step === 1
+      ? null
+      : step === 2
+        ? (blindReason ?? consultationReason)
+        : (attendedReason ?? blindReason ?? consultationReason ?? cancelReason);
   if (reason === null) {
     return null;
   }

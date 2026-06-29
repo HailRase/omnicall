@@ -51,6 +51,38 @@ describe("transferProjection", () => {
     expect(projection.lastFailureReason).toBe("REFER rejected");
   });
 
+  it("rolls back consultation dialing on consultation CallFailed", () => {
+    const correlationId = createCorrelationId();
+    const occurredAt = new Date().toISOString();
+    let projection = reduceTransferProjection(initialTransferProjection(), {
+      type: "TransferModeStarted",
+      correlationId,
+      occurredAt,
+      callId: "src-consult-fail",
+    });
+    projection = reduceTransferProjection(projection, {
+      type: "ConsultationCallRequested",
+      correlationId,
+      occurredAt,
+      sourceCallId: "src-consult-fail",
+      consultationCallId: "consult-fail-1",
+      targetNumber: "+12025550411",
+    });
+    const failed = reduceTransferProjection(projection, {
+      type: "CallFailed",
+      correlationId,
+      occurredAt,
+      callId: "consult-fail-1",
+      reason: "busy",
+      details: "busy",
+    });
+
+    expect(failed.phase).toBe("idle");
+    expect(failed.consultationCallId).toBeNull();
+    expect(failed.sourceCallId).toBe("src-consult-fail");
+    expect(failed.lastFailureReason).toBe("busy");
+  });
+
   it("resets to idle when source call ends during attended transfer", () => {
     const correlationId = createCorrelationId();
     const occurredAt = new Date().toISOString();

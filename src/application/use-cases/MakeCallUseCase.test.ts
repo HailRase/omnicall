@@ -10,7 +10,7 @@ import {
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
 
 describe("MakeCallUseCase", () => {
-  it("rejects invalid phone number before gateway call", async () => {
+  it("rejects empty phone number before gateway call", async () => {
     const telephony = new MockTelephonyGateway();
     const useCase = new MakeCallUseCase(
       new CallEngine(
@@ -23,9 +23,27 @@ describe("MakeCallUseCase", () => {
       createTestLogger(),
     );
 
-    const result = await useCase.execute({ number: "12" });
+    const result = await useCase.execute({ number: "   " });
     expect(result.ok).toBe(false);
     expect(telephony.getDialedNumbers()).toHaveLength(0);
+  });
+
+  it("allows single-digit extension through mock gateway", async () => {
+    const telephony = new MockTelephonyGateway({ makeCallScenario: "answered" });
+    const useCase = new MakeCallUseCase(
+      new CallEngine(
+        telephony,
+        new MockMediaGateway(),
+        new InMemorySettingsRepository(),
+        new InMemoryDomainEventBus(),
+        createTestLogger(),
+      ),
+      createTestLogger(),
+    );
+
+    const result = await useCase.execute({ number: "4" });
+    expect(result.ok).toBe(true);
+    expect(telephony.getDialedNumbers()).toEqual(["4"]);
   });
 
   it("creates outgoing answered call through mock gateway", async () => {

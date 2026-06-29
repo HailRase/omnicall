@@ -1,5 +1,5 @@
 import type { Call, CallId, TransferSession } from "@domain/index.js";
-import { isEstablishedCall } from "@domain/index.js";
+import { isEstablishedCall, isTerminalCallState } from "@domain/index.js";
 import { createPlatformError } from "@shared/errors/index.js";
 import { err, ok, type Result } from "@shared/result/index.js";
 
@@ -15,7 +15,21 @@ export class CallTracker {
   private transferModeSourceCallId: CallId | null = null;
 
   trackCall(call: Call): void {
+    if (isTerminalCallState(call.state)) {
+      this.untrackCall(call.id);
+      return;
+    }
     this.trackedCalls.set(call.id, call);
+  }
+
+  untrackCall(callId: CallId): void {
+    this.trackedCalls.delete(callId);
+    this.clearIncomingCallById(callId);
+    this.clearTransferRefsForCall(callId);
+  }
+
+  finalizeCall(callId: CallId): void {
+    this.untrackCall(callId);
   }
 
   getTrackedCall(
@@ -85,5 +99,20 @@ export class CallTracker {
 
   setTransferModeSourceCallId(callId: CallId | null): void {
     this.transferModeSourceCallId = callId;
+  }
+
+  private clearTransferRefsForCall(callId: CallId): void {
+    if (this.transferModeSourceCallId === callId) {
+      this.transferModeSourceCallId = null;
+    }
+    if (this.transferSession === null) {
+      return;
+    }
+    if (
+      this.transferSession.sourceCallId === callId ||
+      this.transferSession.consultationCallId === callId
+    ) {
+      this.transferSession = null;
+    }
   }
 }

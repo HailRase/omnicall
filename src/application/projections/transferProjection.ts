@@ -11,6 +11,7 @@ import {
   createPhoneNumber,
   evaluateCompleteAttendedTransferEligibility,
   evaluateStartConsultationEligibility,
+  validatePhoneNumber,
 } from "@domain/index.js";
 import { isBenignTransferFailureReason } from "./transferFailureReasons.js";
 import { isSessionResetEvent } from "./sessionResetEvents.js";
@@ -180,6 +181,23 @@ export function reduceTransferProjection(
       };
     case "CallAutoUnheldAfterTransferFailure":
       return projection;
+    case "CallFailed": {
+      const failedCallId = asOptionalString(event["callId"]);
+      if (
+        failedCallId !== null &&
+        projection.transferModeActive &&
+        failedCallId === projection.consultationCallId
+      ) {
+        return {
+          ...projection,
+          phase: "idle",
+          consultationCallId: null,
+          callId: projection.sourceCallId,
+          lastFailureReason: asOptionalFailureReason(event["reason"]),
+        };
+      }
+      return projection;
+    }
     case "CallEnded": {
       const endedCallId = asOptionalString(event["callId"]);
       if (projection.phase === "transferred") {
@@ -256,7 +274,7 @@ export function deriveBlindTransferDisabledReason(
   if (context.callState !== "Active" && context.callState !== "Held") {
     return "transfer_not_allowed";
   }
-  if (context.targetNumber.trim().length === 0) {
+  if (validatePhoneNumber(context.targetNumber).length > 0) {
     return "invalid_target";
   }
   return null;
@@ -319,6 +337,9 @@ export function deriveAttendedTransferDisabledReason(
 ): AttendedTransferDisabledReason | "transfer_in_progress" | null {
   if (context.transferInProgress) {
     return "transfer_in_progress";
+  }
+  if (context.consultationCallId === null) {
+    return null;
   }
 
   const eligibility = evaluateCompleteAttendedTransferEligibility({

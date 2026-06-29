@@ -26,6 +26,7 @@ const baseArgs: Story["args"] = {
   hasEstablishedCall: false,
   onNumberChange: () => undefined,
   onDelete: () => undefined,
+  onClear: () => undefined,
   onCall: () => undefined,
   onSendDtmf: () => undefined,
   onModeChange: () => undefined,

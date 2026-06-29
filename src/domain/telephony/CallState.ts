@@ -32,3 +32,7 @@ export function initialCallState(): CallState {
   return "Idle";
 }
 
+export function isTerminalCallState(state: CallState): boolean {
+  return state === "Ended" || state === "Failed";
+}
+

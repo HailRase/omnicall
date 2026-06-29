@@ -1,8 +1,14 @@
-import type { Call, CallState } from "@domain/index.js";
+import type { Call, CallId, CallState } from "@domain/index.js";
 import { isErr } from "@shared/result/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { publishConsultationCallFailed } from "./attendedTransferLogging.js";
 import type { StartConsultationInput, TransferCallControlDeps } from "./transferCallControlTypes.js";
+
+const CONSULTATION_ABORT_PHASES = new Set([
+  "consultation_dialing",
+  "consultation_active",
+  "attended_transfer_failed",
+]);
 
 /**
  * - Purpose: resolve source call state for consultation rollback event payload.
@@ -63,4 +69,39 @@ export async function rollbackConsultationStart(
     restoredSourceState,
     reason,
   );
+}
+
+/**
+ * - Purpose: rollback attended-transfer session when consultation leg ends or fails remotely.
+ * - Inputs: transfer deps, consultation call id, failure reason, correlation id.
+ * - Outputs: true when ConsultationCallFailed was published and session cleared.
+ */
+export function publishConsultationLegAbortion(
+  deps: TransferCallControlDeps,
+  correlationId: CorrelationId,
+  consultationCallId: CallId,
+  reason: string,
+): boolean {
+  const session = deps.getTransferSession();
+  if (session === null || session.consultationCallId !== consultationCallId) {
+    return false;
+  }
+  if (!CONSULTATION_ABORT_PHASES.has(session.phase)) {
+    return false;
+  }
+
+  const restoredSourceState = resolveConsultationRollbackSourceState(
+    deps,
+    session.sourceCallId,
+  );
+  deps.setTransferSession(null);
+  publishConsultationCallFailed(
+    deps.eventPublisher,
+    correlationId,
+    session.sourceCallId,
+    consultationCallId,
+    restoredSourceState,
+    reason,
+  );
+  return true;
 }

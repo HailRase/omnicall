@@ -6,6 +6,129 @@ import {
 } from "./multiLineCallProjection.js";
 
 describe("multiLineCallProjection", () => {
+  it("marks selected line as source on TransferModeStarted with two active lines", () => {
+    const correlationId = createCorrelationId();
+    const occurredAt = new Date().toISOString();
+    let projection = reduceMultiLineCallProjection(initialMultiLineCallProjection(), {
+      type: "OutgoingCallRequested",
+      correlationId,
+      occurredAt,
+      callId: "call-a",
+      phoneNumber: "+12025550101",
+    });
+    projection = reduceMultiLineCallProjection(projection, {
+      type: "CallAnswered",
+      correlationId,
+      occurredAt,
+      callId: "call-a",
+    });
+    projection = reduceMultiLineCallProjection(projection, {
+      type: "OutgoingCallRequested",
+      correlationId,
+      occurredAt,
+      callId: "call-b",
+      phoneNumber: "+12025550102",
+    });
+    projection = reduceMultiLineCallProjection(projection, {
+      type: "CallAnswered",
+      correlationId,
+      occurredAt,
+      callId: "call-b",
+    });
+
+    const transferMode = reduceMultiLineCallProjection(projection, {
+      type: "TransferModeStarted",
+      correlationId,
+      occurredAt,
+      callId: "call-b",
+    });
+
+    expect(transferMode.sourceCallId).toBe("call-b");
+    const sourceLine = transferMode.lines.find((line) => line.callId === "call-b");
+    const otherLine = transferMode.lines.find((line) => line.callId === "call-a");
+    expect(sourceLine?.role).toBe("source");
+    expect(otherLine?.role).toBe("primary");
+  });
+
+  it("clears source role on TransferModeCancelled without consultation", () => {
+    const correlationId = createCorrelationId();
+    const occurredAt = new Date().toISOString();
+    let projection = reduceMultiLineCallProjection(initialMultiLineCallProjection(), {
+      type: "OutgoingCallRequested",
+      correlationId,
+      occurredAt,
+      callId: "call-a",
+      phoneNumber: "+12025550101",
+    });
+    projection = reduceMultiLineCallProjection(projection, {
+      type: "CallAnswered",
+      correlationId,
+      occurredAt,
+      callId: "call-a",
+    });
+    projection = reduceMultiLineCallProjection(projection, {
+      type: "TransferModeStarted",
+      correlationId,
+      occurredAt,
+      callId: "call-a",
+    });
+    const cancelled = reduceMultiLineCallProjection(projection, {
+      type: "TransferModeCancelled",
+      correlationId,
+      occurredAt,
+      callId: "call-a",
+    });
+
+    expect(cancelled.sourceCallId).toBeNull();
+    expect(cancelled.lines[0]?.role).toBe("primary");
+  });
+
+  it("clears blind transfer failure on CallTransferRequested retry", () => {
+    const correlationId = createCorrelationId();
+    const occurredAt = new Date().toISOString();
+    let projection = reduceMultiLineCallProjection(initialMultiLineCallProjection(), {
+      type: "OutgoingCallRequested",
+      correlationId,
+      occurredAt,
+      callId: "call-retry",
+      phoneNumber: "+12025550111",
+    });
+    projection = reduceMultiLineCallProjection(projection, {
+      type: "CallAnswered",
+      correlationId,
+      occurredAt,
+      callId: "call-retry",
+    });
+    projection = reduceMultiLineCallProjection(projection, {
+      type: "CallTransferRequested",
+      correlationId,
+      occurredAt,
+      callId: "call-retry",
+      targetNumber: "401",
+      transferType: "blind",
+    });
+    projection = reduceMultiLineCallProjection(projection, {
+      type: "CallTransferFailed",
+      correlationId,
+      occurredAt,
+      callId: "call-retry",
+      targetNumber: "401",
+      transferType: "blind",
+      reason: "Transfer target canceled or did not answer",
+      restoredSourceState: "Active",
+    });
+    projection = reduceMultiLineCallProjection(projection, {
+      type: "CallTransferRequested",
+      correlationId,
+      occurredAt,
+      callId: "call-retry",
+      targetNumber: "402",
+      transferType: "blind",
+    });
+
+    expect(projection.lastFailureReason).toBeNull();
+  });
+
   it("tracks source and consultation lines on ConsultationCallRequested", () => {
     const projection = reduceMultiLineCallProjection(initialMultiLineCallProjection(), {
       type: "ConsultationCallRequested",
@@ -222,5 +345,29 @@ describe("multiLineCallProjection", () => {
     expect(cancelled.lastFailureReason).toBeNull();
     expect(cancelled.lines).toHaveLength(1);
     expect(cancelled.lines[0]?.role).toBe("primary");
+  });
+
+  it("resets attended phase when consultation line is removed by CallFailed", () => {
+    const dialing = reduceMultiLineCallProjection(initialMultiLineCallProjection(), {
+      type: "ConsultationCallRequested",
+      correlationId: createCorrelationId(),
+      occurredAt: new Date().toISOString(),
+      sourceCallId: "src-7",
+      consultationCallId: "consult-7",
+      targetNumber: "+12025550804",
+    });
+    const failed = reduceMultiLineCallProjection(dialing, {
+      type: "CallFailed",
+      correlationId: createCorrelationId(),
+      occurredAt: new Date().toISOString(),
+      callId: "consult-7",
+      reason: "busy",
+      details: "busy",
+    });
+
+    expect(failed.attendedPhase).toBe("idle");
+    expect(failed.consultationCallId).toBeNull();
+    expect(failed.sourceCallId).toBe("src-7");
+    expect(failed.lines.some((line) => line.callId === "consult-7")).toBe(false);
   });
 });

@@ -280,7 +280,11 @@ export { CALL_DIRECTIONS } from "./telephony/CallDirection.js";
 export type { CallerIdentity } from "./telephony/CallerIdentity.js";
 export { createCallerIdentity } from "./telephony/CallerIdentity.js";
 export type { CallState } from "./telephony/CallState.js";
-export { CALL_STATES, initialCallState } from "./telephony/CallState.js";
+export {
+  CALL_STATES,
+  initialCallState,
+  isTerminalCallState,
+} from "./telephony/CallState.js";
 export type { CallFailureReason } from "./telephony/CallFailureReason.js";
 export {
   CALL_FAILURE_REASONS,

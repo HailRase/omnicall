@@ -115,6 +115,8 @@ export {
   isTransferPanelVisible,
   isTransferInProgress,
   resolveTransferFailureMessage,
+  resolveTransferFailureBanner,
+  type TransferFailureBanner,
 } from "./projections/transferPanelProjection.js";
 export {
   isBenignTransferFailureReason,

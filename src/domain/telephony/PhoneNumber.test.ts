@@ -19,16 +19,14 @@ describe("PhoneNumber", () => {
     expect(createPhoneNumber("+1 (202) 555-0147")).toBe("+12025550147");
   });
 
-  it("rejects empty values", () => {
+  it("accepts single-digit local extension", () => {
+    expect(validatePhoneNumber("1")).toEqual([]);
+    expect(validatePhoneNumber("12")).toEqual([]);
+  });
+
+  it("rejects empty, too long, and invalid symbols", () => {
     expect(validatePhoneNumber("   ")).toEqual(["number_required"]);
-  });
-
-  it("rejects invalid symbols", () => {
     expect(validatePhoneNumber("12abc3")).toEqual(["number_invalid_characters"]);
-  });
-
-  it("rejects too short and too long values", () => {
-    expect(validatePhoneNumber("12")).toEqual(["number_too_short"]);
     expect(validatePhoneNumber("1234567890123456")).toEqual(["number_too_long"]);
   });
 });

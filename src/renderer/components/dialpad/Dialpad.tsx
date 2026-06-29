@@ -16,6 +16,7 @@ export type DialpadProps = Readonly<{
   overlayMode?: boolean;
   onNumberChange: (value: string) => void;
   onDelete: () => void;
+  onClear: () => void;
   onCall: () => void;
   onSendDtmf: (tone: string) => void;
   onModeChange: (mode: DialpadMode) => void;
@@ -38,6 +39,7 @@ const KEYS: ReadonlyArray<readonly [string, string | null]> = [
 ];
 
 const LONG_PRESS_ZERO_MS = 450;
+const LONG_PRESS_CLEAR_MS = 500;
 
 /**
  * - Purpose: reference-aligned number dialpad with full-width call action.
@@ -55,12 +57,16 @@ export function Dialpad({
   overlayMode = false,
   onNumberChange,
   onDelete,
+  onClear,
   onCall,
   onClose,
 }: DialpadProps): JSX.Element | null {
   const zeroPressTimeout = useRef<number | null>(null);
   const longPressTriggered = useRef(false);
   const isZeroPressing = useRef(false);
+  const deletePressTimeout = useRef<number | null>(null);
+  const deleteLongPressTriggered = useRef(false);
+  const isDeletePressing = useRef(false);
 
   if (mode === "dtmf") {
     return null;
@@ -142,6 +148,35 @@ export function Dialpad({
     }
   };
 
+  const handleDeletePressStart = (): void => {
+    if (isInputDisabled) {
+      return;
+    }
+    isDeletePressing.current = true;
+    deleteLongPressTriggered.current = false;
+    deletePressTimeout.current = window.setTimeout(() => {
+      deleteLongPressTriggered.current = true;
+      onClear();
+    }, LONG_PRESS_CLEAR_MS);
+  };
+
+  const handleDeletePressEnd = (): void => {
+    if (!isDeletePressing.current) {
+      return;
+    }
+
+    isDeletePressing.current = false;
+
+    if (deletePressTimeout.current !== null) {
+      window.clearTimeout(deletePressTimeout.current);
+      deletePressTimeout.current = null;
+    }
+
+    if (!deleteLongPressTriggered.current) {
+      onDelete();
+    }
+  };
+
   return (
     <section
       className={clsx(
@@ -182,12 +217,14 @@ export function Dialpad({
         {numberValue.length > 0 ? (
           <IconControlButton
             iconId="dial.delete"
-            ariaLabel="Удалить символ"
-            tooltipLabel="Удалить символ"
+            ariaLabel="Удалить символ. Удерживайте полсекунды, чтобы очистить номер"
+            tooltipLabel="Удалить цифру. Удержание — очистить"
             testId="dialpad-delete"
             className={styles["deleteButton"]}
             disabledReason={inputDisabledReason}
-            onClick={onDelete}
+            onMouseDown={handleDeletePressStart}
+            onMouseUp={handleDeletePressEnd}
+            onMouseLeave={handleDeletePressEnd}
           />
         ) : null}
       </div>

@@ -102,7 +102,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     startConsultationDisabledReason: transferPanelShell.startConsultationDisabledReason,
     attendedTransferDisabledReason: transferPanelShell.attendedTransferDisabledReason,
     cancelTransferDisabledReason: transferPanelShell.cancelTransferDisabledReason,
-    activeCallControlsProjection,
+    dismissFailureBanner: transferPanelShell.dismissFailureBanner,
   });
 
   const activeCallControlsShell = useMemo(
@@ -125,7 +125,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     if (line?.isActiveUnheld !== true) {
       return;
     }
-    transferActions.handleStartTransfer();
+    transferActions.handleStartTransfer(callId);
   };
 
   const combinedResumeDisabledReason = useMemo(() => {

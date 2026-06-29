@@ -13,6 +13,7 @@ import {
   initialActiveCallControlsProjection,
   reduceActiveCallControlsProjection,
 } from "@application/projections/activeCallControlsProjection.js";
+import { resolveTransferFailureMessage } from "@application/projections/transferPanelProjection.js";
 import { CallEngine } from "../services/CallEngine.js";
 import {
   InMemorySettingsRepository,
@@ -64,6 +65,38 @@ describe("CallEngine attended transfer", () => {
     expect(publishedTypes).toContain("ConsultationCallRequested");
     expect(publishedTypes).toContain("ConsultationCallStarted");
     expect(publishedTypes).toContain("AttendedTransferCompleted");
+  });
+
+  it("clears tracker after attended transfer so next outgoing call can start", async () => {
+    const telephony = new MockTelephonyGateway({
+      makeCallScenario: "answered",
+      attendedTransferScenario: "success",
+    });
+    const engine = createEngine(telephony);
+    const sourceCallId = createCallId("att-src-tracker");
+    const consultationCallId = createCallId("att-consult-tracker");
+
+    await engine.makeCall({
+      callId: sourceCallId,
+      phoneNumber: createPhoneNumber("+12025550730"),
+    });
+    await engine.startConsultation({
+      sourceCallId,
+      targetNumber: "+12025550731",
+      consultationCallId,
+    });
+    const transferResult = await engine.attendedTransfer({
+      sourceCallId,
+      consultationCallId,
+    });
+    expect(transferResult.ok).toBe(true);
+
+    const nextCallId = createCallId("att-next-outgoing");
+    const nextCallResult = await engine.makeCall({
+      callId: nextCallId,
+      phoneNumber: createPhoneNumber("+12025550732"),
+    });
+    expect(nextCallResult.ok).toBe(true);
   });
 
   it("restores source held state on attended transfer failure", async () => {
@@ -169,6 +202,62 @@ describe("CallEngine attended transfer", () => {
       consultationCallId: createCallId("att-consult-4-retry"),
     });
     expect(retryConsultation.ok).toBe(true);
+  });
+
+  it("publishes ConsultationCallFailed when deferred consultation leg fails", async () => {
+    const telephony = new MockTelephonyGateway({
+      makeCallScenario: "answered",
+    });
+    const events = new InMemoryDomainEventBus();
+    const collectedEvents: DomainEvent[] = [];
+    events.subscribe((event) => {
+      collectedEvents.push(event);
+    });
+    const engine = createEngine(telephony, events);
+    const sourceCallId = createCallId("att-src-deferred");
+    const consultationCallId = createCallId("att-consult-deferred");
+
+    await engine.makeCall({
+      callId: sourceCallId,
+      phoneNumber: createPhoneNumber("+12025550720"),
+    });
+    engine.startTransferMode({ callId: sourceCallId });
+    telephony.setMakeCallScenario("connecting");
+
+    const consultationResult = await engine.startConsultation({
+      sourceCallId,
+      targetNumber: "+12025550721",
+      consultationCallId,
+    });
+    expect(consultationResult.ok).toBe(true);
+    if (!consultationResult.ok) {
+      return;
+    }
+
+    const failedResult = await engine.handleFailed({
+      call: consultationResult.value,
+      failure: "busy",
+    });
+    expect(failedResult.ok).toBe(false);
+
+    expect(collectedEvents.some((event) => event.type === "ConsultationCallFailed")).toBe(
+      true,
+    );
+    expect(collectedEvents.some((event) => event.type === "CallFailed")).toBe(true);
+
+    let transferProjection = initialTransferProjection();
+    let multiLineProjection = initialMultiLineCallProjection();
+    for (const event of collectedEvents) {
+      transferProjection = reduceTransferProjection(transferProjection, event);
+      multiLineProjection = reduceMultiLineCallProjection(multiLineProjection, event);
+    }
+
+    expect(transferProjection.phase).toBe("idle");
+    expect(multiLineProjection.attendedPhase).toBe("idle");
+    expect(multiLineProjection.consultationCallId).toBeNull();
+    expect(
+      resolveTransferFailureMessage(transferProjection, multiLineProjection.lastFailureReason),
+    ).toBe("Ошибка консультации: busy");
   });
 
   it("matches active controls projection to restored source state on attended failure", async () => {

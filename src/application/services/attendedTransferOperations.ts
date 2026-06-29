@@ -25,7 +25,7 @@ import {
 import { rollbackConsultationStart } from "./attendedTransferRollback.js";
 import { applyTransferFailureRecovery } from "./transferFailureRecovery.js";
 import {
-  markCallTransferCompleted,
+  markCallLegEndedAfterTransfer,
   restoreSourceAfterAttendedTransferFailure,
 } from "./attendedTransferRecovery.js";
 import type {
@@ -203,6 +203,13 @@ export function completeConsultationWhenAnswered(
   );
   if (!activated.ok) {
     const sourceState = isErr(sourceResult) ? "Held" : sourceResult.value.state;
+    void rollbackConsultationStart(
+      deps,
+      correlationId,
+      session.sourceCallId,
+      consultationCallId,
+      activated.reason,
+    );
     deps.logger.error("consultation_session_transition_failed", {
       correlationId,
       featureId: "F-007",
@@ -333,8 +340,8 @@ export async function executeAttendedTransfer(
       );
     }
 
-    const completedSource = markCallTransferCompleted(transferring.call);
-    const completedConsultation = markCallTransferCompleted(consultationCall);
+    const completedSource = markCallLegEndedAfterTransfer(transferring.call);
+    const completedConsultation = markCallLegEndedAfterTransfer(consultationCall);
 
     deps.eventPublisher.publish(
       createAttendedTransferCompletedEvent(correlationId, {

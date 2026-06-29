@@ -38,6 +38,18 @@ describe("TransferEligibility", () => {
     expect(result).toEqual({ ok: false, reason: "transfer_not_allowed" });
   });
 
+  it("allows blind transfer with single-digit extension", () => {
+    const result = evaluateBlindTransferEligibility({
+      callState: "Active",
+      targetNumber: "5",
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.targetNumber).toBe("5");
+  });
+
   it("rejects invalid target number", () => {
     const result = evaluateBlindTransferEligibility({
       callState: "Active",

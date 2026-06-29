@@ -12,8 +12,9 @@ import {
   deriveStartConsultationDisabledReason,
   isTransferInProgress,
   isTransferPanelVisible,
-  resolveTransferFailureMessage,
+  resolveTransferFailureBanner,
 } from "@application/index.js";
+import { useTransferFailureBanner } from "./useTransferFailureBanner.js";
 
 type UseTransferPanelShellInput = Readonly<{
   transferProjection: TransferProjection;
@@ -31,7 +32,9 @@ type UseTransferPanelShellResult = Readonly<{
   attendedTransferDisabledReason: string | null;
   cancelTransferDisabledReason: string | null;
   transferInProgress: boolean;
+  failureTitle: string | null;
   failureMessage: string | null;
+  dismissFailureBanner: () => void;
   sourceCallId: string | null;
   consultationCallId: string | null;
 }>;
@@ -153,6 +156,20 @@ export function useTransferPanelShell(
 
   const cancelTransferDisabledReason = transferInProgress ? "transfer_in_progress" : null;
 
+  const resolvedFailureBanner = resolveTransferFailureBanner(
+    transferProjection,
+    multiLineCallProjection.lastFailureReason,
+  );
+  const failureKey =
+    resolvedFailureBanner === null
+      ? null
+      : `${resolvedFailureBanner.detail}|${transferProjection.phase}|${multiLineCallProjection.lastFailureReason ?? ""}`;
+  const { failureBannerMessage, dismissFailureBanner } = useTransferFailureBanner({
+    failureMessage: resolvedFailureBanner?.detail ?? null,
+    failureKey,
+    transferInProgress,
+  });
+
   return {
     visible: isTransferPanelVisible(transferProjection, {
       attendedPhase: multiLineCallProjection.attendedPhase,
@@ -165,10 +182,9 @@ export function useTransferPanelShell(
     attendedTransferDisabledReason,
     cancelTransferDisabledReason,
     transferInProgress,
-    failureMessage: resolveTransferFailureMessage(
-      transferProjection,
-      multiLineCallProjection.lastFailureReason,
-    ),
+    failureTitle: resolvedFailureBanner?.title ?? null,
+    failureMessage: failureBannerMessage,
+    dismissFailureBanner,
     sourceCallId,
     consultationCallId,
   };
@@ -183,11 +199,11 @@ type UseTransferActionsInput = Readonly<{
   startConsultationDisabledReason: string | null;
   attendedTransferDisabledReason: string | null;
   cancelTransferDisabledReason: string | null;
-  activeCallControlsProjection: ActiveCallControlsProjection;
+  dismissFailureBanner: () => void;
 }>;
 
 type UseTransferActionsResult = Readonly<{
-  handleStartTransfer: () => void;
+  handleStartTransfer: (callId: string) => void;
   handleBlindTransfer: () => void;
   handleStartConsultation: () => void;
   handleAttendedTransfer: () => void;
@@ -211,26 +227,21 @@ export function useTransferActions(
     startConsultationDisabledReason,
     attendedTransferDisabledReason,
     cancelTransferDisabledReason,
-    activeCallControlsProjection,
+    dismissFailureBanner,
   } = input;
 
-  const handleStartTransfer = (): void => {
-    if (facade === null || activeCallControlsProjection.callId === null) {
+  const handleStartTransfer = (callId: string): void => {
+    if (facade === null || callId.length === 0) {
       return;
     }
-    if (
-      activeCallControlsProjection.callState !== "Active" &&
-      activeCallControlsProjection.callState !== "Held"
-    ) {
-      return;
-    }
-    facade.startTransferById(activeCallControlsProjection.callId);
+    facade.startTransferById(callId);
   };
 
   const handleBlindTransfer = (): void => {
     if (facade === null || sourceCallId === null || blindTransferDisabledReason !== null) {
       return;
     }
+    dismissFailureBanner();
     void facade.blindTransferById(sourceCallId, targetNumber);
   };
 
@@ -242,6 +253,7 @@ export function useTransferActions(
     ) {
       return;
     }
+    dismissFailureBanner();
     void facade.startConsultationByIds(sourceCallId, targetNumber);
   };
 
@@ -254,6 +266,7 @@ export function useTransferActions(
     ) {
       return;
     }
+    dismissFailureBanner();
     void facade.attendedTransferByIds(sourceCallId, consultationCallId);
   };
 

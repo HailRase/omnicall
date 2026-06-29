@@ -34,6 +34,7 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
     numberEntryOverlayOpen,
     openNumberEntryOverlay,
     closeNumberEntryOverlay,
+    clearDialedNumber,
     handleDialpadCall,
   } = bindings;
 
@@ -74,6 +75,7 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
           overlayMode={numberEntryOverlayOpen}
           onNumberChange={setDialedNumber}
           onDelete={deleteLastDialedDigit}
+          onClear={clearDialedNumber}
           onCall={handleDialpadCall}
           onSendDtmf={callActions.handleSendDtmf}
           onModeChange={setCallMode}

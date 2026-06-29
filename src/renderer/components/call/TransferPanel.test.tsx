@@ -31,19 +31,38 @@ describe("TransferPanel", () => {
   });
 
   it("shows failure banner with alert role", () => {
-    renderPanel({ failureMessage: "Transfer failed: REFER rejected" });
+    renderPanel({
+      failureTitle: "Ошибка перевода",
+      failureMessage: "REFER rejected",
+    });
 
     const banner = screen.getByTestId("transfer-failure-banner");
     expect(banner).toHaveAttribute("role", "alert");
-    expect(banner).toHaveTextContent("Transfer failed: REFER rejected");
+    expect(banner).toHaveTextContent("REFER rejected");
+    expect(banner).toHaveTextContent("Ошибка перевода");
   });
 
   it("shows consultation failure copy", () => {
-    renderPanel({ failureMessage: "Consultation failed: busy" });
+    renderPanel({
+      failureTitle: "Ошибка консультации",
+      failureMessage: "busy",
+    });
 
+    expect(screen.getByTestId("transfer-failure-banner")).toHaveTextContent("busy");
     expect(screen.getByTestId("transfer-failure-banner")).toHaveTextContent(
-      "Consultation failed: busy",
+      "Ошибка консультации",
     );
+  });
+
+  it("does not show relationship_invalid on step 1 with valid target", () => {
+    renderPanel({
+      targetNumber: "4",
+      attendedTransferDisabledReason: "relationship_invalid",
+      startConsultationDisabledReason: null,
+      blindTransferDisabledReason: null,
+    });
+
+    expect(screen.queryByTestId("transfer-disabled-reason")).not.toBeInTheDocument();
   });
 
   it("does not show failure banner when failure message is null", () => {
@@ -52,12 +71,15 @@ describe("TransferPanel", () => {
     expect(screen.queryByTestId("transfer-failure-banner")).not.toBeInTheDocument();
   });
 
-  it("surfaces disabled reason via transfer-disabled-reason", () => {
+  it("surfaces disabled reason via transfer-disabled-reason", async () => {
+    const user = userEvent.setup();
     renderPanel({
       blindTransferDisabledReason: "transfer_in_progress",
       startConsultationDisabledReason: null,
       attendedTransferDisabledReason: null,
     });
+
+    await user.click(screen.getByTestId("transfer-next-step"));
 
     const reason = screen.getByTestId("transfer-disabled-reason");
     expect(reason).toHaveAttribute("role", "status");
@@ -120,6 +142,7 @@ function renderPanel(overrides: TransferPanelOverrides = {}): void {
     attendedTransferDisabledReason: "consultation_not_active",
     cancelTransferDisabledReason: null,
     transferInProgress: false,
+    failureTitle: null,
     failureMessage: null,
     lines: [
       {

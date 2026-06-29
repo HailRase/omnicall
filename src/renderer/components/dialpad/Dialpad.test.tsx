@@ -74,8 +74,24 @@ describe("Dialpad", () => {
     const onDelete = vi.fn();
     renderDialpad({ numberValue: "123", onDelete });
 
-    fireEvent.click(screen.getByTestId("dialpad-delete"));
+    fireEvent.mouseDown(screen.getByTestId("dialpad-delete"));
+    fireEvent.mouseUp(screen.getByTestId("dialpad-delete"));
     expect(onDelete).toHaveBeenCalledTimes(1);
+  });
+
+  it("clears number on long press delete", () => {
+    vi.useFakeTimers();
+    const onDelete = vi.fn();
+    const onClear = vi.fn();
+    renderDialpad({ numberValue: "12345", onDelete, onClear });
+
+    fireEvent.mouseDown(screen.getByTestId("dialpad-delete"));
+    vi.advanceTimersByTime(500);
+    fireEvent.mouseUp(screen.getByTestId("dialpad-delete"));
+
+    expect(onClear).toHaveBeenCalledTimes(1);
+    expect(onDelete).not.toHaveBeenCalled();
+    vi.useRealTimers();
   });
 
   it("hides inline delete when number is empty", () => {
@@ -112,6 +128,7 @@ function renderDialpad(overrides: DialpadOverrides = {}): ReturnType<typeof rend
     inputDisabledReason: null,
     onNumberChange: vi.fn(),
     onDelete: vi.fn(),
+    onClear: vi.fn(),
     onCall: vi.fn(),
     onSendDtmf: vi.fn(),
     onModeChange: vi.fn(),

@@ -88,6 +88,7 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
           attendedTransferDisabledReason={transferPanelShell.attendedTransferDisabledReason}
           cancelTransferDisabledReason={transferPanelShell.cancelTransferDisabledReason}
           transferInProgress={transferPanelShell.transferInProgress}
+          failureTitle={transferPanelShell.failureTitle}
           failureMessage={transferPanelShell.failureMessage}
           lines={multiLineCallProjection.lines}
           onTargetChange={transferPanelShell.setTargetNumber}

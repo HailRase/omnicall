@@ -26,11 +26,25 @@ export function restoreSourceAfterAttendedTransferFailure(
 }
 
 /**
- * - Purpose: mark attended-transfer leg as ended in tracker state.
- * - Inputs: call snapshot.
+ * - Purpose: mark transfer leg as ended in tracker state.
+ * - Inputs: call snapshot in Transferring, Active, or Held state.
+ * - Outputs: ended call snapshot or original on invalid transition.
+ */
+export function markCallLegEndedAfterTransfer(call: Call): Call {
+  const fromTransferring = applyCallTransition(call, "transfer_completed");
+  if (fromTransferring.transition.ok) {
+    return fromTransferring.call;
+  }
+
+  const ended = applyCallTransition(call, "ended");
+  return ended.transition.ok ? ended.call : call;
+}
+
+/**
+ * - Purpose: mark attended-transfer source leg as ended in tracker state.
+ * - Inputs: call snapshot in Transferring state.
  * - Outputs: ended call snapshot or original on invalid transition.
  */
 export function markCallTransferCompleted(call: Call): Call {
-  const completed = applyCallTransition(call, "transfer_completed");
-  return completed.transition.ok ? completed.call : call;
+  return markCallLegEndedAfterTransfer(call);
 }

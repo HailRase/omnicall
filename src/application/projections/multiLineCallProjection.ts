@@ -71,6 +71,7 @@ export function reduceMultiLineCallProjection(
       return {
         ...projection,
         attendedPhase: "attended_transfer_in_progress",
+        lastFailureReason: null,
       };
     case "AttendedTransferCompleted":
       return initialMultiLineCallProjection();
@@ -80,6 +81,8 @@ export function reduceMultiLineCallProjection(
         attendedPhase: "attended_transfer_failed",
         lastFailureReason: asOptionalString(event["reason"]),
       };
+    case "TransferModeStarted":
+      return applyTransferModeStarted(projection, event);
     case "TransferModeCancelled":
       return applyTransferModeCancelled(projection, event);
     case "OutgoingCallRequested":
@@ -124,7 +127,10 @@ export function reduceMultiLineCallProjection(
         asRequiredString(event["tone"]),
       );
     case "CallTransferRequested":
-      return updateLineState(projection, asRequiredString(event["callId"]), "Transferring");
+      return {
+        ...updateLineState(projection, asRequiredString(event["callId"]), "Transferring"),
+        lastFailureReason: null,
+      };
     case "CallTransferFailed":
       return applyBlindTransferFailed(projection, event);
     case "CallTransferred":
@@ -224,6 +230,28 @@ function applyConsultationFailed(
   };
 }
 
+function applyTransferModeStarted(
+  projection: MultiLineCallProjection,
+  event: DomainEvent,
+): MultiLineCallProjection {
+  const sourceCallId = asRequiredString(event["callId"]);
+  const lines = projection.lines.map((line) => {
+    if (line.callId === sourceCallId) {
+      return { ...line, role: "source" as const };
+    }
+    if (line.role === "source") {
+      return { ...line, role: "primary" as const };
+    }
+    return line;
+  });
+  return {
+    ...projection,
+    lines,
+    sourceCallId,
+    lastFailureReason: null,
+  };
+}
+
 function applyTransferModeCancelled(
   projection: MultiLineCallProjection,
   event: DomainEvent,
@@ -251,8 +279,13 @@ function applyTransferModeCancelled(
     };
   }
 
+  const lines = projection.lines.map((line) =>
+    line.role === "source" ? { ...line, role: "primary" as const } : line,
+  );
   return {
     ...projection,
+    lines,
+    sourceCallId: null,
     lastFailureReason: null,
     attendedPhase: projection.consultationCallId === null ? "idle" : projection.attendedPhase,
   };
@@ -315,12 +348,15 @@ function removeLine(
   callId: string,
 ): MultiLineCallProjection {
   const lines = projection.lines.filter((line) => line.callId !== callId);
-  const consultationCallId =
-    projection.consultationCallId === callId ? null : projection.consultationCallId;
+  const removedConsultation = projection.consultationCallId === callId;
+  const consultationCallId = removedConsultation ? null : projection.consultationCallId;
   const sourceCallId = projection.sourceCallId === callId ? null : projection.sourceCallId;
   const primaryCallId = projection.primaryCallId === callId ? sourceCallId : projection.primaryCallId;
-  const attendedPhase =
-    consultationCallId === null && sourceCallId === null ? "idle" : projection.attendedPhase;
+  const attendedPhase = removedConsultation
+    ? "idle"
+    : consultationCallId === null && sourceCallId === null
+      ? "idle"
+      : projection.attendedPhase;
   return {
     ...projection,
     lines,

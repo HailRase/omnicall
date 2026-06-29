@@ -44,6 +44,17 @@ describe("transferProjection transfer mode", () => {
 });
 
 describe("transferProjection disabled reasons", () => {
+  it("allows blind transfer with single-digit extension", () => {
+    const reason = deriveBlindTransferDisabledReason({
+      callId: "call-1",
+      callState: "Active",
+      targetNumber: "4",
+      transferInProgress: false,
+    });
+
+    expect(reason).toBeNull();
+  });
+
   it("blocks blind transfer for invalid target", () => {
     const reason = deriveBlindTransferDisabledReason({
       callId: "call-1",
@@ -81,6 +92,19 @@ describe("transferProjection disabled reasons", () => {
     });
 
     expect(reason).toBe("consultation_not_active");
+  });
+
+  it("does not surface attended disabled reason before consultation exists", () => {
+    const reason = deriveAttendedTransferDisabledReason({
+      sourceCallId: "call-1",
+      consultationCallId: null,
+      sourceCallState: "Held",
+      consultationCallState: "Idle",
+      attendedPhase: "idle",
+      transferInProgress: false,
+    });
+
+    expect(reason).toBeNull();
   });
 
   it("allows blind transfer retry after CallTransferFailed restores line state", () => {

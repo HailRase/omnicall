@@ -19,6 +19,7 @@ import { createPlatformError } from "@shared/errors/index.js";
 import { err, isErr, ok, type Result } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
 import type { CallTracker } from "./CallTracker.js";
+import { reconcileCallTracker } from "./callTrackerReconciliation.js";
 import { stopTonesOnOtherLines } from "./multiCallMediaHelpers.js";
 import type { HoldCallInput, ResumeCallInput } from "./activeCallControlTypes.js";
 
@@ -56,6 +57,7 @@ export class MultiCallPolicyService {
     direction: SecondSessionDirection,
     correlationId: CorrelationId,
   ): Promise<Result<void, PlatformError>> {
+    reconcileCallTracker(this.deps.callTracker);
     const settings = await this.deps.settingsRepository.getMultiCallSettings();
     const establishedCalls = this.deps.callTracker.getEstablishedCalls();
     const decision = evaluateSecondSessionBlock(
@@ -93,6 +95,7 @@ export class MultiCallPolicyService {
     operation: ConflictingOperation,
     correlationId: CorrelationId,
   ): Promise<Result<void, PlatformError>> {
+    reconcileCallTracker(this.deps.callTracker);
     if (this.holdAllBatchInProgress) {
       return Promise.resolve(
         this.rejectOperation(
@@ -125,6 +128,7 @@ export class MultiCallPolicyService {
     correlationId: CorrelationId,
     trigger: HoldAllTrigger,
   ): Promise<Result<ReadonlyArray<CallId>, PlatformError>> {
+    reconcileCallTracker(this.deps.callTracker);
     const callsToHold = getCallsToHoldBeforeOutgoing(
       this.deps.callTracker.getAllTrackedCalls(),
     );
@@ -218,6 +222,7 @@ export class MultiCallPolicyService {
     targetCallId: CallId,
     correlationId: CorrelationId,
   ): Promise<Result<void, PlatformError>> {
+    reconcileCallTracker(this.deps.callTracker);
     const blockResult = await this.checkConflictingOperationBlocked(
       "resume",
       correlationId,

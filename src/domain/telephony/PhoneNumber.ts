@@ -7,7 +7,7 @@ export type PhoneNumber = string & { readonly __brand: "PhoneNumber" };
 
 const ALLOWED_NUMBER_PATTERN = /^[0-9+*#()\-\s]+$/;
 const E164_PATTERN = /^\+[1-9][0-9]{7,14}$/;
-const LOCAL_DIGIT_MIN = 3;
+const LOCAL_DIGIT_MIN = 1;
 const LOCAL_DIGIT_MAX = 15;
 
 export type PhoneNumberValidationError =

@@ -8,7 +8,7 @@ import {
   initialTransferProjection,
   reduceTransferProjection,
 } from "./transferProjection.js";
-import { resolveTransferFailureMessage, isTransferPanelVisible } from "./transferPanelProjection.js";
+import { resolveTransferFailureMessage, resolveTransferFailureBanner, isTransferPanelVisible } from "./transferPanelProjection.js";
 
 describe("transferPanelProjection", () => {
   it("does not show panel for two ordinary calls without transfer session", () => {
@@ -101,6 +101,10 @@ describe("transferPanelProjection", () => {
     expect(resolveTransferFailureMessage(transfer, null)).toBe(
       "Ошибка перевода: REFER rejected",
     );
+    expect(resolveTransferFailureBanner(transfer, null)).toEqual({
+      title: "Ошибка перевода",
+      detail: "REFER rejected",
+    });
   });
 
   it("formats consultation failure banner copy", () => {
