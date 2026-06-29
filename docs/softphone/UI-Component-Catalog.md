@@ -21,7 +21,7 @@
 | `CallSessionTabs` | `src/renderer/components/call/CallSessionTabs.tsx` | `CallSessionTabsProps` | call-session-tabs, multi-call-policy-error | lf=LF-021 f=F-016 smoke=R7- |
 | `CallerIdentityBlock` | `src/renderer/components/call/CallerIdentityBlock.tsx` | `CallerIdentityBlockProps` | caller-identity, incoming-campaign-context | — |
 | `CampaignEventModal` | `src/renderer/components/call/CampaignEventModal.tsx` | `CampaignEventModalProps` | campaign-event-modal, campaign-modal-error, campaign-disabled-reason | — |
-| `DtmfKeypadPanel` | `src/renderer/components/call/DtmfKeypadPanel.tsx` | `DtmfKeypadPanelProps` | dtmf-keypad-panel, dtmf-last-tone | lf=LF-024 f=F-008,F-016 |
+| `DtmfKeypadPanel` | `src/renderer/components/call/DtmfKeypadPanel.tsx` | `DtmfKeypadPanelProps` | dtmf-keypad-panel, dtmf-tone-history, dtmf-last-tone, dtmf-error-alert | lf=LF-024 f=F-008,F-016 |
 | `IncomingCallActions` | `src/renderer/components/call/IncomingCallActions.tsx` | `IncomingCallActionsProps` | incoming-answer-disabled-reason | — |
 | `IncomingCallModal` | `src/renderer/components/call/IncomingCallModal.tsx` | `IncomingCallModalProps` | incoming-call-modal, ringing-indicator | — |
 | `IncomingCallStatusMessage` | `src/renderer/components/call/IncomingCallStatusMessage.tsx` | `IncomingCallStatusMessageProps` | incoming-call-status | — |
