@@ -2,7 +2,7 @@
 
 **Дата:** 2026-06-29 21:38
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `7b66aae`
 
 ## Где
 - `src/renderer/components/call/CallSessionStack.tsx`
