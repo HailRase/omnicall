@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
   deriveActiveCallControlsShell,
@@ -135,6 +135,17 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
   }, [activeCallControlsProjection.resumeDisabledReason, multiCallProjection]);
 
   const [numberEntryOverlayOpen, setNumberEntryOverlayOpen] = useState(false);
+  const [selectedCallId, setSelectedCallId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (selectedCallId === null) {
+      return;
+    }
+    const stillExists = callLinesShell.lines.some((line) => line.callId === selectedCallId);
+    if (!stillExists) {
+      setSelectedCallId(null);
+    }
+  }, [callLinesShell.lines, selectedCallId]);
 
   const hasEstablishedCall = callLinesShell.lines.some(
     (line) => line.state === "Active" || line.state === "Held",
@@ -144,6 +155,12 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
 
   const controlTargetLine = useMemo((): CallLineCardViewModel | null => {
     const { lines } = callLinesShell;
+    if (selectedCallId !== null) {
+      const selected = lines.find((line) => line.callId === selectedCallId);
+      if (selected !== undefined) {
+        return selected;
+      }
+    }
     const unheld = lines.find((line) => line.isActiveUnheld);
     if (unheld !== undefined) {
       return unheld;
@@ -159,7 +176,22 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     return (
       lines.find((line) => line.state === "Active" || line.state === "Held") ?? null
     );
-  }, [callLinesShell]);
+  }, [callLinesShell, selectedCallId]);
+
+  const selectCallLine = useCallback(
+    (callId: string): void => {
+      const line = callLinesShell.lines.find((entry) => entry.callId === callId);
+      if (line === undefined) {
+        return;
+      }
+      if (line.primaryAction === "answer") {
+        callLinesActions.handleAnswerLine(callId);
+        return;
+      }
+      setSelectedCallId(callId);
+    },
+    [callLinesActions, callLinesShell.lines],
+  );
 
   const handleDialpadCall = useCallback((): void => {
     callActions.handleDialpadCall();
@@ -208,6 +240,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     hasEstablishedCall,
     hasCallInProgress,
     controlTargetLine,
+    selectCallLine,
     numberEntryOverlayOpen,
     openNumberEntryOverlay,
     closeNumberEntryOverlay,

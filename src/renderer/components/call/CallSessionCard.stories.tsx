@@ -69,3 +69,20 @@ export const DarkHeldCompact: Story = {
     theme: "dark",
   },
 };
+
+export const LightHeldCompactSelected: Story = {
+  args: {
+    line: {
+      ...baseLine,
+      state: "Held",
+      isActiveUnheld: false,
+      statusLabel: "На удержании",
+    },
+    compact: true,
+    isActive: true,
+    onClick: () => undefined,
+  },
+  parameters: {
+    theme: "light",
+  },
+};

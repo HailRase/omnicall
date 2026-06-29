@@ -41,7 +41,7 @@ describe("CallSessionCard", () => {
     expect(screen.getByText("Продажи")).toBeInTheDocument();
   });
 
-  it("renders compact held hint", () => {
+  it("renders compact held status without resume hint", () => {
     render(
       <CallSessionCard
         line={{
@@ -56,8 +56,32 @@ describe("CallSessionCard", () => {
       />,
     );
 
-    expect(screen.getByTestId("call-session-status-call-1")).toHaveTextContent(
-      "▶ Снять с удержания",
+    expect(screen.getByTestId("call-session-status-call-1")).toHaveTextContent("На удержании");
+    expect(screen.getByRole("button")).toHaveAttribute(
+      "aria-label",
+      "Выбрать звонок +12025550100, на удержании",
     );
+  });
+
+  it("marks selected held compact card", () => {
+    render(
+      <CallSessionCard
+        line={{
+          ...line,
+          state: "Held",
+          isActiveUnheld: false,
+          statusLabel: "На удержании",
+          muted: false,
+        }}
+        compact
+        isActive
+        onClick={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("call-session-status-call-1")).toHaveTextContent(
+      "На удержании · выбран",
+    );
+    expect(screen.getByRole("button")).toHaveAttribute("aria-selected", "true");
   });
 });

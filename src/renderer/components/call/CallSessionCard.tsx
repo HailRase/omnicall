@@ -32,7 +32,10 @@ export function CallSessionCard({
   const isRinging = line.state === "Ringing" || line.state === "Connecting";
   const isFailed = line.state === "Failed";
   const directionIconId = resolveDirectionIconId(line);
-  const statusHint = isHeld ? "▶ Снять с удержания" : line.statusLabel;
+  const statusHint =
+    isHeld && isActive
+      ? `${line.statusLabel} · выбран`
+      : line.statusLabel;
 
   if (compact) {
     return (
@@ -42,13 +45,15 @@ export function CallSessionCard({
           styles["compact"],
           isActive && styles["compactActive"],
           isHeld && styles["compactHeld"],
+          isActive && styles["compactSelected"],
         )}
         data-testid={`call-session-card-${line.callId}`}
         aria-label={
           isHeld
-            ? `Снять с удержания: ${line.displayName}`
+            ? `Выбрать звонок ${line.displayName}, на удержании`
             : `Выбрать звонок ${line.displayName}`
         }
+        aria-selected={isActive}
         onClick={onClick}
       >
         <span

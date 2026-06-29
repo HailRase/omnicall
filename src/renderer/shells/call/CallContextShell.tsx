@@ -31,6 +31,7 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
     transferActions,
     setCallMode,
     controlTargetLine,
+    selectCallLine,
   } = bindings;
 
   const controlTargetCallId = controlTargetLine?.callId ?? null;
@@ -60,20 +61,6 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
 
   const singleLine =
     callLinesShell.lines.length === 1 ? (callLinesShell.lines[0] ?? null) : null;
-
-  const handleSelectLine = (callId: string): void => {
-    const line = callLinesShell.lines.find((entry) => entry.callId === callId);
-    if (line === undefined) {
-      return;
-    }
-    if (line.state === "Held") {
-      callLinesActions.handleResumeLine(callId);
-      return;
-    }
-    if (line.primaryAction === "answer") {
-      callLinesActions.handleAnswerLine(callId);
-    }
-  };
 
   return (
     <div className={styles["zone"]} data-testid="call-context-zone">
@@ -116,7 +103,7 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
         <CallSessionStack
           shell={callLinesShell}
           activeCallId={controlTargetCallId}
-          onSelectLine={handleSelectLine}
+          onSelectLine={selectCallLine}
           onHangupLine={callLinesActions.handleHangupLine}
         />
       ) : null}
