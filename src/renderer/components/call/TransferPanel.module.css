@@ -213,6 +213,8 @@
   flex: 0 1 auto;
 
   min-width: 3.25rem;
+  
+  width: auto;
 
   padding: 0 var(--space-xs);
 
