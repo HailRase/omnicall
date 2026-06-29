@@ -2,7 +2,7 @@
 
 **Дата:** 2026-06-29 17:20
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `1ca2b34`
 
 ## Где
 - `src/renderer/components/call/IncomingCallOverlay.tsx`
