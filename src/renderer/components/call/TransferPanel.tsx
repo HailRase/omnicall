@@ -4,6 +4,7 @@ import { deriveCallLineStatusLabel, isDialpadNumberValid } from "@application/in
 import clsx from "clsx";
 import { mapTransferDisabledReasonWithFallback } from "../../helpers/mapTransferDisabledReason.js";
 import { AppIcon, IconControlButton } from "../icons/index.js";
+import dismissStyles from "../icons/iconOverlayDismiss.module.css";
 import styles from "./TransferPanel.module.css";
 
 export type TransferPanelProps = Readonly<{
@@ -92,7 +93,8 @@ export function TransferPanel({
   }
 
   const cancelDisabled = cancelTransferDisabledReason !== null;
-  const cancelLabel = failureMessage !== null ? "Закрыть" : "Отмена";
+  const dismissLabel = failureMessage !== null ? "Закрыть" : "Отменить перевод";
+  const showCompleteTransfer = step >= 3 && consultReady && !transferInProgress;
 
   return (
     <section
@@ -124,15 +126,16 @@ export function TransferPanel({
         </div>
         <IconControlButton
           iconId="overlay.close"
-          ariaLabel="Отменить перевод"
-          tooltipLabel="Отменить перевод"
+          ariaLabel={dismissLabel}
+          tooltipLabel={dismissLabel}
           testId="control-cancel-transfer"
-          className={styles["closeButton"]}
+          className={dismissStyles["dismiss"]}
           disabledReason={
             cancelTransferDisabledReason === null
               ? null
               : mapTransferDisabledReasonWithFallback(cancelTransferDisabledReason)
           }
+          disabled={cancelDisabled}
           onClick={() => {
             setStep(1);
             onCancelTransfer();
@@ -264,27 +267,15 @@ export function TransferPanel({
 
         {renderDisabledReason(
           step,
+          transferInProgress,
           blindTransferDisabledReason,
           startConsultationDisabledReason,
           attendedTransferDisabledReason,
-          cancelTransferDisabledReason,
         )}
       </div>
 
-      <footer className={styles["footer"]}>
-        <button
-          type="button"
-          className={styles["footerCancel"]}
-          data-testid="transfer-footer-cancel"
-          disabled={cancelDisabled}
-          onClick={() => {
-            setStep(1);
-            onCancelTransfer();
-          }}
-        >
-          {cancelLabel}
-        </button>
-        {step >= 3 && consultReady && !transferInProgress ? (
+      {showCompleteTransfer ? (
+        <footer className={styles["footer"]}>
           <button
             type="button"
             className={styles["footerComplete"]}
@@ -303,8 +294,8 @@ export function TransferPanel({
             <AppIcon id="action.confirm" size={14} decorative />
             Завершить перевод
           </button>
-        ) : null}
-      </footer>
+        </footer>
+      ) : null}
     </section>
   );
 }
@@ -361,18 +352,23 @@ function resolveStepDotClassName(currentStep: TransferStep, step: TransferStep):
 
 function renderDisabledReason(
   step: TransferStep,
+  transferInProgress: boolean,
   blindReason: string | null,
   consultationReason: string | null,
   attendedReason: string | null,
-  cancelReason: string | null,
 ): JSX.Element | null {
+  if (transferInProgress) {
+    return null;
+  }
+
   const reason =
     step === 1
       ? null
       : step === 2
         ? (blindReason ?? consultationReason)
-        : (attendedReason ?? blindReason ?? consultationReason ?? cancelReason);
-  if (reason === null) {
+        : (attendedReason ?? consultationReason);
+
+  if (reason === null || reason === "transfer_in_progress") {
     return null;
   }
 

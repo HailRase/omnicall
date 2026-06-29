@@ -1,0 +1,36 @@
+.dismiss {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    color 120ms ease;
+}
+
+.dismiss:hover:not(:disabled) {
+  background: var(--color-bg-surface-highlight);
+  color: var(--color-text-primary);
+}
+
+.dismiss:active:not(:disabled) {
+  background: var(--color-bg-surface-alt);
+}
+
+.dismiss:focus-visible {
+  outline: 2px solid var(--color-outline-focus);
+  outline-offset: 2px;
+}
+
+.dismiss:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}

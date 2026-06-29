@@ -155,24 +155,8 @@
 
 
 .stepConnectorDone {
-
   background: var(--color-status-online);
-
 }
-
-
-
-.closeButton {
-
-  width: 1.75rem;
-
-  height: 1.75rem;
-
-  flex-shrink: 0;
-
-}
-
-
 
 .body {
 
@@ -195,109 +179,27 @@
 
 
 .footer {
-
-  display: flex;
-
-  gap: var(--space-xs);
-
   padding: var(--space-sm);
-
   border-top: 1px solid var(--color-border-subtle);
-
 }
-
-
-
-.footerCancel {
-
-  flex: 0 1 auto;
-
-  min-width: 3.25rem;
-  
-  width: auto;
-
-  padding: 0 var(--space-xs);
-
-  min-height: 2.25rem;
-
-  border-radius: var(--radius-control);
-
-  border: 1px solid var(--color-border-control);
-
-  background: transparent;
-
-  color: var(--color-text-secondary);
-
-  font-size: 0.6875rem;
-
-  white-space: nowrap;
-
-  cursor: pointer;
-
-  transition:
-
-    background 140ms ease,
-
-    border-color 140ms ease;
-
-}
-
-
-
-.footerCancel:hover:not(:disabled) {
-
-  background: var(--color-bg-surface-highlight);
-
-  border-color: var(--color-border-focus);
-
-}
-
-
-
-.footerCancel:disabled {
-
-  opacity: 0.5;
-
-  cursor: not-allowed;
-
-}
-
-
 
 .footerComplete {
-
-  flex: 1 0 auto;
-
-  display: inline-flex;
-
+  display: flex;
+  width: 100%;
   align-items: center;
-
   justify-content: center;
-
   gap: var(--space-2xs);
-
-  min-height: 2.25rem;
-
-  padding: 0 var(--space-xs);
-
+  min-height: 2.75rem;
+  padding: 0 var(--space-md);
   border-radius: var(--radius-control);
-
   border: 1px solid var(--color-border-success);
-
   background: var(--color-status-online);
-
   color: #fff;
-
-  font-size: 0.6875rem;
-
+  font-size: 0.8125rem;
   font-weight: var(--font-weight-semibold);
-
   white-space: nowrap;
-
   cursor: pointer;
-
   transition: filter 140ms ease;
-
 }
 
 

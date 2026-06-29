@@ -71,10 +71,59 @@ describe("TransferPanel", () => {
     expect(screen.queryByTestId("transfer-failure-banner")).not.toBeInTheDocument();
   });
 
+  it("shows progress indicator without duplicate disabled reason", () => {
+    renderPanel({
+      transferInProgress: true,
+      blindTransferDisabledReason: "transfer_in_progress",
+      attendedTransferDisabledReason: "transfer_in_progress",
+      cancelTransferDisabledReason: "transfer_in_progress",
+    });
+
+    expect(screen.getByTestId("transfer-in-progress-indicator")).toHaveTextContent(
+      "Перевод выполняется",
+    );
+    expect(screen.queryByTestId("transfer-disabled-reason")).not.toBeInTheDocument();
+  });
+
+  it("does not show blind invalid_target on consultation step when target cleared", () => {
+    renderPanel({
+      targetNumber: "",
+      blindTransferDisabledReason: "invalid_target",
+      attendedTransferDisabledReason: null,
+      startConsultationDisabledReason: null,
+      lines: [
+        {
+          callId: "call-1",
+          role: "source",
+          state: "Held",
+          muted: false,
+          displayLabel: "+12025550101",
+          activeSinceMs: null,
+          isRemoteHold: false,
+          dtmfHistory: "",
+          lastDtmfTone: null,
+        },
+        {
+          callId: "call-2",
+          role: "consultation",
+          state: "Active",
+          muted: false,
+          displayLabel: "+12025550102",
+          activeSinceMs: 1_000,
+          isRemoteHold: false,
+          dtmfHistory: "",
+          lastDtmfTone: null,
+        },
+      ],
+    });
+
+    expect(screen.queryByTestId("transfer-disabled-reason")).not.toBeInTheDocument();
+  });
+
   it("surfaces disabled reason via transfer-disabled-reason", async () => {
     const user = userEvent.setup();
     renderPanel({
-      blindTransferDisabledReason: "transfer_in_progress",
+      blindTransferDisabledReason: "invalid_target",
       startConsultationDisabledReason: null,
       attendedTransferDisabledReason: null,
     });
@@ -83,7 +132,7 @@ describe("TransferPanel", () => {
 
     const reason = screen.getByTestId("transfer-disabled-reason");
     expect(reason).toHaveAttribute("role", "status");
-    expect(reason).toHaveTextContent("Перевод выполняется");
+    expect(reason).toHaveTextContent("Некорректный номер перевода");
   });
 
   it("disables controls when projection supplies disabled reasons", () => {
@@ -115,6 +164,57 @@ describe("TransferPanel", () => {
     fireEvent.click(screen.getByTestId("transfer-next-step"));
     fireEvent.click(screen.getByTestId("control-blind-transfer"));
     expect(onBlindTransfer).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not render footer cancel duplicate on step 1", () => {
+    renderPanel();
+
+    expect(screen.queryByTestId("transfer-footer-cancel")).not.toBeInTheDocument();
+    expect(screen.getByTestId("control-cancel-transfer")).toBeInTheDocument();
+  });
+
+  it("shows dismiss as close when transfer failed", () => {
+    renderPanel({
+      failureTitle: "Ошибка перевода",
+      failureMessage: "REFER rejected",
+    });
+
+    expect(screen.getByTestId("control-cancel-transfer")).toHaveAccessibleName("Закрыть");
+    expect(screen.queryByTestId("transfer-footer-cancel")).not.toBeInTheDocument();
+  });
+
+  it("shows complete transfer action when consultation is active", () => {
+    renderPanel({
+      startConsultationDisabledReason: null,
+      attendedTransferDisabledReason: null,
+      lines: [
+        {
+          callId: "call-1",
+          role: "source",
+          state: "Held",
+          muted: false,
+          displayLabel: "+12025550101",
+          activeSinceMs: null,
+          isRemoteHold: false,
+          dtmfHistory: "",
+          lastDtmfTone: null,
+        },
+        {
+          callId: "call-2",
+          role: "consultation",
+          state: "Active",
+          muted: false,
+          displayLabel: "+12025550102",
+          activeSinceMs: 1_000,
+          isRemoteHold: false,
+          dtmfHistory: "",
+          lastDtmfTone: null,
+        },
+      ],
+    });
+
+    expect(screen.getByTestId("control-attended-transfer")).toHaveTextContent("Завершить перевод");
+    expect(screen.queryByTestId("transfer-footer-cancel")).not.toBeInTheDocument();
   });
 
   it("activates enabled blind transfer with Enter", async () => {

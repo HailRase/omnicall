@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { IconControlButton } from "../icons/index.js";
+import dismissStyles from "../icons/iconOverlayDismiss.module.css";
 import styles from "./DtmfKeypadPanel.module.css";
 
 const DTMF_KEYS: ReadonlyArray<string> = [
@@ -16,9 +17,9 @@ export type DtmfKeypadPanelProps = Readonly<{
 }>;
 
 /**
- * - Purpose: contextual DTMF keypad replacing session area during tone dialing.
- * - Inputs: active line label, last tone, tone and close callbacks.
- * - Outputs: full-width DTMF grid without number dial confusion.
+ * - Purpose: contextual DTMF keypad aligned with dialpad overlay layout.
+ * - Inputs: line label, tone history, tone and close callbacks.
+ * - Outputs: DTMF grid with stable title row and separate tone display field.
  * @uiMeta lf=LF-024 f=F-008,F-016
  */
 export function DtmfKeypadPanel({
@@ -29,39 +30,42 @@ export function DtmfKeypadPanel({
   onTone,
   onClose,
 }: DtmfKeypadPanelProps): JSX.Element {
+  const toneDisplay =
+    toneHistory.length > 0 ? toneHistory : lastTone !== null ? lastTone : "";
+  const toneTestId =
+    toneHistory.length > 0
+      ? "dtmf-tone-history"
+      : lastTone !== null
+        ? "dtmf-last-tone"
+        : undefined;
+
   return (
     <section className={styles["panel"]} data-testid="dtmf-keypad-panel" aria-label="Тоновый набор">
-      <header className={styles["header"]}>
-        <div className={styles["headerText"]}>
-          <p className={styles["title"]}>Тоновый набор (DTMF)</p>
-          <p className={styles["subtitle"]}>{displayName}</p>
-        </div>
-        <div className={styles["headerAside"]}>
-          {toneHistory.length > 0 ? (
-            <div className={styles["lastTone"]}>
-              <span className={styles["lastToneLabel"]}>Набрано</span>
-              <span className={styles["lastToneValue"]} data-testid="dtmf-tone-history">
-                {toneHistory}
-              </span>
-            </div>
-          ) : lastTone !== null ? (
-            <div className={styles["lastTone"]}>
-              <span className={styles["lastToneLabel"]}>Последний тон</span>
-              <span className={styles["lastToneValue"]} data-testid="dtmf-last-tone">
-                {lastTone}
-              </span>
-            </div>
-          ) : null}
-          <IconControlButton
-            iconId="overlay.close"
-            ariaLabel="Закрыть тоновый набор"
-            tooltipLabel="Закрыть"
-            testId="dtmf-close"
-            className={styles["closeButton"]}
-            onClick={onClose}
-          />
-        </div>
-      </header>
+      <div className={styles["header"]}>
+        <span className={styles["headerTitle"]}>Тоновый набор (DTMF) {displayName}</span>
+        <IconControlButton
+          iconId="overlay.close"
+          ariaLabel="Закрыть тоновый набор"
+          tooltipLabel="Закрыть"
+          testId="dtmf-close"
+          className={dismissStyles["dismiss"]}
+          onClick={onClose}
+        />
+      </div>
+
+      <div className={styles["inputRow"]}>
+        <input
+          type="text"
+          readOnly
+          className={styles["toneField"]}
+          value={toneDisplay}
+          placeholder="Тоны"
+          aria-label="Набранные тоны"
+          aria-live="polite"
+          {...(toneTestId !== undefined ? { "data-testid": toneTestId } : {})}
+        />
+      </div>
+
       <div className={styles["keys"]} role="group" aria-label="Клавиши DTMF">
         {DTMF_KEYS.map((key) => (
           <button
@@ -74,10 +78,11 @@ export function DtmfKeypadPanel({
               onTone(key);
             }}
           >
-            {key}
+            <span className={styles["keyDigit"]}>{key}</span>
           </button>
         ))}
       </div>
+
       {errorMessage !== null ? (
         <p className={styles["error"]} data-testid="dtmf-error-alert" role="alert">
           {errorMessage}

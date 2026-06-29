@@ -15,9 +15,28 @@ type Story = StoryObj<typeof meta>;
 
 export const Zones: Story = {
   args: {
-    header: <p>Header zone — status, settings, diagnostics</p>,
-    context: <p>Context zone — call lines and active card stay mounted</p>,
-    controls: <p>Controls zone — dialpad and active call controls</p>,
-    overlays: <p>Overlay layer — modals and sheets</p>,
+    header: (
+      <p style={{ margin: 0, padding: "10px 12px" }}>
+        Header zone — status, settings, diagnostics
+      </p>
+    ),
+    context: (
+      <p style={{ margin: 0, padding: "8px" }}>
+        Context zone — call lines and active card stay mounted
+      </p>
+    ),
+    controls: (
+      <p style={{ margin: 0 }}>
+        Controls zone — dialpad and active call controls
+      </p>
+    ),
+    overlays: null,
   },
+  decorators: [
+    (Story) => (
+      <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
+        <Story />
+      </div>
+    ),
+  ],
 };

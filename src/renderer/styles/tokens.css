@@ -44,6 +44,11 @@
   --color-bg-success: #ecfdf3;
   --color-bg-sidebar-expanded: rgb(255 255 255 / 92%);
 
+  /* Shell layout zones */
+  --color-bg-shell-header: var(--color-bg-surface);
+  --color-bg-shell-body: var(--color-bg-app);
+  --color-bg-shell-footer: var(--color-bg-surface);
+
   /* Text */
   --color-text-primary: #1a2332;
   --color-text-secondary: #5c6b82;

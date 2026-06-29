@@ -65,10 +65,6 @@
   color: var(--color-text-primary);
 }
 
-.overlayClose {
-  flex-shrink: 0;
-}
-
 .panelOverlay {
   gap: var(--space-sm);
 }

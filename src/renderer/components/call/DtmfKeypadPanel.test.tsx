@@ -27,7 +27,7 @@ describe("DtmfKeypadPanel", () => {
 
     expect(onTone).toHaveBeenCalledWith("3");
     expect(onClose).toHaveBeenCalledTimes(1);
-    expect(screen.getByTestId("dtmf-tone-history")).toHaveTextContent("5");
+    expect(screen.getByTestId("dtmf-tone-history")).toHaveValue("5");
   });
 
   it("shows localized dtmf error without technical details", () => {
@@ -56,6 +56,6 @@ describe("DtmfKeypadPanel", () => {
       />,
     );
 
-    expect(screen.getByTestId("dtmf-tone-history")).toHaveTextContent("123");
+    expect(screen.getByTestId("dtmf-tone-history")).toHaveValue("123");
   });
 });

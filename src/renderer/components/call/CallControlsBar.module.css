@@ -1,7 +1,6 @@
 .panel {
   display: grid;
   gap: var(--space-xs);
-  padding-top: var(--space-2xs);
 }
 
 .actions {

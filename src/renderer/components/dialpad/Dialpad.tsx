@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { useRef, type ChangeEvent, type JSX, type KeyboardEvent } from "react";
 import { AppIcon } from "../icons/AppIcon.js";
 import { IconControlButton } from "../icons/index.js";
+import dismissStyles from "../icons/iconOverlayDismiss.module.css";
 import styles from "./Dialpad.module.css";
 
 export type DialpadMode = "number" | "dtmf";
@@ -197,7 +198,7 @@ export function Dialpad({
             ariaLabel="Вернуться к звонкам"
             tooltipLabel="Закрыть"
             testId="dialpad-overlay-close"
-            className={styles["overlayClose"]}
+            className={dismissStyles["dismiss"]}
             onClick={onClose}
           />
         </div>
