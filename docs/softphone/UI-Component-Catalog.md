@@ -9,7 +9,6 @@
 | `App` | `src/renderer/App.tsx` | `—` | softphone-shell, bootstrap-loading, bootstrap-error | — |
 | `AccountPanel` | `src/renderer/components/account/AccountPanel.tsx` | `—` | account-panel, account-authorize, account-logout, account-error | — |
 | `ActiveCallControlsPanel` | `src/renderer/components/call/ActiveCallControlsPanel.tsx` | `ActiveCallControlsPanelProps` | active-call-controls, active-call-mute-indicator, active-call-control-error, control-disabled-reason | — |
-| `ActiveCallQuickBar` | `src/renderer/components/call/ActiveCallQuickBar.tsx` | `ActiveCallQuickBarProps` | active-call-quick-bar | lf=LF-022,LF-023 f=F-004,F-016 smoke=R7- |
 | `AutoAnswerCountdown` | `src/renderer/components/call/AutoAnswerCountdown.tsx` | `AutoAnswerCountdownProps` | auto-answer-countdown | — |
 | `CallControlsBar` | `src/renderer/components/call/CallControlsBar.tsx` | `CallControlsBarProps` | call-controls-bar | lf=LF-022,LF-023 f=F-004,F-016 smoke=R7- |
 | `CallIdleEmptyState` | `src/renderer/components/call/CallIdleEmptyState.tsx` | `—` | call-idle-empty-state | lf=LF-020 f=F-003,F-016 |
@@ -17,8 +16,6 @@
 | `CallLinesShell` | `src/renderer/components/call/CallLinesShell.tsx` | `CallLinesShellProps` | call-lines-panel, multi-call-policy-error | — |
 | `CallSessionCard` | `src/renderer/components/call/CallSessionCard.tsx` | `CallSessionCardProps` | — | lf=LF-011,LF-021 f=F-016 smoke=R7- |
 | `CallSessionStack` | `src/renderer/components/call/CallSessionStack.tsx` | `CallSessionStackProps` | call-session-stack, multi-call-policy-error | lf=LF-021 f=F-016 smoke=R7- |
-| `CallSessionTab` | `src/renderer/components/call/CallSessionTab.tsx` | `CallSessionTabProps` | — | lf=LF-021,LF-022 f=F-016 smoke=R7- |
-| `CallSessionTabs` | `src/renderer/components/call/CallSessionTabs.tsx` | `CallSessionTabsProps` | call-session-tabs, multi-call-policy-error | lf=LF-021 f=F-016 smoke=R7- |
 | `CallerIdentityBlock` | `src/renderer/components/call/CallerIdentityBlock.tsx` | `CallerIdentityBlockProps` | caller-identity, incoming-campaign-context | — |
 | `CampaignEventModal` | `src/renderer/components/call/CampaignEventModal.tsx` | `CampaignEventModalProps` | campaign-event-modal, campaign-modal-error, campaign-disabled-reason | — |
 | `DtmfKeypadPanel` | `src/renderer/components/call/DtmfKeypadPanel.tsx` | `DtmfKeypadPanelProps` | dtmf-keypad-panel, dtmf-tone-history, dtmf-last-tone, dtmf-error-alert | lf=LF-024 f=F-008,F-016 |

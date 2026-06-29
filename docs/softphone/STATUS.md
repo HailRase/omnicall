@@ -3,7 +3,7 @@
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
 **Updated:** 2026-06-29  
-**Tests:** 781 passed, 1 skipped (`npm run test`) — transfer flow parity in context zone  
+**Tests:** 792 passed, 1 skipped (`npm run test`) — last verified 2026-06-29  
 **Lint / typecheck:** green (last verified 2026-06-29)
 
 ## Active phase
@@ -19,19 +19,20 @@
 | WU4 Settings schema | done | `handoffs/P11-WU4-Settings-Schema-Handoff.md` |
 | WU5 UI-4 CSS Modules | done | `handoffs/P11-WU5-UI-4-Final-Gate-Handoff.md` |
 | Post-WU5 shell polish | done | `handoffs/P11-Post-WU5-Shell-Polish-Handoff.md` |
+| Call UI design parity (T-007) | done | `handoffs/P11-Call-UI-Design-Parity-Handoff.md` |
 
-**P11 phase gate:** WU0–WU5 + post-WU5 polish **done**. Remaining for phase close: UI-6 Radix modals, draggable widget (LF-056), toast placement (LF-060), codecs placeholder (LF-084). **LF-082 theme** done 2026-06-26.
+**P11 phase gate:** WU0–WU5 + post-WU5 polish + Call UI parity **done**. Remaining for phase close: UI-6 Radix modals, draggable widget (LF-056), toast placement (LF-060), codecs placeholder (LF-084), **LF-009 recovery UI** (new design — deferred). **LF-082 theme** done 2026-06-26.
 
 ## Next work (priority)
 
 See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
-1. **F-008 DTMF real** — T-003, `JsSipTelephonyAdapter.sendDtmf` — `/adapter`
-2. **P10** headset foundation — T-004 — `/logic`
-3. P11 polish: UI-6 Radix modals — `/ui`
+1. **P10** headset foundation — T-004 — `/logic`
+2. P11 polish: UI-6 Radix modals — `/ui`
+3. **LF-009** SIP recovery UI (redesign; projection `showAvatarRecoveryRing` ready) — `/ui`
 4. Merge `feature/real-adapters` branch
 
-**Recently closed (TASK-QUEUE):** post-WU5 shell polish (`handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`), T-005 fullscreen settings panel (`work-history/2026-06-26/fullscreen-settings-sidebar_12-40.md`), T-001 icon tooltips (`handoffs/P11-Icon-Tooltips-Agent-Prompt.md`), T-002 AppIcon wiring (`Icon-Registry.md`), **F-014 SIP registration retry** (`handoffs/P08-SIP-Registration-Retry-Handoff.md`).
+**Recently closed (TASK-QUEUE):** T-007 Call UI design parity (`handoffs/P11-Call-UI-Design-Parity-Handoff.md`), post-WU5 shell polish (`handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`), T-005 fullscreen settings panel, T-001 icon tooltips, T-002 AppIcon wiring, **F-014 SIP registration retry** (`handoffs/P08-SIP-Registration-Retry-Handoff.md`).
 
 ## RAT (Real Adapter Track)
 
