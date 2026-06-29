@@ -22,7 +22,7 @@
 
 .row {
   display: flex;
-  align-items: stretch;
+  align-items: center;
   gap: var(--space-2xs);
 }
 
@@ -35,17 +35,28 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
+  width: 2.25rem;
+  height: 2.25rem;
   flex-shrink: 0;
   padding: 0;
   border-radius: var(--radius-control);
-  border: 1px solid var(--color-border-subtle);
-  background: var(--color-bg-surface-deep);
-  color: var(--color-text-muted);
+  border: 1px solid var(--color-border-danger-accent);
+  background: var(--color-status-failed);
+  color: #fff;
+  box-shadow: var(--shadow-control-knob);
+  cursor: pointer;
+  transition: filter 140ms ease;
+}
+
+.hangupButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .hangupButton:not(:disabled):hover {
-  border-color: var(--color-border-danger);
-  background: var(--color-bg-danger);
-  color: var(--color-text-danger);
+  filter: brightness(1.08);
+}
+
+.hangupButton:not(:disabled):active {
+  filter: brightness(0.95);
 }

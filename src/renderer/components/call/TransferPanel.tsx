@@ -176,7 +176,7 @@ export function TransferPanel({
               data-testid="transfer-target-input"
               type="tel"
               value={targetNumber}
-              placeholder="+7 (___) ___-__-__"
+              placeholder="Номер для перевода"
               aria-label="Номер для перевода"
               onChange={(event) => {
                 onTargetChange(event.currentTarget.value);

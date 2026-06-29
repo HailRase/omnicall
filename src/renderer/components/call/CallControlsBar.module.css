@@ -38,7 +38,7 @@
     color 140ms ease;
 }
 
-.button:hover:not(:disabled) {
+.button:not(.buttonResume):not(.buttonMuted):not(.buttonDanger):hover:not(:disabled) {
   background: var(--color-bg-surface-highlight);
   border-color: var(--color-border-focus);
   color: var(--color-text-primary);
@@ -52,17 +52,22 @@
 }
 
 .buttonResume:hover:not(:disabled) {
+  background: var(--color-status-online);
+  border-color: var(--color-border-success);
   filter: brightness(1.05);
   color: #fff;
 }
 
 .buttonMuted {
-  background: var(--color-bg-danger);
+  background: var(--color-status-failed);
   border-color: var(--color-border-danger-accent);
   color: #fff;
+  box-shadow: var(--shadow-control-knob);
 }
 
 .buttonMuted:hover:not(:disabled) {
+  background: var(--color-status-failed);
+  border-color: var(--color-border-danger-accent);
   filter: brightness(1.08);
   color: #fff;
 }
@@ -75,6 +80,8 @@
 }
 
 .buttonDanger:hover:not(:disabled) {
+  background: var(--color-status-failed);
+  border-color: var(--color-border-danger-accent);
   filter: brightness(1.08);
   color: #fff;
 }
