@@ -1,0 +1,50 @@
+appId: com.hailrase.enterprise-softphone
+productName: Enterprise Softphone
+copyright: Copyright © 2026 HailRase
+directories:
+  buildResources: build
+  output: dist
+files:
+  - out/**/*
+  - package.json
+  - "!**/.vscode/*"
+  - "!src/**"
+  - "!electron.vite.config.{js,ts,mjs,cjs}"
+  - "!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md,install-instruction.md}"
+  - "!{.env,.env.local,.env.*.local}"
+  - "!{tsconfig.json,tsconfig.node.json,tsconfig.web.json,vitest.config.ts}"
+  - "!{docs/**,work-history/**,.cursor/**,.storybook/**,scripts/**}"
+asar: true
+npmRebuild: false
+win:
+  executableName: EnterpriseSoftphone
+  target:
+    - nsis
+  artifactName: ${productName}-${version}-win-${arch}.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  createDesktopShortcut: always
+  createStartMenuShortcut: true
+mac:
+  category: public.app-category.business
+  target:
+    - dmg
+  artifactName: ${productName}-${version}-mac-${arch}.${ext}
+  extendInfo:
+    NSMicrophoneUsageDescription: Enterprise Softphone needs microphone access for voice calls.
+    NSCameraUsageDescription: Enterprise Softphone may use the camera for video calls.
+dmg:
+  artifactName: ${productName}-${version}-mac-${arch}.${ext}
+linux:
+  category: Network
+  maintainer: HailRase
+  target:
+    - AppImage
+    - deb
+  artifactName: ${productName}-${version}-linux-${arch}.${ext}
+appImage:
+  artifactName: ${productName}-${version}-linux-${arch}.${ext}

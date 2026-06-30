@@ -518,3 +518,23 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Integration: `ArbiterMediaGateway` with `CallEngine` multi-line scenarios
   - E2E: deferred (manual multi-call smoke)
 - Implementation evidence: `src/domain/media/resolveActiveTonePlayback.ts`, `src/application/services/TonePlaybackCoordinator.ts`, `src/adapters/media/ArbiterMediaGateway.ts`, bootstrap wiring in `createMockAccountBootstrap` / `createRealAccountBootstrap`
+
+## F-019: Distribution Packaging
+
+- Legacy IDs: none
+- Context: Integration
+- Priority: high
+- Status: implemented
+- Owner: domain-agent
+- Inputs: production Vite build (`VITE_ADAPTER_MODE=real`), electron-builder targets per OS
+- Outputs: Windows NSIS installer, macOS DMG, Linux AppImage and deb in `dist/`
+- Acceptance Criteria:
+  - `npm run build:win|mac|linux` produces installable artifacts for the host OS.
+  - Production bundle uses real telephony adapters, not mock default.
+  - End-user install and SIP setup steps documented in `install-instruction.md`.
+  - Optional CI workflow builds all platforms on version tags.
+- Test Coverage:
+  - Unit: n/a (infra)
+  - Integration: manual smoke — install, authorize SIP, place call
+  - E2E: deferred until installer harness exists
+- Implementation evidence: `electron-builder.yml`, `.env.production`, `package.json` dist scripts, `.github/workflows/release.yml`, `install-instruction.md`
