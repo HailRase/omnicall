@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import type { AuthUiState } from "@application/projections/accountBootstrapProjection.js";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import type { PhoneStatus } from "@application/index.js";
+import { mapAvatarMenuDndDisabledReason } from "../helpers/mapAvatarMenuDndDisabledReason.js";
 import { mapAvatarMenuLogoutDisabledReason } from "../helpers/mapAvatarMenuLogoutDisabledReason.js";
 import type { UseSessionLogoutActionsResult } from "./useSessionLogoutActions.js";
 import { usePhoneStatusActions } from "./usePhoneStatusActions.js";
@@ -10,6 +11,7 @@ type UseUserAvatarMenuActionsInput = Readonly<{
   facade: AccountBootstrapFacade | null;
   phoneStatus: PhoneStatus;
   phoneStatusDisabled: boolean;
+  isSipRegistered: boolean;
   isOcpMode: boolean;
   authUiState: AuthUiState;
   sessionLogoutActions: UseSessionLogoutActionsResult;
@@ -38,6 +40,7 @@ export function useUserAvatarMenuActions(
     facade,
     phoneStatus,
     phoneStatusDisabled,
+    isSipRegistered,
     isOcpMode,
     authUiState,
     sessionLogoutActions,
@@ -45,13 +48,17 @@ export function useUserAvatarMenuActions(
     onMenuClose,
   } = input;
 
+  const dndDisabledReason = mapAvatarMenuDndDisabledReason({
+    phoneStatusDisabled,
+    isSipRegistered,
+  });
+
   const { handlePhoneStatusChange } = usePhoneStatusActions({
     facade,
-    disabled: phoneStatusDisabled,
+    disabled: dndDisabledReason !== null,
   });
 
   const dndEnabled = phoneStatus === "dnd";
-  const dndDisabledReason = phoneStatusDisabled ? "Статус телефона недоступен" : null;
   const logoutDisabledReason = mapAvatarMenuLogoutDisabledReason({
     isOcpMode,
     authUiState,

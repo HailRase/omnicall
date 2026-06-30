@@ -60,6 +60,14 @@ describe("UserAvatarMenu", () => {
     expect(onLogout).toHaveBeenCalledOnce();
   });
 
+  it("disables DND toggle when registration reason is provided", () => {
+    render(<UserAvatarMenu {...baseProps} dndDisabledReason="Не зарегистрирован" />);
+
+    const dndItem = screen.getByTestId("user-menu-toggle-dnd");
+    expect(dndItem).toBeDisabled();
+    expect(dndItem).toHaveAttribute("title", "Не зарегистрирован");
+  });
+
   it("always renders logout item", () => {
     render(<UserAvatarMenu {...baseProps} logoutDisabledReason="Регистрация выполняется" />);
 

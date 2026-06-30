@@ -44,7 +44,7 @@ export function SoftphoneReadyShell({
     shellChrome;
   const { projection, ocpNotificationProjection, multiCallProjection, applyMultiCallSettings } =
     useSoftphoneProjections();
-  const { blockingAuthState } = useAuthShellFlags();
+  const { blockingAuthState, isSipRegistered } = useAuthShellFlags();
   const overlayShell = useOverlayShell();
   useShellWindowLayout({ settingsOpen: overlayShell.settingsOpen });
   const accountActions = useAccountActions({ facade });
@@ -62,6 +62,7 @@ export function SoftphoneReadyShell({
     facade,
     phoneStatus: projection.phoneStatus,
     phoneStatusDisabled: blockingAuthState,
+    isSipRegistered,
     isOcpMode: projection.isOcpMode,
     authUiState: projection.authUiState,
     sessionLogoutActions,
