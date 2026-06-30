@@ -181,11 +181,27 @@
   gap: var(--space-xs);
 }
 
+.badgeIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  line-height: 0;
+}
+
+.badgeIcon :global(svg) {
+  display: block;
+}
+
 .muteBadge,
 .holdBadge {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  justify-content: center;
+  gap: 3px;
+  line-height: 1;
   font-size: 0.625rem;
   color: var(--color-text-warning);
 }
@@ -194,7 +210,9 @@
 .compactRemoteHold {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  justify-content: center;
+  gap: 3px;
+  line-height: 1;
   font-size: 0.625rem;
   color: var(--color-text-secondary);
 }

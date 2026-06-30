@@ -4,8 +4,10 @@ import {
   setCallMuted,
   setCallUnmuted,
   type Call,
+  type CallId,
 } from "@domain/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
+import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { createPlatformError, normalizeUnknownError } from "@shared/errors/index.js";
 import { err, isErr, ok, type Result } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
@@ -181,4 +183,42 @@ export async function executeUnmuteCall(
     );
     return err(normalizedError);
   }
+}
+
+/**
+ * - Purpose: re-sync local audio mute after WebRTC renegotiation without domain events.
+ * - Inputs: active call control deps, call id, correlation id.
+ * - Outputs: none; logs warn on media gateway failure.
+ */
+export async function reapplyMutedMediaStateIfNeeded(
+  deps: Pick<ActiveCallControlDeps, "mediaGateway" | "logger" | "resolveTrackedCall">,
+  callId: CallId,
+  correlationId: CorrelationId,
+): Promise<void> {
+  const trackedCallResult = deps.resolveTrackedCall(callId);
+  if (isErr(trackedCallResult) || !trackedCallResult.value.muted) {
+    return;
+  }
+
+  const muteResult = await deps.mediaGateway.muteCall({ callId, correlationId });
+  if (isErr(muteResult)) {
+    deps.logger.warn("call_mute_reapply_failed", {
+      correlationId,
+      featureId: "F-005",
+      boundedContext: "Media",
+      operation: "reapply_mute_after_media_renegotiation",
+      callId,
+      result: muteResult.error.code,
+    });
+    return;
+  }
+
+  deps.logger.info("call_mute_reapplied_after_media_renegotiation", {
+    correlationId,
+    featureId: "F-005",
+    boundedContext: "Media",
+    operation: "reapply_mute_after_media_renegotiation",
+    callId,
+    result: "succeeded",
+  });
 }

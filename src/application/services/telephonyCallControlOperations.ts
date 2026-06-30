@@ -20,6 +20,7 @@ import type {
   HoldCallInput,
   ResumeCallInput,
 } from "./activeCallControlTypes.js";
+import { reapplyMutedMediaStateIfNeeded } from "./mediaCallControlOperations.js";
 import { attachRemoteAudioWhenReady } from "./remoteAudioAttach.js";
 import { cancelScheduledTonePlaybackStop } from "./scheduleTonePlaybackStop.js";
 
@@ -276,6 +277,7 @@ export async function executeResumeCall(
       input.callId,
       correlationId,
     );
+    await reapplyMutedMediaStateIfNeeded(deps, input.callId, correlationId);
     deps.trackCall(resumed.call);
     deps.logger.info("call_resume_succeeded", {
       correlationId,

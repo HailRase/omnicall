@@ -254,7 +254,7 @@ export class CallEngine {
     });
   }
 
-  handleRemoteResume(callId: CallId, correlationId?: CorrelationId): void {
+  async handleRemoteResume(callId: CallId, correlationId?: CorrelationId): Promise<void> {
     const resolvedCorrelationId = correlationId ?? createCorrelationId();
     const trackedResult = this.callTracker.getTrackedCall(callId);
     if (!trackedResult.ok) {
@@ -274,6 +274,11 @@ export class CallEngine {
       nextState: trackedResult.value.state,
       result: "succeeded",
     });
+
+    await this.activeCallControlService.reapplyMutedMediaStateIfNeeded(
+      callId,
+      resolvedCorrelationId,
+    );
   }
 
   async handleOutboundCallAnswered(
@@ -319,6 +324,12 @@ export class CallEngine {
       call: tracked,
       ...(correlationId !== undefined ? { correlationId } : {}),
     };
+    const resolvedCorrelationId = correlationId ?? createCorrelationId();
+
+    await this.activeCallControlService.reapplyMutedMediaStateIfNeeded(
+      callId,
+      resolvedCorrelationId,
+    );
 
     if (tracked.direction === "outgoing") {
       await this.outgoingCallOrchestrator.retryRemoteAudioAttach(input);

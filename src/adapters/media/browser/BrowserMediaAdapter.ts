@@ -109,6 +109,7 @@ export class BrowserMediaAdapter implements MediaGateway {
       }
 
       this.pauseOtherRemoteAudio(command.callId);
+      this.enforceMutedLocalTracksIfNeeded(command.callId, command.correlationId);
       this.logger.info("browser_media_remote_audio_attached", {
         correlationId: command.correlationId,
         featureId: FEATURE_ID,
@@ -246,6 +247,34 @@ export class BrowserMediaAdapter implements MediaGateway {
 
   dispose(): void {
     this.releaseAllInternal();
+  }
+
+  private enforceMutedLocalTracksIfNeeded(
+    callId: CallId,
+    correlationId: CorrelationId,
+  ): void {
+    if (!this.mutedCalls.has(callId)) {
+      return;
+    }
+
+    const connection = this.getPeerConnection(callId);
+    if (connection === null || connection === undefined) {
+      return;
+    }
+
+    const changed = setLocalAudioTracksEnabled(connection, false);
+    if (!changed) {
+      return;
+    }
+
+    this.logger.info("browser_media_mute_enforced_after_attach", {
+      correlationId,
+      featureId: FEATURE_ID,
+      boundedContext: "Media",
+      operation: "enforce_mute_after_attach",
+      callId,
+      result: "succeeded",
+    });
   }
 
   private pauseOtherRemoteAudio(activeCallId: CallId): void {

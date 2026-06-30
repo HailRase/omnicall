@@ -73,9 +73,9 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 | LF-019 | P06 | Operator | High | DND blocks Ready status | `StatusSelector` | WU1/WU2: `AgentStatusTransition` + `ChangeAgentStatusUseCase` reject `dnd_blocks_ready` — see `handoffs/archive/P06/P06-WU1-Operator-Status-Domain-Handoff.md`. |
 | LF-020 | P02 | Telephony | Critical | Outgoing call | `handleCall`, `Display` | Dialpad starts outgoing call through `MakeCallUseCase`. |
 | LF-021 | P05 | Telephony | High | Hold all calls before new call | `handleHoldAll` | WU1+**WU6:** mock + integration tests. **RAT 08:** real SBC R7-1/R7-2 **PASS** 2026-06-25. |
-| LF-022 | P04 | Telephony | Critical | Hold and unhold session | `onToggleHoldHandler` | P11 WU2: per-line hold on `CallLineRow` — `P11-Call-Line-UX-Design.md`. |
+| LF-022 | P04 | Telephony | Critical | Hold and unhold session | `onToggleHoldHandler` | P11 WU2: per-line hold on `CallLineRow`; mute survives local resume — `telephonyCallControlOperations.ts`, `CallEngine.test.ts`. |
 | LF-023 | P05 | Telephony | High | Exclusive hold for other calls | `onToggleHoldHandler` | WU1+WU6 mock. **RAT 08:** real SBC R7-3 **PASS** 2026-06-25. |
-| LF-024 | P04 | Media | Critical | Mute and unmute microphone | `onToggleMuteHandler` | Mute state changes through Media service and events. |
+| LF-024 | P04 | Media | Critical | Mute and unmute microphone | `onToggleMuteHandler` | `mediaCallControlOperations.ts`, `BrowserMediaAdapter.ts`; mute survives hold/unhold renegotiation — `CallEngine.test.ts`, `CallEngine.remoteHold.test.ts`, `BrowserMediaAdapter.test.ts`. |
 | LF-025 | P02 | Telephony | High | DTMF from dialpad | `DialPad`, `sendDTMF` | Active call sends validated DTMF tones. |
 | LF-026 | P02 | UI | Low | Long press 0 produces plus | `DialPad` | Dialpad supports international number input. |
 | LF-027 | P04 | Telephony | Critical | Hang up call | `handleHangup` | Hangup transitions any valid active call to terminal state. |

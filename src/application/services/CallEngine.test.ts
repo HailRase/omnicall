@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { InMemoryDomainEventBus } from "@application/events/InMemoryDomainEventBus.js";
+import type { DomainEvent } from "@domain/index.js";
 import { CallEngine } from "./CallEngine.js";
 import {
   InMemorySettingsRepository,
@@ -579,6 +580,71 @@ describe("CallEngine", () => {
       return;
     }
     expect(resumeResult.value.state).toBe("Active");
+  });
+
+  it("reapplies media mute after local hold resume when call is muted", async () => {
+    const telephony = new MockTelephonyGateway({ makeCallScenario: "answered" });
+    const media = new MockMediaGateway();
+    const muteSpy = vi.spyOn(media, "muteCall");
+    const events = new InMemoryDomainEventBus();
+    const collectedEvents: DomainEvent[] = [];
+    events.subscribe((event) => {
+      collectedEvents.push(event);
+    });
+    const engine = new CallEngine(
+      telephony,
+      media,
+      new InMemorySettingsRepository(),
+      events,
+      createTestLogger(),
+    );
+    const callId = createCallId("hold-resume-muted");
+
+    await engine.makeCall({
+      callId,
+      phoneNumber: createPhoneNumber("+12025550152"),
+    });
+    const muteResult = await engine.muteCall({ callId });
+    expect(muteResult.ok).toBe(true);
+
+    muteSpy.mockClear();
+
+    const holdResult = await engine.holdCall({ callId });
+    expect(holdResult.ok).toBe(true);
+    const resumeResult = await engine.resumeCall({ callId });
+    expect(resumeResult.ok).toBe(true);
+
+    expect(muteSpy).toHaveBeenCalledTimes(1);
+    expect(muteSpy).toHaveBeenCalledWith({ callId, correlationId: expect.any(String) });
+    expect(media.isMuted(callId)).toBe(true);
+    expect(collectedEvents.some((event) => event.type === "CallUnmuted")).toBe(false);
+  });
+
+  it("does not reapply mute after local hold resume when call is not muted", async () => {
+    const telephony = new MockTelephonyGateway({ makeCallScenario: "answered" });
+    const media = new MockMediaGateway();
+    const muteSpy = vi.spyOn(media, "muteCall");
+    const engine = new CallEngine(
+      telephony,
+      media,
+      new InMemorySettingsRepository(),
+      new InMemoryDomainEventBus(),
+      createTestLogger(),
+    );
+    const callId = createCallId("hold-resume-unmuted");
+
+    await engine.makeCall({
+      callId,
+      phoneNumber: createPhoneNumber("+12025550153"),
+    });
+
+    const holdResult = await engine.holdCall({ callId });
+    expect(holdResult.ok).toBe(true);
+    const resumeResult = await engine.resumeCall({ callId });
+    expect(resumeResult.ok).toBe(true);
+
+    expect(muteSpy).not.toHaveBeenCalled();
+    expect(media.isMuted(callId)).toBe(false);
   });
 
   it("mutes and unmutes active call through media gateway", async () => {

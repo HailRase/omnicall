@@ -2,7 +2,7 @@
 
 **Дата:** 2026-06-30 13:12
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `bb2d95d`
 
 ## Где
 - `src/renderer/helpers/mapAvatarMenuDndDisabledReason.ts`

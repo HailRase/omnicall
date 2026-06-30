@@ -314,10 +314,12 @@ export class AccountBootstrapFacade {
       this.callEngine.handleRemoteHold(notification.callId, notification.correlationId);
       return Promise.resolve();
     });
-    deps.telephonyGateway.setRemoteResumeHandler((notification) => {
-      this.callEngine.handleRemoteResume(notification.callId, notification.correlationId);
-      return Promise.resolve();
-    });
+    deps.telephonyGateway.setRemoteResumeHandler((notification) =>
+      this.callEngine.handleRemoteResume(
+        notification.callId,
+        notification.correlationId,
+      ),
+    );
 
     this.connectionRecoveryOrchestration = new ConnectionRecoveryOrchestrationService({
       telephonyGateway: deps.telephonyGateway,

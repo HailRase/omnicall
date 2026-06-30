@@ -1,7 +1,8 @@
 import type { Call } from "@domain/index.js";
+import type { CorrelationId } from "@shared/correlation-id/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
 import type { Result } from "@shared/result/index.js";
-import { executeMuteCall, executeUnmuteCall } from "./mediaCallControlOperations.js";
+import { executeMuteCall, executeUnmuteCall, reapplyMutedMediaStateIfNeeded } from "./mediaCallControlOperations.js";
 import {
   executeHangupCall,
   executeHoldCall,
@@ -61,5 +62,12 @@ export class ActiveCallControlService {
 
   unmuteCall(input: UnmuteCallInput): Promise<Result<Call, PlatformError>> {
     return executeUnmuteCall(this.deps, input);
+  }
+
+  reapplyMutedMediaStateIfNeeded(
+    callId: MuteCallInput["callId"],
+    correlationId: CorrelationId,
+  ): Promise<void> {
+    return reapplyMutedMediaStateIfNeeded(this.deps, callId, correlationId);
   }
 }

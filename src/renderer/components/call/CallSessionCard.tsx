@@ -90,7 +90,9 @@ export function CallSessionCard({
               className={styles["compactRemoteHold"]}
               data-testid={`call-session-remote-hold-${line.callId}`}
             >
-              <AppIcon id="call.hold" size={10} decorative />
+              <span className={styles["badgeIcon"]} aria-hidden>
+                <AppIcon id="call.hold" size={10} decorative />
+              </span>
               Удержание (удал.)
             </span>
           ) : null}
@@ -176,7 +178,9 @@ export function CallSessionCard({
           ) : null}
           {isLocallyHeld ? (
             <span className={styles["holdBadge"]}>
-              <AppIcon id="call.hold" size={10} decorative />
+              <span className={styles["badgeIcon"]} aria-hidden>
+                <AppIcon id="call.hold" size={10} decorative />
+              </span>
               Удержание
             </span>
           ) : null}
@@ -185,7 +189,9 @@ export function CallSessionCard({
               className={styles["remoteHoldBadge"]}
               data-testid={`call-session-remote-hold-${line.callId}`}
             >
-              <AppIcon id="call.hold" size={10} decorative />
+              <span className={styles["badgeIcon"]} aria-hidden>
+                <AppIcon id="call.hold" size={10} decorative />
+              </span>
               Удержание (удал.)
             </span>
           ) : null}

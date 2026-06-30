@@ -170,9 +170,10 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - **WU6 (done):** exclusive resume (LF-023); hangup Active does not auto-resume Held (D1 — no auto-resume code path); per-call mute on `CallLine` / `multiLineCallProjection`; per-line resume/hangup — `deriveCallLinesShell.ts`, `CallLinesShell.tsx`.
   - **WU2 (done):** operator controls on `CallLineRow` in ContextZone (hold/mute/transfer/hangup/resume); human status via `deriveCallLineStatusLabel`; single-line visibility `lines.length >= 1`.
   - **Remote hold (done):** `CallRemoteHeld` / `CallRemoteResumed` projection flag `isRemoteHold`; call card badge «Удержание (удал.)» without held chrome; dual local+remote shows both badges.
+  - **Mute after hold/resume (done):** local and remote unhold re-INVITE renegotiation does not unmute operator mic when `Call.muted === true`; `executeResumeCall` and `BrowserMediaAdapter.attachRemoteAudio` re-sync media without extra domain events.
 - Test Coverage:
   - Unit: state machine valid/invalid transitions + use case command tests (including `ActiveCallControlFailed` on gateway failure)
-  - Integration: mock telephony hold/resume/hangup success and failure paths
+  - Integration: mock telephony hold/resume/hangup success and failure paths; mute survives local hold resume (`CallEngine.test.ts`)
   - Renderer: `CallLineRow` disabled reasons, error banner, retry, icon row; `ActiveCallControlsPanel` retained for Storybook/tests only (removed from ControlsZone)
   - E2E: deferred until dedicated Electron E2E harness exists
 - Real Adapter Track: **done** (RAT step 08, 2026-06-25) — multi-session R7-1…R7-5 PASS dev SBC; `multiSessionsEnabled` UI deferred P11
@@ -191,9 +192,10 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Commands enter only via `MuteCallUseCase` and `UnmuteCallUseCase`.
   - Headset LED sync consumes events, not adapter internals.
   - UI state, disabled reasons, and failure recovery are projection-driven.
+  - **Mute after renegotiation (done):** `reapplyMutedMediaStateIfNeeded` after local resume and remote resume; `BrowserMediaAdapter` enforces `mutedCalls` on `attachRemoteAudio`; no spurious `CallUnmuted` when domain remains muted.
 - Test Coverage:
   - Unit: use case and projection mute/unmute transitions (including invalid `ActiveCallControlFailed` operation payload guard)
-  - Integration: mock media mute/unmute success and failure paths
+  - Integration: mock media mute/unmute success and failure paths; mute survives hold/unhold renegotiation (`CallEngine.test.ts`, `CallEngine.remoteHold.test.ts`, `BrowserMediaAdapter.test.ts`)
   - Renderer: error banner and retry via `lastOperationError` projection
   - E2E: deferred until dedicated Electron E2E harness exists
 - Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R4 step 05 — `BrowserMediaAdapter.muteCall`/`unmuteCall` end-to-end via `getPeerConnectionForCall`; manual SBC smoke PASS 2026-06-24 — R4-2)

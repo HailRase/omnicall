@@ -282,6 +282,111 @@ describe("BrowserMediaAdapter", () => {
     adapter.dispose();
   });
 
+  it("re-applies mute when local track is re-enabled after renegotiation", async () => {
+    const track = { kind: "audio", enabled: true } as MediaStreamTrack;
+    const connection = {
+      getReceivers: () => [],
+      getSenders: () => [{ track }],
+      addEventListener: vi.fn(),
+    };
+
+    const adapter = createAdapter(() => connection);
+    const callId = createCallId("call-mute-reapply");
+    const correlationId = createCorrelationId();
+
+    const muteResult = await adapter.muteCall({ callId, correlationId });
+    expect(muteResult.ok).toBe(true);
+    expect(track.enabled).toBe(false);
+
+    track.enabled = true;
+
+    const reapplyResult = await adapter.muteCall({ callId, correlationId });
+    expect(reapplyResult.ok).toBe(true);
+    expect(track.enabled).toBe(false);
+    expect(adapter.isMuted(callId)).toBe(true);
+
+    adapter.dispose();
+  });
+
+  it("enforces mute on local tracks after attachRemoteAudio when call was muted", async () => {
+    const playSpy = vi.spyOn(HTMLAudioElement.prototype, "play").mockResolvedValue(undefined);
+    class TestMediaStream {
+      private readonly tracks: MediaStreamTrack[] = [];
+
+      addTrack(track: MediaStreamTrack): void {
+        this.tracks.push(track);
+      }
+
+      getTracks(): MediaStreamTrack[] {
+        return this.tracks;
+      }
+    }
+
+    vi.stubGlobal("MediaStream", TestMediaStream);
+
+    const receiverTrack = { kind: "audio", enabled: true } as MediaStreamTrack;
+    const senderTrack = { kind: "audio", enabled: true } as MediaStreamTrack;
+    const connection = {
+      getReceivers: () => [{ track: receiverTrack }],
+      getSenders: () => [{ track: senderTrack }],
+      addEventListener: vi.fn(),
+    };
+
+    const adapter = createAdapter(() => connection);
+    const callId = createCallId("call-mute-enforce-attach");
+    const correlationId = createCorrelationId();
+
+    const muteResult = await adapter.muteCall({ callId, correlationId });
+    expect(muteResult.ok).toBe(true);
+    expect(senderTrack.enabled).toBe(false);
+
+    senderTrack.enabled = true;
+
+    const attachResult = await adapter.attachRemoteAudio({ callId, correlationId });
+    expect(attachResult.ok).toBe(true);
+    expect(senderTrack.enabled).toBe(false);
+    expect(adapter.isMuted(callId)).toBe(true);
+
+    playSpy.mockRestore();
+    adapter.dispose();
+  });
+
+  it("does not disable local tracks on attachRemoteAudio when call is not muted", async () => {
+    const playSpy = vi.spyOn(HTMLAudioElement.prototype, "play").mockResolvedValue(undefined);
+    class TestMediaStream {
+      private readonly tracks: MediaStreamTrack[] = [];
+
+      addTrack(track: MediaStreamTrack): void {
+        this.tracks.push(track);
+      }
+
+      getTracks(): MediaStreamTrack[] {
+        return this.tracks;
+      }
+    }
+
+    vi.stubGlobal("MediaStream", TestMediaStream);
+
+    const receiverTrack = { kind: "audio", enabled: true } as MediaStreamTrack;
+    const senderTrack = { kind: "audio", enabled: true } as MediaStreamTrack;
+    const connection = {
+      getReceivers: () => [{ track: receiverTrack }],
+      getSenders: () => [{ track: senderTrack }],
+      addEventListener: vi.fn(),
+    };
+
+    const adapter = createAdapter(() => connection);
+    const callId = createCallId("call-unmuted-attach");
+    const correlationId = createCorrelationId();
+
+    const attachResult = await adapter.attachRemoteAudio({ callId, correlationId });
+    expect(attachResult.ok).toBe(true);
+    expect(senderTrack.enabled).toBe(true);
+
+    playSpy.mockRestore();
+    adapter.dispose();
+  });
+
   it("fails mute when peer connection has no local audio track", async () => {
     const connection = {
       getReceivers: () => [],

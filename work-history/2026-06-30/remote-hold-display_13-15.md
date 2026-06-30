@@ -2,7 +2,7 @@
 
 **Дата:** 2026-06-30 13:15
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `1cb354e`
 
 ## Где
 - `src/domain/telephony/events/callEvents.ts` — `CallRemoteHeld` / `CallRemoteResumed`
