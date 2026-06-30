@@ -17,7 +17,7 @@
 
 ## 2. Скачивание установщика
 
-Готовые файлы лежат в папке `dist/` после сборки или в артефактах GitHub Actions / релиза.
+Готовые файлы лежат в `dist/win`, `dist/mac` или `dist/linux` после сборки (или в артефактах GitHub Actions / релиза).
 
 | Платформа | Файл | Формат |
 | --- | --- | --- |
@@ -137,8 +137,8 @@ npm run build:win     # Windows NSIS
 npm run build:mac     # macOS DMG
 npm run build:linux     # Linux AppImage + deb
 
-# артефакты:
-ls dist/
+# артефакты (пример для Windows):
+ls dist/win/
 ```
 
 Production-сборка включает `VITE_ADAPTER_MODE=real` (файл `.env.production`) — в установщик попадают **реальные** SIP-адаптеры, не mock.

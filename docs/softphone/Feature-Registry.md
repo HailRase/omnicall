@@ -527,7 +527,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Status: implemented
 - Owner: domain-agent
 - Inputs: production Vite build (`VITE_ADAPTER_MODE=real`), electron-builder targets per OS
-- Outputs: Windows NSIS installer, macOS DMG, Linux AppImage and deb in `dist/`
+- Outputs: Windows NSIS installer, macOS DMG, Linux AppImage and deb in `dist/win`, `dist/mac`, `dist/linux` (or `dist/all` for `build:all`)
 - Acceptance Criteria:
   - `npm run build:win|mac|linux` produces installable artifacts for the host OS.
   - Production bundle uses real telephony adapters, not mock default.

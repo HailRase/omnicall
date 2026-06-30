@@ -3,6 +3,7 @@ productName: Enterprise Softphone
 copyright: Copyright © 2026 HailRase
 directories:
   buildResources: build
+  # Per-platform output is set in package.json build:* scripts (dist/win, dist/mac, dist/linux, dist/all).
   output: dist
 files:
   - out/**/*
