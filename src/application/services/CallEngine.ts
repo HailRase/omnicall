@@ -7,6 +7,7 @@ import type {
   TelephonyGateway,
 } from "@ports/index.js";
 import type { Call, CallId } from "@domain/index.js";
+import { createCallRemoteHeldEvent, createCallRemoteResumedEvent } from "@domain/index.js";
 import { createPlatformError } from "@shared/errors/index.js";
 import type { Result } from "@shared/result/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
@@ -77,6 +78,8 @@ export class CallEngine {
   private readonly dtmfOrchestrator: DtmfOrchestrator;
   private readonly transferCallControlDeps: TransferCallControlDeps;
   private readonly transferCallControlService: TransferCallControlService;
+  private readonly eventPublisher: DomainEventPublisher;
+  private readonly logger: Logger;
 
   constructor(
     telephonyGateway: TelephonyGateway,
@@ -86,6 +89,8 @@ export class CallEngine {
     logger: Logger,
     hostIntegrationGateway?: HostIntegrationGateway,
   ) {
+    this.eventPublisher = eventPublisher;
+    this.logger = logger;
     const sharedDeps = {
       telephonyGateway,
       mediaGateway,
@@ -225,6 +230,50 @@ export class CallEngine {
       resolvedCorrelationId,
     );
     await this.incomingCallOrchestrator.handleCallEnded(callId, resolvedCorrelationId);
+  }
+
+  handleRemoteHold(callId: CallId, correlationId?: CorrelationId): void {
+    const resolvedCorrelationId = correlationId ?? createCorrelationId();
+    const trackedResult = this.callTracker.getTrackedCall(callId);
+    if (!trackedResult.ok) {
+      return;
+    }
+
+    this.eventPublisher.publish(
+      createCallRemoteHeldEvent(resolvedCorrelationId, { callId }),
+    );
+    this.logger.info("call_remote_hold_received", {
+      correlationId: resolvedCorrelationId,
+      featureId: "F-004",
+      boundedContext: "Telephony",
+      operation: "remote_hold",
+      callId,
+      previousState: trackedResult.value.state,
+      nextState: trackedResult.value.state,
+      result: "succeeded",
+    });
+  }
+
+  handleRemoteResume(callId: CallId, correlationId?: CorrelationId): void {
+    const resolvedCorrelationId = correlationId ?? createCorrelationId();
+    const trackedResult = this.callTracker.getTrackedCall(callId);
+    if (!trackedResult.ok) {
+      return;
+    }
+
+    this.eventPublisher.publish(
+      createCallRemoteResumedEvent(resolvedCorrelationId, { callId }),
+    );
+    this.logger.info("call_remote_resume_received", {
+      correlationId: resolvedCorrelationId,
+      featureId: "F-004",
+      boundedContext: "Telephony",
+      operation: "remote_resume",
+      callId,
+      previousState: trackedResult.value.state,
+      nextState: trackedResult.value.state,
+      result: "succeeded",
+    });
   }
 
   async handleOutboundCallAnswered(

@@ -190,6 +190,19 @@
   color: var(--color-text-warning);
 }
 
+.remoteHoldBadge,
+.compactRemoteHold {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.625rem;
+  color: var(--color-text-secondary);
+}
+
+.compactRemoteHold {
+  white-space: nowrap;
+}
+
 .muteBadge {
   color: var(--color-text-danger);
 }

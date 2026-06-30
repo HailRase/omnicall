@@ -10,10 +10,12 @@ describe("deriveCallLineStatusLabel", () => {
     expect(deriveCallLineStatusLabel({ state: "Held" })).toBe("На удержании");
   });
 
-  it("prefers remote hold label over held state", () => {
-    expect(deriveCallLineStatusLabel({ state: "Held", isRemoteHold: true })).toBe(
-      "На удалённом удержании",
-    );
+  it("prefers held state label when both local and remote hold are active", () => {
+    expect(deriveCallLineStatusLabel({ state: "Held" })).toBe("На удержании");
+  });
+
+  it("keeps active label when only remote hold is active", () => {
+    expect(deriveCallLineStatusLabel({ state: "Active" })).toBe("На линии");
   });
 
   it("maps connecting and ringing states", () => {

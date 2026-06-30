@@ -23,6 +23,8 @@ const baseLine: CallLineCardViewModel = {
   queueName: null,
   primaryAction: "hangup",
   showIconRow: true,
+  showLocalHoldBadge: false,
+  showRemoteHoldBadge: false,
   resumeDisabledReason: null,
   hangupDisabledReason: null,
   holdDisabledReason: null,
@@ -65,6 +67,8 @@ describe("CallLineRow", () => {
           statusLabel: "On hold",
           primaryAction: "resume",
           showIconRow: false,
+          showLocalHoldBadge: true,
+          showRemoteHoldBadge: false,
           isActiveUnheld: false,
         }}
         lastOperationError={null}

@@ -30,7 +30,9 @@ export function CallSessionCard({
 }: CallSessionCardProps): JSX.Element {
   const duration = useCallDuration(line.durationStartedAt);
   const queueLabel = mapQueueLabelState(line.queueLabelState, line.queueName);
-  const isHeld = line.state === "Held";
+  const isLocallyHeld = line.showLocalHoldBadge;
+  const isRemoteHeld = line.showRemoteHoldBadge;
+  const isHeld = isLocallyHeld;
   const isRinging = line.state === "Ringing" || line.state === "Connecting";
   const isFailed = line.state === "Failed";
   const directionIconId = resolveDirectionIconId(line);
@@ -52,11 +54,7 @@ export function CallSessionCard({
           showSelectedChrome && styles["compactSelected"],
         )}
         data-testid={`call-session-card-${line.callId}`}
-        aria-label={
-          isHeld
-            ? `Выбрать звонок ${line.displayName}, на удержании`
-            : `Выбрать звонок ${line.displayName}`
-        }
+        aria-label={buildCompactAriaLabel(line)}
         aria-selected={showSelectedChrome ? true : undefined}
         onClick={onClick}
       >
@@ -87,6 +85,15 @@ export function CallSessionCard({
           </span>
         </span>
         <span className={styles["compactAside"]}>
+          {isRemoteHeld ? (
+            <span
+              className={styles["compactRemoteHold"]}
+              data-testid={`call-session-remote-hold-${line.callId}`}
+            >
+              <AppIcon id="call.hold" size={10} decorative />
+              Удержание (удал.)
+            </span>
+          ) : null}
           {duration.length > 0 ? (
             <span
               className={styles["duration"]}
@@ -167,10 +174,19 @@ export function CallSessionCard({
               Микрофон выкл
             </span>
           ) : null}
-          {isHeld ? (
+          {isLocallyHeld ? (
             <span className={styles["holdBadge"]}>
               <AppIcon id="call.hold" size={10} decorative />
               Удержание
+            </span>
+          ) : null}
+          {isRemoteHeld ? (
+            <span
+              className={styles["remoteHoldBadge"]}
+              data-testid={`call-session-remote-hold-${line.callId}`}
+            >
+              <AppIcon id="call.hold" size={10} decorative />
+              Удержание (удал.)
             </span>
           ) : null}
         </span>
@@ -212,4 +228,18 @@ function resolveDirectionIconId(line: CallLineCardViewModel): IconSemanticId {
     return "call.incoming";
   }
   return "call.outgoing";
+}
+
+function buildCompactAriaLabel(line: CallLineCardViewModel): string {
+  const base = `Выбрать звонок ${line.displayName}`;
+  if (line.showLocalHoldBadge && line.showRemoteHoldBadge) {
+    return `${base}, на удержании, собеседник на удержании`;
+  }
+  if (line.showLocalHoldBadge) {
+    return `${base}, на удержании`;
+  }
+  if (line.showRemoteHoldBadge) {
+    return `${base}, собеседник на удержании`;
+  }
+  return base;
 }

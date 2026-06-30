@@ -12,6 +12,8 @@ import type {
   SendDtmfCommand,
   TelephonyCallEndedNotification,
   TelephonyCallAnsweredNotification,
+  TelephonyRemoteHoldNotification,
+  TelephonyRemoteResumeNotification,
   TelephonyGateway,
   TelephonyIncomingCallNotification,
   TelephonyTransportDisconnectedNotification,
@@ -47,6 +49,7 @@ const FEATURE_ID_REGISTRATION = "F-001";
 const FEATURE_ID_INCOMING = "F-002";
 const FEATURE_ID_OUTGOING = "F-003";
 const FEATURE_ID_HOLD = "F-004";
+const FEATURE_ID_REMOTE_HOLD = "F-004";
 const FEATURE_ID_BLIND_TRANSFER = "F-006";
 const FEATURE_ID_ATTENDED_TRANSFER = "F-007";
 const FEATURE_ID_DTMF = "F-008";
@@ -93,6 +96,12 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     | null = null;
   private callAnsweredHandler:
     | ((notification: TelephonyCallAnsweredNotification) => Promise<void>)
+    | null = null;
+  private remoteHoldHandler:
+    | ((notification: TelephonyRemoteHoldNotification) => Promise<void>)
+    | null = null;
+  private remoteResumeHandler:
+    | ((notification: TelephonyRemoteResumeNotification) => Promise<void>)
     | null = null;
   private peerConnectionBoundHandler:
     | ((notification: TelephonyPeerConnectionBoundNotification) => Promise<void>)
@@ -801,6 +810,24 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     };
   }
 
+  setRemoteHoldHandler(
+    handler: ((notification: TelephonyRemoteHoldNotification) => Promise<void>) | null,
+  ): () => void {
+    this.remoteHoldHandler = handler;
+    return () => {
+      this.remoteHoldHandler = null;
+    };
+  }
+
+  setRemoteResumeHandler(
+    handler: ((notification: TelephonyRemoteResumeNotification) => Promise<void>) | null,
+  ): () => void {
+    this.remoteResumeHandler = handler;
+    return () => {
+      this.remoteResumeHandler = null;
+    };
+  }
+
   setPeerConnectionBoundHandler(
     handler: ((notification: TelephonyPeerConnectionBoundNotification) => Promise<void>) | null,
   ): () => void {
@@ -907,6 +934,12 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       },
       onSessionEnded: (endedCallId, endedCorrelationId) => {
         void this.handleSessionEnded(endedCallId, endedCorrelationId);
+      },
+      onRemoteHold: (heldCallId, heldCorrelationId) => {
+        void this.handleRemoteHold(heldCallId, heldCorrelationId);
+      },
+      onRemoteResume: (resumedCallId, resumedCorrelationId) => {
+        void this.handleRemoteResume(resumedCallId, resumedCorrelationId);
       },
       ...(options?.notifyOnConfirmed === true
         ? {
@@ -1022,6 +1055,44 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     });
 
     await this.callEndedHandler({ callId, correlationId });
+  }
+
+  private async handleRemoteHold(
+    callId: CallId,
+    correlationId: CorrelationId,
+  ): Promise<void> {
+    if (this.remoteHoldHandler === null) {
+      return;
+    }
+
+    this.logger.info("jssip_remote_hold_received", {
+      correlationId,
+      featureId: FEATURE_ID_REMOTE_HOLD,
+      boundedContext: "Telephony",
+      operation: "jssip_remote_hold",
+      callId,
+    });
+
+    await this.remoteHoldHandler({ callId, correlationId });
+  }
+
+  private async handleRemoteResume(
+    callId: CallId,
+    correlationId: CorrelationId,
+  ): Promise<void> {
+    if (this.remoteResumeHandler === null) {
+      return;
+    }
+
+    this.logger.info("jssip_remote_resume_received", {
+      correlationId,
+      featureId: FEATURE_ID_REMOTE_HOLD,
+      boundedContext: "Telephony",
+      operation: "jssip_remote_resume",
+      callId,
+    });
+
+    await this.remoteResumeHandler({ callId, correlationId });
   }
 
   private async handleTransportDisconnected(event: JsSipDisconnectEvent): Promise<void> {

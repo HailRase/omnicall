@@ -393,4 +393,39 @@ describe("multiLineCallProjection", () => {
     expect(line?.displayLabel).toBe("Иван Петров");
     expect(line?.remoteNumber).toBe("+12025550199");
   });
+
+  it("sets and clears remote hold flag from domain events", () => {
+    const correlationId = createCorrelationId();
+    const occurredAt = new Date().toISOString();
+    let projection = reduceMultiLineCallProjection(initialMultiLineCallProjection(), {
+      type: "OutgoingCallRequested",
+      correlationId,
+      occurredAt,
+      callId: "call-1",
+      phoneNumber: "+12025550100",
+    });
+    projection = reduceMultiLineCallProjection(projection, {
+      type: "CallAnswered",
+      correlationId,
+      occurredAt,
+      callId: "call-1",
+    });
+    projection = reduceMultiLineCallProjection(projection, {
+      type: "CallRemoteHeld",
+      correlationId,
+      occurredAt,
+      callId: "call-1",
+    });
+
+    expect(projection.lines[0]?.isRemoteHold).toBe(true);
+
+    projection = reduceMultiLineCallProjection(projection, {
+      type: "CallRemoteResumed",
+      correlationId,
+      occurredAt,
+      callId: "call-1",
+    });
+
+    expect(projection.lines[0]?.isRemoteHold).toBe(false);
+  });
 });

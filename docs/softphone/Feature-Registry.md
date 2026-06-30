@@ -169,6 +169,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - UI does not inspect raw SIP session state.
   - **WU6 (done):** exclusive resume (LF-023); hangup Active does not auto-resume Held (D1 — no auto-resume code path); per-call mute on `CallLine` / `multiLineCallProjection`; per-line resume/hangup — `deriveCallLinesShell.ts`, `CallLinesShell.tsx`.
   - **WU2 (done):** operator controls on `CallLineRow` in ContextZone (hold/mute/transfer/hangup/resume); human status via `deriveCallLineStatusLabel`; single-line visibility `lines.length >= 1`.
+  - **Remote hold (done):** `CallRemoteHeld` / `CallRemoteResumed` projection flag `isRemoteHold`; call card badge «Удержание (удал.)» without held chrome; dual local+remote shows both badges.
 - Test Coverage:
   - Unit: state machine valid/invalid transitions + use case command tests (including `ActiveCallControlFailed` on gateway failure)
   - Integration: mock telephony hold/resume/hangup success and failure paths

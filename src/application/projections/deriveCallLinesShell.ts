@@ -29,6 +29,8 @@ export type CallLineCardViewModel = Readonly<{
   queueName: string | null;
   primaryAction: CallLinePrimaryAction;
   showIconRow: boolean;
+  showLocalHoldBadge: boolean;
+  showRemoteHoldBadge: boolean;
   resumeDisabledReason: string | null;
   hangupDisabledReason: ActiveControlDisabledReason | null;
   holdDisabledReason: ActiveControlDisabledReason | null;
@@ -139,13 +141,14 @@ function mapLineToViewModel(input: Readonly<{
     displayName: line.displayLabel ?? "Unknown",
     statusLabel: deriveCallLineStatusLabel({
       state: line.state,
-      isRemoteHold: line.isRemoteHold,
     }),
     durationStartedAt: line.activeSinceMs,
     queueLabelState,
     queueName: getQueueNameForCall(input.queueInfoProjection, line.callId),
     primaryAction,
     showIconRow,
+    showLocalHoldBadge: line.state === "Held",
+    showRemoteHoldBadge: line.isRemoteHold,
     resumeDisabledReason,
     hangupDisabledReason,
     holdDisabledReason: lineControls.holdDisabledReason,

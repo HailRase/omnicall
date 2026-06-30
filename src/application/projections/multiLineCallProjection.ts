@@ -123,6 +123,10 @@ export function reduceMultiLineCallProjection(
       return updateLineState(projection, asRequiredString(event["callId"]), "Held");
     case "CallResumed":
       return updateLineState(projection, asRequiredString(event["callId"]), "Active");
+    case "CallRemoteHeld":
+      return setLineRemoteHold(projection, asRequiredString(event["callId"]), true);
+    case "CallRemoteResumed":
+      return setLineRemoteHold(projection, asRequiredString(event["callId"]), false);
     case "CallMuted":
       return setLineMuted(projection, asRequiredString(event["callId"]), true);
     case "CallUnmuted":
@@ -385,6 +389,17 @@ function setLineMuted(
 ): MultiLineCallProjection {
   const lines = projection.lines.map((line) =>
     line.callId === callId ? { ...line, muted } : line,
+  );
+  return { ...projection, lines };
+}
+
+function setLineRemoteHold(
+  projection: MultiLineCallProjection,
+  callId: string,
+  isRemoteHold: boolean,
+): MultiLineCallProjection {
+  const lines = projection.lines.map((line) =>
+    line.callId === callId ? { ...line, isRemoteHold } : line,
   );
   return { ...projection, lines };
 }

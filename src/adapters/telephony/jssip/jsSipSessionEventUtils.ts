@@ -37,3 +37,11 @@ export function formatSessionFailure(event: unknown): string {
 
   return "call_failed";
 }
+
+export function isRemoteOriginatedSessionEvent(event: unknown): boolean {
+  if (typeof event !== "object" || event === null) {
+    return false;
+  }
+
+  return (event as { originator?: unknown }).originator === "remote";
+}

@@ -3,7 +3,7 @@ import type { Logger } from "@ports/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 
 import type { JsSipRtcSessionPort } from "./JsSipRtcSessionPort.js";
-import { extractPeerConnection } from "./jsSipSessionEventUtils.js";
+import { extractPeerConnection, isRemoteOriginatedSessionEvent } from "./jsSipSessionEventUtils.js";
 
 export type WireJsSipRtcSessionLifecycleOptions = Readonly<{
   callId: CallId;
@@ -14,6 +14,8 @@ export type WireJsSipRtcSessionLifecycleOptions = Readonly<{
   onPeerConnection: (callId: CallId, connection: unknown) => void;
   onSessionEnded: (callId: CallId, correlationId: CorrelationId) => void;
   onSessionConfirmed?: (callId: CallId, correlationId: CorrelationId) => void;
+  onRemoteHold?: (callId: CallId, correlationId: CorrelationId) => void;
+  onRemoteResume?: (callId: CallId, correlationId: CorrelationId) => void;
 }>;
 
 /**
@@ -33,6 +35,8 @@ export function wireJsSipRtcSessionLifecycle(
     onPeerConnection,
     onSessionEnded,
     onSessionConfirmed,
+    onRemoteHold,
+    onRemoteResume,
   } = options;
 
   let ended = false;
@@ -72,7 +76,23 @@ export function wireJsSipRtcSessionLifecycle(
     session.off("confirmed", handleSessionAnswered);
     session.off("ended", handleEnded);
     session.off("failed", handleFailed);
+    session.off("hold", handleHold);
+    session.off("unhold", handleUnhold);
     onSessionEnded(callId, correlationId);
+  };
+
+  const handleHold = (...args: unknown[]): void => {
+    if (onRemoteHold === undefined || !isRemoteOriginatedSessionEvent(args[0])) {
+      return;
+    }
+    onRemoteHold(callId, correlationId);
+  };
+
+  const handleUnhold = (...args: unknown[]): void => {
+    if (onRemoteResume === undefined || !isRemoteOriginatedSessionEvent(args[0])) {
+      return;
+    }
+    onRemoteResume(callId, correlationId);
   };
 
   const handleEnded = (): void => {
@@ -90,6 +110,12 @@ export function wireJsSipRtcSessionLifecycle(
   }
   session.on("ended", handleEnded);
   session.on("failed", handleFailed);
+  if (onRemoteHold !== undefined) {
+    session.on("hold", handleHold);
+  }
+  if (onRemoteResume !== undefined) {
+    session.on("unhold", handleUnhold);
+  }
 
   const existingConnection = session.getConnection();
   if (existingConnection !== null) {

@@ -2,7 +2,6 @@ import type { CallState } from "@domain/index.js";
 
 export type CallLineStatusInput = Readonly<{
   state: CallState | "Idle";
-  isRemoteHold?: boolean;
 }>;
 
 /**
@@ -11,10 +10,6 @@ export type CallLineStatusInput = Readonly<{
  * - Outputs: operator-facing status label string.
  */
 export function deriveCallLineStatusLabel(input: CallLineStatusInput): string {
-  if (input.isRemoteHold === true) {
-    return "На удалённом удержании";
-  }
-
   switch (input.state) {
     case "Connecting":
       return "Соединение";

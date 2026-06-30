@@ -62,6 +62,16 @@ export type TelephonyCallAnsweredNotification = Readonly<{
   correlationId: CorrelationId;
 }>;
 
+export type TelephonyRemoteHoldNotification = Readonly<{
+  callId: CallId;
+  correlationId: CorrelationId;
+}>;
+
+export type TelephonyRemoteResumeNotification = Readonly<{
+  callId: CallId;
+  correlationId: CorrelationId;
+}>;
+
 export type TelephonyTransportDisconnectedNotification = Readonly<{
   correlationId: CorrelationId;
   reason: string;
@@ -121,6 +131,14 @@ export interface TelephonyGateway {
   /** Outbound: adapter invokes when JsSIP session confirms after async progress. */
   setCallAnsweredHandler(
     handler: ((notification: TelephonyCallAnsweredNotification) => Promise<void>) | null,
+  ): () => void;
+  /** Adapter invokes when remote party puts this leg on hold (LF-022). */
+  setRemoteHoldHandler(
+    handler: ((notification: TelephonyRemoteHoldNotification) => Promise<void>) | null,
+  ): () => void;
+  /** Adapter invokes when remote party resumes this leg from hold (LF-022). */
+  setRemoteResumeHandler(
+    handler: ((notification: TelephonyRemoteResumeNotification) => Promise<void>) | null,
   ): () => void;
   /** WU2: adapter invokes on SIP transport disconnect (LF-008). */
   setTransportDisconnectedHandler(

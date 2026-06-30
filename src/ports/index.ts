@@ -53,6 +53,8 @@ export type {
   AttendedTransferCommand,
   TelephonyCallEndedNotification,
   TelephonyCallAnsweredNotification,
+  TelephonyRemoteHoldNotification,
+  TelephonyRemoteResumeNotification,
   TelephonyIncomingCallNotification,
   TelephonyTransportDisconnectedNotification,
   TelephonyRegistrationFailedNotification,

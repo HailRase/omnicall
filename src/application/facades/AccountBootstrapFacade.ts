@@ -310,6 +310,14 @@ export class AccountBootstrapFacade {
         notification.correlationId,
       );
     });
+    deps.telephonyGateway.setRemoteHoldHandler((notification) => {
+      this.callEngine.handleRemoteHold(notification.callId, notification.correlationId);
+      return Promise.resolve();
+    });
+    deps.telephonyGateway.setRemoteResumeHandler((notification) => {
+      this.callEngine.handleRemoteResume(notification.callId, notification.correlationId);
+      return Promise.resolve();
+    });
 
     this.connectionRecoveryOrchestration = new ConnectionRecoveryOrchestrationService({
       telephonyGateway: deps.telephonyGateway,

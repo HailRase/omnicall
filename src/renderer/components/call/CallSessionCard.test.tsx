@@ -23,6 +23,8 @@ const line: CallLineCardViewModel = {
   queueName: "Продажи",
   primaryAction: "hangup",
   showIconRow: true,
+  showLocalHoldBadge: false,
+  showRemoteHoldBadge: false,
   resumeDisabledReason: null,
   hangupDisabledReason: null,
   holdDisabledReason: null,
@@ -89,6 +91,7 @@ describe("CallSessionCard", () => {
           state: "Held",
           isActiveUnheld: false,
           statusLabel: "На удержании",
+          showLocalHoldBadge: true,
           muted: false,
         }}
         compact
@@ -111,6 +114,7 @@ describe("CallSessionCard", () => {
           state: "Held",
           isActiveUnheld: false,
           statusLabel: "На удержании",
+          showLocalHoldBadge: true,
           muted: false,
         }}
         compact
@@ -123,5 +127,44 @@ describe("CallSessionCard", () => {
       "На удержании · выбран",
     );
     expect(screen.getByRole("button")).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("renders remote hold badge without held card styling", () => {
+    render(
+      <CallSessionCard
+        line={{
+          ...line,
+          muted: false,
+          showRemoteHoldBadge: true,
+        }}
+        isActive
+      />,
+    );
+
+    expect(screen.getByTestId("call-session-status-call-1")).toHaveTextContent("На линии");
+    expect(screen.getByTestId("call-session-remote-hold-call-1")).toHaveTextContent(
+      "Удержание (удал.)",
+    );
+    expect(screen.getByTestId("call-session-card-call-1").className).not.toMatch(/cardHeld/);
+  });
+
+  it("renders both hold badges when local and remote hold are active", () => {
+    render(
+      <CallSessionCard
+        line={{
+          ...line,
+          state: "Held",
+          isActiveUnheld: false,
+          statusLabel: "На удержании",
+          showLocalHoldBadge: true,
+          showRemoteHoldBadge: true,
+          muted: false,
+        }}
+        isActive
+      />,
+    );
+
+    expect(screen.getByText("Удержание")).toBeInTheDocument();
+    expect(screen.getByText("Удержание (удал.)")).toBeInTheDocument();
   });
 });

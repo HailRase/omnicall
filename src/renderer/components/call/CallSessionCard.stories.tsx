@@ -35,6 +35,8 @@ const baseLine: CallLineCardViewModel = {
   queueName: "Продажи",
   primaryAction: "hangup",
   showIconRow: true,
+  showLocalHoldBadge: false,
+  showRemoteHoldBadge: false,
   resumeDisabledReason: null,
   hangupDisabledReason: null,
   holdDisabledReason: null,

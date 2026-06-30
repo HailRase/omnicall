@@ -11,6 +11,8 @@ import type {
   SendDtmfCommand,
   TelephonyCallEndedNotification,
   TelephonyCallAnsweredNotification,
+  TelephonyRemoteHoldNotification,
+  TelephonyRemoteResumeNotification,
   TelephonyIncomingCallNotification,
   TelephonyRegistrationFailedNotification,
   TelephonyTransportDisconnectedNotification,
@@ -98,6 +100,12 @@ export class MockTelephonyGateway implements TelephonyGateway {
     | null = null;
   private callAnsweredHandler:
     | ((notification: TelephonyCallAnsweredNotification) => Promise<void>)
+    | null = null;
+  private remoteHoldHandler:
+    | ((notification: TelephonyRemoteHoldNotification) => Promise<void>)
+    | null = null;
+  private remoteResumeHandler:
+    | ((notification: TelephonyRemoteResumeNotification) => Promise<void>)
     | null = null;
   private transportDisconnectedHandler:
     | ((notification: TelephonyTransportDisconnectedNotification) => Promise<void>)
@@ -524,6 +532,24 @@ export class MockTelephonyGateway implements TelephonyGateway {
     };
   }
 
+  setRemoteHoldHandler(
+    handler: ((notification: TelephonyRemoteHoldNotification) => Promise<void>) | null,
+  ): () => void {
+    this.remoteHoldHandler = handler;
+    return () => {
+      this.remoteHoldHandler = null;
+    };
+  }
+
+  setRemoteResumeHandler(
+    handler: ((notification: TelephonyRemoteResumeNotification) => Promise<void>) | null,
+  ): () => void {
+    this.remoteResumeHandler = handler;
+    return () => {
+      this.remoteResumeHandler = null;
+    };
+  }
+
   /** P08 WU2: simulate SIP transport disconnect for integration tests. */
   setTransportDisconnectedHandler(
     handler: ((notification: TelephonyTransportDisconnectedNotification) => Promise<void>) | null,
@@ -578,6 +604,18 @@ export class MockTelephonyGateway implements TelephonyGateway {
   ): Promise<void> {
     if (this.callAnsweredHandler !== null) {
       await this.callAnsweredHandler(notification);
+    }
+  }
+
+  async simulateRemoteHold(notification: TelephonyRemoteHoldNotification): Promise<void> {
+    if (this.remoteHoldHandler !== null) {
+      await this.remoteHoldHandler(notification);
+    }
+  }
+
+  async simulateRemoteResume(notification: TelephonyRemoteResumeNotification): Promise<void> {
+    if (this.remoteResumeHandler !== null) {
+      await this.remoteResumeHandler(notification);
     }
   }
 }

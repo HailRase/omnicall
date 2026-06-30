@@ -20,6 +20,8 @@ const activeLine: CallLineCardViewModel = {
   queueName: null,
   primaryAction: "hangup",
   showIconRow: true,
+  showLocalHoldBadge: false,
+  showRemoteHoldBadge: false,
   resumeDisabledReason: null,
   hangupDisabledReason: null,
   holdDisabledReason: null,

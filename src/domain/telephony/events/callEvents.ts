@@ -47,6 +47,8 @@ export type CallHangupRequestedEvent = ReturnType<
 export type CallEndedEvent = ReturnType<typeof createCallEndedEvent>;
 export type CallHeldEvent = ReturnType<typeof createCallHeldEvent>;
 export type CallResumedEvent = ReturnType<typeof createCallResumedEvent>;
+export type CallRemoteHeldEvent = ReturnType<typeof createCallRemoteHeldEvent>;
+export type CallRemoteResumedEvent = ReturnType<typeof createCallRemoteResumedEvent>;
 export type CallMutedEvent = ReturnType<typeof createCallMutedEvent>;
 export type CallUnmutedEvent = ReturnType<typeof createCallUnmutedEvent>;
 export type ActiveCallControlOperation =
@@ -131,6 +133,8 @@ export type OutgoingCallDomainEvent =
   | CallEndedEvent
   | CallHeldEvent
   | CallResumedEvent
+  | CallRemoteHeldEvent
+  | CallRemoteResumedEvent
   | CallMutedEvent
   | CallUnmutedEvent
   | ActiveCallControlFailedEvent
@@ -173,6 +177,8 @@ export type IncomingCallDomainEvent =
   | CallEndedEvent
   | CallHeldEvent
   | CallResumedEvent
+  | CallRemoteHeldEvent
+  | CallRemoteResumedEvent
   | CallMutedEvent
   | CallUnmutedEvent
   | ActiveCallControlFailedEvent
@@ -367,6 +373,24 @@ export function createCallResumedEvent(
   }>,
 ): ReturnType<typeof createDomainEvent<"CallResumed", typeof payload>> {
   return createDomainEvent("CallResumed", correlationId, payload);
+}
+
+export function createCallRemoteHeldEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    callId: CallId;
+  }>,
+): ReturnType<typeof createDomainEvent<"CallRemoteHeld", typeof payload>> {
+  return createDomainEvent("CallRemoteHeld", correlationId, payload);
+}
+
+export function createCallRemoteResumedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{
+    callId: CallId;
+  }>,
+): ReturnType<typeof createDomainEvent<"CallRemoteResumed", typeof payload>> {
+  return createDomainEvent("CallRemoteResumed", correlationId, payload);
 }
 
 export function createCallMutedEvent(

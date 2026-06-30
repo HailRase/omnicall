@@ -31,6 +31,8 @@ export function deriveIncomingCallControlLine(
     queueName: null,
     primaryAction: "answer",
     showIconRow: false,
+    showLocalHoldBadge: false,
+    showRemoteHoldBadge: false,
     resumeDisabledReason: null,
     hangupDisabledReason:
       projection.uiState === "rejecting" || projection.uiState === "answering"

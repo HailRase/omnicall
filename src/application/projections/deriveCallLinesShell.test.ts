@@ -60,6 +60,62 @@ describe("deriveCallLinesShell", () => {
     expect(shell.lines[0]?.statusLabel).toBe("На линии");
     expect(shell.lines[0]?.primaryAction).toBe("hangup");
     expect(shell.lines[0]?.showIconRow).toBe(true);
+    expect(shell.lines[0]?.showRemoteHoldBadge).toBe(false);
+  });
+
+  it("exposes remote hold badge without changing status label", () => {
+    const shell = deriveCallLinesShell({
+      multiLineCallProjection: {
+        lines: [
+          createLine({ callId: "call-1", state: "Active", isRemoteHold: true, activeSinceMs: 1_000 }),
+        ],
+        primaryCallId: "call-1",
+        consultationCallId: null,
+        sourceCallId: null,
+        attendedPhase: "idle",
+        lastFailureReason: null,
+      },
+      multiCallProjection: {
+        ...initialMultiCallProjection(),
+        hasEstablishedCall: true,
+        establishedCallCount: 1,
+        activeUnheldCallId: "call-1",
+      },
+      queueInfoProjection: initialQueueInfoProjection(),
+      activeCallControlsProjection: createActiveCallControlsProjection({
+        callId: "call-1",
+        callState: "Active",
+        muted: false,
+      }),
+      transferProjection: initialTransferProjection(),
+      isOcpMode: false,
+    });
+
+    expect(shell.lines[0]?.statusLabel).toBe("На линии");
+    expect(shell.lines[0]?.showRemoteHoldBadge).toBe(true);
+    expect(shell.lines[0]?.showLocalHoldBadge).toBe(false);
+  });
+
+  it("exposes both hold badges when local and remote hold are active", () => {
+    const shell = deriveCallLinesShell({
+      multiLineCallProjection: {
+        lines: [createLine({ callId: "call-1", state: "Held", isRemoteHold: true })],
+        primaryCallId: "call-1",
+        consultationCallId: null,
+        sourceCallId: null,
+        attendedPhase: "idle",
+        lastFailureReason: null,
+      },
+      multiCallProjection: initialMultiCallProjection(),
+      queueInfoProjection: initialQueueInfoProjection(),
+      activeCallControlsProjection: initialActiveCallControlsProjection(),
+      transferProjection: initialTransferProjection(),
+      isOcpMode: false,
+    });
+
+    expect(shell.lines[0]?.statusLabel).toBe("На удержании");
+    expect(shell.lines[0]?.showLocalHoldBadge).toBe(true);
+    expect(shell.lines[0]?.showRemoteHoldBadge).toBe(true);
   });
 
   it("requires two lines only for multi-line policy banner, not visibility", () => {
