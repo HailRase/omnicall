@@ -24,6 +24,8 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
     inputDisabledReason,
     callActions,
     callLinesActions,
+    incomingCallActions,
+    isIncomingSelected,
     handleTransferLine,
     setCallMode,
     setDialedNumber,
@@ -44,6 +46,20 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
     bindings.transferSuccessCelebration.visible ||
     numberEntryOverlayOpen;
 
+  const controlTargetCallId = controlTargetLine?.callId ?? null;
+  const scopedLastOperationError =
+    activeCallControlsProjection.callId === controlTargetCallId
+      ? activeCallControlsProjection.lastOperationError
+      : null;
+
+  const handleHangup = (callId: string): void => {
+    if (isIncomingSelected) {
+      incomingCallActions.handleRejectIncoming();
+      return;
+    }
+    callLinesActions.handleHangupLine(callId);
+  };
+
   const showDialpad =
     (numberEntryOverlayOpen || !hasCallInProgress) && !bindings.transferSuccessCelebration.visible;
 
@@ -52,13 +68,13 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
       {!hideCallControls ? (
         <CallControlsBar
           line={controlTargetLine}
-          lastOperationError={activeCallControlsProjection.lastOperationError}
+          lastOperationError={scopedLastOperationError}
           registrationDisabledReason={inputDisabledReason}
           onHold={callLinesActions.handleHoldLine}
           onResume={callLinesActions.handleResumeLine}
           onMute={callLinesActions.handleMuteLine}
           onUnmute={callLinesActions.handleUnmuteLine}
-          onHangup={callLinesActions.handleHangupLine}
+          onHangup={handleHangup}
           onTransfer={handleTransferLine}
           onShowDtmf={() => {
             setCallMode("dtmf", controlTargetLine?.callId ?? null);

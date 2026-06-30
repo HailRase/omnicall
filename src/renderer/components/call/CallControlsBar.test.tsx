@@ -115,6 +115,39 @@ describe("CallControlsBar", () => {
     expect(screen.queryByText("Удержание доступно только на активном звонке")).not.toBeInTheDocument();
   });
 
+  it("keeps all controls visible but disables hold, transfer, and dial while ringing incoming", () => {
+    const ringingLine: CallLineCardViewModel = {
+      ...activeLine,
+      state: "Ringing",
+      isActiveUnheld: false,
+      statusLabel: "Звонок",
+      primaryAction: "answer",
+      holdDisabledReason: "hold_requires_active",
+      muteDisabledReason: "mute_requires_active_or_held",
+    };
+    render(
+      <CallControlsBar
+        line={ringingLine}
+        lastOperationError={null}
+        onHold={vi.fn()}
+        onResume={vi.fn()}
+        onMute={vi.fn()}
+        onUnmute={vi.fn()}
+        onHangup={vi.fn()}
+        onTransfer={vi.fn()}
+        onShowDtmf={vi.fn()}
+        onShowNumberEntry={vi.fn()}
+        onRetryOperation={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("control-mute-line-call-1")).toBeDisabled();
+    expect(screen.getByTestId("control-hangup-line-call-1")).toBeEnabled();
+    expect(screen.getByTestId("control-hold-line-call-1")).toBeDisabled();
+    expect(screen.getByTestId("control-transfer-line-call-1")).toBeDisabled();
+    expect(screen.getByTestId("control-show-number-entry")).toBeDisabled();
+  });
+
   it("invokes DTMF callback", () => {
     const onShowDtmf = vi.fn();
     render(

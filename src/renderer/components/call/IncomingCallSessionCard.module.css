@@ -1,0 +1,214 @@
+.card {
+  margin: 0 var(--space-2xs);
+  border: 1px solid var(--color-border-success);
+  border-radius: var(--radius-panel);
+  background: var(--color-bg-success);
+  overflow: hidden;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.cardSelected {
+  border-color: var(--color-border-focus);
+  box-shadow: inset 3px 0 0 var(--color-text-success);
+}
+
+.selectArea {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  width: 100%;
+  padding: var(--space-sm);
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.selectArea:hover {
+  background: rgb(27 127 74 / 6%);
+}
+
+[data-theme="dark"] .selectArea:hover {
+  background: rgb(184 240 200 / 6%);
+}
+
+.selectArea:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: -2px;
+}
+
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: var(--radius-full);
+  background: rgb(27 127 74 / 12%);
+  color: var(--color-text-success);
+  flex-shrink: 0;
+}
+
+[data-theme="dark"] .avatar {
+  background: rgb(184 240 200 / 12%);
+}
+
+.identity {
+  flex: 1;
+  min-width: 0;
+}
+
+.number {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.displayName {
+  margin: 2px 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  margin-top: var(--space-2xs);
+}
+
+.pulse {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--color-text-success);
+  animation: incomingPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes incomingPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse {
+    animation: none;
+  }
+}
+
+.status {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-success);
+}
+
+.autoAnswerHint {
+  margin: var(--space-2xs) 0 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs);
+  padding: 0 var(--space-sm) var(--space-2xs);
+}
+
+.badgeQueue,
+.badgeCampaign {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px var(--space-2xs);
+  border-radius: var(--radius-control);
+  font-size: 0.625rem;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-surface-alt);
+}
+
+.disabledReason {
+  margin: 0;
+  padding: 0 var(--space-sm) var(--space-2xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+.autoAnswerTrack {
+  height: 2px;
+  background: rgb(27 127 74 / 15%);
+}
+
+[data-theme="dark"] .autoAnswerTrack {
+  background: rgb(184 240 200 / 15%);
+}
+
+.autoAnswerFill {
+  height: 100%;
+  background: var(--color-text-success);
+  transition: width 1s linear;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-xs);
+  padding: 0 var(--space-sm) var(--space-sm);
+}
+
+.rejectButton,
+.answerButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2xs);
+  min-height: 2rem;
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: var(--radius-control);
+  border: none;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: #ffffff;
+  cursor: pointer;
+  transition: opacity 140ms ease;
+}
+
+.rejectButton {
+  background: var(--color-status-failed);
+}
+
+.answerButton {
+  background: var(--color-status-online);
+}
+
+.rejectButton:hover:not(:disabled),
+.answerButton:hover:not(:disabled) {
+  opacity: 0.82;
+}
+
+.rejectButton:disabled,
+.answerButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.buttonIcon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: inherit;
+}

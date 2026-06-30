@@ -60,6 +60,9 @@ export function reduceActiveCallControlsProjection(
         muted: false,
       });
     case "IncomingCallReceived":
+      if (hasOngoingCallControls(projection)) {
+        return projection;
+      }
       return createActiveCallControlsProjection({
         callId: asOptionalString(event["callId"]),
         callState: "Ringing",
@@ -332,6 +335,20 @@ function parseRestoredSourceState(value: unknown): CallState {
     return value;
   }
   return "Active";
+}
+
+function hasOngoingCallControls(
+  projection: ActiveCallControlsProjection,
+): boolean {
+  if (projection.callId === null) {
+    return false;
+  }
+  return (
+    projection.callState === "Active" ||
+    projection.callState === "Held" ||
+    projection.callState === "Connecting" ||
+    projection.callState === "Transferring"
+  );
 }
 
 function asOptionalString(value: unknown): string | null {

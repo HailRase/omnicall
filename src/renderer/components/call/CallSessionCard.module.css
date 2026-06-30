@@ -7,6 +7,32 @@
   gap: var(--space-xs);
 }
 
+.cardSelectable {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.cardSelectable:hover {
+  border-color: var(--color-border-control);
+}
+
+.cardSelected {
+  border-color: var(--color-border-focus);
+  box-shadow: inset 3px 0 0 var(--color-accent-primary);
+}
+
+.cardHeld.cardSelected {
+  border-color: var(--color-border-focus);
+  background: rgb(245 158 11 / 8%);
+}
+
 .cardActive {
   background: var(--color-bg-surface-alt);
 }

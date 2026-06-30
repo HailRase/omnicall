@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { CallLineCardViewModel } from "@application/index.js";
 import { CallSessionCard } from "./CallSessionCard.js";
@@ -32,6 +32,46 @@ const line: CallLineCardViewModel = {
 };
 
 describe("CallSessionCard", () => {
+  it("marks selected full card with accent border when selection chrome is enabled", () => {
+    const onClick = vi.fn();
+    render(
+      <CallSessionCard
+        line={line}
+        isActive
+        showSelectionChrome
+        onClick={onClick}
+      />,
+    );
+
+    const card = screen.getByRole("button", { name: "Выбрать звонок +12025550100" });
+    expect(card.className).toMatch(/cardSelected/);
+    expect(card).toHaveAttribute("aria-selected", "true");
+  });
+
+  it("omits selection chrome for lone full card without competing sessions", () => {
+    render(<CallSessionCard line={line} isActive />);
+
+    const card = screen.getByTestId("call-session-card-call-1");
+    expect(card.tagName).toBe("ARTICLE");
+    expect(card.className).not.toMatch(/cardSelected/);
+  });
+
+  it("invokes onClick for selectable full card", () => {
+    const onClick = vi.fn();
+    render(
+      <CallSessionCard
+        line={line}
+        isActive
+        showSelectionChrome
+        onClick={onClick}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Выбрать звонок +12025550100" }));
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button")).toHaveAttribute("aria-selected", "true");
+  });
+
   it("renders full card with status and mute badge", () => {
     render(<CallSessionCard line={line} isActive />);
 

@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { IncomingCallSessionCard } from "../../components/call/IncomingCallSessionCard.js";
 import { MultiCallHoldAllIndicator } from "../../components/call/MultiCallHoldAllIndicator.js";
 import { CallIdleEmptyState } from "../../components/call/CallIdleEmptyState.js";
 import { DtmfKeypadPanel } from "../../components/call/DtmfKeypadPanel.js";
@@ -26,6 +27,11 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
     multiCallProjection,
     multiLineCallProjection,
     callLinesShell,
+    nonIncomingLinesShell,
+    incomingCallProjection,
+    incomingCallActions,
+    incomingCallShell,
+    campaignActions,
     dialpadMode,
     transferPanelShell,
     transferActions,
@@ -33,6 +39,9 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
     setCallMode,
     controlTargetLine,
     selectCallLine,
+    selectIncomingCall,
+    incomingCallId,
+    isIncomingSelected,
   } = bindings;
 
   const controlTargetCallId = controlTargetLine?.callId ?? null;
@@ -54,16 +63,20 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
       (line) => line.callId === callProjection.dtmfPanelCallId,
     ) ?? null;
 
+  const showIncomingCard = incomingCallId !== null;
+  const singleNonIncomingLine =
+    nonIncomingLinesShell.lines.length === 1
+      ? (nonIncomingLinesShell.lines[0] ?? null)
+      : null;
+
   const showIdleState =
     !isTransferMode &&
     !isTransferSuccessCelebration &&
     !isDtmfMode &&
     !isNumberEntryOverlay &&
     !showOutgoingCard &&
-    !callLinesShell.visible;
-
-  const singleLine =
-    callLinesShell.lines.length === 1 ? (callLinesShell.lines[0] ?? null) : null;
+    !showIncomingCard &&
+    !nonIncomingLinesShell.visible;
 
   return (
     <div className={styles["zone"]} data-testid="call-context-zone">
@@ -110,24 +123,52 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
       ) : null}
 
       {!isTransferMode && !isTransferSuccessCelebration && !isDtmfMode && !isNumberEntryOverlay ? (
-        <CallSessionStack
-          shell={callLinesShell}
-          activeCallId={controlTargetCallId}
-          onSelectLine={selectCallLine}
-        />
-      ) : null}
+        <>
+          {showIncomingCard && incomingCallId !== null ? (
+            <IncomingCallSessionCard
+              callId={incomingCallId}
+              callerNumber={incomingCallProjection.callerNumber}
+              displayName={incomingCallProjection.displayName}
+              queueLabelState={incomingCallShell.queueLabelState}
+              queueName={incomingCallShell.queueName}
+              campaignContextTitle={campaignActions.campaignContextTitle}
+              autoAnswerSecondsRemaining={incomingCallProjection.autoAnswerSecondsRemaining}
+              uiState={incomingCallProjection.uiState}
+              isSelected={isIncomingSelected}
+              answerDisabledReason={incomingCallActions.answerDisabledReason}
+              rejectDisabledReason={incomingCallActions.rejectDisabledReason}
+              onSelect={selectIncomingCall}
+              onAnswer={incomingCallActions.handleAnswerIncoming}
+              onReject={incomingCallActions.handleRejectIncoming}
+            />
+          ) : null}
 
-      {!isTransferMode &&
-      !isTransferSuccessCelebration &&
-      !isDtmfMode &&
-      !isNumberEntryOverlay &&
-      singleLine !== null ? (
-        <div className={styles["singleCard"]}>
-          <CallSessionCard
-            line={singleLine}
-            isActive={singleLine.callId === controlTargetCallId}
+          <CallSessionStack
+            shell={nonIncomingLinesShell}
+            activeCallId={controlTargetCallId}
+            onSelectLine={selectCallLine}
           />
-        </div>
+
+          {singleNonIncomingLine !== null ? (
+            <div className={styles["singleCard"]}>
+              <CallSessionCard
+                line={singleNonIncomingLine}
+                isActive={
+                  showIncomingCard &&
+                  singleNonIncomingLine.callId === controlTargetCallId
+                }
+                {...(showIncomingCard
+                  ? {
+                      showSelectionChrome: true,
+                      onClick: () => {
+                        selectCallLine(singleNonIncomingLine.callId);
+                      },
+                    }
+                  : {})}
+              />
+            </div>
+          ) : null}
+        </>
       ) : null}
 
       {showIdleState ? <CallIdleEmptyState /> : null}

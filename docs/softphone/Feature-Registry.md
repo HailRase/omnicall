@@ -121,7 +121,8 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - UI answers and rejects only through `AnswerCallUseCase` and `RejectCallUseCase`.
   - DND incoming path auto-rejects with SIP 486 and does not expose invalid answer controls.
   - **WU6 (done):** answer while multi-sessions ON holds all other Active lines (`IncomingCallOrchestrator` + `holdAllActiveLines`); multi-sessions OFF + established call → auto-486 second incoming; `MultiCallOperationRejected` fail-safe — `src/domain/telephony/events/MultiCallOperationRejected.ts`, `MultiCallCompleteness.integration.test.ts`.
-  - **UI (2026-06-29):** `IncomingCallOverlay` top banner — accept/reject only; reject-reason picker removed from incoming UI (post-call / logout flows keep `RejectReasonSelector`).
+  - **UI (2026-06-30):** `IncomingCallSessionCard` in call context zone — selectable green session card with «Ответить»/«Отклонить»; auto-select on ring; ControlsBar hangup rejects when incoming selected; `IncomingCallOverlay` no longer mounted in shell.
+  - **Multi-call selection (2026-06-30):** while incoming rings with an established call, operator can select any session (incoming or established) and ControlsBar targets that session; `activeCallControlsProjection` preserves established call on `IncomingCallReceived`; `deriveCallControlTarget` resolves control target.
   - Reject reason is validated and emitted through `HostIntegrationGateway` as `soft-phone-break-reason` when supplied by other flows (not incoming overlay).
 - Test Coverage:
   - Unit: state machine incoming transitions, auto-answer policy, DND policy, display-name parser, reject reason validation, answer/reject use cases
@@ -493,3 +494,24 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Unit: log normalization and filtering
   - Integration: diagnostic repository and export adapter
   - E2E: diagnostics panel
+
+## F-018: Tone Playback Priority
+
+- Legacy IDs: `LF-021` (multi-call tone overlap)
+- Context: Media
+- Priority: high
+- Status: done
+- Owner: domain-agent
+- Inputs: concurrent tone requests from call orchestrators (ringtone, ringback, busy, failed)
+- Outputs: single audible tone stream via `MediaGateway`; suppressed requests remain pending until they win arbitration
+- Acceptance Criteria:
+  - Only one tone plays at a time; no overlapping WebAudio loops.
+  - Priority (high → low): incoming ringtone > ringback > busy/failed.
+  - Multiple ringing incoming lines produce one ringtone; earliest request wins until answered/released, then next ringing line plays.
+  - Incoming ringtone supersedes ringback and terminal tones; ringback resumes when incoming tone request ends.
+  - `releaseAll` clears pending tone requests and stops active playback.
+- Test Coverage:
+  - Unit: `resolveActiveTonePlayback`, `TonePlaybackCoordinator`
+  - Integration: `ArbiterMediaGateway` with `CallEngine` multi-line scenarios
+  - E2E: deferred (manual multi-call smoke)
+- Implementation evidence: `src/domain/media/resolveActiveTonePlayback.ts`, `src/application/services/TonePlaybackCoordinator.ts`, `src/adapters/media/ArbiterMediaGateway.ts`, bootstrap wiring in `createMockAccountBootstrap` / `createRealAccountBootstrap`

@@ -1,0 +1,211 @@
+import clsx from "clsx";
+import { useEffect, useRef, type JSX } from "react";
+import type { IncomingCallUiState, QueueLabelState } from "@application/index.js";
+import { mapQueueLabelState } from "../../helpers/mapQueueLabelState.js";
+import { AppIcon } from "../icons/index.js";
+import { IncomingCallStatusMessage } from "./IncomingCallStatusMessage.js";
+import styles from "./IncomingCallSessionCard.module.css";
+
+export type IncomingCallSessionCardProps = Readonly<{
+  callId: string;
+  callerNumber: string | null;
+  displayName: string | null;
+  queueLabelState: QueueLabelState;
+  queueName: string | null;
+  campaignContextTitle: string | null;
+  autoAnswerSecondsRemaining: number | null;
+  uiState: IncomingCallUiState;
+  isSelected: boolean;
+  answerDisabledReason: string | null;
+  rejectDisabledReason: string | null;
+  onSelect: () => void;
+  onAnswer: () => void;
+  onReject: () => void;
+}>;
+
+function resolveCallerIdentity(
+  callerNumber: string | null,
+  displayName: string | null,
+): Readonly<{ primary: string; secondary: string | null }> {
+  const primary = callerNumber ?? displayName ?? "Неизвестный номер";
+  if (
+    displayName !== null &&
+    displayName.trim().length > 0 &&
+    callerNumber !== null &&
+    displayName !== callerNumber
+  ) {
+    return { primary: callerNumber, secondary: displayName };
+  }
+  return { primary, secondary: null };
+}
+
+function shouldShowStatusMessage(uiState: IncomingCallUiState): boolean {
+  return (
+    uiState === "answerFailed" ||
+    uiState === "rejectFailed" ||
+    uiState === "incomingEndedBeforeAnswer" ||
+    uiState === "dndAutoRejecting"
+  );
+}
+
+/**
+ * - Purpose: selectable incoming call session card in the call context zone (F-002).
+ * - Inputs: caller identity, queue/campaign badges, selection state, action callbacks.
+ * - Outputs: green session card with answer/reject controls; intents via props only.
+ * @uiMeta lf=LF-013,LF-014 f=F-002 smoke=R3-2
+ */
+export function IncomingCallSessionCard({
+  callId,
+  callerNumber,
+  displayName,
+  queueLabelState,
+  queueName,
+  campaignContextTitle,
+  autoAnswerSecondsRemaining,
+  uiState,
+  isSelected,
+  answerDisabledReason,
+  rejectDisabledReason,
+  onSelect,
+  onAnswer,
+  onReject,
+}: IncomingCallSessionCardProps): JSX.Element {
+  const autoAnswerTotalRef = useRef<number | null>(null);
+  const identity = resolveCallerIdentity(callerNumber, displayName);
+  const queueBadge = mapQueueLabelState(queueLabelState, queueName);
+  const autoAnswerActive = autoAnswerSecondsRemaining !== null;
+
+  useEffect(() => {
+    if (autoAnswerSecondsRemaining === null) {
+      autoAnswerTotalRef.current = null;
+      return;
+    }
+    if (autoAnswerTotalRef.current === null) {
+      autoAnswerTotalRef.current = autoAnswerSecondsRemaining;
+    }
+  }, [autoAnswerSecondsRemaining]);
+
+  const autoAnswerTotal = autoAnswerTotalRef.current ?? autoAnswerSecondsRemaining ?? 1;
+  const autoAnswerProgress =
+    autoAnswerActive && autoAnswerSecondsRemaining !== null
+      ? Math.max(0, Math.min(100, (autoAnswerSecondsRemaining / autoAnswerTotal) * 100))
+      : 0;
+
+  return (
+    <article
+      className={clsx(styles["card"], isSelected && styles["cardSelected"])}
+      data-testid={`incoming-call-session-${callId}`}
+      aria-label="Входящий вызов"
+    >
+      {autoAnswerActive ? (
+        <div className={styles["autoAnswerTrack"]} aria-hidden="true">
+          <div
+            className={styles["autoAnswerFill"]}
+            style={{ width: `${autoAnswerProgress}%` }}
+          />
+        </div>
+      ) : null}
+
+      <button
+        type="button"
+        className={styles["selectArea"]}
+        data-testid="incoming-call-session-select"
+        aria-label={`Выбрать входящий звонок ${identity.primary}`}
+        aria-selected={isSelected}
+        onClick={onSelect}
+      >
+        <span className={styles["avatar"]} aria-hidden>
+          <AppIcon id="call.incoming" size={16} decorative />
+        </span>
+        <span className={styles["identity"]} data-testid="caller-identity">
+          <p className={styles["number"]}>{identity.primary}</p>
+          {identity.secondary !== null ? (
+            <p className={styles["displayName"]}>{identity.secondary}</p>
+          ) : null}
+          <span className={styles["statusRow"]}>
+            <span className={styles["pulse"]} aria-hidden />
+            <span className={styles["status"]} data-testid="incoming-call-status-label">
+              Звонок
+            </span>
+          </span>
+          {autoAnswerActive && autoAnswerSecondsRemaining !== null ? (
+            <p
+              className={styles["autoAnswerHint"]}
+              data-testid="auto-answer-countdown"
+              aria-live="polite"
+            >
+              Автоответ {autoAnswerSecondsRemaining} с
+            </p>
+          ) : null}
+        </span>
+      </button>
+
+      {queueBadge.visible || campaignContextTitle !== null ? (
+        <div className={styles["badges"]}>
+          {queueBadge.visible ? (
+            <span
+              className={styles["badgeQueue"]}
+              data-testid="queue-info-label"
+              aria-busy={queueBadge.ariaBusy}
+            >
+              {queueBadge.text}
+            </span>
+          ) : null}
+          {campaignContextTitle !== null ? (
+            <span
+              className={styles["badgeCampaign"]}
+              data-testid="incoming-campaign-context"
+            >
+              {campaignContextTitle}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+
+      {shouldShowStatusMessage(uiState) ? (
+        <div className={styles["badges"]}>
+          <IncomingCallStatusMessage uiState={uiState} />
+        </div>
+      ) : null}
+
+      {answerDisabledReason !== null ? (
+        <p
+          className={styles["disabledReason"]}
+          data-testid="incoming-answer-disabled-reason"
+          role="status"
+        >
+          {answerDisabledReason}
+        </p>
+      ) : null}
+
+      <div className={styles["actions"]}>
+        <button
+          type="button"
+          className={styles["rejectButton"]}
+          data-testid="reject-call"
+          aria-label="Отклонить вызов"
+          disabled={rejectDisabledReason !== null}
+          onClick={onReject}
+        >
+          <span className={styles["buttonIcon"]}>
+            <AppIcon id="call.reject" size={14} decorative />
+          </span>
+          <span>Отклонить</span>
+        </button>
+        <button
+          type="button"
+          className={styles["answerButton"]}
+          data-testid="answer-call"
+          aria-label="Ответить на вызов"
+          disabled={answerDisabledReason !== null}
+          onClick={onAnswer}
+        >
+          <span className={styles["buttonIcon"]}>
+            <AppIcon id="call.answer" size={14} decorative />
+          </span>
+          <span>Ответить</span>
+        </button>
+      </div>
+    </article>
+  );
+}

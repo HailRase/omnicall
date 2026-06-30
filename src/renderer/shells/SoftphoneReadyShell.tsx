@@ -17,7 +17,6 @@ import { useUserAvatarMenuActions } from "../hooks/useUserAvatarMenuActions.js";
 import type { useSoftphoneShellChrome } from "../hooks/useSoftphoneShellChrome.js";
 import { useSoftphoneProjections } from "../hooks/useSoftphoneProjections.js";
 import { SoftphoneLayout } from "../widgets/SoftphoneLayout/SoftphoneLayout.js";
-import { IncomingCallOverlay } from "../components/call/IncomingCallOverlay.js";
 import { CallContextShell } from "./call/CallContextShell.js";
 import { CallControlsShell } from "./call/CallControlsShell.js";
 import { CallOverlayShell } from "./call/CallOverlayShell.js";
@@ -95,22 +94,6 @@ export function SoftphoneReadyShell({
             userAvatarMenuActions={userAvatarMenuActions}
           />
           <OperatorFeatureShell facade={facade} />
-          <IncomingCallOverlay
-            visible={callBindings.incomingCallProjection.visible}
-            callerNumber={callBindings.incomingCallProjection.callerNumber}
-            displayName={callBindings.incomingCallProjection.displayName}
-            queueLabelState={callBindings.incomingCallShell.queueLabelState}
-            queueName={callBindings.incomingCallShell.queueName}
-            campaignContextTitle={callBindings.campaignActions.campaignContextTitle}
-            autoAnswerSecondsRemaining={
-              callBindings.incomingCallProjection.autoAnswerSecondsRemaining
-            }
-            uiState={callBindings.incomingCallProjection.uiState}
-            answerDisabledReason={callBindings.incomingCallActions.answerDisabledReason}
-            rejectDisabledReason={callBindings.incomingCallActions.rejectDisabledReason}
-            onAnswer={callBindings.incomingCallActions.handleAnswerIncoming}
-            onReject={callBindings.incomingCallActions.handleRejectIncoming}
-          />
         </>
       }
       context={

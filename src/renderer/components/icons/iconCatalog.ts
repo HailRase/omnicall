@@ -197,14 +197,14 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     animated: PhoneCallIcon,
     defaultLabel: "Ответить",
     defaultSize: 20,
-    usage: ["IncomingCallOverlay", "CallLineRow"],
+    usage: ["IncomingCallOverlay", "IncomingCallSessionCard", "CallLineRow"],
   },
   "call.reject": {
     static: PhoneOff,
     animated: PhoneOffIcon,
     defaultLabel: "Отклонить",
     defaultSize: 20,
-    usage: ["IncomingCallOverlay", "CampaignEventModal"],
+    usage: ["IncomingCallOverlay", "IncomingCallSessionCard", "CampaignEventModal"],
   },
   "call.hangup": {
     static: PhoneOff,
@@ -253,7 +253,7 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     animated: PhoneIncomingIcon,
     defaultLabel: "Входящий звонок",
     defaultSize: 20,
-    usage: ["IncomingCallOverlay"],
+    usage: ["IncomingCallOverlay", "IncomingCallSessionCard"],
   },
   "call.outgoing": {
     static: Phone,

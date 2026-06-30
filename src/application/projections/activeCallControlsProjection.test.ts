@@ -6,6 +6,49 @@ import {
 } from "./activeCallControlsProjection.js";
 
 describe("activeCallControlsProjection", () => {
+  it("keeps established call controls when incoming arrives during active call", () => {
+    const active = reduceActiveCallControlsProjection(
+      initialActiveCallControlsProjection(),
+      {
+        type: "CallAnswered",
+        callId: "call-active",
+        correlationId: createCorrelationId(),
+        occurredAt: new Date().toISOString(),
+      },
+    );
+    const withIncoming = reduceActiveCallControlsProjection(active, {
+      type: "IncomingCallReceived",
+      callId: "call-incoming",
+      direction: "incoming",
+      phoneNumber: "+12025550999",
+      correlationId: createCorrelationId(),
+      occurredAt: new Date().toISOString(),
+    });
+
+    expect(withIncoming.callId).toBe("call-active");
+    expect(withIncoming.callState).toBe("Active");
+    expect(withIncoming.holdDisabledReason).toBeNull();
+  });
+
+  it("projects incoming ringing controls when no established call exists", () => {
+    const ringing = reduceActiveCallControlsProjection(
+      initialActiveCallControlsProjection(),
+      {
+        type: "IncomingCallReceived",
+        callId: "call-incoming",
+        direction: "incoming",
+        phoneNumber: "+12025550999",
+        correlationId: createCorrelationId(),
+        occurredAt: new Date().toISOString(),
+      },
+    );
+
+    expect(ringing.callId).toBe("call-incoming");
+    expect(ringing.callState).toBe("Ringing");
+    expect(ringing.hangupDisabledReason).toBeNull();
+    expect(ringing.holdDisabledReason).toBe("hold_requires_active");
+  });
+
   it("disables mute during outgoing connecting state", () => {
     const connecting = reduceActiveCallControlsProjection(
       initialActiveCallControlsProjection(),

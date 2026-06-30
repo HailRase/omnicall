@@ -90,6 +90,8 @@ export {
   deriveCallLineStatusLabel,
   type CallLineStatusInput,
 } from "./projections/deriveCallLineStatusLabel.js";
+export { deriveCallControlTarget } from "./projections/deriveCallControlTarget.js";
+export { deriveIncomingCallControlLine } from "./projections/deriveIncomingCallControlLine.js";
 export {
   deriveCallLinesShell,
   type CallLineCardViewModel,

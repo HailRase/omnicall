@@ -11,6 +11,7 @@ export type CallSessionCardProps = Readonly<{
   line: CallLineCardViewModel;
   isActive?: boolean;
   compact?: boolean;
+  showSelectionChrome?: boolean;
   onClick?: () => void;
 }>;
 
@@ -24,6 +25,7 @@ export function CallSessionCard({
   line,
   isActive = false,
   compact = false,
+  showSelectionChrome,
   onClick,
 }: CallSessionCardProps): JSX.Element {
   const duration = useCallDuration(line.durationStartedAt);
@@ -32,8 +34,10 @@ export function CallSessionCard({
   const isRinging = line.state === "Ringing" || line.state === "Connecting";
   const isFailed = line.state === "Failed";
   const directionIconId = resolveDirectionIconId(line);
+  const selectionChromeVisible = showSelectionChrome ?? compact;
+  const showSelectedChrome = selectionChromeVisible && isActive;
   const statusHint =
-    isHeld && isActive
+    showSelectedChrome && isHeld
       ? `${line.statusLabel} · выбран`
       : line.statusLabel;
 
@@ -45,7 +49,7 @@ export function CallSessionCard({
           styles["compact"],
           isActive && styles["compactActive"],
           isHeld && styles["compactHeld"],
-          isActive && styles["compactSelected"],
+          showSelectedChrome && styles["compactSelected"],
         )}
         data-testid={`call-session-card-${line.callId}`}
         aria-label={
@@ -53,7 +57,7 @@ export function CallSessionCard({
             ? `Выбрать звонок ${line.displayName}, на удержании`
             : `Выбрать звонок ${line.displayName}`
         }
-        aria-selected={isActive}
+        aria-selected={showSelectedChrome ? true : undefined}
         onClick={onClick}
       >
         <span
@@ -99,17 +103,17 @@ export function CallSessionCard({
     );
   }
 
-  return (
-    <article
-      className={clsx(
-        styles["card"],
-        isFailed && styles["cardFailed"],
-        isHeld && styles["cardHeld"],
-        isActive && styles["cardActive"],
-      )}
-      data-testid={`call-session-card-${line.callId}`}
-      aria-label={`Звонок ${line.displayName}`}
-    >
+  const cardClassName = clsx(
+    styles["card"],
+    isFailed && styles["cardFailed"],
+    isHeld && styles["cardHeld"],
+    isActive && styles["cardActive"],
+    showSelectedChrome && styles["cardSelected"],
+    onClick !== undefined && styles["cardSelectable"],
+  );
+
+  const cardBody = (
+    <>
       <div className={styles["headerRow"]}>
         <div className={styles["identity"]}>
           <span
@@ -150,7 +154,7 @@ export function CallSessionCard({
             )}
             data-testid={`call-session-status-${line.callId}`}
           >
-            {line.statusLabel}
+            {statusHint}
           </span>
         </span>
         <span className={styles["badgeRow"]}>
@@ -171,6 +175,31 @@ export function CallSessionCard({
           ) : null}
         </span>
       </div>
+    </>
+  );
+
+  if (onClick !== undefined) {
+    return (
+      <button
+        type="button"
+        className={cardClassName}
+        data-testid={`call-session-card-${line.callId}`}
+        aria-label={`Выбрать звонок ${line.displayName}`}
+        aria-selected={showSelectedChrome ? true : undefined}
+        onClick={onClick}
+      >
+        {cardBody}
+      </button>
+    );
+  }
+
+  return (
+    <article
+      className={cardClassName}
+      data-testid={`call-session-card-${line.callId}`}
+      aria-label={`Звонок ${line.displayName}`}
+    >
+      {cardBody}
     </article>
   );
 }

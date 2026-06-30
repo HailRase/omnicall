@@ -18,6 +18,7 @@
 | `CampaignEventModal` | `src/renderer/components/call/CampaignEventModal.tsx` | `CampaignEventModalProps` | campaign-event-modal, campaign-modal-error, campaign-disabled-reason | — |
 | `DtmfKeypadPanel` | `src/renderer/components/call/DtmfKeypadPanel.tsx` | `DtmfKeypadPanelProps` | dtmf-keypad-panel, dtmf-error-alert | lf=LF-024 f=F-008,F-016 |
 | `IncomingCallOverlay` | `src/renderer/components/call/IncomingCallOverlay.tsx` | `IncomingCallOverlayProps` | incoming-call-overlay, caller-identity, auto-answer-countdown, queue-info-label, incoming-campaign-context, incoming-answer-disabled-reason, reject-call, answer-call | lf=LF-013,LF-014 f=F-002 smoke=R3-2 |
+| `IncomingCallSessionCard` | `src/renderer/components/call/IncomingCallSessionCard.tsx` | `IncomingCallSessionCardProps` | incoming-call-session-select, caller-identity, incoming-call-status-label, auto-answer-countdown, queue-info-label, incoming-campaign-context, incoming-answer-disabled-reason, reject-call, answer-call | lf=LF-013,LF-014 f=F-002 smoke=R3-2 |
 | `IncomingCallStatusMessage` | `src/renderer/components/call/IncomingCallStatusMessage.tsx` | `IncomingCallStatusMessageProps` | incoming-call-status | — |
 | `MultiCallHoldAllIndicator` | `src/renderer/components/call/MultiCallHoldAllIndicator.tsx` | `MultiCallHoldAllIndicatorProps` | multi-call-hold-all-indicator | — |
 | `MultiLineCallList` | `src/renderer/components/call/MultiLineCallList.tsx` | `MultiLineCallListProps` | multi-line-call-list | — |

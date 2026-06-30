@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
   deriveActiveCallControlsShell,
   deriveAuthShellFlags,
+  deriveCallControlTarget,
   deriveResumeMultiCallDisabledReason,
-  type CallLineCardViewModel,
 } from "@application/index.js";
 import { mapActiveCallControlDisabledReason } from "../helpers/mapActiveCallControlLabels.js";
 import { useTransferActions, useTransferPanelShell } from "./useTransferActions.js";
@@ -142,47 +142,76 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
 
   const [numberEntryOverlayOpen, setNumberEntryOverlayOpen] = useState(false);
   const [selectedCallId, setSelectedCallId] = useState<string | null>(null);
+  const trackedIncomingCallIdRef = useRef<string | null>(null);
+  const userSelectedCallIdRef = useRef<string | null>(null);
+
+  const incomingCallId =
+    incomingCallProjection.visible && incomingCallProjection.callId !== null
+      ? incomingCallProjection.callId
+      : null;
+
+  useEffect(() => {
+    if (incomingCallId === null) {
+      trackedIncomingCallIdRef.current = null;
+      return;
+    }
+    const isNewIncoming = trackedIncomingCallIdRef.current !== incomingCallId;
+    trackedIncomingCallIdRef.current = incomingCallId;
+    if (!isNewIncoming) {
+      return;
+    }
+    userSelectedCallIdRef.current = null;
+    setSelectedCallId(incomingCallId);
+  }, [incomingCallId]);
 
   useEffect(() => {
     if (selectedCallId === null) {
       return;
     }
-    const stillExists = callLinesShell.lines.some((line) => line.callId === selectedCallId);
-    if (!stillExists) {
+    const lineStillExists = callLinesShell.lines.some((line) => line.callId === selectedCallId);
+    const incomingStillExists = incomingCallId === selectedCallId;
+    if (!lineStillExists && !incomingStillExists) {
       setSelectedCallId(null);
     }
-  }, [callLinesShell.lines, selectedCallId]);
+  }, [callLinesShell.lines, incomingCallId, selectedCallId]);
 
   const hasEstablishedCall = callLinesShell.lines.some(
     (line) => line.state === "Active" || line.state === "Held",
   );
 
-  const hasCallInProgress = callLinesShell.visible || isCalling;
+  const hasCallInProgress =
+    callLinesShell.visible || isCalling || incomingCallProjection.visible;
 
-  const controlTargetLine = useMemo((): CallLineCardViewModel | null => {
-    const { lines } = callLinesShell;
-    if (selectedCallId !== null) {
-      const selected = lines.find((line) => line.callId === selectedCallId);
-      if (selected !== undefined) {
-        return selected;
-      }
-    }
-    const unheld = lines.find((line) => line.isActiveUnheld);
-    if (unheld !== undefined) {
-      return unheld;
-    }
-    const connecting = lines.find((line) => line.state === "Connecting");
-    if (connecting !== undefined) {
-      return connecting;
-    }
-    const ringing = lines.find((line) => line.state === "Ringing");
-    if (ringing !== undefined) {
-      return ringing;
-    }
-    return (
-      lines.find((line) => line.state === "Active" || line.state === "Held") ?? null
-    );
-  }, [callLinesShell, selectedCallId]);
+  const nonIncomingLines = useMemo(
+    () =>
+      incomingCallId === null
+        ? callLinesShell.lines
+        : callLinesShell.lines.filter((line) => line.callId !== incomingCallId),
+    [callLinesShell.lines, incomingCallId],
+  );
+
+  const nonIncomingLinesShell = useMemo(
+    () => ({
+      ...callLinesShell,
+      lines: nonIncomingLines,
+      visible: nonIncomingLines.length >= 1,
+    }),
+    [callLinesShell, nonIncomingLines],
+  );
+
+  const isIncomingSelected =
+    incomingCallId !== null && selectedCallId === incomingCallId;
+
+  const controlTargetLine = useMemo(
+    () =>
+      deriveCallControlTarget({
+        selectedCallId,
+        lines: callLinesShell.lines,
+        incomingCallId,
+        incomingCallProjection,
+      }),
+    [callLinesShell.lines, incomingCallId, incomingCallProjection, selectedCallId],
+  );
 
   const selectCallLine = useCallback(
     (callId: string): void => {
@@ -190,14 +219,31 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
       if (line === undefined) {
         return;
       }
+      if (
+        incomingCallProjection.visible &&
+        line.state === "Ringing" &&
+        line.primaryAction === "answer"
+      ) {
+        userSelectedCallIdRef.current = callId;
+        setSelectedCallId(callId);
+        return;
+      }
       if (line.primaryAction === "answer") {
         callLinesActions.handleAnswerLine(callId);
         return;
       }
+      userSelectedCallIdRef.current = callId;
       setSelectedCallId(callId);
     },
-    [callLinesActions, callLinesShell.lines],
+    [callLinesActions, callLinesShell.lines, incomingCallProjection.visible],
   );
+
+  const selectIncomingCall = useCallback((): void => {
+    if (incomingCallId !== null) {
+      userSelectedCallIdRef.current = incomingCallId;
+      setSelectedCallId(incomingCallId);
+    }
+  }, [incomingCallId]);
 
   const handleDialpadCall = useCallback((): void => {
     callActions.handleDialpadCall();
@@ -248,6 +294,10 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     hasCallInProgress,
     controlTargetLine,
     selectCallLine,
+    selectIncomingCall,
+    incomingCallId,
+    isIncomingSelected,
+    nonIncomingLinesShell,
     numberEntryOverlayOpen,
     openNumberEntryOverlay,
     closeNumberEntryOverlay,
