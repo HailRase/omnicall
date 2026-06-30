@@ -3,6 +3,7 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { CallLine } from "@application/index.js";
 import { TransferPanel } from "./TransferPanel.js";
 
 afterEach(() => {
@@ -98,6 +99,7 @@ describe("TransferPanel", () => {
           state: "Held",
           muted: false,
           displayLabel: "+12025550101",
+          remoteNumber: "+12025550101",
           activeSinceMs: null,
           isRemoteHold: false,
           dtmfHistory: "",
@@ -109,6 +111,7 @@ describe("TransferPanel", () => {
           state: "Active",
           muted: false,
           displayLabel: "+12025550102",
+          remoteNumber: "+12025550102",
           activeSinceMs: 1_000,
           isRemoteHold: false,
           dtmfHistory: "",
@@ -194,6 +197,7 @@ describe("TransferPanel", () => {
           state: "Held",
           muted: false,
           displayLabel: "+12025550101",
+          remoteNumber: "+12025550101",
           activeSinceMs: null,
           isRemoteHold: false,
           dtmfHistory: "",
@@ -205,6 +209,7 @@ describe("TransferPanel", () => {
           state: "Active",
           muted: false,
           displayLabel: "+12025550102",
+          remoteNumber: "+12025550102",
           activeSinceMs: 1_000,
           isRemoteHold: false,
           dtmfHistory: "",
@@ -229,9 +234,215 @@ describe("TransferPanel", () => {
 
     expect(onBlindTransfer).toHaveBeenCalledTimes(1);
   });
+
+  it("shows transfer target candidates excluding source line", () => {
+    renderPanel({
+      targetNumber: "",
+      lines: [
+        createCallLine({
+          callId: "call-1",
+          role: "source",
+          state: "Held",
+          displayLabel: "Иван",
+          remoteNumber: "+12025550101",
+        }),
+        createCallLine({
+          callId: "call-2",
+          role: "primary",
+          state: "Active",
+          displayLabel: "Мария",
+          remoteNumber: "+12025550102",
+        }),
+      ],
+    });
+
+    expect(screen.getByTestId("transfer-target-candidates")).toBeInTheDocument();
+    expect(screen.getByTestId("transfer-target-candidate-call-2")).toBeInTheDocument();
+    expect(screen.queryByTestId("transfer-target-candidate-call-1")).not.toBeInTheDocument();
+    expect(screen.getByTestId("transfer-target-candidate-call-2")).toHaveTextContent("Мария");
+  });
+
+  it("fills target input when candidate is selected", async () => {
+    const user = userEvent.setup();
+    const onTargetChange = vi.fn();
+    renderPanel({
+      targetNumber: "",
+      onTargetChange,
+      lines: [
+        createCallLine({
+          callId: "call-1",
+          role: "source",
+          state: "Held",
+          remoteNumber: "+12025550101",
+        }),
+        createCallLine({
+          callId: "call-2",
+          role: "primary",
+          state: "Held",
+          displayLabel: "Мария",
+          remoteNumber: "+12025550102",
+        }),
+      ],
+    });
+
+    await user.click(screen.getByTestId("transfer-target-candidate-call-2"));
+
+    expect(onTargetChange).toHaveBeenCalledWith("+12025550102");
+  });
+
+  it("hides candidates when only source line exists", () => {
+    renderPanel({
+      targetNumber: "",
+      lines: [
+        createCallLine({
+          callId: "call-1",
+          role: "source",
+          state: "Held",
+          remoteNumber: "+12025550101",
+        }),
+      ],
+    });
+
+    expect(screen.queryByTestId("transfer-target-candidates")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("transfer-target-divider")).not.toBeInTheDocument();
+  });
+
+  it("renders number input before divider and session candidates", () => {
+    renderPanel({
+      targetNumber: "",
+      lines: [
+        createCallLine({
+          callId: "call-1",
+          role: "source",
+          state: "Held",
+          remoteNumber: "+12025550101",
+        }),
+        createCallLine({
+          callId: "call-2",
+          role: "primary",
+          state: "Active",
+          remoteNumber: "+12025550102",
+        }),
+      ],
+    });
+
+    const input = screen.getByTestId("transfer-target-input");
+    const divider = screen.getByTestId("transfer-target-divider");
+    const candidate = screen.getByTestId("transfer-target-candidate-call-2");
+
+    expect(divider).toHaveTextContent("или");
+    expect(
+      input.compareDocumentPosition(divider) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      divider.compareDocumentPosition(candidate) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("disables number input when session candidate is selected", async () => {
+    const user = userEvent.setup();
+    renderPanel({
+      targetNumber: "",
+      lines: [
+        createCallLine({
+          callId: "call-1",
+          role: "source",
+          state: "Held",
+          remoteNumber: "+12025550101",
+        }),
+        createCallLine({
+          callId: "call-2",
+          role: "primary",
+          state: "Held",
+          remoteNumber: "+12025550102",
+        }),
+      ],
+    });
+
+    await user.click(screen.getByTestId("transfer-target-candidate-call-2"));
+
+    expect(screen.getByTestId("transfer-target-input")).toBeDisabled();
+    expect(screen.getByTestId("transfer-target-candidate-call-2")).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
+
+  it("disables session candidates when number is entered manually", async () => {
+    const user = userEvent.setup();
+    renderPanel({
+      targetNumber: "",
+      lines: [
+        createCallLine({
+          callId: "call-1",
+          role: "source",
+          state: "Held",
+          remoteNumber: "+12025550101",
+        }),
+        createCallLine({
+          callId: "call-2",
+          role: "primary",
+          state: "Held",
+          remoteNumber: "+12025550102",
+        }),
+      ],
+    });
+
+    await user.type(screen.getByTestId("transfer-target-input"), "4");
+
+    expect(screen.getByTestId("transfer-target-candidate-call-2")).toBeDisabled();
+    expect(screen.getByTestId("transfer-target-input")).not.toBeDisabled();
+  });
+
+  it("re-enables number input when selected session is toggled off", async () => {
+    const user = userEvent.setup();
+    const onTargetChange = vi.fn();
+    renderPanel({
+      targetNumber: "",
+      onTargetChange,
+      lines: [
+        createCallLine({
+          callId: "call-1",
+          role: "source",
+          state: "Held",
+          remoteNumber: "+12025550101",
+        }),
+        createCallLine({
+          callId: "call-2",
+          role: "primary",
+          state: "Held",
+          remoteNumber: "+12025550102",
+        }),
+      ],
+    });
+
+    const candidate = screen.getByTestId("transfer-target-candidate-call-2");
+    await user.click(candidate);
+    await user.click(candidate);
+
+    expect(screen.getByTestId("transfer-target-input")).not.toBeDisabled();
+    expect(onTargetChange).toHaveBeenLastCalledWith("");
+  });
 });
 
 type TransferPanelOverrides = Partial<Parameters<typeof TransferPanel>[0]>;
+
+function createCallLine(
+  overrides: Partial<CallLine> & Pick<CallLine, "callId" | "state">,
+): CallLine {
+  return {
+    callId: overrides.callId,
+    role: overrides.role ?? "primary",
+    state: overrides.state,
+    muted: overrides.muted ?? false,
+    displayLabel: overrides.displayLabel ?? "+12025550100",
+    remoteNumber: overrides.remoteNumber ?? overrides.displayLabel ?? "+12025550100",
+    activeSinceMs: overrides.activeSinceMs ?? null,
+    isRemoteHold: overrides.isRemoteHold ?? false,
+    dtmfHistory: overrides.dtmfHistory ?? "",
+    lastDtmfTone: overrides.lastDtmfTone ?? null,
+  };
+}
 
 function renderPanel(overrides: TransferPanelOverrides = {}): void {
   const props: Parameters<typeof TransferPanel>[0] = {
@@ -245,17 +456,13 @@ function renderPanel(overrides: TransferPanelOverrides = {}): void {
     failureTitle: null,
     failureMessage: null,
     lines: [
-      {
+      createCallLine({
         callId: "call-1",
         role: "source",
         state: "Held",
-        muted: false,
         displayLabel: "+12025550101",
-        activeSinceMs: null,
-        isRemoteHold: false,
-        dtmfHistory: "",
-        lastDtmfTone: null,
-      },
+        remoteNumber: "+12025550101",
+      }),
     ],
     onTargetChange: vi.fn(),
     onBlindTransfer: vi.fn(),

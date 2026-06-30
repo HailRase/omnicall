@@ -11,6 +11,7 @@ export type CallLine = Readonly<{
   state: CallState | "Idle";
   muted: boolean;
   displayLabel: string | null;
+  remoteNumber: string | null;
   activeSinceMs: number | null;
   isRemoteHold: boolean;
   dtmfHistory: string;
@@ -85,20 +86,26 @@ export function reduceMultiLineCallProjection(
       return applyTransferModeStarted(projection, event);
     case "TransferModeCancelled":
       return applyTransferModeCancelled(projection, event);
-    case "OutgoingCallRequested":
+    case "OutgoingCallRequested": {
+      const phoneNumber = asOptionalString(event["phoneNumber"]);
       return upsertLine(projection, {
         callId: asRequiredString(event["callId"]),
         role: projection.sourceCallId === null ? "primary" : "consultation",
         state: "Connecting",
-        displayLabel: asOptionalString(event["phoneNumber"]),
+        displayLabel: phoneNumber,
+        remoteNumber: phoneNumber,
       });
-    case "IncomingCallReceived":
+    }
+    case "IncomingCallReceived": {
+      const phoneNumber = asOptionalString(event["phoneNumber"]);
       return upsertLine(projection, {
         callId: asRequiredString(event["callId"]),
         role: projection.sourceCallId === null ? "primary" : "consultation",
         state: "Ringing",
-        displayLabel: asOptionalString(event["phoneNumber"]),
+        displayLabel: phoneNumber,
+        remoteNumber: phoneNumber,
       });
+    }
     case "IncomingCallDisplayNameResolved":
       return updateLineDisplayLabel(
         projection,
@@ -154,11 +161,13 @@ function applyConsultationRequested(
     role: "source",
     state: findLineState(projection, sourceCallId) ?? "Held",
   });
+  const targetNumber = asOptionalString(event["targetNumber"]);
   next = upsertLine(next, {
     callId: consultationCallId,
     role: "consultation",
     state: "Connecting",
-    displayLabel: asOptionalString(event["targetNumber"]),
+    displayLabel: targetNumber,
+    remoteNumber: targetNumber,
   });
   return {
     ...next,
@@ -182,6 +191,7 @@ function applyConsultationStarted(
     role: "consultation",
     state: "Active",
     displayLabel: targetNumber,
+    remoteNumber: targetNumber,
   });
   return {
     ...next,
@@ -302,6 +312,7 @@ function upsertLine(
     state: line.state,
     muted: line.muted ?? existing?.muted ?? false,
     displayLabel: line.displayLabel ?? existing?.displayLabel ?? null,
+    remoteNumber: line.remoteNumber ?? existing?.remoteNumber ?? null,
     activeSinceMs: line.activeSinceMs ?? existing?.activeSinceMs ?? null,
     isRemoteHold: line.isRemoteHold ?? existing?.isRemoteHold ?? false,
     dtmfHistory: line.dtmfHistory ?? existing?.dtmfHistory ?? "",

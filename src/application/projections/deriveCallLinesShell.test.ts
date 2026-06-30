@@ -19,6 +19,7 @@ function createLine(
     state: overrides.state,
     muted: overrides.muted ?? false,
     displayLabel: overrides.displayLabel ?? "+12025550100",
+    remoteNumber: overrides.remoteNumber ?? overrides.displayLabel ?? "+12025550100",
     activeSinceMs: overrides.activeSinceMs ?? null,
     isRemoteHold: overrides.isRemoteHold ?? false,
     dtmfHistory: overrides.dtmfHistory ?? "",

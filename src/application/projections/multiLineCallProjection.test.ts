@@ -370,4 +370,27 @@ describe("multiLineCallProjection", () => {
     expect(failed.sourceCallId).toBe("src-7");
     expect(failed.lines.some((line) => line.callId === "consult-7")).toBe(false);
   });
+
+  it("keeps remoteNumber when display label is resolved from caller name", () => {
+    const correlationId = createCorrelationId();
+    const occurredAt = new Date().toISOString();
+    let projection = reduceMultiLineCallProjection(initialMultiLineCallProjection(), {
+      type: "IncomingCallReceived",
+      correlationId,
+      occurredAt,
+      callId: "call-in",
+      phoneNumber: "+12025550199",
+    });
+    projection = reduceMultiLineCallProjection(projection, {
+      type: "IncomingCallDisplayNameResolved",
+      correlationId,
+      occurredAt,
+      callId: "call-in",
+      displayName: "Иван Петров",
+    });
+
+    const line = projection.lines.find((entry) => entry.callId === "call-in");
+    expect(line?.displayLabel).toBe("Иван Петров");
+    expect(line?.remoteNumber).toBe("+12025550199");
+  });
 });

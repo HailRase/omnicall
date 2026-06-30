@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState, type JSX, type MouseEvent } from "react";
 import type { CallLine } from "@application/index.js";
-import { deriveCallLineStatusLabel, isDialpadNumberValid } from "@application/index.js";
+import {
+  deriveCallLineStatusLabel,
+  deriveTransferTargetCandidates,
+  isDialpadNumberValid,
+} from "@application/index.js";
 import clsx from "clsx";
 import { mapTransferDisabledReasonWithFallback } from "../../helpers/mapTransferDisabledReason.js";
 import { AppIcon, IconControlButton } from "../icons/index.js";
@@ -26,6 +30,7 @@ export type TransferPanelProps = Readonly<{
 }>;
 
 type TransferStep = 1 | 2 | 3 | 4;
+type TransferTargetInputMode = "unset" | "number" | "session";
 
 /**
  * - Purpose: render transfer flow in context zone with explicit step chrome.
@@ -50,6 +55,8 @@ export function TransferPanel({
   onCancelTransfer,
 }: TransferPanelProps): JSX.Element | null {
   const [step, setStep] = useState<TransferStep>(1);
+  const [targetInputMode, setTargetInputMode] = useState<TransferTargetInputMode>("unset");
+  const [selectedSessionCallId, setSelectedSessionCallId] = useState<string | null>(null);
 
   const sourceLine = useMemo(
     () =>
@@ -65,10 +72,24 @@ export function TransferPanel({
   );
   const consultReady = consultationLine?.state === "Active";
   const isTargetNumberValid = isDialpadNumberValid(targetNumber);
+  const transferTargetCandidates = useMemo(
+    () =>
+      deriveTransferTargetCandidates({
+        sourceCallId: sourceLine?.callId ?? null,
+        lines,
+      }),
+    [lines, sourceLine?.callId],
+  );
+  const isSessionTargetMode = targetInputMode === "session" && selectedSessionCallId !== null;
+  const isNumberTargetMode = targetInputMode === "number";
+  const sessionsDisabled = isNumberTargetMode;
+  const numberInputDisabled = isSessionTargetMode;
 
   useEffect(() => {
     if (!visible) {
       setStep(1);
+      setTargetInputMode("unset");
+      setSelectedSessionCallId(null);
       return;
     }
     if (transferInProgress) {
@@ -143,7 +164,7 @@ export function TransferPanel({
         />
       </header>
 
-      <div className={styles["body"]}>
+      <div className={clsx(styles["body"], step === 1 && styles["bodyStepTarget"])}>
         {failureMessage !== null ? (
           <div
             className={styles["failure"]}
@@ -171,20 +192,90 @@ export function TransferPanel({
         ) : null}
 
         {step === 1 ? (
-          <section className={styles["stepSection"]}>
+          <section className={styles["stepSectionTarget"]}>
             <p className={styles["lineSectionTitle"]}>Кому перевести</p>
             <input
               id="transfer-target-input"
-              className={styles["targetInput"]}
+              className={clsx(
+                styles["targetInput"],
+                numberInputDisabled && styles["targetInputDisabled"],
+              )}
               data-testid="transfer-target-input"
               type="tel"
               value={targetNumber}
               placeholder="Номер для перевода"
               aria-label="Номер для перевода"
+              disabled={numberInputDisabled}
               onChange={(event) => {
-                onTargetChange(event.currentTarget.value);
+                const value = event.currentTarget.value;
+                onTargetChange(value);
+                setSelectedSessionCallId(null);
+                setTargetInputMode(value.length > 0 ? "number" : "unset");
               }}
             />
+            {transferTargetCandidates.length > 0 ? (
+              <>
+                <div
+                  className={styles["targetDivider"]}
+                  data-testid="transfer-target-divider"
+                  aria-hidden="true"
+                >
+                  <span className={styles["targetDividerLine"]} />
+                  <span className={styles["targetDividerLabel"]}>или</span>
+                  <span className={styles["targetDividerLine"]} />
+                </div>
+                <div
+                  className={clsx(
+                    styles["candidateSection"],
+                    sessionsDisabled && styles["candidateSectionDisabled"],
+                  )}
+                  data-testid="transfer-target-candidates"
+                >
+                  <p className={styles["candidateSectionTitle"]}>Сессии</p>
+                  <div className={styles["candidateScroll"]}>
+                    <ul
+                      className={styles["candidateList"]}
+                      aria-label="Выбор звонка для перевода"
+                    >
+                      {transferTargetCandidates.map((candidate) => {
+                        const isSelected = selectedSessionCallId === candidate.callId;
+                        const statusLabel = deriveCallLineStatusLabel({ state: candidate.state });
+                        const displayName = candidate.displayLabel ?? candidate.remoteNumber;
+
+                        return (
+                          <li key={candidate.callId}>
+                            <button
+                              type="button"
+                              className={clsx(
+                                styles["candidateCard"],
+                                isSelected && styles["candidateCardSelected"],
+                              )}
+                              data-testid={`transfer-target-candidate-${candidate.callId}`}
+                              aria-pressed={isSelected}
+                              disabled={sessionsDisabled}
+                              onClick={() => {
+                                if (isSelected) {
+                                  setSelectedSessionCallId(null);
+                                  setTargetInputMode("unset");
+                                  onTargetChange("");
+                                  return;
+                                }
+                                setSelectedSessionCallId(candidate.callId);
+                                setTargetInputMode("session");
+                                onTargetChange(candidate.remoteNumber);
+                              }}
+                            >
+                              <span className={styles["lineLabel"]}>{displayName}</span>
+                              <span className={styles["lineState"]}>{statusLabel}</span>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                </div>
+              </>
+            ) : null}
             <button
               type="button"
               data-testid="transfer-next-step"

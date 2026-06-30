@@ -104,6 +104,11 @@ export {
   type CallLinesShellViewModel,
 } from "./projections/deriveCallLinesShell.js";
 export {
+  deriveTransferTargetCandidates,
+  type DeriveTransferTargetCandidatesInput,
+  type TransferTargetCandidate,
+} from "./projections/deriveTransferTargetCandidates.js";
+export {
   initialTransferProjection,
   reduceTransferProjection,
   deriveBlindTransferDisabledReason,

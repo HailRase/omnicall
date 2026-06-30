@@ -178,6 +178,20 @@
 
 
 
+.bodyStepTarget {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: var(--space-sm);
+
+  overflow: hidden;
+
+}
+
+
+
 .footer {
   padding: var(--space-sm);
   border-top: 1px solid var(--color-border-subtle);
@@ -318,6 +332,190 @@
 
 
 
+.stepSectionTarget {
+
+  display: flex;
+
+  flex: 1;
+
+  flex-direction: column;
+
+  gap: var(--space-2xs);
+
+  min-height: 0;
+
+}
+
+
+
+.targetDivider {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: var(--space-xs);
+
+  margin: var(--space-2xs) 0;
+
+}
+
+
+
+.targetDividerLine {
+
+  flex: 1;
+
+  height: 1px;
+
+  background: var(--color-border-subtle);
+
+}
+
+
+
+.targetDividerLabel {
+
+  color: var(--color-text-muted);
+
+  font-size: 0.6875rem;
+
+  text-transform: lowercase;
+
+}
+
+
+
+.candidateSection {
+
+  display: flex;
+
+  flex: 1;
+
+  flex-direction: column;
+
+  gap: var(--space-2xs);
+
+  min-height: 0;
+
+}
+
+
+
+.candidateSectionDisabled {
+
+  opacity: 0.55;
+
+}
+
+
+
+.candidateScroll {
+
+  flex: 1;
+
+  min-height: 0;
+
+  overflow-y: auto;
+
+  padding-right: 2px;
+
+}
+
+
+
+.candidateSectionTitle {
+
+  margin: 0;
+
+  color: var(--color-text-secondary);
+
+  font-size: 0.6875rem;
+
+}
+
+
+
+.candidateList {
+
+  list-style: none;
+
+  margin: 0;
+
+  padding: 0;
+
+  display: grid;
+
+  gap: var(--space-2xs);
+
+}
+
+
+
+.candidateCard {
+
+  width: 100%;
+
+  border: 1px solid var(--color-border-subtle);
+
+  border-radius: var(--radius-control);
+
+  padding: var(--space-xs) var(--space-sm);
+
+  background: var(--color-bg-surface);
+
+  display: grid;
+
+  gap: 2px;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    border-color 140ms ease,
+    background 140ms ease;
+
+}
+
+
+
+.candidateCard:hover {
+
+  border-color: var(--color-border-focus);
+
+}
+
+
+
+.candidateCard:focus-visible {
+
+  outline: 2px solid var(--color-outline-focus);
+
+  outline-offset: 1px;
+
+}
+
+
+
+.candidateCardSelected {
+
+  border-color: var(--color-accent-primary);
+
+  background: var(--color-bg-surface-highlight);
+
+}
+
+
+
+.candidateCard:disabled {
+
+  cursor: not-allowed;
+
+}
+
+
+
 .targetInput {
 
   width: 100%;
@@ -362,7 +560,26 @@
 
 
 
+.targetInput:disabled,
+.targetInputDisabled {
+
+  opacity: 0.6;
+
+  cursor: not-allowed;
+
+  background: var(--color-bg-surface-alt);
+
+  color: var(--color-text-secondary);
+
+}
+
+
+
 .nextButton {
+
+  margin-top: auto;
+
+  flex-shrink: 0;
 
   display: flex;
 

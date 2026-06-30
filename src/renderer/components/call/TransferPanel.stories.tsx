@@ -28,7 +28,21 @@ const sourceLine: CallLine = {
   state: "Held",
   muted: false,
   displayLabel: "Иван Петров · +7 (495) 123-45-67",
+  remoteNumber: "+74951234567",
   activeSinceMs: null,
+  isRemoteHold: false,
+  dtmfHistory: "",
+  lastDtmfTone: null,
+};
+
+const peerLine: CallLine = {
+  callId: "peer-call",
+  role: "primary",
+  state: "Active",
+  muted: false,
+  displayLabel: "Мария Иванова · +7 (921) 555-00-11",
+  remoteNumber: "+79215550011",
+  activeSinceMs: 2_000,
   isRemoteHold: false,
   dtmfHistory: "",
   lastDtmfTone: null,
@@ -40,6 +54,7 @@ const consultationLine: CallLine = {
   state: "Active",
   muted: false,
   displayLabel: "Сергей Смирнов · +7 (812) 000-11-22",
+  remoteNumber: "+78120001122",
   activeSinceMs: 1_000,
   isRemoteHold: false,
   dtmfHistory: "",
@@ -78,6 +93,7 @@ export const LightStepStart: Story = {
   args: {
     ...baseArgs,
     targetNumber: "",
+    lines: [sourceLine, peerLine],
   },
   parameters: {
     theme: "light",
