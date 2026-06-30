@@ -52,7 +52,11 @@ export function useIncomingCallActions(
       return;
     }
     setIncomingUiState("answering");
-    void facade.answerCallById(incomingCallProjection.callId);
+    void facade.answerCallById(incomingCallProjection.callId).then((result) => {
+      if (!result.ok) {
+        setIncomingUiState("answerFailed");
+      }
+    });
   };
 
   const handleRejectIncoming = (): void => {
@@ -60,7 +64,11 @@ export function useIncomingCallActions(
       return;
     }
     setIncomingUiState("rejecting");
-    void facade.rejectCallById(incomingCallProjection.callId);
+    void facade.rejectCallById(incomingCallProjection.callId).then((result) => {
+      if (!result.ok) {
+        setIncomingUiState("rejectFailed");
+      }
+    });
   };
 
   const answerDisabledReason =

@@ -46,6 +46,47 @@ export class CallTracker {
     return this.activeIncomingCall;
   }
 
+  findRingingIncomingCall(callId: CallId): Call | null {
+    const trackedCall = this.trackedCalls.get(callId);
+    if (trackedCall === undefined) {
+      return null;
+    }
+    if (trackedCall.direction !== "incoming" || trackedCall.state !== "Ringing") {
+      return null;
+    }
+    return trackedCall;
+  }
+
+  getRingingIncomingCalls(): ReadonlyArray<Call> {
+    return this.getAllTrackedCalls().filter(
+      (call) => call.direction === "incoming" && call.state === "Ringing",
+    );
+  }
+
+  reconcileActiveIncomingPointer(): void {
+    const ringingIncoming = this.getRingingIncomingCalls();
+
+    if (this.activeIncomingCall !== null) {
+      const trackedCall = this.trackedCalls.get(this.activeIncomingCall.id);
+      if (trackedCall === undefined || isTerminalCallState(trackedCall.state)) {
+        this.activeIncomingCall = null;
+      } else {
+        this.activeIncomingCall = trackedCall;
+      }
+    }
+
+    if (ringingIncoming.length === 0) {
+      return;
+    }
+
+    const pointsToRingingIncoming =
+      this.activeIncomingCall !== null &&
+      ringingIncoming.some((call) => call.id === this.activeIncomingCall?.id);
+    if (!pointsToRingingIncoming) {
+      this.activeIncomingCall = ringingIncoming[0] ?? null;
+    }
+  }
+
   setActiveIncomingCall(call: Call | null): void {
     this.activeIncomingCall = call;
   }

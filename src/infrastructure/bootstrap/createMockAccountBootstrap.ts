@@ -5,6 +5,7 @@ import {
   MockOperatorPlatformGateway,
   MockTelephonyGateway,
   InMemorySettingsRepository,
+  createArbiterMediaGateway,
 } from "@adapters/index.js";
 import { createTestLogger } from "@infrastructure/logging/index.js";
 import type { AppBootstrapConfig } from "@domain/index.js";
@@ -65,7 +66,9 @@ export function createMockAccountBootstrap(
     hangupScenario: options.hangupScenario ?? "success",
     delayMs: 200,
   });
-  const mediaGateway = new MockMediaGateway(options.mediaScenario ?? "success");
+  const mediaGateway = createArbiterMediaGateway(
+    new MockMediaGateway(options.mediaScenario ?? "success"),
+  );
   const hostIntegrationGateway = new MockHostIntegrationGateway();
 
   const facade = new AccountBootstrapFacade({

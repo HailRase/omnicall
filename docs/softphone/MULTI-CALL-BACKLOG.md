@@ -4,28 +4,11 @@
 
 Items below are **out of active WU6 / RAT step 08** scope unless user resumes this file.
 
-## Tone priority FSM (A2)
+## Tone priority FSM (A2) — **done** (F-018)
 
-**Problem:** Multiple lines can produce ringtone, ringback, busy, failed tones simultaneously.
+Implemented: `resolveActiveTonePlayback` (Domain), `TonePlaybackCoordinator` (Application), `ArbiterMediaGateway` (Adapter decorator). Wired in mock and real bootstrap.
 
-**Target architecture:**
-
-```txt
-ToneArbiter (Application or Media adapter coordinator)
-  ← requests from CallEngine / orchestrators
-  → single active tone stream via MediaGateway
-  Priority (high → low): incoming ringtone > ringback > busy/failed > none
-```
-
-**Deliverables (future WU):**
-
-- Domain or application policy: `TonePriority`, `ToneRequest`
-- Port extension or `MediaGateway` coordinator (no duplicate WebAudio loops)
-- Events: `TonePlaybackSuperseded` (optional)
-- Tests: two ringing + one ringback → only incoming audible
-- UX: `P05-Tone-Priority-UX-Design.md`
-
-**WU6 interim:** stop ringback/other tones when hold-all or exclusive resume runs; no full arbiter.
+Priority (high → low): incoming ringtone > ringback > busy/failed > none.
 
 ## Transfer as per-session mode (E)
 

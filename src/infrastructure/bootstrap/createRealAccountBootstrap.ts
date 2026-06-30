@@ -1,5 +1,6 @@
 import { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
+  ArbiterMediaGateway,
   BrowserMediaAdapter,
   MockHostIntegrationGateway,
   MockOperatorPlatformGateway,
@@ -81,10 +82,12 @@ export function createRealAccountBootstrap(
   const telephonyGateway = new JsSipTelephonyAdapter({
     logger: createBootstrapLogger({ featureId: "F-001", boundedContext: "Telephony" }),
   });
-  const mediaGateway = new BrowserMediaAdapter({
-    logger: createBootstrapLogger({ featureId: "F-005", boundedContext: "Media" }),
-    getPeerConnection: (callId) => telephonyGateway.getPeerConnectionForCall(callId),
-  });
+  const mediaGateway = new ArbiterMediaGateway(
+    new BrowserMediaAdapter({
+      logger: createBootstrapLogger({ featureId: "F-005", boundedContext: "Media" }),
+      getPeerConnection: (callId) => telephonyGateway.getPeerConnectionForCall(callId),
+    }),
+  );
   const hostIntegrationGateway = new MockHostIntegrationGateway();
 
   const facade = new AccountBootstrapFacade({

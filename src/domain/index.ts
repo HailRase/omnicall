@@ -527,6 +527,10 @@ export {
   createStartupModeResolvedEvent,
 } from "./shared/events/accountBootstrapEvents.js";
 export type { ReconnectPolicyConfig, ReconnectSchedulePlan, RandomSource } from "./shared/recovery/ReconnectPolicy.js";
+export type { TonePlaybackKind } from "./media/TonePlaybackKind.js";
+export { TONE_PLAYBACK_KINDS, isTonePlaybackKind } from "./media/TonePlaybackKind.js";
+export type { TonePlaybackRequest } from "./media/TonePlaybackRequest.js";
+export { resolveActiveTonePlayback } from "./media/resolveActiveTonePlayback.js";
 export {
   OCP_RECONNECT_POLICY_CONFIG,
   SIP_RECONNECT_POLICY_CONFIG,

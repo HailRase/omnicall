@@ -165,8 +165,8 @@ export class IncomingCallOrchestrator {
     input: AnswerCallInput,
   ): Promise<Result<Call, ReturnType<typeof createPlatformError>>> {
     const correlationId = input.correlationId ?? createCorrelationId();
-    const call = this.deps.callTracker.getActiveIncomingCall();
-    if (call === null || call.id !== input.callId) {
+    const call = this.deps.callTracker.findRingingIncomingCall(input.callId);
+    if (call === null) {
       return err(createPlatformError("validation_failed", "Incoming call not found"));
     }
 
@@ -266,8 +266,8 @@ export class IncomingCallOrchestrator {
     input: RejectCallInput,
   ): Promise<Result<Call, ReturnType<typeof createPlatformError>>> {
     const correlationId = input.correlationId ?? createCorrelationId();
-    const call = this.deps.callTracker.getActiveIncomingCall();
-    if (call === null || call.id !== input.callId) {
+    const call = this.deps.callTracker.findRingingIncomingCall(input.callId);
+    if (call === null) {
       return err(createPlatformError("validation_failed", "Incoming call not found"));
     }
 
@@ -342,8 +342,8 @@ export class IncomingCallOrchestrator {
       }),
     );
 
-    this.deps.callTracker.setActiveIncomingCall(null);
     this.deps.callTracker.trackCall(ended.call);
+    this.deps.callTracker.reconcileActiveIncomingPointer();
     this.deps.logger.info("incoming_call_rejected", {
       correlationId,
       featureId: "F-002",
@@ -395,7 +395,7 @@ export class IncomingCallOrchestrator {
       createCallEndedEvent(resolvedCorrelationId, { callId }),
     );
     this.deps.callTracker.trackCall(ended.call);
-    this.deps.callTracker.setActiveIncomingCall(null);
+    this.deps.callTracker.reconcileActiveIncomingPointer();
   }
 
   private scheduleAutoAnswer(callId: CallId, timeoutSec: number): void {

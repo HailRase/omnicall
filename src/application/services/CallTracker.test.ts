@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { createCallId, createOutgoingCall, createPhoneNumber, createTransferSession } from "@domain/index.js";
+import {
+  createCallId,
+  createIncomingCall,
+  createOutgoingCall,
+  createPhoneNumber,
+  createTransferSession,
+} from "@domain/index.js";
 import { CallTracker } from "./CallTracker.js";
 import { reconcileCallTracker } from "./callTrackerReconciliation.js";
 
@@ -34,6 +40,29 @@ describe("CallTracker", () => {
 
     expect(tracker.getTransferSession()).toBeNull();
     expect(tracker.getAllTrackedCalls()).toHaveLength(1);
+  });
+});
+
+describe("CallTracker incoming pointer", () => {
+  it("restores active incoming pointer to remaining ringing line after unrelated hangup", () => {
+    const tracker = new CallTracker();
+    const answeredIncoming = {
+      ...createIncomingCall(createCallId("incoming-a"), createPhoneNumber("+12025550148")),
+      state: "Active" as const,
+    };
+    const ringingIncoming = {
+      ...createIncomingCall(createCallId("incoming-b"), createPhoneNumber("+12025550149")),
+      state: "Ringing" as const,
+    };
+
+    tracker.trackCall(answeredIncoming);
+    tracker.trackCall(ringingIncoming);
+    tracker.setActiveIncomingCall(ringingIncoming);
+    tracker.trackCall({ ...answeredIncoming, state: "Ended" });
+    tracker.reconcileActiveIncomingPointer();
+
+    expect(tracker.findRingingIncomingCall("incoming-b")).not.toBeNull();
+    expect(tracker.getActiveIncomingCall()?.id).toBe(createCallId("incoming-b"));
   });
 });
 

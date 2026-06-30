@@ -18,6 +18,7 @@ export type {
 } from "./mock/MockTelephonyGateway.js";
 export { MockMediaGateway } from "./mock/MockMediaGateway.js";
 export type { MockMediaScenario } from "./mock/MockMediaGateway.js";
+export { ArbiterMediaGateway, createArbiterMediaGateway } from "./media/ArbiterMediaGateway.js";
 export { BrowserMediaAdapter } from "./media/browser/BrowserMediaAdapter.js";
 export type {
   BrowserMediaAdapterOptions,
