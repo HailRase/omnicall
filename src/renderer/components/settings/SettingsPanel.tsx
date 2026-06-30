@@ -23,6 +23,12 @@ export type SettingsPanelProps = Readonly<{
   onThemeChange: (theme: AppTheme) => void;
   multiSessionsEnabled: boolean;
   onMultiSessionsChange: (enabled: boolean) => void;
+  autoAnswerEnabled: boolean;
+  autoAnswerTimeoutSec: number;
+  onAutoAnswerEnabledChange: (enabled: boolean) => void;
+  onAutoAnswerTimeoutChange: (timeoutSec: number) => void;
+  autoAnswerDuringActiveSessionEnabled: boolean;
+  onAutoAnswerDuringActiveSessionChange: (enabled: boolean) => void;
   sipAutoReregisterEnabled: boolean;
   onSipAutoReregisterChange: (enabled: boolean) => void;
   sipReregisterIntervalSec: number;
@@ -57,6 +63,12 @@ export function SettingsPanel({
   onThemeChange,
   multiSessionsEnabled,
   onMultiSessionsChange,
+  autoAnswerEnabled,
+  autoAnswerTimeoutSec,
+  onAutoAnswerEnabledChange,
+  onAutoAnswerTimeoutChange,
+  autoAnswerDuringActiveSessionEnabled,
+  onAutoAnswerDuringActiveSessionChange,
   sipAutoReregisterEnabled,
   onSipAutoReregisterChange,
   sipReregisterIntervalSec,
@@ -102,6 +114,12 @@ export function SettingsPanel({
         <SettingsSessionsPanel
           multiSessionsEnabled={multiSessionsEnabled}
           onMultiSessionsChange={onMultiSessionsChange}
+          autoAnswerEnabled={autoAnswerEnabled}
+          autoAnswerTimeoutSec={autoAnswerTimeoutSec}
+          onAutoAnswerEnabledChange={onAutoAnswerEnabledChange}
+          onAutoAnswerTimeoutChange={onAutoAnswerTimeoutChange}
+          autoAnswerDuringActiveSessionEnabled={autoAnswerDuringActiveSessionEnabled}
+          onAutoAnswerDuringActiveSessionChange={onAutoAnswerDuringActiveSessionChange}
         />
       );
       break;

@@ -190,7 +190,7 @@ function mapPolicyViolationMessage(
     case "hold_all_rollback_failed":
       return "Удержание всех звонков не удалось, откат выполнен не полностью.";
     case "auto_answer_blocked":
-      return "Автоответ заблокирован: другой звонок активен.";
+      return null;
     default:
       return violation.reason.length > 0 ? violation.reason : "Операция с несколькими звонками недоступна.";
   }

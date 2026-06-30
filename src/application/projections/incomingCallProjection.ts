@@ -24,7 +24,8 @@ export type IncomingCallProjection = Readonly<{
   queueInfo: string | null;
   isOcpSyncAvailable: boolean;
   uiState: IncomingCallUiState;
-  autoAnswerSecondsRemaining: number | null;
+  autoAnswerTimeoutSec: number | null;
+  autoAnswerExpiresAt: string | null;
   rejectReasonRequired: boolean;
   selectedBreakReason: string | null;
   ringingIndicator: "idle" | "ringing";
@@ -39,7 +40,8 @@ export function initialIncomingCallProjection(): IncomingCallProjection {
     queueInfo: null,
     isOcpSyncAvailable: false,
     uiState: "noIncomingCall",
-    autoAnswerSecondsRemaining: null,
+    autoAnswerTimeoutSec: null,
+    autoAnswerExpiresAt: null,
     rejectReasonRequired: false,
     selectedBreakReason: null,
     ringingIndicator: "idle",
@@ -93,17 +95,18 @@ export function reduceIncomingCallProjection(
         queueInfo: null,
         selectedBreakReason: null,
       };
-    case "IncomingCallRingingStarted":
+    case "IncomingCallRingingStarted": {
+      const autoAnswerTimeoutSec = asOptionalNumber(event["autoAnswerTimeoutSec"]);
       return {
         ...projection,
         visible: true,
         ringingIndicator: "ringing",
-        autoAnswerSecondsRemaining: asOptionalNumber(event["autoAnswerTimeoutSec"]),
+        autoAnswerTimeoutSec,
+        autoAnswerExpiresAt: asOptionalString(event["autoAnswerExpiresAt"]),
         uiState:
-          asOptionalNumber(event["autoAnswerTimeoutSec"]) !== null
-            ? "autoAnswerCountdown"
-            : "incomingRinging",
+          autoAnswerTimeoutSec !== null ? "autoAnswerCountdown" : "incomingRinging",
       };
+    }
     case "IncomingCallDisplayNameResolved":
       return {
         ...projection,
@@ -140,7 +143,8 @@ export function reduceIncomingCallProjection(
         visible: false,
         uiState: "noIncomingCall",
         ringingIndicator: "idle",
-        autoAnswerSecondsRemaining: null,
+        autoAnswerTimeoutSec: null,
+        autoAnswerExpiresAt: null,
       };
     case "CallRejected":
       return {
@@ -148,7 +152,8 @@ export function reduceIncomingCallProjection(
         visible: false,
         uiState: "noIncomingCall",
         ringingIndicator: "idle",
-        autoAnswerSecondsRemaining: null,
+        autoAnswerTimeoutSec: null,
+        autoAnswerExpiresAt: null,
       };
     case "IncomingCallEndedBeforeAnswer":
       if (!projection.visible) {
@@ -159,7 +164,8 @@ export function reduceIncomingCallProjection(
         visible: false,
         uiState: "incomingEndedBeforeAnswer",
         ringingIndicator: "idle",
-        autoAnswerSecondsRemaining: null,
+        autoAnswerTimeoutSec: null,
+        autoAnswerExpiresAt: null,
       };
     case "CallFailed":
       if (!projection.visible) {

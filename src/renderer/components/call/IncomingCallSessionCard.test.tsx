@@ -16,6 +16,7 @@ const baseProps = {
   queueName: null,
   campaignContextTitle: null,
   autoAnswerSecondsRemaining: null,
+  autoAnswerTimeoutSec: null,
   uiState: "incomingRinging" as const,
   isSelected: true,
   answerDisabledReason: null,

@@ -10,6 +10,7 @@ import type {
 
 export type IncomingCallSettings = Readonly<{
   autoAnswerTimeoutSec: number | null;
+  autoAnswerDuringActiveSessionEnabled: boolean;
   rejectReasonRequired: boolean;
   allowedBreakReasons: ReadonlyArray<BreakReason>;
 }>;

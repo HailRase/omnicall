@@ -19,6 +19,7 @@ describe("HandleIncomingCallUseCase", () => {
       new InMemorySettingsRepository({
         incomingCallSettings: {
           autoAnswerTimeoutSec: null,
+          autoAnswerDuringActiveSessionEnabled: false,
           rejectReasonRequired: false,
           allowedBreakReasons: [],
         },

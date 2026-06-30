@@ -22,6 +22,7 @@ describe("AnswerCallUseCase", () => {
         phoneStatus: "online",
         incomingCallSettings: {
           autoAnswerTimeoutSec: null,
+          autoAnswerDuringActiveSessionEnabled: false,
           rejectReasonRequired: false,
           allowedBreakReasons: [],
         },

@@ -45,6 +45,12 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
     errors,
   );
   const autoAnswerTimeoutSec = readAutoAnswerTimeout(record, errors);
+  const autoAnswerDuringActiveSessionEnabled = readBooleanWithDefault(
+    record,
+    "autoAnswerDuringActiveSessionEnabled",
+    false,
+    errors,
+  );
   const ringbackToneEnabled = readBoolean(record, "ringbackToneEnabled", errors);
   const sipAutoReregisterEnabled = readBooleanWithDefault(
     record,
@@ -72,6 +78,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
       multiSessionsEnabled,
       autoUnholdOnTransferFailure,
       autoAnswerTimeoutSec,
+      autoAnswerDuringActiveSessionEnabled,
       ringbackToneEnabled,
       sipAutoReregisterEnabled,
       sipReregisterIntervalSec,

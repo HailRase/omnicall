@@ -34,6 +34,7 @@ describe("LogoutOperatorUseCase", () => {
       new InMemorySettingsRepository({
         incomingCallSettings: {
           autoAnswerTimeoutSec: null,
+          autoAnswerDuringActiveSessionEnabled: false,
           rejectReasonRequired: false,
           allowedBreakReasons: [],
         },
@@ -76,6 +77,7 @@ describe("LogoutOperatorUseCase", () => {
     const settings = new InMemorySettingsRepository({
       incomingCallSettings: {
         autoAnswerTimeoutSec: null,
+        autoAnswerDuringActiveSessionEnabled: false,
         rejectReasonRequired: true,
         allowedBreakReasons: [createBreakReason("meeting")],
       },
@@ -108,6 +110,7 @@ describe("LogoutOperatorUseCase", () => {
       new InMemorySettingsRepository({
         incomingCallSettings: {
           autoAnswerTimeoutSec: null,
+          autoAnswerDuringActiveSessionEnabled: false,
           rejectReasonRequired: false,
           allowedBreakReasons: [],
         },

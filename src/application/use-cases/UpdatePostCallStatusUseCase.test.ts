@@ -31,6 +31,7 @@ describe("UpdatePostCallStatusUseCase", () => {
     const settings = new InMemorySettingsRepository({
       incomingCallSettings: {
         autoAnswerTimeoutSec: null,
+        autoAnswerDuringActiveSessionEnabled: false,
         rejectReasonRequired: true,
         allowedBreakReasons: [createBreakReason("meeting")],
       },
@@ -83,6 +84,7 @@ describe("UpdatePostCallStatusUseCase", () => {
     const settings = new InMemorySettingsRepository({
       incomingCallSettings: {
         autoAnswerTimeoutSec: null,
+        autoAnswerDuringActiveSessionEnabled: false,
         rejectReasonRequired: true,
         allowedBreakReasons: [createBreakReason("meeting")],
       },

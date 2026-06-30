@@ -22,6 +22,7 @@ export const RingingSelected: Story = {
     queueName: "Продажи",
     campaignContextTitle: null,
     autoAnswerSecondsRemaining: null,
+    autoAnswerTimeoutSec: null,
     uiState: "incomingRinging",
     isSelected: true,
     answerDisabledReason: null,
@@ -36,6 +37,7 @@ export const AutoAnswerCountdown: Story = {
   args: {
     ...RingingSelected.args,
     autoAnswerSecondsRemaining: 8,
+    autoAnswerTimeoutSec: 8,
     uiState: "autoAnswerCountdown",
   },
 };

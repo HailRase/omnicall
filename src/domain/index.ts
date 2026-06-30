@@ -23,6 +23,7 @@ export { migrateUserSettings } from "./settings/migrateUserSettings.js";
 export {
   mergeMultiCallIntoUserSettings,
   toAutoAnswerTimeoutSec,
+  toAutoAnswerDuringActiveSessionEnabled,
   toMultiCallSettings,
 } from "./settings/userSettingsMapping.js";
 export type { DomainEvent, DomainEventBase } from "./shared/DomainEvent.js";
@@ -305,6 +306,15 @@ export {
   isEstablishedCall,
   shouldHoldAllBeforeOutgoing,
 } from "./telephony/MultiCallPolicy.js";
+export type { AutoAnswerBlockedReason, AutoAnswerSchedule, IncomingAutoAnswerScheduleDecision } from "./telephony/resolveAutoAnswerSchedule.js";
+export {
+  MIN_AUTO_ANSWER_TIMEOUT_SEC,
+  countOtherSessionsForAutoAnswer,
+  evaluateAutoAnswerGlobalBlock,
+  evaluateIncomingAutoAnswerSchedule,
+  resolveAutoAnswerSchedule,
+  shouldScheduleAutoAnswer,
+} from "./telephony/resolveAutoAnswerSchedule.js";
 export type {
   BlindTransferDisabledReason,
   BlindTransferEligibilityInput,

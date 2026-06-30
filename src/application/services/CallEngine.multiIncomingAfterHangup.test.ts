@@ -23,6 +23,7 @@ describe("CallEngine multi-incoming after hangup", () => {
         phoneStatus: "online",
         incomingCallSettings: {
           autoAnswerTimeoutSec: null,
+          autoAnswerDuringActiveSessionEnabled: false,
           rejectReasonRequired: false,
           allowedBreakReasons: [],
         },
@@ -70,6 +71,7 @@ describe("CallEngine multi-incoming after hangup", () => {
         phoneStatus: "online",
         incomingCallSettings: {
           autoAnswerTimeoutSec: null,
+          autoAnswerDuringActiveSessionEnabled: false,
           rejectReasonRequired: false,
           allowedBreakReasons: [],
         },

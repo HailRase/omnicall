@@ -230,6 +230,7 @@ export function createIncomingCallRingingStartedEvent(
   payload: Readonly<{
     callId: CallId;
     autoAnswerTimeoutSec: number | null;
+    autoAnswerExpiresAt: string | null;
   }>,
 ): ReturnType<
   typeof createDomainEvent<"IncomingCallRingingStarted", typeof payload>

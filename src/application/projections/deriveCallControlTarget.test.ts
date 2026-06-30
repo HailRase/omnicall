@@ -52,6 +52,7 @@ function ringingIncomingProjection(callId: string) {
     occurredAt: new Date().toISOString(),
     callId,
     autoAnswerTimeoutSec: null,
+    autoAnswerExpiresAt: null,
   });
 }
 

@@ -503,6 +503,7 @@ export class AccountBootstrapFacade {
     }
     await this.deps.settingsRepository.saveUserSettings(accountKey, validated.value);
     this.connectionRecoveryOrchestration.applyRecoverySettings(validated.value);
+    await this.callEngine.refreshAutoAnswerSchedules();
     return validated.value;
   }
 

@@ -19,6 +19,7 @@ function createHarness(
     phoneStatus: "online",
     incomingCallSettings: {
       autoAnswerTimeoutSec: null,
+      autoAnswerDuringActiveSessionEnabled: false,
       rejectReasonRequired: false,
       allowedBreakReasons: [],
     },
@@ -203,6 +204,7 @@ describe("ChangeAgentStatusUseCase", () => {
       phoneStatus: "online",
       incomingCallSettings: {
         autoAnswerTimeoutSec: null,
+        autoAnswerDuringActiveSessionEnabled: false,
         rejectReasonRequired: true,
         allowedBreakReasons: [createBreakReason("meeting")],
       },
@@ -230,6 +232,7 @@ describe("ChangeAgentStatusUseCase", () => {
       phoneStatus: "online",
       incomingCallSettings: {
         autoAnswerTimeoutSec: null,
+        autoAnswerDuringActiveSessionEnabled: false,
         rejectReasonRequired: true,
         allowedBreakReasons: [createBreakReason("meeting")],
       },

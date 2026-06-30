@@ -25,6 +25,12 @@ describe("settings overlay with layout zones", () => {
               onThemeChange={() => undefined}
               multiSessionsEnabled
               onMultiSessionsChange={() => undefined}
+              autoAnswerEnabled={false}
+              autoAnswerTimeoutSec={5}
+              onAutoAnswerEnabledChange={() => undefined}
+              onAutoAnswerTimeoutChange={() => undefined}
+              autoAnswerDuringActiveSessionEnabled={false}
+              onAutoAnswerDuringActiveSessionChange={() => undefined}
               sipAutoReregisterEnabled
               onSipAutoReregisterChange={() => undefined}
               sipReregisterIntervalSec={5}

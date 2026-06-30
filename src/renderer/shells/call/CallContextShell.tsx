@@ -9,6 +9,7 @@ import { OutgoingCallCard } from "../../components/call/OutgoingCallCard.js";
 import { TransferPanel } from "../../components/call/TransferPanel.js";
 import { TransferSuccessOverlay } from "../../components/call/TransferSuccessOverlay.js";
 import { mapDtmfErrorMessage } from "../../helpers/mapDtmfErrorMessage.js";
+import { useAutoAnswerCountdown } from "../../hooks/useAutoAnswerCountdown.js";
 import type { CallFeatureShellBindings } from "../../hooks/useCallFeatureShell.js";
 import styles from "./CallContextShell.module.css";
 
@@ -64,6 +65,10 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
     ) ?? null;
 
   const showIncomingCard = incomingCallId !== null;
+  const autoAnswerSecondsRemaining = useAutoAnswerCountdown(
+    incomingCallProjection.autoAnswerExpiresAt,
+    incomingCallProjection.uiState === "autoAnswerCountdown",
+  );
   const singleNonIncomingLine =
     nonIncomingLinesShell.lines.length === 1
       ? (nonIncomingLinesShell.lines[0] ?? null)
@@ -132,7 +137,8 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
               queueLabelState={incomingCallShell.queueLabelState}
               queueName={incomingCallShell.queueName}
               campaignContextTitle={campaignActions.campaignContextTitle}
-              autoAnswerSecondsRemaining={incomingCallProjection.autoAnswerSecondsRemaining}
+              autoAnswerSecondsRemaining={autoAnswerSecondsRemaining}
+              autoAnswerTimeoutSec={incomingCallProjection.autoAnswerTimeoutSec}
               uiState={incomingCallProjection.uiState}
               isSelected={isIncomingSelected}
               answerDisabledReason={incomingCallActions.answerDisabledReason}

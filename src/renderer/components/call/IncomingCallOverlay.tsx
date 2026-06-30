@@ -1,5 +1,6 @@
 import { useEffect, useRef, type JSX, type KeyboardEvent } from "react";
 import type { IncomingCallUiState, QueueLabelState } from "@application/index.js";
+import { formatAutoAnswerCountdownLabel } from "../../helpers/formatAutoAnswerCountdownLabel.js";
 import { mapQueueLabelState } from "../../helpers/mapQueueLabelState.js";
 import { AppIcon } from "../icons/index.js";
 import { IncomingCallStatusMessage } from "./IncomingCallStatusMessage.js";
@@ -135,7 +136,7 @@ export function IncomingCallOverlay({
                   data-testid="auto-answer-countdown"
                   aria-live="polite"
                 >
-                  · Автоответ {autoAnswerSecondsRemaining} с
+                  · {formatAutoAnswerCountdownLabel(autoAnswerSecondsRemaining)}
                 </span>
               ) : null}
             </p>

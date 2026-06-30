@@ -3,11 +3,14 @@ import type { AccountBootstrapFacade } from "@application/facades/AccountBootstr
 import type { MultiCallSettings } from "@application/index.js";
 import {
   createDefaultUserSettings,
+  MAX_AUTO_ANSWER_TIMEOUT_SEC,
+  MIN_AUTO_ANSWER_TIMEOUT_SEC,
   MIN_SIP_REREGISTER_INTERVAL_SEC,
   type AppTheme,
   type UserSettings,
 } from "@application/index.js";
 import { applyAppTheme } from "../theme/applyAppTheme.js";
+import { DEFAULT_AUTO_ANSWER_TIMEOUT_SEC } from "../components/settings/panels/SettingsSessionsPanel.js";
 
 type UseSettingsActionsInput = Readonly<{
   facade: AccountBootstrapFacade | null;
@@ -19,6 +22,9 @@ type UseSettingsActionsResult = Readonly<{
   userSettings: UserSettings;
   onThemeChange: (theme: AppTheme) => void;
   onMultiSessionsToggle: (enabled: boolean) => void;
+  onAutoAnswerEnabledToggle: (enabled: boolean) => void;
+  onAutoAnswerTimeoutChange: (timeoutSec: number) => void;
+  onAutoAnswerDuringActiveSessionToggle: (enabled: boolean) => void;
   onSipAutoReregisterToggle: (enabled: boolean) => void;
   onSipReregisterIntervalChange: (intervalSec: number) => void;
   settingsUpdateError: string | null;
@@ -105,6 +111,42 @@ export function useSettingsActions(
     [currentSettings.autoUnholdOnTransferFailure, persistUserSettings, userSettings],
   );
 
+  const onAutoAnswerEnabledToggle = useCallback(
+    (enabled: boolean): void => {
+      persistUserSettings({
+        ...userSettings,
+        autoAnswerTimeoutSec: enabled
+          ? (userSettings.autoAnswerTimeoutSec ?? DEFAULT_AUTO_ANSWER_TIMEOUT_SEC)
+          : null,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onAutoAnswerTimeoutChange = useCallback(
+    (timeoutSec: number): void => {
+      const normalized = Math.min(
+        MAX_AUTO_ANSWER_TIMEOUT_SEC,
+        Math.max(MIN_AUTO_ANSWER_TIMEOUT_SEC, timeoutSec),
+      );
+      persistUserSettings({
+        ...userSettings,
+        autoAnswerTimeoutSec: normalized,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onAutoAnswerDuringActiveSessionToggle = useCallback(
+    (enabled: boolean): void => {
+      persistUserSettings({
+        ...userSettings,
+        autoAnswerDuringActiveSessionEnabled: enabled,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
   const onSipAutoReregisterToggle = useCallback(
     (enabled: boolean): void => {
       persistUserSettings({
@@ -130,6 +172,9 @@ export function useSettingsActions(
     userSettings,
     onThemeChange,
     onMultiSessionsToggle,
+    onAutoAnswerEnabledToggle,
+    onAutoAnswerTimeoutChange,
+    onAutoAnswerDuringActiveSessionToggle,
     onSipAutoReregisterToggle,
     onSipReregisterIntervalChange,
     settingsUpdateError,

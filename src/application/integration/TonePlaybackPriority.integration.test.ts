@@ -18,6 +18,7 @@ function createIncomingSettingsRepository(
     phoneStatus: "online",
     incomingCallSettings: {
       autoAnswerTimeoutSec: null,
+      autoAnswerDuringActiveSessionEnabled: false,
       rejectReasonRequired: false,
       allowedBreakReasons: [],
     },

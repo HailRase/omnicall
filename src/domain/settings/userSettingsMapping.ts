@@ -17,6 +17,12 @@ export function toAutoAnswerTimeoutSec(settings: UserSettings): number | null {
   return settings.autoAnswerTimeoutSec;
 }
 
+export function toAutoAnswerDuringActiveSessionEnabled(
+  settings: UserSettings,
+): boolean {
+  return settings.autoAnswerDuringActiveSessionEnabled;
+}
+
 export function mergeMultiCallIntoUserSettings(
   base: UserSettings,
   multiCall: MultiCallSettings,

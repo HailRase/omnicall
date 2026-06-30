@@ -69,6 +69,10 @@ export {
   type IncomingCallUiState,
 } from "./projections/incomingCallProjection.js";
 export {
+  computeAutoAnswerExpiresAt,
+  deriveAutoAnswerSecondsRemaining,
+} from "./projections/deriveAutoAnswerCountdown.js";
+export {
   decideAutoAnswer,
   type AutoAnswerDecision,
 } from "./policies/AutoAnswerPolicy.js";
@@ -213,7 +217,12 @@ export {
   DEFAULT_SIP_REREGISTER_MAX_ATTEMPTS,
 } from "@domain/settings/SipRecoverySettings.js";
 export { APP_THEMES, DEFAULT_APP_THEME, parseAppTheme, type AppTheme } from "@domain/settings/AppTheme.js";
-export { createDefaultUserSettings, type UserSettings } from "@domain/settings/UserSettings.js";
+export {
+  createDefaultUserSettings,
+  MAX_AUTO_ANSWER_TIMEOUT_SEC,
+  MIN_AUTO_ANSWER_TIMEOUT_SEC,
+  type UserSettings,
+} from "@domain/index.js";
 export { SafeLogoutUseCase } from "./use-cases/SafeLogoutUseCase.js";
 export { EndUserSessionUseCase } from "./use-cases/EndUserSessionUseCase.js";
 export type { EndUserSessionInput } from "./use-cases/EndUserSessionUseCase.js";

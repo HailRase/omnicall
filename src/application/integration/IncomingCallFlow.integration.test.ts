@@ -22,6 +22,7 @@ describe("IncomingCallFlow integration", () => {
         phoneStatus: "online",
         incomingCallSettings: {
           autoAnswerTimeoutSec: null,
+          autoAnswerDuringActiveSessionEnabled: false,
           rejectReasonRequired: false,
           allowedBreakReasons: [],
         },
@@ -52,6 +53,7 @@ describe("IncomingCallFlow integration", () => {
         phoneStatus: "online",
         incomingCallSettings: {
           autoAnswerTimeoutSec: null,
+          autoAnswerDuringActiveSessionEnabled: false,
           rejectReasonRequired: true,
           allowedBreakReasons: [createBreakReason("break")],
         },
@@ -85,6 +87,7 @@ describe("IncomingCallFlow integration", () => {
         phoneStatus: "dnd",
         incomingCallSettings: {
           autoAnswerTimeoutSec: null,
+          autoAnswerDuringActiveSessionEnabled: false,
           rejectReasonRequired: false,
           allowedBreakReasons: [],
         },
@@ -113,6 +116,7 @@ describe("IncomingCallFlow integration", () => {
         phoneStatus: "online",
         incomingCallSettings: {
           autoAnswerTimeoutSec: null,
+          autoAnswerDuringActiveSessionEnabled: false,
           rejectReasonRequired: true,
           allowedBreakReasons: [createBreakReason("break")],
         },
@@ -140,6 +144,7 @@ describe("IncomingCallFlow integration", () => {
         phoneStatus: "online",
         incomingCallSettings: {
           autoAnswerTimeoutSec: null,
+          autoAnswerDuringActiveSessionEnabled: false,
           rejectReasonRequired: false,
           allowedBreakReasons: [],
         },
@@ -173,6 +178,7 @@ describe("IncomingCallFlow integration", () => {
         phoneStatus: "online",
         incomingCallSettings: {
           autoAnswerTimeoutSec: 1,
+          autoAnswerDuringActiveSessionEnabled: false,
           rejectReasonRequired: false,
           allowedBreakReasons: [],
         },

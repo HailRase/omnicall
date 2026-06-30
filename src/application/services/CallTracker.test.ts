@@ -61,7 +61,7 @@ describe("CallTracker incoming pointer", () => {
     tracker.trackCall({ ...answeredIncoming, state: "Ended" });
     tracker.reconcileActiveIncomingPointer();
 
-    expect(tracker.findRingingIncomingCall("incoming-b")).not.toBeNull();
+    expect(tracker.findRingingIncomingCall(createCallId("incoming-b"))).not.toBeNull();
     expect(tracker.getActiveIncomingCall()?.id).toBe(createCallId("incoming-b"));
   });
 });

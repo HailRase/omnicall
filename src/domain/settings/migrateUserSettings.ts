@@ -93,6 +93,7 @@ function migrateFromLegacy(legacy?: UserSettingsV0Legacy): UserSettings {
     autoUnholdOnTransferFailure:
       legacy.multiCallSettings.autoUnholdOnTransferFailure !== false,
     autoAnswerTimeoutSec: legacy.autoAnswerTimeoutSec,
+    autoAnswerDuringActiveSessionEnabled: defaults.autoAnswerDuringActiveSessionEnabled,
     ringbackToneEnabled: defaults.ringbackToneEnabled,
     sipAutoReregisterEnabled: defaults.sipAutoReregisterEnabled,
     sipReregisterIntervalSec: defaults.sipReregisterIntervalSec,

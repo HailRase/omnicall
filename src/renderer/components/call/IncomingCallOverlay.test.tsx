@@ -44,7 +44,7 @@ describe("IncomingCallOverlay", () => {
       />,
     );
 
-    expect(screen.getByTestId("auto-answer-countdown")).toHaveTextContent("Автоответ 3 с");
+    expect(screen.getByTestId("auto-answer-countdown")).toHaveTextContent("Автоответ через 3");
     expect(screen.queryByTestId("reject-reason-select")).not.toBeInTheDocument();
   });
 

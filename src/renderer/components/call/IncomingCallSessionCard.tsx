@@ -1,7 +1,8 @@
 import clsx from "clsx";
-import { useEffect, useRef, type JSX } from "react";
+import type { JSX } from "react";
 import type { IncomingCallUiState, QueueLabelState } from "@application/index.js";
 import { mapQueueLabelState } from "../../helpers/mapQueueLabelState.js";
+import { formatAutoAnswerCountdownLabel } from "../../helpers/formatAutoAnswerCountdownLabel.js";
 import { AppIcon } from "../icons/index.js";
 import { IncomingCallStatusMessage } from "./IncomingCallStatusMessage.js";
 import styles from "./IncomingCallSessionCard.module.css";
@@ -14,6 +15,7 @@ export type IncomingCallSessionCardProps = Readonly<{
   queueName: string | null;
   campaignContextTitle: string | null;
   autoAnswerSecondsRemaining: number | null;
+  autoAnswerTimeoutSec: number | null;
   uiState: IncomingCallUiState;
   isSelected: boolean;
   answerDisabledReason: string | null;
@@ -62,6 +64,7 @@ export function IncomingCallSessionCard({
   queueName,
   campaignContextTitle,
   autoAnswerSecondsRemaining,
+  autoAnswerTimeoutSec,
   uiState,
   isSelected,
   answerDisabledReason,
@@ -70,25 +73,16 @@ export function IncomingCallSessionCard({
   onAnswer,
   onReject,
 }: IncomingCallSessionCardProps): JSX.Element {
-  const autoAnswerTotalRef = useRef<number | null>(null);
   const identity = resolveCallerIdentity(callerNumber, displayName);
   const queueBadge = mapQueueLabelState(queueLabelState, queueName);
-  const autoAnswerActive = autoAnswerSecondsRemaining !== null;
-
-  useEffect(() => {
-    if (autoAnswerSecondsRemaining === null) {
-      autoAnswerTotalRef.current = null;
-      return;
-    }
-    if (autoAnswerTotalRef.current === null) {
-      autoAnswerTotalRef.current = autoAnswerSecondsRemaining;
-    }
-  }, [autoAnswerSecondsRemaining]);
-
-  const autoAnswerTotal = autoAnswerTotalRef.current ?? autoAnswerSecondsRemaining ?? 1;
+  const autoAnswerActive =
+    autoAnswerSecondsRemaining !== null && autoAnswerTimeoutSec !== null;
   const autoAnswerProgress =
-    autoAnswerActive && autoAnswerSecondsRemaining !== null
-      ? Math.max(0, Math.min(100, (autoAnswerSecondsRemaining / autoAnswerTotal) * 100))
+    autoAnswerActive && autoAnswerTimeoutSec > 0
+      ? Math.max(
+          0,
+          Math.min(100, (autoAnswerSecondsRemaining / autoAnswerTimeoutSec) * 100),
+        )
       : 0;
 
   return (
@@ -134,7 +128,7 @@ export function IncomingCallSessionCard({
               data-testid="auto-answer-countdown"
               aria-live="polite"
             >
-              Автоответ {autoAnswerSecondsRemaining} с
+              {formatAutoAnswerCountdownLabel(autoAnswerSecondsRemaining)}
             </p>
           ) : null}
         </span>

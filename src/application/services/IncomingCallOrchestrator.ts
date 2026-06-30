@@ -15,12 +15,16 @@ import {
   createIncomingRingtoneStartedEvent,
   createIncomingRingtoneStoppedEvent,
   createPhoneNumber,
+  evaluateIncomingAutoAnswerSchedule,
+  evaluateAutoAnswerGlobalBlock,
+  type AutoAnswerBlockedReason,
   type Call,
   type CallId,
 } from "@domain/index.js";
 import type {
   DomainEventPublisher,
   HostIntegrationGateway,
+  IncomingCallSettings,
   Logger,
   MediaGateway,
   SettingsRepository,
@@ -28,6 +32,7 @@ import type {
 } from "@ports/index.js";
 import { decideAutoAnswer } from "@application/policies/AutoAnswerPolicy.js";
 import { decideDndIncomingReject } from "@application/policies/DndRejectPolicy.js";
+import { computeAutoAnswerExpiresAt } from "@application/projections/deriveAutoAnswerCountdown.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { createPlatformError } from "@shared/errors/index.js";
@@ -55,7 +60,7 @@ type IncomingCallOrchestratorDeps = Readonly<{
 }>;
 
 export class IncomingCallOrchestrator {
-  private autoAnswerTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly autoAnswerTimers = new Map<CallId, ReturnType<typeof setTimeout>>();
 
   constructor(private readonly deps: IncomingCallOrchestratorDeps) {}
 
@@ -110,13 +115,15 @@ export class IncomingCallOrchestrator {
 
     const incomingSettings = await this.deps.settingsRepository.getIncomingCallSettings();
     const autoAnswerDecision = decideAutoAnswer(incomingSettings);
-    this.deps.eventPublisher.publish(
-      createIncomingCallRingingStartedEvent(correlationId, {
-        callId: ringingTransition.call.id,
-        autoAnswerTimeoutSec:
-          autoAnswerDecision !== null ? autoAnswerDecision.timeoutSec : null,
-      }),
-    );
+    if (autoAnswerDecision === null) {
+      this.deps.eventPublisher.publish(
+        createIncomingCallRingingStartedEvent(correlationId, {
+          callId: ringingTransition.call.id,
+          autoAnswerTimeoutSec: null,
+          autoAnswerExpiresAt: null,
+        }),
+      );
+    }
     await this.deps.mediaGateway.playRingtone({
       callId: ringingTransition.call.id,
       correlationId,
@@ -138,14 +145,12 @@ export class IncomingCallOrchestrator {
     }
 
     if (autoAnswerDecision !== null) {
-      if (this.deps.callTracker.countEstablishedCalls() > 0) {
-        this.deps.multiCallPolicyService.publishAutoAnswerBlocked(
-          ringingTransition.call.id,
-          correlationId,
-        );
-      } else {
-        this.scheduleAutoAnswer(ringingTransition.call.id, autoAnswerDecision.timeoutSec);
-      }
+      this.applyAutoAnswerScheduleForCall(
+        ringingTransition.call.id,
+        autoAnswerDecision.timeoutSec,
+        incomingSettings,
+        correlationId,
+      );
     }
 
     this.deps.logger.info("incoming_call_received", {
@@ -159,6 +164,33 @@ export class IncomingCallOrchestrator {
     });
 
     return ok(ringingTransition.call);
+  }
+
+  async refreshAutoAnswerSchedules(): Promise<void> {
+    const incomingSettings = await this.deps.settingsRepository.getIncomingCallSettings();
+    const autoAnswerDecision = decideAutoAnswer(incomingSettings);
+
+    for (const call of this.deps.callTracker.getRingingIncomingCalls()) {
+      this.clearAutoAnswerTimer(call.id);
+      const correlationId = createCorrelationId();
+      if (autoAnswerDecision === null) {
+        this.deps.eventPublisher.publish(
+          createIncomingCallRingingStartedEvent(correlationId, {
+            callId: call.id,
+            autoAnswerTimeoutSec: null,
+            autoAnswerExpiresAt: null,
+          }),
+        );
+        continue;
+      }
+
+      this.applyAutoAnswerScheduleForCall(
+        call.id,
+        autoAnswerDecision.timeoutSec,
+        incomingSettings,
+        correlationId,
+      );
+    }
   }
 
   async answerCall(
@@ -207,7 +239,7 @@ export class IncomingCallOrchestrator {
       return answerResult;
     }
 
-    this.clearAutoAnswerTimer();
+    this.clearAutoAnswerTimer(input.callId);
     cancelScheduledTonePlaybackStop(input.callId);
     await this.deps.mediaGateway.stopTone({ callId: input.callId, correlationId });
     this.deps.eventPublisher.publish(
@@ -301,7 +333,7 @@ export class IncomingCallOrchestrator {
       return err(createPlatformError("validation_failed", ended.transition.reason));
     }
 
-    this.clearAutoAnswerTimer();
+    this.clearAutoAnswerTimer(input.callId);
     cancelScheduledTonePlaybackStop(input.callId);
     await this.deps.mediaGateway.stopTone({ callId: input.callId, correlationId });
     this.deps.eventPublisher.publish(
@@ -377,7 +409,7 @@ export class IncomingCallOrchestrator {
       return;
     }
 
-    this.clearAutoAnswerTimer();
+    this.clearAutoAnswerTimer(callId);
     cancelScheduledTonePlaybackStop(callId);
     await this.deps.mediaGateway.stopTone({
       callId,
@@ -398,28 +430,118 @@ export class IncomingCallOrchestrator {
     this.deps.callTracker.reconcileActiveIncomingPointer();
   }
 
-  private scheduleAutoAnswer(callId: CallId, timeoutSec: number): void {
-    this.clearAutoAnswerTimer();
-    this.autoAnswerTimer = setTimeout(() => {
-      if (this.deps.callTracker.countEstablishedCalls() > 0) {
-        this.deps.multiCallPolicyService.publishAutoAnswerBlocked(
-          callId,
-          createCorrelationId(),
-        );
-        return;
-      }
-      void this.answerCall({
+  private applyAutoAnswerScheduleForCall(
+    callId: CallId,
+    timeoutSec: number,
+    incomingSettings: IncomingCallSettings,
+    correlationId: CorrelationId,
+  ): void {
+    const scheduleDecision = evaluateIncomingAutoAnswerSchedule({
+      calls: this.deps.callTracker.getAllTrackedCalls(),
+      targetIncomingCallId: callId,
+      autoAnswerDuringActiveSessionEnabled:
+        incomingSettings.autoAnswerDuringActiveSessionEnabled,
+      transferSession: this.deps.callTracker.getTransferSession(),
+      transferModeActive: this.deps.callTracker.getTransferModeSourceCallId() !== null,
+      timeoutSec,
+    });
+
+    const expiresAt =
+      scheduleDecision.action === "schedule"
+        ? computeAutoAnswerExpiresAt(scheduleDecision.timeoutSec)
+        : null;
+
+    this.deps.eventPublisher.publish(
+      createIncomingCallRingingStartedEvent(correlationId, {
         callId,
-        autoAnswered: true,
-        timeoutSec,
-      });
-    }, timeoutSec * 1000);
+        autoAnswerTimeoutSec:
+          scheduleDecision.action === "schedule" ? scheduleDecision.timeoutSec : null,
+        autoAnswerExpiresAt: expiresAt,
+      }),
+    );
+
+    if (scheduleDecision.action === "schedule") {
+      this.scheduleAutoAnswer(callId, scheduleDecision.timeoutSec);
+      return;
+    }
+
+    if (scheduleDecision.reason === "other_session_busy_policy") {
+      this.deps.multiCallPolicyService.publishAutoAnswerBlocked(callId, correlationId);
+      return;
+    }
+
+    this.logAutoAnswerSuppressed(callId, scheduleDecision.reason);
   }
 
-  private clearAutoAnswerTimer(): void {
-    if (this.autoAnswerTimer !== null) {
-      clearTimeout(this.autoAnswerTimer);
-      this.autoAnswerTimer = null;
+  private scheduleAutoAnswer(callId: CallId, timeoutSec: number): void {
+    this.clearAutoAnswerTimer(callId);
+    const timer = setTimeout(() => {
+      void this.executeScheduledAutoAnswer(callId, timeoutSec);
+    }, timeoutSec * 1000);
+    this.autoAnswerTimers.set(callId, timer);
+  }
+
+  private async executeScheduledAutoAnswer(
+    callId: CallId,
+    timeoutSec: number,
+  ): Promise<void> {
+    const incomingSettings = await this.deps.settingsRepository.getIncomingCallSettings();
+    const autoAnswerDecision = decideAutoAnswer(incomingSettings);
+    if (autoAnswerDecision === null) {
+      return;
     }
+
+    const globalBlock = evaluateAutoAnswerGlobalBlock(
+      this.deps.callTracker.getAllTrackedCalls(),
+      this.deps.callTracker.getTransferSession(),
+      this.deps.callTracker.getTransferModeSourceCallId() !== null,
+    );
+    if (globalBlock !== null) {
+      this.logAutoAnswerSuppressed(callId, globalBlock);
+      return;
+    }
+
+    const result = await this.answerCall({
+      callId,
+      autoAnswered: true,
+      timeoutSec,
+    });
+    if (!result.ok) {
+      this.deps.logger.warn("scheduled_auto_answer_failed", {
+        correlationId: createCorrelationId(),
+        featureId: "F-002",
+        boundedContext: "Telephony",
+        operation: "auto_answer",
+        previousState: "Ringing",
+        nextState: "Ringing",
+        result: "failed",
+        normalizedError: result.error.message,
+      });
+    }
+  }
+
+  private logAutoAnswerSuppressed(
+    callId: CallId,
+    reason: AutoAnswerBlockedReason,
+  ): void {
+    this.deps.logger.warn("auto_answer_suppressed", {
+      correlationId: createCorrelationId(),
+      featureId: "F-002",
+      boundedContext: "Telephony",
+      operation: "auto_answer",
+      previousState: "Ringing",
+      nextState: "Ringing",
+      result: reason,
+      normalizedError: callId,
+    });
+  }
+
+  private clearAutoAnswerTimer(callId: CallId): void {
+    const timer = this.autoAnswerTimers.get(callId);
+    if (timer === undefined) {
+      return;
+    }
+    clearTimeout(timer);
+    this.autoAnswerTimers.delete(callId);
   }
 }

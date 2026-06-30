@@ -195,6 +195,10 @@ export class CallEngine {
     return this.incomingCallOrchestrator.handleIncomingReceived(input);
   }
 
+  refreshAutoAnswerSchedules(): Promise<void> {
+    return this.incomingCallOrchestrator.refreshAutoAnswerSchedules();
+  }
+
   answerCall(
     input: AnswerCallInput,
   ): Promise<Result<Call, ReturnType<typeof createPlatformError>>> {

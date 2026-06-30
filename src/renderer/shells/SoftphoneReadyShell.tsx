@@ -3,6 +3,7 @@ import type { AccountBootstrapFacade } from "@application/facades/AccountBootstr
 import { OcpToastStack } from "../components/ocp/OcpToastStack.js";
 import { SettingsFullscreenOverlay } from "../components/settings/SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "../components/settings/SettingsPanel.js";
+import { DEFAULT_AUTO_ANSWER_TIMEOUT_SEC } from "../components/settings/panels/SettingsSessionsPanel.js";
 import { useAccountActions } from "../hooks/useAccountActions.js";
 import { useAccountPanelShell } from "../hooks/useAccountPanelShell.js";
 import { useAuthShellFlags } from "../hooks/useAuthShellFlags.js";
@@ -125,6 +126,19 @@ export function SoftphoneReadyShell({
               onThemeChange={settingsActions.onThemeChange}
               multiSessionsEnabled={multiCallProjection.multiSessionsEnabled}
               onMultiSessionsChange={settingsActions.onMultiSessionsToggle}
+              autoAnswerEnabled={settingsActions.userSettings.autoAnswerTimeoutSec !== null}
+              autoAnswerTimeoutSec={
+                settingsActions.userSettings.autoAnswerTimeoutSec ??
+                DEFAULT_AUTO_ANSWER_TIMEOUT_SEC
+              }
+              onAutoAnswerEnabledChange={settingsActions.onAutoAnswerEnabledToggle}
+              onAutoAnswerTimeoutChange={settingsActions.onAutoAnswerTimeoutChange}
+              autoAnswerDuringActiveSessionEnabled={
+                settingsActions.userSettings.autoAnswerDuringActiveSessionEnabled
+              }
+              onAutoAnswerDuringActiveSessionChange={
+                settingsActions.onAutoAnswerDuringActiveSessionToggle
+              }
               sipAutoReregisterEnabled={settingsActions.userSettings.sipAutoReregisterEnabled}
               onSipAutoReregisterChange={settingsActions.onSipAutoReregisterToggle}
               sipReregisterIntervalSec={settingsActions.userSettings.sipReregisterIntervalSec}

@@ -16,6 +16,7 @@ describe("BreakReasonsSyncService", () => {
     const settings = new InMemorySettingsRepository({
       incomingCallSettings: {
         autoAnswerTimeoutSec: null,
+        autoAnswerDuringActiveSessionEnabled: false,
         rejectReasonRequired: false,
         allowedBreakReasons: [],
       },

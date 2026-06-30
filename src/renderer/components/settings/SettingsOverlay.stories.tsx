@@ -45,6 +45,15 @@ const sipRecoveryDefaults = {
   onSipReregisterIntervalChange: () => undefined,
 } as const;
 
+const autoAnswerDefaults = {
+  autoAnswerEnabled: true,
+  autoAnswerTimeoutSec: 8,
+  onAutoAnswerEnabledChange: () => undefined,
+  onAutoAnswerTimeoutChange: () => undefined,
+  autoAnswerDuringActiveSessionEnabled: true,
+  onAutoAnswerDuringActiveSessionChange: () => undefined,
+} as const;
+
 export const GeneralSection: Story = {
   args: {
     activeSection: "general",
@@ -57,6 +66,7 @@ export const GeneralSection: Story = {
     account: accountDefaults,
     ...themeDefaults,
     ...sipRecoveryDefaults,
+    ...autoAnswerDefaults,
   },
 };
 
@@ -72,6 +82,7 @@ export const SessionsSection: Story = {
     account: accountDefaults,
     ...themeDefaults,
     ...sipRecoveryDefaults,
+    ...autoAnswerDefaults,
   },
 };
 
@@ -87,5 +98,6 @@ export const SidebarExpanded: Story = {
     account: accountDefaults,
     ...themeDefaults,
     ...sipRecoveryDefaults,
+    ...autoAnswerDefaults,
   },
 };

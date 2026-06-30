@@ -24,11 +24,13 @@ describe("incomingCallProjection", () => {
       occurredAt: new Date().toISOString(),
       callId: "in-1",
       autoAnswerTimeoutSec: 5,
+      autoAnswerExpiresAt: new Date(Date.now() + 5000).toISOString(),
     });
 
     expect(ringing.visible).toBe(true);
     expect(ringing.uiState).toBe("autoAnswerCountdown");
-    expect(ringing.autoAnswerSecondsRemaining).toBe(5);
+    expect(ringing.autoAnswerTimeoutSec).toBe(5);
+    expect(ringing.autoAnswerExpiresAt).not.toBeNull();
   });
 
   it("sets queueInfo on QueueInfoReceived for matching call", () => {

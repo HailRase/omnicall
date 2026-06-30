@@ -69,6 +69,34 @@ describe("validateUserSettings", () => {
     }
   });
 
+  it("accepts zero-second auto-answer timeout", () => {
+    const result = validateUserSettings({
+      ...createDefaultUserSettings(),
+      autoAnswerTimeoutSec: 0,
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.autoAnswerTimeoutSec).toBe(0);
+    }
+  });
+
+  it("defaults autoAnswerDuringActiveSessionEnabled when field is missing", () => {
+    const result = validateUserSettings({
+      schemaVersion: 1,
+      multiSessionsEnabled: true,
+      autoUnholdOnTransferFailure: true,
+      autoAnswerTimeoutSec: null,
+      ringbackToneEnabled: true,
+      sipAutoReregisterEnabled: true,
+      sipReregisterIntervalSec: 5,
+      sipReregisterMaxAttempts: 3,
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.autoAnswerDuringActiveSessionEnabled).toBe(false);
+    }
+  });
+
   it("rejects invalid theme", () => {
     const result = validateUserSettings({
       ...createDefaultUserSettings(),

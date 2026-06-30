@@ -22,6 +22,7 @@ describe("Break reasons and post-call integration", () => {
       },
       incomingCallSettings: {
         autoAnswerTimeoutSec: null,
+        autoAnswerDuringActiveSessionEnabled: false,
         rejectReasonRequired: false,
         allowedBreakReasons: [],
       },
@@ -61,6 +62,7 @@ describe("Break reasons and post-call integration", () => {
       phoneStatus: "dnd",
       incomingCallSettings: {
         autoAnswerTimeoutSec: null,
+        autoAnswerDuringActiveSessionEnabled: false,
         rejectReasonRequired: false,
         allowedBreakReasons: [],
       },
@@ -106,6 +108,7 @@ describe("Break reasons and post-call integration", () => {
       phoneStatus: "online",
       incomingCallSettings: {
         autoAnswerTimeoutSec: null,
+        autoAnswerDuringActiveSessionEnabled: false,
         rejectReasonRequired: true,
         allowedBreakReasons: [createBreakReason("meeting")],
       },

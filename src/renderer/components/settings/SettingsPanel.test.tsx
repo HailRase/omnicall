@@ -33,6 +33,15 @@ const sipRecoveryDefaults = {
   onSipReregisterIntervalChange: vi.fn(),
 } as const;
 
+const autoAnswerDefaults = {
+  autoAnswerEnabled: false,
+  autoAnswerTimeoutSec: 5,
+  onAutoAnswerEnabledChange: vi.fn(),
+  onAutoAnswerTimeoutChange: vi.fn(),
+  autoAnswerDuringActiveSessionEnabled: false,
+  onAutoAnswerDuringActiveSessionChange: vi.fn(),
+} as const;
+
 describe("SettingsPanel", () => {
   it("reflects multiSessionsEnabled and emits toggle changes from Sessions section", async () => {
     const user = userEvent.setup();
@@ -50,6 +59,7 @@ describe("SettingsPanel", () => {
         account={emptyAccount}
         {...themeDefaults}
         {...sipRecoveryDefaults}
+        {...autoAnswerDefaults}
       />,
     );
 
@@ -71,6 +81,7 @@ describe("SettingsPanel", () => {
         account={emptyAccount}
         {...themeDefaults}
         {...sipRecoveryDefaults}
+        {...autoAnswerDefaults}
       />,
     );
     expect(screen.getByTestId("settings-multi-sessions-toggle")).not.toBeChecked();
@@ -89,6 +100,7 @@ describe("SettingsPanel", () => {
         account={emptyAccount}
         {...themeDefaults}
         {...sipRecoveryDefaults}
+        {...autoAnswerDefaults}
         updateError="Repository unavailable"
       />,
     );
@@ -111,6 +123,7 @@ describe("SettingsPanel", () => {
         account={emptyAccount}
         {...themeDefaults}
         {...sipRecoveryDefaults}
+        {...autoAnswerDefaults}
       />,
     );
 
@@ -133,6 +146,7 @@ describe("SettingsPanel", () => {
         account={emptyAccount}
         {...themeDefaults}
         {...sipRecoveryDefaults}
+        {...autoAnswerDefaults}
       />,
     );
 
@@ -156,6 +170,7 @@ describe("SettingsPanel", () => {
         account={emptyAccount}
         {...themeDefaults}
         {...sipRecoveryDefaults}
+        {...autoAnswerDefaults}
       />,
     );
 

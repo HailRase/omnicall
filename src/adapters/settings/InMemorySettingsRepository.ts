@@ -13,6 +13,7 @@ import {
   createDefaultUserSettings,
   createSettingsAccountKey,
   mergeMultiCallIntoUserSettings,
+  toAutoAnswerDuringActiveSessionEnabled,
   toAutoAnswerTimeoutSec,
   toMultiCallSettings,
   validateUserSettings,
@@ -42,6 +43,8 @@ export class InMemorySettingsRepository implements SettingsRepository {
     };
     const incomingCallSettings = initial?.incomingCallSettings ?? {
       autoAnswerTimeoutSec: defaultUserSettings.autoAnswerTimeoutSec,
+      autoAnswerDuringActiveSessionEnabled:
+        defaultUserSettings.autoAnswerDuringActiveSessionEnabled,
       rejectReasonRequired: false,
       allowedBreakReasons: defaultBreakReasons(),
     };
@@ -50,7 +53,7 @@ export class InMemorySettingsRepository implements SettingsRepository {
       initial?.userSettingsByAccount ?? [
         [
           accountKey,
-          seedUserSettings(multiCallSettings, incomingCallSettings.autoAnswerTimeoutSec),
+          seedUserSettings(multiCallSettings, incomingCallSettings),
         ],
       ],
     );
@@ -96,6 +99,8 @@ export class InMemorySettingsRepository implements SettingsRepository {
     return Promise.resolve({
       ...this.state.incomingCallSettings,
       autoAnswerTimeoutSec: toAutoAnswerTimeoutSec(userSettings),
+      autoAnswerDuringActiveSessionEnabled:
+        toAutoAnswerDuringActiveSessionEnabled(userSettings),
     });
   }
 
@@ -148,6 +153,8 @@ export class InMemorySettingsRepository implements SettingsRepository {
       incomingCallSettings: {
         ...this.state.incomingCallSettings,
         autoAnswerTimeoutSec: validated.value.autoAnswerTimeoutSec,
+        autoAnswerDuringActiveSessionEnabled:
+          validated.value.autoAnswerDuringActiveSessionEnabled,
       },
     };
     return Promise.resolve();
@@ -174,14 +181,16 @@ function resolveAccountKey(sipAccount: SipAccount | null): SettingsAccountKey {
 
 function seedUserSettings(
   multiCallSettings: MultiCallSettings,
-  autoAnswerTimeoutSec: number | null,
+  incomingCallSettings: IncomingCallSettings,
 ): UserSettings {
   const defaults = createDefaultUserSettings();
   return {
     ...defaults,
     multiSessionsEnabled: multiCallSettings.multiSessionsEnabled,
     autoUnholdOnTransferFailure: multiCallSettings.autoUnholdOnTransferFailure !== false,
-    autoAnswerTimeoutSec,
+    autoAnswerTimeoutSec: incomingCallSettings.autoAnswerTimeoutSec,
+    autoAnswerDuringActiveSessionEnabled:
+      incomingCallSettings.autoAnswerDuringActiveSessionEnabled,
   };
 }
 

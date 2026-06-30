@@ -197,6 +197,7 @@ describe("CallEngine", () => {
         phoneStatus: "online",
         incomingCallSettings: {
           autoAnswerTimeoutSec: null,
+          autoAnswerDuringActiveSessionEnabled: false,
           rejectReasonRequired: false,
           allowedBreakReasons: [],
         },
@@ -226,6 +227,7 @@ describe("CallEngine", () => {
         phoneStatus: "dnd",
         incomingCallSettings: {
           autoAnswerTimeoutSec: null,
+          autoAnswerDuringActiveSessionEnabled: false,
           rejectReasonRequired: false,
           allowedBreakReasons: [],
         },
@@ -256,6 +258,7 @@ describe("CallEngine", () => {
         phoneStatus: "online",
         incomingCallSettings: {
           autoAnswerTimeoutSec: null,
+          autoAnswerDuringActiveSessionEnabled: false,
           rejectReasonRequired: true,
           allowedBreakReasons: [],
         },
@@ -290,6 +293,7 @@ describe("CallEngine", () => {
         phoneStatus: "online",
         incomingCallSettings: {
           autoAnswerTimeoutSec: 2,
+          autoAnswerDuringActiveSessionEnabled: false,
           rejectReasonRequired: false,
           allowedBreakReasons: [],
         },
@@ -323,6 +327,7 @@ describe("CallEngine", () => {
         phoneStatus: "online",
         incomingCallSettings: {
           autoAnswerTimeoutSec: 1,
+          autoAnswerDuringActiveSessionEnabled: false,
           rejectReasonRequired: false,
           allowedBreakReasons: [],
         },
@@ -341,6 +346,183 @@ describe("CallEngine", () => {
     await vi.advanceTimersByTimeAsync(1100);
 
     expect(telephony.getAnsweredCalls()).toContain("incoming-5");
+    vi.useRealTimers();
+  });
+
+  it("auto-answers while active session when busy policy is enabled", async () => {
+    vi.useFakeTimers();
+    const telephony = new MockTelephonyGateway({ makeCallScenario: "answered" });
+    const events = new InMemoryDomainEventBus();
+    const publishedTypes: string[] = [];
+    events.subscribe((event) => {
+      publishedTypes.push(event.type);
+    });
+    const engine = new CallEngine(
+      telephony,
+      new MockMediaGateway(),
+      new InMemorySettingsRepository({
+        multiCallSettings: { multiSessionsEnabled: true },
+        phoneStatus: "online",
+        incomingCallSettings: {
+          autoAnswerTimeoutSec: 1,
+          autoAnswerDuringActiveSessionEnabled: true,
+          rejectReasonRequired: false,
+          allowedBreakReasons: [],
+        },
+      }),
+      events,
+      createTestLogger(),
+    );
+
+    await engine.makeCall({
+      callId: createCallId("active-before-auto"),
+      phoneNumber: createPhoneNumber("+12025550120"),
+    });
+
+    const incomingId = createCallId("incoming-auto-busy");
+    await engine.handleIncomingReceived({
+      notification: {
+        callId: incomingId,
+        remoteNumber: "+12025550121",
+        correlationId: createCorrelationId(),
+      },
+    });
+    await vi.advanceTimersByTimeAsync(1100);
+
+    expect(telephony.getHeldCalls()).toContain("active-before-auto");
+    expect(telephony.getAnsweredCalls()).toContain("incoming-auto-busy");
+    expect(publishedTypes).toContain("CallAutoAnswered");
+    vi.useRealTimers();
+  });
+
+  it("blocks auto-answer while active session when busy policy is disabled", async () => {
+    vi.useFakeTimers();
+    const telephony = new MockTelephonyGateway({ makeCallScenario: "answered" });
+    const events = new InMemoryDomainEventBus();
+    const publishedTypes: string[] = [];
+    events.subscribe((event) => {
+      publishedTypes.push(event.type);
+    });
+    const engine = new CallEngine(
+      telephony,
+      new MockMediaGateway(),
+      new InMemorySettingsRepository({
+        multiCallSettings: { multiSessionsEnabled: true },
+        phoneStatus: "online",
+        incomingCallSettings: {
+          autoAnswerTimeoutSec: 1,
+          autoAnswerDuringActiveSessionEnabled: false,
+          rejectReasonRequired: false,
+          allowedBreakReasons: [],
+        },
+      }),
+      events,
+      createTestLogger(),
+    );
+
+    await engine.makeCall({
+      callId: createCallId("active-block-auto"),
+      phoneNumber: createPhoneNumber("+12025550122"),
+    });
+
+    await engine.handleIncomingReceived({
+      notification: {
+        callId: createCallId("incoming-blocked-auto"),
+        remoteNumber: "+12025550123",
+        correlationId: createCorrelationId(),
+      },
+    });
+    await vi.advanceTimersByTimeAsync(1100);
+
+    expect(telephony.getAnsweredCalls()).not.toContain("incoming-blocked-auto");
+    expect(publishedTypes).toContain("MultiCallOperationRejected");
+    vi.useRealTimers();
+  });
+
+  it("does not auto-answer while outgoing call is connecting", async () => {
+    vi.useFakeTimers();
+    const telephony = new MockTelephonyGateway({ makeCallScenario: "connecting" });
+    const engine = new CallEngine(
+      telephony,
+      new MockMediaGateway(),
+      new InMemorySettingsRepository({
+        multiCallSettings: { multiSessionsEnabled: true },
+        phoneStatus: "online",
+        incomingCallSettings: {
+          autoAnswerTimeoutSec: 1,
+          autoAnswerDuringActiveSessionEnabled: true,
+          rejectReasonRequired: false,
+          allowedBreakReasons: [],
+        },
+      }),
+      new InMemoryDomainEventBus(),
+      createTestLogger(),
+    );
+
+    await engine.makeCall({
+      callId: createCallId("connecting-out"),
+      phoneNumber: createPhoneNumber("+12025550124"),
+    });
+
+    await engine.handleIncomingReceived({
+      notification: {
+        callId: createCallId("incoming-connecting-block"),
+        remoteNumber: "+12025550125",
+        correlationId: createCorrelationId(),
+      },
+    });
+    await vi.advanceTimersByTimeAsync(1100);
+
+    expect(telephony.getAnsweredCalls()).not.toContain("incoming-connecting-block");
+    vi.useRealTimers();
+  });
+
+  it("does not schedule auto-answer for second incoming when busy policy is disabled", async () => {
+    vi.useFakeTimers();
+    const telephony = new MockTelephonyGateway();
+    const events = new InMemoryDomainEventBus();
+    const publishedTypes: string[] = [];
+    events.subscribe((event) => {
+      publishedTypes.push(event.type);
+    });
+    const engine = new CallEngine(
+      telephony,
+      new MockMediaGateway(),
+      new InMemorySettingsRepository({
+        multiCallSettings: { multiSessionsEnabled: true },
+        phoneStatus: "online",
+        incomingCallSettings: {
+          autoAnswerTimeoutSec: 2,
+          autoAnswerDuringActiveSessionEnabled: false,
+          rejectReasonRequired: false,
+          allowedBreakReasons: [],
+        },
+      }),
+      events,
+      createTestLogger(),
+    );
+
+    await engine.handleIncomingReceived({
+      notification: {
+        callId: createCallId("incoming-first"),
+        remoteNumber: "+12025550126",
+        correlationId: createCorrelationId(),
+      },
+    });
+    await engine.handleIncomingReceived({
+      notification: {
+        callId: createCallId("incoming-second"),
+        remoteNumber: "+12025550127",
+        correlationId: createCorrelationId(),
+      },
+    });
+    await vi.advanceTimersByTimeAsync(2100);
+
+    expect(telephony.getAnsweredCalls()).toContain("incoming-first");
+    expect(telephony.getAnsweredCalls()).not.toContain("incoming-second");
+    expect(
+      publishedTypes.filter((type) => type === "MultiCallOperationRejected").length,
+    ).toBeGreaterThanOrEqual(1);
     vi.useRealTimers();
   });
 

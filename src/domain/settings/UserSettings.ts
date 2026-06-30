@@ -18,6 +18,7 @@ export type UserSettings = Readonly<{
   multiSessionsEnabled: boolean;
   autoUnholdOnTransferFailure: boolean;
   autoAnswerTimeoutSec: number | null;
+  autoAnswerDuringActiveSessionEnabled: boolean;
   ringbackToneEnabled: boolean;
   sipAutoReregisterEnabled: boolean;
   sipReregisterIntervalSec: number;
@@ -38,6 +39,7 @@ export function createDefaultUserSettings(): UserSettings {
     multiSessionsEnabled: true,
     autoUnholdOnTransferFailure: true,
     autoAnswerTimeoutSec: null,
+    autoAnswerDuringActiveSessionEnabled: false,
     ringbackToneEnabled: true,
     sipAutoReregisterEnabled: true,
     sipReregisterIntervalSec: DEFAULT_SIP_REREGISTER_INTERVAL_SEC,
