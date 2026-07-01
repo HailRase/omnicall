@@ -5,7 +5,7 @@
 
 import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { DISTRIBUTION_INSTALLER_EXTENSIONS, DISTRIBUTION_REPO } from './distribution-config.mjs';
+import { isDistributionInstallerFile, DISTRIBUTION_REPO } from './distribution-config.mjs';
 import {
   createRelease,
   getReleaseByTag,
@@ -39,7 +39,7 @@ if (typeof tag !== 'string' || !/^v\d+\.\d+\.\d+$/.test(tag)) {
 }
 
 function isInstaller(name) {
-  return DISTRIBUTION_INSTALLER_EXTENSIONS.some((ext) => name.endsWith(ext));
+  return isDistributionInstallerFile(name);
 }
 
 const files = readdirSync(payloadDir).filter(isInstaller);

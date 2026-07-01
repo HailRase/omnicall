@@ -88,7 +88,7 @@ jobs:
         run: |
           mkdir -p dist-payload
           find release-assets -type f \( \
-            -name '*.exe' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.deb' \
+            -name 'Axatalk-*.exe' -o -name 'Axatalk-*.dmg' -o -name 'Axatalk-*.AppImage' -o -name 'Axatalk-*.deb' \
           \) -exec cp {} dist-payload/ \;
           echo "Payload:"
           ls -la dist-payload/

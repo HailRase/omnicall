@@ -13,3 +13,13 @@ export const DISTRIBUTION_RELEASES_URL =
 
 /** Installer extensions published to distribution releases (no blockmap/yml). */
 export const DISTRIBUTION_INSTALLER_EXTENSIONS = ['.exe', '.dmg', '.AppImage', '.deb'];
+
+/** electron-builder artifactName prefix — excludes win-unpacked Axatalk.exe / elevate.exe. */
+export const DISTRIBUTION_INSTALLER_NAME_PREFIX = /^Axatalk-\d+\.\d+\.\d+-/;
+
+export function isDistributionInstallerFile(name) {
+  return (
+    DISTRIBUTION_INSTALLER_NAME_PREFIX.test(name) &&
+    DISTRIBUTION_INSTALLER_EXTENSIONS.some((ext) => name.endsWith(ext))
+  );
+}

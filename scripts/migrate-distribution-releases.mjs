@@ -18,6 +18,7 @@ import {
   DISTRIBUTION_INSTALLER_EXTENSIONS,
   DISTRIBUTION_REPO,
   SOURCE_REPO,
+  isDistributionInstallerFile,
 } from './distribution-config.mjs';
 import {
   createRelease,
@@ -82,7 +83,7 @@ function ghDownload(args, token) {
 }
 
 function isInstallerFile(name) {
-  return DISTRIBUTION_INSTALLER_EXTENSIONS.some((ext) => name.endsWith(ext));
+  return isDistributionInstallerFile(name);
 }
 
 function syncDistributionManifest(commitMsg) {
