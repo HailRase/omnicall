@@ -34,7 +34,7 @@
 | 5 | DTMF mode | `DtmfKeypadPanel` overlay in context; remove dialpad Number/DTMF toggle | done |
 | 6 | Outgoing card | `OutgoingCallCard` — operator copy only (no UI state / call ID) | done |
 | 7 | Transfer polish | `TransferPanel` visual parity with reference `TransferFlow` (step chrome) | done |
-| 8 | Gate | Storybook both themes; `npm run test && lint && typecheck && ui:catalog` | in_progress |
+| 8 | Gate | Storybook both themes; `npm run test && lint && typecheck && ui:catalog` | done |
 
 ## Acceptance (per task)
 
@@ -45,8 +45,10 @@
 
 ## Gate checklist
 
-- [ ] Task 1–2 done
-- [ ] Task 3–6 done
-- [ ] Tests green
-- [ ] Feature Registry F-016 note updated
-- [ ] work-history entry
+- [x] Task 1–2 done
+- [x] Task 3–6 done
+- [x] Task 7 transfer polish done
+- [x] Task 8 gate (Storybook light/dark, ui:catalog:check)
+- [x] Tests green — **916 passed**, 1 skipped (verified 2026-07-01)
+- [x] Feature Registry F-016 note updated
+- [x] work-history entry

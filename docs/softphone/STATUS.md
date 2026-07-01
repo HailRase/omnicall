@@ -2,9 +2,9 @@
 
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
-**Updated:** 2026-06-29  
-**Tests:** 792 passed, 1 skipped (`npm run test`) — last verified 2026-06-29  
-**Lint / typecheck:** green (last verified 2026-06-29)
+**Updated:** 2026-07-01  
+**Tests:** 916 passed, 1 skipped (`npm run test`) — last verified 2026-07-01  
+**Lint / typecheck:** green (last verified 2026-07-01)
 
 ## Active phase
 

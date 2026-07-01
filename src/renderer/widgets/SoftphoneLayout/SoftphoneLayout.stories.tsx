@@ -7,36 +7,52 @@ const meta = {
   parameters: {
     layout: "fullscreen",
   },
+  decorators: [
+    (Story, context) => {
+      const theme = context.parameters["theme"] as "light" | "dark" | undefined;
+      document.documentElement.setAttribute("data-theme", theme ?? "light");
+      return (
+        <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
+          <Story />
+        </div>
+      );
+    },
+  ],
 } satisfies Meta<typeof SoftphoneLayout>;
 
 export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-export const Zones: Story = {
-  args: {
-    header: (
-      <p style={{ margin: 0, padding: "10px 12px" }}>
-        Header zone — status, settings, diagnostics
-      </p>
-    ),
-    context: (
-      <p style={{ margin: 0, padding: "8px" }}>
-        Context zone — call lines and active card stay mounted
-      </p>
-    ),
-    controls: (
-      <p style={{ margin: 0 }}>
-        Controls zone — dialpad and active call controls
-      </p>
-    ),
-    overlays: null,
+const zoneArgs: Story["args"] = {
+  header: (
+    <p style={{ margin: 0, padding: "10px 12px" }}>
+      Header zone — status, settings, diagnostics
+    </p>
+  ),
+  context: (
+    <p style={{ margin: 0, padding: "8px" }}>
+      Context zone — call lines and active card stay mounted
+    </p>
+  ),
+  controls: (
+    <p style={{ margin: 0 }}>
+      Controls zone — dialpad and active call controls
+    </p>
+  ),
+  overlays: null,
+};
+
+export const LightZones: Story = {
+  args: zoneArgs,
+  parameters: {
+    theme: "light",
   },
-  decorators: [
-    (Story) => (
-      <div style={{ height: "100vh", display: "flex", flexDirection: "column" }}>
-        <Story />
-      </div>
-    ),
-  ],
+};
+
+export const DarkZones: Story = {
+  args: zoneArgs,
+  parameters: {
+    theme: "dark",
+  },
 };
