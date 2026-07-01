@@ -1,11 +1,55 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
 import { parseAppShutdownPayload } from "@shared/ipc/AppShutdownContract.js";
+import { parseOpenExternalUrlPayload } from "@shared/ipc/OpenExternalUrlContract.js";
+import { parseSetNativeThemePayload } from "@shared/ipc/SetNativeThemeContract.js";
 import { parseShellWindowLayoutPayload } from "@shared/ipc/ShellWindowLayoutContract.js";
 import type { SoftphonePreloadApi } from "@shared/ipc/PreloadApi.js";
+import type { OpenExternalUrlResponse } from "@shared/ipc/OpenExternalUrlContract.js";
 
 const softphoneApi: SoftphonePreloadApi = {
   getPlatformVersion: () => ipcRenderer.invoke(IPC_CHANNELS.platformGetVersion),
+  openExternalUrl: async (payload): Promise<OpenExternalUrlResponse> => {
+    const parsed = parseOpenExternalUrlPayload(payload);
+    if (parsed === null) {
+      return { ok: false, reason: "invalid_url" };
+    }
+
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.platformOpenExternalUrl,
+      parsed,
+    );
+    if (
+      typeof response !== "object" ||
+      response === null ||
+      typeof (response as Record<string, unknown>)["ok"] !== "boolean"
+    ) {
+      return { ok: false, reason: "invalid_response" };
+    }
+
+    const candidate = response as OpenExternalUrlResponse;
+    return candidate.ok
+      ? { ok: true }
+      : { ok: false, reason: candidate.reason ?? "open_failed" };
+  },
+  setNativeTheme: async (payload) => {
+    const parsed = parseSetNativeThemePayload(payload);
+    if (parsed === null) {
+      return { ok: false };
+    }
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.platformSetNativeTheme,
+      parsed,
+    );
+    if (
+      typeof response !== "object" ||
+      response === null ||
+      typeof (response as Record<string, unknown>)["ok"] !== "boolean"
+    ) {
+      return { ok: false };
+    }
+    return { ok: (response as Record<string, unknown>)["ok"] === true };
+  },
   onBeforeClose: (handler) => {
     const listener = (_event: Electron.IpcRendererEvent, payload: unknown): void => {
       const parsed = parseAppShutdownPayload(payload);

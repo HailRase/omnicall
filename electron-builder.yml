@@ -1,6 +1,6 @@
-appId: com.hailrase.enterprise-softphone
-productName: Enterprise Softphone
-copyright: Copyright © 2026 HailRase
+appId: com.axata.axatalk
+productName: Axatalk
+copyright: Copyright © 2026 Axata
 directories:
   buildResources: build
   # Per-platform output is set in package.json build:* scripts (dist/win, dist/mac, dist/linux, dist/all).
@@ -18,7 +18,8 @@ files:
 asar: true
 npmRebuild: false
 win:
-  executableName: EnterpriseSoftphone
+  executableName: Axatalk
+  icon: icon.ico
   target:
     - nsis
   artifactName: ${productName}-${version}-win-${arch}.${ext}
@@ -32,20 +33,28 @@ nsis:
   createStartMenuShortcut: true
 mac:
   category: public.app-category.business
+  icon: icon.icns
   target:
     - dmg
   artifactName: ${productName}-${version}-mac-${arch}.${ext}
   extendInfo:
-    NSMicrophoneUsageDescription: Enterprise Softphone needs microphone access for voice calls.
-    NSCameraUsageDescription: Enterprise Softphone may use the camera for video calls.
+    NSMicrophoneUsageDescription: Axatalk needs microphone access for voice calls.
+    NSCameraUsageDescription: Axatalk may use the camera for video calls.
 dmg:
   artifactName: ${productName}-${version}-mac-${arch}.${ext}
 linux:
   category: Network
-  maintainer: HailRase
+  maintainer: Axata
+  icon: icon.png
   target:
     - AppImage
     - deb
   artifactName: ${productName}-${version}-linux-${arch}.${ext}
 appImage:
   artifactName: ${productName}-${version}-linux-${arch}.${ext}
+extraResources:
+  - from: build/theme-icons
+    to: theme-icons
+    filter:
+      - icon-dark.png
+      - icon-light.png

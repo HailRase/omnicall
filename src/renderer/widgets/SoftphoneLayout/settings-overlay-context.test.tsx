@@ -35,6 +35,14 @@ describe("settings overlay with layout zones", () => {
               onSipAutoReregisterChange={() => undefined}
               sipReregisterIntervalSec={5}
               onSipReregisterIntervalChange={() => undefined}
+              currentVersion="0.0.1"
+              latestVersion={undefined}
+              updateStatusMessage="Нажмите «Проверить обновления», чтобы узнать о новой версии."
+              canCheckForUpdates
+              canOpenDownloadPage={false}
+              isCheckingUpdates={false}
+              onCheckForUpdates={() => undefined}
+              onOpenDownloadPage={() => undefined}
               account={{
                 form: { username: "", password: "", domain: "", server: "" },
                 submitting: false,

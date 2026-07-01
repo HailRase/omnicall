@@ -16,6 +16,14 @@ const baseProps = {
   onSipAutoReregisterChange: vi.fn(),
   sipReregisterIntervalSec: 5,
   onSipReregisterIntervalChange: vi.fn(),
+  currentVersion: "0.0.1",
+  latestVersion: undefined,
+  updateStatusMessage: "Нажмите «Проверить обновления», чтобы узнать о новой версии.",
+  canCheckForUpdates: true,
+  canOpenDownloadPage: false,
+  isCheckingUpdates: false,
+  onCheckForUpdates: vi.fn(),
+  onOpenDownloadPage: vi.fn(),
 };
 
 describe("SettingsGeneralPanel", () => {
@@ -75,5 +83,21 @@ describe("SettingsGeneralPanel", () => {
 
     await user.click(screen.getByTestId("settings-theme-dark"));
     expect(onThemeChange).toHaveBeenCalledWith("dark");
+  });
+
+  it("renders about section and emits update actions", async () => {
+    const user = userEvent.setup();
+    const onCheckForUpdates = vi.fn();
+
+    render(
+      <SettingsGeneralPanel
+        {...baseProps}
+        onCheckForUpdates={onCheckForUpdates}
+      />,
+    );
+
+    expect(screen.getByTestId("settings-current-version")).toHaveTextContent("0.0.1");
+    await user.click(screen.getByTestId("settings-check-updates"));
+    expect(onCheckForUpdates).toHaveBeenCalled();
   });
 });

@@ -6,6 +6,17 @@ import { describe, expect, it, vi } from "vitest";
 import { SettingsFullscreenOverlay } from "./SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "./SettingsPanel.js";
 
+const appUpdateDefaults = {
+  currentVersion: "0.0.1",
+  latestVersion: undefined,
+  updateStatusMessage: "Нажмите «Проверить обновления», чтобы узнать о новой версии.",
+  canCheckForUpdates: true,
+  canOpenDownloadPage: false,
+  isCheckingUpdates: false,
+  onCheckForUpdates: vi.fn(),
+  onOpenDownloadPage: vi.fn(),
+} as const;
+
 const panelProps = {
   activeSection: "general" as const,
   sidebarExpanded: false,
@@ -37,6 +48,7 @@ const panelProps = {
     onSubmit: vi.fn(),
     onLogout: vi.fn(),
   },
+  ...appUpdateDefaults,
 };
 
 describe("SettingsFullscreenOverlay", () => {

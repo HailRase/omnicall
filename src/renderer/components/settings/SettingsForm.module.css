@@ -263,3 +263,56 @@
   outline: 2px solid var(--color-outline-focus);
   outline-offset: 2px;
 }
+
+.fieldValue {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.actionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.primaryButton,
+.secondaryButton {
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-control);
+  font-size: 0.875rem;
+  line-height: 1.35;
+  cursor: pointer;
+}
+
+.primaryButton {
+  border: 1px solid var(--color-border-control);
+  background: var(--color-accent-primary);
+  color: #fff;
+}
+
+.primaryButton:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
+.primaryButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.secondaryButton {
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-control);
+  color: var(--color-text-primary);
+}
+
+.secondaryButton:hover {
+  background: var(--color-bg-surface);
+}
+
+.primaryButton:focus-visible,
+.secondaryButton:focus-visible {
+  outline: 2px solid var(--color-outline-focus);
+  outline-offset: 2px;
+}

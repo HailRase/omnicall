@@ -1,9 +1,9 @@
 {
-  "name": "enterprise-softphone",
+  "name": "Axatalk",
   "version": "0.0.1",
   "private": true,
-  "description": "Enterprise Softphone Platform",
-  "author": "HailRase",
+  "description": "Softphone Platform",
+  "author": "Axata",
   "main": "out/main/index.js",
   "type": "module",
   "engines": {
@@ -12,6 +12,7 @@
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
+    "build:icons": "python scripts/build-app-icons.py",
     "build:dist": "electron-vite build --mode production",
     "build:win": "node scripts/check-node-version.mjs && npm run build:dist && electron-builder --win --config electron-builder.yml -c.directories.output=dist/win",
     "build:mac": "node scripts/check-node-version.mjs && npm run build:dist && electron-builder --mac --config electron-builder.yml -c.directories.output=dist/mac",

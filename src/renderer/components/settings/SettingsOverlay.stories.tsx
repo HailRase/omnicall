@@ -54,6 +54,17 @@ const autoAnswerDefaults = {
   onAutoAnswerDuringActiveSessionChange: () => undefined,
 } as const;
 
+const appUpdateDefaults = {
+  currentVersion: "0.0.1",
+  latestVersion: undefined,
+  updateStatusMessage: "Нажмите «Проверить обновления», чтобы узнать о новой версии.",
+  canCheckForUpdates: true,
+  canOpenDownloadPage: false,
+  isCheckingUpdates: false,
+  onCheckForUpdates: () => undefined,
+  onOpenDownloadPage: () => undefined,
+} as const;
+
 export const GeneralSection: Story = {
   args: {
     activeSection: "general",
@@ -67,6 +78,7 @@ export const GeneralSection: Story = {
     ...themeDefaults,
     ...sipRecoveryDefaults,
     ...autoAnswerDefaults,
+    ...appUpdateDefaults,
   },
 };
 
@@ -83,6 +95,7 @@ export const SessionsSection: Story = {
     ...themeDefaults,
     ...sipRecoveryDefaults,
     ...autoAnswerDefaults,
+    ...appUpdateDefaults,
   },
 };
 
@@ -99,5 +112,6 @@ export const SidebarExpanded: Story = {
     ...themeDefaults,
     ...sipRecoveryDefaults,
     ...autoAnswerDefaults,
+    ...appUpdateDefaults,
   },
 };

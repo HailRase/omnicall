@@ -33,6 +33,14 @@ export type SettingsPanelProps = Readonly<{
   onSipAutoReregisterChange: (enabled: boolean) => void;
   sipReregisterIntervalSec: number;
   onSipReregisterIntervalChange: (intervalSec: number) => void;
+  currentVersion: string;
+  latestVersion: string | undefined;
+  updateStatusMessage: string;
+  canCheckForUpdates: boolean;
+  canOpenDownloadPage: boolean;
+  isCheckingUpdates: boolean;
+  onCheckForUpdates: () => void;
+  onOpenDownloadPage: () => void;
   updateError?: string | null;
   account: Readonly<{
     form: SipAccountInput;
@@ -73,6 +81,14 @@ export function SettingsPanel({
   onSipAutoReregisterChange,
   sipReregisterIntervalSec,
   onSipReregisterIntervalChange,
+  currentVersion,
+  latestVersion,
+  updateStatusMessage,
+  canCheckForUpdates,
+  canOpenDownloadPage,
+  isCheckingUpdates,
+  onCheckForUpdates,
+  onOpenDownloadPage,
   updateError = null,
   account,
 }: SettingsPanelProps): JSX.Element {
@@ -106,6 +122,14 @@ export function SettingsPanel({
           onSipAutoReregisterChange={onSipAutoReregisterChange}
           sipReregisterIntervalSec={sipReregisterIntervalSec}
           onSipReregisterIntervalChange={onSipReregisterIntervalChange}
+          currentVersion={currentVersion}
+          latestVersion={latestVersion}
+          updateStatusMessage={updateStatusMessage}
+          canCheckForUpdates={canCheckForUpdates}
+          canOpenDownloadPage={canOpenDownloadPage}
+          isCheckingUpdates={isCheckingUpdates}
+          onCheckForUpdates={onCheckForUpdates}
+          onOpenDownloadPage={onOpenDownloadPage}
         />
       );
       break;

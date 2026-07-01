@@ -13,6 +13,7 @@ interface ImportMetaEnv {
   readonly VITE_SIP_DOMAIN?: string;
   readonly VITE_SIP_USERNAME?: string;
   readonly VITE_SIP_PASSWORD?: string;
+  readonly VITE_UPDATE_MANIFEST_URL?: string;
 }
 
 interface ImportMeta {

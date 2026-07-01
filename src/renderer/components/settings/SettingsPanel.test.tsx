@@ -33,6 +33,17 @@ const sipRecoveryDefaults = {
   onSipReregisterIntervalChange: vi.fn(),
 } as const;
 
+const appUpdateDefaults = {
+  currentVersion: "0.0.1",
+  latestVersion: undefined,
+  updateStatusMessage: "Нажмите «Проверить обновления», чтобы узнать о новой версии.",
+  canCheckForUpdates: true,
+  canOpenDownloadPage: false,
+  isCheckingUpdates: false,
+  onCheckForUpdates: vi.fn(),
+  onOpenDownloadPage: vi.fn(),
+} as const;
+
 const autoAnswerDefaults = {
   autoAnswerEnabled: false,
   autoAnswerTimeoutSec: 5,
@@ -60,6 +71,7 @@ describe("SettingsPanel", () => {
         {...themeDefaults}
         {...sipRecoveryDefaults}
         {...autoAnswerDefaults}
+        {...appUpdateDefaults}
       />,
     );
 
@@ -82,6 +94,7 @@ describe("SettingsPanel", () => {
         {...themeDefaults}
         {...sipRecoveryDefaults}
         {...autoAnswerDefaults}
+        {...appUpdateDefaults}
       />,
     );
     expect(screen.getByTestId("settings-multi-sessions-toggle")).not.toBeChecked();
@@ -101,6 +114,7 @@ describe("SettingsPanel", () => {
         {...themeDefaults}
         {...sipRecoveryDefaults}
         {...autoAnswerDefaults}
+        {...appUpdateDefaults}
         updateError="Repository unavailable"
       />,
     );
@@ -124,6 +138,7 @@ describe("SettingsPanel", () => {
         {...themeDefaults}
         {...sipRecoveryDefaults}
         {...autoAnswerDefaults}
+        {...appUpdateDefaults}
       />,
     );
 
@@ -147,6 +162,7 @@ describe("SettingsPanel", () => {
         {...themeDefaults}
         {...sipRecoveryDefaults}
         {...autoAnswerDefaults}
+        {...appUpdateDefaults}
       />,
     );
 
@@ -171,6 +187,7 @@ describe("SettingsPanel", () => {
         {...themeDefaults}
         {...sipRecoveryDefaults}
         {...autoAnswerDefaults}
+        {...appUpdateDefaults}
       />,
     );
 

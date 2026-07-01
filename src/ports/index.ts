@@ -73,3 +73,9 @@ export type {
   ApplyShellWindowLayoutCommand,
   ShellWindowGateway,
 } from "./platform/ShellWindowGateway.js";
+export type { UpdateMetadataGateway } from "./updates/UpdateMetadataGateway.js";
+export type {
+  InstalledPlatformInfo,
+  PlatformInfoGateway,
+} from "./updates/PlatformInfoGateway.js";
+export type { ExternalUrlGateway } from "./updates/ExternalUrlGateway.js";

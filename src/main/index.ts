@@ -1,10 +1,15 @@
-import { app, BrowserWindow, ipcMain, screen, shell } from "electron";
+import { app, BrowserWindow, ipcMain, nativeTheme, screen, shell } from "electron";
 import { join } from "node:path";
 import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
 import { parseAppShutdownAckPayload } from "@shared/ipc/AppShutdownContract.js";
+import { parseOpenExternalUrlPayload } from "@shared/ipc/OpenExternalUrlContract.js";
+import { parseSetNativeThemePayload } from "@shared/ipc/SetNativeThemeContract.js";
 import { parseShellWindowLayoutPayload } from "@shared/ipc/ShellWindowLayoutContract.js";
 import { createConsoleLogger } from "@infrastructure/logging/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
+import type { AppIconTheme } from "./resolveAppIconPath.js";
+import { resolveAppIconPath } from "./resolveAppIconPath.js";
+import { applyAppIcon } from "./loadAppIcon.js";
 import { ShellWindowController } from "./shellWindow/ShellWindowController.js";
 
 const logger = createConsoleLogger({
@@ -12,10 +17,27 @@ const logger = createConsoleLogger({
   featureId: "F-000",
 });
 
+const updateLogger = createConsoleLogger({
+  boundedContext: "Integration",
+  featureId: "F-020",
+});
+
+function resolvePackagedPlatform(): "win32" | "darwin" | "linux" {
+  if (process.platform === "win32" || process.platform === "darwin" || process.platform === "linux") {
+    return process.platform;
+  }
+
+  return "linux";
+}
 let isQuitting = false;
 let shellWindowController: ShellWindowController | null = null;
 
+function resolveAppIconTheme(): AppIconTheme {
+  return nativeTheme.shouldUseDarkColors ? "dark" : "light";
+}
+
 function createMainWindow(): BrowserWindow {
+  const iconPath = resolveAppIconPath(resolveAppIconTheme());
   const mainWindow = new BrowserWindow({
     width: 360,
     height: 625,
@@ -30,6 +52,7 @@ function createMainWindow(): BrowserWindow {
       webSecurity: true,
       backgroundThrottling: false,
     },
+    ...(process.platform === "darwin" || iconPath === null ? {} : { icon: iconPath }),
   });
 
   shellWindowController = new ShellWindowController(mainWindow, () => {
@@ -40,6 +63,15 @@ function createMainWindow(): BrowserWindow {
   mainWindow.on("ready-to-show", () => {
     shellWindowController?.placeCompactAtStartup();
     mainWindow.show();
+  });
+
+  const syncIconWithTheme = (): void => {
+    applyAppIcon(mainWindow, resolveAppIconTheme(), logger);
+  };
+  syncIconWithTheme();
+  nativeTheme.on("updated", syncIconWithTheme);
+  mainWindow.on("closed", () => {
+    nativeTheme.removeListener("updated", syncIconWithTheme);
   });
 
   mainWindow.on("close", (event) => {
@@ -95,7 +127,65 @@ function registerIpcHandlers(): void {
   ipcMain.handle(IPC_CHANNELS.platformGetVersion, () => ({
     version: app.getVersion(),
     name: app.getName(),
+    platform: resolvePackagedPlatform(),
   }));
+
+  ipcMain.handle(IPC_CHANNELS.platformOpenExternalUrl, async (_event, payload: unknown) => {
+    const parsed = parseOpenExternalUrlPayload(payload);
+    if (parsed === null) {
+      updateLogger.error("open_external_url_rejected", {
+        correlationId: createCorrelationId(),
+        operation: "open_external_url",
+        result: "invalid_payload",
+      });
+      return { ok: false as const, reason: "invalid_url" };
+    }
+
+    try {
+      await shell.openExternal(parsed.url);
+      updateLogger.info("open_external_url_succeeded", {
+        correlationId: createCorrelationId(),
+        operation: "open_external_url",
+        result: "opened",
+      });
+      return { ok: true as const };
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Failed to open URL";
+      updateLogger.error("open_external_url_failed", {
+        correlationId: createCorrelationId(),
+        operation: "open_external_url",
+        result: "error",
+        reason: message,
+      });
+      return { ok: false as const, reason: message };
+    }
+  });
+
+  ipcMain.handle(IPC_CHANNELS.platformSetNativeTheme, (_event, payload: unknown) => {
+    const parsed = parseSetNativeThemePayload(payload);
+    if (parsed === null) {
+      logger.error("set_native_theme_rejected", {
+        correlationId: createCorrelationId(),
+        operation: "set_native_theme",
+        result: "invalid_payload",
+      });
+      return { ok: false as const };
+    }
+
+    nativeTheme.themeSource = parsed.theme;
+    const mainWindow = BrowserWindow.getAllWindows()[0];
+    if (mainWindow !== undefined && !mainWindow.isDestroyed()) {
+      applyAppIcon(mainWindow, resolveAppIconTheme(), logger);
+    }
+
+    logger.info("set_native_theme_succeeded", {
+      correlationId: createCorrelationId(),
+      operation: "set_native_theme",
+      result: "updated",
+      theme: parsed.theme,
+    });
+    return { ok: true as const };
+  });
 
   ipcMain.handle(IPC_CHANNELS.shellApplyWindowLayout, async (_event, payload: unknown) => {
     const parsed = parseShellWindowLayoutPayload(payload);

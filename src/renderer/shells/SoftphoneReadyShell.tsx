@@ -12,6 +12,7 @@ import { useHeaderChromeShell } from "../hooks/useHeaderChromeShell.js";
 import { useOcpNotifications } from "../hooks/useOcpNotifications.js";
 import { useOverlayShell } from "../hooks/useOverlayShell.js";
 import { useShellWindowLayout } from "../hooks/useShellWindowLayout.js";
+import { useAppUpdate } from "../hooks/useAppUpdate.js";
 import { useSettingsActions } from "../hooks/useSettingsActions.js";
 import { useUserAvatarMenu } from "../hooks/useUserAvatarMenu.js";
 import { useUserAvatarMenuActions } from "../hooks/useUserAvatarMenuActions.js";
@@ -78,6 +79,7 @@ export function SoftphoneReadyShell({
     },
     applyMultiCallSettings,
   });
+  const appUpdate = useAppUpdate();
 
   const ocpNotifications = useOcpNotifications({
     isOcpMode: projection.isOcpMode,
@@ -144,6 +146,14 @@ export function SoftphoneReadyShell({
               onSipAutoReregisterChange={settingsActions.onSipAutoReregisterToggle}
               sipReregisterIntervalSec={settingsActions.userSettings.sipReregisterIntervalSec}
               onSipReregisterIntervalChange={settingsActions.onSipReregisterIntervalChange}
+              currentVersion={appUpdate.snapshot.currentVersion}
+              latestVersion={appUpdate.snapshot.latestVersion}
+              updateStatusMessage={appUpdate.statusMessage}
+              canCheckForUpdates={appUpdate.canCheckForUpdates}
+              canOpenDownloadPage={appUpdate.canOpenDownloadPage}
+              isCheckingUpdates={appUpdate.isChecking}
+              onCheckForUpdates={appUpdate.onCheckForUpdates}
+              onOpenDownloadPage={appUpdate.onOpenDownloadPage}
               updateError={settingsActions.settingsUpdateError}
               account={{
                 form: accountActions.form,

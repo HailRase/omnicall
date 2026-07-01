@@ -34,6 +34,10 @@ function resolveSettingsUpdateError(error: unknown): string {
   return error instanceof Error ? error.message : "Не удалось сохранить настройки";
 }
 
+function syncNativeTheme(theme: AppTheme): void {
+  void window.softphone.setNativeTheme({ theme });
+}
+
 /**
  * - Purpose: bind settings overlay toggles to facade user settings (LF-032, LF-076, F-014).
  * - Inputs: facade, current multi-call settings, store projection applier.
@@ -55,6 +59,7 @@ export function useSettingsActions(
       if (result.ok) {
         setUserSettings(result.value);
         applyAppTheme(result.value.theme);
+        syncNativeTheme(result.value.theme);
       }
     });
   }, [facade]);
@@ -76,6 +81,7 @@ export function useSettingsActions(
           setSettingsUpdateError(null);
           setUserSettings(result.value);
           applyAppTheme(result.value.theme);
+          syncNativeTheme(result.value.theme);
           applyMultiCallSettings({
             multiSessionsEnabled: result.value.multiSessionsEnabled,
             autoUnholdOnTransferFailure: result.value.autoUnholdOnTransferFailure,
@@ -91,6 +97,7 @@ export function useSettingsActions(
   const onThemeChange = useCallback(
     (theme: AppTheme): void => {
       applyAppTheme(theme);
+      syncNativeTheme(theme);
       persistUserSettings({
         ...userSettings,
         theme,

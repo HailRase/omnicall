@@ -459,6 +459,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Operator status selector always visible in header zone.
   - **Icon-only controls:** semantic `AppIcon` + 1s hover tooltip via `IconControlButton`; `aria-label` preserved (T-001 done).
   - **Theme (LF-082):** light default; `theme` in UserSettings; segmented control in General settings; `applyAppTheme` sets `data-theme` on documentElement; semantic tokens in `tokens.css` for light and dark.
+  - **Native app icon theme sync (2026-07-01):** renderer theme change triggers typed IPC `platform:set-native-theme`; main process updates `nativeTheme.themeSource` and switches theme-aware icon asset (`icon-light.png`/`icon-dark.png`) for dock/window surfaces.
   - **Shell window layout (F-016):** compact mode anchors bottom-right on startup; settings overlay expands window to 1000px width centered; closing restores prior compact width at bottom-right; animation 280ms aligned with settings panel slide; `prefers-reduced-motion` skips animation.
 - Test Coverage:
   - Unit: `validateUserSettings`, `migrateUserSettings`, `InMemorySettingsRepository` / `FileSettingsRepository` round-trip; `ShellWindowLayout`, `ShellWindowLayoutService`
@@ -538,3 +539,26 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Integration: manual smoke — install, authorize SIP, place call
   - E2E: deferred until installer harness exists
 - Implementation evidence: `electron-builder.yml`, `.env.production`, `package.json` dist scripts, `.github/workflows/release.yml`, `install-instruction.md`
+
+## F-020: Manual In-App Update Check
+
+- Legacy IDs: none
+- Context: Integration
+- Priority: medium
+- Status: implemented
+- Owner: domain-agent
+- Inputs: user «Проверить обновления» in Settings → General; `VITE_UPDATE_MANIFEST_URL`; installed app version from main process
+- Outputs: update status projection; optional `shell.openExternal` to HTTPS download/release page; structured logs
+- Acceptance Criteria:
+  - No electron-updater, no silent download/install, no code-signing requirement.
+  - Remote manifest validated from `unknown`; semver compare for update vs up-to-date.
+  - States: idle, checking, updateAvailable, upToDate, unavailable, invalidManifest, error.
+  - Failures never crash app; active calls not interrupted (settings-only UX).
+  - `openExternal` only in main via typed IPC; HTTPS URLs only (localhost HTTP for tests).
+  - Current version shown from `app.getVersion()`.
+- Test Coverage:
+  - Unit: `parseUpdateManifest`, `compareSemanticVersions`, `evaluateUpdateAvailability`, `CheckForUpdatesUseCase`, `OpenExternalUrlContract`, `isAllowedHttpsUrl`
+  - Component: `SettingsGeneralPanel` about section
+  - Integration: deferred (manual manifest smoke)
+  - E2E: deferred
+- Implementation evidence: `src/domain/updates/`, `src/application/use-cases/CheckForUpdatesUseCase.ts`, `src/adapters/updates/FetchUpdateMetadataAdapter.ts`, `src/adapters/platform/PreloadPlatformInfoGateway.ts`, `src/adapters/platform/PreloadExternalUrlGateway.ts`, `src/shared/ipc/OpenExternalUrlContract.ts`, `src/renderer/hooks/useAppUpdate.ts`, `src/renderer/components/settings/panels/SettingsGeneralPanel.tsx`, `docs/softphone/Manual-Update-Manifest.md`
