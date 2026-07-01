@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-01 10:40
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `d63083f`
 
 ## Где
 - `docs/softphone/handoffs/P11-Call-UI-Design-Parity-Handoff.md`
@@ -25,4 +25,4 @@
 ## Результат
 - `npm run test`: 916 passed, 1 skipped
 - `npm run lint`, `typecheck`: green
-- `ui:catalog:check`: green после коммита каталога (рабочая копия синхронизирована)
+- `ui:catalog:check`: green (commit `d63083f`)
