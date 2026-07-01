@@ -158,4 +158,5 @@ CI опубликует на `axatalk-releases` автоматически.
 | 404 на installer | Имена в manifest vs файлы в Release |
 | Migrate 401 Bad credentials (download) | `AXATALK_RELEASES_TOKEN` использовался для **скачивания** source | `SOURCE_GITHUB_TOKEN=github.token`, перезапустить |
 | Migrate 401 on axatalk-releases | Неверный/просроченный PAT или нет **Contents read+write** | Пересоздать fine-grained PAT на `axatalk-releases`; обновить secret; шаг **Verify distribution token** в workflow |
+| Migrate 422 Repository is empty | `axatalk-releases` без коммитов на `main` | Обновить `main` (migrate сам пушит README+manifest **до** releases); перезапустить workflow |
 | Старые клиенты не видят обновления | Release cut 0.0.3+ с новым `.env.production` |

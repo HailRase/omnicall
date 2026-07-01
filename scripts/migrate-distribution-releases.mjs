@@ -25,6 +25,7 @@ import {
   uploadReleaseAsset,
   verifyDistributionToken,
 } from './github-distribution-api.mjs';
+import { pushDistributionRepo } from './push-distribution-repo.mjs';
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 
@@ -73,9 +74,17 @@ function isInstallerFile(name) {
   return DISTRIBUTION_INSTALLER_EXTENSIONS.some((ext) => name.endsWith(ext));
 }
 
+function syncDistributionManifest(commitMsg) {
+  execSync('node scripts/sync-release-manifest.mjs', { cwd: repoRoot, stdio: 'inherit' });
+  pushDistributionRepo({ token: distributionToken, commitMsg });
+}
+
 async function main() {
   console.log(`Verifying distribution token for ${DISTRIBUTION_REPO}...`);
   await verifyDistributionToken(distributionToken, DISTRIBUTION_REPO);
+
+  console.log('\nInitializing distribution repo (README + manifest on main)...');
+  syncDistributionManifest('chore: initial distribution manifest and README');
 
   for (const tag of tags) {
     console.log(`\n=== Migrating ${tag} ===`);
@@ -128,18 +137,8 @@ async function main() {
     rmSync(workDir, { recursive: true, force: true });
   }
 
-  console.log('\nSyncing manifest and README to distribution repo...');
-  execSync('node scripts/sync-release-manifest.mjs', { cwd: repoRoot, stdio: 'inherit' });
-  execSync('node scripts/push-distribution-repo.mjs', {
-    cwd: repoRoot,
-    stdio: 'inherit',
-    env: {
-      ...process.env,
-      GITHUB_TOKEN: distributionToken,
-      DISTRIBUTION_GITHUB_TOKEN: distributionToken,
-      DIST_COMMIT_MSG: `chore: manifest after migrating ${tags.join(', ')}`,
-    },
-  });
+  console.log('\nSyncing manifest after migration...');
+  syncDistributionManifest(`chore: manifest after migrating ${tags.join(', ')}`);
 
   console.log('\nDone. Verify:', `https://github.com/${DISTRIBUTION_REPO}/releases`);
 }
