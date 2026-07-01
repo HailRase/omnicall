@@ -25,7 +25,7 @@ On version bump:
 
 1. `package.json` — `version` field only (name stays `Axatalk`)
 2. `CHANGELOG.md` — release section for `X.Y.Z`
-3. `npm run release:sync-manifest` — updates both manifest JSON files
+3. `npm run release:sync-manifest` — dev copies + `distribution/update-manifest.json` (published to **axatalk-releases**)
 4. Work-history entry — note new version if shipping
 
 Rebuild installers (`npm run build:*`) only when cutting a **distribution** release, not for every dev commit.
@@ -36,6 +36,6 @@ Rebuild installers (`npm run build:*`) only when cutting a **distribution** rele
 2. Bump `package.json` per SemVer table
 3. `npm run release:sync-manifest`
 4. Commit on `main` → `git tag v<version>` → push `main` + tag
-5. CI `release.yml` publishes GitHub Release assets (no electron-builder publish)
+5. CI `release.yml` publishes installers to **HailRase/axatalk-releases** (secret `AXATALK_RELEASES_TOKEN`)
 
-Playbook: `docs/softphone/RELEASE-PLAYBOOK.md`. Guide: `GitHub-Releases-Update-Guide.md`. Contract: `Manual-Update-Manifest.md`.
+Playbook: `guides/RELEASE-PLAYBOOK.md`. Migration: `guides/Distribution-Migration-Checklist.md`. Contract: `guides/Manual-Update-Manifest.md`.

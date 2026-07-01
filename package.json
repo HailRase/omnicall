@@ -30,6 +30,8 @@
     "ui:catalog:check": "npm run ui:catalog && git diff --exit-code docs/softphone/UI-Component-Catalog.md",
     "registry:check": "node scripts/check-registry-paths.mjs",
     "release:sync-manifest": "node scripts/sync-release-manifest.mjs",
+    "release:push-distribution": "node scripts/push-distribution-repo.mjs",
+    "release:migrate-distribution": "node scripts/migrate-distribution-releases.mjs",
     "release:preflight": "npm run test && npm run lint && npm run typecheck && npm run registry:check"
   },
   "dependencies": {

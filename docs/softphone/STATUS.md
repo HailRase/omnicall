@@ -6,6 +6,8 @@
 **Tests:** 916 passed, 1 skipped (`npm run test`) — last verified 2026-07-01  
 **Lint / typecheck:** green (last verified 2026-07-01)
 
+**Guides (onboarding):** [`guides/README.md`](../../guides/README.md) — установка, пользователь, агенты Cursor, релизы.
+
 ## Active phase
 
 **P11 — Settings, Personalization, Shell UX**
@@ -54,13 +56,15 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 | Field | Value |
 | --- | --- |
-| Shipped | **0.0.2** (`v0.0.2`, 2026-07-01) |
-| Next cut | On demand via `/release` — see `RELEASE-PLAYBOOK.md` |
-| Manifest | `docs/softphone/release/update-manifest.json` on `main` |
-| CI | `ci.yml` (push/PR) · `release.yml` (tag → GitHub Release assets) |
-| CHANGELOG | `CHANGELOG.md` |
+| Shipped | **0.0.2** (`v0.0.2`, 2026-07-01) — migrate to **axatalk-releases** |
+| Next cut | **0.0.3** after distribution setup (new manifest URL in installers) |
+| Source repo | `HailRase/softphone-electron` (target: **private**) |
+| Distribution | [`HailRase/axatalk-releases`](https://github.com/HailRase/axatalk-releases) (public: installers + manifest) |
+| Manifest (live) | `axatalk-releases/main/update-manifest.json` |
+| CI | `ci.yml` · `release.yml` → publish to axatalk-releases |
+| Migration | [`guides/Distribution-Migration-Checklist.md`](../../guides/Distribution-Migration-Checklist.md) |
 
-**Release cut:** `/release` agent or human — preflight → CHANGELOG → bump → `npm run release:sync-manifest` → commit → tag `vX.Y.Z` → push. Implementation agents (`/ui`, `/logic`) do **not** bump version.
+**Release cut:** tag on **softphone-electron** → CI publishes to **axatalk-releases**. Secret: `AXATALK_RELEASES_TOKEN`.
 
 ## Archived handoffs
 

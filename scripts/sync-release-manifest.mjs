@@ -1,14 +1,17 @@
 /**
- * Sync F-020 update manifest from package.json version and GitHub Release URL pattern.
- * Preserves minimumSupportedVersion unless --sync-min is passed.
+ * Sync F-020 update manifest from package.json → distribution repo URL pattern.
+ * Writes dev copies + distribution/ payload for axatalk-releases.
  */
 
-import { readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  DISTRIBUTION_REPO,
+  DISTRIBUTION_MANIFEST_RAW_URL,
+} from './distribution-config.mjs';
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url));
-const repo = 'HailRase/softphone-electron';
 const syncMin = process.argv.includes('--sync-min');
 
 const pkg = JSON.parse(readFileSync(join(repoRoot, 'package.json'), 'utf8'));
@@ -19,7 +22,7 @@ if (typeof version !== 'string' || !/^\d+\.\d+\.\d+$/.test(version)) {
 }
 
 const tag = `v${version}`;
-const downloadBase = `https://github.com/${repo}/releases/download/${tag}`;
+const downloadBase = `https://github.com/${DISTRIBUTION_REPO}/releases/download/${tag}`;
 
 function readExistingMin(path) {
   try {
@@ -30,20 +33,14 @@ function readExistingMin(path) {
   }
 }
 
-const manifestPaths = [
-  join(repoRoot, 'docs/softphone/release/update-manifest.json'),
-  join(repoRoot, 'docs/softphone/examples/update-manifest.json'),
-];
-
-const minimumSupportedVersion = syncMin
-  ? version
-  : readExistingMin(manifestPaths[0]);
+const devManifestPath = join(repoRoot, 'docs/softphone/release/update-manifest.json');
+const minimumSupportedVersion = syncMin ? version : readExistingMin(devManifestPath);
 
 const manifest = {
   latestVersion: version,
   releaseDate: new Date().toISOString().slice(0, 10),
-  releaseNotesUrl: `https://github.com/${repo}/releases/tag/${tag}`,
-  downloadUrl: `https://github.com/${repo}/releases/latest`,
+  releaseNotesUrl: `https://github.com/${DISTRIBUTION_REPO}/releases/tag/${tag}`,
+  downloadUrl: `https://github.com/${DISTRIBUTION_REPO}/releases/latest`,
   platforms: {
     win32: `${downloadBase}/Axatalk-${version}-win-x64.exe`,
     darwin: `${downloadBase}/Axatalk-${version}-mac-arm64.dmg`,
@@ -52,7 +49,18 @@ const manifest = {
   minimumSupportedVersion,
 };
 
-for (const path of manifestPaths) {
-  writeFileSync(path, `${JSON.stringify(manifest, null, 2)}\n`, 'utf8');
+const manifestJson = `${JSON.stringify(manifest, null, 2)}\n`;
+
+const outputPaths = [
+  devManifestPath,
+  join(repoRoot, 'docs/softphone/examples/update-manifest.json'),
+  join(repoRoot, 'distribution/update-manifest.json'),
+];
+
+for (const path of outputPaths) {
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, manifestJson, 'utf8');
   console.log(`Updated ${path}`);
 }
+
+console.log(`Manifest raw URL (production): ${DISTRIBUTION_MANIFEST_RAW_URL}`);

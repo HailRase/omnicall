@@ -478,7 +478,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (transfer flow parity **2026-06-29**): `TransferPanel` moved to `CallContextShell` (context mode), step chrome (1–4), explicit source/consultation cards, controls zone hides `CallControlsBar` + `Dialpad` while transfer mode active; stories `TransferPanel.stories.tsx`, `Dialpad.stories.tsx`, `CallSessionCard.stories.tsx`
 - Implementation evidence (SIP recovery shell **2026-06-29**): `deriveConnectionRecoveryShell`, `SoftphoneShellHeader` (`control-reregister-sip`), `RegistrationStatusDot`; LF-009 avatar UI deferred; gate `handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`
 - Implementation evidence (shell window layout **2026-06-26**): `ShellWindowLayout`, `ShellWindowLayoutService`, `ShellWindowGateway`, `ShellWindowController`, `shell:apply-window-layout` IPC, `useShellWindowLayout`; LF-055, LF-056 (anchor)
-- Implementation evidence (icons foundation): `lucide-react`, `lucide-animated`, `motion`, `AppIcon`, `iconCatalog.ts`, `Icon-Registry.md`, `Icon-Agent-Guide.md`, `.cursor/rules/icons.mdc`, `.cursor/skills/icons/SKILL.md`
+- Implementation evidence (icons foundation): `lucide-react`, `lucide-animated`, `motion`, `AppIcon`, `iconCatalog.ts`, `Icon-Registry.md`, `guides/Icon-Agent-Guide.md`, `.cursor/rules/icons.mdc`, `.cursor/skills/icons/SKILL.md`
 - UI docs: `UI-Architecture.md`, `UI-Design-System.md`, `P11-Call-Line-UX-Design.md`, `P11-Header-Collapsed-UX-Design.md`, `P11-Settings-Schema-Design.md`, `P11-CSS-Modules-Tokens-Migration.md`, `handoffs/P11-WU0-Shell-Layout-Handoff.md`, `handoffs/P11-WU1-Settings-Overlay-Handoff.md`, `handoffs/P11-WU2-Call-Line-UX-Handoff.md`, `handoffs/P11-WU3-Header-Collapsed-Handoff.md`, `handoffs/P11-WU4-Settings-Schema-Handoff.md`, `handoffs/P11-WU5-UI-4-Final-Gate-Handoff.md`, `handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`, `handoffs/P11-Icon-Tooltips-Agent-Prompt.md` (T-001 gate)
 
 ## F-017: Diagnostics And Logging
@@ -532,13 +532,13 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Acceptance Criteria:
   - `npm run build:win|mac|linux` produces installable artifacts for the host OS.
   - Production bundle uses real telephony adapters, not mock default.
-  - End-user install and SIP setup steps documented in `install-instruction.md`.
+  - End-user install and SIP setup steps documented in `guides/install-instruction.md`.
   - Optional CI workflow builds all platforms on version tags.
 - Test Coverage:
   - Unit: n/a (infra)
   - Integration: manual smoke — install, authorize SIP, place call
   - E2E: deferred until installer harness exists
-- Implementation evidence: `electron-builder.yml`, `.env.production`, `package.json` dist scripts, `.github/workflows/release.yml`, `install-instruction.md`
+- Implementation evidence: `electron-builder.yml`, `.env.production`, `package.json` dist scripts, `.github/workflows/release.yml`, `guides/install-instruction.md`
 
 ## F-020: Manual In-App Update Check
 
@@ -561,4 +561,4 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Component: `SettingsGeneralPanel` about section
   - Integration: deferred (manual manifest smoke)
   - E2E: deferred
-- Implementation evidence: `src/domain/updates/`, `src/application/use-cases/CheckForUpdatesUseCase.ts`, `src/adapters/updates/FetchUpdateMetadataAdapter.ts`, `src/adapters/platform/PreloadPlatformInfoGateway.ts`, `src/adapters/platform/PreloadExternalUrlGateway.ts`, `src/shared/ipc/OpenExternalUrlContract.ts`, `src/renderer/hooks/useAppUpdate.ts`, `src/renderer/components/settings/panels/SettingsGeneralPanel.tsx`, `docs/softphone/Manual-Update-Manifest.md`, `docs/softphone/release/update-manifest.json`, `docs/softphone/GitHub-Releases-Update-Guide.md`
+- Implementation evidence: `src/domain/updates/`, `src/application/use-cases/CheckForUpdatesUseCase.ts`, `src/adapters/updates/FetchUpdateMetadataAdapter.ts`, `src/adapters/platform/PreloadPlatformInfoGateway.ts`, `src/adapters/platform/PreloadExternalUrlGateway.ts`, `src/shared/ipc/OpenExternalUrlContract.ts`, `src/renderer/hooks/useAppUpdate.ts`, `src/renderer/components/settings/panels/SettingsGeneralPanel.tsx`, `guides/Manual-Update-Manifest.md`, `docs/softphone/release/update-manifest.json`, `guides/GitHub-Releases-Update-Guide.md`

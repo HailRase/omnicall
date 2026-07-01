@@ -11,7 +11,7 @@ files:
   - "!**/.vscode/*"
   - "!src/**"
   - "!electron.vite.config.{js,ts,mjs,cjs}"
-  - "!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md,install-instruction.md}"
+  - "!{.eslintignore,.eslintrc.cjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md,install-instruction.md,guides/**}"
   - "!{.env,.env.local,.env.*.local}"
   - "!{tsconfig.json,tsconfig.node.json,tsconfig.web.json,vitest.config.ts}"
   - "!{docs/**,work-history/**,.cursor/**,.storybook/**,scripts/**}"

@@ -11,7 +11,8 @@ Distribution release orchestration (F-019, F-020). **Not** a feature implementat
 
 ## Read first
 
-1. `docs/softphone/RELEASE-PLAYBOOK.md`
+1. `guides/Distribution-Migration-Checklist.md`
+2. `guides/RELEASE-PLAYBOOK.md`
 2. `.cursor/rules/version-release.mdc`
 3. `docs/softphone/STATUS.md` → **Release train**
 4. `CHANGELOG.md`
@@ -39,7 +40,7 @@ Distribution release orchestration (F-019, F-020). **Not** a feature implementat
 6. **Manifest:** `npm run release:sync-manifest`.
 7. **Commit** `chore(release): cut vX.Y.Z` on `main`.
 8. **Tag:** `git tag vX.Y.Z`, `git push origin main`, `git push origin vX.Y.Z` (ask user if push not requested).
-9. **Verify:** GitHub Actions Release workflow success; Release assets; raw manifest JSON.
+9. **Verify:** Actions Release workflow; **axatalk-releases** Release + raw manifest on distribution repo.
 10. **Docs:** update `STATUS.md` Release train; `work-history/…`.
 
 ## Never
@@ -61,6 +62,8 @@ Include: new version, tag URL, Actions run URL, manifest URL, verification check
 | --- | --- |
 | `npm run release:preflight` | test + lint + typecheck + registry |
 | `npm run release:sync-manifest` | manifest JSON from `package.json` |
+| `npm run release:push-distribution` | push README + manifest to axatalk-releases |
+| `npm run release:migrate-distribution` | migrate historical releases (local, needs `gh`) |
 
 ## After `/review` PASS (note for reviewer)
 

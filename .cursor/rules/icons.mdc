@@ -14,7 +14,7 @@ Read before any renderer UI task that adds or changes icons.
 ## Source of truth
 
 ```txt
-docs/softphone/Icon-Agent-Guide.md
+guides/Icon-Agent-Guide.md
 docs/softphone/Icon-Registry.md
 src/renderer/components/icons/iconCatalog.ts
 ```

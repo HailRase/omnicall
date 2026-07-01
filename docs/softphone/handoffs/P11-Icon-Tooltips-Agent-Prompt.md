@@ -65,5 +65,5 @@ npm run test && npm run lint && npm run typecheck
 
 ## Related
 
-- `docs/softphone/Icon-Agent-Guide.md`
+- `guides/Icon-Agent-Guide.md`
 - `.cursor/skills/icons/SKILL.md`

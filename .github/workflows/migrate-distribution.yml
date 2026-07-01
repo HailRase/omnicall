@@ -1,0 +1,40 @@
+name: Migrate distribution releases
+
+# One-time: copy installer assets from softphone-electron releases to axatalk-releases.
+# Requires secret AXATALK_RELEASES_TOKEN (write axatalk-releases).
+# Guide: guides/Distribution-Migration-Checklist.md
+
+on:
+  workflow_dispatch:
+    inputs:
+      tags:
+        description: "Comma-separated tags, e.g. v0.0.1,v0.0.2"
+        required: true
+        default: "v0.0.1,v0.0.2"
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Migrate releases to axatalk-releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.AXATALK_RELEASES_TOKEN }}
+        run: |
+          TAGS="${{ github.event.inputs.tags }}"
+          TAG_ARGS=""
+          IFS=',' read -ra PARTS <<< "$TAGS"
+          for t in "${PARTS[@]}"; do
+            TAG_ARGS="$TAG_ARGS $(echo "$t" | xargs)"
+          done
+          node scripts/migrate-distribution-releases.mjs $TAG_ARGS

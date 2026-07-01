@@ -4,7 +4,7 @@ Read and follow:
 
 ```txt
 .cursor/skills/release-agent/SKILL.md
-docs/softphone/RELEASE-PLAYBOOK.md
+guides/RELEASE-PLAYBOOK.md
 .cursor/rules/version-release.mdc
 .cursor/skills/_shared/response-contract.md
 ```

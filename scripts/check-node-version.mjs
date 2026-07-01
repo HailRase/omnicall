@@ -22,7 +22,7 @@ if (compare(current, minimum) < 0) {
     [
       `Node.js ${process.versions.node} is not supported for packaging.`,
       `Minimum: ${minimum.join('.')} (@noble/hashes ESM + electron-builder require).`,
-      `Recommended: ${recommended.join('.')}+ (matches CI and install-instruction.md).`,
+      `Recommended: ${recommended.join('.')}+ (matches CI and guides/install-instruction.md).`,
       'Install: https://nodejs.org/ — or use nvm/fnm with .nvmrc in repo root.',
     ].join('\n'),
   );

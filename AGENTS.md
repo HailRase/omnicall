@@ -1,9 +1,12 @@
 # Enterprise Softphone — Agent Onboarding
 
 - Purpose: single entry point for Cursor agents working on this repo.
-- **Developer guide (RU):** `docs/softphone/Cursor-Agents-Guide.md`
-- **Release / CI (RU):** `docs/softphone/Developer-Release-CI-Guide.md`
-- **User guide (RU):** `docs/softphone/User-Guide-RU.md`
+- **Guides (all onboarding docs):** [`guides/README.md`](guides/README.md)
+- **Developer guide (RU):** [`guides/Cursor-Agents-Guide.md`](guides/Cursor-Agents-Guide.md)
+- **Release / CI (RU):** [`guides/Developer-Release-CI-Guide.md`](guides/Developer-Release-CI-Guide.md)
+- **User guide (RU):** [`guides/User-Guide-RU.md`](guides/User-Guide-RU.md)
+- **Public distribution:** [`HailRase/axatalk-releases`](https://github.com/HailRase/axatalk-releases) (installers + manifest — **not** source code)
+- **Migration checklist:** [`guides/Distribution-Migration-Checklist.md`](guides/Distribution-Migration-Checklist.md)
 - Live snapshot: `docs/softphone/STATUS.md`
 - Task queue: `docs/softphone/TASK-QUEUE.md`
 
@@ -85,4 +88,4 @@ Reviewers do not write production code or work-history.
 
 ## User Cursor settings
 
-Remove duplicates of workspace rules from User Rules — see `Cursor-Agents-Guide.md`.
+Remove duplicates of workspace rules from User Rules — see [`guides/Cursor-Agents-Guide.md`](guides/Cursor-Agents-Guide.md).

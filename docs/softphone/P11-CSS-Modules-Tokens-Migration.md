@@ -43,5 +43,5 @@ npm run ui:catalog
 
 ## Related
 
-- `UI-Design-System.md`, `UI-Architecture.md`, `Icon-Agent-Guide.md`
+- `UI-Design-System.md`, `UI-Architecture.md`, `guides/Icon-Agent-Guide.md`
 - `handoffs/P11-WU5-UI-4-Final-Gate-Handoff.md`

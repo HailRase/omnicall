@@ -22,7 +22,8 @@
 | DOCUMENT | `UI-Architecture.md` | Renderer layers, hooks, shells |
 | DOCUMENT | `UI-Design-System.md` | Tokens, CSS Modules, Storybook |
 | DOCUMENT | `UI-Component-Catalog.md` | Auto-generated (`npm run ui:catalog`) |
-| DOCUMENT | `Cursor-Agents-Guide.md` | **RU:** команды, агенты, циклы работы |
+| DOCUMENT | `../../guides/Cursor-Agents-Guide.md` | **RU:** команды, агенты, циклы работы |
+| GUIDES | `../../guides/README.md` | **Все** пользовательские и операционные руководства |
 | DOCUMENT | `TASK-QUEUE.md` | Очередь задач для scope-intake |
 | HANDOFFS | `handoffs/` | Active WU docs (P11+) |
 | ARCHIVE | `handoffs/archive/P0N/` | Completed phase handoffs (P02–P08) |
@@ -85,4 +86,4 @@
 | `rat-review.md` | RAT step review |
 | `audit.md` | Holistic super review |
 
-**Guide:** `Cursor-Agents-Guide.md` (Russian)
+**Guides:** [`guides/README.md`](../../guides/README.md) · [`Cursor-Agents-Guide.md`](../../guides/Cursor-Agents-Guide.md) (Russian)

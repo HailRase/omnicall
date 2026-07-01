@@ -21,7 +21,7 @@ Use before wiring icons in `components/`, `shells/`, or `widgets/`.
 
 ## Procedure
 
-1. Read `Icon-Agent-Guide.md` and registry.
+1. Read `guides/Icon-Agent-Guide.md` and registry.
 2. Define semantic id (`<domain>.<action>`) or reuse existing.
 3. Search `lucide-animated` exports; if missing, use `lucide-react` only in catalog.
 4. Add registry row + `ICON_CATALOG` entry with `usage` paths.

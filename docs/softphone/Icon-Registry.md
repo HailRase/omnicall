@@ -1,6 +1,6 @@
 # Icon Registry
 
-**F-016** UI icon semantics. Agents: read `Icon-Agent-Guide.md` before UI work.
+**F-016** UI icon semantics. Agents: read [`guides/Icon-Agent-Guide.md`](../../guides/Icon-Agent-Guide.md) before UI work.
 
 ## Rules
 
