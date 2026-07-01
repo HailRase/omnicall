@@ -1,6 +1,6 @@
 name: Release
 
-# Tag v*.*.* on softphone-electron → build installers → publish to HailRase/axatalk-releases.
+# Tag v*.*.* on softphone-electron - build installers - publish to axatalk-releases.
 # workflow_dispatch → build only (Artifacts), no publish.
 # Guide: guides/RELEASE-PLAYBOOK.md, guides/Distribution-Migration-Checklist.md
 
@@ -106,7 +106,9 @@ jobs:
           tag_name: ${{ github.ref_name }}
           target_commitish: main
           name: Axatalk ${{ github.ref_name }}
-          body: Installers for ${{ github.ref_name }}. Use .exe / .dmg / .AppImage — not Source code zip.
+          body: >-
+            Installers for ${{ github.ref_name }}.
+            Use .exe / .dmg / .AppImage, not Source code zip.
           files: dist-payload/*
           draft: false
           prerelease: false
@@ -117,5 +119,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.AXATALK_RELEASES_TOKEN }}
           DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.AXATALK_RELEASES_TOKEN }}
-          DIST_COMMIT_MSG: chore(release): sync manifest for ${{ github.ref_name }}
+          DIST_COMMIT_MSG: "chore(release): sync manifest for ${{ github.ref_name }}"
         run: node scripts/push-distribution-repo.mjs
