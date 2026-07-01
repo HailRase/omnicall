@@ -45,6 +45,7 @@ dmg:
 linux:
   category: Network
   maintainer: Axata
+  syncDesktopName: true
   icon: icon.png
   target:
     - AppImage

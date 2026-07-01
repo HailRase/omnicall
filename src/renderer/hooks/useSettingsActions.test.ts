@@ -1,7 +1,8 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { act, renderHook } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { SoftphonePreloadApi } from "@shared/ipc/PreloadApi.js";
 import { InMemorySettingsRepository } from "@adapters/settings/InMemorySettingsRepository.js";
 import { MockMediaGateway } from "@adapters/mock/MockMediaGateway.js";
 import { MockOperatorPlatformGateway } from "@adapters/mock/MockOperatorPlatformGateway.js";
@@ -21,6 +22,18 @@ function createFacade(settingsRepository: InMemorySettingsRepository): AccountBo
 }
 
 describe("useSettingsActions", () => {
+  const setNativeTheme = vi
+    .fn<SoftphonePreloadApi["setNativeTheme"]>()
+    .mockResolvedValue({ ok: true });
+
+  beforeEach(() => {
+    window.softphone = { setNativeTheme } as SoftphonePreloadApi;
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("applies settings on successful facade update", async () => {
     const applyMultiCallSettings = vi.fn();
     const facade = createFacade(new InMemorySettingsRepository());

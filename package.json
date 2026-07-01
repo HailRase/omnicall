@@ -4,6 +4,7 @@
   "private": true,
   "description": "Softphone Platform",
   "author": "Axata",
+  "desktopName": "axatalk",
   "main": "out/main/index.js",
   "type": "module",
   "engines": {
@@ -16,7 +17,7 @@
     "build:dist": "electron-vite build --mode production",
     "build:win": "node scripts/check-node-version.mjs && npm run build:dist && electron-builder --win --config electron-builder.yml -c.directories.output=dist/win",
     "build:mac": "node scripts/check-node-version.mjs && npm run build:dist && electron-builder --mac --config electron-builder.yml -c.directories.output=dist/mac",
-    "build:linux": "node scripts/check-node-version.mjs && npm run build:dist && electron-builder --linux --config electron-builder.yml -c.directories.output=dist/linux",
+    "build:linux": "node scripts/check-node-version.mjs && npm run build:dist && node scripts/build-linux.mjs",
     "build:all": "node scripts/check-node-version.mjs && npm run build:dist && electron-builder --win --mac --linux --config electron-builder.yml -c.directories.output=dist/all",
     "preview": "electron-vite preview",
     "test": "vitest run",

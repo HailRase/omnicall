@@ -1,5 +1,9 @@
 name: Build installers
 
+# Triggers on version tags (v1.2.3). Artifacts go to Actions, not GitHub Release.
+# Manual run: Actions → Build installers → Run workflow (branch main).
+# Upload installers to Release manually; see docs/softphone/GitHub-Releases-Update-Guide.md
+
 on:
   push:
     tags:

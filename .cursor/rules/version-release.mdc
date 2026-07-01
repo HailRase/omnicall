@@ -37,6 +37,6 @@ Rebuild installers (`npm run build:*`) only when cutting a **distribution** rele
 3. `npm run test && npm run lint && npm run typecheck`
 4. `npm run build:win|mac|linux` on target OS (or CI tag `v*.*.*`)
 5. GitHub Release tag `v<version>` + upload artifacts
-6. Push manifest to `master` (raw URL in `.env.production`)
+6. Push manifest to `main` (raw URL in `.env.production`)
 
 Guide: `docs/softphone/GitHub-Releases-Update-Guide.md`, contract: `docs/softphone/Manual-Update-Manifest.md`.
