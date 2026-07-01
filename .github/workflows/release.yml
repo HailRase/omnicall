@@ -98,22 +98,11 @@ jobs:
           fi
 
       - name: Publish GitHub Release on axatalk-releases
-        uses: softprops/action-gh-release@v2
         env:
-          GITHUB_TOKEN: ${{ secrets.AXATALK_RELEASES_TOKEN }}
-        with:
-          repository: HailRase/axatalk-releases
-          tag_name: ${{ github.ref_name }}
-          target_commitish: main
-          name: Axatalk ${{ github.ref_name }}
-          body: >-
-            Installers for ${{ github.ref_name }}.
-            Use .exe / .dmg / .AppImage, not Source code zip.
-          files: dist-payload/*
-          draft: false
-          prerelease: false
-          generate_release_notes: false
-          fail_on_unmatched_files: true
+          DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.AXATALK_RELEASES_TOKEN }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          PAYLOAD_DIR: dist-payload
+        run: node scripts/publish-distribution-release.mjs
 
       - name: Push manifest and README to axatalk-releases main
         env:
