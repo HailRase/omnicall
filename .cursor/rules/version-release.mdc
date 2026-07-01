@@ -1,0 +1,42 @@
+---
+description: SemVer bumps and release manifest sync for Axatalk / softphone
+alwaysApply: true
+---
+
+# RULE: Version And Release Sync
+
+Single source of truth: `package.json` → `version` (Electron `app.getVersion()`, installer names, update check).
+
+## When agents MUST bump version
+
+After a **completed user-visible feature** or **release cut** (WU gate / handoff closed), not per intermediate commit.
+
+| Change | SemVer (pre-1.0) | Example |
+| --- | --- | --- |
+| Bug fix, no new UX | PATCH | `0.0.1` → `0.0.2` |
+| New user-visible feature (Registry `implemented`) | MINOR | `0.0.2` → `0.1.0` |
+| Breaking host API, settings schema v2, removed flow | MAJOR | `0.x` → `1.0.0` |
+
+Do **not** bump for: refactors, tests-only, docs-only, reviewer-only, planned→in-progress Registry edits.
+
+## Files to update together
+
+On version bump:
+
+1. `package.json` — `version` field only (name stays `Axatalk`)
+2. `docs/softphone/release/update-manifest.json` — `latestVersion`, `releaseDate`, `releaseNotesUrl`, `platforms.*` URLs (match `electron-builder.yml` artifact pattern `Axatalk-${version}-…`)
+3. `docs/softphone/examples/update-manifest.json` — keep in sync with release manifest template
+4. Work-history entry — note new version if shipping
+
+Rebuild installers (`npm run build:*`) only when cutting a **distribution** release, not for every dev commit.
+
+## Release checklist (human or agent)
+
+1. Bump `package.json` per table above
+2. Update release manifest JSON
+3. `npm run test && npm run lint && npm run typecheck`
+4. `npm run build:win|mac|linux` on target OS (or CI tag `v*.*.*`)
+5. GitHub Release tag `v<version>` + upload artifacts
+6. Push manifest to `master` (raw URL in `.env.production`)
+
+Guide: `docs/softphone/GitHub-Releases-Update-Guide.md`, contract: `docs/softphone/Manual-Update-Manifest.md`.
