@@ -1,8 +1,8 @@
 name: Migrate distribution releases
 
 # One-time: copy installer assets from softphone-electron releases to axatalk-releases.
-# Requires secret AXATALK_RELEASES_TOKEN (write axatalk-releases).
-# Guide: guides/Distribution-Migration-Checklist.md
+# Secrets: AXATALK_RELEASES_TOKEN (write axatalk-releases only).
+# Source read uses github.token (same repo). Guide: guides/Distribution-Migration-Checklist.md
 
 on:
   workflow_dispatch:
@@ -29,7 +29,8 @@ jobs:
 
       - name: Migrate releases to axatalk-releases
         env:
-          GITHUB_TOKEN: ${{ secrets.AXATALK_RELEASES_TOKEN }}
+          SOURCE_GITHUB_TOKEN: ${{ github.token }}
+          DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.AXATALK_RELEASES_TOKEN }}
         run: |
           TAGS="${{ github.event.inputs.tags }}"
           TAG_ARGS=""

@@ -11,10 +11,13 @@ import { fileURLToPath } from 'node:url';
 import { DISTRIBUTION_REPO } from './distribution-config.mjs';
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url));
-const token = process.env.GITHUB_TOKEN;
+const token =
+  process.env.DISTRIBUTION_GITHUB_TOKEN ??
+  process.env.AXATALK_RELEASES_TOKEN ??
+  process.env.GITHUB_TOKEN;
 
 if (typeof token !== 'string' || token.length === 0) {
-  console.error('GITHUB_TOKEN is required (AXATALK_RELEASES_TOKEN in CI).');
+  console.error('DISTRIBUTION_GITHUB_TOKEN or GITHUB_TOKEN is required (write axatalk-releases).');
   process.exit(1);
 }
 

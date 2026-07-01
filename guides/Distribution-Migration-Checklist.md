@@ -47,7 +47,18 @@ npm run release:preflight
 
 | Secret | Значение |
 | --- | --- |
-| `AXATALK_RELEASES_TOKEN` | PAT с write на `axatalk-releases` |
+| `AXATALK_RELEASES_TOKEN` | PAT с **write** только на `axatalk-releases` |
+
+**Важно:** для миграции CI **не** подставляет этот токен в скачивание из `softphone-electron`.  
+Скачивание идёт через `github.token` (тот же репозиторий). Запись — через `AXATALK_RELEASES_TOKEN`.
+
+Локально (если source уже private):
+
+```bash
+set SOURCE_GITHUB_TOKEN=ghp_...read_softphone...
+set DISTRIBUTION_GITHUB_TOKEN=ghp_...write_axatalk_releases...
+node scripts/migrate-distribution-releases.mjs v0.0.1 v0.0.2
+```
 
 ---
 
@@ -62,8 +73,9 @@ npm run release:preflight
 ### Вариант B — локально (нужен `gh` CLI)
 
 ```bash
-# PAT с read softphone-electron + write axatalk-releases
-set GITHUB_TOKEN=ghp_...
+# PAT с read softphone-electron + write axatalk-releases (или два токена — см. выше)
+set SOURCE_GITHUB_TOKEN=ghp_...
+set DISTRIBUTION_GITHUB_TOKEN=ghp_...
 npm run release:sync-manifest
 node scripts/migrate-distribution-releases.mjs v0.0.1 v0.0.2
 ```
@@ -144,5 +156,5 @@ CI опубликует на `axatalk-releases` автоматически.
 | Publish job failed: secret | Добавить `AXATALK_RELEASES_TOKEN` |
 | 404 на manifest | `push-distribution-repo` / migrate workflow |
 | 404 на installer | Имена в manifest vs файлы в Release |
-| Migrate: release exists | Нормально — skip |
+| Migrate 401 Bad credentials | `AXATALK_RELEASES_TOKEN` использовался для **скачивания** source | Обновить workflow: `SOURCE_GITHUB_TOKEN=github.token`, перезапустить |
 | Старые клиенты не видят обновления | Release cut 0.0.3+ с новым `.env.production` |
