@@ -15,7 +15,21 @@ Remote JSON consumed by in-app "Check for updates". No auto-install; opens downl
 
 ## Example
 
-See `docs/softphone/examples/update-manifest.json`.
+See `docs/softphone/examples/update-manifest.json` (Axatalk / `HailRase/softphone-electron`).
+
+Live manifest path (commit to `main`):
+
+```txt
+docs/softphone/release/update-manifest.json
+```
+
+Raw URL (baked via `VITE_UPDATE_MANIFEST_URL`):
+
+```txt
+https://raw.githubusercontent.com/HailRase/softphone-electron/main/docs/softphone/release/update-manifest.json
+```
+
+Operational guide: `docs/softphone/GitHub-Releases-Update-Guide.md`.
 
 ## App configuration
 

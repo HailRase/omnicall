@@ -1,4 +1,4 @@
-# Enterprise Softphone — установка и первый звонок
+# Axatalk — установка и первый звонок
 
 Инструкция для конечных пользователей и для тех, кто собирает установщики для распространения.
 
@@ -21,10 +21,10 @@
 
 | Платформа | Файл | Формат |
 | --- | --- | --- |
-| Windows | `Enterprise Softphone-<версия>-win-x64.exe` | NSIS-установщик |
-| macOS | `Enterprise Softphone-<версия>-mac-arm64.dmg` или `-mac-x64.dmg` | Образ диска |
-| Linux | `Enterprise Softphone-<версия>-linux-x64.AppImage` | Переносимый AppImage |
-| Linux (Debian/Ubuntu) | `Enterprise Softphone-<версия>-linux-amd64.deb` | Пакет `.deb` |
+| Windows | `Axatalk-<версия>-win-x64.exe` | NSIS-установщик |
+| macOS | `Axatalk-<версия>-mac-arm64.dmg` или `-mac-x64.dmg` | Образ диска |
+| Linux | `Axatalk-<версия>-linux-x64.AppImage` | Переносимый AppImage |
+| Linux (Debian/Ubuntu) | `Axatalk-<версия>-linux-x64.deb` | Пакет `.deb` |
 
 Скачайте файл под свою ОС и разрядность (обычно `x64` / `amd64`).
 
@@ -41,15 +41,15 @@
 
 ### macOS
 
-1. Откройте `.dmg` и перетащите **Enterprise Softphone** в **Applications**.
+1. Откройте `.dmg` и перетащите **Axatalk** в **Applications**.
 2. При первом запуске: **Системные настройки** → **Конфиденциальность и безопасность** → «Всё равно открыть» (если приложение не подписано сертификатом Apple).
 3. Разрешите доступ к микрофону, когда система спросит.
 
 ### Linux (AppImage)
 
 ```bash
-chmod +x "Enterprise Softphone-"*"-linux-x64.AppImage"
-./"Enterprise Softphone-"*"-linux-x64.AppImage"
+chmod +x Axatalk-*-linux-x64.AppImage
+./Axatalk-*-linux-x64.AppImage
 ```
 
 При необходимости интегрируйте в меню через [AppImageLauncher](https://github.com/TheAssassin/AppImageLauncher).
@@ -57,18 +57,18 @@ chmod +x "Enterprise Softphone-"*"-linux-x64.AppImage"
 ### Linux (.deb)
 
 ```bash
-sudo dpkg -i enterprise-softphone_*_amd64.deb
+sudo dpkg -i Axatalk-*-linux-x64.deb
 # при ошибках зависимостей:
 sudo apt-get install -f
 ```
 
-Запуск из меню приложений или командой `enterprise-softphone` (имя может отличаться — смотрите ярлык после установки).
+Запуск из меню приложений (**Axatalk**).
 
 ---
 
 ## 4. Первый запуск и регистрация SIP
 
-1. Запустите **Enterprise Softphone**.
+1. Запустите **Axatalk**.
 2. Дождитесь загрузки (экран «Booting application…» исчезнет).
 3. Нажмите на **аватар пользователя** в шапке → **Настройки**.
 4. Откройте раздел **Аккаунт** (если не открыт по умолчанию).
@@ -145,10 +145,13 @@ Production-сборка включает `VITE_ADAPTER_MODE=real` (файл `.en
 
 ### Релиз через GitHub
 
-1. Создайте тег `v0.0.2` (или актуальную версию из `package.json`).
-2. Запушьте тег: `git push origin v0.0.2`.
-3. Workflow **Build installers** соберёт артефакты на Windows, macOS и Linux.
-4. Раздайте файлы из артефактов или прикрепите к GitHub Release.
+Подробно: `docs/softphone/GitHub-Releases-Update-Guide.md`.
+
+1. Соберите установщики (`npm run build:win|mac|linux`).
+2. Создайте GitHub Release с тегом `v<version>` (например `v0.0.2`).
+3. Загрузите файлы из `dist/win`, `dist/mac`, `dist/linux`.
+4. Обновите `docs/softphone/release/update-manifest.json` и запушьте в **`main`**.
+5. Либо запушьте тег — workflow **Build installers** (если настроен) соберёт артефакты на CI.
 
 ### Иконка приложения
 
@@ -174,8 +177,14 @@ Production-сборка включает `VITE_ADAPTER_MODE=real` (файл `.en
 
 ---
 
-## 10. Версия и поддержка
+## 10. Проверка обновлений
 
-Версия приложения: поле `version` в `package.json` / «О программе» через IPC `platformGetVersion`.
+В приложении: **Настройки → Общее → О программе → Проверить обновления**.
+
+Работает после публикации manifest на GitHub и сборки клиента с `VITE_UPDATE_MANIFEST_URL` в `.env.production`.
+
+## 11. Версия и поддержка
+
+Версия приложения: поле `version` в `package.json`; в UI — раздел **О программе** в настройках.
 
 По вопросам настройки PBX обращайтесь к администратору телефонии; по установке клиента — к поставщику сборки.

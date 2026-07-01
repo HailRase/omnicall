@@ -60,6 +60,7 @@ Reviewers do not write production code or work-history.
 | `00-core.mdc` | always |
 | `typescript-react-electron.mdc` | always |
 | `work-history.mdc` | always |
+| `version-release.mdc` | always — SemVer + manifest sync on release |
 | `ui-implementation-agent.mdc` | `/ui`, renderer |
 | `domain-implementation-agent.mdc` | `/logic`, domain/application |
 | `holistic-reviewer.mdc` | `/audit` |
