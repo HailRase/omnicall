@@ -17,7 +17,7 @@ files:
   - "!{docs/**,work-history/**,.cursor/**,.storybook/**,scripts/**}"
 asar: true
 npmRebuild: false
-# Manual GitHub Release uploads only — do not auto-publish on CI (no GH_TOKEN required).
+# Manual GitHub Release uploads only. GITHUB_TOKEN on Actions triggers implicit publish unless CLI uses --publish never.
 publish: null
 win:
   executableName: Axatalk

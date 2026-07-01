@@ -104,7 +104,7 @@ curl -s "https://raw.githubusercontent.com/HailRase/softphone-electron/main/docs
 | Обновление не видно | `latestVersion` ≤ установленной | Поднять версию в manifest |
 | 404 на скачивание | Неверный тег, имя файла или `platforms` без asset | Сверить Release; убрать лишние ключи из `platforms` |
 | CI Build installers failed | Падают тесты в workflow | `npm run test` локально; исправить и re-run workflow |
-| `GH_TOKEN is not set` на CI | electron-builder пытался auto-publish | В конфиге `publish: null`; артефакты — в Actions, Release — вручную |
+| `GH_TOKEN is not set` на CI | `GITHUB_TOKEN` в Actions + implicit publish | Скрипты с `--publish never`; Release — вручную |
 
 ## Приватный репозиторий
 

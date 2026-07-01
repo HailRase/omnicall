@@ -62,6 +62,8 @@ function printWindowsSymlinkHelp() {
 function runElectronBuilder(extraArgs = []) {
   const args = [
     '--linux',
+    '--publish',
+    'never',
     '--config',
     'electron-builder.yml',
     '-c.directories.output=dist/linux',
