@@ -12,6 +12,8 @@ on:
 
 jobs:
   release:
+    env:
+      EP_PUBLISH: never
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false

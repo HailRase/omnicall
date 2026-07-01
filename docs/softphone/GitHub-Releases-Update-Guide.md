@@ -20,8 +20,8 @@ Manifest лежит в репозитории по фиксированному 
 | Windows NSIS | `Axatalk-0.0.1-win-x64.exe` |
 | macOS DMG (arm64) | `Axatalk-0.0.1-mac-arm64.dmg` |
 | macOS DMG (x64) | `Axatalk-0.0.1-mac-x64.dmg` |
-| Linux AppImage | `Axatalk-0.0.1-linux-x64.AppImage` |
-| Linux deb | `Axatalk-0.0.1-linux-x64.deb` |
+| Linux AppImage | `Axatalk-0.0.1-linux-x86_64.AppImage` (CI) или `…-linux-x64…` локально — сверьте `dist/linux/` |
+| Linux deb | `Axatalk-0.0.1-linux-amd64.deb` |
 
 Перед публикацией сверьте имена в `dist/win`, `dist/mac`, `dist/linux` — они должны совпадать с полями `platforms` в manifest.
 
@@ -104,6 +104,7 @@ curl -s "https://raw.githubusercontent.com/HailRase/softphone-electron/main/docs
 | Обновление не видно | `latestVersion` ≤ установленной | Поднять версию в manifest |
 | 404 на скачивание | Неверный тег, имя файла или `platforms` без asset | Сверить Release; убрать лишние ключи из `platforms` |
 | CI Build installers failed | Падают тесты в workflow | `npm run test` локально; исправить и re-run workflow |
+| `GH_TOKEN is not set` на CI | electron-builder пытался auto-publish | В конфиге `publish: null`; артефакты — в Actions, Release — вручную |
 
 ## Приватный репозиторий
 
