@@ -24,19 +24,18 @@ Do **not** bump for: refactors, tests-only, docs-only, reviewer-only, planned→
 On version bump:
 
 1. `package.json` — `version` field only (name stays `Axatalk`)
-2. `docs/softphone/release/update-manifest.json` — `latestVersion`, `releaseDate`, `releaseNotesUrl`, `platforms.*` URLs (match `electron-builder.yml` artifact pattern `Axatalk-${version}-…`)
-3. `docs/softphone/examples/update-manifest.json` — keep in sync with release manifest template
+2. `CHANGELOG.md` — release section for `X.Y.Z`
+3. `npm run release:sync-manifest` — updates both manifest JSON files
 4. Work-history entry — note new version if shipping
 
 Rebuild installers (`npm run build:*`) only when cutting a **distribution** release, not for every dev commit.
 
-## Release checklist (human or agent)
+## Release checklist (human or `/release` agent)
 
-1. Bump `package.json` per table above
-2. Update release manifest JSON
-3. `npm run test && npm run lint && npm run typecheck`
-4. `npm run build:win|mac|linux` on target OS (or CI tag `v*.*.*`)
-5. GitHub Release tag `v<version>` + upload artifacts
-6. Push manifest to `main` (raw URL in `.env.production`)
+1. `npm run release:preflight`
+2. Bump `package.json` per SemVer table
+3. `npm run release:sync-manifest`
+4. Commit on `main` → `git tag v<version>` → push `main` + tag
+5. CI `release.yml` publishes GitHub Release assets (no electron-builder publish)
 
-Guide: `docs/softphone/GitHub-Releases-Update-Guide.md`, contract: `docs/softphone/Manual-Update-Manifest.md`.
+Playbook: `docs/softphone/RELEASE-PLAYBOOK.md`. Guide: `GitHub-Releases-Update-Guide.md`. Contract: `Manual-Update-Manifest.md`.

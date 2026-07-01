@@ -2,6 +2,8 @@
 
 - Purpose: single entry point for Cursor agents working on this repo.
 - **Developer guide (RU):** `docs/softphone/Cursor-Agents-Guide.md`
+- **Release / CI (RU):** `docs/softphone/Developer-Release-CI-Guide.md`
+- **User guide (RU):** `docs/softphone/User-Guide-RU.md`
 - Live snapshot: `docs/softphone/STATUS.md`
 - Task queue: `docs/softphone/TASK-QUEUE.md`
 
@@ -16,6 +18,7 @@
 | `/logic` | Domain / Use Cases |
 | `/adapter` | RAT real adapters |
 | `/preflight` | test + lint + catalog check |
+| `/release` | Release cut (SemVer, CHANGELOG, tag, CI) |
 | `/registry` | Feature Registry path check |
 | `/arch-review` | Architecture review (no code) |
 | `/review` | WU gate reviewer |
@@ -29,8 +32,9 @@
 | `/ui` | `.cursor/skills/ui-implementation-agent/SKILL.md` |
 | `/logic` | `.cursor/skills/domain-implementation-agent/SKILL.md` |
 | `/adapter` | `docs/softphone/real-integration/MASTER-AGENT-PROMPT.md` |
+| `/release` | `.cursor/skills/release-agent/SKILL.md` |
 
-All implementation agents run **scope-intake** first.
+All implementation agents run **scope-intake** first. `/release` runs **release cut** only (not scope-intake).
 
 Response format: `.cursor/skills/_shared/response-contract.md`
 
@@ -73,10 +77,11 @@ Reviewers do not write production code or work-history.
 | `icons.mdc` | renderer icons |
 | `reviewer-agent.mdc` | `/review` |
 | `real-integration-agent.mdc` | `/rat-review` |
+| `release-agent.mdc` | `/release` |
 
 ## Skills index
 
-`scope-intake`, `ui-implementation-agent`, `domain-implementation-agent`, `holistic-reviewer`, `feature-slice-design`, `implementation-phase-planning`, `softphone-architecture-review`, `telephony-flow-review`, `integration-contract-review`, `legacy-feature-migration`, `ux-ui-flow-design`, `softphone-reviewer`, `real-integration-agent`, `icons`
+`scope-intake`, `ui-implementation-agent`, `domain-implementation-agent`, `holistic-reviewer`, `feature-slice-design`, `implementation-phase-planning`, `softphone-architecture-review`, `telephony-flow-review`, `integration-contract-review`, `legacy-feature-migration`, `ux-ui-flow-design`, `softphone-reviewer`, `real-integration-agent`, `release-agent`, `icons`
 
 ## User Cursor settings
 

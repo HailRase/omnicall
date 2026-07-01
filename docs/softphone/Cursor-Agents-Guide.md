@@ -1,6 +1,7 @@
 # Руководство: агенты и команды Cursor
 
-> Краткая карта для разработчика. Живой статус: [`STATUS.md`](STATUS.md). Точка входа: [`AGENTS.md`](../../AGENTS.md).
+> Краткая карта для разработчика. Живой статус: [`STATUS.md`](STATUS.md). Точка входа: [`AGENTS.md`](../../AGENTS.md).  
+> **Версии, релизы, CI/CD:** [`Developer-Release-CI-Guide.md`](Developer-Release-CI-Guide.md)
 
 ## Быстрый старт
 
@@ -10,6 +11,7 @@
 /ui         → UX/UI реализация
 /logic      → бизнес-логика (Domain, Use Cases)
 /preflight  → test + lint перед ревью
+/release    → release cut (SemVer, tag, manifest)
 /review     → gate work unit
 /audit      → полный аудит перед merge
 ```
@@ -25,6 +27,7 @@
 | `/logic` | Domain implementation | **да** | Use Case, Domain, порты |
 | `/adapter` | RAT implementation | **да** | JsSIP, real adapters |
 | `/preflight` | проверка | запускает CI-скрипты | Перед `/review` |
+| `/release` | release agent | manifest, CHANGELOG, tag | Выпуск версии на GitHub |
 | `/registry` | проверка | нет | Registry vs код |
 | `/review` | WU reviewer | нет | «Проверяй» после задачи |
 | `/rat-review` | RAT reviewer | нет | После RAT step |
@@ -56,6 +59,14 @@ Skill: `.cursor/skills/domain-implementation-agent/SKILL.md`
 Отдельный трек RAT. OCP и transfer — только по явному resume.
 
 Skill: `real-integration/MASTER-AGENT-PROMPT.md`
+
+### `/release` — distribution release
+
+1. **Не** реализует фичи; только release cut (F-019, F-020).
+2. **Делает:** preflight → CHANGELOG → SemVer → `release:sync-manifest` → commit → tag → verify CI.
+3. **Не делает:** bump версии в `/ui`/`/logic`; electron-updater; auto-install.
+
+Skill: `.cursor/skills/release-agent/SKILL.md` · Playbook: `RELEASE-PLAYBOOK.md`
 
 ## Reviewer-ы
 
@@ -102,6 +113,7 @@ Skill: `real-integration/MASTER-AGENT-PROMPT.md`
 | `STATUS.md` | при закрытии WU / смене tests |
 | `TASK-QUEUE.md` | claim / done |
 | `work-history/` | implementation-агент в конце |
+| `CHANGELOG.md`, manifest, tag | `/release` |
 
 Reviewer **проверяет**; `/audit` — глубже.
 
@@ -110,6 +122,7 @@ Reviewer **проверяет**; `/audit` — глубже.
 | Чат | Команды |
 |-----|---------|
 | Реализация | `/ui`, `/logic`, `/adapter` |
+| Релиз | `/release` |
 | Ревью | `/review`, `/rat-review`, `/audit` |
 
 Не смешивать — reviewer не должен видеть «черновой» контекст реализации.
@@ -137,6 +150,7 @@ Stop gate. Только <X>. Out of scope: <Y>.
 | RAT | `/rat-review` |
 | Следующая задача | `/scope` |
 | Проверка CI | `/preflight` |
+| Выпуск версии | `/release` |
 
 ## Файлы агентов
 

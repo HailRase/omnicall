@@ -50,6 +50,18 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 - OCP plugin — `OCP-PLUGIN-BACKLOG.md` (resume only when user cites it)
 - Real transfer — `real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md`
 
+## Release train
+
+| Field | Value |
+| --- | --- |
+| Shipped | **0.0.2** (`v0.0.2`, 2026-07-01) |
+| Next cut | On demand via `/release` — see `RELEASE-PLAYBOOK.md` |
+| Manifest | `docs/softphone/release/update-manifest.json` on `main` |
+| CI | `ci.yml` (push/PR) · `release.yml` (tag → GitHub Release assets) |
+| CHANGELOG | `CHANGELOG.md` |
+
+**Release cut:** `/release` agent or human — preflight → CHANGELOG → bump → `npm run release:sync-manifest` → commit → tag `vX.Y.Z` → push. Implementation agents (`/ui`, `/logic`) do **not** bump version.
+
 ## Archived handoffs
 
 Completed phases P02–P08: `handoffs/archive/P0N/`

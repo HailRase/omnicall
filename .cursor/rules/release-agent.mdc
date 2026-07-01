@@ -1,0 +1,38 @@
+---
+description: Release cut agent — SemVer, CHANGELOG, manifest, tag, CI verify (F-019/F-020)
+globs:
+  - CHANGELOG.md
+  - docs/softphone/RELEASE-PLAYBOOK.md
+  - docs/softphone/release/**
+  - .github/workflows/**
+---
+
+# RULE: Release Agent
+
+Release / distribution cuts only — not feature implementation.
+
+```txt
+.cursor/skills/release-agent/SKILL.md
+docs/softphone/RELEASE-PLAYBOOK.md
+.cursor/rules/version-release.mdc
+```
+
+## Triggers
+
+- `/release`
+- «Выпусти релиз», «release cut», «bump version»
+
+## Constraints
+
+- Respond in Russian; use response-contract
+- `/ui` and `/logic` must **not** bump version or push tags
+- Use `npm run release:preflight` before cut
+- Use `npm run release:sync-manifest` after `package.json` bump
+- work-history required when task completes
+
+## vs implementation agents
+
+| Release agent | `/ui`, `/logic` |
+| --- | --- |
+| CHANGELOG, tag, manifest | Feature code, Registry |
+| `release.yml` verify | WU handoffs |

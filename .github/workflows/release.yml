@@ -1,8 +1,8 @@
-name: Build installers
+name: Release
 
-# Triggers on version tags (v1.2.3). Artifacts go to Actions, not GitHub Release.
-# Manual run: Actions → Build installers → Run workflow (branch main).
-# Upload installers to Release manually; see docs/softphone/GitHub-Releases-Update-Guide.md
+# Tag v*.*.* → build all platforms + publish GitHub Release assets.
+# workflow_dispatch → build only (Artifacts), no Release publish.
+# Guide: docs/softphone/RELEASE-PLAYBOOK.md
 
 on:
   push:
@@ -10,8 +10,11 @@ on:
       - "v*.*.*"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
-  release:
+  build:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -47,8 +50,8 @@ jobs:
         run: npm run ${{ matrix.build_script }}
         env:
           EPUBLISH: never
-          GH_TOKEN: ''
-          GITHUB_TOKEN: ''
+          GH_TOKEN: ""
+          GITHUB_TOKEN: ""
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -56,3 +59,31 @@ jobs:
           name: installer-${{ matrix.os }}
           path: ${{ matrix.artifact_glob }}
           if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: installer-*
+          path: release-assets
+          merge-multiple: true
+
+      - name: List release files
+        shell: bash
+        run: find release-assets -type f | sort
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Axatalk ${{ github.ref_name }}
+          files: release-assets/**/*
+          draft: false
+          prerelease: false
+          generate_release_notes: false

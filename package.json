@@ -1,6 +1,6 @@
 {
   "name": "Axatalk",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": true,
   "description": "Softphone Platform",
   "author": "Axata",
@@ -28,7 +28,9 @@
     "build-storybook": "storybook build",
     "ui:catalog": "node scripts/generate-ui-catalog.mjs",
     "ui:catalog:check": "npm run ui:catalog && git diff --exit-code docs/softphone/UI-Component-Catalog.md",
-    "registry:check": "node scripts/check-registry-paths.mjs"
+    "registry:check": "node scripts/check-registry-paths.mjs",
+    "release:sync-manifest": "node scripts/sync-release-manifest.mjs",
+    "release:preflight": "npm run test && npm run lint && npm run typecheck && npm run registry:check"
   },
   "dependencies": {
     "@hailrase/jssip": "^3.10.2",

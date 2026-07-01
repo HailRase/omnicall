@@ -21,13 +21,31 @@ function createFacade(settingsRepository: InMemorySettingsRepository): AccountBo
   });
 }
 
+function createSoftphonePreloadApiMock(
+  overrides: Partial<SoftphonePreloadApi> = {},
+): SoftphonePreloadApi {
+  return {
+    getPlatformVersion: vi.fn().mockResolvedValue({
+      version: "0.0.1",
+      name: "Axatalk",
+      platform: "win32",
+    }),
+    openExternalUrl: vi.fn().mockResolvedValue({ ok: true }),
+    setNativeTheme: vi.fn().mockResolvedValue({ ok: true }),
+    onBeforeClose: vi.fn().mockReturnValue(() => {}),
+    acknowledgeShutdown: vi.fn().mockResolvedValue(undefined),
+    applyShellWindowLayout: vi.fn().mockResolvedValue(undefined),
+    ...overrides,
+  };
+}
+
 describe("useSettingsActions", () => {
   const setNativeTheme = vi
     .fn<SoftphonePreloadApi["setNativeTheme"]>()
     .mockResolvedValue({ ok: true });
 
   beforeEach(() => {
-    window.softphone = { setNativeTheme } as SoftphonePreloadApi;
+    window.softphone = createSoftphonePreloadApiMock({ setNativeTheme });
   });
 
   afterEach(() => {

@@ -37,12 +37,24 @@ Manifest лежит в репозитории по фиксированному 
 
 ## Создание GitHub Release
 
+### Автоматически (рекомендуется)
+
+После **release cut** по `RELEASE-PLAYBOOK.md`:
+
+1. Manifest и `package.json` уже в `main`
+2. `git tag vX.Y.Z` + `git push origin vX.Y.Z`
+3. Workflow **Release** (`.github/workflows/release.yml`) собирает win/mac/linux и публикует assets в GitHub Release (`softprops/action-gh-release`)
+
+Ручная загрузка бинарников **не нужна**, если CI зелёный.
+
+### Вручную (legacy / hotfix)
+
 1. Откройте https://github.com/HailRase/softphone-electron/releases
 2. **Draft a new release**
-3. **Tag:** `v0.0.1` (префикс `v` + semver из `package.json`, например `0.0.1` → тег `v0.0.1`)
-4. **Title:** `Axatalk 0.0.1` (не имя файла `.exe`)
-5. Описание — changelog
-6. **Attach binaries** из `dist/win`, `dist/mac`, `dist/linux`
+3. **Tag:** `v0.0.1` (префикс `v` + semver из `package.json`)
+4. **Title:** `Axatalk 0.0.1`
+5. Описание — из `CHANGELOG.md`
+6. **Attach binaries** из `dist/win`, `dist/mac`, `dist/linux` или артефактов CI
 7. **Publish release**
 
 ### Ссылки для manifest
@@ -56,36 +68,38 @@ Manifest лежит в репозитории по фиксированному 
 
 ## Каждый следующий релиз
 
-1. Поднять `version` в `package.json`
-2. `npm run build:win|mac|linux`
-3. Создать release с тегом `v<version>`, загрузить новые файлы
-4. Обновить `docs/softphone/release/update-manifest.json`:
-   - `latestVersion`
-   - `releaseDate`, `releaseNotesUrl`
-   - URL в `platforms` (имена файлов содержат новую версию)
-5. Commit + push в **`main`**
+См. **`RELEASE-PLAYBOOK.md`** и команда `/release`. Кратко:
+
+1. `npm run release:preflight`
+2. `CHANGELOG.md` + bump `version` в `package.json`
+3. `npm run release:sync-manifest` (оба JSON manifest)
+4. Commit `chore(release): cut vX.Y.Z` → push `main`
+5. `git tag vX.Y.Z` → `git push origin vX.Y.Z` → CI публикует Release assets
 6. Пересборка клиента **не нужна**, если `VITE_UPDATE_MANIFEST_URL` не менялся
 
 ## Сборка через GitHub Actions
 
-Workflow: `.github/workflows/release.yml` (**Build installers**).
+| Workflow | Файл | Триггер | Результат |
+| --- | --- | --- | --- |
+| **CI** | `ci.yml` | push/PR `main` | test, lint, typecheck, registry |
+| **Release** | `release.yml` | push тега `v*.*.*` | build matrix + **GitHub Release assets** |
+| **Release** | `release.yml` | `workflow_dispatch` | build only → **Artifacts** (без Release) |
 
-| Триггер | Когда |
-| --- | --- |
-| Push тега `v*.*.*` | Автосборка win + mac + linux на matrix |
-| **Run workflow** (`workflow_dispatch`) | Ручной запуск без нового тега |
+### Tag push (релиз)
 
-Артефакты попадают в **Actions → run → Artifacts** (`installer-windows-latest`, `installer-macos-latest`, `installer-ubuntu-latest`), **не** в GitHub Release автоматически.
+Push тега `vX.Y.Z` после manifest в `main` → три job сборки → job **publish** загружает `.exe`, `.dmg`, `.AppImage` в Release.
+
+### Ручной прогон без релиза
+
+1. [Actions → Release](https://github.com/HailRase/softphone-electron/actions/workflows/release.yml)
+2. **Run workflow** → ветка `main` → **Run workflow**
+3. Скачать **Artifacts** (`installer-*`)
+
+Для дополнения уже существующего Release без нового тега: скачать артефакты и **Edit release → Attach binaries** (см. `platforms` в manifest).
 
 ### Mac / Linux без локальной сборки
 
-1. Откройте [Actions → Build installers](https://github.com/HailRase/softphone-electron/actions/workflows/release.yml)
-2. **Run workflow** → ветка `main` → **Run workflow**
-3. Дождитесь зелёного статуса всех трёх jobs (**важно:** после push нажмите **Run workflow**, не **Re-run** старого run — re-run берёт старый commit)
-4. Скачайте артефакты, распакуйте, загрузите `.dmg` / `.AppImage` в существующий Release `v0.0.1` (Edit release → Attach binaries)
-5. Добавьте соответствующие URL в `platforms` manifest и push в `main`
-
-Локально: `build:mac` только на macOS; `build:linux` на Windows часто падает — предпочтительнее CI на `ubuntu-latest`.
+Используйте **Run workflow** или push тега. Локально: `build:mac` только на macOS; `build:linux` на Windows — через CI.
 
 ## Проверка manifest
 
@@ -103,11 +117,11 @@ curl -s "https://raw.githubusercontent.com/HailRase/softphone-electron/main/docs
 | 404 на raw URL | Файла нет в `main` | Merge и push manifest |
 | Обновление не видно | `latestVersion` ≤ установленной | Поднять версию в manifest |
 | 404 на скачивание | Неверный тег, имя файла или `platforms` без asset | Сверить Release; убрать лишние ключи из `platforms` |
-| CI Build installers failed | Падают тесты в workflow | `npm run test` локально; исправить и re-run workflow |
+| CI Build installers failed | Падают тесты в workflow | `npm run release:preflight` локально; исправить; новый Run workflow |
 | `GH_TOKEN is not set` на CI | `GITHUB_TOKEN` в Actions включает implicit publish | `scripts/run-electron-builder.mjs` + пустые токены на шаге Build; **новый** Run workflow |
 
 ## Приватный репозиторий
 
 `raw.githubusercontent.com` и `releases/download` для private repo требуют авторизацию. Для production лучше публичный repo для manifest или отдельный HTTPS/CDN.
 
-См. также: `Manual-Update-Manifest.md`, контракт полей JSON.
+См. также: `RELEASE-PLAYBOOK.md`, `Manual-Update-Manifest.md`, контракт полей JSON.

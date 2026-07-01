@@ -2,6 +2,8 @@
 
 Инструкция для конечных пользователей и для тех, кто собирает установщики для распространения.
 
+**Ежедневная работа в приложении:** [`docs/softphone/User-Guide-RU.md`](docs/softphone/User-Guide-RU.md)
+
 ---
 
 ## 1. Что нужно пользователю
@@ -17,16 +19,20 @@
 
 ## 2. Скачивание установщика
 
-Готовые файлы лежат в `dist/win`, `dist/mac` или `dist/linux` после сборки (или в артефактах GitHub Actions / релиза).
+**Релизы для пользователей:** https://github.com/HailRase/softphone-electron/releases/latest
+
+Готовые файлы также лежат в `dist/win`, `dist/mac` или `dist/linux` после локальной сборки (или в артефактах GitHub Actions).
 
 | Платформа | Файл | Формат |
 | --- | --- | --- |
 | Windows | `Axatalk-<версия>-win-x64.exe` | NSIS-установщик |
 | macOS | `Axatalk-<версия>-mac-arm64.dmg` или `-mac-x64.dmg` | Образ диска |
-| Linux | `Axatalk-<версия>-linux-x64.AppImage` | Переносимый AppImage |
-| Linux (Debian/Ubuntu) | `Axatalk-<версия>-linux-x64.deb` | Пакет `.deb` |
+| Linux | `Axatalk-<версия>-linux-x86_64.AppImage` (CI) | **Рекомендуется** — без App Center |
+| Linux (Debian/Ubuntu) | `Axatalk-<версия>-linux-amd64.deb` | Для IT; ставить через **терминал** или GDebi |
 
-Скачайте файл под свою ОС и разрядность (обычно `x64` / `amd64`).
+Скачайте файл под свою ОС и разрядность (обычно `x64` / `amd64` / `x86_64`).
+
+**Важно для `.deb` на Ubuntu:** двойной клик открывает **App Center** (карточку пакета). Окно может **само закрыться через несколько секунд** — это не Axatalk. Устанавливайте командой `sudo apt install ./файл.deb` или через GDebi.
 
 ---
 
@@ -56,13 +62,24 @@ chmod +x Axatalk-*-linux-x64.AppImage
 
 ### Linux (.deb)
 
+**Не полагайтесь на двойной клик.** На Ubuntu 24.04 окно **App Center** часто показывает карточку пакета и **само закрывается через несколько секунд** — до кнопки «Установить». Это сбой GUI-установщика ОС, не Axatalk.
+
+**Рекомендуемый способ** — терминал (подтянет зависимости):
+
 ```bash
-sudo dpkg -i Axatalk-*-linux-x64.deb
-# при ошибках зависимостей:
-sudo apt-get install -f
+cd ~/Downloads
+sudo apt install ./Axatalk-*-linux-amd64.deb
 ```
 
-Запуск из меню приложений (**Axatalk**).
+Альтернатива: **GDebi** (`sudo apt install gdebi`, затем `gdebi ./Axatalk-….deb`).
+
+Если App Center нужен: **один** клик по файлу (не два подряд), при необходимости `sudo snap refresh snap-store`.
+
+После установки запускайте **Axatalk** из меню приложений.
+
+Если App Center закрывается — используйте **AppImage** из того же Release (см. выше) или команды выше.
+
+Если **само приложение** закрывается после запуска из меню — см. [`Developer-Release-CI-Guide.md`](docs/softphone/Developer-Release-CI-Guide.md) (sandbox / AppArmor).
 
 ---
 
@@ -143,15 +160,20 @@ ls dist/win/
 
 Production-сборка включает `VITE_ADAPTER_MODE=real` (файл `.env.production`) — в установщик попадают **реальные** SIP-адаптеры, не mock.
 
-### Релиз через GitHub
+### Релиз через GitHub (автоматически)
 
-Подробно: `docs/softphone/GitHub-Releases-Update-Guide.md`.
+Подробно: `docs/softphone/Developer-Release-CI-Guide.md`, `docs/softphone/RELEASE-PLAYBOOK.md`.
 
-1. Соберите установщики (`npm run build:win|mac|linux`).
-2. Создайте GitHub Release с тегом `v<version>` (например `v0.0.2`).
-3. Загрузите файлы из `dist/win`, `dist/mac`, `dist/linux`.
-4. Обновите `docs/softphone/release/update-manifest.json` и запушьте в **`main`**.
-5. Либо запушьте тег — workflow **Build installers** (если настроен) соберёт артефакты на CI.
+1. `npm run release:preflight`
+2. CHANGELOG + bump `version` в `package.json`
+3. `npm run release:sync-manifest`
+4. Commit `chore(release): cut vX.Y.Z` → push **`main`**
+5. `git tag vX.Y.Z` → `git push origin vX.Y.Z`
+6. CI workflow **Release** соберёт win/mac/linux и опубликует assets в GitHub Release
+
+Manifest в `main` должен быть **до** push тега — тогда in-app проверка обновлений сразу видит новую версию.
+
+Ручная загрузка бинарников не нужна, если CI зелёный.
 
 ### Иконка приложения
 
@@ -181,7 +203,9 @@ Production-сборка включает `VITE_ADAPTER_MODE=real` (файл `.en
 
 В приложении: **Настройки → Общее → О программе → Проверить обновления**.
 
-Работает после публикации manifest на GitHub и сборки клиента с `VITE_UPDATE_MANIFEST_URL` в `.env.production`.
+- Приложение **не ставит** обновление само — открывает страницу скачивания.
+- Работает после публикации manifest на `main` и production-сборки с `VITE_UPDATE_MANIFEST_URL`.
+- Подробнее: [`User-Guide-RU.md`](docs/softphone/User-Guide-RU.md), раздел 9.
 
 ## 11. Версия и поддержка
 
