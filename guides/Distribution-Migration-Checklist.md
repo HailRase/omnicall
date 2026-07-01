@@ -156,5 +156,6 @@ CI опубликует на `axatalk-releases` автоматически.
 | Publish job failed: secret | Добавить `AXATALK_RELEASES_TOKEN` |
 | 404 на manifest | `push-distribution-repo` / migrate workflow |
 | 404 на installer | Имена в manifest vs файлы в Release |
-| Migrate 401 Bad credentials | `AXATALK_RELEASES_TOKEN` использовался для **скачивания** source | Обновить workflow: `SOURCE_GITHUB_TOKEN=github.token`, перезапустить |
+| Migrate 401 Bad credentials (download) | `AXATALK_RELEASES_TOKEN` использовался для **скачивания** source | `SOURCE_GITHUB_TOKEN=github.token`, перезапустить |
+| Migrate 401 on axatalk-releases | Неверный/просроченный PAT или нет **Contents read+write** | Пересоздать fine-grained PAT на `axatalk-releases`; обновить secret; шаг **Verify distribution token** в workflow |
 | Старые клиенты не видят обновления | Release cut 0.0.3+ с новым `.env.production` |

@@ -10,13 +10,7 @@
  */
 
 import { execSync, spawnSync } from 'node:child_process';
-import {
-  copyFileSync,
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  rmSync,
-} from 'node:fs';
+import { copyFileSync, mkdirSync, readdirSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -25,19 +19,32 @@ import {
   DISTRIBUTION_REPO,
   SOURCE_REPO,
 } from './distribution-config.mjs';
+import {
+  createRelease,
+  getReleaseByTag,
+  uploadReleaseAsset,
+  verifyDistributionToken,
+} from './github-distribution-api.mjs';
 
 const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 
-const sourceToken = process.env.SOURCE_GITHUB_TOKEN ?? process.env.GITHUB_TOKEN;
-const distributionToken =
-  process.env.DISTRIBUTION_GITHUB_TOKEN ?? process.env.AXATALK_RELEASES_TOKEN;
+function readToken(name, fallbackName) {
+  const raw = process.env[name] ?? process.env[fallbackName];
+  if (typeof raw !== 'string') {
+    return '';
+  }
+  return raw.trim();
+}
 
-if (typeof sourceToken !== 'string' || sourceToken.length === 0) {
+const sourceToken = readToken('SOURCE_GITHUB_TOKEN', 'GITHUB_TOKEN');
+const distributionToken = readToken('DISTRIBUTION_GITHUB_TOKEN', 'AXATALK_RELEASES_TOKEN');
+
+if (sourceToken.length === 0) {
   console.error('SOURCE_GITHUB_TOKEN is required (read access to softphone-electron).');
   process.exit(1);
 }
 
-if (typeof distributionToken !== 'string' || distributionToken.length === 0) {
+if (distributionToken.length === 0) {
   console.error('DISTRIBUTION_GITHUB_TOKEN is required (write access to axatalk-releases).');
   process.exit(1);
 }
@@ -50,8 +57,10 @@ if (tags.length === 0) {
   process.exit(1);
 }
 
-function gh(args, token) {
-  const env = { ...process.env, GH_TOKEN: token, GITHUB_TOKEN: token };
+function ghDownload(args, token) {
+  const env = { ...process.env };
+  delete env.GITHUB_TOKEN;
+  env.GH_TOKEN = token;
   const result = spawnSync('gh', args, { env, encoding: 'utf8', shell: process.platform === 'win32' });
   if (result.status !== 0) {
     console.error(result.stderr || result.stdout);
@@ -60,81 +69,83 @@ function gh(args, token) {
   return result.stdout.trim();
 }
 
-function ghOptional(args, token) {
-  const env = { ...process.env, GH_TOKEN: token, GITHUB_TOKEN: token };
-  return spawnSync('gh', args, { env, encoding: 'utf8', shell: process.platform === 'win32' });
-}
-
 function isInstallerFile(name) {
   return DISTRIBUTION_INSTALLER_EXTENSIONS.some((ext) => name.endsWith(ext));
 }
 
-for (const tag of tags) {
-  console.log(`\n=== Migrating ${tag} ===`);
+async function main() {
+  console.log(`Verifying distribution token for ${DISTRIBUTION_REPO}...`);
+  await verifyDistributionToken(distributionToken, DISTRIBUTION_REPO);
 
-  const existing = ghOptional(
-    ['release', 'view', tag, '-R', DISTRIBUTION_REPO],
-    distributionToken,
-  );
-  if (existing.status === 0) {
-    console.log(`Skip ${tag}: already exists on ${DISTRIBUTION_REPO}`);
-    continue;
-  }
+  for (const tag of tags) {
+    console.log(`\n=== Migrating ${tag} ===`);
 
-  const workDir = join(tmpdir(), `axatalk-migrate-${tag}`);
-  rmSync(workDir, { recursive: true, force: true });
-  mkdirSync(workDir, { recursive: true });
+    const existing = await getReleaseByTag(distributionToken, DISTRIBUTION_REPO, tag);
+    if (existing !== null) {
+      console.log(`Skip ${tag}: already exists on ${DISTRIBUTION_REPO}`);
+      continue;
+    }
 
-  console.log(`Downloading assets from ${SOURCE_REPO}...`);
-  gh(['release', 'download', tag, '-R', SOURCE_REPO, '-D', workDir], sourceToken);
+    const workDir = join(tmpdir(), `axatalk-migrate-${tag}`);
+    rmSync(workDir, { recursive: true, force: true });
+    mkdirSync(workDir, { recursive: true });
 
-  const installers = readdirSync(workDir).filter(isInstallerFile);
-  if (installers.length === 0) {
-    console.error(`No installer files in ${SOURCE_REPO} release ${tag}`);
-    process.exit(1);
-  }
+    console.log(`Downloading assets from ${SOURCE_REPO}...`);
+    ghDownload(['release', 'download', tag, '-R', SOURCE_REPO, '-D', workDir], sourceToken);
 
-  const payloadDir = join(workDir, 'payload');
-  mkdirSync(payloadDir, { recursive: true });
-  for (const file of installers) {
-    copyFileSync(join(workDir, file), join(payloadDir, file));
-    console.log(`  + ${file}`);
-  }
+    const installers = readdirSync(workDir).filter(isInstallerFile);
+    if (installers.length === 0) {
+      console.error(`No installer files in ${SOURCE_REPO} release ${tag}`);
+      process.exit(1);
+    }
 
-  const title = `Axatalk ${tag}`;
-  const assetPaths = installers.map((f) => join(payloadDir, f));
+    const payloadDir = join(workDir, 'payload');
+    mkdirSync(payloadDir, { recursive: true });
+    for (const file of installers) {
+      copyFileSync(join(workDir, file), join(payloadDir, file));
+      console.log(`  + ${file}`);
+    }
 
-  gh(
-    [
-      'release',
-      'create',
+    const title = `Axatalk ${tag}`;
+    const releaseId = await createRelease(distributionToken, DISTRIBUTION_REPO, {
       tag,
-      ...assetPaths,
-      '-R',
-      DISTRIBUTION_REPO,
-      '--title',
       title,
-      '--notes',
-      `Migrated from ${SOURCE_REPO}. Installers only.`,
-    ],
-    distributionToken,
-  );
+      notes: `Migrated from ${SOURCE_REPO}. Installers only.`,
+    });
 
-  console.log(`Created ${DISTRIBUTION_REPO} release ${tag}`);
-  rmSync(workDir, { recursive: true, force: true });
+    for (const file of installers) {
+      await uploadReleaseAsset(
+        distributionToken,
+        DISTRIBUTION_REPO,
+        releaseId,
+        join(payloadDir, file),
+        file,
+      );
+      console.log(`  uploaded ${file}`);
+    }
+
+    console.log(`Created ${DISTRIBUTION_REPO} release ${tag}`);
+    rmSync(workDir, { recursive: true, force: true });
+  }
+
+  console.log('\nSyncing manifest and README to distribution repo...');
+  execSync('node scripts/sync-release-manifest.mjs', { cwd: repoRoot, stdio: 'inherit' });
+  execSync('node scripts/push-distribution-repo.mjs', {
+    cwd: repoRoot,
+    stdio: 'inherit',
+    env: {
+      ...process.env,
+      GITHUB_TOKEN: distributionToken,
+      DISTRIBUTION_GITHUB_TOKEN: distributionToken,
+      DIST_COMMIT_MSG: `chore: manifest after migrating ${tags.join(', ')}`,
+    },
+  });
+
+  console.log('\nDone. Verify:', `https://github.com/${DISTRIBUTION_REPO}/releases`);
 }
 
-console.log('\nSyncing manifest and README to distribution repo...');
-execSync('node scripts/sync-release-manifest.mjs', { cwd: repoRoot, stdio: 'inherit' });
-execSync('node scripts/push-distribution-repo.mjs', {
-  cwd: repoRoot,
-  stdio: 'inherit',
-  env: {
-    ...process.env,
-    GITHUB_TOKEN: distributionToken,
-    DISTRIBUTION_GITHUB_TOKEN: distributionToken,
-    DIST_COMMIT_MSG: `chore: manifest after migrating ${tags.join(', ')}`,
-  },
+main().catch((error) => {
+  const message = error instanceof Error ? error.message : String(error);
+  console.error(message);
+  process.exit(1);
 });
-
-console.log('\nDone. Verify:', `https://github.com/${DISTRIBUTION_REPO}/releases`);
