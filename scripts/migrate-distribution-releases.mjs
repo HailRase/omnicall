@@ -64,7 +64,18 @@ function ghDownload(args, token) {
   env.GH_TOKEN = token;
   const result = spawnSync('gh', args, { env, encoding: 'utf8', shell: process.platform === 'win32' });
   if (result.status !== 0) {
-    console.error(result.stderr || result.stdout);
+    const output = `${result.stderr ?? ''}${result.stdout ?? ''}`;
+    if (output.includes('release not found')) {
+      console.error(
+        `No GitHub Release for ${args[2] ?? 'tag'} on ${SOURCE_REPO} (tag alone is not enough).`,
+      );
+      console.error(
+        'Fix: re-push tag to trigger Release workflow, or publish installers on source first.',
+      );
+      console.error(`  git push origin :refs/tags/${args[2]} && git push origin ${args[2]}`);
+    } else {
+      console.error(output);
+    }
     process.exit(result.status ?? 1);
   }
   return result.stdout.trim();
