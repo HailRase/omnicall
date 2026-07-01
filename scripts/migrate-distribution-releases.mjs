@@ -102,20 +102,20 @@ for (const tag of tags) {
   }
 
   const title = `Axatalk ${tag}`;
-  const fileArgs = installers.flatMap((f) => ['--attach', join(payloadDir, f)]);
+  const assetPaths = installers.map((f) => join(payloadDir, f));
 
   gh(
     [
       'release',
       'create',
       tag,
+      ...assetPaths,
       '-R',
       DISTRIBUTION_REPO,
       '--title',
       title,
       '--notes',
       `Migrated from ${SOURCE_REPO}. Installers only.`,
-      ...fileArgs,
     ],
     distributionToken,
   );
