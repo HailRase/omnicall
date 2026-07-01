@@ -13,6 +13,13 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ### Fixed
 
+## [0.0.3] - 2026-07-01
+
+### Changed
+
+- Публикация релизов на публичный `axatalk-releases` (тест пайплайна дистрибуции)
+- Фильтр assets: только установщики `Axatalk-{version}-*`, без `win-unpacked`
+
 ## [0.0.2] - 2026-07-01
 
 ### Added
