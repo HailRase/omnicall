@@ -15,7 +15,6 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import {
-  DISTRIBUTION_INSTALLER_EXTENSIONS,
   DISTRIBUTION_REPO,
   SOURCE_REPO,
   isDistributionInstallerFile,
