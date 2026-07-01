@@ -12,8 +12,6 @@ on:
 
 jobs:
   release:
-    env:
-      EP_PUBLISH: never
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -47,6 +45,10 @@ jobs:
 
       - name: Build installer
         run: npm run ${{ matrix.build_script }}
+        env:
+          EPUBLISH: never
+          GH_TOKEN: ''
+          GITHUB_TOKEN: ''
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

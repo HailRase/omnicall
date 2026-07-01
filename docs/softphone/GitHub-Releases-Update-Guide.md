@@ -81,7 +81,7 @@ Workflow: `.github/workflows/release.yml` (**Build installers**).
 
 1. Откройте [Actions → Build installers](https://github.com/HailRase/softphone-electron/actions/workflows/release.yml)
 2. **Run workflow** → ветка `main` → **Run workflow**
-3. Дождитесь зелёного статуса всех трёх jobs
+3. Дождитесь зелёного статуса всех трёх jobs (**важно:** после push нажмите **Run workflow**, не **Re-run** старого run — re-run берёт старый commit)
 4. Скачайте артефакты, распакуйте, загрузите `.dmg` / `.AppImage` в существующий Release `v0.0.1` (Edit release → Attach binaries)
 5. Добавьте соответствующие URL в `platforms` manifest и push в `main`
 
@@ -104,7 +104,7 @@ curl -s "https://raw.githubusercontent.com/HailRase/softphone-electron/main/docs
 | Обновление не видно | `latestVersion` ≤ установленной | Поднять версию в manifest |
 | 404 на скачивание | Неверный тег, имя файла или `platforms` без asset | Сверить Release; убрать лишние ключи из `platforms` |
 | CI Build installers failed | Падают тесты в workflow | `npm run test` локально; исправить и re-run workflow |
-| `GH_TOKEN is not set` на CI | `GITHUB_TOKEN` в Actions + implicit publish | Скрипты с `--publish never`; Release — вручную |
+| `GH_TOKEN is not set` на CI | `GITHUB_TOKEN` в Actions включает implicit publish | `scripts/run-electron-builder.mjs` + пустые токены на шаге Build; **новый** Run workflow |
 
 ## Приватный репозиторий
 

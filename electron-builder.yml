@@ -17,8 +17,9 @@ files:
   - "!{docs/**,work-history/**,.cursor/**,.storybook/**,scripts/**}"
 asar: true
 npmRebuild: false
-# Manual GitHub Release uploads only. GITHUB_TOKEN on Actions triggers implicit publish unless CLI uses --publish never.
+# F-020 manual manifest — no electron-updater publish on CI (see scripts/run-electron-builder.mjs).
 publish: null
+generateUpdatesFilesForAllChannels: false
 win:
   executableName: Axatalk
   icon: icon.ico

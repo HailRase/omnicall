@@ -60,21 +60,15 @@ function printWindowsSymlinkHelp() {
 }
 
 function runElectronBuilder(extraArgs = []) {
-  const args = [
-    '--linux',
-    '--publish',
-    'never',
-    '--config',
-    'electron-builder.yml',
-    '-c.directories.output=dist/linux',
-    ...extraArgs,
-  ];
-
-  const result = spawnSync('npx', ['electron-builder', ...args], {
-    cwd: repoRoot,
-    stdio: 'inherit',
-    shell: process.platform === 'win32',
-  });
+  const result = spawnSync(
+    'node',
+    ['scripts/run-electron-builder.mjs', '--linux', '-c.directories.output=dist/linux', ...extraArgs],
+    {
+      cwd: repoRoot,
+      stdio: 'inherit',
+      shell: process.platform === 'win32',
+    },
+  );
 
   process.exit(result.status ?? 1);
 }
