@@ -14,7 +14,7 @@
 | 2 | Manifest raw URL → `softphone-electron/...` | → `axatalk-releases/main/update-manifest.json` | ☑ `.env.production` |
 | 3 | `axatalk-releases` пустой | README + manifest + Releases | ☑ v0.0.1; v0.0.2 — CI по тегу (re-push) |
 | 4 | `softphone-electron` публичный | **Private** (после v0.0.2 на axatalk-releases) | ☐ вручную Settings |
-| 5 | Клиенты 0.0.1/0.0.2 — старый manifest URL | **release cut 0.0.3** с новым URL | ☐ после шага 4 |
+| 5 | Клиенты 0.0.1 — старый manifest URL | v0.0.2 с `main` уже с axatalk-releases URL; 0.0.3 — опц. для 0.0.1 | ☐ после шага 4 |
 
 ---
 
