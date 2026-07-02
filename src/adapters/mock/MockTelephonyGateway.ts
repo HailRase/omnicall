@@ -95,6 +95,8 @@ export class MockTelephonyGateway implements TelephonyGateway {
     reason?: string;
   }> = [];
   private readonly unregisterInvocations: CorrelationId[] = [];
+  private readonly reconnectTransportInvocations: CorrelationId[] = [];
+  private readonly reregisterInvocations: CorrelationId[] = [];
   private incomingCallHandler:
     | ((notification: TelephonyIncomingCallNotification) => Promise<void>)
     | null = null;
@@ -282,7 +284,8 @@ export class MockTelephonyGateway implements TelephonyGateway {
   }
 
   async reconnectTransport(correlationId: CorrelationId): Promise<Result<void, PlatformError>> {
-    void correlationId;
+    this.reconnectTransportInvocations.push(correlationId);
+
     if (this.delayMs > 0) {
       await sleep(this.delayMs);
     }
@@ -293,13 +296,24 @@ export class MockTelephonyGateway implements TelephonyGateway {
       );
     }
 
+    this.registered = false;
+    this.transportConnected = false;
+
+    if (this.transportConnectingHandler !== null) {
+      await this.transportConnectingHandler({ correlationId });
+    }
+
     this.transportConnected = true;
-    this.registered = true;
+    if (this.transportConnectedHandler !== null) {
+      await this.transportConnectedHandler({ correlationId });
+    }
+
     return ok(undefined);
   }
 
   async reregister(correlationId: CorrelationId): Promise<Result<void, PlatformError>> {
-    void correlationId;
+    this.reregisterInvocations.push(correlationId);
+
     if (this.delayMs > 0) {
       await sleep(this.delayMs);
     }
@@ -309,6 +323,8 @@ export class MockTelephonyGateway implements TelephonyGateway {
         createPlatformError("operation_failed", "SIP reregister failed: transport not connected"),
       );
     }
+
+    this.registered = false;
 
     if (this.registrationScenario === "failure") {
       return err(
@@ -332,6 +348,14 @@ export class MockTelephonyGateway implements TelephonyGateway {
 
   getUnregisterInvocations(): ReadonlyArray<CorrelationId> {
     return this.unregisterInvocations;
+  }
+
+  getReconnectTransportInvocations(): ReadonlyArray<CorrelationId> {
+    return this.reconnectTransportInvocations;
+  }
+
+  getReregisterInvocations(): ReadonlyArray<CorrelationId> {
+    return this.reregisterInvocations;
   }
 
   async makeCall(command: MakeCallCommand): Promise<Result<{

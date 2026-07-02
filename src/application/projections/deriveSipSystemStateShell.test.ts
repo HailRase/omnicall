@@ -25,8 +25,18 @@ describe("deriveSipSystemStateShell", () => {
     expect(shell.transportStateLabel).toBe("Подключён");
     expect(shell.registrationStateLabel).toBe("Зарегистрирован");
     expect(shell.summaryLabel).toBe("Зарегистрирован");
-    expect(shell.manualTransportReconnectDisabledReason).toBeNull();
+    expect(shell.manualTransportReconnectDisabledReason).toBe("Сервер уже подключён");
     expect(shell.manualReregisterDisabledReason).toBeNull();
+  });
+
+  it("allows manual transport reconnect when server is disconnected", () => {
+    const shell = deriveSipSystemStateShell({
+      health: health({ transport: "disconnected", registration: "idle" }),
+      sipAutoReconnectEnabled: true,
+      sipAutoReregisterEnabled: true,
+    });
+
+    expect(shell.manualTransportReconnectDisabledReason).toBeNull();
   });
 
   it("exposes transport failure reason during reconnect", () => {

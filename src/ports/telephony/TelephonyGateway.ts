@@ -165,12 +165,12 @@ export interface TelephonyGateway {
     handler: ((notification: TelephonyRegistrationFailedNotification) => Promise<void>) | null,
   ): () => void;
   /**
-   * Re-establish SIP transport after disconnect (LF-008).
-   * Real adapter reuses stored registration; mock maps to registrationScenario.
+   * Tear down SIP transport and create a fresh UA instance (ADR-0004 §1.6).
+   * Unregisters all contacts, stops the current UA, starts a new one; transport only.
    */
   reconnectTransport(correlationId: CorrelationId): Promise<Result<void, PlatformError>>;
   /**
-   * Retry SIP REGISTER on existing UA when transport is connected (LF-008).
+   * Refresh SIP REGISTER on the live UA: unregister({ all: true }) then register().
    */
   reregister(correlationId: CorrelationId): Promise<Result<void, PlatformError>>;
 }

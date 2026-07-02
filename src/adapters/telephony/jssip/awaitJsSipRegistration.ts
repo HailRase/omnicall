@@ -1,4 +1,6 @@
+import { mapSipRegistrationFailureFromParts } from "@domain/index.js";
 import type { JsSipUaPort } from "./JsSipUaPort.js";
+import { extractJsSipRegistrationFailureParts } from "./extractJsSipRegistrationFailureParts.js";
 import { createPlatformError } from "@shared/errors/index.js";
 import { err, ok } from "@shared/result/index.js";
 import type { Result } from "@shared/result/index.js";
@@ -51,16 +53,21 @@ export function awaitJsSipRegistration(
         return;
       }
 
-      const cause = extractRegistrationFailureCause(args[0]);
-      if (isTransientRegistrationFailure(cause)) {
+      const failure = extractJsSipRegistrationFailureParts(args[0]);
+      if (isTransientRegistrationFailure(failure.cause)) {
         return;
       }
+
+      const reasonKey = mapSipRegistrationFailureFromParts(
+        failure.cause,
+        failure.statusCode,
+      );
 
       settle(
         err(
           createPlatformError(
             "operation_failed",
-            `SIP registration failed for ${username}: ${cause}`,
+            `SIP registration failed for ${username}: ${formatRegistrationFailureMessage(failure, reasonKey)}`,
           ),
         ),
       );
@@ -98,19 +105,17 @@ export function awaitJsSipRegistration(
   });
 }
 
-function extractRegistrationFailureCause(event: unknown): string {
-  if (
-    typeof event === "object" &&
-    event !== null &&
-    "cause" in event &&
-    typeof event.cause === "string"
-  ) {
-    return event.cause;
-  }
-
-  return "registration_failed";
-}
-
 function isTransientRegistrationFailure(cause: string): boolean {
   return TRANSIENT_REGISTRATION_CAUSES.has(cause);
+}
+
+function formatRegistrationFailureMessage(
+  failure: ReturnType<typeof extractJsSipRegistrationFailureParts>,
+  reasonKey: string,
+): string {
+  if (failure.statusCode !== null) {
+    return `${failure.statusCode} ${failure.cause} (${reasonKey})`;
+  }
+
+  return `${failure.cause} (${reasonKey})`;
 }

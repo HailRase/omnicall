@@ -413,6 +413,7 @@ export {
   createSipRegistrationRetryFailedEvent,
 } from "./telephony/events/sipRegistrationRetryEvents.js";
 export { mapSipRegistrationFailureKey } from "./telephony/mapSipRegistrationFailureKey.js";
+export { mapSipRegistrationFailureFromParts } from "./telephony/mapSipRegistrationFailureFromParts.js";
 export {
   isNonRetryableSipAuthError,
   isNonRetryableSipAuthHttpCode,

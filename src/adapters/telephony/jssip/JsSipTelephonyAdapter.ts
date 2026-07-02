@@ -22,7 +22,7 @@ import type {
   TelephonyRegistrationFailedNotification,
 } from "@ports/index.js";
 import type { CallId, SipAccount } from "@domain/index.js";
-import { createCallId, mapSipRegistrationFailureKey } from "@domain/index.js";
+import { createCallId, mapSipRegistrationFailureFromParts } from "@domain/index.js";
 import type { Logger } from "@ports/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
@@ -45,6 +45,7 @@ import { wireJsSipRtcSessionLifecycle } from "./wireJsSipRtcSessionLifecycle.js"
 import { createJsSipUserAgent } from "./createJsSipUserAgent.js";
 import { ensureJsSipRtcSessionPort, resolveReplacesForRefer, resolveReplacesStorageTarget } from "./wrapJsSipRtcSession.js";
 import { awaitJsSipRegistration } from "./awaitJsSipRegistration.js";
+import { extractJsSipRegistrationFailureParts } from "./extractJsSipRegistrationFailureParts.js";
 import { resolveJsSipTransportUrl } from "./resolveJsSipTransportUrl.js";
 
 const FEATURE_ID_REGISTRATION = "F-001";
@@ -60,6 +61,8 @@ const DEFAULT_CALL_MEDIA_OPTIONS = {
   mediaConstraints: { audio: true, video: false },
   rtcOfferConstraints: { offerToReceiveAudio: true, offerToReceiveVideo: false },
 } as const;
+
+const DEFAULT_TRANSPORT_CONNECTION_TIMEOUT_MS = 30_000;
 
 export type JsSipTelephonyAdapterOptions = Readonly<{
   logger: Logger;
@@ -91,6 +94,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
   private intentionalShutdown = false;
   private registrationInFlight = false;
   private registrationInvalidated = false;
+  private transportConnectedNotified = false;
   private incomingCallHandler:
     | ((notification: TelephonyIncomingCallNotification) => Promise<void>)
     | null = null;
@@ -151,6 +155,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       const ua = this.createUserAgent(account);
       this.ua = ua;
       this.storedAccount = account;
+      this.transportConnectedNotified = false;
       this.attachUaListeners(ua);
 
       const transportUrl = resolveJsSipTransportUrl(account.server);
@@ -256,20 +261,64 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       );
     }
 
-    const ua = this.ua;
-    if (ua !== null && this.effectiveIsRegistered()) {
-      return ok(undefined);
-    }
-
-    if (ua !== null && ua.isConnected() && !this.effectiveIsRegistered()) {
-      const registerResult = await this.registerWithUa(ua);
-      return registerResult;
-    }
-
-    return this.register({
-      account: this.storedAccount,
+    this.logger.info("jssip_transport_reconnect_start", {
       correlationId,
+      featureId: FEATURE_ID_REGISTRATION,
+      boundedContext: "Telephony",
+      operation: "jssip_transport_reconnect",
     });
+
+    await this.teardownActiveUa();
+    this.registrationInFlight = true;
+    this.registrationInvalidated = true;
+
+    try {
+      const ua = this.createUserAgent(this.storedAccount);
+      this.ua = ua;
+      this.transportConnectedNotified = false;
+      this.attachUaListeners(ua);
+      ua.start();
+
+      const transportResult = await this.ensureTransportReady(ua);
+      if (!transportResult.ok) {
+        await this.teardownActiveUa();
+        this.logger.error("jssip_transport_reconnect_failed", {
+          correlationId,
+          featureId: FEATURE_ID_REGISTRATION,
+          boundedContext: "Telephony",
+          operation: "jssip_transport_reconnect",
+          result: transportResult.error.code,
+        });
+        return transportResult;
+      }
+
+      this.logger.info("jssip_transport_reconnect_succeeded", {
+        correlationId,
+        featureId: FEATURE_ID_REGISTRATION,
+        boundedContext: "Telephony",
+        operation: "jssip_transport_reconnect",
+        result: "succeeded",
+      });
+
+      return ok(undefined);
+    } catch (error: unknown) {
+      await this.teardownActiveUa();
+      const normalized = normalizeUnknownError(error);
+      this.logger.error(
+        "jssip_transport_reconnect_failed",
+        {
+          correlationId,
+          featureId: FEATURE_ID_REGISTRATION,
+          boundedContext: "Telephony",
+          operation: "jssip_transport_reconnect",
+          result: normalized.code,
+        },
+        error,
+      );
+      return err(normalized);
+    } finally {
+      this.registrationInFlight = false;
+    }
   }
 
   async reregister(
@@ -284,15 +333,64 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       );
     }
 
-    if (this.effectiveIsRegistered()) {
-      return ok(undefined);
-    }
-
     if (!ua.isConnected()) {
-      return this.reconnectTransport(correlationId);
+      return err(
+        createPlatformError(
+          "operation_failed",
+          "SIP reregister failed: transport not connected",
+        ),
+      );
     }
 
-    return this.registerWithUa(ua);
+    this.logger.info("jssip_reregister_start", {
+      correlationId,
+      featureId: FEATURE_ID_REGISTRATION,
+      boundedContext: "Telephony",
+      operation: "jssip_reregister",
+    });
+
+    this.registrationInFlight = true;
+    this.registrationInvalidated = true;
+
+    try {
+      await this.unregisterAllContacts(ua);
+      const registerResult = await this.registerWithUa(ua);
+      if (registerResult.ok) {
+        this.registrationInvalidated = false;
+        this.logger.info("jssip_reregister_succeeded", {
+          correlationId,
+          featureId: FEATURE_ID_REGISTRATION,
+          boundedContext: "Telephony",
+          operation: "jssip_reregister",
+          result: "succeeded",
+        });
+      } else {
+        this.logger.error("jssip_reregister_failed", {
+          correlationId,
+          featureId: FEATURE_ID_REGISTRATION,
+          boundedContext: "Telephony",
+          operation: "jssip_reregister",
+          result: registerResult.error.code,
+        });
+      }
+      return registerResult;
+    } catch (error: unknown) {
+      const normalized = normalizeUnknownError(error);
+      this.logger.error(
+        "jssip_reregister_failed",
+        {
+          correlationId,
+          featureId: FEATURE_ID_REGISTRATION,
+          boundedContext: "Telephony",
+          operation: "jssip_reregister",
+          result: normalized.code,
+        },
+        error,
+      );
+      return err(normalized);
+    } finally {
+      this.registrationInFlight = false;
+    }
   }
 
   /**
@@ -1160,9 +1258,15 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
   }
 
   private async handleTransportConnected(): Promise<void> {
-    if (this.intentionalShutdown || this.transportConnectedHandler === null) {
+    if (
+      this.intentionalShutdown ||
+      this.transportConnectedHandler === null ||
+      this.transportConnectedNotified
+    ) {
       return;
     }
+
+    this.transportConnectedNotified = true;
 
     this.logger.info("jssip_transport_connected", {
       correlationId: this.lastCorrelationId,
@@ -1216,8 +1320,8 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       return;
     }
 
-    const cause = extractRegistrationFailureCause(event);
-    const reason = mapSipRegistrationFailureKey(cause);
+    const failure = extractJsSipRegistrationFailureParts(event);
+    const reason = mapSipRegistrationFailureFromParts(failure.cause, failure.statusCode);
 
     this.logger.warn("jssip_registration_failed_runtime", {
       correlationId: this.lastCorrelationId,
@@ -1236,7 +1340,74 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
 
   private async startAndRegister(ua: JsSipUaPort): Promise<Result<void, PlatformError>> {
     ua.start();
+
+    const transportResult = await this.ensureTransportReady(ua);
+    if (!transportResult.ok) {
+      return transportResult;
+    }
+
     return this.registerWithUa(ua);
+  }
+
+  private async ensureTransportReady(ua: JsSipUaPort): Promise<Result<void, PlatformError>> {
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      if (ua.isConnected()) {
+        await this.handleTransportConnected();
+        return ok(undefined);
+      }
+      await Promise.resolve();
+    }
+
+    return this.awaitTransportConnection(ua);
+  }
+
+  private async awaitTransportConnection(
+    ua: JsSipUaPort,
+  ): Promise<Result<void, PlatformError>> {
+    if (ua.isConnected()) {
+      await this.handleTransportConnected();
+      return ok(undefined);
+    }
+
+    return new Promise((resolve) => {
+      let settled = false;
+      let timeoutHandle: ReturnType<typeof setTimeout> | null = null;
+
+      const settle = (result: Result<void, PlatformError>): void => {
+        if (settled) {
+          return;
+        }
+        settled = true;
+        cleanup();
+        resolve(result);
+      };
+
+      const onConnected = (): void => {
+        void this.handleTransportConnected().then(() => {
+          settle(ok(undefined));
+        });
+      };
+
+      const cleanup = (): void => {
+        if (timeoutHandle !== null) {
+          clearTimeout(timeoutHandle);
+          timeoutHandle = null;
+        }
+        ua.off("connected", onConnected);
+      };
+
+      ua.on("connected", onConnected);
+      timeoutHandle = setTimeout(() => {
+        settle(
+          err(
+            createPlatformError(
+              "operation_failed",
+              "SIP transport connection timed out",
+            ),
+          ),
+        );
+      }, DEFAULT_TRANSPORT_CONNECTION_TIMEOUT_MS);
+    });
   }
 
   private registerWithUa(ua: JsSipUaPort): Promise<Result<void, PlatformError>> {
@@ -1266,6 +1437,10 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
   }
 
   private async teardownUa(): Promise<void> {
+    await this.teardownActiveUa();
+  }
+
+  private async teardownActiveUa(): Promise<void> {
     if (this.ua === null) {
       return;
     }
@@ -1275,6 +1450,13 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       await this.stopUa(this.ua);
     } finally {
       this.ua = null;
+      this.sessions.clear();
+      this.replacesSessions.clear();
+      this.peerConnections.clear();
+      this.callCorrelations.clear();
+      this.callIdBySessionId.clear();
+      this.registrationInvalidated = true;
+      this.transportConnectedNotified = false;
       this.intentionalShutdown = false;
     }
   }
@@ -1322,17 +1504,4 @@ function isJsSipNewRtcSessionEvent(value: unknown): value is JsSipNewRtcSessionE
 
   const session = candidate.session as { id?: unknown };
   return typeof session.id === "string";
-}
-
-function extractRegistrationFailureCause(event: unknown): string {
-  if (
-    typeof event === "object" &&
-    event !== null &&
-    "cause" in event &&
-    typeof event.cause === "string"
-  ) {
-    return event.cause;
-  }
-
-  return "registration_failed";
 }

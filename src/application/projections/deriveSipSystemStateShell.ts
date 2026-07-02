@@ -103,6 +103,9 @@ function deriveManualTransportReconnectDisabledReason(
   if (health.lifecycle === "idle") {
     return "Сессия не активна";
   }
+  if (health.transport === "connected") {
+    return "Сервер уже подключён";
+  }
   if (health.transport === "connecting" || health.transport === "reconnecting") {
     return "Переподключение выполняется";
   }

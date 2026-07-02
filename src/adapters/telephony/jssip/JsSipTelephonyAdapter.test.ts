@@ -159,7 +159,7 @@ class MockJsSipRtcSession implements JsSipRtcSessionPort {
 class MockJsSipUa implements JsSipUaPort {
   private readonly listeners = new Map<JsSipUaEventName, Set<JsSipUaListener>>();
   private registered = false;
-  private connected = true;
+  private connected = false;
   private registrationOutcome: "success" | "failure" | "hang" = "success";
   startCalls = 0;
   stopCalls = 0;
@@ -197,7 +197,9 @@ class MockJsSipUa implements JsSipUaPort {
 
   start(): void {
     this.startCalls += 1;
+    this.emit("connecting");
     this.connected = true;
+    this.emit("connected");
   }
 
   stop(): void {
@@ -225,7 +227,8 @@ class MockJsSipUa implements JsSipUaPort {
     });
   }
 
-  unregister(): void {
+  unregister(options?: Readonly<{ all?: boolean }>): void {
+    void options;
     this.unregisterCalls += 1;
     queueMicrotask(() => {
       this.registered = false;
@@ -380,6 +383,31 @@ describe("JsSipTelephonyAdapter", () => {
     expect(mockUa.stopCalls).toBe(0);
   });
 
+  it("maps 403 Forbidden register failure to forbidden reason key", async () => {
+    const mockUa = new MockJsSipUa();
+    mockUa.setRegistrationOutcome("hang");
+    const adapter = createAdapter(mockUa);
+    const correlationId = createCorrelationId();
+
+    const registerPromise = adapter.register({ account, correlationId });
+
+    await vi.waitFor(() => {
+      expect(mockUa.registerCalls).toBe(1);
+    });
+
+    mockUa.emit("registrationFailed", {
+      cause: "Rejected",
+      response: { status_code: 403, reason_phrase: "Forbidden" },
+    });
+
+    const result = await registerPromise;
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.message).toContain("403");
+      expect(result.error.message).toContain("forbidden");
+    }
+  });
+
   it("ignores transport disconnect while registration is in flight", async () => {
     const mockUa = new MockJsSipUa();
     mockUa.setRegistrationOutcome("hang");
@@ -392,7 +420,9 @@ describe("JsSipTelephonyAdapter", () => {
       correlationId: createCorrelationId(),
     });
 
-    await Promise.resolve();
+    await vi.waitFor(() => {
+      expect(mockUa.registerCalls).toBe(1);
+    });
 
     mockUa.markDisconnected({
       error: true,
@@ -422,7 +452,9 @@ describe("JsSipTelephonyAdapter", () => {
       correlationId: createCorrelationId(),
     });
 
-    await Promise.resolve();
+    await vi.waitFor(() => {
+      expect(mockUa.registerCalls).toBe(1);
+    });
 
     mockUa.emit("registrationFailed", { cause: "Connection Error" });
     mockUa.emit("registrationFailed", { cause: "Connection Error" });
@@ -456,7 +488,7 @@ describe("JsSipTelephonyAdapter", () => {
     );
   });
 
-  it("invokes transport connecting and connected handlers", async () => {
+  it("invokes transport connecting and connected handlers during register", async () => {
     const mockUa = new MockJsSipUa();
     const adapter = createAdapter(mockUa);
     const connectingHandler = vi.fn(() => Promise.resolve());
@@ -470,11 +502,55 @@ describe("JsSipTelephonyAdapter", () => {
       correlationId: createCorrelationId(),
     });
 
-    mockUa.markConnecting();
-    mockUa.markConnected();
-
     expect(connectingHandler).toHaveBeenCalledTimes(1);
     expect(connectedHandler).toHaveBeenCalledTimes(1);
+  });
+
+  it("reconnectTransport tears down UA and creates a new instance", async () => {
+    const firstUa = new MockJsSipUa();
+    const secondUa = new MockJsSipUa();
+    let createCount = 0;
+    const adapter = new JsSipTelephonyAdapter({
+      logger: createTestLogger({ featureId: "F-001", boundedContext: "Telephony" }),
+      createUserAgent: () => {
+        createCount += 1;
+        return createCount === 1 ? firstUa : secondUa;
+      },
+    });
+    const connectedHandler = vi.fn(() => Promise.resolve());
+    adapter.setTransportConnectedHandler(connectedHandler);
+
+    await adapter.register({
+      account,
+      correlationId: createCorrelationId(),
+    });
+    expect(firstUa.stopCalls).toBe(0);
+
+    const reconnectResult = await adapter.reconnectTransport(createCorrelationId());
+    expect(reconnectResult.ok).toBe(true);
+    expect(firstUa.stopCalls).toBe(1);
+    expect(firstUa.unregisterCalls).toBe(1);
+    expect(secondUa.startCalls).toBe(1);
+    expect(connectedHandler).toHaveBeenCalledTimes(2);
+  });
+
+  it("reregister unregisters all contacts then registers on the same UA", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+
+    await adapter.register({
+      account,
+      correlationId: createCorrelationId(),
+    });
+
+    const registerCallsBefore = mockUa.registerCalls;
+    const unregisterCallsBefore = mockUa.unregisterCalls;
+
+    const result = await adapter.reregister(createCorrelationId());
+    expect(result.ok).toBe(true);
+    expect(mockUa.unregisterCalls).toBe(unregisterCallsBefore + 1);
+    expect(mockUa.registerCalls).toBe(registerCallsBefore + 1);
+    expect(mockUa.stopCalls).toBe(0);
   });
 
   it("effectiveIsRegistered is false when transport down but UA still reports registered", async () => {

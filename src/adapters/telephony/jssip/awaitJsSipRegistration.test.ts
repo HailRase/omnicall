@@ -115,6 +115,27 @@ describe("awaitJsSipRegistration", () => {
     }
   });
 
+  it("maps 403 Rejected to forbidden in failure message", async () => {
+    const mockUa = new MockJsSipUa();
+    const registerPromise = awaitJsSipRegistration({
+      ua: mockUa,
+      username: "agent",
+      registrationTimeoutMs: 5_000,
+    });
+
+    mockUa.emit("registrationFailed", {
+      cause: "Rejected",
+      response: { status_code: 403, reason_phrase: "Forbidden" },
+    });
+
+    const result = await registerPromise;
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.message).toContain("403");
+      expect(result.error.message).toContain("forbidden");
+    }
+  });
+
   it("times out when only transient failures are emitted", async () => {
     vi.useFakeTimers();
     const mockUa = new MockJsSipUa();

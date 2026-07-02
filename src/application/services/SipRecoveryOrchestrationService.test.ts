@@ -148,6 +148,35 @@ describe("SipRecoveryOrchestrationService", () => {
     );
   });
 
+  it("stops auto-retry on forbidden RegistrationFailed from initial register", async () => {
+    const correlationId = createCorrelationId();
+    const telephonyGateway = new MockTelephonyGateway({
+      registrationScenario: "success",
+      reconnectScenario: "success",
+    });
+    const { published, eventPublisher } = createService(telephonyGateway);
+
+    await telephonyGateway.simulateTransportConnected({ correlationId });
+
+    eventPublisher.publish({
+      type: "RegistrationFailed",
+      correlationId,
+      occurredAt: new Date().toISOString(),
+      accountId: "agent",
+      reason: "forbidden",
+    });
+
+    expect(published.some((event) => event.type === "SipRegistrationRetryScheduled")).toBe(
+      false,
+    );
+    expect(
+      published.some(
+        (event) =>
+          event.type === "SipRegistrationRetryFailed" && event["isTerminal"] === true,
+      ),
+    ).toBe(true);
+  });
+
   it("does not schedule registration retry while transport is down", async () => {
     const correlationId = createCorrelationId();
     const telephonyGateway = new MockTelephonyGateway({
