@@ -60,34 +60,40 @@ describe("SipRecoveryOrchestration integration", () => {
 
     published.length = 0;
 
-    const disconnectPromise = facade.simulateSipTransportDisconnected(
-      correlationId,
-      "transport_closed",
-    );
-    await disconnectPromise;
+    await facade.simulateSipTransportDisconnected(correlationId, "transport_closed");
 
-    expect(published.map((event) => event.type)).toContain("SipReconnectScheduled");
+    expect(published.map((event) => event.type)).toEqual(
+      expect.arrayContaining([
+        "SipTransportDisconnected",
+        "SipRegistrationCleared",
+        "SipTransportReconnectScheduled",
+      ]),
+    );
     expect(projection.connectionState).toBe("reconnecting");
     expect(projection.sipReconnectAttempt).toBe(1);
 
     const scheduledCount = published.filter(
-      (event) => event.type === "SipReconnectScheduled",
+      (event) => event.type === "SipTransportReconnectScheduled",
     ).length;
 
     await vi.runOnlyPendingTimersAsync();
 
-    expect(published.map((event) => event.type)).toContain("SipReconnectSucceeded");
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(published.map((event) => event.type)).toContain("SipTransportReconnectSucceeded");
+    await vi.runOnlyPendingTimersAsync();
+
     expect(projection.connectionState).toBe("connected");
     expect(telephony.isRegistered()).toBe(true);
 
     const scheduledAfterSuccess = published.filter(
-      (event) => event.type === "SipReconnectScheduled",
+      (event) => event.type === "SipTransportReconnectScheduled",
     ).length;
     expect(scheduledAfterSuccess).toBe(scheduledCount);
 
     await vi.advanceTimersByTimeAsync(120_000);
     expect(
-      published.filter((event) => event.type === "SipReconnectScheduled").length,
+      published.filter((event) => event.type === "SipTransportReconnectScheduled").length,
     ).toBe(scheduledCount);
   });
 
@@ -128,7 +134,7 @@ describe("SipRecoveryOrchestration integration", () => {
 
     published.length = 0;
 
-    await facade.simulateSipRegistrationFailed(correlationId, "authentication_error");
+    await facade.simulateSipRegistrationFailed(correlationId, "service_unavailable");
 
     expect(published.map((event) => event.type)).toContain("SipRegistrationRetryScheduled");
     expect(projection.connectionState).toBe("reconnecting");
@@ -139,6 +145,51 @@ describe("SipRecoveryOrchestration integration", () => {
     expect(published.map((event) => event.type)).toContain("SipRegistrationRetrySucceeded");
     expect(projection.connectionState).toBe("connected");
     expect(telephony.isRegistered()).toBe(true);
+  });
+
+  it("auth registration failure stops auto-retry immediately (ADR-0004 §1.7)", async () => {
+    const correlationId = createCorrelationId();
+    const telephony = new MockTelephonyGateway({
+      registrationScenario: "success",
+      reconnectScenario: "success",
+    });
+    const published: DomainEvent[] = [];
+
+    const facade = new AccountBootstrapFacade({
+      operatorGateway: new MockOperatorPlatformGateway(),
+      telephonyGateway: telephony,
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({
+        bootstrapConfig: { mode: "sip-only" },
+      }),
+      logger: createTestLogger(),
+    });
+
+    facade.eventPublisher.subscribe((event) => {
+      published.push(event);
+    });
+
+    await facade.initialize({ mode: "sip-only" });
+    await facade.authorizeManualAccount(
+      {
+        username: "agent",
+        password: "secret",
+        domain: "pbx",
+        server: "sip:pbx",
+      },
+      correlationId,
+    );
+
+    published.length = 0;
+
+    await facade.simulateSipRegistrationFailed(correlationId, "authentication_error");
+
+    expect(published.some((event) => event.type === "SipRegistrationRetryScheduled")).toBe(
+      false,
+    );
+    const failed = published.find((event) => event.type === "SipRegistrationRetryFailed");
+    expect(failed?.["isTerminal"]).toBe(true);
+    expect(String(failed?.["reason"])).toContain("Проверьте логин/пароль");
   });
 
   it("terminal registration retry failure → manual_retry_available (F-014)", async () => {
@@ -188,7 +239,7 @@ describe("SipRecoveryOrchestration integration", () => {
     published.length = 0;
     telephony.setScenario("failure");
 
-    await facade.simulateSipRegistrationFailed(correlationId, "authentication_error");
+    await facade.simulateSipRegistrationFailed(correlationId, "service_unavailable");
     await vi.runOnlyPendingTimersAsync();
 
     expect(published.map((event) => event.type)).toContain("SipRegistrationRetryFailed");

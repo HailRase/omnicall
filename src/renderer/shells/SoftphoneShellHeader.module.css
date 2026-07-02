@@ -29,29 +29,3 @@
   position: relative;
   flex-shrink: 0;
 }
-
-.headerRecovery {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2xs);
-  margin-top: var(--space-2xs);
-}
-
-.iconActionButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-control);
-  background: var(--color-bg-control);
-  color: var(--color-text-primary);
-  cursor: pointer;
-}
-
-.iconActionButton:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}

@@ -17,7 +17,7 @@ export type MigrateUserSettingsResult =
   | Readonly<{ ok: false; error: SettingsMigrationError }>;
 
 /**
- * - Purpose: upgrade persisted or in-memory settings to UserSettings v1.
+ * - Purpose: upgrade persisted or in-memory settings to UserSettings v2.
  * - Inputs: unknown raw blob and optional v0 legacy fragments.
  * - Outputs: migrated UserSettings or migration error.
  */
@@ -39,7 +39,7 @@ export function migrateUserSettings(
   const record = raw as Record<string, unknown>;
   const version = record["schemaVersion"];
 
-  if (version === 1) {
+  if (version === 2) {
     const validated = validateUserSettings(raw);
     if (!validated.ok) {
       return {
@@ -48,6 +48,10 @@ export function migrateUserSettings(
       };
     }
     return { ok: true, value: validated.value };
+  }
+
+  if (version === 1) {
+    return { ok: true, value: migrateV1ToV2(record) };
   }
 
   if (version === 0 || version === undefined) {
@@ -80,6 +84,81 @@ function formatSchemaVersion(version: unknown): string {
   return "unknown";
 }
 
+function migrateV1ToV2(record: Record<string, unknown>): UserSettings {
+  const defaults = createDefaultUserSettings();
+  const v1Validated = validateV1Fragments(record);
+
+  return {
+    schemaVersion: defaults.schemaVersion,
+    theme: v1Validated.theme ?? defaults.theme,
+    multiSessionsEnabled: v1Validated.multiSessionsEnabled ?? defaults.multiSessionsEnabled,
+    autoUnholdOnTransferFailure:
+      v1Validated.autoUnholdOnTransferFailure ?? defaults.autoUnholdOnTransferFailure,
+    autoAnswerTimeoutSec: v1Validated.autoAnswerTimeoutSec ?? defaults.autoAnswerTimeoutSec,
+    autoAnswerDuringActiveSessionEnabled:
+      v1Validated.autoAnswerDuringActiveSessionEnabled ??
+      defaults.autoAnswerDuringActiveSessionEnabled,
+    ringbackToneEnabled: v1Validated.ringbackToneEnabled ?? defaults.ringbackToneEnabled,
+    sipAutoReconnectEnabled: defaults.sipAutoReconnectEnabled,
+    sipReconnectIntervalSec: defaults.sipReconnectIntervalSec,
+    sipReconnectMaxAttempts: defaults.sipReconnectMaxAttempts,
+    sipAutoReregisterEnabled:
+      v1Validated.sipAutoReregisterEnabled ?? defaults.sipAutoReregisterEnabled,
+    sipReregisterIntervalSec:
+      v1Validated.sipReregisterIntervalSec ?? defaults.sipReregisterIntervalSec,
+    sipReregisterMaxAttempts:
+      v1Validated.sipReregisterMaxAttempts ?? defaults.sipReregisterMaxAttempts,
+    sipAutoRegisterOnStartup: defaults.sipAutoRegisterOnStartup,
+  };
+}
+
+type V1Fragment = Readonly<{
+  theme?: UserSettings["theme"];
+  multiSessionsEnabled?: boolean;
+  autoUnholdOnTransferFailure?: boolean;
+  autoAnswerTimeoutSec?: number | null;
+  autoAnswerDuringActiveSessionEnabled?: boolean;
+  ringbackToneEnabled?: boolean;
+  sipAutoReregisterEnabled?: boolean;
+  sipReregisterIntervalSec?: number;
+  sipReregisterMaxAttempts?: number;
+}>;
+
+function validateV1Fragments(record: Record<string, unknown>): V1Fragment {
+  const theme = record["theme"];
+  const parsedTheme =
+    theme === "light" || theme === "dark" ? theme : undefined;
+
+  const multiSessionsEnabled = record["multiSessionsEnabled"];
+  const autoUnholdOnTransferFailure = record["autoUnholdOnTransferFailure"];
+  const autoAnswerTimeoutSec = record["autoAnswerTimeoutSec"];
+  const autoAnswerDuringActiveSessionEnabled = record["autoAnswerDuringActiveSessionEnabled"];
+  const ringbackToneEnabled = record["ringbackToneEnabled"];
+  const sipAutoReregisterEnabled = record["sipAutoReregisterEnabled"];
+  const sipReregisterIntervalSec = record["sipReregisterIntervalSec"];
+  const sipReregisterMaxAttempts = record["sipReregisterMaxAttempts"];
+
+  return {
+    ...(parsedTheme !== undefined ? { theme: parsedTheme } : {}),
+    ...(typeof multiSessionsEnabled === "boolean" ? { multiSessionsEnabled } : {}),
+    ...(typeof autoUnholdOnTransferFailure === "boolean"
+      ? { autoUnholdOnTransferFailure }
+      : {}),
+    ...(autoAnswerTimeoutSec === null
+      ? { autoAnswerTimeoutSec: null }
+      : typeof autoAnswerTimeoutSec === "number"
+        ? { autoAnswerTimeoutSec }
+        : {}),
+    ...(typeof autoAnswerDuringActiveSessionEnabled === "boolean"
+      ? { autoAnswerDuringActiveSessionEnabled }
+      : {}),
+    ...(typeof ringbackToneEnabled === "boolean" ? { ringbackToneEnabled } : {}),
+    ...(typeof sipAutoReregisterEnabled === "boolean" ? { sipAutoReregisterEnabled } : {}),
+    ...(typeof sipReregisterIntervalSec === "number" ? { sipReregisterIntervalSec } : {}),
+    ...(typeof sipReregisterMaxAttempts === "number" ? { sipReregisterMaxAttempts } : {}),
+  };
+}
+
 function migrateFromLegacy(legacy?: UserSettingsV0Legacy): UserSettings {
   const defaults = createDefaultUserSettings();
   if (legacy === undefined) {
@@ -87,17 +166,11 @@ function migrateFromLegacy(legacy?: UserSettingsV0Legacy): UserSettings {
   }
 
   return {
-    schemaVersion: defaults.schemaVersion,
-    theme: defaults.theme,
+    ...defaults,
     multiSessionsEnabled: legacy.multiCallSettings.multiSessionsEnabled,
     autoUnholdOnTransferFailure:
       legacy.multiCallSettings.autoUnholdOnTransferFailure !== false,
     autoAnswerTimeoutSec: legacy.autoAnswerTimeoutSec,
-    autoAnswerDuringActiveSessionEnabled: defaults.autoAnswerDuringActiveSessionEnabled,
-    ringbackToneEnabled: defaults.ringbackToneEnabled,
-    sipAutoReregisterEnabled: defaults.sipAutoReregisterEnabled,
-    sipReregisterIntervalSec: defaults.sipReregisterIntervalSec,
-    sipReregisterMaxAttempts: defaults.sipReregisterMaxAttempts,
   };
 }
 

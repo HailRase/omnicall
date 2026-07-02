@@ -56,6 +56,8 @@ export type {
   TelephonyRemoteHoldNotification,
   TelephonyRemoteResumeNotification,
   TelephonyIncomingCallNotification,
+  TelephonyTransportConnectingNotification,
+  TelephonyTransportConnectedNotification,
   TelephonyTransportDisconnectedNotification,
   TelephonyRegistrationFailedNotification,
   TelephonyGateway,

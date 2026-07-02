@@ -32,6 +32,8 @@ import { LogoutOperatorUseCase } from "../use-cases/LogoutOperatorUseCase.js";
 import { SafeLogoutUseCase } from "../use-cases/SafeLogoutUseCase.js";
 import { EndUserSessionUseCase } from "../use-cases/EndUserSessionUseCase.js";
 import { RetryConnectionUseCase } from "../use-cases/RetryConnectionUseCase.js";
+import { ManualSipTransportReconnectUseCase } from "../use-cases/ManualSipTransportReconnectUseCase.js";
+import { ForceRefreshSipRegistrationUseCase } from "../use-cases/ForceRefreshSipRegistrationUseCase.js";
 import { ReregisterSipUseCase } from "../use-cases/ReregisterSipUseCase.js";
 import { ShutdownCleanupUseCase } from "../use-cases/ShutdownCleanupUseCase.js";
 import { RegisterOcpCallCorrelationUseCase } from "../use-cases/RegisterOcpCallCorrelationUseCase.js";
@@ -41,6 +43,8 @@ import { RespondToCampaignUseCase } from "../use-cases/RespondToCampaignUseCase.
 import { SendDlgStopUseCase } from "../use-cases/SendDlgStopUseCase.js";
 import { CallEndDlgStopOrchestrationService } from "../services/CallEndDlgStopOrchestrationService.js";
 import { ConnectionRecoveryOrchestrationService } from "../services/ConnectionRecoveryOrchestrationService.js";
+import { SipRecoveryOrchestrationService } from "../services/SipRecoveryOrchestrationService.js";
+import type { SipConnectionJournalEntry } from "../services/SipConnectionJournal.js";
 import { ServerTerminateCleanupService } from "../services/ServerTerminateCleanupService.js";
 import { SessionTeardownOrchestrationService } from "../services/SessionTeardownOrchestrationService.js";
 import { InMemoryAgentStatusReadModel } from "../read-models/InMemoryAgentStatusReadModel.js";
@@ -121,6 +125,8 @@ export class AccountBootstrapFacade {
   readonly updatePostCallStatus: UpdatePostCallStatusUseCase;
   readonly logoutOperator: LogoutOperatorUseCase;
   readonly retryConnection: RetryConnectionUseCase;
+  readonly manualSipTransportReconnect: ManualSipTransportReconnectUseCase;
+  readonly forceRefreshSipRegistration: ForceRefreshSipRegistrationUseCase;
   readonly reregisterSip: ReregisterSipUseCase;
   readonly safeLogout: SafeLogoutUseCase;
   readonly endUserSession: EndUserSessionUseCase;
@@ -137,6 +143,7 @@ export class AccountBootstrapFacade {
   private readonly postCallRejectOrchestration: PostCallRejectOrchestrationService;
   private readonly callEndDlgStopOrchestration: CallEndDlgStopOrchestrationService;
   private readonly connectionRecoveryOrchestration: ConnectionRecoveryOrchestrationService;
+  private readonly sipRecoveryOrchestration: SipRecoveryOrchestrationService;
   private readonly serverTerminateCleanup: ServerTerminateCleanupService;
 
   constructor(private readonly deps: AccountBootstrapFacadeDeps) {
@@ -329,11 +336,29 @@ export class AccountBootstrapFacade {
     });
     this.connectionRecoveryOrchestration.bindTransportHandlers();
     this.connectionRecoveryOrchestration.subscribe(this.eventPublisher);
+
+    this.sipRecoveryOrchestration = new SipRecoveryOrchestrationService({
+      telephonyGateway: deps.telephonyGateway,
+      eventPublisher: this.eventPublisher,
+      logger: deps.logger,
+    });
+    this.sipRecoveryOrchestration.bindTransportHandlers();
+    this.sipRecoveryOrchestration.subscribe(this.eventPublisher);
     void this.applySipRecoverySettingsFromRepository();
 
     this.retryConnection = new RetryConnectionUseCase(
       connectionRecoveryReadModel,
       this.connectionRecoveryOrchestration,
+      this.sipRecoveryOrchestration,
+      deps.logger,
+    );
+    this.manualSipTransportReconnect = new ManualSipTransportReconnectUseCase(
+      this.sipRecoveryOrchestration,
+      deps.logger,
+    );
+    this.forceRefreshSipRegistration = new ForceRefreshSipRegistrationUseCase(
+      deps.telephonyGateway,
+      this.eventPublisher,
       deps.logger,
     );
     this.reregisterSip = new ReregisterSipUseCase(
@@ -344,6 +369,7 @@ export class AccountBootstrapFacade {
 
     const sessionTeardownOrchestration = new SessionTeardownOrchestrationService({
       connectionRecoveryOrchestration: this.connectionRecoveryOrchestration,
+      sipRecoveryOrchestration: this.sipRecoveryOrchestration,
       callEngine: this.callEngine,
       mediaGateway: deps.mediaGateway,
       unregisterAccount: this.unregisterAccount,
@@ -512,7 +538,7 @@ export class AccountBootstrapFacade {
       throw new Error(`settings_validation_failed:${validated.errors.join(",")}`);
     }
     await this.deps.settingsRepository.saveUserSettings(accountKey, validated.value);
-    this.connectionRecoveryOrchestration.applyRecoverySettings(validated.value);
+    this.sipRecoveryOrchestration.applyRecoverySettings(validated.value);
     await this.callEngine.refreshAutoAnswerSchedules();
     return validated.value;
   }
@@ -520,7 +546,7 @@ export class AccountBootstrapFacade {
   private async applySipRecoverySettingsFromRepository(): Promise<void> {
     const accountKey = await this.resolveSettingsAccountKey();
     const settings = await this.deps.settingsRepository.getUserSettings(accountKey);
-    this.connectionRecoveryOrchestration.applyRecoverySettings(settings);
+    this.sipRecoveryOrchestration.applyRecoverySettings(settings);
   }
 
   async reregisterSipAccount(
@@ -531,6 +557,30 @@ export class AccountBootstrapFacade {
       ...(correlationId !== undefined ? { correlationId } : {}),
       ...(account !== null ? { accountId: account.id } : {}),
     });
+  }
+
+  getSipConnectionJournalEntries(): ReadonlyArray<SipConnectionJournalEntry> {
+    return this.sipRecoveryOrchestration.getJournal().getEntries();
+  }
+
+  clearSipConnectionJournal(): void {
+    this.sipRecoveryOrchestration.getJournal().clear();
+  }
+
+  async manualSipTransportReconnectAccount(
+    correlationId?: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    return this.manualSipTransportReconnect.execute(
+      correlationId !== undefined ? { correlationId } : {},
+    );
+  }
+
+  async forceRefreshSipRegistrationAccount(
+    correlationId?: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    return this.forceRefreshSipRegistration.execute(
+      correlationId !== undefined ? { correlationId } : {},
+    );
   }
 
   async makeCall(number: string, callId?: CallId): Promise<Result<Call, PlatformError>> {

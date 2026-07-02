@@ -9,6 +9,7 @@
 - **Migration checklist:** [`guides/Distribution-Migration-Checklist.md`](guides/Distribution-Migration-Checklist.md)
 - Live snapshot: `docs/softphone/STATUS.md`
 - Task queue: `docs/softphone/TASK-QUEUE.md`
+- **SIP transport/register refactor (T-008):** `docs/softphone/TRANSPORT-REGISTER-STATE-REFACTORING.md`
 
 ## Commands (`.cursor/commands/`)
 

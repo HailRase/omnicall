@@ -30,12 +30,11 @@
 | `Dialpad` | `src/renderer/components/dialpad/Dialpad.tsx` | `DialpadProps` | dialpad-panel, dialpad-input, dialpad-key-0, dialpad-call | lf=LF-020 f=F-003,F-016 smoke=R7- |
 | `RegistrationStatusDot` | `src/renderer/components/header/RegistrationStatusDot.tsx` | `RegistrationStatusDotProps` | registration-status-dot | lf=LF-011 f=F-016 smoke=R7- |
 | `UserAvatarMenu` | `src/renderer/components/header/UserAvatarMenu.tsx` | `UserAvatarMenuProps` | user-avatar-menu, user-menu-open-settings, user-menu-toggle-dnd, user-menu-logout | lf=LF-086 f=F-016 smoke=R7- |
-| `UserHeaderIdentity` | `src/renderer/components/header/UserHeaderIdentity.tsx` | `UserHeaderIdentityProps` | user-header-identity, user-presence-status | lf=LF-086 f=F-016 smoke=R7- |
+| `UserHeaderIdentity` | `src/renderer/components/header/UserHeaderIdentity.tsx` | `UserHeaderIdentityProps` | user-header-identity, user-sip-status | lf=LF-086 f=F-016 smoke=R7- |
 | `AppIcon` | `src/renderer/components/icons/AppIcon.tsx` | `AppIconProps` | — | — |
 | `IconControlButton` | `src/renderer/components/icons/IconControlButton.tsx` | `IconControlButtonProps` | — | — |
 | `IconTooltip` | `src/renderer/components/icons/IconTooltip.tsx` | `IconTooltipProps` | icon-tooltip-host | — |
 | `OcpToastStack` | `src/renderer/components/ocp/OcpToastStack.tsx` | `OcpToastStackProps` | ocp-toast-stack, ocp-toast | — |
-| `ConnectionOverlay` | `src/renderer/components/recovery/ConnectionOverlay.tsx` | `ConnectionOverlayProps` | connection-overlay-host, connection-overlay-scrim, connection-overlay, connection-server-terminate, reconnect-countdown | — |
 | `LogoutActiveSessionConfirmationModal` | `src/renderer/components/session/LogoutActiveSessionConfirmationModal.tsx` | `LogoutActiveSessionConfirmationModalProps` | logout-active-session-modal | — |
 | `SettingsFullscreenOverlay` | `src/renderer/components/settings/SettingsFullscreenOverlay.tsx` | `SettingsFullscreenOverlayProps` | settings-overlay, settings-overlay-backdrop | f=F-016,F-017 smoke=settings-overlay |
 | `SettingsPanel` | `src/renderer/components/settings/SettingsPanel.tsx` | `SettingsPanelProps` | settings-overlay-body, settings-section-title, settings-update-error | lf=LF-032,LF-076,LF-008 f=F-016,F-014,F-017 smoke=R7-5 |
@@ -43,10 +42,11 @@
 | `SettingsAccountPanel` | `src/renderer/components/settings/panels/SettingsAccountPanel.tsx` | `SettingsAccountPanelProps` | settings-account-panel | — |
 | `SettingsCodecsPanel` | `src/renderer/components/settings/panels/SettingsCodecsPanel.tsx` | `—` | — | — |
 | `SettingsDiagnosticsPanel` | `src/renderer/components/settings/panels/SettingsDiagnosticsPanel.tsx` | `—` | — | — |
-| `SettingsGeneralPanel` | `src/renderer/components/settings/panels/SettingsGeneralPanel.tsx` | `SettingsGeneralPanelProps` | settings-general-panel, settings-theme-control, settings-sip-auto-reregister-toggle, settings-sip-recovery-hint, settings-sip-reregister-interval | — |
+| `SettingsGeneralPanel` | `src/renderer/components/settings/panels/SettingsGeneralPanel.tsx` | `SettingsGeneralPanelProps` | settings-general-panel, settings-theme-control, settings-current-version, settings-latest-version, settings-update-status, settings-check-updates, settings-open-download-page | — |
 | `SettingsHeadsetPanel` | `src/renderer/components/settings/panels/SettingsHeadsetPanel.tsx` | `—` | — | — |
 | `SettingsPlaceholderPanel` | `src/renderer/components/settings/panels/SettingsPlaceholderPanel.tsx` | `SettingsPlaceholderPanelProps` | — | — |
 | `SettingsSessionsPanel` | `src/renderer/components/settings/panels/SettingsSessionsPanel.tsx` | `SettingsSessionsPanelProps` | settings-sessions-panel, settings-multi-sessions-toggle, settings-multi-sessions-hint, settings-auto-answer-enabled-toggle, settings-auto-answer-hint, settings-auto-answer-timeout, settings-auto-answer-during-active-session-toggle, settings-auto-answer-during-active-session-hint | — |
+| `SettingsSystemStatePanel` | `src/renderer/components/settings/panels/SettingsSystemStatePanel.tsx` | `SettingsSystemStatePanelProps` | settings-sip-journal-entry, settings-system-state-panel, settings-sip-transport-state, settings-sip-registration-state, settings-sip-summary-label, settings-sip-auto-reconnect-toggle, settings-sip-reconnect-interval, settings-sip-reconnect-max-attempts, settings-sip-auto-reregister-toggle, settings-sip-reregister-interval, settings-sip-reregister-max-attempts, settings-sip-auto-register-startup-toggle, settings-sip-action-error, settings-sip-manual-transport-reconnect, settings-sip-manual-reregister, settings-sip-force-refresh, settings-sip-transport-disabled-reason, settings-sip-reregister-disabled-reason, settings-sip-force-refresh-disabled-reason, settings-sip-journal, settings-sip-journal-empty, settings-sip-journal-clear | lf=LF-008,LF-057 f=F-014,F-016 smoke=R7- |
 | `ShellOverlaySheet` | `src/renderer/components/shell/ShellOverlaySheet.tsx` | `ShellOverlaySheetProps` | — | f=F-016 smoke=settings-overlay,diagnostics-overlay |
 | `BreakReasonPicker` | `src/renderer/components/status/BreakReasonPicker.tsx` | `BreakReasonPickerProps` | break-reason-picker | — |
 | `LogoutReasonModal` | `src/renderer/components/status/LogoutReasonModal.tsx` | `LogoutReasonModalProps` | logout-reason-modal, logout-reason-input | — |
@@ -55,7 +55,6 @@
 | `StatusTimer` | `src/renderer/components/status/StatusTimer.tsx` | `StatusTimerProps` | status-timer | — |
 | `AuthAccountShell` | `src/renderer/shells/AuthAccountShell.tsx` | `—` | — | — |
 | `OperatorFeatureShell` | `src/renderer/shells/OperatorFeatureShell.tsx` | `—` | — | — |
-| `RecoveryFeatureShell` | `src/renderer/shells/RecoveryFeatureShell.tsx` | `—` | — | — |
 | `SessionFeatureShell` | `src/renderer/shells/SessionFeatureShell.tsx` | `—` | logout-error-banner | — |
 | `SoftphoneReadyShell` | `src/renderer/shells/SoftphoneReadyShell.tsx` | `—` | — | — |
 | `SoftphoneShellHeader` | `src/renderer/shells/SoftphoneShellHeader.tsx` | `—` | shell-header | lf=LF-011,LF-076,LF-086 f=F-016 smoke=R7- |

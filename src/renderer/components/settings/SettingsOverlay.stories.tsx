@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { SettingsFullscreenOverlay } from "./SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "./SettingsPanel.js";
+import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefaults.js";
 
 const meta = {
   title: "Settings/SettingsPanel",
@@ -38,13 +39,6 @@ const themeDefaults = {
   onThemeChange: () => undefined,
 } as const;
 
-const sipRecoveryDefaults = {
-  sipAutoReregisterEnabled: true,
-  onSipAutoReregisterChange: () => undefined,
-  sipReregisterIntervalSec: 5,
-  onSipReregisterIntervalChange: () => undefined,
-} as const;
-
 const autoAnswerDefaults = {
   autoAnswerEnabled: true,
   autoAnswerTimeoutSec: 8,
@@ -65,53 +59,75 @@ const appUpdateDefaults = {
   onOpenDownloadPage: () => undefined,
 } as const;
 
+const panelDefaults = {
+  sidebarExpanded: false,
+  onClose: () => undefined,
+  onSectionChange: () => undefined,
+  onSidebarExpandedChange: () => undefined,
+  multiSessionsEnabled: true,
+  onMultiSessionsChange: () => undefined,
+  account: accountDefaults,
+  systemState: systemStateTestDefaults,
+  ...themeDefaults,
+  ...autoAnswerDefaults,
+  ...appUpdateDefaults,
+} as const;
+
 export const GeneralSection: Story = {
   args: {
+    ...panelDefaults,
     activeSection: "general",
-    sidebarExpanded: false,
-    onClose: () => undefined,
-    onSectionChange: () => undefined,
-    onSidebarExpandedChange: () => undefined,
-    multiSessionsEnabled: true,
-    onMultiSessionsChange: () => undefined,
-    account: accountDefaults,
-    ...themeDefaults,
-    ...sipRecoveryDefaults,
-    ...autoAnswerDefaults,
-    ...appUpdateDefaults,
   },
 };
 
 export const SessionsSection: Story = {
   args: {
+    ...panelDefaults,
     activeSection: "sessions",
-    sidebarExpanded: false,
-    onClose: () => undefined,
-    onSectionChange: () => undefined,
-    onSidebarExpandedChange: () => undefined,
     multiSessionsEnabled: false,
-    onMultiSessionsChange: () => undefined,
-    account: accountDefaults,
-    ...themeDefaults,
-    ...sipRecoveryDefaults,
-    ...autoAnswerDefaults,
-    ...appUpdateDefaults,
   },
+};
+
+export const SystemStateSectionLight: Story = {
+  args: {
+    ...panelDefaults,
+    activeSection: "system-state",
+    theme: "light",
+  },
+  parameters: {
+    themes: {
+      themeOverride: "light",
+    },
+  },
+};
+
+export const SystemStateSectionDark: Story = {
+  args: {
+    ...panelDefaults,
+    activeSection: "system-state",
+    theme: "dark",
+    onThemeChange: () => undefined,
+  },
+  parameters: {
+    themes: {
+      themeOverride: "dark",
+    },
+  },
+  decorators: [
+    (Story) => (
+      <div data-theme="dark" style={{ minHeight: "100vh", background: "var(--color-bg-app)" }}>
+        <SettingsFullscreenOverlay open onClose={() => undefined}>
+          <Story />
+        </SettingsFullscreenOverlay>
+      </div>
+    ),
+  ],
 };
 
 export const SidebarExpanded: Story = {
   args: {
+    ...panelDefaults,
     activeSection: "account",
     sidebarExpanded: true,
-    onClose: () => undefined,
-    onSectionChange: () => undefined,
-    onSidebarExpandedChange: () => undefined,
-    multiSessionsEnabled: true,
-    onMultiSessionsChange: () => undefined,
-    account: accountDefaults,
-    ...themeDefaults,
-    ...sipRecoveryDefaults,
-    ...autoAnswerDefaults,
-    ...appUpdateDefaults,
   },
 };

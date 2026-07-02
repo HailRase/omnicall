@@ -11,11 +11,7 @@ type PhoneStatusBadgeProps = Readonly<{
   disabled?: boolean;
 }>;
 
-const STATUS_OPTIONS: ReadonlyArray<PhoneStatus> = [
-  "online",
-  "offline",
-  "dnd",
-];
+const STATUS_OPTIONS: ReadonlyArray<PhoneStatus> = ["dnd"];
 
 export function PhoneStatusBadge({
   status,

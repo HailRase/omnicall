@@ -1,34 +1,42 @@
 import { useMemo } from "react";
 import { deriveHeaderChromeShell } from "@application/index.js";
+import { useSipRecoveryCountdownTick } from "./useSipRecoveryCountdownTick.js";
 import { useSoftphoneProjections } from "./useSoftphoneProjections.js";
 
+type UseHeaderChromeShellInput = Readonly<{
+  dndEnabled: boolean;
+  sipAutoReconnectEnabled: boolean;
+  sipAutoReregisterEnabled: boolean;
+}>;
+
 /**
- * - Purpose: bind account bootstrap projection to header chrome view-model.
- * - Inputs: softphone store projections via useSoftphoneProjections.
- * - Outputs: header chrome shell view-model for presentational header components.
+ * - Purpose: bind SIP session health projection to header chrome view-model.
+ * - Inputs: recovery policy toggles and DND flag from user settings / projection.
+ * - Outputs: header chrome shell view-model with live recovery countdown suffix.
  */
-export function useHeaderChromeShell() {
-  const { projection, connectionRecoveryProjection } = useSoftphoneProjections();
+export function useHeaderChromeShell(input: UseHeaderChromeShellInput) {
+  const { projection, sipSessionHealthProjection } = useSoftphoneProjections();
+  const tickMs = useSipRecoveryCountdownTick(sipSessionHealthProjection);
 
   return useMemo(
     () =>
       deriveHeaderChromeShell({
-        authUiState: projection.authUiState,
-        registrationState: projection.registrationState,
-        phoneStatus: projection.phoneStatus,
+        health: sipSessionHealthProjection,
         agentId: projection.agentId,
         sipUsername: projection.sipUsername,
-        connectionState: connectionRecoveryProjection.connectionState,
-        sipRecoveryMode: connectionRecoveryProjection.sipRecoveryMode,
+        dndEnabled: input.dndEnabled,
+        sipAutoReconnectEnabled: input.sipAutoReconnectEnabled,
+        sipAutoReregisterEnabled: input.sipAutoReregisterEnabled,
+        nowMs: tickMs,
       }),
     [
-      projection.authUiState,
-      projection.registrationState,
-      projection.phoneStatus,
+      sipSessionHealthProjection,
       projection.agentId,
       projection.sipUsername,
-      connectionRecoveryProjection.connectionState,
-      connectionRecoveryProjection.sipRecoveryMode,
+      input.dndEnabled,
+      input.sipAutoReconnectEnabled,
+      input.sipAutoReregisterEnabled,
+      tickMs,
     ],
   );
 }

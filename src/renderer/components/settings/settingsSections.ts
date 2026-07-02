@@ -4,6 +4,7 @@ export type SettingsSectionId =
   | "account"
   | "general"
   | "sessions"
+  | "system-state"
   | "diagnostics"
   | "codecs"
   | "headset";
@@ -33,6 +34,12 @@ export const SETTINGS_NAV_ITEMS: ReadonlyArray<SettingsNavItem> = [
     label: "Сессии",
     iconId: "settings.sessions",
     testId: "settings-nav-sessions",
+  },
+  {
+    id: "system-state",
+    label: "Состояние системы",
+    iconId: "settings.system-state",
+    testId: "settings-nav-system-state",
   },
   {
     id: "diagnostics",

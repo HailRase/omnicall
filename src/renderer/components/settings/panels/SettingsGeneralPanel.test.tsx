@@ -12,10 +12,6 @@ afterEach(() => {
 const baseProps = {
   theme: "light" as const,
   onThemeChange: vi.fn(),
-  sipAutoReregisterEnabled: true,
-  onSipAutoReregisterChange: vi.fn(),
-  sipReregisterIntervalSec: 5,
-  onSipReregisterIntervalChange: vi.fn(),
   currentVersion: "0.0.1",
   latestVersion: undefined,
   updateStatusMessage: "Нажмите «Проверить обновления», чтобы узнать о новой версии.",
@@ -27,45 +23,6 @@ const baseProps = {
 };
 
 describe("SettingsGeneralPanel", () => {
-  it("disables interval input when auto-reregister is off", () => {
-    render(
-      <SettingsGeneralPanel
-        {...baseProps}
-        sipAutoReregisterEnabled={false}
-      />,
-    );
-
-    expect(screen.getByTestId("settings-sip-reregister-interval")).toBeDisabled();
-  });
-
-  it("emits toggle and interval changes", async () => {
-    const user = userEvent.setup();
-    const onSipAutoReregisterChange = vi.fn();
-    const onSipReregisterIntervalChange = vi.fn();
-
-    render(
-      <SettingsGeneralPanel
-        {...baseProps}
-        onSipAutoReregisterChange={onSipAutoReregisterChange}
-        onSipReregisterIntervalChange={onSipReregisterIntervalChange}
-      />,
-    );
-
-    await user.click(screen.getByTestId("settings-sip-auto-reregister-toggle"));
-    expect(onSipAutoReregisterChange).toHaveBeenCalledWith(false);
-
-    const interval = screen.getByTestId("settings-sip-reregister-interval");
-    await user.clear(interval);
-    await user.type(interval, "10");
-    expect(onSipReregisterIntervalChange).toHaveBeenCalled();
-  });
-
-  it("shows recovery hint with minimum interval", () => {
-    render(<SettingsGeneralPanel {...baseProps} />);
-
-    expect(screen.getByTestId("settings-sip-recovery-hint")).toHaveTextContent(/минимум/i);
-  });
-
   it("renders theme control at the top and emits theme changes", async () => {
     const user = userEvent.setup();
     const onThemeChange = vi.fn();
@@ -99,5 +56,12 @@ describe("SettingsGeneralPanel", () => {
     expect(screen.getByTestId("settings-current-version")).toHaveTextContent("0.0.1");
     await user.click(screen.getByTestId("settings-check-updates"));
     expect(onCheckForUpdates).toHaveBeenCalled();
+  });
+
+  it("does not render SIP recovery controls", () => {
+    render(<SettingsGeneralPanel {...baseProps} />);
+
+    expect(screen.queryByTestId("settings-sip-auto-reregister-toggle")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("settings-sip-auto-reconnect-toggle")).not.toBeInTheDocument();
   });
 });

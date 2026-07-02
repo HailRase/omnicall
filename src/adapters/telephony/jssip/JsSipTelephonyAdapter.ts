@@ -16,6 +16,8 @@ import type {
   TelephonyRemoteResumeNotification,
   TelephonyGateway,
   TelephonyIncomingCallNotification,
+  TelephonyTransportConnectingNotification,
+  TelephonyTransportConnectedNotification,
   TelephonyTransportDisconnectedNotification,
   TelephonyRegistrationFailedNotification,
 } from "@ports/index.js";
@@ -88,6 +90,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
   private lastCorrelationId: CorrelationId = createCorrelationId();
   private intentionalShutdown = false;
   private registrationInFlight = false;
+  private registrationInvalidated = false;
   private incomingCallHandler:
     | ((notification: TelephonyIncomingCallNotification) => Promise<void>)
     | null = null;
@@ -108,6 +111,12 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     | null = null;
   private transportDisconnectedHandler:
     | ((notification: TelephonyTransportDisconnectedNotification) => Promise<void>)
+    | null = null;
+  private transportConnectingHandler:
+    | ((notification: TelephonyTransportConnectingNotification) => Promise<void>)
+    | null = null;
+  private transportConnectedHandler:
+    | ((notification: TelephonyTransportConnectedNotification) => Promise<void>)
     | null = null;
   private registrationFailedHandler:
     | ((notification: TelephonyRegistrationFailedNotification) => Promise<void>)
@@ -174,6 +183,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
         result: "succeeded",
       });
 
+      this.registrationInvalidated = false;
       return ok(undefined);
     } catch (error: unknown) {
       await this.teardownUa();
@@ -247,11 +257,11 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     }
 
     const ua = this.ua;
-    if (ua !== null && ua.isConnected() && ua.isRegistered()) {
+    if (ua !== null && this.effectiveIsRegistered()) {
       return ok(undefined);
     }
 
-    if (ua !== null && ua.isConnected() && !ua.isRegistered()) {
+    if (ua !== null && ua.isConnected() && !this.effectiveIsRegistered()) {
       const registerResult = await this.registerWithUa(ua);
       return registerResult;
     }
@@ -274,7 +284,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       );
     }
 
-    if (ua.isRegistered()) {
+    if (this.effectiveIsRegistered()) {
       return ok(undefined);
     }
 
@@ -285,11 +295,57 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     return this.registerWithUa(ua);
   }
 
+  async forceRefreshRegistration(
+    correlationId: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    this.lastCorrelationId = correlationId;
+
+    const ua = this.ua;
+    if (ua === null) {
+      return err(
+        createPlatformError("operation_failed", "SIP registration refresh failed: UA not started"),
+      );
+    }
+
+    if (!ua.isConnected()) {
+      return err(
+        createPlatformError(
+          "operation_failed",
+          "SIP registration refresh failed: transport not connected",
+        ),
+      );
+    }
+
+    try {
+      await this.unregisterAllContacts(ua);
+      this.registrationInvalidated = true;
+      const registerResult = await this.registerWithUa(ua);
+      if (registerResult.ok) {
+        this.registrationInvalidated = false;
+      }
+      return registerResult;
+    } catch (error: unknown) {
+      const normalized = normalizeUnknownError(error);
+      return err(normalized);
+    }
+  }
+
+  /**
+   * Adapter helper: effective registration requires live transport (ADR-0004).
+   */
+  effectiveIsRegistered(): boolean {
+    const ua = this.ua;
+    if (ua === null || this.registrationInvalidated) {
+      return false;
+    }
+    return ua.isConnected() && ua.isRegistered();
+  }
+
   async makeCall(command: MakeCallCommand): Promise<Result<MakeCallProgress, PlatformError>> {
     const { callId, number, correlationId } = command;
     this.lastCorrelationId = correlationId;
 
-    if (this.ua === null || !this.ua.isRegistered() || this.storedAccount === null) {
+    if (this.ua === null || !this.effectiveIsRegistered() || this.storedAccount === null) {
       return err(
         createPlatformError("operation_failed", "SIP not registered for outbound call"),
       );
@@ -846,6 +902,24 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     };
   }
 
+  setTransportConnectingHandler(
+    handler: ((notification: TelephonyTransportConnectingNotification) => Promise<void>) | null,
+  ): () => void {
+    this.transportConnectingHandler = handler;
+    return () => {
+      this.transportConnectingHandler = null;
+    };
+  }
+
+  setTransportConnectedHandler(
+    handler: ((notification: TelephonyTransportConnectedNotification) => Promise<void>) | null,
+  ): () => void {
+    this.transportConnectedHandler = handler;
+    return () => {
+      this.transportConnectedHandler = null;
+    };
+  }
+
   setRegistrationFailedHandler(
     handler: ((notification: TelephonyRegistrationFailedNotification) => Promise<void>) | null,
   ): () => void {
@@ -952,6 +1026,14 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
   }
 
   private attachUaListeners(ua: JsSipUaPort): void {
+    ua.on("connecting", () => {
+      void this.handleTransportConnecting();
+    });
+
+    ua.on("connected", () => {
+      void this.handleTransportConnected();
+    });
+
     ua.on("disconnected", (...args: unknown[]) => {
       const event = args[0];
       if (!isJsSipDisconnectEvent(event)) {
@@ -1095,6 +1177,40 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     await this.remoteResumeHandler({ callId, correlationId });
   }
 
+  private async handleTransportConnecting(): Promise<void> {
+    if (this.intentionalShutdown || this.transportConnectingHandler === null) {
+      return;
+    }
+
+    this.logger.debug("jssip_transport_connecting", {
+      correlationId: this.lastCorrelationId,
+      featureId: FEATURE_ID_REGISTRATION,
+      boundedContext: "Telephony",
+      operation: "jssip_transport_connecting",
+    });
+
+    await this.transportConnectingHandler({
+      correlationId: this.lastCorrelationId,
+    });
+  }
+
+  private async handleTransportConnected(): Promise<void> {
+    if (this.intentionalShutdown || this.transportConnectedHandler === null) {
+      return;
+    }
+
+    this.logger.info("jssip_transport_connected", {
+      correlationId: this.lastCorrelationId,
+      featureId: FEATURE_ID_REGISTRATION,
+      boundedContext: "Telephony",
+      operation: "jssip_transport_connected",
+    });
+
+    await this.transportConnectedHandler({
+      correlationId: this.lastCorrelationId,
+    });
+  }
+
   private async handleTransportDisconnected(event: JsSipDisconnectEvent): Promise<void> {
     if (
       this.intentionalShutdown ||
@@ -1104,6 +1220,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       return;
     }
 
+    this.registrationInvalidated = true;
     const reason = formatDisconnectReason(event);
 
     this.logger.warn("jssip_transport_disconnected", {
@@ -1166,17 +1283,21 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
 
   private async stopUa(ua: JsSipUaPort): Promise<void> {
     if (ua.isRegistered()) {
-      await new Promise<void>((resolve) => {
-        const onUnregistered = (): void => {
-          ua.off("unregistered", onUnregistered);
-          resolve();
-        };
-        ua.on("unregistered", onUnregistered);
-        ua.unregister({ all: true });
-      });
+      await this.unregisterAllContacts(ua);
     }
 
     ua.stop();
+  }
+
+  private async unregisterAllContacts(ua: JsSipUaPort): Promise<void> {
+    await new Promise<void>((resolve) => {
+      const onUnregistered = (): void => {
+        ua.off("unregistered", onUnregistered);
+        resolve();
+      };
+      ua.on("unregistered", onUnregistered);
+      ua.unregister({ all: true });
+    });
   }
 
   private async teardownUa(): Promise<void> {

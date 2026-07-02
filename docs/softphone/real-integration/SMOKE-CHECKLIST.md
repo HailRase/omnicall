@@ -12,10 +12,11 @@
 ## R1 Registration
 
 - [x] Manual SIP form registers
-- [x] PhoneStatusBadge → Online
-- [x] Wrong password → RegistrationFailed visible
-- [x] Disconnect network → ConnectionOverlay SIP row
-- [x] Reconnect / manual retry works
+- [x] Header SIP status → **Зарегистрирован** (dot green)
+- [x] Wrong password → header **Не зарегистрирован** + auth message
+- [x] Disconnect network → header **Нет соединения** (countdown if auto-reconnect on)
+- [x] Reconnect / manual transport reconnect works (Settings → **Состояние системы**)
+- [ ] Settings **Состояние системы**: transport + registration rows, journal, manual actions — **re-smoke T-008** (2026-07-02)
 
 ## R2 Media
 

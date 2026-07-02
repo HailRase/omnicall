@@ -250,6 +250,20 @@ class MockJsSipUa implements JsSipUaPort {
     this.emit("disconnected", event);
   }
 
+  markConnecting(): void {
+    this.emit("connecting");
+  }
+
+  markConnected(): void {
+    this.connected = true;
+    this.emit("connected");
+  }
+
+  markStaleRegisteredWhileDisconnected(): void {
+    this.connected = false;
+    this.registered = true;
+  }
+
   call(target: string, options?: Readonly<Record<string, unknown>>): JsSipRtcSessionPort {
     const session = new MockJsSipRtcSession(`session-${this.callInvocations.length}`);
     const invocation: {
@@ -440,6 +454,96 @@ describe("JsSipTelephonyAdapter", () => {
     expect(handler).toHaveBeenCalledWith(
       expect.objectContaining({ reason: "websocket_closed" }),
     );
+  });
+
+  it("invokes transport connecting and connected handlers", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    const connectingHandler = vi.fn(() => Promise.resolve());
+    const connectedHandler = vi.fn(() => Promise.resolve());
+
+    adapter.setTransportConnectingHandler(connectingHandler);
+    adapter.setTransportConnectedHandler(connectedHandler);
+
+    await adapter.register({
+      account,
+      correlationId: createCorrelationId(),
+    });
+
+    mockUa.markConnecting();
+    mockUa.markConnected();
+
+    expect(connectingHandler).toHaveBeenCalledTimes(1);
+    expect(connectedHandler).toHaveBeenCalledTimes(1);
+  });
+
+  it("effectiveIsRegistered is false when transport down but UA still reports registered", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+
+    await adapter.register({
+      account,
+      correlationId: createCorrelationId(),
+    });
+
+    expect(adapter.effectiveIsRegistered()).toBe(true);
+
+    mockUa.markStaleRegisteredWhileDisconnected();
+    expect(adapter.effectiveIsRegistered()).toBe(false);
+  });
+
+  it("blocks makeCall when effective registration is false after disconnect", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    adapter.setTransportDisconnectedHandler(vi.fn(() => Promise.resolve()));
+
+    await adapter.register({
+      account,
+      correlationId: createCorrelationId(),
+    });
+
+    mockUa.markStaleRegisteredWhileDisconnected();
+    mockUa.emit("disconnected", { error: true, reason: "websocket_closed" });
+
+    const result = await adapter.makeCall({
+      callId: createCallId("out-1"),
+      number: createPhoneNumber("1001"),
+      correlationId: createCorrelationId(),
+    });
+
+    expect(result.ok).toBe(false);
+  });
+
+  it("forceRefreshRegistration unregisters all contacts then registers again", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+
+    await adapter.register({
+      account,
+      correlationId: createCorrelationId(),
+    });
+
+    const correlationId = createCorrelationId();
+    const result = await adapter.forceRefreshRegistration(correlationId);
+
+    expect(result.ok).toBe(true);
+    expect(mockUa.unregisterCalls).toBeGreaterThanOrEqual(1);
+    expect(mockUa.registerCalls).toBeGreaterThanOrEqual(2);
+  });
+
+  it("forceRefreshRegistration fails when transport is not connected", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+
+    await adapter.register({
+      account,
+      correlationId: createCorrelationId(),
+    });
+
+    mockUa.markDisconnected({ error: true, reason: "websocket_closed" });
+
+    const result = await adapter.forceRefreshRegistration(createCorrelationId());
+    expect(result.ok).toBe(false);
   });
 
   it("does not invoke transport disconnect handler during intentional unregister", async () => {

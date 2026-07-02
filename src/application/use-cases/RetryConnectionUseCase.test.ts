@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { RetryConnectionUseCase } from "./RetryConnectionUseCase.js";
 import { ConnectionRecoveryOrchestrationService } from "../services/ConnectionRecoveryOrchestrationService.js";
+import { SipRecoveryOrchestrationService } from "../services/SipRecoveryOrchestrationService.js";
 import { InMemoryConnectionRecoveryReadModel } from "../read-models/InMemoryConnectionRecoveryReadModel.js";
 import { InMemoryDomainEventBus } from "../events/InMemoryDomainEventBus.js";
 import { MockOperatorPlatformGateway, MockTelephonyGateway } from "@adapters/index.js";
@@ -19,11 +20,21 @@ describe("RetryConnectionUseCase", () => {
       eventPublisher,
       logger: createTestLogger(),
     });
+    const sipOrchestration = new SipRecoveryOrchestrationService({
+      telephonyGateway: new MockTelephonyGateway("success"),
+      eventPublisher,
+      logger: createTestLogger(),
+    });
 
-    const useCase = new RetryConnectionUseCase(readModel, orchestration, createTestLogger());
+    const useCase = new RetryConnectionUseCase(
+      readModel,
+      orchestration,
+      sipOrchestration,
+      createTestLogger(),
+    );
 
     eventPublisher.publish({
-      type: "SipReconnectScheduled",
+      type: "SipTransportReconnectScheduled",
       correlationId: createCorrelationId(),
       occurredAt: new Date().toISOString(),
       attemptNumber: 1,
@@ -51,9 +62,22 @@ describe("RetryConnectionUseCase", () => {
       eventPublisher,
       logger: createTestLogger(),
     });
-    const requestManualRetry = vi.spyOn(orchestration, "requestManualRetry");
+    const sipOrchestration = new SipRecoveryOrchestrationService({
+      telephonyGateway,
+      eventPublisher,
+      logger: createTestLogger(),
+    });
+    const requestManualTransportReconnect = vi.spyOn(
+      sipOrchestration,
+      "requestManualTransportReconnect",
+    );
 
-    const useCase = new RetryConnectionUseCase(readModel, orchestration, createTestLogger());
+    const useCase = new RetryConnectionUseCase(
+      readModel,
+      orchestration,
+      sipOrchestration,
+      createTestLogger(),
+    );
 
     eventPublisher.publish(
       createSipReconnectFailedEvent(correlationId, {
@@ -67,6 +91,6 @@ describe("RetryConnectionUseCase", () => {
 
     const result = await useCase.execute({ channel: "sip", correlationId });
     expect(isErr(result)).toBe(false);
-    expect(requestManualRetry).toHaveBeenCalledWith("sip", correlationId);
+    expect(requestManualTransportReconnect).toHaveBeenCalledWith(correlationId);
   });
 });

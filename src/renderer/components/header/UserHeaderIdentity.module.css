@@ -4,7 +4,7 @@
   justify-content: center;
   gap: 1px;
   min-width: 0;
-  max-width: 148px;
+  max-width: 168px;
 }
 
 .displayName {
@@ -17,21 +17,38 @@
   text-overflow: ellipsis;
 }
 
-.presenceStatus {
+.sipStatus {
   font-size: 0.6875rem;
   font-weight: 500;
   line-height: 1.2;
   letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.presence_online {
-  color: var(--color-status-online);
-}
-
-.presence_offline {
+.status_idle {
   color: var(--color-text-muted);
 }
 
-.presence_dnd {
+.status_connecting,
+.status_registering {
+  color: var(--color-status-registering);
+}
+
+.status_reconnecting,
+.status_disconnected {
+  color: var(--color-status-failed);
+}
+
+.status_not_registered {
+  color: var(--color-status-not-registered);
+}
+
+.status_registered {
+  color: var(--color-status-online);
+}
+
+.status_dnd {
   color: var(--color-status-dnd);
 }

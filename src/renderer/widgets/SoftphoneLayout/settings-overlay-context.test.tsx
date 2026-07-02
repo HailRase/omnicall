@@ -4,6 +4,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { SettingsFullscreenOverlay } from "../../components/settings/SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "../../components/settings/SettingsPanel.js";
+import { systemStateTestDefaults } from "../../components/settings/panels/settingsSystemStateTestDefaults.js";
 import { SoftphoneLayout } from "./SoftphoneLayout.js";
 
 describe("settings overlay with layout zones", () => {
@@ -31,10 +32,7 @@ describe("settings overlay with layout zones", () => {
               onAutoAnswerTimeoutChange={() => undefined}
               autoAnswerDuringActiveSessionEnabled={false}
               onAutoAnswerDuringActiveSessionChange={() => undefined}
-              sipAutoReregisterEnabled
-              onSipAutoReregisterChange={() => undefined}
-              sipReregisterIntervalSec={5}
-              onSipReregisterIntervalChange={() => undefined}
+              systemState={systemStateTestDefaults}
               currentVersion="0.0.1"
               latestVersion={undefined}
               updateStatusMessage="Нажмите «Проверить обновления», чтобы узнать о новой версии."

@@ -1,110 +1,124 @@
 import { describe, expect, it } from "vitest";
+import {
+  createIdleSipSessionHealth,
+  type SipSessionHealth,
+} from "@domain/index.js";
 import { deriveHeaderChromeShell } from "./deriveHeaderChromeShell.js";
 
+const NOW_MS = Date.parse("2026-06-24T10:00:00.000Z");
+
+function health(partial: Partial<SipSessionHealth>): SipSessionHealth {
+  return {
+    ...createIdleSipSessionHealth(),
+    lifecycle: "active",
+    ...partial,
+  };
+}
+
 describe("deriveHeaderChromeShell", () => {
-  it("derives registering dot and label", () => {
+  it("derives idle status when session is not active", () => {
     const shell = deriveHeaderChromeShell({
-      authUiState: "sip_registering",
-      registrationState: "registering",
-      phoneStatus: "offline",
+      health: createIdleSipSessionHealth(),
       agentId: "agent-1",
       sipUsername: null,
+      nowMs: NOW_MS,
     });
 
-    expect(shell.registrationDotVariant).toBe("registering");
-    expect(shell.registrationStatusLabel).toBe("Регистрация");
+    expect(shell.registrationDotVariant).toBe("not_registered");
+    expect(shell.registrationDotAriaLabel).toContain("Не подключено");
     expect(shell.avatarInitials).toBe("AG");
     expect(shell.showUserIdentity).toBe(false);
   });
 
-  it("derives registered online dot when SIP registered", () => {
+  it("derives registered status when transport and registration are healthy", () => {
     const shell = deriveHeaderChromeShell({
-      authUiState: "sip_registered",
-      registrationState: "registered",
-      phoneStatus: "online",
+      health: health({ transport: "connected", registration: "registered" }),
       agentId: "1001",
       sipUsername: "1001",
+      nowMs: NOW_MS,
     });
 
     expect(shell.registrationDotVariant).toBe("registered_online");
-    expect(shell.registrationStatusLabel).toBe("Зарегистрирован");
-    expect(shell.phoneStatusLabel).toBe("В сети");
-    expect(shell.registrationDotAriaLabel).toContain("Зарегистрирован");
+    expect(shell.sipStatusLabel).toBe("Зарегистрирован");
+    expect(shell.sipStatusTimerSuffix).toBeNull();
+    expect(shell.sipStatusTone).toBe("registered");
     expect(shell.showUserIdentity).toBe(true);
     expect(shell.displayName).toBe("1001");
-    expect(shell.presenceStatusLabel).toBe("Онлайн");
-    expect(shell.presenceStatusTone).toBe("online");
     expect(shell.avatarInitials).toBe("10");
   });
 
-  it("derives DND dot when registered with dnd phone status", () => {
+  it("derives DND dot when dnd flag is enabled", () => {
     const shell = deriveHeaderChromeShell({
-      authUiState: "sip_registered",
-      registrationState: "registered",
-      phoneStatus: "dnd",
+      health: health({ transport: "connected", registration: "registered" }),
       agentId: null,
       sipUsername: "operator",
+      dndEnabled: true,
+      nowMs: NOW_MS,
     });
 
     expect(shell.registrationDotVariant).toBe("registered_dnd");
-    expect(shell.avatarInitials).toBe("OP");
-    expect(shell.presenceStatusLabel).toBe("Не беспокоить");
+    expect(shell.sipStatusLabel).toBe("Не беспокоить");
+    expect(shell.sipStatusTone).toBe("dnd");
   });
 
-  it("derives failed dot on registration failure", () => {
+  it("derives failed dot and not-registered label on registration failure", () => {
     const shell = deriveHeaderChromeShell({
-      authUiState: "sip_registration_failed",
-      registrationState: "failed",
-      phoneStatus: "offline",
+      health: health({
+        transport: "connected",
+        registration: "failed",
+        recovery: {
+          target: "registration",
+          attemptNumber: 1,
+          maxAttempts: 5,
+          nextRetryAt: null,
+          lastFailureReason: "403 Forbidden",
+        },
+      }),
       agentId: "alice.operator",
       sipUsername: "alice.operator",
-    });
-
-    expect(shell.registrationDotVariant).toBe("failed");
-    expect(shell.registrationStatusLabel).toBe("Ошибка");
-    expect(shell.avatarInitials).toBe("AL");
-    expect(shell.presenceStatusLabel).toBe("Оффлайн");
-  });
-
-  it("derives not_registered when idle", () => {
-    const shell = deriveHeaderChromeShell({
-      authUiState: "sip_only_ready",
-      registrationState: "idle",
-      phoneStatus: "offline",
-      agentId: "Bob Smith",
-      sipUsername: null,
+      nowMs: NOW_MS,
     });
 
     expect(shell.registrationDotVariant).toBe("not_registered");
-    expect(shell.registrationStatusLabel).toBe("Не зарегистрирован");
-    expect(shell.avatarInitials).toBe("BS");
-    expect(shell.showUserIdentity).toBe(false);
+    expect(shell.sipStatusLabel).toBe("Не зарегистрирован");
+    expect(shell.avatarInitials).toBe("AL");
   });
 
-  it("derives failed dot when SIP transport is disconnected", () => {
+  it("derives reconnecting dot and timer suffix during transport retry", () => {
     const shell = deriveHeaderChromeShell({
-      authUiState: "sip_only_ready",
-      registrationState: "idle",
-      phoneStatus: "offline",
+      health: health({
+        transport: "reconnecting",
+        registration: "idle",
+        recovery: {
+          target: "transport",
+          attemptNumber: 2,
+          maxAttempts: 5,
+          nextRetryAt: "2026-06-24T10:00:45.000Z",
+          lastFailureReason: null,
+        },
+      }),
       agentId: "agent-1",
       sipUsername: "agent-1",
-      connectionState: "sip_disconnected",
+      sipAutoReconnectEnabled: true,
+      nowMs: NOW_MS,
     });
 
     expect(shell.registrationDotVariant).toBe("failed");
+    expect(shell.sipStatusLabel).toBe("Нет соединения");
+    expect(shell.sipStatusTimerSuffix).toBe("(переподкл. 00:45)");
+    expect(shell.sipStatusTone).toBe("reconnecting");
   });
 
-  it("derives registering dot during registration retry countdown", () => {
+  it("derives registering dot during initial connection", () => {
     const shell = deriveHeaderChromeShell({
-      authUiState: "sip_registration_failed",
-      registrationState: "failed",
-      phoneStatus: "offline",
+      health: health({ transport: "connecting", registration: "idle" }),
       agentId: "agent-1",
       sipUsername: "agent-1",
-      connectionState: "reconnecting",
-      sipRecoveryMode: "registration",
+      nowMs: NOW_MS,
     });
 
     expect(shell.registrationDotVariant).toBe("registering");
+    expect(shell.sipStatusLabel).toBe("Соединение");
+    expect(shell.sipStatusTone).toBe("connecting");
   });
 });

@@ -9,17 +9,33 @@ afterEach(() => {
 });
 
 describe("UserHeaderIdentity", () => {
-  it("renders display name and presence status", () => {
+  it("renders display name and SIP status line", () => {
     render(
       <UserHeaderIdentity
         displayName="alex.operator"
-        presenceStatusLabel="Онлайн"
-        presenceStatusTone="online"
+        sipStatusLabel="Зарегистрирован"
+        sipStatusTimerSuffix={null}
+        sipStatusTone="registered"
       />,
     );
 
     expect(screen.getByTestId("user-header-identity")).toHaveTextContent("alex.operator");
-    expect(screen.getByTestId("user-presence-status")).toHaveTextContent("Онлайн");
-    expect(screen.getByTestId("user-presence-status")).toHaveAttribute("data-tone", "online");
+    expect(screen.getByTestId("user-sip-status")).toHaveTextContent("Зарегистрирован");
+    expect(screen.getByTestId("user-sip-status")).toHaveAttribute("data-tone", "registered");
+  });
+
+  it("appends recovery timer suffix to SIP status", () => {
+    render(
+      <UserHeaderIdentity
+        displayName="agent"
+        sipStatusLabel="Нет соединения"
+        sipStatusTimerSuffix="(переподкл. 00:45)"
+        sipStatusTone="reconnecting"
+      />,
+    );
+
+    expect(screen.getByTestId("user-sip-status")).toHaveTextContent(
+      "Нет соединения (переподкл. 00:45)",
+    );
   });
 });

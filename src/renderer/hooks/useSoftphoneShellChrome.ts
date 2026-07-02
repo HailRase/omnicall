@@ -1,8 +1,6 @@
 import { useMemo } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import { pickSessionLogoutProjectionInput } from "@application/index.js";
-import { useConnectionRecoveryActions } from "./useConnectionRecoveryActions.js";
-import { useConnectionRecoveryShell } from "./useConnectionRecoveryShell.js";
 import { useSessionLogoutActions } from "./useSessionLogoutActions.js";
 import { useSoftphoneProjections } from "./useSoftphoneProjections.js";
 
@@ -11,9 +9,9 @@ type UseSoftphoneShellChromeInput = Readonly<{
 }>;
 
 /**
- * - Purpose: compose global shell chrome hooks (recovery header, session logout).
+ * - Purpose: compose global shell chrome hooks (session logout).
  * - Inputs: account bootstrap facade.
- * - Outputs: recovery shell/actions and session logout actions for App header.
+ * - Outputs: session logout actions for App header and account panel.
  */
 export function useSoftphoneShellChrome(input: UseSoftphoneShellChromeInput) {
   const { facade } = input;
@@ -23,14 +21,7 @@ export function useSoftphoneShellChrome(input: UseSoftphoneShellChromeInput) {
     incomingCallProjection,
     transferProjection,
     multiLineCallProjection,
-    connectionRecoveryProjection,
   } = useSoftphoneProjections();
-
-  const connectionRecoveryShell = useConnectionRecoveryShell(connectionRecoveryProjection);
-  const connectionRecoveryActions = useConnectionRecoveryActions({
-    facade,
-    projection: connectionRecoveryProjection,
-  });
 
   const sessionLogoutShellInput = useMemo(
     () =>
@@ -58,8 +49,6 @@ export function useSoftphoneShellChrome(input: UseSoftphoneShellChromeInput) {
   });
 
   return {
-    connectionRecoveryShell,
-    connectionRecoveryActions,
     sessionLogoutActions,
   };
 }

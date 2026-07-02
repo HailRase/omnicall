@@ -7,6 +7,7 @@ import type { PlatformError } from "@shared/errors/index.js";
 import { err, ok } from "@shared/result/index.js";
 import type { Result } from "@shared/result/index.js";
 import type { ConnectionRecoveryOrchestrationService } from "./ConnectionRecoveryOrchestrationService.js";
+import type { SipRecoveryOrchestrationService } from "./SipRecoveryOrchestrationService.js";
 
 const FEATURE_ID = "F-014";
 
@@ -39,6 +40,7 @@ export type SessionTeardownInput = Readonly<{
 
 export type SessionTeardownOrchestrationDeps = Readonly<{
   connectionRecoveryOrchestration: ConnectionRecoveryOrchestrationService;
+  sipRecoveryOrchestration: SipRecoveryOrchestrationService;
   callEngine: CallEngine;
   mediaGateway: MediaGateway;
   unregisterAccount: UnregisterAccountUseCase;
@@ -89,6 +91,7 @@ export class SessionTeardownOrchestrationService {
 
       steps.push(await this.runStep(correlationId, operation, "dispose_recovery", () => {
         this.deps.connectionRecoveryOrchestration.dispose();
+        this.deps.sipRecoveryOrchestration.dispose();
         return ok(undefined);
       }));
 

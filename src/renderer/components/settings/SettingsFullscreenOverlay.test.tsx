@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { SettingsFullscreenOverlay } from "./SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "./SettingsPanel.js";
+import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefaults.js";
 
 const appUpdateDefaults = {
   currentVersion: "0.0.1",
@@ -33,10 +34,7 @@ const panelProps = {
   onAutoAnswerTimeoutChange: vi.fn(),
   autoAnswerDuringActiveSessionEnabled: false,
   onAutoAnswerDuringActiveSessionChange: vi.fn(),
-  sipAutoReregisterEnabled: true,
-  onSipAutoReregisterChange: vi.fn(),
-  sipReregisterIntervalSec: 5,
-  onSipReregisterIntervalChange: vi.fn(),
+  systemState: systemStateTestDefaults,
   account: {
     form: { username: "", password: "", domain: "", server: "" },
     submitting: false,

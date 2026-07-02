@@ -1,11 +1,9 @@
 import {
-  DEFAULT_APP_THEME,
-  parseAppTheme,
-  type AppTheme,
-} from "./AppTheme.js";
-import {
+  DEFAULT_SIP_RECONNECT_INTERVAL_SEC,
+  DEFAULT_SIP_RECONNECT_MAX_ATTEMPTS,
   DEFAULT_SIP_REREGISTER_INTERVAL_SEC,
   DEFAULT_SIP_REREGISTER_MAX_ATTEMPTS,
+  MIN_SIP_RECONNECT_INTERVAL_SEC,
   MIN_SIP_REREGISTER_INTERVAL_SEC,
 } from "./SipRecoverySettings.js";
 import {
@@ -19,7 +17,7 @@ export type ValidateUserSettingsResult =
   | Readonly<{ ok: false; errors: ReadonlyArray<string> }>;
 
 /**
- * - Purpose: narrow unknown persisted JSON to UserSettings v1.
+ * - Purpose: narrow unknown persisted JSON to UserSettings v2.
  * - Inputs: unknown payload from adapter boundary.
  * - Outputs: ok with UserSettings or structured validation errors.
  */
@@ -52,6 +50,19 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
     errors,
   );
   const ringbackToneEnabled = readBoolean(record, "ringbackToneEnabled", errors);
+  const sipAutoReconnectEnabled = readBooleanWithDefault(
+    record,
+    "sipAutoReconnectEnabled",
+    true,
+    errors,
+  );
+  const sipReconnectIntervalSec = readSipReconnectInterval(record, errors);
+  const sipReconnectMaxAttempts = readPositiveIntegerWithDefault(
+    record,
+    "sipReconnectMaxAttempts",
+    DEFAULT_SIP_RECONNECT_MAX_ATTEMPTS,
+    errors,
+  );
   const sipAutoReregisterEnabled = readBooleanWithDefault(
     record,
     "sipAutoReregisterEnabled",
@@ -63,6 +74,12 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
     record,
     "sipReregisterMaxAttempts",
     DEFAULT_SIP_REREGISTER_MAX_ATTEMPTS,
+    errors,
+  );
+  const sipAutoRegisterOnStartup = readBooleanWithDefault(
+    record,
+    "sipAutoRegisterOnStartup",
+    false,
     errors,
   );
 
@@ -80,24 +97,30 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
       autoAnswerTimeoutSec,
       autoAnswerDuringActiveSessionEnabled,
       ringbackToneEnabled,
+      sipAutoReconnectEnabled,
+      sipReconnectIntervalSec,
+      sipReconnectMaxAttempts,
       sipAutoReregisterEnabled,
       sipReregisterIntervalSec,
       sipReregisterMaxAttempts,
+      sipAutoRegisterOnStartup,
     },
   };
 }
 
-function readTheme(record: Record<string, unknown>, errors: string[]): AppTheme {
+function readTheme(
+  record: Record<string, unknown>,
+  errors: string[],
+): UserSettings["theme"] {
   const raw = record["theme"];
   if (raw === undefined) {
-    return DEFAULT_APP_THEME;
+    return "light";
   }
-  const parsed = parseAppTheme(raw);
-  if (parsed === null) {
-    errors.push("theme_invalid");
-    return DEFAULT_APP_THEME;
+  if (raw === "light" || raw === "dark") {
+    return raw;
   }
-  return parsed;
+  errors.push("theme_invalid");
+  return "light";
 }
 
 function readBoolean(
@@ -143,6 +166,25 @@ function readPositiveIntegerWithDefault(
   if (typeof raw !== "number" || !Number.isInteger(raw) || raw < 1) {
     errors.push(`${field}_invalid`);
     return defaultValue;
+  }
+  return raw;
+}
+
+function readSipReconnectInterval(
+  record: Record<string, unknown>,
+  errors: string[],
+): number {
+  const raw = record["sipReconnectIntervalSec"];
+  if (raw === undefined) {
+    return DEFAULT_SIP_RECONNECT_INTERVAL_SEC;
+  }
+  if (typeof raw !== "number" || !Number.isInteger(raw)) {
+    errors.push("sipReconnectIntervalSec_invalid");
+    return DEFAULT_SIP_RECONNECT_INTERVAL_SEC;
+  }
+  if (raw < MIN_SIP_RECONNECT_INTERVAL_SEC) {
+    errors.push("sipReconnectIntervalSec_out_of_range");
+    return MIN_SIP_RECONNECT_INTERVAL_SEC;
   }
   return raw;
 }

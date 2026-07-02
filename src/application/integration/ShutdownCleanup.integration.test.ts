@@ -3,6 +3,7 @@ import { ShutdownCleanupUseCase } from "@application/use-cases/ShutdownCleanupUs
 import { SessionTeardownOrchestrationService } from "@application/services/SessionTeardownOrchestrationService.js";
 import { UnregisterAccountUseCase } from "@application/use-cases/UnregisterAccountUseCase.js";
 import { ConnectionRecoveryOrchestrationService } from "@application/services/ConnectionRecoveryOrchestrationService.js";
+import { SipRecoveryOrchestrationService } from "@application/services/SipRecoveryOrchestrationService.js";
 import { CallEngine } from "@application/services/CallEngine.js";
 import { InMemoryDomainEventBus } from "@application/events/InMemoryDomainEventBus.js";
 import { InMemoryAgentStatusReadModel } from "@application/read-models/InMemoryAgentStatusReadModel.js";
@@ -39,6 +40,11 @@ describe("ShutdownCleanup integration", () => {
       eventPublisher,
       logger: createTestLogger(),
     });
+    const sipOrchestration = new SipRecoveryOrchestrationService({
+      telephonyGateway,
+      eventPublisher,
+      logger: createTestLogger(),
+    });
     const callEngine = new CallEngine(
       telephonyGateway,
       mediaGateway,
@@ -53,6 +59,7 @@ describe("ShutdownCleanup integration", () => {
     );
     const sessionTeardown = new SessionTeardownOrchestrationService({
       connectionRecoveryOrchestration: orchestration,
+      sipRecoveryOrchestration: sipOrchestration,
       callEngine,
       mediaGateway,
       unregisterAccount,

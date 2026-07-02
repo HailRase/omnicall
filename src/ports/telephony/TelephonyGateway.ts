@@ -72,6 +72,14 @@ export type TelephonyRemoteResumeNotification = Readonly<{
   correlationId: CorrelationId;
 }>;
 
+export type TelephonyTransportConnectingNotification = Readonly<{
+  correlationId: CorrelationId;
+}>;
+
+export type TelephonyTransportConnectedNotification = Readonly<{
+  correlationId: CorrelationId;
+}>;
+
 export type TelephonyTransportDisconnectedNotification = Readonly<{
   correlationId: CorrelationId;
   reason: string;
@@ -144,6 +152,14 @@ export interface TelephonyGateway {
   setTransportDisconnectedHandler(
     handler: ((notification: TelephonyTransportDisconnectedNotification) => Promise<void>) | null,
   ): () => void;
+  /** T-008: adapter invokes on SIP WebSocket connecting (ADR-0004). */
+  setTransportConnectingHandler(
+    handler: ((notification: TelephonyTransportConnectingNotification) => Promise<void>) | null,
+  ): () => void;
+  /** T-008: adapter invokes on SIP WebSocket connected (ADR-0004). */
+  setTransportConnectedHandler(
+    handler: ((notification: TelephonyTransportConnectedNotification) => Promise<void>) | null,
+  ): () => void;
   /** Mid-session REGISTER failure while transport stays up (LF-008). */
   setRegistrationFailedHandler(
     handler: ((notification: TelephonyRegistrationFailedNotification) => Promise<void>) | null,
@@ -157,4 +173,8 @@ export interface TelephonyGateway {
    * Retry SIP REGISTER on existing UA when transport is connected (LF-008).
    */
   reregister(correlationId: CorrelationId): Promise<Result<void, PlatformError>>;
+  /**
+   * Proactive registration refresh: unregister all contacts then REGISTER (ADR-0004 §1.6).
+   */
+  forceRefreshRegistration(correlationId: CorrelationId): Promise<Result<void, PlatformError>>;
 }

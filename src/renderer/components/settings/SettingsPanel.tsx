@@ -1,5 +1,5 @@
 import type { JSX, ReactNode } from "react";
-import type { AppTheme, SipAccountInput } from "@application/index.js";
+import type { AppTheme, SipAccountInput, SipSystemStateShellView } from "@application/index.js";
 import { IconControlButton } from "../icons/index.js";
 import type { SettingsSectionId } from "./settingsSections.js";
 import { resolveSettingsContentHeaderTitle } from "./settingsSections.js";
@@ -10,6 +10,7 @@ import { SettingsDiagnosticsPanel } from "./panels/SettingsDiagnosticsPanel.js";
 import { SettingsGeneralPanel } from "./panels/SettingsGeneralPanel.js";
 import { SettingsHeadsetPanel } from "./panels/SettingsHeadsetPanel.js";
 import { SettingsSessionsPanel } from "./panels/SettingsSessionsPanel.js";
+import { SettingsSystemStatePanel } from "./panels/SettingsSystemStatePanel.js";
 import formStyles from "./SettingsForm.module.css";
 import styles from "./SettingsPanel.module.css";
 
@@ -29,10 +30,6 @@ export type SettingsPanelProps = Readonly<{
   onAutoAnswerTimeoutChange: (timeoutSec: number) => void;
   autoAnswerDuringActiveSessionEnabled: boolean;
   onAutoAnswerDuringActiveSessionChange: (enabled: boolean) => void;
-  sipAutoReregisterEnabled: boolean;
-  onSipAutoReregisterChange: (enabled: boolean) => void;
-  sipReregisterIntervalSec: number;
-  onSipReregisterIntervalChange: (intervalSec: number) => void;
   currentVersion: string;
   latestVersion: string | undefined;
   updateStatusMessage: string;
@@ -42,6 +39,28 @@ export type SettingsPanelProps = Readonly<{
   onCheckForUpdates: () => void;
   onOpenDownloadPage: () => void;
   updateError?: string | null;
+  systemState: Readonly<{
+    shell: SipSystemStateShellView;
+    sipAutoReconnectEnabled: boolean;
+    onSipAutoReconnectChange: (enabled: boolean) => void;
+    sipReconnectIntervalSec: number;
+    onSipReconnectIntervalChange: (intervalSec: number) => void;
+    sipReconnectMaxAttempts: number;
+    onSipReconnectMaxAttemptsChange: (attempts: number) => void;
+    sipAutoReregisterEnabled: boolean;
+    onSipAutoReregisterChange: (enabled: boolean) => void;
+    sipReregisterIntervalSec: number;
+    onSipReregisterIntervalChange: (intervalSec: number) => void;
+    sipReregisterMaxAttempts: number;
+    onSipReregisterMaxAttemptsChange: (attempts: number) => void;
+    sipAutoRegisterOnStartup: boolean;
+    onSipAutoRegisterOnStartupChange: (enabled: boolean) => void;
+    onManualTransportReconnect: () => void;
+    onManualReregister: () => void;
+    onForceRefreshRegistration: () => void;
+    onClearJournal: () => void;
+    actionError: string | null;
+  }>;
   account: Readonly<{
     form: SipAccountInput;
     submitting: boolean;
@@ -77,10 +96,6 @@ export function SettingsPanel({
   onAutoAnswerTimeoutChange,
   autoAnswerDuringActiveSessionEnabled,
   onAutoAnswerDuringActiveSessionChange,
-  sipAutoReregisterEnabled,
-  onSipAutoReregisterChange,
-  sipReregisterIntervalSec,
-  onSipReregisterIntervalChange,
   currentVersion,
   latestVersion,
   updateStatusMessage,
@@ -90,6 +105,7 @@ export function SettingsPanel({
   onCheckForUpdates,
   onOpenDownloadPage,
   updateError = null,
+  systemState,
   account,
 }: SettingsPanelProps): JSX.Element {
   const handleToggleSidebar = (): void => {
@@ -118,10 +134,6 @@ export function SettingsPanel({
         <SettingsGeneralPanel
           theme={theme}
           onThemeChange={onThemeChange}
-          sipAutoReregisterEnabled={sipAutoReregisterEnabled}
-          onSipAutoReregisterChange={onSipAutoReregisterChange}
-          sipReregisterIntervalSec={sipReregisterIntervalSec}
-          onSipReregisterIntervalChange={onSipReregisterIntervalChange}
           currentVersion={currentVersion}
           latestVersion={latestVersion}
           updateStatusMessage={updateStatusMessage}
@@ -144,6 +156,32 @@ export function SettingsPanel({
           onAutoAnswerTimeoutChange={onAutoAnswerTimeoutChange}
           autoAnswerDuringActiveSessionEnabled={autoAnswerDuringActiveSessionEnabled}
           onAutoAnswerDuringActiveSessionChange={onAutoAnswerDuringActiveSessionChange}
+        />
+      );
+      break;
+    case "system-state":
+      sectionContent = (
+        <SettingsSystemStatePanel
+          shell={systemState.shell}
+          sipAutoReconnectEnabled={systemState.sipAutoReconnectEnabled}
+          onSipAutoReconnectChange={systemState.onSipAutoReconnectChange}
+          sipReconnectIntervalSec={systemState.sipReconnectIntervalSec}
+          onSipReconnectIntervalChange={systemState.onSipReconnectIntervalChange}
+          sipReconnectMaxAttempts={systemState.sipReconnectMaxAttempts}
+          onSipReconnectMaxAttemptsChange={systemState.onSipReconnectMaxAttemptsChange}
+          sipAutoReregisterEnabled={systemState.sipAutoReregisterEnabled}
+          onSipAutoReregisterChange={systemState.onSipAutoReregisterChange}
+          sipReregisterIntervalSec={systemState.sipReregisterIntervalSec}
+          onSipReregisterIntervalChange={systemState.onSipReregisterIntervalChange}
+          sipReregisterMaxAttempts={systemState.sipReregisterMaxAttempts}
+          onSipReregisterMaxAttemptsChange={systemState.onSipReregisterMaxAttemptsChange}
+          sipAutoRegisterOnStartup={systemState.sipAutoRegisterOnStartup}
+          onSipAutoRegisterOnStartupChange={systemState.onSipAutoRegisterOnStartupChange}
+          onManualTransportReconnect={systemState.onManualTransportReconnect}
+          onManualReregister={systemState.onManualReregister}
+          onForceRefreshRegistration={systemState.onForceRefreshRegistration}
+          onClearJournal={systemState.onClearJournal}
+          actionError={systemState.actionError}
         />
       );
       break;
@@ -180,7 +218,6 @@ export function SettingsPanel({
               iconId="overlay.close"
               ariaLabel="Закрыть настройки"
               testId="settings-overlay-close"
-              className={styles["closeButton"]}
               onClick={onClose}
             />
           </div>

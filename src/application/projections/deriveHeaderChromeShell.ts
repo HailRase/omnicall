@@ -1,7 +1,8 @@
-import { phoneStatusLabel } from "@domain/index.js";
-import type { PhoneStatus, RegistrationState } from "@domain/index.js";
-import type { AuthUiState } from "./accountBootstrapProjection.js";
-import type { ConnectionState, SipRecoveryMode } from "./connectionRecoveryProjection.js";
+import type { SipSessionHealth } from "@domain/index.js";
+import {
+  deriveSipStatusShell,
+  type SipStatusDotTone,
+} from "./deriveSipStatusShell.js";
 
 export type RegistrationDotVariant =
   | "registering"
@@ -11,91 +12,44 @@ export type RegistrationDotVariant =
   | "failed"
   | "not_registered";
 
-export type PresenceStatusTone = "online" | "offline" | "dnd";
-
 export type HeaderChromeShellInput = Readonly<{
-  authUiState: AuthUiState;
-  registrationState: RegistrationState;
-  phoneStatus: PhoneStatus;
+  health: SipSessionHealth;
   agentId: string | null;
   sipUsername: string | null;
-  connectionState?: ConnectionState;
-  sipRecoveryMode?: SipRecoveryMode | null;
+  dndEnabled?: boolean;
+  sipAutoReconnectEnabled?: boolean;
+  sipAutoReregisterEnabled?: boolean;
+  nowMs?: number;
 }>;
 
 export type HeaderChromeShellViewModel = Readonly<{
   registrationDotVariant: RegistrationDotVariant;
-  registrationStatusLabel: string;
-  phoneStatusLabel: string;
-  avatarInitials: string;
   registrationDotAriaLabel: string;
+  avatarInitials: string;
   showUserIdentity: boolean;
   displayName: string | null;
-  presenceStatusLabel: string | null;
-  presenceStatusTone: PresenceStatusTone | null;
+  sipStatusLabel: string | null;
+  sipStatusTimerSuffix: string | null;
+  sipStatusTone: SipStatusDotTone | null;
 }>;
 
-function deriveRegistrationStatusLabel(
-  authUiState: AuthUiState,
-  registrationState: RegistrationState,
-): string {
-  if (authUiState === "sip_registering") {
-    return "Регистрация";
-  }
-
-  switch (registrationState) {
-    case "registered":
-      return "Зарегистрирован";
-    case "failed":
-      return "Ошибка";
+function mapDotToneToVariant(tone: SipStatusDotTone): RegistrationDotVariant {
+  switch (tone) {
+    case "idle":
+      return "not_registered";
+    case "connecting":
     case "registering":
-      return "Регистрация";
-    default:
-      return "Не зарегистрирован";
-  }
-}
-
-function deriveRegistrationDotVariant(
-  authUiState: AuthUiState,
-  registrationState: RegistrationState,
-  phoneStatus: PhoneStatus,
-  connectionState: ConnectionState = "connected",
-  sipRecoveryMode: SipRecoveryMode | null = null,
-): RegistrationDotVariant {
-  if (authUiState === "sip_registering" || registrationState === "registering") {
-    return "registering";
-  }
-
-  if (
-    connectionState === "reconnecting" &&
-    sipRecoveryMode === "registration"
-  ) {
-    return "registering";
-  }
-
-  if (authUiState === "sip_registration_failed" || registrationState === "failed") {
-    return "failed";
-  }
-
-  if (connectionState === "sip_disconnected" || connectionState === "reconnect_failed") {
-    return "failed";
-  }
-
-  if (connectionState === "sip_registration_failed") {
-    return "failed";
-  }
-
-  if (authUiState === "sip_registered" || registrationState === "registered") {
-    if (phoneStatus === "dnd") {
+      return "registering";
+    case "reconnecting":
+    case "disconnected":
+      return "failed";
+    case "not_registered":
+      return "not_registered";
+    case "registered":
+      return "registered_online";
+    case "dnd":
       return "registered_dnd";
-    }
-    if (phoneStatus === "offline") {
-      return "registered_offline";
-    }
-    return "registered_online";
   }
-
-  return "not_registered";
 }
 
 function deriveAvatarInitials(
@@ -119,54 +73,38 @@ function deriveAvatarInitials(
   return trimmed.slice(0, 2).toUpperCase();
 }
 
-function derivePresenceStatus(
-  phoneStatus: PhoneStatus,
-): Readonly<{ label: string; tone: PresenceStatusTone }> {
-  switch (phoneStatus) {
-    case "online":
-      return { label: "Онлайн", tone: "online" };
-    case "offline":
-      return { label: "Оффлайн", tone: "offline" };
-    case "dnd":
-      return { label: "Не беспокоить", tone: "dnd" };
-  }
-}
-
 /**
- * - Purpose: derive header chrome view-model for avatar, registration dot, and labels.
- * - Inputs: account bootstrap projection fields.
- * - Outputs: compact registration variant, labels, and avatar initials for shell header.
+ * - Purpose: derive header chrome view-model from SIP session health (ADR-0004 §4).
+ * - Inputs: SipSessionHealth, identity fields, recovery toggles, clock.
+ * - Outputs: dot variant, SIP status line, and avatar initials for shell header.
  */
 export function deriveHeaderChromeShell(
   input: HeaderChromeShellInput,
 ): HeaderChromeShellViewModel {
-  const registrationStatusLabel = deriveRegistrationStatusLabel(
-    input.authUiState,
-    input.registrationState,
-  );
-  const registrationDotVariant = deriveRegistrationDotVariant(
-    input.authUiState,
-    input.registrationState,
-    input.phoneStatus,
-    input.connectionState ?? "connected",
-    input.sipRecoveryMode ?? null,
-  );
-  const phoneLabel = phoneStatusLabel(input.phoneStatus);
+  const sipStatus = deriveSipStatusShell({
+    health: input.health,
+    ...(input.dndEnabled !== undefined ? { dndEnabled: input.dndEnabled } : {}),
+    ...(input.sipAutoReconnectEnabled !== undefined
+      ? { sipAutoReconnectEnabled: input.sipAutoReconnectEnabled }
+      : {}),
+    ...(input.sipAutoReregisterEnabled !== undefined
+      ? { sipAutoReregisterEnabled: input.sipAutoReregisterEnabled }
+      : {}),
+    ...(input.nowMs !== undefined ? { nowMs: input.nowMs } : {}),
+  });
   const sipUsername =
     input.sipUsername !== null && input.sipUsername.trim().length > 0
       ? input.sipUsername.trim()
       : null;
-  const presence = derivePresenceStatus(input.phoneStatus);
 
   return {
-    registrationDotVariant,
-    registrationStatusLabel,
-    phoneStatusLabel: phoneLabel,
+    registrationDotVariant: mapDotToneToVariant(sipStatus.dotTone),
+    registrationDotAriaLabel: sipStatus.ariaLabel,
     avatarInitials: deriveAvatarInitials(sipUsername, input.agentId),
-    registrationDotAriaLabel: `Регистрация: ${registrationStatusLabel}, телефон: ${phoneLabel}`,
     showUserIdentity: sipUsername !== null,
     displayName: sipUsername,
-    presenceStatusLabel: sipUsername !== null ? presence.label : null,
-    presenceStatusTone: sipUsername !== null ? presence.tone : null,
+    sipStatusLabel: sipUsername !== null ? sipStatus.primaryLabel : null,
+    sipStatusTimerSuffix: sipUsername !== null ? sipStatus.timerSuffix : null,
+    sipStatusTone: sipUsername !== null ? sipStatus.dotTone : null,
   };
 }

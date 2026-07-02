@@ -18,12 +18,13 @@
 | `settings.account` | Settings account section | `User` | `UserIcon` | `SettingsSidebar` | active |
 | `settings.general` | Settings general section | `SlidersHorizontal` | `SlidersHorizontalIcon` | `SettingsSidebar` | active |
 | `settings.sessions` | Settings sessions section | `Layers` | `LayersIcon` | `SettingsSidebar` | active |
+| `settings.system-state` | Settings system state section (SIP transport/register) | `Gauge` | — | `SettingsSidebar` (Phase 6) | planned |
 | `settings.codecs` | Settings codecs section | `AudioLines` | `AudioLinesIcon` | `SettingsSidebar` | active |
 | `settings.headset` | Settings headset section | `Headphones` | — | `SettingsSidebar` | active |
 | `settings.nav.expand` | Expand settings sidebar | `ChevronRight` | `ChevronRightIcon` | `SettingsSidebar` | active |
 | `settings.nav.collapse` | Collapse settings sidebar | `ChevronLeft` | `ChevronLeftIcon` | `SettingsSidebar` | active |
-| `session.end` | End user session | `LogOut` | `LogoutIcon` | `UserAvatarMenu`, `LogoutActiveSessionConfirmationModal`, `ConnectionOverlay` | active |
-| `sip.reregister` | Manual SIP re-register | `RefreshCcw` | `RefreshCcwIcon` | `SoftphoneShellHeader` | active |
+| `session.end` | End user session | `LogOut` | `LogoutIcon` | `UserAvatarMenu`, `LogoutActiveSessionConfirmationModal` | active |
+| `sip.reregister` | Manual SIP re-register | `RefreshCcw` | `RefreshCcwIcon` | `SettingsSystemStatePanel` (Phase 6) | planned |
 | `call.answer` | Answer ringing call | `PhoneCall` | `PhoneCallIcon` | `IncomingCallOverlay`, `CallLineRow` | active |
 | `call.reject` | Reject incoming call | `PhoneOff` | `PhoneOffIcon` | `IncomingCallOverlay`, `CampaignEventModal` | active |
 | `call.hangup` | Hang up active call | `PhoneOff` | `PhoneOffIcon` | `CallLineRow`, `ActiveCallControlsPanel` | active |
@@ -34,7 +35,7 @@
 | `call.transfer` | Start transfer | `PhoneForwarded` | `PhoneForwardedIcon` | `CallLineRow`, `TransferPanel` | active |
 | `call.incoming` | Incoming call indicator | `PhoneIncoming` | `PhoneIncomingIcon` | `IncomingCallOverlay` | active |
 | `call.outgoing` | Outgoing call indicator | `Phone` | `PhoneIcon` | `OutgoingCallCard` | active |
-| `call.phone-off` | Connection lost | `PhoneOff` | `PhoneOffIcon` | `ConnectionOverlay` | active |
+| `call.phone-off` | Connection lost | `PhoneOff` | `PhoneOffIcon` | `SettingsSystemStatePanel` (Phase 6) | planned |
 | `overlay.close` | Close overlay/modal | `X` | `XIcon` | `ShellOverlaySheet`, modals, `OcpToastStack`, transfer cancel | active |
 | `dial.call` | Place outgoing call | `PhoneOutgoing` | — | `Dialpad` | active |
 | `dial.delete` | Delete last digit | `Delete` | `DeleteIcon` | `Dialpad` | active |
@@ -45,7 +46,7 @@
 | `action.confirm` | Confirm action | `Check` | `CheckIcon` | `BreakReasonPicker`, `CampaignEventModal`, `TransferPanel` | active |
 | `action.retry` | Retry failed operation | `RotateCcw` | `RotateCcwIcon` | `CallLineRow`, `ActiveCallControlsPanel` | active |
 | `transfer.consultation` | Start consultation call | `PhoneCall` | `PhoneCallIcon` | `TransferPanel` | active |
-| `connection.retry` | Retry connection | `RotateCcw` | `RotateCcwIcon` | `ConnectionOverlay` | active |
+| `connection.retry` | Retry connection | `RotateCcw` | `RotateCcwIcon` | `SettingsSystemStatePanel` (Phase 6) | planned |
 | `phone.dnd.on` | DND mode active (bell on) | `Bell` | — | `UserAvatarMenu` | active |
 | `phone.dnd.off` | DND mode inactive (bell off) | `BellOff` | — | `UserAvatarMenu` | active |
 

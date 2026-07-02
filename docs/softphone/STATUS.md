@@ -2,9 +2,9 @@
 
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
-**Updated:** 2026-07-01  
-**Tests:** 916 passed, 1 skipped (`npm run test`) — last verified 2026-07-01  
-**Lint / typecheck:** green (last verified 2026-07-01)
+**Updated:** 2026-07-02  
+**Tests:** 1006 passed, 1 skipped (`npm run test`) — last verified 2026-07-02  
+**Lint / typecheck:** green (last verified 2026-07-02)
 
 **Guides (onboarding):** [`guides/README.md`](../../guides/README.md) — установка, пользователь, агенты Cursor, релизы.
 
@@ -23,7 +23,7 @@
 | Post-WU5 shell polish | done | `handoffs/P11-Post-WU5-Shell-Polish-Handoff.md` |
 | Call UI design parity (T-007) | done | `handoffs/P11-Call-UI-Design-Parity-Handoff.md` |
 
-**P11 phase gate:** WU0–WU5 + post-WU5 polish + Call UI parity **done**. Remaining for phase close: UI-6 Radix modals, draggable widget (LF-056), toast placement (LF-060), codecs placeholder (LF-084), **LF-009 recovery UI** (new design — deferred). **LF-082 theme** done 2026-06-26.
+**P11 phase gate:** WU0–WU5 + post-WU5 polish + Call UI parity **done**. **T-008** SIP transport/register refactor **done** (LF-009/LF-057 header + «Состояние системы»). Remaining for phase close: UI-6 Radix modals, draggable widget (LF-056), toast placement (LF-060), codecs placeholder (LF-084). **LF-082 theme** done 2026-06-26.
 
 ## Next work (priority)
 
@@ -31,10 +31,9 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 1. **P10** headset foundation — T-004 — `/logic`
 2. P11 polish: UI-6 Radix modals — `/ui`
-3. **LF-009** SIP recovery UI (redesign; projection `showAvatarRecoveryRing` ready) — `/ui`
-4. Merge `feature/real-adapters` branch
+3. Merge `feature/real-adapters` branch
 
-**Recently closed (TASK-QUEUE):** T-007 Call UI design parity (`handoffs/P11-Call-UI-Design-Parity-Handoff.md`), post-WU5 shell polish (`handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`), T-005 fullscreen settings panel, T-001 icon tooltips, T-002 AppIcon wiring, **F-014 SIP registration retry** (`handoffs/P08-SIP-Registration-Retry-Handoff.md`).
+**Recently closed (TASK-QUEUE):** **T-008** SIP transport/register state refactor (`TRANSPORT-REGISTER-STATE-REFACTORING.md`), T-007 Call UI design parity (`handoffs/P11-Call-UI-Design-Parity-Handoff.md`), post-WU5 shell polish (`handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`), T-005 fullscreen settings panel, T-001 icon tooltips, T-002 AppIcon wiring, **F-014 SIP registration retry** (`handoffs/P08-SIP-Registration-Retry-Handoff.md`).
 
 ## RAT (Real Adapter Track)
 

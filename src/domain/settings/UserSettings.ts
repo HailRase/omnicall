@@ -1,11 +1,14 @@
 import { DEFAULT_APP_THEME, type AppTheme } from "./AppTheme.js";
 import {
+  DEFAULT_SIP_RECONNECT_INTERVAL_SEC,
+  DEFAULT_SIP_RECONNECT_MAX_ATTEMPTS,
   DEFAULT_SIP_REREGISTER_INTERVAL_SEC,
   DEFAULT_SIP_REREGISTER_MAX_ATTEMPTS,
+  MIN_SIP_RECONNECT_INTERVAL_SEC,
   MIN_SIP_REREGISTER_INTERVAL_SEC,
 } from "./SipRecoverySettings.js";
 
-export const SETTINGS_SCHEMA_VERSION = 1 as const;
+export const SETTINGS_SCHEMA_VERSION = 2 as const;
 
 export type SettingsSchemaVersion = typeof SETTINGS_SCHEMA_VERSION;
 
@@ -20,17 +23,21 @@ export type UserSettings = Readonly<{
   autoAnswerTimeoutSec: number | null;
   autoAnswerDuringActiveSessionEnabled: boolean;
   ringbackToneEnabled: boolean;
+  sipAutoReconnectEnabled: boolean;
+  sipReconnectIntervalSec: number;
+  sipReconnectMaxAttempts: number;
   sipAutoReregisterEnabled: boolean;
   sipReregisterIntervalSec: number;
   sipReregisterMaxAttempts: number;
+  sipAutoRegisterOnStartup: boolean;
 }>;
 
-export { MIN_SIP_REREGISTER_INTERVAL_SEC };
+export { MIN_SIP_REREGISTER_INTERVAL_SEC, MIN_SIP_RECONNECT_INTERVAL_SEC };
 
 /**
- * - Purpose: default v1 user settings for fresh install.
+ * - Purpose: default v2 user settings for fresh install.
  * - Inputs: none.
- * - Outputs: validated UserSettings v1 aggregate.
+ * - Outputs: validated UserSettings v2 aggregate.
  */
 export function createDefaultUserSettings(): UserSettings {
   return {
@@ -41,8 +48,12 @@ export function createDefaultUserSettings(): UserSettings {
     autoAnswerTimeoutSec: null,
     autoAnswerDuringActiveSessionEnabled: false,
     ringbackToneEnabled: true,
+    sipAutoReconnectEnabled: true,
+    sipReconnectIntervalSec: DEFAULT_SIP_RECONNECT_INTERVAL_SEC,
+    sipReconnectMaxAttempts: DEFAULT_SIP_RECONNECT_MAX_ATTEMPTS,
     sipAutoReregisterEnabled: true,
     sipReregisterIntervalSec: DEFAULT_SIP_REREGISTER_INTERVAL_SEC,
     sipReregisterMaxAttempts: DEFAULT_SIP_REREGISTER_MAX_ATTEMPTS,
+    sipAutoRegisterOnStartup: false,
   };
 }

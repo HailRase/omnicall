@@ -14,6 +14,8 @@ export type JsSipUnregisteredEvent = Readonly<{
 }>;
 
 export type JsSipUaEventName =
+  | "connecting"
+  | "connected"
   | "disconnected"
   | "registered"
   | "registrationFailed"

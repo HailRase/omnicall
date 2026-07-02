@@ -174,6 +174,22 @@ export {
   type SipRecoveryMode,
 } from "./projections/connectionRecoveryProjection.js";
 export {
+  initialSipSessionHealthProjection,
+  reduceSipSessionHealthProjection,
+  type SipSessionHealthProjection,
+} from "./projections/sipSessionHealthProjection.js";
+export {
+  deriveSipStatusShell,
+  type SipStatusDotTone,
+  type SipStatusShellInput,
+  type SipStatusShellView,
+} from "./projections/deriveSipStatusShell.js";
+export {
+  deriveSipSystemStateShell,
+  type SipSystemStateShellInput,
+  type SipSystemStateShellView,
+} from "./projections/deriveSipSystemStateShell.js";
+export {
   deriveConnectionRecoveryShell,
   type AvatarRecoveryOverlayMode,
   type ConnectionRecoveryShellView,
@@ -202,6 +218,13 @@ export { SendDlgStopUseCase } from "./use-cases/SendDlgStopUseCase.js";
 export { CallEndDlgStopOrchestrationService } from "./services/CallEndDlgStopOrchestrationService.js";
 export { ConnectionRecoveryOrchestrationService } from "./services/ConnectionRecoveryOrchestrationService.js";
 export type { ConnectionRecoveryOrchestrationDeps } from "./services/ConnectionRecoveryOrchestrationService.js";
+export { SipRecoveryOrchestrationService } from "./services/SipRecoveryOrchestrationService.js";
+export type { SipRecoveryOrchestrationDeps } from "./services/SipRecoveryOrchestrationService.js";
+export { SipConnectionJournal } from "./services/SipConnectionJournal.js";
+export type {
+  SipConnectionJournalEntry,
+  SipConnectionJournalCategory,
+} from "./services/SipConnectionJournal.js";
 export { ShellWindowLayoutService } from "./services/ShellWindowLayoutService.js";
 export type { ShellWindowLayoutServiceInput } from "./services/ShellWindowLayoutService.js";
 export { ServerTerminateCleanupService } from "./services/ServerTerminateCleanupService.js";
@@ -214,12 +237,19 @@ export type {
 export { InMemoryConnectionRecoveryReadModel } from "./read-models/InMemoryConnectionRecoveryReadModel.js";
 export { RetryConnectionUseCase } from "./use-cases/RetryConnectionUseCase.js";
 export type { RetryConnectionInput, RetryConnectionChannel } from "./use-cases/RetryConnectionUseCase.js";
+export { ManualSipTransportReconnectUseCase } from "./use-cases/ManualSipTransportReconnectUseCase.js";
+export type { ManualSipTransportReconnectInput } from "./use-cases/ManualSipTransportReconnectUseCase.js";
+export { ForceRefreshSipRegistrationUseCase } from "./use-cases/ForceRefreshSipRegistrationUseCase.js";
+export type { ForceRefreshSipRegistrationInput } from "./use-cases/ForceRefreshSipRegistrationUseCase.js";
 export { ReregisterSipUseCase } from "./use-cases/ReregisterSipUseCase.js";
 export type { ReregisterSipInput } from "./use-cases/ReregisterSipUseCase.js";
 export {
   MIN_SIP_REREGISTER_INTERVAL_SEC,
+  MIN_SIP_RECONNECT_INTERVAL_SEC,
   DEFAULT_SIP_REREGISTER_INTERVAL_SEC,
   DEFAULT_SIP_REREGISTER_MAX_ATTEMPTS,
+  DEFAULT_SIP_RECONNECT_INTERVAL_SEC,
+  DEFAULT_SIP_RECONNECT_MAX_ATTEMPTS,
 } from "@domain/settings/SipRecoverySettings.js";
 export { APP_THEMES, DEFAULT_APP_THEME, parseAppTheme, type AppTheme } from "@domain/settings/AppTheme.js";
 export {
@@ -252,7 +282,6 @@ export {
   deriveHeaderChromeShell,
   type HeaderChromeShellInput,
   type HeaderChromeShellViewModel,
-  type PresenceStatusTone,
   type RegistrationDotVariant,
 } from "./projections/deriveHeaderChromeShell.js";
 export { deriveActiveCallControlsShell } from "./projections/deriveActiveCallControlsShell.js";

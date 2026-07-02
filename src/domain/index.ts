@@ -414,9 +414,78 @@ export {
 } from "./telephony/events/sipRegistrationRetryEvents.js";
 export { mapSipRegistrationFailureKey } from "./telephony/mapSipRegistrationFailureKey.js";
 export {
+  isNonRetryableSipAuthError,
+  isNonRetryableSipAuthHttpCode,
+  isNonRetryableSipRegistrationFailureKey,
+  formatSipAuthTerminalMessage,
+  NON_RETRYABLE_SIP_AUTH_HTTP_CODES,
+} from "./telephony/sipAuthErrorPolicy.js";
+export type {
+  SipLifecyclePhase,
+  SipRegistrationState,
+  SipRecoverySnapshot,
+  SipRecoveryTarget,
+  SipSessionHealth,
+  SipSessionHealthInvariantViolation,
+} from "./telephony/SipSessionHealth.js";
+export {
+  applySipSessionReset,
+  applySipTransportLoss,
+  createIdleSipSessionHealth,
+  EMPTY_SIP_RECOVERY_SNAPSHOT,
+  getEffectiveRegistrationState,
+  isEffectivelyRegistered,
+  validateSipSessionHealthInvariants,
+} from "./telephony/SipSessionHealth.js";
+export type {
+  SipTransportState,
+  SipTransportTransitionEvent,
+  SipTransportTransitionResult,
+} from "./telephony/SipTransportState.js";
+export {
+  initialSipTransportState,
+  isSipTransportConnected,
+  SIP_TRANSPORT_STATES,
+  transitionSipTransportState,
+} from "./telephony/SipTransportState.js";
+export type {
+  SipTransportDomainEvent,
+  SipSessionActivatedEvent,
+  SipSessionResetEvent,
+  SipTransportConnectingEvent,
+  SipTransportConnectedEvent,
+  SipTransportDisconnectedEvent,
+  SipTransportReconnectScheduledEvent,
+  SipTransportReconnectAttemptStartedEvent,
+  SipTransportReconnectSucceededEvent,
+  SipTransportReconnectFailedEvent,
+  SipRegistrationClearedEvent,
+  ManualSipTransportReconnectRequestedEvent,
+  ManualSipReregisterRequestedEvent,
+} from "./telephony/events/sipTransportEvents.js";
+export {
+  createSipSessionActivatedEvent,
+  createSipSessionResetEvent,
+  createSipTransportConnectingEvent,
+  createSipTransportConnectedEvent,
+  createSipTransportDisconnectedEvent,
+  createSipTransportReconnectScheduledEvent,
+  createSipTransportReconnectAttemptStartedEvent,
+  createSipTransportReconnectSucceededEvent,
+  createSipTransportReconnectFailedEvent,
+  createSipRegistrationClearedEvent,
+  createManualSipTransportReconnectRequestedEvent,
+  createManualSipReregisterRequestedEvent,
+} from "./telephony/events/sipTransportEvents.js";
+export {
   buildSipRecoveryPolicyFromUserSettings,
+  buildSipRegistrationRecoveryPolicy,
+  buildSipTransportRecoveryPolicy,
+  DEFAULT_SIP_RECONNECT_INTERVAL_SEC,
+  DEFAULT_SIP_RECONNECT_MAX_ATTEMPTS,
   DEFAULT_SIP_REREGISTER_INTERVAL_SEC,
   DEFAULT_SIP_REREGISTER_MAX_ATTEMPTS,
+  MIN_SIP_RECONNECT_INTERVAL_SEC,
   MIN_SIP_REREGISTER_INTERVAL_SEC,
 } from "./settings/SipRecoverySettings.js";
 export type {

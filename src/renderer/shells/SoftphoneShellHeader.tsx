@@ -1,10 +1,7 @@
 import type { JSX } from "react";
 import type { HeaderChromeShellViewModel } from "@application/index.js";
-import type { useConnectionRecoveryActions } from "../hooks/useConnectionRecoveryActions.js";
-import type { ConnectionRecoveryShellResult } from "../hooks/useConnectionRecoveryShell.js";
 import type { UseUserAvatarMenuActionsResult } from "../hooks/useUserAvatarMenuActions.js";
 import type { UseUserAvatarMenuResult } from "../hooks/useUserAvatarMenu.js";
-import { IconControlButton } from "../components/icons/index.js";
 import { RegistrationStatusDot } from "../components/header/RegistrationStatusDot.js";
 import { UserAvatar } from "../components/header/UserAvatar.js";
 import { UserAvatarMenu } from "../components/header/UserAvatarMenu.js";
@@ -13,22 +10,18 @@ import styles from "./SoftphoneShellHeader.module.css";
 
 type SoftphoneShellHeaderProps = Readonly<{
   headerChrome: HeaderChromeShellViewModel;
-  connectionRecoveryShell: ConnectionRecoveryShellResult;
-  connectionRecoveryActions: ReturnType<typeof useConnectionRecoveryActions>;
   userAvatarMenu: UseUserAvatarMenuResult;
   userAvatarMenuActions: UseUserAvatarMenuActionsResult;
 }>;
 
 /**
  * - Purpose: render global shell header with avatar and registration dot.
- * - Inputs: header chrome view-model, recovery/session shells, menu callbacks.
+ * - Inputs: header chrome view-model and avatar menu callbacks.
  * - Outputs: header bar with compact registration visibility (LF-011).
  * @uiMeta lf=LF-011,LF-076,LF-086 f=F-016 smoke=R7-*
  */
 export function SoftphoneShellHeader({
   headerChrome,
-  connectionRecoveryShell,
-  connectionRecoveryActions,
   userAvatarMenu,
   userAvatarMenuActions,
 }: SoftphoneShellHeaderProps): JSX.Element {
@@ -63,29 +56,18 @@ export function SoftphoneShellHeader({
             </div>
             {headerChrome.showUserIdentity &&
             headerChrome.displayName !== null &&
-            headerChrome.presenceStatusLabel !== null &&
-            headerChrome.presenceStatusTone !== null ? (
+            headerChrome.sipStatusLabel !== null &&
+            headerChrome.sipStatusTone !== null ? (
               <UserHeaderIdentity
                 displayName={headerChrome.displayName}
-                presenceStatusLabel={headerChrome.presenceStatusLabel}
-                presenceStatusTone={headerChrome.presenceStatusTone}
+                sipStatusLabel={headerChrome.sipStatusLabel}
+                sipStatusTimerSuffix={headerChrome.sipStatusTimerSuffix}
+                sipStatusTone={headerChrome.sipStatusTone}
               />
             ) : null}
           </div>
         </div>
       </div>
-      {connectionRecoveryShell.showReregisterSipControl ? (
-        <div className={styles["headerRecovery"]}>
-          <IconControlButton
-            iconId="sip.reregister"
-            ariaLabel="Перерегистрация SIP"
-            testId="control-reregister-sip"
-            className={styles["iconActionButton"]}
-            disabledReason={connectionRecoveryShell.reregisterDisabledReason}
-            onClick={connectionRecoveryActions.onReregisterSip}
-          />
-        </div>
-      ) : null}
     </header>
   );
 }

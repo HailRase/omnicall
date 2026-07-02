@@ -5,6 +5,7 @@ import {
   createDefaultUserSettings,
   MAX_AUTO_ANSWER_TIMEOUT_SEC,
   MIN_AUTO_ANSWER_TIMEOUT_SEC,
+  MIN_SIP_RECONNECT_INTERVAL_SEC,
   MIN_SIP_REREGISTER_INTERVAL_SEC,
   type AppTheme,
   type UserSettings,
@@ -27,6 +28,11 @@ type UseSettingsActionsResult = Readonly<{
   onAutoAnswerDuringActiveSessionToggle: (enabled: boolean) => void;
   onSipAutoReregisterToggle: (enabled: boolean) => void;
   onSipReregisterIntervalChange: (intervalSec: number) => void;
+  onSipAutoReconnectToggle: (enabled: boolean) => void;
+  onSipReconnectIntervalChange: (intervalSec: number) => void;
+  onSipReconnectMaxAttemptsChange: (attempts: number) => void;
+  onSipReregisterMaxAttemptsChange: (attempts: number) => void;
+  onSipAutoRegisterOnStartupToggle: (enabled: boolean) => void;
   settingsUpdateError: string | null;
 }>;
 
@@ -175,6 +181,59 @@ export function useSettingsActions(
     [persistUserSettings, userSettings],
   );
 
+  const onSipAutoReconnectToggle = useCallback(
+    (enabled: boolean): void => {
+      persistUserSettings({
+        ...userSettings,
+        sipAutoReconnectEnabled: enabled,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onSipReconnectIntervalChange = useCallback(
+    (intervalSec: number): void => {
+      const normalized = Math.max(MIN_SIP_RECONNECT_INTERVAL_SEC, intervalSec);
+      persistUserSettings({
+        ...userSettings,
+        sipReconnectIntervalSec: normalized,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onSipReconnectMaxAttemptsChange = useCallback(
+    (attempts: number): void => {
+      const normalized = Math.max(1, attempts);
+      persistUserSettings({
+        ...userSettings,
+        sipReconnectMaxAttempts: normalized,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onSipReregisterMaxAttemptsChange = useCallback(
+    (attempts: number): void => {
+      const normalized = Math.max(1, attempts);
+      persistUserSettings({
+        ...userSettings,
+        sipReregisterMaxAttempts: normalized,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onSipAutoRegisterOnStartupToggle = useCallback(
+    (enabled: boolean): void => {
+      persistUserSettings({
+        ...userSettings,
+        sipAutoRegisterOnStartup: enabled,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
   return {
     userSettings,
     onThemeChange,
@@ -184,6 +243,11 @@ export function useSettingsActions(
     onAutoAnswerDuringActiveSessionToggle,
     onSipAutoReregisterToggle,
     onSipReregisterIntervalChange,
+    onSipAutoReconnectToggle,
+    onSipReconnectIntervalChange,
+    onSipReconnectMaxAttemptsChange,
+    onSipReregisterMaxAttemptsChange,
+    onSipAutoRegisterOnStartupToggle,
     settingsUpdateError,
   };
 }

@@ -15,6 +15,8 @@ import type {
   TelephonyRemoteResumeNotification,
   TelephonyIncomingCallNotification,
   TelephonyRegistrationFailedNotification,
+  TelephonyTransportConnectingNotification,
+  TelephonyTransportConnectedNotification,
   TelephonyTransportDisconnectedNotification,
   TelephonyGateway,
 } from "@ports/index.js";
@@ -72,6 +74,7 @@ export class MockTelephonyGateway implements TelephonyGateway {
   private attendedTransferScenario: MockAttendedTransferScenario;
   private readonly delayMs: number;
   private registered = false;
+  private transportConnected = false;
   private readonly dialedNumbers: string[] = [];
   private readonly sentTones: string[] = [];
   private readonly hangupCalls: string[] = [];
@@ -92,6 +95,7 @@ export class MockTelephonyGateway implements TelephonyGateway {
     reason?: string;
   }> = [];
   private readonly unregisterInvocations: CorrelationId[] = [];
+  private readonly forceRefreshInvocations: CorrelationId[] = [];
   private incomingCallHandler:
     | ((notification: TelephonyIncomingCallNotification) => Promise<void>)
     | null = null;
@@ -109,6 +113,12 @@ export class MockTelephonyGateway implements TelephonyGateway {
     | null = null;
   private transportDisconnectedHandler:
     | ((notification: TelephonyTransportDisconnectedNotification) => Promise<void>)
+    | null = null;
+  private transportConnectingHandler:
+    | ((notification: TelephonyTransportConnectingNotification) => Promise<void>)
+    | null = null;
+  private transportConnectedHandler:
+    | ((notification: TelephonyTransportConnectedNotification) => Promise<void>)
     | null = null;
   private registrationFailedHandler:
     | ((notification: TelephonyRegistrationFailedNotification) => Promise<void>)
@@ -198,7 +208,11 @@ export class MockTelephonyGateway implements TelephonyGateway {
   }
 
   isRegistered(): boolean {
-    return this.registered;
+    return this.transportConnected && this.registered;
+  }
+
+  isTransportConnected(): boolean {
+    return this.transportConnected;
   }
 
   getDialedNumbers(): ReadonlyArray<string> {
@@ -264,6 +278,7 @@ export class MockTelephonyGateway implements TelephonyGateway {
     }
 
     this.registered = true;
+    this.transportConnected = true;
     return ok(undefined);
   }
 
@@ -279,6 +294,7 @@ export class MockTelephonyGateway implements TelephonyGateway {
       );
     }
 
+    this.transportConnected = true;
     this.registered = true;
     return ok(undefined);
   }
@@ -287,6 +303,12 @@ export class MockTelephonyGateway implements TelephonyGateway {
     void correlationId;
     if (this.delayMs > 0) {
       await sleep(this.delayMs);
+    }
+
+    if (!this.transportConnected) {
+      return err(
+        createPlatformError("operation_failed", "SIP reregister failed: transport not connected"),
+      );
     }
 
     if (this.registrationScenario === "failure") {
@@ -302,9 +324,41 @@ export class MockTelephonyGateway implements TelephonyGateway {
     return ok(undefined);
   }
 
+  forceRefreshRegistration(
+    correlationId: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    this.forceRefreshInvocations.push(correlationId);
+
+    if (!this.transportConnected) {
+      return Promise.resolve(
+        err(
+          createPlatformError(
+            "operation_failed",
+            "SIP registration refresh failed: transport not connected",
+          ),
+        ),
+      );
+    }
+
+    if (this.registrationScenario === "failure") {
+      return Promise.resolve(
+        err(createPlatformError("operation_failed", "SIP registration refresh failed")),
+      );
+    }
+
+    this.unregisterInvocations.push(correlationId);
+    this.registered = true;
+    return Promise.resolve(ok(undefined));
+  }
+
+  getForceRefreshInvocations(): ReadonlyArray<CorrelationId> {
+    return this.forceRefreshInvocations;
+  }
+
   unregister(correlationId: CorrelationId): Promise<Result<void, PlatformError>> {
     this.unregisterInvocations.push(correlationId);
     this.registered = false;
+    this.transportConnected = false;
     return Promise.resolve(ok(undefined));
   }
 
@@ -560,6 +614,24 @@ export class MockTelephonyGateway implements TelephonyGateway {
     };
   }
 
+  setTransportConnectingHandler(
+    handler: ((notification: TelephonyTransportConnectingNotification) => Promise<void>) | null,
+  ): () => void {
+    this.transportConnectingHandler = handler;
+    return () => {
+      this.transportConnectingHandler = null;
+    };
+  }
+
+  setTransportConnectedHandler(
+    handler: ((notification: TelephonyTransportConnectedNotification) => Promise<void>) | null,
+  ): () => void {
+    this.transportConnectedHandler = handler;
+    return () => {
+      this.transportConnectedHandler = null;
+    };
+  }
+
   setRegistrationFailedHandler(
     handler: ((notification: TelephonyRegistrationFailedNotification) => Promise<void>) | null,
   ): () => void {
@@ -572,8 +644,27 @@ export class MockTelephonyGateway implements TelephonyGateway {
   async simulateTransportDisconnected(
     notification: TelephonyTransportDisconnectedNotification,
   ): Promise<void> {
+    this.transportConnected = false;
+    this.registered = false;
     if (this.transportDisconnectedHandler !== null) {
       await this.transportDisconnectedHandler(notification);
+    }
+  }
+
+  async simulateTransportConnecting(
+    notification: TelephonyTransportConnectingNotification,
+  ): Promise<void> {
+    if (this.transportConnectingHandler !== null) {
+      await this.transportConnectingHandler(notification);
+    }
+  }
+
+  async simulateTransportConnected(
+    notification: TelephonyTransportConnectedNotification,
+  ): Promise<void> {
+    this.transportConnected = true;
+    if (this.transportConnectedHandler !== null) {
+      await this.transportConnectedHandler(notification);
     }
   }
 

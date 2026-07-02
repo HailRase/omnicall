@@ -14,6 +14,10 @@ import { useOverlayShell } from "../hooks/useOverlayShell.js";
 import { useShellWindowLayout } from "../hooks/useShellWindowLayout.js";
 import { useAppUpdate } from "../hooks/useAppUpdate.js";
 import { useSettingsActions } from "../hooks/useSettingsActions.js";
+import {
+  useSipSystemStateActions,
+  useSipSystemStateShell,
+} from "../hooks/useSipSystemStateActions.js";
 import { useUserAvatarMenu } from "../hooks/useUserAvatarMenu.js";
 import { useUserAvatarMenuActions } from "../hooks/useUserAvatarMenuActions.js";
 import type { useSoftphoneShellChrome } from "../hooks/useSoftphoneShellChrome.js";
@@ -23,7 +27,6 @@ import { CallContextShell } from "./call/CallContextShell.js";
 import { CallControlsShell } from "./call/CallControlsShell.js";
 import { CallOverlayShell } from "./call/CallOverlayShell.js";
 import { OperatorFeatureShell } from "./OperatorFeatureShell.js";
-import { RecoveryFeatureShell } from "./RecoveryFeatureShell.js";
 import { SessionFeatureShell } from "./SessionFeatureShell.js";
 import { SoftphoneShellHeader } from "./SoftphoneShellHeader.js";
 
@@ -41,8 +44,7 @@ export function SoftphoneReadyShell({
   facade,
   shellChrome,
 }: SoftphoneReadyShellProps): JSX.Element {
-  const { connectionRecoveryShell, connectionRecoveryActions, sessionLogoutActions } =
-    shellChrome;
+  const { sessionLogoutActions } = shellChrome;
   const { projection, ocpNotificationProjection, multiCallProjection, applyMultiCallSettings } =
     useSoftphoneProjections();
   const { blockingAuthState, isSipRegistered } = useAuthShellFlags();
@@ -57,7 +59,24 @@ export function SoftphoneReadyShell({
     sessionLogoutActions,
   });
   const [settingsSidebarExpanded, setSettingsSidebarExpanded] = useState(false);
-  const headerChrome = useHeaderChromeShell();
+  const settingsActions = useSettingsActions({
+    facade,
+    currentSettings: {
+      multiSessionsEnabled: multiCallProjection.multiSessionsEnabled,
+      autoUnholdOnTransferFailure: multiCallProjection.autoUnholdOnTransferFailure,
+    },
+    applyMultiCallSettings,
+  });
+  const sipSystemStateActions = useSipSystemStateActions({ facade });
+  const sipSystemStateShell = useSipSystemStateShell({
+    userSettings: settingsActions.userSettings,
+    journalEntries: sipSystemStateActions.journalEntries,
+  });
+  const headerChrome = useHeaderChromeShell({
+    dndEnabled: projection.phoneStatus === "dnd",
+    sipAutoReconnectEnabled: settingsActions.userSettings.sipAutoReconnectEnabled,
+    sipAutoReregisterEnabled: settingsActions.userSettings.sipAutoReregisterEnabled,
+  });
   const userAvatarMenu = useUserAvatarMenu();
   const userAvatarMenuActions = useUserAvatarMenuActions({
     facade,
@@ -71,14 +90,6 @@ export function SoftphoneReadyShell({
     onMenuClose: userAvatarMenu.close,
   });
   const callBindings = useCallFeatureShell({ facade });
-  const settingsActions = useSettingsActions({
-    facade,
-    currentSettings: {
-      multiSessionsEnabled: multiCallProjection.multiSessionsEnabled,
-      autoUnholdOnTransferFailure: multiCallProjection.autoUnholdOnTransferFailure,
-    },
-    applyMultiCallSettings,
-  });
   const appUpdate = useAppUpdate();
 
   const ocpNotifications = useOcpNotifications({
@@ -92,8 +103,6 @@ export function SoftphoneReadyShell({
         <>
           <SoftphoneShellHeader
             headerChrome={headerChrome}
-            connectionRecoveryShell={connectionRecoveryShell}
-            connectionRecoveryActions={connectionRecoveryActions}
             userAvatarMenu={userAvatarMenu}
             userAvatarMenuActions={userAvatarMenuActions}
           />
@@ -113,7 +122,6 @@ export function SoftphoneReadyShell({
             toasts={ocpNotifications.visibleToasts}
             onDismiss={ocpNotifications.dismissToast}
           />
-          <RecoveryFeatureShell facade={facade} />
           <CallOverlayShell bindings={callBindings} />
           <SettingsFullscreenOverlay
             open={overlayShell.settingsOpen}
@@ -142,10 +150,6 @@ export function SoftphoneReadyShell({
               onAutoAnswerDuringActiveSessionChange={
                 settingsActions.onAutoAnswerDuringActiveSessionToggle
               }
-              sipAutoReregisterEnabled={settingsActions.userSettings.sipAutoReregisterEnabled}
-              onSipAutoReregisterChange={settingsActions.onSipAutoReregisterToggle}
-              sipReregisterIntervalSec={settingsActions.userSettings.sipReregisterIntervalSec}
-              onSipReregisterIntervalChange={settingsActions.onSipReregisterIntervalChange}
               currentVersion={appUpdate.snapshot.currentVersion}
               latestVersion={appUpdate.snapshot.latestVersion}
               updateStatusMessage={appUpdate.statusMessage}
@@ -155,6 +159,30 @@ export function SoftphoneReadyShell({
               onCheckForUpdates={appUpdate.onCheckForUpdates}
               onOpenDownloadPage={appUpdate.onOpenDownloadPage}
               updateError={settingsActions.settingsUpdateError}
+              systemState={{
+                shell: sipSystemStateShell,
+                sipAutoReconnectEnabled: settingsActions.userSettings.sipAutoReconnectEnabled,
+                onSipAutoReconnectChange: settingsActions.onSipAutoReconnectToggle,
+                sipReconnectIntervalSec: settingsActions.userSettings.sipReconnectIntervalSec,
+                onSipReconnectIntervalChange: settingsActions.onSipReconnectIntervalChange,
+                sipReconnectMaxAttempts: settingsActions.userSettings.sipReconnectMaxAttempts,
+                onSipReconnectMaxAttemptsChange: settingsActions.onSipReconnectMaxAttemptsChange,
+                sipAutoReregisterEnabled: settingsActions.userSettings.sipAutoReregisterEnabled,
+                onSipAutoReregisterChange: settingsActions.onSipAutoReregisterToggle,
+                sipReregisterIntervalSec: settingsActions.userSettings.sipReregisterIntervalSec,
+                onSipReregisterIntervalChange: settingsActions.onSipReregisterIntervalChange,
+                sipReregisterMaxAttempts: settingsActions.userSettings.sipReregisterMaxAttempts,
+                onSipReregisterMaxAttemptsChange:
+                  settingsActions.onSipReregisterMaxAttemptsChange,
+                sipAutoRegisterOnStartup: settingsActions.userSettings.sipAutoRegisterOnStartup,
+                onSipAutoRegisterOnStartupChange:
+                  settingsActions.onSipAutoRegisterOnStartupToggle,
+                onManualTransportReconnect: sipSystemStateActions.onManualTransportReconnect,
+                onManualReregister: sipSystemStateActions.onManualReregister,
+                onForceRefreshRegistration: sipSystemStateActions.onForceRefreshRegistration,
+                onClearJournal: sipSystemStateActions.onClearJournal,
+                actionError: sipSystemStateActions.actionError,
+              }}
               account={{
                 form: accountActions.form,
                 submitting: accountActions.submitting,

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { SessionTeardownOrchestrationService } from "./SessionTeardownOrchestrationService.js";
 import { CallEngine } from "./CallEngine.js";
 import { ConnectionRecoveryOrchestrationService } from "./ConnectionRecoveryOrchestrationService.js";
+import { SipRecoveryOrchestrationService } from "./SipRecoveryOrchestrationService.js";
 import { UnregisterAccountUseCase } from "../use-cases/UnregisterAccountUseCase.js";
 import { InMemoryDomainEventBus } from "../events/InMemoryDomainEventBus.js";
 import {
@@ -26,6 +27,11 @@ describe("SessionTeardownOrchestrationService", () => {
       eventPublisher,
       logger: createTestLogger(),
     });
+    const sipOrchestration = new SipRecoveryOrchestrationService({
+      telephonyGateway,
+      eventPublisher,
+      logger: createTestLogger(),
+    });
     const callEngine = new CallEngine(
       telephonyGateway,
       mediaGateway,
@@ -35,6 +41,7 @@ describe("SessionTeardownOrchestrationService", () => {
     );
     const hangupSpy = vi.spyOn(callEngine, "hangupAllCalls");
     const disposeSpy = vi.spyOn(orchestration, "dispose");
+    const sipDisposeSpy = vi.spyOn(sipOrchestration, "dispose");
     const unregisterAccount = new UnregisterAccountUseCase(
       telephonyGateway,
       eventPublisher,
@@ -44,6 +51,7 @@ describe("SessionTeardownOrchestrationService", () => {
 
     const service = new SessionTeardownOrchestrationService({
       connectionRecoveryOrchestration: orchestration,
+      sipRecoveryOrchestration: sipOrchestration,
       callEngine,
       mediaGateway,
       unregisterAccount,
@@ -57,6 +65,7 @@ describe("SessionTeardownOrchestrationService", () => {
       mediaGateway,
       hangupSpy,
       disposeSpy,
+      sipDisposeSpy,
       unregisterSpy,
     };
   }

@@ -4,6 +4,7 @@ import { SessionTeardownOrchestrationService } from "../services/SessionTeardown
 import { UnregisterAccountUseCase } from "./UnregisterAccountUseCase.js";
 import { CallEngine } from "../services/CallEngine.js";
 import { ConnectionRecoveryOrchestrationService } from "../services/ConnectionRecoveryOrchestrationService.js";
+import { SipRecoveryOrchestrationService } from "../services/SipRecoveryOrchestrationService.js";
 import { InMemoryDomainEventBus } from "../events/InMemoryDomainEventBus.js";
 import {
   InMemorySettingsRepository,
@@ -26,6 +27,11 @@ describe("EndUserSessionUseCase", () => {
       eventPublisher,
       logger: createTestLogger(),
     });
+    const sipOrchestration = new SipRecoveryOrchestrationService({
+      telephonyGateway,
+      eventPublisher,
+      logger: createTestLogger(),
+    });
     const callEngine = new CallEngine(
       telephonyGateway,
       new MockMediaGateway(),
@@ -35,6 +41,7 @@ describe("EndUserSessionUseCase", () => {
     );
     const sessionTeardown = new SessionTeardownOrchestrationService({
       connectionRecoveryOrchestration: orchestration,
+      sipRecoveryOrchestration: sipOrchestration,
       callEngine,
       mediaGateway: new MockMediaGateway(),
       unregisterAccount: new UnregisterAccountUseCase(

@@ -12,6 +12,7 @@ import {
   Coffee,
   Delete,
   Eraser,
+  Gauge,
   Grid3x3,
   Headphones,
   Layers,
@@ -71,6 +72,7 @@ export type IconSemanticId =
   | "settings.account"
   | "settings.general"
   | "settings.sessions"
+  | "settings.system-state"
   | "settings.codecs"
   | "settings.headset"
   | "settings.nav.expand"
@@ -147,6 +149,12 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultSize: 20,
     usage: ["SettingsSidebar: settings-nav-sessions"],
   },
+  "settings.system-state": {
+    static: Gauge,
+    defaultLabel: "Состояние системы",
+    defaultSize: 20,
+    usage: ["SettingsSidebar: settings-nav-system-state (Phase 6)"],
+  },
   "settings.codecs": {
     static: AudioLines,
     animated: AudioLinesIcon,
@@ -182,7 +190,6 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     usage: [
       "UserAvatarMenu: user-menu-logout",
       "LogoutActiveSessionConfirmationModal",
-      "ConnectionOverlay: control-safe-logout",
     ],
   },
   "sip.reregister": {
@@ -190,7 +197,7 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     animated: RefreshCcwIcon,
     defaultLabel: "Перерегистрация SIP",
     defaultSize: 20,
-    usage: ["SoftphoneShellHeader: control-reregister-sip"],
+    usage: ["SettingsSystemStatePanel: control-reregister-sip (Phase 6)"],
   },
   "call.answer": {
     static: PhoneCall,
@@ -267,7 +274,7 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     animated: PhoneOffIcon,
     defaultLabel: "Телефон недоступен",
     defaultSize: 20,
-    usage: ["ConnectionOverlay"],
+    usage: ["SettingsSystemStatePanel (Phase 6)"],
   },
   "overlay.close": {
     static: X,
@@ -346,7 +353,6 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabel: "Повторить",
     defaultSize: 20,
     usage: [
-      "ConnectionOverlay: control-retry-connection",
       "ActiveCallControlsPanel: control-retry",
       "CallLineRow: control-retry-line",
     ],
@@ -363,7 +369,7 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     animated: RotateCcwIcon,
     defaultLabel: "Повторить подключение",
     defaultSize: 20,
-    usage: ["ConnectionOverlay: control-retry-connection"],
+    usage: ["SettingsSystemStatePanel: control-retry-transport (Phase 6)"],
   },
   "phone.dnd.on": {
     static: Bell,

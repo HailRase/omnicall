@@ -6,6 +6,10 @@
 export function mapSipRegistrationFailureKey(raw: string): string {
   const normalized = raw.trim().toLowerCase();
 
+  if (normalized === "authentication_error" || normalized === "forbidden") {
+    return normalized;
+  }
+
   if (normalized.includes("authentication error") || normalized.includes("401")) {
     return "authentication_error";
   }

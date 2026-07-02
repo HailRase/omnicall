@@ -7,6 +7,7 @@ import type { Result } from "@shared/result/index.js";
 import type { ConnectionRecoveryReadModel } from "@ports/operator/ConnectionRecoveryReadModel.js";
 import type { Logger } from "@ports/index.js";
 import type { ConnectionRecoveryOrchestrationService } from "../services/ConnectionRecoveryOrchestrationService.js";
+import type { SipRecoveryOrchestrationService } from "../services/SipRecoveryOrchestrationService.js";
 
 const FEATURE_ID = "F-014";
 
@@ -26,6 +27,7 @@ export class RetryConnectionUseCase {
   constructor(
     private readonly connectionRecoveryReadModel: ConnectionRecoveryReadModel,
     private readonly connectionRecoveryOrchestration: ConnectionRecoveryOrchestrationService,
+    private readonly sipRecoveryOrchestration: SipRecoveryOrchestrationService,
     private readonly logger: Logger,
   ) {}
 
@@ -74,10 +76,17 @@ export class RetryConnectionUseCase {
     });
 
     try {
-      await this.connectionRecoveryOrchestration.requestManualRetry(
-        input.channel,
-        correlationId,
-      );
+      if (input.channel === "sip") {
+        await this.sipRecoveryOrchestration.requestManualTransportReconnect(correlationId);
+      } else if (input.channel === "both") {
+        await this.sipRecoveryOrchestration.requestManualTransportReconnect(correlationId);
+        await this.connectionRecoveryOrchestration.requestManualRetry("ocp", correlationId);
+      } else {
+        await this.connectionRecoveryOrchestration.requestManualRetry(
+          input.channel,
+          correlationId,
+        );
+      }
 
       this.logger.info("retry_connection_completed", {
         correlationId,

@@ -36,6 +36,9 @@ export function useSoftphoneProjections() {
   const connectionRecoveryProjection = useAccountBootstrapStore(
     (state) => state.connectionRecoveryProjection,
   );
+  const sipSessionHealthProjection = useAccountBootstrapStore(
+    (state) => state.sipSessionHealthProjection,
+  );
   const setCallMode = useAccountBootstrapStore((state) => state.setCallMode);
   const setIncomingUiState = useAccountBootstrapStore((state) => state.setIncomingUiState);
   const setIncomingBreakReason = useAccountBootstrapStore(
@@ -61,6 +64,7 @@ export function useSoftphoneProjections() {
     multiLineCallProjection,
     operatorStatusProjection,
     connectionRecoveryProjection,
+    sipSessionHealthProjection,
     setCallMode,
     setIncomingUiState,
     setIncomingBreakReason,
