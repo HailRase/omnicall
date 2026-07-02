@@ -161,6 +161,7 @@ class MockJsSipUa implements JsSipUaPort {
   private registered = false;
   private connected = false;
   private registrationOutcome: "success" | "failure" | "hang" = "success";
+  private deferTransportConnection = false;
   startCalls = 0;
   stopCalls = 0;
   registerCalls = 0;
@@ -173,6 +174,10 @@ class MockJsSipUa implements JsSipUaPort {
 
   setRegistrationOutcome(outcome: "success" | "failure" | "hang"): void {
     this.registrationOutcome = outcome;
+  }
+
+  setDeferTransportConnection(defer: boolean): void {
+    this.deferTransportConnection = defer;
   }
 
   on(event: JsSipUaEventName, listener: JsSipUaListener): void {
@@ -198,8 +203,10 @@ class MockJsSipUa implements JsSipUaPort {
   start(): void {
     this.startCalls += 1;
     this.emit("connecting");
-    this.connected = true;
-    this.emit("connected");
+    if (!this.deferTransportConnection) {
+      this.connected = true;
+      this.emit("connected");
+    }
   }
 
   stop(): void {
@@ -230,6 +237,9 @@ class MockJsSipUa implements JsSipUaPort {
   unregister(options?: Readonly<{ all?: boolean }>): void {
     void options;
     this.unregisterCalls += 1;
+    if (!this.registered) {
+      return;
+    }
     queueMicrotask(() => {
       this.registered = false;
       this.emit("unregistered");
@@ -366,6 +376,58 @@ describe("JsSipTelephonyAdapter", () => {
     expect(result.ok).toBe(true);
     expect(mockUa.startCalls).toBe(1);
     expect(mockUa.registerCalls).toBe(1);
+  });
+
+  it("notifies transport disconnect handler when websocket connection times out", async () => {
+    vi.useFakeTimers();
+    const mockUa = new MockJsSipUa();
+    mockUa.setDeferTransportConnection(true);
+    const adapter = createAdapter(mockUa);
+    const disconnectHandler = vi.fn(() => Promise.resolve());
+    adapter.setTransportDisconnectedHandler(disconnectHandler);
+
+    const registerPromise = adapter.register({
+      account,
+      correlationId: createCorrelationId(),
+    });
+
+    await vi.advanceTimersByTimeAsync(10_000);
+    const result = await registerPromise;
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.message).toContain("transport connection timed out");
+    }
+    expect(disconnectHandler).toHaveBeenCalledWith(
+      expect.objectContaining({ reason: "transport_connection_timed_out" }),
+    );
+    vi.useRealTimers();
+  });
+
+  it("forwards runtime registrationFailed when UA still reports registered", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    const regFailedHandler = vi.fn(() => Promise.resolve());
+    adapter.setRegistrationFailedHandler(regFailedHandler);
+
+    await adapter.register({
+      account,
+      correlationId: createCorrelationId(),
+    });
+    expect(mockUa.isRegistered()).toBe(true);
+    expect(adapter.effectiveIsRegistered()).toBe(true);
+
+    mockUa.emit("registrationFailed", {
+      cause: "Rejected",
+      response: { status_code: 403, reason_phrase: "Forbidden" },
+    });
+
+    await vi.waitFor(() => {
+      expect(regFailedHandler).toHaveBeenCalledWith(
+        expect.objectContaining({ reason: "forbidden" }),
+      );
+    });
+    expect(adapter.effectiveIsRegistered()).toBe(false);
   });
 
   it("maps registration failure from UA registrationFailed event", async () => {
@@ -532,6 +594,33 @@ describe("JsSipTelephonyAdapter", () => {
     expect(firstUa.unregisterCalls).toBe(1);
     expect(secondUa.startCalls).toBe(1);
     expect(connectedHandler).toHaveBeenCalledTimes(2);
+  });
+
+  it("reregister sends REGISTER when UA is connected but not registered after failure", async () => {
+    const mockUa = new MockJsSipUa();
+    mockUa.setRegistrationOutcome("hang");
+    const adapter = createAdapter(mockUa);
+    const correlationId = createCorrelationId();
+
+    const registerPromise = adapter.register({ account, correlationId });
+    await vi.waitFor(() => {
+      expect(mockUa.registerCalls).toBe(1);
+    });
+    mockUa.emit("registrationFailed", {
+      cause: "Rejected",
+      response: { status_code: 403, reason_phrase: "Forbidden" },
+    });
+    const registerResult = await registerPromise;
+    expect(registerResult.ok).toBe(false);
+    expect(mockUa.isRegistered()).toBe(false);
+
+    mockUa.setRegistrationOutcome("success");
+    const registerCallsBefore = mockUa.registerCalls;
+
+    const reregisterResult = await adapter.reregister(createCorrelationId());
+    expect(reregisterResult.ok).toBe(true);
+    expect(mockUa.registerCalls).toBe(registerCallsBefore + 1);
+    expect(mockUa.unregisterCalls).toBe(0);
   });
 
   it("reregister unregisters all contacts then registers on the same UA", async () => {

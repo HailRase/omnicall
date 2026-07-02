@@ -220,6 +220,7 @@ export function SettingsPanel({
               iconId="overlay.close"
               ariaLabel="Закрыть настройки"
               testId="settings-overlay-close"
+              className={styles["closeButton"]}
               onClick={onClose}
             />
           </div>

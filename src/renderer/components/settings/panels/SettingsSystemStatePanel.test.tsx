@@ -153,12 +153,15 @@ describe("SettingsSystemStatePanel", () => {
     expect(screen.getByText(/события сервера, регистрации и ошибок/i)).toBeInTheDocument();
   });
 
-  it("shows shortened disabled reason next to manual action", () => {
+  it("exposes disabled reason via title and screen-reader text only", () => {
     render(<SettingsSystemStatePanel {...baseProps} />);
 
+    const reconnectButton = screen.getByTestId("settings-sip-manual-transport-reconnect");
+    expect(reconnectButton).toHaveAttribute("title", "Сессия не активна");
     expect(screen.getByTestId("settings-sip-transport-disabled-reason")).toHaveTextContent(
-      "Недоступно: сессия не активна",
+      "Сессия не активна",
     );
+    expect(screen.queryByText("Недоступно: сессия не активна")).not.toBeInTheDocument();
   });
 
   it("groups automatic recovery into server and registration subsections", () => {

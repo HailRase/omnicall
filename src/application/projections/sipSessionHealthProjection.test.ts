@@ -244,6 +244,30 @@ describe("sipSessionHealthProjection", () => {
     expect(projection.recovery.target).toBeNull();
   });
 
+  it("drops registered state on runtime RegistrationFailed while transport is up", () => {
+    let projection = reduceSipSessionHealthProjection(
+      initialSipSessionHealthProjection(),
+      createSipTransportConnectedEvent(correlationId),
+    );
+    projection = reduceSipSessionHealthProjection(
+      projection,
+      createRegistrationSucceededEvent(correlationId, { accountId: createSipAccountId("agent") }),
+    );
+    expect(projection.registration).toBe("registered");
+
+    projection = reduceSipSessionHealthProjection(
+      projection,
+      createRegistrationFailedEvent(correlationId, {
+        accountId: createSipAccountId("agent"),
+        reason: "forbidden",
+      }),
+    );
+
+    expect(projection.transport).toBe("connected");
+    expect(projection.registration).toBe("failed");
+    expect(projection.recovery.lastFailureReason).toBe("forbidden");
+  });
+
   it("resets to idle on SipSessionReset", () => {
     let projection = reduceSipSessionHealthProjection(
       initialSipSessionHealthProjection(),

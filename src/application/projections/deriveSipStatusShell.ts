@@ -105,17 +105,20 @@ function buildView(
   primaryLabel: string,
   timerSuffix: string | null,
 ): SipStatusShellView {
-  const suffixText = timerSuffix === null ? "" : ` ${timerSuffix}`;
+  const ariaLabel =
+    timerSuffix === null
+      ? `SIP: ${primaryLabel}`
+      : `SIP: ${primaryLabel}, повтор через ${timerSuffix}`;
   return {
     dotTone,
     primaryLabel,
     timerSuffix,
-    ariaLabel: `SIP: ${primaryLabel}${suffixText}`,
+    ariaLabel,
   };
 }
 
 function formatRetrySuffix(
-  prefix: string,
+  _prefix: string,
   nextRetryAt: string | null,
   nowMs: number,
 ): string | null {
@@ -127,5 +130,5 @@ function formatRetrySuffix(
   const remainder = seconds % 60;
   const mm = String(minutes).padStart(2, "0");
   const ss = String(remainder).padStart(2, "0");
-  return `(${prefix} ${mm}:${ss})`;
+  return `${mm}:${ss}`;
 }

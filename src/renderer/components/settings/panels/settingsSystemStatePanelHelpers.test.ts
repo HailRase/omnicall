@@ -3,7 +3,6 @@ import {
   deriveRegistrationIndicatorTone,
   deriveSummaryIndicatorTone,
   deriveTransportIndicatorTone,
-  formatManualActionDisabledReason,
   isIntervalBelowMinimum,
 } from "./settingsSystemStatePanelHelpers.js";
 
@@ -24,12 +23,6 @@ describe("settingsSystemStatePanelHelpers", () => {
   it("derives summary tone from transport and registration", () => {
     expect(deriveSummaryIndicatorTone("connected", "registered")).toBe("positive");
     expect(deriveSummaryIndicatorTone("disconnected", "idle")).toBe("negative");
-  });
-
-  it("formats manual action disabled reason in Russian", () => {
-    expect(formatManualActionDisabledReason("Сессия не активна")).toBe(
-      "Недоступно: сессия не активна",
-    );
   });
 
   it("detects interval below minimum", () => {

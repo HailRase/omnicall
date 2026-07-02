@@ -24,18 +24,17 @@ describe("UserHeaderIdentity", () => {
     expect(screen.getByTestId("user-sip-status")).toHaveAttribute("data-tone", "registered");
   });
 
-  it("appends recovery timer suffix to SIP status", () => {
+  it("renders recovery timer on a separate line without truncating digits", () => {
     render(
       <UserHeaderIdentity
         displayName="agent"
-        sipStatusLabel="Нет соединения"
-        sipStatusTimerSuffix="(переподкл. 00:45)"
-        sipStatusTone="reconnecting"
+        sipStatusLabel="Не зарегистрирован"
+        sipStatusTimerSuffix="04:59"
+        sipStatusTone="not_registered"
       />,
     );
 
-    expect(screen.getByTestId("user-sip-status")).toHaveTextContent(
-      "Нет соединения (переподкл. 00:45)",
-    );
+    expect(screen.getByTestId("user-sip-status")).toHaveTextContent("Не зарегистрирован");
+    expect(screen.getByTestId("user-sip-status-timer")).toHaveTextContent("04:59");
   });
 });

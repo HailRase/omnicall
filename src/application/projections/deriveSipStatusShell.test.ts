@@ -54,7 +54,7 @@ describe("deriveSipStatusShell", () => {
     });
     expect(shell.dotTone).toBe("reconnecting");
     expect(shell.primaryLabel).toBe("Нет соединения");
-    expect(shell.timerSuffix).toBe("(переподкл. 00:45)");
+    expect(shell.timerSuffix).toBe("00:45");
   });
 
   it("§1.2 transport disconnected terminal — Нет соединения", () => {
@@ -94,7 +94,7 @@ describe("deriveSipStatusShell", () => {
     });
     expect(shell.dotTone).toBe("not_registered");
     expect(shell.primaryLabel).toBe("Не зарегистрирован");
-    expect(shell.timerSuffix).toBe("(перерег. 00:12)");
+    expect(shell.timerSuffix).toBe("00:12");
   });
 
   it("§1.2 transport connected, not registered manual — Не зарегистрирован", () => {

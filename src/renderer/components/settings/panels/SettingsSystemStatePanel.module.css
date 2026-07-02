@@ -4,7 +4,8 @@
   gap: var(--space-2xs);
   margin: 0;
   padding: var(--space-xs);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-panel);
   background: var(--color-bg-surface-deep);
 }
 
@@ -30,9 +31,9 @@
 
 .stateActionRow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--space-md);
-  align-items: start;
+  grid-template-columns: auto 7rem minmax(0, 1fr) auto;
+  gap: var(--space-sm);
+  align-items: center;
   padding: var(--space-sm);
   border-bottom: 1px solid var(--color-border-subtle);
 }
@@ -42,10 +43,12 @@
 }
 
 .stateActionMetric {
+  display: contents;
   min-width: 0;
 }
 
 .stateActionMetric .stateRow {
+  display: contents;
   padding: 0;
   border-bottom: none;
 }
@@ -55,8 +58,9 @@
   flex-wrap: wrap;
   gap: var(--space-xs);
   justify-content: flex-end;
-  align-items: flex-start;
+  align-items: center;
   flex-shrink: 0;
+  grid-column: 4;
 }
 
 .stateActionFeedback {
@@ -148,8 +152,9 @@
   display: flex;
   flex-direction: column;
   gap: 0;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-panel);
   background: var(--color-bg-surface-deep);
-  border-radius: var(--radius-md);
   overflow: hidden;
 }
 
@@ -215,16 +220,19 @@
 
 .manualActionItem {
   display: flex;
-  flex-direction: column;
-  gap: var(--space-2xs);
-  align-items: flex-start;
+  align-items: center;
 }
 
-.manualActionReason {
-  margin: 0;
-  font-size: var(--font-size-xs);
-  line-height: 1.35;
-  color: var(--color-text-muted);
+.disabledReasonSrOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .actionFeedback {
@@ -272,7 +280,7 @@
   max-height: 220px;
   overflow-y: auto;
   border: 1px solid var(--color-border-subtle);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-panel);
   background: var(--color-bg-surface);
   padding: var(--space-sm);
 }
@@ -366,7 +374,7 @@
   .stateRow {
     grid-template-columns: auto 1fr;
     grid-template-rows: auto auto;
-    align-items: start;
+    align-items: center;
   }
 
   .stateActionRow {
@@ -374,9 +382,14 @@
     gap: var(--space-sm);
   }
 
+  .stateActionMetric .stateRow {
+    display: grid;
+  }
+
   .stateActionControls {
     justify-content: stretch;
     width: 100%;
+    grid-column: 1;
   }
 
   .stateActionControls .manualActionItem {

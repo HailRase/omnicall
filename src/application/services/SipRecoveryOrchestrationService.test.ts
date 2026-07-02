@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MockTelephonyGateway } from "@adapters/index.js";
 import type { DomainEvent } from "@domain/index.js";
+import { createSipAccountId } from "@domain/index.js";
 import { SIP_RECONNECT_POLICY_CONFIG } from "@domain/shared/recovery/ReconnectPolicy.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
@@ -115,7 +116,7 @@ describe("SipRecoveryOrchestrationService", () => {
     expect(scheduledEvents[1]?.["attemptNumber"]).toBe(2);
   });
 
-  it("stops auto-retry immediately on auth registration failure", async () => {
+  it("schedules auto-retry on auth registration failure", async () => {
     const correlationId = createCorrelationId();
     const telephonyGateway = new MockTelephonyGateway({
       registrationScenario: "success",
@@ -136,19 +137,18 @@ describe("SipRecoveryOrchestrationService", () => {
       accountId: null,
     });
 
-    expect(published.map((event) => event.type)).toContain("SipRegistrationRetryFailed");
+    expect(published.some((event) => event.type === "SipRegistrationRetryScheduled")).toBe(
+      true,
+    );
     expect(
       published.some(
         (event) =>
           event.type === "SipRegistrationRetryFailed" && event["isTerminal"] === true,
       ),
-    ).toBe(true);
-    expect(published.some((event) => event.type === "SipRegistrationRetryScheduled")).toBe(
-      false,
-    );
+    ).toBe(false);
   });
 
-  it("stops auto-retry on forbidden RegistrationFailed from initial register", async () => {
+  it("schedules auto-retry on forbidden RegistrationFailed from initial register", async () => {
     const correlationId = createCorrelationId();
     const telephonyGateway = new MockTelephonyGateway({
       registrationScenario: "success",
@@ -166,15 +166,39 @@ describe("SipRecoveryOrchestrationService", () => {
       reason: "forbidden",
     });
 
+    await Promise.resolve();
+
     expect(published.some((event) => event.type === "SipRegistrationRetryScheduled")).toBe(
-      false,
+      true,
     );
     expect(
       published.some(
         (event) =>
           event.type === "SipRegistrationRetryFailed" && event["isTerminal"] === true,
       ),
-    ).toBe(true);
+    ).toBe(false);
+  });
+
+  it("publishes RegistrationFailed when adapter reports runtime registration failure", async () => {
+    const correlationId = createCorrelationId();
+    const telephonyGateway = new MockTelephonyGateway({
+      registrationScenario: "success",
+      reconnectScenario: "success",
+    });
+    const { published } = createService(telephonyGateway);
+
+    await telephonyGateway.simulateTransportConnected({ correlationId });
+
+    await telephonyGateway.simulateRegistrationFailed({
+      correlationId,
+      reason: "forbidden",
+      accountId: createSipAccountId("agent"),
+    });
+
+    expect(published.some((event) => event.type === "RegistrationFailed")).toBe(true);
+    expect(published.some((event) => event.type === "SipRegistrationRetryScheduled")).toBe(
+      true,
+    );
   });
 
   it("does not schedule registration retry while transport is down", async () => {

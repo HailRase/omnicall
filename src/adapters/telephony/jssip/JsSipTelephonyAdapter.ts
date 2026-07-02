@@ -62,7 +62,7 @@ const DEFAULT_CALL_MEDIA_OPTIONS = {
   rtcOfferConstraints: { offerToReceiveAudio: true, offerToReceiveVideo: false },
 } as const;
 
-const DEFAULT_TRANSPORT_CONNECTION_TIMEOUT_MS = 30_000;
+const DEFAULT_TRANSPORT_CONNECTION_TIMEOUT_MS = 10_000;
 
 export type JsSipTelephonyAdapterOptions = Readonly<{
   logger: Logger;
@@ -1280,6 +1280,28 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     });
   }
 
+  private async notifyTransportDisconnected(reason: string): Promise<void> {
+    if (this.intentionalShutdown || this.transportDisconnectedHandler === null) {
+      return;
+    }
+
+    this.registrationInvalidated = true;
+    this.transportConnectedNotified = false;
+
+    this.logger.warn("jssip_transport_disconnected_notified", {
+      correlationId: this.lastCorrelationId,
+      featureId: FEATURE_ID_REGISTRATION,
+      boundedContext: "Telephony",
+      operation: "jssip_transport_disconnected_notified",
+      reason,
+    });
+
+    await this.transportDisconnectedHandler({
+      correlationId: this.lastCorrelationId,
+      reason,
+    });
+  }
+
   private async handleTransportDisconnected(event: JsSipDisconnectEvent): Promise<void> {
     if (
       this.intentionalShutdown ||
@@ -1315,13 +1337,10 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       return;
     }
 
-    const ua = this.ua;
-    if (ua !== null && ua.isRegistered()) {
-      return;
-    }
-
     const failure = extractJsSipRegistrationFailureParts(event);
     const reason = mapSipRegistrationFailureFromParts(failure.cause, failure.statusCode);
+
+    this.registrationInvalidated = true;
 
     this.logger.warn("jssip_registration_failed_runtime", {
       correlationId: this.lastCorrelationId,
@@ -1396,17 +1415,21 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
         ua.off("connected", onConnected);
       };
 
-      ua.on("connected", onConnected);
-      timeoutHandle = setTimeout(() => {
-        settle(
-          err(
-            createPlatformError(
-              "operation_failed",
-              "SIP transport connection timed out",
+      const onTimeout = (): void => {
+        void this.notifyTransportDisconnected("transport_connection_timed_out").finally(() => {
+          settle(
+            err(
+              createPlatformError(
+                "operation_failed",
+                "SIP transport connection timed out",
+              ),
             ),
-          ),
-        );
-      }, DEFAULT_TRANSPORT_CONNECTION_TIMEOUT_MS);
+          );
+        });
+      };
+
+      ua.on("connected", onConnected);
+      timeoutHandle = setTimeout(onTimeout, DEFAULT_TRANSPORT_CONNECTION_TIMEOUT_MS);
     });
   }
 
@@ -1426,6 +1449,10 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
   }
 
   private async unregisterAllContacts(ua: JsSipUaPort): Promise<void> {
+    if (!ua.isRegistered()) {
+      return;
+    }
+
     await new Promise<void>((resolve) => {
       const onUnregistered = (): void => {
         ua.off("unregistered", onUnregistered);

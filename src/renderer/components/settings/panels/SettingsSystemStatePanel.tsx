@@ -13,7 +13,6 @@ import {
   deriveRegistrationIndicatorTone,
   deriveSummaryIndicatorTone,
   deriveTransportIndicatorTone,
-  formatManualActionDisabledReason,
   isIntervalBelowMinimum,
   type SipStateIndicatorTone,
 } from "./settingsSystemStatePanelHelpers.js";
@@ -199,8 +198,6 @@ function ManualActionButton({
 }: ManualActionButtonProps): JSX.Element {
   const reasonId = useId();
   const isDisabled = disabled || isLoading;
-  const shortReason =
-    disabledReason !== null ? formatManualActionDisabledReason(disabledReason) : null;
 
   return (
     <div className={styles["manualActionItem"]}>
@@ -211,7 +208,7 @@ function ManualActionButton({
         disabled={isDisabled}
         aria-disabled={isDisabled}
         aria-busy={isLoading || undefined}
-        aria-describedby={shortReason !== null ? reasonId : undefined}
+        aria-describedby={disabledReason !== null ? reasonId : undefined}
         title={disabledReason ?? undefined}
         onClick={onClick}
       >
@@ -224,10 +221,10 @@ function ManualActionButton({
           label
         )}
       </button>
-      {shortReason !== null ? (
-        <p id={reasonId} className={styles["manualActionReason"]} data-testid={reasonTestId}>
-          {shortReason}
-        </p>
+      {disabledReason !== null ? (
+        <span id={reasonId} className={styles["disabledReasonSrOnly"]} data-testid={reasonTestId}>
+          {disabledReason}
+        </span>
       ) : null}
     </div>
   );
@@ -417,13 +414,15 @@ export function SettingsSystemStatePanel({
                     />
                   </>
                 </StateWithActionsRow>
-                <StateMetricRow
-                  indicatorLabel={`Сводка: ${shell.summaryLabel}`}
-                  tone={summaryTone}
-                  label="Сводка"
-                  testId="settings-sip-summary-label"
-                  value={shell.summaryLabel}
-                  reason={null}
+                <StateWithActionsRow
+                  metric={{
+                    indicatorLabel: `Сводка: ${shell.summaryLabel}`,
+                    tone: summaryTone,
+                    label: "Сводка",
+                    testId: "settings-sip-summary-label",
+                    value: shell.summaryLabel,
+                    reason: null,
+                  }}
                 />
               </div>
             </dl>

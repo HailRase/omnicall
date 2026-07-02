@@ -98,15 +98,21 @@ function applyLifecycleActive(health: SipSessionHealth): SipSessionHealth {
 
 function applyRegistrationRequested(health: SipSessionHealth): SipSessionHealth {
   const next = applyLifecycleActive(health);
+  const clearedRecovery = {
+    ...next.recovery,
+    lastFailureReason: null,
+  };
   if (next.transport === "connected") {
     return {
       ...next,
       registration: "registering",
+      recovery: clearedRecovery,
     };
   }
   return {
     ...next,
     registration: next.transport === "idle" ? "idle" : "registering",
+    recovery: clearedRecovery,
   };
 }
 

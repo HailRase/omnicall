@@ -393,8 +393,9 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Transport disconnect clears registration projection (`SipRegistrationCleared`); never show `registered` when socket down.
   - SIP flat retry per user settings (LF-008): transport and registration each configurable — interval (min 5s), max attempts, no exponential backoff.
   - UserSettings v2: `sipAutoReconnectEnabled`, `sipReconnectIntervalSec`, `sipReconnectMaxAttempts`, `sipAutoReregisterEnabled`, `sipReregisterIntervalSec`, `sipReregisterMaxAttempts`, `sipAutoRegisterOnStartup`.
-  - `RegistrationFailed` / `registrationFailed` triggers registration retry only when transport `connected`; retry uses `reregister()` on open socket.
-  - Auth errors 401/403 stop auto-retry immediately; Russian message: «Переподключение прервано. Ошибка: {code} {text}. Проверьте логин/пароль».
+  - Transport WebSocket connection timeout: 10 seconds; on timeout publishes `SipTransportDisconnected` and follows auto-reconnect policy when enabled.
+  - Runtime `registrationFailed` (including 403 while previously registered) publishes `RegistrationFailed`, clears effective registration, and follows auto-reregister policy when enabled.
+  - Auth errors 401/403 follow the same registration retry policy as other failures when `sipAutoReregisterEnabled` is on.
   - Retry pauses while active telephony sessions exist; header shows fault immediately; scheduling resumes after `CallEnded`.
   - Manual actions in **Settings → Состояние системы** only: `ManualSipTransportReconnectUseCase` (timer reset, attempt # unchanged), `ReregisterSipUseCase` (transport connected guard).
   - **Remove SIP-only:** `ConnectionOverlay`, `RecoveryFeatureShell`, header `control-reregister-sip`, overlay manual retry.

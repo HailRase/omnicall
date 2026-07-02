@@ -18,7 +18,15 @@ export function mapSipRegistrationFailureKey(raw: string): string {
     return "forbidden";
   }
 
-  if (normalized.includes("registration_timeout") || normalized.includes("timeout")) {
+  if (normalized.includes("transport connection timed out") || normalized.includes("transport_connection")) {
+    return "transport_connection_timed_out";
+  }
+
+  if (normalized.includes("registration_timeout")) {
+    return "registration_timeout";
+  }
+
+  if (normalized.includes("timeout")) {
     return "registration_timeout";
   }
 

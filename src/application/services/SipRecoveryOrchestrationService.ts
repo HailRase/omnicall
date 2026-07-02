@@ -2,10 +2,8 @@ import type { DomainEvent } from "@domain/index.js";
 import type { SipAccountId } from "@domain/index.js";
 import {
   createDefaultUserSettings,
+  createRegistrationFailedEvent,
   createRegistrationSucceededEvent,
-  formatSipAuthTerminalMessage,
-  isNonRetryableSipAuthError,
-  isNonRetryableSipRegistrationFailureKey,
   mapSipRegistrationFailureKey,
 } from "@domain/index.js";
 import {
@@ -130,11 +128,15 @@ export class SipRecoveryOrchestrationService {
     );
     this.transportUnsubscribers.push(
       this.deps.telephonyGateway.setRegistrationFailedHandler((notification) => {
-        this.handleRegistrationFailed(
-          notification.correlationId,
-          notification.reason,
-          notification.accountId,
-        );
+        const reason = mapSipRegistrationFailureKey(notification.reason);
+        const accountId = notification.accountId;
+        const event = createRegistrationFailedEvent(notification.correlationId, {
+          accountId:
+            accountId ?? ("runtime-registration-failed" as SipAccountId),
+          reason,
+        });
+        this.deps.eventPublisher.publish(event);
+        this.journal.recordDomainEvent(event);
         return Promise.resolve();
       }),
     );
@@ -238,7 +240,9 @@ export class SipRecoveryOrchestrationService {
         const reason = mapSipRegistrationFailureKey(
           asOptionalString(event["reason"]) ?? "registration_failed",
         );
-        this.handleRegistrationFailed(event.correlationId, reason, accountId);
+        queueMicrotask(() => {
+          this.handleRegistrationFailed(event.correlationId, reason, accountId);
+        });
         return;
       }
       case "CallEnded":
@@ -333,12 +337,6 @@ export class SipRecoveryOrchestrationService {
         operation: "sip_registration_failure_deduplicated",
         reason,
       });
-      return;
-    }
-
-    if (isNonRetryableSipRegistrationFailureKey(reasonKey) || isNonRetryableSipAuthError(null, reason)) {
-      const terminalReason = formatSipAuthTerminalMessage(null, reason);
-      this.publishRegistrationFailed(correlationId, 1, terminalReason, true);
       return;
     }
 
@@ -465,13 +463,6 @@ export class SipRecoveryOrchestrationService {
     }
 
     const reason = mapSipRegistrationFailureKey(gatewayResult.error.message);
-    if (current.target === "registration" && isNonRetryableSipAuthError(null, reason)) {
-      const terminalReason = formatSipAuthTerminalMessage(null, reason);
-      this.publishRegistrationFailed(current.correlationId, attemptNumber, terminalReason, true);
-      this.clearSession();
-      return;
-    }
-
     const isTerminal = isTerminalReconnectFailure(attemptNumber, this.getPolicy(current.target));
     this.publishFailed(current, attemptNumber, reason, isTerminal);
     if (isTerminal) {

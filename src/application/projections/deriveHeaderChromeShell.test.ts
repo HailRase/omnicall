@@ -105,7 +105,7 @@ describe("deriveHeaderChromeShell", () => {
 
     expect(shell.registrationDotVariant).toBe("failed");
     expect(shell.sipStatusLabel).toBe("Нет соединения");
-    expect(shell.sipStatusTimerSuffix).toBe("(переподкл. 00:45)");
+    expect(shell.sipStatusTimerSuffix).toBe("00:45");
     expect(shell.sipStatusTone).toBe("reconnecting");
   });
 

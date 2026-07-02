@@ -43,6 +43,7 @@ describe("ReregisterSipUseCase", () => {
     const result = await useCase.execute({ correlationId, accountId });
     expect(isErr(result)).toBe(false);
     expect(types).toEqual([
+      "ManualSipReregisterRequested",
       "RegistrationRequested",
       "RegistrationSucceeded",
     ]);

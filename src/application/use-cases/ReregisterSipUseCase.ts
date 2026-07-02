@@ -1,5 +1,6 @@
 import type { SipAccountId } from "@domain/index.js";
 import {
+  createManualSipReregisterRequestedEvent,
   createRegistrationFailedEvent,
   createRegistrationRequestedEvent,
   createRegistrationSucceededEvent,
@@ -37,6 +38,7 @@ export class ReregisterSipUseCase {
   async execute(input: ReregisterSipInput = {}): Promise<Result<void, PlatformError>> {
     const correlationId = input.correlationId ?? createCorrelationId();
 
+    this.eventPublisher.publish(createManualSipReregisterRequestedEvent(correlationId));
     this.eventPublisher.publish(
       createRegistrationRequestedEvent(correlationId, {
         accountId: input.accountId ?? ("manual-reregister" as SipAccountId),

@@ -33,23 +33,29 @@ export function UserHeaderIdentity({
   sipStatusTimerSuffix,
   sipStatusTone,
 }: UserHeaderIdentityProps): JSX.Element {
-  const statusText =
-    sipStatusTimerSuffix === null
-      ? sipStatusLabel
-      : `${sipStatusLabel} ${sipStatusTimerSuffix}`;
-
   return (
     <div className={styles["identity"]} data-testid="user-header-identity">
       <span className={styles["displayName"]} title={displayName}>
         {displayName}
       </span>
-      <span
-        className={clsx(styles["sipStatus"], SIP_STATUS_TONE_CLASS[sipStatusTone])}
-        data-testid="user-sip-status"
-        data-tone={sipStatusTone}
-      >
-        {statusText}
-      </span>
+      <div className={styles["sipStatusBlock"]}>
+        <span
+          className={clsx(styles["sipStatus"], SIP_STATUS_TONE_CLASS[sipStatusTone])}
+          data-testid="user-sip-status"
+          data-tone={sipStatusTone}
+        >
+          {sipStatusLabel}
+        </span>
+        {sipStatusTimerSuffix !== null ? (
+          <span
+            className={clsx(styles["sipStatusTimer"], SIP_STATUS_TONE_CLASS[sipStatusTone])}
+            data-testid="user-sip-status-timer"
+            aria-hidden="true"
+          >
+            {sipStatusTimerSuffix}
+          </span>
+        ) : null}
+      </div>
     </div>
   );
 }

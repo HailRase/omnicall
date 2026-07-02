@@ -9,6 +9,8 @@ export function mapSipRegistrationFailureReason(key: string): string {
       return "Неверный логин или пароль";
     case "connection_error":
       return "Ошибка соединения с сервером";
+    case "transport_connection_timed_out":
+      return "Не удалось подключиться к серверу (таймаут 10 с)";
     case "registration_timeout":
       return "Истекло время ожидания регистрации";
     case "forbidden":

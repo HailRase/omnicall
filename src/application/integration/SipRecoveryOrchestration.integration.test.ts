@@ -147,7 +147,7 @@ describe("SipRecoveryOrchestration integration", () => {
     expect(telephony.isRegistered()).toBe(true);
   });
 
-  it("auth registration failure stops auto-retry immediately (ADR-0004 §1.7)", async () => {
+  it("auth registration failure schedules auto-retry when auto-reregister is enabled", async () => {
     const correlationId = createCorrelationId();
     const telephony = new MockTelephonyGateway({
       registrationScenario: "success",
@@ -185,11 +185,14 @@ describe("SipRecoveryOrchestration integration", () => {
     await facade.simulateSipRegistrationFailed(correlationId, "authentication_error");
 
     expect(published.some((event) => event.type === "SipRegistrationRetryScheduled")).toBe(
-      false,
+      true,
     );
-    const failed = published.find((event) => event.type === "SipRegistrationRetryFailed");
-    expect(failed?.["isTerminal"]).toBe(true);
-    expect(String(failed?.["reason"])).toContain("Проверьте логин/пароль");
+    expect(
+      published.some(
+        (event) =>
+          event.type === "SipRegistrationRetryFailed" && event["isTerminal"] === true,
+      ),
+    ).toBe(false);
   });
 
   it("terminal registration retry failure → manual_retry_available (F-014)", async () => {

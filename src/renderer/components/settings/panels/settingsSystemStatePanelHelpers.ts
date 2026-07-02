@@ -54,11 +54,6 @@ export function deriveSummaryIndicatorTone(
   return "neutral";
 }
 
-export function formatManualActionDisabledReason(reason: string): string {
-  const normalized = reason.length > 0 ? reason.charAt(0).toLowerCase() + reason.slice(1) : reason;
-  return `Недоступно: ${normalized}`;
-}
-
 export function isIntervalBelowMinimum(value: number, minimum: number): boolean {
   return Number.isFinite(value) && value < minimum;
 }
