@@ -51,7 +51,7 @@ if (files.length === 0) {
 const title = `Axatalk ${tag}`;
 const notes = [
   `Installers for ${tag}.`,
-  'Download .exe / .dmg / .AppImage / .deb — not Source code zip.',
+  'Download .exe / .msi / .dmg / .AppImage / .deb — not Source code zip.',
 ].join('\n');
 
 async function main() {

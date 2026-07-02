@@ -1,7 +1,8 @@
 # Build resources
 
 - Purpose: platform icons and macOS entitlements for electron-builder.
-- Inputs: `icon.png` (512×512 or 1024×1024), optional `icon.ico`, `icon.icns`.
-- Outputs: installer branding consumed from `directories.buildResources`.
-- Place `icon.png` here before release; electron-builder generates `.ico`/`.icns` when missing.
-- Replace with final product artwork before public distribution.
+- Inputs: `npm run build:icons` generates `icon.png`, `icon.ico`, `icon.icns`, `icons/{N}x{N}.png`, `theme-icons/`.
+- Outputs: installer branding from `directories.buildResources` (`build/`).
+- Linux menu icons require `build/icons/` with `16x16.png` … `512x512.png` (not bare `icon.png`).
+- Windows ships NSIS `.exe` and MSI `.msi`; both use `icon.ico`.
+- Run `npm run build:icons` before release cuts if artwork changes.

@@ -27,7 +27,7 @@ Operational guide for **distribution releases** (F-019, F-020). Agents: use with
 | `package.json` version | `0.0.2` (no `v`) |
 | Git tag | `v0.0.2` |
 | Release title | `Axatalk v0.0.2` or `Axatalk 0.0.2` |
-| Windows installer | `Axatalk-0.0.2-win-x64.exe` |
+| Windows installer | `Axatalk-0.0.2-win-x64.exe` (NSIS) · `Axatalk-0.0.2-win-x64.msi` (IT) |
 | macOS | `Axatalk-0.0.2-mac-arm64.dmg` |
 | Linux AppImage (CI) | `Axatalk-0.0.2-linux-x86_64.AppImage` |
 
@@ -98,7 +98,7 @@ User-facing release: https://github.com/HailRase/axatalk-releases/releases
 
 ### 9. Verify (agent or human)
 
-1. **axatalk-releases** Release `vX.Y.Z` has `.exe`, `.dmg`, `.AppImage` (installers only)
+1. **axatalk-releases** Release `vX.Y.Z` has `.exe`, `.msi`, `.dmg`, `.AppImage` (installers only)
 2. Direct download URLs return 200 (not 404)
 3. Raw manifest: `https://raw.githubusercontent.com/HailRase/axatalk-releases/main/update-manifest.json`
 4. Optional: in-app **Настройки → О программе → Проверить обновления**

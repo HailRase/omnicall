@@ -18,7 +18,7 @@
 
 | ОС | Файл | Рекомендация |
 | --- | --- | --- |
-| Windows | `Axatalk-<версия>-win-x64.exe` | Запустить мастер установки |
+| Windows | `Axatalk-<версия>-win-x64.exe` или `-win-x64.msi` | `.exe` — мастер; `.msi` — IT/GPO |
 | macOS (Apple Silicon) | `Axatalk-<версия>-mac-arm64.dmg` | Перетащить в «Программы» |
 | Linux | `Axatalk-<версия>-linux-x86_64.AppImage` | **Предпочтительно** |
 | Linux (Debian/Ubuntu) | `Axatalk-<версия>-linux-amd64.deb` | Только через терминал (см. ниже) |
@@ -81,7 +81,7 @@ chmod +x Axatalk-*-linux-x86_64.AppImage
 1. В `softphone-electron`: release cut → тег `vX.Y.Z` на **private** repo.
 2. CI workflow **Release** собирает win/mac/linux.
 3. Job **publish**:
-   - создаёт Release в `axatalk-releases` с тегом `vX.Y.Z` (только `.exe`, `.dmg`, `.AppImage`, `.deb`);
+   - создаёт Release в `axatalk-releases` с тегом `vX.Y.Z` (только `.exe`, `.msi`, `.dmg`, `.AppImage`, `.deb`);
    - пушит `update-manifest.json` и `README.md` в ветку `main`.
 
 Исходники в `distribution/` в private repo — шаблон для пуша сюда.

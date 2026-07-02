@@ -1,7 +1,7 @@
 """
 - Purpose: generate production app icon assets from one master design.
 - Inputs: no CLI args; writes files into build/ directory.
-- Outputs: icon.svg, icon.png, icon-*.png, icon.ico, icon.icns.
+- Outputs: icon.svg, icon.png, icon-*.png, icons/{N}x{N}.png, icon.ico, icon.icns.
 - Transparency: outside squircle is fully transparent with anti-aliased alpha.
 - Quality: handset keeps readable silhouette at 16x16 and 32x32.
 """
@@ -15,6 +15,7 @@ from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 MASTER_SIZE = 1024
 OUTPUT_SIZES = (512, 256, 128, 64, 48, 32, 16)
+LINUX_ICON_SIZES = (16, 24, 32, 48, 64, 96, 128, 256, 512)
 ICO_SIZES = (16, 32, 48, 256)
 ICON_SCALE_FOR_MASKS = 4
 
@@ -368,6 +369,14 @@ def save_assets(master: Image.Image, light_master: Image.Image, dark_master: Ima
         theme_icons_dir / "icon-light.png",
         format="PNG",
     )
+
+    linux_icons_dir = build_dir / "icons"
+    linux_icons_dir.mkdir(parents=True, exist_ok=True)
+    for size in LINUX_ICON_SIZES:
+        resize_for_output(master, size).save(
+            linux_icons_dir / f"{size}x{size}.png",
+            format="PNG",
+        )
 
 
 def run() -> None:

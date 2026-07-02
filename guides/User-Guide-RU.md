@@ -14,7 +14,8 @@
 
 | ОС | Файл | Как выбрать |
 | --- | --- | --- |
-| Windows | `Axatalk-<версия>-win-x64.exe` | Скачать `.exe` |
+| Windows | `Axatalk-<версия>-win-x64.exe` | Скачать `.exe` (обычная установка) |
+| Windows (IT) | `Axatalk-<версия>-win-x64.msi` | MSI для GPO / `msiexec` |
 | macOS (Apple Silicon) | `Axatalk-<версия>-mac-arm64.dmg` | Скачать `.dmg` |
 | Linux | `Axatalk-<версия>-linux-x86_64.AppImage` | **Рекомендуется** |
 | Linux (Debian/Ubuntu) | `Axatalk-<версия>-linux-amd64.deb` | Только через терминал или GDebi |
@@ -27,7 +28,7 @@
 
 ### Windows
 
-Запустите `.exe`, пройдите мастер. При SmartScreen: «Подробнее» → «Выполнить в любом случае» (если сборка без подписи).
+Запустите `.exe` (или `.msi` для IT), пройдите мастер. При SmartScreen: «Подробнее» → «Выполнить в любом случае» (если сборка без подписи).
 
 ### macOS
 

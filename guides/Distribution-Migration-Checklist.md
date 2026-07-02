@@ -83,7 +83,7 @@ node scripts/migrate-distribution-releases.mjs v0.0.1 v0.0.2
 ### Проверка
 
 - [ ] https://github.com/HailRase/axatalk-releases/releases — теги `v0.0.1`, `v0.0.2`
-- [ ] В каждом релизе только `.exe`, `.dmg`, `.AppImage` (и опц. `.deb`) — **без** `.blockmap`, `latest.yml`
+- [ ] В каждом релизе только `.exe`, `.msi`, `.dmg`, `.AppImage` (и опц. `.deb`) — **без** `.blockmap`, `latest.yml`
 - [ ] https://github.com/HailRase/axatalk-releases/blob/main/README.md
 - [ ] https://raw.githubusercontent.com/HailRase/axatalk-releases/main/update-manifest.json → `latestVersion: "0.0.2"`
 - [ ] Прямые ссылки из manifest открываются (не 404)
