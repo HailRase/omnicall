@@ -57,9 +57,10 @@ export type SettingsPanelProps = Readonly<{
     onSipAutoRegisterOnStartupChange: (enabled: boolean) => void;
     onManualTransportReconnect: () => void;
     onManualReregister: () => void;
-    onForceRefreshRegistration: () => void;
     onClearJournal: () => void;
     actionError: string | null;
+    actionSuccess: string | null;
+    actionLoading: "transport" | "reregister" | null;
   }>;
   account: Readonly<{
     form: SipAccountInput;
@@ -179,9 +180,10 @@ export function SettingsPanel({
           onSipAutoRegisterOnStartupChange={systemState.onSipAutoRegisterOnStartupChange}
           onManualTransportReconnect={systemState.onManualTransportReconnect}
           onManualReregister={systemState.onManualReregister}
-          onForceRefreshRegistration={systemState.onForceRefreshRegistration}
           onClearJournal={systemState.onClearJournal}
           actionError={systemState.actionError}
+          actionSuccess={systemState.actionSuccess}
+          actionLoading={systemState.actionLoading}
         />
       );
       break;

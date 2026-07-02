@@ -514,38 +514,6 @@ describe("JsSipTelephonyAdapter", () => {
     expect(result.ok).toBe(false);
   });
 
-  it("forceRefreshRegistration unregisters all contacts then registers again", async () => {
-    const mockUa = new MockJsSipUa();
-    const adapter = createAdapter(mockUa);
-
-    await adapter.register({
-      account,
-      correlationId: createCorrelationId(),
-    });
-
-    const correlationId = createCorrelationId();
-    const result = await adapter.forceRefreshRegistration(correlationId);
-
-    expect(result.ok).toBe(true);
-    expect(mockUa.unregisterCalls).toBeGreaterThanOrEqual(1);
-    expect(mockUa.registerCalls).toBeGreaterThanOrEqual(2);
-  });
-
-  it("forceRefreshRegistration fails when transport is not connected", async () => {
-    const mockUa = new MockJsSipUa();
-    const adapter = createAdapter(mockUa);
-
-    await adapter.register({
-      account,
-      correlationId: createCorrelationId(),
-    });
-
-    mockUa.markDisconnected({ error: true, reason: "websocket_closed" });
-
-    const result = await adapter.forceRefreshRegistration(createCorrelationId());
-    expect(result.ok).toBe(false);
-  });
-
   it("does not invoke transport disconnect handler during intentional unregister", async () => {
     const mockUa = new MockJsSipUa();
     const adapter = createAdapter(mockUa);

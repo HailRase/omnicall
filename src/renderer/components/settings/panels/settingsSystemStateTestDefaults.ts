@@ -4,14 +4,13 @@ export const idleSystemStateShell: SipSystemStateShellView = {
   transportState: "idle",
   registrationState: "idle",
   effectiveRegistrationState: "idle",
-  transportStateLabel: "Не активно",
-  registrationStateLabel: "Не активна",
+  transportStateLabel: "Неактивно",
+  registrationStateLabel: "Неактивна",
   summaryLabel: "Не подключено",
   transportFailureReason: null,
   registrationFailureReason: null,
   manualTransportReconnectDisabledReason: "Сессия не активна",
   manualReregisterDisabledReason: "Сессия не активна",
-  forceRefreshDisabledReason: "Сессия не активна",
   journalEntries: [],
 };
 
@@ -33,7 +32,8 @@ export const systemStateTestDefaults = {
   onSipAutoRegisterOnStartupChange: () => undefined,
   onManualTransportReconnect: () => undefined,
   onManualReregister: () => undefined,
-  onForceRefreshRegistration: () => undefined,
   onClearJournal: () => undefined,
   actionError: null,
+  actionSuccess: null,
+  actionLoading: null,
 } as const;

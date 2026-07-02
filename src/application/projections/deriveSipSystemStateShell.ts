@@ -26,7 +26,6 @@ export type SipSystemStateShellView = Readonly<{
   registrationFailureReason: string | null;
   manualTransportReconnectDisabledReason: string | null;
   manualReregisterDisabledReason: string | null;
-  forceRefreshDisabledReason: string | null;
   journalEntries: ReadonlyArray<SipConnectionJournalEntry>;
 }>;
 
@@ -66,7 +65,6 @@ export function deriveSipSystemStateShell(
       input.health,
     ),
     manualReregisterDisabledReason: deriveManualReregisterDisabledReason(input.health),
-    forceRefreshDisabledReason: deriveForceRefreshDisabledReason(input.health),
     journalEntries: input.journalEntries ?? [],
   };
 }
@@ -74,7 +72,7 @@ export function deriveSipSystemStateShell(
 function deriveTransportStateLabel(state: SipTransportState): string {
   switch (state) {
     case "idle":
-      return "Не активно";
+      return "Неактивно";
     case "connecting":
       return "Подключение";
     case "connected":
@@ -89,7 +87,7 @@ function deriveTransportStateLabel(state: SipTransportState): string {
 function deriveRegistrationStateLabel(state: SipRegistrationState): string {
   switch (state) {
     case "idle":
-      return "Не активна";
+      return "Неактивна";
     case "registering":
       return "Регистрация";
     case "registered":
@@ -116,21 +114,10 @@ function deriveManualReregisterDisabledReason(health: SipSessionHealth): string 
     return "Сессия не активна";
   }
   if (health.transport !== "connected") {
-    return "Сокет не подключён";
+    return "Сервер не подключён";
   }
   if (health.registration === "registering") {
     return "Регистрация выполняется";
-  }
-  return null;
-}
-
-function deriveForceRefreshDisabledReason(health: SipSessionHealth): string | null {
-  const reregisterReason = deriveManualReregisterDisabledReason(health);
-  if (reregisterReason !== null) {
-    return reregisterReason;
-  }
-  if (health.registration !== "registered") {
-    return "Регистрация не активна";
   }
   return null;
 }

@@ -33,7 +33,6 @@ import { SafeLogoutUseCase } from "../use-cases/SafeLogoutUseCase.js";
 import { EndUserSessionUseCase } from "../use-cases/EndUserSessionUseCase.js";
 import { RetryConnectionUseCase } from "../use-cases/RetryConnectionUseCase.js";
 import { ManualSipTransportReconnectUseCase } from "../use-cases/ManualSipTransportReconnectUseCase.js";
-import { ForceRefreshSipRegistrationUseCase } from "../use-cases/ForceRefreshSipRegistrationUseCase.js";
 import { ReregisterSipUseCase } from "../use-cases/ReregisterSipUseCase.js";
 import { ShutdownCleanupUseCase } from "../use-cases/ShutdownCleanupUseCase.js";
 import { RegisterOcpCallCorrelationUseCase } from "../use-cases/RegisterOcpCallCorrelationUseCase.js";
@@ -126,7 +125,6 @@ export class AccountBootstrapFacade {
   readonly logoutOperator: LogoutOperatorUseCase;
   readonly retryConnection: RetryConnectionUseCase;
   readonly manualSipTransportReconnect: ManualSipTransportReconnectUseCase;
-  readonly forceRefreshSipRegistration: ForceRefreshSipRegistrationUseCase;
   readonly reregisterSip: ReregisterSipUseCase;
   readonly safeLogout: SafeLogoutUseCase;
   readonly endUserSession: EndUserSessionUseCase;
@@ -356,11 +354,6 @@ export class AccountBootstrapFacade {
       this.sipRecoveryOrchestration,
       deps.logger,
     );
-    this.forceRefreshSipRegistration = new ForceRefreshSipRegistrationUseCase(
-      deps.telephonyGateway,
-      this.eventPublisher,
-      deps.logger,
-    );
     this.reregisterSip = new ReregisterSipUseCase(
       deps.telephonyGateway,
       this.eventPublisher,
@@ -571,14 +564,6 @@ export class AccountBootstrapFacade {
     correlationId?: CorrelationId,
   ): Promise<Result<void, PlatformError>> {
     return this.manualSipTransportReconnect.execute(
-      correlationId !== undefined ? { correlationId } : {},
-    );
-  }
-
-  async forceRefreshSipRegistrationAccount(
-    correlationId?: CorrelationId,
-  ): Promise<Result<void, PlatformError>> {
-    return this.forceRefreshSipRegistration.execute(
       correlationId !== undefined ? { correlationId } : {},
     );
   }

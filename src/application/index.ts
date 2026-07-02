@@ -239,8 +239,6 @@ export { RetryConnectionUseCase } from "./use-cases/RetryConnectionUseCase.js";
 export type { RetryConnectionInput, RetryConnectionChannel } from "./use-cases/RetryConnectionUseCase.js";
 export { ManualSipTransportReconnectUseCase } from "./use-cases/ManualSipTransportReconnectUseCase.js";
 export type { ManualSipTransportReconnectInput } from "./use-cases/ManualSipTransportReconnectUseCase.js";
-export { ForceRefreshSipRegistrationUseCase } from "./use-cases/ForceRefreshSipRegistrationUseCase.js";
-export type { ForceRefreshSipRegistrationInput } from "./use-cases/ForceRefreshSipRegistrationUseCase.js";
 export { ReregisterSipUseCase } from "./use-cases/ReregisterSipUseCase.js";
 export type { ReregisterSipInput } from "./use-cases/ReregisterSipUseCase.js";
 export {

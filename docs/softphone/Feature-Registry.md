@@ -396,7 +396,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - `RegistrationFailed` / `registrationFailed` triggers registration retry only when transport `connected`; retry uses `reregister()` on open socket.
   - Auth errors 401/403 stop auto-retry immediately; Russian message: «Переподключение прервано. Ошибка: {code} {text}. Проверьте логин/пароль».
   - Retry pauses while active telephony sessions exist; header shows fault immediately; scheduling resumes after `CallEnded`.
-  - Manual actions in **Settings → Состояние системы** only: `ManualSipTransportReconnectUseCase` (timer reset, attempt # unchanged), `ReregisterSipUseCase` (transport connected guard), `ForceRefreshSipRegistrationUseCase` (unregister all + register).
+  - Manual actions in **Settings → Состояние системы** only: `ManualSipTransportReconnectUseCase` (timer reset, attempt # unchanged), `ReregisterSipUseCase` (transport connected guard).
   - **Remove SIP-only:** `ConnectionOverlay`, `RecoveryFeatureShell`, header `control-reregister-sip`, overlay manual retry.
   - `SipConnectionJournal` in-memory ring buffer for transport + registration events (correlationId, timestamp).
   - Failure reasons normalized (`mapSipRegistrationFailureKey`) and shown in Russian in settings panel and header.
@@ -405,7 +405,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - App shutdown IPC triggers `ShutdownCleanupUseCase` with hangup, unregister, scheduler dispose (LF-079).
   - SIP-only user logout: `hangupAll → unregister({ all: true }) → ua.stop() → SipSessionReset → idle`; all recovery timers cleared (LF-079).
 - Test Coverage:
-  - Unit: `SipSessionHealth`, `buildSipTransportRecoveryPolicy`, `buildSipRegistrationRecoveryPolicy`, `sipSessionHealthProjection`, `deriveSipStatusShell`, `deriveSipSystemStateShell`, `ReconnectScheduler`, `ManualSipTransportReconnectUseCase`, `ForceRefreshSipRegistrationUseCase`, `EndUserSessionUseCase`, `SessionTeardownOrchestrationService`
+  - Unit: `SipSessionHealth`, `buildSipTransportRecoveryPolicy`, `buildSipRegistrationRecoveryPolicy`, `sipSessionHealthProjection`, `deriveSipStatusShell`, `deriveSipSystemStateShell`, `ReconnectScheduler`, `ManualSipTransportReconnectUseCase`, `EndUserSessionUseCase`, `SessionTeardownOrchestrationService`
   - Integration: `SipRecoveryOrchestration.integration.test.ts` (transport→registration order, pause during call, auth fail terminal, manual reconnect)
   - Component: `SettingsSystemStatePanel`, `LogoutActiveSessionConfirmationModal`; header SIP status (no overlay)
   - E2E: deferred until harness exists
@@ -450,7 +450,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - **Overlay navigation:** settings open fullscreen over call context; diagnostics is a settings section; call context stays mounted (`UI-Architecture.md`).
   - **Settings sidebar:** collapsed icon rail; expanded labels overlay content without shrinking the panel; no duplicate overlay header — content header shows `Настройки ({раздел})` and a minimal close icon.
   - **Settings sections:** Account (SIP auth), General (theme LF-082), **Состояние системы** (`system-state` — ADR-0004), Sessions (multi-call), Diagnostics (F-017 stub), Codecs (stub), Headset (P10 stub).
-  - **`SettingsSystemStatePanel`:** current socket/registration state, auto-reconnect/reregister policies, manual actions (Переподключить сокет, Перерегистрировать, Обновить регистрацию) with disabled reasons, transport+registration journal.
+  - **`SettingsSystemStatePanel`:** current server/registration state, auto-reconnect/reregister policies, manual actions (Переподключить сервер, Перерегистрировать) with disabled reasons, transport+registration journal.
   - Icon `settings.system-state` in Icon Registry + catalog.
   - **`multiSessionsEnabled` toggle** in settings UI (facade + port; no Use Case) — enables R7-5 re-smoke without repo hack.
   - Collapsed mode preserves critical call/status visibility.

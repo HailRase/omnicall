@@ -27,7 +27,6 @@ describe("deriveSipSystemStateShell", () => {
     expect(shell.summaryLabel).toBe("Зарегистрирован");
     expect(shell.manualTransportReconnectDisabledReason).toBeNull();
     expect(shell.manualReregisterDisabledReason).toBeNull();
-    expect(shell.forceRefreshDisabledReason).toBeNull();
   });
 
   it("exposes transport failure reason during reconnect", () => {
@@ -49,7 +48,7 @@ describe("deriveSipSystemStateShell", () => {
 
     expect(shell.transportFailureReason).toBe("transport_closed");
     expect(shell.manualTransportReconnectDisabledReason).toBe("Переподключение выполняется");
-    expect(shell.manualReregisterDisabledReason).toBe("Сокет не подключён");
+    expect(shell.manualReregisterDisabledReason).toBe("Сервер не подключён");
   });
 
   it("disables manual reregister when transport is down", () => {
@@ -59,18 +58,7 @@ describe("deriveSipSystemStateShell", () => {
       sipAutoReregisterEnabled: true,
     });
 
-    expect(shell.manualReregisterDisabledReason).toBe("Сокет не подключён");
-    expect(shell.forceRefreshDisabledReason).toBe("Сокет не подключён");
-  });
-
-  it("disables force refresh when not registered", () => {
-    const shell = deriveSipSystemStateShell({
-      health: health({ transport: "connected", registration: "idle" }),
-      sipAutoReconnectEnabled: true,
-      sipAutoReregisterEnabled: true,
-    });
-
-    expect(shell.forceRefreshDisabledReason).toBe("Регистрация не активна");
+    expect(shell.manualReregisterDisabledReason).toBe("Сервер не подключён");
   });
 
   it("passes journal entries through", () => {

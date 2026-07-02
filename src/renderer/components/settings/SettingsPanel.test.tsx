@@ -143,7 +143,7 @@ describe("SettingsPanel", () => {
     expect(screen.getByTestId("settings-system-state-panel")).toBeInTheDocument();
     expect(screen.getByTestId("settings-sip-summary-label")).toHaveTextContent("Не подключено");
     expect(screen.getByTestId("settings-sip-manual-transport-reconnect")).toHaveTextContent(
-      "Переподключить сокет",
+      "Переподключить сервер",
     );
   });
 });

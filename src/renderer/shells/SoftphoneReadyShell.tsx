@@ -179,9 +179,10 @@ export function SoftphoneReadyShell({
                   settingsActions.onSipAutoRegisterOnStartupToggle,
                 onManualTransportReconnect: sipSystemStateActions.onManualTransportReconnect,
                 onManualReregister: sipSystemStateActions.onManualReregister,
-                onForceRefreshRegistration: sipSystemStateActions.onForceRefreshRegistration,
                 onClearJournal: sipSystemStateActions.onClearJournal,
                 actionError: sipSystemStateActions.actionError,
+                actionSuccess: sipSystemStateActions.actionSuccess,
+                actionLoading: sipSystemStateActions.actionLoading,
               }}
               account={{
                 form: accountActions.form,

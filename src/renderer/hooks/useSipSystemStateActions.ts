@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
   deriveSipSystemStateShell,
@@ -46,6 +46,8 @@ export function useSipSystemStateShell(
   );
 }
 
+export type SipManualActionKind = "transport" | "reregister";
+
 type UseSipSystemStateActionsInput = Readonly<{
   facade: AccountBootstrapFacade | null;
 }>;
@@ -53,11 +55,19 @@ type UseSipSystemStateActionsInput = Readonly<{
 type UseSipSystemStateActionsResult = Readonly<{
   journalEntries: ReadonlyArray<SipConnectionJournalEntry>;
   actionError: string | null;
+  actionSuccess: string | null;
+  actionLoading: SipManualActionKind | null;
   onManualTransportReconnect: () => void;
   onManualReregister: () => void;
-  onForceRefreshRegistration: () => void;
   onClearJournal: () => void;
 }>;
+
+const ACTION_SUCCESS_MESSAGES: Record<SipManualActionKind, string> = {
+  transport: "Переподключение сервера запущено",
+  reregister: "Перерегистрация запущена",
+};
+
+const ACTION_SUCCESS_CLEAR_MS = 3200;
 
 function resolveActionError(error: unknown): string {
   return error instanceof Error ? error.message : "Не удалось выполнить действие";
@@ -66,7 +76,7 @@ function resolveActionError(error: unknown): string {
 /**
  * - Purpose: wire manual SIP recovery actions and journal refresh for settings panel.
  * - Inputs: account bootstrap facade.
- * - Outputs: journal snapshot, action callbacks, and observable action errors.
+ * - Outputs: journal snapshot, action callbacks, loading/success/error feedback.
  */
 export function useSipSystemStateActions(
   input: UseSipSystemStateActionsInput,
@@ -76,6 +86,30 @@ export function useSipSystemStateActions(
     [],
   );
   const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<SipManualActionKind | null>(null);
+  const successClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearSuccessTimer = useCallback((): void => {
+    if (successClearTimerRef.current !== null) {
+      clearTimeout(successClearTimerRef.current);
+      successClearTimerRef.current = null;
+    }
+  }, []);
+
+  const scheduleSuccessClear = useCallback((): void => {
+    clearSuccessTimer();
+    successClearTimerRef.current = setTimeout(() => {
+      setActionSuccess(null);
+      successClearTimerRef.current = null;
+    }, ACTION_SUCCESS_CLEAR_MS);
+  }, [clearSuccessTimer]);
+
+  useEffect(() => {
+    return () => {
+      clearSuccessTimer();
+    };
+  }, [clearSuccessTimer]);
 
   const refreshJournal = useCallback((): void => {
     if (facade === null) {
@@ -99,10 +133,15 @@ export function useSipSystemStateActions(
   }, [facade, refreshJournal]);
 
   const runAction = useCallback(
-    (action: () => Promise<Result<void, PlatformError>>): void => {
-      if (facade === null) {
+    (kind: SipManualActionKind, action: () => Promise<Result<void, PlatformError>>): void => {
+      if (facade === null || actionLoading !== null) {
         return;
       }
+
+      setActionLoading(kind);
+      setActionError(null);
+      setActionSuccess(null);
+      clearSuccessTimer();
 
       void action()
         .then((result) => {
@@ -110,35 +149,32 @@ export function useSipSystemStateActions(
             setActionError(result.error.message);
             return;
           }
-          setActionError(null);
+          setActionSuccess(ACTION_SUCCESS_MESSAGES[kind]);
+          scheduleSuccessClear();
           refreshJournal();
         })
         .catch((error: unknown) => {
           setActionError(resolveActionError(error));
+        })
+        .finally(() => {
+          setActionLoading(null);
         });
     },
-    [facade, refreshJournal],
+    [facade, actionLoading, clearSuccessTimer, refreshJournal, scheduleSuccessClear],
   );
 
   const onManualTransportReconnect = useCallback((): void => {
     if (facade === null) {
       return;
     }
-    runAction(() => facade.manualSipTransportReconnectAccount());
+    runAction("transport", () => facade.manualSipTransportReconnectAccount());
   }, [facade, runAction]);
 
   const onManualReregister = useCallback((): void => {
     if (facade === null) {
       return;
     }
-    runAction(() => facade.reregisterSipAccount());
-  }, [facade, runAction]);
-
-  const onForceRefreshRegistration = useCallback((): void => {
-    if (facade === null) {
-      return;
-    }
-    runAction(() => facade.forceRefreshSipRegistrationAccount());
+    runAction("reregister", () => facade.reregisterSipAccount());
   }, [facade, runAction]);
 
   const onClearJournal = useCallback((): void => {
@@ -148,14 +184,17 @@ export function useSipSystemStateActions(
     facade.clearSipConnectionJournal();
     refreshJournal();
     setActionError(null);
-  }, [facade, refreshJournal]);
+    setActionSuccess(null);
+    clearSuccessTimer();
+  }, [facade, refreshJournal, clearSuccessTimer]);
 
   return {
     journalEntries,
     actionError,
+    actionSuccess,
+    actionLoading,
     onManualTransportReconnect,
     onManualReregister,
-    onForceRefreshRegistration,
     onClearJournal,
   };
 }

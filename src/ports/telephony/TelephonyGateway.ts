@@ -173,8 +173,4 @@ export interface TelephonyGateway {
    * Retry SIP REGISTER on existing UA when transport is connected (LF-008).
    */
   reregister(correlationId: CorrelationId): Promise<Result<void, PlatformError>>;
-  /**
-   * Proactive registration refresh: unregister all contacts then REGISTER (ADR-0004 §1.6).
-   */
-  forceRefreshRegistration(correlationId: CorrelationId): Promise<Result<void, PlatformError>>;
 }

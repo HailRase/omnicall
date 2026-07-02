@@ -95,7 +95,6 @@ export class MockTelephonyGateway implements TelephonyGateway {
     reason?: string;
   }> = [];
   private readonly unregisterInvocations: CorrelationId[] = [];
-  private readonly forceRefreshInvocations: CorrelationId[] = [];
   private incomingCallHandler:
     | ((notification: TelephonyIncomingCallNotification) => Promise<void>)
     | null = null;
@@ -322,37 +321,6 @@ export class MockTelephonyGateway implements TelephonyGateway {
 
     this.registered = true;
     return ok(undefined);
-  }
-
-  forceRefreshRegistration(
-    correlationId: CorrelationId,
-  ): Promise<Result<void, PlatformError>> {
-    this.forceRefreshInvocations.push(correlationId);
-
-    if (!this.transportConnected) {
-      return Promise.resolve(
-        err(
-          createPlatformError(
-            "operation_failed",
-            "SIP registration refresh failed: transport not connected",
-          ),
-        ),
-      );
-    }
-
-    if (this.registrationScenario === "failure") {
-      return Promise.resolve(
-        err(createPlatformError("operation_failed", "SIP registration refresh failed")),
-      );
-    }
-
-    this.unregisterInvocations.push(correlationId);
-    this.registered = true;
-    return Promise.resolve(ok(undefined));
-  }
-
-  getForceRefreshInvocations(): ReadonlyArray<CorrelationId> {
-    return this.forceRefreshInvocations;
   }
 
   unregister(correlationId: CorrelationId): Promise<Result<void, PlatformError>> {

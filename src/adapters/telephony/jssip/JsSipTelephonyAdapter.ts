@@ -295,41 +295,6 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     return this.registerWithUa(ua);
   }
 
-  async forceRefreshRegistration(
-    correlationId: CorrelationId,
-  ): Promise<Result<void, PlatformError>> {
-    this.lastCorrelationId = correlationId;
-
-    const ua = this.ua;
-    if (ua === null) {
-      return err(
-        createPlatformError("operation_failed", "SIP registration refresh failed: UA not started"),
-      );
-    }
-
-    if (!ua.isConnected()) {
-      return err(
-        createPlatformError(
-          "operation_failed",
-          "SIP registration refresh failed: transport not connected",
-        ),
-      );
-    }
-
-    try {
-      await this.unregisterAllContacts(ua);
-      this.registrationInvalidated = true;
-      const registerResult = await this.registerWithUa(ua);
-      if (registerResult.ok) {
-        this.registrationInvalidated = false;
-      }
-      return registerResult;
-    } catch (error: unknown) {
-      const normalized = normalizeUnknownError(error);
-      return err(normalized);
-    }
-  }
-
   /**
    * Adapter helper: effective registration requires live transport (ADR-0004).
    */

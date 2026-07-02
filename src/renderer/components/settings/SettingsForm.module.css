@@ -307,8 +307,13 @@
   color: var(--color-text-primary);
 }
 
-.secondaryButton:hover {
+.secondaryButton:hover:not(:disabled) {
   background: var(--color-bg-surface);
+}
+
+.secondaryButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .primaryButton:focus-visible,
