@@ -191,6 +191,7 @@ export function SoftphoneReadyShell({
                 form: accountActions.form,
                 submitting: accountActions.submitting,
                 error: accountActions.error,
+                successKey: accountActions.successKey,
                 disabled: blockingAuthState,
                 authorizeDisabledReason: accountPanelShell.authorizeDisabledReason,
                 logoutDisabledReason: accountPanelShell.logoutDisabledReason,

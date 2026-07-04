@@ -121,6 +121,15 @@ describe("deriveSipStatusShell", () => {
     expect(shell.primaryLabelKey).toBe("header.sipStatus.registered");
   });
 
+  it("shows registered when registration succeeded before transport connected projection", () => {
+    const shell = deriveSipStatusShell({
+      health: health({ transport: "connecting", registration: "registered" }),
+      nowMs: NOW_MS,
+    });
+    expect(shell.dotTone).toBe("registered");
+    expect(shell.primaryLabelKey).toBe("header.sipStatus.registered");
+  });
+
   it("§1.2 registered + DND — Не беспокоить", () => {
     const shell = deriveSipStatusShell({
       health: health({ transport: "connected", registration: "registered" }),

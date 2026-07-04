@@ -63,11 +63,6 @@ import {
   type OcpNotificationProjection,
 } from "@application/projections/ocpNotificationProjection.js";
 import {
-  initialConnectionRecoveryProjection,
-  reduceConnectionRecoveryProjection,
-  type ConnectionRecoveryProjection,
-} from "@application/projections/connectionRecoveryProjection.js";
-import {
   initialSipSessionHealthProjection,
   reduceSipSessionHealthProjection,
   type SipSessionHealthProjection,
@@ -84,7 +79,6 @@ type AccountBootstrapStore = Readonly<{
   queueInfoProjection: QueueInfoProjection;
   campaignProjection: CampaignProjection;
   ocpNotificationProjection: OcpNotificationProjection;
-  connectionRecoveryProjection: ConnectionRecoveryProjection;
   sipSessionHealthProjection: SipSessionHealthProjection;
   bindFacade: (facade: AccountBootstrapFacade) => () => void;
   setCallMode: (mode: DialpadMode, dtmfPanelCallId?: string | null) => void;
@@ -106,7 +100,6 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
   queueInfoProjection: initialQueueInfoProjection(),
   campaignProjection: initialCampaignProjection(),
   ocpNotificationProjection: initialOcpNotificationProjection(),
-  connectionRecoveryProjection: initialConnectionRecoveryProjection(),
   sipSessionHealthProjection: initialSipSessionHealthProjection(),
 
   bindFacade: (facade) => {
@@ -150,10 +143,6 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
         ),
         ocpNotificationProjection: reduceOcpNotificationProjection(
           state.ocpNotificationProjection,
-          event,
-        ),
-        connectionRecoveryProjection: reduceConnectionRecoveryProjection(
-          state.connectionRecoveryProjection,
           event,
         ),
         sipSessionHealthProjection: reduceSipSessionHealthProjection(

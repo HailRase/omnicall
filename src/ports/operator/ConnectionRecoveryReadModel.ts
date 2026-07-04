@@ -1,10 +1,9 @@
-import type { ConnectionState } from "@application/projections/connectionRecoveryProjection.js";
+import type { OcpConnectionState } from "@application/projections/ocpConnectionRecoveryProjection.js";
 
 export type ConnectionRecoveryReadModelSnapshot = Readonly<{
-  connectionState: ConnectionState;
+  connectionState: OcpConnectionState;
   isOcpMode: boolean;
   ocpReconnectAttempt: number | null;
-  sipReconnectAttempt: number | null;
 }>;
 
 export interface ConnectionRecoveryReadModel {

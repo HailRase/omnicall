@@ -1,6 +1,8 @@
 import type { JSX, SubmitEvent } from "react";
+import clsx from "clsx";
 import type { SipAccountInput } from "@application/index.js";
 import { useI18n } from "../../i18n/index.js";
+import type { TranslationKey } from "../../i18n/messages.js";
 import { IconTooltip } from "../icons/IconTooltip.js";
 import panelStyles from "../shell/BootstrapPanel.module.css";
 import styles from "./AccountPanel.module.css";
@@ -9,6 +11,7 @@ type AccountPanelProps = Readonly<{
   form: SipAccountInput;
   submitting: boolean;
   error: string | null;
+  successKey: TranslationKey | null;
   disabled?: boolean;
   showTitle?: boolean;
   authorizeDisabledReason: string | null;
@@ -20,13 +23,14 @@ type AccountPanelProps = Readonly<{
 
 /**
  * - Purpose: render presentational SIP account authorization form with logout action.
- * - Inputs: form values, disabled reasons, submit state, error, and callbacks.
+ * - Inputs: form values, disabled reasons, submit state, feedback, and callbacks.
  * - Outputs: accessible account panel without facade or Use Case calls.
  */
 export function AccountPanel({
   form,
   submitting,
   error,
+  successKey,
   disabled = false,
   showTitle = true,
   authorizeDisabledReason,
@@ -44,10 +48,34 @@ export function AccountPanel({
 
   const authorizeDisabled = disabled || submitting || authorizeDisabledReason !== null;
   const logoutDisabled = logoutDisabledReason !== null;
+  const showFeedback = successKey !== null || error !== null;
 
   return (
     <section className={panelStyles["panel"]} data-testid="account-panel">
       {showTitle ? <h2>{t("account.title")}</h2> : null}
+      {showFeedback ? (
+        <div className={styles["feedback"]} data-testid="account-feedback">
+          {successKey !== null ? (
+            <p
+              className={clsx(styles["feedbackMessage"], styles["feedbackSuccess"])}
+              role="status"
+              aria-live="polite"
+              data-testid="account-success"
+            >
+              {t(successKey)}
+            </p>
+          ) : null}
+          {error !== null ? (
+            <p
+              className={clsx(styles["feedbackMessage"], styles["feedbackError"])}
+              role="alert"
+              data-testid="account-error"
+            >
+              {error}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
       <form className={styles["form"]} onSubmit={handleSubmit}>
         <label className={styles["label"]}>
           {t("account.field.username")}
@@ -127,11 +155,6 @@ export function AccountPanel({
           </IconTooltip>
         </div>
       </form>
-      {error !== null && (
-        <p className={styles["error"]} role="alert" data-testid="account-error">
-          {error}
-        </p>
-      )}
     </section>
   );
 }

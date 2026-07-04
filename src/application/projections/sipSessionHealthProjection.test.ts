@@ -74,6 +74,24 @@ describe("sipSessionHealthProjection", () => {
     expect(projection.recovery.target).toBeNull();
   });
 
+  it("promotes transport to connected when registration succeeds before transport connected event", () => {
+    let projection = reduceSipSessionHealthProjection(
+      initialSipSessionHealthProjection(),
+      createRegistrationRequestedEvent(correlationId, { accountId }),
+    );
+    projection = reduceSipSessionHealthProjection(
+      projection,
+      createSipTransportConnectingEvent(correlationId),
+    );
+    projection = reduceSipSessionHealthProjection(
+      projection,
+      createRegistrationSucceededEvent(correlationId, { accountId }),
+    );
+
+    expect(projection.transport).toBe("connected");
+    expect(projection.registration).toBe("registered");
+  });
+
   it("clears registration on transport disconnect", () => {
     let projection = reduceSipSessionHealthProjection(
       initialSipSessionHealthProjection(),

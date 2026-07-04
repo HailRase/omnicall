@@ -67,7 +67,7 @@ Modal flows (Radix Dialog v1): campaign. Incoming call: non-blocking `IncomingCa
 | `useXxxActions` | guards + `facade.*` / Use Case execute | own layout / render |
 | `useAccountBootstrap` | start composition, bind store, expose facade | contain feature UI |
 
-Reference pair: `useConnectionRecoveryShell` + `useConnectionRecoveryActions`.
+Reference pair: `useHeaderChromeShell` + `useSipSystemStateActions` (settings system state).
 
 ## Presentational Component Contract
 
@@ -108,7 +108,7 @@ Document components via JSDoc `@uiMeta` + Storybook; catalog: `npm run ui:catalo
 
 - `SoftphoneReadyShell` — post-bootstrap orchestration inside `SoftphoneLayout`
 - `SoftphoneShellHeader` — global header controls
-- `RecoveryFeatureShell` — connection loss overlay
+- SIP recovery UX: header (`SoftphoneShellHeader`) + settings system state panel — no dedicated recovery overlay shell.
 - `SessionFeatureShell` — logout banner and confirmation modal
 - `CallFeatureShell` — split target: Context + Controls + Overlays widgets
 - `OperatorFeatureShell` — status selector, timer, logout modal

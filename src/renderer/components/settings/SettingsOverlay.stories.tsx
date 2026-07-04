@@ -26,6 +26,7 @@ const accountDefaults = {
   form: { username: "user", password: "", domain: "example.com", server: "sip.example.com" },
   submitting: false,
   error: null,
+  successKey: null,
   disabled: false,
   authorizeDisabledReason: null,
   logoutDisabledReason: "Сначала нажмите «Авторизоваться»",

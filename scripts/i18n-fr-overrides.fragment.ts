@@ -12,6 +12,7 @@
   "account.action.authorize": "Se connecter",
   "account.action.logout": "Se deconnecter",
   "account.error.authorizationFailed": "Echec de l'autorisation",
+  "account.success.authorizationSucceeded": "Autorisation reussie",
   "header.avatar.ariaLabel": "Avatar utilisateur",
   "header.userMenu.ariaLabel": "Menu utilisateur",
   "header.userMenu.dndEnable": "Activer Ne pas deranger",
@@ -328,7 +329,7 @@
   "settings.systemState.manualReregister.disabled.registrationInProgress":
     "Enregistrement en cours",
   "settings.systemState.action.success.transport": "Reconnexion au serveur demarree",
-  "settings.systemState.action.success.reregister": "Reenregistrement demarre",
+  "settings.systemState.action.success.reregister": "Reenregistrement effectue",
   "settings.systemState.action.error.unknown": "Impossible d'executer l'action",
   "settings.systemState.liveSummary": (params) =>
     `Serveur : ${params.transport}. Enregistrement : ${params.registration}. Resume : ${params.summary}.`,

@@ -12,11 +12,11 @@ Accepted (2026-07-02)
 
 ## Context
 
-SIP connectivity has two independent axes: **transport** (WebSocket) and **registration** (SIP REGISTER). The current implementation mixes them in `connectionRecoveryProjection`, `deriveConnectionRecoveryShell`, and `ConnectionOverlay`, causing:
+SIP connectivity has two independent axes: **transport** (WebSocket) and **registration** (SIP REGISTER). Legacy code mixed them in a single recovery projection and fullscreen overlay, causing false «registered» state and blocked call UI (LF-057).
 
 - Registration shown as healthy when WebSocket is down (`isRegistered()` stale after disconnect).
 - OCP recovery rows in SIP-only product path (ADR-0002 defers OCP).
-- Fullscreen `ConnectionOverlay` blocks call UI during registration retry (LF-057).
+- Fullscreen recovery overlay blocked call UI during registration retry (LF-057).
 - Header `control-reregister-sip` and avatar recovery ring (LF-009) duplicate settings actions.
 - User-selectable online/offline presence conflicts with auth/logout-only model.
 
@@ -56,7 +56,7 @@ Transport disconnect → clear registration projection → transport reconnect (
 ```
 
 Never schedule REGISTER retry while transport ≠ `connected`.  
-Auth errors 401/403 stop auto-retry immediately with Russian user message.
+Registration failures (including 401/403) follow the same auto-reregister policy as other failures when `sipAutoReregisterEnabled` is on.
 
 During active call + socket drop: header shows fault immediately; recovery scheduling pauses until call ends.
 
@@ -67,8 +67,7 @@ Replace SIP path in `ConnectionRecoveryOrchestrationService` with **`SipRecovery
 New/changed Use Cases:
 
 - `ManualSipTransportReconnectUseCase` (replaces `RetryConnectionUseCase` for SIP).
-- `ReregisterSipUseCase` — guard: transport connected.
-- `ForceRefreshSipRegistrationUseCase` — unregister all + register.
+- `ReregisterSipUseCase` — guard: transport connected; calls `TelephonyGateway.reregister()` (`unregister({ all: true })` then `register()`).
 
 New projections:
 
@@ -83,7 +82,7 @@ New projections:
 
 Listen `connecting`, `connected`, `disconnected`; emit typed transport domain events.  
 On `disconnected`: emit `SipTransportDisconnected` + `SipRegistrationCleared`; do not trust stale `isRegistered()`.  
-Add `effectiveIsRegistered()` and `forceRefreshRegistration(correlationId)` on `TelephonyGateway`.
+Add `effectiveIsRegistered()`; expose proactive refresh via `reregister(correlationId)` on `TelephonyGateway`.
 
 Keep UA config: `register: false`, `connection_recovery_*` at 300s (app owns UI timers).
 
@@ -93,7 +92,7 @@ Keep UA config: `register: false`, `connection_recovery_*` at 300s (app owns UI 
 **Remove:** `ConnectionOverlay`, `RecoveryFeatureShell`, header `control-reregister-sip`, user online/offline toggles.  
 **Add:** Settings section **«Состояние системы»** (`system-state`) with policies, manual actions, in-memory journal.
 
-Manual actions (settings only): Переподключить сокет, Перерегистрировать, Обновить регистрацию.
+Manual actions (settings only): **Переподключить сервер** (`ManualSipTransportReconnectUseCase`), **Перерегистрировать** (`ReregisterSipUseCase` → `gateway.reregister()`). A separate «Обновить регистрацию» control was dropped — same gateway path as manual reregister.
 
 ### 6. Auth model
 
@@ -133,7 +132,7 @@ Add SIP recovery fields: `sipAutoReconnectEnabled`, `sipReconnectIntervalSec`, `
 **Negative:**
 
 - Large refactor across domain, application, adapter, UI (phased in T-008).
-- `ConnectionOverlay` and `deriveConnectionRecoveryShell` removed — Storybook/tests must migrate.
+- `ConnectionOverlay`, legacy recovery shell, and `connectionRecoveryProjection` removed — SIP read model is `sipSessionHealthProjection`; OCP-only deferred path uses `ocpConnectionRecoveryProjection`.
 - Settings schema v2 migration required.
 
 **Testing:** domain FSM unit tests; adapter disconnect→cleared registration; `SipRecoveryOrchestration.integration.test.ts`; projection tests for all §4 header rows; component tests for Russian copy.

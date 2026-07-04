@@ -167,17 +167,20 @@ export {
   type OcpToastItem,
 } from "./projections/ocpNotificationProjection.js";
 export {
-  initialConnectionRecoveryProjection,
-  reduceConnectionRecoveryProjection,
-  type ConnectionRecoveryProjection,
-  type ConnectionState,
-  type SipRecoveryMode,
-} from "./projections/connectionRecoveryProjection.js";
+  initialOcpConnectionRecoveryProjection,
+  reduceOcpConnectionRecoveryProjection,
+  type OcpConnectionRecoveryProjection,
+  type OcpConnectionState,
+} from "./projections/ocpConnectionRecoveryProjection.js";
 export {
   initialSipSessionHealthProjection,
   reduceSipSessionHealthProjection,
   type SipSessionHealthProjection,
 } from "./projections/sipSessionHealthProjection.js";
+export {
+  isSipManualRetryAvailable,
+  isSipRecoveryInProgress,
+} from "./projections/deriveSipManualRetryGate.js";
 export {
   deriveSipStatusShell,
   type SipStatusDotTone,
@@ -189,11 +192,6 @@ export {
   type SipSystemStateShellInput,
   type SipSystemStateShellView,
 } from "./projections/deriveSipSystemStateShell.js";
-export {
-  deriveConnectionRecoveryShell,
-  type AvatarRecoveryOverlayMode,
-  type ConnectionRecoveryShellView,
-} from "./projections/deriveConnectionRecoveryShell.js";
 export {
   deriveSessionLogoutShell,
   pickSessionLogoutProjectionInput,
@@ -235,6 +233,7 @@ export type {
   SessionTeardownOperation,
 } from "./services/SessionTeardownOrchestrationService.js";
 export { InMemoryConnectionRecoveryReadModel } from "./read-models/InMemoryConnectionRecoveryReadModel.js";
+export { InMemorySipSessionHealthReadModel } from "./read-models/InMemorySipSessionHealthReadModel.js";
 export { RetryConnectionUseCase } from "./use-cases/RetryConnectionUseCase.js";
 export type { RetryConnectionInput, RetryConnectionChannel } from "./use-cases/RetryConnectionUseCase.js";
 export { ManualSipTransportReconnectUseCase } from "./use-cases/ManualSipTransportReconnectUseCase.js";

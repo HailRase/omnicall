@@ -7,9 +7,9 @@ import {
   MockTelephonyGateway,
 } from "@adapters/index.js";
 import {
-  initialConnectionRecoveryProjection,
-  reduceConnectionRecoveryProjection,
-} from "@application/projections/connectionRecoveryProjection.js";
+  initialSipSessionHealthProjection,
+  reduceSipSessionHealthProjection,
+} from "@application/projections/sipSessionHealthProjection.js";
 import type { DomainEvent } from "@domain/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
@@ -30,7 +30,7 @@ describe("SipRecoveryOrchestration integration", () => {
       reconnectScenario: "success",
     });
     const published: DomainEvent[] = [];
-    let projection = initialConnectionRecoveryProjection();
+    let projection = initialSipSessionHealthProjection();
 
     const facade = new AccountBootstrapFacade({
       operatorGateway: new MockOperatorPlatformGateway(),
@@ -44,7 +44,7 @@ describe("SipRecoveryOrchestration integration", () => {
 
     facade.eventPublisher.subscribe((event) => {
       published.push(event);
-      projection = reduceConnectionRecoveryProjection(projection, event);
+      projection = reduceSipSessionHealthProjection(projection, event);
     });
 
     await facade.initialize({ mode: "sip-only" });
@@ -69,8 +69,8 @@ describe("SipRecoveryOrchestration integration", () => {
         "SipTransportReconnectScheduled",
       ]),
     );
-    expect(projection.connectionState).toBe("reconnecting");
-    expect(projection.sipReconnectAttempt).toBe(1);
+    expect(projection.transport).toBe("reconnecting");
+    expect(projection.recovery.attemptNumber).toBe(1);
 
     const scheduledCount = published.filter(
       (event) => event.type === "SipTransportReconnectScheduled",
@@ -83,7 +83,7 @@ describe("SipRecoveryOrchestration integration", () => {
     expect(published.map((event) => event.type)).toContain("SipTransportReconnectSucceeded");
     await vi.runOnlyPendingTimersAsync();
 
-    expect(projection.connectionState).toBe("connected");
+    expect(projection.transport).toBe("connected");
     expect(telephony.isRegistered()).toBe(true);
 
     const scheduledAfterSuccess = published.filter(
@@ -104,7 +104,7 @@ describe("SipRecoveryOrchestration integration", () => {
       reconnectScenario: "success",
     });
     const published: DomainEvent[] = [];
-    let projection = initialConnectionRecoveryProjection();
+    let projection = initialSipSessionHealthProjection();
 
     const facade = new AccountBootstrapFacade({
       operatorGateway: new MockOperatorPlatformGateway(),
@@ -118,7 +118,7 @@ describe("SipRecoveryOrchestration integration", () => {
 
     facade.eventPublisher.subscribe((event) => {
       published.push(event);
-      projection = reduceConnectionRecoveryProjection(projection, event);
+      projection = reduceSipSessionHealthProjection(projection, event);
     });
 
     await facade.initialize({ mode: "sip-only" });
@@ -137,13 +137,12 @@ describe("SipRecoveryOrchestration integration", () => {
     await facade.simulateSipRegistrationFailed(correlationId, "service_unavailable");
 
     expect(published.map((event) => event.type)).toContain("SipRegistrationRetryScheduled");
-    expect(projection.connectionState).toBe("reconnecting");
-    expect(projection.sipRecoveryMode).toBe("registration");
+    expect(projection.recovery.target).toBe("registration");
 
     await vi.runOnlyPendingTimersAsync();
 
     expect(published.map((event) => event.type)).toContain("SipRegistrationRetrySucceeded");
-    expect(projection.connectionState).toBe("connected");
+    expect(projection.transport).toBe("connected");
     expect(telephony.isRegistered()).toBe(true);
   });
 
@@ -195,14 +194,14 @@ describe("SipRecoveryOrchestration integration", () => {
     ).toBe(false);
   });
 
-  it("terminal registration retry failure → manual_retry_available (F-014)", async () => {
+  it("terminal registration retry failure allows manual retry (F-014)", async () => {
     const correlationId = createCorrelationId();
     const telephony = new MockTelephonyGateway({
       registrationScenario: "success",
       reconnectScenario: "success",
     });
     const published: DomainEvent[] = [];
-    let projection = initialConnectionRecoveryProjection();
+    let projection = initialSipSessionHealthProjection();
 
     const facade = new AccountBootstrapFacade({
       operatorGateway: new MockOperatorPlatformGateway(),
@@ -216,7 +215,7 @@ describe("SipRecoveryOrchestration integration", () => {
 
     facade.eventPublisher.subscribe((event) => {
       published.push(event);
-      projection = reduceConnectionRecoveryProjection(projection, event);
+      projection = reduceSipSessionHealthProjection(projection, event);
     });
 
     await facade.initialize({ mode: "sip-only" });
@@ -246,7 +245,8 @@ describe("SipRecoveryOrchestration integration", () => {
     await vi.runOnlyPendingTimersAsync();
 
     expect(published.map((event) => event.type)).toContain("SipRegistrationRetryFailed");
-    expect(projection.connectionState).toBe("manual_retry_available");
-    expect(projection.sipRecoveryMode).toBe("registration");
+    expect(projection.recovery.target).toBe("registration");
+    expect(projection.recovery.nextRetryAt).toBeNull();
+    expect(projection.registration).toBe("failed");
   });
 });

@@ -7,9 +7,9 @@ import {
   MockTelephonyGateway,
 } from "@adapters/index.js";
 import {
-  initialConnectionRecoveryProjection,
-  reduceConnectionRecoveryProjection,
-} from "@application/projections/connectionRecoveryProjection.js";
+  initialOcpConnectionRecoveryProjection,
+  reduceOcpConnectionRecoveryProjection,
+} from "@application/projections/ocpConnectionRecoveryProjection.js";
 import type { DomainEvent } from "@domain/index.js";
 import { OCP_RECONNECT_POLICY_CONFIG } from "@domain/shared/recovery/ReconnectPolicy.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
@@ -32,7 +32,7 @@ describe("OcpRecoveryOrchestration integration", () => {
       reconnectScenario: "failure",
     });
     const published: DomainEvent[] = [];
-    let projection = initialConnectionRecoveryProjection();
+    let projection = initialOcpConnectionRecoveryProjection();
 
     const facade = new AccountBootstrapFacade({
       operatorGateway,
@@ -50,7 +50,7 @@ describe("OcpRecoveryOrchestration integration", () => {
 
     facade.eventPublisher.subscribe((event) => {
       published.push(event);
-      projection = reduceConnectionRecoveryProjection(projection, event);
+      projection = reduceOcpConnectionRecoveryProjection(projection, event);
     });
 
     const authResult = await facade.authenticateOcp.execute({

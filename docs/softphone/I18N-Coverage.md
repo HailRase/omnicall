@@ -13,13 +13,12 @@
 | `src/application/projections/*` (UI-facing) | Semantic reason/label keys + params | `settings.systemState.*`, `connection.recovery.disabled.*`, `call.line.status.*`, … | migrated | projection unit tests |
 | `src/renderer/components/settings/panels/SettingsSystemStatePanel.tsx` | i18n-driven system state UI | `settings.systemState.*` | migrated | `SettingsSystemStatePanel.test.tsx` |
 | `src/renderer/components/dialpad/Dialpad.tsx` | i18n-driven dialpad copy | `dialpad.panel.*`, `dialpad.input.*`, `dialpad.call.*`, `dialpad.keys.*` | migrated | `Dialpad.test.tsx` |
-| `src/renderer/helpers/mapConnectionRecoveryDisabledReason.ts` | recovery disabled reason mapping | `connection.recovery.disabled.*` | migrated | `mapConnectionRecoveryDisabledReason.test.ts` |
 | `src/renderer/App.tsx`, `OcpToastStack.tsx`, `ShellOverlaySheet.tsx`, `CallControlsShell.tsx` | bootstrap/shell/toast/audio aria copy | `bootstrap.*`, `ocp.toast.*`, `shell.overlay.*`, `call.remoteAudio.*` | migrated | component/shell tests + `i18n:check` |
 | `src/renderer/hooks/useSipSystemStateActions.ts` | action feedback via semantic keys | `settings.systemState.action.*` | migrated | settings panel tests |
 
 ## Remaining gaps
 
-- `ConnectionOverlay.tsx` removed in T-008 merge (recovery UX moved to Settings → System State + header avatar ring). Recovery catalog keys retained for projections/helpers.
+- Legacy `recovery.*` catalog keys retained for OCP-deferred paths; SIP recovery UI uses `settings.systemState.*` and `header.sipStatus.*`.
 - Story/test fixtures may contain localized literals for assertions — allowed per ADR-0006.
 
 ## Verification commands

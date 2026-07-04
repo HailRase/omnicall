@@ -1,3 +1,29 @@
+.feedback {
+  display: grid;
+  gap: var(--space-2xs);
+  margin-bottom: var(--space-sm);
+}
+
+.feedbackMessage {
+  margin: 0;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-control);
+  font-size: var(--font-size-xs);
+  line-height: 1.45;
+}
+
+.feedbackSuccess {
+  color: var(--color-status-online);
+  background: color-mix(in srgb, var(--color-status-online) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-status-online) 28%, transparent);
+}
+
+.feedbackError {
+  color: var(--color-text-danger);
+  background: color-mix(in srgb, var(--color-status-failed) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-status-failed) 24%, transparent);
+}
+
 .actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -102,11 +128,4 @@
 .input:disabled {
   cursor: not-allowed;
   opacity: 0.65;
-}
-
-.error {
-  margin: 0;
-  font-size: 0.8125rem;
-  line-height: 1.45;
-  color: var(--color-text-danger);
 }

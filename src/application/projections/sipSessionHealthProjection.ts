@@ -241,9 +241,13 @@ function applyManualReregister(health: SipSessionHealth): SipSessionHealth {
 }
 
 function applyRegistrationSucceeded(health: SipSessionHealth): SipSessionHealth {
+  const transport =
+    health.transport === "idle" || health.transport === "connecting"
+      ? "connected"
+      : health.transport;
   return {
     ...applyLifecycleActive(health),
-    transport: health.transport === "idle" ? "connected" : health.transport,
+    transport,
     registration: "registered",
     recovery: EMPTY_SIP_RECOVERY_SNAPSHOT,
   };

@@ -5,18 +5,18 @@ import type {
 } from "@ports/operator/ConnectionRecoveryReadModel.js";
 import type { DomainEventPublisher } from "@ports/index.js";
 import {
-  initialConnectionRecoveryProjection,
-  reduceConnectionRecoveryProjection,
-  type ConnectionRecoveryProjection,
-} from "../projections/connectionRecoveryProjection.js";
+  initialOcpConnectionRecoveryProjection,
+  reduceOcpConnectionRecoveryProjection,
+  type OcpConnectionRecoveryProjection,
+} from "../projections/ocpConnectionRecoveryProjection.js";
 
 /**
- * - Purpose: event-sourced connection recovery snapshot for Use Cases (F-014).
+ * - Purpose: event-sourced OCP connection recovery snapshot for Use Cases (F-014).
  * - Inputs: domain events from publisher subscription.
- * - Outputs: current connection recovery read model snapshot.
+ * - Outputs: current OCP connection recovery read model snapshot.
  */
 export class InMemoryConnectionRecoveryReadModel implements ConnectionRecoveryReadModel {
-  private projection: ConnectionRecoveryProjection = initialConnectionRecoveryProjection();
+  private projection: OcpConnectionRecoveryProjection = initialOcpConnectionRecoveryProjection();
 
   constructor(eventPublisher: DomainEventPublisher) {
     eventPublisher.subscribe((event) => {
@@ -29,11 +29,10 @@ export class InMemoryConnectionRecoveryReadModel implements ConnectionRecoveryRe
       connectionState: this.projection.connectionState,
       isOcpMode: this.projection.isOcpMode,
       ocpReconnectAttempt: this.projection.ocpReconnectAttempt,
-      sipReconnectAttempt: this.projection.sipReconnectAttempt,
     };
   }
 
   private applyEvent(event: DomainEvent): void {
-    this.projection = reduceConnectionRecoveryProjection(this.projection, event);
+    this.projection = reduceOcpConnectionRecoveryProjection(this.projection, event);
   }
 }

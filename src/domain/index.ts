@@ -420,13 +420,6 @@ export {
 } from "./telephony/events/sipRegistrationRetryEvents.js";
 export { mapSipRegistrationFailureKey } from "./telephony/mapSipRegistrationFailureKey.js";
 export { mapSipRegistrationFailureFromParts } from "./telephony/mapSipRegistrationFailureFromParts.js";
-export {
-  isNonRetryableSipAuthError,
-  isNonRetryableSipAuthHttpCode,
-  isNonRetryableSipRegistrationFailureKey,
-  formatSipAuthTerminalMessage,
-  NON_RETRYABLE_SIP_AUTH_HTTP_CODES,
-} from "./telephony/sipAuthErrorPolicy.js";
 export type {
   SipLifecyclePhase,
   SipRegistrationState,

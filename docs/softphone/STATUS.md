@@ -2,9 +2,9 @@
 
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
-**Updated:** 2026-07-02  
-**Tests:** 1006 passed, 1 skipped (`npm run test`) — last verified 2026-07-02  
-**Lint / typecheck:** green (last verified 2026-07-02)
+**Updated:** 2026-07-04  
+**Tests:** 1026 passed, 1 skipped (`npm run test`) — last verified 2026-07-04  
+**Lint / typecheck:** green (last verified 2026-07-04)
 
 **Guides (onboarding):** [`guides/README.md`](../../guides/README.md) — установка, пользователь, агенты Cursor, релизы.
 

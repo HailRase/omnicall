@@ -89,7 +89,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-005`, `LF-006`, `LF-007`, `LF-011`
 - Context: Telephony
 - Priority: critical
-- Status: **in_progress** (T-008 transport/register refactor — ADR-0004)
+- Status: **implemented** (T-008 closed — ADR-0004)
 - Owner: TBD
 - Inputs: SIP account settings, register command, transport lifecycle events from JsSIP adapter
 - Outputs: `RegistrationSucceeded` or `RegistrationFailed`; transport events (`SipTransportConnecting`, `SipTransportConnected`, `SipTransportDisconnected`); `SipRegistrationCleared` on transport loss
@@ -384,7 +384,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-008`, `LF-010`, `LF-048`, `LF-049`, `LF-058`, `LF-079` (SIP path); `LF-009` **cancelled** (ADR-0004); `LF-057` **superseded** (ADR-0004)
 - Context: Telephony
 - Priority: critical
-- Status: **in_progress** (T-008 SIP recovery refactor — ADR-0004)
+- Status: **implemented** (T-008 closed — ADR-0004)
 - Owner: TBD
 - Inputs: transport disconnects, registration failure, manual reconnect/reregister/refresh from settings, app close
 - Outputs: `SipRecoveryOrchestrationService` events; `sipSessionHealthProjection`; settings journal entries; restored header/settings projections
@@ -395,10 +395,10 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - UserSettings v2: `sipAutoReconnectEnabled`, `sipReconnectIntervalSec`, `sipReconnectMaxAttempts`, `sipAutoReregisterEnabled`, `sipReregisterIntervalSec`, `sipReregisterMaxAttempts`, `sipAutoRegisterOnStartup`.
   - Transport WebSocket connection timeout: 10 seconds; on timeout publishes `SipTransportDisconnected` and follows auto-reconnect policy when enabled.
   - Runtime `registrationFailed` (including 403 while previously registered) publishes `RegistrationFailed`, clears effective registration, and follows auto-reregister policy when enabled.
-  - Auth errors 401/403 follow the same registration retry policy as other failures when `sipAutoReregisterEnabled` is on.
+  - Registration failures (including 401/403) follow the same auto-reregister policy when `sipAutoReregisterEnabled` is on.
   - Retry pauses while active telephony sessions exist; header shows fault immediately; scheduling resumes after `CallEnded`.
   - Manual actions in **Settings → Состояние системы** only: `ManualSipTransportReconnectUseCase` (timer reset, attempt # unchanged), `ReregisterSipUseCase` (transport connected guard).
-  - **Remove SIP-only:** `ConnectionOverlay`, `RecoveryFeatureShell`, header `control-reregister-sip`, overlay manual retry.
+  - **Removed SIP-only:** legacy recovery overlay/shell, header `control-reregister-sip`.
   - `SipConnectionJournal` in-memory ring buffer for transport + registration events (correlationId, timestamp).
   - Failure reasons normalized (`mapSipRegistrationFailureKey`) and shown in Russian in settings panel and header.
   - OCP recovery (LF-058, `OcpDisconnected`, overlay OCP rows) remains **deferred** (ADR-0002); mock code preserved, not wired in SIP-only UI.
@@ -406,8 +406,8 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - App shutdown IPC triggers `ShutdownCleanupUseCase` with hangup, unregister, scheduler dispose (LF-079).
   - SIP-only user logout: `hangupAll → unregister({ all: true }) → ua.stop() → SipSessionReset → idle`; all recovery timers cleared (LF-079).
 - Test Coverage:
-  - Unit: `SipSessionHealth`, `buildSipTransportRecoveryPolicy`, `buildSipRegistrationRecoveryPolicy`, `sipSessionHealthProjection`, `deriveSipStatusShell`, `deriveSipSystemStateShell`, `ReconnectScheduler`, `ManualSipTransportReconnectUseCase`, `EndUserSessionUseCase`, `SessionTeardownOrchestrationService`
-  - Integration: `SipRecoveryOrchestration.integration.test.ts` (transport→registration order, pause during call, auth fail terminal, manual reconnect)
+  - Unit: `SipSessionHealth`, `buildSipTransportRecoveryPolicy`, `buildSipRegistrationRecoveryPolicy`, `sipSessionHealthProjection`, `deriveSipStatusShell`, `deriveSipSystemStateShell`, `ReconnectScheduler`, `ManualSipTransportReconnectUseCase`, `SipRecoveryOrchestrationService` (pause/resume during active call — Q6), `EndUserSessionUseCase`, `SessionTeardownOrchestrationService`
+  - Integration: `SipRecoveryOrchestration.integration.test.ts` (transport→registration order, pause during call, uniform auth retry, manual reconnect)
   - Component: `SettingsSystemStatePanel`, `LogoutActiveSessionConfirmationModal`; header SIP status (no overlay)
   - E2E: deferred until harness exists
 - Refactor plan: `docs/softphone/TRANSPORT-REGISTER-STATE-REFACTORING.md` (T-008)
@@ -440,7 +440,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-055`, `LF-056`, `LF-060`, `LF-076`, `LF-077`, `LF-082`, `LF-084`, `LF-085`, `LF-086`, `LF-087`, `LF-032` (multi-session toggle)
 - Context: Settings
 - Priority: high
-- Status: **in_progress** (P11 WU0–WU5 + UI-4 **done**; T-008 system-state panel in progress — ADR-0004; open: UI-6 Radix modals, draggable LF-056, toast LF-060)
+- Status: **in_progress** (P11 WU0–WU5 + UI-4 **done**; T-008 system-state panel **done** — ADR-0004; open: UI-6 Radix modals, draggable LF-056, toast LF-060)
 - Owner: TBD
 - Inputs: user settings, account identity, shell interactions, SIP session health projection
 - Outputs: persisted settings (v2), theme, menu projections, system-state panel VM
@@ -456,7 +456,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - **`multiSessionsEnabled` toggle** in settings UI (facade + port; no Use Case) — enables R7-5 re-smoke without repo hack.
   - Collapsed mode preserves critical call/status visibility.
   - **Header SIP status (ADR-0004):** unified dot + label + timer suffix via `deriveSipStatusShell`; priority idle → transport → registration → registered → DND; Russian copy per §1.2.
-  - **Remove:** `ConnectionOverlay`, header `control-reregister-sip`, user online/offline toggles; LF-009 avatar ring **cancelled**.
+  - **Removed:** legacy recovery overlay, header `control-reregister-sip`, user online/offline toggles; LF-009 avatar ring **cancelled**.
   - **Avatar user menu** on click: settings (animated icon), DND toggle (orange when active, registered only), logout (LF-086); no online/offline presence.
   - **Call UI skeleton (design parity 2026-06-26):** context zone top (sessions/idle/DTMF); controls zone bottom (labeled `CallControlsBar` + reference dialpad); vertical `CallSessionStack` for multi-call; `CallSessionCard` for single call; `CallIdleEmptyState` when idle.
   - **Shell always expanded (2026-06-26):** no collapse strip; dialpad and context visible before SIP registration; dialpad input, call action, and call controls (except hangup) disabled with reason until SIP registered.
@@ -471,7 +471,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Component: `SettingsPanel`, `SettingsFullscreenOverlay`, `SettingsSidebar`, section panels; `UserAvatar`, `RegistrationStatusDot`, `SoftphoneShellHeader`; `IconTooltip.test.tsx` (T-001); Storybook layout + settings overlay (WU0+)
   - E2E: settings and shell UX
 - Implementation evidence (WU1): `SettingsRepository.setMultiCallSettings`, `AccountBootstrapFacade.updateMultiCallSettings`, `useSettingsActions`, `SettingsOverlay`, `applyMultiCallSettings` store refresh
-- Implementation evidence (WU2): `CallLineRow`, `deriveCallLineStatusLabel`, `deriveCallLinesShell` (visible `>=1` line), `useCallLineRowShell`, `useCallLinesActions` per-line hold/mute/transfer, `ConnectionOverlay` blocking scrim, `OutgoingCallCard` pre-line-only
+- Implementation evidence (WU2): `CallLineRow`, `deriveCallLineStatusLabel`, `deriveCallLinesShell` (visible `>=1` line), `useCallLineRowShell`, `useCallLinesActions` per-line hold/mute/transfer, `OutgoingCallCard` pre-line-only (legacy `ConnectionOverlay` scrim **removed** T-008)
 - Implementation evidence (WU3): `deriveHeaderChromeShell`, `useHeaderChromeShell`, `UserAvatar`, `RegistrationStatusDot` — **shell collapse removed 2026-06-26**
 - Implementation evidence (WU4): `UserSettings` v1, `validateUserSettings`, `migrateUserSettings`, `SettingsRepository.getUserSettings`/`saveUserSettings`, `FileSettingsRepository`, facade `getUserSettingsForAccount`/`saveUserSettings`/`refreshUserSettingsProjections`, `P11-Settings-Schema-Design.md`
 - Implementation evidence (UI-4 **complete**): WU5 slices A–I + final gate — `styles.css` deleted; `globals.css` owns reset/body/focus-visible; all renderer panels/modals/shells on `*.module.css`; `handoffs/P11-WU5-UI-4-Final-Gate-Handoff.md`
@@ -480,7 +480,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (T-005 settings UX **done**): `SettingsFullscreenOverlay`, `SettingsPanel`, `SettingsSidebar`, `settingsSections.ts`, section panels (`SettingsGeneralPanel`, `SettingsSessionsPanel`, `SettingsAccountPanel`, `SettingsDiagnosticsPanel`, `SettingsCodecsPanel`, `SettingsHeadsetPanel`); header diagnostics opens settings diagnostics section; 7 new settings nav icons in `iconCatalog.ts` (2026-06-26)
 - Implementation evidence (dialpad home **2026-06-26**): `CallSessionStack`, `CallSessionCard`, `CallControlsBar`, `DtmfKeypadPanel`, reference `Dialpad`; gate `handoffs/P11-Call-UI-Design-Parity-Handoff.md`
 - Implementation evidence (transfer flow parity **2026-06-29**): `TransferPanel` moved to `CallContextShell` (context mode), step chrome (1–4), explicit source/consultation cards, controls zone hides `CallControlsBar` + `Dialpad` while transfer mode active; stories `TransferPanel.stories.tsx`, `Dialpad.stories.tsx`, `CallSessionCard.stories.tsx`
-- Implementation evidence (SIP recovery shell **2026-06-29**): `deriveConnectionRecoveryShell`, `SoftphoneShellHeader` (`control-reregister-sip`), `RegistrationStatusDot`; LF-009 avatar UI deferred; gate `handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`
+- Implementation evidence (T-008 **2026-07-02**): `sipSessionHealthProjection`, `deriveSipStatusShell`, `deriveSipSystemStateShell`, `SettingsSystemStatePanel`, `useSipSystemStateActions`, `SipRecoveryOrchestrationService` — `TRANSPORT-REGISTER-STATE-REFACTORING.md`
 - Implementation evidence (shell window layout **2026-06-26**): `ShellWindowLayout`, `ShellWindowLayoutService`, `ShellWindowGateway`, `ShellWindowController`, `shell:apply-window-layout` IPC, `useShellWindowLayout`; LF-055, LF-056 (anchor)
 - Implementation evidence (icons foundation): `lucide-react`, `lucide-animated`, `motion`, `AppIcon`, `iconCatalog.ts`, `Icon-Registry.md`, `guides/Icon-Agent-Guide.md`, `.cursor/rules/icons.mdc`, `.cursor/skills/icons/SKILL.md`
 - UI docs: `UI-Architecture.md`, `UI-Design-System.md`, `P11-Call-Line-UX-Design.md`, `P11-Header-Collapsed-UX-Design.md`, `P11-Settings-Schema-Design.md`, `P11-CSS-Modules-Tokens-Migration.md`, `handoffs/P11-WU0-Shell-Layout-Handoff.md`, `handoffs/P11-WU1-Settings-Overlay-Handoff.md`, `handoffs/P11-WU2-Call-Line-UX-Handoff.md`, `handoffs/P11-WU3-Header-Collapsed-Handoff.md`, `handoffs/P11-WU4-Settings-Schema-Handoff.md`, `handoffs/P11-WU5-UI-4-Final-Gate-Handoff.md`, `handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`, `handoffs/P11-Icon-Tooltips-Agent-Prompt.md` (T-001 gate)

@@ -12,6 +12,7 @@
   "account.action.authorize": "Anmelden",
   "account.action.logout": "Abmelden",
   "account.error.authorizationFailed": "Autorisierung fehlgeschlagen",
+  "account.success.authorizationSucceeded": "Autorisierung abgeschlossen",
   "header.avatar.ariaLabel": "Benutzeravatar",
   "header.userMenu.ariaLabel": "Benutzermenue",
   "header.userMenu.dndEnable": "Nicht stoeren aktivieren",
@@ -328,7 +329,7 @@
   "settings.systemState.manualReregister.disabled.registrationInProgress":
     "Registrierung laeuft",
   "settings.systemState.action.success.transport": "Server-Wiederverbindung gestartet",
-  "settings.systemState.action.success.reregister": "Neuregistrierung gestartet",
+  "settings.systemState.action.success.reregister": "Neuregistrierung abgeschlossen",
   "settings.systemState.action.error.unknown": "Aktion kann nicht ausgefuehrt werden",
   "settings.systemState.liveSummary": (params) =>
     `Server: ${params.transport}. Registrierung: ${params.registration}. Zusammenfassung: ${params.summary}.`,

@@ -106,6 +106,7 @@ const ruMessages = {
   "account.action.authorize": "Авторизоваться",
   "account.action.logout": "Выйти",
   "account.error.authorizationFailed": "Ошибка авторизации",
+  "account.success.authorizationSucceeded": "Авторизация выполнена",
   "header.avatar.ariaLabel": "Аватар пользователя",
   "header.userMenu.ariaLabel": "Меню пользователя",
   "header.userMenu.dndEnable": 'Вкл. "Не беспокоить"',
@@ -452,7 +453,7 @@ const ruMessages = {
   "settings.systemState.manualReregister.disabled.serverNotConnected": "Сервер не подключён",
   "settings.systemState.manualReregister.disabled.registrationInProgress": "Регистрация выполняется",
   "settings.systemState.action.success.transport": "Переподключение сервера запущено",
-  "settings.systemState.action.success.reregister": "Перерегистрация запущена",
+  "settings.systemState.action.success.reregister": "Перерегистрация выполнена",
   "settings.systemState.action.error.unknown": "Не удалось выполнить действие",
   "settings.systemState.liveSummary": (params: Readonly<{ transport: string; registration: string; summary: string }>) =>
     `Сервер: ${params.transport}. Регистрация: ${params.registration}. Сводка: ${params.summary}.`,
@@ -669,6 +670,7 @@ const enMessages: MessageShape = {
   "account.action.authorize": "Sign in",
   "account.action.logout": "Sign out",
   "account.error.authorizationFailed": "Authorization failed",
+  "account.success.authorizationSucceeded": "Authorization completed",
   "header.avatar.ariaLabel": "User avatar",
   "header.userMenu.ariaLabel": "User menu",
   "header.userMenu.dndEnable": "Enable Do Not Disturb",
@@ -985,7 +987,7 @@ const enMessages: MessageShape = {
   "settings.systemState.manualReregister.disabled.registrationInProgress":
     "Registration in progress",
   "settings.systemState.action.success.transport": "Server reconnect started",
-  "settings.systemState.action.success.reregister": "Re-registration started",
+  "settings.systemState.action.success.reregister": "Re-registration completed",
   "settings.systemState.action.error.unknown": "Unable to perform action",
   "settings.systemState.liveSummary": (params) =>
     `Server: ${params.transport}. Registration: ${params.registration}. Summary: ${params.summary}.`,
@@ -1177,6 +1179,7 @@ const frMessages: MessageShape = {
   "account.action.authorize": "Se connecter",
   "account.action.logout": "Se deconnecter",
   "account.error.authorizationFailed": "Echec de l'autorisation",
+  "account.success.authorizationSucceeded": "Autorisation reussie",
   "header.avatar.ariaLabel": "Avatar utilisateur",
   "header.userMenu.ariaLabel": "Menu utilisateur",
   "header.userMenu.dndEnable": "Activer Ne pas deranger",
@@ -1493,7 +1496,7 @@ const frMessages: MessageShape = {
   "settings.systemState.manualReregister.disabled.registrationInProgress":
     "Enregistrement en cours",
   "settings.systemState.action.success.transport": "Reconnexion au serveur demarree",
-  "settings.systemState.action.success.reregister": "Reenregistrement demarre",
+  "settings.systemState.action.success.reregister": "Reenregistrement effectue",
   "settings.systemState.action.error.unknown": "Impossible d'executer l'action",
   "settings.systemState.liveSummary": (params) =>
     `Serveur : ${params.transport}. Enregistrement : ${params.registration}. Resume : ${params.summary}.`,
@@ -1685,6 +1688,7 @@ const deMessages: MessageShape = {
   "account.action.authorize": "Anmelden",
   "account.action.logout": "Abmelden",
   "account.error.authorizationFailed": "Autorisierung fehlgeschlagen",
+  "account.success.authorizationSucceeded": "Autorisierung abgeschlossen",
   "header.avatar.ariaLabel": "Benutzeravatar",
   "header.userMenu.ariaLabel": "Benutzermenue",
   "header.userMenu.dndEnable": "Nicht stoeren aktivieren",
@@ -2001,7 +2005,7 @@ const deMessages: MessageShape = {
   "settings.systemState.manualReregister.disabled.registrationInProgress":
     "Registrierung laeuft",
   "settings.systemState.action.success.transport": "Server-Wiederverbindung gestartet",
-  "settings.systemState.action.success.reregister": "Neuregistrierung gestartet",
+  "settings.systemState.action.success.reregister": "Neuregistrierung abgeschlossen",
   "settings.systemState.action.error.unknown": "Aktion kann nicht ausgefuehrt werden",
   "settings.systemState.liveSummary": (params) =>
     `Server: ${params.transport}. Registrierung: ${params.registration}. Zusammenfassung: ${params.summary}.`,

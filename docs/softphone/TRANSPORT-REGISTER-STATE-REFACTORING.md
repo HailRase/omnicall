@@ -142,19 +142,16 @@ Transport disconnect
 
 | Action | Meaning | Side effect |
 | --- | --- | --- |
-| **Переподключить сокет** | Reconnect WebSocket | Reset countdown to full interval; **attempt number unchanged** |
-| **Перерегистрировать** | SIP REGISTER on open socket | Same timer rule; only if `isConnected` |
-| **Обновить регистрацию** | `unregister({ all: true })` then `register()` | Proactive refresh |
+| **Переподключить сервер** | Reconnect WebSocket | Reset countdown to full interval; **attempt number unchanged** |
+| **Перерегистрировать** | SIP REGISTER on open socket via `gateway.reregister()` | `unregister({ all: true })` then `register()`; same timer rule; only if transport connected |
 
-Remove: `ConnectionOverlay`, header `control-reregister-sip`, overlay manual retry.
+**Note:** Initial wireframe listed a third «Обновить регистрацию» button; shipped UI uses two actions — proactive refresh is covered by **Перерегистрировать** (`ReregisterSipUseCase`).
 
-### 1.7 Auth errors (401/403)
+Remove: header `control-reregister-sip`, overlay manual retry (recovery actions live in Settings → «Состояние системы»).
 
-Stop auto-retry immediately. User message:
+### 1.7 Registration failure retry (uniform policy)
 
-```txt
-Переподключение прервано. Ошибка: {code} {text}. Проверьте логин/пароль
-```
+All registration failures — including 401/403 — use the same auto-reregister policy when `sipAutoReregisterEnabled` is on (interval, max attempts). No special-case «stop immediately» for auth errors.
 
 ### 1.8 Settings module: «Состояние системы»
 
@@ -288,8 +285,7 @@ type SipRecoverySnapshot = Readonly<{
 | --- | --- |
 | `ConnectionRecoveryOrchestrationService` | Refactor → `SipRecoveryOrchestrationService` (SIP-only) |
 | `RetryConnectionUseCase` | Replace → `ManualSipTransportReconnectUseCase` |
-| `ReregisterSipUseCase` | Keep; add guards (transport connected) |
-| New | `ForceRefreshSipRegistrationUseCase` (unregister all + register) |
+| `ReregisterSipUseCase` | Keep; add guards (transport connected); `reregister()` = unregister all + register |
 | New | `sipSessionHealthProjection` reducer |
 | `deriveHeaderChromeShell` | Replace registration logic → `deriveSipStatusShell` |
 | New | `deriveSipSystemStateShell` (settings panel) |
@@ -380,8 +376,7 @@ Place after **«Сессии»**, before **«Диагностика»**.
 │   [ ] Авто-регистрация при запуске (future-ready toggle) │
 ├──────────────────────────────────────────────────────────┤
 │ Ручные действия                                          │
-│   [Переподключить сокет]  [Перерегистрировать]           │
-│   [Обновить регистрацию]                                 │
+│   [Переподключить сервер]  [Перерегистрировать]           │
 │   disabled reasons under each button                     │
 ├──────────────────────────────────────────────────────────┤
 │ Журнал (transport + registration)                          │
@@ -426,7 +421,6 @@ System State journal is **SIP connection/register only** — lightweight in-memo
 | `src/application/projections/deriveSipSystemStateShell.ts` | Settings panel VM |
 | `src/application/services/SipRecoveryOrchestrationService.ts` | SIP-only orchestrator |
 | `src/application/use-cases/ManualSipTransportReconnectUseCase.ts` | Manual socket reconnect |
-| `src/application/use-cases/ForceRefreshSipRegistrationUseCase.ts` | unregister all + register |
 | `src/application/services/SipConnectionJournal.ts` | In-memory log ring |
 | `src/renderer/components/settings/panels/SettingsSystemStatePanel.tsx` | UI panel |
 
@@ -452,7 +446,7 @@ System State journal is **SIP connection/register only** — lightweight in-memo
 | `src/renderer/components/recovery/ConnectionOverlay.tsx` | Replaced by settings |
 | `src/renderer/shells/RecoveryFeatureShell.tsx` | No overlay |
 | `src/application/projections/deriveConnectionRecoveryShell.ts` | Replaced |
-| `src/application/projections/connectionRecoveryProjection.ts` | Replaced (keep stub until Phase 5 if needed) |
+| `src/application/projections/ocpConnectionRecoveryProjection.ts` | OCP-only recovery read model (deferred ADR-0002) |
 | Header `control-reregister-sip` | Moved to settings |
 | OCP branches in recovery derive* | SIP-only |
 
@@ -483,7 +477,6 @@ System State journal is **SIP connection/register only** — lightweight in-memo
 - [x] `SipRegistrationCleared` on transport loss
 - [x] `UserSettings` v2 + migration + validation
 - [x] `buildSipTransportRecoveryPolicy` + `buildSipRegistrationRecoveryPolicy`
-- [x] Auth error non-retryable set (401/403)
 
 **Gate:** domain unit tests green.
 
@@ -512,9 +505,9 @@ System State journal is **SIP connection/register only** — lightweight in-memo
 - [x] Strict transport-before-registration scheduling
 - [x] Manual reconnect: reset timer, keep attempt #
 - [x] Pause scheduling during active call; show header fault immediately (Q6)
-- [x] Auth fail immediate terminal
+- [x] Auth fail follows same auto-reregister policy as other registration failures
 - [x] `SipConnectionJournal` service
-- [x] Use Cases: manual transport reconnect, force refresh
+- [x] Use Cases: manual transport reconnect, manual reregister (`ReregisterSipUseCase` → `gateway.reregister()`)
 - [x] Wire `AccountBootstrapFacade`
 - [x] Integration tests: `SipRecoveryOrchestration.integration.test.ts` updated
 
@@ -587,7 +580,7 @@ System State journal is **SIP connection/register only** — lightweight in-memo
 | T2 | Auth + register OK | Зарегистрирован | connected / registered |
 | T3 | WebSocket drop, auto on | Нет соединения (переподкл. …) | reconnecting / idle |
 | T4 | Transport terminal | Нет соединения | disconnected / idle |
-| T5 | Socket up, 403 register | Не зарегистрирован + auth message | connected / failed |
+| T5 | Socket up, 403 register | Не зарегистрирован + retry countdown (if auto on) | connected / failed |
 | T6 | Manual reconnect | Timer resets, attempt same | journal entry |
 | T7 | Active call + drop | Нет соединения immediately | recovery paused |
 | T8 | After call ends | Resume reconnect countdown | journal shows pause/resume |

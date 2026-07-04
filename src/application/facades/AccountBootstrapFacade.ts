@@ -48,6 +48,7 @@ import { ServerTerminateCleanupService } from "../services/ServerTerminateCleanu
 import { SessionTeardownOrchestrationService } from "../services/SessionTeardownOrchestrationService.js";
 import { InMemoryAgentStatusReadModel } from "../read-models/InMemoryAgentStatusReadModel.js";
 import { InMemoryConnectionRecoveryReadModel } from "../read-models/InMemoryConnectionRecoveryReadModel.js";
+import { InMemorySipSessionHealthReadModel } from "../read-models/InMemorySipSessionHealthReadModel.js";
 import { InMemoryOcpCallCorrelationRegistry } from "../read-models/InMemoryOcpCallCorrelationRegistry.js";
 import { InMemoryOcpSyncReadModel } from "../read-models/InMemoryOcpSyncReadModel.js";
 import { MockOcpSyncGateway, createSampleOcpServerTerminateRawMessage } from "@adapters/mock/MockOcpSyncGateway.js";
@@ -184,7 +185,10 @@ export class AccountBootstrapFacade {
       deps.logger,
     );
     const agentStatusReadModel = new InMemoryAgentStatusReadModel(this.eventPublisher);
-    const connectionRecoveryReadModel = new InMemoryConnectionRecoveryReadModel(
+    const sipSessionHealthReadModel = new InMemorySipSessionHealthReadModel(
+      this.eventPublisher,
+    );
+    const ocpConnectionRecoveryReadModel = new InMemoryConnectionRecoveryReadModel(
       this.eventPublisher,
     );
     const agentStatusSync = new AgentStatusSyncService(
@@ -345,7 +349,8 @@ export class AccountBootstrapFacade {
     void this.applySipRecoverySettingsFromRepository();
 
     this.retryConnection = new RetryConnectionUseCase(
-      connectionRecoveryReadModel,
+      sipSessionHealthReadModel,
+      ocpConnectionRecoveryReadModel,
       this.connectionRecoveryOrchestration,
       this.sipRecoveryOrchestration,
       deps.logger,

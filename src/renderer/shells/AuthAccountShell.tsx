@@ -38,6 +38,7 @@ export function AuthAccountShell({
       form={accountActions.form}
       submitting={accountActions.submitting}
       error={accountActions.error}
+      successKey={accountActions.successKey}
       disabled={disabled}
       authorizeDisabledReason={accountPanelShell.authorizeDisabledReason}
       logoutDisabledReason={accountPanelShell.logoutDisabledReason}

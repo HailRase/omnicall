@@ -197,12 +197,12 @@ describe("SettingsSystemStatePanel", () => {
     render(
       <SettingsSystemStatePanel
         {...baseProps}
-        actionSuccessKey="settings.systemState.action.success.transport"
+        actionSuccessKey="settings.systemState.action.success.reregister"
       />,
     );
 
     expect(screen.getByTestId("settings-sip-action-success")).toHaveTextContent(
-      "Переподключение сервера запущено",
+      "Перерегистрация выполнена",
     );
   });
 });

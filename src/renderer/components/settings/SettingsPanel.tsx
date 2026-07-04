@@ -77,6 +77,7 @@ export type SettingsPanelProps = Readonly<{
     form: SipAccountInput;
     submitting: boolean;
     error: string | null;
+    successKey: TranslationKey | null;
     disabled: boolean;
     authorizeDisabledReason: string | null;
     logoutDisabledReason: string | null;
@@ -135,6 +136,7 @@ export function SettingsPanel({
           form={account.form}
           submitting={account.submitting}
           error={account.error}
+          successKey={account.successKey}
           disabled={account.disabled}
           authorizeDisabledReason={account.authorizeDisabledReason}
           logoutDisabledReason={account.logoutDisabledReason}

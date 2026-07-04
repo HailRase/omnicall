@@ -41,6 +41,7 @@ const panelProps = {
     form: { username: "", password: "", domain: "", server: "" },
     submitting: false,
     error: null,
+    successKey: null,
     disabled: false,
     authorizeDisabledReason: null,
     logoutDisabledReason: "Заполните поля и нажмите «Авторизоваться»",

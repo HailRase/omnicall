@@ -12,6 +12,7 @@
   "account.action.authorize": "Sign in",
   "account.action.logout": "Sign out",
   "account.error.authorizationFailed": "Authorization failed",
+  "account.success.authorizationSucceeded": "Authorization completed",
   "header.avatar.ariaLabel": "User avatar",
   "header.userMenu.ariaLabel": "User menu",
   "header.userMenu.dndEnable": "Enable Do Not Disturb",
@@ -328,7 +329,7 @@
   "settings.systemState.manualReregister.disabled.registrationInProgress":
     "Registration in progress",
   "settings.systemState.action.success.transport": "Server reconnect started",
-  "settings.systemState.action.success.reregister": "Re-registration started",
+  "settings.systemState.action.success.reregister": "Re-registration completed",
   "settings.systemState.action.error.unknown": "Unable to perform action",
   "settings.systemState.liveSummary": (params) =>
     `Server: ${params.transport}. Registration: ${params.registration}. Summary: ${params.summary}.`,

@@ -5,9 +5,14 @@ import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { err, ok } from "@shared/result/index.js";
 import type { Result } from "@shared/result/index.js";
 import type { ConnectionRecoveryReadModel } from "@ports/operator/ConnectionRecoveryReadModel.js";
+import type { SipSessionHealthReadModel } from "@ports/telephony/SipSessionHealthReadModel.js";
 import type { Logger } from "@ports/index.js";
 import type { ConnectionRecoveryOrchestrationService } from "../services/ConnectionRecoveryOrchestrationService.js";
 import type { SipRecoveryOrchestrationService } from "../services/SipRecoveryOrchestrationService.js";
+import {
+  isSipManualRetryAvailable,
+  isSipRecoveryInProgress,
+} from "../projections/deriveSipManualRetryGate.js";
 
 const FEATURE_ID = "F-014";
 
@@ -19,13 +24,14 @@ export type RetryConnectionInput = Readonly<{
 }>;
 
 /**
- * - Purpose: user-initiated reconnect after terminal failure (LF-009, LF-010).
+ * - Purpose: user-initiated reconnect after terminal failure (LF-010 OCP path; SIP via settings).
  * - Inputs: target channel and optional correlation id.
  * - Outputs: orchestrates manual retry via recovery service; logs result.
  */
 export class RetryConnectionUseCase {
   constructor(
-    private readonly connectionRecoveryReadModel: ConnectionRecoveryReadModel,
+    private readonly sipSessionHealthReadModel: SipSessionHealthReadModel,
+    private readonly ocpConnectionRecoveryReadModel: ConnectionRecoveryReadModel,
     private readonly connectionRecoveryOrchestration: ConnectionRecoveryOrchestrationService,
     private readonly sipRecoveryOrchestration: SipRecoveryOrchestrationService,
     private readonly logger: Logger,
@@ -33,35 +39,52 @@ export class RetryConnectionUseCase {
 
   async execute(input: RetryConnectionInput): Promise<Result<void, PlatformError>> {
     const correlationId = input.correlationId ?? createCorrelationId();
-    const snapshot = this.connectionRecoveryReadModel.getSnapshot();
 
-    if (snapshot.connectionState === "reconnecting") {
-      return err(
-        createPlatformError("operation_failed", "Automatic reconnect in progress", {
-          reason: "reconnecting",
-        }),
-      );
+    if (input.channel === "sip" || input.channel === "both") {
+      const sipHealth = this.sipSessionHealthReadModel.getSnapshot();
+      if (isSipRecoveryInProgress(sipHealth)) {
+        return err(
+          createPlatformError("operation_failed", "Automatic reconnect in progress", {
+            reason: "reconnecting",
+          }),
+        );
+      }
+      if (!isSipManualRetryAvailable(sipHealth)) {
+        return err(
+          createPlatformError("operation_failed", "Manual retry not available", {
+            reason: "manual_retry_unavailable",
+          }),
+        );
+      }
     }
 
-    if (
-      snapshot.connectionState !== "manual_retry_available" &&
-      snapshot.connectionState !== "reconnect_failed" &&
-      snapshot.connectionState !== "sip_registration_failed"
-    ) {
-      return err(
-        createPlatformError("operation_failed", "Manual retry not available", {
-          reason: "manual_retry_unavailable",
-          connectionState: snapshot.connectionState,
-        }),
-      );
-    }
-
-    if (input.channel === "ocp" && !snapshot.isOcpMode) {
-      return err(
-        createPlatformError("operation_failed", "OCP mode is not enabled", {
-          reason: "ocp_not_enabled",
-        }),
-      );
+    if (input.channel === "ocp" || input.channel === "both") {
+      const ocpSnapshot = this.ocpConnectionRecoveryReadModel.getSnapshot();
+      if (ocpSnapshot.connectionState === "reconnecting") {
+        return err(
+          createPlatformError("operation_failed", "Automatic reconnect in progress", {
+            reason: "reconnecting",
+          }),
+        );
+      }
+      if (
+        ocpSnapshot.connectionState !== "manual_retry_available" &&
+        ocpSnapshot.connectionState !== "ocp_disconnected"
+      ) {
+        return err(
+          createPlatformError("operation_failed", "Manual retry not available", {
+            reason: "manual_retry_unavailable",
+            connectionState: ocpSnapshot.connectionState,
+          }),
+        );
+      }
+      if (!ocpSnapshot.isOcpMode) {
+        return err(
+          createPlatformError("operation_failed", "OCP mode is not enabled", {
+            reason: "ocp_not_enabled",
+          }),
+        );
+      }
     }
 
     this.logger.info("retry_connection_requested", {
@@ -71,8 +94,7 @@ export class RetryConnectionUseCase {
       operation: "retry_connection",
       channel: input.channel,
       attemptNumber: 1,
-      previousState: snapshot.connectionState,
-      nextState: "reconnecting",
+      result: "requested",
     });
 
     try {

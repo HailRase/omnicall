@@ -25,6 +25,10 @@ export type {
   ConnectionRecoveryReadModelSnapshot,
 } from "./operator/ConnectionRecoveryReadModel.js";
 export type {
+  SipSessionHealthReadModel,
+  SipSessionHealthReadModelSnapshot,
+} from "./telephony/SipSessionHealthReadModel.js";
+export type {
   MediaGateway,
   AttachRemoteAudioCommand,
   PlayIncomingRingtoneCommand,

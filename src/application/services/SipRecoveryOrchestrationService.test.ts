@@ -1,7 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MockTelephonyGateway } from "@adapters/index.js";
 import type { DomainEvent } from "@domain/index.js";
-import { createSipAccountId } from "@domain/index.js";
+import {
+  createCallEndedEvent,
+  createCallId,
+  createOutgoingCallRequestedEvent,
+  createPhoneNumber,
+  createSipAccountId,
+} from "@domain/index.js";
 import { SIP_RECONNECT_POLICY_CONFIG } from "@domain/shared/recovery/ReconnectPolicy.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
@@ -217,6 +223,81 @@ describe("SipRecoveryOrchestrationService", () => {
 
     expect(published.some((event) => event.type === "SipRegistrationRetryScheduled")).toBe(
       false,
+    );
+  });
+
+  it("pauses transport reconnect scheduling while an active call is in progress (Q6)", async () => {
+    const correlationId = createCorrelationId();
+    const callCorrelationId = createCorrelationId();
+    const telephonyGateway = new MockTelephonyGateway({
+      registrationScenario: "success",
+      reconnectScenario: "success",
+    });
+    const { published, eventPublisher } = createService(telephonyGateway);
+
+    eventPublisher.publish(
+      createOutgoingCallRequestedEvent(callCorrelationId, {
+        callId: createCallId("active-call"),
+        phoneNumber: createPhoneNumber("1001"),
+      }),
+    );
+
+    published.length = 0;
+
+    await telephonyGateway.simulateTransportDisconnected({
+      correlationId,
+      reason: "transport_closed",
+    });
+
+    expect(published.map((event) => event.type)).toEqual(
+      expect.arrayContaining(["SipTransportDisconnected", "SipRegistrationCleared"]),
+    );
+    expect(published.some((event) => event.type === "SipTransportReconnectScheduled")).toBe(
+      false,
+    );
+
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    expect(
+      published.some((event) => event.type === "SipTransportReconnectAttemptStarted"),
+    ).toBe(false);
+  });
+
+  it("resumes transport reconnect scheduling after the active call ends (Q6)", async () => {
+    const correlationId = createCorrelationId();
+    const callCorrelationId = createCorrelationId();
+    const telephonyGateway = new MockTelephonyGateway({
+      registrationScenario: "success",
+      reconnectScenario: "success",
+    });
+    const { published, eventPublisher } = createService(telephonyGateway);
+
+    eventPublisher.publish(
+      createOutgoingCallRequestedEvent(callCorrelationId, {
+        callId: createCallId("active-call"),
+        phoneNumber: createPhoneNumber("1001"),
+      }),
+    );
+
+    await telephonyGateway.simulateTransportDisconnected({
+      correlationId,
+      reason: "transport_closed",
+    });
+
+    published.length = 0;
+
+    eventPublisher.publish(
+      createCallEndedEvent(callCorrelationId, { callId: createCallId("active-call") }),
+    );
+
+    expect(published.some((event) => event.type === "SipTransportReconnectScheduled")).toBe(
+      true,
+    );
+
+    await vi.runOnlyPendingTimersAsync();
+
+    expect(published.map((event) => event.type)).toContain(
+      "SipTransportReconnectAttemptStarted",
     );
   });
 

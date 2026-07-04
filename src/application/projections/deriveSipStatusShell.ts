@@ -53,6 +53,17 @@ export function deriveSipStatusShell(input: SipStatusShellInput): SipStatusShell
 
   const transport = input.health.transport;
 
+  if (
+    input.health.registration === "registered" &&
+    transport !== "disconnected" &&
+    transport !== "reconnecting"
+  ) {
+    if (dndEnabled) {
+      return buildView("dnd", "header.sipStatus.dnd", null);
+    }
+    return buildView("registered", "header.sipStatus.registered", null);
+  }
+
   if (transport === "connecting") {
     return buildView("connecting", "header.sipStatus.connecting", null);
   }

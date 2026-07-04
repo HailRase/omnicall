@@ -102,7 +102,7 @@ Open **on top of** ContextZone; never unmount active call UI during established 
 - campaign request
 - logout reason
 - access denied
-- lost connection (existing `ConnectionOverlay`)
+- lost connection — header SIP status line + Settings → «Состояние системы» (T-008 / ADR-0004)
 
 ### Shell → zone map
 

@@ -33,9 +33,6 @@ export function useSoftphoneProjections() {
   const operatorStatusProjection = useAccountBootstrapStore(
     (state) => state.operatorStatusProjection,
   );
-  const connectionRecoveryProjection = useAccountBootstrapStore(
-    (state) => state.connectionRecoveryProjection,
-  );
   const sipSessionHealthProjection = useAccountBootstrapStore(
     (state) => state.sipSessionHealthProjection,
   );
@@ -63,7 +60,6 @@ export function useSoftphoneProjections() {
     transferProjection,
     multiLineCallProjection,
     operatorStatusProjection,
-    connectionRecoveryProjection,
     sipSessionHealthProjection,
     setCallMode,
     setIncomingUiState,

@@ -22,6 +22,7 @@ describe("AccountPanel", () => {
         form={baseForm}
         submitting={false}
         error={null}
+        successKey={null}
         authorizeDisabledReason="Вы уже в сети. Для смены аккаунта нажмите «Выйти»"
         logoutDisabledReason={null}
         onFieldChange={vi.fn()}
@@ -40,6 +41,7 @@ describe("AccountPanel", () => {
         form={{ username: "", password: "", domain: "", server: "" }}
         submitting={false}
         error={null}
+        successKey={null}
         authorizeDisabledReason={null}
         logoutDisabledReason="Заполните поля и нажмите «Авторизоваться»"
         onFieldChange={vi.fn()}
@@ -60,6 +62,7 @@ describe("AccountPanel", () => {
         form={baseForm}
         submitting={false}
         error={null}
+        successKey={null}
         authorizeDisabledReason="Вы уже в сети. Для смены аккаунта нажмите «Выйти»"
         logoutDisabledReason={null}
         onFieldChange={vi.fn()}
@@ -70,5 +73,23 @@ describe("AccountPanel", () => {
 
     fireEvent.click(screen.getByTestId("account-logout"));
     expect(onLogout).toHaveBeenCalledOnce();
+  });
+
+  it("renders styled success feedback", () => {
+    render(
+      <AccountPanel
+        form={baseForm}
+        submitting={false}
+        error={null}
+        successKey="account.success.authorizationSucceeded"
+        authorizeDisabledReason="Вы уже в сети. Для смены аккаунта нажмите «Выйти»"
+        logoutDisabledReason={null}
+        onFieldChange={vi.fn()}
+        onSubmit={vi.fn()}
+        onLogout={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("account-success")).toHaveTextContent("Авторизация выполнена");
   });
 });
