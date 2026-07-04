@@ -5,10 +5,6 @@
 }
 
 .tooltip {
-  position: absolute;
-  bottom: calc(100% + var(--space-2xs));
-  left: 50%;
-  transform: translateX(-50%);
   z-index: var(--z-tooltip);
   max-width: 14rem;
   padding: var(--space-2xs) var(--space-xs);

@@ -36,6 +36,7 @@
     "i18n:check": "node scripts/check-i18n-hardcoded.mjs"
   },
   "dependencies": {
+    "@floating-ui/react-dom": "^2.1.8",
     "@hailrase/jssip": "^3.10.2",
     "@radix-ui/react-dialog": "^1.1.17",
     "clsx": "^2.1.1",

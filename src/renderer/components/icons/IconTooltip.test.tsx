@@ -26,7 +26,7 @@ describe("IconTooltip", () => {
     }));
   });
 
-  it("shows tooltip after 1000ms pointer hover", () => {
+  it("shows tooltip after configured hover delay", () => {
     render(
       <IconTooltip label="Settings">
         <button type="button">Icon</button>
@@ -83,5 +83,27 @@ describe("IconTooltip", () => {
 
     fireEvent.pointerEnter(screen.getByTestId("icon-tooltip-host"));
     expect(screen.getByRole("tooltip")).toHaveTextContent("Hold");
+  });
+
+  it("renders tooltip in document body portal when visible", () => {
+    render(
+      <IconTooltip label="Mute">
+        <button type="button">Icon</button>
+      </IconTooltip>,
+    );
+
+    const host = screen.getByTestId("icon-tooltip-host");
+    expect(host.querySelector('[role="tooltip"]')).not.toBeInTheDocument();
+
+    fireEvent.pointerEnter(host);
+    act(() => {
+      vi.advanceTimersByTime(ICON_TOOLTIP_DELAY_MS);
+    });
+
+    const tooltip = screen.getByRole("tooltip");
+    expect(tooltip).toHaveTextContent("Mute");
+    expect(tooltip).toHaveAttribute("data-placement");
+    expect(document.body.contains(tooltip)).toBe(true);
+    expect(host.contains(tooltip)).toBe(false);
   });
 });

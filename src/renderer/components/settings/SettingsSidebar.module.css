@@ -127,10 +127,11 @@
   gap: var(--space-xs);
   width: 100%;
   min-width: 0;
-  height: 40px;
+  height: auto;
   min-height: 40px;
-  max-height: 40px;
-  padding: 0 var(--space-sm) 0 0;
+  max-height: none;
+  padding: var(--space-2xs) var(--space-sm) var(--space-2xs) 0;
+  overflow: visible;
 }
 
 .navButton:hover {
@@ -162,12 +163,23 @@
   justify-self: center;
 }
 
+.navTooltipHost {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+}
+
+.panelInnerExpanded .navTooltipHost {
+  justify-content: stretch;
+}
+
 .navLabel {
   display: block;
-  overflow: hidden;
-  white-space: nowrap;
+  overflow: visible;
+  white-space: normal;
   font-size: 0.9375rem;
-  line-height: 1;
+  line-height: 1.25;
   color: var(--color-text-emphasis);
   flex: 0 0 auto;
   min-width: 0;

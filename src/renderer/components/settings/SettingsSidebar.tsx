@@ -1,8 +1,7 @@
 import clsx from "clsx";
 import { motion, useReducedMotion } from "framer-motion";
 import type { JSX } from "react";
-import { AppIcon } from "../icons/index.js";
-import { IconControlButton } from "../icons/index.js";
+import { AppIcon, IconControlButton, IconTooltip } from "../icons/index.js";
 import { useI18n } from "../../i18n/index.js";
 import type { SettingsSectionId } from "./settingsSections.js";
 import { SETTINGS_NAV_ITEMS } from "./settingsSections.js";
@@ -21,7 +20,7 @@ export type SettingsSidebarProps = Readonly<{
 /**
  * - Purpose: render collapsible settings navigation rail with overlay expand mode.
  * - Inputs: active section, expanded flag, section and expand callbacks.
- * - Outputs: animated icon rail with optional expanded labels over content.
+ * - Outputs: animated icon rail with optional expanded labels over content; collapsed hover tooltips via IconTooltip.
  */
 export function SettingsSidebar({
   activeSection,
@@ -66,34 +65,38 @@ export function SettingsSidebar({
           <ul className={styles["navList"]} role="list">
             {SETTINGS_NAV_ITEMS.map((item) => {
               const isActive = item.id === activeSection;
+              const sectionLabel = t(item.labelKey);
               return (
                 <li key={item.id} className={styles["navItem"]}>
-                  <button
-                    type="button"
-                    className={clsx(styles["navButton"], isActive && styles["navButtonActive"])}
-                    data-testid={item.testId}
-                    aria-current={isActive ? "page" : undefined}
-                    aria-label={t(item.labelKey)}
-                    onClick={() => {
-                      onSectionChange(item.id);
-                    }}
+                  <IconTooltip
+                    label={expanded ? "" : sectionLabel}
+                    placement="right"
+                    className={styles["navTooltipHost"]}
                   >
-                    <span className={styles["navIcon"]}>
-                      <AppIcon id={item.iconId} decorative />
-                    </span>
-                    <motion.span
-                      className={styles["navLabel"]}
-                      initial={false}
-                      animate={{
-                        opacity: expanded ? 1 : 0,
-                        maxWidth: expanded ? 140 : 0,
+                    <button
+                      type="button"
+                      className={clsx(styles["navButton"], isActive && styles["navButtonActive"])}
+                      data-testid={item.testId}
+                      aria-current={isActive ? "page" : undefined}
+                      aria-label={sectionLabel}
+                      onClick={() => {
+                        onSectionChange(item.id);
                       }}
-                      transition={transition}
-                      aria-hidden={!expanded}
                     >
-                      {t(item.labelKey)}
-                    </motion.span>
-                  </button>
+                      <span className={styles["navIcon"]}>
+                        <AppIcon id={item.iconId} decorative />
+                      </span>
+                      <motion.span
+                        className={styles["navLabel"]}
+                        initial={false}
+                        animate={{ opacity: expanded ? 1 : 0 }}
+                        transition={transition}
+                        aria-hidden={!expanded}
+                      >
+                        {sectionLabel}
+                      </motion.span>
+                    </button>
+                  </IconTooltip>
                 </li>
               );
             })}

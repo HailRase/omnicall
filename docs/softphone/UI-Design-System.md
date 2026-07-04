@@ -16,6 +16,7 @@ Visual and composition rules for the Electron renderer. Complements `UI-Architec
 | Primitives a11y | **@radix-ui/react-dialog** | Incoming + campaign modals only (v1) |
 | Motion | **framer-motion** | Presentational; wraps Radix content |
 | Class merge | **clsx** | Conditional classes |
+| Tooltip positioning | **@floating-ui/react-dom** | `IconTooltip` portal + flip/shift |
 | Icons | **lucide-react** + **lucide-animated** via `AppIcon` | See [`guides/Icon-Agent-Guide.md`](../../guides/Icon-Agent-Guide.md), `Icon-Registry.md` |
 | Docs / visual contract | **Storybook 8** | 5–7 critical stories |
 | Catalog | `npm run ui:catalog` | Generated from sources |

@@ -7,7 +7,7 @@
 1. One **semantic id** per distinct UI meaning (not per Lucide glyph).
 2. Prefer `lucide-animated` when `animated` column is set; else `lucide-react`.
 3. Update this table **and** `iconCatalog.ts` in the same change.
-4. Icon-only buttons: `aria-label` on button; icon decorative; hover tooltip via `IconTooltip` / `IconControlButton` (1s delay).
+4. Icon-only buttons: `aria-label` on button; icon decorative; hover tooltip via `IconTooltip` / `IconControlButton` (300ms delay).
 
 ## Registry
 

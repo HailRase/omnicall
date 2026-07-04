@@ -20,7 +20,7 @@ Single entry point for UI agents working with icons in the Enterprise Softphone 
 
 ## Tooltips
 
-`IconControlButton` wraps `IconTooltip` — 1s delay; instant when `prefers-reduced-motion: reduce`.
+`IconControlButton` wraps `IconTooltip` — 300ms delay; instant when `prefers-reduced-motion: reduce`.
 
 ## Files
 
