@@ -14,7 +14,7 @@ const activeLine: CallLineCardViewModel = {
   muted: false,
   isActiveUnheld: true,
   displayName: "+12025550100",
-  statusLabel: "На линии",
+  statusLabel: "call.line.status.active",
   durationStartedAt: Date.now(),
   queueLabelState: "hidden",
   queueName: null,
@@ -35,7 +35,7 @@ const heldLine: CallLineCardViewModel = {
   callId: "call-held",
   state: "Held",
   isActiveUnheld: false,
-  statusLabel: "На удержании",
+  statusLabel: "call.line.status.held",
 };
 
 function ringingIncomingProjection(callId: string) {

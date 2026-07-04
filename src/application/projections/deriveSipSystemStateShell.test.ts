@@ -24,7 +24,7 @@ describe("deriveSipSystemStateShell", () => {
 
     expect(shell.transportStateLabel).toBe("Подключён");
     expect(shell.registrationStateLabel).toBe("Зарегистрирован");
-    expect(shell.summaryLabel).toBe("Зарегистрирован");
+    expect(shell.summaryLabelKey).toBe("header.sipStatus.registered");
     expect(shell.manualTransportReconnectDisabledReason).toBe("Сервер уже подключён");
     expect(shell.manualReregisterDisabledReason).toBeNull();
   });

@@ -1,6 +1,6 @@
 {
   "name": "Axatalk",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "private": true,
   "description": "Softphone Platform",
   "author": "Axata",
@@ -32,7 +32,8 @@
     "release:sync-manifest": "node scripts/sync-release-manifest.mjs",
     "release:push-distribution": "node scripts/push-distribution-repo.mjs",
     "release:migrate-distribution": "node scripts/migrate-distribution-releases.mjs",
-    "release:preflight": "npm run test && npm run lint && npm run typecheck && npm run registry:check"
+    "release:preflight": "npm run test && npm run lint && npm run typecheck && npm run registry:check",
+    "i18n:check": "node scripts/check-i18n-hardcoded.mjs"
   },
   "dependencies": {
     "@hailrase/jssip": "^3.10.2",

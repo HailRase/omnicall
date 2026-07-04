@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { useI18n } from "../../i18n/index.js";
 import { AppIcon } from "../icons/index.js";
 import chromeTextStyles from "../shell/ShellChromeText.module.css";
 import styles from "./MultiCallHoldAllIndicator.module.css";
@@ -15,6 +16,7 @@ export type MultiCallHoldAllIndicatorProps = Readonly<{
 export function MultiCallHoldAllIndicator({
   visible,
 }: MultiCallHoldAllIndicatorProps): JSX.Element | null {
+  const { t } = useI18n();
   if (!visible) {
     return null;
   }
@@ -28,7 +30,7 @@ export function MultiCallHoldAllIndicator({
       <span className={styles["icon"]}>
         <AppIcon id="call.hold" decorative />
       </span>
-      Удержание других звонков…
+      {t("dialpad.disabled.holdAllInProgress")}
     </div>
   );
 }

@@ -1,19 +1,21 @@
+import { translateCurrent } from "../i18n/index.js";
+
 export function registrationLabel(
   registrationState: string,
   authUiState: string,
 ): string {
   if (authUiState === "sip_registering") {
-    return "Регистрация";
+    return translateCurrent("registration.state.registering");
   }
 
   switch (registrationState) {
     case "registered":
-      return "Зарегистрирован";
+      return translateCurrent("registration.state.registered");
     case "failed":
-      return "Ошибка";
+      return translateCurrent("registration.state.failed");
     case "registering":
-      return "Регистрация";
+      return translateCurrent("registration.state.registering");
     default:
-      return "Не зарегистрирован";
+      return translateCurrent("registration.state.notRegistered");
   }
 }

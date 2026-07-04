@@ -3,6 +3,7 @@ import type { JSX } from "react";
 import type { IncomingCallUiState, QueueLabelState } from "@application/index.js";
 import { mapQueueLabelState } from "../../helpers/mapQueueLabelState.js";
 import { formatAutoAnswerCountdownLabel } from "../../helpers/formatAutoAnswerCountdownLabel.js";
+import { useI18n } from "../../i18n/index.js";
 import { AppIcon } from "../icons/index.js";
 import { IncomingCallStatusMessage } from "./IncomingCallStatusMessage.js";
 import styles from "./IncomingCallSessionCard.module.css";
@@ -26,10 +27,11 @@ export type IncomingCallSessionCardProps = Readonly<{
 }>;
 
 function resolveCallerIdentity(
+  t: ReturnType<typeof useI18n>["t"],
   callerNumber: string | null,
   displayName: string | null,
 ): Readonly<{ primary: string; secondary: string | null }> {
-  const primary = callerNumber ?? displayName ?? "Неизвестный номер";
+  const primary = callerNumber ?? displayName ?? t("incoming.unknownNumber");
   if (
     displayName !== null &&
     displayName.trim().length > 0 &&
@@ -73,7 +75,8 @@ export function IncomingCallSessionCard({
   onAnswer,
   onReject,
 }: IncomingCallSessionCardProps): JSX.Element {
-  const identity = resolveCallerIdentity(callerNumber, displayName);
+  const { t } = useI18n();
+  const identity = resolveCallerIdentity(t, callerNumber, displayName);
   const queueBadge = mapQueueLabelState(queueLabelState, queueName);
   const autoAnswerActive =
     autoAnswerSecondsRemaining !== null && autoAnswerTimeoutSec !== null;
@@ -89,7 +92,7 @@ export function IncomingCallSessionCard({
     <article
       className={clsx(styles["card"], isSelected && styles["cardSelected"])}
       data-testid={`incoming-call-session-${callId}`}
-      aria-label="Входящий вызов"
+      aria-label={t("incoming.ariaLabel")}
     >
       {autoAnswerActive ? (
         <div className={styles["autoAnswerTrack"]} aria-hidden="true">
@@ -104,7 +107,7 @@ export function IncomingCallSessionCard({
         type="button"
         className={styles["selectArea"]}
         data-testid="incoming-call-session-select"
-        aria-label={`Выбрать входящий звонок ${identity.primary}`}
+        aria-label={t("incoming.selectAria", { primary: identity.primary })}
         aria-selected={isSelected}
         onClick={onSelect}
       >
@@ -119,7 +122,7 @@ export function IncomingCallSessionCard({
           <span className={styles["statusRow"]}>
             <span className={styles["pulse"]} aria-hidden />
             <span className={styles["status"]} data-testid="incoming-call-status-label">
-              Звонок
+              {t("incoming.status.default")}
             </span>
           </span>
           {autoAnswerActive && autoAnswerSecondsRemaining !== null ? (
@@ -177,27 +180,27 @@ export function IncomingCallSessionCard({
           type="button"
           className={styles["rejectButton"]}
           data-testid="reject-call"
-          aria-label="Отклонить вызов"
+          aria-label={t("incoming.rejectAria")}
           disabled={rejectDisabledReason !== null}
           onClick={onReject}
         >
           <span className={styles["buttonIcon"]}>
             <AppIcon id="call.reject" size={14} decorative />
           </span>
-          <span>Отклонить</span>
+          <span>{t("incoming.rejectLabel")}</span>
         </button>
         <button
           type="button"
           className={styles["answerButton"]}
           data-testid="answer-call"
-          aria-label="Ответить на вызов"
+          aria-label={t("incoming.answerAria")}
           disabled={answerDisabledReason !== null}
           onClick={onAnswer}
         >
           <span className={styles["buttonIcon"]}>
             <AppIcon id="call.answer" size={14} decorative />
           </span>
-          <span>Ответить</span>
+          <span>{t("incoming.answerLabel")}</span>
         </button>
       </div>
     </article>

@@ -109,9 +109,9 @@ Examples:
 
 Disabled state must come from projection, not local component guesses.
 
-## Language (Russian UI)
+## Language (Internationalized UI)
 
-All user-visible copy must be in **Russian**:
+All user-visible copy must go through the i18n catalog/runtime (`src/renderer/i18n/*`) for every supported locale (`ru`, `en`):
 
 - labels, buttons, headings, hints, placeholders
 - error and policy banners, disabled reasons, tooltips
@@ -119,9 +119,9 @@ All user-visible copy must be in **Russian**:
 
 Technical identifiers stay English: `data-testid`, projection reason keys, Domain enums.
 
-v1: inline Russian strings in renderer helpers, projections, and components — no i18n framework unless an ADR adds one.
+Do not introduce hardcoded user-visible strings in renderer components, shell hooks, helpers, icon labels, or UI-facing application projections.
 
-New UI work: assert Russian copy in component tests; do not introduce English user-facing strings.
+New UI work: assert translation keys or localized render output in tests (at least `ru` + `en` for touched surfaces).
 
 ## Accessibility
 

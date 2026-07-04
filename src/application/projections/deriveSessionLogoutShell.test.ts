@@ -67,6 +67,6 @@ describe("deriveSessionLogoutShell", () => {
       logoutInProgress: true,
     });
 
-    expect(shell.endSessionDisabledReason).toBe("Выход выполняется");
+    expect(shell.endSessionDisabledReason).toBe("session.logout.disabled.inProgress");
   });
 });

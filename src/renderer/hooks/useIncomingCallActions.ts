@@ -5,6 +5,7 @@ import {
   type MultiCallProjection,
 } from "@application/index.js";
 import { mapDialpadDisabledReason } from "../helpers/mapDialpadDisabledReason.js";
+import { translateCurrent } from "../i18n/index.js";
 
 type UseIncomingCallActionsInput = Readonly<{
   facade: AccountBootstrapFacade | null;
@@ -73,10 +74,12 @@ export function useIncomingCallActions(
 
   const answerDisabledReason =
     incomingCallProjection.uiState === "rejecting"
-      ? "Отклонение выполняется"
-      : (registrationAnswerDisabled ?? policyAnswerDisabled);
+      ? translateCurrent("incoming.status.rejecting")
+      : (registrationAnswerDisabled ?? mapPolicyDisabledReason(policyAnswerDisabled));
   const rejectDisabledReason =
-    incomingCallProjection.uiState === "answering" ? "Ответ выполняется" : null;
+    incomingCallProjection.uiState === "answering"
+      ? translateCurrent("incoming.status.answering")
+      : null;
 
   return {
     handleAnswerIncoming,
@@ -84,4 +87,18 @@ export function useIncomingCallActions(
     answerDisabledReason,
     rejectDisabledReason,
   };
+}
+
+function mapPolicyDisabledReason(reason: string | null): string | null {
+  if (reason === null) {
+    return null;
+  }
+  if (
+    reason === "multi.call.disabled.holdAllInProgress" ||
+    reason === "multi.call.disabled.connectingInProgress" ||
+    reason === "multi.call.disabled.secondSession"
+  ) {
+    return translateCurrent(reason);
+  }
+  return reason;
 }

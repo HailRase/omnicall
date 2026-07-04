@@ -1,3 +1,5 @@
+import { translateCurrent } from "../i18n/index.js";
+
 /**
  * - Purpose: map transfer projection disabled reason keys to user-visible labels.
  * - Inputs: disabled reason key from transfer or active-call transfer controls.
@@ -6,25 +8,25 @@
 export function mapTransferDisabledReason(reason: string): string | null {
   switch (reason) {
     case "no_active_call":
-      return "Нет активного звонка";
+      return translateCurrent("transfer.disabled.noActiveCall");
     case "transfer_not_allowed":
-      return "Перевод недоступен";
+      return translateCurrent("transfer.disabled.notAllowed");
     case "invalid_target":
-      return "Некорректный номер перевода";
+      return translateCurrent("transfer.disabled.invalidTarget");
     case "transfer_in_progress":
-      return "Перевод выполняется";
+      return translateCurrent("transfer.disabled.inProgress");
     case "consultation_in_progress":
-      return "Консультация выполняется";
+      return translateCurrent("transfer.disabled.consultationInProgress");
     case "second_session_disabled":
-      return "Вторая сессия отключена";
+      return translateCurrent("transfer.disabled.secondSessionDisabled");
     case "consultation_not_active":
-      return "Консультация не готова";
+      return translateCurrent("transfer.disabled.consultationNotActive");
     case "relationship_invalid":
-      return "Некорректная связь звонков для перевода";
+      return translateCurrent("transfer.disabled.relationshipInvalid");
     case "no_source_call":
-      return "Нет исходного звонка";
+      return translateCurrent("transfer.disabled.noSourceCall");
     case "transfer_mode_active":
-      return "Режим перевода уже активен";
+      return translateCurrent("transfer.disabled.modeAlreadyActive");
     default:
       return null;
   }
@@ -32,7 +34,7 @@ export function mapTransferDisabledReason(reason: string): string | null {
 
 export function mapTransferDisabledReasonWithFallback(
   reason: string,
-  fallback = "Действие недоступно",
+  fallback = translateCurrent("common.actionUnavailable"),
 ): string {
   return mapTransferDisabledReason(reason) ?? fallback;
 }

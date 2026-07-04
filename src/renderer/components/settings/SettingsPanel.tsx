@@ -1,6 +1,12 @@
 import type { JSX, ReactNode } from "react";
-import type { AppTheme, SipAccountInput, SipSystemStateShellView } from "@application/index.js";
+import type {
+  AppTheme,
+  SipAccountInput,
+  SipSystemStateShellView,
+  SupportedLanguage,
+} from "@application/index.js";
 import { IconControlButton } from "../icons/index.js";
+import { useI18n } from "../../i18n/index.js";
 import type { SettingsSectionId } from "./settingsSections.js";
 import { resolveSettingsContentHeaderTitle } from "./settingsSections.js";
 import { SettingsSidebar } from "./SettingsSidebar.js";
@@ -20,6 +26,8 @@ export type SettingsPanelProps = Readonly<{
   onClose: () => void;
   onSectionChange: (sectionId: SettingsSectionId) => void;
   onSidebarExpandedChange: (expanded: boolean) => void;
+  language: SupportedLanguage;
+  onLanguageChange: (language: SupportedLanguage) => void;
   theme: AppTheme;
   onThemeChange: (theme: AppTheme) => void;
   multiSessionsEnabled: boolean;
@@ -87,6 +95,8 @@ export function SettingsPanel({
   onClose,
   onSectionChange,
   onSidebarExpandedChange,
+  language,
+  onLanguageChange,
   theme,
   onThemeChange,
   multiSessionsEnabled,
@@ -109,6 +119,7 @@ export function SettingsPanel({
   systemState,
   account,
 }: SettingsPanelProps): JSX.Element {
+  const { t } = useI18n();
   const handleToggleSidebar = (): void => {
     onSidebarExpandedChange(!sidebarExpanded);
   };
@@ -134,6 +145,8 @@ export function SettingsPanel({
       sectionContent = (
         <SettingsGeneralPanel
           theme={theme}
+          language={language}
+          onLanguageChange={onLanguageChange}
           onThemeChange={onThemeChange}
           currentVersion={currentVersion}
           latestVersion={latestVersion}
@@ -213,12 +226,12 @@ export function SettingsPanel({
       <div className={styles["content"]}>
         <header className={styles["contentHeader"]}>
           <h3 className={styles["contentTitle"]} data-testid="settings-section-title">
-            {resolveSettingsContentHeaderTitle(activeSection)}
+            {resolveSettingsContentHeaderTitle(t, activeSection)}
           </h3>
           <div className={styles["closeSlot"]}>
             <IconControlButton
               iconId="overlay.close"
-              ariaLabel="Закрыть настройки"
+              ariaLabel={t("settings.close")}
               testId="settings-overlay-close"
               className={styles["closeButton"]}
               onClick={onClose}

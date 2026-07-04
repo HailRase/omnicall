@@ -107,4 +107,36 @@ describe("validateUserSettings", () => {
       expect(result.errors).toContain("theme_invalid");
     }
   });
+
+  it("rejects invalid language", () => {
+    const result = validateUserSettings({
+      ...createDefaultUserSettings(),
+      language: "es",
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors).toContain("language_invalid");
+    }
+  });
+
+  it("accepts new supported locales", () => {
+    const frResult = validateUserSettings({
+      ...createDefaultUserSettings(),
+      language: "fr",
+    });
+    const deResult = validateUserSettings({
+      ...createDefaultUserSettings(),
+      language: "de",
+    });
+
+    expect(frResult.ok).toBe(true);
+    if (frResult.ok) {
+      expect(frResult.value.language).toBe("fr");
+    }
+
+    expect(deResult.ok).toBe(true);
+    if (deResult.ok) {
+      expect(deResult.value.language).toBe("de");
+    }
+  });
 });

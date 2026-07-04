@@ -251,6 +251,12 @@ export {
 } from "@domain/settings/SipRecoverySettings.js";
 export { APP_THEMES, DEFAULT_APP_THEME, parseAppTheme, type AppTheme } from "@domain/settings/AppTheme.js";
 export {
+  DEFAULT_SUPPORTED_LANGUAGE,
+  SUPPORTED_LANGUAGES,
+  parseSupportedLanguage,
+  type SupportedLanguage,
+} from "@domain/settings/SupportedLanguage.js";
+export {
   createDefaultUserSettings,
   MAX_AUTO_ANSWER_TIMEOUT_SEC,
   MIN_AUTO_ANSWER_TIMEOUT_SEC,

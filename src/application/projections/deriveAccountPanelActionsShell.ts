@@ -6,13 +6,22 @@ export type AccountPanelActionsShellInput = Readonly<{
   form: SipAccountInput;
   submitting: boolean;
   panelDisabled: boolean;
-  sessionLogoutDisabledReason: string | null;
+  sessionLogoutDisabledReason: AccountPanelActionReasonKey | null;
 }>;
 
 export type AccountPanelActionsShell = Readonly<{
-  authorizeDisabledReason: string | null;
-  logoutDisabledReason: string | null;
+  authorizeDisabledReason: AccountPanelActionReasonKey | null;
+  logoutDisabledReason: AccountPanelActionReasonKey | null;
 }>;
+
+export type AccountPanelActionReasonKey =
+  | "account.actions.disabled.waitCurrentOperation"
+  | "account.actions.disabled.authorizeInProgress"
+  | "account.actions.disabled.alreadyAuthorized"
+  | "account.actions.disabled.fillAndAuthorize"
+  | "account.actions.disabled.authorizeFirst"
+  | "session.logout.disabled.inProgress"
+  | "session.logout.disabled.registrationInProgress";
 
 function isFormEmpty(form: SipAccountInput): boolean {
   return (
@@ -33,20 +42,20 @@ export function deriveAccountPanelActionsShell(
 ): AccountPanelActionsShell {
   const isAuthorized = input.authUiState === "sip_registered";
 
-  let authorizeDisabledReason: string | null = null;
+  let authorizeDisabledReason: AccountPanelActionReasonKey | null = null;
   if (input.panelDisabled) {
-    authorizeDisabledReason = "Дождитесь завершения текущей операции";
+    authorizeDisabledReason = "account.actions.disabled.waitCurrentOperation";
   } else if (input.submitting) {
-    authorizeDisabledReason = "Выполняется авторизация";
+    authorizeDisabledReason = "account.actions.disabled.authorizeInProgress";
   } else if (isAuthorized) {
-    authorizeDisabledReason = "Вы уже в сети. Для смены аккаунта нажмите «Выйти»";
+    authorizeDisabledReason = "account.actions.disabled.alreadyAuthorized";
   }
 
-  let logoutDisabledReason: string | null = null;
+  let logoutDisabledReason: AccountPanelActionReasonKey | null = null;
   if (!isAuthorized) {
     logoutDisabledReason = isFormEmpty(input.form)
-      ? "Заполните поля и нажмите «Авторизоваться»"
-      : "Сначала нажмите «Авторизоваться»";
+      ? "account.actions.disabled.fillAndAuthorize"
+      : "account.actions.disabled.authorizeFirst";
   } else if (input.sessionLogoutDisabledReason !== null) {
     logoutDisabledReason = input.sessionLogoutDisabledReason;
   }

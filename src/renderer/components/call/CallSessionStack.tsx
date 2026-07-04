@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import type { CallLinesShellViewModel } from "@application/index.js";
+import { useI18n } from "../../i18n/index.js";
 import chromeTextStyles from "../shell/ShellChromeText.module.css";
 import { CallSessionCard } from "./CallSessionCard.js";
 import styles from "./CallSessionStack.module.css";
@@ -21,6 +22,7 @@ export function CallSessionStack({
   activeCallId,
   onSelectLine,
 }: CallSessionStackProps): JSX.Element | null {
+  const { t } = useI18n();
   if (!shell.visible || shell.lines.length < 2) {
     return null;
   }
@@ -29,7 +31,7 @@ export function CallSessionStack({
     <section
       className={styles["panel"]}
       data-testid="call-session-stack"
-      aria-label="Сессии звонков"
+      aria-label={t("call.sessions.ariaLabel")}
     >
       {shell.policyErrorMessage !== null ? (
         <p
@@ -41,7 +43,7 @@ export function CallSessionStack({
         </p>
       ) : null}
       <p className={styles["heading"]}>
-        Сессии · {shell.lines.length}
+        {t("call.sessions.heading", { count: shell.lines.length })}
       </p>
       <ul className={styles["list"]}>
         {shell.lines.map((line) => (

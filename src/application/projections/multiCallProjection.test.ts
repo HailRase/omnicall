@@ -74,7 +74,9 @@ describe("multiCallProjection", () => {
     );
     expect(blocked.isSecondSessionDisabled).toBe(true);
     expect(blocked.lastBlockedDirection).toBe("incoming_answer");
-    expect(deriveIncomingAnswerDisabledReason(blocked)).toBe("Вторая сессия отключена");
+    expect(deriveIncomingAnswerDisabledReason(blocked)).toBe(
+      "multi.call.disabled.secondSession",
+    );
   });
 
   it("derives incoming answer disabled from established call and settings", () => {
@@ -89,7 +91,9 @@ describe("multiCallProjection", () => {
         callId: "call-a",
       },
     );
-    expect(deriveIncomingAnswerDisabledReason(projection)).toBe("Вторая сессия отключена");
+    expect(deriveIncomingAnswerDisabledReason(projection)).toBe(
+      "multi.call.disabled.secondSession",
+    );
   });
 
   it("stores autoUnholdOnTransferFailure from settings", () => {

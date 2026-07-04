@@ -8,6 +8,13 @@ import type {
 } from "./connectionRecoveryProjection.js";
 
 export type AvatarRecoveryOverlayMode = "countdown" | "reload" | "in_progress" | null;
+export type ConnectionRecoveryReasonKey =
+  | "connection.recovery.disabled.autoReconnectInProgress"
+  | "connection.recovery.disabled.sessionTerminatedByServer"
+  | "connection.recovery.disabled.manualRetryUnavailable"
+  | "connection.recovery.disabled.waitingAutoRetry"
+  | "connection.recovery.disabled.reregisterUnavailable"
+  | "connection.recovery.disabled.safeLogoutUnavailable";
 
 export type ConnectionRecoveryShellView = Readonly<{
   showOverlay: boolean;
@@ -17,10 +24,10 @@ export type ConnectionRecoveryShellView = Readonly<{
   avatarRecoveryOverlayMode: AvatarRecoveryOverlayMode;
   showOcpRow: boolean;
   showSipRow: boolean;
-  retryDisabledReason: string | null;
+  retryDisabledReason: ConnectionRecoveryReasonKey | null;
   showReregisterSipControl: boolean;
-  reregisterDisabledReason: string | null;
-  safeLogoutDisabledReason: string | null;
+  reregisterDisabledReason: ConnectionRecoveryReasonKey | null;
+  safeLogoutDisabledReason: ConnectionRecoveryReasonKey | null;
   ocpMaxAttempts: number;
   sipMaxAttempts: number;
 }>;
@@ -186,7 +193,7 @@ function deriveShowSipRow(projection: ConnectionRecoveryProjection): boolean {
 
 function deriveRetryConnectionDisabledReason(
   projection: ConnectionRecoveryProjection,
-): string | null {
+): ConnectionRecoveryReasonKey | null {
   const { connectionState } = projection;
 
   if (connectionState === "manual_retry_available") {
@@ -194,20 +201,20 @@ function deriveRetryConnectionDisabledReason(
   }
 
   if (connectionState === "reconnecting") {
-    return "Автоматическое переподключение выполняется";
+    return "connection.recovery.disabled.autoReconnectInProgress";
   }
 
   if (connectionState === "server_terminate") {
-    return "Сессия завершена сервером";
+    return "connection.recovery.disabled.sessionTerminatedByServer";
   }
 
   if (connectionState === "sip_registration_failed") {
     return projection.sipRecoveryMode === "registration"
-      ? "Автоматическая перерегистрация выполняется"
-      : "Ручная повторная попытка пока недоступна";
+      ? "connection.recovery.disabled.autoReconnectInProgress"
+      : "connection.recovery.disabled.manualRetryUnavailable";
   }
 
-  return "Ручная повторная попытка пока недоступна";
+  return "connection.recovery.disabled.manualRetryUnavailable";
 }
 
 function deriveShowReregisterSipControl(connectionState: ConnectionState): boolean {
@@ -221,7 +228,7 @@ function deriveShowReregisterSipControl(connectionState: ConnectionState): boole
 
 function deriveReregisterSipDisabledReason(
   projection: ConnectionRecoveryProjection,
-): string | null {
+): ConnectionRecoveryReasonKey | null {
   const { connectionState } = projection;
 
   if (connectionState === "manual_retry_available") {
@@ -233,24 +240,26 @@ function deriveReregisterSipDisabledReason(
   }
 
   if (connectionState === "reconnecting") {
-    return "Автоматическое переподключение выполняется";
+    return "connection.recovery.disabled.autoReconnectInProgress";
   }
 
   if (connectionState === "server_terminate") {
-    return "Сессия завершена сервером";
+    return "connection.recovery.disabled.sessionTerminatedByServer";
   }
 
   if (connectionState === "sip_disconnected") {
-    return "Ожидание автоматической повторной попытки";
+    return "connection.recovery.disabled.waitingAutoRetry";
   }
 
-  return "Перерегистрация недоступна";
+  return "connection.recovery.disabled.reregisterUnavailable";
 }
 
-function deriveSafeLogoutDisabledReason(connectionState: ConnectionState): string | null {
+function deriveSafeLogoutDisabledReason(
+  connectionState: ConnectionState,
+): ConnectionRecoveryReasonKey | null {
   if (connectionState === "server_terminate") {
     return null;
   }
 
-  return "Безопасный выход недоступен";
+  return "connection.recovery.disabled.safeLogoutUnavailable";
 }

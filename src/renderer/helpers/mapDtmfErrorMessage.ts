@@ -1,3 +1,5 @@
+import { translateCurrent } from "../i18n/index.js";
+
 /**
  * - Purpose: map DTMF operation errors to operator-facing Russian copy.
  * - Inputs: raw projection error string or null.
@@ -9,15 +11,15 @@ export function mapDtmfErrorMessage(raw: string | null): string | null {
   }
 
   const normalized = raw.toLowerCase();
-  if (normalized.includes("session not found")) {
-    return "Звонок недоступен для тонового набора";
+  if (/session\s+not\s+found/.test(normalized)) {
+    return translateCurrent("call.dtmf.error.sessionNotFound");
   }
   if (normalized.includes("invalid_state")) {
-    return "Тоновый набор недоступен в текущем состоянии звонка";
+    return translateCurrent("call.dtmf.error.invalidState");
   }
-  if (normalized.includes("not implemented")) {
-    return "Тоновый набор временно недоступен";
+  if (/not\s+implemented/.test(normalized)) {
+    return translateCurrent("call.dtmf.error.notImplemented");
   }
 
-  return "Не удалось отправить тон";
+  return translateCurrent("call.dtmf.error.default");
 }

@@ -1,4 +1,5 @@
 import { useEffect, useRef, type JSX, type KeyboardEvent } from "react";
+import { useI18n } from "../../i18n/index.js";
 import { AppIcon, IconControlButton } from "../icons/index.js";
 import dialogStyles from "../shell/DialogPanel.module.css";
 import styles from "./LogoutActiveSessionConfirmationModal.module.css";
@@ -19,6 +20,7 @@ export function LogoutActiveSessionConfirmationModal({
   onConfirm,
   onCancel,
 }: LogoutActiveSessionConfirmationModalProps): JSX.Element | null {
+  const { t } = useI18n();
   const modalRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -70,7 +72,7 @@ export function LogoutActiveSessionConfirmationModal({
     <section
       ref={modalRef}
       role="dialog"
-      aria-label="Подтверждение завершения сессии"
+      aria-label={t("session.logout.confirmDialogAria")}
       aria-modal="true"
       tabIndex={-1}
       className={dialogStyles["modal"]}
@@ -81,22 +83,22 @@ export function LogoutActiveSessionConfirmationModal({
         <span className={styles["titleIcon"]}>
           <AppIcon id="session.end" decorative />
         </span>
-        Завершить сессию
+        {t("session.logout.title")}
       </h2>
-      <p>Есть активный звонок. Завершить звонки и выйти?</p>
+      <p>{t("session.logout.confirmMessage")}</p>
 
       <div className={dialogStyles["actions"]}>
         <IconControlButton
           iconId="session.end"
-          ariaLabel="Подтвердить завершение сессии"
+          ariaLabel={t("session.logout.confirmAria")}
           testId="control-logout-confirm"
           className={styles["iconButton"]}
           onClick={onConfirm}
         />
         <IconControlButton
           iconId="overlay.close"
-          ariaLabel="Отменить завершение сессии"
-          tooltipLabel="Отмена"
+          ariaLabel={t("session.logout.cancelAria")}
+          tooltipLabel={t("common.cancel")}
           testId="control-logout-cancel"
           className={styles["iconButton"]}
           onClick={onCancel}

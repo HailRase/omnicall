@@ -1,3 +1,5 @@
+import { translateCurrent } from "../i18n/index.js";
+
 type MapAvatarMenuDndDisabledReasonInput = Readonly<{
   phoneStatusDisabled: boolean;
   isSipRegistered: boolean;
@@ -14,11 +16,11 @@ export function mapAvatarMenuDndDisabledReason(
   const { phoneStatusDisabled, isSipRegistered } = input;
 
   if (phoneStatusDisabled) {
-    return "Статус телефона недоступен";
+    return translateCurrent("header.userMenu.dndDisabled.phoneStatusUnavailable");
   }
 
   if (!isSipRegistered) {
-    return "Не зарегистрирован";
+    return translateCurrent("header.userMenu.dndDisabled.notRegistered");
   }
 
   return null;

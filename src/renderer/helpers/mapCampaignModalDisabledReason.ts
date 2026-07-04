@@ -1,3 +1,5 @@
+import { translateCurrent } from "../i18n/index.js";
+
 /**
  * - Purpose: map campaign modal disabled reason keys to user-visible labels.
  * - Inputs: disabled reason key from campaign action hook.
@@ -6,9 +8,9 @@
 export function mapCampaignModalDisabledReason(reason: string): string | null {
   switch (reason) {
     case "campaign_response_in_progress":
-      return "Ответ на кампанию выполняется";
+      return translateCurrent("campaign.disabled.responseInProgress");
     case "ocp_unavailable":
-      return "OCP недоступен";
+      return translateCurrent("campaign.disabled.ocpUnavailable");
     default:
       return null;
   }
@@ -16,7 +18,7 @@ export function mapCampaignModalDisabledReason(reason: string): string | null {
 
 export function mapCampaignModalDisabledReasonWithFallback(
   reason: string,
-  fallback = "Действие недоступно",
+  fallback = translateCurrent("common.actionUnavailable"),
 ): string {
   return mapCampaignModalDisabledReason(reason) ?? fallback;
 }

@@ -33,12 +33,16 @@ export function pickSessionLogoutProjectionInput(
 
 export type SessionLogoutShellView = Readonly<{
   showEndSessionControl: boolean;
-  endSessionDisabledReason: string | null;
+  endSessionDisabledReason: SessionLogoutDisabledReasonKey | null;
   logoutConfirmationRequired: boolean;
   logoutInProgress: boolean;
   showLogoutErrorBanner: boolean;
   logoutErrorMessage: string | null;
 }>;
+
+export type SessionLogoutDisabledReasonKey =
+  | "session.logout.disabled.inProgress"
+  | "session.logout.disabled.registrationInProgress";
 
 /**
  * - Purpose: derive SIP-only session logout shell flags from read models (LF-079).
@@ -96,13 +100,15 @@ function deriveLogoutConfirmationRequired(input: SessionLogoutShellInput): boole
   return false;
 }
 
-function deriveEndSessionDisabledReason(input: SessionLogoutShellInput): string | null {
+function deriveEndSessionDisabledReason(
+  input: SessionLogoutShellInput,
+): SessionLogoutDisabledReasonKey | null {
   if (input.logoutInProgress) {
-    return "Выход выполняется";
+    return "session.logout.disabled.inProgress";
   }
 
   if (input.authUiState === "sip_registering") {
-    return "Регистрация выполняется";
+    return "session.logout.disabled.registrationInProgress";
   }
 
   return null;

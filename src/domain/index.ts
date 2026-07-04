@@ -6,6 +6,12 @@ export {
 } from "./settings/SettingsAccountKey.js";
 export type { AppTheme } from "./settings/AppTheme.js";
 export { APP_THEMES, DEFAULT_APP_THEME, parseAppTheme } from "./settings/AppTheme.js";
+export type { SupportedLanguage } from "./settings/SupportedLanguage.js";
+export {
+  DEFAULT_SUPPORTED_LANGUAGE,
+  SUPPORTED_LANGUAGES,
+  parseSupportedLanguage,
+} from "./settings/SupportedLanguage.js";
 export type { SettingsSchemaVersion, UserSettings } from "./settings/UserSettings.js";
 export {
   createDefaultUserSettings,

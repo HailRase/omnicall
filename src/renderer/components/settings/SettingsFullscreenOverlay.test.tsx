@@ -24,6 +24,8 @@ const panelProps = {
   onClose: vi.fn(),
   onSectionChange: vi.fn(),
   onSidebarExpandedChange: vi.fn(),
+  language: "ru" as const,
+  onLanguageChange: vi.fn(),
   theme: "light" as const,
   onThemeChange: vi.fn(),
   multiSessionsEnabled: true,

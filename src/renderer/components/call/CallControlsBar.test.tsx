@@ -16,7 +16,7 @@ const activeLine: CallLineCardViewModel = {
   muted: false,
   isActiveUnheld: true,
   displayName: "+12025550100",
-  statusLabel: "На линии",
+  statusLabel: "call.line.status.active",
   durationStartedAt: Date.now(),
   queueLabelState: "hidden",
   queueName: null,
@@ -89,7 +89,7 @@ describe("CallControlsBar", () => {
       ...activeLine,
       state: "Connecting",
       isActiveUnheld: false,
-      statusLabel: "Соединение",
+      statusLabel: "call.line.status.connecting",
       holdDisabledReason: "hold_requires_active",
     };
     render(
@@ -122,7 +122,7 @@ describe("CallControlsBar", () => {
       ...activeLine,
       state: "Ringing",
       isActiveUnheld: false,
-      statusLabel: "Звонок",
+      statusLabel: "call.line.status.ringing",
       primaryAction: "answer",
       holdDisabledReason: "hold_requires_active",
       muteDisabledReason: "mute_requires_active_or_held",

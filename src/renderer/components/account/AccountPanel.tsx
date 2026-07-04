@@ -1,5 +1,6 @@
 import type { JSX, SubmitEvent } from "react";
 import type { SipAccountInput } from "@application/index.js";
+import { useI18n } from "../../i18n/index.js";
 import { IconTooltip } from "../icons/IconTooltip.js";
 import panelStyles from "../shell/BootstrapPanel.module.css";
 import styles from "./AccountPanel.module.css";
@@ -34,6 +35,8 @@ export function AccountPanel({
   onSubmit,
   onLogout,
 }: AccountPanelProps): JSX.Element {
+  const { t } = useI18n();
+
   function handleSubmit(event: SubmitEvent<HTMLFormElement>): void {
     event.preventDefault();
     onSubmit();
@@ -44,10 +47,10 @@ export function AccountPanel({
 
   return (
     <section className={panelStyles["panel"]} data-testid="account-panel">
-      {showTitle ? <h2>SIP-аккаунт</h2> : null}
+      {showTitle ? <h2>{t("account.title")}</h2> : null}
       <form className={styles["form"]} onSubmit={handleSubmit}>
         <label className={styles["label"]}>
-          Имя пользователя
+          {t("account.field.username")}
           <input
             className={styles["input"]}
             value={form.username}
@@ -58,7 +61,7 @@ export function AccountPanel({
           />
         </label>
         <label className={styles["label"]}>
-          Пароль
+          {t("account.field.password")}
           <input
             className={styles["input"]}
             type="password"
@@ -70,7 +73,7 @@ export function AccountPanel({
           />
         </label>
         <label className={styles["label"]}>
-          Домен
+          {t("account.field.domain")}
           <input
             className={styles["input"]}
             value={form.domain}
@@ -81,7 +84,7 @@ export function AccountPanel({
           />
         </label>
         <label className={styles["label"]}>
-          Сервер
+          {t("account.field.server")}
           <input
             className={styles["input"]}
             value={form.server}
@@ -102,9 +105,9 @@ export function AccountPanel({
                 className={styles["primaryAction"]}
                 data-testid="account-authorize"
                 disabled={authorizeDisabled}
-                aria-label={authorizeDisabledReason ?? "Авторизоваться"}
+                aria-label={authorizeDisabledReason ?? t("account.action.authorize")}
               >
-                Авторизоваться
+                {t("account.action.authorize")}
               </button>
             </span>
           </IconTooltip>
@@ -115,10 +118,10 @@ export function AccountPanel({
                 className={styles["logoutAction"]}
                 data-testid="account-logout"
                 disabled={logoutDisabled}
-                aria-label={logoutDisabledReason ?? "Выйти"}
+                aria-label={logoutDisabledReason ?? t("account.action.logout")}
                 onClick={onLogout}
               >
-                Выйти
+                {t("account.action.logout")}
               </button>
             </span>
           </IconTooltip>

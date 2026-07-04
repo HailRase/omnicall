@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import clsx from "clsx";
+import { useI18n } from "../../i18n/index.js";
 import styles from "./TransferSuccessOverlay.module.css";
 
 export type TransferSuccessOverlayProps = Readonly<{
@@ -17,6 +18,7 @@ export function TransferSuccessOverlay({
   visible,
   exiting,
 }: TransferSuccessOverlayProps): JSX.Element | null {
+  const { t } = useI18n();
   if (!visible) {
     return null;
   }
@@ -27,7 +29,7 @@ export function TransferSuccessOverlay({
       data-testid="transfer-success-overlay"
       role="status"
       aria-live="polite"
-      aria-label="Перевод выполнен успешно"
+      aria-label={t("transfer.success.message")}
     >
       <div className={styles["content"]}>
         <div className={styles["iconRing"]} aria-hidden="true">
@@ -38,7 +40,7 @@ export function TransferSuccessOverlay({
             />
           </svg>
         </div>
-        <p className={styles["message"]}>Перевод выполнен успешно</p>
+        <p className={styles["message"]}>{t("transfer.success.message")}</p>
       </div>
     </section>
   );

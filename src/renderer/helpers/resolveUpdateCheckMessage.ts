@@ -1,33 +1,35 @@
 import type { UpdateCheckStatus } from "@application/use-cases/CheckForUpdatesUseCase.js";
+import type { Translator } from "../i18n/index.js";
 
 export type UpdateCheckMessageInput = Readonly<{
   status: UpdateCheckStatus;
   latestVersion: string | undefined;
+  t: Translator;
 }>;
 
 /**
- * - Purpose: map update-check status to Russian user-visible copy (F-020).
- * - Inputs: check status and optional latest version.
+ * - Purpose: map update-check status to localized UI copy (F-020).
+ * - Inputs: check status, optional latest version, and renderer translator.
  * - Outputs: non-technical status message string.
  */
 export function resolveUpdateCheckMessage(input: UpdateCheckMessageInput): string {
   switch (input.status) {
     case "idle":
-      return "Нажмите «Проверить обновления», чтобы узнать о новой версии.";
+      return input.t("updates.status.idle");
     case "checking":
-      return "Проверяем наличие обновлений…";
+      return input.t("updates.status.checking");
     case "updateAvailable":
-      return input.latestVersion !== undefined
-        ? `Доступна новая версия ${input.latestVersion}. Скачайте установщик и установите её вручную.`
-        : "Доступна новая версия. Скачайте установщик и установите её вручную.";
+      return input.t("updates.status.updateAvailable", {
+        latestVersion: input.latestVersion,
+      });
     case "upToDate":
-      return "У вас установлена последняя версия.";
+      return input.t("updates.status.upToDate");
     case "unavailable":
-      return "Проверка обновлений сейчас недоступна.";
+      return input.t("updates.status.unavailable");
     case "invalidManifest":
-      return "Не удалось прочитать данные об обновлении. Попробуйте позже.";
+      return input.t("updates.status.invalidManifest");
     case "error":
-      return "Не удалось проверить обновления. Проверьте подключение к интернету и попробуйте снова.";
+      return input.t("updates.status.error");
     default: {
       const exhaustive: never = input.status;
       return String(exhaustive);

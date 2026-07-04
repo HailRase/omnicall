@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { useI18n } from "../../i18n/index.js";
 import { RejectReasonSelector } from "../call/RejectReasonSelector.js";
 import { IconControlButton } from "../icons/index.js";
 import styles from "./BreakReasonPicker.module.css";
@@ -23,6 +24,7 @@ export function BreakReasonPicker({
   onSelect,
   onConfirm,
 }: BreakReasonPickerProps): JSX.Element {
+  const { t } = useI18n();
   return (
     <div className={styles["picker"]} data-testid="break-reason-picker">
       <RejectReasonSelector
@@ -34,8 +36,8 @@ export function BreakReasonPicker({
       />
       <IconControlButton
         iconId="action.confirm"
-        ariaLabel="Подтвердить перерыв с выбранной причиной"
-        tooltipLabel="Подтвердить перерыв"
+        ariaLabel={t("status.break.confirmAria")}
+        tooltipLabel={t("status.break.confirmTooltip")}
         testId="control-confirm-break"
         className={styles["iconButton"]}
         disabled={confirmDisabled}

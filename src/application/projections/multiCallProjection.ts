@@ -8,6 +8,11 @@ export type MultiCallDisabledReason =
   | "hold_all_in_progress"
   | "connecting_in_progress";
 
+export type MultiCallUiReasonKey =
+  | "multi.call.disabled.holdAllInProgress"
+  | "multi.call.disabled.connectingInProgress"
+  | "multi.call.disabled.secondSession";
+
 export type MultiCallPolicyViolation = Readonly<{
   scenario: string;
   reason: string;
@@ -149,12 +154,12 @@ export function reduceMultiCallProjection(
 
 export function deriveIncomingAnswerDisabledReason(
   projection: MultiCallProjection,
-): string | null {
+): MultiCallUiReasonKey | null {
   if (projection.holdAllInProgress) {
-    return "Удержание других звонков…";
+    return "multi.call.disabled.holdAllInProgress";
   }
   if (projection.hasConnectingCall) {
-    return "Соединение…";
+    return "multi.call.disabled.connectingInProgress";
   }
   if (
     projection.isSecondSessionDisabled &&
@@ -162,22 +167,22 @@ export function deriveIncomingAnswerDisabledReason(
     (projection.lastBlockedDirection === "incoming_answer" ||
       (projection.hasEstablishedCall && !projection.multiSessionsEnabled))
   ) {
-    return "Вторая сессия отключена";
+    return "multi.call.disabled.secondSession";
   }
   if (projection.hasEstablishedCall && !projection.multiSessionsEnabled) {
-    return "Вторая сессия отключена";
+    return "multi.call.disabled.secondSession";
   }
   return null;
 }
 
 export function deriveResumeMultiCallDisabledReason(
   projection: MultiCallProjection,
-): string | null {
+): MultiCallUiReasonKey | null {
   if (projection.holdAllInProgress) {
-    return "Удержание других звонков…";
+    return "multi.call.disabled.holdAllInProgress";
   }
   if (projection.hasConnectingCall) {
-    return "Соединение…";
+    return "multi.call.disabled.connectingInProgress";
   }
   return null;
 }

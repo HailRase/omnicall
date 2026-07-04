@@ -1,3 +1,9 @@
+import { parseAppTheme, type AppTheme } from "./AppTheme.js";
+import {
+  DEFAULT_SUPPORTED_LANGUAGE,
+  parseSupportedLanguage,
+  type SupportedLanguage,
+} from "./SupportedLanguage.js";
 import {
   DEFAULT_SIP_RECONNECT_INTERVAL_SEC,
   DEFAULT_SIP_RECONNECT_MAX_ATTEMPTS,
@@ -35,6 +41,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
 
   const errors: string[] = [];
 
+  const language = readLanguage(record, errors);
   const theme = readTheme(record, errors);
   const multiSessionsEnabled = readBoolean(record, "multiSessionsEnabled", errors);
   const autoUnholdOnTransferFailure = readBoolean(
@@ -91,6 +98,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
     ok: true,
     value: {
       schemaVersion: SETTINGS_SCHEMA_VERSION,
+      language,
       theme,
       multiSessionsEnabled,
       autoUnholdOnTransferFailure,
@@ -108,19 +116,33 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
   };
 }
 
-function readTheme(
+function readLanguage(
   record: Record<string, unknown>,
   errors: string[],
-): UserSettings["theme"] {
+): SupportedLanguage {
+  const raw = record["language"];
+  if (raw === undefined) {
+    return DEFAULT_SUPPORTED_LANGUAGE;
+  }
+  const parsed = parseSupportedLanguage(raw);
+  if (parsed === null) {
+    errors.push("language_invalid");
+    return DEFAULT_SUPPORTED_LANGUAGE;
+  }
+  return parsed;
+}
+
+function readTheme(record: Record<string, unknown>, errors: string[]): AppTheme {
   const raw = record["theme"];
   if (raw === undefined) {
     return "light";
   }
-  if (raw === "light" || raw === "dark") {
-    return raw;
+  const parsed = parseAppTheme(raw);
+  if (parsed === null) {
+    errors.push("theme_invalid");
+    return "light";
   }
-  errors.push("theme_invalid");
-  return "light";
+  return parsed;
 }
 
 function readBoolean(

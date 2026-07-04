@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import { useOperatorStatusTimer } from "../../hooks/useOperatorStatusTimer.js";
+import { useI18n } from "../../i18n/index.js";
 import styles from "./StatusTimer.module.css";
 
 export type StatusTimerProps = Readonly<{
@@ -18,6 +19,7 @@ export function StatusTimer({
   timerRunning,
   currentStatus,
 }: StatusTimerProps): JSX.Element | null {
+  const { t } = useI18n();
   const { formattedDuration } = useOperatorStatusTimer({
     statusChangedAt,
     timerRunning,
@@ -33,9 +35,9 @@ export function StatusTimer({
       data-testid="status-timer"
       role="status"
       aria-live="off"
-      aria-label={`Время в статусе: ${formattedDuration}`}
+      aria-label={t("status.timer.ariaLabel", { duration: formattedDuration })}
     >
-      В статусе: <strong>{formattedDuration}</strong>
+      {t("status.timer.label")}: <strong>{formattedDuration}</strong>
     </p>
   );
 }

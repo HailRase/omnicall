@@ -9,6 +9,7 @@ import {
 import { createTestLogger } from "@infrastructure/logging/index.js";
 import { readUpdateManifestUrl } from "../bootstrap/readUpdateManifestUrl.js";
 import { resolveUpdateCheckMessage } from "../helpers/resolveUpdateCheckMessage.js";
+import { useI18n } from "../i18n/index.js";
 
 const INITIAL_SNAPSHOT: UpdateCheckSnapshot = {
   status: "idle",
@@ -28,9 +29,10 @@ export type UseAppUpdateResult = Readonly<{
 /**
  * - Purpose: bind manual update check use case to settings About UI (F-020).
  * - Inputs: optional manifest URL override for tests.
- * - Outputs: update snapshot, Russian status, and action callbacks.
+ * - Outputs: update snapshot, localized status, and action callbacks.
  */
 export function useAppUpdate(manifestUrlOverride?: string | null): UseAppUpdateResult {
+  const { t } = useI18n();
   const manifestUrl = manifestUrlOverride ?? readUpdateManifestUrl();
   const useCaseRef = useRef<CheckForUpdatesUseCase | null>(null);
   const [snapshot, setSnapshot] = useState<UpdateCheckSnapshot>(INITIAL_SNAPSHOT);
@@ -91,14 +93,15 @@ export function useAppUpdate(manifestUrlOverride?: string | null): UseAppUpdateR
         setSnapshot(result.value);
       })
       .catch((error: unknown) => {
-        const message = error instanceof Error ? error.message : "Update check failed";
+        const message =
+          error instanceof Error ? error.message : t("updates.status.error");
         setSnapshot((previous) => ({
           ...previous,
           status: "error",
           reason: message,
         }));
       });
-  }, [manifestUrl, useCase]);
+  }, [manifestUrl, t, useCase]);
 
   const onOpenDownloadPage = useCallback((): void => {
     if (snapshot.downloadUrl === undefined) {
@@ -117,6 +120,7 @@ export function useAppUpdate(manifestUrlOverride?: string | null): UseAppUpdateR
   const statusMessage = resolveUpdateCheckMessage({
     status: snapshot.status,
     latestVersion: snapshot.latestVersion,
+    t,
   });
 
   return {

@@ -1,4 +1,5 @@
 import type { QueueLabelState } from "@application/index.js";
+import { translateCurrent } from "../i18n/index.js";
 
 export type QueueLabelDisplay = Readonly<{
   visible: boolean;
@@ -19,14 +20,14 @@ export function mapQueueLabelState(
     case "hidden":
       return { visible: false, text: "", ariaBusy: false };
     case "loading":
-      return { visible: true, text: "Ожидание", ariaBusy: true };
+      return { visible: true, text: translateCurrent("queue.label.loading"), ariaBusy: true };
     case "ready":
       return {
         visible: true,
-        text: queueName ?? "Неизвестно",
+        text: queueName ?? translateCurrent("queue.label.unknown"),
         ariaBusy: false,
       };
     case "na":
-      return { visible: true, text: "Н/Д", ariaBusy: false };
+      return { visible: true, text: translateCurrent("queue.label.na"), ariaBusy: false };
   }
 }

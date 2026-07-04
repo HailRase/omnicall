@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { useI18n } from "../../../i18n/index.js";
 import { SettingsPlaceholderPanel } from "./SettingsPlaceholderPanel.js";
 
 /**
@@ -7,11 +8,12 @@ import { SettingsPlaceholderPanel } from "./SettingsPlaceholderPanel.js";
  * - Outputs: Russian placeholder copy for planned diagnostics UI.
  */
 export function SettingsDiagnosticsPanel(): JSX.Element {
+  const { t } = useI18n();
   return (
     <SettingsPlaceholderPanel
-      title="Диагностика"
+      title={t("settings.diagnostics.title")}
       testId="settings-diagnostics-panel"
-      description="Журналы, SIP- и аудиодиагностика и экспорт появятся в следующих версиях. Пока используйте системные логи приложения."
+      description={t("settings.diagnostics.description")}
     />
   );
 }

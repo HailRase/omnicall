@@ -7,6 +7,7 @@ import type {
 import {
   mapActiveCallControlOperationError,
 } from "../../helpers/mapActiveCallControlLabels.js";
+import { useI18n } from "../../i18n/index.js";
 import { AppIcon } from "../icons/AppIcon.js";
 import type { IconSemanticId } from "../icons/iconCatalog.js";
 import { IconControlButton } from "../icons/IconControlButton.js";
@@ -59,6 +60,7 @@ export function CallControlsBar({
   onShowNumberEntry,
   onRetryOperation,
 }: CallControlsBarProps): JSX.Element | null {
+  const { t } = useI18n();
   const controllableStates = new Set(["Active", "Held", "Connecting", "Ringing"]);
   if (line === null || !controllableStates.has(line.state)) {
     return null;
@@ -90,13 +92,13 @@ export function CallControlsBar({
     <section
       className={styles["panel"]}
       data-testid="call-controls-bar"
-      aria-label="Управление звонком"
+      aria-label={t("call.controls.groupAria")}
     >
       <div className={styles["actions"]}>
         <LabeledControl
           iconId={line.muted ? "call.mute" : "call.unmute"}
-          label={line.muted ? "Микрофон выкл." : "Микрофон"}
-          ariaLabel={line.muted ? "Включить микрофон" : "Отключить микрофон"}
+          label={line.muted ? t("call.controls.label.muted") : t("call.controls.label.mic")}
+          ariaLabel={line.muted ? t("icons.call.unmute") : t("icons.call.mute")}
           testId={line.muted ? `control-unmute-line-${line.callId}` : `control-mute-line-${line.callId}`}
           muted={line.muted}
           disabled={muteBlocked}
@@ -110,8 +112,8 @@ export function CallControlsBar({
         />
         <LabeledControl
           iconId={isHeld ? "call.resume" : "call.hold"}
-          label={isHeld ? "Возобновить" : "Удержание"}
-          ariaLabel={isHeld ? "Возобновить звонок" : "Удержать звонок"}
+          label={isHeld ? t("call.controls.label.resume") : t("call.controls.label.hold")}
+          ariaLabel={isHeld ? t("call.controls.resumeAria") : t("call.controls.holdAria")}
           testId={isHeld ? `control-resume-line-${line.callId}` : `control-hold-line-${line.callId}`}
           resume={isHeld}
           disabled={holdBlocked}
@@ -125,8 +127,8 @@ export function CallControlsBar({
         />
         <LabeledControl
           iconId="call.transfer"
-          label="Перевод"
-          ariaLabel="Перевести звонок"
+          label={t("call.controls.label.transfer")}
+          ariaLabel={t("icons.call.transfer")}
           testId={`control-transfer-line-${line.callId}`}
           disabled={transferBlocked}
           onClick={() => {
@@ -136,8 +138,8 @@ export function CallControlsBar({
         {line.isActiveUnheld ? (
           <LabeledControl
             iconId="dial.dtmf"
-            label="Тоновый набор"
-            ariaLabel="Открыть тоновый набор"
+            label={t("call.controls.label.dtmf")}
+            ariaLabel={t("call.controls.openDtmfAria")}
             testId="control-show-dtmf"
             disabled={dialBlocked}
             onClick={onShowDtmf}
@@ -145,8 +147,8 @@ export function CallControlsBar({
         ) : (
           <LabeledControl
             iconId="dial.dtmf"
-            label="Набор номера"
-            ariaLabel="Открыть набор номера"
+            label={t("call.controls.label.numberEntry")}
+            ariaLabel={t("call.controls.openNumberEntryAria")}
             testId="control-show-number-entry"
             disabled={dialBlocked}
             onClick={onShowNumberEntry}
@@ -154,8 +156,8 @@ export function CallControlsBar({
         )}
         <LabeledControl
           iconId="call.hangup"
-          label="Завершить"
-          ariaLabel={`Завершить звонок ${line.displayName}`}
+          label={t("call.controls.label.hangup")}
+          ariaLabel={t("call.controls.hangupLineAria", { displayName: line.displayName })}
           testId={`control-hangup-line-${line.callId}`}
           danger
           disabled={hangupBlocked}
@@ -173,8 +175,10 @@ export function CallControlsBar({
           <p>{mapActiveCallControlOperationError(lastOperationError)}</p>
           <IconControlButton
             iconId="action.retry"
-            ariaLabel={`Повторить ${lastOperationError.operation}`}
-            tooltipLabel="Повторить"
+            ariaLabel={t("call.controls.retryOperationAria", {
+              operation: lastOperationError.operation,
+            })}
+            tooltipLabel={t("common.retry")}
             testId={`control-retry-line-${line.callId}`}
             className={styles["retryButton"]}
             onClick={onRetryOperation}

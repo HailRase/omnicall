@@ -5,7 +5,7 @@ import {
   type SipTransportState,
 } from "@domain/index.js";
 import type { SipConnectionJournalEntry } from "../services/SipConnectionJournal.js";
-import { deriveSipStatusShell } from "./deriveSipStatusShell.js";
+import { deriveSipStatusShell, type SipStatusLabelKey } from "./deriveSipStatusShell.js";
 
 export type SipSystemStateShellInput = Readonly<{
   health: SipSessionHealth;
@@ -21,7 +21,7 @@ export type SipSystemStateShellView = Readonly<{
   effectiveRegistrationState: SipRegistrationState;
   transportStateLabel: string;
   registrationStateLabel: string;
-  summaryLabel: string;
+  summaryLabelKey: SipStatusLabelKey;
   transportFailureReason: string | null;
   registrationFailureReason: string | null;
   manualTransportReconnectDisabledReason: string | null;
@@ -51,7 +51,7 @@ export function deriveSipSystemStateShell(
     effectiveRegistrationState: effectiveRegistration,
     transportStateLabel: deriveTransportStateLabel(input.health.transport),
     registrationStateLabel: deriveRegistrationStateLabel(effectiveRegistration),
-    summaryLabel: summary.primaryLabel,
+    summaryLabelKey: summary.primaryLabelKey,
     transportFailureReason:
       input.health.recovery.target === "transport"
         ? input.health.recovery.lastFailureReason

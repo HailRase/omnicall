@@ -2,6 +2,7 @@ import { useEffect, useRef, type JSX, type KeyboardEvent } from "react";
 import type { IncomingCallUiState, QueueLabelState } from "@application/index.js";
 import { formatAutoAnswerCountdownLabel } from "../../helpers/formatAutoAnswerCountdownLabel.js";
 import { mapQueueLabelState } from "../../helpers/mapQueueLabelState.js";
+import { useI18n } from "../../i18n/index.js";
 import { AppIcon } from "../icons/index.js";
 import { IncomingCallStatusMessage } from "./IncomingCallStatusMessage.js";
 import styles from "./IncomingCallOverlay.module.css";
@@ -22,13 +23,14 @@ export type IncomingCallOverlayProps = Readonly<{
 }>;
 
 function resolvePrimaryLabel(
+  t: ReturnType<typeof useI18n>["t"],
   displayName: string | null,
   callerNumber: string | null,
 ): string {
   if (displayName !== null && displayName.trim().length > 0) {
     return displayName;
   }
-  return callerNumber ?? "Неизвестный абонент";
+  return callerNumber ?? t("incoming.unknownCaller");
 }
 
 function shouldShowStatusMessage(uiState: IncomingCallUiState): boolean {
@@ -60,6 +62,7 @@ export function IncomingCallOverlay({
   onAnswer,
   onReject,
 }: IncomingCallOverlayProps): JSX.Element | null {
+  const { t } = useI18n();
   const overlayRef = useRef<HTMLElement | null>(null);
   const autoAnswerTotalRef = useRef<number | null>(null);
 
@@ -107,7 +110,7 @@ export function IncomingCallOverlay({
     <section
       ref={overlayRef}
       role="dialog"
-      aria-label="Входящий вызов"
+      aria-label={t("incoming.ariaLabel")}
       tabIndex={-1}
       className={styles["overlay"]}
       data-testid="incoming-call-overlay"
@@ -129,7 +132,7 @@ export function IncomingCallOverlay({
           </div>
           <div className={styles["identity"]} data-testid="caller-identity">
             <p className={styles["eyebrow"]}>
-              Входящий вызов
+              {t("incoming.eyebrow")}
               {autoAnswerActive && autoAnswerSecondsRemaining !== null ? (
                 <span
                   className={styles["autoAnswerHint"]}
@@ -140,7 +143,7 @@ export function IncomingCallOverlay({
                 </span>
               ) : null}
             </p>
-            <p className={styles["primaryName"]}>{resolvePrimaryLabel(displayName, callerNumber)}</p>
+            <p className={styles["primaryName"]}>{resolvePrimaryLabel(t, displayName, callerNumber)}</p>
             {hasName ? (
               <p className={styles["secondaryNumber"]}>{callerNumber}</p>
             ) : null}
@@ -190,27 +193,27 @@ export function IncomingCallOverlay({
             type="button"
             className={styles["rejectButton"]}
             data-testid="reject-call"
-            aria-label="Отклонить вызов"
+            aria-label={t("incoming.rejectAria")}
             disabled={rejectDisabledReason !== null}
             onClick={onReject}
           >
             <span className={styles["buttonIcon"]}>
               <AppIcon id="call.reject" size={15} decorative />
             </span>
-            <span>Отклонить</span>
+            <span>{t("incoming.rejectLabel")}</span>
           </button>
           <button
             type="button"
             className={styles["answerButton"]}
             data-testid="answer-call"
-            aria-label="Ответить на вызов"
+            aria-label={t("incoming.answerAria")}
             disabled={answerDisabledReason !== null}
             onClick={onAnswer}
           >
             <span className={styles["buttonIcon"]}>
               <AppIcon id="call.answer" size={15} decorative />
             </span>
-            <span>Ответить</span>
+            <span>{t("incoming.answerLabel")}</span>
           </button>
         </div>
       </div>

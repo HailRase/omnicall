@@ -1,7 +1,11 @@
 import clsx from "clsx";
 import type { JSX } from "react";
 import styles from "./AppIcon.module.css";
-import { resolveIconEntry, type IconSemanticId } from "./iconCatalog.js";
+import {
+  resolveIconDefaultLabel,
+  resolveIconEntry,
+  type IconSemanticId,
+} from "./iconCatalog.js";
 
 export type AppIconProps = Readonly<{
   id: IconSemanticId;
@@ -30,7 +34,7 @@ export function AppIcon({
   const mergedClassName = clsx(styles["icon"], className);
   const accessibilityProps = decorative
     ? ({ "aria-hidden": true } as const)
-    : ({ "aria-label": label ?? entry.defaultLabel, role: "img" } as const);
+    : ({ "aria-label": label ?? resolveIconDefaultLabel(id), role: "img" } as const);
 
   if (preferAnimated && entry.animated !== undefined) {
     const AnimatedIcon = entry.animated;

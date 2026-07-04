@@ -13,8 +13,19 @@ import type { QueueLabelState } from "./queueInfoProjection.js";
 import { deriveStartTransferDisabledReason } from "./transferProjection.js";
 import type { TransferProjection } from "./transferProjection.js";
 import type { ActiveControlDisabledReason } from "./activeCallControlsProjection.js";
+import type { CallLineStatusLabelKey } from "./deriveCallLineStatusLabel.js";
 
 export type CallLinePrimaryAction = "hangup" | "resume" | "answer" | "none";
+export type CallLinesPolicyErrorKey =
+  | "call.lines.policy.connectingInProgress"
+  | "call.lines.policy.holdAllInProgress"
+  | "call.lines.policy.holdAllFailed"
+  | "call.lines.policy.holdAllRollbackFailed"
+  | "call.lines.policy.operationUnavailable";
+
+export type CallLinesPolicyErrorParams = Readonly<{
+  reason: string;
+}>;
 
 export type CallLineCardViewModel = Readonly<{
   callId: string;
@@ -23,7 +34,7 @@ export type CallLineCardViewModel = Readonly<{
   muted: boolean;
   isActiveUnheld: boolean;
   displayName: string;
-  statusLabel: string;
+  statusLabel: CallLineStatusLabelKey;
   durationStartedAt: number | null;
   queueLabelState: QueueLabelState;
   queueName: string | null;
@@ -42,7 +53,8 @@ export type CallLineCardViewModel = Readonly<{
 export type CallLinesShellViewModel = Readonly<{
   visible: boolean;
   lines: ReadonlyArray<CallLineCardViewModel>;
-  policyErrorMessage: string | null;
+  policyErrorMessage: CallLinesPolicyErrorKey | null;
+  policyErrorMessageParams: CallLinesPolicyErrorParams | null;
 }>;
 
 export type CallLinesShellDeriveInput = Readonly<{
@@ -96,10 +108,12 @@ export function deriveCallLinesShell(
     }),
   );
 
+  const policyError = mapPolicyViolationMessage(multiCallProjection.lastPolicyViolation);
   return {
     visible: lines.length >= 1,
     lines,
-    policyErrorMessage: mapPolicyViolationMessage(multiCallProjection.lastPolicyViolation),
+    policyErrorMessage: policyError?.key ?? null,
+    policyErrorMessageParams: policyError?.params ?? null,
   };
 }
 
@@ -138,7 +152,7 @@ function mapLineToViewModel(input: Readonly<{
     state: line.state,
     muted: line.muted,
     isActiveUnheld,
-    displayName: line.displayLabel ?? "Unknown",
+    displayName: line.displayLabel ?? "call.line.display.unknown",
     statusLabel: deriveCallLineStatusLabel({
       state: line.state,
     }),
@@ -179,22 +193,33 @@ function resolvePrimaryAction(state: CallLine["state"]): CallLinePrimaryAction {
 
 function mapPolicyViolationMessage(
   violation: MultiCallProjection["lastPolicyViolation"],
-): string | null {
+): Readonly<{
+  key: CallLinesPolicyErrorKey;
+  params: CallLinesPolicyErrorParams | null;
+}> | null {
   if (violation === null) {
     return null;
   }
   switch (violation.scenario) {
     case "connecting_in_progress":
-      return "Операция заблокирована: выполняется соединение.";
+      return { key: "call.lines.policy.connectingInProgress", params: null };
     case "hold_all_in_progress":
-      return "Операция заблокирована: удержание других звонков.";
+      return { key: "call.lines.policy.holdAllInProgress", params: null };
     case "hold_all_failed":
-      return "Не удалось удержать все звонки. Повторите попытку.";
+      return { key: "call.lines.policy.holdAllFailed", params: null };
     case "hold_all_rollback_failed":
-      return "Удержание всех звонков не удалось, откат выполнен не полностью.";
+      return { key: "call.lines.policy.holdAllRollbackFailed", params: null };
     case "auto_answer_blocked":
       return null;
     default:
-      return violation.reason.length > 0 ? violation.reason : "Операция с несколькими звонками недоступна.";
+      return violation.reason.length > 0
+        ? {
+            key: "call.lines.policy.operationUnavailable",
+            params: { reason: violation.reason },
+          }
+        : {
+            key: "call.lines.policy.operationUnavailable",
+            params: null,
+          };
   }
 }

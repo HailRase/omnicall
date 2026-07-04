@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { forwardRef, type JSX, type Ref } from "react";
+import { useI18n } from "../../i18n/index.js";
 import styles from "./UserAvatar.module.css";
 
 export type UserAvatarProps = Readonly<{
@@ -19,13 +20,15 @@ export type UserAvatarProps = Readonly<{
 export const UserAvatar = forwardRef(function UserAvatar(
   {
     initials,
-    ariaLabel = "Аватар пользователя",
+    ariaLabel,
     ariaExpanded,
     ariaHasPopup,
     onClick,
   }: UserAvatarProps,
   ref: Ref<HTMLButtonElement>,
 ): JSX.Element {
+  const { t } = useI18n();
+  const resolvedAriaLabel = ariaLabel ?? t("header.avatar.ariaLabel");
   const className = clsx(
     styles["avatar"],
     onClick !== undefined && styles["interactive"],
@@ -43,7 +46,7 @@ export const UserAvatar = forwardRef(function UserAvatar(
         type="button"
         className={className}
         data-testid="user-avatar"
-        aria-label={ariaLabel}
+        aria-label={resolvedAriaLabel}
         aria-expanded={ariaExpanded}
         aria-haspopup={ariaHasPopup}
         onClick={onClick}
@@ -54,7 +57,7 @@ export const UserAvatar = forwardRef(function UserAvatar(
   }
 
   return (
-    <span className={className} data-testid="user-avatar" aria-label={ariaLabel}>
+    <span className={className} data-testid="user-avatar" aria-label={resolvedAriaLabel}>
       {content}
     </span>
   );

@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import chromeTextStyles from "../components/shell/ShellChromeText.module.css";
 import { LogoutActiveSessionConfirmationModal } from "../components/session/LogoutActiveSessionConfirmationModal.js";
 import type { UseSessionLogoutActionsResult } from "../hooks/useSessionLogoutActions.js";
+import { useI18n } from "../i18n/index.js";
 
 type SessionFeatureShellProps = Readonly<{
   sessionLogoutActions: UseSessionLogoutActionsResult;
@@ -15,6 +16,7 @@ type SessionFeatureShellProps = Readonly<{
 export function SessionFeatureShell({
   sessionLogoutActions,
 }: SessionFeatureShellProps): JSX.Element {
+  const { t } = useI18n();
   return (
     <>
       {sessionLogoutActions.shell.showLogoutErrorBanner && (
@@ -22,10 +24,10 @@ export function SessionFeatureShell({
           {sessionLogoutActions.shell.logoutErrorMessage}
           <button
             type="button"
-            aria-label="Повторить завершение сессии"
+            aria-label={t("common.retry")}
             onClick={sessionLogoutActions.handleRetryLogout}
           >
-            Повторить
+            {t("common.retry")}
           </button>
         </p>
       )}

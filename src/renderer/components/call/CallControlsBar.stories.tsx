@@ -29,7 +29,7 @@ const activeLine: CallLineCardViewModel = {
   muted: false,
   isActiveUnheld: true,
   displayName: "+7 (495) 123-45-67",
-  statusLabel: "На линии",
+  statusLabel: "call.line.status.active",
   durationStartedAt: Date.now() - 120_000,
   queueLabelState: "hidden",
   queueName: null,
@@ -74,7 +74,7 @@ export const DarkHeld: Story = {
       ...activeLine,
       state: "Held",
       isActiveUnheld: false,
-      statusLabel: "Удержание",
+      statusLabel: "call.line.status.held",
     },
   },
   parameters: {
@@ -88,7 +88,7 @@ export const DarkMuted: Story = {
     line: {
       ...activeLine,
       muted: true,
-      statusLabel: "Без звука",
+      statusLabel: "call.line.status.active",
     },
   },
   parameters: {

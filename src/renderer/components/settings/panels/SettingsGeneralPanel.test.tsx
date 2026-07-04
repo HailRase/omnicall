@@ -10,6 +10,8 @@ afterEach(() => {
 });
 
 const baseProps = {
+  language: "ru" as const,
+  onLanguageChange: vi.fn(),
   theme: "light" as const,
   onThemeChange: vi.fn(),
   currentVersion: "0.0.1",
@@ -40,6 +42,21 @@ describe("SettingsGeneralPanel", () => {
 
     await user.click(screen.getByTestId("settings-theme-dark"));
     expect(onThemeChange).toHaveBeenCalledWith("dark");
+  });
+
+  it("renders language selector and emits language changes", async () => {
+    const user = userEvent.setup();
+    const onLanguageChange = vi.fn();
+
+    render(
+      <SettingsGeneralPanel
+        {...baseProps}
+        onLanguageChange={onLanguageChange}
+      />,
+    );
+
+    await user.selectOptions(screen.getByTestId("settings-language-select"), "en");
+    expect(onLanguageChange).toHaveBeenCalledWith("en");
   });
 
   it("renders about section and emits update actions", async () => {

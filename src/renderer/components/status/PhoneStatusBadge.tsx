@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 import type { PhoneStatus } from "@application/index.js";
 import { phoneStatusLabel } from "@application/index.js";
+import { useI18n } from "../../i18n/index.js";
 import panelStyles from "../shell/BootstrapPanel.module.css";
 import styles from "./PhoneStatusBadge.module.css";
 
@@ -19,15 +20,16 @@ export function PhoneStatusBadge({
   onChange,
   disabled = false,
 }: PhoneStatusBadgeProps): JSX.Element {
+  const { t } = useI18n();
   return (
     <section className={panelStyles["panel"]} data-testid="phone-status-badge">
       <p>
-        Телефон: <strong>{phoneStatusLabel(status)}</strong>
+        {t("status.phone.label")}: <strong>{phoneStatusLabel(status)}</strong>
       </p>
       <p>
-        Регистрация: <strong>{registrationLabel}</strong>
+        {t("status.phone.registration")}: <strong>{registrationLabel}</strong>
       </p>
-      <div className={styles["actions"]} role="group" aria-label="Статус телефона">
+      <div className={styles["actions"]} role="group" aria-label={t("status.phone.groupAria")}>
         {STATUS_OPTIONS.map((option) => (
           <button
             key={option}

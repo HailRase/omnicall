@@ -22,10 +22,10 @@ Visual and composition rules for the Electron renderer. Complements `UI-Architec
 
 ## Language
 
-- **Russian only** for all user-visible UI copy (labels, errors, banners, disabled reasons, tooltips, `aria-label`).
-- Map projection reason keys to Russian in renderer helpers or shell derivations; keep keys English.
-- v1: no i18n library — inline Russian strings; add ADR before multi-locale support.
-- Agent rule: `.cursor/rules/ux-ui-electron-react.mdc` → **Language (Russian UI)**.
+- Supported interface locales: `ru` (default) and `en` (first international locale).
+- Localization architecture and decision: `docs/softphone/adr/ADR-0006-interface-internationalization.md`.
+- Enforcement rule: `.cursor/rules/i18n.mdc` (mandatory for UI/UI-facing logic changes).
+- Technical identifiers stay English (`data-testid`, reason keys, domain event names, projection keys).
 
 ## Design Tokens
 

@@ -8,10 +8,12 @@ import {
   MIN_SIP_RECONNECT_INTERVAL_SEC,
   MIN_SIP_REREGISTER_INTERVAL_SEC,
   type AppTheme,
+  type SupportedLanguage,
   type UserSettings,
 } from "@application/index.js";
 import { applyAppTheme } from "../theme/applyAppTheme.js";
 import { DEFAULT_AUTO_ANSWER_TIMEOUT_SEC } from "../components/settings/panels/SettingsSessionsPanel.js";
+import { setRendererLanguage, translateCurrent } from "../i18n/index.js";
 
 type UseSettingsActionsInput = Readonly<{
   facade: AccountBootstrapFacade | null;
@@ -21,6 +23,7 @@ type UseSettingsActionsInput = Readonly<{
 
 type UseSettingsActionsResult = Readonly<{
   userSettings: UserSettings;
+  onLanguageChange: (language: SupportedLanguage) => void;
   onThemeChange: (theme: AppTheme) => void;
   onMultiSessionsToggle: (enabled: boolean) => void;
   onAutoAnswerEnabledToggle: (enabled: boolean) => void;
@@ -37,7 +40,9 @@ type UseSettingsActionsResult = Readonly<{
 }>;
 
 function resolveSettingsUpdateError(error: unknown): string {
-  return error instanceof Error ? error.message : "Не удалось сохранить настройки";
+  return error instanceof Error
+    ? error.message
+    : translateCurrent("errors.settingsSaveFailed");
 }
 
 function syncNativeTheme(theme: AppTheme): void {
@@ -64,6 +69,7 @@ export function useSettingsActions(
     void facade.getUserSettingsForAccount().then((result) => {
       if (result.ok) {
         setUserSettings(result.value);
+        setRendererLanguage(result.value.language);
         applyAppTheme(result.value.theme);
         syncNativeTheme(result.value.theme);
       }
@@ -86,6 +92,7 @@ export function useSettingsActions(
 
           setSettingsUpdateError(null);
           setUserSettings(result.value);
+          setRendererLanguage(result.value.language);
           applyAppTheme(result.value.theme);
           syncNativeTheme(result.value.theme);
           applyMultiCallSettings({
@@ -107,6 +114,17 @@ export function useSettingsActions(
       persistUserSettings({
         ...userSettings,
         theme,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onLanguageChange = useCallback(
+    (language: SupportedLanguage): void => {
+      setRendererLanguage(language);
+      persistUserSettings({
+        ...userSettings,
+        language,
       });
     },
     [persistUserSettings, userSettings],
@@ -236,6 +254,7 @@ export function useSettingsActions(
 
   return {
     userSettings,
+    onLanguageChange,
     onThemeChange,
     onMultiSessionsToggle,
     onAutoAnswerEnabledToggle,

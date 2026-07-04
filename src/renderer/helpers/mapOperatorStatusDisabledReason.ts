@@ -1,3 +1,5 @@
+import { translateCurrent } from "../i18n/index.js";
+
 /**
  * - Purpose: map operator status projection disabled reason keys to user-visible labels.
  * - Inputs: disabled reason key from operator status controls projection.
@@ -6,15 +8,15 @@
 export function mapOperatorStatusDisabledReason(reason: string): string | null {
   switch (reason) {
     case "ocp_not_connected":
-      return "Платформа оператора недоступна";
+      return translateCurrent("status.disabled.ocpNotConnected");
     case "invalid_transition":
-      return "Смена статуса недоступна";
+      return translateCurrent("status.disabled.invalidTransition");
     case "dnd_blocks_ready":
-      return "«Готов» недоступен в режиме «Не беспокоить»";
+      return translateCurrent("status.disabled.dndBlocksReady");
     case "status_change_in_progress":
-      return "Смена статуса выполняется";
+      return translateCurrent("status.disabled.changeInProgress");
     case "break_reason_required":
-      return "Требуется причина перерыва";
+      return translateCurrent("status.disabled.breakReasonRequired");
     default:
       return null;
   }
@@ -22,7 +24,7 @@ export function mapOperatorStatusDisabledReason(reason: string): string | null {
 
 export function mapOperatorStatusDisabledReasonWithFallback(
   reason: string,
-  fallback = "Действие недоступно",
+  fallback = translateCurrent("common.actionUnavailable"),
 ): string {
   return mapOperatorStatusDisabledReason(reason) ?? fallback;
 }

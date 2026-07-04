@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { useI18n } from "../../i18n/index.js";
 
 export type RejectReasonSelectorProps = Readonly<{
   reasons: ReadonlyArray<string>;
@@ -15,12 +16,13 @@ export function RejectReasonSelector({
   disabled,
   onSelect,
 }: RejectReasonSelectorProps): JSX.Element {
+  const { t } = useI18n();
   return (
     <label>
-      Причина отклонения
+      {t("call.rejectReason.label")}
       <select
         data-testid="reject-reason-select"
-        aria-label="Причина отклонения"
+        aria-label={t("call.rejectReason.ariaLabel")}
         required={required}
         disabled={disabled}
         value={selectedReason ?? ""}
@@ -28,7 +30,7 @@ export function RejectReasonSelector({
           onSelect(event.target.value);
         }}
       >
-        <option value="">Выберите причину</option>
+        <option value="">{t("call.rejectReason.placeholder")}</option>
         {reasons.map((reason) => (
           <option key={reason} value={reason}>
             {reason}

@@ -1,5 +1,6 @@
 import type { AuthUiState } from "@application/projections/accountBootstrapProjection.js";
 import type { SessionLogoutShellView } from "@application/projections/deriveSessionLogoutShell.js";
+import { translateCurrent } from "../i18n/index.js";
 
 type MapAvatarMenuLogoutDisabledReasonInput = Readonly<{
   isOcpMode: boolean;
@@ -18,7 +19,7 @@ export function mapAvatarMenuLogoutDisabledReason(
   const { shell, isOcpMode, authUiState } = input;
 
   if (shell.endSessionDisabledReason !== null) {
-    return shell.endSessionDisabledReason;
+    return translateCurrent(shell.endSessionDisabledReason);
   }
 
   if (shell.showEndSessionControl) {
@@ -26,25 +27,25 @@ export function mapAvatarMenuLogoutDisabledReason(
   }
 
   if (isOcpMode) {
-    return "Завершение SIP-сессии недоступно";
+    return translateCurrent("header.userMenu.logoutDisabled.sipSessionUnavailable");
   }
 
   switch (authUiState) {
     case "sip_registering":
-      return "Регистрация выполняется";
+      return translateCurrent("header.userMenu.logoutDisabled.sipRegistering");
     case "sip_registration_failed":
-      return "Регистрация не выполнена";
+      return translateCurrent("header.userMenu.logoutDisabled.sipRegistrationFailed");
     case "booting":
-      return "Приложение загружается";
+      return translateCurrent("header.userMenu.logoutDisabled.booting");
     case "sip_only_ready":
-      return "Сначала войдите в аккаунт";
+      return translateCurrent("header.userMenu.logoutDisabled.loginRequired");
     case "access_denied":
-      return "Доступ запрещён";
+      return translateCurrent("header.userMenu.logoutDisabled.accessDenied");
     case "ocp_authenticating":
-      return "Выполняется вход в OCP";
+      return translateCurrent("header.userMenu.logoutDisabled.ocpAuthenticating");
     case "ocp_session_exists":
     case "ocp_invalid_token":
-      return "Выход недоступен в режиме OCP";
+      return translateCurrent("header.userMenu.logoutDisabled.ocpMode");
     case "sip_registered":
       return null;
     default: {

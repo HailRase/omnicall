@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 import type { QueueLabelState } from "@application/index.js";
 import { mapQueueLabelState } from "../../helpers/mapQueueLabelState.js";
+import { useI18n } from "../../i18n/index.js";
 
 export type QueueInfoLabelProps = Readonly<{
   labelState: QueueLabelState;
@@ -16,6 +17,7 @@ export function QueueInfoLabel({
   labelState,
   queueName,
 }: QueueInfoLabelProps): JSX.Element | null {
+  const { t } = useI18n();
   const display = mapQueueLabelState(labelState, queueName);
 
   if (!display.visible) {
@@ -25,10 +27,10 @@ export function QueueInfoLabel({
   return (
     <p
       data-testid="queue-info-label"
-      aria-label="Очередь"
+      aria-label={t("queue.ariaLabel")}
       aria-busy={display.ariaBusy}
     >
-      <strong>Очередь:</strong> {display.text}
+      <strong>{t("queue.labelPrefix")}:</strong> {display.text}
     </p>
   );
 }

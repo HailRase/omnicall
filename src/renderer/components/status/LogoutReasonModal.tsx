@@ -1,4 +1,5 @@
 import { useEffect, useRef, type JSX } from "react";
+import { useI18n } from "../../i18n/index.js";
 import { RejectReasonSelector } from "../call/RejectReasonSelector.js";
 import { AppIcon, IconControlButton } from "../icons/index.js";
 import dialogStyles from "../shell/DialogPanel.module.css";
@@ -28,6 +29,7 @@ export function LogoutReasonModal({
   onSubmit,
   onClose,
 }: LogoutReasonModalProps): JSX.Element | null {
+  const { t } = useI18n();
   const modalRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -47,7 +49,7 @@ export function LogoutReasonModal({
     <section
       ref={modalRef}
       role="dialog"
-      aria-label="Причина выхода"
+      aria-label={t("status.logout.reasonDialogTitle")}
       aria-modal="true"
       tabIndex={-1}
       className={dialogStyles["modal"]}
@@ -57,9 +59,9 @@ export function LogoutReasonModal({
         <span className={styles["titleIcon"]}>
           <AppIcon id="operator.logout" decorative />
         </span>
-        Выход
+        {t("status.logout.title")}
       </h2>
-      <p>Выберите причину перед выходом с платформы оператора.</p>
+      <p>{t("status.logout.reasonDialogDescription")}</p>
 
       {reasonRequired ? (
         <RejectReasonSelector
@@ -71,11 +73,11 @@ export function LogoutReasonModal({
         />
       ) : (
         <label>
-          Причина (необязательно)
+          {t("status.logout.reasonOptional")}
           <input
             type="text"
             data-testid="logout-reason-input"
-            aria-label="Причина выхода"
+            aria-label={t("status.logout.reasonDialogTitle")}
             value={selectedReason ?? ""}
             onChange={(event) => {
               onSelectReason(event.currentTarget.value);
@@ -87,7 +89,7 @@ export function LogoutReasonModal({
       <div className={dialogStyles["actions"]}>
         <IconControlButton
           iconId="operator.logout"
-          ariaLabel="Подтвердить выход"
+          ariaLabel={t("status.logout.confirmAria")}
           testId="control-logout-submit"
           className={styles["iconButton"]}
           disabled={submitDisabled}
@@ -95,8 +97,8 @@ export function LogoutReasonModal({
         />
         <IconControlButton
           iconId="overlay.close"
-          ariaLabel="Отменить выход"
-          tooltipLabel="Отмена"
+          ariaLabel={t("status.logout.cancelAria")}
+          tooltipLabel={t("common.cancel")}
           testId="control-logout-cancel"
           className={styles["iconButton"]}
           onClick={onClose}

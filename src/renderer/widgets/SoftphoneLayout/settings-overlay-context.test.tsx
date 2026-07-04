@@ -22,6 +22,8 @@ describe("settings overlay with layout zones", () => {
               onClose={() => undefined}
               onSectionChange={vi.fn()}
               onSidebarExpandedChange={vi.fn()}
+              language="ru"
+              onLanguageChange={() => undefined}
               theme="light"
               onThemeChange={() => undefined}
               multiSessionsEnabled

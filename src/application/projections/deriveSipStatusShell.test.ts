@@ -23,7 +23,7 @@ describe("deriveSipStatusShell", () => {
       nowMs: NOW_MS,
     });
     expect(shell.dotTone).toBe("idle");
-    expect(shell.primaryLabel).toBe("Не подключено");
+    expect(shell.primaryLabelKey).toBe("header.sipStatus.notConnected");
     expect(shell.timerSuffix).toBeNull();
   });
 
@@ -33,7 +33,7 @@ describe("deriveSipStatusShell", () => {
       nowMs: NOW_MS,
     });
     expect(shell.dotTone).toBe("connecting");
-    expect(shell.primaryLabel).toBe("Соединение");
+    expect(shell.primaryLabelKey).toBe("header.sipStatus.connecting");
   });
 
   it("§1.2 transport reconnecting — Нет соединения + timer", () => {
@@ -53,7 +53,7 @@ describe("deriveSipStatusShell", () => {
       nowMs: NOW_MS,
     });
     expect(shell.dotTone).toBe("reconnecting");
-    expect(shell.primaryLabel).toBe("Нет соединения");
+    expect(shell.primaryLabelKey).toBe("header.sipStatus.noConnection");
     expect(shell.timerSuffix).toBe("00:45");
   });
 
@@ -63,7 +63,7 @@ describe("deriveSipStatusShell", () => {
       nowMs: NOW_MS,
     });
     expect(shell.dotTone).toBe("disconnected");
-    expect(shell.primaryLabel).toBe("Нет соединения");
+    expect(shell.primaryLabelKey).toBe("header.sipStatus.noConnection");
     expect(shell.timerSuffix).toBeNull();
   });
 
@@ -73,7 +73,7 @@ describe("deriveSipStatusShell", () => {
       nowMs: NOW_MS,
     });
     expect(shell.dotTone).toBe("registering");
-    expect(shell.primaryLabel).toBe("Соединение");
+    expect(shell.primaryLabelKey).toBe("header.sipStatus.connecting");
   });
 
   it("§1.2 transport connected, REGISTER retry — Не зарегистрирован + timer", () => {
@@ -93,7 +93,7 @@ describe("deriveSipStatusShell", () => {
       nowMs: NOW_MS,
     });
     expect(shell.dotTone).toBe("not_registered");
-    expect(shell.primaryLabel).toBe("Не зарегистрирован");
+    expect(shell.primaryLabelKey).toBe("header.sipStatus.notRegistered");
     expect(shell.timerSuffix).toBe("00:12");
   });
 
@@ -108,7 +108,7 @@ describe("deriveSipStatusShell", () => {
       nowMs: NOW_MS,
     });
     expect(shell.dotTone).toBe("not_registered");
-    expect(shell.primaryLabel).toBe("Не зарегистрирован");
+    expect(shell.primaryLabelKey).toBe("header.sipStatus.notRegistered");
     expect(shell.timerSuffix).toBeNull();
   });
 
@@ -118,7 +118,7 @@ describe("deriveSipStatusShell", () => {
       nowMs: NOW_MS,
     });
     expect(shell.dotTone).toBe("registered");
-    expect(shell.primaryLabel).toBe("Зарегистрирован");
+    expect(shell.primaryLabelKey).toBe("header.sipStatus.registered");
   });
 
   it("§1.2 registered + DND — Не беспокоить", () => {
@@ -128,7 +128,7 @@ describe("deriveSipStatusShell", () => {
       nowMs: NOW_MS,
     });
     expect(shell.dotTone).toBe("dnd");
-    expect(shell.primaryLabel).toBe("Не беспокоить");
+    expect(shell.primaryLabelKey).toBe("header.sipStatus.dnd");
   });
 
   it("never shows registered when transport is down", () => {
@@ -136,7 +136,7 @@ describe("deriveSipStatusShell", () => {
       health: health({ transport: "disconnected", registration: "registered" }),
       nowMs: NOW_MS,
     });
-    expect(shell.primaryLabel).toBe("Нет соединения");
+    expect(shell.primaryLabelKey).toBe("header.sipStatus.noConnection");
     expect(shell.dotTone).toBe("disconnected");
   });
 

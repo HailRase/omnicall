@@ -98,11 +98,15 @@ describe("transferPanelProjection", () => {
       reason: "REFER rejected",
     });
 
-    expect(resolveTransferFailureMessage(transfer, null)).toBe(
-      "Ошибка перевода: REFER rejected",
-    );
+    expect(resolveTransferFailureMessage(transfer, null)).toEqual({
+      key: "transfer.failure.message",
+      params: {
+        titleKey: "transfer.failure.title.transferFailed",
+        detail: "REFER rejected",
+      },
+    });
     expect(resolveTransferFailureBanner(transfer, null)).toEqual({
-      title: "Ошибка перевода",
+      title: "transfer.failure.title.transferFailed",
       detail: "REFER rejected",
     });
   });
@@ -118,9 +122,13 @@ describe("transferPanelProjection", () => {
       restoredSourceState: "Held",
     });
 
-    expect(resolveTransferFailureMessage(transfer, "busy")).toBe(
-      "Ошибка консультации: busy",
-    );
+    expect(resolveTransferFailureMessage(transfer, "busy")).toEqual({
+      key: "transfer.failure.message",
+      params: {
+        titleKey: "transfer.failure.title.consultationFailed",
+        detail: "busy",
+      },
+    });
   });
 
   it("ignores benign transfer_cancelled reason", () => {

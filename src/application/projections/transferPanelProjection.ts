@@ -38,8 +38,18 @@ export function isTransferInProgress(transferProjection: TransferProjection): bo
 }
 
 export type TransferFailureBanner = Readonly<{
-  title: string;
+  title:
+    | "transfer.failure.title.transferFailed"
+    | "transfer.failure.title.consultationFailed";
   detail: string;
+}>;
+
+export type TransferFailureMessageDescriptor = Readonly<{
+  key: "transfer.failure.message";
+  params: Readonly<{
+    titleKey: TransferFailureBanner["title"];
+    detail: string;
+  }>;
 }>;
 
 /**
@@ -50,12 +60,18 @@ export type TransferFailureBanner = Readonly<{
 export function resolveTransferFailureMessage(
   transferProjection: TransferProjection,
   multiLineFailureReason: string | null,
-): string | null {
+): TransferFailureMessageDescriptor | null {
   const banner = resolveTransferFailureBanner(transferProjection, multiLineFailureReason);
   if (banner === null) {
     return null;
   }
-  return `${banner.title}: ${banner.detail}`;
+  return {
+    key: "transfer.failure.message",
+    params: {
+      titleKey: banner.title,
+      detail: banner.detail,
+    },
+  };
 }
 
 /**
@@ -80,21 +96,23 @@ export function resolveTransferFailureBanner(
 function resolveFailureBannerPrefix(
   transferProjection: TransferProjection,
   multiLineFailureReason: string | null,
-): string {
+): TransferFailureBanner["title"] {
   if (
     transferProjection.phase === "transfer_failed" ||
     transferProjection.phase === "attended_transfer_failed"
   ) {
-    return "Ошибка перевода";
+    return "transfer.failure.title.transferFailed";
   }
 
   if (transferProjection.lastFailureReason !== null) {
-    return transferProjection.phase === "idle" ? "Ошибка консультации" : "Ошибка перевода";
+    return transferProjection.phase === "idle"
+      ? "transfer.failure.title.consultationFailed"
+      : "transfer.failure.title.transferFailed";
   }
 
   if (multiLineFailureReason !== null) {
-    return "Ошибка консультации";
+    return "transfer.failure.title.consultationFailed";
   }
 
-  return "Ошибка перевода";
+  return "transfer.failure.title.transferFailed";
 }

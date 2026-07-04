@@ -1,5 +1,6 @@
 import type { MultiCallSettings } from "../telephony/MultiCallPolicy.js";
 import { createDefaultUserSettings, type UserSettings } from "./UserSettings.js";
+import { parseSupportedLanguage } from "./SupportedLanguage.js";
 import { validateUserSettings } from "./validateUserSettings.js";
 
 export type UserSettingsV0Legacy = Readonly<{
@@ -87,9 +88,11 @@ function formatSchemaVersion(version: unknown): string {
 function migrateV1ToV2(record: Record<string, unknown>): UserSettings {
   const defaults = createDefaultUserSettings();
   const v1Validated = validateV1Fragments(record);
+  const parsedLanguage = parseSupportedLanguage(record["language"]);
 
   return {
     schemaVersion: defaults.schemaVersion,
+    language: parsedLanguage ?? defaults.language,
     theme: v1Validated.theme ?? defaults.theme,
     multiSessionsEnabled: v1Validated.multiSessionsEnabled ?? defaults.multiSessionsEnabled,
     autoUnholdOnTransferFailure:

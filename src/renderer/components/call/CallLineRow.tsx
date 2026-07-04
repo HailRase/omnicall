@@ -11,6 +11,7 @@ import {
 } from "../../helpers/mapActiveCallControlLabels.js";
 import { mapQueueLabelState } from "../../helpers/mapQueueLabelState.js";
 import { mapTransferDisabledReason } from "../../helpers/mapTransferDisabledReason.js";
+import { useI18n, type TranslationKey } from "../../i18n/index.js";
 import { IconControlButton } from "../icons/index.js";
 import styles from "./CallLineRow.module.css";
 
@@ -47,6 +48,7 @@ export function CallLineRow({
   onAnswer,
   onRetryOperation,
 }: CallLineRowProps): JSX.Element {
+  const { t } = useI18n();
   const queueLabel = mapQueueLabelState(line.queueLabelState, line.queueName);
   const showError = !compact && line.isActiveUnheld && lastOperationError !== null;
 
@@ -54,7 +56,7 @@ export function CallLineRow({
     <li
       className={clsx(compact ? styles["rowCompact"] : styles["row"])}
       data-testid={`call-line-${line.callId}`}
-      aria-label={`Линия звонка ${line.displayName}`}
+      aria-label={t("call.line.ariaLabel", { displayName: line.displayName })}
     >
       <div className={styles["main"]}>
         <div className={styles["info"]}>
@@ -70,20 +72,20 @@ export function CallLineRow({
           ) : null}
           <div className={styles["meta"]}>
             <CallLineDuration startedAtMs={line.durationStartedAt} callId={line.callId} />
-            <span>{line.statusLabel}</span>
+            <span>{t(line.statusLabel as TranslationKey)}</span>
             {line.muted ? (
               <span className={styles["badge"]} data-testid={`call-line-muted-${line.callId}`}>
-                Без звука
+                {t("call.line.mutedBadge")}
               </span>
             ) : null}
           </div>
         </div>
         <div className={styles["actions"]}>
           {!compact && line.showIconRow ? (
-            <div className={styles["iconRow"]} aria-label="Управление звонком">
+            <div className={styles["iconRow"]} aria-label={t("call.controls.groupAria")}>
               <IconControlButton
                 iconId="call.transfer"
-                ariaLabel="Перевести звонок"
+                ariaLabel={t("icons.call.transfer")}
                 testId={`control-transfer-line-${line.callId}`}
                 className={styles["iconButton"]}
                 disabledReason={
@@ -97,7 +99,7 @@ export function CallLineRow({
               />
               <IconControlButton
                 iconId="call.hold"
-                ariaLabel="Удержать звонок"
+                ariaLabel={t("call.controls.holdAria")}
                 testId={`control-hold-line-${line.callId}`}
                 className={styles["iconButton"]}
                 disabledReason={mapControlReason(line.holdDisabledReason)}
@@ -107,7 +109,7 @@ export function CallLineRow({
               />
               <IconControlButton
                 iconId={line.muted ? "call.mute" : "call.unmute"}
-                ariaLabel={line.muted ? "Включить микрофон" : "Отключить микрофон"}
+                ariaLabel={line.muted ? t("icons.call.unmute") : t("icons.call.mute")}
                 testId={
                   line.muted
                     ? `control-unmute-line-${line.callId}`
@@ -129,6 +131,7 @@ export function CallLineRow({
           ) : null}
           <PrimaryCta
             line={line}
+            t={t}
             onResume={onResume}
             onHangup={onHangup}
             onAnswer={onAnswer}
@@ -145,7 +148,7 @@ export function CallLineRow({
           <IconControlButton
             iconId="action.retry"
             ariaLabel={`Retry ${lastOperationError.operation}`}
-            tooltipLabel="Повторить"
+            tooltipLabel={t("common.retry")}
             testId={`control-retry-line-${line.callId}`}
             className={styles["iconButton"]}
             onClick={onRetryOperation}
@@ -154,7 +157,9 @@ export function CallLineRow({
       ) : null}
       {line.resumeDisabledReason !== null ? (
         <p className={styles["disabledReason"]} role="status">
-          {line.resumeDisabledReason}
+          {line.resumeDisabledReason === null
+            ? null
+            : translateOptionalKey(t, line.resumeDisabledReason)}
         </p>
       ) : null}
     </li>
@@ -180,12 +185,13 @@ function CallLineDuration({ startedAtMs, callId }: CallLineDurationProps): JSX.E
 
 type PrimaryCtaProps = Readonly<{
   line: CallLineCardViewModel;
+  t: ReturnType<typeof useI18n>["t"];
   onResume: (callId: string) => void;
   onHangup: (callId: string) => void;
   onAnswer: (callId: string) => void;
 }>;
 
-function PrimaryCta({ line, onResume, onHangup, onAnswer }: PrimaryCtaProps): JSX.Element | null {
+function PrimaryCta({ line, t, onResume, onHangup, onAnswer }: PrimaryCtaProps): JSX.Element | null {
   if (line.primaryAction === "none") {
     return null;
   }
@@ -194,7 +200,7 @@ function PrimaryCta({ line, onResume, onHangup, onAnswer }: PrimaryCtaProps): JS
     return (
       <IconControlButton
         iconId="call.resume"
-        ariaLabel={`Возобновить звонок ${line.displayName}`}
+        ariaLabel={t("call.controls.resumeLineAria", { displayName: line.displayName })}
         testId={`control-resume-line-${line.callId}`}
         className={clsx(styles["primaryIconButton"], styles["primaryResume"])}
         disabledReason={line.resumeDisabledReason}
@@ -209,7 +215,7 @@ function PrimaryCta({ line, onResume, onHangup, onAnswer }: PrimaryCtaProps): JS
     return (
       <IconControlButton
         iconId="call.answer"
-        ariaLabel={`Ответить на звонок ${line.displayName}`}
+        ariaLabel={t("call.controls.answerLineAria", { displayName: line.displayName })}
         testId={`control-answer-line-${line.callId}`}
         className={clsx(styles["primaryIconButton"], styles["primaryAnswer"])}
         onClick={() => {
@@ -222,7 +228,7 @@ function PrimaryCta({ line, onResume, onHangup, onAnswer }: PrimaryCtaProps): JS
   return (
     <IconControlButton
       iconId="call.hangup"
-      ariaLabel={`Завершить звонок ${line.displayName}`}
+      ariaLabel={t("call.controls.hangupLineAria", { displayName: line.displayName })}
       testId={`control-hangup-line-${line.callId}`}
       className={clsx(styles["primaryIconButton"], styles["primaryHangup"])}
       disabledReason={line.hangupDisabledReason}
@@ -238,4 +244,11 @@ function mapControlReason(reason: string | null): string | null {
     return null;
   }
   return mapActiveCallControlDisabledReason(reason);
+}
+
+function translateOptionalKey(
+  t: ReturnType<typeof useI18n>["t"],
+  key: string,
+): string {
+  return t(key as TranslationKey);
 }

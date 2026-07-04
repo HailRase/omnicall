@@ -28,6 +28,7 @@ describe("migrateUserSettings", () => {
       expect(result.value.multiSessionsEnabled).toBe(false);
       expect(result.value.autoUnholdOnTransferFailure).toBe(false);
       expect(result.value.autoAnswerTimeoutSec).toBe(5);
+      expect(result.value.language).toBe("ru");
       expect(result.value.sipAutoReconnectEnabled).toBe(true);
     }
   });
@@ -35,6 +36,7 @@ describe("migrateUserSettings", () => {
   it("passes through valid v2 payload", () => {
     const v2 = {
       ...createDefaultUserSettings(),
+      schemaVersion: 2 as const,
       multiSessionsEnabled: false,
     };
     const result = migrateUserSettings(v2);
@@ -61,12 +63,39 @@ describe("migrateUserSettings", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.schemaVersion).toBe(2);
+      expect(result.value.language).toBe("ru");
       expect(result.value.theme).toBe("dark");
       expect(result.value.sipAutoReconnectEnabled).toBe(true);
       expect(result.value.sipReconnectIntervalSec).toBe(5);
       expect(result.value.sipAutoReregisterEnabled).toBe(false);
       expect(result.value.sipReregisterIntervalSec).toBe(8);
       expect(result.value.sipAutoRegisterOnStartup).toBe(false);
+    }
+  });
+
+  it("migrates supported v1 language and falls back for unknown locale", () => {
+    const frV1 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 1 as const,
+      language: "fr" as const,
+    };
+    const unknownLocaleV1 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 1 as const,
+      language: "es",
+    };
+
+    const frResult = migrateUserSettings(frV1);
+    const unknownLocaleResult = migrateUserSettings(unknownLocaleV1);
+
+    expect(frResult.ok).toBe(true);
+    if (frResult.ok) {
+      expect(frResult.value.language).toBe("fr");
+    }
+
+    expect(unknownLocaleResult.ok).toBe(true);
+    if (unknownLocaleResult.ok) {
+      expect(unknownLocaleResult.value.language).toBe("ru");
     }
   });
 

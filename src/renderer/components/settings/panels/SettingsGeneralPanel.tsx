@@ -1,9 +1,17 @@
 import clsx from "clsx";
-import type { JSX } from "react";
-import type { AppTheme } from "@application/index.js";
+import type { ChangeEvent, JSX } from "react";
+import {
+  SUPPORTED_LANGUAGES,
+  parseSupportedLanguage,
+  type AppTheme,
+  type SupportedLanguage,
+} from "@application/index.js";
+import { useI18n, type TranslationKey } from "../../../i18n/index.js";
 import formStyles from "../SettingsForm.module.css";
 
 export type SettingsGeneralPanelProps = Readonly<{
+  language: SupportedLanguage;
+  onLanguageChange: (language: SupportedLanguage) => void;
   theme: AppTheme;
   onThemeChange: (theme: AppTheme) => void;
   currentVersion: string;
@@ -16,17 +24,26 @@ export type SettingsGeneralPanelProps = Readonly<{
   onOpenDownloadPage: () => void;
 }>;
 
-const THEME_OPTIONS: ReadonlyArray<Readonly<{ value: AppTheme; label: string }>> = [
-  { value: "light", label: "Светлая" },
-  { value: "dark", label: "Тёмная" },
+const THEME_OPTIONS: ReadonlyArray<Readonly<{ value: AppTheme; label: TranslationKey }>> = [
+  { value: "light", label: "settings.general.theme.light" },
+  { value: "dark", label: "settings.general.theme.dark" },
 ];
+
+const LANGUAGE_LABELS: Readonly<Record<SupportedLanguage, TranslationKey>> = {
+  ru: "settings.general.language.ru",
+  en: "settings.general.language.en",
+  fr: "settings.general.language.fr",
+  de: "settings.general.language.de",
+};
 
 /**
  * - Purpose: present appearance and app update settings in the General section.
- * - Inputs: theme preference and update metadata with change callbacks.
+ * - Inputs: language, theme preference, and update metadata with change callbacks.
  * - Outputs: accessible form fields without facade access.
  */
 export function SettingsGeneralPanel({
+  language,
+  onLanguageChange,
   theme,
   onThemeChange,
   currentVersion,
@@ -38,17 +55,29 @@ export function SettingsGeneralPanel({
   onCheckForUpdates,
   onOpenDownloadPage,
 }: SettingsGeneralPanelProps): JSX.Element {
+  const { t } = useI18n();
+
+  const handleLanguageChange = (event: ChangeEvent<HTMLSelectElement>): void => {
+    const parsed = parseSupportedLanguage(event.target.value);
+    if (parsed === null) {
+      return;
+    }
+    onLanguageChange(parsed);
+  };
+
   return (
     <div className={formStyles["panelStack"]} data-testid="settings-general-panel">
       <fieldset className={formStyles["sectionCard"]}>
-        <legend className={formStyles["sectionTitle"]}>Оформление</legend>
+        <legend className={formStyles["sectionTitle"]}>
+          {t("settings.general.appearanceLegend")}
+        </legend>
         <div className={formStyles["settingsGroup"]}>
           <div className={formStyles["settingBlock"]}>
             <span className={formStyles["fieldLabel"]} id="settings-theme-label">
-              Тема интерфейса
+              {t("settings.general.themeLabel")}
             </span>
             <p className={formStyles["fieldDescription"]}>
-              Цветовая схема приложения. Применяется сразу после выбора.
+              {t("settings.general.themeDescription")}
             </p>
             <div
               className={formStyles["segmentedControl"]}
@@ -73,21 +102,48 @@ export function SettingsGeneralPanel({
                       onThemeChange(option.value);
                     }}
                   >
-                    {option.label}
+                    {t(option.label)}
                   </button>
                 );
               })}
+            </div>
+          </div>
+          <div className={formStyles["settingBlock"]}>
+            <label className={formStyles["fieldLabelGroup"]} htmlFor="settings-language-select">
+              <span className={formStyles["fieldLabel"]}>
+                {t("settings.general.languageLabel")}
+              </span>
+              <span className={formStyles["fieldDescription"]}>
+                {t("settings.general.languageDescription")}
+              </span>
+            </label>
+            <div className={formStyles["languageSelectGroup"]}>
+              <select
+                id="settings-language-select"
+                className={formStyles["languageSelect"]}
+                data-testid="settings-language-select"
+                value={language}
+                onChange={handleLanguageChange}
+              >
+                {SUPPORTED_LANGUAGES.map((locale) => (
+                  <option key={locale} value={locale}>
+                    {t(LANGUAGE_LABELS[locale])}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>
       </fieldset>
 
       <fieldset className={formStyles["sectionCard"]}>
-        <legend className={formStyles["sectionTitle"]}>О программе</legend>
+        <legend className={formStyles["sectionTitle"]}>
+          {t("settings.general.aboutLegend")}
+        </legend>
         <div className={formStyles["settingsGroup"]}>
           <div className={formStyles["settingBlock"]}>
             <p className={formStyles["fieldLabel"]} id="settings-current-version-label">
-              Текущая версия
+              {t("settings.general.currentVersion")}
             </p>
             <p
               className={formStyles["fieldValue"]}
@@ -98,7 +154,7 @@ export function SettingsGeneralPanel({
             </p>
             {latestVersion !== undefined ? (
               <p className={formStyles["fieldDescription"]} data-testid="settings-latest-version">
-                Последняя версия: {latestVersion}
+                {t("settings.general.latestVersion", { version: latestVersion })}
               </p>
             ) : null}
           </div>
@@ -121,7 +177,9 @@ export function SettingsGeneralPanel({
                 aria-busy={isCheckingUpdates}
                 onClick={onCheckForUpdates}
               >
-                {isCheckingUpdates ? "Проверка…" : "Проверить обновления"}
+                {isCheckingUpdates
+                  ? t("settings.general.checkingUpdates")
+                  : t("settings.general.checkUpdates")}
               </button>
               {canOpenDownloadPage ? (
                 <button
@@ -130,7 +188,7 @@ export function SettingsGeneralPanel({
                   data-testid="settings-open-download-page"
                   onClick={onOpenDownloadPage}
                 >
-                  Открыть страницу загрузки
+                  {t("settings.general.openDownloadPage")}
                 </button>
               ) : null}
             </div>

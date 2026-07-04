@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { useI18n } from "../../../i18n/index.js";
 import { SettingsPlaceholderPanel } from "./SettingsPlaceholderPanel.js";
 
 /**
@@ -7,11 +8,12 @@ import { SettingsPlaceholderPanel } from "./SettingsPlaceholderPanel.js";
  * - Outputs: Russian placeholder copy for planned codec preferences.
  */
 export function SettingsCodecsPanel(): JSX.Element {
+  const { t } = useI18n();
   return (
     <SettingsPlaceholderPanel
-      title="Кодеки"
+      title={t("settings.codecs.title")}
       testId="settings-codecs-panel"
-      description="Выбор и приоритет аудиокодеков будет доступен после интеграции медиа-настроек."
+      description={t("settings.codecs.description")}
     />
   );
 }

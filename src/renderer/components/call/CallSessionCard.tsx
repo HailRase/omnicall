@@ -3,6 +3,7 @@ import type { JSX } from "react";
 import type { CallLineCardViewModel } from "@application/index.js";
 import { useCallDuration } from "../../hooks/useCallDuration.js";
 import { mapQueueLabelState } from "../../helpers/mapQueueLabelState.js";
+import { useI18n, type TranslationKey } from "../../i18n/index.js";
 import { AppIcon } from "../icons/AppIcon.js";
 import type { IconSemanticId } from "../icons/iconCatalog.js";
 import styles from "./CallSessionCard.module.css";
@@ -28,6 +29,7 @@ export function CallSessionCard({
   showSelectionChrome,
   onClick,
 }: CallSessionCardProps): JSX.Element {
+  const { t } = useI18n();
   const duration = useCallDuration(line.durationStartedAt);
   const queueLabel = mapQueueLabelState(line.queueLabelState, line.queueName);
   const isLocallyHeld = line.showLocalHoldBadge;
@@ -40,8 +42,8 @@ export function CallSessionCard({
   const showSelectedChrome = selectionChromeVisible && isActive;
   const statusHint =
     showSelectedChrome && isHeld
-      ? `${line.statusLabel} · выбран`
-      : line.statusLabel;
+      ? t("call.session.status.selected", { status: t(line.statusLabel as TranslationKey) })
+      : t(line.statusLabel as TranslationKey);
 
   if (compact) {
     return (
@@ -54,7 +56,7 @@ export function CallSessionCard({
           showSelectedChrome && styles["compactSelected"],
         )}
         data-testid={`call-session-card-${line.callId}`}
-        aria-label={buildCompactAriaLabel(line)}
+        aria-label={buildCompactAriaLabel(t, line)}
         aria-selected={showSelectedChrome ? true : undefined}
         onClick={onClick}
       >
@@ -93,7 +95,7 @@ export function CallSessionCard({
               <span className={styles["badgeIcon"]} aria-hidden>
                 <AppIcon id="call.hold" size={10} decorative />
               </span>
-              Удержание (удал.)
+              {t("call.session.badge.remoteHold")}
             </span>
           ) : null}
           {duration.length > 0 ? (
@@ -173,7 +175,7 @@ export function CallSessionCard({
               data-testid={`call-session-muted-${line.callId}`}
             >
               <AppIcon id="call.mute" size={10} decorative />
-              Микрофон выкл
+              {t("call.session.badge.muted")}
             </span>
           ) : null}
           {isLocallyHeld ? (
@@ -181,7 +183,7 @@ export function CallSessionCard({
               <span className={styles["badgeIcon"]} aria-hidden>
                 <AppIcon id="call.hold" size={10} decorative />
               </span>
-              Удержание
+              {t("call.session.badge.hold")}
             </span>
           ) : null}
           {isRemoteHeld ? (
@@ -192,7 +194,7 @@ export function CallSessionCard({
               <span className={styles["badgeIcon"]} aria-hidden>
                 <AppIcon id="call.hold" size={10} decorative />
               </span>
-              Удержание (удал.)
+              {t("call.session.badge.remoteHold")}
             </span>
           ) : null}
         </span>
@@ -206,7 +208,7 @@ export function CallSessionCard({
         type="button"
         className={cardClassName}
         data-testid={`call-session-card-${line.callId}`}
-        aria-label={`Выбрать звонок ${line.displayName}`}
+        aria-label={t("call.session.selectAria", { displayName: line.displayName })}
         aria-selected={showSelectedChrome ? true : undefined}
         onClick={onClick}
       >
@@ -219,7 +221,7 @@ export function CallSessionCard({
     <article
       className={cardClassName}
       data-testid={`call-session-card-${line.callId}`}
-      aria-label={`Звонок ${line.displayName}`}
+      aria-label={t("call.session.ariaLabel", { displayName: line.displayName })}
     >
       {cardBody}
     </article>
@@ -236,16 +238,19 @@ function resolveDirectionIconId(line: CallLineCardViewModel): IconSemanticId {
   return "call.outgoing";
 }
 
-function buildCompactAriaLabel(line: CallLineCardViewModel): string {
-  const base = `Выбрать звонок ${line.displayName}`;
+function buildCompactAriaLabel(
+  t: ReturnType<typeof useI18n>["t"],
+  line: CallLineCardViewModel,
+): string {
+  const base = t("call.session.selectAria", { displayName: line.displayName });
   if (line.showLocalHoldBadge && line.showRemoteHoldBadge) {
-    return `${base}, на удержании, собеседник на удержании`;
+    return t("call.session.compactAria.localAndRemoteHold", { base });
   }
   if (line.showLocalHoldBadge) {
-    return `${base}, на удержании`;
+    return t("call.session.compactAria.localHold", { base });
   }
   if (line.showRemoteHoldBadge) {
-    return `${base}, собеседник на удержании`;
+    return t("call.session.compactAria.remoteHold", { base });
   }
   return base;
 }

@@ -6,7 +6,7 @@ export const idleSystemStateShell: SipSystemStateShellView = {
   effectiveRegistrationState: "idle",
   transportStateLabel: "Неактивно",
   registrationStateLabel: "Неактивна",
-  summaryLabel: "Не подключено",
+  summaryLabelKey: "header.sipStatus.notConnected",
   transportFailureReason: null,
   registrationFailureReason: null,
   manualTransportReconnectDisabledReason: "Сессия не активна",

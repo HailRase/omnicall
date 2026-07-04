@@ -1,5 +1,6 @@
 import type { ComponentType, HTMLAttributes } from "react";
 import type { LucideIcon } from "lucide-react";
+import { translateCurrent, type TranslationKey } from "../../i18n/index.js";
 import {
   Activity,
   AudioLines,
@@ -108,7 +109,7 @@ export type IconSemanticId =
 export type IconCatalogEntry = Readonly<{
   static: LucideIcon;
   animated?: AnimatedIconComponent;
-  defaultLabel: string;
+  defaultLabelKey: TranslationKey;
   defaultSize: number;
   usage: ReadonlyArray<string>;
 }>;
@@ -117,75 +118,75 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
   "shell.settings": {
     static: Settings,
     animated: SettingsIcon,
-    defaultLabel: "Настройки",
+    defaultLabelKey: "icons.shell.settings",
     defaultSize: 20,
     usage: ["UserAvatarMenu: user-menu-open-settings", "SettingsSidebar"],
   },
   "shell.diagnostics": {
     static: Activity,
     animated: ActivityIcon,
-    defaultLabel: "Диагностика",
+    defaultLabelKey: "icons.shell.diagnostics",
     defaultSize: 20,
     usage: ["SettingsSidebar: settings-nav-diagnostics"],
   },
   "settings.account": {
     static: User,
     animated: UserIcon,
-    defaultLabel: "Аккаунт",
+    defaultLabelKey: "icons.settings.account",
     defaultSize: 20,
     usage: ["SettingsSidebar: settings-nav-account"],
   },
   "settings.general": {
     static: SlidersHorizontal,
     animated: SlidersHorizontalIcon,
-    defaultLabel: "Общее",
+    defaultLabelKey: "icons.settings.general",
     defaultSize: 20,
     usage: ["SettingsSidebar: settings-nav-general"],
   },
   "settings.sessions": {
     static: Layers,
     animated: LayersIcon,
-    defaultLabel: "Сессии",
+    defaultLabelKey: "icons.settings.sessions",
     defaultSize: 20,
     usage: ["SettingsSidebar: settings-nav-sessions"],
   },
   "settings.system-state": {
     static: Gauge,
-    defaultLabel: "Состояние системы",
+    defaultLabelKey: "settings.nav.systemState",
     defaultSize: 20,
     usage: ["SettingsSidebar: settings-nav-system-state (Phase 6)"],
   },
   "settings.codecs": {
     static: AudioLines,
     animated: AudioLinesIcon,
-    defaultLabel: "Кодеки",
+    defaultLabelKey: "icons.settings.codecs",
     defaultSize: 20,
     usage: ["SettingsSidebar: settings-nav-codecs"],
   },
   "settings.headset": {
     static: Headphones,
-    defaultLabel: "Гарнитура",
+    defaultLabelKey: "icons.settings.headset",
     defaultSize: 20,
     usage: ["SettingsSidebar: settings-nav-headset"],
   },
   "settings.nav.expand": {
     static: ChevronRight,
     animated: ChevronRightIcon,
-    defaultLabel: "Развернуть меню",
+    defaultLabelKey: "icons.settings.nav.expand",
     defaultSize: 20,
     usage: ["SettingsSidebar: settings-sidebar-expand"],
   },
   "settings.nav.collapse": {
     static: ChevronLeft,
     animated: ChevronLeftIcon,
-    defaultLabel: "Свернуть меню",
+    defaultLabelKey: "icons.settings.nav.collapse",
     defaultSize: 20,
     usage: ["SettingsSidebar: settings-sidebar-collapse"],
   },
   "session.end": {
     static: LogOut,
     animated: LogoutIcon,
-    defaultLabel: "Завершить сессию",
+    defaultLabelKey: "icons.session.end",
     defaultSize: 20,
     usage: [
       "UserAvatarMenu: user-menu-logout",
@@ -195,91 +196,91 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
   "sip.reregister": {
     static: RefreshCcw,
     animated: RefreshCcwIcon,
-    defaultLabel: "Перерегистрация SIP",
+    defaultLabelKey: "icons.sip.reregister",
     defaultSize: 20,
     usage: ["SettingsSystemStatePanel: control-reregister-sip (Phase 6)"],
   },
   "call.answer": {
     static: PhoneCall,
     animated: PhoneCallIcon,
-    defaultLabel: "Ответить",
+    defaultLabelKey: "icons.call.answer",
     defaultSize: 20,
     usage: ["IncomingCallOverlay", "IncomingCallSessionCard", "CallLineRow"],
   },
   "call.reject": {
     static: PhoneOff,
     animated: PhoneOffIcon,
-    defaultLabel: "Отклонить",
+    defaultLabelKey: "icons.call.reject",
     defaultSize: 20,
     usage: ["IncomingCallOverlay", "IncomingCallSessionCard", "CampaignEventModal"],
   },
   "call.hangup": {
     static: PhoneOff,
     animated: PhoneOffIcon,
-    defaultLabel: "Завершить звонок",
+    defaultLabelKey: "icons.call.hangup",
     defaultSize: 20,
     usage: ["CallLineRow", "ActiveCallControlsPanel"],
   },
   "call.hold": {
     static: Pause,
     animated: PauseIcon,
-    defaultLabel: "Удержание",
+    defaultLabelKey: "icons.call.hold",
     defaultSize: 20,
     usage: ["CallLineRow", "ActiveCallControlsPanel", "MultiCallHoldAllIndicator"],
   },
   "call.resume": {
     static: Play,
     animated: PlayIcon,
-    defaultLabel: "Возобновить",
+    defaultLabelKey: "icons.call.resume",
     defaultSize: 20,
     usage: ["CallLineRow", "ActiveCallControlsPanel"],
   },
   "call.mute": {
     static: MicOff,
     animated: MicOffIcon,
-    defaultLabel: "Отключить микрофон",
+    defaultLabelKey: "icons.call.mute",
     defaultSize: 20,
     usage: ["CallLineRow", "ActiveCallControlsPanel"],
   },
   "call.unmute": {
     static: Mic,
     animated: MicIcon,
-    defaultLabel: "Включить микрофон",
+    defaultLabelKey: "icons.call.unmute",
     defaultSize: 20,
     usage: ["CallLineRow", "ActiveCallControlsPanel"],
   },
   "call.transfer": {
     static: PhoneForwarded,
     animated: PhoneForwardedIcon,
-    defaultLabel: "Перевод",
+    defaultLabelKey: "icons.call.transfer",
     defaultSize: 20,
     usage: ["CallLineRow", "TransferPanel", "TransferPanel: control-blind-transfer"],
   },
   "call.incoming": {
     static: PhoneIncoming,
     animated: PhoneIncomingIcon,
-    defaultLabel: "Входящий звонок",
+    defaultLabelKey: "icons.call.incoming",
     defaultSize: 20,
     usage: ["IncomingCallOverlay", "IncomingCallSessionCard"],
   },
   "call.outgoing": {
     static: Phone,
     animated: PhoneIcon,
-    defaultLabel: "Исходящий звонок",
+    defaultLabelKey: "icons.call.outgoing",
     defaultSize: 20,
     usage: ["OutgoingCallCard"],
   },
   "call.phone-off": {
     static: PhoneOff,
     animated: PhoneOffIcon,
-    defaultLabel: "Телефон недоступен",
+    defaultLabelKey: "icons.call.phoneOff",
     defaultSize: 20,
     usage: ["SettingsSystemStatePanel (Phase 6)"],
   },
   "overlay.close": {
     static: X,
     animated: XIcon,
-    defaultLabel: "Закрыть",
+    defaultLabelKey: "icons.overlay.close",
     defaultSize: 20,
     usage: [
       "ShellOverlaySheet",
@@ -292,54 +293,54 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
   },
   "dial.call": {
     static: PhoneOutgoing,
-    defaultLabel: "Позвонить",
+    defaultLabelKey: "icons.dial.call",
     defaultSize: 20,
     usage: ["Dialpad: dialpad-call"],
   },
   "dial.delete": {
     static: Delete,
     animated: DeleteIcon,
-    defaultLabel: "Удалить цифру",
+    defaultLabelKey: "icons.dial.delete",
     defaultSize: 20,
     usage: ["Dialpad: dialpad-delete"],
   },
   "dial.clear": {
     static: Eraser,
-    defaultLabel: "Очистить номер",
+    defaultLabelKey: "icons.dial.clear",
     defaultSize: 20,
     usage: ["Dialpad: dialpad-clear"],
   },
   "dial.dtmf": {
     static: Grid3x3,
-    defaultLabel: "Тоновый набор",
+    defaultLabelKey: "icons.dial.dtmf",
     defaultSize: 20,
     usage: ["CallControlsBar: control-show-dtmf"],
   },
   "operator.ready": {
     static: CircleCheck,
     animated: CircleCheckIcon,
-    defaultLabel: "Готов",
+    defaultLabelKey: "icons.operator.ready",
     defaultSize: 20,
     usage: ["StatusSelector: control-change-ready"],
   },
   "operator.break": {
     static: Coffee,
     animated: CoffeeIcon,
-    defaultLabel: "Перерыв",
+    defaultLabelKey: "icons.operator.break",
     defaultSize: 20,
     usage: ["StatusSelector: control-change-break"],
   },
   "operator.logout": {
     static: LogOut,
     animated: LogoutIcon,
-    defaultLabel: "Выход",
+    defaultLabelKey: "icons.operator.logout",
     defaultSize: 20,
     usage: ["StatusSelector: control-request-logout", "LogoutReasonModal"],
   },
   "action.confirm": {
     static: Check,
     animated: CheckIcon,
-    defaultLabel: "Подтвердить",
+    defaultLabelKey: "icons.action.confirm",
     defaultSize: 20,
     usage: [
       "BreakReasonPicker: control-confirm-break",
@@ -350,7 +351,7 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
   "action.retry": {
     static: RotateCcw,
     animated: RotateCcwIcon,
-    defaultLabel: "Повторить",
+    defaultLabelKey: "icons.action.retry",
     defaultSize: 20,
     usage: [
       "ActiveCallControlsPanel: control-retry",
@@ -360,26 +361,26 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
   "transfer.consultation": {
     static: PhoneCall,
     animated: PhoneCallIcon,
-    defaultLabel: "Начать консультацию",
+    defaultLabelKey: "icons.transfer.consultation",
     defaultSize: 20,
     usage: ["TransferPanel: control-start-consultation"],
   },
   "connection.retry": {
     static: RotateCcw,
     animated: RotateCcwIcon,
-    defaultLabel: "Повторить подключение",
+    defaultLabelKey: "icons.connection.retry",
     defaultSize: 20,
     usage: ["SettingsSystemStatePanel: control-retry-transport (Phase 6)"],
   },
   "phone.dnd.on": {
     static: Bell,
-    defaultLabel: "Не беспокоить включено",
+    defaultLabelKey: "icons.phone.dnd.on",
     defaultSize: 20,
     usage: ["UserAvatarMenu: user-menu-toggle-dnd dndEnabled=true"],
   },
   "phone.dnd.off": {
     static: BellOff,
-    defaultLabel: "Не беспокоить выключено",
+    defaultLabelKey: "icons.phone.dnd.off",
     defaultSize: 20,
     usage: ["UserAvatarMenu: user-menu-toggle-dnd dndEnabled=false"],
   },
@@ -402,5 +403,9 @@ export function resolveIconTooltipLabel(
   if (disabledReason !== undefined && disabledReason !== null && disabledReason.length > 0) {
     return disabledReason;
   }
-  return fallback ?? ICON_CATALOG[id].defaultLabel;
+  return fallback ?? translateCurrent(ICON_CATALOG[id].defaultLabelKey);
+}
+
+export function resolveIconDefaultLabel(id: IconSemanticId): string {
+  return translateCurrent(ICON_CATALOG[id].defaultLabelKey);
 }

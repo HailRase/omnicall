@@ -167,6 +167,42 @@
     box-shadow 150ms ease;
 }
 
+.languageSelectGroup {
+  display: inline-flex;
+  align-self: flex-start;
+  min-width: 12rem;
+  max-width: 18rem;
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-control);
+  background: var(--color-bg-surface-deep);
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.languageSelectGroup:focus-within {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 1px var(--color-border-focus);
+}
+
+.languageSelect {
+  width: auto;
+  min-width: 100%;
+  padding: var(--space-xs) calc(var(--space-lg) + var(--space-xs)) var(--space-xs) var(--space-sm);
+  border: none;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-primary);
+  font-size: 0.9375rem;
+  line-height: 1.35;
+  text-align: left;
+  text-align-last: left;
+}
+
+.languageSelect:focus-visible {
+  outline: none;
+}
+
 .numberInputGroup:focus-within {
   border-color: var(--color-border-focus);
   box-shadow: 0 0 0 1px var(--color-border-focus);

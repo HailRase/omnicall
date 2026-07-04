@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import { createRendererComposition } from "../bootstrap/createRendererComposition.js";
+import { translateCurrent } from "../i18n/index.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 
 type BootstrapStatus = "loading" | "ready" | "error";
@@ -34,7 +35,9 @@ export function useAccountBootstrap(): Readonly<{
       } catch (error: unknown) {
         if (!cancelled) {
           const message =
-            error instanceof Error ? error.message : "Ошибка инициализации";
+            error instanceof Error
+              ? error.message
+              : translateCurrent("bootstrap.error.initializationFailed");
           setErrorMessage(message);
           setStatus("error");
         }

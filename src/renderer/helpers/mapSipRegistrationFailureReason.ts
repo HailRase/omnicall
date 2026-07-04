@@ -1,27 +1,29 @@
+import { translateCurrent } from "../i18n/index.js";
+
 /**
- * - Purpose: map normalized SIP registration failure keys to Russian UI copy.
+ * - Purpose: map normalized SIP registration failure keys to localized UI copy.
  * - Inputs: stable failure key from domain projection.
- * - Outputs: user-facing Russian error message.
+ * - Outputs: user-facing localized error message.
  */
 export function mapSipRegistrationFailureReason(key: string): string {
   switch (key) {
     case "authentication_error":
-      return "Неверный логин или пароль";
+      return translateCurrent("sipRegistration.failure.authenticationError");
     case "connection_error":
-      return "Ошибка соединения с сервером";
+      return translateCurrent("sipRegistration.failure.connectionError");
     case "transport_connection_timed_out":
-      return "Не удалось подключиться к серверу (таймаут 10 с)";
+      return translateCurrent("sipRegistration.failure.transportConnectionTimedOut");
     case "registration_timeout":
-      return "Истекло время ожидания регистрации";
+      return translateCurrent("sipRegistration.failure.timeout");
     case "forbidden":
-      return "Доступ запрещён";
+      return translateCurrent("sipRegistration.failure.forbidden");
     case "not_found":
-      return "Учётная запись не найдена";
+      return translateCurrent("sipRegistration.failure.notFound");
     case "service_unavailable":
-      return "Сервис регистрации недоступен";
+      return translateCurrent("sipRegistration.failure.serviceUnavailable");
     case "sip_recovery_exhausted":
-      return "Исчерпаны попытки автоматической регистрации";
+      return translateCurrent("sipRegistration.failure.recoveryExhausted");
     default:
-      return "Ошибка регистрации SIP";
+      return translateCurrent("sipRegistration.failure.default");
   }
 }

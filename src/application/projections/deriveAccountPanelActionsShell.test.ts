@@ -26,7 +26,7 @@ describe("deriveAccountPanelActionsShell", () => {
         sessionLogoutDisabledReason: null,
       }),
     ).toEqual({
-      authorizeDisabledReason: "Вы уже в сети. Для смены аккаунта нажмите «Выйти»",
+      authorizeDisabledReason: "account.actions.disabled.alreadyAuthorized",
       logoutDisabledReason: null,
     });
   });
@@ -42,7 +42,7 @@ describe("deriveAccountPanelActionsShell", () => {
       }),
     ).toEqual({
       authorizeDisabledReason: null,
-      logoutDisabledReason: "Заполните поля и нажмите «Авторизоваться»",
+      logoutDisabledReason: "account.actions.disabled.fillAndAuthorize",
     });
   });
 
@@ -57,7 +57,7 @@ describe("deriveAccountPanelActionsShell", () => {
       }),
     ).toEqual({
       authorizeDisabledReason: null,
-      logoutDisabledReason: "Сначала нажмите «Авторизоваться»",
+      logoutDisabledReason: "account.actions.disabled.authorizeFirst",
     });
   });
 
@@ -68,11 +68,11 @@ describe("deriveAccountPanelActionsShell", () => {
         form: filledForm,
         submitting: false,
         panelDisabled: false,
-        sessionLogoutDisabledReason: "Выход выполняется",
+        sessionLogoutDisabledReason: "session.logout.disabled.inProgress",
       }),
     ).toEqual({
-      authorizeDisabledReason: "Вы уже в сети. Для смены аккаунта нажмите «Выйти»",
-      logoutDisabledReason: "Выход выполняется",
+      authorizeDisabledReason: "account.actions.disabled.alreadyAuthorized",
+      logoutDisabledReason: "session.logout.disabled.inProgress",
     });
   });
 });

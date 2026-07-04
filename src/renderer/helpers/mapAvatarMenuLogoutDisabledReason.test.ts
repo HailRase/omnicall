@@ -29,7 +29,7 @@ describe("mapAvatarMenuLogoutDisabledReason", () => {
         shell: {
           ...baseShell,
           showEndSessionControl: true,
-          endSessionDisabledReason: "Выход выполняется",
+          endSessionDisabledReason: "session.logout.disabled.inProgress",
         },
       }),
     ).toBe("Выход выполняется");

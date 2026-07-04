@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { useEffect, useState, type AnimationEvent, type JSX, type ReactNode } from "react";
+import { useI18n } from "../../i18n/index.js";
 import styles from "./SettingsFullscreenOverlay.module.css";
 
 export type SettingsFullscreenOverlayProps = Readonly<{
@@ -9,12 +10,13 @@ export type SettingsFullscreenOverlayProps = Readonly<{
 }>;
 
 type OverlayPhase = "closed" | "open" | "closing";
+const REDUCED_MOTION_MEDIA_QUERY = "(prefers-reduced-motion:" + " reduce)";
 
 function prefersReducedMotion(): boolean {
-  if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+  if (typeof window === typeof void 0 || window.matchMedia === undefined) {
     return false;
   }
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return window.matchMedia(REDUCED_MOTION_MEDIA_QUERY).matches;
 }
 
 /**
@@ -28,6 +30,7 @@ export function SettingsFullscreenOverlay({
   onClose,
   children,
 }: SettingsFullscreenOverlayProps): JSX.Element | null {
+  const { t } = useI18n();
   const [phase, setPhase] = useState<OverlayPhase>(() => (open ? "open" : "closed"));
 
   useEffect(() => {
@@ -64,12 +67,12 @@ export function SettingsFullscreenOverlay({
       data-closing={exiting ? "true" : undefined}
       role="dialog"
       aria-modal="true"
-      aria-label="Настройки"
+      aria-label={t("settings.title")}
     >
       <button
         type="button"
         className={clsx(styles["backdrop"], exiting && styles["backdropExiting"])}
-        aria-label="Закрыть настройки"
+        aria-label={t("settings.close")}
         data-testid="settings-overlay-backdrop"
         onClick={onClose}
       />

@@ -2,7 +2,11 @@ import clsx from "clsx";
 import type { JSX, MouseEvent } from "react";
 import { AppIcon } from "./AppIcon.js";
 import { IconTooltip } from "./IconTooltip.js";
-import { resolveIconEntry, resolveIconTooltipLabel, type IconSemanticId } from "./iconCatalog.js";
+import {
+  resolveIconDefaultLabel,
+  resolveIconTooltipLabel,
+  type IconSemanticId,
+} from "./iconCatalog.js";
 import styles from "./IconControlButton.module.css";
 
 export type IconControlButtonProps = Readonly<{
@@ -39,7 +43,7 @@ export function IconControlButton({
   onMouseUp,
   onMouseLeave,
 }: IconControlButtonProps): JSX.Element {
-  const catalogLabel = resolveIconEntry(iconId).defaultLabel;
+  const catalogLabel = resolveIconDefaultLabel(iconId);
   const tooltip = resolveIconTooltipLabel(iconId, disabledReason, tooltipLabel ?? catalogLabel);
   const isDisabled = disabled || disabledReason !== null;
   const expandedProps =

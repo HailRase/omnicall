@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import type { AgentStatus } from "@application/index.js";
 import { agentStatusLabel } from "@application/index.js";
 import type { OperatorStatusDisabledReason } from "@application/index.js";
+import { useI18n } from "../../i18n/index.js";
 import {
   mapOperatorStatusDisabledReasonWithFallback,
 } from "../../helpers/mapOperatorStatusDisabledReason.js";
@@ -49,6 +50,7 @@ export function StatusSelector({
   onConfirmBreak,
   onOpenLogout,
 }: StatusSelectorProps): JSX.Element | null {
+  const { t } = useI18n();
   if (!visible) {
     return null;
   }
@@ -59,11 +61,11 @@ export function StatusSelector({
     <section
       className={styles["panel"]}
       data-testid="status-selector"
-      aria-label="Статус оператора"
+      aria-label={t("status.selector.ariaLabel")}
     >
       <p data-testid="status-selector-current">
-        Статус агента:{" "}
-        <strong>{displayStatus === null ? "—" : agentStatusLabel(displayStatus)}</strong>
+        {t("status.selector.currentLabel")}:{" "}
+        <strong>{displayStatus === null ? t("common.dash") : agentStatusLabel(displayStatus)}</strong>
       </p>
 
       {statusChangeInProgress && (
@@ -73,7 +75,7 @@ export function StatusSelector({
           role="status"
           aria-live="polite"
         >
-          Смена статуса выполняется…
+          {t("status.selector.inProgress")}
         </p>
       )}
 
@@ -87,10 +89,10 @@ export function StatusSelector({
         </div>
       )}
 
-      <div className={styles["actions"]} role="group" aria-label="Смена статуса агента">
+      <div className={styles["actions"]} role="group" aria-label={t("status.selector.actionsAria")}>
         <IconControlButton
           iconId="operator.ready"
-          ariaLabel="Перейти в «Готов»"
+          ariaLabel={t("status.selector.readyAria")}
           testId="control-change-ready"
           className={styles["iconButton"]}
           disabledReason={
@@ -102,7 +104,7 @@ export function StatusSelector({
         />
         <IconControlButton
           iconId="operator.break"
-          ariaLabel="Перейти в «Перерыв»"
+          ariaLabel={t("status.selector.breakAria")}
           testId="control-change-break"
           className={styles["iconButton"]}
           disabledReason={
@@ -114,7 +116,7 @@ export function StatusSelector({
         />
         <IconControlButton
           iconId="operator.logout"
-          ariaLabel="Выйти с платформы оператора"
+          ariaLabel={t("status.selector.logoutAria")}
           testId="control-request-logout"
           className={styles["iconButton"]}
           disabled={statusChangeInProgress}

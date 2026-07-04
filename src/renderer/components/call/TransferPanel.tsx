@@ -7,6 +7,7 @@ import {
 } from "@application/index.js";
 import clsx from "clsx";
 import { mapTransferDisabledReasonWithFallback } from "../../helpers/mapTransferDisabledReason.js";
+import { useI18n, type TranslationKey } from "../../i18n/index.js";
 import { AppIcon, IconControlButton } from "../icons/index.js";
 import dismissStyles from "../icons/iconOverlayDismiss.module.css";
 import styles from "./TransferPanel.module.css";
@@ -54,6 +55,7 @@ export function TransferPanel({
   onAttendedTransfer,
   onCancelTransfer,
 }: TransferPanelProps): JSX.Element | null {
+  const { t } = useI18n();
   const [step, setStep] = useState<TransferStep>(1);
   const [targetInputMode, setTargetInputMode] = useState<TransferTargetInputMode>("unset");
   const [selectedSessionCallId, setSelectedSessionCallId] = useState<string | null>(null);
@@ -114,23 +116,24 @@ export function TransferPanel({
   }
 
   const cancelDisabled = cancelTransferDisabledReason !== null;
-  const dismissLabel = failureMessage !== null ? "Закрыть" : "Отменить перевод";
+  const dismissLabel =
+    failureMessage !== null ? t("transfer.panel.close") : t("transfer.panel.cancelTransfer");
   const showCompleteTransfer = step >= 3 && consultReady && !transferInProgress;
 
   return (
     <section
       className={styles["panel"]}
       data-testid="transfer-panel"
-      aria-label="Перевод звонка"
+      aria-label={t("transfer.panel.ariaLabel")}
     >
       <header className={styles["header"]}>
         <div className={styles["titleWrap"]}>
-          <h2 className={styles["title"]}>Перевод звонка</h2>
-          <ol className={styles["steps"]} aria-label="Шаги перевода">
+          <h2 className={styles["title"]}>{t("transfer.panel.title")}</h2>
+          <ol className={styles["steps"]} aria-label={t("transfer.panel.stepsAriaLabel")}>
             {[1, 2, 3, 4].map((stepNum) => (
               <li key={stepNum} className={styles["step"]}>
                 <span className={resolveStepDotClassName(step, stepNum as TransferStep)}>
-                  {stepNum < step ? "✓" : stepNum}
+                  {stepNum < step ? t("transfer.panel.stepDoneMark") : stepNum}
                 </span>
                 {stepNum < 4 ? (
                   <span
@@ -172,16 +175,16 @@ export function TransferPanel({
             role="alert"
           >
             <div className={styles["failureText"]}>
-              <p className={styles["failureTitle"]}>{failureTitle ?? "Ошибка перевода"}</p>
+              <p className={styles["failureTitle"]}>{failureTitle ?? t("transfer.panel.failureTitle")}</p>
               <p>{failureMessage}</p>
-              <p className={styles["failureHint"]}>Исходный звонок восстановлен.</p>
+              <p className={styles["failureHint"]}>{t("transfer.panel.failureHint")}</p>
             </div>
           </div>
         ) : null}
 
         {sourceLine !== null ? (
           <section className={styles["lineSection"]} data-testid="transfer-source-line">
-            <p className={styles["lineSectionTitle"]}>Исходный звонок</p>
+            <p className={styles["lineSectionTitle"]}>{t("transfer.panel.sourceLineTitle")}</p>
             <div className={styles["lineCard"]}>
               <p className={styles["lineLabel"]}>{sourceLine.displayLabel}</p>
               <p className={styles["lineState"]}>
@@ -193,7 +196,7 @@ export function TransferPanel({
 
         {step === 1 ? (
           <section className={styles["stepSectionTarget"]}>
-            <p className={styles["lineSectionTitle"]}>Кому перевести</p>
+            <p className={styles["lineSectionTitle"]}>{t("transfer.panel.targetTitle")}</p>
             <input
               id="transfer-target-input"
               className={clsx(
@@ -203,8 +206,8 @@ export function TransferPanel({
               data-testid="transfer-target-input"
               type="tel"
               value={targetNumber}
-              placeholder="Номер для перевода"
-              aria-label="Номер для перевода"
+              placeholder={t("transfer.panel.targetPlaceholder")}
+              aria-label={t("transfer.panel.targetAriaLabel")}
               disabled={numberInputDisabled}
               onChange={(event) => {
                 const value = event.currentTarget.value;
@@ -221,7 +224,7 @@ export function TransferPanel({
                   aria-hidden="true"
                 >
                   <span className={styles["targetDividerLine"]} />
-                  <span className={styles["targetDividerLabel"]}>или</span>
+                  <span className={styles["targetDividerLabel"]}>{t("transfer.panel.or")}</span>
                   <span className={styles["targetDividerLine"]} />
                 </div>
                 <div
@@ -231,11 +234,11 @@ export function TransferPanel({
                   )}
                   data-testid="transfer-target-candidates"
                 >
-                  <p className={styles["candidateSectionTitle"]}>Сессии</p>
+                  <p className={styles["candidateSectionTitle"]}>{t("transfer.panel.sessionsTitle")}</p>
                   <div className={styles["candidateScroll"]}>
                     <ul
                       className={styles["candidateList"]}
-                      aria-label="Выбор звонка для перевода"
+                      aria-label={t("transfer.panel.sessionSelectAriaLabel")}
                     >
                       {transferTargetCandidates.map((candidate) => {
                         const isSelected = selectedSessionCallId === candidate.callId;
@@ -266,7 +269,7 @@ export function TransferPanel({
                               }}
                             >
                               <span className={styles["lineLabel"]}>{displayName}</span>
-                              <span className={styles["lineState"]}>{statusLabel}</span>
+                              <span className={styles["lineState"]}>{t(statusLabel as TranslationKey)}</span>
                             </button>
                           </li>
                         );
@@ -285,19 +288,19 @@ export function TransferPanel({
                 setStep(2);
               }}
             >
-              Далее
+              {t("transfer.panel.next")}
             </button>
           </section>
         ) : null}
 
         {step === 2 ? (
           <section className={styles["stepSection"]}>
-            <p className={styles["lineSectionTitle"]}>Тип перевода</p>
+            <p className={styles["lineSectionTitle"]}>{t("transfer.panel.typeTitle")}</p>
             <div className={styles["typeList"]}>
               <TypeChoiceCard
                 iconId="call.transfer"
-                title="Слепой перевод"
-                description="Звонок сразу переводится. Оператор освобождается."
+                title={t("transfer.panel.blind.title")}
+                description={t("transfer.panel.blind.description")}
                 testId="control-blind-transfer"
                 disabledReason={
                   blindTransferDisabledReason === null
@@ -311,8 +314,8 @@ export function TransferPanel({
               />
               <TypeChoiceCard
                 iconId="transfer.consultation"
-                title="Консультативный перевод"
-                description="Сначала поговорите с принимающей стороной, затем подтвердите перевод."
+                title={t("transfer.panel.consultative.title")}
+                description={t("transfer.panel.consultative.description")}
                 testId="control-start-consultation"
                 disabledReason={
                   startConsultationDisabledReason === null
@@ -330,7 +333,7 @@ export function TransferPanel({
 
         {step >= 3 && consultationLine !== null ? (
           <section className={styles["lineSection"]} data-testid="transfer-consultation-line">
-            <p className={styles["lineSectionTitle"]}>Консультационный звонок</p>
+            <p className={styles["lineSectionTitle"]}>{t("transfer.panel.consultationLineTitle")}</p>
             <div className={styles["lineCard"]}>
               <p className={styles["lineLabel"]}>{consultationLine.displayLabel}</p>
               <p className={styles["lineState"]}>
@@ -339,7 +342,7 @@ export function TransferPanel({
             </div>
             {!consultReady && !transferInProgress ? (
               <p className={styles["waiting"]} role="status">
-                Ожидание ответа…
+                {t("transfer.panel.waitingAnswer")}
               </p>
             ) : null}
           </section>
@@ -352,7 +355,7 @@ export function TransferPanel({
             role="status"
             aria-live="polite"
           >
-            Перевод выполняется…
+            {t("transfer.panel.inProgress")}
           </p>
         ) : null}
 
@@ -374,7 +377,7 @@ export function TransferPanel({
             disabled={attendedTransferDisabledReason !== null}
             title={
               attendedTransferDisabledReason === null
-                ? "Завершить перевод с консультацией"
+                ? t("transfer.panel.completeWithConsultation")
                 : mapTransferDisabledReasonWithFallback(attendedTransferDisabledReason)
             }
             onClick={() => {
@@ -383,7 +386,7 @@ export function TransferPanel({
             }}
           >
             <AppIcon id="action.confirm" size={14} decorative />
-            Завершить перевод
+            {t("transfer.panel.complete")}
           </button>
         </footer>
       ) : null}

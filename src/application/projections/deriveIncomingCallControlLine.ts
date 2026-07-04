@@ -16,7 +16,7 @@ export function deriveIncomingCallControlLine(
   const displayName =
     projection.callerNumber ??
     projection.displayName ??
-    "Неизвестный номер";
+    "call.line.display.unknown";
 
   return {
     callId: projection.callId,
@@ -25,7 +25,7 @@ export function deriveIncomingCallControlLine(
     muted: false,
     isActiveUnheld: false,
     displayName,
-    statusLabel: "Звонок",
+    statusLabel: "call.line.status.ringing",
     durationStartedAt: null,
     queueLabelState: "hidden",
     queueName: null,

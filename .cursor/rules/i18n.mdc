@@ -1,0 +1,24 @@
+---
+description: Mandatory internationalization coverage for UI and UI-facing logic
+alwaysApply: true
+---
+
+# RULE: Interface Internationalization
+
+Applies to renderer UI and UI-facing application logic.
+
+## Mandatory
+
+- Every UI or UI-facing logic change updates translation keys for **all** supported locales (`ru`, `en`).
+- No hardcoded user-visible copy in renderer components, shells, hooks, UI helpers, icon labels, or application projections.
+- Domain emits technical reason keys/events only; never localized sentences.
+- Application projections prefer semantic message keys + interpolation params over localized text.
+- Renderer resolves text via selected `UserSettings.language` and applies language immediately.
+- Translation resources are allowed only in approved i18n modules and test/story fixtures.
+
+## Validation
+
+- Locale catalogs compile with key parity.
+- `npm run i18n:check` passes.
+- Tests cover translation keys or rendered localized text for touched modules.
+- Feature Registry and `docs/softphone/I18N-Coverage.md` are updated for migration progress.

@@ -35,6 +35,8 @@ const accountDefaults = {
 } as const;
 
 const themeDefaults = {
+  language: "ru" as const,
+  onLanguageChange: () => undefined,
   theme: "light" as const,
   onThemeChange: () => undefined,
 } as const;

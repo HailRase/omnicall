@@ -4,6 +4,7 @@ import {
   MAX_AUTO_ANSWER_TIMEOUT_SEC,
   MIN_AUTO_ANSWER_TIMEOUT_SEC,
 } from "@application/index.js";
+import { useI18n } from "../../../i18n/index.js";
 import formStyles from "../SettingsForm.module.css";
 
 export const DEFAULT_AUTO_ANSWER_TIMEOUT_SEC = 5;
@@ -34,6 +35,7 @@ export function SettingsSessionsPanel({
   autoAnswerDuringActiveSessionEnabled,
   onAutoAnswerDuringActiveSessionChange,
 }: SettingsSessionsPanelProps): JSX.Element {
+  const { t } = useI18n();
   const handleMultiSessionsChange = (event: ChangeEvent<HTMLInputElement>): void => {
     onMultiSessionsChange(event.target.checked);
   };
@@ -61,14 +63,16 @@ export function SettingsSessionsPanel({
   return (
     <div className={formStyles["panelStack"]} data-testid="settings-sessions-panel">
       <fieldset className={formStyles["sectionCard"]}>
-        <legend className={formStyles["sectionTitle"]}>Сессии звонков</legend>
+        <legend className={formStyles["sectionTitle"]}>{t("settings.sessions.legend")}</legend>
         <div className={formStyles["settingsGroup"]}>
           <div className={formStyles["settingBlock"]}>
             <label className={formStyles["toggleRow"]} htmlFor="settings-multi-sessions">
               <span className={formStyles["toggleText"]}>
-                <span className={formStyles["toggleLabel"]}>Разрешить несколько сессий звонков</span>
+                <span className={formStyles["toggleLabel"]}>
+                  {t("settings.sessions.multiSessions.label")}
+                </span>
                 <span className={formStyles["toggleDescription"]}>
-                  Второй звонок при активной линии
+                  {t("settings.sessions.multiSessions.description")}
                 </span>
               </span>
               <span className={formStyles["switch"]}>
@@ -84,21 +88,23 @@ export function SettingsSessionsPanel({
               </span>
             </label>
             <p className={formStyles["blockHint"]} data-testid="settings-multi-sessions-hint">
-              Если отключено, второй входящий или исходящий звонок блокируется при активном звонке.
+              {t("settings.sessions.multiSessions.hint")}
             </p>
           </div>
         </div>
       </fieldset>
 
       <fieldset className={formStyles["sectionCard"]}>
-        <legend className={formStyles["sectionTitle"]}>Автоответ</legend>
+        <legend className={formStyles["sectionTitle"]}>{t("settings.sessions.autoAnswer.legend")}</legend>
         <div className={formStyles["settingsGroup"]}>
           <div className={formStyles["settingBlock"]}>
             <label className={formStyles["toggleRow"]} htmlFor="settings-auto-answer-enabled">
               <span className={formStyles["toggleText"]}>
-                <span className={formStyles["toggleLabel"]}>Включить автоответ</span>
+                <span className={formStyles["toggleLabel"]}>
+                  {t("settings.sessions.autoAnswer.enabledLabel")}
+                </span>
                 <span className={formStyles["toggleDescription"]}>
-                  Входящий звонок принимается автоматически по таймеру
+                  {t("settings.sessions.autoAnswer.enabledDescription")}
                 </span>
               </span>
               <span className={formStyles["switch"]}>
@@ -126,9 +132,13 @@ export function SettingsSessionsPanel({
                 className={formStyles["fieldLabelGroup"]}
                 htmlFor="settings-auto-answer-timeout"
               >
-                <span className={formStyles["fieldLabel"]}>Задержка автоответа</span>
+                <span className={formStyles["fieldLabel"]}>
+                  {t("settings.sessions.autoAnswer.timeoutLabel")}
+                </span>
                 <span className={formStyles["fieldDescription"]} data-testid="settings-auto-answer-hint">
-                  0 — немедленный ответ; максимум {MAX_AUTO_ANSWER_TIMEOUT_SEC} с
+                  {t("settings.sessions.autoAnswer.timeoutHint", {
+                    maxSec: MAX_AUTO_ANSWER_TIMEOUT_SEC,
+                  })}
                 </span>
               </label>
               <div className={formStyles["numberInputGroup"]}>
@@ -145,7 +155,9 @@ export function SettingsSessionsPanel({
                   aria-disabled={!autoAnswerEnabled}
                   onChange={handleAutoAnswerTimeoutChange}
                 />
-                <span className={formStyles["inputSuffix"]}>сек</span>
+                <span className={formStyles["inputSuffix"]}>
+                  {t("settings.sessions.autoAnswer.secondsShort")}
+                </span>
               </div>
             </div>
           </div>
@@ -161,9 +173,11 @@ export function SettingsSessionsPanel({
               htmlFor="settings-auto-answer-during-active-session"
             >
               <span className={formStyles["toggleText"]}>
-                <span className={formStyles["toggleLabel"]}>Автоответ при активном звонке</span>
+                <span className={formStyles["toggleLabel"]}>
+                  {t("settings.sessions.autoAnswer.activeCallLabel")}
+                </span>
                 <span className={formStyles["toggleDescription"]}>
-                  Текущий разговор ставится на удержание перед автоответом
+                  {t("settings.sessions.autoAnswer.activeCallDescription")}
                 </span>
               </span>
               <span className={formStyles["switch"]}>
@@ -185,8 +199,8 @@ export function SettingsSessionsPanel({
               data-testid="settings-auto-answer-during-active-session-hint"
             >
               {!multiSessionsEnabled
-                ? "Доступно только при включённых нескольких сессиях."
-                : "Если отключено, автоответ не сработает, пока идёт другой разговор."}
+                ? t("settings.sessions.autoAnswer.activeCallHintMultiOff")
+                : t("settings.sessions.autoAnswer.activeCallHintMultiOn")}
             </p>
           </div>
         </div>

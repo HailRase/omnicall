@@ -57,7 +57,7 @@ describe("deriveCallLinesShell", () => {
     expect(shell.visible).toBe(true);
     expect(shell.lines).toHaveLength(1);
     expect(shell.lines[0]?.displayName).toBe("+12025550100");
-    expect(shell.lines[0]?.statusLabel).toBe("На линии");
+    expect(shell.lines[0]?.statusLabel).toBe("call.line.status.active");
     expect(shell.lines[0]?.primaryAction).toBe("hangup");
     expect(shell.lines[0]?.showIconRow).toBe(true);
     expect(shell.lines[0]?.showRemoteHoldBadge).toBe(false);
@@ -91,7 +91,7 @@ describe("deriveCallLinesShell", () => {
       isOcpMode: false,
     });
 
-    expect(shell.lines[0]?.statusLabel).toBe("На линии");
+    expect(shell.lines[0]?.statusLabel).toBe("call.line.status.active");
     expect(shell.lines[0]?.showRemoteHoldBadge).toBe(true);
     expect(shell.lines[0]?.showLocalHoldBadge).toBe(false);
   });
@@ -113,7 +113,7 @@ describe("deriveCallLinesShell", () => {
       isOcpMode: false,
     });
 
-    expect(shell.lines[0]?.statusLabel).toBe("На удержании");
+    expect(shell.lines[0]?.statusLabel).toBe("call.line.status.held");
     expect(shell.lines[0]?.showLocalHoldBadge).toBe(true);
     expect(shell.lines[0]?.showRemoteHoldBadge).toBe(true);
   });

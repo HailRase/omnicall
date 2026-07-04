@@ -2,6 +2,7 @@ import type { SipSessionHealth } from "@domain/index.js";
 import {
   deriveSipStatusShell,
   type SipStatusDotTone,
+  type SipStatusLabelKey,
 } from "./deriveSipStatusShell.js";
 
 export type RegistrationDotVariant =
@@ -24,11 +25,12 @@ export type HeaderChromeShellInput = Readonly<{
 
 export type HeaderChromeShellViewModel = Readonly<{
   registrationDotVariant: RegistrationDotVariant;
-  registrationDotAriaLabel: string;
+  registrationDotAriaLabelKey: "header.sipStatus.aria" | "header.sipStatus.ariaWithRetry";
+  registrationDotAriaLabelParams: Readonly<{ statusKey: SipStatusLabelKey; timer?: string }>;
   avatarInitials: string;
   showUserIdentity: boolean;
   displayName: string | null;
-  sipStatusLabel: string | null;
+  sipStatusLabelKey: SipStatusLabelKey | null;
   sipStatusTimerSuffix: string | null;
   sipStatusTone: SipStatusDotTone | null;
 }>;
@@ -76,7 +78,7 @@ function deriveAvatarInitials(
 /**
  * - Purpose: derive header chrome view-model from SIP session health (ADR-0004 §4).
  * - Inputs: SipSessionHealth, identity fields, recovery toggles, clock.
- * - Outputs: dot variant, SIP status line, and avatar initials for shell header.
+ * - Outputs: dot variant, SIP status keys, and avatar initials for shell header.
  */
 export function deriveHeaderChromeShell(
   input: HeaderChromeShellInput,
@@ -97,13 +99,23 @@ export function deriveHeaderChromeShell(
       ? input.sipUsername.trim()
       : null;
 
+  const ariaLabelKey =
+    sipStatus.timerSuffix === null
+      ? ("header.sipStatus.aria" as const)
+      : ("header.sipStatus.ariaWithRetry" as const);
+  const ariaLabelParams =
+    sipStatus.timerSuffix === null
+      ? { statusKey: sipStatus.primaryLabelKey }
+      : { statusKey: sipStatus.primaryLabelKey, timer: sipStatus.timerSuffix };
+
   return {
     registrationDotVariant: mapDotToneToVariant(sipStatus.dotTone),
-    registrationDotAriaLabel: sipStatus.ariaLabel,
+    registrationDotAriaLabelKey: ariaLabelKey,
+    registrationDotAriaLabelParams: ariaLabelParams,
     avatarInitials: deriveAvatarInitials(sipUsername, input.agentId),
     showUserIdentity: sipUsername !== null,
     displayName: sipUsername,
-    sipStatusLabel: sipUsername !== null ? sipStatus.primaryLabel : null,
+    sipStatusLabelKey: sipUsername !== null ? sipStatus.primaryLabelKey : null,
     sipStatusTimerSuffix: sipUsername !== null ? sipStatus.timerSuffix : null,
     sipStatusTone: sipUsername !== null ? sipStatus.dotTone : null,
   };

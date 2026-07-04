@@ -257,7 +257,13 @@ describe("CallEngine attended transfer", () => {
     expect(multiLineProjection.consultationCallId).toBeNull();
     expect(
       resolveTransferFailureMessage(transferProjection, multiLineProjection.lastFailureReason),
-    ).toBe("Ошибка консультации: busy");
+    ).toEqual({
+      key: "transfer.failure.message",
+      params: {
+        titleKey: "transfer.failure.title.consultationFailed",
+        detail: "busy",
+      },
+    });
   });
 
   it("matches active controls projection to restored source state on attended failure", async () => {

@@ -1,23 +1,25 @@
+import { translateCurrent } from "../i18n/index.js";
+
 export function mapDialpadDisabledReason(disabledState: string | null): string | null {
   if (disabledState === null) {
     return null;
   }
   switch (disabledState) {
     case "disabledByNotRegistered":
-      return "Не зарегистрирован";
+      return translateCurrent("dialpad.disabled.notRegistered");
     case "invalidNumber":
-      return "Некорректный номер";
+      return translateCurrent("dialpad.disabled.invalidNumber");
     case "disabledByOcpReserved":
-      return "Зарезервировано OCP";
+      return translateCurrent("dialpad.disabled.ocpReserved");
     case "disabledBySecondSessionPolicy":
-      return "Вторая сессия отключена";
+      return translateCurrent("dialpad.disabled.secondSessionDisabled");
     case "disabledByHoldAllInProgress":
-      return "Удержание других звонков…";
+      return translateCurrent("dialpad.disabled.holdAllInProgress");
     case "disabledByConnectingInProgress":
-      return "Соединение…";
+      return translateCurrent("dialpad.disabled.connectingInProgress");
     case "calling":
-      return "Звонок уже соединяется";
+      return translateCurrent("dialpad.disabled.calling");
     default:
-      return "Действие недоступно";
+      return translateCurrent("common.actionUnavailable");
   }
 }

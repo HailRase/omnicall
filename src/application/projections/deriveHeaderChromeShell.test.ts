@@ -25,7 +25,7 @@ describe("deriveHeaderChromeShell", () => {
     });
 
     expect(shell.registrationDotVariant).toBe("not_registered");
-    expect(shell.registrationDotAriaLabel).toContain("Не подключено");
+    expect(shell.registrationDotAriaLabelParams.statusKey).toBe("header.sipStatus.notConnected");
     expect(shell.avatarInitials).toBe("AG");
     expect(shell.showUserIdentity).toBe(false);
   });
@@ -39,7 +39,7 @@ describe("deriveHeaderChromeShell", () => {
     });
 
     expect(shell.registrationDotVariant).toBe("registered_online");
-    expect(shell.sipStatusLabel).toBe("Зарегистрирован");
+    expect(shell.sipStatusLabelKey).toBe("header.sipStatus.registered");
     expect(shell.sipStatusTimerSuffix).toBeNull();
     expect(shell.sipStatusTone).toBe("registered");
     expect(shell.showUserIdentity).toBe(true);
@@ -57,7 +57,7 @@ describe("deriveHeaderChromeShell", () => {
     });
 
     expect(shell.registrationDotVariant).toBe("registered_dnd");
-    expect(shell.sipStatusLabel).toBe("Не беспокоить");
+    expect(shell.sipStatusLabelKey).toBe("header.sipStatus.dnd");
     expect(shell.sipStatusTone).toBe("dnd");
   });
 
@@ -80,7 +80,7 @@ describe("deriveHeaderChromeShell", () => {
     });
 
     expect(shell.registrationDotVariant).toBe("not_registered");
-    expect(shell.sipStatusLabel).toBe("Не зарегистрирован");
+    expect(shell.sipStatusLabelKey).toBe("header.sipStatus.notRegistered");
     expect(shell.avatarInitials).toBe("AL");
   });
 
@@ -104,7 +104,7 @@ describe("deriveHeaderChromeShell", () => {
     });
 
     expect(shell.registrationDotVariant).toBe("failed");
-    expect(shell.sipStatusLabel).toBe("Нет соединения");
+    expect(shell.sipStatusLabelKey).toBe("header.sipStatus.noConnection");
     expect(shell.sipStatusTimerSuffix).toBe("00:45");
     expect(shell.sipStatusTone).toBe("reconnecting");
   });
@@ -118,7 +118,7 @@ describe("deriveHeaderChromeShell", () => {
     });
 
     expect(shell.registrationDotVariant).toBe("registering");
-    expect(shell.sipStatusLabel).toBe("Соединение");
+    expect(shell.sipStatusLabelKey).toBe("header.sipStatus.connecting");
     expect(shell.sipStatusTone).toBe("connecting");
   });
 });

@@ -566,3 +566,29 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Integration: deferred (manual manifest smoke)
   - E2E: deferred
 - Implementation evidence: `src/domain/updates/`, `src/application/use-cases/CheckForUpdatesUseCase.ts`, `src/adapters/updates/FetchUpdateMetadataAdapter.ts`, `src/adapters/platform/PreloadPlatformInfoGateway.ts`, `src/adapters/platform/PreloadExternalUrlGateway.ts`, `src/shared/ipc/OpenExternalUrlContract.ts`, `src/renderer/hooks/useAppUpdate.ts`, `src/renderer/components/settings/panels/SettingsGeneralPanel.tsx`, `guides/Manual-Update-Manifest.md`, `docs/softphone/release/update-manifest.json`, `guides/GitHub-Releases-Update-Guide.md`
+
+## F-021: Interface Internationalization And Language Settings
+
+- Legacy IDs: none
+- Context: Settings
+- Priority: high
+- Status: implemented
+- Owner: TBD
+- Inputs: user language preference, translation catalog, UI message keys
+- Outputs: persisted language setting, localized renderer UI, translation coverage checks
+- Acceptance Criteria:
+  - Language selector exists in Settings → General.
+  - Language is persisted per user in `UserSettings`.
+  - Selected language applies immediately without restart.
+  - All touched UI and UI-facing logic add keys for every supported locale.
+  - No new hardcoded user-visible strings outside approved translation modules/tests/stories.
+  - Supported interface locales are `ru`, `en`, `fr`, `de`; catalogs stay key-parity complete for migrated modules.
+  - Settings → General language selector renders full locale labels and does not reuse numeric input styling.
+  - Renderer UI-facing modules (`components`, `helpers`, `shells`, UI-facing `hooks`) are key-based and resolved through i18n runtime.
+  - UI-facing `application/projections` emit semantic keys/params (no localized sentences).
+- Test Coverage:
+  - Unit: `SupportedLanguage` validation, `UserSettings` v2 migration/validation, translation key parity, interpolation.
+  - Component: Settings language selector and at least one critical shell/call surface in `ru`, `en`, `fr`, and `de`.
+  - Integration: save/reload language through `AccountBootstrapFacade` + settings repository.
+  - E2E: deferred until harness exists.
+- Implementation evidence: `docs/softphone/adr/ADR-0006-interface-internationalization.md`, `src/domain/settings/SupportedLanguage.ts`, `src/domain/settings/UserSettings.ts`, `src/renderer/i18n/messages.ts`, `src/renderer/i18n/runtime.ts`, `.cursor/rules/i18n.mdc`, `docs/softphone/I18N-Architecture.md`, `docs/softphone/I18N-Coverage.md`

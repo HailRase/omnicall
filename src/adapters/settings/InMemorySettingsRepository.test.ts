@@ -48,6 +48,18 @@ describe("InMemorySettingsRepository", () => {
     expect(await repository.getUserSettings(accountKey)).toEqual(settings);
   });
 
+  it("persists language in per-account settings", async () => {
+    const repository = new InMemorySettingsRepository();
+    const accountKey = createSettingsAccountKey("agent-i18n");
+
+    await repository.saveUserSettings(accountKey, {
+      ...createDefaultUserSettings(),
+      language: "en",
+    });
+
+    expect((await repository.getUserSettings(accountKey)).language).toBe("en");
+  });
+
   it("exposes auto-answer timeout from user settings aggregate", async () => {
     const repository = new InMemorySettingsRepository();
     const accountKey = createSettingsAccountKey("__anonymous__");

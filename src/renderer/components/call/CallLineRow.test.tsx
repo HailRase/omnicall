@@ -17,7 +17,7 @@ const baseLine: CallLineCardViewModel = {
   muted: false,
   isActiveUnheld: true,
   displayName: "+12025550100",
-  statusLabel: "On line",
+  statusLabel: "call.line.status.active",
   durationStartedAt: Date.now() - 65_000,
   queueLabelState: "hidden",
   queueName: null,
@@ -64,7 +64,7 @@ describe("CallLineRow", () => {
         line={{
           ...baseLine,
           state: "Held",
-          statusLabel: "On hold",
+          statusLabel: "call.line.status.held",
           primaryAction: "resume",
           showIconRow: false,
           showLocalHoldBadge: true,

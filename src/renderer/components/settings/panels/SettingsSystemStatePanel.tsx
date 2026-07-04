@@ -6,6 +6,7 @@ import {
   MIN_SIP_REREGISTER_INTERVAL_SEC,
 } from "@application/index.js";
 import type { SipManualActionKind } from "../../../hooks/useSipSystemStateActions.js";
+import { useI18n } from "../../../i18n/index.js";
 import { AppIcon } from "../../icons/AppIcon.js";
 import formStyles from "../SettingsForm.module.css";
 import styles from "./SettingsSystemStatePanel.module.css";
@@ -295,6 +296,8 @@ export function SettingsSystemStatePanel({
   actionSuccess,
   actionLoading,
 }: SettingsSystemStatePanelProps): JSX.Element {
+  const { t } = useI18n();
+  const summaryText = t(shell.summaryLabelKey);
   const autoReconnectDescriptionId = useId();
   const autoReregisterDescriptionId = useId();
   const autoRegisterStartupDescriptionId = useId();
@@ -334,7 +337,7 @@ export function SettingsSystemStatePanel({
     shell.effectiveRegistrationState,
   );
 
-  const liveStateSummary = `Сервер: ${shell.transportStateLabel}. Регистрация: ${shell.registrationStateLabel}. Сводка: ${shell.summaryLabel}.`;
+  const liveStateSummary = `Сервер: ${shell.transportStateLabel}. Регистрация: ${shell.registrationStateLabel}. Сводка: ${summaryText}.`;
 
   return (
     <div className={formStyles["panelStack"]} data-testid="settings-system-state-panel">
@@ -416,11 +419,11 @@ export function SettingsSystemStatePanel({
                 </StateWithActionsRow>
                 <StateWithActionsRow
                   metric={{
-                    indicatorLabel: `Сводка: ${shell.summaryLabel}`,
+                    indicatorLabel: `Сводка: ${summaryText}`,
                     tone: summaryTone,
                     label: "Сводка",
                     testId: "settings-sip-summary-label",
-                    value: shell.summaryLabel,
+                    value: summaryText,
                     reason: null,
                   }}
                 />

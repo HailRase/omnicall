@@ -23,6 +23,8 @@ const emptyAccount = {
 } as const;
 
 const themeDefaults = {
+  language: "ru" as const,
+  onLanguageChange: vi.fn(),
   theme: "light" as const,
   onThemeChange: vi.fn(),
 } as const;

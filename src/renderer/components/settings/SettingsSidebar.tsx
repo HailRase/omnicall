@@ -3,6 +3,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import type { JSX } from "react";
 import { AppIcon } from "../icons/index.js";
 import { IconControlButton } from "../icons/index.js";
+import { useI18n } from "../../i18n/index.js";
 import type { SettingsSectionId } from "./settingsSections.js";
 import { SETTINGS_NAV_ITEMS } from "./settingsSections.js";
 import styles from "./SettingsSidebar.module.css";
@@ -28,6 +29,7 @@ export function SettingsSidebar({
   onSectionChange,
   onToggleExpanded,
 }: SettingsSidebarProps): JSX.Element {
+  const { t } = useI18n();
   const prefersReducedMotion = useReducedMotion();
   const transition = prefersReducedMotion
     ? { duration: 0 }
@@ -38,7 +40,7 @@ export function SettingsSidebar({
       className={styles["rail"]}
       data-testid="settings-sidebar"
       data-expanded={expanded ? "true" : "false"}
-      aria-label="Разделы настроек"
+      aria-label={t("settings.nav.label")}
     >
       <motion.div
         className={clsx(styles["panel"], expanded && styles["panelExpanded"])}
@@ -50,7 +52,11 @@ export function SettingsSidebar({
           <div className={styles["toggleSlot"]}>
             <IconControlButton
               iconId={expanded ? "settings.nav.collapse" : "settings.nav.expand"}
-              ariaLabel={expanded ? "Свернуть меню настроек" : "Развернуть меню настроек"}
+              ariaLabel={
+                expanded
+                  ? t("settings.nav.collapseMenu")
+                  : t("settings.nav.expandMenu")
+              }
               testId={expanded ? "settings-sidebar-collapse" : "settings-sidebar-expand"}
               className={styles["toggleButton"]}
               ariaExpanded={expanded}
@@ -67,7 +73,7 @@ export function SettingsSidebar({
                     className={clsx(styles["navButton"], isActive && styles["navButtonActive"])}
                     data-testid={item.testId}
                     aria-current={isActive ? "page" : undefined}
-                    aria-label={item.label}
+                    aria-label={t(item.labelKey)}
                     onClick={() => {
                       onSectionChange(item.id);
                     }}
@@ -85,7 +91,7 @@ export function SettingsSidebar({
                       transition={transition}
                       aria-hidden={!expanded}
                     >
-                      {item.label}
+                      {t(item.labelKey)}
                     </motion.span>
                   </button>
                 </li>

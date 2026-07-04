@@ -1,4 +1,5 @@
 import type { AgentStatusRejectionReason } from "@application/index.js";
+import { translateCurrent } from "../i18n/index.js";
 
 /**
  * - Purpose: map agent status rejection reason keys to user-visible banner copy.
@@ -14,20 +15,20 @@ export function mapAgentStatusRejectionReason(
 
   switch (reason) {
     case "invalid_transition":
-      return "Эта смена статуса недоступна.";
+      return translateCurrent("status.rejection.invalidTransition");
     case "dnd_blocks_ready":
-      return "Нельзя перейти в «Готов» при активном режиме «Не беспокоить».";
+      return translateCurrent("status.rejection.dndBlocksReady");
     case "break_reason_required":
-      return "Требуется корректная причина перерыва.";
+      return translateCurrent("status.rejection.breakReasonRequired");
     case "already_in_status":
-      return "Вы уже в этом статусе.";
+      return translateCurrent("status.rejection.alreadyInStatus");
     case "gateway_failed":
-      return "Платформа оператора отклонила смену статуса.";
+      return translateCurrent("status.rejection.gatewayFailed");
     case "ocp_not_connected":
-      return "Платформа оператора недоступна.";
+      return translateCurrent("status.rejection.ocpNotConnected");
     case "network_error":
-      return "Сетевая ошибка при смене статуса. Повторите попытку.";
+      return translateCurrent("status.rejection.networkError");
     default:
-      return "Не удалось сменить статус.";
+      return translateCurrent("status.rejection.default");
   }
 }

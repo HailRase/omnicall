@@ -3,6 +3,7 @@ import type {
   ActiveCallControlOperationError,
   CallLinesShellViewModel,
 } from "@application/index.js";
+import { useI18n } from "../../i18n/index.js";
 import chromeTextStyles from "../shell/ShellChromeText.module.css";
 import { CallLineRow } from "./CallLineRow.js";
 import styles from "./CallLinesShell.module.css";
@@ -39,6 +40,7 @@ export function CallLinesShell({
   onAnswerLine,
   onRetryOperation,
 }: CallLinesShellProps): JSX.Element | null {
+  const { t } = useI18n();
   if (!shell.visible) {
     return null;
   }
@@ -47,7 +49,7 @@ export function CallLinesShell({
     <section
       className={styles["panel"]}
       data-testid="call-lines-panel"
-      aria-label="Активные линии звонков"
+      aria-label={t("call.lines.ariaLabel")}
     >
       {shell.policyErrorMessage !== null && !compact ? (
         <p

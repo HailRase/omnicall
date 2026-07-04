@@ -1,5 +1,6 @@
 import { useEffect, useRef, type JSX, type KeyboardEvent } from "react";
 import { mapCampaignModalDisabledReasonWithFallback } from "../../helpers/mapCampaignModalDisabledReason.js";
+import { useI18n } from "../../i18n/index.js";
 import { IconControlButton } from "../icons/index.js";
 import dialogStyles from "../shell/DialogPanel.module.css";
 import styles from "./CampaignEventModal.module.css";
@@ -32,6 +33,7 @@ export function CampaignEventModal({
   onReject,
   onClose,
 }: CampaignEventModalProps): JSX.Element | null {
+  const { t } = useI18n();
   const modalRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -82,7 +84,7 @@ export function CampaignEventModal({
     <section
       ref={modalRef}
       role="dialog"
-      aria-label="Запрос кампании"
+      aria-label={t("campaign.modal.ariaLabel")}
       aria-modal="true"
       tabIndex={-1}
       className={dialogStyles["modal"]}
@@ -90,7 +92,7 @@ export function CampaignEventModal({
       onKeyDown={handleKeyDown}
     >
       <h2>{title}</h2>
-      <p>Примите или отклоните этот запрос кампании.</p>
+      <p>{t("campaign.modal.description")}</p>
 
       {responseError !== null && (
         <div className={styles["error"]} role="alert" data-testid="campaign-modal-error">
@@ -101,8 +103,8 @@ export function CampaignEventModal({
       <div className={dialogStyles["actions"]}>
         <IconControlButton
           iconId="action.confirm"
-          ariaLabel="Принять запрос кампании"
-          tooltipLabel="Принять"
+          ariaLabel={t("campaign.modal.acceptAria")}
+          tooltipLabel={t("campaign.modal.acceptLabel")}
           testId="campaign-accept"
           className={styles["iconButton"]}
           disabledReason={
@@ -114,8 +116,8 @@ export function CampaignEventModal({
         />
         <IconControlButton
           iconId="call.reject"
-          ariaLabel="Отклонить запрос кампании"
-          tooltipLabel="Отклонить"
+          ariaLabel={t("campaign.modal.rejectAria")}
+          tooltipLabel={t("campaign.modal.rejectLabel")}
           testId="campaign-reject"
           className={styles["iconButton"]}
           disabledReason={
@@ -127,7 +129,7 @@ export function CampaignEventModal({
         />
         <IconControlButton
           iconId="overlay.close"
-          ariaLabel="Закрыть запрос кампании"
+          ariaLabel={t("campaign.modal.closeAria")}
           testId="campaign-modal-close"
           className={styles["closeButton"]}
           disabled={!closeAllowed}

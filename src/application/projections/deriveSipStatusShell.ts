@@ -15,6 +15,14 @@ export type SipStatusDotTone =
   | "registered"
   | "dnd";
 
+export type SipStatusLabelKey =
+  | "header.sipStatus.notConnected"
+  | "header.sipStatus.connecting"
+  | "header.sipStatus.noConnection"
+  | "header.sipStatus.notRegistered"
+  | "header.sipStatus.registered"
+  | "header.sipStatus.dnd";
+
 export type SipStatusShellInput = Readonly<{
   health: SipSessionHealth;
   dndEnabled?: boolean;
@@ -25,15 +33,14 @@ export type SipStatusShellInput = Readonly<{
 
 export type SipStatusShellView = Readonly<{
   dotTone: SipStatusDotTone;
-  primaryLabel: string;
+  primaryLabelKey: SipStatusLabelKey;
   timerSuffix: string | null;
-  ariaLabel: string;
 }>;
 
 /**
  * - Purpose: derive header SIP status line from session health (ADR-0004 §1.2).
  * - Inputs: SipSessionHealth, DND flag, auto-recovery toggles, clock.
- * - Outputs: dot tone, Russian label, optional retry timer suffix.
+ * - Outputs: dot tone, semantic label key, optional retry timer suffix.
  */
 export function deriveSipStatusShell(input: SipStatusShellInput): SipStatusShellView {
   const nowMs = input.nowMs ?? Date.now();
@@ -41,84 +48,78 @@ export function deriveSipStatusShell(input: SipStatusShellInput): SipStatusShell
   const effectiveRegistration = getEffectiveRegistrationState(input.health);
 
   if (input.health.lifecycle === "idle") {
-    return buildView("idle", "Не подключено", null);
+    return buildView("idle", "header.sipStatus.notConnected", null);
   }
 
   const transport = input.health.transport;
 
   if (transport === "connecting") {
-    return buildView("connecting", "Соединение", null);
+    return buildView("connecting", "header.sipStatus.connecting", null);
   }
 
   if (transport === "reconnecting") {
     const suffix =
       input.sipAutoReconnectEnabled === false
         ? null
-        : formatRetrySuffix("переподкл.", input.health.recovery.nextRetryAt, nowMs);
-    return buildView("reconnecting", "Нет соединения", suffix);
+        : formatRetrySuffix(input.health.recovery.nextRetryAt, nowMs);
+    return buildView("reconnecting", "header.sipStatus.noConnection", suffix);
   }
 
   if (transport === "disconnected") {
-    return buildView("disconnected", "Нет соединения", null);
+    return buildView("disconnected", "header.sipStatus.noConnection", null);
   }
 
   if (
     input.health.registration === "registering" &&
     (transport === "idle" || transport === "connected")
   ) {
-    return buildView("registering", "Соединение", null);
+    return buildView("registering", "header.sipStatus.connecting", null);
   }
 
   if (effectiveRegistration === "registering") {
-    return buildView("registering", "Соединение", null);
+    return buildView("registering", "header.sipStatus.connecting", null);
   }
 
   if (effectiveRegistration === "failed") {
     const suffix =
       input.sipAutoReregisterEnabled === false
         ? null
-        : formatRetrySuffix("перерег.", input.health.recovery.nextRetryAt, nowMs);
-    return buildView("not_registered", "Не зарегистрирован", suffix);
+        : formatRetrySuffix(input.health.recovery.nextRetryAt, nowMs);
+    return buildView("not_registered", "header.sipStatus.notRegistered", suffix);
   }
 
   if (effectiveRegistration === "idle" && transport === "connected") {
     const suffix =
       input.health.recovery.target === "registration" &&
       input.sipAutoReregisterEnabled !== false
-        ? formatRetrySuffix("перерег.", input.health.recovery.nextRetryAt, nowMs)
+        ? formatRetrySuffix(input.health.recovery.nextRetryAt, nowMs)
         : null;
-    return buildView("not_registered", "Не зарегистрирован", suffix);
+    return buildView("not_registered", "header.sipStatus.notRegistered", suffix);
   }
 
   if (isEffectivelyRegistered(input.health)) {
     if (dndEnabled) {
-      return buildView("dnd", "Не беспокоить", null);
+      return buildView("dnd", "header.sipStatus.dnd", null);
     }
-    return buildView("registered", "Зарегистрирован", null);
+    return buildView("registered", "header.sipStatus.registered", null);
   }
 
-  return buildView("not_registered", "Не зарегистрирован", null);
+  return buildView("not_registered", "header.sipStatus.notRegistered", null);
 }
 
 function buildView(
   dotTone: SipStatusDotTone,
-  primaryLabel: string,
+  primaryLabelKey: SipStatusLabelKey,
   timerSuffix: string | null,
 ): SipStatusShellView {
-  const ariaLabel =
-    timerSuffix === null
-      ? `SIP: ${primaryLabel}`
-      : `SIP: ${primaryLabel}, повтор через ${timerSuffix}`;
   return {
     dotTone,
-    primaryLabel,
+    primaryLabelKey,
     timerSuffix,
-    ariaLabel,
   };
 }
 
 function formatRetrySuffix(
-  _prefix: string,
   nextRetryAt: string | null,
   nowMs: number,
 ): string | null {

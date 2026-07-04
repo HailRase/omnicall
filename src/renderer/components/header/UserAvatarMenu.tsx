@@ -2,6 +2,7 @@ import clsx from "clsx";
 import type { JSX, RefObject } from "react";
 import { createPortal } from "react-dom";
 import type { AnchoredMenuPosition } from "../../helpers/computeAnchoredMenuPosition.js";
+import { useI18n } from "../../i18n/index.js";
 import { AppIcon } from "../icons/index.js";
 import styles from "./UserAvatarMenu.module.css";
 
@@ -34,11 +35,14 @@ export function UserAvatarMenu({
   onToggleDnd,
   onLogout,
 }: UserAvatarMenuProps): JSX.Element | null {
+  const { t } = useI18n();
   if (!open || typeof document === "undefined") {
     return null;
   }
 
-  const dndLabel = dndEnabled ? 'Выкл. "Не беспокоить"' : 'Вкл. "Не беспокоить"';
+  const dndLabel = dndEnabled
+    ? t("header.userMenu.dndDisable")
+    : t("header.userMenu.dndEnable");
   const dndIconId = dndEnabled ? "phone.dnd.on" : "phone.dnd.off";
 
   return createPortal(
@@ -46,7 +50,7 @@ export function UserAvatarMenu({
       ref={menuRef}
       className={styles["menu"]}
       role="menu"
-      aria-label="Меню пользователя"
+      aria-label={t("header.userMenu.ariaLabel")}
       data-testid="user-avatar-menu"
       style={{ top: position.top, left: position.left }}
     >
@@ -60,7 +64,7 @@ export function UserAvatarMenu({
         <span className={styles["itemIcon"]}>
           <AppIcon id="shell.settings" decorative />
         </span>
-        <span className={styles["itemLabel"]}>Настройки</span>
+        <span className={styles["itemLabel"]}>{t("settings.title")}</span>
       </button>
 
       <button
@@ -87,13 +91,13 @@ export function UserAvatarMenu({
         data-testid="user-menu-logout"
         disabled={logoutDisabledReason !== null}
         title={logoutDisabledReason ?? undefined}
-        aria-label={logoutDisabledReason ?? "Выход"}
+        aria-label={logoutDisabledReason ?? t("header.userMenu.logout")}
         onClick={onLogout}
       >
         <span className={styles["itemIcon"]}>
           <AppIcon id="session.end" decorative preferAnimated={false} />
         </span>
-        <span className={styles["itemLabel"]}>Выход</span>
+        <span className={styles["itemLabel"]}>{t("header.userMenu.logout")}</span>
       </button>
     </div>,
     document.body,

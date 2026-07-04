@@ -7,6 +7,10 @@ import {
   MIN_SIP_RECONNECT_INTERVAL_SEC,
   MIN_SIP_REREGISTER_INTERVAL_SEC,
 } from "./SipRecoverySettings.js";
+import {
+  DEFAULT_SUPPORTED_LANGUAGE,
+  type SupportedLanguage,
+} from "./SupportedLanguage.js";
 
 export const SETTINGS_SCHEMA_VERSION = 2 as const;
 
@@ -17,6 +21,7 @@ export const MAX_AUTO_ANSWER_TIMEOUT_SEC = 300;
 
 export type UserSettings = Readonly<{
   schemaVersion: SettingsSchemaVersion;
+  language: SupportedLanguage;
   theme: AppTheme;
   multiSessionsEnabled: boolean;
   autoUnholdOnTransferFailure: boolean;
@@ -42,6 +47,7 @@ export { MIN_SIP_REREGISTER_INTERVAL_SEC, MIN_SIP_RECONNECT_INTERVAL_SEC };
 export function createDefaultUserSettings(): UserSettings {
   return {
     schemaVersion: SETTINGS_SCHEMA_VERSION,
+    language: DEFAULT_SUPPORTED_LANGUAGE,
     theme: DEFAULT_APP_THEME,
     multiSessionsEnabled: true,
     autoUnholdOnTransferFailure: true,

@@ -133,6 +133,8 @@ export function SoftphoneReadyShell({
               onClose={overlayShell.closeOverlay}
               onSectionChange={overlayShell.setSettingsSection}
               onSidebarExpandedChange={setSettingsSidebarExpanded}
+              language={settingsActions.userSettings.language}
+              onLanguageChange={settingsActions.onLanguageChange}
               theme={settingsActions.userSettings.theme}
               onThemeChange={settingsActions.onThemeChange}
               multiSessionsEnabled={multiCallProjection.multiSessionsEnabled}

@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { useI18n } from "../../../i18n/index.js";
 import { SettingsPlaceholderPanel } from "./SettingsPlaceholderPanel.js";
 
 /**
@@ -7,11 +8,12 @@ import { SettingsPlaceholderPanel } from "./SettingsPlaceholderPanel.js";
  * - Outputs: Russian placeholder copy for planned headset integration.
  */
 export function SettingsHeadsetPanel(): JSX.Element {
+  const { t } = useI18n();
   return (
     <SettingsPlaceholderPanel
-      title="Гарнитура"
+      title={t("settings.headset.title")}
       testId="settings-headset-panel"
-      description="Настройка гарнитуры и кнопок наушников появится в фазе P10 — интеграция гарнитур."
+      description={t("settings.headset.description")}
     />
   );
 }

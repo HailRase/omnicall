@@ -17,6 +17,30 @@ describe("FileSettingsRepository", () => {
     expect(await repository.getUserSettings(accountKey)).toEqual(settings);
   });
 
+  it("migrates v1 payload to v2 with default language", async () => {
+    const repository = new FileSettingsRepository();
+    const accountKey = createSettingsAccountKey("agent-v1");
+    repository.seedCorruptJson(
+      "agent-v1",
+      JSON.stringify({
+        schemaVersion: 1,
+        theme: "light",
+        multiSessionsEnabled: true,
+        autoUnholdOnTransferFailure: true,
+        autoAnswerTimeoutSec: null,
+        autoAnswerDuringActiveSessionEnabled: false,
+        ringbackToneEnabled: true,
+        sipAutoReregisterEnabled: true,
+        sipReregisterIntervalSec: 5,
+        sipReregisterMaxAttempts: 3,
+      }),
+    );
+
+    const migrated = await repository.getUserSettings(accountKey);
+    expect(migrated.schemaVersion).toBe(2);
+    expect(migrated.language).toBe("ru");
+  });
+
   it("delegates multi-call updates through schema aggregate", async () => {
     const repository = new FileSettingsRepository();
     await repository.setMultiCallSettings({

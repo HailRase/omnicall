@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { useI18n } from "../../i18n/index.js";
 import { IconControlButton } from "../icons/index.js";
 import dismissStyles from "../icons/iconOverlayDismiss.module.css";
 import styles from "./DtmfKeypadPanel.module.css";
@@ -30,6 +31,7 @@ export function DtmfKeypadPanel({
   onTone,
   onClose,
 }: DtmfKeypadPanelProps): JSX.Element {
+  const { t } = useI18n();
   const toneDisplay =
     toneHistory.length > 0 ? toneHistory : lastTone !== null ? lastTone : "";
   const toneTestId =
@@ -40,13 +42,19 @@ export function DtmfKeypadPanel({
         : undefined;
 
   return (
-    <section className={styles["panel"]} data-testid="dtmf-keypad-panel" aria-label="Тоновый набор">
+    <section
+      className={styles["panel"]}
+      data-testid="dtmf-keypad-panel"
+      aria-label={t("call.dtmf.panelAriaLabel")}
+    >
       <div className={styles["header"]}>
-        <span className={styles["headerTitle"]}>Тоновый набор (DTMF) {displayName}</span>
+        <span className={styles["headerTitle"]}>
+          {t("call.dtmf.title", { displayName })}
+        </span>
         <IconControlButton
           iconId="overlay.close"
-          ariaLabel="Закрыть тоновый набор"
-          tooltipLabel="Закрыть"
+          ariaLabel={t("call.dtmf.closeAriaLabel")}
+          tooltipLabel={t("icons.overlay.close")}
           testId="dtmf-close"
           className={dismissStyles["dismiss"]}
           onClick={onClose}
@@ -59,14 +67,14 @@ export function DtmfKeypadPanel({
           readOnly
           className={styles["toneField"]}
           value={toneDisplay}
-          placeholder="Тоны"
-          aria-label="Набранные тоны"
+          placeholder={t("call.dtmf.placeholder")}
+          aria-label={t("call.dtmf.tonesAriaLabel")}
           aria-live="polite"
           {...(toneTestId !== undefined ? { "data-testid": toneTestId } : {})}
         />
       </div>
 
-      <div className={styles["keys"]} role="group" aria-label="Клавиши DTMF">
+      <div className={styles["keys"]} role="group" aria-label={t("call.dtmf.keysAriaLabel")}>
         {DTMF_KEYS.map((key) => (
           <button
             key={key}
@@ -88,7 +96,7 @@ export function DtmfKeypadPanel({
           {errorMessage}
         </p>
       ) : null}
-      <p className={styles["hint"]}>Тоны передаются в активный звонок</p>
+      <p className={styles["hint"]}>{t("call.dtmf.hint")}</p>
     </section>
   );
 }

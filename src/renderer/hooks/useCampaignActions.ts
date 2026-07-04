@@ -6,6 +6,7 @@ import type {
 } from "@application/index.js";
 import { getCampaignForCall } from "@application/index.js";
 import { isErr } from "@shared/result/index.js";
+import { translateCurrent } from "../i18n/index.js";
 
 type UseCampaignActionsInput = Readonly<{
   facade: AccountBootstrapFacade | null;
@@ -158,7 +159,7 @@ export function useCampaignActions(
   return {
     campaignContextTitle,
     modalOpen: modalOpen && campaign !== null && !campaign.progressive,
-    modalTitle: campaign?.title ?? "Запрос кампании",
+    modalTitle: campaign?.title ?? translateCurrent("campaign.modal.ariaLabel"),
     progressive: campaign?.progressive ?? false,
     acceptDisabledReason,
     rejectDisabledReason,

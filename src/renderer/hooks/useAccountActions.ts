@@ -3,6 +3,7 @@ import type { AccountBootstrapFacade } from "@application/facades/AccountBootstr
 import type { SipAccountInput } from "@application/index.js";
 import { isErr } from "@shared/result/index.js";
 import { readSipEnvDefaults } from "../bootstrap/readSipEnvDefaults.js";
+import { translateCurrent } from "../i18n/index.js";
 
 const EMPTY_FORM: SipAccountInput = {
   username: "",
@@ -66,7 +67,9 @@ export function useAccountActions(
         }
       } catch (submitError: unknown) {
         const message =
-          submitError instanceof Error ? submitError.message : "Ошибка авторизации";
+          submitError instanceof Error
+            ? submitError.message
+            : translateCurrent("account.error.authorizationFailed");
         setError(message);
       } finally {
         setSubmitting(false);

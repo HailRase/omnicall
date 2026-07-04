@@ -1,7 +1,8 @@
-import type { JSX } from "react";
+﻿import type { JSX } from "react";
 import type { HeaderChromeShellViewModel } from "@application/index.js";
 import type { UseUserAvatarMenuActionsResult } from "../hooks/useUserAvatarMenuActions.js";
 import type { UseUserAvatarMenuResult } from "../hooks/useUserAvatarMenu.js";
+import { useI18n } from "../i18n/index.js";
 import { RegistrationStatusDot } from "../components/header/RegistrationStatusDot.js";
 import { UserAvatar } from "../components/header/UserAvatar.js";
 import { UserAvatarMenu } from "../components/header/UserAvatarMenu.js";
@@ -25,6 +26,19 @@ export function SoftphoneShellHeader({
   userAvatarMenu,
   userAvatarMenuActions,
 }: SoftphoneShellHeaderProps): JSX.Element {
+  const { t } = useI18n();
+  const statusLabel =
+    headerChrome.sipStatusLabelKey !== null ? t(headerChrome.sipStatusLabelKey) : null;
+  const registrationDotLabel =
+    headerChrome.registrationDotAriaLabelKey === "header.sipStatus.aria"
+      ? t(headerChrome.registrationDotAriaLabelKey, {
+          status: t(headerChrome.registrationDotAriaLabelParams.statusKey),
+        })
+      : t(headerChrome.registrationDotAriaLabelKey, {
+          status: t(headerChrome.registrationDotAriaLabelParams.statusKey),
+          timer: headerChrome.registrationDotAriaLabelParams.timer ?? "",
+        });
+
   return (
     <header className={styles["header"]} data-testid="shell-header">
       <div className={styles["headerBar"]}>
@@ -40,7 +54,7 @@ export function SoftphoneShellHeader({
               />
               <RegistrationStatusDot
                 variant={headerChrome.registrationDotVariant}
-                label={headerChrome.registrationDotAriaLabel}
+                label={registrationDotLabel}
               />
               <UserAvatarMenu
                 open={userAvatarMenu.open}
@@ -56,11 +70,11 @@ export function SoftphoneShellHeader({
             </div>
             {headerChrome.showUserIdentity &&
             headerChrome.displayName !== null &&
-            headerChrome.sipStatusLabel !== null &&
+            statusLabel !== null &&
             headerChrome.sipStatusTone !== null ? (
               <UserHeaderIdentity
                 displayName={headerChrome.displayName}
-                sipStatusLabel={headerChrome.sipStatusLabel}
+                sipStatusLabel={statusLabel}
                 sipStatusTimerSuffix={headerChrome.sipStatusTimerSuffix}
                 sipStatusTone={headerChrome.sipStatusTone}
               />
