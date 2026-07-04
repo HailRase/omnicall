@@ -10,6 +10,7 @@ import type { SipManualActionSuccessKey } from "../../../hooks/useSipSystemState
 import { formatLocaleDateTime, useI18n } from "../../../i18n/index.js";
 import type { TranslationKey } from "../../../i18n/messages.js";
 import { AppIcon } from "../../icons/AppIcon.js";
+import { IconTooltip } from "../../icons/IconTooltip.js";
 import formStyles from "../SettingsForm.module.css";
 import styles from "./SettingsSystemStatePanel.module.css";
 import {
@@ -213,26 +214,27 @@ function ManualActionButton({
 
   return (
     <div className={styles.manualActionItem}>
-      <button
-        type="button"
-        className={formStyles.secondaryButton}
-        data-testid={testId}
-        disabled={isDisabled}
-        aria-disabled={isDisabled}
-        aria-busy={isLoading || undefined}
-        aria-describedby={disabledReason !== null ? reasonId : undefined}
-        title={disabledReason ?? undefined}
-        onClick={onClick}
-      >
-        {isLoading ? (
-          <span className={styles.buttonLoading}>
-            <span className={styles.buttonSpinner} aria-hidden="true" />
-            {loadingLabel}
-          </span>
-        ) : (
-          label
-        )}
-      </button>
+      <IconTooltip label={disabledReason ?? ""}>
+        <button
+          type="button"
+          className={formStyles.secondaryButton}
+          data-testid={testId}
+          disabled={isDisabled}
+          aria-disabled={isDisabled}
+          aria-busy={isLoading || undefined}
+          aria-describedby={disabledReason !== null ? reasonId : undefined}
+          onClick={onClick}
+        >
+          {isLoading ? (
+            <span className={styles.buttonLoading}>
+              <span className={styles.buttonSpinner} aria-hidden="true" />
+              {loadingLabel}
+            </span>
+          ) : (
+            label
+          )}
+        </button>
+      </IconTooltip>
       {disabledReason !== null ? (
         <span id={reasonId} className={styles.disabledReasonSrOnly} data-testid={reasonTestId}>
           {disabledReason}

@@ -15,6 +15,7 @@ declare const classes: {
   readonly failureTitle: string;
   readonly footer: string;
   readonly footerComplete: string;
+  readonly footerCompleteTooltipHost: string;
   readonly header: string;
   readonly lineCard: string;
   readonly lineLabel: string;
@@ -44,6 +45,7 @@ declare const classes: {
   readonly typeCardDescription: string;
   readonly typeCardDisabled: string;
   readonly typeCardTitle: string;
+  readonly typeCardTooltipHost: string;
   readonly typeList: string;
   readonly waiting: string;
 };

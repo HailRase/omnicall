@@ -5,6 +5,7 @@ declare const classes: {
   readonly itemDndActive: string;
   readonly itemIcon: string;
   readonly itemLabel: string;
+  readonly itemTooltipHost: string;
   readonly menu: string;
 };
 export default classes;

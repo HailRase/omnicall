@@ -9,6 +9,11 @@
   box-shadow: var(--shadow-menu-elevated);
 }
 
+.item-tooltip-host {
+  display: flex;
+  width: 100%;
+}
+
 .item {
   display: flex;
   align-items: center;

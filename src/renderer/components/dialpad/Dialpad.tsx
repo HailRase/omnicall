@@ -6,7 +6,7 @@ import { useI18n } from "../../i18n/index.js";
 
 import { AppIcon } from "../icons/AppIcon.js";
 
-import { IconControlButton } from "../icons/index.js";
+import { IconControlButton, IconTooltip } from "../icons/index.js";
 
 import dismissStyles from "../icons/iconOverlayDismiss.module.css";
 
@@ -556,49 +556,32 @@ export function Dialpad({
 
 
 
-      <button
-
-        type="button"
-
-        className={clsx(
-
-          styles.callButton,
-
-          canDial && styles.callButtonReady,
-
-          isCalling && styles.callButtonBusy,
-
-        )}
-
-        data-testid="dialpad-call"
-
-        aria-label={isCalling ? t("dialpad.call.connectingAria") : t("dialpad.call.ariaLabel")}
-
-        disabled={!canDial}
-
-        title={callDisabledReason ?? callLabel}
-
-        onClick={onCall}
-
+      <IconTooltip
+        label={callDisabledReason ?? callLabel}
+        className={styles.callButtonTooltipHost}
       >
-
-        <AppIcon id="dial.call" size={18} decorative />
-
-        {!canDial && callDisabledReason !== null && numberValue.length === 0 ? (
-
-          <span className={styles.callButtonReason}>{callDisabledReason}</span>
-
-        ) : (
-
-          <span className={styles.callButtonLabel}>
-
-            {isCalling ? connectingLabel : callLabel}
-
-          </span>
-
-        )}
-
-      </button>
+        <button
+          type="button"
+          className={clsx(
+            styles.callButton,
+            canDial && styles.callButtonReady,
+            isCalling && styles.callButtonBusy,
+          )}
+          data-testid="dialpad-call"
+          aria-label={isCalling ? t("dialpad.call.connectingAria") : t("dialpad.call.ariaLabel")}
+          disabled={!canDial}
+          onClick={onCall}
+        >
+          <AppIcon id="dial.call" size={18} decorative />
+          {!canDial && callDisabledReason !== null && numberValue.length === 0 ? (
+            <span className={styles.callButtonReason}>{callDisabledReason}</span>
+          ) : (
+            <span className={styles.callButtonLabel}>
+              {isCalling ? connectingLabel : callLabel}
+            </span>
+          )}
+        </button>
+      </IconTooltip>
 
     </section>
 

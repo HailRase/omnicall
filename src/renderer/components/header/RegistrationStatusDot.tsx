@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import type { JSX } from "react";
 import type { RegistrationDotVariant } from "@application/index.js";
+import { IconTooltip } from "../icons/IconTooltip.js";
 import styles from "./RegistrationStatusDot.module.css";
 
 export type RegistrationStatusDotProps = Readonly<{
@@ -30,14 +31,15 @@ export function RegistrationStatusDot({
   const busy = variant === "registering";
 
   return (
-    <span
-      className={clsx(styles.dot, VARIANT_CLASS[variant])}
-      data-testid="registration-status-dot"
-      data-variant={variant}
-      role="status"
-      aria-label={label}
-      aria-busy={busy || undefined}
-      title={label}
-    />
+    <IconTooltip label={label}>
+      <span
+        className={clsx(styles.dot, VARIANT_CLASS[variant])}
+        data-testid="registration-status-dot"
+        data-variant={variant}
+        role="status"
+        aria-label={label}
+        aria-busy={busy || undefined}
+      />
+    </IconTooltip>
   );
 }

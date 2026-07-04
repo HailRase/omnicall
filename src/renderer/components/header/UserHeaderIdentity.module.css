@@ -7,6 +7,12 @@
   max-width: 200px;
 }
 
+.display-name-tooltip-host {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+}
+
 .display-name {
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);

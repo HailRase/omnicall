@@ -178,6 +178,11 @@
   color: var(--color-text-muted);
 }
 
+.call-button-tooltip-host {
+  display: flex;
+  width: 100%;
+}
+
 .call-button {
   display: flex;
   align-items: center;

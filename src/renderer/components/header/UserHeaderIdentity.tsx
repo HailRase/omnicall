@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import type { JSX } from "react";
 import type { SipStatusDotTone } from "@application/index.js";
+import { IconTooltip } from "../icons/IconTooltip.js";
 import styles from "./UserHeaderIdentity.module.css";
 
 export type UserHeaderIdentityProps = Readonly<{
@@ -35,9 +36,9 @@ export function UserHeaderIdentity({
 }: UserHeaderIdentityProps): JSX.Element {
   return (
     <div className={styles.identity} data-testid="user-header-identity">
-      <span className={styles.displayName} title={displayName}>
-        {displayName}
-      </span>
+      <IconTooltip label={displayName} className={styles.displayNameTooltipHost}>
+        <span className={styles.displayName}>{displayName}</span>
+      </IconTooltip>
       <div className={styles.sipStatusBlock}>
         <span
           className={clsx(styles.sipStatus, SIP_STATUS_TONE_CLASS[sipStatusTone])}

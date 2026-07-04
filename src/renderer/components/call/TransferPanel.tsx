@@ -8,7 +8,7 @@ import {
 import clsx from "clsx";
 import { mapTransferDisabledReasonWithFallback } from "../../helpers/mapTransferDisabledReason.js";
 import { useI18n, type TranslationKey } from "../../i18n/index.js";
-import { AppIcon, IconControlButton } from "../icons/index.js";
+import { AppIcon, IconControlButton, IconTooltip } from "../icons/index.js";
 import dismissStyles from "../icons/iconOverlayDismiss.module.css";
 import styles from "./TransferPanel.module.css";
 
@@ -370,24 +370,28 @@ export function TransferPanel({
 
       {showCompleteTransfer ? (
         <footer className={styles.footer}>
-          <button
-            type="button"
-            className={styles.footerComplete}
-            data-testid="control-attended-transfer"
-            disabled={attendedTransferDisabledReason !== null}
-            title={
+          <IconTooltip
+            label={
               attendedTransferDisabledReason === null
                 ? t("transfer.panel.completeWithConsultation")
                 : mapTransferDisabledReasonWithFallback(attendedTransferDisabledReason)
             }
-            onClick={() => {
-              setStep(4);
-              onAttendedTransfer();
-            }}
+            className={styles.footerCompleteTooltipHost}
           >
-            <AppIcon id="action.confirm" size={14} decorative />
-            {t("transfer.panel.complete")}
-          </button>
+            <button
+              type="button"
+              className={styles.footerComplete}
+              data-testid="control-attended-transfer"
+              disabled={attendedTransferDisabledReason !== null}
+              onClick={() => {
+                setStep(4);
+                onAttendedTransfer();
+              }}
+            >
+              <AppIcon id="action.confirm" size={14} decorative />
+              {t("transfer.panel.complete")}
+            </button>
+          </IconTooltip>
         </footer>
       ) : null}
     </section>
@@ -412,22 +416,24 @@ function TypeChoiceCard({
   onClick,
 }: TypeChoiceCardProps): JSX.Element {
   const isDisabled = disabledReason !== null;
+  const tooltipLabel = isDisabled && disabledReason !== null ? disabledReason : title;
 
   return (
-    <button
-      type="button"
-      className={clsx(styles.typeCard, isDisabled && styles.typeCardDisabled)}
-      data-testid={testId}
-      disabled={isDisabled}
-      title={isDisabled && disabledReason ? disabledReason : title}
-      onClick={onClick}
-    >
-      <span className={styles.typeCardTitle}>
-        <AppIcon id={iconId} size={14} decorative />
-        {title}
-      </span>
-      <span className={styles.typeCardDescription}>{description}</span>
-    </button>
+    <IconTooltip label={tooltipLabel} className={styles.typeCardTooltipHost}>
+      <button
+        type="button"
+        className={clsx(styles.typeCard, isDisabled && styles.typeCardDisabled)}
+        data-testid={testId}
+        disabled={isDisabled}
+        onClick={onClick}
+      >
+        <span className={styles.typeCardTitle}>
+          <AppIcon id={iconId} size={14} decorative />
+          {title}
+        </span>
+        <span className={styles.typeCardDescription}>{description}</span>
+      </button>
+    </IconTooltip>
   );
 }
 

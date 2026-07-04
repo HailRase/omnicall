@@ -4,6 +4,7 @@ declare const classes: {
   readonly callButtonLabel: string;
   readonly callButtonReady: string;
   readonly callButtonReason: string;
+  readonly callButtonTooltipHost: string;
   readonly deleteButton: string;
   readonly inputField: string;
   readonly inputRow: string;

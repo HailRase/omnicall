@@ -11,6 +11,7 @@ import { useI18n } from "../../i18n/index.js";
 import { AppIcon } from "../icons/AppIcon.js";
 import type { IconSemanticId } from "../icons/iconCatalog.js";
 import { IconControlButton } from "../icons/IconControlButton.js";
+import { IconTooltip } from "../icons/IconTooltip.js";
 import styles from "./CallControlsBar.module.css";
 
 export type CallControlsBarProps = Readonly<{
@@ -202,24 +203,25 @@ function LabeledControl({
 }: LabeledControlProps): JSX.Element {
   return (
     <div className={styles.control}>
-      <button
-        type="button"
-        className={clsx(
-          styles.button,
-          resume && styles.buttonResume,
-          muted && styles.buttonMuted,
-          danger && styles.buttonDanger,
-          disabled && styles.buttonDisabled,
-        )}
-        data-testid={testId}
-        aria-label={ariaLabel}
-        aria-pressed={resume || muted ? true : undefined}
-        disabled={disabled}
-        title={label}
-        onClick={onClick}
-      >
-        <AppIcon id={iconId} size={18} decorative />
-      </button>
+      <IconTooltip label={label}>
+        <button
+          type="button"
+          className={clsx(
+            styles.button,
+            resume && styles.buttonResume,
+            muted && styles.buttonMuted,
+            danger && styles.buttonDanger,
+            disabled && styles.buttonDisabled,
+          )}
+          data-testid={testId}
+          aria-label={ariaLabel}
+          aria-pressed={resume || muted ? true : undefined}
+          disabled={disabled}
+          onClick={onClick}
+        >
+          <AppIcon id={iconId} size={18} decorative />
+        </button>
+      </IconTooltip>
       <span className={clsx(styles.caption, disabled && styles.captionDisabled)}>
         {label}
       </span>

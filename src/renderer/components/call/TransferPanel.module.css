@@ -647,6 +647,16 @@
 
 
 
+.type-card-tooltip-host {
+  display: flex;
+  width: 100%;
+}
+
+.footer-complete-tooltip-host {
+  display: flex;
+  width: 100%;
+}
+
 .type-card {
 
   display: grid;

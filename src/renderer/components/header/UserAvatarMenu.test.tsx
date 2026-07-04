@@ -1,11 +1,14 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ICON_TOOLTIP_DELAY_MS } from "../icons/iconTooltipDelay.js";
 import { UserAvatarMenu } from "./UserAvatarMenu.js";
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 const baseProps = {
@@ -21,6 +24,20 @@ const baseProps = {
 };
 
 describe("UserAvatarMenu", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.spyOn(window, "matchMedia").mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+  });
+
   it("renders settings, DND, and logout items in Russian", () => {
     render(<UserAvatarMenu {...baseProps} />);
 
@@ -60,12 +77,20 @@ describe("UserAvatarMenu", () => {
     expect(onLogout).toHaveBeenCalledOnce();
   });
 
-  it("disables DND toggle when registration reason is provided", () => {
+  it("shows disabled reason in tooltip when DND toggle is blocked", () => {
     render(<UserAvatarMenu {...baseProps} dndDisabledReason="Не зарегистрирован" />);
 
     const dndItem = screen.getByTestId("user-menu-toggle-dnd");
     expect(dndItem).toBeDisabled();
-    expect(dndItem).toHaveAttribute("title", "Не зарегистрирован");
+    expect(dndItem).not.toHaveAttribute("title");
+
+    const tooltipHost = dndItem.parentElement;
+    expect(tooltipHost).toHaveAttribute("data-testid", "icon-tooltip-host");
+    fireEvent.pointerEnter(tooltipHost as Element);
+    act(() => {
+      vi.advanceTimersByTime(ICON_TOOLTIP_DELAY_MS);
+    });
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Не зарегистрирован");
   });
 
   it("always renders logout item", () => {

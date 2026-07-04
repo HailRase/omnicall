@@ -3,7 +3,7 @@ import type { JSX, RefObject } from "react";
 import { createPortal } from "react-dom";
 import type { AnchoredMenuPosition } from "../../helpers/computeAnchoredMenuPosition.js";
 import { useI18n } from "../../i18n/index.js";
-import { AppIcon } from "../icons/index.js";
+import { AppIcon, IconTooltip } from "../icons/index.js";
 import styles from "./UserAvatarMenu.module.css";
 
 export type UserAvatarMenuProps = Readonly<{
@@ -67,38 +67,40 @@ export function UserAvatarMenu({
         <span className={styles.itemLabel}>{t("settings.title")}</span>
       </button>
 
-      <button
-        type="button"
-        role="menuitem"
-        className={clsx(styles.item, dndEnabled && styles.itemDndActive)}
-        data-testid="user-menu-toggle-dnd"
-        disabled={dndDisabledReason !== null}
-        title={dndDisabledReason ?? undefined}
-        aria-label={dndDisabledReason ?? dndLabel}
-        onClick={onToggleDnd}
-      >
-        <span className={styles.itemIcon}>
-          <AppIcon id={dndIconId} decorative preferAnimated={false} />
-        </span>
-        <span className={styles.itemLabel}>{dndLabel}</span>
-      </button>
+      <IconTooltip label={dndDisabledReason ?? ""} className={styles.itemTooltipHost}>
+        <button
+          type="button"
+          role="menuitem"
+          className={clsx(styles.item, dndEnabled && styles.itemDndActive)}
+          data-testid="user-menu-toggle-dnd"
+          disabled={dndDisabledReason !== null}
+          aria-label={dndDisabledReason ?? dndLabel}
+          onClick={onToggleDnd}
+        >
+          <span className={styles.itemIcon}>
+            <AppIcon id={dndIconId} decorative preferAnimated={false} />
+          </span>
+          <span className={styles.itemLabel}>{dndLabel}</span>
+        </button>
+      </IconTooltip>
 
       <div className={styles.divider} role="separator" />
-      <button
-        type="button"
-        role="menuitem"
-        className={clsx(styles.item, styles.itemDanger)}
-        data-testid="user-menu-logout"
-        disabled={logoutDisabledReason !== null}
-        title={logoutDisabledReason ?? undefined}
-        aria-label={logoutDisabledReason ?? t("header.userMenu.logout")}
-        onClick={onLogout}
-      >
-        <span className={styles.itemIcon}>
-          <AppIcon id="session.end" decorative preferAnimated={false} />
-        </span>
-        <span className={styles.itemLabel}>{t("header.userMenu.logout")}</span>
-      </button>
+      <IconTooltip label={logoutDisabledReason ?? ""} className={styles.itemTooltipHost}>
+        <button
+          type="button"
+          role="menuitem"
+          className={clsx(styles.item, styles.itemDanger)}
+          data-testid="user-menu-logout"
+          disabled={logoutDisabledReason !== null}
+          aria-label={logoutDisabledReason ?? t("header.userMenu.logout")}
+          onClick={onLogout}
+        >
+          <span className={styles.itemIcon}>
+            <AppIcon id="session.end" decorative preferAnimated={false} />
+          </span>
+          <span className={styles.itemLabel}>{t("header.userMenu.logout")}</span>
+        </button>
+      </IconTooltip>
     </div>,
     document.body,
   );

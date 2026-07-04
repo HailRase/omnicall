@@ -1,14 +1,17 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
+import { ICON_TOOLTIP_DELAY_MS } from "../../icons/iconTooltipDelay.js";
 import { SettingsSystemStatePanel } from "./SettingsSystemStatePanel.js";
 import { idleSystemStateShell } from "./settingsSystemStateTestDefaults.js";
 
 afterEach(() => {
   cleanup();
+  vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 const baseProps = {
@@ -154,15 +157,38 @@ describe("SettingsSystemStatePanel", () => {
     expect(screen.getByText(/события сервера, регистрации и ошибок/i)).toBeInTheDocument();
   });
 
-  it("exposes disabled reason via title and screen-reader text only", () => {
+  it("exposes disabled reason via tooltip and screen-reader text only", () => {
+    vi.useFakeTimers();
+    vi.spyOn(window, "matchMedia").mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    }));
+
     render(<SettingsSystemStatePanel {...baseProps} />);
 
     const reconnectButton = screen.getByTestId("settings-sip-manual-transport-reconnect");
-    expect(reconnectButton).toHaveAttribute("title", "Сессия не активна");
+    expect(reconnectButton).not.toHaveAttribute("title");
     expect(screen.getByTestId("settings-sip-transport-disabled-reason")).toHaveTextContent(
       "Сессия не активна",
     );
     expect(screen.queryByText("Недоступно: сессия не активна")).not.toBeInTheDocument();
+
+    const tooltipHost = reconnectButton.parentElement;
+    expect(tooltipHost).toHaveAttribute("data-testid", "icon-tooltip-host");
+    fireEvent.pointerEnter(tooltipHost as Element);
+    act(() => {
+      vi.advanceTimersByTime(ICON_TOOLTIP_DELAY_MS);
+    });
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Сессия не активна");
+
+    vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it("groups automatic recovery into server and registration subsections", () => {
