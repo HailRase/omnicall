@@ -121,7 +121,7 @@ export function useSipSystemStateActions(
       setJournalEntries([]);
       return;
     }
-    setJournalEntries(facade.getSipConnectionJournalEntries());
+    setJournalEntries([...facade.getSipConnectionJournalEntries()]);
   }, [facade]);
 
   useEffect(() => {

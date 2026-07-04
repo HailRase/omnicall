@@ -82,7 +82,7 @@ export class SipConnectionJournal {
   }
 
   getEntries(): ReadonlyArray<SipConnectionJournalEntry> {
-    return this.entries;
+    return [...this.entries];
   }
 
   clear(): void {

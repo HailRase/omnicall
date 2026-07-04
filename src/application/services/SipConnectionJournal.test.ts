@@ -41,4 +41,21 @@ describe("SipConnectionJournal", () => {
     journal.clear();
     expect(journal.getEntries()).toHaveLength(0);
   });
+
+  it("returns a snapshot copy from getEntries", () => {
+    const journal = new SipConnectionJournal();
+    const correlationId = createCorrelationId();
+    journal.record({
+      correlationId,
+      category: "transport",
+      eventType: "SipTransportConnected",
+      detail: null,
+    });
+
+    const snapshot = journal.getEntries();
+    journal.clear();
+
+    expect(snapshot).toHaveLength(1);
+    expect(journal.getEntries()).toHaveLength(0);
+  });
 });
