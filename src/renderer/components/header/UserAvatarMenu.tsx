@@ -48,7 +48,7 @@ export function UserAvatarMenu({
   return createPortal(
     <div
       ref={menuRef}
-      className={styles["menu"]}
+      className={styles.menu}
       role="menu"
       aria-label={t("header.userMenu.ariaLabel")}
       data-testid="user-avatar-menu"
@@ -57,47 +57,47 @@ export function UserAvatarMenu({
       <button
         type="button"
         role="menuitem"
-        className={styles["item"]}
+        className={styles.item}
         data-testid="user-menu-open-settings"
         onClick={onOpenSettings}
       >
-        <span className={styles["itemIcon"]}>
+        <span className={styles.itemIcon}>
           <AppIcon id="shell.settings" decorative />
         </span>
-        <span className={styles["itemLabel"]}>{t("settings.title")}</span>
+        <span className={styles.itemLabel}>{t("settings.title")}</span>
       </button>
 
       <button
         type="button"
         role="menuitem"
-        className={clsx(styles["item"], dndEnabled && styles["itemDndActive"])}
+        className={clsx(styles.item, dndEnabled && styles.itemDndActive)}
         data-testid="user-menu-toggle-dnd"
         disabled={dndDisabledReason !== null}
         title={dndDisabledReason ?? undefined}
         aria-label={dndDisabledReason ?? dndLabel}
         onClick={onToggleDnd}
       >
-        <span className={styles["itemIcon"]}>
+        <span className={styles.itemIcon}>
           <AppIcon id={dndIconId} decorative preferAnimated={false} />
         </span>
-        <span className={styles["itemLabel"]}>{dndLabel}</span>
+        <span className={styles.itemLabel}>{dndLabel}</span>
       </button>
 
-      <div className={styles["divider"]} role="separator" />
+      <div className={styles.divider} role="separator" />
       <button
         type="button"
         role="menuitem"
-        className={clsx(styles["item"], styles["itemDanger"])}
+        className={clsx(styles.item, styles.itemDanger)}
         data-testid="user-menu-logout"
         disabled={logoutDisabledReason !== null}
         title={logoutDisabledReason ?? undefined}
         aria-label={logoutDisabledReason ?? t("header.userMenu.logout")}
         onClick={onLogout}
       >
-        <span className={styles["itemIcon"]}>
+        <span className={styles.itemIcon}>
           <AppIcon id="session.end" decorative preferAnimated={false} />
         </span>
-        <span className={styles["itemLabel"]}>{t("header.userMenu.logout")}</span>
+        <span className={styles.itemLabel}>{t("header.userMenu.logout")}</span>
       </button>
     </div>,
     document.body,

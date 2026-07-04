@@ -18,8 +18,8 @@ export function SettingsPlaceholderPanel({
   testId,
 }: SettingsPlaceholderPanelProps): JSX.Element {
   return (
-    <section className={styles["panel"]} data-testid={testId} aria-label={title}>
-      <p className={styles["description"]}>{description}</p>
+    <section className={styles.panel} data-testid={testId} aria-label={title}>
+      <p className={styles.description}>{description}</p>
     </section>
   );
 }

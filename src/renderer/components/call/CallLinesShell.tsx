@@ -47,20 +47,20 @@ export function CallLinesShell({
 
   return (
     <section
-      className={styles["panel"]}
+      className={styles.panel}
       data-testid="call-lines-panel"
       aria-label={t("call.lines.ariaLabel")}
     >
       {shell.policyErrorMessage !== null && !compact ? (
         <p
-          className={chromeTextStyles["hintError"]}
+          className={chromeTextStyles.hintError}
           data-testid="multi-call-policy-error"
           role="alert"
         >
           {shell.policyErrorMessage}
         </p>
       ) : null}
-      <ul className={styles["list"]}>
+      <ul className={styles.list}>
         {shell.lines.map((line) => (
           <CallLineRow
             key={line.callId}

@@ -99,7 +99,7 @@ export const AvatarAndDot: Story = {
   args: baseHeaderArgs,
   render: () => (
     <div style={{ padding: 16, background: "var(--color-bg-app)" }}>
-      <div className={headerStyles["avatarGroup"]}>
+      <div className={headerStyles.avatarGroup}>
         <UserAvatar initials="AO" />
         <RegistrationStatusDot variant="registered_dnd" label="SIP: Не беспокоить" />
       </div>

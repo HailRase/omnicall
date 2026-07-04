@@ -15,7 +15,7 @@
   min-width: 0;
 }
 
-.headerTitle {
+.header-title {
   flex: 1;
   min-width: 0;
   font-size: 0.875rem;
@@ -26,7 +26,7 @@
   text-overflow: ellipsis;
 }
 
-.inputRow {
+.input-row {
   display: flex;
   align-items: center;
   min-width: 0;
@@ -39,7 +39,7 @@
   overflow: hidden;
 }
 
-.toneField {
+.tone-field {
   flex: 1;
   min-width: 0;
   width: 100%;
@@ -53,12 +53,12 @@
   outline: none;
 }
 
-.toneField::placeholder {
+.tone-field::placeholder {
   font-size: 0.875rem;
   color: var(--color-text-muted);
 }
 
-.toneField:focus-visible {
+.tone-field:focus-visible {
   outline: none;
 }
 
@@ -96,7 +96,7 @@
   transform: scale(0.98);
 }
 
-.keyDigit {
+.key-digit {
   font-size: 1rem;
   line-height: 1;
 }

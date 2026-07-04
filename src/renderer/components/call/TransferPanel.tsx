@@ -122,24 +122,24 @@ export function TransferPanel({
 
   return (
     <section
-      className={styles["panel"]}
+      className={styles.panel}
       data-testid="transfer-panel"
       aria-label={t("transfer.panel.ariaLabel")}
     >
-      <header className={styles["header"]}>
-        <div className={styles["titleWrap"]}>
-          <h2 className={styles["title"]}>{t("transfer.panel.title")}</h2>
-          <ol className={styles["steps"]} aria-label={t("transfer.panel.stepsAriaLabel")}>
+      <header className={styles.header}>
+        <div className={styles.titleWrap}>
+          <h2 className={styles.title}>{t("transfer.panel.title")}</h2>
+          <ol className={styles.steps} aria-label={t("transfer.panel.stepsAriaLabel")}>
             {[1, 2, 3, 4].map((stepNum) => (
-              <li key={stepNum} className={styles["step"]}>
+              <li key={stepNum} className={styles.step}>
                 <span className={resolveStepDotClassName(step, stepNum as TransferStep)}>
                   {stepNum < step ? t("transfer.panel.stepDoneMark") : stepNum}
                 </span>
                 {stepNum < 4 ? (
                   <span
                     className={clsx(
-                      styles["stepConnector"],
-                      stepNum < step && styles["stepConnectorDone"],
+                      styles.stepConnector,
+                      stepNum < step && styles.stepConnectorDone,
                     )}
                     aria-hidden="true"
                   />
@@ -153,7 +153,7 @@ export function TransferPanel({
           ariaLabel={dismissLabel}
           tooltipLabel={dismissLabel}
           testId="control-cancel-transfer"
-          className={dismissStyles["dismiss"]}
+          className={dismissStyles.dismiss}
           disabledReason={
             cancelTransferDisabledReason === null
               ? null
@@ -167,27 +167,27 @@ export function TransferPanel({
         />
       </header>
 
-      <div className={clsx(styles["body"], step === 1 && styles["bodyStepTarget"])}>
+      <div className={clsx(styles.body, step === 1 && styles.bodyStepTarget)}>
         {failureMessage !== null ? (
           <div
-            className={styles["failure"]}
+            className={styles.failure}
             data-testid="transfer-failure-banner"
             role="alert"
           >
-            <div className={styles["failureText"]}>
-              <p className={styles["failureTitle"]}>{failureTitle ?? t("transfer.panel.failureTitle")}</p>
+            <div className={styles.failureText}>
+              <p className={styles.failureTitle}>{failureTitle ?? t("transfer.panel.failureTitle")}</p>
               <p>{failureMessage}</p>
-              <p className={styles["failureHint"]}>{t("transfer.panel.failureHint")}</p>
+              <p className={styles.failureHint}>{t("transfer.panel.failureHint")}</p>
             </div>
           </div>
         ) : null}
 
         {sourceLine !== null ? (
-          <section className={styles["lineSection"]} data-testid="transfer-source-line">
-            <p className={styles["lineSectionTitle"]}>{t("transfer.panel.sourceLineTitle")}</p>
-            <div className={styles["lineCard"]}>
-              <p className={styles["lineLabel"]}>{sourceLine.displayLabel}</p>
-              <p className={styles["lineState"]}>
+          <section className={styles.lineSection} data-testid="transfer-source-line">
+            <p className={styles.lineSectionTitle}>{t("transfer.panel.sourceLineTitle")}</p>
+            <div className={styles.lineCard}>
+              <p className={styles.lineLabel}>{sourceLine.displayLabel}</p>
+              <p className={styles.lineState}>
                 {deriveCallLineStatusLabel({ state: sourceLine.state })}
               </p>
             </div>
@@ -195,13 +195,13 @@ export function TransferPanel({
         ) : null}
 
         {step === 1 ? (
-          <section className={styles["stepSectionTarget"]}>
-            <p className={styles["lineSectionTitle"]}>{t("transfer.panel.targetTitle")}</p>
+          <section className={styles.stepSectionTarget}>
+            <p className={styles.lineSectionTitle}>{t("transfer.panel.targetTitle")}</p>
             <input
               id="transfer-target-input"
               className={clsx(
-                styles["targetInput"],
-                numberInputDisabled && styles["targetInputDisabled"],
+                styles.targetInput,
+                numberInputDisabled && styles.targetInputDisabled,
               )}
               data-testid="transfer-target-input"
               type="tel"
@@ -219,25 +219,25 @@ export function TransferPanel({
             {transferTargetCandidates.length > 0 ? (
               <>
                 <div
-                  className={styles["targetDivider"]}
+                  className={styles.targetDivider}
                   data-testid="transfer-target-divider"
                   aria-hidden="true"
                 >
-                  <span className={styles["targetDividerLine"]} />
-                  <span className={styles["targetDividerLabel"]}>{t("transfer.panel.or")}</span>
-                  <span className={styles["targetDividerLine"]} />
+                  <span className={styles.targetDividerLine} />
+                  <span className={styles.targetDividerLabel}>{t("transfer.panel.or")}</span>
+                  <span className={styles.targetDividerLine} />
                 </div>
                 <div
                   className={clsx(
-                    styles["candidateSection"],
-                    sessionsDisabled && styles["candidateSectionDisabled"],
+                    styles.candidateSection,
+                    sessionsDisabled && styles.candidateSectionDisabled,
                   )}
                   data-testid="transfer-target-candidates"
                 >
-                  <p className={styles["candidateSectionTitle"]}>{t("transfer.panel.sessionsTitle")}</p>
-                  <div className={styles["candidateScroll"]}>
+                  <p className={styles.candidateSectionTitle}>{t("transfer.panel.sessionsTitle")}</p>
+                  <div className={styles.candidateScroll}>
                     <ul
-                      className={styles["candidateList"]}
+                      className={styles.candidateList}
                       aria-label={t("transfer.panel.sessionSelectAriaLabel")}
                     >
                       {transferTargetCandidates.map((candidate) => {
@@ -250,8 +250,8 @@ export function TransferPanel({
                             <button
                               type="button"
                               className={clsx(
-                                styles["candidateCard"],
-                                isSelected && styles["candidateCardSelected"],
+                                styles.candidateCard,
+                                isSelected && styles.candidateCardSelected,
                               )}
                               data-testid={`transfer-target-candidate-${candidate.callId}`}
                               aria-pressed={isSelected}
@@ -268,8 +268,8 @@ export function TransferPanel({
                                 onTargetChange(candidate.remoteNumber);
                               }}
                             >
-                              <span className={styles["lineLabel"]}>{displayName}</span>
-                              <span className={styles["lineState"]}>{t(statusLabel as TranslationKey)}</span>
+                              <span className={styles.lineLabel}>{displayName}</span>
+                              <span className={styles.lineState}>{t(statusLabel as TranslationKey)}</span>
                             </button>
                           </li>
                         );
@@ -282,7 +282,7 @@ export function TransferPanel({
             <button
               type="button"
               data-testid="transfer-next-step"
-              className={styles["nextButton"]}
+              className={styles.nextButton}
               disabled={!isTargetNumberValid}
               onClick={() => {
                 setStep(2);
@@ -294,9 +294,9 @@ export function TransferPanel({
         ) : null}
 
         {step === 2 ? (
-          <section className={styles["stepSection"]}>
-            <p className={styles["lineSectionTitle"]}>{t("transfer.panel.typeTitle")}</p>
-            <div className={styles["typeList"]}>
+          <section className={styles.stepSection}>
+            <p className={styles.lineSectionTitle}>{t("transfer.panel.typeTitle")}</p>
+            <div className={styles.typeList}>
               <TypeChoiceCard
                 iconId="call.transfer"
                 title={t("transfer.panel.blind.title")}
@@ -332,16 +332,16 @@ export function TransferPanel({
         ) : null}
 
         {step >= 3 && consultationLine !== null ? (
-          <section className={styles["lineSection"]} data-testid="transfer-consultation-line">
-            <p className={styles["lineSectionTitle"]}>{t("transfer.panel.consultationLineTitle")}</p>
-            <div className={styles["lineCard"]}>
-              <p className={styles["lineLabel"]}>{consultationLine.displayLabel}</p>
-              <p className={styles["lineState"]}>
+          <section className={styles.lineSection} data-testid="transfer-consultation-line">
+            <p className={styles.lineSectionTitle}>{t("transfer.panel.consultationLineTitle")}</p>
+            <div className={styles.lineCard}>
+              <p className={styles.lineLabel}>{consultationLine.displayLabel}</p>
+              <p className={styles.lineState}>
                 {deriveCallLineStatusLabel({ state: consultationLine.state })}
               </p>
             </div>
             {!consultReady && !transferInProgress ? (
-              <p className={styles["waiting"]} role="status">
+              <p className={styles.waiting} role="status">
                 {t("transfer.panel.waitingAnswer")}
               </p>
             ) : null}
@@ -350,7 +350,7 @@ export function TransferPanel({
 
         {transferInProgress ? (
           <p
-            className={styles["progress"]}
+            className={styles.progress}
             data-testid="transfer-in-progress-indicator"
             role="status"
             aria-live="polite"
@@ -369,10 +369,10 @@ export function TransferPanel({
       </div>
 
       {showCompleteTransfer ? (
-        <footer className={styles["footer"]}>
+        <footer className={styles.footer}>
           <button
             type="button"
-            className={styles["footerComplete"]}
+            className={styles.footerComplete}
             data-testid="control-attended-transfer"
             disabled={attendedTransferDisabledReason !== null}
             title={
@@ -416,25 +416,25 @@ function TypeChoiceCard({
   return (
     <button
       type="button"
-      className={clsx(styles["typeCard"], isDisabled && styles["typeCardDisabled"])}
+      className={clsx(styles.typeCard, isDisabled && styles.typeCardDisabled)}
       data-testid={testId}
       disabled={isDisabled}
       title={isDisabled && disabledReason ? disabledReason : title}
       onClick={onClick}
     >
-      <span className={styles["typeCardTitle"]}>
+      <span className={styles.typeCardTitle}>
         <AppIcon id={iconId} size={14} decorative />
         {title}
       </span>
-      <span className={styles["typeCardDescription"]}>{description}</span>
+      <span className={styles.typeCardDescription}>{description}</span>
     </button>
   );
 }
 
 function resolveStepDotClassName(currentStep: TransferStep, step: TransferStep): string {
-  const baseClass = styles["stepDot"] ?? "";
-  const activeClass = styles["stepDotActive"] ?? "";
-  const doneClass = styles["stepDotDone"] ?? "";
+  const baseClass = styles.stepDot ?? "";
+  const activeClass = styles.stepDotActive ?? "";
+  const doneClass = styles.stepDotDone ?? "";
   if (step === currentStep) {
     return `${baseClass} ${activeClass}`.trim();
   }
@@ -467,7 +467,7 @@ function renderDisabledReason(
   }
 
   return (
-    <p className={styles["disabledReason"]} data-testid="transfer-disabled-reason" role="status">
+    <p className={styles.disabledReason} data-testid="transfer-disabled-reason" role="status">
       {mapTransferDisabledReasonWithFallback(reason)}
     </p>
   );

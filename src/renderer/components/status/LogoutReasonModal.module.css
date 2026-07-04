@@ -6,11 +6,11 @@
   font-size: 1rem;
 }
 
-.titleIcon {
+.title-icon {
   flex-shrink: 0;
 }
 
-.iconButton {
+.icon-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;

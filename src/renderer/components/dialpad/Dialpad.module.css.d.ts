@@ -1,0 +1,21 @@
+declare const classes: {
+  readonly callButton: string;
+  readonly callButtonBusy: string;
+  readonly callButtonLabel: string;
+  readonly callButtonReady: string;
+  readonly callButtonReason: string;
+  readonly deleteButton: string;
+  readonly inputField: string;
+  readonly inputRow: string;
+  readonly key: string;
+  readonly keyDigit: string;
+  readonly keyDisabled: string;
+  readonly keySub: string;
+  readonly keys: string;
+  readonly overlayHeader: string;
+  readonly overlayTitle: string;
+  readonly panel: string;
+  readonly panelInputDisabled: string;
+  readonly panelOverlay: string;
+};
+export default classes;

@@ -87,7 +87,7 @@ export function CampaignEventModal({
       aria-label={t("campaign.modal.ariaLabel")}
       aria-modal="true"
       tabIndex={-1}
-      className={dialogStyles["modal"]}
+      className={dialogStyles.modal}
       data-testid="campaign-event-modal"
       onKeyDown={handleKeyDown}
     >
@@ -95,18 +95,18 @@ export function CampaignEventModal({
       <p>{t("campaign.modal.description")}</p>
 
       {responseError !== null && (
-        <div className={styles["error"]} role="alert" data-testid="campaign-modal-error">
+        <div className={styles.error} role="alert" data-testid="campaign-modal-error">
           {responseError}
         </div>
       )}
 
-      <div className={dialogStyles["actions"]}>
+      <div className={dialogStyles.actions}>
         <IconControlButton
           iconId="action.confirm"
           ariaLabel={t("campaign.modal.acceptAria")}
           tooltipLabel={t("campaign.modal.acceptLabel")}
           testId="campaign-accept"
-          className={styles["iconButton"]}
+          className={styles.iconButton}
           disabledReason={
             acceptDisabledReason === null
               ? null
@@ -119,7 +119,7 @@ export function CampaignEventModal({
           ariaLabel={t("campaign.modal.rejectAria")}
           tooltipLabel={t("campaign.modal.rejectLabel")}
           testId="campaign-reject"
-          className={styles["iconButton"]}
+          className={styles.iconButton}
           disabledReason={
             rejectDisabledReason === null
               ? null
@@ -131,7 +131,7 @@ export function CampaignEventModal({
           iconId="overlay.close"
           ariaLabel={t("campaign.modal.closeAria")}
           testId="campaign-modal-close"
-          className={styles["closeButton"]}
+          className={styles.closeButton}
           disabled={!closeAllowed}
           onClick={onClose}
         />
@@ -152,7 +152,7 @@ function renderDisabledReason(
   }
 
   return (
-    <p className={styles["disabledReason"]} data-testid="campaign-disabled-reason" role="status">
+    <p className={styles.disabledReason} data-testid="campaign-disabled-reason" role="status">
       {mapCampaignModalDisabledReasonWithFallback(reason)}
     </p>
   );

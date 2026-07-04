@@ -11,14 +11,14 @@ export type UserHeaderIdentityProps = Readonly<{
 }>;
 
 const SIP_STATUS_TONE_CLASS: Record<SipStatusDotTone, string> = {
-  idle: styles["status_idle"] ?? "",
-  connecting: styles["status_connecting"] ?? "",
-  reconnecting: styles["status_reconnecting"] ?? "",
-  disconnected: styles["status_disconnected"] ?? "",
-  registering: styles["status_registering"] ?? "",
-  not_registered: styles["status_not_registered"] ?? "",
-  registered: styles["status_registered"] ?? "",
-  dnd: styles["status_dnd"] ?? "",
+  idle: styles.statusIdle ?? "",
+  connecting: styles.statusConnecting ?? "",
+  reconnecting: styles.statusReconnecting ?? "",
+  disconnected: styles.statusDisconnected ?? "",
+  registering: styles.statusRegistering ?? "",
+  not_registered: styles.statusNotRegistered ?? "",
+  registered: styles.statusRegistered ?? "",
+  dnd: styles.statusDnd ?? "",
 };
 
 /**
@@ -34,13 +34,13 @@ export function UserHeaderIdentity({
   sipStatusTone,
 }: UserHeaderIdentityProps): JSX.Element {
   return (
-    <div className={styles["identity"]} data-testid="user-header-identity">
-      <span className={styles["displayName"]} title={displayName}>
+    <div className={styles.identity} data-testid="user-header-identity">
+      <span className={styles.displayName} title={displayName}>
         {displayName}
       </span>
-      <div className={styles["sipStatusBlock"]}>
+      <div className={styles.sipStatusBlock}>
         <span
-          className={clsx(styles["sipStatus"], SIP_STATUS_TONE_CLASS[sipStatusTone])}
+          className={clsx(styles.sipStatus, SIP_STATUS_TONE_CLASS[sipStatusTone])}
           data-testid="user-sip-status"
           data-tone={sipStatusTone}
         >
@@ -48,7 +48,7 @@ export function UserHeaderIdentity({
         </span>
         {sipStatusTimerSuffix !== null ? (
           <span
-            className={clsx(styles["sipStatusTimer"], SIP_STATUS_TONE_CLASS[sipStatusTone])}
+            className={clsx(styles.sipStatusTimer, SIP_STATUS_TONE_CLASS[sipStatusTone])}
             data-testid="user-sip-status-timer"
             aria-hidden="true"
           >

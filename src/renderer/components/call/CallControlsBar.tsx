@@ -90,11 +90,11 @@ export function CallControlsBar({
 
   return (
     <section
-      className={styles["panel"]}
+      className={styles.panel}
       data-testid="call-controls-bar"
       aria-label={t("call.controls.groupAria")}
     >
-      <div className={styles["actions"]}>
+      <div className={styles.actions}>
         <LabeledControl
           iconId={line.muted ? "call.mute" : "call.unmute"}
           label={line.muted ? t("call.controls.label.muted") : t("call.controls.label.mic")}
@@ -168,7 +168,7 @@ export function CallControlsBar({
       </div>
       {showError ? (
         <div
-          className={styles["error"]}
+          className={styles.error}
           data-testid={`call-line-error-${line.callId}`}
           role="alert"
         >
@@ -180,7 +180,7 @@ export function CallControlsBar({
             })}
             tooltipLabel={t("common.retry")}
             testId={`control-retry-line-${line.callId}`}
-            className={styles["retryButton"]}
+            className={styles.retryButton}
             onClick={onRetryOperation}
           />
         </div>
@@ -201,15 +201,15 @@ function LabeledControl({
   muted = false,
 }: LabeledControlProps): JSX.Element {
   return (
-    <div className={styles["control"]}>
+    <div className={styles.control}>
       <button
         type="button"
         className={clsx(
-          styles["button"],
-          resume && styles["buttonResume"],
-          muted && styles["buttonMuted"],
-          danger && styles["buttonDanger"],
-          disabled && styles["buttonDisabled"],
+          styles.button,
+          resume && styles.buttonResume,
+          muted && styles.buttonMuted,
+          danger && styles.buttonDanger,
+          disabled && styles.buttonDisabled,
         )}
         data-testid={testId}
         aria-label={ariaLabel}
@@ -220,7 +220,7 @@ function LabeledControl({
       >
         <AppIcon id={iconId} size={18} decorative />
       </button>
-      <span className={clsx(styles["caption"], disabled && styles["captionDisabled"])}>
+      <span className={clsx(styles.caption, disabled && styles.captionDisabled)}>
         {label}
       </span>
     </div>

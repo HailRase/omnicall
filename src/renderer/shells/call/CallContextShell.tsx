@@ -84,7 +84,7 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
     !nonIncomingLinesShell.visible;
 
   return (
-    <div className={styles["zone"]} data-testid="call-context-zone">
+    <div className={styles.zone} data-testid="call-context-zone">
       <MultiCallHoldAllIndicator visible={multiCallProjection.holdAllInProgress} />
 
       {isTransferSuccessCelebration ? (
@@ -156,7 +156,7 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
           />
 
           {singleNonIncomingLine !== null ? (
-            <div className={styles["singleCard"]}>
+            <div className={styles.singleCard}>
               <CallSessionCard
                 line={singleNonIncomingLine}
                 isActive={

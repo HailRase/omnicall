@@ -51,13 +51,13 @@ export function AccountPanel({
   const showFeedback = successKey !== null || error !== null;
 
   return (
-    <section className={panelStyles["panel"]} data-testid="account-panel">
+    <section className={panelStyles.panel} data-testid="account-panel">
       {showTitle ? <h2>{t("account.title")}</h2> : null}
       {showFeedback ? (
-        <div className={styles["feedback"]} data-testid="account-feedback">
+        <div className={styles.feedback} data-testid="account-feedback">
           {successKey !== null ? (
             <p
-              className={clsx(styles["feedbackMessage"], styles["feedbackSuccess"])}
+              className={clsx(styles.feedbackMessage, styles.feedbackSuccess)}
               role="status"
               aria-live="polite"
               data-testid="account-success"
@@ -67,7 +67,7 @@ export function AccountPanel({
           ) : null}
           {error !== null ? (
             <p
-              className={clsx(styles["feedbackMessage"], styles["feedbackError"])}
+              className={clsx(styles.feedbackMessage, styles.feedbackError)}
               role="alert"
               data-testid="account-error"
             >
@@ -76,11 +76,11 @@ export function AccountPanel({
           ) : null}
         </div>
       ) : null}
-      <form className={styles["form"]} onSubmit={handleSubmit}>
-        <label className={styles["label"]}>
+      <form className={styles.form} onSubmit={handleSubmit}>
+        <label className={styles.label}>
           {t("account.field.username")}
           <input
-            className={styles["input"]}
+            className={styles.input}
             value={form.username}
             disabled={disabled || submitting}
             onChange={(event) => {
@@ -88,10 +88,10 @@ export function AccountPanel({
             }}
           />
         </label>
-        <label className={styles["label"]}>
+        <label className={styles.label}>
           {t("account.field.password")}
           <input
-            className={styles["input"]}
+            className={styles.input}
             type="password"
             value={form.password}
             disabled={disabled || submitting}
@@ -100,10 +100,10 @@ export function AccountPanel({
             }}
           />
         </label>
-        <label className={styles["label"]}>
+        <label className={styles.label}>
           {t("account.field.domain")}
           <input
-            className={styles["input"]}
+            className={styles.input}
             value={form.domain}
             disabled={disabled || submitting}
             onChange={(event) => {
@@ -111,10 +111,10 @@ export function AccountPanel({
             }}
           />
         </label>
-        <label className={styles["label"]}>
+        <label className={styles.label}>
           {t("account.field.server")}
           <input
-            className={styles["input"]}
+            className={styles.input}
             value={form.server}
             disabled={disabled || submitting}
             onChange={(event) => {
@@ -122,15 +122,15 @@ export function AccountPanel({
             }}
           />
         </label>
-        <div className={styles["actions"]}>
+        <div className={styles.actions}>
           <IconTooltip
             label={authorizeDisabledReason ?? ""}
-            className={styles["actionTooltipHost"]}
+            className={styles.actionTooltipHost}
           >
-            <span className={styles["buttonWrap"]}>
+            <span className={styles.buttonWrap}>
               <button
                 type="submit"
-                className={styles["primaryAction"]}
+                className={styles.primaryAction}
                 data-testid="account-authorize"
                 disabled={authorizeDisabled}
                 aria-label={authorizeDisabledReason ?? t("account.action.authorize")}
@@ -139,11 +139,11 @@ export function AccountPanel({
               </button>
             </span>
           </IconTooltip>
-          <IconTooltip label={logoutDisabledReason ?? ""} className={styles["actionTooltipHost"]}>
-            <span className={styles["buttonWrap"]}>
+          <IconTooltip label={logoutDisabledReason ?? ""} className={styles.actionTooltipHost}>
+            <span className={styles.buttonWrap}>
               <button
                 type="button"
-                className={styles["logoutAction"]}
+                className={styles.logoutAction}
                 data-testid="account-logout"
                 disabled={logoutDisabled}
                 aria-label={logoutDisabledReason ?? t("account.action.logout")}

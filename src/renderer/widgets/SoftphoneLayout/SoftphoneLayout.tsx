@@ -21,19 +21,19 @@ export function SoftphoneLayout({
   overlays,
 }: SoftphoneLayoutProps): JSX.Element {
   return (
-    <div className={styles["layout"]} data-testid="softphone-layout">
-      <div className={styles["header"]} data-testid="layout-header-zone">
+    <div className={styles.layout} data-testid="softphone-layout">
+      <div className={styles.header} data-testid="layout-header-zone">
         {header}
       </div>
-      <div className={styles["main"]}>
-        <div className={styles["context"]} data-testid="layout-context-zone">
+      <div className={styles.main}>
+        <div className={styles.context} data-testid="layout-context-zone">
           {context}
         </div>
-        <div className={styles["controls"]} data-testid="layout-controls-zone">
+        <div className={styles.controls} data-testid="layout-controls-zone">
           {controls}
         </div>
       </div>
-      <div className={styles["overlays"]} data-testid="layout-overlay-layer">
+      <div className={styles.overlays} data-testid="layout-overlay-layer">
         {overlays}
       </div>
     </div>

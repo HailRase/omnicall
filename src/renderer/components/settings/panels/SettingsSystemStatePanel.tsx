@@ -50,10 +50,17 @@ type StateIndicatorProps = Readonly<{
   label: string;
 }>;
 
+const STATE_INDICATOR_TONE_CLASS: Record<SipStateIndicatorTone, string> = {
+  positive: styles.stateIndicatorPositive,
+  progress: styles.stateIndicatorProgress,
+  negative: styles.stateIndicatorNegative,
+  neutral: styles.stateIndicatorNeutral,
+};
+
 function StateIndicator({ tone, label }: StateIndicatorProps): JSX.Element {
   return (
     <span
-      className={clsx(styles["stateIndicator"], styles[`stateIndicator_${tone}`])}
+      className={clsx(styles.stateIndicator, STATE_INDICATOR_TONE_CLASS[tone])}
       role="img"
       aria-label={label}
     />
@@ -78,12 +85,12 @@ function StateMetricRow({
   reason,
 }: StateMetricRowProps): JSX.Element {
   return (
-    <div className={styles["stateRow"]}>
+    <div className={styles.stateRow}>
       <StateIndicator tone={tone} label={indicatorLabel} />
-      <dt className={styles["stateLabel"]}>{label}</dt>
-      <dd className={styles["stateValue"]} data-testid={testId}>
+      <dt className={styles.stateLabel}>{label}</dt>
+      <dd className={styles.stateValue} data-testid={testId}>
         {value}
-        {reason !== null ? <span className={styles["stateReason"]}> ({reason})</span> : null}
+        {reason !== null ? <span className={styles.stateReason}> ({reason})</span> : null}
       </dd>
     </div>
   );
@@ -119,25 +126,25 @@ function NumberField({
   const hasError = !disabled && isIntervalBelowMinimum(value, min);
 
   return (
-    <div className={formStyles["fieldRow"]}>
-      <label className={formStyles["fieldLabelGroup"]} htmlFor={id}>
-        <span className={formStyles["fieldLabel"]}>{label}</span>
+    <div className={formStyles.fieldRow}>
+      <label className={formStyles.fieldLabelGroup} htmlFor={id}>
+        <span className={formStyles.fieldLabel}>{label}</span>
         {description !== undefined ? (
-          <span id={descriptionId} className={formStyles["fieldDescription"]}>
+          <span id={descriptionId} className={formStyles.fieldDescription}>
             {description}
           </span>
         ) : null}
       </label>
       <div>
         <div
-          className={clsx(formStyles["numberInputGroup"], styles["numberInputTouchTarget"])}
+          className={clsx(formStyles.numberInputGroup, styles.numberInputTouchTarget)}
         >
           <input
             id={id}
             type="number"
             min={min}
             step={1}
-            className={clsx(formStyles["numberInput"], hasError && styles["numberInputInvalid"])}
+            className={clsx(formStyles.numberInput, hasError && styles.numberInputInvalid)}
             data-testid={testId}
             value={value}
             disabled={disabled}
@@ -161,17 +168,17 @@ function NumberField({
           />
           {withSuffix ? (
             <>
-              <span id={suffixId} className={formStyles["inputSuffix"]} aria-hidden="true">
+              <span id={suffixId} className={formStyles.inputSuffix} aria-hidden="true">
                 {t("settings.systemState.field.secondsShort")}
               </span>
-              <span id={`${suffixId}-sr`} className={styles["suffixAccessible"]}>
+              <span id={`${suffixId}-sr`} className={styles.suffixAccessible}>
                 {t("settings.systemState.field.secondsAccessible")}
               </span>
             </>
           ) : null}
         </div>
         {hasError ? (
-          <p id={errorId} className={styles["fieldError"]} role="alert">
+          <p id={errorId} className={styles.fieldError} role="alert">
             {t("settings.systemState.field.minValueError", { min })}
           </p>
         ) : null}
@@ -205,10 +212,10 @@ function ManualActionButton({
   const isDisabled = disabled || isLoading;
 
   return (
-    <div className={styles["manualActionItem"]}>
+    <div className={styles.manualActionItem}>
       <button
         type="button"
-        className={formStyles["secondaryButton"]}
+        className={formStyles.secondaryButton}
         data-testid={testId}
         disabled={isDisabled}
         aria-disabled={isDisabled}
@@ -218,8 +225,8 @@ function ManualActionButton({
         onClick={onClick}
       >
         {isLoading ? (
-          <span className={styles["buttonLoading"]}>
-            <span className={styles["buttonSpinner"]} aria-hidden="true" />
+          <span className={styles.buttonLoading}>
+            <span className={styles.buttonSpinner} aria-hidden="true" />
             {loadingLabel}
           </span>
         ) : (
@@ -227,7 +234,7 @@ function ManualActionButton({
         )}
       </button>
       {disabledReason !== null ? (
-        <span id={reasonId} className={styles["disabledReasonSrOnly"]} data-testid={reasonTestId}>
+        <span id={reasonId} className={styles.disabledReasonSrOnly} data-testid={reasonTestId}>
           {disabledReason}
         </span>
       ) : null}
@@ -242,12 +249,12 @@ type StateWithActionsRowProps = Readonly<{
 
 function StateWithActionsRow({ metric, children }: StateWithActionsRowProps): JSX.Element {
   return (
-    <div className={styles["stateActionRow"]}>
-      <div className={styles["stateActionMetric"]}>
+    <div className={styles.stateActionRow}>
+      <div className={styles.stateActionMetric}>
         <StateMetricRow {...metric} />
       </div>
       {children !== null && children !== undefined ? (
-        <div className={styles["stateActionControls"]}>{children}</div>
+        <div className={styles.stateActionControls}>{children}</div>
       ) : null}
     </div>
   );
@@ -348,17 +355,17 @@ export function SettingsSystemStatePanel({
   });
 
   return (
-    <div className={formStyles["panelStack"]} data-testid="settings-system-state-panel">
-      <fieldset className={formStyles["sectionCard"]}>
-        <legend className={formStyles["sectionTitle"]}>
+    <div className={formStyles.panelStack} data-testid="settings-system-state-panel">
+      <fieldset className={formStyles.sectionCard}>
+        <legend className={formStyles.sectionTitle}>
           {t("settings.systemState.currentState.legend")}
         </legend>
-        <div className={formStyles["settingsGroup"]}>
+        <div className={formStyles.settingsGroup}>
           {actionSuccessKey !== null || actionErrorText !== null ? (
-            <div className={styles["stateActionFeedback"]}>
+            <div className={styles.stateActionFeedback}>
               {actionSuccessKey !== null ? (
                 <p
-                  className={clsx(styles["actionFeedback"], styles["actionFeedbackSuccess"])}
+                  className={clsx(styles.actionFeedback, styles.actionFeedbackSuccess)}
                   role="status"
                   aria-live="polite"
                   data-testid="settings-sip-action-success"
@@ -368,7 +375,7 @@ export function SettingsSystemStatePanel({
               ) : null}
               {actionErrorText !== null ? (
                 <p
-                  className={clsx(styles["actionFeedback"], styles["actionFeedbackError"])}
+                  className={clsx(styles.actionFeedback, styles.actionFeedbackError)}
                   role="alert"
                   data-testid="settings-sip-action-error"
                 >
@@ -377,12 +384,12 @@ export function SettingsSystemStatePanel({
               ) : null}
             </div>
           ) : null}
-          <div className={formStyles["settingBlock"]}>
-            <p className={styles["liveSummary"]} aria-live="polite" aria-atomic="true">
+          <div className={formStyles.settingBlock}>
+            <p className={styles.liveSummary} aria-live="polite" aria-atomic="true">
               {liveStateSummary}
             </p>
-            <dl className={styles["statePanel"]}>
-              <div className={styles["stateGrid"]}>
+            <dl className={styles.statePanel}>
+              <div className={styles.stateGrid}>
                 <StateWithActionsRow
                   metric={{
                     indicatorLabel: t("settings.systemState.metric.serverAria", {
@@ -449,38 +456,38 @@ export function SettingsSystemStatePanel({
         </div>
       </fieldset>
 
-      <fieldset className={formStyles["sectionCard"]}>
-        <legend className={formStyles["sectionTitle"]}>
+      <fieldset className={formStyles.sectionCard}>
+        <legend className={formStyles.sectionTitle}>
           {t("settings.systemState.autoRecovery.legend")}
         </legend>
-        <div className={formStyles["settingsGroup"]}>
-          <p className={clsx(formStyles["fieldDescription"], styles["recoveryIntro"])}>
+        <div className={formStyles.settingsGroup}>
+          <p className={clsx(formStyles.fieldDescription, styles.recoveryIntro)}>
             {t("settings.systemState.autoRecovery.intro")}
           </p>
 
-          <div className={styles["recoverySubsection"]} data-testid="settings-sip-recovery-server">
-            <h4 className={styles["recoverySubsectionTitle"]}>
+          <div className={styles.recoverySubsection} data-testid="settings-sip-recovery-server">
+            <h4 className={styles.recoverySubsectionTitle}>
               {t("settings.systemState.autoRecovery.serverTitle")}
             </h4>
-            <div className={styles["recoveryBlock"]}>
-              <div className={formStyles["settingBlock"]}>
-                <label className={formStyles["toggleRow"]} htmlFor="settings-sip-auto-reconnect">
-                <span className={formStyles["toggleText"]}>
-                  <span className={formStyles["toggleLabel"]}>
+            <div className={styles.recoveryBlock}>
+              <div className={formStyles.settingBlock}>
+                <label className={formStyles.toggleRow} htmlFor="settings-sip-auto-reconnect">
+                <span className={formStyles.toggleText}>
+                  <span className={formStyles.toggleLabel}>
                     {t("settings.systemState.autoRecovery.serverToggleLabel")}
                   </span>
                   <span
                     id={autoReconnectDescriptionId}
-                    className={formStyles["toggleDescription"]}
+                    className={formStyles.toggleDescription}
                   >
                     {t("settings.systemState.autoRecovery.serverToggleDescription")}
                   </span>
                 </span>
-                <span className={formStyles["switch"]}>
+                <span className={formStyles.switch}>
                   <input
                     id="settings-sip-auto-reconnect"
                     type="checkbox"
-                    className={formStyles["switchInput"]}
+                    className={formStyles.switchInput}
                     data-testid="settings-sip-auto-reconnect-toggle"
                     checked={sipAutoReconnectEnabled}
                     aria-describedby={autoReconnectDescriptionId}
@@ -488,26 +495,26 @@ export function SettingsSystemStatePanel({
                       onSipAutoReconnectChange(event.target.checked);
                     }}
                   />
-                  <span className={formStyles["switchSlider"]} aria-hidden="true" />
+                  <span className={formStyles.switchSlider} aria-hidden="true" />
                 </span>
               </label>
             </div>
             <div
               className={clsx(
-                styles["dependentFields"],
-                !sipAutoReconnectEnabled && styles["dependentFields_collapsed"],
+                styles.dependentFields,
+                !sipAutoReconnectEnabled && styles.dependentFieldsCollapsed,
               )}
             >
               <div
                 className={clsx(
-                  styles["dependentFieldsInner"],
-                  !sipAutoReconnectEnabled && styles["dependentFieldsInnerMuted"],
+                  styles.dependentFieldsInner,
+                  !sipAutoReconnectEnabled && styles.dependentFieldsInnerMuted,
                 )}
               >
                 <div
                   className={clsx(
-                    formStyles["settingBlock"],
-                    !sipAutoReconnectEnabled && formStyles["settingBlockDisabled"],
+                    formStyles.settingBlock,
+                    !sipAutoReconnectEnabled && formStyles.settingBlockDisabled,
                   )}
                 >
                   <NumberField
@@ -539,31 +546,31 @@ export function SettingsSystemStatePanel({
           </div>
 
           <div
-            className={styles["recoverySubsection"]}
+            className={styles.recoverySubsection}
             data-testid="settings-sip-recovery-registration"
           >
-            <h4 className={styles["recoverySubsectionTitle"]}>
+            <h4 className={styles.recoverySubsectionTitle}>
               {t("settings.systemState.autoRecovery.registrationTitle")}
             </h4>
-            <div className={styles["recoveryBlock"]}>
-              <div className={formStyles["settingBlock"]}>
-                <label className={formStyles["toggleRow"]} htmlFor="settings-sip-auto-reregister">
-                <span className={formStyles["toggleText"]}>
-                  <span className={formStyles["toggleLabel"]}>
+            <div className={styles.recoveryBlock}>
+              <div className={formStyles.settingBlock}>
+                <label className={formStyles.toggleRow} htmlFor="settings-sip-auto-reregister">
+                <span className={formStyles.toggleText}>
+                  <span className={formStyles.toggleLabel}>
                     {t("settings.systemState.autoRecovery.reregisterToggleLabel")}
                   </span>
                   <span
                     id={autoReregisterDescriptionId}
-                    className={formStyles["toggleDescription"]}
+                    className={formStyles.toggleDescription}
                   >
                     {t("settings.systemState.autoRecovery.reregisterToggleDescription")}
                   </span>
                 </span>
-                <span className={formStyles["switch"]}>
+                <span className={formStyles.switch}>
                   <input
                     id="settings-sip-auto-reregister"
                     type="checkbox"
-                    className={formStyles["switchInput"]}
+                    className={formStyles.switchInput}
                     data-testid="settings-sip-auto-reregister-toggle"
                     checked={sipAutoReregisterEnabled}
                     aria-describedby={autoReregisterDescriptionId}
@@ -571,26 +578,26 @@ export function SettingsSystemStatePanel({
                       onSipAutoReregisterChange(event.target.checked);
                     }}
                   />
-                  <span className={formStyles["switchSlider"]} aria-hidden="true" />
+                  <span className={formStyles.switchSlider} aria-hidden="true" />
                 </span>
               </label>
             </div>
             <div
               className={clsx(
-                styles["dependentFields"],
-                !sipAutoReregisterEnabled && styles["dependentFields_collapsed"],
+                styles.dependentFields,
+                !sipAutoReregisterEnabled && styles.dependentFieldsCollapsed,
               )}
             >
               <div
                 className={clsx(
-                  styles["dependentFieldsInner"],
-                  !sipAutoReregisterEnabled && styles["dependentFieldsInnerMuted"],
+                  styles.dependentFieldsInner,
+                  !sipAutoReregisterEnabled && styles.dependentFieldsInnerMuted,
                 )}
               >
                 <div
                   className={clsx(
-                    formStyles["settingBlock"],
-                    !sipAutoReregisterEnabled && formStyles["settingBlockDisabled"],
+                    formStyles.settingBlock,
+                    !sipAutoReregisterEnabled && formStyles.settingBlockDisabled,
                   )}
                 >
                   <NumberField
@@ -620,28 +627,28 @@ export function SettingsSystemStatePanel({
             </div>
             </div>
 
-            <div className={styles["recoveryBlock"]}>
-              <div className={formStyles["settingBlock"]}>
+            <div className={styles.recoveryBlock}>
+              <div className={formStyles.settingBlock}>
                 <label
-                  className={formStyles["toggleRow"]}
+                  className={formStyles.toggleRow}
                   htmlFor="settings-sip-auto-register-startup"
                 >
-                  <span className={formStyles["toggleText"]}>
-                    <span className={formStyles["toggleLabel"]}>
+                  <span className={formStyles.toggleText}>
+                    <span className={formStyles.toggleLabel}>
                       {t("settings.systemState.autoRecovery.startupToggleLabel")}
                     </span>
                     <span
                       id={autoRegisterStartupDescriptionId}
-                      className={formStyles["toggleDescription"]}
+                      className={formStyles.toggleDescription}
                     >
                       {t("settings.systemState.autoRecovery.startupToggleDescription")}
                     </span>
                   </span>
-                  <span className={formStyles["switch"]}>
+                  <span className={formStyles.switch}>
                     <input
                       id="settings-sip-auto-register-startup"
                       type="checkbox"
-                      className={formStyles["switchInput"]}
+                      className={formStyles.switchInput}
                       data-testid="settings-sip-auto-register-startup-toggle"
                       checked={sipAutoRegisterOnStartup}
                       aria-describedby={autoRegisterStartupDescriptionId}
@@ -649,7 +656,7 @@ export function SettingsSystemStatePanel({
                         onSipAutoRegisterOnStartupChange(event.target.checked);
                       }}
                     />
-                    <span className={formStyles["switchSlider"]} aria-hidden="true" />
+                    <span className={formStyles.switchSlider} aria-hidden="true" />
                   </span>
                 </label>
               </div>
@@ -658,30 +665,30 @@ export function SettingsSystemStatePanel({
         </div>
       </fieldset>
 
-      <fieldset className={formStyles["sectionCard"]}>
-        <legend className={formStyles["sectionTitle"]}>
+      <fieldset className={formStyles.sectionCard}>
+        <legend className={formStyles.sectionTitle}>
           {t("settings.systemState.journal.legend")}
         </legend>
-        <div className={formStyles["settingsGroup"]}>
-          <div className={styles["journalContainer"]} data-testid="settings-sip-journal">
+        <div className={formStyles.settingsGroup}>
+          <div className={styles.journalContainer} data-testid="settings-sip-journal">
             {shell.journalEntries.length === 0 ? (
-              <div className={styles["journalEmpty"]} data-testid="settings-sip-journal-empty">
+              <div className={styles.journalEmpty} data-testid="settings-sip-journal-empty">
                 <AppIcon
                   id="shell.diagnostics"
-                  className={styles["journalEmptyIcon"] ?? ""}
+                  className={styles.journalEmptyIcon ?? ""}
                   decorative={false}
                   label={t("settings.systemState.journal.emptyIconLabel")}
                   size={28}
                 />
-                <p className={styles["journalEmptyTitle"]}>
+                <p className={styles.journalEmptyTitle}>
                   {t("settings.systemState.journal.emptyTitle")}
                 </p>
-                <p className={clsx(formStyles["fieldDescription"], styles["journalEmptyHint"])}>
+                <p className={clsx(formStyles.fieldDescription, styles.journalEmptyHint)}>
                   {t("settings.systemState.journal.emptyHint")}
                 </p>
               </div>
             ) : (
-              <ul className={styles["journalList"]} role="list">
+              <ul className={styles.journalList} role="list">
                 {shell.journalEntries.map((entry) => {
                   const key = journalEntryKey(entry);
                   const detail = entry.detail === null ? "" : ` — ${entry.detail}`;
@@ -689,19 +696,19 @@ export function SettingsSystemStatePanel({
                     <li
                       key={key}
                       className={clsx(
-                        styles["journalEntry"],
-                        highlightedKeys.has(key) && styles["journalEntry_highlight"],
+                        styles.journalEntry,
+                        highlightedKeys.has(key) && styles.journalEntryHighlight,
                       )}
                       data-testid="settings-sip-journal-entry"
                       data-category={entry.category}
                     >
-                      <span className={styles["journalTime"]}>
+                      <span className={styles.journalTime}>
                         {formatLocaleDateTime(entry.timestamp, language)}
                       </span>
-                      <span className={styles["journalEvent"]}>{entry.eventType}</span>
-                      <span className={styles["journalCorrelation"]}>{entry.correlationId}</span>
+                      <span className={styles.journalEvent}>{entry.eventType}</span>
+                      <span className={styles.journalCorrelation}>{entry.correlationId}</span>
                       {detail.length > 0 ? (
-                        <span className={styles["journalDetail"]}>{detail}</span>
+                        <span className={styles.journalDetail}>{detail}</span>
                       ) : null}
                     </li>
                   );
@@ -709,10 +716,10 @@ export function SettingsSystemStatePanel({
               </ul>
             )}
           </div>
-          <div className={styles["journalActions"]}>
+          <div className={styles.journalActions}>
             <button
               type="button"
-              className={formStyles["secondaryButton"]}
+              className={formStyles.secondaryButton}
               data-testid="settings-sip-journal-clear"
               disabled={shell.journalEntries.length === 0}
               aria-disabled={shell.journalEntries.length === 0}

@@ -7,7 +7,7 @@
   max-width: 200px;
 }
 
-.displayName {
+.display-name {
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
@@ -17,7 +17,7 @@
   text-overflow: ellipsis;
 }
 
-.sipStatusBlock {
+.sip-status-block {
   display: flex;
   align-items: baseline;
   gap: 4px;
@@ -25,7 +25,7 @@
   line-height: 1.2;
 }
 
-.sipStatus {
+.sip-status {
   font-size: 0.6875rem;
   font-weight: 500;
   letter-spacing: 0.01em;
@@ -36,7 +36,7 @@
   flex: 1 1 auto;
 }
 
-.sipStatusTimer {
+.sip-status-timer {
   font-size: 0.625rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
@@ -45,28 +45,28 @@
   flex: 0 0 auto;
 }
 
-.status_idle {
+.status-idle {
   color: var(--color-text-muted);
 }
 
-.status_connecting,
-.status_registering {
+.status-connecting,
+.status-registering {
   color: var(--color-status-registering);
 }
 
-.status_reconnecting,
-.status_disconnected {
+.status-reconnecting,
+.status-disconnected {
   color: var(--color-status-failed);
 }
 
-.status_not_registered {
+.status-not-registered {
   color: var(--color-status-not-registered);
 }
 
-.status_registered {
+.status-registered {
   color: var(--color-status-online);
 }
 
-.status_dnd {
+.status-dnd {
   color: var(--color-status-dnd);
 }

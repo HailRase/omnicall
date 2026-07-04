@@ -25,22 +25,22 @@ export function TransferSuccessOverlay({
 
   return (
     <section
-      className={clsx(styles["overlay"], exiting && styles["overlayExiting"])}
+      className={clsx(styles.overlay, exiting && styles.overlayExiting)}
       data-testid="transfer-success-overlay"
       role="status"
       aria-live="polite"
       aria-label={t("transfer.success.message")}
     >
-      <div className={styles["content"]}>
-        <div className={styles["iconRing"]} aria-hidden="true">
-          <svg className={styles["checkmark"]} viewBox="0 0 48 48">
+      <div className={styles.content}>
+        <div className={styles.iconRing} aria-hidden="true">
+          <svg className={styles.checkmark} viewBox="0 0 48 48">
             <path
-              className={styles["checkmarkPath"]}
+              className={styles.checkmarkPath}
               d="M12 24.5 L20.5 33 L36 16"
             />
           </svg>
         </div>
-        <p className={styles["message"]}>{t("transfer.success.message")}</p>
+        <p className={styles.message}>{t("transfer.success.message")}</p>
       </div>
     </section>
   );

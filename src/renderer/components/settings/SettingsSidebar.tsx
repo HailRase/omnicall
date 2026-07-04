@@ -36,19 +36,19 @@ export function SettingsSidebar({
 
   return (
     <nav
-      className={styles["rail"]}
+      className={styles.rail}
       data-testid="settings-sidebar"
       data-expanded={expanded ? "true" : "false"}
       aria-label={t("settings.nav.label")}
     >
       <motion.div
-        className={clsx(styles["panel"], expanded && styles["panelExpanded"])}
+        className={clsx(styles.panel, expanded && styles.panelExpanded)}
         initial={false}
         animate={{ width: expanded ? EXPANDED_WIDTH_PX : COLLAPSED_WIDTH_PX }}
         transition={transition}
       >
-        <div className={clsx(styles["panelInner"], expanded && styles["panelInnerExpanded"])}>
-          <div className={styles["toggleSlot"]}>
+        <div className={clsx(styles.panelInner, expanded && styles.panelInnerExpanded)}>
+          <div className={styles.toggleSlot}>
             <IconControlButton
               iconId={expanded ? "settings.nav.collapse" : "settings.nav.expand"}
               ariaLabel={
@@ -57,25 +57,25 @@ export function SettingsSidebar({
                   : t("settings.nav.expandMenu")
               }
               testId={expanded ? "settings-sidebar-collapse" : "settings-sidebar-expand"}
-              className={styles["toggleButton"]}
+              className={styles.toggleButton}
               ariaExpanded={expanded}
               onClick={onToggleExpanded}
             />
           </div>
-          <ul className={styles["navList"]} role="list">
+          <ul className={styles.navList} role="list">
             {SETTINGS_NAV_ITEMS.map((item) => {
               const isActive = item.id === activeSection;
               const sectionLabel = t(item.labelKey);
               return (
-                <li key={item.id} className={styles["navItem"]}>
+                <li key={item.id} className={styles.navItem}>
                   <IconTooltip
                     label={expanded ? "" : sectionLabel}
                     placement="right"
-                    className={styles["navTooltipHost"]}
+                    className={styles.navTooltipHost}
                   >
                     <button
                       type="button"
-                      className={clsx(styles["navButton"], isActive && styles["navButtonActive"])}
+                      className={clsx(styles.navButton, isActive && styles.navButtonActive)}
                       data-testid={item.testId}
                       aria-current={isActive ? "page" : undefined}
                       aria-label={sectionLabel}
@@ -83,11 +83,11 @@ export function SettingsSidebar({
                         onSectionChange(item.id);
                       }}
                     >
-                      <span className={styles["navIcon"]}>
+                      <span className={styles.navIcon}>
                         <AppIcon id={item.iconId} decorative />
                       </span>
                       <motion.span
-                        className={styles["navLabel"]}
+                        className={styles.navLabel}
                         initial={false}
                         animate={{ opacity: expanded ? 1 : 0 }}
                         transition={transition}

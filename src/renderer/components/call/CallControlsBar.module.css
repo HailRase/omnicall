@@ -37,55 +37,55 @@
     color 140ms ease;
 }
 
-.button:not(.buttonResume):not(.buttonMuted):not(.buttonDanger):hover:not(:disabled) {
+.button:not(.button-resume):not(.button-muted):not(.button-danger):hover:not(:disabled) {
   background: var(--color-bg-surface-highlight);
   border-color: var(--color-border-focus);
   color: var(--color-text-primary);
 }
 
-.buttonResume {
+.button-resume {
   border-color: var(--color-border-success);
   background: var(--color-status-online);
   color: #fff;
   box-shadow: var(--shadow-control-knob);
 }
 
-.buttonResume:hover:not(:disabled) {
+.button-resume:hover:not(:disabled) {
   background: var(--color-status-online);
   border-color: var(--color-border-success);
   filter: brightness(1.05);
   color: #fff;
 }
 
-.buttonMuted {
+.button-muted {
   background: var(--color-status-failed);
   border-color: var(--color-border-danger-accent);
   color: #fff;
   box-shadow: var(--shadow-control-knob);
 }
 
-.buttonMuted:hover:not(:disabled) {
+.button-muted:hover:not(:disabled) {
   background: var(--color-status-failed);
   border-color: var(--color-border-danger-accent);
   filter: brightness(1.08);
   color: #fff;
 }
 
-.buttonDanger {
+.button-danger {
   background: var(--color-status-failed);
   border-color: var(--color-border-danger-accent);
   color: #fff;
   box-shadow: var(--shadow-control-knob);
 }
 
-.buttonDanger:hover:not(:disabled) {
+.button-danger:hover:not(:disabled) {
   background: var(--color-status-failed);
   border-color: var(--color-border-danger-accent);
   filter: brightness(1.08);
   color: #fff;
 }
 
-.buttonDisabled {
+.button-disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -98,7 +98,7 @@
   max-width: 3.25rem;
 }
 
-.captionDisabled {
+.caption-disabled {
   color: var(--color-text-muted);
 }
 
@@ -127,6 +127,6 @@
   margin: 0;
 }
 
-.retryButton {
+.retry-button {
   flex-shrink: 0;
 }

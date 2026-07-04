@@ -53,7 +53,7 @@ export function IconControlButton({
     <IconTooltip label={tooltip}>
       <button
         type="button"
-        className={clsx(styles["button"], className)}
+        className={clsx(styles.button, className)}
         data-testid={testId}
         aria-label={ariaLabel}
         disabled={isDisabled}

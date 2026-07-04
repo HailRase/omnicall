@@ -32,7 +32,7 @@ export function ShellOverlaySheet({
 
   return (
     <div
-      className={styles["sheet"]}
+      className={styles.sheet}
       data-testid={testId}
       role="dialog"
       aria-modal="true"
@@ -40,24 +40,24 @@ export function ShellOverlaySheet({
     >
       <button
         type="button"
-        className={styles["backdrop"]}
+        className={styles.backdrop}
         aria-label={t("shell.overlay.closePanelAria")}
         onClick={onClose}
       />
-      <section className={styles["panel"]}>
-        <header className={styles["header"]}>
-          <h2 className={styles["title"]}>{title}</h2>
+      <section className={styles.panel}>
+        <header className={styles.header}>
+          <h2 className={styles.title}>{title}</h2>
           <IconControlButton
             iconId="overlay.close"
             ariaLabel={t("shell.overlay.closeTitleAria", { title })}
             testId={`${testId}-close`}
-            className={styles["closeButton"]}
+            className={styles.closeButton}
             onClick={onClose}
           />
         </header>
-        <div className={styles["body"]}>
+        <div className={styles.body}>
           {children ?? (
-            <p className={styles["placeholder"]} data-testid={`${testId}-placeholder`}>
+            <p className={styles.placeholder} data-testid={`${testId}-placeholder`}>
               {t("shell.overlay.placeholder")}
             </p>
           )}

@@ -20,7 +20,7 @@ export function SessionFeatureShell({
   return (
     <>
       {sessionLogoutActions.shell.showLogoutErrorBanner && (
-        <p className={chromeTextStyles["error"]} role="alert" data-testid="logout-error-banner">
+        <p className={chromeTextStyles.error} role="alert" data-testid="logout-error-banner">
           {sessionLogoutActions.shell.logoutErrorMessage}
           <button
             type="button"

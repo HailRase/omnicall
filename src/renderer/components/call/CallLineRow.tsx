@@ -54,40 +54,40 @@ export function CallLineRow({
 
   return (
     <li
-      className={clsx(compact ? styles["rowCompact"] : styles["row"])}
+      className={clsx(compact ? styles.rowCompact : styles.row)}
       data-testid={`call-line-${line.callId}`}
       aria-label={t("call.line.ariaLabel", { displayName: line.displayName })}
     >
-      <div className={styles["main"]}>
-        <div className={styles["info"]}>
-          <strong className={styles["name"]}>{line.displayName}</strong>
+      <div className={styles.main}>
+        <div className={styles.info}>
+          <strong className={styles.name}>{line.displayName}</strong>
           {!compact && queueLabel.visible ? (
             <span
-              className={styles["queue"]}
+              className={styles.queue}
               data-testid={`call-line-queue-${line.callId}`}
               aria-busy={queueLabel.ariaBusy}
             >
               {queueLabel.text}
             </span>
           ) : null}
-          <div className={styles["meta"]}>
+          <div className={styles.meta}>
             <CallLineDuration startedAtMs={line.durationStartedAt} callId={line.callId} />
             <span>{t(line.statusLabel as TranslationKey)}</span>
             {line.muted ? (
-              <span className={styles["badge"]} data-testid={`call-line-muted-${line.callId}`}>
+              <span className={styles.badge} data-testid={`call-line-muted-${line.callId}`}>
                 {t("call.line.mutedBadge")}
               </span>
             ) : null}
           </div>
         </div>
-        <div className={styles["actions"]}>
+        <div className={styles.actions}>
           {!compact && line.showIconRow ? (
-            <div className={styles["iconRow"]} aria-label={t("call.controls.groupAria")}>
+            <div className={styles.iconRow} aria-label={t("call.controls.groupAria")}>
               <IconControlButton
                 iconId="call.transfer"
                 ariaLabel={t("icons.call.transfer")}
                 testId={`control-transfer-line-${line.callId}`}
-                className={styles["iconButton"]}
+                className={styles.iconButton}
                 disabledReason={
                   line.transferDisabledReason === null
                     ? null
@@ -101,7 +101,7 @@ export function CallLineRow({
                 iconId="call.hold"
                 ariaLabel={t("call.controls.holdAria")}
                 testId={`control-hold-line-${line.callId}`}
-                className={styles["iconButton"]}
+                className={styles.iconButton}
                 disabledReason={mapControlReason(line.holdDisabledReason)}
                 onClick={() => {
                   onHold(line.callId);
@@ -115,7 +115,7 @@ export function CallLineRow({
                     ? `control-unmute-line-${line.callId}`
                     : `control-mute-line-${line.callId}`
                 }
-                className={styles["iconButton"]}
+                className={styles.iconButton}
                 disabledReason={mapControlReason(
                   line.muted ? line.unmuteDisabledReason : line.muteDisabledReason,
                 )}
@@ -140,7 +140,7 @@ export function CallLineRow({
       </div>
       {showError ? (
         <div
-          className={styles["error"]}
+          className={styles.error}
           data-testid={`call-line-error-${line.callId}`}
           role="alert"
         >
@@ -150,13 +150,13 @@ export function CallLineRow({
             ariaLabel={`Retry ${lastOperationError.operation}`}
             tooltipLabel={t("common.retry")}
             testId={`control-retry-line-${line.callId}`}
-            className={styles["iconButton"]}
+            className={styles.iconButton}
             onClick={onRetryOperation}
           />
         </div>
       ) : null}
       {line.resumeDisabledReason !== null ? (
-        <p className={styles["disabledReason"]} role="status">
+        <p className={styles.disabledReason} role="status">
           {line.resumeDisabledReason === null
             ? null
             : translateOptionalKey(t, line.resumeDisabledReason)}
@@ -177,7 +177,7 @@ function CallLineDuration({ startedAtMs, callId }: CallLineDurationProps): JSX.E
     return null;
   }
   return (
-    <span className={styles["duration"]} data-testid={`call-line-duration-${callId}`}>
+    <span className={styles.duration} data-testid={`call-line-duration-${callId}`}>
       {duration}
     </span>
   );
@@ -202,7 +202,7 @@ function PrimaryCta({ line, t, onResume, onHangup, onAnswer }: PrimaryCtaProps):
         iconId="call.resume"
         ariaLabel={t("call.controls.resumeLineAria", { displayName: line.displayName })}
         testId={`control-resume-line-${line.callId}`}
-        className={clsx(styles["primaryIconButton"], styles["primaryResume"])}
+        className={clsx(styles.primaryIconButton, styles.primaryResume)}
         disabledReason={line.resumeDisabledReason}
         onClick={() => {
           onResume(line.callId);
@@ -217,7 +217,7 @@ function PrimaryCta({ line, t, onResume, onHangup, onAnswer }: PrimaryCtaProps):
         iconId="call.answer"
         ariaLabel={t("call.controls.answerLineAria", { displayName: line.displayName })}
         testId={`control-answer-line-${line.callId}`}
-        className={clsx(styles["primaryIconButton"], styles["primaryAnswer"])}
+        className={clsx(styles.primaryIconButton, styles.primaryAnswer)}
         onClick={() => {
           onAnswer(line.callId);
         }}
@@ -230,7 +230,7 @@ function PrimaryCta({ line, t, onResume, onHangup, onAnswer }: PrimaryCtaProps):
       iconId="call.hangup"
       ariaLabel={t("call.controls.hangupLineAria", { displayName: line.displayName })}
       testId={`control-hangup-line-${line.callId}`}
-      className={clsx(styles["primaryIconButton"], styles["primaryHangup"])}
+      className={clsx(styles.primaryIconButton, styles.primaryHangup)}
       disabledReason={line.hangupDisabledReason}
       onClick={() => {
         onHangup(line.callId);

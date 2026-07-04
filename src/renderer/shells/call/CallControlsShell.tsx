@@ -66,7 +66,7 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
     (numberEntryOverlayOpen || !hasCallInProgress) && !bindings.transferSuccessCelebration.visible;
 
   return (
-    <div className={styles["zone"]} data-testid="call-controls-zone">
+    <div className={styles.zone} data-testid="call-controls-zone">
       {!hideCallControls ? (
         <CallControlsBar
           line={controlTargetLine}

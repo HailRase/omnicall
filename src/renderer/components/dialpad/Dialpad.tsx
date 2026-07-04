@@ -372,11 +372,11 @@ export function Dialpad({
 
       className={clsx(
 
-        styles["panel"],
+        styles.panel,
 
-        isInputDisabled && styles["panelInputDisabled"],
+        isInputDisabled && styles.panelInputDisabled,
 
-        overlayMode && styles["panelOverlay"],
+        overlayMode && styles.panelOverlay,
 
       )}
 
@@ -392,9 +392,9 @@ export function Dialpad({
 
       {onClose !== undefined ? (
 
-        <div className={styles["overlayHeader"]}>
+        <div className={styles.overlayHeader}>
 
-          <span className={styles["overlayTitle"]}>{t("dialpad.panel.overlayTitle")}</span>
+          <span className={styles.overlayTitle}>{t("dialpad.panel.overlayTitle")}</span>
 
           <IconControlButton
 
@@ -406,7 +406,7 @@ export function Dialpad({
 
             testId="dialpad-overlay-close"
 
-            className={dismissStyles["dismiss"]}
+            className={dismissStyles.dismiss}
 
             onClick={onClose}
 
@@ -418,13 +418,13 @@ export function Dialpad({
 
 
 
-      <div className={styles["inputRow"]}>
+      <div className={styles.inputRow}>
 
         <input
 
           type="tel"
 
-          className={styles["inputField"]}
+          className={styles.inputField}
 
           data-testid="dialpad-input"
 
@@ -452,7 +452,7 @@ export function Dialpad({
 
             testId="dialpad-delete"
 
-            className={styles["deleteButton"]}
+            className={styles.deleteButton}
 
             disabledReason={inputDisabledReason}
 
@@ -472,7 +472,7 @@ export function Dialpad({
 
       {showKeys ? (
 
-        <div className={styles["keys"]} role="group" aria-label={t("dialpad.keys.ariaLabel")}>
+        <div className={styles.keys} role="group" aria-label={t("dialpad.keys.ariaLabel")}>
 
           {KEYS.map(([key, sublabel]) => {
 
@@ -486,7 +486,7 @@ export function Dialpad({
 
                   type="button"
 
-                  className={clsx(styles["key"], isInputDisabled && styles["keyDisabled"])}
+                  className={clsx(styles.key, isInputDisabled && styles.keyDisabled)}
 
                   data-testid="dialpad-key-0"
 
@@ -502,7 +502,7 @@ export function Dialpad({
 
                 >
 
-                  <span className={styles["keyDigit"]}>0</span>
+                  <span className={styles.keyDigit}>0</span>
 
                 </button>
 
@@ -520,7 +520,7 @@ export function Dialpad({
 
                 type="button"
 
-                className={clsx(styles["key"], isInputDisabled && styles["keyDisabled"])}
+                className={clsx(styles.key, isInputDisabled && styles.keyDisabled)}
 
                 data-testid={`dialpad-key-${key}`}
 
@@ -536,11 +536,11 @@ export function Dialpad({
 
               >
 
-                <span className={styles["keyDigit"]}>{key}</span>
+                <span className={styles.keyDigit}>{key}</span>
 
                 {sublabel !== null ? (
 
-                  <span className={styles["keySub"]}>{sublabel}</span>
+                  <span className={styles.keySub}>{sublabel}</span>
 
                 ) : null}
 
@@ -562,11 +562,11 @@ export function Dialpad({
 
         className={clsx(
 
-          styles["callButton"],
+          styles.callButton,
 
-          canDial && styles["callButtonReady"],
+          canDial && styles.callButtonReady,
 
-          isCalling && styles["callButtonBusy"],
+          isCalling && styles.callButtonBusy,
 
         )}
 
@@ -586,11 +586,11 @@ export function Dialpad({
 
         {!canDial && callDisabledReason !== null && numberValue.length === 0 ? (
 
-          <span className={styles["callButtonReason"]}>{callDisabledReason}</span>
+          <span className={styles.callButtonReason}>{callDisabledReason}</span>
 
         ) : (
 
-          <span className={styles["callButtonLabel"]}>
+          <span className={styles.callButtonLabel}>
 
             {isCalling ? connectingLabel : callLabel}
 

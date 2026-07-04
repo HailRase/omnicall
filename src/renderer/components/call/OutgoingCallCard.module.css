@@ -8,7 +8,7 @@
   gap: var(--space-xs);
 }
 
-.cardFailed {
+.card-failed {
   border-color: var(--color-border-danger);
   background: var(--color-bg-danger);
 }

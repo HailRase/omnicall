@@ -1,0 +1,33 @@
+---
+description: RULE - CSS Modules kebab-case selectors and dot-notation access in renderer.
+globs:
+  - "src/renderer/**/*.module.css"
+  - "src/renderer/**/*.{ts,tsx}"
+alwaysApply: false
+---
+
+# RULE: CSS Modules Naming
+
+Applies to all renderer `*.module.css` and their TS/TSX consumers.
+
+## CSS (`*.module.css`)
+
+- Class selectors: **kebab-case** — `.row-panel`, `.nav-button-active`.
+- Modifiers: hyphen-separated — `.state-indicator-positive`, not `.stateIndicator_positive`.
+- Single-word classes are allowed — `.panel`, `.rail`.
+
+## TypeScript / TSX
+
+- Access exported classes with **dot notation** — `styles.rowPanel`.
+- Forbidden: `styles["rowPanel"]`, `` styles[`rowPanel_${x}`] ``.
+- Dynamic variants: `Record<Variant, string>` map bound to `styles.*` keys.
+
+## Build
+
+- Vite `css.modules.localsConvention: "camelCase"` in `electron.vite.config.ts`.
+- `.row-panel` in CSS exports as `styles.rowPanel`.
+
+## Lint
+
+- ESLint: `@typescript-eslint/dot-notation`, `no-restricted-syntax` on `styles` / `*Styles`.
+- Stylelint: `selector-class-pattern` on `src/**/*.module.css` (`npm run lint:css`).

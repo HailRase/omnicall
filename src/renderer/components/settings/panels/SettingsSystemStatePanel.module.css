@@ -1,4 +1,4 @@
-.statePanel {
+.state-panel {
   display: flex;
   flex-direction: column;
   gap: var(--space-2xs);
@@ -9,14 +9,14 @@
   background: var(--color-bg-surface-deep);
 }
 
-.stateGrid {
+.state-grid {
   display: flex;
   flex-direction: column;
   gap: 0;
   margin: 0;
 }
 
-.stateRow {
+.state-row {
   display: grid;
   grid-template-columns: auto 7rem 1fr;
   gap: var(--space-sm);
@@ -25,11 +25,11 @@
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
-.stateRow:last-child {
+.state-row:last-child {
   border-bottom: none;
 }
 
-.stateActionRow {
+.state-action-row {
   display: grid;
   grid-template-columns: auto 7rem minmax(0, 1fr) auto;
   gap: var(--space-sm);
@@ -38,22 +38,22 @@
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
-.stateActionRow:last-child {
+.state-action-row:last-child {
   border-bottom: none;
 }
 
-.stateActionMetric {
+.state-action-metric {
   display: contents;
   min-width: 0;
 }
 
-.stateActionMetric .stateRow {
+.state-action-metric .state-row {
   display: contents;
   padding: 0;
   border-bottom: none;
 }
 
-.stateActionControls {
+.state-action-controls {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-xs);
@@ -63,54 +63,54 @@
   grid-column: 4;
 }
 
-.stateActionFeedback {
+.state-action-feedback {
   padding: var(--space-sm) var(--space-sm) 0;
 }
 
-.stateIndicator {
+.state-indicator {
   flex-shrink: 0;
   width: 10px;
   height: 10px;
   border-radius: var(--radius-full);
 }
 
-.stateIndicator_positive {
+.state-indicator-positive {
   background: var(--color-status-online);
 }
 
-.stateIndicator_progress {
+.state-indicator-progress {
   background: var(--color-status-registering);
 }
 
-.stateIndicator_negative {
+.state-indicator-negative {
   background: var(--color-status-failed);
 }
 
-.stateIndicator_neutral {
+.state-indicator-neutral {
   background: var(--color-status-not-registered);
 }
 
-.stateLabel {
+.state-label {
   margin: 0;
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-muted);
 }
 
-.stateValue {
+.state-value {
   margin: 0;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-primary);
 }
 
-.stateReason {
+.state-reason {
   color: var(--color-text-muted);
   font-weight: var(--font-weight-normal);
   font-size: var(--font-size-xs);
 }
 
-.liveSummary {
+.live-summary {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -122,24 +122,24 @@
   border: 0;
 }
 
-.recoveryIntro {
+.recovery-intro {
   margin: 0;
   padding: var(--space-sm);
   border-bottom: 1px solid var(--color-border-subtle);
 }
 
-.recoverySubsection {
+.recovery-subsection {
   display: flex;
   flex-direction: column;
   gap: var(--space-xs);
   padding: var(--space-sm);
 }
 
-.recoverySubsection + .recoverySubsection {
+.recovery-subsection + .recovery-subsection {
   border-top: 1px solid var(--color-border-subtle);
 }
 
-.recoverySubsectionTitle {
+.recovery-subsection-title {
   margin: 0 0 var(--space-2xs);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
@@ -148,7 +148,7 @@
   color: var(--color-text-secondary);
 }
 
-.recoveryBlock {
+.recovery-block {
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -158,11 +158,11 @@
   overflow: hidden;
 }
 
-.recoveryBlock + .recoveryBlock {
+.recovery-block + .recovery-block {
   margin-top: var(--space-xs);
 }
 
-.dependentFields {
+.dependent-fields {
   display: grid;
   grid-template-rows: 1fr;
   transition:
@@ -171,32 +171,32 @@
   opacity: 1;
 }
 
-.dependentFields_collapsed {
+.dependent-fields-collapsed {
   grid-template-rows: 0fr;
   opacity: 0.45;
 }
 
-.dependentFieldsInner {
+.dependent-fields-inner {
   min-height: 0;
   overflow: hidden;
 }
 
-.dependentFieldsInnerMuted {
+.dependent-fields-inner-muted {
   opacity: 0.72;
 }
 
-.fieldError {
+.field-error {
   margin: var(--space-2xs) 0 0;
   font-size: var(--font-size-xs);
   line-height: 1.35;
   color: var(--color-text-danger);
 }
 
-.numberInputInvalid {
+.number-input-invalid {
   color: var(--color-text-danger);
 }
 
-.suffixAccessible {
+.suffix-accessible {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -208,22 +208,22 @@
   border: 0;
 }
 
-.numberInputTouchTarget {
+.number-input-touch-target {
   min-height: 44px;
 }
 
-.manualActionList {
+.manual-action-list {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
 }
 
-.manualActionItem {
+.manual-action-item {
   display: flex;
   align-items: center;
 }
 
-.disabledReasonSrOnly {
+.disabled-reason-sr-only {
   position: absolute;
   width: 1px;
   height: 1px;
@@ -235,7 +235,7 @@
   border: 0;
 }
 
-.actionFeedback {
+.action-feedback {
   margin: 0 0 var(--space-sm);
   padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-control);
@@ -243,25 +243,25 @@
   line-height: 1.4;
 }
 
-.actionFeedbackSuccess {
+.action-feedback-success {
   color: var(--color-status-online);
   background: color-mix(in srgb, var(--color-status-online) 12%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-status-online) 28%, transparent);
 }
 
-.actionFeedbackError {
+.action-feedback-error {
   color: var(--color-text-danger);
   background: color-mix(in srgb, var(--color-status-failed) 10%, transparent);
   border: 1px solid color-mix(in srgb, var(--color-status-failed) 24%, transparent);
 }
 
-.buttonLoading {
+.button-loading {
   display: inline-flex;
   align-items: center;
   gap: var(--space-xs);
 }
 
-.buttonSpinner {
+.button-spinner {
   width: 14px;
   height: 14px;
   border: 2px solid color-mix(in srgb, currentColor 28%, transparent);
@@ -276,7 +276,7 @@
   }
 }
 
-.journalContainer {
+.journal-container {
   max-height: 220px;
   overflow-y: auto;
   border: 1px solid var(--color-border-subtle);
@@ -285,7 +285,7 @@
   padding: var(--space-sm);
 }
 
-.journalEmpty {
+.journal-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -295,24 +295,24 @@
   text-align: center;
 }
 
-.journalEmptyIcon {
+.journal-empty-icon {
   color: var(--color-text-muted);
   opacity: 0.85;
 }
 
-.journalEmptyTitle {
+.journal-empty-title {
   margin: 0;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
 }
 
-.journalEmptyHint {
+.journal-empty-hint {
   margin: 0;
   max-width: 22rem;
 }
 
-.journalList {
+.journal-list {
   list-style: none;
   margin: 0;
   padding: 0;
@@ -321,7 +321,7 @@
   gap: var(--space-xs);
 }
 
-.journalEntry {
+.journal-entry {
   display: grid;
   grid-template-columns: auto 1fr;
   gap: 2px var(--space-sm);
@@ -333,104 +333,104 @@
   transition: background 200ms ease;
 }
 
-.journalEntry_highlight {
+.journal-entry-highlight {
   background: color-mix(in srgb, var(--color-accent-primary) 14%, transparent);
 }
 
-.journalEntry:last-child {
+.journal-entry:last-child {
   border-bottom: none;
 }
 
-.journalTime {
+.journal-time {
   color: var(--color-text-muted);
   grid-column: 1;
 }
 
-.journalEvent {
+.journal-event {
   color: var(--color-text-primary);
   font-weight: var(--font-weight-medium);
   grid-column: 2;
 }
 
-.journalCorrelation {
+.journal-correlation {
   grid-column: 1 / -1;
   color: var(--color-text-muted);
   font-family: var(--font-family-mono, monospace);
   word-break: break-all;
 }
 
-.journalDetail {
+.journal-detail {
   grid-column: 1 / -1;
   color: var(--color-status-failed);
 }
 
-.journalActions {
+.journal-actions {
   display: flex;
   justify-content: flex-end;
   margin-top: var(--space-sm);
 }
 
 @media (max-width: 768px) {
-  .stateRow {
+  .state-row {
     grid-template-columns: auto 1fr;
     grid-template-rows: auto auto;
     align-items: center;
   }
 
-  .stateActionRow {
+  .state-action-row {
     grid-template-columns: 1fr;
     gap: var(--space-sm);
   }
 
-  .stateActionMetric .stateRow {
+  .state-action-metric .state-row {
     display: grid;
   }
 
-  .stateActionControls {
+  .state-action-controls {
     justify-content: stretch;
     width: 100%;
     grid-column: 1;
   }
 
-  .stateActionControls .manualActionItem {
+  .state-action-controls .manual-action-item {
     flex: 1 1 100%;
   }
 
-  .stateLabel {
+  .state-label {
     grid-column: 2;
     grid-row: 1;
   }
 
-  .stateValue {
+  .state-value {
     grid-column: 1 / -1;
     grid-row: 2;
     padding-left: calc(10px + var(--space-sm));
   }
 
-  .manualActionList {
+  .manual-action-list {
     width: 100%;
   }
 
-  .manualActionItem {
+  .manual-action-item {
     width: 100%;
   }
 
-  .manualActionItem button {
+  .manual-action-item button {
     width: 100%;
     min-height: 44px;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dependentFields {
+  .dependent-fields {
     transition: none;
   }
 
-  .journalEntry {
+  .journal-entry {
     transition: none;
   }
 
-  .buttonSpinner {
+  .button-spinner {
     animation: none;
     opacity: 0.65;
   }

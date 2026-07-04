@@ -31,7 +31,7 @@ export function AppIcon({
 }: AppIconProps): JSX.Element {
   const entry = resolveIconEntry(id);
   const resolvedSize = size ?? entry.defaultSize;
-  const mergedClassName = clsx(styles["icon"], className);
+  const mergedClassName = clsx(styles.icon, className);
   const accessibilityProps = decorative
     ? ({ "aria-hidden": true } as const)
     : ({ "aria-label": label ?? resolveIconDefaultLabel(id), role: "img" } as const);

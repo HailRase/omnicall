@@ -19,16 +19,16 @@
   background: var(--color-bg-surface-elevated);
 }
 
-.toastInfo {
+.toast-info {
   border-color: var(--color-border-control);
 }
 
-.toastWarn {
+.toast-warn {
   border-color: var(--color-border-default);
   background: var(--color-bg-surface-highlight);
 }
 
-.toastError {
+.toast-error {
   border-color: var(--color-border-danger);
   background: var(--color-bg-danger);
 }
@@ -37,11 +37,11 @@
   margin: 0;
 }
 
-.toastWarn .message {
+.toast-warn .message {
   color: var(--color-text-warning);
 }
 
-.toastError .message {
+.toast-error .message {
   color: var(--color-text-danger);
 }
 

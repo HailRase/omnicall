@@ -52,11 +52,11 @@ export function LogoutReasonModal({
       aria-label={t("status.logout.reasonDialogTitle")}
       aria-modal="true"
       tabIndex={-1}
-      className={dialogStyles["modal"]}
+      className={dialogStyles.modal}
       data-testid="logout-reason-modal"
     >
-      <h2 className={styles["title"]}>
-        <span className={styles["titleIcon"]}>
+      <h2 className={styles.title}>
+        <span className={styles.titleIcon}>
           <AppIcon id="operator.logout" decorative />
         </span>
         {t("status.logout.title")}
@@ -86,12 +86,12 @@ export function LogoutReasonModal({
         </label>
       )}
 
-      <div className={dialogStyles["actions"]}>
+      <div className={dialogStyles.actions}>
         <IconControlButton
           iconId="operator.logout"
           ariaLabel={t("status.logout.confirmAria")}
           testId="control-logout-submit"
-          className={styles["iconButton"]}
+          className={styles.iconButton}
           disabled={submitDisabled}
           onClick={onSubmit}
         />
@@ -100,7 +100,7 @@ export function LogoutReasonModal({
           ariaLabel={t("status.logout.cancelAria")}
           tooltipLabel={t("common.cancel")}
           testId="control-logout-cancel"
-          className={styles["iconButton"]}
+          className={styles.iconButton}
           onClick={onClose}
         />
       </div>

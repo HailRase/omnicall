@@ -222,34 +222,34 @@ export function SettingsPanel({
   }
 
   return (
-    <div className={styles["layout"]} data-testid="settings-overlay-body">
+    <div className={styles.layout} data-testid="settings-overlay-body">
       <SettingsSidebar
         activeSection={activeSection}
         expanded={sidebarExpanded}
         onSectionChange={onSectionChange}
         onToggleExpanded={handleToggleSidebar}
       />
-      <div className={styles["content"]}>
-        <header className={styles["contentHeader"]}>
-          <h3 className={styles["contentTitle"]} data-testid="settings-section-title">
+      <div className={styles.content}>
+        <header className={styles.contentHeader}>
+          <h3 className={styles.contentTitle} data-testid="settings-section-title">
             {resolveSettingsContentHeaderTitle(t, activeSection)}
           </h3>
-          <div className={styles["closeSlot"]}>
+          <div className={styles.closeSlot}>
             <IconControlButton
               iconId="overlay.close"
               ariaLabel={t("settings.close")}
               testId="settings-overlay-close"
-              className={styles["closeButton"]}
+              className={styles.closeButton}
               onClick={onClose}
             />
           </div>
         </header>
         {updateError !== null ? (
-          <p className={formStyles["error"]} role="alert" data-testid="settings-update-error">
+          <p className={formStyles.error} role="alert" data-testid="settings-update-error">
             {updateError}
           </p>
         ) : null}
-        <div className={styles["contentBody"]}>{sectionContent}</div>
+        <div className={styles.contentBody}>{sectionContent}</div>
       </div>
     </div>
   );

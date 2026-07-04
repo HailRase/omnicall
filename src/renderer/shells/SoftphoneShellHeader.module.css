@@ -3,7 +3,7 @@
   border-bottom: 1px solid var(--color-border-default);
 }
 
-.headerBar {
+.header-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -11,21 +11,21 @@
   /* min-height: 36px; */
 }
 
-.headerBrand {
+.header-brand {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
   min-width: 0;
 }
 
-.userIdentity {
+.user-identity {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
   min-width: 0;
 }
 
-.avatarGroup {
+.avatar-group {
   position: relative;
   flex-shrink: 0;
 }

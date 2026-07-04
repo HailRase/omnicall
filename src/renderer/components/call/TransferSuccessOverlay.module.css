@@ -9,7 +9,7 @@
   animation: successFadeIn 320ms ease-out;
 }
 
-.overlayExiting {
+.overlay-exiting {
   animation: successFadeOut 280ms ease-in forwards;
 }
 
@@ -21,7 +21,7 @@
   text-align: center;
 }
 
-.iconRing {
+.icon-ring {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -40,7 +40,7 @@
   height: 40px;
 }
 
-.checkmarkPath {
+.checkmark-path {
   fill: none;
   stroke: color-mix(in srgb, var(--color-status-online) 12%, white);
   stroke-width: 3.5;
@@ -105,9 +105,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .overlay,
-  .overlayExiting,
-  .iconRing,
-  .checkmarkPath,
+  .overlay-exiting,
+  .icon-ring,
+  .checkmark-path,
   .message {
     animation: none;
     opacity: 1;

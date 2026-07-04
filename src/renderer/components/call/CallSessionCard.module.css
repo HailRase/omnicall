@@ -7,7 +7,7 @@
   gap: var(--space-xs);
 }
 
-.cardSelectable {
+.card-selectable {
   width: 100%;
   text-align: left;
   cursor: pointer;
@@ -19,35 +19,35 @@
     box-shadow 140ms ease;
 }
 
-.cardSelectable:hover {
+.card-selectable:hover {
   border-color: var(--color-border-control);
 }
 
-.cardSelected {
+.card-selected {
   border-color: var(--color-border-focus);
   box-shadow: inset 3px 0 0 var(--color-accent-primary);
 }
 
-.cardHeld.cardSelected {
+.card-held.card-selected {
   border-color: var(--color-border-focus);
   background: rgb(245 158 11 / 8%);
 }
 
-.cardActive {
+.card-active {
   background: var(--color-bg-surface-alt);
 }
 
-.cardHeld {
+.card-held {
   border-color: rgb(245 158 11 / 35%);
   background: rgb(245 158 11 / 8%);
 }
 
-.cardFailed {
+.card-failed {
   border-color: var(--color-border-danger);
   background: var(--color-bg-danger);
 }
 
-.headerRow {
+.header-row {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -73,12 +73,12 @@
   flex-shrink: 0;
 }
 
-.avatarHeld {
+.avatar-held {
   background: rgb(245 158 11 / 18%);
   color: var(--color-text-warning);
 }
 
-.identityText {
+.identity-text {
   min-width: 0;
 }
 
@@ -92,7 +92,7 @@
   text-overflow: ellipsis;
 }
 
-.durationRow {
+.duration-row {
   display: flex;
   align-items: center;
   gap: var(--space-2xs);
@@ -111,7 +111,7 @@
   gap: var(--space-2xs);
 }
 
-.queueBadge {
+.queue-badge {
   font-size: 0.625rem;
   padding: 2px 6px;
   border-radius: var(--radius-control);
@@ -120,14 +120,14 @@
   color: var(--color-accent-primary);
 }
 
-.footerRow {
+.footer-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-xs);
 }
 
-.statusGroup {
+.status-group {
   display: flex;
   align-items: center;
   gap: var(--space-2xs);
@@ -158,30 +158,30 @@
   }
 }
 
-.statusLabel {
+.status-label {
   font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
 }
 
-.statusHeld {
+.status-held {
   color: var(--color-text-warning);
 }
 
-.statusRinging {
+.status-ringing {
   color: var(--color-accent-primary);
 }
 
-.statusFailed {
+.status-failed {
   color: var(--color-text-danger);
 }
 
-.badgeRow {
+.badge-row {
   display: flex;
   align-items: center;
   gap: var(--space-xs);
 }
 
-.badgeIcon {
+.badge-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -191,12 +191,12 @@
   line-height: 0;
 }
 
-.badgeIcon :global(svg) {
+.badge-icon :global(svg) {
   display: block;
 }
 
-.muteBadge,
-.holdBadge {
+.mute-badge,
+.hold-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -206,8 +206,8 @@
   color: var(--color-text-warning);
 }
 
-.remoteHoldBadge,
-.compactRemoteHold {
+.remote-hold-badge,
+.compact-remote-hold {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -217,11 +217,11 @@
   color: var(--color-text-secondary);
 }
 
-.compactRemoteHold {
+.compact-remote-hold {
   white-space: nowrap;
 }
 
-.muteBadge {
+.mute-badge {
   color: var(--color-text-danger);
 }
 
@@ -246,44 +246,44 @@
   border-color: var(--color-border-control);
 }
 
-.compactActive {
+.compact-active {
   background: var(--color-bg-surface-alt);
 }
 
-.compactHeld {
+.compact-held {
   border-color: rgb(245 158 11 / 35%);
   background: rgb(245 158 11 / 8%);
 }
 
-.compactHeld:hover {
+.compact-held:hover {
   border-color: rgb(245 158 11 / 45%);
 }
 
-.compactSelected {
+.compact-selected {
   border-color: var(--color-border-focus);
   box-shadow: inset 3px 0 0 var(--color-accent-primary);
 }
 
-.compactHeld.compactSelected {
+.compact-held.compact-selected {
   border-color: var(--color-border-focus);
   background: rgb(245 158 11 / 8%);
 }
 
-.compactBody {
+.compact-body {
   flex: 1;
   min-width: 0;
   display: grid;
   gap: 2px;
 }
 
-.compactTitleRow {
+.compact-title-row {
   display: flex;
   align-items: center;
   gap: var(--space-2xs);
   min-width: 0;
 }
 
-.compactName {
+.compact-name {
   font-size: var(--font-size-xs);
   color: var(--color-text-primary);
   white-space: nowrap;
@@ -291,17 +291,17 @@
   text-overflow: ellipsis;
 }
 
-.compactMute {
+.compact-mute {
   flex-shrink: 0;
   color: var(--color-text-danger);
 }
 
-.compactStatus {
+.compact-status {
   font-size: 0.625rem;
   color: var(--color-text-secondary);
 }
 
-.compactAside {
+.compact-aside {
   display: flex;
   flex-direction: column;
   align-items: flex-end;

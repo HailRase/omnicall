@@ -75,24 +75,24 @@ export function LogoutActiveSessionConfirmationModal({
       aria-label={t("session.logout.confirmDialogAria")}
       aria-modal="true"
       tabIndex={-1}
-      className={dialogStyles["modal"]}
+      className={dialogStyles.modal}
       data-testid="logout-active-session-modal"
       onKeyDown={handleKeyDown}
     >
-      <h2 className={styles["title"]}>
-        <span className={styles["titleIcon"]}>
+      <h2 className={styles.title}>
+        <span className={styles.titleIcon}>
           <AppIcon id="session.end" decorative />
         </span>
         {t("session.logout.title")}
       </h2>
       <p>{t("session.logout.confirmMessage")}</p>
 
-      <div className={dialogStyles["actions"]}>
+      <div className={dialogStyles.actions}>
         <IconControlButton
           iconId="session.end"
           ariaLabel={t("session.logout.confirmAria")}
           testId="control-logout-confirm"
-          className={styles["iconButton"]}
+          className={styles.iconButton}
           onClick={onConfirm}
         />
         <IconControlButton
@@ -100,7 +100,7 @@ export function LogoutActiveSessionConfirmationModal({
           ariaLabel={t("session.logout.cancelAria")}
           tooltipLabel={t("common.cancel")}
           testId="control-logout-cancel"
-          className={styles["iconButton"]}
+          className={styles.iconButton}
           onClick={onCancel}
         />
       </div>

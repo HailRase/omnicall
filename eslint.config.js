@@ -131,6 +131,28 @@ export default tseslint.config(
         "warn",
         { allowConstantExport: true },
       ],
+      "@typescript-eslint/dot-notation": [
+        "error",
+        {
+          allowPrivateClassPropertyAccess: true,
+          allowKeywords: true,
+        },
+      ],
+      "no-restricted-syntax": [
+        "error",
+        {
+          message:
+            "CSS Modules: use dot notation (styles.rowPanel), not styles['rowPanel']. For dynamic variants use a Record map.",
+          selector:
+            "MemberExpression[computed=true][property.type='Literal']:matches([object.name='styles'], [object.name=/Styles$/])",
+        },
+        {
+          message:
+            "CSS Modules: use a typed Record map for dynamic class names instead of template literals on styles.",
+          selector:
+            "MemberExpression[computed=true][property.type='TemplateLiteral']:matches([object.name='styles'], [object.name=/Styles$/])",
+        },
+      ],
       "no-restricted-imports": [
         "error",
         {

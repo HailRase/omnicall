@@ -59,7 +59,7 @@ export function StatusSelector({
 
   return (
     <section
-      className={styles["panel"]}
+      className={styles.panel}
       data-testid="status-selector"
       aria-label={t("status.selector.ariaLabel")}
     >
@@ -70,7 +70,7 @@ export function StatusSelector({
 
       {statusChangeInProgress && (
         <p
-          className={styles["progress"]}
+          className={styles.progress}
           data-testid="status-change-in-progress"
           role="status"
           aria-live="polite"
@@ -81,7 +81,7 @@ export function StatusSelector({
 
       {rejectionBanner !== null && (
         <div
-          className={styles["rejection"]}
+          className={styles.rejection}
           data-testid="status-rejection-banner"
           role="alert"
         >
@@ -89,12 +89,12 @@ export function StatusSelector({
         </div>
       )}
 
-      <div className={styles["actions"]} role="group" aria-label={t("status.selector.actionsAria")}>
+      <div className={styles.actions} role="group" aria-label={t("status.selector.actionsAria")}>
         <IconControlButton
           iconId="operator.ready"
           ariaLabel={t("status.selector.readyAria")}
           testId="control-change-ready"
-          className={styles["iconButton"]}
+          className={styles.iconButton}
           disabledReason={
             readyDisabledReason === null
               ? null
@@ -106,7 +106,7 @@ export function StatusSelector({
           iconId="operator.break"
           ariaLabel={t("status.selector.breakAria")}
           testId="control-change-break"
-          className={styles["iconButton"]}
+          className={styles.iconButton}
           disabledReason={
             breakDisabledReason === null
               ? null
@@ -118,7 +118,7 @@ export function StatusSelector({
           iconId="operator.logout"
           ariaLabel={t("status.selector.logoutAria")}
           testId="control-request-logout"
-          className={styles["iconButton"]}
+          className={styles.iconButton}
           disabled={statusChangeInProgress}
           onClick={onOpenLogout}
         />
@@ -149,7 +149,7 @@ function renderDisabledReason(
   }
 
   return (
-    <p className={styles["disabledReason"]} data-testid="status-disabled-reason" role="status">
+    <p className={styles.disabledReason} data-testid="status-disabled-reason" role="status">
       {mapOperatorStatusDisabledReasonWithFallback(reason)}
     </p>
   );

@@ -12,11 +12,11 @@ import styles from "./CallIdleEmptyState.module.css";
 export function CallIdleEmptyState(): JSX.Element {
   const { t } = useI18n();
   return (
-    <div className={styles["root"]} data-testid="call-idle-empty-state">
-      <div className={styles["iconWrap"]} aria-hidden>
+    <div className={styles.root} data-testid="call-idle-empty-state">
+      <div className={styles.iconWrap} aria-hidden>
         <AppIcon id="dial.call" size={22} decorative />
       </div>
-      <p className={styles["message"]}>
+      <p className={styles.message}>
         {t("call.idle.message")}
       </p>
     </div>

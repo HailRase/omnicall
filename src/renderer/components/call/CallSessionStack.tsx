@@ -29,23 +29,23 @@ export function CallSessionStack({
 
   return (
     <section
-      className={styles["panel"]}
+      className={styles.panel}
       data-testid="call-session-stack"
       aria-label={t("call.sessions.ariaLabel")}
     >
       {shell.policyErrorMessage !== null ? (
         <p
-          className={chromeTextStyles["hintError"]}
+          className={chromeTextStyles.hintError}
           data-testid="multi-call-policy-error"
           role="alert"
         >
           {shell.policyErrorMessage}
         </p>
       ) : null}
-      <p className={styles["heading"]}>
+      <p className={styles.heading}>
         {t("call.sessions.heading", { count: shell.lines.length })}
       </p>
-      <ul className={styles["list"]}>
+      <ul className={styles.list}>
         {shell.lines.map((line) => (
           <li key={line.callId}>
             <CallSessionCard

@@ -34,7 +34,7 @@
 
 
 
-.titleWrap {
+.title-wrap {
 
   display: grid;
 
@@ -88,7 +88,7 @@
 
 
 
-.stepDot {
+.step-dot {
 
   width: 1rem;
 
@@ -116,7 +116,7 @@
 
 
 
-.stepDotActive {
+.step-dot-active {
 
   border-color: var(--color-border-focus);
 
@@ -128,7 +128,7 @@
 
 
 
-.stepDotDone {
+.step-dot-done {
 
   border-color: var(--color-border-success);
 
@@ -140,7 +140,7 @@
 
 
 
-.stepConnector {
+.step-connector {
 
   width: 0.75rem;
 
@@ -154,7 +154,7 @@
 
 
 
-.stepConnectorDone {
+.step-connector-done {
   background: var(--color-status-online);
 }
 
@@ -178,7 +178,7 @@
 
 
 
-.bodyStepTarget {
+.body-step-target {
 
   display: flex;
 
@@ -197,7 +197,7 @@
   border-top: 1px solid var(--color-border-subtle);
 }
 
-.footerComplete {
+.footer-complete {
   display: flex;
   width: 100%;
   align-items: center;
@@ -218,7 +218,7 @@
 
 
 
-.footerComplete:hover:not(:disabled) {
+.footer-complete:hover:not(:disabled) {
 
   filter: brightness(1.05);
 
@@ -226,7 +226,7 @@
 
 
 
-.footerComplete:disabled {
+.footer-complete:disabled {
 
   opacity: 0.5;
 
@@ -292,7 +292,7 @@
 
 
 
-.failureText p {
+.failure-text p {
 
   margin: 0;
 
@@ -302,7 +302,7 @@
 
 
 
-.failureTitle {
+.failure-title {
 
   font-size: 0.75rem !important;
 
@@ -312,7 +312,7 @@
 
 
 
-.failureHint {
+.failure-hint {
 
   margin-top: var(--space-2xs) !important;
 
@@ -322,7 +322,7 @@
 
 
 
-.stepSection {
+.step-section {
 
   display: grid;
 
@@ -332,7 +332,7 @@
 
 
 
-.stepSectionTarget {
+.step-section-target {
 
   display: flex;
 
@@ -348,7 +348,7 @@
 
 
 
-.targetDivider {
+.target-divider {
 
   display: flex;
 
@@ -362,7 +362,7 @@
 
 
 
-.targetDividerLine {
+.target-divider-line {
 
   flex: 1;
 
@@ -374,7 +374,7 @@
 
 
 
-.targetDividerLabel {
+.target-divider-label {
 
   color: var(--color-text-muted);
 
@@ -386,7 +386,7 @@
 
 
 
-.candidateSection {
+.candidate-section {
 
   display: flex;
 
@@ -402,7 +402,7 @@
 
 
 
-.candidateSectionDisabled {
+.candidate-section-disabled {
 
   opacity: 0.55;
 
@@ -410,7 +410,7 @@
 
 
 
-.candidateScroll {
+.candidate-scroll {
 
   flex: 1;
 
@@ -424,7 +424,7 @@
 
 
 
-.candidateSectionTitle {
+.candidate-section-title {
 
   margin: 0;
 
@@ -436,7 +436,7 @@
 
 
 
-.candidateList {
+.candidate-list {
 
   list-style: none;
 
@@ -452,7 +452,7 @@
 
 
 
-.candidateCard {
+.candidate-card {
 
   width: 100%;
 
@@ -480,7 +480,7 @@
 
 
 
-.candidateCard:hover {
+.candidate-card:hover {
 
   border-color: var(--color-border-focus);
 
@@ -488,7 +488,7 @@
 
 
 
-.candidateCard:focus-visible {
+.candidate-card:focus-visible {
 
   outline: 2px solid var(--color-outline-focus);
 
@@ -498,7 +498,7 @@
 
 
 
-.candidateCardSelected {
+.candidate-card-selected {
 
   border-color: var(--color-accent-primary);
 
@@ -508,7 +508,7 @@
 
 
 
-.candidateCard:disabled {
+.candidate-card:disabled {
 
   cursor: not-allowed;
 
@@ -516,7 +516,7 @@
 
 
 
-.targetInput {
+.target-input {
 
   width: 100%;
 
@@ -540,7 +540,7 @@
 
 
 
-.targetInput::placeholder {
+.target-input::placeholder {
 
   color: var(--color-text-muted);
 
@@ -548,7 +548,7 @@
 
 
 
-.targetInput:focus-visible {
+.target-input:focus-visible {
 
   outline: 2px solid var(--color-outline-focus);
 
@@ -560,8 +560,8 @@
 
 
 
-.targetInput:disabled,
-.targetInputDisabled {
+.target-input:disabled,
+.target-input-disabled {
 
   opacity: 0.6;
 
@@ -575,7 +575,7 @@
 
 
 
-.nextButton {
+.next-button {
 
   margin-top: auto;
 
@@ -615,7 +615,7 @@
 
 
 
-.nextButton:hover:not(:disabled) {
+.next-button:hover:not(:disabled) {
 
   filter: brightness(1.05);
 
@@ -623,7 +623,7 @@
 
 
 
-.nextButton:disabled {
+.next-button:disabled {
 
   border-color: var(--color-border-subtle);
 
@@ -637,7 +637,7 @@
 
 
 
-.typeList {
+.type-list {
 
   display: grid;
 
@@ -647,7 +647,7 @@
 
 
 
-.typeCard {
+.type-card {
 
   display: grid;
 
@@ -677,7 +677,7 @@
 
 
 
-.typeCard:hover:not(:disabled) {
+.type-card:hover:not(:disabled) {
 
   border-color: var(--color-border-focus);
 
@@ -687,7 +687,7 @@
 
 
 
-.typeCardDisabled {
+.type-card-disabled {
 
   opacity: 0.5;
 
@@ -697,7 +697,7 @@
 
 
 
-.typeCardTitle {
+.type-card-title {
 
   display: flex;
 
@@ -715,7 +715,7 @@
 
 
 
-.typeCardDescription {
+.type-card-description {
 
   font-size: 0.625rem;
 
@@ -727,7 +727,7 @@
 
 
 
-.disabledReason {
+.disabled-reason {
 
   margin: 0;
 
@@ -739,7 +739,7 @@
 
 
 
-.lineSection {
+.line-section {
 
   display: grid;
 
@@ -749,7 +749,7 @@
 
 
 
-.lineSectionTitle {
+.line-section-title {
 
   margin: 0;
 
@@ -765,7 +765,7 @@
 
 
 
-.lineCard {
+.line-card {
 
   border: 1px solid var(--color-border-subtle);
 
@@ -783,7 +783,7 @@
 
 
 
-.lineLabel {
+.line-label {
 
   margin: 0;
 
@@ -797,7 +797,7 @@
 
 
 
-.lineState {
+.line-state {
 
   margin: 0;
 

@@ -16,7 +16,7 @@
   animation: settingsBackdropIn 220ms ease-out;
 }
 
-.backdropExiting {
+.backdrop-exiting {
   animation: settingsBackdropOut 220ms ease-in forwards;
 }
 
@@ -34,7 +34,7 @@
   animation: settingsPanelSlideIn 280ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.panelExiting {
+.panel-exiting {
   animation: settingsPanelSlideOut 280ms cubic-bezier(0.64, 0, 0.78, 0) forwards;
 }
 
@@ -84,9 +84,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .backdrop,
-  .backdropExiting,
+  .backdrop-exiting,
   .panel,
-  .panelExiting {
+  .panel-exiting {
     animation: none;
   }
 }

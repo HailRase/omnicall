@@ -23,11 +23,11 @@ export function MultiCallHoldAllIndicator({
 
   return (
     <div
-      className={chromeTextStyles["hint"]}
+      className={chromeTextStyles.hint}
       data-testid="multi-call-hold-all-indicator"
       role="status"
     >
-      <span className={styles["icon"]}>
+      <span className={styles.icon}>
         <AppIcon id="call.hold" decorative />
       </span>
       {t("dialpad.disabled.holdAllInProgress")}

@@ -14,13 +14,13 @@ export function App(): JSX.Element {
   useAppShutdown({ facade });
 
   return (
-    <main className={styles["shell"]} data-testid="softphone-shell">
+    <main className={styles.shell} data-testid="softphone-shell">
       {status === "loading" && (
         <p data-testid="bootstrap-loading">{t("bootstrap.loading")}</p>
       )}
 
       {status === "error" && (
-        <p className={styles["error"]} data-testid="bootstrap-error" role="alert">
+        <p className={styles.error} data-testid="bootstrap-error" role="alert">
           {errorMessage}
         </p>
       )}

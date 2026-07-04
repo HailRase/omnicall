@@ -50,10 +50,10 @@ export function CallSessionCard({
       <button
         type="button"
         className={clsx(
-          styles["compact"],
-          isActive && styles["compactActive"],
-          isHeld && styles["compactHeld"],
-          showSelectedChrome && styles["compactSelected"],
+          styles.compact,
+          isActive && styles.compactActive,
+          isHeld && styles.compactHeld,
+          showSelectedChrome && styles.compactSelected,
         )}
         data-testid={`call-session-card-${line.callId}`}
         aria-label={buildCompactAriaLabel(t, line)}
@@ -61,17 +61,17 @@ export function CallSessionCard({
         onClick={onClick}
       >
         <span
-          className={clsx(styles["avatar"], isHeld && styles["avatarHeld"])}
+          className={clsx(styles.avatar, isHeld && styles.avatarHeld)}
           aria-hidden
         >
           <AppIcon id={directionIconId} size={13} decorative />
         </span>
-        <span className={styles["compactBody"]}>
-          <span className={styles["compactTitleRow"]}>
-            <span className={styles["compactName"]}>{line.displayName}</span>
+        <span className={styles.compactBody}>
+          <span className={styles.compactTitleRow}>
+            <span className={styles.compactName}>{line.displayName}</span>
             {line.muted ? (
               <span
-                className={styles["compactMute"]}
+                className={styles.compactMute}
                 data-testid={`call-session-muted-${line.callId}`}
                 aria-hidden
               >
@@ -80,19 +80,19 @@ export function CallSessionCard({
             ) : null}
           </span>
           <span
-            className={clsx(styles["compactStatus"], isHeld && styles["statusHeld"])}
+            className={clsx(styles.compactStatus, isHeld && styles.statusHeld)}
             data-testid={`call-session-status-${line.callId}`}
           >
             {statusHint}
           </span>
         </span>
-        <span className={styles["compactAside"]}>
+        <span className={styles.compactAside}>
           {isRemoteHeld ? (
             <span
-              className={styles["compactRemoteHold"]}
+              className={styles.compactRemoteHold}
               data-testid={`call-session-remote-hold-${line.callId}`}
             >
-              <span className={styles["badgeIcon"]} aria-hidden>
+              <span className={styles.badgeIcon} aria-hidden>
                 <AppIcon id="call.hold" size={10} decorative />
               </span>
               {t("call.session.badge.remoteHold")}
@@ -100,14 +100,14 @@ export function CallSessionCard({
           ) : null}
           {duration.length > 0 ? (
             <span
-              className={styles["duration"]}
+              className={styles.duration}
               data-testid={`call-session-duration-${line.callId}`}
             >
               {duration}
             </span>
           ) : null}
           {queueLabel.visible ? (
-            <span className={styles["queueBadge"]}>{queueLabel.text}</span>
+            <span className={styles.queueBadge}>{queueLabel.text}</span>
           ) : null}
         </span>
       </button>
@@ -115,63 +115,63 @@ export function CallSessionCard({
   }
 
   const cardClassName = clsx(
-    styles["card"],
-    isFailed && styles["cardFailed"],
-    isHeld && styles["cardHeld"],
-    isActive && styles["cardActive"],
-    showSelectedChrome && styles["cardSelected"],
-    onClick !== undefined && styles["cardSelectable"],
+    styles.card,
+    isFailed && styles.cardFailed,
+    isHeld && styles.cardHeld,
+    isActive && styles.cardActive,
+    showSelectedChrome && styles.cardSelected,
+    onClick !== undefined && styles.cardSelectable,
   );
 
   const cardBody = (
     <>
-      <div className={styles["headerRow"]}>
-        <div className={styles["identity"]}>
+      <div className={styles.headerRow}>
+        <div className={styles.identity}>
           <span
-            className={clsx(styles["avatar"], isHeld && styles["avatarHeld"])}
+            className={clsx(styles.avatar, isHeld && styles.avatarHeld)}
             aria-hidden
           >
             <AppIcon id={directionIconId} size={16} decorative />
           </span>
-          <span className={styles["identityText"]}>
-            <span className={styles["name"]}>{line.displayName}</span>
+          <span className={styles.identityText}>
+            <span className={styles.name}>{line.displayName}</span>
           </span>
         </div>
         {duration.length > 0 ? (
           <span
-            className={styles["durationRow"]}
+            className={styles.durationRow}
             data-testid={`call-session-duration-${line.callId}`}
           >
-            <span className={styles["duration"]}>{duration}</span>
+            <span className={styles.duration}>{duration}</span>
           </span>
         ) : null}
       </div>
 
       {queueLabel.visible ? (
-        <div className={styles["badges"]}>
-          <span className={styles["queueBadge"]}>{queueLabel.text}</span>
+        <div className={styles.badges}>
+          <span className={styles.queueBadge}>{queueLabel.text}</span>
         </div>
       ) : null}
 
-      <div className={styles["footerRow"]}>
-        <span className={styles["statusGroup"]}>
-          {isRinging ? <span className={styles["pulse"]} aria-hidden /> : null}
+      <div className={styles.footerRow}>
+        <span className={styles.statusGroup}>
+          {isRinging ? <span className={styles.pulse} aria-hidden /> : null}
           <span
             className={clsx(
-              styles["statusLabel"],
-              isHeld && styles["statusHeld"],
-              isRinging && styles["statusRinging"],
-              isFailed && styles["statusFailed"],
+              styles.statusLabel,
+              isHeld && styles.statusHeld,
+              isRinging && styles.statusRinging,
+              isFailed && styles.statusFailed,
             )}
             data-testid={`call-session-status-${line.callId}`}
           >
             {statusHint}
           </span>
         </span>
-        <span className={styles["badgeRow"]}>
+        <span className={styles.badgeRow}>
           {line.muted ? (
             <span
-              className={styles["muteBadge"]}
+              className={styles.muteBadge}
               data-testid={`call-session-muted-${line.callId}`}
             >
               <AppIcon id="call.mute" size={10} decorative />
@@ -179,8 +179,8 @@ export function CallSessionCard({
             </span>
           ) : null}
           {isLocallyHeld ? (
-            <span className={styles["holdBadge"]}>
-              <span className={styles["badgeIcon"]} aria-hidden>
+            <span className={styles.holdBadge}>
+              <span className={styles.badgeIcon} aria-hidden>
                 <AppIcon id="call.hold" size={10} decorative />
               </span>
               {t("call.session.badge.hold")}
@@ -188,10 +188,10 @@ export function CallSessionCard({
           ) : null}
           {isRemoteHeld ? (
             <span
-              className={styles["remoteHoldBadge"]}
+              className={styles.remoteHoldBadge}
               data-testid={`call-session-remote-hold-${line.callId}`}
             >
-              <span className={styles["badgeIcon"]} aria-hidden>
+              <span className={styles.badgeIcon} aria-hidden>
                 <AppIcon id="call.hold" size={10} decorative />
               </span>
               {t("call.session.badge.remoteHold")}

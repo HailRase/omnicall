@@ -112,30 +112,30 @@ export function IncomingCallOverlay({
       role="dialog"
       aria-label={t("incoming.ariaLabel")}
       tabIndex={-1}
-      className={styles["overlay"]}
+      className={styles.overlay}
       data-testid="incoming-call-overlay"
       onKeyDown={handleKeyDown}
     >
       {autoAnswerActive ? (
-        <div className={styles["autoAnswerTrack"]} aria-hidden="true">
+        <div className={styles.autoAnswerTrack} aria-hidden="true">
           <div
-            className={styles["autoAnswerFill"]}
+            className={styles.autoAnswerFill}
             style={{ width: `${autoAnswerProgress}%` }}
           />
         </div>
       ) : null}
 
-      <div className={styles["body"]}>
-        <div className={styles["headerRow"]}>
-          <div className={styles["iconCircle"]}>
+      <div className={styles.body}>
+        <div className={styles.headerRow}>
+          <div className={styles.iconCircle}>
             <AppIcon id="call.incoming" size={16} decorative />
           </div>
-          <div className={styles["identity"]} data-testid="caller-identity">
-            <p className={styles["eyebrow"]}>
+          <div className={styles.identity} data-testid="caller-identity">
+            <p className={styles.eyebrow}>
               {t("incoming.eyebrow")}
               {autoAnswerActive && autoAnswerSecondsRemaining !== null ? (
                 <span
-                  className={styles["autoAnswerHint"]}
+                  className={styles.autoAnswerHint}
                   data-testid="auto-answer-countdown"
                   aria-live="polite"
                 >
@@ -143,18 +143,18 @@ export function IncomingCallOverlay({
                 </span>
               ) : null}
             </p>
-            <p className={styles["primaryName"]}>{resolvePrimaryLabel(t, displayName, callerNumber)}</p>
+            <p className={styles.primaryName}>{resolvePrimaryLabel(t, displayName, callerNumber)}</p>
             {hasName ? (
-              <p className={styles["secondaryNumber"]}>{callerNumber}</p>
+              <p className={styles.secondaryNumber}>{callerNumber}</p>
             ) : null}
           </div>
         </div>
 
         {queueBadge.visible || campaignContextTitle !== null ? (
-          <div className={styles["badges"]}>
+          <div className={styles.badges}>
             {queueBadge.visible ? (
               <span
-                className={styles["badgeQueue"]}
+                className={styles.badgeQueue}
                 data-testid="queue-info-label"
                 aria-busy={queueBadge.ariaBusy}
               >
@@ -163,7 +163,7 @@ export function IncomingCallOverlay({
             ) : null}
             {campaignContextTitle !== null ? (
               <span
-                className={styles["badgeCampaign"]}
+                className={styles.badgeCampaign}
                 data-testid="incoming-campaign-context"
               >
                 {campaignContextTitle}
@@ -173,14 +173,14 @@ export function IncomingCallOverlay({
         ) : null}
 
         {shouldShowStatusMessage(uiState) ? (
-          <div className={styles["statusBlock"]}>
+          <div className={styles.statusBlock}>
             <IncomingCallStatusMessage uiState={uiState} />
           </div>
         ) : null}
 
         {answerDisabledReason !== null ? (
           <p
-            className={styles["disabledReason"]}
+            className={styles.disabledReason}
             data-testid="incoming-answer-disabled-reason"
             role="status"
           >
@@ -188,29 +188,29 @@ export function IncomingCallOverlay({
           </p>
         ) : null}
 
-        <div className={styles["actions"]}>
+        <div className={styles.actions}>
           <button
             type="button"
-            className={styles["rejectButton"]}
+            className={styles.rejectButton}
             data-testid="reject-call"
             aria-label={t("incoming.rejectAria")}
             disabled={rejectDisabledReason !== null}
             onClick={onReject}
           >
-            <span className={styles["buttonIcon"]}>
+            <span className={styles.buttonIcon}>
               <AppIcon id="call.reject" size={15} decorative />
             </span>
             <span>{t("incoming.rejectLabel")}</span>
           </button>
           <button
             type="button"
-            className={styles["answerButton"]}
+            className={styles.answerButton}
             data-testid="answer-call"
             aria-label={t("incoming.answerAria")}
             disabled={answerDisabledReason !== null}
             onClick={onAnswer}
           >
-            <span className={styles["buttonIcon"]}>
+            <span className={styles.buttonIcon}>
               <AppIcon id="call.answer" size={15} decorative />
             </span>
             <span>{t("incoming.answerLabel")}</span>

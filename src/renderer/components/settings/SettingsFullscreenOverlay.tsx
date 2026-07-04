@@ -62,7 +62,7 @@ export function SettingsFullscreenOverlay({
 
   return (
     <div
-      className={styles["overlay"]}
+      className={styles.overlay}
       data-testid="settings-overlay"
       data-closing={exiting ? "true" : undefined}
       role="dialog"
@@ -71,13 +71,13 @@ export function SettingsFullscreenOverlay({
     >
       <button
         type="button"
-        className={clsx(styles["backdrop"], exiting && styles["backdropExiting"])}
+        className={clsx(styles.backdrop, exiting && styles.backdropExiting)}
         aria-label={t("settings.close")}
         data-testid="settings-overlay-backdrop"
         onClick={onClose}
       />
       <section
-        className={clsx(styles["panel"], exiting && styles["panelExiting"])}
+        className={clsx(styles.panel, exiting && styles.panelExiting)}
         onAnimationEnd={handlePanelAnimationEnd}
       >
         {children}

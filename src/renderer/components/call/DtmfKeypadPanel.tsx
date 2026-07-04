@@ -43,12 +43,12 @@ export function DtmfKeypadPanel({
 
   return (
     <section
-      className={styles["panel"]}
+      className={styles.panel}
       data-testid="dtmf-keypad-panel"
       aria-label={t("call.dtmf.panelAriaLabel")}
     >
-      <div className={styles["header"]}>
-        <span className={styles["headerTitle"]}>
+      <div className={styles.header}>
+        <span className={styles.headerTitle}>
           {t("call.dtmf.title", { displayName })}
         </span>
         <IconControlButton
@@ -56,16 +56,16 @@ export function DtmfKeypadPanel({
           ariaLabel={t("call.dtmf.closeAriaLabel")}
           tooltipLabel={t("icons.overlay.close")}
           testId="dtmf-close"
-          className={dismissStyles["dismiss"]}
+          className={dismissStyles.dismiss}
           onClick={onClose}
         />
       </div>
 
-      <div className={styles["inputRow"]}>
+      <div className={styles.inputRow}>
         <input
           type="text"
           readOnly
-          className={styles["toneField"]}
+          className={styles.toneField}
           value={toneDisplay}
           placeholder={t("call.dtmf.placeholder")}
           aria-label={t("call.dtmf.tonesAriaLabel")}
@@ -74,29 +74,29 @@ export function DtmfKeypadPanel({
         />
       </div>
 
-      <div className={styles["keys"]} role="group" aria-label={t("call.dtmf.keysAriaLabel")}>
+      <div className={styles.keys} role="group" aria-label={t("call.dtmf.keysAriaLabel")}>
         {DTMF_KEYS.map((key) => (
           <button
             key={key}
             type="button"
-            className={styles["key"]}
+            className={styles.key}
             data-testid={`dtmf-key-${key}`}
             aria-label={`DTMF ${key}`}
             onClick={() => {
               onTone(key);
             }}
           >
-            <span className={styles["keyDigit"]}>{key}</span>
+            <span className={styles.keyDigit}>{key}</span>
           </button>
         ))}
       </div>
 
       {errorMessage !== null ? (
-        <p className={styles["error"]} data-testid="dtmf-error-alert" role="alert">
+        <p className={styles.error} data-testid="dtmf-error-alert" role="alert">
           {errorMessage}
         </p>
       ) : null}
-      <p className={styles["hint"]}>{t("call.dtmf.hint")}</p>
+      <p className={styles.hint}>{t("call.dtmf.hint")}</p>
     </section>
   );
 }

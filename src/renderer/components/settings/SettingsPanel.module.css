@@ -15,7 +15,7 @@
   overflow: hidden;
 }
 
-.contentHeader {
+.content-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -27,14 +27,14 @@
   background: var(--color-bg-surface-elevated);
 }
 
-.closeSlot {
+.close-slot {
   display: flex;
   align-items: center;
   align-self: center;
   flex-shrink: 0;
 }
 
-.closeButton {
+.close-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -51,21 +51,21 @@
     color 150ms ease;
 }
 
-.closeButton svg {
+.close-button svg {
   display: block;
 }
 
-.closeButton:hover {
+.close-button:hover {
   color: var(--color-text-primary);
   background: color-mix(in srgb, var(--color-text-primary) 14%, transparent);
 }
 
-.closeButton:focus-visible {
+.close-button:focus-visible {
   outline: 2px solid var(--color-outline-focus);
   outline-offset: 2px;
 }
 
-.contentTitle {
+.content-title {
   margin: 0;
   font-size: 1.125rem;
   font-weight: var(--font-weight-semibold);
@@ -73,7 +73,7 @@
   color: var(--color-text-emphasis);
 }
 
-.contentBody {
+.content-body {
   flex: 1;
   overflow: auto;
   padding: var(--space-lg);

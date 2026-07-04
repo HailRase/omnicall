@@ -42,7 +42,7 @@
   cursor: not-allowed;
 }
 
-.iconButton {
+.icon-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -51,7 +51,7 @@
   padding: 0;
 }
 
-.disabledReason {
+.disabled-reason {
   margin: 0;
   color: var(--color-text-secondary);
 }

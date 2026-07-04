@@ -9,12 +9,12 @@ export type RegistrationStatusDotProps = Readonly<{
 }>;
 
 const VARIANT_CLASS: Record<RegistrationDotVariant, string> = {
-  registering: styles["variant_registering"] ?? "",
-  registered_online: styles["variant_registered_online"] ?? "",
-  registered_offline: styles["variant_registered_offline"] ?? "",
-  registered_dnd: styles["variant_registered_dnd"] ?? "",
-  failed: styles["variant_failed"] ?? "",
-  not_registered: styles["variant_not_registered"] ?? "",
+  registering: styles.variantRegistering ?? "",
+  registered_online: styles.variantRegisteredOnline ?? "",
+  registered_offline: styles.variantRegisteredOffline ?? "",
+  registered_dnd: styles.variantRegisteredDnd ?? "",
+  failed: styles.variantFailed ?? "",
+  not_registered: styles.variantNotRegistered ?? "",
 };
 
 /**
@@ -31,7 +31,7 @@ export function RegistrationStatusDot({
 
   return (
     <span
-      className={clsx(styles["dot"], VARIANT_CLASS[variant])}
+      className={clsx(styles.dot, VARIANT_CLASS[variant])}
       data-testid="registration-status-dot"
       data-variant={variant}
       role="status"

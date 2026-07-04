@@ -22,14 +22,14 @@ export function PhoneStatusBadge({
 }: PhoneStatusBadgeProps): JSX.Element {
   const { t } = useI18n();
   return (
-    <section className={panelStyles["panel"]} data-testid="phone-status-badge">
+    <section className={panelStyles.panel} data-testid="phone-status-badge">
       <p>
         {t("status.phone.label")}: <strong>{phoneStatusLabel(status)}</strong>
       </p>
       <p>
         {t("status.phone.registration")}: <strong>{registrationLabel}</strong>
       </p>
-      <div className={styles["actions"]} role="group" aria-label={t("status.phone.groupAria")}>
+      <div className={styles.actions} role="group" aria-label={t("status.phone.groupAria")}>
         {STATUS_OPTIONS.map((option) => (
           <button
             key={option}

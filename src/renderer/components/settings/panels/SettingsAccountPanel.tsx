@@ -35,7 +35,7 @@ export function SettingsAccountPanel({
   onLogout,
 }: SettingsAccountPanelProps): JSX.Element {
   return (
-    <div className={styles["wrapper"]} data-testid="settings-account-panel">
+    <div className={styles.wrapper} data-testid="settings-account-panel">
       <AccountPanel
         form={form}
         submitting={submitting}

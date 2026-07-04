@@ -1,0 +1,22 @@
+declare const classes: {
+  readonly actions: string;
+  readonly badge: string;
+  readonly disabledReason: string;
+  readonly duration: string;
+  readonly error: string;
+  readonly iconButton: string;
+  readonly iconRow: string;
+  readonly info: string;
+  readonly main: string;
+  readonly meta: string;
+  readonly name: string;
+  readonly primary: string;
+  readonly primaryAnswer: string;
+  readonly primaryHangup: string;
+  readonly primaryIconButton: string;
+  readonly primaryResume: string;
+  readonly queue: string;
+  readonly row: string;
+  readonly rowCompact: string;
+};
+export default classes;

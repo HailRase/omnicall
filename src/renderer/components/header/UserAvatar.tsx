@@ -30,11 +30,11 @@ export const UserAvatar = forwardRef(function UserAvatar(
   const { t } = useI18n();
   const resolvedAriaLabel = ariaLabel ?? t("header.avatar.ariaLabel");
   const className = clsx(
-    styles["avatar"],
-    onClick !== undefined && styles["interactive"],
+    styles.avatar,
+    onClick !== undefined && styles.interactive,
   );
   const content = (
-    <span className={styles["initials"]} aria-hidden="true">
+    <span className={styles.initials} aria-hidden="true">
       {initials}
     </span>
   );

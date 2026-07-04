@@ -31,7 +31,7 @@ export function StatusTimer({
 
   return (
     <p
-      className={styles["timer"]}
+      className={styles.timer}
       data-testid="status-timer"
       role="status"
       aria-live="off"

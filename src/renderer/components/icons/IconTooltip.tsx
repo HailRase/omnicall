@@ -103,7 +103,7 @@ export function IconTooltip({
   }, [clearShowTimeout]);
 
   if (label.length === 0) {
-    return <span className={clsx(styles["host"], className)}>{children}</span>;
+    return <span className={clsx(styles.host, className)}>{children}</span>;
   }
 
   const tooltipNode =
@@ -113,7 +113,7 @@ export function IconTooltip({
             id={tooltipId}
             ref={refs.setFloating}
             role="tooltip"
-            className={styles["tooltip"]}
+            className={styles.tooltip}
             style={floatingStyles}
             data-placement={resolvedPlacement}
             data-testid="icon-tooltip-bubble"
@@ -128,7 +128,7 @@ export function IconTooltip({
     <>
       <span
         ref={refs.setReference}
-        className={clsx(styles["host"], className)}
+        className={clsx(styles.host, className)}
         data-testid="icon-tooltip-host"
         onPointerEnter={showTooltip}
         onPointerLeave={hideTooltip}

@@ -1,0 +1,17 @@
+{
+  "rules": {
+    "selector-class-pattern": [
+      "^[a-z][a-z0-9]*(-[a-z0-9]+)*$",
+      {
+        "resolveNestedSelectors": true
+      }
+    ],
+    "selector-pseudo-class-no-unknown": [
+      true,
+      {
+        "ignorePseudoClasses": ["global"]
+      }
+    ]
+  },
+  "ignoreFiles": ["**/*.css", "!**/*.module.css"]
+}

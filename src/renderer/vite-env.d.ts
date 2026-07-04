@@ -1,5 +1,6 @@
 /// <reference types="vite/client" />
 
+/** Fallback when per-file `*.module.css.d.ts` is missing (run `npm run css:types`). */
 declare module "*.module.css" {
   const classes: Readonly<Record<string, string>>;
   export default classes;

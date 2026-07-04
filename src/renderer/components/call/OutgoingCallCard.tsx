@@ -32,23 +32,23 @@ export function OutgoingCallCard({
 
   return (
     <section
-      className={clsx(styles["card"], isFailed && styles["cardFailed"])}
+      className={clsx(styles.card, isFailed && styles.cardFailed)}
       data-testid="outgoing-call-card"
       aria-label={t("outgoing.ariaLabel")}
     >
-      <div className={styles["header"]}>
-        <span className={styles["avatar"]} aria-hidden>
+      <div className={styles.header}>
+        <span className={styles.avatar} aria-hidden>
           <AppIcon id="call.outgoing" size={16} decorative />
         </span>
-        <div className={styles["identity"]}>
-          <p className={styles["number"]}>{numberValue || t("outgoing.unknownNumber")}</p>
-          <p className={styles["status"]} data-testid="call-state-label">
+        <div className={styles.identity}>
+          <p className={styles.number}>{numberValue || t("outgoing.unknownNumber")}</p>
+          <p className={styles.status} data-testid="call-state-label">
             {toneIndicator !== "none" ? mapToneLabel(t, toneIndicator) : statusLabel}
           </p>
         </div>
       </div>
       {lastError !== null ? (
-        <p className={styles["error"]} data-testid="call-failed-alert" role="alert">
+        <p className={styles.error} data-testid="call-failed-alert" role="alert">
           {lastError}
         </p>
       ) : null}

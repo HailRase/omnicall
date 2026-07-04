@@ -1,0 +1,24 @@
+declare const classes: {
+  readonly actions: string;
+  readonly answerButton: string;
+  readonly autoAnswerFill: string;
+  readonly autoAnswerHint: string;
+  readonly autoAnswerTrack: string;
+  readonly avatar: string;
+  readonly badgeCampaign: string;
+  readonly badgeQueue: string;
+  readonly badges: string;
+  readonly buttonIcon: string;
+  readonly card: string;
+  readonly cardSelected: string;
+  readonly disabledReason: string;
+  readonly displayName: string;
+  readonly identity: string;
+  readonly number: string;
+  readonly pulse: string;
+  readonly rejectButton: string;
+  readonly selectArea: string;
+  readonly status: string;
+  readonly statusRow: string;
+};
+export default classes;

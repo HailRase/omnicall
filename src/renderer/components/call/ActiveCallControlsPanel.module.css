@@ -31,7 +31,7 @@
   cursor: not-allowed;
 }
 
-.iconButton {
+.icon-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -52,6 +52,6 @@
   color: var(--color-text-danger);
 }
 
-.errorMessage {
+.error-message {
   margin: 0;
 }

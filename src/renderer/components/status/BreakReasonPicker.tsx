@@ -26,7 +26,7 @@ export function BreakReasonPicker({
 }: BreakReasonPickerProps): JSX.Element {
   const { t } = useI18n();
   return (
-    <div className={styles["picker"]} data-testid="break-reason-picker">
+    <div className={styles.picker} data-testid="break-reason-picker">
       <RejectReasonSelector
         reasons={reasons}
         selectedReason={selectedReason}
@@ -39,7 +39,7 @@ export function BreakReasonPicker({
         ariaLabel={t("status.break.confirmAria")}
         tooltipLabel={t("status.break.confirmTooltip")}
         testId="control-confirm-break"
-        className={styles["iconButton"]}
+        className={styles.iconButton}
         disabled={confirmDisabled}
         onClick={onConfirm}
       />

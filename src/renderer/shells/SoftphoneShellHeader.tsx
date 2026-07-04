@@ -40,11 +40,11 @@ export function SoftphoneShellHeader({
         });
 
   return (
-    <header className={styles["header"]} data-testid="shell-header">
-      <div className={styles["headerBar"]}>
-        <div className={styles["headerBrand"]}>
-          <div className={styles["userIdentity"]}>
-            <div className={styles["avatarGroup"]}>
+    <header className={styles.header} data-testid="shell-header">
+      <div className={styles.headerBar}>
+        <div className={styles.headerBrand}>
+          <div className={styles.userIdentity}>
+            <div className={styles.avatarGroup}>
               <UserAvatar
                 ref={userAvatarMenu.anchorRef}
                 initials={headerChrome.avatarInitials}

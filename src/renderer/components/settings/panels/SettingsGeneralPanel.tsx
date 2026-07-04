@@ -66,21 +66,21 @@ export function SettingsGeneralPanel({
   };
 
   return (
-    <div className={formStyles["panelStack"]} data-testid="settings-general-panel">
-      <fieldset className={formStyles["sectionCard"]}>
-        <legend className={formStyles["sectionTitle"]}>
+    <div className={formStyles.panelStack} data-testid="settings-general-panel">
+      <fieldset className={formStyles.sectionCard}>
+        <legend className={formStyles.sectionTitle}>
           {t("settings.general.appearanceLegend")}
         </legend>
-        <div className={formStyles["settingsGroup"]}>
-          <div className={formStyles["settingBlock"]}>
-            <span className={formStyles["fieldLabel"]} id="settings-theme-label">
+        <div className={formStyles.settingsGroup}>
+          <div className={formStyles.settingBlock}>
+            <span className={formStyles.fieldLabel} id="settings-theme-label">
               {t("settings.general.themeLabel")}
             </span>
-            <p className={formStyles["fieldDescription"]}>
+            <p className={formStyles.fieldDescription}>
               {t("settings.general.themeDescription")}
             </p>
             <div
-              className={formStyles["segmentedControl"]}
+              className={formStyles.segmentedControl}
               role="radiogroup"
               aria-labelledby="settings-theme-label"
               data-testid="settings-theme-control"
@@ -94,8 +94,8 @@ export function SettingsGeneralPanel({
                     role="radio"
                     aria-checked={selected}
                     className={clsx(
-                      formStyles["segmentOption"],
-                      selected && formStyles["segmentOptionSelected"],
+                      formStyles.segmentOption,
+                      selected && formStyles.segmentOptionSelected,
                     )}
                     data-testid={`settings-theme-${option.value}`}
                     onClick={() => {
@@ -108,19 +108,19 @@ export function SettingsGeneralPanel({
               })}
             </div>
           </div>
-          <div className={formStyles["settingBlock"]}>
-            <label className={formStyles["fieldLabelGroup"]} htmlFor="settings-language-select">
-              <span className={formStyles["fieldLabel"]}>
+          <div className={formStyles.settingBlock}>
+            <label className={formStyles.fieldLabelGroup} htmlFor="settings-language-select">
+              <span className={formStyles.fieldLabel}>
                 {t("settings.general.languageLabel")}
               </span>
-              <span className={formStyles["fieldDescription"]}>
+              <span className={formStyles.fieldDescription}>
                 {t("settings.general.languageDescription")}
               </span>
             </label>
-            <div className={formStyles["languageSelectGroup"]}>
+            <div className={formStyles.languageSelectGroup}>
               <select
                 id="settings-language-select"
-                className={formStyles["languageSelect"]}
+                className={formStyles.languageSelect}
                 data-testid="settings-language-select"
                 value={language}
                 onChange={handleLanguageChange}
@@ -136,41 +136,41 @@ export function SettingsGeneralPanel({
         </div>
       </fieldset>
 
-      <fieldset className={formStyles["sectionCard"]}>
-        <legend className={formStyles["sectionTitle"]}>
+      <fieldset className={formStyles.sectionCard}>
+        <legend className={formStyles.sectionTitle}>
           {t("settings.general.aboutLegend")}
         </legend>
-        <div className={formStyles["settingsGroup"]}>
-          <div className={formStyles["settingBlock"]}>
-            <p className={formStyles["fieldLabel"]} id="settings-current-version-label">
+        <div className={formStyles.settingsGroup}>
+          <div className={formStyles.settingBlock}>
+            <p className={formStyles.fieldLabel} id="settings-current-version-label">
               {t("settings.general.currentVersion")}
             </p>
             <p
-              className={formStyles["fieldValue"]}
+              className={formStyles.fieldValue}
               aria-labelledby="settings-current-version-label"
               data-testid="settings-current-version"
             >
               {currentVersion}
             </p>
             {latestVersion !== undefined ? (
-              <p className={formStyles["fieldDescription"]} data-testid="settings-latest-version">
+              <p className={formStyles.fieldDescription} data-testid="settings-latest-version">
                 {t("settings.general.latestVersion", { version: latestVersion })}
               </p>
             ) : null}
           </div>
-          <div className={formStyles["settingBlock"]}>
+          <div className={formStyles.settingBlock}>
             <p
-              className={formStyles["fieldDescription"]}
+              className={formStyles.fieldDescription}
               role="status"
               aria-live="polite"
               data-testid="settings-update-status"
             >
               {updateStatusMessage}
             </p>
-            <div className={formStyles["actionRow"]}>
+            <div className={formStyles.actionRow}>
               <button
                 type="button"
-                className={formStyles["primaryButton"]}
+                className={formStyles.primaryButton}
                 data-testid="settings-check-updates"
                 disabled={!canCheckForUpdates}
                 aria-disabled={!canCheckForUpdates}
@@ -184,7 +184,7 @@ export function SettingsGeneralPanel({
               {canOpenDownloadPage ? (
                 <button
                   type="button"
-                  className={formStyles["secondaryButton"]}
+                  className={formStyles.secondaryButton}
                   data-testid="settings-open-download-page"
                   onClick={onOpenDownloadPage}
                 >

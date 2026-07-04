@@ -9,26 +9,26 @@
   box-sizing: content-box;
 }
 
-.variant_registering {
+.variant-registering {
   background: var(--color-status-registering);
 }
 
-.variant_registered_online {
+.variant-registered-online {
   background: var(--color-status-online);
 }
 
-.variant_registered_offline {
+.variant-registered-offline {
   background: var(--color-status-offline);
 }
 
-.variant_registered_dnd {
+.variant-registered-dnd {
   background: var(--color-status-dnd);
 }
 
-.variant_failed {
+.variant-failed {
   background: var(--color-status-failed);
 }
 
-.variant_not_registered {
+.variant-not-registered {
   background: var(--color-status-not-registered);
 }

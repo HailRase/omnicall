@@ -152,6 +152,14 @@ Mandatory for renderer UI work after 2026-06-25 foundation:
 - Do **not** add legacy global component stylesheets; use co-located `*.module.css` + `var(--*)` from `src/renderer/styles/tokens.css`.
 - Use `clsx` for conditional/variant classes.
 
+### CSS Modules naming (mandatory)
+
+- **CSS selectors:** kebab-case only — `.row-panel { }`, not `.rowPanel { }`.
+- **TypeScript access:** dot notation — `styles.rowPanel`, not `styles["rowPanel"]`.
+- Vite `localsConvention: "camelCase"` maps `.row-panel` → `styles.rowPanel`.
+- Dynamic variants: `Record<Variant, string>` map (see `RegistrationStatusDot`), not `styles[\`foo_${x}\`]`.
+- Enforced by ESLint (`@typescript-eslint/dot-notation`, `no-restricted-syntax`) and Stylelint (`selector-class-pattern`).
+
 ## Layout And Scrolling
 
 - Root shell (`App`, `SoftphoneLayout`) must not scroll; use `height: 100vh` and `overflow: hidden`.

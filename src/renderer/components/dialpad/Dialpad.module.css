@@ -5,7 +5,7 @@
   margin-top: auto;
 }
 
-.inputRow {
+.input-row {
   display: flex;
   align-items: center;
   gap: var(--space-2xs);
@@ -19,12 +19,12 @@
     box-shadow 150ms ease;
 }
 
-.inputRow:focus-within {
+.input-row:focus-within {
   border-color: var(--color-border-focus);
   box-shadow: 0 0 0 1px var(--color-border-focus);
 }
 
-.inputField {
+.input-field {
   flex: 1;
   min-width: 0;
   padding: 0;
@@ -37,21 +37,21 @@
   outline: none;
 }
 
-.inputField:focus-visible {
+.input-field:focus-visible {
   outline: none;
 }
 
-.inputField::placeholder {
+.input-field::placeholder {
   font-size: 0.875rem;
   color: var(--color-text-muted);
 }
 
-.inputField:disabled {
+.input-field:disabled {
   cursor: not-allowed;
   color: var(--color-text-muted);
 }
 
-.overlayHeader {
+.overlay-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -59,29 +59,29 @@
   padding: var(--space-2xs) var(--space-sm) 0;
 }
 
-.overlayTitle {
+.overlay-title {
   font-size: 0.875rem;
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
 }
 
-.panelOverlay {
+.panel-overlay {
   gap: var(--space-sm);
 }
 
-.panelOverlay .inputRow {
+.panel-overlay .input-row {
   margin-inline: var(--space-sm);
 }
 
-.panelOverlay .keys {
+.panel-overlay .keys {
   padding-inline: var(--space-sm);
 }
 
-.panelOverlay .callButton {
+.panel-overlay .call-button {
   margin-inline: var(--space-sm);
 }
 
-.deleteButton {
+.delete-button {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -98,20 +98,20 @@
     color 120ms ease;
 }
 
-.deleteButton:disabled {
+.delete-button:disabled {
   cursor: not-allowed;
 }
 
-.deleteButton:hover:not(:disabled) {
+.delete-button:hover:not(:disabled) {
   background: var(--color-bg-surface-alt);
   color: var(--color-text-primary);
 }
 
-.deleteButton:active:not(:disabled) {
+.delete-button:active:not(:disabled) {
   background: var(--color-bg-surface-highlight);
 }
 
-.deleteButton:focus-visible {
+.delete-button:focus-visible {
   outline: none;
 }
 
@@ -148,29 +148,29 @@
   transform: scale(0.98);
 }
 
-.keyDisabled,
+.key-disabled,
 .key:disabled {
   opacity: 0.45;
   cursor: not-allowed;
   pointer-events: none;
 }
 
-.keyDisabled:hover,
+.key-disabled:hover,
 .key:disabled:hover {
   background: var(--color-bg-surface-alt);
   border-color: var(--color-border-control);
 }
 
-.panelInputDisabled {
+.panel-input-disabled {
   opacity: 0.92;
 }
 
-.keyDigit {
+.key-digit {
   font-size: 1rem;
   line-height: 1;
 }
 
-.keySub {
+.key-sub {
   margin-top: 2px;
   font-size: 0.5rem;
   line-height: 1;
@@ -178,7 +178,7 @@
   color: var(--color-text-muted);
 }
 
-.callButton {
+.call-button {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -196,7 +196,7 @@
     transform 80ms ease;
 }
 
-.callButtonReady {
+.call-button-ready {
   border-color: var(--color-border-success);
   background: var(--color-status-online);
   color: #fff;
@@ -204,25 +204,25 @@
   box-shadow: var(--shadow-control-knob);
 }
 
-.callButtonReady:hover {
+.call-button-ready:hover {
   filter: brightness(1.05);
 }
 
-.callButtonReady:active {
+.call-button-ready:active {
   transform: scale(0.98);
 }
 
-.callButtonBusy {
+.call-button-busy {
   opacity: 0.65;
   cursor: wait;
 }
 
-.callButtonLabel {
+.call-button-label {
   font-size: 0.8125rem;
   font-weight: var(--font-weight-semibold);
 }
 
-.callButtonReason {
+.call-button-reason {
   font-size: 0.6875rem;
   max-width: 12rem;
   overflow: hidden;

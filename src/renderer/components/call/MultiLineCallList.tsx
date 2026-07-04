@@ -21,7 +21,7 @@ export function MultiLineCallList({ lines }: MultiLineCallListProps): JSX.Elemen
 
   return (
     <ul
-      className={styles["list"]}
+      className={styles.list}
       data-testid="multi-line-call-list"
       aria-label={t("call.lines.ariaLabel")
       }
@@ -29,11 +29,11 @@ export function MultiLineCallList({ lines }: MultiLineCallListProps): JSX.Elemen
       {lines.map((line) => (
         <li
           key={line.callId}
-          className={styles["item"]}
+          className={styles.item}
           data-testid={`call-line-${line.callId}`}
         >
-          <span className={styles["role"]}>{mapRoleLabel(t, line.role)}</span>
-          <span className={styles["state"]}>
+          <span className={styles.role}>{mapRoleLabel(t, line.role)}</span>
+          <span className={styles.state}>
             {deriveCallLineStatusLabel({ state: line.state })}
           </span>
         </li>

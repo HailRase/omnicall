@@ -57,22 +57,22 @@ export function ActiveCallControlsPanel({
 
   return (
     <section
-      className={styles["panel"]}
+      className={styles.panel}
       data-testid="active-call-controls"
       aria-label={t("activeCall.panel.ariaLabel")}
     >
-      <h2 className={styles["title"]}>{t("activeCall.panel.title")}</h2>
+      <h2 className={styles.title}>{t("activeCall.panel.title")}</h2>
       <p data-testid="active-call-mute-indicator">
         <strong>{t("activeCall.panel.micLabel")}:</strong>{" "}
         {muted ? t("activeCall.panel.micOff") : t("activeCall.panel.micOn")}
       </p>
       {lastOperationError !== null && (
         <div
-          className={styles["error"]}
+          className={styles.error}
           data-testid="active-call-control-error"
           role="alert"
         >
-          <p className={styles["errorMessage"]}>
+          <p className={styles.errorMessage}>
             {mapActiveCallControlOperationError(lastOperationError)}
           </p>
           <IconControlButton
@@ -80,17 +80,17 @@ export function ActiveCallControlsPanel({
             ariaLabel={`Retry ${lastOperationError.operation}`}
             tooltipLabel={t("common.retry")}
             testId="control-retry"
-            className={styles["iconButton"]}
+            className={styles.iconButton}
             onClick={onRetry}
           />
         </div>
       )}
-      <div className={styles["actions"]}>
+      <div className={styles.actions}>
         <IconControlButton
           iconId="call.hold"
           ariaLabel={t("call.controls.holdAria")}
           testId="control-hold"
-          className={styles["iconButton"]}
+          className={styles.iconButton}
           disabledReason={mapDisabledReason(holdDisabledReason)}
           onClick={onHold}
         />
@@ -98,7 +98,7 @@ export function ActiveCallControlsPanel({
           iconId="call.resume"
           ariaLabel={t("call.controls.resumeAria")}
           testId="control-resume"
-          className={styles["iconButton"]}
+          className={styles.iconButton}
           disabledReason={mapDisabledReason(resumeDisabledReason)}
           onClick={onResume}
         />
@@ -106,7 +106,7 @@ export function ActiveCallControlsPanel({
           iconId="call.mute"
           ariaLabel={t("icons.call.mute")}
           testId="control-mute"
-          className={styles["iconButton"]}
+          className={styles.iconButton}
           disabledReason={mapDisabledReason(muteDisabledReason)}
           onClick={onMute}
         />
@@ -114,7 +114,7 @@ export function ActiveCallControlsPanel({
           iconId="call.unmute"
           ariaLabel={t("icons.call.unmute")}
           testId="control-unmute"
-          className={styles["iconButton"]}
+          className={styles.iconButton}
           disabledReason={mapDisabledReason(unmuteDisabledReason)}
           onClick={onUnmute}
         />
@@ -122,7 +122,7 @@ export function ActiveCallControlsPanel({
           iconId="call.hangup"
           ariaLabel={t("icons.call.hangup")}
           testId="control-hangup"
-          className={styles["iconButton"]}
+          className={styles.iconButton}
           disabledReason={mapDisabledReason(hangupDisabledReason)}
           onClick={onHangup}
         />
@@ -130,7 +130,7 @@ export function ActiveCallControlsPanel({
           iconId="call.transfer"
           ariaLabel={t("icons.call.transfer")}
           testId="control-transfer"
-          className={styles["iconButton"]}
+          className={styles.iconButton}
           disabledReason={mapDisabledReason(transferDisabledReason)}
           onClick={onTransfer}
         />

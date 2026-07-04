@@ -54,12 +54,12 @@
   justify-items: end;
 }
 
-.iconRow {
+.icon-row {
   display: flex;
   gap: 6px;
 }
 
-.iconButton {
+.icon-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -73,7 +73,7 @@
   padding: 0;
 }
 
-.iconButton:disabled {
+.icon-button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }
@@ -87,28 +87,28 @@
   font-weight: var(--font-weight-semibold);
 }
 
-.primaryHangup {
+.primary-hangup {
   composes: primary;
   background: var(--color-bg-danger-strong);
   border-color: var(--color-border-danger-accent);
   color: var(--color-text-danger);
 }
 
-.primaryResume {
+.primary-resume {
   composes: primary;
   background: var(--color-bg-success);
   border-color: var(--color-border-success);
   color: var(--color-text-success);
 }
 
-.primaryAnswer {
+.primary-answer {
   composes: primary;
   background: var(--color-bg-success);
   border-color: var(--color-border-success);
   color: var(--color-text-success);
 }
 
-.primaryIconButton {
+.primary-icon-button {
   composes: primary;
   display: inline-flex;
   align-items: center;
@@ -133,43 +133,43 @@
   font-size: 0.85rem;
 }
 
-.disabledReason {
+.disabled-reason {
   margin: 0;
   font-size: 0.8rem;
   color: var(--color-text-secondary);
 }
 
-.rowCompact {
+.row-compact {
   composes: row;
   padding: 6px 10px;
   border-radius: var(--radius-control);
   gap: 0;
 }
 
-.rowCompact .main {
+.row-compact .main {
   align-items: center;
 }
 
-.rowCompact .info {
+.row-compact .info {
   grid-template-columns: auto 1fr;
   grid-auto-flow: column;
   align-items: center;
   gap: var(--space-xs);
 }
 
-.rowCompact .name {
+.row-compact .name {
   font-size: 0.875rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.rowCompact .meta {
+.row-compact .meta {
   flex-wrap: nowrap;
   font-size: var(--font-size-xs);
 }
 
-.rowCompact .primary {
+.row-compact .primary {
   min-width: auto;
   padding: 6px 10px;
   font-size: 0.8125rem;

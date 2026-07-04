@@ -34,6 +34,11 @@ export default defineConfig({
   },
   renderer: {
     plugins: [react()],
+    css: {
+      modules: {
+        localsConvention: "camelCase",
+      },
+    },
     optimizeDeps: {
       include: ["@hailrase/jssip", "@hailrase/jssip/lib/RTCSession.js"],
     },
