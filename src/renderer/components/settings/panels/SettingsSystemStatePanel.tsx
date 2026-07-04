@@ -6,7 +6,9 @@ import {
   MIN_SIP_REREGISTER_INTERVAL_SEC,
 } from "@application/index.js";
 import type { SipManualActionKind } from "../../../hooks/useSipSystemStateActions.js";
-import { useI18n } from "../../../i18n/index.js";
+import type { SipManualActionSuccessKey } from "../../../hooks/useSipSystemStateActions.js";
+import { formatLocaleDateTime, useI18n } from "../../../i18n/index.js";
+import type { TranslationKey } from "../../../i18n/messages.js";
 import { AppIcon } from "../../icons/AppIcon.js";
 import formStyles from "../SettingsForm.module.css";
 import styles from "./SettingsSystemStatePanel.module.css";
@@ -37,8 +39,9 @@ export type SettingsSystemStatePanelProps = Readonly<{
   onManualTransportReconnect: () => void;
   onManualReregister: () => void;
   onClearJournal: () => void;
-  actionError: string | null;
-  actionSuccess: string | null;
+  actionErrorKey: TranslationKey | null;
+  actionErrorDetail: string | null;
+  actionSuccessKey: SipManualActionSuccessKey | null;
   actionLoading: SipManualActionKind | null;
 }>;
 
@@ -109,6 +112,7 @@ function NumberField({
   withSuffix = false,
   onChange,
 }: NumberFieldProps): JSX.Element {
+  const { t } = useI18n();
   const descriptionId = `${id}-description`;
   const suffixId = `${id}-suffix`;
   const errorId = `${id}-error`;
@@ -158,17 +162,17 @@ function NumberField({
           {withSuffix ? (
             <>
               <span id={suffixId} className={formStyles["inputSuffix"]} aria-hidden="true">
-                сек
+                {t("settings.systemState.field.secondsShort")}
               </span>
               <span id={`${suffixId}-sr`} className={styles["suffixAccessible"]}>
-                секунд
+                {t("settings.systemState.field.secondsAccessible")}
               </span>
             </>
           ) : null}
         </div>
         {hasError ? (
           <p id={errorId} className={styles["fieldError"]} role="alert">
-            Минимальное значение — {min} сек
+            {t("settings.systemState.field.minValueError", { min })}
           </p>
         ) : null}
       </div>
@@ -231,20 +235,6 @@ function ManualActionButton({
   );
 }
 
-function formatJournalTimestamp(iso: string): string {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) {
-    return iso;
-  }
-  return date.toLocaleString("ru-RU", {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    day: "2-digit",
-    month: "2-digit",
-  });
-}
-
 type StateWithActionsRowProps = Readonly<{
   metric: StateMetricRowProps;
   children?: JSX.Element | null;
@@ -271,7 +261,7 @@ function journalEntryKey(entry: SipConnectionJournalEntry): string {
  * - Purpose: present SIP transport/registration status, recovery policy, and journal.
  * - Inputs: derived shell view-model, user settings fields, and action callbacks.
  * - Outputs: accessible settings panel without facade or SIP access.
- * @uiMeta lf=LF-008,LF-057 f=F-014,F-016 smoke=R7-*
+ * @uiMeta lf=LF-008,LF-057 f=F-014,F-016,F-021 smoke=R7-*
  */
 export function SettingsSystemStatePanel({
   shell,
@@ -292,12 +282,26 @@ export function SettingsSystemStatePanel({
   onManualTransportReconnect,
   onManualReregister,
   onClearJournal,
-  actionError,
-  actionSuccess,
+  actionErrorKey,
+  actionErrorDetail,
+  actionSuccessKey,
   actionLoading,
 }: SettingsSystemStatePanelProps): JSX.Element {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const transportLabel = t(shell.transportStateLabelKey);
+  const registrationLabel = t(shell.registrationStateLabelKey);
   const summaryText = t(shell.summaryLabelKey);
+  const manualTransportDisabledReason =
+    shell.manualTransportReconnectDisabledReasonKey === null
+      ? null
+      : t(shell.manualTransportReconnectDisabledReasonKey);
+  const manualReregisterDisabledReason =
+    shell.manualReregisterDisabledReasonKey === null
+      ? null
+      : t(shell.manualReregisterDisabledReasonKey);
+  const actionErrorText =
+    actionErrorDetail ??
+    (actionErrorKey !== null ? t(actionErrorKey) : null);
   const autoReconnectDescriptionId = useId();
   const autoReregisterDescriptionId = useId();
   const autoRegisterStartupDescriptionId = useId();
@@ -337,32 +341,38 @@ export function SettingsSystemStatePanel({
     shell.effectiveRegistrationState,
   );
 
-  const liveStateSummary = `Сервер: ${shell.transportStateLabel}. Регистрация: ${shell.registrationStateLabel}. Сводка: ${summaryText}.`;
+  const liveStateSummary = t("settings.systemState.liveSummary", {
+    transport: transportLabel,
+    registration: registrationLabel,
+    summary: summaryText,
+  });
 
   return (
     <div className={formStyles["panelStack"]} data-testid="settings-system-state-panel">
       <fieldset className={formStyles["sectionCard"]}>
-        <legend className={formStyles["sectionTitle"]}>Текущее состояние</legend>
+        <legend className={formStyles["sectionTitle"]}>
+          {t("settings.systemState.currentState.legend")}
+        </legend>
         <div className={formStyles["settingsGroup"]}>
-          {actionSuccess !== null || actionError !== null ? (
+          {actionSuccessKey !== null || actionErrorText !== null ? (
             <div className={styles["stateActionFeedback"]}>
-              {actionSuccess !== null ? (
+              {actionSuccessKey !== null ? (
                 <p
                   className={clsx(styles["actionFeedback"], styles["actionFeedbackSuccess"])}
                   role="status"
                   aria-live="polite"
                   data-testid="settings-sip-action-success"
                 >
-                  {actionSuccess}
+                  {t(actionSuccessKey)}
                 </p>
               ) : null}
-              {actionError !== null ? (
+              {actionErrorText !== null ? (
                 <p
                   className={clsx(styles["actionFeedback"], styles["actionFeedbackError"])}
                   role="alert"
                   data-testid="settings-sip-action-error"
                 >
-                  {actionError}
+                  {actionErrorText}
                 </p>
               ) : null}
             </div>
@@ -375,32 +385,36 @@ export function SettingsSystemStatePanel({
               <div className={styles["stateGrid"]}>
                 <StateWithActionsRow
                   metric={{
-                    indicatorLabel: `Сервер: ${shell.transportStateLabel}`,
+                    indicatorLabel: t("settings.systemState.metric.serverAria", {
+                      value: transportLabel,
+                    }),
                     tone: transportTone,
-                    label: "Сервер",
+                    label: t("settings.systemState.metric.server"),
                     testId: "settings-sip-transport-state",
-                    value: shell.transportStateLabel,
+                    value: transportLabel,
                     reason: shell.transportFailureReason,
                   }}
                 >
                   <ManualActionButton
                     testId="settings-sip-manual-transport-reconnect"
                     reasonTestId="settings-sip-transport-disabled-reason"
-                    label="Переподключить сервер"
-                    loadingLabel="Переподключение…"
-                    disabled={shell.manualTransportReconnectDisabledReason !== null}
-                    disabledReason={shell.manualTransportReconnectDisabledReason}
+                    label={t("settings.systemState.action.reconnectServer")}
+                    loadingLabel={t("settings.systemState.action.reconnecting")}
+                    disabled={manualTransportDisabledReason !== null}
+                    disabledReason={manualTransportDisabledReason}
                     isLoading={actionLoading === "transport"}
                     onClick={onManualTransportReconnect}
                   />
                 </StateWithActionsRow>
                 <StateWithActionsRow
                   metric={{
-                    indicatorLabel: `Регистрация: ${shell.registrationStateLabel}`,
+                    indicatorLabel: t("settings.systemState.metric.registrationAria", {
+                      value: registrationLabel,
+                    }),
                     tone: registrationTone,
-                    label: "Регистрация",
+                    label: t("settings.systemState.metric.registration"),
                     testId: "settings-sip-registration-state",
-                    value: shell.registrationStateLabel,
+                    value: registrationLabel,
                     reason: shell.registrationFailureReason,
                   }}
                 >
@@ -408,10 +422,10 @@ export function SettingsSystemStatePanel({
                     <ManualActionButton
                       testId="settings-sip-manual-reregister"
                       reasonTestId="settings-sip-reregister-disabled-reason"
-                      label="Перерегистрировать"
-                      loadingLabel="Перерегистрация…"
-                      disabled={shell.manualReregisterDisabledReason !== null}
-                      disabledReason={shell.manualReregisterDisabledReason}
+                      label={t("settings.systemState.action.reregister")}
+                      loadingLabel={t("settings.systemState.action.reregistering")}
+                      disabled={manualReregisterDisabledReason !== null}
+                      disabledReason={manualReregisterDisabledReason}
                       isLoading={actionLoading === "reregister"}
                       onClick={onManualReregister}
                     />
@@ -419,9 +433,11 @@ export function SettingsSystemStatePanel({
                 </StateWithActionsRow>
                 <StateWithActionsRow
                   metric={{
-                    indicatorLabel: `Сводка: ${summaryText}`,
+                    indicatorLabel: t("settings.systemState.metric.summaryAria", {
+                      value: summaryText,
+                    }),
                     tone: summaryTone,
-                    label: "Сводка",
+                    label: t("settings.systemState.metric.summary"),
                     testId: "settings-sip-summary-label",
                     value: summaryText,
                     reason: null,
@@ -434,25 +450,30 @@ export function SettingsSystemStatePanel({
       </fieldset>
 
       <fieldset className={formStyles["sectionCard"]}>
-        <legend className={formStyles["sectionTitle"]}>Автоматическое восстановление</legend>
+        <legend className={formStyles["sectionTitle"]}>
+          {t("settings.systemState.autoRecovery.legend")}
+        </legend>
         <div className={formStyles["settingsGroup"]}>
           <p className={clsx(formStyles["fieldDescription"], styles["recoveryIntro"])}>
-            Эти параметры управляют автоматическим восстановлением соединения после сбоев сервера и
-            регистрации.
+            {t("settings.systemState.autoRecovery.intro")}
           </p>
 
           <div className={styles["recoverySubsection"]} data-testid="settings-sip-recovery-server">
-            <h4 className={styles["recoverySubsectionTitle"]}>Сервер</h4>
+            <h4 className={styles["recoverySubsectionTitle"]}>
+              {t("settings.systemState.autoRecovery.serverTitle")}
+            </h4>
             <div className={styles["recoveryBlock"]}>
               <div className={formStyles["settingBlock"]}>
                 <label className={formStyles["toggleRow"]} htmlFor="settings-sip-auto-reconnect">
                 <span className={formStyles["toggleText"]}>
-                  <span className={formStyles["toggleLabel"]}>Авто-переподключение сервера</span>
+                  <span className={formStyles["toggleLabel"]}>
+                    {t("settings.systemState.autoRecovery.serverToggleLabel")}
+                  </span>
                   <span
                     id={autoReconnectDescriptionId}
                     className={formStyles["toggleDescription"]}
                   >
-                    Повторное подключение к серверу при обрыве
+                    {t("settings.systemState.autoRecovery.serverToggleDescription")}
                   </span>
                 </span>
                 <span className={formStyles["switch"]}>
@@ -491,8 +512,10 @@ export function SettingsSystemStatePanel({
                 >
                   <NumberField
                     id="settings-sip-reconnect-interval"
-                    label="Интервал переподключения"
-                    description={`Минимум ${MIN_SIP_RECONNECT_INTERVAL_SEC} с`}
+                    label={t("settings.systemState.autoRecovery.reconnectIntervalLabel")}
+                    description={t("settings.systemState.autoRecovery.reconnectIntervalHint", {
+                      minSec: MIN_SIP_RECONNECT_INTERVAL_SEC,
+                    })}
                     testId="settings-sip-reconnect-interval"
                     value={sipReconnectIntervalSec}
                     min={MIN_SIP_RECONNECT_INTERVAL_SEC}
@@ -502,7 +525,7 @@ export function SettingsSystemStatePanel({
                   />
                   <NumberField
                     id="settings-sip-reconnect-max-attempts"
-                    label="Попыток переподключения"
+                    label={t("settings.systemState.autoRecovery.reconnectAttemptsLabel")}
                     testId="settings-sip-reconnect-max-attempts"
                     value={sipReconnectMaxAttempts}
                     min={1}
@@ -519,17 +542,21 @@ export function SettingsSystemStatePanel({
             className={styles["recoverySubsection"]}
             data-testid="settings-sip-recovery-registration"
           >
-            <h4 className={styles["recoverySubsectionTitle"]}>Регистрация</h4>
+            <h4 className={styles["recoverySubsectionTitle"]}>
+              {t("settings.systemState.autoRecovery.registrationTitle")}
+            </h4>
             <div className={styles["recoveryBlock"]}>
               <div className={formStyles["settingBlock"]}>
                 <label className={formStyles["toggleRow"]} htmlFor="settings-sip-auto-reregister">
                 <span className={formStyles["toggleText"]}>
-                  <span className={formStyles["toggleLabel"]}>Авто-перерегистрация</span>
+                  <span className={formStyles["toggleLabel"]}>
+                    {t("settings.systemState.autoRecovery.reregisterToggleLabel")}
+                  </span>
                   <span
                     id={autoReregisterDescriptionId}
                     className={formStyles["toggleDescription"]}
                   >
-                    Повторная SIP-регистрация при ошибке REGISTER
+                    {t("settings.systemState.autoRecovery.reregisterToggleDescription")}
                   </span>
                 </span>
                 <span className={formStyles["switch"]}>
@@ -568,8 +595,10 @@ export function SettingsSystemStatePanel({
                 >
                   <NumberField
                     id="settings-sip-reregister-interval"
-                    label="Интервал перерегистрации"
-                    description={`Минимум ${MIN_SIP_REREGISTER_INTERVAL_SEC} с`}
+                    label={t("settings.systemState.autoRecovery.reregisterIntervalLabel")}
+                    description={t("settings.systemState.autoRecovery.reregisterIntervalHint", {
+                      minSec: MIN_SIP_REREGISTER_INTERVAL_SEC,
+                    })}
                     testId="settings-sip-reregister-interval"
                     value={sipReregisterIntervalSec}
                     min={MIN_SIP_REREGISTER_INTERVAL_SEC}
@@ -579,7 +608,7 @@ export function SettingsSystemStatePanel({
                   />
                   <NumberField
                     id="settings-sip-reregister-max-attempts"
-                    label="Попыток перерегистрации"
+                    label={t("settings.systemState.autoRecovery.reregisterAttemptsLabel")}
                     testId="settings-sip-reregister-max-attempts"
                     value={sipReregisterMaxAttempts}
                     min={1}
@@ -598,12 +627,14 @@ export function SettingsSystemStatePanel({
                   htmlFor="settings-sip-auto-register-startup"
                 >
                   <span className={formStyles["toggleText"]}>
-                    <span className={formStyles["toggleLabel"]}>Авто-регистрация при запуске</span>
+                    <span className={formStyles["toggleLabel"]}>
+                      {t("settings.systemState.autoRecovery.startupToggleLabel")}
+                    </span>
                     <span
                       id={autoRegisterStartupDescriptionId}
                       className={formStyles["toggleDescription"]}
                     >
-                      Автоматическая регистрация после авторизации (подготовка)
+                      {t("settings.systemState.autoRecovery.startupToggleDescription")}
                     </span>
                   </span>
                   <span className={formStyles["switch"]}>
@@ -628,7 +659,9 @@ export function SettingsSystemStatePanel({
       </fieldset>
 
       <fieldset className={formStyles["sectionCard"]}>
-        <legend className={formStyles["sectionTitle"]}>Журнал</legend>
+        <legend className={formStyles["sectionTitle"]}>
+          {t("settings.systemState.journal.legend")}
+        </legend>
         <div className={formStyles["settingsGroup"]}>
           <div className={styles["journalContainer"]} data-testid="settings-sip-journal">
             {shell.journalEntries.length === 0 ? (
@@ -637,12 +670,14 @@ export function SettingsSystemStatePanel({
                   id="shell.diagnostics"
                   className={styles["journalEmptyIcon"] ?? ""}
                   decorative={false}
-                  label="Журнал событий"
+                  label={t("settings.systemState.journal.emptyIconLabel")}
                   size={28}
                 />
-                <p className={styles["journalEmptyTitle"]}>Событий пока нет</p>
+                <p className={styles["journalEmptyTitle"]}>
+                  {t("settings.systemState.journal.emptyTitle")}
+                </p>
                 <p className={clsx(formStyles["fieldDescription"], styles["journalEmptyHint"])}>
-                  Здесь появятся события сервера, регистрации и ошибок подключения.
+                  {t("settings.systemState.journal.emptyHint")}
                 </p>
               </div>
             ) : (
@@ -661,7 +696,7 @@ export function SettingsSystemStatePanel({
                       data-category={entry.category}
                     >
                       <span className={styles["journalTime"]}>
-                        {formatJournalTimestamp(entry.timestamp)}
+                        {formatLocaleDateTime(entry.timestamp, language)}
                       </span>
                       <span className={styles["journalEvent"]}>{entry.eventType}</span>
                       <span className={styles["journalCorrelation"]}>{entry.correlationId}</span>
@@ -683,7 +718,7 @@ export function SettingsSystemStatePanel({
               aria-disabled={shell.journalEntries.length === 0}
               onClick={onClearJournal}
             >
-              Очистить журнал
+              {t("settings.systemState.journal.clear")}
             </button>
           </div>
         </div>

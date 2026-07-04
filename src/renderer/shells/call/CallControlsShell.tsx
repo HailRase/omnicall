@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import { CallControlsBar } from "../../components/call/CallControlsBar.js";
 import { Dialpad } from "../../components/dialpad/Dialpad.js";
 import type { CallFeatureShellBindings } from "../../hooks/useCallFeatureShell.js";
+import { useI18n } from "../../i18n/index.js";
 import styles from "./CallControlsShell.module.css";
 
 type CallControlsShellProps = Readonly<{
@@ -14,6 +15,7 @@ type CallControlsShellProps = Readonly<{
  * - Outputs: controls zone markup hidden for transfer and DTMF modes.
  */
 export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Element {
+  const { t } = useI18n();
   const {
     callProjection,
     activeCallControlsProjection,
@@ -107,7 +109,7 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
 
       <audio
         data-testid="remote-audio-mount"
-        aria-label="Remote audio mount point"
+        aria-label={t("call.remoteAudio.ariaLabel")}
         hidden={!callProjection.remoteAudioAttached}
       />
     </div>

@@ -9,6 +9,8 @@ import { IconControlButton } from "../icons/index.js";
 import { useI18n } from "../../i18n/index.js";
 import type { SettingsSectionId } from "./settingsSections.js";
 import { resolveSettingsContentHeaderTitle } from "./settingsSections.js";
+import type { SipManualActionSuccessKey } from "../../hooks/useSipSystemStateActions.js";
+import type { TranslationKey } from "../../i18n/messages.js";
 import { SettingsSidebar } from "./SettingsSidebar.js";
 import { SettingsAccountPanel } from "./panels/SettingsAccountPanel.js";
 import { SettingsCodecsPanel } from "./panels/SettingsCodecsPanel.js";
@@ -66,8 +68,9 @@ export type SettingsPanelProps = Readonly<{
     onManualTransportReconnect: () => void;
     onManualReregister: () => void;
     onClearJournal: () => void;
-    actionError: string | null;
-    actionSuccess: string | null;
+    actionErrorKey: TranslationKey | null;
+    actionErrorDetail: string | null;
+    actionSuccessKey: SipManualActionSuccessKey | null;
     actionLoading: "transport" | "reregister" | null;
   }>;
   account: Readonly<{
@@ -194,8 +197,9 @@ export function SettingsPanel({
           onManualTransportReconnect={systemState.onManualTransportReconnect}
           onManualReregister={systemState.onManualReregister}
           onClearJournal={systemState.onClearJournal}
-          actionError={systemState.actionError}
-          actionSuccess={systemState.actionSuccess}
+          actionErrorKey={systemState.actionErrorKey}
+          actionErrorDetail={systemState.actionErrorDetail}
+          actionSuccessKey={systemState.actionSuccessKey}
           actionLoading={systemState.actionLoading}
         />
       );

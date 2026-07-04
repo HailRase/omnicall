@@ -22,11 +22,13 @@ describe("deriveSipSystemStateShell", () => {
       sipAutoReregisterEnabled: true,
     });
 
-    expect(shell.transportStateLabel).toBe("Подключён");
-    expect(shell.registrationStateLabel).toBe("Зарегистрирован");
+    expect(shell.transportStateLabelKey).toBe("settings.systemState.transport.connected");
+    expect(shell.registrationStateLabelKey).toBe("settings.systemState.registration.registered");
     expect(shell.summaryLabelKey).toBe("header.sipStatus.registered");
-    expect(shell.manualTransportReconnectDisabledReason).toBe("Сервер уже подключён");
-    expect(shell.manualReregisterDisabledReason).toBeNull();
+    expect(shell.manualTransportReconnectDisabledReasonKey).toBe(
+      "settings.systemState.manualTransport.disabled.alreadyConnected",
+    );
+    expect(shell.manualReregisterDisabledReasonKey).toBeNull();
   });
 
   it("allows manual transport reconnect when server is disconnected", () => {
@@ -36,7 +38,7 @@ describe("deriveSipSystemStateShell", () => {
       sipAutoReregisterEnabled: true,
     });
 
-    expect(shell.manualTransportReconnectDisabledReason).toBeNull();
+    expect(shell.manualTransportReconnectDisabledReasonKey).toBeNull();
   });
 
   it("exposes transport failure reason during reconnect", () => {
@@ -57,8 +59,12 @@ describe("deriveSipSystemStateShell", () => {
     });
 
     expect(shell.transportFailureReason).toBe("transport_closed");
-    expect(shell.manualTransportReconnectDisabledReason).toBe("Переподключение выполняется");
-    expect(shell.manualReregisterDisabledReason).toBe("Сервер не подключён");
+    expect(shell.manualTransportReconnectDisabledReasonKey).toBe(
+      "settings.systemState.manualTransport.disabled.reconnectInProgress",
+    );
+    expect(shell.manualReregisterDisabledReasonKey).toBe(
+      "settings.systemState.manualReregister.disabled.serverNotConnected",
+    );
   });
 
   it("disables manual reregister when transport is down", () => {
@@ -68,7 +74,9 @@ describe("deriveSipSystemStateShell", () => {
       sipAutoReregisterEnabled: true,
     });
 
-    expect(shell.manualReregisterDisabledReason).toBe("Сервер не подключён");
+    expect(shell.manualReregisterDisabledReasonKey).toBe(
+      "settings.systemState.manualReregister.disabled.serverNotConnected",
+    );
   });
 
   it("passes journal entries through", () => {
@@ -89,7 +97,9 @@ describe("deriveSipSystemStateShell", () => {
     });
 
     expect(shell.journalEntries).toEqual([entry]);
-    expect(shell.manualTransportReconnectDisabledReason).toBe("Сессия не активна");
+    expect(shell.manualTransportReconnectDisabledReasonKey).toBe(
+      "settings.systemState.manualTransport.disabled.sessionInactive",
+    );
   });
 
   it("does not reference OCP fields (SIP-only path)", () => {

@@ -7,6 +7,29 @@ import {
 import type { SipConnectionJournalEntry } from "../services/SipConnectionJournal.js";
 import { deriveSipStatusShell, type SipStatusLabelKey } from "./deriveSipStatusShell.js";
 
+export type SipTransportStateLabelKey =
+  | "settings.systemState.transport.idle"
+  | "settings.systemState.transport.connecting"
+  | "settings.systemState.transport.connected"
+  | "settings.systemState.transport.reconnecting"
+  | "settings.systemState.transport.disconnected";
+
+export type SipRegistrationStateLabelKey =
+  | "settings.systemState.registration.idle"
+  | "settings.systemState.registration.registering"
+  | "settings.systemState.registration.registered"
+  | "settings.systemState.registration.failed";
+
+export type SipManualTransportDisabledReasonKey =
+  | "settings.systemState.manualTransport.disabled.sessionInactive"
+  | "settings.systemState.manualTransport.disabled.alreadyConnected"
+  | "settings.systemState.manualTransport.disabled.reconnectInProgress";
+
+export type SipManualReregisterDisabledReasonKey =
+  | "settings.systemState.manualReregister.disabled.sessionInactive"
+  | "settings.systemState.manualReregister.disabled.serverNotConnected"
+  | "settings.systemState.manualReregister.disabled.registrationInProgress";
+
 export type SipSystemStateShellInput = Readonly<{
   health: SipSessionHealth;
   sipAutoReconnectEnabled: boolean;
@@ -19,20 +42,20 @@ export type SipSystemStateShellView = Readonly<{
   transportState: SipTransportState;
   registrationState: SipRegistrationState;
   effectiveRegistrationState: SipRegistrationState;
-  transportStateLabel: string;
-  registrationStateLabel: string;
+  transportStateLabelKey: SipTransportStateLabelKey;
+  registrationStateLabelKey: SipRegistrationStateLabelKey;
   summaryLabelKey: SipStatusLabelKey;
   transportFailureReason: string | null;
   registrationFailureReason: string | null;
-  manualTransportReconnectDisabledReason: string | null;
-  manualReregisterDisabledReason: string | null;
+  manualTransportReconnectDisabledReasonKey: SipManualTransportDisabledReasonKey | null;
+  manualReregisterDisabledReasonKey: SipManualReregisterDisabledReasonKey | null;
   journalEntries: ReadonlyArray<SipConnectionJournalEntry>;
 }>;
 
 /**
- * - Purpose: derive settings «Состояние системы» view-model (ADR-0004 §5).
+ * - Purpose: derive settings system-state view-model with semantic label keys (ADR-0006).
  * - Inputs: session health, recovery policy toggles, optional journal entries.
- * - Outputs: axis labels, summary mirror, manual action disabled reasons.
+ * - Outputs: axis label keys, summary mirror, manual action disabled reason keys.
  */
 export function deriveSipSystemStateShell(
   input: SipSystemStateShellInput,
@@ -49,8 +72,8 @@ export function deriveSipSystemStateShell(
     transportState: input.health.transport,
     registrationState: input.health.registration,
     effectiveRegistrationState: effectiveRegistration,
-    transportStateLabel: deriveTransportStateLabel(input.health.transport),
-    registrationStateLabel: deriveRegistrationStateLabel(effectiveRegistration),
+    transportStateLabelKey: deriveTransportStateLabelKey(input.health.transport),
+    registrationStateLabelKey: deriveRegistrationStateLabelKey(effectiveRegistration),
     summaryLabelKey: summary.primaryLabelKey,
     transportFailureReason:
       input.health.recovery.target === "transport"
@@ -61,66 +84,70 @@ export function deriveSipSystemStateShell(
       effectiveRegistration === "failed"
         ? input.health.recovery.lastFailureReason
         : null,
-    manualTransportReconnectDisabledReason: deriveManualTransportReconnectDisabledReason(
+    manualTransportReconnectDisabledReasonKey: deriveManualTransportReconnectDisabledReasonKey(
       input.health,
     ),
-    manualReregisterDisabledReason: deriveManualReregisterDisabledReason(input.health),
+    manualReregisterDisabledReasonKey: deriveManualReregisterDisabledReasonKey(input.health),
     journalEntries: input.journalEntries ?? [],
   };
 }
 
-function deriveTransportStateLabel(state: SipTransportState): string {
+function deriveTransportStateLabelKey(state: SipTransportState): SipTransportStateLabelKey {
   switch (state) {
     case "idle":
-      return "Неактивно";
+      return "settings.systemState.transport.idle";
     case "connecting":
-      return "Подключение";
+      return "settings.systemState.transport.connecting";
     case "connected":
-      return "Подключён";
+      return "settings.systemState.transport.connected";
     case "reconnecting":
-      return "Переподключение";
+      return "settings.systemState.transport.reconnecting";
     case "disconnected":
-      return "Отключён";
+      return "settings.systemState.transport.disconnected";
   }
 }
 
-function deriveRegistrationStateLabel(state: SipRegistrationState): string {
+function deriveRegistrationStateLabelKey(
+  state: SipRegistrationState,
+): SipRegistrationStateLabelKey {
   switch (state) {
     case "idle":
-      return "Неактивна";
+      return "settings.systemState.registration.idle";
     case "registering":
-      return "Регистрация";
+      return "settings.systemState.registration.registering";
     case "registered":
-      return "Зарегистрирован";
+      return "settings.systemState.registration.registered";
     case "failed":
-      return "Ошибка";
+      return "settings.systemState.registration.failed";
   }
 }
 
-function deriveManualTransportReconnectDisabledReason(
+function deriveManualTransportReconnectDisabledReasonKey(
   health: SipSessionHealth,
-): string | null {
+): SipManualTransportDisabledReasonKey | null {
   if (health.lifecycle === "idle") {
-    return "Сессия не активна";
+    return "settings.systemState.manualTransport.disabled.sessionInactive";
   }
   if (health.transport === "connected") {
-    return "Сервер уже подключён";
+    return "settings.systemState.manualTransport.disabled.alreadyConnected";
   }
   if (health.transport === "connecting" || health.transport === "reconnecting") {
-    return "Переподключение выполняется";
+    return "settings.systemState.manualTransport.disabled.reconnectInProgress";
   }
   return null;
 }
 
-function deriveManualReregisterDisabledReason(health: SipSessionHealth): string | null {
+function deriveManualReregisterDisabledReasonKey(
+  health: SipSessionHealth,
+): SipManualReregisterDisabledReasonKey | null {
   if (health.lifecycle === "idle") {
-    return "Сессия не активна";
+    return "settings.systemState.manualReregister.disabled.sessionInactive";
   }
   if (health.transport !== "connected") {
-    return "Сервер не подключён";
+    return "settings.systemState.manualReregister.disabled.serverNotConnected";
   }
   if (health.registration === "registering") {
-    return "Регистрация выполняется";
+    return "settings.systemState.manualReregister.disabled.registrationInProgress";
   }
   return null;
 }

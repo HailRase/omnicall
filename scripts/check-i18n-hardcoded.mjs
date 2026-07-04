@@ -1,12 +1,15 @@
-import { execSync } from "node:child_process";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { readdirSync, readFileSync, statSync } from "node:fs";
+import { join, resolve } from "node:path";
 
-const INCLUDED = [
-  /^src\/renderer\/.*\.(ts|tsx)$/,
-  /^src\/application\/projections\/.*\.(ts|tsx)$/,
-  /^src\/renderer\/helpers\/.*\.(ts|tsx)$/,
+const ROOT = resolve(".");
+
+const CYRILLIC_SCAN_ROOTS = [
+  "src/renderer",
+  "src/application/projections",
+  "src/renderer/helpers",
 ];
+
+const ENGLISH_SCAN_ROOTS = ["src/renderer/components", "src/renderer/shells", "src/renderer/hooks", "src/renderer/helpers"];
 
 const EXCLUDED = [
   /\/i18n\//,
@@ -18,18 +21,19 @@ const EXCLUDED = [
 const LOCALIZED_STRING_RE = /(["'`])([^"'`\n]*[А-Яа-яЁё][^"'`\n]*)\1/g;
 const HUMAN_ENGLISH_RE = /(["'`])([^"'`\n]*\b[A-Za-z]{3,}\s+[A-Za-z][^"'`\n]*)\1/g;
 
-function getChangedFiles() {
-  const raw = execSync("git diff --name-only --diff-filter=ACMRTUXB HEAD", {
-    encoding: "utf-8",
-  }).trim();
-  if (raw.length === 0) {
-    return [];
+function walk(dir, files = []) {
+  for (const entry of readdirSync(dir)) {
+    const fullPath = join(dir, entry);
+    const stat = statSync(fullPath);
+    if (stat.isDirectory()) {
+      walk(fullPath, files);
+      continue;
+    }
+    if (/\.(ts|tsx)$/.test(entry)) {
+      files.push(fullPath.replace(/\\/g, "/"));
+    }
   }
-  return raw.split(/\r?\n/).filter((entry) => entry.length > 0);
-}
-
-function isIncluded(filePath) {
-  return INCLUDED.some((pattern) => pattern.test(filePath));
+  return files;
 }
 
 function isExcluded(filePath) {
@@ -37,7 +41,7 @@ function isExcluded(filePath) {
 }
 
 function collectViolations(filePath, regex) {
-  const content = readFileSync(resolve(filePath), "utf-8");
+  const content = readFileSync(filePath, "utf-8");
   const violations = [];
   let match = regex.exec(content);
   while (match !== null) {
@@ -46,6 +50,9 @@ function collectViolations(filePath, regex) {
       value.includes("data-testid") ||
       value.includes("${") ||
       value.startsWith("@") ||
+      value.includes("typeof") ||
+      value.includes("===") ||
+      value.includes("prefers-reduced-motion") ||
       /^[a-z0-9_.:/-]+$/i.test(value);
     if (!skip) {
       violations.push(value);
@@ -56,32 +63,50 @@ function collectViolations(filePath, regex) {
   return violations;
 }
 
-const changedFiles = getChangedFiles().filter(
-  (filePath) => isIncluded(filePath) && !isExcluded(filePath),
-);
+function scanRoots(roots, regex) {
+  const files = roots
+    .flatMap((root) => walk(join(ROOT, root)))
+    .filter((filePath) => !isExcluded(filePath));
 
-const allViolations = [];
-for (const filePath of changedFiles) {
-  const localized = collectViolations(filePath, LOCALIZED_STRING_RE);
-  const english = collectViolations(filePath, HUMAN_ENGLISH_RE);
-  if (localized.length === 0 && english.length === 0) {
-    continue;
+  const allViolations = [];
+  for (const filePath of files) {
+    const values = collectViolations(filePath, regex);
+    if (values.length === 0) {
+      continue;
+    }
+    allViolations.push({ filePath, values: [...new Set(values)] });
   }
-  allViolations.push({
-    filePath,
-    values: [...new Set([...localized, ...english])],
-  });
+  return { files, allViolations };
 }
 
-if (allViolations.length > 0) {
-  console.error("i18n hardcoded-string check failed:");
-  for (const violation of allViolations) {
-    console.error(`- ${violation.filePath}`);
+const cyrillicScan = scanRoots(CYRILLIC_SCAN_ROOTS, LOCALIZED_STRING_RE);
+const englishScan = scanRoots(ENGLISH_SCAN_ROOTS, HUMAN_ENGLISH_RE);
+
+const merged = new Map();
+for (const scan of [cyrillicScan, englishScan]) {
+  for (const violation of scan.allViolations) {
+    const existing = merged.get(violation.filePath) ?? new Set();
     for (const value of violation.values) {
+      existing.add(value);
+    }
+    merged.set(violation.filePath, existing);
+  }
+}
+
+if (merged.size > 0) {
+  console.error("i18n hardcoded-string check failed:");
+  for (const [filePath, values] of merged.entries()) {
+    console.error(`- ${filePath}`);
+    for (const value of values) {
       console.error(`  * ${value}`);
     }
   }
   process.exit(1);
 }
 
-console.log("i18n hardcoded-string check passed.");
+const scannedCount = new Set([
+  ...cyrillicScan.files,
+  ...englishScan.files,
+]).size;
+
+console.log(`i18n hardcoded-string check passed (${scannedCount} files scanned).`);

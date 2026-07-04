@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import type { JSX } from "react";
 import type { OcpToastItem } from "@application/index.js";
+import { useI18n } from "../../i18n/index.js";
 import { IconControlButton } from "../icons/index.js";
 import styles from "./OcpToastStack.module.css";
 
@@ -15,6 +16,8 @@ export type OcpToastStackProps = Readonly<{
  * - Outputs: accessible stacked toast region.
  */
 export function OcpToastStack({ toasts, onDismiss }: OcpToastStackProps): JSX.Element | null {
+  const { t } = useI18n();
+
   if (toasts.length === 0) {
     return null;
   }
@@ -22,7 +25,7 @@ export function OcpToastStack({ toasts, onDismiss }: OcpToastStackProps): JSX.El
   return (
     <section
       className={styles["stack"]}
-      aria-label="Уведомления OCP"
+      aria-label={t("ocp.toast.stackAriaLabel")}
       data-testid="ocp-toast-stack"
     >
       {toasts.map((toast) => (
@@ -41,8 +44,8 @@ export function OcpToastStack({ toasts, onDismiss }: OcpToastStackProps): JSX.El
           <p className={styles["message"]}>{toast.message}</p>
           <IconControlButton
             iconId="overlay.close"
-            ariaLabel="Закрыть уведомление"
-            tooltipLabel="Закрыть"
+            ariaLabel={t("ocp.toast.dismissAria")}
+            tooltipLabel={t("common.cancel")}
             className={styles["dismiss"]}
             onClick={() => {
               onDismiss(toast.id);

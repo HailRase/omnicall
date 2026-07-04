@@ -5,6 +5,7 @@ export type {
 } from "./messages.js";
 export { I18N_MESSAGES } from "./messages.js";
 export {
+  formatLocaleDateTime,
   getRendererLanguage,
   setRendererLanguage,
   translateCurrent,

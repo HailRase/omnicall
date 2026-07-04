@@ -30,8 +30,9 @@ const baseProps = {
   onManualTransportReconnect: vi.fn(),
   onManualReregister: vi.fn(),
   onClearJournal: vi.fn(),
-  actionError: null,
-  actionSuccess: null,
+  actionErrorKey: null,
+  actionErrorDetail: null,
+  actionSuccessKey: null,
   actionLoading: null,
 };
 
@@ -79,8 +80,8 @@ describe("SettingsSystemStatePanel", () => {
     const onManualTransportReconnect = vi.fn();
     const shell = {
       ...idleSystemStateShell,
-      manualTransportReconnectDisabledReason: null,
-      manualReregisterDisabledReason: null,
+      manualTransportReconnectDisabledReasonKey: null,
+      manualReregisterDisabledReasonKey: null,
     };
 
     render(
@@ -98,7 +99,7 @@ describe("SettingsSystemStatePanel", () => {
   it("shows loading label while manual action is in progress", () => {
     const shell = {
       ...idleSystemStateShell,
-      manualTransportReconnectDisabledReason: null,
+      manualTransportReconnectDisabledReasonKey: null,
     };
 
     render(
@@ -196,7 +197,7 @@ describe("SettingsSystemStatePanel", () => {
     render(
       <SettingsSystemStatePanel
         {...baseProps}
-        actionSuccess="Переподключение сервера запущено"
+        actionSuccessKey="settings.systemState.action.success.transport"
       />,
     );
 

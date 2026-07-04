@@ -13,6 +13,13 @@ import {
 let currentLanguage: SupportedLanguage = DEFAULT_SUPPORTED_LANGUAGE;
 const listeners = new Set<() => void>();
 
+const LOCALE_BY_LANGUAGE: Readonly<Record<SupportedLanguage, string>> = {
+  ru: "ru-RU",
+  en: "en-US",
+  fr: "fr-FR",
+  de: "de-DE",
+};
+
 export type Translator = <K extends TranslationKey>(
   key: K,
   ...params: TranslationCatalog[K] extends (params: infer T) => string ? [T] : []
@@ -56,6 +63,25 @@ export function setRendererLanguage(language: SupportedLanguage): void {
 
 export function getRendererLanguage(): SupportedLanguage {
   return currentLanguage;
+}
+
+/**
+ * - Purpose: format ISO timestamps for settings journal rows per UI language.
+ * - Inputs: ISO timestamp string and supported language code.
+ * - Outputs: locale-aware date-time label or original string when invalid.
+ */
+export function formatLocaleDateTime(iso: string, language: SupportedLanguage): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) {
+    return iso;
+  }
+  return date.toLocaleString(LOCALE_BY_LANGUAGE[language], {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    day: "2-digit",
+    month: "2-digit",
+  });
 }
 
 export function useI18n(): Readonly<{

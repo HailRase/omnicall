@@ -1,4 +1,5 @@
 import type { JSX, ReactNode } from "react";
+import { useI18n } from "../../i18n/index.js";
 import { IconControlButton } from "../icons/index.js";
 import styles from "./ShellOverlaySheet.module.css";
 
@@ -23,6 +24,8 @@ export function ShellOverlaySheet({
   onClose,
   children,
 }: ShellOverlaySheetProps): JSX.Element | null {
+  const { t } = useI18n();
+
   if (!open) {
     return null;
   }
@@ -38,7 +41,7 @@ export function ShellOverlaySheet({
       <button
         type="button"
         className={styles["backdrop"]}
-        aria-label="Закрыть панель"
+        aria-label={t("shell.overlay.closePanelAria")}
         onClick={onClose}
       />
       <section className={styles["panel"]}>
@@ -46,7 +49,7 @@ export function ShellOverlaySheet({
           <h2 className={styles["title"]}>{title}</h2>
           <IconControlButton
             iconId="overlay.close"
-            ariaLabel={`Закрыть: ${title}`}
+            ariaLabel={t("shell.overlay.closeTitleAria", { title })}
             testId={`${testId}-close`}
             className={styles["closeButton"]}
             onClick={onClose}
@@ -55,7 +58,7 @@ export function ShellOverlaySheet({
         <div className={styles["body"]}>
           {children ?? (
             <p className={styles["placeholder"]} data-testid={`${testId}-placeholder`}>
-              Содержимое будет добавлено в следующей рабочей единице.
+              {t("shell.overlay.placeholder")}
             </p>
           )}
         </div>

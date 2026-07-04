@@ -8,6 +8,7 @@ import {
 } from "@application/index.js";
 import type { Result } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
+import type { TranslationKey } from "../i18n/messages.js";
 import { useSipRecoveryCountdownTick } from "./useSipRecoveryCountdownTick.js";
 import { useSoftphoneProjections } from "./useSoftphoneProjections.js";
 
@@ -48,35 +49,38 @@ export function useSipSystemStateShell(
 
 export type SipManualActionKind = "transport" | "reregister";
 
+export type SipManualActionSuccessKey =
+  | "settings.systemState.action.success.transport"
+  | "settings.systemState.action.success.reregister";
+
 type UseSipSystemStateActionsInput = Readonly<{
   facade: AccountBootstrapFacade | null;
 }>;
 
 type UseSipSystemStateActionsResult = Readonly<{
   journalEntries: ReadonlyArray<SipConnectionJournalEntry>;
-  actionError: string | null;
-  actionSuccess: string | null;
+  actionErrorKey: TranslationKey | null;
+  actionErrorDetail: string | null;
+  actionSuccessKey: SipManualActionSuccessKey | null;
   actionLoading: SipManualActionKind | null;
   onManualTransportReconnect: () => void;
   onManualReregister: () => void;
   onClearJournal: () => void;
 }>;
 
-const ACTION_SUCCESS_MESSAGES: Record<SipManualActionKind, string> = {
-  transport: "Переподключение сервера запущено",
-  reregister: "Перерегистрация запущена",
+const ACTION_SUCCESS_KEYS: Record<SipManualActionKind, SipManualActionSuccessKey> = {
+  transport: "settings.systemState.action.success.transport",
+  reregister: "settings.systemState.action.success.reregister",
 };
 
-const ACTION_SUCCESS_CLEAR_MS = 3200;
+const ACTION_ERROR_UNKNOWN_KEY = "settings.systemState.action.error.unknown" as const;
 
-function resolveActionError(error: unknown): string {
-  return error instanceof Error ? error.message : "Не удалось выполнить действие";
-}
+const ACTION_SUCCESS_CLEAR_MS = 3200;
 
 /**
  * - Purpose: wire manual SIP recovery actions and journal refresh for settings panel.
  * - Inputs: account bootstrap facade.
- * - Outputs: journal snapshot, action callbacks, loading/success/error feedback.
+ * - Outputs: journal snapshot, action callbacks, loading/success/error feedback keys.
  */
 export function useSipSystemStateActions(
   input: UseSipSystemStateActionsInput,
@@ -85,8 +89,9 @@ export function useSipSystemStateActions(
   const [journalEntries, setJournalEntries] = useState<ReadonlyArray<SipConnectionJournalEntry>>(
     [],
   );
-  const [actionError, setActionError] = useState<string | null>(null);
-  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [actionErrorKey, setActionErrorKey] = useState<TranslationKey | null>(null);
+  const [actionErrorDetail, setActionErrorDetail] = useState<string | null>(null);
+  const [actionSuccessKey, setActionSuccessKey] = useState<SipManualActionSuccessKey | null>(null);
   const [actionLoading, setActionLoading] = useState<SipManualActionKind | null>(null);
   const successClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -100,7 +105,7 @@ export function useSipSystemStateActions(
   const scheduleSuccessClear = useCallback((): void => {
     clearSuccessTimer();
     successClearTimerRef.current = setTimeout(() => {
-      setActionSuccess(null);
+      setActionSuccessKey(null);
       successClearTimerRef.current = null;
     }, ACTION_SUCCESS_CLEAR_MS);
   }, [clearSuccessTimer]);
@@ -139,22 +144,23 @@ export function useSipSystemStateActions(
       }
 
       setActionLoading(kind);
-      setActionError(null);
-      setActionSuccess(null);
+      setActionErrorKey(null);
+      setActionErrorDetail(null);
+      setActionSuccessKey(null);
       clearSuccessTimer();
 
       void action()
         .then((result) => {
           if (!result.ok) {
-            setActionError(result.error.message);
+            setActionErrorDetail(result.error.message);
             return;
           }
-          setActionSuccess(ACTION_SUCCESS_MESSAGES[kind]);
+          setActionSuccessKey(ACTION_SUCCESS_KEYS[kind]);
           scheduleSuccessClear();
           refreshJournal();
         })
-        .catch((error: unknown) => {
-          setActionError(resolveActionError(error));
+        .catch(() => {
+          setActionErrorKey(ACTION_ERROR_UNKNOWN_KEY);
         })
         .finally(() => {
           setActionLoading(null);
@@ -183,15 +189,17 @@ export function useSipSystemStateActions(
     }
     facade.clearSipConnectionJournal();
     refreshJournal();
-    setActionError(null);
-    setActionSuccess(null);
+    setActionErrorKey(null);
+    setActionErrorDetail(null);
+    setActionSuccessKey(null);
     clearSuccessTimer();
   }, [facade, refreshJournal, clearSuccessTimer]);
 
   return {
     journalEntries,
-    actionError,
-    actionSuccess,
+    actionErrorKey,
+    actionErrorDetail,
+    actionSuccessKey,
     actionLoading,
     onManualTransportReconnect,
     onManualReregister,

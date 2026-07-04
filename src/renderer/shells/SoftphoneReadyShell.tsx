@@ -182,8 +182,9 @@ export function SoftphoneReadyShell({
                 onManualTransportReconnect: sipSystemStateActions.onManualTransportReconnect,
                 onManualReregister: sipSystemStateActions.onManualReregister,
                 onClearJournal: sipSystemStateActions.onClearJournal,
-                actionError: sipSystemStateActions.actionError,
-                actionSuccess: sipSystemStateActions.actionSuccess,
+                actionErrorKey: sipSystemStateActions.actionErrorKey,
+                actionErrorDetail: sipSystemStateActions.actionErrorDetail,
+                actionSuccessKey: sipSystemStateActions.actionSuccessKey,
                 actionLoading: sipSystemStateActions.actionLoading,
               }}
               account={{

@@ -38,4 +38,15 @@ describe("renderer i18n catalog", () => {
     setRendererLanguage("ru");
     expect(translateCurrent("settings.title")).toBe("Настройки");
   });
+
+  it("keeps non-Russian distinct strings for en/fr/de on migrated dialpad keys", () => {
+    const key = "dialpad.call.label" as const;
+    const ru = translateInLanguage("ru", key);
+    const en = translateInLanguage("en", key);
+    const fr = translateInLanguage("fr", key);
+    const de = translateInLanguage("de", key);
+    expect(en).not.toBe(ru);
+    expect(fr).not.toBe(ru);
+    expect(de).not.toBe(ru);
+  });
 });
