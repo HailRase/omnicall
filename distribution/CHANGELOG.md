@@ -5,6 +5,12 @@ Public release history for **Axatalk** distribution builds.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer. Git tag: `v<version>`.
 
+## [0.3.0] - 2026-07-06
+
+### Added
+
+- Per-account settings profiles — theme, language, multi-call, auto-answer, SIP recovery, and codec preferences are saved independently for each SIP account you authorize; settings restore when you sign back in
+
 ## [0.2.0] - 2026-07-06
 
 ### Added

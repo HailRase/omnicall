@@ -55,9 +55,9 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 | Field | Value |
 | --- | --- |
-| Shipped | **0.2.0** (`v0.2.0`, 2026-07-06) — F-022 codec preferences; public distribution release notes |
-| Previous | **0.1.3** (F-020 dismiss persistence), **0.1.2** (overlay UX), **0.1.1** (update fixes), **0.1.0** (i18n, SIP recovery) |
-| Next cut | **0.2.1** (PATCH) or **0.3.0** (MINOR) per SemVer table in `RELEASE-PLAYBOOK.md` |
+| Shipped | **0.3.0** (`v0.3.0`, 2026-07-06) — F-023 per-account local settings profiles |
+| Previous | **0.2.0** (F-022 codec preferences), **0.1.3** (F-020 dismiss persistence), **0.1.2** (overlay UX), **0.1.1** (update fixes), **0.1.0** (i18n, SIP recovery) |
+| Next cut | **0.3.1** (PATCH) or **0.4.0** (MINOR) per SemVer table in `RELEASE-PLAYBOOK.md` |
 | Source repo | `HailRase/softphone-electron` (target: **private**) |
 | Distribution | [`HailRase/axatalk-releases`](https://github.com/HailRase/axatalk-releases) (public: installers + manifest) |
 | Manifest (live) | `axatalk-releases/main/update-manifest.json` |

@@ -7,6 +7,16 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-07-06
+
+### Added
+
+- F-023: локальные профили настроек per-account — изолированное хранение theme, language, multi-call, auto-answer, SIP recovery и codec preferences для каждого авторизованного SIP-аккаунта; disk persistence в Electron user-data
+
+### Fixed
+
+- F-015: preflight — исправлен `OcpCampaignSync.integration.test.ts`, добавлен unit-тест `campaign_event` в `ProcessOcpInboundMessageUseCase`
+
 ## [0.2.0] - 2026-07-06
 
 ### Added
@@ -107,7 +117,8 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.2.0...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.3.0...main
+[0.3.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.3.0
 [0.2.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.2.0
 [0.1.3]: https://github.com/HailRase/softphone-electron/releases/tag/v0.1.3
 [0.1.2]: https://github.com/HailRase/softphone-electron/releases/tag/v0.1.2
