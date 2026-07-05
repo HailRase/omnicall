@@ -1,0 +1,105 @@
+# Changelog
+
+Public release history for **Axatalk** distribution builds.
+
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
+Versioning: SemVer. Git tag: `v<version>`.
+
+## [0.2.0] - 2026-07-06
+
+### Added
+
+- Codec preferences panel in Settings — drag-and-drop audio codec order, enable and disable (except DTMF)
+
+### Changed
+
+- Video codecs in Settings are read-only (no reorder or toggle)
+- Audio codec order applied on new RTC sessions
+- Public distribution README in English; GitHub Releases include structured release notes generated from this changelog
+
+### Fixed
+
+- Codec preference wiring race on incoming and outgoing calls; SDP fallback when codec preferences cannot be applied
+
+## [0.1.3] - 2026-07-05
+
+### Fixed
+
+- Update banner "Later" choice is remembered across app restarts until the next version is available
+
+## [0.1.2] - 2026-07-05
+
+### Changed
+
+- Update overlay redesigned as a centered modal with scrim, icon, version badge, and improved typography (light and dark themes)
+
+### Fixed
+
+- "Download" on the update overlay dismisses the prompt and remembers the choice until the next release
+
+## [0.1.1] - 2026-07-05
+
+### Fixed
+
+- "Open download page" now opens the latest releases page instead of a direct per-platform installer URL
+- Background update checks no longer write error or unavailable states into settings
+- "Later" on the update banner is remembered until the next version
+- Registration status indicator alignment next to the account avatar
+- Primary button text colour on the update banner in all themes
+
+## [0.1.0] - 2026-07-05
+
+### Added
+
+- Background update check on startup with a non-blocking "Update available" banner (manual install)
+- Interface localisation (Russian, English, French, German) and language selection in settings
+- Improved tooltips and settings sidebar navigation
+- Windows MSI installer; corrected Linux `.deb` menu icons
+
+### Changed
+
+- SIP transport and registration state handling; manual re-registration and recovery after failures
+- System State panel: clearer server terminology; SIP journal controls removed from the panel
+- Renderer styling consistency (CSS Modules conventions)
+
+### Fixed
+
+- SIP transport reconnect semantics and 403 registration handling
+- SIP transport timeout, manual re-register, and registration recovery at runtime
+- Account panel and projections after logout
+- Immediate SIP journal clear feedback in System State
+
+## [0.0.3] - 2026-07-01
+
+### Changed
+
+- Distribution pipeline publishes installers to this public repository
+- Release assets filtered to signed installers only (no unpacked build folders)
+
+## [0.0.2] - 2026-07-01
+
+### Added
+
+- Automated installer publication on version tag via CI
+- Linux installation guidance: AppImage (recommended) and `.deb` via terminal
+
+### Changed
+
+- Separate CI workflows for pull-request checks and release builds
+- Updated end-user download and installation instructions
+
+### Fixed
+
+- Reliable CI builds without unpublished electron-builder upload steps
+
+## [0.0.1] - 2026-07-01
+
+### Added
+
+- Initial Axatalk distribution (Windows, macOS, Linux installers)
+- Manual in-app update check using the public update manifest (no auto-install)
+- Desktop packaging for Windows, macOS, and Linux
+
+### Fixed
+
+- CI packaging no longer attempts unpublished GitHub uploads during build

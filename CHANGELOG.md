@@ -7,6 +7,8 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-06
+
 ### Added
 
 - F-022: панель «Кодеки» в настройках — drag-and-drop порядок audio-кодеков, включение и отключение (кроме `telephone-event`)
@@ -15,6 +17,7 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - F-022: video-кодеки в настройках — future-only (read-only, без reorder/toggle)
 - F-022: порядок audio-кодеков применяется на новых RTC-сессиях (JsSIP adapter, dual-layer apply)
+- Публичный README и структурированные release notes на `axatalk-releases` (автогенерация из `distribution/CHANGELOG.md`)
 
 ### Fixed
 
@@ -104,7 +107,8 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.1.3...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.2.0...main
+[0.2.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.2.0
 [0.1.3]: https://github.com/HailRase/softphone-electron/releases/tag/v0.1.3
 [0.1.2]: https://github.com/HailRase/softphone-electron/releases/tag/v0.1.2
 [0.1.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.1.1

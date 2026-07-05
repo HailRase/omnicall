@@ -128,9 +128,15 @@ jobs:
       - name: Sync distribution manifest
         run: node scripts/sync-release-manifest.mjs
 
-      - name: Push manifest and README to axatalk-releases main
+      - name: Push distribution docs to axatalk-releases main
         env:
           GITHUB_TOKEN: ${{ secrets.AXATALK_RELEASES_TOKEN }}
           DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.AXATALK_RELEASES_TOKEN }}
           DIST_COMMIT_MSG: "chore(release): sync manifest for ${{ github.ref_name }}"
         run: node scripts/push-distribution-repo.mjs
+
+      - name: Publish release notes to axatalk-releases
+        env:
+          DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.AXATALK_RELEASES_TOKEN }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: node scripts/update-distribution-release-notes.mjs

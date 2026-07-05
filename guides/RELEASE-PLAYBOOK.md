@@ -47,9 +47,11 @@ From user request or SemVer table above. Confirm no duplicate tag on GitHub.
 
 ### 3. CHANGELOG
 
-1. Move items from `[Unreleased]` to new `## [X.Y.Z] - YYYY-MM-DD`
-2. Clear `[Unreleased]` sections (keep headings)
-3. Update compare links at bottom
+1. Move items from `[Unreleased]` to new `## [X.Y.Z] - YYYY-MM-DD` in **both** `CHANGELOG.md` and `distribution/CHANGELOG.md`
+2. Public bullets in `distribution/CHANGELOG.md` must be **English** and user-facing (no F-XXX IDs, no private URLs)
+3. Clear `[Unreleased]` sections (keep headings) in the internal changelog
+4. Update compare links at bottom of `CHANGELOG.md`
+5. Release notes on **axatalk-releases** are generated automatically from `distribution/CHANGELOG.md` (see `distribution/RELEASE-NOTES-CONTRACT.md`)
 
 ### 4. Bump `package.json` version
 
@@ -69,7 +71,7 @@ Updates dev manifest copies + `distribution/update-manifest.json` (payload for *
 chore(release): cut vX.Y.Z
 ```
 
-Include: `package.json`, `CHANGELOG.md`, manifest JSON files, `distribution/update-manifest.json` if changed.
+Include: `package.json`, `CHANGELOG.md`, `distribution/CHANGELOG.md`, manifest JSON files, `distribution/update-manifest.json` if changed.
 
 ### 7. Tag and push
 

@@ -1,5 +1,5 @@
 /**
- * Push distribution/README.md and distribution/update-manifest.json to axatalk-releases main.
+ * Push distribution payload (README, manifest, changelog, contract) to axatalk-releases main.
  * Handles empty repository (initial commit) — required before GitHub Releases API works.
  */
 
@@ -50,13 +50,18 @@ function cloneDistributionRepo(tmp, token, repo) {
 /**
  * @param {{ token: string, commitMsg?: string }} options
  */
-export function pushDistributionRepo({ token, commitMsg }) {
-  const readme = join(repoRoot, 'distribution/README.md');
-  const manifest = join(repoRoot, 'distribution/update-manifest.json');
+const DISTRIBUTION_FILES = [
+  { source: 'distribution/README.md', dest: 'README.md' },
+  { source: 'distribution/update-manifest.json', dest: 'update-manifest.json' },
+  { source: 'distribution/CHANGELOG.md', dest: 'CHANGELOG.md' },
+  { source: 'distribution/RELEASE-NOTES-CONTRACT.md', dest: 'RELEASE-NOTES-CONTRACT.md' },
+];
 
-  for (const file of [readme, manifest]) {
-    if (!existsSync(file)) {
-      throw new Error(`Missing ${file} — run npm run release:sync-manifest first.`);
+export function pushDistributionRepo({ token, commitMsg }) {
+  for (const { source } of DISTRIBUTION_FILES) {
+    const path = join(repoRoot, source);
+    if (!existsSync(path)) {
+      throw new Error(`Missing ${path} — run npm run release:sync-manifest first.`);
     }
   }
 
@@ -74,14 +79,18 @@ export function pushDistributionRepo({ token, commitMsg }) {
       execSync('git checkout -b main', { cwd: tmp, stdio: 'pipe' });
     }
 
-    cpSync(manifest, join(tmp, 'update-manifest.json'));
-    cpSync(readme, join(tmp, 'README.md'));
+    for (const { source, dest } of DISTRIBUTION_FILES) {
+      cpSync(join(repoRoot, source), join(tmp, dest));
+    }
 
     execSync('git config user.email "41898282+github-actions[bot]@users.noreply.github.com"', {
       cwd: tmp,
     });
     execSync('git config user.name "github-actions[bot]"', { cwd: tmp });
-    execSync('git add update-manifest.json README.md', { cwd: tmp });
+    execSync(
+      `git add ${DISTRIBUTION_FILES.map((f) => f.dest).join(' ')}`,
+      { cwd: tmp },
+    );
 
     const status = spawnSync('git', ['status', '--porcelain'], { cwd: tmp, encoding: 'utf8' });
     if (status.stdout.trim().length === 0 && repoHasCommits(tmp)) {

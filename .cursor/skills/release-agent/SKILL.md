@@ -35,7 +35,7 @@ Distribution release orchestration (F-019, F-020). **Not** a feature implementat
 1. **Intake:** PATCH / MINOR / MAJOR or target version (e.g. `0.0.2`). If unclear, ask once; default PATCH if only fixes shipped since last tag.
 2. **Discovery:** `package.json` version, latest Git tag, `STATUS.md` Release train, closed handoffs since last release.
 3. **Preflight:** `npm run release:preflight` — stop on failure.
-4. **CHANGELOG:** edit per Keep a Changelog; source bullets from handoffs / work-history / Registry.
+4. **CHANGELOG:** edit per Keep a Changelog; update `CHANGELOG.md` and public English `distribution/CHANGELOG.md`; source bullets from handoffs / work-history / Registry.
 5. **Bump** `package.json` `version`.
 6. **Manifest:** `npm run release:sync-manifest`.
 7. **Commit** `chore(release): cut vX.Y.Z` on `main`.
@@ -62,7 +62,9 @@ Include: new version, tag URL, Actions run URL, manifest URL, verification check
 | --- | --- |
 | `npm run release:preflight` | test + lint + typecheck + registry |
 | `npm run release:sync-manifest` | manifest JSON from `package.json` |
-| `npm run release:push-distribution` | push README + manifest to axatalk-releases |
+| `npm run release:push-distribution` | push README, manifest, changelog to axatalk-releases |
+| `npm run release:update-notes` | set GitHub Release body from `distribution/CHANGELOG.md` |
+| `npm run release:backfill-notes` | backfill release bodies (`--dry-run` to preview) |
 | `npm run release:migrate-distribution` | migrate historical releases (local, needs `gh`) |
 
 ## After `/review` PASS (note for reviewer)

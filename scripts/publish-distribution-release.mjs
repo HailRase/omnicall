@@ -6,6 +6,7 @@
 import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { isDistributionInstallerFile, DISTRIBUTION_REPO } from './distribution-config.mjs';
+import { generateDistributionReleaseNotes } from './generate-distribution-release-notes.mjs';
 import {
   ensureReleaseId,
   uploadReleaseAsset,
@@ -48,10 +49,7 @@ if (files.length === 0) {
 }
 
 const title = `Axatalk ${tag}`;
-const notes = [
-  `Installers for ${tag}.`,
-  'Download .exe / .msi / .dmg / .AppImage / .deb — not Source code zip.',
-].join('\n');
+const notes = generateDistributionReleaseNotes(tag);
 
 async function main() {
   await verifyDistributionToken(token, DISTRIBUTION_REPO);

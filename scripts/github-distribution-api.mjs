@@ -29,7 +29,7 @@ async function readErrorBody(res) {
 }
 
 /**
- * @returns {Promise<{ id: number } | null>} null when tag has no release
+ * @returns {Promise<{ id: number; tag: string; body: string } | null>} null when tag has no release
  */
 export async function getReleaseByTag(token, repo, tag) {
   const { owner, name } = parseRepo(repo);
@@ -46,10 +46,79 @@ export async function getReleaseByTag(token, repo, tag) {
     );
   }
   const data = await res.json();
-  if (typeof data !== 'object' || data === null || typeof data.id !== 'number') {
+  if (
+    typeof data !== 'object' ||
+    data === null ||
+    typeof data.id !== 'number' ||
+    typeof data.tag_name !== 'string'
+  ) {
     throw new Error(`Unexpected release payload for ${tag} on ${repo}`);
   }
-  return { id: data.id };
+  const body = typeof data.body === 'string' ? data.body : '';
+  return { id: data.id, tag: data.tag_name, body };
+}
+
+/**
+ * @returns {Promise<Array<{ id: number; tag: string }>>}
+ */
+export async function listReleases(token, repo) {
+  const { owner, name } = parseRepo(repo);
+  /** @type {Array<{ id: number; tag: string }>} */
+  const releases = [];
+  let page = 1;
+
+  while (page <= 20) {
+    const res = await fetch(
+      `https://api.github.com/repos/${owner}/${name}/releases?per_page=100&page=${page}`,
+      { headers: apiHeaders(token) },
+    );
+    if (!res.ok) {
+      throw new Error(`List releases on ${repo}: HTTP ${res.status} ${await readErrorBody(res)}`);
+    }
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) {
+      break;
+    }
+    for (const item of data) {
+      if (
+        typeof item === 'object' &&
+        item !== null &&
+        typeof item.id === 'number' &&
+        typeof item.tag_name === 'string'
+      ) {
+        releases.push({ id: item.id, tag: item.tag_name });
+      }
+    }
+    if (data.length < 100) {
+      break;
+    }
+    page += 1;
+  }
+
+  return releases;
+}
+
+/**
+ * @returns {Promise<void>}
+ */
+export async function updateRelease(token, repo, releaseId, { title, notes }) {
+  const { owner, name } = parseRepo(repo);
+  const res = await fetch(
+    `https://api.github.com/repos/${owner}/${name}/releases/${releaseId}`,
+    {
+      method: 'PATCH',
+      headers: { ...apiHeaders(token), 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: title,
+        body: notes,
+      }),
+    },
+  );
+  if (!res.ok) {
+    throw new Error(
+      `Update release ${releaseId} on ${repo}: HTTP ${res.status} ${await readErrorBody(res)}`,
+    );
+  }
 }
 
 /**
