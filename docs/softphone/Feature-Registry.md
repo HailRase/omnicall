@@ -430,7 +430,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - OCP notifications render from typed projection; SIP-only hides toasts (WU4: `OcpToastStack`, `ocpNotificationProjection`).
   - Queue label transitions `loading` → `na` after timeout without polling (WU4: `QUEUE_LABEL_NA_TIMEOUT_MS`, `useQueueLabelNaTimer`).
 - Test Coverage:
-  - Unit: OCP message mapping, `DlgStopPolicy`, `SendDlgStopUseCase`, queue NA derivation, toast projection
+  - Unit: OCP message mapping, `ProcessOcpInboundMessageUseCase` (campaign_event), `DlgStopPolicy`, `SendDlgStopUseCase`, queue NA derivation, toast projection
   - Integration: `OcpQueueInfoSync`, `OcpCampaignSync`, `OcpDlgStopSync`, `OcpNotificationSync`
   - E2E: deferred until harness exists (WU4 handoff)
 - Real Adapter Track: **deferred** (ADR-0002; `WebSocketOcpSyncGateway` in repo; R5 smoke out of scope — see `OCP-PLUGIN-BACKLOG.md`)

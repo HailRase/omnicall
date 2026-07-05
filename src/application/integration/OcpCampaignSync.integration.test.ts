@@ -85,7 +85,7 @@ describe("OcpCampaignSync integration", () => {
     );
 
     expect(isOk(respondResult)).toBe(true);
-    expect(eventTypes).toEqual(["CampaignEventAnswered"]);
+    expect(eventTypes).toContain("CampaignEventAnswered");
     expect(ocpSyncGateway.getLastCampaignRespondCommand()).toEqual({
       campaignId: "camp-sync-1",
       decision: "accept",

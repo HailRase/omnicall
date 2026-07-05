@@ -5,6 +5,7 @@ import { InMemoryOcpCallCorrelationRegistry } from "../read-models/InMemoryOcpCa
 import { InMemoryOcpSyncReadModel } from "../read-models/InMemoryOcpSyncReadModel.js";
 import {
   MockOcpSyncGateway,
+  createSampleOcpCampaignEventRawMessage,
   createSampleOcpQueueInfoRawMessage,
   createSampleOcpServerTerminateRawMessage,
 } from "@adapters/mock/MockOcpSyncGateway.js";
@@ -121,6 +122,39 @@ describe("ProcessOcpInboundMessageUseCase", () => {
     }
     expect(result.value).toEqual({ action: "noop", reason: "sip_only" });
     expect(published).toHaveLength(0);
+  });
+
+  it("publishes CampaignEventReceived on exact main_acallid match", () => {
+    const events = new InMemoryDomainEventBus();
+    const ocpSyncReadModel = new InMemoryOcpSyncReadModel(events);
+    seedOcpReady(events);
+    const registry = new InMemoryOcpCallCorrelationRegistry(events);
+    registry.register(
+      createOcpCallCorrelation(createCallId("call-1"), createMainAcallId("acall-camp-1")),
+    );
+    const published: string[] = [];
+    events.subscribe((event) => {
+      published.push(event.type);
+    });
+    const useCase = new ProcessOcpInboundMessageUseCase(
+      new MockOcpSyncGateway(),
+      registry,
+      ocpSyncReadModel,
+      events,
+      createTestLogger(),
+    );
+
+    published.length = 0;
+    const result = useCase.execute({
+      raw: createSampleOcpCampaignEventRawMessage("camp-1", "Sales Push", "acall-camp-1"),
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value).toEqual({ action: "campaign_published", callId: "call-1" });
+    expect(published).toContain("CampaignEventReceived");
   });
 
   it("publishes ServerTerminateReceived for server_terminate inbound", () => {
