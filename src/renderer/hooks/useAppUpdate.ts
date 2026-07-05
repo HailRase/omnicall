@@ -178,6 +178,16 @@ export function useAppUpdate(options: UseAppUpdateOptions = {}): UseAppUpdateRes
       });
   }, [manifestUrl, t, useCase]);
 
+  const dismissUpdatePrompt = useCallback((): void => {
+    const latestVersion = snapshot.latestVersion;
+    if (latestVersion === undefined) {
+      return;
+    }
+
+    onDismissUpdateBannerVersion?.(latestVersion);
+    setBackgroundUpdateAvailable(false);
+  }, [onDismissUpdateBannerVersion, snapshot.latestVersion]);
+
   const onOpenDownloadPage = useCallback((): void => {
     if (snapshot.downloadUrl === undefined) {
       return;
@@ -186,7 +196,8 @@ export function useAppUpdate(options: UseAppUpdateOptions = {}): UseAppUpdateRes
     void useCase.openDownloadPage({ downloadUrl: snapshot.downloadUrl }).catch(() => {
       // Errors are logged in the use case; UI keeps last snapshot.
     });
-  }, [snapshot.downloadUrl, useCase]);
+    dismissUpdatePrompt();
+  }, [dismissUpdatePrompt, snapshot.downloadUrl, useCase]);
 
   const onOpenReleaseNotes = useCallback((): void => {
     if (snapshot.releaseNotesUrl === undefined) {
@@ -198,15 +209,7 @@ export function useAppUpdate(options: UseAppUpdateOptions = {}): UseAppUpdateRes
     });
   }, [snapshot.releaseNotesUrl, useCase]);
 
-  const onDismissUpdatePrompt = useCallback((): void => {
-    const latestVersion = snapshot.latestVersion;
-    if (latestVersion === undefined) {
-      return;
-    }
-
-    onDismissUpdateBannerVersion?.(latestVersion);
-    setBackgroundUpdateAvailable(false);
-  }, [onDismissUpdateBannerVersion, snapshot.latestVersion]);
+  const onDismissUpdatePrompt = dismissUpdatePrompt;
 
   const canCheckForUpdates = manifestUrl !== null && snapshot.status !== "checking";
   const canOpenDownloadPage =

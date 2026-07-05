@@ -12,6 +12,7 @@ import {
   CircleCheck,
   Coffee,
   Delete,
+  Download,
   Eraser,
   Gauge,
   Grid3x3,
@@ -104,7 +105,8 @@ export type IconSemanticId =
   | "transfer.consultation"
   | "connection.retry"
   | "phone.dnd.on"
-  | "phone.dnd.off";
+  | "phone.dnd.off"
+  | "updates.available";
 
 export type IconCatalogEntry = Readonly<{
   static: LucideIcon;
@@ -383,6 +385,12 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.phone.dnd.off",
     defaultSize: 20,
     usage: ["UserAvatarMenu: user-menu-toggle-dnd dndEnabled=false"],
+  },
+  "updates.available": {
+    static: Download,
+    defaultLabelKey: "icons.updates.available",
+    defaultSize: 20,
+    usage: ["UpdateAvailableBanner"],
   },
 };
 

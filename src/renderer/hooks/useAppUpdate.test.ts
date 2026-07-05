@@ -214,8 +214,12 @@ describe("useAppUpdate background prompt", () => {
       .mockResolvedValueOnce(ok(updateAvailableSnapshot));
     mockOpenDownloadPage.mockResolvedValue(ok(undefined));
 
+    const onDismissUpdateBannerVersion = vi.fn();
     const { result } = renderHook(() =>
-      useAppUpdate({ backgroundCheckOnMount: true }),
+      useAppUpdate({
+        backgroundCheckOnMount: true,
+        onDismissUpdateBannerVersion,
+      }),
     );
 
     await waitFor(() => {
@@ -231,6 +235,8 @@ describe("useAppUpdate background prompt", () => {
         downloadUrl: "https://example.com/releases/latest",
       });
     });
+    expect(result.current.showUpdatePrompt).toBe(false);
+    expect(onDismissUpdateBannerVersion).toHaveBeenCalledWith("2.0.0");
   });
 
   it("preserves manual check API without enabling background check", async () => {

@@ -558,7 +558,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Remote manifest validated from `unknown`; semver compare for update vs up-to-date.
   - States: idle, checking, updateAvailable, upToDate, unavailable, invalidManifest, error.
   - Startup background check runs once per app session after ready shell mount; Strict Mode safe; failures silent (no error/unavailable/invalidManifest in Settings snapshot).
-  - Non-blocking update banner on `updateAvailable` only; «Позже» persists dismissed `latestVersion` in `UserSettings` until manifest reports a newer version; does not interrupt calls.
+  - Non-blocking update modal overlay on `updateAvailable` only; «Позже» or «Скачать» persists dismissed `latestVersion` in `UserSettings` until manifest reports a newer version; does not interrupt calls.
   - «Открыть страницу загрузки» opens manifest `downloadUrl` (releases page), not `platforms.*` direct installer URL.
   - Manual Settings check unchanged; installation remains user-driven via open download URL only.
   - Failures never crash app; active calls not interrupted.

@@ -49,6 +49,7 @@
 | `connection.retry` | Retry connection | `RotateCcw` | `RotateCcwIcon` | `SettingsSystemStatePanel` (Phase 6) | planned |
 | `phone.dnd.on` | DND mode active (bell on) | `Bell` | — | `UserAvatarMenu` | active |
 | `phone.dnd.off` | DND mode inactive (bell off) | `BellOff` | — | `UserAvatarMenu` | active |
+| `updates.available` | Update available prompt | `Download` | — | `UpdateAvailableBanner` | active |
 
 ## Adding an entry
 

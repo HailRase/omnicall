@@ -57,6 +57,9 @@ const ruMessages = {
   "updates.status.error":
     "Не удалось проверить обновления. Проверьте подключение к интернету и попробуйте снова.",
   "updates.prompt.ariaLabel": "Доступно обновление приложения",
+  "updates.prompt.title": "Доступно обновление",
+  "updates.prompt.description":
+    "Скачайте установщик с официальной страницы релиза и установите новую версию вручную.",
   "updates.prompt.message": (params: Readonly<{ latestVersion: string | undefined }>) =>
     params.latestVersion !== undefined
       ? `Доступна новая версия ${params.latestVersion}. Скачайте установщик и установите её вручную.`
@@ -102,6 +105,7 @@ const ruMessages = {
   "icons.connection.retry": "Повторить подключение",
   "icons.phone.dnd.on": "Не беспокоить включено",
   "icons.phone.dnd.off": "Не беспокоить выключено",
+  "icons.updates.available": "Доступно обновление",
   "common.actionUnavailable": "Действие недоступно",
   "common.retry": "Повторить",
   "common.cancel": "Отмена",
@@ -596,6 +600,9 @@ const enMessages: MessageShape = {
   "updates.status.error":
     "Unable to check updates. Verify internet connectivity and retry.",
   "updates.prompt.ariaLabel": "Application update available",
+  "updates.prompt.title": "Update available",
+  "updates.prompt.description":
+    "Download the installer from the official release page and install the new version manually.",
   "updates.prompt.message": (params) =>
     params.latestVersion !== undefined
       ? `Version ${params.latestVersion} is available. Download the installer and install it manually.`
@@ -641,6 +648,7 @@ const enMessages: MessageShape = {
   "icons.connection.retry": "Retry connection",
   "icons.phone.dnd.on": "Do not disturb enabled",
   "icons.phone.dnd.off": "Do not disturb disabled",
+  "icons.updates.available": "Update available",
   "header.registration.status.registering": "Registering",
   "header.registration.status.registered": "Registered",
   "header.registration.status.failed": "Error",
@@ -1123,6 +1131,9 @@ const frMessages: MessageShape = {
   "updates.status.error":
     "Impossible de verifier les mises a jour. Verifiez la connexion internet et reessayez.",
   "updates.prompt.ariaLabel": "Mise a jour de l'application disponible",
+  "updates.prompt.title": "Mise a jour disponible",
+  "updates.prompt.description":
+    "Telechargez l'installateur depuis la page officielle de la version et installez la nouvelle version manuellement.",
   "updates.prompt.message": (params) =>
     params.latestVersion !== undefined
       ? `La version ${params.latestVersion} est disponible. Telechargez l'installateur et installez-la manuellement.`
@@ -1168,6 +1179,7 @@ const frMessages: MessageShape = {
   "icons.connection.retry": "Reessayer la connexion",
   "icons.phone.dnd.on": "Ne pas deranger active",
   "icons.phone.dnd.off": "Ne pas deranger desactive",
+  "icons.updates.available": "Mise a jour disponible",
   "header.registration.status.registering": "Enregistrement",
   "header.registration.status.registered": "Enregistre",
   "header.registration.status.failed": "Erreur",
@@ -1641,6 +1653,9 @@ const deMessages: MessageShape = {
   "updates.status.error":
     "Updates konnten nicht geprueft werden. Pruefen Sie die Internetverbindung und versuchen Sie es erneut.",
   "updates.prompt.ariaLabel": "Anwendungsupdate verfuegbar",
+  "updates.prompt.title": "Update verfuegbar",
+  "updates.prompt.description":
+    "Laden Sie das Installationsprogramm von der offiziellen Release-Seite herunter und installieren Sie die neue Version manuell.",
   "updates.prompt.message": (params) =>
     params.latestVersion !== undefined
       ? `Version ${params.latestVersion} ist verfuegbar. Laden Sie das Installationsprogramm herunter und installieren Sie es manuell.`
@@ -1686,6 +1701,7 @@ const deMessages: MessageShape = {
   "icons.connection.retry": "Verbindung erneut versuchen",
   "icons.phone.dnd.on": "Nicht stoeren aktiviert",
   "icons.phone.dnd.off": "Nicht stoeren deaktiviert",
+  "icons.updates.available": "Update verfuegbar",
   "header.registration.status.registering": "Registrierung",
   "header.registration.status.registered": "Registriert",
   "header.registration.status.failed": "Fehler",

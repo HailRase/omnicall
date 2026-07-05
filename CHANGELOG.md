@@ -7,6 +7,16 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-07-05
+
+### Changed
+
+- F-020: overlay обновления — центрированный modal со scrim, иконкой, badge версии и улучшенной типографикой (light + dark)
+
+### Fixed
+
+- F-020: «Скачать» на overlay скрывает prompt и сохраняет dismissed version до следующего релиза
+
 ## [0.1.1] - 2026-07-05
 
 ### Fixed
@@ -75,7 +85,8 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.1.1...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.1.2...main
+[0.1.2]: https://github.com/HailRase/softphone-electron/releases/tag/v0.1.2
 [0.1.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.1.1
 [0.1.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.1.0
 [0.0.3]: https://github.com/HailRase/softphone-electron/releases/tag/v0.0.3

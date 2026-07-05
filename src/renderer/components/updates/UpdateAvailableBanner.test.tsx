@@ -29,7 +29,8 @@ describe("UpdateAvailableBanner", () => {
     render(<UpdateAvailableBanner {...baseProps} />);
 
     expect(screen.getByTestId("update-available-banner")).toBeInTheDocument();
-    expect(screen.getByTestId("update-available-banner-message")).toHaveTextContent("2.0.0");
+    expect(screen.getByTestId("update-available-banner-version")).toHaveTextContent("v2.0.0");
+    expect(screen.getByTestId("update-available-banner-message")).toBeInTheDocument();
   });
 
   it("calls download callback from primary action", () => {
