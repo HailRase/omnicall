@@ -115,20 +115,20 @@ User-facing release: https://github.com/HailRase/axatalk-releases/releases
 For testing installers without a release cut:
 
 1. Actions → **Release** workflow → **Run workflow** → branch `main`
-2. Download **Artifacts** only (no GitHub Release publish)
+2. Убедиться, что build jobs зелёные (бинарники в Artifacts **не** сохраняются — quota-safe)
 
 ## workflow_dispatch vs tag
 
-| Mode | Builds | Publishes to GitHub Release |
+| Mode | Builds | Publishes to axatalk-releases |
 | --- | --- | --- |
 | `workflow_dispatch` | Yes | **No** |
-| Push tag `v*.*.*` | Yes | **Yes** (`softprops/action-gh-release`) |
+| Push tag `v*.*.*` | Yes | **Yes** (direct API upload per OS + manifest sync) |
 
 ## electron-builder on CI
 
 - Packaging uses `scripts/run-electron-builder.mjs` (`--publish never`, tokens cleared)
 - **Never** enable electron-builder auto-publish (F-020 uses manual manifest)
-- CI uploads **installer binaries only** via `scripts/collect-installer-artifacts.mjs` (`retention-days: 1`) — not full `dist/**` trees
+- Release workflow **does not use GitHub Artifacts** — installers upload directly to axatalk-releases via API
 
 ## Related docs
 

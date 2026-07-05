@@ -1,7 +1,7 @@
 name: Release
 
-# Tag v*.*.* on softphone-electron - build installers - publish to axatalk-releases.
-# workflow_dispatch → build only (Artifacts), no publish.
+# Tag v*.*.* → build on matrix → direct upload to axatalk-releases (no GitHub Artifacts).
+# workflow_dispatch → build validation only (no publish, no Artifacts).
 # Guide: guides/RELEASE-PLAYBOOK.md, guides/Distribution-Migration-Checklist.md
 
 on:
@@ -102,20 +102,19 @@ jobs:
           DEST_DIR: release-staging
         run: node scripts/collect-installer-artifacts.mjs
 
-      - name: Upload installer artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: installer-${{ matrix.os }}
-          path: release-staging
-          retention-days: 1
-          compression-level: 9
-          if-no-files-found: error
+      - name: Publish installers to axatalk-releases
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+        env:
+          DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.AXATALK_RELEASES_TOKEN }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          PAYLOAD_DIR: release-staging
+        run: node scripts/publish-distribution-release.mjs
 
-  publish:
-    name: Publish distribution
+  finalize-distribution:
+    name: Finalize manifest
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     steps:
       - name: Check out repository
@@ -128,26 +127,6 @@ jobs:
 
       - name: Sync distribution manifest
         run: node scripts/sync-release-manifest.mjs
-
-      - name: Download build artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: installer-*
-          path: release-assets
-          merge-multiple: true
-
-      - name: Collect installer payload
-        env:
-          SOURCE_DIR: release-assets
-          DEST_DIR: dist-payload
-        run: node scripts/collect-installer-artifacts.mjs
-
-      - name: Publish GitHub Release on axatalk-releases
-        env:
-          DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.AXATALK_RELEASES_TOKEN }}
-          RELEASE_TAG: ${{ github.ref_name }}
-          PAYLOAD_DIR: dist-payload
-        run: node scripts/publish-distribution-release.mjs
 
       - name: Push manifest and README to axatalk-releases main
         env:

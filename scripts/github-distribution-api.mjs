@@ -80,6 +80,26 @@ export async function createRelease(token, repo, { tag, title, notes }) {
   return data.id;
 }
 
+/**
+ * @returns {Promise<number>} release id (creates release or reuses existing; race-safe)
+ */
+export async function ensureReleaseId(token, repo, { tag, title, notes }) {
+  const existing = await getReleaseByTag(token, repo, tag);
+  if (existing !== null) {
+    return existing.id;
+  }
+
+  try {
+    return await createRelease(token, repo, { tag, title, notes });
+  } catch (error) {
+    const afterRace = await getReleaseByTag(token, repo, tag);
+    if (afterRace !== null) {
+      return afterRace.id;
+    }
+    throw error;
+  }
+}
+
 export async function uploadReleaseAsset(token, repo, releaseId, filePath, fileName) {
   const { owner, name } = parseRepo(repo);
   const body = readFileSync(filePath);

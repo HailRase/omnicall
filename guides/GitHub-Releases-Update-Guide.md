@@ -85,7 +85,7 @@ Manifest лежит в репозитории по фиксированному 
 | --- | --- | --- | --- |
 | **CI** | `ci.yml` | push/PR `main` | test, lint, typecheck, registry |
 | **Release** | `release.yml` | push тега `v*.*.*` | build matrix + **GitHub Release assets** |
-| **Release** | `release.yml` | `workflow_dispatch` | build only → **Artifacts** (без Release) |
+| **Release** | `release.yml` | `workflow_dispatch` | build only (без Artifacts и без Release) |
 
 ### Tag push (релиз)
 
@@ -95,9 +95,9 @@ Push тега `vX.Y.Z` после manifest в `main` → сборка в **softp
 
 1. [Actions → Release](https://github.com/HailRase/softphone-electron/actions/workflows/release.yml)
 2. **Run workflow** → ветка `main` → **Run workflow**
-3. Скачать **Artifacts** (`installer-*`)
+3. Убедиться, что build jobs зелёные (Artifacts **не** создаются — экономия quota)
 
-Для дополнения уже существующего Release без нового тега: скачать артефакты и **Edit release → Attach binaries** (см. `platforms` в manifest).
+Для дополнения уже существующего Release без нового тега: собрать локально или push тега; при необходимости **Edit release → Attach binaries** на axatalk-releases.
 
 ### Mac / Linux без локальной сборки
 

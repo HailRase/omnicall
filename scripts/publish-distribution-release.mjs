@@ -7,8 +7,7 @@ import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { isDistributionInstallerFile, DISTRIBUTION_REPO } from './distribution-config.mjs';
 import {
-  createRelease,
-  getReleaseByTag,
+  ensureReleaseId,
   uploadReleaseAsset,
   verifyDistributionToken,
 } from './github-distribution-api.mjs';
@@ -57,19 +56,21 @@ const notes = [
 async function main() {
   await verifyDistributionToken(token, DISTRIBUTION_REPO);
 
-  let releaseId;
-  const existing = await getReleaseByTag(token, DISTRIBUTION_REPO, tag);
-  if (existing !== null) {
-    releaseId = existing.id;
-    console.log(`Release ${tag} already exists on ${DISTRIBUTION_REPO}, uploading assets`);
-  } else {
-    releaseId = await createRelease(token, DISTRIBUTION_REPO, { tag, title, notes });
-    console.log(`Created release ${tag} on ${DISTRIBUTION_REPO}`);
-  }
+  const releaseId = await ensureReleaseId(token, DISTRIBUTION_REPO, { tag, title, notes });
+  console.log(`Using release ${tag} on ${DISTRIBUTION_REPO} (id ${releaseId})`);
 
   for (const file of files) {
-    await uploadReleaseAsset(token, DISTRIBUTION_REPO, releaseId, join(payloadDir, file), file);
-    console.log(`  uploaded ${file}`);
+    try {
+      await uploadReleaseAsset(token, DISTRIBUTION_REPO, releaseId, join(payloadDir, file), file);
+      console.log(`  uploaded ${file}`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      if (message.includes('HTTP 422') && message.toLowerCase().includes('already exists')) {
+        console.log(`  skip ${file} (asset already on release)`);
+        continue;
+      }
+      throw error;
+    }
   }
 }
 

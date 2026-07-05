@@ -56,19 +56,19 @@
 | Workflow | Файл | Когда запускается | Что делает |
 | --- | --- | --- | --- |
 | **CI** | `.github/workflows/ci.yml` | push и PR в `main` | `test`, `lint`, `typecheck`, `i18n:check`, `registry:check` |
-| **Release** | `.github/workflows/release.yml` | push тега `v*.*.*` **или** ручной Run workflow | preflight → сборка win + mac + linux → publish на тег |
+| **Release** | `.github/workflows/release.yml` | push тега `v*.*.*` **или** ручной Run workflow | preflight → build + direct publish → finalize manifest |
 
 ### Push тега `v0.0.2`
 
 1. Job **preflight** один раз: test, lint, typecheck, registry.
-2. Три job'а **build** собирают установщики (matrix); в Artifacts попадают **только** `.exe`/`.msi`/`.dmg`/`.AppImage`/`.deb` (не `win-unpacked`).
-3. Job **publish** скачивает артефакты и создаёт/обновляет **GitHub Release** с бинарниками.
-4. Ручная загрузка файлов в Release **не нужна**, если CI зелёный.
+2. Три job'а **build** собирают установщики и **сразу загружают** их в Release на **axatalk-releases** (без GitHub Artifacts).
+3. Job **finalize-distribution** обновляет manifest на `axatalk-releases/main`.
+4. Ручная загрузка файлов **не нужна**, если CI зелёный.
 
 ### Run workflow без тега
 
-- Preflight + build проходят; в **Artifacts** лежат только установщики (`installer-windows-latest`, …), срок хранения **1 день**.
-- Job **publish** **не** запускается — удобно для проверки сборки.
+- Preflight + build проходят; бинарники **не** сохраняются в Artifacts (quota-safe).
+- Job **finalize-distribution** **не** запускается — проверка сборки без публикации.
 
 ### Важно про CI и electron-builder
 
@@ -189,14 +189,14 @@ npm run build:linux    # Linux → dist/linux/*.AppImage + *.deb
 
 | Симптом | Причина | Решение |
 | --- | --- | --- |
-| `Artifact storage quota has been hit` | В Artifacts копился `dist/**` целиком (сотни файлов `win-unpacked`) | Исправлено: `collect-installer-artifacts.mjs` + `retention-days: 1`. Удалите старые артефакты: repo → **Actions** → **Artifacts** → Delete |
+| `Artifact storage quota has been hit` | Квота GitHub Artifacts исчерпана (старые failed runs) | Release **не использует Artifacts** с v0.1.0+ fix: direct upload в axatalk-releases. Удалите старые Artifacts: repo → **Actions** → **Artifacts** → Delete (освобождает quota за 6–12 ч) |
 | `ModuleNotFoundError: No module named 'PIL'` | На runner нет Pillow для `build:icons` | `scripts/requirements-build.txt` + шаг pip в `release.yml` |
 | `GH_TOKEN is not set` после blockmap | implicit publish electron-builder | `run-electron-builder.mjs`, не re-run старого workflow |
 | Re-run старого workflow | Берёт старый commit | **Run workflow** на актуальном `main` или новый тег |
 | 404 на скачивание из приложения | Нет asset на Release или неверное имя в `platforms` | Сверить Release и manifest |
 | «Проверка недоступна» в клиенте | Нет `VITE_UPDATE_MANIFEST_URL` при сборке | `.env.production`, пересобрать |
 | CI падает на тестах | Регрессия в коде | `npm run release:preflight` локально |
-| DeprecationWarning Node 20 в upload-artifact | Внутренний runtime GitHub Action | Информационно; следите за обновлениями `actions/*` (Dependabot) |
+| DeprecationWarning Node 20 в upload-artifact | Больше не используется в Release workflow | Direct upload через GitHub Releases API |
 
 ---
 
