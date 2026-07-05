@@ -55,19 +55,20 @@
 
 | Workflow | Файл | Когда запускается | Что делает |
 | --- | --- | --- | --- |
-| **CI** | `.github/workflows/ci.yml` | push и PR в `main` | `test`, `lint`, `typecheck`, `registry:check` |
-| **Release** | `.github/workflows/release.yml` | push тега `v*.*.*` **или** ручной Run workflow | Сборка win + mac + linux |
+| **CI** | `.github/workflows/ci.yml` | push и PR в `main` | `test`, `lint`, `typecheck`, `i18n:check`, `registry:check` |
+| **Release** | `.github/workflows/release.yml` | push тега `v*.*.*` **или** ручной Run workflow | preflight → сборка win + mac + linux → publish на тег |
 
 ### Push тега `v0.0.2`
 
-1. Три job'а собирают установщики (matrix).
-2. Job **publish** скачивает артефакты и создаёт/обновляет **GitHub Release** с бинарниками.
-3. Ручная загрузка файлов в Release **не нужна**, если CI зелёный.
+1. Job **preflight** один раз: test, lint, typecheck, registry.
+2. Три job'а **build** собирают установщики (matrix); в Artifacts попадают **только** `.exe`/`.msi`/`.dmg`/`.AppImage`/`.deb` (не `win-unpacked`).
+3. Job **publish** скачивает артефакты и создаёт/обновляет **GitHub Release** с бинарниками.
+4. Ручная загрузка файлов в Release **не нужна**, если CI зелёный.
 
 ### Run workflow без тега
 
-- Сборка проходит, файлы лежат в **Artifacts** (`installer-windows-latest`, …).
-- В GitHub Release **ничего не публикуется** — удобно для проверки сборки.
+- Preflight + build проходят; в **Artifacts** лежат только установщики (`installer-windows-latest`, …), срок хранения **1 день**.
+- Job **publish** **не** запускается — удобно для проверки сборки.
 
 ### Важно про CI и electron-builder
 
@@ -188,11 +189,14 @@ npm run build:linux    # Linux → dist/linux/*.AppImage + *.deb
 
 | Симптом | Причина | Решение |
 | --- | --- | --- |
+| `Artifact storage quota has been hit` | В Artifacts копился `dist/**` целиком (сотни файлов `win-unpacked`) | Исправлено: `collect-installer-artifacts.mjs` + `retention-days: 1`. Удалите старые артефакты: repo → **Actions** → **Artifacts** → Delete |
+| `ModuleNotFoundError: No module named 'PIL'` | На runner нет Pillow для `build:icons` | `scripts/requirements-build.txt` + шаг pip в `release.yml` |
 | `GH_TOKEN is not set` после blockmap | implicit publish electron-builder | `run-electron-builder.mjs`, не re-run старого workflow |
 | Re-run старого workflow | Берёт старый commit | **Run workflow** на актуальном `main` или новый тег |
 | 404 на скачивание из приложения | Нет asset на Release или неверное имя в `platforms` | Сверить Release и manifest |
 | «Проверка недоступна» в клиенте | Нет `VITE_UPDATE_MANIFEST_URL` при сборке | `.env.production`, пересобрать |
 | CI падает на тестах | Регрессия в коде | `npm run release:preflight` локально |
+| DeprecationWarning Node 20 в upload-artifact | Внутренний runtime GitHub Action | Информационно; следите за обновлениями `actions/*` (Dependabot) |
 
 ---
 
@@ -288,10 +292,13 @@ electron-builder обычно тянет: `libgtk-3-0`, `libnss3`, `libxss1`, `l
 | `package.json` | версия, скрипты сборки |
 | `electron-builder.yml` | цели win/mac/linux, имена артефактов |
 | `scripts/run-electron-builder.mjs` | безопасная сборка на CI |
+| `scripts/collect-installer-artifacts.mjs` | только установщики в CI Artifacts (без win-unpacked) |
+| `scripts/requirements-build.txt` | Pillow для `build:icons` на runner |
 | `scripts/sync-release-manifest.mjs` | manifest из версии |
 | `.env.production` | `VITE_UPDATE_MANIFEST_URL` |
+| `.github/dependabot.yml` | еженедельные PR на npm и GitHub Actions |
 | `.github/workflows/ci.yml` | preflight на PR/push |
-| `.github/workflows/release.yml` | сборка + publish на тег |
+| `.github/workflows/release.yml` | preflight + build + publish на тег |
 | `CHANGELOG.md` | заметки релиза |
 | `scripts/distribution-config.mjs` | константы axatalk-releases |
 | `distribution/README.md` | публикуется в корень axatalk-releases |

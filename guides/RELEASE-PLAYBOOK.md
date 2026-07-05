@@ -128,6 +128,7 @@ For testing installers without a release cut:
 
 - Packaging uses `scripts/run-electron-builder.mjs` (`--publish never`, tokens cleared)
 - **Never** enable electron-builder auto-publish (F-020 uses manual manifest)
+- CI uploads **installer binaries only** via `scripts/collect-installer-artifacts.mjs` (`retention-days: 1`) — not full `dist/**` trees
 
 ## Related docs
 
