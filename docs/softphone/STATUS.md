@@ -55,8 +55,8 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 | Field | Value |
 | --- | --- |
-| Shipped | **0.0.2** (`v0.0.2`, 2026-07-01) — migrate to **axatalk-releases** |
-| Next cut | **0.0.3** after distribution setup (new manifest URL in installers) |
+| Shipped | **0.1.0** (`v0.1.0`, 2026-07-05) — i18n, SIP recovery, startup update prompt |
+| Next cut | **0.1.1** (PATCH) or **0.2.0** (MINOR) per SemVer table in `RELEASE-PLAYBOOK.md` |
 | Source repo | `HailRase/softphone-electron` (target: **private**) |
 | Distribution | [`HailRase/axatalk-releases`](https://github.com/HailRase/axatalk-releases) (public: installers + manifest) |
 | Manifest (live) | `axatalk-releases/main/update-manifest.json` |

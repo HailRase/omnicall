@@ -13,6 +13,28 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ### Fixed
 
+## [0.1.0] - 2026-07-05
+
+### Added
+
+- F-020: фоновая проверка обновлений при запуске и неблокирующий баннер «Доступно обновление» (ручная установка)
+- F-021: интернационализация интерфейса (ru, en, fr, de) и выбор языка в настройках
+- Улучшенные подсказки (IconTooltip, Floating UI) и UX бокового меню настроек
+- Windows MSI-установщик; исправлены иконки меню Linux `.deb`
+
+### Changed
+
+- T-008: рефакторинг состояния SIP transport/register; ручной перерегистрация и восстановление после сбоев
+- Панель «Состояние системы»: терминология сервера, очистка SIP-журнала из UI
+- CSS Modules: единый kebab-case и dot-notation в renderer
+
+### Fixed
+
+- SIP: корректные семантики transport reconnect и обработка 403 при регистрации
+- SIP: таймаут transport, ручной reregister, runtime recovery регистрации
+- Проекции после logout и обратная связь на панели аккаунта
+- Немедленная очистка SIP-журнала в панели состояния системы
+
 ## [0.0.3] - 2026-07-01
 
 ### Changed
@@ -49,6 +71,8 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.0.2...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.1.0...main
+[0.1.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.1.0
+[0.0.3]: https://github.com/HailRase/softphone-electron/releases/tag/v0.0.3
 [0.0.2]: https://github.com/HailRase/softphone-electron/releases/tag/v0.0.2
 [0.0.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.0.1
