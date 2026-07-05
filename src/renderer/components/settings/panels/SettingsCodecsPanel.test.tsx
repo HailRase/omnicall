@@ -49,6 +49,14 @@ describe("SettingsCodecsPanel", () => {
     expect(onAudioCodecEnabledChange).toHaveBeenCalledWith("pcmu", false);
   });
 
+  it("keeps video codec controls disabled as future-only", () => {
+    render(<SettingsCodecsPanel {...baseProps} />);
+
+    expect(screen.getByTestId("settings-codecs-video-future-only")).toBeInTheDocument();
+    expect(screen.getByTestId("settings-codecs-video-toggle-vp8")).toBeDisabled();
+    expect(screen.getByTestId("settings-codecs-video-drag-vp8")).toBeDisabled();
+  });
+
   it("keeps telephone-event checkbox disabled", () => {
     render(<SettingsCodecsPanel {...baseProps} />);
 

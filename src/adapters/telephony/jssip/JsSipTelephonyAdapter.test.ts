@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, afterEach } from "vitest";
 import {
   createCallId,
   createDefaultCodecPreferences,
@@ -11,6 +11,7 @@ import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
 import { MockCodecPreferencesPort } from "@adapters/mock/MockCodecPreferencesPort.js";
 import { JsSipTelephonyAdapter } from "./JsSipTelephonyAdapter.js";
+import { resetJsSipSessionCodecPreferencesStateForTests } from "./prepareJsSipSessionCodecPreferences.js";
 import type {
   JsSipDisconnectEvent,
   JsSipUaEventName,
@@ -350,6 +351,10 @@ function createRawLikeJsSipRtcSession(
 }
 
 describe("JsSipTelephonyAdapter", () => {
+  afterEach(() => {
+    resetJsSipSessionCodecPreferencesStateForTests();
+  });
+
   const account = createSipAccount(createSipAccountId("agent"), {
     username: "agent",
     password: "secret",
@@ -1467,7 +1472,7 @@ describe("JsSipTelephonyAdapter", () => {
     expect(mockUa.callInvocations[0]?.session.holdCalls).toBe(1);
   });
 
-  it("makeCall wires codec preferences and munges local sdp from settings port", async () => {
+  it("makeCall wires codec preferences synchronously before local sdp emission", async () => {
     const reordered = reorderAudioCodecs(createDefaultCodecPreferences(), 0, 1);
     expect(reordered.ok).toBe(true);
     if (!reordered.ok) {

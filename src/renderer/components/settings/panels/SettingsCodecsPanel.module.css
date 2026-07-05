@@ -33,6 +33,14 @@
   overflow: hidden;
 }
 
+.column-future-only {
+  opacity: 0.9;
+}
+
+.column-future-only .list-shell {
+  background: var(--color-bg-subtle);
+}
+
 @media (max-width: 720px) {
   .columns {
     grid-template-columns: minmax(0, 1fr);

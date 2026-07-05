@@ -3,6 +3,7 @@ declare const classes: {
   readonly dragGrip: string;
   readonly dragGripDot: string;
   readonly dragHandle: string;
+  readonly dragHandleDisabled: string;
   readonly label: string;
   readonly labelDisabled: string;
   readonly list: string;

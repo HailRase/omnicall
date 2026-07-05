@@ -2,8 +2,12 @@ import type { ResolvedEnabledCodecs } from "@application/media/resolveEnabledCod
 import type { Logger } from "@ports/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 
-import { applyCodecPreferencesToPeerConnection } from "./applyCodecPreferencesToPeerConnection.js";
+import {
+  applyCodecPreferencesToPeerConnection,
+  type ApplyCodecPreferencesContext,
+} from "./applyCodecPreferencesToPeerConnection.js";
 import { extractPeerConnection } from "./jsSipSessionEventUtils.js";
+import { logNegotiatedAudioCodecs } from "./logNegotiatedAudioCodecs.js";
 import type { JsSipRtcSessionPort } from "./JsSipRtcSessionPort.js";
 import { mungeSdpCodecOrder } from "./mungeSdpCodecOrder.js";
 
@@ -23,12 +27,13 @@ type LocalSdpEvent = Readonly<{
 }>;
 
 /**
- * - Purpose: dual-layer codec apply (setCodecPreferences + local SDP munging) per session.
- * - Inputs: JsSIP session port, resolved MIME lists, logger metadata.
- * - Outputs: wired sdp and peerconnection listeners for the RTC session lifetime.
+ * - Purpose: dual-layer audio codec apply (setCodecPreferences + local SDP munging) per session.
+ * - Inputs: JsSIP session port, resolved audio MIME lists, logger metadata.
+ * - Outputs: wired sdp/peerconnection/confirmed listeners for the RTC session lifetime.
  */
 export function wireJsSipCodecPreferences(options: WireJsSipCodecPreferencesOptions): void {
   const { session, resolved, logger, correlationId, featureId } = options;
+  const applyContext: ApplyCodecPreferencesContext = { logger, correlationId, featureId };
 
   const handlePeerConnection = (...args: unknown[]): void => {
     const connection = extractPeerConnection(args[0]);
@@ -36,7 +41,7 @@ export function wireJsSipCodecPreferences(options: WireJsSipCodecPreferencesOpti
       return;
     }
 
-    applyCodecPreferencesToPeerConnection(connection, resolved);
+    applyCodecPreferencesToPeerConnection(connection, resolved, applyContext);
     logger.debug("jssip_codec_preferences_peer_connection_applied", {
       correlationId,
       featureId,
@@ -69,12 +74,27 @@ export function wireJsSipCodecPreferences(options: WireJsSipCodecPreferencesOpti
     });
   };
 
+  const handleNegotiatedCodecsDiagnostics = (): void => {
+    const connection = session.getConnection();
+    if (connection === null) {
+      return;
+    }
+
+    void logNegotiatedAudioCodecs(connection, logger, {
+      correlationId,
+      featureId,
+      operation: "jssip_negotiated_audio_codecs",
+    });
+  };
+
   session.on("peerconnection", handlePeerConnection);
   session.on("sdp", handleSdp);
+  session.on("confirmed", handleNegotiatedCodecsDiagnostics);
+  session.on("accepted", handleNegotiatedCodecsDiagnostics);
 
   const existingConnection = session.getConnection();
   if (existingConnection !== null) {
-    applyCodecPreferencesToPeerConnection(existingConnection, resolved);
+    applyCodecPreferencesToPeerConnection(existingConnection, resolved, applyContext);
   }
 }
 

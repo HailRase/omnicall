@@ -1,4 +1,7 @@
 import type { ResolvedEnabledCodecs } from "@application/media/resolveEnabledCodecs.js";
+import type { Logger } from "@ports/index.js";
+import type { CorrelationId } from "@shared/correlation-id/index.js";
+import { normalizeUnknownError } from "@shared/errors/index.js";
 
 type RtpCodecCapability = Readonly<{
   mimeType: string;
@@ -18,16 +21,24 @@ type RtpPeerConnectionLike = Readonly<{
   getTransceivers: () => RtpTransceiverLike[];
 }>;
 
+const FEATURE_ID_CODEC_PREFERENCES = "F-022";
 const AUXILIARY_CODEC_TOKENS = ["rtx", "red", "ulpfec", "fec"] as const;
 
+export type ApplyCodecPreferencesContext = Readonly<{
+  logger: Logger;
+  correlationId: CorrelationId;
+  featureId: string;
+}>;
+
 /**
- * - Purpose: apply user codec order on RTCPeerConnection via setCodecPreferences.
- * - Inputs: peer connection and resolved enabled audio/video MIME lists.
- * - Outputs: reordered codec capabilities on audio transceivers; no-op when unsupported.
+ * - Purpose: apply user audio codec order on RTCPeerConnection via setCodecPreferences.
+ * - Inputs: peer connection, resolved enabled audio MIME lists, logging context.
+ * - Outputs: reordered audio capabilities on audio transceivers; SDP munging remains fallback.
  */
 export function applyCodecPreferencesToPeerConnection(
   connection: unknown,
   resolved: ResolvedEnabledCodecs,
+  context: ApplyCodecPreferencesContext,
 ): void {
   if (!isRtpPeerConnectionLike(connection)) {
     return;
@@ -62,7 +73,21 @@ export function applyCodecPreferencesToPeerConnection(
     if (typeof transceiver.setCodecPreferences !== "function") {
       continue;
     }
-    transceiver.setCodecPreferences(orderedAudioCodecs);
+
+    try {
+      transceiver.setCodecPreferences(orderedAudioCodecs);
+    } catch (error: unknown) {
+      const normalized = normalizeUnknownError(error);
+      context.logger.warn("jssip_set_codec_preferences_failed", {
+        correlationId: context.correlationId,
+        featureId: context.featureId,
+        codecFeatureId: FEATURE_ID_CODEC_PREFERENCES,
+        boundedContext: "Media",
+        operation: "jssip_set_codec_preferences",
+        result: "sdp_munging_fallback",
+        errorMessage: normalized.message,
+      });
+    }
   }
 }
 
@@ -88,7 +113,6 @@ function buildOrderedAudioCodecCapabilities(
       }
       ordered.push(codec);
       usedIndices.add(index);
-      break;
     }
   }
 

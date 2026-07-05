@@ -30,6 +30,7 @@ export type CodecPreferencesSortableListProps = Readonly<{
   rows: ReadonlyArray<CodecSortableRow>;
   resolveLabelKey: (codecId: string) => TranslationKey;
   isToggleDisabled: (codecId: string) => boolean;
+  reorderDisabled?: boolean;
   onToggle: (codecId: string, enabled: boolean) => void;
   onReorder: (fromIndex: number, toIndex: number) => void;
 }>;
@@ -44,6 +45,7 @@ export function CodecPreferencesSortableList({
   rows,
   resolveLabelKey,
   isToggleDisabled,
+  reorderDisabled = false,
   onToggle,
   onReorder,
 }: CodecPreferencesSortableListProps): JSX.Element {
@@ -55,6 +57,9 @@ export function CodecPreferencesSortableList({
   );
 
   const handleDragEnd = (event: DragEndEvent): void => {
+    if (reorderDisabled) {
+      return;
+    }
     const { active, over } = event;
     if (over === null || active.id === over.id) {
       return;
@@ -80,6 +85,7 @@ export function CodecPreferencesSortableList({
               row={row}
               label={t(resolveLabelKey(row.id))}
               toggleDisabled={isToggleDisabled(row.id)}
+              reorderDisabled={reorderDisabled}
               onToggle={onToggle}
             />
           ))}
@@ -94,6 +100,7 @@ type CodecSortableRowItemProps = Readonly<{
   row: CodecSortableRow;
   label: string;
   toggleDisabled: boolean;
+  reorderDisabled: boolean;
   onToggle: (codecId: string, enabled: boolean) => void;
 }>;
 
@@ -102,11 +109,13 @@ function CodecSortableRowItem({
   row,
   label,
   toggleDisabled,
+  reorderDisabled,
   onToggle,
 }: CodecSortableRowItemProps): JSX.Element {
   const { t } = useI18n();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: row.id,
+    disabled: reorderDisabled,
   });
 
   const style = {
@@ -127,11 +136,12 @@ function CodecSortableRowItem({
     >
       <button
         type="button"
-        className={styles.dragHandle}
+        className={clsx(styles.dragHandle, reorderDisabled && styles.dragHandleDisabled)}
         aria-label={t("settings.codecs.dragHandleLabel")}
         data-testid={`${listId}-drag-${row.id}`}
-        {...attributes}
-        {...listeners}
+        disabled={reorderDisabled}
+        aria-disabled={reorderDisabled}
+        {...(reorderDisabled ? {} : { ...attributes, ...listeners })}
       >
         <span className={styles.dragGrip} aria-hidden="true">
           {Array.from({ length: 6 }, (_, index) => (

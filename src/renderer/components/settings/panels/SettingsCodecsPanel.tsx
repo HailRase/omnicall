@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import clsx from "clsx";
 import {
   isAudioCodecToggleDisabled,
   type AudioCodecId,
@@ -43,9 +44,7 @@ export type SettingsCodecsPanelProps = Readonly<{
 export function SettingsCodecsPanel({
   codecPreferences,
   onAudioCodecEnabledChange,
-  onVideoCodecEnabledChange,
   onAudioCodecReorder,
-  onVideoCodecReorder,
   mutationErrorKey,
 }: SettingsCodecsPanelProps): JSX.Element {
   const { t } = useI18n();
@@ -81,7 +80,11 @@ export function SettingsCodecsPanel({
             />
           </div>
         </section>
-        <section className={styles.column} aria-labelledby="settings-codecs-video-title">
+        <section
+          className={clsx(styles.column, styles.columnFutureOnly)}
+          aria-labelledby="settings-codecs-video-title"
+          data-testid="settings-codecs-video-future-only"
+        >
           <h4 className={styles.columnTitle} id="settings-codecs-video-title">
             {t("settings.codecs.video.legend")}
           </h4>
@@ -93,11 +96,10 @@ export function SettingsCodecsPanel({
               resolveLabelKey={(codecId) =>
                 VIDEO_CODEC_LABEL_KEYS[codecId as VideoCodecId] ?? "settings.codecs.errors.unknownVideoCodec"
               }
-              isToggleDisabled={() => false}
-              onToggle={(codecId, enabled) => {
-                onVideoCodecEnabledChange(codecId as VideoCodecId, enabled);
-              }}
-              onReorder={onVideoCodecReorder}
+              isToggleDisabled={() => true}
+              reorderDisabled
+              onToggle={() => {}}
+              onReorder={() => {}}
             />
           </div>
         </section>
