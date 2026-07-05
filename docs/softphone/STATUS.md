@@ -2,9 +2,9 @@
 
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
-**Updated:** 2026-07-04  
-**Tests:** 1026 passed, 1 skipped (`npm run test`) — last verified 2026-07-04  
-**Lint / typecheck:** green (last verified 2026-07-04)
+**Updated:** 2026-07-05  
+**Tests:** 1112 passed, 1 skipped (`npm run test`) — last verified 2026-07-05  
+**Lint / typecheck:** green (last verified 2026-07-05)
 
 **Guides (onboarding):** [`guides/README.md`](../../guides/README.md) — установка, пользователь, агенты Cursor, релизы.
 
@@ -23,7 +23,7 @@
 | Post-WU5 shell polish | done | `handoffs/P11-Post-WU5-Shell-Polish-Handoff.md` |
 | Call UI design parity (T-007) | done | `handoffs/P11-Call-UI-Design-Parity-Handoff.md` |
 
-**P11 phase gate:** WU0–WU5 + post-WU5 polish + Call UI parity **done**. **T-008** SIP transport/register refactor **done** (LF-009/LF-057 header + «Состояние системы»). Remaining for phase close: UI-6 Radix modals, draggable widget (LF-056), toast placement (LF-060), codecs placeholder (LF-084). **LF-082 theme** done 2026-06-26.
+**P11 phase gate:** WU0–WU5 + post-WU5 polish + Call UI parity **done**. **T-008** SIP transport/register refactor **done** (LF-009/LF-057 header + «Состояние системы»). **F-022 / LF-084 codec preferences** **done** (T-009 UI + T-010 adapter, `5692747`…`bb085f8`). Remaining for phase close: UI-6 Radix modals, draggable widget (LF-056), toast placement (LF-060). **LF-082 theme** done 2026-06-26.
 
 ## Next work (priority)
 
@@ -33,7 +33,7 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 2. P11 polish: UI-6 Radix modals — `/ui`
 3. Merge `feature/real-adapters` branch
 
-**Recently closed (TASK-QUEUE):** **T-008** SIP transport/register state refactor (`TRANSPORT-REGISTER-STATE-REFACTORING.md`), T-007 Call UI design parity (`handoffs/P11-Call-UI-Design-Parity-Handoff.md`), post-WU5 shell polish (`handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`), T-005 fullscreen settings panel, T-001 icon tooltips, T-002 AppIcon wiring, **F-014 SIP registration retry** (`handoffs/P08-SIP-Registration-Retry-Handoff.md`).
+**Recently closed (TASK-QUEUE):** **F-022 / T-009 / T-010** codec preferences (LF-084), **T-008** SIP transport/register state refactor (`TRANSPORT-REGISTER-STATE-REFACTORING.md`), T-007 Call UI design parity (`handoffs/P11-Call-UI-Design-Parity-Handoff.md`), post-WU5 shell polish (`handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`), T-005 fullscreen settings panel, T-001 icon tooltips, T-002 AppIcon wiring, **F-014 SIP registration retry** (`handoffs/P08-SIP-Registration-Retry-Handoff.md`).
 
 ## RAT (Real Adapter Track)
 
@@ -55,9 +55,9 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 | Field | Value |
 | --- | --- |
-| Shipped | **0.1.1** (`v0.1.1`, 2026-07-05) — update-flow fixes, avatar dot, dismiss-until-next-version |
-| Previous | **0.1.0** (`v0.1.0`, 2026-07-05) — i18n, SIP recovery, startup update prompt |
-| Next cut | **0.1.1** (PATCH) or **0.2.0** (MINOR) per SemVer table in `RELEASE-PLAYBOOK.md` |
+| Shipped | **0.1.3** (`v0.1.3`, 2026-07-05) — F-020 dismiss persistence across restarts |
+| Previous | **0.1.2** (F-020 overlay UX), **0.1.1** (update-flow fixes), **0.1.0** (i18n, SIP recovery) |
+| Next cut | **0.2.0** (MINOR — F-022 codec preferences) per SemVer table in `RELEASE-PLAYBOOK.md` |
 | Source repo | `HailRase/softphone-electron` (target: **private**) |
 | Distribution | [`HailRase/axatalk-releases`](https://github.com/HailRase/axatalk-releases) (public: installers + manifest) |
 | Manifest (live) | `axatalk-releases/main/update-manifest.json` |

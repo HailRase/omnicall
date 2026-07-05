@@ -7,6 +7,19 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+### Added
+
+- F-022: панель «Кодеки» в настройках — drag-and-drop порядок audio-кодеков, включение и отключение (кроме `telephone-event`)
+
+### Changed
+
+- F-022: video-кодеки в настройках — future-only (read-only, без reorder/toggle)
+- F-022: порядок audio-кодеков применяется на новых RTC-сессиях (JsSIP adapter, dual-layer apply)
+
+### Fixed
+
+- F-022: устранена гонка codec wiring при исходящем/входящем вызове; SDP fallback при ошибке `setCodecPreferences`
+
 ## [0.1.3] - 2026-07-05
 
 ### Fixed
@@ -91,7 +104,8 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.1.2...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.1.3...main
+[0.1.3]: https://github.com/HailRase/softphone-electron/releases/tag/v0.1.3
 [0.1.2]: https://github.com/HailRase/softphone-electron/releases/tag/v0.1.2
 [0.1.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.1.1
 [0.1.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.1.0

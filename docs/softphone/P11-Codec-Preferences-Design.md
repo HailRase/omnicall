@@ -54,7 +54,7 @@ Dual-layer apply per session:
 1. `setCodecPreferences` on audio transceivers (per-transceiver try/catch; failure → SDP munging fallback).
 2. Local SDP munging on every `sdp` event with `originator: local` (offer/answer/re-INVITE).
 
-Readiness: outbound resolves settings **before** `ua.call`; listeners attach synchronously after session creation. Incoming awaits wiring before UI notification; answer re-checks idempotently.
+Readiness: outbound resolves settings **before** `ua.call`; listeners attach synchronously after session creation. Incoming starts `prepare` fire-and-forget in parallel with UI notification; **answerCall** awaits `prepare` idempotently **before** `session.answer` — this is the guaranteed wiring point on the answer path.
 
 Diagnostics: after `confirmed`/`accepted`, best-effort `getStats` logs negotiated audio MIME/payload (no SDP bodies or credentials).
 
