@@ -33,6 +33,18 @@ export {
   toMultiCallSettings,
 } from "./settings/userSettingsMapping.js";
 export { resolveSettingsAccountKeyFromSipAccount } from "./settings/resolveSettingsAccountKey.js";
+export type { SettingsAccountIdentity } from "./settings/deriveSettingsAccountKey.js";
+export {
+  deriveSettingsAccountKeyFromIdentity,
+  extractSipServerHost,
+  normalizeSettingsAccountDomain,
+  normalizeSettingsAccountUsername,
+} from "./settings/deriveSettingsAccountKey.js";
+export {
+  deriveLegacyUsernameOnlySettingsAccountKeyFromIdentity,
+  isCompositeSettingsAccountKey,
+} from "./settings/deriveLegacyUsernameOnlySettingsAccountKey.js";
+export { formatSettingsAccountIdentityLabel } from "./settings/formatSettingsAccountIdentityLabel.js";
 export type { DomainEvent, DomainEventBase } from "./shared/DomainEvent.js";
 export { createDomainEvent } from "./shared/DomainEvent.js";
 export type {

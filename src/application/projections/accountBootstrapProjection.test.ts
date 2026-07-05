@@ -154,9 +154,10 @@ describe("accountBootstrapProjection", () => {
     expect(projection.registrationState).toBe("idle");
     expect(projection.phoneStatus).toBe("offline");
     expect(projection.sipUsername).toBeNull();
+    expect(projection.sipDomain).toBeNull();
   });
 
-  it("stores sip username from SipCredentialsReceived", () => {
+  it("stores sip username and domain from SipCredentialsReceived", () => {
     const correlationId = createCorrelationId();
     const projection = reduceAccountBootstrapProjection(
       initialAccountBootstrapProjection(),
@@ -172,6 +173,7 @@ describe("accountBootstrapProjection", () => {
     );
 
     expect(projection.sipUsername).toBe("alex.operator");
+    expect(projection.sipDomain).toBe("example.com");
   });
 
   it("stores sip username from RegistrationRequested account id", () => {

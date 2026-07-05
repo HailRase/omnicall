@@ -4,8 +4,8 @@ export type SettingsAccountKey = string & { readonly __brand: "SettingsAccountKe
 export const ANONYMOUS_SETTINGS_ACCOUNT = "__anonymous__" as const;
 
 /**
- * - Purpose: brand per-user settings storage key from SIP authorization user.
- * - Inputs: SIP username or agent id string.
+ * - Purpose: brand deterministic local settings profile key string.
+ * - Inputs: derived identity key (username@domain or username@domain|serverHost).
  * - Outputs: branded SettingsAccountKey.
  */
 export function createSettingsAccountKey(value: string): SettingsAccountKey {

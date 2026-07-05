@@ -72,6 +72,46 @@ describe("incomingCallProjection", () => {
     expect(projection.uiState).toBe("callerIdentityResolved");
   });
 
+  it("resolves caller identity when queue info arrives during incomingRinging", () => {
+    const correlationId = createCorrelationId();
+    let projection = reduceIncomingCallProjection(initialIncomingCallProjection(), {
+      type: "OcpAuthenticationSucceeded",
+      correlationId,
+      occurredAt: new Date().toISOString(),
+      sessionId: "s-1",
+      agentId: "a-1",
+    });
+    projection = reduceIncomingCallProjection(projection, {
+      type: "IncomingCallReceived",
+      correlationId,
+      occurredAt: new Date().toISOString(),
+      callId: "in-queue",
+      phoneNumber: "+12025550100",
+      direction: "incoming",
+    });
+    projection = reduceIncomingCallProjection(projection, {
+      type: "IncomingCallRingingStarted",
+      correlationId,
+      occurredAt: new Date().toISOString(),
+      callId: "in-queue",
+      autoAnswerTimeoutSec: null,
+      autoAnswerExpiresAt: null,
+    });
+    expect(projection.uiState).toBe("incomingRinging");
+
+    projection = reduceIncomingCallProjection(
+      projection,
+      createQueueInfoReceivedEvent(correlationId, {
+        callId: createCallId("in-queue"),
+        mainAcallId: createMainAcallId("acall-1"),
+        queueName: "VIP Queue",
+      }),
+    );
+
+    expect(projection.queueInfo).toBe("VIP Queue");
+    expect(projection.uiState).toBe("callerIdentityResolved");
+  });
+
   it("recovers safely when call ended before answer", () => {
     const correlationId = createCorrelationId();
     const projection = reduceIncomingCallProjection(

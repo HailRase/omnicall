@@ -4,11 +4,39 @@ import { parseAppShutdownPayload } from "@shared/ipc/AppShutdownContract.js";
 import { parseOpenExternalUrlPayload } from "@shared/ipc/OpenExternalUrlContract.js";
 import { parseSetNativeThemePayload } from "@shared/ipc/SetNativeThemeContract.js";
 import { parseShellWindowLayoutPayload } from "@shared/ipc/ShellWindowLayoutContract.js";
+import { parseProfilesStorageRootResponse } from "@shared/ipc/ProfilesStorageContract.js";
 import type { SoftphonePreloadApi } from "@shared/ipc/PreloadApi.js";
 import type { OpenExternalUrlResponse } from "@shared/ipc/OpenExternalUrlContract.js";
+import {
+  parseProfilesFilesystemOperation,
+  parseProfilesFilesystemResponse,
+} from "@shared/ipc/ProfilesFilesystemContract.js";
 
 const softphoneApi: SoftphonePreloadApi = {
   getPlatformVersion: () => ipcRenderer.invoke(IPC_CHANNELS.platformGetVersion),
+  getProfilesStorageRoot: async () => {
+    const response: unknown = await ipcRenderer.invoke(IPC_CHANNELS.profilesGetStorageRoot);
+    const parsed = parseProfilesStorageRootResponse(response);
+    if (parsed === null) {
+      throw new Error("invalid_profiles_storage_root_response");
+    }
+    return parsed;
+  },
+  invokeProfilesFilesystem: async (operation) => {
+    const parsed = parseProfilesFilesystemOperation(operation);
+    if (parsed === null) {
+      throw new Error("invalid_profiles_filesystem_operation");
+    }
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.profilesInvokeFilesystem,
+      parsed,
+    );
+    const parsedResponse = parseProfilesFilesystemResponse(response);
+    if (parsedResponse === null) {
+      throw new Error("invalid_profiles_filesystem_response");
+    }
+    return parsedResponse;
+  },
   openExternalUrl: async (payload): Promise<OpenExternalUrlResponse> => {
     const parsed = parseOpenExternalUrlPayload(payload);
     if (parsed === null) {

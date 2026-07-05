@@ -5,6 +5,8 @@ export const IPC_CHANNELS = {
   appBeforeClose: "app:before-close",
   appAcknowledgeShutdown: "app:acknowledge-shutdown",
   shellApplyWindowLayout: "shell:apply-window-layout",
+  profilesGetStorageRoot: "profiles:get-storage-root",
+  profilesInvokeFilesystem: "profiles:invoke-filesystem",
 } as const;
 
 export type IpcChannel =

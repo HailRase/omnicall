@@ -27,4 +27,7 @@ export interface SettingsRepository {
   setMultiCallSettings(settings: MultiCallSettings): Promise<void>;
   getUserSettings(accountKey: SettingsAccountKey): Promise<UserSettings>;
   saveUserSettings(accountKey: SettingsAccountKey, settings: UserSettings): Promise<void>;
+  getActiveProfileKey(): Promise<SettingsAccountKey>;
+  setActiveProfileKey(accountKey: SettingsAccountKey): Promise<void>;
+  listKnownProfileKeys(): Promise<ReadonlyArray<SettingsAccountKey>>;
 }

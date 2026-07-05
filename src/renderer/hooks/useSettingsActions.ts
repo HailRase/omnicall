@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import type { MultiCallSettings } from "@application/index.js";
+import { deriveActiveProfileSettingsSyncKey } from "@application/index.js";
 import {
   createDefaultUserSettings,
   MAX_AUTO_ANSWER_TIMEOUT_SEC,
@@ -22,6 +23,7 @@ import {
 import { applyAppTheme } from "../theme/applyAppTheme.js";
 import { DEFAULT_AUTO_ANSWER_TIMEOUT_SEC } from "../components/settings/panels/SettingsSessionsPanel.js";
 import { setRendererLanguage, translateCurrent } from "../i18n/index.js";
+import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 
 type UseSettingsActionsInput = Readonly<{
   facade: AccountBootstrapFacade | null;
@@ -63,6 +65,19 @@ function syncNativeTheme(theme: AppTheme): void {
   void window.softphone.setNativeTheme({ theme });
 }
 
+function applyLoadedUserSettings(
+  settings: UserSettings,
+  applyMultiCallSettings: (settings: MultiCallSettings) => void,
+): void {
+  setRendererLanguage(settings.language);
+  applyAppTheme(settings.theme);
+  syncNativeTheme(settings.theme);
+  applyMultiCallSettings({
+    multiSessionsEnabled: settings.multiSessionsEnabled,
+    autoUnholdOnTransferFailure: settings.autoUnholdOnTransferFailure,
+  });
+}
+
 /**
  * - Purpose: bind settings overlay toggles to facade user settings (LF-032, LF-076, F-014).
  * - Inputs: facade, current multi-call settings, store projection applier.
@@ -72,25 +87,26 @@ export function useSettingsActions(
   input: UseSettingsActionsInput,
 ): UseSettingsActionsResult {
   const { facade, currentSettings, applyMultiCallSettings } = input;
+  const activeProfileSettingsSyncKey = useAccountBootstrapStore((state) =>
+    deriveActiveProfileSettingsSyncKey(state.projection),
+  );
   const [settingsUpdateError, setSettingsUpdateError] = useState<string | null>(null);
   const [codecPreferencesError, setCodecPreferencesError] =
     useState<CodecPreferenceMutationMessageKey | null>(null);
   const [userSettings, setUserSettings] = useState<UserSettings>(createDefaultUserSettings());
 
   useEffect(() => {
-    if (facade === null) {
+    if (facade === null || activeProfileSettingsSyncKey === null) {
       return;
     }
 
     void facade.getUserSettingsForAccount().then((result) => {
       if (result.ok) {
         setUserSettings(result.value);
-        setRendererLanguage(result.value.language);
-        applyAppTheme(result.value.theme);
-        syncNativeTheme(result.value.theme);
+        applyLoadedUserSettings(result.value, applyMultiCallSettings);
       }
     });
-  }, [facade]);
+  }, [activeProfileSettingsSyncKey, applyMultiCallSettings, facade]);
 
   const persistUserSettings = useCallback(
     (next: UserSettings): void => {
@@ -109,13 +125,7 @@ export function useSettingsActions(
           setSettingsUpdateError(null);
           setCodecPreferencesError(null);
           setUserSettings(result.value);
-          setRendererLanguage(result.value.language);
-          applyAppTheme(result.value.theme);
-          syncNativeTheme(result.value.theme);
-          applyMultiCallSettings({
-            multiSessionsEnabled: result.value.multiSessionsEnabled,
-            autoUnholdOnTransferFailure: result.value.autoUnholdOnTransferFailure,
-          });
+          applyLoadedUserSettings(result.value, applyMultiCallSettings);
         })
         .catch((error: unknown) => {
           setSettingsUpdateError(resolveSettingsUpdateError(error));

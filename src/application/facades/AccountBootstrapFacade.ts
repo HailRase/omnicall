@@ -77,13 +77,14 @@ import type { SettingsAccountKey, UserSettings } from "@domain/index.js";
 import {
   createCallId,
   mergeMultiCallIntoUserSettings,
-  resolveSettingsAccountKeyFromSipAccount,
   toMultiCallSettings,
   validateUserSettings,
   type Call,
   type CallId,
   type CampaignDecision,
 } from "@domain/index.js";
+import { resolveSettingsAccountKey } from "../settings/resolveSettingsAccountKey.js";
+import { loadUserSettingsWithLegacyMigration } from "../settings/loadUserSettingsWithLegacyMigration.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 
 export type AccountBootstrapFacadeDeps = Readonly<{
@@ -453,6 +454,12 @@ export class AccountBootstrapFacade {
       return authorizeResult;
     }
 
+    try {
+      await this.applyActiveProfileSettingsSideEffects();
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+
     const registerInput =
       correlationId === undefined
         ? { account: authorizeResult.value }
@@ -479,7 +486,7 @@ export class AccountBootstrapFacade {
 
   async updateMultiCallSettings(settings: MultiCallSettings): Promise<MultiCallSettings> {
     const accountKey = await this.resolveSettingsAccountKey();
-    const current = await this.deps.settingsRepository.getUserSettings(accountKey);
+    const current = await this.loadUserSettingsForAccountKey(accountKey);
     const next = mergeMultiCallIntoUserSettings(current, {
       multiSessionsEnabled: settings.multiSessionsEnabled,
       autoUnholdOnTransferFailure: settings.autoUnholdOnTransferFailure !== false,
@@ -491,7 +498,7 @@ export class AccountBootstrapFacade {
   async getUserSettingsForAccount(): Promise<Result<UserSettings, PlatformError>> {
     try {
       const accountKey = await this.resolveSettingsAccountKey();
-      const settings = await this.deps.settingsRepository.getUserSettings(accountKey);
+      const settings = await this.loadUserSettingsForAccountKey(accountKey);
       return ok(settings);
     } catch (error: unknown) {
       return err(normalizeUnknownError(error));
@@ -514,13 +521,39 @@ export class AccountBootstrapFacade {
     applyMultiCallSettings: (settings: MultiCallSettings) => void;
   }>): Promise<void> {
     const accountKey = await this.resolveSettingsAccountKey();
-    const userSettings = await this.deps.settingsRepository.getUserSettings(accountKey);
+    const userSettings = await this.loadUserSettingsForAccountKey(accountKey);
     handlers.applyMultiCallSettings(toMultiCallSettings(userSettings));
   }
 
-  private async resolveSettingsAccountKey(): Promise<SettingsAccountKey> {
+  private resolveSettingsAccountKey(): Promise<SettingsAccountKey> {
+    return resolveSettingsAccountKey(this.deps.settingsRepository);
+  }
+
+  private async loadUserSettingsForAccountKey(
+    accountKey: SettingsAccountKey,
+  ): Promise<UserSettings> {
     const account = await this.deps.settingsRepository.getSipAccount();
-    return resolveSettingsAccountKeyFromSipAccount(account);
+    if (account === null) {
+      return this.deps.settingsRepository.getUserSettings(accountKey);
+    }
+
+    return loadUserSettingsWithLegacyMigration({
+      settingsRepository: this.deps.settingsRepository,
+      compositeAccountKey: accountKey,
+      identity: {
+        username: account.username,
+        domain: account.domain,
+        server: account.server,
+      },
+      logger: this.deps.logger,
+    });
+  }
+
+  private async applyActiveProfileSettingsSideEffects(): Promise<void> {
+    const accountKey = await this.resolveSettingsAccountKey();
+    const settings = await this.loadUserSettingsForAccountKey(accountKey);
+    this.sipRecoveryOrchestration.applyRecoverySettings(settings);
+    await this.callEngine.refreshAutoAnswerSchedules();
   }
 
   private async saveUserSettingsInternal(
@@ -538,9 +571,7 @@ export class AccountBootstrapFacade {
   }
 
   private async applySipRecoverySettingsFromRepository(): Promise<void> {
-    const accountKey = await this.resolveSettingsAccountKey();
-    const settings = await this.deps.settingsRepository.getUserSettings(accountKey);
-    this.sipRecoveryOrchestration.applyRecoverySettings(settings);
+    await this.applyActiveProfileSettingsSideEffects();
   }
 
   async reregisterSipAccount(

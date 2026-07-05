@@ -23,7 +23,7 @@ export function useAccountBootstrap(): Readonly<{
 
     async function bootstrap(): Promise<void> {
       try {
-        const { facade: composedFacade, bootstrapOptions } = createRendererComposition();
+        const { facade: composedFacade, bootstrapOptions } = await createRendererComposition();
         activeFacade = composedFacade;
         setFacade(activeFacade);
         unsubscribe = bindFacade(activeFacade);

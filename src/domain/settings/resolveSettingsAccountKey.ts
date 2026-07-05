@@ -3,6 +3,7 @@ import {
   createSettingsAccountKey,
   type SettingsAccountKey,
 } from "./SettingsAccountKey.js";
+import { deriveSettingsAccountKeyFromIdentity } from "./deriveSettingsAccountKey.js";
 import type { SipAccount } from "../telephony/SipAccount.js";
 
 /**
@@ -16,5 +17,10 @@ export function resolveSettingsAccountKeyFromSipAccount(
   if (account === null) {
     return createSettingsAccountKey(ANONYMOUS_SETTINGS_ACCOUNT);
   }
-  return createSettingsAccountKey(account.username);
+
+  return deriveSettingsAccountKeyFromIdentity({
+    username: account.username,
+    domain: account.domain,
+    server: account.server,
+  });
 }

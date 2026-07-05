@@ -70,6 +70,15 @@ export type {
   IncomingCallSettings,
   SettingsRepository,
 } from "./settings/SettingsRepository.js";
+export type { FileSystemPort } from "./filesystem/FileSystemPort.js";
+export type {
+  SecretStoragePort,
+  SecretStorageScopeKey,
+} from "./secrets/SecretStoragePort.js";
+export {
+  SIP_PASSWORD_SECRET_ID,
+  createSecretStorageScopeKey,
+} from "./secrets/SecretStoragePort.js";
 export type {
   EmitSoftPhoneBreakReasonCommand,
   HostIntegrationGateway,

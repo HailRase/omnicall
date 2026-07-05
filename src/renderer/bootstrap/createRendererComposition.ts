@@ -2,6 +2,7 @@ import type { AccountBootstrapFacade } from "@application/facades/AccountBootstr
 import { createSoftphoneComposition } from "@infrastructure/bootstrap/createSoftphoneComposition.js";
 import { readBootstrapConfigFromUrl } from "./readBootstrapConfig.js";
 import type { RendererBootstrapOptions } from "./readBootstrapConfig.js";
+import { resolveRealBootstrapDiskOptions } from "./resolveRealBootstrapDiskOptions.js";
 
 type RendererComposition = Readonly<{
   facade: AccountBootstrapFacade;
@@ -10,17 +11,19 @@ type RendererComposition = Readonly<{
 
 /**
  * - Purpose: create renderer composition root from URL/env bootstrap options.
- * - Inputs: browser location search params and Vite env defaults.
+ * - Inputs: browser location search params, Vite env defaults, preload storage root.
  * - Outputs: account bootstrap facade and resolved bootstrap options.
  */
-export function createRendererComposition(): RendererComposition {
+export async function createRendererComposition(): Promise<RendererComposition> {
   const bootstrapOptions = readBootstrapConfigFromUrl();
+  const diskOptions = await resolveRealBootstrapDiskOptions(bootstrapOptions.adapterMode);
   const facade = createSoftphoneComposition({
     mode: bootstrapOptions.adapterMode,
     bootstrapConfig: bootstrapOptions.config,
     ocpScenario: bootstrapOptions.ocpScenario,
     telephonyScenario: bootstrapOptions.telephonyScenario,
     ...(bootstrapOptions.ocpWsUrl !== undefined ? { ocpWsUrl: bootstrapOptions.ocpWsUrl } : {}),
+    ...diskOptions,
   });
 
   return { facade, bootstrapOptions };

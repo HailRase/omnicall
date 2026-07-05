@@ -291,6 +291,9 @@ export {
 } from "./projections/deriveOperatorControlDisabledReason.js";
 export { deriveAuthShellFlags } from "./projections/deriveAuthShellFlags.js";
 export {
+  deriveActiveProfileSettingsSyncKey,
+} from "./projections/deriveSettingsAccountProfileShell.js";
+export {
   deriveAccountPanelActionsShell,
   type AccountPanelActionsShell,
   type AccountPanelActionsShellInput,

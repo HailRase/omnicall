@@ -22,8 +22,15 @@ export class SettingsRepositoryCodecPreferencesAdapter implements CodecPreferenc
     this.resolveAccountKey =
       options.resolveAccountKey ??
       (async () => {
-        const account = await this.settingsRepository.getSipAccount();
-        return resolveSettingsAccountKeyFromSipAccount(account);
+        const [account, activeProfileKey] = await Promise.all([
+          this.settingsRepository.getSipAccount(),
+          this.settingsRepository.getActiveProfileKey(),
+        ]);
+        if (account === null) {
+          return activeProfileKey;
+        }
+        const identityKey = resolveSettingsAccountKeyFromSipAccount(account);
+        return activeProfileKey === identityKey ? activeProfileKey : identityKey;
       });
   }
 

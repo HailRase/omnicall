@@ -208,10 +208,7 @@ function resolveIdentityUiState(projection: IncomingCallProjection): IncomingCal
 function resolveQueueInfoUiState(
   projection: IncomingCallProjection,
 ): IncomingCallUiState {
-  if (
-    projection.uiState === "autoAnswerCountdown" ||
-    projection.uiState === "incomingRinging"
-  ) {
+  if (projection.uiState === "autoAnswerCountdown") {
     return projection.uiState;
   }
   return "callerIdentityResolved";

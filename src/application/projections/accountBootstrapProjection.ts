@@ -3,6 +3,7 @@ import {
   initialOcpConnectionState,
   initialOperatorAuthState,
   initialRegistrationState,
+  normalizeSettingsAccountDomain,
   transitionOcpConnectionState,
   transitionOperatorAuthState,
   transitionRegistrationState,
@@ -32,6 +33,7 @@ export type AccountBootstrapProjection = Readonly<{
   phoneStatus: PhoneStatus;
   agentId: string | null;
   sipUsername: string | null;
+  sipDomain: string | null;
   lastError: string | null;
   isOcpMode: boolean;
 }>;
@@ -44,6 +46,7 @@ export const initialAccountBootstrapProjection = (): AccountBootstrapProjection 
   phoneStatus: "offline",
   agentId: null,
   sipUsername: null,
+  sipDomain: null,
   lastError: null,
   isOcpMode: false,
 });
@@ -263,6 +266,7 @@ function applyBootstrapEvent(
         registrationState: regTransition.state,
         phoneStatus: "offline",
         sipUsername: null,
+        sipDomain: null,
         lastError: null,
       };
     }
@@ -271,13 +275,20 @@ function applyBootstrapEvent(
       if (typeof credentials !== "object" || credentials === null) {
         return projection;
       }
-      const username = (credentials as Record<string, unknown>)["username"];
+      const record = credentials as Record<string, unknown>;
+      const username = record["username"];
+      const domain = record["domain"];
       if (typeof username !== "string" || username.trim().length === 0) {
         return projection;
       }
+      const sipDomain =
+        typeof domain === "string" && domain.trim().length > 0
+          ? normalizeSettingsAccountDomain(domain)
+          : null;
       return {
         ...projection,
         sipUsername: username.trim(),
+        sipDomain,
       };
     }
     default:

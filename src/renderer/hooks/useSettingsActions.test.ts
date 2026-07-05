@@ -1,8 +1,9 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { act, renderHook } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SoftphonePreloadApi } from "@shared/ipc/PreloadApi.js";
+import { initialAccountBootstrapProjection } from "@application/projections/accountBootstrapProjection.js";
 import { InMemorySettingsRepository } from "@adapters/settings/InMemorySettingsRepository.js";
 import { MockMediaGateway } from "@adapters/mock/MockMediaGateway.js";
 import { MockOperatorPlatformGateway } from "@adapters/mock/MockOperatorPlatformGateway.js";
@@ -10,6 +11,7 @@ import { MockTelephonyGateway } from "@adapters/mock/MockTelephonyGateway.js";
 import { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
 import { useSettingsActions } from "./useSettingsActions.js";
+import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 
 function createFacade(settingsRepository: InMemorySettingsRepository): AccountBootstrapFacade {
   return new AccountBootstrapFacade({
@@ -30,6 +32,8 @@ function createSoftphonePreloadApiMock(
       name: "Axatalk",
       platform: "win32",
     }),
+    getProfilesStorageRoot: vi.fn().mockResolvedValue({ storageRoot: "/tmp/axatalk-profiles" }),
+    invokeProfilesFilesystem: vi.fn().mockResolvedValue({ ok: true }),
     openExternalUrl: vi.fn().mockResolvedValue({ ok: true }),
     setNativeTheme: vi.fn().mockResolvedValue({ ok: true }),
     onBeforeClose: vi.fn().mockReturnValue(() => {}),
@@ -50,6 +54,9 @@ describe("useSettingsActions", () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    useAccountBootstrapStore.setState({
+      projection: initialAccountBootstrapProjection(),
+    });
   });
 
   it("applies settings on successful facade update", async () => {
@@ -105,5 +112,73 @@ describe("useSettingsActions", () => {
 
     expect(applyMultiCallSettings).not.toHaveBeenCalled();
     expect(result.current.settingsUpdateError).toBe("Repository unavailable");
+  });
+
+  it("loads persisted profile settings when SIP registration sync key appears", async () => {
+    const applyMultiCallSettings = vi.fn();
+    const settings = new InMemorySettingsRepository({
+      bootstrapConfig: { mode: "sip-only" },
+    });
+    const facade = createFacade(settings);
+
+    await facade.authorizeManualAccount({
+      username: "1001",
+      password: "secret",
+      domain: "pbx.example.com",
+      server: "wss://sip.example.com",
+    });
+
+    const loaded = await facade.getUserSettingsForAccount();
+    expect(loaded.ok).toBe(true);
+    if (!loaded.ok) {
+      return;
+    }
+
+    await facade.saveUserSettings({
+      ...loaded.value,
+      language: "en",
+      theme: "dark",
+      multiSessionsEnabled: false,
+    });
+
+    useAccountBootstrapStore.setState({
+      projection: initialAccountBootstrapProjection(),
+    });
+
+    const { result } = renderHook(() =>
+      useSettingsActions({
+        facade,
+        currentSettings: {
+          multiSessionsEnabled: true,
+          autoUnholdOnTransferFailure: true,
+        },
+        applyMultiCallSettings,
+      }),
+    );
+
+    expect(result.current.userSettings.language).toBe("ru");
+
+    act(() => {
+      useAccountBootstrapStore.setState({
+        projection: {
+          ...initialAccountBootstrapProjection(),
+          authUiState: "sip_registered",
+          phoneStatus: "online",
+          sipUsername: "1001",
+          sipDomain: "pbx.example.com",
+        },
+      });
+    });
+
+    await waitFor(() => {
+      expect(result.current.userSettings.language).toBe("en");
+      expect(result.current.userSettings.theme).toBe("dark");
+    });
+
+    expect(applyMultiCallSettings).toHaveBeenCalledWith({
+      multiSessionsEnabled: false,
+      autoUnholdOnTransferFailure: true,
+    });
+    expect(setNativeTheme).toHaveBeenCalledWith({ theme: "dark" });
   });
 });

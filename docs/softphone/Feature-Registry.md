@@ -627,3 +627,41 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (WU-3): `src/ports/media/CodecPreferencesPort.ts`, `SettingsRepositoryCodecPreferencesAdapter.ts`, `resolveEnabledCodecs.ts`, bootstrap inject in `createRealAccountBootstrap.ts`
 - Implementation evidence (WU-4): `prepareJsSipSessionCodecPreferences.ts`, `buildJsSipCallMediaOptions.ts`, `applyCodecPreferencesToPeerConnection.ts`, `mungeSdpCodecOrder.ts`, `wireJsSipCodecPreferences.ts`, `logNegotiatedAudioCodecs.ts`, `resolveJsSipSessionCodecs.ts`, `JsSipTelephonyAdapter` makeCall/answer/incoming wiring
 - Implementation evidence (WU-5 UI): `SettingsCodecsPanel.tsx`, `CodecPreferencesSortableList.tsx`, `useSettingsActions` codec callbacks, i18n `settings.codecs.*`
+
+## F-023: Local Account Profiles And Settings Persistence
+
+- Legacy IDs: `LF-077` (completion), `LF-076` (per-account fields), `LF-082`, `LF-084`
+- Context: Settings | Integration
+- Priority: high
+- Status: **implemented** (Step 10 verification PASS 2026-07-06; F-023 test slice 75/75; repo-wide 1187/1189 — 1 pre-existing OCP flake out of scope)
+- Owner: TBD
+- Inputs: SIP authorization, account identity, user settings changes, app user-data path (infrastructure)
+- Outputs: per-profile persisted `UserSettings` v3, active profile metadata, profile switch on authorize, optional secure credential storage
+- Acceptance Criteria:
+  - Profile key derived in Domain from normalized SIP identity (`username@domain`, optional server suffix); password never in key or JSON settings files.
+  - Each authorized account has an isolated settings bucket; authorizing account B does not overwrite account A settings.
+  - Returning to account A restores A settings (theme, language, multi-call, auto-answer, SIP recovery, codec preferences).
+  - Active profile metadata stored separately from per-account `UserSettings`.
+  - Real Electron mode persists to user-data via adapter with atomic writes; mock/tests remain in-memory.
+  - `UserSettings` v3 migration and validation preserved; legacy username-only keys migrated once on read.
+  - SIP-only and mock adapter composition unchanged; renderer uses facade only (no filesystem).
+  - Corrupt persisted JSON surfaces classified errors; other profiles not destroyed on single-file corruption.
+  - SIP passwords not stored in plain JSON; secure storage via port + Electron main if credentials are persisted, otherwise documented session-transient limitation (**Path A shipped** — `SecretStoragePort` contract only).
+- Test Coverage:
+  - Unit: profile key derivation, normalization edge cases
+  - Adapter: `InMemorySettingsRepository` per-account isolation; `FileSettingsRepository` cross-instance persistence, corrupt JSON
+  - Integration: facade authorize → switch → save → restore A/B/A
+  - Secret: save/load/delete if credential persistence implemented
+  - Component: settings account panel profile label (if UI changed)
+  - E2E: deferred until harness exists
+- Design: `docs/softphone/P11-Local-Account-Profiles-Design.md`
+- Implementation evidence (Step 2 domain): `src/domain/settings/deriveSettingsAccountKey.ts`, `deriveSettingsAccountKey.test.ts`, `resolveSettingsAccountKey.ts`, `resolveSettingsAccountKey.test.ts`
+- Implementation evidence (Step 3 ports): `src/ports/settings/SettingsRepository.ts` (`getActiveProfileKey`, `setActiveProfileKey`, `listKnownProfileKeys`), `InMemorySettingsRepository.ts`, `InMemorySettingsRepository.test.ts`, `FileSettingsRepository.ts` delegation
+- Implementation evidence (Step 4 disk): `src/ports/filesystem/FileSystemPort.ts`, `src/infrastructure/filesystem/NodeFileSystemAdapter.ts`, `src/adapters/settings/profileStoragePaths.ts`, `profilesIndexDocument.ts`, `parsePersistedUserSettings.ts`, `FileSettingsRepository.ts`, `FileSettingsRepository.test.ts`
+- Implementation evidence (Step 5 secrets Path A): `src/ports/secrets/SecretStoragePort.ts`, `src/adapters/settings/assertPersistedProfileJsonExcludesSecrets.ts`, `assertPersistedProfileJsonExcludesSecrets.test.ts`
+- Implementation evidence (Step 6 application): `AuthorizeSipAccountUseCase.ts` (`setActiveProfileKey` on authorize), `application/settings/resolveSettingsAccountKey.ts`, `AccountBootstrapFacade.ts` (`applyActiveProfileSettingsSideEffects`, profile-aware save/load), `AccountBootstrapFacade.test.ts` (A→B→A restore)
+- Implementation evidence (Step 7 composition): `createRealAccountBootstrap.ts`, `createRealBootstrapSettingsRepository.ts`, `resolveAxatalkProfilesStorageRoot.ts`, `registerProfilesPersistenceIpc.ts`, `PreloadFileSystemAdapter.ts`, `createRealAccountBootstrap.test.ts`, `resolveRealBootstrapDiskOptions.ts`
+- Implementation evidence (Step 8 UI): `formatSettingsAccountIdentityLabel.ts`, `deriveActiveProfileSettingsSyncKey`, `SettingsAccountPanel.tsx` (account form only), `accountBootstrapProjection.ts` (`sipDomain`), `SettingsAccountPanel.test.tsx`, `SettingsOverlay.stories.tsx` (light + dark registered)
+- Implementation evidence (Step 9 migration): `deriveLegacyUsernameOnlySettingsAccountKey.ts`, `loadUserSettingsWithLegacyMigration.ts`, `AuthorizeSipAccountUseCase.ts`, `AccountBootstrapFacade.ts` (`loadUserSettingsForAccountKey`), `loadUserSettingsWithLegacyMigration.test.ts`, `FileSettingsRepository.test.ts` (legacy on-disk), `AccountBootstrapFacade.test.ts` (legacy authorize)
+- Implementation evidence (Step 10 verification): `npm run lint`, `typecheck`, `i18n:check`, `registry:check` PASS; F-023 test slice 75/75; preload IPC response parsing fix; `useSettingsActions.test.ts` preload mock parity
+- Related: **F-016** (settings UX), **F-001** (SIP authorize), extends **LF-077** stub from WU4

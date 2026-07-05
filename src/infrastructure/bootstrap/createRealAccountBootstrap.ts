@@ -1,11 +1,11 @@
 import { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
+import { resolveSettingsAccountKey } from "@application/settings/resolveSettingsAccountKey.js";
 import {
   ArbiterMediaGateway,
   BrowserMediaAdapter,
   MockHostIntegrationGateway,
   MockOperatorPlatformGateway,
   JsSipTelephonyAdapter,
-  InMemorySettingsRepository,
   SettingsRepositoryCodecPreferencesAdapter,
   WebSocketOperatorPlatformGateway,
   WebSocketOcpSyncGateway,
@@ -16,10 +16,31 @@ import { createConsoleLogger } from "@infrastructure/logging/index.js";
 import type { Logger } from "@ports/index.js";
 import type { LogContext } from "@ports/index.js";
 import type { CreateAccountBootstrapOptions } from "./createMockAccountBootstrap.js";
+import { createRealBootstrapSettingsRepository } from "./createRealBootstrapSettingsRepository.js";
 import { wireOcpInboundToFacade } from "./wireOcpInboundToFacade.js";
 
 function createBootstrapLogger(context: LogContext): Logger {
   return createConsoleLogger(context);
+}
+
+function resolveRealSettingsRepository(options: CreateAccountBootstrapOptions) {
+  if (options.settingsRepository !== undefined) {
+    return options.settingsRepository;
+  }
+
+  if (options.profilesStorageRoot === undefined) {
+    throw new Error("real_bootstrap_requires_profiles_storage_root");
+  }
+
+  if (options.filesystem === undefined) {
+    throw new Error("real_bootstrap_requires_filesystem_port");
+  }
+
+  return createRealBootstrapSettingsRepository({
+    profilesStorageRoot: options.profilesStorageRoot,
+    filesystem: options.filesystem,
+    bootstrapConfig: options.bootstrapConfig ?? { mode: "sip-only" },
+  });
 }
 
 function resolveRealOcpWsUrl(options: CreateAccountBootstrapOptions): string | null {
@@ -39,17 +60,16 @@ function shouldUseRealOcpGateway(options: CreateAccountBootstrapOptions): boolea
 
 /**
  * - Purpose: compose real-adapter AccountBootstrapFacade with JsSIP and optional OCP WS.
- * - Inputs: bootstrap config, optional OCP WS URL, mock scenario overrides for SIP-only.
- * - Outputs: wired AccountBootstrapFacade ready for initialize().
+ * - Inputs: bootstrap config, profiles storage root, optional filesystem port, OCP WS URL.
+ * - Outputs: wired AccountBootstrapFacade with disk-backed settings ready for initialize().
  */
 export function createRealAccountBootstrap(
   options: CreateAccountBootstrapOptions = {},
 ): AccountBootstrapFacade {
-  const settingsRepository = new InMemorySettingsRepository({
-    bootstrapConfig: options.bootstrapConfig ?? { mode: "sip-only" },
-  });
+  const settingsRepository = resolveRealSettingsRepository(options);
   const codecPreferencesPort = new SettingsRepositoryCodecPreferencesAdapter({
     settingsRepository,
+    resolveAccountKey: () => resolveSettingsAccountKey(settingsRepository),
   });
 
   const operatorLogger = createBootstrapLogger({

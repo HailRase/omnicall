@@ -8,11 +8,10 @@ import type {
   UserSettings,
 } from "@domain/index.js";
 import {
-  ANONYMOUS_SETTINGS_ACCOUNT,
   createBreakReason,
   createDefaultUserSettings,
-  createSettingsAccountKey,
   mergeMultiCallIntoUserSettings,
+  resolveSettingsAccountKeyFromSipAccount,
   toAutoAnswerDuringActiveSessionEnabled,
   toAutoAnswerTimeoutSec,
   toMultiCallSettings,
@@ -26,6 +25,7 @@ import {
 export type InMemorySettingsState = Readonly<{
   bootstrapConfig: AppBootstrapConfig;
   sipAccount: SipAccount | null;
+  activeProfileKey: SettingsAccountKey;
   phoneStatus: PhoneStatus;
   incomingCallSettings: IncomingCallSettings;
   multiCallSettings: MultiCallSettings;
@@ -37,6 +37,9 @@ export class InMemorySettingsRepository implements SettingsRepository {
 
   constructor(initial?: Partial<InMemorySettingsState>) {
     const defaultUserSettings = createDefaultUserSettings();
+    const sipAccount = initial?.sipAccount ?? null;
+    const activeProfileKey =
+      initial?.activeProfileKey ?? resolveSettingsAccountKeyFromSipAccount(sipAccount);
     const multiCallSettings = initial?.multiCallSettings ?? {
       multiSessionsEnabled: defaultUserSettings.multiSessionsEnabled,
       autoUnholdOnTransferFailure: defaultUserSettings.autoUnholdOnTransferFailure,
@@ -48,11 +51,10 @@ export class InMemorySettingsRepository implements SettingsRepository {
       rejectReasonRequired: false,
       allowedBreakReasons: defaultBreakReasons(),
     };
-    const accountKey = resolveAccountKey(initial?.sipAccount ?? null);
     const userSettingsByAccount = new Map<SettingsAccountKey, UserSettings>(
       initial?.userSettingsByAccount ?? [
         [
-          accountKey,
+          activeProfileKey,
           seedUserSettings(multiCallSettings, incomingCallSettings),
         ],
       ],
@@ -60,7 +62,8 @@ export class InMemorySettingsRepository implements SettingsRepository {
 
     this.state = {
       bootstrapConfig: initial?.bootstrapConfig ?? { mode: "sip-only" },
-      sipAccount: initial?.sipAccount ?? null,
+      sipAccount,
+      activeProfileKey,
       phoneStatus: initial?.phoneStatus ?? "offline",
       incomingCallSettings,
       multiCallSettings,
@@ -94,6 +97,32 @@ export class InMemorySettingsRepository implements SettingsRepository {
     return Promise.resolve();
   }
 
+  getActiveProfileKey(): Promise<SettingsAccountKey> {
+    return Promise.resolve(this.state.activeProfileKey);
+  }
+
+  async setActiveProfileKey(accountKey: SettingsAccountKey): Promise<void> {
+    const userSettings = await this.getUserSettings(accountKey);
+    this.state = {
+      ...this.state,
+      activeProfileKey: accountKey,
+      multiCallSettings: toMultiCallSettings(userSettings),
+      incomingCallSettings: {
+        ...this.state.incomingCallSettings,
+        autoAnswerTimeoutSec: userSettings.autoAnswerTimeoutSec,
+        autoAnswerDuringActiveSessionEnabled:
+          userSettings.autoAnswerDuringActiveSessionEnabled,
+      },
+    };
+  }
+
+  listKnownProfileKeys(): Promise<ReadonlyArray<SettingsAccountKey>> {
+    const keys = [...this.state.userSettingsByAccount.keys()].sort((left, right) =>
+      left.localeCompare(right),
+    );
+    return Promise.resolve(keys);
+  }
+
   getIncomingCallSettings(): Promise<IncomingCallSettings> {
     const userSettings = this.readCurrentUserSettings();
     return Promise.resolve({
@@ -121,7 +150,7 @@ export class InMemorySettingsRepository implements SettingsRepository {
   }
 
   async setMultiCallSettings(settings: MultiCallSettings): Promise<void> {
-    const accountKey = this.resolveCurrentAccountKey();
+    const accountKey = this.state.activeProfileKey;
     const current = await this.getUserSettings(accountKey);
     const next = mergeMultiCallIntoUserSettings(current, settings);
     await this.saveUserSettings(accountKey, next);
@@ -146,37 +175,32 @@ export class InMemorySettingsRepository implements SettingsRepository {
 
     const nextMap = new Map(this.state.userSettingsByAccount);
     nextMap.set(accountKey, validated.value);
+
+    const isActiveProfile = accountKey === this.state.activeProfileKey;
     this.state = {
       ...this.state,
       userSettingsByAccount: nextMap,
-      multiCallSettings: toMultiCallSettings(validated.value),
-      incomingCallSettings: {
-        ...this.state.incomingCallSettings,
-        autoAnswerTimeoutSec: validated.value.autoAnswerTimeoutSec,
-        autoAnswerDuringActiveSessionEnabled:
-          validated.value.autoAnswerDuringActiveSessionEnabled,
-      },
+      ...(isActiveProfile
+        ? {
+            multiCallSettings: toMultiCallSettings(validated.value),
+            incomingCallSettings: {
+              ...this.state.incomingCallSettings,
+              autoAnswerTimeoutSec: validated.value.autoAnswerTimeoutSec,
+              autoAnswerDuringActiveSessionEnabled:
+                validated.value.autoAnswerDuringActiveSessionEnabled,
+            },
+          }
+        : {}),
     };
     return Promise.resolve();
   }
 
   private readCurrentUserSettings(): UserSettings {
-    const accountKey = this.resolveCurrentAccountKey();
     return (
-      this.state.userSettingsByAccount.get(accountKey) ?? createDefaultUserSettings()
+      this.state.userSettingsByAccount.get(this.state.activeProfileKey) ??
+      createDefaultUserSettings()
     );
   }
-
-  private resolveCurrentAccountKey(): SettingsAccountKey {
-    return resolveAccountKey(this.state.sipAccount);
-  }
-}
-
-function resolveAccountKey(sipAccount: SipAccount | null): SettingsAccountKey {
-  if (sipAccount === null) {
-    return createSettingsAccountKey(ANONYMOUS_SETTINGS_ACCOUNT);
-  }
-  return createSettingsAccountKey(sipAccount.username);
 }
 
 function seedUserSettings(

@@ -103,13 +103,17 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
   sipSessionHealthProjection: initialSipSessionHealthProjection(),
 
   bindFacade: (facade) => {
-    void facade.refreshUserSettingsProjections({
-      applyMultiCallSettings: (settings) => {
-        set((state) => ({
-          multiCallProjection: setMultiCallSettings(state.multiCallProjection, settings),
-        }));
-      },
-    });
+    const refreshMultiCallProjection = (): void => {
+      void facade.refreshUserSettingsProjections({
+        applyMultiCallSettings: (settings) => {
+          set((state) => ({
+            multiCallProjection: setMultiCallSettings(state.multiCallProjection, settings),
+          }));
+        },
+      });
+    };
+
+    refreshMultiCallProjection();
 
     const unsubscribe = facade.eventPublisher.subscribe((event) => {
       set((state) => ({
@@ -150,6 +154,10 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
           event,
         ),
       }));
+
+      if (event.type === "RegistrationSucceeded") {
+        refreshMultiCallProjection();
+      }
     });
 
     return unsubscribe;

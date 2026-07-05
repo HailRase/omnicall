@@ -9,6 +9,8 @@ import {
 } from "@adapters/index.js";
 import { createTestLogger } from "@infrastructure/logging/index.js";
 import type { AppBootstrapConfig } from "@domain/index.js";
+import type { FileSystemPort } from "@ports/filesystem/FileSystemPort.js";
+import type { SettingsRepository } from "@ports/index.js";
 import { wireOcpInboundToFacade } from "./wireOcpInboundToFacade.js";
 
 /**
@@ -18,6 +20,9 @@ import { wireOcpInboundToFacade } from "./wireOcpInboundToFacade.js";
  */
 export type CreateAccountBootstrapOptions = Readonly<{
   bootstrapConfig?: AppBootstrapConfig;
+  profilesStorageRoot?: string;
+  filesystem?: FileSystemPort;
+  settingsRepository?: SettingsRepository;
   ocpWsUrl?: string;
   ocpScenario?:
     | "success"

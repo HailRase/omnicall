@@ -4,7 +4,9 @@ Related: **F-016**, **LF-076**, **LF-077**, **LF-016**, **LF-033**, **LF-032**. 
 
 ## Account key
 
-- Per-user storage key = SIP `authorization_user` / `username` (`SettingsAccountKey`).
+- Branded `SettingsAccountKey` identifies a settings profile bucket.
+- **Current (WU4):** SIP `username` only via `resolveSettingsAccountKeyFromSipAccount`.
+- **F-023 target:** normalized `username@domain` (+ server suffix when server host ≠ domain); see `P11-Local-Account-Profiles-Design.md`.
 - OCP `agentId` may alias the same key when SIP credentials arrive from OCP bootstrap.
 - Anonymous bucket `__anonymous__` when no SIP account is active (dev/tests only).
 
@@ -13,7 +15,9 @@ Related: **F-016**, **LF-076**, **LF-077**, **LF-016**, **LF-033**, **LF-032**. 
 | Version | Status | Notes |
 | --- | --- | --- |
 | v0 | legacy | Fragmented in-memory: `multiCallSettings` + `autoAnswerTimeoutSec` without `schemaVersion`. |
-| v1 | current | Typed `UserSettings` aggregate (see below). |
+| v1 | legacy | Typed `UserSettings` aggregate (superseded). |
+| v2 | legacy | Added language + SIP recovery fields. |
+| v3 | current | Adds `codecPreferences`, `dismissedUpdateBannerVersion`. |
 
 ## UserSettings v1 fields
 
@@ -50,7 +54,8 @@ Pure config flags do not use a Use Case (ADR not required for WU4).
 
 - Adapters parse `unknown` JSON via domain `migrateUserSettings` / `validateUserSettings`.
 - `InMemorySettingsRepository` holds per-account `UserSettings` map.
-- `FileSettingsRepository` stub persists JSON per key with in-memory fallback for tests.
+- `FileSettingsRepository` stub persists JSON per key in memory (F-023: real disk persistence).
+- Local profile index + active profile: `P11-Local-Account-Profiles-Design.md`.
 
 ## Fresh install
 

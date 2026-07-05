@@ -11,6 +11,7 @@ import type { AppIconTheme } from "./resolveAppIconPath.js";
 import { resolveAppIconPath } from "./resolveAppIconPath.js";
 import { applyAppIcon } from "./loadAppIcon.js";
 import { ShellWindowController } from "./shellWindow/ShellWindowController.js";
+import { registerProfilesPersistenceIpc } from "./profiles/registerProfilesPersistenceIpc.js";
 
 const logger = createConsoleLogger({
   boundedContext: "Integration",
@@ -238,6 +239,7 @@ void app.whenReady().then(() => {
   });
 
   registerIpcHandlers();
+  registerProfilesPersistenceIpc();
   createMainWindow();
 
   app.on("activate", () => {

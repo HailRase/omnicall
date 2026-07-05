@@ -143,3 +143,48 @@ export const SidebarExpanded: Story = {
     sidebarExpanded: true,
   },
 };
+
+export const AccountSectionRegisteredLight: Story = {
+  args: {
+    ...panelDefaults,
+    activeSection: "account",
+    account: {
+      ...accountDefaults,
+      authorizeDisabledReason: "Вы уже в сети. Для смены аккаунта нажмите «Выйти»",
+      logoutDisabledReason: null,
+    },
+    theme: "light",
+  },
+  parameters: {
+    themes: {
+      themeOverride: "light",
+    },
+  },
+};
+
+export const AccountSectionRegisteredDark: Story = {
+  args: {
+    ...panelDefaults,
+    activeSection: "account",
+    account: {
+      ...accountDefaults,
+      authorizeDisabledReason: "Вы уже в сети. Для смены аккаунта нажмите «Выйти»",
+      logoutDisabledReason: null,
+    },
+    theme: "dark",
+  },
+  parameters: {
+    themes: {
+      themeOverride: "dark",
+    },
+  },
+  decorators: [
+    (Story) => (
+      <div data-theme="dark" style={{ minHeight: "100vh", background: "var(--color-bg-app)" }}>
+        <SettingsFullscreenOverlay open onClose={() => undefined}>
+          <Story />
+        </SettingsFullscreenOverlay>
+      </div>
+    ),
+  ],
+};
