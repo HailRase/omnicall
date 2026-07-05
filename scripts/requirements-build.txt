@@ -1,0 +1,2 @@
+# Python deps for release/build scripts (build-app-icons.py).
+Pillow>=11.0.0,<12
