@@ -551,21 +551,25 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Priority: medium
 - Status: implemented
 - Owner: domain-agent
-- Inputs: user «Проверить обновления» in Settings → General; `VITE_UPDATE_MANIFEST_URL`; installed app version from main process
-- Outputs: update status projection; optional `shell.openExternal` to HTTPS download/release page; structured logs
+- Inputs: startup background manifest fetch; user «Проверить обновления» in Settings → General; `VITE_UPDATE_MANIFEST_URL`; installed app version from main process
+- Outputs: non-blocking startup update banner when newer version exists; update status projection in Settings; optional `shell.openExternal` to HTTPS download/release page; structured logs
 - Acceptance Criteria:
   - No electron-updater, no silent download/install, no code-signing requirement.
   - Remote manifest validated from `unknown`; semver compare for update vs up-to-date.
   - States: idle, checking, updateAvailable, upToDate, unavailable, invalidManifest, error.
-  - Failures never crash app; active calls not interrupted (settings-only UX).
+  - Startup background check runs once per app session after ready shell mount; Strict Mode safe; failures silent.
+  - Non-blocking update banner on `updateAvailable` only; dismiss hides for current session; does not interrupt calls.
+  - Manual Settings check unchanged; installation remains user-driven via open download URL only.
+  - Failures never crash app; active calls not interrupted.
   - `openExternal` only in main via typed IPC; HTTPS URLs only (localhost HTTP for tests).
   - Current version shown from `app.getVersion()`.
 - Test Coverage:
   - Unit: `parseUpdateManifest`, `compareSemanticVersions`, `evaluateUpdateAvailability`, `CheckForUpdatesUseCase`, `OpenExternalUrlContract`, `isAllowedHttpsUrl`
-  - Component: `SettingsGeneralPanel` about section
+  - Component: `SettingsGeneralPanel` about section; `UpdateAvailableBanner`
+  - Hook: `useAppUpdate` background prompt visibility, dismiss, download callback
   - Integration: deferred (manual manifest smoke)
   - E2E: deferred
-- Implementation evidence: `src/domain/updates/`, `src/application/use-cases/CheckForUpdatesUseCase.ts`, `src/adapters/updates/FetchUpdateMetadataAdapter.ts`, `src/adapters/platform/PreloadPlatformInfoGateway.ts`, `src/adapters/platform/PreloadExternalUrlGateway.ts`, `src/shared/ipc/OpenExternalUrlContract.ts`, `src/renderer/hooks/useAppUpdate.ts`, `src/renderer/components/settings/panels/SettingsGeneralPanel.tsx`, `guides/Manual-Update-Manifest.md`, `docs/softphone/release/update-manifest.json`, `guides/GitHub-Releases-Update-Guide.md`
+- Implementation evidence: `src/domain/updates/`, `src/application/use-cases/CheckForUpdatesUseCase.ts`, `src/adapters/updates/FetchUpdateMetadataAdapter.ts`, `src/adapters/platform/PreloadPlatformInfoGateway.ts`, `src/adapters/platform/PreloadExternalUrlGateway.ts`, `src/shared/ipc/OpenExternalUrlContract.ts`, `src/renderer/hooks/useAppUpdate.ts`, `src/renderer/components/updates/UpdateAvailableBanner.tsx`, `src/renderer/components/settings/panels/SettingsGeneralPanel.tsx`, `src/renderer/shells/SoftphoneReadyShell.tsx`, `guides/Manual-Update-Manifest.md`, `docs/softphone/release/update-manifest.json`, `guides/GitHub-Releases-Update-Guide.md`
 
 ## F-021: Interface Internationalization And Language Settings
 

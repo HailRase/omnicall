@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Remote JSON consumed by in-app "Check for updates". No auto-install; opens download page only.
+Remote JSON consumed by in-app update checks (startup background + manual Settings). No auto-install; opens download page only.
 
 ## Fields
 
@@ -34,5 +34,5 @@ Set `VITE_UPDATE_MANIFEST_URL` to the HTTPS manifest URL at build time (e.g. `.e
 1. Bump `version` in `package.json`
 2. Run `npm run build:win|mac|linux` and upload installers
 3. Update hosted manifest JSON (`latestVersion`, `downloadUrl`, optional `platforms`)
-4. Rebuild or redeploy app only if manifest URL changed; otherwise existing installs pick up the new manifest on next manual check
-5. Verify: Settings → General → «Проверить обновления»
+4. Rebuild or redeploy app only if manifest URL changed; otherwise existing installs pick up the new manifest on next startup background check or manual Settings check
+5. Verify: launch app (startup banner when update available) and Settings → General → «Проверить обновления»

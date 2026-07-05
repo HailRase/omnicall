@@ -1,0 +1,73 @@
+.banner {
+  position: fixed;
+  top: var(--space-md);
+  left: 50%;
+  z-index: var(--z-toast);
+  transform: translateX(-50%);
+  display: grid;
+  gap: var(--space-sm);
+  width: min(32rem, 92vw);
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-panel);
+  background: var(--color-bg-surface-elevated);
+  box-shadow: var(--shadow-menu-elevated);
+  pointer-events: auto;
+}
+
+.message {
+  margin: 0;
+  padding-right: var(--space-xl);
+  color: var(--color-text-primary);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+}
+
+.primary-button {
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border-control);
+  background: var(--color-accent-primary);
+  color: #fff;
+  cursor: pointer;
+}
+
+.primary-button:focus-visible {
+  outline: 2px solid var(--color-outline-focus);
+  outline-offset: 2px;
+}
+
+.secondary-button {
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border-default);
+  background: var(--color-bg-control);
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.secondary-button:focus-visible {
+  outline: 2px solid var(--color-outline-focus);
+  outline-offset: 2px;
+}
+
+.dismiss {
+  position: absolute;
+  top: var(--space-xs);
+  right: var(--space-xs);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border-control);
+  background: var(--color-bg-surface-alt);
+  color: inherit;
+  cursor: pointer;
+}

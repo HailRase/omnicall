@@ -56,6 +56,15 @@ const ruMessages = {
     "Не удалось прочитать данные об обновлении. Попробуйте позже.",
   "updates.status.error":
     "Не удалось проверить обновления. Проверьте подключение к интернету и попробуйте снова.",
+  "updates.prompt.ariaLabel": "Доступно обновление приложения",
+  "updates.prompt.message": (params: Readonly<{ latestVersion: string | undefined }>) =>
+    params.latestVersion !== undefined
+      ? `Доступна новая версия ${params.latestVersion}. Скачайте установщик и установите её вручную.`
+      : "Доступна новая версия. Скачайте установщик и установите её вручную.",
+  "updates.prompt.download": "Скачать",
+  "updates.prompt.later": "Позже",
+  "updates.prompt.releaseNotes": "Что нового",
+  "updates.prompt.dismissAria": "Скрыть уведомление об обновлении",
   "errors.settingsSaveFailed": "Не удалось сохранить настройки",
   "icons.shell.settings": "Настройки",
   "icons.shell.diagnostics": "Диагностика",
@@ -586,6 +595,15 @@ const enMessages: MessageShape = {
   "updates.status.invalidManifest": "Unable to parse update metadata. Try again later.",
   "updates.status.error":
     "Unable to check updates. Verify internet connectivity and retry.",
+  "updates.prompt.ariaLabel": "Application update available",
+  "updates.prompt.message": (params) =>
+    params.latestVersion !== undefined
+      ? `Version ${params.latestVersion} is available. Download the installer and install it manually.`
+      : "A newer version is available. Download the installer and install it manually.",
+  "updates.prompt.download": "Download",
+  "updates.prompt.later": "Later",
+  "updates.prompt.releaseNotes": "Release notes",
+  "updates.prompt.dismissAria": "Dismiss update notification",
   "errors.settingsSaveFailed": "Failed to save settings",
   "icons.shell.settings": "Settings",
   "icons.shell.diagnostics": "Diagnostics",
@@ -1104,6 +1122,15 @@ const frMessages: MessageShape = {
     "Impossible de lire les metadonnees de mise a jour. Reessayez plus tard.",
   "updates.status.error":
     "Impossible de verifier les mises a jour. Verifiez la connexion internet et reessayez.",
+  "updates.prompt.ariaLabel": "Mise a jour de l'application disponible",
+  "updates.prompt.message": (params) =>
+    params.latestVersion !== undefined
+      ? `La version ${params.latestVersion} est disponible. Telechargez l'installateur et installez-la manuellement.`
+      : "Une nouvelle version est disponible. Telechargez l'installateur et installez-la manuellement.",
+  "updates.prompt.download": "Telecharger",
+  "updates.prompt.later": "Plus tard",
+  "updates.prompt.releaseNotes": "Notes de version",
+  "updates.prompt.dismissAria": "Masquer la notification de mise a jour",
   "errors.settingsSaveFailed": "Echec de l'enregistrement des parametres",
   "icons.shell.settings": "Parametres",
   "icons.shell.diagnostics": "Diagnostic",
@@ -1613,6 +1640,15 @@ const deMessages: MessageShape = {
     "Update-Metadaten konnten nicht gelesen werden. Bitte spaeter erneut versuchen.",
   "updates.status.error":
     "Updates konnten nicht geprueft werden. Pruefen Sie die Internetverbindung und versuchen Sie es erneut.",
+  "updates.prompt.ariaLabel": "Anwendungsupdate verfuegbar",
+  "updates.prompt.message": (params) =>
+    params.latestVersion !== undefined
+      ? `Version ${params.latestVersion} ist verfuegbar. Laden Sie das Installationsprogramm herunter und installieren Sie es manuell.`
+      : "Eine neuere Version ist verfuegbar. Laden Sie das Installationsprogramm herunter und installieren Sie es manuell.",
+  "updates.prompt.download": "Herunterladen",
+  "updates.prompt.later": "Spaeter",
+  "updates.prompt.releaseNotes": "Versionshinweise",
+  "updates.prompt.dismissAria": "Update-Benachrichtigung ausblenden",
   "errors.settingsSaveFailed": "Einstellungen konnten nicht gespeichert werden",
   "icons.shell.settings": "Einstellungen",
   "icons.shell.diagnostics": "Diagnose",

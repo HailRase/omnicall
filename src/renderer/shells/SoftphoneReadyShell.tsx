@@ -1,6 +1,7 @@
 import { useState, type JSX } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import { OcpToastStack } from "../components/ocp/OcpToastStack.js";
+import { UpdateAvailableBanner } from "../components/updates/UpdateAvailableBanner.js";
 import { SettingsFullscreenOverlay } from "../components/settings/SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "../components/settings/SettingsPanel.js";
 import { DEFAULT_AUTO_ANSWER_TIMEOUT_SEC } from "../components/settings/panels/SettingsSessionsPanel.js";
@@ -90,7 +91,7 @@ export function SoftphoneReadyShell({
     onMenuClose: userAvatarMenu.close,
   });
   const callBindings = useCallFeatureShell({ facade });
-  const appUpdate = useAppUpdate();
+  const appUpdate = useAppUpdate({ backgroundCheckOnMount: true });
 
   const ocpNotifications = useOcpNotifications({
     isOcpMode: projection.isOcpMode,
@@ -118,6 +119,14 @@ export function SoftphoneReadyShell({
       controls={<CallControlsShell bindings={callBindings} />}
       overlays={
         <>
+          <UpdateAvailableBanner
+            visible={appUpdate.showUpdatePrompt}
+            latestVersion={appUpdate.snapshot.latestVersion}
+            canOpenReleaseNotes={appUpdate.canOpenReleaseNotes}
+            onDownload={appUpdate.onOpenDownloadPage}
+            onReleaseNotes={appUpdate.onOpenReleaseNotes}
+            onDismiss={appUpdate.onDismissUpdatePrompt}
+          />
           <OcpToastStack
             toasts={ocpNotifications.visibleToasts}
             onDismiss={ocpNotifications.dismissToast}
