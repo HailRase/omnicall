@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-06 01:42
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `b3a61a1`
 
 ## Где
 - `package.json`, `CHANGELOG.md`, `distribution/CHANGELOG.md`, `distribution/update-manifest.json`
