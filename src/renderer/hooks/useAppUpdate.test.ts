@@ -2,6 +2,10 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { UpdateCheckSnapshot } from "@application/use-cases/CheckForUpdatesUseCase.js";
+import {
+  LocalStorageUpdateBannerDismissStore,
+  UPDATE_BANNER_DISMISS_STORAGE_KEY,
+} from "@adapters/updates/LocalStorageUpdateBannerDismissStore.js";
 import { ok } from "@shared/result/index.js";
 import {
   resetAppUpdateBackgroundCheckGuardForTests,
@@ -18,11 +22,15 @@ vi.mock("@application/use-cases/CheckForUpdatesUseCase.js", () => ({
   })),
 }));
 
-vi.mock("@adapters/index.js", () => ({
-  FetchUpdateMetadataAdapter: vi.fn(),
-  PreloadExternalUrlGateway: vi.fn(),
-  PreloadPlatformInfoGateway: vi.fn(),
-}));
+vi.mock("@adapters/index.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@adapters/index.js")>();
+  return {
+    ...actual,
+    FetchUpdateMetadataAdapter: vi.fn(),
+    PreloadExternalUrlGateway: vi.fn(),
+    PreloadPlatformInfoGateway: vi.fn(),
+  };
+});
 
 vi.mock("@infrastructure/logging/index.js", () => ({
   createTestLogger: vi.fn(() => ({
@@ -65,6 +73,7 @@ describe("useAppUpdate background prompt", () => {
 
   afterEach(() => {
     resetAppUpdateBackgroundCheckGuardForTests();
+    localStorage.removeItem(UPDATE_BANNER_DISMISS_STORAGE_KEY);
   });
 
   it("does not show prompt before background check completes", () => {
@@ -184,6 +193,48 @@ describe("useAppUpdate background prompt", () => {
     rerender({ dismissed: "2.0.0" });
 
     expect(result.current.showUpdatePrompt).toBe(false);
+  });
+
+  it("persists dismiss in localStorage across remounts without UserSettings", async () => {
+    mockExecute
+      .mockResolvedValueOnce(ok(installedSnapshot))
+      .mockResolvedValueOnce(ok(updateAvailableSnapshot));
+
+    const dismissStore = new LocalStorageUpdateBannerDismissStore();
+    const { result, unmount } = renderHook(() =>
+      useAppUpdate({
+        backgroundCheckOnMount: true,
+        updateBannerDismissStore: dismissStore,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.showUpdatePrompt).toBe(true);
+    });
+
+    act(() => {
+      result.current.onDismissUpdatePrompt();
+    });
+
+    expect(dismissStore.readDismissedVersion()).toBe("2.0.0");
+    unmount();
+
+    resetAppUpdateBackgroundCheckGuardForTests();
+    mockExecute
+      .mockResolvedValueOnce(ok(installedSnapshot))
+      .mockResolvedValueOnce(ok(updateAvailableSnapshot));
+
+    const { result: remounted } = renderHook(() =>
+      useAppUpdate({
+        backgroundCheckOnMount: true,
+        updateBannerDismissStore: dismissStore,
+      }),
+    );
+
+    await waitFor(() => {
+      expect(remounted.current.snapshot.status).toBe("updateAvailable");
+    });
+    expect(remounted.current.showUpdatePrompt).toBe(false);
   });
 
   it("shows prompt again when manifest reports a newer latestVersion", async () => {

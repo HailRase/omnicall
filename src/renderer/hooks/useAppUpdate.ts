@@ -3,9 +3,11 @@ import { CheckForUpdatesUseCase } from "@application/use-cases/CheckForUpdatesUs
 import type { UpdateCheckSnapshot } from "@application/use-cases/CheckForUpdatesUseCase.js";
 import {
   FetchUpdateMetadataAdapter,
+  localStorageUpdateBannerDismissStore,
   PreloadExternalUrlGateway,
   PreloadPlatformInfoGateway,
 } from "@adapters/index.js";
+import type { UpdateBannerDismissStore } from "@ports/index.js";
 import { createTestLogger } from "@infrastructure/logging/index.js";
 import { readUpdateManifestUrl } from "../bootstrap/readUpdateManifestUrl.js";
 import { resolveUpdateCheckMessage } from "../helpers/resolveUpdateCheckMessage.js";
@@ -23,6 +25,7 @@ export type UseAppUpdateOptions = Readonly<{
   backgroundCheckOnMount?: boolean;
   dismissedUpdateBannerVersion?: string | null;
   onDismissUpdateBannerVersion?: (latestVersion: string) => void;
+  updateBannerDismissStore?: UpdateBannerDismissStore;
 }>;
 
 export type UseAppUpdateResult = Readonly<{
@@ -70,6 +73,8 @@ export function useAppUpdate(options: UseAppUpdateOptions = {}): UseAppUpdateRes
   const backgroundCheckOnMount = options.backgroundCheckOnMount === true;
   const dismissedUpdateBannerVersion = options.dismissedUpdateBannerVersion ?? null;
   const onDismissUpdateBannerVersion = options.onDismissUpdateBannerVersion;
+  const updateBannerDismissStore =
+    options.updateBannerDismissStore ?? localStorageUpdateBannerDismissStore;
   const useCaseRef = useRef<CheckForUpdatesUseCase | null>(null);
   const [snapshot, setSnapshot] = useState<UpdateCheckSnapshot>(INITIAL_SNAPSHOT);
   const [backgroundUpdateAvailable, setBackgroundUpdateAvailable] = useState(false);
@@ -184,9 +189,10 @@ export function useAppUpdate(options: UseAppUpdateOptions = {}): UseAppUpdateRes
       return;
     }
 
+    updateBannerDismissStore.writeDismissedVersion(latestVersion);
     onDismissUpdateBannerVersion?.(latestVersion);
     setBackgroundUpdateAvailable(false);
-  }, [onDismissUpdateBannerVersion, snapshot.latestVersion]);
+  }, [onDismissUpdateBannerVersion, snapshot.latestVersion, updateBannerDismissStore]);
 
   const onOpenDownloadPage = useCallback((): void => {
     if (snapshot.downloadUrl === undefined) {
@@ -216,9 +222,12 @@ export function useAppUpdate(options: UseAppUpdateOptions = {}): UseAppUpdateRes
     snapshot.status === "updateAvailable" && snapshot.downloadUrl !== undefined;
   const canOpenReleaseNotes = snapshot.releaseNotesUrl !== undefined;
   const isChecking = snapshot.status === "checking";
+  const persistedDismissedVersion = updateBannerDismissStore.readDismissedVersion();
+  const effectiveDismissedVersion =
+    dismissedUpdateBannerVersion ?? persistedDismissedVersion;
   const isDismissedForLatestVersion =
     snapshot.latestVersion !== undefined &&
-    dismissedUpdateBannerVersion === snapshot.latestVersion;
+    effectiveDismissedVersion === snapshot.latestVersion;
   const showUpdatePrompt = backgroundUpdateAvailable && !isDismissedForLatestVersion;
   const statusMessage = resolveUpdateCheckMessage({
     status: snapshot.status,

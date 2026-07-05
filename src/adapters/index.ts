@@ -28,6 +28,11 @@ export { MockHostIntegrationGateway } from "./mock/MockHostIntegrationGateway.js
 export { MockShellWindowGateway } from "./mock/MockShellWindowGateway.js";
 export type { MockShellWindowGatewayState } from "./mock/MockShellWindowGateway.js";
 export { FetchUpdateMetadataAdapter } from "./updates/FetchUpdateMetadataAdapter.js";
+export {
+  LocalStorageUpdateBannerDismissStore,
+  localStorageUpdateBannerDismissStore,
+  UPDATE_BANNER_DISMISS_STORAGE_KEY,
+} from "./updates/LocalStorageUpdateBannerDismissStore.js";
 export { MockUpdateMetadataGateway } from "./mock/MockUpdateMetadataGateway.js";
 export type { MockUpdateMetadataGatewayOptions } from "./mock/MockUpdateMetadataGateway.js";
 export { MockPlatformInfoGateway, createUnavailablePlatformInfoGateway } from "./mock/MockPlatformInfoGateway.js";
