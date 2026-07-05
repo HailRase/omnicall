@@ -91,7 +91,11 @@ export function SoftphoneReadyShell({
     onMenuClose: userAvatarMenu.close,
   });
   const callBindings = useCallFeatureShell({ facade });
-  const appUpdate = useAppUpdate({ backgroundCheckOnMount: true });
+  const appUpdate = useAppUpdate({
+    backgroundCheckOnMount: true,
+    dismissedUpdateBannerVersion: settingsActions.userSettings.dismissedUpdateBannerVersion,
+    onDismissUpdateBannerVersion: settingsActions.onDismissUpdateBannerVersion,
+  });
 
   const ocpNotifications = useOcpNotifications({
     isOcpMode: projection.isOcpMode,

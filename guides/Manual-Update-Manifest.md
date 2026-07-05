@@ -7,10 +7,10 @@ Remote JSON consumed by in-app update checks (startup background + manual Settin
 ## Fields
 
 - `latestVersion` (required): semver string, e.g. `1.2.0`
-- `downloadUrl` (required): HTTPS release or downloads page
+- `downloadUrl` (required): HTTPS release or downloads page (e.g. `/releases/latest`). Settings «Открыть страницу загрузки» and startup banner «Скачать» open this URL.
 - `releaseDate` (optional): ISO or human-readable date string
 - `releaseNotesUrl` (optional): HTTPS URL for release notes
-- `platforms` (optional): `{ "win32" | "darwin" | "linux": HTTPS URL }`
+- `platforms` (optional): `{ "win32" | "darwin" | "linux": HTTPS URL }` — direct installer URLs for documentation or future use; not used for in-app «open download page»
 - `minimumSupportedVersion` (optional): semver for future policy use
 
 ## Example

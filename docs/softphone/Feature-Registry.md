@@ -557,8 +557,9 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - No electron-updater, no silent download/install, no code-signing requirement.
   - Remote manifest validated from `unknown`; semver compare for update vs up-to-date.
   - States: idle, checking, updateAvailable, upToDate, unavailable, invalidManifest, error.
-  - Startup background check runs once per app session after ready shell mount; Strict Mode safe; failures silent.
-  - Non-blocking update banner on `updateAvailable` only; dismiss hides for current session; does not interrupt calls.
+  - Startup background check runs once per app session after ready shell mount; Strict Mode safe; failures silent (no error/unavailable/invalidManifest in Settings snapshot).
+  - Non-blocking update banner on `updateAvailable` only; «Позже» persists dismissed `latestVersion` in `UserSettings` until manifest reports a newer version; does not interrupt calls.
+  - «Открыть страницу загрузки» opens manifest `downloadUrl` (releases page), not `platforms.*` direct installer URL.
   - Manual Settings check unchanged; installation remains user-driven via open download URL only.
   - Failures never crash app; active calls not interrupted.
   - `openExternal` only in main via typed IPC; HTTPS URLs only (localhost HTTP for tests).
@@ -566,7 +567,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Test Coverage:
   - Unit: `parseUpdateManifest`, `compareSemanticVersions`, `evaluateUpdateAvailability`, `CheckForUpdatesUseCase`, `OpenExternalUrlContract`, `isAllowedHttpsUrl`
   - Component: `SettingsGeneralPanel` about section; `UpdateAvailableBanner`
-  - Hook: `useAppUpdate` background prompt visibility, dismiss, download callback
+  - Hook: `useAppUpdate` background prompt visibility, persisted dismiss per version, silent background failures, download callback
   - Integration: deferred (manual manifest smoke)
   - E2E: deferred
 - Implementation evidence: `src/domain/updates/`, `src/application/use-cases/CheckForUpdatesUseCase.ts`, `src/adapters/updates/FetchUpdateMetadataAdapter.ts`, `src/adapters/platform/PreloadPlatformInfoGateway.ts`, `src/adapters/platform/PreloadExternalUrlGateway.ts`, `src/shared/ipc/OpenExternalUrlContract.ts`, `src/renderer/hooks/useAppUpdate.ts`, `src/renderer/components/updates/UpdateAvailableBanner.tsx`, `src/renderer/components/settings/panels/SettingsGeneralPanel.tsx`, `src/renderer/shells/SoftphoneReadyShell.tsx`, `guides/Manual-Update-Manifest.md`, `docs/softphone/release/update-manifest.json`, `guides/GitHub-Releases-Update-Guide.md`

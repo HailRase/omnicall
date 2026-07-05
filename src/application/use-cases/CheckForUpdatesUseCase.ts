@@ -1,5 +1,5 @@
 import { evaluateUpdateAvailability } from "@domain/updates/evaluateUpdateAvailability.js";
-import type { UpdateManifest, UpdatePlatformId } from "@domain/updates/UpdateManifest.js";
+import type { UpdateManifest } from "@domain/updates/UpdateManifest.js";
 import type { ExternalUrlGateway } from "@ports/updates/ExternalUrlGateway.js";
 import type { PlatformInfoGateway } from "@ports/updates/PlatformInfoGateway.js";
 import type { UpdateMetadataGateway } from "@ports/updates/UpdateMetadataGateway.js";
@@ -149,7 +149,7 @@ export class CheckForUpdatesUseCase {
       });
     }
 
-    return this.evaluateManifest(platformInfo.version, manifestResult.value, platformInfo.platform, correlationId);
+    return this.evaluateManifest(platformInfo.version, manifestResult.value, correlationId);
   }
 
   async openDownloadPage(
@@ -184,10 +184,9 @@ export class CheckForUpdatesUseCase {
   private evaluateManifest(
     currentVersion: string,
     manifest: UpdateManifest,
-    platform: UpdatePlatformId,
     correlationId: CorrelationId,
   ): Result<UpdateCheckSnapshot, PlatformError> {
-    const availability = evaluateUpdateAvailability(currentVersion, manifest, platform);
+    const availability = evaluateUpdateAvailability(currentVersion, manifest);
 
     if (availability.status === "invalidCurrentVersion" || availability.status === "invalidManifestVersion") {
       this.logger.error("update_check_invalid_version", {

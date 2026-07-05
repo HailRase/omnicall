@@ -36,6 +36,7 @@ type UseSettingsActionsResult = Readonly<{
   onSipReconnectMaxAttemptsChange: (attempts: number) => void;
   onSipReregisterMaxAttemptsChange: (attempts: number) => void;
   onSipAutoRegisterOnStartupToggle: (enabled: boolean) => void;
+  onDismissUpdateBannerVersion: (latestVersion: string) => void;
   settingsUpdateError: string | null;
 }>;
 
@@ -252,6 +253,16 @@ export function useSettingsActions(
     [persistUserSettings, userSettings],
   );
 
+  const onDismissUpdateBannerVersion = useCallback(
+    (latestVersion: string): void => {
+      persistUserSettings({
+        ...userSettings,
+        dismissedUpdateBannerVersion: latestVersion,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
   return {
     userSettings,
     onLanguageChange,
@@ -267,6 +278,7 @@ export function useSettingsActions(
     onSipReconnectMaxAttemptsChange,
     onSipReregisterMaxAttemptsChange,
     onSipAutoRegisterOnStartupToggle,
+    onDismissUpdateBannerVersion,
     settingsUpdateError,
   };
 }

@@ -52,7 +52,7 @@ const updateAvailableSnapshot: UpdateCheckSnapshot = {
   status: "updateAvailable",
   currentVersion: "1.0.0",
   latestVersion: "2.0.0",
-  downloadUrl: "https://example.com/download",
+  downloadUrl: "https://example.com/releases/latest",
 };
 
 describe("useAppUpdate background prompt", () => {
@@ -107,9 +107,32 @@ describe("useAppUpdate background prompt", () => {
     );
 
     await waitFor(() => {
-      expect(result.current.snapshot.status).toBe("upToDate");
+      expect(result.current.snapshot.currentVersion).toBe("1.0.0");
     });
+    expect(result.current.snapshot.status).toBe("idle");
     expect(result.current.showUpdatePrompt).toBe(false);
+  });
+
+  it("does not pollute snapshot when background check fails", async () => {
+    mockExecute
+      .mockResolvedValueOnce(ok(installedSnapshot))
+      .mockResolvedValueOnce(
+        ok({
+          status: "error",
+          currentVersion: "1.0.0",
+          reason: "network_error",
+        }),
+      );
+
+    const { result } = renderHook(() =>
+      useAppUpdate({ backgroundCheckOnMount: true }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.snapshot.currentVersion).toBe("1.0.0");
+    });
+    expect(result.current.snapshot.status).toBe("idle");
+    expect(result.current.snapshot.reason).toBeUndefined();
   });
 
   it("hides prompt after dismiss for current session", async () => {
@@ -132,7 +155,60 @@ describe("useAppUpdate background prompt", () => {
     expect(result.current.showUpdatePrompt).toBe(false);
   });
 
-  it("calls openDownloadPage from download action", async () => {
+  it("persists dismiss for the same latestVersion across remounts", async () => {
+    mockExecute
+      .mockResolvedValueOnce(ok(installedSnapshot))
+      .mockResolvedValueOnce(ok(updateAvailableSnapshot));
+
+    const onDismissUpdateBannerVersion = vi.fn();
+    const { result, rerender } = renderHook(
+      (props: { dismissed: string | null }) =>
+        useAppUpdate({
+          backgroundCheckOnMount: true,
+          dismissedUpdateBannerVersion: props.dismissed,
+          onDismissUpdateBannerVersion,
+        }),
+      { initialProps: { dismissed: null as string | null } },
+    );
+
+    await waitFor(() => {
+      expect(result.current.showUpdatePrompt).toBe(true);
+    });
+
+    act(() => {
+      result.current.onDismissUpdatePrompt();
+    });
+
+    expect(onDismissUpdateBannerVersion).toHaveBeenCalledWith("2.0.0");
+
+    rerender({ dismissed: "2.0.0" });
+
+    expect(result.current.showUpdatePrompt).toBe(false);
+  });
+
+  it("shows prompt again when manifest reports a newer latestVersion", async () => {
+    mockExecute
+      .mockResolvedValueOnce(ok(installedSnapshot))
+      .mockResolvedValueOnce(ok(updateAvailableSnapshot));
+
+    const { result, rerender } = renderHook(
+      (props: { dismissed: string | null }) =>
+        useAppUpdate({
+          backgroundCheckOnMount: true,
+          dismissedUpdateBannerVersion: props.dismissed,
+        }),
+      { initialProps: { dismissed: "1.9.0" } },
+    );
+
+    await waitFor(() => {
+      expect(result.current.showUpdatePrompt).toBe(true);
+    });
+
+    rerender({ dismissed: "2.0.0" });
+    expect(result.current.showUpdatePrompt).toBe(false);
+  });
+
+  it("calls openDownloadPage with manifest download page URL", async () => {
     mockExecute
       .mockResolvedValueOnce(ok(installedSnapshot))
       .mockResolvedValueOnce(ok(updateAvailableSnapshot));
@@ -152,7 +228,7 @@ describe("useAppUpdate background prompt", () => {
 
     await waitFor(() => {
       expect(mockOpenDownloadPage).toHaveBeenCalledWith({
-        downloadUrl: "https://example.com/download",
+        downloadUrl: "https://example.com/releases/latest",
       });
     });
   });
@@ -169,5 +245,32 @@ describe("useAppUpdate background prompt", () => {
     expect(result.current.showUpdatePrompt).toBe(false);
     expect(typeof result.current.onCheckForUpdates).toBe("function");
     expect(result.current.canCheckForUpdates).toBe(true);
+  });
+
+  it("surfaces manual check errors in snapshot", async () => {
+    mockExecute
+      .mockResolvedValueOnce(ok(installedSnapshot))
+      .mockResolvedValueOnce(
+        ok({
+          status: "error",
+          currentVersion: "1.0.0",
+          reason: "network_error",
+        }),
+      );
+
+    const { result } = renderHook(() => useAppUpdate());
+
+    await waitFor(() => {
+      expect(result.current.snapshot.currentVersion).toBe("1.0.0");
+    });
+
+    act(() => {
+      result.current.onCheckForUpdates();
+    });
+
+    await waitFor(() => {
+      expect(result.current.snapshot.status).toBe("error");
+      expect(result.current.snapshot.reason).toBe("network_error");
+    });
   });
 });

@@ -7,11 +7,15 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
-### Added
-
-### Changed
+## [0.1.1] - 2026-07-05
 
 ### Fixed
+
+- F-020: «Открыть страницу загрузки» открывает manifest `downloadUrl` (`/releases/latest`), а не прямой URL установщика из `platforms.*`
+- F-020: фоновая проверка обновлений не записывает error/unavailable/invalidManifest в snapshot настроек
+- F-020: «Позже» на баннере обновления скрывает его до следующей версии (persist в `UserSettings`)
+- F-016: выравнивание registration status dot у аватара после перехода на IconTooltip
+- F-020: цвет текста primary-кнопки баннера обновления через semantic token `--color-text-on-accent`
 
 ## [0.1.0] - 2026-07-05
 
@@ -71,7 +75,8 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.1.0...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.1.1...main
+[0.1.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.1.1
 [0.1.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.1.0
 [0.0.3]: https://github.com/HailRase/softphone-electron/releases/tag/v0.0.3
 [0.0.2]: https://github.com/HailRase/softphone-electron/releases/tag/v0.0.2

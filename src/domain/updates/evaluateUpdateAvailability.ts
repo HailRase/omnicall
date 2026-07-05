@@ -16,33 +16,38 @@ export type UpdateAvailabilityResult = Readonly<{
 }>;
 
 /**
- * - Purpose: resolve platform-specific download URL from manifest.
- * - Inputs: manifest and optional platform id.
- * - Outputs: HTTPS download URL string.
+ * - Purpose: resolve manifest download page URL for manual update flow.
+ * - Inputs: manifest aggregate.
+ * - Outputs: HTTPS releases/download page URL (`downloadUrl` field).
  */
-export function resolveUpdateDownloadUrl(
-  manifest: UpdateManifest,
-  platform?: UpdatePlatformId,
-): string {
-  if (platform !== undefined) {
-    const platformUrl = manifest.platforms?.[platform];
-    if (platformUrl !== undefined) {
-      return platformUrl;
-    }
-  }
-
+export function resolveUpdateDownloadUrl(manifest: UpdateManifest): string {
   return manifest.downloadUrl;
 }
 
 /**
+ * - Purpose: resolve optional platform-specific installer URL from manifest.
+ * - Inputs: manifest and optional platform id.
+ * - Outputs: HTTPS installer URL when declared for the platform.
+ */
+export function resolvePlatformInstallerUrl(
+  manifest: UpdateManifest,
+  platform?: UpdatePlatformId,
+): string | undefined {
+  if (platform === undefined) {
+    return undefined;
+  }
+
+  return manifest.platforms?.[platform];
+}
+
+/**
  * - Purpose: compare installed and manifest versions for manual update flow.
- * - Inputs: current app version, manifest, optional platform for download URL.
+ * - Inputs: current app version and manifest.
  * - Outputs: availability status with resolved download metadata.
  */
 export function evaluateUpdateAvailability(
   currentVersion: string,
   manifest: UpdateManifest,
-  platform?: UpdatePlatformId,
 ): UpdateAvailabilityResult {
   const latestComparison = compareSemanticVersions(currentVersion, manifest.latestVersion);
   if (latestComparison === null) {
@@ -50,7 +55,7 @@ export function evaluateUpdateAvailability(
     if (currentValid === null) {
       return {
         status: "invalidCurrentVersion",
-        downloadUrl: resolveUpdateDownloadUrl(manifest, platform),
+        downloadUrl: resolveUpdateDownloadUrl(manifest),
         latestVersion: manifest.latestVersion,
         ...(manifest.releaseDate !== undefined ? { releaseDate: manifest.releaseDate } : {}),
         ...(manifest.releaseNotesUrl !== undefined
@@ -61,7 +66,7 @@ export function evaluateUpdateAvailability(
 
     return {
       status: "invalidManifestVersion",
-      downloadUrl: resolveUpdateDownloadUrl(manifest, platform),
+      downloadUrl: resolveUpdateDownloadUrl(manifest),
       latestVersion: manifest.latestVersion,
       ...(manifest.releaseDate !== undefined ? { releaseDate: manifest.releaseDate } : {}),
       ...(manifest.releaseNotesUrl !== undefined
@@ -71,7 +76,7 @@ export function evaluateUpdateAvailability(
   }
 
   const base = {
-    downloadUrl: resolveUpdateDownloadUrl(manifest, platform),
+    downloadUrl: resolveUpdateDownloadUrl(manifest),
     latestVersion: manifest.latestVersion,
     ...(manifest.releaseDate !== undefined ? { releaseDate: manifest.releaseDate } : {}),
     ...(manifest.releaseNotesUrl !== undefined

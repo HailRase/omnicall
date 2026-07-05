@@ -1,5 +1,6 @@
 declare const classes: {
   readonly dot: string;
+  readonly tooltipHost: string;
   readonly variantFailed: string;
   readonly variantNotRegistered: string;
   readonly variantRegisteredDnd: string;

@@ -73,6 +73,7 @@
 
   /* Accent */
   --color-accent-primary: #3b6fc4;
+  --color-text-on-accent: #ffffff;
 
   /* Overlay */
   --color-overlay-scrim: rgb(26 35 50 / 35%);
@@ -133,6 +134,7 @@
 
   /* Accent */
   --color-accent-primary: #4a7fd4;
+  --color-text-on-accent: #ffffff;
 
   /* Overlay */
   --color-overlay-scrim: rgb(8 12 20 / 55%);

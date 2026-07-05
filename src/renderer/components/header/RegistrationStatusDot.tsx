@@ -31,7 +31,7 @@ export function RegistrationStatusDot({
   const busy = variant === "registering";
 
   return (
-    <IconTooltip label={label}>
+    <IconTooltip label={label} className={styles.tooltipHost}>
       <span
         className={clsx(styles.dot, VARIANT_CLASS[variant])}
         data-testid="registration-status-dot"

@@ -1,3 +1,11 @@
+.tooltip-host {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 0;
+  height: 0;
+}
+
 .dot {
   position: absolute;
   right: -1px;

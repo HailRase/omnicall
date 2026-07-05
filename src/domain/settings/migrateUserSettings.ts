@@ -112,6 +112,7 @@ function migrateV1ToV2(record: Record<string, unknown>): UserSettings {
     sipReregisterMaxAttempts:
       v1Validated.sipReregisterMaxAttempts ?? defaults.sipReregisterMaxAttempts,
     sipAutoRegisterOnStartup: defaults.sipAutoRegisterOnStartup,
+    dismissedUpdateBannerVersion: defaults.dismissedUpdateBannerVersion,
   };
 }
 

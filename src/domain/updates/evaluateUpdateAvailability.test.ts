@@ -11,13 +11,13 @@ const manifest = {
 
 describe("evaluateUpdateAvailability", () => {
   it("reports update available when current is older", () => {
-    const result = evaluateUpdateAvailability("1.0.0", manifest, "win32");
+    const result = evaluateUpdateAvailability("1.0.0", manifest);
     expect(result.status).toBe("updateAvailable");
-    expect(result.downloadUrl).toBe("https://example.com/win");
+    expect(result.downloadUrl).toBe("https://example.com/releases");
   });
 
   it("reports up to date when current matches latest", () => {
-    const result = evaluateUpdateAvailability("1.2.0", manifest, "win32");
+    const result = evaluateUpdateAvailability("1.2.0", manifest);
     expect(result.status).toBe("upToDate");
   });
 

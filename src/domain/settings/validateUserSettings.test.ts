@@ -139,4 +139,24 @@ describe("validateUserSettings", () => {
       expect(deResult.value.language).toBe("de");
     }
   });
+
+  it("accepts dismissed update banner version", () => {
+    const result = validateUserSettings({
+      ...createDefaultUserSettings(),
+      dismissedUpdateBannerVersion: "0.1.1",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.dismissedUpdateBannerVersion).toBe("0.1.1");
+    }
+  });
+
+  it("defaults dismissed update banner version to null", () => {
+    const result = validateUserSettings(createDefaultUserSettings());
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.dismissedUpdateBannerVersion).toBeNull();
+    }
+  });
 });

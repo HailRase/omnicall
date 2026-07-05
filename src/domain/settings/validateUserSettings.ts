@@ -89,6 +89,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
     false,
     errors,
   );
+  const dismissedUpdateBannerVersion = readDismissedUpdateBannerVersion(record, errors);
 
   if (errors.length > 0) {
     return { ok: false, errors };
@@ -112,6 +113,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
       sipReregisterIntervalSec,
       sipReregisterMaxAttempts,
       sipAutoRegisterOnStartup,
+      dismissedUpdateBannerVersion,
     },
   };
 }
@@ -228,6 +230,21 @@ function readSipReregisterInterval(
     return MIN_SIP_REREGISTER_INTERVAL_SEC;
   }
   return raw;
+}
+
+function readDismissedUpdateBannerVersion(
+  record: Record<string, unknown>,
+  errors: string[],
+): string | null {
+  const raw = record["dismissedUpdateBannerVersion"];
+  if (raw === undefined || raw === null) {
+    return null;
+  }
+  if (typeof raw !== "string" || raw.trim().length === 0) {
+    errors.push("dismissedUpdateBannerVersion_invalid");
+    return null;
+  }
+  return raw.trim();
 }
 
 function readAutoAnswerTimeout(

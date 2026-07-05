@@ -35,6 +35,8 @@ export type UserSettings = Readonly<{
   sipReregisterIntervalSec: number;
   sipReregisterMaxAttempts: number;
   sipAutoRegisterOnStartup: boolean;
+  /** Suppress startup update banner until manifest reports a newer version. */
+  dismissedUpdateBannerVersion: string | null;
 }>;
 
 export { MIN_SIP_REREGISTER_INTERVAL_SEC, MIN_SIP_RECONNECT_INTERVAL_SEC };
@@ -61,5 +63,6 @@ export function createDefaultUserSettings(): UserSettings {
     sipReregisterIntervalSec: DEFAULT_SIP_REREGISTER_INTERVAL_SEC,
     sipReregisterMaxAttempts: DEFAULT_SIP_REREGISTER_MAX_ATTEMPTS,
     sipAutoRegisterOnStartup: false,
+    dismissedUpdateBannerVersion: null,
   };
 }
