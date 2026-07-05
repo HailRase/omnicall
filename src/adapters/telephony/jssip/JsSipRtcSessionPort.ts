@@ -5,6 +5,7 @@
  */
 export type JsSipRtcSessionEventName =
   | "peerconnection"
+  | "sdp"
   | "progress"
   | "accepted"
   | "confirmed"

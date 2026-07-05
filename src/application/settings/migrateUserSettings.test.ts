@@ -11,7 +11,7 @@ describe("migrateUserSettings", () => {
     }
   });
 
-  it("migrates v0 legacy fragments to v2", () => {
+  it("migrates v0 legacy fragments to v3", () => {
     const result = migrateUserSettings(
       { schemaVersion: 0 },
       {
@@ -24,7 +24,7 @@ describe("migrateUserSettings", () => {
     );
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(2);
+      expect(result.value.schemaVersion).toBe(3);
       expect(result.value.multiSessionsEnabled).toBe(false);
       expect(result.value.autoUnholdOnTransferFailure).toBe(false);
       expect(result.value.autoAnswerTimeoutSec).toBe(5);
@@ -33,20 +33,37 @@ describe("migrateUserSettings", () => {
     }
   });
 
-  it("passes through valid v2 payload", () => {
+  it("passes through valid v3 payload", () => {
+    const v3 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 3 as const,
+      multiSessionsEnabled: false,
+    };
+    const result = migrateUserSettings(v3);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toEqual(v3);
+    }
+  });
+
+  it("migrates v2 payload to v3 with default codec preferences", () => {
     const v2 = {
       ...createDefaultUserSettings(),
       schemaVersion: 2 as const,
       multiSessionsEnabled: false,
     };
+    delete (v2 as { codecPreferences?: unknown }).codecPreferences;
+
     const result = migrateUserSettings(v2);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value).toEqual(v2);
+      expect(result.value.schemaVersion).toBe(3);
+      expect(result.value.multiSessionsEnabled).toBe(false);
+      expect(result.value.codecPreferences).toEqual(createDefaultUserSettings().codecPreferences);
     }
   });
 
-  it("migrates v1 payload to v2 with transport defaults", () => {
+  it("migrates v1 payload to v3 with transport and codec defaults", () => {
     const v1 = {
       schemaVersion: 1,
       theme: "dark" as const,
@@ -62,14 +79,14 @@ describe("migrateUserSettings", () => {
     const result = migrateUserSettings(v1);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(2);
+      expect(result.value.schemaVersion).toBe(3);
       expect(result.value.language).toBe("ru");
       expect(result.value.theme).toBe("dark");
       expect(result.value.sipAutoReconnectEnabled).toBe(true);
       expect(result.value.sipReconnectIntervalSec).toBe(5);
       expect(result.value.sipAutoReregisterEnabled).toBe(false);
       expect(result.value.sipReregisterIntervalSec).toBe(8);
-      expect(result.value.sipAutoRegisterOnStartup).toBe(false);
+      expect(result.value.codecPreferences).toEqual(createDefaultUserSettings().codecPreferences);
     }
   });
 
@@ -108,9 +125,9 @@ describe("migrateUserSettings", () => {
     }
   });
 
-  it("fails on corrupt v2 payload", () => {
+  it("fails on corrupt v3 payload", () => {
     const result = migrateUserSettings({
-      schemaVersion: 2,
+      schemaVersion: 3,
       multiSessionsEnabled: "yes",
     });
     expect(result.ok).toBe(false);

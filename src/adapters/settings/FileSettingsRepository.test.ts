@@ -37,7 +37,7 @@ describe("FileSettingsRepository", () => {
     );
 
     const migrated = await repository.getUserSettings(accountKey);
-    expect(migrated.schemaVersion).toBe(2);
+    expect(migrated.schemaVersion).toBe(3);
     expect(migrated.language).toBe("ru");
   });
 

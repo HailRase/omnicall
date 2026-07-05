@@ -1,5 +1,6 @@
 import type { MultiCallSettings } from "../telephony/MultiCallPolicy.js";
-import { createDefaultUserSettings, type UserSettings } from "./UserSettings.js";
+import { createDefaultCodecPreferences } from "../media/CodecPreferences.js";
+import { createDefaultUserSettings, SETTINGS_SCHEMA_VERSION, type UserSettings } from "./UserSettings.js";
 import { parseSupportedLanguage } from "./SupportedLanguage.js";
 import { validateUserSettings } from "./validateUserSettings.js";
 
@@ -18,7 +19,7 @@ export type MigrateUserSettingsResult =
   | Readonly<{ ok: false; error: SettingsMigrationError }>;
 
 /**
- * - Purpose: upgrade persisted or in-memory settings to UserSettings v2.
+ * - Purpose: upgrade persisted or in-memory settings to UserSettings v3.
  * - Inputs: unknown raw blob and optional v0 legacy fragments.
  * - Outputs: migrated UserSettings or migration error.
  */
@@ -40,7 +41,7 @@ export function migrateUserSettings(
   const record = raw as Record<string, unknown>;
   const version = record["schemaVersion"];
 
-  if (version === 2) {
+  if (version === SETTINGS_SCHEMA_VERSION) {
     const validated = validateUserSettings(raw);
     if (!validated.ok) {
       return {
@@ -51,8 +52,12 @@ export function migrateUserSettings(
     return { ok: true, value: validated.value };
   }
 
+  if (version === 2) {
+    return coerceToUserSettingsV3(record, createDefaultCodecPreferences());
+  }
+
   if (version === 1) {
-    return { ok: true, value: migrateV1ToV2(record) };
+    return { ok: true, value: migrateV1ToV3(record) };
   }
 
   if (version === 0 || version === undefined) {
@@ -85,7 +90,26 @@ function formatSchemaVersion(version: unknown): string {
   return "unknown";
 }
 
-function migrateV1ToV2(record: Record<string, unknown>): UserSettings {
+function coerceToUserSettingsV3(
+  record: Record<string, unknown>,
+  codecPreferences: UserSettings["codecPreferences"],
+): MigrateUserSettingsResult {
+  const candidate = {
+    ...record,
+    schemaVersion: SETTINGS_SCHEMA_VERSION,
+    codecPreferences,
+  };
+  const validated = validateUserSettings(candidate);
+  if (!validated.ok) {
+    return {
+      ok: false,
+      error: { code: "validation_failed", message: validated.errors.join(",") },
+    };
+  }
+  return { ok: true, value: validated.value };
+}
+
+function migrateV1ToV3(record: Record<string, unknown>): UserSettings {
   const defaults = createDefaultUserSettings();
   const v1Validated = validateV1Fragments(record);
   const parsedLanguage = parseSupportedLanguage(record["language"]);
@@ -113,6 +137,7 @@ function migrateV1ToV2(record: Record<string, unknown>): UserSettings {
       v1Validated.sipReregisterMaxAttempts ?? defaults.sipReregisterMaxAttempts,
     sipAutoRegisterOnStartup: defaults.sipAutoRegisterOnStartup,
     dismissedUpdateBannerVersion: defaults.dismissedUpdateBannerVersion,
+    codecPreferences: defaults.codecPreferences,
   };
 }
 

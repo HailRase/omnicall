@@ -1,5 +1,9 @@
 import { DEFAULT_APP_THEME, type AppTheme } from "./AppTheme.js";
 import {
+  createDefaultCodecPreferences,
+  type CodecPreferences,
+} from "../media/CodecPreferences.js";
+import {
   DEFAULT_SIP_RECONNECT_INTERVAL_SEC,
   DEFAULT_SIP_RECONNECT_MAX_ATTEMPTS,
   DEFAULT_SIP_REREGISTER_INTERVAL_SEC,
@@ -12,7 +16,7 @@ import {
   type SupportedLanguage,
 } from "./SupportedLanguage.js";
 
-export const SETTINGS_SCHEMA_VERSION = 2 as const;
+export const SETTINGS_SCHEMA_VERSION = 3 as const;
 
 export type SettingsSchemaVersion = typeof SETTINGS_SCHEMA_VERSION;
 
@@ -37,6 +41,7 @@ export type UserSettings = Readonly<{
   sipAutoRegisterOnStartup: boolean;
   /** Suppress startup update banner until manifest reports a newer version. */
   dismissedUpdateBannerVersion: string | null;
+  codecPreferences: CodecPreferences;
 }>;
 
 export { MIN_SIP_REREGISTER_INTERVAL_SEC, MIN_SIP_RECONNECT_INTERVAL_SEC };
@@ -64,5 +69,6 @@ export function createDefaultUserSettings(): UserSettings {
     sipReregisterMaxAttempts: DEFAULT_SIP_REREGISTER_MAX_ATTEMPTS,
     sipAutoRegisterOnStartup: false,
     dismissedUpdateBannerVersion: null,
+    codecPreferences: createDefaultCodecPreferences(),
   };
 }

@@ -6,6 +6,7 @@ import {
   MockOperatorPlatformGateway,
   JsSipTelephonyAdapter,
   InMemorySettingsRepository,
+  SettingsRepositoryCodecPreferencesAdapter,
   WebSocketOperatorPlatformGateway,
   WebSocketOcpSyncGateway,
   OcpWebSocketTransport,
@@ -47,6 +48,9 @@ export function createRealAccountBootstrap(
   const settingsRepository = new InMemorySettingsRepository({
     bootstrapConfig: options.bootstrapConfig ?? { mode: "sip-only" },
   });
+  const codecPreferencesPort = new SettingsRepositoryCodecPreferencesAdapter({
+    settingsRepository,
+  });
 
   const operatorLogger = createBootstrapLogger({
     featureId: "F-009",
@@ -81,6 +85,7 @@ export function createRealAccountBootstrap(
 
   const telephonyGateway = new JsSipTelephonyAdapter({
     logger: createBootstrapLogger({ featureId: "F-001", boundedContext: "Telephony" }),
+    codecPreferencesPort,
   });
   const mediaGateway = new ArbiterMediaGateway(
     new BrowserMediaAdapter({

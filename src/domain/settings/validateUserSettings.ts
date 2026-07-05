@@ -17,6 +17,8 @@ import {
   SETTINGS_SCHEMA_VERSION,
   type UserSettings,
 } from "./UserSettings.js";
+import { validateCodecPreferences } from "../media/validateCodecPreferences.js";
+import { createDefaultCodecPreferences } from "../media/CodecPreferences.js";
 
 export type ValidateUserSettingsResult =
   | Readonly<{ ok: true; value: UserSettings }>
@@ -90,6 +92,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
     errors,
   );
   const dismissedUpdateBannerVersion = readDismissedUpdateBannerVersion(record, errors);
+  const codecPreferences = readCodecPreferences(record, errors);
 
   if (errors.length > 0) {
     return { ok: false, errors };
@@ -114,6 +117,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
       sipReregisterMaxAttempts,
       sipAutoRegisterOnStartup,
       dismissedUpdateBannerVersion,
+      codecPreferences,
     },
   };
 }
@@ -264,4 +268,16 @@ function readAutoAnswerTimeout(
     return null;
   }
   return raw;
+}
+
+function readCodecPreferences(
+  record: Record<string, unknown>,
+  errors: string[],
+): UserSettings["codecPreferences"] {
+  const validated = validateCodecPreferences(record["codecPreferences"]);
+  if (!validated.ok) {
+    errors.push(...validated.errors);
+    return createDefaultCodecPreferences();
+  }
+  return validated.value;
 }

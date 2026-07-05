@@ -1,9 +1,13 @@
 import type { JSX, ReactNode } from "react";
 import type {
   AppTheme,
+  AudioCodecId,
+  CodecPreferenceMutationMessageKey,
+  CodecPreferences,
   SipAccountInput,
   SipSystemStateShellView,
   SupportedLanguage,
+  VideoCodecId,
 } from "@application/index.js";
 import { IconControlButton } from "../icons/index.js";
 import { useI18n } from "../../i18n/index.js";
@@ -73,6 +77,12 @@ export type SettingsPanelProps = Readonly<{
     actionSuccessKey: SipManualActionSuccessKey | null;
     actionLoading: "transport" | "reregister" | null;
   }>;
+  codecPreferences: CodecPreferences;
+  onAudioCodecEnabledChange: (codecId: AudioCodecId, enabled: boolean) => void;
+  onVideoCodecEnabledChange: (codecId: VideoCodecId, enabled: boolean) => void;
+  onAudioCodecReorder: (fromIndex: number, toIndex: number) => void;
+  onVideoCodecReorder: (fromIndex: number, toIndex: number) => void;
+  codecPreferencesError: CodecPreferenceMutationMessageKey | null;
   account: Readonly<{
     form: SipAccountInput;
     submitting: boolean;
@@ -121,6 +131,12 @@ export function SettingsPanel({
   onOpenDownloadPage,
   updateError = null,
   systemState,
+  codecPreferences,
+  onAudioCodecEnabledChange,
+  onVideoCodecEnabledChange,
+  onAudioCodecReorder,
+  onVideoCodecReorder,
+  codecPreferencesError,
   account,
 }: SettingsPanelProps): JSX.Element {
   const { t } = useI18n();
@@ -210,7 +226,16 @@ export function SettingsPanel({
       sectionContent = <SettingsDiagnosticsPanel />;
       break;
     case "codecs":
-      sectionContent = <SettingsCodecsPanel />;
+      sectionContent = (
+        <SettingsCodecsPanel
+          codecPreferences={codecPreferences}
+          onAudioCodecEnabledChange={onAudioCodecEnabledChange}
+          onVideoCodecEnabledChange={onVideoCodecEnabledChange}
+          onAudioCodecReorder={onAudioCodecReorder}
+          onVideoCodecReorder={onVideoCodecReorder}
+          mutationErrorKey={codecPreferencesError}
+        />
+      );
       break;
     case "headset":
       sectionContent = <SettingsHeadsetPanel />;

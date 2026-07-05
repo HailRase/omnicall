@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { SettingsFullscreenOverlay } from "./SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "./SettingsPanel.js";
 import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefaults.js";
+import { settingsCodecTestDefaults } from "./panels/settingsCodecTestDefaults.js";
 
 const meta = {
   title: "Settings/SettingsPanel",
@@ -71,6 +72,7 @@ const panelDefaults = {
   onMultiSessionsChange: () => undefined,
   account: accountDefaults,
   systemState: systemStateTestDefaults,
+  ...settingsCodecTestDefaults,
   ...themeDefaults,
   ...autoAnswerDefaults,
   ...appUpdateDefaults,
@@ -125,6 +127,13 @@ export const SystemStateSectionDark: Story = {
       </div>
     ),
   ],
+};
+
+export const CodecsSection: Story = {
+  args: {
+    ...panelDefaults,
+    activeSection: "codecs",
+  },
 };
 
 export const SidebarExpanded: Story = {

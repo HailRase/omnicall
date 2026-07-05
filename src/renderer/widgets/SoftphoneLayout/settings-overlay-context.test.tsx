@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { SettingsFullscreenOverlay } from "../../components/settings/SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "../../components/settings/SettingsPanel.js";
 import { systemStateTestDefaults } from "../../components/settings/panels/settingsSystemStateTestDefaults.js";
+import { settingsCodecTestDefaults } from "../../components/settings/panels/settingsCodecTestDefaults.js";
 import { SoftphoneLayout } from "./SoftphoneLayout.js";
 
 describe("settings overlay with layout zones", () => {
@@ -35,6 +36,7 @@ describe("settings overlay with layout zones", () => {
               autoAnswerDuringActiveSessionEnabled={false}
               onAutoAnswerDuringActiveSessionChange={() => undefined}
               systemState={systemStateTestDefaults}
+              {...settingsCodecTestDefaults}
               currentVersion="0.0.1"
               latestVersion={undefined}
               updateStatusMessage="Нажмите «Проверить обновления», чтобы узнать о новой версии."

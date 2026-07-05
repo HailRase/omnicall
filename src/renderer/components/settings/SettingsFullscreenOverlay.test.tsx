@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 import { SettingsFullscreenOverlay } from "./SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "./SettingsPanel.js";
 import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefaults.js";
+import { settingsCodecTestDefaults } from "./panels/settingsCodecTestDefaults.js";
 
 const appUpdateDefaults = {
   currentVersion: "0.0.1",
@@ -37,6 +38,7 @@ const panelProps = {
   autoAnswerDuringActiveSessionEnabled: false,
   onAutoAnswerDuringActiveSessionChange: vi.fn(),
   systemState: systemStateTestDefaults,
+  ...settingsCodecTestDefaults,
   account: {
     form: { username: "", password: "", domain: "", server: "" },
     submitting: false,

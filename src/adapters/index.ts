@@ -53,6 +53,9 @@ export { InMemorySettingsRepository as MockSettingsRepository } from "./settings
 export type { InMemorySettingsState } from "./settings/InMemorySettingsRepository.js";
 export { FileSettingsRepository } from "./settings/FileSettingsRepository.js";
 export type { FileSettingsRepositoryOptions } from "./settings/FileSettingsRepository.js";
+export { SettingsRepositoryCodecPreferencesAdapter } from "./settings/SettingsRepositoryCodecPreferencesAdapter.js";
+export type { SettingsRepositoryCodecPreferencesAdapterOptions } from "./settings/SettingsRepositoryCodecPreferencesAdapter.js";
+export { MockCodecPreferencesPort } from "./mock/MockCodecPreferencesPort.js";
 export { MockOcpSyncGateway } from "./mock/MockOcpSyncGateway.js";
 export type { MockOcpSyncScenario, MockOcpCampaignRespondScenario, MockDlgStopScenario } from "./mock/MockOcpSyncGateway.js";
 export {

@@ -261,6 +261,20 @@ export {
   MIN_AUTO_ANSWER_TIMEOUT_SEC,
   type UserSettings,
 } from "@domain/index.js";
+export {
+  reorderAudioCodecs,
+  reorderVideoCodecs,
+  setAudioCodecEnabled,
+  setVideoCodecEnabled,
+  type AudioCodecId,
+  type CodecPreferences,
+  type VideoCodecId,
+} from "@domain/index.js";
+export {
+  mapCodecPreferenceMutationError,
+  type CodecPreferenceMutationMessageKey,
+} from "./settings/mapCodecPreferenceMutationError.js";
+export { isAudioCodecToggleDisabled } from "./settings/deriveCodecCheckboxDisabled.js";
 export { SafeLogoutUseCase } from "./use-cases/SafeLogoutUseCase.js";
 export { EndUserSessionUseCase } from "./use-cases/EndUserSessionUseCase.js";
 export type { EndUserSessionInput } from "./use-cases/EndUserSessionUseCase.js";

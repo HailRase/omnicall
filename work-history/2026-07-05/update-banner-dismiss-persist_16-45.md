@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-05 16:45
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `5a295dd`
 
 ## Где
 - `src/ports/updates/UpdateBannerDismissStore.ts`
@@ -22,4 +22,4 @@
 ## Результат
 - `npm run release:preflight` — OK (1058 tests)
 - `npm run release:sync-manifest` — OK (`latestVersion: 0.1.3`)
-- Tag/push `v0.1.3` — по запросу пользователя
+- Tag/push `v0.1.3` — выполнено

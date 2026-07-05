@@ -597,3 +597,29 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Integration: save/reload language through `AccountBootstrapFacade` + settings repository.
   - E2E: deferred until harness exists.
 - Implementation evidence: `docs/softphone/adr/ADR-0006-interface-internationalization.md`, `src/domain/settings/SupportedLanguage.ts`, `src/domain/settings/UserSettings.ts`, `src/renderer/i18n/messages.ts`, `src/renderer/i18n/runtime.ts`, `.cursor/rules/i18n.mdc`, `docs/softphone/I18N-Architecture.md`, `docs/softphone/I18N-Coverage.md`
+
+## F-022: Codec Preferences
+
+- Legacy IDs: `LF-084`
+- Context: Media | Settings
+- Priority: medium
+- Status: **implemented** (domain + port + adapter + UI; manual SBC smoke optional)
+- Owner: TBD
+- Inputs: user codec order/enablement in settings; browser capability snapshot (adapter)
+- Outputs: persisted `UserSettings.codecPreferences`; SDP/`setCodecPreferences` on call/answer (WU-4)
+- Acceptance Criteria:
+  - `UserSettings` v3 with validated `codecPreferences` (audio + video lists).
+  - v2→v3 migration injects defaults without breaking existing fields.
+  - At least one voice audio codec enabled; `telephone-event` cannot be disabled.
+  - Reorder/toggle helpers are pure domain functions for UI wiring.
+  - New sessions use configured codec order (adapter WU-4 — **done**).
+  - Settings Codecs panel with drag-and-drop and checkboxes (UI WU-5 — **done**).
+- Test Coverage:
+  - Unit: `validateCodecPreferences`, `reorderCodecPreferences`, `validateUserSettings` v3, `migrateUserSettings` v2→v3, `SettingsCodecsPanel.test.tsx`
+  - Integration: facade/repository round-trip (deferred WU-3)
+  - Adapter: JsSIP SDP smoke (WU-4 unit tests; manual SBC checklist in work-history)
+  - E2E: deferred
+- Implementation evidence (WU-2): `src/domain/media/CodecId.ts`, `CodecPreferences.ts`, `validateCodecPreferences.ts`, `reorderCodecPreferences.ts`, `UserSettings` v3, `docs/softphone/P11-Codec-Preferences-Design.md`
+- Implementation evidence (WU-3): `src/ports/media/CodecPreferencesPort.ts`, `SettingsRepositoryCodecPreferencesAdapter.ts`, `resolveEnabledCodecs.ts`, bootstrap inject in `createRealAccountBootstrap.ts`
+- Implementation evidence (WU-4): `buildJsSipCallMediaOptions.ts`, `applyCodecPreferencesToPeerConnection.ts`, `mungeSdpCodecOrder.ts`, `wireJsSipCodecPreferences.ts`, `resolveJsSipSessionCodecs.ts`, `JsSipTelephonyAdapter` makeCall/answer/incoming wiring
+- Implementation evidence (WU-5 UI): `SettingsCodecsPanel.tsx`, `CodecPreferencesSortableList.tsx`, `useSettingsActions` codec callbacks, i18n `settings.codecs.*`

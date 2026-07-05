@@ -16,6 +16,8 @@
 | `src/renderer/App.tsx`, `OcpToastStack.tsx`, `ShellOverlaySheet.tsx`, `CallControlsShell.tsx` | bootstrap/shell/toast/audio aria copy | `bootstrap.*`, `ocp.toast.*`, `shell.overlay.*`, `call.remoteAudio.*` | migrated | component/shell tests + `i18n:check` |
 | `src/renderer/hooks/useSipSystemStateActions.ts` | action feedback via semantic keys | `settings.systemState.action.*` | migrated | settings panel tests |
 
+| `src/renderer/components/settings/panels/SettingsCodecsPanel.tsx` | i18n-driven codec order/enablement UI | `settings.codecs.*` | migrated | `SettingsCodecsPanel.test.tsx` |
+
 ## Remaining gaps
 
 - Legacy `recovery.*` catalog keys retained for OCP-deferred paths; SIP recovery UI uses `settings.systemState.*` and `header.sipStatus.*`.

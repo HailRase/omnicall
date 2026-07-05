@@ -86,3 +86,4 @@ export type {
 } from "./updates/PlatformInfoGateway.js";
 export type { ExternalUrlGateway } from "./updates/ExternalUrlGateway.js";
 export type { UpdateBannerDismissStore } from "./updates/UpdateBannerDismissStore.js";
+export type { CodecPreferencesPort } from "./media/CodecPreferencesPort.js";

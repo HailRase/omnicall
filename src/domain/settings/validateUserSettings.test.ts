@@ -3,7 +3,7 @@ import { createDefaultUserSettings } from "./UserSettings.js";
 import { validateUserSettings } from "./validateUserSettings.js";
 
 describe("validateUserSettings", () => {
-  it("accepts default v2 settings", () => {
+  it("accepts default v3 settings", () => {
     const result = validateUserSettings(createDefaultUserSettings());
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -32,7 +32,7 @@ describe("validateUserSettings", () => {
 
   it("rejects invalid auto-answer timeout", () => {
     const result = validateUserSettings({
-      schemaVersion: 2,
+      schemaVersion: 3,
       multiSessionsEnabled: true,
       autoUnholdOnTransferFailure: true,
       autoAnswerTimeoutSec: -1,
@@ -46,7 +46,7 @@ describe("validateUserSettings", () => {
 
   it("rejects missing boolean fields", () => {
     const result = validateUserSettings({
-      schemaVersion: 2,
+      schemaVersion: 3,
       autoAnswerTimeoutSec: null,
     });
     expect(result.ok).toBe(false);
@@ -54,7 +54,7 @@ describe("validateUserSettings", () => {
 
   it("defaults theme to light when field is missing", () => {
     const result = validateUserSettings({
-      schemaVersion: 2,
+      schemaVersion: 3,
       multiSessionsEnabled: true,
       autoUnholdOnTransferFailure: true,
       autoAnswerTimeoutSec: null,
@@ -82,7 +82,7 @@ describe("validateUserSettings", () => {
 
   it("defaults autoAnswerDuringActiveSessionEnabled when field is missing", () => {
     const result = validateUserSettings({
-      schemaVersion: 2,
+      schemaVersion: 3,
       multiSessionsEnabled: true,
       autoUnholdOnTransferFailure: true,
       autoAnswerTimeoutSec: null,
@@ -157,6 +157,25 @@ describe("validateUserSettings", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.dismissedUpdateBannerVersion).toBeNull();
+    }
+  });
+
+  it("accepts v3 codec preferences payload", () => {
+    const defaults = createDefaultUserSettings();
+    const result = validateUserSettings({
+      ...defaults,
+      codecPreferences: {
+        ...defaults.codecPreferences,
+        audio: defaults.codecPreferences.audio.map((entry) =>
+          entry.id === "opus" ? { ...entry, enabled: false } : entry,
+        ),
+      },
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.codecPreferences.audio.find((entry) => entry.id === "opus")?.enabled).toBe(
+        false,
+      );
     }
   });
 });

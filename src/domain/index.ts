@@ -32,6 +32,7 @@ export {
   toAutoAnswerDuringActiveSessionEnabled,
   toMultiCallSettings,
 } from "./settings/userSettingsMapping.js";
+export { resolveSettingsAccountKeyFromSipAccount } from "./settings/resolveSettingsAccountKey.js";
 export type { DomainEvent, DomainEventBase } from "./shared/DomainEvent.js";
 export { createDomainEvent } from "./shared/DomainEvent.js";
 export type {
@@ -614,6 +615,39 @@ export type { TonePlaybackKind } from "./media/TonePlaybackKind.js";
 export { TONE_PLAYBACK_KINDS, isTonePlaybackKind } from "./media/TonePlaybackKind.js";
 export type { TonePlaybackRequest } from "./media/TonePlaybackRequest.js";
 export { resolveActiveTonePlayback } from "./media/resolveActiveTonePlayback.js";
+export {
+  AUDIO_CODEC_IDS,
+  AUDIO_CODEC_MIME,
+  DTMF_AUDIO_CODEC_ID,
+  VIDEO_CODEC_IDS,
+  VIDEO_CODEC_MIME,
+  isAudioCodecId,
+  isVideoCodecId,
+  parseAudioCodecId,
+  parseVideoCodecId,
+  type AudioCodecId,
+  type MediaCodecId,
+  type VideoCodecId,
+} from "./media/CodecId.js";
+export type { CodecPreferenceEntry } from "./media/CodecPreferenceEntry.js";
+export { createCodecPreferenceEntry } from "./media/CodecPreferenceEntry.js";
+export {
+  createDefaultCodecPreferences,
+  VOICE_AUDIO_CODEC_IDS,
+  type CodecPreferences,
+} from "./media/CodecPreferences.js";
+export type { ValidateCodecPreferencesResult } from "./media/validateCodecPreferences.js";
+export { validateCodecPreferences } from "./media/validateCodecPreferences.js";
+export type {
+  CodecPreferenceMutationError,
+  CodecPreferenceMutationResult,
+} from "./media/reorderCodecPreferences.js";
+export {
+  reorderAudioCodecs,
+  reorderVideoCodecs,
+  setAudioCodecEnabled,
+  setVideoCodecEnabled,
+} from "./media/reorderCodecPreferences.js";
 export {
   OCP_RECONNECT_POLICY_CONFIG,
   SIP_RECONNECT_POLICY_CONFIG,

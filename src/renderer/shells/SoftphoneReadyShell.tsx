@@ -200,6 +200,12 @@ export function SoftphoneReadyShell({
                 actionSuccessKey: sipSystemStateActions.actionSuccessKey,
                 actionLoading: sipSystemStateActions.actionLoading,
               }}
+              codecPreferences={settingsActions.userSettings.codecPreferences}
+              onAudioCodecEnabledChange={settingsActions.onAudioCodecEnabledChange}
+              onVideoCodecEnabledChange={settingsActions.onVideoCodecEnabledChange}
+              onAudioCodecReorder={settingsActions.onAudioCodecReorder}
+              onVideoCodecReorder={settingsActions.onVideoCodecReorder}
+              codecPreferencesError={settingsActions.codecPreferencesError}
               account={{
                 form: accountActions.form,
                 submitting: accountActions.submitting,

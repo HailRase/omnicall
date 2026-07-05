@@ -1,12 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 import {
   createCallId,
+  createDefaultCodecPreferences,
   createPhoneNumber,
   createSipAccount,
   createSipAccountId,
+  reorderAudioCodecs,
 } from "@domain/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
+import { MockCodecPreferencesPort } from "@adapters/mock/MockCodecPreferencesPort.js";
 import { JsSipTelephonyAdapter } from "./JsSipTelephonyAdapter.js";
 import type {
   JsSipDisconnectEvent,
@@ -354,10 +357,16 @@ describe("JsSipTelephonyAdapter", () => {
     server: "wss://onedemoserver.online:7443",
   });
 
-  function createAdapter(mockUa: MockJsSipUa): JsSipTelephonyAdapter {
+  function createAdapter(
+    mockUa: MockJsSipUa,
+    options?: Readonly<{ codecPreferencesPort?: MockCodecPreferencesPort }>,
+  ): JsSipTelephonyAdapter {
     return new JsSipTelephonyAdapter({
       logger: createTestLogger({ featureId: "F-001", boundedContext: "Telephony" }),
       createUserAgent: () => mockUa,
+      ...(options?.codecPreferencesPort !== undefined
+        ? { codecPreferencesPort: options.codecPreferencesPort }
+        : {}),
     });
   }
 
@@ -1456,5 +1465,80 @@ describe("JsSipTelephonyAdapter", () => {
     expect(answerResult.ok).toBe(true);
     expect(incomingSession.answerCalls).toBe(1);
     expect(mockUa.callInvocations[0]?.session.holdCalls).toBe(1);
+  });
+
+  it("makeCall wires codec preferences and munges local sdp from settings port", async () => {
+    const reordered = reorderAudioCodecs(createDefaultCodecPreferences(), 0, 1);
+    expect(reordered.ok).toBe(true);
+    if (!reordered.ok) {
+      throw new Error("expected reorder to succeed");
+    }
+
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa, {
+      codecPreferencesPort: new MockCodecPreferencesPort(reordered.value),
+    });
+    await registerAdapter(adapter, mockUa);
+
+    const makePromise = adapter.makeCall({
+      callId: createCallId("codec-out"),
+      number: createPhoneNumber("320"),
+      correlationId: createCorrelationId(),
+    });
+
+    const session = mockUa.callInvocations[0]?.session;
+    expect(session).toBeDefined();
+
+    await vi.waitFor(() => {
+      const probe = {
+        originator: "local",
+        type: "offer",
+        sdp: [
+          "m=audio 9 UDP/TLS/RTP/SAVPF 111 0 110",
+          "a=rtpmap:111 opus/48000/2",
+          "a=rtpmap:0 PCMU/8000",
+          "a=rtpmap:110 telephone-event/48000",
+        ].join("\r\n"),
+      };
+      session?.emit("sdp", probe);
+      if (!probe.sdp.includes("m=audio 9 UDP/TLS/RTP/SAVPF 0 111 110")) {
+        throw new Error("codec preferences not wired yet");
+      }
+    });
+
+    const sdpEvent = {
+      originator: "local",
+      type: "offer",
+      sdp: [
+        "m=audio 9 UDP/TLS/RTP/SAVPF 111 0 110",
+        "a=rtpmap:111 opus/48000/2",
+        "a=rtpmap:0 PCMU/8000",
+        "a=rtpmap:110 telephone-event/48000",
+      ].join("\r\n"),
+    };
+    session?.emit("sdp", sdpEvent);
+    expect(sdpEvent.sdp).toContain("m=audio 9 UDP/TLS/RTP/SAVPF 0 111 110");
+
+    session?.emit("confirmed");
+    const result = await makePromise;
+    expect(result.ok).toBe(true);
+  });
+
+  it("falls back to default codec wiring when codec port is unavailable", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const makePromise = adapter.makeCall({
+      callId: createCallId("codec-default"),
+      number: createPhoneNumber("321"),
+      correlationId: createCorrelationId(),
+    });
+
+    const session = mockUa.callInvocations[0]?.session;
+    session?.emit("confirmed");
+    const result = await makePromise;
+    expect(result.ok).toBe(true);
+    expect(adapter.getCodecPreferencesPort()).toBeNull();
   });
 });

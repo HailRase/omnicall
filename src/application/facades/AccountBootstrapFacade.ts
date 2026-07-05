@@ -75,10 +75,9 @@ import { CallEngine } from "@application/services/CallEngine.js";
 import type { MultiCallSettings } from "@domain/index.js";
 import type { SettingsAccountKey, UserSettings } from "@domain/index.js";
 import {
-  ANONYMOUS_SETTINGS_ACCOUNT,
   createCallId,
-  createSettingsAccountKey,
   mergeMultiCallIntoUserSettings,
+  resolveSettingsAccountKeyFromSipAccount,
   toMultiCallSettings,
   validateUserSettings,
   type Call,
@@ -521,10 +520,7 @@ export class AccountBootstrapFacade {
 
   private async resolveSettingsAccountKey(): Promise<SettingsAccountKey> {
     const account = await this.deps.settingsRepository.getSipAccount();
-    if (account === null) {
-      return createSettingsAccountKey(ANONYMOUS_SETTINGS_ACCOUNT);
-    }
-    return createSettingsAccountKey(account.username);
+    return resolveSettingsAccountKeyFromSipAccount(account);
   }
 
   private async saveUserSettingsInternal(

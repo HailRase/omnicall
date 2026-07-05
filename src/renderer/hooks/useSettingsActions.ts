@@ -7,9 +7,17 @@ import {
   MIN_AUTO_ANSWER_TIMEOUT_SEC,
   MIN_SIP_RECONNECT_INTERVAL_SEC,
   MIN_SIP_REREGISTER_INTERVAL_SEC,
+  mapCodecPreferenceMutationError,
+  reorderAudioCodecs,
+  reorderVideoCodecs,
+  setAudioCodecEnabled,
+  setVideoCodecEnabled,
   type AppTheme,
+  type AudioCodecId,
+  type CodecPreferenceMutationMessageKey,
   type SupportedLanguage,
   type UserSettings,
+  type VideoCodecId,
 } from "@application/index.js";
 import { applyAppTheme } from "../theme/applyAppTheme.js";
 import { DEFAULT_AUTO_ANSWER_TIMEOUT_SEC } from "../components/settings/panels/SettingsSessionsPanel.js";
@@ -37,6 +45,11 @@ type UseSettingsActionsResult = Readonly<{
   onSipReregisterMaxAttemptsChange: (attempts: number) => void;
   onSipAutoRegisterOnStartupToggle: (enabled: boolean) => void;
   onDismissUpdateBannerVersion: (latestVersion: string) => void;
+  onAudioCodecEnabledChange: (codecId: AudioCodecId, enabled: boolean) => void;
+  onVideoCodecEnabledChange: (codecId: VideoCodecId, enabled: boolean) => void;
+  onAudioCodecReorder: (fromIndex: number, toIndex: number) => void;
+  onVideoCodecReorder: (fromIndex: number, toIndex: number) => void;
+  codecPreferencesError: CodecPreferenceMutationMessageKey | null;
   settingsUpdateError: string | null;
 }>;
 
@@ -60,6 +73,8 @@ export function useSettingsActions(
 ): UseSettingsActionsResult {
   const { facade, currentSettings, applyMultiCallSettings } = input;
   const [settingsUpdateError, setSettingsUpdateError] = useState<string | null>(null);
+  const [codecPreferencesError, setCodecPreferencesError] =
+    useState<CodecPreferenceMutationMessageKey | null>(null);
   const [userSettings, setUserSettings] = useState<UserSettings>(createDefaultUserSettings());
 
   useEffect(() => {
@@ -92,6 +107,7 @@ export function useSettingsActions(
           }
 
           setSettingsUpdateError(null);
+          setCodecPreferencesError(null);
           setUserSettings(result.value);
           setRendererLanguage(result.value.language);
           applyAppTheme(result.value.theme);
@@ -253,6 +269,77 @@ export function useSettingsActions(
     [persistUserSettings, userSettings],
   );
 
+  const applyCodecPreferencesMutation = useCallback(
+    (next: UserSettings): void => {
+      persistUserSettings(next);
+    },
+    [persistUserSettings],
+  );
+
+  const onAudioCodecEnabledChange = useCallback(
+    (codecId: AudioCodecId, enabled: boolean): void => {
+      const result = setAudioCodecEnabled(userSettings.codecPreferences, codecId, enabled);
+      if (!result.ok) {
+        setCodecPreferencesError(mapCodecPreferenceMutationError(result.error));
+        return;
+      }
+      setCodecPreferencesError(null);
+      applyCodecPreferencesMutation({
+        ...userSettings,
+        codecPreferences: result.value,
+      });
+    },
+    [applyCodecPreferencesMutation, userSettings],
+  );
+
+  const onVideoCodecEnabledChange = useCallback(
+    (codecId: VideoCodecId, enabled: boolean): void => {
+      const result = setVideoCodecEnabled(userSettings.codecPreferences, codecId, enabled);
+      if (!result.ok) {
+        setCodecPreferencesError(mapCodecPreferenceMutationError(result.error));
+        return;
+      }
+      setCodecPreferencesError(null);
+      applyCodecPreferencesMutation({
+        ...userSettings,
+        codecPreferences: result.value,
+      });
+    },
+    [applyCodecPreferencesMutation, userSettings],
+  );
+
+  const onAudioCodecReorder = useCallback(
+    (fromIndex: number, toIndex: number): void => {
+      const result = reorderAudioCodecs(userSettings.codecPreferences, fromIndex, toIndex);
+      if (!result.ok) {
+        setCodecPreferencesError(mapCodecPreferenceMutationError(result.error));
+        return;
+      }
+      setCodecPreferencesError(null);
+      applyCodecPreferencesMutation({
+        ...userSettings,
+        codecPreferences: result.value,
+      });
+    },
+    [applyCodecPreferencesMutation, userSettings],
+  );
+
+  const onVideoCodecReorder = useCallback(
+    (fromIndex: number, toIndex: number): void => {
+      const result = reorderVideoCodecs(userSettings.codecPreferences, fromIndex, toIndex);
+      if (!result.ok) {
+        setCodecPreferencesError(mapCodecPreferenceMutationError(result.error));
+        return;
+      }
+      setCodecPreferencesError(null);
+      applyCodecPreferencesMutation({
+        ...userSettings,
+        codecPreferences: result.value,
+      });
+    },
+    [applyCodecPreferencesMutation, userSettings],
+  );
+
   const onDismissUpdateBannerVersion = useCallback(
     (latestVersion: string): void => {
       persistUserSettings({
@@ -279,6 +366,11 @@ export function useSettingsActions(
     onSipReregisterMaxAttemptsChange,
     onSipAutoRegisterOnStartupToggle,
     onDismissUpdateBannerVersion,
+    onAudioCodecEnabledChange,
+    onVideoCodecEnabledChange,
+    onAudioCodecReorder,
+    onVideoCodecReorder,
+    codecPreferencesError,
     settingsUpdateError,
   };
 }

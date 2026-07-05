@@ -23,7 +23,7 @@ import type {
 } from "@ports/index.js";
 import type { CallId, SipAccount } from "@domain/index.js";
 import { createCallId, mapSipRegistrationFailureFromParts } from "@domain/index.js";
-import type { Logger } from "@ports/index.js";
+import type { Logger, CodecPreferencesPort } from "@ports/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { createPlatformError, normalizeUnknownError } from "@shared/errors/index.js";
@@ -42,6 +42,9 @@ import { executeJsSipRefer } from "./executeJsSipRefer.js";
 import { executeJsSipSendDtmf } from "./executeJsSipSendDtmf.js";
 import type { JsSipNewRtcSessionEvent, JsSipRtcSessionPort } from "./JsSipRtcSessionPort.js";
 import { wireJsSipRtcSessionLifecycle } from "./wireJsSipRtcSessionLifecycle.js";
+import { wireJsSipCodecPreferences } from "./wireJsSipCodecPreferences.js";
+import { buildJsSipCallMediaOptions } from "./buildJsSipCallMediaOptions.js";
+import { resolveJsSipSessionCodecs } from "./resolveJsSipSessionCodecs.js";
 import { createJsSipUserAgent } from "./createJsSipUserAgent.js";
 import { ensureJsSipRtcSessionPort, resolveReplacesForRefer, resolveReplacesStorageTarget } from "./wrapJsSipRtcSession.js";
 import { awaitJsSipRegistration } from "./awaitJsSipRegistration.js";
@@ -57,16 +60,13 @@ const FEATURE_ID_BLIND_TRANSFER = "F-006";
 const FEATURE_ID_ATTENDED_TRANSFER = "F-007";
 const FEATURE_ID_DTMF = "F-008";
 
-const DEFAULT_CALL_MEDIA_OPTIONS = {
-  mediaConstraints: { audio: true, video: false },
-  rtcOfferConstraints: { offerToReceiveAudio: true, offerToReceiveVideo: false },
-} as const;
-
 const DEFAULT_TRANSPORT_CONNECTION_TIMEOUT_MS = 10_000;
 
 export type JsSipTelephonyAdapterOptions = Readonly<{
   logger: Logger;
   createUserAgent?: JsSipUserAgentFactory;
+  /** WU-3: injected for WU-4 SDP/codec apply on makeCall/answer. */
+  codecPreferencesPort?: CodecPreferencesPort;
 }>;
 
 export type TelephonyPeerConnectionBoundNotification = Readonly<{
@@ -82,6 +82,7 @@ export type TelephonyPeerConnectionBoundNotification = Readonly<{
 export class JsSipTelephonyAdapter implements TelephonyGateway {
   private readonly logger: Logger;
   private readonly createUserAgent: JsSipUserAgentFactory;
+  private readonly codecPreferencesPort: CodecPreferencesPort | null;
   private readonly sessions = new Map<CallId, JsSipRtcSessionPort>();
   private readonly replacesSessions = new Map<CallId, unknown>();
   private readonly peerConnections = new Map<CallId, unknown>();
@@ -129,6 +130,11 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
   constructor(options: JsSipTelephonyAdapterOptions) {
     this.logger = options.logger;
     this.createUserAgent = options.createUserAgent ?? createJsSipUserAgent;
+    this.codecPreferencesPort = options.codecPreferencesPort ?? null;
+  }
+
+  getCodecPreferencesPort(): CodecPreferencesPort | null {
+    return this.codecPreferencesPort;
   }
 
   async register(
@@ -426,15 +432,17 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     });
 
     try {
-      const session = this.ua.call(target, DEFAULT_CALL_MEDIA_OPTIONS);
+      const mediaOptions = buildJsSipCallMediaOptions();
+      const session = this.ua.call(target, mediaOptions);
       this.registerSession(callId, session, correlationId);
       this.attachSessionLifecycle(
         callId,
-        session,
+        ensureJsSipRtcSessionPort(session),
         correlationId,
         FEATURE_ID_OUTGOING,
         { notifyOnConfirmed: true },
       );
+      void this.attachSessionCodecPreferences(session, correlationId, FEATURE_ID_OUTGOING);
 
       const progressResult = await executeJsSipOutboundCall(session);
 
@@ -486,7 +494,8 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     });
 
     try {
-      session.answer(DEFAULT_CALL_MEDIA_OPTIONS);
+      const mediaOptions = buildJsSipCallMediaOptions();
+      session.answer(mediaOptions);
       this.logger.info("jssip_answer_call_succeeded", {
         correlationId,
         featureId: FEATURE_ID_INCOMING,
@@ -1041,6 +1050,22 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     });
   }
 
+  private async attachSessionCodecPreferences(
+    session: JsSipRtcSessionPort | RTCSession,
+    correlationId: CorrelationId,
+    featureId: string,
+  ): Promise<void> {
+    const resolved = await resolveJsSipSessionCodecs(this.codecPreferencesPort, this.logger);
+    const port = ensureJsSipRtcSessionPort(session);
+    wireJsSipCodecPreferences({
+      session: port,
+      resolved,
+      logger: this.logger,
+      correlationId,
+      featureId,
+    });
+  }
+
   private registerSession(
     callId: CallId,
     session: JsSipRtcSessionPort | RTCSession,
@@ -1138,6 +1163,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
 
     this.registerSession(callId, event.session, correlationId);
     this.attachSessionLifecycle(callId, port, correlationId, FEATURE_ID_INCOMING);
+    void this.attachSessionCodecPreferences(event.session, correlationId, FEATURE_ID_INCOMING);
 
     const remoteHeader = port.getRemoteIdentityHeader();
     const notification = mapTelephonyIncomingNotification({

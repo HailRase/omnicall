@@ -3,8 +3,9 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { SettingsPanel } from "./SettingsPanel.js";
 import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefaults.js";
+import { settingsCodecTestDefaults } from "./panels/settingsCodecTestDefaults.js";
+import { SettingsPanel } from "./SettingsPanel.js";
 
 afterEach(() => {
   cleanup();
@@ -50,6 +51,8 @@ const autoAnswerDefaults = {
   onAutoAnswerDuringActiveSessionChange: vi.fn(),
 } as const;
 
+const codecDefaults = settingsCodecTestDefaults;
+
 const panelBaseProps = {
   sidebarExpanded: false,
   onClose: vi.fn(),
@@ -62,6 +65,7 @@ const panelBaseProps = {
   ...themeDefaults,
   ...autoAnswerDefaults,
   ...appUpdateDefaults,
+  ...codecDefaults,
 } as const;
 
 describe("SettingsPanel", () => {
