@@ -41,6 +41,15 @@ const userAvatarMenuActions = {
   handleLogout: vi.fn(),
 };
 
+const windowControls = {
+  platform: "linux" as const,
+  showNativeWindowControls: true,
+  isShuttingDown: false,
+  onMinimize: vi.fn(),
+  onClose: vi.fn(),
+  onRestart: vi.fn(),
+};
+
 describe("SoftphoneShellHeader", () => {
   it("renders avatar, registration dot, and SIP status without recovery controls", () => {
     render(
@@ -48,6 +57,7 @@ describe("SoftphoneShellHeader", () => {
         headerChrome={headerChrome}
         userAvatarMenu={userAvatarMenu}
         userAvatarMenuActions={userAvatarMenuActions}
+        windowControls={windowControls}
       />,
     );
 
@@ -80,6 +90,7 @@ describe("SoftphoneShellHeader", () => {
         }}
         userAvatarMenu={userAvatarMenu}
         userAvatarMenuActions={userAvatarMenuActions}
+        windowControls={windowControls}
       />,
     );
 

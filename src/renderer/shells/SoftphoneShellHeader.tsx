@@ -2,6 +2,8 @@
 import type { HeaderChromeShellViewModel } from "@application/index.js";
 import type { UseUserAvatarMenuActionsResult } from "../hooks/useUserAvatarMenuActions.js";
 import type { UseUserAvatarMenuResult } from "../hooks/useUserAvatarMenu.js";
+import { ShellTitleBar } from "../components/shell/ShellTitleBar.js";
+import type { ShellWindowControlsViewModel } from "../hooks/useShellWindowControls.js";
 import { useI18n } from "../i18n/index.js";
 import { RegistrationStatusDot } from "../components/header/RegistrationStatusDot.js";
 import { UserAvatar } from "../components/header/UserAvatar.js";
@@ -13,6 +15,7 @@ type SoftphoneShellHeaderProps = Readonly<{
   headerChrome: HeaderChromeShellViewModel;
   userAvatarMenu: UseUserAvatarMenuResult;
   userAvatarMenuActions: UseUserAvatarMenuActionsResult;
+  windowControls: ShellWindowControlsViewModel;
 }>;
 
 /**
@@ -25,6 +28,7 @@ export function SoftphoneShellHeader({
   headerChrome,
   userAvatarMenu,
   userAvatarMenuActions,
+  windowControls,
 }: SoftphoneShellHeaderProps): JSX.Element {
   const { t } = useI18n();
   const statusLabel =
@@ -41,47 +45,52 @@ export function SoftphoneShellHeader({
 
   return (
     <header className={styles.header} data-testid="shell-header">
-      <div className={styles.headerBar}>
-        <div className={styles.headerBrand}>
-          <div className={styles.userIdentity}>
-            <div className={styles.avatarGroup}>
-              <UserAvatar
-                ref={userAvatarMenu.anchorRef}
-                initials={headerChrome.avatarInitials}
-                ariaExpanded={userAvatarMenu.open}
-                ariaHasPopup="menu"
-                onClick={userAvatarMenu.toggle}
-              />
-              <RegistrationStatusDot
-                variant={headerChrome.registrationDotVariant}
-                label={registrationDotLabel}
-              />
-              <UserAvatarMenu
-                open={userAvatarMenu.open}
-                menuRef={userAvatarMenu.menuRef}
-                position={userAvatarMenu.position}
-                dndEnabled={userAvatarMenuActions.dndEnabled}
-                dndDisabledReason={userAvatarMenuActions.dndDisabledReason}
-                logoutDisabledReason={userAvatarMenuActions.logoutDisabledReason}
-                onOpenSettings={userAvatarMenuActions.handleOpenSettings}
-                onToggleDnd={userAvatarMenuActions.handleToggleDnd}
-                onLogout={userAvatarMenuActions.handleLogout}
-              />
+      <ShellTitleBar
+        windowControls={windowControls}
+        leading={
+          <div className={styles.headerBar}>
+            <div className={styles.headerBrand}>
+              <div className={styles.userIdentity}>
+                <div className={styles.avatarGroup}>
+                  <UserAvatar
+                    ref={userAvatarMenu.anchorRef}
+                    initials={headerChrome.avatarInitials}
+                    ariaExpanded={userAvatarMenu.open}
+                    ariaHasPopup="menu"
+                    onClick={userAvatarMenu.toggle}
+                  />
+                  <RegistrationStatusDot
+                    variant={headerChrome.registrationDotVariant}
+                    label={registrationDotLabel}
+                  />
+                  <UserAvatarMenu
+                    open={userAvatarMenu.open}
+                    menuRef={userAvatarMenu.menuRef}
+                    position={userAvatarMenu.position}
+                    dndEnabled={userAvatarMenuActions.dndEnabled}
+                    dndDisabledReason={userAvatarMenuActions.dndDisabledReason}
+                    logoutDisabledReason={userAvatarMenuActions.logoutDisabledReason}
+                    onOpenSettings={userAvatarMenuActions.handleOpenSettings}
+                    onToggleDnd={userAvatarMenuActions.handleToggleDnd}
+                    onLogout={userAvatarMenuActions.handleLogout}
+                  />
+                </div>
+                {headerChrome.showUserIdentity &&
+                headerChrome.displayName !== null &&
+                statusLabel !== null &&
+                headerChrome.sipStatusTone !== null ? (
+                  <UserHeaderIdentity
+                    displayName={headerChrome.displayName}
+                    sipStatusLabel={statusLabel}
+                    sipStatusTimerSuffix={headerChrome.sipStatusTimerSuffix}
+                    sipStatusTone={headerChrome.sipStatusTone}
+                  />
+                ) : null}
+              </div>
             </div>
-            {headerChrome.showUserIdentity &&
-            headerChrome.displayName !== null &&
-            statusLabel !== null &&
-            headerChrome.sipStatusTone !== null ? (
-              <UserHeaderIdentity
-                displayName={headerChrome.displayName}
-                sipStatusLabel={statusLabel}
-                sipStatusTimerSuffix={headerChrome.sipStatusTimerSuffix}
-                sipStatusTone={headerChrome.sipStatusTone}
-              />
-            ) : null}
           </div>
-        </div>
-      </div>
+        }
+      />
     </header>
   );
 }

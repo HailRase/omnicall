@@ -276,10 +276,8 @@ export type {
   ManualReconnectRequestedEvent,
 } from "./shared/recovery/manualRecoveryEvents.js";
 export { createManualReconnectRequestedEvent } from "./shared/recovery/manualRecoveryEvents.js";
-export type {
-  AppShutdownSource,
-  AppShutdownRequestedEvent,
-} from "./platform/appLifecycleEvents.js";
+export type { AppShutdownSource } from "@shared/platform/AppLifecycle.js";
+export type { AppShutdownRequestedEvent } from "./platform/appLifecycleEvents.js";
 export { createAppShutdownRequestedEvent } from "./platform/appLifecycleEvents.js";
 export type {
   ShellWindowLayoutMode,

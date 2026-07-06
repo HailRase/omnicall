@@ -40,6 +40,14 @@ const baseHeaderArgs = {
     handleToggleDnd: noop,
     handleLogout: noop,
   },
+  windowControls: {
+    platform: "win32" as const,
+    showNativeWindowControls: true,
+    isShuttingDown: false,
+    onMinimize: noop,
+    onClose: noop,
+    onRestart: noop,
+  },
 };
 
 const meta = {

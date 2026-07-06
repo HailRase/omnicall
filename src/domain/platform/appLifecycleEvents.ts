@@ -1,7 +1,6 @@
 import { createDomainEvent } from "../shared/DomainEvent.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
-
-export type AppShutdownSource = "before-quit" | "window-close";
+import type { AppShutdownSource } from "@shared/platform/AppLifecycle.js";
 
 export type AppShutdownRequestedEvent = ReturnType<typeof createAppShutdownRequestedEvent>;
 

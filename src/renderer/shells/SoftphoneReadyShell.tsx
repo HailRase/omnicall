@@ -13,6 +13,7 @@ import { useHeaderChromeShell } from "../hooks/useHeaderChromeShell.js";
 import { useOcpNotifications } from "../hooks/useOcpNotifications.js";
 import { useOverlayShell } from "../hooks/useOverlayShell.js";
 import { useShellWindowLayout } from "../hooks/useShellWindowLayout.js";
+import { useShellWindowControls } from "../hooks/useShellWindowControls.js";
 import { useAppUpdate } from "../hooks/useAppUpdate.js";
 import { useSettingsActions } from "../hooks/useSettingsActions.js";
 import {
@@ -35,6 +36,7 @@ import { SoftphoneShellHeader } from "./SoftphoneShellHeader.js";
 type SoftphoneReadyShellProps = Readonly<{
   facade: AccountBootstrapFacade;
   shellChrome: ReturnType<typeof useSoftphoneShellChrome>;
+  isShuttingDown: boolean;
 }>;
 
 /**
@@ -45,6 +47,7 @@ type SoftphoneReadyShellProps = Readonly<{
 export function SoftphoneReadyShell({
   facade,
   shellChrome,
+  isShuttingDown,
 }: SoftphoneReadyShellProps): JSX.Element {
   const { t } = useI18n();
   const { sessionLogoutActions } = shellChrome;
@@ -108,6 +111,7 @@ export function SoftphoneReadyShell({
     isOcpMode: projection.isOcpMode,
     ocpNotificationProjection,
   });
+  const windowControls = useShellWindowControls({ isShuttingDown });
 
   return (
     <SoftphoneLayout
@@ -123,6 +127,7 @@ export function SoftphoneReadyShell({
             headerChrome={headerChrome}
             userAvatarMenu={userAvatarMenu}
             userAvatarMenuActions={userAvatarMenuActions}
+            windowControls={windowControls}
           />
           <OperatorFeatureShell facade={facade} />
         </>

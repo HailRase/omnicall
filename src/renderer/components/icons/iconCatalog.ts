@@ -21,6 +21,7 @@ import {
   LogOut,
   Mic,
   MicOff,
+  Minus,
   Pause,
   Phone,
   PhoneCall,
@@ -71,6 +72,9 @@ export type AnimatedIconComponent = ComponentType<
 export type IconSemanticId =
   | "shell.settings"
   | "shell.diagnostics"
+  | "shell.restart"
+  | "shell.window.minimize"
+  | "shell.window.close"
   | "settings.account"
   | "settings.general"
   | "settings.sessions"
@@ -130,6 +134,25 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.shell.diagnostics",
     defaultSize: 20,
     usage: ["SettingsSidebar: settings-nav-diagnostics"],
+  },
+  "shell.restart": {
+    static: RotateCcw,
+    animated: RotateCcwIcon,
+    defaultLabelKey: "icons.shell.restart",
+    defaultSize: 16,
+    usage: ["ShellWindowControls: control-window-restart"],
+  },
+  "shell.window.minimize": {
+    static: Minus,
+    defaultLabelKey: "icons.shell.window.minimize",
+    defaultSize: 16,
+    usage: ["ShellWindowControls: control-window-minimize"],
+  },
+  "shell.window.close": {
+    static: X,
+    defaultLabelKey: "icons.shell.window.close",
+    defaultSize: 16,
+    usage: ["ShellWindowControls: control-window-close"],
   },
   "settings.account": {
     static: User,

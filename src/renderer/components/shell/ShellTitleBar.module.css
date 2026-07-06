@@ -1,0 +1,47 @@
+.titlebar,
+.titlebar-mac-os {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-shell-header);
+  -webkit-app-region: drag;
+}
+
+.titlebar-controls-row {
+  display: flex;
+  align-items: stretch;
+  min-height: 34px;
+}
+
+.titlebar-drag-area {
+  flex: 1;
+  min-width: 0;
+  -webkit-app-region: drag;
+}
+
+.titlebar-controls {
+  display: flex;
+  align-items: stretch;
+  flex-shrink: 0;
+  -webkit-app-region: no-drag;
+}
+
+.titlebar-mac-os-actions {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-height: 34px;
+  padding-left: 74px;
+  padding-right: var(--space-xs);
+  -webkit-app-region: no-drag;
+}
+
+.titlebar-divider {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.titlebar-leading {
+  min-width: 0;
+  padding: var(--space-xs) var(--space-sm);
+  -webkit-app-region: no-drag;
+}

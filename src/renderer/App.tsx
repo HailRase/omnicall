@@ -10,11 +10,22 @@ export function App(): JSX.Element {
   const { t } = useI18n();
   const { facade, status, errorMessage } = useAccountBootstrap();
   const shellChrome = useSoftphoneShellChrome({ facade });
-
-  useAppShutdown({ facade });
+  const { isShuttingDown, shutdownErrorKey, shutdownProgressKey } = useAppShutdown({ facade });
 
   return (
     <main className={styles.shell} data-testid="softphone-shell">
+      {shutdownProgressKey !== null ? (
+        <div className={styles.shutdownProgress} data-testid="shutdown-progress" role="status">
+          {t(shutdownProgressKey)}
+        </div>
+      ) : null}
+
+      {shutdownErrorKey !== null ? (
+        <div className={styles.shutdownError} data-testid="shutdown-error" role="alert">
+          {t(shutdownErrorKey)}
+        </div>
+      ) : null}
+
       {status === "loading" && (
         <p data-testid="bootstrap-loading">{t("bootstrap.loading")}</p>
       )}
@@ -26,7 +37,11 @@ export function App(): JSX.Element {
       )}
 
       {status === "ready" && facade !== null && (
-        <SoftphoneReadyShell facade={facade} shellChrome={shellChrome} />
+        <SoftphoneReadyShell
+          facade={facade}
+          shellChrome={shellChrome}
+          isShuttingDown={isShuttingDown}
+        />
       )}
     </main>
   );

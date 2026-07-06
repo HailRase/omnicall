@@ -11,6 +11,7 @@ import styles from "./IconControlButton.module.css";
 
 export type IconControlButtonProps = Readonly<{
   iconId: IconSemanticId;
+  preferAnimated?: boolean;
   ariaLabel: string;
   tooltipLabel?: string | undefined;
   disabledReason?: string | null;
@@ -31,6 +32,7 @@ export type IconControlButtonProps = Readonly<{
  */
 export function IconControlButton({
   iconId,
+  preferAnimated = true,
   ariaLabel,
   tooltipLabel,
   disabledReason = null,
@@ -63,7 +65,7 @@ export function IconControlButton({
         onMouseLeave={onMouseLeave}
         {...expandedProps}
       >
-        <AppIcon id={iconId} decorative />
+        <AppIcon id={iconId} decorative preferAnimated={preferAnimated} />
       </button>
     </IconTooltip>
   );

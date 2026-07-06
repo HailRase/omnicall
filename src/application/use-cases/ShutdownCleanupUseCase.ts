@@ -1,5 +1,4 @@
 import { createAppShutdownRequestedEvent } from "@domain/platform/appLifecycleEvents.js";
-import type { AppShutdownSource } from "@domain/platform/appLifecycleEvents.js";
 import type {
   AgentStatusReadModel,
   DomainEventPublisher,
@@ -10,6 +9,7 @@ import { createCorrelationId } from "@shared/correlation-id/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { normalizeUnknownError } from "@shared/errors/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
+import type { AppShutdownSource } from "@shared/platform/AppLifecycle.js";
 import { err, ok } from "@shared/result/index.js";
 import type { Result } from "@shared/result/index.js";
 import type { SessionTeardownOrchestrationService } from "../services/SessionTeardownOrchestrationService.js";

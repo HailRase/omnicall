@@ -1,8 +1,13 @@
 import type { PlatformVersionResponse } from "./IpcChannels.js";
-import type { AppShutdownPayload } from "./AppShutdownContract.js";
+import type {
+  AppShutdownPayload,
+  AppShutdownAckPayload,
+  AppShutdownCancelPayload,
+} from "./AppShutdownContract.js";
 import type { ShellWindowLayoutPayload } from "./ShellWindowLayoutContract.js";
 import type { OpenExternalUrlPayload, OpenExternalUrlResponse } from "./OpenExternalUrlContract.js";
 import type { SetNativeThemePayload, SetNativeThemeResponse } from "./SetNativeThemeContract.js";
+import type { ShellWindowControlResponse } from "./ShellWindowControlContract.js";
 import type {
   ProfilesFilesystemOperation,
   ProfilesFilesystemResponse,
@@ -18,7 +23,11 @@ export type SoftphonePreloadApi = Readonly<{
   openExternalUrl: (payload: OpenExternalUrlPayload) => Promise<OpenExternalUrlResponse>;
   setNativeTheme: (payload: SetNativeThemePayload) => Promise<SetNativeThemeResponse>;
   onBeforeClose: (handler: (payload: AppShutdownPayload) => void) => () => void;
-  acknowledgeShutdown: (correlationId: AppShutdownPayload["correlationId"]) => Promise<void>;
+  acknowledgeShutdown: (payload: AppShutdownAckPayload) => Promise<ShellWindowControlResponse>;
+  cancelShutdown: (payload: AppShutdownCancelPayload) => Promise<ShellWindowControlResponse>;
+  requestAppRestart: () => Promise<ShellWindowControlResponse>;
+  minimizeWindow: () => Promise<ShellWindowControlResponse>;
+  closeWindow: () => Promise<ShellWindowControlResponse>;
   applyShellWindowLayout: (payload: ShellWindowLayoutPayload) => Promise<void>;
 }>;
 

@@ -1,14 +1,13 @@
 .header {
-  padding: 10px var(--space-sm);
   border-bottom: 1px solid var(--color-border-default);
+  background: var(--color-bg-shell-header);
 }
 
 .header-bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-xs);
-  /* min-height: 36px; */
+  gap: var(--space-sm);
+  min-height: 0;
 }
 
 .header-brand {
@@ -16,6 +15,8 @@
   align-items: center;
   gap: var(--space-xs);
   min-width: 0;
+  flex: 1;
+  -webkit-app-region: no-drag;
 }
 
 .user-identity {

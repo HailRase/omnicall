@@ -15,6 +15,9 @@
 | --- | --- | --- | --- | --- | --- |
 | `shell.settings` | Open settings overlay | `Settings` | `SettingsIcon` | `UserAvatarMenu`, `SettingsSidebar` | active |
 | `shell.diagnostics` | Settings diagnostics section | `Activity` | `ActivityIcon` | `SettingsSidebar` | active |
+| `shell.restart` | Controlled app restart | `RotateCcw` | `RotateCcwIcon` | `ShellWindowControls` | active |
+| `shell.window.minimize` | Minimize frameless window | `Minus` | — | `ShellWindowControls` | active |
+| `shell.window.close` | Close frameless window | `X` | — | `ShellWindowControls` | active |
 | `settings.account` | Settings account section | `User` | `UserIcon` | `SettingsSidebar` | active |
 | `settings.general` | Settings general section | `SlidersHorizontal` | `SlidersHorizontalIcon` | `SettingsSidebar` | active |
 | `settings.sessions` | Settings sessions section | `Layers` | `LayersIcon` | `SettingsSidebar` | active |

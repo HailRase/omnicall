@@ -1,6 +1,9 @@
 import { contextBridge, ipcRenderer } from "electron";
 import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
-import { parseAppShutdownPayload } from "@shared/ipc/AppShutdownContract.js";
+import {
+  parseAppShutdownCancelPayload,
+  parseAppShutdownPayload,
+} from "@shared/ipc/AppShutdownContract.js";
 import { parseOpenExternalUrlPayload } from "@shared/ipc/OpenExternalUrlContract.js";
 import { parseSetNativeThemePayload } from "@shared/ipc/SetNativeThemeContract.js";
 import { parseShellWindowLayoutPayload } from "@shared/ipc/ShellWindowLayoutContract.js";
@@ -90,9 +93,44 @@ const softphoneApi: SoftphonePreloadApi = {
       ipcRenderer.removeListener(IPC_CHANNELS.appBeforeClose, listener);
     };
   },
-  acknowledgeShutdown: async (correlationId) => {
-    await ipcRenderer.invoke(IPC_CHANNELS.appAcknowledgeShutdown, { correlationId });
+  acknowledgeShutdown: async (payload) => {
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.appAcknowledgeShutdown,
+      payload,
+    );
+    if (
+      typeof response !== "object" ||
+      response === null ||
+      typeof (response as Record<string, unknown>)["ok"] !== "boolean"
+    ) {
+      return { ok: false, reason: "invalid_response" };
+    }
+    const candidate = response as { ok: boolean; reason?: string };
+    return candidate.ok
+      ? { ok: true }
+      : { ok: false, reason: candidate.reason ?? "ack_failed" };
   },
+  cancelShutdown: async (payload) => {
+    const parsed = parseAppShutdownCancelPayload(payload);
+    if (parsed === null) {
+      return { ok: false, reason: "invalid_payload" };
+    }
+    const response: unknown = await ipcRenderer.invoke(IPC_CHANNELS.appCancelShutdown, parsed);
+    if (
+      typeof response !== "object" ||
+      response === null ||
+      typeof (response as Record<string, unknown>)["ok"] !== "boolean"
+    ) {
+      return { ok: false, reason: "invalid_response" };
+    }
+    const candidate = response as { ok: boolean; reason?: string };
+    return candidate.ok
+      ? { ok: true }
+      : { ok: false, reason: candidate.reason ?? "cancel_failed" };
+  },
+  requestAppRestart: () => ipcRenderer.invoke(IPC_CHANNELS.appRequestRestart),
+  minimizeWindow: () => ipcRenderer.invoke(IPC_CHANNELS.shellWindowMinimize),
+  closeWindow: () => ipcRenderer.invoke(IPC_CHANNELS.shellWindowClose),
   applyShellWindowLayout: async (payload) => {
     const parsed = parseShellWindowLayoutPayload(payload);
     if (parsed === null) {

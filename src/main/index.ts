@@ -1,27 +1,39 @@
 import { app, BrowserWindow, ipcMain, nativeTheme, screen, shell } from "electron";
 import { join } from "node:path";
 import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
-import { parseAppShutdownAckPayload } from "@shared/ipc/AppShutdownContract.js";
+import {
+  parseAppShutdownCancelPayload,
+  parseAppShutdownAckPayload,
+  type AppShutdownAction,
+  type AppShutdownSource,
+} from "@shared/ipc/AppShutdownContract.js";
 import { parseOpenExternalUrlPayload } from "@shared/ipc/OpenExternalUrlContract.js";
 import { parseSetNativeThemePayload } from "@shared/ipc/SetNativeThemeContract.js";
 import { parseShellWindowLayoutPayload } from "@shared/ipc/ShellWindowLayoutContract.js";
 import { createConsoleLogger } from "@infrastructure/logging/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
+import { MAIN_WINDOW_INITIAL_BOUNDS } from "@shared/platform/mainWindowBounds.js";
 import type { AppIconTheme } from "./resolveAppIconPath.js";
 import { resolveAppIconPath } from "./resolveAppIconPath.js";
 import { applyAppIcon } from "./loadAppIcon.js";
 import { ShellWindowController } from "./shellWindow/ShellWindowController.js";
 import { registerProfilesPersistenceIpc } from "./profiles/registerProfilesPersistenceIpc.js";
+import { AppShutdownCoordinator } from "./lifecycle/AppShutdownCoordinator.js";
+import { installApplicationMenu } from "./lifecycle/createApplicationMenu.js";
 
 const logger = createConsoleLogger({
   boundedContext: "Integration",
-  featureId: "F-000",
+  featureId: "F-016",
 });
 
 const updateLogger = createConsoleLogger({
   boundedContext: "Integration",
   featureId: "F-020",
 });
+
+const shutdownCoordinator = new AppShutdownCoordinator();
+let isQuitting = false;
+let shellWindowController: ShellWindowController | null = null;
 
 function resolvePackagedPlatform(): "win32" | "darwin" | "linux" {
   if (process.platform === "win32" || process.platform === "darwin" || process.platform === "linux") {
@@ -30,21 +42,30 @@ function resolvePackagedPlatform(): "win32" | "darwin" | "linux" {
 
   return "linux";
 }
-let isQuitting = false;
-let shellWindowController: ShellWindowController | null = null;
 
 function resolveAppIconTheme(): AppIconTheme {
   return nativeTheme.shouldUseDarkColors ? "dark" : "light";
 }
 
+function resolveFramelessShell(): boolean {
+  return process.platform === "win32" || process.platform === "linux";
+}
+
 function createMainWindow(): BrowserWindow {
   const iconPath = resolveAppIconPath(resolveAppIconTheme());
+  const frameless = resolveFramelessShell();
   const mainWindow = new BrowserWindow({
-    width: 360,
-    height: 625,
-    minWidth: 360,
-    minHeight: 560,
+    width: MAIN_WINDOW_INITIAL_BOUNDS.width,
+    height: MAIN_WINDOW_INITIAL_BOUNDS.height,
+    minWidth: MAIN_WINDOW_INITIAL_BOUNDS.minWidth,
+    minHeight: MAIN_WINDOW_INITIAL_BOUNDS.minHeight,
+    maximizable: false,
+    fullscreenable: false,
     show: false,
+    frame: !frameless,
+    // macOS traffic lights stay native; Electron cannot replace only the green button with custom action.
+    // We keep native controls and place Reload as a separate titlebar action in renderer.
+    ...(process.platform === "darwin" ? { titleBarStyle: "hiddenInset" as const } : {}),
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
       contextIsolation: true,
@@ -81,7 +102,7 @@ function createMainWindow(): BrowserWindow {
     }
 
     event.preventDefault();
-    notifyRendererBeforeClose(mainWindow, "window-close");
+    requestRendererShutdown(mainWindow, "window-close", "quit");
   });
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -92,36 +113,70 @@ function createMainWindow(): BrowserWindow {
   if (process.env["ELECTRON_RENDERER_URL"] !== undefined) {
     void mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
   } else {
-    void mainWindow.loadFile(
-      join(__dirname, "../renderer/index.html"),
-    );
+    void mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
   }
 
   return mainWindow;
 }
 
-function notifyRendererBeforeClose(
+function requestRendererShutdown(
   mainWindow: BrowserWindow,
-  source: "before-quit" | "window-close",
-): void {
+  source: AppShutdownSource,
+  action: AppShutdownAction,
+): { ok: true } | { ok: false; reason: "shutdown_in_progress" | "window_destroyed" } {
   const correlationId = createCorrelationId();
+  const beginResult = shutdownCoordinator.beginShutdown(correlationId, action);
+
+  if (beginResult === "already_in_progress") {
+    logger.warn("app_shutdown_rejected", {
+      correlationId,
+      operation: "app_before_close",
+      source,
+      action,
+      result: "shutdown_in_progress",
+    });
+    return { ok: false, reason: "shutdown_in_progress" };
+  }
+
   logger.info("app_shutdown_requested", {
     correlationId,
     operation: "app_before_close",
     source,
+    action,
     result: "notified_renderer",
   });
 
   if (mainWindow.isDestroyed()) {
     isQuitting = true;
-    app.quit();
-    return;
+    if (action === "restart") {
+      app.relaunch();
+      app.exit(0);
+    } else {
+      app.quit();
+    }
+    return { ok: false, reason: "window_destroyed" };
   }
 
   mainWindow.webContents.send(IPC_CHANNELS.appBeforeClose, {
     correlationId,
     source,
+    action,
   });
+
+  return { ok: true };
+}
+
+function finalizeShutdown(action: AppShutdownAction): void {
+  isQuitting = true;
+
+  // Force quit, kill, or OS hard shutdown cannot await async SIP/OCP logout.
+  if (action === "restart") {
+    app.relaunch();
+    app.exit(0);
+    return;
+  }
+
+  app.quit();
 }
 
 function registerIpcHandlers(): void {
@@ -215,23 +270,104 @@ function registerIpcHandlers(): void {
   ipcMain.handle(IPC_CHANNELS.appAcknowledgeShutdown, (_event, payload: unknown) => {
     const parsed = parseAppShutdownAckPayload(payload);
     if (parsed === null) {
-      return { ok: false as const };
+      return { ok: false as const, reason: "invalid_payload" };
+    }
+
+    const completion = shutdownCoordinator.completeShutdown(
+      parsed.correlationId,
+      parsed.action,
+    );
+
+    if (completion === "rejected") {
+      logger.warn("app_shutdown_ack_rejected", {
+        correlationId: parsed.correlationId,
+        operation: "app_acknowledge_shutdown",
+        action: parsed.action,
+        result: "rejected",
+      });
+      return { ok: false as const, reason: "rejected" };
     }
 
     logger.info("app_shutdown_acknowledged", {
       correlationId: parsed.correlationId,
       operation: "app_acknowledge_shutdown",
-      result: "acknowledged",
+      action: parsed.action,
+      result: completion,
+      cleanupSkipped: parsed.cleanupSkipped,
     });
 
-    isQuitting = true;
-    app.quit();
+    finalizeShutdown(parsed.action);
     return { ok: true as const };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.appCancelShutdown, (_event, payload: unknown) => {
+    const parsed = parseAppShutdownCancelPayload(payload);
+    if (parsed === null) {
+      return { ok: false as const, reason: "invalid_payload" };
+    }
+
+    const cancellation = shutdownCoordinator.cancelShutdown(parsed.correlationId, parsed.action);
+    if (cancellation === "rejected") {
+      logger.warn("app_shutdown_cancel_rejected", {
+        correlationId: parsed.correlationId,
+        operation: "app_cancel_shutdown",
+        action: parsed.action,
+        reason: parsed.reason,
+        result: "rejected",
+      });
+      return { ok: false as const, reason: "rejected" };
+    }
+
+    logger.warn("app_shutdown_cancelled", {
+      correlationId: parsed.correlationId,
+      operation: "app_cancel_shutdown",
+      action: parsed.action,
+      reason: parsed.reason,
+      result: "cancelled",
+    });
+
+    return { ok: true as const };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.appRequestRestart, () => {
+    const mainWindow = BrowserWindow.getAllWindows()[0];
+    if (mainWindow === undefined || mainWindow.isDestroyed()) {
+      return { ok: false as const, reason: "window_unavailable" };
+    }
+
+    const result = requestRendererShutdown(mainWindow, "restart-button", "restart");
+    return result.ok
+      ? { ok: true as const }
+      : { ok: false as const, reason: result.reason };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.shellWindowMinimize, () => {
+    const mainWindow = BrowserWindow.getAllWindows()[0];
+    if (mainWindow === undefined || mainWindow.isDestroyed()) {
+      return { ok: false as const, reason: "window_unavailable" };
+    }
+
+    mainWindow.minimize();
+    return { ok: true as const };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.shellWindowClose, () => {
+    const mainWindow = BrowserWindow.getAllWindows()[0];
+    if (mainWindow === undefined || mainWindow.isDestroyed()) {
+      return { ok: false as const, reason: "window_unavailable" };
+    }
+
+    const result = requestRendererShutdown(mainWindow, "window-close", "quit");
+    return result.ok
+      ? { ok: true as const }
+      : { ok: false as const, reason: result.reason };
   });
 }
 
 void app.whenReady().then(() => {
   const correlationId = createCorrelationId();
+  installApplicationMenu();
+
   logger.info("platform_boot", {
     correlationId,
     operation: "app_ready",
@@ -262,7 +398,7 @@ app.on("before-quit", (event) => {
     return;
   }
 
-  notifyRendererBeforeClose(mainWindow, "before-quit");
+  requestRendererShutdown(mainWindow, "before-quit", "quit");
 });
 
 app.on("window-all-closed", () => {
