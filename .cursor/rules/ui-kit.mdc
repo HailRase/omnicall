@@ -14,8 +14,14 @@ Before adding or changing renderer UI, check `docs/ui-kit/UI-KIT.md`, `docs/ui-k
 - If the need is product-specific, compose local UI from UI Kit primitives.
 - UI Kit components use CSS Modules, semantic tokens, Storybook, tests, and strict TypeScript.
 - UI Kit components must match the visual canon in `docs/ui-kit/VISUAL-SPEC.md`.
+- UI Kit components must satisfy applicable Universal Quality Gates from `docs/ui-kit/UI-KIT.md`.
 - `Button` is the first visual baseline unless the user explicitly overrides the order.
 - Use Radix for complex accessible behavior; do not add Tailwind or shadcn CLI output as source of truth.
+- Native prop spreads must appear before internally controlled props.
+- P0 UI Kit components need baseline tests and all-variant light/dark Storybook stories.
+- Icon-only UI Kit components require controlled accessible labels, semantic `AppIcon`, and disabled reason tooltip coverage.
+- Form controls require label/description/error wiring and invalid/disabled tests.
+- Radix UI Kit components must preserve Radix focus/keyboard behavior and test open/close, escape, keyboard navigation, and controlled state where applicable.
 
 ## Forbidden
 
@@ -23,6 +29,7 @@ Before adding or changing renderer UI, check `docs/ui-kit/UI-KIT.md`, `docs/ui-k
 - Product state, Use Cases, Electron, SIP, stores, repositories, or business rules inside UI Kit.
 - Hardcoded product copy inside UI Kit components.
 - Global component styles or hardcoded theme colors.
+- CSS `filter` or `brightness` for variant hover/active states.
 
 ## Agent Flow
 

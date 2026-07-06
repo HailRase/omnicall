@@ -133,6 +133,49 @@ Use Vitest and Testing Library. Test behavior, not implementation details:
 - reflects controlled state
 - exposes invalid or expanded state where applicable
 
+## Universal Quality Gates
+
+Every component checklist inherits these gates. Do not mark a component `done` until the applicable inherited gates are satisfied.
+
+### Base Gates
+
+- [ ] Native `...rest` props are spread before internally controlled props.
+- [ ] Controlled props cannot override disabled/loading/ARIA/data-state guards.
+- [ ] Public `className` is preserved on the documented root slot.
+- [ ] Public ref points to the documented root or interactive element.
+- [ ] CSS uses semantic tokens only; no hardcoded colors or theme branches.
+- [ ] Variant hover/active states do not use CSS `filter` or `brightness`.
+- [ ] Storybook shows all variants in both light and dark themes.
+
+### Native Control Gates
+
+- [ ] Default native type/role is safe and documented.
+- [ ] Disabled and loading states block interaction.
+- [ ] Keyboard activation works through native behavior.
+- [ ] Tests cover default type/role, ref, className, disabled/loading, and protected controlled props.
+
+### Form Control Gates
+
+- [ ] Label, hint, and error are connected through ids or Radix primitives.
+- [ ] Invalid state exposes `aria-invalid` where supported.
+- [ ] `aria-describedby` includes hint/error ids where applicable.
+- [ ] Controlled and uncontrolled modes are documented when both exist.
+- [ ] Tests cover value/checked changes, disabled blocking, invalid attributes, labels, and descriptions.
+
+### Radix Primitive Gates
+
+- [ ] Radix owns focus, roving focus, typeahead, escape, outside click, and focus restore behavior.
+- [ ] CSS targets Radix `data-state`, `data-disabled`, `data-highlighted`, `data-side`, `data-align`, or `data-orientation` where applicable.
+- [ ] Portal content uses deterministic z-index, surface, border, shadow, and theme tokens.
+- [ ] Tests cover open/close, keyboard navigation, disabled items, escape behavior, and controlled state where applicable.
+
+### Feedback And Display Gates
+
+- [ ] Tone variants use semantic tokens only.
+- [ ] Accessible role matches urgency or is intentionally decorative.
+- [ ] Reduced motion is respected for loading or skeleton animations.
+- [ ] Tests cover tone rendering, accessible role, slot rendering, and decorative behavior where applicable.
+
 ## Agent Workflow
 
 Each UI Kit implementation session must handle exactly one component family.
@@ -181,6 +224,7 @@ Checklist:
 - [ ] Component implemented
 - [ ] CSS Module implemented
 - [ ] Typed variants implemented
+- [ ] Applicable Universal Quality Gates satisfied
 - [ ] Storybook added under UI Kit/ComponentName
 - [ ] Tests added
 - [ ] Barrel export added
@@ -193,17 +237,17 @@ Checklist:
 
 ### Phase 0: Foundation
 
-Status: [ ] planned [ ] in progress [ ] done
+Status: [ ] planned [ ] in progress [x] done
 
 Checklist:
 
-- [ ] Create `src/renderer/components/ui/`.
-- [ ] Create root `index.ts`.
-- [ ] Define shared UI types for `Size`, `Tone`, and `PolymorphicSlot` only if needed.
-- [ ] Define variant naming conventions.
-- [ ] Add Storybook grouping convention.
-- [ ] Confirm tokens cover shadcn-like surfaces, focus, destructive, muted, popover, and ring.
-- [ ] Review `docs/ui-kit/VISUAL-SPEC.md` and convert missing values to semantic tokens before component code.
+- [x] Create `src/renderer/components/ui/`.
+- [x] Create root `index.ts`.
+- [x] Define shared UI types for `Size`, `Tone`, and `PolymorphicSlot` only if needed.
+- [x] Define variant naming conventions.
+- [x] Add Storybook grouping convention.
+- [x] Confirm tokens cover shadcn-like surfaces, focus, destructive, muted, popover, and ring.
+- [x] Review `docs/ui-kit/VISUAL-SPEC.md` and convert missing values to semantic tokens before component code.
 
 ### Phase 1: Core Controls
 
@@ -211,7 +255,7 @@ Build first. These remove most local button/input duplication.
 
 ### Button
 
-Status: [ ] planned [ ] in progress [ ] done
+Status: [ ] planned [ ] in progress [x] done
 Radix: no
 Priority: P0
 
@@ -232,38 +276,47 @@ API:
 
 Stories:
 
-- [ ] Default
-- [ ] Variants
-- [ ] Sizes
-- [ ] Disabled
-- [ ] Loading
-- [ ] Full Width
-- [ ] Light Theme
-- [ ] Dark Theme
+- [x] Default
+- [x] Variants
+- [x] Sizes
+- [x] Disabled
+- [x] Loading
+- [x] Full Width
+- [x] Light Theme
+- [x] Dark Theme
+- [x] Light Theme with all variants
+- [x] Dark Theme with all variants
 
 Tests:
 
-- [ ] Renders children.
-- [ ] Calls `onClick` when enabled.
-- [ ] Does not call `onClick` when disabled.
-- [ ] Does not call `onClick` when loading.
-- [ ] Exposes busy state when loading.
+- [x] Renders children.
+- [x] Calls `onClick` when enabled.
+- [x] Does not call `onClick` when disabled.
+- [x] Does not call `onClick` when loading.
+- [x] Exposes busy state when loading.
+- [x] Defaults native `type` to `button`.
+- [x] Forwards refs to the native button.
+- [x] Preserves caller `className`.
+- [x] Sets native `disabled` while loading.
+- [x] Protects internally controlled disabled/loading attributes from native prop override.
 
 Checklist:
 
-- [ ] Component implemented
-- [ ] CSS Module implemented
-- [ ] Typed variants implemented
-- [ ] Storybook added under `UI Kit/Button`
-- [ ] Tests added
-- [ ] Barrel export added
-- [ ] Light/dark verified
-- [ ] Accessibility verified
-- [ ] Documentation status updated
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Typed variants implemented
+- [x] Storybook added under `UI Kit/Button`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark all-variant parity verified
+- [x] Accessibility verified
+- [x] No CSS `filter`/`brightness` variant states
+- [x] Native prop spread cannot override controlled UI state
+- [x] Documentation status updated after fix pass
 
 ### IconButton
 
-Status: [ ] planned [ ] in progress [ ] done
+Status: [ ] planned [ ] in progress [x] done
 Radix: no
 Priority: P0
 
@@ -285,36 +338,48 @@ API:
 
 Stories:
 
-- [ ] Default
-- [ ] Variants
-- [ ] Sizes
-- [ ] Disabled Reason
-- [ ] Tooltip
-- [ ] Light Theme
-- [ ] Dark Theme
+- [x] Default
+- [x] Variants
+- [x] Sizes
+- [x] Disabled Reason
+- [x] Tooltip
+- [x] Light Theme
+- [x] Dark Theme
+- [x] Light Theme with all variants
+- [x] Dark Theme with all variants
 
 Tests:
 
-- [ ] Requires accessible label through props type.
-- [ ] Renders semantic icon.
-- [ ] Does not trigger when disabled reason exists.
-- [ ] Shows tooltip label through tooltip wrapper.
+- [x] Requires accessible label through props type.
+- [x] Renders semantic icon.
+- [x] Does not trigger when disabled reason exists.
+- [x] Shows tooltip label through tooltip wrapper.
+- [x] Defaults native `type` to `button`.
+- [x] Forwards refs to the native button.
+- [x] Preserves caller `className`.
+- [x] Sets native `disabled` while loading.
+- [x] Blocks click when `disabled` prop is true.
+- [x] Shows `disabledReason` through tooltip.
+- [x] Protects internally controlled disabled/loading/label attributes from native prop override.
 
 Checklist:
 
-- [ ] Component implemented
-- [ ] CSS Module implemented
-- [ ] Typed variants implemented
-- [ ] Storybook added under `UI Kit/IconButton`
-- [ ] Tests added
-- [ ] Barrel export added
-- [ ] Light/dark verified
-- [ ] Accessibility verified
-- [ ] Documentation status updated
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Typed variants implemented
+- [x] Storybook added under `UI Kit/IconButton`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark all-variant parity verified
+- [x] Accessibility verified
+- [x] No CSS `filter`/`brightness` variant states
+- [x] Native prop spread cannot override controlled UI state
+- [x] Semantic `AppIcon` layer preserved
+- [x] Documentation status updated after fix pass
 
 ### Input
 
-Status: [ ] planned [ ] in progress [ ] done
+Status: [ ] planned [ ] in progress [x] done
 Radix: no
 Priority: P0
 
@@ -335,36 +400,45 @@ API:
 
 Stories:
 
-- [ ] Default
-- [ ] Sizes
-- [ ] Disabled
-- [ ] Readonly
-- [ ] Invalid
-- [ ] Prefix/Suffix
-- [ ] Light Theme
-- [ ] Dark Theme
+- [x] Default
+- [x] Sizes
+- [x] Disabled
+- [x] Readonly
+- [x] Invalid
+- [x] Prefix/Suffix
+- [x] Light Theme
+- [x] Dark Theme
 
 Tests:
 
-- [ ] Renders as textbox for text input.
-- [ ] Forwards value changes.
-- [ ] Applies `aria-invalid` when invalid.
-- [ ] Does not call change handler when disabled.
+- [x] Renders as textbox for text input.
+- [x] Forwards value changes.
+- [x] Applies `aria-invalid` when invalid.
+- [x] Does not call change handler when disabled.
+- [x] Forwards refs to the native input.
+- [x] Preserves caller `className`.
+- [x] Exposes readonly state through `data-readonly`.
+- [x] Renders prefix and suffix affixes.
+- [x] Protects internally controlled invalid/disabled attributes from native prop override.
 
 Checklist:
 
-- [ ] Component implemented
-- [ ] CSS Module implemented
-- [ ] Storybook added under `UI Kit/Input`
-- [ ] Tests added
-- [ ] Barrel export added
-- [ ] Light/dark verified
-- [ ] Accessibility verified
-- [ ] Documentation status updated
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Typed sizes implemented
+- [x] Applicable Universal Quality Gates satisfied
+- [x] Storybook added under `UI Kit/Input`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified
+- [x] No CSS `filter`/`brightness` variant states
+- [x] Native prop spread cannot override controlled UI state
+- [x] Documentation status updated
 
 ### Textarea
 
-Status: [ ] planned [ ] in progress [ ] done
+Status: [ ] planned [ ] in progress [x] done
 Radix: no
 Priority: P1
 
@@ -383,35 +457,45 @@ API:
 
 Stories:
 
-- [ ] Default
-- [ ] Sizes
-- [ ] Disabled
-- [ ] Readonly
-- [ ] Invalid
-- [ ] Resize
-- [ ] Light Theme
-- [ ] Dark Theme
+- [x] Default
+- [x] Sizes
+- [x] Disabled
+- [x] Readonly
+- [x] Invalid
+- [x] Resize
+- [x] Light Theme
+- [x] Dark Theme
 
 Tests:
 
-- [ ] Renders multiline textbox.
-- [ ] Forwards value changes.
-- [ ] Applies `aria-invalid` when invalid.
+- [x] Renders multiline textbox.
+- [x] Forwards value changes.
+- [x] Applies `aria-invalid` when invalid.
+- [x] Does not call change handler when disabled.
+- [x] Forwards refs to the native textarea.
+- [x] Preserves caller `className`.
+- [x] Exposes readonly state through `data-readonly`.
+- [x] Applies resize policy through `data-resize`.
+- [x] Protects internally controlled invalid/disabled attributes from native prop override.
 
 Checklist:
 
-- [ ] Component implemented
-- [ ] CSS Module implemented
-- [ ] Storybook added under `UI Kit/Textarea`
-- [ ] Tests added
-- [ ] Barrel export added
-- [ ] Light/dark verified
-- [ ] Accessibility verified
-- [ ] Documentation status updated
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Typed sizes implemented
+- [x] Applicable Universal Quality Gates satisfied
+- [x] Storybook added under `UI Kit/Textarea`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified
+- [x] No CSS `filter`/`brightness` variant states
+- [x] Native prop spread cannot override controlled UI state
+- [x] Documentation status updated
 
 ### Label
 
-Status: [ ] planned [ ] in progress [ ] done
+Status: [ ] planned [ ] in progress [x] done
 Radix: no
 Priority: P1
 
@@ -429,33 +513,33 @@ API:
 
 Stories:
 
-- [ ] Default
-- [ ] Required
-- [ ] Disabled
-- [ ] Light Theme
-- [ ] Dark Theme
+- [x] Default
+- [x] Required
+- [x] Disabled
+- [x] Light Theme
+- [x] Dark Theme
 
 Tests:
 
-- [ ] Associates with a control through `htmlFor`.
-- [ ] Renders required indicator when requested.
+- [x] Associates with a control through `htmlFor`.
+- [x] Renders required indicator when requested.
 
 Checklist:
 
-- [ ] Component implemented
-- [ ] CSS Module implemented
-- [ ] Storybook added under `UI Kit/Label`
-- [ ] Tests added
-- [ ] Barrel export added
-- [ ] Light/dark verified
-- [ ] Accessibility verified
-- [ ] Documentation status updated
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Storybook added under `UI Kit/Label`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified
+- [x] Documentation status updated
 
 ## Phase 2: Form Controls
 
 ### FormField
 
-Status: [ ] planned [ ] in progress [ ] done
+Status: [ ] planned [ ] in progress [x] done
 Radix: no
 Priority: P0
 
@@ -472,38 +556,44 @@ API:
 - `error?: ReactNode`
 - `required?: boolean`
 - `disabled?: boolean`
-- `children: ReactNode`
+- `children: ReactElement`
 
 Stories:
 
-- [ ] Default
-- [ ] Hint
-- [ ] Error
-- [ ] Required
-- [ ] Disabled
-- [ ] Light Theme
-- [ ] Dark Theme
+- [x] Default
+- [x] Hint
+- [x] Error
+- [x] Required
+- [x] Disabled
+- [x] Light Theme
+- [x] Dark Theme
 
 Tests:
 
-- [ ] Connects label to control.
-- [ ] Connects hint and error with descriptions.
-- [ ] Gives error priority over hint when both exist.
+- [x] Connects label to control.
+- [x] Connects hint and error with descriptions.
+- [x] Gives error priority over hint when both exist.
+- [x] Forwards disabled and required state to label and control.
+- [x] Forwards ref to the root field container.
+- [x] Preserves caller `className`.
+- [x] Merges existing `aria-describedby` on the control.
+- [x] Protects controlled ids and invalid state from child prop override.
 
 Checklist:
 
-- [ ] Component implemented
-- [ ] CSS Module implemented
-- [ ] Storybook added under `UI Kit/FormField`
-- [ ] Tests added
-- [ ] Barrel export added
-- [ ] Light/dark verified
-- [ ] Accessibility verified
-- [ ] Documentation status updated
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Applicable Universal Quality Gates satisfied
+- [x] Storybook added under `UI Kit/FormField`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified
+- [x] Documentation status updated
 
 ### Checkbox
 
-Status: [ ] planned [ ] in progress [ ] done
+Status: [ ] planned [ ] in progress [x] done
 Radix: yes
 Priority: P1
 
@@ -523,36 +613,36 @@ API:
 
 Stories:
 
-- [ ] Default
-- [ ] Checked
-- [ ] Indeterminate
-- [ ] Disabled
-- [ ] Invalid
-- [ ] Light Theme
-- [ ] Dark Theme
+- [x] Default
+- [x] Checked
+- [x] Indeterminate
+- [x] Disabled
+- [x] Invalid
+- [x] Light Theme
+- [x] Dark Theme
 
 Tests:
 
-- [ ] Toggles on click.
-- [ ] Toggles on keyboard.
-- [ ] Emits checked state.
-- [ ] Does not toggle when disabled.
+- [x] Toggles on click.
+- [x] Toggles on keyboard.
+- [x] Emits checked state.
+- [x] Does not toggle when disabled.
 
 Checklist:
 
-- [ ] Component implemented
-- [ ] CSS Module implemented
-- [ ] Radix primitive wrapped
-- [ ] Storybook added under `UI Kit/Checkbox`
-- [ ] Tests added
-- [ ] Barrel export added
-- [ ] Light/dark verified
-- [ ] Accessibility verified
-- [ ] Documentation status updated
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Radix primitive wrapped
+- [x] Storybook added under `UI Kit/Checkbox`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified
+- [x] Documentation status updated
 
 ### Switch
 
-Status: [ ] planned [ ] in progress [ ] done
+Status: [ ] planned [ ] in progress [x] done
 Radix: yes
 Priority: P1
 
@@ -571,31 +661,31 @@ API:
 
 Stories:
 
-- [ ] Default
-- [ ] Checked
-- [ ] Disabled
-- [ ] With Label
-- [ ] Light Theme
-- [ ] Dark Theme
+- [x] Default
+- [x] Checked
+- [x] Disabled
+- [x] With Label
+- [x] Light Theme
+- [x] Dark Theme
 
 Tests:
 
-- [ ] Toggles state.
-- [ ] Emits checked value.
-- [ ] Does not toggle when disabled.
-- [ ] Has switch role.
+- [x] Toggles state.
+- [x] Emits checked value.
+- [x] Does not toggle when disabled.
+- [x] Has switch role.
 
 Checklist:
 
-- [ ] Component implemented
-- [ ] CSS Module implemented
-- [ ] Radix primitive wrapped
-- [ ] Storybook added under `UI Kit/Switch`
-- [ ] Tests added
-- [ ] Barrel export added
-- [ ] Light/dark verified
-- [ ] Accessibility verified
-- [ ] Documentation status updated
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Radix primitive wrapped
+- [x] Storybook added under `UI Kit/Switch`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified
+- [x] Documentation status updated
 
 ### RadioGroup
 
@@ -646,7 +736,7 @@ Checklist:
 
 ### Select
 
-Status: [ ] planned [ ] in progress [ ] done
+Status: [ ] planned [ ] in progress [x] done
 Radix: yes
 Priority: P1
 
@@ -668,38 +758,39 @@ API:
 
 Stories:
 
-- [ ] Default
-- [ ] Placeholder
-- [ ] Disabled
-- [ ] Invalid
-- [ ] Many Items
-- [ ] Light Theme
-- [ ] Dark Theme
+- [x] Default
+- [x] Placeholder
+- [x] Disabled
+- [x] Invalid
+- [x] Many Items
+- [x] Light Theme
+- [x] Dark Theme
 
 Tests:
 
-- [ ] Opens on trigger interaction.
-- [ ] Selects an item.
-- [ ] Emits selected value.
-- [ ] Supports keyboard selection.
+- [x] Opens on trigger interaction.
+- [x] Selects an item.
+- [x] Emits selected value.
+- [x] Supports keyboard selection.
 
 Checklist:
 
-- [ ] Component implemented
-- [ ] CSS Module implemented
-- [ ] Radix primitive wrapped
-- [ ] Storybook added under `UI Kit/Select`
-- [ ] Tests added
-- [ ] Barrel export added
-- [ ] Light/dark verified
-- [ ] Accessibility verified
-- [ ] Documentation status updated
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Radix primitive wrapped
+- [x] Applicable Universal Quality Gates satisfied
+- [x] Storybook added under `UI Kit/Select`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified
+- [x] Documentation status updated
 
 ## Phase 3: Overlays
 
 ### Dialog
 
-Status: [ ] planned [ ] in progress [ ] done
+Status: [ ] planned [ ] in progress [x] done
 Radix: yes
 Priority: P0
 
@@ -722,36 +813,36 @@ API:
 
 Stories:
 
-- [ ] Default
-- [ ] Sizes
-- [ ] With Footer
-- [ ] Controlled
-- [ ] Long Content
-- [ ] Light Theme
-- [ ] Dark Theme
+- [x] Default
+- [x] Sizes
+- [x] With Footer
+- [x] Controlled
+- [x] Long Content
+- [x] Light Theme
+- [x] Dark Theme
 
 Tests:
 
-- [ ] Opens and closes.
-- [ ] Closes on escape.
-- [ ] Restores focus.
-- [ ] Has dialog role and accessible name.
+- [x] Opens and closes.
+- [x] Closes on escape.
+- [x] Restores focus.
+- [x] Has dialog role and accessible name.
 
 Checklist:
 
-- [ ] Component implemented
-- [ ] CSS Module implemented
-- [ ] Radix primitive wrapped
-- [ ] Storybook added under `UI Kit/Dialog`
-- [ ] Tests added
-- [ ] Barrel export added
-- [ ] Light/dark verified
-- [ ] Accessibility verified
-- [ ] Documentation status updated
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Radix primitive wrapped
+- [x] Storybook added under `UI Kit/Dialog`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified
+- [x] Documentation status updated
 
 ### AlertDialog
 
-Status: [ ] planned [ ] in progress [ ] done
+Status: [ ] planned [ ] in progress [x] done
 Radix: yes
 Priority: P1
 
@@ -763,48 +854,44 @@ Purpose:
 
 API:
 
+- composable root, trigger, content, header, title, description, footer, action, cancel
 - `open?: boolean`
 - `onOpenChange`
-- `title`
-- `description`
-- `actionLabel`
-- `cancelLabel`
-- `tone`: `default | destructive`
-- `onAction`
-- `onCancel`
+- action tone via `Button` variant (`primary` or `destructive`)
+- loading action via `Button` `loading`
 
 Stories:
 
-- [ ] Default
-- [ ] Destructive
-- [ ] Controlled
-- [ ] Loading Action
-- [ ] Light Theme
-- [ ] Dark Theme
+- [x] Default
+- [x] Destructive
+- [x] Controlled
+- [x] Loading Action
+- [x] Light Theme
+- [x] Dark Theme
 
 Tests:
 
-- [ ] Opens and closes.
-- [ ] Calls action.
-- [ ] Calls cancel.
-- [ ] Keeps focus inside.
-- [ ] Has alertdialog role.
+- [x] Opens and closes.
+- [x] Calls action.
+- [x] Calls cancel.
+- [x] Keeps focus inside.
+- [x] Has alertdialog role.
 
 Checklist:
 
-- [ ] Component implemented
-- [ ] CSS Module implemented
-- [ ] Radix primitive wrapped
-- [ ] Storybook added under `UI Kit/AlertDialog`
-- [ ] Tests added
-- [ ] Barrel export added
-- [ ] Light/dark verified
-- [ ] Accessibility verified
-- [ ] Documentation status updated
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Radix primitive wrapped
+- [x] Storybook added under `UI Kit/AlertDialog`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified
+- [x] Documentation status updated
 
 ### DropdownMenu
 
-Status: [ ] planned [ ] in progress [ ] done
+Status: [ ] planned [ ] in progress [x] done
 Radix: yes
 Priority: P0
 
@@ -824,33 +911,38 @@ API:
 
 Stories:
 
-- [ ] Default
-- [ ] With Icons
-- [ ] Destructive Item
-- [ ] Disabled Item
-- [ ] Checkbox Item
-- [ ] Light Theme
-- [ ] Dark Theme
+- [x] Default
+- [x] With Icons
+- [x] Destructive Item
+- [x] Disabled Item
+- [x] Checkbox Item
+- [x] Controlled
+- [x] Light Theme
+- [x] Dark Theme
 
 Tests:
 
-- [ ] Opens from trigger.
-- [ ] Selects item.
-- [ ] Skips disabled item.
-- [ ] Supports keyboard navigation.
-- [ ] Closes on escape.
+- [x] Opens from trigger.
+- [x] Selects item.
+- [x] Skips disabled item.
+- [x] Supports keyboard navigation.
+- [x] Closes on escape.
+- [x] Supports controlled open state.
+- [x] Toggles checkbox item.
+- [x] Preserves caller className on content.
 
 Checklist:
 
-- [ ] Component implemented
-- [ ] CSS Module implemented
-- [ ] Radix primitive wrapped
-- [ ] Storybook added under `UI Kit/DropdownMenu`
-- [ ] Tests added
-- [ ] Barrel export added
-- [ ] Light/dark verified
-- [ ] Accessibility verified
-- [ ] Documentation status updated
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Radix primitive wrapped
+- [x] Applicable Universal Quality Gates satisfied
+- [x] Storybook added under `UI Kit/DropdownMenu`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified
+- [x] Documentation status updated
 
 ### Popover
 
@@ -901,7 +993,7 @@ Checklist:
 
 ### Tooltip
 
-Status: [ ] planned [ ] in progress [ ] done
+Status: [ ] planned [ ] in progress [x] done
 Radix: yes
 Priority: P1
 
@@ -918,41 +1010,43 @@ API:
 - `delayDuration?: number`
 - `disabled?: boolean`
 - `children: ReactNode`
+- composable `TooltipProvider`, `TooltipRoot`, `TooltipTrigger`, `TooltipContent`
 
 Stories:
 
-- [ ] Default
-- [ ] Sides
-- [ ] Delay
-- [ ] Disabled
-- [ ] Long Text
-- [ ] Light Theme
-- [ ] Dark Theme
+- [x] Default
+- [x] Sides
+- [x] Delay
+- [x] Disabled
+- [x] Long Text
+- [x] Light Theme
+- [x] Dark Theme
 
 Tests:
 
-- [ ] Shows on hover.
-- [ ] Shows on focus.
-- [ ] Hides on escape.
-- [ ] Does not render when disabled.
+- [x] Shows on hover.
+- [x] Shows on focus.
+- [x] Hides on escape.
+- [x] Does not render when disabled.
 
 Checklist:
 
-- [ ] Component implemented
-- [ ] CSS Module implemented
-- [ ] Radix primitive wrapped
-- [ ] Storybook added under `UI Kit/Tooltip`
-- [ ] Tests added
-- [ ] Barrel export added
-- [ ] Light/dark verified
-- [ ] Accessibility verified
-- [ ] Documentation status updated
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Radix primitive wrapped
+- [x] Storybook added under `UI Kit/Tooltip`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified
+- [x] Applicable Universal Quality Gates satisfied
+- [x] Documentation status updated
 
 ## Phase 4: Feedback
 
 ### Toast
 
-Status: [ ] planned [ ] in progress [ ] done
+Status: [ ] planned [ ] in progress [x] done
 Radix: yes
 Priority: P1
 
@@ -973,36 +1067,37 @@ API:
 
 Stories:
 
-- [ ] Default
-- [ ] Tones
-- [ ] With Action
-- [ ] Closable
-- [ ] Stacked
-- [ ] Light Theme
-- [ ] Dark Theme
+- [x] Default
+- [x] Tones
+- [x] With Action
+- [x] Closable
+- [x] Stacked
+- [x] Light Theme
+- [x] Dark Theme
 
 Tests:
 
-- [ ] Renders title and description.
-- [ ] Calls action.
-- [ ] Calls close.
-- [ ] Auto-dismisses when duration is configured.
+- [x] Renders title and description.
+- [x] Calls action.
+- [x] Calls close.
+- [x] Auto-dismisses when duration is configured.
 
 Checklist:
 
-- [ ] Component implemented
-- [ ] CSS Module implemented
-- [ ] Radix primitive wrapped or existing notification wrapper documented
-- [ ] Storybook added under `UI Kit/Toast`
-- [ ] Tests added
-- [ ] Barrel export added
-- [ ] Light/dark verified
-- [ ] Accessibility verified
-- [ ] Documentation status updated
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Radix primitive wrapped or existing notification wrapper documented
+- [x] Applicable Universal Quality Gates satisfied
+- [x] Storybook added under `UI Kit/Toast`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified
+- [x] Documentation status updated
 
 ### Notification
 
-Status: [ ] planned [ ] in progress [ ] done
+Status: [ ] planned [ ] in progress [x] done
 Radix: no
 Priority: P1
 
@@ -1018,37 +1113,40 @@ API:
 - `title`
 - `message?`
 - `actions?: ReactNode`
+- `metadata?: ReactNode`
 - `onClose?`
 - `closable?: boolean`
+- `closeLabel?` (required when `closable` is true)
 
 Stories:
 
-- [ ] Default
-- [ ] Tones
-- [ ] With Actions
-- [ ] Closable
-- [ ] Long Content
-- [ ] Light Theme
-- [ ] Dark Theme
+- [x] Default
+- [x] Tones
+- [x] With Actions
+- [x] Closable
+- [x] Long Content
+- [x] Light Theme
+- [x] Dark Theme
 
 Tests:
 
-- [ ] Renders title and message.
-- [ ] Calls close.
-- [ ] Renders actions.
-- [ ] Uses alert/status role by tone.
+- [x] Renders title and message.
+- [x] Calls close.
+- [x] Renders actions.
+- [x] Uses alert/status role by tone.
 
 Checklist:
 
-- [ ] Component implemented
-- [ ] CSS Module implemented
-- [ ] Typed tones implemented
-- [ ] Storybook added under `UI Kit/Notification`
-- [ ] Tests added
-- [ ] Barrel export added
-- [ ] Light/dark verified
-- [ ] Accessibility verified
-- [ ] Documentation status updated
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Typed tones implemented
+- [x] Applicable Universal Quality Gates satisfied
+- [x] Storybook added under `UI Kit/Notification`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified
+- [x] Documentation status updated
 
 ### Badge
 
@@ -1098,7 +1196,7 @@ Checklist:
 
 ### Progress
 
-Status: [ ] planned [ ] in progress [ ] done
+Status: [ ] planned [ ] in progress [x] done
 Radix: yes
 Priority: P2
 
@@ -1117,30 +1215,31 @@ API:
 
 Stories:
 
-- [ ] Default
-- [ ] Indeterminate
-- [ ] Tones
-- [ ] With Label
-- [ ] Light Theme
-- [ ] Dark Theme
+- [x] Default
+- [x] Indeterminate
+- [x] Tones
+- [x] With Label
+- [x] Light Theme
+- [x] Dark Theme
 
 Tests:
 
-- [ ] Exposes progressbar role.
-- [ ] Reflects value.
-- [ ] Handles indeterminate state.
+- [x] Exposes progressbar role.
+- [x] Reflects value.
+- [x] Handles indeterminate state.
 
 Checklist:
 
-- [ ] Component implemented
-- [ ] CSS Module implemented
-- [ ] Radix primitive wrapped
-- [ ] Storybook added under `UI Kit/Progress`
-- [ ] Tests added
-- [ ] Barrel export added
-- [ ] Light/dark verified
-- [ ] Accessibility verified
-- [ ] Documentation status updated
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Radix primitive wrapped
+- [x] Applicable Universal Quality Gates satisfied
+- [x] Storybook added under `UI Kit/Progress`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified
+- [x] Documentation status updated
 
 ### Spinner
 
@@ -1187,7 +1286,7 @@ Checklist:
 
 ### Skeleton
 
-Status: [ ] planned [ ] in progress [ ] done
+Status: [ ] planned [ ] in progress [x] done
 Radix: no
 Priority: P2
 
@@ -1206,28 +1305,29 @@ API:
 
 Stories:
 
-- [ ] Text
-- [ ] Rectangle
-- [ ] Circle
-- [ ] Composite Card
-- [ ] Light Theme
-- [ ] Dark Theme
+- [x] Text
+- [x] Rectangle
+- [x] Circle
+- [x] Composite Card
+- [x] Light Theme
+- [x] Dark Theme
 
 Tests:
 
-- [ ] Renders without accessible fake text.
-- [ ] Applies requested shape.
+- [x] Renders without accessible fake text.
+- [x] Applies requested shape.
 
 Checklist:
 
-- [ ] Component implemented
-- [ ] CSS Module implemented
-- [ ] Storybook added under `UI Kit/Skeleton`
-- [ ] Tests added
-- [ ] Barrel export added
-- [ ] Light/dark verified
-- [ ] Reduced motion verified
-- [ ] Documentation status updated
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Applicable Universal Quality Gates satisfied
+- [x] Storybook added under `UI Kit/Skeleton`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Reduced motion verified
+- [x] Documentation status updated
 
 ## Phase 5: Display And Layout
 

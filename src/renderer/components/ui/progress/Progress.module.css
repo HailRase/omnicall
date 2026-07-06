@@ -1,0 +1,75 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  width: 100%;
+}
+
+.label {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-ui);
+}
+
+.root {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  height: var(--space-xs);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-surface-alt);
+}
+
+.indicator {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-accent-primary);
+  transition: transform 180ms ease;
+  will-change: transform;
+}
+
+.tone-default .indicator {
+  background: var(--color-accent-primary);
+}
+
+.tone-success .indicator {
+  background: var(--color-status-online);
+}
+
+.tone-warning .indicator {
+  background: var(--color-status-registering);
+}
+
+.tone-destructive .indicator {
+  background: var(--color-status-failed);
+}
+
+.indicator[data-state="indeterminate"] {
+  width: 50%;
+  animation: progress-indeterminate 1.2s ease-in-out infinite;
+}
+
+@keyframes progress-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(200%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .indicator {
+    transition: none;
+  }
+
+  .indicator[data-state="indeterminate"] {
+    width: 40%;
+    animation: none;
+    transform: translateX(0);
+  }
+}

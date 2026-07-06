@@ -1,0 +1,133 @@
+.input {
+  display: block;
+  width: 100%;
+  margin: 0;
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-control);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-family: inherit;
+  line-height: 1.25;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease,
+    opacity 120ms ease;
+}
+
+.input::placeholder {
+  color: var(--color-text-muted);
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--color-outline-focus);
+  outline-offset: 2px;
+}
+
+.input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.input[data-readonly="true"] {
+  background: var(--color-bg-surface-alt);
+  cursor: default;
+}
+
+.input[data-invalid="true"] {
+  border-color: var(--color-border-danger-accent);
+}
+
+.size-sm {
+  height: 32px;
+  padding: 0 var(--space-sm);
+  font-size: var(--font-size-xs);
+}
+
+.size-md {
+  height: 36px;
+  padding: 0 var(--space-md);
+}
+
+.size-lg {
+  height: 40px;
+  padding: 0 var(--space-lg);
+}
+
+.group {
+  display: inline-flex;
+  align-items: stretch;
+  width: 100%;
+  overflow: hidden;
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-control);
+  background: var(--color-bg-surface);
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease,
+    opacity 120ms ease;
+}
+
+.group:focus-within {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 1px var(--color-border-focus);
+}
+
+.group[data-invalid="true"] {
+  border-color: var(--color-border-danger-accent);
+}
+
+.group[data-invalid="true"]:focus-within {
+  border-color: var(--color-border-danger-accent);
+  box-shadow: 0 0 0 1px var(--color-border-danger-accent);
+}
+
+.group[data-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.group[data-readonly="true"] {
+  background: var(--color-bg-surface-alt);
+}
+
+.input-in-group {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+.input-in-group:focus-visible {
+  outline: none;
+}
+
+.affix {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  padding: 0 var(--space-sm);
+  background: var(--color-bg-surface-alt);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.affix[data-affix="prefix"] {
+  border-right: 1px solid var(--color-border-subtle);
+}
+
+.affix[data-affix="suffix"] {
+  border-left: 1px solid var(--color-border-subtle);
+}
+
+.group[data-disabled="true"] .input-in-group {
+  cursor: not-allowed;
+}
+
+.group[data-readonly="true"] .input-in-group {
+  cursor: default;
+}

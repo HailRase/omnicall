@@ -93,6 +93,8 @@ All buttons:
 - disabled and loading states must suppress pointer actions.
 - focus-visible uses the global focus ring.
 - icon children use `var(--icon-size-sm)` or `var(--icon-size-md)`.
+- default native `type` must be `button`.
+- native props must not override internally controlled disabled, loading, busy, or state attributes.
 
 Variants:
 
@@ -104,6 +106,74 @@ Variants:
 | `ghost` | transparent | surface-alt bg | surface-deep bg | opacity 0.5 |
 | `destructive` | danger bg/text or danger border | stronger danger bg | pressed danger bg | opacity 0.5 |
 | `link` | transparent accent text | underline | underline | opacity 0.5 |
+
+Button implementation hard rules:
+
+- Put native prop spreads before internally controlled props.
+- Internally controlled props include `disabled`, `aria-busy`, `data-loading`, `data-state`, and event handlers that guard disabled/loading behavior.
+- Do not use CSS `filter`, `brightness`, or opacity tricks for primary hover/active colors.
+- If a hover/active color is missing, add or reuse a semantic token before styling the component.
+- Baseline stories must show all variants in both light and dark themes.
+- Baseline tests must cover default type, ref forwarding, className preservation, loading disabled semantics, and protected controlled attributes.
+
+## IconButton Visual Canon
+
+Icon-only buttons follow the `Button` visual canon plus stricter accessibility rules:
+
+- `ariaLabel` is required and must control the rendered `aria-label`.
+- `aria-label` must not be overridable through native props.
+- Icons must render through the project semantic icon layer (`AppIcon`), never raw icon imports.
+- `disabledReason` must disable the button and become the tooltip label.
+- `tooltipLabel` is optional for enabled icon buttons.
+- loading state replaces the icon with a decorative spinner and sets native `disabled`.
+- light and dark stories must show every icon button variant.
+- tests must cover `disabledReason` tooltip, disabled prop, loading disabled semantics, ref forwarding, className preservation, and protected controlled attributes.
+
+## Universal Implementation Canon
+
+These rules apply to every UI Kit component unless the component cannot technically support the behavior.
+
+- Native `...rest` props are spread before internally controlled props.
+- Internally controlled props include generated ids, labels, `disabled`, `aria-*`, `data-*`, `open`, `value`, `checked`, and guarded event handlers.
+- Public `className` must be preserved on the documented root slot.
+- Public refs must point to the documented interactive element or root slot.
+- State is exposed through semantic DOM state first: native attributes, ARIA, and `data-*`.
+- Component state must not be represented only by CSS class names.
+- No caller prop may weaken accessibility or disabled/loading guards.
+- Stories must make root slot, variants, sizes, states, light theme, and dark theme reviewable without reading code.
+
+## Form Control Canon
+
+Inputs, textareas, selects, checkboxes, switches, radio groups, and form fields:
+
+- labels and descriptions must connect through ids or Radix primitives.
+- invalid state uses `aria-invalid` when the rendered element supports it.
+- hint and error text must be connectable through `aria-describedby`.
+- disabled state must block interaction and use disabled visuals.
+- readonly state must not look disabled and must remain readable.
+- controlled and uncontrolled modes must be documented and tested when both are supported.
+- tests must cover value/checked changes, disabled blocking, invalid attributes, labels, descriptions, and className/ref behavior.
+
+## Radix Primitive Canon
+
+Radix-backed components must preserve Radix behavior instead of reimplementing it:
+
+- use Radix primitives for focus management, roving focus, typeahead, escape handling, and outside interactions.
+- style Radix `data-state`, `data-disabled`, `data-highlighted`, `data-side`, `data-align`, and `data-orientation` attributes.
+- do not replace Radix focus trap or keyboard behavior with custom handlers.
+- expose controlled and uncontrolled state when Radix root supports it.
+- portal content must have deterministic z-index, surface, border, shadow, and theme tokens.
+- tests must cover open/close, keyboard navigation, disabled items, escape behavior, and controlled state where applicable.
+
+## Feedback And Display Canon
+
+Toast, notification, badge, progress, spinner, skeleton, card, empty state, and similar display components:
+
+- tone variants must use semantic tokens, not hardcoded colors.
+- role must match urgency: `status`, `alert`, `progressbar`, or no role for decorative surfaces.
+- loading placeholders must respect reduced motion.
+- destructive/warning/success/info states need both visual and accessible meaning when interactive.
+- tests must cover tone rendering, accessible role, reduced-motion or decorative behavior when applicable, and slot rendering.
 
 ## Form Visual Canon
 
@@ -224,8 +294,8 @@ Before a UI Kit component is marked done, Storybook must show:
 - disabled state.
 - invalid or destructive state when applicable.
 - loading state when applicable.
-- light theme.
-- dark theme.
+- light theme with all variants.
+- dark theme with all variants.
 - dense composition example, such as form row, card action row, or menu trigger.
 
 ## Agent Visual Checklist

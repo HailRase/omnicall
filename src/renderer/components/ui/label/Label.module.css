@@ -1,0 +1,21 @@
+.label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2xs);
+  font-size: 0.9375rem;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.35;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.label[data-disabled="true"] {
+  color: var(--color-text-muted);
+  cursor: default;
+  pointer-events: none;
+}
+
+.required-marker {
+  flex-shrink: 0;
+  color: var(--color-text-danger);
+}

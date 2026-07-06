@@ -37,19 +37,21 @@ Read `.cursor/skills/icons/SKILL.md` if the component renders icons.
 - Stop if the requested component needs product state, SIP, Electron, stores, repositories, or Use Cases.
 - Stop if the design requires Tailwind or global component CSS.
 - Stop if a generic UI Kit extension would break existing component API.
+- Stop if component state styling needs new colors and no semantic token exists yet.
 - Ask the user if the need is product-specific and should stay local.
 
 ## Implementation Order
 
 1. Choose the target component from `docs/ui-kit/UI-KIT.md`.
 2. Read `docs/ui-kit/VISUAL-SPEC.md` for exact sizes, spacing, focus, and state rules.
-3. Mark status as `in progress`.
-4. Define public props and controlled/uncontrolled behavior.
-5. Implement component, CSS Module, story, test, and barrel export.
-6. Verify disabled, loading, invalid, focus, light, dark, and visual-canon states.
-7. Mark checklist items in `docs/ui-kit/UI-KIT.md`.
-8. Run focused tests; run broader checks if requested by `/ui-kit`.
-9. Create work-history.
+3. Identify inherited gates: Base, Native Control, Form Control, Radix Primitive, Feedback/Display, Icon-only.
+4. Mark status as `in progress`.
+5. Define public props, root slot, ref target, controlled props, and controlled/uncontrolled behavior.
+6. Implement component, CSS Module, story, test, and barrel export.
+7. Verify disabled, loading, invalid, focus, light, dark, and visual-canon states.
+8. Mark local checklist and applicable Universal Quality Gates in `docs/ui-kit/UI-KIT.md`.
+9. Run focused tests; run broader checks if requested by `/ui-kit`.
+10. Create work-history.
 
 ## Defaults
 
@@ -59,6 +61,20 @@ Read `.cursor/skills/icons/SKILL.md` if the component renders icons.
 - Class names: `clsx` plus typed variant maps.
 - Public exports: component and props type.
 - Copy: all visible text comes from props or story fixtures.
+
+## Hard Rules
+
+- Put native `...rest` props before internally controlled props.
+- Controlled props include `disabled`, `aria-busy`, `data-*` state attributes, and guarded event handlers.
+- Do not use CSS `filter`, `brightness`, hardcoded hex/rgb, or theme branches for variant states.
+- Add or reuse semantic tokens for hover, active, selected, destructive, and elevated states.
+- P0 components require tests for default behavior, ref forwarding, className preservation, disabled/loading semantics, and controlled prop protection.
+- Storybook must show all variants in both light and dark themes before the component can be marked done.
+- Icon-only components require controlled `aria-label`, semantic `AppIcon`, and disabled reason tooltip coverage.
+- Form controls require label/description/error wiring and invalid/disabled tests.
+- Radix components must keep Radix focus/keyboard behavior and test open/close, escape, keyboard navigation, disabled items, and controlled state where applicable.
+- Feedback/display components require semantic roles, tone token tests, slot rendering tests, and reduced-motion coverage where applicable.
+- Never mark `done` while any applicable inherited gate is unverified.
 
 ## Required Final Report
 

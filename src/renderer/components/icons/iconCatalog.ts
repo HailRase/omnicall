@@ -7,6 +7,7 @@ import {
   Bell,
   BellOff,
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   CircleCheck,
@@ -108,6 +109,7 @@ export type IconSemanticId =
   | "action.retry"
   | "transfer.consultation"
   | "connection.retry"
+  | "ui.select.chevron"
   | "phone.dnd.on"
   | "phone.dnd.off"
   | "updates.available";
@@ -397,6 +399,12 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.connection.retry",
     defaultSize: 20,
     usage: ["SettingsSystemStatePanel: control-retry-transport (Phase 6)"],
+  },
+  "ui.select.chevron": {
+    static: ChevronDown,
+    defaultLabelKey: "icons.ui.select.chevron",
+    defaultSize: 16,
+    usage: ["Select: select-trigger-chevron"],
   },
   "phone.dnd.on": {
     static: Bell,

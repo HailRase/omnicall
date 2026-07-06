@@ -20,6 +20,8 @@ If icons are involved, also read `.cursor/skills/icons/SKILL.md`.
 - Do not migrate product screens unless explicitly requested.
 - Do not add Tailwind.
 - Do not copy shadcn output without adapting it to CSS Modules and project tokens.
+- Do not mark a P0 component done until baseline tests and all-variant light/dark stories pass.
+- Do not mark any component done until applicable Universal Quality Gates in `docs/ui-kit/UI-KIT.md` are satisfied.
 
 ## Implementation Requirements
 
@@ -30,6 +32,9 @@ If icons are involved, also read `.cursor/skills/icons/SKILL.md`.
 - Barrel export from component folder and UI Kit root.
 - Update `docs/ui-kit/UI-KIT.md` checklist and next component.
 - Verify `docs/ui-kit/VISUAL-SPEC.md` visual gate.
+- Identify and satisfy inherited gates: Base, Native Control, Form Control, Radix Primitive, Feedback/Display, Icon-only.
+- Put native prop spreads before internally controlled props.
+- Use semantic tokens for hover/active states; do not use CSS `filter` or `brightness`.
 - Create `work-history/YYYY-MM-DD/topic_HH-mm.md`.
 
 ## Verification
@@ -40,6 +45,16 @@ Run focused tests for the component. If the component touches shared build or st
 npm run lint
 npm run typecheck
 ```
+
+For P0 components, tests must cover default type/role, ref forwarding, `className`, disabled/loading behavior, and protected controlled attributes.
+
+For icon-only components, tests must also cover controlled `aria-label`, semantic `AppIcon`, disabled reason tooltip, and disabled reason click blocking.
+
+For form controls, tests must cover labels, descriptions, invalid state, value/checked changes, disabled blocking, and controlled/uncontrolled behavior where supported.
+
+For Radix components, tests must cover open/close, escape behavior, keyboard navigation, disabled items, focus behavior, and controlled state where applicable.
+
+For feedback/display components, tests must cover semantic role, tone variants, slot rendering, and reduced-motion/decorative behavior where applicable.
 
 ## Completion
 
