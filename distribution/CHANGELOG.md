@@ -5,6 +5,15 @@ Public release history for **Axatalk** distribution builds.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer. Git tag: `v<version>`.
 
+## [0.5.0] - 2026-07-06
+
+### Added
+
+- Desktop shell controls on Windows and Linux — minimize, reload, and close in a custom titlebar; reload performs a controlled app restart after full call and SIP cleanup
+- Stacked header layout — window controls on top, account avatar and SIP status below
+- Removed native File/Edit/View menu on Windows and Linux; maximize and fullscreen disabled
+- Shutdown safety — if cleanup fails on close or restart, the app stays open and shows an error so you can retry
+
 ## [0.4.0] - 2026-07-06
 
 ### Added

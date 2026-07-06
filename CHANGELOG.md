@@ -7,6 +7,12 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-07-06
+
+### Added
+
+- F-016: системный shell UX — убрано стандартное меню File/Edit/View на Windows/Linux; отключён native maximize/fullscreen; кнопка Reload выполняет controlled restart после полного shutdown cleanup (hangup, media, SIP unregister, OCP logout); frameless window controls на Windows/Linux; stacked titlebar (controls сверху, avatar ниже); ошибка cleanup блокирует закрытие/перезапуск
+
 ## [0.4.0] - 2026-07-06
 
 ### Added
@@ -129,7 +135,8 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.4.0...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.5.0...main
+[0.5.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.5.0
 [0.4.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.4.0
 [0.3.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.3.1
 [0.3.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.3.0
