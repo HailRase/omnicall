@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-06 09:30
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `976326e` (tag `v0.3.1`)
 
 ## Где
 - `package.json`, `CHANGELOG.md`, `distribution/update-manifest.json`

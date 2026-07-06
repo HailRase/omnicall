@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-06 09:30
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `e6a7c31`
 
 ## Где
 - `src/renderer/components/updates/UpdateAvailableBanner.tsx`
