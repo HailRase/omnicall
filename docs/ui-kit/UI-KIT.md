@@ -1379,7 +1379,7 @@ Checklist:
 
 ### Tabs
 
-Status: [ ] planned [ ] in progress [ ] done
+Status: [ ] planned [ ] in progress [x] done
 Radix: yes
 Priority: P1
 
@@ -1399,30 +1399,31 @@ API:
 
 Stories:
 
-- [ ] Default
-- [ ] Controlled
-- [ ] Vertical
-- [ ] Disabled Tab
-- [ ] Light Theme
-- [ ] Dark Theme
+- [x] Default
+- [x] Controlled
+- [x] Vertical
+- [x] Disabled Tab
+- [x] Light Theme
+- [x] Dark Theme
 
 Tests:
 
-- [ ] Switches tab on click.
-- [ ] Supports keyboard navigation.
-- [ ] Emits selected value.
+- [x] Switches tab on click.
+- [x] Supports keyboard navigation.
+- [x] Emits selected value.
 
 Checklist:
 
-- [ ] Component implemented
-- [ ] CSS Module implemented
-- [ ] Radix primitive wrapped
-- [ ] Storybook added under `UI Kit/Tabs`
-- [ ] Tests added
-- [ ] Barrel export added
-- [ ] Light/dark verified
-- [ ] Accessibility verified
-- [ ] Documentation status updated
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Radix primitive wrapped
+- [x] Applicable Universal Quality Gates satisfied
+- [x] Storybook added under `UI Kit/Tabs`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified
+- [x] Documentation status updated
 
 ### Avatar
 

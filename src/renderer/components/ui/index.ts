@@ -69,6 +69,16 @@ export {
   type SelectProps,
 } from "./select/index.js";
 export { Switch, type SwitchProps } from "./switch/index.js";
+export {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  type TabsContentProps,
+  type TabsListProps,
+  type TabsProps,
+  type TabsTriggerProps,
+} from "./tabs/index.js";
 export { Textarea, type TextareaProps } from "./textarea/index.js";
 export {
   ToastAction,
