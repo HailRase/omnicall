@@ -1,248 +1,78 @@
-import { useCallback, useRef, type JSX, type KeyboardEvent } from "react";
-
-import clsx from "clsx";
+import type { JSX } from "react";
 
 import type { SavedAccountProfileSelectorOption } from "@application/projections/deriveSavedAccountProfileSelectorOptions.js";
-
 import type { SavedAccountProfileId } from "@application/index.js";
 
 import { useI18n } from "../../i18n/index.js";
 import { AppIcon } from "../icons/index.js";
+import { Tabs, TabsList, TabsTrigger } from "../ui/index.js";
 import styles from "./SavedAccountProfileSelector.module.css";
 
-
+const NEW_PROFILE_TAB_VALUE = "new";
 
 export type SavedAccountProfileSelectorProps = Readonly<{
-
   options: ReadonlyArray<SavedAccountProfileSelectorOption>;
-
   selectedProfileId: SavedAccountProfileId | null;
-
   disabled?: boolean;
-
   onSelect: (profileId: SavedAccountProfileId | null) => void;
-
   onDeleteRequest: () => void;
-
 }>;
 
-
-
-type TabTarget =
-
-  | Readonly<{ kind: "new" }>
-
-  | Readonly<{ kind: "saved"; profileId: SavedAccountProfileId }>;
-
-
-
 /**
-
  * - Purpose: render saved SIP profile tab navigation with New entry and delete action.
-
  * - Inputs: tab options, selection, disabled flag, and callbacks.
-
  * - Outputs: accessible tablist without facade or business rules.
-
  */
-
 export function SavedAccountProfileSelector({
-
   options,
-
   selectedProfileId,
-
   disabled = false,
-
   onSelect,
-
   onDeleteRequest,
-
 }: SavedAccountProfileSelectorProps): JSX.Element {
-
   const { t } = useI18n();
-
-  const tabRefs = useRef<ReadonlyArray<HTMLButtonElement | null>>([]);
-
   const canDelete = selectedProfileId !== null && !disabled;
+  const activeTabValue = selectedProfileId ?? NEW_PROFILE_TAB_VALUE;
 
-
-
-  const tabTargets: ReadonlyArray<TabTarget> = [
-
-    { kind: "new" },
-
-    ...options.map((option) => ({ kind: "saved" as const, profileId: option.id })),
-
-  ];
-
-
-
-  const selectedTabIndex = tabTargets.findIndex((target) =>
-
-    target.kind === "new"
-
-      ? selectedProfileId === null
-
-      : selectedProfileId === target.profileId,
-
-  );
-
-
-
-  const focusTabAt = useCallback((index: number): void => {
-
-    const tab = tabRefs.current[index];
-
-    tab?.focus();
-
-  }, []);
-
-
-
-  function handleTabKeyDown(event: KeyboardEvent<HTMLButtonElement>, index: number): void {
-
-    if (event.key === "ArrowRight") {
-
-      event.preventDefault();
-
-      const nextIndex = (index + 1) % tabTargets.length;
-
-      focusTabAt(nextIndex);
-
-      return;
-
-    }
-
-
-
-    if (event.key === "ArrowLeft") {
-
-      event.preventDefault();
-
-      const nextIndex = (index - 1 + tabTargets.length) % tabTargets.length;
-
-      focusTabAt(nextIndex);
-
-      return;
-
-    }
-
-
-
-    if (event.key === "Home") {
-
-      event.preventDefault();
-
-      focusTabAt(0);
-
-      return;
-
-    }
-
-
-
-    if (event.key === "End") {
-
-      event.preventDefault();
-
-      focusTabAt(tabTargets.length - 1);
-
-    }
-
+  function handleTabValueChange(nextValue: string): void {
+    onSelect(nextValue === NEW_PROFILE_TAB_VALUE ? null : (nextValue as SavedAccountProfileId));
   }
 
-
-
   return (
-
     <div className={styles.row} data-testid="saved-account-profile-selector">
-
-      <div
-
-        className={styles.tablistWrap}
-
-        role="tablist"
-
-        aria-label={t("account.profile.tabs.ariaLabel")}
-
-        data-testid="saved-account-profile-tablist"
-
+      <Tabs
+        value={activeTabValue}
+        onValueChange={handleTabValueChange}
+        className={styles.tabsRoot}
       >
-
-        {tabTargets.map((target, index) => {
-
-          const isSelected = index === selectedTabIndex;
-
-          const isNew = target.kind === "new";
-
-          const tabId = isNew ? "saved-profile-tab-new" : `saved-profile-tab-${target.profileId}`;
-
-          const label = isNew
-
-            ? t("account.profile.option.new")
-
-            : (options.find((option) => option.id === target.profileId)?.label ?? "");
-
-
-
-          return (
-
-            <button
-
-              key={tabId}
-
-              ref={(element) => {
-
-                const next = [...tabRefs.current];
-
-                next[index] = element;
-
-                tabRefs.current = next;
-
-              }}
-
-              type="button"
-
-              role="tab"
-
-              id={tabId}
-
-              className={clsx(styles.tab, isSelected && styles.tabSelected)}
-
-              aria-selected={isSelected}
-
-              tabIndex={isSelected ? 0 : -1}
-
+        <TabsList
+          aria-label={t("account.profile.tabs.ariaLabel")}
+          className={styles.tablist}
+          data-testid="saved-account-profile-tablist"
+        >
+          <TabsTrigger
+            value={NEW_PROFILE_TAB_VALUE}
+            id="saved-profile-tab-new"
+            disabled={disabled}
+            data-testid="saved-account-profile-tab-new"
+          >
+            {t("account.profile.option.new")}
+          </TabsTrigger>
+          {options.map((option) => (
+            <TabsTrigger
+              key={option.id}
+              value={option.id}
+              id={`saved-profile-tab-${option.id}`}
               disabled={disabled}
-
-              data-testid={isNew ? "saved-account-profile-tab-new" : "saved-account-profile-tab"}
-
-              data-profile-id={isNew ? undefined : target.profileId}
-
-              onClick={() => {
-
-                onSelect(isNew ? null : target.profileId);
-
-              }}
-
-              onKeyDown={(event) => {
-
-                handleTabKeyDown(event, index);
-
-              }}
-
+              className={styles.profileTab}
+              data-testid="saved-account-profile-tab"
+              data-profile-id={option.id}
             >
-
-              <span className={styles.tabLabel}>{label}</span>
-
-            </button>
-
-          );
-
-        })}
-
-      </div>
+              <span className={styles.tabLabel}>{option.label}</span>
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
 
       <button
         type="button"
@@ -255,10 +85,6 @@ export function SavedAccountProfileSelector({
         <AppIcon id="dial.delete" size={16} decorative />
         <span className={styles.deleteButtonLabel}>{t("account.profile.delete")}</span>
       </button>
-
     </div>
-
   );
-
 }
-

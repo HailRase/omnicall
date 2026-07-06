@@ -1,10 +1,10 @@
 declare const classes: {
   readonly deleteButton: string;
   readonly deleteButtonLabel: string;
+  readonly profileTab: string;
   readonly row: string;
-  readonly tab: string;
   readonly tabLabel: string;
-  readonly tabSelected: string;
-  readonly tablistWrap: string;
+  readonly tablist: string;
+  readonly tabsRoot: string;
 };
 export default classes;
