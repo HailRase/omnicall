@@ -7,6 +7,12 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-07-06
+
+### Changed
+
+- F-020: баннер обновления — floating overlay-карточка сверху вместо полосы в header; кнопки «Скачать» и «Позже» с иконками справа под текстом; Storybook `Updates/UpdateAvailableBanner`
+
 ## [0.5.0] - 2026-07-06
 
 ### Added
@@ -135,7 +141,8 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.5.0...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.5.1...main
+[0.5.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.5.1
 [0.5.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.5.0
 [0.4.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.4.0
 [0.3.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.3.1

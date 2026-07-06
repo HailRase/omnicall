@@ -57,9 +57,9 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 | Field | Value |
 | --- | --- |
-| Shipped | **0.5.0** (`v0.5.0`, 2026-07-06) — F-016 shell lifecycle controls and stacked titlebar |
-| Previous | **0.4.0** (F-024 saved SIP account profiles), **0.3.1** (F-020 compact update banner), **0.3.0** (F-023 per-account profiles) |
-| Next cut | **0.5.1** (PATCH) or **0.6.0** (MINOR) per SemVer table in `RELEASE-PLAYBOOK.md` |
+| Shipped | **0.5.1** (`v0.5.1`, 2026-07-06) — F-020 update banner overlay refactor |
+| Previous | **0.5.0** (F-016 shell lifecycle), **0.4.0** (F-024 saved SIP profiles), **0.3.1** (F-020 compact banner) |
+| Next cut | **0.5.2** (PATCH) or **0.6.0** (MINOR) per SemVer table in `RELEASE-PLAYBOOK.md` |
 | Source repo | `HailRase/softphone-electron` (target: **private**) |
 | Distribution | [`HailRase/axatalk-releases`](https://github.com/HailRase/axatalk-releases) (public: installers + manifest) |
 | Manifest (live) | `axatalk-releases/main/update-manifest.json` |

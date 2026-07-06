@@ -5,6 +5,12 @@ Public release history for **Axatalk** distribution builds.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer. Git tag: `v<version>`.
 
+## [0.5.1] - 2026-07-06
+
+### Changed
+
+- Update available notification — floating card overlay at the top instead of a header strip; Download and Later actions with icons aligned to the right below the message
+
 ## [0.5.0] - 2026-07-06
 
 ### Added
