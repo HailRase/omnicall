@@ -35,8 +35,5 @@ export const systemStateTestDefaults = {
   onManualTransportReconnect: () => undefined,
   onManualReregister: () => undefined,
   onClearJournal: () => undefined,
-  actionSuccessKey: null,
-  actionErrorKey: null,
-  actionErrorDetail: null,
   actionLoading: null,
 } as const;

@@ -28,6 +28,16 @@ describe("settings overlay with layout zones", () => {
               onLanguageChange={() => undefined}
               theme="light"
               onThemeChange={() => undefined}
+              notificationPlacement="bottom-right"
+              onNotificationPlacementChange={() => undefined}
+              notificationStacking="stacked"
+              onNotificationStackingChange={() => undefined}
+              notificationDurationMs={4200}
+              onNotificationDurationMsChange={() => undefined}
+              notificationClosable
+              onNotificationClosableChange={() => undefined}
+              notificationMaxVisible={3}
+              onNotificationMaxVisibleChange={() => undefined}
               multiSessionsEnabled
               onMultiSessionsChange={() => undefined}
               autoAnswerEnabled={false}

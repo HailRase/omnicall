@@ -33,9 +33,6 @@ const baseProps = {
   onManualTransportReconnect: vi.fn(),
   onManualReregister: vi.fn(),
   onClearJournal: vi.fn(),
-  actionErrorKey: null,
-  actionErrorDetail: null,
-  actionSuccessKey: null,
   actionLoading: null,
 };
 
@@ -219,16 +216,4 @@ describe("SettingsSystemStatePanel", () => {
     );
   });
 
-  it("shows action success feedback", () => {
-    render(
-      <SettingsSystemStatePanel
-        {...baseProps}
-        actionSuccessKey="settings.systemState.action.success.reregister"
-      />,
-    );
-
-    expect(screen.getByTestId("settings-sip-action-success")).toHaveTextContent(
-      "Перерегистрация выполнена",
-    );
-  });
 });

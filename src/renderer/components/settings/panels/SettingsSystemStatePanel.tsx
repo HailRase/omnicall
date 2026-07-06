@@ -6,9 +6,7 @@ import {
   MIN_SIP_REREGISTER_INTERVAL_SEC,
 } from "@application/index.js";
 import type { SipManualActionKind } from "../../../hooks/useSipSystemStateActions.js";
-import type { SipManualActionSuccessKey } from "../../../hooks/useSipSystemStateActions.js";
 import { formatLocaleDateTime, useI18n } from "../../../i18n/index.js";
-import type { TranslationKey } from "../../../i18n/messages.js";
 import { AppIcon } from "../../icons/AppIcon.js";
 import { IconTooltip } from "../../icons/IconTooltip.js";
 import formStyles from "../SettingsForm.module.css";
@@ -40,9 +38,6 @@ export type SettingsSystemStatePanelProps = Readonly<{
   onManualTransportReconnect: () => void;
   onManualReregister: () => void;
   onClearJournal: () => void;
-  actionErrorKey: TranslationKey | null;
-  actionErrorDetail: string | null;
-  actionSuccessKey: SipManualActionSuccessKey | null;
   actionLoading: SipManualActionKind | null;
 }>;
 
@@ -291,9 +286,6 @@ export function SettingsSystemStatePanel({
   onManualTransportReconnect,
   onManualReregister,
   onClearJournal,
-  actionErrorKey,
-  actionErrorDetail,
-  actionSuccessKey,
   actionLoading,
 }: SettingsSystemStatePanelProps): JSX.Element {
   const { t, language } = useI18n();
@@ -308,9 +300,6 @@ export function SettingsSystemStatePanel({
     shell.manualReregisterDisabledReasonKey === null
       ? null
       : t(shell.manualReregisterDisabledReasonKey);
-  const actionErrorText =
-    actionErrorDetail ??
-    (actionErrorKey !== null ? t(actionErrorKey) : null);
   const autoReconnectDescriptionId = useId();
   const autoReregisterDescriptionId = useId();
   const autoRegisterStartupDescriptionId = useId();
@@ -363,29 +352,6 @@ export function SettingsSystemStatePanel({
           {t("settings.systemState.currentState.legend")}
         </legend>
         <div className={formStyles.settingsGroup}>
-          {actionSuccessKey !== null || actionErrorText !== null ? (
-            <div className={styles.stateActionFeedback}>
-              {actionSuccessKey !== null ? (
-                <p
-                  className={clsx(styles.actionFeedback, styles.actionFeedbackSuccess)}
-                  role="status"
-                  aria-live="polite"
-                  data-testid="settings-sip-action-success"
-                >
-                  {t(actionSuccessKey)}
-                </p>
-              ) : null}
-              {actionErrorText !== null ? (
-                <p
-                  className={clsx(styles.actionFeedback, styles.actionFeedbackError)}
-                  role="alert"
-                  data-testid="settings-sip-action-error"
-                >
-                  {actionErrorText}
-                </p>
-              ) : null}
-            </div>
-          ) : null}
           <div className={formStyles.settingBlock}>
             <p className={styles.liveSummary} aria-live="polite" aria-atomic="true">
               {liveStateSummary}

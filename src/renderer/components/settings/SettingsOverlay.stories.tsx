@@ -31,6 +31,16 @@ const themeDefaults = {
   onLanguageChange: () => undefined,
   theme: "light" as const,
   onThemeChange: () => undefined,
+  notificationPlacement: "bottom-right" as const,
+  onNotificationPlacementChange: () => undefined,
+  notificationStacking: "stacked" as const,
+  onNotificationStackingChange: () => undefined,
+  notificationDurationMs: 4200,
+  onNotificationDurationMsChange: () => undefined,
+  notificationClosable: true,
+  onNotificationClosableChange: () => undefined,
+  notificationMaxVisible: 3,
+  onNotificationMaxVisibleChange: () => undefined,
 } as const;
 
 const autoAnswerDefaults = {

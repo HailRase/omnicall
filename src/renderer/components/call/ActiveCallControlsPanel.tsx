@@ -1,8 +1,6 @@
 import type { JSX } from "react";
-import type { ActiveCallControlOperationError } from "@application/index.js";
 import {
   mapActiveCallControlDisabledReason,
-  mapActiveCallControlOperationError,
 } from "../../helpers/mapActiveCallControlLabels.js";
 import { useI18n } from "../../i18n/index.js";
 import { IconControlButton } from "../icons/index.js";
@@ -17,14 +15,12 @@ export type ActiveCallControlsPanelProps = Readonly<{
   unmuteDisabledReason: string | null;
   hangupDisabledReason: string | null;
   transferDisabledReason: string | null;
-  lastOperationError: ActiveCallControlOperationError | null;
   onHold: () => void;
   onResume: () => void;
   onMute: () => void;
   onUnmute: () => void;
   onHangup: () => void;
   onTransfer: () => void;
-  onRetry: () => void;
 }>;
 
 /**
@@ -41,14 +37,12 @@ export function ActiveCallControlsPanel({
   unmuteDisabledReason,
   hangupDisabledReason,
   transferDisabledReason,
-  lastOperationError,
   onHold,
   onResume,
   onMute,
   onUnmute,
   onHangup,
   onTransfer,
-  onRetry,
 }: ActiveCallControlsPanelProps): JSX.Element | null {
   const { t } = useI18n();
   if (!visible) {
@@ -66,25 +60,6 @@ export function ActiveCallControlsPanel({
         <strong>{t("activeCall.panel.micLabel")}:</strong>{" "}
         {muted ? t("activeCall.panel.micOff") : t("activeCall.panel.micOn")}
       </p>
-      {lastOperationError !== null && (
-        <div
-          className={styles.error}
-          data-testid="active-call-control-error"
-          role="alert"
-        >
-          <p className={styles.errorMessage}>
-            {mapActiveCallControlOperationError(lastOperationError)}
-          </p>
-          <IconControlButton
-            iconId="action.retry"
-            ariaLabel={`Retry ${lastOperationError.operation}`}
-            tooltipLabel={t("common.retry")}
-            testId="control-retry"
-            className={styles.iconButton}
-            onClick={onRetry}
-          />
-        </div>
-      )}
       <div className={styles.actions}>
         <IconControlButton
           iconId="call.hold"

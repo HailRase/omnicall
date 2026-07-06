@@ -42,7 +42,6 @@ const noop = (): void => undefined;
 export const ActiveUnmuted: Story = {
   args: {
     line: activeLine,
-    lastOperationError: null,
     onResume: noop,
     onHangup: noop,
     onHold: noop,
@@ -50,7 +49,6 @@ export const ActiveUnmuted: Story = {
     onUnmute: noop,
     onTransfer: noop,
     onAnswer: noop,
-    onRetryOperation: noop,
   },
 };
 
@@ -101,12 +99,3 @@ export const MultiLineSecondary: Story = {
   },
 };
 
-export const WithOperationError: Story = {
-  args: {
-    ...ActiveUnmuted.args,
-    lastOperationError: {
-      operation: "mute",
-      message: "Device unavailable",
-    },
-  },
-};

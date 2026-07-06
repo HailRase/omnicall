@@ -38,7 +38,6 @@ describe("CallLineRow", () => {
     render(
       <CallLineRow
         line={baseLine}
-        lastOperationError={null}
         onResume={vi.fn()}
         onHangup={vi.fn()}
         onHold={vi.fn()}
@@ -46,7 +45,6 @@ describe("CallLineRow", () => {
         onUnmute={vi.fn()}
         onTransfer={vi.fn()}
         onAnswer={vi.fn()}
-        onRetryOperation={vi.fn()}
       />,
     );
 
@@ -71,7 +69,6 @@ describe("CallLineRow", () => {
           showRemoteHoldBadge: false,
           isActiveUnheld: false,
         }}
-        lastOperationError={null}
         onResume={onResume}
         onHangup={vi.fn()}
         onHold={vi.fn()}
@@ -79,7 +76,6 @@ describe("CallLineRow", () => {
         onUnmute={vi.fn()}
         onTransfer={vi.fn()}
         onAnswer={vi.fn()}
-        onRetryOperation={vi.fn()}
       />,
     );
 
@@ -88,25 +84,4 @@ describe("CallLineRow", () => {
     expect(onResume).toHaveBeenCalledWith("call-1");
   });
 
-  it("shows operation error banner for active unheld line", () => {
-    const onRetryOperation = vi.fn();
-    render(
-      <CallLineRow
-        line={baseLine}
-        lastOperationError={{ operation: "hold", message: "network error" }}
-        onResume={vi.fn()}
-        onHangup={vi.fn()}
-        onHold={vi.fn()}
-        onMute={vi.fn()}
-        onUnmute={vi.fn()}
-        onTransfer={vi.fn()}
-        onAnswer={vi.fn()}
-        onRetryOperation={onRetryOperation}
-      />,
-    );
-
-    expect(screen.getByTestId("call-line-error-call-1")).toHaveTextContent("network error");
-    fireEvent.click(screen.getByTestId("control-retry-line-call-1"));
-    expect(onRetryOperation).toHaveBeenCalledTimes(1);
-  });
 });

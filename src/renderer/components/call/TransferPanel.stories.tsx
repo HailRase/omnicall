@@ -69,8 +69,6 @@ const baseArgs: Story["args"] = {
   attendedTransferDisabledReason: null,
   cancelTransferDisabledReason: null,
   transferInProgress: false,
-  failureTitle: null,
-  failureMessage: null,
   lines: [sourceLine],
   onTargetChange: () => undefined,
   onBlindTransfer: () => undefined,
@@ -110,12 +108,10 @@ export const DarkConsultation: Story = {
   },
 };
 
-export const DarkFailure: Story = {
+export const DarkInProgress: Story = {
   args: {
     ...baseArgs,
-    failureTitle: "Ошибка перевода",
-    failureMessage: "Абонент недоступен",
-    transferInProgress: false,
+    transferInProgress: true,
   },
   parameters: {
     theme: "dark",

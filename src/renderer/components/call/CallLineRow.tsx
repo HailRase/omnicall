@@ -1,13 +1,11 @@
 import clsx from "clsx";
 import type { JSX } from "react";
 import type {
-  ActiveCallControlOperationError,
   CallLineCardViewModel,
 } from "@application/index.js";
 import { useCallDuration } from "../../hooks/useCallDuration.js";
 import {
   mapActiveCallControlDisabledReason,
-  mapActiveCallControlOperationError,
 } from "../../helpers/mapActiveCallControlLabels.js";
 import { mapQueueLabelState } from "../../helpers/mapQueueLabelState.js";
 import { mapTransferDisabledReason } from "../../helpers/mapTransferDisabledReason.js";
@@ -17,7 +15,6 @@ import styles from "./CallLineRow.module.css";
 
 export type CallLineRowProps = Readonly<{
   line: CallLineCardViewModel;
-  lastOperationError: ActiveCallControlOperationError | null;
   compact?: boolean;
   onResume: (callId: string) => void;
   onHangup: (callId: string) => void;
@@ -26,7 +23,6 @@ export type CallLineRowProps = Readonly<{
   onUnmute: (callId: string) => void;
   onTransfer: (callId: string) => void;
   onAnswer: (callId: string) => void;
-  onRetryOperation: () => void;
 }>;
 
 /**
@@ -37,7 +33,6 @@ export type CallLineRowProps = Readonly<{
  */
 export function CallLineRow({
   line,
-  lastOperationError,
   compact = false,
   onResume,
   onHangup,
@@ -46,11 +41,9 @@ export function CallLineRow({
   onUnmute,
   onTransfer,
   onAnswer,
-  onRetryOperation,
 }: CallLineRowProps): JSX.Element {
   const { t } = useI18n();
   const queueLabel = mapQueueLabelState(line.queueLabelState, line.queueName);
-  const showError = !compact && line.isActiveUnheld && lastOperationError !== null;
 
   return (
     <li
@@ -138,23 +131,6 @@ export function CallLineRow({
           />
         </div>
       </div>
-      {showError ? (
-        <div
-          className={styles.error}
-          data-testid={`call-line-error-${line.callId}`}
-          role="alert"
-        >
-          <p>{mapActiveCallControlOperationError(lastOperationError)}</p>
-          <IconControlButton
-            iconId="action.retry"
-            ariaLabel={`Retry ${lastOperationError.operation}`}
-            tooltipLabel={t("common.retry")}
-            testId={`control-retry-line-${line.callId}`}
-            className={styles.iconButton}
-            onClick={onRetryOperation}
-          />
-        </div>
-      ) : null}
       {line.resumeDisabledReason !== null ? (
         <p className={styles.disabledReason} role="status">
           {line.resumeDisabledReason === null

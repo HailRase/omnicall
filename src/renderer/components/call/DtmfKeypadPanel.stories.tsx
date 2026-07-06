@@ -25,7 +25,6 @@ const baseArgs: Story["args"] = {
   displayName: "+7 (495) 123-45-67",
   toneHistory: "",
   lastTone: null,
-  errorMessage: null,
   onTone: () => undefined,
   onClose: () => undefined,
 };
@@ -48,12 +47,3 @@ export const DarkWithHistory: Story = {
   },
 };
 
-export const DarkWithError: Story = {
-  args: {
-    ...baseArgs,
-    errorMessage: "Не удалось отправить тон",
-  },
-  parameters: {
-    theme: "dark",
-  },
-};

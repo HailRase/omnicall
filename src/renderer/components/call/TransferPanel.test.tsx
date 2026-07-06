@@ -31,30 +31,6 @@ describe("TransferPanel", () => {
     expect(screen.queryByTestId("control-attended-transfer")).not.toBeInTheDocument();
   });
 
-  it("shows failure banner with alert role", () => {
-    renderPanel({
-      failureTitle: "Ошибка перевода",
-      failureMessage: "REFER rejected",
-    });
-
-    const banner = screen.getByTestId("transfer-failure-banner");
-    expect(banner).toHaveAttribute("role", "alert");
-    expect(banner).toHaveTextContent("REFER rejected");
-    expect(banner).toHaveTextContent("Ошибка перевода");
-  });
-
-  it("shows consultation failure copy", () => {
-    renderPanel({
-      failureTitle: "Ошибка консультации",
-      failureMessage: "busy",
-    });
-
-    expect(screen.getByTestId("transfer-failure-banner")).toHaveTextContent("busy");
-    expect(screen.getByTestId("transfer-failure-banner")).toHaveTextContent(
-      "Ошибка консультации",
-    );
-  });
-
   it("does not show relationship_invalid on step 1 with valid target", () => {
     renderPanel({
       targetNumber: "4",
@@ -64,12 +40,6 @@ describe("TransferPanel", () => {
     });
 
     expect(screen.queryByTestId("transfer-disabled-reason")).not.toBeInTheDocument();
-  });
-
-  it("does not show failure banner when failure message is null", () => {
-    renderPanel({ failureMessage: null });
-
-    expect(screen.queryByTestId("transfer-failure-banner")).not.toBeInTheDocument();
   });
 
   it("shows progress indicator without duplicate disabled reason", () => {
@@ -174,16 +144,6 @@ describe("TransferPanel", () => {
 
     expect(screen.queryByTestId("transfer-footer-cancel")).not.toBeInTheDocument();
     expect(screen.getByTestId("control-cancel-transfer")).toBeInTheDocument();
-  });
-
-  it("shows dismiss as close when transfer failed", () => {
-    renderPanel({
-      failureTitle: "Ошибка перевода",
-      failureMessage: "REFER rejected",
-    });
-
-    expect(screen.getByTestId("control-cancel-transfer")).toHaveAccessibleName("Закрыть");
-    expect(screen.queryByTestId("transfer-footer-cancel")).not.toBeInTheDocument();
   });
 
   it("shows complete transfer action when consultation is active", () => {
@@ -453,8 +413,6 @@ function renderPanel(overrides: TransferPanelOverrides = {}): void {
     attendedTransferDisabledReason: "consultation_not_active",
     cancelTransferDisabledReason: null,
     transferInProgress: false,
-    failureTitle: null,
-    failureMessage: null,
     lines: [
       createCallLine({
         callId: "call-1",

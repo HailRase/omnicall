@@ -6,6 +6,23 @@ export {
 } from "./settings/SettingsAccountKey.js";
 export type { AppTheme } from "./settings/AppTheme.js";
 export { APP_THEMES, DEFAULT_APP_THEME, parseAppTheme } from "./settings/AppTheme.js";
+export type {
+  NotificationPlacement,
+  NotificationStacking,
+} from "./settings/NotificationSettings.js";
+export {
+  NOTIFICATION_PLACEMENTS,
+  NOTIFICATION_STACKING_MODES,
+  MIN_NOTIFICATION_DURATION_MS,
+  MAX_NOTIFICATION_DURATION_MS,
+  DEFAULT_NOTIFICATION_DURATION_MS,
+  MIN_NOTIFICATION_MAX_VISIBLE,
+  MAX_NOTIFICATION_MAX_VISIBLE,
+  DEFAULT_NOTIFICATION_MAX_VISIBLE,
+  DEFAULT_NOTIFICATION_CLOSABLE,
+  parseNotificationPlacement,
+  parseNotificationStacking,
+} from "./settings/NotificationSettings.js";
 export type { SupportedLanguage } from "./settings/SupportedLanguage.js";
 export {
   DEFAULT_SUPPORTED_LANGUAGE,

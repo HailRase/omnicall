@@ -17,7 +17,6 @@ export type StatusSelectorProps = Readonly<{
   statusChangeInProgress: boolean;
   readyDisabledReason: OperatorStatusDisabledReason | null;
   breakDisabledReason: OperatorStatusDisabledReason | null;
-  rejectionBanner: string | null;
   breakReasonPickerVisible: boolean;
   breakReasons: ReadonlyArray<string>;
   selectedBreakReason: string | null;
@@ -40,7 +39,6 @@ export function StatusSelector({
   statusChangeInProgress,
   readyDisabledReason,
   breakDisabledReason,
-  rejectionBanner,
   breakReasonPickerVisible,
   breakReasons,
   selectedBreakReason,
@@ -77,16 +75,6 @@ export function StatusSelector({
         >
           {t("status.selector.inProgress")}
         </p>
-      )}
-
-      {rejectionBanner !== null && (
-        <div
-          className={styles.rejection}
-          data-testid="status-rejection-banner"
-          role="alert"
-        >
-          <p>{rejectionBanner}</p>
-        </div>
       )}
 
       <div className={styles.actions} role="group" aria-label={t("status.selector.actionsAria")}>

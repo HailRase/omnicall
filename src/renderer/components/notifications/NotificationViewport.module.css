@@ -1,0 +1,31 @@
+.viewport {
+  position: fixed;
+  z-index: var(--z-toast);
+  display: grid;
+  gap: var(--space-xs);
+  pointer-events: none;
+}
+
+.viewport > * {
+  pointer-events: auto;
+}
+
+.top-right {
+  top: calc(var(--space-lg) + 3rem);
+  right: var(--space-md);
+}
+
+.top-left {
+  top: calc(var(--space-lg) + 3rem);
+  left: var(--space-md);
+}
+
+.bottom-right {
+  right: var(--space-md);
+  bottom: var(--space-md);
+}
+
+.bottom-left {
+  left: var(--space-md);
+  bottom: var(--space-md);
+}

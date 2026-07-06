@@ -20,8 +20,6 @@ export type TransferPanelProps = Readonly<{
   attendedTransferDisabledReason: string | null;
   cancelTransferDisabledReason: string | null;
   transferInProgress: boolean;
-  failureTitle: string | null;
-  failureMessage: string | null;
   lines: ReadonlyArray<CallLine>;
   onTargetChange: (value: string) => void;
   onBlindTransfer: () => void;
@@ -46,8 +44,6 @@ export function TransferPanel({
   attendedTransferDisabledReason,
   cancelTransferDisabledReason,
   transferInProgress,
-  failureTitle,
-  failureMessage,
   lines,
   onTargetChange,
   onBlindTransfer,
@@ -116,8 +112,7 @@ export function TransferPanel({
   }
 
   const cancelDisabled = cancelTransferDisabledReason !== null;
-  const dismissLabel =
-    failureMessage !== null ? t("transfer.panel.close") : t("transfer.panel.cancelTransfer");
+  const dismissLabel = t("transfer.panel.cancelTransfer");
   const showCompleteTransfer = step >= 3 && consultReady && !transferInProgress;
 
   return (
@@ -168,20 +163,6 @@ export function TransferPanel({
       </header>
 
       <div className={clsx(styles.body, step === 1 && styles.bodyStepTarget)}>
-        {failureMessage !== null ? (
-          <div
-            className={styles.failure}
-            data-testid="transfer-failure-banner"
-            role="alert"
-          >
-            <div className={styles.failureText}>
-              <p className={styles.failureTitle}>{failureTitle ?? t("transfer.panel.failureTitle")}</p>
-              <p>{failureMessage}</p>
-              <p className={styles.failureHint}>{t("transfer.panel.failureHint")}</p>
-            </div>
-          </div>
-        ) : null}
-
         {sourceLine !== null ? (
           <section className={styles.lineSection} data-testid="transfer-source-line">
             <p className={styles.lineSectionTitle}>{t("transfer.panel.sourceLineTitle")}</p>

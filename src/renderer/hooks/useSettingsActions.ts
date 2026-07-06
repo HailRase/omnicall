@@ -4,6 +4,10 @@ import type { MultiCallSettings } from "@application/index.js";
 import { deriveActiveProfileSettingsSyncKey } from "@application/index.js";
 import { deriveRegisteredAccountIdentity } from "@application/projections/deriveRegisteredAccountIdentity.js";
 import {
+  MAX_NOTIFICATION_DURATION_MS,
+  MAX_NOTIFICATION_MAX_VISIBLE,
+  MIN_NOTIFICATION_DURATION_MS,
+  MIN_NOTIFICATION_MAX_VISIBLE,
   createDefaultUserSettings,
   MAX_AUTO_ANSWER_TIMEOUT_SEC,
   MIN_AUTO_ANSWER_TIMEOUT_SEC,
@@ -39,6 +43,11 @@ type UseSettingsActionsResult = Readonly<{
   userSettings: UserSettings;
   onLanguageChange: (language: SupportedLanguage) => void;
   onThemeChange: (theme: AppTheme) => void;
+  onNotificationPlacementChange: (placement: UserSettings["notificationPlacement"]) => void;
+  onNotificationStackingChange: (stacking: UserSettings["notificationStacking"]) => void;
+  onNotificationDurationMsChange: (durationMs: number) => void;
+  onNotificationClosableChange: (closable: boolean) => void;
+  onNotificationMaxVisibleChange: (maxVisible: number) => void;
   onMultiSessionsToggle: (enabled: boolean) => void;
   onAutoAnswerEnabledToggle: (enabled: boolean) => void;
   onAutoAnswerTimeoutChange: (timeoutSec: number) => void;
@@ -159,6 +168,64 @@ export function useSettingsActions(
       persistUserSettings({
         ...userSettings,
         language,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onNotificationPlacementChange = useCallback(
+    (notificationPlacement: UserSettings["notificationPlacement"]): void => {
+      persistUserSettings({
+        ...userSettings,
+        notificationPlacement,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onNotificationStackingChange = useCallback(
+    (notificationStacking: UserSettings["notificationStacking"]): void => {
+      persistUserSettings({
+        ...userSettings,
+        notificationStacking,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onNotificationDurationMsChange = useCallback(
+    (notificationDurationMs: number): void => {
+      const normalized = Math.min(
+        MAX_NOTIFICATION_DURATION_MS,
+        Math.max(MIN_NOTIFICATION_DURATION_MS, notificationDurationMs),
+      );
+      persistUserSettings({
+        ...userSettings,
+        notificationDurationMs: normalized,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onNotificationClosableChange = useCallback(
+    (notificationClosable: boolean): void => {
+      persistUserSettings({
+        ...userSettings,
+        notificationClosable,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onNotificationMaxVisibleChange = useCallback(
+    (notificationMaxVisible: number): void => {
+      const normalized = Math.min(
+        MAX_NOTIFICATION_MAX_VISIBLE,
+        Math.max(MIN_NOTIFICATION_MAX_VISIBLE, notificationMaxVisible),
+      );
+      persistUserSettings({
+        ...userSettings,
+        notificationMaxVisible: normalized,
       });
     },
     [persistUserSettings, userSettings],
@@ -372,6 +439,11 @@ export function useSettingsActions(
     userSettings,
     onLanguageChange,
     onThemeChange,
+    onNotificationPlacementChange,
+    onNotificationStackingChange,
+    onNotificationDurationMsChange,
+    onNotificationClosableChange,
+    onNotificationMaxVisibleChange,
     onMultiSessionsToggle,
     onAutoAnswerEnabledToggle,
     onAutoAnswerTimeoutChange,

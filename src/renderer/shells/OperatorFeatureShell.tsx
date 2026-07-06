@@ -33,7 +33,6 @@ export function OperatorFeatureShell({ facade }: OperatorFeatureShellProps): JSX
         statusChangeInProgress={operatorStatusActions.statusChangeInProgress}
         readyDisabledReason={operatorStatusActions.readyDisabledReason}
         breakDisabledReason={operatorStatusActions.breakDisabledReason}
-        rejectionBanner={operatorStatusActions.rejectionBanner}
         breakReasonPickerVisible={operatorStatusActions.breakReasonPickerVisible}
         breakReasons={operatorStatusActions.breakReasons}
         selectedBreakReason={operatorStatusActions.selectedBreakReason}

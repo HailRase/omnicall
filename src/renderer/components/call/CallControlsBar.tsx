@@ -1,22 +1,16 @@
 import clsx from "clsx";
 import type { JSX, MouseEvent } from "react";
 import type {
-  ActiveCallControlOperationError,
   CallLineCardViewModel,
 } from "@application/index.js";
-import {
-  mapActiveCallControlOperationError,
-} from "../../helpers/mapActiveCallControlLabels.js";
 import { useI18n } from "../../i18n/index.js";
 import { AppIcon } from "../icons/AppIcon.js";
 import type { IconSemanticId } from "../icons/iconCatalog.js";
-import { IconControlButton } from "../icons/IconControlButton.js";
 import { IconTooltip } from "../icons/IconTooltip.js";
 import styles from "./CallControlsBar.module.css";
 
 export type CallControlsBarProps = Readonly<{
   line: CallLineCardViewModel | null;
-  lastOperationError: ActiveCallControlOperationError | null;
   registrationDisabledReason?: string | null;
   onHold: (callId: string) => void;
   onResume: (callId: string) => void;
@@ -26,7 +20,6 @@ export type CallControlsBarProps = Readonly<{
   onTransfer: (callId: string) => void;
   onShowDtmf: () => void;
   onShowNumberEntry: () => void;
-  onRetryOperation: () => void;
 }>;
 
 type LabeledControlProps = Readonly<{
@@ -49,7 +42,6 @@ type LabeledControlProps = Readonly<{
  */
 export function CallControlsBar({
   line,
-  lastOperationError,
   registrationDisabledReason = null,
   onHold,
   onResume,
@@ -59,7 +51,6 @@ export function CallControlsBar({
   onTransfer,
   onShowDtmf,
   onShowNumberEntry,
-  onRetryOperation,
 }: CallControlsBarProps): JSX.Element | null {
   const { t } = useI18n();
   const controllableStates = new Set(["Active", "Held", "Connecting", "Ringing"]);
@@ -69,7 +60,6 @@ export function CallControlsBar({
 
   const isPreConnect = line.state === "Connecting" || line.state === "Ringing";
   const isHeld = line.state === "Held";
-  const showError = line.isActiveUnheld && lastOperationError !== null;
   const registrationBlocked = registrationDisabledReason !== null;
 
   const muteBlocked =
@@ -167,25 +157,6 @@ export function CallControlsBar({
           }}
         />
       </div>
-      {showError ? (
-        <div
-          className={styles.error}
-          data-testid={`call-line-error-${line.callId}`}
-          role="alert"
-        >
-          <p>{mapActiveCallControlOperationError(lastOperationError)}</p>
-          <IconControlButton
-            iconId="action.retry"
-            ariaLabel={t("call.controls.retryOperationAria", {
-              operation: lastOperationError.operation,
-            })}
-            tooltipLabel={t("common.retry")}
-            testId={`control-retry-line-${line.callId}`}
-            className={styles.retryButton}
-            onClick={onRetryOperation}
-          />
-        </div>
-      ) : null}
     </section>
   );
 }

@@ -32,16 +32,6 @@ describe("StatusSelector", () => {
     expect(indicator).toHaveTextContent("Смена статуса выполняется…");
   });
 
-  it("shows rejection banner from last rejection reason", () => {
-    renderSelector({
-      rejectionBanner: "Operator platform rejected the status change.",
-    });
-
-    const banner = screen.getByTestId("status-rejection-banner");
-    expect(banner).toHaveAttribute("role", "alert");
-    expect(banner).toHaveTextContent("Operator platform rejected");
-  });
-
   it("disables controls when projection supplies disabled reasons", () => {
     renderSelector({
       readyDisabledReason: "dnd_blocks_ready",
@@ -87,7 +77,6 @@ function renderSelector(overrides: StatusSelectorOverrides = {}): void {
     statusChangeInProgress: false,
     readyDisabledReason: null,
     breakDisabledReason: null,
-    rejectionBanner: null,
     breakReasonPickerVisible: false,
     breakReasons: ["meeting", "training"],
     selectedBreakReason: null,

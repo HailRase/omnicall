@@ -4,6 +4,8 @@ import type {
   AudioCodecId,
   CodecPreferenceMutationMessageKey,
   CodecPreferences,
+  NotificationPlacement,
+  NotificationStacking,
   SipAccountInput,
   SipSystemStateShellView,
   SupportedLanguage,
@@ -17,7 +19,6 @@ import { IconControlButton } from "../icons/index.js";
 import { useI18n } from "../../i18n/index.js";
 import type { SettingsSectionId } from "./settingsSections.js";
 import { resolveSettingsContentHeaderTitle } from "./settingsSections.js";
-import type { SipManualActionSuccessKey } from "../../hooks/useSipSystemStateActions.js";
 import type { TranslationKey } from "../../i18n/messages.js";
 import { SettingsSidebar } from "./SettingsSidebar.js";
 import { SettingsAccountPanel } from "./panels/SettingsAccountPanel.js";
@@ -27,7 +28,6 @@ import { SettingsGeneralPanel } from "./panels/SettingsGeneralPanel.js";
 import { SettingsHeadsetPanel } from "./panels/SettingsHeadsetPanel.js";
 import { SettingsSessionsPanel } from "./panels/SettingsSessionsPanel.js";
 import { SettingsSystemStatePanel } from "./panels/SettingsSystemStatePanel.js";
-import formStyles from "./SettingsForm.module.css";
 import styles from "./SettingsPanel.module.css";
 
 export type SettingsPanelProps = Readonly<{
@@ -40,6 +40,16 @@ export type SettingsPanelProps = Readonly<{
   onLanguageChange: (language: SupportedLanguage) => void;
   theme: AppTheme;
   onThemeChange: (theme: AppTheme) => void;
+  notificationPlacement: NotificationPlacement;
+  onNotificationPlacementChange: (placement: NotificationPlacement) => void;
+  notificationStacking: NotificationStacking;
+  onNotificationStackingChange: (stacking: NotificationStacking) => void;
+  notificationDurationMs: number;
+  onNotificationDurationMsChange: (durationMs: number) => void;
+  notificationClosable: boolean;
+  onNotificationClosableChange: (closable: boolean) => void;
+  notificationMaxVisible: number;
+  onNotificationMaxVisibleChange: (maxVisible: number) => void;
   multiSessionsEnabled: boolean;
   onMultiSessionsChange: (enabled: boolean) => void;
   autoAnswerEnabled: boolean;
@@ -56,7 +66,6 @@ export type SettingsPanelProps = Readonly<{
   isCheckingUpdates: boolean;
   onCheckForUpdates: () => void;
   onOpenDownloadPage: () => void;
-  updateError?: string | null;
   systemState: Readonly<{
     shell: SipSystemStateShellView;
     sipAutoReconnectEnabled: boolean;
@@ -76,9 +85,6 @@ export type SettingsPanelProps = Readonly<{
     onManualTransportReconnect: () => void;
     onManualReregister: () => void;
     onClearJournal: () => void;
-    actionErrorKey: TranslationKey | null;
-    actionErrorDetail: string | null;
-    actionSuccessKey: SipManualActionSuccessKey | null;
     actionLoading: "transport" | "reregister" | null;
   }>;
   codecPreferences: CodecPreferences;
@@ -137,6 +143,16 @@ export function SettingsPanel({
   onLanguageChange,
   theme,
   onThemeChange,
+  notificationPlacement,
+  onNotificationPlacementChange,
+  notificationStacking,
+  onNotificationStackingChange,
+  notificationDurationMs,
+  onNotificationDurationMsChange,
+  notificationClosable,
+  onNotificationClosableChange,
+  notificationMaxVisible,
+  onNotificationMaxVisibleChange,
   multiSessionsEnabled,
   onMultiSessionsChange,
   autoAnswerEnabled,
@@ -153,7 +169,6 @@ export function SettingsPanel({
   isCheckingUpdates,
   onCheckForUpdates,
   onOpenDownloadPage,
-  updateError = null,
   systemState,
   codecPreferences,
   onAudioCodecEnabledChange,
@@ -213,6 +228,16 @@ export function SettingsPanel({
           language={language}
           onLanguageChange={onLanguageChange}
           onThemeChange={onThemeChange}
+          notificationPlacement={notificationPlacement}
+          onNotificationPlacementChange={onNotificationPlacementChange}
+          notificationStacking={notificationStacking}
+          onNotificationStackingChange={onNotificationStackingChange}
+          notificationDurationMs={notificationDurationMs}
+          onNotificationDurationMsChange={onNotificationDurationMsChange}
+          notificationClosable={notificationClosable}
+          onNotificationClosableChange={onNotificationClosableChange}
+          notificationMaxVisible={notificationMaxVisible}
+          onNotificationMaxVisibleChange={onNotificationMaxVisibleChange}
           currentVersion={currentVersion}
           latestVersion={latestVersion}
           updateStatusMessage={updateStatusMessage}
@@ -259,9 +284,6 @@ export function SettingsPanel({
           onManualTransportReconnect={systemState.onManualTransportReconnect}
           onManualReregister={systemState.onManualReregister}
           onClearJournal={systemState.onClearJournal}
-          actionErrorKey={systemState.actionErrorKey}
-          actionErrorDetail={systemState.actionErrorDetail}
-          actionSuccessKey={systemState.actionSuccessKey}
           actionLoading={systemState.actionLoading}
         />
       );
@@ -313,11 +335,6 @@ export function SettingsPanel({
             />
           </div>
         </header>
-        {updateError !== null ? (
-          <p className={formStyles.error} role="alert" data-testid="settings-update-error">
-            {updateError}
-          </p>
-        ) : null}
         <div className={styles.contentBody}>{sectionContent}</div>
       </div>
     </div>

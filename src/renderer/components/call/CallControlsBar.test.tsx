@@ -37,7 +37,6 @@ describe("CallControlsBar", () => {
     render(
       <CallControlsBar
         line={activeLine}
-        lastOperationError={null}
         onHold={vi.fn()}
         onResume={vi.fn()}
         onMute={vi.fn()}
@@ -46,7 +45,6 @@ describe("CallControlsBar", () => {
         onTransfer={vi.fn()}
         onShowDtmf={vi.fn()}
         onShowNumberEntry={vi.fn()}
-        onRetryOperation={vi.fn()}
       />,
     );
 
@@ -65,7 +63,6 @@ describe("CallControlsBar", () => {
     render(
       <CallControlsBar
         line={heldLine}
-        lastOperationError={null}
         onHold={vi.fn()}
         onResume={vi.fn()}
         onMute={vi.fn()}
@@ -74,7 +71,6 @@ describe("CallControlsBar", () => {
         onTransfer={vi.fn()}
         onShowDtmf={vi.fn()}
         onShowNumberEntry={vi.fn()}
-        onRetryOperation={vi.fn()}
       />,
     );
 
@@ -95,7 +91,6 @@ describe("CallControlsBar", () => {
     render(
       <CallControlsBar
         line={connectingLine}
-        lastOperationError={null}
         onHold={vi.fn()}
         onResume={vi.fn()}
         onMute={vi.fn()}
@@ -104,7 +99,6 @@ describe("CallControlsBar", () => {
         onTransfer={vi.fn()}
         onShowDtmf={vi.fn()}
         onShowNumberEntry={vi.fn()}
-        onRetryOperation={vi.fn()}
       />,
     );
 
@@ -130,7 +124,6 @@ describe("CallControlsBar", () => {
     render(
       <CallControlsBar
         line={ringingLine}
-        lastOperationError={null}
         onHold={vi.fn()}
         onResume={vi.fn()}
         onMute={vi.fn()}
@@ -139,7 +132,6 @@ describe("CallControlsBar", () => {
         onTransfer={vi.fn()}
         onShowDtmf={vi.fn()}
         onShowNumberEntry={vi.fn()}
-        onRetryOperation={vi.fn()}
       />,
     );
 
@@ -155,7 +147,6 @@ describe("CallControlsBar", () => {
     render(
       <CallControlsBar
         line={activeLine}
-        lastOperationError={null}
         onHold={vi.fn()}
         onResume={vi.fn()}
         onMute={vi.fn()}
@@ -164,7 +155,6 @@ describe("CallControlsBar", () => {
         onTransfer={vi.fn()}
         onShowDtmf={onShowDtmf}
         onShowNumberEntry={vi.fn()}
-        onRetryOperation={vi.fn()}
       />,
     );
 

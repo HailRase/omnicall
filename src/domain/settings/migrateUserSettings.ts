@@ -118,6 +118,11 @@ function migrateV1ToV3(record: Record<string, unknown>): UserSettings {
     schemaVersion: defaults.schemaVersion,
     language: parsedLanguage ?? defaults.language,
     theme: v1Validated.theme ?? defaults.theme,
+    notificationPlacement: defaults.notificationPlacement,
+    notificationStacking: defaults.notificationStacking,
+    notificationDurationMs: defaults.notificationDurationMs,
+    notificationClosable: defaults.notificationClosable,
+    notificationMaxVisible: defaults.notificationMaxVisible,
     multiSessionsEnabled: v1Validated.multiSessionsEnabled ?? defaults.multiSessionsEnabled,
     autoUnholdOnTransferFailure:
       v1Validated.autoUnholdOnTransferFailure ?? defaults.autoUnholdOnTransferFailure,

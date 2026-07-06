@@ -1,16 +1,17 @@
 import { useState, type JSX } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import type { AccountPanelActionReasonKey } from "@application/index.js";
-import { OcpToastStack } from "../components/ocp/OcpToastStack.js";
-import { UpdateAvailableBanner } from "../components/updates/UpdateAvailableBanner.js";
+import { NotificationViewport } from "../components/notifications/NotificationViewport.js";
 import { SettingsFullscreenOverlay } from "../components/settings/SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "../components/settings/SettingsPanel.js";
 import { DEFAULT_AUTO_ANSWER_TIMEOUT_SEC } from "../components/settings/panels/SettingsSessionsPanel.js";
+import { mapAgentStatusRejectionReason } from "../helpers/mapAgentStatusRejectionReason.js";
 import { useAccountPanelShell } from "../hooks/useAccountPanelShell.js";
+import { useActionNotifications } from "../hooks/useActionNotifications.js";
 import { useAuthShellFlags } from "../hooks/useAuthShellFlags.js";
 import { useCallFeatureShell } from "../hooks/useCallFeatureShell.js";
 import { useHeaderChromeShell } from "../hooks/useHeaderChromeShell.js";
-import { useOcpNotifications } from "../hooks/useOcpNotifications.js";
+import { useNotifications } from "../hooks/useNotifications.js";
 import { useOverlayShell } from "../hooks/useOverlayShell.js";
 import { useShellWindowLayout } from "../hooks/useShellWindowLayout.js";
 import { useShellWindowControls } from "../hooks/useShellWindowControls.js";
@@ -51,7 +52,13 @@ export function SoftphoneReadyShell({
 }: SoftphoneReadyShellProps): JSX.Element {
   const { t } = useI18n();
   const { sessionLogoutActions } = shellChrome;
-  const { projection, ocpNotificationProjection, multiCallProjection, applyMultiCallSettings } =
+  const {
+    projection,
+    operatorStatusProjection,
+    ocpNotificationProjection,
+    multiCallProjection,
+    applyMultiCallSettings,
+  } =
     useSoftphoneProjections();
   const { blockingAuthState, isSipRegistered } = useAuthShellFlags();
   const overlayShell = useOverlayShell();
@@ -106,10 +113,47 @@ export function SoftphoneReadyShell({
     dismissedUpdateBannerVersion: settingsActions.userSettings.dismissedUpdateBannerVersion,
     onDismissUpdateBannerVersion: settingsActions.onDismissUpdateBannerVersion,
   });
-
-  const ocpNotifications = useOcpNotifications({
-    isOcpMode: projection.isOcpMode,
-    ocpNotificationProjection,
+  const notifications = useNotifications({
+    placement: settingsActions.userSettings.notificationPlacement,
+    stacking: settingsActions.userSettings.notificationStacking,
+    durationMs: settingsActions.userSettings.notificationDurationMs,
+    closable: settingsActions.userSettings.notificationClosable,
+    maxVisible: settingsActions.userSettings.notificationMaxVisible,
+  });
+  const sipActionErrorText =
+    sipSystemStateActions.actionErrorDetail ??
+    (sipSystemStateActions.actionErrorKey !== null ? t(sipSystemStateActions.actionErrorKey) : null);
+  const statusRejectionBanner = mapAgentStatusRejectionReason(
+    operatorStatusProjection.lastRejectionReason,
+  );
+  useActionNotifications({
+    notifications,
+    accountFeedback: {
+      error: accountActions.error,
+      successKey: accountActions.successKey,
+      warningKey: accountActions.warningKey,
+    },
+    callControls: {
+      projection: callBindings.activeCallControlsProjection,
+      onRetry: callBindings.callActions.handleRetryLastOperation,
+    },
+    dtmfError: callBindings.callProjection.lastDtmfError,
+    transferFailure: callBindings.transferPanelShell.failureMessage,
+    logoutErrorMessage: sessionLogoutActions.shell.logoutErrorMessage,
+    settingsUpdateError: settingsActions.settingsUpdateError,
+    sipActionSuccessKey: sipSystemStateActions.actionSuccessKey,
+    sipActionErrorText,
+    statusRejectionBanner,
+    ocpToasts:
+      projection.isOcpMode && ocpNotificationProjection.isOcpSyncAvailable
+        ? ocpNotificationProjection.toasts
+        : [],
+    appUpdate: {
+      showPrompt: appUpdate.showUpdatePrompt,
+      latestVersion: appUpdate.snapshot.latestVersion,
+      onDownload: appUpdate.onOpenDownloadPage,
+      onDismiss: appUpdate.onDismissUpdatePrompt,
+    },
   });
   const windowControls = useShellWindowControls({ isShuttingDown });
 
@@ -135,15 +179,12 @@ export function SoftphoneReadyShell({
       controls={<CallControlsShell bindings={callBindings} />}
       overlays={
         <>
-          <UpdateAvailableBanner
-            visible={appUpdate.showUpdatePrompt}
-            latestVersion={appUpdate.snapshot.latestVersion}
-            onDownload={appUpdate.onOpenDownloadPage}
-            onDismiss={appUpdate.onDismissUpdatePrompt}
-          />
-          <OcpToastStack
-            toasts={ocpNotifications.visibleToasts}
-            onDismiss={ocpNotifications.dismissToast}
+          <NotificationViewport
+            placement={notifications.placement}
+            items={notifications.items}
+            onDismiss={notifications.dismiss}
+            onPause={notifications.pause}
+            onResume={notifications.resume}
           />
           <CallOverlayShell bindings={callBindings} />
           <SettingsFullscreenOverlay
@@ -160,6 +201,16 @@ export function SoftphoneReadyShell({
               onLanguageChange={settingsActions.onLanguageChange}
               theme={settingsActions.userSettings.theme}
               onThemeChange={settingsActions.onThemeChange}
+              notificationPlacement={settingsActions.userSettings.notificationPlacement}
+              onNotificationPlacementChange={settingsActions.onNotificationPlacementChange}
+              notificationStacking={settingsActions.userSettings.notificationStacking}
+              onNotificationStackingChange={settingsActions.onNotificationStackingChange}
+              notificationDurationMs={settingsActions.userSettings.notificationDurationMs}
+              onNotificationDurationMsChange={settingsActions.onNotificationDurationMsChange}
+              notificationClosable={settingsActions.userSettings.notificationClosable}
+              onNotificationClosableChange={settingsActions.onNotificationClosableChange}
+              notificationMaxVisible={settingsActions.userSettings.notificationMaxVisible}
+              onNotificationMaxVisibleChange={settingsActions.onNotificationMaxVisibleChange}
               multiSessionsEnabled={multiCallProjection.multiSessionsEnabled}
               onMultiSessionsChange={settingsActions.onMultiSessionsToggle}
               autoAnswerEnabled={settingsActions.userSettings.autoAnswerTimeoutSec !== null}
@@ -183,7 +234,6 @@ export function SoftphoneReadyShell({
               isCheckingUpdates={appUpdate.isChecking}
               onCheckForUpdates={appUpdate.onCheckForUpdates}
               onOpenDownloadPage={appUpdate.onOpenDownloadPage}
-              updateError={settingsActions.settingsUpdateError}
               systemState={{
                 shell: sipSystemStateShell,
                 sipAutoReconnectEnabled: settingsActions.userSettings.sipAutoReconnectEnabled,
@@ -205,9 +255,6 @@ export function SoftphoneReadyShell({
                 onManualTransportReconnect: sipSystemStateActions.onManualTransportReconnect,
                 onManualReregister: sipSystemStateActions.onManualReregister,
                 onClearJournal: sipSystemStateActions.onClearJournal,
-                actionErrorKey: sipSystemStateActions.actionErrorKey,
-                actionErrorDetail: sipSystemStateActions.actionErrorDetail,
-                actionSuccessKey: sipSystemStateActions.actionSuccessKey,
                 actionLoading: sipSystemStateActions.actionLoading,
               }}
               codecPreferences={settingsActions.userSettings.codecPreferences}

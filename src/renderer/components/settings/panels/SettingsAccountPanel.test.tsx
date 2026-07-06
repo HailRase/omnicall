@@ -274,17 +274,13 @@ describe("SettingsAccountPanel", () => {
 
 
 
-  it("renders localized authorization error via account panel", () => {
+  it("does not render legacy inline account authorization error", () => {
 
     renderPanel({ error: { key: "account.error.networkOrTransport" } });
 
 
 
-    expect(screen.getByTestId("account-error")).toHaveTextContent(
-
-      "Не удалось подключиться к SIP-серверу",
-
-    );
+    expect(screen.queryByTestId("account-error")).not.toBeInTheDocument();
 
   });
 

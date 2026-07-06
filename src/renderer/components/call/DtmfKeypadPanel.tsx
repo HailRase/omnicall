@@ -12,7 +12,6 @@ export type DtmfKeypadPanelProps = Readonly<{
   displayName: string;
   toneHistory: string;
   lastTone: string | null;
-  errorMessage?: string | null;
   onTone: (tone: string) => void;
   onClose: () => void;
 }>;
@@ -27,7 +26,6 @@ export function DtmfKeypadPanel({
   displayName,
   toneHistory,
   lastTone,
-  errorMessage = null,
   onTone,
   onClose,
 }: DtmfKeypadPanelProps): JSX.Element {
@@ -91,11 +89,6 @@ export function DtmfKeypadPanel({
         ))}
       </div>
 
-      {errorMessage !== null ? (
-        <p className={styles.error} data-testid="dtmf-error-alert" role="alert">
-          {errorMessage}
-        </p>
-      ) : null}
       <p className={styles.hint}>{t("call.dtmf.hint")}</p>
     </section>
   );

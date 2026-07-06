@@ -1,10 +1,7 @@
 import type { JSX, RefObject, SubmitEvent } from "react";
-
 import clsx from "clsx";
 
 import type { SavedProfilePanelMode } from "@application/projections/deriveSavedProfilePanelMode.js";
-
-import type { AccountAuthorizationErrorProjection } from "@application/projections/mapAccountAuthorizationError.js";
 
 import type { SipAccountInput } from "@application/index.js";
 
@@ -28,10 +25,8 @@ type AccountPanelProps = Readonly<{
 
   submitting: boolean;
 
-  error: AccountAuthorizationErrorProjection | null;
-
+  error: unknown;
   successKey: TranslationKey | null;
-
   warningKey: TranslationKey | null;
 
   disabled?: boolean;
@@ -84,12 +79,6 @@ export function AccountPanel({
 
   submitting,
 
-  error,
-
-  successKey,
-
-  warningKey,
-
   disabled = false,
 
   showTitle = true,
@@ -140,8 +129,6 @@ export function AccountPanel({
 
   const logoutDisabled = logoutDisabledReason !== null;
 
-  const showFeedback = successKey !== null || error !== null || warningKey !== null;
-
   const passwordOnly = panelMode === "savedPasswordOnly";
 
   const showFullForm = panelMode === "newFull" || panelMode === "savedFull";
@@ -151,31 +138,6 @@ export function AccountPanel({
   const submitLabelKey: TranslationKey =
 
     passwordOnly ? "account.action.signIn" : "account.action.authorize";
-
-
-
-  function renderErrorMessage(): string {
-
-    if (error === null) {
-
-      return "";
-
-    }
-
-
-
-    if (error.key === "account.error.serverRegistration" && error.params !== undefined) {
-
-      return t(error.key, error.params);
-
-    }
-
-
-
-    return t(error.key);
-
-  }
-
 
 
   return (
@@ -205,72 +167,6 @@ export function AccountPanel({
     >
 
       {showTitle ? <h2>{t("account.title")}</h2> : null}
-
-      {showFeedback ? (
-
-        <div className={styles.feedback} data-testid="account-feedback">
-
-          {successKey !== null ? (
-
-            <p
-
-              className={clsx(styles.feedbackMessage, styles.feedbackSuccess)}
-
-              role="status"
-
-              aria-live="polite"
-
-              data-testid="account-success"
-
-            >
-
-              {t(successKey)}
-
-            </p>
-
-          ) : null}
-
-          {warningKey !== null ? (
-
-            <p
-
-              className={clsx(styles.feedbackMessage, styles.feedbackWarning)}
-
-              role="status"
-
-              aria-live="polite"
-
-              data-testid="account-warning"
-
-            >
-
-              {t(warningKey)}
-
-            </p>
-
-          ) : null}
-
-          {error !== null ? (
-
-            <p
-
-              className={clsx(styles.feedbackMessage, styles.feedbackError)}
-
-              role="alert"
-
-              data-testid="account-error"
-
-            >
-
-              {renderErrorMessage()}
-
-            </p>
-
-          ) : null}
-
-        </div>
-
-      ) : null}
 
       <form className={styles.form} onSubmit={handleSubmit}>
 

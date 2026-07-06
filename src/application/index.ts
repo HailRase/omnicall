@@ -252,6 +252,16 @@ export {
 } from "@domain/settings/SipRecoverySettings.js";
 export { APP_THEMES, DEFAULT_APP_THEME, parseAppTheme, type AppTheme } from "@domain/settings/AppTheme.js";
 export {
+  NOTIFICATION_PLACEMENTS,
+  NOTIFICATION_STACKING_MODES,
+  MIN_NOTIFICATION_DURATION_MS,
+  MAX_NOTIFICATION_DURATION_MS,
+  MIN_NOTIFICATION_MAX_VISIBLE,
+  MAX_NOTIFICATION_MAX_VISIBLE,
+  type NotificationPlacement,
+  type NotificationStacking,
+} from "@domain/settings/NotificationSettings.js";
+export {
   DEFAULT_SUPPORTED_LANGUAGE,
   SUPPORTED_LANGUAGES,
   parseSupportedLanguage,

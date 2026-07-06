@@ -19,6 +19,16 @@ const themeDefaults = {
   onLanguageChange: vi.fn(),
   theme: "light" as const,
   onThemeChange: vi.fn(),
+  notificationPlacement: "bottom-right" as const,
+  onNotificationPlacementChange: vi.fn(),
+  notificationStacking: "stacked" as const,
+  onNotificationStackingChange: vi.fn(),
+  notificationDurationMs: 4200,
+  onNotificationDurationMsChange: vi.fn(),
+  notificationClosable: true,
+  onNotificationClosableChange: vi.fn(),
+  notificationMaxVisible: 3,
+  onNotificationMaxVisibleChange: vi.fn(),
 } as const;
 
 const appUpdateDefaults = {
@@ -86,20 +96,6 @@ describe("SettingsPanel", () => {
       />,
     );
     expect(screen.getByTestId("settings-multi-sessions-toggle")).not.toBeChecked();
-  });
-
-  it("shows update error when provided", () => {
-    render(
-      <SettingsPanel
-        {...panelBaseProps}
-        activeSection="general"
-        updateError="Repository unavailable"
-      />,
-    );
-
-    expect(screen.getByTestId("settings-update-error")).toHaveTextContent(
-      "Repository unavailable",
-    );
   });
 
   it("shows breadcrumb title with section name", () => {

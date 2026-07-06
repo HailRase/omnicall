@@ -47,7 +47,6 @@ const activeLine: CallLineCardViewModel = {
 
 const baseArgs: Story["args"] = {
   line: activeLine,
-  lastOperationError: null,
   registrationDisabledReason: null,
   onHold: () => undefined,
   onResume: () => undefined,
@@ -57,7 +56,6 @@ const baseArgs: Story["args"] = {
   onTransfer: () => undefined,
   onShowDtmf: () => undefined,
   onShowNumberEntry: () => undefined,
-  onRetryOperation: () => undefined,
 };
 
 export const LightActive: Story = {

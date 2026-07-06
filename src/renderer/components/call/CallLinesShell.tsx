@@ -1,8 +1,5 @@
 import type { JSX } from "react";
-import type {
-  ActiveCallControlOperationError,
-  CallLinesShellViewModel,
-} from "@application/index.js";
+import type { CallLinesShellViewModel } from "@application/index.js";
 import { useI18n } from "../../i18n/index.js";
 import chromeTextStyles from "../shell/ShellChromeText.module.css";
 import { CallLineRow } from "./CallLineRow.js";
@@ -10,7 +7,6 @@ import styles from "./CallLinesShell.module.css";
 
 export type CallLinesShellProps = Readonly<{
   shell: CallLinesShellViewModel;
-  lastOperationError: ActiveCallControlOperationError | null;
   compact?: boolean;
   onResumeLine: (callId: string) => void;
   onHangupLine: (callId: string) => void;
@@ -19,7 +15,6 @@ export type CallLinesShellProps = Readonly<{
   onUnmuteLine: (callId: string) => void;
   onTransferLine: (callId: string) => void;
   onAnswerLine: (callId: string) => void;
-  onRetryOperation: () => void;
 }>;
 
 /**
@@ -29,7 +24,6 @@ export type CallLinesShellProps = Readonly<{
  */
 export function CallLinesShell({
   shell,
-  lastOperationError,
   compact = false,
   onResumeLine,
   onHangupLine,
@@ -38,7 +32,6 @@ export function CallLinesShell({
   onUnmuteLine,
   onTransferLine,
   onAnswerLine,
-  onRetryOperation,
 }: CallLinesShellProps): JSX.Element | null {
   const { t } = useI18n();
   if (!shell.visible) {
@@ -66,7 +59,6 @@ export function CallLinesShell({
             key={line.callId}
             line={line}
             compact={compact}
-            lastOperationError={line.isActiveUnheld ? lastOperationError : null}
             onResume={onResumeLine}
             onHangup={onHangupLine}
             onHold={onHoldLine}
@@ -74,7 +66,6 @@ export function CallLinesShell({
             onUnmute={onUnmuteLine}
             onTransfer={onTransferLine}
             onAnswer={onAnswerLine}
-            onRetryOperation={onRetryOperation}
           />
         ))}
       </ul>

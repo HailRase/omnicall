@@ -152,6 +152,38 @@ describe("validateUserSettings", () => {
     }
   });
 
+  it("accepts notification preference fields", () => {
+    const result = validateUserSettings({
+      ...createDefaultUserSettings(),
+      notificationPlacement: "top-left",
+      notificationStacking: "single",
+      notificationDurationMs: 6500,
+      notificationClosable: false,
+      notificationMaxVisible: 1,
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.notificationPlacement).toBe("top-left");
+      expect(result.value.notificationStacking).toBe("single");
+      expect(result.value.notificationDurationMs).toBe(6500);
+      expect(result.value.notificationClosable).toBe(false);
+      expect(result.value.notificationMaxVisible).toBe(1);
+    }
+  });
+
+  it("clamps out-of-range notification numbers", () => {
+    const result = validateUserSettings({
+      ...createDefaultUserSettings(),
+      notificationDurationMs: 15000,
+      notificationMaxVisible: 20,
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors).toContain("notificationDurationMs_out_of_range");
+      expect(result.errors).toContain("notificationMaxVisible_out_of_range");
+    }
+  });
+
   it("defaults dismissed update banner version to null", () => {
     const result = validateUserSettings(createDefaultUserSettings());
     expect(result.ok).toBe(true);

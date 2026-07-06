@@ -15,6 +15,15 @@ import {
   DEFAULT_SUPPORTED_LANGUAGE,
   type SupportedLanguage,
 } from "./SupportedLanguage.js";
+import {
+  DEFAULT_NOTIFICATION_CLOSABLE,
+  DEFAULT_NOTIFICATION_DURATION_MS,
+  DEFAULT_NOTIFICATION_MAX_VISIBLE,
+  DEFAULT_NOTIFICATION_PLACEMENT,
+  DEFAULT_NOTIFICATION_STACKING,
+  type NotificationPlacement,
+  type NotificationStacking,
+} from "./NotificationSettings.js";
 
 export const SETTINGS_SCHEMA_VERSION = 3 as const;
 
@@ -27,6 +36,11 @@ export type UserSettings = Readonly<{
   schemaVersion: SettingsSchemaVersion;
   language: SupportedLanguage;
   theme: AppTheme;
+  notificationPlacement: NotificationPlacement;
+  notificationStacking: NotificationStacking;
+  notificationDurationMs: number;
+  notificationClosable: boolean;
+  notificationMaxVisible: number;
   multiSessionsEnabled: boolean;
   autoUnholdOnTransferFailure: boolean;
   autoAnswerTimeoutSec: number | null;
@@ -56,6 +70,11 @@ export function createDefaultUserSettings(): UserSettings {
     schemaVersion: SETTINGS_SCHEMA_VERSION,
     language: DEFAULT_SUPPORTED_LANGUAGE,
     theme: DEFAULT_APP_THEME,
+    notificationPlacement: DEFAULT_NOTIFICATION_PLACEMENT,
+    notificationStacking: DEFAULT_NOTIFICATION_STACKING,
+    notificationDurationMs: DEFAULT_NOTIFICATION_DURATION_MS,
+    notificationClosable: DEFAULT_NOTIFICATION_CLOSABLE,
+    notificationMaxVisible: DEFAULT_NOTIFICATION_MAX_VISIBLE,
     multiSessionsEnabled: true,
     autoUnholdOnTransferFailure: true,
     autoAnswerTimeoutSec: null,

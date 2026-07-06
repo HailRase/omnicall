@@ -18,7 +18,6 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
   const { t } = useI18n();
   const {
     callProjection,
-    activeCallControlsProjection,
     dialedNumber,
     dialpadMode,
     isCalling,
@@ -48,12 +47,6 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
     bindings.transferSuccessCelebration.visible ||
     numberEntryOverlayOpen;
 
-  const controlTargetCallId = controlTargetLine?.callId ?? null;
-  const scopedLastOperationError =
-    activeCallControlsProjection.callId === controlTargetCallId
-      ? activeCallControlsProjection.lastOperationError
-      : null;
-
   const handleHangup = (callId: string): void => {
     if (isIncomingSelected) {
       incomingCallActions.handleRejectIncoming();
@@ -70,7 +63,6 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
       {!hideCallControls ? (
         <CallControlsBar
           line={controlTargetLine}
-          lastOperationError={scopedLastOperationError}
           registrationDisabledReason={inputDisabledReason}
           onHold={callLinesActions.handleHoldLine}
           onResume={callLinesActions.handleResumeLine}
@@ -82,7 +74,6 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
             setCallMode("dtmf", controlTargetLine?.callId ?? null);
           }}
           onShowNumberEntry={openNumberEntryOverlay}
-          onRetryOperation={callActions.handleRetryLastOperation}
         />
       ) : null}
 

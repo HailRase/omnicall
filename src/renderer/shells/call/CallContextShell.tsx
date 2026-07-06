@@ -8,7 +8,6 @@ import { CallSessionStack } from "../../components/call/CallSessionStack.js";
 import { OutgoingCallCard } from "../../components/call/OutgoingCallCard.js";
 import { TransferPanel } from "../../components/call/TransferPanel.js";
 import { TransferSuccessOverlay } from "../../components/call/TransferSuccessOverlay.js";
-import { mapDtmfErrorMessage } from "../../helpers/mapDtmfErrorMessage.js";
 import { useAutoAnswerCountdown } from "../../hooks/useAutoAnswerCountdown.js";
 import type { CallFeatureShellBindings } from "../../hooks/useCallFeatureShell.js";
 import styles from "./CallContextShell.module.css";
@@ -103,8 +102,6 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
           attendedTransferDisabledReason={transferPanelShell.attendedTransferDisabledReason}
           cancelTransferDisabledReason={transferPanelShell.cancelTransferDisabledReason}
           transferInProgress={transferPanelShell.transferInProgress}
-          failureTitle={transferPanelShell.failureTitle}
-          failureMessage={transferPanelShell.failureMessage}
           lines={multiLineCallProjection.lines}
           onTargetChange={transferPanelShell.setTargetNumber}
           onBlindTransfer={transferActions.handleBlindTransfer}
@@ -119,7 +116,6 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
           displayName={dtmfLine.displayLabel ?? dtmfLine.callId}
           toneHistory={dtmfLine.dtmfHistory}
           lastTone={dtmfLine.lastDtmfTone}
-          errorMessage={mapDtmfErrorMessage(callProjection.lastDtmfError)}
           onTone={bindings.callActions.handleSendDtmf}
           onClose={() => {
             setCallMode("number");
