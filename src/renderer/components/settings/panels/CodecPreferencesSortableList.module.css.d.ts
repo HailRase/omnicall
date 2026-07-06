@@ -1,5 +1,4 @@
 declare const classes: {
-  readonly checkbox: string;
   readonly dragGrip: string;
   readonly dragGripDot: string;
   readonly dragHandle: string;

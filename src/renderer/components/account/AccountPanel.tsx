@@ -15,6 +15,8 @@ import panelStyles from "../shell/BootstrapPanel.module.css";
 
 import formStyles from "../settings/SettingsForm.module.css";
 
+import { Switch } from "../ui/index.js";
+
 import styles from "./AccountPanel.module.css";
 
 
@@ -321,17 +323,11 @@ export function AccountPanel({
         {saveProfileVisible ? (
 
           <label
-
             className={clsx(
-
               formStyles.toggleRow,
-
               saveProfileDisabled && styles.saveProfileDisabled,
-
             )}
-
             data-testid="account-save-profile-row"
-
           >
 
             <span className={formStyles.toggleText}>
@@ -350,31 +346,15 @@ export function AccountPanel({
 
             </span>
 
-            <span className={formStyles.switch}>
-
-              <input
-
-                type="checkbox"
-
-                className={formStyles.switchInput}
-
-                checked={saveProfileChecked}
-
-                disabled={disabled || submitting || saveProfileDisabled}
-
-                data-testid="account-save-profile-checkbox"
-
-                onChange={(event) => {
-
-                  onSaveProfileChange?.(event.target.checked);
-
-                }}
-
-              />
-
-              <span className={formStyles.switchSlider} aria-hidden="true" />
-
-            </span>
+            <Switch
+              id="account-save-profile"
+              checked={saveProfileChecked}
+              disabled={disabled || submitting || saveProfileDisabled}
+              data-testid="account-save-profile-checkbox"
+              onCheckedChange={(checked) => {
+                onSaveProfileChange?.(checked);
+              }}
+            />
 
           </label>
 

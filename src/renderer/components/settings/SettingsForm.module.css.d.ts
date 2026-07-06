@@ -8,13 +8,10 @@ declare const classes: {
   readonly fieldRow: string;
   readonly fieldValue: string;
   readonly inputSuffix: string;
-  readonly languageSelect: string;
-  readonly languageSelectGroup: string;
+  readonly languageSelectField: string;
   readonly numberInput: string;
   readonly numberInputGroup: string;
   readonly panelStack: string;
-  readonly primaryButton: string;
-  readonly secondaryButton: string;
   readonly sectionCard: string;
   readonly sectionTitle: string;
   readonly segmentOption: string;
@@ -23,9 +20,6 @@ declare const classes: {
   readonly settingBlock: string;
   readonly settingBlockDisabled: string;
   readonly settingsGroup: string;
-  readonly switch: string;
-  readonly switchInput: string;
-  readonly switchSlider: string;
   readonly toggleDescription: string;
   readonly toggleLabel: string;
   readonly toggleRow: string;

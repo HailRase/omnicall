@@ -15,7 +15,7 @@ import type { SavedAccountProfileId } from "@application/index.js";
 import type { SavedAccountProfileSelectorOption } from "@application/projections/deriveSavedAccountProfileSelectorOptions.js";
 import type { SavedProfilePanelMode } from "@application/projections/deriveSavedProfilePanelMode.js";
 import type { AccountAuthorizationErrorProjection } from "@application/projections/mapAccountAuthorizationError.js";
-import { IconControlButton } from "../icons/index.js";
+import { IconButton } from "../ui/index.js";
 import { useI18n } from "../../i18n/index.js";
 import type { SettingsSectionId } from "./settingsSections.js";
 import { resolveSettingsContentHeaderTitle } from "./settingsSections.js";
@@ -326,10 +326,12 @@ export function SettingsPanel({
             {resolveSettingsContentHeaderTitle(t, activeSection)}
           </h3>
           <div className={styles.closeSlot}>
-            <IconControlButton
+            <IconButton
               iconId="overlay.close"
               ariaLabel={t("settings.close")}
-              testId="settings-overlay-close"
+              data-testid="settings-overlay-close"
+              variant="ghost"
+              size="sm"
               className={styles.closeButton}
               onClick={onClose}
             />

@@ -119,6 +119,11 @@
   overflow: hidden;
 }
 
+.nav-button:hover:not(:disabled):not([data-loading="true"]) {
+  background: var(--color-bg-surface-highlight);
+  color: var(--color-text-primary);
+}
+
 .panel-inner-expanded .nav-button {
   display: grid;
   grid-template-columns: 40px minmax(0, 1fr);
@@ -134,17 +139,8 @@
   overflow: visible;
 }
 
-.nav-button:hover {
-  background: var(--color-bg-surface-highlight);
-  color: var(--color-text-primary);
-}
-
-.nav-button:focus-visible {
-  outline: 2px solid var(--color-outline-focus);
-  outline-offset: 2px;
-}
-
-.nav-button-active {
+.nav-button-active,
+.nav-button-active:hover:not(:disabled):not([data-loading="true"]) {
   background: var(--color-bg-surface-highlight);
   border-color: var(--color-border-default);
   color: var(--color-text-primary);

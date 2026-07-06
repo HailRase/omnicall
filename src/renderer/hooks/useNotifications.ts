@@ -30,9 +30,6 @@ export type NotificationItem = Readonly<{
   messageText: string | null;
   messageParams: NotificationParams | null;
   durationMs: number;
-  expiresAt: number | null;
-  paused: boolean;
-  remainingMs: number | null;
   closable: boolean;
   action: NotificationAction | null;
   onClose: (() => void) | null;
@@ -49,12 +46,11 @@ export type UseNotificationsInput = Readonly<{
 export type UseNotificationsResult = Readonly<{
   placement: UseNotificationsInput["placement"];
   stacking: UseNotificationsInput["stacking"];
+  durationMs: number;
   items: ReadonlyArray<NotificationItem>;
   notify: (descriptor: NotificationDescriptor) => string;
   dismiss: (id: string) => void;
   dismissAll: () => void;
-  pause: (id: string) => void;
-  resume: (id: string) => void;
 }>;
 
 let notificationCounter = 0;
@@ -65,9 +61,9 @@ function createNotificationId(): string {
 }
 
 /**
- * - Purpose: manage ephemeral renderer notification queue and lifecycle.
+ * - Purpose: manage ephemeral renderer notification queue for UI Kit toast rendering.
  * - Inputs: persisted notification preferences and enqueue descriptors.
- * - Outputs: visible list, enqueue API, dismiss controls, and pause/resume handlers.
+ * - Outputs: visible list, enqueue API, and dismiss controls.
  */
 export function useNotifications(input: UseNotificationsInput): UseNotificationsResult {
   const { placement, stacking, durationMs, closable, maxVisible } = input;
@@ -83,24 +79,11 @@ export function useNotifications(input: UseNotificationsInput): UseNotifications
     closableRef.current = closable;
   }, [closable]);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      const now = Date.now();
-      setQueue((previous) =>
-        previous.filter((item) => item.expiresAt === null || item.expiresAt > now),
-      );
-    }, 250);
-    return () => {
-      clearInterval(timer);
-    };
-  }, []);
-
   const notify = useCallback(
     (descriptor: NotificationDescriptor): string => {
       const id = descriptor.id ?? createNotificationId();
       const effectiveDuration = descriptor.durationMs ?? durationRef.current;
       const effectiveClosable = descriptor.closable ?? closableRef.current;
-      const expiresAt = effectiveDuration > 0 ? Date.now() + effectiveDuration : null;
       const item: NotificationItem = {
         id,
         level: descriptor.level,
@@ -108,9 +91,6 @@ export function useNotifications(input: UseNotificationsInput): UseNotifications
         messageText: descriptor.messageText ?? null,
         messageParams: descriptor.messageParams ?? null,
         durationMs: effectiveDuration,
-        expiresAt,
-        paused: false,
-        remainingMs: null,
         closable: effectiveClosable,
         action: descriptor.action ?? null,
         onClose: descriptor.onClose ?? null,
@@ -137,41 +117,6 @@ export function useNotifications(input: UseNotificationsInput): UseNotifications
     setQueue([]);
   }, []);
 
-  const pause = useCallback((id: string): void => {
-    setQueue((previous) => {
-      const now = Date.now();
-      return previous.map((item) => {
-        if (item.id !== id || item.paused || item.expiresAt === null) {
-          return item;
-        }
-        return {
-          ...item,
-          paused: true,
-          remainingMs: Math.max(0, item.expiresAt - now),
-          expiresAt: null,
-        };
-      });
-    });
-  }, []);
-
-  const resume = useCallback((id: string): void => {
-    setQueue((previous) => {
-      const now = Date.now();
-      return previous.map((item) => {
-        if (item.id !== id || !item.paused) {
-          return item;
-        }
-        const remainingMs = item.remainingMs ?? item.durationMs;
-        return {
-          ...item,
-          paused: false,
-          remainingMs: null,
-          expiresAt: now + remainingMs,
-        };
-      });
-    });
-  }, []);
-
   const items = useMemo(() => {
     if (stacking === "single") {
       return queue.slice(0, 1);
@@ -182,11 +127,10 @@ export function useNotifications(input: UseNotificationsInput): UseNotifications
   return {
     placement,
     stacking,
+    durationMs,
     items,
     notify,
     dismiss,
     dismissAll,
-    pause,
-    resume,
   };
 }

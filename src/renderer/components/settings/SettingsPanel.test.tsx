@@ -2,11 +2,16 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefaults.js";
 import { settingsCodecTestDefaults } from "./panels/settingsCodecTestDefaults.js";
 import { settingsAccountTestDefaults } from "./panels/settingsAccountTestDefaults.js";
+import { setupJsdomRadix } from "../../test/setupJsdomRadix.js";
 import { SettingsPanel } from "./SettingsPanel.js";
+
+beforeEach(() => {
+  setupJsdomRadix();
+});
 
 afterEach(() => {
   cleanup();
@@ -82,7 +87,7 @@ describe("SettingsPanel", () => {
     );
 
     const toggle = screen.getByTestId("settings-multi-sessions-toggle");
-    expect(toggle).toBeChecked();
+    expect(toggle).toHaveAttribute("data-state", "checked");
 
     await user.click(toggle);
     expect(onMultiSessionsChange).toHaveBeenCalledWith(false);
@@ -95,7 +100,10 @@ describe("SettingsPanel", () => {
         onMultiSessionsChange={onMultiSessionsChange}
       />,
     );
-    expect(screen.getByTestId("settings-multi-sessions-toggle")).not.toBeChecked();
+    expect(screen.getByTestId("settings-multi-sessions-toggle")).toHaveAttribute(
+      "data-state",
+      "unchecked",
+    );
   });
 
   it("shows breadcrumb title with section name", () => {

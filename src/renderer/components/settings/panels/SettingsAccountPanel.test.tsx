@@ -8,13 +8,23 @@ import "@testing-library/jest-dom/vitest";
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createSettingsAccountKey } from "@application/index.js";
 
 import { setRendererLanguage } from "../../../i18n/index.js";
 
+import { setupJsdomRadix } from "../../../test/setupJsdomRadix.js";
+
 import { SettingsAccountPanel } from "./SettingsAccountPanel.js";
+
+
+
+beforeEach(() => {
+
+  setupJsdomRadix();
+
+});
 
 
 

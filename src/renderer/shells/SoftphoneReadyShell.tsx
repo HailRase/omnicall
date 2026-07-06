@@ -181,10 +181,9 @@ export function SoftphoneReadyShell({
         <>
           <NotificationViewport
             placement={notifications.placement}
+            durationMs={notifications.durationMs}
             items={notifications.items}
             onDismiss={notifications.dismiss}
-            onPause={notifications.pause}
-            onResume={notifications.resume}
           />
           <CallOverlayShell bindings={callBindings} />
           <SettingsFullscreenOverlay

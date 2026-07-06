@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { useEffect, useState, type AnimationEvent, type JSX, type ReactNode } from "react";
 import { useI18n } from "../../i18n/index.js";
+import { Button } from "../ui/index.js";
 import styles from "./SettingsFullscreenOverlay.module.css";
 
 export type SettingsFullscreenOverlayProps = Readonly<{
@@ -69,8 +70,8 @@ export function SettingsFullscreenOverlay({
       aria-modal="true"
       aria-label={t("settings.title")}
     >
-      <button
-        type="button"
+      <Button
+        variant="ghost"
         className={clsx(styles.backdrop, exiting && styles.backdropExiting)}
         aria-label={t("settings.close")}
         data-testid="settings-overlay-backdrop"

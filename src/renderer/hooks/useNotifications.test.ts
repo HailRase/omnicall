@@ -1,12 +1,11 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { act, renderHook } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { useNotifications } from "./useNotifications.js";
 
 describe("useNotifications", () => {
-  it("enqueues and auto-dismisses notifications by duration", () => {
-    vi.useFakeTimers();
+  it("enqueues and dismisses notifications", () => {
     const { result } = renderHook(() =>
       useNotifications({
         placement: "bottom-right",
@@ -27,10 +26,9 @@ describe("useNotifications", () => {
     expect(result.current.items).toHaveLength(1);
 
     act(() => {
-      vi.advanceTimersByTime(2100);
+      result.current.dismiss("one");
     });
     expect(result.current.items).toHaveLength(0);
-    vi.useRealTimers();
   });
 
   it("keeps one visible item in single mode", () => {
@@ -53,33 +51,24 @@ describe("useNotifications", () => {
     expect(result.current.items[0]?.id).toBe("second");
   });
 
-  it("pauses and resumes timeout", () => {
-    vi.useFakeTimers();
+  it("limits visible items by maxVisible", () => {
     const { result } = renderHook(() =>
       useNotifications({
         placement: "bottom-right",
         stacking: "stacked",
-        durationMs: 2000,
+        durationMs: 4000,
         closable: true,
-        maxVisible: 3,
+        maxVisible: 2,
       }),
     );
 
     act(() => {
-      result.current.notify({ id: "pause-me", level: "info", messageText: "pause" });
-      vi.advanceTimersByTime(900);
-      result.current.pause("pause-me");
-      vi.advanceTimersByTime(3000);
+      result.current.notify({ id: "first", level: "info", messageText: "first" });
+      result.current.notify({ id: "second", level: "info", messageText: "second" });
+      result.current.notify({ id: "third", level: "info", messageText: "third" });
     });
-    expect(result.current.items).toHaveLength(1);
 
-    act(() => {
-      result.current.resume("pause-me");
-    });
-    act(() => {
-      vi.advanceTimersByTime(2000);
-    });
-    expect(result.current.items).toHaveLength(0);
-    vi.useRealTimers();
+    expect(result.current.items).toHaveLength(2);
+    expect(result.current.items.map((item) => item.id)).toEqual(["third", "second"]);
   });
 });

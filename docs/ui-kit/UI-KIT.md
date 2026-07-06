@@ -1054,7 +1054,7 @@ Purpose:
 
 - Temporary feedback message.
 - Supports title, description, action, close, duration, and placement.
-- Uses Radix Toast or existing notification viewport after design parity decision.
+- Uses Radix Toast via UI Kit primitives; product `NotificationViewport` composes `ToastProvider`, `ToastRoot`, and `ToastViewport`.
 
 API:
 

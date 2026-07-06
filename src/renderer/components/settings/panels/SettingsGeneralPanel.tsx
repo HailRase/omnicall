@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import type { ChangeEvent, JSX } from "react";
+import type { JSX } from "react";
 import {
   MAX_NOTIFICATION_DURATION_MS,
   MAX_NOTIFICATION_MAX_VISIBLE,
@@ -15,6 +15,7 @@ import {
   type SupportedLanguage,
 } from "@application/index.js";
 import { useI18n, type TranslationKey } from "../../../i18n/index.js";
+import { Button, Select, Switch } from "../../ui/index.js";
 import formStyles from "../SettingsForm.module.css";
 
 export type SettingsGeneralPanelProps = Readonly<{
@@ -97,8 +98,13 @@ export function SettingsGeneralPanel({
 }: SettingsGeneralPanelProps): JSX.Element {
   const { t } = useI18n();
 
-  const handleLanguageChange = (event: ChangeEvent<HTMLSelectElement>): void => {
-    const parsed = parseSupportedLanguage(event.target.value);
+  const languageItems = SUPPORTED_LANGUAGES.map((locale) => ({
+    value: locale,
+    label: t(LANGUAGE_LABELS[locale]),
+  }));
+
+  const handleLanguageChange = (value: string): void => {
+    const parsed = parseSupportedLanguage(value);
     if (parsed === null) {
       return;
     }
@@ -128,9 +134,10 @@ export function SettingsGeneralPanel({
               {THEME_OPTIONS.map((option) => {
                 const selected = theme === option.value;
                 return (
-                  <button
+                  <Button
                     key={option.value}
-                    type="button"
+                    variant="ghost"
+                    size="sm"
                     role="radio"
                     aria-checked={selected}
                     className={clsx(
@@ -143,34 +150,29 @@ export function SettingsGeneralPanel({
                     }}
                   >
                     {t(option.label)}
-                  </button>
+                  </Button>
                 );
               })}
             </div>
           </div>
           <div className={formStyles.settingBlock}>
             <label className={formStyles.fieldLabelGroup} htmlFor="settings-language-select">
-              <span className={formStyles.fieldLabel}>
+              <span className={formStyles.fieldLabel} id="settings-language-select-label">
                 {t("settings.general.languageLabel")}
               </span>
               <span className={formStyles.fieldDescription}>
                 {t("settings.general.languageDescription")}
               </span>
             </label>
-            <div className={formStyles.languageSelectGroup}>
-              <select
+            <div className={formStyles.languageSelectField}>
+              <Select
                 id="settings-language-select"
-                className={formStyles.languageSelect}
                 data-testid="settings-language-select"
+                aria-labelledby="settings-language-select-label"
+                items={languageItems}
                 value={language}
-                onChange={handleLanguageChange}
-              >
-                {SUPPORTED_LANGUAGES.map((locale) => (
-                  <option key={locale} value={locale}>
-                    {t(LANGUAGE_LABELS[locale])}
-                  </option>
-                ))}
-              </select>
+                onValueChange={handleLanguageChange}
+              />
             </div>
           </div>
         </div>
@@ -194,9 +196,10 @@ export function SettingsGeneralPanel({
               {NOTIFICATION_PLACEMENTS.map((placement) => {
                 const selected = placement === notificationPlacement;
                 return (
-                  <button
+                  <Button
                     key={placement}
-                    type="button"
+                    variant="ghost"
+                    size="sm"
                     role="radio"
                     aria-checked={selected}
                     className={clsx(
@@ -209,7 +212,7 @@ export function SettingsGeneralPanel({
                     }}
                   >
                     {t(PLACEMENT_LABELS[placement])}
-                  </button>
+                  </Button>
                 );
               })}
             </div>
@@ -227,9 +230,10 @@ export function SettingsGeneralPanel({
               {NOTIFICATION_STACKING_MODES.map((stacking) => {
                 const selected = stacking === notificationStacking;
                 return (
-                  <button
+                  <Button
                     key={stacking}
-                    type="button"
+                    variant="ghost"
+                    size="sm"
                     role="radio"
                     aria-checked={selected}
                     className={clsx(
@@ -242,7 +246,7 @@ export function SettingsGeneralPanel({
                     }}
                   >
                     {t(STACKING_LABELS[stacking])}
-                  </button>
+                  </Button>
                 );
               })}
             </div>
@@ -307,19 +311,12 @@ export function SettingsGeneralPanel({
                   {t("settings.general.notifications.closable.label")}
                 </span>
               </span>
-              <span className={formStyles.switch}>
-                <input
-                  id="settings-notification-closable"
-                  type="checkbox"
-                  className={formStyles.switchInput}
-                  checked={notificationClosable}
-                  data-testid="settings-notification-closable"
-                  onChange={(event) => {
-                    onNotificationClosableChange(event.target.checked);
-                  }}
-                />
-                <span className={formStyles.switchSlider} aria-hidden="true" />
-              </span>
+              <Switch
+                id="settings-notification-closable"
+                checked={notificationClosable}
+                data-testid="settings-notification-closable"
+                onCheckedChange={onNotificationClosableChange}
+              />
             </label>
           </div>
         </div>
@@ -357,28 +354,27 @@ export function SettingsGeneralPanel({
               {updateStatusMessage}
             </p>
             <div className={formStyles.actionRow}>
-              <button
-                type="button"
-                className={formStyles.primaryButton}
+              <Button
+                variant="primary"
+                size="sm"
                 data-testid="settings-check-updates"
                 disabled={!canCheckForUpdates}
-                aria-disabled={!canCheckForUpdates}
-                aria-busy={isCheckingUpdates}
+                loading={isCheckingUpdates}
                 onClick={onCheckForUpdates}
               >
                 {isCheckingUpdates
                   ? t("settings.general.checkingUpdates")
                   : t("settings.general.checkUpdates")}
-              </button>
+              </Button>
               {canOpenDownloadPage ? (
-                <button
-                  type="button"
-                  className={formStyles.secondaryButton}
+                <Button
+                  variant="secondary"
+                  size="sm"
                   data-testid="settings-open-download-page"
                   onClick={onOpenDownloadPage}
                 >
                   {t("settings.general.openDownloadPage")}
-                </button>
+                </Button>
               ) : null}
             </div>
           </div>

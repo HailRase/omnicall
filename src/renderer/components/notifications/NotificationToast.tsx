@@ -1,15 +1,17 @@
-import clsx from "clsx";
 import type { JSX } from "react";
 import { I18N_MESSAGES, useI18n } from "../../i18n/index.js";
-import { IconControlButton } from "../icons/index.js";
 import type { NotificationItem } from "../../hooks/useNotifications.js";
-import styles from "./NotificationToast.module.css";
+import {
+  ToastAction,
+  ToastClose,
+  ToastRoot,
+  ToastTitle,
+} from "../ui/toast/index.js";
+import { notificationLevelToToastTone } from "./notificationLevelToToastTone.js";
 
 export type NotificationToastProps = Readonly<{
   item: NotificationItem;
   onDismiss: (id: string) => void;
-  onPause: (id: string) => void;
-  onResume: (id: string) => void;
 }>;
 
 function resolveMessage(item: NotificationItem, language: ReturnType<typeof useI18n>["language"]): string {
@@ -28,73 +30,51 @@ function resolveMessage(item: NotificationItem, language: ReturnType<typeof useI
   return entry;
 }
 
+function resolveToastDuration(durationMs: number): number {
+  return durationMs > 0 ? durationMs : Number.POSITIVE_INFINITY;
+}
+
 /**
- * - Purpose: render one accessible notification toast with optional action.
- * - Inputs: queue item and toast lifecycle callbacks.
- * - Outputs: themed toast card with severity semantics and controls.
+ * - Purpose: render one product notification through UI Kit toast primitives.
+ * - Inputs: queue item and dismiss callback.
+ * - Outputs: accessible toast with tone, optional action, and optional close control.
  */
-export function NotificationToast({
-  item,
-  onDismiss,
-  onPause,
-  onResume,
-}: NotificationToastProps): JSX.Element {
+export function NotificationToast({ item, onDismiss }: NotificationToastProps): JSX.Element {
   const { t, language } = useI18n();
   const message = resolveMessage(item, language);
-  const isError = item.level === "error";
+  const actionLabel = item.action !== null ? t(item.action.labelKey) : null;
 
   return (
-    <article
-      className={clsx(
-        styles.toast,
-        item.level === "success" && styles.toastSuccess,
-        item.level === "warning" && styles.toastWarning,
-        item.level === "error" && styles.toastError,
-      )}
-      role={isError ? "alert" : "status"}
-      aria-live={isError ? "assertive" : "polite"}
+    <ToastRoot
+      open
+      tone={notificationLevelToToastTone(item.level)}
+      duration={resolveToastDuration(item.durationMs)}
       data-testid="notification-toast"
-      onMouseEnter={() => {
-        onPause(item.id);
-      }}
-      onMouseLeave={() => {
-        onResume(item.id);
-      }}
-      onFocusCapture={() => {
-        onPause(item.id);
-      }}
-      onBlurCapture={() => {
-        onResume(item.id);
+      onOpenChange={(open) => {
+        if (!open) {
+          item.onClose?.();
+          onDismiss(item.id);
+        }
       }}
     >
-      <p className={styles.message}>{message}</p>
-      <div className={styles.actions}>
-        {item.action !== null ? (
-          <button
-            type="button"
-            className={styles.actionButton}
-            data-testid={`notification-action-${item.action.id}`}
-            onClick={() => {
-              item.action?.onClick();
-            }}
-          >
-            {t(item.action.labelKey)}
-          </button>
-        ) : null}
-        {item.closable ? (
-          <IconControlButton
-            iconId="overlay.close"
-            ariaLabel={t("icons.overlay.close")}
-            tooltipLabel={t("icons.overlay.close")}
-            className={styles.dismiss}
-            testId={`notification-dismiss-${item.id}`}
-            onClick={() => {
-              item.onClose?.();
-              onDismiss(item.id);
-            }}
-          />
-        ) : null}
-      </div>
-    </article>
+      <ToastTitle>{message}</ToastTitle>
+      {item.action !== null && actionLabel !== null ? (
+        <ToastAction
+          altText={actionLabel}
+          data-testid={`notification-action-${item.action.id}`}
+          onClick={() => {
+            item.action?.onClick();
+          }}
+        >
+          {actionLabel}
+        </ToastAction>
+      ) : null}
+      {item.closable ? (
+        <ToastClose
+          closeLabel={t("icons.overlay.close")}
+          data-testid={`notification-dismiss-${item.id}`}
+        />
+      ) : null}
+    </ToastRoot>
   );
 }

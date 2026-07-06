@@ -2,8 +2,6 @@ declare const classes: {
   readonly actionFeedback: string;
   readonly actionFeedbackError: string;
   readonly actionFeedbackSuccess: string;
-  readonly buttonLoading: string;
-  readonly buttonSpinner: string;
   readonly dependentFields: string;
   readonly dependentFieldsCollapsed: string;
   readonly dependentFieldsInner: string;

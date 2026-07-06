@@ -1,6 +1,9 @@
 .switch {
   position: relative;
+  display: inline-flex;
   flex-shrink: 0;
+  align-items: center;
+  box-sizing: border-box;
   width: 44px;
   height: 24px;
   margin: 0;
@@ -8,6 +11,8 @@
   border: none;
   border-radius: var(--radius-full);
   background: var(--color-border-default);
+  line-height: 0;
+  vertical-align: middle;
   cursor: pointer;
   transition: background-color 120ms ease;
 }
@@ -28,6 +33,9 @@
 }
 
 .thumb {
+  position: absolute;
+  top: 3px;
+  left: 0;
   display: block;
   width: 18px;
   height: 18px;

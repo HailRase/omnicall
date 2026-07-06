@@ -15,8 +15,9 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import clsx from "clsx";
-import type { ChangeEvent, JSX } from "react";
+import type { JSX } from "react";
 import { useI18n, type TranslationKey } from "../../../i18n/index.js";
+import { Button, Switch } from "../../ui/index.js";
 import styles from "./CodecPreferencesSortableList.module.css";
 
 export type CodecSortableRow = Readonly<{
@@ -36,7 +37,7 @@ export type CodecPreferencesSortableListProps = Readonly<{
 }>;
 
 /**
- * - Purpose: render draggable codec preference rows with enable checkboxes.
+ * - Purpose: render draggable codec preference rows with enable switches.
  * - Inputs: ordered rows, label resolver, toggle/reorder callbacks.
  * - Outputs: accessible sortable list without settings persistence logic.
  */
@@ -123,10 +124,6 @@ function CodecSortableRowItem({
     transition,
   };
 
-  const handleCheckboxChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    onToggle(row.id, event.target.checked);
-  };
-
   return (
     <li
       ref={setNodeRef}
@@ -134,13 +131,13 @@ function CodecSortableRowItem({
       className={clsx(styles.row, isDragging && styles.rowDragging)}
       data-testid={`${listId}-row-${row.id}`}
     >
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="sm"
         className={clsx(styles.dragHandle, reorderDisabled && styles.dragHandleDisabled)}
         aria-label={t("settings.codecs.dragHandleLabel")}
         data-testid={`${listId}-drag-${row.id}`}
         disabled={reorderDisabled}
-        aria-disabled={reorderDisabled}
         {...(reorderDisabled ? {} : { ...attributes, ...listeners })}
       >
         <span className={styles.dragGrip} aria-hidden="true">
@@ -148,16 +145,15 @@ function CodecSortableRowItem({
             <span key={index} className={styles.dragGripDot} />
           ))}
         </span>
-      </button>
-      <input
+      </Button>
+      <Switch
         id={`${listId}-codec-${row.id}`}
-        type="checkbox"
-        className={styles.checkbox}
         checked={row.enabled}
         disabled={toggleDisabled}
-        aria-disabled={toggleDisabled}
         data-testid={`${listId}-toggle-${row.id}`}
-        onChange={handleCheckboxChange}
+        onCheckedChange={(checked) => {
+          onToggle(row.id, checked);
+        }}
       />
       <label
         htmlFor={`${listId}-codec-${row.id}`}

@@ -2,8 +2,13 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { setupJsdomRadix } from "../../../test/setupJsdomRadix.js";
 import { SettingsGeneralPanel } from "./SettingsGeneralPanel.js";
+
+beforeEach(() => {
+  setupJsdomRadix();
+});
 
 afterEach(() => {
   cleanup();
@@ -65,7 +70,8 @@ describe("SettingsGeneralPanel", () => {
       />,
     );
 
-    await user.selectOptions(screen.getByTestId("settings-language-select"), "en");
+    await user.click(screen.getByTestId("settings-language-select"));
+    await user.click(await screen.findByRole("option", { name: "English" }));
     expect(onLanguageChange).toHaveBeenCalledWith("en");
   });
 

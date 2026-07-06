@@ -34,12 +34,19 @@
   flex-shrink: 0;
   width: 28px;
   height: 28px;
+  min-width: 28px;
+  min-height: 28px;
   padding: 0;
   border: none;
   border-radius: var(--radius-control);
   background: transparent;
   color: var(--color-text-secondary);
   cursor: grab;
+}
+
+.drag-handle:hover:not(:disabled):not([data-loading="true"]) {
+  background: transparent;
+  color: var(--color-text-secondary);
 }
 
 .drag-handle:active {
@@ -62,19 +69,6 @@
   height: 4px;
   border-radius: 50%;
   background: currentColor;
-}
-
-.checkbox {
-  flex-shrink: 0;
-  width: 16px;
-  height: 16px;
-  accent-color: var(--color-accent-primary);
-  cursor: pointer;
-}
-
-.checkbox:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
 }
 
 .label {

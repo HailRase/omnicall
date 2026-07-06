@@ -5,6 +5,7 @@ import {
   MIN_AUTO_ANSWER_TIMEOUT_SEC,
 } from "@application/index.js";
 import { useI18n } from "../../../i18n/index.js";
+import { Switch } from "../../ui/index.js";
 import formStyles from "../SettingsForm.module.css";
 
 export const DEFAULT_AUTO_ANSWER_TIMEOUT_SEC = 5;
@@ -36,13 +37,6 @@ export function SettingsSessionsPanel({
   onAutoAnswerDuringActiveSessionChange,
 }: SettingsSessionsPanelProps): JSX.Element {
   const { t } = useI18n();
-  const handleMultiSessionsChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    onMultiSessionsChange(event.target.checked);
-  };
-
-  const handleAutoAnswerEnabledChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    onAutoAnswerEnabledChange(event.target.checked);
-  };
 
   const handleAutoAnswerTimeoutChange = (event: ChangeEvent<HTMLInputElement>): void => {
     const parsed = Number.parseInt(event.target.value, 10);
@@ -50,12 +44,6 @@ export function SettingsSessionsPanel({
       return;
     }
     onAutoAnswerTimeoutChange(parsed);
-  };
-
-  const handleAutoAnswerDuringActiveSessionChange = (
-    event: ChangeEvent<HTMLInputElement>,
-  ): void => {
-    onAutoAnswerDuringActiveSessionChange(event.target.checked);
   };
 
   const busyAutoAnswerDisabled = !autoAnswerEnabled || !multiSessionsEnabled;
@@ -75,17 +63,12 @@ export function SettingsSessionsPanel({
                   {t("settings.sessions.multiSessions.description")}
                 </span>
               </span>
-              <span className={formStyles.switch}>
-                <input
-                  id="settings-multi-sessions"
-                  type="checkbox"
-                  className={formStyles.switchInput}
-                  data-testid="settings-multi-sessions-toggle"
-                  checked={multiSessionsEnabled}
-                  onChange={handleMultiSessionsChange}
-                />
-                <span className={formStyles.switchSlider} aria-hidden="true" />
-              </span>
+              <Switch
+                id="settings-multi-sessions"
+                checked={multiSessionsEnabled}
+                data-testid="settings-multi-sessions-toggle"
+                onCheckedChange={onMultiSessionsChange}
+              />
             </label>
             <p className={formStyles.blockHint} data-testid="settings-multi-sessions-hint">
               {t("settings.sessions.multiSessions.hint")}
@@ -107,17 +90,12 @@ export function SettingsSessionsPanel({
                   {t("settings.sessions.autoAnswer.enabledDescription")}
                 </span>
               </span>
-              <span className={formStyles.switch}>
-                <input
-                  id="settings-auto-answer-enabled"
-                  type="checkbox"
-                  className={formStyles.switchInput}
-                  data-testid="settings-auto-answer-enabled-toggle"
-                  checked={autoAnswerEnabled}
-                  onChange={handleAutoAnswerEnabledChange}
-                />
-                <span className={formStyles.switchSlider} aria-hidden="true" />
-              </span>
+              <Switch
+                id="settings-auto-answer-enabled"
+                checked={autoAnswerEnabled}
+                data-testid="settings-auto-answer-enabled-toggle"
+                onCheckedChange={onAutoAnswerEnabledChange}
+              />
             </label>
           </div>
 
@@ -180,19 +158,13 @@ export function SettingsSessionsPanel({
                   {t("settings.sessions.autoAnswer.activeCallDescription")}
                 </span>
               </span>
-              <span className={formStyles.switch}>
-                <input
-                  id="settings-auto-answer-during-active-session"
-                  type="checkbox"
-                  className={formStyles.switchInput}
-                  data-testid="settings-auto-answer-during-active-session-toggle"
-                  checked={autoAnswerDuringActiveSessionEnabled}
-                  disabled={busyAutoAnswerDisabled}
-                  aria-disabled={busyAutoAnswerDisabled}
-                  onChange={handleAutoAnswerDuringActiveSessionChange}
-                />
-                <span className={formStyles.switchSlider} aria-hidden="true" />
-              </span>
+              <Switch
+                id="settings-auto-answer-during-active-session"
+                checked={autoAnswerDuringActiveSessionEnabled}
+                disabled={busyAutoAnswerDisabled}
+                data-testid="settings-auto-answer-during-active-session-toggle"
+                onCheckedChange={onAutoAnswerDuringActiveSessionChange}
+              />
             </label>
             <p
               className={formStyles.blockHint}

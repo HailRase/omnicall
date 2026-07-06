@@ -27,6 +27,7 @@ export type SelectProps = Readonly<
     className?: string;
     contentClassName?: string;
     id?: string;
+    "data-testid"?: string;
     "aria-label"?: string;
     "aria-labelledby"?: string;
     "aria-describedby"?: string;
@@ -63,6 +64,7 @@ export const Select = forwardRef(function Select(
     "aria-label": ariaLabel,
     "aria-labelledby": ariaLabelledby,
     "aria-describedby": ariaDescribedby,
+    "data-testid": testId,
     ...rest
   }: SelectProps,
   ref: Ref<ComponentRef<typeof SelectPrimitive.Trigger>>,
@@ -90,6 +92,7 @@ export const Select = forwardRef(function Select(
       <SelectPrimitive.Trigger
         ref={ref}
         id={id}
+        data-testid={testId}
         className={clsx(styles.trigger, SIZE_CLASS[size], className)}
         aria-label={ariaLabel}
         aria-labelledby={ariaLabelledby}

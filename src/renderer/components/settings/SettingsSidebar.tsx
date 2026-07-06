@@ -1,7 +1,8 @@
 import clsx from "clsx";
 import { motion, useReducedMotion } from "framer-motion";
 import type { JSX } from "react";
-import { AppIcon, IconControlButton, IconTooltip } from "../icons/index.js";
+import { AppIcon, IconTooltip } from "../icons/index.js";
+import { Button, IconButton } from "../ui/index.js";
 import { useI18n } from "../../i18n/index.js";
 import type { SettingsSectionId } from "./settingsSections.js";
 import { SETTINGS_NAV_ITEMS } from "./settingsSections.js";
@@ -49,16 +50,18 @@ export function SettingsSidebar({
       >
         <div className={clsx(styles.panelInner, expanded && styles.panelInnerExpanded)}>
           <div className={styles.toggleSlot}>
-            <IconControlButton
+            <IconButton
               iconId={expanded ? "settings.nav.collapse" : "settings.nav.expand"}
               ariaLabel={
                 expanded
                   ? t("settings.nav.collapseMenu")
                   : t("settings.nav.expandMenu")
               }
-              testId={expanded ? "settings-sidebar-collapse" : "settings-sidebar-expand"}
+              data-testid={expanded ? "settings-sidebar-collapse" : "settings-sidebar-expand"}
+              variant="secondary"
+              size="lg"
               className={styles.toggleButton}
-              ariaExpanded={expanded}
+              aria-expanded={expanded}
               onClick={onToggleExpanded}
             />
           </div>
@@ -73,8 +76,8 @@ export function SettingsSidebar({
                     placement="right"
                     className={styles.navTooltipHost}
                   >
-                    <button
-                      type="button"
+                    <Button
+                      variant="ghost"
                       className={clsx(styles.navButton, isActive && styles.navButtonActive)}
                       data-testid={item.testId}
                       aria-current={isActive ? "page" : undefined}
@@ -95,7 +98,7 @@ export function SettingsSidebar({
                       >
                         {sectionLabel}
                       </motion.span>
-                    </button>
+                    </Button>
                   </IconTooltip>
                 </li>
               );

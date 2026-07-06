@@ -9,6 +9,7 @@ import type { SipManualActionKind } from "../../../hooks/useSipSystemStateAction
 import { formatLocaleDateTime, useI18n } from "../../../i18n/index.js";
 import { AppIcon } from "../../icons/AppIcon.js";
 import { IconTooltip } from "../../icons/IconTooltip.js";
+import { Button, Switch } from "../../ui/index.js";
 import formStyles from "../SettingsForm.module.css";
 import styles from "./SettingsSystemStatePanel.module.css";
 import {
@@ -210,25 +211,17 @@ function ManualActionButton({
   return (
     <div className={styles.manualActionItem}>
       <IconTooltip label={disabledReason ?? ""}>
-        <button
-          type="button"
-          className={formStyles.secondaryButton}
+        <Button
+          variant="secondary"
+          size="sm"
           data-testid={testId}
           disabled={isDisabled}
-          aria-disabled={isDisabled}
-          aria-busy={isLoading || undefined}
+          loading={isLoading}
           aria-describedby={disabledReason !== null ? reasonId : undefined}
           onClick={onClick}
         >
-          {isLoading ? (
-            <span className={styles.buttonLoading}>
-              <span className={styles.buttonSpinner} aria-hidden="true" />
-              {loadingLabel}
-            </span>
-          ) : (
-            label
-          )}
-        </button>
+          {isLoading ? loadingLabel : label}
+        </Button>
       </IconTooltip>
       {disabledReason !== null ? (
         <span id={reasonId} className={styles.disabledReasonSrOnly} data-testid={reasonTestId}>
@@ -451,20 +444,13 @@ export function SettingsSystemStatePanel({
                     {t("settings.systemState.autoRecovery.serverToggleDescription")}
                   </span>
                 </span>
-                <span className={formStyles.switch}>
-                  <input
-                    id="settings-sip-auto-reconnect"
-                    type="checkbox"
-                    className={formStyles.switchInput}
-                    data-testid="settings-sip-auto-reconnect-toggle"
-                    checked={sipAutoReconnectEnabled}
-                    aria-describedby={autoReconnectDescriptionId}
-                    onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                      onSipAutoReconnectChange(event.target.checked);
-                    }}
-                  />
-                  <span className={formStyles.switchSlider} aria-hidden="true" />
-                </span>
+                <Switch
+                  id="settings-sip-auto-reconnect"
+                  checked={sipAutoReconnectEnabled}
+                  data-testid="settings-sip-auto-reconnect-toggle"
+                  aria-describedby={autoReconnectDescriptionId}
+                  onCheckedChange={onSipAutoReconnectChange}
+                />
               </label>
             </div>
             <div
@@ -534,20 +520,13 @@ export function SettingsSystemStatePanel({
                     {t("settings.systemState.autoRecovery.reregisterToggleDescription")}
                   </span>
                 </span>
-                <span className={formStyles.switch}>
-                  <input
-                    id="settings-sip-auto-reregister"
-                    type="checkbox"
-                    className={formStyles.switchInput}
-                    data-testid="settings-sip-auto-reregister-toggle"
-                    checked={sipAutoReregisterEnabled}
-                    aria-describedby={autoReregisterDescriptionId}
-                    onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                      onSipAutoReregisterChange(event.target.checked);
-                    }}
-                  />
-                  <span className={formStyles.switchSlider} aria-hidden="true" />
-                </span>
+                <Switch
+                  id="settings-sip-auto-reregister"
+                  checked={sipAutoReregisterEnabled}
+                  data-testid="settings-sip-auto-reregister-toggle"
+                  aria-describedby={autoReregisterDescriptionId}
+                  onCheckedChange={onSipAutoReregisterChange}
+                />
               </label>
             </div>
             <div
@@ -612,20 +591,13 @@ export function SettingsSystemStatePanel({
                       {t("settings.systemState.autoRecovery.startupToggleDescription")}
                     </span>
                   </span>
-                  <span className={formStyles.switch}>
-                    <input
-                      id="settings-sip-auto-register-startup"
-                      type="checkbox"
-                      className={formStyles.switchInput}
-                      data-testid="settings-sip-auto-register-startup-toggle"
-                      checked={sipAutoRegisterOnStartup}
-                      aria-describedby={autoRegisterStartupDescriptionId}
-                      onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                        onSipAutoRegisterOnStartupChange(event.target.checked);
-                      }}
-                    />
-                    <span className={formStyles.switchSlider} aria-hidden="true" />
-                  </span>
+                  <Switch
+                    id="settings-sip-auto-register-startup"
+                    checked={sipAutoRegisterOnStartup}
+                    data-testid="settings-sip-auto-register-startup-toggle"
+                    aria-describedby={autoRegisterStartupDescriptionId}
+                    onCheckedChange={onSipAutoRegisterOnStartupChange}
+                  />
                 </label>
               </div>
             </div>
@@ -685,16 +657,15 @@ export function SettingsSystemStatePanel({
             )}
           </div>
           <div className={styles.journalActions}>
-            <button
-              type="button"
-              className={formStyles.secondaryButton}
+            <Button
+              variant="secondary"
+              size="sm"
               data-testid="settings-sip-journal-clear"
               disabled={shell.journalEntries.length === 0}
-              aria-disabled={shell.journalEntries.length === 0}
               onClick={onClearJournal}
             >
               {t("settings.systemState.journal.clear")}
-            </button>
+            </Button>
           </div>
         </div>
       </fieldset>
