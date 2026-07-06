@@ -10,7 +10,7 @@ Parallel track to connect production adapters without breaking mock/CI on `main`
 
 1. Read `00-SNAPSHOT.md` — frozen baseline.
 2. Read `OCP-PLUGIN-BACKLOG.md` — OCP not in active scope.
-3. Read `PROGRESS.md` — what is done in this branch.
+3. Read `PROGRESS.md` — step status and smoke history.
 4. Give the agent **`MASTER-AGENT-PROMPT.md`**.
 5. Execute steps in order; after each step update `PROGRESS.md`.
 6. After each step, run **`@real-integration-agent`** — gate review and next prompt.
@@ -34,7 +34,7 @@ Reviewer skill: `.cursor/skills/real-integration-agent/SKILL.md`
 
 ## Branch
 
-`feature/real-adapters` — merge after smoke for active **SIP** slice (R1–R4 closed; R5 OCP deferred per ADR-0002).
+RAT SIP core lives on **`main`** (`feature/real-adapters` merged; branch is stale ancestor). R5 OCP deferred per ADR-0002.
 
 ## Dev credentials
 

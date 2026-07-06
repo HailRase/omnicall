@@ -54,7 +54,7 @@ Read in order:
 10. Latest `work-history/**/rat-step-*` or `rat-integration-*` for the step
 11. `docs/softphone/Feature-Registry.md` — F-001–F-008 SIP real-track; F-009/F-010/F-015 deferred
 12. `docs/softphone/Legacy-Feature-Coverage.md` — LF-XXX cited in step
-13. Git branch: must be `feature/real-adapters` for implementation work (review may run on any branch)
+13. Git branch: `main` for implementation work (`feature/real-adapters` merged, stale)
 14. Spot-check code: grep + read files listed in step **Expected files** (never trust PROGRESS alone)
 
 Run when independent verification is needed:

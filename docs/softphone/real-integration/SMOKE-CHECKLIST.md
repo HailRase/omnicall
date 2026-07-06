@@ -45,7 +45,7 @@
 - [x] R7-2 Answer incoming with active held — **PASS**
 - [x] R7-3 Exclusive resume swap — **PASS**
 - [x] R7-4 Hangup active, held remains (D1) — **PASS**
-- [x] R7-5 multiSessions OFF → auto-486 — **PASS** 2026-06-25 (temp repo default; **re-smoke via P11 WU1 settings UI** — `UI-SMOKE-ENABLERS.md`)
+- [x] R7-5 multiSessions OFF → auto-486 — **PASS** 2026-06-25 (initial: repo default; re-smoke: Settings → Sessions `multiSessionsEnabled` toggle — P11 WU4)
 
 ## R6 Transfer (RAT step 07 / 07b — **BACKLOG**)
 
@@ -73,7 +73,7 @@ Record results in `PROGRESS.md` per step.
 
 **Environment:** Electron `npm run dev`, `VITE_ADAPTER_MODE=real`, `.env.local` (onedemoserver.online).
 
-**Automated (canonical):** 640 passed, 1 skipped; lint/typecheck green.
+**Automated (canonical):** see `docs/softphone/STATUS.md` (live). Historical snapshot at step 08 close: 640 passed, 1 skipped.
 
 | Gate | Status | Source in PROGRESS |
 | --- | --- | --- |

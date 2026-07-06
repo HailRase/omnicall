@@ -5,11 +5,11 @@
 > **Transfer (step 07 / 07b / R6): BACKLOG** per [TRANSFER-REAL-ADAPTER-BACKLOG.md](./TRANSFER-REAL-ADAPTER-BACKLOG.md).
 > **Active track:** P11 UI-4 + icons/tooltips **complete** → **F-008 DTMF real** → P10 headset. RAT steps 00–08 **closed**.
 
-**Branch:** feature/real-adapters
+**Branch:** `main` (RAT SIP core merged; `feature/real-adapters` is stale ancestor)
 
 **Base snapshot:** `00-SNAPSHOT.md` (2026-06-24, 488 tests)
 
-**Canonical automated tests (2026-06-25):** **697 passed, 1 skipped** — authoritative count. See `../STATUS.md`. Per-step `Automated:` lines below are historical snapshots.
+**Canonical automated tests:** see `../STATUS.md` (live). Per-step `Tests` / `Automated:` lines below are historical snapshots.
 
 
 | Step | Status | Date | Agent notes | Tests | Smoke |
@@ -32,7 +32,7 @@
 
 | 07 Transfer | **backlog** | 2026-06-25 | JsSIP REFER blind/attended landed; on-net blind PASS; attended unverified — see TRANSFER-REAL-ADAPTER-BACKLOG | 599 | R6 partial |
 | 07b External Refer-To | **backlog** | 2026-06-25 | `buildBlindReferTarget`; off-net B,C FAIL — paused per user; resume via backlog doc | 599 | R6 B,C **FAIL** |
-| 08 Multi-call real | **done** | 2026-06-25 | R7-1…R7-5 PASS manual dev SBC; R7-5 via temp `InMemorySettingsRepository` default | 640 | R7 **closed** |
+| 08 Multi-call real | **done** | 2026-06-25 | R7-1…R7-5 PASS manual dev SBC; R7-5 initial smoke via repo default; re-smoke via P11 settings toggle | 640† | R7 **closed** |
 
 
 
@@ -42,7 +42,7 @@
 
 **UI track (P11):** WU0–WU5 + UI-4 + icons/tooltips **complete** — see `../STATUS.md`. Next: F-008 DTMF, P10 headset.
 
-**Next adapter:** F-008 DTMF real, P10 headset, merge `feature/real-adapters`.
+**Next adapter:** F-008 DTMF real, P10 headset.
 
 **Backlog:** transfer R6; OCP R5 (ADR-0002); Tone FSM (`MULTI-CALL-BACKLOG.md`).
 
@@ -58,8 +58,8 @@
 - **OCP / R5:** deferred (ADR-0002).
 - **SIP core R1–R4:** closed.
 - **R6 transfer:** backlog — partial (A,D pass; B,C fail; attended pending).
-- **Canonical tests:** 640 passed, 1 skipped; lint/typecheck green.
-- **RAT step 08:** **done** — R7-1…R7-5 PASS manual 2026-06-25 (R7-5: temp repo default `multiSessionsEnabled=false`).
+- **Canonical tests:** see `../STATUS.md` (live). Step snapshots below are historical.
+- **RAT step 08:** **done** — R7-1…R7-5 PASS manual 2026-06-25 (R7-5: initial smoke via repo default; `multiSessionsEnabled` toggle in P11 settings for re-smoke).
 
 
 
@@ -191,7 +191,7 @@
 
 **R2+R3+R4 gate:** **closed** (see session below).
 
-**Next track work:** main roadmap — P08 SIP recovery, F-008 DTMF real, P10 headset, merge `feature/real-adapters` for R1–R4. Transfer: **backlog** (`TRANSFER-REAL-ADAPTER-BACKLOG.md`). OCP step 06 / R5 **deferred** (ADR-0002).
+**Next track work:** main roadmap — P08 SIP recovery, F-008 DTMF real, P10 headset. RAT SIP core on `main`. Transfer: **backlog** (`TRANSFER-REAL-ADAPTER-BACKLOG.md`). OCP step 06 / R5 **deferred** (ADR-0002).
 
 ## Step 06 notes (R5 — DEFERRED) — 2026-06-24
 
@@ -249,9 +249,11 @@
 
 ## Step 08 notes (R7 multi-call) — 2026-06-25
 
+> **Superseded counts:** automated line below is a step snapshot; canonical count in `../STATUS.md`.
+
 **Environment:** Electron `npm run dev`, `?adapters=real`, `.env.local` (dev SBC onedemoserver.online); two test extensions required.
 
-**Automated:** `npm run test` 640 passed, 1 skipped; lint/typecheck green.
+**Automated (step snapshot):** `npm run test` 640 passed, 1 skipped; lint/typecheck green.
 
 **Implemented this step:**
 
@@ -265,9 +267,9 @@
 | R7-2 Answer incoming with active held | **PASS** — manual 2026-06-25 |
 | R7-3 Exclusive resume swap | **PASS** — manual 2026-06-25 |
 | R7-4 Hangup active, held remains (D1) | **PASS** — manual 2026-06-25 |
-| R7-5 multiSessions OFF → auto-486 | **PASS** — manual 2026-06-25; smoke via temp `InMemorySettingsRepository` default `false` (no settings UI yet) |
+| R7-5 multiSessions OFF → auto-486 | **PASS** — manual 2026-06-25; initial smoke via repo default `multiSessionsEnabled=false`; re-smoke via Settings → Sessions toggle (P11 WU4) |
 
-**R7 gate:** **closed** (R7-1…R7-5 PASS). Follow-up: P11 UI for `multiSessionsEnabled` toggle.
+**R7 gate:** **closed** (R7-1…R7-5 PASS). `multiSessionsEnabled` toggle shipped in P11 settings (`SettingsPanel` Sessions section).
 
 ## Dev credentials
 

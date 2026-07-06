@@ -1,6 +1,6 @@
 # AGENT PROMPT: Real Adapters Integration (RAT)
 
-You implement **real external adapters** for Enterprise Softphone Platform on branch `feature/real-adapters`.
+You implement **real external adapters** for Enterprise Softphone Platform on branch `main` (`feature/real-adapters` merged; stale).
 
 > **OCP is DEFERRED** (ADR-0002). Read `docs/softphone/OCP-PLUGIN-BACKLOG.md`. Do not implement or smoke-test OCP unless user resumes that backlog.
 > **Transfer real adapter is BACKLOG** — `TRANSFER-REAL-ADAPTER-BACKLOG.md`.

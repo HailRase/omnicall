@@ -165,7 +165,7 @@ Handoff: `docs/softphone/handoffs/P11-WU0-Shell-Layout-Agent-Prompt.md`.
 
 ## RAT / Smoke Coupling
 
-Manual smoke requires usable shell. After UI-2, `multiSessionsEnabled` toggle replaces temp `InMemorySettingsRepository` hacks (R7-5). See `real-integration/UI-SMOKE-ENABLERS.md`.
+Manual smoke requires usable shell. `multiSessionsEnabled` toggle shipped in P11 settings (Sessions section) — use for R7-5 re-smoke instead of repo defaults. See `real-integration/UI-SMOKE-ENABLERS.md`.
 
 ## Completion Check
 

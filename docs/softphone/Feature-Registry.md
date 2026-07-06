@@ -108,7 +108,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Unit: `SipSessionHealth` invariants, transport FSM, registration state transitions, `deriveSipStatusShell` header rows, phone status use case, manual SIP validation
   - Integration: mock telephony gateway transport events, SIP-only bootstrap facade, effective registered guard on disconnect
   - E2E: deferred until SIP sandbox exists
-- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R1 done — JsSipTelephonyAdapter on `@hailrase/jssip` fork; register/unregister/reconnect + transport disconnect + legacy transport URL; manual SBC smoke pass 2026-06-24 — register/Online verified; fork notes: `real-integration/JSSIP-FORK.md`)
+- Real Adapter Track: **done** (RAT step 02, 2026-06-24) — `JsSipTelephonyAdapter` on `@hailrase/jssip` fork; register/unregister/reconnect + transport disconnect; manual SBC R1 PASS; fork notes: `real-integration/JSSIP-FORK.md`
 - Refactor plan: `docs/softphone/TRANSPORT-REGISTER-STATE-REFACTORING.md` (T-008)
 
 ## F-002: Incoming Call
@@ -133,7 +133,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Unit: state machine incoming transitions, auto-answer policy, DND policy, display-name parser, reject reason validation, answer/reject use cases
   - Integration: mock incoming adapter event to events/projection, ringtone start, answer/reject gateway calls, DND 486, host break-reason mapping, ended-before-answer recovery
   - E2E: deferred until incoming call harness exists
-- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R2+R3 steps 03–04 — JsSipTelephonyAdapter incoming/answer/reject/DND + `BrowserMediaAdapter` ringtone/remote audio; manual SBC smoke PASS 2026-06-24 — R2-1/2/3, R3-2/3/5)
+- Real Adapter Track: **done** (RAT steps 03–04, 2026-06-24) — `JsSipTelephonyAdapter` incoming/answer/reject/DND + `BrowserMediaAdapter` ringtone/remote audio; manual SBC R2+R3 PASS
 
 ## F-003: Outgoing Call
 
@@ -147,14 +147,13 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Acceptance Criteria:
   - Dialpad calls `MakeCallUseCase`.
   - Phone number is validated before adapter invocation.
-  - Outgoing flow runs through mock `TelephonyGateway` and mock `MediaGateway` with deterministic events/projection updates.
-  - Real JsSIP adapter remains deferred behind `TelephonyGateway` until dedicated adapter task.
+  - Outgoing flow runs through `TelephonyGateway` (mock default; real via `JsSipTelephonyAdapter` when `?adapters=real`).
   - **WU6 (done):** hold-all before second outgoing when Active exists; block dial while Connecting — `MultiCallPolicyService.checkConflictingOperationBlocked`, `CallEngine.multiCallPolicy.test.ts`.
 - Test Coverage:
   - Unit: number validation and transitions
   - Integration: mock gateway make-call progress/answer/failure + media tones
   - E2E: deferred until dedicated Electron E2E harness exists
-- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R3 step 04 — JsSipTelephonyAdapter makeCall/outgoing progress/answered/failed; manual SBC smoke PASS 2026-06-24 — R3-1/R3-4)
+- Real Adapter Track: **done** (RAT step 04, 2026-06-24) — `JsSipTelephonyAdapter` makeCall/outgoing progress/answered/failed; manual SBC R3 PASS (R3-1/R3-4)
 
 ## F-004: Active Call Hold, Resume, Hangup
 
@@ -181,7 +180,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Integration: mock telephony hold/resume/hangup success and failure paths; mute survives local hold resume (`CallEngine.test.ts`)
   - Renderer: `CallLineRow` disabled reasons, error banner, retry, icon row; `ActiveCallControlsPanel` retained for Storybook/tests only (removed from ControlsZone)
   - E2E: deferred until dedicated Electron E2E harness exists
-- Real Adapter Track: **done** (RAT step 08, 2026-06-25) — multi-session R7-1…R7-5 PASS dev SBC; `multiSessionsEnabled` UI deferred P11
+- Real Adapter Track: **done** (RAT steps 05+08, 2026-06-24/25) — hold/resume re-INVITE R4 PASS; multi-session R7-1…R7-5 PASS; `multiSessionsEnabled` toggle in P11 settings (Sessions section)
 
 ## F-005: Mute And Unmute
 
@@ -203,7 +202,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Integration: mock media mute/unmute success and failure paths; mute survives hold/unhold renegotiation (`CallEngine.test.ts`, `CallEngine.remoteHold.test.ts`, `BrowserMediaAdapter.test.ts`)
   - Renderer: error banner and retry via `lastOperationError` projection
   - E2E: deferred until dedicated Electron E2E harness exists
-- Real Adapter Track: in_progress (branch: feature/real-adapters; ADR-0001; RAT R4 step 05 — `BrowserMediaAdapter.muteCall`/`unmuteCall` end-to-end via `getPeerConnectionForCall`; manual SBC smoke PASS 2026-06-24 — R4-2)
+- Real Adapter Track: **done** (RAT step 05, 2026-06-24) — `BrowserMediaAdapter.muteCall`/`unmuteCall` via `getPeerConnectionForCall`; manual SBC R4-2 PASS
 
 ## F-006: Blind Transfer
 
@@ -453,7 +452,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - **Settings sections:** Account (SIP auth), General (theme LF-082), **Состояние системы** (`system-state` — ADR-0004), Sessions (multi-call), Diagnostics (F-017 stub), Codecs (stub), Headset (P10 stub).
   - **`SettingsSystemStatePanel`:** current server/registration state, auto-reconnect/reregister policies, manual actions (Переподключить сервер, Перерегистрировать) with disabled reasons, transport+registration journal.
   - Icon `settings.system-state` in Icon Registry + catalog.
-  - **`multiSessionsEnabled` toggle** in settings UI (facade + port; no Use Case) — enables R7-5 re-smoke without repo hack.
+  - **`multiSessionsEnabled` toggle** in settings UI (facade + port; no Use Case) — shipped P11 WU4; enables R7-5 re-smoke via Settings → Sessions.
   - Collapsed mode preserves critical call/status visibility.
   - **Header SIP status (ADR-0004):** unified dot + label + timer suffix via `deriveSipStatusShell`; priority idle → transport → registration → registered → DND; Russian copy per §1.2.
   - **Removed:** legacy recovery overlay, header `control-reregister-sip`, user online/offline toggles; LF-009 avatar ring **cancelled**.
@@ -668,6 +667,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 
 ## F-024: Saved SIP Account Profiles (Quick Sign-In)
 
+- Legacy IDs: `LF-077` (saved profile list + quick sign-in UX; extends F-023 per-account persistence)
 - Context: Settings
 - Priority: high
 - Status: **implemented** (corrective pass 2026-07-06)
@@ -693,3 +693,4 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Bootstrap: `createRealAccountBootstrap.test.ts`, mock repository injection
   - E2E: deferred
 - Implementation evidence: `AccountBootstrapFacade.ts`, `mapAccountAuthorizationError.ts`, `SavedAccountProfileSelector.tsx`, `AccountPanel.tsx`, `useAccountActions.ts`, `useSettingsActions.ts`, `SettingsAccountPanel.tsx`, `createMockAccountBootstrap.ts`, `messages.ts` (ru/en/fr/de)
+- Handoff: `docs/softphone/handoffs/P11-F024-Saved-Account-Profiles-Handoff.md`

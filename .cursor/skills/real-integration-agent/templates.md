@@ -9,7 +9,7 @@ Use verbatim structure; fill placeholders from Discovery.
 
 ## Контекст
 - Track: Real Adapter Integration (RAT)
-- Branch: feature/real-adapters
+- Branch: `main` (RAT merged; `feature/real-adapters` stale)
 - Step file: docs/softphone/real-integration/step-NN-*.md
 - Feature: F-XXX; Legacy: LF-XXX
 - Baseline tests: 488 (+N claimed in PROGRESS)
@@ -78,7 +78,7 @@ Hand implementation agent `docs/softphone/real-integration/MASTER-AGENT-PROMPT.m
 - Reference: <2–4 файла из 00-SNAPSHOT Key paths>
 
 ## Контекст
-- Branch: **feature/real-adapters**
+- Branch: **`main`** (RAT merged; `feature/real-adapters` stale)
 - Baseline: **488 tests** (mock default)
 - Previous step: <кратко или «нет — старт трека»>
 
