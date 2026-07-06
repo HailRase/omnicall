@@ -9,6 +9,8 @@
 - **Migration checklist:** [`guides/Distribution-Migration-Checklist.md`](guides/Distribution-Migration-Checklist.md)
 - Live snapshot: `docs/softphone/STATUS.md`
 - Task queue: `docs/softphone/TASK-QUEUE.md`
+- UI Kit plan: `docs/ui-kit/UI-KIT.md`
+- UI Kit visual canon: `docs/ui-kit/VISUAL-SPEC.md`
 - **SIP transport/register refactor (T-008):** `docs/softphone/TRANSPORT-REGISTER-STATE-REFACTORING.md`
 
 ## Commands (`.cursor/commands/`)
@@ -19,6 +21,7 @@
 | `/scope` | Priorities without code |
 | `/plan-wu` | Break next WU into steps |
 | `/ui` | UX/UI implementation |
+| `/ui-kit` | Reusable UI Kit primitives |
 | `/logic` | Domain / Use Cases |
 | `/adapter` | RAT real adapters |
 | `/preflight` | test + lint + catalog check |
@@ -34,11 +37,12 @@
 | Command | Skill |
 | --- | --- |
 | `/ui` | `.cursor/skills/ui-implementation-agent/SKILL.md` |
+| `/ui-kit` | `.cursor/skills/ui-kit-component-agent/SKILL.md` |
 | `/logic` | `.cursor/skills/domain-implementation-agent/SKILL.md` |
 | `/adapter` | `docs/softphone/real-integration/MASTER-AGENT-PROMPT.md` |
 | `/release` | `.cursor/skills/release-agent/SKILL.md` |
 
-All implementation agents run **scope-intake** first. `/release` runs **release cut** only (not scope-intake).
+Product implementation agents run **scope-intake** first. `/ui-kit` follows `docs/ui-kit/UI-KIT.md`; `/release` runs **release cut** only (not scope-intake).
 
 Response format: `.cursor/skills/_shared/response-contract.md`
 
@@ -78,6 +82,7 @@ Reviewers do not write production code or work-history.
 | `implementation-roadmap.mdc` | docs, src |
 | `testing-observability.mdc` | src, tests |
 | `ux-ui-electron-react.mdc` | renderer |
+| `ui-kit.mdc` | renderer UI primitives |
 | `icons.mdc` | renderer icons |
 | `reviewer-agent.mdc` | `/review` |
 | `real-integration-agent.mdc` | `/rat-review` |
@@ -85,7 +90,7 @@ Reviewers do not write production code or work-history.
 
 ## Skills index
 
-`scope-intake`, `ui-implementation-agent`, `domain-implementation-agent`, `holistic-reviewer`, `feature-slice-design`, `implementation-phase-planning`, `softphone-architecture-review`, `telephony-flow-review`, `integration-contract-review`, `legacy-feature-migration`, `ux-ui-flow-design`, `softphone-reviewer`, `real-integration-agent`, `release-agent`, `icons`
+`scope-intake`, `ui-implementation-agent`, `ui-kit-component-agent`, `domain-implementation-agent`, `holistic-reviewer`, `feature-slice-design`, `implementation-phase-planning`, `softphone-architecture-review`, `telephony-flow-review`, `integration-contract-review`, `legacy-feature-migration`, `ux-ui-flow-design`, `softphone-reviewer`, `real-integration-agent`, `release-agent`, `icons`
 
 ## User Cursor settings
 

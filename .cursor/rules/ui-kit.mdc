@@ -1,0 +1,29 @@
+---
+description: Internal UI Kit usage and implementation workflow
+alwaysApply: true
+---
+
+# UI Kit
+
+Before adding or changing renderer UI, check `docs/ui-kit/UI-KIT.md`, `docs/ui-kit/VISUAL-SPEC.md`, and `src/renderer/components/ui`.
+
+## Mandatory
+
+- Use existing UI Kit primitives for generic buttons, inputs, dialogs, menus, toasts, forms, badges, cards, tabs, and overlays.
+- If a reusable primitive is missing, propose `/ui-kit` before creating local UI.
+- If the need is product-specific, compose local UI from UI Kit primitives.
+- UI Kit components use CSS Modules, semantic tokens, Storybook, tests, and strict TypeScript.
+- UI Kit components must match the visual canon in `docs/ui-kit/VISUAL-SPEC.md`.
+- `Button` is the first visual baseline unless the user explicitly overrides the order.
+- Use Radix for complex accessible behavior; do not add Tailwind or shadcn CLI output as source of truth.
+
+## Forbidden
+
+- Duplicate local button/dialog/dropdown/toast/select styles without justification.
+- Product state, Use Cases, Electron, SIP, stores, repositories, or business rules inside UI Kit.
+- Hardcoded product copy inside UI Kit components.
+- Global component styles or hardcoded theme colors.
+
+## Agent Flow
+
+For reusable UI primitives, read `.cursor/skills/ui-kit-component-agent/SKILL.md` and implement one component family per session.
