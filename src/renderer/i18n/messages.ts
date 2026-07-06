@@ -62,8 +62,8 @@ const ruMessages = {
     "Скачайте установщик с официальной страницы релиза и установите новую версию вручную.",
   "updates.prompt.message": (params: Readonly<{ latestVersion: string | undefined }>) =>
     params.latestVersion !== undefined
-      ? `Доступна новая версия ${params.latestVersion}. Скачайте установщик и установите её вручную.`
-      : "Доступна новая версия. Скачайте установщик и установите её вручную.",
+      ? `Доступна новая версия ${params.latestVersion}.`
+      : "Доступна новая версия.",
   "updates.prompt.download": "Скачать",
   "updates.prompt.later": "Позже",
   "updates.prompt.releaseNotes": "Что нового",
@@ -628,8 +628,8 @@ const enMessages: MessageShape = {
     "Download the installer from the official release page and install the new version manually.",
   "updates.prompt.message": (params) =>
     params.latestVersion !== undefined
-      ? `Version ${params.latestVersion} is available. Download the installer and install it manually.`
-      : "A newer version is available. Download the installer and install it manually.",
+      ? `Version ${params.latestVersion} is available.`
+      : "A new version is available.",
   "updates.prompt.download": "Download",
   "updates.prompt.later": "Later",
   "updates.prompt.releaseNotes": "Release notes",
@@ -1182,8 +1182,8 @@ const frMessages: MessageShape = {
     "Telechargez l'installateur depuis la page officielle de la version et installez la nouvelle version manuellement.",
   "updates.prompt.message": (params) =>
     params.latestVersion !== undefined
-      ? `La version ${params.latestVersion} est disponible. Telechargez l'installateur et installez-la manuellement.`
-      : "Une nouvelle version est disponible. Telechargez l'installateur et installez-la manuellement.",
+      ? `La version ${params.latestVersion} est disponible.`
+      : "Une nouvelle version est disponible.",
   "updates.prompt.download": "Telecharger",
   "updates.prompt.later": "Plus tard",
   "updates.prompt.releaseNotes": "Notes de version",
@@ -1727,8 +1727,8 @@ const deMessages: MessageShape = {
     "Laden Sie das Installationsprogramm von der offiziellen Release-Seite herunter und installieren Sie die neue Version manuell.",
   "updates.prompt.message": (params) =>
     params.latestVersion !== undefined
-      ? `Version ${params.latestVersion} ist verfuegbar. Laden Sie das Installationsprogramm herunter und installieren Sie es manuell.`
-      : "Eine neuere Version ist verfuegbar. Laden Sie das Installationsprogramm herunter und installieren Sie es manuell.",
+      ? `Version ${params.latestVersion} ist verfuegbar.`
+      : "Eine neue Version ist verfuegbar.",
   "updates.prompt.download": "Herunterladen",
   "updates.prompt.later": "Spaeter",
   "updates.prompt.releaseNotes": "Versionshinweise",

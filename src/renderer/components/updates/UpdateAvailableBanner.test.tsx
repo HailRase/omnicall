@@ -11,9 +11,7 @@ afterEach(() => {
 const baseProps = {
   visible: true,
   latestVersion: "2.0.0",
-  canOpenReleaseNotes: false,
   onDownload: vi.fn(),
-  onReleaseNotes: vi.fn(),
   onDismiss: vi.fn(),
 };
 
@@ -25,12 +23,16 @@ describe("UpdateAvailableBanner", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("renders update message with latest version", () => {
+  it("renders compact message with latest version", () => {
     render(<UpdateAvailableBanner {...baseProps} />);
 
     expect(screen.getByTestId("update-available-banner")).toBeInTheDocument();
-    expect(screen.getByTestId("update-available-banner-version")).toHaveTextContent("v2.0.0");
-    expect(screen.getByTestId("update-available-banner-message")).toBeInTheDocument();
+    expect(screen.getByTestId("update-available-banner-message")).toHaveTextContent("2.0.0");
+    expect(screen.getByTestId("update-available-banner-download")).toBeInTheDocument();
+    expect(screen.getByTestId("update-available-banner-later")).toBeInTheDocument();
+    expect(screen.queryByTestId("update-available-banner-dismiss")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("update-available-banner-release-notes")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("update-available-banner-backdrop")).not.toBeInTheDocument();
   });
 
   it("calls download callback from primary action", () => {
@@ -47,19 +49,5 @@ describe("UpdateAvailableBanner", () => {
 
     screen.getByTestId("update-available-banner-later").click();
     expect(onDismiss).toHaveBeenCalledTimes(1);
-  });
-
-  it("shows release notes action when available", () => {
-    const onReleaseNotes = vi.fn();
-    render(
-      <UpdateAvailableBanner
-        {...baseProps}
-        canOpenReleaseNotes
-        onReleaseNotes={onReleaseNotes}
-      />,
-    );
-
-    screen.getByTestId("update-available-banner-release-notes").click();
-    expect(onReleaseNotes).toHaveBeenCalledTimes(1);
   });
 });
