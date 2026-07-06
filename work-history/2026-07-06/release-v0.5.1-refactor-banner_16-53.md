@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-06 16:53
 **Статус:** выполнено
-**Коммит:** pending tag push
+**Коммит:** `ae98c6e` / tag `v0.5.1`
 
 ## Где
 - `package.json`, `CHANGELOG.md`, `distribution/CHANGELOG.md`, `distribution/update-manifest.json`
