@@ -314,6 +314,7 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
       "LogoutActiveSessionConfirmationModal",
       "TransferPanel: control-cancel-transfer",
       "OcpToastStack",
+      "UpdateAvailableBanner: update-available-banner-later",
     ],
   },
   "dial.call": {

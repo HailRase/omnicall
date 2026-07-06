@@ -23,10 +23,11 @@ describe("UpdateAvailableBanner", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("renders compact message with latest version", () => {
+  it("renders overlay card with title and latest version", () => {
     render(<UpdateAvailableBanner {...baseProps} />);
 
     expect(screen.getByTestId("update-available-banner")).toBeInTheDocument();
+    expect(screen.getByText("Доступно обновление")).toBeInTheDocument();
     expect(screen.getByTestId("update-available-banner-message")).toHaveTextContent("2.0.0");
     expect(screen.getByTestId("update-available-banner-download")).toBeInTheDocument();
     expect(screen.getByTestId("update-available-banner-later")).toBeInTheDocument();

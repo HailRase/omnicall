@@ -117,12 +117,6 @@ export function SoftphoneReadyShell({
     <SoftphoneLayout
       header={
         <>
-          <UpdateAvailableBanner
-            visible={appUpdate.showUpdatePrompt}
-            latestVersion={appUpdate.snapshot.latestVersion}
-            onDownload={appUpdate.onOpenDownloadPage}
-            onDismiss={appUpdate.onDismissUpdatePrompt}
-          />
           <SoftphoneShellHeader
             headerChrome={headerChrome}
             userAvatarMenu={userAvatarMenu}
@@ -141,6 +135,12 @@ export function SoftphoneReadyShell({
       controls={<CallControlsShell bindings={callBindings} />}
       overlays={
         <>
+          <UpdateAvailableBanner
+            visible={appUpdate.showUpdatePrompt}
+            latestVersion={appUpdate.snapshot.latestVersion}
+            onDownload={appUpdate.onOpenDownloadPage}
+            onDismiss={appUpdate.onDismissUpdatePrompt}
+          />
           <OcpToastStack
             toasts={ocpNotifications.visibleToasts}
             onDismiss={ocpNotifications.dismissToast}
