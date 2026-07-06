@@ -240,22 +240,36 @@ Use Radix state attributes:
 
 ## Toast And Notification Canon
 
-Toast:
+Sonner (primary, shadcn-like):
 
-- compact elevated surface.
-- left status stripe or subtle tone background.
+- compact elevated neutral surface — no mandatory left status stripe on default toasts.
+- background: `--color-bg-surface-elevated`.
+- foreground: `--color-text-primary`.
+- description: `--color-text-secondary`.
+- border: `--color-border-subtle`.
+- shadow: `--shadow-menu-elevated`.
+- radius: `--radius-panel`.
+- action button: compact primary (`--color-accent-primary`).
+- cancel button: muted control surface.
+- close button: small floating edge control.
+- stacked toasts follow Sonner collapse/expand behavior.
+- `richColors` applies semantic success/info/warning/danger tokens — separate from default neutral surface.
+
+Radix Toast (legacy primitives):
+
+- same density goals; tone stripe optional and not used by product notifications after Sonner migration.
 - title is semibold.
 - description is secondary text.
 - actions use UI Kit `Button`.
 - close uses UI Kit `IconButton`.
 
-Tones:
+Tones (`richColors` / legacy Radix):
 
 - `default`: neutral surface.
-- `info`: accent border or subtle accent background.
-- `success`: success text/border.
+- `info`: accent/emphasis tokens.
+- `success`: success text/border/background.
 - `warning`: warning text/border.
-- `destructive`: danger text/border/background.
+- `destructive` / `error`: danger text/border/background.
 
 ## Card And Badge Canon
 

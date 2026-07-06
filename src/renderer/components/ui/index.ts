@@ -68,6 +68,8 @@ export {
   type SelectItemOption,
   type SelectProps,
 } from "./select/index.js";
+export { Toaster, type ToasterProps } from "./sonner/index.js";
+export { toast, type ExternalToast } from "./sonner/index.js";
 export { Switch, type SwitchProps } from "./switch/index.js";
 export {
   Tabs,
@@ -118,6 +120,7 @@ export type {
   TextareaResize,
   ToastPlacement,
   ToastTone,
+  SonnerPosition,
   NotificationTone,
   SkeletonShape,
 } from "./types.js";

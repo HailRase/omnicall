@@ -47,6 +47,8 @@ export type UseNotificationsResult = Readonly<{
   placement: UseNotificationsInput["placement"];
   stacking: UseNotificationsInput["stacking"];
   durationMs: number;
+  closable: boolean;
+  maxVisible: number;
   items: ReadonlyArray<NotificationItem>;
   notify: (descriptor: NotificationDescriptor) => string;
   dismiss: (id: string) => void;
@@ -128,6 +130,8 @@ export function useNotifications(input: UseNotificationsInput): UseNotifications
     placement,
     stacking,
     durationMs,
+    closable,
+    maxVisible,
     items,
     notify,
     dismiss,

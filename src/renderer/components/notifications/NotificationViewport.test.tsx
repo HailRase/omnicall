@@ -5,9 +5,11 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { NotificationItem } from "../../hooks/useNotifications.js";
 import { setRendererLanguage } from "../../i18n/index.js";
+import { toast } from "../ui/sonner/index.js";
 import { NotificationViewport } from "./NotificationViewport.js";
 
 afterEach(() => {
+  toast.dismiss();
   cleanup();
   setRendererLanguage("ru");
 });
@@ -35,7 +37,10 @@ function renderViewport(
   return render(
     <NotificationViewport
       placement="bottom-right"
+      stacking="stacked"
       durationMs={200}
+      closable
+      maxVisible={3}
       items={items}
       onDismiss={onDismiss}
     />,
@@ -69,25 +74,31 @@ describe("NotificationViewport", () => {
     }));
   });
 
-  it("renders nothing when queue is empty", () => {
-    const { container } = renderViewport([]);
+  it("keeps toaster mounted when queue is empty", () => {
+    renderViewport([]);
 
-    expect(container).toBeEmptyDOMElement();
+    expect(screen.getByTestId("notification-viewport")).toBeInTheDocument();
+    expect(screen.queryByTestId("notification-toast")).not.toBeInTheDocument();
   });
 
-  it("renders UI Kit toast with message and viewport", () => {
+  it("renders Sonner toast with message and viewport", async () => {
     renderViewport([baseItem]);
 
     expect(screen.getByTestId("notification-viewport")).toBeInTheDocument();
-    expect(screen.getByTestId("notification-toast")).toBeInTheDocument();
-    expect(screen.getByText("Saved successfully")).toBeInTheDocument();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("notification-toast")).toBeInTheDocument();
+      expect(screen.getByText("Saved successfully")).toBeInTheDocument();
+    });
   });
 
-  it("auto-dismisses through Radix toast lifecycle", async () => {
+  it("auto-dismisses through Sonner toast lifecycle", async () => {
     const onDismiss = vi.fn();
     renderViewport([baseItem], onDismiss);
 
-    expect(screen.getByText("Saved successfully")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("Saved successfully")).toBeInTheDocument();
+    });
 
     await waitFor(
       () => {
@@ -102,9 +113,31 @@ describe("NotificationViewport", () => {
     const onDismiss = vi.fn();
     renderViewport([baseItem], onDismiss);
 
+    await waitFor(() => {
+      expect(screen.getByText("Saved successfully")).toBeInTheDocument();
+    });
+
     await user.click(screen.getByRole("button", { name: "Закрыть" }));
 
     expect(onDismiss).toHaveBeenCalledWith("toast-1");
+  });
+
+  it("does not re-open toast in loop after manual close", async () => {
+    const user = userEvent.setup();
+    const onDismiss = vi.fn();
+    renderViewport([baseItem], onDismiss);
+
+    await waitFor(() => {
+      expect(screen.getByText("Saved successfully")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: "Закрыть" }));
+
+    await waitFor(() => {
+      expect(screen.queryByText("Saved successfully")).not.toBeInTheDocument();
+    });
+
+    expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 
   it("renders action button", async () => {
@@ -122,8 +155,29 @@ describe("NotificationViewport", () => {
 
     renderViewport([item]);
 
-    await user.click(screen.getByTestId("notification-action-retry"));
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Повторить" })).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: "Повторить" }));
 
     expect(onAction).toHaveBeenCalledTimes(1);
+  });
+
+  it("applies single mode viewport settings", () => {
+    render(
+      <NotificationViewport
+        placement="bottom-right"
+        stacking="single"
+        durationMs={200}
+        closable
+        maxVisible={3}
+        items={[]}
+        onDismiss={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("notification-viewport")).toBeInTheDocument();
+    expect(screen.getByLabelText("Уведомления alt+T")).toBeInTheDocument();
   });
 });

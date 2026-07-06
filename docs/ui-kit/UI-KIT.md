@@ -1044,7 +1044,7 @@ Checklist:
 
 ## Phase 4: Feedback
 
-### Toast
+### Toast (Radix legacy)
 
 Status: [ ] planned [ ] in progress [x] done
 Radix: yes
@@ -1052,9 +1052,9 @@ Priority: P1
 
 Purpose:
 
-- Temporary feedback message.
-- Supports title, description, action, close, duration, and placement.
-- Uses Radix Toast via UI Kit primitives; product `NotificationViewport` composes `ToastProvider`, `ToastRoot`, and `ToastViewport`.
+- Low-level Radix Toast primitives for controlled composition and legacy stories.
+- Product notifications now use UI Kit `Sonner` (`Toaster` + `toast` from `sonner`).
+- Kept for backward-compatible Radix-based composition and tests.
 
 API:
 
@@ -1093,6 +1093,66 @@ Checklist:
 - [x] Barrel export added
 - [x] Light/dark verified
 - [x] Accessibility verified
+- [x] Documentation status updated
+
+### Sonner
+
+Status: [ ] planned [ ] in progress [x] done
+Radix: no
+Priority: P0
+
+Purpose:
+
+- shadcn/ui-compatible Sonner toaster for ephemeral feedback.
+- Primary runtime path for product `NotificationViewport`.
+- Imperative API via `toast(...)` from `sonner`, wrapped with semantic tokens.
+
+API:
+
+- `Toaster` — shadcn-like wrapper over `sonner` `Toaster`
+- `toast` — re-export from `sonner`
+- `position`: `top-left | top-center | top-right | bottom-left | bottom-center | bottom-right`
+- `theme`: `light | dark | system` (defaults from `data-theme` on `documentElement`)
+- `richColors`, `closeButton`, `duration`, `expand`, `visibleToasts`, `toastOptions`
+
+Stories:
+
+- [x] Default
+- [x] Description
+- [x] Action
+- [x] Close Button
+- [x] Rich Colors
+- [x] Types (default, success, info, warning, error)
+- [x] Positions
+- [x] Expanded/Stacked
+- [x] Light Theme
+- [x] Dark Theme
+- [x] Interactive demo via `toast(...)`
+
+Tests:
+
+- [x] Toaster renders without crashing
+- [x] `toast(...)` renders message
+- [x] Description renders
+- [x] Action callback fires
+- [x] Close button dismisses
+- [x] Duration auto-dismisses
+- [x] Position is applied
+- [x] Rich colors/types render distinguishable state attributes
+- [x] Light/dark path uses semantic tokens (no hardcoded colors in module CSS)
+- [x] Product `NotificationViewport` still works
+
+Checklist:
+
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] `sonner` dependency added
+- [x] Applicable Universal Quality Gates satisfied
+- [x] Storybook added under `UI Kit/Sonner`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified (close button aria via `toastOptions.closeButtonAriaLabel`)
 - [x] Documentation status updated
 
 ### Notification

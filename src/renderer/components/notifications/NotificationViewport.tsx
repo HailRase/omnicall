@@ -1,43 +1,63 @@
 import type { JSX } from "react";
 import type { NotificationItem } from "../../hooks/useNotifications.js";
 import { useI18n } from "../../i18n/index.js";
-import { ToastProvider, ToastViewport as UiToastViewport } from "../ui/toast/index.js";
+import { Toaster } from "../ui/sonner/index.js";
 import type { ToastPlacement } from "../ui/types.js";
-import { NotificationToast } from "./NotificationToast.js";
+import type { NotificationStacking } from "@application/index.js";
+import {
+  NOTIFICATION_TOASTER_ID,
+  useNotificationSonnerSync,
+} from "./useNotificationSonnerSync.js";
 
 export type NotificationViewportProps = Readonly<{
   placement: ToastPlacement;
+  stacking: NotificationStacking;
   durationMs: number;
+  closable: boolean;
+  maxVisible: number;
   items: ReadonlyArray<NotificationItem>;
   onDismiss: (id: string) => void;
 }>;
 
 /**
- * - Purpose: host product notification queue inside UI Kit toast provider and viewport.
+ * - Purpose: host product notification queue through UI Kit Sonner toaster.
  * - Inputs: queue items, placement, default duration, and dismiss handler.
- * - Outputs: fixed toast region with Radix-managed lifecycle and stacking.
+ * - Outputs: Sonner viewport with synced ephemeral notification toasts.
  */
 export function NotificationViewport({
   placement,
+  stacking,
   durationMs,
+  closable,
+  maxVisible,
   items,
   onDismiss,
-}: NotificationViewportProps): JSX.Element | null {
-  const { t } = useI18n();
+}: NotificationViewportProps): JSX.Element {
+  const { t, language } = useI18n();
 
-  if (items.length === 0) {
-    return null;
-  }
+  useNotificationSonnerSync({
+    items,
+    language,
+    onDismiss,
+  });
 
   return (
-    <ToastProvider
-      duration={durationMs > 0 ? durationMs : Number.POSITIVE_INFINITY}
-      label={t("notifications.viewport.ariaLabel")}
-    >
-      {items.map((item) => (
-        <NotificationToast key={item.id} item={item} onDismiss={onDismiss} />
-      ))}
-      <UiToastViewport placement={placement} data-testid="notification-viewport" />
-    </ToastProvider>
+    <div data-testid="notification-viewport">
+      <Toaster
+        id={NOTIFICATION_TOASTER_ID}
+        position={placement}
+        duration={durationMs > 0 ? durationMs : Number.POSITIVE_INFINITY}
+        visibleToasts={stacking === "single" ? 1 : maxVisible}
+        expand={false}
+        gap={14}
+        offset={24}
+        richColors
+        closeButton={closable}
+        containerAriaLabel={t("notifications.viewport.ariaLabel")}
+        toastOptions={{
+          closeButtonAriaLabel: t("icons.overlay.close"),
+        }}
+      />
+    </div>
   );
 }

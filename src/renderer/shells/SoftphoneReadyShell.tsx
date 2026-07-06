@@ -181,7 +181,10 @@ export function SoftphoneReadyShell({
         <>
           <NotificationViewport
             placement={notifications.placement}
+            stacking={notifications.stacking}
             durationMs={notifications.durationMs}
+            closable={notifications.closable}
+            maxVisible={notifications.maxVisible}
             items={notifications.items}
             onDismiss={notifications.dismiss}
           />

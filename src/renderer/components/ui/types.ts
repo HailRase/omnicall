@@ -33,6 +33,14 @@ export type NotificationTone = ToastTone;
 
 export type ToastPlacement = "top-right" | "top-left" | "bottom-right" | "bottom-left";
 
+export type SonnerPosition =
+  | "top-left"
+  | "top-center"
+  | "top-right"
+  | "bottom-left"
+  | "bottom-center"
+  | "bottom-right";
+
 export type ProgressTone = "default" | "success" | "warning" | "destructive";
 
 export type SkeletonShape = "text" | "rectangle" | "circle";
