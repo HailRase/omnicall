@@ -5,6 +5,12 @@ Public release history for **Axatalk** distribution builds.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer. Git tag: `v<version>`.
 
+## [0.4.0] - 2026-07-06
+
+### Added
+
+- Saved SIP account profiles for quick sign-in — save account identity locally (password is never stored), switch between profiles via tabs in Settings → Account, sign in with password only on saved profiles, confirm before switching registered accounts, delete with confirmation
+
 ## [0.3.0] - 2026-07-06
 
 ### Added

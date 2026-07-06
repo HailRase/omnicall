@@ -7,6 +7,12 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-07-06
+
+### Added
+
+- F-024: сохранённые SIP-профили для быстрого входа — вкладки «Новый» и сохранённые аккаунты в Настройках → Аккаунт, вход по паролю для сохранённого профиля, сохранение профиля при авторизации, переключение A→B с подтверждением и unregister, удаление с подтверждением; пароль не сохраняется на диск
+
 ## [0.3.1] - 2026-07-06
 
 ### Changed
@@ -123,7 +129,8 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.3.1...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.4.0...main
+[0.4.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.4.0
 [0.3.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.3.1
 [0.3.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.3.0
 [0.2.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.2.0
