@@ -34,6 +34,7 @@ export type AccountBootstrapProjection = Readonly<{
   agentId: string | null;
   sipUsername: string | null;
   sipDomain: string | null;
+  sipServer: string | null;
   lastError: string | null;
   isOcpMode: boolean;
 }>;
@@ -47,6 +48,7 @@ export const initialAccountBootstrapProjection = (): AccountBootstrapProjection 
   agentId: null,
   sipUsername: null,
   sipDomain: null,
+  sipServer: null,
   lastError: null,
   isOcpMode: false,
 });
@@ -267,6 +269,7 @@ function applyBootstrapEvent(
         phoneStatus: "offline",
         sipUsername: null,
         sipDomain: null,
+        sipServer: null,
         lastError: null,
       };
     }
@@ -278,6 +281,7 @@ function applyBootstrapEvent(
       const record = credentials as Record<string, unknown>;
       const username = record["username"];
       const domain = record["domain"];
+      const server = record["server"];
       if (typeof username !== "string" || username.trim().length === 0) {
         return projection;
       }
@@ -285,10 +289,13 @@ function applyBootstrapEvent(
         typeof domain === "string" && domain.trim().length > 0
           ? normalizeSettingsAccountDomain(domain)
           : null;
+      const sipServer =
+        typeof server === "string" && server.trim().length > 0 ? server.trim() : null;
       return {
         ...projection,
         sipUsername: username.trim(),
         sipDomain,
+        sipServer,
       };
     }
     default:

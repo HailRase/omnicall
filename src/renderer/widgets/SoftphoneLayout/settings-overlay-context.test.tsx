@@ -6,6 +6,7 @@ import { SettingsFullscreenOverlay } from "../../components/settings/SettingsFul
 import { SettingsPanel } from "../../components/settings/SettingsPanel.js";
 import { systemStateTestDefaults } from "../../components/settings/panels/settingsSystemStateTestDefaults.js";
 import { settingsCodecTestDefaults } from "../../components/settings/panels/settingsCodecTestDefaults.js";
+import { settingsAccountTestDefaults } from "../../components/settings/panels/settingsAccountTestDefaults.js";
 import { SoftphoneLayout } from "./SoftphoneLayout.js";
 
 describe("settings overlay with layout zones", () => {
@@ -45,18 +46,7 @@ describe("settings overlay with layout zones", () => {
               isCheckingUpdates={false}
               onCheckForUpdates={() => undefined}
               onOpenDownloadPage={() => undefined}
-              account={{
-                form: { username: "", password: "", domain: "", server: "" },
-                submitting: false,
-                error: null,
-                successKey: null,
-                disabled: false,
-                authorizeDisabledReason: null,
-                logoutDisabledReason: "Заполните поля и нажмите «Авторизоваться»",
-                onFieldChange: vi.fn(),
-                onSubmit: vi.fn(),
-                onLogout: vi.fn(),
-              }}
+              account={settingsAccountTestDefaults}
             />
           </SettingsFullscreenOverlay>
         }

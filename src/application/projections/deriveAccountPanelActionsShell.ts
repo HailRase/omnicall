@@ -7,6 +7,7 @@ export type AccountPanelActionsShellInput = Readonly<{
   submitting: boolean;
   panelDisabled: boolean;
   sessionLogoutDisabledReason: AccountPanelActionReasonKey | null;
+  profileSwitchAllowed?: boolean;
 }>;
 
 export type AccountPanelActionsShell = Readonly<{
@@ -47,7 +48,7 @@ export function deriveAccountPanelActionsShell(
     authorizeDisabledReason = "account.actions.disabled.waitCurrentOperation";
   } else if (input.submitting) {
     authorizeDisabledReason = "account.actions.disabled.authorizeInProgress";
-  } else if (isAuthorized) {
+  } else if (isAuthorized && input.profileSwitchAllowed !== true) {
     authorizeDisabledReason = "account.actions.disabled.alreadyAuthorized";
   }
 

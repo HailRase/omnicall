@@ -1,4 +1,4 @@
-import type { JSX, ReactNode } from "react";
+import type { JSX, ReactNode, RefObject } from "react";
 import type {
   AppTheme,
   AudioCodecId,
@@ -9,6 +9,10 @@ import type {
   SupportedLanguage,
   VideoCodecId,
 } from "@application/index.js";
+import type { SavedAccountProfileId } from "@application/index.js";
+import type { SavedAccountProfileSelectorOption } from "@application/projections/deriveSavedAccountProfileSelectorOptions.js";
+import type { SavedProfilePanelMode } from "@application/projections/deriveSavedProfilePanelMode.js";
+import type { AccountAuthorizationErrorProjection } from "@application/projections/mapAccountAuthorizationError.js";
 import { IconControlButton } from "../icons/index.js";
 import { useI18n } from "../../i18n/index.js";
 import type { SettingsSectionId } from "./settingsSections.js";
@@ -86,15 +90,35 @@ export type SettingsPanelProps = Readonly<{
   account: Readonly<{
     form: SipAccountInput;
     submitting: boolean;
-    error: string | null;
+    error: AccountAuthorizationErrorProjection | null;
     successKey: TranslationKey | null;
+    warningKey: TranslationKey | null;
+    panelMode: SavedProfilePanelMode;
     disabled: boolean;
     authorizeDisabledReason: string | null;
     logoutDisabledReason: string | null;
+    savedProfileOptions: ReadonlyArray<SavedAccountProfileSelectorOption>;
+    selectedProfileId: SavedAccountProfileId | null;
+    saveProfileChecked: boolean;
+    saveProfileDisabled: boolean;
+    saveProfileDisabledReasonKey: TranslationKey | null;
+    passwordHintKey: TranslationKey | null;
+  deleteConfirmationOpen: boolean;
+  switchConfirmationOpen: boolean;
+  switchFromLogin: string;
+  switchToLogin: string;
+  passwordInputRef: RefObject<HTMLInputElement | null>;
     onFieldChange: (field: keyof SipAccountInput, value: string) => void;
     onSubmit: () => void;
     onLogout: () => void;
-  }>;
+    onProfileSelect: (profileId: SavedAccountProfileId | null) => void;
+    onSaveProfileChange: (checked: boolean) => void;
+    onDeleteProfileRequest: () => void;
+  onDeleteProfileConfirm: () => void;
+  onDeleteProfileCancel: () => void;
+  onSwitchProfileConfirm: () => void;
+  onSwitchProfileCancel: () => void;
+}>;
 }>;
 
 /**
@@ -153,12 +177,32 @@ export function SettingsPanel({
           submitting={account.submitting}
           error={account.error}
           successKey={account.successKey}
+          warningKey={account.warningKey}
+          panelMode={account.panelMode}
           disabled={account.disabled}
           authorizeDisabledReason={account.authorizeDisabledReason}
           logoutDisabledReason={account.logoutDisabledReason}
+          savedProfileOptions={account.savedProfileOptions}
+          selectedProfileId={account.selectedProfileId}
+          saveProfileChecked={account.saveProfileChecked}
+          saveProfileDisabled={account.saveProfileDisabled}
+          saveProfileDisabledReasonKey={account.saveProfileDisabledReasonKey}
+          passwordHintKey={account.passwordHintKey}
+          deleteConfirmationOpen={account.deleteConfirmationOpen}
+          switchConfirmationOpen={account.switchConfirmationOpen}
+          switchFromLogin={account.switchFromLogin}
+          switchToLogin={account.switchToLogin}
+          passwordInputRef={account.passwordInputRef}
           onFieldChange={account.onFieldChange}
           onSubmit={account.onSubmit}
           onLogout={account.onLogout}
+          onProfileSelect={account.onProfileSelect}
+          onSaveProfileChange={account.onSaveProfileChange}
+          onDeleteProfileRequest={account.onDeleteProfileRequest}
+          onDeleteProfileConfirm={account.onDeleteProfileConfirm}
+          onDeleteProfileCancel={account.onDeleteProfileCancel}
+          onSwitchProfileConfirm={account.onSwitchProfileConfirm}
+          onSwitchProfileCancel={account.onSwitchProfileCancel}
         />
       );
       break;

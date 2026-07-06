@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import type { MultiCallSettings } from "@application/index.js";
 import { deriveActiveProfileSettingsSyncKey } from "@application/index.js";
+import { deriveRegisteredAccountIdentity } from "@application/projections/deriveRegisteredAccountIdentity.js";
 import {
   createDefaultUserSettings,
   MAX_AUTO_ANSWER_TIMEOUT_SEC,
@@ -23,15 +24,18 @@ import {
 import { applyAppTheme } from "../theme/applyAppTheme.js";
 import { DEFAULT_AUTO_ANSWER_TIMEOUT_SEC } from "../components/settings/panels/SettingsSessionsPanel.js";
 import { setRendererLanguage, translateCurrent } from "../i18n/index.js";
+import { useAccountActions } from "./useAccountActions.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 
 type UseSettingsActionsInput = Readonly<{
   facade: AccountBootstrapFacade | null;
   currentSettings: MultiCallSettings;
   applyMultiCallSettings: (settings: MultiCallSettings) => void;
+  isSipRegistered?: boolean;
 }>;
 
 type UseSettingsActionsResult = Readonly<{
+  account: ReturnType<typeof useAccountActions>;
   userSettings: UserSettings;
   onLanguageChange: (language: SupportedLanguage) => void;
   onThemeChange: (theme: AppTheme) => void;
@@ -86,7 +90,10 @@ function applyLoadedUserSettings(
 export function useSettingsActions(
   input: UseSettingsActionsInput,
 ): UseSettingsActionsResult {
-  const { facade, currentSettings, applyMultiCallSettings } = input;
+  const { facade, currentSettings, applyMultiCallSettings, isSipRegistered = false } = input;
+  const projection = useAccountBootstrapStore((state) => state.projection);
+  const registeredIdentity = deriveRegisteredAccountIdentity(projection);
+  const account = useAccountActions({ facade, isSipRegistered, registeredIdentity });
   const activeProfileSettingsSyncKey = useAccountBootstrapStore((state) =>
     deriveActiveProfileSettingsSyncKey(state.projection),
   );
@@ -361,6 +368,7 @@ export function useSettingsActions(
   );
 
   return {
+    account,
     userSettings,
     onLanguageChange,
     onThemeChange,

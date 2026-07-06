@@ -10,7 +10,7 @@ import {
 import { createTestLogger } from "@infrastructure/logging/index.js";
 import type { AppBootstrapConfig } from "@domain/index.js";
 import type { FileSystemPort } from "@ports/filesystem/FileSystemPort.js";
-import type { SettingsRepository } from "@ports/index.js";
+import type { SettingsRepository, SavedAccountProfileRepository } from "@ports/index.js";
 import { wireOcpInboundToFacade } from "./wireOcpInboundToFacade.js";
 
 /**
@@ -23,6 +23,7 @@ export type CreateAccountBootstrapOptions = Readonly<{
   profilesStorageRoot?: string;
   filesystem?: FileSystemPort;
   settingsRepository?: SettingsRepository;
+  savedAccountProfileRepository?: SavedAccountProfileRepository;
   ocpWsUrl?: string;
   ocpScenario?:
     | "success"
@@ -51,7 +52,7 @@ export type CreateAccountBootstrapOptions = Readonly<{
 export function createMockAccountBootstrap(
   options: CreateAccountBootstrapOptions = {},
 ): AccountBootstrapFacade {
-  const settingsRepository = new InMemorySettingsRepository({
+  const settingsRepository = options.settingsRepository ?? new InMemorySettingsRepository({
     bootstrapConfig: options.bootstrapConfig ?? { mode: "sip-only" },
   });
 
@@ -81,6 +82,9 @@ export function createMockAccountBootstrap(
     telephonyGateway,
     mediaGateway,
     settingsRepository,
+    ...(options.savedAccountProfileRepository !== undefined
+      ? { savedAccountProfileRepository: options.savedAccountProfileRepository }
+      : {}),
     hostIntegrationGateway,
     logger: createTestLogger({ featureId: "F-001", boundedContext: "Telephony" }),
   });

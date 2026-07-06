@@ -1,11 +1,11 @@
 import { useState, type JSX } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
+import type { AccountPanelActionReasonKey } from "@application/index.js";
 import { OcpToastStack } from "../components/ocp/OcpToastStack.js";
 import { UpdateAvailableBanner } from "../components/updates/UpdateAvailableBanner.js";
 import { SettingsFullscreenOverlay } from "../components/settings/SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "../components/settings/SettingsPanel.js";
 import { DEFAULT_AUTO_ANSWER_TIMEOUT_SEC } from "../components/settings/panels/SettingsSessionsPanel.js";
-import { useAccountActions } from "../hooks/useAccountActions.js";
 import { useAccountPanelShell } from "../hooks/useAccountPanelShell.js";
 import { useAuthShellFlags } from "../hooks/useAuthShellFlags.js";
 import { useCallFeatureShell } from "../hooks/useCallFeatureShell.js";
@@ -23,6 +23,7 @@ import { useUserAvatarMenu } from "../hooks/useUserAvatarMenu.js";
 import { useUserAvatarMenuActions } from "../hooks/useUserAvatarMenuActions.js";
 import type { useSoftphoneShellChrome } from "../hooks/useSoftphoneShellChrome.js";
 import { useSoftphoneProjections } from "../hooks/useSoftphoneProjections.js";
+import { useI18n } from "../i18n/index.js";
 import { SoftphoneLayout } from "../widgets/SoftphoneLayout/SoftphoneLayout.js";
 import { CallContextShell } from "./call/CallContextShell.js";
 import { CallControlsShell } from "./call/CallControlsShell.js";
@@ -45,20 +46,13 @@ export function SoftphoneReadyShell({
   facade,
   shellChrome,
 }: SoftphoneReadyShellProps): JSX.Element {
+  const { t } = useI18n();
   const { sessionLogoutActions } = shellChrome;
   const { projection, ocpNotificationProjection, multiCallProjection, applyMultiCallSettings } =
     useSoftphoneProjections();
   const { blockingAuthState, isSipRegistered } = useAuthShellFlags();
   const overlayShell = useOverlayShell();
   useShellWindowLayout({ settingsOpen: overlayShell.settingsOpen });
-  const accountActions = useAccountActions({ facade });
-  const accountPanelShell = useAccountPanelShell({
-    form: accountActions.form,
-    submitting: accountActions.submitting,
-    panelDisabled: blockingAuthState,
-    authUiState: projection.authUiState,
-    sessionLogoutActions,
-  });
   const [settingsSidebarExpanded, setSettingsSidebarExpanded] = useState(false);
   const settingsActions = useSettingsActions({
     facade,
@@ -67,7 +61,20 @@ export function SoftphoneReadyShell({
       autoUnholdOnTransferFailure: multiCallProjection.autoUnholdOnTransferFailure,
     },
     applyMultiCallSettings,
+    isSipRegistered,
   });
+  const accountActions = settingsActions.account;
+  const accountPanelShell = useAccountPanelShell({
+    form: accountActions.form,
+    submitting: accountActions.submitting,
+    panelDisabled: blockingAuthState,
+    authUiState: projection.authUiState,
+    sessionLogoutActions,
+    profileSwitchAllowed: accountActions.profileSwitchAllowed,
+  });
+  const translateAccountActionReason = (
+    reasonKey: AccountPanelActionReasonKey | null,
+  ): string | null => (reasonKey === null ? null : t(reasonKey));
   const sipSystemStateActions = useSipSystemStateActions({ facade });
   const sipSystemStateShell = useSipSystemStateShell({
     userSettings: settingsActions.userSettings,
@@ -209,12 +216,36 @@ export function SoftphoneReadyShell({
                 submitting: accountActions.submitting,
                 error: accountActions.error,
                 successKey: accountActions.successKey,
+                warningKey: accountActions.warningKey,
+                panelMode: accountActions.panelMode,
                 disabled: blockingAuthState,
-                authorizeDisabledReason: accountPanelShell.authorizeDisabledReason,
-                logoutDisabledReason: accountPanelShell.logoutDisabledReason,
+                authorizeDisabledReason: translateAccountActionReason(
+                  accountPanelShell.authorizeDisabledReason,
+                ),
+                logoutDisabledReason: translateAccountActionReason(
+                  accountPanelShell.logoutDisabledReason,
+                ),
+                savedProfileOptions: accountActions.savedProfileOptions,
+                selectedProfileId: accountActions.selectedProfileId,
+                saveProfileChecked: accountActions.saveProfileChecked,
+                saveProfileDisabled: accountActions.saveProfileDisabled,
+                saveProfileDisabledReasonKey: accountActions.saveProfileDisabledReasonKey,
+                passwordHintKey: accountActions.passwordHintKey,
+                deleteConfirmationOpen: accountActions.deleteConfirmationOpen,
+                switchConfirmationOpen: accountActions.switchConfirmationOpen,
+                switchFromLogin: accountActions.switchFromLogin,
+                switchToLogin: accountActions.switchToLogin,
+                passwordInputRef: accountActions.passwordInputRef,
                 onFieldChange: accountActions.updateField,
                 onSubmit: accountActions.handleSubmit,
                 onLogout: sessionLogoutActions.handleEndSession,
+                onProfileSelect: accountActions.selectProfile,
+                onSaveProfileChange: accountActions.setSaveProfileChecked,
+                onDeleteProfileRequest: accountActions.requestDeleteSelectedProfile,
+                onDeleteProfileConfirm: accountActions.confirmDeleteSelectedProfile,
+                onDeleteProfileCancel: accountActions.cancelDeleteSelectedProfile,
+                onSwitchProfileConfirm: accountActions.confirmSwitchProfile,
+                onSwitchProfileCancel: accountActions.cancelSwitchProfile,
               }}
             />
           </SettingsFullscreenOverlay>

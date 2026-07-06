@@ -61,6 +61,22 @@ describe("deriveAccountPanelActionsShell", () => {
     });
   });
 
+  it("enables authorize when registered user switches to another profile", () => {
+    expect(
+      deriveAccountPanelActionsShell({
+        authUiState: "sip_registered",
+        form: filledForm,
+        submitting: false,
+        panelDisabled: false,
+        sessionLogoutDisabledReason: null,
+        profileSwitchAllowed: true,
+      }),
+    ).toEqual({
+      authorizeDisabledReason: null,
+      logoutDisabledReason: null,
+    });
+  });
+
   it("prefers session logout disabled reason when registered", () => {
     expect(
       deriveAccountPanelActionsShell({

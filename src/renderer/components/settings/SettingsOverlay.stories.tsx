@@ -3,6 +3,7 @@ import { SettingsFullscreenOverlay } from "./SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "./SettingsPanel.js";
 import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefaults.js";
 import { settingsCodecTestDefaults } from "./panels/settingsCodecTestDefaults.js";
+import { settingsAccountTestDefaults } from "./panels/settingsAccountTestDefaults.js";
 
 const meta = {
   title: "Settings/SettingsPanel",
@@ -23,18 +24,7 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-const accountDefaults = {
-  form: { username: "user", password: "", domain: "example.com", server: "sip.example.com" },
-  submitting: false,
-  error: null,
-  successKey: null,
-  disabled: false,
-  authorizeDisabledReason: null,
-  logoutDisabledReason: "Сначала нажмите «Авторизоваться»",
-  onFieldChange: () => undefined,
-  onSubmit: () => undefined,
-  onLogout: () => undefined,
-} as const;
+const accountDefaults = settingsAccountTestDefaults;
 
 const themeDefaults = {
   language: "ru" as const,

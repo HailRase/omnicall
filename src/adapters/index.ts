@@ -49,6 +49,8 @@ export { parseDisplayName } from "./telephony/parseDisplayName.js";
 export { JsSipTelephonyAdapter } from "./telephony/jssip/JsSipTelephonyAdapter.js";
 export type { JsSipTelephonyAdapterOptions } from "./telephony/jssip/JsSipTelephonyAdapter.js";
 export { InMemorySettingsRepository } from "./settings/InMemorySettingsRepository.js";
+export { InMemorySavedAccountProfileRepository } from "./settings/InMemorySavedAccountProfileRepository.js";
+export { FileSavedAccountProfileRepository } from "./settings/FileSavedAccountProfileRepository.js";
 export { InMemorySettingsRepository as MockSettingsRepository } from "./settings/InMemorySettingsRepository.js";
 export type { InMemorySettingsState } from "./settings/InMemorySettingsRepository.js";
 export { SettingsRepositoryCodecPreferencesAdapter } from "./settings/SettingsRepositoryCodecPreferencesAdapter.js";

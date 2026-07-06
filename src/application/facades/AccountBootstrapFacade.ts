@@ -4,7 +4,7 @@ import type { SipAccountId, SipAccountInput } from "@domain/index.js";
 import type { PhoneStatus } from "@domain/index.js";
 import { err, isErr, ok, type Result } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
-import { normalizeUnknownError } from "@shared/errors/index.js";
+import { createPlatformError, normalizeUnknownError } from "@shared/errors/index.js";
 import { InMemoryDomainEventBus } from "../events/InMemoryDomainEventBus.js";
 import { AuthenticateOcpUseCase } from "../use-cases/AuthenticateOcpUseCase.js";
 import { AuthorizeSipAccountUseCase } from "../use-cases/AuthorizeSipAccountUseCase.js";
@@ -67,6 +67,7 @@ import type {
   OcpSyncGateway,
   MediaGateway,
   OperatorPlatformGateway,
+  SavedAccountProfileRepository,
   SettingsRepository,
   TelephonyGateway,
 } from "@ports/index.js";
@@ -77,6 +78,7 @@ import type { SettingsAccountKey, UserSettings } from "@domain/index.js";
 import {
   createCallId,
   mergeMultiCallIntoUserSettings,
+  matchesSipAccountIdentity,
   toMultiCallSettings,
   validateUserSettings,
   type Call,
@@ -86,17 +88,42 @@ import {
 import { resolveSettingsAccountKey } from "../settings/resolveSettingsAccountKey.js";
 import { loadUserSettingsWithLegacyMigration } from "../settings/loadUserSettingsWithLegacyMigration.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
+import { InMemorySavedAccountProfileRepository } from "@adapters/settings/InMemorySavedAccountProfileRepository.js";
+import { ListSavedAccountProfilesUseCase } from "../use-cases/ListSavedAccountProfilesUseCase.js";
+import { SaveAccountProfileUseCase } from "../use-cases/SaveAccountProfileUseCase.js";
+import { DeleteSavedAccountProfileUseCase } from "../use-cases/DeleteSavedAccountProfileUseCase.js";
+import { TouchSavedAccountProfileUseCase } from "../use-cases/TouchSavedAccountProfileUseCase.js";
+import { LOCAL_SAVED_PROFILE_NOT_FOUND_MESSAGE } from "../projections/isLocalSavedProfileNotFoundError.js";
+import type {
+  SavedAccountProfile,
+  SavedAccountProfileId,
+  SavedAccountProfileInput,
+} from "@domain/index.js";
+
+export type AuthorizeAccountMetadataWarning =
+  | "profile_save_failed"
+  | "profile_touch_failed";
+
+export type AuthorizeAccountOutcome = Readonly<{
+  metadataWarning?: AuthorizeAccountMetadataWarning;
+}>;
 
 export type AccountBootstrapFacadeDeps = Readonly<{
   operatorGateway: OperatorPlatformGateway;
   telephonyGateway: TelephonyGateway;
   mediaGateway: MediaGateway;
   settingsRepository: SettingsRepository;
+  savedAccountProfileRepository?: SavedAccountProfileRepository;
   hostIntegrationGateway?: HostIntegrationGateway;
   ocpSyncGateway?: OcpSyncGateway;
   ocpCallCorrelationRegistry?: OcpCallCorrelationRegistry;
   logger: Logger;
   eventPublisher?: DomainEventPublisher;
+}>;
+
+export type AuthorizeManualAccountOptions = Readonly<{
+  correlationId?: CorrelationId;
+  saveProfile?: boolean;
 }>;
 
 export class AccountBootstrapFacade {
@@ -135,7 +162,14 @@ export class AccountBootstrapFacade {
   readonly respondToCampaign: RespondToCampaignUseCase;
   readonly sendDlgStop: SendDlgStopUseCase;
 
+  private readonly savedAccountProfileRepository: SavedAccountProfileRepository;
+  private readonly listSavedAccountProfilesUseCase: ListSavedAccountProfilesUseCase;
+  private readonly saveAccountProfileUseCase: SaveAccountProfileUseCase;
+  private readonly deleteSavedAccountProfileUseCase: DeleteSavedAccountProfileUseCase;
+  private readonly touchSavedAccountProfileUseCase: TouchSavedAccountProfileUseCase;
+
   private readonly processedCredentialEvents = new Set<string>();
+  private sipSessionRegistered = false;
   private readonly callEngine: CallEngine;
   private readonly ocpAuthBootstrap: OcpAuthBootstrapService;
   private readonly dndAgentStatusOrchestration: DndAgentStatusOrchestrationService;
@@ -147,6 +181,24 @@ export class AccountBootstrapFacade {
 
   constructor(private readonly deps: AccountBootstrapFacadeDeps) {
     this.eventPublisher = deps.eventPublisher ?? new InMemoryDomainEventBus();
+    this.savedAccountProfileRepository =
+      deps.savedAccountProfileRepository ?? new InMemorySavedAccountProfileRepository();
+    this.listSavedAccountProfilesUseCase = new ListSavedAccountProfilesUseCase(
+      this.savedAccountProfileRepository,
+      deps.logger,
+    );
+    this.saveAccountProfileUseCase = new SaveAccountProfileUseCase(
+      this.savedAccountProfileRepository,
+      deps.logger,
+    );
+    this.deleteSavedAccountProfileUseCase = new DeleteSavedAccountProfileUseCase(
+      this.savedAccountProfileRepository,
+      deps.logger,
+    );
+    this.touchSavedAccountProfileUseCase = new TouchSavedAccountProfileUseCase(
+      this.savedAccountProfileRepository,
+      deps.logger,
+    );
     const ocpSyncGateway = deps.ocpSyncGateway ?? new MockOcpSyncGateway();
     const ocpCallCorrelationRegistry =
       deps.ocpCallCorrelationRegistry ?? new InMemoryOcpCallCorrelationRegistry();
@@ -404,7 +456,19 @@ export class AccountBootstrapFacade {
     this.eventPublisher.subscribe((event) => {
       void this.handleAutoRegistration(event);
       void this.handleAgentStatusSync(event);
+      this.trackSipRegistrationState(event);
     });
+  }
+
+  private trackSipRegistrationState(event: DomainEvent): void {
+    if (event.type === "RegistrationSucceeded") {
+      this.sipSessionRegistered = true;
+      return;
+    }
+
+    if (event.type === "UnregistrationSucceeded" || event.type === "UserSessionEnded") {
+      this.sipSessionRegistered = false;
+    }
   }
 
   async initialize(config?: AppBootstrapConfig): Promise<void> {
@@ -441,8 +505,16 @@ export class AccountBootstrapFacade {
 
   async authorizeManualAccount(
     account: SipAccountInput,
-    correlationId?: CorrelationId,
-  ): Promise<Result<void, PlatformError>> {
+    options?: CorrelationId | AuthorizeManualAccountOptions,
+  ): Promise<Result<AuthorizeAccountOutcome, PlatformError>> {
+    const resolvedOptions = resolveAuthorizeManualAccountOptions(options);
+    const correlationId = resolvedOptions.correlationId;
+
+    const switchResult = await this.ensureUnregisteredBeforeAccountSwitch(account, correlationId);
+    if (isErr(switchResult)) {
+      return switchResult;
+    }
+
     const authorizeInput =
       correlationId === undefined
         ? { account, source: "manual" as const }
@@ -454,19 +526,155 @@ export class AccountBootstrapFacade {
       return authorizeResult;
     }
 
-    try {
-      await this.applyActiveProfileSettingsSideEffects();
-    } catch (error: unknown) {
-      return err(normalizeUnknownError(error));
-    }
-
     const registerInput =
       correlationId === undefined
         ? { account: authorizeResult.value }
         : { account: authorizeResult.value, correlationId };
 
     const registerResult = await this.registerAccount.execute(registerInput);
-    return registerResult;
+    if (isErr(registerResult)) {
+      return registerResult;
+    }
+
+    try {
+      await this.applyActiveProfileSettingsSideEffects();
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+
+    let metadataWarning: AuthorizeAccountMetadataWarning | undefined;
+    if (resolvedOptions.saveProfile === true) {
+      try {
+        const saveResult = await this.saveAccountProfileUseCase.execute({
+          profile: {
+            username: account.username,
+            domain: account.domain,
+            server: account.server,
+          },
+          ...(correlationId !== undefined ? { correlationId } : {}),
+        });
+        if (isErr(saveResult)) {
+          this.deps.logger.warn("saved_account_profile_save_after_auth_failed", {
+            ...(correlationId !== undefined ? { correlationId } : {}),
+            featureId: "F-024",
+            boundedContext: "Settings",
+            operation: "authorize_manual_account",
+            result: saveResult.error.code,
+          });
+          metadataWarning = "profile_save_failed";
+        }
+      } catch (error: unknown) {
+        const normalized = normalizeUnknownError(error);
+        this.deps.logger.warn("saved_account_profile_save_after_auth_failed", {
+          ...(correlationId !== undefined ? { correlationId } : {}),
+          featureId: "F-024",
+          boundedContext: "Settings",
+          operation: "authorize_manual_account",
+          result: normalized.message,
+        });
+        metadataWarning = "profile_save_failed";
+      }
+    }
+
+    if (metadataWarning === undefined) {
+      return ok({});
+    }
+
+    return ok({ metadataWarning });
+  }
+
+  listSavedAccountProfiles(): Promise<Result<ReadonlyArray<SavedAccountProfile>, PlatformError>> {
+    return this.listSavedAccountProfilesUseCase.execute();
+  }
+
+  saveSavedAccountProfile(
+    profile: SavedAccountProfileInput,
+    correlationId?: CorrelationId,
+  ): Promise<Result<SavedAccountProfile, PlatformError>> {
+    return this.saveAccountProfileUseCase.execute({
+      profile,
+      ...(correlationId !== undefined ? { correlationId } : {}),
+    });
+  }
+
+  deleteSavedAccountProfile(
+    profileId: SavedAccountProfileId,
+    correlationId?: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    return this.deleteSavedAccountProfileUseCase.execute({
+      profileId,
+      ...(correlationId !== undefined ? { correlationId } : {}),
+    });
+  }
+
+  async authorizeSavedAccountProfile(
+    profileId: SavedAccountProfileId,
+    password: string,
+    options?: CorrelationId | AuthorizeManualAccountOptions,
+  ): Promise<Result<AuthorizeAccountOutcome, PlatformError>> {
+    const profile = await this.savedAccountProfileRepository.getProfileById(profileId);
+    if (profile === null) {
+      return err(
+        createPlatformError("not_found", LOCAL_SAVED_PROFILE_NOT_FOUND_MESSAGE),
+      );
+    }
+
+    const resolvedOptions = resolveAuthorizeManualAccountOptions(options);
+    const authorizeResult = await this.authorizeManualAccount(
+      {
+        username: profile.username,
+        domain: profile.domain,
+        server: profile.server,
+        password,
+      },
+      resolvedOptions,
+    );
+
+    if (isErr(authorizeResult)) {
+      return authorizeResult;
+    }
+
+    try {
+      const touchResult = await this.touchSavedAccountProfileUseCase.execute({
+        profileId,
+        ...(resolvedOptions.correlationId !== undefined
+          ? { correlationId: resolvedOptions.correlationId }
+          : {}),
+      });
+      if (isErr(touchResult)) {
+        this.deps.logger.warn("saved_account_profile_touch_after_auth_failed", {
+          ...(resolvedOptions.correlationId !== undefined
+            ? { correlationId: resolvedOptions.correlationId }
+            : {}),
+          featureId: "F-024",
+          boundedContext: "Settings",
+          operation: "authorize_saved_account_profile",
+          result: touchResult.error.code,
+          profileId,
+        });
+        return ok({
+          metadataWarning:
+            authorizeResult.value.metadataWarning ?? "profile_touch_failed",
+        });
+      }
+    } catch (error: unknown) {
+      const normalized = normalizeUnknownError(error);
+      this.deps.logger.warn("saved_account_profile_touch_after_auth_failed", {
+        ...(resolvedOptions.correlationId !== undefined
+          ? { correlationId: resolvedOptions.correlationId }
+          : {}),
+        featureId: "F-024",
+        boundedContext: "Settings",
+        operation: "authorize_saved_account_profile",
+        result: normalized.message,
+        profileId,
+      });
+      return ok({
+        metadataWarning: authorizeResult.value.metadataWarning ?? "profile_touch_failed",
+      });
+    }
+
+    return ok(authorizeResult.value);
   }
 
   async setPhoneStatus(status: PhoneStatus): Promise<void> {
@@ -523,6 +731,33 @@ export class AccountBootstrapFacade {
     const accountKey = await this.resolveSettingsAccountKey();
     const userSettings = await this.loadUserSettingsForAccountKey(accountKey);
     handlers.applyMultiCallSettings(toMultiCallSettings(userSettings));
+  }
+
+  private async ensureUnregisteredBeforeAccountSwitch(
+    targetAccount: SipAccountInput,
+    correlationId?: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    const currentAccount = await this.deps.settingsRepository.getSipAccount();
+    if (currentAccount === null) {
+      return ok(undefined);
+    }
+
+    if (matchesSipAccountIdentity(currentAccount, targetAccount)) {
+      return ok(undefined);
+    }
+
+    if (!this.sipSessionRegistered) {
+      return ok(undefined);
+    }
+
+    const endSessionResult = await this.endUserSession.execute(
+      correlationId === undefined ? {} : { correlationId },
+    );
+    if (isErr(endSessionResult)) {
+      return endSessionResult;
+    }
+
+    return ok(undefined);
   }
 
   private resolveSettingsAccountKey(): Promise<SettingsAccountKey> {
@@ -925,4 +1160,18 @@ function isSipAccountInput(value: unknown): value is SipAccountInput {
     typeof candidate["domain"] === "string" &&
     typeof candidate["server"] === "string"
   );
+}
+
+function resolveAuthorizeManualAccountOptions(
+  options?: CorrelationId | AuthorizeManualAccountOptions,
+): AuthorizeManualAccountOptions {
+  if (options === undefined) {
+    return {};
+  }
+
+  if (typeof options === "string") {
+    return { correlationId: options };
+  }
+
+  return options;
 }

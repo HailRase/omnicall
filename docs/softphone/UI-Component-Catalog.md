@@ -7,7 +7,10 @@
 | Component | Path | Exported props | Test IDs | @uiMeta |
 | --- | --- | --- | --- | --- |
 | `App` | `src/renderer/App.tsx` | `—` | softphone-shell, bootstrap-loading, bootstrap-error | — |
-| `AccountPanel` | `src/renderer/components/account/AccountPanel.tsx` | `—` | account-panel, account-feedback, account-success, account-error, account-authorize, account-logout | — |
+| `AccountPanel` | `src/renderer/components/account/AccountPanel.tsx` | `—` | account-panel, account-feedback, account-success, account-warning, account-error, account-username, account-password, account-domain, account-server, account-password, account-password-hint, account-save-profile-row, account-save-profile-checkbox, account-authorize, account-logout | — |
+| `DeleteSavedAccountProfileConfirmationModal` | `src/renderer/components/account/DeleteSavedAccountProfileConfirmationModal.tsx` | `DeleteSavedAccountProfileConfirmationModalProps` | delete-saved-account-profile-modal | — |
+| `SavedAccountProfileSelector` | `src/renderer/components/account/SavedAccountProfileSelector.tsx` | `SavedAccountProfileSelectorProps` | saved-account-profile-selector, saved-account-profile-tablist, saved-account-profile-delete | — |
+| `SwitchSavedAccountProfileConfirmationModal` | `src/renderer/components/account/SwitchSavedAccountProfileConfirmationModal.tsx` | `SwitchSavedAccountProfileConfirmationModalProps` | switch-saved-account-profile-modal | — |
 | `ActiveCallControlsPanel` | `src/renderer/components/call/ActiveCallControlsPanel.tsx` | `ActiveCallControlsPanelProps` | active-call-controls, active-call-mute-indicator, active-call-control-error, control-disabled-reason | — |
 | `CallControlsBar` | `src/renderer/components/call/CallControlsBar.tsx` | `CallControlsBarProps` | call-controls-bar | lf=LF-022,LF-023 f=F-004,F-016 smoke=R7- |
 | `CallIdleEmptyState` | `src/renderer/components/call/CallIdleEmptyState.tsx` | `—` | call-idle-empty-state | lf=LF-020 f=F-003,F-016 |
@@ -40,7 +43,7 @@
 | `SettingsPanel` | `src/renderer/components/settings/SettingsPanel.tsx` | `SettingsPanelProps` | settings-overlay-body, settings-section-title, settings-update-error | lf=LF-032,LF-076,LF-008 f=F-016,F-014,F-017 smoke=R7-5 |
 | `SettingsSidebar` | `src/renderer/components/settings/SettingsSidebar.tsx` | `SettingsSidebarProps` | settings-sidebar | — |
 | `CodecPreferencesSortableList` | `src/renderer/components/settings/panels/CodecPreferencesSortableList.tsx` | `CodecPreferencesSortableListProps` | — | — |
-| `SettingsAccountPanel` | `src/renderer/components/settings/panels/SettingsAccountPanel.tsx` | `SettingsAccountPanelProps` | settings-account-panel | — |
+| `SettingsAccountPanel` | `src/renderer/components/settings/panels/SettingsAccountPanel.tsx` | `SettingsAccountPanelProps` | settings-account-panel, account-settings-modal-backdrop | — |
 | `SettingsCodecsPanel` | `src/renderer/components/settings/panels/SettingsCodecsPanel.tsx` | `SettingsCodecsPanelProps` | settings-codecs-panel, settings-codecs-error, settings-codecs-video-future-only | — |
 | `SettingsDiagnosticsPanel` | `src/renderer/components/settings/panels/SettingsDiagnosticsPanel.tsx` | `—` | — | — |
 | `SettingsGeneralPanel` | `src/renderer/components/settings/panels/SettingsGeneralPanel.tsx` | `SettingsGeneralPanelProps` | settings-general-panel, settings-theme-control, settings-language-select, settings-current-version, settings-latest-version, settings-update-status, settings-check-updates, settings-open-download-page | — |
@@ -54,7 +57,7 @@
 | `PhoneStatusBadge` | `src/renderer/components/status/PhoneStatusBadge.tsx` | `—` | phone-status-badge | — |
 | `StatusSelector` | `src/renderer/components/status/StatusSelector.tsx` | `StatusSelectorProps` | status-selector, status-selector-current, status-change-in-progress, status-rejection-banner, status-disabled-reason | — |
 | `StatusTimer` | `src/renderer/components/status/StatusTimer.tsx` | `StatusTimerProps` | status-timer | — |
-| `UpdateAvailableBanner` | `src/renderer/components/updates/UpdateAvailableBanner.tsx` | `UpdateAvailableBannerProps` | update-available-banner, update-available-banner-backdrop, update-available-banner-version, update-available-banner-message, update-available-banner-download, update-available-banner-release-notes, update-available-banner-later | — |
+| `UpdateAvailableBanner` | `src/renderer/components/updates/UpdateAvailableBanner.tsx` | `UpdateAvailableBannerProps` | update-available-banner, update-available-banner-message, update-available-banner-download, update-available-banner-later | — |
 | `AuthAccountShell` | `src/renderer/shells/AuthAccountShell.tsx` | `—` | — | — |
 | `OperatorFeatureShell` | `src/renderer/shells/OperatorFeatureShell.tsx` | `—` | — | — |
 | `SessionFeatureShell` | `src/renderer/shells/SessionFeatureShell.tsx` | `—` | logout-error-banner | — |

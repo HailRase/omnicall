@@ -70,6 +70,7 @@ export type {
   IncomingCallSettings,
   SettingsRepository,
 } from "./settings/SettingsRepository.js";
+export type { SavedAccountProfileRepository } from "./settings/SavedAccountProfileRepository.js";
 export type { FileSystemPort } from "./filesystem/FileSystemPort.js";
 export type {
   SecretStoragePort,

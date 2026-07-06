@@ -7,7 +7,9 @@ import { NodeFileSystemAdapter } from "@infrastructure/filesystem/NodeFileSystem
 import {
   resolveProfileSettingsFilePath,
   resolveProfilesIndexPath,
+  resolveSavedAccountProfilesFilePath,
 } from "@adapters/settings/profileStoragePaths.js";
+import { InMemorySavedAccountProfileRepository } from "@adapters/settings/InMemorySavedAccountProfileRepository.js";
 import { createMockAccountBootstrap } from "./createMockAccountBootstrap.js";
 import { createRealAccountBootstrap } from "./createRealAccountBootstrap.js";
 import { createSoftphoneComposition } from "./createSoftphoneComposition.js";
@@ -166,9 +168,79 @@ describe("createRealAccountBootstrap", () => {
     expect(restored.ok).toBe(true);
     facade2.dispose();
   });
+
+  it("persists saved account profiles across bootstrap instances", async () => {
+    const profilesStorageRoot = await createTempStorageRoot();
+    const filesystem = new NodeFileSystemAdapter();
+    const account = {
+      username: "max.operator",
+      password: "secret",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    };
+
+    const facade1 = createRealAccountBootstrap({
+      profilesStorageRoot,
+      filesystem,
+      bootstrapConfig: { mode: "sip-only" },
+    });
+
+    const saved = await facade1.saveSavedAccountProfile({
+      username: account.username,
+      domain: account.domain,
+      server: account.server,
+    });
+    expect(saved.ok).toBe(true);
+
+    const listed = await facade1.listSavedAccountProfiles();
+    expect(listed.ok).toBe(true);
+    if (!listed.ok) {
+      return;
+    }
+    expect(listed.value).toHaveLength(1);
+
+    const savedAccountsPath = resolveSavedAccountProfilesFilePath(profilesStorageRoot);
+    const persistedJson = await readFile(savedAccountsPath, "utf8");
+    expect(persistedJson).toContain("max.operator");
+    expect(persistedJson).not.toContain("password");
+
+    facade1.dispose();
+
+    const facade2 = createRealAccountBootstrap({
+      profilesStorageRoot,
+      filesystem,
+      bootstrapConfig: { mode: "sip-only" },
+    });
+
+    const restored = await facade2.listSavedAccountProfiles();
+    expect(restored.ok).toBe(true);
+    if (!restored.ok) {
+      return;
+    }
+    expect(restored.value).toHaveLength(1);
+    expect(restored.value[0]?.username).toBe("max.operator");
+
+    facade2.dispose();
+  });
 });
 
 describe("createSoftphoneComposition bootstrap factories", () => {
+  it("mock bootstrap injects provided saved profile repository", async () => {
+    const repository = new InMemorySavedAccountProfileRepository();
+    const facade = createMockAccountBootstrap({
+      savedAccountProfileRepository: repository,
+    });
+
+    const saved = await facade.saveSavedAccountProfile({
+      username: "agent",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    });
+    expect(saved.ok).toBe(true);
+    expect(await repository.listProfiles()).toHaveLength(1);
+    facade.dispose();
+  });
+
   it("mock mode keeps in-memory settings isolated per facade instance", async () => {
     const account = {
       username: "1001",

@@ -17,10 +17,30 @@ import type { Logger } from "@ports/index.js";
 import type { LogContext } from "@ports/index.js";
 import type { CreateAccountBootstrapOptions } from "./createMockAccountBootstrap.js";
 import { createRealBootstrapSettingsRepository } from "./createRealBootstrapSettingsRepository.js";
+import { createRealBootstrapSavedAccountProfileRepository } from "./createRealBootstrapSavedAccountProfileRepository.js";
 import { wireOcpInboundToFacade } from "./wireOcpInboundToFacade.js";
+import type { SavedAccountProfileRepository } from "@ports/index.js";
 
 function createBootstrapLogger(context: LogContext): Logger {
   return createConsoleLogger(context);
+}
+
+function resolveRealSavedAccountProfileRepository(
+  options: CreateAccountBootstrapOptions,
+): SavedAccountProfileRepository | undefined {
+  if (options.savedAccountProfileRepository !== undefined) {
+    return options.savedAccountProfileRepository;
+  }
+
+  if (options.profilesStorageRoot === undefined || options.filesystem === undefined) {
+    return undefined;
+  }
+
+  return createRealBootstrapSavedAccountProfileRepository({
+    profilesStorageRoot: options.profilesStorageRoot,
+    filesystem: options.filesystem,
+    logger: createBootstrapLogger({ featureId: "F-024", boundedContext: "Settings" }),
+  });
 }
 
 function resolveRealSettingsRepository(options: CreateAccountBootstrapOptions) {
@@ -67,6 +87,7 @@ export function createRealAccountBootstrap(
   options: CreateAccountBootstrapOptions = {},
 ): AccountBootstrapFacade {
   const settingsRepository = resolveRealSettingsRepository(options);
+  const savedAccountProfileRepository = resolveRealSavedAccountProfileRepository(options);
   const codecPreferencesPort = new SettingsRepositoryCodecPreferencesAdapter({
     settingsRepository,
     resolveAccountKey: () => resolveSettingsAccountKey(settingsRepository),
@@ -120,6 +141,9 @@ export function createRealAccountBootstrap(
     telephonyGateway,
     mediaGateway,
     settingsRepository,
+    ...(savedAccountProfileRepository !== undefined
+      ? { savedAccountProfileRepository }
+      : {}),
     hostIntegrationGateway,
     ...(ocpSyncGateway !== undefined ? { ocpSyncGateway } : {}),
     logger: createBootstrapLogger({ featureId: "F-001", boundedContext: "Telephony" }),

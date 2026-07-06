@@ -5,24 +5,14 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefaults.js";
 import { settingsCodecTestDefaults } from "./panels/settingsCodecTestDefaults.js";
+import { settingsAccountTestDefaults } from "./panels/settingsAccountTestDefaults.js";
 import { SettingsPanel } from "./SettingsPanel.js";
 
 afterEach(() => {
   cleanup();
 });
 
-const emptyAccount = {
-  form: { username: "", password: "", domain: "", server: "" },
-  submitting: false,
-  error: null,
-  successKey: null,
-  disabled: false,
-  authorizeDisabledReason: null,
-  logoutDisabledReason: "Заполните поля и нажмите «Авторизоваться»",
-  onFieldChange: vi.fn(),
-  onSubmit: vi.fn(),
-  onLogout: vi.fn(),
-} as const;
+const emptyAccount = settingsAccountTestDefaults;
 
 const themeDefaults = {
   language: "ru" as const,

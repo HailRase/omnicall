@@ -34,6 +34,8 @@ export { SendDtmfUseCase } from "./use-cases/SendDtmfUseCase.js";
 export {
   AccountBootstrapFacade,
   type AccountBootstrapFacadeDeps,
+  type AuthorizeAccountOutcome,
+  type AuthorizeAccountMetadataWarning,
 } from "./facades/AccountBootstrapFacade.js";
 export {
   initialAccountBootstrapProjection,
@@ -294,10 +296,38 @@ export {
   deriveActiveProfileSettingsSyncKey,
 } from "./projections/deriveSettingsAccountProfileShell.js";
 export {
+  deriveSavedAccountProfileSelectorOptions,
+  type SavedAccountProfileSelectorOption,
+} from "./projections/deriveSavedAccountProfileSelectorOptions.js";
+export {
+  createSettingsAccountKey,
+  type SavedAccountProfile,
+  type SavedAccountProfileId,
+} from "@domain/index.js";
+export {
   deriveAccountPanelActionsShell,
   type AccountPanelActionsShell,
   type AccountPanelActionsShellInput,
+  type AccountPanelActionReasonKey,
 } from "./projections/deriveAccountPanelActionsShell.js";
+export {
+  mapAccountAuthorizationError,
+  type AccountAuthorizationErrorKey,
+  type AccountAuthorizationErrorProjection,
+} from "./projections/mapAccountAuthorizationError.js";
+export {
+  deriveSavedProfilePanelMode,
+  type SavedProfilePanelMode,
+} from "./projections/deriveSavedProfilePanelMode.js";
+export { deriveRegisteredAccountIdentity } from "./projections/deriveRegisteredAccountIdentity.js";
+export { resolveAccountAuthorizeTargetIdentity } from "./projections/resolveAccountAuthorizeTargetIdentity.js";
+export { formatAccountSwitchLoginLabel } from "./projections/formatAccountSwitchLoginLabel.js";
+export { sanitizeRegistrationServerMessage } from "./projections/sanitizeRegistrationServerMessage.js";
+export {
+  findSavedAccountProfileByInput,
+  matchesSipAccountIdentity,
+  type SettingsAccountIdentity,
+} from "./projections/savedProfileIdentity.js";
 export {
   deriveHeaderChromeShell,
   type HeaderChromeShellInput,

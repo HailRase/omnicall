@@ -665,3 +665,31 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (Step 9 migration): `deriveLegacyUsernameOnlySettingsAccountKey.ts`, `loadUserSettingsWithLegacyMigration.ts`, `AuthorizeSipAccountUseCase.ts`, `AccountBootstrapFacade.ts` (`loadUserSettingsForAccountKey`), `loadUserSettingsWithLegacyMigration.test.ts`, `FileSettingsRepository.test.ts` (legacy on-disk), `AccountBootstrapFacade.test.ts` (legacy authorize)
 - Implementation evidence (Step 10 verification): `npm run lint`, `typecheck`, `i18n:check`, `registry:check` PASS; F-023 test slice 75/75; preload IPC response parsing fix; `useSettingsActions.test.ts` preload mock parity
 - Related: **F-016** (settings UX), **F-001** (SIP authorize), extends **LF-077** stub from WU4
+
+## F-024: Saved SIP Account Profiles (Quick Sign-In)
+
+- Context: Settings
+- Priority: high
+- Status: **implemented** (corrective pass 2026-07-06)
+- Owner: TBD
+- Inputs: saved profile list from facade, manual/saved authorize, delete profile, profile switching
+- Outputs: tab-style profile navigation in Settings → Account, password-only saved tab when unauthenticated, full form when registered, save-on-authorize checkbox on New, delete confirmation, safe server error display
+- Acceptance Criteria:
+  - Tab navigation shows localized «New» first; saved tabs show username with domain/server disambiguation when needed; keyboard-accessible tablist.
+  - Unauthenticated saved tab shows password + Sign in only; registered saved tab shows full form without password prompt.
+  - New tab shows full form and save-profile switch; duplicate identity disables save switch with explanation.
+  - Switching registered profile A → B unregisters A before sending B credentials (on submit only).
+  - Successful registration never fails because profile metadata save or `lastUsedAt` touch failed; non-blocking warnings only.
+  - Server/SIP errors (403 license/policy, 404 not found) show sanitized server detail — not mislabeled as wrong password unless authentication-related.
+  - Local saved profile missing shows `account.error.profileNotFound`; SIP 404 shows server registration error.
+  - Delete requires confirmation; after delete selection returns to New; logout resets to New.
+  - Password never persisted in saved profiles JSON, logs, UI snapshots, or tests.
+  - Per-account settings load after successful registration from New or saved profile; failed auth does not apply target profile settings.
+- Test Coverage:
+  - Unit: `formatSavedAccountProfileSelectorLabel`, `deriveSavedAccountProfileSelectorOptions`, `mapAccountAuthorizationError`, `sanitizeRegistrationServerMessage`, `deriveSavedProfilePanelMode`, `matchesSipAccountIdentity`
+  - Facade: `AccountBootstrapFacade.test.ts` (metadata non-blocking, switching unregister, settings A→B→A)
+  - Hook: `useAccountActions.test.ts`
+  - Component: `SavedAccountProfileSelector`, `DeleteSavedAccountProfileConfirmationModal`, `SettingsAccountPanel`, `AccountPanel`
+  - Bootstrap: `createRealAccountBootstrap.test.ts`, mock repository injection
+  - E2E: deferred
+- Implementation evidence: `AccountBootstrapFacade.ts`, `mapAccountAuthorizationError.ts`, `SavedAccountProfileSelector.tsx`, `AccountPanel.tsx`, `useAccountActions.ts`, `useSettingsActions.ts`, `SettingsAccountPanel.tsx`, `createMockAccountBootstrap.ts`, `messages.ts` (ru/en/fr/de)

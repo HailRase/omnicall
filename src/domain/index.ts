@@ -45,6 +45,34 @@ export {
   isCompositeSettingsAccountKey,
 } from "./settings/deriveLegacyUsernameOnlySettingsAccountKey.js";
 export { formatSettingsAccountIdentityLabel } from "./settings/formatSettingsAccountIdentityLabel.js";
+export { formatSavedAccountProfileSelectorLabel } from "./settings/formatSavedAccountProfileSelectorLabel.js";
+export type {
+  SavedAccountProfile,
+  SavedAccountProfileId,
+  SavedAccountProfileInput,
+  SavedAccountProfileValidationError,
+} from "./settings/SavedAccountProfile.js";
+export {
+  areSavedAccountProfilesSameIdentity,
+  assertSavedAccountProfileValueExcludesSecrets,
+  createSavedAccountProfile,
+  createSavedAccountProfileId,
+  deriveSavedAccountProfileId,
+  findSavedAccountProfileByInput,
+  normalizeSavedAccountProfileFields,
+  validateSavedAccountProfileInput,
+} from "./settings/SavedAccountProfile.js";
+export { matchesSipAccountIdentity } from "./settings/matchesSipAccountIdentity.js";
+export type {
+  SavedAccountProfilesDocumentV1,
+  SavedAccountProfilesParseErrorCode,
+  SavedAccountProfilesParseResult,
+} from "./settings/persistedSavedAccountProfiles.js";
+export {
+  parsePersistedSavedAccountProfilesDocument,
+  SAVED_ACCOUNT_PROFILES_SCHEMA_VERSION,
+  serializeSavedAccountProfilesDocument,
+} from "./settings/persistedSavedAccountProfiles.js";
 export type { DomainEvent, DomainEventBase } from "./shared/DomainEvent.js";
 export { createDomainEvent } from "./shared/DomainEvent.js";
 export type {

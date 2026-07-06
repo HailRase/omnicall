@@ -1,10 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
   InMemorySettingsRepository,
   MockMediaGateway,
   MockOperatorPlatformGateway,
   MockTelephonyGateway,
+  InMemorySavedAccountProfileRepository,
 } from "@adapters/index.js";
 import { FileSettingsRepository } from "@adapters/settings/FileSettingsRepository.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
@@ -15,6 +16,7 @@ import {
   type UserSettings,
 } from "@domain/index.js";
 import { NodeFileSystemAdapter } from "@infrastructure/filesystem/NodeFileSystemAdapter.js";
+import type { SavedAccountProfileRepository } from "@ports/index.js";
 import { isErr } from "@shared/result/index.js";
 import { mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
@@ -486,6 +488,288 @@ describe("AccountBootstrapFacade integration", () => {
     } finally {
       await rm(root, { recursive: true, force: true });
     }
+  });
+
+  it("keeps manual authorization working without saving profile by default", async () => {
+    const savedProfiles = new InMemorySavedAccountProfileRepository();
+    const telephony = new MockTelephonyGateway("success");
+    const facade = new AccountBootstrapFacade({
+      operatorGateway: new MockOperatorPlatformGateway(),
+      telephonyGateway: telephony,
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({
+        bootstrapConfig: { mode: "sip-only" },
+      }),
+      savedAccountProfileRepository: savedProfiles,
+      logger: createTestLogger(),
+    });
+
+    const result = await facade.authorizeManualAccount({
+      username: "agent",
+      password: "secret",
+      domain: "pbx",
+      server: "sip:pbx",
+    });
+
+    expect(isErr(result)).toBe(false);
+    expect(telephony.isRegistered()).toBe(true);
+    expect(await savedProfiles.listProfiles()).toHaveLength(0);
+  });
+
+  it("saves profile metadata when saveProfile is checked after successful manual auth", async () => {
+    const savedProfiles = new InMemorySavedAccountProfileRepository();
+    const facade = new AccountBootstrapFacade({
+      operatorGateway: new MockOperatorPlatformGateway(),
+      telephonyGateway: new MockTelephonyGateway("success"),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({
+        bootstrapConfig: { mode: "sip-only" },
+      }),
+      savedAccountProfileRepository: savedProfiles,
+      logger: createTestLogger(),
+    });
+
+    const account = {
+      username: "max.operator",
+      password: "secret",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    };
+
+    const result = await facade.authorizeManualAccount(account, { saveProfile: true });
+    expect(isErr(result)).toBe(false);
+
+    const profiles = await savedProfiles.listProfiles();
+    expect(profiles).toHaveLength(1);
+    expect(profiles[0]?.username).toBe("max.operator");
+    expect(profiles[0]).not.toHaveProperty("password");
+  });
+
+  it("does not duplicate saved profile on repeated saveProfile authorize", async () => {
+    const savedProfiles = new InMemorySavedAccountProfileRepository();
+    const facade = new AccountBootstrapFacade({
+      operatorGateway: new MockOperatorPlatformGateway(),
+      telephonyGateway: new MockTelephonyGateway("success"),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({
+        bootstrapConfig: { mode: "sip-only" },
+      }),
+      savedAccountProfileRepository: savedProfiles,
+      logger: createTestLogger(),
+    });
+
+    const account = {
+      username: "yura.operator",
+      password: "secret",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    };
+
+    await facade.authorizeManualAccount(account, { saveProfile: true });
+    await facade.authorizeManualAccount(account, { saveProfile: true });
+
+    expect(await savedProfiles.listProfiles()).toHaveLength(1);
+  });
+
+  it("authorizes saved profile with same settings account key as manual path", async () => {
+    const settings = new InMemorySettingsRepository({
+      bootstrapConfig: { mode: "sip-only" },
+    });
+    const savedProfiles = new InMemorySavedAccountProfileRepository();
+    const facade = new AccountBootstrapFacade({
+      operatorGateway: new MockOperatorPlatformGateway(),
+      telephonyGateway: new MockTelephonyGateway("success"),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: settings,
+      savedAccountProfileRepository: savedProfiles,
+      logger: createTestLogger(),
+    });
+
+    const account = {
+      username: "1001",
+      password: "secret-a",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    };
+    const expectedKey = deriveSettingsAccountKeyFromIdentity(account);
+
+    const saved = await facade.saveSavedAccountProfile({
+      username: account.username,
+      domain: account.domain,
+      server: account.server,
+    });
+    expect(saved.ok).toBe(true);
+    if (!saved.ok) {
+      return;
+    }
+
+    const result = await facade.authorizeSavedAccountProfile(saved.value.id, account.password);
+    expect(isErr(result)).toBe(false);
+    expect(await settings.getActiveProfileKey()).toBe(expectedKey);
+
+    const touched = await savedProfiles.getProfileById(saved.value.id);
+    expect(touched?.lastUsedAt).toBeDefined();
+  });
+
+  it("deletes saved profile without removing per-account user settings", async () => {
+    const settings = new InMemorySettingsRepository({
+      bootstrapConfig: { mode: "sip-only" },
+    });
+    const savedProfiles = new InMemorySavedAccountProfileRepository();
+    const facade = new AccountBootstrapFacade({
+      operatorGateway: new MockOperatorPlatformGateway(),
+      telephonyGateway: new MockTelephonyGateway("success"),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: settings,
+      savedAccountProfileRepository: savedProfiles,
+      logger: createTestLogger(),
+    });
+
+    const account = {
+      username: "1001",
+      password: "secret",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    };
+    const key = deriveSettingsAccountKeyFromIdentity(account);
+
+    await facade.authorizeManualAccount(account, { saveProfile: true });
+    const loaded = await facade.getUserSettingsForAccount();
+    expect(loaded.ok).toBe(true);
+    if (!loaded.ok) {
+      return;
+    }
+    await facade.saveUserSettings({ ...loaded.value, language: "en" });
+
+    const profiles = await facade.listSavedAccountProfiles();
+    expect(profiles.ok).toBe(true);
+    if (!profiles.ok || profiles.value.length === 0) {
+      return;
+    }
+
+    const deleted = await facade.deleteSavedAccountProfile(profiles.value[0]?.id as typeof key);
+    expect(deleted.ok).toBe(true);
+    expect(await savedProfiles.listProfiles()).toHaveLength(0);
+    expect((await settings.getUserSettings(key)).language).toBe("en");
+  });
+
+  it("succeeds manual auth when save profile metadata fails after registration", async () => {
+    const telephony = new MockTelephonyGateway("success");
+    const baseRepo = new InMemorySavedAccountProfileRepository();
+    const failingRepo: SavedAccountProfileRepository = {
+      listProfiles: () => baseRepo.listProfiles(),
+      getProfileById: (id) => baseRepo.getProfileById(id),
+      deleteProfile: (id) => baseRepo.deleteProfile(id),
+      touchLastUsedAt: (id) => baseRepo.touchLastUsedAt(id),
+      saveProfile: () => Promise.reject(new Error("profile persistence failed")),
+    };
+    const facade = new AccountBootstrapFacade({
+      operatorGateway: new MockOperatorPlatformGateway(),
+      telephonyGateway: telephony,
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({
+        bootstrapConfig: { mode: "sip-only" },
+      }),
+      savedAccountProfileRepository: failingRepo,
+      logger: createTestLogger(),
+    });
+
+    const result = await facade.authorizeManualAccount(
+      {
+        username: "agent",
+        password: "secret",
+        domain: "pbx",
+        server: "sip:pbx",
+      },
+      { saveProfile: true },
+    );
+
+    expect(isErr(result)).toBe(false);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value.metadataWarning).toBe("profile_save_failed");
+    expect(telephony.isRegistered()).toBe(true);
+    expect(await failingRepo.listProfiles()).toHaveLength(0);
+  });
+
+  it("succeeds saved profile auth when touch lastUsedAt fails after registration", async () => {
+    const telephony = new MockTelephonyGateway("success");
+    const baseRepo = new InMemorySavedAccountProfileRepository();
+    const failingRepo: SavedAccountProfileRepository = {
+      listProfiles: () => baseRepo.listProfiles(),
+      getProfileById: (id) => baseRepo.getProfileById(id),
+      deleteProfile: (id) => baseRepo.deleteProfile(id),
+      saveProfile: (input) => baseRepo.saveProfile(input),
+      touchLastUsedAt: () => Promise.reject(new Error("touch failed")),
+    };
+    const facade = new AccountBootstrapFacade({
+      operatorGateway: new MockOperatorPlatformGateway(),
+      telephonyGateway: telephony,
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({
+        bootstrapConfig: { mode: "sip-only" },
+      }),
+      savedAccountProfileRepository: failingRepo,
+      logger: createTestLogger(),
+    });
+
+    const saved = await facade.saveSavedAccountProfile({
+      username: "1001",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    });
+    expect(saved.ok).toBe(true);
+    if (!saved.ok) {
+      return;
+    }
+
+    const result = await facade.authorizeSavedAccountProfile(saved.value.id, "secret-a");
+    expect(isErr(result)).toBe(false);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value.metadataWarning).toBe("profile_touch_failed");
+    expect(telephony.isRegistered()).toBe(true);
+  });
+
+  it("ends current user session before authorizing a different profile", async () => {
+    const telephony = new MockTelephonyGateway("success");
+    const settings = new InMemorySettingsRepository({
+      bootstrapConfig: { mode: "sip-only" },
+    });
+    const facade = new AccountBootstrapFacade({
+      operatorGateway: new MockOperatorPlatformGateway(),
+      telephonyGateway: telephony,
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: settings,
+      logger: createTestLogger(),
+    });
+
+    const accountA = {
+      username: "1001",
+      password: "secret-a",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    };
+    const accountB = {
+      username: "1002",
+      password: "secret-b",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    };
+
+    await facade.authorizeManualAccount(accountA);
+    expect(telephony.isRegistered()).toBe(true);
+
+    const endSessionSpy = vi.spyOn(facade.endUserSession, "execute");
+
+    const result = await facade.authorizeManualAccount(accountB);
+    expect(isErr(result)).toBe(false);
+    expect(endSessionSpy).toHaveBeenCalledOnce();
+    expect(telephony.isRegistered()).toBe(true);
+    const stored = await settings.getSipAccount();
+    expect(stored?.username).toBe("1002");
   });
 });
 

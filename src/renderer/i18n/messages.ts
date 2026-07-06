@@ -117,9 +117,48 @@ const ruMessages = {
   "account.field.domain": "Домен",
   "account.field.server": "Сервер",
   "account.action.authorize": "Авторизоваться",
+  "account.action.signIn": "Войти",
   "account.action.logout": "Выйти",
   "account.error.authorizationFailed": "Ошибка авторизации",
+  "account.error.invalidCredentials": "Неверный логин или пароль",
+  "account.error.networkOrTransport": "Не удалось подключиться к SIP-серверу. Проверьте сеть и адрес сервера",
+  "account.error.profileNotFound": "Сохранённый профиль не найден. Выберите «Новый» или другой профиль",
+  "account.error.validationFailed": "Заполните обязательные поля аккаунта",
+  "account.error.serverRegistration": (params: Readonly<{ detail: string }>) =>
+    `Ошибка регистрации на сервере: ${params.detail}`,
+  "account.warning.profileSaveFailed":
+    "Вход выполнен, но не удалось сохранить профиль. Повторите позже.",
+  "account.warning.profileTouchFailed":
+    "Вход выполнен, но не удалось обновить дату использования профиля.",
   "account.success.authorizationSucceeded": "Авторизация выполнена",
+  "account.profile.tabs.ariaLabel": "Профили SIP-аккаунта",
+  "account.profile.selector.ariaLabel": "Выбор сохранённого профиля",
+  "account.profile.option.new": "Новый",
+  "account.profile.delete": "Удалить",
+  "account.profile.delete.confirmTitle": "Удалить профиль?",
+  "account.profile.delete.confirmMessage":
+    "Сохранённые данные входа будут удалены. Пароль не хранится в профиле.",
+  "account.profile.delete.confirmDialogAria": "Подтверждение удаления профиля",
+  "account.profile.delete.confirmAria": "Подтвердить удаление профиля",
+  "account.profile.delete.cancelAria": "Отменить удаление профиля",
+  "account.profile.switch.confirmTitle": "Сменить профиль?",
+  "account.profile.switch.confirmMessage": (params: Readonly<{ fromLogin: string; toLogin: string }>) =>
+    `Вы уверены, что хотите сменить профиль с ${params.fromLogin} на ${params.toLogin}?`,
+  "account.profile.switch.confirmDialogAria": "Подтверждение смены профиля",
+  "account.profile.switch.confirmAria": "Подтвердить смену профиля",
+  "account.profile.switch.cancelAria": "Отменить смену профиля",
+  "account.profile.saveCheckbox.label": "Сохранить профиль",
+  "account.profile.saveCheckbox.description":
+    "Сохранить имя пользователя, домен и сервер для быстрого входа",
+  "account.profile.saveCheckbox.duplicate":
+    "Профиль с такими данными уже сохранён",
+  "account.profile.passwordHint.savedProfile": "Введите пароль для выбранного профиля",
+  "account.actions.disabled.waitCurrentOperation": "Дождитесь завершения текущей операции",
+  "account.actions.disabled.authorizeInProgress": "Выполняется авторизация",
+  "account.actions.disabled.alreadyAuthorized":
+    "Вы уже в сети. Для смены аккаунта нажмите «Выйти»",
+  "account.actions.disabled.fillAndAuthorize": "Заполните поля и нажмите «Авторизоваться»",
+  "account.actions.disabled.authorizeFirst": "Сначала нажмите «Авторизоваться»",
   "header.avatar.ariaLabel": "Аватар пользователя",
   "header.userMenu.ariaLabel": "Меню пользователя",
   "header.userMenu.dndEnable": 'Вкл. "Не беспокоить"',
@@ -717,9 +756,49 @@ const enMessages: MessageShape = {
   "account.field.domain": "Domain",
   "account.field.server": "Server",
   "account.action.authorize": "Sign in",
+  "account.action.signIn": "Sign in",
   "account.action.logout": "Sign out",
   "account.error.authorizationFailed": "Authorization failed",
+  "account.error.invalidCredentials": "Invalid username or password",
+  "account.error.networkOrTransport":
+    "Could not connect to the SIP server. Check your network and server address",
+  "account.error.profileNotFound":
+    "Saved profile was not found. Select New or choose another profile",
+  "account.error.validationFailed": "Fill in the required account fields",
+  "account.error.serverRegistration": (params: Readonly<{ detail: string }>) =>
+    `Server registration error: ${params.detail}`,
+  "account.warning.profileSaveFailed":
+    "Sign-in succeeded, but the profile could not be saved. Try again later.",
+  "account.warning.profileTouchFailed":
+    "Sign-in succeeded, but the profile last-used date could not be updated.",
   "account.success.authorizationSucceeded": "Authorization completed",
+  "account.profile.tabs.ariaLabel": "SIP account profiles",
+  "account.profile.selector.ariaLabel": "Saved profile selection",
+  "account.profile.option.new": "New",
+  "account.profile.delete": "Delete",
+  "account.profile.delete.confirmTitle": "Delete profile?",
+  "account.profile.delete.confirmMessage":
+    "Saved sign-in details will be removed. Passwords are never stored in profiles.",
+  "account.profile.delete.confirmDialogAria": "Confirm profile deletion",
+  "account.profile.delete.confirmAria": "Confirm profile deletion",
+  "account.profile.delete.cancelAria": "Cancel profile deletion",
+  "account.profile.switch.confirmTitle": "Switch profile?",
+  "account.profile.switch.confirmMessage": (params: Readonly<{ fromLogin: string; toLogin: string }>) =>
+    `Are you sure you want to switch profile from ${params.fromLogin} to ${params.toLogin}?`,
+  "account.profile.switch.confirmDialogAria": "Confirm profile switch",
+  "account.profile.switch.confirmAria": "Confirm profile switch",
+  "account.profile.switch.cancelAria": "Cancel profile switch",
+  "account.profile.saveCheckbox.label": "Save profile",
+  "account.profile.saveCheckbox.description":
+    "Save username, domain, and server for faster sign-in",
+  "account.profile.saveCheckbox.duplicate": "A profile with these details is already saved",
+  "account.profile.passwordHint.savedProfile": "Enter the password for the selected profile",
+  "account.actions.disabled.waitCurrentOperation": "Wait for the current operation to finish",
+  "account.actions.disabled.authorizeInProgress": "Sign-in in progress",
+  "account.actions.disabled.alreadyAuthorized":
+    "You are already signed in. Press Sign out to switch accounts",
+  "account.actions.disabled.fillAndAuthorize": "Fill in the fields and press Sign in",
+  "account.actions.disabled.authorizeFirst": "Press Sign in first",
   "header.avatar.ariaLabel": "User avatar",
   "header.userMenu.ariaLabel": "User menu",
   "header.userMenu.dndEnable": "Enable Do Not Disturb",
@@ -1262,9 +1341,49 @@ const frMessages: MessageShape = {
   "account.field.domain": "Domaine",
   "account.field.server": "Serveur",
   "account.action.authorize": "Se connecter",
+  "account.action.signIn": "Se connecter",
   "account.action.logout": "Se deconnecter",
   "account.error.authorizationFailed": "Echec de l'autorisation",
+  "account.error.invalidCredentials": "Identifiant ou mot de passe incorrect",
+  "account.error.networkOrTransport":
+    "Impossible de se connecter au serveur SIP. Verifiez le reseau et l'adresse du serveur",
+  "account.error.profileNotFound":
+    "Profil enregistre introuvable. Selectionnez Nouveau ou un autre profil",
+  "account.error.validationFailed": "Remplissez les champs obligatoires du compte",
+  "account.error.serverRegistration": (params: Readonly<{ detail: string }>) =>
+    `Erreur d'enregistrement serveur : ${params.detail}`,
+  "account.warning.profileSaveFailed":
+    "Connexion reussie, mais le profil n'a pas pu etre enregistre. Reessayez plus tard.",
+  "account.warning.profileTouchFailed":
+    "Connexion reussie, mais la date d'utilisation du profil n'a pas pu etre mise a jour.",
   "account.success.authorizationSucceeded": "Autorisation reussie",
+  "account.profile.tabs.ariaLabel": "Profils de compte SIP",
+  "account.profile.selector.ariaLabel": "Selection du profil enregistre",
+  "account.profile.option.new": "Nouveau",
+  "account.profile.delete": "Supprimer",
+  "account.profile.delete.confirmTitle": "Supprimer le profil ?",
+  "account.profile.delete.confirmMessage":
+    "Les donnees de connexion enregistrees seront supprimees. Le mot de passe n'est jamais stocke.",
+  "account.profile.delete.confirmDialogAria": "Confirmation de suppression du profil",
+  "account.profile.delete.confirmAria": "Confirmer la suppression du profil",
+  "account.profile.delete.cancelAria": "Annuler la suppression du profil",
+  "account.profile.switch.confirmTitle": "Changer de profil ?",
+  "account.profile.switch.confirmMessage": (params: Readonly<{ fromLogin: string; toLogin: string }>) =>
+    `Voulez-vous vraiment changer de profil de ${params.fromLogin} vers ${params.toLogin} ?`,
+  "account.profile.switch.confirmDialogAria": "Confirmation du changement de profil",
+  "account.profile.switch.confirmAria": "Confirmer le changement de profil",
+  "account.profile.switch.cancelAria": "Annuler le changement de profil",
+  "account.profile.saveCheckbox.label": "Enregistrer le profil",
+  "account.profile.saveCheckbox.description":
+    "Enregistrer le nom d'utilisateur, le domaine et le serveur pour une connexion rapide",
+  "account.profile.saveCheckbox.duplicate": "Un profil avec ces donnees est deja enregistre",
+  "account.profile.passwordHint.savedProfile": "Saisissez le mot de passe du profil selectionne",
+  "account.actions.disabled.waitCurrentOperation": "Attendez la fin de l'operation en cours",
+  "account.actions.disabled.authorizeInProgress": "Connexion en cours",
+  "account.actions.disabled.alreadyAuthorized":
+    "Vous etes deja connecte. Appuyez sur Deconnexion pour changer de compte",
+  "account.actions.disabled.fillAndAuthorize": "Remplissez les champs et appuyez sur Connexion",
+  "account.actions.disabled.authorizeFirst": "Appuyez d'abord sur Connexion",
   "header.avatar.ariaLabel": "Avatar utilisateur",
   "header.userMenu.ariaLabel": "Menu utilisateur",
   "header.userMenu.dndEnable": "Activer Ne pas deranger",
@@ -1807,9 +1926,49 @@ const deMessages: MessageShape = {
   "account.field.domain": "Domain",
   "account.field.server": "Server",
   "account.action.authorize": "Anmelden",
+  "account.action.signIn": "Anmelden",
   "account.action.logout": "Abmelden",
   "account.error.authorizationFailed": "Autorisierung fehlgeschlagen",
+  "account.error.invalidCredentials": "Benutzername oder Passwort ungueltig",
+  "account.error.networkOrTransport":
+    "Verbindung zum SIP-Server fehlgeschlagen. Netzwerk und Serveradresse pruefen",
+  "account.error.profileNotFound":
+    "Gespeichertes Profil nicht gefunden. Neu waehlen oder anderes Profil auswaehlen",
+  "account.error.validationFailed": "Pflichtfelder des Kontos ausfuellen",
+  "account.error.serverRegistration": (params: Readonly<{ detail: string }>) =>
+    `Server-Registrierungsfehler: ${params.detail}`,
+  "account.warning.profileSaveFailed":
+    "Anmeldung erfolgreich, aber das Profil konnte nicht gespeichert werden. Spaeter erneut versuchen.",
+  "account.warning.profileTouchFailed":
+    "Anmeldung erfolgreich, aber das letzte Nutzungsdatum konnte nicht aktualisiert werden.",
   "account.success.authorizationSucceeded": "Autorisierung abgeschlossen",
+  "account.profile.tabs.ariaLabel": "SIP-Kontoprofile",
+  "account.profile.selector.ariaLabel": "Auswahl des gespeicherten Profils",
+  "account.profile.option.new": "Neu",
+  "account.profile.delete": "Loeschen",
+  "account.profile.delete.confirmTitle": "Profil loeschen?",
+  "account.profile.delete.confirmMessage":
+    "Gespeicherte Anmeldedaten werden entfernt. Passwoerter werden nie in Profilen gespeichert.",
+  "account.profile.delete.confirmDialogAria": "Bestaetigung der Profilloeschung",
+  "account.profile.delete.confirmAria": "Profilloeschung bestaetigen",
+  "account.profile.delete.cancelAria": "Profilloeschung abbrechen",
+  "account.profile.switch.confirmTitle": "Profil wechseln?",
+  "account.profile.switch.confirmMessage": (params: Readonly<{ fromLogin: string; toLogin: string }>) =>
+    `Moechten Sie das Profil wirklich von ${params.fromLogin} zu ${params.toLogin} wechseln?`,
+  "account.profile.switch.confirmDialogAria": "Bestaetigung des Profilwechsels",
+  "account.profile.switch.confirmAria": "Profilwechsel bestaetigen",
+  "account.profile.switch.cancelAria": "Profilwechsel abbrechen",
+  "account.profile.saveCheckbox.label": "Profil speichern",
+  "account.profile.saveCheckbox.description":
+    "Benutzername, Domain und Server fuer schnelleres Anmelden speichern",
+  "account.profile.saveCheckbox.duplicate": "Ein Profil mit diesen Daten ist bereits gespeichert",
+  "account.profile.passwordHint.savedProfile": "Passwort fuer das ausgewaehlte Profil eingeben",
+  "account.actions.disabled.waitCurrentOperation": "Warten Sie auf den Abschluss des aktuellen Vorgangs",
+  "account.actions.disabled.authorizeInProgress": "Anmeldung laeuft",
+  "account.actions.disabled.alreadyAuthorized":
+    "Sie sind bereits angemeldet. Druecken Sie Abmelden, um das Konto zu wechseln",
+  "account.actions.disabled.fillAndAuthorize": "Felder ausfuellen und Anmelden druecken",
+  "account.actions.disabled.authorizeFirst": "Zuerst Anmelden druecken",
   "header.avatar.ariaLabel": "Benutzeravatar",
   "header.userMenu.ariaLabel": "Benutzermenue",
   "header.userMenu.dndEnable": "Nicht stoeren aktivieren",

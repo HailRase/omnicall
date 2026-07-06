@@ -7,6 +7,7 @@ import { SettingsFullscreenOverlay } from "./SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "./SettingsPanel.js";
 import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefaults.js";
 import { settingsCodecTestDefaults } from "./panels/settingsCodecTestDefaults.js";
+import { settingsAccountTestDefaults } from "./panels/settingsAccountTestDefaults.js";
 
 const appUpdateDefaults = {
   currentVersion: "0.0.1",
@@ -39,18 +40,7 @@ const panelProps = {
   onAutoAnswerDuringActiveSessionChange: vi.fn(),
   systemState: systemStateTestDefaults,
   ...settingsCodecTestDefaults,
-  account: {
-    form: { username: "", password: "", domain: "", server: "" },
-    submitting: false,
-    error: null,
-    successKey: null,
-    disabled: false,
-    authorizeDisabledReason: null,
-    logoutDisabledReason: "Заполните поля и нажмите «Авторизоваться»",
-    onFieldChange: vi.fn(),
-    onSubmit: vi.fn(),
-    onLogout: vi.fn(),
-  },
+  account: settingsAccountTestDefaults,
   ...appUpdateDefaults,
 };
 

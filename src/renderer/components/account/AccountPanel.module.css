@@ -24,11 +24,31 @@
   border: 1px solid color-mix(in srgb, var(--color-status-failed) 24%, transparent);
 }
 
+.feedback-warning {
+  color: var(--color-text-secondary);
+  background: color-mix(in srgb, var(--color-status-warning, var(--color-text-secondary)) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-border-control) 40%, transparent);
+}
+
+.save-profile-disabled {
+  opacity: 0.72;
+}
+
 .actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-sm);
   margin-top: var(--space-2xs);
+}
+
+.actions-password-only {
+  grid-template-columns: minmax(0, 1fr);
+  margin-top: 0;
+}
+
+.actions-password-only .primary-action {
+  box-sizing: border-box;
+  min-height: calc(0.9375rem * 1.35 + 2 * var(--space-xs) + 2px);
 }
 
 .button-wrap {
@@ -128,4 +148,12 @@
 .input:disabled {
   cursor: not-allowed;
   opacity: 0.65;
+}
+
+.field-hint {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--color-text-secondary);
 }

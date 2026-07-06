@@ -6,6 +6,7 @@ import {
 export const PROFILES_DIRECTORY_NAME = "profiles";
 export const SETTINGS_DIRECTORY_NAME = "settings";
 export const PROFILES_INDEX_FILE_NAME = "index.json";
+export const SAVED_ACCOUNT_PROFILES_FILE_NAME = "saved-accounts.json";
 
 function joinStoragePath(...segments: ReadonlyArray<string>): string {
   return segments
@@ -91,6 +92,18 @@ export function resolveProfilesRootPath(storageRoot: string): string {
  */
 export function resolveProfilesIndexPath(storageRoot: string): string {
   return joinStoragePath(resolveProfilesRootPath(storageRoot), PROFILES_INDEX_FILE_NAME);
+}
+
+/**
+ * - Purpose: resolve persisted saved SIP account profiles document path.
+ * - Inputs: storage root absolute path.
+ * - Outputs: saved-accounts.json absolute path under profiles directory.
+ */
+export function resolveSavedAccountProfilesFilePath(storageRoot: string): string {
+  return joinStoragePath(
+    resolveProfilesRootPath(storageRoot),
+    SAVED_ACCOUNT_PROFILES_FILE_NAME,
+  );
 }
 
 /**

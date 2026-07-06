@@ -1,15 +1,19 @@
 declare const classes: {
   readonly actionTooltipHost: string;
   readonly actions: string;
+  readonly actionsPasswordOnly: string;
   readonly buttonWrap: string;
   readonly feedback: string;
   readonly feedbackError: string;
   readonly feedbackMessage: string;
   readonly feedbackSuccess: string;
+  readonly feedbackWarning: string;
+  readonly fieldHint: string;
   readonly form: string;
   readonly input: string;
   readonly label: string;
   readonly logoutAction: string;
   readonly primaryAction: string;
+  readonly saveProfileDisabled: string;
 };
 export default classes;
