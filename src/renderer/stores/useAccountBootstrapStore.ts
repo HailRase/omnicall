@@ -63,6 +63,22 @@ import {
   type OcpNotificationProjection,
 } from "@application/projections/ocpNotificationProjection.js";
 import {
+  applyCallHistoryLoadError,
+  applyCallHistoryLoaded,
+  applyCallHistoryLoading,
+  initialCallHistoryProjection,
+  reduceCallHistoryProjection,
+  type CallHistoryProjection,
+} from "@application/projections/callHistoryProjection.js";
+import {
+  applyContactsLoadError,
+  applyContactsLoaded,
+  applyContactsLoading,
+  initialContactsProjection,
+  reduceContactsProjection,
+  type ContactsProjection,
+} from "@application/projections/contactsProjection.js";
+import {
   initialSipSessionHealthProjection,
   reduceSipSessionHealthProjection,
   type SipSessionHealthProjection,
@@ -80,12 +96,24 @@ type AccountBootstrapStore = Readonly<{
   campaignProjection: CampaignProjection;
   ocpNotificationProjection: OcpNotificationProjection;
   sipSessionHealthProjection: SipSessionHealthProjection;
+  callHistoryProjection: CallHistoryProjection;
+  contactsProjection: ContactsProjection;
   bindFacade: (facade: AccountBootstrapFacade) => () => void;
   setCallMode: (mode: DialpadMode, dtmfPanelCallId?: string | null) => void;
   setIncomingUiState: (uiState: IncomingCallUiState) => void;
   setIncomingRejectReasonRequired: (required: boolean) => void;
   setIncomingBreakReason: (reason: string | null) => void;
   applyMultiCallSettings: (settings: MultiCallSettings) => void;
+  setCallHistoryLoading: () => void;
+  setCallHistoryLoaded: (
+    entries: CallHistoryProjection["entries"],
+  ) => void;
+  setCallHistoryLoadError: (errorKey: string) => void;
+  setContactsLoading: () => void;
+  setContactsLoaded: (
+    contacts: ContactsProjection["contacts"],
+  ) => void;
+  setContactsLoadError: (errorKey: string) => void;
 }>;
 
 export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => ({
@@ -101,6 +129,8 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
   campaignProjection: initialCampaignProjection(),
   ocpNotificationProjection: initialOcpNotificationProjection(),
   sipSessionHealthProjection: initialSipSessionHealthProjection(),
+  callHistoryProjection: initialCallHistoryProjection(),
+  contactsProjection: initialContactsProjection(),
 
   bindFacade: (facade) => {
     const refreshMultiCallProjection = (): void => {
@@ -153,6 +183,14 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
           state.sipSessionHealthProjection,
           event,
         ),
+        callHistoryProjection: reduceCallHistoryProjection(
+          state.callHistoryProjection,
+          event,
+        ),
+        contactsProjection: reduceContactsProjection(
+          state.contactsProjection,
+          event,
+        ),
       }));
 
       if (event.type === "RegistrationSucceeded") {
@@ -199,6 +237,42 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
   applyMultiCallSettings: (settings) => {
     set((state) => ({
       multiCallProjection: setMultiCallSettings(state.multiCallProjection, settings),
+    }));
+  },
+
+  setCallHistoryLoading: () => {
+    set((state) => ({
+      callHistoryProjection: applyCallHistoryLoading(state.callHistoryProjection),
+    }));
+  },
+
+  setCallHistoryLoaded: (entries) => {
+    set((state) => ({
+      callHistoryProjection: applyCallHistoryLoaded(state.callHistoryProjection, entries),
+    }));
+  },
+
+  setCallHistoryLoadError: (errorKey) => {
+    set((state) => ({
+      callHistoryProjection: applyCallHistoryLoadError(state.callHistoryProjection, errorKey),
+    }));
+  },
+
+  setContactsLoading: () => {
+    set((state) => ({
+      contactsProjection: applyContactsLoading(state.contactsProjection),
+    }));
+  },
+
+  setContactsLoaded: (contacts) => {
+    set((state) => ({
+      contactsProjection: applyContactsLoaded(state.contactsProjection, contacts),
+    }));
+  },
+
+  setContactsLoadError: (errorKey) => {
+    set((state) => ({
+      contactsProjection: applyContactsLoadError(state.contactsProjection, errorKey),
     }));
   },
 }));

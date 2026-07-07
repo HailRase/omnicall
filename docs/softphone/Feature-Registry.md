@@ -365,7 +365,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-052`, `LF-053`, `LF-054`
 - Context: Settings
 - Priority: medium
-- Status: planned
+- Status: **implemented** (Phase 2 shell navigation — in-memory persistence, LF-052–054)
 - Owner: TBD
 - Inputs: completed call events
 - Outputs: persisted call history entry
@@ -374,9 +374,10 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - History is derived from call events.
   - Storage failures are logged.
 - Test Coverage:
-  - Unit: history entry mapping
-  - Integration: repository implementation
-  - E2E: history list
+  - Unit: history entry mapping, `deriveCallHistoryShell`, `callHistoryProjection`
+  - Integration: `InMemoryCallHistoryRepository`, `ListCallHistoryUseCase`, `RedialFromHistoryUseCase`
+  - Renderer: `HistoryPanelShell`, `HistoryShellRoutePanel`, navigation guards
+  - E2E: deferred until harness exists; manual smoke: `handoffs/Shell-Navigation-Phase6-Smoke-Checklist.md`
 
 ## F-014: Recovery And Reconnect
 
@@ -448,6 +449,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - **UserSettings v2** aggregate with v1→v2 migration; SIP recovery fields per ADR-0004 §5.3.
   - Corrupt or unsupported schema version surfaces observable error (no silent security-sensitive defaults).
   - **Overlay navigation:** settings open fullscreen over call context; diagnostics is a settings section; call context stays mounted (`UI-Architecture.md`).
+  - **Settings route alignment (shell navigation Phase 5):** `#/settings` and `#/settings/:sectionId` open the same fullscreen overlay; invalid section ids fall back to `general`; closing returns to the prior shell route via router state/history; section changes use `replace` without polluting history; active-call overlay rule unchanged.
   - **Settings sidebar:** collapsed icon rail with `IconTooltip` section labels (`placement: right`); expanded labels overlay content without shrinking the panel; long labels wrap up to two lines; no duplicate overlay header — content header shows `Настройки ({раздел})` and a minimal close icon.
   - **Settings sections:** Account (SIP auth), General (theme LF-082), **Состояние системы** (`system-state` — ADR-0004), Sessions (multi-call), Diagnostics (F-017 stub), Codecs (stub), Headset (P10 stub).
   - **`SettingsSystemStatePanel`:** current server/registration state, auto-reconnect/reregister policies, manual actions (Переподключить сервер, Перерегистрировать) with disabled reasons, transport+registration journal.
@@ -465,7 +467,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - **Unified action notifications (LF-060):** renderer uses `NotificationViewport` + `useNotifications`; action outcomes are bridged via `useActionNotifications`; repeated operation outcomes are not deduplicated (each attempt creates its own toast); persisted preferences (`notificationPlacement`, `notificationStacking`, `notificationDurationMs`, `notificationClosable`, `notificationMaxVisible`) are stored in `UserSettings` and edited in `SettingsGeneralPanel`.
   - **Native app icon theme sync (2026-07-01):** renderer theme change triggers typed IPC `platform:set-native-theme`; main process updates `nativeTheme.themeSource` and switches theme-aware icon asset (`icon-light.png`/`icon-dark.png`) for dock/window surfaces.
   - **Shell window layout (F-016):** compact mode anchors bottom-right on startup; settings overlay expands window to 1000px width centered; closing restores prior compact width and height at bottom-right; animation 280ms aligned with settings panel slide; `prefers-reduced-motion` skips animation; compact mode disables user resize; settings mode enables user resize.
-  - **Shell lifecycle controls (F-016, LF-079):** no native File/View/Window/Help menu on Windows/Linux; macOS keeps minimal App + Edit menus (Edit roles wire Cmd+C/V/A/X/Z in inputs); macOS dev builds add a minimal View menu with `toggleDevTools` (Cmd+Option+I); `webPreferences.devTools` is enabled only when `!app.isPackaged`; `maximizable`/`fullscreenable` disabled; Windows/Linux use native-like titlebar controls `Minimize -> Reload -> Close`; macOS uses custom traffic-light controls `Close -> Minimize -> Reload` (no maximize/fullscreen button); reload on macOS has no tooltip and replaces the green traffic-light slot; close/quit/reload run `ShutdownCleanupUseCase` before `app.quit()` or `app.relaunch()`; cleanup failure blocks quit/restart, cancels pending main shutdown state, and surfaces `shell.shutdown.failed`; facade-not-ready shutdown is acknowledged with cleanup skipped to prevent hangs; force quit/kill cannot guarantee async SIP/OCP logout.
+  - **Shell lifecycle controls (F-016, LF-079):** no native File/View/Window/Help menu on Windows/Linux; macOS keeps minimal App + Edit menus (Edit roles wire Cmd+C/V/A/X/Z in inputs); macOS dev builds add a minimal View menu with `toggleDevTools` (Cmd+Option+I); Windows/Linux dev builds wire F12 and Ctrl+Shift+I via `before-input-event`; `webPreferences.devTools` is enabled only when `!app.isPackaged`; `maximizable`/`fullscreenable` disabled; Windows/Linux use native-like titlebar controls `Minimize -> Reload -> Close`; macOS uses custom traffic-light controls `Close -> Minimize -> Reload` (no maximize/fullscreen button); reload on macOS has no tooltip and replaces the green traffic-light slot; close/quit/reload run `ShutdownCleanupUseCase` before `app.quit()` or `app.relaunch()`; cleanup failure blocks quit/restart, cancels pending main shutdown state, and surfaces `shell.shutdown.failed`; facade-not-ready shutdown is acknowledged with cleanup skipped to prevent hangs; force quit/kill cannot guarantee async SIP/OCP logout.
 - Test Coverage:
   - Unit: `validateUserSettings`, `migrateUserSettings`, `InMemorySettingsRepository` / `FileSettingsRepository` round-trip; `ShellWindowLayout`, `ShellWindowLayoutService`
   - Integration: facade `updateMultiCallSettings`, `getUserSettingsForAccount`, `saveUserSettings`, `refreshUserSettingsProjections`
@@ -483,6 +485,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (dialpad home **2026-06-26**): `CallSessionStack`, `CallSessionCard`, `CallControlsBar`, `DtmfKeypadPanel`, reference `Dialpad`; gate `handoffs/P11-Call-UI-Design-Parity-Handoff.md`
 - Implementation evidence (transfer flow parity **2026-06-29**): `TransferPanel` moved to `CallContextShell` (context mode), step chrome (1–4), explicit source/consultation cards, controls zone hides `CallControlsBar` + `Dialpad` while transfer mode active; stories `TransferPanel.stories.tsx`, `Dialpad.stories.tsx`, `CallSessionCard.stories.tsx`
 - Implementation evidence (T-008 **2026-07-02**): `sipSessionHealthProjection`, `deriveSipStatusShell`, `deriveSipSystemStateShell`, `SettingsSystemStatePanel`, `useSipSystemStateActions`, `SipRecoveryOrchestrationService` — `TRANSPORT-REGISTER-STATE-REFACTORING.md`
+- Implementation evidence (shell navigation settings route **2026-07-07**): `parseShellRoute` `/settings` routes, `useOverlayShell` route-driven open/close/section, `settingsNavigationState.ts`, `ShellNavigationController` settings routes; config writes unchanged via `useSettingsActions` → facade
 - Implementation evidence (shell window layout **2026-06-26**): `ShellWindowLayout`, `ShellWindowLayoutService`, `ShellWindowGateway`, `ShellWindowController`, `shell:apply-window-layout` IPC, `useShellWindowLayout`; LF-055, LF-056 (anchor)
 - Implementation evidence (shell lifecycle restart **2026-07-06**): `AppShutdownCoordinator` cancel/reset path, `installApplicationMenu`, `ShellTitleBar`, `ShellWindowControls`, `useShellWindowControls`, `useAppShutdown`, `PreloadAppLifecycleGateway`, IPC `app:request-restart` + `app:cancel-shutdown`, `ShutdownCleanupUseCase` quit/restart ack path with `cleanupSkipped`; LF-079
 - Implementation evidence (icons foundation): `lucide-react`, `lucide-animated`, `motion`, `AppIcon`, `iconCatalog.ts`, `Icon-Registry.md`, `guides/Icon-Agent-Guide.md`, `.cursor/rules/icons.mdc`, `.cursor/skills/icons/SKILL.md`
@@ -698,3 +701,25 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - E2E: deferred
 - Implementation evidence: `AccountBootstrapFacade.ts`, `mapAccountAuthorizationError.ts`, `SavedAccountProfileSelector.tsx`, `AccountPanel.tsx`, `useAccountActions.ts`, `useSettingsActions.ts`, `SettingsAccountPanel.tsx`, `createMockAccountBootstrap.ts`, `messages.ts` (ru/en/fr/de)
 - Handoff: `docs/softphone/handoffs/P11-F024-Saved-Account-Profiles-Handoff.md`
+
+## F-025: Local Contacts
+
+- Legacy IDs: _none_ (new product feature; audited legacy softphone had no standalone contacts module)
+- Context: Settings
+- Priority: medium
+- Status: **implemented** (Phase 4 contacts UI — sidebar routes over dialpad/call shell, in-memory persistence)
+- Owner: TBD
+- Inputs: contact metadata (display name, primary/secondary phone, company, notes)
+- Outputs: persisted `Contact` records, domain events, projection, facade CRUD/call API
+- Acceptance Criteria:
+  - Persistence is behind `ContactRepository`.
+  - Contact identity uses branded `ContactId` aligned with shell route param validation.
+  - Display name and phone fields are validated in Domain before persistence.
+  - Create/update/delete publish `ContactCreated` / `ContactUpdated` / `ContactDeleted` events.
+  - `CallContactUseCase` initiates outgoing call via existing `MakeCallUseCase` on primary phone.
+  - UI consumes projections only (Phase 4); no repository/Domain imports in renderer components.
+- Test Coverage:
+  - Unit: contact validation, projection reducer, `deriveContactsShell` disabled reasons
+  - Integration: in-memory repository CRUD, Use Case orchestration (`ContactUseCases`, `CallContactUseCase`)
+  - Renderer: `ContactsShellRoutePanel`, `ContactsPanelShell`, `ContactDetailsPanel`, navigation guards
+  - E2E: deferred until harness exists; manual smoke: `handoffs/Shell-Navigation-Phase6-Smoke-Checklist.md`

@@ -69,6 +69,8 @@ import type {
   OperatorPlatformGateway,
   SavedAccountProfileRepository,
   SettingsRepository,
+  CallHistoryRepository,
+  ContactRepository,
   TelephonyGateway,
 } from "@ports/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
@@ -89,15 +91,31 @@ import { resolveSettingsAccountKey } from "../settings/resolveSettingsAccountKey
 import { loadUserSettingsWithLegacyMigration } from "../settings/loadUserSettingsWithLegacyMigration.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { InMemorySavedAccountProfileRepository } from "@adapters/settings/InMemorySavedAccountProfileRepository.js";
+import { InMemoryCallHistoryRepository } from "@adapters/settings/InMemoryCallHistoryRepository.js";
+import { InMemoryContactRepository } from "@adapters/settings/InMemoryContactRepository.js";
 import { ListSavedAccountProfilesUseCase } from "../use-cases/ListSavedAccountProfilesUseCase.js";
 import { SaveAccountProfileUseCase } from "../use-cases/SaveAccountProfileUseCase.js";
 import { DeleteSavedAccountProfileUseCase } from "../use-cases/DeleteSavedAccountProfileUseCase.js";
 import { TouchSavedAccountProfileUseCase } from "../use-cases/TouchSavedAccountProfileUseCase.js";
+import { RecordCallHistoryUseCase } from "../use-cases/RecordCallHistoryUseCase.js";
+import { ListCallHistoryUseCase } from "../use-cases/ListCallHistoryUseCase.js";
+import { RedialFromHistoryUseCase } from "../use-cases/RedialFromHistoryUseCase.js";
+import { ListContactsUseCase } from "../use-cases/ListContactsUseCase.js";
+import { GetContactUseCase } from "../use-cases/GetContactUseCase.js";
+import { CreateContactUseCase } from "../use-cases/CreateContactUseCase.js";
+import { UpdateContactUseCase } from "../use-cases/UpdateContactUseCase.js";
+import { DeleteContactUseCase } from "../use-cases/DeleteContactUseCase.js";
+import { CallContactUseCase } from "../use-cases/CallContactUseCase.js";
+import { CallHistoryRecordingOrchestrationService } from "../services/CallHistoryRecordingOrchestrationService.js";
 import { LOCAL_SAVED_PROFILE_NOT_FOUND_MESSAGE } from "../projections/isLocalSavedProfileNotFoundError.js";
 import type {
   SavedAccountProfile,
   SavedAccountProfileId,
   SavedAccountProfileInput,
+  CallHistoryEntry,
+  Contact,
+  ContactInput,
+  ContactUpdateInput,
 } from "@domain/index.js";
 
 export type AuthorizeAccountMetadataWarning =
@@ -114,6 +132,8 @@ export type AccountBootstrapFacadeDeps = Readonly<{
   mediaGateway: MediaGateway;
   settingsRepository: SettingsRepository;
   savedAccountProfileRepository?: SavedAccountProfileRepository;
+  callHistoryRepository?: CallHistoryRepository;
+  contactRepository?: ContactRepository;
   hostIntegrationGateway?: HostIntegrationGateway;
   ocpSyncGateway?: OcpSyncGateway;
   ocpCallCorrelationRegistry?: OcpCallCorrelationRegistry;
@@ -168,6 +188,18 @@ export class AccountBootstrapFacade {
   private readonly deleteSavedAccountProfileUseCase: DeleteSavedAccountProfileUseCase;
   private readonly touchSavedAccountProfileUseCase: TouchSavedAccountProfileUseCase;
 
+  private readonly callHistoryRepository: CallHistoryRepository;
+  private readonly listCallHistoryUseCase: ListCallHistoryUseCase;
+  private readonly redialFromHistoryUseCase: RedialFromHistoryUseCase;
+
+  private readonly contactRepository: ContactRepository;
+  private readonly listContactsUseCase: ListContactsUseCase;
+  private readonly getContactUseCase: GetContactUseCase;
+  private readonly createContactUseCase: CreateContactUseCase;
+  private readonly updateContactUseCase: UpdateContactUseCase;
+  private readonly deleteContactUseCase: DeleteContactUseCase;
+  private readonly callContactUseCase: CallContactUseCase;
+
   private readonly processedCredentialEvents = new Set<string>();
   private sipSessionRegistered = false;
   private readonly callEngine: CallEngine;
@@ -199,6 +231,47 @@ export class AccountBootstrapFacade {
       this.savedAccountProfileRepository,
       deps.logger,
     );
+    this.callHistoryRepository =
+      deps.callHistoryRepository ?? new InMemoryCallHistoryRepository();
+    const recordCallHistoryUseCase = new RecordCallHistoryUseCase(
+      this.callHistoryRepository,
+      this.eventPublisher,
+      deps.logger,
+    );
+    this.listCallHistoryUseCase = new ListCallHistoryUseCase(
+      this.callHistoryRepository,
+      deps.logger,
+    );
+    this.contactRepository =
+      deps.contactRepository ?? new InMemoryContactRepository();
+    this.listContactsUseCase = new ListContactsUseCase(
+      this.contactRepository,
+      deps.logger,
+    );
+    this.getContactUseCase = new GetContactUseCase(
+      this.contactRepository,
+      deps.logger,
+    );
+    this.createContactUseCase = new CreateContactUseCase(
+      this.contactRepository,
+      this.eventPublisher,
+      deps.logger,
+    );
+    this.updateContactUseCase = new UpdateContactUseCase(
+      this.contactRepository,
+      this.eventPublisher,
+      deps.logger,
+    );
+    this.deleteContactUseCase = new DeleteContactUseCase(
+      this.contactRepository,
+      this.eventPublisher,
+      deps.logger,
+    );
+    const callHistoryRecordingOrchestration = new CallHistoryRecordingOrchestrationService(
+      recordCallHistoryUseCase,
+      deps.logger,
+    );
+    callHistoryRecordingOrchestration.subscribe(this.eventPublisher);
     const ocpSyncGateway = deps.ocpSyncGateway ?? new MockOcpSyncGateway();
     const ocpCallCorrelationRegistry =
       deps.ocpCallCorrelationRegistry ?? new InMemoryOcpCallCorrelationRegistry();
@@ -331,6 +404,16 @@ export class AccountBootstrapFacade {
       deps.hostIntegrationGateway,
     );
     this.makeCallUseCase = new MakeCallUseCase(this.callEngine, deps.logger);
+    this.redialFromHistoryUseCase = new RedialFromHistoryUseCase(
+      this.callHistoryRepository,
+      this.makeCallUseCase,
+      deps.logger,
+    );
+    this.callContactUseCase = new CallContactUseCase(
+      this.contactRepository,
+      this.makeCallUseCase,
+      deps.logger,
+    );
     this.hangupCallUseCase = new HangupCallUseCase(this.callEngine, deps.logger);
     this.holdCallUseCase = new HoldCallUseCase(this.callEngine, deps.logger);
     this.resumeCallUseCase = new ResumeCallUseCase(this.callEngine, deps.logger);
@@ -585,6 +668,76 @@ export class AccountBootstrapFacade {
 
   listSavedAccountProfiles(): Promise<Result<ReadonlyArray<SavedAccountProfile>, PlatformError>> {
     return this.listSavedAccountProfilesUseCase.execute();
+  }
+
+  listCallHistory(): Promise<Result<ReadonlyArray<CallHistoryEntry>, PlatformError>> {
+    return this.listCallHistoryUseCase.execute();
+  }
+
+  redialFromHistory(
+    entryId: string,
+    correlationId?: CorrelationId,
+  ): Promise<Result<Call, PlatformError>> {
+    return this.redialFromHistoryUseCase.execute({
+      entryId,
+      ...(correlationId !== undefined ? { correlationId } : {}),
+    });
+  }
+
+  listContacts(): Promise<Result<ReadonlyArray<Contact>, PlatformError>> {
+    return this.listContactsUseCase.execute();
+  }
+
+  getContact(
+    contactId: string,
+    correlationId?: CorrelationId,
+  ): Promise<Result<Contact, PlatformError>> {
+    return this.getContactUseCase.execute({
+      contactId,
+      ...(correlationId !== undefined ? { correlationId } : {}),
+    });
+  }
+
+  createContact(
+    contact: ContactInput,
+    correlationId?: CorrelationId,
+  ): Promise<Result<Contact, PlatformError>> {
+    return this.createContactUseCase.execute({
+      contact,
+      ...(correlationId !== undefined ? { correlationId } : {}),
+    });
+  }
+
+  updateContact(
+    contactId: string,
+    update: ContactUpdateInput,
+    correlationId?: CorrelationId,
+  ): Promise<Result<Contact, PlatformError>> {
+    return this.updateContactUseCase.execute({
+      contactId,
+      update,
+      ...(correlationId !== undefined ? { correlationId } : {}),
+    });
+  }
+
+  deleteContact(
+    contactId: string,
+    correlationId?: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    return this.deleteContactUseCase.execute({
+      contactId,
+      ...(correlationId !== undefined ? { correlationId } : {}),
+    });
+  }
+
+  callContact(
+    contactId: string,
+    correlationId?: CorrelationId,
+  ): Promise<Result<Call, PlatformError>> {
+    return this.callContactUseCase.execute({
+      contactId,
+      ...(correlationId !== undefined ? { correlationId } : {}),
+    });
   }
 
   saveSavedAccountProfile(

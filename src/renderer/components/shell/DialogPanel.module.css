@@ -5,6 +5,7 @@
   display: grid;
   gap: var(--space-sm);
   background: var(--color-bg-surface);
+  pointer-events: auto;
 }
 
 .modal:focus-visible {

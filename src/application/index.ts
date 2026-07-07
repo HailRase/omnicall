@@ -313,7 +313,16 @@ export {
   createSettingsAccountKey,
   type SavedAccountProfile,
   type SavedAccountProfileId,
+  type Contact,
+  type ContactInput,
+  type ContactUpdateInput,
 } from "@domain/index.js";
+export {
+  deriveContactsShell,
+  type ContactsShellViewModel,
+  type ContactShellViewModel,
+  type ContactCallDisabledReasonKey,
+} from "./projections/deriveContactsShell.js";
 export {
   deriveAccountPanelActionsShell,
   type AccountPanelActionsShell,

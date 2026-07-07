@@ -75,7 +75,7 @@ export const FormField = forwardRef(function FormField(
 
   const child = Children.only(children);
   if (!isValidElement<FormFieldControlProps>(child)) {
-    throw new Error("FormField children must be a single React element.");
+    throw new Error("form_field_children_invalid");
   }
 
   const descriptionIds: string[] = [];

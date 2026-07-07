@@ -16,6 +16,8 @@ type UseUserAvatarMenuActionsInput = Readonly<{
   authUiState: AuthUiState;
   sessionLogoutActions: UseSessionLogoutActionsResult;
   onOpenSettings: () => void;
+  onOpenHistory: () => void;
+  onOpenContacts: () => void;
   onMenuClose: () => void;
 }>;
 
@@ -24,6 +26,8 @@ export type UseUserAvatarMenuActionsResult = Readonly<{
   dndDisabledReason: string | null;
   logoutDisabledReason: string | null;
   handleOpenSettings: () => void;
+  handleOpenHistory: () => void;
+  handleOpenContacts: () => void;
   handleToggleDnd: () => void;
   handleLogout: () => void;
 }>;
@@ -45,6 +49,8 @@ export function useUserAvatarMenuActions(
     authUiState,
     sessionLogoutActions,
     onOpenSettings,
+    onOpenHistory,
+    onOpenContacts,
     onMenuClose,
   } = input;
 
@@ -70,6 +76,16 @@ export function useUserAvatarMenuActions(
     onOpenSettings();
   }, [onMenuClose, onOpenSettings]);
 
+  const handleOpenHistory = useCallback((): void => {
+    onMenuClose();
+    onOpenHistory();
+  }, [onMenuClose, onOpenHistory]);
+
+  const handleOpenContacts = useCallback((): void => {
+    onMenuClose();
+    onOpenContacts();
+  }, [onMenuClose, onOpenContacts]);
+
   const handleToggleDnd = useCallback((): void => {
     if (dndDisabledReason !== null) {
       return;
@@ -93,6 +109,8 @@ export function useUserAvatarMenuActions(
     dndDisabledReason,
     logoutDisabledReason,
     handleOpenSettings,
+    handleOpenHistory,
+    handleOpenContacts,
     handleToggleDnd,
     handleLogout,
   };

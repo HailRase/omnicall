@@ -19,6 +19,8 @@ const baseProps = {
   dndDisabledReason: null,
   logoutDisabledReason: null,
   onOpenSettings: vi.fn(),
+  onOpenHistory: vi.fn(),
+  onOpenContacts: vi.fn(),
   onToggleDnd: vi.fn(),
   onLogout: vi.fn(),
 };
@@ -38,9 +40,10 @@ describe("UserAvatarMenu", () => {
     }));
   });
 
-  it("renders settings, DND, and logout items in Russian", () => {
+  it("renders settings, contacts, history, DND, and logout items in Russian", () => {
     render(<UserAvatarMenu {...baseProps} />);
 
+    expect(screen.getByTestId("user-menu-open-contacts")).toHaveTextContent("Контакты");
     expect(screen.getByTestId("user-menu-open-settings")).toHaveTextContent("Настройки");
     expect(screen.getByTestId("user-menu-toggle-dnd")).toHaveTextContent('Вкл. "Не беспокоить"');
     expect(screen.getByTestId("user-menu-logout")).toHaveTextContent("Выход");

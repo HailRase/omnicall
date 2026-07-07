@@ -31,6 +31,9 @@
 
   /* Elevation */
   --z-overlay: 100;
+  --z-shell-route-overlay: 0;
+  --z-shell-dialpad-panel: 5;
+  --z-shell-modal-overlay: 10;
   --z-modal: 200;
   --z-toast: 300;
   --z-tooltip: 350;

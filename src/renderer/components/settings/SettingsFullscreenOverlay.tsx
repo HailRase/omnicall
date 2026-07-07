@@ -27,6 +27,7 @@ function prefersReducedMotion(): boolean {
  * - Purpose: render fullscreen settings overlay with slide-in animation and scrim.
  * - Inputs: open flag, close callback, window controls view-model, settings panel content.
  * - Outputs: modal dialog covering BrowserWindow without unmounting call context.
+ * - Rule: settings remain a blocking fullscreen modal above route sidebars; call zones stay mounted.
  * @uiMeta f=F-016,F-017 smoke=settings-overlay
  */
 export function SettingsFullscreenOverlay({
@@ -80,6 +81,7 @@ export function SettingsFullscreenOverlay({
     <div
       className={styles.overlay}
       data-testid="settings-overlay"
+      data-shell-overlay-interactive="true"
       data-closing={exiting ? "true" : undefined}
       role="dialog"
       aria-modal="true"

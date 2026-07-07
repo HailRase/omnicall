@@ -57,6 +57,8 @@ PanelNav        — Call | History only (History full-screen when idle, no activ
 
 **Call-center rule:** Settings and Diagnostics open as **overlays**, not full panel replacement, while a call is established. Operator must keep line context.
 
+**Shell routing (Phase 1+):** `HashRouter` wraps ready-state UI in `App.tsx`. `ShellNavigationController` keeps `SoftphoneLayout` mounted on a parent layout route; child hash routes (`/`, `/history`, `/contacts/*`) select panel state only via `ShellRoutePanelOutlet` in `OverlayLayer`. Typed navigation: `useShellNavigation` + `src/renderer/navigation/*`. Settings remain overlay-driven (`useOverlayShell`) until settings route alignment (Phase 5). Call state stays in Zustand projections — routes must not own telephony state.
+
 Modal flows (Radix Dialog v1): campaign. Incoming call: non-blocking `IncomingCallOverlay` banner in header zone (see `P03-Incoming-Call-UX-Design.md`). Settings v1: portal `Panel` without Radix.
 
 ## Hook Taxonomy

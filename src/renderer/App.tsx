@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { HashRouter } from "react-router-dom";
 import { useAccountBootstrap } from "./hooks/useAccountBootstrap.js";
 import { useAppShutdown } from "./hooks/useAppShutdown.js";
 import { useSoftphoneShellChrome } from "./hooks/useSoftphoneShellChrome.js";
@@ -37,11 +38,13 @@ export function App(): JSX.Element {
       )}
 
       {status === "ready" && facade !== null && (
-        <SoftphoneReadyShell
-          facade={facade}
-          shellChrome={shellChrome}
-          isShuttingDown={isShuttingDown}
-        />
+        <HashRouter>
+          <SoftphoneReadyShell
+            facade={facade}
+            shellChrome={shellChrome}
+            isShuttingDown={isShuttingDown}
+          />
+        </HashRouter>
       )}
     </main>
   );

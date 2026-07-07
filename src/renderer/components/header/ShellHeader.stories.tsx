@@ -37,6 +37,8 @@ const baseHeaderArgs = {
     dndDisabledReason: null,
     logoutDisabledReason: null,
     handleOpenSettings: noop,
+    handleOpenHistory: noop,
+    handleOpenContacts: noop,
     handleToggleDnd: noop,
     handleLogout: noop,
   },

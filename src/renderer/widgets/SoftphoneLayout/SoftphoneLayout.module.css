@@ -46,7 +46,3 @@
   z-index: var(--z-overlay);
   pointer-events: none;
 }
-
-.overlays > * {
-  pointer-events: auto;
-}

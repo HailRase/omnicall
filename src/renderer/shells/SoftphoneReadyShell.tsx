@@ -27,6 +27,9 @@ import { useUserAvatarMenuActions } from "../hooks/useUserAvatarMenuActions.js";
 import type { useSoftphoneShellChrome } from "../hooks/useSoftphoneShellChrome.js";
 import { useSoftphoneProjections } from "../hooks/useSoftphoneProjections.js";
 import { useI18n } from "../i18n/index.js";
+import { ShellNavigationController, ShellRouteDataController, ShellRoutePanelOutlet, useShellNavigation } from "../navigation/index.js";
+import { HistoryShellRoutePanel } from "./history/HistoryShellRoutePanel.js";
+import { ContactsShellRoutePanel } from "./contacts/ContactsShellRoutePanel.js";
 import { SoftphoneLayout } from "../widgets/SoftphoneLayout/SoftphoneLayout.js";
 import { CallContextShell } from "./call/CallContextShell.js";
 import { CallControlsShell } from "./call/CallControlsShell.js";
@@ -46,7 +49,13 @@ type SoftphoneReadyShellProps = Readonly<{
  * - Inputs: account bootstrap facade and shared shell chrome hooks.
  * - Outputs: four-zone ready-state softphone UI tree.
  */
-export function SoftphoneReadyShell({
+export function SoftphoneReadyShell(props: SoftphoneReadyShellProps): JSX.Element {
+  return (
+    <ShellNavigationController layout={<SoftphoneShellLayoutRoute {...props} />} />
+  );
+}
+
+function SoftphoneShellLayoutRoute({
   facade,
   shellChrome,
   isShuttingDown,
@@ -63,6 +72,7 @@ export function SoftphoneReadyShell({
     useSoftphoneProjections();
   const { blockingAuthState, isSipRegistered } = useAuthShellFlags();
   const overlayShell = useOverlayShell();
+  const shellNavigation = useShellNavigation();
   useShellWindowLayout({ settingsOpen: overlayShell.settingsOpen });
   const [settingsSidebarExpanded, setSettingsSidebarExpanded] = useState(false);
   const settingsActions = useSettingsActions({
@@ -106,6 +116,12 @@ export function SoftphoneReadyShell({
     authUiState: projection.authUiState,
     sessionLogoutActions,
     onOpenSettings: overlayShell.openSettings,
+    onOpenHistory: () => {
+      shellNavigation.navigateTo({ name: "history" });
+    },
+    onOpenContacts: () => {
+      shellNavigation.navigateTo({ name: "contacts" });
+    },
     onMenuClose: userAvatarMenu.close,
   });
   const callBindings = useCallFeatureShell({ facade });
@@ -175,6 +191,9 @@ export function SoftphoneReadyShell({
       controls={<CallControlsShell bindings={callBindings} />}
       overlays={
         <>
+          <ShellRouteDataController facade={facade} />
+          <HistoryShellRoutePanel facade={facade} notify={notifications.notify} />
+          <ContactsShellRoutePanel facade={facade} />
           <UpdateAvailableBanner
             visible={appUpdate.showUpdatePrompt}
             latestVersion={appUpdate.snapshot.latestVersion}
@@ -306,6 +325,7 @@ export function SoftphoneReadyShell({
               }}
             />
           </SettingsFullscreenOverlay>
+          <ShellRoutePanelOutlet />
         </>
       }
     />

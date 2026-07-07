@@ -20,6 +20,7 @@ import { ShellWindowController } from "./shellWindow/ShellWindowController.js";
 import { registerProfilesPersistenceIpc } from "./profiles/registerProfilesPersistenceIpc.js";
 import { AppShutdownCoordinator } from "./lifecycle/AppShutdownCoordinator.js";
 import { installApplicationMenu } from "./lifecycle/createApplicationMenu.js";
+import { installDeveloperWebContentsShortcuts } from "./lifecycle/installDeveloperWebContentsShortcuts.js";
 import { isMainProcessDevMode } from "./lifecycle/resolveMainProcessDevMode.js";
 
 const logger = createConsoleLogger({
@@ -113,6 +114,8 @@ function createMainWindow(): BrowserWindow {
     void shell.openExternal(details.url);
     return { action: "deny" };
   });
+
+  installDeveloperWebContentsShortcuts(mainWindow.webContents);
 
   if (process.env["ELECTRON_RENDERER_URL"] !== undefined) {
     void mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);

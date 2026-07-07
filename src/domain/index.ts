@@ -81,6 +81,40 @@ export {
 } from "./settings/SavedAccountProfile.js";
 export { matchesSipAccountIdentity } from "./settings/matchesSipAccountIdentity.js";
 export type {
+  CallHistoryDirection,
+  CallHistoryEntry,
+  CallHistoryOutcome,
+  CallHistorySessionSnapshot,
+  CreateCallHistoryEntryResult,
+} from "./settings/CallHistoryEntry.js";
+export { createCallHistoryEntryFromSession } from "./settings/CallHistoryEntry.js";
+export type { CallHistoryEntryId } from "./settings/CallHistoryEntryId.js";
+export { createCallHistoryEntryId } from "./settings/CallHistoryEntryId.js";
+export { MAX_CALL_HISTORY_ENTRIES } from "./settings/CallHistoryRetention.js";
+export type { CallHistoryRecordedEvent } from "./settings/events/callHistoryEvents.js";
+export { createCallHistoryRecordedEvent } from "./settings/events/callHistoryEvents.js";
+export type {
+  Contact,
+  ContactInput,
+  ContactUpdateInput,
+  ContactValidationError,
+  CreateContactResult,
+  UpdateContactResult,
+} from "./settings/Contact.js";
+export { createContact, updateContact } from "./settings/Contact.js";
+export type { ContactId } from "./settings/ContactId.js";
+export { createContactId, generateContactId } from "./settings/ContactId.js";
+export type {
+  ContactCreatedEvent,
+  ContactDeletedEvent,
+  ContactUpdatedEvent,
+} from "./settings/events/contactEvents.js";
+export {
+  createContactCreatedEvent,
+  createContactDeletedEvent,
+  createContactUpdatedEvent,
+} from "./settings/events/contactEvents.js";
+export type {
   SavedAccountProfilesDocumentV1,
   SavedAccountProfilesParseErrorCode,
   SavedAccountProfilesParseResult,

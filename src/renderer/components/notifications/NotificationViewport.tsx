@@ -8,6 +8,7 @@ import {
   NOTIFICATION_TOASTER_ID,
   useNotificationSonnerSync,
 } from "./useNotificationSonnerSync.js";
+import styles from "./NotificationViewport.module.css";
 
 export type NotificationViewportProps = Readonly<{
   placement: ToastPlacement;
@@ -42,7 +43,7 @@ export function NotificationViewport({
   });
 
   return (
-    <div data-testid="notification-viewport">
+    <div className={styles.viewport} data-testid="notification-viewport">
       <Toaster
         id={NOTIFICATION_TOASTER_ID}
         position={placement}

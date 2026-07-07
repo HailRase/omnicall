@@ -50,6 +50,7 @@ export { JsSipTelephonyAdapter } from "./telephony/jssip/JsSipTelephonyAdapter.j
 export type { JsSipTelephonyAdapterOptions } from "./telephony/jssip/JsSipTelephonyAdapter.js";
 export { InMemorySettingsRepository } from "./settings/InMemorySettingsRepository.js";
 export { InMemorySavedAccountProfileRepository } from "./settings/InMemorySavedAccountProfileRepository.js";
+export { InMemoryCallHistoryRepository } from "./settings/InMemoryCallHistoryRepository.js";
 export { FileSavedAccountProfileRepository } from "./settings/FileSavedAccountProfileRepository.js";
 export { InMemorySettingsRepository as MockSettingsRepository } from "./settings/InMemorySettingsRepository.js";
 export type { InMemorySettingsState } from "./settings/InMemorySettingsRepository.js";
