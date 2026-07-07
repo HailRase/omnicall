@@ -7,6 +7,18 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-07-07
+
+### Added
+
+- F-016: изменение размера окна только в режиме настроек; при выходе восстанавливаются compact width и height
+- Настройки: числовые поля на UI Kit `Input` (`SettingsNumberInput`)
+
+### Changed
+
+- macOS: иконка Dock/Launchpad с отступами по Apple HIG (824×824 в canvas 1024)
+- Windows: runtime-иконка панели задач крупнее (`windows-theme-icons`, +12.5% к macOS artwork)
+
 ## [0.7.0] - 2026-07-07
 
 ### Added

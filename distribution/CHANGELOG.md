@@ -5,6 +5,18 @@ Public release history for **Axatalk** distribution builds.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer. Git tag: `v<version>`.
 
+## [0.7.1] - 2026-07-07
+
+### Added
+
+- Window resize is allowed only while Settings is open; compact width and height restore on exit (F-016)
+- Settings numeric fields use UI Kit Input via `SettingsNumberInput`
+
+### Changed
+
+- macOS Dock/Launchpad icon uses Apple HIG safe padding (824×824 artwork on a 1024 canvas)
+- Windows taskbar runtime icon is slightly larger (`windows-theme-icons`, +12.5% artwork vs macOS padded size)
+
 ## [0.7.0] - 2026-07-07
 
 ### Added
