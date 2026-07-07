@@ -5,6 +5,19 @@ Public release history for **Axatalk** distribution builds.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer. Git tag: `v<version>`.
 
+## [0.7.0] - 2026-07-07
+
+### Added
+
+- macOS window controls — custom traffic lights (Close, Minimize, Reload); no maximize button; reload sits in the green button slot without a tooltip
+- Settings — fullscreen overlay with window controls in the top chrome bar; settings content uses full window width
+- macOS Edit menu — standard copy, paste, cut, select all, and undo shortcuts in text fields
+
+### Changed
+
+- Update available notification — positioned at the top of the window
+- Tooltips — long labels wrap instead of overflowing
+
 ## [0.6.1] - 2026-07-07
 
 ### Fixed

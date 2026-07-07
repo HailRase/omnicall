@@ -57,9 +57,9 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 | Field | Value |
 | --- | --- |
-| Shipped | **0.6.1** (`v0.6.1`, 2026-07-07) — F-024 delete profile AlertDialog z-index fix |
-| Previous | **0.6.0** (UI Kit migration, Bulgarian locale), **0.5.1** (F-020 banner overlay) |
-| Next cut | **0.6.2** (PATCH) or **0.7.0** (MINOR) per SemVer table in `RELEASE-PLAYBOOK.md` |
+| Shipped | **0.7.0** (`v0.7.0`, 2026-07-07) — F-016 macOS traffic lights, settings overlay chrome |
+| Previous | **0.6.1** (F-024 delete profile z-index), **0.6.0** (UI Kit, Bulgarian locale) |
+| Next cut | **0.7.1** (PATCH) or **0.8.0** (MINOR) per SemVer table in `RELEASE-PLAYBOOK.md` |
 | Source repo | `HailRase/softphone-electron` (target: **private**) |
 | Distribution | [`HailRase/axatalk-releases`](https://github.com/HailRase/axatalk-releases) (public: installers + manifest) |
 | Manifest (live) | `axatalk-releases/main/update-manifest.json` |

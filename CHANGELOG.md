@@ -7,6 +7,20 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-07-07
+
+### Added
+
+- F-016: macOS — кастомные traffic lights (Close, Minimize, Reload) вместо native maximize; reload на месте зелёной кнопки, без tooltip
+- F-016: настройки — fullscreen overlay с window controls в верхней chrome-полосе; контент на всю ширину
+- macOS: меню Edit с Cmd+C/V/A/X/Z для полей ввода
+
+### Changed
+
+- F-020: баннер обновления — отображение сверху окна
+- Tooltip и IconTooltip — перенос длинного текста (overflow-wrap)
+- DevTools доступны только в dev-сборке (`!app.isPackaged`)
+
 ## [0.6.1] - 2026-07-07
 
 ### Fixed
@@ -163,7 +177,8 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.6.1...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.7.0...main
+[0.7.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.7.0
 [0.6.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.6.1
 [0.6.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.6.0
 [0.5.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.5.1
