@@ -35,17 +35,16 @@ type UseActionNotificationsInput = Readonly<{
 
 function buildAccountErrorDescriptor(
   error: AccountAuthorizationErrorProjection,
-): NotificationDescriptor {
+): Required<Pick<NotificationDescriptor, "level" | "messageKey">> &
+  Pick<NotificationDescriptor, "messageParams"> {
   if (error.params !== undefined) {
     return {
-      id: `account-error-${error.key}`,
       level: "error",
       messageKey: error.key,
       messageParams: error.params,
     };
   }
   return {
-    id: `account-error-${error.key}`,
     level: "error",
     messageKey: error.key,
   };
@@ -102,10 +101,7 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
     if (accountError === null) {
       return;
     }
-    const accountDescriptor = buildAccountErrorDescriptor(accountError);
-    const { id, ...descriptor } = accountDescriptor;
-    void id;
-    notify(descriptor);
+    notify(buildAccountErrorDescriptor(accountError));
   }, [accountError, notify]);
 
   useEffect(() => {

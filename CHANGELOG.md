@@ -7,6 +7,28 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-07-07
+
+### Fixed
+
+- F-024: диалог подтверждения удаления SIP-профиля отображается поверх fullscreen-настроек (`AlertDialog` z-index `--z-modal`)
+- F-024: кнопки «Отмена» / «Удалить» вместо icon-only в диалоге удаления профиля
+
+## [0.6.0] - 2026-07-07
+
+### Added
+
+- F-021: болгарская локаль (`bg`) в настройках интерфейса
+- F-024: удаление сохранённого SIP-профиля с вкладки профиля (иконка корзины + подтверждение)
+- UI Kit P0: Button, Input, Dialog, Alert, Tabs, Sonner и др.; Storybook + тесты
+- LF-060: уведомления через Sonner — нейтральная поверхность, иконки success/error, без дедупликации повторных операций
+
+### Changed
+
+- F-020: баннер обновления на базе UI Kit `Alert` с иконкой `updates.available`
+- Настройки мигрированы на UI Kit (кнопки, switch, select, tabs, form-field)
+- `SavedAccountProfileSelector` переведён на UI Kit `Tabs`
+
 ## [0.5.1] - 2026-07-06
 
 ### Changed
@@ -141,7 +163,9 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.5.1...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.6.1...main
+[0.6.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.6.1
+[0.6.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.6.0
 [0.5.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.5.1
 [0.5.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.5.0
 [0.4.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.4.0

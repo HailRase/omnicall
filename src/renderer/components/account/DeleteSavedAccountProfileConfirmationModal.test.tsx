@@ -29,6 +29,8 @@ describe("DeleteSavedAccountProfileConfirmationModal", () => {
 
     expect(screen.getByTestId("delete-saved-account-profile-modal")).toBeInTheDocument();
     expect(screen.getByText("Удалить профиль?")).toBeInTheDocument();
+    expect(screen.getByText("Отмена")).toBeInTheDocument();
+    expect(screen.getByText("Удалить")).toBeInTheDocument();
   });
 
   it("invokes confirm callback", async () => {
