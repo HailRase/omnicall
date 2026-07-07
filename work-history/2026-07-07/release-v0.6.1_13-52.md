@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-07 13:52
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `eb6d503`
 
 ## Где
 - `package.json`, `CHANGELOG.md`, `distribution/CHANGELOG.md`
