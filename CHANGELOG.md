@@ -7,6 +7,13 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-07-07
+
+### Fixed
+
+- F-024: диалог подтверждения удаления SIP-профиля отображается поверх fullscreen-настроек (`AlertDialog` z-index `--z-modal`)
+- F-024: кнопки «Отмена» / «Удалить» вместо icon-only в диалоге удаления профиля
+
 ## [0.6.0] - 2026-07-07
 
 ### Added
@@ -156,7 +163,8 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.6.0...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.6.1...main
+[0.6.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.6.1
 [0.6.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.6.0
 [0.5.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.5.1
 [0.5.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.5.0

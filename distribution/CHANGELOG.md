@@ -5,6 +5,13 @@ Public release history for **Axatalk** distribution builds.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer. Git tag: `v<version>`.
 
+## [0.6.1] - 2026-07-07
+
+### Fixed
+
+- Delete saved SIP profile confirmation dialog now appears above the fullscreen Settings overlay
+- Cancel and Delete text buttons in the delete-profile confirmation dialog (replacing icon-only controls)
+
 ## [0.6.0] - 2026-07-07
 
 ### Added
