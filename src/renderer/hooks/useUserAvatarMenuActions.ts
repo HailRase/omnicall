@@ -4,6 +4,7 @@ import type { AccountBootstrapFacade } from "@application/facades/AccountBootstr
 import type { PhoneStatus } from "@application/index.js";
 import { mapAvatarMenuDndDisabledReason } from "../helpers/mapAvatarMenuDndDisabledReason.js";
 import { mapAvatarMenuLogoutDisabledReason } from "../helpers/mapAvatarMenuLogoutDisabledReason.js";
+import { mapAvatarMenuShellNavigationDisabledReason } from "../helpers/mapAvatarMenuShellNavigationDisabledReason.js";
 import type { UseSessionLogoutActionsResult } from "./useSessionLogoutActions.js";
 import { usePhoneStatusActions } from "./usePhoneStatusActions.js";
 
@@ -24,6 +25,8 @@ type UseUserAvatarMenuActionsInput = Readonly<{
 export type UseUserAvatarMenuActionsResult = Readonly<{
   dndEnabled: boolean;
   dndDisabledReason: string | null;
+  historyDisabledReason: string | null;
+  contactsDisabledReason: string | null;
   logoutDisabledReason: string | null;
   handleOpenSettings: () => void;
   handleOpenHistory: () => void;
@@ -59,6 +62,11 @@ export function useUserAvatarMenuActions(
     isSipRegistered,
   });
 
+  const shellNavigationDisabledReason = mapAvatarMenuShellNavigationDisabledReason({
+    isSipRegistered,
+    authUiState,
+  });
+
   const { handlePhoneStatusChange } = usePhoneStatusActions({
     facade,
     disabled: dndDisabledReason !== null,
@@ -77,14 +85,22 @@ export function useUserAvatarMenuActions(
   }, [onMenuClose, onOpenSettings]);
 
   const handleOpenHistory = useCallback((): void => {
+    if (shellNavigationDisabledReason !== null) {
+      return;
+    }
+
     onMenuClose();
     onOpenHistory();
-  }, [onMenuClose, onOpenHistory]);
+  }, [onMenuClose, onOpenHistory, shellNavigationDisabledReason]);
 
   const handleOpenContacts = useCallback((): void => {
+    if (shellNavigationDisabledReason !== null) {
+      return;
+    }
+
     onMenuClose();
     onOpenContacts();
-  }, [onMenuClose, onOpenContacts]);
+  }, [onMenuClose, onOpenContacts, shellNavigationDisabledReason]);
 
   const handleToggleDnd = useCallback((): void => {
     if (dndDisabledReason !== null) {
@@ -107,6 +123,8 @@ export function useUserAvatarMenuActions(
   return {
     dndEnabled,
     dndDisabledReason,
+    historyDisabledReason: shellNavigationDisabledReason,
+    contactsDisabledReason: shellNavigationDisabledReason,
     logoutDisabledReason,
     handleOpenSettings,
     handleOpenHistory,

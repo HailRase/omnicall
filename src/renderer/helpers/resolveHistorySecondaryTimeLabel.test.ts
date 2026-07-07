@@ -1,0 +1,41 @@
+import { describe, expect, it } from "vitest";
+import { resolveHistorySecondaryTimeLabel } from "./resolveHistorySecondaryTimeLabel.js";
+
+describe("resolveHistorySecondaryTimeLabel", () => {
+  const baseEntry = {
+    id: "entry-1",
+    remoteNumber: "+1",
+    displayLabel: null,
+    directionKey: "history.direction.incoming" as const,
+    outcomeKey: "history.outcome.missed" as const,
+    startedAtIso: "2026-07-07T13:05:00.000Z",
+    durationSec: 0,
+    redialDisabledReasonKey: null,
+  };
+
+  it("shows clock time for missed calls", () => {
+    const label = resolveHistorySecondaryTimeLabel({
+      entry: baseEntry,
+      language: "en",
+      translateDuration: (seconds) => `${seconds}s`,
+      formatClockTime: () => "13:05",
+    });
+
+    expect(label).toBe("13:05");
+  });
+
+  it("shows duration for completed answered calls", () => {
+    const label = resolveHistorySecondaryTimeLabel({
+      entry: {
+        ...baseEntry,
+        outcomeKey: "history.outcome.completed",
+        durationSec: 90,
+      },
+      language: "en",
+      translateDuration: (seconds) => `${seconds}s`,
+      formatClockTime: () => "13:05",
+    });
+
+    expect(label).toBe("90s");
+  });
+});

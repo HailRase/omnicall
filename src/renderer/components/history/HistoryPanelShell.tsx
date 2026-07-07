@@ -1,9 +1,14 @@
-import type { JSX } from "react";
-import { Button } from "../ui/button/Button.js";
+import clsx from "clsx";
+import { useMemo, useState, type JSX } from "react";
+import { groupHistoryRowsByDate } from "../../helpers/groupHistoryRowsByDate.js";
+import type { CallHistoryEntryRowViewModel } from "../../hooks/useCallHistoryShell.js";
 import { useI18n } from "../../i18n/index.js";
+import { AppIcon } from "../icons/index.js";
+import { ListQuickCallButton } from "../list/ListQuickCallButton.js";
+import { PersonListAvatar } from "../list/PersonListAvatar.js";
+import { Tabs, TabsList, TabsTrigger } from "../ui/tabs/Tabs.js";
 import { ShellDialpadPanel } from "../shell/ShellDialpadPanel.js";
 import type { ShellDialpadPanelPresentation } from "../shell/ShellDialpadPanel.js";
-import type { CallHistoryEntryRowViewModel } from "../../hooks/useCallHistoryShell.js";
 import styles from "./HistoryPanelShell.module.css";
 
 export type HistoryPanelShellProps = Readonly<{
@@ -17,6 +22,8 @@ export type HistoryPanelShellProps = Readonly<{
   onClose: () => void;
   onRedial: (entryId: string) => void;
 }>;
+
+type HistoryFilter = "all" | "missed";
 
 /**
  * - Purpose: present call history list inside shell overlay layer.
@@ -35,7 +42,25 @@ export function HistoryPanelShell({
   onClose,
   onRedial,
 }: HistoryPanelShellProps): JSX.Element | null {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
+  const [filter, setFilter] = useState<HistoryFilter>("all");
+
+  const filteredRows = useMemo(
+    () => (filter === "missed" ? rows.filter((row) => row.isMissed) : rows),
+    [filter, rows],
+  );
+
+  const sections = useMemo(
+    () =>
+      groupHistoryRowsByDate({
+        rows: filteredRows,
+        language,
+        translate: (key) => t(key as Parameters<typeof t>[0]),
+      }),
+    [filteredRows, language, t],
+  );
+
+  const showFilter = !isLoading && errorMessage === null && !isEmpty;
 
   return (
     <ShellDialpadPanel
@@ -46,57 +71,136 @@ export function HistoryPanelShell({
       presentation={presentation}
       onClose={onClose}
     >
+      {showFilter ? (
+        <div className={styles.filterRow}>
+          <Tabs
+            value={filter}
+            onValueChange={(nextValue) => {
+              if (nextValue === "all" || nextValue === "missed") {
+                setFilter(nextValue);
+              }
+            }}
+          >
+            <TabsList aria-label={t("history.filter.ariaLabel")}>
+              <TabsTrigger value="all" data-testid="history-filter-all">
+                {t("history.filter.all")}
+              </TabsTrigger>
+              <TabsTrigger value="missed" data-testid="history-filter-missed">
+                {t("history.filter.missed")}
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
+      ) : null}
+
       {isLoading ? (
         <p className={styles.stateMessage} data-testid="history-panel-loading">
           {t("history.loading")}
         </p>
       ) : null}
+
       {!isLoading && errorMessage !== null ? (
         <p className={styles.stateMessageError} data-testid="history-panel-error" role="alert">
           {errorMessage}
         </p>
       ) : null}
+
       {!isLoading && errorMessage === null && isEmpty ? (
-        <p className={styles.stateMessage} data-testid="history-panel-empty">
-          {t("history.empty")}
+        <HistoryEmptyState />
+      ) : null}
+
+      {!isLoading && errorMessage === null && !isEmpty && filteredRows.length === 0 ? (
+        <p className={styles.stateMessage} data-testid="history-panel-filter-empty">
+          {t("history.filter.emptyMissed")}
         </p>
       ) : null}
-      {!isLoading && errorMessage === null && rows.length > 0 ? (
-        <ul className={styles.list} data-testid="history-panel-list">
-          {rows.map((row) => (
-            <li key={row.id} className={styles.item} data-testid={`history-entry-${row.id}`}>
-              <div className={styles.itemMain}>
-                <div className={styles.number}>{row.remoteNumber}</div>
-                {row.displayLabel !== null && row.displayLabel !== row.remoteNumber ? (
-                  <div className={styles.subline}>{row.displayLabel}</div>
-                ) : null}
-                <div className={styles.meta}>
-                  <span>{row.directionLabel}</span>
-                  <span aria-hidden="true">·</span>
-                  <span>{row.outcomeLabel}</span>
-                  <span aria-hidden="true">·</span>
-                  <span>{row.startedAtLabel}</span>
-                  <span aria-hidden="true">·</span>
-                  <span>{row.durationLabel}</span>
-                </div>
-              </div>
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                disabled={row.redialDisabledReason !== null}
-                title={row.redialDisabledReason ?? undefined}
-                data-testid={`history-redial-${row.id}`}
-                onClick={() => {
-                  onRedial(row.id);
-                }}
-              >
-                {t("history.redial")}
-              </Button>
-            </li>
+
+      {!isLoading && errorMessage === null && sections.length > 0 ? (
+        <div className={styles.sections} data-testid="history-panel-list">
+          {sections.map((section) => (
+            <section key={section.group.sortKey} className={styles.section}>
+              <h3 className={styles.sectionTitle}>{section.group.label}</h3>
+              <ul className={styles.list}>
+                {section.rows.map((row) => (
+                  <HistoryListRow key={row.id} row={row} onRedial={onRedial} />
+                ))}
+              </ul>
+            </section>
           ))}
-        </ul>
+        </div>
       ) : null}
     </ShellDialpadPanel>
   );
+}
+
+type HistoryListRowProps = Readonly<{
+  row: CallHistoryEntryRowViewModel;
+  onRedial: (entryId: string) => void;
+}>;
+
+function HistoryListRow({ row, onRedial }: HistoryListRowProps): JSX.Element {
+  const { t } = useI18n();
+  const directionIconId = resolveDirectionIconId(row);
+  const directionToneClass = resolveDirectionToneClass(row);
+
+  return (
+    <li className={styles.item} data-testid={`history-entry-${row.id}`}>
+      <PersonListAvatar label={row.primaryLabel} size="sm" missed={row.isMissed} />
+      <div className={styles.itemMain}>
+        <div className={clsx(styles.primaryLine, row.isMissed && styles.primaryLineMissed)}>
+          {row.primaryLabel}
+        </div>
+        <div className={styles.secondaryLine}>
+          <span className={clsx(styles.directionIcon, directionToneClass)}>
+            <AppIcon id={directionIconId} decorative size={14} />
+          </span>
+          <span>{row.directionLabel}</span>
+          <span aria-hidden="true">·</span>
+          <span>{row.secondaryTimeLabel}</span>
+        </div>
+      </div>
+      <ListQuickCallButton
+        ariaLabel={t("history.redial")}
+        testId={`history-redial-${row.id}`}
+        disabledReason={row.redialDisabledReason}
+        onClick={() => {
+          onRedial(row.id);
+        }}
+      />
+    </li>
+  );
+}
+
+function HistoryEmptyState(): JSX.Element {
+  const { t } = useI18n();
+
+  return (
+    <div className={styles.emptyState} data-testid="history-panel-empty">
+      <AppIcon id="dial.call" decorative size={24} className={styles.emptyIcon} />
+      <p className={styles.emptyTitle}>{t("history.empty")}</p>
+      <p className={styles.emptyHint}>{t("history.emptyHint")}</p>
+    </div>
+  );
+}
+
+function resolveDirectionIconId(
+  row: CallHistoryEntryRowViewModel,
+): "call.incoming" | "call.outgoing" | "call.phone-off" {
+  if (row.isMissed) {
+    return "call.phone-off";
+  }
+  return row.direction === "incoming" ? "call.incoming" : "call.outgoing";
+}
+
+const DIRECTION_TONE_CLASS: Record<"incoming" | "outgoing" | "missed", string> = {
+  incoming: styles.directionIncoming ?? "",
+  outgoing: styles.directionOutgoing ?? "",
+  missed: styles.directionMissed ?? "",
+};
+
+function resolveDirectionToneClass(row: CallHistoryEntryRowViewModel): string {
+  if (row.isMissed) {
+    return DIRECTION_TONE_CLASS.missed;
+  }
+  return DIRECTION_TONE_CLASS[row.direction];
 }

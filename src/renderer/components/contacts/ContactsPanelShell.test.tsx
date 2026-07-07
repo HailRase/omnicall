@@ -26,6 +26,7 @@ describe("ContactsPanelShell", () => {
           rows={[]}
           onSelectContact={vi.fn()}
           onAddContact={onAddContact}
+          onQuickCall={vi.fn()}
         />
       </ContactsPanelShell>,
     );
@@ -45,6 +46,7 @@ describe("ContactsPanelShell", () => {
           rows={[]}
           onSelectContact={vi.fn()}
           onAddContact={vi.fn()}
+          onQuickCall={vi.fn()}
         />
       </ContactsPanelShell>,
     );
@@ -60,6 +62,7 @@ describe("ContactsPanelShell", () => {
           rows={[]}
           onSelectContact={vi.fn()}
           onAddContact={vi.fn()}
+          onQuickCall={vi.fn()}
         />
       </ContactsPanelShell>,
     );
@@ -69,8 +72,9 @@ describe("ContactsPanelShell", () => {
     );
   });
 
-  it("renders populated list and routes selection", () => {
+  it("renders populated list, search, and quick call", () => {
     const onSelectContact = vi.fn();
+    const onQuickCall = vi.fn();
 
     render(
       <ContactsPanelShell open title="Контакты" onClose={vi.fn()}>
@@ -84,16 +88,35 @@ describe("ContactsPanelShell", () => {
               displayName: "Alice",
               primaryPhone: "101",
               company: "Axata",
+              callDisabledReason: null,
+            },
+            {
+              id: "agent-2",
+              displayName: "Bob",
+              primaryPhone: "102",
+              company: null,
+              callDisabledReason: "Недоступно",
             },
           ]}
           onSelectContact={onSelectContact}
           onAddContact={vi.fn()}
+          onQuickCall={onQuickCall}
         />
       </ContactsPanelShell>,
     );
 
     fireEvent.click(screen.getByTestId("contacts-list-item-agent-1"));
     expect(onSelectContact).toHaveBeenCalledWith("agent-1");
+
+    fireEvent.click(screen.getByTestId("contacts-quick-call-agent-1"));
+    expect(onQuickCall).toHaveBeenCalledWith("agent-1");
+    expect(screen.getByTestId("contacts-quick-call-agent-2")).toBeDisabled();
+
+    fireEvent.change(screen.getByTestId("contacts-search-input"), {
+      target: { value: "Bob" },
+    });
+    expect(screen.queryByTestId("contacts-list-item-agent-1")).not.toBeInTheDocument();
+    expect(screen.getByTestId("contacts-list-item-agent-2")).toBeInTheDocument();
   });
 
   it("renders contact details not-found state", () => {

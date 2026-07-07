@@ -81,7 +81,8 @@
   margin-inline: var(--space-sm);
 }
 
-.delete-button {
+.delete-button,
+.input-action-button {
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -98,20 +99,24 @@
     color 120ms ease;
 }
 
-.delete-button:disabled {
+.delete-button:disabled,
+.input-action-button:disabled {
   cursor: not-allowed;
 }
 
-.delete-button:hover:not(:disabled) {
+.delete-button:hover:not(:disabled),
+.input-action-button:hover:not(:disabled) {
   background: var(--color-bg-surface-alt);
   color: var(--color-text-primary);
 }
 
-.delete-button:active:not(:disabled) {
+.delete-button:active:not(:disabled),
+.input-action-button:active:not(:disabled) {
   background: var(--color-bg-surface-highlight);
 }
 
-.delete-button:focus-visible {
+.delete-button:focus-visible,
+.input-action-button:focus-visible {
   outline: none;
 }
 

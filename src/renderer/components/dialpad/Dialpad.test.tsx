@@ -99,6 +99,31 @@ describe("Dialpad", () => {
     expect(screen.queryByTestId("dialpad-delete")).not.toBeInTheDocument();
   });
 
+  it("shows contacts shortcut when input is empty", () => {
+    const onOpenContacts = vi.fn();
+    renderDialpad({ numberValue: "", onOpenContacts });
+
+    fireEvent.click(screen.getByTestId("dialpad-contacts"));
+    expect(onOpenContacts).toHaveBeenCalledOnce();
+  });
+
+  it("shows delete instead of contacts when number has digits", () => {
+    renderDialpad({ numberValue: "123", onOpenContacts: vi.fn() });
+
+    expect(screen.getByTestId("dialpad-delete")).toBeInTheDocument();
+    expect(screen.queryByTestId("dialpad-contacts")).not.toBeInTheDocument();
+  });
+
+  it("disables contacts shortcut when navigation is blocked", () => {
+    renderDialpad({
+      numberValue: "",
+      onOpenContacts: vi.fn(),
+      contactsDisabledReason: "Сначала войдите в аккаунт",
+    });
+
+    expect(screen.getByTestId("dialpad-contacts")).toBeDisabled();
+  });
+
   it("calls make-call binding on call button press", () => {
     const onCall = vi.fn();
     renderDialpad({ callDisabledReason: null, numberValue: "12345", onCall });

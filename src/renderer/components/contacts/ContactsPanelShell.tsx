@@ -1,8 +1,11 @@
-import type { JSX, ReactNode } from "react";
+import { useMemo, useState, type ChangeEvent, type JSX, type ReactNode } from "react";
 import { ShellDialpadPanel } from "../shell/ShellDialpadPanel.js";
 import { Button } from "../ui/button/Button.js";
+import { Input } from "../ui/input/Input.js";
 import { useI18n } from "../../i18n/index.js";
 import { AppIcon } from "../icons/index.js";
+import { ListQuickCallButton } from "../list/ListQuickCallButton.js";
+import { PersonListAvatar } from "../list/PersonListAvatar.js";
 import styles from "./ContactsPanelShell.module.css";
 
 export type ContactsPanelShellProps = Readonly<{
@@ -57,9 +60,11 @@ export type ContactsListPanelProps = Readonly<{
     displayName: string;
     primaryPhone: string;
     company: string | null;
+    callDisabledReason: string | null;
   }>;
   onSelectContact: (contactId: string) => void;
   onAddContact: () => void;
+  onQuickCall: (contactId: string) => void;
 }>;
 
 /**
@@ -74,8 +79,28 @@ export function ContactsListPanel({
   rows,
   onSelectContact,
   onAddContact,
+  onQuickCall,
 }: ContactsListPanelProps): JSX.Element {
   const { t } = useI18n();
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredRows = useMemo(() => {
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    if (normalizedQuery.length === 0) {
+      return rows;
+    }
+
+    return rows.filter((row) => {
+      const haystack = [row.displayName, row.primaryPhone, row.company ?? ""]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(normalizedQuery);
+    });
+  }, [rows, searchQuery]);
+
+  const handleSearchChange = (event: ChangeEvent<HTMLInputElement>): void => {
+    setSearchQuery(event.target.value);
+  };
 
   if (isLoading) {
     return (
@@ -95,12 +120,16 @@ export function ContactsListPanel({
 
   if (isEmpty) {
     return (
-      <div data-testid="contacts-list-empty">
-        <p className={styles.stateMessage}>{t("contacts.empty")}</p>
+      <div className={styles.emptyState} data-testid="contacts-list-empty">
+        <AppIcon id="shell.contacts" decorative size={24} className={styles.emptyIcon} />
+        <p className={styles.emptyTitle}>{t("contacts.empty")}</p>
+        <p className={styles.emptyHint}>{t("contacts.emptyHint")}</p>
         <div className={styles.actionsRow}>
           <Button
             type="button"
-            variant="primary"
+            variant="outline"
+            size="sm"
+            className={styles.emptyAddButton}
             data-testid="contacts-add-empty"
             onClick={onAddContact}
           >
@@ -113,10 +142,19 @@ export function ContactsListPanel({
 
   return (
     <>
-      <div className={styles.actionsRow}>
+      <div className={styles.listToolbar}>
+        <Input
+          type="search"
+          size="sm"
+          value={searchQuery}
+          placeholder={t("contacts.searchPlaceholder")}
+          aria-label={t("contacts.searchAriaLabel")}
+          data-testid="contacts-search-input"
+          onChange={handleSearchChange}
+        />
         <Button
           type="button"
-          variant="primary"
+          variant="outline"
           size="sm"
           data-testid="contacts-add"
           onClick={onAddContact}
@@ -124,26 +162,43 @@ export function ContactsListPanel({
           {t("contacts.add")}
         </Button>
       </div>
-      <ul className={styles.list} data-testid="contacts-list">
-        {rows.map((row) => (
-          <li key={row.id}>
-            <button
-              type="button"
-              className={styles.listItem}
-              data-testid={`contacts-list-item-${row.id}`}
-              onClick={() => {
-                onSelectContact(row.id);
-              }}
-            >
-              <div className={styles.listItemName}>{row.displayName}</div>
-              <div className={styles.listItemPhone}>{row.primaryPhone}</div>
-              {row.company !== null ? (
-                <div className={styles.listItemCompany}>{row.company}</div>
-              ) : null}
-            </button>
-          </li>
-        ))}
-      </ul>
+      {filteredRows.length === 0 ? (
+        <p className={styles.stateMessage} data-testid="contacts-list-search-empty">
+          {t("contacts.empty")}
+        </p>
+      ) : (
+        <ul className={styles.list} data-testid="contacts-list">
+          {filteredRows.map((row) => (
+            <li key={row.id} className={styles.listItemRow}>
+              <button
+                type="button"
+                className={styles.listItemMain}
+                data-testid={`contacts-list-item-${row.id}`}
+                onClick={() => {
+                  onSelectContact(row.id);
+                }}
+              >
+                <PersonListAvatar label={row.displayName} size="sm" />
+                <span className={styles.listItemText}>
+                  <span className={styles.listItemName}>{row.displayName}</span>
+                  <span className={styles.listItemSubline}>{row.primaryPhone}</span>
+                  {row.company !== null ? (
+                    <span className={styles.listItemSubline}>{row.company}</span>
+                  ) : null}
+                </span>
+              </button>
+              <ListQuickCallButton
+                ariaLabel={t("contacts.call")}
+                testId={`contacts-quick-call-${row.id}`}
+                disabledReason={row.callDisabledReason}
+                onClick={() => {
+                  onQuickCall(row.id);
+                }}
+              />
+            </li>
+          ))}
+        </ul>
+      )}
     </>
   );
 }
@@ -196,9 +251,31 @@ export function ContactDetailsPanel({
   }
 
   return (
-    <>
-      <div className={styles.detailsGrid} data-testid="contacts-details">
-        <DetailRow label={t("contacts.field.displayName")} value={contact.displayName} />
+    <div className={styles.detailsLayout} data-testid="contacts-details">
+      <div className={styles.detailsHero}>
+        <PersonListAvatar label={contact.displayName} size="lg" />
+        <h3 className={styles.detailsName}>{contact.displayName}</h3>
+        {contact.company !== null ? (
+          <p className={styles.detailsSubtitle}>{contact.company}</p>
+        ) : null}
+      </div>
+
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        fullWidth
+        className={styles.callActionButton}
+        disabled={contact.callDisabledReason !== null}
+        title={contact.callDisabledReason ?? undefined}
+        data-testid="contacts-call"
+        onClick={onCall}
+      >
+        <AppIcon id="dial.call" decorative size={14} />
+        {t("contacts.call")}
+      </Button>
+
+      <div className={styles.detailsCard}>
         <DetailRow label={t("contacts.field.primaryPhone")} value={contact.primaryPhone} />
         {contact.secondaryPhone !== null ? (
           <DetailRow label={t("contacts.field.secondaryPhone")} value={contact.secondaryPhone} />
@@ -206,35 +283,27 @@ export function ContactDetailsPanel({
         {contact.company !== null ? (
           <DetailRow label={t("contacts.field.company")} value={contact.company} />
         ) : null}
-        {contact.notes !== null ? (
+        {contact.notes !== null && contact.notes.length > 0 ? (
           <DetailRow label={t("contacts.field.notes")} value={contact.notes} />
         ) : null}
       </div>
-      <div className={styles.actionsRow}>
-        <Button
-          type="button"
-          variant="primary"
-          disabled={contact.callDisabledReason !== null}
-          title={contact.callDisabledReason ?? undefined}
-          data-testid="contacts-call"
-          onClick={onCall}
-        >
-          <AppIcon id="dial.call" decorative size={16} />
-          {t("contacts.call")}
-        </Button>
-        <Button type="button" variant="secondary" data-testid="contacts-edit" onClick={onEdit}>
+
+      <div className={styles.detailsActions}>
+        <Button type="button" variant="outline" size="sm" data-testid="contacts-edit" onClick={onEdit}>
+          <AppIcon id="action.edit" decorative size={14} />
           {t("contacts.edit")}
         </Button>
         <Button
           type="button"
           variant="destructive"
+          size="sm"
           data-testid="contacts-delete"
           onClick={onDelete}
         >
           {t("contacts.delete")}
         </Button>
       </div>
-    </>
+    </div>
   );
 }
 

@@ -12,6 +12,8 @@ export type UserAvatarMenuProps = Readonly<{
   position: AnchoredMenuPosition;
   dndEnabled: boolean;
   dndDisabledReason: string | null;
+  historyDisabledReason: string | null;
+  contactsDisabledReason: string | null;
   logoutDisabledReason: string | null;
   onOpenSettings: () => void;
   onOpenHistory: () => void;
@@ -32,6 +34,8 @@ export function UserAvatarMenu({
   position,
   dndEnabled,
   dndDisabledReason,
+  historyDisabledReason,
+  contactsDisabledReason,
   logoutDisabledReason,
   onOpenSettings,
   onOpenHistory,
@@ -58,31 +62,39 @@ export function UserAvatarMenu({
       data-testid="user-avatar-menu"
       style={{ top: position.top, left: position.left }}
     >
-      <button
-        type="button"
-        role="menuitem"
-        className={styles.item}
-        data-testid="user-menu-open-contacts"
-        onClick={onOpenContacts}
-      >
-        <span className={styles.itemIcon}>
-          <AppIcon id="settings.account" decorative />
-        </span>
-        <span className={styles.itemLabel}>{t("contacts.title")}</span>
-      </button>
+      <IconTooltip label={contactsDisabledReason ?? ""} className={styles.itemTooltipHost}>
+        <button
+          type="button"
+          role="menuitem"
+          className={styles.item}
+          data-testid="user-menu-open-contacts"
+          disabled={contactsDisabledReason !== null}
+          aria-label={contactsDisabledReason ?? t("contacts.title")}
+          onClick={onOpenContacts}
+        >
+          <span className={styles.itemIcon}>
+            <AppIcon id="settings.account" decorative />
+          </span>
+          <span className={styles.itemLabel}>{t("contacts.title")}</span>
+        </button>
+      </IconTooltip>
 
-      <button
-        type="button"
-        role="menuitem"
-        className={styles.item}
-        data-testid="user-menu-open-history"
-        onClick={onOpenHistory}
-      >
-        <span className={styles.itemIcon}>
-          <AppIcon id="call.outgoing" decorative />
-        </span>
-        <span className={styles.itemLabel}>{t("history.title")}</span>
-      </button>
+      <IconTooltip label={historyDisabledReason ?? ""} className={styles.itemTooltipHost}>
+        <button
+          type="button"
+          role="menuitem"
+          className={styles.item}
+          data-testid="user-menu-open-history"
+          disabled={historyDisabledReason !== null}
+          aria-label={historyDisabledReason ?? t("history.title")}
+          onClick={onOpenHistory}
+        >
+          <span className={styles.itemIcon}>
+            <AppIcon id="call.outgoing" decorative />
+          </span>
+          <span className={styles.itemLabel}>{t("history.title")}</span>
+        </button>
+      </IconTooltip>
 
       <button
         type="button"

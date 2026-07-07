@@ -1,7 +1,6 @@
 import clsx from "clsx";
 import { useCallback, useEffect, useState, type AnimationEvent, type JSX, type ReactNode } from "react";
 import { useI18n } from "../../i18n/index.js";
-import { Button } from "../ui/button/Button.js";
 import { IconControlButton } from "../icons/index.js";
 import styles from "./ShellDialpadPanel.module.css";
 
@@ -131,27 +130,29 @@ export function ShellDialpadPanel({
         onAnimationEnd={handlePanelAnimationEnd}
       >
         <header className={styles.header}>
-          <div className={styles.headerMain}>
+          <div className={styles.headerSlot}>
             {showBack && onBack !== undefined ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                data-testid={resolvedBackTestId}
+              <IconControlButton
+                iconId="shell.nav.back"
+                preferAnimated={false}
+                ariaLabel={t("shell.overlay.back")}
+                testId={resolvedBackTestId}
+                className={styles.navButton}
                 onClick={onBack}
-              >
-                {t("shell.overlay.back")}
-              </Button>
+              />
             ) : null}
-            <h2 className={styles.title}>{title}</h2>
           </div>
-          <IconControlButton
-            iconId="overlay.close"
-            ariaLabel={t("shell.overlay.closeTitleAria", { title })}
-            testId={resolvedCloseTestId}
-            className={styles.closeButton}
-            onClick={requestClose}
-          />
+          <h2 className={styles.title}>{title}</h2>
+          <div className={styles.headerSlot}>
+            <IconControlButton
+              iconId="overlay.close"
+              preferAnimated={false}
+              ariaLabel={t("shell.overlay.closeTitleAria", { title })}
+              testId={resolvedCloseTestId}
+              className={styles.navButton}
+              onClick={requestClose}
+            />
+          </div>
         </header>
         <div className={styles.body}>
           {children ?? (

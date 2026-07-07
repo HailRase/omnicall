@@ -1,0 +1,104 @@
+.avatar {
+  position: relative;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-full);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+}
+
+.size-sm {
+  width: 32px;
+  height: 32px;
+  font-size: 0.625rem;
+}
+
+.size-md {
+  width: 36px;
+  height: 36px;
+  font-size: 0.6875rem;
+}
+
+.size-lg {
+  width: 52px;
+  height: 52px;
+  font-size: var(--font-size-xs);
+}
+
+.initials {
+  letter-spacing: 0.02em;
+}
+
+.missed-badge {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--color-bg-surface);
+  border-radius: var(--radius-full);
+  background: var(--color-status-failed);
+}
+
+.tone0 {
+  background: var(--color-bg-surface-highlight);
+  color: var(--color-text-emphasis);
+}
+
+.tone1 {
+  background: var(--color-bg-success);
+  color: var(--color-text-success);
+}
+
+.tone2 {
+  background: var(--color-accent-primary);
+  color: var(--color-text-on-accent);
+}
+
+.tone3 {
+  background: var(--color-bg-danger);
+  color: var(--color-text-danger);
+}
+
+.tone4 {
+  background: var(--color-bg-surface-deep);
+  color: var(--color-text-primary);
+}
+
+.tone5 {
+  background: var(--color-bg-surface-alt);
+  color: var(--color-text-secondary);
+}
+
+[data-theme="dark"] .tone0 {
+  background: color-mix(in srgb, var(--color-accent-primary) 28%, var(--color-bg-surface-alt));
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .tone1 {
+  background: color-mix(in srgb, var(--color-status-online) 32%, var(--color-bg-surface-alt));
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .tone2 {
+  background: color-mix(in srgb, var(--color-accent-primary) 40%, var(--color-bg-surface-deep));
+  color: var(--color-text-on-accent);
+}
+
+[data-theme="dark"] .tone3 {
+  background: color-mix(in srgb, var(--color-status-failed) 34%, var(--color-bg-surface-alt));
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .tone4 {
+  background: color-mix(in srgb, var(--color-text-primary) 14%, var(--color-bg-surface-deep));
+  color: var(--color-text-primary);
+}
+
+[data-theme="dark"] .tone5 {
+  background: color-mix(in srgb, var(--color-accent-primary) 22%, var(--color-bg-surface-deep));
+  color: var(--color-text-secondary);
+}

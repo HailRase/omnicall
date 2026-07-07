@@ -72,6 +72,8 @@ export function SoftphoneShellHeader({
                     position={userAvatarMenu.position}
                     dndEnabled={userAvatarMenuActions.dndEnabled}
                     dndDisabledReason={userAvatarMenuActions.dndDisabledReason}
+                    historyDisabledReason={userAvatarMenuActions.historyDisabledReason}
+                    contactsDisabledReason={userAvatarMenuActions.contactsDisabledReason}
                     logoutDisabledReason={userAvatarMenuActions.logoutDisabledReason}
                     onOpenSettings={userAvatarMenuActions.handleOpenSettings}
                     onOpenHistory={userAvatarMenuActions.handleOpenHistory}

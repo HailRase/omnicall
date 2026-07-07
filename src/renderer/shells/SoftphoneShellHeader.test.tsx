@@ -35,6 +35,8 @@ const userAvatarMenu = {
 const userAvatarMenuActions = {
   dndEnabled: false,
   dndDisabledReason: null,
+  historyDisabledReason: null,
+  contactsDisabledReason: null,
   logoutDisabledReason: null,
   handleOpenSettings: vi.fn(),
   handleOpenHistory: vi.fn(),

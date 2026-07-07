@@ -28,6 +28,8 @@ const baseArgs: Story["args"] = {
   onDelete: () => undefined,
   onClear: () => undefined,
   onCall: () => undefined,
+  onOpenContacts: () => undefined,
+  contactsDisabledReason: null,
   onSendDtmf: () => undefined,
   onModeChange: () => undefined,
 };

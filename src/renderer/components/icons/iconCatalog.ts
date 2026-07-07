@@ -31,6 +31,7 @@ import {
   PhoneIncoming,
   PhoneOff,
   PhoneOutgoing,
+  Pencil,
   Play,
   RefreshCcw,
   RotateCcw,
@@ -38,6 +39,7 @@ import {
   SlidersHorizontal,
   Trash2,
   User,
+  Users,
   X,
 } from "lucide-react";
 import {
@@ -78,6 +80,8 @@ export type IconSemanticId =
   | "shell.restart"
   | "shell.window.minimize"
   | "shell.window.close"
+  | "shell.nav.back"
+  | "shell.contacts"
   | "settings.account"
   | "account.profile.delete"
   | "settings.general"
@@ -109,6 +113,7 @@ export type IconSemanticId =
   | "operator.break"
   | "operator.logout"
   | "action.confirm"
+  | "action.edit"
   | "action.retry"
   | "transfer.consultation"
   | "connection.retry"
@@ -160,6 +165,19 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.shell.window.close",
     defaultSize: 16,
     usage: ["ShellWindowControls: control-window-close"],
+  },
+  "shell.nav.back": {
+    static: ChevronLeft,
+    animated: ChevronLeftIcon,
+    defaultLabelKey: "icons.shell.nav.back",
+    defaultSize: 18,
+    usage: ["ShellDialpadPanel: panel-back"],
+  },
+  "shell.contacts": {
+    static: Users,
+    defaultLabelKey: "icons.shell.contacts",
+    defaultSize: 18,
+    usage: ["ContactsListPanel: contacts-empty", "Dialpad: dialpad-contacts"],
   },
   "settings.account": {
     static: User,
@@ -389,6 +407,12 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
       "CampaignEventModal: campaign-accept",
       "TransferPanel: control-attended-transfer",
     ],
+  },
+  "action.edit": {
+    static: Pencil,
+    defaultLabelKey: "icons.action.edit",
+    defaultSize: 16,
+    usage: ["ContactDetailsPanel: contacts-edit"],
   },
   "action.retry": {
     static: RotateCcw,

@@ -18,6 +18,8 @@
 | `shell.restart` | Controlled app restart | `RotateCcw` | `RotateCcwIcon` | `ShellWindowControls` | active |
 | `shell.window.minimize` | Minimize frameless window | `Minus` | — | `ShellWindowControls` | active |
 | `shell.window.close` | Close frameless window | `X` | — | `ShellWindowControls` | active |
+| `shell.nav.back` | Navigate back in shell panel | `ChevronLeft` | `ChevronLeftIcon` | `ShellDialpadPanel` | active |
+| `shell.contacts` | Open contacts list | `Users` | — | `ContactsListPanel`, `Dialpad` | active |
 | `settings.account` | Settings account section | `User` | `UserIcon` | `SettingsSidebar` | active |
 | `account.profile.delete` | Delete saved SIP profile | `Trash2` | — | `SavedAccountProfileSelector`, `DeleteSavedAccountProfileConfirmationModal` | active |
 | `settings.general` | Settings general section | `SlidersHorizontal` | `SlidersHorizontalIcon` | `SettingsSidebar` | active |
@@ -48,6 +50,7 @@
 | `operator.break` | Agent break status | `Coffee` | `CoffeeIcon` | `StatusSelector` | active |
 | `operator.logout` | Operator platform logout | `LogOut` | `LogoutIcon` | `StatusSelector`, `LogoutReasonModal` | active |
 | `action.confirm` | Confirm action | `Check` | `CheckIcon` | `BreakReasonPicker`, `CampaignEventModal`, `TransferPanel` | active |
+| `action.edit` | Edit contact or record | `Pencil` | — | `ContactDetailsPanel` | active |
 | `action.retry` | Retry failed operation | `RotateCcw` | `RotateCcwIcon` | `CallLineRow`, `ActiveCallControlsPanel` | active |
 | `transfer.consultation` | Start consultation call | `PhoneCall` | `PhoneCallIcon` | `TransferPanel` | active |
 | `connection.retry` | Retry connection | `RotateCcw` | `RotateCcwIcon` | `SettingsSystemStatePanel` (Phase 6) | planned |

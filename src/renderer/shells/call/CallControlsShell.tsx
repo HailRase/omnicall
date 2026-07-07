@@ -2,6 +2,10 @@ import type { JSX } from "react";
 import { CallControlsBar } from "../../components/call/CallControlsBar.js";
 import { Dialpad } from "../../components/dialpad/Dialpad.js";
 import type { CallFeatureShellBindings } from "../../hooks/useCallFeatureShell.js";
+import { mapAvatarMenuShellNavigationDisabledReason } from "../../helpers/mapAvatarMenuShellNavigationDisabledReason.js";
+import { useAuthShellFlags } from "../../hooks/useAuthShellFlags.js";
+import { useSoftphoneProjections } from "../../hooks/useSoftphoneProjections.js";
+import { useShellNavigation } from "../../navigation/index.js";
 import { useI18n } from "../../i18n/index.js";
 import styles from "./CallControlsShell.module.css";
 
@@ -16,6 +20,13 @@ type CallControlsShellProps = Readonly<{
  */
 export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Element {
   const { t } = useI18n();
+  const { navigateTo } = useShellNavigation();
+  const { isSipRegistered } = useAuthShellFlags();
+  const { projection } = useSoftphoneProjections();
+  const contactsDisabledReason = mapAvatarMenuShellNavigationDisabledReason({
+    isSipRegistered,
+    authUiState: projection.authUiState,
+  });
   const {
     callProjection,
     dialedNumber,
@@ -90,6 +101,10 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
           onDelete={deleteLastDialedDigit}
           onClear={clearDialedNumber}
           onCall={handleDialpadCall}
+          onOpenContacts={() => {
+            navigateTo({ name: "contacts" });
+          }}
+          contactsDisabledReason={contactsDisabledReason}
           onSendDtmf={callActions.handleSendDtmf}
           onModeChange={setCallMode}
           {...(numberEntryOverlayOpen

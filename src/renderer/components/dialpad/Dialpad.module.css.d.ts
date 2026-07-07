@@ -6,6 +6,7 @@ declare const classes: {
   readonly callButtonReason: string;
   readonly callButtonTooltipHost: string;
   readonly deleteButton: string;
+  readonly inputActionButton: string;
   readonly inputField: string;
   readonly inputRow: string;
   readonly key: string;

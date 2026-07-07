@@ -1,11 +1,23 @@
 declare const classes: {
+  readonly directionIcon: string;
+  readonly directionIncoming: string;
+  readonly directionMissed: string;
+  readonly directionOutgoing: string;
+  readonly emptyHint: string;
+  readonly emptyIcon: string;
+  readonly emptyState: string;
+  readonly emptyTitle: string;
+  readonly filterRow: string;
   readonly item: string;
   readonly itemMain: string;
   readonly list: string;
-  readonly meta: string;
-  readonly number: string;
+  readonly primaryLine: string;
+  readonly primaryLineMissed: string;
+  readonly secondaryLine: string;
+  readonly section: string;
+  readonly sectionTitle: string;
+  readonly sections: string;
   readonly stateMessage: string;
   readonly stateMessageError: string;
-  readonly subline: string;
 };
 export default classes;

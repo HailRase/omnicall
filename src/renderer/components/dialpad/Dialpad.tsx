@@ -42,6 +42,10 @@ export type DialpadProps = Readonly<{
 
   onCall: () => void;
 
+  onOpenContacts?: () => void;
+
+  contactsDisabledReason?: string | null;
+
   onSendDtmf: (tone: string) => void;
 
   onModeChange: (mode: DialpadMode) => void;
@@ -123,6 +127,10 @@ export function Dialpad({
   onClear,
 
   onCall,
+
+  onOpenContacts,
+
+  contactsDisabledReason = null,
 
   onClose,
 
@@ -452,7 +460,7 @@ export function Dialpad({
 
             testId="dialpad-delete"
 
-            className={styles.deleteButton}
+            className={styles.inputActionButton}
 
             disabledReason={inputDisabledReason}
 
@@ -461,6 +469,28 @@ export function Dialpad({
             onMouseUp={handleDeletePressEnd}
 
             onMouseLeave={handleDeletePressEnd}
+
+          />
+
+        ) : onOpenContacts !== undefined ? (
+
+          <IconControlButton
+
+            iconId="shell.contacts"
+
+            preferAnimated={false}
+
+            ariaLabel={t("dialpad.input.contactsAria")}
+
+            tooltipLabel={t("dialpad.input.contactsTooltip")}
+
+            testId="dialpad-contacts"
+
+            className={styles.inputActionButton}
+
+            disabledReason={contactsDisabledReason}
+
+            onClick={onOpenContacts}
 
           />
 

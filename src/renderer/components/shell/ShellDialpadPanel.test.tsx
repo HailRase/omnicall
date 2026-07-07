@@ -56,7 +56,7 @@ describe("ShellDialpadPanel", () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it("closes on Escape and renders expanded presentation", async () => {
+  it("closes on Escape and renders expanded presentation", () => {
     const onClose = vi.fn();
 
     render(

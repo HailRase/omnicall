@@ -39,7 +39,7 @@ export function ContactsShellRoutePanel({ facade }: ContactsShellRoutePanelProps
   }
 
   if (route.name === "contacts") {
-    return <ContactsListRoute onClose={goToDialpad} />;
+    return <ContactsListRoute facade={facade} onClose={goToDialpad} />;
   }
 
   if (route.name === "contactDetails") {
@@ -68,13 +68,15 @@ export function ContactsShellRoutePanel({ facade }: ContactsShellRoutePanelProps
 }
 
 type ContactsListRouteProps = Readonly<{
+  facade: AccountBootstrapFacade;
   onClose: () => void;
 }>;
 
-function ContactsListRoute({ onClose }: ContactsListRouteProps): JSX.Element {
+function ContactsListRoute({ facade, onClose }: ContactsListRouteProps): JSX.Element {
   const { t } = useI18n();
-  const { navigateTo } = useShellNavigation();
+  const { navigateTo, goToDialpad } = useShellNavigation();
   const { isSipRegistered } = useAuthShellFlags();
+  const actions = useContactActions({ facade });
   const contactsShell = useContactsShell({
     isSipRegistered,
   });
@@ -91,6 +93,14 @@ function ContactsListRoute({ onClose }: ContactsListRouteProps): JSX.Element {
         }}
         onAddContact={() => {
           navigateTo({ name: "contactEdit", contactId: NEW_CONTACT_ROUTE_ID });
+        }}
+        onQuickCall={(contactId) => {
+          void (async () => {
+            const result = await actions.callContact(contactId);
+            if (!isErr(result)) {
+              goToDialpad();
+            }
+          })();
         }}
       />
     </ContactsPanelShell>

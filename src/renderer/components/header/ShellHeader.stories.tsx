@@ -35,6 +35,8 @@ const baseHeaderArgs = {
   userAvatarMenuActions: {
     dndEnabled: false,
     dndDisabledReason: null,
+    historyDisabledReason: null,
+    contactsDisabledReason: null,
     logoutDisabledReason: null,
     handleOpenSettings: noop,
     handleOpenHistory: noop,

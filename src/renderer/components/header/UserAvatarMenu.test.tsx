@@ -17,6 +17,8 @@ const baseProps = {
   position: { top: 12, left: 24 },
   dndEnabled: false,
   dndDisabledReason: null,
+  historyDisabledReason: null,
+  contactsDisabledReason: null,
   logoutDisabledReason: null,
   onOpenSettings: vi.fn(),
   onOpenHistory: vi.fn(),
@@ -94,6 +96,19 @@ describe("UserAvatarMenu", () => {
       vi.advanceTimersByTime(ICON_TOOLTIP_DELAY_MS);
     });
     expect(screen.getByRole("tooltip")).toHaveTextContent("Не зарегистрирован");
+  });
+
+  it("disables contacts and history when navigation is blocked", () => {
+    render(
+      <UserAvatarMenu
+        {...baseProps}
+        contactsDisabledReason="Сначала войдите в аккаунт"
+        historyDisabledReason="Сначала войдите в аккаунт"
+      />,
+    );
+
+    expect(screen.getByTestId("user-menu-open-contacts")).toBeDisabled();
+    expect(screen.getByTestId("user-menu-open-history")).toBeDisabled();
   });
 
   it("always renders logout item", () => {
