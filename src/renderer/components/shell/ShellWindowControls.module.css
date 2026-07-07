@@ -14,6 +14,76 @@
   margin-left: 0;
 }
 
+.controls-mac-os-traffic-lights {
+  gap: 8px;
+  padding: 11px 12px;
+  min-height: var(--shell-titlebar-controls-height);
+}
+
+.traffic-light {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--shell-mac-traffic-light-idle);
+  color: var(--shell-mac-traffic-light-glyph);
+  cursor: default;
+  flex-shrink: 0;
+  line-height: 0;
+  transition: background-color 120ms ease;
+}
+
+.traffic-light:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.traffic-light:focus-visible {
+  outline: 2px solid var(--color-outline-focus);
+  outline-offset: 2px;
+}
+
+.traffic-light-glyph {
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+
+.traffic-light:hover:not(:disabled) .traffic-light-glyph {
+  opacity: 1;
+}
+
+.traffic-light-close:hover:not(:disabled) {
+  background: var(--shell-mac-traffic-light-close);
+}
+
+.traffic-light-minimize:hover:not(:disabled) {
+  background: var(--shell-mac-traffic-light-minimize);
+}
+
+.traffic-light-restart:hover:not(:disabled) {
+  background: var(--shell-mac-traffic-light-restart);
+}
+
+.traffic-light-restart-glyph {
+  opacity: 0.72;
+  transition:
+    opacity 120ms ease,
+    color 120ms ease;
+}
+
+.traffic-light-restart:hover:not(:disabled) .traffic-light-restart-glyph {
+  opacity: 1;
+  color: var(--shell-mac-traffic-light-restart-glyph);
+}
+
+.traffic-light svg {
+  display: block;
+}
+
 .window-control-button {
   width: 48px;
   height: 34px;
@@ -68,10 +138,4 @@
 .window-control-button-close:active:not(:disabled) {
   background: var(--color-text-danger);
   color: var(--color-text-on-accent);
-}
-
-.window-control-button-mac-os {
-  width: 30px;
-  height: 26px;
-  border-radius: var(--radius-sm);
 }

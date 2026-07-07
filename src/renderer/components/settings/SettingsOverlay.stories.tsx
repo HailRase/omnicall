@@ -4,6 +4,16 @@ import { SettingsPanel } from "./SettingsPanel.js";
 import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefaults.js";
 import { settingsCodecTestDefaults } from "./panels/settingsCodecTestDefaults.js";
 import { settingsAccountTestDefaults } from "./panels/settingsAccountTestDefaults.js";
+import type { ShellWindowControlsViewModel } from "../../hooks/useShellWindowControls.js";
+
+const storyWindowControls: ShellWindowControlsViewModel = {
+  platform: "linux",
+  showNativeWindowControls: true,
+  isShuttingDown: false,
+  onMinimize: () => undefined,
+  onClose: () => undefined,
+  onRestart: () => undefined,
+};
 
 const meta = {
   title: "Settings/SettingsPanel",
@@ -13,7 +23,11 @@ const meta = {
   },
   decorators: [
     (Story) => (
-      <SettingsFullscreenOverlay open onClose={() => undefined}>
+      <SettingsFullscreenOverlay
+        open
+        onClose={() => undefined}
+        windowControls={storyWindowControls}
+      >
         <Story />
       </SettingsFullscreenOverlay>
     ),
@@ -121,7 +135,11 @@ export const SystemStateSectionDark: Story = {
   decorators: [
     (Story) => (
       <div data-theme="dark" style={{ minHeight: "100vh", background: "var(--color-bg-app)" }}>
-        <SettingsFullscreenOverlay open onClose={() => undefined}>
+        <SettingsFullscreenOverlay
+          open
+          onClose={() => undefined}
+          windowControls={storyWindowControls}
+        >
           <Story />
         </SettingsFullscreenOverlay>
       </div>
@@ -181,7 +199,11 @@ export const AccountSectionRegisteredDark: Story = {
   decorators: [
     (Story) => (
       <div data-theme="dark" style={{ minHeight: "100vh", background: "var(--color-bg-app)" }}>
-        <SettingsFullscreenOverlay open onClose={() => undefined}>
+        <SettingsFullscreenOverlay
+          open
+          onClose={() => undefined}
+          windowControls={storyWindowControls}
+        >
           <Story />
         </SettingsFullscreenOverlay>
       </div>

@@ -20,6 +20,7 @@ import { ShellWindowController } from "./shellWindow/ShellWindowController.js";
 import { registerProfilesPersistenceIpc } from "./profiles/registerProfilesPersistenceIpc.js";
 import { AppShutdownCoordinator } from "./lifecycle/AppShutdownCoordinator.js";
 import { installApplicationMenu } from "./lifecycle/createApplicationMenu.js";
+import { isMainProcessDevMode } from "./lifecycle/resolveMainProcessDevMode.js";
 
 const logger = createConsoleLogger({
   boundedContext: "Integration",
@@ -48,7 +49,11 @@ function resolveAppIconTheme(): AppIconTheme {
 }
 
 function resolveFramelessShell(): boolean {
-  return process.platform === "win32" || process.platform === "linux";
+  return (
+    process.platform === "win32" ||
+    process.platform === "linux" ||
+    process.platform === "darwin"
+  );
 }
 
 function createMainWindow(): BrowserWindow {
@@ -63,9 +68,6 @@ function createMainWindow(): BrowserWindow {
     fullscreenable: false,
     show: false,
     frame: !frameless,
-    // macOS traffic lights stay native; Electron cannot replace only the green button with custom action.
-    // We keep native controls and place Reload as a separate titlebar action in renderer.
-    ...(process.platform === "darwin" ? { titleBarStyle: "hiddenInset" as const } : {}),
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),
       contextIsolation: true,
@@ -73,6 +75,7 @@ function createMainWindow(): BrowserWindow {
       sandbox: true,
       webSecurity: true,
       backgroundThrottling: false,
+      devTools: isMainProcessDevMode(),
     },
     ...(process.platform === "darwin" || iconPath === null ? {} : { icon: iconPath }),
   });

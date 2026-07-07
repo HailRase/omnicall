@@ -8,6 +8,7 @@ import { SettingsPanel } from "./SettingsPanel.js";
 import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefaults.js";
 import { settingsCodecTestDefaults } from "./panels/settingsCodecTestDefaults.js";
 import { settingsAccountTestDefaults } from "./panels/settingsAccountTestDefaults.js";
+import { settingsOverlayWindowControlsTestDefaults } from "./settingsOverlayWindowControlsTestDefaults.js";
 
 const appUpdateDefaults = {
   currentVersion: "0.0.1",
@@ -60,7 +61,11 @@ describe("SettingsFullscreenOverlay", () => {
     const onClose = vi.fn();
 
     const { rerender } = render(
-      <SettingsFullscreenOverlay open={false} onClose={onClose}>
+      <SettingsFullscreenOverlay
+        open={false}
+        onClose={onClose}
+        windowControls={settingsOverlayWindowControlsTestDefaults}
+      >
         <SettingsPanel {...panelProps} onClose={onClose} />
       </SettingsFullscreenOverlay>,
     );
@@ -68,12 +73,18 @@ describe("SettingsFullscreenOverlay", () => {
     expect(screen.queryByTestId("settings-overlay")).not.toBeInTheDocument();
 
     rerender(
-      <SettingsFullscreenOverlay open onClose={onClose}>
+      <SettingsFullscreenOverlay
+        open
+        onClose={onClose}
+        windowControls={settingsOverlayWindowControlsTestDefaults}
+      >
         <SettingsPanel {...panelProps} onClose={onClose} />
       </SettingsFullscreenOverlay>,
     );
 
     expect(screen.getByTestId("settings-overlay")).toBeInTheDocument();
+    expect(screen.getByTestId("settings-overlay-chrome-titlebar")).toBeInTheDocument();
+    expect(screen.getByTestId("shell-window-controls")).toBeInTheDocument();
     expect(screen.getByTestId("settings-overlay-body")).toBeInTheDocument();
 
     await user.click(screen.getByTestId("settings-overlay-close"));
@@ -84,13 +95,21 @@ describe("SettingsFullscreenOverlay", () => {
     const onClose = vi.fn();
 
     const { container, rerender } = render(
-      <SettingsFullscreenOverlay open onClose={onClose}>
+      <SettingsFullscreenOverlay
+        open
+        onClose={onClose}
+        windowControls={settingsOverlayWindowControlsTestDefaults}
+      >
         <SettingsPanel {...panelProps} onClose={onClose} />
       </SettingsFullscreenOverlay>,
     );
 
     rerender(
-      <SettingsFullscreenOverlay open={false} onClose={onClose}>
+      <SettingsFullscreenOverlay
+        open={false}
+        onClose={onClose}
+        windowControls={settingsOverlayWindowControlsTestDefaults}
+      >
         <SettingsPanel {...panelProps} onClose={onClose} />
       </SettingsFullscreenOverlay>,
     );

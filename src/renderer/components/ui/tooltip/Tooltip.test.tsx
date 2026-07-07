@@ -12,6 +12,7 @@ import {
   TooltipRoot,
   TooltipTrigger,
 } from "./Tooltip.js";
+import styles from "./Tooltip.module.css";
 
 afterEach(() => {
   cleanup();
@@ -105,6 +106,22 @@ describe("Tooltip", () => {
 
     await waitFor(() => {
       expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
+    });
+  });
+
+  it("wraps long assistive labels inside the tooltip surface", async () => {
+    const user = userEvent.setup();
+    const longLabel =
+      "This tooltip wraps longer assistive copy when the label exceeds the maximum width of the floating surface.";
+
+    render(<BasicTooltip label={longLabel} />);
+
+    await user.hover(screen.getByRole("button", { name: "Hover target" }));
+
+    await waitFor(() => {
+      const tooltipSurface = document.querySelector(`.${styles.content}`);
+      expect(tooltipSurface).not.toBeNull();
+      expect(tooltipSurface).toHaveTextContent(longLabel);
     });
   });
 

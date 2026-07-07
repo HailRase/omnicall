@@ -30,8 +30,6 @@
   align-items: center;
   flex-shrink: 0;
   min-height: 34px;
-  padding-left: 74px;
-  padding-right: var(--space-xs);
   -webkit-app-region: no-drag;
 }
 

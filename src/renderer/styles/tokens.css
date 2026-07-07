@@ -18,6 +18,17 @@
   --font-weight-semibold: 600;
   --line-height-ui: 1.5;
 
+  /* Shell chrome (frameless titlebar + macOS traffic lights) */
+  --shell-titlebar-controls-height: 34px;
+  --shell-mac-traffic-lights-width: 68px;
+  --shell-frameless-controls-width: 144px;
+  --shell-mac-traffic-light-idle: #8a8a8a;
+  --shell-mac-traffic-light-close: #ff5f57;
+  --shell-mac-traffic-light-minimize: #febc2e;
+  --shell-mac-traffic-light-restart: #28c840;
+  --shell-mac-traffic-light-glyph: rgb(0 0 0 / 55%);
+  --shell-mac-traffic-light-restart-glyph: rgb(0 0 0 / 65%);
+
   /* Elevation */
   --z-overlay: 100;
   --z-modal: 200;
@@ -100,6 +111,13 @@
 
 [data-theme="dark"] {
   color-scheme: dark;
+
+  --shell-mac-traffic-light-idle: #6b6b6b;
+  --shell-mac-traffic-light-close: #ff5f57;
+  --shell-mac-traffic-light-minimize: #febc2e;
+  --shell-mac-traffic-light-restart: #28c840;
+  --shell-mac-traffic-light-glyph: rgb(0 0 0 / 55%);
+  --shell-mac-traffic-light-restart-glyph: rgb(0 0 0 / 65%);
 
   /* Surfaces */
   --color-bg-app: #111722;

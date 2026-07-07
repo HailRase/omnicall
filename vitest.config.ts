@@ -22,6 +22,7 @@ export default defineConfig({
       "src/ports/**/*.test.ts",
       "src/adapters/**/*.test.ts",
       "src/infrastructure/**/*.test.ts",
+      "src/main/**/*.test.ts",
       "src/renderer/**/*.test.ts",
       "src/renderer/**/*.test.tsx",
     ],

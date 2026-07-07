@@ -51,6 +51,21 @@ const windowControls = {
 };
 
 describe("SoftphoneShellHeader", () => {
+  it("hides shell window controls when suppressWindowControls is true", () => {
+    render(
+      <SoftphoneShellHeader
+        headerChrome={headerChrome}
+        userAvatarMenu={userAvatarMenu}
+        userAvatarMenuActions={userAvatarMenuActions}
+        windowControls={windowControls}
+        suppressWindowControls
+      />,
+    );
+
+    expect(screen.queryByTestId("shell-window-controls")).not.toBeInTheDocument();
+    expect(screen.getByTestId("shell-header")).toBeInTheDocument();
+  });
+
   it("renders avatar, registration dot, and SIP status without recovery controls", () => {
     render(
       <SoftphoneShellHeader

@@ -4,6 +4,7 @@ import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ICON_TOOLTIP_DELAY_MS } from "./iconTooltipDelay.js";
 import { IconTooltip } from "./IconTooltip.js";
+import styles from "./IconTooltip.module.css";
 
 afterEach(() => {
   cleanup();
@@ -83,6 +84,26 @@ describe("IconTooltip", () => {
 
     fireEvent.pointerEnter(screen.getByTestId("icon-tooltip-host"));
     expect(screen.getByRole("tooltip")).toHaveTextContent("Hold");
+  });
+
+  it("wraps long labels instead of overflowing the bubble", () => {
+    const longLabel =
+      "Action is unavailable until SIP registration completes and the operator session is fully restored.";
+
+    render(
+      <IconTooltip label={longLabel}>
+        <button type="button">Icon</button>
+      </IconTooltip>,
+    );
+
+    fireEvent.pointerEnter(screen.getByTestId("icon-tooltip-host"));
+    act(() => {
+      vi.advanceTimersByTime(ICON_TOOLTIP_DELAY_MS);
+    });
+
+    const tooltip = screen.getByRole("tooltip");
+    expect(tooltip).toHaveTextContent(longLabel);
+    expect(tooltip).toHaveClass(styles.tooltip);
   });
 
   it("renders tooltip in document body portal when visible", () => {

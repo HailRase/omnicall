@@ -2,6 +2,7 @@ import { useState, type JSX } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import type { AccountPanelActionReasonKey } from "@application/index.js";
 import { NotificationViewport } from "../components/notifications/NotificationViewport.js";
+import { UpdateAvailableBanner } from "../components/updates/UpdateAvailableBanner.js";
 import { SettingsFullscreenOverlay } from "../components/settings/SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "../components/settings/SettingsPanel.js";
 import { DEFAULT_AUTO_ANSWER_TIMEOUT_SEC } from "../components/settings/panels/SettingsSessionsPanel.js";
@@ -148,12 +149,6 @@ export function SoftphoneReadyShell({
       projection.isOcpMode && ocpNotificationProjection.isOcpSyncAvailable
         ? ocpNotificationProjection.toasts
         : [],
-    appUpdate: {
-      showPrompt: appUpdate.showUpdatePrompt,
-      latestVersion: appUpdate.snapshot.latestVersion,
-      onDownload: appUpdate.onOpenDownloadPage,
-      onDismiss: appUpdate.onDismissUpdatePrompt,
-    },
   });
   const windowControls = useShellWindowControls({ isShuttingDown });
 
@@ -166,6 +161,7 @@ export function SoftphoneReadyShell({
             userAvatarMenu={userAvatarMenu}
             userAvatarMenuActions={userAvatarMenuActions}
             windowControls={windowControls}
+            suppressWindowControls={overlayShell.settingsOpen}
           />
           <OperatorFeatureShell facade={facade} />
         </>
@@ -179,6 +175,12 @@ export function SoftphoneReadyShell({
       controls={<CallControlsShell bindings={callBindings} />}
       overlays={
         <>
+          <UpdateAvailableBanner
+            visible={appUpdate.showUpdatePrompt}
+            latestVersion={appUpdate.snapshot.latestVersion}
+            onDownload={appUpdate.onOpenDownloadPage}
+            onDismiss={appUpdate.onDismissUpdatePrompt}
+          />
           <NotificationViewport
             placement={notifications.placement}
             stacking={notifications.stacking}
@@ -192,6 +194,7 @@ export function SoftphoneReadyShell({
           <SettingsFullscreenOverlay
             open={overlayShell.settingsOpen}
             onClose={overlayShell.closeOverlay}
+            windowControls={windowControls}
           >
             <SettingsPanel
               activeSection={overlayShell.settingsSection}

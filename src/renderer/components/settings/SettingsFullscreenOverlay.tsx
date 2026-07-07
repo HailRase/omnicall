@@ -2,11 +2,14 @@ import clsx from "clsx";
 import { useEffect, useState, type AnimationEvent, type JSX, type ReactNode } from "react";
 import { useI18n } from "../../i18n/index.js";
 import { Button } from "../ui/index.js";
+import { ShellWindowControls } from "../shell/ShellWindowControls.js";
+import type { ShellWindowControlsViewModel } from "../../hooks/useShellWindowControls.js";
 import styles from "./SettingsFullscreenOverlay.module.css";
 
 export type SettingsFullscreenOverlayProps = Readonly<{
   open: boolean;
   onClose: () => void;
+  windowControls: ShellWindowControlsViewModel;
   children: ReactNode;
 }>;
 
@@ -22,17 +25,19 @@ function prefersReducedMotion(): boolean {
 
 /**
  * - Purpose: render fullscreen settings overlay with slide-in animation and scrim.
- * - Inputs: open flag, close callback, settings panel content.
+ * - Inputs: open flag, close callback, window controls view-model, settings panel content.
  * - Outputs: modal dialog covering BrowserWindow without unmounting call context.
  * @uiMeta f=F-016,F-017 smoke=settings-overlay
  */
 export function SettingsFullscreenOverlay({
   open,
   onClose,
+  windowControls,
   children,
 }: SettingsFullscreenOverlayProps): JSX.Element | null {
   const { t } = useI18n();
   const [phase, setPhase] = useState<OverlayPhase>(() => (open ? "open" : "closed"));
+  const isMacOs = windowControls.platform === "darwin";
 
   useEffect(() => {
     if (open) {
@@ -60,6 +65,16 @@ export function SettingsFullscreenOverlay({
   }
 
   const exiting = phase === "closing";
+  const controls = (
+    <ShellWindowControls
+      platform={windowControls.platform}
+      showNativeWindowControls={windowControls.showNativeWindowControls}
+      isShuttingDown={windowControls.isShuttingDown}
+      onMinimize={windowControls.onMinimize}
+      onClose={windowControls.onClose}
+      onRestart={windowControls.onRestart}
+    />
+  );
 
   return (
     <div
@@ -81,7 +96,20 @@ export function SettingsFullscreenOverlay({
         className={clsx(styles.panel, exiting && styles.panelExiting)}
         onAnimationEnd={handlePanelAnimationEnd}
       >
-        {children}
+        <div className={styles.panelChromeTitlebar} data-testid="settings-overlay-chrome-titlebar">
+          {isMacOs ? (
+            <>
+              <div className={styles.panelChromeActions}>{controls}</div>
+              <div className={styles.panelChromeDrag} aria-hidden="true" />
+            </>
+          ) : (
+            <>
+              <div className={styles.panelChromeDrag} aria-hidden="true" />
+              <div className={styles.panelChromeActions}>{controls}</div>
+            </>
+          )}
+        </div>
+        <div className={styles.panelBody}>{children}</div>
       </section>
     </div>
   );

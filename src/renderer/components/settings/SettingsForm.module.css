@@ -2,13 +2,16 @@
   margin: 0;
   padding: 0;
   border: none;
-  max-width: 36rem;
+  width: 100%;
+  max-width: none;
 }
 
 .panel-stack {
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
+  width: 100%;
+  max-width: none;
 }
 
 .section-title {

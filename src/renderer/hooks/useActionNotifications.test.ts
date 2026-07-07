@@ -26,9 +26,8 @@ function createCallControlsProjection(
 
 function createBaseInput(overrides: Partial<HookInput> = {}): HookInput {
   const notify = vi.fn();
-  const dismiss = vi.fn();
   return {
-    notifications: { notify, dismiss },
+    notifications: { notify },
     accountFeedback: {
       error: null,
       successKey: null,
@@ -46,12 +45,6 @@ function createBaseInput(overrides: Partial<HookInput> = {}): HookInput {
     sipActionErrorText: null,
     statusRejectionBanner: null,
     ocpToasts: [],
-    appUpdate: {
-      showPrompt: false,
-      latestVersion: undefined,
-      onDownload: vi.fn(),
-      onDismiss: vi.fn(),
-    },
     ...overrides,
   };
 }
@@ -187,43 +180,5 @@ describe("useActionNotifications", () => {
     });
 
     expect(input.notifications.notify).toHaveBeenCalledTimes(5);
-  });
-
-  it("creates sticky update prompt with closable action and wires onClose", () => {
-    const onDismiss = vi.fn();
-    const input = createBaseInput({
-      appUpdate: {
-        showPrompt: true,
-        latestVersion: "1.2.3",
-        onDownload: vi.fn(),
-        onDismiss,
-      },
-    });
-    const { rerender } = renderHook((props: HookInput) => useActionNotifications(props), {
-      initialProps: input,
-    });
-
-    expect(input.notifications.notify).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: "update-1.2.3",
-        durationMs: 0,
-        closable: true,
-        onClose: onDismiss,
-        action: expect.objectContaining({
-          id: "update-download",
-          labelKey: "updates.prompt.download",
-        }),
-      }),
-    );
-
-    rerender({
-      ...input,
-      appUpdate: {
-        ...input.appUpdate,
-        showPrompt: false,
-      },
-    });
-
-    expect(input.notifications.dismiss).toHaveBeenCalledWith("update-1.2.3");
   });
 });

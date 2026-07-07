@@ -7,6 +7,7 @@ import { SettingsPanel } from "../../components/settings/SettingsPanel.js";
 import { systemStateTestDefaults } from "../../components/settings/panels/settingsSystemStateTestDefaults.js";
 import { settingsCodecTestDefaults } from "../../components/settings/panels/settingsCodecTestDefaults.js";
 import { settingsAccountTestDefaults } from "../../components/settings/panels/settingsAccountTestDefaults.js";
+import { settingsOverlayWindowControlsTestDefaults } from "../../components/settings/settingsOverlayWindowControlsTestDefaults.js";
 import { SoftphoneLayout } from "./SoftphoneLayout.js";
 
 describe("settings overlay with layout zones", () => {
@@ -17,7 +18,11 @@ describe("settings overlay with layout zones", () => {
         context={<div data-testid="call-context-zone">Call context</div>}
         controls={<span>Controls</span>}
         overlays={
-          <SettingsFullscreenOverlay open onClose={() => undefined}>
+          <SettingsFullscreenOverlay
+            open
+            onClose={() => undefined}
+            windowControls={settingsOverlayWindowControlsTestDefaults}
+          >
             <SettingsPanel
               activeSection="sessions"
               sidebarExpanded={false}

@@ -16,6 +16,7 @@ type SoftphoneShellHeaderProps = Readonly<{
   userAvatarMenu: UseUserAvatarMenuResult;
   userAvatarMenuActions: UseUserAvatarMenuActionsResult;
   windowControls: ShellWindowControlsViewModel;
+  suppressWindowControls?: boolean;
 }>;
 
 /**
@@ -29,6 +30,7 @@ export function SoftphoneShellHeader({
   userAvatarMenu,
   userAvatarMenuActions,
   windowControls,
+  suppressWindowControls = false,
 }: SoftphoneShellHeaderProps): JSX.Element {
   const { t } = useI18n();
   const statusLabel =
@@ -47,6 +49,7 @@ export function SoftphoneShellHeader({
     <header className={styles.header} data-testid="shell-header">
       <ShellTitleBar
         windowControls={windowControls}
+        suppressWindowControls={suppressWindowControls}
         leading={
           <div className={styles.headerBar}>
             <div className={styles.headerBrand}>

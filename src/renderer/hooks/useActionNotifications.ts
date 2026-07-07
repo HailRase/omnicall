@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import type {
   ActiveCallControlsProjection,
   OcpToastItem,
@@ -10,10 +10,7 @@ import type {
   UseNotificationsResult,
 } from "./useNotifications.js";
 
-type NotificationApi = Pick<
-  UseNotificationsResult,
-  "notify" | "dismiss"
->;
+type NotificationApi = Pick<UseNotificationsResult, "notify">;
 
 type UseActionNotificationsInput = Readonly<{
   notifications: NotificationApi;
@@ -34,12 +31,6 @@ type UseActionNotificationsInput = Readonly<{
   sipActionErrorText: string | null;
   statusRejectionBanner: string | null;
   ocpToasts: ReadonlyArray<OcpToastItem>;
-  appUpdate: Readonly<{
-    showPrompt: boolean;
-    latestVersion: string | undefined;
-    onDownload: () => void;
-    onDismiss: () => void;
-  }>;
 }>;
 
 function buildAccountErrorDescriptor(
@@ -78,22 +69,12 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
     sipActionErrorText,
     statusRejectionBanner,
     ocpToasts,
-    appUpdate,
   } = input;
-  const { notify, dismiss } = notifications;
+  const { notify } = notifications;
   const {
     projection: callControlsProjection,
     onRetry: retryCallOperation,
   } = callControls;
-  const {
-    showPrompt: showUpdatePrompt,
-    latestVersion: latestUpdateVersion,
-    onDownload: onUpdateDownload,
-    onDismiss: onUpdateDismiss,
-  } = appUpdate;
-
-  const seenUpdateVersionRef = useRef<string | null>(null);
-
   const accountError = accountFeedback.error;
   const lastOperationError = callControlsProjection.lastOperationError;
 
@@ -121,7 +102,9 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
     if (accountError === null) {
       return;
     }
-    const { id: _accountErrorId, ...descriptor } = buildAccountErrorDescriptor(accountError);
+    const accountDescriptor = buildAccountErrorDescriptor(accountError);
+    const { id, ...descriptor } = accountDescriptor;
+    void id;
     notify(descriptor);
   }, [accountError, notify]);
 
@@ -218,33 +201,4 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
       });
     });
   }, [notify, ocpToasts]);
-
-  useEffect(() => {
-    if (!showUpdatePrompt) {
-      seenUpdateVersionRef.current = null;
-      if (latestUpdateVersion !== undefined) {
-        dismiss(`update-${latestUpdateVersion}`);
-      }
-      return;
-    }
-    const version = latestUpdateVersion ?? "available";
-    if (seenUpdateVersionRef.current === version) {
-      return;
-    }
-    seenUpdateVersionRef.current = version;
-    notify({
-      id: `update-${version}`,
-      level: "info",
-      messageKey: "updates.prompt.message",
-      messageParams: { latestVersion: latestUpdateVersion },
-      durationMs: 0,
-      closable: true,
-      action: {
-        id: "update-download",
-        labelKey: "updates.prompt.download",
-        onClick: onUpdateDownload,
-      },
-      onClose: onUpdateDismiss,
-    });
-  }, [dismiss, latestUpdateVersion, notify, onUpdateDismiss, onUpdateDownload, showUpdatePrompt]);
 }

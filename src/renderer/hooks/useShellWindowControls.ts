@@ -40,7 +40,15 @@ export function useShellWindowControls(
     })();
   }, []);
 
-  const showNativeWindowControls = platform === "win32" || platform === "linux";
+  useEffect(() => {
+    document.documentElement.dataset["shellPlatform"] = platform;
+
+    return () => {
+      delete document.documentElement.dataset["shellPlatform"];
+    };
+  }, [platform]);
+
+  const showNativeWindowControls = true;
 
   const onMinimize = useCallback((): void => {
     if (isShuttingDown) {
