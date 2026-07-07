@@ -2,9 +2,9 @@
 
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
-**Updated:** 2026-07-06  
-**Tests:** 1274 passed, 1 skipped (`npm run test`) — last verified 2026-07-06 (`0a2ae05`)  
-**Lint / typecheck:** green (last verified 2026-07-06)
+**Updated:** 2026-07-07  
+**Tests:** 1493 passed, 1 skipped (`npm run test`) — last verified 2026-07-07 (release cut `v0.6.0`)  
+**Lint / typecheck:** green (last verified 2026-07-07)
 
 **Guides (onboarding):** [`guides/README.md`](../../guides/README.md) — установка, пользователь, агенты Cursor, релизы.
 
@@ -57,9 +57,9 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 | Field | Value |
 | --- | --- |
-| Shipped | **0.5.1** (`v0.5.1`, 2026-07-06) — F-020 update banner overlay refactor |
-| Previous | **0.5.0** (F-016 shell lifecycle), **0.4.0** (F-024 saved SIP profiles), **0.3.1** (F-020 compact banner) |
-| Next cut | **0.5.2** (PATCH) or **0.6.0** (MINOR) per SemVer table in `RELEASE-PLAYBOOK.md` |
+| Shipped | **0.6.0** (`v0.6.0`, 2026-07-07) — UI Kit migration, Bulgarian locale, profile tab delete, Sonner notifications |
+| Previous | **0.5.1** (F-020 banner overlay), **0.5.0** (F-016 shell lifecycle), **0.4.0** (F-024 saved SIP profiles) |
+| Next cut | **0.6.1** (PATCH) or **0.7.0** (MINOR) per SemVer table in `RELEASE-PLAYBOOK.md` |
 | Source repo | `HailRase/softphone-electron` (target: **private**) |
 | Distribution | [`HailRase/axatalk-releases`](https://github.com/HailRase/axatalk-releases) (public: installers + manifest) |
 | Manifest (live) | `axatalk-releases/main/update-manifest.json` |

@@ -5,6 +5,19 @@ Public release history for **Axatalk** distribution builds.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer. Git tag: `v<version>`.
 
+## [0.6.0] - 2026-07-07
+
+### Added
+
+- Bulgarian language option in Settings → General
+- Delete a saved SIP account profile from its tab (trash icon with confirmation dialog)
+
+### Changed
+
+- Settings panels use refreshed UI Kit controls (buttons, switches, selects, and profile tabs)
+- Action notifications — stacked toasts with success and error icons; each attempt shows its own message
+- Update available prompt — Alert-style card with download icon at the top of the window
+
 ## [0.5.1] - 2026-07-06
 
 ### Changed
