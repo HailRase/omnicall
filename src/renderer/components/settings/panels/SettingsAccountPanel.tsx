@@ -37,7 +37,7 @@ export type SettingsAccountPanelProps = Readonly<{
   onLogout: () => void;
   onProfileSelect: (profileId: SavedAccountProfileId | null) => void;
   onSaveProfileChange: (checked: boolean) => void;
-  onDeleteProfileRequest: () => void;
+  onDeleteProfileRequest: (profileId: SavedAccountProfileId) => void;
   onDeleteProfileConfirm: () => void;
   onDeleteProfileCancel: () => void;
   onSwitchProfileConfirm: () => void;
@@ -81,8 +81,6 @@ export function SettingsAccountPanel({
   onSwitchProfileConfirm,
   onSwitchProfileCancel,
 }: SettingsAccountPanelProps): JSX.Element {
-  const showModalBackdrop = deleteConfirmationOpen || switchConfirmationOpen;
-
   return (
     <div className={styles.wrapper} data-testid="settings-account-panel">
       <div className={styles.tabsRow}>
@@ -120,13 +118,14 @@ export function SettingsAccountPanel({
         />
       </div>
 
-      {showModalBackdrop ? (
+      <DeleteSavedAccountProfileConfirmationModal
+        open={deleteConfirmationOpen}
+        onConfirm={onDeleteProfileConfirm}
+        onCancel={onDeleteProfileCancel}
+      />
+
+      {switchConfirmationOpen ? (
         <div className={styles.modalBackdrop} data-testid="account-settings-modal-backdrop">
-          <DeleteSavedAccountProfileConfirmationModal
-            open={deleteConfirmationOpen}
-            onConfirm={onDeleteProfileConfirm}
-            onCancel={onDeleteProfileCancel}
-          />
           <SwitchSavedAccountProfileConfirmationModal
             open={switchConfirmationOpen}
             fromLogin={switchFromLogin}

@@ -53,6 +53,7 @@ const LANGUAGE_LABELS: Readonly<Record<SupportedLanguage, TranslationKey>> = {
   en: "settings.general.language.en",
   fr: "settings.general.language.fr",
   de: "settings.general.language.de",
+  bg: "settings.general.language.bg",
 };
 
 const PLACEMENT_LABELS: Readonly<Record<NotificationPlacement, TranslationKey>> = {

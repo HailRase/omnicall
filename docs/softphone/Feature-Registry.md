@@ -590,13 +590,13 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Selected language applies immediately without restart.
   - All touched UI and UI-facing logic add keys for every supported locale.
   - No new hardcoded user-visible strings outside approved translation modules/tests/stories.
-  - Supported interface locales are `ru`, `en`, `fr`, `de`; catalogs stay key-parity complete for migrated modules.
+  - Supported interface locales are `ru`, `en`, `fr`, `de`, `bg`; catalogs stay key-parity complete for migrated modules.
   - Settings → General language selector renders full locale labels and does not reuse numeric input styling.
   - Renderer UI-facing modules (`components`, `helpers`, `shells`, UI-facing `hooks`) are key-based and resolved through i18n runtime.
   - UI-facing `application/projections` emit semantic keys/params (no localized sentences).
 - Test Coverage:
   - Unit: `SupportedLanguage` validation, `UserSettings` v2 migration/validation, translation key parity, interpolation.
-  - Component: Settings language selector and at least one critical shell/call surface in `ru`, `en`, `fr`, and `de`.
+  - Component: Settings language selector and at least one critical shell/call surface in `ru`, `en`, `fr`, `de`, and `bg`.
   - Integration: save/reload language through `AccountBootstrapFacade` + settings repository.
   - E2E: deferred until harness exists.
 - Implementation evidence: `docs/softphone/adr/ADR-0006-interface-internationalization.md`, `src/domain/settings/SupportedLanguage.ts`, `src/domain/settings/UserSettings.ts`, `src/renderer/i18n/messages.ts`, `src/renderer/i18n/runtime.ts`, `.cursor/rules/i18n.mdc`, `docs/softphone/I18N-Architecture.md`, `docs/softphone/I18N-Coverage.md`

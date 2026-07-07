@@ -1,7 +1,6 @@
 .row {
   display: flex;
   align-items: center;
-  gap: var(--space-sm);
   width: 100%;
 }
 
@@ -23,60 +22,86 @@
   scrollbar-width: thin;
 }
 
-.profile-tab {
+.profile-tab-shell {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
   max-width: 100%;
+  min-width: 0;
+  border: 1px solid transparent;
+  border-radius: calc(var(--radius-control) - 4px);
+  transition:
+    color 120ms ease,
+    background-color 120ms ease,
+    border-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.profile-tab-shell:hover:not(:has(.profile-tab-trigger:disabled)) {
+  background: var(--color-bg-surface-highlight);
+}
+
+.profile-tab-shell:has(.profile-tab-trigger[data-state="active"]) {
+  border-color: var(--color-border-subtle);
+  background: var(--color-bg-surface);
+  box-shadow: var(--shadow-control-knob);
+}
+
+.profile-tab-shell:has(.profile-tab-trigger[data-state="active"]):hover {
+  background: var(--color-bg-surface);
+}
+
+.profile-tab-trigger {
+  flex: 1;
+  min-width: 0;
+  max-width: 100%;
+  padding: var(--space-xs) var(--space-2xs) var(--space-xs) var(--space-sm);
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.profile-tab-trigger[data-state="active"],
+.profile-tab-trigger:hover:not(:disabled):not([data-disabled="true"]) {
+  border: none;
+  box-shadow: none;
+  background: transparent;
+  color: inherit;
 }
 
 .tab-label {
   display: block;
-  max-width: 12rem;
+  max-width: 11rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.delete-button {
-  display: inline-flex;
+.tab-delete {
   flex-shrink: 0;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-2xs);
-  align-self: center;
-  min-height: 2.25rem;
-  margin-left: auto;
-  padding: var(--space-xs) var(--space-sm);
+  border:none;
   border-radius: var(--radius-control);
-  border: 1px solid var(--color-border-danger-accent);
-  background: var(--color-status-failed);
-  color: #fff;
-  font-size: 0.8125rem;
-  font-weight: var(--font-weight-semibold);
-  line-height: 1.35;
+  background: transparent;
   cursor: pointer;
-  transition:
-    background 140ms ease,
-    border-color 140ms ease,
-    filter 140ms ease;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin-right: var(--space-2xs);
+  color: var(--color-status-failed);
 }
 
-.delete-button:hover:not(:disabled) {
-  border-color: var(--color-border-danger-accent);
-  background: var(--color-status-failed);
-  filter: brightness(1.08);
-  color: #fff;
+.tab-delete svg {
+  width: var(--icon-size-sm);
+  height: var(--icon-size-sm);
 }
 
-.delete-button:focus-visible {
-  outline: none;
-  border-color: var(--color-border-focus);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-border-focus) 20%, transparent);
+.tab-delete:hover:not(:disabled) {
+  color: var(--color-status-failed-hover);
 }
 
-.delete-button:disabled {
+.tab-delete:disabled {
   opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.delete-button-label {
-  color: inherit;
 }

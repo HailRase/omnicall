@@ -6,6 +6,7 @@
 - `en` (international locale)
 - `fr` (international locale)
 - `de` (international locale)
+- `bg` (international locale)
 
 ## Ownership and boundaries
 

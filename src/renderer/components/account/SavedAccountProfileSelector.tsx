@@ -1,10 +1,10 @@
-import type { JSX } from "react";
+import type { JSX, MouseEvent } from "react";
 
 import type { SavedAccountProfileSelectorOption } from "@application/projections/deriveSavedAccountProfileSelectorOptions.js";
 import type { SavedAccountProfileId } from "@application/index.js";
 
 import { useI18n } from "../../i18n/index.js";
-import { AppIcon } from "../icons/index.js";
+import { IconControlButton } from "../icons/index.js";
 import { Tabs, TabsList, TabsTrigger } from "../ui/index.js";
 import styles from "./SavedAccountProfileSelector.module.css";
 
@@ -15,11 +15,11 @@ export type SavedAccountProfileSelectorProps = Readonly<{
   selectedProfileId: SavedAccountProfileId | null;
   disabled?: boolean;
   onSelect: (profileId: SavedAccountProfileId | null) => void;
-  onDeleteRequest: () => void;
+  onDeleteRequest: (profileId: SavedAccountProfileId) => void;
 }>;
 
 /**
- * - Purpose: render saved SIP profile tab navigation with New entry and delete action.
+ * - Purpose: render saved SIP profile tab navigation with per-tab delete icon.
  * - Inputs: tab options, selection, disabled flag, and callbacks.
  * - Outputs: accessible tablist without facade or business rules.
  */
@@ -31,11 +31,23 @@ export function SavedAccountProfileSelector({
   onDeleteRequest,
 }: SavedAccountProfileSelectorProps): JSX.Element {
   const { t } = useI18n();
-  const canDelete = selectedProfileId !== null && !disabled;
   const activeTabValue = selectedProfileId ?? NEW_PROFILE_TAB_VALUE;
+  const deleteLabel = t("account.profile.delete");
 
   function handleTabValueChange(nextValue: string): void {
     onSelect(nextValue === NEW_PROFILE_TAB_VALUE ? null : (nextValue as SavedAccountProfileId));
+  }
+
+  function handleDeleteClick(
+    event: MouseEvent<HTMLButtonElement>,
+    profileId: SavedAccountProfileId,
+  ): void {
+    event.stopPropagation();
+    if (disabled) {
+      return;
+    }
+
+    onDeleteRequest(profileId);
   }
 
   return (
@@ -59,32 +71,38 @@ export function SavedAccountProfileSelector({
             {t("account.profile.option.new")}
           </TabsTrigger>
           {options.map((option) => (
-            <TabsTrigger
+            <div
               key={option.id}
-              value={option.id}
-              id={`saved-profile-tab-${option.id}`}
-              disabled={disabled}
-              className={styles.profileTab}
-              data-testid="saved-account-profile-tab"
+              className={styles.profileTabShell}
+              data-testid="saved-account-profile-tab-group"
               data-profile-id={option.id}
             >
-              <span className={styles.tabLabel}>{option.label}</span>
-            </TabsTrigger>
+              <TabsTrigger
+                value={option.id}
+                id={`saved-profile-tab-${option.id}`}
+                disabled={disabled}
+                className={styles.profileTabTrigger}
+                data-testid="saved-account-profile-tab"
+                data-profile-id={option.id}
+              >
+                <span className={styles.tabLabel}>{option.label}</span>
+              </TabsTrigger>
+              <IconControlButton
+                iconId="account.profile.delete"
+                preferAnimated={false}
+                ariaLabel={deleteLabel}
+                tooltipLabel={deleteLabel}
+                disabled={disabled}
+                testId="saved-account-profile-tab-delete"
+                className={styles.tabDelete}
+                onClick={(event) => {
+                  handleDeleteClick(event, option.id);
+                }}
+              />
+            </div>
           ))}
         </TabsList>
       </Tabs>
-
-      <button
-        type="button"
-        className={styles.deleteButton}
-        disabled={!canDelete}
-        aria-label={t("account.profile.delete")}
-        data-testid="saved-account-profile-delete"
-        onClick={onDeleteRequest}
-      >
-        <AppIcon id="dial.delete" size={16} decorative />
-        <span className={styles.deleteButtonLabel}>{t("account.profile.delete")}</span>
-      </button>
     </div>
   );
 }

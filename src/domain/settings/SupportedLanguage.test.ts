@@ -6,8 +6,8 @@ import {
 } from "./SupportedLanguage.js";
 
 describe("SupportedLanguage", () => {
-  it("exposes ru, en, fr and de locales", () => {
-    expect(SUPPORTED_LANGUAGES).toEqual(["ru", "en", "fr", "de"]);
+  it("exposes ru, en, fr, de and bg locales", () => {
+    expect(SUPPORTED_LANGUAGES).toEqual(["ru", "en", "fr", "de", "bg"]);
     expect(DEFAULT_SUPPORTED_LANGUAGE).toBe("ru");
   });
 
@@ -16,6 +16,7 @@ describe("SupportedLanguage", () => {
     expect(parseSupportedLanguage("en")).toBe("en");
     expect(parseSupportedLanguage("fr")).toBe("fr");
     expect(parseSupportedLanguage("de")).toBe("de");
+    expect(parseSupportedLanguage("bg")).toBe("bg");
   });
 
   it("rejects unknown locale values", () => {

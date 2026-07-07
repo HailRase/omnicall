@@ -94,7 +94,7 @@ type UseAccountActionsResult = Readonly<{
   handleSubmit: () => void;
   selectProfile: (profileId: SavedAccountProfileId | null) => void;
   setSaveProfileChecked: (checked: boolean) => void;
-  requestDeleteSelectedProfile: () => void;
+  requestDeleteSelectedProfile: (profileId: SavedAccountProfileId) => void;
   confirmDeleteSelectedProfile: () => void;
   cancelDeleteSelectedProfile: () => void;
   confirmSwitchProfile: () => void;
@@ -382,14 +382,10 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     setSwitchConfirmationOpen(false);
   }, []);
 
-  const requestDeleteSelectedProfile = useCallback((): void => {
-    if (selectedProfileId === null) {
-      return;
-    }
-
-    setDeleteTargetProfileId(selectedProfileId);
+  const requestDeleteSelectedProfile = useCallback((profileId: SavedAccountProfileId): void => {
+    setDeleteTargetProfileId(profileId);
     setDeleteConfirmationOpen(true);
-  }, [selectedProfileId]);
+  }, []);
 
   const cancelDeleteSelectedProfile = useCallback((): void => {
     setDeleteConfirmationOpen(false);

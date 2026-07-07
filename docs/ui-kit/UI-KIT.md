@@ -34,6 +34,7 @@ src/renderer/components/ui/
     index.ts
   dialog/
   dropdown-menu/
+  alert/
   ...
 ```
 
@@ -49,6 +50,7 @@ Storybook title convention:
 UI Kit/Button
 UI Kit/Dialog
 UI Kit/Dropdown Menu
+UI Kit/Alert
 ```
 
 ## Design Sources
@@ -1153,6 +1155,69 @@ Checklist:
 - [x] Barrel export added
 - [x] Light/dark verified
 - [x] Accessibility verified (close button aria via `toastOptions.closeButtonAriaLabel`)
+- [x] Documentation status updated
+
+### Alert
+
+Status: [ ] planned [ ] in progress [x] done
+Radix: no
+Priority: P1
+
+Purpose:
+
+- Inline callout for user attention inside a page, form, or panel.
+- Composable title, description, optional icon, and optional action slot.
+- shadcn/ui-like presentational surface with native `role="alert"`; not modal and not `AlertDialog`.
+- Distinct from `Notification`: no close control, no metadata slot, no app-level card chrome.
+
+API:
+
+- composable `Alert`, `AlertTitle`, `AlertDescription`, `AlertAction`
+- `variant`: `default | destructive`
+- optional leading icon via children (`AppIcon` with `decorative` when title is present)
+- `className` on each slot
+- native `div` props on root, title, description, and action wrapper
+
+Visual and behavior (shadcn-like):
+
+- bordered rounded surface with compact padding and semantic surface tokens
+- grid layout: optional icon column, title and description in the content column
+- title: medium weight, single-line preferred
+- description: muted smaller text with relaxed line height
+- destructive variant: destructive text and border tokens; description uses muted destructive tone
+- `AlertAction`: trailing action slot for `Button` or other control; does not steal root focus
+- static inline surface only: no portal, no focus trap, no escape handling
+
+Stories:
+
+- [x] Default
+- [x] Destructive
+- [x] With Icon
+- [x] With Action
+- [x] Long Content
+- [x] Light Theme
+- [x] Dark Theme
+
+Tests:
+
+- [x] Renders title and description.
+- [x] Exposes `role="alert"` on root.
+- [x] Applies variant classes.
+- [x] Renders icon and action slots.
+- [x] Forwards refs on documented slots.
+- [x] Preserves caller `className`.
+
+Checklist:
+
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Typed variants implemented
+- [x] Applicable Universal Quality Gates satisfied
+- [x] Storybook added under `UI Kit/Alert`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified
 - [x] Documentation status updated
 
 ### Notification

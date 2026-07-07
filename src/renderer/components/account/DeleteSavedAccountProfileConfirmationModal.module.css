@@ -10,6 +10,10 @@
   flex-shrink: 0;
 }
 
+.footer {
+  justify-content: flex-end;
+}
+
 .icon-button {
   display: inline-flex;
   align-items: center;

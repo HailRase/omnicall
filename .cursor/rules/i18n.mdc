@@ -9,7 +9,7 @@ Applies to renderer UI and UI-facing application logic.
 
 ## Mandatory
 
-- Every UI or UI-facing logic change updates translation keys for **all** supported locales (`ru`, `en`).
+- Every UI or UI-facing logic change updates translation keys for **all** supported locales (`ru`, `en`, `fr`, `de`, `bg`).
 - No hardcoded user-visible copy in renderer components, shells, hooks, UI helpers, icon labels, or application projections.
 - Domain emits technical reason keys/events only; never localized sentences.
 - Application projections prefer semantic message keys + interpolation params over localized text.

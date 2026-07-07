@@ -8,6 +8,8 @@ import "@testing-library/jest-dom/vitest";
 
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 
+import userEvent from "@testing-library/user-event";
+
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createSettingsAccountKey } from "@application/index.js";
@@ -237,6 +239,52 @@ describe("SettingsAccountPanel", () => {
 
 
     expect(screen.getByTestId("delete-saved-account-profile-modal")).toBeInTheDocument();
+
+  });
+
+
+
+  it("requests profile delete when trash icon on tab is clicked", async () => {
+
+    const user = userEvent.setup();
+
+    const onDeleteProfileRequest = vi.fn();
+
+    renderPanel({ onDeleteProfileRequest });
+
+
+
+    await user.click(screen.getByTestId("saved-account-profile-tab-delete"));
+
+
+
+    expect(onDeleteProfileRequest).toHaveBeenCalledWith(profileId);
+
+    expect(onDeleteProfileRequest).toHaveBeenCalledOnce();
+
+  });
+
+
+
+  it("confirms profile delete from alert dialog", async () => {
+
+    const user = userEvent.setup();
+
+    const onDeleteProfileConfirm = vi.fn();
+
+    renderPanel({
+
+      deleteConfirmationOpen: true,
+
+      onDeleteProfileConfirm,
+
+    });
+
+
+
+    await user.click(screen.getByTestId("delete-saved-account-profile-confirm"));
+
+    expect(onDeleteProfileConfirm).toHaveBeenCalledOnce();
 
   });
 

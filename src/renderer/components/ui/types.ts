@@ -48,3 +48,5 @@ export type SkeletonShape = "text" | "rectangle" | "circle";
 export type BadgeTone = "default" | "muted" | "success" | "warning" | "destructive" | "info";
 
 export type BadgeSize = "sm" | "md";
+
+export type AlertVariant = "default" | "destructive";

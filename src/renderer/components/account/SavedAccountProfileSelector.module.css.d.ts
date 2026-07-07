@@ -1,8 +1,8 @@
 declare const classes: {
-  readonly deleteButton: string;
-  readonly deleteButtonLabel: string;
-  readonly profileTab: string;
+  readonly profileTabShell: string;
+  readonly profileTabTrigger: string;
   readonly row: string;
+  readonly tabDelete: string;
   readonly tabLabel: string;
   readonly tablist: string;
   readonly tabsRoot: string;

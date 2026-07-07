@@ -12,9 +12,11 @@ describe("renderer i18n catalog", () => {
     const enKeys = Object.keys(I18N_MESSAGES.en).sort();
     const frKeys = Object.keys(I18N_MESSAGES.fr).sort();
     const deKeys = Object.keys(I18N_MESSAGES.de).sort();
+    const bgKeys = Object.keys(I18N_MESSAGES.bg).sort();
     expect(enKeys).toEqual(ruKeys);
     expect(frKeys).toEqual(ruKeys);
     expect(deKeys).toEqual(ruKeys);
+    expect(bgKeys).toEqual(ruKeys);
   });
 
   it("formats interpolation placeholders", () => {
@@ -35,18 +37,22 @@ describe("renderer i18n catalog", () => {
     expect(translateCurrent("settings.title")).toBe("Parametres");
     setRendererLanguage("de");
     expect(translateCurrent("settings.title")).toBe("Einstellungen");
+    setRendererLanguage("bg");
+    expect(translateCurrent("settings.title")).toBe("Настройки");
     setRendererLanguage("ru");
     expect(translateCurrent("settings.title")).toBe("Настройки");
   });
 
-  it("keeps non-Russian distinct strings for en/fr/de on migrated dialpad keys", () => {
+  it("keeps non-Russian distinct strings for en/fr/de/bg on migrated dialpad keys", () => {
     const key = "dialpad.call.label" as const;
     const ru = translateInLanguage("ru", key);
     const en = translateInLanguage("en", key);
     const fr = translateInLanguage("fr", key);
     const de = translateInLanguage("de", key);
+    const bg = translateInLanguage("bg", key);
     expect(en).not.toBe(ru);
     expect(fr).not.toBe(ru);
     expect(de).not.toBe(ru);
+    expect(bg).not.toBe(ru);
   });
 });

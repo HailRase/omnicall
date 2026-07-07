@@ -1,3 +1,13 @@
+export {
+  Alert,
+  AlertAction,
+  AlertDescription,
+  AlertTitle,
+  type AlertActionProps,
+  type AlertDescriptionProps,
+  type AlertProps,
+  type AlertTitleProps,
+} from "./alert/index.js";
 export { Badge, type BadgeProps } from "./badge/index.js";
 export { Button, type ButtonProps } from "./button/index.js";
 export { Checkbox, type CheckboxProps } from "./checkbox/index.js";
@@ -111,6 +121,7 @@ export {
   type TooltipTriggerProps,
 } from "./tooltip/index.js";
 export type {
+  AlertVariant,
   ButtonSize,
   ButtonVariant,
   ControlSize,

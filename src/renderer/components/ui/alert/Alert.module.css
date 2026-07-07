@@ -1,0 +1,79 @@
+.root {
+  display: grid;
+  width: 100%;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2xs);
+  align-items: start;
+  padding: var(--space-md);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-panel);
+  background: var(--color-bg-surface-alt);
+  color: var(--color-text-primary);
+  font-family: inherit;
+}
+
+.root:has(> svg) {
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: var(--space-sm);
+}
+
+.root > svg {
+  grid-column: 1;
+  grid-row: 1 / -1;
+  align-self: start;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: currentColor;
+}
+
+.variant-default {
+  border-color: var(--color-border-subtle);
+  background: var(--color-bg-surface-alt);
+  color: var(--color-text-primary);
+}
+
+.variant-destructive {
+  border-color: var(--color-border-danger);
+  background: var(--color-bg-danger);
+  color: var(--color-text-danger);
+}
+
+.title {
+  grid-column: 1;
+  margin: 0;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-ui);
+}
+
+.root:has(> svg) .title {
+  grid-column: 2;
+}
+
+.description {
+  grid-column: 1;
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  line-height: 1.625;
+}
+
+.root:has(> svg) .description {
+  grid-column: 2;
+}
+
+.variant-destructive .description {
+  color: var(--color-text-danger-soft);
+}
+
+.action {
+  grid-column: 1;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: var(--space-2xs);
+}
+
+.root:has(> svg) .action {
+  grid-column: 2;
+}

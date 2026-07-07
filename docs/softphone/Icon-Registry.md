@@ -19,6 +19,7 @@
 | `shell.window.minimize` | Minimize frameless window | `Minus` | — | `ShellWindowControls` | active |
 | `shell.window.close` | Close frameless window | `X` | — | `ShellWindowControls` | active |
 | `settings.account` | Settings account section | `User` | `UserIcon` | `SettingsSidebar` | active |
+| `account.profile.delete` | Delete saved SIP profile | `Trash2` | — | `SavedAccountProfileSelector`, `DeleteSavedAccountProfileConfirmationModal` | active |
 | `settings.general` | Settings general section | `SlidersHorizontal` | `SlidersHorizontalIcon` | `SettingsSidebar` | active |
 | `settings.sessions` | Settings sessions section | `Layers` | `LayersIcon` | `SettingsSidebar` | active |
 | `settings.system-state` | Settings system state section (SIP transport/register) | `Gauge` | — | `SettingsSidebar` (Phase 6) | planned |

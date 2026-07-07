@@ -35,6 +35,7 @@ import {
   RotateCcw,
   Settings,
   SlidersHorizontal,
+  Trash2,
   User,
   X,
 } from "lucide-react";
@@ -77,6 +78,7 @@ export type IconSemanticId =
   | "shell.window.minimize"
   | "shell.window.close"
   | "settings.account"
+  | "account.profile.delete"
   | "settings.general"
   | "settings.sessions"
   | "settings.system-state"
@@ -162,6 +164,15 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.settings.account",
     defaultSize: 20,
     usage: ["SettingsSidebar: settings-nav-account"],
+  },
+  "account.profile.delete": {
+    static: Trash2,
+    defaultLabelKey: "icons.account.profile.delete",
+    defaultSize: 20,
+    usage: [
+      "SavedAccountProfileSelector: saved-account-profile-tab-delete",
+      "DeleteSavedAccountProfileConfirmationModal",
+    ],
   },
   "settings.general": {
     static: SlidersHorizontal,

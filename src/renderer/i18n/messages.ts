@@ -1,4 +1,5 @@
 import type { SupportedLanguage } from "@application/index.js";
+import { bgMessages } from "./catalogs/bgMessages.js";
 
 const ruMessages = {
   "settings.title": "Настройки",
@@ -28,6 +29,7 @@ const ruMessages = {
   "settings.general.language.en": "English",
   "settings.general.language.fr": "Francais",
   "settings.general.language.de": "Deutsch",
+  "settings.general.language.bg": "Български",
   "settings.general.recoveryLegend": "Восстановление SIP",
   "settings.general.autoReregisterLabel": "Автоматическая перерегистрация SIP",
   "settings.general.autoReregisterDescription":
@@ -88,6 +90,7 @@ const ruMessages = {
   "icons.shell.window.minimize": "Свернуть окно",
   "icons.shell.window.close": "Закрыть окно",
   "icons.settings.account": "Аккаунт",
+  "icons.account.profile.delete": "Удалить профиль",
   "icons.settings.general": "Общее",
   "icons.settings.sessions": "Сессии",
   "icons.settings.codecs": "Кодеки",
@@ -632,6 +635,7 @@ const ruMessages = {
 };
 
 type MessageShape = typeof ruMessages;
+export type { MessageShape };
 
 const enMessages: MessageShape = {
   ...ruMessages,
@@ -661,6 +665,7 @@ const enMessages: MessageShape = {
   "settings.general.language.en": "English",
   "settings.general.language.fr": "French",
   "settings.general.language.de": "German",
+  "settings.general.language.bg": "Bulgarian",
   "settings.general.recoveryLegend": "SIP recovery",
   "settings.general.autoReregisterLabel": "Automatic SIP re-registration",
   "settings.general.autoReregisterDescription":
@@ -718,6 +723,7 @@ const enMessages: MessageShape = {
   "icons.shell.window.minimize": "Minimize window",
   "icons.shell.window.close": "Close window",
   "icons.settings.account": "Account",
+  "icons.account.profile.delete": "Delete profile",
   "icons.settings.general": "General",
   "icons.settings.sessions": "Sessions",
   "icons.settings.codecs": "Codecs",
@@ -1278,6 +1284,7 @@ const frMessages: MessageShape = {
   "settings.general.language.en": "Anglais",
   "settings.general.language.fr": "Francais",
   "settings.general.language.de": "Allemand",
+  "settings.general.language.bg": "Bulgare",
   "settings.general.recoveryLegend": "Recuperation SIP",
   "settings.general.autoReregisterLabel": "Reenregistrement SIP automatique",
   "settings.general.autoReregisterDescription":
@@ -1337,6 +1344,7 @@ const frMessages: MessageShape = {
   "icons.shell.window.minimize": "Reduire la fenetre",
   "icons.shell.window.close": "Fermer la fenetre",
   "icons.settings.account": "Compte",
+  "icons.account.profile.delete": "Supprimer le profil",
   "icons.settings.general": "General",
   "icons.settings.sessions": "Sessions",
   "icons.settings.codecs": "Codecs",
@@ -1889,6 +1897,7 @@ const deMessages: MessageShape = {
   "settings.general.language.en": "Englisch",
   "settings.general.language.fr": "Franzoesisch",
   "settings.general.language.de": "Deutsch",
+  "settings.general.language.bg": "Bulgarisch",
   "settings.general.recoveryLegend": "SIP-Wiederherstellung",
   "settings.general.autoReregisterLabel": "Automatische SIP-Neuregistrierung",
   "settings.general.autoReregisterDescription":
@@ -1948,6 +1957,7 @@ const deMessages: MessageShape = {
   "icons.shell.window.minimize": "Fenster minimieren",
   "icons.shell.window.close": "Fenster schliessen",
   "icons.settings.account": "Konto",
+  "icons.account.profile.delete": "Profil loeschen",
   "icons.settings.general": "Allgemein",
   "icons.settings.sessions": "Sitzungen",
   "icons.settings.codecs": "Codecs",
@@ -2483,4 +2493,5 @@ export const I18N_MESSAGES: Readonly<Record<SupportedLanguage, TranslationCatalo
   en: enMessages,
   fr: frMessages,
   de: deMessages,
+  bg: bgMessages,
 };

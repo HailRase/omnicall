@@ -18,6 +18,7 @@ const LOCALE_BY_LANGUAGE: Readonly<Record<SupportedLanguage, string>> = {
   en: "en-US",
   fr: "fr-FR",
   de: "de-DE",
+  bg: "bg-BG",
 };
 
 export type Translator = <K extends TranslationKey>(

@@ -1,8 +1,10 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { setRendererLanguage } from "../../i18n/index.js";
+import { setupJsdomRadix } from "../../test/setupJsdomRadix.js";
 import { DeleteSavedAccountProfileConfirmationModal } from "./DeleteSavedAccountProfileConfirmationModal.js";
 
 afterEach(() => {
@@ -12,6 +14,7 @@ afterEach(() => {
 
 describe("DeleteSavedAccountProfileConfirmationModal", () => {
   beforeEach(() => {
+    setupJsdomRadix();
     setRendererLanguage("ru");
   });
 
@@ -28,8 +31,9 @@ describe("DeleteSavedAccountProfileConfirmationModal", () => {
     expect(screen.getByText("Удалить профиль?")).toBeInTheDocument();
   });
 
-  it("invokes confirm and cancel callbacks", () => {
+  it("invokes confirm callback", async () => {
     setRendererLanguage("en");
+    const user = userEvent.setup();
     const onConfirm = vi.fn();
     const onCancel = vi.fn();
 
@@ -41,10 +45,27 @@ describe("DeleteSavedAccountProfileConfirmationModal", () => {
       />,
     );
 
-    fireEvent.click(screen.getByTestId("delete-saved-account-profile-confirm"));
+    await user.click(screen.getByTestId("delete-saved-account-profile-confirm"));
     expect(onConfirm).toHaveBeenCalledOnce();
+    expect(onCancel).not.toHaveBeenCalled();
+  });
 
-    fireEvent.click(screen.getByTestId("delete-saved-account-profile-cancel"));
+  it("invokes cancel callback", async () => {
+    setRendererLanguage("en");
+    const user = userEvent.setup();
+    const onConfirm = vi.fn();
+    const onCancel = vi.fn();
+
+    render(
+      <DeleteSavedAccountProfileConfirmationModal
+        open
+        onConfirm={onConfirm}
+        onCancel={onCancel}
+      />,
+    );
+
+    await user.click(screen.getByTestId("delete-saved-account-profile-cancel"));
     expect(onCancel).toHaveBeenCalledOnce();
+    expect(onConfirm).not.toHaveBeenCalled();
   });
 });
