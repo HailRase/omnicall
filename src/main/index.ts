@@ -66,6 +66,7 @@ function createMainWindow(): BrowserWindow {
     minHeight: MAIN_WINDOW_INITIAL_BOUNDS.minHeight,
     maximizable: false,
     fullscreenable: false,
+    resizable: false,
     show: false,
     frame: !frameless,
     webPreferences: {

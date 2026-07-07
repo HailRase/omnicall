@@ -14,8 +14,14 @@ export type ShellWindowWorkArea = Readonly<{
   height: number;
 }>;
 
+export type ShellWindowCompactDimensions = Readonly<{
+  width: number;
+  height: number;
+}>;
+
 export const SHELL_WINDOW_LAYOUT = {
   compactDefaultWidth: 420,
+  compactDefaultHeight: 625,
   settingsWidth: 1000,
   animationDurationMs: 280,
   screenMargin: 16,
@@ -24,27 +30,37 @@ export const SHELL_WINDOW_LAYOUT = {
 export type ShellWindowLayoutEasing = "settings-open" | "settings-close";
 
 /**
+ * - Purpose: resolve whether the shell window accepts user resize for a layout mode (F-016).
+ * - Inputs: compact or settings layout mode.
+ * - Outputs: true only in settings mode.
+ */
+export function resolveShellWindowResizable(mode: ShellWindowLayoutMode): boolean {
+  return mode === "settings";
+}
+
+/**
  * - Purpose: derive target BrowserWindow bounds for compact or settings shell layout (F-016).
- * - Inputs: layout mode, work area, window height, optional saved compact width.
+ * - Inputs: layout mode, work area, saved compact dimensions, settings-session height.
  * - Outputs: target rectangle in screen coordinates.
  */
 export function resolveShellWindowTargetBounds(
   mode: ShellWindowLayoutMode,
   workArea: ShellWindowWorkArea,
-  height: number,
-  compactWidth: number,
+  compactDimensions: ShellWindowCompactDimensions,
+  settingsSessionHeight: number,
 ): ShellWindowRectangle {
-  const width =
-    mode === "settings" ? SHELL_WINDOW_LAYOUT.settingsWidth : compactWidth;
-
   if (mode === "settings") {
-    return computeCenteredBounds(workArea, width, height);
+    return computeCenteredBounds(
+      workArea,
+      SHELL_WINDOW_LAYOUT.settingsWidth,
+      settingsSessionHeight,
+    );
   }
 
   return computeBottomRightBounds(
     workArea,
-    width,
-    height,
+    compactDimensions.width,
+    compactDimensions.height,
     SHELL_WINDOW_LAYOUT.screenMargin,
   );
 }

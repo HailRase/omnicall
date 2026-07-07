@@ -301,6 +301,7 @@ export type {
   ShellWindowLayoutEasing,
   ShellWindowRectangle,
   ShellWindowWorkArea,
+  ShellWindowCompactDimensions,
 } from "./platform/ShellWindowLayout.js";
 export {
   SHELL_WINDOW_LAYOUT,

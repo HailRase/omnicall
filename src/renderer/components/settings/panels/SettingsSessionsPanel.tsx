@@ -1,10 +1,11 @@
 import clsx from "clsx";
-import type { ChangeEvent, JSX } from "react";
+import type { JSX } from "react";
 import {
   MAX_AUTO_ANSWER_TIMEOUT_SEC,
   MIN_AUTO_ANSWER_TIMEOUT_SEC,
 } from "@application/index.js";
 import { useI18n } from "../../../i18n/index.js";
+import { SettingsNumberInput } from "../SettingsNumberInput.js";
 import { Switch } from "../../ui/index.js";
 import formStyles from "../SettingsForm.module.css";
 
@@ -37,14 +38,6 @@ export function SettingsSessionsPanel({
   onAutoAnswerDuringActiveSessionChange,
 }: SettingsSessionsPanelProps): JSX.Element {
   const { t } = useI18n();
-
-  const handleAutoAnswerTimeoutChange = (event: ChangeEvent<HTMLInputElement>): void => {
-    const parsed = Number.parseInt(event.target.value, 10);
-    if (Number.isNaN(parsed)) {
-      return;
-    }
-    onAutoAnswerTimeoutChange(parsed);
-  };
 
   const busyAutoAnswerDisabled = !autoAnswerEnabled || !multiSessionsEnabled;
 
@@ -119,24 +112,16 @@ export function SettingsSessionsPanel({
                   })}
                 </span>
               </label>
-              <div className={formStyles.numberInputGroup}>
-                <input
-                  id="settings-auto-answer-timeout"
-                  type="number"
-                  min={MIN_AUTO_ANSWER_TIMEOUT_SEC}
-                  max={MAX_AUTO_ANSWER_TIMEOUT_SEC}
-                  step={1}
-                  className={formStyles.numberInput}
-                  data-testid="settings-auto-answer-timeout"
-                  value={autoAnswerTimeoutSec}
-                  disabled={!autoAnswerEnabled}
-                  aria-disabled={!autoAnswerEnabled}
-                  onChange={handleAutoAnswerTimeoutChange}
-                />
-                <span className={formStyles.inputSuffix}>
-                  {t("settings.sessions.autoAnswer.secondsShort")}
-                </span>
-              </div>
+              <SettingsNumberInput
+                id="settings-auto-answer-timeout"
+                min={MIN_AUTO_ANSWER_TIMEOUT_SEC}
+                max={MAX_AUTO_ANSWER_TIMEOUT_SEC}
+                value={autoAnswerTimeoutSec}
+                disabled={!autoAnswerEnabled}
+                suffix={t("settings.sessions.autoAnswer.secondsShort")}
+                data-testid="settings-auto-answer-timeout"
+                onChange={onAutoAnswerTimeoutChange}
+              />
             </div>
           </div>
 

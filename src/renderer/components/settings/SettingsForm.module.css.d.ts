@@ -7,10 +7,7 @@ declare const classes: {
   readonly fieldLabelGroup: string;
   readonly fieldRow: string;
   readonly fieldValue: string;
-  readonly inputSuffix: string;
   readonly languageSelectField: string;
-  readonly numberInput: string;
-  readonly numberInputGroup: string;
   readonly panelStack: string;
   readonly sectionCard: string;
   readonly sectionTitle: string;

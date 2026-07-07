@@ -2,6 +2,8 @@
 - Purpose: generate production app icon assets from one master design.
 - Inputs: no CLI args; writes files into build/ directory.
 - Outputs: icon.svg, icon.png, icon-*.png, icons/{N}x{N}.png, icon.ico, icon.icns.
+- macOS: icon.icns and theme-icons use 824x824 artwork centered in 1024 (Apple HIG gutter).
+- Windows runtime: windows-theme-icons use 927x927 artwork (~12.5% larger than macOS).
 - Transparency: outside squircle is fully transparent with anti-aliased alpha.
 - Quality: handset keeps readable silhouette at 16x16 and 32x32.
 """
@@ -14,6 +16,11 @@ from pathlib import Path
 from PIL import Image, ImageChops, ImageDraw, ImageFilter
 
 MASTER_SIZE = 1024
+# macOS HIG: 824x824 artwork centered in 1024 canvas (100px gutter per side).
+MACOS_ICON_CANVAS_SIZE = 1024
+MACOS_ICON_ARTWORK_SIZE = 824
+# Windows taskbar: ~12.5% larger artwork than macOS padded icon (between 10–15%).
+WINDOWS_ICON_ARTWORK_SIZE = int(round(MACOS_ICON_ARTWORK_SIZE * 1.125))
 OUTPUT_SIZES = (512, 256, 128, 64, 48, 32, 16)
 LINUX_ICON_SIZES = (16, 24, 32, 48, 64, 96, 128, 256, 512)
 ICO_SIZES = (16, 32, 48, 256)
@@ -339,6 +346,32 @@ def write_svg_master(target_path: Path) -> None:
     target_path.write_text(svg_content, encoding="utf-8")
 
 
+def compose_centered_icon_canvas(artwork: Image.Image, artwork_size: int) -> Image.Image:
+    """Scale artwork and center on a transparent 1024 canvas."""
+    canvas = Image.new(
+        "RGBA",
+        (MACOS_ICON_CANVAS_SIZE, MACOS_ICON_CANVAS_SIZE),
+        (0, 0, 0, 0),
+    )
+    resized = artwork.resize(
+        (artwork_size, artwork_size),
+        Image.Resampling.LANCZOS,
+    )
+    offset = (MACOS_ICON_CANVAS_SIZE - artwork_size) // 2
+    canvas.paste(resized, (offset, offset), resized)
+    return canvas
+
+
+def compose_macos_icon_canvas(artwork: Image.Image) -> Image.Image:
+    """Scale artwork to macOS HIG safe size and center on a transparent 1024 canvas."""
+    return compose_centered_icon_canvas(artwork, MACOS_ICON_ARTWORK_SIZE)
+
+
+def compose_windows_icon_canvas(artwork: Image.Image) -> Image.Image:
+    """Windows taskbar icon: slightly larger artwork than macOS HIG padding."""
+    return compose_centered_icon_canvas(artwork, WINDOWS_ICON_ARTWORK_SIZE)
+
+
 def resize_for_output(master: Image.Image, size: int) -> Image.Image:
     if size <= 32:
         return master.resize((size, size), Image.Resampling.LANCZOS).filter(ImageFilter.UnsharpMask(radius=0.8, percent=160, threshold=2))
@@ -357,16 +390,29 @@ def save_assets(master: Image.Image, light_master: Image.Image, dark_master: Ima
 
     ico_source = sized_images[256]
     ico_source.save(build_dir / "icon.ico", format="ICO", sizes=[(size, size) for size in ICO_SIZES])
-    master.save(build_dir / "icon.icns", format="ICNS")
+
+    macos_master = compose_macos_icon_canvas(master)
+    macos_master.save(build_dir / "icon.icns", format="ICNS")
 
     theme_icons_dir = build_dir / "theme-icons"
     theme_icons_dir.mkdir(parents=True, exist_ok=True)
-    dark_master.resize((256, 256), Image.Resampling.LANCZOS).save(
+    compose_macos_icon_canvas(dark_master).resize((256, 256), Image.Resampling.LANCZOS).save(
         theme_icons_dir / "icon-dark.png",
         format="PNG",
     )
-    light_master.resize((256, 256), Image.Resampling.LANCZOS).save(
+    compose_macos_icon_canvas(light_master).resize((256, 256), Image.Resampling.LANCZOS).save(
         theme_icons_dir / "icon-light.png",
+        format="PNG",
+    )
+
+    windows_theme_icons_dir = build_dir / "windows-theme-icons"
+    windows_theme_icons_dir.mkdir(parents=True, exist_ok=True)
+    compose_windows_icon_canvas(dark_master).resize((256, 256), Image.Resampling.LANCZOS).save(
+        windows_theme_icons_dir / "icon-dark.png",
+        format="PNG",
+    )
+    compose_windows_icon_canvas(light_master).resize((256, 256), Image.Resampling.LANCZOS).save(
+        windows_theme_icons_dir / "icon-light.png",
         format="PNG",
     )
 

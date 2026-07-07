@@ -69,3 +69,8 @@ extraResources:
     filter:
       - icon-dark.png
       - icon-light.png
+  - from: build/windows-theme-icons
+    to: windows-theme-icons
+    filter:
+      - icon-dark.png
+      - icon-light.png

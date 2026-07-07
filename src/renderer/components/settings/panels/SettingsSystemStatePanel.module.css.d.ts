@@ -24,8 +24,6 @@ declare const classes: {
   readonly liveSummary: string;
   readonly manualActionItem: string;
   readonly manualActionList: string;
-  readonly numberInputInvalid: string;
-  readonly numberInputTouchTarget: string;
   readonly recoveryBlock: string;
   readonly recoveryIntro: string;
   readonly recoverySubsection: string;
@@ -45,6 +43,5 @@ declare const classes: {
   readonly stateReason: string;
   readonly stateRow: string;
   readonly stateValue: string;
-  readonly suffixAccessible: string;
 };
 export default classes;

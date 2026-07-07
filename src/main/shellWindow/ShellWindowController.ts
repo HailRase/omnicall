@@ -1,7 +1,9 @@
 import type { BrowserWindow } from "electron";
 import {
+  resolveShellWindowResizable,
   resolveShellWindowTargetBounds,
   SHELL_WINDOW_LAYOUT,
+  type ShellWindowCompactDimensions,
   type ShellWindowLayoutEasing,
   type ShellWindowLayoutMode,
   type ShellWindowWorkArea,
@@ -9,7 +11,10 @@ import {
 import { animateWindowBounds } from "./animateWindowBounds.js";
 
 export type ShellWindowControllerState = Readonly<{
-  compactWidth: number;
+  compactDimensions: {
+    width: number;
+    height: number;
+  };
   activeMode: ShellWindowLayoutMode | null;
 }>;
 
@@ -19,7 +24,10 @@ export type ShellWindowControllerState = Readonly<{
  * - Outputs: animated or instant bounds transitions.
  */
 export class ShellWindowController {
-  private compactWidth: number = SHELL_WINDOW_LAYOUT.compactDefaultWidth;
+  private compactDimensions: ShellWindowCompactDimensions = {
+    width: SHELL_WINDOW_LAYOUT.compactDefaultWidth,
+    height: SHELL_WINDOW_LAYOUT.compactDefaultHeight,
+  };
   private activeMode: ShellWindowLayoutMode | null = null;
   private animationGeneration = 0;
   private cancelActiveAnimation: (() => void) | null = null;
@@ -31,7 +39,7 @@ export class ShellWindowController {
 
   getState(): ShellWindowControllerState {
     return {
-      compactWidth: this.compactWidth,
+      compactDimensions: { ...this.compactDimensions },
       activeMode: this.activeMode,
     };
   }
@@ -41,15 +49,19 @@ export class ShellWindowController {
     this.cancelActiveAnimation = null;
 
     const bounds = this.window.getBounds();
-    this.compactWidth = bounds.width;
+    this.compactDimensions = {
+      width: bounds.width,
+      height: bounds.height,
+    };
     const target = resolveShellWindowTargetBounds(
       "compact",
       this.getWorkArea(),
+      this.compactDimensions,
       bounds.height,
-      this.compactWidth,
     );
     this.window.setBounds(target);
     this.activeMode = "compact";
+    this.applyResizePolicy("compact");
   }
 
   async applyLayout(
@@ -61,18 +73,24 @@ export class ShellWindowController {
     this.cancelActiveAnimation = null;
 
     const currentBounds = this.window.getBounds();
-    const height = currentBounds.height;
     const workArea = this.getWorkArea();
 
     if (mode === "settings" && this.activeMode !== "settings") {
-      this.compactWidth = currentBounds.width;
+      this.compactDimensions = {
+        width: currentBounds.width,
+        height: currentBounds.height,
+      };
+    }
+
+    if (mode === "compact") {
+      this.applyResizePolicy("compact");
     }
 
     const target = resolveShellWindowTargetBounds(
       mode,
       workArea,
-      height,
-      this.compactWidth,
+      this.compactDimensions,
+      currentBounds.height,
     );
 
     const generation = ++this.animationGeneration;
@@ -99,5 +117,13 @@ export class ShellWindowController {
     }
 
     this.activeMode = mode;
+
+    if (mode === "settings") {
+      this.applyResizePolicy("settings");
+    }
+  }
+
+  private applyResizePolicy(mode: ShellWindowLayoutMode): void {
+    this.window.setResizable(resolveShellWindowResizable(mode));
   }
 }

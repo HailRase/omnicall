@@ -4,6 +4,7 @@ import {
   computeCenteredBounds,
   interpolateShellWindowBounds,
   resolveShellWindowAnimationProgress,
+  resolveShellWindowResizable,
   resolveShellWindowTargetBounds,
   SHELL_WINDOW_LAYOUT,
 } from "./ShellWindowLayout.js";
@@ -15,13 +16,26 @@ const WORK_AREA = {
   height: 1080,
 } as const;
 
+describe("resolveShellWindowResizable", () => {
+  it("disables user resize in compact mode", () => {
+    expect(resolveShellWindowResizable("compact")).toBe(false);
+  });
+
+  it("enables user resize in settings mode", () => {
+    expect(resolveShellWindowResizable("settings")).toBe(true);
+  });
+});
+
 describe("resolveShellWindowTargetBounds", () => {
   it("places compact mode in the bottom-right with margin", () => {
     const bounds = resolveShellWindowTargetBounds(
       "compact",
       WORK_AREA,
+      {
+        width: SHELL_WINDOW_LAYOUT.compactDefaultWidth,
+        height: 720,
+      },
       720,
-      SHELL_WINDOW_LAYOUT.compactDefaultWidth,
     );
 
     expect(bounds).toEqual({
@@ -36,8 +50,8 @@ describe("resolveShellWindowTargetBounds", () => {
     const bounds = resolveShellWindowTargetBounds(
       "settings",
       WORK_AREA,
+      { width: 420, height: 720 },
       720,
-      420,
     );
 
     expect(bounds).toEqual({

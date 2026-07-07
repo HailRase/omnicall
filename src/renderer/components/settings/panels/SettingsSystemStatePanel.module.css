@@ -192,26 +192,6 @@
   color: var(--color-text-danger);
 }
 
-.number-input-invalid {
-  color: var(--color-text-danger);
-}
-
-.suffix-accessible {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-.number-input-touch-target {
-  min-height: 44px;
-}
-
 .manual-action-list {
   display: flex;
   flex-direction: column;

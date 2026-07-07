@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useEffect, useId, useRef, useState, type ChangeEvent, type JSX } from "react";
+import { useEffect, useId, useRef, useState, type JSX } from "react";
 import type { SipConnectionJournalEntry, SipSystemStateShellView } from "@application/index.js";
 import {
   MIN_SIP_RECONNECT_INTERVAL_SEC,
@@ -9,6 +9,7 @@ import type { SipManualActionKind } from "../../../hooks/useSipSystemStateAction
 import { formatLocaleDateTime, useI18n } from "../../../i18n/index.js";
 import { AppIcon } from "../../icons/AppIcon.js";
 import { IconTooltip } from "../../icons/IconTooltip.js";
+import { SettingsNumberInput } from "../SettingsNumberInput.js";
 import { Button, Switch } from "../../ui/index.js";
 import formStyles from "../SettingsForm.module.css";
 import styles from "./SettingsSystemStatePanel.module.css";
@@ -121,6 +122,13 @@ function NumberField({
   const suffixId = `${id}-suffix`;
   const errorId = `${id}-error`;
   const hasError = !disabled && isIntervalBelowMinimum(value, min);
+  const describedBy = [
+    description !== undefined ? descriptionId : null,
+    withSuffix ? `${suffixId}-sr` : null,
+    hasError ? errorId : null,
+  ]
+    .filter((part): part is string => part !== null)
+    .join(" ");
 
   return (
     <div className={formStyles.fieldRow}>
@@ -133,47 +141,24 @@ function NumberField({
         ) : null}
       </label>
       <div>
-        <div
-          className={clsx(formStyles.numberInputGroup, styles.numberInputTouchTarget)}
-        >
-          <input
-            id={id}
-            type="number"
-            min={min}
-            step={1}
-            className={clsx(formStyles.numberInput, hasError && styles.numberInputInvalid)}
-            data-testid={testId}
-            value={value}
-            disabled={disabled}
-            aria-disabled={disabled}
-            aria-invalid={hasError || undefined}
-            aria-describedby={
-              [
-                description !== undefined ? descriptionId : null,
-                withSuffix ? `${suffixId}-sr` : null,
-                hasError ? errorId : null,
-              ]
-                .filter((part): part is string => part !== null)
-                .join(" ") || undefined
-            }
-            onChange={(event: ChangeEvent<HTMLInputElement>) => {
-              const parsed = Number.parseInt(event.target.value, 10);
-              if (!Number.isNaN(parsed)) {
-                onChange(parsed);
+        <SettingsNumberInput
+          id={id}
+          min={min}
+          value={value}
+          disabled={disabled}
+          invalid={hasError}
+          touchTarget
+          {...(withSuffix
+            ? {
+                suffix: t("settings.systemState.field.secondsShort"),
+                suffixAccessibleId: `${suffixId}-sr`,
+                suffixAccessibleLabel: t("settings.systemState.field.secondsAccessible"),
               }
-            }}
-          />
-          {withSuffix ? (
-            <>
-              <span id={suffixId} className={formStyles.inputSuffix} aria-hidden="true">
-                {t("settings.systemState.field.secondsShort")}
-              </span>
-              <span id={`${suffixId}-sr`} className={styles.suffixAccessible}>
-                {t("settings.systemState.field.secondsAccessible")}
-              </span>
-            </>
-          ) : null}
-        </div>
+            : {})}
+          data-testid={testId}
+          {...(describedBy.length > 0 ? { "aria-describedby": describedBy } : {})}
+          onChange={onChange}
+        />
         {hasError ? (
           <p id={errorId} className={styles.fieldError} role="alert">
             {t("settings.systemState.field.minValueError", { min })}
