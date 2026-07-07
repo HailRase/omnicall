@@ -7,6 +7,21 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-07-08
+
+### Added
+
+- F-013: история звонков — боковая панель со списком, фильтром пропущенных, перезвоном и группировкой по дате
+- F-025: контакты — боковая панель со списком, поиском, добавлением/редактированием/удалением, карточкой контакта и быстрым звонком
+- F-016: навигация shell (контакты и история поверх dialpad) через React Router; пункты в меню аватара
+- Dialpad: иконка контактов в поле ввода номера (при пустом поле) для быстрого перехода к списку
+
+### Changed
+
+- Компактный UI списков контактов и истории (аватары, sublines, quick call)
+- История: длительность для завершённых звонков, время звонка для пропущенных/сброшенных
+- Контакты и история недоступны из меню и dialpad без SIP-регистрации
+
 ## [0.7.1] - 2026-07-07
 
 ### Added
@@ -189,7 +204,9 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.7.0...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.8.0...main
+[0.8.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.8.0
+[0.7.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.7.1
 [0.7.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.7.0
 [0.6.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.6.1
 [0.6.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.6.0
