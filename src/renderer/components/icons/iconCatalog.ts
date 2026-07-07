@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CircleCheck,
+  CircleX,
   Coffee,
   Delete,
   Download,
@@ -114,7 +115,9 @@ export type IconSemanticId =
   | "ui.select.chevron"
   | "phone.dnd.on"
   | "phone.dnd.off"
-  | "updates.available";
+  | "updates.available"
+  | "notification.success"
+  | "notification.error";
 
 export type IconCatalogEntry = Readonly<{
   static: LucideIcon;
@@ -434,6 +437,18 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.updates.available",
     defaultSize: 20,
     usage: ["UpdateAvailableBanner"],
+  },
+  "notification.success": {
+    static: CircleCheck,
+    defaultLabelKey: "icons.action.confirm",
+    defaultSize: 16,
+    usage: ["NotificationViewport: success toast icon"],
+  },
+  "notification.error": {
+    static: CircleX,
+    defaultLabelKey: "icons.overlay.close",
+    defaultSize: 16,
+    usage: ["NotificationViewport: error toast icon"],
   },
 };
 

@@ -63,7 +63,7 @@ function buildAccountErrorDescriptor(
 /**
  * - Purpose: bridge action outcome sources into unified renderer notifications.
  * - Inputs: action feedback projections and callbacks from feature hooks.
- * - Outputs: side effects that enqueue deduplicated global notifications.
+ * - Outputs: side effects that enqueue global notifications for every action outcome.
  */
 export function useActionNotifications(input: UseActionNotificationsInput): void {
   const {
@@ -80,212 +80,171 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
     ocpToasts,
     appUpdate,
   } = input;
-  const seenCallErrorRef = useRef<string | null>(null);
-  const seenDtmfErrorRef = useRef<string | null>(null);
-  const seenTransferErrorRef = useRef<string | null>(null);
-  const seenLogoutErrorRef = useRef<string | null>(null);
-  const seenSettingsErrorRef = useRef<string | null>(null);
-  const seenSipSuccessRef = useRef<TranslationKey | null>(null);
-  const seenSipErrorRef = useRef<string | null>(null);
-  const seenStatusErrorRef = useRef<string | null>(null);
+  const { notify, dismiss } = notifications;
+  const {
+    projection: callControlsProjection,
+    onRetry: retryCallOperation,
+  } = callControls;
+  const {
+    showPrompt: showUpdatePrompt,
+    latestVersion: latestUpdateVersion,
+    onDownload: onUpdateDownload,
+    onDismiss: onUpdateDismiss,
+  } = appUpdate;
+
   const seenUpdateVersionRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    if (accountFeedback.successKey !== null) {
-      notifications.notify({
-        id: `account-success-${accountFeedback.successKey}`,
-        level: "success",
-        messageKey: accountFeedback.successKey,
-      });
-    }
-  }, [accountFeedback.successKey, notifications]);
+  const accountError = accountFeedback.error;
+  const lastOperationError = callControlsProjection.lastOperationError;
 
   useEffect(() => {
-    if (accountFeedback.warningKey !== null) {
-      notifications.notify({
-        id: `account-warning-${accountFeedback.warningKey}`,
-        level: "warning",
-        messageKey: accountFeedback.warningKey,
-      });
+    if (accountFeedback.successKey === null) {
+      return;
     }
-  }, [accountFeedback.warningKey, notifications]);
+    notify({
+      level: "success",
+      messageKey: accountFeedback.successKey,
+    });
+  }, [accountFeedback.successKey, notify]);
 
   useEffect(() => {
-    if (accountFeedback.error === null) {
+    if (accountFeedback.warningKey === null) {
       return;
     }
-    notifications.notify(buildAccountErrorDescriptor(accountFeedback.error));
-  }, [accountFeedback.error, notifications]);
+    notify({
+      level: "warning",
+      messageKey: accountFeedback.warningKey,
+    });
+  }, [accountFeedback.warningKey, notify]);
 
   useEffect(() => {
-    const error = callControls.projection.lastOperationError;
-    if (error === null) {
-      seenCallErrorRef.current = null;
+    if (accountError === null) {
       return;
     }
-    const signature = `${error.operation}|${error.message}`;
-    if (seenCallErrorRef.current === signature) {
+    const { id: _accountErrorId, ...descriptor } = buildAccountErrorDescriptor(accountError);
+    notify(descriptor);
+  }, [accountError, notify]);
+
+  useEffect(() => {
+    if (lastOperationError === null) {
       return;
     }
-    seenCallErrorRef.current = signature;
-    notifications.notify({
-      id: `call-op-${signature}`,
+    notify({
       level: "error",
-      messageText: error.message,
+      messageText: lastOperationError.message,
       action: {
-        id: `retry-call-${error.operation}`,
+        id: `retry-call-${lastOperationError.operation}`,
         labelKey: "common.retry",
-        onClick: callControls.onRetry,
+        onClick: retryCallOperation,
       },
     });
-  }, [callControls, notifications]);
+  }, [lastOperationError, notify, retryCallOperation]);
 
   useEffect(() => {
     if (dtmfError === null) {
-      seenDtmfErrorRef.current = null;
       return;
     }
-    if (seenDtmfErrorRef.current === dtmfError) {
-      return;
-    }
-    seenDtmfErrorRef.current = dtmfError;
-    notifications.notify({
-      id: `dtmf-error-${dtmfError}`,
+    notify({
       level: "error",
       messageText: dtmfError,
     });
-  }, [dtmfError, notifications]);
+  }, [dtmfError, notify]);
 
   useEffect(() => {
     if (transferFailure === null) {
-      seenTransferErrorRef.current = null;
       return;
     }
-    if (seenTransferErrorRef.current === transferFailure) {
-      return;
-    }
-    seenTransferErrorRef.current = transferFailure;
-    notifications.notify({
-      id: `transfer-error-${transferFailure}`,
+    notify({
       level: "error",
       messageText: transferFailure,
     });
-  }, [notifications, transferFailure]);
+  }, [notify, transferFailure]);
 
   useEffect(() => {
     if (logoutErrorMessage === null) {
-      seenLogoutErrorRef.current = null;
       return;
     }
-    if (seenLogoutErrorRef.current === logoutErrorMessage) {
-      return;
-    }
-    seenLogoutErrorRef.current = logoutErrorMessage;
-    notifications.notify({
-      id: `logout-error-${logoutErrorMessage}`,
+    notify({
       level: "error",
       messageText: logoutErrorMessage,
     });
-  }, [logoutErrorMessage, notifications]);
+  }, [logoutErrorMessage, notify]);
 
   useEffect(() => {
     if (settingsUpdateError === null) {
-      seenSettingsErrorRef.current = null;
       return;
     }
-    if (seenSettingsErrorRef.current === settingsUpdateError) {
-      return;
-    }
-    seenSettingsErrorRef.current = settingsUpdateError;
-    notifications.notify({
-      id: `settings-error-${settingsUpdateError}`,
+    notify({
       level: "error",
       messageText: settingsUpdateError,
     });
-  }, [notifications, settingsUpdateError]);
+  }, [notify, settingsUpdateError]);
 
   useEffect(() => {
     if (sipActionSuccessKey === null) {
-      seenSipSuccessRef.current = null;
       return;
     }
-    if (seenSipSuccessRef.current === sipActionSuccessKey) {
-      return;
-    }
-    seenSipSuccessRef.current = sipActionSuccessKey;
-    notifications.notify({
-      id: `sip-success-${sipActionSuccessKey}`,
+    notify({
       level: "success",
       messageKey: sipActionSuccessKey,
     });
-  }, [notifications, sipActionSuccessKey]);
+  }, [notify, sipActionSuccessKey]);
 
   useEffect(() => {
     if (sipActionErrorText === null) {
-      seenSipErrorRef.current = null;
       return;
     }
-    if (seenSipErrorRef.current === sipActionErrorText) {
-      return;
-    }
-    seenSipErrorRef.current = sipActionErrorText;
-    notifications.notify({
-      id: `sip-error-${sipActionErrorText}`,
+    notify({
       level: "error",
       messageText: sipActionErrorText,
     });
-  }, [notifications, sipActionErrorText]);
+  }, [notify, sipActionErrorText]);
 
   useEffect(() => {
     if (statusRejectionBanner === null) {
-      seenStatusErrorRef.current = null;
       return;
     }
-    if (seenStatusErrorRef.current === statusRejectionBanner) {
-      return;
-    }
-    seenStatusErrorRef.current = statusRejectionBanner;
-    notifications.notify({
-      id: `status-rejection-${statusRejectionBanner}`,
+    notify({
       level: "error",
       messageText: statusRejectionBanner,
     });
-  }, [notifications, statusRejectionBanner]);
+  }, [notify, statusRejectionBanner]);
 
   useEffect(() => {
     ocpToasts.forEach((toast) => {
-      notifications.notify({
-        id: `ocp-${toast.id}`,
+      notify({
         level: toast.level === "warn" ? "warning" : toast.level,
         messageText: toast.message,
       });
     });
-  }, [notifications, ocpToasts]);
+  }, [notify, ocpToasts]);
 
   useEffect(() => {
-    if (!appUpdate.showPrompt) {
-      if (appUpdate.latestVersion !== undefined) {
-        notifications.dismiss(`update-${appUpdate.latestVersion}`);
+    if (!showUpdatePrompt) {
+      seenUpdateVersionRef.current = null;
+      if (latestUpdateVersion !== undefined) {
+        dismiss(`update-${latestUpdateVersion}`);
       }
       return;
     }
-    const version = appUpdate.latestVersion ?? "available";
+    const version = latestUpdateVersion ?? "available";
     if (seenUpdateVersionRef.current === version) {
       return;
     }
     seenUpdateVersionRef.current = version;
-    notifications.notify({
+    notify({
       id: `update-${version}`,
       level: "info",
       messageKey: "updates.prompt.message",
-      messageParams: { latestVersion: appUpdate.latestVersion },
+      messageParams: { latestVersion: latestUpdateVersion },
       durationMs: 0,
+      closable: true,
       action: {
         id: "update-download",
         labelKey: "updates.prompt.download",
-        onClick: appUpdate.onDownload,
+        onClick: onUpdateDownload,
       },
-      onClose: appUpdate.onDismiss,
+      onClose: onUpdateDismiss,
     });
-  }, [appUpdate, notifications]);
+  }, [dismiss, latestUpdateVersion, notify, onUpdateDismiss, onUpdateDownload, showUpdatePrompt]);
 }

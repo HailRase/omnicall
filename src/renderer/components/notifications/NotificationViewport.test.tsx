@@ -33,14 +33,20 @@ beforeAll(() => {
 function renderViewport(
   items: ReadonlyArray<NotificationItem>,
   onDismiss: (id: string) => void = vi.fn(),
+  options: Readonly<{
+    closable?: boolean;
+    durationMs?: number;
+    stacking?: "stacked" | "single";
+    maxVisible?: number;
+  }> = {},
 ): ReturnType<typeof render> {
   return render(
     <NotificationViewport
       placement="bottom-right"
-      stacking="stacked"
-      durationMs={200}
-      closable
-      maxVisible={3}
+      stacking={options.stacking ?? "stacked"}
+      durationMs={options.durationMs ?? 200}
+      closable={options.closable ?? true}
+      maxVisible={options.maxVisible ?? 3}
       items={items}
       onDismiss={onDismiss}
     />,
@@ -106,9 +112,10 @@ describe("NotificationViewport", () => {
       },
       { timeout: 1000 },
     );
+    expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 
-  it("dismisses on close button click", async () => {
+  it("manual close calls onDismiss once", async () => {
     const user = userEvent.setup();
     const onDismiss = vi.fn();
     renderViewport([baseItem], onDismiss);
@@ -120,6 +127,7 @@ describe("NotificationViewport", () => {
     await user.click(screen.getByRole("button", { name: "Закрыть" }));
 
     expect(onDismiss).toHaveBeenCalledWith("toast-1");
+    expect(onDismiss).toHaveBeenCalledTimes(1);
   });
 
   it("does not re-open toast in loop after manual close", async () => {
@@ -138,6 +146,57 @@ describe("NotificationViewport", () => {
     });
 
     expect(onDismiss).toHaveBeenCalledTimes(1);
+  });
+
+  it("allows showing same id again after queue removal", async () => {
+    const onDismiss = vi.fn();
+    const { rerender } = render(
+      <NotificationViewport
+        placement="bottom-right"
+        stacking="stacked"
+        durationMs={10_000}
+        closable
+        maxVisible={3}
+        items={[baseItem]}
+        onDismiss={onDismiss}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Saved successfully")).toBeInTheDocument();
+    });
+
+    rerender(
+      <NotificationViewport
+        placement="bottom-right"
+        stacking="stacked"
+        durationMs={10_000}
+        closable
+        maxVisible={3}
+        items={[]}
+        onDismiss={onDismiss}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.queryByText("Saved successfully")).not.toBeInTheDocument();
+    });
+
+    rerender(
+      <NotificationViewport
+        placement="bottom-right"
+        stacking="stacked"
+        durationMs={10_000}
+        closable
+        maxVisible={3}
+        items={[baseItem]}
+        onDismiss={onDismiss}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Saved successfully")).toBeInTheDocument();
+    });
   });
 
   it("renders action button", async () => {
@@ -179,5 +238,56 @@ describe("NotificationViewport", () => {
 
     expect(screen.getByTestId("notification-viewport")).toBeInTheDocument();
     expect(screen.getByLabelText("Уведомления alt+T")).toBeInTheDocument();
+  });
+
+  it("updates localized message after language change", async () => {
+    const keyedItem: NotificationItem = {
+      ...baseItem,
+      id: "localized",
+      messageKey: "settings.general.themeLabel",
+      messageText: null,
+      durationMs: 10_000,
+    };
+    const { rerender } = renderViewport([keyedItem], vi.fn(), { durationMs: 10_000 });
+
+    await waitFor(() => {
+      expect(screen.getByText("Тема интерфейса")).toBeInTheDocument();
+    });
+
+    setRendererLanguage("en");
+    rerender(
+      <NotificationViewport
+        placement="bottom-right"
+        stacking="stacked"
+        durationMs={10_000}
+        closable
+        maxVisible={3}
+        items={[keyedItem]}
+        onDismiss={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Interface theme")).toBeInTheDocument();
+    });
+  });
+
+  it("keeps close button for sticky toast when viewport default closable is false", async () => {
+    renderViewport(
+      [
+        {
+          ...baseItem,
+          id: "sticky",
+          durationMs: 0,
+          closable: true,
+        },
+      ],
+      vi.fn(),
+      { closable: false, durationMs: 0 },
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Закрыть" })).toBeInTheDocument();
+    });
   });
 });

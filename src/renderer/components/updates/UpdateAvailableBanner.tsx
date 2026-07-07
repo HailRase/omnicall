@@ -1,6 +1,8 @@
 import type { JSX } from "react";
 import { useI18n } from "../../i18n/index.js";
 import { AppIcon } from "../icons/index.js";
+import { Alert, AlertDescription, AlertTitle } from "../ui/alert/index.js";
+import { Button } from "../ui/button/index.js";
 import styles from "./UpdateAvailableBanner.module.css";
 
 export type UpdateAvailableBannerProps = Readonly<{
@@ -13,7 +15,7 @@ export type UpdateAvailableBannerProps = Readonly<{
 /**
  * - Purpose: non-blocking top update prompt for manual download (F-020).
  * - Inputs: visibility flag, latest version, and action callbacks.
- * - Outputs: floating overlay card with download and later actions.
+ * - Outputs: floating Alert overlay with download and later actions.
  */
 export function UpdateAvailableBanner({
   visible,
@@ -30,43 +32,38 @@ export function UpdateAvailableBanner({
   return (
     <div
       className={styles.anchor}
-      role="status"
       aria-live="polite"
       aria-label={t("updates.prompt.ariaLabel")}
     >
-      <article className={styles.card} data-testid="update-available-banner">
-        <div className={styles.lead}>
-          <div className={styles.iconWrap} aria-hidden="true">
-            <AppIcon id="updates.available" decorative size={20} />
-          </div>
-          <div className={styles.content}>
-            <p className={styles.title}>{t("updates.prompt.title")}</p>
-            <p className={styles.message} data-testid="update-available-banner-message">
-              {t("updates.prompt.message", { latestVersion })}
-            </p>
-          </div>
-        </div>
+      <Alert className={styles.alert} data-testid="update-available-banner">
+        <AppIcon id="updates.available" decorative size={16} />
+        <AlertTitle>{t("updates.prompt.title")}</AlertTitle>
+        <AlertDescription data-testid="update-available-banner-message">
+          {t("updates.prompt.message", { latestVersion })}
+        </AlertDescription>
         <div className={styles.actions}>
-          <button
+          <Button
             type="button"
-            className={styles.primaryButton}
+            size="sm"
+            variant="primary"
             data-testid="update-available-banner-download"
             onClick={onDownload}
           >
             <AppIcon id="updates.available" decorative size={16} preferAnimated={false} />
-            <span>{t("updates.prompt.download")}</span>
-          </button>
-          <button
+            {t("updates.prompt.download")}
+          </Button>
+          <Button
             type="button"
-            className={styles.secondaryButton}
+            size="sm"
+            variant="outline"
             data-testid="update-available-banner-later"
             onClick={onDismiss}
           >
             <AppIcon id="overlay.close" decorative size={16} preferAnimated={false} />
-            <span>{t("updates.prompt.later")}</span>
-          </button>
+            {t("updates.prompt.later")}
+          </Button>
         </div>
-      </article>
+      </Alert>
     </div>
   );
 }

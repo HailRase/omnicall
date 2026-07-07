@@ -9,7 +9,7 @@
 | `App` | `src/renderer/App.tsx` | `—` | softphone-shell, shutdown-progress, shutdown-error, bootstrap-loading, bootstrap-error | — |
 | `AccountPanel` | `src/renderer/components/account/AccountPanel.tsx` | `—` | account-panel, account-username, account-password, account-domain, account-server, account-password, account-password-hint, account-save-profile-row, account-save-profile-checkbox, account-authorize, account-logout | — |
 | `DeleteSavedAccountProfileConfirmationModal` | `src/renderer/components/account/DeleteSavedAccountProfileConfirmationModal.tsx` | `DeleteSavedAccountProfileConfirmationModalProps` | delete-saved-account-profile-modal | — |
-| `SavedAccountProfileSelector` | `src/renderer/components/account/SavedAccountProfileSelector.tsx` | `SavedAccountProfileSelectorProps` | saved-account-profile-selector, saved-account-profile-tablist, saved-account-profile-delete | — |
+| `SavedAccountProfileSelector` | `src/renderer/components/account/SavedAccountProfileSelector.tsx` | `SavedAccountProfileSelectorProps` | saved-account-profile-selector, saved-account-profile-tablist, saved-account-profile-tab-new, saved-account-profile-tab-group, saved-account-profile-tab | — |
 | `SwitchSavedAccountProfileConfirmationModal` | `src/renderer/components/account/SwitchSavedAccountProfileConfirmationModal.tsx` | `SwitchSavedAccountProfileConfirmationModalProps` | switch-saved-account-profile-modal | — |
 | `ActiveCallControlsPanel` | `src/renderer/components/call/ActiveCallControlsPanel.tsx` | `ActiveCallControlsPanelProps` | active-call-controls, active-call-mute-indicator, control-disabled-reason | — |
 | `CallControlsBar` | `src/renderer/components/call/CallControlsBar.tsx` | `CallControlsBarProps` | call-controls-bar | lf=LF-022,LF-023 f=F-004,F-016 smoke=R7- |
@@ -37,12 +37,11 @@
 | `AppIcon` | `src/renderer/components/icons/AppIcon.tsx` | `AppIconProps` | — | — |
 | `IconControlButton` | `src/renderer/components/icons/IconControlButton.tsx` | `IconControlButtonProps` | — | — |
 | `IconTooltip` | `src/renderer/components/icons/IconTooltip.tsx` | `IconTooltipProps` | icon-tooltip-bubble, icon-tooltip-host | — |
-| `NotificationToast` | `src/renderer/components/notifications/NotificationToast.tsx` | `NotificationToastProps` | notification-toast | — |
 | `NotificationViewport` | `src/renderer/components/notifications/NotificationViewport.tsx` | `NotificationViewportProps` | notification-viewport | — |
 | `OcpToastStack` | `src/renderer/components/ocp/OcpToastStack.tsx` | `OcpToastStackProps` | ocp-toast-stack, ocp-toast | — |
 | `LogoutActiveSessionConfirmationModal` | `src/renderer/components/session/LogoutActiveSessionConfirmationModal.tsx` | `LogoutActiveSessionConfirmationModalProps` | logout-active-session-modal | — |
 | `SettingsFullscreenOverlay` | `src/renderer/components/settings/SettingsFullscreenOverlay.tsx` | `SettingsFullscreenOverlayProps` | settings-overlay, settings-overlay-backdrop | f=F-016,F-017 smoke=settings-overlay |
-| `SettingsPanel` | `src/renderer/components/settings/SettingsPanel.tsx` | `SettingsPanelProps` | settings-overlay-body, settings-section-title | lf=LF-032,LF-076,LF-008 f=F-016,F-014,F-017 smoke=R7-5 |
+| `SettingsPanel` | `src/renderer/components/settings/SettingsPanel.tsx` | `SettingsPanelProps` | settings-overlay-body, settings-section-title, settings-overlay-close | lf=LF-032,LF-076,LF-008 f=F-016,F-014,F-017 smoke=R7-5 |
 | `SettingsSidebar` | `src/renderer/components/settings/SettingsSidebar.tsx` | `SettingsSidebarProps` | settings-sidebar | — |
 | `CodecPreferencesSortableList` | `src/renderer/components/settings/panels/CodecPreferencesSortableList.tsx` | `CodecPreferencesSortableListProps` | — | — |
 | `SettingsAccountPanel` | `src/renderer/components/settings/panels/SettingsAccountPanel.tsx` | `SettingsAccountPanelProps` | settings-account-panel, account-settings-modal-backdrop | — |
@@ -64,6 +63,8 @@
 | `AlertDialog` | `src/renderer/components/ui/alert-dialog/AlertDialog.tsx` | `AlertDialogProps` | — | — |
 | `Dialog` | `src/renderer/components/ui/dialog/Dialog.tsx` | `DialogProps` | — | — |
 | `DropdownMenu` | `src/renderer/components/ui/dropdown-menu/DropdownMenu.tsx` | `DropdownMenuProps` | — | — |
+| `Toaster` | `src/renderer/components/ui/sonner/Sonner.tsx` | `ToasterProps` | — | — |
+| `Tabs` | `src/renderer/components/ui/tabs/Tabs.tsx` | `TabsProps` | — | — |
 | `ToastProvider` | `src/renderer/components/ui/toast/Toast.tsx` | `ToastProviderProps` | — | — |
 | `TooltipProvider` | `src/renderer/components/ui/tooltip/Tooltip.tsx` | `TooltipProviderProps` | — | — |
 | `UpdateAvailableBanner` | `src/renderer/components/updates/UpdateAvailableBanner.tsx` | `UpdateAvailableBannerProps` | update-available-banner, update-available-banner-message, update-available-banner-download, update-available-banner-later | — |

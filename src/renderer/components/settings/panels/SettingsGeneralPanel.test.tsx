@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { setupJsdomRadix } from "../../../test/setupJsdomRadix.js";
@@ -96,5 +96,41 @@ describe("SettingsGeneralPanel", () => {
 
     expect(screen.queryByTestId("settings-sip-auto-reregister-toggle")).not.toBeInTheDocument();
     expect(screen.queryByTestId("settings-sip-auto-reconnect-toggle")).not.toBeInTheDocument();
+  });
+
+  it("emits notification settings changes", async () => {
+    const user = userEvent.setup();
+    const onNotificationPlacementChange = vi.fn();
+    const onNotificationStackingChange = vi.fn();
+    const onNotificationDurationMsChange = vi.fn();
+    const onNotificationMaxVisibleChange = vi.fn();
+    const onNotificationClosableChange = vi.fn();
+
+    render(
+      <SettingsGeneralPanel
+        {...baseProps}
+        onNotificationPlacementChange={onNotificationPlacementChange}
+        onNotificationStackingChange={onNotificationStackingChange}
+        onNotificationDurationMsChange={onNotificationDurationMsChange}
+        onNotificationMaxVisibleChange={onNotificationMaxVisibleChange}
+        onNotificationClosableChange={onNotificationClosableChange}
+      />,
+    );
+
+    await user.click(screen.getByTestId("settings-notification-placement-top-left"));
+    await user.click(screen.getByTestId("settings-notification-stacking-single"));
+    fireEvent.change(screen.getByTestId("settings-notification-duration"), {
+      target: { value: "5000" },
+    });
+    fireEvent.change(screen.getByTestId("settings-notification-max-visible"), {
+      target: { value: "4" },
+    });
+    await user.click(screen.getByTestId("settings-notification-closable"));
+
+    expect(onNotificationPlacementChange).toHaveBeenCalledWith("top-left");
+    expect(onNotificationStackingChange).toHaveBeenCalledWith("single");
+    expect(onNotificationDurationMsChange).toHaveBeenCalledWith(5000);
+    expect(onNotificationMaxVisibleChange).toHaveBeenCalledWith(4);
+    expect(onNotificationClosableChange).toHaveBeenCalledWith(false);
   });
 });

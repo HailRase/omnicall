@@ -20,7 +20,7 @@ export type NotificationViewportProps = Readonly<{
 }>;
 
 /**
- * - Purpose: host product notification queue through UI Kit Sonner toaster.
+ * - Purpose: host product notification queue through Sonner theme bridge.
  * - Inputs: queue items, placement, default duration, and dismiss handler.
  * - Outputs: Sonner viewport with synced ephemeral notification toasts.
  */
@@ -51,7 +51,6 @@ export function NotificationViewport({
         expand={false}
         gap={14}
         offset={24}
-        richColors
         closeButton={closable}
         containerAriaLabel={t("notifications.viewport.ariaLabel")}
         toastOptions={{

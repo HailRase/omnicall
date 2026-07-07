@@ -79,7 +79,36 @@ export const WithIcon: Story = {
   ),
 };
 
+export const PaymentSuccess: Story = {
+  render: (args) => (
+    <Alert {...args}>
+      <AppIcon id="operator.ready" size={16} decorative />
+      <AlertTitle>Payment successful</AlertTitle>
+      <AlertDescription>
+        Your payment of $29.99 has been processed. A receipt has been sent to your email
+        address.
+      </AlertDescription>
+    </Alert>
+  ),
+};
+
 export const WithAction: Story = {
+  render: (args) => (
+    <Alert {...args} style={{ maxWidth: "28rem" }}>
+      <AlertTitle>Dark mode is now available</AlertTitle>
+      <AlertDescription>
+        Enable it under your profile settings to get started.
+      </AlertDescription>
+      <AlertAction>
+        <Button size="sm" variant="primary">
+          Enable
+        </Button>
+      </AlertAction>
+    </Alert>
+  ),
+};
+
+export const WithIconAndAction: Story = {
   render: (args) => (
     <Alert {...args}>
       <AppIcon id="call.incoming" size={16} decorative />

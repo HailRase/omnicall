@@ -146,4 +146,46 @@ describe("Alert", () => {
       .querySelector("[aria-hidden='true']");
     expect(decorativeIcon).toBeInTheDocument();
   });
+
+  it("exposes data-slot markers for composable layout", () => {
+    render(<BasicAlert withIcon withAction />);
+
+    const root = screen.getByRole("alert");
+    expect(root).toHaveAttribute("data-slot", "alert");
+    expect(screen.getByText("Heads up")).toHaveAttribute("data-slot", "alert-title");
+    expect(
+      screen.getByText("You can add components to your app using the CLI."),
+    ).toHaveAttribute("data-slot", "alert-description");
+    expect(screen.getByRole("button", { name: "View details" }).parentElement).toHaveAttribute(
+      "data-slot",
+      "alert-action",
+    );
+  });
+
+  it("positions action slot outside the content grid flow", () => {
+    render(<BasicAlert withAction />);
+
+    const action = screen.getByRole("button", { name: "View details" }).parentElement;
+    expect(action).toHaveClass(styles.action ?? "");
+  });
+
+  it("reserves action overlay without occupying a grid row", () => {
+    render(<BasicAlert withAction />);
+
+    const root = screen.getByRole("alert");
+    const action = screen.getByRole("button", { name: "View details" }).parentElement;
+
+    expect(root.children).toHaveLength(3);
+    expect(action).toHaveAttribute("data-slot", "alert-action");
+    expect(action).toHaveClass(styles.action ?? "");
+  });
+
+  it("keeps title and description in the content grid column", () => {
+    render(<BasicAlert withIcon />);
+
+    expect(screen.getByText("Heads up")).toHaveClass(styles.title ?? "");
+    expect(
+      screen.getByText("You can add components to your app using the CLI."),
+    ).toHaveClass(styles.description ?? "");
+  });
 });

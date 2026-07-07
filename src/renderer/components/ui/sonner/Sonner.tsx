@@ -7,29 +7,14 @@ import styles from "./Sonner.module.css";
 
 export type ToasterProps = Readonly<ComponentProps<typeof SonnerToaster>>;
 
-const DEFAULT_TOAST_CLASS_NAMES = {
-  toast: styles.toast,
-  default: styles.toastDefault,
-  success: styles.toastSuccess,
-  info: styles.toastInfo,
-  warning: styles.toastWarning,
-  error: styles.toastError,
-  title: styles.title,
-  description: styles.description,
-  actionButton: styles.actionButton,
-  cancelButton: styles.cancelButton,
-  closeButton: styles.closeButton,
-} as const;
-
 /**
- * - Purpose: shadcn-compatible Sonner toaster wired to project semantic tokens.
- * - Inputs: Sonner Toaster props including position, theme, richColors, and toastOptions.
- * - Outputs: fixed toast viewport with stacked Sonner surfaces and dismiss controls.
+ * - Purpose: bridge Sonner toaster theme variables to project semantic tokens.
+ * - Inputs: native Sonner Toaster props and optional explicit theme override.
+ * - Outputs: Sonner viewport with token-driven light/dark surfaces and native stack behavior.
  */
 export function Toaster({
   theme,
   className,
-  toastOptions,
   ...rest
 }: ToasterProps): JSX.Element {
   const documentTheme = useDocumentTheme();
@@ -40,14 +25,6 @@ export function Toaster({
       {...rest}
       theme={resolvedTheme}
       className={clsx(styles.toaster, className)}
-      toastOptions={{
-        ...toastOptions,
-        unstyled: true,
-        classNames: {
-          ...DEFAULT_TOAST_CLASS_NAMES,
-          ...toastOptions?.classNames,
-        },
-      }}
     />
   );
 }

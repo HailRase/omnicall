@@ -62,6 +62,60 @@ function createNotificationId(): string {
   return `n-${Date.now()}-${notificationCounter}`;
 }
 
+function areNotificationParamsEqual(
+  left: NotificationParams | null,
+  right: NotificationParams | null,
+): boolean {
+  if (left === right) {
+    return true;
+  }
+  if (left === null || right === null) {
+    return false;
+  }
+  const leftKeys = Object.keys(left).sort();
+  const rightKeys = Object.keys(right).sort();
+  if (leftKeys.length !== rightKeys.length) {
+    return false;
+  }
+  return leftKeys.every((key, index) => {
+    if (key !== rightKeys[index]) {
+      return false;
+    }
+    return left[key] === right[key];
+  });
+}
+
+function areNotificationActionsEqual(
+  left: NotificationAction | null,
+  right: NotificationAction | null,
+): boolean {
+  if (left === right) {
+    return true;
+  }
+  if (left === null || right === null) {
+    return false;
+  }
+  return (
+    left.id === right.id &&
+    left.labelKey === right.labelKey &&
+    left.onClick === right.onClick
+  );
+}
+
+function areNotificationItemsEqual(left: NotificationItem, right: NotificationItem): boolean {
+  return (
+    left.id === right.id &&
+    left.level === right.level &&
+    left.messageKey === right.messageKey &&
+    left.messageText === right.messageText &&
+    areNotificationParamsEqual(left.messageParams, right.messageParams) &&
+    left.durationMs === right.durationMs &&
+    left.closable === right.closable &&
+    areNotificationActionsEqual(left.action, right.action) &&
+    left.onClose === right.onClose
+  );
+}
+
 /**
  * - Purpose: manage ephemeral renderer notification queue for UI Kit toast rendering.
  * - Inputs: persisted notification preferences and enqueue descriptors.
@@ -99,6 +153,10 @@ export function useNotifications(input: UseNotificationsInput): UseNotifications
       };
 
       setQueue((previous) => {
+        const existingItem = previous.find((existing) => existing.id === id);
+        if (existingItem !== undefined && areNotificationItemsEqual(existingItem, item)) {
+          return previous;
+        }
         const withoutSameId = previous.filter((existing) => existing.id !== id);
         if (stacking === "single") {
           return [item];
@@ -126,15 +184,28 @@ export function useNotifications(input: UseNotificationsInput): UseNotifications
     return queue.slice(0, maxVisible);
   }, [maxVisible, queue, stacking]);
 
-  return {
-    placement,
-    stacking,
-    durationMs,
-    closable,
-    maxVisible,
-    items,
-    notify,
-    dismiss,
-    dismissAll,
-  };
+  return useMemo(
+    () => ({
+      placement,
+      stacking,
+      durationMs,
+      closable,
+      maxVisible,
+      items,
+      notify,
+      dismiss,
+      dismissAll,
+    }),
+    [
+      closable,
+      dismiss,
+      dismissAll,
+      durationMs,
+      items,
+      maxVisible,
+      notify,
+      placement,
+      stacking,
+    ],
+  );
 }

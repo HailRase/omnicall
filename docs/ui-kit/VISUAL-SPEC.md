@@ -240,20 +240,21 @@ Use Radix state attributes:
 
 ## Toast And Notification Canon
 
-Sonner (primary, shadcn-like):
+Sonner (primary, product notifications):
 
-- compact elevated neutral surface — no mandatory left status stripe on default toasts.
-- background: `--color-bg-surface-elevated`.
+- native `sonner` styled toasts — **not** `unstyled`; stack/hover behavior comes from the library.
+- theme bridge maps Sonner CSS variables (`--normal-bg`, `--normal-text`, …) to semantic tokens.
+- light/dark follows `data-theme` on `documentElement` + `useDocumentTheme` → Sonner `theme` prop.
+- product surface: compact elevated neutral toast — no mandatory left status stripe.
+- background: `--color-bg-surface-elevated` (via `--normal-bg` bridge).
 - foreground: `--color-text-primary`.
 - description: `--color-text-secondary`.
 - border: `--color-border-subtle`.
 - shadow: `--shadow-menu-elevated`.
 - radius: `--radius-panel`.
-- action button: compact primary (`--color-accent-primary`).
-- cancel button: muted control surface.
-- close button: small floating edge control.
-- stacked toasts follow Sonner collapse/expand behavior.
-- `richColors` applies semantic success/info/warning/danger tokens — separate from default neutral surface.
+- product success/error: neutral surface + `AppIcon` tint only (`NotificationToast.module.css`).
+- stacked toasts: `expand={false}`, `gap={14}`, `offset={24}` in `NotificationViewport`.
+- optional `richColors` — only for ad-hoc/demo toasts, not product notifications.
 
 Radix Toast (legacy primitives):
 

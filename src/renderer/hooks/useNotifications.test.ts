@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { useNotifications } from "./useNotifications.js";
 
 describe("useNotifications", () => {
-  it("enqueues and dismisses notifications", () => {
+  it("does not replace queue entry for same id and equivalent descriptor", () => {
     const { result } = renderHook(() =>
       useNotifications({
         placement: "bottom-right",
@@ -23,12 +23,57 @@ describe("useNotifications", () => {
         messageText: "ok",
       });
     });
-    expect(result.current.items).toHaveLength(1);
+    const firstItemsReference = result.current.items;
 
     act(() => {
-      result.current.dismiss("one");
+      result.current.notify({
+        id: "one",
+        level: "info",
+        messageText: "ok",
+      });
     });
-    expect(result.current.items).toHaveLength(0);
+
+    expect(result.current.items).toBe(firstItemsReference);
+    expect(result.current.items).toHaveLength(1);
+  });
+
+  it("updates same id when descriptor changes", () => {
+    const { result } = renderHook(() =>
+      useNotifications({
+        placement: "bottom-right",
+        stacking: "stacked",
+        durationMs: 2000,
+        closable: true,
+        maxVisible: 3,
+      }),
+    );
+
+    act(() => {
+      result.current.notify({
+        id: "one",
+        level: "info",
+        messageText: "old",
+      });
+    });
+
+    act(() => {
+      result.current.notify({
+        id: "one",
+        level: "error",
+        messageText: "new",
+        durationMs: 5000,
+      });
+    });
+
+    expect(result.current.items).toHaveLength(1);
+    expect(result.current.items[0]).toEqual(
+      expect.objectContaining({
+        id: "one",
+        level: "error",
+        messageText: "new",
+        durationMs: 5000,
+      }),
+    );
   });
 
   it("keeps one visible item in single mode", () => {
@@ -70,5 +115,47 @@ describe("useNotifications", () => {
 
     expect(result.current.items).toHaveLength(2);
     expect(result.current.items.map((item) => item.id)).toEqual(["third", "second"]);
+  });
+
+  it("applies updated default duration and closable only to new notifications", () => {
+    const { result, rerender } = renderHook(
+      (props: { durationMs: number; closable: boolean }) =>
+        useNotifications({
+          placement: "bottom-right",
+          stacking: "stacked",
+          durationMs: props.durationMs,
+          closable: props.closable,
+          maxVisible: 3,
+        }),
+      {
+        initialProps: {
+          durationMs: 1000,
+          closable: false,
+        },
+      },
+    );
+
+    act(() => {
+      result.current.notify({ id: "first", level: "info", messageText: "first" });
+    });
+
+    rerender({ durationMs: 5000, closable: true });
+
+    act(() => {
+      result.current.notify({ id: "second", level: "info", messageText: "second" });
+    });
+
+    expect(result.current.items.find((item) => item.id === "first")).toEqual(
+      expect.objectContaining({
+        durationMs: 1000,
+        closable: false,
+      }),
+    );
+    expect(result.current.items.find((item) => item.id === "second")).toEqual(
+      expect.objectContaining({
+        durationMs: 5000,
+        closable: true,
+      }),
+    );
   });
 });

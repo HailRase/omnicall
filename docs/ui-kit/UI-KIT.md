@@ -1055,7 +1055,7 @@ Priority: P1
 Purpose:
 
 - Low-level Radix Toast primitives for controlled composition and legacy stories.
-- Product notifications now use UI Kit `Sonner` (`Toaster` + `toast` from `sonner`).
+- Product notifications now use Sonner theme bridge (`Toaster` + `toast` from `sonner`).
 - Kept for backward-compatible Radix-based composition and tests.
 
 API:
@@ -1105,57 +1105,63 @@ Priority: P0
 
 Purpose:
 
-- shadcn/ui-compatible Sonner toaster for ephemeral feedback.
-- Primary runtime path for product `NotificationViewport`.
-- Imperative API via `toast(...)` from `sonner`, wrapped with semantic tokens.
+- Native `sonner` runtime for ephemeral feedback.
+- Thin **theme bridge** in `src/renderer/components/ui/sonner/Sonner.tsx` maps Sonner CSS variables to project semantic tokens.
+- Primary runtime path: `NotificationViewport` + `useNotificationSonnerSync`.
+- **Do not** use `unstyled: true` on the bridge — native Sonner stack/hover behavior must stay intact.
+
+Architecture:
+
+```txt
+Notification queue → useNotificationSonnerSync → toast()
+  → Toaster (theme bridge) → sonner Toaster (native styled toasts)
+  → Sonner.module.css maps --normal-* / --success-* to var(--color-*)
+  → tokens.css switches light/dark via data-theme on documentElement
+```
 
 API:
 
-- `Toaster` — shadcn-like wrapper over `sonner` `Toaster`
+- `Toaster` — thin wrapper: `theme` from `useDocumentTheme()` unless overridden
 - `toast` — re-export from `sonner`
-- `position`: `top-left | top-center | top-right | bottom-left | bottom-center | bottom-right`
-- `theme`: `light | dark | system` (defaults from `data-theme` on `documentElement`)
-- `richColors`, `closeButton`, `duration`, `expand`, `visibleToasts`, `toastOptions`
+- Sonner props unchanged: `position`, `expand`, `gap`, `offset`, `visibleToasts`, `closeButton`, `toastOptions`, etc.
+
+Product notification contract (`NotificationViewport`):
+
+- `expand={false}` — collapsed stack, expand on hover (shadcn-like)
+- `gap={14}`, `offset={24}`
+- no `richColors` — neutral surface; success/error distinguished by `AppIcon` only
+- icon colors: `NotificationToast.module.css`
 
 Stories:
 
 - [x] Default
-- [x] Description
-- [x] Action
-- [x] Close Button
-- [x] Rich Colors
-- [x] Types (default, success, info, warning, error)
-- [x] Positions
-- [x] Expanded/Stacked
 - [x] Light Theme
 - [x] Dark Theme
-- [x] Interactive demo via `toast(...)`
 
 Tests:
 
-- [x] Toaster renders without crashing
-- [x] `toast(...)` renders message
-- [x] Description renders
-- [x] Action callback fires
-- [x] Close button dismisses
-- [x] Duration auto-dismisses
-- [x] Position is applied
-- [x] Rich colors/types render distinguishable state attributes
-- [x] Light/dark path uses semantic tokens (no hardcoded colors in module CSS)
-- [x] Product `NotificationViewport` still works
+- [x] Theme bridge renders toaster class
+- [x] `data-sonner-theme` syncs with `data-theme="dark"`
+- [x] `NotificationViewport` integration (queue → toast lifecycle)
 
 Checklist:
 
-- [x] Component implemented
-- [x] CSS Module implemented
-- [x] `sonner` dependency added
-- [x] Applicable Universal Quality Gates satisfied
-- [x] Storybook added under `UI Kit/Sonner`
+- [x] Theme bridge implemented (`Sonner.tsx` + `Sonner.module.css`)
+- [x] `sonner` dependency present
+- [x] Native Sonner behavior preserved (no `unstyled`)
+- [x] Semantic token mapping for light/dark
+- [x] Storybook under `UI Kit/Sonner`
 - [x] Tests added
-- [x] Barrel export added
-- [x] Light/dark verified
-- [x] Accessibility verified (close button aria via `toastOptions.closeButtonAriaLabel`)
-- [x] Documentation status updated
+- [x] Barrel export (`ui/sonner/index.ts`, `ui/index.ts`)
+- [x] Product `NotificationViewport` verified
+- [x] Documentation updated
+
+Anti-patterns (learned from prior iterations):
+
+- Full `unstyled` + custom toast layout — breaks stacked positioning/hover
+- `expand` without `false` in product viewport — stack jumps upward
+- `min-height` on toast surface — height jitter in stack
+- `richColors` in product viewport — conflicts with neutral notification design
 
 ### Alert
 
@@ -1181,11 +1187,13 @@ API:
 Visual and behavior (shadcn-like):
 
 - bordered rounded surface with compact padding and semantic surface tokens
-- grid layout: optional icon column, title and description in the content column
-- title: medium weight, single-line preferred
-- description: muted smaller text with relaxed line height
+- grid layout: `0 1fr` columns by default; switches to `auto 1fr` when a leading `svg` icon is present
+- title and description always start in column 2 (`col-start-2`); optional icon occupies column 1 across both rows
+- compact padding (`py-2`, `px-2.5` equivalent) with tight row gap between title and description
+- title: medium weight (`font-weight: 500`), single-line preferred
+- description: muted text with relaxed line height
 - destructive variant: destructive text and border tokens; description uses muted destructive tone
-- `AlertAction`: trailing action slot for `Button` or other control; does not steal root focus
+- `AlertAction`: `absolute top-2 right-2` — outside grid flow; root reserves `pr-18` right padding when action is present
 - static inline surface only: no portal, no focus trap, no escape handling
 
 Stories:
@@ -1193,7 +1201,9 @@ Stories:
 - [x] Default
 - [x] Destructive
 - [x] With Icon
+- [x] Payment Success
 - [x] With Action
+- [x] With Icon And Action
 - [x] Long Content
 - [x] Light Theme
 - [x] Dark Theme

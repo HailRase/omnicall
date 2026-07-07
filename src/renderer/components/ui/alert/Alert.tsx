@@ -57,6 +57,7 @@ export const Alert = forwardRef(function Alert(
       ref={ref}
       {...rest}
       role="alert"
+      data-slot="alert"
       className={clsx(styles.root, VARIANT_CLASS[variant], className)}
       data-variant={variant}
     >
@@ -75,7 +76,12 @@ export const AlertTitle = forwardRef(function AlertTitle(
   ref: Ref<HTMLDivElement>,
 ): JSX.Element {
   return (
-    <div ref={ref} {...rest} className={clsx(styles.title, className)}>
+    <div
+      ref={ref}
+      {...rest}
+      data-slot="alert-title"
+      className={clsx(styles.title, className)}
+    >
       {children}
     </div>
   );
@@ -91,7 +97,12 @@ export const AlertDescription = forwardRef(function AlertDescription(
   ref: Ref<HTMLDivElement>,
 ): JSX.Element {
   return (
-    <div ref={ref} {...rest} className={clsx(styles.description, className)}>
+    <div
+      ref={ref}
+      {...rest}
+      data-slot="alert-description"
+      className={clsx(styles.description, className)}
+    >
       {children}
     </div>
   );
@@ -107,7 +118,12 @@ export const AlertAction = forwardRef(function AlertAction(
   ref: Ref<HTMLDivElement>,
 ): JSX.Element {
   return (
-    <div ref={ref} {...rest} className={clsx(styles.action, className)}>
+    <div
+      ref={ref}
+      {...rest}
+      data-slot="alert-action"
+      className={clsx(styles.action, className)}
+    >
       {children}
     </div>
   );
