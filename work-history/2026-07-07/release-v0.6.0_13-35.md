@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-07 13:35
 **Статус:** выполнено
-**Коммит:** `chore(release): cut v0.6.0`
+**Коммит:** `9cd4c30`
 
 ## Где
 - `package.json`, `CHANGELOG.md`, `distribution/CHANGELOG.md`
