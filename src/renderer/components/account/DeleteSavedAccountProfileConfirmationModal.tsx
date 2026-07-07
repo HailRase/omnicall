@@ -1,6 +1,5 @@
 import type { JSX } from "react";
 import { useI18n } from "../../i18n/index.js";
-import { AppIcon, IconControlButton } from "../icons/index.js";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,8 +9,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+  Button,
 } from "../ui/index.js";
-import styles from "./DeleteSavedAccountProfileConfirmationModal.module.css";
 
 export type DeleteSavedAccountProfileConfirmationModalProps = Readonly<{
   open: boolean;
@@ -41,36 +40,32 @@ export function DeleteSavedAccountProfileConfirmationModal({
         }}
       >
         <AlertDialogHeader>
-          <AlertDialogTitle className={styles.title}>
-            <span className={styles.titleIcon}>
-              <AppIcon id="account.profile.delete" decorative />
-            </span>
-            {t("account.profile.delete.confirmTitle")}
-          </AlertDialogTitle>
+          <AlertDialogTitle>{t("account.profile.delete.confirmTitle")}</AlertDialogTitle>
           <AlertDialogDescription>
             {t("account.profile.delete.confirmMessage")}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <AlertDialogFooter className={styles.footer}>
+        <AlertDialogFooter>
           <AlertDialogCancel asChild>
-            <IconControlButton
-              iconId="overlay.close"
-              ariaLabel={t("account.profile.delete.cancelAria")}
-              tooltipLabel={t("common.cancel")}
-              testId="delete-saved-account-profile-cancel"
-              className={styles.iconButton}
+            <Button
+              variant="ghost"
+              aria-label={t("account.profile.delete.cancelAria")}
+              data-testid="delete-saved-account-profile-cancel"
               onClick={onCancel}
-            />
+            >
+              {t("common.cancel")}
+            </Button>
           </AlertDialogCancel>
           <AlertDialogAction asChild>
-            <IconControlButton
-              iconId="action.confirm"
-              ariaLabel={t("account.profile.delete.confirmAria")}
-              testId="delete-saved-account-profile-confirm"
-              className={styles.iconButton}
+            <Button
+              variant="destructive"
+              aria-label={t("account.profile.delete.confirmAria")}
+              data-testid="delete-saved-account-profile-confirm"
               onClick={onConfirm}
-            />
+            >
+              {t("account.profile.delete")}
+            </Button>
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
