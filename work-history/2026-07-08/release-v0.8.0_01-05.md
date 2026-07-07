@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-08 01:05
 **Статус:** выполнено
-**Коммит:** (release commit hash after push)
+**Коммит:** `fccfb62`
 
 ## Где
 - `package.json`, `CHANGELOG.md`, `distribution/CHANGELOG.md`, `distribution/update-manifest.json`
