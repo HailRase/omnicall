@@ -1,12 +1,15 @@
 declare const classes: {
   readonly actions: string;
+  readonly anchor: string;
   readonly answerButton: string;
   readonly autoAnswerFill: string;
   readonly autoAnswerHint: string;
   readonly autoAnswerTrack: string;
   readonly body: string;
+  readonly bodyButton: string;
   readonly buttonIcon: string;
   readonly disabledReason: string;
+  readonly dismissButton: string;
   readonly eyebrow: string;
   readonly headerRow: string;
   readonly iconCircle: string;

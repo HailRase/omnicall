@@ -270,6 +270,8 @@ export const bgMessages: MessageShape = {
   "icons.updates.available": "Налично е обновление",
   "incoming.answerAria": "Отговори на обаждането",
   "incoming.answerLabel": "Отговори",
+  "incoming.dismissAria": "Скрий банера за входящо обаждане",
+  "incoming.openCallSurfaceAria": "Отвори екрана за обаждане",
   "incoming.ariaLabel": "Входящо обаждане",
   "incoming.autoAnswer.countdown": (params: Readonly<{ seconds: number }>) =>
     `Автоматичен отговор след ${params.seconds}`,
