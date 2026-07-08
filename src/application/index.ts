@@ -348,6 +348,13 @@ export {
   type SettingsAccountIdentity,
 } from "./projections/savedProfileIdentity.js";
 export {
+  buildContactDirectory,
+  resolveCallerPresentation,
+  type CallerPresentation,
+  type CallerPresentationSource,
+  type ContactDirectory,
+} from "./read-models/contactDirectory.js";
+export {
   deriveHeaderChromeShell,
   type HeaderChromeShellInput,
   type HeaderChromeShellViewModel,

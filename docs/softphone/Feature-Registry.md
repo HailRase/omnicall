@@ -365,7 +365,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-052`, `LF-053`, `LF-054`
 - Context: Settings
 - Priority: medium
-- Status: **in progress** (Phase 1–2 disk persistence + profile reload — identity/detail/delete in later phases)
+- Status: **in progress** (Phase 1–3 persistence + profile reload + history identity enrichment — detail/delete in later phases)
 - Owner: TBD
 - Inputs: completed call events
 - Outputs: persisted call history entry
@@ -376,12 +376,35 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Per-account file persistence under `call-history/{encodedProfileKey}.json` when real bootstrap is active.
   - Missing or corrupt history document returns safe empty state with warning log.
   - Profile switch reload refreshes history projection for the active `SettingsAccountKey` without showing the previous account list.
-  - History detail view, delete entry, and contact enrichment are tracked in `Contacts-History-Identity-Persistence-Plan.md` later phases.
+  - History list labels are enriched through `contactDirectory` read model without mutating stored `displayLabel` snapshots.
+  - History detail view and delete entry are tracked in `Contacts-History-Identity-Persistence-Plan.md` later phases.
 - Test Coverage:
-  - Unit: history entry mapping, `deriveCallHistoryShell`, `callHistoryProjection`, `parsePersistedCallHistoryDocument`
+  - Unit: history entry mapping, `deriveCallHistoryShell`, `contactDirectory`, `callHistoryProjection`, `parsePersistedCallHistoryDocument`
   - Integration: `InMemoryCallHistoryRepository`, `FileCallHistoryRepository`, `ListCallHistoryUseCase`, `RedialFromHistoryUseCase`, `createRealAccountBootstrap`
   - Renderer: `HistoryPanelShell`, `HistoryShellRoutePanel`, navigation guards
   - E2E: deferred until harness exists; manual smoke: `handoffs/Shell-Navigation-Phase6-Smoke-Checklist.md`
+
+## F-026: Caller Identity Presentation
+
+- Legacy IDs: _none_
+- Context: Settings
+- Priority: medium
+- Status: **in progress** (Phase 3 history enrichment — active call enrichment in Phase 4)
+- Owner: TBD
+- Inputs: contacts projection, remote number, optional SIP/display label snapshot
+- Outputs: `CallerPresentation` read model for shell projections
+- Acceptance Criteria:
+  - Contact `displayName` beats SIP/display label when normalized phone matches.
+  - SIP/display label beats number only when no contact matches and label differs from number.
+  - Number remains available as secondary label when contact or SIP label is primary.
+  - Duplicate phone fallback prefers primary-phone owner, then stable `ContactId` ordering.
+  - History storage is not mutated when contacts change.
+  - Active call lines and incoming overlay use the same read model in Phase 4.
+- Test Coverage:
+  - Unit: `contactDirectory`, `deriveCallHistoryShell` enrichment cases
+  - Integration: deferred until active-call enrichment lands in Phase 4
+  - Renderer: history list uses enriched `primaryLabel` via `useCallHistoryShell`
+  - E2E: deferred until harness exists
 
 ## F-014: Recovery And Reconnect
 
@@ -711,7 +734,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: _none_ (new product feature; audited legacy softphone had no standalone contacts module)
 - Context: Settings
 - Priority: medium
-- Status: **in progress** (Phase 1–2 disk persistence + profile reload — matching/add-from-history in later phases)
+- Status: **in progress** (Phase 1–3 persistence + profile reload + duplicate phone policy — add-from-history/CSV in later phases)
 - Owner: TBD
 - Inputs: contact metadata (display name, primary/secondary phone, company, notes)
 - Outputs: persisted `Contact` records, domain events, projection, facade CRUD/call API
@@ -725,9 +748,10 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Per-account file persistence under `contacts/{encodedProfileKey}.json` when real bootstrap is active.
   - Missing or corrupt contacts document returns safe empty state with warning log.
   - Profile switch reload refreshes contacts projection for the active `SettingsAccountKey` without showing the previous account list.
-  - Duplicate phone policy, add-from-history, and CSV import/export are tracked in `Contacts-History-Identity-Persistence-Plan.md` later phases.
+  - Normalized phone numbers are unique across contacts at create/update time (`validateContactPhoneUniqueness`).
+  - Add-from-history and CSV import/export are tracked in `Contacts-History-Identity-Persistence-Plan.md` later phases.
 - Test Coverage:
-  - Unit: contact validation, projection reducer, `deriveContactsShell` disabled reasons, `parsePersistedContactsDocument`
+  - Unit: contact validation, `validateContactPhoneUniqueness`, projection reducer, `deriveContactsShell` disabled reasons, `parsePersistedContactsDocument`
   - Integration: in-memory and file repository CRUD, Use Case orchestration (`ContactUseCases`, `CallContactUseCase`), `createRealAccountBootstrap`
   - Renderer: `ContactsShellRoutePanel`, `ContactsPanelShell`, `ContactDetailsPanel`, navigation guards
   - E2E: deferred until harness exists; manual smoke: `handoffs/Shell-Navigation-Phase6-Smoke-Checklist.md`

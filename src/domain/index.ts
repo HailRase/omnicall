@@ -101,7 +101,7 @@ export type {
   CreateContactResult,
   UpdateContactResult,
 } from "./settings/Contact.js";
-export { createContact, updateContact } from "./settings/Contact.js";
+export { createContact, updateContact, validateContactPhoneUniqueness } from "./settings/Contact.js";
 export type { ContactId } from "./settings/ContactId.js";
 export { createContactId, generateContactId } from "./settings/ContactId.js";
 export type {

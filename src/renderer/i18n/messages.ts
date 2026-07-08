@@ -644,6 +644,7 @@ const ruMessages = {
   "history.entry.duration": (params: Readonly<{ seconds: number }>) =>
     `${params.seconds} с`,
   "history.entry.noDuration": "—",
+  "history.entry.unknownCaller": "Неизвестный абонент",
   "history.redial.disabled.notRegistered": "Перезвон недоступен: SIP не зарегистрирован.",
   "history.redial.disabled.activeCallPolicy":
     "Перезвон недоступен во время активного звонка при выключенных мультисессиях.",
@@ -696,7 +697,9 @@ const ruMessages = {
   "contacts.field.error.displayNameRequired": "Укажите имя контакта.",
   "contacts.field.error.displayNameTooLong": "Имя слишком длинное.",
   "contacts.field.error.primaryPhoneInvalid": "Некорректный основной телефон.",
+  "contacts.field.error.primaryPhoneDuplicate": "Этот номер уже используется другим контактом.",
   "contacts.field.error.secondaryPhoneInvalid": "Некорректный дополнительный телефон.",
+  "contacts.field.error.secondaryPhoneDuplicate": "Дополнительный номер уже используется другим контактом.",
   "contacts.field.error.companyTooLong": "Название компании слишком длинное.",
   "contacts.field.error.notesTooLong": "Заметка слишком длинная.",
   "shell.window.minimizeAria": "Свернуть окно",
@@ -1343,6 +1346,7 @@ const enMessages: MessageShape = {
   "history.redial": "Redial",
   "history.entry.duration": (params) => `${params.seconds}s`,
   "history.entry.noDuration": "—",
+  "history.entry.unknownCaller": "Unknown caller",
   "history.redial.disabled.notRegistered": "Redial unavailable: SIP is not registered.",
   "history.redial.disabled.activeCallPolicy":
     "Redial unavailable during an active call when multi-session is off.",
@@ -1395,7 +1399,9 @@ const enMessages: MessageShape = {
   "contacts.field.error.displayNameRequired": "Enter a contact name.",
   "contacts.field.error.displayNameTooLong": "Name is too long.",
   "contacts.field.error.primaryPhoneInvalid": "Primary phone is invalid.",
+  "contacts.field.error.primaryPhoneDuplicate": "This number is already used by another contact.",
   "contacts.field.error.secondaryPhoneInvalid": "Secondary phone is invalid.",
+  "contacts.field.error.secondaryPhoneDuplicate": "This secondary number is already used by another contact.",
   "contacts.field.error.companyTooLong": "Company name is too long.",
   "contacts.field.error.notesTooLong": "Notes are too long.",
   "shell.window.minimizeAria": "Minimize window",
@@ -2031,6 +2037,7 @@ const frMessages: MessageShape = {
   "history.redial": "Rappeler",
   "history.entry.duration": (params) => `${params.seconds} s`,
   "history.entry.noDuration": "—",
+  "history.entry.unknownCaller": "Appelant inconnu",
   "history.redial.disabled.notRegistered":
     "Rappel indisponible : SIP non enregistre.",
   "history.redial.disabled.activeCallPolicy":
@@ -2084,7 +2091,10 @@ const frMessages: MessageShape = {
   "contacts.field.error.displayNameRequired": "Saisissez un nom de contact.",
   "contacts.field.error.displayNameTooLong": "Le nom est trop long.",
   "contacts.field.error.primaryPhoneInvalid": "Telephone principal invalide.",
+  "contacts.field.error.primaryPhoneDuplicate": "Ce numero est deja utilise par un autre contact.",
   "contacts.field.error.secondaryPhoneInvalid": "Telephone secondaire invalide.",
+  "contacts.field.error.secondaryPhoneDuplicate":
+    "Ce numero secondaire est deja utilise par un autre contact.",
   "contacts.field.error.companyTooLong": "Le nom de l'entreprise est trop long.",
   "contacts.field.error.notesTooLong": "Les notes sont trop longues.",
   "shell.window.minimizeAria": "Reduire la fenetre",
@@ -2721,6 +2731,7 @@ const deMessages: MessageShape = {
   "history.redial": "Erneut anrufen",
   "history.entry.duration": (params) => `${params.seconds} s`,
   "history.entry.noDuration": "—",
+  "history.entry.unknownCaller": "Unbekannter Anrufer",
   "history.redial.disabled.notRegistered":
     "Erneut anrufen nicht verfuegbar: SIP nicht registriert.",
   "history.redial.disabled.activeCallPolicy":
@@ -2774,7 +2785,11 @@ const deMessages: MessageShape = {
   "contacts.field.error.displayNameRequired": "Geben Sie einen Kontaktnamen ein.",
   "contacts.field.error.displayNameTooLong": "Name ist zu lang.",
   "contacts.field.error.primaryPhoneInvalid": "Primaere Telefonnummer ist ungueltig.",
+  "contacts.field.error.primaryPhoneDuplicate":
+    "Diese Nummer wird bereits von einem anderen Kontakt verwendet.",
   "contacts.field.error.secondaryPhoneInvalid": "Sekundaere Telefonnummer ist ungueltig.",
+  "contacts.field.error.secondaryPhoneDuplicate":
+    "Diese sekundaere Nummer wird bereits von einem anderen Kontakt verwendet.",
   "contacts.field.error.companyTooLong": "Unternehmensname ist zu lang.",
   "contacts.field.error.notesTooLong": "Notizen sind zu lang.",
   "shell.window.minimizeAria": "Fenster minimieren",

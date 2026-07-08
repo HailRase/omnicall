@@ -69,4 +69,26 @@ describe("Contact Use Cases", () => {
     const result = await getUseCase.execute({ contactId: "bad id" });
     expect(isErr(result)).toBe(true);
   });
+
+  it("rejects create when normalized primary phone already exists", async () => {
+    const repository = new InMemoryContactRepository();
+    const eventPublisher = new InMemoryDomainEventBus();
+    const logger = createTestLogger();
+    const createUseCase = new CreateContactUseCase(repository, eventPublisher, logger);
+
+    const first = await createUseCase.execute({ contact: sampleInput });
+    expect(first.ok).toBe(true);
+
+    const duplicate = await createUseCase.execute({
+      contact: {
+        displayName: "Duplicate Agent",
+        primaryPhone: "+1 (202) 555-0100",
+      },
+    });
+
+    expect(isErr(duplicate)).toBe(true);
+    if (!duplicate.ok) {
+      expect(duplicate.error.cause).toContain("primary_phone_duplicate");
+    }
+  });
 });

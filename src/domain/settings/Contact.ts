@@ -33,6 +33,8 @@ export type ContactValidationError =
   | "display_name_too_long"
   | "primary_phone_invalid"
   | "secondary_phone_invalid"
+  | "primary_phone_duplicate"
+  | "secondary_phone_duplicate"
   | "company_too_long"
   | "notes_too_long";
 
@@ -124,6 +126,54 @@ export function updateContact(
       updatedAt,
     },
   };
+}
+
+/**
+ * - Purpose: enforce unique normalized phone numbers across stored contacts.
+ * - Inputs: candidate phones and existing contacts with optional self-exclusion.
+ * - Outputs: duplicate validation errors for conflicting primary or secondary phones.
+ */
+export function validateContactPhoneUniqueness(
+  phones: Readonly<{ primaryPhone: string; secondaryPhone: string | null }>,
+  existingContacts: ReadonlyArray<Contact>,
+  excludeContactId?: ContactId,
+): ReadonlyArray<ContactValidationError> {
+  const errors: ContactValidationError[] = [];
+  const candidates = existingContacts.filter((contact) => contact.id !== excludeContactId);
+
+  if (findPhoneConflict(phones.primaryPhone, candidates) !== null) {
+    errors.push("primary_phone_duplicate");
+  }
+
+  if (phones.secondaryPhone !== null) {
+    if (phones.secondaryPhone === phones.primaryPhone) {
+      errors.push("secondary_phone_duplicate");
+    } else if (findPhoneConflict(phones.secondaryPhone, candidates) !== null) {
+      errors.push("secondary_phone_duplicate");
+    }
+  }
+
+  return errors;
+}
+
+function findPhoneConflict(
+  phone: string,
+  contacts: ReadonlyArray<Contact>,
+): Contact | null {
+  const normalizedPhone = normalizePhoneNumber(phone);
+  for (const contact of contacts) {
+    if (normalizePhoneNumber(contact.primaryPhone) === normalizedPhone) {
+      return contact;
+    }
+    if (
+      contact.secondaryPhone !== null &&
+      normalizePhoneNumber(contact.secondaryPhone) === normalizedPhone
+    ) {
+      return contact;
+    }
+  }
+
+  return null;
 }
 
 function validateContactFields(input: ContactInput): ReadonlyArray<ContactValidationError> {

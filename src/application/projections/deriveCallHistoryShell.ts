@@ -1,5 +1,10 @@
-import type { CallHistoryEntry } from "@domain/index.js";
-import type { CallHistoryProjection } from "./callHistoryProjection.js";import type { MultiCallProjection } from "./multiCallProjection.js";
+import type { CallHistoryEntry, Contact } from "@domain/index.js";
+import {
+  buildContactDirectory,
+  type CallerPresentationSource,
+} from "../read-models/contactDirectory.js";
+import type { CallHistoryProjection } from "./callHistoryProjection.js";
+import type { MultiCallProjection } from "./multiCallProjection.js";
 
 export type CallHistoryRedialDisabledReasonKey =
   | "history.redial.disabled.notRegistered"
@@ -18,6 +23,10 @@ export type CallHistoryEntryShellViewModel = Readonly<{
   id: string;
   remoteNumber: string;
   displayLabel: string | null;
+  primaryLabel: string;
+  secondaryLabel: string | null;
+  contactId: string | null;
+  presentationSource: CallerPresentationSource;
   directionKey: "history.direction.incoming" | "history.direction.outgoing";
   outcomeKey: "history.outcome.completed" | "history.outcome.missed" | "history.outcome.failed";
   startedAtIso: string;
@@ -39,6 +48,7 @@ export type CallHistoryShellViewModel = Readonly<{
  */
 export function deriveCallHistoryShell(input: Readonly<{
   projection: CallHistoryProjection;
+  contacts: ReadonlyArray<Contact>;
   isSipRegistered: boolean;
   multiCallProjection: MultiCallProjection;
 }>): CallHistoryShellViewModel {
@@ -46,9 +56,10 @@ export function deriveCallHistoryShell(input: Readonly<{
     input.isSipRegistered,
     input.multiCallProjection,
   );
+  const contactDirectory = buildContactDirectory(input.contacts);
 
   const entries = input.projection.entries.map((entry) =>
-    mapEntry(entry, globalRedialReason),
+    mapEntry(entry, globalRedialReason, contactDirectory),
   );
 
   return {
@@ -69,11 +80,21 @@ function toHistoryErrorKey(errorKey: string | null): "history.error.loadFailed" 
 function mapEntry(
   entry: CallHistoryEntry,
   globalRedialReason: CallHistoryRedialDisabledReasonKey | null,
+  contactDirectory: ReturnType<typeof buildContactDirectory>,
 ): CallHistoryEntryShellViewModel {
+  const presentation = contactDirectory.resolvePresentation({
+    remoteNumber: entry.remoteNumber,
+    displayLabel: entry.displayLabel,
+  });
+
   return {
     id: entry.id,
     remoteNumber: entry.remoteNumber,
     displayLabel: entry.displayLabel,
+    primaryLabel: presentation.primaryLabel,
+    secondaryLabel: presentation.secondaryLabel,
+    contactId: presentation.contactId,
+    presentationSource: presentation.source,
     directionKey:
       entry.direction === "incoming"
         ? "history.direction.incoming"

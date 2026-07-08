@@ -3,6 +3,7 @@ import {
   createContactCreatedEvent,
   type Contact,
   type ContactInput,
+  validateContactPhoneUniqueness,
 } from "@domain/index.js";
 import type { ContactRepository, DomainEventPublisher, Logger } from "@ports/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
@@ -38,6 +39,24 @@ export class CreateContactUseCase {
           "validation_failed",
           "Invalid contact input",
           validation.errors,
+        ),
+      );
+    }
+
+    const existingContacts = await this.contactRepository.listContacts();
+    const uniquenessErrors = validateContactPhoneUniqueness(
+      {
+        primaryPhone: validation.value.primaryPhone,
+        secondaryPhone: validation.value.secondaryPhone,
+      },
+      existingContacts,
+    );
+    if (uniquenessErrors.length > 0) {
+      return err(
+        createPlatformError(
+          "validation_failed",
+          "Invalid contact input",
+          uniquenessErrors,
         ),
       );
     }

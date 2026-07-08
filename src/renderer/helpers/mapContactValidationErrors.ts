@@ -3,6 +3,8 @@ export type ContactValidationErrorCode =
   | "display_name_too_long"
   | "primary_phone_invalid"
   | "secondary_phone_invalid"
+  | "primary_phone_duplicate"
+  | "secondary_phone_duplicate"
   | "company_too_long"
   | "notes_too_long";
 
@@ -10,7 +12,9 @@ export type ContactFieldErrorKey =
   | "contacts.field.error.displayNameRequired"
   | "contacts.field.error.displayNameTooLong"
   | "contacts.field.error.primaryPhoneInvalid"
+  | "contacts.field.error.primaryPhoneDuplicate"
   | "contacts.field.error.secondaryPhoneInvalid"
+  | "contacts.field.error.secondaryPhoneDuplicate"
   | "contacts.field.error.companyTooLong"
   | "contacts.field.error.notesTooLong";
 
@@ -19,6 +23,8 @@ const CONTACT_VALIDATION_ERRORS: ReadonlyArray<ContactValidationErrorCode> = [
   "display_name_too_long",
   "primary_phone_invalid",
   "secondary_phone_invalid",
+  "primary_phone_duplicate",
+  "secondary_phone_duplicate",
   "company_too_long",
   "notes_too_long",
 ];
@@ -27,7 +33,9 @@ const FIELD_ERROR_BY_CODE: Record<ContactValidationErrorCode, ContactFieldErrorK
   display_name_required: "contacts.field.error.displayNameRequired",
   display_name_too_long: "contacts.field.error.displayNameTooLong",
   primary_phone_invalid: "contacts.field.error.primaryPhoneInvalid",
+  primary_phone_duplicate: "contacts.field.error.primaryPhoneDuplicate",
   secondary_phone_invalid: "contacts.field.error.secondaryPhoneInvalid",
+  secondary_phone_duplicate: "contacts.field.error.secondaryPhoneDuplicate",
   company_too_long: "contacts.field.error.companyTooLong",
   notes_too_long: "contacts.field.error.notesTooLong",
 };
@@ -39,7 +47,9 @@ const FIELD_NAME_BY_CODE: Record<
   display_name_required: "displayName",
   display_name_too_long: "displayName",
   primary_phone_invalid: "primaryPhone",
+  primary_phone_duplicate: "primaryPhone",
   secondary_phone_invalid: "secondaryPhone",
+  secondary_phone_duplicate: "secondaryPhone",
   company_too_long: "company",
   notes_too_long: "notes",
 };

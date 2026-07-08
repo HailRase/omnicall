@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createContact, updateContact } from "./Contact.js";
+import { createContact, updateContact, validateContactPhoneUniqueness } from "./Contact.js";
 import { createContactId } from "./ContactId.js";
 
 const validInput = {
@@ -99,5 +99,53 @@ describe("createContactId", () => {
   it("rejects invalid ids", () => {
     expect(createContactId("bad id")).toBeNull();
     expect(createContactId("")).toBeNull();
+  });
+});
+
+describe("validateContactPhoneUniqueness", () => {
+  it("rejects duplicate primary phone against existing contact primary", () => {
+    const existing = createContact(validInput);
+    expect(existing.ok).toBe(true);
+    if (!existing.ok) {
+      return;
+    }
+
+    const errors = validateContactPhoneUniqueness(
+      { primaryPhone: "+12025550100", secondaryPhone: null },
+      [existing.value],
+    );
+
+    expect(errors).toContain("primary_phone_duplicate");
+  });
+
+  it("rejects duplicate secondary phone against existing contact phones", () => {
+    const existing = createContact(validInput);
+    expect(existing.ok).toBe(true);
+    if (!existing.ok) {
+      return;
+    }
+
+    const errors = validateContactPhoneUniqueness(
+      { primaryPhone: "1002", secondaryPhone: "1001" },
+      [existing.value],
+    );
+
+    expect(errors).toContain("secondary_phone_duplicate");
+  });
+
+  it("allows updating the same contact without duplicate errors", () => {
+    const existing = createContact(validInput);
+    expect(existing.ok).toBe(true);
+    if (!existing.ok) {
+      return;
+    }
+
+    const errors = validateContactPhoneUniqueness(
+      { primaryPhone: existing.value.primaryPhone, secondaryPhone: existing.value.secondaryPhone },
+      [existing.value],
+      existing.value.id,
+    );
+
+    expect(errors).toEqual([]);
   });
 });

@@ -514,6 +514,7 @@ export const bgMessages: MessageShape = {
   "history.redial": "Повторно обаждане",
   "history.entry.duration": (params: Readonly<{ seconds: number }>) => `${params.seconds} s`,
   "history.entry.noDuration": "—",
+  "history.entry.unknownCaller": "Неизвестен абонат",
   "history.redial.disabled.notRegistered":
     "Повторното обаждане е недостъпно: SIP не е регистриран.",
   "history.redial.disabled.activeCallPolicy":
@@ -568,7 +569,10 @@ export const bgMessages: MessageShape = {
   "contacts.field.error.displayNameRequired": "Въведете име на контакт.",
   "contacts.field.error.displayNameTooLong": "Името е твърде дълго.",
   "contacts.field.error.primaryPhoneInvalid": "Невалиден основен телефон.",
+  "contacts.field.error.primaryPhoneDuplicate": "Този номер вече се използва от друг контакт.",
   "contacts.field.error.secondaryPhoneInvalid": "Невалиден допълнителен телефон.",
+  "contacts.field.error.secondaryPhoneDuplicate":
+    "Този допълнителен номер вече се използва от друг контакт.",
   "contacts.field.error.companyTooLong": "Името на компанията е твърде дълго.",
   "contacts.field.error.notesTooLong": "Бележките са твърде дълги.",
   "shell.shutdown.failed": "Не можа да се приключи сесията. Затварянето и рестартът бяха отменени.",

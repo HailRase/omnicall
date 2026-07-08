@@ -453,7 +453,7 @@ Gate:
 
 ### Phase 3: Contact Directory And Phone Identity
 
-Status: planned.
+Status: **done** (2026-07-08).
 
 Purpose:
 

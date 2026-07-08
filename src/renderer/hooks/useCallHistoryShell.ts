@@ -97,6 +97,8 @@ export function useCallHistoryShell({
 
   const callHistoryProjection = useAccountBootstrapStore((state) => state.callHistoryProjection);
 
+  const contactsProjection = useAccountBootstrapStore((state) => state.contactsProjection);
+
   const multiCallProjection = useAccountBootstrapStore((state) => state.multiCallProjection);
 
 
@@ -109,13 +111,15 @@ export function useCallHistoryShell({
 
         projection: callHistoryProjection,
 
+        contacts: contactsProjection.contacts,
+
         isSipRegistered,
 
         multiCallProjection,
 
       }),
 
-    [callHistoryProjection, isSipRegistered, multiCallProjection],
+    [callHistoryProjection, contactsProjection.contacts, isSipRegistered, multiCallProjection],
 
   );
 
@@ -133,7 +137,10 @@ export function useCallHistoryShell({
 
         displayLabel: entry.displayLabel,
 
-        primaryLabel: entry.displayLabel ?? entry.remoteNumber,
+        primaryLabel:
+          entry.presentationSource === "unknown"
+            ? t("history.entry.unknownCaller")
+            : entry.primaryLabel,
 
         directionLabel: t(entry.directionKey),
 

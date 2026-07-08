@@ -13,6 +13,9 @@ describe("mapContactValidationErrors", () => {
     expect(mapContactValidationError("primary_phone_invalid")).toBe(
       "contacts.field.error.primaryPhoneInvalid",
     );
+    expect(mapContactValidationError("primary_phone_duplicate")).toBe(
+      "contacts.field.error.primaryPhoneDuplicate",
+    );
   });
 
   it("extracts validation codes from cause arrays", () => {

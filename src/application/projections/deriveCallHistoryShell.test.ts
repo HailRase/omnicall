@@ -1,9 +1,28 @@
 import { createCallId } from "@domain/index.js";
+import { createContact } from "@domain/settings/Contact.js";
+import { createContactId } from "@domain/settings/ContactId.js";
 import { createCallHistoryEntryFromSession } from "@domain/settings/CallHistoryEntry.js";
 import { describe, expect, it } from "vitest";
 import { initialCallHistoryProjection } from "./callHistoryProjection.js";
 import { deriveCallHistoryShell } from "./deriveCallHistoryShell.js";
 import { initialMultiCallProjection } from "./multiCallProjection.js";
+
+function buildContact(id: string, displayName: string, primaryPhone: string) {
+  const contactId = createContactId(id);
+  if (contactId === null) {
+    throw new Error("invalid contact id");
+  }
+
+  const created = createContact(
+    { displayName, primaryPhone },
+    { id: contactId },
+  );
+  if (!created.ok) {
+    throw new Error("invalid contact");
+  }
+
+  return created.value;
+}
 
 function sampleEntry() {
   const created = createCallHistoryEntryFromSession({
@@ -31,6 +50,7 @@ describe("deriveCallHistoryShell", () => {
         status: "populated",
         entries: [sampleEntry()],
       },
+      contacts: [],
       isSipRegistered: false,
       multiCallProjection: initialMultiCallProjection(),
     });
@@ -47,6 +67,7 @@ describe("deriveCallHistoryShell", () => {
         status: "populated",
         entries: [sampleEntry()],
       },
+      contacts: [],
       isSipRegistered: true,
       multiCallProjection: {
         ...initialMultiCallProjection(),
@@ -68,6 +89,7 @@ describe("deriveCallHistoryShell", () => {
         status: "populated",
         entries: [sampleEntry()],
       },
+      contacts: [],
       isSipRegistered: true,
       multiCallProjection: initialMultiCallProjection(),
     });
@@ -87,11 +109,53 @@ describe("deriveCallHistoryShell", () => {
         status: "error",
         errorKey: "history.error.loadFailed",
       },
+      contacts: [],
       isSipRegistered: true,
       multiCallProjection: initialMultiCallProjection(),
     });
 
     expect(shell.errorKey).toBe("history.error.loadFailed");
     expect(shell.isEmpty).toBe(true);
+  });
+
+  it("enriches history labels from contacts without mutating stored displayLabel", () => {
+    const shell = deriveCallHistoryShell({
+      projection: {
+        ...initialCallHistoryProjection(),
+        status: "populated",
+        entries: [sampleEntry()],
+      },
+      contacts: [buildContact("agent-a", "Alice Agent", "+12025550100")],
+      isSipRegistered: true,
+      multiCallProjection: initialMultiCallProjection(),
+    });
+
+    expect(shell.entries[0]).toMatchObject({
+      displayLabel: "Alice",
+      primaryLabel: "Alice Agent",
+      secondaryLabel: "+12025550100",
+      contactId: "agent-a",
+      presentationSource: "contact",
+    });
+  });
+
+  it("keeps SIP label when no contact matches", () => {
+    const shell = deriveCallHistoryShell({
+      projection: {
+        ...initialCallHistoryProjection(),
+        status: "populated",
+        entries: [sampleEntry()],
+      },
+      contacts: [],
+      isSipRegistered: true,
+      multiCallProjection: initialMultiCallProjection(),
+    });
+
+    expect(shell.entries[0]).toMatchObject({
+      primaryLabel: "Alice",
+      secondaryLabel: "+12025550100",
+      contactId: null,
+      presentationSource: "sip",
+    });
   });
 });

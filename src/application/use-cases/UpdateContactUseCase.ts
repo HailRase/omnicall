@@ -1,8 +1,10 @@
 import {
   createContactId,
   createContactUpdatedEvent,
+  updateContact,
   type Contact,
   type ContactUpdateInput,
+  validateContactPhoneUniqueness,
 } from "@domain/index.js";
 import type { ContactRepository, DomainEventPublisher, Logger } from "@ports/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
@@ -38,6 +40,49 @@ export class UpdateContactUseCase {
     }
 
     try {
+      const existing = await this.contactRepository.getContactById(contactId);
+      if (existing === null) {
+        this.logger.warn("contact_update_not_found", {
+          correlationId,
+          featureId: "F-025",
+          boundedContext: "Settings",
+          operation: "update_contact",
+          contactId: input.contactId,
+          result: "not_found",
+        });
+        return err(createPlatformError("not_found", "Contact was not found"));
+      }
+
+      const validation = updateContact(existing, input.update);
+      if (!validation.ok) {
+        return err(
+          createPlatformError(
+            "validation_failed",
+            "Invalid contact input",
+            validation.errors,
+          ),
+        );
+      }
+
+      const existingContacts = await this.contactRepository.listContacts();
+      const uniquenessErrors = validateContactPhoneUniqueness(
+        {
+          primaryPhone: validation.value.primaryPhone,
+          secondaryPhone: validation.value.secondaryPhone,
+        },
+        existingContacts,
+        contactId,
+      );
+      if (uniquenessErrors.length > 0) {
+        return err(
+          createPlatformError(
+            "validation_failed",
+            "Invalid contact input",
+            uniquenessErrors,
+          ),
+        );
+      }
+
       const updated = await this.contactRepository.updateContact(contactId, input.update);
       if (updated === null) {
         this.logger.warn("contact_update_not_found", {
