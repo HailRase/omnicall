@@ -1188,6 +1188,52 @@ export class AccountBootstrapFacade {
     );
   }
 
+  async getActiveSipAccount(): Promise<SipAccountInput | null> {
+    if (!this.sipSessionRegistered) {
+      return null;
+    }
+
+    const account = await this.deps.settingsRepository.getSipAccount();
+    if (account === null) {
+      return null;
+    }
+
+    return {
+      username: account.username,
+      password: account.password,
+      domain: account.domain,
+      server: account.server,
+    };
+  }
+
+  async forgetRememberedSipPassword(
+    profileId: SavedAccountProfileId,
+    correlationId?: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    const profile = await this.savedAccountProfileRepository.getProfileById(profileId);
+    if (profile === null) {
+      return err(
+        createPlatformError("not_found", LOCAL_SAVED_PROFILE_NOT_FOUND_MESSAGE),
+      );
+    }
+
+    try {
+      await this.deleteSipPasswordSecret(profileId);
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+
+    this.deps.logger.info("sip_password_secret_forgotten", {
+      ...(correlationId !== undefined ? { correlationId } : {}),
+      featureId: "F-024",
+      boundedContext: "Settings",
+      operation: "forget_remembered_sip_password",
+      profileId,
+    });
+
+    return ok(undefined);
+  }
+
   async hasRememberedSipPassword(profileId: SavedAccountProfileId): Promise<boolean> {
     try {
       const storedPassword = await this.secretStoragePort.loadSecret(

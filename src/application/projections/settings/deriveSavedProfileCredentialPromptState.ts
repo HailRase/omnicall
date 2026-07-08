@@ -10,6 +10,7 @@ export type SavedProfilePasswordHintKey = "account.profile.passwordHint.savedPro
 export type SavedProfileCredentialPromptState = Readonly<{
   passwordFieldVisible: boolean;
   rememberPasswordVisible: boolean;
+  forgetRememberedPasswordVisible: boolean;
   passwordHintKey: SavedProfilePasswordHintKey | null;
   submitMode: SavedProfileCredentialSubmitMode;
 }>;
@@ -32,6 +33,7 @@ export function deriveSavedProfileCredentialPromptState(
     return {
       passwordFieldVisible: true,
       rememberPasswordVisible: input.panelMode === "newFull",
+      forgetRememberedPasswordVisible: false,
       passwordHintKey: null,
       submitMode: "full-form",
     };
@@ -41,6 +43,7 @@ export function deriveSavedProfileCredentialPromptState(
     return {
       passwordFieldVisible: true,
       rememberPasswordVisible: true,
+      forgetRememberedPasswordVisible: false,
       passwordHintKey: "account.profile.passwordHint.savedProfile",
       submitMode: "manual-password",
     };
@@ -49,6 +52,7 @@ export function deriveSavedProfileCredentialPromptState(
   return {
     passwordFieldVisible: false,
     rememberPasswordVisible: false,
+    forgetRememberedPasswordVisible: true,
     passwordHintKey: null,
     submitMode: "remembered-password",
   };

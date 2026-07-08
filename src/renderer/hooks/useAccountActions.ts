@@ -91,6 +91,7 @@ type UseAccountActionsResult = Readonly<{
   rememberPasswordChecked: boolean;
   passwordFieldVisible: boolean;
   rememberPasswordVisible: boolean;
+  forgetRememberedPasswordVisible: boolean;
   rememberPasswordDisabled: boolean;
   rememberPasswordDisabledReasonKey: TranslationKey | null;
   passwordHintKey: TranslationKey | null;
@@ -105,6 +106,7 @@ type UseAccountActionsResult = Readonly<{
   selectProfile: (profileId: SavedAccountProfileId | null) => void;
   setSaveProfileChecked: (checked: boolean) => void;
   setRememberPasswordChecked: (checked: boolean) => void;
+  forgetRememberedPassword: () => void;
   requestDeleteSelectedProfile: (profileId: SavedAccountProfileId) => void;
   confirmDeleteSelectedProfile: () => void;
   cancelDeleteSelectedProfile: () => void;
@@ -188,6 +190,7 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
 
   const passwordFieldVisible = credentialPromptState.passwordFieldVisible;
   const rememberPasswordVisible = credentialPromptState.rememberPasswordVisible;
+  const forgetRememberedPasswordVisible = credentialPromptState.forgetRememberedPasswordVisible;
   const passwordHintKey: TranslationKey | null = credentialPromptState.passwordHintKey;
   const rememberPasswordDisabled =
     panelMode === "newFull" && !saveProfileChecked;
@@ -261,6 +264,11 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     if (wasSipRegisteredRef.current && !isSipRegistered) {
       if (!suppressRegistrationEndResetRef.current) {
         resetToNewProfile();
+      } else {
+        setForm((current) => ({
+          ...current,
+          password: "",
+        }));
       }
     }
     wasSipRegisteredRef.current = isSipRegistered;
@@ -494,6 +502,37 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     }
   }, [rememberPasswordChecked, rememberPasswordDisabled]);
 
+  const forgetRememberedPassword = useCallback((): void => {
+    if (facade === null || selectedProfileId === null || submitting) {
+      return;
+    }
+
+    const profileId = selectedProfileId;
+
+    void (async (): Promise<void> => {
+      const result = await facade.forgetRememberedSipPassword(profileId);
+      if (isErr(result)) {
+        setError(mapAccountAuthorizationError(result.error));
+        scheduleFeedbackClear();
+        return;
+      }
+
+      setHasRememberedPassword(false);
+      setForcePasswordEntryForSelectedProfile(true);
+      setRememberPasswordChecked(false);
+      clearFeedback();
+      queueMicrotask(() => {
+        passwordInputRef.current?.focus();
+      });
+    })();
+  }, [
+    clearFeedback,
+    facade,
+    scheduleFeedbackClear,
+    selectedProfileId,
+    submitting,
+  ]);
+
   useEffect(() => {
     if (facade === null || selectedProfileId === null) {
       setHasRememberedPassword(false);
@@ -511,6 +550,47 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
       cancelled = true;
     };
   }, [facade, selectedProfileId, savedProfiles]);
+
+  useEffect(() => {
+    if (
+      facade === null ||
+      !isSipRegistered ||
+      registeredIdentity === null ||
+      selectedProfile === null ||
+      panelMode !== "savedFull"
+    ) {
+      return;
+    }
+
+    if (!matchesSipAccountIdentity(selectedProfile, registeredIdentity)) {
+      return;
+    }
+
+    let cancelled = false;
+    void facade.getActiveSipAccount().then((activeAccount) => {
+      if (cancelled || activeAccount === null) {
+        return;
+      }
+
+      setForm((current) => ({
+        ...current,
+        username: activeAccount.username,
+        domain: activeAccount.domain,
+        server: activeAccount.server,
+        password: activeAccount.password,
+      }));
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    facade,
+    isSipRegistered,
+    panelMode,
+    registeredIdentity,
+    selectedProfile,
+  ]);
 
   useEffect(() => {
     if (
@@ -553,6 +633,7 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     rememberPasswordChecked,
     passwordFieldVisible,
     rememberPasswordVisible,
+    forgetRememberedPasswordVisible,
     rememberPasswordDisabled,
     rememberPasswordDisabledReasonKey,
     passwordHintKey,
@@ -567,6 +648,7 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     selectProfile,
     setSaveProfileChecked,
     setRememberPasswordChecked,
+    forgetRememberedPassword,
     requestDeleteSelectedProfile,
     confirmDeleteSelectedProfile,
     cancelDeleteSelectedProfile,
