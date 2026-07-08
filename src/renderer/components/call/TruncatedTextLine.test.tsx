@@ -14,7 +14,7 @@ afterEach(() => {
 });
 
 describe("TruncatedTextLine", () => {
-  it("does not show tooltip when text fits", async () => {
+  it("does not show tooltip when text fits", () => {
     Object.defineProperty(HTMLElement.prototype, "scrollWidth", {
       configurable: true,
       get() {
