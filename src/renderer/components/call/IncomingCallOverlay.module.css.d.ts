@@ -7,7 +7,6 @@ declare const classes: {
   readonly autoAnswerHint: string;
   readonly autoAnswerTrack: string;
   readonly body: string;
-  readonly disabledReason: string;
   readonly dismissButton: string;
   readonly iconCircle: string;
   readonly identity: string;
