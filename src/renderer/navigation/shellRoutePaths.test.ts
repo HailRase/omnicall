@@ -5,6 +5,9 @@ describe("shellRouteToPath", () => {
   it("maps typed shell routes to hash-router paths", () => {
     expect(shellRouteToPath({ name: "dialpad" })).toBe("/");
     expect(shellRouteToPath({ name: "history" })).toBe("/history");
+    expect(shellRouteToPath({ name: "historyDetails", entryId: "history-call-1" })).toBe(
+      "/history/history-call-1",
+    );
     expect(shellRouteToPath({ name: "contacts" })).toBe("/contacts");
     expect(shellRouteToPath({ name: "contactDetails", contactId: "agent-1" })).toBe(
       "/contacts/agent-1",

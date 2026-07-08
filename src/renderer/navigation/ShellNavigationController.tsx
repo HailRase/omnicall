@@ -18,6 +18,7 @@ export function ShellNavigationController({
       <Route path="/" element={layout}>
         <Route index element={null} />
         <Route path="history" element={null} />
+        <Route path="history/:entryId" element={null} />
         <Route path="contacts" element={null} />
         <Route path="contacts/:contactId" element={null} />
         <Route path="contacts/:contactId/edit" element={null} />

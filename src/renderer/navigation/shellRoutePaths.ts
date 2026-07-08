@@ -12,6 +12,8 @@ export function shellRouteToPath(route: ShellRoute): string {
       return "/";
     case "history":
       return "/history";
+    case "historyDetails":
+      return `/history/${encodeURIComponent(route.entryId)}`;
     case "contacts":
       return "/contacts";
     case "contactDetails":

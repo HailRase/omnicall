@@ -16,6 +16,7 @@ export function resolveShellRoutePresentation(
 ): ShellRoutePresentation {
   switch (route.name) {
     case "history":
+    case "historyDetails":
       return context.hasActiveCallContext ? "sidebar" : "fullPanel";
     case "contacts":
     case "contactDetails":
@@ -34,6 +35,12 @@ export function resolveShellRoutePresentation(
 export function applyShellNavigationTargetGuard(route: ShellRoute): ShellRoute {
   if (route.name === "contactDetails" || route.name === "contactEdit") {
     if (route.contactId.trim().length === 0) {
+      return { name: "dialpad" };
+    }
+  }
+
+  if (route.name === "historyDetails") {
+    if (route.entryId.trim().length === 0) {
       return { name: "dialpad" };
     }
   }

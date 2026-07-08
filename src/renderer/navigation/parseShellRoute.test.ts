@@ -5,6 +5,11 @@ describe("parseShellRoute", () => {
   it("parses dialpad, history, contacts list, and settings routes", () => {
     expect(parseShellRoute("/")).toEqual({ name: "dialpad" });
     expect(parseShellRoute("/history")).toEqual({ name: "history" });
+    expect(parseShellRoute("/history/history-call-1")).toEqual({
+      name: "historyDetails",
+      entryId: "history-call-1",
+      notFound: false,
+    });
     expect(parseShellRoute("/contacts")).toEqual({ name: "contacts" });
     expect(parseShellRoute("/settings")).toEqual({ name: "settings", section: "general" });
     expect(parseShellRoute("/settings/sessions")).toEqual({
@@ -37,6 +42,11 @@ describe("parseShellRoute", () => {
     expect(parseShellRoute("/contacts/bad id")).toEqual({
       name: "contactDetails",
       contactId: "bad id",
+      notFound: true,
+    });
+    expect(parseShellRoute("/history/bad id")).toEqual({
+      name: "historyDetails",
+      entryId: "bad id",
       notFound: true,
     });
   });

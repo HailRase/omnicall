@@ -74,6 +74,26 @@
   background: var(--color-bg-surface-highlight);
 }
 
+.item-select {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-width: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.item-select:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: -2px;
+  border-radius: var(--radius-control);
+}
+
 .item-main {
   flex: 1 1 auto;
   min-width: 0;

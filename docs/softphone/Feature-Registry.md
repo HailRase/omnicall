@@ -365,7 +365,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-052`, `LF-053`, `LF-054`
 - Context: Settings
 - Priority: medium
-- Status: **in progress** (Phase 1–3 persistence + profile reload + history identity enrichment — detail/delete in later phases)
+- Status: **in progress** (Phase 5 history detail UI done — delete in Phase 6)
 - Owner: TBD
 - Inputs: completed call events
 - Outputs: persisted call history entry
@@ -377,11 +377,12 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Missing or corrupt history document returns safe empty state with warning log.
   - Profile switch reload refreshes history projection for the active `SettingsAccountKey` without showing the previous account list.
   - History list labels are enriched through `contactDirectory` read model without mutating stored `displayLabel` snapshots.
-  - History detail view and delete entry are tracked in `Contacts-History-Identity-Persistence-Plan.md` later phases.
+  - History detail route (`/history/:entryId`) shows iPhone-like hero, grouped redial action, and metadata with localized not-found handling.
+  - Delete entry is tracked in Phase 6 of `Contacts-History-Identity-Persistence-Plan.md`.
 - Test Coverage:
   - Unit: history entry mapping, `deriveCallHistoryShell`, `contactDirectory`, `callHistoryProjection`, `parsePersistedCallHistoryDocument`
   - Integration: `InMemoryCallHistoryRepository`, `FileCallHistoryRepository`, `ListCallHistoryUseCase`, `RedialFromHistoryUseCase`, `createRealAccountBootstrap`
-  - Renderer: `HistoryPanelShell`, `HistoryShellRoutePanel`, navigation guards
+  - Renderer: `HistoryPanelShell`, `HistoryDetailPanel`, `HistoryShellRoutePanel`, `useCallHistoryDetailShell`, navigation guards
   - E2E: deferred until harness exists; manual smoke: `handoffs/Shell-Navigation-Phase6-Smoke-Checklist.md`
 
 ## F-026: Caller Identity Presentation

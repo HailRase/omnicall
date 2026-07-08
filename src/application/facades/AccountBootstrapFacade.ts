@@ -99,6 +99,7 @@ import { DeleteSavedAccountProfileUseCase } from "../use-cases/settings/DeleteSa
 import { TouchSavedAccountProfileUseCase } from "../use-cases/settings/TouchSavedAccountProfileUseCase.js";
 import { RecordCallHistoryUseCase } from "../use-cases/contacts/RecordCallHistoryUseCase.js";
 import { ListCallHistoryUseCase } from "../use-cases/contacts/ListCallHistoryUseCase.js";
+import { GetCallHistoryEntryUseCase } from "../use-cases/contacts/GetCallHistoryEntryUseCase.js";
 import { RedialFromHistoryUseCase } from "../use-cases/contacts/RedialFromHistoryUseCase.js";
 import { ListContactsUseCase } from "../use-cases/contacts/ListContactsUseCase.js";
 import { GetContactUseCase } from "../use-cases/contacts/GetContactUseCase.js";
@@ -199,6 +200,7 @@ export class AccountBootstrapFacade {
 
   private readonly callHistoryRepository: CallHistoryRepository;
   private readonly listCallHistoryUseCase: ListCallHistoryUseCase;
+  private readonly getCallHistoryEntryUseCase: GetCallHistoryEntryUseCase;
   private readonly redialFromHistoryUseCase: RedialFromHistoryUseCase;
 
   private readonly contactRepository: ContactRepository;
@@ -248,6 +250,10 @@ export class AccountBootstrapFacade {
       deps.logger,
     );
     this.listCallHistoryUseCase = new ListCallHistoryUseCase(
+      this.callHistoryRepository,
+      deps.logger,
+    );
+    this.getCallHistoryEntryUseCase = new GetCallHistoryEntryUseCase(
       this.callHistoryRepository,
       deps.logger,
     );
@@ -681,6 +687,16 @@ export class AccountBootstrapFacade {
 
   listCallHistory(): Promise<Result<ReadonlyArray<CallHistoryEntry>, PlatformError>> {
     return this.listCallHistoryUseCase.execute();
+  }
+
+  getCallHistoryEntry(
+    entryId: string,
+    correlationId?: CorrelationId,
+  ): Promise<Result<CallHistoryEntry, PlatformError>> {
+    return this.getCallHistoryEntryUseCase.execute({
+      entryId,
+      ...(correlationId !== undefined ? { correlationId } : {}),
+    });
   }
 
   redialFromHistory(

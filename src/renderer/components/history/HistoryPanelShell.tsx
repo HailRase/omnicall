@@ -1,6 +1,6 @@
 import clsx from "clsx";
-import { useMemo, useState, type JSX } from "react";
-import { groupHistoryRowsByDate } from "../../helpers/groupHistoryRowsByDate.js";
+import { useMemo, useState, type JSX, type ReactNode } from "react";
+import { groupHistoryRowsByDate, type HistoryDateSection } from "../../helpers/groupHistoryRowsByDate.js";
 import type { CallHistoryEntryRowViewModel } from "../../hooks/useCallHistoryShell.js";
 import { useI18n } from "../../i18n/index.js";
 import { AppIcon } from "../icons/index.js";
@@ -15,12 +15,16 @@ export type HistoryPanelShellProps = Readonly<{
   open: boolean;
   presentation: ShellDialpadPanelPresentation;
   title: string;
-  isLoading: boolean;
-  isEmpty: boolean;
-  errorMessage: string | null;
-  rows: ReadonlyArray<CallHistoryEntryRowViewModel>;
+  showBack?: boolean;
   onClose: () => void;
-  onRedial: (entryId: string) => void;
+  onBack?: () => void;
+  children?: ReactNode;
+  isLoading?: boolean;
+  isEmpty?: boolean;
+  errorMessage?: string | null;
+  rows?: ReadonlyArray<CallHistoryEntryRowViewModel>;
+  onSelectEntry?: (entryId: string) => void;
+  onRedial?: (entryId: string) => void;
 }>;
 
 type HistoryFilter = "all" | "missed";
@@ -35,11 +39,15 @@ export function HistoryPanelShell({
   open,
   presentation,
   title,
-  isLoading,
-  isEmpty,
-  errorMessage,
-  rows,
+  showBack = false,
   onClose,
+  onBack,
+  children,
+  isLoading = false,
+  isEmpty = false,
+  errorMessage = null,
+  rows = [],
+  onSelectEntry,
   onRedial,
 }: HistoryPanelShellProps): JSX.Element | null {
   const { t, language } = useI18n();
@@ -60,7 +68,8 @@ export function HistoryPanelShell({
     [filteredRows, language, t],
   );
 
-  const showFilter = !isLoading && errorMessage === null && !isEmpty;
+  const showFilter =
+    children === undefined && !isLoading && errorMessage === null && !isEmpty;
 
   return (
     <ShellDialpadPanel
@@ -68,9 +77,61 @@ export function HistoryPanelShell({
       title={title}
       testId="history-panel-shell"
       closeButtonTestId="history-panel-close"
+      backButtonTestId="history-panel-back"
       presentation={presentation}
+      showBack={showBack}
       onClose={onClose}
+      {...(onBack !== undefined ? { onBack } : {})}
     >
+      {children !== undefined ? (
+        children
+      ) : (
+        <HistoryListBody
+          filter={filter}
+          setFilter={setFilter}
+          showFilter={showFilter}
+          isLoading={isLoading}
+          isEmpty={isEmpty}
+          errorMessage={errorMessage}
+          sections={sections}
+          filteredRows={filteredRows}
+          {...(onSelectEntry !== undefined ? { onSelectEntry } : {})}
+          {...(onRedial !== undefined ? { onRedial } : {})}
+        />
+      )}
+    </ShellDialpadPanel>
+  );
+}
+
+type HistoryListBodyProps = Readonly<{
+  filter: HistoryFilter;
+  setFilter: (value: HistoryFilter) => void;
+  showFilter: boolean;
+  isLoading: boolean;
+  isEmpty: boolean;
+  errorMessage: string | null;
+  sections: ReadonlyArray<HistoryDateSection<CallHistoryEntryRowViewModel>>;
+  filteredRows: ReadonlyArray<CallHistoryEntryRowViewModel>;
+  onSelectEntry?: (entryId: string) => void;
+  onRedial?: (entryId: string) => void;
+}>;
+
+function HistoryListBody({
+  filter,
+  setFilter,
+  showFilter,
+  isLoading,
+  isEmpty,
+  errorMessage,
+  sections,
+  filteredRows,
+  onSelectEntry,
+  onRedial,
+}: HistoryListBodyProps): JSX.Element {
+  const { t } = useI18n();
+
+  return (
+    <>
       {showFilter ? (
         <div className={styles.filterRow}>
           <Tabs
@@ -122,49 +183,64 @@ export function HistoryPanelShell({
               <h3 className={styles.sectionTitle}>{section.group.label}</h3>
               <ul className={styles.list}>
                 {section.rows.map((row) => (
-                  <HistoryListRow key={row.id} row={row} onRedial={onRedial} />
+                  <HistoryListRow
+                    key={row.id}
+                    row={row}
+                    {...(onSelectEntry !== undefined ? { onSelectEntry } : {})}
+                    {...(onRedial !== undefined ? { onRedial } : {})}
+                  />
                 ))}
               </ul>
             </section>
           ))}
         </div>
       ) : null}
-    </ShellDialpadPanel>
+    </>
   );
 }
 
 type HistoryListRowProps = Readonly<{
   row: CallHistoryEntryRowViewModel;
-  onRedial: (entryId: string) => void;
+  onSelectEntry?: (entryId: string) => void;
+  onRedial?: (entryId: string) => void;
 }>;
 
-function HistoryListRow({ row, onRedial }: HistoryListRowProps): JSX.Element {
+function HistoryListRow({ row, onSelectEntry, onRedial }: HistoryListRowProps): JSX.Element {
   const { t } = useI18n();
   const directionIconId = resolveDirectionIconId(row);
   const directionToneClass = resolveDirectionToneClass(row);
 
   return (
     <li className={styles.item} data-testid={`history-entry-${row.id}`}>
-      <PersonListAvatar label={row.primaryLabel} size="sm" missed={row.isMissed} />
-      <div className={styles.itemMain}>
-        <div className={clsx(styles.primaryLine, row.isMissed && styles.primaryLineMissed)}>
-          {row.primaryLabel}
+      <button
+        type="button"
+        className={styles.itemSelect}
+        data-testid={`history-entry-open-${row.id}`}
+        onClick={() => {
+          onSelectEntry?.(row.id);
+        }}
+      >
+        <PersonListAvatar label={row.primaryLabel} size="sm" missed={row.isMissed} />
+        <div className={styles.itemMain}>
+          <div className={clsx(styles.primaryLine, row.isMissed && styles.primaryLineMissed)}>
+            {row.primaryLabel}
+          </div>
+          <div className={styles.secondaryLine}>
+            <span className={clsx(styles.directionIcon, directionToneClass)}>
+              <AppIcon id={directionIconId} decorative size={14} />
+            </span>
+            <span>{row.directionLabel}</span>
+            <span aria-hidden="true">·</span>
+            <span>{row.secondaryTimeLabel}</span>
+          </div>
         </div>
-        <div className={styles.secondaryLine}>
-          <span className={clsx(styles.directionIcon, directionToneClass)}>
-            <AppIcon id={directionIconId} decorative size={14} />
-          </span>
-          <span>{row.directionLabel}</span>
-          <span aria-hidden="true">·</span>
-          <span>{row.secondaryTimeLabel}</span>
-        </div>
-      </div>
+      </button>
       <ListQuickCallButton
         ariaLabel={t("history.redial")}
         testId={`history-redial-${row.id}`}
         disabledReason={row.redialDisabledReason}
         onClick={() => {
-          onRedial(row.id);
+          onRedial?.(row.id);
         }}
       />
     </li>

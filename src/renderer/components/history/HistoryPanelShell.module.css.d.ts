@@ -10,6 +10,7 @@ declare const classes: {
   readonly filterRow: string;
   readonly item: string;
   readonly itemMain: string;
+  readonly itemSelect: string;
   readonly list: string;
   readonly primaryLine: string;
   readonly primaryLineMissed: string;

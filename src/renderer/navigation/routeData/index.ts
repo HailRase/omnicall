@@ -6,7 +6,14 @@ export {
   resolveContactRouteInitialStatus,
   resolveContactsRouteLoadTarget,
 } from "./contactsRouteDataController.js";
-export { resolveHistoryRouteLoadTarget } from "./historyRouteDataController.js";
+export {
+  findProjectionHistoryEntry,
+  isHistoryEntryRouteLoadFailureCode,
+  mapHistoryEntryToRouteSnapshot,
+  resolveHistoryEntryRouteInitialStatus,
+  resolveHistoryRouteLoadTarget,
+  shouldStartHistoryListLoad,
+} from "./historyEntryRouteDataController.js";
 export { clearLoadCoordinatorForTests, runLoadOnce } from "./loadCoordinator.js";
 export type {
   ContactRouteData,

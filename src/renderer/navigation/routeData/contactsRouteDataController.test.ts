@@ -6,7 +6,7 @@ import {
   resolveContactsRouteLoadTarget,
   shouldStartContactsListLoad,
 } from "./contactsRouteDataController.js";
-import { resolveHistoryRouteLoadTarget } from "./historyRouteDataController.js";
+import { resolveHistoryRouteLoadTarget } from "./historyEntryRouteDataController.js";
 
 const sampleProjectionContact: ContactsProjection["contacts"][number] = {
   id: "agent-1" as ContactsProjection["contacts"][number]["id"],
@@ -74,6 +74,17 @@ describe("contactsRouteDataController", () => {
 describe("historyRouteDataController", () => {
   it("resolves history list target", () => {
     expect(resolveHistoryRouteLoadTarget({ name: "history" })).toEqual({ kind: "list" });
+    expect(
+      resolveHistoryRouteLoadTarget({
+        name: "historyDetails",
+        entryId: "history-call-1",
+        notFound: false,
+      }),
+    ).toEqual({
+      kind: "entry",
+      entryId: "history-call-1",
+      routeNotFound: false,
+    });
     expect(resolveHistoryRouteLoadTarget({ name: "dialpad" })).toEqual({ kind: "none" });
   });
 });

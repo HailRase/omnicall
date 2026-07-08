@@ -20,11 +20,29 @@ export type ContactRouteSnapshot = Readonly<{
   notes: string | null;
 }>;
 
+export type HistoryEntryRouteSnapshot = Readonly<{
+  id: string;
+  remoteNumber: string;
+  displayLabel: string | null;
+  direction: "incoming" | "outgoing";
+  outcome: "completed" | "missed" | "failed";
+  startedAt: string;
+  endedAt: string;
+  durationSec: number;
+}>;
+
 export type ContactRouteData = Readonly<{
   contactId: string;
   status: RouteDataLoadStatus;
   activeToken: number;
   snapshot: ContactRouteSnapshot | null;
+}>;
+
+export type HistoryEntryRouteData = Readonly<{
+  entryId: string;
+  status: RouteDataLoadStatus;
+  activeToken: number;
+  snapshot: HistoryEntryRouteSnapshot | null;
 }>;
 
 export type ListRouteData = Readonly<{
@@ -37,6 +55,7 @@ export type ShellRouteDataState = Readonly<{
   contactsList: ListRouteData;
   historyList: ListRouteData;
   activeContact: ContactRouteData | null;
+  activeHistoryEntry: HistoryEntryRouteData | null;
 }>;
 
 export function initialListRouteData(): ListRouteData {
@@ -52,5 +71,6 @@ export function initialShellRouteDataState(): ShellRouteDataState {
     contactsList: initialListRouteData(),
     historyList: initialListRouteData(),
     activeContact: null,
+    activeHistoryEntry: null,
   };
 }

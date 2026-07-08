@@ -4,6 +4,7 @@ import {
   isSettingsSectionId,
 } from "../components/settings/settingsSections.js";
 import { parseContactId } from "./contactIdValidation.js";
+import { parseCallHistoryEntryId } from "./callHistoryEntryIdValidation.js";
 import type { ParsedShellRoute } from "./shellRouteModel.js";
 
 /**
@@ -55,6 +56,20 @@ export function parseShellRoute(pathname: string): ParsedShellRoute {
 
   if (matchPath({ path: "/settings", end: true }, pathname) !== null) {
     return { name: "settings", section: DEFAULT_SETTINGS_SECTION };
+  }
+
+  const historyDetailsMatch = matchPath({ path: "/history/:entryId", end: true }, pathname);
+  if (historyDetailsMatch !== null) {
+    const rawEntryId = historyDetailsMatch.params.entryId;
+    const entryId = parseCallHistoryEntryId(typeof rawEntryId === "string" ? rawEntryId : undefined);
+    if (entryId === null) {
+      return {
+        name: "historyDetails",
+        entryId: typeof rawEntryId === "string" ? rawEntryId : "",
+        notFound: true,
+      };
+    }
+    return { name: "historyDetails", entryId, notFound: false };
   }
 
   if (matchPath({ path: "/history", end: true }, pathname) !== null) {

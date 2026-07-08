@@ -3,6 +3,8 @@ import {
   initialShellRouteDataState,
   type ContactRouteData,
   type ContactRouteSnapshot,
+  type HistoryEntryRouteData,
+  type HistoryEntryRouteSnapshot,
   type ListRouteData,
   type RouteDataLoadStatus,
   type ShellRouteDataState,
@@ -24,6 +26,13 @@ type ShellRouteDataActions = Readonly<{
     snapshot?: ContactRouteSnapshot | null,
   ) => void;
   clearActiveContactIfMatches: (contactId: string) => void;
+  setActiveHistoryEntry: (entry: HistoryEntryRouteData | null) => void;
+  updateActiveHistoryEntryStatus: (
+    entryId: string,
+    token: number,
+    status: RouteDataLoadStatus,
+    snapshot?: HistoryEntryRouteSnapshot | null,
+  ) => void;
 }>;
 
 type ShellRouteDataStore = ShellRouteDataState & ShellRouteDataActions;
@@ -125,5 +134,25 @@ export const useShellRouteDataStore = create<ShellRouteDataStore>((set, get) => 
     if (current?.contactId === contactId) {
       set({ activeContact: null });
     }
+  },
+
+  setActiveHistoryEntry: (entry) => {
+    set({ activeHistoryEntry: entry });
+  },
+
+  updateActiveHistoryEntryStatus: (entryId, token, status, snapshot = null) => {
+    const current = get().activeHistoryEntry;
+    if (current === null || current.activeToken !== token || current.entryId !== entryId) {
+      return;
+    }
+
+    set({
+      activeHistoryEntry: {
+        entryId,
+        status,
+        activeToken: token,
+        snapshot,
+      },
+    });
   },
 }));

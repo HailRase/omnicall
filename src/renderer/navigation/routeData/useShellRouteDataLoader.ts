@@ -13,9 +13,13 @@ import {
   shouldStartContactsListLoad,
 } from "./contactsRouteDataController.js";
 import {
+  findProjectionHistoryEntry,
+  isHistoryEntryRouteLoadFailureCode,
+  mapHistoryEntryToRouteSnapshot,
+  resolveHistoryEntryRouteInitialStatus,
   resolveHistoryRouteLoadTarget,
   shouldStartHistoryListLoad,
-} from "./historyRouteDataController.js";
+} from "./historyEntryRouteDataController.js";
 import { runLoadOnce } from "./loadCoordinator.js";
 import { useShellRouteDataStore } from "./useShellRouteDataStore.js";
 import { useShellNavigation } from "../useShellNavigation.js";
@@ -28,6 +32,7 @@ type UseShellRouteDataLoaderInput = Readonly<{
 let contactsListTokenCounter = 0;
 let historyListTokenCounter = 0;
 let contactRouteTokenCounter = 0;
+let historyEntryRouteTokenCounter = 0;
 
 function nextContactsListToken(): number {
   contactsListTokenCounter += 1;
@@ -44,12 +49,33 @@ function nextContactRouteToken(): number {
   return contactRouteTokenCounter;
 }
 
+function nextHistoryEntryRouteToken(): number {
+  historyEntryRouteTokenCounter += 1;
+  return historyEntryRouteTokenCounter;
+}
+
 function shouldSkipContactRouteReload(input: Readonly<{
   contactId: string;
   routeNotFound: boolean;
 }>): boolean {
   const existing = useShellRouteDataStore.getState().activeContact;
   if (existing === null || existing.contactId !== input.contactId) {
+    return false;
+  }
+
+  if (input.routeNotFound) {
+    return existing.status === "notFound";
+  }
+
+  return existing.status === "loading" || existing.status === "loaded";
+}
+
+function shouldSkipHistoryEntryRouteReload(input: Readonly<{
+  entryId: string;
+  routeNotFound: boolean;
+}>): boolean {
+  const existing = useShellRouteDataStore.getState().activeHistoryEntry;
+  if (existing === null || existing.entryId !== input.entryId) {
     return false;
   }
 
@@ -73,6 +99,7 @@ export function useShellRouteDataLoader({
   const contactActions = useContactActions({ facade });
   const historyActions = useCallHistoryActions({ facade });
   const activeContactRequestRef = useRef<number>(0);
+  const activeHistoryEntryRequestRef = useRef<number>(0);
 
   useEffect(() => {
     const contactsTarget = resolveContactsRouteLoadTarget(route);
@@ -144,6 +171,73 @@ export function useShellRouteDataLoader({
       })();
     } else {
       useShellRouteDataStore.getState().setActiveContact(null);
+    }
+
+    if (historyTarget.kind === "entry") {
+      const { entryId, routeNotFound } = historyTarget;
+
+      if (shouldSkipHistoryEntryRouteReload({ entryId, routeNotFound })) {
+        return;
+      }
+
+      const callHistoryProjection = useAccountBootstrapStore.getState().callHistoryProjection;
+      const projectionEntry = findProjectionHistoryEntry(callHistoryProjection, entryId);
+      const initialStatus = resolveHistoryEntryRouteInitialStatus({
+        routeNotFound,
+        projectionEntry,
+      });
+      const token = nextHistoryEntryRouteToken();
+      activeHistoryEntryRequestRef.current = token;
+
+      useShellRouteDataStore.getState().setActiveHistoryEntry({
+        entryId,
+        status: initialStatus,
+        activeToken: token,
+        snapshot:
+          projectionEntry !== null ? mapHistoryEntryToRouteSnapshot(projectionEntry) : null,
+      });
+
+      if (initialStatus !== "loading") {
+        return;
+      }
+
+      void (async () => {
+        const result = await historyActions.getHistoryEntry(entryId);
+        if (activeHistoryEntryRequestRef.current !== token) {
+          return;
+        }
+
+        if (isErr(result)) {
+          const status = isHistoryEntryRouteLoadFailureCode(result.error.code)
+            ? "notFound"
+            : "failed";
+          useShellRouteDataStore.getState().updateActiveHistoryEntryStatus(
+            entryId,
+            token,
+            status,
+            null,
+          );
+          return;
+        }
+
+        const refreshedProjection = findProjectionHistoryEntry(
+          useAccountBootstrapStore.getState().callHistoryProjection,
+          entryId,
+        );
+        const snapshot =
+          refreshedProjection !== null
+            ? mapHistoryEntryToRouteSnapshot(refreshedProjection)
+            : mapHistoryEntryToRouteSnapshot(result.value);
+
+        useShellRouteDataStore.getState().updateActiveHistoryEntryStatus(
+          entryId,
+          token,
+          "loaded",
+          snapshot,
+        );
+      })();
+    } else {
+      useShellRouteDataStore.getState().setActiveHistoryEntry(null);
     }
 
     if (contactsTarget.kind === "list") {

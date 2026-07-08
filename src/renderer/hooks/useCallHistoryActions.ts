@@ -45,12 +45,18 @@ export function useCallHistoryActions({ facade, notify }: UseCallHistoryActionsI
     [facade, notify],
   );
 
+  const getHistoryEntry = useCallback(
+    async (entryId: string) => facade.getCallHistoryEntry(entryId),
+    [facade],
+  );
+
   return useMemo(
     () => ({
       loadHistory,
       redialEntry,
+      getHistoryEntry,
     }),
-    [loadHistory, redialEntry],
+    [getHistoryEntry, loadHistory, redialEntry],
   );
 }
 
