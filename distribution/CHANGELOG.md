@@ -5,6 +5,21 @@ Public release history for **Axatalk** distribution builds.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer. Git tag: `v<version>`.
 
+## [0.8.0] - 2026-07-08
+
+### Added
+
+- Call history sidebar — list with missed filter, redial, and date grouping (F-013)
+- Contacts sidebar — list with search, add/edit/delete, contact details, and quick call (F-025)
+- Shell navigation for contacts and history over the dialpad via React Router; avatar menu entries (F-016)
+- Dialpad contacts shortcut in the number input when the field is empty
+
+### Changed
+
+- Compact list UI for contacts and call history (avatars, sublines, quick call)
+- Call history shows call duration for completed calls and clock time for missed or unanswered calls
+- Contacts and history are disabled in the avatar menu and dialpad shortcut until SIP registration succeeds
+
 ## [0.7.1] - 2026-07-07
 
 ### Added
