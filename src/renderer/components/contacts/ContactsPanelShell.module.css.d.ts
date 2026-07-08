@@ -10,7 +10,6 @@ declare const classes: {
   readonly detailsLayout: string;
   readonly detailsName: string;
   readonly detailsSubtitle: string;
-  readonly emptyAddButton: string;
   readonly emptyHint: string;
   readonly emptyIcon: string;
   readonly emptyState: string;
@@ -24,9 +23,10 @@ declare const classes: {
   readonly listItemSubline: string;
   readonly listItemText: string;
   readonly listToolbar: string;
-  readonly listToolbarActions: string;
+  readonly listToolbarSearch: string;
   readonly stateMessage: string;
   readonly stateMessageError: string;
   readonly stateMessageSuccess: string;
+  readonly toolbarIconButton: string;
 };
 export default classes;

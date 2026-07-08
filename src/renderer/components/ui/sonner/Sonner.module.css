@@ -1,6 +1,9 @@
 .toaster:global([data-sonner-toaster]) {
   z-index: var(--z-toast);
   font-family: var(--font-family-ui);
+  --toast-close-button-start: unset;
+  --toast-close-button-end: 0;
+  --toast-close-button-transform: translate(35%, -35%);
 
   --normal-bg: var(--color-bg-surface-elevated);
   --normal-bg-hover: var(--color-bg-surface-alt);

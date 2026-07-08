@@ -39,6 +39,7 @@ import {
   SlidersHorizontal,
   Trash2,
   User,
+  UserRoundPlus,
   Users,
   X,
 } from "lucide-react";
@@ -82,6 +83,7 @@ export type IconSemanticId =
   | "shell.window.close"
   | "shell.nav.back"
   | "shell.contacts"
+  | "contact.add"
   | "settings.account"
   | "account.profile.delete"
   | "settings.general"
@@ -178,6 +180,12 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.shell.contacts",
     defaultSize: 18,
     usage: ["ContactsListPanel: contacts-empty", "Dialpad: dialpad-contacts"],
+  },
+  "contact.add": {
+    static: UserRoundPlus,
+    defaultLabelKey: "icons.contact.add",
+    defaultSize: 16,
+    usage: ["ContactsListPanel: contacts-add", "ContactsListPanel: contacts-add-empty"],
   },
   "settings.account": {
     static: User,

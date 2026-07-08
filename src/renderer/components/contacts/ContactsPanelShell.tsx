@@ -10,6 +10,7 @@ import {
 } from "../ui/dropdown-menu/index.js";
 import { useI18n } from "../../i18n/index.js";
 import { AppIcon } from "../icons/index.js";
+import { IconControlButton } from "../icons/IconControlButton.js";
 import { ListQuickCallButton } from "../list/ListQuickCallButton.js";
 import { PersonListAvatar } from "../list/PersonListAvatar.js";
 import { useRestoreRouteFocus } from "../../hooks/useRestoreRouteFocus.js";
@@ -144,7 +145,7 @@ export function ContactsListPanel({
   if (isEmpty) {
     return (
       <div className={styles.emptyState} data-testid="contacts-list-empty">
-        <AppIcon id="shell.contacts" decorative size={24} className={styles.emptyIcon} />
+        <AppIcon id="contact.add" decorative size={24} className={styles.emptyIcon} />
         <p className={styles.emptyTitle}>{t("contacts.empty")}</p>
         <p className={styles.emptyHint}>{t("contacts.emptyHint")}</p>
         <div className={styles.actionsRow}>
@@ -153,16 +154,7 @@ export function ContactsListPanel({
             onImportCsv={onImportCsv}
             onExportCsv={onExportCsv}
           />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            className={styles.emptyAddButton}
-            data-testid="contacts-add-empty"
-            onClick={onAddContact}
-          >
-            {t("contacts.add")}
-          </Button>
+          <ContactsAddButton testId="contacts-add-empty" onClick={onAddContact} />
         </div>
       </div>
     );
@@ -174,28 +166,19 @@ export function ContactsListPanel({
         <Input
           type="search"
           size="sm"
+          className={styles.listToolbarSearch}
           value={searchQuery}
           placeholder={t("contacts.searchPlaceholder")}
           aria-label={t("contacts.searchAriaLabel")}
           data-testid="contacts-search-input"
           onChange={handleSearchChange}
         />
-        <div className={styles.listToolbarActions}>
-          <ContactsCsvMenu
-            {...(csvMenuButtonRef !== undefined ? { menuButtonRef: csvMenuButtonRef } : {})}
-            onImportCsv={onImportCsv}
-            onExportCsv={onExportCsv}
-          />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            data-testid="contacts-add"
-            onClick={onAddContact}
-          >
-            {t("contacts.add")}
-          </Button>
-        </div>
+        <ContactsCsvMenu
+          {...(csvMenuButtonRef !== undefined ? { menuButtonRef: csvMenuButtonRef } : {})}
+          onImportCsv={onImportCsv}
+          onExportCsv={onExportCsv}
+        />
+        <ContactsAddButton testId="contacts-add" onClick={onAddContact} />
       </div>
       {filteredRows.length === 0 ? (
         <p className={styles.stateMessage} data-testid="contacts-list-search-empty">
@@ -356,6 +339,27 @@ function DetailRow({ label, value }: DetailRowProps): JSX.Element {
       <span className={styles.detailLabel}>{label}</span>
       <p className={styles.detailValue}>{value}</p>
     </div>
+  );
+}
+
+type ContactsAddButtonProps = Readonly<{
+  testId: string;
+  onClick: () => void;
+}>;
+
+function ContactsAddButton({ testId, onClick }: ContactsAddButtonProps): JSX.Element {
+  const { t } = useI18n();
+
+  return (
+    <IconControlButton
+      iconId="contact.add"
+      preferAnimated={false}
+      ariaLabel={t("contacts.add")}
+      tooltipLabel={t("contacts.add")}
+      testId={testId}
+      className={styles.toolbarIconButton}
+      onClick={onClick}
+    />
   );
 }
 

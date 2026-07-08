@@ -258,6 +258,7 @@ export const bgMessages: MessageShape = {
   "icons.shell.window.close": "Затваряне на прозореца",
   "icons.shell.nav.back": "Назад",
   "icons.shell.contacts": "Контакти",
+  "icons.contact.add": "Добави контакт",
   "icons.shell.window.minimize": "Минимизиране на прозореца",
   "icons.sip.reregister": "SIP пререгистрация",
   "icons.transfer.consultation": "Започни консултация",

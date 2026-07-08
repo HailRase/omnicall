@@ -290,4 +290,17 @@ describe("NotificationViewport", () => {
       expect(screen.getByRole("button", { name: "Закрыть" })).toBeInTheDocument();
     });
   });
+
+  it("allows pointer interaction through notification viewport", async () => {
+    renderViewport([{ ...baseItem, durationMs: 10_000 }], vi.fn(), { durationMs: 10_000 });
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Закрыть" })).toBeInTheDocument();
+    });
+
+    const toaster = document.querySelector("[data-sonner-toaster]");
+    expect(toaster).not.toBeNull();
+    expect(getComputedStyle(toaster as Element).pointerEvents).toBe("auto");
+  });
+
 });

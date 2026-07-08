@@ -1,3 +1,7 @@
 .viewport {
   pointer-events: none;
 }
+
+.viewport :global([data-sonner-toaster]) {
+  pointer-events: auto;
+}

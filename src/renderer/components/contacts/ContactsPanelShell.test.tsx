@@ -34,7 +34,7 @@ describe("ContactsPanelShell", () => {
     );
 
     expect(screen.getByTestId("contacts-list-empty")).toHaveTextContent("Список контактов пуст.");
-    fireEvent.click(screen.getByTestId("contacts-add-empty"));
+    fireEvent.click(screen.getByRole("button", { name: "Добавить" }));
     expect(onAddContact).toHaveBeenCalledOnce();
   });
 
