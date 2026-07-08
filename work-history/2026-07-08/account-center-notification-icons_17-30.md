@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-08 17:30
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `995fbd3`
 
 ## Где
 - `src/renderer/components/settings/panels/SettingsAccountPanel.tsx`
