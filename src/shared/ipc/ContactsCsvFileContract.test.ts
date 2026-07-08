@@ -45,9 +45,15 @@ describe("ContactsCsvFileContract", () => {
       cancelled: false,
       contents: "csv",
     });
+    expect(parseContactsCsvSaveExportDialogResponse({ ok: true, cancelled: false, savedFileName: "contacts-export.csv" })).toEqual({
+      ok: true,
+      cancelled: false,
+      savedFileName: "contacts-export.csv",
+    });
     expect(parseContactsCsvSaveExportDialogResponse({ ok: true, cancelled: false })).toEqual({
       ok: true,
       cancelled: false,
+      savedFileName: "contacts-export.csv",
     });
     expect(parseContactsCsvSaveExportDialogResponse({ ok: false, reason: "write_failed" })).toEqual({
       ok: false,

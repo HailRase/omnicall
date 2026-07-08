@@ -369,11 +369,17 @@ type ContactsCsvMenuProps = Readonly<{
   onExportCsv: () => void;
 }>;
 
+function deferContactsCsvMenuAction(action: () => void): void {
+  window.setTimeout(() => {
+    action();
+  }, 100);
+}
+
 function ContactsCsvMenu({ menuButtonRef, onImportCsv, onExportCsv }: ContactsCsvMenuProps): JSX.Element {
   const { t } = useI18n();
 
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button
           type="button"
@@ -390,7 +396,7 @@ function ContactsCsvMenu({ menuButtonRef, onImportCsv, onExportCsv }: ContactsCs
         <DropdownMenuItem
           data-testid="contacts-csv-import"
           onSelect={() => {
-            onImportCsv();
+            deferContactsCsvMenuAction(onImportCsv);
           }}
         >
           {t("contacts.csv.import")}
@@ -398,7 +404,7 @@ function ContactsCsvMenu({ menuButtonRef, onImportCsv, onExportCsv }: ContactsCs
         <DropdownMenuItem
           data-testid="contacts-csv-export"
           onSelect={() => {
-            onExportCsv();
+            deferContactsCsvMenuAction(onExportCsv);
           }}
         >
           {t("contacts.csv.export")}

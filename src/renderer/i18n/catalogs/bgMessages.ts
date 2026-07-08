@@ -600,10 +600,11 @@ export const bgMessages: MessageShape = {
   "contacts.csv.export": "Експорт CSV",
   "contacts.csv.success.imported": (params: Readonly<{ count: number }>) =>
     `Импортирани контакти: ${params.count}.`,
-  "contacts.csv.success.exported": (params: Readonly<{ count: number }>) =>
-    `Експортирани контакти: ${params.count}.`,
+  "contacts.csv.success.exported": (params: Readonly<{ count: number; fileName: string }>) =>
+    `Файлът ${params.fileName} е запазен. Контакти: ${params.count}.`,
   "contacts.csv.error.importFailed": "Неуспешен импорт на контакти от CSV.",
   "contacts.csv.error.exportFailed": "Неуспешен експорт на контакти към CSV.",
+  "contacts.csv.info.exportCancelled": "Експортът на CSV е отменен.",
   "contacts.csv.summary.dialogAria": "Обобщение на импорта на контакти",
   "contacts.csv.summary.title": "Импортът приключи",
   "contacts.csv.summary.description":

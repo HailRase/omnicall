@@ -34,7 +34,8 @@ export class MockContactCsvFileGateway implements ContactCsvFileGateway {
         (options.importContents !== undefined
           ? { kind: "success", contents: options.importContents }
           : { kind: "cancelled" }),
-      exportResult: options.exportResult ?? { kind: "success" },
+      exportResult:
+        options.exportResult ?? { kind: "success", savedFileName: "contacts-export.csv" },
       lastExportInput: null,
     };
   }
@@ -45,6 +46,15 @@ export class MockContactCsvFileGateway implements ContactCsvFileGateway {
 
   saveExportDialog(input: ContactCsvExportDialogInput): Promise<ContactCsvExportDialogResult> {
     this.state.lastExportInput = input;
+    if (this.state.exportResult.kind === "success") {
+      return Promise.resolve({
+        kind: "success",
+        savedFileName:
+          this.state.exportResult.savedFileName.length > 0
+            ? this.state.exportResult.savedFileName
+            : input.suggestedFileName,
+      });
+    }
     return Promise.resolve(this.state.exportResult);
   }
 

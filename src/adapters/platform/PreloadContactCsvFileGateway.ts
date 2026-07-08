@@ -72,7 +72,7 @@ export class PreloadContactCsvFileGateway implements ContactCsvFileGateway {
       return { kind: "cancelled" };
     }
 
-    return { kind: "success" };
+    return { kind: "success", savedFileName: parsed.savedFileName };
   }
 }
 

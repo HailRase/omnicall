@@ -120,7 +120,7 @@ export type ContactsCsvImportOutcome = Readonly<
 
 export type ContactsCsvExportOutcome = Readonly<
   | { kind: "cancelled" }
-  | { kind: "exported"; contactCount: number }
+  | { kind: "exported"; contactCount: number; savedFileName: string }
 >;
 
 export type ProfileScopedDataProjectionHandlers = Readonly<{
@@ -704,6 +704,7 @@ export class AccountBootstrapFacade {
     return ok({
       kind: "exported",
       contactCount: exportResult.value.contactCount,
+      savedFileName: saveResult.savedFileName,
     });
   }
 

@@ -19,7 +19,7 @@ export type ContactsCsvImportActionResult = Readonly<
 
 export type ContactsCsvExportActionResult = Readonly<
   | { kind: "cancelled" }
-  | { kind: "exported"; contactCount: number }
+  | { kind: "exported"; contactCount: number; savedFileName: string }
   | { kind: "failed" }
 >;
 
@@ -105,28 +105,44 @@ export function useContactActions({ facade, notify }: UseContactActionsInput) {
   }, [facade, loadContacts, notify]);
 
   const exportContactsCsv = useCallback(async (): Promise<ContactsCsvExportActionResult> => {
-    const result = await facade.exportContactsToCsv();
-    if (isErr(result)) {
+    try {
+      const result = await facade.exportContactsToCsv();
+      if (isErr(result)) {
+        notify?.({
+          level: "error",
+          messageKey: "contacts.csv.error.exportFailed",
+        });
+        return { kind: "failed" };
+      }
+
+      if (result.value.kind === "cancelled") {
+        notify?.({
+          level: "info",
+          messageKey: "contacts.csv.info.exportCancelled",
+        });
+        return { kind: "cancelled" };
+      }
+
+      notify?.({
+        level: "success",
+        messageKey: "contacts.csv.success.exported",
+        messageParams: {
+          count: result.value.contactCount,
+          fileName: result.value.savedFileName,
+        },
+      });
+      return {
+        kind: "exported",
+        contactCount: result.value.contactCount,
+        savedFileName: result.value.savedFileName,
+      };
+    } catch {
       notify?.({
         level: "error",
         messageKey: "contacts.csv.error.exportFailed",
       });
       return { kind: "failed" };
     }
-
-    if (result.value.kind === "cancelled") {
-      return { kind: "cancelled" };
-    }
-
-    notify?.({
-      level: "success",
-      messageKey: "contacts.csv.success.exported",
-      messageParams: { count: result.value.contactCount },
-    });
-    return {
-      kind: "exported",
-      contactCount: result.value.contactCount,
-    };
   }, [facade, notify]);
 
   return useMemo(

@@ -16,7 +16,7 @@ export type ContactCsvExportDialogInput = Readonly<{
 
 export type ContactCsvExportDialogResult = Readonly<
   | { kind: "cancelled" }
-  | { kind: "success" }
+  | { kind: "success"; savedFileName: string }
   | { kind: "error"; reason: string }
 >;
 

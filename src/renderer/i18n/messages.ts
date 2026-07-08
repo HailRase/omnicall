@@ -711,10 +711,11 @@ const ruMessages = {
   "contacts.csv.export": "Экспорт CSV",
   "contacts.csv.success.imported": (params: Readonly<{ count: number }>) =>
     `Импортировано контактов: ${params.count}.`,
-  "contacts.csv.success.exported": (params: Readonly<{ count: number }>) =>
-    `Экспортировано контактов: ${params.count}.`,
+  "contacts.csv.success.exported": (params: Readonly<{ count: number; fileName: string }>) =>
+    `Файл ${params.fileName} сохранён. Контактов: ${params.count}.`,
   "contacts.csv.error.importFailed": "Не удалось импортировать контакты из CSV.",
   "contacts.csv.error.exportFailed": "Не удалось экспортировать контакты в CSV.",
+  "contacts.csv.info.exportCancelled": "Экспорт CSV отменён.",
   "contacts.csv.summary.dialogAria": "Сводка импорта контактов",
   "contacts.csv.summary.title": "Импорт завершён",
   "contacts.csv.summary.description":
@@ -1434,10 +1435,11 @@ const enMessages: MessageShape = {
   "contacts.csv.export": "Export CSV",
   "contacts.csv.success.imported": (params: Readonly<{ count: number }>) =>
     `Imported contacts: ${params.count}.`,
-  "contacts.csv.success.exported": (params: Readonly<{ count: number }>) =>
-    `Exported contacts: ${params.count}.`,
+  "contacts.csv.success.exported": (params: Readonly<{ count: number; fileName: string }>) =>
+    `Saved ${params.fileName}. Contacts: ${params.count}.`,
   "contacts.csv.error.importFailed": "Could not import contacts from CSV.",
   "contacts.csv.error.exportFailed": "Could not export contacts to CSV.",
+  "contacts.csv.info.exportCancelled": "CSV export cancelled.",
   "contacts.csv.summary.dialogAria": "Contacts import summary",
   "contacts.csv.summary.title": "Import finished",
   "contacts.csv.summary.description":
@@ -2148,10 +2150,11 @@ const frMessages: MessageShape = {
   "contacts.csv.export": "Exporter CSV",
   "contacts.csv.success.imported": (params: Readonly<{ count: number }>) =>
     `Contacts importes : ${params.count}.`,
-  "contacts.csv.success.exported": (params: Readonly<{ count: number }>) =>
-    `Contacts exportes : ${params.count}.`,
+  "contacts.csv.success.exported": (params: Readonly<{ count: number; fileName: string }>) =>
+    `Fichier ${params.fileName} enregistre. Contacts : ${params.count}.`,
   "contacts.csv.error.importFailed": "Impossible d'importer les contacts depuis le CSV.",
   "contacts.csv.error.exportFailed": "Impossible d'exporter les contacts vers le CSV.",
+  "contacts.csv.info.exportCancelled": "Export CSV annule.",
   "contacts.csv.summary.dialogAria": "Resume de l'import des contacts",
   "contacts.csv.summary.title": "Import termine",
   "contacts.csv.summary.description":
@@ -2864,10 +2867,11 @@ const deMessages: MessageShape = {
   "contacts.csv.export": "CSV exportieren",
   "contacts.csv.success.imported": (params: Readonly<{ count: number }>) =>
     `Importierte Kontakte: ${params.count}.`,
-  "contacts.csv.success.exported": (params: Readonly<{ count: number }>) =>
-    `Exportierte Kontakte: ${params.count}.`,
+  "contacts.csv.success.exported": (params: Readonly<{ count: number; fileName: string }>) =>
+    `Datei ${params.fileName} gespeichert. Kontakte: ${params.count}.`,
   "contacts.csv.error.importFailed": "Kontakte konnten nicht aus CSV importiert werden.",
   "contacts.csv.error.exportFailed": "Kontakte konnten nicht nach CSV exportiert werden.",
+  "contacts.csv.info.exportCancelled": "CSV-Export abgebrochen.",
   "contacts.csv.summary.dialogAria": "Zusammenfassung des Kontaktimports",
   "contacts.csv.summary.title": "Import abgeschlossen",
   "contacts.csv.summary.description":

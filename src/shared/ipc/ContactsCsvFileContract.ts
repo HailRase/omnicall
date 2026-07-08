@@ -11,7 +11,7 @@ export type ContactsCsvSaveExportDialogPayload = Readonly<{
 
 export type ContactsCsvSaveExportDialogResponse = Readonly<
   | { ok: true; cancelled: true }
-  | { ok: true; cancelled: false }
+  | { ok: true; cancelled: false; savedFileName: string }
   | { ok: false; reason: string }
 >;
 
@@ -112,7 +112,15 @@ export function parseContactsCsvSaveExportDialogResponse(
   }
 
   if (candidate["cancelled"] === false) {
-    return { ok: true, cancelled: false };
+    const rawSavedFileName = candidate["savedFileName"];
+    const savedFileName =
+      typeof rawSavedFileName === "string" && rawSavedFileName.trim().length > 0
+        ? rawSavedFileName.trim()
+        : "contacts-export.csv";
+    if (!/^[a-zA-Z0-9._-]+\.csv$/u.test(savedFileName)) {
+      return null;
+    }
+    return { ok: true, cancelled: false, savedFileName };
   }
 
   return null;

@@ -1,4 +1,5 @@
-import { BrowserWindow, dialog, ipcMain, type OpenDialogOptions, type SaveDialogOptions } from "electron";
+import { app, BrowserWindow, dialog, ipcMain, type OpenDialogOptions, type OpenDialogReturnValue, type SaveDialogOptions, type SaveDialogReturnValue } from "electron";
+import { basename, join } from "node:path";
 import { readFile, writeFile } from "node:fs/promises";
 import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
 import { parseContactsCsvSaveExportDialogPayload } from "@shared/ipc/ContactsCsvFileContract.js";
@@ -12,6 +13,39 @@ const logger = createConsoleLogger({
 
 const MAX_IMPORT_BYTES = 2 * 1024 * 1024;
 
+function focusParentWindow(parentWindow: BrowserWindow | null): void {
+  if (parentWindow === null) {
+    return;
+  }
+  parentWindow.focus();
+  parentWindow.moveTop();
+}
+
+function showContactsCsvOpenDialog(parentWindow: BrowserWindow | null): Promise<OpenDialogReturnValue> {
+  focusParentWindow(parentWindow);
+  const openDialogOptions: OpenDialogOptions = {
+    title: "Import Contacts CSV",
+    defaultPath: app.getPath("documents"),
+    properties: ["openFile"],
+    filters: [{ name: "CSV", extensions: ["csv"] }],
+  };
+  // Detached dialog is more reliable for frameless custom shells on Windows.
+  return dialog.showOpenDialog(openDialogOptions);
+}
+
+function showContactsCsvSaveDialog(
+  parentWindow: BrowserWindow | null,
+  suggestedFileName: string,
+): Promise<SaveDialogReturnValue> {
+  focusParentWindow(parentWindow);
+  const saveDialogOptions: SaveDialogOptions = {
+    title: "Export Contacts CSV",
+    defaultPath: join(app.getPath("documents"), suggestedFileName),
+    filters: [{ name: "CSV", extensions: ["csv"] }],
+  };
+  return dialog.showSaveDialog(saveDialogOptions);
+}
+
 /**
  * - Purpose: register main-process IPC handlers for contacts CSV import/export dialogs.
  * - Inputs: renderer invoke requests for open/save CSV dialogs.
@@ -21,15 +55,7 @@ export function registerContactsCsvIpc(): void {
   ipcMain.handle(IPC_CHANNELS.contactsCsvOpenImportDialog, async (event) => {
     const parentWindow = BrowserWindow.fromWebContents(event.sender);
     const correlationId = createCorrelationId();
-    const openDialogOptions: OpenDialogOptions = {
-      title: "Import Contacts CSV",
-      properties: ["openFile"],
-      filters: [{ name: "CSV", extensions: ["csv"] }],
-    };
-    const dialogResult =
-      parentWindow === null
-        ? await dialog.showOpenDialog(openDialogOptions)
-        : await dialog.showOpenDialog(parentWindow, openDialogOptions);
+    const dialogResult = await showContactsCsvOpenDialog(parentWindow);
 
     if (dialogResult.canceled || dialogResult.filePaths.length === 0) {
       logger.info("contacts_csv_import_dialog_cancelled", {
@@ -81,15 +107,7 @@ export function registerContactsCsvIpc(): void {
     }
 
     const parentWindow = BrowserWindow.fromWebContents(event.sender);
-    const saveDialogOptions: SaveDialogOptions = {
-      title: "Export Contacts CSV",
-      defaultPath: parsed.suggestedFileName,
-      filters: [{ name: "CSV", extensions: ["csv"] }],
-    };
-    const dialogResult =
-      parentWindow === null
-        ? await dialog.showSaveDialog(saveDialogOptions)
-        : await dialog.showSaveDialog(parentWindow, saveDialogOptions);
+    const dialogResult = await showContactsCsvSaveDialog(parentWindow, parsed.suggestedFileName);
 
     if (dialogResult.canceled || dialogResult.filePath === undefined) {
       logger.info("contacts_csv_export_dialog_cancelled", {
@@ -107,7 +125,11 @@ export function registerContactsCsvIpc(): void {
         operation: "contacts_csv_save_export_dialog",
         result: "written",
       });
-      return { ok: true as const, cancelled: false as const };
+      return {
+        ok: true as const,
+        cancelled: false as const,
+        savedFileName: basename(dialogResult.filePath),
+      };
     } catch (error: unknown) {
       const reason = error instanceof Error ? error.message : "write_failed";
       logger.error("contacts_csv_export_dialog_failed", {
