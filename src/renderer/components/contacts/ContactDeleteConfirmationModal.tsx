@@ -17,6 +17,7 @@ export type ContactDeleteConfirmationModalProps = Readonly<{
   contactName: string | null;
   isDeleting: boolean;
   errorMessage: string | null;
+  onCloseAutoFocus?: (event: Event) => void;
   onConfirm: () => void;
   onCancel: () => void;
 }>;
@@ -31,6 +32,7 @@ export function ContactDeleteConfirmationModal({
   contactName,
   isDeleting,
   errorMessage,
+  onCloseAutoFocus,
   onConfirm,
   onCancel,
 }: ContactDeleteConfirmationModalProps): JSX.Element {
@@ -44,6 +46,7 @@ export function ContactDeleteConfirmationModal({
         onEscapeKeyDown={() => {
           onCancel();
         }}
+        {...(onCloseAutoFocus !== undefined ? { onCloseAutoFocus } : {})}
       >
         <AlertDialogHeader>
           <AlertDialogTitle>{t("contacts.delete.confirmTitle")}</AlertDialogTitle>

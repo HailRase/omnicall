@@ -14,6 +14,11 @@ import {
   parseProfilesFilesystemOperation,
   parseProfilesFilesystemResponse,
 } from "@shared/ipc/ProfilesFilesystemContract.js";
+import {
+  parseContactsCsvOpenImportDialogResponse,
+  parseContactsCsvSaveExportDialogPayload,
+  parseContactsCsvSaveExportDialogResponse,
+} from "@shared/ipc/ContactsCsvFileContract.js";
 
 const softphoneApi: SoftphonePreloadApi = {
   getPlatformVersion: () => ipcRenderer.invoke(IPC_CHANNELS.platformGetVersion),
@@ -138,6 +143,30 @@ const softphoneApi: SoftphonePreloadApi = {
     }
 
     await ipcRenderer.invoke(IPC_CHANNELS.shellApplyWindowLayout, parsed);
+  },
+  openContactsCsvImportDialog: async () => {
+    const response: unknown = await ipcRenderer.invoke(IPC_CHANNELS.contactsCsvOpenImportDialog);
+    const parsed = parseContactsCsvOpenImportDialogResponse(response);
+    if (parsed === null) {
+      return { ok: false, reason: "invalid_response" };
+    }
+    return parsed;
+  },
+  saveContactsCsvExportDialog: async (payload) => {
+    const parsedPayload = parseContactsCsvSaveExportDialogPayload(payload);
+    if (parsedPayload === null) {
+      return { ok: false, reason: "invalid_payload" };
+    }
+
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.contactsCsvSaveExportDialog,
+      parsedPayload,
+    );
+    const parsed = parseContactsCsvSaveExportDialogResponse(response);
+    if (parsed === null) {
+      return { ok: false, reason: "invalid_response" };
+    }
+    return parsed;
   },
 };
 

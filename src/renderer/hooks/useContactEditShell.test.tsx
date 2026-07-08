@@ -19,6 +19,8 @@ function createActions(): UseContactActionsResult {
     updateContact: vi.fn(),
     deleteContact: vi.fn(),
     callContact: vi.fn(),
+    importContactsCsv: vi.fn(),
+    exportContactsCsv: vi.fn(),
   };
 }
 

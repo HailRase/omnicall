@@ -44,19 +44,27 @@
     border-radius: 0;
     background: var(--color-status-online);
     border-color: var(--color-status-online);
-    color: #ffffff;
+    color: var(--color-text-on-accent);
   }
 
   &&:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--color-status-online) 86%, #000000);
-    border-color: color-mix(in srgb, var(--color-status-online) 86%, #000000);
-    color: #ffffff;
+    background: color-mix(in srgb, var(--color-status-online) 86%, var(--color-bg-surface-deep));
+    border-color: color-mix(in srgb, var(--color-status-online) 86%, var(--color-bg-surface-deep));
+    color: var(--color-text-on-accent);
   }
 
   &&:active:not(:disabled) {
-    background: color-mix(in srgb, var(--color-status-online) 74%, #000000);
-    border-color: color-mix(in srgb, var(--color-status-online) 74%, #000000);
-    color: #ffffff;
+    background: color-mix(in srgb, var(--color-status-online) 74%, var(--color-bg-surface-deep));
+    border-color: color-mix(in srgb, var(--color-status-online) 74%, var(--color-bg-surface-deep));
+    color: var(--color-text-on-accent);
+  }
+}
+
+.contact-action-button {
+  && {
+    border: none;
+    border-top: 1px solid var(--color-border-subtle);
+    border-radius: 0;
   }
 }
 
@@ -94,6 +102,7 @@
 
 .danger-group {
   display: grid;
+  margin-top: var(--space-sm);
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-control);
   background: var(--color-bg-surface-elevated);

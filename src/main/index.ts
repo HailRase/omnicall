@@ -18,6 +18,7 @@ import { resolveAppIconPath } from "./resolveAppIconPath.js";
 import { applyAppIcon } from "./loadAppIcon.js";
 import { ShellWindowController } from "./shellWindow/ShellWindowController.js";
 import { registerProfilesPersistenceIpc } from "./profiles/registerProfilesPersistenceIpc.js";
+import { registerContactsCsvIpc } from "./contacts/registerContactsCsvIpc.js";
 import { AppShutdownCoordinator } from "./lifecycle/AppShutdownCoordinator.js";
 import { installApplicationMenu } from "./lifecycle/createApplicationMenu.js";
 import { installDeveloperWebContentsShortcuts } from "./lifecycle/installDeveloperWebContentsShortcuts.js";
@@ -383,6 +384,7 @@ void app.whenReady().then(() => {
 
   registerIpcHandlers();
   registerProfilesPersistenceIpc();
+  registerContactsCsvIpc();
   createMainWindow();
 
   app.on("activate", () => {

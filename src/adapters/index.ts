@@ -39,6 +39,8 @@ export { MockPlatformInfoGateway, createUnavailablePlatformInfoGateway } from ".
 export { MockExternalUrlGateway } from "./mock/MockExternalUrlGateway.js";
 export { PreloadPlatformInfoGateway } from "./platform/PreloadPlatformInfoGateway.js";
 export { PreloadExternalUrlGateway } from "./platform/PreloadExternalUrlGateway.js";
+export { PreloadContactCsvFileGateway } from "./platform/PreloadContactCsvFileGateway.js";
+export { MockContactCsvFileGateway } from "./mock/MockContactCsvFileGateway.js";
 export { PreloadShellWindowGateway } from "./platform/PreloadShellWindowGateway.js";
 export { HostIntegrationGatewayAdapter } from "./integration/HostIntegrationGatewayAdapter.js";
 export {

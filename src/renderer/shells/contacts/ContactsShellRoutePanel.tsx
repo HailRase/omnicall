@@ -1,6 +1,8 @@
-import type { JSX } from "react";
+import { useState, type JSX } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
+import type { ContactsCsvImportSummary } from "@application/use-cases/contacts/ImportContactsCsvUseCase.js";
 import { isErr } from "@shared/result/index.js";
+import { ContactsImportSummaryPanel } from "../../components/contacts/ContactsImportSummaryPanel.js";
 import {
   ContactDeleteConfirmationModal,
 } from "../../components/contacts/ContactDeleteConfirmationModal.js";
@@ -13,14 +15,17 @@ import {
 import { useAuthShellFlags } from "../../hooks/useAuthShellFlags.js";
 import { useContactActions } from "../../hooks/useContactActions.js";
 import { useContactDetailsShell } from "../../hooks/useContactDetailsShell.js";
+import { useDialogReturnFocus } from "../../hooks/useDialogReturnFocus.js";
 import { NEW_CONTACT_ROUTE_ID, useContactEditShell } from "../../hooks/useContactEditShell.js";
 import { useContactsShell } from "../../hooks/useContactsShell.js";
 import { useI18n } from "../../i18n/index.js";
+import type { NotificationDescriptor } from "../../hooks/useNotifications.js";
 import { useShellNavigation } from "../../navigation/useShellNavigation.js";
 import { useShellRouteDataStore } from "../../navigation/routeData/useShellRouteDataStore.js";
 
 type ContactsShellRoutePanelProps = Readonly<{
   facade: AccountBootstrapFacade;
+  notify?: (descriptor: NotificationDescriptor) => void;
 }>;
 
 /**
@@ -28,8 +33,12 @@ type ContactsShellRoutePanelProps = Readonly<{
  * - Inputs: account bootstrap facade and active contacts hash routes.
  * - Outputs: localized list/details/edit panels wired to facade actions.
  */
-export function ContactsShellRoutePanel({ facade }: ContactsShellRoutePanelProps): JSX.Element | null {
+export function ContactsShellRoutePanel({
+  facade,
+  notify,
+}: ContactsShellRoutePanelProps): JSX.Element | null {
   const { route, navigateTo, goToDialpad, goBackSafe } = useShellNavigation();
+  const [restoreFocusContactId, setRestoreFocusContactId] = useState<string | null>(null);
 
   if (
     route.name !== "contacts" &&
@@ -40,7 +49,17 @@ export function ContactsShellRoutePanel({ facade }: ContactsShellRoutePanelProps
   }
 
   if (route.name === "contacts") {
-    return <ContactsListRoute facade={facade} onClose={goToDialpad} />;
+    return (
+      <ContactsListRoute
+        facade={facade}
+        restoreFocusContactId={restoreFocusContactId}
+        onRestoreFocusHandled={() => {
+          setRestoreFocusContactId(null);
+        }}
+        onClose={goToDialpad}
+        {...(notify !== undefined ? { notify } : {})}
+      />
+    );
   }
 
   if (route.name === "contactDetails") {
@@ -51,6 +70,11 @@ export function ContactsShellRoutePanel({ facade }: ContactsShellRoutePanelProps
         routeNotFound={route.notFound}
         onClose={goToDialpad}
         onBack={() => {
+          setRestoreFocusContactId(route.contactId);
+          navigateTo({ name: "contacts" });
+        }}
+        onReturnToList={(contactId) => {
+          setRestoreFocusContactId(contactId);
           navigateTo({ name: "contacts" });
         }}
       />
@@ -70,42 +94,90 @@ export function ContactsShellRoutePanel({ facade }: ContactsShellRoutePanelProps
 
 type ContactsListRouteProps = Readonly<{
   facade: AccountBootstrapFacade;
+  restoreFocusContactId: string | null;
+  onRestoreFocusHandled: () => void;
+  notify?: (descriptor: NotificationDescriptor) => void;
   onClose: () => void;
 }>;
 
-function ContactsListRoute({ facade, onClose }: ContactsListRouteProps): JSX.Element {
+function ContactsListRoute({
+  facade,
+  restoreFocusContactId,
+  onRestoreFocusHandled,
+  notify,
+  onClose,
+}: ContactsListRouteProps): JSX.Element {
   const { t } = useI18n();
   const { navigateTo, goToDialpad } = useShellNavigation();
   const { isSipRegistered } = useAuthShellFlags();
-  const actions = useContactActions({ facade });
+  const actions = useContactActions({
+    facade,
+    ...(notify !== undefined ? { notify } : {}),
+  });
   const contactsShell = useContactsShell({
     isSipRegistered,
   });
+  const [importSummary, setImportSummary] = useState<ContactsCsvImportSummary | null>(null);
+  const [importSummaryOpen, setImportSummaryOpen] = useState(false);
+  const { triggerRef: csvMenuTriggerRef, onCloseAutoFocus: onImportSummaryCloseAutoFocus } =
+    useDialogReturnFocus<HTMLButtonElement>();
 
   return (
-    <ContactsPanelShell open title={t("contacts.title")} onClose={onClose}>
-      <ContactsListPanel
-        isLoading={contactsShell.isLoading}
-        isEmpty={contactsShell.isEmpty}
-        errorMessage={contactsShell.errorMessage}
-        rows={contactsShell.rows}
-        onSelectContact={(contactId) => {
-          navigateTo({ name: "contactDetails", contactId });
-        }}
-        onAddContact={() => {
-          useShellRouteDataStore.getState().clearContactCreatePrefill();
-          navigateTo({ name: "contactEdit", contactId: NEW_CONTACT_ROUTE_ID });
-        }}
-        onQuickCall={(contactId) => {
-          void (async () => {
-            const result = await actions.callContact(contactId);
-            if (!isErr(result)) {
-              goToDialpad();
-            }
-          })();
+    <>
+      <ContactsPanelShell open title={t("contacts.title")} onClose={onClose}>
+        <ContactsListPanel
+          isLoading={contactsShell.isLoading}
+          isEmpty={contactsShell.isEmpty}
+          errorMessage={contactsShell.errorMessage}
+          rows={contactsShell.rows}
+          restoreFocusContactId={restoreFocusContactId}
+          onRestoreFocusHandled={onRestoreFocusHandled}
+          csvMenuButtonRef={csvMenuTriggerRef}
+          onSelectContact={(contactId) => {
+            navigateTo({ name: "contactDetails", contactId });
+          }}
+          onAddContact={() => {
+            useShellRouteDataStore.getState().clearContactCreatePrefill();
+            navigateTo({ name: "contactEdit", contactId: NEW_CONTACT_ROUTE_ID });
+          }}
+          onImportCsv={() => {
+            void (async () => {
+              const result = await actions.importContactsCsv();
+              if (result.kind !== "imported") {
+                return;
+              }
+              if (
+                result.summary.failedRows.length > 0 ||
+                result.summary.skippedDuplicateCount > 0
+              ) {
+                setImportSummary(result.summary);
+                setImportSummaryOpen(true);
+              }
+            })();
+          }}
+          onExportCsv={() => {
+            void actions.exportContactsCsv();
+          }}
+          onQuickCall={(contactId) => {
+            void (async () => {
+              const result = await actions.callContact(contactId);
+              if (!isErr(result)) {
+                goToDialpad();
+              }
+            })();
+          }}
+        />
+      </ContactsPanelShell>
+      <ContactsImportSummaryPanel
+        open={importSummaryOpen}
+        summary={importSummary}
+        onCloseAutoFocus={onImportSummaryCloseAutoFocus}
+        onClose={() => {
+          setImportSummaryOpen(false);
+          setImportSummary(null);
         }}
       />
-    </ContactsPanelShell>
+    </>
   );
 }
 
@@ -115,6 +187,7 @@ type ContactsDetailsRouteProps = Readonly<{
   routeNotFound: boolean;
   onClose: () => void;
   onBack: () => void;
+  onReturnToList: (contactId: string) => void;
 }>;
 
 function ContactsDetailsRoute({
@@ -123,11 +196,14 @@ function ContactsDetailsRoute({
   routeNotFound,
   onClose,
   onBack,
+  onReturnToList,
 }: ContactsDetailsRouteProps): JSX.Element {
   const { t } = useI18n();
   const { navigateTo, goToDialpad } = useShellNavigation();
   const { isSipRegistered } = useAuthShellFlags();
   const actions = useContactActions({ facade });
+  const { triggerRef: deleteTriggerRef, onCloseAutoFocus } =
+    useDialogReturnFocus<HTMLButtonElement>();
   const detailsShell = useContactDetailsShell({
     contactId,
     routeNotFound,
@@ -144,6 +220,7 @@ function ContactsDetailsRoute({
           isLoading={detailsShell.isLoading}
           isNotFound={detailsShell.isNotFound}
           contact={detailsShell.contact}
+          deleteButtonRef={deleteTriggerRef}
           onCall={() => {
             void (async () => {
               const result = await actions.callContact(contactId);
@@ -163,12 +240,13 @@ function ContactsDetailsRoute({
         contactName={detailsShell.contact?.displayName ?? null}
         isDeleting={detailsShell.isDeleting}
         errorMessage={detailsShell.deleteErrorMessage}
+        onCloseAutoFocus={onCloseAutoFocus}
         onCancel={detailsShell.closeDeleteConfirmation}
         onConfirm={() => {
           void (async () => {
             const deleted = await detailsShell.confirmDelete();
             if (deleted) {
-              navigateTo({ name: "contacts" });
+              onReturnToList(contactId);
             }
           })();
         }}

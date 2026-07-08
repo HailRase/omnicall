@@ -73,6 +73,12 @@ export type {
 export type { SavedAccountProfileRepository } from "./settings/SavedAccountProfileRepository.js";
 export type { CallHistoryRepository } from "./settings/CallHistoryRepository.js";
 export type { ContactRepository } from "./settings/ContactRepository.js";
+export type {
+  ContactCsvExportDialogInput,
+  ContactCsvExportDialogResult,
+  ContactCsvFileGateway,
+  ContactCsvImportDialogResult,
+} from "./settings/ContactCsvFileGateway.js";
 export type { FileSystemPort } from "./filesystem/FileSystemPort.js";
 export type {
   SecretStoragePort,

@@ -26,6 +26,8 @@ describe("ContactsPanelShell", () => {
           rows={[]}
           onSelectContact={vi.fn()}
           onAddContact={onAddContact}
+          onImportCsv={vi.fn()}
+          onExportCsv={vi.fn()}
           onQuickCall={vi.fn()}
         />
       </ContactsPanelShell>,
@@ -46,6 +48,8 @@ describe("ContactsPanelShell", () => {
           rows={[]}
           onSelectContact={vi.fn()}
           onAddContact={vi.fn()}
+          onImportCsv={vi.fn()}
+          onExportCsv={vi.fn()}
           onQuickCall={vi.fn()}
         />
       </ContactsPanelShell>,
@@ -62,6 +66,8 @@ describe("ContactsPanelShell", () => {
           rows={[]}
           onSelectContact={vi.fn()}
           onAddContact={vi.fn()}
+          onImportCsv={vi.fn()}
+          onExportCsv={vi.fn()}
           onQuickCall={vi.fn()}
         />
       </ContactsPanelShell>,
@@ -100,6 +106,8 @@ describe("ContactsPanelShell", () => {
           ]}
           onSelectContact={onSelectContact}
           onAddContact={vi.fn()}
+          onImportCsv={vi.fn()}
+          onExportCsv={vi.fn()}
           onQuickCall={onQuickCall}
         />
       </ContactsPanelShell>,

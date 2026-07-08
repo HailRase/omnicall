@@ -13,6 +13,11 @@ import type {
   ProfilesFilesystemResponse,
 } from "./ProfilesFilesystemContract.js";
 import type { ProfilesStorageRootResponse } from "./ProfilesStorageContract.js";
+import type {
+  ContactsCsvOpenImportDialogResponse,
+  ContactsCsvSaveExportDialogPayload,
+  ContactsCsvSaveExportDialogResponse,
+} from "./ContactsCsvFileContract.js";
 
 export type SoftphonePreloadApi = Readonly<{
   getPlatformVersion: () => Promise<PlatformVersionResponse>;
@@ -29,6 +34,10 @@ export type SoftphonePreloadApi = Readonly<{
   minimizeWindow: () => Promise<ShellWindowControlResponse>;
   closeWindow: () => Promise<ShellWindowControlResponse>;
   applyShellWindowLayout: (payload: ShellWindowLayoutPayload) => Promise<void>;
+  openContactsCsvImportDialog: () => Promise<ContactsCsvOpenImportDialogResponse>;
+  saveContactsCsvExportDialog: (
+    payload: ContactsCsvSaveExportDialogPayload,
+  ) => Promise<ContactsCsvSaveExportDialogResponse>;
 }>;
 
 declare global {

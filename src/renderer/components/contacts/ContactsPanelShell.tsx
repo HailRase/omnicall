@@ -1,11 +1,18 @@
-import { useMemo, useState, type ChangeEvent, type JSX, type ReactNode } from "react";
+import { useMemo, useState, type ChangeEvent, type JSX, type ReactNode, type Ref } from "react";
 import { ShellDialpadPanel } from "../shell/ShellDialpadPanel.js";
 import { Button } from "../ui/button/Button.js";
 import { Input } from "../ui/input/Input.js";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu/index.js";
 import { useI18n } from "../../i18n/index.js";
 import { AppIcon } from "../icons/index.js";
 import { ListQuickCallButton } from "../list/ListQuickCallButton.js";
 import { PersonListAvatar } from "../list/PersonListAvatar.js";
+import { useRestoreRouteFocus } from "../../hooks/useRestoreRouteFocus.js";
 import styles from "./ContactsPanelShell.module.css";
 
 export type ContactsPanelShellProps = Readonly<{
@@ -62,8 +69,13 @@ export type ContactsListPanelProps = Readonly<{
     company: string | null;
     callDisabledReason: string | null;
   }>;
+  restoreFocusContactId?: string | null;
+  onRestoreFocusHandled?: () => void;
+  csvMenuButtonRef?: Ref<HTMLButtonElement>;
   onSelectContact: (contactId: string) => void;
   onAddContact: () => void;
+  onImportCsv: () => void;
+  onExportCsv: () => void;
   onQuickCall: (contactId: string) => void;
 }>;
 
@@ -77,12 +89,23 @@ export function ContactsListPanel({
   isEmpty,
   errorMessage,
   rows,
+  restoreFocusContactId = null,
+  onRestoreFocusHandled,
+  csvMenuButtonRef,
   onSelectContact,
   onAddContact,
+  onImportCsv,
+  onExportCsv,
   onQuickCall,
 }: ContactsListPanelProps): JSX.Element {
   const { t } = useI18n();
   const [searchQuery, setSearchQuery] = useState("");
+
+  useRestoreRouteFocus({
+    targetTestId:
+      restoreFocusContactId !== null ? `contacts-list-item-${restoreFocusContactId}` : null,
+    ...(onRestoreFocusHandled !== undefined ? { onHandled: onRestoreFocusHandled } : {}),
+  });
 
   const filteredRows = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -125,6 +148,11 @@ export function ContactsListPanel({
         <p className={styles.emptyTitle}>{t("contacts.empty")}</p>
         <p className={styles.emptyHint}>{t("contacts.emptyHint")}</p>
         <div className={styles.actionsRow}>
+          <ContactsCsvMenu
+            {...(csvMenuButtonRef !== undefined ? { menuButtonRef: csvMenuButtonRef } : {})}
+            onImportCsv={onImportCsv}
+            onExportCsv={onExportCsv}
+          />
           <Button
             type="button"
             variant="outline"
@@ -152,15 +180,22 @@ export function ContactsListPanel({
           data-testid="contacts-search-input"
           onChange={handleSearchChange}
         />
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          data-testid="contacts-add"
-          onClick={onAddContact}
-        >
-          {t("contacts.add")}
-        </Button>
+        <div className={styles.listToolbarActions}>
+          <ContactsCsvMenu
+            {...(csvMenuButtonRef !== undefined ? { menuButtonRef: csvMenuButtonRef } : {})}
+            onImportCsv={onImportCsv}
+            onExportCsv={onExportCsv}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            data-testid="contacts-add"
+            onClick={onAddContact}
+          >
+            {t("contacts.add")}
+          </Button>
+        </div>
       </div>
       {filteredRows.length === 0 ? (
         <p className={styles.stateMessage} data-testid="contacts-list-search-empty">
@@ -214,6 +249,7 @@ export type ContactDetailsPanelProps = Readonly<{
     notes: string | null;
     callDisabledReason: string | null;
   }> | null;
+  deleteButtonRef?: Ref<HTMLButtonElement>;
   onCall: () => void;
   onEdit: () => void;
   onDelete: () => void;
@@ -228,6 +264,7 @@ export function ContactDetailsPanel({
   isLoading,
   isNotFound,
   contact,
+  deleteButtonRef,
   onCall,
   onEdit,
   onDelete,
@@ -297,6 +334,7 @@ export function ContactDetailsPanel({
           type="button"
           variant="destructive"
           size="sm"
+          ref={deleteButtonRef}
           data-testid="contacts-delete"
           onClick={onDelete}
         >
@@ -318,5 +356,50 @@ function DetailRow({ label, value }: DetailRowProps): JSX.Element {
       <span className={styles.detailLabel}>{label}</span>
       <p className={styles.detailValue}>{value}</p>
     </div>
+  );
+}
+
+type ContactsCsvMenuProps = Readonly<{
+  menuButtonRef?: Ref<HTMLButtonElement>;
+  onImportCsv: () => void;
+  onExportCsv: () => void;
+}>;
+
+function ContactsCsvMenu({ menuButtonRef, onImportCsv, onExportCsv }: ContactsCsvMenuProps): JSX.Element {
+  const { t } = useI18n();
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          ref={menuButtonRef}
+          aria-label={t("contacts.csv.menuAria")}
+          data-testid="contacts-csv-menu"
+        >
+          {t("contacts.csv.menu")}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem
+          data-testid="contacts-csv-import"
+          onSelect={() => {
+            onImportCsv();
+          }}
+        >
+          {t("contacts.csv.import")}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          data-testid="contacts-csv-export"
+          onSelect={() => {
+            onExportCsv();
+          }}
+        >
+          {t("contacts.csv.export")}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

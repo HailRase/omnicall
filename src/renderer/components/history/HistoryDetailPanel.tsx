@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import type { JSX, Ref } from "react";
 import { Button } from "../ui/button/Button.js";
 import { useI18n } from "../../i18n/index.js";
 import { AppIcon } from "../icons/index.js";
@@ -10,6 +10,7 @@ export type HistoryDetailPanelProps = Readonly<{
   isLoading: boolean;
   isNotFound: boolean;
   entry: CallHistoryDetailViewModel | null;
+  deleteButtonRef?: Ref<HTMLButtonElement>;
   onRedial: () => void;
   onContactAction: () => void;
   onDelete: () => void;
@@ -25,6 +26,7 @@ export function HistoryDetailPanel({
   isLoading,
   isNotFound,
   entry,
+  deleteButtonRef,
   onRedial,
   onContactAction,
   onDelete,
@@ -79,6 +81,7 @@ export function HistoryDetailPanel({
           variant="outline"
           size="sm"
           fullWidth
+          className={styles.contactActionButton ?? ""}
           data-testid="history-detail-contact-action"
           onClick={onContactAction}
         >
@@ -103,6 +106,7 @@ export function HistoryDetailPanel({
           variant="destructive"
           size="sm"
           fullWidth
+          ref={deleteButtonRef}
           className={styles.deleteActionButton ?? ""}
           data-testid="history-detail-delete"
           onClick={onDelete}

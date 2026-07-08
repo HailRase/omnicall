@@ -193,7 +193,7 @@ function SoftphoneShellLayoutRoute({
         <>
           <ShellRouteDataController facade={facade} />
           <HistoryShellRoutePanel facade={facade} notify={notifications.notify} />
-          <ContactsShellRoutePanel facade={facade} />
+          <ContactsShellRoutePanel facade={facade} notify={notifications.notify} />
           <UpdateAvailableBanner
             visible={appUpdate.showUpdatePrompt}
             latestVersion={appUpdate.snapshot.latestVersion}

@@ -594,6 +594,26 @@ export const bgMessages: MessageShape = {
     "Този допълнителен номер вече се използва от друг контакт.",
   "contacts.field.error.companyTooLong": "Името на компанията е твърде дълго.",
   "contacts.field.error.notesTooLong": "Бележките са твърде дълги.",
+  "contacts.csv.menu": "CSV",
+  "contacts.csv.menuAria": "Действия за импорт и експорт на контакти CSV",
+  "contacts.csv.import": "Импорт CSV",
+  "contacts.csv.export": "Експорт CSV",
+  "contacts.csv.success.imported": (params: Readonly<{ count: number }>) =>
+    `Импортирани контакти: ${params.count}.`,
+  "contacts.csv.success.exported": (params: Readonly<{ count: number }>) =>
+    `Експортирани контакти: ${params.count}.`,
+  "contacts.csv.error.importFailed": "Неуспешен импорт на контакти от CSV.",
+  "contacts.csv.error.exportFailed": "Неуспешен експорт на контакти към CSV.",
+  "contacts.csv.summary.dialogAria": "Обобщение на импорта на контакти",
+  "contacts.csv.summary.title": "Импортът приключи",
+  "contacts.csv.summary.description":
+    "Някои редове може да са пропуснати заради дубли или грешки при валидация.",
+  "contacts.csv.summary.created": "Създадени",
+  "contacts.csv.summary.skippedDuplicates": "Пропуснати дубли",
+  "contacts.csv.summary.failed": "Грешни редове",
+  "contacts.csv.summary.failedRow": (params: Readonly<{ row: number; reason: string }>) =>
+    `Ред ${params.row}: ${params.reason}`,
+  "contacts.csv.summary.close": "Затвори",
   "shell.shutdown.failed": "Не можа да се приключи сесията. Затварянето и рестартът бяха отменени.",
   "shell.shutdown.quitting": "Приключване на сесията преди затваряне...",
   "shell.shutdown.restarting": "Приключване на сесията преди рестарт...",

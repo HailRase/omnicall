@@ -618,7 +618,7 @@ Gate:
 
 ### Phase 8: Contacts CSV Import/Export
 
-Status: planned.
+Status: **done** (2026-07-08).
 
 Purpose:
 
@@ -695,7 +695,7 @@ Gate:
 
 ### Phase 9: UX Polish, Accessibility, And i18n
 
-Status: planned.
+Status: **done** (2026-07-08).
 
 Purpose:
 

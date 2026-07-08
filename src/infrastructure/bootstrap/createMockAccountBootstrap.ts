@@ -10,7 +10,13 @@ import {
 import { createTestLogger } from "@infrastructure/logging/index.js";
 import type { AppBootstrapConfig } from "@domain/index.js";
 import type { FileSystemPort } from "@ports/filesystem/FileSystemPort.js";
-import type { SettingsRepository, SavedAccountProfileRepository, CallHistoryRepository, ContactRepository } from "@ports/index.js";
+import type {
+  SettingsRepository,
+  SavedAccountProfileRepository,
+  CallHistoryRepository,
+  ContactRepository,
+  ContactCsvFileGateway,
+} from "@ports/index.js";
 import { wireOcpInboundToFacade } from "./wireOcpInboundToFacade.js";
 
 /**
@@ -25,6 +31,7 @@ export type CreateAccountBootstrapOptions = Readonly<{
   settingsRepository?: SettingsRepository;
   savedAccountProfileRepository?: SavedAccountProfileRepository;
   contactRepository?: ContactRepository;
+  contactCsvFileGateway?: ContactCsvFileGateway;
   callHistoryRepository?: CallHistoryRepository;
   ocpWsUrl?: string;
   ocpScenario?:
@@ -92,6 +99,9 @@ export function createMockAccountBootstrap(
       : {}),
     ...(options.callHistoryRepository !== undefined
       ? { callHistoryRepository: options.callHistoryRepository }
+      : {}),
+    ...(options.contactCsvFileGateway !== undefined
+      ? { contactCsvFileGateway: options.contactCsvFileGateway }
       : {}),
     hostIntegrationGateway,
     logger: createTestLogger({ featureId: "F-001", boundedContext: "Telephony" }),

@@ -18,9 +18,14 @@
 
 .list-toolbar {
   display: grid;
-  grid-template-columns: 1fr auto;
   gap: var(--space-xs);
   margin-bottom: var(--space-xs);
+}
+
+.list-toolbar-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-xs);
 }
 
 .list {
@@ -125,19 +130,19 @@
   && {
     background: var(--color-status-online);
     border-color: var(--color-status-online);
-    color: #ffffff;
+    color: var(--color-text-on-accent);
   }
 
   &&:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--color-status-online) 86%, #000000);
-    border-color: color-mix(in srgb, var(--color-status-online) 86%, #000000);
-    color: #ffffff;
+    background: color-mix(in srgb, var(--color-status-online) 86%, var(--color-bg-surface-deep));
+    border-color: color-mix(in srgb, var(--color-status-online) 86%, var(--color-bg-surface-deep));
+    color: var(--color-text-on-accent);
   }
 
   &&:active:not(:disabled) {
-    background: color-mix(in srgb, var(--color-status-online) 74%, #000000);
-    border-color: color-mix(in srgb, var(--color-status-online) 74%, #000000);
-    color: #ffffff;
+    background: color-mix(in srgb, var(--color-status-online) 74%, var(--color-bg-surface-deep));
+    border-color: color-mix(in srgb, var(--color-status-online) 74%, var(--color-bg-surface-deep));
+    color: var(--color-text-on-accent);
   }
 }
 

@@ -11,6 +11,8 @@ export const IPC_CHANNELS = {
   shellApplyWindowLayout: "shell:apply-window-layout",
   profilesGetStorageRoot: "profiles:get-storage-root",
   profilesInvokeFilesystem: "profiles:invoke-filesystem",
+  contactsCsvOpenImportDialog: "contacts-csv:open-import-dialog",
+  contactsCsvSaveExportDialog: "contacts-csv:save-export-dialog",
 } as const;
 
 export type IpcChannel =
@@ -24,4 +26,9 @@ export type PlatformVersionResponse = Readonly<{
 
 export type { AppShutdownPayload, AppShutdownAckPayload } from "./AppShutdownContract.js";
 export type { OpenExternalUrlPayload, OpenExternalUrlResponse } from "./OpenExternalUrlContract.js";
+export type {
+  ContactsCsvOpenImportDialogResponse,
+  ContactsCsvSaveExportDialogPayload,
+  ContactsCsvSaveExportDialogResponse,
+} from "./ContactsCsvFileContract.js";
 export type { SetNativeThemePayload, SetNativeThemeResponse } from "./SetNativeThemeContract.js";

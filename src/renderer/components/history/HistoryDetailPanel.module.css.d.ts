@@ -1,5 +1,6 @@
 declare const classes: {
   readonly actionGroup: string;
+  readonly contactActionButton: string;
   readonly dangerGroup: string;
   readonly deleteActionButton: string;
   readonly detailLabel: string;

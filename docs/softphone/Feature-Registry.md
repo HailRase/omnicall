@@ -365,7 +365,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-052`, `LF-053`, `LF-054`
 - Context: Settings
 - Priority: medium
-- Status: **in progress** (Phase 7 add-to-contacts done — CSV import/export in Phase 8)
+- Status: **in progress** (Phase 9 UX polish done — final gate in Phase 10)
 - Owner: TBD
 - Inputs: completed call events
 - Outputs: persisted call history entry
@@ -391,7 +391,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: _none_
 - Context: Settings
 - Priority: medium
-- Status: **in progress** (Phase 4 active-call enrichment done — history detail UI in Phase 5)
+- Status: **in progress** (Phase 9 UX polish done — final gate in Phase 10)
 - Owner: TBD
 - Inputs: contacts projection, remote number, optional SIP/display label snapshot
 - Outputs: `CallerPresentation` read model for shell projections
@@ -736,7 +736,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: _none_ (new product feature; audited legacy softphone had no standalone contacts module)
 - Context: Settings
 - Priority: medium
-- Status: **in progress** (Phase 1–7 persistence + identity + add-from-history done — CSV import/export in Phase 8)
+- Status: **in progress** (Phase 9 UX polish done — final gate in Phase 10)
 - Owner: TBD
 - Inputs: contact metadata (display name, primary/secondary phone, company, notes)
 - Outputs: persisted `Contact` records, domain events, projection, facade CRUD/call API
@@ -752,9 +752,9 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Profile switch reload refreshes contacts projection for the active `SettingsAccountKey` without showing the previous account list.
   - Normalized phone numbers are unique across contacts at create/update time (`validateContactPhoneUniqueness`).
   - Add-from-history opens matched contacts or a create form prefilled from history number; duplicate creation is rejected by existing phone uniqueness validation.
-  - CSV import/export is tracked in `Contacts-History-Identity-Persistence-Plan.md` Phase 8.
+  - CSV import/export uses typed `contacts-csv:*` IPC dialogs, `ContactCsvCodec`, `ImportContactsCsvUseCase`, and `ExportContactsCsvUseCase`; import skips duplicate normalized phones and reports row-level failures without unsafe partial mutation.
 - Test Coverage:
-  - Unit: contact validation, `validateContactPhoneUniqueness`, projection reducer, `deriveContactsShell` disabled reasons, `parsePersistedContactsDocument`
+  - Unit: contact validation, `validateContactPhoneUniqueness`, projection reducer, `deriveContactsShell` disabled reasons, `parsePersistedContactsDocument`, `ContactCsvCodec`, `ImportContactsCsvUseCase`, `ExportContactsCsvUseCase`, `ContactsCsvFileContract`
   - Integration: in-memory and file repository CRUD, Use Case orchestration (`ContactUseCases`, `CallContactUseCase`), `createRealAccountBootstrap`
-  - Renderer: `ContactsShellRoutePanel`, `ContactsPanelShell`, `ContactDetailsPanel`, `useContactEditShell`, navigation guards
+  - Renderer: `ContactsShellRoutePanel`, `ContactsPanelShell`, `ContactDetailsPanel`, `ContactsImportSummaryPanel`, `useContactEditShell`, `useContactActions`, navigation guards
   - E2E: deferred until harness exists; manual smoke: `handoffs/Shell-Navigation-Phase6-Smoke-Checklist.md`

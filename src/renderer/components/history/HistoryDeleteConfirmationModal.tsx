@@ -17,6 +17,7 @@ export type HistoryDeleteConfirmationModalProps = Readonly<{
   entryLabel: string | null;
   isDeleting: boolean;
   errorMessage: string | null;
+  onCloseAutoFocus?: (event: Event) => void;
   onConfirm: () => void;
   onCancel: () => void;
 }>;
@@ -31,6 +32,7 @@ export function HistoryDeleteConfirmationModal({
   entryLabel,
   isDeleting,
   errorMessage,
+  onCloseAutoFocus,
   onConfirm,
   onCancel,
 }: HistoryDeleteConfirmationModalProps): JSX.Element {
@@ -44,6 +46,7 @@ export function HistoryDeleteConfirmationModal({
         onEscapeKeyDown={() => {
           onCancel();
         }}
+        {...(onCloseAutoFocus !== undefined ? { onCloseAutoFocus } : {})}
       >
         <AlertDialogHeader>
           <AlertDialogTitle>{t("history.delete.confirmTitle")}</AlertDialogTitle>

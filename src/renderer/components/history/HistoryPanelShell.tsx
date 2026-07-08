@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { useMemo, useState, type JSX, type ReactNode } from "react";
 import { groupHistoryRowsByDate, type HistoryDateSection } from "../../helpers/groupHistoryRowsByDate.js";
 import type { CallHistoryEntryRowViewModel } from "../../hooks/useCallHistoryShell.js";
+import { useRestoreRouteFocus } from "../../hooks/useRestoreRouteFocus.js";
 import { useI18n } from "../../i18n/index.js";
 import { AppIcon } from "../icons/index.js";
 import { ListQuickCallButton } from "../list/ListQuickCallButton.js";
@@ -23,6 +24,8 @@ export type HistoryPanelShellProps = Readonly<{
   isEmpty?: boolean;
   errorMessage?: string | null;
   rows?: ReadonlyArray<CallHistoryEntryRowViewModel>;
+  restoreFocusEntryId?: string | null;
+  onRestoreFocusHandled?: () => void;
   onSelectEntry?: (entryId: string) => void;
   onRedial?: (entryId: string) => void;
 }>;
@@ -47,6 +50,8 @@ export function HistoryPanelShell({
   isEmpty = false,
   errorMessage = null,
   rows = [],
+  restoreFocusEntryId = null,
+  onRestoreFocusHandled,
   onSelectEntry,
   onRedial,
 }: HistoryPanelShellProps): JSX.Element | null {
@@ -95,6 +100,8 @@ export function HistoryPanelShell({
           errorMessage={errorMessage}
           sections={sections}
           filteredRows={filteredRows}
+          restoreFocusEntryId={restoreFocusEntryId}
+          {...(onRestoreFocusHandled !== undefined ? { onRestoreFocusHandled } : {})}
           {...(onSelectEntry !== undefined ? { onSelectEntry } : {})}
           {...(onRedial !== undefined ? { onRedial } : {})}
         />
@@ -112,6 +119,8 @@ type HistoryListBodyProps = Readonly<{
   errorMessage: string | null;
   sections: ReadonlyArray<HistoryDateSection<CallHistoryEntryRowViewModel>>;
   filteredRows: ReadonlyArray<CallHistoryEntryRowViewModel>;
+  restoreFocusEntryId?: string | null;
+  onRestoreFocusHandled?: () => void;
   onSelectEntry?: (entryId: string) => void;
   onRedial?: (entryId: string) => void;
 }>;
@@ -125,10 +134,18 @@ function HistoryListBody({
   errorMessage,
   sections,
   filteredRows,
+  restoreFocusEntryId = null,
+  onRestoreFocusHandled,
   onSelectEntry,
   onRedial,
 }: HistoryListBodyProps): JSX.Element {
   const { t } = useI18n();
+
+  useRestoreRouteFocus({
+    targetTestId:
+      restoreFocusEntryId !== null ? `history-entry-open-${restoreFocusEntryId}` : null,
+    ...(onRestoreFocusHandled !== undefined ? { onHandled: onRestoreFocusHandled } : {}),
+  });
 
   return (
     <>

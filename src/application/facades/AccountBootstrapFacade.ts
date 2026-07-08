@@ -71,6 +71,7 @@ import type {
   SettingsRepository,
   CallHistoryRepository,
   ContactRepository,
+  ContactCsvFileGateway,
   TelephonyGateway,
 } from "@ports/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
@@ -108,6 +109,9 @@ import { CreateContactUseCase } from "../use-cases/contacts/CreateContactUseCase
 import { UpdateContactUseCase } from "../use-cases/contacts/UpdateContactUseCase.js";
 import { DeleteContactUseCase } from "../use-cases/contacts/DeleteContactUseCase.js";
 import { CallContactUseCase } from "../use-cases/telephony/CallContactUseCase.js";
+import { ImportContactsCsvUseCase } from "../use-cases/contacts/ImportContactsCsvUseCase.js";
+import { ExportContactsCsvUseCase } from "../use-cases/contacts/ExportContactsCsvUseCase.js";
+import type { ContactsCsvImportSummary } from "../use-cases/contacts/ImportContactsCsvUseCase.js";
 import { CallHistoryRecordingOrchestrationService } from "../services/contacts/CallHistoryRecordingOrchestrationService.js";
 import { LOCAL_SAVED_PROFILE_NOT_FOUND_MESSAGE } from "../projections/settings/isLocalSavedProfileNotFoundError.js";
 import type {
@@ -128,6 +132,16 @@ export type AuthorizeAccountOutcome = Readonly<{
   metadataWarning?: AuthorizeAccountMetadataWarning;
 }>;
 
+export type ContactsCsvImportOutcome = Readonly<
+  | { kind: "cancelled" }
+  | { kind: "imported"; summary: ContactsCsvImportSummary }
+>;
+
+export type ContactsCsvExportOutcome = Readonly<
+  | { kind: "cancelled" }
+  | { kind: "exported"; contactCount: number }
+>;
+
 export type ProfileScopedDataProjectionHandlers = Readonly<{
   setContactsLoading: () => void;
   setContactsLoaded: (contacts: ReadonlyArray<Contact>) => void;
@@ -145,6 +159,7 @@ export type AccountBootstrapFacadeDeps = Readonly<{
   savedAccountProfileRepository?: SavedAccountProfileRepository;
   callHistoryRepository?: CallHistoryRepository;
   contactRepository?: ContactRepository;
+  contactCsvFileGateway?: ContactCsvFileGateway;
   hostIntegrationGateway?: HostIntegrationGateway;
   ocpSyncGateway?: OcpSyncGateway;
   ocpCallCorrelationRegistry?: OcpCallCorrelationRegistry;
@@ -212,6 +227,9 @@ export class AccountBootstrapFacade {
   private readonly updateContactUseCase: UpdateContactUseCase;
   private readonly deleteContactUseCase: DeleteContactUseCase;
   private readonly callContactUseCase: CallContactUseCase;
+  private readonly importContactsCsvUseCase: ImportContactsCsvUseCase;
+  private readonly exportContactsCsvUseCase: ExportContactsCsvUseCase;
+  private readonly contactCsvFileGateway: ContactCsvFileGateway | null;
 
   private readonly processedCredentialEvents = new Set<string>();
   private sipSessionRegistered = false;
@@ -289,6 +307,16 @@ export class AccountBootstrapFacade {
       this.eventPublisher,
       deps.logger,
     );
+    this.importContactsCsvUseCase = new ImportContactsCsvUseCase(
+      this.contactRepository,
+      this.createContactUseCase,
+      deps.logger,
+    );
+    this.exportContactsCsvUseCase = new ExportContactsCsvUseCase(
+      this.contactRepository,
+      deps.logger,
+    );
+    this.contactCsvFileGateway = deps.contactCsvFileGateway ?? null;
     const callHistoryRecordingOrchestration = new CallHistoryRecordingOrchestrationService(
       recordCallHistoryUseCase,
       deps.logger,
@@ -779,6 +807,70 @@ export class AccountBootstrapFacade {
     return this.callContactUseCase.execute({
       contactId,
       ...(correlationId !== undefined ? { correlationId } : {}),
+    });
+  }
+
+  async importContactsFromCsv(
+    correlationId?: CorrelationId,
+  ): Promise<Result<ContactsCsvImportOutcome, PlatformError>> {
+    if (this.contactCsvFileGateway === null) {
+      return err(
+        createPlatformError("operation_failed", "Contacts CSV file gateway is unavailable"),
+      );
+    }
+
+    const dialogResult = await this.contactCsvFileGateway.openImportDialog();
+    if (dialogResult.kind === "cancelled") {
+      return ok({ kind: "cancelled" });
+    }
+    if (dialogResult.kind === "error") {
+      return err(createPlatformError("operation_failed", dialogResult.reason));
+    }
+
+    const importResult = await this.importContactsCsvUseCase.execute({
+      csvContents: dialogResult.contents,
+      ...(correlationId !== undefined ? { correlationId } : {}),
+    });
+    if (isErr(importResult)) {
+      return importResult;
+    }
+
+    return ok({
+      kind: "imported",
+      summary: importResult.value,
+    });
+  }
+
+  async exportContactsToCsv(
+    correlationId?: CorrelationId,
+  ): Promise<Result<ContactsCsvExportOutcome, PlatformError>> {
+    if (this.contactCsvFileGateway === null) {
+      return err(
+        createPlatformError("operation_failed", "Contacts CSV file gateway is unavailable"),
+      );
+    }
+
+    const exportResult = await this.exportContactsCsvUseCase.execute({
+      ...(correlationId !== undefined ? { correlationId } : {}),
+    });
+    if (isErr(exportResult)) {
+      return exportResult;
+    }
+
+    const saveResult = await this.contactCsvFileGateway.saveExportDialog({
+      contents: exportResult.value.csvContents,
+      suggestedFileName: buildContactsCsvExportFileName(),
+    });
+    if (saveResult.kind === "cancelled") {
+      return ok({ kind: "cancelled" });
+    }
+    if (saveResult.kind === "error") {
+      return err(createPlatformError("operation_failed", saveResult.reason));
+    }
+
+    return ok({
+      kind: "exported",
+      contactCount: exportResult.value.contactCount,
     });
   }
 
@@ -1389,4 +1481,9 @@ function resolveAuthorizeManualAccountOptions(
   }
 
   return options;
+}
+
+function buildContactsCsvExportFileName(): string {
+  const datePart = new Date().toISOString().slice(0, 10);
+  return `contacts-export-${datePart}.csv`;
 }

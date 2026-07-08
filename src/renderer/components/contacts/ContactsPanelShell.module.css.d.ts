@@ -24,6 +24,7 @@ declare const classes: {
   readonly listItemSubline: string;
   readonly listItemText: string;
   readonly listToolbar: string;
+  readonly listToolbarActions: string;
   readonly stateMessage: string;
   readonly stateMessageError: string;
   readonly stateMessageSuccess: string;

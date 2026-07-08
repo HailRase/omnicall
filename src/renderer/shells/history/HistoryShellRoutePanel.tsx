@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import { isErr } from "@shared/result/index.js";
 import { HistoryDetailPanel } from "../../components/history/HistoryDetailPanel.js";
@@ -12,6 +13,7 @@ import type { NotificationDescriptor } from "../../hooks/useNotifications.js";
 import { NEW_CONTACT_ROUTE_ID } from "../../hooks/useContactEditShell.js";
 import { useShellNavigation } from "../../navigation/useShellNavigation.js";
 import { useShellRouteDataStore } from "../../navigation/routeData/useShellRouteDataStore.js";
+import { useDialogReturnFocus } from "../../hooks/useDialogReturnFocus.js";
 import { useI18n } from "../../i18n/index.js";
 
 type HistoryShellRoutePanelProps = Readonly<{
@@ -29,6 +31,7 @@ export function HistoryShellRoutePanel({
   notify,
 }: HistoryShellRoutePanelProps): JSX.Element | null {
   const { route, navigateTo, goToDialpad } = useShellNavigation();
+  const [restoreFocusEntryId, setRestoreFocusEntryId] = useState<string | null>(null);
 
   if (route.name !== "history" && route.name !== "historyDetails") {
     return null;
@@ -38,6 +41,10 @@ export function HistoryShellRoutePanel({
     return (
       <HistoryListRoute
         facade={facade}
+        restoreFocusEntryId={restoreFocusEntryId}
+        onRestoreFocusHandled={() => {
+          setRestoreFocusEntryId(null);
+        }}
         onClose={goToDialpad}
         {...(notify !== undefined ? { notify } : {})}
       />
@@ -49,8 +56,13 @@ export function HistoryShellRoutePanel({
       facade={facade}
       entryId={route.entryId}
       routeNotFound={route.notFound}
+      onReturnToList={(entryId) => {
+        setRestoreFocusEntryId(entryId);
+        navigateTo({ name: "history" });
+      }}
       onClose={goToDialpad}
       onBack={() => {
+        setRestoreFocusEntryId(route.entryId);
         navigateTo({ name: "history" });
       }}
       {...(notify !== undefined ? { notify } : {})}
@@ -60,11 +72,19 @@ export function HistoryShellRoutePanel({
 
 type HistoryListRouteProps = Readonly<{
   facade: AccountBootstrapFacade;
+  restoreFocusEntryId: string | null;
+  onRestoreFocusHandled: () => void;
   notify?: (descriptor: NotificationDescriptor) => void;
   onClose: () => void;
 }>;
 
-function HistoryListRoute({ facade, notify, onClose }: HistoryListRouteProps): JSX.Element {
+function HistoryListRoute({
+  facade,
+  restoreFocusEntryId,
+  onRestoreFocusHandled,
+  notify,
+  onClose,
+}: HistoryListRouteProps): JSX.Element {
   const { t } = useI18n();
   const { presentation, navigateTo, goToDialpad } = useShellNavigation();
   const { isSipRegistered } = useAuthShellFlags();
@@ -85,6 +105,8 @@ function HistoryListRoute({ facade, notify, onClose }: HistoryListRouteProps): J
       isEmpty={historyShell.isEmpty}
       errorMessage={historyShell.errorMessage}
       rows={historyShell.rows}
+      restoreFocusEntryId={restoreFocusEntryId}
+      onRestoreFocusHandled={onRestoreFocusHandled}
       onClose={onClose}
       onSelectEntry={(entryId) => {
         navigateTo({ name: "historyDetails", entryId });
@@ -106,6 +128,7 @@ type HistoryDetailsRouteProps = Readonly<{
   entryId: string;
   routeNotFound: boolean;
   notify?: (descriptor: NotificationDescriptor) => void;
+  onReturnToList: (entryId: string) => void;
   onClose: () => void;
   onBack: () => void;
 }>;
@@ -115,12 +138,15 @@ function HistoryDetailsRoute({
   entryId,
   routeNotFound,
   notify,
+  onReturnToList,
   onClose,
   onBack,
 }: HistoryDetailsRouteProps): JSX.Element {
   const { t } = useI18n();
   const { presentation, goToDialpad, navigateTo } = useShellNavigation();
   const { isSipRegistered } = useAuthShellFlags();
+  const { triggerRef: deleteTriggerRef, onCloseAutoFocus } =
+    useDialogReturnFocus<HTMLButtonElement>();
   const actions = useCallHistoryActions({
     facade,
     ...(notify !== undefined ? { notify } : {}),
@@ -148,6 +174,7 @@ function HistoryDetailsRoute({
           isLoading={detailShell.isLoading}
           isNotFound={detailShell.isNotFound}
           entry={detailShell.entry}
+          deleteButtonRef={deleteTriggerRef}
           onRedial={() => {
             void (async () => {
               const result = await actions.redialEntry(entryId);
@@ -182,12 +209,13 @@ function HistoryDetailsRoute({
         entryLabel={detailShell.entry?.primaryLabel ?? null}
         isDeleting={detailShell.isDeleting}
         errorMessage={detailShell.deleteErrorMessage}
+        onCloseAutoFocus={onCloseAutoFocus}
         onCancel={detailShell.closeDeleteConfirmation}
         onConfirm={() => {
           void (async () => {
             const deleted = await detailShell.confirmDelete();
             if (deleted) {
-              navigateTo({ name: "history" });
+              onReturnToList(entryId);
             }
           })();
         }}

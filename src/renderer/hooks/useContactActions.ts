@@ -1,19 +1,34 @@
 import { useCallback, useMemo } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
+import type { ContactsCsvImportSummary } from "@application/use-cases/contacts/ImportContactsCsvUseCase.js";
 import type { ContactInput, ContactUpdateInput } from "@application/index.js";
 import { isErr } from "@shared/result/index.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
+import type { NotificationDescriptor } from "./useNotifications.js";
 
 type UseContactActionsInput = Readonly<{
   facade: AccountBootstrapFacade;
+  notify?: (descriptor: NotificationDescriptor) => void;
 }>;
 
+export type ContactsCsvImportActionResult = Readonly<
+  | { kind: "cancelled" }
+  | { kind: "imported"; summary: ContactsCsvImportSummary }
+  | { kind: "failed" }
+>;
+
+export type ContactsCsvExportActionResult = Readonly<
+  | { kind: "cancelled" }
+  | { kind: "exported"; contactCount: number }
+  | { kind: "failed" }
+>;
+
 /**
- * - Purpose: bind contact CRUD and call actions to facade Use Cases.
- * - Inputs: account bootstrap facade.
+ * - Purpose: bind contact CRUD, call, and CSV import/export actions to facade Use Cases.
+ * - Inputs: account bootstrap facade and optional notification callback.
  * - Outputs: load and mutation callbacks for contacts shell wiring.
  */
-export function useContactActions({ facade }: UseContactActionsInput) {
+export function useContactActions({ facade, notify }: UseContactActionsInput) {
   const setContactsLoading = useAccountBootstrapStore((state) => state.setContactsLoading);
   const setContactsLoaded = useAccountBootstrapStore((state) => state.setContactsLoaded);
   const setContactsLoadError = useAccountBootstrapStore((state) => state.setContactsLoadError);
@@ -54,6 +69,66 @@ export function useContactActions({ facade }: UseContactActionsInput) {
     [facade],
   );
 
+  const importContactsCsv = useCallback(async (): Promise<ContactsCsvImportActionResult> => {
+    const result = await facade.importContactsFromCsv();
+    if (isErr(result)) {
+      notify?.({
+        level: "error",
+        messageKey: "contacts.csv.error.importFailed",
+      });
+      return { kind: "failed" };
+    }
+
+    if (result.value.kind === "cancelled") {
+      return { kind: "cancelled" };
+    }
+
+    if (result.value.summary.createdCount > 0) {
+      await loadContacts();
+    }
+
+    if (
+      result.value.summary.failedRows.length === 0 &&
+      result.value.summary.skippedDuplicateCount === 0
+    ) {
+      notify?.({
+        level: "success",
+        messageKey: "contacts.csv.success.imported",
+        messageParams: { count: result.value.summary.createdCount },
+      });
+    }
+
+    return {
+      kind: "imported",
+      summary: result.value.summary,
+    };
+  }, [facade, loadContacts, notify]);
+
+  const exportContactsCsv = useCallback(async (): Promise<ContactsCsvExportActionResult> => {
+    const result = await facade.exportContactsToCsv();
+    if (isErr(result)) {
+      notify?.({
+        level: "error",
+        messageKey: "contacts.csv.error.exportFailed",
+      });
+      return { kind: "failed" };
+    }
+
+    if (result.value.kind === "cancelled") {
+      return { kind: "cancelled" };
+    }
+
+    notify?.({
+      level: "success",
+      messageKey: "contacts.csv.success.exported",
+      messageParams: { count: result.value.contactCount },
+    });
+    return {
+      kind: "exported",
+      contactCount: result.value.contactCount,
+    };
+  }, [facade, notify]);
+
   return useMemo(
     () => ({
       loadContacts,
@@ -62,6 +137,8 @@ export function useContactActions({ facade }: UseContactActionsInput) {
       updateContact,
       deleteContact,
       callContact,
+      importContactsCsv,
+      exportContactsCsv,
     }),
     [
       loadContacts,
@@ -70,6 +147,8 @@ export function useContactActions({ facade }: UseContactActionsInput) {
       updateContact,
       deleteContact,
       callContact,
+      importContactsCsv,
+      exportContactsCsv,
     ],
   );
 }
