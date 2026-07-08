@@ -7,11 +7,16 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
-## [Unreleased]
+## [0.9.0] - 2026-07-08
 
-### Removed
+### Added
 
-- Legacy operator platform integration removed per ADR-0005; documentation, rules, and agent skills updated for SIP-only product path.
+- F-002: глобальный оверлей входящего звонка — iPhone-like баннер сверху по центру; виден на всех маршрутах кроме dialpad с карточкой входящего в контексте; ответ/отклонение; навигация на главный экран звонка
+- F-002: frosted-glass баннер с анимацией (Framer Motion), семантические токены `--incoming-call-*`, усечение длинных имён (`TruncatedTextLine`)
+
+### Fixed
+
+- F-025: импорт контактов CSV через real bootstrap gateway
 
 ## [0.8.0] - 2026-07-08
 
@@ -210,7 +215,8 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.8.0...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.9.0...main
+[0.9.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.9.0
 [0.8.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.8.0
 [0.7.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.7.1
 [0.7.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.7.0

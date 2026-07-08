@@ -5,6 +5,17 @@ Public release history for **Axatalk** distribution builds.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer. Git tag: `v<version>`.
 
+## [0.9.0] - 2026-07-08
+
+### Added
+
+- Global incoming call overlay — iPhone-like top-center banner on all routes except dialpad when the in-context incoming card is visible; answer/decline actions; tap navigates to the main call surface
+- Frosted-glass banner with motion, semantic incoming-call tokens, and truncated long caller names
+
+### Fixed
+
+- Contact CSV import wired through the real bootstrap gateway
+
 ## [0.8.0] - 2026-07-08
 
 ### Added

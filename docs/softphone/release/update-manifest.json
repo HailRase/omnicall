@@ -1,12 +1,12 @@
 {
-  "latestVersion": "0.8.0",
-  "releaseDate": "2026-07-07",
-  "releaseNotesUrl": "https://github.com/HailRase/axatalk-releases/releases/tag/v0.8.0",
+  "latestVersion": "0.9.0",
+  "releaseDate": "2026-07-08",
+  "releaseNotesUrl": "https://github.com/HailRase/axatalk-releases/releases/tag/v0.9.0",
   "downloadUrl": "https://github.com/HailRase/axatalk-releases/releases/latest",
   "platforms": {
-    "win32": "https://github.com/HailRase/axatalk-releases/releases/download/v0.8.0/Axatalk-0.8.0-win-x64.exe",
-    "darwin": "https://github.com/HailRase/axatalk-releases/releases/download/v0.8.0/Axatalk-0.8.0-mac-arm64.dmg",
-    "linux": "https://github.com/HailRase/axatalk-releases/releases/download/v0.8.0/Axatalk-0.8.0-linux-x86_64.AppImage"
+    "win32": "https://github.com/HailRase/axatalk-releases/releases/download/v0.9.0/Axatalk-0.9.0-win-x64.exe",
+    "darwin": "https://github.com/HailRase/axatalk-releases/releases/download/v0.9.0/Axatalk-0.9.0-mac-arm64.dmg",
+    "linux": "https://github.com/HailRase/axatalk-releases/releases/download/v0.9.0/Axatalk-0.9.0-linux-x86_64.AppImage"
   },
   "minimumSupportedVersion": "0.0.1"
 }
