@@ -16,6 +16,7 @@ import {
   mapAccountAuthorizationError,
   type AccountAuthorizationErrorProjection,
 } from "@application/projections/settings/mapAccountAuthorizationError.js";
+import { shouldRevealPasswordEntryAfterRememberedSignInFailure } from "@application/projections/settings/shouldRevealPasswordEntryAfterRememberedSignInFailure.js";
 import type { SipAccountInput, SavedAccountProfile, SavedAccountProfileId } from "@application/index.js";
 import {
   findSavedAccountProfileByInput,
@@ -378,7 +379,10 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
               );
 
         if (isErr(result)) {
-          if (usedRememberedPasswordSignIn) {
+          if (
+            usedRememberedPasswordSignIn &&
+            shouldRevealPasswordEntryAfterRememberedSignInFailure(result.error)
+          ) {
             setForcePasswordEntryForSelectedProfile(true);
           }
           setError(mapAccountAuthorizationError(result.error));

@@ -208,6 +208,8 @@ describe("SettingsAccountPanel", () => {
 
     );
 
+    expect(screen.queryByTestId("settings-account-form-remembered-sign-in")).not.toBeInTheDocument();
+
   });
 
 
@@ -241,6 +243,8 @@ describe("SettingsAccountPanel", () => {
     expect(screen.getByTestId("account-authorize")).toHaveTextContent("Войти");
 
     expect(screen.getByTestId("account-forget-remembered-password")).toBeInTheDocument();
+
+    expect(screen.getByTestId("settings-account-form-remembered-sign-in")).toBeInTheDocument();
 
   });
 

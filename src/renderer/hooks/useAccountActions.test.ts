@@ -141,12 +141,59 @@ describe("useAccountActions", () => {
     });
   });
 
-  it("reveals password entry after remembered-password authorization fails", async () => {
+  it("keeps compact remembered-password UI after 403 forbidden registration failure", async () => {
     const { facade, authorizeSavedAccountProfile } = createFacadeMock({
       hasRememberedSipPassword: true,
     });
     authorizeSavedAccountProfile.mockResolvedValue(
-      err(createPlatformError("operation_failed", "SIP registration failed")),
+      err(
+        createPlatformError(
+          "operation_failed",
+          "SIP registration failed: 403 Rejected (forbidden)",
+        ),
+      ),
+    );
+    const profileId = savedProfileFixture.id;
+
+    const { result } = renderHook(() => useAccountActions({ facade }));
+
+    await waitFor(() => {
+      expect(result.current.savedProfileOptions).toHaveLength(1);
+    });
+
+    act(() => {
+      result.current.selectProfile(profileId);
+    });
+
+    await waitFor(() => {
+      expect(result.current.passwordFieldVisible).toBe(false);
+    });
+
+    act(() => {
+      result.current.handleSubmit();
+    });
+
+    await waitFor(() => {
+      expect(result.current.error?.key).toBe("account.error.serverRegistration");
+    });
+
+    expect(result.current.passwordFieldVisible).toBe(false);
+    expect(result.current.rememberPasswordVisible).toBe(false);
+    expect(result.current.forgetRememberedPasswordVisible).toBe(true);
+    expect(result.current.selectedProfileId).toBe(profileId);
+  });
+
+  it("reveals password entry after remembered-password authentication failure", async () => {
+    const { facade, authorizeSavedAccountProfile } = createFacadeMock({
+      hasRememberedSipPassword: true,
+    });
+    authorizeSavedAccountProfile.mockResolvedValue(
+      err(
+        createPlatformError(
+          "operation_failed",
+          "SIP registration failed for user: Authentication Error",
+        ),
+      ),
     );
     const profileId = savedProfileFixture.id;
 
@@ -173,8 +220,45 @@ describe("useAccountActions", () => {
     });
 
     expect(result.current.rememberPasswordVisible).toBe(true);
+    expect(result.current.forgetRememberedPasswordVisible).toBe(false);
     expect(result.current.selectedProfileId).toBe(profileId);
-    expect(result.current.error).not.toBeNull();
+    expect(result.current.error?.key).toBe("account.error.invalidCredentials");
+  });
+
+  it("reveals password entry after remembered-password local secret load failure", async () => {
+    const { facade, authorizeSavedAccountProfile } = createFacadeMock({
+      hasRememberedSipPassword: true,
+    });
+    authorizeSavedAccountProfile.mockResolvedValue(
+      err(createPlatformError("unknown", "secret_load_failed")),
+    );
+    const profileId = savedProfileFixture.id;
+
+    const { result } = renderHook(() => useAccountActions({ facade }));
+
+    await waitFor(() => {
+      expect(result.current.savedProfileOptions).toHaveLength(1);
+    });
+
+    act(() => {
+      result.current.selectProfile(profileId);
+    });
+
+    await waitFor(() => {
+      expect(result.current.passwordFieldVisible).toBe(false);
+    });
+
+    act(() => {
+      result.current.handleSubmit();
+    });
+
+    await waitFor(() => {
+      expect(result.current.passwordFieldVisible).toBe(true);
+    });
+
+    expect(result.current.rememberPasswordVisible).toBe(true);
+    expect(result.current.forgetRememberedPasswordVisible).toBe(false);
+    expect(result.current.selectedProfileId).toBe(profileId);
   });
 
   it("resets forced password entry when switching to another saved profile", async () => {
@@ -190,7 +274,12 @@ describe("useAccountActions", () => {
     });
     listSavedAccountProfiles.mockResolvedValue(ok([savedProfileFixture, otherProfile]));
     authorizeSavedAccountProfile.mockResolvedValue(
-      err(createPlatformError("operation_failed", "SIP registration failed")),
+      err(
+        createPlatformError(
+          "operation_failed",
+          "SIP registration failed for user: Authentication Error",
+        ),
+      ),
     );
 
     const { result } = renderHook(() => useAccountActions({ facade }));

@@ -1,4 +1,5 @@
 import type { JSX, RefObject } from "react";
+import clsx from "clsx";
 import type { SavedAccountProfileId } from "@application/index.js";
 import type { SavedAccountProfileSelectorOption } from "@application/projections/settings/deriveSavedAccountProfileSelectorOptions.js";
 import type { SavedProfilePanelMode } from "@application/projections/settings/deriveSavedProfilePanelMode.js";
@@ -97,8 +98,19 @@ export function SettingsAccountPanel({
   onSwitchProfileConfirm,
   onSwitchProfileCancel,
 }: SettingsAccountPanelProps): JSX.Element {
+  const rememberedPasswordSignInOnly =
+    panelMode === "savedPasswordOnly" &&
+    !passwordFieldVisible &&
+    forgetRememberedPasswordVisible;
+
   return (
-    <div className={styles.wrapper} data-testid="settings-account-panel">
+    <div
+      className={clsx(
+        styles.wrapper,
+        rememberedPasswordSignInOnly && styles.wrapperRememberedSignInOnly,
+      )}
+      data-testid="settings-account-panel"
+    >
       <div className={styles.tabsRow}>
         <SavedAccountProfileSelector
           options={savedProfileOptions}
@@ -109,7 +121,17 @@ export function SettingsAccountPanel({
         />
       </div>
 
-      <div className={styles.formCenter}>
+      <div
+        className={clsx(
+          styles.formCenter,
+          rememberedPasswordSignInOnly && styles.formCenterRememberedSignInOnly,
+        )}
+        data-testid={
+          rememberedPasswordSignInOnly
+            ? "settings-account-form-remembered-sign-in"
+            : undefined
+        }
+      >
         <AccountPanel
           form={form}
           submitting={submitting}

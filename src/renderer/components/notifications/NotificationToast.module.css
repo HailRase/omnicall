@@ -1,7 +1,7 @@
 .toast-icon-success {
-  color: var(--color-text-success);
+  color: var(--color-status-online);
 }
 
 .toast-icon-error {
-  color: var(--color-text-danger);
+  color: var(--color-status-failed);
 }
