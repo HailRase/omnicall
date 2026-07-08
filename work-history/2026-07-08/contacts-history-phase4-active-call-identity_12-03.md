@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-08 12:03
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `d0308bb`
 
 ## Где
 - `src/application/read-models/contactDirectory.ts`
