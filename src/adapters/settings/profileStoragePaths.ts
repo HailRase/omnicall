@@ -5,6 +5,8 @@ import {
 
 export const PROFILES_DIRECTORY_NAME = "profiles";
 export const SETTINGS_DIRECTORY_NAME = "settings";
+export const CONTACTS_DIRECTORY_NAME = "contacts";
+export const CALL_HISTORY_DIRECTORY_NAME = "call-history";
 export const PROFILES_INDEX_FILE_NAME = "index.json";
 export const SAVED_ACCOUNT_PROFILES_FILE_NAME = "saved-accounts.json";
 
@@ -126,4 +128,51 @@ export function resolveProfileSettingsFilePath(
 ): string {
   const encodedKey = encodeProfileKeyForFileName(accountKey);
   return joinStoragePath(resolveProfileSettingsDirectoryPath(storageRoot), `${encodedKey}.json`);
+}
+
+/**
+ * - Purpose: resolve per-profile contacts directory path.
+ * - Inputs: storage root absolute path.
+ * - Outputs: contacts directory absolute path.
+ */
+export function resolveProfileContactsDirectoryPath(storageRoot: string): string {
+  return joinStoragePath(resolveProfilesRootPath(storageRoot), CONTACTS_DIRECTORY_NAME);
+}
+
+/**
+ * - Purpose: resolve on-disk contacts file for one profile key.
+ * - Inputs: storage root and profile key.
+ * - Outputs: contacts JSON file absolute path.
+ */
+export function resolveProfileContactsFilePath(
+  storageRoot: string,
+  accountKey: SettingsAccountKey,
+): string {
+  const encodedKey = encodeProfileKeyForFileName(accountKey);
+  return joinStoragePath(resolveProfileContactsDirectoryPath(storageRoot), `${encodedKey}.json`);
+}
+
+/**
+ * - Purpose: resolve per-profile call history directory path.
+ * - Inputs: storage root absolute path.
+ * - Outputs: call-history directory absolute path.
+ */
+export function resolveProfileCallHistoryDirectoryPath(storageRoot: string): string {
+  return joinStoragePath(resolveProfilesRootPath(storageRoot), CALL_HISTORY_DIRECTORY_NAME);
+}
+
+/**
+ * - Purpose: resolve on-disk call history file for one profile key.
+ * - Inputs: storage root and profile key.
+ * - Outputs: call-history JSON file absolute path.
+ */
+export function resolveProfileCallHistoryFilePath(
+  storageRoot: string,
+  accountKey: SettingsAccountKey,
+): string {
+  const encodedKey = encodeProfileKeyForFileName(accountKey);
+  return joinStoragePath(
+    resolveProfileCallHistoryDirectoryPath(storageRoot),
+    `${encodedKey}.json`,
+  );
 }

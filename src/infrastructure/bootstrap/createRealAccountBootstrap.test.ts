@@ -6,6 +6,7 @@ import { deriveSettingsAccountKeyFromIdentity } from "@domain/index.js";
 import { NodeFileSystemAdapter } from "@infrastructure/filesystem/NodeFileSystemAdapter.js";
 import {
   resolveProfileSettingsFilePath,
+  resolveProfileContactsFilePath,
   resolveProfilesIndexPath,
   resolveSavedAccountProfilesFilePath,
 } from "@adapters/settings/profileStoragePaths.js";
@@ -219,6 +220,59 @@ describe("createRealAccountBootstrap", () => {
     }
     expect(restored.value).toHaveLength(1);
     expect(restored.value[0]?.username).toBe("max.operator");
+
+    facade2.dispose();
+  });
+
+  it("persists contacts across bootstrap instances for authorized account", async () => {
+    const profilesStorageRoot = await createTempStorageRoot();
+    const filesystem = new NodeFileSystemAdapter();
+    const account = {
+      username: "1001",
+      password: "secret-a",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    };
+    const key = deriveSettingsAccountKeyFromIdentity({
+      username: account.username,
+      domain: account.domain,
+      server: account.server,
+    });
+
+    const facade1 = createRealAccountBootstrap({
+      profilesStorageRoot,
+      filesystem,
+      bootstrapConfig: { mode: "sip-only" },
+    });
+
+    await facade1.authorizeSipAccount.execute({ account, source: "manual" });
+    const created = await facade1.createContact({
+      displayName: "Alex Agent",
+      primaryPhone: "+12025550100",
+    });
+    expect(created.ok).toBe(true);
+
+    const contactsPath = resolveProfileContactsFilePath(profilesStorageRoot, key);
+    const persistedJson = await readFile(contactsPath, "utf8");
+    expect(persistedJson).toContain("Alex Agent");
+    expect(persistedJson).not.toContain("password");
+
+    facade1.dispose();
+
+    const facade2 = createRealAccountBootstrap({
+      profilesStorageRoot,
+      filesystem,
+      bootstrapConfig: { mode: "sip-only" },
+    });
+
+    await facade2.authorizeSipAccount.execute({ account, source: "manual" });
+    const listed = await facade2.listContacts();
+    expect(listed.ok).toBe(true);
+    if (!listed.ok) {
+      return;
+    }
+    expect(listed.value).toHaveLength(1);
+    expect(listed.value[0]?.displayName).toBe("Alex Agent");
 
     facade2.dispose();
   });

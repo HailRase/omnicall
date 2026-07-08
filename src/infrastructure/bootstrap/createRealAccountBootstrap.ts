@@ -18,11 +18,57 @@ import type { LogContext } from "@ports/index.js";
 import type { CreateAccountBootstrapOptions } from "./createMockAccountBootstrap.js";
 import { createRealBootstrapSettingsRepository } from "./createRealBootstrapSettingsRepository.js";
 import { createRealBootstrapSavedAccountProfileRepository } from "./createRealBootstrapSavedAccountProfileRepository.js";
+import { createRealBootstrapContactRepository } from "./createRealBootstrapContactRepository.js";
+import { createRealBootstrapCallHistoryRepository } from "./createRealBootstrapCallHistoryRepository.js";
 import { wireOcpInboundToFacade } from "./wireOcpInboundToFacade.js";
-import type { SavedAccountProfileRepository } from "@ports/index.js";
+import type {
+  CallHistoryRepository,
+  ContactRepository,
+  SavedAccountProfileRepository,
+} from "@ports/index.js";
 
 function createBootstrapLogger(context: LogContext): Logger {
   return createConsoleLogger(context);
+}
+
+function resolveRealContactRepository(
+  options: CreateAccountBootstrapOptions,
+  settingsRepository: ReturnType<typeof resolveRealSettingsRepository>,
+): ContactRepository | undefined {
+  if (options.contactRepository !== undefined) {
+    return options.contactRepository;
+  }
+
+  if (options.profilesStorageRoot === undefined || options.filesystem === undefined) {
+    return undefined;
+  }
+
+  return createRealBootstrapContactRepository({
+    profilesStorageRoot: options.profilesStorageRoot,
+    filesystem: options.filesystem,
+    settingsRepository,
+    logger: createBootstrapLogger({ featureId: "F-025", boundedContext: "Settings" }),
+  });
+}
+
+function resolveRealCallHistoryRepository(
+  options: CreateAccountBootstrapOptions,
+  settingsRepository: ReturnType<typeof resolveRealSettingsRepository>,
+): CallHistoryRepository | undefined {
+  if (options.callHistoryRepository !== undefined) {
+    return options.callHistoryRepository;
+  }
+
+  if (options.profilesStorageRoot === undefined || options.filesystem === undefined) {
+    return undefined;
+  }
+
+  return createRealBootstrapCallHistoryRepository({
+    profilesStorageRoot: options.profilesStorageRoot,
+    filesystem: options.filesystem,
+    settingsRepository,
+    logger: createBootstrapLogger({ featureId: "F-013", boundedContext: "Settings" }),
+  });
 }
 
 function resolveRealSavedAccountProfileRepository(
@@ -88,6 +134,8 @@ export function createRealAccountBootstrap(
 ): AccountBootstrapFacade {
   const settingsRepository = resolveRealSettingsRepository(options);
   const savedAccountProfileRepository = resolveRealSavedAccountProfileRepository(options);
+  const contactRepository = resolveRealContactRepository(options, settingsRepository);
+  const callHistoryRepository = resolveRealCallHistoryRepository(options, settingsRepository);
   const codecPreferencesPort = new SettingsRepositoryCodecPreferencesAdapter({
     settingsRepository,
     resolveAccountKey: () => resolveSettingsAccountKey(settingsRepository),
@@ -144,6 +192,8 @@ export function createRealAccountBootstrap(
     ...(savedAccountProfileRepository !== undefined
       ? { savedAccountProfileRepository }
       : {}),
+    ...(contactRepository !== undefined ? { contactRepository } : {}),
+    ...(callHistoryRepository !== undefined ? { callHistoryRepository } : {}),
     hostIntegrationGateway,
     ...(ocpSyncGateway !== undefined ? { ocpSyncGateway } : {}),
     logger: createBootstrapLogger({ featureId: "F-001", boundedContext: "Telephony" }),

@@ -124,6 +124,26 @@ export {
   SAVED_ACCOUNT_PROFILES_SCHEMA_VERSION,
   serializeSavedAccountProfilesDocument,
 } from "./settings/persistedSavedAccountProfiles.js";
+export type {
+  ContactsDocumentV1,
+  ContactsDocumentParseErrorCode,
+  ContactsDocumentParseResult,
+} from "./settings/persistedContacts.js";
+export {
+  CONTACTS_DOCUMENT_SCHEMA_VERSION,
+  parsePersistedContactsDocument,
+  serializeContactsDocument,
+} from "./settings/persistedContacts.js";
+export type {
+  CallHistoryDocumentV1,
+  CallHistoryDocumentParseErrorCode,
+  CallHistoryDocumentParseResult,
+} from "./settings/persistedCallHistory.js";
+export {
+  CALL_HISTORY_DOCUMENT_SCHEMA_VERSION,
+  parsePersistedCallHistoryDocument,
+  serializeCallHistoryDocument,
+} from "./settings/persistedCallHistory.js";
 export type { DomainEvent, DomainEventBase } from "./shared/DomainEvent.js";
 export { createDomainEvent } from "./shared/DomainEvent.js";
 export type {

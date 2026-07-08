@@ -365,7 +365,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-052`, `LF-053`, `LF-054`
 - Context: Settings
 - Priority: medium
-- Status: **implemented** (Phase 2 shell navigation — in-memory persistence, LF-052–054)
+- Status: **in progress** (Phase 1 disk persistence — identity/detail/delete in later phases)
 - Owner: TBD
 - Inputs: completed call events
 - Outputs: persisted call history entry
@@ -373,9 +373,12 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Persistence is behind `CallHistoryRepository`.
   - History is derived from call events.
   - Storage failures are logged.
+  - Per-account file persistence under `call-history/{encodedProfileKey}.json` when real bootstrap is active.
+  - Missing or corrupt history document returns safe empty state with warning log.
+  - History detail view, delete entry, and contact enrichment are tracked in `Contacts-History-Identity-Persistence-Plan.md` later phases.
 - Test Coverage:
-  - Unit: history entry mapping, `deriveCallHistoryShell`, `callHistoryProjection`
-  - Integration: `InMemoryCallHistoryRepository`, `ListCallHistoryUseCase`, `RedialFromHistoryUseCase`
+  - Unit: history entry mapping, `deriveCallHistoryShell`, `callHistoryProjection`, `parsePersistedCallHistoryDocument`
+  - Integration: `InMemoryCallHistoryRepository`, `FileCallHistoryRepository`, `ListCallHistoryUseCase`, `RedialFromHistoryUseCase`, `createRealAccountBootstrap`
   - Renderer: `HistoryPanelShell`, `HistoryShellRoutePanel`, navigation guards
   - E2E: deferred until harness exists; manual smoke: `handoffs/Shell-Navigation-Phase6-Smoke-Checklist.md`
 
@@ -707,7 +710,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: _none_ (new product feature; audited legacy softphone had no standalone contacts module)
 - Context: Settings
 - Priority: medium
-- Status: **implemented** (Phase 4 contacts UI — sidebar routes over dialpad/call shell, in-memory persistence)
+- Status: **in progress** (Phase 1 disk persistence — matching/add-from-history in later phases)
 - Owner: TBD
 - Inputs: contact metadata (display name, primary/secondary phone, company, notes)
 - Outputs: persisted `Contact` records, domain events, projection, facade CRUD/call API
@@ -718,8 +721,11 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Create/update/delete publish `ContactCreated` / `ContactUpdated` / `ContactDeleted` events.
   - `CallContactUseCase` initiates outgoing call via existing `MakeCallUseCase` on primary phone.
   - UI consumes projections only (Phase 4); no repository/Domain imports in renderer components.
+  - Per-account file persistence under `contacts/{encodedProfileKey}.json` when real bootstrap is active.
+  - Missing or corrupt contacts document returns safe empty state with warning log.
+  - Duplicate phone policy, add-from-history, and CSV import/export are tracked in `Contacts-History-Identity-Persistence-Plan.md` later phases.
 - Test Coverage:
-  - Unit: contact validation, projection reducer, `deriveContactsShell` disabled reasons
-  - Integration: in-memory repository CRUD, Use Case orchestration (`ContactUseCases`, `CallContactUseCase`)
+  - Unit: contact validation, projection reducer, `deriveContactsShell` disabled reasons, `parsePersistedContactsDocument`
+  - Integration: in-memory and file repository CRUD, Use Case orchestration (`ContactUseCases`, `CallContactUseCase`), `createRealAccountBootstrap`
   - Renderer: `ContactsShellRoutePanel`, `ContactsPanelShell`, `ContactDetailsPanel`, navigation guards
   - E2E: deferred until harness exists; manual smoke: `handoffs/Shell-Navigation-Phase6-Smoke-Checklist.md`
