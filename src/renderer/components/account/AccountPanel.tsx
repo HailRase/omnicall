@@ -45,6 +45,8 @@ type AccountPanelProps = Readonly<{
 
   passwordHintKey?: TranslationKey | null;
 
+  passwordFieldVisible?: boolean;
+
   saveProfileVisible?: boolean;
 
   saveProfileChecked?: boolean;
@@ -53,11 +55,21 @@ type AccountPanelProps = Readonly<{
 
   saveProfileDisabledReasonKey?: TranslationKey | null;
 
+  rememberPasswordVisible?: boolean;
+
+  rememberPasswordChecked?: boolean;
+
+  rememberPasswordDisabled?: boolean;
+
+  rememberPasswordDisabledReasonKey?: TranslationKey | null;
+
   passwordInputRef?: RefObject<HTMLInputElement | null>;
 
   onFieldChange: (field: keyof SipAccountInput, value: string) => void;
 
   onSaveProfileChange?: (checked: boolean) => void;
+
+  onRememberPasswordChange?: (checked: boolean) => void;
 
   onSubmit: () => void;
 
@@ -95,6 +107,8 @@ export function AccountPanel({
 
   passwordHintKey = null,
 
+  passwordFieldVisible = true,
+
   saveProfileVisible = false,
 
   saveProfileChecked = false,
@@ -103,11 +117,21 @@ export function AccountPanel({
 
   saveProfileDisabledReasonKey = null,
 
+  rememberPasswordVisible = false,
+
+  rememberPasswordChecked = false,
+
+  rememberPasswordDisabled = false,
+
+  rememberPasswordDisabledReasonKey = null,
+
   passwordInputRef,
 
   onFieldChange,
 
   onSaveProfileChange,
+
+  onRememberPasswordChange,
 
   onSubmit,
 
@@ -267,7 +291,7 @@ export function AccountPanel({
 
           </>
 
-        ) : (
+        ) : passwordFieldVisible ? (
 
           <label className={styles.label}>
 
@@ -294,7 +318,7 @@ export function AccountPanel({
 
           </label>
 
-        )}
+        ) : null}
 
         {saveProfileVisible ? (
 
@@ -329,6 +353,49 @@ export function AccountPanel({
               data-testid="account-save-profile-checkbox"
               onCheckedChange={(checked) => {
                 onSaveProfileChange?.(checked);
+              }}
+            />
+
+          </label>
+
+        ) : null}
+
+        {rememberPasswordVisible ? (
+
+          <label
+            className={clsx(
+              formStyles.toggleRow,
+              rememberPasswordDisabled && styles.saveProfileDisabled,
+            )}
+            data-testid="account-remember-password-row"
+          >
+
+            <span className={formStyles.toggleText}>
+
+              <span className={formStyles.toggleLabel}>
+                {t("account.profile.rememberPassword.label")}
+              </span>
+
+              <span className={formStyles.toggleDescription}>
+
+                {rememberPasswordDisabled && rememberPasswordDisabledReasonKey !== null
+
+                  ? t(rememberPasswordDisabledReasonKey)
+
+                  : t("account.profile.rememberPassword.description")}
+
+              </span>
+
+            </span>
+
+            <Switch
+              id="account-remember-password"
+              checked={rememberPasswordChecked}
+              disabled={disabled || submitting || rememberPasswordDisabled}
+              data-testid="account-remember-password-checkbox"
+              aria-label={t("account.profile.rememberPassword.ariaLabel")}
+              onCheckedChange={(checked) => {
+                onRememberPasswordChange?.(checked);
               }}
             />
 

@@ -46,7 +46,14 @@ import type {
   ContactCsvFileGateway,
   TelephonyGateway,
   MediaGateway,
+  SecretStoragePort,
 } from "@ports/index.js";
+import {
+  createSecretStorageScopeKey,
+  SIP_PASSWORD_SECRET_ID,
+  type SecretStorageScopeKey,
+} from "@ports/secrets/SecretStoragePort.js";
+import { InMemorySecretStorageAdapter } from "@adapters/secrets/InMemorySecretStorageAdapter.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { CallEngine } from "@application/services/telephony/CallEngine.js";
 import type { MultiCallSettings } from "@domain/index.js";
@@ -57,6 +64,7 @@ import {
   matchesSipAccountIdentity,
   toMultiCallSettings,
   validateUserSettings,
+  deriveSavedAccountProfileId,
   type Call,
   type CallId,
 } from "@domain/index.js";
@@ -98,7 +106,8 @@ import type {
 
 export type AuthorizeAccountMetadataWarning =
   | "profile_save_failed"
-  | "profile_touch_failed";
+  | "profile_touch_failed"
+  | "password_save_failed";
 
 export type AuthorizeAccountOutcome = Readonly<{
   metadataWarning?: AuthorizeAccountMetadataWarning;
@@ -131,6 +140,7 @@ export type AccountBootstrapFacadeDeps = Readonly<{
   callHistoryRepository?: CallHistoryRepository;
   contactRepository?: ContactRepository;
   contactCsvFileGateway?: ContactCsvFileGateway;
+  secretStoragePort?: SecretStoragePort;
   hostIntegrationGateway?: HostIntegrationGateway;
   logger: Logger;
   eventPublisher?: DomainEventPublisher;
@@ -139,6 +149,7 @@ export type AccountBootstrapFacadeDeps = Readonly<{
 export type AuthorizeManualAccountOptions = Readonly<{
   correlationId?: CorrelationId;
   saveProfile?: boolean;
+  rememberPassword?: boolean;
 }>;
 
 export class AccountBootstrapFacade {
@@ -191,6 +202,7 @@ export class AccountBootstrapFacade {
   private readonly importContactsCsvUseCase: ImportContactsCsvUseCase;
   private readonly exportContactsCsvUseCase: ExportContactsCsvUseCase;
   private readonly contactCsvFileGateway: ContactCsvFileGateway | null;
+  private readonly secretStoragePort: SecretStoragePort;
 
   private sipSessionRegistered = false;
   private readonly callEngine: CallEngine;
@@ -271,6 +283,7 @@ export class AccountBootstrapFacade {
       deps.logger,
     );
     this.contactCsvFileGateway = deps.contactCsvFileGateway ?? null;
+    this.secretStoragePort = deps.secretStoragePort ?? new InMemorySecretStorageAdapter();
     const callHistoryRecordingOrchestration = new CallHistoryRecordingOrchestrationService(
       recordCallHistoryUseCase,
       deps.logger,
@@ -522,6 +535,13 @@ export class AccountBootstrapFacade {
       }
     }
 
+    if (resolvedOptions.rememberPassword === true) {
+      const passwordWarning = await this.persistSipPasswordSecretForAccount(account, correlationId);
+      if (passwordWarning !== undefined) {
+        metadataWarning = metadataWarning ?? passwordWarning;
+      }
+    }
+
     if (metadataWarning === undefined) {
       return ok({});
     }
@@ -697,14 +717,34 @@ export class AccountBootstrapFacade {
     });
   }
 
-  deleteSavedAccountProfile(
+  async deleteSavedAccountProfile(
     profileId: SavedAccountProfileId,
     correlationId?: CorrelationId,
   ): Promise<Result<void, PlatformError>> {
-    return this.deleteSavedAccountProfileUseCase.execute({
+    const deleteResult = await this.deleteSavedAccountProfileUseCase.execute({
       profileId,
       ...(correlationId !== undefined ? { correlationId } : {}),
     });
+
+    if (isErr(deleteResult)) {
+      return deleteResult;
+    }
+
+    try {
+      await this.deleteSipPasswordSecret(profileId);
+    } catch (error: unknown) {
+      const normalized = normalizeUnknownError(error);
+      this.deps.logger.warn("sip_password_secret_delete_failed", {
+        ...(correlationId !== undefined ? { correlationId } : {}),
+        featureId: "F-023",
+        boundedContext: "Settings",
+        operation: "delete_saved_account_profile",
+        result: normalized.message,
+        profileId,
+      });
+    }
+
+    return deleteResult;
   }
 
   async authorizeSavedAccountProfile(
@@ -720,12 +760,17 @@ export class AccountBootstrapFacade {
     }
 
     const resolvedOptions = resolveAuthorizeManualAccountOptions(options);
+    const resolvedPassword = await this.resolvePasswordForSavedProfileAuthorize(profileId, password);
+    if (isErr(resolvedPassword)) {
+      return resolvedPassword;
+    }
+
     const authorizeResult = await this.authorizeManualAccount(
       {
         username: profile.username,
         domain: profile.domain,
         server: profile.server,
-        password,
+        password: resolvedPassword.value,
       },
       resolvedOptions,
     );
@@ -1143,6 +1188,82 @@ export class AccountBootstrapFacade {
     );
   }
 
+  async hasRememberedSipPassword(profileId: SavedAccountProfileId): Promise<boolean> {
+    try {
+      const storedPassword = await this.secretStoragePort.loadSecret(
+        createSecretStorageScopeKey(profileId),
+        SIP_PASSWORD_SECRET_ID,
+      );
+      return storedPassword !== null && storedPassword.length > 0;
+    } catch {
+      return false;
+    }
+  }
+
+  private async resolvePasswordForSavedProfileAuthorize(
+    profileId: SavedAccountProfileId,
+    password: string,
+  ): Promise<Result<string, PlatformError>> {
+    const trimmedPassword = password.trim();
+    if (trimmedPassword.length > 0) {
+      return ok(trimmedPassword);
+    }
+
+    try {
+      const storedPassword = await this.secretStoragePort.loadSecret(
+        createSecretStorageScopeKey(profileId),
+        SIP_PASSWORD_SECRET_ID,
+      );
+      if (storedPassword === null || storedPassword.length === 0) {
+        return err(createPlatformError("validation_failed", SIP_PASSWORD_REQUIRED_MESSAGE));
+      }
+      return ok(storedPassword);
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+  }
+
+  private resolveSipPasswordSecretScopeKey(account: SipAccountInput): SecretStorageScopeKey {
+    return createSecretStorageScopeKey(
+      deriveSavedAccountProfileId({
+        username: account.username,
+        domain: account.domain,
+        server: account.server,
+      }),
+    );
+  }
+
+  private async persistSipPasswordSecretForAccount(
+    account: SipAccountInput,
+    correlationId?: CorrelationId,
+  ): Promise<AuthorizeAccountMetadataWarning | undefined> {
+    try {
+      await this.secretStoragePort.saveSecret(
+        this.resolveSipPasswordSecretScopeKey(account),
+        SIP_PASSWORD_SECRET_ID,
+        account.password,
+      );
+      return undefined;
+    } catch (error: unknown) {
+      const normalized = normalizeUnknownError(error);
+      this.deps.logger.warn("sip_password_secret_save_failed", {
+        ...(correlationId !== undefined ? { correlationId } : {}),
+        featureId: "F-023",
+        boundedContext: "Settings",
+        operation: "persist_sip_password_secret",
+        result: normalized.message,
+      });
+      return "password_save_failed";
+    }
+  }
+
+  private async deleteSipPasswordSecret(profileId: SavedAccountProfileId): Promise<void> {
+    await this.secretStoragePort.deleteSecret(
+      createSecretStorageScopeKey(profileId),
+      SIP_PASSWORD_SECRET_ID,
+    );
+  }
+
   dispose(): void {
     this.sipRecoveryOrchestration.dispose();
   }
@@ -1168,6 +1289,8 @@ function resolveAuthorizeManualAccountOptions(
 
   return options;
 }
+
+const SIP_PASSWORD_REQUIRED_MESSAGE = "SIP password is required";
 
 function buildContactsCsvExportFileName(): string {
   const datePart = new Date().toISOString().slice(0, 10);

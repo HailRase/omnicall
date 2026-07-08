@@ -26,6 +26,11 @@ export type SettingsAccountPanelProps = Readonly<{
   saveProfileChecked: boolean;
   saveProfileDisabled: boolean;
   saveProfileDisabledReasonKey: TranslationKey | null;
+  rememberPasswordChecked: boolean;
+  passwordFieldVisible: boolean;
+  rememberPasswordVisible: boolean;
+  rememberPasswordDisabled: boolean;
+  rememberPasswordDisabledReasonKey: TranslationKey | null;
   passwordHintKey: TranslationKey | null;
   deleteConfirmationOpen: boolean;
   switchConfirmationOpen: boolean;
@@ -37,6 +42,7 @@ export type SettingsAccountPanelProps = Readonly<{
   onLogout: () => void;
   onProfileSelect: (profileId: SavedAccountProfileId | null) => void;
   onSaveProfileChange: (checked: boolean) => void;
+  onRememberPasswordChange: (checked: boolean) => void;
   onDeleteProfileRequest: (profileId: SavedAccountProfileId) => void;
   onDeleteProfileConfirm: () => void;
   onDeleteProfileCancel: () => void;
@@ -64,6 +70,11 @@ export function SettingsAccountPanel({
   saveProfileChecked,
   saveProfileDisabled,
   saveProfileDisabledReasonKey,
+  rememberPasswordChecked,
+  passwordFieldVisible,
+  rememberPasswordVisible,
+  rememberPasswordDisabled,
+  rememberPasswordDisabledReasonKey,
   passwordHintKey,
   deleteConfirmationOpen,
   switchConfirmationOpen,
@@ -75,6 +86,7 @@ export function SettingsAccountPanel({
   onLogout,
   onProfileSelect,
   onSaveProfileChange,
+  onRememberPasswordChange,
   onDeleteProfileRequest,
   onDeleteProfileConfirm,
   onDeleteProfileCancel,
@@ -105,13 +117,19 @@ export function SettingsAccountPanel({
           authorizeDisabledReason={authorizeDisabledReason}
           logoutDisabledReason={logoutDisabledReason}
           passwordHintKey={passwordHintKey}
+          passwordFieldVisible={passwordFieldVisible}
           saveProfileVisible={panelMode === "newFull"}
           saveProfileChecked={saveProfileChecked}
           saveProfileDisabled={saveProfileDisabled}
           saveProfileDisabledReasonKey={saveProfileDisabledReasonKey}
+          rememberPasswordVisible={rememberPasswordVisible}
+          rememberPasswordChecked={rememberPasswordChecked}
+          rememberPasswordDisabled={rememberPasswordDisabled}
+          rememberPasswordDisabledReasonKey={rememberPasswordDisabledReasonKey}
           passwordInputRef={passwordInputRef}
           onFieldChange={onFieldChange}
           onSaveProfileChange={onSaveProfileChange}
+          onRememberPasswordChange={onRememberPasswordChange}
           onSubmit={onSubmit}
           onLogout={onLogout}
           showTitle={false}

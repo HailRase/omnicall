@@ -37,6 +37,16 @@ export const bgMessages: MessageShape = {
   "account.profile.passwordHint.savedProfile": "Въведете паролата за избрания профил",
   "account.profile.saveCheckbox.description": "Запазва потребителско име, домейн и сървър за по-бърз вход",
   "account.profile.saveCheckbox.duplicate": "Профил с тези данни вече е запазен",
+  "account.profile.rememberPassword.label": "Запомни паролата на този компютър",
+  "account.profile.rememberPassword.description":
+    "Паролата се съхранява в защитеното хранилище на системата и никога не се записва в профила",
+  "account.profile.rememberPassword.ariaLabel": "Запомни паролата на този компютър",
+  "account.profile.rememberPassword.disabledRequiresSave":
+    "Първо включете Запази профила, за да запомните паролата",
+  "account.profile.passwordHint.rememberedPassword":
+    "Запазената на този компютър парола ще бъде използвана при вход",
+  "account.warning.passwordSaveFailed":
+    "Входът е успешен, но паролата не можа да бъде запазена на този компютър. Опитайте отново по-късно.",
   "account.profile.saveCheckbox.label": "Запази профила",
   "account.profile.selector.ariaLabel": "Избор на запазен профил",
   "account.profile.switch.cancelAria": "Отказ от превключване на профил",

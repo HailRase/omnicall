@@ -1,6 +1,7 @@
 import type { AdapterMode } from "@infrastructure/bootstrap/adapterMode.js";
 import type { CreateAccountBootstrapOptions } from "@infrastructure/bootstrap/createMockAccountBootstrap.js";
 import { PreloadFileSystemAdapter } from "@adapters/settings/PreloadFileSystemAdapter.js";
+import { PreloadSecretStorageAdapter } from "@adapters/secrets/PreloadSecretStorageAdapter.js";
 import { parseProfilesStorageRootResponse } from "@shared/ipc/ProfilesStorageContract.js";
 
 /**
@@ -29,6 +30,9 @@ export async function resolveRealBootstrapDiskOptions(
     profilesStorageRoot: response.storageRoot,
     filesystem: new PreloadFileSystemAdapter((operation) =>
       softphone.invokeProfilesFilesystem(operation),
+    ),
+    secretStoragePort: new PreloadSecretStorageAdapter((operation) =>
+      softphone.invokeSecretStorage(operation),
     ),
   };
 }

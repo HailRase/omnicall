@@ -11,6 +11,7 @@ export const IPC_CHANNELS = {
   shellApplyWindowLayout: "shell:apply-window-layout",
   profilesGetStorageRoot: "profiles:get-storage-root",
   profilesInvokeFilesystem: "profiles:invoke-filesystem",
+  secretsInvoke: "secrets:invoke",
   contactsCsvOpenImportDialog: "contacts-csv:open-import-dialog",
   contactsCsvSaveExportDialog: "contacts-csv:save-export-dialog",
 } as const;

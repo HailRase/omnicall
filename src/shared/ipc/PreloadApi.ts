@@ -18,6 +18,10 @@ import type {
   ContactsCsvSaveExportDialogPayload,
   ContactsCsvSaveExportDialogResponse,
 } from "./ContactsCsvFileContract.js";
+import type {
+  SecretStorageOperation,
+  SecretStorageResponse,
+} from "./SecretStorageContract.js";
 
 export type SoftphonePreloadApi = Readonly<{
   getPlatformVersion: () => Promise<PlatformVersionResponse>;
@@ -25,6 +29,7 @@ export type SoftphonePreloadApi = Readonly<{
   invokeProfilesFilesystem: (
     operation: ProfilesFilesystemOperation,
   ) => Promise<ProfilesFilesystemResponse>;
+  invokeSecretStorage: (operation: SecretStorageOperation) => Promise<SecretStorageResponse>;
   openExternalUrl: (payload: OpenExternalUrlPayload) => Promise<OpenExternalUrlResponse>;
   setNativeTheme: (payload: SetNativeThemePayload) => Promise<SetNativeThemeResponse>;
   onBeforeClose: (handler: (payload: AppShutdownPayload) => void) => () => void;

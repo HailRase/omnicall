@@ -32,6 +32,7 @@ function createSoftphonePreloadApiMock(
     }),
     getProfilesStorageRoot: vi.fn().mockResolvedValue({ storageRoot: "/tmp/axatalk-profiles" }),
     invokeProfilesFilesystem: vi.fn().mockResolvedValue({ ok: true }),
+    invokeSecretStorage: vi.fn().mockResolvedValue({ ok: true }),
     openExternalUrl: vi.fn().mockResolvedValue({ ok: true }),
     setNativeTheme: vi.fn().mockResolvedValue({ ok: true }),
     onBeforeClose: vi.fn().mockReturnValue(() => {}),

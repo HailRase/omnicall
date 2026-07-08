@@ -84,6 +84,16 @@ const baseProps = {
 
   saveProfileDisabledReasonKey: null,
 
+  rememberPasswordChecked: false,
+
+  passwordFieldVisible: true,
+
+  rememberPasswordVisible: false,
+
+  rememberPasswordDisabled: true,
+
+  rememberPasswordDisabledReasonKey: "account.profile.rememberPassword.disabledRequiresSave",
+
   passwordHintKey: null,
 
   deleteConfirmationOpen: false,
@@ -101,6 +111,8 @@ const baseProps = {
   onProfileSelect: vi.fn(),
 
   onSaveProfileChange: vi.fn(),
+
+  onRememberPasswordChange: vi.fn(),
 
   onDeleteProfileRequest: vi.fn(),
 
@@ -176,6 +188,8 @@ describe("SettingsAccountPanel", () => {
 
       panelMode: "savedPasswordOnly",
 
+      passwordFieldVisible: true,
+
       passwordHintKey: "account.profile.passwordHint.savedProfile",
 
     });
@@ -189,6 +203,36 @@ describe("SettingsAccountPanel", () => {
       "Введите пароль для выбранного профиля",
 
     );
+
+  });
+
+
+
+  it("shows sign-in only when saved profile has remembered password", () => {
+
+    renderPanel({
+
+      selectedProfileId: profileId,
+
+      panelMode: "savedPasswordOnly",
+
+      passwordFieldVisible: false,
+
+      passwordHintKey: null,
+
+      rememberPasswordVisible: false,
+
+    });
+
+
+
+    expect(screen.queryByTestId("account-password")).not.toBeInTheDocument();
+
+    expect(screen.queryByTestId("account-password-hint")).not.toBeInTheDocument();
+
+    expect(screen.queryByTestId("account-remember-password-row")).not.toBeInTheDocument();
+
+    expect(screen.getByTestId("account-authorize")).toHaveTextContent("Войти");
 
   });
 

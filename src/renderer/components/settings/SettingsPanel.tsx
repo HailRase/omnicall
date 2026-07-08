@@ -109,6 +109,11 @@ export type SettingsPanelProps = Readonly<{
     saveProfileChecked: boolean;
     saveProfileDisabled: boolean;
     saveProfileDisabledReasonKey: TranslationKey | null;
+    rememberPasswordChecked: boolean;
+    passwordFieldVisible: boolean;
+    rememberPasswordVisible: boolean;
+    rememberPasswordDisabled: boolean;
+    rememberPasswordDisabledReasonKey: TranslationKey | null;
     passwordHintKey: TranslationKey | null;
   deleteConfirmationOpen: boolean;
   switchConfirmationOpen: boolean;
@@ -120,6 +125,7 @@ export type SettingsPanelProps = Readonly<{
     onLogout: () => void;
     onProfileSelect: (profileId: SavedAccountProfileId | null) => void;
     onSaveProfileChange: (checked: boolean) => void;
+    onRememberPasswordChange: (checked: boolean) => void;
     onDeleteProfileRequest: (profileId: SavedAccountProfileId) => void;
   onDeleteProfileConfirm: () => void;
   onDeleteProfileCancel: () => void;
@@ -204,6 +210,11 @@ export function SettingsPanel({
           saveProfileChecked={account.saveProfileChecked}
           saveProfileDisabled={account.saveProfileDisabled}
           saveProfileDisabledReasonKey={account.saveProfileDisabledReasonKey}
+          rememberPasswordChecked={account.rememberPasswordChecked}
+          passwordFieldVisible={account.passwordFieldVisible}
+          rememberPasswordVisible={account.rememberPasswordVisible}
+          rememberPasswordDisabled={account.rememberPasswordDisabled}
+          rememberPasswordDisabledReasonKey={account.rememberPasswordDisabledReasonKey}
           passwordHintKey={account.passwordHintKey}
           deleteConfirmationOpen={account.deleteConfirmationOpen}
           switchConfirmationOpen={account.switchConfirmationOpen}
@@ -215,6 +226,7 @@ export function SettingsPanel({
           onLogout={account.onLogout}
           onProfileSelect={account.onProfileSelect}
           onSaveProfileChange={account.onSaveProfileChange}
+          onRememberPasswordChange={account.onRememberPasswordChange}
           onDeleteProfileRequest={account.onDeleteProfileRequest}
           onDeleteProfileConfirm={account.onDeleteProfileConfirm}
           onDeleteProfileCancel={account.onDeleteProfileCancel}

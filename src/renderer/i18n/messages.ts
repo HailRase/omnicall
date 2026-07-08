@@ -160,6 +160,8 @@ const ruMessages = {
     "Вход выполнен, но не удалось сохранить профиль. Повторите позже.",
   "account.warning.profileTouchFailed":
     "Вход выполнен, но не удалось обновить дату использования профиля.",
+  "account.warning.passwordSaveFailed":
+    "Вход выполнен, но не удалось сохранить пароль на этом ПК. Повторите позже.",
   "account.success.authorizationSucceeded": "Авторизация выполнена",
   "account.profile.tabs.ariaLabel": "Профили SIP-аккаунта",
   "account.profile.selector.ariaLabel": "Выбор сохранённого профиля",
@@ -182,7 +184,15 @@ const ruMessages = {
     "Сохранить имя пользователя, домен и сервер для быстрого входа",
   "account.profile.saveCheckbox.duplicate":
     "Профиль с такими данными уже сохранён",
+  "account.profile.rememberPassword.label": "Запомнить пароль на этом ПК",
+  "account.profile.rememberPassword.description":
+    "Пароль будет сохранён в защищённом хранилище Windows",
+  "account.profile.rememberPassword.ariaLabel": "Запомнить пароль на этом ПК",
+  "account.profile.rememberPassword.disabledRequiresSave":
+    "Сначала включите «Сохранить профиль»",
   "account.profile.passwordHint.savedProfile": "Введите пароль для выбранного профиля",
+  "account.profile.passwordHint.rememberedPassword":
+    "Сохранённый на этом ПК пароль будет использован при входе",
   "account.actions.disabled.waitCurrentOperation": "Дождитесь завершения текущей операции",
   "account.actions.disabled.authorizeInProgress": "Выполняется авторизация",
   "account.actions.disabled.alreadyAuthorized":
@@ -916,6 +926,8 @@ const enMessages: MessageShape = {
     "Sign-in succeeded, but the profile could not be saved. Try again later.",
   "account.warning.profileTouchFailed":
     "Sign-in succeeded, but the profile last-used date could not be updated.",
+  "account.warning.passwordSaveFailed":
+    "Sign-in succeeded, but the password could not be saved on this PC. Try again later.",
   "account.success.authorizationSucceeded": "Authorization completed",
   "account.profile.tabs.ariaLabel": "SIP account profiles",
   "account.profile.selector.ariaLabel": "Saved profile selection",
@@ -937,7 +949,15 @@ const enMessages: MessageShape = {
   "account.profile.saveCheckbox.description":
     "Save username, domain, and server for faster sign-in",
   "account.profile.saveCheckbox.duplicate": "A profile with these details is already saved",
+  "account.profile.rememberPassword.label": "Remember password on this PC",
+  "account.profile.rememberPassword.description":
+    "The password is stored in the OS secure vault and is never written to the profile file",
+  "account.profile.rememberPassword.ariaLabel": "Remember password on this PC",
+  "account.profile.rememberPassword.disabledRequiresSave":
+    "Enable Save profile first to remember the password",
   "account.profile.passwordHint.savedProfile": "Enter the password for the selected profile",
+  "account.profile.passwordHint.rememberedPassword":
+    "The password saved on this PC will be used when you sign in",
   "account.actions.disabled.waitCurrentOperation": "Wait for the current operation to finish",
   "account.actions.disabled.authorizeInProgress": "Sign-in in progress",
   "account.actions.disabled.alreadyAuthorized":
@@ -1614,6 +1634,8 @@ const frMessages: MessageShape = {
     "Connexion reussie, mais le profil n'a pas pu etre enregistre. Reessayez plus tard.",
   "account.warning.profileTouchFailed":
     "Connexion reussie, mais la date d'utilisation du profil n'a pas pu etre mise a jour.",
+  "account.warning.passwordSaveFailed":
+    "Connexion reussie, mais le mot de passe n'a pas pu etre enregistre sur ce PC. Reessayez plus tard.",
   "account.success.authorizationSucceeded": "Autorisation reussie",
   "account.profile.tabs.ariaLabel": "Profils de compte SIP",
   "account.profile.selector.ariaLabel": "Selection du profil enregistre",
@@ -1635,7 +1657,15 @@ const frMessages: MessageShape = {
   "account.profile.saveCheckbox.description":
     "Enregistrer le nom d'utilisateur, le domaine et le serveur pour une connexion rapide",
   "account.profile.saveCheckbox.duplicate": "Un profil avec ces donnees est deja enregistre",
+  "account.profile.rememberPassword.label": "Memoriser le mot de passe sur ce PC",
+  "account.profile.rememberPassword.description":
+    "Le mot de passe est stocke dans le coffre securise du systeme et n'est jamais ecrit dans le profil",
+  "account.profile.rememberPassword.ariaLabel": "Memoriser le mot de passe sur ce PC",
+  "account.profile.rememberPassword.disabledRequiresSave":
+    "Activez d'abord Enregistrer le profil pour memoriser le mot de passe",
   "account.profile.passwordHint.savedProfile": "Saisissez le mot de passe du profil selectionne",
+  "account.profile.passwordHint.rememberedPassword":
+    "Le mot de passe enregistre sur ce PC sera utilise lors de la connexion",
   "account.actions.disabled.waitCurrentOperation": "Attendez la fin de l'operation en cours",
   "account.actions.disabled.authorizeInProgress": "Connexion en cours",
   "account.actions.disabled.alreadyAuthorized":
@@ -2315,6 +2345,8 @@ const deMessages: MessageShape = {
     "Anmeldung erfolgreich, aber das Profil konnte nicht gespeichert werden. Spaeter erneut versuchen.",
   "account.warning.profileTouchFailed":
     "Anmeldung erfolgreich, aber das letzte Nutzungsdatum konnte nicht aktualisiert werden.",
+  "account.warning.passwordSaveFailed":
+    "Anmeldung erfolgreich, aber das Passwort konnte auf diesem PC nicht gespeichert werden. Spaeter erneut versuchen.",
   "account.success.authorizationSucceeded": "Autorisierung abgeschlossen",
   "account.profile.tabs.ariaLabel": "SIP-Kontoprofile",
   "account.profile.selector.ariaLabel": "Auswahl des gespeicherten Profils",
@@ -2336,7 +2368,15 @@ const deMessages: MessageShape = {
   "account.profile.saveCheckbox.description":
     "Benutzername, Domain und Server fuer schnelleres Anmelden speichern",
   "account.profile.saveCheckbox.duplicate": "Ein Profil mit diesen Daten ist bereits gespeichert",
+  "account.profile.rememberPassword.label": "Passwort auf diesem PC merken",
+  "account.profile.rememberPassword.description":
+    "Das Passwort wird im sicheren Speicher des Betriebssystems abgelegt und nie in die Profildatei geschrieben",
+  "account.profile.rememberPassword.ariaLabel": "Passwort auf diesem PC merken",
+  "account.profile.rememberPassword.disabledRequiresSave":
+    "Aktivieren Sie zuerst Profil speichern, um das Passwort zu merken",
   "account.profile.passwordHint.savedProfile": "Passwort fuer das ausgewaehlte Profil eingeben",
+  "account.profile.passwordHint.rememberedPassword":
+    "Das auf diesem PC gespeicherte Passwort wird bei der Anmeldung verwendet",
   "account.actions.disabled.waitCurrentOperation": "Warten Sie auf den Abschluss des aktuellen Vorgangs",
   "account.actions.disabled.authorizeInProgress": "Anmeldung laeuft",
   "account.actions.disabled.alreadyAuthorized":

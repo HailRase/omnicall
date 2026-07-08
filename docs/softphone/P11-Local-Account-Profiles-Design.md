@@ -17,8 +17,8 @@ Operators may share one PC but use different SIP accounts. Settings must persist
 | `FileSettingsRepository` | **Done** — disk persistence via `FileSystemPort` + `profiles/index.json` + `settings/{key}.json` |
 | Real bootstrap | **Done** — `FileSettingsRepository` wired in `createRealAccountBootstrap` + main IPC path injection |
 | Authorize flow | Saves one global `sipAccount`; no profile switch + settings reload |
-| Credential persistence | **None** — password lives in `SipAccount` in memory only |
-| Secret storage port | **None** |
+| Credential persistence | **Optional** — `SecretStoragePort` + Electron `safeStorage` IPC (remember-password) |
+| Secret storage port | **Implemented** — `SecretStoragePort`, `PreloadSecretStorageAdapter`, main IPC |
 
 ## Goals
 
@@ -32,7 +32,6 @@ Operators may share one PC but use different SIP accounts. Settings must persist
 ## Non-goals (this track)
 
 - legacy operator platform multi-agent identity beyond SIP username alias (existing legacy operator platform path unchanged).
-- Remember-me UX until secure credential storage is implemented (Step 5).
 - Cloud sync or server-side profile storage.
 
 ## Profile key (`SettingsAccountKey`)
@@ -99,13 +98,15 @@ Keep `getSipAccount` / `saveSipAccount` for **active session** telephony; metada
 | Defense in depth | `assertPersistedProfileJsonExcludesSecrets` scans JSON before atomic write |
 | Remember-me | **Not supported** until secure storage lands |
 
-**Path B (deferred):** `SecretStoragePort` contract exists in `src/ports/secrets/SecretStoragePort.ts`; Electron `safeStorage` + typed IPC adapter is a follow-up after authorize/profile orchestration (Step 6–7).
+**Path B (implemented):** optional remember-password via `SecretStoragePort` + Electron `safeStorage` + typed IPC.
 
-Future secure storage:
-
-- Port: `SecretStoragePort` — `saveSecret`, `loadSecret`, `deleteSecret`
-- IPC: typed channel in `src/shared/ipc/`; validate payloads in main
-- Key: `{profileKey}/sip-password` via `SIP_PASSWORD_SECRET_ID` — never in JSON logs
+| Aspect | Behavior |
+| --- | --- |
+| SIP password (optional) | Encrypted via `safeStorage` in main process; scope key = profile/settings account key |
+| Profile JSON | metadata only — no credential fields |
+| Remember-me UX | «Remember password on this PC» in account settings; enabled when saving/selecting a profile |
+| Delete profile | removes encrypted secret blob |
+| Logout | clears session only; remembered password retained |
 
 ## Application orchestration
 

@@ -629,7 +629,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - `UserSettings` v3 migration and validation preserved; legacy username-only keys migrated once on read.
   - SIP-only and mock adapter composition unchanged; renderer uses facade only (no filesystem).
   - Corrupt persisted JSON surfaces classified errors; other profiles not destroyed on single-file corruption.
-  - SIP passwords not stored in plain JSON; secure storage via port + Electron main if credentials are persisted, otherwise documented session-transient limitation (**Path A shipped** — `SecretStoragePort` contract only).
+  - SIP passwords not stored in plain JSON; optional secure storage via `SecretStoragePort` + Electron `safeStorage` IPC (**Path B implemented** for remember-password on saved profiles).
 - Test Coverage:
   - Unit: profile key derivation, normalization edge cases
   - Adapter: `InMemorySettingsRepository` per-account isolation; `FileSettingsRepository` cross-instance persistence, corrupt JSON
@@ -642,6 +642,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (Step 3 ports): `src/ports/settings/SettingsRepository.ts` (`getActiveProfileKey`, `setActiveProfileKey`, `listKnownProfileKeys`), `InMemorySettingsRepository.ts`, `InMemorySettingsRepository.test.ts`, `FileSettingsRepository.ts` delegation
 - Implementation evidence (Step 4 disk): `src/ports/filesystem/FileSystemPort.ts`, `src/infrastructure/filesystem/NodeFileSystemAdapter.ts`, `src/adapters/settings/profileStoragePaths.ts`, `profilesIndexDocument.ts`, `parsePersistedUserSettings.ts`, `FileSettingsRepository.ts`, `FileSettingsRepository.test.ts`
 - Implementation evidence (Step 5 secrets Path A): `src/ports/secrets/SecretStoragePort.ts`, `src/adapters/settings/assertPersistedProfileJsonExcludesSecrets.ts`, `assertPersistedProfileJsonExcludesSecrets.test.ts`
+- Implementation evidence (Path B remember-password): `src/shared/ipc/SecretStorageContract.ts`, `src/main/secrets/registerSecretStorageIpc.ts`, `src/adapters/secrets/PreloadSecretStorageAdapter.ts`, `InMemorySecretStorageAdapter.ts`, `AccountBootstrapFacade.ts`, `useAccountActions.ts`, `AccountPanel.tsx`, `messages.ts` + `catalogs/bgMessages.ts`
 - Implementation evidence (Step 6 application): `AuthorizeSipAccountUseCase.ts` (`setActiveProfileKey` on authorize), `application/settings/resolveSettingsAccountKey.ts`, `AccountBootstrapFacade.ts` (`applyActiveProfileSettingsSideEffects`, profile-aware save/load), `AccountBootstrapFacade.test.ts` (A→B→A restore)
 - Implementation evidence (Step 7 composition): `createRealAccountBootstrap.ts`, `createRealBootstrapSettingsRepository.ts`, `resolveAxatalkProfilesStorageRoot.ts`, `registerProfilesPersistenceIpc.ts`, `PreloadFileSystemAdapter.ts`, `createRealAccountBootstrap.test.ts`, `resolveRealBootstrapDiskOptions.ts`
 - Implementation evidence (Step 8 UI): `formatSettingsAccountIdentityLabel.ts`, `deriveActiveProfileSettingsSyncKey`, `SettingsAccountPanel.tsx` (account form only), `accountBootstrapProjection.ts` (`sipDomain`), `SettingsAccountPanel.test.tsx`, `SettingsOverlay.stories.tsx` (light + dark registered)
@@ -660,17 +661,21 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Outputs: tab-style profile navigation in Settings → Account, password-only saved tab when unauthenticated, full form when registered, save-on-authorize checkbox on New, delete confirmation, safe server error display
 - Acceptance Criteria:
   - Tab navigation shows localized «New» first; saved tabs show username with domain/server disambiguation when needed; keyboard-accessible tablist.
-  - Unauthenticated saved tab shows password + Sign in only; registered saved tab shows full form without password prompt.
+  - Unauthenticated saved tab shows password + Sign in only when no remembered password is stored; when remembered password exists, tab shows Sign in only and loads credentials from secure storage on submit.
+  - Failed remembered-password sign-in reveals password field and remember-password controls without clearing selected profile.
   - New tab shows full form and save-profile switch; duplicate identity disables save switch with explanation.
   - Switching registered profile A → B unregisters A before sending B credentials (on submit only).
   - Successful registration never fails because profile metadata save or `lastUsedAt` touch failed; non-blocking warnings only.
   - Server/SIP errors (403 license/policy, 404 not found) show sanitized server detail — not mislabeled as wrong password unless authentication-related.
   - Local saved profile missing shows `account.error.profileNotFound`; SIP 404 shows server registration error.
   - Delete requires confirmation; after delete selection returns to New; logout resets to New.
-  - Password never persisted in saved profiles JSON, logs, UI snapshots, or tests.
+  - Password never persisted in saved profiles JSON, logs, UI snapshots, or tests; optional remember-password uses secure storage only.
+  - Optional «Remember password on this PC» checkbox: disabled unless Save profile is checked (New tab) or a saved profile is selected; unchecking Save profile clears remember-password.
+  - Remembered password is saved only after successful registration; failed auth must not overwrite it; profile delete removes remembered password; logout keeps remembered password.
+  - Secure storage failure surfaces non-blocking `account.warning.passwordSaveFailed` while authorization may still succeed.
   - Per-account settings load after successful registration from New or saved profile; failed auth does not apply target profile settings.
 - Test Coverage:
-  - Unit: `formatSavedAccountProfileSelectorLabel`, `deriveSavedAccountProfileSelectorOptions`, `mapAccountAuthorizationError`, `sanitizeRegistrationServerMessage`, `deriveSavedProfilePanelMode`, `matchesSipAccountIdentity`
+  - Unit: `formatSavedAccountProfileSelectorLabel`, `deriveSavedAccountProfileSelectorOptions`, `mapAccountAuthorizationError`, `sanitizeRegistrationServerMessage`, `deriveSavedProfilePanelMode`, `deriveSavedProfileCredentialPromptState`, `matchesSipAccountIdentity`
   - Facade: `AccountBootstrapFacade.test.ts` (metadata non-blocking, switching unregister, settings A→B→A)
   - Hook: `useAccountActions.test.ts`
   - Component: `SavedAccountProfileSelector`, `DeleteSavedAccountProfileConfirmationModal`, `SettingsAccountPanel`, `AccountPanel`

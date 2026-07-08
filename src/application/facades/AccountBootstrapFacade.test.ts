@@ -6,6 +6,7 @@ import {
   MockTelephonyGateway,
   InMemorySavedAccountProfileRepository,
 } from "@adapters/index.js";
+import { InMemorySecretStorageAdapter } from "@adapters/secrets/InMemorySecretStorageAdapter.js";
 import { InMemoryContactRepository } from "@adapters/settings/InMemoryContactRepository.js";
 import { FileSettingsRepository } from "@adapters/settings/FileSettingsRepository.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
@@ -17,6 +18,10 @@ import {
 } from "@domain/index.js";
 import { NodeFileSystemAdapter } from "@infrastructure/filesystem/NodeFileSystemAdapter.js";
 import type { SavedAccountProfileRepository } from "@ports/index.js";
+import {
+  createSecretStorageScopeKey,
+  SIP_PASSWORD_SECRET_ID,
+} from "@ports/secrets/SecretStoragePort.js";
 import { isErr } from "@shared/result/index.js";
 import { mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
@@ -730,5 +735,146 @@ describe("AccountBootstrapFacade integration", () => {
     expect(telephony.isRegistered()).toBe(true);
     const stored = await settings.getSipAccount();
     expect(stored?.username).toBe("1002");
+  });
+
+  it("saves remembered SIP password only after successful manual auth", async () => {
+    const secretStorage = new InMemorySecretStorageAdapter();
+    const account = {
+      username: "max.operator",
+      password: "secret",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    };
+    const scopeKey = createSecretStorageScopeKey(
+      deriveSettingsAccountKeyFromIdentity(account),
+    );
+
+    const failingFacade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "failure" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
+      secretStoragePort: secretStorage,
+      logger: createTestLogger(),
+    });
+
+    const failed = await failingFacade.authorizeManualAccount(
+      { ...account, password: "wrong" },
+      { rememberPassword: true },
+    );
+    expect(isErr(failed)).toBe(true);
+    await expect(secretStorage.loadSecret(scopeKey, SIP_PASSWORD_SECRET_ID)).resolves.toBeNull();
+
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
+      secretStoragePort: secretStorage,
+      logger: createTestLogger(),
+    });
+
+    const success = await facade.authorizeManualAccount(account, { rememberPassword: true });
+    expect(isErr(success)).toBe(false);
+    await expect(secretStorage.loadSecret(scopeKey, SIP_PASSWORD_SECRET_ID)).resolves.toBe(
+      "secret",
+    );
+  });
+
+  it("authorizes saved profile with remembered password when password field is empty", async () => {
+    const secretStorage = new InMemorySecretStorageAdapter();
+    const savedProfiles = new InMemorySavedAccountProfileRepository();
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
+      savedAccountProfileRepository: savedProfiles,
+      secretStoragePort: secretStorage,
+      logger: createTestLogger(),
+    });
+
+    const account = {
+      username: "saved.user",
+      password: "secret",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    };
+
+    await facade.authorizeManualAccount(account, { saveProfile: true, rememberPassword: true });
+    const profiles = await savedProfiles.listProfiles();
+    const profileId = profiles[0]?.id;
+    expect(profileId).toBeDefined();
+    if (profileId === undefined) {
+      return;
+    }
+
+    await facade.endUserSession.execute();
+
+    const result = await facade.authorizeSavedAccountProfile(profileId, "");
+    expect(isErr(result)).toBe(false);
+  });
+
+  it("deletes remembered password when saved profile is deleted", async () => {
+    const secretStorage = new InMemorySecretStorageAdapter();
+    const savedProfiles = new InMemorySavedAccountProfileRepository();
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
+      savedAccountProfileRepository: savedProfiles,
+      secretStoragePort: secretStorage,
+      logger: createTestLogger(),
+    });
+
+    const account = {
+      username: "delete.me",
+      password: "secret",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    };
+    const scopeKey = createSecretStorageScopeKey(
+      deriveSettingsAccountKeyFromIdentity(account),
+    );
+
+    await facade.authorizeManualAccount(account, { saveProfile: true, rememberPassword: true });
+    const profiles = await savedProfiles.listProfiles();
+    const profileId = profiles[0]?.id;
+    expect(profileId).toBeDefined();
+    if (profileId === undefined) {
+      return;
+    }
+
+    const deleted = await facade.deleteSavedAccountProfile(profileId);
+    expect(deleted.ok).toBe(true);
+    await expect(secretStorage.loadSecret(scopeKey, SIP_PASSWORD_SECRET_ID)).resolves.toBeNull();
+  });
+
+  it("returns non-blocking warning when remembered password save fails", async () => {
+    const failingSecretStorage: InMemorySecretStorageAdapter = new InMemorySecretStorageAdapter();
+    vi.spyOn(failingSecretStorage, "saveSecret").mockRejectedValue(
+      new Error("encryption_unavailable"),
+    );
+
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
+      secretStoragePort: failingSecretStorage,
+      logger: createTestLogger(),
+    });
+
+    const result = await facade.authorizeManualAccount(
+      {
+        username: "warn.user",
+        password: "secret",
+        domain: "pbx.example",
+        server: "sip:pbx.example",
+      },
+      { rememberPassword: true },
+    );
+
+    expect(isErr(result)).toBe(false);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value.metadataWarning).toBe("password_save_failed");
   });
 });

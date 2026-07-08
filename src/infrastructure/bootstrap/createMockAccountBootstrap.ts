@@ -15,6 +15,7 @@ import type {
   CallHistoryRepository,
   ContactRepository,
   ContactCsvFileGateway,
+  SecretStoragePort,
 } from "@ports/index.js";
 
 /**
@@ -31,6 +32,7 @@ export type CreateAccountBootstrapOptions = Readonly<{
   contactRepository?: ContactRepository;
   contactCsvFileGateway?: ContactCsvFileGateway;
   callHistoryRepository?: CallHistoryRepository;
+  secretStoragePort?: SecretStoragePort;
   telephonyScenario?: "success" | "failure";
   makeCallScenario?:
     | "connecting"
@@ -87,6 +89,9 @@ export function createMockAccountBootstrap(
       : {}),
     ...(options.contactCsvFileGateway !== undefined
       ? { contactCsvFileGateway: options.contactCsvFileGateway }
+      : {}),
+    ...(options.secretStoragePort !== undefined
+      ? { secretStoragePort: options.secretStoragePort }
       : {}),
     hostIntegrationGateway,
     logger: createTestLogger({ featureId: "F-001", boundedContext: "Telephony" }),

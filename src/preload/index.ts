@@ -19,6 +19,10 @@ import {
   parseContactsCsvSaveExportDialogPayload,
   parseContactsCsvSaveExportDialogResponse,
 } from "@shared/ipc/ContactsCsvFileContract.js";
+import {
+  parseSecretStorageOperation,
+  parseSecretStorageResponse,
+} from "@shared/ipc/SecretStorageContract.js";
 
 const softphoneApi: SoftphonePreloadApi = {
   getPlatformVersion: () => ipcRenderer.invoke(IPC_CHANNELS.platformGetVersion),
@@ -42,6 +46,18 @@ const softphoneApi: SoftphonePreloadApi = {
     const parsedResponse = parseProfilesFilesystemResponse(response);
     if (parsedResponse === null) {
       throw new Error("invalid_profiles_filesystem_response");
+    }
+    return parsedResponse;
+  },
+  invokeSecretStorage: async (operation) => {
+    const parsed = parseSecretStorageOperation(operation);
+    if (parsed === null) {
+      throw new Error("invalid_secret_storage_operation");
+    }
+    const response: unknown = await ipcRenderer.invoke(IPC_CHANNELS.secretsInvoke, parsed);
+    const parsedResponse = parseSecretStorageResponse(response);
+    if (parsedResponse === null) {
+      throw new Error("invalid_secret_storage_response");
     }
     return parsedResponse;
   },

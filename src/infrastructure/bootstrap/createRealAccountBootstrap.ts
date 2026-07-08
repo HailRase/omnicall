@@ -141,6 +141,9 @@ export function createRealAccountBootstrap(
       : {}),
     ...(contactRepository !== undefined ? { contactRepository } : {}),
     ...(callHistoryRepository !== undefined ? { callHistoryRepository } : {}),
+    ...(options.secretStoragePort !== undefined
+      ? { secretStoragePort: options.secretStoragePort }
+      : {}),
     hostIntegrationGateway,
     logger: createBootstrapLogger({ featureId: "F-001", boundedContext: "Telephony" }),
   });

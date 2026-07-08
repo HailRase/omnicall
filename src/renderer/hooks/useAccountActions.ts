@@ -5,6 +5,7 @@ import type {
 } from "@application/facades/AccountBootstrapFacade.js";
 import { deriveSavedAccountProfileSelectorOptions } from "@application/projections/settings/deriveSavedAccountProfileSelectorOptions.js";
 import type { SavedAccountProfileSelectorOption } from "@application/projections/settings/deriveSavedAccountProfileSelectorOptions.js";
+import { deriveSavedProfileCredentialPromptState } from "@application/projections/settings/deriveSavedProfileCredentialPromptState.js";
 import {
   deriveSavedProfilePanelMode,
   type SavedProfilePanelMode,
@@ -36,6 +37,7 @@ const ACCOUNT_SUCCESS_KEY = "account.success.authorizationSucceeded" as const;
 const ACCOUNT_ERROR_UNKNOWN_KEY = "account.error.authorizationFailed" as const;
 const PROFILE_SAVE_WARNING_KEY = "account.warning.profileSaveFailed" as const;
 const PROFILE_TOUCH_WARNING_KEY = "account.warning.profileTouchFailed" as const;
+const PASSWORD_SAVE_WARNING_KEY = "account.warning.passwordSaveFailed" as const;
 const FEEDBACK_CLEAR_MS = 3200;
 const NEW_PROFILE_SELECTION = null;
 
@@ -54,6 +56,9 @@ function resolveMetadataWarningKey(
   }
   if (outcome.metadataWarning === "profile_touch_failed") {
     return PROFILE_TOUCH_WARNING_KEY;
+  }
+  if (outcome.metadataWarning === "password_save_failed") {
+    return PASSWORD_SAVE_WARNING_KEY;
   }
   return null;
 }
@@ -83,6 +88,11 @@ type UseAccountActionsResult = Readonly<{
   saveProfileChecked: boolean;
   saveProfileDisabled: boolean;
   saveProfileDisabledReasonKey: TranslationKey | null;
+  rememberPasswordChecked: boolean;
+  passwordFieldVisible: boolean;
+  rememberPasswordVisible: boolean;
+  rememberPasswordDisabled: boolean;
+  rememberPasswordDisabledReasonKey: TranslationKey | null;
   passwordHintKey: TranslationKey | null;
   profileSwitchAllowed: boolean;
   deleteConfirmationOpen: boolean;
@@ -94,6 +104,7 @@ type UseAccountActionsResult = Readonly<{
   handleSubmit: () => void;
   selectProfile: (profileId: SavedAccountProfileId | null) => void;
   setSaveProfileChecked: (checked: boolean) => void;
+  setRememberPasswordChecked: (checked: boolean) => void;
   requestDeleteSelectedProfile: (profileId: SavedAccountProfileId) => void;
   confirmDeleteSelectedProfile: () => void;
   cancelDeleteSelectedProfile: () => void;
@@ -123,6 +134,10 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     NEW_PROFILE_SELECTION,
   );
   const [saveProfileChecked, setSaveProfileChecked] = useState(false);
+  const [rememberPasswordChecked, setRememberPasswordChecked] = useState(false);
+  const [hasRememberedPassword, setHasRememberedPassword] = useState(false);
+  const [forcePasswordEntryForSelectedProfile, setForcePasswordEntryForSelectedProfile] =
+    useState(false);
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
   const [switchConfirmationOpen, setSwitchConfirmationOpen] = useState(false);
   const [switchFromLogin, setSwitchFromLogin] = useState("");
@@ -164,6 +179,20 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
   const saveProfileDisabledReasonKey: TranslationKey | null = saveProfileDisabled
     ? "account.profile.saveCheckbox.duplicate"
     : null;
+
+  const credentialPromptState = deriveSavedProfileCredentialPromptState({
+    panelMode,
+    hasRememberedPassword,
+    forcePasswordEntry: forcePasswordEntryForSelectedProfile,
+  });
+
+  const passwordFieldVisible = credentialPromptState.passwordFieldVisible;
+  const rememberPasswordVisible = credentialPromptState.rememberPasswordVisible;
+  const passwordHintKey: TranslationKey | null = credentialPromptState.passwordHintKey;
+  const rememberPasswordDisabled =
+    panelMode === "newFull" && !saveProfileChecked;
+  const rememberPasswordDisabledReasonKey: TranslationKey | null =
+    rememberPasswordDisabled ? "account.profile.rememberPassword.disabledRequiresSave" : null;
 
   const clearFeedbackTimer = useCallback((): void => {
     if (feedbackClearTimerRef.current !== null) {
@@ -221,6 +250,9 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
   const resetToNewProfile = useCallback((): void => {
     setSelectedProfileId(NEW_PROFILE_SELECTION);
     setSaveProfileChecked(false);
+    setRememberPasswordChecked(false);
+    setHasRememberedPassword(false);
+    setForcePasswordEntryForSelectedProfile(false);
     setForm(buildInitialForm());
     clearFeedback();
   }, [clearFeedback]);
@@ -240,13 +272,10 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
       return;
     }
 
-    const isRegisteredForProfile =
-      isSipRegistered &&
-      registeredIdentity !== null &&
-      matchesSipAccountIdentity(profile, registeredIdentity);
-
     setSelectedProfileId(profileId);
     setSaveProfileChecked(false);
+    setRememberPasswordChecked(false);
+    setForcePasswordEntryForSelectedProfile(false);
     setForm({
       username: profile.username,
       password: "",
@@ -254,13 +283,7 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
       server: profile.server,
     });
     clearFeedback();
-
-    if (!isRegisteredForProfile) {
-      queueMicrotask(() => {
-        passwordInputRef.current?.focus();
-      });
-    }
-  }, [clearFeedback, isSipRegistered, registeredIdentity]);
+  }, [clearFeedback]);
 
   const selectProfile = useCallback(
     (profileId: SavedAccountProfileId | null): void => {
@@ -284,6 +307,9 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
         if (profile !== undefined && profile[field] !== value) {
           setSelectedProfileId(NEW_PROFILE_SELECTION);
           setSaveProfileChecked(false);
+          setRememberPasswordChecked(false);
+          setHasRememberedPassword(false);
+          setForcePasswordEntryForSelectedProfile(false);
         }
       }
 
@@ -305,15 +331,30 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
       setSubmitting(true);
       clearFeedback();
 
+      const usedRememberedPasswordSignIn =
+        selectedProfileId !== null && !passwordFieldVisible;
+
       try {
         const result =
           selectedProfileId === null
             ? await facade.authorizeManualAccount(form, {
                 saveProfile: saveProfileChecked,
+                rememberPassword: rememberPasswordChecked,
               })
-            : await facade.authorizeSavedAccountProfile(selectedProfileId, form.password);
+            : await facade.authorizeSavedAccountProfile(
+                selectedProfileId,
+                usedRememberedPasswordSignIn ? "" : form.password,
+                {
+                  rememberPassword: usedRememberedPasswordSignIn
+                    ? false
+                    : rememberPasswordChecked,
+                },
+              );
 
         if (isErr(result)) {
+          if (usedRememberedPasswordSignIn) {
+            setForcePasswordEntryForSelectedProfile(true);
+          }
           setError(mapAccountAuthorizationError(result.error));
           scheduleFeedbackClear();
           return;
@@ -336,7 +377,9 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     form,
     reloadSavedProfiles,
     saveProfileChecked,
+    rememberPasswordChecked,
     scheduleFeedbackClear,
+    passwordFieldVisible,
     selectedProfileId,
     submitting,
     clearFeedback,
@@ -425,9 +468,6 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     selectedProfileId,
   ]);
 
-  const passwordHintKey: TranslationKey | null =
-    panelMode === "savedPasswordOnly" ? "account.profile.passwordHint.savedProfile" : null;
-
   const authorizeTargetIdentity = useMemo(
     () => resolveAccountAuthorizeTargetIdentity(form, selectedProfile),
     [form, selectedProfile],
@@ -448,6 +488,56 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     }
   }, [saveProfileChecked, saveProfileDisabled]);
 
+  useEffect(() => {
+    if (rememberPasswordDisabled && rememberPasswordChecked) {
+      setRememberPasswordChecked(false);
+    }
+  }, [rememberPasswordChecked, rememberPasswordDisabled]);
+
+  useEffect(() => {
+    if (facade === null || selectedProfileId === null) {
+      setHasRememberedPassword(false);
+      return;
+    }
+
+    let cancelled = false;
+    void facade.hasRememberedSipPassword(selectedProfileId).then((remembered) => {
+      if (!cancelled) {
+        setHasRememberedPassword(remembered);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [facade, selectedProfileId, savedProfiles]);
+
+  useEffect(() => {
+    if (
+      selectedProfileId !== null &&
+      !savedProfilesByIdRef.current.has(selectedProfileId)
+    ) {
+      resetToNewProfile();
+    }
+  }, [resetToNewProfile, savedProfiles, selectedProfileId]);
+
+  useEffect(() => {
+    if (
+      panelMode === "savedPasswordOnly" &&
+      passwordFieldVisible &&
+      selectedProfileId !== null
+    ) {
+      queueMicrotask(() => {
+        passwordInputRef.current?.focus();
+      });
+    }
+  }, [
+    forcePasswordEntryForSelectedProfile,
+    panelMode,
+    passwordFieldVisible,
+    selectedProfileId,
+  ]);
+
   return {
     form,
     submitting,
@@ -460,6 +550,11 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     saveProfileChecked,
     saveProfileDisabled,
     saveProfileDisabledReasonKey,
+    rememberPasswordChecked,
+    passwordFieldVisible,
+    rememberPasswordVisible,
+    rememberPasswordDisabled,
+    rememberPasswordDisabledReasonKey,
     passwordHintKey,
     profileSwitchAllowed,
     deleteConfirmationOpen,
@@ -471,6 +566,7 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     handleSubmit,
     selectProfile,
     setSaveProfileChecked,
+    setRememberPasswordChecked,
     requestDeleteSelectedProfile,
     confirmDeleteSelectedProfile,
     cancelDeleteSelectedProfile,

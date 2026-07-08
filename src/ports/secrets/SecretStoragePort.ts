@@ -8,7 +8,7 @@ export type SecretStorageScopeKey = string & { readonly __brand: "SecretStorageS
 /**
  * - Purpose: persist sensitive credentials outside profile JSON files.
  * - Inputs: scope key, secret id, UTF-8 secret value.
- * - Outputs: save, load, delete operations (not implemented in F-023 step 5).
+ * - Outputs: save, load, delete operations via adapter implementations.
  */
 export interface SecretStoragePort {
   saveSecret(
