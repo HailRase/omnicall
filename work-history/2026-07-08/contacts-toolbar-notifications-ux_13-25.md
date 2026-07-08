@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-08 13:25
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `d5e145c`
 
 ## Где
 - `src/renderer/components/contacts/ContactsPanelShell.tsx`
