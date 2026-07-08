@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-08 12:33
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `34ae550`
 
 ## Где
 - `src/domain/settings/events/callHistoryEvents.ts`
