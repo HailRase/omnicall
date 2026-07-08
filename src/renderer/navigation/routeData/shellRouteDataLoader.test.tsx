@@ -67,7 +67,7 @@ describe("useShellRouteDataLoader", () => {
     const facade = createFacade();
     const listContacts = vi.spyOn(facade, "listContacts");
 
-    renderHook(() => useShellRouteDataLoader({ facade }), {
+    renderHook(() => useShellRouteDataLoader({ facade, activeProfileSyncKey: null }), {
       wrapper: createRouteLoaderHarness("/contacts"),
     });
 
@@ -81,7 +81,7 @@ describe("useShellRouteDataLoader", () => {
     const facade = createFacade();
     const listCallHistory = vi.spyOn(facade, "listCallHistory");
 
-    renderHook(() => useShellRouteDataLoader({ facade }), {
+    renderHook(() => useShellRouteDataLoader({ facade, activeProfileSyncKey: null }), {
       wrapper: createRouteLoaderHarness("/history"),
     });
 
@@ -95,7 +95,7 @@ describe("useShellRouteDataLoader", () => {
     const facade = createFacade();
     const listContacts = vi.spyOn(facade, "listContacts");
 
-    renderHook(() => useShellRouteDataLoader({ facade }), {
+    renderHook(() => useShellRouteDataLoader({ facade, activeProfileSyncKey: null }), {
       wrapper: createRouteLoaderHarness("/contacts", true),
     });
 
@@ -118,7 +118,7 @@ describe("useShellRouteDataLoader", () => {
     const facade = createFacade(contactRepository);
     const getContact = vi.spyOn(facade, "getContact");
 
-    renderHook(() => useShellRouteDataLoader({ facade }), {
+    renderHook(() => useShellRouteDataLoader({ facade, activeProfileSyncKey: null }), {
       wrapper: createRouteLoaderHarness(`/contacts/${contactId}`),
     });
 
@@ -136,7 +136,7 @@ describe("useShellRouteDataLoader", () => {
     const facade = createFacade();
     const getContact = vi.spyOn(facade, "getContact");
 
-    renderHook(() => useShellRouteDataLoader({ facade }), {
+    renderHook(() => useShellRouteDataLoader({ facade, activeProfileSyncKey: null }), {
       wrapper: createRouteLoaderHarness("/contacts/%20bad%20id"),
     });
 
@@ -147,6 +147,32 @@ describe("useShellRouteDataLoader", () => {
     });
 
     expect(getContact).not.toHaveBeenCalled();
+  });
+
+  it("reloads contacts when active profile sync key changes on contacts route", async () => {
+    resetState();
+    const facade = createFacade();
+    const listContacts = vi.spyOn(facade, "listContacts");
+
+    const { rerender } = renderHook(
+      ({ activeProfileSyncKey }: { activeProfileSyncKey: string | null }) =>
+        useShellRouteDataLoader({ facade, activeProfileSyncKey }),
+      {
+        wrapper: createRouteLoaderHarness("/contacts"),
+        initialProps: { activeProfileSyncKey: "1001@pbx.example" },
+      },
+    );
+
+    await waitFor(() => {
+      expect(listContacts).toHaveBeenCalledTimes(1);
+    });
+
+    listContacts.mockClear();
+    rerender({ activeProfileSyncKey: "1002@pbx.example" });
+
+    await waitFor(() => {
+      expect(listContacts).toHaveBeenCalledTimes(1);
+    });
   });
 
   it("does not apply stale contact A after switching to contact B", async () => {
@@ -181,7 +207,7 @@ describe("useShellRouteDataLoader", () => {
     });
 
     function RouteSwitchHarness(): null {
-      useShellRouteDataLoader({ facade });
+      useShellRouteDataLoader({ facade, activeProfileSyncKey: null });
       return null;
     }
 

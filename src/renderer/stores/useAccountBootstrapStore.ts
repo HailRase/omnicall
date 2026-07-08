@@ -143,6 +143,41 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
       });
     };
 
+    const refreshProfileScopedDataProjections = (): void => {
+      void facade.refreshProfileScopedDataProjections({
+        setContactsLoading: () => {
+          set((state) => ({
+            contactsProjection: applyContactsLoading(state.contactsProjection),
+          }));
+        },
+        setContactsLoaded: (contacts) => {
+          set((state) => ({
+            contactsProjection: applyContactsLoaded(state.contactsProjection, contacts),
+          }));
+        },
+        setContactsLoadError: (errorKey) => {
+          set((state) => ({
+            contactsProjection: applyContactsLoadError(state.contactsProjection, errorKey),
+          }));
+        },
+        setCallHistoryLoading: () => {
+          set((state) => ({
+            callHistoryProjection: applyCallHistoryLoading(state.callHistoryProjection),
+          }));
+        },
+        setCallHistoryLoaded: (entries) => {
+          set((state) => ({
+            callHistoryProjection: applyCallHistoryLoaded(state.callHistoryProjection, entries),
+          }));
+        },
+        setCallHistoryLoadError: (errorKey) => {
+          set((state) => ({
+            callHistoryProjection: applyCallHistoryLoadError(state.callHistoryProjection, errorKey),
+          }));
+        },
+      });
+    };
+
     refreshMultiCallProjection();
 
     const unsubscribe = facade.eventPublisher.subscribe((event) => {
@@ -195,6 +230,7 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
 
       if (event.type === "RegistrationSucceeded") {
         refreshMultiCallProjection();
+        refreshProfileScopedDataProjections();
       }
     });
 

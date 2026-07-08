@@ -7,6 +7,7 @@ import {
   MockTelephonyGateway,
   InMemorySavedAccountProfileRepository,
 } from "@adapters/index.js";
+import { InMemoryContactRepository } from "@adapters/settings/InMemoryContactRepository.js";
 import { FileSettingsRepository } from "@adapters/settings/FileSettingsRepository.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
 import {
@@ -360,6 +361,56 @@ describe("AccountBootstrapFacade integration", () => {
     expect(bucketA.autoUnholdOnTransferFailure).toBe(true);
     expect(bucketB.multiSessionsEnabled).toBe(true);
     expect(bucketB.autoUnholdOnTransferFailure).toBe(false);
+  });
+
+  it("refreshes profile-scoped contacts and history for the active profile", async () => {
+    const settings = new InMemorySettingsRepository({
+      bootstrapConfig: { mode: "sip-only" },
+    });
+    const contacts = new InMemoryContactRepository();
+    const facade = new AccountBootstrapFacade({
+      operatorGateway: new MockOperatorPlatformGateway(),
+      telephonyGateway: new MockTelephonyGateway("success"),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: settings,
+      contactRepository: contacts,
+      logger: createTestLogger(),
+    });
+
+    await facade.authorizeManualAccount({
+      username: "1001",
+      password: "secret-a",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    });
+    await facade.createContact({
+      displayName: "Alice",
+      primaryPhone: "+12025550100",
+    });
+
+    let loadedContacts: ReadonlyArray<{ displayName: string }> = [];
+    let historyStatus: string | null = null;
+
+    await facade.refreshProfileScopedDataProjections({
+      setContactsLoading: () => undefined,
+      setContactsLoaded: (value) => {
+        loadedContacts = value;
+      },
+      setContactsLoadError: () => undefined,
+      setCallHistoryLoading: () => {
+        historyStatus = "loading";
+      },
+      setCallHistoryLoaded: () => {
+        historyStatus = "loaded";
+      },
+      setCallHistoryLoadError: () => {
+        historyStatus = "error";
+      },
+    });
+
+    expect(loadedContacts).toHaveLength(1);
+    expect(loadedContacts[0]?.displayName).toBe("Alice");
+    expect(historyStatus).toBe("loaded");
   });
 
   it("refreshes multi-call projection for the active profile after authorize switch", async () => {

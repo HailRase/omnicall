@@ -22,6 +22,7 @@ import { useShellNavigation } from "../useShellNavigation.js";
 
 type UseShellRouteDataLoaderInput = Readonly<{
   facade: AccountBootstrapFacade;
+  activeProfileSyncKey: string | null;
 }>;
 
 let contactsListTokenCounter = 0;
@@ -64,7 +65,10 @@ function shouldSkipContactRouteReload(input: Readonly<{
  * - Inputs: account bootstrap facade and current parsed shell route.
  * - Outputs: route data store mutations and facade list/get side effects.
  */
-export function useShellRouteDataLoader({ facade }: UseShellRouteDataLoaderInput): void {
+export function useShellRouteDataLoader({
+  facade,
+  activeProfileSyncKey,
+}: UseShellRouteDataLoaderInput): void {
   const { route } = useShellNavigation();
   const contactActions = useContactActions({ facade });
   const historyActions = useCallHistoryActions({ facade });
@@ -201,5 +205,5 @@ export function useShellRouteDataLoader({ facade }: UseShellRouteDataLoaderInput
         useShellRouteDataStore.getState().completeHistoryListLoad(token);
       });
     }
-  }, [contactActions, historyActions, route]);
+  }, [activeProfileSyncKey, contactActions, historyActions, route]);
 }

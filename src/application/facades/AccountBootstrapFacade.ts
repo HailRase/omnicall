@@ -126,6 +126,15 @@ export type AuthorizeAccountOutcome = Readonly<{
   metadataWarning?: AuthorizeAccountMetadataWarning;
 }>;
 
+export type ProfileScopedDataProjectionHandlers = Readonly<{
+  setContactsLoading: () => void;
+  setContactsLoaded: (contacts: ReadonlyArray<Contact>) => void;
+  setContactsLoadError: (errorKey: string) => void;
+  setCallHistoryLoading: () => void;
+  setCallHistoryLoaded: (entries: ReadonlyArray<CallHistoryEntry>) => void;
+  setCallHistoryLoadError: (errorKey: string) => void;
+}>;
+
 export type AccountBootstrapFacadeDeps = Readonly<{
   operatorGateway: OperatorPlatformGateway;
   telephonyGateway: TelephonyGateway;
@@ -884,6 +893,26 @@ export class AccountBootstrapFacade {
     const accountKey = await this.resolveSettingsAccountKey();
     const userSettings = await this.loadUserSettingsForAccountKey(accountKey);
     handlers.applyMultiCallSettings(toMultiCallSettings(userSettings));
+  }
+
+  async refreshProfileScopedDataProjections(
+    handlers: ProfileScopedDataProjectionHandlers,
+  ): Promise<void> {
+    handlers.setContactsLoading();
+    const contactsResult = await this.listContactsUseCase.execute();
+    if (isErr(contactsResult)) {
+      handlers.setContactsLoadError("contacts.error.loadFailed");
+    } else {
+      handlers.setContactsLoaded(contactsResult.value);
+    }
+
+    handlers.setCallHistoryLoading();
+    const historyResult = await this.listCallHistoryUseCase.execute();
+    if (isErr(historyResult)) {
+      handlers.setCallHistoryLoadError("history.error.loadFailed");
+    } else {
+      handlers.setCallHistoryLoaded(historyResult.value);
+    }
   }
 
   private async ensureUnregisteredBeforeAccountSwitch(

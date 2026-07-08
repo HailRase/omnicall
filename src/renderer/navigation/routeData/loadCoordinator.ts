@@ -19,6 +19,10 @@ export async function runLoadOnce(key: string, loader: () => Promise<void>): Pro
   await promise;
 }
 
-export function clearLoadCoordinatorForTests(): void {
+export function resetLoadCoordinator(): void {
   inFlightLoads.clear();
+}
+
+export function clearLoadCoordinatorForTests(): void {
+  resetLoadCoordinator();
 }

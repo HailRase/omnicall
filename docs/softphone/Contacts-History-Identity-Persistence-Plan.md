@@ -425,7 +425,7 @@ Gate:
 
 ### Phase 2: Profile Switch Reload Lifecycle
 
-Status: planned.
+Status: **done** (2026-07-08).
 
 Purpose:
 

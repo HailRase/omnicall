@@ -1,5 +1,8 @@
 import type { JSX } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
+import { deriveActiveProfileSettingsSyncKey } from "@application/index.js";
+import { useAccountBootstrapStore } from "../../stores/useAccountBootstrapStore.js";
+import { useProfileScopedRouteDataReset } from "./useProfileScopedRouteDataReset.js";
 import { useShellRouteDataLoader } from "./useShellRouteDataLoader.js";
 
 type ShellRouteDataControllerProps = Readonly<{
@@ -14,6 +17,12 @@ type ShellRouteDataControllerProps = Readonly<{
 export function ShellRouteDataController({
   facade,
 }: ShellRouteDataControllerProps): JSX.Element | null {
-  useShellRouteDataLoader({ facade });
+  const activeProfileSyncKey = useAccountBootstrapStore((state) =>
+    deriveActiveProfileSettingsSyncKey(state.projection),
+  );
+
+  useProfileScopedRouteDataReset(activeProfileSyncKey);
+  useShellRouteDataLoader({ facade, activeProfileSyncKey });
+
   return null;
 }

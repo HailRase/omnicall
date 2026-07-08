@@ -276,6 +276,77 @@ describe("createRealAccountBootstrap", () => {
 
     facade2.dispose();
   });
+
+  it("isolates contacts across profile switches A→B→A with reload", async () => {
+    const profilesStorageRoot = await createTempStorageRoot();
+    const filesystem = new NodeFileSystemAdapter();
+    const accountA = {
+      username: "1001",
+      password: "secret-a",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    };
+    const accountB = {
+      username: "1002",
+      password: "secret-b",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    };
+
+    const facade = createRealAccountBootstrap({
+      profilesStorageRoot,
+      filesystem,
+      bootstrapConfig: { mode: "sip-only" },
+    });
+
+    const captureHandlers = () => {
+      let contacts: ReadonlyArray<{ displayName: string }> = [];
+      const handlers = {
+        setContactsLoading: (): void => undefined,
+        setContactsLoaded: (value: ReadonlyArray<{ displayName: string }>): void => {
+          contacts = value;
+        },
+        setContactsLoadError: (): void => undefined,
+        setCallHistoryLoading: (): void => undefined,
+        setCallHistoryLoaded: (): void => undefined,
+        setCallHistoryLoadError: (): void => undefined,
+      };
+
+      return {
+        handlers,
+        readContacts: (): ReadonlyArray<{ displayName: string }> => contacts,
+      };
+    };
+
+    await facade.authorizeManualAccount(accountA);
+    await facade.createContact({
+      displayName: "Alice",
+      primaryPhone: "+12025550100",
+    });
+
+    const afterA = captureHandlers();
+    await facade.refreshProfileScopedDataProjections(afterA.handlers);
+    expect(afterA.readContacts()).toHaveLength(1);
+    expect(afterA.readContacts()[0]?.displayName).toBe("Alice");
+
+    await facade.authorizeManualAccount(accountB);
+    const afterB = captureHandlers();
+    await facade.refreshProfileScopedDataProjections(afterB.handlers);
+    expect(afterB.readContacts()).toHaveLength(0);
+
+    await facade.createContact({
+      displayName: "Bob",
+      primaryPhone: "+12025550101",
+    });
+
+    await facade.authorizeManualAccount(accountA);
+    const restoredA = captureHandlers();
+    await facade.refreshProfileScopedDataProjections(restoredA.handlers);
+    expect(restoredA.readContacts()).toHaveLength(1);
+    expect(restoredA.readContacts()[0]?.displayName).toBe("Alice");
+
+    facade.dispose();
+  });
 });
 
 describe("createSoftphoneComposition bootstrap factories", () => {
