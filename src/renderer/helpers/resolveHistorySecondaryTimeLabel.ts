@@ -1,4 +1,4 @@
-import type { CallHistoryShellViewModel } from "@application/projections/deriveCallHistoryShell.js";
+import type { CallHistoryShellViewModel } from "@application/projections/contacts/deriveCallHistoryShell.js";
 
 type ResolveHistorySecondaryTimeLabelInput = Readonly<{
   entry: CallHistoryShellViewModel["entries"][number];

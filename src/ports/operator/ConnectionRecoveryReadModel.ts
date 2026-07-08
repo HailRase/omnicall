@@ -1,4 +1,4 @@
-import type { OcpConnectionState } from "@application/projections/ocpConnectionRecoveryProjection.js";
+import type { OcpConnectionState } from "@application/projections/operator/ocpConnectionRecoveryProjection.js";
 
 export type ConnectionRecoveryReadModelSnapshot = Readonly<{
   connectionState: OcpConnectionState;

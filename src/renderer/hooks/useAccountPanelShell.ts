@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import {
   deriveAccountPanelActionsShell,
   type AccountPanelActionsShell,
-} from "@application/projections/deriveAccountPanelActionsShell.js";
-import type { AuthUiState } from "@application/projections/accountBootstrapProjection.js";
+} from "@application/projections/settings/deriveAccountPanelActionsShell.js";
+import type { AuthUiState } from "@application/projections/settings/accountBootstrapProjection.js";
 import type { SipAccountInput } from "@application/index.js";
 import type { UseSessionLogoutActionsResult } from "./useSessionLogoutActions.js";
 

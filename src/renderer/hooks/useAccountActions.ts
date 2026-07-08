@@ -3,24 +3,24 @@ import type {
   AccountBootstrapFacade,
   AuthorizeAccountOutcome,
 } from "@application/facades/AccountBootstrapFacade.js";
-import { deriveSavedAccountProfileSelectorOptions } from "@application/projections/deriveSavedAccountProfileSelectorOptions.js";
-import type { SavedAccountProfileSelectorOption } from "@application/projections/deriveSavedAccountProfileSelectorOptions.js";
+import { deriveSavedAccountProfileSelectorOptions } from "@application/projections/settings/deriveSavedAccountProfileSelectorOptions.js";
+import type { SavedAccountProfileSelectorOption } from "@application/projections/settings/deriveSavedAccountProfileSelectorOptions.js";
 import {
   deriveSavedProfilePanelMode,
   type SavedProfilePanelMode,
-} from "@application/projections/deriveSavedProfilePanelMode.js";
-import { formatAccountSwitchLoginLabel } from "@application/projections/formatAccountSwitchLoginLabel.js";
-import { resolveAccountAuthorizeTargetIdentity } from "@application/projections/resolveAccountAuthorizeTargetIdentity.js";
+} from "@application/projections/settings/deriveSavedProfilePanelMode.js";
+import { formatAccountSwitchLoginLabel } from "@application/projections/settings/formatAccountSwitchLoginLabel.js";
+import { resolveAccountAuthorizeTargetIdentity } from "@application/projections/settings/resolveAccountAuthorizeTargetIdentity.js";
 import {
   mapAccountAuthorizationError,
   type AccountAuthorizationErrorProjection,
-} from "@application/projections/mapAccountAuthorizationError.js";
+} from "@application/projections/settings/mapAccountAuthorizationError.js";
 import type { SipAccountInput, SavedAccountProfile, SavedAccountProfileId } from "@application/index.js";
 import {
   findSavedAccountProfileByInput,
   matchesSipAccountIdentity,
   type SettingsAccountIdentity,
-} from "@application/projections/savedProfileIdentity.js";
+} from "@application/projections/settings/savedProfileIdentity.js";
 import { isErr } from "@shared/result/index.js";
 import { readSipEnvDefaults } from "../bootstrap/readSipEnvDefaults.js";
 import type { TranslationKey } from "../i18n/messages.js";

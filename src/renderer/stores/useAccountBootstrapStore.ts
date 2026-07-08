@@ -5,19 +5,19 @@ import {
   initialAccountBootstrapProjection,
   reduceAccountBootstrapProjection,
   type AccountBootstrapProjection,
-} from "@application/projections/accountBootstrapProjection.js";
+} from "@application/projections/settings/accountBootstrapProjection.js";
 import {
   initialCallProjection,
   reduceCallProjection,
   setDialpadMode,
   type CallProjection,
   type DialpadMode,
-} from "@application/projections/callProjection.js";
+} from "@application/projections/telephony/callProjection.js";
 import {
   initialActiveCallControlsProjection,
   reduceActiveCallControlsProjection,
   type ActiveCallControlsProjection,
-} from "@application/projections/activeCallControlsProjection.js";
+} from "@application/projections/telephony/activeCallControlsProjection.js";
 import {
   initialIncomingCallProjection,
   reduceIncomingCallProjection,
@@ -25,43 +25,43 @@ import {
   setIncomingRejectReasonRequired,
   type IncomingCallProjection,
   type IncomingCallUiState,
-} from "@application/projections/incomingCallProjection.js";
+} from "@application/projections/telephony/incomingCallProjection.js";
 import {
   initialMultiCallProjection,
   reduceMultiCallProjection,
   setMultiCallSettings,
   type MultiCallProjection,
-} from "@application/projections/multiCallProjection.js";
+} from "@application/projections/telephony/multiCallProjection.js";
 import {
   initialTransferProjection,
   reduceTransferProjection,
   type TransferProjection,
-} from "@application/projections/transferProjection.js";
+} from "@application/projections/telephony/transferProjection.js";
 import {
   initialMultiLineCallProjection,
   reduceMultiLineCallProjection,
   type MultiLineCallProjection,
-} from "@application/projections/multiLineCallProjection.js";
+} from "@application/projections/telephony/multiLineCallProjection.js";
 import {
   initialOperatorStatusProjection,
   reduceOperatorStatusProjection,
   type OperatorStatusProjection,
-} from "@application/projections/operatorStatusProjection.js";
+} from "@application/projections/operator/operatorStatusProjection.js";
 import {
   initialQueueInfoProjection,
   reduceQueueInfoProjection,
   type QueueInfoProjection,
-} from "@application/projections/queueInfoProjection.js";
+} from "@application/projections/operator/queueInfoProjection.js";
 import {
   initialCampaignProjection,
   reduceCampaignProjection,
   type CampaignProjection,
-} from "@application/projections/campaignProjection.js";
+} from "@application/projections/operator/campaignProjection.js";
 import {
   initialOcpNotificationProjection,
   reduceOcpNotificationProjection,
   type OcpNotificationProjection,
-} from "@application/projections/ocpNotificationProjection.js";
+} from "@application/projections/operator/ocpNotificationProjection.js";
 import {
   applyCallHistoryLoadError,
   applyCallHistoryLoaded,
@@ -69,7 +69,7 @@ import {
   initialCallHistoryProjection,
   reduceCallHistoryProjection,
   type CallHistoryProjection,
-} from "@application/projections/callHistoryProjection.js";
+} from "@application/projections/contacts/callHistoryProjection.js";
 import {
   applyContactsLoadError,
   applyContactsLoaded,
@@ -77,12 +77,12 @@ import {
   initialContactsProjection,
   reduceContactsProjection,
   type ContactsProjection,
-} from "@application/projections/contactsProjection.js";
+} from "@application/projections/contacts/contactsProjection.js";
 import {
   initialSipSessionHealthProjection,
   reduceSipSessionHealthProjection,
   type SipSessionHealthProjection,
-} from "@application/projections/sipSessionHealthProjection.js";
+} from "@application/projections/telephony/sipSessionHealthProjection.js";
 type AccountBootstrapStore = Readonly<{
   projection: AccountBootstrapProjection;
   callProjection: CallProjection;

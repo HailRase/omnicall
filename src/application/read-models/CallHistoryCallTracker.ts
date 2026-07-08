@@ -1,6 +1,6 @@
 import { createCallId, type CallId, type DomainEvent } from "@domain/index.js";
 import type { CallHistorySessionSnapshot } from "@domain/settings/CallHistoryEntry.js";
-import { isSessionResetEvent } from "../projections/sessionResetEvents.js";
+import { isSessionResetEvent } from "../projections/platform/sessionResetEvents.js";
 
 type TrackedCallSession = Readonly<{
   callId: CallId;

@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { CallEngine } from "@application/services/CallEngine.js";
+import { CallEngine } from "@application/services/telephony/CallEngine.js";
 import { InMemoryDomainEventBus } from "@application/events/InMemoryDomainEventBus.js";
 import {
   initialMultiCallProjection,
   reduceMultiCallProjection,
-} from "@application/projections/multiCallProjection.js";
+} from "@application/projections/telephony/multiCallProjection.js";
 import {
   InMemorySettingsRepository,
   MockMediaGateway,

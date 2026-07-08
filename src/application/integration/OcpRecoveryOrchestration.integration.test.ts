@@ -9,7 +9,7 @@ import {
 import {
   initialOcpConnectionRecoveryProjection,
   reduceOcpConnectionRecoveryProjection,
-} from "@application/projections/ocpConnectionRecoveryProjection.js";
+} from "@application/projections/operator/ocpConnectionRecoveryProjection.js";
 import type { DomainEvent } from "@domain/index.js";
 import { OCP_RECONNECT_POLICY_CONFIG } from "@domain/shared/recovery/ReconnectPolicy.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";

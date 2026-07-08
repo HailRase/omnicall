@@ -3,7 +3,7 @@ import "@testing-library/jest-dom/vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SoftphonePreloadApi } from "@shared/ipc/PreloadApi.js";
-import { initialAccountBootstrapProjection } from "@application/projections/accountBootstrapProjection.js";
+import { initialAccountBootstrapProjection } from "@application/projections/settings/accountBootstrapProjection.js";
 import { InMemorySettingsRepository } from "@adapters/settings/InMemorySettingsRepository.js";
 import { MockMediaGateway } from "@adapters/mock/MockMediaGateway.js";
 import { MockOperatorPlatformGateway } from "@adapters/mock/MockOperatorPlatformGateway.js";

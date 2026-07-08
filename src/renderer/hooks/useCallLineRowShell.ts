@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import type { Contact } from "@domain/index.js";
 import {
   deriveCallLinesShell,
   type ActiveCallControlsProjection,
@@ -15,6 +16,7 @@ export type CallLineRowShellInput = Readonly<{
   activeCallControlsProjection: ActiveCallControlsProjection;
   transferProjection: TransferProjection;
   isOcpMode: boolean;
+  contacts: ReadonlyArray<Contact>;
 }>;
 
 /**
@@ -32,6 +34,7 @@ export function useCallLineRowShell(
     activeCallControlsProjection,
     transferProjection,
     isOcpMode,
+    contacts,
   } = input;
 
   return useMemo(
@@ -43,6 +46,7 @@ export function useCallLineRowShell(
         activeCallControlsProjection,
         transferProjection,
         isOcpMode,
+        contacts,
       }),
     [
       multiLineCallProjection,
@@ -51,6 +55,7 @@ export function useCallLineRowShell(
       activeCallControlsProjection,
       transferProjection,
       isOcpMode,
+      contacts,
     ],
   );
 }

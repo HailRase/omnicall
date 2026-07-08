@@ -1,7 +1,7 @@
 import type { JSX, RefObject, SubmitEvent } from "react";
 import clsx from "clsx";
 
-import type { SavedProfilePanelMode } from "@application/projections/deriveSavedProfilePanelMode.js";
+import type { SavedProfilePanelMode } from "@application/projections/settings/deriveSavedProfilePanelMode.js";
 
 import type { SipAccountInput } from "@application/index.js";
 

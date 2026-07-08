@@ -1,4 +1,4 @@
-import { TonePlaybackCoordinator } from "@application/services/TonePlaybackCoordinator.js";
+import { TonePlaybackCoordinator } from "@application/services/telephony/TonePlaybackCoordinator.js";
 import type {
   AttachRemoteAudioCommand,
   MediaGateway,

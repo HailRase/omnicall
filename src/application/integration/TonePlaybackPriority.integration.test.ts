@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { InMemoryDomainEventBus } from "@application/events/InMemoryDomainEventBus.js";
-import { CallEngine } from "@application/services/CallEngine.js";
+import { CallEngine } from "@application/services/telephony/CallEngine.js";
 import {
   ArbiterMediaGateway,
   InMemorySettingsRepository,

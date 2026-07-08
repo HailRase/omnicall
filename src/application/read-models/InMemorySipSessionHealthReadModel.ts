@@ -5,7 +5,7 @@ import {
   initialSipSessionHealthProjection,
   reduceSipSessionHealthProjection,
   type SipSessionHealthProjection,
-} from "../projections/sipSessionHealthProjection.js";
+} from "../projections/telephony/sipSessionHealthProjection.js";
 
 /**
  * - Purpose: event-sourced SIP session health snapshot for Use Cases (F-014).

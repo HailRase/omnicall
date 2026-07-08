@@ -5,7 +5,7 @@ import {
   initialOperatorStatusProjection,
   reduceOperatorStatusProjection,
   type OperatorStatusProjection,
-} from "../projections/operatorStatusProjection.js";
+} from "../projections/operator/operatorStatusProjection.js";
 
 /**
  * - Purpose: event-sourced agent status snapshot for Use Cases.

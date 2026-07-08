@@ -3,7 +3,7 @@ import type { AccountBootstrapFacade } from "@application/facades/AccountBootstr
 import {
   deriveSessionLogoutShell,
   type SessionLogoutProjectionInput,
-} from "@application/projections/deriveSessionLogoutShell.js";
+} from "@application/projections/platform/deriveSessionLogoutShell.js";
 import { isErr } from "@shared/result/index.js";
 
 type UseSessionLogoutActionsInput = Readonly<{

@@ -1,4 +1,4 @@
-import type { AuthUiState } from "@application/projections/accountBootstrapProjection.js";
+import type { AuthUiState } from "@application/projections/settings/accountBootstrapProjection.js";
 import { translateCurrent } from "../i18n/index.js";
 
 type MapAvatarMenuShellNavigationDisabledReasonInput = Readonly<{

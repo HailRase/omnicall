@@ -4,7 +4,7 @@ import type { OcpSyncReadModel, OcpSyncReadModelSnapshot } from "@ports/operator
 import {
   initialQueueInfoProjection,
   reduceQueueInfoProjection,
-} from "../projections/queueInfoProjection.js";
+} from "../projections/operator/queueInfoProjection.js";
 
 /**
  * - Purpose: event-sourced OCP sync availability for Use Case gating.

@@ -1,5 +1,5 @@
-import type { AuthUiState } from "@application/projections/accountBootstrapProjection.js";
-import type { SessionLogoutShellView } from "@application/projections/deriveSessionLogoutShell.js";
+import type { AuthUiState } from "@application/projections/settings/accountBootstrapProjection.js";
+import type { SessionLogoutShellView } from "@application/projections/platform/deriveSessionLogoutShell.js";
 import { translateCurrent } from "../i18n/index.js";
 
 type MapAvatarMenuLogoutDisabledReasonInput = Readonly<{

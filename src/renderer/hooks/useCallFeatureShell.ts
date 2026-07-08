@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
+  buildContactDirectory,
   deriveActiveCallControlsShell,
   deriveAuthShellFlags,
   deriveCallControlTarget,
   deriveResumeMultiCallDisabledReason,
 } from "@application/index.js";
 import { mapActiveCallControlDisabledReason } from "../helpers/mapActiveCallControlLabels.js";
+import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 import { useTransferActions, useTransferPanelShell } from "./useTransferActions.js";
 import { useTransferSuccessCelebration } from "./useTransferSuccessCelebration.js";
 import { useCallLinesActions } from "./useCallLinesActions.js";
@@ -41,6 +43,8 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     setCallMode,
     setIncomingUiState,
   } = useSoftphoneProjections();
+
+  const contacts = useAccountBootstrapStore((state) => state.contactsProjection.contacts);
 
   const {
     dialedNumber,
@@ -118,6 +122,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     activeCallControlsProjection,
     transferProjection,
     isOcpMode: projection.isOcpMode,
+    contacts,
   });
   const callLinesActions = useCallLinesActions({ facade, shell: callLinesShell });
 
@@ -209,9 +214,18 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
         lines: callLinesShell.lines,
         incomingCallId,
         incomingCallProjection,
+        contacts,
       }),
-    [callLinesShell.lines, incomingCallId, incomingCallProjection, selectedCallId],
+    [callLinesShell.lines, contacts, incomingCallId, incomingCallProjection, selectedCallId],
   );
+
+  const outgoingDisplayName = useMemo(() => {
+    const presentation = buildContactDirectory(contacts).resolvePresentation({
+      remoteNumber: dialedNumber,
+      displayLabel: null,
+    });
+    return presentation.source === "contact" ? presentation.primaryLabel : null;
+  }, [contacts, dialedNumber]);
 
   const selectCallLine = useCallback(
     (callId: string): void => {
@@ -302,6 +316,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     openNumberEntryOverlay,
     closeNumberEntryOverlay,
     handleDialpadCall,
+    outgoingDisplayName,
   };
 }
 

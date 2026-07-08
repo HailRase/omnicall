@@ -1,5 +1,5 @@
 import type { JSX } from "react";
-import { deriveAccountPanelActionsShell } from "@application/projections/deriveAccountPanelActionsShell.js";
+import { deriveAccountPanelActionsShell } from "@application/projections/settings/deriveAccountPanelActionsShell.js";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import { AccountPanel } from "../components/account/AccountPanel.js";
 import { useAccountActions } from "../hooks/useAccountActions.js";

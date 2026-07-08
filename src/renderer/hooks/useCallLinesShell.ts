@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import type { Contact } from "@domain/index.js";
 import {
   deriveCallLinesShell,
   type ActiveCallControlsProjection,
@@ -10,7 +11,7 @@ import {
 
 /**
  * - Purpose: derive call lines panel view-model from store projections.
- * - Inputs: multi-line, queue, controls, and transfer projections.
+ * - Inputs: multi-line, queue, controls, transfer projections, and contacts.
  * - Outputs: shell visibility, line rows, policy error message.
  */
 export function useCallLinesShell(
@@ -20,6 +21,7 @@ export function useCallLinesShell(
   activeCallControlsProjection: ActiveCallControlsProjection,
   transferProjection: TransferProjection,
   isOcpMode: boolean,
+  contacts: ReadonlyArray<Contact>,
 ): ReturnType<typeof deriveCallLinesShell> {
   return useMemo(
     () =>
@@ -30,6 +32,7 @@ export function useCallLinesShell(
         activeCallControlsProjection,
         transferProjection,
         isOcpMode,
+        contacts,
       }),
     [
       multiLineCallProjection,
@@ -38,6 +41,7 @@ export function useCallLinesShell(
       activeCallControlsProjection,
       transferProjection,
       isOcpMode,
+      contacts,
     ],
   );
 }

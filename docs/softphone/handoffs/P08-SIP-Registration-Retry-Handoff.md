@@ -15,10 +15,10 @@ Separate transport (`SipReconnect*`) and registration (`SipRegistrationRetry*`) 
 | --- | --- |
 | Domain events | `src/domain/telephony/events/sipRegistrationRetryEvents.ts` |
 | Settings | `src/domain/settings/SipRecoverySettings.ts`, `UserSettings.ts` |
-| Orchestration | `src/application/services/ConnectionRecoveryOrchestrationService.ts` |
-| Use case | `src/application/use-cases/ReregisterSipUseCase.ts` |
-| Projection | `src/application/projections/connectionRecoveryProjection.ts` |
-| Shell derive | `src/application/projections/deriveConnectionRecoveryShell.ts` |
+| Orchestration | `src/application/services/recovery/ConnectionRecoveryOrchestrationService.ts` |
+| Use case | `src/application/use-cases/telephony/ReregisterSipUseCase.ts` |
+| Projection | `src/application/projections/telephony/sipSessionHealthProjection.ts` |
+| Shell derive | `src/application/projections/telephony/deriveSipSystemStateShell.ts` |
 | Adapter | `src/adapters/telephony/jssip/JsSipTelephonyAdapter.ts` (`reregister`) |
 | UI | `ConnectionOverlay.tsx`, `SettingsOverlay.tsx` |
 | Facade test helper | `AccountBootstrapFacade.simulateSipRegistrationFailed` |
@@ -28,8 +28,8 @@ Separate transport (`SipReconnect*`) and registration (`SipRegistrationRetry*`) 
 | Layer | File |
 | --- | --- |
 | Integration | `src/application/integration/SipRecoveryOrchestration.integration.test.ts` (transport + registration retry + terminal) |
-| Use case | `src/application/use-cases/ReregisterSipUseCase.test.ts` |
-| Projection shell | `src/application/projections/deriveConnectionRecoveryShell.test.ts` |
+| Use case | `src/application/use-cases/telephony/ReregisterSipUseCase.test.ts` |
+| Projection shell | `src/application/projections/telephony/deriveSipSystemStateShell.test.ts` |
 | UI | `src/renderer/components/recovery/ConnectionOverlay.test.tsx` |
 
 ## Gate checklist

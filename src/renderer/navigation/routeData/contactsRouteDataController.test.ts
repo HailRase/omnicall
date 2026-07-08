@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { ContactsProjection } from "@application/projections/contactsProjection.js";
+import type { ContactsProjection } from "@application/projections/contacts/contactsProjection.js";
 import {
   isContactRouteLoadFailureCode,
   resolveContactRouteInitialStatus,

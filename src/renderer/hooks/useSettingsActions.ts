@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import type { MultiCallSettings } from "@application/index.js";
 import { deriveActiveProfileSettingsSyncKey } from "@application/index.js";
-import { deriveRegisteredAccountIdentity } from "@application/projections/deriveRegisteredAccountIdentity.js";
+import { deriveRegisteredAccountIdentity } from "@application/projections/settings/deriveRegisteredAccountIdentity.js";
 import {
   MAX_NOTIFICATION_DURATION_MS,
   MAX_NOTIFICATION_MAX_VISIBLE,

@@ -6,6 +6,7 @@ declare const classes: {
   readonly header: string;
   readonly identity: string;
   readonly number: string;
+  readonly secondaryNumber: string;
   readonly status: string;
 };
 export default classes;

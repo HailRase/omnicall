@@ -11,7 +11,7 @@ import {
 import {
   initialIncomingCallProjection,
   reduceIncomingCallProjection,
-} from "@application/projections/incomingCallProjection.js";
+} from "@application/projections/telephony/incomingCallProjection.js";
 import { createCallId, createMainAcallId } from "@domain/index.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";

@@ -389,7 +389,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: _none_
 - Context: Settings
 - Priority: medium
-- Status: **in progress** (Phase 3 history enrichment — active call enrichment in Phase 4)
+- Status: **in progress** (Phase 4 active-call enrichment done — history detail UI in Phase 5)
 - Owner: TBD
 - Inputs: contacts projection, remote number, optional SIP/display label snapshot
 - Outputs: `CallerPresentation` read model for shell projections
@@ -399,11 +399,11 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Number remains available as secondary label when contact or SIP label is primary.
   - Duplicate phone fallback prefers primary-phone owner, then stable `ContactId` ordering.
   - History storage is not mutated when contacts change.
-  - Active call lines and incoming overlay use the same read model in Phase 4.
+  - Active call lines, incoming session card, controls bar, and outgoing pre-connect card use the same read model.
 - Test Coverage:
-  - Unit: `contactDirectory`, `deriveCallHistoryShell` enrichment cases
-  - Integration: deferred until active-call enrichment lands in Phase 4
-  - Renderer: history list uses enriched `primaryLabel` via `useCallHistoryShell`
+  - Unit: `contactDirectory`, `deriveCallHistoryShell`, `deriveCallLinesShell`, `deriveIncomingCallIdentityShell`, `deriveIncomingCallControlLine`
+  - Integration: deferred until profile-switch + active-call smoke harness exists
+  - Renderer: history list and call lines use enriched labels via shell hooks
   - E2E: deferred until harness exists
 
 ## F-014: Recovery And Reconnect
@@ -555,7 +555,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Unit: `resolveActiveTonePlayback`, `TonePlaybackCoordinator`
   - Integration: `ArbiterMediaGateway` with `CallEngine` multi-line scenarios
   - E2E: deferred (manual multi-call smoke)
-- Implementation evidence: `src/domain/media/resolveActiveTonePlayback.ts`, `src/application/services/TonePlaybackCoordinator.ts`, `src/adapters/media/ArbiterMediaGateway.ts`, bootstrap wiring in `createMockAccountBootstrap` / `createRealAccountBootstrap`
+- Implementation evidence: `src/domain/media/resolveActiveTonePlayback.ts`, `src/application/services/telephony/TonePlaybackCoordinator.ts`, `src/adapters/media/ArbiterMediaGateway.ts`, bootstrap wiring in `createMockAccountBootstrap` / `createRealAccountBootstrap`
 
 ## F-019: Distribution Packaging
 
@@ -603,7 +603,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Hook: `useAppUpdate` background prompt visibility, persisted dismiss per version (UserSettings + `LocalStorageUpdateBannerDismissStore`), silent background failures, download callback
   - Integration: deferred (manual manifest smoke)
   - E2E: deferred
-- Implementation evidence: `src/domain/updates/`, `src/application/use-cases/CheckForUpdatesUseCase.ts`, `src/adapters/updates/FetchUpdateMetadataAdapter.ts`, `src/adapters/updates/LocalStorageUpdateBannerDismissStore.ts`, `src/adapters/platform/PreloadPlatformInfoGateway.ts`, `src/adapters/platform/PreloadExternalUrlGateway.ts`, `src/shared/ipc/OpenExternalUrlContract.ts`, `src/renderer/hooks/useAppUpdate.ts`, `src/renderer/components/updates/UpdateAvailableBanner.tsx`, `src/renderer/components/settings/panels/SettingsGeneralPanel.tsx`, `src/renderer/shells/SoftphoneReadyShell.tsx`, `guides/Manual-Update-Manifest.md`, `docs/softphone/release/update-manifest.json`, `guides/GitHub-Releases-Update-Guide.md`
+- Implementation evidence: `src/domain/updates/`, `src/application/use-cases/updates/CheckForUpdatesUseCase.ts`, `src/adapters/updates/FetchUpdateMetadataAdapter.ts`, `src/adapters/updates/LocalStorageUpdateBannerDismissStore.ts`, `src/adapters/platform/PreloadPlatformInfoGateway.ts`, `src/adapters/platform/PreloadExternalUrlGateway.ts`, `src/shared/ipc/OpenExternalUrlContract.ts`, `src/renderer/hooks/useAppUpdate.ts`, `src/renderer/components/updates/UpdateAvailableBanner.tsx`, `src/renderer/components/settings/panels/SettingsGeneralPanel.tsx`, `src/renderer/shells/SoftphoneReadyShell.tsx`, `guides/Manual-Update-Manifest.md`, `docs/softphone/release/update-manifest.json`, `guides/GitHub-Releases-Update-Guide.md`
 
 ## F-021: Interface Internationalization And Language Settings
 

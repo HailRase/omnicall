@@ -4,11 +4,13 @@ import type {
   QueueInfoProjection,
 } from "@application/index.js";
 import {
+  deriveIncomingCallIdentityShell,
   deriveQueueLabelState,
   getQueueLoadingSinceForCall,
   getQueueNameForCall,
 } from "@application/index.js";
 import { mapQueueLabelState } from "../helpers/mapQueueLabelState.js";
+import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 import { useQueueLabelNaTimer } from "./useQueueLabelNaTimer.js";
 
 type UseIncomingCallShellInput = Readonly<{
@@ -21,6 +23,7 @@ type UseIncomingCallShellResult = Readonly<{
   queueLabelState: ReturnType<typeof deriveQueueLabelState>;
   queueLabelDisplay: ReturnType<typeof mapQueueLabelState>;
   queueName: string | null;
+  identity: ReturnType<typeof deriveIncomingCallIdentityShell>;
 }>;
 
 /**
@@ -32,6 +35,7 @@ export function useIncomingCallShell(
   input: UseIncomingCallShellInput,
 ): UseIncomingCallShellResult {
   const { isOcpMode, incomingCallProjection, queueInfoProjection } = input;
+  const contacts = useAccountBootstrapStore((state) => state.contactsProjection.contacts);
   const callId = incomingCallProjection.callId;
 
   const baseQueueLabelState = useMemo(() => {
@@ -69,9 +73,19 @@ export function useIncomingCallShell(
     [queueLabelState, queueName],
   );
 
+  const identity = useMemo(
+    () =>
+      deriveIncomingCallIdentityShell({
+        projection: incomingCallProjection,
+        contacts,
+      }),
+    [contacts, incomingCallProjection],
+  );
+
   return {
     queueLabelState,
     queueLabelDisplay,
     queueName,
+    identity,
   };
 }

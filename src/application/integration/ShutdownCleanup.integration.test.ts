@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { ShutdownCleanupUseCase } from "@application/use-cases/ShutdownCleanupUseCase.js";
-import { SessionTeardownOrchestrationService } from "@application/services/SessionTeardownOrchestrationService.js";
-import { UnregisterAccountUseCase } from "@application/use-cases/UnregisterAccountUseCase.js";
-import { ConnectionRecoveryOrchestrationService } from "@application/services/ConnectionRecoveryOrchestrationService.js";
-import { SipRecoveryOrchestrationService } from "@application/services/SipRecoveryOrchestrationService.js";
-import { CallEngine } from "@application/services/CallEngine.js";
+import { ShutdownCleanupUseCase } from "@application/use-cases/platform/ShutdownCleanupUseCase.js";
+import { SessionTeardownOrchestrationService } from "@application/services/platform/SessionTeardownOrchestrationService.js";
+import { UnregisterAccountUseCase } from "@application/use-cases/settings/UnregisterAccountUseCase.js";
+import { ConnectionRecoveryOrchestrationService } from "@application/services/recovery/ConnectionRecoveryOrchestrationService.js";
+import { SipRecoveryOrchestrationService } from "@application/services/recovery/SipRecoveryOrchestrationService.js";
+import { CallEngine } from "@application/services/telephony/CallEngine.js";
 import { InMemoryDomainEventBus } from "@application/events/InMemoryDomainEventBus.js";
 import { InMemoryAgentStatusReadModel } from "@application/read-models/InMemoryAgentStatusReadModel.js";
 import {

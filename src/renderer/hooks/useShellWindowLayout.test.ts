@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { ShellWindowLayoutService } from "@application/services/ShellWindowLayoutService.js";
+import { ShellWindowLayoutService } from "@application/services/platform/ShellWindowLayoutService.js";
 import { useShellWindowLayout } from "./useShellWindowLayout.js";
 
 vi.mock("@adapters/platform/PreloadShellWindowGateway.js", () => ({

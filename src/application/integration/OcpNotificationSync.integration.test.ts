@@ -11,7 +11,7 @@ import {
 import {
   initialOcpNotificationProjection,
   reduceOcpNotificationProjection,
-} from "@application/projections/ocpNotificationProjection.js";
+} from "@application/projections/operator/ocpNotificationProjection.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { isOk } from "@shared/result/index.js";

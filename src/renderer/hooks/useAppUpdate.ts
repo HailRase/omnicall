@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CheckForUpdatesUseCase } from "@application/use-cases/CheckForUpdatesUseCase.js";
-import type { UpdateCheckSnapshot } from "@application/use-cases/CheckForUpdatesUseCase.js";
+import { CheckForUpdatesUseCase } from "@application/use-cases/updates/CheckForUpdatesUseCase.js";
+import type { UpdateCheckSnapshot } from "@application/use-cases/updates/CheckForUpdatesUseCase.js";
 import {
   FetchUpdateMetadataAdapter,
   localStorageUpdateBannerDismissStore,

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { UpdateCheckSnapshot } from "@application/use-cases/CheckForUpdatesUseCase.js";
+import type { UpdateCheckSnapshot } from "@application/use-cases/updates/CheckForUpdatesUseCase.js";
 import {
   LocalStorageUpdateBannerDismissStore,
   UPDATE_BANNER_DISMISS_STORAGE_KEY,
@@ -15,7 +15,7 @@ import {
 const mockExecute = vi.fn();
 const mockOpenDownloadPage = vi.fn();
 
-vi.mock("@application/use-cases/CheckForUpdatesUseCase.js", () => ({
+vi.mock("@application/use-cases/updates/CheckForUpdatesUseCase.js", () => ({
   CheckForUpdatesUseCase: vi.fn().mockImplementation(() => ({
     execute: mockExecute,
     openDownloadPage: mockOpenDownloadPage,

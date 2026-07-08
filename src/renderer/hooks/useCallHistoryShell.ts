@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 
-import { deriveCallHistoryShell } from "@application/projections/deriveCallHistoryShell.js";
+import { deriveCallHistoryShell } from "@application/projections/contacts/deriveCallHistoryShell.js";
 
-import type { CallHistoryShellViewModel } from "@application/projections/deriveCallHistoryShell.js";
+import type { CallHistoryShellViewModel } from "@application/projections/contacts/deriveCallHistoryShell.js";
 
 import { resolveHistorySecondaryTimeLabel } from "../helpers/resolveHistorySecondaryTimeLabel.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";

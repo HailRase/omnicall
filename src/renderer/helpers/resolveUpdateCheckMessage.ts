@@ -1,4 +1,4 @@
-import type { UpdateCheckStatus } from "@application/use-cases/CheckForUpdatesUseCase.js";
+import type { UpdateCheckStatus } from "@application/use-cases/updates/CheckForUpdatesUseCase.js";
 import type { Translator } from "../i18n/index.js";
 
 export type UpdateCheckMessageInput = Readonly<{

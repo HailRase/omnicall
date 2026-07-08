@@ -9,7 +9,7 @@ import {
 import {
   initialSipSessionHealthProjection,
   reduceSipSessionHealthProjection,
-} from "@application/projections/sipSessionHealthProjection.js";
+} from "@application/projections/telephony/sipSessionHealthProjection.js";
 import type { DomainEvent } from "@domain/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";

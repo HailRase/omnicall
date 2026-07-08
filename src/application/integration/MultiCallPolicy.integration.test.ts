@@ -10,7 +10,7 @@ import {
 import {
   initialMultiCallProjection,
   reduceMultiCallProjection,
-} from "@application/projections/multiCallProjection.js";
+} from "@application/projections/telephony/multiCallProjection.js";
 import { createCallId } from "@domain/index.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
 

@@ -480,7 +480,7 @@ Gate:
 
 ### Phase 4: Active Call Identity Enrichment
 
-Status: planned.
+Status: **done** (2026-07-08).
 
 Purpose:
 
@@ -916,7 +916,7 @@ src/adapters/settings/
 src/application/read-models/
   contactDirectory.ts
 
-src/application/use-cases/
+src/application/use-cases/contacts/
   GetCallHistoryEntryUseCase.ts
   DeleteCallHistoryEntryUseCase.ts
   ImportContactsCsvUseCase.ts

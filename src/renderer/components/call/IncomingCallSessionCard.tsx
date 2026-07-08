@@ -31,16 +31,20 @@ function resolveCallerIdentity(
   callerNumber: string | null,
   displayName: string | null,
 ): Readonly<{ primary: string; secondary: string | null }> {
-  const primary = callerNumber ?? displayName ?? t("incoming.unknownNumber");
-  if (
-    displayName !== null &&
-    displayName.trim().length > 0 &&
-    callerNumber !== null &&
-    displayName !== callerNumber
-  ) {
-    return { primary: callerNumber, secondary: displayName };
+  const trimmedName = displayName?.trim() ?? "";
+  const trimmedNumber = callerNumber?.trim() ?? "";
+
+  if (trimmedName.length > 0) {
+    const secondary =
+      trimmedNumber.length > 0 && trimmedName !== trimmedNumber ? trimmedNumber : null;
+    return { primary: trimmedName, secondary };
   }
-  return { primary, secondary: null };
+
+  if (trimmedNumber.length > 0) {
+    return { primary: trimmedNumber, secondary: null };
+  }
+
+  return { primary: t("incoming.unknownNumber"), secondary: null };
 }
 
 function shouldShowStatusMessage(uiState: IncomingCallUiState): boolean {

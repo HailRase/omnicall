@@ -11,7 +11,7 @@ import {
 import {
   initialCampaignProjection,
   reduceCampaignProjection,
-} from "@application/projections/campaignProjection.js";
+} from "@application/projections/operator/campaignProjection.js";
 import { createCallId, createMainAcallId } from "@domain/index.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";

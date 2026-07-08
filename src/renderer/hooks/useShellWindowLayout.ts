@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { ShellWindowLayoutService } from "@application/services/ShellWindowLayoutService.js";
+import { ShellWindowLayoutService } from "@application/services/platform/ShellWindowLayoutService.js";
 import { PreloadShellWindowGateway } from "@adapters/platform/PreloadShellWindowGateway.js";
 
 function prefersReducedMotion(): boolean {

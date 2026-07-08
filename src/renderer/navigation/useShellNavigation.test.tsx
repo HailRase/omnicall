@@ -4,7 +4,7 @@ import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { describe, expect, it } from "vitest";
-import { initialMultiCallProjection } from "@application/projections/multiCallProjection.js";
+import { initialMultiCallProjection } from "@application/projections/telephony/multiCallProjection.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 import { useShellNavigation } from "./useShellNavigation.js";
 

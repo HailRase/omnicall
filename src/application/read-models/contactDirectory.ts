@@ -168,6 +168,26 @@ function presentableNumber(
   return trimmed.length > 0 ? trimmed : null;
 }
 
+/**
+ * - Purpose: resolve primary call-line label from contacts and SIP snapshot.
+ * - Inputs: contact directory, remote number, optional display label.
+ * - Outputs: display name string or unknown-label i18n key fallback.
+ */
+export function resolveCallLineDisplayName(
+  contactDirectory: ContactDirectory,
+  remoteNumber: string | null,
+  displayLabel: string | null,
+): string {
+  const presentation = contactDirectory.resolvePresentation({
+    remoteNumber: remoteNumber ?? "",
+    displayLabel,
+  });
+
+  return presentation.primaryLabel.length > 0
+    ? presentation.primaryLabel
+    : "call.line.display.unknown";
+}
+
 function normalizeLookupPhone(value: string): string {
   const trimmed = value.trim();
   if (trimmed.length === 0) {

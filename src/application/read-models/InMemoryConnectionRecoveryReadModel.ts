@@ -8,7 +8,7 @@ import {
   initialOcpConnectionRecoveryProjection,
   reduceOcpConnectionRecoveryProjection,
   type OcpConnectionRecoveryProjection,
-} from "../projections/ocpConnectionRecoveryProjection.js";
+} from "../projections/operator/ocpConnectionRecoveryProjection.js";
 
 /**
  * - Purpose: event-sourced OCP connection recovery snapshot for Use Cases (F-014).

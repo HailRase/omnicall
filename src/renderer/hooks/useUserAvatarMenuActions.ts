@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { AuthUiState } from "@application/projections/accountBootstrapProjection.js";
+import type { AuthUiState } from "@application/projections/settings/accountBootstrapProjection.js";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import type { PhoneStatus } from "@application/index.js";
 import { mapAvatarMenuDndDisabledReason } from "../helpers/mapAvatarMenuDndDisabledReason.js";

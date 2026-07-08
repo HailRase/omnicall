@@ -11,6 +11,7 @@ export type OutgoingCallCardProps = Readonly<{
   uiState: string;
   toneIndicator: "none" | "ringback" | "busy" | "failed";
   numberValue: string;
+  displayName?: string | null;
   lastError: string | null;
   lastDtmfTone: string | null;
 }>;
@@ -24,11 +25,24 @@ export function OutgoingCallCard({
   callState,
   toneIndicator,
   numberValue,
+  displayName = null,
   lastError,
 }: OutgoingCallCardProps): JSX.Element {
   const { t } = useI18n();
   const statusLabel = mapCallStateLabel(t, callState);
   const isFailed = callState === "Failed" || toneIndicator === "failed" || lastError !== null;
+  const trimmedName = displayName?.trim() ?? "";
+  const trimmedNumber = numberValue.trim();
+  const primaryLabel =
+    trimmedName.length > 0
+      ? trimmedName
+      : trimmedNumber.length > 0
+        ? trimmedNumber
+        : t("outgoing.unknownNumber");
+  const secondaryNumber =
+    trimmedName.length > 0 && trimmedNumber.length > 0 && trimmedName !== trimmedNumber
+      ? trimmedNumber
+      : null;
 
   return (
     <section
@@ -41,7 +55,10 @@ export function OutgoingCallCard({
           <AppIcon id="call.outgoing" size={16} decorative />
         </span>
         <div className={styles.identity}>
-          <p className={styles.number}>{numberValue || t("outgoing.unknownNumber")}</p>
+          <p className={styles.number}>{primaryLabel}</p>
+          {secondaryNumber !== null ? (
+            <p className={styles.secondaryNumber}>{secondaryNumber}</p>
+          ) : null}
           <p className={styles.status} data-testid="call-state-label">
             {toneIndicator !== "none" ? mapToneLabel(t, toneIndicator) : statusLabel}
           </p>

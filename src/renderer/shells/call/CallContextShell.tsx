@@ -128,8 +128,8 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
           {showIncomingCard && incomingCallId !== null ? (
             <IncomingCallSessionCard
               callId={incomingCallId}
-              callerNumber={incomingCallProjection.callerNumber}
-              displayName={incomingCallProjection.displayName}
+              callerNumber={incomingCallShell.identity.callerNumber}
+              displayName={incomingCallShell.identity.displayName}
               queueLabelState={incomingCallShell.queueLabelState}
               queueName={incomingCallShell.queueName}
               campaignContextTitle={campaignActions.campaignContextTitle}
@@ -184,6 +184,7 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
           callId={callProjection.activeCallId}
           callState={callProjection.state}
           numberValue={bindings.dialedNumber}
+          displayName={bindings.outgoingDisplayName}
           lastError={callProjection.lastError}
           lastDtmfTone={callProjection.lastDtmfTone}
           uiState={callProjection.uiState}

@@ -2,9 +2,9 @@
 import { renderHook } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { InMemoryContactRepository } from "@adapters/settings/InMemoryContactRepository.js";
-import type { ContactsProjection } from "@application/projections/contactsProjection.js";
-import { initialContactsProjection } from "@application/projections/contactsProjection.js";
-import { initialMultiCallProjection } from "@application/projections/multiCallProjection.js";
+import type { ContactsProjection } from "@application/projections/contacts/contactsProjection.js";
+import { initialContactsProjection } from "@application/projections/contacts/contactsProjection.js";
+import { initialMultiCallProjection } from "@application/projections/telephony/multiCallProjection.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 import { useContactEditShell, NEW_CONTACT_ROUTE_ID } from "./useContactEditShell.js";
 import type { UseContactActionsResult } from "./useContactActions.js";

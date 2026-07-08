@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
-import { deriveContactsShell } from "@application/projections/deriveContactsShell.js";
-import type { ContactShellViewModel } from "@application/projections/deriveContactsShell.js";
+import { deriveContactsShell } from "@application/projections/contacts/deriveContactsShell.js";
+import type { ContactShellViewModel } from "@application/projections/contacts/deriveContactsShell.js";
 import { isErr } from "@shared/result/index.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 import { useI18n } from "../i18n/index.js";

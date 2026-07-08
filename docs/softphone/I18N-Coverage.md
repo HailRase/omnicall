@@ -19,7 +19,7 @@
 | `src/renderer/components/settings/panels/SettingsCodecsPanel.tsx` | i18n-driven codec order/enablement UI | `settings.codecs.*` | migrated | `SettingsCodecsPanel.test.tsx` |
 | `src/renderer/components/account/AccountPanel.tsx`, `SavedAccountProfileSelector.tsx`, `DeleteSavedAccountProfileConfirmationModal.tsx`, `SwitchSavedAccountProfileConfirmationModal.tsx` | i18n-driven saved profile tabs, delete/switch modals, disabled reasons (action feedback moved to notifications) | `account.profile.*`, `account.error.*`, `account.warning.*`, `account.actions.disabled.*` | migrated | `AccountPanel.test.tsx`, `SavedAccountProfileSelector.test.tsx`, modal tests, `useAccountActions.test.ts` |
 | `src/renderer/components/settings/panels/SettingsAccountPanel.tsx` | account settings panel copy | `account.*`, `settings.account.*` | migrated | `SettingsAccountPanel.test.tsx` |
-| `src/application/projections/mapAccountAuthorizationError.ts` | semantic auth error keys for UI | `account.error.*` | migrated | `mapAccountAuthorizationError.test.ts` |
+| `src/application/projections/settings/mapAccountAuthorizationError.ts` | semantic auth error keys for UI | `account.error.*` | migrated | `mapAccountAuthorizationError.test.ts` |
 
 ## Remaining gaps
 

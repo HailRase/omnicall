@@ -1,8 +1,8 @@
 import type { JSX, RefObject } from "react";
 import type { SavedAccountProfileId } from "@application/index.js";
-import type { SavedAccountProfileSelectorOption } from "@application/projections/deriveSavedAccountProfileSelectorOptions.js";
-import type { SavedProfilePanelMode } from "@application/projections/deriveSavedProfilePanelMode.js";
-import type { AccountAuthorizationErrorProjection } from "@application/projections/mapAccountAuthorizationError.js";
+import type { SavedAccountProfileSelectorOption } from "@application/projections/settings/deriveSavedAccountProfileSelectorOptions.js";
+import type { SavedProfilePanelMode } from "@application/projections/settings/deriveSavedProfilePanelMode.js";
+import type { AccountAuthorizationErrorProjection } from "@application/projections/settings/mapAccountAuthorizationError.js";
 import type { SipAccountInput } from "@application/index.js";
 import type { TranslationKey } from "../../../i18n/messages.js";
 import { AccountPanel } from "../../account/AccountPanel.js";

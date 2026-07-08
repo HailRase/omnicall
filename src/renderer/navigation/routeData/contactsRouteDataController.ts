@@ -1,4 +1,4 @@
-import type { ContactsProjection } from "@application/projections/contactsProjection.js";
+import type { ContactsProjection } from "@application/projections/contacts/contactsProjection.js";
 import type { ParsedShellRoute } from "../shellRouteModel.js";
 import type { ContactRouteSnapshot, RouteDataLoadStatus } from "./shellRouteDataModel.js";
 

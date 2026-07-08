@@ -10,8 +10,8 @@
 |---|------|--------|------|
 | 0 | Overlay click-through fix | done | `ConnectionOverlay.tsx`, `styles.css`, test |
 | 1 | UX doc | done | `docs/softphone/P11-Call-Line-UX-Design.md` |
-| 2 | `deriveCallLineStatusLabel` | done | `src/application/projections/deriveCallLineStatusLabel.ts` |
-| 3 | View-model extend | done | `deriveCallLinesShell.ts`, `multiLineCallProjection.ts` |
+| 2 | `deriveCallLineStatusLabel` | done | `src/application/projections/telephony/deriveCallLineStatusLabel.ts` |
+| 3 | View-model extend | done | `src/application/projections/telephony/deriveCallLinesShell.ts`, `src/application/projections/telephony/multiLineCallProjection.ts` |
 | 4 | `CallLineRow` | done | `src/renderer/components/call/CallLineRow.tsx` |
 | 5 | `useCallLineRowShell` | done | `src/renderer/hooks/useCallLineRowShell.ts` |
 | 6 | Actions wiring | done | `useCallLinesActions.ts`, `handleTransferLine` in `useCallFeatureShell` |

@@ -1,7 +1,7 @@
 import { createRef } from "react";
 import { vi } from "vitest";
 import { createSettingsAccountKey } from "@application/index.js";
-import type { SavedAccountProfileSelectorOption } from "@application/projections/deriveSavedAccountProfileSelectorOptions.js";
+import type { SavedAccountProfileSelectorOption } from "@application/projections/settings/deriveSavedAccountProfileSelectorOptions.js";
 
 const savedProfileOptions: ReadonlyArray<SavedAccountProfileSelectorOption> = [
   {

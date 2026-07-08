@@ -416,12 +416,12 @@ System State journal is **SIP connection/register only** — lightweight in-memo
 | `src/domain/telephony/SipTransportState.ts` | Transport FSM |
 | `src/domain/telephony/SipSessionHealth.ts` | Value object + invariants |
 | `src/domain/telephony/events/sipTransportEvents.ts` | Transport domain events |
-| `src/application/projections/sipSessionHealthProjection.ts` | Unified read model |
-| `src/application/projections/deriveSipStatusShell.ts` | Header VM |
-| `src/application/projections/deriveSipSystemStateShell.ts` | Settings panel VM |
-| `src/application/services/SipRecoveryOrchestrationService.ts` | SIP-only orchestrator |
-| `src/application/use-cases/ManualSipTransportReconnectUseCase.ts` | Manual socket reconnect |
-| `src/application/services/SipConnectionJournal.ts` | In-memory log ring |
+| `src/application/projections/telephony/sipSessionHealthProjection.ts` | Unified read model |
+| `src/application/projections/telephony/deriveSipStatusShell.ts` | Header VM |
+| `src/application/projections/telephony/deriveSipSystemStateShell.ts` | Settings panel VM |
+| `src/application/services/recovery/SipRecoveryOrchestrationService.ts` | SIP-only orchestrator |
+| `src/application/use-cases/telephony/ManualSipTransportReconnectUseCase.ts` | Manual socket reconnect |
+| `src/application/services/recovery/SipConnectionJournal.ts` | In-memory log ring |
 | `src/renderer/components/settings/panels/SettingsSystemStatePanel.tsx` | UI panel |
 
 ### 6.2 Modify
@@ -432,7 +432,7 @@ System State journal is **SIP connection/register only** — lightweight in-memo
 | `src/adapters/telephony/jssip/JsSipUaPort.ts` | New event names in port |
 | `src/ports/telephony/TelephonyGateway.ts` | Transport connected handlers, forceRefresh |
 | `src/application/facades/AccountBootstrapFacade.ts` | Wire new services |
-| `src/application/projections/accountBootstrapProjection.ts` | Simplify auth UI states |
+| `src/application/projections/settings/accountBootstrapProjection.ts` | Simplify auth UI states |
 | `src/renderer/shells/SoftphoneShellHeader.tsx` | New status shell |
 | `src/renderer/components/header/UserHeaderIdentity.tsx` | SIP status line |
 | `src/renderer/stores/useAccountBootstrapStore.ts` | Subscribe sipSessionHealth |
@@ -446,7 +446,7 @@ System State journal is **SIP connection/register only** — lightweight in-memo
 | `src/renderer/components/recovery/ConnectionOverlay.tsx` | Replaced by settings |
 | `src/renderer/shells/RecoveryFeatureShell.tsx` | No overlay |
 | `src/application/projections/deriveConnectionRecoveryShell.ts` | Replaced |
-| `src/application/projections/ocpConnectionRecoveryProjection.ts` | OCP-only recovery read model (deferred ADR-0002) |
+| `src/application/projections/operator/ocpConnectionRecoveryProjection.ts` | OCP-only recovery read model (deferred ADR-0002) |
 | Header `control-reregister-sip` | Moved to settings |
 | OCP branches in recovery derive* | SIP-only |
 

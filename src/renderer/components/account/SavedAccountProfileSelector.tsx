@@ -1,6 +1,6 @@
 import type { JSX, MouseEvent } from "react";
 
-import type { SavedAccountProfileSelectorOption } from "@application/projections/deriveSavedAccountProfileSelectorOptions.js";
+import type { SavedAccountProfileSelectorOption } from "@application/projections/settings/deriveSavedAccountProfileSelectorOptions.js";
 import type { SavedAccountProfileId } from "@application/index.js";
 
 import { useI18n } from "../../i18n/index.js";
