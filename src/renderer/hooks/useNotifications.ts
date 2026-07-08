@@ -18,7 +18,6 @@ export type NotificationDescriptor = Readonly<{
   messageText?: string;
   messageParams?: NotificationParams;
   durationMs?: number;
-  closable?: boolean;
   action?: NotificationAction;
   onClose?: () => void;
 }>;
@@ -39,7 +38,6 @@ export type UseNotificationsInput = Readonly<{
   placement: "bottom-right" | "bottom-left" | "top-right" | "top-left";
   stacking: "stacked" | "single";
   durationMs: number;
-  closable: boolean;
   maxVisible: number;
 }>;
 
@@ -47,7 +45,6 @@ export type UseNotificationsResult = Readonly<{
   placement: UseNotificationsInput["placement"];
   stacking: UseNotificationsInput["stacking"];
   durationMs: number;
-  closable: boolean;
   maxVisible: number;
   items: ReadonlyArray<NotificationItem>;
   notify: (descriptor: NotificationDescriptor) => string;
@@ -122,24 +119,18 @@ function areNotificationItemsEqual(left: NotificationItem, right: NotificationIt
  * - Outputs: visible list, enqueue API, and dismiss controls.
  */
 export function useNotifications(input: UseNotificationsInput): UseNotificationsResult {
-  const { placement, stacking, durationMs, closable, maxVisible } = input;
+  const { placement, stacking, durationMs, maxVisible } = input;
   const [queue, setQueue] = useState<ReadonlyArray<NotificationItem>>([]);
   const durationRef = useRef(durationMs);
-  const closableRef = useRef(closable);
 
   useEffect(() => {
     durationRef.current = durationMs;
   }, [durationMs]);
 
-  useEffect(() => {
-    closableRef.current = closable;
-  }, [closable]);
-
   const notify = useCallback(
     (descriptor: NotificationDescriptor): string => {
       const id = descriptor.id ?? createNotificationId();
       const effectiveDuration = descriptor.durationMs ?? durationRef.current;
-      const effectiveClosable = descriptor.closable ?? closableRef.current;
       const item: NotificationItem = {
         id,
         level: descriptor.level,
@@ -147,7 +138,7 @@ export function useNotifications(input: UseNotificationsInput): UseNotifications
         messageText: descriptor.messageText ?? null,
         messageParams: descriptor.messageParams ?? null,
         durationMs: effectiveDuration,
-        closable: effectiveClosable,
+        closable: true,
         action: descriptor.action ?? null,
         onClose: descriptor.onClose ?? null,
       };
@@ -189,7 +180,6 @@ export function useNotifications(input: UseNotificationsInput): UseNotifications
       placement,
       stacking,
       durationMs,
-      closable,
       maxVisible,
       items,
       notify,
@@ -197,7 +187,6 @@ export function useNotifications(input: UseNotificationsInput): UseNotifications
       dismissAll,
     }),
     [
-      closable,
       dismiss,
       dismissAll,
       durationMs,

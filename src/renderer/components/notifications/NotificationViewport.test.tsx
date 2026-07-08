@@ -34,7 +34,6 @@ function renderViewport(
   items: ReadonlyArray<NotificationItem>,
   onDismiss: (id: string) => void = vi.fn(),
   options: Readonly<{
-    closable?: boolean;
     durationMs?: number;
     stacking?: "stacked" | "single";
     maxVisible?: number;
@@ -45,7 +44,6 @@ function renderViewport(
       placement="bottom-right"
       stacking={options.stacking ?? "stacked"}
       durationMs={options.durationMs ?? 200}
-      closable={options.closable ?? true}
       maxVisible={options.maxVisible ?? 3}
       items={items}
       onDismiss={onDismiss}
@@ -155,7 +153,6 @@ describe("NotificationViewport", () => {
         placement="bottom-right"
         stacking="stacked"
         durationMs={10_000}
-        closable
         maxVisible={3}
         items={[baseItem]}
         onDismiss={onDismiss}
@@ -171,7 +168,6 @@ describe("NotificationViewport", () => {
         placement="bottom-right"
         stacking="stacked"
         durationMs={10_000}
-        closable
         maxVisible={3}
         items={[]}
         onDismiss={onDismiss}
@@ -187,7 +183,6 @@ describe("NotificationViewport", () => {
         placement="bottom-right"
         stacking="stacked"
         durationMs={10_000}
-        closable
         maxVisible={3}
         items={[baseItem]}
         onDismiss={onDismiss}
@@ -199,7 +194,7 @@ describe("NotificationViewport", () => {
     });
   });
 
-  it("renders action button", async () => {
+  it("renders action button and close button together", async () => {
     const user = userEvent.setup();
     const onAction = vi.fn();
     const item: NotificationItem = {
@@ -216,6 +211,7 @@ describe("NotificationViewport", () => {
 
     await waitFor(() => {
       expect(screen.getByRole("button", { name: "Повторить" })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: "Закрыть" })).toBeInTheDocument();
     });
 
     await user.click(screen.getByRole("button", { name: "Повторить" }));
@@ -229,7 +225,6 @@ describe("NotificationViewport", () => {
         placement="bottom-right"
         stacking="single"
         durationMs={200}
-        closable
         maxVisible={3}
         items={[]}
         onDismiss={vi.fn()}
@@ -260,7 +255,6 @@ describe("NotificationViewport", () => {
         placement="bottom-right"
         stacking="stacked"
         durationMs={10_000}
-        closable
         maxVisible={3}
         items={[keyedItem]}
         onDismiss={vi.fn()}
@@ -272,18 +266,17 @@ describe("NotificationViewport", () => {
     });
   });
 
-  it("keeps close button for sticky toast when viewport default closable is false", async () => {
+  it("always shows close button for sticky toast", async () => {
     renderViewport(
       [
         {
           ...baseItem,
           id: "sticky",
           durationMs: 0,
-          closable: true,
         },
       ],
       vi.fn(),
-      { closable: false, durationMs: 0 },
+      { durationMs: 0 },
     );
 
     await waitFor(() => {

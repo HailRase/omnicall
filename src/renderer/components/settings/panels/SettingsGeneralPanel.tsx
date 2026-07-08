@@ -16,7 +16,7 @@ import {
 } from "@application/index.js";
 import { useI18n, type TranslationKey } from "../../../i18n/index.js";
 import { SettingsNumberInput } from "../SettingsNumberInput.js";
-import { Button, Select, Switch } from "../../ui/index.js";
+import { Button, Select } from "../../ui/index.js";
 import formStyles from "../SettingsForm.module.css";
 
 export type SettingsGeneralPanelProps = Readonly<{
@@ -30,8 +30,6 @@ export type SettingsGeneralPanelProps = Readonly<{
   onNotificationStackingChange: (stacking: NotificationStacking) => void;
   notificationDurationMs: number;
   onNotificationDurationMsChange: (durationMs: number) => void;
-  notificationClosable: boolean;
-  onNotificationClosableChange: (closable: boolean) => void;
   notificationMaxVisible: number;
   onNotificationMaxVisibleChange: (maxVisible: number) => void;
   currentVersion: string;
@@ -85,8 +83,6 @@ export function SettingsGeneralPanel({
   onNotificationStackingChange,
   notificationDurationMs,
   onNotificationDurationMsChange,
-  notificationClosable,
-  onNotificationClosableChange,
   notificationMaxVisible,
   onNotificationMaxVisibleChange,
   currentVersion,
@@ -286,19 +282,6 @@ export function SettingsGeneralPanel({
                 onChange={onNotificationMaxVisibleChange}
               />
             </div>
-            <label className={formStyles.toggleRow} htmlFor="settings-notification-closable">
-              <span className={formStyles.toggleText}>
-                <span className={formStyles.toggleLabel}>
-                  {t("settings.general.notifications.closable.label")}
-                </span>
-              </span>
-              <Switch
-                id="settings-notification-closable"
-                checked={notificationClosable}
-                data-testid="settings-notification-closable"
-                onCheckedChange={onNotificationClosableChange}
-              />
-            </label>
           </div>
         </div>
       </fieldset>

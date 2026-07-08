@@ -25,8 +25,6 @@ const baseProps = {
   onNotificationStackingChange: vi.fn(),
   notificationDurationMs: 4200,
   onNotificationDurationMsChange: vi.fn(),
-  notificationClosable: true,
-  onNotificationClosableChange: vi.fn(),
   notificationMaxVisible: 3,
   onNotificationMaxVisibleChange: vi.fn(),
   currentVersion: "0.0.1",
@@ -104,7 +102,6 @@ describe("SettingsGeneralPanel", () => {
     const onNotificationStackingChange = vi.fn();
     const onNotificationDurationMsChange = vi.fn();
     const onNotificationMaxVisibleChange = vi.fn();
-    const onNotificationClosableChange = vi.fn();
 
     render(
       <SettingsGeneralPanel
@@ -113,7 +110,6 @@ describe("SettingsGeneralPanel", () => {
         onNotificationStackingChange={onNotificationStackingChange}
         onNotificationDurationMsChange={onNotificationDurationMsChange}
         onNotificationMaxVisibleChange={onNotificationMaxVisibleChange}
-        onNotificationClosableChange={onNotificationClosableChange}
       />,
     );
 
@@ -125,12 +121,10 @@ describe("SettingsGeneralPanel", () => {
     fireEvent.change(screen.getByTestId("settings-notification-max-visible"), {
       target: { value: "4" },
     });
-    await user.click(screen.getByTestId("settings-notification-closable"));
 
     expect(onNotificationPlacementChange).toHaveBeenCalledWith("top-left");
     expect(onNotificationStackingChange).toHaveBeenCalledWith("single");
     expect(onNotificationDurationMsChange).toHaveBeenCalledWith(5000);
     expect(onNotificationMaxVisibleChange).toHaveBeenCalledWith(4);
-    expect(onNotificationClosableChange).toHaveBeenCalledWith(false);
   });
 });

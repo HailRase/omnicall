@@ -51,8 +51,6 @@ const themeDefaults = {
   onNotificationStackingChange: () => undefined,
   notificationDurationMs: 4200,
   onNotificationDurationMsChange: () => undefined,
-  notificationClosable: true,
-  onNotificationClosableChange: () => undefined,
   notificationMaxVisible: 3,
   onNotificationMaxVisibleChange: () => undefined,
 } as const;

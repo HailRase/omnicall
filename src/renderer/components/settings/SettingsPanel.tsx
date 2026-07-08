@@ -47,8 +47,6 @@ export type SettingsPanelProps = Readonly<{
   onNotificationStackingChange: (stacking: NotificationStacking) => void;
   notificationDurationMs: number;
   onNotificationDurationMsChange: (durationMs: number) => void;
-  notificationClosable: boolean;
-  onNotificationClosableChange: (closable: boolean) => void;
   notificationMaxVisible: number;
   onNotificationMaxVisibleChange: (maxVisible: number) => void;
   multiSessionsEnabled: boolean;
@@ -157,8 +155,6 @@ export function SettingsPanel({
   onNotificationStackingChange,
   notificationDurationMs,
   onNotificationDurationMsChange,
-  notificationClosable,
-  onNotificationClosableChange,
   notificationMaxVisible,
   onNotificationMaxVisibleChange,
   multiSessionsEnabled,
@@ -248,8 +244,6 @@ export function SettingsPanel({
           onNotificationStackingChange={onNotificationStackingChange}
           notificationDurationMs={notificationDurationMs}
           onNotificationDurationMsChange={onNotificationDurationMsChange}
-          notificationClosable={notificationClosable}
-          onNotificationClosableChange={onNotificationClosableChange}
           notificationMaxVisible={notificationMaxVisible}
           onNotificationMaxVisibleChange={onNotificationMaxVisibleChange}
           currentVersion={currentVersion}

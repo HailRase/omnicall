@@ -14,7 +14,6 @@ export type NotificationViewportProps = Readonly<{
   placement: ToastPlacement;
   stacking: NotificationStacking;
   durationMs: number;
-  closable: boolean;
   maxVisible: number;
   items: ReadonlyArray<NotificationItem>;
   onDismiss: (id: string) => void;
@@ -29,7 +28,6 @@ export function NotificationViewport({
   placement,
   stacking,
   durationMs,
-  closable,
   maxVisible,
   items,
   onDismiss,
@@ -52,7 +50,7 @@ export function NotificationViewport({
         expand={false}
         gap={14}
         offset={24}
-        closeButton={closable}
+        closeButton
         containerAriaLabel={t("notifications.viewport.ariaLabel")}
         toastOptions={{
           closeButtonAriaLabel: t("icons.overlay.close"),

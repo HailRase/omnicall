@@ -19,7 +19,6 @@ type NotificationToastSnapshot = Readonly<{
   level: NotificationItem["level"];
   message: string;
   duration: number;
-  closable: boolean;
   actionId: string | null;
   actionLabel: string | null;
 }>;
@@ -34,7 +33,6 @@ function buildSnapshot(
     level: item.level,
     message,
     duration,
-    closable: item.closable,
     actionId: item.action?.id ?? null,
     actionLabel,
   };
@@ -51,7 +49,6 @@ function isSameSnapshot(
     left.level === right.level &&
     left.message === right.message &&
     left.duration === right.duration &&
-    left.closable === right.closable &&
     left.actionId === right.actionId &&
     left.actionLabel === right.actionLabel
   );
@@ -149,7 +146,7 @@ export function useNotificationSonnerSync({
         id: item.id,
         toasterId: NOTIFICATION_TOASTER_ID,
         duration,
-        closeButton: item.closable,
+        closeButton: true,
         icon,
         ...(item.action !== null
           ? {

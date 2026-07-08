@@ -128,7 +128,6 @@ function SoftphoneShellLayoutRoute({
     placement: settingsActions.userSettings.notificationPlacement,
     stacking: settingsActions.userSettings.notificationStacking,
     durationMs: settingsActions.userSettings.notificationDurationMs,
-    closable: settingsActions.userSettings.notificationClosable,
     maxVisible: settingsActions.userSettings.notificationMaxVisible,
   });
   const sipActionErrorText =
@@ -189,7 +188,6 @@ function SoftphoneShellLayoutRoute({
             placement={notifications.placement}
             stacking={notifications.stacking}
             durationMs={notifications.durationMs}
-            closable={notifications.closable}
             maxVisible={notifications.maxVisible}
             items={notifications.items}
             onDismiss={notifications.dismiss}
@@ -216,8 +214,6 @@ function SoftphoneShellLayoutRoute({
               onNotificationStackingChange={settingsActions.onNotificationStackingChange}
               notificationDurationMs={settingsActions.userSettings.notificationDurationMs}
               onNotificationDurationMsChange={settingsActions.onNotificationDurationMsChange}
-              notificationClosable={settingsActions.userSettings.notificationClosable}
-              onNotificationClosableChange={settingsActions.onNotificationClosableChange}
               notificationMaxVisible={settingsActions.userSettings.notificationMaxVisible}
               onNotificationMaxVisibleChange={settingsActions.onNotificationMaxVisibleChange}
               multiSessionsEnabled={multiCallProjection.multiSessionsEnabled}

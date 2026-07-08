@@ -38,8 +38,6 @@ const panelProps = {
   onNotificationStackingChange: vi.fn(),
   notificationDurationMs: 4200,
   onNotificationDurationMsChange: vi.fn(),
-  notificationClosable: true,
-  onNotificationClosableChange: vi.fn(),
   notificationMaxVisible: 3,
   onNotificationMaxVisibleChange: vi.fn(),
   multiSessionsEnabled: true,

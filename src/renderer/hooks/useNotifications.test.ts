@@ -11,7 +11,6 @@ describe("useNotifications", () => {
         placement: "bottom-right",
         stacking: "stacked",
         durationMs: 2000,
-        closable: true,
         maxVisible: 3,
       }),
     );
@@ -43,7 +42,6 @@ describe("useNotifications", () => {
         placement: "bottom-right",
         stacking: "stacked",
         durationMs: 2000,
-        closable: true,
         maxVisible: 3,
       }),
     );
@@ -82,7 +80,6 @@ describe("useNotifications", () => {
         placement: "bottom-right",
         stacking: "single",
         durationMs: 4000,
-        closable: true,
         maxVisible: 3,
       }),
     );
@@ -102,7 +99,6 @@ describe("useNotifications", () => {
         placement: "bottom-right",
         stacking: "stacked",
         durationMs: 4000,
-        closable: true,
         maxVisible: 2,
       }),
     );
@@ -117,20 +113,18 @@ describe("useNotifications", () => {
     expect(result.current.items.map((item) => item.id)).toEqual(["third", "second"]);
   });
 
-  it("applies updated default duration and closable only to new notifications", () => {
+  it("applies updated default duration only to new notifications", () => {
     const { result, rerender } = renderHook(
-      (props: { durationMs: number; closable: boolean }) =>
+      (props: { durationMs: number }) =>
         useNotifications({
           placement: "bottom-right",
           stacking: "stacked",
           durationMs: props.durationMs,
-          closable: props.closable,
           maxVisible: 3,
         }),
       {
         initialProps: {
           durationMs: 1000,
-          closable: false,
         },
       },
     );
@@ -139,7 +133,7 @@ describe("useNotifications", () => {
       result.current.notify({ id: "first", level: "info", messageText: "first" });
     });
 
-    rerender({ durationMs: 5000, closable: true });
+    rerender({ durationMs: 5000 });
 
     act(() => {
       result.current.notify({ id: "second", level: "info", messageText: "second" });
@@ -148,7 +142,7 @@ describe("useNotifications", () => {
     expect(result.current.items.find((item) => item.id === "first")).toEqual(
       expect.objectContaining({
         durationMs: 1000,
-        closable: false,
+        closable: true,
       }),
     );
     expect(result.current.items.find((item) => item.id === "second")).toEqual(

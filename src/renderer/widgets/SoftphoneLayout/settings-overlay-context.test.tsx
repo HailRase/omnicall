@@ -40,8 +40,6 @@ describe("settings overlay with layout zones", () => {
               onNotificationStackingChange={() => undefined}
               notificationDurationMs={4200}
               onNotificationDurationMsChange={() => undefined}
-              notificationClosable
-              onNotificationClosableChange={() => undefined}
               notificationMaxVisible={3}
               onNotificationMaxVisibleChange={() => undefined}
               multiSessionsEnabled
