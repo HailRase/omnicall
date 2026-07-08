@@ -211,9 +211,8 @@ describe("useIncomingCallOverlayActions", () => {
           sourceCallId: "source-1",
         },
         transferPanelShell: {
-          ...createTransferPanelShell(),
-          visible: true,
           transferInProgress: false,
+          consultationCallId: null,
         },
         transferActions,
         settingsOpen: false,
