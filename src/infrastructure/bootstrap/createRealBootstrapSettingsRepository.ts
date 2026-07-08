@@ -21,7 +21,7 @@ export function createRealBootstrapSettingsRepository(
     storageRoot: input.profilesStorageRoot,
     filesystem: input.filesystem,
     initial: {
-      bootstrapConfig: input.bootstrapConfig ?? { mode: "sip-only" },
+      bootstrapConfig: input.bootstrapConfig ?? {},
     },
   });
 }

@@ -68,7 +68,7 @@ Confirm:
 
 - Domain remains framework-independent.
 - UI does not access adapters.
-- OCP remains optional.
+- legacy operator platform remains optional.
 - External libraries remain replaceable.
 - State transitions remain explicit.
 - Critical flows remain observable.

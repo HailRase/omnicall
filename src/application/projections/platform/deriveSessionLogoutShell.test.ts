@@ -7,7 +7,6 @@ import { initialTransferProjection } from "../telephony/transferProjection.js";
 
 describe("deriveSessionLogoutShell", () => {
   const baseInput = {
-    isOcpMode: false,
     authUiState: "sip_registered" as const,
     multiCallProjection: initialMultiCallProjection(),
     incomingCallProjection: initialIncomingCallProjection(),
@@ -50,15 +49,6 @@ describe("deriveSessionLogoutShell", () => {
     });
 
     expect(shell.logoutConfirmationRequired).toBe(true);
-  });
-
-  it("hides control in OCP mode", () => {
-    const shell = deriveSessionLogoutShell({
-      ...baseInput,
-      isOcpMode: true,
-    });
-
-    expect(shell.showEndSessionControl).toBe(false);
   });
 
   it("disables control while logout in progress", () => {

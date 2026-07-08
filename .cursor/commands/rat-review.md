@@ -8,4 +8,4 @@
 
 Триггер: `@real-integration-agent` / «Проверяй RAT» / «Проверяй step NN».
 
-Не пиши production code. OCP deferred; transfer backlog. Ответ на русском. Severity: Blocker / High / Low.
+Не пиши production code. legacy operator platform deferred; transfer backlog. Ответ на русском. Severity: Blocker / High / Low.

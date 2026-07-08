@@ -4,11 +4,8 @@ export { ActiveCallControlService } from "./services/telephony/ActiveCallControl
 export { isDialpadNumberValid } from "./helpers/dialpadValidation.js";
 export type { AppBootstrapConfig, PhoneStatus, SipAccountInput, MultiCallSettings } from "@domain/index.js";
 export { phoneStatusLabel } from "@domain/index.js";
-export { AuthenticateOcpUseCase } from "./use-cases/operator/AuthenticateOcpUseCase.js";
 export { AuthorizeSipAccountUseCase } from "./use-cases/settings/AuthorizeSipAccountUseCase.js";
-export { ChangePhoneStatusUseCase } from "./use-cases/operator/ChangePhoneStatusUseCase.js";
-export { ChangeAgentStatusUseCase } from "./use-cases/operator/ChangeAgentStatusUseCase.js";
-export { UpdatePostCallStatusUseCase } from "./use-cases/operator/UpdatePostCallStatusUseCase.js";
+export { ChangePhoneStatusUseCase } from "./use-cases/settings/ChangePhoneStatusUseCase.js";
 export { MakeCallUseCase } from "./use-cases/telephony/MakeCallUseCase.js";
 export { AnswerCallUseCase } from "./use-cases/telephony/AnswerCallUseCase.js";
 export { RejectCallUseCase } from "./use-cases/telephony/RejectCallUseCase.js";
@@ -18,7 +15,6 @@ export { ResumeCallUseCase } from "./use-cases/telephony/ResumeCallUseCase.js";
 export { MuteCallUseCase } from "./use-cases/telephony/MuteCallUseCase.js";
 export { UnmuteCallUseCase } from "./use-cases/telephony/UnmuteCallUseCase.js";
 export { HandleIncomingCallUseCase } from "./use-cases/telephony/HandleIncomingCallUseCase.js";
-export { SelectRejectReasonUseCase } from "./use-cases/operator/SelectRejectReasonUseCase.js";
 export { AutoAnswerIncomingCallUseCase } from "./use-cases/telephony/AutoAnswerIncomingCallUseCase.js";
 export { RejectIncomingCallByDndUseCase } from "./use-cases/telephony/RejectIncomingCallByDndUseCase.js";
 export { BlindTransferUseCase } from "./use-cases/telephony/BlindTransferUseCase.js";
@@ -40,7 +36,6 @@ export {
 export {
   initialAccountBootstrapProjection,
   reduceAccountBootstrapProjection,
-  setBootstrapMode,
   type AccountBootstrapProjection,
   type AuthUiState,
 } from "./projections/settings/accountBootstrapProjection.js";
@@ -151,34 +146,6 @@ export {
   type CallLineRole,
 } from "./projections/telephony/multiLineCallProjection.js";
 export {
-  initialOperatorStatusProjection,
-  reduceOperatorStatusProjection,
-  type OperatorStatusProjection,
-  type OperatorStatusDisabledReason,
-} from "./projections/operator/operatorStatusProjection.js";
-export {
-  initialQueueInfoProjection,
-  reduceQueueInfoProjection,
-  getQueueNameForCall,
-  getQueueLoadingSinceForCall,
-  deriveQueueLabelState,
-  QUEUE_LABEL_NA_TIMEOUT_MS,
-  type QueueInfoProjection,
-  type QueueLabelState,
-} from "./projections/operator/queueInfoProjection.js";
-export {
-  initialOcpNotificationProjection,
-  reduceOcpNotificationProjection,
-  type OcpNotificationProjection,
-  type OcpToastItem,
-} from "./projections/operator/ocpNotificationProjection.js";
-export {
-  initialOcpConnectionRecoveryProjection,
-  reduceOcpConnectionRecoveryProjection,
-  type OcpConnectionRecoveryProjection,
-  type OcpConnectionState,
-} from "./projections/operator/ocpConnectionRecoveryProjection.js";
-export {
   initialSipSessionHealthProjection,
   reduceSipSessionHealthProjection,
   type SipSessionHealthProjection,
@@ -205,23 +172,6 @@ export {
   type SessionLogoutProjectionInput,
   type SessionLogoutShellView,
 } from "./projections/platform/deriveSessionLogoutShell.js";
-export {
-  initialCampaignProjection,
-  reduceCampaignProjection,
-  getCampaignForCall,
-  deriveCampaignContextState,
-  type CampaignProjection,
-  type CampaignContext,
-  type CampaignContextState,
-} from "./projections/operator/campaignProjection.js";
-export { RegisterOcpCallCorrelationUseCase } from "./use-cases/operator/RegisterOcpCallCorrelationUseCase.js";
-export { ProcessOcpInboundMessageUseCase } from "./use-cases/operator/ProcessOcpInboundMessageUseCase.js";
-export type { ProcessOcpInboundMessageOutcome } from "./use-cases/operator/ProcessOcpInboundMessageUseCase.js";
-export { RespondToCampaignUseCase } from "./use-cases/operator/RespondToCampaignUseCase.js";
-export { SendDlgStopUseCase } from "./use-cases/operator/SendDlgStopUseCase.js";
-export { CallEndDlgStopOrchestrationService } from "./services/operator/CallEndDlgStopOrchestrationService.js";
-export { ConnectionRecoveryOrchestrationService } from "./services/recovery/ConnectionRecoveryOrchestrationService.js";
-export type { ConnectionRecoveryOrchestrationDeps } from "./services/recovery/ConnectionRecoveryOrchestrationService.js";
 export { SipRecoveryOrchestrationService } from "./services/recovery/SipRecoveryOrchestrationService.js";
 export type { SipRecoveryOrchestrationDeps } from "./services/recovery/SipRecoveryOrchestrationService.js";
 export { SipConnectionJournal } from "./services/recovery/SipConnectionJournal.js";
@@ -231,14 +181,12 @@ export type {
 } from "./services/recovery/SipConnectionJournal.js";
 export { ShellWindowLayoutService } from "./services/platform/ShellWindowLayoutService.js";
 export type { ShellWindowLayoutServiceInput } from "./services/platform/ShellWindowLayoutService.js";
-export { ServerTerminateCleanupService } from "./services/recovery/ServerTerminateCleanupService.js";
 export { SessionTeardownOrchestrationService } from "./services/platform/SessionTeardownOrchestrationService.js";
 export type {
   SessionTeardownInput,
   SessionTeardownOutcome,
   SessionTeardownOperation,
 } from "./services/platform/SessionTeardownOrchestrationService.js";
-export { InMemoryConnectionRecoveryReadModel } from "./read-models/InMemoryConnectionRecoveryReadModel.js";
 export { InMemorySipSessionHealthReadModel } from "./read-models/InMemorySipSessionHealthReadModel.js";
 export { RetryConnectionUseCase } from "./use-cases/platform/RetryConnectionUseCase.js";
 export type { RetryConnectionInput, RetryConnectionChannel } from "./use-cases/platform/RetryConnectionUseCase.js";
@@ -298,13 +246,6 @@ export { ShutdownCleanupUseCase } from "./use-cases/platform/ShutdownCleanupUseC
 export type { ShutdownCleanupInput } from "./use-cases/platform/ShutdownCleanupUseCase.js";
 export { ReconnectScheduler } from "./infrastructure/ReconnectScheduler.js";
 export type { SchedulerTimerFns, TimerHandle } from "./infrastructure/ReconnectScheduler.js";
-export { InMemoryOcpCallCorrelationRegistry } from "./read-models/InMemoryOcpCallCorrelationRegistry.js";
-export { InMemoryOcpSyncReadModel } from "./read-models/InMemoryOcpSyncReadModel.js";
-export { deriveOperatorStatusDisabledReason } from "./projections/operator/deriveOperatorStatusDisabledReason.js";
-export {
-  buildOperatorBreakReasonContext,
-  deriveOperatorControlDisabledReason,
-} from "./projections/operator/deriveOperatorControlDisabledReason.js";
 export { deriveAuthShellFlags } from "./projections/settings/deriveAuthShellFlags.js";
 export {
   deriveActiveProfileSettingsSyncKey,
@@ -320,7 +261,10 @@ export {
   type Contact,
   type ContactInput,
   type ContactUpdateInput,
+  type ContactValidationError,
+  type CallHistoryEntry,
 } from "@domain/index.js";
+export type { ContactsCsvImportSummary } from "./use-cases/contacts/ImportContactsCsvUseCase.js";
 export {
   deriveContactsShell,
   type ContactsShellViewModel,
@@ -366,19 +310,3 @@ export {
   type RegistrationDotVariant,
 } from "./projections/platform/deriveHeaderChromeShell.js";
 export { deriveActiveCallControlsShell } from "./projections/telephony/deriveActiveCallControlsShell.js";
-export {
-  agentStatusLabel,
-  type AgentStatus,
-  type AgentStatusRejectionReason,
-} from "./view-models/operatorStatusViewModel.js";
-export { AgentStatusValidationService } from "./services/operator/AgentStatusValidationService.js";
-export { AgentStatusSyncService } from "./services/operator/AgentStatusSyncService.js";
-export { BreakReasonsSyncService } from "./services/operator/BreakReasonsSyncService.js";
-export { DndAgentStatusOrchestrationService } from "./services/operator/DndAgentStatusOrchestrationService.js";
-export { OcpAuthBootstrapService } from "./services/operator/OcpAuthBootstrapService.js";
-export { PostCallRejectOrchestrationService } from "./services/operator/PostCallRejectOrchestrationService.js";
-export {
-  deriveStatusDurationSeconds,
-  deriveStatusTimerRunning,
-} from "./projections/operator/operatorStatusTimerProjection.js";
-export { InMemoryAgentStatusReadModel } from "./read-models/InMemoryAgentStatusReadModel.js";

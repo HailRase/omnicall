@@ -9,13 +9,13 @@
 | --- | --- |
 | UX design | `docs/softphone/P08-Recovery-UX-Design.md` |
 | Reconnect policy | `src/domain/shared/recovery/ReconnectPolicy.ts` |
-| OCP recovery events | `src/domain/operator/events/ocpRecoveryEvents.ts` |
+| legacy operator recovery events | `src/domain/operator/events/ocpRecoveryEvents.ts` |
 | SIP recovery events | `src/domain/telephony/events/sipRecoveryEvents.ts` |
 | Server terminate event | `src/domain/operator/events/serverTerminateEvents.ts` |
 | Projection | `src/application/projections/connectionRecoveryProjection.ts` |
 | Store wire | `useAccountBootstrapStore.connectionRecoveryProjection` |
-| Ports | `TelephonyGateway.setTransportDisconnectedHandler`, `OperatorPlatformGateway.setTransportDisconnectedHandler` |
-| Mock stubs | `MockTelephonyGateway`, `MockOperatorPlatformGateway` |
+| Ports | `TelephonyGateway.setTransportDisconnectedHandler`, `legacy operator gateway.setTransportDisconnectedHandler` |
+| Mock stubs | `MockTelephonyGateway`, `Mocklegacy operator gateway` |
 
 ## Reconnect Policy Presets
 
@@ -33,21 +33,21 @@
 | Projection | `connectionRecoveryProjection` — `SipReconnect*` + `RegistrationFailed` |
 | Port hook | `TelephonyGateway.setTransportDisconnectedHandler` (WU2 wiring) |
 
-## Migration Evidence — LF-057 / LF-058 (OCP Overlay + WS Retry)
+## Migration Evidence — LF-057 / LF-058 (legacy operator platform Overlay + WS Retry)
 
 | Step | Path |
 | --- | --- |
 | UX states | `P08-Recovery-UX-Design.md` — test IDs reserved |
-| OCP policy | `OCP_RECONNECT_POLICY_CONFIG` |
+| legacy operator platform policy | `OCP_RECONNECT_POLICY_CONFIG` |
 | Domain events | `ocpRecoveryEvents.ts` |
-| Projection | `connectionRecoveryProjection` — OCP fields N/A in SIP-only |
-| Port hook | `OperatorPlatformGateway.setTransportDisconnectedHandler` (WU2) |
+| Projection | `connectionRecoveryProjection` — legacy operator platform fields N/A in SIP-only |
+| Port hook | `legacy operator gateway.setTransportDisconnectedHandler` (WU2) |
 
 ## Design Note — LF-048 (Logout Cascade)
 
 - `P08-Recovery-UX-Design.md` documents safe logout path on `server_terminate`.
 - Backlog events: `AppShutdownRequested`, `AgentLoggedOut` (extends existing `AgentLogoutRequested`).
-- Ordered teardown: OCP close → SIP unregister → call hangup → projection reset (WU3+).
+- Ordered teardown: legacy operator platform close → SIP unregister → call hangup → projection reset (WU3+).
 
 ## Correlation IDs (WU2 orchestration contract)
 

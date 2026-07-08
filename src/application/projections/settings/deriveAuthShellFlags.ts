@@ -9,9 +9,6 @@ export type AuthShellFlags = Readonly<{
 
 const BLOCKING_AUTH_STATES: ReadonlyArray<AuthUiState> = [
   "booting",
-  "ocp_authenticating",
-  "ocp_session_exists",
-  "ocp_invalid_token",
   "sip_registering",
 ];
 

@@ -3,7 +3,6 @@ import { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFac
 import {
   InMemorySettingsRepository,
   MockMediaGateway,
-  MockOperatorPlatformGateway,
   MockTelephonyGateway,
 } from "@adapters/index.js";
 import { createCallId } from "@domain/index.js";
@@ -20,12 +19,10 @@ describe("SessionTeardown integration", () => {
     });
     const mediaGateway = new MockMediaGateway();
 
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway({ scenario: "success" }),
-      telephonyGateway,
+    const facade = new AccountBootstrapFacade({      telephonyGateway,
       mediaGateway,
       settingsRepository: new InMemorySettingsRepository({
-        bootstrapConfig: { mode: "sip-only" },
+        bootstrapConfig: {},
       }),
       logger: createTestLogger(),
     });
@@ -55,19 +52,16 @@ describe("SessionTeardown integration", () => {
     expect(telephonyGateway.getUnregisterInvocations()).toContain(correlationId);
     expect(published).toContain("UserSessionEnded");
     expect(published).toContain("UnregistrationSucceeded");
-    expect(facade.getReconnectScheduler().getPendingCount()).toBe(0);
   });
 
   it("allows end session again after re-registration", async () => {
     const telephonyGateway = new MockTelephonyGateway({
       registrationScenario: "success",
     });
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway({ scenario: "success" }),
-      telephonyGateway,
+    const facade = new AccountBootstrapFacade({      telephonyGateway,
       mediaGateway: new MockMediaGateway(),
       settingsRepository: new InMemorySettingsRepository({
-        bootstrapConfig: { mode: "sip-only" },
+        bootstrapConfig: {},
       }),
       logger: createTestLogger(),
     });

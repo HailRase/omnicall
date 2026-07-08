@@ -1,5 +1,4 @@
 import {
-  createAccessDeniedDetectedEvent,
   createStartupModeResolvedEvent,
   type StartupResolution,
 } from "@domain/index.js";
@@ -30,52 +29,20 @@ export class ResolveStartupModeUseCase {
     input: ResolveStartupModeInput,
   ): Result<ResolveStartupModeOutput, never> {
     const correlationId = input.correlationId ?? createCorrelationId();
-    const resolution = resolveStartupResolution(input.config);
+    const resolution: StartupResolution = { action: "sip_only_ready" };
 
     this.eventPublisher.publish(
-      createStartupModeResolvedEvent(correlationId, {
-        mode: input.config.mode,
-        resolution,
-      }),
+      createStartupModeResolvedEvent(correlationId, { resolution }),
     );
-
-    if (resolution.action === "access_denied") {
-      this.eventPublisher.publish(
-        createAccessDeniedDetectedEvent(correlationId, {
-          source: "ocp",
-          reason: resolution.reason,
-        }),
-      );
-    }
 
     this.logger.info("startup_mode_resolved", {
       correlationId,
       featureId: "F-009",
-      boundedContext: "Operator",
+      boundedContext: "Settings",
       operation: "resolve_startup_mode",
       result: resolution.action,
     });
 
     return ok({ resolution });
   }
-}
-
-function resolveStartupResolution(
-  config: AppBootstrapConfig,
-): StartupResolution {
-  if (config.mode === "sip-only") {
-    return { action: "sip_only_ready" };
-  }
-
-  const token = config.ocpToken?.trim() ?? "";
-  const domain = config.ocpDomain?.trim() ?? "";
-
-  if (token.length === 0 || domain.length === 0) {
-    return {
-      action: "access_denied",
-      reason: "OCP mode requires token and domain",
-    };
-  }
-
-  return { action: "ocp_authenticate", token, domain };
 }

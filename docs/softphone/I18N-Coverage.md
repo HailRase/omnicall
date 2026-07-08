@@ -13,7 +13,7 @@
 | `src/application/projections/*` (UI-facing) | Semantic reason/label keys + params | `settings.systemState.*`, `connection.recovery.disabled.*`, `call.line.status.*`, … | migrated | projection unit tests |
 | `src/renderer/components/settings/panels/SettingsSystemStatePanel.tsx` | i18n-driven system state UI | `settings.systemState.*` | migrated | `SettingsSystemStatePanel.test.tsx` |
 | `src/renderer/components/dialpad/Dialpad.tsx` | i18n-driven dialpad copy | `dialpad.panel.*`, `dialpad.input.*`, `dialpad.call.*`, `dialpad.keys.*` | migrated | `Dialpad.test.tsx` |
-| `src/renderer/shells/SoftphoneReadyShell.tsx`, `src/renderer/components/notifications/*`, `src/renderer/hooks/useActionNotifications.ts` | unified notification copy, aria labels, action labels | `notifications.*`, `ocp.toast.*`, `updates.*`, `account.*`, `call.*`, `settings.*` | migrated | notification/component tests + `i18n:check` |
+| `src/renderer/shells/SoftphoneReadyShell.tsx`, `src/renderer/components/notifications/*`, `src/renderer/hooks/useActionNotifications.ts` | unified notification copy, aria labels, action labels | `notifications.*`, `legacy operator.toast.*`, `updates.*`, `account.*`, `call.*`, `settings.*` | migrated | notification/component tests + `i18n:check` |
 | `src/renderer/hooks/useSipSystemStateActions.ts` | action feedback via semantic keys | `settings.systemState.action.*` | migrated | settings panel tests |
 
 | `src/renderer/components/settings/panels/SettingsCodecsPanel.tsx` | i18n-driven codec order/enablement UI | `settings.codecs.*` | migrated | `SettingsCodecsPanel.test.tsx` |
@@ -24,7 +24,7 @@
 
 ## Remaining gaps
 
-- Legacy `recovery.*` catalog keys retained for OCP-deferred paths; SIP recovery UI uses `settings.systemState.*` and `header.sipStatus.*`.
+- Legacy `recovery.*` catalog keys retained for legacy operator platform-deferred paths; SIP recovery UI uses `settings.systemState.*` and `header.sipStatus.*`.
 - Story/test fixtures may contain localized literals for assertions — allowed per ADR-0006.
 
 ## Verification commands

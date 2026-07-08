@@ -79,14 +79,14 @@ Renderer may display:
 The UI must represent:
 
 - booting
-- OCP authenticating
-- OCP session exists
-- OCP invalid token
+- legacy operator authenticating
+- legacy operator platform session exists
+- legacy operator platform invalid token
 - SIP registering
 - SIP registered
 - SIP registration failed
 - DND
-- OCP disconnected
+- legacy operator platform disconnected
 - incoming ringing
 - active call
 - held call
@@ -100,7 +100,7 @@ Every disabled critical control must have a reason.
 Examples:
 
 - not registered
-- OCP reserved
+- legacy operator platform reserved
 - invalid number
 - second session disabled
 - DND active

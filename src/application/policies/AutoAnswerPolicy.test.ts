@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { createBreakReason } from "@domain/index.js";
 import { decideAutoAnswer } from "./AutoAnswerPolicy.js";
 
 describe("AutoAnswerPolicy", () => {
@@ -8,7 +7,7 @@ describe("AutoAnswerPolicy", () => {
       autoAnswerTimeoutSec: null,
       autoAnswerDuringActiveSessionEnabled: false,
       rejectReasonRequired: false,
-      allowedBreakReasons: [createBreakReason("break")],
+      allowedBreakReasons: ["break"],
     });
     expect(decision).toBeNull();
   });
@@ -18,7 +17,7 @@ describe("AutoAnswerPolicy", () => {
       autoAnswerTimeoutSec: 3,
       autoAnswerDuringActiveSessionEnabled: false,
       rejectReasonRequired: false,
-      allowedBreakReasons: [createBreakReason("break")],
+      allowedBreakReasons: ["break"],
     });
     expect(decision).toEqual({
       enabled: true,
@@ -31,7 +30,7 @@ describe("AutoAnswerPolicy", () => {
       autoAnswerTimeoutSec: 0,
       autoAnswerDuringActiveSessionEnabled: false,
       rejectReasonRequired: false,
-      allowedBreakReasons: [createBreakReason("break")],
+      allowedBreakReasons: ["break"],
     });
     expect(decision).toEqual({
       enabled: true,

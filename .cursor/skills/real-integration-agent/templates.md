@@ -136,4 +136,4 @@ Baseline 488 → ожидай +X–Y
 
 ## Slice complete handoff (optional, after SIP slices)
 
-When a major **SIP** slice (R1–R4, step 07) completes, summarize in PROGRESS **Current blocker** section and suggest smoke re-run before merge to master. **R5 OCP is deferred** (ADR-0002) — not a merge gate.
+When a major **SIP** slice (R1–R4, step 07) completes, summarize in PROGRESS **Current blocker** section and suggest smoke re-run before merge to master. **removed operator legacy operator platform is deferred** (ADR-0005) — not a merge gate.

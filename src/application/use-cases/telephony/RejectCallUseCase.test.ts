@@ -7,7 +7,7 @@ import {
   MockTelephonyGateway,
 } from "@adapters/index.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
-import { createBreakReason, createCallId } from "@domain/index.js";
+import { createCallId } from "@domain/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { RejectCallUseCase } from "./RejectCallUseCase.js";
 
@@ -18,7 +18,7 @@ describe("RejectCallUseCase", () => {
         autoAnswerTimeoutSec: null,
         autoAnswerDuringActiveSessionEnabled: false,
         rejectReasonRequired: true,
-        allowedBreakReasons: [createBreakReason("break")],
+        allowedBreakReasons: ["break"],
       },
     });
     const engine = new CallEngine(
@@ -45,7 +45,7 @@ describe("RejectCallUseCase", () => {
         autoAnswerTimeoutSec: null,
         autoAnswerDuringActiveSessionEnabled: false,
         rejectReasonRequired: true,
-        allowedBreakReasons: [createBreakReason("break")],
+        allowedBreakReasons: ["break"],
       },
     });
     const engine = new CallEngine(

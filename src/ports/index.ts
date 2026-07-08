@@ -1,30 +1,5 @@
 export type { DomainEventHandler, DomainEventPublisher } from "./events/DomainEventPublisher.js";
 export type {
-  OcpAuthenticateCommand,
-  ChangeAgentStatusCommand,
-  ChangeAgentStatusResult,
-  GetAgentStatusCommand,
-  GetBreakReasonsCommand,
-  UpdatePostCallStatusCommand,
-  UpdatePostCallStatusResult,
-  RequestLogoutCommand,
-  RequestLogoutResult,
-  OcpTransportDisconnectedNotification,
-  OcpInboundRawHandler,
-  OperatorPlatformGateway,
-} from "./operator/OperatorPlatformGateway.js";
-export type { OcpSyncGateway, RespondToCampaignCommand, RespondToCampaignResult, SendDlgStopCommand, SendDlgStopResult } from "./operator/OcpSyncGateway.js";
-export type { OcpCallCorrelationRegistry } from "./operator/OcpCallCorrelationRegistry.js";
-export type { OcpSyncReadModel, OcpSyncReadModelSnapshot } from "./operator/OcpSyncReadModel.js";
-export type {
-  AgentStatusReadModel,
-  AgentStatusReadModelSnapshot,
-} from "./operator/AgentStatusReadModel.js";
-export type {
-  ConnectionRecoveryReadModel,
-  ConnectionRecoveryReadModelSnapshot,
-} from "./operator/ConnectionRecoveryReadModel.js";
-export type {
   SipSessionHealthReadModel,
   SipSessionHealthReadModelSnapshot,
 } from "./telephony/SipSessionHealthReadModel.js";

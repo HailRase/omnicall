@@ -1,8 +1,5 @@
 import { useEffect } from "react";
-import type {
-  ActiveCallControlsProjection,
-  OcpToastItem,
-} from "@application/index.js";
+import type { ActiveCallControlsProjection } from "@application/index.js";
 import type { AccountAuthorizationErrorProjection } from "@application/projections/settings/mapAccountAuthorizationError.js";
 import type { TranslationKey } from "../i18n/messages.js";
 import type {
@@ -29,8 +26,6 @@ type UseActionNotificationsInput = Readonly<{
   settingsUpdateError: string | null;
   sipActionSuccessKey: TranslationKey | null;
   sipActionErrorText: string | null;
-  statusRejectionBanner: string | null;
-  ocpToasts: ReadonlyArray<OcpToastItem>;
 }>;
 
 function buildAccountErrorDescriptor(
@@ -66,8 +61,6 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
     settingsUpdateError,
     sipActionSuccessKey,
     sipActionErrorText,
-    statusRejectionBanner,
-    ocpToasts,
   } = input;
   const { notify } = notifications;
   const {
@@ -178,23 +171,4 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
       messageText: sipActionErrorText,
     });
   }, [notify, sipActionErrorText]);
-
-  useEffect(() => {
-    if (statusRejectionBanner === null) {
-      return;
-    }
-    notify({
-      level: "error",
-      messageText: statusRejectionBanner,
-    });
-  }, [notify, statusRejectionBanner]);
-
-  useEffect(() => {
-    ocpToasts.forEach((toast) => {
-      notify({
-        level: toast.level === "warn" ? "warning" : toast.level,
-        messageText: toast.message,
-      });
-    });
-  }, [notify, ocpToasts]);
 }

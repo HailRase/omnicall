@@ -47,7 +47,7 @@ Respond in **Russian**. Use [response-contract](../_shared/response-contract.md)
 | Observability | Swallowed errors on critical path |
 | UI | Missing disabled reason; no testid on critical control |
 | Docs | STATUS stale; catalog drift; handoff false `[x]` |
-| Backlog | OCP/transfer scope creep |
+| Backlog | legacy operator platform/transfer scope creep |
 
 ## Severity
 

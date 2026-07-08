@@ -76,7 +76,7 @@ Examples:
 - `MakeCallUseCase`
 - `AnswerCallUseCase`
 - `TransferCallUseCase`
-- `ChangeAgentStatusUseCase`
+- `Changelegacy agent statusUseCase`
 - `RegisterAccountUseCase`
 
 Application coordinates business actions.
@@ -132,7 +132,7 @@ Examples:
 - `ContactRepository`
 - `CallHistoryRepository`
 - `NotificationGateway`
-- `OperatorPlatformGateway`
+- `legacy operator gateway`
 - `HeadsetGateway`
 
 Ports define what the platform needs.
@@ -149,7 +149,6 @@ Examples:
 
 - `JsSipTelephonyAdapter`
 - `ElectronNotificationAdapter`
-- `OcpWebSocketAdapter`
 - `WebHidHeadsetAdapter`
 - `LocalSettingsRepository`
 
@@ -213,7 +212,7 @@ Responsible for:
 Owns:
 
 - `Agent`
-- `AgentStatus`
+- `legacy agent status`
 - `AgentSession`
 
 ### Media
@@ -264,7 +263,7 @@ Owns:
 
 Responsible for:
 
-- OCP
+- legacy operator platform
 - CRM contracts
 - host-page contracts
 - Electron IPC contracts
@@ -338,7 +337,7 @@ Examples:
 - `RegistrationFailed`
 - `AgentLoggedIn`
 - `AgentLoggedOut`
-- `AgentStatusChanged`
+- `legacy agent statusChanged`
 
 Events are immutable facts.
 
@@ -383,18 +382,18 @@ Stores must never:
 - call repositories directly
 - contain business rules
 
-## Optional OCP Architecture
+## Optional legacy operator platform Architecture
 
-OCP is optional.
+legacy operator platform is optional.
 
-**Product status (2026-06-24):** OCP plugin is **DEFERRED** to far backlog per ADR-0002 and `OCP-PLUGIN-BACKLOG.md`. Core delivery does not require OCP implementation or smoke.
+**Product status (2026-06-24):** legacy operator integration is **DEFERRED** to far backlog per ADR-0005 and `ADR-0005`. Core delivery does not require legacy operator platform implementation or smoke.
 
-The platform must fully work as a SIP phone without OCP.
+The platform must fully work as a SIP phone without legacy operator integration.
 
 Allowed direction:
 
 ```txt
-OCP Plugin
+legacy operator platform Plugin
     ↓
 Core Platform Ports
 ```
@@ -404,10 +403,10 @@ Forbidden direction:
 ```txt
 Core Platform
     ↓
-OCP
+legacy operator platform
 ```
 
-Core telephony must never depend on OCP.
+Core telephony must never depend on legacy operator platform.
 
 ## Headset Architecture
 
@@ -436,7 +435,7 @@ The following must always be true:
 - Application owns orchestration.
 - Domain owns business rules.
 - Infrastructure owns technology concerns.
-- OCP can be removed.
+- legacy operator platform can be removed.
 - JsSIP can be replaced (real track uses `@hailrase/jssip` fork — see `docs/softphone/real-integration/JSSIP-FORK.md`).
 - Headset vendors can be replaced.
 

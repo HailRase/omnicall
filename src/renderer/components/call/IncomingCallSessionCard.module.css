@@ -131,17 +131,6 @@
   padding: 0 var(--space-sm) var(--space-2xs);
 }
 
-.badge-queue,
-.badge-campaign {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px var(--space-2xs);
-  border-radius: var(--radius-control);
-  font-size: 0.625rem;
-  color: var(--color-text-secondary);
-  background: var(--color-bg-surface-alt);
-}
-
 .disabled-reason {
   margin: 0;
   padding: 0 var(--space-sm) var(--space-2xs);

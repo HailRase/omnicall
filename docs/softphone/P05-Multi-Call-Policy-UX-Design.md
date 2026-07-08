@@ -15,7 +15,7 @@
 | `connecting_in_progress` | Call connecting… | Dialpad, incoming answer, resume |
 | `multi_call_policy_violation` | Operation not allowed (see message) | `multi-call-policy-error` banner |
 | `not_registered` | Not registered | Dialpad (reuse auth projection) |
-| `ocp_reserved` | OCP reserved | Dialpad (reuse auth projection) |
+| `ocp_reserved` | legacy operator platform reserved | Dialpad (reuse auth projection) |
 
 ## Hold-All Batch (LF-021)
 

@@ -11,7 +11,7 @@ Read `docs/softphone/STATUS.md` before any implementation session.
 ## Prompt rules
 
 - Name roadmap phase and LF-XXX IDs.
-- Skip Operator/OCP unless user resumes `OCP-PLUGIN-BACKLOG.md`.
+- Skip Operator/legacy operator platform unless user resumes `ADR-0005`.
 - Architecture boundaries via `.cursor/rules/00-core.mdc`.
 - Tests required; UI requires UX state design first.
 - Adapters require ports and mock tests first.

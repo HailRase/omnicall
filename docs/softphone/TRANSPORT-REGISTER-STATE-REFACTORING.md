@@ -1,7 +1,7 @@
 # Transport + Register State Refactoring Plan
 
 > **Status:** `done` — master plan for SIP transport/registration UX and domain refactor (closed 2026-07-02).  
-> **Scope:** SIP-only. OCP is **out of scope** (deep backlog, ADR-0002).  
+> **Scope:** SIP-only. legacy operator platform is **out of scope** (deep backlog, ADR-0005).  
 > **Features:** F-001, F-014, F-016 (+ partial F-017 diagnostics surface).  
 > **Legacy:** LF-008, LF-009, LF-010, LF-011 (supersedes LF-057 overlay / LF-009 avatar ring).
 
@@ -19,7 +19,7 @@ Open a **new Agent chat** and paste **one** of the prompts below. The agent must
 Выполни план docs/softphone/TRANSPORT-REGISTER-STATE-REFACTORING.md.
 Прочитай план целиком, STATUS.md, Architecture-Constitution.md, Feature-Registry.md.
 Начни с Phase 0. Не пропускай фазы. После каждой фазы обнови §12 Progress в этом файле и создай work-history.
-OCP не трогай. SIP-only.
+legacy operator platform не трогай. SIP-only.
 ```
 
 #### Continue (next sessions)
@@ -33,7 +33,7 @@ OCP не трогай. SIP-only.
 
 ```text
 Выполни только Phase N из docs/softphone/TRANSPORT-REGISTER-STATE-REFACTORING.md.
-Обнови §12 Progress. OCP не трогай.
+Обнови §12 Progress. legacy operator platform не трогай.
 ```
 
 Replace `N` with `0`…`7`.
@@ -67,7 +67,7 @@ Replace `N` with `0`…`7`.
 - [x] All §12 phase checkboxes checked
 - [x] `npm run test && npm run lint && npm run typecheck` green
 - [x] Feature Registry F-001, F-014, F-016 updated
-- [x] ConnectionOverlay removed; no OCP recovery UI in SIP-only path
+- [x] ConnectionOverlay removed; no legacy operator recovery UI in SIP-only path
 - [x] Header shows unified SIP status per §4
 - [x] Settings **«Состояние системы»** module live per §5
 - [x] No user-selectable online/offline presence (auth + logout only)
@@ -159,7 +159,7 @@ New settings section (see §5). Replaces recovery overlay + splits policy from d
 
 ### 1.9 Explicitly out of scope
 
-- OCP recovery UI and orchestration wiring
+- legacy operator recovery UI and orchestration wiring
 - Avatar recovery ring (LF-009 cancelled for this product)
 - `navigator.onLine` handling
 - Tray notifications on disconnect
@@ -274,7 +274,7 @@ type SipRecoverySnapshot = Readonly<{
 | `ManualSipTransportReconnectRequested` | User action from settings |
 | `ManualSipReregisterRequested` | User action from settings |
 
-**Remove from SIP-only path:** dependency on `OcpDisconnected`, `ConnectionOverlay` states.
+**Remove from SIP-only path:** dependency on `legacy disconnect event`, `ConnectionOverlay` states.
 
 `SipTransportReconnectSucceeded` must **not** publish `RegistrationSucceeded` (transport only).  
 `SipRegistrationRetrySucceeded` **must** publish `RegistrationSucceeded` when account id known.
@@ -306,7 +306,7 @@ type SipRecoverySnapshot = Readonly<{
 
 - `ConnectionOverlay`, `RecoveryFeatureShell`
 - `control-reregister-sip` in header
-- OCP rows in recovery projections
+- legacy operator platform rows in recovery projections
 - User menu online/offline toggles (if present)
 
 **Add:**
@@ -446,9 +446,9 @@ System State journal is **SIP connection/register only** — lightweight in-memo
 | `src/renderer/components/recovery/ConnectionOverlay.tsx` | Replaced by settings |
 | `src/renderer/shells/RecoveryFeatureShell.tsx` | No overlay |
 | `src/application/projections/deriveConnectionRecoveryShell.ts` | Replaced |
-| `src/application/projections/operator/ocpConnectionRecoveryProjection.ts` | OCP-only recovery read model (deferred ADR-0002) |
+| `src/application/projections/operator/ocpConnectionRecoveryProjection.ts` | legacy operator platform-only recovery read model (deferred ADR-0005) |
 | Header `control-reregister-sip` | Moved to settings |
-| OCP branches in recovery derive* | SIP-only |
+| legacy operator platform branches in recovery derive* | SIP-only |
 
 ---
 
@@ -523,7 +523,7 @@ System State journal is **SIP connection/register only** — lightweight in-memo
 - [x] `deriveSipStatusShell` + tests (all §4 rows)
 - [x] `deriveSipSystemStateShell` + tests
 - [x] Store subscription in `useAccountBootstrapStore`
-- [x] Remove OCP fields from SIP-only derive path
+- [x] Remove legacy operator platform fields from SIP-only derive path
 
 **Gate:** projection tests green.
 
@@ -594,7 +594,7 @@ System State journal is **SIP connection/register only** — lightweight in-memo
 - Do not show `registered` dot when `!isConnected`
 - Do not run `reregister()` while transport reconnecting
 - Do not publish `RegistrationSucceeded` on transport-only reconnect success
-- Do not add OCP recovery UI «for later»
+- Do not add legacy operator recovery UI «for later»
 - Do not reintroduce `ConnectionOverlay` without ADR
 - Do not use `phoneStatus offline` as user-selectable presence
 - Do not log SIP passwords or tokens in journal

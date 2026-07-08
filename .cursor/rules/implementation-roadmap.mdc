@@ -15,12 +15,7 @@ Implementation order is defined in:
 
 ```txt
 docs/softphone/Implementation-Roadmap.md
-docs/softphone/OCP-PLUGIN-BACKLOG.md
 ```
-
-## OCP plugin (deferred)
-
-OCP Operator integration is **DEFERRED** (ADR-0002). Do not implement P06/P07 real OCP or RAT R5 unless user resumes `OCP-PLUGIN-BACKLOG.md`. SIP-only phases remain active.
 
 ## Phase Order
 
@@ -32,8 +27,8 @@ Implement phases in order:
 4. P03 Incoming Call Foundation
 5. P04 Active Call Controls
 6. P05 Multi-Call And Transfer
-7. P06 Operator Status And Post-Call Workflows
-8. P07 OCP Call Synchronization And Campaigns
+7. P06 Legacy Platform Post-Call Workflows (**removed** — ADR-0005)
+8. P07 Legacy Call Sync And Campaigns (**removed** — ADR-0005)
 9. P08 Connection Loss, Recovery, And Cleanup
 10. P09 History, Logging, And Diagnostics
 11. P10 Headset Integration
@@ -90,7 +85,7 @@ Implement adapters after:
 - port exists
 - mock adapter tests pass
 
-Do not start with JsSIP, OCP WebSocket, WebHID, storage, or Electron IPC.
+Do not start with JsSIP, legacy operator WebSocket, WebHID, storage, or Electron IPC.
 
 ## UI Timing
 

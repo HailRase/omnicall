@@ -30,8 +30,8 @@ The following flows require logs, events, and tests:
 - unmute
 - transfer
 - DTMF
-- OCP authentication
-- OCP status change
+- legacy operator authentication
+- legacy operator platform status change
 - WebSocket reconnect
 - call recovery
 - headset answer/hangup/mute

@@ -21,7 +21,7 @@ F-002, F-003, LF-013–017, LF-020, LF-036
 
 ## UX (call center)
 
-- `IncomingCallModal`: number, display name, queue label when OCP wired
+- `IncomingCallModal`: number, display name, queue label when legacy operator platform wired
 - Answer/Reject keyboard accessible
 - `OutgoingCallCard` during connect
 - `ActiveCallControlsPanel` after answer

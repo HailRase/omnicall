@@ -1,5 +1,5 @@
 import type { CallHistoryProjection } from "@application/projections/contacts/callHistoryProjection.js";
-import type { CallHistoryEntry } from "@domain/index.js";
+import type { CallHistoryEntry } from "@application/index.js";
 import type { ParsedShellRoute } from "../shellRouteModel.js";
 import type { HistoryEntryRouteSnapshot, RouteDataLoadStatus } from "./shellRouteDataModel.js";
 

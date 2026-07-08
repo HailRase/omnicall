@@ -8,7 +8,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { InMemoryContactRepository } from "@adapters/settings/InMemoryContactRepository.js";
 import { InMemorySettingsRepository } from "@adapters/settings/InMemorySettingsRepository.js";
 import { MockMediaGateway } from "@adapters/mock/MockMediaGateway.js";
-import { MockOperatorPlatformGateway } from "@adapters/mock/MockOperatorPlatformGateway.js";
 import { MockTelephonyGateway } from "@adapters/mock/MockTelephonyGateway.js";
 import { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import { initialCallHistoryProjection } from "@application/projections/contacts/callHistoryProjection.js";
@@ -47,8 +46,7 @@ function createRouteLoaderHarness(initialPath: string, strict = false) {
 
 function createFacade(contactRepository = new InMemoryContactRepository()): AccountBootstrapFacade {
   return new AccountBootstrapFacade({
-    operatorGateway: new MockOperatorPlatformGateway(),
-    telephonyGateway: new MockTelephonyGateway("success"),
+    telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
     mediaGateway: new MockMediaGateway(),
     settingsRepository: new InMemorySettingsRepository(),
     contactRepository,

@@ -5,8 +5,6 @@ import {
 } from "./accountBootstrapProjection.js";
 import {
   createAccessDeniedDetectedEvent,
-  createOcpAuthenticationFailedEvent,
-  createOcpAuthenticationRequestedEvent,
   createPhoneStatusChangedEvent,
   createRegistrationFailedEvent,
   createRegistrationRequestedEvent,
@@ -19,44 +17,10 @@ import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { createSipAccountId } from "@domain/index.js";
 
 describe("accountBootstrapProjection", () => {
-  it("maps OCP auth loading and invalid token states", () => {
+  it("maps manual access denied state", () => {
     const correlationId = createCorrelationId();
-    let projection = initialAccountBootstrapProjection();
-
-    projection = reduceAccountBootstrapProjection(
-      projection,
-      createOcpAuthenticationRequestedEvent(correlationId, {
-        token: "x",
-        domain: "y",
-      }),
-    );
-    expect(projection.authUiState).toBe("ocp_authenticating");
-
-    projection = reduceAccountBootstrapProjection(
-      projection,
-      createOcpAuthenticationFailedEvent(correlationId, {
-        reason: "invalid_token",
-        message: "Invalid OCP token",
-      }),
-    );
-    expect(projection.authUiState).toBe("ocp_invalid_token");
-  });
-
-  it("maps session exists and access denied states", () => {
-    const correlationId = createCorrelationId();
-    let projection = initialAccountBootstrapProjection();
-
-    projection = reduceAccountBootstrapProjection(
-      projection,
-      createOcpAuthenticationFailedEvent(correlationId, {
-        reason: "session_exists",
-        message: "Session exists",
-      }),
-    );
-    expect(projection.authUiState).toBe("ocp_session_exists");
-
-    projection = reduceAccountBootstrapProjection(
-      projection,
+    const projection = reduceAccountBootstrapProjection(
+      initialAccountBootstrapProjection(),
       createAccessDeniedDetectedEvent(correlationId, {
         source: "manual",
         reason: "Access denied: username is required",
@@ -67,18 +31,14 @@ describe("accountBootstrapProjection", () => {
 
   it("maps startup mode to sip only ready", () => {
     const correlationId = createCorrelationId();
-    let projection = initialAccountBootstrapProjection();
-
-    projection = reduceAccountBootstrapProjection(
-      projection,
+    const projection = reduceAccountBootstrapProjection(
+      initialAccountBootstrapProjection(),
       createStartupModeResolvedEvent(correlationId, {
-        mode: "sip-only",
         resolution: { action: "sip_only_ready" },
       }),
     );
 
     expect(projection.authUiState).toBe("sip_only_ready");
-    expect(projection.isOcpMode).toBe(false);
   });
 
   it("maps registration success to online phone status", () => {
@@ -106,10 +66,8 @@ describe("accountBootstrapProjection", () => {
 
   it("maps registration failure state", () => {
     const correlationId = createCorrelationId();
-    let projection = initialAccountBootstrapProjection();
-
-    projection = reduceAccountBootstrapProjection(
-      projection,
+    const projection = reduceAccountBootstrapProjection(
+      initialAccountBootstrapProjection(),
       createRegistrationFailedEvent(correlationId, {
         accountId: createSipAccountId("agent"),
         reason: "SIP registration failed",
@@ -122,10 +80,8 @@ describe("accountBootstrapProjection", () => {
 
   it("maps phone status changed event", () => {
     const correlationId = createCorrelationId();
-    let projection = initialAccountBootstrapProjection();
-
-    projection = reduceAccountBootstrapProjection(
-      projection,
+    const projection = reduceAccountBootstrapProjection(
+      initialAccountBootstrapProjection(),
       createPhoneStatusChangedEvent(correlationId, {
         previousStatus: "offline",
         nextStatus: "dnd",

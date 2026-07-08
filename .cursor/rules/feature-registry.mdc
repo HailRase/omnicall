@@ -73,7 +73,7 @@ Acceptance criteria must describe observable behavior.
 Good:
 
 - `Incoming call produces IncomingCallReceived and appears in ringing projection.`
-- `SIP-only mode starts without OCP plugin.`
+- `SIP-only bootstrap starts without legacy operator integration.`
 
 Bad:
 

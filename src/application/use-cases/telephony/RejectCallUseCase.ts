@@ -1,4 +1,4 @@
-import { validateBreakReason, type Call, type CallId } from "@domain/index.js";
+import { validateIncomingRejectReason, type Call, type CallId } from "@domain/index.js";
 import type { Logger, SettingsRepository } from "@ports/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
@@ -28,7 +28,7 @@ export class RejectCallUseCase {
     const breakReason = input.breakReason?.trim();
 
     if (incomingSettings.rejectReasonRequired) {
-      const validationErrors = validateBreakReason(
+      const validationErrors = validateIncomingRejectReason(
         breakReason ?? "",
         incomingSettings.allowedBreakReasons,
       );

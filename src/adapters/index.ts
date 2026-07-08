@@ -1,10 +1,3 @@
-export { MockOperatorPlatformGateway } from "./mock/MockOperatorPlatformGateway.js";
-export type {
-  MockOcpScenario,
-  MockAgentStatusChangeScenario,
-  MockOcpReconnectScenario,
-  MockOperatorPlatformGatewayOptions,
-} from "./mock/MockOperatorPlatformGateway.js";
 export { MockTelephonyGateway } from "./mock/MockTelephonyGateway.js";
 export type {
   MockDtmfScenario,
@@ -59,26 +52,3 @@ export type { InMemorySettingsState } from "./settings/InMemorySettingsRepositor
 export { SettingsRepositoryCodecPreferencesAdapter } from "./settings/SettingsRepositoryCodecPreferencesAdapter.js";
 export type { SettingsRepositoryCodecPreferencesAdapterOptions } from "./settings/SettingsRepositoryCodecPreferencesAdapter.js";
 export { MockCodecPreferencesPort } from "./mock/MockCodecPreferencesPort.js";
-export { MockOcpSyncGateway } from "./mock/MockOcpSyncGateway.js";
-export type { MockOcpSyncScenario, MockOcpCampaignRespondScenario, MockDlgStopScenario } from "./mock/MockOcpSyncGateway.js";
-export {
-  createSampleOcpQueueInfoRawMessage,
-  createSampleOcpCampaignEventRawMessage,
-  createSampleOcpNotificationRawMessage,
-  createSampleOcpServerTerminateRawMessage,
-  SAMPLE_OCP_QUEUE_INFO_MESSAGE,
-  SAMPLE_OCP_CAMPAIGN_EVENT_MESSAGE,
-  SAMPLE_OCP_NOTIFICATION_MESSAGE,
-  SAMPLE_OCP_SERVER_TERMINATE_MESSAGE,
-} from "./mock/MockOcpSyncGateway.js";
-export { OcpWebSocketTransport } from "./operator/websocket/OcpWebSocketTransport.js";
-export type {
-  OcpWebSocketPort,
-  OcpWebSocketFactory,
-  OcpWebSocketTransportOptions,
-} from "./operator/websocket/OcpWebSocketTransport.js";
-export { WebSocketOperatorPlatformGateway } from "./operator/websocket/WebSocketOperatorPlatformGateway.js";
-export type { WebSocketOperatorPlatformGatewayOptions } from "./operator/websocket/WebSocketOperatorPlatformGateway.js";
-export { WebSocketOcpSyncGateway } from "./operator/websocket/WebSocketOcpSyncGateway.js";
-export type { WebSocketOcpSyncGatewayOptions } from "./operator/websocket/WebSocketOcpSyncGateway.js";
-export { resolveOcpWebSocketUrl } from "./operator/websocket/resolveOcpWebSocketUrl.js";

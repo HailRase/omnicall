@@ -6,9 +6,8 @@ import { UpdateAvailableBanner } from "../components/updates/UpdateAvailableBann
 import { SettingsFullscreenOverlay } from "../components/settings/SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "../components/settings/SettingsPanel.js";
 import { DEFAULT_AUTO_ANSWER_TIMEOUT_SEC } from "../components/settings/panels/SettingsSessionsPanel.js";
-import { mapAgentStatusRejectionReason } from "../helpers/mapAgentStatusRejectionReason.js";
-import { useAccountPanelShell } from "../hooks/useAccountPanelShell.js";
 import { useActionNotifications } from "../hooks/useActionNotifications.js";
+import { useAccountPanelShell } from "../hooks/useAccountPanelShell.js";
 import { useAuthShellFlags } from "../hooks/useAuthShellFlags.js";
 import { useCallFeatureShell } from "../hooks/useCallFeatureShell.js";
 import { useHeaderChromeShell } from "../hooks/useHeaderChromeShell.js";
@@ -33,8 +32,6 @@ import { ContactsShellRoutePanel } from "./contacts/ContactsShellRoutePanel.js";
 import { SoftphoneLayout } from "../widgets/SoftphoneLayout/SoftphoneLayout.js";
 import { CallContextShell } from "./call/CallContextShell.js";
 import { CallControlsShell } from "./call/CallControlsShell.js";
-import { CallOverlayShell } from "./call/CallOverlayShell.js";
-import { OperatorFeatureShell } from "./OperatorFeatureShell.js";
 import { SessionFeatureShell } from "./SessionFeatureShell.js";
 import { SoftphoneShellHeader } from "./SoftphoneShellHeader.js";
 
@@ -64,8 +61,6 @@ function SoftphoneShellLayoutRoute({
   const { sessionLogoutActions } = shellChrome;
   const {
     projection,
-    operatorStatusProjection,
-    ocpNotificationProjection,
     multiCallProjection,
     applyMultiCallSettings,
   } =
@@ -112,7 +107,6 @@ function SoftphoneShellLayoutRoute({
     phoneStatus: projection.phoneStatus,
     phoneStatusDisabled: blockingAuthState,
     isSipRegistered,
-    isOcpMode: projection.isOcpMode,
     authUiState: projection.authUiState,
     sessionLogoutActions,
     onOpenSettings: overlayShell.openSettings,
@@ -140,9 +134,6 @@ function SoftphoneShellLayoutRoute({
   const sipActionErrorText =
     sipSystemStateActions.actionErrorDetail ??
     (sipSystemStateActions.actionErrorKey !== null ? t(sipSystemStateActions.actionErrorKey) : null);
-  const statusRejectionBanner = mapAgentStatusRejectionReason(
-    operatorStatusProjection.lastRejectionReason,
-  );
   useActionNotifications({
     notifications,
     accountFeedback: {
@@ -160,11 +151,6 @@ function SoftphoneShellLayoutRoute({
     settingsUpdateError: settingsActions.settingsUpdateError,
     sipActionSuccessKey: sipSystemStateActions.actionSuccessKey,
     sipActionErrorText,
-    statusRejectionBanner,
-    ocpToasts:
-      projection.isOcpMode && ocpNotificationProjection.isOcpSyncAvailable
-        ? ocpNotificationProjection.toasts
-        : [],
   });
   const windowControls = useShellWindowControls({ isShuttingDown });
 
@@ -179,7 +165,6 @@ function SoftphoneShellLayoutRoute({
             windowControls={windowControls}
             suppressWindowControls={overlayShell.settingsOpen}
           />
-          <OperatorFeatureShell facade={facade} />
         </>
       }
       context={
@@ -209,7 +194,6 @@ function SoftphoneShellLayoutRoute({
             items={notifications.items}
             onDismiss={notifications.dismiss}
           />
-          <CallOverlayShell bindings={callBindings} />
           <SettingsFullscreenOverlay
             open={overlayShell.settingsOpen}
             onClose={overlayShell.closeOverlay}

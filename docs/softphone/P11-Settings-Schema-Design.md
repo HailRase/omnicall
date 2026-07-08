@@ -7,7 +7,7 @@ Related: **F-016**, **LF-076**, **LF-077**, **LF-016**, **LF-033**, **LF-032**. 
 - Branded `SettingsAccountKey` identifies a settings profile bucket.
 - **Current (WU4):** SIP `username` only via `resolveSettingsAccountKeyFromSipAccount`.
 - **F-023 target:** normalized `username@domain` (+ server suffix when server host ≠ domain); see `P11-Local-Account-Profiles-Design.md`.
-- OCP `agentId` may alias the same key when SIP credentials arrive from OCP bootstrap.
+- legacy operator platform `agentId` may alias the same key when SIP credentials arrive from legacy operator platform bootstrap.
 - Anonymous bucket `__anonymous__` when no SIP account is active (dev/tests only).
 
 ## Schema version
@@ -29,7 +29,7 @@ Related: **F-016**, **LF-076**, **LF-077**, **LF-016**, **LF-033**, **LF-032**. 
 | `autoAnswerTimeoutSec` | `number \| null` | `null` | LF-016 | `null` or integer `0…300`. |
 | `ringbackToneEnabled` | `boolean` | `true` | LF-033 | Required boolean; wire-ready for RBT policy. |
 
-OCP-only break-reason lists remain in `IncomingCallSettings` (synced from operator gateway), not in `UserSettings`.
+legacy operator platform-only break-reason lists remain in `IncomingCallSettings` (synced from operator gateway), not in `UserSettings`.
 
 ## Migration v0 → v1
 
@@ -68,4 +68,4 @@ No persisted blob → `createDefaultUserSettings()` (v1).
 
 ## Out of scope (WU4)
 
-Full settings panels, Electron IPC file store, OCP-only field UI, Use Cases for boolean config toggles.
+Full settings panels, Electron IPC file store, legacy operator platform-only field UI, Use Cases for boolean config toggles.

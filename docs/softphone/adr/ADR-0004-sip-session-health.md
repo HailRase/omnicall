@@ -15,7 +15,7 @@ Accepted (2026-07-02)
 SIP connectivity has two independent axes: **transport** (WebSocket) and **registration** (SIP REGISTER). Legacy code mixed them in a single recovery projection and fullscreen overlay, causing false «registered» state and blocked call UI (LF-057).
 
 - Registration shown as healthy when WebSocket is down (`isRegistered()` stale after disconnect).
-- OCP recovery rows in SIP-only product path (ADR-0002 defers OCP).
+- legacy operator recovery rows in SIP-only product path (ADR-0005 defers legacy operator platform).
 - Fullscreen recovery overlay blocked call UI during registration retry (LF-057).
 - Header `control-reregister-sip` and avatar recovery ring (LF-009) duplicate settings actions.
 - User-selectable online/offline presence conflicts with auth/logout-only model.
@@ -62,7 +62,7 @@ During active call + socket drop: header shows fault immediately; recovery sched
 
 ### 3. Application orchestration
 
-Replace SIP path in `ConnectionRecoveryOrchestrationService` with **`SipRecoveryOrchestrationService`** (SIP-only). OCP orchestration code remains dormant (ADR-0002).
+Replace SIP path in `ConnectionRecoveryOrchestrationService` with **`SipRecoveryOrchestrationService`** (SIP-only). legacy operator platform orchestration code remains dormant (ADR-0005).
 
 New/changed Use Cases:
 
@@ -106,7 +106,7 @@ Add SIP recovery fields: `sipAutoReconnectEnabled`, `sipReconnectIntervalSec`, `
 
 ### 8. Explicitly out of scope
 
-- OCP recovery UI and orchestration wiring (ADR-0002).
+- legacy operator recovery UI and orchestration wiring (ADR-0005).
 - Avatar recovery ring (LF-009 cancelled).
 - `navigator.onLine`, tray disconnect notifications, `registrationExpiring` UI.
 
@@ -118,26 +118,26 @@ Add SIP recovery fields: `sipAutoReconnectEnabled`, `sipReconnectIntervalSec`, `
 | Single combined reconnect for transport + REGISTER | Violates strict pipeline; races JsSIP internal reconnect |
 | Header manual retry buttons | Clutters chrome; settings panel is canonical (§1.6) |
 | User online/offline presence toggle | Product: auth/logout only; DND separate |
-| Delete OCP recovery code | ADR-0002: preserve plugin architecture |
+| Delete legacy operator recovery code | ADR-0005: preserve plugin architecture |
 
 ## Consequences
 
 **Positive:**
 
 - Clear transport vs registration semantics; no false «registered» on disconnect.
-- SIP-only path free of OCP overlay rows.
+- SIP-only path free of legacy operator platform overlay rows.
 - Recovery observable in settings journal with correlation IDs.
 - Header always shows connection truth during active calls.
 
 **Negative:**
 
 - Large refactor across domain, application, adapter, UI (phased in T-008).
-- `ConnectionOverlay`, legacy recovery shell, and `connectionRecoveryProjection` removed — SIP read model is `sipSessionHealthProjection`; OCP-only deferred path uses `ocpConnectionRecoveryProjection`.
+- `ConnectionOverlay`, legacy recovery shell, and `connectionRecoveryProjection` removed — SIP read model is `sipSessionHealthProjection`; legacy operator platform-only deferred path uses `ocpConnectionRecoveryProjection`.
 - Settings schema v2 migration required.
 
 **Testing:** domain FSM unit tests; adapter disconnect→cleared registration; `SipRecoveryOrchestration.integration.test.ts`; projection tests for all §4 header rows; component tests for Russian copy.
 
-**Migration:** phased implementation (`TRANSPORT-REGISTER-STATE-REFACTORING.md` Phases 0–7). OCP mock tests unchanged until backlog resumes.
+**Migration:** phased implementation (`TRANSPORT-REGISTER-STATE-REFACTORING.md` Phases 0–7). legacy operator platform mock tests unchanged until backlog resumes.
 
 **Rollback:** revert branch; ADR remains for future reference.
 
@@ -145,7 +145,7 @@ Add SIP recovery fields: `sipAutoReconnectEnabled`, `sipReconnectIntervalSec`, `
 
 - [x] Domain remains framework-independent (`SipSessionHealth`, transport events).
 - [x] UI does not access adapters (projections + Use Cases only).
-- [x] OCP remains optional; SIP-only path has no OCP recovery UI.
+- [x] legacy operator platform remains optional; SIP-only path has no legacy operator recovery UI.
 - [x] JsSIP replaceable behind `TelephonyGateway`.
 - [x] State transitions explicit via Domain Events.
 - [x] Critical flows observable (journal, correlation IDs, logs).
@@ -156,4 +156,4 @@ Add SIP recovery fields: `sipAutoReconnectEnabled`, `sipReconnectIntervalSec`, `
 - Plan: `docs/softphone/TRANSPORT-REGISTER-STATE-REFACTORING.md`
 - Supersedes: LF-057 overlay UX, LF-009 avatar ring
 - Superseded By: —
-- ADR-0002 (OCP deferred)
+- ADR-0005 (legacy operator platform deferred)

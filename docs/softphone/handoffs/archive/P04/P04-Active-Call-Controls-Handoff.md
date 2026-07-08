@@ -51,4 +51,4 @@
 - Define multi-call policy and transfer relationship model (`LF-021`, `LF-023`, `LF-028`–`LF-032`).
 - Add transfer domain events (`CallTransferRequested`, `CallTransferred`, `CallTransferFailed`, etc.) and Use Cases (`StartTransferUseCase`, `BlindTransferUseCase`, `AttendedTransferUseCase`).
 - Extend projections for second session, exclusive hold, and transfer mode UX without moving SIP logic into React or stores.
-- Keep OCP optional; telephony commands continue through `CallEngine` only.
+- Keep legacy operator platform optional; telephony commands continue through `CallEngine` only.

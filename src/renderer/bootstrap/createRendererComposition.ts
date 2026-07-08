@@ -23,9 +23,7 @@ export async function createRendererComposition(): Promise<RendererComposition> 
   const facade = createSoftphoneComposition({
     mode: bootstrapOptions.adapterMode,
     bootstrapConfig: bootstrapOptions.config,
-    ocpScenario: bootstrapOptions.ocpScenario,
     telephonyScenario: bootstrapOptions.telephonyScenario,
-    ...(bootstrapOptions.ocpWsUrl !== undefined ? { ocpWsUrl: bootstrapOptions.ocpWsUrl } : {}),
     ...diskOptions,
     ...(contactCsvFileGateway !== undefined ? { contactCsvFileGateway } : {}),
   });

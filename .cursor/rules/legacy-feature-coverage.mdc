@@ -46,15 +46,11 @@ If no `LF-XXX` is affected, confirm the work is platform foundation or documenta
 
 Never remove or skip:
 
-- OCP auth states
 - SIP-only auth mode
 - incoming call behavior
 - outgoing call behavior
 - hold/mute/transfer/DTMF behavior
-- operator statuses
 - post-call workflows
-- campaign workflows
-- OCP sync events
 - call history
 - logging and diagnostics
 - headset controls
@@ -81,8 +77,7 @@ Before finishing a task verify:
 - no affected `LF-XXX` was missed
 - aggregate Feature Registry entry references the legacy IDs
 - acceptance focus is covered
-- SIP-only mode is not broken by OCP features
-- OCP features remain plugin-scoped
+- SIP-only telephony is not broken by removed legacy integration
 
 ## ADR Requirement
 

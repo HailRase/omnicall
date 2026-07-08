@@ -10,4 +10,4 @@
 
 - Build active call control panel (`hold`, `resume`, `mute`, `unmute`, `hangup`) on top of current `CallEngine` and projection structure.
 - Reuse incoming/outgoing projection split and keep controls disabled by projection reason, not component-local rules.
-- Keep host integration and OCP optional boundaries untouched while extending active state behavior.
+- Keep host integration and legacy operator platform optional boundaries untouched while extending active state behavior.

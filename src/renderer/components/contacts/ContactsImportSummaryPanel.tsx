@@ -1,6 +1,5 @@
 import type { JSX } from "react";
-import type { ContactsCsvImportSummary } from "@application/use-cases/contacts/ImportContactsCsvUseCase.js";
-import type { ContactValidationError } from "@domain/index.js";
+import type { ContactsCsvImportSummary, ContactValidationError } from "@application/index.js";
 import { useI18n, type TranslationKey } from "../../i18n/index.js";
 import {
   AlertDialog,

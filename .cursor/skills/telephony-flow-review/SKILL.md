@@ -99,7 +99,7 @@ For every flow define behavior for:
 - adapter timeout
 - media permission denied
 - call already ended
-- OCP unavailable
+- legacy operator platform unavailable
 - headset disconnected
 
 ## Test Checklist

@@ -6,28 +6,28 @@
 
 ## User Goal
 
-Understand which connection failed (OCP, SIP, or both), see automatic retry progress, manually retry when allowed, and reach a safe terminal state without hidden failures.
+Understand which connection failed (legacy operator platform, SIP, or both), see automatic retry progress, manually retry when allowed, and reach a safe terminal state without hidden failures.
 
 ## Connection Overlay States (`LF-057`)
 
 | State key | Meaning | Projection driver |
 | --- | --- | --- |
-| `connected` | OCP (if enabled) and SIP transports healthy | no pending reconnect; `RegistrationSucceeded` / `OcpReconnectSucceeded` |
-| `ocp_disconnected` | OCP WebSocket lost; SIP may still work | `OcpDisconnected`; OCP-only overlay copy |
-| `sip_disconnected` | SIP registration/transport lost; OCP may still work | `RegistrationFailed` or SIP reconnect chain |
+| `connected` | legacy operator platform (if enabled) and SIP transports healthy | no pending reconnect; `RegistrationSucceeded` / `OcpReconnectSucceeded` |
+| `ocp_disconnected` | legacy operator WebSocket lost; SIP may still work | `legacy disconnect event`; legacy operator platform-only overlay copy |
+| `sip_disconnected` | SIP registration/transport lost; legacy operator platform may still work | `RegistrationFailed` or SIP reconnect chain |
 | `reconnecting` | Automatic retry in progress | `OcpReconnectScheduled` / `SipReconnectScheduled` |
 | `reconnect_failed` | Max attempts exhausted | `OcpReconnectFailed` / `SipReconnectFailed` with `isTerminal: true` |
 | `manual_retry_available` | User may trigger retry Use Case (WU4) | terminal failure + manual retry policy |
 | `server_terminate` | Server forced logout (`LF-049`) | `ServerTerminateReceived` |
 
-## SIP-Only vs OCP Mode
+## SIP-Only vs legacy operator platform Mode
 
-| Mode | Overlay scope | OCP fields |
+| Mode | Overlay scope | legacy operator platform fields |
 | --- | --- | --- |
-| SIP-only (`StartupModeResolved.sip_only_ready`) | SIP disconnect/reconnect only; no OCP overlay | `ocpReconnectAttempt` N/A; OCP events no-op in projection |
-| OCP enabled | Combined overlay when either channel fails | Shows OCP attempt + countdown; SIP row when both affected |
+| SIP-only (`StartupModeResolved.sip_only_ready`) | SIP disconnect/reconnect only; no legacy operator platform overlay | `ocpReconnectAttempt` N/A; legacy operator platform events no-op in projection |
+| legacy operator platform enabled | Combined overlay when either channel fails | Shows legacy operator platform attempt + countdown; SIP row when both affected |
 
-Active SIP call controls remain reachable during OCP-only disconnect unless SIP is also down (blueprint rule).
+Active SIP call controls remain reachable during legacy operator platform-only disconnect unless SIP is also down (blueprint rule).
 
 ## Loading States
 
@@ -38,7 +38,7 @@ Active SIP call controls remain reachable during OCP-only disconnect unless SIP 
 
 | Feedback | When |
 | --- | --- |
-| Channel label (OCP / SIP) | `ocp_disconnected` vs `sip_disconnected` |
+| Channel label (legacy operator platform / SIP) | `ocp_disconnected` vs `sip_disconnected` |
 | `lastFailureReason` text | terminal or last failed attempt |
 | `reconnect_failed` banner | max attempts reached |
 | `server_terminate` | non-dismissable until cascade completes (WU3) |
@@ -62,7 +62,7 @@ Active SIP call controls remain reachable during OCP-only disconnect unless SIP 
 
 ```txt
 [ConnectionOverlay] data-testid="connection-overlay"
-  channel-status-row (OCP | SIP) — data-testid="connection-channel-ocp|sip"
+  channel-status-row (legacy operator platform | SIP) — data-testid="connection-channel-legacy operator|sip"
   reconnect-countdown data-testid="reconnect-countdown"
   control-retry-connection data-testid="control-retry-connection" (disabled until WU4)
   control-safe-logout data-testid="control-safe-logout" (disabled placeholder LF-048)
@@ -73,14 +73,14 @@ Active SIP call controls remain reachable during OCP-only disconnect unless SIP 
 | State | Visible copy | Loading | Error | Disabled | Recovery | a11y | Test IDs |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `connected` | hidden | — | — | — | — | — | overlay not mounted |
-| `ocp_disconnected` | "OCP connection lost" | — | `lastFailureReason` | retry: not WU4 | auto-retry pending | `role="region"` banner | `connection-overlay`, `connection-channel-ocp` |
+| `ocp_disconnected` | "legacy operator platform connection lost" | — | `lastFailureReason` | retry: not WU4 | auto-retry pending | `role="region"` banner | `connection-overlay`, `connection-channel-legacy operator` |
 | `sip_disconnected` | "SIP connection lost" | — | `lastFailureReason` | retry disabled | auto-retry pending | `role="alertdialog"` | `connection-channel-sip` |
 | `reconnecting` | "Reconnecting" + spinner text | attempt n of max | — | retry: in progress | countdown `nextRetryAt` | `aria-live="polite"` on countdown | `reconnect-countdown` |
 | `reconnect_failed` | "Connection could not be restored" | — | `lastFailureReason` | retry: not WU4 | manual retry WU4 | blocking if SIP affected | channel attempt rows |
 | `manual_retry_available` | "Connection failed" | — | `lastFailureReason` | retry enabled WU4 | user retry | blocking if SIP | `control-retry-connection` |
 | `server_terminate` | non-dismissable session ended | — | `lastFailureReason` | retry + safe logout disabled | cascade WU3+ | `role="alertdialog"` | `connection-server-terminate` |
 
-SIP-only: OCP row hidden; OCP inbound no-op. OCP-only disconnect: non-blocking banner; active call controls stay reachable.
+SIP-only: legacy operator platform row hidden; legacy operator platform inbound no-op. legacy operator platform-only disconnect: non-blocking banner; active call controls stay reachable.
 
 ## Components (WU3)
 
@@ -123,7 +123,7 @@ SIP-only: `deriveSessionLogoutShell` drives confirmation requirement from teleph
 
 ## Domain Events — WU1 Implemented
 
-- `OcpDisconnected`, `OcpReconnectScheduled`, `OcpReconnectSucceeded`, `OcpReconnectFailed`
+- `legacy disconnect event`, `OcpReconnectScheduled`, `OcpReconnectSucceeded`, `OcpReconnectFailed`
 - `SipReconnectScheduled`, `SipReconnectSucceeded`, `SipReconnectFailed`
 - `ServerTerminateReceived`
 - Backlog WU3+: `AppShutdownRequested`, `AgentLoggedOut` (`LF-048`)

@@ -4,9 +4,6 @@ declare const classes: {
   readonly autoAnswerFill: string;
   readonly autoAnswerHint: string;
   readonly autoAnswerTrack: string;
-  readonly badgeCampaign: string;
-  readonly badgeQueue: string;
-  readonly badges: string;
   readonly body: string;
   readonly buttonIcon: string;
   readonly disabledReason: string;

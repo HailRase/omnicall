@@ -27,9 +27,6 @@ function createIncomingCallLayoutHarness({
             callId="incoming-1"
             callerNumber="+12025550100"
             displayName="John Doe"
-            queueLabelState="hidden"
-            queueName={null}
-            campaignContextTitle={null}
             autoAnswerSecondsRemaining={null}
             autoAnswerTimeoutSec={null}
             uiState="incomingRinging"

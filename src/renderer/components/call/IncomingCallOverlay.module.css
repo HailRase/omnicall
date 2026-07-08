@@ -103,31 +103,6 @@
   white-space: nowrap;
 }
 
-.badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2xs);
-  margin-bottom: var(--space-sm);
-}
-
-.badge-queue {
-  font-size: 0.625rem;
-  padding: 2px 6px;
-  border-radius: var(--radius-panel);
-  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 25%, transparent);
-  background: color-mix(in srgb, var(--color-accent-primary) 12%, transparent);
-  color: var(--color-text-emphasis);
-}
-
-.badge-campaign {
-  font-size: 0.625rem;
-  padding: 2px 6px;
-  border-radius: var(--radius-panel);
-  border: 1px solid color-mix(in srgb, var(--color-text-warning) 30%, transparent);
-  background: color-mix(in srgb, var(--color-text-warning) 12%, transparent);
-  color: var(--color-text-warning);
-}
-
 .status-block {
   margin-bottom: var(--space-xs);
 }

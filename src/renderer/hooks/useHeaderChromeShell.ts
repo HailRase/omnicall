@@ -22,7 +22,7 @@ export function useHeaderChromeShell(input: UseHeaderChromeShellInput) {
     () =>
       deriveHeaderChromeShell({
         health: sipSessionHealthProjection,
-        agentId: projection.agentId,
+        agentId: null,
         sipUsername: projection.sipUsername,
         dndEnabled: input.dndEnabled,
         sipAutoReconnectEnabled: input.sipAutoReconnectEnabled,
@@ -31,7 +31,6 @@ export function useHeaderChromeShell(input: UseHeaderChromeShellInput) {
       }),
     [
       sipSessionHealthProjection,
-      projection.agentId,
       projection.sipUsername,
       input.dndEnabled,
       input.sipAutoReconnectEnabled,

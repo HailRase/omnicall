@@ -24,7 +24,7 @@ Replace visible text labels on **icon-only** controls with semantic `AppIcon` + 
 
 - Redesigning control layout
 - Removing `aria-label`
-- OCP / Domain changes
+- legacy operator platform / Domain changes
 
 ## Implementation notes
 

@@ -31,7 +31,6 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
     incomingCallProjection,
     incomingCallActions,
     incomingCallShell,
-    campaignActions,
     dialpadMode,
     transferPanelShell,
     transferActions,
@@ -130,9 +129,6 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
               callId={incomingCallId}
               callerNumber={incomingCallShell.identity.callerNumber}
               displayName={incomingCallShell.identity.displayName}
-              queueLabelState={incomingCallShell.queueLabelState}
-              queueName={incomingCallShell.queueName}
-              campaignContextTitle={campaignActions.campaignContextTitle}
               autoAnswerSecondsRemaining={autoAnswerSecondsRemaining}
               autoAnswerTimeoutSec={incomingCallProjection.autoAnswerTimeoutSec}
               uiState={incomingCallProjection.uiState}

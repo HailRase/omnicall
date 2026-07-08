@@ -6,13 +6,13 @@ DOCUMENT.
 
 This document defines the implementation order for the Electron rewrite.
 
-## Product priority (ADR-0002)
+## Product priority (ADR-0005)
 
-**OCP plugin is DEFERRED.** See `OCP-PLUGIN-BACKLOG.md`.
+**legacy operator integration removed** per ADR-0005. See `adr/ADR-0005-remove-legacy-operator-integration.md`.
 
 Active track: **P11** shell/settings UX (**WU0–WU5 + UI-4 + post-WU5 polish done**), **F-008 DTMF real**, P10 headset, P12 host API. RAT R1–R4 + step 08 **closed**. **RAT transfer (step 07): backlog** — `real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md`. See `STATUS.md`.
 
-**Not in active scope:** P06/P07 real OCP integration, RAT step 06 R5 smoke, operator platform on production stand — until user resumes OCP backlog.
+**Not in active scope:** P06/P07 legacy operator integration (removed per ADR-0005).
 
 ## Roadmap Rules
 
@@ -113,45 +113,36 @@ Legacy IDs:
 
 Goal:
 
-Support both optional OCP bootstrap and SIP-only account bootstrap.
+SIP-only account bootstrap with registration.
 
 Order:
 
-1. Define `SipAccount`, `OperatorSession`, `RegistrationState`.
+1. Define `SipAccount`, `RegistrationState`.
 2. Define events:
-   - `OcpAuthenticationRequested`
-   - `OcpAuthenticationSucceeded`
-   - `OcpAuthenticationFailed`
    - `SipCredentialsReceived`
    - `RegistrationRequested`
    - `RegistrationSucceeded`
    - `RegistrationFailed`
 3. Define ports:
-   - `OperatorPlatformGateway`
    - `TelephonyGateway`
    - `SettingsRepository`
 4. Implement Use Cases:
-   - `AuthenticateOcpUseCase`
    - `AuthorizeSipAccountUseCase`
    - `RegisterAccountUseCase`
 5. Implement mock gateways first.
 6. Implement UI states:
    - loading
-   - invalid token
-   - session exists
    - access denied
    - offline
    - online
    - DND
-7. Add OCP plugin adapter after mocks.
-8. Add JsSIP adapter only after registration Use Case tests pass.
+7. Add JsSIP adapter only after registration Use Case tests pass.
 
 Gate:
 
-- SIP-only mode works without OCP.
-- OCP mode can receive SIP credentials and register.
+- SIP-only bootstrap works end-to-end.
 - Registration state is event-derived.
-- UI never imports JsSIP or WebSocket adapter.
+- UI never imports JsSIP or WebSocket adapter directly.
 
 ## Phase 02: Dialpad And Outgoing Call Foundation
 
@@ -332,88 +323,13 @@ Gate:
 - Multi-call policy is test-covered.
 - No mutable transfer flags exist on adapter sessions.
 
-## Phase 06: Operator Status And Post-Call Workflows
+## Phase 06: Legacy Platform Post-Call Workflows (**removed** — ADR-0005)
 
-Legacy IDs:
+Removed from product scope. Phone status (online/offline/dnd) and SIP DND remain via P11 settings.
 
-- `LF-018`
-- `LF-019`
-- `LF-041` through `LF-048`
-- `LF-062`
-- `LF-078`
+## Phase 07: Legacy Call Sync And Campaigns (**removed** — ADR-0005)
 
-Goal:
-
-Support OCP operator statuses, DND rules, break reasons, post-call processing, and logout.
-
-Order:
-
-1. Define `Agent`, `AgentStatus`, `StatusReason`.
-2. Define status state machine.
-3. Define events:
-   - `AgentStatusChangeRequested`
-   - `AgentStatusChanged`
-   - `AgentStatusChangeRejected`
-   - `BreakReasonsReceived`
-   - `PostCallStatusUpdated`
-   - `AgentLogoutRequested`
-   - `AgentLoggedOut`
-4. Implement Use Cases:
-   - `ChangeAgentStatusUseCase`
-   - `UpdatePostCallStatusUseCase`
-   - `LogoutOperatorUseCase`
-5. Build status selector UX.
-6. Build status duration timer.
-7. Build logout reason modal.
-8. Integrate DND status constraints.
-9. Integrate reject reason post-call update.
-
-Gate:
-
-- SIP-only mode hides or disables OCP-specific status controls cleanly.
-- Invalid status transitions are impossible.
-- Logout cascade has tests.
-
-## Phase 07: OCP Call Synchronization And Campaigns
-
-Legacy IDs:
-
-- `LF-037` through `LF-040`
-- `LF-050`
-- `LF-059`
-- `LF-063` through `LF-065`
-
-Goal:
-
-Support OCP queue/campaign/call synchronization and notifications.
-
-Order:
-
-1. Define typed OCP message schemas.
-2. Define exact call ID mapping for `main_acallid`.
-3. Define events:
-   - `QueueInfoReceived`
-   - `CampaignEventReceived`
-   - `CampaignEventAnswered`
-   - `CallButtonBlocked`
-   - `OcpNotificationReceived`
-   - `ExternalCallEventPublished`
-   - `DlgStopRequested`
-   - `DlgStopSent`
-4. Implement OCP gateway message parser.
-5. Implement `SyncMainAcallIdUseCase`.
-6. Implement campaign Use Cases.
-7. Implement OCP notification projection.
-8. Build campaign modal UX.
-9. Build toast UX.
-10. Implement `dlg_stop` exactly-once policy.
-
-Gate:
-
-- No infinite interval polling.
-- Queue name mapping is exact, not substring-based.
-- Campaign modal can close according to product rules.
-- OCP sync is absent in SIP-only mode.
+Removed from product scope. SIP telephony, recovery, and call history do not depend on legacy platform sync.
 
 ## Phase 08: Connection Loss, Recovery, And Cleanup
 
@@ -434,7 +350,7 @@ Order:
 
 1. Define reconnect policy.
 2. Define events:
-   - `OcpDisconnected`
+   - `legacy disconnect event`
    - `OcpReconnectScheduled`
    - `OcpReconnectSucceeded`
    - `OcpReconnectFailed`
@@ -645,7 +561,7 @@ Before declaring parity:
 1. Check every `LF-001` through `LF-090`.
 2. Check every critical legacy feature has test evidence.
 3. Check SIP-only mode.
-4. Check OCP plugin mode.
+4. Check legacy operator integration mode.
 5. Check host API compatibility.
 6. Check reconnect and shutdown.
 7. Check headset flows.

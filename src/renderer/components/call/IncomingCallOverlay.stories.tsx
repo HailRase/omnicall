@@ -25,10 +25,7 @@ const baseArgs: Story["args"] = {
   visible: true,
   callerNumber: "+7 (495) 123-45-67",
   displayName: "Иван Петров",
-  queueLabelState: "ready",
-  queueName: "VIP",
-  campaignContextTitle: null,
-  autoAnswerSecondsRemaining: null,
+autoAnswerSecondsRemaining: null,
   uiState: "incomingRinging",
   answerDisabledReason: null,
   rejectDisabledReason: null,
@@ -53,17 +50,6 @@ export const AutoAnswer: Story = {
     uiState: "autoAnswerCountdown",
   },
   parameters: { theme: "dark" },
-};
-
-export const WithCampaign: Story = {
-  args: {
-    ...baseArgs,
-    campaignContextTitle: "Исходящая кампания",
-    queueLabelState: "loading",
-    queueName: null,
-    uiState: "queueInfoPending",
-  },
-  parameters: { theme: "light" },
 };
 
 export const AnswerBlocked: Story = {

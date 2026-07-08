@@ -1,7 +1,7 @@
 # P05 Agent Continuation Handoff
 
 - Phase: `P05` Multi-Call And Transfer — **complete** (WU1–WU4).
-- Next phase: `P06` Operator Status And Post-Call Workflows (not started).
+- Next phase: `P08` Connection Loss, Recovery, And Cleanup (SIP recovery path).
 
 ## Status Summary
 

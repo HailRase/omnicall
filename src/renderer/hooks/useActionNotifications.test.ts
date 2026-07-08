@@ -43,8 +43,6 @@ function createBaseInput(overrides: Partial<HookInput> = {}): HookInput {
     settingsUpdateError: null,
     sipActionSuccessKey: null,
     sipActionErrorText: null,
-    statusRejectionBanner: null,
-    ocpToasts: [],
     ...overrides,
   };
 }

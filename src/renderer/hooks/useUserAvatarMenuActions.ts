@@ -13,7 +13,6 @@ type UseUserAvatarMenuActionsInput = Readonly<{
   phoneStatus: PhoneStatus;
   phoneStatusDisabled: boolean;
   isSipRegistered: boolean;
-  isOcpMode: boolean;
   authUiState: AuthUiState;
   sessionLogoutActions: UseSessionLogoutActionsResult;
   onOpenSettings: () => void;
@@ -48,7 +47,6 @@ export function useUserAvatarMenuActions(
     phoneStatus,
     phoneStatusDisabled,
     isSipRegistered,
-    isOcpMode,
     authUiState,
     sessionLogoutActions,
     onOpenSettings,
@@ -74,7 +72,6 @@ export function useUserAvatarMenuActions(
 
   const dndEnabled = phoneStatus === "dnd";
   const logoutDisabledReason = mapAvatarMenuLogoutDisabledReason({
-    isOcpMode,
     authUiState,
     shell: sessionLogoutActions.shell,
   });

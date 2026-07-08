@@ -1,6 +1,5 @@
 import type {
   AppBootstrapConfig,
-  BreakReason,
   MultiCallSettings,
   PhoneStatus,
   SettingsAccountKey,
@@ -8,7 +7,6 @@ import type {
   UserSettings,
 } from "@domain/index.js";
 import {
-  createBreakReason,
   createDefaultUserSettings,
   mergeMultiCallIntoUserSettings,
   resolveSettingsAccountKeyFromSipAccount,
@@ -61,7 +59,7 @@ export class InMemorySettingsRepository implements SettingsRepository {
     );
 
     this.state = {
-      bootstrapConfig: initial?.bootstrapConfig ?? { mode: "sip-only" },
+      bootstrapConfig: initial?.bootstrapConfig ?? {},
       sipAccount,
       activeProfileKey,
       phoneStatus: initial?.phoneStatus ?? "offline",
@@ -133,7 +131,7 @@ export class InMemorySettingsRepository implements SettingsRepository {
     });
   }
 
-  setAllowedBreakReasons(reasons: ReadonlyArray<BreakReason>): Promise<void> {
+  setAllowedBreakReasons(reasons: ReadonlyArray<string>): Promise<void> {
     this.state = {
       ...this.state,
       incomingCallSettings: {
@@ -218,10 +216,6 @@ function seedUserSettings(
   };
 }
 
-function defaultBreakReasons(): ReadonlyArray<BreakReason> {
-  return [
-    createBreakReason("break"),
-    createBreakReason("meeting"),
-    createBreakReason("training"),
-  ];
+function defaultBreakReasons(): ReadonlyArray<string> {
+  return ["break", "meeting", "training"];
 }

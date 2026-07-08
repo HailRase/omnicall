@@ -96,7 +96,7 @@ Adapter logs: `jssip_blind_transfer_*`, `jssip_attended_transfer_*` with correla
 ### Out of scope
 
 - Inbound REFER handling (ReferNotifier) — not required for agent-initiated transfer.
-- OCP transfer sync — deferred (ADR-0002).
+- legacy operator platform transfer sync — deferred (ADR-0005).
 - Multi-call hold-all on real SBC — separate backlog item in step 07 deferred doc.
 
 ## Alternatives Considered
@@ -118,7 +118,7 @@ Adapter logs: `jssip_blind_transfer_*`, `jssip_attended_transfer_*` with correla
 
 - Domain remains framework-independent.
 - UI does not access adapters.
-- OCP remains optional.
+- legacy operator platform remains optional.
 - JsSIP types do not cross `TelephonyGateway` port.
 - State transitions remain explicit via existing Domain events.
 

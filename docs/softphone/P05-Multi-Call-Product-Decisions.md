@@ -5,7 +5,7 @@
 DOCUMENT.
 
 **Status:** Accepted (2026-06-25).  
-**Scope:** SIP-only product path; OCP deferred (ADR-0002).  
+**Scope:** SIP-only product path; legacy operator platform deferred (ADR-0005).  
 **Features:** F-002, F-003, F-004, F-006, F-007 (policy slice).  
 **Legacy:** LF-021, LF-023, LF-032.
 

@@ -77,7 +77,7 @@ Flag violations:
 - UI → SIP / Electron / repositories directly
 - Domain → React / Electron / JsSIP / Zustand
 - Store → Use Cases / adapters
-- CallEngine → OCP coupling
+- CallEngine → legacy operator platform coupling
 - Boolean flags instead of canonical call states
 - `any`, `@deprecated` APIs in touched code
 
@@ -87,7 +87,7 @@ Flag violations:
 - Cancel transfer ≠ failure
 - Retry: explicit policy, timer cleanup, no infinite polling / `setInterval`
 - Correlation ID in logs and events
-- SIP-only: OCP UI / projections hidden
+- SIP-only: legacy operator platform UI / projections hidden
 - Projection-driven disabled reasons (not local React guesses)
 
 ### 4. Tests and observability

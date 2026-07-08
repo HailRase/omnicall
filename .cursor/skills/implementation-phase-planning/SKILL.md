@@ -75,7 +75,7 @@ Start with:
 
 Do not:
 - call adapters from UI
-- introduce OCP dependency into core telephony
+- introduce legacy operator platform dependency into core telephony
 - skip Feature Registry updates
 ```
 
@@ -86,7 +86,7 @@ Flag risks:
 - phase depends on unfinished previous phase
 - UI requested before Domain/Application exists
 - real adapter requested before mock tests
-- OCP feature could break SIP-only mode
+- legacy operator platform feature could break SIP-only mode
 - host API compatibility is unclear
 - UX error state is missing
 - tests require real external infrastructure

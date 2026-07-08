@@ -3,7 +3,6 @@ import { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFac
 import {
   InMemorySettingsRepository,
   MockMediaGateway,
-  MockOperatorPlatformGateway,
   MockTelephonyGateway,
   InMemorySavedAccountProfileRepository,
 } from "@adapters/index.js";
@@ -25,13 +24,11 @@ import { tmpdir } from "node:os";
 
 describe("AccountBootstrapFacade integration", () => {
   it("runs SIP-only manual authorize and register flow", async () => {
-    const telephony = new MockTelephonyGateway("success");
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: telephony,
+    const telephony = new MockTelephonyGateway({ registrationScenario: "success" });
+    const facade = new AccountBootstrapFacade({      telephonyGateway: telephony,
       mediaGateway: new MockMediaGateway(),
       settingsRepository: new InMemorySettingsRepository({
-        bootstrapConfig: { mode: "sip-only" },
+        bootstrapConfig: {},
       }),
       logger: createTestLogger(),
     });
@@ -46,77 +43,21 @@ describe("AccountBootstrapFacade integration", () => {
     expect(telephony.isRegistered()).toBe(true);
   });
 
-  it("runs OCP bootstrap through mock gateways", async () => {
-    const telephony = new MockTelephonyGateway("success");
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway({ scenario: "success" }),
-      telephonyGateway: telephony,
-      mediaGateway: new MockMediaGateway(),
-      settingsRepository: new InMemorySettingsRepository({
-        bootstrapConfig: {
-          mode: "ocp",
-          ocpToken: "token",
-          ocpDomain: "ocp.example",
-        },
-      }),
-      logger: createTestLogger(),
-    });
-
-    const result = await facade.authenticateOcp.execute({
-      token: "token",
-      domain: "ocp.example",
-    });
-
-    expect(isErr(result)).toBe(false);
-    await waitFor(() => telephony.isRegistered());
-    expect(telephony.isRegistered()).toBe(true);
-  });
-
   it("initializes sip-only startup through ResolveStartupModeUseCase", async () => {
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: new MockTelephonyGateway("success"),
+    const facade = new AccountBootstrapFacade({      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
       mediaGateway: new MockMediaGateway(),
       settingsRepository: new InMemorySettingsRepository({
-        bootstrapConfig: { mode: "sip-only" },
+        bootstrapConfig: {},
       }),
       logger: createTestLogger(),
     });
 
-    await facade.initialize({ mode: "sip-only" });
-  });
-
-  it("initializes ocp startup and registers via mock gateways", async () => {
-    const telephony = new MockTelephonyGateway("success");
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway({ scenario: "success" }),
-      telephonyGateway: telephony,
-      mediaGateway: new MockMediaGateway(),
-      settingsRepository: new InMemorySettingsRepository({
-        bootstrapConfig: {
-          mode: "ocp",
-          ocpToken: "token",
-          ocpDomain: "ocp.example",
-        },
-      }),
-      logger: createTestLogger(),
-    });
-
-    await facade.initialize({
-      mode: "ocp",
-      ocpToken: "token",
-      ocpDomain: "ocp.example",
-    });
-
-    await waitFor(() => telephony.isRegistered());
-    expect(telephony.isRegistered()).toBe(true);
+    await facade.initialize({});
   });
 
   it("changes phone status through event-driven use case", async () => {
     const settings = new InMemorySettingsRepository({ phoneStatus: "offline" });
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: new MockTelephonyGateway("success"),
+    const facade = new AccountBootstrapFacade({      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
       mediaGateway: new MockMediaGateway(),
       settingsRepository: settings,
       logger: createTestLogger(),
@@ -133,9 +74,7 @@ describe("AccountBootstrapFacade integration", () => {
         autoUnholdOnTransferFailure: true,
       },
     });
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: new MockTelephonyGateway("success"),
+    const facade = new AccountBootstrapFacade({      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
       mediaGateway: new MockMediaGateway(),
       settingsRepository: settings,
       logger: createTestLogger(),
@@ -155,9 +94,7 @@ describe("AccountBootstrapFacade integration", () => {
 
   it("reads and saves user settings aggregate through facade", async () => {
     const settings = new InMemorySettingsRepository();
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: new MockTelephonyGateway("success"),
+    const facade = new AccountBootstrapFacade({      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
       mediaGateway: new MockMediaGateway(),
       settingsRepository: settings,
       logger: createTestLogger(),
@@ -183,9 +120,7 @@ describe("AccountBootstrapFacade integration", () => {
 
   it("refreshes multi-call projection from persisted user settings", async () => {
     const settings = new InMemorySettingsRepository();
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: new MockTelephonyGateway("success"),
+    const facade = new AccountBootstrapFacade({      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
       mediaGateway: new MockMediaGateway(),
       settingsRepository: settings,
       logger: createTestLogger(),
@@ -211,11 +146,9 @@ describe("AccountBootstrapFacade integration", () => {
 
   it("switches active profile on authorize and restores per-account settings A→B→A", async () => {
     const settings = new InMemorySettingsRepository({
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: new MockTelephonyGateway("success"),
+    const facade = new AccountBootstrapFacade({      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
       mediaGateway: new MockMediaGateway(),
       settingsRepository: settings,
       logger: createTestLogger(),
@@ -309,11 +242,9 @@ describe("AccountBootstrapFacade integration", () => {
 
   it("writes multi-call updates only to the active profile bucket", async () => {
     const settings = new InMemorySettingsRepository({
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: new MockTelephonyGateway("success"),
+    const facade = new AccountBootstrapFacade({      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
       mediaGateway: new MockMediaGateway(),
       settingsRepository: settings,
       logger: createTestLogger(),
@@ -365,12 +296,10 @@ describe("AccountBootstrapFacade integration", () => {
 
   it("refreshes profile-scoped contacts and history for the active profile", async () => {
     const settings = new InMemorySettingsRepository({
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
     const contacts = new InMemoryContactRepository();
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: new MockTelephonyGateway("success"),
+    const facade = new AccountBootstrapFacade({      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
       mediaGateway: new MockMediaGateway(),
       settingsRepository: settings,
       contactRepository: contacts,
@@ -415,11 +344,9 @@ describe("AccountBootstrapFacade integration", () => {
 
   it("refreshes multi-call projection for the active profile after authorize switch", async () => {
     const settings = new InMemorySettingsRepository({
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: new MockTelephonyGateway("success"),
+    const facade = new AccountBootstrapFacade({      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
       mediaGateway: new MockMediaGateway(),
       settingsRepository: settings,
       logger: createTestLogger(),
@@ -500,7 +427,7 @@ describe("AccountBootstrapFacade integration", () => {
       const seeded = new FileSettingsRepository({
         storageRoot: root,
         filesystem,
-        initial: { bootstrapConfig: { mode: "sip-only" } },
+        initial: { bootstrapConfig: {} },
       });
       await seeded.saveUserSettings(legacyKey, legacySettings);
       await seeded.setActiveProfileKey(legacyKey);
@@ -508,11 +435,9 @@ describe("AccountBootstrapFacade integration", () => {
       const settings = new FileSettingsRepository({
         storageRoot: root,
         filesystem,
-        initial: { bootstrapConfig: { mode: "sip-only" } },
+        initial: { bootstrapConfig: {} },
       });
-      const facade = new AccountBootstrapFacade({
-        operatorGateway: new MockOperatorPlatformGateway(),
-        telephonyGateway: new MockTelephonyGateway("success"),
+      const facade = new AccountBootstrapFacade({        telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
         mediaGateway: new MockMediaGateway(),
         settingsRepository: settings,
         logger: createTestLogger(),
@@ -543,13 +468,11 @@ describe("AccountBootstrapFacade integration", () => {
 
   it("keeps manual authorization working without saving profile by default", async () => {
     const savedProfiles = new InMemorySavedAccountProfileRepository();
-    const telephony = new MockTelephonyGateway("success");
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: telephony,
+    const telephony = new MockTelephonyGateway({ registrationScenario: "success" });
+    const facade = new AccountBootstrapFacade({      telephonyGateway: telephony,
       mediaGateway: new MockMediaGateway(),
       settingsRepository: new InMemorySettingsRepository({
-        bootstrapConfig: { mode: "sip-only" },
+        bootstrapConfig: {},
       }),
       savedAccountProfileRepository: savedProfiles,
       logger: createTestLogger(),
@@ -569,12 +492,10 @@ describe("AccountBootstrapFacade integration", () => {
 
   it("saves profile metadata when saveProfile is checked after successful manual auth", async () => {
     const savedProfiles = new InMemorySavedAccountProfileRepository();
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: new MockTelephonyGateway("success"),
+    const facade = new AccountBootstrapFacade({      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
       mediaGateway: new MockMediaGateway(),
       settingsRepository: new InMemorySettingsRepository({
-        bootstrapConfig: { mode: "sip-only" },
+        bootstrapConfig: {},
       }),
       savedAccountProfileRepository: savedProfiles,
       logger: createTestLogger(),
@@ -598,12 +519,10 @@ describe("AccountBootstrapFacade integration", () => {
 
   it("does not duplicate saved profile on repeated saveProfile authorize", async () => {
     const savedProfiles = new InMemorySavedAccountProfileRepository();
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: new MockTelephonyGateway("success"),
+    const facade = new AccountBootstrapFacade({      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
       mediaGateway: new MockMediaGateway(),
       settingsRepository: new InMemorySettingsRepository({
-        bootstrapConfig: { mode: "sip-only" },
+        bootstrapConfig: {},
       }),
       savedAccountProfileRepository: savedProfiles,
       logger: createTestLogger(),
@@ -624,12 +543,10 @@ describe("AccountBootstrapFacade integration", () => {
 
   it("authorizes saved profile with same settings account key as manual path", async () => {
     const settings = new InMemorySettingsRepository({
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
     const savedProfiles = new InMemorySavedAccountProfileRepository();
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: new MockTelephonyGateway("success"),
+    const facade = new AccountBootstrapFacade({      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
       mediaGateway: new MockMediaGateway(),
       settingsRepository: settings,
       savedAccountProfileRepository: savedProfiles,
@@ -664,12 +581,10 @@ describe("AccountBootstrapFacade integration", () => {
 
   it("deletes saved profile without removing per-account user settings", async () => {
     const settings = new InMemorySettingsRepository({
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
     const savedProfiles = new InMemorySavedAccountProfileRepository();
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: new MockTelephonyGateway("success"),
+    const facade = new AccountBootstrapFacade({      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
       mediaGateway: new MockMediaGateway(),
       settingsRepository: settings,
       savedAccountProfileRepository: savedProfiles,
@@ -705,7 +620,7 @@ describe("AccountBootstrapFacade integration", () => {
   });
 
   it("succeeds manual auth when save profile metadata fails after registration", async () => {
-    const telephony = new MockTelephonyGateway("success");
+    const telephony = new MockTelephonyGateway({ registrationScenario: "success" });
     const baseRepo = new InMemorySavedAccountProfileRepository();
     const failingRepo: SavedAccountProfileRepository = {
       listProfiles: () => baseRepo.listProfiles(),
@@ -714,12 +629,10 @@ describe("AccountBootstrapFacade integration", () => {
       touchLastUsedAt: (id) => baseRepo.touchLastUsedAt(id),
       saveProfile: () => Promise.reject(new Error("profile persistence failed")),
     };
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: telephony,
+    const facade = new AccountBootstrapFacade({      telephonyGateway: telephony,
       mediaGateway: new MockMediaGateway(),
       settingsRepository: new InMemorySettingsRepository({
-        bootstrapConfig: { mode: "sip-only" },
+        bootstrapConfig: {},
       }),
       savedAccountProfileRepository: failingRepo,
       logger: createTestLogger(),
@@ -745,7 +658,7 @@ describe("AccountBootstrapFacade integration", () => {
   });
 
   it("succeeds saved profile auth when touch lastUsedAt fails after registration", async () => {
-    const telephony = new MockTelephonyGateway("success");
+    const telephony = new MockTelephonyGateway({ registrationScenario: "success" });
     const baseRepo = new InMemorySavedAccountProfileRepository();
     const failingRepo: SavedAccountProfileRepository = {
       listProfiles: () => baseRepo.listProfiles(),
@@ -754,12 +667,10 @@ describe("AccountBootstrapFacade integration", () => {
       saveProfile: (input) => baseRepo.saveProfile(input),
       touchLastUsedAt: () => Promise.reject(new Error("touch failed")),
     };
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: telephony,
+    const facade = new AccountBootstrapFacade({      telephonyGateway: telephony,
       mediaGateway: new MockMediaGateway(),
       settingsRepository: new InMemorySettingsRepository({
-        bootstrapConfig: { mode: "sip-only" },
+        bootstrapConfig: {},
       }),
       savedAccountProfileRepository: failingRepo,
       logger: createTestLogger(),
@@ -785,13 +696,11 @@ describe("AccountBootstrapFacade integration", () => {
   });
 
   it("ends current user session before authorizing a different profile", async () => {
-    const telephony = new MockTelephonyGateway("success");
+    const telephony = new MockTelephonyGateway({ registrationScenario: "success" });
     const settings = new InMemorySettingsRepository({
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: telephony,
+    const facade = new AccountBootstrapFacade({      telephonyGateway: telephony,
       mediaGateway: new MockMediaGateway(),
       settingsRepository: settings,
       logger: createTestLogger(),
@@ -823,25 +732,3 @@ describe("AccountBootstrapFacade integration", () => {
     expect(stored?.username).toBe("1002");
   });
 });
-
-function waitFor(predicate: () => boolean, timeoutMs = 1000): Promise<void> {
-  const startedAt = Date.now();
-
-  return new Promise((resolve, reject) => {
-    const tick = (): void => {
-      if (predicate()) {
-        resolve();
-        return;
-      }
-
-      if (Date.now() - startedAt > timeoutMs) {
-        reject(new Error("Condition was not met in time"));
-        return;
-      }
-
-      setTimeout(tick, 10);
-    };
-
-    tick();
-  });
-}

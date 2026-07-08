@@ -4,7 +4,6 @@ import {
   InMemorySettingsRepository,
   MockHostIntegrationGateway,
   MockMediaGateway,
-  MockOperatorPlatformGateway,
   MockTelephonyGateway,
 } from "@adapters/index.js";
 import {
@@ -19,9 +18,7 @@ describe("MultiCallPolicy integration", () => {
     const settings = new InMemorySettingsRepository({
       multiCallSettings: { multiSessionsEnabled: false },
     });
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: new MockTelephonyGateway({ makeCallScenario: "answered" }),
+    const facade = new AccountBootstrapFacade({      telephonyGateway: new MockTelephonyGateway({ makeCallScenario: "answered" }),
       mediaGateway: new MockMediaGateway(),
       settingsRepository: settings,
       hostIntegrationGateway: new MockHostIntegrationGateway(),
@@ -50,9 +47,7 @@ describe("MultiCallPolicy integration", () => {
     const settings = new InMemorySettingsRepository({
       multiCallSettings: { multiSessionsEnabled: true },
     });
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: new MockTelephonyGateway({ makeCallScenario: "answered" }),
+    const facade = new AccountBootstrapFacade({      telephonyGateway: new MockTelephonyGateway({ makeCallScenario: "answered" }),
       mediaGateway: new MockMediaGateway(),
       settingsRepository: settings,
       hostIntegrationGateway: new MockHostIntegrationGateway(),

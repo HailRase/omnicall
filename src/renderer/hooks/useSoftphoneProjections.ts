@@ -14,24 +14,12 @@ export function useSoftphoneProjections() {
   const incomingCallProjection = useAccountBootstrapStore(
     (state) => state.incomingCallProjection,
   );
-  const queueInfoProjection = useAccountBootstrapStore(
-    (state) => state.queueInfoProjection,
-  );
-  const campaignProjection = useAccountBootstrapStore(
-    (state) => state.campaignProjection,
-  );
-  const ocpNotificationProjection = useAccountBootstrapStore(
-    (state) => state.ocpNotificationProjection,
-  );
   const multiCallProjection = useAccountBootstrapStore(
     (state) => state.multiCallProjection,
   );
   const transferProjection = useAccountBootstrapStore((state) => state.transferProjection);
   const multiLineCallProjection = useAccountBootstrapStore(
     (state) => state.multiLineCallProjection,
-  );
-  const operatorStatusProjection = useAccountBootstrapStore(
-    (state) => state.operatorStatusProjection,
   );
   const sipSessionHealthProjection = useAccountBootstrapStore(
     (state) => state.sipSessionHealthProjection,
@@ -53,13 +41,9 @@ export function useSoftphoneProjections() {
     callProjection,
     activeCallControlsProjection,
     incomingCallProjection,
-    queueInfoProjection,
-    campaignProjection,
-    ocpNotificationProjection,
     multiCallProjection,
     transferProjection,
     multiLineCallProjection,
-    operatorStatusProjection,
     sipSessionHealthProjection,
     setCallMode,
     setIncomingUiState,

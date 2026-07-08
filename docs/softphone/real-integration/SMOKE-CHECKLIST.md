@@ -1,13 +1,12 @@
 # Manual Smoke Checklist (Real Adapters)
 
-> **R5 OCP:** **DEFERRED** (ADR-0002). Do not run or gate core work on R5. See `docs/softphone/OCP-PLUGIN-BACKLOG.md`.
+> **Legacy operator integration:** **removed** (ADR-0005). Not a RAT gate. See `docs/softphone/adr/ADR-0005-remove-legacy-operator-integration.md`.
 
 ## Setup
 
 - Copy `docs/softphone/real-integration/env.local.example` → `.env.local` at repo root
 - `npm run dev`
 - SIP-only: `http://localhost:5173/?adapters=real`
-- OCP: `?mode=ocp&adapters=real&token=...&domain=...`
 
 ## R1 Registration
 
@@ -56,14 +55,11 @@
 - [ ] Attended transfer with consultation leg — **backlog** (not verified)
 - [x] Transfer failure surfaces banner + retry — **PASS** (NOTIFY 487 mapped; projection recovery)
 
-## R5 OCP (DEFERRED — ADR-0002)
+## Legacy operator integration (removed — ADR-0005)
 
-> Out of active scope. Resume only via `OCP-PLUGIN-BACKLOG.md`.
+> Out of product scope. See `adr/ADR-0005-remove-legacy-operator-integration.md`.
 
-- [ ] OCP auth success path — **deferred**
-- [ ] Status Ready / Break — **deferred**
-- [ ] Queue name on incoming (if queue configured) — **deferred**
-- [ ] Campaign modal accept/reject — **deferred**
+- Legacy operator auth, status, queue, and campaign smoke — **removed**
 
 Record results in `PROGRESS.md` per step.
 
@@ -83,6 +79,6 @@ Record results in `PROGRESS.md` per step.
 | R4 Controls | **PASS** | Manual smoke session R2+R3+R4 — R4-1/2 |
 | R6 Transfer | **backlog** | `TRANSFER-REAL-ADAPTER-BACKLOG.md` |
 | R7 Multi-call | **PASS** (R7-1…R7-5) | Step 08 smoke notes 2026-06-25 |
-| R5 OCP | **deferred** | ADR-0002 — see `OCP-PLUGIN-BACKLOG.md`; not a RAT gate |
+| Legacy operator integration | **removed** | ADR-0005 — not a RAT gate |
 
 **R1-5 note:** auto-reconnect on network restore PASS; manual retry button not exercised to exhaustion (auto-reconnect in progress).

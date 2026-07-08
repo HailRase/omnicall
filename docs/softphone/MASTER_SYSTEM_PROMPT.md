@@ -23,7 +23,7 @@ The platform must support:
 - call history
 - headset integration
 - operator statuses
-- optional OCP integration (**product: DEFERRED** — ADR-0002, `OCP-PLUGIN-BACKLOG.md`)
+- optional legacy operator platform integration (**product: DEFERRED** — ADR-0005, `ADR-0005`)
 - future CRM/contact-center integrations
 
 The system must remain maintainable, observable, testable, and replaceable over long-term product evolution.
@@ -36,7 +36,7 @@ The product is not:
 - React
 - JsSIP
 - Zustand
-- OCP
+- legacy operator platform
 - Headset SDKs
 
 The product is:
@@ -60,7 +60,7 @@ External technologies are replaceable details.
 5. Business logic must not live in React components.
 6. Zustand stores must be projections, not services.
 7. SIP must be replaceable without changing UI or Domain.
-8. OCP must be removable without breaking core telephony.
+8. legacy operator platform must be removable without breaking core telephony.
 9. Headset vendors must be replaceable through adapters.
 10. Every business operation must enter through a Use Case.
 11. Every telephony action must pass through Call Engine.
@@ -73,7 +73,7 @@ The architecture is successful only if:
 - React can be replaced without Domain changes.
 - Electron can be replaced without Domain changes.
 - JsSIP can be replaced without Domain changes.
-- OCP can be removed without breaking SIP phone mode.
+- legacy operator platform can be removed without breaking SIP phone mode.
 - Headset SDKs can be replaced without Call Engine changes.
 - Critical call flows remain testable without real SIP infrastructure.
 
@@ -92,4 +92,4 @@ The first implementation must be a narrow vertical slice:
 7. Mock telephony adapter.
 8. Minimal Dialpad UI.
 
-Do not start with JsSIP, OCP, headset, or updater integration.
+Do not start with JsSIP, legacy operator platform, headset, or updater integration.

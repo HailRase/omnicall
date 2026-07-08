@@ -34,7 +34,7 @@ Use this skill before changing architecture, creating services, adding adapters,
 6. Check whether Domain remains framework-independent.
 7. Check whether UI bypasses Use Cases.
 8. Check whether stores remain projections.
-9. Check whether OCP remains optional.
+9. Check whether legacy operator platform remains optional.
 10. Check whether external libraries remain behind adapters.
 
 ## Risk Checklist

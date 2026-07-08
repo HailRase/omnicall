@@ -1,6 +1,5 @@
 import type {
   AppBootstrapConfig,
-  BreakReason,
   MultiCallSettings,
   PhoneStatus,
   SettingsAccountKey,
@@ -12,7 +11,7 @@ export type IncomingCallSettings = Readonly<{
   autoAnswerTimeoutSec: number | null;
   autoAnswerDuringActiveSessionEnabled: boolean;
   rejectReasonRequired: boolean;
-  allowedBreakReasons: ReadonlyArray<BreakReason>;
+  allowedBreakReasons: ReadonlyArray<string>;
 }>;
 
 export interface SettingsRepository {
@@ -22,7 +21,7 @@ export interface SettingsRepository {
   getPhoneStatus(): Promise<PhoneStatus>;
   setPhoneStatus(status: PhoneStatus): Promise<void>;
   getIncomingCallSettings(): Promise<IncomingCallSettings>;
-  setAllowedBreakReasons(reasons: ReadonlyArray<BreakReason>): Promise<void>;
+  setAllowedBreakReasons(reasons: ReadonlyArray<string>): Promise<void>;
   getMultiCallSettings(): Promise<MultiCallSettings>;
   setMultiCallSettings(settings: MultiCallSettings): Promise<void>;
   getUserSettings(accountKey: SettingsAccountKey): Promise<UserSettings>;

@@ -43,14 +43,14 @@ If step is unspecified, read `PROGRESS.md` and review the latest step marked `do
 Read in order:
 
 1. `docs/softphone/STATUS.md` — authoritative test count, active phase, next work
-2. `docs/softphone/OCP-PLUGIN-BACKLOG.md` — **OCP deferred; active track is SIP R1–R4 + main roadmap**
+2. `docs/softphone/ADR-0005` — **legacy operator platform deferred; active track is SIP R1–R4 + main roadmap**
 3. `docs/softphone/real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md` — transfer backlog
 4. `docs/softphone/P05-Multi-Call-Product-Decisions.md` — multi-call law; **WU6 before RAT step 08**
 5. `docs/softphone/real-integration/PROGRESS.md` — step statuses, smoke, test count, blockers
 6. `docs/softphone/real-integration/00-SNAPSHOT.md` — frozen baseline (historical)
 7. Matching `docs/softphone/real-integration/step-NN-*.md` for the step under review
 8. `docs/softphone/adr/ADR-0001-real-adapter-integration.md`
-9. `docs/softphone/adr/ADR-0002-defer-ocp-plugin.md`
+9. `docs/softphone/adr/ADR-0005-defer-legacy operator-plugin.md`
 10. Latest `work-history/**/rat-step-*` or `rat-integration-*` for the step
 11. `docs/softphone/Feature-Registry.md` — F-001–F-008 SIP real-track; F-009/F-010/F-015 deferred
 12. `docs/softphone/Legacy-Feature-Coverage.md` — LF-XXX cited in step
@@ -126,8 +126,8 @@ Per `MASTER-AGENT-PROMPT.md` UX requirements:
 - Registration state visible (LF-011)
 - Disabled controls with projection reason
 - Connection overlay on transport loss
-- Incoming modal: caller ID, answer/reject, auto-answer, reject reason (OCP)
-- SIP-only hides operator status; OCP shows it
+- Incoming modal: caller ID, answer/reject, auto-answer, reject reason (legacy operator platform)
+- SIP-only hides operator status; legacy operator platform shows it
 - Keyboard + `data-testid` on critical controls
 
 ### 5. Tests and smoke
@@ -175,7 +175,7 @@ Per `MASTER-AGENT-PROMPT.md` UX requirements:
 | 03 | Browser media | LF-012, LF-033 | done |
 | 04 | Call lifecycle | F-002, F-003, LF-013–017, LF-020 | done |
 | 05 | Hold / mute | LF-022, LF-024, LF-027 | done |
-| 06 | OCP WebSocket | F-009, LF-001–004, LF-037–040 | **deferred** (ADR-0002) |
+| 06 | legacy operator WebSocket | F-009, LF-001–004, LF-037–040 | **deferred** (ADR-0005) |
 | 07 | Transfer | LF-028, LF-029 | **backlog** |
 | 08 | Multi-call real | LF-021, LF-023, LF-032 | **done** |
 
@@ -200,8 +200,8 @@ Always list for implementation agent:
 - Issue next step prompt on FAIL
 - Implement adapters in reviewer mode
 - Create work-history for review-only sessions
-- Merge to master without smoke for current **SIP** slice (R1–R4 closed; R5 deferred)
-- Prompt or gate on OCP / R5 unless user resumes `OCP-PLUGIN-BACKLOG.md`
+- Merge to master without smoke for current **SIP** slice (R1–R4 closed; removed operator deferred)
+- Prompt or gate on legacy operator platform / removed operator unless user resumes `ADR-0005`
 - Prompt or gate on transfer / R6 unless user resumes `TRANSFER-REAL-ADAPTER-BACKLOG.md`
 - Issue RAT step 08 before P05 WU6 mock gate is closed
 

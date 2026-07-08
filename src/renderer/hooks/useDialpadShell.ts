@@ -36,13 +36,11 @@ export function useDialpadShell(
   const { isSipRegistered } = deriveAuthShellFlags(projection);
   const isCalling = callProjection.state === "Connecting";
   const hasInvalidNumber = !isDialpadNumberValid(dialedNumber);
-  const ocpReserved = projection.isOcpMode && projection.phoneStatus === "dnd";
 
   const disabledState = useMemo(
     () =>
       deriveDialpadDisabledReason({
         isRegistered: isSipRegistered,
-        isOcpReserved: ocpReserved,
         isSecondSessionDisabled: multiCallProjection.isSecondSessionDisabled,
         secondSessionDisabledReason: multiCallProjection.secondSessionDisabledReason,
         isHoldAllInProgress: multiCallProjection.holdAllInProgress,
@@ -56,7 +54,6 @@ export function useDialpadShell(
       multiCallProjection.holdAllInProgress,
       multiCallProjection.isSecondSessionDisabled,
       multiCallProjection.secondSessionDisabledReason,
-      ocpReserved,
     ],
   );
 

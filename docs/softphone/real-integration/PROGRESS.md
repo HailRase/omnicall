@@ -1,7 +1,7 @@
 # RAT Progress
 
 > **Live status:** `../STATUS.md` — authoritative test count and active phase.
-> **OCP (step 06 / R5): DEFERRED** per [ADR-0002](../adr/ADR-0002-defer-ocp-plugin.md) and [OCP-PLUGIN-BACKLOG.md](../OCP-PLUGIN-BACKLOG.md).
+> **legacy operator platform (removed operator step / R5): DEFERRED** per [ADR-0005](../adr/ADR-0005-defer-legacy operator-plugin.md) and [ADR-0005](../ADR-0005).
 > **Transfer (step 07 / 07b / R6): BACKLOG** per [TRANSFER-REAL-ADAPTER-BACKLOG.md](./TRANSFER-REAL-ADAPTER-BACKLOG.md).
 > **Active track:** P11 UI-4 + icons/tooltips **complete** → **F-008 DTMF real** → P10 headset. RAT steps 00–08 **closed**.
 
@@ -28,7 +28,7 @@
 
 | 05 Hold / mute real | done | 2026-06-24 | holdCall/resumeCall re-INVITE; BrowserMediaAdapter mute verified; error banner already wired | 558 | R4 **pass** (manual 2026-06-24) |
 
-| 06 OCP WebSocket | **deferred** | 2026-06-24 | Code landed (WS adapters); R5 smoke **out of scope** per ADR-0002 — resume via OCP-PLUGIN-BACKLOG | 574 | R5 **deferred** |
+| 06 legacy operator WebSocket | **deferred** | 2026-06-24 | Code landed (WS adapters); removed operator smoke **out of scope** per ADR-0005 — resume via legacy operator platform-PLUGIN-BACKLOG | 574 | removed operator **deferred** |
 
 | 07 Transfer | **backlog** | 2026-06-25 | JsSIP REFER blind/attended landed; on-net blind PASS; attended unverified — see TRANSFER-REAL-ADAPTER-BACKLOG | 599 | R6 partial |
 | 07b External Refer-To | **backlog** | 2026-06-25 | `buildBlindReferTarget`; off-net B,C FAIL — paused per user; resume via backlog doc | 599 | R6 B,C **FAIL** |
@@ -44,7 +44,7 @@
 
 **Next adapter:** F-008 DTMF real, P10 headset.
 
-**Backlog:** transfer R6; OCP R5 (ADR-0002); Tone FSM (`MULTI-CALL-BACKLOG.md`).
+**Backlog:** transfer R6; legacy operator platform removed operator (ADR-0005); Tone FSM (`MULTI-CALL-BACKLOG.md`).
 
 | Area | Status |
 | --- | --- |
@@ -55,7 +55,7 @@
 
 ## Where we stopped (2026-06-25)
 
-- **OCP / R5:** deferred (ADR-0002).
+- **legacy operator platform / R5:** deferred (ADR-0005).
 - **SIP core R1–R4:** closed.
 - **R6 transfer:** backlog — partial (A,D pass; B,C fail; attended pending).
 - **Canonical tests:** see `../STATUS.md` (live). Step snapshots below are historical.
@@ -191,24 +191,24 @@
 
 **R2+R3+R4 gate:** **closed** (see session below).
 
-**Next track work:** main roadmap — P08 SIP recovery, F-008 DTMF real, P10 headset. RAT SIP core on `main`. Transfer: **backlog** (`TRANSFER-REAL-ADAPTER-BACKLOG.md`). OCP step 06 / R5 **deferred** (ADR-0002).
+**Next track work:** main roadmap — P08 SIP recovery, F-008 DTMF real, P10 headset. RAT SIP core on `main`. Transfer: **backlog** (`TRANSFER-REAL-ADAPTER-BACKLOG.md`). removed operator integration removed operator step / removed operator **deferred** (ADR-0005).
 
-## Step 06 notes (R5 — DEFERRED) — 2026-06-24
+## Step 06 notes (removed operator — DEFERRED) — 2026-06-24
 
-> **Superseded by ADR-0002.** R5 manual smoke is **not** an active gate. Resume via `OCP-PLUGIN-BACKLOG.md`.
+**Superseded by ADR-0005.** Legacy platform WebSocket integration removed from product. SIP core delivery does not require this step.
 
-**Code landed (dormant):** `OcpWebSocketTransport`; `WebSocketOperatorPlatformGateway`; `WebSocketOcpSyncGateway`; `setInboundRawHandler`; `wireOcpInboundToFacade`; `VITE_OCP_*` env.
+**Historical note:** Step 06 adapter code was removed during ADR-0005 cleanup.
 
-**Automated:** 574 passed, 1 skipped; lint/typecheck green.
+**Automated:** see current `npm run test` baseline in `PROGRESS.md`.
 
-| R5 checklist | Result |
+| Legacy platform checklist | Result |
 | --- | --- |
-| OCP auth success path | **deferred** |
-| Status Ready / Break | **deferred** |
-| Queue name on incoming | **deferred** |
-| Campaign modal accept/reject | **deferred** |
+| Platform auth success path | **removed** |
+| Status Ready / Break | **removed** |
+| Queue name on incoming | **removed** |
+| Campaign modal accept/reject | **removed** |
 
-**R5 gate:** **deferred** — not required for SIP core delivery.
+**Legacy platform gate:** **removed** — not required for SIP core delivery.
 
 ## Step 07 smoke notes (R6) — 2026-06-24
 

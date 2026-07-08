@@ -6,12 +6,6 @@ import { deriveCallLineStatusLabel } from "./deriveCallLineStatusLabel.js";
 import type { MultiCallProjection } from "./multiCallProjection.js";
 import { deriveResumeMultiCallDisabledReason } from "./multiCallProjection.js";
 import type { CallLine, MultiLineCallProjection } from "./multiLineCallProjection.js";
-import {
-  deriveQueueLabelState,
-  getQueueNameForCall,
-  type QueueInfoProjection,
-} from "../operator/queueInfoProjection.js";
-import type { QueueLabelState } from "../operator/queueInfoProjection.js";
 import { deriveStartTransferDisabledReason } from "./transferProjection.js";
 import type { TransferProjection } from "./transferProjection.js";
 import type { ActiveControlDisabledReason } from "./activeCallControlsProjection.js";
@@ -38,8 +32,6 @@ export type CallLineCardViewModel = Readonly<{
   displayName: string;
   statusLabel: CallLineStatusLabelKey;
   durationStartedAt: number | null;
-  queueLabelState: QueueLabelState;
-  queueName: string | null;
   primaryAction: CallLinePrimaryAction;
   showIconRow: boolean;
   showLocalHoldBadge: boolean;
@@ -62,10 +54,8 @@ export type CallLinesShellViewModel = Readonly<{
 export type CallLinesShellDeriveInput = Readonly<{
   multiLineCallProjection: MultiLineCallProjection;
   multiCallProjection: MultiCallProjection;
-  queueInfoProjection: QueueInfoProjection;
   activeCallControlsProjection: ActiveCallControlsProjection;
   transferProjection: TransferProjection;
-  isOcpMode: boolean;
   contacts: ReadonlyArray<Contact>;
 }>;
 
@@ -79,7 +69,7 @@ const ESTABLISHED_LINE_STATES = new Set<CallLine["state"]>([
 
 /**
  * - Purpose: derive multi-line call panel view-model for renderer shell.
- * - Inputs: multi-line, multi-call, queue, controls, and transfer projections.
+ * - Inputs: multi-line, multi-call, controls, and transfer projections.
  * - Outputs: visible lines with labels, actions, and per-line disabled reasons.
  */
 export function deriveCallLinesShell(
@@ -88,10 +78,8 @@ export function deriveCallLinesShell(
   const {
     multiLineCallProjection,
     multiCallProjection,
-    queueInfoProjection,
     activeCallControlsProjection,
     transferProjection,
-    isOcpMode,
   } = input;
 
   const resumePolicyReason = deriveResumeMultiCallDisabledReason(multiCallProjection);
@@ -105,10 +93,8 @@ export function deriveCallLinesShell(
       line,
       multiCallProjection,
       resumePolicyReason,
-      queueInfoProjection,
       activeCallControlsProjection,
       transferProjection,
-      isOcpMode,
       contactDirectory,
     }),
   );
@@ -126,10 +112,8 @@ function mapLineToViewModel(input: Readonly<{
   line: CallLine;
   multiCallProjection: MultiCallProjection;
   resumePolicyReason: string | null;
-  queueInfoProjection: QueueInfoProjection;
   activeCallControlsProjection: ActiveCallControlsProjection;
   transferProjection: TransferProjection;
-  isOcpMode: boolean;
   contactDirectory: ReturnType<typeof buildContactDirectory>;
 }>): CallLineCardViewModel {
   const { line, multiCallProjection, resumePolicyReason } = input;
@@ -148,9 +132,6 @@ function mapLineToViewModel(input: Readonly<{
       : lineControls.hangupDisabledReason;
   const primaryAction = resolvePrimaryAction(line.state);
   const showIconRow = line.state === "Active" && !line.isRemoteHold;
-  const queueLabelState = input.isOcpMode
-    ? deriveQueueLabelState(input.queueInfoProjection, line.callId)
-    : ("hidden" as const);
 
   return {
     callId: line.callId,
@@ -167,8 +148,6 @@ function mapLineToViewModel(input: Readonly<{
       state: line.state,
     }),
     durationStartedAt: line.activeSinceMs,
-    queueLabelState,
-    queueName: getQueueNameForCall(input.queueInfoProjection, line.callId),
     primaryAction,
     showIconRow,
     showLocalHoldBadge: line.state === "Held",

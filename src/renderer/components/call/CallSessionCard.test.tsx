@@ -19,9 +19,7 @@ const line: CallLineCardViewModel = {
   displayName: "+12025550100",
   statusLabel: "call.line.status.active",
   durationStartedAt: Date.now() - 65_000,
-  queueLabelState: "ready",
-  queueName: "Продажи",
-  primaryAction: "hangup",
+primaryAction: "hangup",
   showIconRow: true,
   showLocalHoldBadge: false,
   showRemoteHoldBadge: false,
@@ -80,7 +78,6 @@ describe("CallSessionCard", () => {
     expect(screen.getByTestId("call-session-card-call-1")).toBeInTheDocument();
     expect(screen.getByTestId("call-session-status-call-1")).toHaveTextContent("На линии");
     expect(screen.getByTestId("call-session-muted-call-1")).toHaveTextContent("Микрофон выкл");
-    expect(screen.getByText("Продажи")).toBeInTheDocument();
   });
 
   it("renders compact held status without resume hint", () => {

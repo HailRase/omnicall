@@ -22,7 +22,7 @@ Forbidden examples: React `FormEvent`/`FormEventHandler`; DOM prefer `SubmitEven
 
 ## React / Hooks / Zustand
 
-Components: render, props, hooks, forward intent — no SIP/Electron/repos/business rules/OCP parsing.
+Components: render, props, hooks, forward intent — no SIP/Electron/repos/business rules/legacy operator platform parsing.
 
 Hooks: selectors, Use Case binding, local UI — no telephony rules, SIP sessions, infra calls.
 
@@ -30,7 +30,7 @@ Zustand: projections only — no Use Cases/adapters/repos/SIP/Electron/business 
 
 ## Electron
 
-**Main:** lifecycle, windows, tray, updates, notifications, files, OS — no call rules, React/Domain state, OCP rules.
+**Main:** lifecycle, windows, tray, updates, notifications, files, OS — no call rules, React/Domain state, legacy operator platform rules.
 
 **Preload:** minimal typed APIs, narrow allowlists, validate payloads — no raw `ipcRenderer`, no Node globals in renderer.
 

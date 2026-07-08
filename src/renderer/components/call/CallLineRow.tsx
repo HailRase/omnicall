@@ -7,7 +7,6 @@ import { useCallDuration } from "../../hooks/useCallDuration.js";
 import {
   mapActiveCallControlDisabledReason,
 } from "../../helpers/mapActiveCallControlLabels.js";
-import { mapQueueLabelState } from "../../helpers/mapQueueLabelState.js";
 import { mapTransferDisabledReason } from "../../helpers/mapTransferDisabledReason.js";
 import { useI18n, type TranslationKey } from "../../i18n/index.js";
 import { IconControlButton } from "../icons/index.js";
@@ -43,7 +42,6 @@ export function CallLineRow({
   onAnswer,
 }: CallLineRowProps): JSX.Element {
   const { t } = useI18n();
-  const queueLabel = mapQueueLabelState(line.queueLabelState, line.queueName);
 
   return (
     <li
@@ -54,15 +52,6 @@ export function CallLineRow({
       <div className={styles.main}>
         <div className={styles.info}>
           <strong className={styles.name}>{line.displayName}</strong>
-          {!compact && queueLabel.visible ? (
-            <span
-              className={styles.queue}
-              data-testid={`call-line-queue-${line.callId}`}
-              aria-busy={queueLabel.ariaBusy}
-            >
-              {queueLabel.text}
-            </span>
-          ) : null}
           <div className={styles.meta}>
             <CallLineDuration startedAtMs={line.durationStartedAt} callId={line.callId} />
             <span>{t(line.statusLabel as TranslationKey)}</span>

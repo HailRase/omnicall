@@ -11,9 +11,7 @@ const activeLine: CallLineCardViewModel = {
   displayName: "Alice Operator",
   statusLabel: "call.line.status.active",
   durationStartedAt: Date.now() - 125_000,
-  queueLabelState: "ready",
-  queueName: "Support Queue",
-  primaryAction: "hangup",
+primaryAction: "hangup",
   showIconRow: true,
   showLocalHoldBadge: false,
   showRemoteHoldBadge: false,
@@ -93,9 +91,7 @@ export const MultiLineSecondary: Story = {
       showRemoteHoldBadge: false,
       isActiveUnheld: false,
       role: "source",
-      queueLabelState: "hidden",
-      queueName: null,
-    },
+  },
   },
 };
 

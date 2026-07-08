@@ -177,7 +177,7 @@ function requestRendererShutdown(
 function finalizeShutdown(action: AppShutdownAction): void {
   isQuitting = true;
 
-  // Force quit, kill, or OS hard shutdown cannot await async SIP/OCP logout.
+  // Force quit, kill, or OS hard shutdown cannot await async SIP logout.
   if (action === "restart") {
     app.relaunch();
     app.exit(0);

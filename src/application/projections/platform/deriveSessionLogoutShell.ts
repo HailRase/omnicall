@@ -5,7 +5,6 @@ import type { MultiLineCallProjection } from "../telephony/multiLineCallProjecti
 import type { TransferProjection } from "../telephony/transferProjection.js";
 
 export type SessionLogoutShellInput = Readonly<{
-  isOcpMode: boolean;
   authUiState: AuthUiState;
   multiCallProjection: MultiCallProjection;
   incomingCallProjection: IncomingCallProjection;
@@ -53,8 +52,7 @@ export function deriveSessionLogoutShell(
   input: SessionLogoutShellInput,
 ): SessionLogoutShellView {
   const logoutConfirmationRequired = deriveLogoutConfirmationRequired(input);
-  const showEndSessionControl =
-    !input.isOcpMode && input.authUiState === "sip_registered";
+  const showEndSessionControl = input.authUiState === "sip_registered";
 
   const endSessionDisabledReason = deriveEndSessionDisabledReason(input);
 

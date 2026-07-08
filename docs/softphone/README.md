@@ -2,7 +2,7 @@
 
 - Purpose: architecture, rules, agent workflows, and live project status.
 - Live snapshot: **`STATUS.md`** — test count, active phase, next work (update after each WU).
-- OCP plugin: **DEFERRED** (`OCP-PLUGIN-BACKLOG.md`, ADR-0002).
+- Legacy operator integration: **removed** (`adr/ADR-0005-remove-legacy-operator-integration.md`).
 - Agent entry: **`../AGENTS.md`** (repo root).
 
 ## Document Map
@@ -11,8 +11,7 @@
 |------|------|---------|
 | STATUS | `STATUS.md` | **Live** test count, active WU, next priorities |
 | DOCUMENT | `MASTER_SYSTEM_PROMPT.md` | Product mission and non-negotiable goals |
-| DOCUMENT | `OCP-PLUGIN-BACKLOG.md` | OCP plugin DEFERRED |
-| DOCUMENT | `adr/ADR-0002-defer-ocp-plugin.md` | Defer OCP decision |
+| DOCUMENT | `adr/ADR-0005-remove-legacy-operator-integration.md` | Remove legacy operator integration |
 | DOCUMENT | `Architecture-Constitution.md` | System layers and boundaries |
 | DOCUMENT | `Engineering-Principles.md` | Decision-making principles |
 | DOCUMENT | `Feature-Registry.md` | Feature ownership and acceptance |
@@ -34,7 +33,7 @@
 
 | Rule | Apply | Purpose |
 |------|-------|---------|
-| `00-core.mdc` | always | Architecture, agent protocol, OCP/transfer backlog |
+| `00-core.mdc` | always | Architecture, agent protocol, legacy operator platform/transfer backlog |
 | `typescript-react-electron.mdc` | always | TS/React/Electron/IPC safety |
 | `work-history.mdc` | always | Post-task audit log |
 | `feature-registry.mdc` | globs | Feature-first implementation |
@@ -61,7 +60,7 @@
 | `softphone-architecture-review` | Before architectural changes |
 | `feature-slice-design` | Vertical feature slice |
 | `telephony-flow-review` | Call lifecycle review |
-| `integration-contract-review` | OCP/window/IPC contracts |
+| `integration-contract-review` | legacy operator platform/window/IPC contracts |
 | `legacy-feature-migration` | Legacy parity migration |
 | `implementation-phase-planning` | Phase work breakdown |
 | `ux-ui-flow-design` | UX states before React |

@@ -9,8 +9,6 @@ export function mapDialpadDisabledReason(disabledState: string | null): string |
       return translateCurrent("dialpad.disabled.notRegistered");
     case "invalidNumber":
       return translateCurrent("dialpad.disabled.invalidNumber");
-    case "disabledByOcpReserved":
-      return translateCurrent("dialpad.disabled.ocpReserved");
     case "disabledBySecondSessionPolicy":
       return translateCurrent("dialpad.disabled.secondSessionDisabled");
     case "disabledByHoldAllInProgress":

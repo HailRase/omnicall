@@ -2,7 +2,7 @@
 
 > **Read first:** `docs/softphone/P05-Multi-Call-Product-Decisions.md` (canonical product law).  
 > **Deferred:** `docs/softphone/MULTI-CALL-BACKLOG.md` (Tone FSM, transfer-mode refactor).  
-> **OCP:** DEFERRED — SIP-only path only.
+> **legacy operator platform:** DEFERRED — SIP-only path only.
 
 ## Mission
 
@@ -26,7 +26,7 @@ Complete contact-center multi-session behavior on **mock + application + domain*
 - `.cursor/rules/legacy-feature-coverage.mdc`
 - `.cursor/rules/feature-registry.mdc`
 - `.cursor/rules/ux-ui-electron-react.mdc`
-- `.cursor/rules/00-core.mdc` (includes OCP deferred + transfer backlog)
+- `.cursor/rules/00-core.mdc` (includes legacy operator platform deferred + transfer backlog)
 
 ### Docs
 
@@ -133,7 +133,7 @@ Complete contact-center multi-session behavior on **mock + application + domain*
 - Hangup on policy failure
 - UI guesses active line without projection
 - Implement Tone FSM or transfer-per-session mode in WU6
-- OCP coupling
+- legacy operator platform coupling
 - `any`, `@deprecated`, `@ts-ignore`
 
 ## Verification

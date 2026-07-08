@@ -1,4 +1,3 @@
-import type { DomainEvent } from "@domain/index.js";
 import type { AppBootstrapConfig } from "@domain/index.js";
 import type { SipAccountId, SipAccountInput } from "@domain/index.js";
 import type { PhoneStatus } from "@domain/index.js";
@@ -6,9 +5,8 @@ import { err, isErr, ok, type Result } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
 import { createPlatformError, normalizeUnknownError } from "@shared/errors/index.js";
 import { InMemoryDomainEventBus } from "../events/InMemoryDomainEventBus.js";
-import { AuthenticateOcpUseCase } from "../use-cases/operator/AuthenticateOcpUseCase.js";
 import { AuthorizeSipAccountUseCase } from "../use-cases/settings/AuthorizeSipAccountUseCase.js";
-import { ChangePhoneStatusUseCase } from "../use-cases/operator/ChangePhoneStatusUseCase.js";
+import { ChangePhoneStatusUseCase } from "../use-cases/settings/ChangePhoneStatusUseCase.js";
 import { MakeCallUseCase } from "../use-cases/telephony/MakeCallUseCase.js";
 import { HangupCallUseCase } from "../use-cases/telephony/HangupCallUseCase.js";
 import { HoldCallUseCase } from "../use-cases/telephony/HoldCallUseCase.js";
@@ -26,53 +24,28 @@ import { StartConsultationUseCase } from "../use-cases/telephony/StartConsultati
 import { AttendedTransferUseCase } from "../use-cases/telephony/AttendedTransferUseCase.js";
 import { StartTransferUseCase } from "../use-cases/telephony/StartTransferUseCase.js";
 import { CancelTransferUseCase } from "../use-cases/telephony/CancelTransferUseCase.js";
-import { ChangeAgentStatusUseCase } from "../use-cases/operator/ChangeAgentStatusUseCase.js";
-import { UpdatePostCallStatusUseCase } from "../use-cases/operator/UpdatePostCallStatusUseCase.js";
-import { LogoutOperatorUseCase } from "../use-cases/operator/LogoutOperatorUseCase.js";
 import { SafeLogoutUseCase } from "../use-cases/platform/SafeLogoutUseCase.js";
 import { EndUserSessionUseCase } from "../use-cases/platform/EndUserSessionUseCase.js";
 import { RetryConnectionUseCase } from "../use-cases/platform/RetryConnectionUseCase.js";
 import { ManualSipTransportReconnectUseCase } from "../use-cases/telephony/ManualSipTransportReconnectUseCase.js";
 import { ReregisterSipUseCase } from "../use-cases/telephony/ReregisterSipUseCase.js";
 import { ShutdownCleanupUseCase } from "../use-cases/platform/ShutdownCleanupUseCase.js";
-import { RegisterOcpCallCorrelationUseCase } from "../use-cases/operator/RegisterOcpCallCorrelationUseCase.js";
-import { ProcessOcpInboundMessageUseCase } from "../use-cases/operator/ProcessOcpInboundMessageUseCase.js";
-import type { ProcessOcpInboundMessageOutcome } from "../use-cases/operator/ProcessOcpInboundMessageUseCase.js";
-import { RespondToCampaignUseCase } from "../use-cases/operator/RespondToCampaignUseCase.js";
-import { SendDlgStopUseCase } from "../use-cases/operator/SendDlgStopUseCase.js";
-import { CallEndDlgStopOrchestrationService } from "../services/operator/CallEndDlgStopOrchestrationService.js";
-import { ConnectionRecoveryOrchestrationService } from "../services/recovery/ConnectionRecoveryOrchestrationService.js";
 import { SipRecoveryOrchestrationService } from "../services/recovery/SipRecoveryOrchestrationService.js";
 import type { SipConnectionJournalEntry } from "../services/recovery/SipConnectionJournal.js";
-import { ServerTerminateCleanupService } from "../services/recovery/ServerTerminateCleanupService.js";
 import { SessionTeardownOrchestrationService } from "../services/platform/SessionTeardownOrchestrationService.js";
-import { InMemoryAgentStatusReadModel } from "../read-models/InMemoryAgentStatusReadModel.js";
-import { InMemoryConnectionRecoveryReadModel } from "../read-models/InMemoryConnectionRecoveryReadModel.js";
 import { InMemorySipSessionHealthReadModel } from "../read-models/InMemorySipSessionHealthReadModel.js";
-import { InMemoryOcpCallCorrelationRegistry } from "../read-models/InMemoryOcpCallCorrelationRegistry.js";
-import { InMemoryOcpSyncReadModel } from "../read-models/InMemoryOcpSyncReadModel.js";
-import { MockOcpSyncGateway, createSampleOcpServerTerminateRawMessage } from "@adapters/mock/MockOcpSyncGateway.js";
-import { MockOperatorPlatformGateway } from "@adapters/mock/MockOperatorPlatformGateway.js";
 import { MockTelephonyGateway } from "@adapters/mock/MockTelephonyGateway.js";
-import { AgentStatusSyncService } from "../services/operator/AgentStatusSyncService.js";
-import { BreakReasonsSyncService } from "../services/operator/BreakReasonsSyncService.js";
-import { DndAgentStatusOrchestrationService } from "../services/operator/DndAgentStatusOrchestrationService.js";
-import { OcpAuthBootstrapService } from "../services/operator/OcpAuthBootstrapService.js";
-import { PostCallRejectOrchestrationService } from "../services/operator/PostCallRejectOrchestrationService.js";
 import type {
   DomainEventPublisher,
   HostIntegrationGateway,
   Logger,
-  OcpCallCorrelationRegistry,
-  OcpSyncGateway,
-  MediaGateway,
-  OperatorPlatformGateway,
   SavedAccountProfileRepository,
   SettingsRepository,
   CallHistoryRepository,
   ContactRepository,
   ContactCsvFileGateway,
   TelephonyGateway,
+  MediaGateway,
 } from "@ports/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { CallEngine } from "@application/services/telephony/CallEngine.js";
@@ -86,7 +59,6 @@ import {
   validateUserSettings,
   type Call,
   type CallId,
-  type CampaignDecision,
 } from "@domain/index.js";
 import { resolveSettingsAccountKey } from "../settings/resolveSettingsAccountKey.js";
 import { loadUserSettingsWithLegacyMigration } from "../settings/loadUserSettingsWithLegacyMigration.js";
@@ -152,7 +124,6 @@ export type ProfileScopedDataProjectionHandlers = Readonly<{
 }>;
 
 export type AccountBootstrapFacadeDeps = Readonly<{
-  operatorGateway: OperatorPlatformGateway;
   telephonyGateway: TelephonyGateway;
   mediaGateway: MediaGateway;
   settingsRepository: SettingsRepository;
@@ -161,8 +132,6 @@ export type AccountBootstrapFacadeDeps = Readonly<{
   contactRepository?: ContactRepository;
   contactCsvFileGateway?: ContactCsvFileGateway;
   hostIntegrationGateway?: HostIntegrationGateway;
-  ocpSyncGateway?: OcpSyncGateway;
-  ocpCallCorrelationRegistry?: OcpCallCorrelationRegistry;
   logger: Logger;
   eventPublisher?: DomainEventPublisher;
 }>;
@@ -175,7 +144,6 @@ export type AuthorizeManualAccountOptions = Readonly<{
 export class AccountBootstrapFacade {
   readonly eventPublisher: DomainEventPublisher;
   readonly resolveStartupMode: ResolveStartupModeUseCase;
-  readonly authenticateOcp: AuthenticateOcpUseCase;
   readonly authorizeSipAccount: AuthorizeSipAccountUseCase;
   readonly registerAccount: RegisterAccountUseCase;
   readonly unregisterAccount: UnregisterAccountUseCase;
@@ -194,19 +162,12 @@ export class AccountBootstrapFacade {
   readonly attendedTransferUseCase: AttendedTransferUseCase;
   readonly startTransferUseCase: StartTransferUseCase;
   readonly cancelTransferUseCase: CancelTransferUseCase;
-  readonly changeAgentStatus: ChangeAgentStatusUseCase;
-  readonly updatePostCallStatus: UpdatePostCallStatusUseCase;
-  readonly logoutOperator: LogoutOperatorUseCase;
   readonly retryConnection: RetryConnectionUseCase;
   readonly manualSipTransportReconnect: ManualSipTransportReconnectUseCase;
   readonly reregisterSip: ReregisterSipUseCase;
   readonly safeLogout: SafeLogoutUseCase;
   readonly endUserSession: EndUserSessionUseCase;
   readonly shutdownCleanup: ShutdownCleanupUseCase;
-  readonly registerOcpCallCorrelation: RegisterOcpCallCorrelationUseCase;
-  readonly processOcpInboundMessage: ProcessOcpInboundMessageUseCase;
-  readonly respondToCampaign: RespondToCampaignUseCase;
-  readonly sendDlgStop: SendDlgStopUseCase;
 
   private readonly savedAccountProfileRepository: SavedAccountProfileRepository;
   private readonly listSavedAccountProfilesUseCase: ListSavedAccountProfilesUseCase;
@@ -231,16 +192,9 @@ export class AccountBootstrapFacade {
   private readonly exportContactsCsvUseCase: ExportContactsCsvUseCase;
   private readonly contactCsvFileGateway: ContactCsvFileGateway | null;
 
-  private readonly processedCredentialEvents = new Set<string>();
   private sipSessionRegistered = false;
   private readonly callEngine: CallEngine;
-  private readonly ocpAuthBootstrap: OcpAuthBootstrapService;
-  private readonly dndAgentStatusOrchestration: DndAgentStatusOrchestrationService;
-  private readonly postCallRejectOrchestration: PostCallRejectOrchestrationService;
-  private readonly callEndDlgStopOrchestration: CallEndDlgStopOrchestrationService;
-  private readonly connectionRecoveryOrchestration: ConnectionRecoveryOrchestrationService;
   private readonly sipRecoveryOrchestration: SipRecoveryOrchestrationService;
-  private readonly serverTerminateCleanup: ServerTerminateCleanupService;
 
   constructor(private readonly deps: AccountBootstrapFacadeDeps) {
     this.eventPublisher = deps.eventPublisher ?? new InMemoryDomainEventBus();
@@ -322,106 +276,12 @@ export class AccountBootstrapFacade {
       deps.logger,
     );
     callHistoryRecordingOrchestration.subscribe(this.eventPublisher);
-    const ocpSyncGateway = deps.ocpSyncGateway ?? new MockOcpSyncGateway();
-    const ocpCallCorrelationRegistry =
-      deps.ocpCallCorrelationRegistry ?? new InMemoryOcpCallCorrelationRegistry();
-    const ocpSyncReadModel = new InMemoryOcpSyncReadModel(this.eventPublisher);
-    this.sendDlgStop = new SendDlgStopUseCase(
-      ocpSyncGateway,
-      ocpSyncReadModel,
-      this.eventPublisher,
-      deps.logger,
-    );
-    this.callEndDlgStopOrchestration = new CallEndDlgStopOrchestrationService(
-      this.sendDlgStop,
-      ocpCallCorrelationRegistry,
-      deps.logger,
-    );
-    this.callEndDlgStopOrchestration.subscribe(this.eventPublisher);
-    if (deps.ocpCallCorrelationRegistry === undefined) {
-      ocpCallCorrelationRegistry.bindLifecycleEvents(this.eventPublisher);
-    }
-    this.registerOcpCallCorrelation = new RegisterOcpCallCorrelationUseCase(
-      ocpCallCorrelationRegistry,
-      this.eventPublisher,
-      deps.logger,
-    );
-    this.processOcpInboundMessage = new ProcessOcpInboundMessageUseCase(
-      ocpSyncGateway,
-      ocpCallCorrelationRegistry,
-      ocpSyncReadModel,
-      this.eventPublisher,
-      deps.logger,
-    );
-    this.respondToCampaign = new RespondToCampaignUseCase(
-      ocpSyncGateway,
-      ocpSyncReadModel,
-      this.eventPublisher,
-      deps.logger,
-    );
-    const agentStatusReadModel = new InMemoryAgentStatusReadModel(this.eventPublisher);
+
     const sipSessionHealthReadModel = new InMemorySipSessionHealthReadModel(
       this.eventPublisher,
     );
-    const ocpConnectionRecoveryReadModel = new InMemoryConnectionRecoveryReadModel(
-      this.eventPublisher,
-    );
-    const agentStatusSync = new AgentStatusSyncService(
-      deps.operatorGateway,
-      this.eventPublisher,
-      deps.logger,
-    );
-    const breakReasonsSync = new BreakReasonsSyncService(
-      deps.operatorGateway,
-      deps.settingsRepository,
-      this.eventPublisher,
-      deps.logger,
-    );
-    this.changeAgentStatus = new ChangeAgentStatusUseCase(
-      agentStatusReadModel,
-      deps.operatorGateway,
-      deps.settingsRepository,
-      this.eventPublisher,
-      deps.logger,
-    );
-    const dndAgentStatusOrchestration = new DndAgentStatusOrchestrationService(
-      agentStatusReadModel,
-      this.changeAgentStatus,
-      deps.logger,
-    );
-    this.dndAgentStatusOrchestration = dndAgentStatusOrchestration;
-    this.ocpAuthBootstrap = new OcpAuthBootstrapService(
-      agentStatusSync,
-      breakReasonsSync,
-      dndAgentStatusOrchestration,
-      deps.settingsRepository,
-      deps.logger,
-    );
-    this.updatePostCallStatus = new UpdatePostCallStatusUseCase(
-      agentStatusReadModel,
-      deps.operatorGateway,
-      deps.settingsRepository,
-      this.eventPublisher,
-      deps.logger,
-    );
-    this.logoutOperator = new LogoutOperatorUseCase(
-      agentStatusReadModel,
-      deps.operatorGateway,
-      deps.settingsRepository,
-      this.eventPublisher,
-      deps.logger,
-    );
-    this.postCallRejectOrchestration = new PostCallRejectOrchestrationService(
-      agentStatusReadModel,
-      this.updatePostCallStatus,
-      deps.logger,
-    );
+
     this.resolveStartupMode = new ResolveStartupModeUseCase(
-      this.eventPublisher,
-      deps.logger,
-    );
-    this.authenticateOcp = new AuthenticateOcpUseCase(
-      deps.operatorGateway,
       this.eventPublisher,
       deps.logger,
     );
@@ -484,13 +344,6 @@ export class AccountBootstrapFacade {
 
     deps.telephonyGateway.setIncomingCallHandler(async (notification) => {
       await this.callEngine.handleIncomingReceived({ notification });
-      if (notification.mainAcallId !== undefined) {
-        this.registerOcpCallCorrelation.execute({
-          callId: notification.callId,
-          mainAcallId: notification.mainAcallId,
-          correlationId: notification.correlationId,
-        });
-      }
     });
     deps.telephonyGateway.setCallEndedHandler(async (notification) => {
       await this.callEngine.handleCallEnded(
@@ -515,15 +368,6 @@ export class AccountBootstrapFacade {
       ),
     );
 
-    this.connectionRecoveryOrchestration = new ConnectionRecoveryOrchestrationService({
-      telephonyGateway: deps.telephonyGateway,
-      operatorGateway: deps.operatorGateway,
-      eventPublisher: this.eventPublisher,
-      logger: deps.logger,
-    });
-    this.connectionRecoveryOrchestration.bindTransportHandlers();
-    this.connectionRecoveryOrchestration.subscribe(this.eventPublisher);
-
     this.sipRecoveryOrchestration = new SipRecoveryOrchestrationService({
       telephonyGateway: deps.telephonyGateway,
       eventPublisher: this.eventPublisher,
@@ -535,8 +379,6 @@ export class AccountBootstrapFacade {
 
     this.retryConnection = new RetryConnectionUseCase(
       sipSessionHealthReadModel,
-      ocpConnectionRecoveryReadModel,
-      this.connectionRecoveryOrchestration,
       this.sipRecoveryOrchestration,
       deps.logger,
     );
@@ -551,7 +393,6 @@ export class AccountBootstrapFacade {
     );
 
     const sessionTeardownOrchestration = new SessionTeardownOrchestrationService({
-      connectionRecoveryOrchestration: this.connectionRecoveryOrchestration,
       sipRecoveryOrchestration: this.sipRecoveryOrchestration,
       callEngine: this.callEngine,
       mediaGateway: deps.mediaGateway,
@@ -566,34 +407,20 @@ export class AccountBootstrapFacade {
     );
     this.safeLogout = new SafeLogoutUseCase(
       sessionTeardownOrchestration,
-      deps.operatorGateway,
-      agentStatusReadModel,
-      this.eventPublisher,
       deps.logger,
     );
     this.shutdownCleanup = new ShutdownCleanupUseCase(
       sessionTeardownOrchestration,
-      deps.operatorGateway,
-      agentStatusReadModel,
       this.eventPublisher,
       deps.logger,
     );
-    this.serverTerminateCleanup = new ServerTerminateCleanupService({
-      sessionTeardown: sessionTeardownOrchestration,
-      operatorGateway: deps.operatorGateway,
-      agentStatusReadModel,
-      logger: deps.logger,
-    });
-    this.serverTerminateCleanup.subscribe(this.eventPublisher);
 
     this.eventPublisher.subscribe((event) => {
-      void this.handleAutoRegistration(event);
-      void this.handleAgentStatusSync(event);
       this.trackSipRegistrationState(event);
     });
   }
 
-  private trackSipRegistrationState(event: DomainEvent): void {
+  private trackSipRegistrationState(event: { type: string }): void {
     if (event.type === "RegistrationSucceeded") {
       this.sipSessionRegistered = true;
       return;
@@ -612,20 +439,6 @@ export class AccountBootstrapFacade {
     });
 
     if (isErr(startupResult)) {
-      return;
-    }
-
-    const { resolution } = startupResult.value;
-
-    if (resolution.action === "access_denied") {
-      return;
-    }
-
-    if (resolution.action === "ocp_authenticate") {
-      await this.authenticateOcp.execute({
-        token: resolution.token,
-        domain: resolution.domain,
-      });
       return;
     }
 
@@ -969,10 +782,6 @@ export class AccountBootstrapFacade {
     if (isErr(result)) {
       return;
     }
-
-    if (status === "dnd") {
-      await this.dndAgentStatusOrchestration.handlePhoneStatusChanged(status);
-    }
   }
 
   getMultiCallSettings(): Promise<MultiCallSettings> {
@@ -1289,20 +1098,9 @@ export class AccountBootstrapFacade {
     breakReason?: string,
   ): Promise<Result<Call, PlatformError>> {
     const correlationId = createCorrelationId();
-    const result =
-      breakReason !== undefined
-        ? await this.rejectCallUseCase.execute({ callId, breakReason, correlationId })
-        : await this.rejectCallUseCase.execute({ callId, correlationId });
-
-    if (!isErr(result) && breakReason !== undefined && breakReason.trim().length > 0) {
-      await this.postCallRejectOrchestration.handleRejectedCall(
-        callId,
-        breakReason,
-        correlationId,
-      );
-    }
-
-    return result;
+    return breakReason !== undefined
+      ? this.rejectCallUseCase.execute({ callId, breakReason, correlationId })
+      : this.rejectCallUseCase.execute({ callId, correlationId });
   }
 
   async rejectCallById(
@@ -1310,43 +1108,6 @@ export class AccountBootstrapFacade {
     breakReason?: string,
   ): Promise<Result<Call, PlatformError>> {
     return this.rejectCall(createCallId(callId), breakReason);
-  }
-
-  processOcpInboundMessageRaw(
-    raw: unknown,
-    correlationId?: CorrelationId,
-  ): Result<ProcessOcpInboundMessageOutcome, never> {
-    const input =
-      correlationId === undefined
-        ? { raw }
-        : { raw, correlationId };
-    return this.processOcpInboundMessage.execute(input);
-  }
-
-  respondToCampaignById(
-    campaignId: string,
-    decision: CampaignDecision,
-    callId?: string,
-    correlationId?: CorrelationId,
-  ): Promise<Result<void, PlatformError>> {
-    const base = { campaignId, decision };
-    if (callId !== undefined && correlationId !== undefined) {
-      return this.respondToCampaign.execute({
-        ...base,
-        callId: createCallId(callId),
-        correlationId,
-      });
-    }
-    if (callId !== undefined) {
-      return this.respondToCampaign.execute({
-        ...base,
-        callId: createCallId(callId),
-      });
-    }
-    if (correlationId !== undefined) {
-      return this.respondToCampaign.execute({ ...base, correlationId });
-    }
-    return this.respondToCampaign.execute(base);
   }
 
   /** Dev/test helper: simulate SIP transport disconnect (LF-008). */
@@ -1376,35 +1137,6 @@ export class AccountBootstrapFacade {
     throw new Error("simulateSipRegistrationFailed requires MockTelephonyGateway");
   }
 
-  /** Dev/test helper: simulate OCP WebSocket disconnect (LF-058). */
-  async simulateOcpTransportDisconnected(
-    correlationId: CorrelationId = createCorrelationId(),
-    reason = "transport_closed",
-  ): Promise<void> {
-    const gateway = this.deps.operatorGateway;
-    if (gateway instanceof MockOperatorPlatformGateway) {
-      await gateway.simulateOcpTransportDisconnected({ correlationId, reason });
-      return;
-    }
-    throw new Error("simulateOcpTransportDisconnected requires MockOperatorPlatformGateway");
-  }
-
-  /** Dev/test helper: simulate OCP server_terminate inbound (LF-049). */
-  simulateServerTerminate(
-    correlationId: CorrelationId = createCorrelationId(),
-    reason = "server_terminate",
-    entityId = "agent-001",
-  ): Result<ProcessOcpInboundMessageOutcome, never> {
-    return this.processOcpInboundMessageRaw(
-      createSampleOcpServerTerminateRawMessage(entityId, reason),
-      correlationId,
-    );
-  }
-
-  getReconnectScheduler() {
-    return this.connectionRecoveryOrchestration.getScheduler();
-  }
-
   endUserSessionCommand(correlationId?: CorrelationId) {
     return this.endUserSession.execute(
       correlationId === undefined ? {} : { correlationId },
@@ -1412,39 +1144,7 @@ export class AccountBootstrapFacade {
   }
 
   dispose(): void {
-    this.connectionRecoveryOrchestration.dispose();
-  }
-
-  private async handleAgentStatusSync(event: DomainEvent): Promise<void> {
-    if (event.type !== "OcpAuthenticationSucceeded") {
-      return;
-    }
-
-    await this.ocpAuthBootstrap.afterOcpAuthSucceeded(event.correlationId);
-  }
-
-  private async handleAutoRegistration(event: DomainEvent): Promise<void> {
-    if (event.type !== "SipCredentialsReceived") {
-      return;
-    }
-
-    const source = event["source"];
-    if (source !== "ocp") {
-      return;
-    }
-
-    if (this.processedCredentialEvents.has(event.correlationId)) {
-      return;
-    }
-
-    this.processedCredentialEvents.add(event.correlationId);
-
-    const credentials = event["credentials"];
-    if (!isSipAccountInput(credentials)) {
-      return;
-    }
-
-    await this.authorizeManualAccount(credentials, event.correlationId);
+    this.sipRecoveryOrchestration.dispose();
   }
 
   notifyPeerConnectionAvailable(
@@ -1453,20 +1153,6 @@ export class AccountBootstrapFacade {
   ): Promise<void> {
     return this.callEngine.handlePeerConnectionAvailable(callId, correlationId);
   }
-}
-
-function isSipAccountInput(value: unknown): value is SipAccountInput {
-  if (typeof value !== "object" || value === null) {
-    return false;
-  }
-
-  const candidate = value as Record<string, unknown>;
-  return (
-    typeof candidate["username"] === "string" &&
-    typeof candidate["password"] === "string" &&
-    typeof candidate["domain"] === "string" &&
-    typeof candidate["server"] === "string"
-  );
 }
 
 function resolveAuthorizeManualAccountOptions(

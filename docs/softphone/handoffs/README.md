@@ -25,6 +25,6 @@
 | `archive/P03/` | Incoming call |
 | `archive/P04/` | Active call controls |
 | `archive/P05/` | Multi-call and transfer |
-| `archive/P06/` | Operator status |
-| `archive/P07/` | OCP sync (mock) |
 | `archive/P08/` | Recovery and logout |
+
+P06/P07 legacy operator handoffs removed per ADR-0005.

@@ -2,14 +2,14 @@
 
 Parallel track to connect production adapters without breaking mock/CI on `main`.
 
-> **OCP (step 06 / R5): DEFERRED** — [ADR-0002](../adr/ADR-0002-defer-ocp-plugin.md), [OCP-PLUGIN-BACKLOG.md](../OCP-PLUGIN-BACKLOG.md).
+> **Legacy operator integration:** **removed** (ADR-0005). See [ADR-0005](../adr/ADR-0005-remove-legacy-operator-integration.md).
 > **Transfer (step 07 / R6): BACKLOG** — [TRANSFER-REAL-ADAPTER-BACKLOG.md](./TRANSFER-REAL-ADAPTER-BACKLOG.md).
 > **RAT steps 00–08:** closed. **UI track:** P11 WU0/WU1 — [UI-SMOKE-ENABLERS.md](./UI-SMOKE-ENABLERS.md). **Next adapter:** F-008 DTMF real.
 
 ## Start here
 
 1. Read `00-SNAPSHOT.md` — frozen baseline.
-2. Read `OCP-PLUGIN-BACKLOG.md` — OCP not in active scope.
+2. Read `adr/ADR-0005-remove-legacy-operator-integration.md` — legacy operator integration not in scope.
 3. Read `PROGRESS.md` — step status and smoke history.
 4. Give the agent **`MASTER-AGENT-PROMPT.md`**.
 5. Execute steps in order; after each step update `PROGRESS.md`.
@@ -34,7 +34,7 @@ Reviewer skill: `.cursor/skills/real-integration-agent/SKILL.md`
 
 ## Branch
 
-RAT SIP core lives on **`main`** (`feature/real-adapters` merged; branch is stale ancestor). R5 OCP deferred per ADR-0002.
+RAT SIP core lives on **`main`** (`feature/real-adapters` merged; branch is stale ancestor). Legacy operator integration removed per ADR-0005.
 
 ## Dev credentials
 

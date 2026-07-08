@@ -1,7 +1,7 @@
 # P08 WU5 User Session Logout Handoff
 
 - Scope: SIP-only user session logout, ordered teardown orchestrator, `UserSessionEnded`, end-session UI; Features `F-014`, `F-001`; legacy `LF-079`, `LF-048` (SIP cascade only).
-- Out of scope WU5: OCP operator logout (`LogoutOperatorUseCase`), transfer backlog, headset teardown (P10), full P11 user menu, E2E harness.
+- Out of scope WU5: legacy operator platform operator logout (`LogoutOperatorUseCase`), transfer backlog, headset teardown (P10), full P11 user menu, E2E harness.
 
 ## Delivered (WU5)
 
@@ -27,7 +27,7 @@
 5. `UserSessionEnded` (user logout path only via `EndUserSessionUseCase`)
 6. Projection reset via `UserSessionEnded` reducers
 
-`ShutdownCleanupUseCase` / `SafeLogoutUseCase` / `ServerTerminateCleanupService` delegate SIP steps 1–4; OCP logout unchanged where applicable (not invoked in SIP-only user logout).
+`ShutdownCleanupUseCase` / `SafeLogoutUseCase` / `ServerTerminateCleanupService` delegate SIP steps 1–4; legacy operator logout unchanged where applicable (not invoked in SIP-only user logout).
 
 ## Migration Evidence — LF-079
 
@@ -51,7 +51,7 @@
 - [x] SIP-only `control-end-session` with confirmation on active telephony
 - [x] hangupAll → releaseAll → unregister
 - [x] `UserSessionEnded` published; projections reset
-- [x] Zero new OCP calls in SIP-only logout path
+- [x] Zero new legacy operator platform calls in SIP-only logout path
 - [x] Tests + registry + legacy evidence
 - [x] Architecture boundaries preserved
 

@@ -49,4 +49,4 @@ Run at the **start** of every implementation session (`/ui`, `/logic`, `/adapter
 
 - Start code before scope is confirmed or defaulted from STATUS
 - Expand scope beyond one WU-sized unit
-- Implement OCP or real transfer without explicit user resume
+- Implement legacy operator platform or real transfer without explicit user resume

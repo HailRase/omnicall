@@ -70,7 +70,7 @@ Verify:
 - incoming call is never hidden behind secondary UI
 - active call controls remain reachable
 - connection loss is visible and actionable
-- OCP-only controls hide in SIP-only mode
+- legacy operator platform-only controls hide in SIP-only mode
 - transfer mode is visually explicit
 - disabled controls explain why
 - critical actions are keyboard accessible

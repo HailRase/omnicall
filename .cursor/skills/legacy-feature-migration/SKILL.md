@@ -58,7 +58,7 @@ Old `DisplayProvider` responsibilities must split into:
 
 Old `useWs` responsibilities must split into:
 
-- OCP gateway
+- legacy operator platform gateway
 - operator Use Cases
 - typed message parser
 - reconnect policy
@@ -84,7 +84,7 @@ Preserve:
 - user-visible behavior
 - external contracts
 - call lifecycle semantics
-- OCP message semantics
+- legacy operator platform message semantics
 - status transition rules
 - settings behavior
 - error and recovery states

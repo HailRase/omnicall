@@ -3,7 +3,6 @@ import { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFac
 import {
   InMemorySettingsRepository,
   MockMediaGateway,
-  MockOperatorPlatformGateway,
   MockTelephonyGateway,
 } from "@adapters/index.js";
 import {
@@ -32,12 +31,10 @@ describe("SipRecoveryOrchestration integration", () => {
     const published: DomainEvent[] = [];
     let projection = initialSipSessionHealthProjection();
 
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: telephony,
+    const facade = new AccountBootstrapFacade({      telephonyGateway: telephony,
       mediaGateway: new MockMediaGateway(),
       settingsRepository: new InMemorySettingsRepository({
-        bootstrapConfig: { mode: "sip-only" },
+        bootstrapConfig: {},
       }),
       logger: createTestLogger(),
     });
@@ -47,7 +44,7 @@ describe("SipRecoveryOrchestration integration", () => {
       projection = reduceSipSessionHealthProjection(projection, event);
     });
 
-    await facade.initialize({ mode: "sip-only" });
+    await facade.initialize({});
     await facade.authorizeManualAccount(
       {
         username: "agent",
@@ -106,12 +103,10 @@ describe("SipRecoveryOrchestration integration", () => {
     const published: DomainEvent[] = [];
     let projection = initialSipSessionHealthProjection();
 
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: telephony,
+    const facade = new AccountBootstrapFacade({      telephonyGateway: telephony,
       mediaGateway: new MockMediaGateway(),
       settingsRepository: new InMemorySettingsRepository({
-        bootstrapConfig: { mode: "sip-only" },
+        bootstrapConfig: {},
       }),
       logger: createTestLogger(),
     });
@@ -121,7 +116,7 @@ describe("SipRecoveryOrchestration integration", () => {
       projection = reduceSipSessionHealthProjection(projection, event);
     });
 
-    await facade.initialize({ mode: "sip-only" });
+    await facade.initialize({});
     await facade.authorizeManualAccount(
       {
         username: "agent",
@@ -154,12 +149,10 @@ describe("SipRecoveryOrchestration integration", () => {
     });
     const published: DomainEvent[] = [];
 
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: telephony,
+    const facade = new AccountBootstrapFacade({      telephonyGateway: telephony,
       mediaGateway: new MockMediaGateway(),
       settingsRepository: new InMemorySettingsRepository({
-        bootstrapConfig: { mode: "sip-only" },
+        bootstrapConfig: {},
       }),
       logger: createTestLogger(),
     });
@@ -168,7 +161,7 @@ describe("SipRecoveryOrchestration integration", () => {
       published.push(event);
     });
 
-    await facade.initialize({ mode: "sip-only" });
+    await facade.initialize({});
     await facade.authorizeManualAccount(
       {
         username: "agent",
@@ -203,12 +196,10 @@ describe("SipRecoveryOrchestration integration", () => {
     const published: DomainEvent[] = [];
     let projection = initialSipSessionHealthProjection();
 
-    const facade = new AccountBootstrapFacade({
-      operatorGateway: new MockOperatorPlatformGateway(),
-      telephonyGateway: telephony,
+    const facade = new AccountBootstrapFacade({      telephonyGateway: telephony,
       mediaGateway: new MockMediaGateway(),
       settingsRepository: new InMemorySettingsRepository({
-        bootstrapConfig: { mode: "sip-only" },
+        bootstrapConfig: {},
       }),
       logger: createTestLogger(),
     });
@@ -218,7 +209,7 @@ describe("SipRecoveryOrchestration integration", () => {
       projection = reduceSipSessionHealthProjection(projection, event);
     });
 
-    await facade.initialize({ mode: "sip-only" });
+    await facade.initialize({});
     await facade.authorizeManualAccount(
       {
         username: "agent",

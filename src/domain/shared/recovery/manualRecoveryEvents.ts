@@ -1,7 +1,7 @@
 import { createDomainEvent } from "../../shared/DomainEvent.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 
-export type ManualReconnectChannel = "sip" | "ocp";
+export type ManualReconnectChannel = "sip";
 
 export type ManualReconnectRequestedEvent = ReturnType<
   typeof createManualReconnectRequestedEvent

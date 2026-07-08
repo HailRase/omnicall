@@ -17,7 +17,7 @@ Replaceable:
 - JsSIP
 - Zustand
 - storage engines
-- OCP
+- legacy operator platform
 - headset SDKs
 
 Not replaceable:
@@ -216,7 +216,7 @@ Critical flows:
 - transfer
 - recovery
 - reconnect
-- OCP status change
+- legacy operator platform status change
 
 Each must have logs, events, and correlation IDs.
 
@@ -225,7 +225,7 @@ Each must have logs, events, and correlation IDs.
 Assume:
 
 - SIP disconnects
-- OCP WebSocket disconnects
+- legacy operator WebSocket disconnects
 - Internet drops
 - Electron renderer crashes
 - headset disconnects
@@ -255,7 +255,7 @@ Examples:
 - `AnswerCallUseCase`
 - `TransferCallUseCase`
 - `RegisterAccountUseCase`
-- `ChangeAgentStatusUseCase`
+- `Changelegacy agent statusUseCase`
 
 Never bypass Use Cases from UI or stores.
 
@@ -310,7 +310,7 @@ Then measure and optimize.
 Validate all external input:
 
 - IPC payloads
-- OCP WebSocket messages
+- legacy operator WebSocket messages
 - SIP-derived metadata
 - host-page events
 - configuration files

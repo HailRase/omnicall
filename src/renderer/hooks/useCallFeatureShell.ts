@@ -14,7 +14,6 @@ import { useTransferSuccessCelebration } from "./useTransferSuccessCelebration.j
 import { useCallLinesActions } from "./useCallLinesActions.js";
 import { useCallLineRowShell } from "./useCallLineRowShell.js";
 import { useIncomingCallShell } from "./useIncomingCallShell.js";
-import { useCampaignActions } from "./useCampaignActions.js";
 import { useDialpadShell } from "./useDialpadShell.js";
 import { useSoftphoneCallActions } from "./useSoftphoneCallActions.js";
 import { useIncomingCallActions } from "./useIncomingCallActions.js";
@@ -35,8 +34,6 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     callProjection,
     activeCallControlsProjection,
     incomingCallProjection,
-    queueInfoProjection,
-    campaignProjection,
     multiCallProjection,
     transferProjection,
     multiLineCallProjection,
@@ -74,16 +71,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
   });
 
   const incomingCallShell = useIncomingCallShell({
-    isOcpMode: projection.isOcpMode,
     incomingCallProjection,
-    queueInfoProjection,
-  });
-
-  const campaignActions = useCampaignActions({
-    facade,
-    isOcpMode: projection.isOcpMode,
-    incomingCallProjection,
-    campaignProjection,
   });
 
   const transferPanelShell = useTransferPanelShell({
@@ -118,10 +106,8 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
   const callLinesShell = useCallLineRowShell({
     multiLineCallProjection,
     multiCallProjection,
-    queueInfoProjection,
     activeCallControlsProjection,
     transferProjection,
-    isOcpMode: projection.isOcpMode,
     contacts,
   });
   const callLinesActions = useCallLinesActions({ facade, shell: callLinesShell });
@@ -294,7 +280,6 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     callActions,
     incomingCallActions,
     incomingCallShell,
-    campaignActions,
     transferPanelShell,
     transferActions,
     transferSuccessCelebration,

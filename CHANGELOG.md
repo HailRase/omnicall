@@ -7,6 +7,10 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+### Removed
+
+- Legacy operator platform integration removed per ADR-0005; documentation, rules, and agent skills updated for SIP-only product path.
+
 ## [0.7.1] - 2026-07-07
 
 ### Added
@@ -65,7 +69,7 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ### Added
 
-- F-016: системный shell UX — убрано стандартное меню File/Edit/View на Windows/Linux; отключён native maximize/fullscreen; кнопка Reload выполняет controlled restart после полного shutdown cleanup (hangup, media, SIP unregister, OCP logout); frameless window controls на Windows/Linux; stacked titlebar (controls сверху, avatar ниже); ошибка cleanup блокирует закрытие/перезапуск
+- F-016: системный shell UX — убрано стандартное меню File/Edit/View на Windows/Linux; отключён native maximize/fullscreen; кнопка Reload выполняет controlled restart после полного shutdown cleanup (hangup, media, SIP unregister, legacy operator logout); frameless window controls на Windows/Linux; stacked titlebar (controls сверху, avatar ниже); ошибка cleanup блокирует закрытие/перезапуск
 
 ## [0.4.0] - 2026-07-06
 
@@ -87,7 +91,7 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ### Fixed
 
-- F-015: preflight — исправлен `OcpCampaignSync.integration.test.ts`, добавлен unit-тест `campaign_event` в `ProcessOcpInboundMessageUseCase`
+- F-015: preflight — исправлен `removed campaign sync test.integration.test.ts`, добавлен unit-тест `campaign_event` в `removed inbound message use case`
 
 ## [0.2.0] - 2026-07-06
 

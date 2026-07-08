@@ -19,7 +19,7 @@
 - Feature Registry + `npm run registry:check` если доступно
 - TASK-QUEUE consistency
 - CI: предложи `/preflight` или запусти test/lint/typecheck
-- Backlog creep (OCP, transfer)
+- Backlog creep (legacy operator platform, transfer)
 - ui:catalog drift если renderer в diff
 
 ## Выход

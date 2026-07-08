@@ -2,15 +2,12 @@ import { describe, expect, it } from "vitest";
 import { ShutdownCleanupUseCase } from "@application/use-cases/platform/ShutdownCleanupUseCase.js";
 import { SessionTeardownOrchestrationService } from "@application/services/platform/SessionTeardownOrchestrationService.js";
 import { UnregisterAccountUseCase } from "@application/use-cases/settings/UnregisterAccountUseCase.js";
-import { ConnectionRecoveryOrchestrationService } from "@application/services/recovery/ConnectionRecoveryOrchestrationService.js";
 import { SipRecoveryOrchestrationService } from "@application/services/recovery/SipRecoveryOrchestrationService.js";
 import { CallEngine } from "@application/services/telephony/CallEngine.js";
 import { InMemoryDomainEventBus } from "@application/events/InMemoryDomainEventBus.js";
-import { InMemoryAgentStatusReadModel } from "@application/read-models/InMemoryAgentStatusReadModel.js";
 import {
   InMemorySettingsRepository,
   MockMediaGateway,
-  MockOperatorPlatformGateway,
   MockTelephonyGateway,
 } from "@adapters/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
@@ -18,27 +15,15 @@ import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
 import { isErr } from "@shared/result/index.js";
 
 describe("ShutdownCleanup integration", () => {
-  it("hangs up, unregisters SIP, disposes scheduler, and logs out OCP (LF-079)", async () => {
+  it("hangs up, unregisters SIP, and disposes SIP recovery (LF-079)", async () => {
     const correlationId = createCorrelationId();
     const eventPublisher = new InMemoryDomainEventBus();
     const telephonyGateway = new MockTelephonyGateway({
       registrationScenario: "success",
     });
-    const operatorGateway = new MockOperatorPlatformGateway({ scenario: "success" });
     const mediaGateway = new MockMediaGateway();
     const settingsRepository = new InMemorySettingsRepository({
-      bootstrapConfig: {
-        mode: "ocp",
-        ocpToken: "token",
-        ocpDomain: "ocp.example",
-      },
-    });
-    const agentStatusReadModel = new InMemoryAgentStatusReadModel(eventPublisher);
-    const orchestration = new ConnectionRecoveryOrchestrationService({
-      telephonyGateway,
-      operatorGateway,
-      eventPublisher,
-      logger: createTestLogger(),
+      bootstrapConfig: {},
     });
     const sipOrchestration = new SipRecoveryOrchestrationService({
       telephonyGateway,
@@ -58,19 +43,11 @@ describe("ShutdownCleanup integration", () => {
       createTestLogger(),
     );
     const sessionTeardown = new SessionTeardownOrchestrationService({
-      connectionRecoveryOrchestration: orchestration,
       sipRecoveryOrchestration: sipOrchestration,
       callEngine,
       mediaGateway,
       unregisterAccount,
       logger: createTestLogger(),
-    });
-
-    eventPublisher.publish({
-      type: "OcpAuthenticationSucceeded",
-      correlationId,
-      occurredAt: new Date().toISOString(),
-      agentId: "agent-1",
     });
 
     const published: string[] = [];
@@ -80,8 +57,6 @@ describe("ShutdownCleanup integration", () => {
 
     const useCase = new ShutdownCleanupUseCase(
       sessionTeardown,
-      operatorGateway,
-      agentStatusReadModel,
       eventPublisher,
       createTestLogger(),
     );
@@ -96,7 +71,5 @@ describe("ShutdownCleanup integration", () => {
     expect(published).toContain("UnregistrationSucceeded");
     expect(telephonyGateway.getUnregisterInvocations()).toContain(correlationId);
     expect(mediaGateway.getReleaseAllInvocations()).toBe(1);
-    expect(operatorGateway.getLogoutInvocations()).toHaveLength(1);
-    expect(orchestration.getScheduler().getPendingCount()).toBe(0);
   });
 });

@@ -15,17 +15,16 @@ This document guarantees that no legacy feature is lost during the Electron rewr
 - Aggregated features in `Feature-Registry.md` must link back to these legacy IDs.
 - Product parity requires all `LF-001` through `LF-090` to be implemented or explicitly deprecated by ADR.
 
-## Deferred by product decision (ADR-0002)
+## Removed per ADR-0005
 
-**OCP plugin is DEFERRED** to far backlog. See `OCP-PLUGIN-BACKLOG.md`.
+**Legacy operator-platform integration removed** from product (ADR-0005). Operator-context legacy IDs below are **deprecated** — not in scope. Core telephony (`LF-006`–`LF-008`, `LF-011`–`LF-035`, etc.) remains active.
 
-Operator-context legacy features remain in the matrix below for **future parity** when backlog resumes. They are **not** in active implementation scope. Core telephony (`LF-006`–`LF-008`, `LF-011`–`LF-035`, etc.) stays priority.
+Deprecated operator-related IDs (non-exhaustive): `LF-001`–`LF-005`, `LF-018`–`LF-019`, `LF-037`–`LF-040`, `LF-041`–`LF-049`, `LF-050`, `LF-059`, `LF-062`–`LF-064`, `LF-078`, `LF-085` (operator auth path). SIP recovery (`LF-008`, `LF-057` SIP row) remains active.
 
-Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-018`–`LF-019`, `LF-037`–`LF-040`, `LF-041`–`LF-049`, `LF-050`, `LF-059`, `LF-062`–`LF-064`, `LF-078`, `LF-085` (OCP auth path). SIP recovery (`LF-008`, `LF-057` SIP row) remains active.
 
 ## Context Values
 
-- `Operator`: OCP auth, statuses, campaigns, post-call processing.
+- `Operator` (deprecated): legacy auth, statuses, campaigns, post-call — removed per ADR-0005.
 - `Telephony`: SIP registration, calls, hold, transfer, DTMF, call lifecycle.
 - `Media`: audio elements, ringing, tones, remote streams, audio diagnostics.
 - `Headset`: WebHID, native headset adapters, headset synchronization.
@@ -41,7 +40,7 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 - `P04`: Active call controls.
 - `P05`: Multi-call and transfer.
 - `P06`: Operator status and post-call workflows.
-- `P07`: OCP call synchronization and campaigns.
+- `P07` (deprecated): legacy call sync and campaigns — removed per ADR-0005.
 - `P08`: Connection loss, recovery, and cleanup.
 - `P09`: History, logging, and diagnostics.
 - `P10`: Headset integration.
@@ -52,12 +51,12 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 
 | Legacy ID | Phase | Context | Priority | Legacy Feature | Legacy Modules | Acceptance Focus |
 |-----------|-------|---------|----------|----------------|----------------|------------------|
-| LF-001 | P01 | Operator | Critical | OCP WebSocket token authorization | `useWs`, `StatusesProvider` | OCP plugin authenticates by token and remains optional. |
-| LF-002 | P01 | UI | Critical | OCP loading screen | `SoftPhonePlug` | Startup shows deterministic loading state during OCP auth. |
-| LF-003 | P01 | UI | Critical | Session already exists screen | `SoftPhonePlug`, `useWs` | OCP `SESSION_EXIST` maps to recoverable UI state. |
+| LF-001 | P01 | Operator | Critical | Legacy WebSocket token authorization (removed) | `useWs`, `StatusesProvider` | legacy operator integration authenticates by token and remains optional. |
+| LF-002 | P01 | UI | Critical | Legacy loading screen (removed) | `SoftPhonePlug` | Startup shows deterministic loading state during legacy operator auth. |
+| LF-003 | P01 | UI | Critical | Session already exists screen | `SoftPhonePlug`, `useWs` | Legacy `SESSION_EXIST` maps to recoverable UI state. |
 | LF-004 | P01 | UI | Critical | Invalid token screen | `SoftPhonePlug` | Invalid token maps to explicit access error UI. |
-| LF-005 | P01 | Telephony | Critical | Auto SIP authorization from WS credentials | `StatusesProvider`, `authorize` | OCP credentials trigger SIP registration through Use Cases. |
-| LF-006 | P01 | Telephony | High | Manual SIP authorization from Account tab | `Account`, `authorize` | SIP-only mode can authorize without OCP. |
+| LF-005 | P01 | Telephony | Critical | Auto SIP authorization from WS credentials | `StatusesProvider`, `authorize` | Legacy credentials trigger SIP registration through Use Cases. |
+| LF-006 | P01 | Telephony | High | Manual SIP authorization from Account tab | `Account`, `authorize` | SIP-only mode can authorize without legacy operator integration. |
 | LF-007 | P01 | Telephony | Critical | SIP registration on SBC | `DisplayProvider`, `initUAConfig` | Registration uses `TelephonyGateway` and emits registration events. |
 | LF-008 | P08 | Telephony | High | Repeat SIP registration after failure | `DisplayProvider`, user config | F-014: `SipRecoveryOrchestrationService`, `sipSessionHealthProjection`, `SipRecoveryOrchestration.integration.test.ts` — T-008 / ADR-0004. |
 | LF-009 | P08 | UI | Medium | Re-registration timer UI | `RegisterTimer` | **Cancelled** (ADR-0004, 2026-07-02): avatar recovery ring and overlay timer UX superseded by header unified SIP status + Settings «Состояние системы» panel. |
@@ -69,8 +68,8 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 | LF-015 | P03 | Telephony | Critical | Reject incoming call | `handleHangup` | Reject command ends ringing call and emits reason. |
 | LF-016 | P03 | Telephony | High | Auto-answer timeout | user config, `DisplayProvider` | Configured timeout answers call deterministically. |
 | LF-017 | P03 | Telephony | High | DND auto-reject with 486 | `DisplayProvider`, `localStorage isDND` | DND rejects incoming call without UI bypass. |
-| LF-018 | P06 | Operator | High | DND switches OCP to break | `useDNDValidation` | WU2: `DndAgentStatusOrchestrationService`, `AccountBootstrapFacade.setPhoneStatus` → `ChangeAgentStatusUseCase` — see `handoffs/archive/P06/P06-WU2-Change-Agent-Status-Handoff.md`. |
-| LF-019 | P06 | Operator | High | DND blocks Ready status | `StatusSelector` | WU1/WU2: `AgentStatusTransition` + `ChangeAgentStatusUseCase` reject `dnd_blocks_ready` — see `handoffs/archive/P06/P06-WU1-Operator-Status-Domain-Handoff.md`. |
+| LF-018 | P06 | Operator | High | DND switches operator to break (removed) | `useDNDValidation` | WU2: `legacy DND orchestration`, `AccountBootstrapFacade.setPhoneStatus` → `legacy status use case` — see `removed archives|
+| LF-019 | P06 | Operator | High | DND blocks Ready status | `legacy status selector` | WU1/WU2: `legacy status transition` + `legacy status use case` reject `dnd_blocks_ready` — see `removed archives|
 | LF-020 | P02 | Telephony | Critical | Outgoing call | `handleCall`, `Display` | Dialpad starts outgoing call through `MakeCallUseCase`. |
 | LF-021 | P05 | Telephony | High | Hold all calls before new call | `handleHoldAll` | WU1+**WU6:** mock + integration tests. **RAT 08:** real SBC R7-1/R7-2 **PASS** 2026-06-25. |
 | LF-022 | P04 | Telephony | Critical | Hold and unhold session | `onToggleHoldHandler` | P11 WU2: per-line hold on `CallLineRow`; mute survives local resume — `telephonyCallControlOperations.ts`, `CallEngine.test.ts`. |
@@ -88,20 +87,20 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 | LF-034 | P02 | Media | Medium | Busy and failed tones | `soundManager` | Failed outgoing calls play normalized failure tones. |
 | LF-035 | P02 | Media | Critical | Remote audio element | `SoftPhone`, `DisplayProvider` | Remote audio is attached by Media service, not UI business logic. |
 | LF-036 | P03 | Telephony | High | Display name from SIP | `parseDisplayName` | SIP display metadata is parsed and projected safely. |
-| LF-037 | P07 | Operator | High | Queue name display | `useQueueInfoListeners` | WU3–WU4: `QueueInfoLabel`, `deriveQueueLabelState`, `na` timeout — see `handoffs/archive/P07/P07-WU4-OCP-Sync-Polish-Handoff.md`. |
-| LF-038 | P07 | Operator | High | Campaign data on incoming call | `useCampaignEvent`, `IncomingCallOverlay` | WU3: campaign badge in overlay — see `handoffs/archive/P07/P07-WU3-OCP-Sync-UI-Handoff.md`. |
-| LF-039 | P07 | UI | High | Non-progressive campaign request modal | `CampaignEventModal` | WU3: `CampaignEventModal.tsx`, `useCampaignActions` — see `handoffs/archive/P07/P07-WU3-OCP-Sync-UI-Handoff.md`. |
-| LF-040 | P07 | Operator | High | Campaign answer or reject update | `CampaignEventModal` -> WS update | WU3: `RespondToCampaignUseCase`, `CampaignEventAnswered` — see `handoffs/archive/P07/P07-WU3-OCP-Sync-UI-Handoff.md`. |
-| LF-041 | P06 | Operator | Critical | Operator status selector | `StatusSelector` | WU4: `StatusSelector.tsx`, `useOperatorStatusActions` — see `handoffs/archive/P06/P06-WU4-Operator-Status-UI-Handoff.md`. |
-| LF-042 | P06 | Operator | Critical | Change status to Ready | `handleChangeToReady` | WU4: `control-change-ready` → `ChangeAgentStatusUseCase` — see WU4 handoff. |
-| LF-043 | P06 | Operator | Critical | Change status to Break with reason | `handleChangeToBreak` | WU4: `BreakReasonPicker` + `ChangeAgentStatusUseCase` — see WU4 handoff. |
-| LF-044 | P06 | Operator | Critical | Post-call status while busy | `PROXY_POST_CALL_STATUS` | WU3: `UpdatePostCallStatusUseCase`, `PostCallStatusUpdated` — see `handoffs/archive/P06/P06-WU3-Post-Call-Break-Reasons-Handoff.md`. |
-| LF-045 | P06 | Operator | High | Status transition validation | `USER_STATUS_RULES` | WU1/WU2: `AgentStatusTransition` + `ChangeAgentStatusUseCase` — see `handoffs/archive/P06/P06-WU1-Operator-Status-Domain-Handoff.md`. |
-| LF-046 | P06 | UI | Medium | Status duration timer | `StatusTimer` | WU4: `StatusTimer.tsx`, `useOperatorStatusTimer` — see WU4 handoff. |
-| LF-047 | P06 | Operator | High | Logout with reason | `StatusReasonsModal`, `Header` | WU4: `LogoutReasonModal`, `LogoutOperatorUseCase`, `AgentLogoutRequested` — see WU4 handoff. LF-048 cascade P08. |
-| LF-048 | P08 | Operator | Critical | OCP logout cascade | `ocpLogout`, `softphoneLogoutEvent` | WU4–WU5: `ServerTerminateCleanupService`, `SafeLogoutUseCase`, `SessionTeardownOrchestrationService` (SIP cascade) — see `handoffs/archive/P08/P08-WU4-Recovery-Manual-Shutdown-Handoff.md`, `handoffs/archive/P08/P08-WU5-User-Session-Logout-Handoff.md`. |
-| LF-049 | P08 | Operator | Critical | Server-side terminate | `useWs entity terminate` | WU3: `parseOcpInboundMessage` server_terminate → `ProcessOcpInboundMessageUseCase` → `ServerTerminateReceived`; overlay `server_terminate`; scheduler stop — see `handoffs/archive/P08/P08-WU3-Recovery-Overlay-Handoff.md`. |
-| LF-050 | P07 | Operator | High | Block call button from OCP RESERVED | `useBlockedCallButton` | OCP reserved state disables calling deterministically. |
+| LF-037 | P07 | Operator | High | Queue name display | `useQueueInfoListeners` | WU3–WU4: `QueueInfoLabel`, `deriveQueueLabelState`, `na` timeout — see `removed archives|
+| LF-038 | P07 | Operator | High | Campaign data on incoming call | `useCampaignEvent`, `IncomingCallOverlay` | WU3: campaign badge in overlay — see `removed archives|
+| LF-039 | P07 | UI | High | Non-progressive campaign request modal | `CampaignEventModal` | WU3: `CampaignEventModal.tsx`, `useCampaignActions` — see `removed archives|
+| LF-040 | P07 | Operator | High | Campaign answer or reject update | `CampaignEventModal` -> WS update | WU3: `legacy campaign use case`, `CampaignEventAnswered` — see `removed archives|
+| LF-041 | P06 | Operator | Critical | Legacy operator status selector (removed) | `legacy status selector` | WU4: `legacy status selector.tsx`, `legacy status actions hook` — see `removed archives|
+| LF-042 | P06 | Operator | Critical | Change status to Ready | `handleChangeToReady` | WU4: `control-change-ready` → `legacy status use case` — see WU4 handoff. |
+| LF-043 | P06 | Operator | Critical | Change status to Break with reason | `handleChangeToBreak` | WU4: `BreakReasonPicker` + `legacy status use case` — see WU4 handoff. |
+| LF-044 | P06 | Operator | Critical | Post-call status while busy | `PROXY_POST_CALL_STATUS` | WU3: `legacy post-call use case`, `PostCallStatusUpdated` — see `removed archives|
+| LF-045 | P06 | Operator | High | Status transition validation | `USER_STATUS_RULES` | WU1/WU2: `legacy status transition` + `legacy status use case` — see `removed archives|
+| LF-046 | P06 | UI | Medium | Status duration timer | `StatusTimer` | WU4: `StatusTimer.tsx`, `legacy status timer hook` — see WU4 handoff. |
+| LF-047 | P06 | Operator | High | Logout with reason | `StatusReasonsModal`, `Header` | WU4: `LogoutReasonModal`, `legacy logout use case`, `AgentLogoutRequested` — see WU4 handoff. LF-048 cascade P08. |
+| LF-048 | P08 | Operator | Critical | Legacy logout cascade (removed) | `ocpLogout`, `softphoneLogoutEvent` | WU4–WU5: `legacy terminate cleanup`, `SafeLogoutUseCase`, `SessionTeardownOrchestrationService` (SIP cascade) — see `handoffs/archive/P08/P08-WU4-Recovery-Manual-Shutdown-Handoff.md`, `handoffs/archive/P08/P08-WU5-User-Session-Logout-Handoff.md`. |
+| LF-049 | P08 | Operator | Critical | Server-side terminate | `useWs entity terminate` | WU3: `legacy inbound parser` server_terminate → `removed inbound message use case` → `ServerTerminateReceived`; overlay `server_terminate`; scheduler stop — see `handoffs/archive/P08/P08-WU3-Recovery-Overlay-Handoff.md`. |
+| LF-050 | P07 | Operator | High | Block call button from legacy RESERVED state | `useBlockedCallButton` | legacy operator platform reserved state disables calling deterministically. |
 | LF-051 | P12 | Integration | High | External call button block | `setCallButtonDisabled` | Host API can block call button through typed adapter. |
 | LF-052 | P09 | Telephony | Medium | Redial or call from journal | `Display`, `Journal` | History entries can initiate calls via Use Case. |
 | LF-053 | P09 | Settings | Medium | Call history in local storage | `call-history`, `Journal` | Call events persist through repository abstraction. |
@@ -109,16 +108,16 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 | LF-055 | P11 | UI | Medium | Collapse and expand UI | `CollapseButton`, `Display` | Desktop shell supports compact softphone mode; shell window layout expands for settings (F-016) — `ShellWindowLayout`, `ShellWindowController`. |
 | LF-056 | P11 | UI | Low | Draggable widget | `DraggableButton` | Startup/settings anchor via `ShellWindowController.placeCompactAtStartup` + `resolveShellWindowTargetBounds` (F-016); full drag handle deferred. |
 | LF-057 | P08 | UI | High | Lost WS overlay | `WSConnectionOverlay` | **Superseded** (ADR-0004, 2026-07-02): legacy overlay removed; recovery UX in header SIP status + Settings «Состояние системы». Prior evidence: `handoffs/archive/P08/P08-WU3-Recovery-Overlay-Handoff.md`. |
-| LF-058 | P08 | Operator | High | WS reconnect 6 attempts by 5 seconds | `useWs` | WU2: `OCP_RECONNECT_POLICY_CONFIG`, `OcpReconnect*`, orchestration + integration test — see `handoffs/archive/P08/P08-WU2-Recovery-Orchestration-Handoff.md`. |
-| LF-059 | P07 | UI | Medium | OCP toast notifications | `NotificationProvider` | WU4: `OcpToastStack`, `ocpNotificationProjection`, `useOcpNotifications` — see `handoffs/archive/P07/P07-WU4-OCP-Sync-Polish-Handoff.md`. |
+| LF-058 | P08 | Operator | High | WS reconnect 6 attempts by 5 seconds | `useWs` | WU2: `legacy reconnect policy`, `Legacy reconnect*`, orchestration + integration test — see `handoffs/archive/P08/P08-WU2-Recovery-Orchestration-Handoff.md`. |
+| LF-059 | P07 | UI | Medium | Legacy toast notifications (removed) | `NotificationProvider` | WU4: `legacy toast stack`, `legacy notification projection`, `legacy notifications hook` — see `removed archives|
 | LF-060 | P11 | Settings | Low | Toast position and z-index settings | user config | User config controls notification placement. |
 | LF-061 | P03 | Operator | High | Reject reason selection | `RejectReasonSelector` (post-call/logout) | Incoming overlay rejects without reason picker; break reasons remain in post-call/logout flows. |
-| LF-062 | P06 | Operator | High | WS post-call update on reject | `IncomingCallModal` | WU3: `PostCallRejectOrchestrationService` + facade `rejectCall` — see `handoffs/archive/P06/P06-WU3-Post-Call-Break-Reasons-Handoff.md`. |
-| LF-063 | P07 | Operator | Critical | main_acallid synchronization | `useOCPEvents`, `useWs` | WU1–WU4: exact correlation registry + `dlg_stop` orchestration — see `handoffs/archive/P07/P07-WU4-OCP-Sync-Polish-Handoff.md`. |
-| LF-064 | P07 | Operator | Critical | dlg_stop on ended or failed | `handleSaveCallHistory`, `useSoftPhoneDlgStop` | WU4: `SendDlgStopUseCase`, `DlgStopPolicy`, `CallEndDlgStopOrchestrationService` — see `handoffs/archive/P07/P07-WU4-OCP-Sync-Polish-Handoff.md`. |
-| LF-065 | P12 | Integration | Critical | External call events to OCP | `externalEvents`, `useOCPEvents` | Internal call events map to legacy host/OCP events. |
+| LF-062 | P06 | Operator | High | WS post-call update on reject | `IncomingCallModal` | WU3: `legacy post-call reject orchestration` + facade `rejectCall` — see `removed archives|
+| LF-063 | P07 | Operator | Critical | Legacy call-id synchronization (removed) | `legacy events hook`, `useWs` | WU1–WU4: exact correlation registry + `legacy end-call sync` orchestration — see `removed archives|
+| LF-064 | P07 | Operator | Critical | Legacy end-of-call sync (removed) | `handleSaveCallHistory`, `legacy end-of-call hook` | WU4: `legacy end-call sync use case`, `legacy end-call policy`, `legacy end-call orchestration` — see `removed archives|
+| LF-065 | P12 | Integration | Critical | External call events to legacy platform (removed) | `externalEvents`, `legacy events hook` | Internal call events map to legacy host/legacy operator platform events. |
 | LF-066 | P09 | Integration | Medium | User action logging in IndexedDB | `loggerDB` | User actions persist through logging repository. |
-| LF-067 | P09 | Integration | Medium | Send logs to OCP | `window.ws.sendLog` | OCP logging uses typed gateway, not global `window.ws`. |
+| LF-067 | P09 | Integration | Medium | Send logs to legacy platform (removed) | `window.ws.sendLog` | Legacy logging uses typed gateway, not global `window.ws`. |
 | LF-068 | P09 | Telephony | Low | SIP message logging | `initUAConfig` socket wrap | SIP diagnostics can be enabled without leaking secrets. |
 | LF-069 | P09 | Integration | Medium | Export logs to Excel | `Logs`, `xlsx` | Logs export works through explicit diagnostics UI. |
 | LF-070 | P09 | UI | Low | SIP and non-SIP log filter | `Logs` | Diagnostics UI filters log categories. |
@@ -129,10 +128,10 @@ Deferred Operator / OCP-related IDs (non-exhaustive): `LF-001`–`LF-004`, `LF-0
 | LF-075 | P10 | Headset | Medium | Native Jabra adapter | `headsetAdapters` | Vendor implementation stays inside adapter. |
 | LF-076 | P11 | Settings | High | Auto-answer, RBT, multisession settings | `Common`, `setUserConfig` | WU1: `SettingsOverlay` multi-session toggle. WU3: settings via avatar menu. WU4: schema fields `autoAnswerTimeoutSec`, `ringbackToneEnabled`, `multiSessionsEnabled` in `UserSettings` v1 — `P11-Settings-Schema-Design.md`. |
 | LF-077 | P11 | Settings | High | Per-user config in local storage | `JSSIP_CONFIGS` | WU4: `UserSettings` v3 schema. **F-023 done:** disk persistence, profile switch on authorize, composite profile key — `P11-Local-Account-Profiles-Design.md`, `FileSettingsRepository.ts`, `AccountBootstrapFacade.test.ts` (A→B→A). **F-024 done:** saved SIP profile list + quick sign-in UI — `SavedAccountProfile.ts`, `SavedAccountProfileSelector.tsx`, `handoffs/P11-F024-Saved-Account-Profiles-Handoff.md`. |
-| LF-078 | P06 | Settings | Medium | Break reasons from OCP in config | `setBreakReasons` | WU3: `BreakReasonsSyncService`, `BreakReasonsReceived`, `SettingsRepository.setAllowedBreakReasons` — see `handoffs/archive/P06/P06-WU3-Post-Call-Break-Reasons-Handoff.md`. |
+| LF-078 | P06 | Settings | Medium | Break reasons from legacy platform (removed) | `setBreakReasons` | WU3: `legacy break-reasons sync`, `BreakReasonsReceived`, `SettingsRepository.setAllowedBreakReasons` — see `removed archives|
 | LF-079 | P08 | Telephony | Critical | beforeunload SIP cleanup | `DisplayProvider` | WU4–WU5: `ShutdownCleanupUseCase`, `EndUserSessionUseCase`, `SessionTeardownOrchestrationService`, IPC `app:before-close`, `useAppShutdown`, `control-end-session` — see `handoffs/archive/P08/P08-WU4-Recovery-Manual-Shutdown-Handoff.md`, `handoffs/archive/P08/P08-WU5-User-Session-Logout-Handoff.md`. |
 | LF-080 | P12 | Integration | Critical | `window.Softphone` external API | multiple files | One host adapter owns the legacy external API. |
-| LF-081 | P12 | Integration | High | `ocpModule` external status API | `useStatusSelectorAPIAdapter` | Host status API maps to operator Use Cases. |
+| LF-081 | P12 | Integration | High | `legacy status module` external status API | `uselegacy status selectorAPIAdapter` | Host status API maps to operator Use Cases. |
 | LF-082 | P11 | Settings | Low | Light and dark theme | `applyAppTheme`, `UserSettings.theme` | Theme persisted per account; light default; General settings segmented control; `data-theme` + `tokens.css` light/dark tokens. Evidence: `src/domain/settings/AppTheme.ts`, `src/renderer/theme/applyAppTheme.ts`, `SettingsGeneralPanel`, `validateUserSettings.test.ts`. |
 | LF-083 | P09 | Settings | Low | Debug JsSIP setting | Common settings | Debug flag controls SIP diagnostics safely. |
 | LF-084 | P11 | Settings | Low | Codec preferences settings panel | `SettingsCodecsPanel`, `SettingModal` | F-022: audio codec order/enablement in settings; video future-only; audio order applied on new RTC sessions via JsSIP adapter. Evidence: `SettingsCodecsPanel.tsx`, `CodecPreferencesSortableList.tsx`, `prepareJsSipSessionCodecPreferences.ts`, `wireJsSipCodecPreferences.ts`, `SettingsCodecsPanel.test.tsx`. |
@@ -151,4 +150,4 @@ Product parity is complete only when:
 2. Every row has acceptance evidence.
 3. Every critical and high row has tests or an ADR-approved deferral.
 4. Every external contract has compatibility tests.
-5. Every optional OCP feature is verified in SIP-only mode.
+5. SIP-only telephony features remain verified without legacy operator integration.

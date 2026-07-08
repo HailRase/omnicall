@@ -2,20 +2,20 @@
 
 You implement **real external adapters** for Enterprise Softphone Platform on branch `main` (`feature/real-adapters` merged; stale).
 
-> **OCP is DEFERRED** (ADR-0002). Read `docs/softphone/OCP-PLUGIN-BACKLOG.md`. Do not implement or smoke-test OCP unless user resumes that backlog.
+> **legacy operator platform is DEFERRED** (ADR-0005). Read `docs/softphone/ADR-0005`. Do not implement or smoke-test legacy operator platform unless user resumes that backlog.
 > **Transfer real adapter is BACKLOG** — `TRANSFER-REAL-ADAPTER-BACKLOG.md`.
 > **RAT steps 00–08:** **closed** (R7 PASS 2026-06-25). **P11 UI-4 + icons/tooltips:** complete. **Next:** F-008 DTMF real, P10 headset.
 > **Next adapter work:** F-008 DTMF real. Transfer step 07 = **backlog**.
 
 ## Mission
 
-Connect real SIP (JsSIP) and browser media (WebRTC audio) — **without breaking** the existing mock-based architecture, tests, or Domain/Application layers. OCP WebSocket is **out of active scope**.
+Connect real SIP (JsSIP) and browser media (WebRTC audio) — **without breaking** the existing mock-based architecture, tests, or Domain/Application layers. legacy operator WebSocket is **out of active scope**.
 
 ## Mandatory reading (in order)
 
 1. `docs/softphone/STATUS.md` — live test count and active phase
 2. `docs/softphone/Architecture-Constitution.md`
-2. `docs/softphone/OCP-PLUGIN-BACKLOG.md` — **OCP deferred; do not scope-creep**
+2. `docs/softphone/ADR-0005` — **legacy operator platform deferred; do not scope-creep**
 3. `docs/softphone/Feature-Registry.md`
 3. `docs/softphone/UI-Architecture.md` + `UI-Design-System.md` (renderer changes)
 4. `docs/softphone/UX-UI-Design-Blueprint.md`
@@ -33,12 +33,12 @@ Connect real SIP (JsSIP) and browser media (WebRTC audio) — **without breaking
 - **UI stays presentational** — projections + disabled reasons; user actions → facade Use Cases only.
 - **Do not add lines to AccountBootstrapFacade** except wiring new ports if unavoidable; prefer bootstrap factory.
 - **Secrets:** never log passwords/tokens; use `.env.local` at repo root (gitignored) for dev SBC credentials.
-- **LF-XXX / Feature Registry:** update when real adapter satisfies acceptance criteria (F-001–F-008 SIP core; **not F-009/F-010/F-015** unless OCP backlog resumed).
+- **LF-XXX / Feature Registry:** update when real adapter satisfies acceptance criteria (F-001–F-008 SIP core; **not F-009/F-010/F-015** unless legacy operator platform backlog resumed).
 - After each completed step: update `PROGRESS.md` + `work-history/YYYY-MM-DD/rat-step-NN_*.md`.
 
 ## Work protocol
 
-1. Read `PROGRESS.md` — RAT steps 00–08 closed. **Next adapter slice:** F-008 DTMF real (`JsSipTelephonyAdapter.sendDtmf`). Skip 06 OCP; skip 07/07b transfer backlog.
+1. Read `PROGRESS.md` — RAT steps 00–08 closed. **Next adapter slice:** F-008 DTMF real (`JsSipTelephonyAdapter.sendDtmf`). Skip 06 legacy operator platform; skip 07/07b transfer backlog.
 2. Open matching `step-NN-*.md` — implement only that scope.
 3. Run `npm run test && npm run lint && npm run typecheck`.
 4. Manual smoke per `SMOKE-CHECKLIST.md` for that slice (document results in PROGRESS).
@@ -50,10 +50,10 @@ Connect real SIP (JsSIP) and browser media (WebRTC audio) — **without breaking
 Every slice must preserve:
 
 - Visible registration state (LF-011): Online / Offline / DND via projection
-- Disabled controls with reason (not registered, OCP reserved, call in progress, etc.)
+- Disabled controls with reason (not registered, legacy operator platform reserved, call in progress, etc.)
 - Connection overlay on transport loss (LF-057) — real adapter must fire disconnect hooks
-- Incoming modal: caller ID, answer/reject, auto-answer countdown, reject reason when OCP
-- Operator status hidden in SIP-only; visible in OCP mode
+- Incoming modal: caller ID, answer/reject, auto-answer countdown, reject reason when legacy operator platform
+- Operator status hidden in SIP-only; visible in legacy operator mode
 - Keyboard + `data-testid` on critical controls
 - No raw SIP session state in React
 
@@ -63,7 +63,7 @@ Every slice must preserve:
 createSoftphoneComposition(mode)
   mock → existing Mock* gateways (CI default)
   real → JsSipTelephonyAdapter (`@hailrase/jssip` fork — see JSSIP-FORK.md) + BrowserMediaAdapter
-  real OCP WS → dormant (ADR-0002); only when user resumes OCP backlog
+  real legacy operator platform WS → dormant (ADR-0005); only when user resumes legacy operator platform backlog
 
 Renderer: useAccountBootstrap reads ?adapters=real|mock; default sip-only
 Main: unchanged until transfer/headset slices stabilize
@@ -71,7 +71,7 @@ Main: unchanged until transfer/headset slices stabilize
 
 ## Out of scope (active track)
 
-- OCP WebSocket, R5 smoke, operator status on real stand (ADR-0002 — `OCP-PLUGIN-BACKLOG.md`)
+- legacy operator WebSocket, removed operator smoke, operator status on real stand (ADR-0005 — `ADR-0005`)
 - Real SIP transfer completion — **backlog** (`TRANSFER-REAL-ADAPTER-BACKLOG.md`)
 - P11 shell/settings UI — **roadmap agent** (`P11-WU0-Shell-Layout-Agent-Prompt.md`); parallel to F-008 DTMF
 - Headset WebHID

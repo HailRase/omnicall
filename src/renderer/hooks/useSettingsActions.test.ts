@@ -6,7 +6,6 @@ import type { SoftphonePreloadApi } from "@shared/ipc/PreloadApi.js";
 import { initialAccountBootstrapProjection } from "@application/projections/settings/accountBootstrapProjection.js";
 import { InMemorySettingsRepository } from "@adapters/settings/InMemorySettingsRepository.js";
 import { MockMediaGateway } from "@adapters/mock/MockMediaGateway.js";
-import { MockOperatorPlatformGateway } from "@adapters/mock/MockOperatorPlatformGateway.js";
 import { MockTelephonyGateway } from "@adapters/mock/MockTelephonyGateway.js";
 import { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
@@ -15,8 +14,7 @@ import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js"
 
 function createFacade(settingsRepository: InMemorySettingsRepository): AccountBootstrapFacade {
   return new AccountBootstrapFacade({
-    operatorGateway: new MockOperatorPlatformGateway(),
-    telephonyGateway: new MockTelephonyGateway("success"),
+    telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
     mediaGateway: new MockMediaGateway(),
     settingsRepository,
     logger: createTestLogger(),
@@ -123,7 +121,7 @@ describe("useSettingsActions", () => {
   it("loads persisted profile settings when SIP registration sync key appears", async () => {
     const applyMultiCallSettings = vi.fn();
     const settings = new InMemorySettingsRepository({
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
     const facade = createFacade(settings);
 

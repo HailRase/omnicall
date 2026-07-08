@@ -14,7 +14,6 @@ describe("mapAvatarMenuLogoutDisabledReason", () => {
   it("returns null when end session control is available", () => {
     expect(
       mapAvatarMenuLogoutDisabledReason({
-        isOcpMode: false,
         authUiState: "sip_registered",
         shell: { ...baseShell, showEndSessionControl: true },
       }),
@@ -24,7 +23,6 @@ describe("mapAvatarMenuLogoutDisabledReason", () => {
   it("prefers shell disabled reason", () => {
     expect(
       mapAvatarMenuLogoutDisabledReason({
-        isOcpMode: false,
         authUiState: "sip_registered",
         shell: {
           ...baseShell,
@@ -38,20 +36,9 @@ describe("mapAvatarMenuLogoutDisabledReason", () => {
   it("maps registering state to Russian reason", () => {
     expect(
       mapAvatarMenuLogoutDisabledReason({
-        isOcpMode: false,
         authUiState: "sip_registering",
         shell: baseShell,
       }),
     ).toBe("Регистрация выполняется");
-  });
-
-  it("maps OCP mode to Russian reason", () => {
-    expect(
-      mapAvatarMenuLogoutDisabledReason({
-        isOcpMode: true,
-        authUiState: "sip_registered",
-        shell: baseShell,
-      }),
-    ).toBe("Завершение SIP-сессии недоступно");
   });
 });

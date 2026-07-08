@@ -102,7 +102,7 @@ describe("deriveSipSystemStateShell", () => {
     );
   });
 
-  it("does not reference OCP fields (SIP-only path)", () => {
+  it("does not expose legacy operator platform fields", () => {
     const shell = deriveSipSystemStateShell({
       health: health({ transport: "connected", registration: "registered" }),
       sipAutoReconnectEnabled: true,

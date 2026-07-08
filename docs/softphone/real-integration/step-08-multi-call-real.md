@@ -16,7 +16,7 @@ Real JsSIP multi-session on dev SBC:
 ## Out of scope
 
 - Transfer backlog (`TRANSFER-REAL-ADAPTER-BACKLOG.md`)
-- OCP (ADR-0002)
+- legacy operator platform (ADR-0005)
 - Tone FSM (`MULTI-CALL-BACKLOG.md`)
 - 3+ simultaneous holds if SBC fails → log + `MultiCallOperationRejected`, no drop (G2)
 

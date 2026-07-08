@@ -1,13 +1,13 @@
 ---
 name: integration-contract-review
-description: SKILL - Use for OCP WebSocket, host-page API, window.Softphone, DOM events, Electron IPC, CRM integrations, and external contracts.
+description: SKILL - Use for legacy operator WebSocket, host-page API, window.Softphone, DOM events, Electron IPC, CRM integrations, and external contracts.
 ---
 
 # SKILL: Integration Contract Review
 
 Use this skill before changing external contracts.
 
-External contracts include OCP WebSocket, host-page APIs, legacy `window.Softphone`, DOM events, Electron IPC, and CRM integrations.
+External contracts include legacy operator WebSocket, host-page APIs, legacy `window.Softphone`, DOM events, Electron IPC, and CRM integrations.
 
 ## Inputs
 
@@ -54,19 +54,19 @@ Allowed owners:
 
 Never mutate a global API from multiple files.
 
-## OCP Rules
+## legacy operator platform Rules
 
-OCP is optional.
+legacy operator platform is optional.
 
 Core SIP phone mode must run without:
 
-- OCP WebSocket
-- OCP auth token
-- OCP statuses
+- legacy operator WebSocket
+- legacy operator auth token
+- legacy operator platform statuses
 - campaign events
 - post-call processing
 
-OCP messages must be typed and validated before entering Application.
+legacy operator platform messages must be typed and validated before entering Application.
 
 ## Host API Rules
 
@@ -141,6 +141,6 @@ Do not complete an integration change until:
 - contract owner is clear
 - payloads are typed
 - input is validated
-- OCP remains optional
+- legacy operator platform remains optional
 - global mutation is centralized
 - compatibility risks are documented

@@ -1,11 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { RetryConnectionUseCase } from "./RetryConnectionUseCase.js";
-import { ConnectionRecoveryOrchestrationService } from "../../services/recovery/ConnectionRecoveryOrchestrationService.js";
 import { SipRecoveryOrchestrationService } from "../../services/recovery/SipRecoveryOrchestrationService.js";
-import { InMemoryConnectionRecoveryReadModel } from "../../read-models/InMemoryConnectionRecoveryReadModel.js";
 import { InMemorySipSessionHealthReadModel } from "../../read-models/InMemorySipSessionHealthReadModel.js";
 import { InMemoryDomainEventBus } from "../../events/InMemoryDomainEventBus.js";
-import { MockOperatorPlatformGateway, MockTelephonyGateway } from "@adapters/index.js";
+import { MockTelephonyGateway } from "@adapters/index.js";
 import { createSipTransportReconnectFailedEvent } from "@domain/telephony/events/sipTransportEvents.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
@@ -16,23 +14,14 @@ describe("RetryConnectionUseCase", () => {
   it("rejects manual retry while reconnecting", async () => {
     const eventPublisher = new InMemoryDomainEventBus();
     const sipReadModel = new InMemorySipSessionHealthReadModel(eventPublisher);
-    const ocpReadModel = new InMemoryConnectionRecoveryReadModel(eventPublisher);
-    const orchestration = new ConnectionRecoveryOrchestrationService({
-      telephonyGateway: new MockTelephonyGateway("success"),
-      operatorGateway: new MockOperatorPlatformGateway(),
-      eventPublisher,
-      logger: createTestLogger(),
-    });
     const sipOrchestration = new SipRecoveryOrchestrationService({
-      telephonyGateway: new MockTelephonyGateway("success"),
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
       eventPublisher,
       logger: createTestLogger(),
     });
 
     const useCase = new RetryConnectionUseCase(
       sipReadModel,
-      ocpReadModel,
-      orchestration,
       sipOrchestration,
       createTestLogger(),
     );
@@ -56,16 +45,9 @@ describe("RetryConnectionUseCase", () => {
     const correlationId = createCorrelationId();
     const eventPublisher = new InMemoryDomainEventBus();
     const sipReadModel = new InMemorySipSessionHealthReadModel(eventPublisher);
-    const ocpReadModel = new InMemoryConnectionRecoveryReadModel(eventPublisher);
     const telephonyGateway = new MockTelephonyGateway({
       registrationScenario: "success",
       reconnectScenario: "success",
-    });
-    const orchestration = new ConnectionRecoveryOrchestrationService({
-      telephonyGateway,
-      operatorGateway: new MockOperatorPlatformGateway(),
-      eventPublisher,
-      logger: createTestLogger(),
     });
     const sipOrchestration = new SipRecoveryOrchestrationService({
       telephonyGateway,
@@ -79,8 +61,6 @@ describe("RetryConnectionUseCase", () => {
 
     const useCase = new RetryConnectionUseCase(
       sipReadModel,
-      ocpReadModel,
-      orchestration,
       sipOrchestration,
       createTestLogger(),
     );

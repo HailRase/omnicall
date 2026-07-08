@@ -43,26 +43,6 @@ import {
   type MultiLineCallProjection,
 } from "@application/projections/telephony/multiLineCallProjection.js";
 import {
-  initialOperatorStatusProjection,
-  reduceOperatorStatusProjection,
-  type OperatorStatusProjection,
-} from "@application/projections/operator/operatorStatusProjection.js";
-import {
-  initialQueueInfoProjection,
-  reduceQueueInfoProjection,
-  type QueueInfoProjection,
-} from "@application/projections/operator/queueInfoProjection.js";
-import {
-  initialCampaignProjection,
-  reduceCampaignProjection,
-  type CampaignProjection,
-} from "@application/projections/operator/campaignProjection.js";
-import {
-  initialOcpNotificationProjection,
-  reduceOcpNotificationProjection,
-  type OcpNotificationProjection,
-} from "@application/projections/operator/ocpNotificationProjection.js";
-import {
   applyCallHistoryLoadError,
   applyCallHistoryLoaded,
   applyCallHistoryLoading,
@@ -91,10 +71,6 @@ type AccountBootstrapStore = Readonly<{
   multiCallProjection: MultiCallProjection;
   transferProjection: TransferProjection;
   multiLineCallProjection: MultiLineCallProjection;
-  operatorStatusProjection: OperatorStatusProjection;
-  queueInfoProjection: QueueInfoProjection;
-  campaignProjection: CampaignProjection;
-  ocpNotificationProjection: OcpNotificationProjection;
   sipSessionHealthProjection: SipSessionHealthProjection;
   callHistoryProjection: CallHistoryProjection;
   contactsProjection: ContactsProjection;
@@ -124,10 +100,6 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
   multiCallProjection: initialMultiCallProjection(),
   transferProjection: initialTransferProjection(),
   multiLineCallProjection: initialMultiLineCallProjection(),
-  operatorStatusProjection: initialOperatorStatusProjection(),
-  queueInfoProjection: initialQueueInfoProjection(),
-  campaignProjection: initialCampaignProjection(),
-  ocpNotificationProjection: initialOcpNotificationProjection(),
   sipSessionHealthProjection: initialSipSessionHealthProjection(),
   callHistoryProjection: initialCallHistoryProjection(),
   contactsProjection: initialContactsProjection(),
@@ -196,22 +168,6 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
         transferProjection: reduceTransferProjection(state.transferProjection, event),
         multiLineCallProjection: reduceMultiLineCallProjection(
           state.multiLineCallProjection,
-          event,
-        ),
-        operatorStatusProjection: reduceOperatorStatusProjection(
-          state.operatorStatusProjection,
-          event,
-        ),
-        queueInfoProjection: reduceQueueInfoProjection(
-          state.queueInfoProjection,
-          event,
-        ),
-        campaignProjection: reduceCampaignProjection(
-          state.campaignProjection,
-          event,
-        ),
-        ocpNotificationProjection: reduceOcpNotificationProjection(
-          state.ocpNotificationProjection,
           event,
         ),
         sipSessionHealthProjection: reduceSipSessionHealthProjection(

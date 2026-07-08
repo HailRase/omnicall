@@ -13,7 +13,7 @@
 - **Не расширять scope** за пределы одного WU
 - **Не трогать** Domain/Use Cases — эскалация → `/logic` (исключение: поля `UserSettings` без бизнес-правил, напр. `theme`)
 - **Две темы обязательны:** любые стили/компоненты — light + dark через токены (`ux-ui-electron-react.mdc` → Color Themes)
-- OCP / real transfer — **out of scope** (ADR-0002, backlog)
+- legacy operator platform / real transfer — **out of scope** (ADR-0005, backlog)
 
 ## Intake
 

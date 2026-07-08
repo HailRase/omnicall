@@ -16,8 +16,6 @@ const activeLine: CallLineCardViewModel = {
   displayName: "+12025550100",
   statusLabel: "call.line.status.active",
   durationStartedAt: Date.now(),
-  queueLabelState: "hidden",
-  queueName: null,
   primaryAction: "hangup",
   showIconRow: true,
   showLocalHoldBadge: false,

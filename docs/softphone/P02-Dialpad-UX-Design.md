@@ -19,7 +19,7 @@
 - `failedUnavailable`: call failed with unavailable reason and failed tone indicator.
 - `failedRejected`: call failed with rejected reason and failed tone indicator.
 - `disabledByNotRegistered`: registration gate blocks call action.
-- `disabledByOcpReserved`: OCP reserved gate blocks call action.
+- `disabledByOcpReserved`: legacy operator platform reserved gate blocks call action.
 - `disabledBySecondSessionPolicy`: second-session policy blocks call action.
 
 ## Actions And Use Cases

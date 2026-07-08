@@ -12,10 +12,7 @@ const baseProps = {
   visible: true,
   callerNumber: "+12025550100",
   displayName: "Алиса",
-  queueLabelState: "ready" as const,
-  queueName: "Поддержка",
-  campaignContextTitle: null,
-  autoAnswerSecondsRemaining: null,
+autoAnswerSecondsRemaining: null,
   uiState: "incomingRinging" as const,
   answerDisabledReason: null,
   rejectDisabledReason: null,
@@ -30,7 +27,6 @@ describe("IncomingCallOverlay", () => {
     expect(screen.getByTestId("incoming-call-overlay")).toBeInTheDocument();
     expect(screen.getByTestId("caller-identity")).toHaveTextContent("Алиса");
     expect(screen.getByTestId("caller-identity")).toHaveTextContent("+12025550100");
-    expect(screen.getByTestId("queue-info-label")).toHaveTextContent("Поддержка");
     expect(screen.getByRole("button", { name: "Ответить на вызов" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Отклонить вызов" })).toBeInTheDocument();
   });
@@ -46,19 +42,6 @@ describe("IncomingCallOverlay", () => {
 
     expect(screen.getByTestId("auto-answer-countdown")).toHaveTextContent("Автоответ через 3");
     expect(screen.queryByTestId("reject-reason-select")).not.toBeInTheDocument();
-  });
-
-  it("shows campaign badge when provided", () => {
-    render(
-      <IncomingCallOverlay
-        {...baseProps}
-        campaignContextTitle="Исходящая кампания"
-      />,
-    );
-
-    expect(screen.getByTestId("incoming-campaign-context")).toHaveTextContent(
-      "Исходящая кампания",
-    );
   });
 
   it("emits answer and reject callbacks", () => {

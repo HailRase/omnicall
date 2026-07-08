@@ -56,7 +56,7 @@
 - Radix Dialog migration (UI-6)
 - CSS Modules / tokens mass migration (UI-4)
 - Electron IPC settings window
-- OCP plugin settings beyond existing ports
+- legacy operator integration settings beyond existing ports
 - Collapsed shell / CallLineRow changes (WU3 closed)
 - Use Cases for pure config flags (unless business rule appears — then ADR)
 
@@ -85,7 +85,7 @@
 - UI still: `useSettingsActions` → facade → port (no `@ports` in components)
 - Persisted JSON validated at adapter boundary (`unknown` → narrow)
 - Per-user key = SIP `authorization_user` / `agentId` (document choice in design doc)
-- OCP-only fields optional in schema; SIP-only boot must not require OCP keys
+- legacy operator platform-only fields optional in schema; SIP-only boot must not require legacy operator platform keys
 
 ---
 

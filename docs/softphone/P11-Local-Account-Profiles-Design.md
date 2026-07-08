@@ -31,7 +31,7 @@ Operators may share one PC but use different SIP accounts. Settings must persist
 
 ## Non-goals (this track)
 
-- OCP multi-agent identity beyond SIP username alias (existing OCP path unchanged).
+- legacy operator platform multi-agent identity beyond SIP username alias (existing legacy operator platform path unchanged).
 - Remember-me UX until secure credential storage is implemented (Step 5).
 - Cloud sync or server-side profile storage.
 

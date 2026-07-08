@@ -42,7 +42,7 @@ Mapping: business logic→Domain; orchestration→Application; external tech→A
 
 - Business ops via Use Cases (`MakeCallUseCase`, `AnswerCallUseCase`, etc.); telephony via Call Engine
 - Stores = projections only; hooks compose selectors/Use Cases/UI behavior
-- OCP optional (`OperatorPlatformGateway`); SIP-only must work without OCP
+- SIP-only bootstrap is the only product path (ADR-0005)
 - Headset vendors behind adapters; hardware events→application commands
 - Refactoring: no feature loss; list feature/event/adapter impacts first
 - Errors: never swallow; `catch (error: unknown)` + log in critical flows
@@ -54,7 +54,6 @@ component 150 | hook 200 | file 300 | function 30 lines
 
 ## Backlog (no scope creep)
 
-- **OCP DEFERRED** (ADR-0002): `docs/softphone/OCP-PLUGIN-BACKLOG.md` — resume only when user cites it
 - **Transfer R6 BACKLOG**: `docs/softphone/real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md` — resume only when user cites it
-- Do not block SIP/headset/settings on OCP or transfer gaps
-- Do not remove OCP ports, transfer code, or `domain/operator/` without ADR
+- Do not block SIP/headset/settings on transfer gaps
+- Do not remove transfer code without ADR

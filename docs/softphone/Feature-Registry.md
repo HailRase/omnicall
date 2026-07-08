@@ -263,66 +263,25 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Integration: mock gateway DTMF
   - E2E: deferred until dedicated Electron E2E harness exists
 
-## F-009: Optional OCP Authentication
+## F-009: Legacy Operator Authentication
 
-- Legacy IDs: `LF-001`, `LF-002`, `LF-003`, `LF-004`, `LF-005`, `LF-085`
-- Context: Operator
+- Legacy IDs: `LF-001`, `LF-002`, `LF-003`, `LF-004`, `LF-005`, `LF-085` (operator auth path)
+- Context: Integration (removed)
 - Priority: critical
-- Status: implemented (mock); **Product status: deferred_backlog** (ADR-0002)
+- Status: **removed** (ADR-0005)
 - Owner: TBD
-- Inputs: host integration auth token and domain
-- Outputs: operator session events and optional SIP credentials
-- Acceptance Criteria:
-  - Core SIP phone mode works without OCP.
-  - OCP is implemented as an integration plugin behind `OperatorPlatformGateway`.
-  - Startup mode is resolved by `ResolveStartupModeUseCase` and published as `StartupModeResolved`.
-  - OCP auth failure states map to UI: loading, session exists, invalid token, access denied.
-  - Missing OCP credentials at startup emit `AccessDeniedDetected`.
-  - Dev mock scenarios are selectable via URL query params.
-- Test Coverage:
-  - Unit: OCP auth success, invalid token, session exists, access denied
-  - Integration: mock OCP gateway, OCP to SIP registration chain, startup initialization
-  - E2E: deferred until harness exists
-- Real Adapter Track: **deferred** (ADR-0002; code in step 06; R5 smoke out of scope — see `OCP-PLUGIN-BACKLOG.md`)
+- Notes: Legacy operator-platform authentication removed from product. SIP-only bootstrap remains.
 
-## F-010: Operator Status Management
 
-- Legacy IDs: `LF-018`, `LF-019`, `LF-041`, `LF-042`, `LF-043`, `LF-044`, `LF-045`, `LF-046`, `LF-047`, `LF-048`, `LF-049`, `LF-062`, `LF-078`
-- Context: Operator
+## F-010: Legacy Platform Status Management
+
+- Legacy IDs: `LF-018`, `LF-019`, `LF-041`–`LF-049`, `LF-062`, `LF-078`
+- Context: Integration (removed)
 - Priority: critical
-- Status: implemented (mock; partial — LF-048 cascade P08); **Product status: deferred_backlog** (ADR-0002)
+- Status: **removed** (ADR-0005)
 - Owner: TBD
-- Inputs: status change command, optional reason
-- Outputs: `AgentStatusChanged` or failure event
-- Acceptance Criteria:
-  - Status rules are not in UI components.
-  - Post-call status transitions are explicit.
-  - OCP absence does not break SIP-only mode.
-  - WU1: `AgentStatus` FSM rejects invalid transitions with typed reasons (LF-045).
-  - WU1: DND blocks transition to Ready; DND→break mapping contract defined (LF-018, LF-019).
-  - WU1: WU1 domain events typed and projection skeleton represents SIP-only N/A.
-  - WU2+: `ChangeAgentStatusUseCase` confirms gateway before `AgentStatusChanged`.
-  - WU2: `ChangeAgentStatusUseCase` validates → requests → gateway → changed/rejected.
-  - WU2: DND phone change orchestrates agent break via `DndAgentStatusOrchestrationService` (LF-018).
-  - WU2: Initial agent status synced on `OcpAuthenticationSucceeded` via `AgentStatusSyncService`.
-  - WU3: `BreakReasonsReceived` syncs `allowedBreakReasons` from mock gateway (LF-078).
-  - WU3: Break reason validation uses `allowedBreakReasons` via `AgentBreakReasonPolicy` (not incoming reject flag).
-  - WU3: `UpdatePostCallStatusUseCase` + `PostCallStatusUpdated` after gateway confirm (LF-044).
-  - WU3: Reject with reason triggers post-call update in OCP mode (LF-062).
-  - WU3: Status timer projection derived from `statusChangedAt` (LF-046 prep; UI WU4).
-  - WU3: DND-at-auth orchestration after status sync (`OcpAuthBootstrapService`).
-  - WU4: Status selector React UI in OCP mode, hidden SIP-only (LF-041).
-  - WU4: Ready/Break invoke `ChangeAgentStatusUseCase` with projection disabled reasons (LF-042, LF-043).
-  - WU4: Break reason picker when `allowedBreakReasonsCount > 0`.
-  - WU4: Status timer component via `useOperatorStatusTimer` (LF-046).
-  - WU4: Logout reason modal + `LogoutOperatorUseCase` + `AgentLogoutRequested` (LF-047).
-  - WU4: LF-048 logout cascade deferred to P08.
-- Test Coverage:
-  - Unit: WU1–WU3 suite + `logoutEvents.test.ts`, `LogoutOperatorUseCase.test.ts`, `mapOperatorStatusDisabledReason.test.ts`, `StatusSelector.test.tsx`, `StatusTimer.test.tsx`, `LogoutReasonModal.test.tsx` (WU4)
-  - Integration: `BreakReasonsAndPostCall.integration.test.ts`, `DndAgentStatusOrchestration.integration.test.ts` (WU2–WU3)
-  - E2E: deferred until harness exists
+- Notes: Legacy platform status, break reasons sync, and post-call workflows removed. `PhoneStatus` (online/offline/dnd) and SIP DND remain via `ChangePhoneStatusUseCase`.
 
-- Real Adapter Track: **deferred** (ADR-0002; real WS commands in step 06 code; manual R5 out of scope — see `OCP-PLUGIN-BACKLOG.md`)
 
 ## F-011: Host Integration Contract
 
@@ -430,8 +389,6 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - **Removed SIP-only:** legacy recovery overlay/shell, header `control-reregister-sip`.
   - `SipConnectionJournal` in-memory ring buffer for transport + registration events (correlationId, timestamp).
   - Failure reasons normalized (`mapSipRegistrationFailureKey`) and shown in Russian in settings panel and header.
-  - OCP recovery (LF-058, `OcpDisconnected`, overlay OCP rows) remains **deferred** (ADR-0002); mock code preserved, not wired in SIP-only UI.
-  - OCP `server_terminate` inbound still publishes `ServerTerminateReceived` when OCP backlog resumes (LF-049, LF-048).
   - App shutdown IPC triggers `ShutdownCleanupUseCase` with hangup, unregister, scheduler dispose (LF-079).
   - SIP-only user logout: `hangupAll → unregister({ all: true }) → ua.stop() → SipSessionReset → idle`; all recovery timers cleared (LF-079).
 - Test Coverage:
@@ -442,27 +399,15 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Refactor plan: `docs/softphone/TRANSPORT-REGISTER-STATE-REFACTORING.md` (T-008)
 - Supersedes: LF-057 overlay UX, LF-009 avatar ring (cancelled)
 
-## F-015: OCP Call Synchronization And Campaigns
+## F-015: Legacy Call Sync And Campaigns
 
-- Legacy IDs: `LF-037`, `LF-038`, `LF-039`, `LF-040`, `LF-050`, `LF-059`, `LF-063`, `LF-064`
-- Context: Operator
+- Legacy IDs: `LF-037`–`LF-040`, `LF-050`, `LF-059`, `LF-063`, `LF-064`
+- Context: Integration (removed)
 - Priority: critical
-- Status: implemented (mock gateway); **Product status: deferred_backlog** (ADR-0002; real WS R5 smoke deferred)
+- Status: **removed** (ADR-0005)
 - Owner: TBD
-- Inputs: OCP queue info, campaign events, notifications, call lifecycle events
-- Outputs: queue projection, campaign modal state, OCP action notifications, `dlg_stop`
-- Acceptance Criteria:
-  - Queue and `main_acallid` mapping is exact (WU1–WU3).
-  - Campaign UX exists only when OCP plugin is enabled (WU3).
-  - Campaign accept/reject sends OCP update via gateway before `CampaignEventAnswered` (WU3).
-  - `dlg_stop` is sent exactly once for ended or failed calls with OCP correlation (WU4: `SendDlgStopUseCase`, `DlgStopPolicy`, `CallEndDlgStopOrchestrationService`).
-  - OCP notifications render from typed projection through unified renderer notifications; SIP-only mode keeps OCP stream hidden (WU4+: `ocpNotificationProjection`, `useActionNotifications`, `NotificationViewport`).
-  - Queue label transitions `loading` → `na` after timeout without polling (WU4: `QUEUE_LABEL_NA_TIMEOUT_MS`, `useQueueLabelNaTimer`).
-- Test Coverage:
-  - Unit: OCP message mapping, `ProcessOcpInboundMessageUseCase` (campaign_event), `DlgStopPolicy`, `SendDlgStopUseCase`, queue NA derivation, toast projection
-  - Integration: `OcpQueueInfoSync`, `OcpCampaignSync`, `OcpDlgStopSync`, `OcpNotificationSync`
-  - E2E: deferred until harness exists (WU4 handoff)
-- Real Adapter Track: **deferred** (ADR-0002; `WebSocketOcpSyncGateway` in repo; R5 smoke out of scope — see `OCP-PLUGIN-BACKLOG.md`)
+- Notes: Queue sync, campaign modals, call correlation, and platform notifications removed.
+
 
 ## F-016: Settings And Desktop Shell UX
 
@@ -496,7 +441,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - **Unified action notifications (LF-060):** renderer uses `NotificationViewport` + `useNotifications`; action outcomes are bridged via `useActionNotifications`; repeated operation outcomes are not deduplicated (each attempt creates its own toast); persisted preferences (`notificationPlacement`, `notificationStacking`, `notificationDurationMs`, `notificationClosable`, `notificationMaxVisible`) are stored in `UserSettings` and edited in `SettingsGeneralPanel`.
   - **Native app icon theme sync (2026-07-01):** renderer theme change triggers typed IPC `platform:set-native-theme`; main process updates `nativeTheme.themeSource` and switches theme-aware icon asset (`icon-light.png`/`icon-dark.png`) for dock/window surfaces.
   - **Shell window layout (F-016):** compact mode anchors bottom-right on startup; settings overlay expands window to 1000px width centered; closing restores prior compact width and height at bottom-right; animation 280ms aligned with settings panel slide; `prefers-reduced-motion` skips animation; compact mode disables user resize; settings mode enables user resize.
-  - **Shell lifecycle controls (F-016, LF-079):** no native File/View/Window/Help menu on Windows/Linux; macOS keeps minimal App + Edit menus (Edit roles wire Cmd+C/V/A/X/Z in inputs); macOS dev builds add a minimal View menu with `toggleDevTools` (Cmd+Option+I); Windows/Linux dev builds wire F12 and Ctrl+Shift+I via `before-input-event`; `webPreferences.devTools` is enabled only when `!app.isPackaged`; `maximizable`/`fullscreenable` disabled; Windows/Linux use native-like titlebar controls `Minimize -> Reload -> Close`; macOS uses custom traffic-light controls `Close -> Minimize -> Reload` (no maximize/fullscreen button); reload on macOS has no tooltip and replaces the green traffic-light slot; close/quit/reload run `ShutdownCleanupUseCase` before `app.quit()` or `app.relaunch()`; cleanup failure blocks quit/restart, cancels pending main shutdown state, and surfaces `shell.shutdown.failed`; facade-not-ready shutdown is acknowledged with cleanup skipped to prevent hangs; force quit/kill cannot guarantee async SIP/OCP logout.
+  - **Shell lifecycle controls (F-016, LF-079):** no native File/View/Window/Help menu on Windows/Linux; macOS keeps minimal App + Edit menus (Edit roles wire Cmd+C/V/A/X/Z in inputs); macOS dev builds add a minimal View menu with `toggleDevTools` (Cmd+Option+I); Windows/Linux dev builds wire F12 and Ctrl+Shift+I via `before-input-event`; `webPreferences.devTools` is enabled only when `!app.isPackaged`; `maximizable`/`fullscreenable` disabled; Windows/Linux use native-like titlebar controls `Minimize -> Reload -> Close`; macOS uses custom traffic-light controls `Close -> Minimize -> Reload` (no maximize/fullscreen button); reload on macOS has no tooltip and replaces the green traffic-light slot; close/quit/reload run `ShutdownCleanupUseCase` before `app.quit()` or `app.relaunch()`; cleanup failure blocks quit/restart, cancels pending main shutdown state, and surfaces `shell.shutdown.failed`; facade-not-ready shutdown is acknowledged with cleanup skipped to prevent hangs; force quit/kill cannot guarantee async SIP/legacy operator logout.
 - Test Coverage:
   - Unit: `validateUserSettings`, `migrateUserSettings`, `InMemorySettingsRepository` / `FileSettingsRepository` round-trip; `ShellWindowLayout`, `ShellWindowLayoutService`
   - Integration: facade `updateMultiCallSettings`, `getUserSettingsForAccount`, `saveUserSettings`, `refreshUserSettingsProjections`
@@ -510,7 +455,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (UI-4 modules): `src/renderer/styles/tokens.css`, `globals.css`, `UserAvatar.module.css`, `RegistrationStatusDot.module.css`, `SoftphoneShellHeader.module.css` (WU5 Slice A), `SettingsOverlay.module.css`, `ShellOverlaySheet.module.css` (WU5 Slice B), `CallLineRow.module.css` (WU5 Slice C), `Dialpad.module.css` (WU5 Slice D), `ActiveCallControlsPanel.module.css`, `OutgoingCallCard.module.css`, `IncomingCallModal.module.css`, `IncomingCallActions.module.css` (WU5 Slice E), `ConnectionOverlay.module.css` (WU5 Slice F), `App.module.css`, `SoftphoneLayout.module.css`, `ShellChromeText.module.css`, `CallLinesShell.module.css`, `CallContextShell.module.css` (WU5 Slice G), `BootstrapPanel.module.css`, `AccountPanel.module.css`, `PhoneStatusBadge.module.css` (WU5 Slice H), `DialogPanel.module.css`, `TransferPanel.module.css`, `StatusSelector.module.css`, `OcpToastStack.module.css`, modals + `CallControlsShell.module.css` (WU5 Slice I), `P11-CSS-Modules-Tokens-Migration.md`, WU5 slice handoffs `P11-WU5-Slice-A` through `P11-WU5-Slice-I`
 - Implementation evidence (icon tooltips **T-001 done**): `IconTooltip`, `IconControlButton`, `iconTooltipDelay.ts`, `IconTooltip.test.tsx`; 300ms hover delay (`prefers-reduced-motion: reduce` → instant); viewport flip/shift via `@floating-ui/react-dom` portal; wired on all icon-only controls; gate `handoffs/P11-Icon-Tooltips-Agent-Prompt.md` (2026-06-25, auto-orient 2026-07-04, delay 300ms 2026-07-04)
 - Implementation evidence (T-005 settings UX **done**): `SettingsFullscreenOverlay`, `SettingsPanel`, `SettingsSidebar`, `settingsSections.ts`, section panels (`SettingsGeneralPanel`, `SettingsSessionsPanel`, `SettingsAccountPanel`, `SettingsDiagnosticsPanel`, `SettingsCodecsPanel`, `SettingsHeadsetPanel`); header diagnostics opens settings diagnostics section; 7 new settings nav icons in `iconCatalog.ts` (2026-06-26)
-- Implementation evidence (LF-060 notifications **done**): `NotificationViewport`, `useNotificationSonnerSync`, `useNotifications`, `useActionNotifications`, `NotificationViewport.test.tsx`, `NotificationSettings`, `validateUserSettings`/`migrateUserSettings` notification fields, `SettingsGeneralPanel` notification controls, `SoftphoneReadyShell` unified action feedback integration (OCP/update/account/call/settings/session flows), success/error icon-only distinction on neutral toast surface.
+- Implementation evidence (LF-060 notifications **done**): `NotificationViewport`, `useNotificationSonnerSync`, `useNotifications`, `useActionNotifications`, `NotificationViewport.test.tsx`, `NotificationSettings`, `validateUserSettings`/`migrateUserSettings` notification fields, `SettingsGeneralPanel` notification controls, `SoftphoneReadyShell` unified action feedback integration (update/account/call/settings/session flows), success/error icon-only distinction on neutral toast surface.
 - Implementation evidence (dialpad home **2026-06-26**): `CallSessionStack`, `CallSessionCard`, `CallControlsBar`, `DtmfKeypadPanel`, reference `Dialpad`; gate `handoffs/P11-Call-UI-Design-Parity-Handoff.md`
 - Implementation evidence (transfer flow parity **2026-06-29**): `TransferPanel` moved to `CallContextShell` (context mode), step chrome (1–4), explicit source/consultation cards, controls zone hides `CallControlsBar` + `Dialpad` while transfer mode active; stories `TransferPanel.stories.tsx`, `Dialpad.stories.tsx`, `CallSessionCard.stories.tsx`
 - Implementation evidence (T-008 **2026-07-02**): `sipSessionHealthProjection`, `deriveSipStatusShell`, `deriveSipSystemStateShell`, `SettingsSystemStatePanel`, `useSipSystemStateActions`, `SipRecoveryOrchestrationService` — `TRANSPORT-REGISTER-STATE-REFACTORING.md`
@@ -528,10 +473,10 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Status: planned
 - Owner: TBD
 - Inputs: user actions, SIP diagnostics, audio diagnostics, export command
-- Outputs: diagnostic records, OCP log messages, filtered logs, exported file
+- Outputs: diagnostic records, legacy operator log messages, filtered logs, exported file
 - Acceptance Criteria:
   - Logs use correlation IDs and contain no secrets.
-  - OCP log transport uses a gateway, not `window.ws`.
+  - Remote log transport uses a typed gateway, not globals.
   - Retention removes logs older than the configured policy.
 - Test Coverage:
   - Unit: log normalization and filtering
@@ -668,7 +613,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-077` (completion), `LF-076` (per-account fields), `LF-082`, `LF-084`
 - Context: Settings | Integration
 - Priority: high
-- Status: **implemented** (Step 10 verification PASS 2026-07-06; F-023 test slice 75/75; repo-wide 1187/1189 — 1 pre-existing OCP flake out of scope)
+- Status: **implemented** (Step 10 verification PASS 2026-07-06; F-023 test slice 75/75; repo-wide 1187/1189 — 1 pre-existing flake out of scope)
 - Owner: TBD
 - Inputs: SIP authorization, account identity, user settings changes, app user-data path (infrastructure)
 - Outputs: per-profile persisted `UserSettings` v3, active profile metadata, profile switch on authorize, optional secure credential storage

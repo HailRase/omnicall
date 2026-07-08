@@ -13,7 +13,7 @@
 - **Не кодить** без завершённого intake (`needs_input` → спроси какую задачу выполнить, если пользователь не указал задачу; иначе default: TASK-QUEUE #1)
 - **Не писать React** — эскалация UI wiring → `/ui`
 - Real JsSIP — только `/adapter`, не здесь
-- OCP / transfer — out of scope
+- legacy operator platform / transfer — out of scope
 
 ## Intake
 

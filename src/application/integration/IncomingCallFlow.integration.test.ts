@@ -4,10 +4,9 @@ import {
   InMemorySettingsRepository,
   MockHostIntegrationGateway,
   MockMediaGateway,
-  MockOperatorPlatformGateway,
   MockTelephonyGateway,
 } from "@adapters/index.js";
-import { createBreakReason, createCallId } from "@domain/index.js";
+import { createCallId } from "@domain/index.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 
@@ -55,7 +54,7 @@ describe("IncomingCallFlow integration", () => {
           autoAnswerTimeoutSec: null,
           autoAnswerDuringActiveSessionEnabled: false,
           rejectReasonRequired: true,
-          allowedBreakReasons: [createBreakReason("break")],
+          allowedBreakReasons: ["break"],
         },
       }),
     });
@@ -118,7 +117,7 @@ describe("IncomingCallFlow integration", () => {
           autoAnswerTimeoutSec: null,
           autoAnswerDuringActiveSessionEnabled: false,
           rejectReasonRequired: true,
-          allowedBreakReasons: [createBreakReason("break")],
+          allowedBreakReasons: ["break"],
         },
       }),
       host,
@@ -205,9 +204,7 @@ type FacadeInput = Readonly<{
 }>;
 
 function createFacade(input: FacadeInput): AccountBootstrapFacade {
-  const deps = {
-    operatorGateway: new MockOperatorPlatformGateway(),
-    telephonyGateway: input.telephony,
+  const deps = {    telephonyGateway: input.telephony,
     mediaGateway: input.media,
     settingsRepository: input.settings,
     logger: createTestLogger(),

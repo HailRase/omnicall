@@ -43,14 +43,14 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 | --- | --- |
 | Branch | `main` (RAT merged; `feature/real-adapters` stale) |
 | Steps 00–08 | **closed** (R7 multi-call PASS) |
-| OCP step 06 / R5 | **deferred** (ADR-0002) |
+| Legacy operator integration step | **removed** (ADR-0005) |
 | Transfer step 07 / R6 | **backlog** |
 | Baseline snapshot | `real-integration/00-SNAPSHOT.md` (historical 488) |
 | Live progress | `real-integration/PROGRESS.md` |
 
 ## Backlog (do not scope-creep)
 
-- OCP plugin — `OCP-PLUGIN-BACKLOG.md` (resume only when user cites it)
+- Legacy operator integration removed per ADR-0005
 - Real transfer — `real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md`
 
 ## Release train

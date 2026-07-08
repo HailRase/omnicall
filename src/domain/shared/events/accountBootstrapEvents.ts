@@ -1,8 +1,18 @@
 import { createDomainEvent } from "../DomainEvent.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
-import type { BootstrapMode } from "../../settings/BootstrapConfig.js";
 import type { PhoneStatus } from "../PhoneStatus.js";
 import type { SipAccountInput } from "../../telephony/SipAccount.js";
+
+export type SipCredentialsReceivedEvent = ReturnType<
+  typeof createSipCredentialsReceivedEvent
+>;
+
+export function createSipCredentialsReceivedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{ credentials: SipAccountInput; source: "manual" }>,
+) {
+  return createDomainEvent("SipCredentialsReceived", correlationId, payload);
+}
 
 export type ManualSipAuthorizationRequestedEvent = ReturnType<
   typeof createManualSipAuthorizationRequestedEvent
@@ -19,7 +29,7 @@ export function createManualSipAuthorizationRequestedEvent(
   );
 }
 
-export type AccessDeniedSource = "ocp" | "manual";
+export type AccessDeniedSource = "manual";
 
 export type AccessDeniedDetectedEvent = ReturnType<
   typeof createAccessDeniedDetectedEvent
@@ -47,14 +57,11 @@ export type StartupModeResolvedEvent = ReturnType<
   typeof createStartupModeResolvedEvent
 >;
 
-export type StartupResolution =
-  | Readonly<{ action: "sip_only_ready" }>
-  | Readonly<{ action: "ocp_authenticate"; token: string; domain: string }>
-  | Readonly<{ action: "access_denied"; reason: string }>;
+export type StartupResolution = Readonly<{ action: "sip_only_ready" }>;
 
 export function createStartupModeResolvedEvent(
   correlationId: CorrelationId,
-  payload: Readonly<{ mode: BootstrapMode; resolution: StartupResolution }>,
+  payload: Readonly<{ resolution: StartupResolution }>,
 ) {
   return createDomainEvent("StartupModeResolved", correlationId, payload);
 }
@@ -63,4 +70,5 @@ export type AccountBootstrapDomainEvent =
   | ManualSipAuthorizationRequestedEvent
   | AccessDeniedDetectedEvent
   | PhoneStatusChangedEvent
-  | StartupModeResolvedEvent;
+  | StartupModeResolvedEvent
+  | SipCredentialsReceivedEvent;

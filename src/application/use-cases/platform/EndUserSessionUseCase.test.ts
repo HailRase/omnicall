@@ -3,13 +3,11 @@ import { EndUserSessionUseCase } from "./EndUserSessionUseCase.js";
 import { SessionTeardownOrchestrationService } from "../../services/platform/SessionTeardownOrchestrationService.js";
 import { UnregisterAccountUseCase } from "../settings/UnregisterAccountUseCase.js";
 import { CallEngine } from "../../services/telephony/CallEngine.js";
-import { ConnectionRecoveryOrchestrationService } from "../../services/recovery/ConnectionRecoveryOrchestrationService.js";
 import { SipRecoveryOrchestrationService } from "../../services/recovery/SipRecoveryOrchestrationService.js";
 import { InMemoryDomainEventBus } from "../../events/InMemoryDomainEventBus.js";
 import {
   InMemorySettingsRepository,
   MockMediaGateway,
-  MockOperatorPlatformGateway,
   MockTelephonyGateway,
 } from "@adapters/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
@@ -21,12 +19,6 @@ describe("EndUserSessionUseCase", () => {
   function createUseCase() {
     const eventPublisher = new InMemoryDomainEventBus();
     const telephonyGateway = new MockTelephonyGateway({ registrationScenario: "success" });
-    const orchestration = new ConnectionRecoveryOrchestrationService({
-      telephonyGateway,
-      operatorGateway: new MockOperatorPlatformGateway({ scenario: "success" }),
-      eventPublisher,
-      logger: createTestLogger(),
-    });
     const sipOrchestration = new SipRecoveryOrchestrationService({
       telephonyGateway,
       eventPublisher,
@@ -40,7 +32,6 @@ describe("EndUserSessionUseCase", () => {
       createTestLogger(),
     );
     const sessionTeardown = new SessionTeardownOrchestrationService({
-      connectionRecoveryOrchestration: orchestration,
       sipRecoveryOrchestration: sipOrchestration,
       callEngine,
       mediaGateway: new MockMediaGateway(),

@@ -8,7 +8,6 @@ import {
 import { deriveCallLinesShell } from "./deriveCallLinesShell.js";
 import { initialMultiCallProjection } from "./multiCallProjection.js";
 import type { MultiLineCallProjection } from "./multiLineCallProjection.js";
-import { initialQueueInfoProjection } from "../operator/queueInfoProjection.js";
 import { initialTransferProjection } from "./transferProjection.js";
 
 const emptyContacts: never[] = [];
@@ -60,14 +59,12 @@ describe("deriveCallLinesShell", () => {
         establishedCallCount: 1,
         activeUnheldCallId: "call-1",
       },
-      queueInfoProjection: initialQueueInfoProjection(),
       activeCallControlsProjection: createActiveCallControlsProjection({
         callId: "call-1",
         callState: "Active",
         muted: false,
       }),
       transferProjection: initialTransferProjection(),
-      isOcpMode: false,
       contacts: emptyContacts,
     });
 
@@ -98,14 +95,12 @@ describe("deriveCallLinesShell", () => {
         establishedCallCount: 1,
         activeUnheldCallId: "call-1",
       },
-      queueInfoProjection: initialQueueInfoProjection(),
       activeCallControlsProjection: createActiveCallControlsProjection({
         callId: "call-1",
         callState: "Active",
         muted: false,
       }),
       transferProjection: initialTransferProjection(),
-      isOcpMode: false,
       contacts: emptyContacts,
     });
 
@@ -125,10 +120,8 @@ describe("deriveCallLinesShell", () => {
         lastFailureReason: null,
       },
       multiCallProjection: initialMultiCallProjection(),
-      queueInfoProjection: initialQueueInfoProjection(),
       activeCallControlsProjection: initialActiveCallControlsProjection(),
       transferProjection: initialTransferProjection(),
-      isOcpMode: false,
       contacts: emptyContacts,
     });
 
@@ -151,10 +144,8 @@ describe("deriveCallLinesShell", () => {
         lastFailureReason: null,
       },
       multiCallProjection: initialMultiCallProjection(),
-      queueInfoProjection: initialQueueInfoProjection(),
       activeCallControlsProjection: initialActiveCallControlsProjection(),
       transferProjection: initialTransferProjection(),
-      isOcpMode: false,
       contacts: emptyContacts,
     });
 
@@ -162,27 +153,6 @@ describe("deriveCallLinesShell", () => {
     expect(shell.lines).toHaveLength(2);
     expect(shell.lines[1]?.primaryAction).toBe("resume");
     expect(shell.lines[1]?.showIconRow).toBe(false);
-  });
-
-  it("hides queue label state in SIP-only mode", () => {
-    const shell = deriveCallLinesShell({
-      multiLineCallProjection: {
-        lines: [createLine({ callId: "call-1", state: "Ringing" })],
-        primaryCallId: "call-1",
-        consultationCallId: null,
-        sourceCallId: null,
-        attendedPhase: "idle",
-        lastFailureReason: null,
-      },
-      multiCallProjection: initialMultiCallProjection(),
-      queueInfoProjection: initialQueueInfoProjection(),
-      activeCallControlsProjection: initialActiveCallControlsProjection(),
-      transferProjection: initialTransferProjection(),
-      isOcpMode: false,
-      contacts: emptyContacts,
-    });
-
-    expect(shell.lines[0]?.queueLabelState).toBe("hidden");
   });
 
   it("prefers contact display name over SIP label for active lines", () => {
@@ -209,14 +179,12 @@ describe("deriveCallLinesShell", () => {
         establishedCallCount: 1,
         activeUnheldCallId: "call-1",
       },
-      queueInfoProjection: initialQueueInfoProjection(),
       activeCallControlsProjection: createActiveCallControlsProjection({
         callId: "call-1",
         callState: "Active",
         muted: false,
       }),
       transferProjection: initialTransferProjection(),
-      isOcpMode: false,
       contacts: [buildContact("agent-a", "Alice Agent", "+12025550100")],
     });
 
@@ -241,10 +209,8 @@ describe("deriveCallLinesShell", () => {
         lastFailureReason: null,
       },
       multiCallProjection: initialMultiCallProjection(),
-      queueInfoProjection: initialQueueInfoProjection(),
       activeCallControlsProjection: initialActiveCallControlsProjection(),
       transferProjection: initialTransferProjection(),
-      isOcpMode: false,
       contacts: emptyContacts,
     });
 

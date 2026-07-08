@@ -88,7 +88,7 @@ rtcOfferConstraints: { offerToReceiveAudio: true, offerToReceiveVideo: false }
 
 - React UI / SettingsCodecsPanel (`/ui` T-009)
 - Video calls enablement (`video: true`)
-- OCP, transfer R6
+- legacy operator platform, transfer R6
 - SemVer bump / release (отдельно после UI+adapter gate)
 
 ---

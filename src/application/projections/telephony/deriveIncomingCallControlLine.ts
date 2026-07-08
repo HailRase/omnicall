@@ -37,8 +37,6 @@ export function deriveIncomingCallControlLine(
     displayName,
     statusLabel: "call.line.status.ringing",
     durationStartedAt: null,
-    queueLabelState: "hidden",
-    queueName: null,
     primaryAction: "answer",
     showIconRow: false,
     showLocalHoldBadge: false,

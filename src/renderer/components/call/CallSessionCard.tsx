@@ -2,7 +2,6 @@ import clsx from "clsx";
 import type { JSX } from "react";
 import type { CallLineCardViewModel } from "@application/index.js";
 import { useCallDuration } from "../../hooks/useCallDuration.js";
-import { mapQueueLabelState } from "../../helpers/mapQueueLabelState.js";
 import { useI18n, type TranslationKey } from "../../i18n/index.js";
 import { AppIcon } from "../icons/AppIcon.js";
 import type { IconSemanticId } from "../icons/iconCatalog.js";
@@ -31,7 +30,6 @@ export function CallSessionCard({
 }: CallSessionCardProps): JSX.Element {
   const { t } = useI18n();
   const duration = useCallDuration(line.durationStartedAt);
-  const queueLabel = mapQueueLabelState(line.queueLabelState, line.queueName);
   const isLocallyHeld = line.showLocalHoldBadge;
   const isRemoteHeld = line.showRemoteHoldBadge;
   const isHeld = isLocallyHeld;
@@ -106,9 +104,6 @@ export function CallSessionCard({
               {duration}
             </span>
           ) : null}
-          {queueLabel.visible ? (
-            <span className={styles.queueBadge}>{queueLabel.text}</span>
-          ) : null}
         </span>
       </button>
     );
@@ -146,12 +141,6 @@ export function CallSessionCard({
           </span>
         ) : null}
       </div>
-
-      {queueLabel.visible ? (
-        <div className={styles.badges}>
-          <span className={styles.queueBadge}>{queueLabel.text}</span>
-        </div>
-      ) : null}
 
       <div className={styles.footerRow}>
         <span className={styles.statusGroup}>

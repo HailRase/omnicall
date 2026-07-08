@@ -4,13 +4,8 @@ import {
   ArbiterMediaGateway,
   BrowserMediaAdapter,
   MockHostIntegrationGateway,
-  MockOperatorPlatformGateway,
   JsSipTelephonyAdapter,
   SettingsRepositoryCodecPreferencesAdapter,
-  WebSocketOperatorPlatformGateway,
-  WebSocketOcpSyncGateway,
-  OcpWebSocketTransport,
-  resolveOcpWebSocketUrl,
 } from "@adapters/index.js";
 import { createConsoleLogger } from "@infrastructure/logging/index.js";
 import type { Logger } from "@ports/index.js";
@@ -20,7 +15,6 @@ import { createRealBootstrapSettingsRepository } from "./createRealBootstrapSett
 import { createRealBootstrapSavedAccountProfileRepository } from "./createRealBootstrapSavedAccountProfileRepository.js";
 import { createRealBootstrapContactRepository } from "./createRealBootstrapContactRepository.js";
 import { createRealBootstrapCallHistoryRepository } from "./createRealBootstrapCallHistoryRepository.js";
-import { wireOcpInboundToFacade } from "./wireOcpInboundToFacade.js";
 import type {
   CallHistoryRepository,
   ContactRepository,
@@ -105,28 +99,13 @@ function resolveRealSettingsRepository(options: CreateAccountBootstrapOptions) {
   return createRealBootstrapSettingsRepository({
     profilesStorageRoot: options.profilesStorageRoot,
     filesystem: options.filesystem,
-    bootstrapConfig: options.bootstrapConfig ?? { mode: "sip-only" },
+    bootstrapConfig: options.bootstrapConfig ?? {},
   });
 }
 
-function resolveRealOcpWsUrl(options: CreateAccountBootstrapOptions): string | null {
-  return resolveOcpWebSocketUrl(
-    options.ocpWsUrl,
-    options.bootstrapConfig?.ocpDomain,
-  );
-}
-
-function shouldUseRealOcpGateway(options: CreateAccountBootstrapOptions): boolean {
-  const mode = options.bootstrapConfig?.mode ?? "sip-only";
-  if (mode !== "ocp") {
-    return false;
-  }
-  return resolveRealOcpWsUrl(options) !== null;
-}
-
 /**
- * - Purpose: compose real-adapter AccountBootstrapFacade with JsSIP and optional OCP WS.
- * - Inputs: bootstrap config, profiles storage root, optional filesystem port, OCP WS URL.
+ * - Purpose: compose real-adapter AccountBootstrapFacade with JsSIP telephony.
+ * - Inputs: bootstrap config, profiles storage root, optional filesystem port.
  * - Outputs: wired AccountBootstrapFacade with disk-backed settings ready for initialize().
  */
 export function createRealAccountBootstrap(
@@ -141,37 +120,6 @@ export function createRealAccountBootstrap(
     resolveAccountKey: () => resolveSettingsAccountKey(settingsRepository),
   });
 
-  const operatorLogger = createBootstrapLogger({
-    featureId: "F-009",
-    boundedContext: "Operator",
-  });
-
-  const useRealOcp = shouldUseRealOcpGateway(options);
-  const wsUrl = resolveRealOcpWsUrl(options) ?? "";
-
-  const ocpTransport = useRealOcp
-    ? new OcpWebSocketTransport({
-        wsUrl,
-        logger: operatorLogger,
-      })
-    : null;
-
-  const operatorGateway =
-    useRealOcp && ocpTransport !== null
-      ? new WebSocketOperatorPlatformGateway({
-          transport: ocpTransport,
-          logger: operatorLogger,
-        })
-      : new MockOperatorPlatformGateway({
-          scenario: options.ocpScenario ?? "success",
-          delayMs: 300,
-        });
-
-  const ocpSyncGateway =
-    useRealOcp && ocpTransport !== null
-      ? new WebSocketOcpSyncGateway({ transport: ocpTransport })
-      : undefined;
-
   const telephonyGateway = new JsSipTelephonyAdapter({
     logger: createBootstrapLogger({ featureId: "F-001", boundedContext: "Telephony" }),
     codecPreferencesPort,
@@ -185,7 +133,6 @@ export function createRealAccountBootstrap(
   const hostIntegrationGateway = new MockHostIntegrationGateway();
 
   const facade = new AccountBootstrapFacade({
-    operatorGateway,
     telephonyGateway,
     mediaGateway,
     settingsRepository,
@@ -195,11 +142,8 @@ export function createRealAccountBootstrap(
     ...(contactRepository !== undefined ? { contactRepository } : {}),
     ...(callHistoryRepository !== undefined ? { callHistoryRepository } : {}),
     hostIntegrationGateway,
-    ...(ocpSyncGateway !== undefined ? { ocpSyncGateway } : {}),
     logger: createBootstrapLogger({ featureId: "F-001", boundedContext: "Telephony" }),
   });
-
-  wireOcpInboundToFacade(facade, operatorGateway);
 
   telephonyGateway.setPeerConnectionBoundHandler(async (notification) => {
     await facade.notifyPeerConnectionAvailable(

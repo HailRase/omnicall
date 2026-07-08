@@ -1,6 +1,6 @@
 # P08 WU3 Recovery Overlay Handoff
 
-- Scope: `ConnectionOverlay`, `useConnectionRecoveryShell`, `useReconnectCountdown`, `deriveConnectionRecoveryShell`, OCP `server_terminate` inbound, facade/mock helpers; Feature `F-014`; legacy `LF-057`, `LF-049`.
+- Scope: `ConnectionOverlay`, `useConnectionRecoveryShell`, `useReconnectCountdown`, `deriveConnectionRecoveryShell`, legacy `server_terminate` inbound, facade/mock helpers; Feature `F-014`; legacy `LF-057`, `LF-049`.
 - Out of scope WU3: manual retry Use Case (WU4), full logout cascade (LF-048 WU3+), app shutdown IPC (WU4), real adapters.
 
 ## Delivered (WU3)
@@ -12,9 +12,9 @@
 | Countdown hook | `src/renderer/hooks/useReconnectCountdown.ts` |
 | Shell derivation | `src/application/projections/deriveConnectionRecoveryShell.ts` |
 | App wiring | `src/renderer/App.tsx` |
-| Server terminate parse | `src/domain/operator/ocp/OcpInboundMessages.ts` |
-| Inbound handler | `src/application/use-cases/ProcessOcpInboundMessageUseCase.ts` |
-| Mock helpers | `MockOcpSyncGateway`, `MockOperatorPlatformGateway`, `AccountBootstrapFacade.simulateServerTerminate` |
+| Server terminate parse | `src/domain/operator/legacy operator/OcpInboundMessages.ts` |
+| Inbound handler | `src/application/use-cases/removed inbound message use case.ts` |
+| Mock helpers | `AccountBootstrapFacade.simulateServerTerminate` |
 | Integration test | `src/application/integration/ServerTerminate.integration.test.ts` |
 | UX inventory | `docs/softphone/P08-Recovery-UX-Design.md` (WU3 section) |
 
@@ -25,7 +25,7 @@
 | Projection driver | `connectionRecoveryProjection` → `connectionState` |
 | Shell flags | `deriveConnectionRecoveryShell` — `showOverlay`, `isBlocking`, channel rows |
 | Presentational UI | `ConnectionOverlay` — channel rows, countdown, disabled retry |
-| OCP-only banner | `isBlocking: false` when only OCP channel affected |
+| legacy operator platform-only banner | `isBlocking: false` when only legacy operator platform channel affected |
 | SIP blocking | `role="alertdialog"` when SIP unsafe |
 | Countdown | `useReconnectCountdown` — one-shot `setTimeout`, no `setInterval` |
 
@@ -34,11 +34,11 @@
 | Step | Path |
 | --- | --- |
 | Inbound parse | `parseOcpInboundMessage` — `server_terminate` / `entity_terminate` |
-| Use Case | `ProcessOcpInboundMessageUseCase` → `ServerTerminateReceived` |
+| Use Case | `removed inbound message use case` → `ServerTerminateReceived` |
 | Orchestration | `ConnectionRecoveryOrchestrationService` stops scheduler on terminate |
 | Projection | `connectionState: server_terminate`, `nextRetryAt: null` |
 | Facade helper | `AccountBootstrapFacade.simulateServerTerminate` |
-| Mock | `MockOperatorPlatformGateway.simulateServerTerminate` |
+| Mock | `Mocklegacy operator gateway.simulateServerTerminate` |
 
 ## Deferred (WU4+)
 
@@ -53,9 +53,9 @@
 
 - [x] `ConnectionOverlay` renders projection states (LF-057)
 - [x] Countdown from `nextRetryAt` without polling
-- [x] SIP-only / OCP mode visibility correct
+- [x] SIP-only / legacy operator mode visibility correct
 - [x] a11y + test IDs per UX doc
-- [x] Server terminate OCP → `ServerTerminateReceived` → overlay + scheduler stop (LF-049)
+- [x] Server terminate legacy operator platform → `ServerTerminateReceived` → overlay + scheduler stop (LF-049)
 - [x] Component + integration tests
 - [x] Handoff + registry + legacy evidence
 - [x] WU1–WU2 regression green

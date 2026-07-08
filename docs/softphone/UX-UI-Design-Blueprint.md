@@ -121,15 +121,15 @@ The shell must represent these global states:
 | State | Meaning | UX Requirement |
 |-------|---------|----------------|
 | `booting` | App is starting | Show app loading state. |
-| `sipOnlyReady` | SIP-only mode ready | Hide OCP-only controls. |
-| `ocpAuthenticating` | OCP auth in progress | Show OCP loading state. |
-| `ocpSessionExists` | OCP rejected duplicate session | Show recoverable error. |
-| `ocpInvalidToken` | OCP token invalid | Show access denied. |
+| `sipOnlyReady` | SIP-only mode ready | Hide legacy operator platform-only controls. |
+| `ocpAuthenticating` | legacy operator auth in progress | Show legacy operator platform loading state. |
+| `ocpSessionExists` | legacy operator platform rejected duplicate session | Show recoverable error. |
+| `ocpInvalidToken` | legacy operator platform token invalid | Show access denied. |
 | `sipRegistering` | SIP registration in progress | Show registering status. |
 | `sipRegistered` | SIP ready | Show online indicator. |
 | `sipRegistrationFailed` | SIP registration failed | Show retry action/timer. |
-| `dnd` | User is unavailable for calls | Show DND and block Ready if OCP enabled. |
-| `ocpDisconnected` | OCP WS disconnected | Show overlay and retry state. |
+| `dnd` | User is unavailable for calls | Show DND and block Ready if legacy operator platform enabled. |
+| `ocpDisconnected` | legacy operator platform WS disconnected | Show overlay and retry state. |
 | `callRinging` | Incoming call ringing | Show incoming modal and sound. |
 | `callActive` | Call active | Show active controls. |
 | `callHeld` | Call held | Show resume primary action. |
@@ -144,7 +144,7 @@ Dialpad states:
 - entering number
 - calling
 - active call DTMF mode
-- disabled by OCP reserved
+- disabled by legacy operator platform reserved
 - disabled by invalid registration
 - disabled by second-session policy
 
@@ -216,25 +216,17 @@ Do not hide transfer failure.
 
 Recovery must be obvious.
 
-## Operator Status UX
+## Phone Status UX
 
-Status selector must show:
+Phone status (online/offline/dnd) is managed via settings and header controls.
 
-- current status
-- duration in status
-- allowed next statuses
-- disabled Ready while DND is active
-- break reasons when required
-- post-call processing state
-- logout reason flow
-
-SIP-only mode must not display broken OCP-only controls.
+SIP DND must block or auto-reject incoming calls per product policy.
 
 ## Connection UX
 
 Lost connection overlay must show:
 
-- which connection failed: OCP, SIP, or both
+- which connection failed: legacy operator platform, SIP, or both
 - current attempt number
 - next retry countdown
 - manual retry
@@ -254,7 +246,7 @@ Campaign modal must show:
 - timeout state if provided
 - progressive campaign behavior without unnecessary modal
 
-Campaign UX exists only when OCP plugin is enabled.
+Campaign UX exists only when legacy operator integration is enabled.
 
 ## History UX
 

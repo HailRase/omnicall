@@ -58,7 +58,7 @@ Introduce `SoftphoneLayout` with Header / Context / Controls / Overlay zones; re
 - Radix Dialog migration (WU/UI-6)
 - CSS Modules / tokens migration (UI-4)
 - F-008 DTMF adapter
-- OCP UI changes
+- legacy operator platform UI changes
 
 ## Architecture boundaries
 

@@ -1,4 +1,4 @@
-import type { Contact } from "@domain/index.js";
+import type { Contact } from "@application/index.js";
 import type { IncomingCallProjection } from "@application/index.js";
 import { deriveIncomingCallControlLine } from "@application/index.js";
 

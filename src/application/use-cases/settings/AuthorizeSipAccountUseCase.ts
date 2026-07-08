@@ -22,7 +22,7 @@ import { loadUserSettingsWithLegacyMigration } from "../../settings/loadUserSett
 export type AuthorizeSipAccountInput = Readonly<{
   account: SipAccountInput;
   correlationId?: CorrelationId;
-  source?: "ocp" | "manual";
+  source?: "manual";
 }>;
 
 export class AuthorizeSipAccountUseCase {

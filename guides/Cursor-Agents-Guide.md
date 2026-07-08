@@ -56,7 +56,7 @@ Skill: `.cursor/skills/domain-implementation-agent/SKILL.md`
 
 ### `/adapter` — real integration
 
-Отдельный трек RAT. OCP и transfer — только по явному resume.
+Отдельный трек RAT. legacy operator platform и transfer — только по явному resume.
 
 Skill: `docs/softphone/real-integration/MASTER-AGENT-PROMPT.md`
 
@@ -171,7 +171,7 @@ Stop gate. Только <X>. Out of scope: <Y>.
 | Baseline 488 tests | Устаревший промт | `/status` → читать STATUS.md (697) |
 | Handoff not found | Архив P02–P08 | `handoffs/archive/P0N/` |
 | UI агент лезет в Use Case | Нет escalation | «Stop → `/logic`»; см. ui-implementation-agent |
-| OCP внезапно в scope | Scope creep | «OCP DEFERRED» + ADR-0002 |
+| legacy operator platform внезапно в scope | Scope creep | «legacy operator platform DEFERRED» + ADR-0005 |
 | Registry path missing | Drift evidence | `npm run registry:check` |
 | Catalog drift | Не запускали ui:catalog | `npm run ui:catalog:check` |
 | Два формата ответа | Старый шаблон | Все агенты → `response-contract.md` |

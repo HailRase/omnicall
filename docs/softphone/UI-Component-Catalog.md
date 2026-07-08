@@ -43,7 +43,7 @@
 | `IconTooltip` | `src/renderer/components/icons/IconTooltip.tsx` | `IconTooltipProps` | icon-tooltip-bubble, icon-tooltip-host | — |
 | `PersonListAvatar` | `src/renderer/components/list/PersonListAvatar.tsx` | `PersonListAvatarProps` | person-list-avatar, person-list-avatar-missed | — |
 | `NotificationViewport` | `src/renderer/components/notifications/NotificationViewport.tsx` | `NotificationViewportProps` | notification-viewport | — |
-| `OcpToastStack` | `src/renderer/components/ocp/OcpToastStack.tsx` | `OcpToastStackProps` | ocp-toast-stack, ocp-toast | — |
+| `OcpToastStack` | `src/renderer/components/legacy operator/OcpToastStack.tsx` | `OcpToastStackProps` | legacy operator-toast-stack, legacy operator-toast | — |
 | `LogoutActiveSessionConfirmationModal` | `src/renderer/components/session/LogoutActiveSessionConfirmationModal.tsx` | `LogoutActiveSessionConfirmationModalProps` | logout-active-session-modal | — |
 | `SettingsFullscreenOverlay` | `src/renderer/components/settings/SettingsFullscreenOverlay.tsx` | `SettingsFullscreenOverlayProps` | settings-overlay, settings-overlay-backdrop, settings-overlay-chrome-titlebar | f=F-016,F-017 smoke=settings-overlay |
 | `SettingsNumberInput` | `src/renderer/components/settings/SettingsNumberInput.tsx` | `SettingsNumberInputProps` | — | — |

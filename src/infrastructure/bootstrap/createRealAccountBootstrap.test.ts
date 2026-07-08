@@ -50,7 +50,7 @@ describe("createRealAccountBootstrap", () => {
     const facade1 = createRealAccountBootstrap({
       profilesStorageRoot,
       filesystem,
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
 
     const authorizeResult = await facade1.authorizeSipAccount.execute({
@@ -85,7 +85,7 @@ describe("createRealAccountBootstrap", () => {
     const facade2 = createRealAccountBootstrap({
       profilesStorageRoot,
       filesystem,
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
 
     const reauthorizeResult = await facade2.authorizeSipAccount.execute({
@@ -118,7 +118,7 @@ describe("createRealAccountBootstrap", () => {
     const facade = createRealAccountBootstrap({
       profilesStorageRoot,
       filesystem,
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
 
     const loaded = await facade.getUserSettingsForAccount();
@@ -149,7 +149,7 @@ describe("createRealAccountBootstrap", () => {
     const facade1 = createRealAccountBootstrap({
       profilesStorageRoot,
       filesystem,
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
     await facade1.authorizeSipAccount.execute({ account: accountA, source: "manual" });
     facade1.dispose();
@@ -161,7 +161,7 @@ describe("createRealAccountBootstrap", () => {
     const facade2 = createRealAccountBootstrap({
       profilesStorageRoot,
       filesystem,
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
     await facade2.authorizeSipAccount.execute({ account: accountA, source: "manual" });
 
@@ -183,7 +183,7 @@ describe("createRealAccountBootstrap", () => {
     const facade1 = createRealAccountBootstrap({
       profilesStorageRoot,
       filesystem,
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
 
     const saved = await facade1.saveSavedAccountProfile({
@@ -210,7 +210,7 @@ describe("createRealAccountBootstrap", () => {
     const facade2 = createRealAccountBootstrap({
       profilesStorageRoot,
       filesystem,
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
 
     const restored = await facade2.listSavedAccountProfiles();
@@ -242,7 +242,7 @@ describe("createRealAccountBootstrap", () => {
     const facade1 = createRealAccountBootstrap({
       profilesStorageRoot,
       filesystem,
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
 
     await facade1.authorizeSipAccount.execute({ account, source: "manual" });
@@ -262,7 +262,7 @@ describe("createRealAccountBootstrap", () => {
     const facade2 = createRealAccountBootstrap({
       profilesStorageRoot,
       filesystem,
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
 
     await facade2.authorizeSipAccount.execute({ account, source: "manual" });
@@ -296,7 +296,7 @@ describe("createRealAccountBootstrap", () => {
     const facade = createRealAccountBootstrap({
       profilesStorageRoot,
       filesystem,
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
 
     const captureHandlers = () => {
@@ -375,7 +375,7 @@ describe("createSoftphoneComposition bootstrap factories", () => {
     };
 
     const facade1 = createMockAccountBootstrap({
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
     await facade1.authorizeSipAccount.execute({ account, source: "manual" });
     const loaded = await facade1.getUserSettingsForAccount();
@@ -388,7 +388,7 @@ describe("createSoftphoneComposition bootstrap factories", () => {
     facade1.dispose();
 
     const facade2 = createMockAccountBootstrap({
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
     const restored = await facade2.getUserSettingsForAccount();
     expect(restored.ok).toBe(true);
@@ -401,7 +401,7 @@ describe("createSoftphoneComposition bootstrap factories", () => {
   it("mock mode via composition matches in-memory repository", async () => {
     const facade = createSoftphoneComposition({
       mode: "mock",
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
 
     const loaded = await facade.getUserSettingsForAccount();
@@ -431,7 +431,7 @@ describe("createSoftphoneComposition bootstrap factories", () => {
       mode: "real",
       profilesStorageRoot,
       filesystem,
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
 
     await facade.authorizeSipAccount.execute({ account, source: "manual" });

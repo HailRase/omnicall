@@ -70,7 +70,7 @@ npm run test && npm run lint && npm run typecheck
 
 ## Out of scope (STOP gate — не делать)
 - ...
-- Real JsSIP/OCP adapters (если не пора)
+- Real JsSIP/legacy operator platform adapters (если не пора)
 - Следующая WU
 
 ## Deliverables
@@ -82,7 +82,7 @@ npm run test && npm run lint && npm run typecheck
 - UI → Facade / Use Cases only
 - Stores = projections
 - Domain isolated
-- OCP optional; SIP-only path preserved
+- legacy operator platform optional; SIP-only path preserved
 
 ## Anti-patterns (из prior phases)
 - UX/UI до state design
@@ -149,10 +149,10 @@ Carry into every next prompt:
 - UX before code for user-visible flows
 - Gateway confirm before state events
 - Cancel attended transfer ≠ failure
-- Exact queue / main_acallid mapping
+- Exact queue / legacy call correlation id mapping
 - No infinite polling; one-shot timers with cleanup
 - Projection-driven disabled reasons
-- SIP-only hides OCP UI and projections
-- CallEngine must not import OCP
+- SIP-only hides legacy operator platform UI and projections
+- CallEngine must not import legacy operator platform
 - Composition root: AccountBootstrapFacade
 - Exact test count in handoff (not «see output»)

@@ -2,7 +2,6 @@ import { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFac
 import {
   MockHostIntegrationGateway,
   MockMediaGateway,
-  MockOperatorPlatformGateway,
   MockTelephonyGateway,
   InMemorySettingsRepository,
   createArbiterMediaGateway,
@@ -17,7 +16,6 @@ import type {
   ContactRepository,
   ContactCsvFileGateway,
 } from "@ports/index.js";
-import { wireOcpInboundToFacade } from "./wireOcpInboundToFacade.js";
 
 /**
  * - Purpose: compose mock-based AccountBootstrapFacade for dev, tests, and renderer bootstrap.
@@ -33,13 +31,6 @@ export type CreateAccountBootstrapOptions = Readonly<{
   contactRepository?: ContactRepository;
   contactCsvFileGateway?: ContactCsvFileGateway;
   callHistoryRepository?: CallHistoryRepository;
-  ocpWsUrl?: string;
-  ocpScenario?:
-    | "success"
-    | "session_exists"
-    | "invalid_token"
-    | "access_denied"
-    | "network_error";
   telephonyScenario?: "success" | "failure";
   makeCallScenario?:
     | "connecting"
@@ -62,12 +53,7 @@ export function createMockAccountBootstrap(
   options: CreateAccountBootstrapOptions = {},
 ): AccountBootstrapFacade {
   const settingsRepository = options.settingsRepository ?? new InMemorySettingsRepository({
-    bootstrapConfig: options.bootstrapConfig ?? { mode: "sip-only" },
-  });
-
-  const operatorGateway = new MockOperatorPlatformGateway({
-    scenario: options.ocpScenario ?? "success",
-    delayMs: 300,
+    bootstrapConfig: options.bootstrapConfig ?? {},
   });
 
   const telephonyGateway = new MockTelephonyGateway({
@@ -86,8 +72,7 @@ export function createMockAccountBootstrap(
   );
   const hostIntegrationGateway = new MockHostIntegrationGateway();
 
-  const facade = new AccountBootstrapFacade({
-    operatorGateway,
+  return new AccountBootstrapFacade({
     telephonyGateway,
     mediaGateway,
     settingsRepository,
@@ -106,8 +91,4 @@ export function createMockAccountBootstrap(
     hostIntegrationGateway,
     logger: createTestLogger({ featureId: "F-001", boundedContext: "Telephony" }),
   });
-
-  wireOcpInboundToFacade(facade, operatorGateway);
-
-  return facade;
 }

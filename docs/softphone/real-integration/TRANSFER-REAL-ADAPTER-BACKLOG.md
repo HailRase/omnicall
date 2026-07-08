@@ -72,4 +72,4 @@
 
 - RAT R1–R4: **closed** (registration, media, calls, hold/mute on real SBC)
 - Main roadmap: P08 SIP recovery channel, F-008 DTMF real, P10 headset, P11 settings/shell polish (RAT SIP core on `main`)
-- OCP: still **deferred** (`OCP-PLUGIN-BACKLOG.md`)
+- legacy operator platform: still **deferred** (`ADR-0005`)

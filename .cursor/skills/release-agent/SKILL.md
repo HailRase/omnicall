@@ -26,7 +26,7 @@ Distribution release orchestration (F-019, F-020). **Not** a feature implementat
 
 - Product features (`/ui`, `/logic`)
 - WU gate review (`/review`) — run `/preflight` instead
-- OCP / transfer backlog
+- legacy operator platform / transfer backlog
 - Code signing / notarization
 - electron-updater / auto-install
 

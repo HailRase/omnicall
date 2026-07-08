@@ -1,7 +1,7 @@
 # RAT Step 07b — External Blind Transfer Refer-To (BACKLOG)
 
 > **Status: BACKLOG** (2026-06-25). Paused by product decision. Resume via `TRANSFER-REAL-ADAPTER-BACKLOG.md`.
-> **Sub-slice of step 07.** OCP deferred (ADR-0002).
+> **Sub-slice of step 07.** legacy operator platform deferred (ADR-0005).
 
 ## Agent mode
 
@@ -14,7 +14,7 @@ Protocol: **Analysis → Web/GitHub research → ADR/plan → minimal adapter sl
 ## Onboarding (read before code)
 
 1. `docs/softphone/real-integration/MASTER-AGENT-PROMPT.md`
-2. `docs/softphone/OCP-PLUGIN-BACKLOG.md` (OCP out of scope)
+2. `docs/softphone/ADR-0005` (legacy operator platform out of scope)
 3. `docs/softphone/adr/ADR-0003-sbc-refer-semantics.md` — **will need amend**
 4. `docs/softphone/real-integration/PROGRESS.md` — step 07 status
 5. `docs/softphone/real-integration/JSSIP-FORK.md`
@@ -30,7 +30,7 @@ Protocol: **Analysis → Web/GitHub research → ADR/plan → minimal adapter sl
 - `.cursor/rules/testing-observability.mdc`
 - `.cursor/rules/legacy-feature-coverage.mdc`
 - `.cursor/rules/feature-registry.mdc`
-- `.cursor/rules/ocp-deferred.mdc`
+- `.cursor/rules/legacy operator-deferred.mdc`
 
 ---
 
@@ -151,7 +151,7 @@ Optional `ReferTargetKind: "on_net" | "off_net"` via heuristic (extension length
 
 ### 1.3 Out of scope (unless trace proves otherwise)
 
-- OCP transfer sync
+- legacy operator platform transfer sync
 - Attended transfer Replaces (#817) unless same root cause
 - hold-before-refer unless SBC trace requires
 - Changing Domain FSM / Use Cases beyond event payload if avoidable
@@ -223,7 +223,7 @@ npm run dev   # ?adapters=real
 - UI-only disable of external transfer without ADR
 - Hardcoding one user's phone number in adapter
 - Skipping ADR amend
-- Scope creep into OCP / multi-call hold-all (separate backlog item in step-07 file)
+- Scope creep into legacy operator platform / multi-call hold-all (separate backlog item in step-07 file)
 
 ---
 

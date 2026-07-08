@@ -15,7 +15,6 @@ export type DialpadUiState =
   | "failedUnavailable"
   | "failedRejected"
   | "disabledByNotRegistered"
-  | "disabledByOcpReserved"
   | "disabledBySecondSessionPolicy"
   | "disabledByHoldAllInProgress"
   | "disabledByConnectingInProgress";
@@ -239,7 +238,6 @@ function asOptionalString(value: unknown): string | null {
 
 export type DialpadDisabledContext = Readonly<{
   isRegistered: boolean;
-  isOcpReserved: boolean;
   isSecondSessionDisabled: boolean;
   secondSessionDisabledReason: "second_session_disabled" | "hold_all_in_progress" | "connecting_in_progress" | null;
   isHoldAllInProgress: boolean;
@@ -252,9 +250,6 @@ export function deriveDialpadDisabledReason(
 ): DialpadUiState | null {
   if (!context.isRegistered) {
     return "disabledByNotRegistered";
-  }
-  if (context.isOcpReserved) {
-    return "disabledByOcpReserved";
   }
   if (context.isHoldAllInProgress) {
     return "disabledByHoldAllInProgress";

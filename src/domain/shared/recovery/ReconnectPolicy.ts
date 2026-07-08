@@ -6,15 +6,6 @@ export type ReconnectPolicyConfig = Readonly<{
   jitterFraction: number;
 }>;
 
-/** Legacy OCP WS: 6 attempts × 5s flat (LF-058). */
-export const OCP_RECONNECT_POLICY_CONFIG: ReconnectPolicyConfig = {
-  maxAttempts: 6,
-  baseDelayMs: 5000,
-  backoffMultiplier: 1,
-  maxDelayMs: 5000,
-  jitterFraction: 0.1,
-} as const;
-
 /** SIP flat retry defaults when user settings are unavailable (LF-008). */
 export const SIP_RECONNECT_POLICY_CONFIG: ReconnectPolicyConfig = {
   maxAttempts: 5,
@@ -31,7 +22,7 @@ export function defaultRandomSource(): number {
 }
 
 /**
- * - Purpose: compute uncapped backoff delay before jitter (LF-008, LF-058).
+ * - Purpose: compute uncapped backoff delay before jitter (LF-008).
  * - Inputs: attempt number (1-based), policy config.
  * - Outputs: delay in milliseconds without jitter.
  */

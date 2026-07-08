@@ -98,7 +98,6 @@ describe("callProjection", () => {
   it("derives disabled reason for invalid number", () => {
     const reason = deriveDialpadDisabledReason({
       isRegistered: true,
-      isOcpReserved: false,
       isSecondSessionDisabled: false,
       secondSessionDisabledReason: null,
       isHoldAllInProgress: false,

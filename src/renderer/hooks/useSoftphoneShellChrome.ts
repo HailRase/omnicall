@@ -26,7 +26,6 @@ export function useSoftphoneShellChrome(input: UseSoftphoneShellChromeInput) {
   const sessionLogoutShellInput = useMemo(
     () =>
       pickSessionLogoutProjectionInput({
-        isOcpMode: projection.isOcpMode,
         authUiState: projection.authUiState,
         multiCallProjection,
         incomingCallProjection,
@@ -34,7 +33,6 @@ export function useSoftphoneShellChrome(input: UseSoftphoneShellChromeInput) {
         multiLineCallProjection,
       }),
     [
-      projection.isOcpMode,
       projection.authUiState,
       multiCallProjection,
       incomingCallProjection,

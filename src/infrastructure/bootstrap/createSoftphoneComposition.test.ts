@@ -20,12 +20,12 @@ afterEach(async () => {
 describe("createSoftphoneComposition", () => {
   it("mock mode matches createAccountBootstrap behavior", () => {
     const viaAlias = createAccountBootstrap({
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
       telephonyScenario: "success",
     });
     const viaComposition = createSoftphoneComposition({
       mode: "mock",
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
       telephonyScenario: "success",
     });
 
@@ -42,7 +42,7 @@ describe("createSoftphoneComposition", () => {
       mode: "real",
       profilesStorageRoot,
       filesystem: new NodeFileSystemAdapter(),
-      bootstrapConfig: { mode: "sip-only" },
+      bootstrapConfig: {},
     });
 
     expect(facade).toBeInstanceOf(AccountBootstrapFacade);
