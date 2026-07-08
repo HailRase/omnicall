@@ -10,7 +10,10 @@ import {
   resolveProfilesIndexPath,
   resolveSavedAccountProfilesFilePath,
 } from "@adapters/settings/profileStoragePaths.js";
+import { MockContactCsvFileGateway } from "@adapters/mock/MockContactCsvFileGateway.js";
 import { InMemorySavedAccountProfileRepository } from "@adapters/settings/InMemorySavedAccountProfileRepository.js";
+import { CONTACT_CSV_CANONICAL_HEADER } from "@application/import-export/ContactCsvCodec.js";
+import { isErr } from "@shared/result/index.js";
 import { createMockAccountBootstrap } from "./createMockAccountBootstrap.js";
 import { createRealAccountBootstrap } from "./createRealAccountBootstrap.js";
 import { createSoftphoneComposition } from "./createSoftphoneComposition.js";
@@ -347,9 +350,68 @@ describe("createRealAccountBootstrap", () => {
 
     facade.dispose();
   });
+
+  it("forwards contactCsvFileGateway for CSV import and export", async () => {
+    const profilesStorageRoot = await createTempStorageRoot();
+    const filesystem = new NodeFileSystemAdapter();
+    const importCsv = [
+      CONTACT_CSV_CANONICAL_HEADER,
+      "Imported Contact,+12025550100,,,",
+    ].join("\n");
+    const gateway = new MockContactCsvFileGateway({
+      importContents: importCsv,
+      exportResult: { kind: "success" },
+    });
+
+    const facade = createRealAccountBootstrap({
+      profilesStorageRoot,
+      filesystem,
+      bootstrapConfig: {},
+      contactCsvFileGateway: gateway,
+    });
+
+    const importResult = await facade.importContactsFromCsv();
+    expect(importResult.ok).toBe(true);
+    if (!importResult.ok || importResult.value.kind !== "imported") {
+      return;
+    }
+    expect(importResult.value.summary.createdCount).toBe(1);
+
+    const exportResult = await facade.exportContactsToCsv();
+    expect(exportResult.ok).toBe(true);
+    if (!exportResult.ok || exportResult.value.kind !== "exported") {
+      return;
+    }
+    expect(exportResult.value.contactCount).toBe(1);
+    expect(gateway.getLastExportInput()?.contents).toContain("Imported Contact");
+
+    facade.dispose();
+  });
 });
 
 describe("createSoftphoneComposition bootstrap factories", () => {
+  it("mock bootstrap reports unavailable CSV gateway when not injected", async () => {
+    const facade = createMockAccountBootstrap({
+      bootstrapConfig: {},
+    });
+
+    const importResult = await facade.importContactsFromCsv();
+    expect(isErr(importResult)).toBe(true);
+    if (!isErr(importResult)) {
+      return;
+    }
+    expect(importResult.error.message).toContain("Contacts CSV file gateway is unavailable");
+
+    const exportResult = await facade.exportContactsToCsv();
+    expect(isErr(exportResult)).toBe(true);
+    if (!isErr(exportResult)) {
+      return;
+    }
+    expect(exportResult.error.message).toContain("Contacts CSV file gateway is unavailable");
+
+    facade.dispose();
+  });
+
   it("mock bootstrap injects provided saved profile repository", async () => {
     const repository = new InMemorySavedAccountProfileRepository();
     const facade = createMockAccountBootstrap({
@@ -449,6 +511,42 @@ describe("createSoftphoneComposition bootstrap factories", () => {
     const persistedJson = await readFile(settingsPath, "utf8");
     expect(persistedJson).toContain('"theme":"dark"');
     expect(persistedJson).not.toContain("password");
+
+    facade.dispose();
+  });
+
+  it("real mode via composition forwards contactCsvFileGateway", async () => {
+    const profilesStorageRoot = await createTempStorageRoot();
+    const filesystem = new NodeFileSystemAdapter();
+    const gateway = new MockContactCsvFileGateway({
+      importContents: [CONTACT_CSV_CANONICAL_HEADER, "Via Composition,+12025550101,,,"].join(
+        "\n",
+      ),
+      exportResult: { kind: "success" },
+    });
+
+    const facade = createSoftphoneComposition({
+      mode: "real",
+      profilesStorageRoot,
+      filesystem,
+      bootstrapConfig: {},
+      contactCsvFileGateway: gateway,
+    });
+
+    const importResult = await facade.importContactsFromCsv();
+    expect(importResult.ok).toBe(true);
+    if (!importResult.ok || importResult.value.kind !== "imported") {
+      return;
+    }
+    expect(importResult.value.summary.createdCount).toBe(1);
+
+    const exportResult = await facade.exportContactsToCsv();
+    expect(exportResult.ok).toBe(true);
+    if (!exportResult.ok || exportResult.value.kind !== "exported") {
+      return;
+    }
+    expect(exportResult.value.contactCount).toBe(1);
+    expect(gateway.getLastExportInput()?.suggestedFileName).toContain("contacts-export-");
 
     facade.dispose();
   });
