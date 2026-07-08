@@ -1,8 +1,13 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { setupJsdomRadix } from "../../test/setupJsdomRadix.js";
 import { IncomingCallOverlay } from "./IncomingCallOverlay.js";
+
+beforeEach(() => {
+  setupJsdomRadix();
+});
 
 afterEach(() => {
   cleanup();
@@ -123,7 +128,7 @@ describe("IncomingCallOverlay", () => {
     expect(onReject).toHaveBeenCalledTimes(1);
   });
 
-  it("shows incoming-answer-disabled-reason when answer blocked", () => {
+  it("disables answer when answer blocked by policy", () => {
     render(
       <IncomingCallOverlay
         {...baseProps}
@@ -131,9 +136,7 @@ describe("IncomingCallOverlay", () => {
       />,
     );
 
-    expect(screen.getByTestId("incoming-answer-disabled-reason")).toHaveTextContent(
-      "Вторая сессия отключена",
-    );
+    expect(screen.queryByTestId("incoming-answer-disabled-reason")).not.toBeInTheDocument();
     expect(screen.getByTestId("answer-call")).toBeDisabled();
   });
 

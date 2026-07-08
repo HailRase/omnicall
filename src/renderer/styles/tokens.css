@@ -15,6 +15,7 @@
   /* Typography */
   --font-family-ui: "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-size-xs: 0.75rem;
+  --font-weight-medium: 500;
   --font-weight-semibold: 600;
   --line-height-ui: 1.5;
 
@@ -110,6 +111,39 @@
   --color-status-failed-hover: #e63939;
   --color-status-failed-active: #c41f1f;
   --color-status-not-registered: #94a3b8;
+
+  /* Incoming call banner (iOS compact) */
+  --incoming-call-banner-bg: rgb(246 246 246 / 86%);
+  --incoming-call-banner-backdrop-blur: 24px;
+  --incoming-call-banner-backdrop-saturate: 180%;
+  --incoming-call-banner-radius: 14px;
+  --incoming-call-banner-padding: 14px;
+  --incoming-call-banner-top-offset: 10px;
+  --incoming-call-banner-top: calc(
+    var(--shell-titlebar-controls-height) + var(--incoming-call-banner-top-offset)
+  );
+  --incoming-call-action-gap: var(--space-sm);
+  --incoming-call-accept-bg: #34c759;
+  --incoming-call-decline-bg: #ff3b30;
+  --incoming-call-action-text: #ffffff;
+  --incoming-call-eyebrow: #34c759;
+  --incoming-call-icon-circle-size: 40px;
+  --incoming-call-icon-circle-bg: rgb(34 170 74 / 36%);
+  --incoming-call-icon-color: #1d9a42;
+  --incoming-call-secondary-text: #8e8e93;
+  --incoming-call-auto-answer-track: rgb(0 0 0 / 8%);
+  --incoming-call-auto-answer-fill: #34c759;
+  --incoming-call-action-height: 42px;
+  --incoming-call-action-radius: 21px;
+  --incoming-call-action-size: 36px;
+  --shadow-incoming-call-banner:
+    0 2px 10px rgb(0 0 0 / 14%),
+    0 6px 22px rgb(0 0 0 / 10%),
+    0 0 0 0.5px rgb(0 0 0 / 8%);
+  --shadow-incoming-call-banner-hover:
+    0 4px 14px rgb(0 0 0 / 16%),
+    0 8px 28px rgb(0 0 0 / 12%),
+    0 0 0 0.5px rgb(0 0 0 / 10%);
 }
 
 [data-theme="dark"] {
@@ -182,4 +216,18 @@
   --color-status-failed-hover: #ff7f7f;
   --color-status-failed-active: #e85555;
   --color-status-not-registered: #5c6b82;
+
+  /* Incoming call banner (iOS compact) */
+  --incoming-call-banner-bg: rgb(36 36 38 / 88%);
+  --incoming-call-icon-circle-bg: rgb(34 170 74 / 44%);
+  --incoming-call-icon-color: #4ef078;
+  --incoming-call-auto-answer-track: rgb(255 255 255 / 12%);
+  --shadow-incoming-call-banner:
+    0 2px 12px rgb(0 0 0 / 42%),
+    0 6px 24px rgb(255 255 255 / 5%),
+    0 0 0 0.5px rgb(255 255 255 / 10%);
+  --shadow-incoming-call-banner-hover:
+    0 4px 16px rgb(0 0 0 / 48%),
+    0 8px 30px rgb(255 255 255 / 7%),
+    0 0 0 0.5px rgb(255 255 255 / 14%);
 }
