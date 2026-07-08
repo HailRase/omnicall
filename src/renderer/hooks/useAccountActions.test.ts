@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { describe, expect, it, vi, beforeEach } from "vitest";
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
   createSettingsAccountKey,
@@ -26,6 +26,8 @@ function createFacadeMock(
   authorizeSavedAccountProfile: ReturnType<typeof vi.fn>;
   listSavedAccountProfiles: ReturnType<typeof vi.fn>;
   hasRememberedSipPassword: ReturnType<typeof vi.fn>;
+  forgetRememberedSipPassword: ReturnType<typeof vi.fn>;
+  getActiveSipAccount: ReturnType<typeof vi.fn>;
 } {
   const authorizeSavedAccountProfile = vi.fn().mockResolvedValue(ok(undefined));
   const authorizeManualAccount = vi.fn().mockResolvedValue(ok(undefined));
@@ -33,6 +35,8 @@ function createFacadeMock(
   const hasRememberedSipPassword = vi
     .fn()
     .mockResolvedValue(options.hasRememberedSipPassword ?? false);
+  const forgetRememberedSipPassword = vi.fn().mockResolvedValue(ok(undefined));
+  const getActiveSipAccount = vi.fn().mockResolvedValue(null);
 
   const facade = {
     listSavedAccountProfiles,
@@ -40,6 +44,8 @@ function createFacadeMock(
     authorizeSavedAccountProfile,
     deleteSavedAccountProfile: vi.fn().mockResolvedValue(ok(undefined)),
     hasRememberedSipPassword,
+    forgetRememberedSipPassword,
+    getActiveSipAccount,
   } as unknown as AccountBootstrapFacade;
 
   return {
@@ -48,10 +54,16 @@ function createFacadeMock(
     authorizeSavedAccountProfile,
     listSavedAccountProfiles,
     hasRememberedSipPassword,
+    forgetRememberedSipPassword,
+    getActiveSipAccount,
   };
 }
 
 describe("useAccountActions", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   beforeEach(() => {
     vi.stubEnv("VITE_SIP_USERNAME", "");
     vi.stubEnv("VITE_SIP_DOMAIN", "");
@@ -94,11 +106,12 @@ describe("useAccountActions", () => {
     });
 
     expect(result.current.rememberPasswordVisible).toBe(false);
+    expect(result.current.forgetRememberedPasswordVisible).toBe(true);
     expect(result.current.passwordHintKey).toBeNull();
   });
 
   it("authorizes saved profile with remembered password via empty password submit", async () => {
-    const { facade, authorizeSavedAccountProfile, hasRememberedSipPassword } = createFacadeMock({
+    const { facade, authorizeSavedAccountProfile } = createFacadeMock({
       hasRememberedSipPassword: true,
     });
     const profileId = savedProfileFixture.id;
@@ -482,6 +495,195 @@ describe("useAccountActions", () => {
     expect(result.current.rememberPasswordVisible).toBe(true);
     expect(result.current.passwordFieldVisible).toBe(true);
     expect(result.current.rememberPasswordDisabled).toBe(false);
+  });
+
+  it("forget action reveals password field and remember checkbox", async () => {
+    const { facade, forgetRememberedSipPassword } = createFacadeMock({
+      hasRememberedSipPassword: true,
+    });
+    const profileId = savedProfileFixture.id;
+
+    const { result } = renderHook(() => useAccountActions({ facade }));
+
+    await waitFor(() => {
+      expect(result.current.savedProfileOptions).toHaveLength(1);
+    });
+
+    act(() => {
+      result.current.selectProfile(profileId);
+    });
+
+    await waitFor(() => {
+      expect(result.current.forgetRememberedPasswordVisible).toBe(true);
+    });
+
+    act(() => {
+      result.current.forgetRememberedPassword();
+    });
+
+    await waitFor(() => {
+      expect(forgetRememberedSipPassword).toHaveBeenCalledWith(profileId);
+      expect(result.current.passwordFieldVisible).toBe(true);
+      expect(result.current.rememberPasswordVisible).toBe(true);
+      expect(result.current.forgetRememberedPasswordVisible).toBe(false);
+      expect(result.current.selectedProfileId).toBe(profileId);
+    });
+  });
+
+  it("populates active session password for registered saved profile full form", async () => {
+    const { facade, getActiveSipAccount } = createFacadeMock();
+    getActiveSipAccount.mockResolvedValue({
+      username: "1001",
+      password: "session-secret",
+      domain: "pbx.example.com",
+      server: "wss://sip.example.com",
+    });
+    const profileId = savedProfileFixture.id;
+
+    const { result } = renderHook(() =>
+      useAccountActions({
+        facade,
+        isSipRegistered: true,
+        registeredIdentity: {
+          username: "1001",
+          domain: "pbx.example.com",
+          server: "wss://sip.example.com",
+        },
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.savedProfileOptions).toHaveLength(1);
+    });
+
+    act(() => {
+      result.current.selectProfile(profileId);
+    });
+
+    await waitFor(() => {
+      expect(getActiveSipAccount).toHaveBeenCalled();
+      expect(result.current.panelMode).toBe("savedFull");
+      expect(result.current.form.password).toBe("session-secret");
+    });
+  });
+
+  it("keeps active session password sync stable when saved profiles reload", async () => {
+    const { facade, getActiveSipAccount, listSavedAccountProfiles } = createFacadeMock();
+    getActiveSipAccount.mockResolvedValue({
+      username: "1001",
+      password: "session-secret",
+      domain: "pbx.example.com",
+      server: "wss://sip.example.com",
+    });
+    listSavedAccountProfiles
+      .mockResolvedValueOnce(ok([savedProfileFixture]))
+      .mockResolvedValueOnce(ok([{ ...savedProfileFixture }]));
+
+    const { result } = renderHook(() =>
+      useAccountActions({
+        facade,
+        isSipRegistered: true,
+        registeredIdentity: {
+          username: "1001",
+          domain: "pbx.example.com",
+          server: "wss://sip.example.com",
+        },
+      }),
+    );
+
+    await waitFor(() => {
+      expect(result.current.savedProfileOptions).toHaveLength(1);
+    });
+
+    act(() => {
+      result.current.selectProfile(savedProfileFixture.id);
+    });
+
+    await waitFor(() => {
+      expect(result.current.panelMode).toBe("savedFull");
+      expect(result.current.form.password).toBe("session-secret");
+    });
+    expect(getActiveSipAccount).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      result.current.reloadSavedProfiles();
+    });
+
+    await waitFor(() => {
+      expect(listSavedAccountProfiles).toHaveBeenCalledTimes(2);
+    });
+    expect(result.current.form.password).toBe("session-secret");
+    expect(getActiveSipAccount).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not preload stored secret into inactive saved profile password", async () => {
+    const { facade, getActiveSipAccount } = createFacadeMock({
+      hasRememberedSipPassword: true,
+    });
+    const profileId = savedProfileFixture.id;
+
+    const { result } = renderHook(() => useAccountActions({ facade }));
+
+    await waitFor(() => {
+      expect(result.current.savedProfileOptions).toHaveLength(1);
+    });
+
+    act(() => {
+      result.current.selectProfile(profileId);
+    });
+
+    await waitFor(() => {
+      expect(result.current.passwordFieldVisible).toBe(false);
+    });
+
+    expect(result.current.form.password).toBe("");
+    expect(getActiveSipAccount).not.toHaveBeenCalled();
+  });
+
+  it("clears password when SIP registration ends", async () => {
+    const { facade, getActiveSipAccount } = createFacadeMock();
+    getActiveSipAccount.mockResolvedValue({
+      username: "1001",
+      password: "session-secret",
+      domain: "pbx.example.com",
+      server: "wss://sip.example.com",
+    });
+
+    const { result, rerender } = renderHook(
+      ({ isSipRegistered }) =>
+        useAccountActions({
+          facade,
+          isSipRegistered,
+          registeredIdentity: isSipRegistered
+            ? {
+                username: "1001",
+                domain: "pbx.example.com",
+                server: "wss://sip.example.com",
+              }
+            : null,
+        }),
+      { initialProps: { isSipRegistered: true } },
+    );
+
+    await waitFor(() => {
+      expect(result.current.savedProfileOptions).toHaveLength(1);
+    });
+
+    act(() => {
+      result.current.selectProfile(savedProfileFixture.id);
+    });
+
+    await waitFor(() => {
+      expect(result.current.form.password).toBe("session-secret");
+    });
+
+    act(() => {
+      rerender({ isSipRegistered: false });
+    });
+
+    await waitFor(() => {
+      expect(result.current.form.password).toBe("");
+    });
   });
 
   it("passes rememberPassword option to manual authorize", async () => {

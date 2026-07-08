@@ -877,4 +877,89 @@ describe("AccountBootstrapFacade integration", () => {
     }
     expect(result.value.metadataWarning).toBe("password_save_failed");
   });
+
+  it("forgetRememberedSipPassword deletes only secret and keeps profile", async () => {
+    const secretStorage = new InMemorySecretStorageAdapter();
+    const savedProfiles = new InMemorySavedAccountProfileRepository();
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
+      savedAccountProfileRepository: savedProfiles,
+      secretStoragePort: secretStorage,
+      logger: createTestLogger(),
+    });
+
+    const account = {
+      username: "forget.user",
+      password: "secret",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    };
+    const scopeKey = createSecretStorageScopeKey(
+      deriveSettingsAccountKeyFromIdentity(account),
+    );
+
+    await facade.authorizeManualAccount(account, { saveProfile: true, rememberPassword: true });
+    const profiles = await savedProfiles.listProfiles();
+    const profileId = profiles[0]?.id;
+    expect(profileId).toBeDefined();
+    if (profileId === undefined) {
+      return;
+    }
+
+    const forgot = await facade.forgetRememberedSipPassword(profileId);
+    expect(forgot.ok).toBe(true);
+    await expect(secretStorage.loadSecret(scopeKey, SIP_PASSWORD_SECRET_ID)).resolves.toBeNull();
+    await expect(savedProfiles.getProfileById(profileId)).resolves.not.toBeNull();
+  });
+
+  it("forgetRememberedSipPassword returns not_found for missing profile", async () => {
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
+      savedAccountProfileRepository: new InMemorySavedAccountProfileRepository(),
+      secretStoragePort: new InMemorySecretStorageAdapter(),
+      logger: createTestLogger(),
+    });
+
+    const result = await facade.forgetRememberedSipPassword(
+      deriveSettingsAccountKeyFromIdentity({
+        username: "missing",
+        domain: "pbx.example",
+        server: "sip:pbx.example",
+      }),
+    );
+    expect(isErr(result)).toBe(true);
+    if (!isErr(result)) {
+      return;
+    }
+    expect(result.error.code).toBe("not_found");
+  });
+
+  it("getActiveSipAccount returns session account after auth and null after logout", async () => {
+    const settings = new InMemorySettingsRepository({ bootstrapConfig: {} });
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: settings,
+      logger: createTestLogger(),
+    });
+
+    const account = {
+      username: "active.user",
+      password: "session-secret",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    };
+
+    await expect(facade.getActiveSipAccount()).resolves.toBeNull();
+
+    await facade.authorizeManualAccount(account);
+    await expect(facade.getActiveSipAccount()).resolves.toEqual(account);
+
+    await facade.endUserSession.execute();
+    await expect(facade.getActiveSipAccount()).resolves.toBeNull();
+  });
 });

@@ -9,6 +9,7 @@ declare const classes: {
   readonly feedbackSuccess: string;
   readonly feedbackWarning: string;
   readonly fieldHint: string;
+  readonly forgetRememberedPasswordAction: string;
   readonly form: string;
   readonly input: string;
   readonly label: string;

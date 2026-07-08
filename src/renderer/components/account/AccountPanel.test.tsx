@@ -137,8 +137,10 @@ describe("AccountPanel", () => {
         panelMode="savedPasswordOnly"
         form={{ ...baseForm, password: "" }}
         passwordFieldVisible={false}
+        forgetRememberedPasswordVisible
         authorizeDisabledReason={null}
         logoutDisabledReason={null}
+        onForgetRememberedPassword={vi.fn()}
       />,
     );
 
@@ -146,6 +148,45 @@ describe("AccountPanel", () => {
     expect(screen.queryByTestId("account-password-hint")).not.toBeInTheDocument();
     expect(screen.queryByTestId("account-remember-password-row")).not.toBeInTheDocument();
     expect(screen.getByTestId("account-authorize")).toHaveTextContent("Войти");
+    expect(screen.getByTestId("account-forget-remembered-password")).toHaveTextContent(
+      "Забыть сохранённый пароль",
+    );
+  });
+
+  it("invokes forget remembered password callback", () => {
+    const onForgetRememberedPassword = vi.fn();
+
+    render(
+      <AccountPanel
+        {...baseProps}
+        panelMode="savedPasswordOnly"
+        form={{ ...baseForm, password: "" }}
+        passwordFieldVisible={false}
+        forgetRememberedPasswordVisible
+        authorizeDisabledReason={null}
+        logoutDisabledReason={null}
+        onForgetRememberedPassword={onForgetRememberedPassword}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId("account-forget-remembered-password"));
+    expect(onForgetRememberedPassword).toHaveBeenCalledOnce();
+  });
+
+  it("renders full form with provided password and keeps type password", () => {
+    render(
+      <AccountPanel
+        {...baseProps}
+        panelMode="savedFull"
+        form={{ ...baseForm, password: "session-secret" }}
+        authorizeDisabledReason={null}
+        logoutDisabledReason={null}
+      />,
+    );
+
+    const passwordInput = screen.getByTestId("account-password");
+    expect(passwordInput).toHaveValue("session-secret");
+    expect(passwordInput).toHaveAttribute("type", "password");
   });
 
   it("renders remember password checkbox on new profile form", () => {

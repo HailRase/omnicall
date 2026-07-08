@@ -105,6 +105,9 @@ Keep `getSipAccount` / `saveSipAccount` for **active session** telephony; metada
 | SIP password (optional) | Encrypted via `safeStorage` in main process; scope key = profile/settings account key |
 | Profile JSON | metadata only — no credential fields |
 | Remember-me UX | «Remember password on this PC» in account settings; enabled when saving/selecting a profile |
+| Remembered sign-in | Saved tab with remembered password shows **Sign in** + **Forget remembered password** only; no password field; explicit operator action (no silent app-start auto-login) |
+| Forget remembered password | Deletes only local secure secret via `SecretStoragePort`; profile metadata and per-account settings retained |
+| Active session display | When registered saved profile tab shows full form, password field may display active in-memory session password (not loaded from secure storage for inactive profiles) |
 | Delete profile | removes encrypted secret blob |
 | Logout | clears session only; remembered password retained |
 

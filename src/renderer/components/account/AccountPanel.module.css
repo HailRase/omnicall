@@ -124,8 +124,6 @@
   font-weight: 400;
   line-height: 1.35;
   text-align: center;
-  text-decoration: underline;
-  text-underline-offset: 0.15em;
   cursor: pointer;
   transition: color 140ms ease;
 }

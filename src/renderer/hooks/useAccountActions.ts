@@ -41,6 +41,23 @@ const PASSWORD_SAVE_WARNING_KEY = "account.warning.passwordSaveFailed" as const;
 const FEEDBACK_CLEAR_MS = 3200;
 const NEW_PROFILE_SELECTION = null;
 
+function isSameSipAccountInput(left: SipAccountInput, right: SipAccountInput): boolean {
+  return (
+    left.username === right.username &&
+    left.password === right.password &&
+    left.domain === right.domain &&
+    left.server === right.server
+  );
+}
+
+function deriveSettingsIdentitySyncKey(identity: SettingsAccountIdentity | null): string | null {
+  if (identity === null) {
+    return null;
+  }
+
+  return `${identity.username}\u0000${identity.domain}\u0000${identity.server}`;
+}
+
 function buildInitialForm(): SipAccountInput {
   return {
     ...EMPTY_FORM,
@@ -159,6 +176,7 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     selectedProfileId === null
       ? null
       : (savedProfilesByIdRef.current.get(selectedProfileId) ?? null);
+  const registeredIdentitySyncKey = deriveSettingsIdentitySyncKey(registeredIdentity);
 
   const panelMode = deriveSavedProfilePanelMode({
     selectedProfileId,
@@ -555,31 +573,37 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     if (
       facade === null ||
       !isSipRegistered ||
-      registeredIdentity === null ||
-      selectedProfile === null ||
+      registeredIdentitySyncKey === null ||
+      selectedProfileId === null ||
       panelMode !== "savedFull"
     ) {
       return;
     }
 
-    if (!matchesSipAccountIdentity(selectedProfile, registeredIdentity)) {
+    if (typeof facade.getActiveSipAccount !== "function") {
       return;
     }
 
     let cancelled = false;
-    void facade.getActiveSipAccount().then((activeAccount) => {
+    void (async (): Promise<void> => {
+      const activeAccount = await facade.getActiveSipAccount();
       if (cancelled || activeAccount === null) {
         return;
       }
 
-      setForm((current) => ({
-        ...current,
-        username: activeAccount.username,
-        domain: activeAccount.domain,
-        server: activeAccount.server,
-        password: activeAccount.password,
-      }));
-    });
+      setForm((current) => {
+        if (isSameSipAccountInput(current, activeAccount)) {
+          return current;
+        }
+
+        return {
+          username: activeAccount.username,
+          domain: activeAccount.domain,
+          server: activeAccount.server,
+          password: activeAccount.password,
+        };
+      });
+    })();
 
     return () => {
       cancelled = true;
@@ -588,8 +612,8 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     facade,
     isSipRegistered,
     panelMode,
-    registeredIdentity,
-    selectedProfile,
+    registeredIdentitySyncKey,
+    selectedProfileId,
   ]);
 
   useEffect(() => {

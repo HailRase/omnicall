@@ -12,6 +12,7 @@ describe("deriveSavedProfileCredentialPromptState", () => {
     ).toEqual({
       passwordFieldVisible: true,
       rememberPasswordVisible: true,
+      forgetRememberedPasswordVisible: false,
       passwordHintKey: null,
       submitMode: "full-form",
     });
@@ -27,6 +28,7 @@ describe("deriveSavedProfileCredentialPromptState", () => {
     ).toEqual({
       passwordFieldVisible: true,
       rememberPasswordVisible: false,
+      forgetRememberedPasswordVisible: false,
       passwordHintKey: null,
       submitMode: "full-form",
     });
@@ -42,6 +44,7 @@ describe("deriveSavedProfileCredentialPromptState", () => {
     ).toEqual({
       passwordFieldVisible: false,
       rememberPasswordVisible: false,
+      forgetRememberedPasswordVisible: true,
       passwordHintKey: null,
       submitMode: "remembered-password",
     });
@@ -57,6 +60,7 @@ describe("deriveSavedProfileCredentialPromptState", () => {
     ).toEqual({
       passwordFieldVisible: true,
       rememberPasswordVisible: true,
+      forgetRememberedPasswordVisible: false,
       passwordHintKey: "account.profile.passwordHint.savedProfile",
       submitMode: "manual-password",
     });
@@ -72,6 +76,7 @@ describe("deriveSavedProfileCredentialPromptState", () => {
     ).toEqual({
       passwordFieldVisible: true,
       rememberPasswordVisible: true,
+      forgetRememberedPasswordVisible: false,
       passwordHintKey: "account.profile.passwordHint.savedProfile",
       submitMode: "manual-password",
     });

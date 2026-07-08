@@ -90,6 +90,8 @@ const baseProps = {
 
   rememberPasswordVisible: false,
 
+  forgetRememberedPasswordVisible: false,
+
   rememberPasswordDisabled: true,
 
   rememberPasswordDisabledReasonKey: "account.profile.rememberPassword.disabledRequiresSave",
@@ -113,6 +115,8 @@ const baseProps = {
   onSaveProfileChange: vi.fn(),
 
   onRememberPasswordChange: vi.fn(),
+
+  onForgetRememberedPassword: vi.fn(),
 
   onDeleteProfileRequest: vi.fn(),
 
@@ -222,6 +226,8 @@ describe("SettingsAccountPanel", () => {
 
       rememberPasswordVisible: false,
 
+      forgetRememberedPasswordVisible: true,
+
     });
 
 
@@ -233,6 +239,40 @@ describe("SettingsAccountPanel", () => {
     expect(screen.queryByTestId("account-remember-password-row")).not.toBeInTheDocument();
 
     expect(screen.getByTestId("account-authorize")).toHaveTextContent("Войти");
+
+    expect(screen.getByTestId("account-forget-remembered-password")).toBeInTheDocument();
+
+  });
+
+
+
+  it("shows active session password in full form for registered saved profile", () => {
+
+    renderPanel({
+
+      selectedProfileId: profileId,
+
+      panelMode: "savedFull",
+
+      form: {
+
+        username: "1001",
+
+        password: "session-secret",
+
+        domain: "pbx.example.com",
+
+        server: "wss://sip.example.com",
+
+      },
+
+    });
+
+
+
+    expect(screen.getByTestId("account-password")).toHaveValue("session-secret");
+
+    expect(screen.getByTestId("account-password")).toHaveAttribute("type", "password");
 
   });
 
