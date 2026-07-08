@@ -190,6 +190,8 @@ const ruMessages = {
   "account.profile.rememberPassword.ariaLabel": "Запомнить пароль на этом ПК",
   "account.profile.rememberPassword.disabledRequiresSave":
     "Сначала включите «Сохранить профиль»",
+  "account.profile.rememberPassword.forget": "Забыть сохранённый пароль",
+  "account.profile.rememberPassword.forgetAriaLabel": "Забыть сохранённый пароль",
   "account.profile.passwordHint.savedProfile": "Введите пароль для выбранного профиля",
   "account.profile.passwordHint.rememberedPassword":
     "Сохранённый на этом ПК пароль будет использован при входе",
@@ -955,6 +957,8 @@ const enMessages: MessageShape = {
   "account.profile.rememberPassword.ariaLabel": "Remember password on this PC",
   "account.profile.rememberPassword.disabledRequiresSave":
     "Enable Save profile first to remember the password",
+  "account.profile.rememberPassword.forget": "Forget remembered password",
+  "account.profile.rememberPassword.forgetAriaLabel": "Forget remembered password",
   "account.profile.passwordHint.savedProfile": "Enter the password for the selected profile",
   "account.profile.passwordHint.rememberedPassword":
     "The password saved on this PC will be used when you sign in",
@@ -1663,6 +1667,8 @@ const frMessages: MessageShape = {
   "account.profile.rememberPassword.ariaLabel": "Memoriser le mot de passe sur ce PC",
   "account.profile.rememberPassword.disabledRequiresSave":
     "Activez d'abord Enregistrer le profil pour memoriser le mot de passe",
+  "account.profile.rememberPassword.forget": "Oublier le mot de passe memorise",
+  "account.profile.rememberPassword.forgetAriaLabel": "Oublier le mot de passe memorise",
   "account.profile.passwordHint.savedProfile": "Saisissez le mot de passe du profil selectionne",
   "account.profile.passwordHint.rememberedPassword":
     "Le mot de passe enregistre sur ce PC sera utilise lors de la connexion",
@@ -2374,6 +2380,8 @@ const deMessages: MessageShape = {
   "account.profile.rememberPassword.ariaLabel": "Passwort auf diesem PC merken",
   "account.profile.rememberPassword.disabledRequiresSave":
     "Aktivieren Sie zuerst Profil speichern, um das Passwort zu merken",
+  "account.profile.rememberPassword.forget": "Gespeichertes Passwort vergessen",
+  "account.profile.rememberPassword.forgetAriaLabel": "Gespeichertes Passwort vergessen",
   "account.profile.passwordHint.savedProfile": "Passwort fuer das ausgewaehlte Profil eingeben",
   "account.profile.passwordHint.rememberedPassword":
     "Das auf diesem PC gespeicherte Passwort wird bei der Anmeldung verwendet",

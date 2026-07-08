@@ -29,6 +29,7 @@ export type SettingsAccountPanelProps = Readonly<{
   rememberPasswordChecked: boolean;
   passwordFieldVisible: boolean;
   rememberPasswordVisible: boolean;
+  forgetRememberedPasswordVisible: boolean;
   rememberPasswordDisabled: boolean;
   rememberPasswordDisabledReasonKey: TranslationKey | null;
   passwordHintKey: TranslationKey | null;
@@ -43,6 +44,7 @@ export type SettingsAccountPanelProps = Readonly<{
   onProfileSelect: (profileId: SavedAccountProfileId | null) => void;
   onSaveProfileChange: (checked: boolean) => void;
   onRememberPasswordChange: (checked: boolean) => void;
+  onForgetRememberedPassword: () => void;
   onDeleteProfileRequest: (profileId: SavedAccountProfileId) => void;
   onDeleteProfileConfirm: () => void;
   onDeleteProfileCancel: () => void;
@@ -73,6 +75,7 @@ export function SettingsAccountPanel({
   rememberPasswordChecked,
   passwordFieldVisible,
   rememberPasswordVisible,
+  forgetRememberedPasswordVisible,
   rememberPasswordDisabled,
   rememberPasswordDisabledReasonKey,
   passwordHintKey,
@@ -87,6 +90,7 @@ export function SettingsAccountPanel({
   onProfileSelect,
   onSaveProfileChange,
   onRememberPasswordChange,
+  onForgetRememberedPassword,
   onDeleteProfileRequest,
   onDeleteProfileConfirm,
   onDeleteProfileCancel,
@@ -123,6 +127,7 @@ export function SettingsAccountPanel({
           saveProfileDisabled={saveProfileDisabled}
           saveProfileDisabledReasonKey={saveProfileDisabledReasonKey}
           rememberPasswordVisible={rememberPasswordVisible}
+          forgetRememberedPasswordVisible={forgetRememberedPasswordVisible}
           rememberPasswordChecked={rememberPasswordChecked}
           rememberPasswordDisabled={rememberPasswordDisabled}
           rememberPasswordDisabledReasonKey={rememberPasswordDisabledReasonKey}
@@ -130,6 +135,7 @@ export function SettingsAccountPanel({
           onFieldChange={onFieldChange}
           onSaveProfileChange={onSaveProfileChange}
           onRememberPasswordChange={onRememberPasswordChange}
+          onForgetRememberedPassword={onForgetRememberedPassword}
           onSubmit={onSubmit}
           onLogout={onLogout}
           showTitle={false}

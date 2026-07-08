@@ -63,6 +63,8 @@ type AccountPanelProps = Readonly<{
 
   rememberPasswordDisabledReasonKey?: TranslationKey | null;
 
+  forgetRememberedPasswordVisible?: boolean;
+
   passwordInputRef?: RefObject<HTMLInputElement | null>;
 
   onFieldChange: (field: keyof SipAccountInput, value: string) => void;
@@ -70,6 +72,8 @@ type AccountPanelProps = Readonly<{
   onSaveProfileChange?: (checked: boolean) => void;
 
   onRememberPasswordChange?: (checked: boolean) => void;
+
+  onForgetRememberedPassword?: () => void;
 
   onSubmit: () => void;
 
@@ -125,6 +129,8 @@ export function AccountPanel({
 
   rememberPasswordDisabledReasonKey = null,
 
+  forgetRememberedPasswordVisible = false,
+
   passwordInputRef,
 
   onFieldChange,
@@ -132,6 +138,8 @@ export function AccountPanel({
   onSaveProfileChange,
 
   onRememberPasswordChange,
+
+  onForgetRememberedPassword,
 
   onSubmit,
 
@@ -436,6 +444,21 @@ export function AccountPanel({
             </span>
 
           </IconTooltip>
+
+          {forgetRememberedPasswordVisible ? (
+            <button
+              type="button"
+              className={styles.forgetRememberedPasswordAction}
+              data-testid="account-forget-remembered-password"
+              disabled={disabled || submitting}
+              aria-label={t("account.profile.rememberPassword.forgetAriaLabel")}
+              onClick={() => {
+                onForgetRememberedPassword?.();
+              }}
+            >
+              {t("account.profile.rememberPassword.forget")}
+            </button>
+          ) : null}
 
           {showLogout ? (
 

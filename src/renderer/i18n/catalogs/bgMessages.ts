@@ -43,6 +43,8 @@ export const bgMessages: MessageShape = {
   "account.profile.rememberPassword.ariaLabel": "Запомни паролата на този компютър",
   "account.profile.rememberPassword.disabledRequiresSave":
     "Първо включете Запази профила, за да запомните паролата",
+  "account.profile.rememberPassword.forget": "Забрави запазената парола",
+  "account.profile.rememberPassword.forgetAriaLabel": "Забрави запазената парола",
   "account.profile.passwordHint.rememberedPassword":
     "Запазената на този компютър парола ще бъде използвана при вход",
   "account.warning.passwordSaveFailed":

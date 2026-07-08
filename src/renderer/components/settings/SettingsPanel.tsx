@@ -110,6 +110,7 @@ export type SettingsPanelProps = Readonly<{
     rememberPasswordChecked: boolean;
     passwordFieldVisible: boolean;
     rememberPasswordVisible: boolean;
+    forgetRememberedPasswordVisible: boolean;
     rememberPasswordDisabled: boolean;
     rememberPasswordDisabledReasonKey: TranslationKey | null;
     passwordHintKey: TranslationKey | null;
@@ -124,6 +125,7 @@ export type SettingsPanelProps = Readonly<{
     onProfileSelect: (profileId: SavedAccountProfileId | null) => void;
     onSaveProfileChange: (checked: boolean) => void;
     onRememberPasswordChange: (checked: boolean) => void;
+    onForgetRememberedPassword: () => void;
     onDeleteProfileRequest: (profileId: SavedAccountProfileId) => void;
   onDeleteProfileConfirm: () => void;
   onDeleteProfileCancel: () => void;
@@ -209,6 +211,7 @@ export function SettingsPanel({
           rememberPasswordChecked={account.rememberPasswordChecked}
           passwordFieldVisible={account.passwordFieldVisible}
           rememberPasswordVisible={account.rememberPasswordVisible}
+          forgetRememberedPasswordVisible={account.forgetRememberedPasswordVisible}
           rememberPasswordDisabled={account.rememberPasswordDisabled}
           rememberPasswordDisabledReasonKey={account.rememberPasswordDisabledReasonKey}
           passwordHintKey={account.passwordHintKey}
@@ -223,6 +226,7 @@ export function SettingsPanel({
           onProfileSelect={account.onProfileSelect}
           onSaveProfileChange={account.onSaveProfileChange}
           onRememberPasswordChange={account.onRememberPasswordChange}
+          onForgetRememberedPassword={account.onForgetRememberedPassword}
           onDeleteProfileRequest={account.onDeleteProfileRequest}
           onDeleteProfileConfirm={account.onDeleteProfileConfirm}
           onDeleteProfileCancel={account.onDeleteProfileCancel}
