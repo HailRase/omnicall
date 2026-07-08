@@ -32,6 +32,7 @@ import { ContactsShellRoutePanel } from "./contacts/ContactsShellRoutePanel.js";
 import { SoftphoneLayout } from "../widgets/SoftphoneLayout/SoftphoneLayout.js";
 import { CallContextShell } from "./call/CallContextShell.js";
 import { CallControlsShell } from "./call/CallControlsShell.js";
+import { IncomingCallOverlayShell } from "./call/IncomingCallOverlayShell.js";
 import { SessionFeatureShell } from "./SessionFeatureShell.js";
 import { SoftphoneShellHeader } from "./SoftphoneShellHeader.js";
 
@@ -175,6 +176,7 @@ function SoftphoneShellLayoutRoute({
       controls={<CallControlsShell bindings={callBindings} />}
       overlays={
         <>
+          <IncomingCallOverlayShell callBindings={callBindings} overlayShell={overlayShell} />
           <ShellRouteDataController facade={facade} />
           <HistoryShellRoutePanel facade={facade} notify={notifications.notify} />
           <ContactsShellRoutePanel facade={facade} notify={notifications.notify} />

@@ -41,6 +41,7 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
     selectIncomingCall,
     incomingCallId,
     isIncomingSelected,
+    incomingSessionCardVisible,
   } = bindings;
 
   const controlTargetCallId = controlTargetLine?.callId ?? null;
@@ -62,7 +63,7 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
       (line) => line.callId === callProjection.dtmfPanelCallId,
     ) ?? null;
 
-  const showIncomingCard = incomingCallId !== null;
+  const hasIncomingCall = incomingCallId !== null;
   const autoAnswerSecondsRemaining = useAutoAnswerCountdown(
     incomingCallProjection.autoAnswerExpiresAt,
     incomingCallProjection.uiState === "autoAnswerCountdown",
@@ -78,7 +79,7 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
     !isDtmfMode &&
     !isNumberEntryOverlay &&
     !showOutgoingCard &&
-    !showIncomingCard &&
+    !hasIncomingCall &&
     !nonIncomingLinesShell.visible;
 
   return (
@@ -124,7 +125,7 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
 
       {!isTransferMode && !isTransferSuccessCelebration && !isDtmfMode && !isNumberEntryOverlay ? (
         <>
-          {showIncomingCard && incomingCallId !== null ? (
+          {incomingSessionCardVisible && incomingCallId !== null ? (
             <IncomingCallSessionCard
               callId={incomingCallId}
               callerNumber={incomingCallShell.identity.callerNumber}
@@ -152,10 +153,10 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
               <CallSessionCard
                 line={singleNonIncomingLine}
                 isActive={
-                  showIncomingCard &&
+                  hasIncomingCall &&
                   singleNonIncomingLine.callId === controlTargetCallId
                 }
-                {...(showIncomingCard
+                {...(hasIncomingCall
                   ? {
                       showSelectionChrome: true,
                       onClick: () => {

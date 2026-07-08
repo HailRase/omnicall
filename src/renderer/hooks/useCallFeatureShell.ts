@@ -5,6 +5,7 @@ import {
   deriveActiveCallControlsShell,
   deriveAuthShellFlags,
   deriveCallControlTarget,
+  deriveIncomingCallSessionCardVisible,
   deriveResumeMultiCallDisabledReason,
 } from "@application/index.js";
 import { mapActiveCallControlDisabledReason } from "../helpers/mapActiveCallControlLabels.js";
@@ -262,6 +263,26 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     clearDialedNumber();
   }, [clearDialedNumber]);
 
+  const incomingSessionCardVisible = useMemo(
+    () =>
+      deriveIncomingCallSessionCardVisible({
+        incomingCallId,
+        transferPanelVisible: transferPanelShell.visible,
+        transferSuccessCelebrationVisible: transferSuccessCelebration.visible,
+        dialpadMode,
+        dtmfPanelCallId: callProjection.dtmfPanelCallId,
+        numberEntryOverlayOpen,
+      }),
+    [
+      callProjection.dtmfPanelCallId,
+      dialpadMode,
+      incomingCallId,
+      numberEntryOverlayOpen,
+      transferPanelShell.visible,
+      transferSuccessCelebration.visible,
+    ],
+  );
+
   return {
     projection,
     callProjection,
@@ -296,6 +317,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     selectIncomingCall,
     incomingCallId,
     isIncomingSelected,
+    incomingSessionCardVisible,
     nonIncomingLinesShell,
     numberEntryOverlayOpen,
     openNumberEntryOverlay,

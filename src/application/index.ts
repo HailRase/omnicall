@@ -98,6 +98,15 @@ export {
   type IncomingCallIdentityShellViewModel,
 } from "./projections/telephony/deriveIncomingCallIdentityShell.js";
 export {
+  deriveIncomingCallSessionCardVisible,
+  type DeriveIncomingCallSessionCardVisibleInput,
+} from "./projections/telephony/deriveIncomingCallSessionCardVisible.js";
+export {
+  deriveIncomingCallGlobalOverlayVisible,
+  type DeriveIncomingCallGlobalOverlayVisibleInput,
+  type IncomingCallOverlayShellRouteName,
+} from "./projections/telephony/deriveIncomingCallGlobalOverlayVisible.js";
+export {
   deriveCallLinesShell,
   type CallLineCardViewModel,
   type CallLinePrimaryAction,

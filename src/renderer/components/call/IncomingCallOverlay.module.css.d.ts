@@ -1,19 +1,22 @@
 declare const classes: {
-  readonly actions: string;
+  readonly actionButton: string;
+  readonly actionButtons: string;
+  readonly anchor: string;
   readonly answerButton: string;
   readonly autoAnswerFill: string;
   readonly autoAnswerHint: string;
   readonly autoAnswerTrack: string;
   readonly body: string;
-  readonly buttonIcon: string;
   readonly disabledReason: string;
-  readonly eyebrow: string;
-  readonly headerRow: string;
+  readonly dismissButton: string;
   readonly iconCircle: string;
   readonly identity: string;
+  readonly mainRow: string;
+  readonly mainRowForeground: string;
   readonly overlay: string;
   readonly primaryName: string;
   readonly rejectButton: string;
+  readonly rowSurface: string;
   readonly secondaryNumber: string;
   readonly statusBlock: string;
 };

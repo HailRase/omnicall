@@ -25,12 +25,14 @@ const baseArgs: Story["args"] = {
   visible: true,
   callerNumber: "+7 (495) 123-45-67",
   displayName: "Иван Петров",
-autoAnswerSecondsRemaining: null,
+  autoAnswerSecondsRemaining: null,
   uiState: "incomingRinging",
   answerDisabledReason: null,
   rejectDisabledReason: null,
+  onOpenCallSurface: () => undefined,
   onAnswer: () => undefined,
   onReject: () => undefined,
+  onDismiss: () => undefined,
 };
 
 export const LightRinging: Story = {

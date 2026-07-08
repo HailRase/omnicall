@@ -1,5 +1,6 @@
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import { createSoftphoneComposition } from "@infrastructure/bootstrap/createSoftphoneComposition.js";
+import { MockContactCsvFileGateway } from "@adapters/mock/MockContactCsvFileGateway.js";
 import { PreloadContactCsvFileGateway } from "@adapters/platform/PreloadContactCsvFileGateway.js";
 import { readBootstrapConfigFromUrl } from "./readBootstrapConfig.js";
 import type { RendererBootstrapOptions } from "./readBootstrapConfig.js";
@@ -19,13 +20,15 @@ export async function createRendererComposition(): Promise<RendererComposition> 
   const bootstrapOptions = readBootstrapConfigFromUrl();
   const diskOptions = await resolveRealBootstrapDiskOptions(bootstrapOptions.adapterMode);
   const contactCsvFileGateway =
-    bootstrapOptions.adapterMode === "real" ? new PreloadContactCsvFileGateway() : undefined;
+    bootstrapOptions.adapterMode === "real"
+      ? new PreloadContactCsvFileGateway()
+      : new MockContactCsvFileGateway();
   const facade = createSoftphoneComposition({
     mode: bootstrapOptions.adapterMode,
     bootstrapConfig: bootstrapOptions.config,
     telephonyScenario: bootstrapOptions.telephonyScenario,
     ...diskOptions,
-    ...(contactCsvFileGateway !== undefined ? { contactCsvFileGateway } : {}),
+    contactCsvFileGateway,
   });
 
   return { facade, bootstrapOptions };

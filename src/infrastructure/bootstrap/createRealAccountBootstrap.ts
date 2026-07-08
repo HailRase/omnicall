@@ -141,6 +141,9 @@ export function createRealAccountBootstrap(
       : {}),
     ...(contactRepository !== undefined ? { contactRepository } : {}),
     ...(callHistoryRepository !== undefined ? { callHistoryRepository } : {}),
+    ...(options.contactCsvFileGateway !== undefined
+      ? { contactCsvFileGateway: options.contactCsvFileGateway }
+      : {}),
     ...(options.secretStoragePort !== undefined
       ? { secretStoragePort: options.secretStoragePort }
       : {}),
