@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-08 13:05
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `62f4cc2`
 
 ## Где
 - `src/renderer/hooks/useDialogReturnFocus.ts`, `useRestoreRouteFocus.ts`
