@@ -100,4 +100,32 @@ describe("useContactEditShell", () => {
     expect(result.current.values.displayName).toBe("");
     expect(result.current.isLoading).toBe(false);
   });
+
+  it("initializes create route from history prefill route data", () => {
+    useShellRouteDataStore.setState({
+      ...initialShellRouteDataState(),
+      activeContact: {
+        contactId: NEW_CONTACT_ROUTE_ID,
+        status: "loaded",
+        activeToken: 1,
+        snapshot: null,
+      },
+      contactCreatePrefill: {
+        displayName: "Alice Caller",
+        primaryPhone: "+12025550147",
+      },
+    });
+
+    const { result } = renderHook(() =>
+      useContactEditShell({
+        contactId: NEW_CONTACT_ROUTE_ID,
+        routeNotFound: false,
+        actions: createActions(),
+      }),
+    );
+
+    expect(result.current.isCreateMode).toBe(true);
+    expect(result.current.values.displayName).toBe("Alice Caller");
+    expect(result.current.values.primaryPhone).toBe("+12025550147");
+  });
 });

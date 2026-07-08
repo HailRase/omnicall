@@ -17,6 +17,7 @@ import { NEW_CONTACT_ROUTE_ID, useContactEditShell } from "../../hooks/useContac
 import { useContactsShell } from "../../hooks/useContactsShell.js";
 import { useI18n } from "../../i18n/index.js";
 import { useShellNavigation } from "../../navigation/useShellNavigation.js";
+import { useShellRouteDataStore } from "../../navigation/routeData/useShellRouteDataStore.js";
 
 type ContactsShellRoutePanelProps = Readonly<{
   facade: AccountBootstrapFacade;
@@ -92,6 +93,7 @@ function ContactsListRoute({ facade, onClose }: ContactsListRouteProps): JSX.Ele
           navigateTo({ name: "contactDetails", contactId });
         }}
         onAddContact={() => {
+          useShellRouteDataStore.getState().clearContactCreatePrefill();
           navigateTo({ name: "contactEdit", contactId: NEW_CONTACT_ROUTE_ID });
         }}
         onQuickCall={(contactId) => {
@@ -218,6 +220,7 @@ function ContactsEditRoute({
             if (savedId === null) {
               return;
             }
+            useShellRouteDataStore.getState().clearContactCreatePrefill();
             navigateTo({ name: "contactDetails", contactId: savedId });
           })();
         }}

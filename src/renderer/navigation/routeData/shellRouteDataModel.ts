@@ -20,6 +20,11 @@ export type ContactRouteSnapshot = Readonly<{
   notes: string | null;
 }>;
 
+export type ContactCreatePrefill = Readonly<{
+  displayName: string;
+  primaryPhone: string;
+}>;
+
 export type HistoryEntryRouteSnapshot = Readonly<{
   id: string;
   remoteNumber: string;
@@ -56,6 +61,7 @@ export type ShellRouteDataState = Readonly<{
   historyList: ListRouteData;
   activeContact: ContactRouteData | null;
   activeHistoryEntry: HistoryEntryRouteData | null;
+  contactCreatePrefill: ContactCreatePrefill | null;
 }>;
 
 export function initialListRouteData(): ListRouteData {
@@ -72,5 +78,6 @@ export function initialShellRouteDataState(): ShellRouteDataState {
     historyList: initialListRouteData(),
     activeContact: null,
     activeHistoryEntry: null,
+    contactCreatePrefill: null,
   };
 }

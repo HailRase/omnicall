@@ -1,4 +1,4 @@
-import type { CallHistoryEntry, Contact } from "@domain/index.js";
+import type { Contact } from "@domain/index.js";
 import {
   buildContactDirectory,
   type CallerPresentationSource,
@@ -21,13 +21,23 @@ export type CallHistoryDetailShellViewModel = Readonly<{
   redialDisabledReasonKey: CallHistoryRedialDisabledReasonKey | null;
 }>;
 
+export type CallHistoryDetailShellEntry = Readonly<{
+  id: string;
+  remoteNumber: string;
+  displayLabel: string | null;
+  direction: "incoming" | "outgoing";
+  outcome: "completed" | "missed" | "failed";
+  startedAt: string;
+  durationSec: number;
+}>;
+
 /**
  * - Purpose: map one call history entry into detail shell view-model with identity enrichment.
  * - Inputs: history entry, contacts, registration flag, and multi-call guards.
  * - Outputs: enriched detail view-model with redial disabled reason.
  */
 export function deriveCallHistoryDetailShell(input: Readonly<{
-  entry: CallHistoryEntry;
+  entry: CallHistoryDetailShellEntry;
   contacts: ReadonlyArray<Contact>;
   isSipRegistered: boolean;
   multiCallProjection: MultiCallProjection;
@@ -62,7 +72,7 @@ export function deriveCallHistoryDetailShell(input: Readonly<{
 }
 
 function mapOutcomeKey(
-  outcome: CallHistoryEntry["outcome"],
+  outcome: CallHistoryDetailShellEntry["outcome"],
 ): CallHistoryDetailShellViewModel["outcomeKey"] {
   switch (outcome) {
     case "completed":

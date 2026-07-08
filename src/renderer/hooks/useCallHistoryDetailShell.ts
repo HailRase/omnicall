@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useState } from "react";
-import { deriveCallHistoryDetailShell } from "@application/projections/contacts/deriveCallHistoryDetailShell.js";
-import type { CallHistoryEntry } from "@domain/index.js";
-import { createCallId } from "@domain/telephony/CallId.js";
-import { createCallHistoryEntryId } from "@domain/settings/CallHistoryEntryId.js";
+import {
+  deriveCallHistoryDetailShell,
+  type CallHistoryDetailShellEntry,
+} from "@application/projections/contacts/deriveCallHistoryDetailShell.js";
 import { isErr } from "@shared/result/index.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 import { useI18n } from "../i18n/index.js";
@@ -24,6 +24,7 @@ export type CallHistoryDetailViewModel = Readonly<{
   primaryLabel: string;
   secondaryLabel: string | null;
   contactId: string | null;
+  presentationSource: "contact" | "sip" | "number" | "unknown";
   directionLabel: string;
   outcomeLabel: string;
   dateLabel: string;
@@ -143,7 +144,7 @@ function resolveRouteHistoryEntry(
   entryId: string,
   routeNotFound: boolean,
   activeHistoryEntry: ReturnType<typeof useShellRouteDataStore.getState>["activeHistoryEntry"],
-  projectionEntry: CallHistoryEntry | null,
+  projectionEntry: CallHistoryDetailShellEntry | null,
   contacts: ReturnType<typeof useAccountBootstrapStore.getState>["contactsProjection"]["contacts"],
   isSipRegistered: boolean,
   multiCallProjection: ReturnType<typeof useAccountBootstrapStore.getState>["multiCallProjection"],
@@ -182,8 +183,8 @@ function resolveRouteHistoryEntry(
     };
   }
 
-  const domainEntry = projectionEntry ?? mapSnapshotToDomainEntry(activeHistoryEntry.snapshot);
-  if (domainEntry === null) {
+  const detailEntry = projectionEntry ?? mapSnapshotToDetailEntry(activeHistoryEntry.snapshot);
+  if (detailEntry === null) {
     return {
       isLoading: false,
       isNotFound: true,
@@ -192,7 +193,7 @@ function resolveRouteHistoryEntry(
   }
 
   const detail = deriveCallHistoryDetailShell({
-    entry: domainEntry,
+    entry: detailEntry,
     contacts,
     isSipRegistered,
     multiCallProjection,
@@ -205,26 +206,19 @@ function resolveRouteHistoryEntry(
   };
 }
 
-function mapSnapshotToDomainEntry(
+function mapSnapshotToDetailEntry(
   snapshot: HistoryEntryRouteSnapshot | null,
-): CallHistoryEntry | null {
+): CallHistoryDetailShellEntry | null {
   if (snapshot === null) {
     return null;
   }
 
-  const entryId = createCallHistoryEntryId(snapshot.id);
-  if (entryId === null) {
-    return null;
-  }
-
   return {
-    id: entryId,
-    callId: createCallId("route-snapshot"),
+    id: snapshot.id,
     direction: snapshot.direction,
     remoteNumber: snapshot.remoteNumber,
     displayLabel: snapshot.displayLabel,
     startedAt: snapshot.startedAt,
-    endedAt: snapshot.endedAt,
     durationSec: snapshot.durationSec,
     outcome: snapshot.outcome,
   };
@@ -244,6 +238,7 @@ function mapDetailViewModel(
         : detail.primaryLabel,
     secondaryLabel: detail.secondaryLabel,
     contactId: detail.contactId,
+    presentationSource: detail.presentationSource,
     directionLabel: t(detail.directionKey),
     outcomeLabel: t(detail.outcomeKey),
     dateLabel: formatHistoryDate(detail.startedAtIso, language),

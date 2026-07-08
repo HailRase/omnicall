@@ -11,6 +11,7 @@ export type HistoryDetailPanelProps = Readonly<{
   isNotFound: boolean;
   entry: CallHistoryDetailViewModel | null;
   onRedial: () => void;
+  onContactAction: () => void;
   onDelete: () => void;
 }>;
 
@@ -25,6 +26,7 @@ export function HistoryDetailPanel({
   isNotFound,
   entry,
   onRedial,
+  onContactAction,
   onDelete,
 }: HistoryDetailPanelProps): JSX.Element {
   const { t } = useI18n();
@@ -71,6 +73,19 @@ export function HistoryDetailPanel({
         >
           <AppIcon id="dial.call" decorative size={14} />
           {t("history.redial")}
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          fullWidth
+          data-testid="history-detail-contact-action"
+          onClick={onContactAction}
+        >
+          <AppIcon id="shell.contacts" decorative size={14} />
+          {entry.contactId !== null
+            ? t("history.detail.openContact")
+            : t("history.detail.addToContacts")}
         </Button>
       </div>
 

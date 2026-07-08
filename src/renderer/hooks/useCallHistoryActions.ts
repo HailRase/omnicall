@@ -4,6 +4,7 @@ import { isErr } from "@shared/result/index.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 import type { NotificationDescriptor } from "./useNotifications.js";
 
+type RedialResult = Awaited<ReturnType<AccountBootstrapFacade["redialFromHistory"]>>;
 type DeleteResult = Awaited<ReturnType<AccountBootstrapFacade["deleteCallHistoryEntry"]>>;
 
 type UseCallHistoryActionsInput = Readonly<{

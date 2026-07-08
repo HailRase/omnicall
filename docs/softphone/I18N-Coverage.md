@@ -20,6 +20,7 @@
 | `src/renderer/components/account/AccountPanel.tsx`, `SavedAccountProfileSelector.tsx`, `DeleteSavedAccountProfileConfirmationModal.tsx`, `SwitchSavedAccountProfileConfirmationModal.tsx` | i18n-driven saved profile tabs, delete/switch modals, disabled reasons (action feedback moved to notifications) | `account.profile.*`, `account.error.*`, `account.warning.*`, `account.actions.disabled.*` | migrated | `AccountPanel.test.tsx`, `SavedAccountProfileSelector.test.tsx`, modal tests, `useAccountActions.test.ts` |
 | `src/renderer/components/settings/panels/SettingsAccountPanel.tsx` | account settings panel copy | `account.*`, `settings.account.*` | migrated | `SettingsAccountPanel.test.tsx` |
 | `src/application/projections/settings/mapAccountAuthorizationError.ts` | semantic auth error keys for UI | `account.error.*` | migrated | `mapAccountAuthorizationError.test.ts` |
+| `src/renderer/components/history/*`, `src/renderer/components/contacts/*`, `src/renderer/hooks/useContactEditShell.ts` | i18n-driven history details, add/open contact action, contact form validation | `history.*`, `contacts.*` | migrated | `HistoryDetailPanel.test.tsx`, `useContactEditShell.test.tsx`, `npm run i18n:check` |
 
 ## Remaining gaps
 

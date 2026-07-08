@@ -9,7 +9,9 @@ import { useCallHistoryActions } from "../../hooks/useCallHistoryActions.js";
 import { useCallHistoryDetailShell } from "../../hooks/useCallHistoryDetailShell.js";
 import { useCallHistoryShell } from "../../hooks/useCallHistoryShell.js";
 import type { NotificationDescriptor } from "../../hooks/useNotifications.js";
+import { NEW_CONTACT_ROUTE_ID } from "../../hooks/useContactEditShell.js";
 import { useShellNavigation } from "../../navigation/useShellNavigation.js";
+import { useShellRouteDataStore } from "../../navigation/routeData/useShellRouteDataStore.js";
 import { useI18n } from "../../i18n/index.js";
 
 type HistoryShellRoutePanelProps = Readonly<{
@@ -153,6 +155,24 @@ function HistoryDetailsRoute({
                 goToDialpad();
               }
             })();
+          }}
+          onContactAction={() => {
+            const entry = detailShell.entry;
+            if (entry === null) {
+              return;
+            }
+
+            if (entry.contactId !== null) {
+              useShellRouteDataStore.getState().clearContactCreatePrefill();
+              navigateTo({ name: "contactDetails", contactId: entry.contactId });
+              return;
+            }
+
+            useShellRouteDataStore.getState().setContactCreatePrefill({
+              displayName: entry.presentationSource === "sip" ? entry.primaryLabel : "",
+              primaryPhone: entry.remoteNumber,
+            });
+            navigateTo({ name: "contactEdit", contactId: NEW_CONTACT_ROUTE_ID });
           }}
           onDelete={detailShell.openDeleteConfirmation}
         />

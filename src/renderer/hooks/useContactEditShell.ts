@@ -66,6 +66,7 @@ export function useContactEditShell({
   const { t } = useI18n();
   const contactsProjection = useAccountBootstrapStore((state) => state.contactsProjection);
   const activeContact = useShellRouteDataStore((state) => state.activeContact);
+  const contactCreatePrefill = useShellRouteDataStore((state) => state.contactCreatePrefill);
   const isCreateMode = contactId === NEW_CONTACT_ROUTE_ID;
   const [isLoading, setIsLoading] = useState(!isCreateMode);
   const [isNotFound, setIsNotFound] = useState(routeNotFound);
@@ -84,11 +85,19 @@ export function useContactEditShell({
         contactId,
         routeNotFound,
         isCreateMode,
+        contactCreatePrefill,
         activeContact,
         projectionContact:
           contactsProjection.contacts.find((entry) => entry.id === contactId) ?? null,
       }),
-    [activeContact, contactId, contactsProjection.contacts, isCreateMode, routeNotFound],
+    [
+      activeContact,
+      contactCreatePrefill,
+      contactId,
+      contactsProjection.contacts,
+      isCreateMode,
+      routeNotFound,
+    ],
   );
 
   useEffect(() => {
@@ -178,6 +187,7 @@ function resolveEditRouteLoadState(input: Readonly<{
   contactId: string;
   routeNotFound: boolean;
   isCreateMode: boolean;
+  contactCreatePrefill: ReturnType<typeof useShellRouteDataStore.getState>["contactCreatePrefill"];
   activeContact: ReturnType<typeof useShellRouteDataStore.getState>["activeContact"];
   projectionContact: Readonly<{
     displayName: string;
@@ -202,11 +212,20 @@ function resolveEditRouteLoadState(input: Readonly<{
   }
 
   if (input.isCreateMode) {
+    const initialValues =
+      input.contactCreatePrefill === null
+        ? EMPTY_FORM
+        : {
+            ...EMPTY_FORM,
+            displayName: input.contactCreatePrefill.displayName,
+            primaryPhone: input.contactCreatePrefill.primaryPhone,
+          };
+
     return {
-      initToken: "create",
+      initToken: `create:${initialValues.displayName}:${initialValues.primaryPhone}`,
       isLoading: false,
       isNotFound: false,
-      initialValues: EMPTY_FORM,
+      initialValues,
     };
   }
 

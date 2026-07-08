@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import {
   initialShellRouteDataState,
+  type ContactCreatePrefill,
   type ContactRouteData,
   type ContactRouteSnapshot,
   type HistoryEntryRouteData,
@@ -26,6 +27,8 @@ type ShellRouteDataActions = Readonly<{
     snapshot?: ContactRouteSnapshot | null,
   ) => void;
   clearActiveContactIfMatches: (contactId: string) => void;
+  setContactCreatePrefill: (prefill: ContactCreatePrefill) => void;
+  clearContactCreatePrefill: () => void;
   setActiveHistoryEntry: (entry: HistoryEntryRouteData | null) => void;
   updateActiveHistoryEntryStatus: (
     entryId: string,
@@ -134,6 +137,14 @@ export const useShellRouteDataStore = create<ShellRouteDataStore>((set, get) => 
     if (current?.contactId === contactId) {
       set({ activeContact: null });
     }
+  },
+
+  setContactCreatePrefill: (prefill) => {
+    set({ contactCreatePrefill: prefill });
+  },
+
+  clearContactCreatePrefill: () => {
+    set({ contactCreatePrefill: null });
   },
 
   setActiveHistoryEntry: (entry) => {

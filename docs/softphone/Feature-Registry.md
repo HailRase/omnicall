@@ -365,7 +365,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-052`, `LF-053`, `LF-054`
 - Context: Settings
 - Priority: medium
-- Status: **in progress** (Phase 6 delete entry done — add-to-contacts in Phase 7)
+- Status: **in progress** (Phase 7 add-to-contacts done — CSV import/export in Phase 8)
 - Owner: TBD
 - Inputs: completed call events
 - Outputs: persisted call history entry
@@ -379,10 +379,11 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - History list labels are enriched through `contactDirectory` read model without mutating stored `displayLabel` snapshots.
   - History detail route (`/history/:entryId`) shows iPhone-like hero, grouped redial action, and metadata with localized not-found handling.
   - Delete entry removes one row from disk and projection after explicit AlertDialog confirmation; success navigates back to history list.
+  - History detail opens an existing matched contact or starts a new contact form with safe history-number prefill without storing business data in route params.
 - Test Coverage:
   - Unit: history entry mapping, `deriveCallHistoryShell`, `contactDirectory`, `callHistoryProjection`, `parsePersistedCallHistoryDocument`, `DeleteCallHistoryEntryUseCase`
   - Integration: `InMemoryCallHistoryRepository`, `FileCallHistoryRepository`, `ListCallHistoryUseCase`, `RedialFromHistoryUseCase`, `DeleteCallHistoryEntryUseCase`, `createRealAccountBootstrap`
-  - Renderer: `HistoryPanelShell`, `HistoryDetailPanel`, `HistoryDeleteConfirmationModal`, `HistoryShellRoutePanel`, `useCallHistoryDetailShell`, navigation guards
+  - Renderer: `HistoryPanelShell`, `HistoryDetailPanel`, `HistoryDeleteConfirmationModal`, `HistoryShellRoutePanel`, `useCallHistoryDetailShell`, `useContactEditShell`, navigation guards
   - E2E: deferred until harness exists; manual smoke: `handoffs/Shell-Navigation-Phase6-Smoke-Checklist.md`
 
 ## F-026: Caller Identity Presentation
@@ -735,7 +736,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: _none_ (new product feature; audited legacy softphone had no standalone contacts module)
 - Context: Settings
 - Priority: medium
-- Status: **in progress** (Phase 1–3 persistence + profile reload + duplicate phone policy — add-from-history/CSV in later phases)
+- Status: **in progress** (Phase 1–7 persistence + identity + add-from-history done — CSV import/export in Phase 8)
 - Owner: TBD
 - Inputs: contact metadata (display name, primary/secondary phone, company, notes)
 - Outputs: persisted `Contact` records, domain events, projection, facade CRUD/call API
@@ -750,9 +751,10 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Missing or corrupt contacts document returns safe empty state with warning log.
   - Profile switch reload refreshes contacts projection for the active `SettingsAccountKey` without showing the previous account list.
   - Normalized phone numbers are unique across contacts at create/update time (`validateContactPhoneUniqueness`).
-  - Add-from-history and CSV import/export are tracked in `Contacts-History-Identity-Persistence-Plan.md` later phases.
+  - Add-from-history opens matched contacts or a create form prefilled from history number; duplicate creation is rejected by existing phone uniqueness validation.
+  - CSV import/export is tracked in `Contacts-History-Identity-Persistence-Plan.md` Phase 8.
 - Test Coverage:
   - Unit: contact validation, `validateContactPhoneUniqueness`, projection reducer, `deriveContactsShell` disabled reasons, `parsePersistedContactsDocument`
   - Integration: in-memory and file repository CRUD, Use Case orchestration (`ContactUseCases`, `CallContactUseCase`), `createRealAccountBootstrap`
-  - Renderer: `ContactsShellRoutePanel`, `ContactsPanelShell`, `ContactDetailsPanel`, navigation guards
+  - Renderer: `ContactsShellRoutePanel`, `ContactsPanelShell`, `ContactDetailsPanel`, `useContactEditShell`, navigation guards
   - E2E: deferred until harness exists; manual smoke: `handoffs/Shell-Navigation-Phase6-Smoke-Checklist.md`

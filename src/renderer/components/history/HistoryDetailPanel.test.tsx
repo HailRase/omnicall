@@ -30,6 +30,7 @@ const sampleEntry = {
   primaryLabel: "Alice",
   secondaryLabel: "+12025550147",
   contactId: "contact-1",
+  presentationSource: "contact",
   directionLabel: "Входящий",
   outcomeLabel: "Завершён",
   dateLabel: "7 июл. 2026 г.",
@@ -46,6 +47,7 @@ describe("HistoryDetailPanel", () => {
         isNotFound={false}
         entry={null}
         onRedial={vi.fn()}
+        onContactAction={vi.fn()}
         onDelete={vi.fn()}
       />,
     );
@@ -58,6 +60,7 @@ describe("HistoryDetailPanel", () => {
         isNotFound
         entry={null}
         onRedial={vi.fn()}
+        onContactAction={vi.fn()}
         onDelete={vi.fn()}
       />,
     );
@@ -76,6 +79,7 @@ describe("HistoryDetailPanel", () => {
         isNotFound={false}
         entry={sampleEntry}
         onRedial={onRedial}
+        onContactAction={vi.fn()}
         onDelete={vi.fn()}
       />,
     );
@@ -98,11 +102,51 @@ describe("HistoryDetailPanel", () => {
           redialDisabledReason: "Перезвон недоступен: SIP не зарегистрирован.",
         }}
         onRedial={vi.fn()}
+        onContactAction={vi.fn()}
         onDelete={vi.fn()}
       />,
     );
 
     expect(screen.getByTestId("history-detail-redial")).toBeDisabled();
+  });
+
+  it("routes contact action and reflects matched or unknown history number", () => {
+    const onContactAction = vi.fn();
+    const { rerender } = render(
+      <HistoryDetailPanel
+        isLoading={false}
+        isNotFound={false}
+        entry={sampleEntry}
+        onRedial={vi.fn()}
+        onContactAction={onContactAction}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("history-detail-contact-action")).toHaveTextContent(
+      "Открыть контакт",
+    );
+    fireEvent.click(screen.getByTestId("history-detail-contact-action"));
+    expect(onContactAction).toHaveBeenCalledOnce();
+
+    rerender(
+      <HistoryDetailPanel
+        isLoading={false}
+        isNotFound={false}
+        entry={{
+          ...sampleEntry,
+          contactId: null,
+          presentationSource: "number",
+        }}
+        onRedial={vi.fn()}
+        onContactAction={onContactAction}
+        onDelete={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("history-detail-contact-action")).toHaveTextContent(
+      "Добавить в контакты",
+    );
   });
 
   it("routes delete action from danger group", () => {
@@ -114,6 +158,7 @@ describe("HistoryDetailPanel", () => {
         isNotFound={false}
         entry={sampleEntry}
         onRedial={vi.fn()}
+        onContactAction={vi.fn()}
         onDelete={onDelete}
       />,
     );

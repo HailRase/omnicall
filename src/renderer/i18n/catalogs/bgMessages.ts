@@ -537,6 +537,8 @@ export const bgMessages: MessageShape = {
   "history.detail.field.date": "Дата",
   "history.detail.field.time": "Час",
   "history.detail.field.duration": "Продължителност",
+  "history.detail.openContact": "Отвори контакт",
+  "history.detail.addToContacts": "Добави към контактите",
   "history.delete": "Изтрий",
   "history.delete.confirmDialogAria": "Потвърждение за изтриване на запис в историята",
   "history.delete.confirmTitle": "Изтриване на запис в историята?",
