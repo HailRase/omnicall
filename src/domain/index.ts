@@ -91,8 +91,14 @@ export { createCallHistoryEntryFromSession } from "./settings/CallHistoryEntry.j
 export type { CallHistoryEntryId } from "./settings/CallHistoryEntryId.js";
 export { createCallHistoryEntryId } from "./settings/CallHistoryEntryId.js";
 export { MAX_CALL_HISTORY_ENTRIES } from "./settings/CallHistoryRetention.js";
-export type { CallHistoryRecordedEvent } from "./settings/events/callHistoryEvents.js";
-export { createCallHistoryRecordedEvent } from "./settings/events/callHistoryEvents.js";
+export type {
+  CallHistoryDeletedEvent,
+  CallHistoryRecordedEvent,
+} from "./settings/events/callHistoryEvents.js";
+export {
+  createCallHistoryDeletedEvent,
+  createCallHistoryRecordedEvent,
+} from "./settings/events/callHistoryEvents.js";
 export type {
   Contact,
   ContactInput,

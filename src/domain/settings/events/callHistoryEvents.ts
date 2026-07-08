@@ -1,8 +1,10 @@
 import { createDomainEvent } from "../../shared/DomainEvent.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import type { CallHistoryEntry } from "../CallHistoryEntry.js";
+import type { CallHistoryEntryId } from "../CallHistoryEntryId.js";
 
 export type CallHistoryRecordedEvent = ReturnType<typeof createCallHistoryRecordedEvent>;
+export type CallHistoryDeletedEvent = ReturnType<typeof createCallHistoryDeletedEvent>;
 
 /**
  * - Purpose: announce that a call history row was persisted.
@@ -39,4 +41,23 @@ export function createCallHistoryRecordedEvent(
     endedAt: entry.endedAt,
     durationSec: entry.durationSec,
   });
+}
+
+/**
+ * - Purpose: announce that one call history row was removed.
+ * - Inputs: deleted entry id and correlation id.
+ * - Outputs: CallHistoryDeleted domain event.
+ */
+export function createCallHistoryDeletedEvent(
+  correlationId: CorrelationId,
+  entryId: CallHistoryEntryId,
+): ReturnType<
+  typeof createDomainEvent<
+    "CallHistoryDeleted",
+    Readonly<{
+      entryId: CallHistoryEntryId;
+    }>
+  >
+> {
+  return createDomainEvent("CallHistoryDeleted", correlationId, { entryId });
 }

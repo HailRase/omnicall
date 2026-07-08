@@ -30,4 +30,27 @@ describe("InMemoryCallHistoryRepository", () => {
     expect(entries).toHaveLength(MAX_CALL_HISTORY_ENTRIES);
     expect(entries[0]?.callId).toBe(createCallId(`call-${MAX_CALL_HISTORY_ENTRIES + 4}`));
   });
+
+  it("deletes one entry from memory store", async () => {
+    const repository = new InMemoryCallHistoryRepository();
+    const created = createCallHistoryEntryFromSession({
+      callId: createCallId("call-delete"),
+      direction: "incoming",
+      remoteNumber: "+12025550147",
+      displayLabel: null,
+      startedAt: "2026-07-07T10:00:00.000Z",
+      endedAt: "2026-07-07T10:01:00.000Z",
+      wasAnswered: true,
+      failed: false,
+      missedBeforeAnswer: false,
+    });
+    if (!created.ok) {
+      throw new Error("expected valid entry");
+    }
+    await repository.appendEntry(created.value);
+
+    const deleted = await repository.deleteEntry(created.value.id);
+    expect(deleted).toBe(true);
+    expect(await repository.listEntries()).toEqual([]);
+  });
 });

@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   CALL_HISTORY_DOCUMENT_SCHEMA_VERSION,
   createCallHistoryEntryFromSession,
+  createCallHistoryEntryId,
   createCallId,
   createSettingsAccountKey,
   MAX_CALL_HISTORY_ENTRIES,
@@ -106,6 +107,44 @@ describe("FileCallHistoryRepository", () => {
     const entriesA = await repository.listEntries();
     expect(entriesA).toHaveLength(1);
     expect(entriesA[0]?.callId).toBe(createCallId("call-1"));
+  });
+
+  it("deletes one entry and persists remaining rows", async () => {
+    const key = createSettingsAccountKey("1001@pbx.example");
+    const { repository, root, filesystem } = await createTestRepository(() => Promise.resolve(key));
+    const first = createSampleEntry(1);
+    const second = createSampleEntry(2);
+
+    await repository.appendEntry(first);
+    await repository.appendEntry(second);
+    expect(await repository.listEntries()).toHaveLength(2);
+
+    const deleted = await repository.deleteEntry(first.id);
+    expect(deleted).toBe(true);
+    expect(await repository.listEntries()).toHaveLength(1);
+    expect((await repository.listEntries())[0]?.id).toBe(second.id);
+
+    const reloaded = new FileCallHistoryRepository({
+      storageRoot: root,
+      filesystem,
+      resolveAccountKey: () => Promise.resolve(key),
+      logger: createTestLogger(),
+    });
+    const entries = await reloaded.listEntries();
+    expect(entries).toHaveLength(1);
+    expect(entries[0]?.id).toBe(second.id);
+  });
+
+  it("returns false when deleting missing entry", async () => {
+    const key = createSettingsAccountKey("1001@pbx.example");
+    const { repository } = await createTestRepository(() => Promise.resolve(key));
+    const entryId = createCallHistoryEntryId("history-missing");
+    if (entryId === null) {
+      throw new Error("expected valid entry id");
+    }
+
+    const deleted = await repository.deleteEntry(entryId);
+    expect(deleted).toBe(false);
   });
 
   it("enforces retention limit on persist and reload", async () => {

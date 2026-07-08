@@ -4,7 +4,7 @@ import { isErr } from "@shared/result/index.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 import type { NotificationDescriptor } from "./useNotifications.js";
 
-type RedialResult = Awaited<ReturnType<AccountBootstrapFacade["redialFromHistory"]>>;
+type DeleteResult = Awaited<ReturnType<AccountBootstrapFacade["deleteCallHistoryEntry"]>>;
 
 type UseCallHistoryActionsInput = Readonly<{
   facade: AccountBootstrapFacade;
@@ -50,13 +50,33 @@ export function useCallHistoryActions({ facade, notify }: UseCallHistoryActionsI
     [facade],
   );
 
+  const deleteEntry = useCallback(
+    async (entryId: string): Promise<DeleteResult> => {
+      const result = await facade.deleteCallHistoryEntry(entryId);
+      if (isErr(result)) {
+        notify?.({
+          level: "error",
+          messageKey: "history.error.deleteFailed",
+        });
+      } else {
+        notify?.({
+          level: "success",
+          messageKey: "history.success.deleted",
+        });
+      }
+      return result;
+    },
+    [facade, notify],
+  );
+
   return useMemo(
     () => ({
       loadHistory,
       redialEntry,
       getHistoryEntry,
+      deleteEntry,
     }),
-    [getHistoryEntry, loadHistory, redialEntry],
+    [deleteEntry, getHistoryEntry, loadHistory, redialEntry],
   );
 }
 

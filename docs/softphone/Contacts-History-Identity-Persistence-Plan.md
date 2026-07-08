@@ -557,7 +557,7 @@ Gate:
 
 ### Phase 6: Delete History Entry
 
-Status: planned.
+Status: **done** (2026-07-08).
 
 Purpose:
 

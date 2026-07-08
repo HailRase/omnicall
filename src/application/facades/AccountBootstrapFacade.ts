@@ -100,6 +100,7 @@ import { TouchSavedAccountProfileUseCase } from "../use-cases/settings/TouchSave
 import { RecordCallHistoryUseCase } from "../use-cases/contacts/RecordCallHistoryUseCase.js";
 import { ListCallHistoryUseCase } from "../use-cases/contacts/ListCallHistoryUseCase.js";
 import { GetCallHistoryEntryUseCase } from "../use-cases/contacts/GetCallHistoryEntryUseCase.js";
+import { DeleteCallHistoryEntryUseCase } from "../use-cases/contacts/DeleteCallHistoryEntryUseCase.js";
 import { RedialFromHistoryUseCase } from "../use-cases/contacts/RedialFromHistoryUseCase.js";
 import { ListContactsUseCase } from "../use-cases/contacts/ListContactsUseCase.js";
 import { GetContactUseCase } from "../use-cases/contacts/GetContactUseCase.js";
@@ -201,6 +202,7 @@ export class AccountBootstrapFacade {
   private readonly callHistoryRepository: CallHistoryRepository;
   private readonly listCallHistoryUseCase: ListCallHistoryUseCase;
   private readonly getCallHistoryEntryUseCase: GetCallHistoryEntryUseCase;
+  private readonly deleteCallHistoryEntryUseCase: DeleteCallHistoryEntryUseCase;
   private readonly redialFromHistoryUseCase: RedialFromHistoryUseCase;
 
   private readonly contactRepository: ContactRepository;
@@ -255,6 +257,11 @@ export class AccountBootstrapFacade {
     );
     this.getCallHistoryEntryUseCase = new GetCallHistoryEntryUseCase(
       this.callHistoryRepository,
+      deps.logger,
+    );
+    this.deleteCallHistoryEntryUseCase = new DeleteCallHistoryEntryUseCase(
+      this.callHistoryRepository,
+      this.eventPublisher,
       deps.logger,
     );
     this.contactRepository =
@@ -704,6 +711,16 @@ export class AccountBootstrapFacade {
     correlationId?: CorrelationId,
   ): Promise<Result<Call, PlatformError>> {
     return this.redialFromHistoryUseCase.execute({
+      entryId,
+      ...(correlationId !== undefined ? { correlationId } : {}),
+    });
+  }
+
+  deleteCallHistoryEntry(
+    entryId: string,
+    correlationId?: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    return this.deleteCallHistoryEntryUseCase.execute({
       entryId,
       ...(correlationId !== undefined ? { correlationId } : {}),
     });

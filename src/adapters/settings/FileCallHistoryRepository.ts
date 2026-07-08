@@ -64,6 +64,18 @@ export class FileCallHistoryRepository implements CallHistoryRepository {
     return memory.getEntryById(entryId);
   }
 
+  async deleteEntry(
+    entryId: Parameters<CallHistoryRepository["deleteEntry"]>[0],
+  ): Promise<boolean> {
+    const accountKey = await this.resolveAccountKey();
+    const memory = await this.getAccountMemory(accountKey);
+    const deleted = await memory.deleteEntry(entryId);
+    if (deleted) {
+      await this.persistAccountHistory(accountKey, memory);
+    }
+    return deleted;
+  }
+
   /** Test helper: seed corrupt JSON for one account key on disk. */
   async seedCorruptJson(accountKey: SettingsAccountKey, json: string): Promise<void> {
     await this.filesystem.ensureDirectory(resolveProfilesRootPath(this.storageRoot));

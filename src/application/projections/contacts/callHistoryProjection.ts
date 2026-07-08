@@ -47,6 +47,20 @@ export function reduceCallHistoryProjection(
     };
   }
 
+  if (event.type === "CallHistoryDeleted") {
+    const entryId = asString(event["entryId"]);
+    if (entryId === null) {
+      return projection;
+    }
+
+    const entries = projection.entries.filter((existing) => existing.id !== entryId);
+    return {
+      status: entries.length > 0 ? "populated" : "idle",
+      entries,
+      errorKey: null,
+    };
+  }
+
   return projection;
 }
 

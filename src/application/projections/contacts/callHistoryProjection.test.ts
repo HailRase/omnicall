@@ -1,6 +1,6 @@
 import { createCallId } from "@domain/index.js";
 import { createCallHistoryEntryFromSession } from "@domain/settings/CallHistoryEntry.js";
-import { createCallHistoryRecordedEvent } from "@domain/index.js";
+import { createCallHistoryRecordedEvent, createCallHistoryDeletedEvent } from "@domain/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { describe, expect, it } from "vitest";
 import {
@@ -60,5 +60,18 @@ describe("callHistoryProjection", () => {
     expect(updated.entries).toHaveLength(2);
     expect(updated.entries[0]?.id).toBe("entry-2");
     expect(updated.status).toBe("populated");
+  });
+
+  it("removes entries on CallHistoryDeleted events", () => {
+    const entry = sampleEntry();
+    const loaded = applyCallHistoryLoaded(initialCallHistoryProjection(), [entry]);
+
+    const updated = reduceCallHistoryProjection(
+      loaded,
+      createCallHistoryDeletedEvent(createCorrelationId(), entry.id),
+    );
+
+    expect(updated.entries).toHaveLength(0);
+    expect(updated.status).toBe("idle");
   });
 });

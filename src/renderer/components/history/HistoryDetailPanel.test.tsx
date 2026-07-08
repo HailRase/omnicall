@@ -41,13 +41,25 @@ const sampleEntry = {
 describe("HistoryDetailPanel", () => {
   it("renders loading and not-found states", () => {
     const { rerender } = render(
-      <HistoryDetailPanel isLoading isNotFound={false} entry={null} onRedial={vi.fn()} />,
+      <HistoryDetailPanel
+        isLoading
+        isNotFound={false}
+        entry={null}
+        onRedial={vi.fn()}
+        onDelete={vi.fn()}
+      />,
     );
 
     expect(screen.getByTestId("history-detail-loading")).toHaveTextContent("Загрузка истории");
 
     rerender(
-      <HistoryDetailPanel isLoading={false} isNotFound entry={null} onRedial={vi.fn()} />,
+      <HistoryDetailPanel
+        isLoading={false}
+        isNotFound
+        entry={null}
+        onRedial={vi.fn()}
+        onDelete={vi.fn()}
+      />,
     );
 
     expect(screen.getByTestId("history-detail-not-found")).toHaveTextContent(
@@ -64,6 +76,7 @@ describe("HistoryDetailPanel", () => {
         isNotFound={false}
         entry={sampleEntry}
         onRedial={onRedial}
+        onDelete={vi.fn()}
       />,
     );
 
@@ -85,9 +98,27 @@ describe("HistoryDetailPanel", () => {
           redialDisabledReason: "Перезвон недоступен: SIP не зарегистрирован.",
         }}
         onRedial={vi.fn()}
+        onDelete={vi.fn()}
       />,
     );
 
     expect(screen.getByTestId("history-detail-redial")).toBeDisabled();
+  });
+
+  it("routes delete action from danger group", () => {
+    const onDelete = vi.fn();
+
+    render(
+      <HistoryDetailPanel
+        isLoading={false}
+        isNotFound={false}
+        entry={sampleEntry}
+        onRedial={vi.fn()}
+        onDelete={onDelete}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId("history-detail-delete"));
+    expect(onDelete).toHaveBeenCalledOnce();
   });
 });

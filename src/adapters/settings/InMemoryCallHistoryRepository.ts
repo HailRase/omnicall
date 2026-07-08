@@ -35,6 +35,16 @@ export class InMemoryCallHistoryRepository implements CallHistoryRepository {
     return Promise.resolve(match ?? null);
   }
 
+  deleteEntry(entryId: CallHistoryEntryId): Promise<boolean> {
+    const index = this.entries.findIndex((entry) => entry.id === entryId);
+    if (index < 0) {
+      return Promise.resolve(false);
+    }
+
+    this.entries.splice(index, 1);
+    return Promise.resolve(true);
+  }
+
   /** Replaces all entries — used when hydrating from disk parse result. */
   replaceEntries(entries: ReadonlyArray<CallHistoryEntry>): void {
     this.entries.length = 0;

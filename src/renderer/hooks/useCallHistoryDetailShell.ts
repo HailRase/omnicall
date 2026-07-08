@@ -1,18 +1,21 @@
-import { useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { deriveCallHistoryDetailShell } from "@application/projections/contacts/deriveCallHistoryDetailShell.js";
 import type { CallHistoryEntry } from "@domain/index.js";
 import { createCallId } from "@domain/telephony/CallId.js";
 import { createCallHistoryEntryId } from "@domain/settings/CallHistoryEntryId.js";
+import { isErr } from "@shared/result/index.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 import { useI18n } from "../i18n/index.js";
 import type { Translator } from "../i18n/index.js";
 import { useShellRouteDataStore } from "../navigation/routeData/useShellRouteDataStore.js";
 import type { HistoryEntryRouteSnapshot } from "../navigation/routeData/shellRouteDataModel.js";
+import type { UseCallHistoryActionsResult } from "./useCallHistoryActions.js";
 
 type UseCallHistoryDetailShellInput = Readonly<{
   entryId: string;
   routeNotFound: boolean;
   isSipRegistered: boolean;
+  actions: Pick<UseCallHistoryActionsResult, "deleteEntry">;
 }>;
 
 export type CallHistoryDetailViewModel = Readonly<{
@@ -33,6 +36,18 @@ export type UseCallHistoryDetailShellResult = Readonly<{
   isLoading: boolean;
   isNotFound: boolean;
   entry: CallHistoryDetailViewModel | null;
+  deleteConfirmationOpen: boolean;
+  deleteErrorMessage: string | null;
+  isDeleting: boolean;
+  openDeleteConfirmation: () => void;
+  closeDeleteConfirmation: () => void;
+  confirmDelete: () => Promise<boolean>;
+}>;
+
+type CallHistoryDetailRouteState = Readonly<{
+  isLoading: boolean;
+  isNotFound: boolean;
+  entry: CallHistoryDetailViewModel | null;
 }>;
 
 /**
@@ -44,12 +59,16 @@ export function useCallHistoryDetailShell({
   entryId,
   routeNotFound,
   isSipRegistered,
+  actions,
 }: UseCallHistoryDetailShellInput): UseCallHistoryDetailShellResult {
   const { t, language } = useI18n();
   const callHistoryProjection = useAccountBootstrapStore((state) => state.callHistoryProjection);
   const contactsProjection = useAccountBootstrapStore((state) => state.contactsProjection);
   const multiCallProjection = useAccountBootstrapStore((state) => state.multiCallProjection);
   const activeHistoryEntry = useShellRouteDataStore((state) => state.activeHistoryEntry);
+  const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
+  const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const projectionEntry = useMemo(
     () => callHistoryProjection.entries.find((entry) => entry.id === entryId) ?? null,
@@ -82,7 +101,42 @@ export function useCallHistoryDetailShell({
     ],
   );
 
-  return routeEntry;
+  const openDeleteConfirmation = useCallback((): void => {
+    setDeleteErrorMessage(null);
+    setDeleteConfirmationOpen(true);
+  }, []);
+
+  const closeDeleteConfirmation = useCallback((): void => {
+    setDeleteConfirmationOpen(false);
+    setDeleteErrorMessage(null);
+  }, []);
+
+  const deleteEntry = actions.deleteEntry;
+
+  const confirmDelete = useCallback(async (): Promise<boolean> => {
+    setIsDeleting(true);
+    setDeleteErrorMessage(null);
+    const result = await deleteEntry(entryId);
+    setIsDeleting(false);
+
+    if (isErr(result)) {
+      setDeleteErrorMessage(t("history.error.deleteFailed"));
+      return false;
+    }
+
+    setDeleteConfirmationOpen(false);
+    return true;
+  }, [deleteEntry, entryId, t]);
+
+  return {
+    ...routeEntry,
+    deleteConfirmationOpen,
+    deleteErrorMessage,
+    isDeleting,
+    openDeleteConfirmation,
+    closeDeleteConfirmation,
+    confirmDelete,
+  };
 }
 
 function resolveRouteHistoryEntry(
@@ -95,7 +149,7 @@ function resolveRouteHistoryEntry(
   multiCallProjection: ReturnType<typeof useAccountBootstrapStore.getState>["multiCallProjection"],
   language: string,
   t: Translator,
-): UseCallHistoryDetailShellResult {
+): CallHistoryDetailRouteState {
   if (routeNotFound) {
     return {
       isLoading: false,

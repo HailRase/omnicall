@@ -365,7 +365,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-052`, `LF-053`, `LF-054`
 - Context: Settings
 - Priority: medium
-- Status: **in progress** (Phase 5 history detail UI done — delete in Phase 6)
+- Status: **in progress** (Phase 6 delete entry done — add-to-contacts in Phase 7)
 - Owner: TBD
 - Inputs: completed call events
 - Outputs: persisted call history entry
@@ -378,11 +378,11 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Profile switch reload refreshes history projection for the active `SettingsAccountKey` without showing the previous account list.
   - History list labels are enriched through `contactDirectory` read model without mutating stored `displayLabel` snapshots.
   - History detail route (`/history/:entryId`) shows iPhone-like hero, grouped redial action, and metadata with localized not-found handling.
-  - Delete entry is tracked in Phase 6 of `Contacts-History-Identity-Persistence-Plan.md`.
+  - Delete entry removes one row from disk and projection after explicit AlertDialog confirmation; success navigates back to history list.
 - Test Coverage:
-  - Unit: history entry mapping, `deriveCallHistoryShell`, `contactDirectory`, `callHistoryProjection`, `parsePersistedCallHistoryDocument`
-  - Integration: `InMemoryCallHistoryRepository`, `FileCallHistoryRepository`, `ListCallHistoryUseCase`, `RedialFromHistoryUseCase`, `createRealAccountBootstrap`
-  - Renderer: `HistoryPanelShell`, `HistoryDetailPanel`, `HistoryShellRoutePanel`, `useCallHistoryDetailShell`, navigation guards
+  - Unit: history entry mapping, `deriveCallHistoryShell`, `contactDirectory`, `callHistoryProjection`, `parsePersistedCallHistoryDocument`, `DeleteCallHistoryEntryUseCase`
+  - Integration: `InMemoryCallHistoryRepository`, `FileCallHistoryRepository`, `ListCallHistoryUseCase`, `RedialFromHistoryUseCase`, `DeleteCallHistoryEntryUseCase`, `createRealAccountBootstrap`
+  - Renderer: `HistoryPanelShell`, `HistoryDetailPanel`, `HistoryDeleteConfirmationModal`, `HistoryShellRoutePanel`, `useCallHistoryDetailShell`, navigation guards
   - E2E: deferred until harness exists; manual smoke: `handoffs/Shell-Navigation-Phase6-Smoke-Checklist.md`
 
 ## F-026: Caller Identity Presentation

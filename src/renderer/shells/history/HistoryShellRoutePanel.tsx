@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import { isErr } from "@shared/result/index.js";
 import { HistoryDetailPanel } from "../../components/history/HistoryDetailPanel.js";
+import { HistoryDeleteConfirmationModal } from "../../components/history/HistoryDeleteConfirmationModal.js";
 import { HistoryPanelShell } from "../../components/history/HistoryPanelShell.js";
 import { useAuthShellFlags } from "../../hooks/useAuthShellFlags.js";
 import { useCallHistoryActions } from "../../hooks/useCallHistoryActions.js";
@@ -116,7 +117,7 @@ function HistoryDetailsRoute({
   onBack,
 }: HistoryDetailsRouteProps): JSX.Element {
   const { t } = useI18n();
-  const { presentation, goToDialpad } = useShellNavigation();
+  const { presentation, goToDialpad, navigateTo } = useShellNavigation();
   const { isSipRegistered } = useAuthShellFlags();
   const actions = useCallHistoryActions({
     facade,
@@ -126,32 +127,51 @@ function HistoryDetailsRoute({
     entryId,
     routeNotFound,
     isSipRegistered,
+    actions,
   });
 
   const title = detailShell.entry?.primaryLabel ?? t("history.detail.title");
 
   return (
-    <HistoryPanelShell
-      open
-      presentation={presentation === "fullPanel" ? "fullPanel" : "sidebar"}
-      title={title}
-      showBack
-      onClose={onClose}
-      onBack={onBack}
-    >
-      <HistoryDetailPanel
-        isLoading={detailShell.isLoading}
-        isNotFound={detailShell.isNotFound}
-        entry={detailShell.entry}
-        onRedial={() => {
+    <>
+      <HistoryPanelShell
+        open
+        presentation={presentation === "fullPanel" ? "fullPanel" : "sidebar"}
+        title={title}
+        showBack
+        onClose={onClose}
+        onBack={onBack}
+      >
+        <HistoryDetailPanel
+          isLoading={detailShell.isLoading}
+          isNotFound={detailShell.isNotFound}
+          entry={detailShell.entry}
+          onRedial={() => {
+            void (async () => {
+              const result = await actions.redialEntry(entryId);
+              if (!isErr(result)) {
+                goToDialpad();
+              }
+            })();
+          }}
+          onDelete={detailShell.openDeleteConfirmation}
+        />
+      </HistoryPanelShell>
+      <HistoryDeleteConfirmationModal
+        open={detailShell.deleteConfirmationOpen}
+        entryLabel={detailShell.entry?.primaryLabel ?? null}
+        isDeleting={detailShell.isDeleting}
+        errorMessage={detailShell.deleteErrorMessage}
+        onCancel={detailShell.closeDeleteConfirmation}
+        onConfirm={() => {
           void (async () => {
-            const result = await actions.redialEntry(entryId);
-            if (!isErr(result)) {
-              goToDialpad();
+            const deleted = await detailShell.confirmDelete();
+            if (deleted) {
+              navigateTo({ name: "history" });
             }
           })();
         }}
       />
-    </HistoryPanelShell>
+    </>
   );
 }

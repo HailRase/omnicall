@@ -11,6 +11,7 @@ export type HistoryDetailPanelProps = Readonly<{
   isNotFound: boolean;
   entry: CallHistoryDetailViewModel | null;
   onRedial: () => void;
+  onDelete: () => void;
 }>;
 
 /**
@@ -24,6 +25,7 @@ export function HistoryDetailPanel({
   isNotFound,
   entry,
   onRedial,
+  onDelete,
 }: HistoryDetailPanelProps): JSX.Element {
   const { t } = useI18n();
 
@@ -78,6 +80,20 @@ export function HistoryDetailPanel({
         <DetailRow label={t("history.detail.field.date")} value={entry.dateLabel} />
         <DetailRow label={t("history.detail.field.time")} value={entry.timeLabel} />
         <DetailRow label={t("history.detail.field.duration")} value={entry.durationLabel} />
+      </div>
+
+      <div className={styles.dangerGroup}>
+        <Button
+          type="button"
+          variant="destructive"
+          size="sm"
+          fullWidth
+          className={styles.deleteActionButton ?? ""}
+          data-testid="history-detail-delete"
+          onClick={onDelete}
+        >
+          {t("history.delete")}
+        </Button>
       </div>
     </div>
   );
