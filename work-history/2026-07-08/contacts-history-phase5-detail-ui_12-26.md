@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-08 12:26
 **Статус:** выполнено
-**Коммит:** `50d5b81`
+**Коммит:** `07f7d38`
 
 ## Где
 - `src/application/use-cases/contacts/GetCallHistoryEntryUseCase.ts`
