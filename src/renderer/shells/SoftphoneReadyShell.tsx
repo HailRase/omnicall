@@ -202,6 +202,7 @@ function SoftphoneShellLayoutRoute({
             <SettingsPanel
               activeSection={overlayShell.settingsSection}
               sidebarExpanded={settingsSidebarExpanded}
+              isSipRegistered={isSipRegistered}
               onClose={overlayShell.closeOverlay}
               onSectionChange={overlayShell.setSettingsSection}
               onSidebarExpandedChange={setSettingsSidebarExpanded}

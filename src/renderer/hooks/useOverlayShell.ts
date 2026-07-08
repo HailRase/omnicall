@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { deriveDefaultSettingsSection } from "@application/index.js";import { useCallback, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import type { SettingsSectionId } from "../components/settings/settingsSections.js";
 import {
@@ -11,6 +11,7 @@ import {
 } from "../navigation/settingsNavigationState.js";
 import { shellRouteToPath } from "../navigation/shellRoutePaths.js";
 import { useShellNavigation } from "../navigation/useShellNavigation.js";
+import { useAuthShellFlags } from "./useAuthShellFlags.js";
 
 export type { SettingsSectionId };
 
@@ -32,6 +33,11 @@ export function useOverlayShell(): UseOverlayShellResult {
   const navigate = useNavigate();
   const location = useLocation();
   const { route, goBackSafe, goToDialpad } = useShellNavigation();
+  const authFlags = useAuthShellFlags();
+  const defaultSettingsSection = useMemo(
+    () => deriveDefaultSettingsSection(authFlags),
+    [authFlags.isSipRegistered],
+  );
 
   const settingsOpen = route.name === "settings";
   const settingsSection = useMemo((): SettingsSectionId => {
@@ -41,21 +47,55 @@ export function useOverlayShell(): UseOverlayShellResult {
     return DEFAULT_SETTINGS_SECTION;
   }, [route]);
 
+  useEffect(() => {
+    if (!settingsOpen || authFlags.isSipRegistered) {
+      return;
+    }
+    if (settingsSection === "account") {
+      return;
+    }
+
+    const returnTo = readSettingsReturnTo(location.state);
+    void navigate(shellRouteToPath({ name: "settings", section: "account" }), {
+      replace: true,
+      state: returnTo !== null ? { settingsReturnTo: returnTo } : undefined,
+    });
+  }, [authFlags.isSipRegistered, location.state, navigate, settingsOpen, settingsSection]);
+
+  useEffect(() => {
+    if (!settingsOpen) {
+      return;
+    }
+    if (location.pathname !== "/settings") {
+      return;
+    }
+    if (defaultSettingsSection === "general") {
+      return;
+    }
+
+    const returnTo = readSettingsReturnTo(location.state);
+    void navigate(shellRouteToPath({ name: "settings", section: defaultSettingsSection }), {
+      replace: true,
+      state: returnTo !== null ? { settingsReturnTo: returnTo } : undefined,
+    });
+  }, [defaultSettingsSection, location.pathname, location.state, navigate, settingsOpen]);
+
   const openSettings = useCallback(
     (section?: unknown): void => {
-      const resolved = isSettingsSectionId(section) ? section : DEFAULT_SETTINGS_SECTION;
+      const resolved = isSettingsSectionId(section) ? section : defaultSettingsSection;
       void navigate(shellRouteToPath({ name: "settings", section: resolved }), {
         state: createSettingsNavigationState(location.pathname, location.state),
       });
     },
-    [location.pathname, location.state, navigate],
+    [defaultSettingsSection, location.pathname, location.state, navigate],
   );
 
   const openDiagnostics = useCallback((): void => {
-    void navigate(shellRouteToPath({ name: "settings", section: "diagnostics" }), {
+    const section: SettingsSectionId = authFlags.isSipRegistered ? "diagnostics" : "account";
+    void navigate(shellRouteToPath({ name: "settings", section }), {
       state: createSettingsNavigationState(location.pathname, location.state),
     });
-  }, [location.pathname, location.state, navigate]);
+  }, [authFlags.isSipRegistered, location.pathname, location.state, navigate]);
 
   const closeOverlay = useCallback((): void => {
     if (!settingsOpen) {
@@ -78,13 +118,17 @@ export function useOverlayShell(): UseOverlayShellResult {
 
   const setSettingsSection = useCallback(
     (section: SettingsSectionId): void => {
+      if (!authFlags.isSipRegistered && section !== "account") {
+        return;
+      }
+
       const returnTo = readSettingsReturnTo(location.state);
       void navigate(shellRouteToPath({ name: "settings", section }), {
         replace: true,
         state: returnTo !== null ? { settingsReturnTo: returnTo } : undefined,
       });
     },
-    [location.state, navigate],
+    [authFlags.isSipRegistered, location.state, navigate],
   );
 
   return {

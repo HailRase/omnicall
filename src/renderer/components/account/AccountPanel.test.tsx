@@ -86,6 +86,25 @@ describe("AccountPanel", () => {
     expect(screen.queryByTestId("account-error")).not.toBeInTheDocument();
   });
 
+  it("toggles password visibility", () => {
+    render(
+      <AccountPanel
+        {...baseProps}
+        authorizeDisabledReason={null}
+        logoutDisabledReason={null}
+      />,
+    );
+
+    const passwordInput = screen.getByTestId("account-password");
+    expect(passwordInput).toHaveAttribute("type", "password");
+
+    fireEvent.click(screen.getByTestId("account-password-visibility-toggle"));
+    expect(passwordInput).toHaveAttribute("type", "text");
+
+    fireEvent.click(screen.getByTestId("account-password-visibility-toggle"));
+    expect(passwordInput).toHaveAttribute("type", "password");
+  });
+
   it("renders password-only panel for saved profile sign-in", () => {
     render(
       <AccountPanel

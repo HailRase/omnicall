@@ -248,6 +248,15 @@ export { ReconnectScheduler } from "./infrastructure/ReconnectScheduler.js";
 export type { SchedulerTimerFns, TimerHandle } from "./infrastructure/ReconnectScheduler.js";
 export { deriveAuthShellFlags } from "./projections/settings/deriveAuthShellFlags.js";
 export {
+  deriveDefaultSettingsSection,
+  type SettingsEntrySection,
+} from "./projections/settings/deriveDefaultSettingsSection.js";
+export {
+  deriveSettingsSectionDisabledReason,
+  type SettingsNavSectionId,
+  type SettingsSectionDisabledReasonKey,
+} from "./projections/settings/deriveSettingsSectionDisabledReason.js";
+export {
   deriveActiveProfileSettingsSyncKey,
 } from "./projections/settings/deriveSettingsAccountProfileShell.js";
 export {

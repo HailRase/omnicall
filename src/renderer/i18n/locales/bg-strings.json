@@ -111,6 +111,8 @@
   "account.title": "SIP акаунт",
   "account.field.username": "Потребителско име",
   "account.field.password": "Парола",
+  "account.password.show": "Покажи паролата",
+  "account.password.hide": "Скрий паролата",
   "account.field.domain": "Домейн",
   "account.field.server": "Сървър",
   "account.action.authorize": "Вход",

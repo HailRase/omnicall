@@ -4,6 +4,8 @@ import type { JSX } from "react";
 import { AppIcon, IconTooltip } from "../icons/index.js";
 import { Button, IconButton } from "../ui/index.js";
 import { useI18n } from "../../i18n/index.js";
+import { deriveSettingsSectionDisabledReason } from "@application/index.js";
+import type { TranslationKey } from "../../i18n/messages.js";
 import type { SettingsSectionId } from "./settingsSections.js";
 import { SETTINGS_NAV_ITEMS } from "./settingsSections.js";
 import styles from "./SettingsSidebar.module.css";
@@ -14,6 +16,7 @@ const EXPANDED_WIDTH_PX = 220;
 export type SettingsSidebarProps = Readonly<{
   activeSection: SettingsSectionId;
   expanded: boolean;
+  isSipRegistered: boolean;
   onSectionChange: (sectionId: SettingsSectionId) => void;
   onToggleExpanded: () => void;
 }>;
@@ -26,6 +29,7 @@ export type SettingsSidebarProps = Readonly<{
 export function SettingsSidebar({
   activeSection,
   expanded,
+  isSipRegistered,
   onSectionChange,
   onToggleExpanded,
 }: SettingsSidebarProps): JSX.Element {
@@ -69,10 +73,19 @@ export function SettingsSidebar({
             {SETTINGS_NAV_ITEMS.map((item) => {
               const isActive = item.id === activeSection;
               const sectionLabel = t(item.labelKey);
+              const disabledReasonKey = deriveSettingsSectionDisabledReason(
+                { isSipRegistered },
+                item.id,
+              );
+              const isDisabled = disabledReasonKey !== null;
+              const disabledReason =
+                disabledReasonKey !== null ? t(disabledReasonKey as TranslationKey) : null;
+              const tooltipLabel = disabledReason ?? (expanded ? "" : sectionLabel);
+
               return (
                 <li key={item.id} className={styles.navItem}>
                   <IconTooltip
-                    label={expanded ? "" : sectionLabel}
+                    label={tooltipLabel}
                     placement="right"
                     className={styles.navTooltipHost}
                   >
@@ -82,6 +95,8 @@ export function SettingsSidebar({
                       data-testid={item.testId}
                       aria-current={isActive ? "page" : undefined}
                       aria-label={sectionLabel}
+                      aria-disabled={isDisabled || undefined}
+                      disabled={isDisabled}
                       onClick={() => {
                         onSectionChange(item.id);
                       }}

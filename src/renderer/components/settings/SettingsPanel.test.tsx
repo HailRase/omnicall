@@ -59,6 +59,7 @@ const autoAnswerDefaults = {
 const codecDefaults = settingsCodecTestDefaults;
 
 const panelBaseProps = {
+  isSipRegistered: true,
   sidebarExpanded: false,
   onClose: vi.fn(),
   onSectionChange: vi.fn(),

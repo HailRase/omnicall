@@ -16,6 +16,8 @@ import {
   Delete,
   Download,
   Eraser,
+  Eye,
+  EyeOff,
   Gauge,
   Grid3x3,
   Headphones,
@@ -84,6 +86,8 @@ export type IconSemanticId =
   | "shell.nav.back"
   | "shell.contacts"
   | "contact.add"
+  | "form.password.show"
+  | "form.password.hide"
   | "settings.account"
   | "account.profile.delete"
   | "settings.general"
@@ -186,6 +190,18 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.contact.add",
     defaultSize: 16,
     usage: ["ContactsListPanel: contacts-add", "ContactsListPanel: contacts-add-empty"],
+  },
+  "form.password.show": {
+    static: Eye,
+    defaultLabelKey: "icons.form.password.show",
+    defaultSize: 16,
+    usage: ["AccountPanel: account-password-visibility-toggle"],
+  },
+  "form.password.hide": {
+    static: EyeOff,
+    defaultLabelKey: "icons.form.password.hide",
+    defaultSize: 16,
+    usage: ["AccountPanel: account-password-visibility-toggle"],
   },
   "settings.account": {
     static: User,

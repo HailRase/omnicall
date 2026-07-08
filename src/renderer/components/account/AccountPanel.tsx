@@ -11,6 +11,8 @@ import type { TranslationKey } from "../../i18n/messages.js";
 
 import { IconTooltip } from "../icons/IconTooltip.js";
 
+import { AccountPasswordField } from "./AccountPasswordField.js";
+
 import panelStyles from "../shell/BootstrapPanel.module.css";
 
 import formStyles from "../settings/SettingsForm.module.css";
@@ -204,26 +206,13 @@ export function AccountPanel({
 
               {t("account.field.password")}
 
-              <input
-
-                ref={passwordInputRef}
-
-                className={styles.input}
-
-                type="password"
-
+              <AccountPasswordField
                 value={form.password}
-
                 disabled={disabled || submitting}
-
-                data-testid="account-password"
-
-                onChange={(event) => {
-
-                  onFieldChange("password", event.target.value);
-
+                inputRef={passwordInputRef}
+                onChange={(nextValue) => {
+                  onFieldChange("password", nextValue);
                 }}
-
               />
 
             </label>
@@ -284,26 +273,13 @@ export function AccountPanel({
 
             {t("account.field.password")}
 
-            <input
-
-              ref={passwordInputRef}
-
-              className={styles.input}
-
-              type="password"
-
+            <AccountPasswordField
               value={form.password}
-
               disabled={disabled || submitting}
-
-              data-testid="account-password"
-
-              onChange={(event) => {
-
-                onFieldChange("password", event.target.value);
-
+              inputRef={passwordInputRef}
+              onChange={(nextValue) => {
+                onFieldChange("password", nextValue);
               }}
-
             />
 
             {passwordHintKey !== null ? (

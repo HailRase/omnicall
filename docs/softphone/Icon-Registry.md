@@ -21,6 +21,8 @@
 | `shell.nav.back` | Navigate back in shell panel | `ChevronLeft` | `ChevronLeftIcon` | `ShellDialpadPanel` | active |
 | `shell.contacts` | Open contacts list | `Users` | — | `Dialpad` | active |
 | `contact.add` | Add new contact | `UserRoundPlus` | — | `ContactsListPanel` | active |
+| `form.password.show` | Reveal password input | `Eye` | — | `AccountPasswordField` | active |
+| `form.password.hide` | Mask password input | `EyeOff` | — | `AccountPasswordField` | active |
 | `settings.account` | Settings account section | `User` | `UserIcon` | `SettingsSidebar` | active |
 | `account.profile.delete` | Delete saved SIP profile | `Trash2` | — | `SavedAccountProfileSelector`, `DeleteSavedAccountProfileConfirmationModal` | active |
 | `settings.general` | Settings general section | `SlidersHorizontal` | `SlidersHorizontalIcon` | `SettingsSidebar` | active |

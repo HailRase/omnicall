@@ -13,6 +13,10 @@ declare const classes: {
   readonly input: string;
   readonly label: string;
   readonly logoutAction: string;
+  readonly passwordField: string;
+  readonly passwordInput: string;
+  readonly passwordToggle: string;
+  readonly passwordToggleIcon: string;
   readonly primaryAction: string;
   readonly saveProfileDisabled: string;
 };

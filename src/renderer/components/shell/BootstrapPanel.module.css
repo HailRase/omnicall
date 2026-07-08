@@ -4,7 +4,7 @@
   padding: var(--space-md);
 }
 
-.panel button:not([role="switch"]) {
+.panel button:not([role="switch"]):not([data-password-toggle]) {
   padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-control);
   border: 1px solid var(--color-border-control);
@@ -13,7 +13,7 @@
   cursor: pointer;
 }
 
-.panel button:not([role="switch"]):disabled {
+.panel button:not([role="switch"]):not([data-password-toggle]):disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }

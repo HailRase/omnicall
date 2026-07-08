@@ -146,6 +146,11 @@
   color: var(--color-text-primary);
 }
 
+.nav-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
 .nav-icon {
   display: inline-flex;
   flex-shrink: 0;
