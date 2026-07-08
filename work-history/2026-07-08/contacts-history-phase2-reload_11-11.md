@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-08 11:11
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `f4e4b01`
 
 ## Где
 - `src/application/facades/AccountBootstrapFacade.ts`
