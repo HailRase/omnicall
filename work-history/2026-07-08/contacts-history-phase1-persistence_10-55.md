@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-08 10:55
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `fbd3874`
 
 ## Где
 - `src/domain/settings/persistedContacts.ts`, `persistedCallHistory.ts`
