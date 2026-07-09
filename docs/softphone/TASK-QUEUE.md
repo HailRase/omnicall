@@ -6,6 +6,7 @@
 
 | ID | Priority | Task | F-XXX | Command | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
+| T-013 | 0 | Call history outcome/endReason/durations polish | F-013 | `/logic` | done | missed only for unanswered incoming; endReason + ring/talk durations; list shows clock time only — closed 2026-07-09 |
 | T-011 | 0 | Local account profiles + disk persistence | F-023 | `/logic` + `/adapter` | done | `P11-Local-Account-Profiles-Design.md` — closed 2026-07-06 (`0a2ae05`) |
 | T-012 | 0 | Saved SIP account profiles (quick sign-in) | F-024 | `/logic` + `/ui` | done | `handoffs/P11-F024-Saved-Account-Profiles-Handoff.md` — closed 2026-07-06 (`0a2ae05`) |
 | T-008 | 0 | SIP transport/register state refactor (8 phases) | F-001,F-014,F-016 | `/logic` + `/ui` | done | `TRANSPORT-REGISTER-STATE-REFACTORING.md` — closed 2026-07-02; review follow-up 2026-07-04 |

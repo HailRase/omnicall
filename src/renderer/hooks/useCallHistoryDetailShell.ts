@@ -27,9 +27,12 @@ export type CallHistoryDetailViewModel = Readonly<{
   presentationSource: "contact" | "sip" | "number" | "unknown";
   directionLabel: string;
   outcomeLabel: string;
+  endReasonLabel: string;
   dateLabel: string;
   timeLabel: string;
   durationLabel: string;
+  ringDurationLabel: string;
+  talkDurationLabel: string;
   redialDisabledReason: string | null;
 }>;
 
@@ -220,7 +223,10 @@ function mapSnapshotToDetailEntry(
     displayLabel: snapshot.displayLabel,
     startedAt: snapshot.startedAt,
     durationSec: snapshot.durationSec,
+    ringDurationSec: snapshot.ringDurationSec,
+    talkDurationSec: snapshot.talkDurationSec,
     outcome: snapshot.outcome,
+    endReason: snapshot.endReason,
   };
 }
 
@@ -241,11 +247,20 @@ function mapDetailViewModel(
     presentationSource: detail.presentationSource,
     directionLabel: t(detail.directionKey),
     outcomeLabel: t(detail.outcomeKey),
+    endReasonLabel: t(detail.endReasonKey),
     dateLabel: formatHistoryDate(detail.startedAtIso, language),
     timeLabel: formatHistoryTime(detail.startedAtIso, language),
     durationLabel:
       detail.durationSec > 0
         ? t("history.entry.duration", { seconds: detail.durationSec })
+        : t("history.entry.noDuration"),
+    ringDurationLabel:
+      detail.ringDurationSec > 0
+        ? t("history.entry.duration", { seconds: detail.ringDurationSec })
+        : t("history.entry.noDuration"),
+    talkDurationLabel:
+      detail.talkDurationSec > 0
+        ? t("history.entry.duration", { seconds: detail.talkDurationSec })
         : t("history.entry.noDuration"),
     redialDisabledReason:
       detail.redialDisabledReasonKey !== null ? t(detail.redialDisabledReasonKey) : null,

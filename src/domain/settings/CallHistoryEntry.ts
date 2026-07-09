@@ -6,7 +6,25 @@ import {
 
 export type CallHistoryDirection = "incoming" | "outgoing";
 
-export type CallHistoryOutcome = "completed" | "missed" | "failed";
+export type CallHistoryOutcome = "completed" | "missed" | "canceled" | "failed";
+
+/**
+ * - Purpose: classify who ended the call for history detail.
+ * - Inputs: hangup/reject/failure signals from session tracking.
+ * - Outputs: stable end-reason key for persistence and i18n.
+ */
+export type CallHistoryEndReason =
+  | "local_hangup"
+  | "remote_cancel"
+  | "failure"
+  | "unknown";
+
+export const CALL_HISTORY_END_REASONS = [
+  "local_hangup",
+  "remote_cancel",
+  "failure",
+  "unknown",
+] as const satisfies ReadonlyArray<CallHistoryEndReason>;
 
 export type CallHistoryEntry = Readonly<{
   id: CallHistoryEntryId;
@@ -17,7 +35,10 @@ export type CallHistoryEntry = Readonly<{
   startedAt: string;
   endedAt: string;
   durationSec: number;
+  ringDurationSec: number;
+  talkDurationSec: number;
   outcome: CallHistoryOutcome;
+  endReason: CallHistoryEndReason;
 }>;
 
 export type CallHistorySessionSnapshot = Readonly<{
@@ -26,10 +47,12 @@ export type CallHistorySessionSnapshot = Readonly<{
   remoteNumber: string | null;
   displayLabel: string | null;
   startedAt: string;
+  answeredAt: string | null;
   endedAt: string;
   wasAnswered: boolean;
   failed: boolean;
-  missedBeforeAnswer: boolean;
+  localHangup: boolean;
+  remoteCancelBeforeAnswer: boolean;
 }>;
 
 export type CreateCallHistoryEntryResult =
@@ -55,16 +78,29 @@ export function createCallHistoryEntryFromSession(
     return { ok: false, errors: ["invalid_timestamps"] };
   }
 
+  const answeredAtMs =
+    snapshot.answeredAt !== null ? Date.parse(snapshot.answeredAt) : Number.NaN;
+  if (
+    snapshot.wasAnswered &&
+    (Number.isNaN(answeredAtMs) ||
+      answeredAtMs < startedAtMs ||
+      answeredAtMs > endedAtMs)
+  ) {
+    return { ok: false, errors: ["invalid_timestamps"] };
+  }
+
   const entryId = createCallHistoryEntryId(`history-${snapshot.callId}`);
   if (entryId === null) {
     return { ok: false, errors: ["remote_number_required"] };
   }
 
-  const durationSec = snapshot.wasAnswered
-    ? Math.max(0, Math.floor((endedAtMs - startedAtMs) / 1000))
+  const durationSec = Math.max(0, Math.floor((endedAtMs - startedAtMs) / 1000));
+  const ringDurationSec = snapshot.wasAnswered
+    ? Math.max(0, Math.floor((answeredAtMs - startedAtMs) / 1000))
+    : durationSec;
+  const talkDurationSec = snapshot.wasAnswered
+    ? Math.max(0, Math.floor((endedAtMs - answeredAtMs) / 1000))
     : 0;
-
-  const outcome = resolveHistoryOutcome(snapshot);
 
   return {
     ok: true,
@@ -77,7 +113,10 @@ export function createCallHistoryEntryFromSession(
       startedAt: snapshot.startedAt,
       endedAt: snapshot.endedAt,
       durationSec,
-      outcome,
+      ringDurationSec,
+      talkDurationSec,
+      outcome: resolveHistoryOutcome(snapshot),
+      endReason: resolveHistoryEndReason(snapshot),
     },
   };
 }
@@ -91,8 +130,28 @@ function resolveHistoryOutcome(snapshot: CallHistorySessionSnapshot): CallHistor
   if (snapshot.failed) {
     return "failed";
   }
-  if (snapshot.missedBeforeAnswer || !snapshot.wasAnswered) {
+
+  if (snapshot.wasAnswered) {
+    return "completed";
+  }
+
+  if (
+    snapshot.direction === "incoming" &&
+    !snapshot.localHangup &&
+    (snapshot.remoteCancelBeforeAnswer || !snapshot.wasAnswered)
+  ) {
     return "missed";
   }
-  return "completed";
+
+  return "canceled";
+}
+
+function resolveHistoryEndReason(snapshot: CallHistorySessionSnapshot): CallHistoryEndReason {
+  if (snapshot.failed) {
+    return "failure";
+  }
+  if (snapshot.localHangup) {
+    return "local_hangup";
+  }
+  return "remote_cancel";
 }

@@ -8,7 +8,9 @@ type TrackedCallSession = Readonly<{
   remoteNumber: string | null;
   displayLabel: string | null;
   startedAt: string;
+  answeredAt: string | null;
   wasAnswered: boolean;
+  localHangup: boolean;
 }>;
 
 /**
@@ -31,12 +33,31 @@ export class CallHistoryCallTracker {
       case "CallAnswered":
         this.markAnswered(event);
         return null;
+      case "CallHangupRequested":
+        this.markLocalHangup(event);
+        return null;
+      case "CallRejected":
+      case "CallRejectedByDnd":
+        this.markLocalHangup(event);
+        return this.finalize(event, {
+          failed: false,
+          remoteCancelBeforeAnswer: false,
+        });
       case "CallEnded":
-        return this.finalize(event, { failed: false, missedBeforeAnswer: false });
+        return this.finalize(event, {
+          failed: false,
+          remoteCancelBeforeAnswer: false,
+        });
       case "IncomingCallEndedBeforeAnswer":
-        return this.finalize(event, { failed: false, missedBeforeAnswer: true });
+        return this.finalize(event, {
+          failed: false,
+          remoteCancelBeforeAnswer: true,
+        });
       case "CallFailed":
-        return this.finalize(event, { failed: true, missedBeforeAnswer: false });
+        return this.finalize(event, {
+          failed: true,
+          remoteCancelBeforeAnswer: false,
+        });
       default:
         if (isSessionResetEvent(event)) {
           this.sessions.clear();
@@ -57,7 +78,9 @@ export class CallHistoryCallTracker {
       remoteNumber: asOptionalString(event["phoneNumber"]),
       displayLabel: asOptionalString(event["phoneNumber"]),
       startedAt: event.occurredAt,
+      answeredAt: null,
       wasAnswered: false,
+      localHangup: false,
     });
     return null;
   }
@@ -74,7 +97,9 @@ export class CallHistoryCallTracker {
       remoteNumber: asOptionalString(event["phoneNumber"]),
       displayLabel: asOptionalString(event["phoneNumber"]),
       startedAt: event.occurredAt,
+      answeredAt: null,
       wasAnswered: false,
+      localHangup: false,
     });
     return null;
   }
@@ -110,12 +135,30 @@ export class CallHistoryCallTracker {
     this.sessions.set(callId, {
       ...existing,
       wasAnswered: true,
+      answeredAt: existing.answeredAt ?? event.occurredAt,
+    });
+  }
+
+  private markLocalHangup(event: DomainEvent): void {
+    const callId = parseCallId(event["callId"]);
+    if (callId === null) {
+      return;
+    }
+
+    const existing = this.sessions.get(callId);
+    if (existing === undefined) {
+      return;
+    }
+
+    this.sessions.set(callId, {
+      ...existing,
+      localHangup: true,
     });
   }
 
   private finalize(
     event: DomainEvent,
-    flags: Readonly<{ failed: boolean; missedBeforeAnswer: boolean }>,
+    flags: Readonly<{ failed: boolean; remoteCancelBeforeAnswer: boolean }>,
   ): CallHistorySessionSnapshot | null {
     const callId = parseCallId(event["callId"]);
     if (callId === null) {
@@ -134,10 +177,12 @@ export class CallHistoryCallTracker {
       remoteNumber: existing.remoteNumber,
       displayLabel: existing.displayLabel,
       startedAt: existing.startedAt,
+      answeredAt: existing.answeredAt,
       endedAt: event.occurredAt,
       wasAnswered: existing.wasAnswered,
       failed: flags.failed,
-      missedBeforeAnswer: flags.missedBeforeAnswer,
+      localHangup: existing.localHangup,
+      remoteCancelBeforeAnswer: flags.remoteCancelBeforeAnswer && !existing.wasAnswered,
     };
   }
 }

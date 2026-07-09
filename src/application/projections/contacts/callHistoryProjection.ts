@@ -100,9 +100,12 @@ function parseRecordedEntry(event: DomainEvent): CallHistoryEntry | null {
   const remoteNumber = asString(event["remoteNumber"]);
   const direction = event["direction"];
   const outcome = event["outcome"];
+  const endReason = event["endReason"];
   const startedAt = asString(event["startedAt"]);
   const endedAt = asString(event["endedAt"]);
   const durationSec = event["durationSec"];
+  const ringDurationSec = event["ringDurationSec"];
+  const talkDurationSec = event["talkDurationSec"];
   const displayLabel = asOptionalString(event["displayLabel"]);
 
   if (
@@ -110,10 +113,19 @@ function parseRecordedEntry(event: DomainEvent): CallHistoryEntry | null {
     callId === null ||
     remoteNumber === null ||
     (direction !== "incoming" && direction !== "outgoing") ||
-    (outcome !== "completed" && outcome !== "missed" && outcome !== "failed") ||
+    (outcome !== "completed" &&
+      outcome !== "missed" &&
+      outcome !== "canceled" &&
+      outcome !== "failed") ||
+    (endReason !== "local_hangup" &&
+      endReason !== "remote_cancel" &&
+      endReason !== "failure" &&
+      endReason !== "unknown") ||
     startedAt === null ||
     endedAt === null ||
-    typeof durationSec !== "number"
+    typeof durationSec !== "number" ||
+    typeof ringDurationSec !== "number" ||
+    typeof talkDurationSec !== "number"
   ) {
     return null;
   }
@@ -123,11 +135,14 @@ function parseRecordedEntry(event: DomainEvent): CallHistoryEntry | null {
     callId: callId as CallHistoryEntry["callId"],
     direction,
     outcome,
+    endReason,
     remoteNumber,
     displayLabel,
     startedAt,
     endedAt,
     durationSec,
+    ringDurationSec,
+    talkDurationSec,
   };
 }
 

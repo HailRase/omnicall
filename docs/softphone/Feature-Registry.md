@@ -347,8 +347,13 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - History detail route (`/history/:entryId`) shows iPhone-like hero, grouped redial action, and metadata with localized not-found handling.
   - Delete entry removes one row from disk and projection after explicit AlertDialog confirmation; success navigates back to history list.
   - History detail opens an existing matched contact or starts a new contact form with safe history-number prefill without storing business data in route params.
+  - `missed` outcome applies only to unanswered incoming calls canceled by the remote party; unanswered outgoing or local-rejected calls use `canceled`.
+  - Each history entry stores `endReason` (`local_hangup` | `remote_cancel` | `failure` | `unknown`) and exposes it in detail metadata.
+  - Each history entry stores total `durationSec` (ring + talk), plus separate `ringDurationSec` and `talkDurationSec`.
+  - History list secondary line shows call start clock time only (no duration).
+  - Persisted schema v2; v1 documents migrate safely (outgoing legacy `missed` → `canceled`, `endReason=unknown`).
 - Test Coverage:
-  - Unit: history entry mapping, `deriveCallHistoryShell`, `contactDirectory`, `callHistoryProjection`, `parsePersistedCallHistoryDocument`, `DeleteCallHistoryEntryUseCase`
+  - Unit: history entry mapping, `CallHistoryCallTracker`, `deriveCallHistoryShell`, `contactDirectory`, `callHistoryProjection`, `parsePersistedCallHistoryDocument`, `DeleteCallHistoryEntryUseCase`
   - Integration: `InMemoryCallHistoryRepository`, `FileCallHistoryRepository`, `ListCallHistoryUseCase`, `RedialFromHistoryUseCase`, `DeleteCallHistoryEntryUseCase`, `createRealAccountBootstrap`
   - Renderer: `HistoryPanelShell`, `HistoryDetailPanel`, `HistoryDeleteConfirmationModal`, `HistoryShellRoutePanel`, `useCallHistoryDetailShell`, `useContactEditShell`, navigation guards
   - E2E: deferred until harness exists; manual smoke: `handoffs/Shell-Navigation-Phase6-Smoke-Checklist.md`
@@ -548,7 +553,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Remote manifest validated from `unknown`; semver compare for update vs up-to-date.
   - States: idle, checking, updateAvailable, upToDate, unavailable, invalidManifest, error.
   - Startup background check runs once per app session after ready shell mount; Strict Mode safe; failures silent (no error/unavailable/invalidManifest in Settings snapshot).
-  - Non-blocking update modal overlay on `updateAvailable` only; «Позже» or «Скачать» persists dismissed `latestVersion` in `UserSettings` and `localStorage` until manifest reports a newer version; does not interrupt calls.
+  - Non-blocking update modal overlay on `updateAvailable` only; anchored below shell window controls via `--incoming-call-banner-top` (same inset as incoming-call overlay); «Позже» or «Скачать» persists dismissed `latestVersion` in `UserSettings` and `localStorage` until manifest reports a newer version; does not interrupt calls.
   - «Открыть страницу загрузки» opens manifest `downloadUrl` (releases page), not `platforms.*` direct installer URL.
   - Manual Settings check unchanged; installation remains user-driven via open download URL only.
   - Failures never crash app; active calls not interrupted.

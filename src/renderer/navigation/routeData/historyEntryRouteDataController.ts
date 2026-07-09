@@ -61,9 +61,12 @@ export function mapHistoryEntryToRouteSnapshot(entry: CallHistoryEntry): History
     displayLabel: entry.displayLabel,
     direction: entry.direction,
     outcome: entry.outcome,
+    endReason: entry.endReason,
     startedAt: entry.startedAt,
     endedAt: entry.endedAt,
     durationSec: entry.durationSec,
+    ringDurationSec: entry.ringDurationSec,
+    talkDurationSec: entry.talkDurationSec,
   };
 }
 

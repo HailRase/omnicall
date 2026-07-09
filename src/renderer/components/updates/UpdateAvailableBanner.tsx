@@ -15,7 +15,7 @@ export type UpdateAvailableBannerProps = Readonly<{
 /**
  * - Purpose: non-blocking top update prompt for manual download (F-020).
  * - Inputs: visibility flag, latest version, and action callbacks.
- * - Outputs: floating Alert overlay with download and later actions.
+ * - Outputs: floating Alert below shell window controls (same top inset as incoming call).
  */
 export function UpdateAvailableBanner({
   visible,
@@ -32,6 +32,7 @@ export function UpdateAvailableBanner({
   return (
     <div
       className={styles.anchor}
+      data-testid="update-available-banner-anchor"
       aria-live="polite"
       aria-label={t("updates.prompt.ariaLabel")}
     >

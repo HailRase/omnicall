@@ -6,7 +6,7 @@ import type { RecordCallHistoryUseCase } from "../../use-cases/contacts/RecordCa
 
 /**
  * - Purpose: record call history when telephony end events occur (F-013).
- * - Inputs: CallEnded, IncomingCallEndedBeforeAnswer, CallFailed domain events.
+ * - Inputs: CallEnded, IncomingCallEndedBeforeAnswer, CallRejected, CallFailed domain events.
  * - Outputs: RecordCallHistoryUseCase invocation with tracked session snapshot.
  */
 export class CallHistoryRecordingOrchestrationService {

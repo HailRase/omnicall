@@ -103,7 +103,7 @@ Deprecated operator-related IDs (non-exhaustive): `LF-001`–`LF-005`, `LF-018`�
 | LF-050 | P07 | Operator | High | Block call button from legacy RESERVED state | `useBlockedCallButton` | legacy operator platform reserved state disables calling deterministically. |
 | LF-051 | P12 | Integration | High | External call button block | `setCallButtonDisabled` | Host API can block call button through typed adapter. |
 | LF-052 | P09 | Telephony | Medium | Redial or call from journal | `Display`, `Journal` | History entries can initiate calls via Use Case. |
-| LF-053 | P09 | Settings | Medium | Call history in local storage | `call-history`, `Journal` | Call events persist through repository abstraction. |
+| LF-053 | P09 | Settings | Medium | Call history in local storage | `call-history`, `Journal` | Call events persist through repository abstraction. Evidence: `CallHistoryEntry` v2 (`endReason`, ring/talk durations), `persistedCallHistory` schema v2 + v1 migrate, `CallHistoryCallTracker`, `RecordCallHistoryUseCase`. |
 | LF-054 | P09 | Settings | Low | Limit call history to 100 records | `saveCall` | Repository enforces retention policy. |
 | LF-055 | P11 | UI | Medium | Collapse and expand UI | `CollapseButton`, `Display` | Desktop shell supports compact softphone mode; shell window layout expands for settings (F-016) — `ShellWindowLayout`, `ShellWindowController`. |
 | LF-056 | P11 | UI | Low | Draggable widget | `DraggableButton` | Startup/settings anchor via `ShellWindowController.placeCompactAtStartup` + `resolveShellWindowTargetBounds` (F-016); full drag handle deferred. |

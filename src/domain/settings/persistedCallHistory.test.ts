@@ -17,8 +17,10 @@ function createSampleEntry(index: number) {
     startedAt: "2026-07-07T10:00:00.000Z",
     endedAt: "2026-07-07T10:01:00.000Z",
     wasAnswered: true,
+    answeredAt: "2026-07-07T10:00:20.000Z",
     failed: false,
-    missedBeforeAnswer: false,
+    localHangup: true,
+    remoteCancelBeforeAnswer: false,
   });
   if (!created.ok) {
     throw new Error("expected valid entry");
@@ -67,6 +69,39 @@ describe("parsePersistedCallHistoryDocument", () => {
     expect(result).toEqual({
       ok: false,
       error: { code: "forbidden_secret_field" },
+    });
+  });
+
+  it("migrates v1 outgoing missed rows to canceled with unknown end reason", () => {
+    const result = parsePersistedCallHistoryDocument({
+      schemaVersion: 1,
+      entries: [
+        {
+          id: "history-call-legacy",
+          callId: "call-legacy",
+          direction: "outgoing",
+          remoteNumber: "+12025550999",
+          displayLabel: null,
+          startedAt: "2026-07-07T10:00:00.000Z",
+          endedAt: "2026-07-07T10:00:12.000Z",
+          durationSec: 0,
+          outcome: "missed",
+        },
+      ],
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.value.schemaVersion).toBe(CALL_HISTORY_DOCUMENT_SCHEMA_VERSION);
+    expect(result.value.entries[0]).toMatchObject({
+      outcome: "canceled",
+      endReason: "unknown",
+      ringDurationSec: 0,
+      talkDurationSec: 0,
+      durationSec: 0,
     });
   });
 });

@@ -3,7 +3,7 @@
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
 **Updated:** 2026-07-09  
-**Tests:** 1575 passed (`npm run test`) — last verified 2026-07-09 (P10 headset integration)  
+**Tests:** 1586 passed (`npm run test`) — last verified 2026-07-09 (F-020 update banner below window controls)  
 **Lint / typecheck:** green (last verified 2026-07-09)
 
 **Guides (onboarding):** [`guides/README.md`](../../guides/README.md) — установка, пользователь, агенты Cursor, релизы.

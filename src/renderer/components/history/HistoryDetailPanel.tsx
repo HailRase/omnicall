@@ -95,9 +95,12 @@ export function HistoryDetailPanel({
       <div className={styles.infoGroup}>
         <DetailRow label={t("history.detail.field.direction")} value={entry.directionLabel} />
         <DetailRow label={t("history.detail.field.outcome")} value={entry.outcomeLabel} />
+        <DetailRow label={t("history.detail.field.endReason")} value={entry.endReasonLabel} />
         <DetailRow label={t("history.detail.field.date")} value={entry.dateLabel} />
         <DetailRow label={t("history.detail.field.time")} value={entry.timeLabel} />
         <DetailRow label={t("history.detail.field.duration")} value={entry.durationLabel} />
+        <DetailRow label={t("history.detail.field.ringDuration")} value={entry.ringDurationLabel} />
+        <DetailRow label={t("history.detail.field.talkDuration")} value={entry.talkDurationLabel} />
       </div>
 
       <div className={styles.dangerGroup}>

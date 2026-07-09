@@ -22,11 +22,14 @@ export function createCallHistoryRecordedEvent(
       callId: CallHistoryEntry["callId"];
       direction: CallHistoryEntry["direction"];
       outcome: CallHistoryEntry["outcome"];
+      endReason: CallHistoryEntry["endReason"];
       remoteNumber: string;
       displayLabel: string | null;
       startedAt: string;
       endedAt: string;
       durationSec: number;
+      ringDurationSec: number;
+      talkDurationSec: number;
     }>
   >
 > {
@@ -35,11 +38,14 @@ export function createCallHistoryRecordedEvent(
     callId: entry.callId,
     direction: entry.direction,
     outcome: entry.outcome,
+    endReason: entry.endReason,
     remoteNumber: entry.remoteNumber,
     displayLabel: entry.displayLabel,
     startedAt: entry.startedAt,
     endedAt: entry.endedAt,
     durationSec: entry.durationSec,
+    ringDurationSec: entry.ringDurationSec,
+    talkDurationSec: entry.talkDurationSec,
   });
 }
 

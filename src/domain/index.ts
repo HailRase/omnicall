@@ -82,6 +82,7 @@ export {
 export { matchesSipAccountIdentity } from "./settings/matchesSipAccountIdentity.js";
 export type {
   CallHistoryDirection,
+  CallHistoryEndReason,
   CallHistoryEntry,
   CallHistoryOutcome,
   CallHistorySessionSnapshot,

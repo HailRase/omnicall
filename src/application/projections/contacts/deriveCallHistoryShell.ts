@@ -16,7 +16,12 @@ export type CallHistoryMessageKey =
   | "history.direction.outgoing"
   | "history.outcome.completed"
   | "history.outcome.missed"
+  | "history.outcome.canceled"
   | "history.outcome.failed"
+  | "history.endReason.local_hangup"
+  | "history.endReason.remote_cancel"
+  | "history.endReason.failure"
+  | "history.endReason.unknown"
   | "history.error.loadFailed";
 
 export type CallHistoryEntryShellViewModel = Readonly<{
@@ -28,9 +33,20 @@ export type CallHistoryEntryShellViewModel = Readonly<{
   contactId: string | null;
   presentationSource: CallerPresentationSource;
   directionKey: "history.direction.incoming" | "history.direction.outgoing";
-  outcomeKey: "history.outcome.completed" | "history.outcome.missed" | "history.outcome.failed";
+  outcomeKey:
+    | "history.outcome.completed"
+    | "history.outcome.missed"
+    | "history.outcome.canceled"
+    | "history.outcome.failed";
+  endReasonKey:
+    | "history.endReason.local_hangup"
+    | "history.endReason.remote_cancel"
+    | "history.endReason.failure"
+    | "history.endReason.unknown";
   startedAtIso: string;
   durationSec: number;
+  ringDurationSec: number;
+  talkDurationSec: number;
   redialDisabledReasonKey: CallHistoryRedialDisabledReasonKey | null;
 }>;
 
@@ -100,8 +116,11 @@ function mapEntry(
         ? "history.direction.incoming"
         : "history.direction.outgoing",
     outcomeKey: mapOutcomeKey(entry.outcome),
+    endReasonKey: mapEndReasonKey(entry.endReason),
     startedAtIso: entry.startedAt,
     durationSec: entry.durationSec,
+    ringDurationSec: entry.ringDurationSec,
+    talkDurationSec: entry.talkDurationSec,
     redialDisabledReasonKey: globalRedialReason,
   };
 }
@@ -114,8 +133,25 @@ function mapOutcomeKey(
       return "history.outcome.completed";
     case "missed":
       return "history.outcome.missed";
+    case "canceled":
+      return "history.outcome.canceled";
     case "failed":
       return "history.outcome.failed";
+  }
+}
+
+function mapEndReasonKey(
+  endReason: CallHistoryEntry["endReason"],
+): CallHistoryEntryShellViewModel["endReasonKey"] {
+  switch (endReason) {
+    case "local_hangup":
+      return "history.endReason.local_hangup";
+    case "remote_cancel":
+      return "history.endReason.remote_cancel";
+    case "failure":
+      return "history.endReason.failure";
+    case "unknown":
+      return "history.endReason.unknown";
   }
 }
 

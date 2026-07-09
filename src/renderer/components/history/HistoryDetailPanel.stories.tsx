@@ -31,9 +31,12 @@ const sampleEntry: CallHistoryDetailViewModel = {
   presentationSource: "contact",
   directionLabel: "Incoming",
   outcomeLabel: "Completed",
+  endReasonLabel: "Ended by operator",
   dateLabel: "Jul 8, 2026",
   timeLabel: "1:00 PM",
   durationLabel: "90s",
+  ringDurationLabel: "20s",
+  talkDurationLabel: "70s",
   redialDisabledReason: null,
 };
 
