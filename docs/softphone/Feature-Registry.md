@@ -332,7 +332,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-052`, `LF-053`, `LF-054`
 - Context: Settings
 - Priority: medium
-- Status: **in progress** (Phase 9 UX polish done — final gate in Phase 10)
+- Status: implemented
 - Owner: TBD
 - Inputs: completed call events
 - Outputs: persisted call history entry
@@ -357,6 +357,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Integration: `InMemoryCallHistoryRepository`, `FileCallHistoryRepository`, `ListCallHistoryUseCase`, `RedialFromHistoryUseCase`, `DeleteCallHistoryEntryUseCase`, `createRealAccountBootstrap`
   - Renderer: `HistoryPanelShell`, `HistoryDetailPanel`, `HistoryDeleteConfirmationModal`, `HistoryShellRoutePanel`, `useCallHistoryDetailShell`, `useContactEditShell`, navigation guards
   - E2E: deferred until harness exists; manual smoke: `handoffs/Shell-Navigation-Phase6-Smoke-Checklist.md`
+- Implementation evidence: `handoffs/P09-F013-Call-History-Display-Logic-Handoff.md`, `src/domain/settings/CallHistoryEntry.ts`, `persistedCallHistoryMigration.ts`, `CallHistoryCallTracker.ts`, `deriveCallHistoryShell.ts`, `deriveCallHistoryDetailShell.ts`, `HistoryDetailPanel.tsx`, `resolveHistorySecondaryTimeLabel.ts` — gate `39afae2` (2026-07-09)
 
 ## F-026: Caller Identity Presentation
 

@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-09 21:32
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `39afae2`
 
 ## Где
 - `src/domain/settings/CallHistoryEntry.ts`
@@ -10,6 +10,7 @@
 - `src/application/read-models/CallHistoryCallTracker.ts`
 - `src/application/projections/contacts/deriveCallHistory*.ts`
 - `src/renderer/hooks/useCallHistory*.ts`, `HistoryDetailPanel.tsx`, i18n catalogs
+- `docs/softphone/handoffs/P09-F013-Call-History-Display-Logic-Handoff.md`
 
 ## Что
 - `missed` только для входящих без ответа, сброшенных абонентом; исходящие/локальный reject → `canceled`

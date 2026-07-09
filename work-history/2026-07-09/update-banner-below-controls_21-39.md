@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-09 21:39
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `39afae2`
 
 ## Где
 - `src/renderer/components/updates/UpdateAvailableBanner.module.css`
