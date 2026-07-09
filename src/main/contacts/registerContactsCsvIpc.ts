@@ -2,7 +2,10 @@ import { app, BrowserWindow, dialog, ipcMain, type OpenDialogOptions, type OpenD
 import { basename, join } from "node:path";
 import { readFile, writeFile } from "node:fs/promises";
 import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
-import { parseContactsCsvSaveExportDialogPayload } from "@shared/ipc/ContactsCsvFileContract.js";
+import {
+  parseContactsCsvSaveExportDialogPayload,
+  sanitizeContactsCsvSavedFileName,
+} from "@shared/ipc/ContactsCsvFileContract.js";
 import { createConsoleLogger } from "@infrastructure/logging/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 
@@ -128,7 +131,7 @@ export function registerContactsCsvIpc(): void {
       return {
         ok: true as const,
         cancelled: false as const,
-        savedFileName: basename(dialogResult.filePath),
+        savedFileName: sanitizeContactsCsvSavedFileName(basename(dialogResult.filePath)),
       };
     } catch (error: unknown) {
       const reason = error instanceof Error ? error.message : "write_failed";

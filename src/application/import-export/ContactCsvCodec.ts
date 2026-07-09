@@ -47,7 +47,8 @@ export function parseContactsCsv(contents: string): ContactCsvParseResult {
     return { ok: false, error: { reason: "empty_document" } };
   }
 
-  const parsedRows = parseCsvRecords(normalizedContents);
+  const delimiter = detectCsvDelimiter(normalizedContents);
+  const parsedRows = parseCsvRecords(normalizedContents, delimiter);
   if (parsedRows === null) {
     return { ok: false, error: { reason: "unsafe_row_structure" } };
   }
@@ -179,7 +180,41 @@ function escapeCsvField(value: string): string {
   return `"${value.replaceAll("\"", "\"\"")}"`;
 }
 
-function parseCsvRecords(contents: string): ReadonlyArray<ReadonlyArray<string>> | null {
+function detectCsvDelimiter(contents: string): "," | ";" {
+  const firstLine = contents.split(/\r?\n/u, 1)[0] ?? "";
+  const commaCount = countUnquotedDelimiter(firstLine, ",");
+  const semicolonCount = countUnquotedDelimiter(firstLine, ";");
+  if (semicolonCount > commaCount) {
+    return ";";
+  }
+  return ",";
+}
+
+function countUnquotedDelimiter(line: string, delimiter: "," | ";"): number {
+  let count = 0;
+  let inQuotes = false;
+  for (let index = 0; index < line.length; index += 1) {
+    const character = line[index];
+    if (character === "\"") {
+      const nextCharacter = line[index + 1];
+      if (inQuotes && nextCharacter === "\"") {
+        index += 1;
+        continue;
+      }
+      inQuotes = !inQuotes;
+      continue;
+    }
+    if (!inQuotes && character === delimiter) {
+      count += 1;
+    }
+  }
+  return count;
+}
+
+function parseCsvRecords(
+  contents: string,
+  delimiter: "," | ";" = ",",
+): ReadonlyArray<ReadonlyArray<string>> | null {
   const records: string[][] = [];
   let currentRecord: string[] = [];
   let currentField = "";
@@ -211,7 +246,7 @@ function parseCsvRecords(contents: string): ReadonlyArray<ReadonlyArray<string>>
       continue;
     }
 
-    if (character === ",") {
+    if (character === delimiter) {
       currentRecord.push(currentField);
       currentField = "";
       continue;

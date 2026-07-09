@@ -22,57 +22,65 @@ import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
  */
 export class PreloadContactCsvFileGateway implements ContactCsvFileGateway {
   async openImportDialog(): Promise<ContactCsvImportDialogResult> {
-    const softphone = window.softphone;
-    if (softphone === undefined) {
-      return { kind: "error", reason: "preload_unavailable" };
-    }
+    try {
+      const softphone = window.softphone;
+      if (softphone === undefined) {
+        return { kind: "error", reason: "preload_unavailable" };
+      }
 
-    const response: unknown = await softphone.openContactsCsvImportDialog();
-    const parsed = parseContactsCsvOpenImportDialogResponse(response);
-    if (parsed === null) {
-      return { kind: "error", reason: "invalid_response" };
-    }
+      const response: unknown = await softphone.openContactsCsvImportDialog();
+      const parsed = parseContactsCsvOpenImportDialogResponse(response);
+      if (parsed === null) {
+        return { kind: "error", reason: "invalid_response" };
+      }
 
-    if (!parsed.ok) {
-      return { kind: "error", reason: parsed.reason };
-    }
+      if (!parsed.ok) {
+        return { kind: "error", reason: parsed.reason };
+      }
 
-    if (parsed.cancelled) {
-      return { kind: "cancelled" };
-    }
+      if (parsed.cancelled) {
+        return { kind: "cancelled" };
+      }
 
-    return { kind: "success", contents: parsed.contents };
+      return { kind: "success", contents: parsed.contents };
+    } catch {
+      return { kind: "error", reason: "import_dialog_failed" };
+    }
   }
 
   async saveExportDialog(input: ContactCsvExportDialogInput): Promise<ContactCsvExportDialogResult> {
-    const softphone = window.softphone;
-    if (softphone === undefined) {
-      return { kind: "error", reason: "preload_unavailable" };
-    }
+    try {
+      const softphone = window.softphone;
+      if (softphone === undefined) {
+        return { kind: "error", reason: "preload_unavailable" };
+      }
 
-    const payload = parseContactsCsvSaveExportDialogPayload({
-      contents: input.contents,
-      suggestedFileName: input.suggestedFileName,
-    });
-    if (payload === null) {
-      return { kind: "error", reason: "invalid_payload" };
-    }
+      const payload = parseContactsCsvSaveExportDialogPayload({
+        contents: input.contents,
+        suggestedFileName: input.suggestedFileName,
+      });
+      if (payload === null) {
+        return { kind: "error", reason: "invalid_payload" };
+      }
 
-    const response: unknown = await softphone.saveContactsCsvExportDialog(payload);
-    const parsed = parseContactsCsvSaveExportDialogResponse(response);
-    if (parsed === null) {
-      return { kind: "error", reason: "invalid_response" };
-    }
+      const response: unknown = await softphone.saveContactsCsvExportDialog(payload);
+      const parsed = parseContactsCsvSaveExportDialogResponse(response);
+      if (parsed === null) {
+        return { kind: "error", reason: "invalid_response" };
+      }
 
-    if (!parsed.ok) {
-      return { kind: "error", reason: parsed.reason };
-    }
+      if (!parsed.ok) {
+        return { kind: "error", reason: parsed.reason };
+      }
 
-    if (parsed.cancelled) {
-      return { kind: "cancelled" };
-    }
+      if (parsed.cancelled) {
+        return { kind: "cancelled" };
+      }
 
-    return { kind: "success", savedFileName: parsed.savedFileName };
+      return { kind: "success", savedFileName: parsed.savedFileName };
+    } catch {
+      return { kind: "error", reason: "export_dialog_failed" };
+    }
   }
 }
 

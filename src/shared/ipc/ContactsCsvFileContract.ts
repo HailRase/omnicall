@@ -16,9 +16,10 @@ export type ContactsCsvSaveExportDialogResponse = Readonly<
 >;
 
 const MAX_CSV_EXPORT_BYTES = 2 * 1024 * 1024;
+const SAFE_CSV_FILE_NAME_PATTERN = /^[a-zA-Z0-9._-]+\.csv$/u;
 
 /**
- * - Purpose: validate contacts CSV save-export IPC payloads at preload boundary.
+ * - Purpose: validate contacts CSV save-export IPC payloads at preload/renderer boundary.
  * - Inputs: unknown IPC payload.
  * - Outputs: typed export payload or null when invalid.
  */
@@ -37,7 +38,7 @@ export function parseContactsCsvSaveExportDialogPayload(
     return null;
   }
 
-  if (Buffer.byteLength(contents, "utf8") > MAX_CSV_EXPORT_BYTES) {
+  if (utf8ByteLength(contents) > MAX_CSV_EXPORT_BYTES) {
     return null;
   }
 
@@ -46,7 +47,7 @@ export function parseContactsCsvSaveExportDialogPayload(
   }
 
   const trimmedFileName = suggestedFileName.trim();
-  if (!/^[a-zA-Z0-9._-]+\.csv$/u.test(trimmedFileName)) {
+  if (!SAFE_CSV_FILE_NAME_PATTERN.test(trimmedFileName)) {
     return null;
   }
 
@@ -112,16 +113,49 @@ export function parseContactsCsvSaveExportDialogResponse(
   }
 
   if (candidate["cancelled"] === false) {
-    const rawSavedFileName = candidate["savedFileName"];
-    const savedFileName =
-      typeof rawSavedFileName === "string" && rawSavedFileName.trim().length > 0
-        ? rawSavedFileName.trim()
-        : "contacts-export.csv";
-    if (!/^[a-zA-Z0-9._-]+\.csv$/u.test(savedFileName)) {
-      return null;
-    }
-    return { ok: true, cancelled: false, savedFileName };
+    return {
+      ok: true,
+      cancelled: false,
+      savedFileName: sanitizeContactsCsvSavedFileName(candidate["savedFileName"]),
+    };
   }
 
   return null;
+}
+
+/**
+ * - Purpose: normalize user-chosen save names into IPC-safe CSV filenames.
+ * - Inputs: unknown basename from the native save dialog.
+ * - Outputs: ASCII-safe `*.csv` filename always accepted by the contract.
+ */
+export function sanitizeContactsCsvSavedFileName(value: unknown): string {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (SAFE_CSV_FILE_NAME_PATTERN.test(trimmed)) {
+      return trimmed;
+    }
+
+    const asciiSafe = trimmed
+      .replace(/\.csv$/iu, "")
+      .replace(/[^a-zA-Z0-9._-]+/gu, "-")
+      .replace(/-+/gu, "-")
+      .replace(/^[-.]+|[-.]+$/gu, "");
+    if (asciiSafe.length > 0) {
+      const candidate = `${asciiSafe}.csv`;
+      if (SAFE_CSV_FILE_NAME_PATTERN.test(candidate)) {
+        return candidate;
+      }
+    }
+  }
+
+  return "contacts-export.csv";
+}
+
+function utf8ByteLength(value: string): number {
+  if (typeof TextEncoder !== "undefined") {
+    return new TextEncoder().encode(value).byteLength;
+  }
+
+  // Node-only fallback for environments without TextEncoder.
+  return Buffer.byteLength(value, "utf8");
 }
