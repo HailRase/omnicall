@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import { IncomingCallSessionCard } from "../../components/call/IncomingCallSessionCard.js";
 import { MultiCallHoldAllIndicator } from "../../components/call/MultiCallHoldAllIndicator.js";
 import { CallIdleEmptyState } from "../../components/call/CallIdleEmptyState.js";
+import { CallVideoSurface } from "../../components/call/CallVideoSurface.js";
 import { DtmfKeypadPanel } from "../../components/call/DtmfKeypadPanel.js";
 import { CallSessionCard } from "../../components/call/CallSessionCard.js";
 import { CallSessionStack } from "../../components/call/CallSessionStack.js";
@@ -42,6 +43,8 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
     incomingCallId,
     isIncomingSelected,
     incomingSessionCardVisible,
+    controlTargetVideoState,
+    videoCallActions,
   } = bindings;
 
   const controlTargetCallId = controlTargetLine?.callId ?? null;
@@ -81,6 +84,15 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
     !showOutgoingCard &&
     !hasIncomingCall &&
     !nonIncomingLinesShell.visible;
+
+  const showVideoSurface =
+    !isTransferMode &&
+    !isTransferSuccessCelebration &&
+    !isDtmfMode &&
+    !isNumberEntryOverlay &&
+    controlTargetCallId !== null &&
+    controlTargetVideoState !== null &&
+    controlTargetVideoState.mediaMode === "video";
 
   return (
     <div className={styles.zone} data-testid="call-context-zone">
@@ -125,6 +137,16 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
 
       {!isTransferMode && !isTransferSuccessCelebration && !isDtmfMode && !isNumberEntryOverlay ? (
         <>
+          {showVideoSurface &&
+          controlTargetCallId !== null &&
+          controlTargetVideoState !== null ? (
+            <CallVideoSurface
+              callId={controlTargetCallId}
+              videoState={controlTargetVideoState}
+              onBindSurfaces={videoCallActions.bindVideoSurfaces}
+            />
+          ) : null}
+
           {incomingSessionCardVisible && incomingCallId !== null ? (
             <IncomingCallSessionCard
               callId={incomingCallId}
@@ -135,9 +157,11 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
               uiState={incomingCallProjection.uiState}
               isSelected={isIncomingSelected}
               answerDisabledReason={incomingCallActions.answerDisabledReason}
+              videoAnswerDisabledReason={incomingCallActions.videoAnswerDisabledReason}
               rejectDisabledReason={incomingCallActions.rejectDisabledReason}
               onSelect={selectIncomingCall}
               onAnswer={incomingCallActions.handleAnswerIncoming}
+              onAnswerWithVideo={incomingCallActions.handleAnswerIncomingWithVideo}
               onReject={incomingCallActions.handleRejectIncoming}
             />
           ) : null}

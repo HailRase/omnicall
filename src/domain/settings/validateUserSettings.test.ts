@@ -3,7 +3,7 @@ import { createDefaultUserSettings } from "./UserSettings.js";
 import { validateUserSettings } from "./validateUserSettings.js";
 
 describe("validateUserSettings", () => {
-  it("accepts default v4 settings", () => {
+  it("accepts default v5 settings", () => {
     const result = validateUserSettings(createDefaultUserSettings());
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -43,7 +43,7 @@ describe("validateUserSettings", () => {
 
   it("rejects missing boolean fields", () => {
     const result = validateUserSettings({
-      schemaVersion: 4,
+      schemaVersion: 5,
       autoAnswerTimeoutSec: null,
     });
     expect(result.ok).toBe(false);
@@ -175,7 +175,7 @@ describe("validateUserSettings", () => {
     }
   });
 
-  it("accepts v4 codec preferences payload", () => {
+  it("accepts v5 codec preferences payload", () => {
     const defaults = createDefaultUserSettings();
     const result = validateUserSettings({
       ...defaults,
@@ -191,6 +191,53 @@ describe("validateUserSettings", () => {
       expect(result.value.codecPreferences.audio.find((entry) => entry.id === "opus")?.enabled).toBe(
         false,
       );
+    }
+  });
+
+  it("accepts video call preference fields", () => {
+    const result = validateUserSettings({
+      ...createDefaultUserSettings(),
+      preferredAudioInputDeviceId: "mic-1",
+      preferredVideoInputDeviceId: "cam-2",
+      defaultSessionView: "expanded",
+      autoFullscreenOnConference: true,
+      conferenceNumberSubstring: "vconf-sel",
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.preferredAudioInputDeviceId).toBe("mic-1");
+      expect(result.value.preferredVideoInputDeviceId).toBe("cam-2");
+      expect(result.value.defaultSessionView).toBe("expanded");
+      expect(result.value.autoFullscreenOnConference).toBe(true);
+      expect(result.value.conferenceNumberSubstring).toBe("vconf-sel");
+    }
+  });
+
+  it("defaults missing video preference fields", () => {
+    const payload = { ...createDefaultUserSettings() } as Record<string, unknown>;
+    delete payload["preferredAudioInputDeviceId"];
+    delete payload["preferredVideoInputDeviceId"];
+    delete payload["defaultSessionView"];
+    delete payload["autoFullscreenOnConference"];
+    delete payload["conferenceNumberSubstring"];
+    const result = validateUserSettings(payload);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.preferredAudioInputDeviceId).toBeNull();
+      expect(result.value.defaultSessionView).toBe("compact");
+      expect(result.value.autoFullscreenOnConference).toBe(false);
+      expect(result.value.conferenceNumberSubstring).toBeNull();
+    }
+  });
+
+  it("rejects invalid defaultSessionView", () => {
+    const result = validateUserSettings({
+      ...createDefaultUserSettings(),
+      defaultSessionView: "minified",
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors).toContain("defaultSessionView_invalid");
     }
   });
 });

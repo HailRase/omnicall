@@ -2,6 +2,13 @@ import type { MultiCallSettings } from "../telephony/MultiCallPolicy.js";
 import { createDefaultUserSettings, SETTINGS_SCHEMA_VERSION, type UserSettings } from "./UserSettings.js";
 import { parseSupportedLanguage } from "./SupportedLanguage.js";
 import { validateUserSettings } from "./validateUserSettings.js";
+import {
+  DEFAULT_AUTO_FULLSCREEN_ON_CONFERENCE,
+  DEFAULT_CONFERENCE_NUMBER_SUBSTRING,
+  DEFAULT_DEFAULT_SESSION_VIEW,
+  DEFAULT_PREFERRED_AUDIO_INPUT_DEVICE_ID,
+  DEFAULT_PREFERRED_VIDEO_INPUT_DEVICE_ID,
+} from "./VideoCallSettings.js";
 
 export type UserSettingsV0Legacy = Readonly<{
   multiCallSettings: MultiCallSettings;
@@ -18,7 +25,7 @@ export type MigrateUserSettingsResult =
   | Readonly<{ ok: false; error: SettingsMigrationError }>;
 
 /**
- * - Purpose: upgrade persisted or in-memory settings to UserSettings v4.
+ * - Purpose: upgrade persisted or in-memory settings to UserSettings v5.
  * - Inputs: unknown raw blob and optional v0 legacy fragments.
  * - Outputs: migrated UserSettings or migration error.
  */
@@ -51,12 +58,12 @@ export function migrateUserSettings(
     return { ok: true, value: validated.value };
   }
 
-  if (version === 3) {
-    return coerceToUserSettingsV4(record);
+  if (version === 4 || version === 3) {
+    return coerceToUserSettingsV5(record);
   }
 
   if (version === 2) {
-    return coerceToUserSettingsV4({
+    return coerceToUserSettingsV5({
       ...createDefaultUserSettings(),
       ...record,
       schemaVersion: SETTINGS_SCHEMA_VERSION,
@@ -64,7 +71,7 @@ export function migrateUserSettings(
   }
 
   if (version === 1) {
-    return { ok: true, value: migrateV1ToV4(record) };
+    return { ok: true, value: migrateV1ToV5(record) };
   }
 
   if (version === 0 || version === undefined) {
@@ -97,7 +104,7 @@ function formatSchemaVersion(version: unknown): string {
   return "unknown";
 }
 
-function coerceToUserSettingsV4(
+function coerceToUserSettingsV5(
   record: Record<string, unknown>,
 ): MigrateUserSettingsResult {
   const candidate = {
@@ -109,6 +116,29 @@ function coerceToUserSettingsV4(
       typeof record["headsetAutoReconnect"] === "boolean"
         ? record["headsetAutoReconnect"]
         : true,
+    preferredAudioInputDeviceId:
+      typeof record["preferredAudioInputDeviceId"] === "string" ||
+      record["preferredAudioInputDeviceId"] === null
+        ? record["preferredAudioInputDeviceId"]
+        : DEFAULT_PREFERRED_AUDIO_INPUT_DEVICE_ID,
+    preferredVideoInputDeviceId:
+      typeof record["preferredVideoInputDeviceId"] === "string" ||
+      record["preferredVideoInputDeviceId"] === null
+        ? record["preferredVideoInputDeviceId"]
+        : DEFAULT_PREFERRED_VIDEO_INPUT_DEVICE_ID,
+    defaultSessionView:
+      typeof record["defaultSessionView"] === "string"
+        ? record["defaultSessionView"]
+        : DEFAULT_DEFAULT_SESSION_VIEW,
+    autoFullscreenOnConference:
+      typeof record["autoFullscreenOnConference"] === "boolean"
+        ? record["autoFullscreenOnConference"]
+        : DEFAULT_AUTO_FULLSCREEN_ON_CONFERENCE,
+    conferenceNumberSubstring:
+      typeof record["conferenceNumberSubstring"] === "string" ||
+      record["conferenceNumberSubstring"] === null
+        ? record["conferenceNumberSubstring"]
+        : DEFAULT_CONFERENCE_NUMBER_SUBSTRING,
   };
   const validated = validateUserSettings(candidate);
   if (!validated.ok) {
@@ -120,7 +150,7 @@ function coerceToUserSettingsV4(
   return { ok: true, value: validated.value };
 }
 
-function migrateV1ToV4(record: Record<string, unknown>): UserSettings {
+function migrateV1ToV5(record: Record<string, unknown>): UserSettings {
   const defaults = createDefaultUserSettings();
   const v1Validated = validateV1Fragments(record);
   const parsedLanguage = parseSupportedLanguage(record["language"]);
@@ -156,6 +186,11 @@ function migrateV1ToV4(record: Record<string, unknown>): UserSettings {
     codecPreferences: defaults.codecPreferences,
     headsetEnabled: defaults.headsetEnabled,
     headsetAutoReconnect: defaults.headsetAutoReconnect,
+    preferredAudioInputDeviceId: defaults.preferredAudioInputDeviceId,
+    preferredVideoInputDeviceId: defaults.preferredVideoInputDeviceId,
+    defaultSessionView: defaults.defaultSessionView,
+    autoFullscreenOnConference: defaults.autoFullscreenOnConference,
+    conferenceNumberSubstring: defaults.conferenceNumberSubstring,
   };
 }
 

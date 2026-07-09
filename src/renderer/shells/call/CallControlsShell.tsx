@@ -33,6 +33,7 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
     dialpadMode,
     isCalling,
     callDisabledReason,
+    videoCallDisabledReason,
     inputDisabledReason,
     callActions,
     callLinesActions,
@@ -50,6 +51,9 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
     closeNumberEntryOverlay,
     clearDialedNumber,
     handleDialpadCall,
+    handleDialpadVideoCall,
+    controlTargetVideoState,
+    videoCallActions,
   } = bindings;
 
   const hideCallControls =
@@ -74,6 +78,7 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
       {!hideCallControls ? (
         <CallControlsBar
           line={controlTargetLine}
+          videoState={controlTargetVideoState}
           registrationDisabledReason={inputDisabledReason}
           onHold={callLinesActions.handleHoldLine}
           onResume={callLinesActions.handleResumeLine}
@@ -85,6 +90,21 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
             setCallMode("dtmf", controlTargetLine?.callId ?? null);
           }}
           onShowNumberEntry={openNumberEntryOverlay}
+          onToggleCamera={(callId) => {
+            if (controlTargetVideoState === null) {
+              return;
+            }
+            videoCallActions.handleToggleCamera(callId, controlTargetVideoState);
+          }}
+          onToggleScreenShare={(callId) => {
+            if (controlTargetVideoState === null) {
+              return;
+            }
+            videoCallActions.handleToggleScreenShare(callId, controlTargetVideoState);
+          }}
+          onExpandVideo={(callId) => {
+            videoCallActions.handleSetSessionView(callId, "fullscreen");
+          }}
         />
       ) : null}
 
@@ -94,6 +114,7 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
           mode={dialpadMode}
           isCalling={isCalling}
           callDisabledReason={callDisabledReason}
+          videoCallDisabledReason={videoCallDisabledReason}
           inputDisabledReason={inputDisabledReason}
           hasEstablishedCall={hasEstablishedCall}
           overlayMode={numberEntryOverlayOpen}
@@ -101,6 +122,7 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
           onDelete={deleteLastDialedDigit}
           onClear={clearDialedNumber}
           onCall={handleDialpadCall}
+          onVideoCall={handleDialpadVideoCall}
           onOpenContacts={() => {
             navigateTo({ name: "contacts" });
           }}

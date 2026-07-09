@@ -19,6 +19,7 @@ export type WireJsSipCodecPreferencesOptions = Readonly<{
   logger: Logger;
   correlationId: CorrelationId;
   featureId: string;
+  includeVideo?: boolean;
 }>;
 
 type LocalSdpEvent = Readonly<{
@@ -27,12 +28,13 @@ type LocalSdpEvent = Readonly<{
 }>;
 
 /**
- * - Purpose: dual-layer audio codec apply (setCodecPreferences + local SDP munging) per session.
- * - Inputs: JsSIP session port, resolved audio MIME lists, logger metadata.
+ * - Purpose: dual-layer codec apply (setCodecPreferences + SDP munging) per session.
+ * - Inputs: session, resolved MIME lists, logger metadata, optional video flag.
  * - Outputs: wired sdp/peerconnection/confirmed listeners for the RTC session lifetime.
  */
 export function wireJsSipCodecPreferences(options: WireJsSipCodecPreferencesOptions): void {
   const { session, resolved, logger, correlationId, featureId } = options;
+  const includeVideo = options.includeVideo === true;
   const applyContext: ApplyCodecPreferencesContext = { logger, correlationId, featureId };
 
   const handlePeerConnection = (...args: unknown[]): void => {
@@ -41,7 +43,7 @@ export function wireJsSipCodecPreferences(options: WireJsSipCodecPreferencesOpti
       return;
     }
 
-    applyCodecPreferencesToPeerConnection(connection, resolved, applyContext);
+    applyCodecPreferencesToPeerConnection(connection, resolved, applyContext, includeVideo);
     logger.debug("jssip_codec_preferences_peer_connection_applied", {
       correlationId,
       featureId,
@@ -49,6 +51,7 @@ export function wireJsSipCodecPreferences(options: WireJsSipCodecPreferencesOpti
       boundedContext: "Media",
       operation: "jssip_codec_preferences_peer_connection_applied",
       audioCodecs: resolved.audioMimeTypes.join(","),
+      ...(includeVideo ? { videoCodecs: resolved.videoMimeTypes.join(",") } : {}),
     });
   };
 
@@ -58,7 +61,11 @@ export function wireJsSipCodecPreferences(options: WireJsSipCodecPreferencesOpti
       return;
     }
 
-    const mungedSdp = mungeSdpCodecOrder(event.sdp, resolved.audioMimeTypes);
+    const mungedSdp = mungeSdpCodecOrder(
+      event.sdp,
+      resolved.audioMimeTypes,
+      includeVideo ? resolved.videoMimeTypes : [],
+    );
     if (mungedSdp === event.sdp) {
       return;
     }
@@ -71,6 +78,7 @@ export function wireJsSipCodecPreferences(options: WireJsSipCodecPreferencesOpti
       boundedContext: "Media",
       operation: "jssip_codec_preferences_sdp_munged",
       audioCodecs: resolved.audioMimeTypes.join(","),
+      ...(includeVideo ? { videoCodecs: resolved.videoMimeTypes.join(",") } : {}),
     });
   };
 
@@ -94,7 +102,12 @@ export function wireJsSipCodecPreferences(options: WireJsSipCodecPreferencesOpti
 
   const existingConnection = session.getConnection();
   if (existingConnection !== null) {
-    applyCodecPreferencesToPeerConnection(existingConnection, resolved, applyContext);
+    applyCodecPreferencesToPeerConnection(
+      existingConnection,
+      resolved,
+      applyContext,
+      includeVideo,
+    );
   }
 }
 

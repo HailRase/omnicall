@@ -23,6 +23,7 @@ import {
 } from "../hooks/useSipSystemStateActions.js";
 import { useUserAvatarMenu } from "../hooks/useUserAvatarMenu.js";
 import { useUserAvatarMenuActions } from "../hooks/useUserAvatarMenuActions.js";
+import { useVideoSettingsPanel } from "../hooks/useVideoSettingsPanel.js";
 import type { useSoftphoneShellChrome } from "../hooks/useSoftphoneShellChrome.js";
 import { useSoftphoneProjections } from "../hooks/useSoftphoneProjections.js";
 import { useI18n } from "../i18n/index.js";
@@ -80,6 +81,15 @@ function SoftphoneShellLayoutRoute({
     applyMultiCallSettings,
     isSipRegistered,
   });
+  const videoSettingsPanel = useVideoSettingsPanel(
+    {
+      facade,
+      preferredVideoInputDeviceId: settingsActions.preferredVideoInputDeviceId,
+      sectionActive:
+        overlayShell.settingsOpen && overlayShell.settingsSection === "video",
+    },
+    t("settings.video.systemDefault"),
+  );
   const accountActions = settingsActions.account;
   const accountPanelShell = useAccountPanelShell({
     form: accountActions.form,
@@ -276,6 +286,31 @@ function SoftphoneShellLayoutRoute({
               onHeadsetAutoReconnectChange={settingsActions.onHeadsetAutoReconnectChange}
               onConnectHeadset={settingsActions.onConnectHeadset}
               onDisconnectHeadset={settingsActions.onDisconnectHeadset}
+              preferredAudioInputDeviceId={settingsActions.preferredAudioInputDeviceId}
+              preferredVideoInputDeviceId={settingsActions.preferredVideoInputDeviceId}
+              defaultSessionView={settingsActions.defaultSessionView}
+              autoFullscreenOnConference={settingsActions.autoFullscreenOnConference}
+              conferenceNumberSubstring={settingsActions.conferenceNumberSubstring}
+              videoAudioDevices={videoSettingsPanel.audioDevices}
+              videoCameraDevices={videoSettingsPanel.videoDevices}
+              videoDevicesLoading={videoSettingsPanel.devicesLoading}
+              videoDevicesError={videoSettingsPanel.devicesError}
+              videoPreviewError={videoSettingsPanel.previewError}
+              videoPreviewRef={videoSettingsPanel.previewVideoRef}
+              onPreferredAudioInputDeviceIdChange={
+                settingsActions.onPreferredAudioInputDeviceIdChange
+              }
+              onPreferredVideoInputDeviceIdChange={
+                settingsActions.onPreferredVideoInputDeviceIdChange
+              }
+              onDefaultSessionViewChange={settingsActions.onDefaultSessionViewChange}
+              onAutoFullscreenOnConferenceChange={
+                settingsActions.onAutoFullscreenOnConferenceChange
+              }
+              onConferenceNumberSubstringChange={
+                settingsActions.onConferenceNumberSubstringChange
+              }
+              onRefreshVideoDevices={videoSettingsPanel.refreshDevices}
               account={{
                 form: accountActions.form,
                 submitting: accountActions.submitting,

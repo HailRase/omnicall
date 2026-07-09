@@ -4,6 +4,7 @@ export type {
   SipSessionHealthReadModelSnapshot,
 } from "./telephony/SipSessionHealthReadModel.js";
 export type {
+  BindCallVideoSurfacesCommand,
   MediaGateway,
   AttachRemoteAudioCommand,
   PlayIncomingRingtoneCommand,
@@ -18,6 +19,21 @@ export type {
   UnmuteCallCommand,
   ReleaseAllMediaCommand,
 } from "./media/MediaGateway.js";
+export type {
+  CaptureLocalMediaCommand,
+  CaptureLocalMediaResult,
+  LocalMediaCapturePort,
+  LocalMediaProbeResult,
+  LocalMediaStreamHandle,
+  MediaInputDeviceInfo,
+  ProbeLocalMediaCommand,
+  ReleaseLocalMediaCommand,
+  ReplaceOutboundVideoTrackCommand,
+  SetLocalVideoMutedCommand,
+  StartCameraPreviewCommand,
+  StartCameraPreviewResult,
+  StopCameraPreviewCommand,
+} from "./media/LocalMediaCapturePort.js";
 export type {
   AnswerCallCommand,
   HangupCommand,
@@ -34,6 +50,8 @@ export type {
   TelephonyCallAnsweredNotification,
   TelephonyRemoteHoldNotification,
   TelephonyRemoteResumeNotification,
+  TelephonyRemoteVideoPresenceNotification,
+  TelephonyCameraAvailabilityNotification,
   TelephonyIncomingCallNotification,
   TelephonyTransportConnectingNotification,
   TelephonyTransportConnectedNotification,

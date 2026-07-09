@@ -41,12 +41,18 @@
 | `call.resume` | Resume held call | `Play` | `PlayIcon` | `CallLineRow`, `ActiveCallControlsPanel` | active |
 | `call.mute` | Mute microphone | `MicOff` | `MicOffIcon` | `CallLineRow`, `ActiveCallControlsPanel` | active |
 | `call.unmute` | Unmute microphone | `Mic` | `MicIcon` | `CallLineRow`, `ActiveCallControlsPanel` | active |
+| `call.cameraOn` | Camera enabled | `Video` | — | `CallControlsBar` | active |
+| `call.cameraOff` | Camera muted | `VideoOff` | — | `CallControlsBar` | active |
+| `call.screenShare` | Start screen share | `MonitorUp` | — | `CallControlsBar` | active |
+| `call.screenShareStop` | Stop screen share | `MonitorUp` | — | `CallControlsBar` | active |
+| `call.videoExpand` | Expand video view | `Maximize2` | — | `CallControlsBar` | active |
 | `call.transfer` | Start transfer | `PhoneForwarded` | `PhoneForwardedIcon` | `CallLineRow`, `TransferPanel` | active |
 | `call.incoming` | Incoming call indicator | `PhoneIncoming` | `PhoneIncomingIcon` | `IncomingCallOverlay` | active |
 | `call.outgoing` | Outgoing call indicator | `Phone` | `PhoneIcon` | `OutgoingCallCard` | active |
 | `call.phone-off` | Connection lost | `PhoneOff` | `PhoneOffIcon` | `SettingsSystemStatePanel` (Phase 6) | planned |
 | `overlay.close` | Close overlay/modal | `X` | `XIcon` | `ShellOverlaySheet`, modals, `OcpToastStack`, transfer cancel | active |
 | `dial.call` | Place outgoing call | `PhoneOutgoing` | — | `Dialpad` | active |
+| `dial.videoCall` | Place outgoing video call | `Video` | — | `Dialpad` | active |
 | `dial.delete` | Delete last digit | `Delete` | `DeleteIcon` | `Dialpad` | active |
 | `dial.clear` | Clear dialed number | `Eraser` | — | `Dialpad` | active |
 | `operator.ready` | Agent ready status | `CircleCheck` | `CircleCheckIcon` | `StatusSelector` | active |

@@ -87,7 +87,7 @@ function attachExistingReceiverTracks(
   const stream = new MediaStream();
   for (const receiver of connection.getReceivers()) {
     const track = receiver.track;
-    if (track !== null) {
+    if (track !== null && track.kind === "audio") {
       stream.addTrack(track);
     }
   }
@@ -98,4 +98,65 @@ function attachExistingReceiverTracks(
 
   audioElement.srcObject = stream;
   void audioElement.play().catch(() => undefined);
+}
+
+export function wirePeerConnectionRemoteVideo(
+  connection: unknown,
+  videoElement: HTMLVideoElement,
+): boolean {
+  if (!isRtcPeerConnectionLike(connection)) {
+    return false;
+  }
+
+  attachExistingRemoteVideoTracks(connection, videoElement);
+
+  connection.addEventListener("track", (event: RtcTrackEventLike): void => {
+    if (event.track.kind !== "video") {
+      return;
+    }
+    if (event.streams.length > 0) {
+      videoElement.srcObject = event.streams[0] ?? null;
+    } else {
+      const currentStream =
+        videoElement.srcObject instanceof MediaStream
+          ? videoElement.srcObject
+          : new MediaStream();
+      currentStream.addTrack(event.track);
+      videoElement.srcObject = currentStream;
+    }
+    void videoElement.play().catch(() => undefined);
+  });
+
+  return true;
+}
+
+export function bindLocalVideoPreview(
+  stream: MediaStream | null,
+  videoElement: HTMLVideoElement,
+): void {
+  if (stream === null) {
+    videoElement.srcObject = null;
+    return;
+  }
+  const preview = new MediaStream(stream.getVideoTracks());
+  videoElement.srcObject = preview.getVideoTracks().length > 0 ? preview : null;
+  void videoElement.play().catch(() => undefined);
+}
+
+function attachExistingRemoteVideoTracks(
+  connection: RtcPeerConnectionLike,
+  videoElement: HTMLVideoElement,
+): void {
+  const stream = new MediaStream();
+  for (const receiver of connection.getReceivers()) {
+    const track = receiver.track;
+    if (track !== null && track.kind === "video") {
+      stream.addTrack(track);
+    }
+  }
+  if (stream.getTracks().length === 0) {
+    return;
+  }
+  videoElement.srcObject = stream;
+  void videoElement.play().catch(() => undefined);
 }

@@ -35,6 +35,18 @@ export {
   MAX_AUTO_ANSWER_TIMEOUT_SEC,
   SETTINGS_SCHEMA_VERSION,
 } from "./settings/UserSettings.js";
+export {
+  DEFAULT_AUTO_FULLSCREEN_ON_CONFERENCE,
+  DEFAULT_CONFERENCE_NUMBER_SUBSTRING,
+  DEFAULT_DEFAULT_SESSION_VIEW,
+  DEFAULT_PREFERRED_AUDIO_INPUT_DEVICE_ID,
+  DEFAULT_PREFERRED_VIDEO_INPUT_DEVICE_ID,
+  MAX_CONFERENCE_NUMBER_SUBSTRING_LENGTH,
+  MAX_MEDIA_DEVICE_ID_LENGTH,
+  parseConferenceNumberSubstring,
+  parseDefaultSessionViewSetting,
+  parsePreferredMediaDeviceId,
+} from "./settings/VideoCallSettings.js";
 export type { ValidateUserSettingsResult } from "./settings/validateUserSettings.js";
 export { validateUserSettings } from "./settings/validateUserSettings.js";
 export type {
@@ -580,6 +592,64 @@ export {
   setAudioCodecEnabled,
   setVideoCodecEnabled,
 } from "./media/reorderCodecPreferences.js";
+export type { CallMediaMode } from "./media/CallMediaMode.js";
+export {
+  CALL_MEDIA_MODES,
+  DEFAULT_CALL_MEDIA_MODE,
+  isCallMediaMode,
+  parseCallMediaMode,
+} from "./media/CallMediaMode.js";
+export type { LocalVideoSource } from "./media/LocalVideoSource.js";
+export {
+  DEFAULT_LOCAL_VIDEO_SOURCE,
+  LOCAL_VIDEO_SOURCES,
+  isLocalVideoSource,
+  parseLocalVideoSource,
+} from "./media/LocalVideoSource.js";
+export type { SessionViewMode } from "./media/SessionViewMode.js";
+export {
+  DEFAULT_SESSION_VIEW_MODE,
+  SESSION_VIEW_MODES,
+  isSessionViewMode,
+  parseSessionViewMode,
+} from "./media/SessionViewMode.js";
+export type { CallVideoMediaState } from "./media/CallVideoMediaState.js";
+export {
+  areCameraControlsEnabled,
+  createInitialCallVideoMediaState,
+  isScreenShareAllowed,
+  setCameraAvailable,
+  setLocalVideoMuted,
+  setLocalVideoSource,
+  setRemoteVideoPresent,
+  setSessionViewMode,
+  shouldShowRemoteVideoSurface,
+} from "./media/CallVideoMediaState.js";
+export type {
+  ResolveVideoCallAvailabilityInput,
+  ResolveVideoCallAvailabilityResult,
+  VideoCallDisabledReason,
+} from "./media/resolveVideoCallAvailability.js";
+export { resolveVideoCallAvailability } from "./media/resolveVideoCallAvailability.js";
+export type { ResolveInitialSessionViewInput } from "./media/resolveInitialSessionView.js";
+export { resolveInitialSessionView } from "./media/resolveInitialSessionView.js";
+export type {
+  CallMediaModeSelectedEvent,
+  CameraAvailabilityChangedEvent,
+  LocalVideoMutedChangedEvent,
+  LocalVideoSourceChangedEvent,
+  RemoteVideoPresenceChangedEvent,
+  SessionViewModeChangedEvent,
+  VideoMediaDomainEvent,
+} from "./media/events/videoMediaEvents.js";
+export {
+  createCallMediaModeSelectedEvent,
+  createCameraAvailabilityChangedEvent,
+  createLocalVideoMutedChangedEvent,
+  createLocalVideoSourceChangedEvent,
+  createRemoteVideoPresenceChangedEvent,
+  createSessionViewModeChangedEvent,
+} from "./media/events/videoMediaEvents.js";
 export {
   SIP_RECONNECT_POLICY_CONFIG,
   canScheduleReconnectAttempt,

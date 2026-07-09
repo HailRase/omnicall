@@ -24,6 +24,9 @@ export function useSoftphoneProjections() {
   const sipSessionHealthProjection = useAccountBootstrapStore(
     (state) => state.sipSessionHealthProjection,
   );
+  const callVideoMediaUiProjection = useAccountBootstrapStore(
+    (state) => state.callVideoMediaUiProjection,
+  );
   const setCallMode = useAccountBootstrapStore((state) => state.setCallMode);
   const setIncomingUiState = useAccountBootstrapStore((state) => state.setIncomingUiState);
   const setIncomingBreakReason = useAccountBootstrapStore(
@@ -45,6 +48,7 @@ export function useSoftphoneProjections() {
     transferProjection,
     multiLineCallProjection,
     sipSessionHealthProjection,
+    callVideoMediaUiProjection,
     setCallMode,
     setIncomingUiState,
     setIncomingBreakReason,

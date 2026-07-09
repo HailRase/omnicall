@@ -55,9 +55,13 @@ export function IncomingCallOverlayShell({
       autoAnswerSecondsRemaining={autoAnswerSecondsRemaining}
       uiState={callBindings.incomingCallProjection.uiState}
       answerDisabledReason={callBindings.incomingCallActions.answerDisabledReason}
+      videoAnswerDisabledReason={
+        callBindings.incomingCallActions.videoAnswerDisabledReason
+      }
       rejectDisabledReason={callBindings.incomingCallActions.rejectDisabledReason}
       onOpenCallSurface={overlayActions.handleOpenCallSurface}
       onAnswer={overlayActions.handleAnswer}
+      onAnswerWithVideo={overlayActions.handleAnswerWithVideo}
       onReject={overlayActions.handleReject}
       onDismiss={overlayVm.handleDismiss}
     />

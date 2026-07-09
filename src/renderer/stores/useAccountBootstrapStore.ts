@@ -73,6 +73,11 @@ import {
   mapHeadsetSyncBusyState,
   type HeadsetSyncBusyProjection,
 } from "@application/projections/headset/headsetSyncBusyProjection.js";
+import {
+  initialCallVideoMediaUiProjection,
+  reduceCallVideoMediaUiProjection,
+  type CallVideoMediaUiProjection,
+} from "@application/projections/media/callVideoMediaUiProjection.js";
 
 type AccountBootstrapStore = Readonly<{
   projection: AccountBootstrapProjection;
@@ -87,6 +92,7 @@ type AccountBootstrapStore = Readonly<{
   contactsProjection: ContactsProjection;
   headsetConnectionProjection: HeadsetConnectionProjection;
   headsetSyncBusyProjection: HeadsetSyncBusyProjection;
+  callVideoMediaUiProjection: CallVideoMediaUiProjection;
   bindFacade: (facade: AccountBootstrapFacade) => () => void;
   setCallMode: (mode: DialpadMode, dtmfPanelCallId?: string | null) => void;
   setIncomingUiState: (uiState: IncomingCallUiState) => void;
@@ -118,6 +124,7 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
   contactsProjection: initialContactsProjection(),
   headsetConnectionProjection: initialHeadsetConnectionProjection(),
   headsetSyncBusyProjection: initialHeadsetSyncBusyProjection(),
+  callVideoMediaUiProjection: initialCallVideoMediaUiProjection(),
 
   bindFacade: (facade) => {
     facade.setHeadsetProjectionSources(
@@ -226,6 +233,10 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
         ),
         headsetConnectionProjection: reduceHeadsetConnectionProjection(
           state.headsetConnectionProjection,
+          event,
+        ),
+        callVideoMediaUiProjection: reduceCallVideoMediaUiProjection(
+          state.callVideoMediaUiProjection,
           event,
         ),
       };

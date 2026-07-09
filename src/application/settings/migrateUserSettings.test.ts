@@ -11,7 +11,7 @@ describe("migrateUserSettings", () => {
     }
   });
 
-  it("migrates v0 legacy fragments to v4", () => {
+  it("migrates v0 legacy fragments to v5", () => {
     const result = migrateUserSettings(
       { schemaVersion: 0 },
       {
@@ -24,43 +24,68 @@ describe("migrateUserSettings", () => {
     );
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(4);
+      expect(result.value.schemaVersion).toBe(5);
       expect(result.value.multiSessionsEnabled).toBe(false);
       expect(result.value.headsetEnabled).toBe(false);
+      expect(result.value.defaultSessionView).toBe("compact");
+      expect(result.value.preferredVideoInputDeviceId).toBeNull();
     }
   });
 
-  it("passes through valid v4 payload", () => {
-    const v4 = {
+  it("passes through valid v5 payload", () => {
+    const v5 = {
       ...createDefaultUserSettings(),
       multiSessionsEnabled: false,
     };
+    const result = migrateUserSettings(v5);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toEqual(v5);
+    }
+  });
+
+  it("migrates v4 payload to v5 with video preference defaults", () => {
+    const v4 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 4 as const,
+    };
+    delete (v4 as { preferredAudioInputDeviceId?: unknown }).preferredAudioInputDeviceId;
+    delete (v4 as { preferredVideoInputDeviceId?: unknown }).preferredVideoInputDeviceId;
+    delete (v4 as { defaultSessionView?: unknown }).defaultSessionView;
+    delete (v4 as { autoFullscreenOnConference?: unknown }).autoFullscreenOnConference;
+    delete (v4 as { conferenceNumberSubstring?: unknown }).conferenceNumberSubstring;
+
     const result = migrateUserSettings(v4);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value).toEqual(v4);
+      expect(result.value.schemaVersion).toBe(5);
+      expect(result.value.preferredAudioInputDeviceId).toBeNull();
+      expect(result.value.preferredVideoInputDeviceId).toBeNull();
+      expect(result.value.defaultSessionView).toBe("compact");
+      expect(result.value.autoFullscreenOnConference).toBe(false);
+      expect(result.value.conferenceNumberSubstring).toBeNull();
     }
   });
 
-  it("migrates v3 payload to v4 with headset defaults", () => {
+  it("migrates v3 payload to v5 with headset and video defaults", () => {
     const v3 = {
       ...createDefaultUserSettings(),
       schemaVersion: 3 as const,
-      headsetEnabled: undefined,
-      headsetAutoReconnect: undefined,
     };
     delete (v3 as { headsetEnabled?: unknown }).headsetEnabled;
     delete (v3 as { headsetAutoReconnect?: unknown }).headsetAutoReconnect;
+    delete (v3 as { preferredVideoInputDeviceId?: unknown }).preferredVideoInputDeviceId;
     const result = migrateUserSettings(v3);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(4);
+      expect(result.value.schemaVersion).toBe(5);
       expect(result.value.headsetEnabled).toBe(false);
       expect(result.value.headsetAutoReconnect).toBe(true);
+      expect(result.value.defaultSessionView).toBe("compact");
     }
   });
 
-  it("migrates v2 payload to v4 with default codec preferences", () => {
+  it("migrates v2 payload to v5 with default codec preferences", () => {
     const v2 = {
       ...createDefaultUserSettings(),
       schemaVersion: 2 as const,
@@ -71,12 +96,12 @@ describe("migrateUserSettings", () => {
     const result = migrateUserSettings(v2);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(4);
+      expect(result.value.schemaVersion).toBe(5);
       expect(result.value.codecPreferences).toEqual(createDefaultUserSettings().codecPreferences);
     }
   });
 
-  it("migrates v1 payload to v4 with transport and codec defaults", () => {
+  it("migrates v1 payload to v5 with transport, codec, and video defaults", () => {
     const v1 = {
       schemaVersion: 1,
       theme: "dark" as const,
@@ -92,9 +117,30 @@ describe("migrateUserSettings", () => {
     const result = migrateUserSettings(v1);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(4);
+      expect(result.value.schemaVersion).toBe(5);
       expect(result.value.theme).toBe("dark");
       expect(result.value.headsetEnabled).toBe(false);
+      expect(result.value.autoFullscreenOnConference).toBe(false);
+    }
+  });
+
+  it("preserves video preferences when migrating v4 with values", () => {
+    const v4 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 4 as const,
+      preferredVideoInputDeviceId: "camera-abc",
+      defaultSessionView: "fullscreen" as const,
+      autoFullscreenOnConference: true,
+      conferenceNumberSubstring: "vconf-sel",
+    };
+    const result = migrateUserSettings(v4);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(5);
+      expect(result.value.preferredVideoInputDeviceId).toBe("camera-abc");
+      expect(result.value.defaultSessionView).toBe("fullscreen");
+      expect(result.value.autoFullscreenOnConference).toBe(true);
+      expect(result.value.conferenceNumberSubstring).toBe("vconf-sel");
     }
   });
 
@@ -103,7 +149,7 @@ describe("migrateUserSettings", () => {
     expect(result.ok).toBe(false);
   });
 
-  it("fails on corrupt v4 payload", () => {
+  it("fails on corrupt v5 payload", () => {
     const result = migrateUserSettings({
       ...createDefaultUserSettings(),
       multiSessionsEnabled: "yes",

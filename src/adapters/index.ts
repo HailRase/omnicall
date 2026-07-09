@@ -17,6 +17,13 @@ export type {
   BrowserMediaAdapterOptions,
   PeerConnectionProvider,
 } from "./media/browser/BrowserMediaAdapter.js";
+export { BrowserLocalMediaCaptureAdapter } from "./media/browser/BrowserLocalMediaCaptureAdapter.js";
+export type {
+  BrowserLocalMediaCaptureAdapterOptions,
+  MediaDevicesLike,
+} from "./media/browser/BrowserLocalMediaCaptureAdapter.js";
+export { MockLocalMediaCapturePort } from "./mock/MockLocalMediaCapturePort.js";
+export type { MockLocalMediaCaptureScenario } from "./mock/MockLocalMediaCapturePort.js";
 export { MockHostIntegrationGateway } from "./mock/MockHostIntegrationGateway.js";
 export { MockShellWindowGateway } from "./mock/MockShellWindowGateway.js";
 export type { MockShellWindowGatewayState } from "./mock/MockShellWindowGateway.js";

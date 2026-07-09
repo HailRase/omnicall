@@ -3,6 +3,7 @@ import type { IncomingCallProjection, TransferProjection } from "@application/in
 
 type IncomingCallActionsSlice = Readonly<{
   handleAnswerIncoming: () => void;
+  handleAnswerIncomingWithVideo: () => void;
   handleRejectIncoming: () => void;
 }>;
 
@@ -32,6 +33,7 @@ type UseIncomingCallOverlayActionsInput = Readonly<{
 type UseIncomingCallOverlayActionsResult = Readonly<{
   handleOpenCallSurface: () => void;
   handleAnswer: () => void;
+  handleAnswerWithVideo: () => void;
   handleReject: () => void;
 }>;
 
@@ -111,6 +113,10 @@ export function useIncomingCallOverlayActions(
     incomingCallActions.handleAnswerIncoming();
   }, [incomingCallActions]);
 
+  const handleAnswerWithVideo = useCallback((): void => {
+    incomingCallActions.handleAnswerIncomingWithVideo();
+  }, [incomingCallActions]);
+
   const handleReject = useCallback((): void => {
     incomingCallActions.handleRejectIncoming();
   }, [incomingCallActions]);
@@ -118,6 +124,7 @@ export function useIncomingCallOverlayActions(
   return {
     handleOpenCallSurface,
     handleAnswer,
+    handleAnswerWithVideo,
     handleReject,
   };
 }

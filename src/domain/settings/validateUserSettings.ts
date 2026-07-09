@@ -36,13 +36,24 @@ import {
 } from "./UserSettings.js";
 import { validateCodecPreferences } from "../media/validateCodecPreferences.js";
 import { createDefaultCodecPreferences } from "../media/CodecPreferences.js";
+import type { SessionViewMode } from "../media/SessionViewMode.js";
+import {
+  DEFAULT_AUTO_FULLSCREEN_ON_CONFERENCE,
+  DEFAULT_CONFERENCE_NUMBER_SUBSTRING,
+  DEFAULT_DEFAULT_SESSION_VIEW,
+  DEFAULT_PREFERRED_AUDIO_INPUT_DEVICE_ID,
+  DEFAULT_PREFERRED_VIDEO_INPUT_DEVICE_ID,
+  parseConferenceNumberSubstring,
+  parseDefaultSessionViewSetting,
+  parsePreferredMediaDeviceId,
+} from "./VideoCallSettings.js";
 
 export type ValidateUserSettingsResult =
   | Readonly<{ ok: true; value: UserSettings }>
   | Readonly<{ ok: false; errors: ReadonlyArray<string> }>;
 
 /**
- * - Purpose: narrow unknown persisted JSON to UserSettings v2.
+ * - Purpose: narrow unknown persisted JSON to UserSettings.
  * - Inputs: unknown payload from adapter boundary.
  * - Outputs: ok with UserSettings or structured validation errors.
  */
@@ -122,6 +133,26 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
     true,
     errors,
   );
+  const preferredAudioInputDeviceId = readPreferredMediaDeviceId(
+    record,
+    "preferredAudioInputDeviceId",
+    DEFAULT_PREFERRED_AUDIO_INPUT_DEVICE_ID,
+    errors,
+  );
+  const preferredVideoInputDeviceId = readPreferredMediaDeviceId(
+    record,
+    "preferredVideoInputDeviceId",
+    DEFAULT_PREFERRED_VIDEO_INPUT_DEVICE_ID,
+    errors,
+  );
+  const defaultSessionView = readDefaultSessionView(record, errors);
+  const autoFullscreenOnConference = readBooleanWithDefault(
+    record,
+    "autoFullscreenOnConference",
+    DEFAULT_AUTO_FULLSCREEN_ON_CONFERENCE,
+    errors,
+  );
+  const conferenceNumberSubstring = readConferenceNumberSubstring(record, errors);
 
   if (errors.length > 0) {
     return { ok: false, errors };
@@ -154,6 +185,11 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
       codecPreferences,
       headsetEnabled,
       headsetAutoReconnect,
+      preferredAudioInputDeviceId,
+      preferredVideoInputDeviceId,
+      defaultSessionView,
+      autoFullscreenOnConference,
+      conferenceNumberSubstring,
     },
   };
 }
@@ -398,4 +434,54 @@ function readCodecPreferences(
     return createDefaultCodecPreferences();
   }
   return validated.value;
+}
+
+function readPreferredMediaDeviceId(
+  record: Record<string, unknown>,
+  field: "preferredAudioInputDeviceId" | "preferredVideoInputDeviceId",
+  defaultValue: string | null,
+  errors: string[],
+): string | null {
+  const raw = record[field];
+  if (raw === undefined) {
+    return defaultValue;
+  }
+  const parsed = parsePreferredMediaDeviceId(raw);
+  if (parsed === undefined) {
+    errors.push(`${field}_invalid`);
+    return defaultValue;
+  }
+  return parsed;
+}
+
+function readDefaultSessionView(
+  record: Record<string, unknown>,
+  errors: string[],
+): SessionViewMode {
+  const raw = record["defaultSessionView"];
+  if (raw === undefined) {
+    return DEFAULT_DEFAULT_SESSION_VIEW;
+  }
+  const parsed = parseDefaultSessionViewSetting(raw);
+  if (parsed === null) {
+    errors.push("defaultSessionView_invalid");
+    return DEFAULT_DEFAULT_SESSION_VIEW;
+  }
+  return parsed;
+}
+
+function readConferenceNumberSubstring(
+  record: Record<string, unknown>,
+  errors: string[],
+): string | null {
+  const raw = record["conferenceNumberSubstring"];
+  if (raw === undefined) {
+    return DEFAULT_CONFERENCE_NUMBER_SUBSTRING;
+  }
+  const parsed = parseConferenceNumberSubstring(raw);
+  if (parsed === undefined) {
+    errors.push("conferenceNumberSubstring_invalid");
+    return DEFAULT_CONFERENCE_NUMBER_SUBSTRING;
+  }
+  return parsed;
 }

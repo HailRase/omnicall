@@ -19,6 +19,7 @@ import { useDialpadShell } from "./useDialpadShell.js";
 import { useSoftphoneCallActions } from "./useSoftphoneCallActions.js";
 import { useIncomingCallActions } from "./useIncomingCallActions.js";
 import { useSoftphoneProjections } from "./useSoftphoneProjections.js";
+import { useVideoCallActions } from "./useVideoCallActions.js";
 import { applyHeadsetSyncBusyToActiveCallControls } from "@application/projections/headset/applyHeadsetSyncBusyToActiveCallControls.js";
 
 type UseCallFeatureShellInput = Readonly<{
@@ -39,6 +40,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     multiCallProjection,
     transferProjection,
     multiLineCallProjection,
+    callVideoMediaUiProjection,
     setCallMode,
     setIncomingUiState,
   } = useSoftphoneProjections();
@@ -65,6 +67,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     dialpadMode,
     isCalling,
     callDisabledReason,
+    videoCallDisabledReason,
     inputDisabledReason,
   } = useDialpadShell(projection, callProjection, multiCallProjection);
 
@@ -74,6 +77,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     activeCallControlsProjection: adjustedActiveCallControlsProjection,
     dialedNumber,
     callDisabledReason,
+    videoCallDisabledReason,
   });
 
   const incomingCallActions = useIncomingCallActions({
@@ -125,6 +129,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     contacts,
   });
   const callLinesActions = useCallLinesActions({ facade, shell: callLinesShell });
+  const videoCallActions = useVideoCallActions({ facade });
 
   const handleTransferLine = (callId: string): void => {
     const line = callLinesShell.lines.find((entry) => entry.callId === callId);
@@ -219,6 +224,14 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     [callLinesShell.lines, contacts, incomingCallId, incomingCallProjection, selectedCallId],
   );
 
+  const controlTargetVideoState = useMemo(() => {
+    const callId = controlTargetLine?.callId;
+    if (callId === undefined) {
+      return null;
+    }
+    return callVideoMediaUiProjection.byCallId[callId] ?? null;
+  }, [callVideoMediaUiProjection.byCallId, controlTargetLine?.callId]);
+
   const outgoingDisplayName = useMemo(() => {
     const presentation = buildContactDirectory(contacts).resolvePresentation({
       remoteNumber: dialedNumber,
@@ -261,6 +274,14 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
 
   const handleDialpadCall = useCallback((): void => {
     callActions.handleDialpadCall();
+    clearDialedNumber();
+    if (numberEntryOverlayOpen) {
+      setNumberEntryOverlayOpen(false);
+    }
+  }, [callActions, clearDialedNumber, numberEntryOverlayOpen]);
+
+  const handleDialpadVideoCall = useCallback((): void => {
+    callActions.handleDialpadVideoCall();
     clearDialedNumber();
     if (numberEntryOverlayOpen) {
       setNumberEntryOverlayOpen(false);
@@ -310,6 +331,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     dialpadMode,
     isCalling,
     callDisabledReason,
+    videoCallDisabledReason,
     inputDisabledReason,
     callActions,
     incomingCallActions,
@@ -326,6 +348,8 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     hasEstablishedCall,
     hasCallInProgress,
     controlTargetLine,
+    controlTargetVideoState,
+    videoCallActions,
     selectCallLine,
     selectIncomingCall,
     incomingCallId,
@@ -336,6 +360,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     openNumberEntryOverlay,
     closeNumberEntryOverlay,
     handleDialpadCall,
+    handleDialpadVideoCall,
     outgoingDisplayName,
   };
 }

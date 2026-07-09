@@ -159,4 +159,37 @@ describe("CallControlsBar", () => {
     fireEvent.click(screen.getByTestId("control-show-dtmf"));
     expect(onShowDtmf).toHaveBeenCalledTimes(1);
   });
+
+  it("shows camera controls for video-mode active line", () => {
+    const onToggleCamera = vi.fn();
+    render(
+      <CallControlsBar
+        line={activeLine}
+        videoState={{
+          mediaMode: "video",
+          localVideoMuted: true,
+          localVideoSource: "camera",
+          remoteVideoPresent: true,
+          sessionView: "fullscreen",
+          cameraAvailable: true,
+        }}
+        onHold={vi.fn()}
+        onResume={vi.fn()}
+        onMute={vi.fn()}
+        onUnmute={vi.fn()}
+        onHangup={vi.fn()}
+        onTransfer={vi.fn()}
+        onShowDtmf={vi.fn()}
+        onShowNumberEntry={vi.fn()}
+        onToggleCamera={onToggleCamera}
+        onToggleScreenShare={vi.fn()}
+        onExpandVideo={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("control-camera-line-call-1")).toBeInTheDocument();
+    expect(screen.getByTestId("control-screen-share-line-call-1")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("control-camera-line-call-1"));
+    expect(onToggleCamera).toHaveBeenCalledWith("call-1");
+  });
 });

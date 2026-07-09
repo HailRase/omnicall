@@ -28,6 +28,8 @@ export type DialpadProps = Readonly<{
 
   callDisabledReason: string | null;
 
+  videoCallDisabledReason?: string | null;
+
   inputDisabledReason: string | null;
 
   hasEstablishedCall?: boolean;
@@ -41,6 +43,8 @@ export type DialpadProps = Readonly<{
   onClear: () => void;
 
   onCall: () => void;
+
+  onVideoCall?: () => void;
 
   onOpenContacts?: () => void;
 
@@ -114,6 +118,8 @@ export function Dialpad({
 
   callDisabledReason,
 
+  videoCallDisabledReason = null,
+
   inputDisabledReason,
 
   hasEstablishedCall = false,
@@ -127,6 +133,8 @@ export function Dialpad({
   onClear,
 
   onCall,
+
+  onVideoCall,
 
   onOpenContacts,
 
@@ -166,9 +174,23 @@ export function Dialpad({
 
   const canDial = callDisabledReason === null && numberValue.trim().length > 0 && !isCalling;
 
+  const canVideoDial =
+
+    onVideoCall !== undefined &&
+
+    videoCallDisabledReason === null &&
+
+    numberValue.trim().length > 0 &&
+
+    !isCalling;
+
   const callLabel = t("dialpad.call.label");
 
   const connectingLabel = t("dialpad.call.connectingLabel");
+
+  const videoCallLabel = t("dialpad.videoCall.label");
+
+  const videoCallTooltip = videoCallDisabledReason ?? videoCallLabel;
 
 
 
@@ -586,32 +608,52 @@ export function Dialpad({
 
 
 
-      <IconTooltip
-        label={callDisabledReason ?? callLabel}
-        className={styles.callButtonTooltipHost}
-      >
-        <button
-          type="button"
-          className={clsx(
-            styles.callButton,
-            canDial && styles.callButtonReady,
-            isCalling && styles.callButtonBusy,
-          )}
-          data-testid="dialpad-call"
-          aria-label={isCalling ? t("dialpad.call.connectingAria") : t("dialpad.call.ariaLabel")}
-          disabled={!canDial}
-          onClick={onCall}
+      <div className={styles.callActions}>
+        <IconTooltip
+          label={callDisabledReason ?? callLabel}
+          className={styles.callButtonTooltipHost}
         >
-          <AppIcon id="dial.call" size={18} decorative />
-          {!canDial && callDisabledReason !== null && numberValue.length === 0 ? (
-            <span className={styles.callButtonReason}>{callDisabledReason}</span>
-          ) : (
-            <span className={styles.callButtonLabel}>
-              {isCalling ? connectingLabel : callLabel}
-            </span>
-          )}
-        </button>
-      </IconTooltip>
+          <button
+            type="button"
+            className={clsx(
+              styles.callButton,
+              canDial && styles.callButtonReady,
+              isCalling && styles.callButtonBusy,
+            )}
+            data-testid="dialpad-call"
+            aria-label={isCalling ? t("dialpad.call.connectingAria") : t("dialpad.call.ariaLabel")}
+            disabled={!canDial}
+            onClick={onCall}
+          >
+            <AppIcon id="dial.call" size={18} decorative />
+            {!canDial && callDisabledReason !== null && numberValue.length === 0 ? (
+              <span className={styles.callButtonReason}>{callDisabledReason}</span>
+            ) : (
+              <span className={styles.callButtonLabel}>
+                {isCalling ? connectingLabel : callLabel}
+              </span>
+            )}
+          </button>
+        </IconTooltip>
+
+        {onVideoCall !== undefined ? (
+          <IconTooltip label={videoCallTooltip} className={styles.videoCallButtonTooltipHost}>
+            <button
+              type="button"
+              className={clsx(
+                styles.videoCallButton,
+                canVideoDial && styles.videoCallButtonReady,
+              )}
+              data-testid="dialpad-video-call"
+              aria-label={t("dialpad.videoCall.ariaLabel")}
+              disabled={!canVideoDial}
+              onClick={onVideoCall}
+            >
+              <AppIcon id="dial.videoCall" size={18} decorative />
+            </button>
+          </IconTooltip>
+        ) : null}
+      </div>
 
     </section>
 

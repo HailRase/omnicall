@@ -5,6 +5,7 @@ import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefault
 import { settingsCodecTestDefaults } from "./panels/settingsCodecTestDefaults.js";
 import { settingsAccountTestDefaults } from "./panels/settingsAccountTestDefaults.js";
 import { settingsHeadsetStoryDefaults } from "./panels/settingsHeadsetTestDefaults.js";
+import { settingsVideoStoryDefaults } from "./panels/settingsVideoTestDefaults.js";
 import type { ShellWindowControlsViewModel } from "../../hooks/useShellWindowControls.js";
 
 const storyWindowControls: ShellWindowControlsViewModel = {
@@ -90,6 +91,27 @@ const panelDefaults = {
   ...autoAnswerDefaults,
   ...appUpdateDefaults,
   ...settingsHeadsetStoryDefaults,
+  preferredAudioInputDeviceId: settingsVideoStoryDefaults.preferredAudioInputDeviceId,
+  preferredVideoInputDeviceId: settingsVideoStoryDefaults.preferredVideoInputDeviceId,
+  defaultSessionView: settingsVideoStoryDefaults.defaultSessionView,
+  autoFullscreenOnConference: settingsVideoStoryDefaults.autoFullscreenOnConference,
+  conferenceNumberSubstring: settingsVideoStoryDefaults.conferenceNumberSubstring,
+  videoAudioDevices: settingsVideoStoryDefaults.audioDevices,
+  videoCameraDevices: settingsVideoStoryDefaults.videoDevices,
+  videoDevicesLoading: settingsVideoStoryDefaults.devicesLoading,
+  videoDevicesError: settingsVideoStoryDefaults.devicesError,
+  videoPreviewError: settingsVideoStoryDefaults.previewError,
+  videoPreviewRef: settingsVideoStoryDefaults.previewVideoRef,
+  onPreferredAudioInputDeviceIdChange:
+    settingsVideoStoryDefaults.onPreferredAudioInputDeviceIdChange,
+  onPreferredVideoInputDeviceIdChange:
+    settingsVideoStoryDefaults.onPreferredVideoInputDeviceIdChange,
+  onDefaultSessionViewChange: settingsVideoStoryDefaults.onDefaultSessionViewChange,
+  onAutoFullscreenOnConferenceChange:
+    settingsVideoStoryDefaults.onAutoFullscreenOnConferenceChange,
+  onConferenceNumberSubstringChange:
+    settingsVideoStoryDefaults.onConferenceNumberSubstringChange,
+  onRefreshVideoDevices: settingsVideoStoryDefaults.onRefreshDevices,
 } as const;
 
 export const GeneralSection: Story = {
@@ -166,6 +188,17 @@ export const HeadsetSection: Story = {
       connectionState: "connected",
       deviceLabel: "Jabra Evolve2 65",
     },
+  },
+};
+
+export const VideoSection: Story = {
+  args: {
+    ...panelDefaults,
+    activeSection: "video",
+    preferredVideoInputDeviceId: "cam-1",
+    defaultSessionView: "expanded",
+    autoFullscreenOnConference: true,
+    conferenceNumberSubstring: "conf",
   },
 };
 

@@ -1,6 +1,7 @@
 import type { CallId } from "@domain/index.js";
 import type {
   AttachRemoteAudioCommand,
+  BindCallVideoSurfacesCommand,
   MediaGateway,
   MuteCallCommand,
   PlayBusyToneCommand,
@@ -21,18 +22,23 @@ import { err, ok } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
 import type { Result } from "@shared/result/index.js";
 import {
+  bindLocalVideoPreview,
   setLocalAudioTracksEnabled,
   wirePeerConnectionRemoteAudio,
+  wirePeerConnectionRemoteVideo,
 } from "./peerConnectionMedia.js";
 import { WebAudioTonePlayer } from "./WebAudioTonePlayer.js";
 
 const FEATURE_ID = "F-005";
+const FEATURE_ID_VIDEO = "F-027";
 
 export type PeerConnectionProvider = (callId: CallId) => unknown;
+export type LocalVideoStreamProvider = (callId: CallId) => MediaStream | null;
 
 export type BrowserMediaAdapterOptions = Readonly<{
   logger: Logger;
   getPeerConnection: PeerConnectionProvider;
+  getLocalVideoStream?: LocalVideoStreamProvider;
   rootElement?: HTMLElement;
   tonePlayer?: WebAudioTonePlayer;
 }>;
@@ -49,16 +55,19 @@ type CallMediaState = Readonly<{
 export class BrowserMediaAdapter implements MediaGateway {
   private readonly logger: Logger;
   private readonly getPeerConnection: PeerConnectionProvider;
+  private readonly getLocalVideoStream: LocalVideoStreamProvider | null;
   private readonly explicitRootElement: HTMLElement | undefined;
   private resolvedRootElement: HTMLElement | null = null;
   private readonly tonePlayer: WebAudioTonePlayer;
   private readonly callStates = new Map<CallId, CallMediaState>();
   private readonly mutedCalls = new Set<CallId>();
   private readonly wiredRemoteAudioCalls = new Set<CallId>();
+  private readonly wiredRemoteVideoCalls = new Set<CallId>();
 
   constructor(options: BrowserMediaAdapterOptions) {
     this.logger = options.logger;
     this.getPeerConnection = options.getPeerConnection;
+    this.getLocalVideoStream = options.getLocalVideoStream ?? null;
     this.explicitRootElement = options.rootElement;
     this.tonePlayer = options.tonePlayer ?? new WebAudioTonePlayer();
   }
@@ -129,6 +138,64 @@ export class BrowserMediaAdapter implements MediaGateway {
           featureId: FEATURE_ID,
           boundedContext: "Media",
           operation: "attach_remote_audio",
+          callId: command.callId,
+          result: normalized.code,
+        },
+        error,
+      );
+      return Promise.resolve(err(normalized));
+    }
+  }
+
+  bindCallVideoSurfaces(
+    command: BindCallVideoSurfacesCommand,
+  ): Promise<Result<void, PlatformError>> {
+    try {
+      const remoteElement = asVideoElement(command.remoteVideoElement);
+      const localElement = asVideoElement(command.localVideoElement);
+      if (remoteElement === null || localElement === null) {
+        return Promise.resolve(
+          err(
+            createPlatformError(
+              "validation_failed",
+              "bindCallVideoSurfaces requires HTMLVideoElement instances",
+            ),
+          ),
+        );
+      }
+
+      const connection = this.getPeerConnection(command.callId);
+      if (connection !== null && connection !== undefined) {
+        const wired = wirePeerConnectionRemoteVideo(connection, remoteElement);
+        if (wired) {
+          this.wiredRemoteVideoCalls.add(command.callId);
+        }
+      }
+
+      const localStream =
+        this.getLocalVideoStream?.(command.callId) ?? null;
+      bindLocalVideoPreview(localStream, localElement);
+
+      this.logger.info("browser_media_video_surfaces_bound", {
+        correlationId: command.correlationId,
+        featureId: FEATURE_ID_VIDEO,
+        boundedContext: "Media",
+        operation: "bind_call_video_surfaces",
+        callId: command.callId,
+        result: "succeeded",
+        remoteWired: this.wiredRemoteVideoCalls.has(command.callId),
+        localPreview: localStream !== null,
+      });
+      return Promise.resolve(ok(undefined));
+    } catch (error: unknown) {
+      const normalized = normalizeUnknownError(error);
+      this.logger.error(
+        "browser_media_operation_failed",
+        {
+          correlationId: command.correlationId,
+          featureId: FEATURE_ID_VIDEO,
+          boundedContext: "Media",
+          operation: "bind_call_video_surfaces",
           callId: command.callId,
           result: normalized.code,
         },
@@ -466,4 +533,11 @@ export class BrowserMediaAdapter implements MediaGateway {
       return err(normalized);
     }
   }
+}
+
+function asVideoElement(value: unknown): HTMLVideoElement | null {
+  if (typeof HTMLVideoElement === "undefined") {
+    return null;
+  }
+  return value instanceof HTMLVideoElement ? value : null;
 }

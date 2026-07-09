@@ -1,5 +1,6 @@
 import type {
   CallId,
+  CallMediaMode,
   DtmfTone,
   PhoneNumber,
   SipAccount,
@@ -17,6 +18,7 @@ export type RegisterAccountCommand = Readonly<{
 export type MakeCallCommand = Readonly<{
   callId: CallId;
   number: PhoneNumber;
+  mediaMode?: CallMediaMode;
   correlationId: CorrelationId;
 }>;
 
@@ -33,6 +35,7 @@ export type SendDtmfCommand = Readonly<{
 
 export type AnswerCallCommand = Readonly<{
   callId: CallId;
+  mediaMode?: CallMediaMode;
   correlationId: CorrelationId;
 }>;
 
@@ -67,6 +70,18 @@ export type TelephonyRemoteHoldNotification = Readonly<{
 
 export type TelephonyRemoteResumeNotification = Readonly<{
   callId: CallId;
+  correlationId: CorrelationId;
+}>;
+
+export type TelephonyRemoteVideoPresenceNotification = Readonly<{
+  callId: CallId;
+  present: boolean;
+  correlationId: CorrelationId;
+}>;
+
+export type TelephonyCameraAvailabilityNotification = Readonly<{
+  callId: CallId;
+  available: boolean;
   correlationId: CorrelationId;
 }>;
 
@@ -145,6 +160,18 @@ export interface TelephonyGateway {
   /** Adapter invokes when remote party resumes this leg from hold (LF-022). */
   setRemoteResumeHandler(
     handler: ((notification: TelephonyRemoteResumeNotification) => Promise<void>) | null,
+  ): () => void;
+  /** F-027: adapter invokes after remote SDP video acceptance is known. */
+  setRemoteVideoPresenceHandler(
+    handler:
+      | ((notification: TelephonyRemoteVideoPresenceNotification) => Promise<void>)
+      | null,
+  ): () => void;
+  /** F-027: adapter invokes after local camera probe/capture result is known. */
+  setCameraAvailabilityHandler(
+    handler:
+      | ((notification: TelephonyCameraAvailabilityNotification) => Promise<void>)
+      | null,
   ): () => void;
   /** WU2: adapter invokes on SIP transport disconnect (LF-008). */
   setTransportDisconnectedHandler(

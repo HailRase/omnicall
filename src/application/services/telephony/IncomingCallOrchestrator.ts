@@ -4,6 +4,7 @@ import {
   createCallAnsweredEvent,
   createCallAutoAnsweredEvent,
   createCallEndedEvent,
+  createCallMediaModeSelectedEvent,
   createCallRejectedByDndEvent,
   createCallRejectedEvent,
   createCallRejectReasonSelectedEvent,
@@ -15,6 +16,7 @@ import {
   createIncomingRingtoneStartedEvent,
   createIncomingRingtoneStoppedEvent,
   createPhoneNumber,
+  DEFAULT_CALL_MEDIA_MODE,
   evaluateIncomingAutoAnswerSchedule,
   evaluateAutoAnswerGlobalBlock,
   type AutoAnswerBlockedReason,
@@ -39,8 +41,10 @@ import { createPlatformError } from "@shared/errors/index.js";
 import { err, isErr, ok, type Result } from "@shared/result/index.js";
 import type { CallTracker } from "./CallTracker.js";
 import type { MultiCallPolicyService } from "./MultiCallPolicyService.js";
+import type { CallVideoMediaProjection } from "../../projections/media/CallVideoMediaProjection.js";
 import { cancelScheduledTonePlaybackStop } from "./scheduleTonePlaybackStop.js";
 import { attachRemoteAudioWhenReady } from "./remoteAudioAttach.js";
+import { applyInitialSessionViewForCall } from "./applyInitialSessionViewForCall.js";
 import type {
   AnswerCallInput,
   HandleCallAnsweredInput,
@@ -55,6 +59,7 @@ type IncomingCallOrchestratorDeps = Readonly<{
   eventPublisher: DomainEventPublisher;
   logger: Logger;
   callTracker: CallTracker;
+  videoMediaProjection: CallVideoMediaProjection;
   hostIntegrationGateway?: HostIntegrationGateway;
   multiCallPolicyService: MultiCallPolicyService;
 }>;
@@ -197,6 +202,7 @@ export class IncomingCallOrchestrator {
     input: AnswerCallInput,
   ): Promise<Result<Call, ReturnType<typeof createPlatformError>>> {
     const correlationId = input.correlationId ?? createCorrelationId();
+    const mediaMode = input.mediaMode ?? DEFAULT_CALL_MEDIA_MODE;
     const call = this.deps.callTracker.findRingingIncomingCall(input.callId);
     if (call === null) {
       return err(createPlatformError("validation_failed", "Incoming call not found"));
@@ -233,12 +239,23 @@ export class IncomingCallOrchestrator {
 
     const answerResult = await this.deps.telephonyGateway.answerCall({
       callId: input.callId,
+      mediaMode,
       correlationId,
     });
     if (isErr(answerResult)) {
       return answerResult;
     }
 
+    this.deps.videoMediaProjection.selectMediaMode(input.callId, mediaMode);
+    this.deps.eventPublisher.publish(
+      createCallMediaModeSelectedEvent(correlationId, input.callId, mediaMode),
+    );
+    await applyInitialSessionViewForCall(this.deps, {
+      callId: input.callId,
+      mediaMode,
+      remoteNumber: call.phoneNumber,
+      correlationId,
+    });
     this.clearAutoAnswerTimer(input.callId);
     cancelScheduledTonePlaybackStop(input.callId);
     await this.deps.mediaGateway.stopTone({ callId: input.callId, correlationId });
@@ -277,6 +294,7 @@ export class IncomingCallOrchestrator {
       previousState: call.state,
       nextState: answered.call.state,
       result: input.autoAnswered === true ? "auto_answered" : "answered",
+      mediaMode,
     });
 
     return ok(answered.call);

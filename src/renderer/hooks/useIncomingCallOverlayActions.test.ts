@@ -11,8 +11,10 @@ import { useIncomingCallOverlayActions } from "./useIncomingCallOverlayActions.j
 function createIncomingActions() {
   return {
     handleAnswerIncoming: vi.fn(),
+    handleAnswerIncomingWithVideo: vi.fn(),
     handleRejectIncoming: vi.fn(),
     answerDisabledReason: null,
+    videoAnswerDisabledReason: null,
     rejectDisabledReason: null,
   };
 }

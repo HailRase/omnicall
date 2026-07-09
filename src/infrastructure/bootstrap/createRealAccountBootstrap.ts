@@ -2,6 +2,7 @@ import { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFac
 import { resolveSettingsAccountKey } from "@application/settings/resolveSettingsAccountKey.js";
 import {
   ArbiterMediaGateway,
+  BrowserLocalMediaCaptureAdapter,
   BrowserMediaAdapter,
   MockHostIntegrationGateway,
   JsSipTelephonyAdapter,
@@ -121,23 +122,48 @@ export function createRealAccountBootstrap(
     resolveAccountKey: () => resolveSettingsAccountKey(settingsRepository),
   });
 
-  const telephonyGateway = new JsSipTelephonyAdapter({
+  let telephonyGateway: JsSipTelephonyAdapter | null = null;
+  const localMediaCapture = new BrowserLocalMediaCaptureAdapter({
+    logger: createBootstrapLogger({ featureId: "F-027", boundedContext: "Media" }),
+    getPeerConnection: (callId) =>
+      telephonyGateway?.getPeerConnectionForCall(callId) ?? null,
+  });
+  const configuredTelephonyGateway = new JsSipTelephonyAdapter({
     logger: createBootstrapLogger({ featureId: "F-001", boundedContext: "Telephony" }),
     codecPreferencesPort,
+    localMediaCapturePort: localMediaCapture,
+    resolveLocalMediaStream: (handle) =>
+      localMediaCapture.getStreamForHandle(handle),
+    getPreferredMediaDeviceIds: async () => {
+      const accountKey = await resolveSettingsAccountKey(settingsRepository);
+      const settings = await settingsRepository.getUserSettings(accountKey);
+      return {
+        ...(settings.preferredAudioInputDeviceId !== null
+          ? { audioDeviceId: settings.preferredAudioInputDeviceId }
+          : {}),
+        ...(settings.preferredVideoInputDeviceId !== null
+          ? { videoDeviceId: settings.preferredVideoInputDeviceId }
+          : {}),
+      };
+    },
   });
+  telephonyGateway = configuredTelephonyGateway;
   const mediaGateway = new ArbiterMediaGateway(
     new BrowserMediaAdapter({
       logger: createBootstrapLogger({ featureId: "F-005", boundedContext: "Media" }),
-      getPeerConnection: (callId) => telephonyGateway.getPeerConnectionForCall(callId),
+      getPeerConnection: (callId) =>
+        configuredTelephonyGateway.getPeerConnectionForCall(callId),
+      getLocalVideoStream: (callId) => localMediaCapture.getStreamForCall(callId),
     }),
   );
   const hostIntegrationGateway = new MockHostIntegrationGateway();
   const headsetGateway = new WebHidHeadsetAdapter();
 
   const facade = new AccountBootstrapFacade({
-    telephonyGateway,
+    telephonyGateway: configuredTelephonyGateway,
     mediaGateway,
     settingsRepository,
+    localMediaCapturePort: localMediaCapture,
     headsetGateway,
     ...(savedAccountProfileRepository !== undefined
       ? { savedAccountProfileRepository }
@@ -154,7 +180,7 @@ export function createRealAccountBootstrap(
     logger: createBootstrapLogger({ featureId: "F-001", boundedContext: "Telephony" }),
   });
 
-  telephonyGateway.setPeerConnectionBoundHandler(async (notification) => {
+  configuredTelephonyGateway.setPeerConnectionBoundHandler(async (notification) => {
     await facade.notifyPeerConnectionAvailable(
       notification.callId,
       notification.correlationId,

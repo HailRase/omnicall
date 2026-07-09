@@ -21,6 +21,7 @@ import {
   type AppTheme,
   type AudioCodecId,
   type CodecPreferenceMutationMessageKey,
+  type SessionViewMode,
   type SupportedLanguage,
   type UserSettings,
   type VideoCodecId,
@@ -74,6 +75,16 @@ type UseSettingsActionsResult = Readonly<{
   onConnectHeadset: () => void;
   onDisconnectHeadset: () => void;
   headsetConnectionProjection: HeadsetConnectionProjection;
+  preferredAudioInputDeviceId: string | null;
+  preferredVideoInputDeviceId: string | null;
+  defaultSessionView: SessionViewMode;
+  autoFullscreenOnConference: boolean;
+  conferenceNumberSubstring: string | null;
+  onPreferredAudioInputDeviceIdChange: (deviceId: string | null) => void;
+  onPreferredVideoInputDeviceIdChange: (deviceId: string | null) => void;
+  onDefaultSessionViewChange: (view: SessionViewMode) => void;
+  onAutoFullscreenOnConferenceChange: (enabled: boolean) => void;
+  onConferenceNumberSubstringChange: (value: string | null) => void;
 }>;
 
 function resolveSettingsUpdateError(error: unknown): string {
@@ -479,6 +490,56 @@ export function useSettingsActions(
     void facade.disconnectHeadsetDevice();
   }, [facade]);
 
+  const onPreferredAudioInputDeviceIdChange = useCallback(
+    (deviceId: string | null): void => {
+      persistUserSettings({
+        ...userSettings,
+        preferredAudioInputDeviceId: deviceId,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onPreferredVideoInputDeviceIdChange = useCallback(
+    (deviceId: string | null): void => {
+      persistUserSettings({
+        ...userSettings,
+        preferredVideoInputDeviceId: deviceId,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onDefaultSessionViewChange = useCallback(
+    (view: SessionViewMode): void => {
+      persistUserSettings({
+        ...userSettings,
+        defaultSessionView: view,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onAutoFullscreenOnConferenceChange = useCallback(
+    (enabled: boolean): void => {
+      persistUserSettings({
+        ...userSettings,
+        autoFullscreenOnConference: enabled,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onConferenceNumberSubstringChange = useCallback(
+    (value: string | null): void => {
+      persistUserSettings({
+        ...userSettings,
+        conferenceNumberSubstring: value,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
   return {
     account,
     userSettings,
@@ -514,5 +575,15 @@ export function useSettingsActions(
     onConnectHeadset,
     onDisconnectHeadset,
     headsetConnectionProjection,
+    preferredAudioInputDeviceId: userSettings.preferredAudioInputDeviceId,
+    preferredVideoInputDeviceId: userSettings.preferredVideoInputDeviceId,
+    defaultSessionView: userSettings.defaultSessionView,
+    autoFullscreenOnConference: userSettings.autoFullscreenOnConference,
+    conferenceNumberSubstring: userSettings.conferenceNumberSubstring,
+    onPreferredAudioInputDeviceIdChange,
+    onPreferredVideoInputDeviceIdChange,
+    onDefaultSessionViewChange,
+    onAutoFullscreenOnConferenceChange,
+    onConferenceNumberSubstringChange,
   };
 }

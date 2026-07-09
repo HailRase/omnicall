@@ -34,6 +34,20 @@ describe("IncomingCallSessionCard", () => {
     expect(screen.getByTestId("reject-call")).toHaveTextContent("Отклонить");
   });
 
+  it("invokes answer with video when provided", () => {
+    const onAnswerWithVideo = vi.fn();
+    render(
+      <IncomingCallSessionCard
+        {...baseProps}
+        onAnswerWithVideo={onAnswerWithVideo}
+        videoAnswerDisabledReason={null}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId("answer-call-video"));
+    expect(onAnswerWithVideo).toHaveBeenCalledTimes(1);
+  });
+
   it("selects incoming session without answering", () => {
     const onSelect = vi.fn();
     render(<IncomingCallSessionCard {...baseProps} onSelect={onSelect} />);

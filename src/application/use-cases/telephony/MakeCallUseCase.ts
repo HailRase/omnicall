@@ -3,6 +3,7 @@ import {
   validatePhoneNumber,
   type Call,
   type CallId,
+  type CallMediaMode,
 } from "@domain/index.js";
 import type { Logger } from "@ports/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
@@ -14,12 +15,13 @@ import type { CallEngine } from "@application/services/telephony/CallEngine.js";
 
 /**
  * - Purpose: validate input number and initiate outgoing call flow.
- * - Inputs: raw phone number, optional correlation id and call id.
+ * - Inputs: raw number, optional call id, correlation id, and media mode.
  * - Outputs: resulting Call snapshot or validation/operation error.
  */
 export type MakeCallInput = Readonly<{
   number: string;
   callId?: CallId;
+  mediaMode?: CallMediaMode;
   correlationId?: CorrelationId;
 }>;
 
@@ -55,17 +57,12 @@ export class MakeCallUseCase {
       );
     }
 
-    const callInput =
-      input.callId === undefined
-        ? {
-            correlationId,
-            phoneNumber: createPhoneNumber(input.number),
-          }
-        : {
-            callId: input.callId,
-            correlationId,
-            phoneNumber: createPhoneNumber(input.number),
-          };
+    const callInput = {
+      correlationId,
+      phoneNumber: createPhoneNumber(input.number),
+      ...(input.callId !== undefined ? { callId: input.callId } : {}),
+      ...(input.mediaMode !== undefined ? { mediaMode: input.mediaMode } : {}),
+    };
 
     return this.callEngine.makeCall(callInput);
   }

@@ -6,8 +6,14 @@ import type {
   SettingsRepository,
   TelephonyGateway,
 } from "@ports/index.js";
-import type { Call, CallId } from "@domain/index.js";
-import { createCallRemoteHeldEvent, createCallRemoteResumedEvent } from "@domain/index.js";
+import { CallVideoMediaProjection } from "../../projections/media/CallVideoMediaProjection.js";
+import type { Call, CallId, CallVideoMediaState } from "@domain/index.js";
+import {
+  createCallRemoteHeldEvent,
+  createCallRemoteResumedEvent,
+  createCameraAvailabilityChangedEvent,
+  createRemoteVideoPresenceChangedEvent,
+} from "@domain/index.js";
 import { createPlatformError } from "@shared/errors/index.js";
 import type { Result } from "@shared/result/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
@@ -71,6 +77,7 @@ export type {
  */
 export class CallEngine {
   private readonly callTracker = new CallTracker();
+  private readonly videoMediaProjection = new CallVideoMediaProjection();
   private readonly activeCallControlService: ActiveCallControlService;
   private readonly multiCallPolicyService: MultiCallPolicyService;
   private readonly outgoingCallOrchestrator: OutgoingCallOrchestrator;
@@ -97,6 +104,7 @@ export class CallEngine {
       eventPublisher,
       logger,
       callTracker: this.callTracker,
+      videoMediaProjection: this.videoMediaProjection,
     };
 
     this.activeCallControlService = new ActiveCallControlService({
@@ -125,6 +133,7 @@ export class CallEngine {
     );
     this.outgoingCallOrchestrator = new OutgoingCallOrchestrator({
       ...sharedDeps,
+      settingsRepository,
       multiCallPolicyService: this.multiCallPolicyService,
     });
     this.incomingCallOrchestrator = new IncomingCallOrchestrator({
@@ -167,6 +176,72 @@ export class CallEngine {
     input: MakeCallInput,
   ): Promise<Result<Call, ReturnType<typeof createPlatformError>>> {
     return this.outgoingCallOrchestrator.makeCall(input);
+  }
+
+  getCallVideoMediaState(callId: CallId): CallVideoMediaState | null {
+    return this.videoMediaProjection.getByCallId(callId);
+  }
+
+  getVideoMediaProjection(): CallVideoMediaProjection {
+    return this.videoMediaProjection;
+  }
+
+  handleCameraAvailability(
+    callId: CallId,
+    available: boolean,
+    correlationId?: CorrelationId,
+  ): void {
+    const next = this.videoMediaProjection.setCameraAvailableState(callId, available);
+    if (next === null) {
+      return;
+    }
+
+    const resolvedCorrelationId = correlationId ?? createCorrelationId();
+    this.eventPublisher.publish(
+      createCameraAvailabilityChangedEvent(
+        resolvedCorrelationId,
+        callId,
+        available,
+      ),
+    );
+    this.logger.info("call_camera_availability_changed", {
+      correlationId: resolvedCorrelationId,
+      featureId: "F-027",
+      boundedContext: "Media",
+      operation: "handle_camera_availability",
+      callId,
+      result: "succeeded",
+      available,
+    });
+  }
+
+  handleRemoteVideoPresence(
+    callId: CallId,
+    present: boolean,
+    correlationId?: CorrelationId,
+  ): void {
+    const next = this.videoMediaProjection.setRemoteVideoPresent(callId, present);
+    if (next === null) {
+      return;
+    }
+
+    const resolvedCorrelationId = correlationId ?? createCorrelationId();
+    this.eventPublisher.publish(
+      createRemoteVideoPresenceChangedEvent(
+        resolvedCorrelationId,
+        callId,
+        present,
+      ),
+    );
+    this.logger.info("call_remote_video_presence_changed", {
+      correlationId: resolvedCorrelationId,
+      featureId: "F-027",
+      boundedContext: "Media",
+      operation: "remote_video_presence",
+      callId,
+      result: "succeeded",
+      present,
+    });
   }
 
   handleProgress(
@@ -230,6 +305,7 @@ export class CallEngine {
       resolvedCorrelationId,
     );
     await this.incomingCallOrchestrator.handleCallEnded(callId, resolvedCorrelationId);
+    this.videoMediaProjection.remove(callId);
   }
 
   handleRemoteHold(callId: CallId, correlationId?: CorrelationId): void {
