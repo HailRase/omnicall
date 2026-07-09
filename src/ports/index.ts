@@ -73,6 +73,7 @@ export type {
   ShellWindowGateway,
 } from "./platform/ShellWindowGateway.js";
 export type { UpdateMetadataGateway } from "./updates/UpdateMetadataGateway.js";
+export type { HeadsetGateway } from "./headset/HeadsetGateway.js";
 export type {
   InstalledPlatformInfo,
   PlatformInfoGateway,

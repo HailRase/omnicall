@@ -115,6 +115,13 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
   );
   const dismissedUpdateBannerVersion = readDismissedUpdateBannerVersion(record, errors);
   const codecPreferences = readCodecPreferences(record, errors);
+  const headsetEnabled = readBooleanWithDefault(record, "headsetEnabled", false, errors);
+  const headsetAutoReconnect = readBooleanWithDefault(
+    record,
+    "headsetAutoReconnect",
+    true,
+    errors,
+  );
 
   if (errors.length > 0) {
     return { ok: false, errors };
@@ -145,6 +152,8 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
       sipAutoRegisterOnStartup,
       dismissedUpdateBannerVersion,
       codecPreferences,
+      headsetEnabled,
+      headsetAutoReconnect,
     },
   };
 }

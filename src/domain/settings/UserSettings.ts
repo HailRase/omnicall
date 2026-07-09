@@ -25,7 +25,7 @@ import {
   type NotificationStacking,
 } from "./NotificationSettings.js";
 
-export const SETTINGS_SCHEMA_VERSION = 3 as const;
+export const SETTINGS_SCHEMA_VERSION = 4 as const;
 
 export type SettingsSchemaVersion = typeof SETTINGS_SCHEMA_VERSION;
 
@@ -56,6 +56,8 @@ export type UserSettings = Readonly<{
   /** Suppress startup update banner until manifest reports a newer version. */
   dismissedUpdateBannerVersion: string | null;
   codecPreferences: CodecPreferences;
+  headsetEnabled: boolean;
+  headsetAutoReconnect: boolean;
 }>;
 
 export { MIN_SIP_REREGISTER_INTERVAL_SEC, MIN_SIP_RECONNECT_INTERVAL_SEC };
@@ -89,5 +91,7 @@ export function createDefaultUserSettings(): UserSettings {
     sipAutoRegisterOnStartup: false,
     dismissedUpdateBannerVersion: null,
     codecPreferences: createDefaultCodecPreferences(),
+    headsetEnabled: false,
+    headsetAutoReconnect: true,
   };
 }

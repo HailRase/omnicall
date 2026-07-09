@@ -4,6 +4,7 @@ import { SettingsPanel } from "./SettingsPanel.js";
 import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefaults.js";
 import { settingsCodecTestDefaults } from "./panels/settingsCodecTestDefaults.js";
 import { settingsAccountTestDefaults } from "./panels/settingsAccountTestDefaults.js";
+import { settingsHeadsetStoryDefaults } from "./panels/settingsHeadsetTestDefaults.js";
 import type { ShellWindowControlsViewModel } from "../../hooks/useShellWindowControls.js";
 
 const storyWindowControls: ShellWindowControlsViewModel = {
@@ -88,6 +89,7 @@ const panelDefaults = {
   ...themeDefaults,
   ...autoAnswerDefaults,
   ...appUpdateDefaults,
+  ...settingsHeadsetStoryDefaults,
 } as const;
 
 export const GeneralSection: Story = {
@@ -149,6 +151,21 @@ export const CodecsSection: Story = {
   args: {
     ...panelDefaults,
     activeSection: "codecs",
+  },
+};
+
+export const HeadsetSection: Story = {
+  args: {
+    ...panelDefaults,
+    activeSection: "headset",
+    headsetEnabled: true,
+    headsetConnectionProjection: {
+      ...settingsHeadsetStoryDefaults.headsetConnectionProjection,
+      isSupported: true,
+      isEnabled: true,
+      connectionState: "connected",
+      deviceLabel: "Jabra Evolve2 65",
+    },
   },
 };
 

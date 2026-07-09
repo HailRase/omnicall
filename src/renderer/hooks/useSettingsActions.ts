@@ -30,6 +30,7 @@ import { DEFAULT_AUTO_ANSWER_TIMEOUT_SEC } from "../components/settings/panels/S
 import { setRendererLanguage, translateCurrent } from "../i18n/index.js";
 import { useAccountActions } from "./useAccountActions.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
+import type { HeadsetConnectionProjection } from "@application/projections/headset/headsetConnectionProjection.js";
 
 type UseSettingsActionsInput = Readonly<{
   facade: AccountBootstrapFacade | null;
@@ -66,6 +67,13 @@ type UseSettingsActionsResult = Readonly<{
   onVideoCodecReorder: (fromIndex: number, toIndex: number) => void;
   codecPreferencesError: CodecPreferenceMutationMessageKey | null;
   settingsUpdateError: string | null;
+  headsetEnabled: boolean;
+  headsetAutoReconnect: boolean;
+  onHeadsetEnabledChange: (enabled: boolean) => void;
+  onHeadsetAutoReconnectChange: (enabled: boolean) => void;
+  onConnectHeadset: () => void;
+  onDisconnectHeadset: () => void;
+  headsetConnectionProjection: HeadsetConnectionProjection;
 }>;
 
 function resolveSettingsUpdateError(error: unknown): string {
@@ -101,6 +109,9 @@ export function useSettingsActions(
 ): UseSettingsActionsResult {
   const { facade, currentSettings, applyMultiCallSettings, isSipRegistered = false } = input;
   const projection = useAccountBootstrapStore((state) => state.projection);
+  const headsetConnectionProjection = useAccountBootstrapStore(
+    (state) => state.headsetConnectionProjection,
+  );
   const registeredIdentity = deriveRegisteredAccountIdentity(projection);
   const account = useAccountActions({ facade, isSipRegistered, registeredIdentity });
   const activeProfileSettingsSyncKey = useAccountBootstrapStore((state) =>
@@ -434,6 +445,40 @@ export function useSettingsActions(
     [persistUserSettings, userSettings],
   );
 
+  const onHeadsetEnabledChange = useCallback(
+    (enabled: boolean): void => {
+      persistUserSettings({
+        ...userSettings,
+        headsetEnabled: enabled,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onHeadsetAutoReconnectChange = useCallback(
+    (enabled: boolean): void => {
+      persistUserSettings({
+        ...userSettings,
+        headsetAutoReconnect: enabled,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onConnectHeadset = useCallback((): void => {
+    if (facade === null) {
+      return;
+    }
+    void facade.connectHeadsetDevice();
+  }, [facade]);
+
+  const onDisconnectHeadset = useCallback((): void => {
+    if (facade === null) {
+      return;
+    }
+    void facade.disconnectHeadsetDevice();
+  }, [facade]);
+
   return {
     account,
     userSettings,
@@ -462,5 +507,12 @@ export function useSettingsActions(
     onVideoCodecReorder,
     codecPreferencesError,
     settingsUpdateError,
+    headsetEnabled: userSettings.headsetEnabled,
+    headsetAutoReconnect: userSettings.headsetAutoReconnect,
+    onHeadsetEnabledChange,
+    onHeadsetAutoReconnectChange,
+    onConnectHeadset,
+    onDisconnectHeadset,
+    headsetConnectionProjection,
   };
 }

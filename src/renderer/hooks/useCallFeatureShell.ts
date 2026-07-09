@@ -19,6 +19,7 @@ import { useDialpadShell } from "./useDialpadShell.js";
 import { useSoftphoneCallActions } from "./useSoftphoneCallActions.js";
 import { useIncomingCallActions } from "./useIncomingCallActions.js";
 import { useSoftphoneProjections } from "./useSoftphoneProjections.js";
+import { applyHeadsetSyncBusyToActiveCallControls } from "@application/projections/headset/applyHeadsetSyncBusyToActiveCallControls.js";
 
 type UseCallFeatureShellInput = Readonly<{
   facade: AccountBootstrapFacade;
@@ -42,6 +43,18 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     setIncomingUiState,
   } = useSoftphoneProjections();
 
+  const headsetSyncBusyProjection = useAccountBootstrapStore(
+    (state) => state.headsetSyncBusyProjection,
+  );
+  const adjustedActiveCallControlsProjection = useMemo(
+    () =>
+      applyHeadsetSyncBusyToActiveCallControls(
+        activeCallControlsProjection,
+        headsetSyncBusyProjection,
+      ),
+    [activeCallControlsProjection, headsetSyncBusyProjection],
+  );
+
   const contacts = useAccountBootstrapStore((state) => state.contactsProjection.contacts);
 
   const {
@@ -58,7 +71,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
   const callActions = useSoftphoneCallActions({
     facade,
     callProjection,
-    activeCallControlsProjection,
+    activeCallControlsProjection: adjustedActiveCallControlsProjection,
     dialedNumber,
     callDisabledReason,
   });
@@ -100,14 +113,14 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
   });
 
   const activeCallControlsShell = useMemo(
-    () => deriveActiveCallControlsShell(activeCallControlsProjection, transferProjection),
-    [activeCallControlsProjection, transferProjection],
+    () => deriveActiveCallControlsShell(adjustedActiveCallControlsProjection, transferProjection),
+    [adjustedActiveCallControlsProjection, transferProjection],
   );
 
   const callLinesShell = useCallLineRowShell({
     multiLineCallProjection,
     multiCallProjection,
-    activeCallControlsProjection,
+    activeCallControlsProjection: adjustedActiveCallControlsProjection,
     transferProjection,
     contacts,
   });

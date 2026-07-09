@@ -2,13 +2,15 @@
 
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
-**Updated:** 2026-07-07  
-**Tests:** 1519+ passed (`npm run test`) — last verified 2026-07-08 (release cut `v0.8.0`)  
-**Lint / typecheck:** green (last verified 2026-07-07)
+**Updated:** 2026-07-09  
+**Tests:** 1575 passed (`npm run test`) — last verified 2026-07-09 (P10 headset integration)  
+**Lint / typecheck:** green (last verified 2026-07-09)
 
 **Guides (onboarding):** [`guides/README.md`](../../guides/README.md) — установка, пользователь, агенты Cursor, релизы.
 
 ## Active phase
+
+**P10 — Headset integration (F-012)** — **done** (`handoffs/P10-Headset-Integration-Handoff.md`)
 
 **P11 — Settings, Personalization, Shell UX**
 
@@ -31,11 +33,11 @@
 
 See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
-1. **P10** headset foundation — T-004 — `/logic`
-2. P11 polish: UI-6 Radix modals — `/ui`
-3. **F-008** DTMF real adapter — `/adapter`
+1. P11 polish: UI-6 Radix modals — `/ui`
+2. **F-008** DTMF real adapter — `/adapter`
+3. P12 host API foundation
 
-**Recently closed (TASK-QUEUE):** RAT SIP core merged to `main` (`feature/real-adapters` stale ancestor), **F-024** saved SIP account profiles (`0a2ae05`, `handoffs/P11-F024-Saved-Account-Profiles-Handoff.md`), **F-023** local account profiles + disk persistence (T-011), **F-022 / T-009 / T-010** codec preferences (LF-084), **T-008** SIP transport/register state refactor (`TRANSPORT-REGISTER-STATE-REFACTORING.md`), T-007 Call UI design parity (`handoffs/P11-Call-UI-Design-Parity-Handoff.md`), post-WU5 shell polish (`handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`), T-005 fullscreen settings panel, T-001 icon tooltips, T-002 AppIcon wiring, **F-014 SIP registration retry** (`handoffs/P08-SIP-Registration-Retry-Handoff.md`).
+**Recently closed (TASK-QUEUE):** **P10 / F-012** headset Web HID integration (`handoffs/P10-Headset-Integration-Handoff.md`, ADR-0007), RAT SIP core merged to `main` (`feature/real-adapters` stale ancestor), **F-024** saved SIP account profiles (`0a2ae05`, `handoffs/P11-F024-Saved-Account-Profiles-Handoff.md`), **F-023** local account profiles + disk persistence (T-011), **F-022 / T-009 / T-010** codec preferences (LF-084), **T-008** SIP transport/register state refactor (`TRANSPORT-REGISTER-STATE-REFACTORING.md`), T-007 Call UI design parity (`handoffs/P11-Call-UI-Design-Parity-Handoff.md`), post-WU5 shell polish (`handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`), T-005 fullscreen settings panel, T-001 icon tooltips, T-002 AppIcon wiring, **F-014 SIP registration retry** (`handoffs/P08-SIP-Registration-Retry-Handoff.md`).
 
 ## RAT (Real Adapter Track)
 

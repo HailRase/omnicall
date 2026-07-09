@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefaults.js";
 import { settingsCodecTestDefaults } from "./panels/settingsCodecTestDefaults.js";
+import { settingsHeadsetTestDefaults } from "./panels/settingsHeadsetTestDefaults.js";
 import { settingsAccountTestDefaults } from "./panels/settingsAccountTestDefaults.js";
 import { setupJsdomRadix } from "../../test/setupJsdomRadix.js";
 import { SettingsPanel } from "./SettingsPanel.js";
@@ -69,6 +70,7 @@ const panelBaseProps = {
   ...autoAnswerDefaults,
   ...appUpdateDefaults,
   ...codecDefaults,
+  ...settingsHeadsetTestDefaults,
 } as const;
 
 describe("SettingsPanel", () => {

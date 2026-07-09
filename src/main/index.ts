@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, nativeTheme, screen, shell } from "electron";
+import { app, BrowserWindow, ipcMain, nativeTheme, screen, session, shell } from "electron";
 import { join } from "node:path";
 import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
 import {
@@ -373,6 +373,28 @@ function registerIpcHandlers(): void {
   });
 }
 
+function setupHidPermissions(): void {
+  session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => {
+    callback(["media", "notifications", "hid"].includes(permission));
+  });
+
+  session.defaultSession.setPermissionCheckHandler((_webContents, permission) => {
+    return ["media", "notifications", "hid"].includes(permission);
+  });
+
+  session.defaultSession.on("select-hid-device", (event, details, callback) => {
+    event.preventDefault();
+    const granted = details.deviceList[0];
+    callback(granted?.deviceId ?? "");
+  });
+
+  logger.info("hid_permissions_configured", {
+    correlationId: createCorrelationId(),
+    operation: "setup_hid_permissions",
+    result: "success",
+  });
+}
+
 void app.whenReady().then(() => {
   const correlationId = createCorrelationId();
   installApplicationMenu();
@@ -387,6 +409,7 @@ void app.whenReady().then(() => {
   registerProfilesPersistenceIpc();
   registerSecretStorageIpc();
   registerContactsCsvIpc();
+  setupHidPermissions();
   createMainWindow();
 
   app.on("activate", () => {

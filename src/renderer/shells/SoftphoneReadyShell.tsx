@@ -269,6 +269,13 @@ function SoftphoneShellLayoutRoute({
               onAudioCodecReorder={settingsActions.onAudioCodecReorder}
               onVideoCodecReorder={settingsActions.onVideoCodecReorder}
               codecPreferencesError={settingsActions.codecPreferencesError}
+              headsetConnectionProjection={settingsActions.headsetConnectionProjection}
+              headsetEnabled={settingsActions.headsetEnabled}
+              headsetAutoReconnect={settingsActions.headsetAutoReconnect}
+              onHeadsetEnabledChange={settingsActions.onHeadsetEnabledChange}
+              onHeadsetAutoReconnectChange={settingsActions.onHeadsetAutoReconnectChange}
+              onConnectHeadset={settingsActions.onConnectHeadset}
+              onDisconnectHeadset={settingsActions.onDisconnectHeadset}
               account={{
                 form: accountActions.form,
                 submitting: accountActions.submitting,

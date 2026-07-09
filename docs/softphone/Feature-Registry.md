@@ -308,7 +308,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-071`, `LF-072`, `LF-073`, `LF-074`, `LF-075`
 - Context: Headset
 - Priority: high
-- Status: planned
+- Status: **implemented** (P10 WU1–WU4 — Web HID v1, orchestrator, settings UI, ADR-0007)
 - Owner: TBD
 - Inputs: hardware answer, hangup, hold, mute events
 - Outputs: application commands and headset state events
@@ -317,9 +317,15 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Headset commands enter through Use Cases.
   - LED sync consumes state projections.
 - Test Coverage:
-  - Unit: hardware event mapping
-  - Integration: mock headset gateway
+  - Unit: `buildHeadsetCallSnapshot.test.ts`, `HeadsetSessionOrchestrator.test.ts`, `SettingsHeadsetPanel.test.tsx`
+  - Integration: `MockHeadsetGateway.ts`, `AccountBootstrapFacade` headset wiring
   - E2E: deferred until device harness exists
+- Evidence:
+  - Domain/ports: `src/domain/headset/`, `src/ports/headset/HeadsetGateway.ts`
+  - Application: `src/application/headset/`, `src/application/services/headset/HeadsetIntegrationService.ts`
+  - Adapters: `src/adapters/headset/webhid/`, `src/adapters/mock/MockHeadsetGateway.ts`
+  - UI: `SettingsHeadsetPanel.tsx`, `headsetSyncBusyProjection.ts`, `applyHeadsetSyncBusyToActiveCallControls.ts`
+  - ADR: `docs/softphone/adr/ADR-0007-headset-web-hid.md`
 
 ## F-013: Call History
 

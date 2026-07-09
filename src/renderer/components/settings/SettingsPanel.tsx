@@ -17,6 +17,7 @@ import type { SavedProfilePanelMode } from "@application/projections/settings/de
 import type { AccountAuthorizationErrorProjection } from "@application/projections/settings/mapAccountAuthorizationError.js";
 import { IconButton } from "../ui/index.js";
 import { useI18n } from "../../i18n/index.js";
+import type { HeadsetConnectionProjection } from "@application/projections/headset/headsetConnectionProjection.js";
 import type { SettingsSectionId } from "./settingsSections.js";
 import { resolveSettingsContentHeaderTitle } from "./settingsSections.js";
 import type { TranslationKey } from "../../i18n/messages.js";
@@ -91,6 +92,13 @@ export type SettingsPanelProps = Readonly<{
   onAudioCodecReorder: (fromIndex: number, toIndex: number) => void;
   onVideoCodecReorder: (fromIndex: number, toIndex: number) => void;
   codecPreferencesError: CodecPreferenceMutationMessageKey | null;
+  headsetConnectionProjection: HeadsetConnectionProjection;
+  headsetEnabled: boolean;
+  headsetAutoReconnect: boolean;
+  onHeadsetEnabledChange: (enabled: boolean) => void;
+  onHeadsetAutoReconnectChange: (enabled: boolean) => void;
+  onConnectHeadset: () => void;
+  onDisconnectHeadset: () => void;
   account: Readonly<{
     form: SipAccountInput;
     submitting: boolean;
@@ -180,6 +188,13 @@ export function SettingsPanel({
   onAudioCodecReorder,
   onVideoCodecReorder,
   codecPreferencesError,
+  headsetConnectionProjection,
+  headsetEnabled,
+  headsetAutoReconnect,
+  onHeadsetEnabledChange,
+  onHeadsetAutoReconnectChange,
+  onConnectHeadset,
+  onDisconnectHeadset,
   account,
 }: SettingsPanelProps): JSX.Element {
   const { t } = useI18n();
@@ -314,7 +329,17 @@ export function SettingsPanel({
       );
       break;
     case "headset":
-      sectionContent = <SettingsHeadsetPanel />;
+      sectionContent = (
+        <SettingsHeadsetPanel
+          projection={headsetConnectionProjection}
+          headsetEnabled={headsetEnabled}
+          headsetAutoReconnect={headsetAutoReconnect}
+          onHeadsetEnabledChange={onHeadsetEnabledChange}
+          onHeadsetAutoReconnectChange={onHeadsetAutoReconnectChange}
+          onConnectHeadset={onConnectHeadset}
+          onDisconnectHeadset={onDisconnectHeadset}
+        />
+      );
       break;
     default: {
       const exhaustive: never = activeSection;

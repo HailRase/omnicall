@@ -1,0 +1,39 @@
+export const HID_VENDOR_JABRA = 0x0b0e;
+export const HID_VENDOR_PLANTRONICS = 0x047f;
+export const HID_USAGE_PAGE_TELEPHONY = 0x0b;
+export const HID_USAGE_PAGE_LED = 0x08;
+export const HID_INPUT_REPORT_ID_DEFAULT = 1;
+export const HID_OUTPUT_REPORT_ID_DEFAULT = 2;
+
+export const JABRA_HSC016_PRODUCT_IDS: ReadonlySet<number> = new Set([
+  0x0300, 0x0301, 0x0302, 0x0303,
+]);
+
+export const PLANTRONICS_BW3320_PRODUCT_IDS: ReadonlySet<number> = new Set([
+  0x430a, 0xc056,
+]);
+
+export const JABRA_HSC016_VOLUME_REPORT_ID = 1;
+export const JABRA_HSC016_HOOK_REPORT_ID = 2;
+export const JABRA_HSC016_OFF_HOOK_MASK = 0x01;
+export const JABRA_HSC016_ON_HOOK_MASK = 0x02;
+export const JABRA_HSC016_MUTE_MASK = 0x04;
+export const JABRA_HSC016_LEGACY_MUTE_REPORT_ID = 3;
+export const JABRA_HSC016_LEGACY_MUTE_MASK = 0x08;
+
+export const PLANTRONICS_BW3320_TELEPHONY_REPORT_ID = 11;
+export const PLANTRONICS_BW3320_LED_MUTE_REPORT_ID = 9;
+export const PLANTRONICS_BW3320_LED_OFF_HOOK_REPORT_ID = 23;
+export const PLANTRONICS_BW3320_LED_RING_REPORT_ID = 24;
+export const PLANTRONICS_BW3320_HOOK_MASK = 0x01;
+export const PLANTRONICS_BW3320_MUTE_MASK = 0x04;
+
+export const HID_DEVICE_FILTERS: HIDDeviceFilter[] = [
+  { vendorId: HID_VENDOR_JABRA, usagePage: HID_USAGE_PAGE_TELEPHONY },
+  { vendorId: HID_VENDOR_PLANTRONICS, usagePage: HID_USAGE_PAGE_TELEPHONY },
+];
+
+export const HID_SUPPORTED_VENDOR_IDS = new Set<number>([
+  HID_VENDOR_JABRA,
+  HID_VENDOR_PLANTRONICS,
+]);

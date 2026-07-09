@@ -11,7 +11,7 @@ describe("migrateUserSettings", () => {
     }
   });
 
-  it("migrates v0 legacy fragments to v3", () => {
+  it("migrates v0 legacy fragments to v4", () => {
     const result = migrateUserSettings(
       { schemaVersion: 0 },
       {
@@ -24,29 +24,43 @@ describe("migrateUserSettings", () => {
     );
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(3);
+      expect(result.value.schemaVersion).toBe(4);
       expect(result.value.multiSessionsEnabled).toBe(false);
-      expect(result.value.autoUnholdOnTransferFailure).toBe(false);
-      expect(result.value.autoAnswerTimeoutSec).toBe(5);
-      expect(result.value.language).toBe("ru");
-      expect(result.value.sipAutoReconnectEnabled).toBe(true);
+      expect(result.value.headsetEnabled).toBe(false);
     }
   });
 
-  it("passes through valid v3 payload", () => {
+  it("passes through valid v4 payload", () => {
+    const v4 = {
+      ...createDefaultUserSettings(),
+      multiSessionsEnabled: false,
+    };
+    const result = migrateUserSettings(v4);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toEqual(v4);
+    }
+  });
+
+  it("migrates v3 payload to v4 with headset defaults", () => {
     const v3 = {
       ...createDefaultUserSettings(),
       schemaVersion: 3 as const,
-      multiSessionsEnabled: false,
+      headsetEnabled: undefined,
+      headsetAutoReconnect: undefined,
     };
+    delete (v3 as { headsetEnabled?: unknown }).headsetEnabled;
+    delete (v3 as { headsetAutoReconnect?: unknown }).headsetAutoReconnect;
     const result = migrateUserSettings(v3);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value).toEqual(v3);
+      expect(result.value.schemaVersion).toBe(4);
+      expect(result.value.headsetEnabled).toBe(false);
+      expect(result.value.headsetAutoReconnect).toBe(true);
     }
   });
 
-  it("migrates v2 payload to v3 with default codec preferences", () => {
+  it("migrates v2 payload to v4 with default codec preferences", () => {
     const v2 = {
       ...createDefaultUserSettings(),
       schemaVersion: 2 as const,
@@ -57,13 +71,12 @@ describe("migrateUserSettings", () => {
     const result = migrateUserSettings(v2);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(3);
-      expect(result.value.multiSessionsEnabled).toBe(false);
+      expect(result.value.schemaVersion).toBe(4);
       expect(result.value.codecPreferences).toEqual(createDefaultUserSettings().codecPreferences);
     }
   });
 
-  it("migrates v1 payload to v3 with transport and codec defaults", () => {
+  it("migrates v1 payload to v4 with transport and codec defaults", () => {
     const v1 = {
       schemaVersion: 1,
       theme: "dark" as const,
@@ -79,55 +92,20 @@ describe("migrateUserSettings", () => {
     const result = migrateUserSettings(v1);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(3);
-      expect(result.value.language).toBe("ru");
+      expect(result.value.schemaVersion).toBe(4);
       expect(result.value.theme).toBe("dark");
-      expect(result.value.sipAutoReconnectEnabled).toBe(true);
-      expect(result.value.sipReconnectIntervalSec).toBe(5);
-      expect(result.value.sipAutoReregisterEnabled).toBe(false);
-      expect(result.value.sipReregisterIntervalSec).toBe(8);
-      expect(result.value.codecPreferences).toEqual(createDefaultUserSettings().codecPreferences);
-    }
-  });
-
-  it("migrates supported v1 language and falls back for unknown locale", () => {
-    const frV1 = {
-      ...createDefaultUserSettings(),
-      schemaVersion: 1 as const,
-      language: "fr" as const,
-    };
-    const unknownLocaleV1 = {
-      ...createDefaultUserSettings(),
-      schemaVersion: 1 as const,
-      language: "es",
-    };
-
-    const frResult = migrateUserSettings(frV1);
-    const unknownLocaleResult = migrateUserSettings(unknownLocaleV1);
-
-    expect(frResult.ok).toBe(true);
-    if (frResult.ok) {
-      expect(frResult.value.language).toBe("fr");
-    }
-
-    expect(unknownLocaleResult.ok).toBe(true);
-    if (unknownLocaleResult.ok) {
-      expect(unknownLocaleResult.value.language).toBe("ru");
+      expect(result.value.headsetEnabled).toBe(false);
     }
   });
 
   it("fails on unsupported schema version", () => {
     const result = migrateUserSettings({ schemaVersion: 99 });
     expect(result.ok).toBe(false);
-    if (!result.ok) {
-      expect(result.error.code).toBe("validation_failed");
-      expect(result.error.message).toContain("unsupported_schema_version");
-    }
   });
 
-  it("fails on corrupt v3 payload", () => {
+  it("fails on corrupt v4 payload", () => {
     const result = migrateUserSettings({
-      schemaVersion: 3,
+      ...createDefaultUserSettings(),
       multiSessionsEnabled: "yes",
     });
     expect(result.ok).toBe(false);

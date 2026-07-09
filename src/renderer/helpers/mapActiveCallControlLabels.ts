@@ -31,6 +31,8 @@ export function mapActiveCallControlDisabledReason(
       return translateCurrent("activeCall.disabled.notMuted");
     case "hangup_not_allowed":
       return translateCurrent("activeCall.disabled.hangupNotAllowed");
+    case "headset_sync_in_progress":
+      return translateCurrent("activeCall.disabled.headsetSyncInProgress");
     default:
       return fallback;
   }

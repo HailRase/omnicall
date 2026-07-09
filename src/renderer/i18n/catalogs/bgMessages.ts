@@ -407,8 +407,27 @@ export const bgMessages: MessageShape = {
   "settings.general.theme.light": "Светла",
   "settings.general.themeDescription": "Цветова схема на приложението. Прилага се веднага след избор.",
   "settings.general.themeLabel": "Тема на интерфейса",
-  "settings.headset.description": "Конфигурацията на слушалки и бутони ще бъде добавена във фаза P10 — интеграция на слушалки.",
+  "settings.headset.description":
+    "Опционално управление на обаждания от USB слушалки Jabra или Plantronics/Poly чрез Web HID.",
   "settings.headset.title": "Слушалки",
+  "settings.headset.enabled.label": "Включи интеграция със слушалки",
+  "settings.headset.enabled.description":
+    "Когато е изключено, софтфонът работи нормално без USB слушалки.",
+  "settings.headset.autoReconnect.label": "Автоматично свързване",
+  "settings.headset.autoReconnect.description":
+    "Свързване на предварително разрешено устройство при старт и USB plug.",
+  "settings.headset.status.label": "Състояние на връзката",
+  "settings.headset.status.disabled": "Интеграцията е изключена",
+  "settings.headset.status.disconnected": "Не е свързано",
+  "settings.headset.status.connecting": "Свързване…",
+  "settings.headset.status.connected": "Свързано",
+  "settings.headset.status.error": "Грешка при свързване",
+  "settings.headset.status.unsupported": "Web HID не е наличен",
+  "settings.headset.deviceLabel": (params: Readonly<{ name: string }>) =>
+    `Устройство: ${params.name}`,
+  "settings.headset.connect": "Свържи",
+  "settings.headset.disconnect": "Прекъсни",
+  "activeCall.disabled.headsetSyncInProgress": "Синхронизация със слушалки…",
   "settings.nav.account": "Акаунт",
   "settings.nav.codecs": "Кодеци",
   "settings.nav.collapseMenu": "Свий менюто с настройки",

@@ -8,6 +8,7 @@ import { SettingsPanel } from "./SettingsPanel.js";
 import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefaults.js";
 import { settingsCodecTestDefaults } from "./panels/settingsCodecTestDefaults.js";
 import { settingsAccountTestDefaults } from "./panels/settingsAccountTestDefaults.js";
+import { settingsHeadsetTestDefaults } from "./panels/settingsHeadsetTestDefaults.js";
 import { settingsOverlayWindowControlsTestDefaults } from "./settingsOverlayWindowControlsTestDefaults.js";
 
 const appUpdateDefaults = {
@@ -51,6 +52,7 @@ const panelProps = {
   ...settingsCodecTestDefaults,
   account: settingsAccountTestDefaults,
   ...appUpdateDefaults,
+  ...settingsHeadsetTestDefaults,
 };
 
 describe("SettingsFullscreenOverlay", () => {

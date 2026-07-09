@@ -3,7 +3,7 @@ import { createDefaultUserSettings } from "./UserSettings.js";
 import { validateUserSettings } from "./validateUserSettings.js";
 
 describe("validateUserSettings", () => {
-  it("accepts default v3 settings", () => {
+  it("accepts default v4 settings", () => {
     const result = validateUserSettings(createDefaultUserSettings());
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -32,11 +32,8 @@ describe("validateUserSettings", () => {
 
   it("rejects invalid auto-answer timeout", () => {
     const result = validateUserSettings({
-      schemaVersion: 3,
-      multiSessionsEnabled: true,
-      autoUnholdOnTransferFailure: true,
+      ...createDefaultUserSettings(),
       autoAnswerTimeoutSec: -1,
-      ringbackToneEnabled: true,
     });
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -46,23 +43,16 @@ describe("validateUserSettings", () => {
 
   it("rejects missing boolean fields", () => {
     const result = validateUserSettings({
-      schemaVersion: 3,
+      schemaVersion: 4,
       autoAnswerTimeoutSec: null,
     });
     expect(result.ok).toBe(false);
   });
 
   it("defaults theme to light when field is missing", () => {
-    const result = validateUserSettings({
-      schemaVersion: 3,
-      multiSessionsEnabled: true,
-      autoUnholdOnTransferFailure: true,
-      autoAnswerTimeoutSec: null,
-      ringbackToneEnabled: true,
-      sipAutoReregisterEnabled: true,
-      sipReregisterIntervalSec: 5,
-      sipReregisterMaxAttempts: 3,
-    });
+    const payload = { ...createDefaultUserSettings() } as Record<string, unknown>;
+    delete payload["theme"];
+    const result = validateUserSettings(payload);
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.theme).toBe("light");
@@ -81,16 +71,9 @@ describe("validateUserSettings", () => {
   });
 
   it("defaults autoAnswerDuringActiveSessionEnabled when field is missing", () => {
-    const result = validateUserSettings({
-      schemaVersion: 3,
-      multiSessionsEnabled: true,
-      autoUnholdOnTransferFailure: true,
-      autoAnswerTimeoutSec: null,
-      ringbackToneEnabled: true,
-      sipAutoReregisterEnabled: true,
-      sipReregisterIntervalSec: 5,
-      sipReregisterMaxAttempts: 3,
-    });
+    const payload = { ...createDefaultUserSettings() } as Record<string, unknown>;
+    delete payload["autoAnswerDuringActiveSessionEnabled"];
+    const result = validateUserSettings(payload);
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.autoAnswerDuringActiveSessionEnabled).toBe(false);
@@ -192,7 +175,7 @@ describe("validateUserSettings", () => {
     }
   });
 
-  it("accepts v3 codec preferences payload", () => {
+  it("accepts v4 codec preferences payload", () => {
     const defaults = createDefaultUserSettings();
     const result = validateUserSettings({
       ...defaults,

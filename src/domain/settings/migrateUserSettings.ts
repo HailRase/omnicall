@@ -1,5 +1,4 @@
 import type { MultiCallSettings } from "../telephony/MultiCallPolicy.js";
-import { createDefaultCodecPreferences } from "../media/CodecPreferences.js";
 import { createDefaultUserSettings, SETTINGS_SCHEMA_VERSION, type UserSettings } from "./UserSettings.js";
 import { parseSupportedLanguage } from "./SupportedLanguage.js";
 import { validateUserSettings } from "./validateUserSettings.js";
@@ -19,7 +18,7 @@ export type MigrateUserSettingsResult =
   | Readonly<{ ok: false; error: SettingsMigrationError }>;
 
 /**
- * - Purpose: upgrade persisted or in-memory settings to UserSettings v3.
+ * - Purpose: upgrade persisted or in-memory settings to UserSettings v4.
  * - Inputs: unknown raw blob and optional v0 legacy fragments.
  * - Outputs: migrated UserSettings or migration error.
  */
@@ -52,12 +51,20 @@ export function migrateUserSettings(
     return { ok: true, value: validated.value };
   }
 
+  if (version === 3) {
+    return coerceToUserSettingsV4(record);
+  }
+
   if (version === 2) {
-    return coerceToUserSettingsV3(record, createDefaultCodecPreferences());
+    return coerceToUserSettingsV4({
+      ...createDefaultUserSettings(),
+      ...record,
+      schemaVersion: SETTINGS_SCHEMA_VERSION,
+    });
   }
 
   if (version === 1) {
-    return { ok: true, value: migrateV1ToV3(record) };
+    return { ok: true, value: migrateV1ToV4(record) };
   }
 
   if (version === 0 || version === undefined) {
@@ -90,14 +97,18 @@ function formatSchemaVersion(version: unknown): string {
   return "unknown";
 }
 
-function coerceToUserSettingsV3(
+function coerceToUserSettingsV4(
   record: Record<string, unknown>,
-  codecPreferences: UserSettings["codecPreferences"],
 ): MigrateUserSettingsResult {
   const candidate = {
     ...record,
     schemaVersion: SETTINGS_SCHEMA_VERSION,
-    codecPreferences,
+    headsetEnabled:
+      typeof record["headsetEnabled"] === "boolean" ? record["headsetEnabled"] : false,
+    headsetAutoReconnect:
+      typeof record["headsetAutoReconnect"] === "boolean"
+        ? record["headsetAutoReconnect"]
+        : true,
   };
   const validated = validateUserSettings(candidate);
   if (!validated.ok) {
@@ -109,7 +120,7 @@ function coerceToUserSettingsV3(
   return { ok: true, value: validated.value };
 }
 
-function migrateV1ToV3(record: Record<string, unknown>): UserSettings {
+function migrateV1ToV4(record: Record<string, unknown>): UserSettings {
   const defaults = createDefaultUserSettings();
   const v1Validated = validateV1Fragments(record);
   const parsedLanguage = parseSupportedLanguage(record["language"]);
@@ -143,6 +154,8 @@ function migrateV1ToV3(record: Record<string, unknown>): UserSettings {
     sipAutoRegisterOnStartup: defaults.sipAutoRegisterOnStartup,
     dismissedUpdateBannerVersion: defaults.dismissedUpdateBannerVersion,
     codecPreferences: defaults.codecPreferences,
+    headsetEnabled: defaults.headsetEnabled,
+    headsetAutoReconnect: defaults.headsetAutoReconnect,
   };
 }
 

@@ -52,5 +52,7 @@ export type { InMemorySettingsState } from "./settings/InMemorySettingsRepositor
 export { SettingsRepositoryCodecPreferencesAdapter } from "./settings/SettingsRepositoryCodecPreferencesAdapter.js";
 export type { SettingsRepositoryCodecPreferencesAdapterOptions } from "./settings/SettingsRepositoryCodecPreferencesAdapter.js";
 export { MockCodecPreferencesPort } from "./mock/MockCodecPreferencesPort.js";
+export { MockHeadsetGateway } from "./mock/MockHeadsetGateway.js";
+export { WebHidHeadsetAdapter } from "./headset/webhid/WebHidHeadsetAdapter.js";
 export { InMemorySecretStorageAdapter } from "./secrets/InMemorySecretStorageAdapter.js";
 export { PreloadSecretStorageAdapter } from "./secrets/PreloadSecretStorageAdapter.js";

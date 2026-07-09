@@ -37,6 +37,7 @@ import { InMemorySipSessionHealthReadModel } from "../read-models/InMemorySipSes
 import { MockTelephonyGateway } from "@adapters/mock/MockTelephonyGateway.js";
 import type {
   DomainEventPublisher,
+  HeadsetGateway,
   HostIntegrationGateway,
   Logger,
   SavedAccountProfileRepository,
@@ -93,7 +94,14 @@ import { ImportContactsCsvUseCase } from "../use-cases/contacts/ImportContactsCs
 import { ExportContactsCsvUseCase } from "../use-cases/contacts/ExportContactsCsvUseCase.js";
 import type { ContactsCsvImportSummary } from "../use-cases/contacts/ImportContactsCsvUseCase.js";
 import { CallHistoryRecordingOrchestrationService } from "../services/contacts/CallHistoryRecordingOrchestrationService.js";
+import { MockHeadsetGateway } from "@adapters/mock/MockHeadsetGateway.js";
 import { LOCAL_SAVED_PROFILE_NOT_FOUND_MESSAGE } from "../projections/settings/isLocalSavedProfileNotFoundError.js";
+import { HeadsetIntegrationService } from "../services/headset/HeadsetIntegrationService.js";
+import type { MultiLineCallProjection } from "../projections/telephony/multiLineCallProjection.js";
+import { initialMultiLineCallProjection } from "../projections/telephony/multiLineCallProjection.js";
+import type { IncomingCallProjection } from "../projections/telephony/incomingCallProjection.js";
+import { initialIncomingCallProjection } from "../projections/telephony/incomingCallProjection.js";
+import type { HeadsetSyncBusyState } from "../headset/HeadsetSyncQueue.js";
 import type {
   SavedAccountProfile,
   SavedAccountProfileId,
@@ -142,6 +150,7 @@ export type AccountBootstrapFacadeDeps = Readonly<{
   contactCsvFileGateway?: ContactCsvFileGateway;
   secretStoragePort?: SecretStoragePort;
   hostIntegrationGateway?: HostIntegrationGateway;
+  headsetGateway?: HeadsetGateway;
   logger: Logger;
   eventPublisher?: DomainEventPublisher;
 }>;
@@ -207,6 +216,10 @@ export class AccountBootstrapFacade {
   private sipSessionRegistered = false;
   private readonly callEngine: CallEngine;
   private readonly sipRecoveryOrchestration: SipRecoveryOrchestrationService;
+  private readonly headsetIntegration: HeadsetIntegrationService;
+  private getMultiLineProjectionRef: () => MultiLineCallProjection = initialMultiLineCallProjection;
+  private getIncomingProjectionRef: () => IncomingCallProjection = initialIncomingCallProjection;
+  private multiLineProjectionForToggle: MultiLineCallProjection = initialMultiLineCallProjection();
 
   constructor(private readonly deps: AccountBootstrapFacadeDeps) {
     this.eventPublisher = deps.eventPublisher ?? new InMemoryDomainEventBus();
@@ -355,6 +368,23 @@ export class AccountBootstrapFacade {
     this.startTransferUseCase = new StartTransferUseCase(this.callEngine, deps.logger);
     this.cancelTransferUseCase = new CancelTransferUseCase(this.callEngine, deps.logger);
 
+    const headsetGateway = deps.headsetGateway ?? new MockHeadsetGateway();
+    this.headsetIntegration = new HeadsetIntegrationService({
+      gateway: headsetGateway,
+      eventPublisher: this.eventPublisher,
+      logger: deps.logger,
+      getMultiLineProjection: () => this.getMultiLineProjectionRef(),
+      getIncomingProjection: () => this.getIncomingProjectionRef(),
+      callbacks: {
+        answerCallById: (callId) => this.answerCallById(callId),
+        rejectCallById: (callId) => this.rejectCallById(callId),
+        hangupCallById: (callId) => this.hangupCallById(callId),
+        toggleHoldCallById: (callId) => this.toggleHoldCallById(callId),
+        muteCallById: (callId) => this.muteCallById(callId),
+        unmuteCallById: (callId) => this.unmuteCallById(callId),
+      },
+    });
+
     deps.telephonyGateway.setIncomingCallHandler(async (notification) => {
       await this.callEngine.handleIncomingReceived({ notification });
     });
@@ -460,6 +490,10 @@ export class AccountBootstrapFacade {
     if (existingAccount !== null && phoneStatus !== "offline") {
       await this.registerAccount.execute({ account: existingAccount });
     }
+
+    const accountKey = await this.resolveSettingsAccountKey();
+    const userSettings = await this.loadUserSettingsForAccountKey(accountKey);
+    await this.applyHeadsetUserSettings(userSettings);
   }
 
   async authorizeManualAccount(
@@ -861,6 +895,7 @@ export class AccountBootstrapFacade {
     try {
       const accountKey = await this.resolveSettingsAccountKey();
       const saved = await this.saveUserSettingsInternal(accountKey, settings);
+      await this.applyHeadsetUserSettings(saved);
       return ok(saved);
     } catch (error: unknown) {
       return err(normalizeUnknownError(error));
@@ -1041,6 +1076,53 @@ export class AccountBootstrapFacade {
 
   async resumeCallById(callId: string): Promise<Result<Call, PlatformError>> {
     return this.resumeCall(createCallId(callId));
+  }
+
+  async toggleHoldCallById(callId: string): Promise<Result<Call, PlatformError>> {
+    const line = this.multiLineProjectionForToggle.lines.find((entry) => entry.callId === callId);
+    if (line?.state === "Held") {
+      return this.resumeCallById(callId);
+    }
+    return this.holdCallById(callId);
+  }
+
+  setHeadsetProjectionSources(
+    getMultiLine: () => MultiLineCallProjection,
+    getIncoming: () => IncomingCallProjection,
+  ): void {
+    this.getMultiLineProjectionRef = getMultiLine;
+    this.getIncomingProjectionRef = getIncoming;
+  }
+
+  notifyHeadsetProjectionsChanged(multiLine: MultiLineCallProjection): void {
+    this.multiLineProjectionForToggle = multiLine;
+    this.headsetIntegration.onCallProjectionsChanged();
+  }
+
+  getHeadsetGateway(): HeadsetGateway {
+    return this.headsetIntegration.getGateway();
+  }
+
+  getHeadsetSyncBusyState(): HeadsetSyncBusyState {
+    return (
+      this.headsetIntegration.getSyncQueue()?.getBusyState() ?? {
+        holdSessionId: null,
+        muteSessionId: null,
+        isBusy: false,
+      }
+    );
+  }
+
+  async connectHeadsetDevice(): Promise<void> {
+    await this.headsetIntegration.connectDevice();
+  }
+
+  async disconnectHeadsetDevice(): Promise<void> {
+    await this.headsetIntegration.disconnectDevice();
+  }
+
+  async applyHeadsetUserSettings(settings: UserSettings): Promise<void> {
+    await this.headsetIntegration.applySettings(settings);
   }
 
   async muteCall(callId: CallId): Promise<Result<Call, PlatformError>> {
