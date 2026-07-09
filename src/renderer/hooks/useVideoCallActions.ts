@@ -4,6 +4,7 @@ import type { CallVideoMediaState, SessionViewMode } from "@application/index.js
 import {
   areCameraControlsEnabled,
   isScreenShareAllowed,
+  resolveNextSessionViewMode,
 } from "@application/index.js";
 
 type UseVideoCallActionsInput = Readonly<{
@@ -14,6 +15,7 @@ type UseVideoCallActionsResult = Readonly<{
   handleToggleCamera: (callId: string, state: CallVideoMediaState) => void;
   handleToggleScreenShare: (callId: string, state: CallVideoMediaState) => void;
   handleSetSessionView: (callId: string, sessionView: SessionViewMode) => void;
+  handleCycleSessionView: (callId: string, state: CallVideoMediaState) => void;
   bindVideoSurfaces: (
     callId: string,
     remoteVideoElement: HTMLVideoElement,
@@ -65,6 +67,23 @@ export function useVideoCallActions(
     [facade],
   );
 
+  const handleCycleSessionView = useCallback(
+    (callId: string, state: CallVideoMediaState): void => {
+      if (state.mediaMode !== "video") {
+        return;
+      }
+      const latest = facade.getCallVideoMediaState(callId) ?? state;
+      if (latest.mediaMode !== "video") {
+        return;
+      }
+      facade.setSessionViewModeById(
+        callId,
+        resolveNextSessionViewMode(latest.sessionView),
+      );
+    },
+    [facade],
+  );
+
   const bindVideoSurfaces = useCallback(
     (
       callId: string,
@@ -84,6 +103,7 @@ export function useVideoCallActions(
     handleToggleCamera,
     handleToggleScreenShare,
     handleSetSessionView,
+    handleCycleSessionView,
     bindVideoSurfaces,
   };
 }

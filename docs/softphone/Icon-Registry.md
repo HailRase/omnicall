@@ -46,6 +46,7 @@
 | `call.screenShare` | Start screen share | `MonitorUp` | — | `CallControlsBar` | active |
 | `call.screenShareStop` | Stop screen share | `MonitorUp` | — | `CallControlsBar` | active |
 | `call.videoExpand` | Expand video view | `Maximize2` | — | `CallControlsBar` | active |
+| `call.videoCollapse` | Collapse video view from fullscreen | `Minimize2` | — | `CallControlsBar` | active |
 | `call.transfer` | Start transfer | `PhoneForwarded` | `PhoneForwardedIcon` | `CallLineRow`, `TransferPanel` | active |
 | `call.incoming` | Incoming call indicator | `PhoneIncoming` | `PhoneIncomingIcon` | `IncomingCallOverlay` | active |
 | `call.outgoing` | Outgoing call indicator | `Phone` | `PhoneIcon` | `OutgoingCallCard` | active |

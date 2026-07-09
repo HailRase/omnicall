@@ -93,8 +93,17 @@ export function CallControlsBar({
     isVideoCall &&
     videoState !== null &&
     !isPreConnect &&
-    !registrationBlocked &&
-    videoState.sessionView !== "fullscreen";
+    !registrationBlocked;
+  const isFullscreenView = videoState?.sessionView === "fullscreen";
+  const expandIconId: IconSemanticId = isFullscreenView
+    ? "call.videoCollapse"
+    : "call.videoExpand";
+  const expandLabel = isFullscreenView
+    ? t("call.controls.label.videoCollapse")
+    : t("call.controls.label.videoExpand");
+  const expandAriaLabel = isFullscreenView
+    ? t("icons.call.videoCollapse")
+    : t("icons.call.videoExpand");
 
   const muteBlocked =
     isPreConnect ||
@@ -187,9 +196,9 @@ export function CallControlsBar({
         ) : null}
         {isVideoCall && onExpandVideo !== undefined ? (
           <LabeledControl
-            iconId="call.videoExpand"
-            label={t("call.controls.label.videoExpand")}
-            ariaLabel={t("icons.call.videoExpand")}
+            iconId={expandIconId}
+            label={expandLabel}
+            ariaLabel={expandAriaLabel}
             testId={`control-video-expand-line-${line.callId}`}
             disabled={!viewExpandEnabled}
             onClick={() => {

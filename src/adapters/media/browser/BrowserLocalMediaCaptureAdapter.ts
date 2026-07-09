@@ -459,16 +459,34 @@ export class BrowserLocalMediaCaptureAdapter implements LocalMediaCapturePort {
     }
 
     try {
-      // OS-1509 path: fresh camera capture + replaceTrack for reliable mute/unmute.
-      return await this.replaceOutboundVideoTrack({
-        callId: command.callId,
-        source: "camera",
-        ...(command.videoDeviceId !== undefined
-          ? { videoDeviceId: command.videoDeviceId }
-          : {}),
-        muted: command.muted,
+      const videoTracks = state.stream.getVideoTracks();
+      if (videoTracks.length === 0) {
+        // No live camera track yet — capture/replace once to restore outbound video.
+        return await this.replaceOutboundVideoTrack({
+          callId: command.callId,
+          source: "camera",
+          ...(command.videoDeviceId !== undefined
+            ? { videoDeviceId: command.videoDeviceId }
+            : {}),
+          muted: command.muted,
+          correlationId: command.correlationId,
+        });
+      }
+
+      for (const track of videoTracks) {
+        track.enabled = !command.muted;
+      }
+
+      this.logger.info("local_media_video_muted_toggled", {
         correlationId: command.correlationId,
+        featureId: FEATURE_ID,
+        boundedContext: "Media",
+        operation: "set_local_video_muted",
+        callId: command.callId,
+        result: "succeeded",
+        muted: command.muted,
       });
+      return ok(undefined);
     } catch (error: unknown) {
       return err(normalizeUnknownError(error));
     }

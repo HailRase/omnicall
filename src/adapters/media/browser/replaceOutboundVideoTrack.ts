@@ -9,8 +9,14 @@ type RtcVideoSender = {
   replaceTrack: (track: MediaStreamTrack | null) => Promise<void>;
 };
 
+type RtcRtpTransceiverLike = Readonly<{
+  sender: RtcVideoSender;
+  receiver: Readonly<{ track: MediaStreamTrack | null }>;
+}>;
+
 type RtcPeerConnectionLike = Readonly<{
   getSenders: () => ReadonlyArray<RtcVideoSender>;
+  getTransceivers?: () => ReadonlyArray<RtcRtpTransceiverLike>;
 }>;
 
 export function isRtcPeerConnectionWithReplaceTrack(
@@ -23,6 +29,36 @@ export function isRtcPeerConnectionWithReplaceTrack(
   return typeof candidate.getSenders === "function";
 }
 
+function resolveVideoSender(connection: RtcPeerConnectionLike): RtcVideoSender | null {
+  const senders = connection.getSenders();
+  const explicitVideo = senders.find((sender) => sender.track?.kind === "video");
+  if (explicitVideo !== undefined) {
+    return explicitVideo;
+  }
+
+  if (typeof connection.getTransceivers === "function") {
+    const videoTransceiver = connection.getTransceivers().find((transceiver) => {
+      return (
+        transceiver.sender.track?.kind === "video" ||
+        transceiver.receiver.track?.kind === "video"
+      );
+    });
+    if (videoTransceiver !== undefined) {
+      return videoTransceiver.sender;
+    }
+  }
+
+  // Privacy-muted / renegotiated video often leaves sender.track === null.
+  // Prefer the sole null-track sender when an audio sender already exists.
+  const nullTrackSenders = senders.filter((sender) => sender.track === null);
+  const hasAudioSender = senders.some((sender) => sender.track?.kind === "audio");
+  if (nullTrackSenders.length === 1 && hasAudioSender) {
+    return nullTrackSenders[0] ?? null;
+  }
+
+  return null;
+}
+
 export async function replaceOutboundVideoSenderTrack(
   connection: unknown,
   nextTrack: MediaStreamTrack | null,
@@ -31,12 +67,8 @@ export async function replaceOutboundVideoSenderTrack(
     return false;
   }
 
-  const senders = connection.getSenders();
-  const explicitVideo = senders.find((sender) => sender.track?.kind === "video");
-  const target =
-    explicitVideo ?? senders.find((sender) => typeof sender.replaceTrack === "function");
-
-  if (target === undefined || typeof target.replaceTrack !== "function") {
+  const target = resolveVideoSender(connection);
+  if (target === null || typeof target.replaceTrack !== "function") {
     return false;
   }
 

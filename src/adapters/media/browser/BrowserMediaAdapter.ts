@@ -23,6 +23,7 @@ import type { PlatformError } from "@shared/errors/index.js";
 import type { Result } from "@shared/result/index.js";
 import {
   bindLocalVideoPreview,
+  refreshPeerConnectionRemoteVideo,
   setLocalAudioTracksEnabled,
   wirePeerConnectionRemoteAudio,
   wirePeerConnectionRemoteVideo,
@@ -166,10 +167,21 @@ export class BrowserMediaAdapter implements MediaGateway {
 
       const connection = this.getPeerConnection(command.callId);
       if (connection !== null && connection !== undefined) {
-        const wired = wirePeerConnectionRemoteVideo(connection, remoteElement);
+        const alreadyWired = this.wiredRemoteVideoCalls.has(command.callId);
+        const wired = alreadyWired
+          ? refreshPeerConnectionRemoteVideo(connection, remoteElement)
+          : wirePeerConnectionRemoteVideo(connection, remoteElement);
         if (wired) {
           this.wiredRemoteVideoCalls.add(command.callId);
         }
+      } else {
+        this.logger.warn("browser_media_peer_connection_missing", {
+          correlationId: command.correlationId,
+          featureId: FEATURE_ID_VIDEO,
+          boundedContext: "Media",
+          operation: "bind_call_video_surfaces",
+          callId: command.callId,
+        });
       }
 
       const localStream =

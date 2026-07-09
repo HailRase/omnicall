@@ -237,15 +237,7 @@ export class IncomingCallOrchestrator {
       return err(createPlatformError("validation_failed", answered.transition.reason));
     }
 
-    const answerResult = await this.deps.telephonyGateway.answerCall({
-      callId: input.callId,
-      mediaMode,
-      correlationId,
-    });
-    if (isErr(answerResult)) {
-      return answerResult;
-    }
-
+    // Select media mode before gateway answer so capture/SDP presence events are not dropped.
     this.deps.videoMediaProjection.selectMediaMode(input.callId, mediaMode);
     this.deps.eventPublisher.publish(
       createCallMediaModeSelectedEvent(correlationId, input.callId, mediaMode),
@@ -256,6 +248,15 @@ export class IncomingCallOrchestrator {
       remoteNumber: call.phoneNumber,
       correlationId,
     });
+
+    const answerResult = await this.deps.telephonyGateway.answerCall({
+      callId: input.callId,
+      mediaMode,
+      correlationId,
+    });
+    if (isErr(answerResult)) {
+      return answerResult;
+    }
     this.clearAutoAnswerTimer(input.callId);
     cancelScheduledTonePlaybackStop(input.callId);
     await this.deps.mediaGateway.stopTone({ callId: input.callId, correlationId });

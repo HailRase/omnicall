@@ -20,3 +20,21 @@ export function isSessionViewMode(value: unknown): value is SessionViewMode {
 export function parseSessionViewMode(value: unknown): SessionViewMode | null {
   return isSessionViewMode(value) ? value : null;
 }
+
+/**
+ * - Purpose: cycle compact → expanded → fullscreen → compact for expand control.
+ * - Inputs: current SessionViewMode.
+ * - Outputs: next SessionViewMode in the cycle.
+ */
+export function resolveNextSessionViewMode(
+  current: SessionViewMode,
+): SessionViewMode {
+  switch (current) {
+    case "compact":
+      return "expanded";
+    case "expanded":
+      return "fullscreen";
+    case "fullscreen":
+      return "compact";
+  }
+}

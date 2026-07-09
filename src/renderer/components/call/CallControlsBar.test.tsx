@@ -192,4 +192,33 @@ describe("CallControlsBar", () => {
     fireEvent.click(screen.getByTestId("control-camera-line-call-1"));
     expect(onToggleCamera).toHaveBeenCalledWith("call-1");
   });
+
+  it("keeps expand control enabled in fullscreen so view can cycle back", () => {
+    render(
+      <CallControlsBar
+        line={activeLine}
+        videoState={{
+          mediaMode: "video",
+          localVideoMuted: true,
+          localVideoSource: "camera",
+          remoteVideoPresent: true,
+          sessionView: "fullscreen",
+          cameraAvailable: true,
+        }}
+        onHold={vi.fn()}
+        onResume={vi.fn()}
+        onMute={vi.fn()}
+        onUnmute={vi.fn()}
+        onHangup={vi.fn()}
+        onTransfer={vi.fn()}
+        onShowDtmf={vi.fn()}
+        onShowNumberEntry={vi.fn()}
+        onToggleCamera={vi.fn()}
+        onToggleScreenShare={vi.fn()}
+        onExpandVideo={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("control-video-expand-line-call-1")).toBeEnabled();
+  });
 });

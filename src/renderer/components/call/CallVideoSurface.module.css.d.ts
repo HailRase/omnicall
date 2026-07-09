@@ -2,8 +2,11 @@ declare const classes: {
   readonly compact: string;
   readonly expanded: string;
   readonly fullscreen: string;
+  readonly localHideButton: string;
   readonly localMutedLabel: string;
   readonly localPane: string;
+  readonly localPaneHidden: string;
+  readonly localShowButton: string;
   readonly localVideo: string;
   readonly placeholder: string;
   readonly remotePane: string;

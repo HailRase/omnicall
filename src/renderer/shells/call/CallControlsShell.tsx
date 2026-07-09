@@ -103,7 +103,10 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
             videoCallActions.handleToggleScreenShare(callId, controlTargetVideoState);
           }}
           onExpandVideo={(callId) => {
-            videoCallActions.handleSetSessionView(callId, "fullscreen");
+            if (controlTargetVideoState === null) {
+              return;
+            }
+            videoCallActions.handleCycleSessionView(callId, controlTargetVideoState);
           }}
         />
       ) : null}

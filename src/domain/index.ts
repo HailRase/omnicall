@@ -612,6 +612,7 @@ export {
   SESSION_VIEW_MODES,
   isSessionViewMode,
   parseSessionViewMode,
+  resolveNextSessionViewMode,
 } from "./media/SessionViewMode.js";
 export type { CallVideoMediaState } from "./media/CallVideoMediaState.js";
 export {

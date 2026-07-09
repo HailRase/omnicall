@@ -103,6 +103,7 @@ function attachExistingReceiverTracks(
 export function wirePeerConnectionRemoteVideo(
   connection: unknown,
   videoElement: HTMLVideoElement,
+  options?: Readonly<{ attachTrackListener?: boolean }>,
 ): boolean {
   if (!isRtcPeerConnectionLike(connection)) {
     return false;
@@ -110,24 +111,36 @@ export function wirePeerConnectionRemoteVideo(
 
   attachExistingRemoteVideoTracks(connection, videoElement);
 
-  connection.addEventListener("track", (event: RtcTrackEventLike): void => {
-    if (event.track.kind !== "video") {
-      return;
-    }
-    if (event.streams.length > 0) {
-      videoElement.srcObject = event.streams[0] ?? null;
-    } else {
-      const currentStream =
-        videoElement.srcObject instanceof MediaStream
-          ? videoElement.srcObject
-          : new MediaStream();
-      currentStream.addTrack(event.track);
-      videoElement.srcObject = currentStream;
-    }
-    void videoElement.play().catch(() => undefined);
-  });
+  const attachTrackListener = options?.attachTrackListener !== false;
+  if (attachTrackListener) {
+    connection.addEventListener("track", (event: RtcTrackEventLike): void => {
+      if (event.track.kind !== "video") {
+        return;
+      }
+      if (event.streams.length > 0) {
+        videoElement.srcObject = event.streams[0] ?? null;
+      } else {
+        const currentStream =
+          videoElement.srcObject instanceof MediaStream
+            ? videoElement.srcObject
+            : new MediaStream();
+        currentStream.addTrack(event.track);
+        videoElement.srcObject = currentStream;
+      }
+      void videoElement.play().catch(() => undefined);
+    });
+  }
 
   return true;
+}
+
+export function refreshPeerConnectionRemoteVideo(
+  connection: unknown,
+  videoElement: HTMLVideoElement,
+): boolean {
+  return wirePeerConnectionRemoteVideo(connection, videoElement, {
+    attachTrackListener: false,
+  });
 }
 
 export function bindLocalVideoPreview(

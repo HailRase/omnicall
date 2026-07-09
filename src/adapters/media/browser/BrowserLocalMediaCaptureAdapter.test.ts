@@ -247,19 +247,21 @@ describe("BrowserLocalMediaCaptureAdapter", () => {
     expect(ended).toHaveBeenCalledWith(callId);
   });
 
-  it("setLocalVideoMuted uses replaceTrack camera path", async () => {
+  it("setLocalVideoMuted toggles existing camera track enabled flag", async () => {
     const replaceTrack = vi.fn(() => Promise.resolve(undefined));
     const peerConnection = {
       getSenders: () => [{ track: createTrack("video"), replaceTrack }],
     };
-    const unmutedTrack = createTrack("video");
+    const videoTrack = createTrack("video");
+    videoTrack.enabled = false;
 
     const mediaDevices: MediaDevicesLike = {
-      getUserMedia: vi
-        .fn()
-        .mockImplementationOnce(() => Promise.resolve(createFakeStream([createTrack("audio")])))
-        .mockImplementationOnce(() => Promise.resolve(createFakeStream([createTrack("video")])))
-        .mockImplementationOnce(() => Promise.resolve(createFakeStream([unmutedTrack]))),
+      getUserMedia: vi.fn((constraints: MediaStreamConstraints) => {
+        if (constraints.audio) {
+          return Promise.resolve(createFakeStream([createTrack("audio")]));
+        }
+        return Promise.resolve(createFakeStream([videoTrack]));
+      }),
       getDisplayMedia: vi.fn(),
     };
 
@@ -278,15 +280,22 @@ describe("BrowserLocalMediaCaptureAdapter", () => {
       correlationId: createCorrelationId(),
     });
 
-    const result = await adapter.setLocalVideoMuted({
+    const unmuted = await adapter.setLocalVideoMuted({
       callId,
       muted: false,
       correlationId: createCorrelationId(),
     });
+    expect(unmuted.ok).toBe(true);
+    expect(replaceTrack).not.toHaveBeenCalled();
+    expect(videoTrack.enabled).toBe(true);
 
-    expect(result.ok).toBe(true);
-    expect(replaceTrack).toHaveBeenCalled();
-    expect(unmutedTrack.enabled).toBe(true);
+    const muted = await adapter.setLocalVideoMuted({
+      callId,
+      muted: true,
+      correlationId: createCorrelationId(),
+    });
+    expect(muted.ok).toBe(true);
+    expect(videoTrack.enabled).toBe(false);
   });
 
   it("releases local media and stops tracks", async () => {

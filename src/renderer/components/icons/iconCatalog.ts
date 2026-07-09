@@ -47,6 +47,7 @@ import {
   VideoOff,
   MonitorUp,
   Maximize2,
+  Minimize2,
   X,
 } from "lucide-react";
 import {
@@ -116,6 +117,7 @@ export type IconSemanticId =
   | "call.screenShare"
   | "call.screenShareStop"
   | "call.videoExpand"
+  | "call.videoCollapse"
   | "call.transfer"
   | "call.incoming"
   | "call.outgoing"
@@ -378,6 +380,12 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.call.videoExpand",
     defaultSize: 20,
     usage: ["CallControlsBar: control-video-expand"],
+  },
+  "call.videoCollapse": {
+    static: Minimize2,
+    defaultLabelKey: "icons.call.videoCollapse",
+    defaultSize: 20,
+    usage: ["CallControlsBar: control-video-expand (collapse from fullscreen)"],
   },
   "call.transfer": {
     static: PhoneForwarded,
