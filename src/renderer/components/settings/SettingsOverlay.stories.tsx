@@ -76,7 +76,6 @@ const appUpdateDefaults = {
 } as const;
 
 const panelDefaults = {
-  isSipRegistered: true,
   sidebarExpanded: false,
   onClose: () => undefined,
   onSectionChange: () => undefined,

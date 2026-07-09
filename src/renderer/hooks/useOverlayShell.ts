@@ -1,4 +1,5 @@
-import { deriveDefaultSettingsSection } from "@application/index.js";import { useCallback, useEffect, useMemo } from "react";
+import { deriveDefaultSettingsSection } from "@application/index.js";
+import { useCallback, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import type { SettingsSectionId } from "../components/settings/settingsSections.js";
 import {
@@ -36,7 +37,7 @@ export function useOverlayShell(): UseOverlayShellResult {
   const authFlags = useAuthShellFlags();
   const defaultSettingsSection = useMemo(
     () => deriveDefaultSettingsSection(authFlags),
-    [authFlags.isSipRegistered],
+    [authFlags],
   );
 
   const settingsOpen = route.name === "settings";
@@ -46,21 +47,6 @@ export function useOverlayShell(): UseOverlayShellResult {
     }
     return DEFAULT_SETTINGS_SECTION;
   }, [route]);
-
-  useEffect(() => {
-    if (!settingsOpen || authFlags.isSipRegistered) {
-      return;
-    }
-    if (settingsSection === "account") {
-      return;
-    }
-
-    const returnTo = readSettingsReturnTo(location.state);
-    void navigate(shellRouteToPath({ name: "settings", section: "account" }), {
-      replace: true,
-      state: returnTo !== null ? { settingsReturnTo: returnTo } : undefined,
-    });
-  }, [authFlags.isSipRegistered, location.state, navigate, settingsOpen, settingsSection]);
 
   useEffect(() => {
     if (!settingsOpen) {
@@ -91,11 +77,10 @@ export function useOverlayShell(): UseOverlayShellResult {
   );
 
   const openDiagnostics = useCallback((): void => {
-    const section: SettingsSectionId = authFlags.isSipRegistered ? "diagnostics" : "account";
-    void navigate(shellRouteToPath({ name: "settings", section }), {
+    void navigate(shellRouteToPath({ name: "settings", section: "diagnostics" }), {
       state: createSettingsNavigationState(location.pathname, location.state),
     });
-  }, [authFlags.isSipRegistered, location.pathname, location.state, navigate]);
+  }, [location.pathname, location.state, navigate]);
 
   const closeOverlay = useCallback((): void => {
     if (!settingsOpen) {
@@ -118,17 +103,13 @@ export function useOverlayShell(): UseOverlayShellResult {
 
   const setSettingsSection = useCallback(
     (section: SettingsSectionId): void => {
-      if (!authFlags.isSipRegistered && section !== "account") {
-        return;
-      }
-
       const returnTo = readSettingsReturnTo(location.state);
       void navigate(shellRouteToPath({ name: "settings", section }), {
         replace: true,
         state: returnTo !== null ? { settingsReturnTo: returnTo } : undefined,
       });
     },
-    [authFlags.isSipRegistered, location.state, navigate],
+    [location.state, navigate],
   );
 
   return {

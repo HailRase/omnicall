@@ -25,7 +25,6 @@ describe("settings overlay with layout zones", () => {
           >
             <SettingsPanel
               activeSection="sessions"
-              isSipRegistered={true}
               sidebarExpanded={false}
               onClose={() => undefined}
               onSectionChange={vi.fn()}

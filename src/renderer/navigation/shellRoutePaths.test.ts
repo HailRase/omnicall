@@ -16,7 +16,7 @@ describe("shellRouteToPath", () => {
       "/contacts/agent-1/edit",
     );
     expect(shellRouteToPath({ name: "settings" })).toBe("/settings");
-    expect(shellRouteToPath({ name: "settings", section: "general" })).toBe("/settings");
+    expect(shellRouteToPath({ name: "settings", section: "general" })).toBe("/settings/general");
     expect(shellRouteToPath({ name: "settings", section: "diagnostics" })).toBe(
       "/settings/diagnostics",
     );

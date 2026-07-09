@@ -22,7 +22,7 @@ export function shellRouteToPath(route: ShellRoute): string {
       return `/contacts/${encodeURIComponent(route.contactId)}/edit`;
     case "settings": {
       const section = route.section ?? DEFAULT_SETTINGS_SECTION;
-      if (section === DEFAULT_SETTINGS_SECTION) {
+      if (section === DEFAULT_SETTINGS_SECTION && route.section === undefined) {
         return "/settings";
       }
       return `/settings/${section}`;

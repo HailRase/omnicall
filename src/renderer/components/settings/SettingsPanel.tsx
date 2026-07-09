@@ -33,7 +33,6 @@ import styles from "./SettingsPanel.module.css";
 export type SettingsPanelProps = Readonly<{
   activeSection: SettingsSectionId;
   sidebarExpanded: boolean;
-  isSipRegistered: boolean;
   onClose: () => void;
   onSectionChange: (sectionId: SettingsSectionId) => void;
   onSidebarExpandedChange: (expanded: boolean) => void;
@@ -143,7 +142,6 @@ export type SettingsPanelProps = Readonly<{
 export function SettingsPanel({
   activeSection,
   sidebarExpanded,
-  isSipRegistered,
   onClose,
   onSectionChange,
   onSidebarExpandedChange,
@@ -329,7 +327,6 @@ export function SettingsPanel({
       <SettingsSidebar
         activeSection={activeSection}
         expanded={sidebarExpanded}
-        isSipRegistered={isSipRegistered}
         onSectionChange={onSectionChange}
         onToggleExpanded={handleToggleSidebar}
       />

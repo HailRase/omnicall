@@ -261,11 +261,6 @@ export {
   type SettingsEntrySection,
 } from "./projections/settings/deriveDefaultSettingsSection.js";
 export {
-  deriveSettingsSectionDisabledReason,
-  type SettingsNavSectionId,
-  type SettingsSectionDisabledReasonKey,
-} from "./projections/settings/deriveSettingsSectionDisabledReason.js";
-export {
   deriveActiveProfileSettingsSyncKey,
 } from "./projections/settings/deriveSettingsAccountProfileShell.js";
 export {

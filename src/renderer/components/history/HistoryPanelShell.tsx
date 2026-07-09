@@ -5,7 +5,8 @@ import type { CallHistoryEntryRowViewModel } from "../../hooks/useCallHistoryShe
 import { useRestoreRouteFocus } from "../../hooks/useRestoreRouteFocus.js";
 import { useI18n } from "../../i18n/index.js";
 import { AppIcon } from "../icons/index.js";
-import { ListQuickCallButton } from "../list/ListQuickCallButton.js";
+import { ListQuickCallReveal } from "../list/ListQuickCallReveal.js";
+import { useListRowActionReveal } from "../../hooks/useListRowActionReveal.js";
 import { PersonListAvatar } from "../list/PersonListAvatar.js";
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs/Tabs.js";
 import { ShellDialpadPanel } from "../shell/ShellDialpadPanel.js";
@@ -224,11 +225,16 @@ type HistoryListRowProps = Readonly<{
 
 function HistoryListRow({ row, onSelectEntry, onRedial }: HistoryListRowProps): JSX.Element {
   const { t } = useI18n();
+  const { isActionVisible, rowInteractionProps } = useListRowActionReveal();
   const directionIconId = resolveDirectionIconId(row);
   const directionToneClass = resolveDirectionToneClass(row);
 
   return (
-    <li className={styles.item} data-testid={`history-entry-${row.id}`}>
+    <li
+      className={styles.item}
+      data-testid={`history-entry-${row.id}`}
+      {...rowInteractionProps}
+    >
       <button
         type="button"
         className={styles.itemSelect}
@@ -252,7 +258,8 @@ function HistoryListRow({ row, onSelectEntry, onRedial }: HistoryListRowProps): 
           </div>
         </div>
       </button>
-      <ListQuickCallButton
+      <ListQuickCallReveal
+        visible={isActionVisible}
         ariaLabel={t("history.redial")}
         testId={`history-redial-${row.id}`}
         disabledReason={row.redialDisabledReason}

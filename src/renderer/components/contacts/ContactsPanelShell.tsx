@@ -11,7 +11,8 @@ import {
 import { useI18n } from "../../i18n/index.js";
 import { AppIcon } from "../icons/index.js";
 import { IconControlButton } from "../icons/IconControlButton.js";
-import { ListQuickCallButton } from "../list/ListQuickCallButton.js";
+import { ListQuickCallReveal } from "../list/ListQuickCallReveal.js";
+import { useListRowActionReveal } from "../../hooks/useListRowActionReveal.js";
 import { PersonListAvatar } from "../list/PersonListAvatar.js";
 import { useRestoreRouteFocus } from "../../hooks/useRestoreRouteFocus.js";
 import styles from "./ContactsPanelShell.module.css";
@@ -187,37 +188,58 @@ export function ContactsListPanel({
       ) : (
         <ul className={styles.list} data-testid="contacts-list">
           {filteredRows.map((row) => (
-            <li key={row.id} className={styles.listItemRow}>
-              <button
-                type="button"
-                className={styles.listItemMain}
-                data-testid={`contacts-list-item-${row.id}`}
-                onClick={() => {
-                  onSelectContact(row.id);
-                }}
-              >
-                <PersonListAvatar label={row.displayName} size="sm" />
-                <span className={styles.listItemText}>
-                  <span className={styles.listItemName}>{row.displayName}</span>
-                  <span className={styles.listItemSubline}>{row.primaryPhone}</span>
-                  {row.company !== null ? (
-                    <span className={styles.listItemSubline}>{row.company}</span>
-                  ) : null}
-                </span>
-              </button>
-              <ListQuickCallButton
-                ariaLabel={t("contacts.call")}
-                testId={`contacts-quick-call-${row.id}`}
-                disabledReason={row.callDisabledReason}
-                onClick={() => {
-                  onQuickCall(row.id);
-                }}
-              />
-            </li>
+            <ContactsListRow
+              key={row.id}
+              row={row}
+              onSelectContact={onSelectContact}
+              onQuickCall={onQuickCall}
+            />
           ))}
         </ul>
       )}
     </>
+  );
+}
+
+type ContactsListRowProps = Readonly<{
+  row: ContactsListPanelProps["rows"][number];
+  onSelectContact: (contactId: string) => void;
+  onQuickCall: (contactId: string) => void;
+}>;
+
+function ContactsListRow({ row, onSelectContact, onQuickCall }: ContactsListRowProps): JSX.Element {
+  const { t } = useI18n();
+  const { isActionVisible, rowInteractionProps } = useListRowActionReveal();
+
+  return (
+    <li className={styles.listItemRow} {...rowInteractionProps}>
+      <button
+        type="button"
+        className={styles.listItemMain}
+        data-testid={`contacts-list-item-${row.id}`}
+        onClick={() => {
+          onSelectContact(row.id);
+        }}
+      >
+        <PersonListAvatar label={row.displayName} size="sm" />
+        <span className={styles.listItemText}>
+          <span className={styles.listItemName}>{row.displayName}</span>
+          <span className={styles.listItemSubline}>{row.primaryPhone}</span>
+          {row.company !== null ? (
+            <span className={styles.listItemSubline}>{row.company}</span>
+          ) : null}
+        </span>
+      </button>
+      <ListQuickCallReveal
+        visible={isActionVisible}
+        ariaLabel={t("contacts.call")}
+        testId={`contacts-quick-call-${row.id}`}
+        disabledReason={row.callDisabledReason}
+        onClick={() => {
+          onQuickCall(row.id);
+        }}
+      />
+    </li>
   );
 }
 

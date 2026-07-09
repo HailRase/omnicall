@@ -67,7 +67,7 @@ describe("useOverlayShell", () => {
 
     expect(result.current.overlay.settingsOpen).toBe(true);
     expect(result.current.overlay.settingsSection).toBe("general");
-    expect(result.current.pathname).toBe("/settings");
+    expect(result.current.pathname).toBe("/settings/general");
   });
 
   it("opens settings on account section when SIP is not registered", () => {
@@ -107,7 +107,7 @@ describe("useOverlayShell", () => {
     expect(result.current.overlay.settingsSection).toBe("account");
   });
 
-  it("redirects locked settings section route to account when SIP is not registered", async () => {
+  it("keeps direct settings section route when SIP is not registered", async () => {
     setSipRegistered(false);
 
     const { result } = renderHook(
@@ -119,9 +119,48 @@ describe("useOverlayShell", () => {
     );
 
     await waitFor(() => {
-      expect(result.current.pathname).toBe("/settings/account");
+      expect(result.current.overlay.settingsOpen).toBe(true);
     });
-    expect(result.current.overlay.settingsSection).toBe("account");
+    expect(result.current.pathname).toBe("/settings/general");
+    expect(result.current.overlay.settingsSection).toBe("general");
+  });
+
+  it("navigates from account to general when SIP is not registered", () => {
+    setSipRegistered(false);
+
+    const { result } = renderHook(
+      () => ({
+        overlay: useOverlayShell(),
+        pathname: useTestLocation(),
+      }),
+      { wrapper: createRouterWrapper(["/settings/account"]) },
+    );
+
+    act(() => {
+      result.current.overlay.setSettingsSection("general");
+    });
+
+    expect(result.current.overlay.settingsSection).toBe("general");
+    expect(result.current.pathname).toBe("/settings/general");
+  });
+
+  it("allows changing settings section when SIP is not registered", () => {
+    setSipRegistered(false);
+
+    const { result } = renderHook(
+      () => ({
+        overlay: useOverlayShell(),
+        pathname: useTestLocation(),
+      }),
+      { wrapper: createRouterWrapper(["/settings/account"]) },
+    );
+
+    act(() => {
+      result.current.overlay.setSettingsSection("codecs");
+    });
+
+    expect(result.current.overlay.settingsSection).toBe("codecs");
+    expect(result.current.pathname).toBe("/settings/codecs");
   });
 
   it("opens diagnostics section from header shortcut", () => {
@@ -144,7 +183,7 @@ describe("useOverlayShell", () => {
     expect(result.current.pathname).toBe("/settings/diagnostics");
   });
 
-  it("opens account section from diagnostics shortcut when SIP is not registered", () => {
+  it("opens diagnostics section from header shortcut when SIP is not registered", () => {
     setSipRegistered(false);
 
     const { result } = renderHook(
@@ -160,8 +199,8 @@ describe("useOverlayShell", () => {
     });
 
     expect(result.current.overlay.settingsOpen).toBe(true);
-    expect(result.current.overlay.settingsSection).toBe("account");
-    expect(result.current.pathname).toBe("/settings/account");
+    expect(result.current.overlay.settingsSection).toBe("diagnostics");
+    expect(result.current.pathname).toBe("/settings/diagnostics");
   });
 
   it("closes overlay and returns to previous shell destination", () => {
