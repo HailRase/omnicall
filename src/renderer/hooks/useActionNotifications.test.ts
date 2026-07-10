@@ -43,6 +43,10 @@ function createBaseInput(overrides: Partial<HookInput> = {}): HookInput {
     settingsUpdateError: null,
     sipActionSuccessKey: null,
     sipActionErrorText: null,
+    headsetFault: {
+      reason: null,
+      occurredAt: null,
+    },
     ...overrides,
   };
 }
@@ -178,5 +182,20 @@ describe("useActionNotifications", () => {
     });
 
     expect(input.notifications.notify).toHaveBeenCalledTimes(5);
+  });
+
+  it("emits headset fault notification with recovery copy", () => {
+    const input = createBaseInput({
+      headsetFault: {
+        reason: "usb_disconnected",
+        occurredAt: "2026-07-10T10:00:00.000Z",
+      },
+    });
+    renderHook(() => useActionNotifications(input));
+
+    expect(input.notifications.notify).toHaveBeenCalledWith({
+      level: "warning",
+      messageKey: "notification.headset.fault.usb_disconnected",
+    });
   });
 });

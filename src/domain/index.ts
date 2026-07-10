@@ -598,10 +598,12 @@ export type { HeadsetCapabilities } from "./headset/HeadsetCapabilities.js";
 export { createDefaultHeadsetCapabilities } from "./headset/HeadsetCapabilities.js";
 export type { HeadsetCommand, HeadsetCommandType } from "./headset/HeadsetCommand.js";
 export type { HeadsetHardwareEvent } from "./headset/HeadsetHardwareEvent.js";
+export type { HeadsetFaultReason } from "./headset/events/headsetEvents.js";
 export {
   createHeadsetAnswerPressed,
   createHeadsetConnected,
   createHeadsetDisconnected,
+  createHeadsetFaultOccurred,
   createHeadsetHangupPressed,
   createHeadsetHoldPressed,
   createHeadsetLedSyncRequested,

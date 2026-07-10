@@ -1,6 +1,6 @@
 # Headset Integration in jssip-phone (Jabra & Plantronics/Poly)
 
-**Source project:** `D:\Axata\JSSIP-PROJECTS\jssip-phone`  
+**Source project:** `D:\Axata\JSSIP-PROJECTS\jssip-phone` or `C:\Users\User\Desktop\jssip-phone` 
 **Document date:** 2026-07-09  
 **Integration technology:** Web HID API (`navigator.hid`) — no Jabra SDK, no Plantronics Spokes/Poly Lens SDK
 
@@ -365,7 +365,7 @@ else                             → genericTelephonyParser
 | `syncLedIncomingRing` | `{ ringing: true, offHook: false, mute: false }` |
 | `syncLedAfterAnswer` / `signalOutgoing` | `{ offHook: true, ringing: false, mute: false }` |
 | `syncLedAfterHangup` / `clearOutgoingSignal` | `{ offHook: false, ringing: false, mute: false }` |
-| `syncLedOnHold` | `{ ringing: true }` — hold uses ring LED pattern |
+| `syncLedOnHold` | `{ ringing: true, offHook: false }` — hold ring pattern; green press = hookOff → resume |
 | `syncLedMute` | `{ mute: isMuted, offHook: true }` |
 
 **Error handling:** `NotAllowedError` on `sendReport` → device added to block list; SIP controls still work, LED sync disabled for that device.

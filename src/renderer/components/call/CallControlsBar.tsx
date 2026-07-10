@@ -1,12 +1,11 @@
 import clsx from "clsx";
 import type { JSX, MouseEvent } from "react";
-import type {
-  CallLineCardViewModel,
-} from "@application/index.js";
+import type { CallLineCardViewModel } from "@application/index.js";
 import { useI18n } from "../../i18n/index.js";
 import { AppIcon } from "../icons/AppIcon.js";
 import type { IconSemanticId } from "../icons/iconCatalog.js";
 import { IconTooltip } from "../icons/IconTooltip.js";
+import { Spinner } from "../ui/spinner/index.js";
 import styles from "./CallControlsBar.module.css";
 
 export type CallControlsBarProps = Readonly<{
@@ -29,6 +28,7 @@ type LabeledControlProps = Readonly<{
   testId: string;
   onClick: (event: MouseEvent<HTMLButtonElement>) => void;
   disabled?: boolean;
+  loading?: boolean;
   resume?: boolean;
   danger?: boolean;
   muted?: boolean;
@@ -62,22 +62,19 @@ export function CallControlsBar({
   const isHeld = line.state === "Held";
   const registrationBlocked = registrationDisabledReason !== null;
 
-  const muteBlocked =
-    isPreConnect ||
-    registrationBlocked ||
-    (line.muted ? line.unmuteDisabledReason : line.muteDisabledReason) !== null;
-  const holdBlocked =
-    isPreConnect ||
-    registrationBlocked ||
-    (isHeld ? line.resumeDisabledReason : line.holdDisabledReason) !== null;
+  const muteReason = line.muted ? line.unmuteDisabledReason : line.muteDisabledReason;
+  const holdReason = isHeld ? line.resumeDisabledReason : line.holdDisabledReason;
+  const muteBlocked = isPreConnect || registrationBlocked || muteReason !== null;
+  const holdBlocked = isPreConnect || registrationBlocked || holdReason !== null;
+  const muteSyncLoading = muteReason === "headset_sync_in_progress";
+  const holdSyncLoading = holdReason === "headset_sync_in_progress";
   const transferBlocked =
     isPreConnect ||
     registrationBlocked ||
     !line.isActiveUnheld ||
     line.transferDisabledReason !== null;
   const dialBlocked = isPreConnect || registrationBlocked;
-  const hangupBlocked =
-    registrationBlocked || line.hangupDisabledReason !== null;
+  const hangupBlocked = registrationBlocked || line.hangupDisabledReason !== null;
 
   return (
     <section
@@ -90,9 +87,14 @@ export function CallControlsBar({
           iconId={line.muted ? "call.mute" : "call.unmute"}
           label={line.muted ? t("call.controls.label.muted") : t("call.controls.label.mic")}
           ariaLabel={line.muted ? t("icons.call.unmute") : t("icons.call.mute")}
-          testId={line.muted ? `control-unmute-line-${line.callId}` : `control-mute-line-${line.callId}`}
+          testId={
+            line.muted
+              ? `control-unmute-line-${line.callId}`
+              : `control-mute-line-${line.callId}`
+          }
           muted={line.muted}
           disabled={muteBlocked}
+          loading={muteSyncLoading}
           onClick={() => {
             if (line.muted) {
               onUnmute(line.callId);
@@ -105,9 +107,14 @@ export function CallControlsBar({
           iconId={isHeld ? "call.resume" : "call.hold"}
           label={isHeld ? t("call.controls.label.resume") : t("call.controls.label.hold")}
           ariaLabel={isHeld ? t("call.controls.resumeAria") : t("call.controls.holdAria")}
-          testId={isHeld ? `control-resume-line-${line.callId}` : `control-hold-line-${line.callId}`}
+          testId={
+            isHeld
+              ? `control-resume-line-${line.callId}`
+              : `control-hold-line-${line.callId}`
+          }
           resume={isHeld}
           disabled={holdBlocked}
+          loading={holdSyncLoading}
           onClick={() => {
             if (isHeld) {
               onResume(line.callId);
@@ -168,10 +175,12 @@ function LabeledControl({
   testId,
   onClick,
   disabled = false,
+  loading = false,
   resume = false,
   danger = false,
   muted = false,
 }: LabeledControlProps): JSX.Element {
+  const isDisabled = disabled || loading;
   return (
     <div className={styles.control}>
       <IconTooltip label={label}>
@@ -182,18 +191,25 @@ function LabeledControl({
             resume && styles.buttonResume,
             muted && styles.buttonMuted,
             danger && styles.buttonDanger,
-            disabled && styles.buttonDisabled,
+            isDisabled && styles.buttonDisabled,
+            loading && styles.buttonLoading,
           )}
           data-testid={testId}
           aria-label={ariaLabel}
           aria-pressed={resume || muted ? true : undefined}
-          disabled={disabled}
+          aria-busy={loading || undefined}
+          data-loading={loading ? "true" : undefined}
+          disabled={isDisabled}
           onClick={onClick}
         >
-          <AppIcon id={iconId} size={18} decorative />
+          {loading ? (
+            <Spinner size="sm" decorative className={styles.buttonSpinner} />
+          ) : (
+            <AppIcon id={iconId} size={18} decorative />
+          )}
         </button>
       </IconTooltip>
-      <span className={clsx(styles.caption, disabled && styles.captionDisabled)}>
+      <span className={clsx(styles.caption, isDisabled && styles.captionDisabled)}>
         {label}
       </span>
     </div>

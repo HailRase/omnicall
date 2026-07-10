@@ -14,6 +14,7 @@ export interface HeadsetGateway {
   connect(): Promise<Result<HeadsetDevice, PlatformError>>;
   disconnect(): Promise<Result<void, PlatformError>>;
   tryAutoReconnect(): Promise<Result<HeadsetDevice | null, PlatformError>>;
+  setAutoReconnectEnabled(enabled: boolean): void;
   getConnectedDevice(): HeadsetDevice | null;
   getCapabilities(): HeadsetCapabilities;
   send(command: HeadsetCommand): Promise<Result<void, PlatformError>>;

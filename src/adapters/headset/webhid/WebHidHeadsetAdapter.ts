@@ -15,7 +15,10 @@ import {
   createHidEdgeDetector,
   mapHidPhoneActionToHardwareEvent,
 } from "./hidEdgeDetector.js";
-import { performTelephonyHandshake } from "./hidLedOutput.js";
+import {
+  isHidLedOutputBlocked,
+  performTelephonyHandshake,
+} from "./hidLedOutput.js";
 import {
   resolveHeadsetCapabilitiesFromParser,
   resolveHidReportParser,
@@ -124,8 +127,12 @@ export class WebHidHeadsetAdapter implements HeadsetGateway {
     }
     const success = await executeHeadsetCommand(this.nativeDevice, command);
     if (!success) {
-      return err(createPlatformError("operation_failed", "headset_command_failed"));
+      const reason = isHidLedOutputBlocked(this.nativeDevice)
+        ? "headset_led_output_blocked"
+        : "headset_command_failed";
+      return err(createPlatformError("operation_failed", reason));
     }
+    this.syncEdgeDetectorAfterLedCommand(command);
     return ok(undefined);
   }
 
@@ -134,6 +141,38 @@ export class WebHidHeadsetAdapter implements HeadsetGateway {
     return () => {
       this.listeners.delete(listener);
     };
+  }
+
+  private syncEdgeDetectorAfterLedCommand(command: HeadsetCommand): void {
+    // Align input edge detector with LED output so firmware echo does not toggle mute/hook.
+    switch (command.type) {
+      case "signalIncoming":
+        this.edgeDetector.syncState({ hookSwitch: false, phoneMute: false });
+        return;
+      case "signalOutgoing":
+      case "answer":
+        this.edgeDetector.syncState({ hookSwitch: true, phoneMute: false });
+        return;
+      case "hangup":
+      case "clearSignal":
+        this.edgeDetector.syncState({ hookSwitch: false, phoneMute: false });
+        return;
+      case "setHoldIndicator":
+        // Match hold LED (offHook false); keep mute bit for selected-held mute toggle.
+        this.edgeDetector.syncState({
+          hookSwitch: false,
+          phoneMute: command.muted === true,
+        });
+        return;
+      case "setMute":
+        this.edgeDetector.syncState({
+          hookSwitch: true,
+          phoneMute: command.muted,
+        });
+        return;
+      default:
+        return;
+    }
   }
 
   private async attachDevice(device: HIDDevice): Promise<Result<HeadsetDevice, PlatformError>> {
@@ -157,7 +196,7 @@ export class WebHidHeadsetAdapter implements HeadsetGateway {
         },
         (disconnected) => {
           if (this.nativeDevice === disconnected) {
-            void this.detachDevice();
+            void this.detachDevice({ notifyUsbRemoved: true });
           }
         },
         signal,
@@ -170,7 +209,9 @@ export class WebHidHeadsetAdapter implements HeadsetGateway {
     }
   }
 
-  private async detachDevice(): Promise<void> {
+  private async detachDevice(
+    options: Readonly<{ notifyUsbRemoved?: boolean }> = {},
+  ): Promise<void> {
     this.abortController?.abort();
     this.abortController = null;
     if (this.nativeDevice !== null) {
@@ -179,6 +220,9 @@ export class WebHidHeadsetAdapter implements HeadsetGateway {
     this.nativeDevice = null;
     this.edgeDetector.reset();
     this.firstReportSeen = false;
+    if (options.notifyUsbRemoved === true) {
+      this.emit({ type: "deviceError", reason: "usb_disconnected" });
+    }
   }
 
   private handleInputReport(event: HIDInputReportEvent, vendor: string): void {

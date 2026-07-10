@@ -26,10 +26,65 @@ function hasActiveConversation(snapshot: HeadsetCallSnapshot): boolean {
   return snapshot.establishedCount > 0 || snapshot.activeSessionId !== undefined;
 }
 
+function isFocusOnOutgoing(snapshot: HeadsetCallSnapshot): boolean {
+  return (
+    snapshot.focusSessionId !== undefined &&
+    snapshot.outgoingInProgressIds.includes(snapshot.focusSessionId)
+  );
+}
+
+/**
+ * Mute from headset only during an established conversation (Active/Held).
+ * Blocked while incoming waiting or outgoing dialing/ringing (pre-connect).
+ */
+export function canToggleMuteFromHeadset(snapshot: HeadsetCallSnapshot): boolean {
+  const focusId = snapshot.focusSessionId;
+  if (focusId === undefined) {
+    return false;
+  }
+  if (snapshot.incomingWaitingCount > 0) {
+    return false;
+  }
+  if (
+    snapshot.focusReason === "outgoing" ||
+    isFocusOnOutgoing(snapshot) ||
+    hasPendingOutgoingDial(snapshot)
+  ) {
+    return false;
+  }
+  return snapshot.establishedSessionIds.includes(focusId);
+}
+
+function resumeFocusedHeld(
+  snapshot: HeadsetCallSnapshot,
+  callbacks: HeadsetHardwareCallbacks,
+  context: ForwardContext,
+): boolean {
+  if (snapshot.focusSessionId === undefined || !snapshot.focusedIsOnHold) {
+    return false;
+  }
+  if (context.queue.isHardwareHoldLocked()) {
+    return false;
+  }
+
+  const sessionId = snapshot.focusSessionId;
+  if (!context.queue.beginHoldSessionSync(sessionId, "resume")) {
+    return false;
+  }
+  callbacks.onToggleHold(sessionId);
+  context.hookGuard.suppressedUntil = Date.now() + HOOK_ON_SUPPRESS_MS;
+  return true;
+}
+
 /**
  * - Purpose: map normalized headset hardware events to telephony callbacks.
  * - Inputs: hardware event, call snapshot, incoming id, callbacks, guard context.
  * - Outputs: invokes application callbacks when policy allows.
+ *
+ * Aligned with jssip-phone `forwardDeviceEventToApp`, plus softphone focus policies:
+ * - hookOff + held focus → resume
+ * - hookOn → hangup focused established/outgoing (including Held)
+ * - muteChanged → toggle only when event.muted === true (Held included)
  */
 export function forwardHeadsetHardwareEvent(
   event: HeadsetHardwareEvent,
@@ -59,20 +114,24 @@ export function forwardHeadsetHardwareEvent(
       return;
     }
 
-    if (hasPendingOutgoingDial(snapshot)) {
+    if (isFocusOnOutgoing(snapshot) || hasPendingOutgoingDial(snapshot)) {
       return;
     }
 
-    const heldId = snapshot.heldSessionIds[0];
-    if (heldId !== undefined && snapshot.activeSessionId === undefined) {
-      context.queue.beginHoldSessionSync(heldId, "resume");
-      callbacks.onToggleHold(heldId);
-      context.hookGuard.suppressedUntil = Date.now() + HOOK_ON_SUPPRESS_MS;
+    // Hold LED uses offHook:false — green press is hookOff → resume (jssip-phone).
+    if (resumeFocusedHeld(snapshot, callbacks, context)) {
+      return;
     }
+
     return;
   }
 
   if (event.type === "hookOn") {
+    if (isFocusOnOutgoing(snapshot) && snapshot.focusSessionId !== undefined) {
+      callbacks.onHangup(snapshot.focusSessionId);
+      return;
+    }
+
     if (hasPendingOutgoingDial(snapshot)) {
       const outgoingId = snapshot.outgoingInProgressIds[0];
       if (outgoingId !== undefined) {
@@ -105,22 +164,42 @@ export function forwardHeadsetHardwareEvent(
     return;
   }
 
-  if (event.type === "mutePressed") {
-    const activeId = snapshot.activeSessionId;
-    if (activeId === undefined || context.queue.isMuteSyncGuardActive()) {
+  if (event.type === "muteChanged") {
+    // jssip-phone: only muted:true edges toggle; muted:false is ignored.
+    if (
+      !canToggleMuteFromHeadset(snapshot) ||
+      context.queue.isHardwareMuteLocked() ||
+      event.muted !== true
+    ) {
       return;
     }
 
-    const nextMuted = !snapshot.activeIsMuted;
-    context.queue.beginMuteSessionSync(activeId, nextMuted);
-    callbacks.onSetMute(activeId, nextMuted);
+    const focusId = snapshot.focusSessionId;
+    if (focusId === undefined) {
+      return;
+    }
+
+    const nextMuted = !snapshot.focusedIsMuted;
+    if (!context.queue.beginMuteSessionSync(focusId, nextMuted)) {
+      return;
+    }
+    callbacks.onSetMute(focusId, nextMuted);
     return;
   }
 
-  if (event.type === "holdPressed" && snapshot.activeSessionId !== undefined) {
-    const sessionId = snapshot.activeSessionId;
-    const intent = snapshot.activeIsOnHold ? "resume" : "hold";
-    context.queue.beginHoldSessionSync(sessionId, intent);
+  if (event.type === "holdPressed" && snapshot.focusSessionId !== undefined) {
+    if (
+      snapshot.incomingWaitingCount > 0 ||
+      isFocusOnOutgoing(snapshot) ||
+      context.queue.isHardwareHoldLocked()
+    ) {
+      return;
+    }
+    const sessionId = snapshot.focusSessionId;
+    const intent = snapshot.focusedIsOnHold ? "resume" : "hold";
+    if (!context.queue.beginHoldSessionSync(sessionId, intent)) {
+      return;
+    }
     callbacks.onToggleHold(sessionId);
   }
 }

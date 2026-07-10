@@ -90,6 +90,17 @@
   cursor: not-allowed;
 }
 
+.button-loading {
+  position: relative;
+  opacity: 1;
+  cursor: wait;
+}
+
+.button-spinner {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
 .caption {
   font-size: 0.625rem;
   line-height: 1.25;

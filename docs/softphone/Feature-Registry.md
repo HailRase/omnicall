@@ -151,8 +151,10 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Phone number is validated before adapter invocation.
   - Outgoing flow runs through `TelephonyGateway` (mock default; real via `JsSipTelephonyAdapter` when `?adapters=real`).
   - **WU6 (done):** hold-all before second outgoing when Active exists; block dial while Connecting — `MultiCallPolicyService.checkConflictingOperationBlocked`, `CallEngine.multiCallPolicy.test.ts`.
+  - New outgoing Connecting/outbound Ringing auto-becomes `selectedCall` (UI + operator selection); incoming ringing still wins; failed dial restores prior selection.
+  - Outbound Connecting/Ringing lines are selectable (`primaryAction: hangup`); only the waiting incoming Ringing uses `answer`.
 - Test Coverage:
-  - Unit: number validation and transitions
+  - Unit: number validation and transitions; `resolveOutgoingInProgressCallId`
   - Integration: mock gateway make-call progress/answer/failure + media tones
   - E2E: deferred until dedicated Electron E2E harness exists
 - Real Adapter Track: **done** (RAT step 04, 2026-06-24) — `JsSipTelephonyAdapter` makeCall/outgoing progress/answered/failed; manual SBC R3 PASS (R3-1/R3-4)
@@ -316,15 +318,22 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Vendor details remain inside adapters.
   - Headset commands enter through Use Cases.
   - LED sync consumes state projections.
-- Test Coverage:
-  - Unit: `buildHeadsetCallSnapshot.test.ts`, `HeadsetSessionOrchestrator.test.ts`, `SettingsHeadsetPanel.test.tsx`
+  - Headset session focus follows: incoming → outgoing → operator selection → primary → active → held (`resolveHeadsetSessionFocus`).
+  - Hook-on hangup targets the focused established/outgoing session (including Held).
+  - Mute from headset applies to the focused established session (including Held); hold LED clears mute LED (telephony mute preserved in UI); resume restores session mute to headset.
+  - Outgoing dial auto-captures headset focus over operator selection.
+  - After answering an incoming call, UI/headset selection stays on the answered session; reject/miss restores prior selection.
+  - Headset faults surface operator toasts with recovery guidance (`HeadsetFaultOccurred`).
+  - Reconnect realigns LED via `resolveInitialConnectCommands`.
+  - USB unplug: disconnect + fault toast; no automatic failover to another granted device.- Test Coverage:
+  - Unit: `buildHeadsetCallSnapshot.test.ts`, `resolveHeadsetSessionFocus.test.ts`, `resolveDeviceCommandsFromSnapshot.test.ts`, `forwardHeadsetHardwareEvent.test.ts`, `HeadsetSessionOrchestrator.test.ts`, `SettingsHeadsetPanel.test.tsx`
   - Integration: `MockHeadsetGateway.ts`, `AccountBootstrapFacade` headset wiring
   - E2E: deferred until device harness exists
 - Evidence:
   - Domain/ports: `src/domain/headset/`, `src/ports/headset/HeadsetGateway.ts`
-  - Application: `src/application/headset/`, `src/application/services/headset/HeadsetIntegrationService.ts`
+  - Application: `src/application/headset/` (incl. `session/resolveHeadsetSessionFocus.ts`), `src/application/services/headset/HeadsetIntegrationService.ts`
   - Adapters: `src/adapters/headset/webhid/`, `src/adapters/mock/MockHeadsetGateway.ts`
-  - UI: `SettingsHeadsetPanel.tsx`, `headsetSyncBusyProjection.ts`, `applyHeadsetSyncBusyToActiveCallControls.ts`
+  - UI: `SettingsHeadsetPanel.tsx`, `useCallFeatureShell.ts` selection → `setHeadsetSelectedCallId`, `headsetSyncBusyProjection.ts`, `applyHeadsetSyncBusyToActiveCallControls.ts`
   - ADR: `docs/softphone/adr/ADR-0007-headset-web-hid.md`
 
 ## F-013: Call History

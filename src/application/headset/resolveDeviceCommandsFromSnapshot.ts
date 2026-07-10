@@ -1,22 +1,107 @@
 import type { HeadsetCommand } from "@domain/index.js";
 import type { HeadsetCallSnapshot } from "./buildHeadsetCallSnapshot.js";
-import {
-  hasPendingOutgoingDial,
-  isAllEstablishedOnHold,
-} from "./buildHeadsetCallSnapshot.js";
+import { hasPendingOutgoingDial } from "./buildHeadsetCallSnapshot.js";
 
-function appendHoldLedCommand(
-  commands: HeadsetCommand[],
+function isFocusOnOutgoing(snapshot: HeadsetCallSnapshot): boolean {
+  return (
+    snapshot.focusSessionId !== undefined &&
+    snapshot.outgoingInProgressIds.includes(snapshot.focusSessionId)
+  );
+}
+
+/** Hold LED is ring-only; mute LED stays off until resume restores session mute. */
+function holdIndicatorCommand(): HeadsetCommand {
+  return { type: "setHoldIndicator", muted: false };
+}
+
+/**
+ * - Purpose: map focused session presence to LED commands.
+ * - Inputs: headset call snapshot after incoming priority is cleared.
+ * - Outputs: presence LED commands for the focused session.
+ */
+function resolveFocusPresenceCommands(
   snapshot: HeadsetCallSnapshot,
-): void {
-  if (isAllEstablishedOnHold(snapshot) || snapshot.activeIsOnHold) {
-    commands.push({ type: "setHoldIndicator" });
-    return;
+): ReadonlyArray<HeadsetCommand> {
+  if (snapshot.focusSessionId === undefined) {
+    return [{ type: "clearSignal" }];
   }
 
-  if (snapshot.activeSessionId !== undefined) {
-    commands.push({ type: "answer" });
+  if (snapshot.focusedIsOnHold) {
+    return [holdIndicatorCommand()];
   }
+
+  if (isFocusOnOutgoing(snapshot) || hasPendingOutgoingDial(snapshot)) {
+    return [{ type: "signalOutgoing" }];
+  }
+
+  return [{ type: "answer" }];
+}
+
+function resolveFocusMuteCommand(
+  snapshot: HeadsetCallSnapshot,
+): HeadsetCommand | null {
+  if (
+    snapshot.focusSessionId === undefined ||
+    isFocusOnOutgoing(snapshot) ||
+    hasPendingOutgoingDial(snapshot)
+  ) {
+    return null;
+  }
+
+  // Held: keep telephony mute in app/UI; do not drive red mute LED until resume.
+  if (snapshot.focusedIsOnHold) {
+    return null;
+  }
+
+  return { type: "setMute", muted: snapshot.focusedIsMuted };
+}
+
+function hasFocusPresenceDelta(
+  previous: HeadsetCallSnapshot,
+  next: HeadsetCallSnapshot,
+): boolean {
+  return (
+    previous.focusSessionId !== next.focusSessionId ||
+    previous.focusedIsOnHold !== next.focusedIsOnHold ||
+    previous.focusReason !== next.focusReason ||
+    previous.activeSessionId !== next.activeSessionId ||
+    previous.heldSessionIds.join(",") !== next.heldSessionIds.join(",") ||
+    previous.outgoingInProgressIds.join(",") !==
+      next.outgoingInProgressIds.join(",") ||
+    previous.establishedCount !== next.establishedCount
+  );
+}
+
+function hasFocusMuteDelta(
+  previous: HeadsetCallSnapshot,
+  next: HeadsetCallSnapshot,
+): boolean {
+  return (
+    previous.focusedIsMuted !== next.focusedIsMuted ||
+    previous.focusSessionId !== next.focusSessionId ||
+    previous.focusedIsOnHold !== next.focusedIsOnHold
+  );
+}
+
+/**
+ * - Purpose: restore pre-connect LED after firmware mute press (incoming/outgoing parity).
+ * - Inputs: headset call snapshot where app mute is not allowed.
+ * - Outputs: presence LED command that clears device mute without toggling app mute.
+ */
+export function resolveMuteRejectedLedCommands(
+  snapshot: HeadsetCallSnapshot,
+): ReadonlyArray<HeadsetCommand> {
+  if (snapshot.incomingWaitingCount > 0) {
+    return [{ type: "signalIncoming" }];
+  }
+  if (
+    snapshot.focusReason === "outgoing" ||
+    isFocusOnOutgoing(snapshot) ||
+    hasPendingOutgoingDial(snapshot)
+  ) {
+    return [{ type: "signalOutgoing" }];
+  }
+  return [{ type: "setMute", muted: false }];
 }
 
 /**
@@ -28,115 +113,76 @@ export function resolveDeviceCommandsFromSnapshot(
   previous: HeadsetCallSnapshot | null,
   next: HeadsetCallSnapshot,
 ): ReadonlyArray<HeadsetCommand> {
+  if (previous === null) {
+    return resolveInitialConnectCommands(next);
+  }
+
   const commands: HeadsetCommand[] = [];
-  const hasIncomingWaiting = next.incomingWaitingCount > 0;
-  const previousIncomingCount = previous?.incomingWaitingCount ?? 0;
+  const previousIncomingCount = previous.incomingWaitingCount;
   const incomingAppeared =
     previousIncomingCount === 0 && next.incomingWaitingCount > 0;
   const incomingCountIncreased = next.incomingWaitingCount > previousIncomingCount;
-  const isOutgoingDialing = hasPendingOutgoingDial(next);
 
   if (incomingAppeared || incomingCountIncreased) {
     commands.push({ type: "signalIncoming" });
   }
 
-  if (hasIncomingWaiting) {
+  if (next.incomingWaitingCount > 0) {
     return commands;
   }
 
   const incomingCleared =
     previousIncomingCount > 0 && next.incomingWaitingCount === 0;
-  const outgoingStarted =
-    !hasPendingOutgoingDial(previous ?? next) && isOutgoingDialing;
-  const emptySnapshot: HeadsetCallSnapshot = {
-    establishedCount: 0,
-    activeSessionId: undefined,
-    primarySessionId: undefined,
-    activeIsMuted: false,
-    activeIsOnHold: false,
-    heldSessionIds: [],
-    establishedSessionIds: [],
-    outgoingInProgressIds: [],
-    incomingWaitingCount: 0,
-    firstIncomingCallId: undefined,
-  };
+  const isOutgoingDialing = hasPendingOutgoingDial(next);
   const outgoingEnded =
-    hasPendingOutgoingDial(previous ?? emptySnapshot) && !isOutgoingDialing;
-  const establishedIncreased =
-    (previous?.establishedCount ?? 0) < next.establishedCount;
-  const establishedDecreased =
-    (previous?.establishedCount ?? 0) > next.establishedCount;
-  const holdChanged =
-    previous?.activeSessionId !== next.activeSessionId ||
-    previous?.activeIsOnHold !== next.activeIsOnHold ||
-    previous?.heldSessionIds.join(",") !== next.heldSessionIds.join(",");
-
-  if (incomingCleared && next.establishedCount === 0 && !isOutgoingDialing) {
-    commands.push({ type: "clearSignal" });
-  } else if (incomingCleared && !isOutgoingDialing) {
-    if (isAllEstablishedOnHold(next)) {
-      commands.push({ type: "setHoldIndicator" });
-    } else if (next.activeSessionId !== undefined) {
-      commands.push({ type: "answer" });
-    } else {
-      commands.push({ type: "clearSignal" });
-    }
-  }
-
-  if (outgoingStarted) {
-    commands.push({ type: "signalOutgoing" });
-  }
-
-  if (outgoingEnded) {
-    if (isAllEstablishedOnHold(next)) {
-      commands.push({ type: "setHoldIndicator" });
-    } else if (next.activeSessionId !== undefined) {
-      commands.push({ type: "answer" });
-    } else if (next.establishedCount === 0 && next.incomingWaitingCount === 0) {
-      commands.push({ type: "clearSignal" });
-    }
-  }
-
-  if (
-    establishedDecreased &&
-    next.establishedCount === 0 &&
-    !isOutgoingDialing
-  ) {
-    commands.push({ type: "clearSignal" });
-  }
-
-  if (establishedIncreased && next.activeSessionId !== undefined && !isOutgoingDialing) {
-    commands.push({ type: "answer" });
-  }
-
-  if (holdChanged && !isOutgoingDialing) {
-    appendHoldLedCommand(commands, next);
-  }
-
-  const muteChanged =
-    previous?.activeIsMuted !== next.activeIsMuted ||
-    previous?.activeSessionId !== next.activeSessionId;
-
-  if (muteChanged && next.activeSessionId !== undefined && !next.activeIsOnHold) {
-    commands.push({ type: "setMute", muted: next.activeIsMuted });
-  }
-
-  if (
+    hasPendingOutgoingDial(previous) && !isOutgoingDialing;
+  const establishedDecreased = previous.establishedCount > next.establishedCount;
+  const wentIdle =
+    next.focusSessionId === undefined &&
     next.establishedCount === 0 &&
     !isOutgoingDialing &&
-    next.incomingWaitingCount === 0 &&
-    (establishedDecreased || outgoingEnded)
-  ) {
-    commands.push({ type: "hangup" });
+    next.incomingWaitingCount === 0;
+
+  const presenceChanged = incomingCleared || hasFocusPresenceDelta(previous, next);
+  const muteChanged = hasFocusMuteDelta(previous, next);
+
+  if (presenceChanged) {
+    if (wentIdle) {
+      if (establishedDecreased || outgoingEnded || incomingCleared) {
+        commands.push({ type: "hangup" });
+      }
+      commands.push({ type: "clearSignal" });
+    } else {
+      commands.push(...resolveFocusPresenceCommands(next));
+    }
   }
 
-  if (isOutgoingDialing) {
-    return commands.filter((command) => command.type !== "setHoldIndicator");
+  if (muteChanged && !wentIdle) {
+    const muteCommand = resolveFocusMuteCommand(next);
+    if (muteCommand !== null) {
+      // Avoid duplicate hold indicator when presence already emitted the same command.
+      const alreadyEmitted =
+        presenceChanged &&
+        muteCommand.type === "setHoldIndicator" &&
+        commands.some(
+          (command) =>
+            command.type === "setHoldIndicator" &&
+            command.muted === muteCommand.muted,
+        );
+      if (!alreadyEmitted) {
+        commands.push(muteCommand);
+      }
+    }
   }
 
   return commands;
 }
 
+/**
+ * - Purpose: build LED commands that align device indicators to the current snapshot.
+ * - Inputs: current headset call snapshot.
+ * - Outputs: ordered headset commands for connect/resync.
+ */
 export function resolveInitialConnectCommands(
   snapshot: HeadsetCallSnapshot,
 ): ReadonlyArray<HeadsetCommand> {
@@ -144,20 +190,22 @@ export function resolveInitialConnectCommands(
     return [{ type: "signalIncoming" }];
   }
 
-  if (hasPendingOutgoingDial(snapshot)) {
+  if (snapshot.focusSessionId === undefined) {
+    return [{ type: "clearSignal" }];
+  }
+
+  if (snapshot.focusedIsOnHold) {
+    return [holdIndicatorCommand()];
+  }
+
+  if (isFocusOnOutgoing(snapshot) || hasPendingOutgoingDial(snapshot)) {
     return [{ type: "signalOutgoing" }];
   }
 
-  if (isAllEstablishedOnHold(snapshot) || snapshot.activeIsOnHold) {
-    return [{ type: "setHoldIndicator" }];
+  const muteCommand = resolveFocusMuteCommand(snapshot);
+  if (muteCommand !== null) {
+    return [{ type: "answer" }, muteCommand];
   }
 
-  if (snapshot.activeSessionId !== undefined) {
-    return [
-      { type: "answer" },
-      { type: "setMute", muted: snapshot.activeIsMuted },
-    ];
-  }
-
-  return [{ type: "clearSignal" }];
+  return [{ type: "answer" }];
 }

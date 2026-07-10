@@ -23,9 +23,18 @@ export class MockHeadsetGateway implements HeadsetGateway {
   private readonly sentCommands: HeadsetCommand[] = [];
   private supported = true;
   private connectShouldFail = false;
+  private autoReconnectEnabled = true;
 
   isSupported(): boolean {
     return this.supported;
+  }
+
+  setAutoReconnectEnabled(enabled: boolean): void {
+    this.autoReconnectEnabled = enabled;
+  }
+
+  isAutoReconnectEnabled(): boolean {
+    return this.autoReconnectEnabled;
   }
 
   setSupported(supported: boolean): void {
@@ -59,6 +68,9 @@ export class MockHeadsetGateway implements HeadsetGateway {
   }
 
   tryAutoReconnect(): Promise<Result<HeadsetDevice | null, PlatformError>> {
+    if (!this.autoReconnectEnabled) {
+      return Promise.resolve(ok(null));
+    }
     if (this.connectedDevice !== null) {
       return Promise.resolve(ok(this.connectedDevice));
     }

@@ -159,4 +159,29 @@ describe("CallControlsBar", () => {
     fireEvent.click(screen.getByTestId("control-show-dtmf"));
     expect(onShowDtmf).toHaveBeenCalledTimes(1);
   });
+
+  it("shows spinner on mute while headset sync is in progress", () => {
+    const syncingLine: CallLineCardViewModel = {
+      ...activeLine,
+      muteDisabledReason: "headset_sync_in_progress",
+    };
+    render(
+      <CallControlsBar
+        line={syncingLine}
+        onHold={vi.fn()}
+        onResume={vi.fn()}
+        onMute={vi.fn()}
+        onUnmute={vi.fn()}
+        onHangup={vi.fn()}
+        onTransfer={vi.fn()}
+        onShowDtmf={vi.fn()}
+        onShowNumberEntry={vi.fn()}
+      />,
+    );
+
+    const muteButton = screen.getByTestId("control-mute-line-call-1");
+    expect(muteButton).toBeDisabled();
+    expect(muteButton).toHaveAttribute("aria-busy", "true");
+    expect(muteButton).toHaveAttribute("data-loading", "true");
+  });
 });

@@ -82,8 +82,9 @@ export function mapHidPhoneActionToHardwareEvent(
   if (action.type === "hook") {
     return action.state === "off" ? { type: "hookOff" } : { type: "hookOn" };
   }
-  if (action.type === "mute" && action.state === "muted") {
-    return { type: "mutePressed" };
+  if (action.type === "mute") {
+    // Emit both edges; forward policy toggles only on muted===true (jssip-phone).
+    return { type: "muteChanged", muted: action.state === "muted" };
   }
   if (action.type === "hold") {
     return { type: "holdPressed" };

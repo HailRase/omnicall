@@ -57,6 +57,8 @@ export type CallLinesShellDeriveInput = Readonly<{
   activeCallControlsProjection: ActiveCallControlsProjection;
   transferProjection: TransferProjection;
   contacts: ReadonlyArray<Contact>;
+  /** Waiting incoming call id — Ringing lines use answer only for this session. */
+  incomingCallId?: string | null;
 }>;
 
 const ESTABLISHED_LINE_STATES = new Set<CallLine["state"]>([
@@ -81,6 +83,7 @@ export function deriveCallLinesShell(
     activeCallControlsProjection,
     transferProjection,
   } = input;
+  const incomingCallId = input.incomingCallId ?? null;
 
   const resumePolicyReason = deriveResumeMultiCallDisabledReason(multiCallProjection);
   const contactDirectory = buildContactDirectory(input.contacts);
@@ -96,6 +99,7 @@ export function deriveCallLinesShell(
       activeCallControlsProjection,
       transferProjection,
       contactDirectory,
+      incomingCallId,
     }),
   );
 
@@ -115,8 +119,9 @@ function mapLineToViewModel(input: Readonly<{
   activeCallControlsProjection: ActiveCallControlsProjection;
   transferProjection: TransferProjection;
   contactDirectory: ReturnType<typeof buildContactDirectory>;
+  incomingCallId: string | null;
 }>): CallLineCardViewModel {
-  const { line, multiCallProjection, resumePolicyReason } = input;
+  const { line, multiCallProjection, resumePolicyReason, incomingCallId } = input;
   const isActiveUnheld =
     line.state === "Active" && multiCallProjection.activeUnheldCallId === line.callId;
   const lineControls = createActiveCallControlsProjection({
@@ -130,7 +135,7 @@ function mapLineToViewModel(input: Readonly<{
     line.state === "Ending" || line.state === "Ended"
       ? ("call_ending" as const)
       : lineControls.hangupDisabledReason;
-  const primaryAction = resolvePrimaryAction(line.state);
+  const primaryAction = resolvePrimaryAction(line.state, line.callId, incomingCallId);
   const showIconRow = line.state === "Active" && !line.isRemoteHold;
 
   return {
@@ -167,14 +172,19 @@ function mapLineToViewModel(input: Readonly<{
   };
 }
 
-function resolvePrimaryAction(state: CallLine["state"]): CallLinePrimaryAction {
+function resolvePrimaryAction(
+  state: CallLine["state"],
+  callId: string,
+  incomingCallId: string | null,
+): CallLinePrimaryAction {
   if (state === "Held") {
     return "resume";
   }
-  if (state === "Ringing") {
+  // Outbound ringback is also Ringing — only the waiting incoming is answerable.
+  if (state === "Ringing" && incomingCallId !== null && callId === incomingCallId) {
     return "answer";
   }
-  if (state === "Active" || state === "Transferring" || state === "Connecting") {
+  if (state === "Active" || state === "Transferring" || state === "Connecting" || state === "Ringing") {
     return "hangup";
   }
   return "none";

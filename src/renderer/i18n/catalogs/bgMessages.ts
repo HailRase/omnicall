@@ -427,6 +427,16 @@ export const bgMessages: MessageShape = {
     `Устройство: ${params.name}`,
   "settings.headset.connect": "Свържи",
   "settings.headset.disconnect": "Прекъсни",
+  "notification.headset.fault.connect_failed":
+    "Неуспешно свързване на слушалките. Отворете Настройки → Слушалки и натиснете «Свържи», проверете USB кабела.",
+  "notification.headset.fault.unsupported":
+    "Web HID не е наличен в тази среда. Управление на обаждания със слушалки е невъзможно.",
+  "notification.headset.fault.usb_disconnected":
+    "Слушалките са изключени (USB). Обажданията продължават в приложението. Свържете отново или включете автосвързване.",
+  "notification.headset.fault.device_error":
+    "Грешка в слушалките. Изключете и включете USB, след това свържете отново в Настройки → Слушалки.",
+  "notification.headset.fault.led_blocked":
+    "Индикаторите на слушалките са блокирани от ОС. Бутоните може да работят; свържете отново при нужда.",
   "activeCall.disabled.headsetSyncInProgress": "Синхронизация със слушалки…",
   "settings.nav.account": "Акаунт",
   "settings.nav.codecs": "Кодеци",

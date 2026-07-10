@@ -538,6 +538,16 @@ const ruMessages = {
     `Устройство: ${params.name}`,
   "settings.headset.connect": "Подключить",
   "settings.headset.disconnect": "Отключить",
+  "notification.headset.fault.connect_failed":
+    "Не удалось подключить гарнитуру. Откройте Настройки → Гарнитура и нажмите «Подключить», проверьте USB-кабель.",
+  "notification.headset.fault.unsupported":
+    "Web HID недоступен в этой среде. Управление звонками с гарнитуры невозможно.",
+  "notification.headset.fault.usb_disconnected":
+    "Гарнитура отключена (USB). Звонки продолжают работать в приложении. Подключите устройство снова или включите автопереподключение.",
+  "notification.headset.fault.device_error":
+    "Ошибка гарнитуры. Отключите и подключите USB, затем переподключите устройство в Настройках → Гарнитура.",
+  "notification.headset.fault.led_blocked":
+    "Индикаторы гарнитуры недоступны (ограничение ОС). Кнопки могут работать; переподключите устройство при необходимости.",
   "activeCall.disabled.headsetSyncInProgress": "Синхронизация с гарнитурой…",
   "bootstrap.loading": "Загрузка приложения…",
   "settings.systemState.transport.idle": "Неактивно",
@@ -1305,6 +1315,16 @@ const enMessages: MessageShape = {
   "settings.headset.deviceLabel": (params) => `Device: ${params.name}`,
   "settings.headset.connect": "Connect",
   "settings.headset.disconnect": "Disconnect",
+  "notification.headset.fault.connect_failed":
+    "Could not connect the headset. Open Settings → Headset and click Connect, then check the USB cable.",
+  "notification.headset.fault.unsupported":
+    "Web HID is unavailable in this environment. Headset call control cannot be used.",
+  "notification.headset.fault.usb_disconnected":
+    "Headset disconnected (USB). Calls continue in the app. Replug the device or enable auto-reconnect.",
+  "notification.headset.fault.device_error":
+    "Headset error. Unplug and replug USB, then reconnect in Settings → Headset.",
+  "notification.headset.fault.led_blocked":
+    "Headset indicators are blocked by the OS. Buttons may still work; reconnect the device if needed.",
   "activeCall.disabled.headsetSyncInProgress": "Syncing with headset…",
   "settings.systemState.transport.idle": "Idle",
   "settings.systemState.transport.connecting": "Connecting",
@@ -2043,6 +2063,16 @@ const frMessages: MessageShape = {
   "settings.headset.deviceLabel": (params) => `Appareil : ${params.name}`,
   "settings.headset.connect": "Connecter",
   "settings.headset.disconnect": "Deconnecter",
+  "notification.headset.fault.connect_failed":
+    "Impossible de connecter le micro-casque. Ouvrez Parametres → Micro-casque, cliquez Connecter et verifiez le cable USB.",
+  "notification.headset.fault.unsupported":
+    "Web HID est indisponible dans cet environnement. Le controle d'appel par micro-casque est impossible.",
+  "notification.headset.fault.usb_disconnected":
+    "Micro-casque deconnecte (USB). Les appels continuent dans l'application. Rebranchez l'appareil ou activez la reconnexion automatique.",
+  "notification.headset.fault.device_error":
+    "Erreur du micro-casque. Debranchez puis rebranchez l'USB, puis reconnectez dans Parametres → Micro-casque.",
+  "notification.headset.fault.led_blocked":
+    "Les indicateurs du micro-casque sont bloques par le systeme. Les boutons peuvent fonctionner ; reconnectez l'appareil si besoin.",
   "activeCall.disabled.headsetSyncInProgress": "Synchronisation avec le micro-casque…",
   "settings.systemState.transport.idle": "Inactif",
   "settings.systemState.transport.connecting": "Connexion",
@@ -2784,6 +2814,16 @@ const deMessages: MessageShape = {
   "settings.headset.deviceLabel": (params) => `Gerat: ${params.name}`,
   "settings.headset.connect": "Verbinden",
   "settings.headset.disconnect": "Trennen",
+  "notification.headset.fault.connect_failed":
+    "Headset konnte nicht verbunden werden. Offnen Sie Einstellungen → Headset, klicken Sie Verbinden und pruefen Sie das USB-Kabel.",
+  "notification.headset.fault.unsupported":
+    "Web HID ist in dieser Umgebung nicht verfugbar. Headset-Anrufsteuerung ist nicht moglich.",
+  "notification.headset.fault.usb_disconnected":
+    "Headset getrennt (USB). Anrufe laufen in der App weiter. Gerät erneut anschliessen oder Auto-Reconnect aktivieren.",
+  "notification.headset.fault.device_error":
+    "Headset-Fehler. USB trennen und erneut anschliessen, dann in Einstellungen → Headset verbinden.",
+  "notification.headset.fault.led_blocked":
+    "Headset-Anzeigen sind durch das Betriebssystem blockiert. Tasten konnen funktionieren; Gerät bei Bedarf neu verbinden.",
   "activeCall.disabled.headsetSyncInProgress": "Synchronisierung mit Headset…",
   "settings.systemState.transport.idle": "Leerlauf",
   "settings.systemState.transport.connecting": "Verbinden",

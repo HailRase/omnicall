@@ -33,6 +33,29 @@
 - Native Jabra/Poly SDK adapters (new `HeadsetGateway` implementation).
 - E2E harness with physical device automation.
 - Headset hold button (profiles set `supportsHold: false` per reference).
+- Multi-incoming queue (single incoming projection remains in scope).
+
+## Follow-up (focus / multi-session parity)
+
+| WU | Status | Notes |
+| --- | --- | --- |
+| WU-A Focus contract | **done** | `resolveHeadsetSessionFocus`: incoming → outgoing → selected → primary → active → held |
+| WU-B LED from focus | **done** | LED priority: incoming ring > focus presence > mute; no mute+hold combo |
+| WU-C Hardware → focus | **done** | hangup/mute/resume target `focusSessionId` (hangup includes Held) |
+| WU-D UI sync guards | **done** | UI hold/mute/resume arms `HeadsetSyncQueue` via facade; busy listener refreshes projection |
+| WU-E DND wiring | **done** | `isDnd` from account `phoneStatus === "dnd"` into headset answer guard |
+| WU-F Error notifications | **done** | `HeadsetFaultOccurred` + toast; USB unplug = disconnect + toast (no failover) |
+| WU-G Regression gate | **done** | headset unit/projection/notification tests; i18n keys; typecheck |
+| WU-H Policy lock (2026-07-10) | **done** | Q1 hangup=focus; Q2 mute=focus incl. Held; Q3 outgoing captures focus; Q6 post-answer stays on answered |
+
+## Critical bugfixes (2026-07-10)
+
+Aligned with working `jssip-phone` `forwardDeviceEventToApp` / orchestrator / `syncLedOnHold`:
+
+- **Mute:** toggle only on `muteChanged.muted === true` (ignore unmuted bounce); do not re-arm mute guard on LED `setMute`.
+- **Hold LED:** `offHook: false` + ringing — green press is `hookOff` → resume; hold sync guard (2s) swallows `hookOn` echo from LED write.
+- **Hangup:** `hookOn` → `activeSessionId` / outgoing only; never held-only.
+- **Guards:** arm only from `beginHold/MuteSessionSync` (device/UI), never from LED reconcile writes.
 
 ## Key paths
 

@@ -216,4 +216,36 @@ describe("deriveCallLinesShell", () => {
 
     expect(shell.lines[0]?.displayName).toBe("Support Queue");
   });
+
+  it("uses hangup for outbound Connecting and Ringing, answer only for waiting incoming", () => {
+    const shell = deriveCallLinesShell({
+      multiLineCallProjection: {
+        lines: [
+          createLine({ callId: "held-1", state: "Held" }),
+          createLine({ callId: "out-1", state: "Connecting" }),
+          createLine({ callId: "out-ring", state: "Ringing" }),
+          createLine({ callId: "in-1", state: "Ringing" }),
+        ],
+        primaryCallId: "held-1",
+        consultationCallId: null,
+        sourceCallId: null,
+        attendedPhase: "idle",
+        lastFailureReason: null,
+      },
+      multiCallProjection: {
+        ...initialMultiCallProjection(),
+        hasEstablishedCall: true,
+        establishedCallCount: 1,
+        hasConnectingCall: true,
+      },
+      activeCallControlsProjection: initialActiveCallControlsProjection(),
+      transferProjection: initialTransferProjection(),
+      contacts: emptyContacts,
+      incomingCallId: "in-1",
+    });
+
+    expect(shell.lines.find((line) => line.callId === "out-1")?.primaryAction).toBe("hangup");
+    expect(shell.lines.find((line) => line.callId === "out-ring")?.primaryAction).toBe("hangup");
+    expect(shell.lines.find((line) => line.callId === "in-1")?.primaryAction).toBe("answer");
+  });
 });

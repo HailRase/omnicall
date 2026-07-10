@@ -4,14 +4,19 @@ import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { isErr } from "@shared/result/index.js";
 import {
   createHeadsetAnswerPressed,
+  createHeadsetDisconnected,
+  createHeadsetFaultOccurred,
   createHeadsetHangupPressed,
   createHeadsetHoldPressed,
   createHeadsetLedSyncRequested,
   createHeadsetMutePressed,
+  type HeadsetFaultReason,
 } from "@domain/headset/events/headsetEvents.js";
 import type { HeadsetCallSnapshot } from "./buildHeadsetCallSnapshot.js";
 import {
+  canToggleMuteFromHeadset,
   forwardHeadsetHardwareEvent,
+  HOOK_ON_SUPPRESS_MS,
   type HeadsetHardwareCallbacks,
 } from "./forwardHeadsetHardwareEvent.js";
 import { HeadsetOrchestratorGuards } from "./HeadsetOrchestratorGuards.js";
@@ -19,7 +24,9 @@ import { HeadsetSyncQueue } from "./HeadsetSyncQueue.js";
 import {
   resolveDeviceCommandsFromSnapshot,
   resolveInitialConnectCommands,
+  resolveMuteRejectedLedCommands,
 } from "./resolveDeviceCommandsFromSnapshot.js";
+import { resolveHangupTargetId } from "./resolveHangupTargetId.js";
 
 export type HeadsetSnapshotSource = () => HeadsetCallSnapshot;
 
@@ -29,12 +36,16 @@ export type HeadsetSessionOrchestratorDeps = Readonly<{
   logger: Logger;
   getSnapshot: HeadsetSnapshotSource;
   callbacks: HeadsetHardwareCallbacks;
+  onSyncBusyChanged?: () => void;
 }>;
 
 /**
  * - Purpose: bidirectional sync between telephony snapshot and headset gateway.
  * - Inputs: snapshot source, hardware callbacks, headset gateway.
  * - Outputs: LED commands and domain events for headset interactions.
+ *
+ * Critical: when device→app sync skips LED reconcile, lastSnapshot must stay
+ * stale so a retry after intent clear can still emit presence/mute LED.
  */
 export class HeadsetSessionOrchestrator {
   private started = false;
@@ -44,6 +55,7 @@ export class HeadsetSessionOrchestrator {
   private readonly queue = new HeadsetSyncQueue();
   private readonly hookGuard = { suppressedUntil: 0 };
   private readonly acceptGuard = { suppressedUntil: 0 };
+  private ledFaultPublished = false;
 
   constructor(private readonly deps: HeadsetSessionOrchestratorDeps) {}
 
@@ -52,12 +64,11 @@ export class HeadsetSessionOrchestrator {
       return;
     }
     this.started = true;
+    this.queue.setUiBusyClearListener(() => this.deps.onSyncBusyChanged?.());
     this.unsubscribeGateway = this.deps.gateway.subscribe((event) => {
       this.handleHardwareEvent(event);
     });
-    const initial = this.deps.getSnapshot();
-    this.reconcileToDevice(null, initial);
-    this.lastSnapshot = initial;
+    this.lastSnapshot = this.deps.getSnapshot();
   }
 
   stop(): void {
@@ -65,28 +76,41 @@ export class HeadsetSessionOrchestrator {
       return;
     }
     this.started = false;
+    this.queue.setUiBusyClearListener(null);
     this.unsubscribeGateway?.();
     this.unsubscribeGateway = null;
     this.lastSnapshot = null;
+    this.ledFaultPublished = false;
   }
 
   onSnapshotChanged(next: HeadsetCallSnapshot): void {
     if (!this.started) {
       return;
     }
-    const previous = this.lastSnapshot;
-    this.reconcileToDevice(previous, next);
-    this.lastSnapshot = next;
-    this.clearMatchedSyncGuards(previous, next);
+
+    const applied = this.reconcileToDevice(this.lastSnapshot, next);
+    if (applied) {
+      this.lastSnapshot = next;
+    }
+
+    this.clearMatchedSyncGuards(next);
+
+    // Device→app path may skip LED while intents are open. After intents clear,
+    // retry so resume/hold/mute LED catch up against the still-stale lastSnapshot.
+    if (!applied && !this.shouldSkipReconcile(next)) {
+      if (this.reconcileToDevice(this.lastSnapshot, next)) {
+        this.lastSnapshot = next;
+      }
+    }
   }
 
   onDeviceConnected(): void {
     if (!this.started) {
       return;
     }
+    this.ledFaultPublished = false;
     const snapshot = this.deps.getSnapshot();
-    const commands = resolveInitialConnectCommands(snapshot);
-    this.enqueueCommands(commands);
+    this.enqueueCommands(resolveInitialConnectCommands(snapshot));
     this.lastSnapshot = snapshot;
   }
 
@@ -94,24 +118,74 @@ export class HeadsetSessionOrchestrator {
     return this.queue;
   }
 
+  private shouldSkipReconcile(next: HeadsetCallSnapshot): boolean {
+    if (this.deps.gateway.getConnectedDevice() === null) {
+      return true;
+    }
+
+    const commands = resolveDeviceCommandsFromSnapshot(this.lastSnapshot, next);
+    const isIncomingSignalOnly =
+      commands.length > 0 &&
+      commands.every((command) => command.type === "signalIncoming");
+
+    if (isIncomingSignalOnly) {
+      return false;
+    }
+
+    // Skip only while device→app window is open AND a hold/mute intent is pending.
+    // Use intent (not hold timer) so LED can catch up immediately after match.
+    return (
+      this.guards.isDeviceToAppGuardActive() && this.queue.hasPendingSyncIntent()
+    );
+  }
+
   private reconcileToDevice(
     previous: HeadsetCallSnapshot | null,
     next: HeadsetCallSnapshot,
-  ): void {
-    if (this.guards.isDeviceToAppGuardActive()) {
-      return;
+  ): boolean {
+    if (this.deps.gateway.getConnectedDevice() === null) {
+      return false;
     }
+
+    if (this.shouldSkipReconcile(next)) {
+      return false;
+    }
+
     const commands = resolveDeviceCommandsFromSnapshot(previous, next);
     if (commands.length === 0) {
-      return;
+      return true;
     }
-    this.guards.markAppToDeviceSync();
+
+    if (commands.some((command) => command.type === "setHoldIndicator")) {
+      this.hookGuard.suppressedUntil = Date.now() + HOOK_ON_SUPPRESS_MS;
+      // Clearing mute LED on hold often echoes muteChanged — do not toggle app mute.
+      this.queue.armHardwareMuteEcho();
+    }
+
+    const restoringMuteAfterHold =
+      previous !== null &&
+      previous.focusedIsOnHold &&
+      !next.focusedIsOnHold &&
+      commands.some((command) => command.type === "setMute");
+    if (restoringMuteAfterHold) {
+      // Resume setMute LED must not toggle app mute via firmware echo.
+      this.queue.armHardwareMuteEcho();
+    }
+
     this.enqueueCommands(commands);
+    return true;
   }
 
   private enqueueCommands(commands: ReadonlyArray<HeadsetCommand>): void {
+    if (this.deps.gateway.getConnectedDevice() === null) {
+      return;
+    }
     this.queue.enqueue(async () => {
+      this.guards.markAppToDeviceSync();
       for (const command of commands) {
+        if (this.deps.gateway.getConnectedDevice() === null) {
+          return;
+        }
         const correlationId = createCorrelationId();
         this.deps.eventPublisher.publish(
           createHeadsetLedSyncRequested(correlationId, command.type),
@@ -125,32 +199,68 @@ export class HeadsetSessionOrchestrator {
             operation: "headset_led_sync",
             result: "failure",
             commandType: command.type,
+            errorMessage: result.error.message,
           });
+          if (
+            !this.ledFaultPublished &&
+            result.error.message === "headset_led_output_blocked"
+          ) {
+            this.ledFaultPublished = true;
+            this.deps.eventPublisher.publish(
+              createHeadsetFaultOccurred(correlationId, "led_blocked"),
+            );
+          }
+          continue;
         }
       }
     });
   }
 
   private handleHardwareEvent(event: HeadsetHardwareEvent): void {
-    if (this.guards.isAppToDeviceGuardActive()) {
-      return;
-    }
     if (event.type === "deviceError") {
+      const correlationId = createCorrelationId();
+      const reason = mapDeviceErrorToFaultReason(event.reason);
       this.deps.logger.warn("headset_device_error", {
-        correlationId: createCorrelationId(),
+        correlationId,
         featureId: "F-012",
         boundedContext: "Headset",
         operation: "headset_hardware_event",
         result: "failure",
         reason: event.reason,
       });
+      this.deps.eventPublisher.publish(createHeadsetFaultOccurred(correlationId, reason));
+      if (reason === "usb_disconnected") {
+        this.deps.eventPublisher.publish(createHeadsetDisconnected(correlationId, null));
+      }
       return;
     }
-    if (this.queue.isHoldSyncGuardActive() && event.type !== "hookOff" && event.type !== "hookOn") {
+
+    if (event.type === "muteChanged" && this.queue.isHardwareMuteLocked()) {
       return;
     }
-    this.guards.markDeviceToAppSync();
+
+    if (event.type === "holdPressed" && this.queue.isHardwareHoldLocked()) {
+      return;
+    }
+
+    // Suppress hook-on echo while hold sync/LED settle; hangup remains allowed during mute sync.
+    if (
+      event.type === "hookOn" &&
+      (this.queue.getHoldIntent() !== null || this.queue.isHoldSyncGuardActive())
+    ) {
+      return;
+    }
+
     const snapshot = this.deps.getSnapshot();
+
+    // Incoming / outgoing dial: same policy — never toggle app mute; restore presence LED
+    // (do not send bare setMute — that forces offHook and breaks ring/dial LED).
+    if (event.type === "muteChanged" && !canToggleMuteFromHeadset(snapshot)) {
+      this.enqueueCommands(resolveMuteRejectedLedCommands(snapshot));
+      return;
+    }
+
+    this.guards.markDeviceToAppSync();
     const incomingId = snapshot.firstIncomingCallId;
     const correlationId = createCorrelationId();
     this.publishHardwareDomainEvent(event, incomingId, snapshot, correlationId);
@@ -159,6 +269,7 @@ export class HeadsetSessionOrchestrator {
       acceptGuard: this.acceptGuard,
       queue: this.queue,
     });
+    this.deps.onSyncBusyChanged?.();
   }
 
   private publishHardwareDomainEvent(
@@ -174,7 +285,7 @@ export class HeadsetSessionOrchestrator {
       return;
     }
     if (event.type === "hookOn") {
-      const callId = snapshot.activeSessionId ?? incomingId;
+      const callId = resolveHangupTargetId(snapshot) ?? incomingId;
       if (callId !== undefined) {
         this.deps.eventPublisher.publish(
           createHeadsetHangupPressed(correlationId, callId),
@@ -182,29 +293,28 @@ export class HeadsetSessionOrchestrator {
       }
       return;
     }
-    if (event.type === "holdPressed" && snapshot.activeSessionId !== undefined) {
+    if (event.type === "holdPressed" && snapshot.focusSessionId !== undefined) {
       this.deps.eventPublisher.publish(
-        createHeadsetHoldPressed(correlationId, snapshot.activeSessionId),
+        createHeadsetHoldPressed(correlationId, snapshot.focusSessionId),
       );
       return;
     }
-    if (event.type === "mutePressed" && snapshot.activeSessionId !== undefined) {
+    if (
+      event.type === "muteChanged" &&
+      snapshot.focusSessionId !== undefined
+    ) {
       this.deps.eventPublisher.publish(
-        createHeadsetMutePressed(correlationId, snapshot.activeSessionId),
+        createHeadsetMutePressed(correlationId, snapshot.focusSessionId),
       );
     }
   }
 
-  private clearMatchedSyncGuards(
-    previous: HeadsetCallSnapshot | null,
-    next: HeadsetCallSnapshot,
-  ): void {
-    if (previous?.activeIsOnHold !== next.activeIsOnHold && next.activeSessionId !== undefined) {
-      this.queue.clearHoldSyncIfMatched(next.activeSessionId);
+  private clearMatchedSyncGuards(next: HeadsetCallSnapshot): void {
+    if (next.focusSessionId !== undefined) {
+      this.queue.clearHoldSyncIfMatched(next.focusSessionId, next.focusedIsOnHold);
+      this.queue.clearMuteSyncIfMatched(next.focusSessionId, next.focusedIsMuted);
     }
-    if (previous?.activeIsMuted !== next.activeIsMuted && next.activeSessionId !== undefined) {
-      this.queue.clearMuteSyncIfMatched(next.activeSessionId);
-    }
+    this.deps.onSyncBusyChanged?.();
   }
 }
 
@@ -242,4 +352,11 @@ export function createHeadsetHardwareCallbacks(deps: {
     },
     ...(deps.isDnd !== undefined ? { isDnd: deps.isDnd } : {}),
   };
+}
+
+function mapDeviceErrorToFaultReason(reason: string): HeadsetFaultReason {
+  if (reason === "usb_disconnected") {
+    return "usb_disconnected";
+  }
+  return "device_error";
 }

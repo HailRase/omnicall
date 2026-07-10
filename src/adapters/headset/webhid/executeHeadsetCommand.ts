@@ -25,7 +25,7 @@ export async function executeHeadsetCommand(
     case "clearSignal":
       return syncLedAfterHangup(device);
     case "setHoldIndicator":
-      return syncLedOnHold(device);
+      return syncLedOnHold(device, command.muted === true);
     case "setMute":
       return syncLedMute(device, command.muted);
     default:

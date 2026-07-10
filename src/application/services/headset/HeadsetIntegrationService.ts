@@ -2,6 +2,7 @@ import type { UserSettings } from "@domain/index.js";
 import {
   createHeadsetConnected,
   createHeadsetDisconnected,
+  createHeadsetFaultOccurred,
 } from "@domain/headset/events/headsetEvents.js";
 import type { DomainEventPublisher, HeadsetGateway, Logger } from "@ports/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
@@ -43,12 +44,14 @@ export type HeadsetIntegrationServiceDeps = Readonly<{
 
 /**
  * - Purpose: orchestrate optional headset integration lifecycle and telephony sync.
- * - Inputs: user settings, gateway connect/disconnect, call projections.
+ * - Inputs: user settings, gateway connect/disconnect, call projections, operator selection.
  * - Outputs: domain events, LED sync, hardware-driven Use Case calls.
  */
 export class HeadsetIntegrationService {
   private orchestrator: HeadsetSessionOrchestrator | null = null;
   private enabled = false;
+  private operatorSelectedCallId: string | null = null;
+  private onSyncBusyChanged: (() => void) | null = null;
 
   private readonly connectUseCase: ConnectHeadsetDeviceUseCase;
   private readonly disconnectUseCase: DisconnectHeadsetDeviceUseCase;
@@ -72,7 +75,68 @@ export class HeadsetIntegrationService {
     return this.enabled;
   }
 
+  setSyncBusyListener(listener: (() => void) | null): void {
+    this.onSyncBusyChanged = listener;
+  }
+
+  beginUiHoldSync(sessionId: string, intent: "hold" | "resume"): boolean {
+    if (!this.enabled) {
+      return true;
+    }
+    const queue = this.orchestrator?.getSyncQueue();
+    if (queue === undefined) {
+      return true;
+    }
+    const started = queue.beginHoldSessionSync(sessionId, intent);
+    if (started) {
+      this.onSyncBusyChanged?.();
+    }
+    return started;
+  }
+
+  beginUiMuteSync(sessionId: string, muted: boolean): boolean {
+    if (!this.enabled) {
+      return true;
+    }
+    const queue = this.orchestrator?.getSyncQueue();
+    if (queue === undefined) {
+      return true;
+    }
+    const started = queue.beginMuteSessionSync(sessionId, muted);
+    if (started) {
+      this.onSyncBusyChanged?.();
+    }
+    return started;
+  }
+
+  abortUiHoldSync(sessionId: string): void {
+    this.orchestrator?.getSyncQueue().abortHoldSync(sessionId);
+    this.onSyncBusyChanged?.();
+  }
+
+  abortUiMuteSync(sessionId: string): void {
+    this.orchestrator?.getSyncQueue().abortMuteSync(sessionId);
+    this.onSyncBusyChanged?.();
+  }
+
+  isSyncBusy(): boolean {
+    return this.orchestrator?.getSyncQueue().hasPendingSyncIntent() ?? false;
+  }
+
+  setSelectedCallId(callId: string | null): void {
+    if (this.operatorSelectedCallId === callId) {
+      return;
+    }
+    this.operatorSelectedCallId = callId;
+    this.onCallProjectionsChanged();
+  }
+
+  getSelectedCallId(): string | null {
+    return this.operatorSelectedCallId;
+  }
+
   async applySettings(settings: UserSettings): Promise<void> {
+    this.deps.gateway.setAutoReconnectEnabled(settings.headsetAutoReconnect);
     const shouldEnable = settings.headsetEnabled;
     if (shouldEnable === this.enabled) {
       if (shouldEnable && this.orchestrator === null) {
@@ -110,6 +174,13 @@ export class HeadsetIntegrationService {
         operation: "connect_headset",
         result: "failure",
       });
+      const faultReason =
+        result.error.message === "headset_hid_unsupported"
+          ? "unsupported"
+          : "connect_failed";
+      this.deps.eventPublisher.publish(
+        createHeadsetFaultOccurred(correlationId, faultReason),
+      );
       return;
     }
     this.deps.eventPublisher.publish(
@@ -149,6 +220,7 @@ export class HeadsetIntegrationService {
     if (!this.enabled || this.orchestrator === null) {
       return;
     }
+    this.pruneStaleSelection();
     this.orchestrator.onSnapshotChanged(this.buildSnapshot());
   }
 
@@ -168,6 +240,7 @@ export class HeadsetIntegrationService {
       logger: this.deps.logger,
       getSnapshot: () => this.buildSnapshot(),
       callbacks: createHeadsetHardwareCallbacks(this.deps.callbacks),
+      onSyncBusyChanged: () => this.onSyncBusyChanged?.(),
     });
     this.orchestrator.start();
   }
@@ -177,10 +250,41 @@ export class HeadsetIntegrationService {
     this.orchestrator = null;
   }
 
+  private pruneStaleSelection(): void {
+    if (this.operatorSelectedCallId === null) {
+      return;
+    }
+    const selected = this.operatorSelectedCallId;
+    const multiLine = this.deps.getMultiLineProjection();
+    const incoming = this.deps.getIncomingProjection();
+    const lineAlive = multiLine.lines.some(
+      (line) =>
+        line.callId === selected &&
+        (line.state === "Active" ||
+          line.state === "Held" ||
+          line.state === "Connecting" ||
+          line.state === "Ringing"),
+    );
+    const incomingAlive =
+      incoming.visible &&
+      incoming.callId === selected &&
+      (incoming.uiState === "incomingRinging" ||
+        incoming.uiState === "callerIdentityLoading" ||
+        incoming.uiState === "callerIdentityResolved" ||
+        incoming.uiState === "autoAnswerCountdown" ||
+        incoming.uiState === "rejectReasonRequired");
+    if (!lineAlive && !incomingAlive) {
+      this.operatorSelectedCallId = null;
+    }
+  }
+
   private buildSnapshot(): HeadsetCallSnapshot {
     return buildHeadsetCallSnapshot(
       this.deps.getMultiLineProjection(),
       this.deps.getIncomingProjection(),
+      {
+        selectedCallId: this.operatorSelectedCallId ?? undefined,
+      },
     );
   }
 }

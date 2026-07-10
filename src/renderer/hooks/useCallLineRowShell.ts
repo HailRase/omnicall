@@ -14,6 +14,7 @@ export type CallLineRowShellInput = Readonly<{
   activeCallControlsProjection: ActiveCallControlsProjection;
   transferProjection: TransferProjection;
   contacts: ReadonlyArray<Contact>;
+  incomingCallId?: string | null;
 }>;
 
 /**
@@ -30,6 +31,7 @@ export function useCallLineRowShell(
     activeCallControlsProjection,
     transferProjection,
     contacts,
+    incomingCallId = null,
   } = input;
 
   return useMemo(
@@ -40,6 +42,7 @@ export function useCallLineRowShell(
         activeCallControlsProjection,
         transferProjection,
         contacts,
+        incomingCallId,
       }),
     [
       multiLineCallProjection,
@@ -47,6 +50,7 @@ export function useCallLineRowShell(
       activeCallControlsProjection,
       transferProjection,
       contacts,
+      incomingCallId,
     ],
   );
 }

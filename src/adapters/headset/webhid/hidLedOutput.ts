@@ -18,6 +18,14 @@ type LedOutputProfile = Readonly<{
 
 const ledOutputBlocked = new WeakSet<HIDDevice>();
 
+export function isHidLedOutputBlocked(device: HIDDevice): boolean {
+  return ledOutputBlocked.has(device);
+}
+
+export function resetHidLedOutputBlock(device: HIDDevice): void {
+  ledOutputBlocked.delete(device);
+}
+
 const jabraEvolveLedProfile: LedOutputProfile = {
   reportId: 2,
   encode: (state: HidLedState): Uint8Array => {
@@ -126,6 +134,7 @@ export async function sendHidLedState(
 }
 
 export async function performTelephonyHandshake(device: HIDDevice): Promise<void> {
+  resetHidLedOutputBlock(device);
   await sendHidLedState(device, { mute: false, offHook: false, ringing: false });
 }
 
@@ -141,8 +150,17 @@ export async function syncLedAfterHangup(device: HIDDevice): Promise<boolean> {
   return sendHidLedState(device, { mute: false, offHook: false, ringing: false });
 }
 
-export async function syncLedOnHold(device: HIDDevice): Promise<boolean> {
-  return sendHidLedState(device, { mute: false, offHook: false, ringing: true });
+export async function syncLedOnHold(
+  device: HIDDevice,
+  muted = false,
+): Promise<boolean> {
+  // Hold = ring pattern (offHook false). Green press then emits hookOff → resume.
+  // Mute LED stays off on hold; session mute is restored on resume via setMute.
+  return sendHidLedState(device, {
+    mute: muted,
+    offHook: false,
+    ringing: true,
+  });
 }
 
 export async function syncLedMute(

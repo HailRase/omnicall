@@ -219,6 +219,7 @@ export class AccountBootstrapFacade {
   private readonly headsetIntegration: HeadsetIntegrationService;
   private getMultiLineProjectionRef: () => MultiLineCallProjection = initialMultiLineCallProjection;
   private getIncomingProjectionRef: () => IncomingCallProjection = initialIncomingCallProjection;
+  private getIsDndRef: () => boolean = () => false;
   private multiLineProjectionForToggle: MultiLineCallProjection = initialMultiLineCallProjection();
 
   constructor(private readonly deps: AccountBootstrapFacadeDeps) {
@@ -379,9 +380,22 @@ export class AccountBootstrapFacade {
         answerCallById: (callId) => this.answerCallById(callId),
         rejectCallById: (callId) => this.rejectCallById(callId),
         hangupCallById: (callId) => this.hangupCallById(callId),
-        toggleHoldCallById: (callId) => this.toggleHoldCallById(callId),
-        muteCallById: (callId) => this.muteCallById(callId),
-        unmuteCallById: (callId) => this.unmuteCallById(callId),
+        toggleHoldCallById: (callId) => this.toggleHoldCallFromHeadset(callId),
+        muteCallById: async (callId) => {
+          const result = await this.muteCall(createCallId(callId));
+          if (!result.ok) {
+            this.headsetIntegration.abortUiMuteSync(callId);
+          }
+          return result;
+        },
+        unmuteCallById: async (callId) => {
+          const result = await this.unmuteCall(createCallId(callId));
+          if (!result.ok) {
+            this.headsetIntegration.abortUiMuteSync(callId);
+          }
+          return result;
+        },
+        isDnd: () => this.getIsDndRef(),
       },
     });
 
@@ -1067,7 +1081,14 @@ export class AccountBootstrapFacade {
   }
 
   async holdCallById(callId: string): Promise<Result<Call, PlatformError>> {
-    return this.holdCall(createCallId(callId));
+    if (!this.headsetIntegration.beginUiHoldSync(callId, "hold")) {
+      return err(createPlatformError("operation_failed", "headset_sync_in_progress"));
+    }
+    const result = await this.holdCall(createCallId(callId));
+    if (!result.ok) {
+      this.headsetIntegration.abortUiHoldSync(callId);
+    }
+    return result;
   }
 
   async resumeCall(callId: CallId): Promise<Result<Call, PlatformError>> {
@@ -1075,7 +1096,14 @@ export class AccountBootstrapFacade {
   }
 
   async resumeCallById(callId: string): Promise<Result<Call, PlatformError>> {
-    return this.resumeCall(createCallId(callId));
+    if (!this.headsetIntegration.beginUiHoldSync(callId, "resume")) {
+      return err(createPlatformError("operation_failed", "headset_sync_in_progress"));
+    }
+    const result = await this.resumeCall(createCallId(callId));
+    if (!result.ok) {
+      this.headsetIntegration.abortUiHoldSync(callId);
+    }
+    return result;
   }
 
   async toggleHoldCallById(callId: string): Promise<Result<Call, PlatformError>> {
@@ -1086,17 +1114,46 @@ export class AccountBootstrapFacade {
     return this.holdCallById(callId);
   }
 
+  /**
+   * - Purpose: headset-originated hold/resume without re-arming UI hold sync.
+   * - Inputs: call id from headset focus.
+   * - Outputs: hold or resume Use Case result.
+   */
+  async toggleHoldCallFromHeadset(callId: string): Promise<Result<Call, PlatformError>> {
+    const line = this.multiLineProjectionForToggle.lines.find((entry) => entry.callId === callId);
+    if (line?.state === "Held") {
+      return this.resumeCall(createCallId(callId));
+    }
+    return this.holdCall(createCallId(callId));
+  }
+
   setHeadsetProjectionSources(
     getMultiLine: () => MultiLineCallProjection,
     getIncoming: () => IncomingCallProjection,
+    getIsDnd?: () => boolean,
   ): void {
     this.getMultiLineProjectionRef = getMultiLine;
     this.getIncomingProjectionRef = getIncoming;
+    if (getIsDnd !== undefined) {
+      this.getIsDndRef = getIsDnd;
+    }
+  }
+
+  setHeadsetSyncBusyListener(listener: (() => void) | null): void {
+    this.headsetIntegration.setSyncBusyListener(listener);
   }
 
   notifyHeadsetProjectionsChanged(multiLine: MultiLineCallProjection): void {
     this.multiLineProjectionForToggle = multiLine;
     this.headsetIntegration.onCallProjectionsChanged();
+  }
+
+  setHeadsetSelectedCallId(callId: string | null): void {
+    this.headsetIntegration.setSelectedCallId(callId);
+  }
+
+  getHeadsetSelectedCallId(): string | null {
+    return this.headsetIntegration.getSelectedCallId();
   }
 
   getHeadsetGateway(): HeadsetGateway {
@@ -1130,7 +1187,14 @@ export class AccountBootstrapFacade {
   }
 
   async muteCallById(callId: string): Promise<Result<Call, PlatformError>> {
-    return this.muteCall(createCallId(callId));
+    if (!this.headsetIntegration.beginUiMuteSync(callId, true)) {
+      return err(createPlatformError("operation_failed", "headset_sync_in_progress"));
+    }
+    const result = await this.muteCall(createCallId(callId));
+    if (!result.ok) {
+      this.headsetIntegration.abortUiMuteSync(callId);
+    }
+    return result;
   }
 
   async unmuteCall(callId: CallId): Promise<Result<Call, PlatformError>> {
@@ -1138,7 +1202,14 @@ export class AccountBootstrapFacade {
   }
 
   async unmuteCallById(callId: string): Promise<Result<Call, PlatformError>> {
-    return this.unmuteCall(createCallId(callId));
+    if (!this.headsetIntegration.beginUiMuteSync(callId, false)) {
+      return err(createPlatformError("operation_failed", "headset_sync_in_progress"));
+    }
+    const result = await this.unmuteCall(createCallId(callId));
+    if (!result.ok) {
+      this.headsetIntegration.abortUiMuteSync(callId);
+    }
+    return result;
   }
 
   async blindTransfer(

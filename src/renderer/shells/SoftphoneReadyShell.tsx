@@ -151,6 +151,10 @@ function SoftphoneShellLayoutRoute({
     settingsUpdateError: settingsActions.settingsUpdateError,
     sipActionSuccessKey: sipSystemStateActions.actionSuccessKey,
     sipActionErrorText,
+    headsetFault: {
+      reason: settingsActions.headsetConnectionProjection.lastFaultReason,
+      occurredAt: settingsActions.headsetConnectionProjection.lastFaultAt,
+    },
   });
   const windowControls = useShellWindowControls({ isShuttingDown });
 

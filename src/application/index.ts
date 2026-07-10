@@ -92,6 +92,8 @@ export {
   type CallLineStatusInput,
 } from "./projections/telephony/deriveCallLineStatusLabel.js";
 export { deriveCallControlTarget } from "./projections/telephony/deriveCallControlTarget.js";
+export { resolveOutgoingInProgressCallId } from "./projections/telephony/resolveOutgoingInProgressCallId.js";
+
 export { deriveIncomingCallControlLine } from "./projections/telephony/deriveIncomingCallControlLine.js";
 export {
   deriveIncomingCallIdentityShell,

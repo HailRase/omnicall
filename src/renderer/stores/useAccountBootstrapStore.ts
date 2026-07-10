@@ -123,6 +123,7 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
     facade.setHeadsetProjectionSources(
       () => useAccountBootstrapStore.getState().multiLineCallProjection,
       () => useAccountBootstrapStore.getState().incomingCallProjection,
+      () => useAccountBootstrapStore.getState().projection.phoneStatus === "dnd",
     );
     set({
       headsetConnectionProjection: {
@@ -138,11 +139,14 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
         ),
       });
     };
+    facade.setHeadsetSyncBusyListener(syncHeadsetBusy);
 
-    const notifyHeadset = (multiLine: MultiLineCallProjection): void => {
-      facade.notifyHeadsetProjectionsChanged(multiLine);
+    const notifyHeadsetAfterCommit = (): void => {
+      const committed = useAccountBootstrapStore.getState();
+      facade.notifyHeadsetProjectionsChanged(committed.multiLineCallProjection);
       syncHeadsetBusy();
     };
+
     const refreshMultiCallProjection = (): void => {
       void facade.refreshUserSettingsProjections({
         applyMultiCallSettings: (settings) => {
@@ -200,36 +204,38 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
           state.incomingCallProjection,
           event,
         );
-        notifyHeadset(multiLineCallProjection);
         return {
-        projection: reduceAccountBootstrapProjection(state.projection, event),
-        callProjection: reduceCallProjection(state.callProjection, event),
-        activeCallControlsProjection: reduceActiveCallControlsProjection(
-          state.activeCallControlsProjection,
-          event,
-        ),
-        incomingCallProjection,
-        multiCallProjection: reduceMultiCallProjection(state.multiCallProjection, event),
-        transferProjection: reduceTransferProjection(state.transferProjection, event),
-        multiLineCallProjection,
-        sipSessionHealthProjection: reduceSipSessionHealthProjection(
-          state.sipSessionHealthProjection,
-          event,
-        ),
-        callHistoryProjection: reduceCallHistoryProjection(
-          state.callHistoryProjection,
-          event,
-        ),
-        contactsProjection: reduceContactsProjection(
-          state.contactsProjection,
-          event,
-        ),
-        headsetConnectionProjection: reduceHeadsetConnectionProjection(
-          state.headsetConnectionProjection,
-          event,
-        ),
-      };
+          projection: reduceAccountBootstrapProjection(state.projection, event),
+          callProjection: reduceCallProjection(state.callProjection, event),
+          activeCallControlsProjection: reduceActiveCallControlsProjection(
+            state.activeCallControlsProjection,
+            event,
+          ),
+          incomingCallProjection,
+          multiCallProjection: reduceMultiCallProjection(state.multiCallProjection, event),
+          transferProjection: reduceTransferProjection(state.transferProjection, event),
+          multiLineCallProjection,
+          sipSessionHealthProjection: reduceSipSessionHealthProjection(
+            state.sipSessionHealthProjection,
+            event,
+          ),
+          callHistoryProjection: reduceCallHistoryProjection(
+            state.callHistoryProjection,
+            event,
+          ),
+          contactsProjection: reduceContactsProjection(
+            state.contactsProjection,
+            event,
+          ),
+          headsetConnectionProjection: reduceHeadsetConnectionProjection(
+            state.headsetConnectionProjection,
+            event,
+          ),
+        };
       });
+      // Must run AFTER Zustand commits — calling getState() inside set() reads stale projections
+      // and leaves headset lastSnapshot stuck on incoming (ring LED never clears).
+      notifyHeadsetAfterCommit();
 
       if (event.type === "RegistrationSucceeded") {
         refreshMultiCallProjection();
