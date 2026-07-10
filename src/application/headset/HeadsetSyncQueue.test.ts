@@ -79,4 +79,18 @@ describe("HeadsetSyncQueue mute locks", () => {
     vi.setSystemTime(Date.now() + 650);
     expect(queue.isHardwareMuteLocked()).toBe(false);
   });
+
+  it("clears UI busy when mute intent times out unmatched", () => {
+    const queue = new HeadsetSyncQueue();
+    const onClear = vi.fn();
+    queue.setUiBusyClearListener(onClear);
+
+    expect(queue.beginMuteSessionSync("held-1", true)).toBe(true);
+    expect(queue.getBusyState().isBusy).toBe(true);
+
+    vi.advanceTimersByTime(2100);
+    expect(queue.getMuteIntent()).toBeNull();
+    expect(queue.getBusyState().isBusy).toBe(false);
+    expect(onClear).toHaveBeenCalled();
+  });
 });

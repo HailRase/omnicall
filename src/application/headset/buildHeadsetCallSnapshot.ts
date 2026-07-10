@@ -18,6 +18,8 @@ export type HeadsetCallSnapshot = Readonly<{
   heldSessionIds: ReadonlyArray<string>;
   establishedSessionIds: ReadonlyArray<string>;
   outgoingInProgressIds: ReadonlyArray<string>;
+  /** Per-session mute for sync-guard match (not limited to headset focus). */
+  mutedBySessionId: Readonly<Record<string, boolean>>;
   incomingWaitingCount: number;
   firstIncomingCallId: string | undefined;
   focusSessionId: string | undefined;
@@ -48,6 +50,7 @@ const EMPTY_SNAPSHOT: HeadsetCallSnapshot = {
   heldSessionIds: [],
   establishedSessionIds: [],
   outgoingInProgressIds: [],
+  mutedBySessionId: {},
   incomingWaitingCount: 0,
   firstIncomingCallId: undefined,
   focusSessionId: undefined,
@@ -103,6 +106,7 @@ export function buildHeadsetCallSnapshot(
   const operatorSelectedCallId = selection.selectedCallId;
 
   const sessionById: Record<string, HeadsetFocusSessionLookup> = {};
+  const mutedBySessionId: Record<string, boolean> = {};
   for (const line of multiLine.lines) {
     if (
       line.state !== "Active" &&
@@ -112,6 +116,7 @@ export function buildHeadsetCallSnapshot(
     ) {
       continue;
     }
+    mutedBySessionId[line.callId] = line.muted;
     // Incoming ringing is tracked via incoming projection, not as an established session.
     if (
       line.state === "Ringing" &&
@@ -147,6 +152,7 @@ export function buildHeadsetCallSnapshot(
     heldSessionIds,
     establishedSessionIds,
     outgoingInProgressIds,
+    mutedBySessionId,
     incomingWaitingCount,
     firstIncomingCallId,
     focusSessionId: focus.focusSessionId,

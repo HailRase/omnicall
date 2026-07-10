@@ -61,11 +61,12 @@ export class DisconnectHeadsetDeviceUseCase {
 
 export type TryHeadsetAutoReconnectInput = Readonly<{
   correlationId?: ReturnType<typeof createCorrelationId>;
+  preferredDeviceId?: string | null;
 }>;
 
 /**
  * - Purpose: reconnect previously granted headset on startup when enabled.
- * - Inputs: optional correlation id.
+ * - Inputs: optional correlation id and preferred device id.
  * - Outputs: auto-reconnect result or null when no granted device.
  */
 export class TryHeadsetAutoReconnectUseCase {
@@ -83,7 +84,9 @@ export class TryHeadsetAutoReconnectUseCase {
       operation: "headset_auto_reconnect",
       result: "requested",
     });
-    const result = await this.gateway.tryAutoReconnect();
+    const result = await this.gateway.tryAutoReconnect({
+      preferredDeviceId: input.preferredDeviceId ?? null,
+    });
     if (isErr(result)) {
       return result;
     }

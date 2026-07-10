@@ -31,6 +31,7 @@ describe("headsetConnectionProjection faults", () => {
 
     expect(reconnected.lastFaultReason).toBeNull();
     expect(reconnected.connectionState).toBe("connected");
+    expect(reconnected.deviceId).toBe("1:2:test");
     expect(reconnected.deviceLabel).toBe("Test Headset");
   });
 

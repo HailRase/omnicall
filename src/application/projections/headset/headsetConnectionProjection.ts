@@ -5,6 +5,7 @@ export type HeadsetConnectionProjection = Readonly<{
   isSupported: boolean;
   isEnabled: boolean;
   connectionState: HeadsetConnectionState;
+  deviceId: string | null;
   deviceLabel: string | null;
   autoReconnect: boolean;
   lastFaultReason: HeadsetFaultReason | null;
@@ -16,6 +17,7 @@ export function initialHeadsetConnectionProjection(): HeadsetConnectionProjectio
     isSupported: true,
     isEnabled: false,
     connectionState: "disconnected",
+    deviceId: null,
     deviceLabel: null,
     autoReconnect: true,
     lastFaultReason: null,
@@ -41,6 +43,7 @@ export function reduceHeadsetConnectionProjection(
       return {
         ...projection,
         connectionState: "connected",
+        deviceId: asOptionalString(event["deviceId"]),
         deviceLabel: asOptionalString(event["productName"]),
         lastFaultReason: null,
         lastFaultAt: null,
@@ -49,6 +52,7 @@ export function reduceHeadsetConnectionProjection(
       return {
         ...projection,
         connectionState: "disconnected",
+        deviceId: null,
         deviceLabel: null,
       };
     case "HeadsetFaultOccurred": {
@@ -62,6 +66,7 @@ export function reduceHeadsetConnectionProjection(
       return {
         ...projection,
         connectionState: nextState,
+        deviceId: reason === "usb_disconnected" ? null : projection.deviceId,
         deviceLabel: reason === "usb_disconnected" ? null : projection.deviceLabel,
         lastFaultReason: reason,
         lastFaultAt: typeof event.occurredAt === "string" ? event.occurredAt : null,
@@ -78,12 +83,14 @@ export function applyHeadsetSettingsToProjection(
   isSupported: boolean,
   connectionState: HeadsetConnectionState,
   deviceLabel: string | null,
+  deviceId: string | null = null,
 ): HeadsetConnectionProjection {
   return {
     isSupported,
     isEnabled: settings.headsetEnabled,
     autoReconnect: settings.headsetAutoReconnect,
     connectionState,
+    deviceId,
     deviceLabel,
     lastFaultReason: _projection.lastFaultReason,
     lastFaultAt: _projection.lastFaultAt,

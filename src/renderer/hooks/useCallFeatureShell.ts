@@ -7,6 +7,7 @@ import {
   deriveCallControlTarget,
   deriveIncomingCallSessionCardVisible,
   deriveResumeMultiCallDisabledReason,
+  resolveDialpadCallIntent,
   resolveOutgoingInProgressCallId,
 } from "@application/index.js";
 
@@ -58,17 +59,34 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
   );
 
   const contacts = useAccountBootstrapStore((state) => state.contactsProjection.contacts);
+  const callHistoryEntries = useAccountBootstrapStore(
+    (state) => state.callHistoryProjection.entries,
+  );
+  const historyRemoteNumbers = useMemo(
+    () => callHistoryEntries.map((entry) => entry.remoteNumber),
+    [callHistoryEntries],
+  );
 
   const {
     dialedNumber,
     setDialedNumber,
     deleteLastDialedDigit,
     clearDialedNumber,
+    walkHistoryNewer,
+    walkHistoryOlder,
+    applyHistoryNumber,
+    historyNumbers,
+    canRecallLastNumber,
     dialpadMode,
     isCalling,
     callDisabledReason,
     inputDisabledReason,
-  } = useDialpadShell(projection, callProjection, multiCallProjection);
+  } = useDialpadShell({
+    projection,
+    callProjection,
+    multiCallProjection,
+    historyRemoteNumbers,
+  });
 
   const callActions = useSoftphoneCallActions({
     facade,
@@ -386,12 +404,27 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
   }, [incomingCallId]);
 
   const handleDialpadCall = useCallback((): void => {
+    const intent = resolveDialpadCallIntent(dialedNumber, historyNumbers[0] ?? null);
+    if (intent.type === "noop") {
+      return;
+    }
+    if (intent.type === "fill") {
+      applyHistoryNumber(intent.number, 0);
+      return;
+    }
     callActions.handleDialpadCall();
     clearDialedNumber();
     if (numberEntryOverlayOpen) {
       setNumberEntryOverlayOpen(false);
     }
-  }, [callActions, clearDialedNumber, numberEntryOverlayOpen]);
+  }, [
+    applyHistoryNumber,
+    callActions,
+    clearDialedNumber,
+    dialedNumber,
+    historyNumbers,
+    numberEntryOverlayOpen,
+  ]);
 
   const openNumberEntryOverlay = useCallback((): void => {
     setNumberEntryOverlayOpen(true);
@@ -433,6 +466,9 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     setDialedNumber,
     deleteLastDialedDigit,
     clearDialedNumber,
+    walkHistoryNewer,
+    walkHistoryOlder,
+    canRecallLastNumber,
     dialpadMode,
     isCalling,
     callDisabledReason,

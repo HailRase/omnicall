@@ -3,11 +3,24 @@ import { createDefaultUserSettings } from "./UserSettings.js";
 import { validateUserSettings } from "./validateUserSettings.js";
 
 describe("validateUserSettings", () => {
-  it("accepts default v4 settings", () => {
-    const result = validateUserSettings(createDefaultUserSettings());
+  it("accepts optional headsetPreferredDeviceId", () => {
+    const result = validateUserSettings({
+      ...createDefaultUserSettings(),
+      headsetPreferredDeviceId: "0b0e:0300:Jabra",
+    });
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value).toEqual(createDefaultUserSettings());
+      expect(result.value.headsetPreferredDeviceId).toBe("0b0e:0300:Jabra");
+    }
+  });
+
+  it("defaults headsetPreferredDeviceId to null when missing", () => {
+    const payload = { ...createDefaultUserSettings() } as Record<string, unknown>;
+    delete payload["headsetPreferredDeviceId"];
+    const result = validateUserSettings(payload);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.headsetPreferredDeviceId).toBeNull();
     }
   });
 
@@ -43,7 +56,7 @@ describe("validateUserSettings", () => {
 
   it("rejects missing boolean fields", () => {
     const result = validateUserSettings({
-      schemaVersion: 4,
+      schemaVersion: 5,
       autoAnswerTimeoutSec: null,
     });
     expect(result.ok).toBe(false);

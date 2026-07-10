@@ -42,14 +42,17 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
     setCallMode,
     setDialedNumber,
     deleteLastDialedDigit,
+    clearDialedNumber,
     hasEstablishedCall,
     hasCallInProgress,
     controlTargetLine,
     numberEntryOverlayOpen,
     openNumberEntryOverlay,
     closeNumberEntryOverlay,
-    clearDialedNumber,
     handleDialpadCall,
+    walkHistoryNewer,
+    walkHistoryOlder,
+    canRecallLastNumber,
   } = bindings;
 
   const hideCallControls =
@@ -95,12 +98,15 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
           isCalling={isCalling}
           callDisabledReason={callDisabledReason}
           inputDisabledReason={inputDisabledReason}
+          canRecallLastNumber={canRecallLastNumber}
           hasEstablishedCall={hasEstablishedCall}
           overlayMode={numberEntryOverlayOpen}
           onNumberChange={setDialedNumber}
           onDelete={deleteLastDialedDigit}
           onClear={clearDialedNumber}
           onCall={handleDialpadCall}
+          onHistoryNewer={walkHistoryNewer}
+          onHistoryOlder={walkHistoryOlder}
           onOpenContacts={() => {
             navigateTo({ name: "contacts" });
           }}

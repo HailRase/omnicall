@@ -69,9 +69,11 @@ type UseSettingsActionsResult = Readonly<{
   settingsUpdateError: string | null;
   headsetEnabled: boolean;
   headsetAutoReconnect: boolean;
+  preferredDeviceId: string | null;
+  grantedDevices: ReadonlyArray<Readonly<{ id: string; productName: string }>>;
   onHeadsetEnabledChange: (enabled: boolean) => void;
   onHeadsetAutoReconnectChange: (enabled: boolean) => void;
-  onConnectHeadset: () => void;
+  onConnectHeadset: (deviceId: string | null) => void;
   onDisconnectHeadset: () => void;
   headsetConnectionProjection: HeadsetConnectionProjection;
 }>;
@@ -118,6 +120,9 @@ export function useSettingsActions(
     deriveActiveProfileSettingsSyncKey(state.projection),
   );
   const [settingsUpdateError, setSettingsUpdateError] = useState<string | null>(null);
+  const [grantedDevices, setGrantedDevices] = useState<
+    ReadonlyArray<Readonly<{ id: string; productName: string }>>
+  >([]);
   const [codecPreferencesError, setCodecPreferencesError] =
     useState<CodecPreferenceMutationMessageKey | null>(null);
   const [userSettings, setUserSettings] = useState<UserSettings>(createDefaultUserSettings());
@@ -465,19 +470,56 @@ export function useSettingsActions(
     [persistUserSettings, userSettings],
   );
 
-  const onConnectHeadset = useCallback((): void => {
+  const refreshGrantedHeadsetDevices = useCallback((): void => {
     if (facade === null) {
+      setGrantedDevices([]);
       return;
     }
-    void facade.connectHeadsetDevice();
+    void facade.listGrantedHeadsetDevices().then((devices) => {
+      setGrantedDevices(devices);
+    });
   }, [facade]);
+
+  useEffect(() => {
+    refreshGrantedHeadsetDevices();
+  }, [
+    refreshGrantedHeadsetDevices,
+    headsetConnectionProjection.connectionState,
+    headsetConnectionProjection.deviceId,
+  ]);
+
+  useEffect(() => {
+    const connectedId = headsetConnectionProjection.deviceId;
+    if (connectedId === null) {
+      return;
+    }
+    setUserSettings((previous) =>
+      previous.headsetPreferredDeviceId === connectedId
+        ? previous
+        : { ...previous, headsetPreferredDeviceId: connectedId },
+    );
+  }, [headsetConnectionProjection.deviceId]);
+
+  const onConnectHeadset = useCallback(
+    (deviceId: string | null): void => {
+      if (facade === null) {
+        return;
+      }
+      void facade.connectHeadsetDevice(deviceId).then(() => {
+        refreshGrantedHeadsetDevices();
+      });
+    },
+    [facade, refreshGrantedHeadsetDevices],
+  );
 
   const onDisconnectHeadset = useCallback((): void => {
     if (facade === null) {
       return;
     }
-    void facade.disconnectHeadsetDevice();
-  }, [facade]);
+    void facade.disconnectHeadsetDevice().then(() => {
+      refreshGrantedHeadsetDevices();
+    });
+  }, [facade, refreshGrantedHeadsetDevices]);
 
   return {
     account,
@@ -509,6 +551,8 @@ export function useSettingsActions(
     settingsUpdateError,
     headsetEnabled: userSettings.headsetEnabled,
     headsetAutoReconnect: userSettings.headsetAutoReconnect,
+    preferredDeviceId: userSettings.headsetPreferredDeviceId,
+    grantedDevices,
     onHeadsetEnabledChange,
     onHeadsetAutoReconnectChange,
     onConnectHeadset,

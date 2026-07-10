@@ -6,7 +6,11 @@ import {
   type HeadsetDevice,
   type HeadsetHardwareEvent,
 } from "@domain/index.js";
-import type { HeadsetGateway } from "@ports/headset/HeadsetGateway.js";
+import type {
+  HeadsetGateway,
+  HeadsetGrantedDeviceInfo,
+  TryAutoReconnectOptions,
+} from "@ports/headset/HeadsetGateway.js";
 import { createPlatformError } from "@shared/errors/index.js";
 import { err, ok } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
@@ -24,6 +28,10 @@ export class MockHeadsetGateway implements HeadsetGateway {
   private supported = true;
   private connectShouldFail = false;
   private autoReconnectEnabled = true;
+  private preferredDeviceId: string | null = null;
+  private grantedDevices: HeadsetGrantedDeviceInfo[] = [
+    { id: "mock-headset-1", productName: "Mock Jabra Headset" },
+  ];
 
   isSupported(): boolean {
     return this.supported;
@@ -31,6 +39,10 @@ export class MockHeadsetGateway implements HeadsetGateway {
 
   setAutoReconnectEnabled(enabled: boolean): void {
     this.autoReconnectEnabled = enabled;
+  }
+
+  setPreferredDeviceId(deviceId: string | null): void {
+    this.preferredDeviceId = deviceId;
   }
 
   isAutoReconnectEnabled(): boolean {
@@ -45,20 +57,36 @@ export class MockHeadsetGateway implements HeadsetGateway {
     this.connectShouldFail = shouldFail;
   }
 
+  setGrantedDevices(devices: ReadonlyArray<HeadsetGrantedDeviceInfo>): void {
+    this.grantedDevices = [...devices];
+  }
+
   connect(): Promise<Result<HeadsetDevice, PlatformError>> {
+    return this.connectGrantedDevice(null);
+  }
+
+  connectGrantedDevice(deviceId: string | null): Promise<Result<HeadsetDevice, PlatformError>> {
     if (!this.supported) {
       return Promise.resolve(err(createPlatformError("operation_failed", "headset_hid_unsupported")));
     }
     if (this.connectShouldFail) {
       return Promise.resolve(err(createPlatformError("operation_failed", "headset_connect_failed")));
     }
+    const granted =
+      deviceId === null
+        ? this.grantedDevices[0]
+        : this.grantedDevices.find((entry) => entry.id === deviceId);
+    if (granted === undefined) {
+      return Promise.resolve(err(createPlatformError("operation_failed", "headset_device_not_found")));
+    }
     this.connectedDevice = {
-      id: createHeadsetDeviceId("mock-headset-1"),
+      id: createHeadsetDeviceId(granted.id),
       vendorId: 0x0b0e,
       productId: 0x0300,
-      productName: "Mock Jabra Headset",
+      productName: granted.productName,
       connectionState: "connected",
     };
+    this.preferredDeviceId = granted.id;
     return Promise.resolve(ok(this.connectedDevice));
   }
 
@@ -67,14 +95,29 @@ export class MockHeadsetGateway implements HeadsetGateway {
     return Promise.resolve(ok(undefined));
   }
 
-  tryAutoReconnect(): Promise<Result<HeadsetDevice | null, PlatformError>> {
+  tryAutoReconnect(
+    options: TryAutoReconnectOptions = {},
+  ): Promise<Result<HeadsetDevice | null, PlatformError>> {
     if (!this.autoReconnectEnabled) {
       return Promise.resolve(ok(null));
     }
     if (this.connectedDevice !== null) {
       return Promise.resolve(ok(this.connectedDevice));
     }
-    return Promise.resolve(ok(null));
+    const preferred = options.preferredDeviceId ?? this.preferredDeviceId;
+    const match =
+      preferred !== null && preferred !== undefined
+        ? this.grantedDevices.find((entry) => entry.id === preferred)
+        : undefined;
+    const target = match ?? this.grantedDevices[0];
+    if (target === undefined) {
+      return Promise.resolve(ok(null));
+    }
+    return this.connectGrantedDevice(target.id);
+  }
+
+  listGrantedDevices(): Promise<ReadonlyArray<HeadsetGrantedDeviceInfo>> {
+    return Promise.resolve([...this.grantedDevices]);
   }
 
   getConnectedDevice(): HeadsetDevice | null {

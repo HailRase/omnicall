@@ -59,9 +59,9 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 | Field | Value |
 | --- | --- |
-| Shipped | **0.8.0** (`v0.8.0`, 2026-07-08) — F-013 call history, F-025 contacts, shell navigation |
-| Previous | **0.7.1** (F-016 settings-only resize), **0.7.0** (macOS traffic lights, settings overlay) |
-| Next cut | **0.8.1** (PATCH) or **0.9.0** (MINOR) per SemVer table in `RELEASE-PLAYBOOK.md` |
+| Shipped | **0.9.0** (`v0.9.0`, 2026-07-08) — F-002 global incoming call overlay, F-025 contacts CSV fix |
+| Previous | **0.8.0** (F-013 call history, F-025 contacts, shell navigation), **0.7.1** (F-016 settings-only resize) |
+| Next cut | **0.9.1** (PATCH) or **0.10.0** (MINOR) per SemVer table in `RELEASE-PLAYBOOK.md` |
 | Source repo | `HailRase/softphone-electron` (target: **private**) |
 | Distribution | [`HailRase/axatalk-releases`](https://github.com/HailRase/axatalk-releases) (public: installers + manifest) |
 | Manifest (live) | `axatalk-releases/main/update-manifest.json` |

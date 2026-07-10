@@ -26,6 +26,8 @@ describe("SettingsHeadsetPanel", () => {
         }}
         headsetEnabled
         headsetAutoReconnect
+        preferredDeviceId="1:2:Mock"
+        grantedDevices={[{ id: "1:2:Mock", productName: "Mock Headset" }]}
         onHeadsetEnabledChange={onHeadsetEnabledChange}
         onHeadsetAutoReconnectChange={vi.fn()}
         onConnectHeadset={onConnectHeadset}
@@ -37,7 +39,7 @@ describe("SettingsHeadsetPanel", () => {
     expect(onHeadsetEnabledChange).toHaveBeenCalledWith(false);
 
     await user.click(screen.getByTestId("settings-headset-connect"));
-    expect(onConnectHeadset).toHaveBeenCalledTimes(1);
+    expect(onConnectHeadset).toHaveBeenCalledWith("1:2:Mock");
   });
 
   it("shows disabled status when integration is off", () => {
@@ -46,6 +48,8 @@ describe("SettingsHeadsetPanel", () => {
         projection={initialHeadsetConnectionProjection()}
         headsetEnabled={false}
         headsetAutoReconnect
+        preferredDeviceId={null}
+        grantedDevices={[]}
         onHeadsetEnabledChange={vi.fn()}
         onHeadsetAutoReconnectChange={vi.fn()}
         onConnectHeadset={vi.fn()}
@@ -57,5 +61,35 @@ describe("SettingsHeadsetPanel", () => {
       "Интеграция выключена",
     );
     expect(screen.getByTestId("settings-headset-connect")).toBeDisabled();
+  });
+
+  it("renders compact status block above toggles", () => {
+    render(
+      <SettingsHeadsetPanel
+        projection={{
+          ...initialHeadsetConnectionProjection(),
+          isSupported: true,
+          isEnabled: true,
+          connectionState: "connected",
+          deviceId: "1:2:Mock",
+          deviceLabel: "Mock Headset",
+        }}
+        headsetEnabled
+        headsetAutoReconnect
+        preferredDeviceId="1:2:Mock"
+        grantedDevices={[{ id: "1:2:Mock", productName: "Mock Headset" }]}
+        onHeadsetEnabledChange={vi.fn()}
+        onHeadsetAutoReconnectChange={vi.fn()}
+        onConnectHeadset={vi.fn()}
+        onDisconnectHeadset={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("settings-headset-status")).toHaveTextContent("Подключена");
+    expect(screen.getByTestId("settings-headset-device-label")).toHaveTextContent("Mock Headset");
+    expect(screen.getByTestId("settings-headset-device-select")).toBeDisabled();
+    expect(screen.getByTestId("settings-headset-disconnect")).toBeEnabled();
+    expect(screen.getByTestId("settings-headset-enabled-toggle")).toBeInTheDocument();
+    expect(screen.getByTestId("settings-headset-auto-reconnect-toggle")).toBeInTheDocument();
   });
 });

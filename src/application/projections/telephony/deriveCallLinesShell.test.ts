@@ -247,5 +247,8 @@ describe("deriveCallLinesShell", () => {
     expect(shell.lines.find((line) => line.callId === "out-1")?.primaryAction).toBe("hangup");
     expect(shell.lines.find((line) => line.callId === "out-ring")?.primaryAction).toBe("hangup");
     expect(shell.lines.find((line) => line.callId === "in-1")?.primaryAction).toBe("answer");
+    expect(shell.lines.find((line) => line.callId === "held-1")?.muteDisabledReason).toBe(
+      "outgoing_dial_in_progress",
+    );
   });
 });

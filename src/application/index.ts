@@ -2,6 +2,12 @@ export { InMemoryDomainEventBus } from "./events/InMemoryDomainEventBus.js";
 export { CallEngine } from "./services/telephony/CallEngine.js";
 export { ActiveCallControlService } from "./services/telephony/ActiveCallControlService.js";
 export { isDialpadNumberValid } from "./helpers/dialpadValidation.js";
+export {
+  buildDialpadHistoryNumbers,
+  resolveDialpadCallIntent,
+  resolveHistoryWalkStep,
+  type DialpadCallIntent,
+} from "./helpers/dialpadHistoryRecall.js";
 export type { AppBootstrapConfig, PhoneStatus, SipAccountInput, MultiCallSettings } from "@domain/index.js";
 export { phoneStatusLabel } from "@domain/index.js";
 export { AuthorizeSipAccountUseCase } from "./use-cases/settings/AuthorizeSipAccountUseCase.js";

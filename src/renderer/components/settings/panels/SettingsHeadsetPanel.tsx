@@ -1,53 +1,41 @@
 import clsx from "clsx";
-import type { JSX } from "react";
+import { useEffect, useMemo, useState, type JSX } from "react";
 import type { HeadsetConnectionProjection } from "@application/projections/headset/headsetConnectionProjection.js";
-import { useI18n, type Translator } from "../../../i18n/index.js";
-import { Button, Switch } from "../../ui/index.js";
+import { useI18n } from "../../../i18n/index.js";
+import { Button, Select, Switch, type SelectItemOption } from "../../ui/index.js";
 import formStyles from "../SettingsForm.module.css";
+import {
+  HEADSET_DEVICE_PICKER_VALUE,
+  resolveHeadsetConnectionStateLabel,
+  resolveHeadsetDeviceSelectValue,
+  type HeadsetGrantedDeviceOption,
+} from "./settingsHeadsetPanelHelpers.js";
+
+export type { HeadsetGrantedDeviceOption };
 
 export type SettingsHeadsetPanelProps = Readonly<{
   projection: HeadsetConnectionProjection;
   headsetEnabled: boolean;
   headsetAutoReconnect: boolean;
+  preferredDeviceId: string | null;
+  grantedDevices: ReadonlyArray<HeadsetGrantedDeviceOption>;
   onHeadsetEnabledChange: (enabled: boolean) => void;
   onHeadsetAutoReconnectChange: (enabled: boolean) => void;
-  onConnectHeadset: () => void;
+  onConnectHeadset: (deviceId: string | null) => void;
   onDisconnectHeadset: () => void;
 }>;
 
-function resolveConnectionStateLabel(
-  projection: HeadsetConnectionProjection,
-  t: Translator,
-): string {
-  if (!projection.isSupported) {
-    return t("settings.headset.status.unsupported");
-  }
-  if (!projection.isEnabled) {
-    return t("settings.headset.status.disabled");
-  }
-  switch (projection.connectionState) {
-    case "connected":
-      return t("settings.headset.status.connected");
-    case "connecting":
-      return t("settings.headset.status.connecting");
-    case "error":
-      return t("settings.headset.status.error");
-    case "unsupported":
-      return t("settings.headset.status.unsupported");
-    default:
-      return t("settings.headset.status.disconnected");
-  }
-}
-
 /**
- * - Purpose: configure optional USB headset integration and connection controls.
- * - Inputs: headset settings, connection projection, connect/disconnect callbacks.
- * - Outputs: localized headset settings section without direct gateway access.
+ * - Purpose: compact headset settings — status/device first, short toggles below.
+ * - Inputs: connection projection, settings flags, granted devices, connect callbacks.
+ * - Outputs: localized headset panel without gateway or SIP access.
  */
 export function SettingsHeadsetPanel({
   projection,
   headsetEnabled,
   headsetAutoReconnect,
+  preferredDeviceId,
+  grantedDevices,
   onHeadsetEnabledChange,
   onHeadsetAutoReconnectChange,
   onConnectHeadset,
@@ -59,6 +47,35 @@ export function SettingsHeadsetPanel({
   const canDisconnect =
     projection.isSupported && headsetEnabled && projection.connectionState === "connected";
 
+  const [selectedDeviceId, setSelectedDeviceId] = useState(() =>
+    resolveHeadsetDeviceSelectValue(preferredDeviceId, projection.deviceId, grantedDevices),
+  );
+
+  useEffect(() => {
+    setSelectedDeviceId(
+      resolveHeadsetDeviceSelectValue(preferredDeviceId, projection.deviceId, grantedDevices),
+    );
+  }, [preferredDeviceId, projection.deviceId, grantedDevices]);
+
+  const selectItems = useMemo((): readonly SelectItemOption[] => {
+    const grantedItems: SelectItemOption[] = grantedDevices.map((device) => ({
+      value: device.id,
+      label: device.productName,
+    }));
+    return [
+      ...grantedItems,
+      { value: HEADSET_DEVICE_PICKER_VALUE, label: t("settings.headset.device.add") },
+    ];
+  }, [grantedDevices, t]);
+
+  function handleConnect(): void {
+    if (selectedDeviceId === HEADSET_DEVICE_PICKER_VALUE) {
+      onConnectHeadset(null);
+      return;
+    }
+    onConnectHeadset(selectedDeviceId);
+  }
+
   return (
     <div className={formStyles.panelStack} data-testid="settings-headset-panel">
       <fieldset className={formStyles.sectionCard}>
@@ -66,13 +83,54 @@ export function SettingsHeadsetPanel({
         <p className={formStyles.blockHint}>{t("settings.headset.description")}</p>
         <div className={formStyles.settingsGroup}>
           <div className={formStyles.settingBlock}>
+            <p className={formStyles.toggleLabel}>{t("settings.headset.status.label")}</p>
+            <p className={formStyles.fieldValue} data-testid="settings-headset-status">
+              {resolveHeadsetConnectionStateLabel(projection, t)}
+            </p>
+            {projection.deviceLabel !== null ? (
+              <p className={formStyles.blockHint} data-testid="settings-headset-device-label">
+                {t("settings.headset.deviceLabel", { name: projection.deviceLabel })}
+              </p>
+            ) : null}
+            <div className={formStyles.languageSelectField}>
+              <Select
+                size="sm"
+                items={selectItems}
+                value={selectedDeviceId}
+                disabled={!canConnect}
+                placeholder={t("settings.headset.device.placeholder")}
+                aria-label={t("settings.headset.device.selectLabel")}
+                data-testid="settings-headset-device-select"
+                onValueChange={setSelectedDeviceId}
+              />
+            </div>
+            <div className={clsx(formStyles.actionRow)}>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={!canConnect}
+                data-testid="settings-headset-connect"
+                onClick={handleConnect}
+              >
+                {t("settings.headset.connect")}
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={!canDisconnect}
+                data-testid="settings-headset-disconnect"
+                onClick={onDisconnectHeadset}
+              >
+                {t("settings.headset.disconnect")}
+              </Button>
+            </div>
+          </div>
+
+          <div className={formStyles.settingBlock}>
             <label className={formStyles.toggleRow} htmlFor="settings-headset-enabled">
               <span className={formStyles.toggleText}>
                 <span className={formStyles.toggleLabel}>
                   {t("settings.headset.enabled.label")}
-                </span>
-                <span className={formStyles.toggleDescription}>
-                  {t("settings.headset.enabled.description")}
                 </span>
               </span>
               <Switch
@@ -91,9 +149,6 @@ export function SettingsHeadsetPanel({
                 <span className={formStyles.toggleLabel}>
                   {t("settings.headset.autoReconnect.label")}
                 </span>
-                <span className={formStyles.toggleDescription}>
-                  {t("settings.headset.autoReconnect.description")}
-                </span>
               </span>
               <Switch
                 id="settings-headset-auto-reconnect"
@@ -103,39 +158,6 @@ export function SettingsHeadsetPanel({
                 onCheckedChange={onHeadsetAutoReconnectChange}
               />
             </label>
-          </div>
-
-          <div className={formStyles.settingBlock}>
-            <p className={formStyles.toggleLabel}>{t("settings.headset.status.label")}</p>
-            <p className={formStyles.fieldValue} data-testid="settings-headset-status">
-              {resolveConnectionStateLabel(projection, t)}
-            </p>
-            {projection.deviceLabel !== null ? (
-              <p className={formStyles.blockHint} data-testid="settings-headset-device-label">
-                {t("settings.headset.deviceLabel", { name: projection.deviceLabel })}
-              </p>
-            ) : null}
-          </div>
-
-          <div className={clsx(formStyles.settingBlock, formStyles.actionRow)}>
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={!canConnect}
-              data-testid="settings-headset-connect"
-              onClick={onConnectHeadset}
-            >
-              {t("settings.headset.connect")}
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              disabled={!canDisconnect}
-              data-testid="settings-headset-disconnect"
-              onClick={onDisconnectHeadset}
-            >
-              {t("settings.headset.disconnect")}
-            </Button>
           </div>
         </div>
       </fieldset>

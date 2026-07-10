@@ -95,9 +95,11 @@ export type SettingsPanelProps = Readonly<{
   headsetConnectionProjection: HeadsetConnectionProjection;
   headsetEnabled: boolean;
   headsetAutoReconnect: boolean;
+  preferredDeviceId: string | null;
+  grantedDevices: ReadonlyArray<Readonly<{ id: string; productName: string }>>;
   onHeadsetEnabledChange: (enabled: boolean) => void;
   onHeadsetAutoReconnectChange: (enabled: boolean) => void;
-  onConnectHeadset: () => void;
+  onConnectHeadset: (deviceId: string | null) => void;
   onDisconnectHeadset: () => void;
   account: Readonly<{
     form: SipAccountInput;
@@ -191,6 +193,8 @@ export function SettingsPanel({
   headsetConnectionProjection,
   headsetEnabled,
   headsetAutoReconnect,
+  preferredDeviceId,
+  grantedDevices,
   onHeadsetEnabledChange,
   onHeadsetAutoReconnectChange,
   onConnectHeadset,
@@ -334,6 +338,8 @@ export function SettingsPanel({
           projection={headsetConnectionProjection}
           headsetEnabled={headsetEnabled}
           headsetAutoReconnect={headsetAutoReconnect}
+          preferredDeviceId={preferredDeviceId}
+          grantedDevices={grantedDevices}
           onHeadsetEnabledChange={onHeadsetEnabledChange}
           onHeadsetAutoReconnectChange={onHeadsetAutoReconnectChange}
           onConnectHeadset={onConnectHeadset}

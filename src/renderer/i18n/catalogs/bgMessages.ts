@@ -408,15 +408,15 @@ export const bgMessages: MessageShape = {
   "settings.general.themeDescription": "Цветова схема на приложението. Прилага се веднага след избор.",
   "settings.general.themeLabel": "Тема на интерфейса",
   "settings.headset.description":
-    "Опционално управление на обаждания от USB слушалки Jabra или Plantronics/Poly чрез Web HID.",
+    "USB слушалки (Jabra/Poly): статус и устройство отгоре, опции отдолу.",
   "settings.headset.title": "Слушалки",
-  "settings.headset.enabled.label": "Включи интеграция със слушалки",
+  "settings.headset.enabled.label": "Включи интеграция",
   "settings.headset.enabled.description":
     "Когато е изключено, софтфонът работи нормално без USB слушалки.",
   "settings.headset.autoReconnect.label": "Автоматично свързване",
   "settings.headset.autoReconnect.description":
     "Свързване на предварително разрешено устройство при старт и USB plug.",
-  "settings.headset.status.label": "Състояние на връзката",
+  "settings.headset.status.label": "Състояние",
   "settings.headset.status.disabled": "Интеграцията е изключена",
   "settings.headset.status.disconnected": "Не е свързано",
   "settings.headset.status.connecting": "Свързване…",
@@ -425,6 +425,9 @@ export const bgMessages: MessageShape = {
   "settings.headset.status.unsupported": "Web HID не е наличен",
   "settings.headset.deviceLabel": (params: Readonly<{ name: string }>) =>
     `Устройство: ${params.name}`,
+  "settings.headset.device.selectLabel": "Устройство слушалки",
+  "settings.headset.device.placeholder": "Изберете устройство",
+  "settings.headset.device.add": "Добави устройство…",
   "settings.headset.connect": "Свържи",
   "settings.headset.disconnect": "Прекъсни",
   "notification.headset.fault.connect_failed":
@@ -438,6 +441,7 @@ export const bgMessages: MessageShape = {
   "notification.headset.fault.led_blocked":
     "Индикаторите на слушалките са блокирани от ОС. Бутоните може да работят; свържете отново при нужда.",
   "activeCall.disabled.headsetSyncInProgress": "Синхронизация със слушалки…",
+  "activeCall.disabled.outgoingDialInProgress": "Изчакайте исходящото обаждане да се свърже",
   "settings.nav.account": "Акаунт",
   "settings.nav.codecs": "Кодеци",
   "settings.nav.collapseMenu": "Свий менюто с настройки",

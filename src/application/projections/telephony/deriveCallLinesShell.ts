@@ -84,12 +84,17 @@ export function deriveCallLinesShell(
     transferProjection,
   } = input;
   const incomingCallId = input.incomingCallId ?? null;
-
   const resumePolicyReason = deriveResumeMultiCallDisabledReason(multiCallProjection);
   const contactDirectory = buildContactDirectory(input.contacts);
   const establishedLines = multiLineCallProjection.lines.filter((line) =>
     ESTABLISHED_LINE_STATES.has(line.state),
   );
+  const hasOutgoingInProgress = establishedLines.some((line) => {
+    if (line.state === "Connecting") {
+      return true;
+    }
+    return line.state === "Ringing" && line.callId !== incomingCallId;
+  });
 
   const lines = establishedLines.map((line) =>
     mapLineToViewModel({
@@ -100,6 +105,7 @@ export function deriveCallLinesShell(
       transferProjection,
       contactDirectory,
       incomingCallId,
+      hasOutgoingInProgress,
     }),
   );
 
@@ -120,8 +126,15 @@ function mapLineToViewModel(input: Readonly<{
   transferProjection: TransferProjection;
   contactDirectory: ReturnType<typeof buildContactDirectory>;
   incomingCallId: string | null;
+  hasOutgoingInProgress: boolean;
 }>): CallLineCardViewModel {
-  const { line, multiCallProjection, resumePolicyReason, incomingCallId } = input;
+  const {
+    line,
+    multiCallProjection,
+    resumePolicyReason,
+    incomingCallId,
+    hasOutgoingInProgress,
+  } = input;
   const isActiveUnheld =
     line.state === "Active" && multiCallProjection.activeUnheldCallId === line.callId;
   const lineControls = createActiveCallControlsProjection({
@@ -137,6 +150,14 @@ function mapLineToViewModel(input: Readonly<{
       : lineControls.hangupDisabledReason;
   const primaryAction = resolvePrimaryAction(line.state, line.callId, incomingCallId);
   const showIconRow = line.state === "Active" && !line.isRemoteHold;
+  // Mute/unmute blocked for all sessions while an outbound dial is in progress —
+  // avoids headset sync loader stuck on held while focus stays on outgoing.
+  const muteDisabledReason = hasOutgoingInProgress
+    ? ("outgoing_dial_in_progress" as const)
+    : lineControls.muteDisabledReason;
+  const unmuteDisabledReason = hasOutgoingInProgress
+    ? ("outgoing_dial_in_progress" as const)
+    : lineControls.unmuteDisabledReason;
 
   return {
     callId: line.callId,
@@ -160,8 +181,8 @@ function mapLineToViewModel(input: Readonly<{
     resumeDisabledReason,
     hangupDisabledReason,
     holdDisabledReason: lineControls.holdDisabledReason,
-    muteDisabledReason: lineControls.muteDisabledReason,
-    unmuteDisabledReason: lineControls.unmuteDisabledReason,
+    muteDisabledReason,
+    unmuteDisabledReason,
     transferDisabledReason: isActiveUnheld
       ? deriveStartTransferDisabledReason({
           activeCallId: line.callId,

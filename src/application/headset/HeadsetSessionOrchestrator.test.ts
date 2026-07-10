@@ -139,6 +139,7 @@ describe("HeadsetSessionOrchestrator", () => {
       focusedIsMuted: false,
       establishedCount: 1,
       establishedSessionIds: ["active-1"],
+      mutedBySessionId: { "active-1": false },
     });
 
     const orchestrator = new HeadsetSessionOrchestrator({
@@ -162,7 +163,12 @@ describe("HeadsetSessionOrchestrator", () => {
     gateway.emitHardwareEvent({ type: "muteChanged", muted: true });
     expect(onSetMute).toHaveBeenCalledWith("active-1", true);
 
-    current = { ...current, focusedIsMuted: true, activeIsMuted: true };
+    current = {
+      ...current,
+      focusedIsMuted: true,
+      activeIsMuted: true,
+      mutedBySessionId: { "active-1": true },
+    };
     orchestrator.onSnapshotChanged(current);
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -192,6 +198,7 @@ describe("HeadsetSessionOrchestrator", () => {
       focusedIsMuted: false,
       establishedCount: 1,
       establishedSessionIds: ["active-1"],
+      mutedBySessionId: { "active-1": false },
     });
 
     const orchestrator = new HeadsetSessionOrchestrator({
@@ -215,7 +222,12 @@ describe("HeadsetSessionOrchestrator", () => {
     gateway.emitHardwareEvent({ type: "muteChanged", muted: true });
     expect(onSetMute).toHaveBeenCalledWith("active-1", true);
 
-    current = { ...current, focusedIsMuted: true, activeIsMuted: true };
+    current = {
+      ...current,
+      focusedIsMuted: true,
+      activeIsMuted: true,
+      mutedBySessionId: { "active-1": true },
+    };
     orchestrator.onSnapshotChanged(current);
     await new Promise((resolve) => setTimeout(resolve, 0));
 
@@ -273,6 +285,93 @@ describe("HeadsetSessionOrchestrator", () => {
     expect(onSetMute).toHaveBeenCalledTimes(1);
     expect(orchestrator.getSyncQueue().getBusyState().muteSessionId).toBe("active-1");
     expect(orchestrator.getSyncQueue().isHardwareMuteLocked()).toBe(true);
+    orchestrator.stop();
+  });
+
+  it("rejects headset mute during outgoing even while mute sync is locked", async () => {
+    const gateway = new MockHeadsetGateway();
+    await gateway.connect();
+    const onSetMute = vi.fn();
+    const current = snapshot({
+      focusSessionId: "out-1",
+      focusReason: "outgoing",
+      outgoingInProgressIds: ["out-1"],
+      establishedCount: 1,
+      establishedSessionIds: ["held-1"],
+      heldSessionIds: ["held-1"],
+      mutedBySessionId: { "held-1": false, "out-1": false },
+    });
+
+    const orchestrator = new HeadsetSessionOrchestrator({
+      gateway,
+      eventPublisher: new InMemoryDomainEventBus(),
+      logger: createTestLogger({ featureId: "F-012", boundedContext: "Headset" }),
+      getSnapshot: () => current,
+      callbacks: {
+        onAnswer: vi.fn(),
+        onReject: vi.fn(),
+        onHangup: vi.fn(),
+        onToggleHold: vi.fn(),
+        onSetMute,
+      },
+    });
+
+    orchestrator.start();
+    orchestrator.onDeviceConnected();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    gateway.clearSentCommands();
+
+    expect(orchestrator.getSyncQueue().beginMuteSessionSync("held-1", true)).toBe(true);
+    gateway.emitHardwareEvent({ type: "muteChanged", muted: true });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    expect(onSetMute).not.toHaveBeenCalled();
+    expect(gateway.getSentCommands().some((command) => command.type === "signalOutgoing")).toBe(
+      true,
+    );
+    orchestrator.stop();
+  });
+
+  it("clears mute UI busy when held mutes while headset focus is on outgoing", async () => {
+    const gateway = new MockHeadsetGateway();
+    await gateway.connect();
+    let current = snapshot({
+      focusSessionId: "out-1",
+      focusReason: "outgoing",
+      outgoingInProgressIds: ["out-1"],
+      establishedCount: 1,
+      establishedSessionIds: ["held-1"],
+      heldSessionIds: ["held-1"],
+      mutedBySessionId: { "held-1": false, "out-1": false },
+      operatorSelectedCallId: "held-1",
+    });
+
+    const orchestrator = new HeadsetSessionOrchestrator({
+      gateway,
+      eventPublisher: new InMemoryDomainEventBus(),
+      logger: createTestLogger({ featureId: "F-012", boundedContext: "Headset" }),
+      getSnapshot: () => current,
+      callbacks: {
+        onAnswer: vi.fn(),
+        onReject: vi.fn(),
+        onHangup: vi.fn(),
+        onToggleHold: vi.fn(),
+        onSetMute: vi.fn(),
+      },
+    });
+
+    orchestrator.start();
+    expect(orchestrator.getSyncQueue().beginMuteSessionSync("held-1", true)).toBe(true);
+    expect(orchestrator.getSyncQueue().getBusyState().muteSessionId).toBe("held-1");
+
+    current = {
+      ...current,
+      mutedBySessionId: { "held-1": true, "out-1": false },
+    };
+    orchestrator.onSnapshotChanged(current);
+
+    expect(orchestrator.getSyncQueue().getMuteIntent()).toBeNull();
+    expect(orchestrator.getSyncQueue().getMuteIntentSessionId()).toBeNull();
     orchestrator.stop();
   });
 

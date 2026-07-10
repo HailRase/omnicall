@@ -153,8 +153,10 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - **WU6 (done):** hold-all before second outgoing when Active exists; block dial while Connecting — `MultiCallPolicyService.checkConflictingOperationBlocked`, `CallEngine.multiCallPolicy.test.ts`.
   - New outgoing Connecting/outbound Ringing auto-becomes `selectedCall` (UI + operator selection); incoming ringing still wins; failed dial restores prior selection.
   - Outbound Connecting/Ringing lines are selectable (`primaryAction: hangup`); only the waiting incoming Ringing uses `answer`.
+  - While any outbound dial is in progress, mute/unmute is disabled on all session controls (`outgoing_dial_in_progress`) to avoid stuck headset sync loaders.
+  - Dialpad ArrowDown/ArrowUp walks unique history numbers (newest first); empty input + registered + history keeps Call enabled; first Call press fills last number, second press dials (idle dialpad and number-entry overlay).
 - Test Coverage:
-  - Unit: number validation and transitions; `resolveOutgoingInProgressCallId`
+  - Unit: number validation and transitions; `resolveOutgoingInProgressCallId`; `dialpadHistoryRecall`; `Dialpad` arrow/recall Call enablement
   - Integration: mock gateway make-call progress/answer/failure + media tones
   - E2E: deferred until dedicated Electron E2E harness exists
 - Real Adapter Track: **done** (RAT step 04, 2026-06-24) — `JsSipTelephonyAdapter` makeCall/outgoing progress/answered/failed; manual SBC R3 PASS (R3-1/R3-4)
@@ -321,16 +323,21 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Headset session focus follows: incoming → outgoing → operator selection → primary → active → held (`resolveHeadsetSessionFocus`).
   - Hook-on hangup targets the focused established/outgoing session (including Held).
   - Mute from headset applies to the focused established session (including Held); hold LED clears mute LED (telephony mute preserved in UI); resume restores session mute to headset.
+  - Headset mute is rejected during incoming waiting and outgoing dial (restore presence LED even if sync-locked); UI mute sync clears against the muted session id, not only headset focus.
   - Outgoing dial auto-captures headset focus over operator selection.
   - After answering an incoming call, UI/headset selection stays on the answered session; reject/miss restores prior selection.
   - Headset faults surface operator toasts with recovery guidance (`HeadsetFaultOccurred`).
   - Reconnect realigns LED via `resolveInitialConnectCommands`.
-  - USB unplug: disconnect + fault toast; no automatic failover to another granted device.- Test Coverage:
-  - Unit: `buildHeadsetCallSnapshot.test.ts`, `resolveHeadsetSessionFocus.test.ts`, `resolveDeviceCommandsFromSnapshot.test.ts`, `forwardHeadsetHardwareEvent.test.ts`, `HeadsetSessionOrchestrator.test.ts`, `SettingsHeadsetPanel.test.tsx`
-  - Integration: `MockHeadsetGateway.ts`, `AccountBootstrapFacade` headset wiring
+  - USB unplug: disconnect + fault toast; no automatic failover to another granted device.
+  - Authorize / profile switch applies headset user settings (`applyActiveProfileSettingsSideEffects` → `applyHeadsetUserSettings`) so auto-reconnect runs after login.
+  - Preferred headset id (`headsetPreferredDeviceId`, settings schema v5) is persisted on successful connect; auto-reconnect and USB plug prefer that id among granted devices, else first granted.
+  - Settings headset panel is status-first: connection status, granted-device Select, Connect/Disconnect, then short Enable / Auto-reconnect toggles.
+- Test Coverage:
+  - Unit: `buildHeadsetCallSnapshot.test.ts`, `resolveHeadsetSessionFocus.test.ts`, `resolveDeviceCommandsFromSnapshot.test.ts`, `forwardHeadsetHardwareEvent.test.ts`, `HeadsetSessionOrchestrator.test.ts`, `pickGrantedHidDevice.test.ts`, `SettingsHeadsetPanel.test.tsx`, `migrateUserSettings.test.ts` (v5)
+  - Integration: `MockHeadsetGateway.ts`, `AccountBootstrapFacade` headset wiring (authorize → preferred auto-reconnect)
   - E2E: deferred until device harness exists
 - Evidence:
-  - Domain/ports: `src/domain/headset/`, `src/ports/headset/HeadsetGateway.ts`
+  - Domain/ports: `src/domain/headset/`, `src/ports/headset/HeadsetGateway.ts`, `UserSettings.headsetPreferredDeviceId`
   - Application: `src/application/headset/` (incl. `session/resolveHeadsetSessionFocus.ts`), `src/application/services/headset/HeadsetIntegrationService.ts`
   - Adapters: `src/adapters/headset/webhid/`, `src/adapters/mock/MockHeadsetGateway.ts`
   - UI: `SettingsHeadsetPanel.tsx`, `useCallFeatureShell.ts` selection → `setHeadsetSelectedCallId`, `headsetSyncBusyProjection.ts`, `applyHeadsetSyncBusyToActiveCallControls.ts`
@@ -361,8 +368,9 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Each history entry stores total `durationSec` (ring + talk), plus separate `ringDurationSec` and `talkDurationSec`.
   - History list secondary line shows call start clock time only (no duration).
   - Persisted schema v2; v1 documents migrate safely (outgoing legacy `missed` → `canceled`, `endReason=unknown`).
+  - Dialpad can walk unique `remoteNumber` values from the loaded history projection (ArrowDown = newer, ArrowUp = older) and recall the newest number via Call when the input is empty.
 - Test Coverage:
-  - Unit: history entry mapping, `CallHistoryCallTracker`, `deriveCallHistoryShell`, `contactDirectory`, `callHistoryProjection`, `parsePersistedCallHistoryDocument`, `DeleteCallHistoryEntryUseCase`
+  - Unit: history entry mapping, `CallHistoryCallTracker`, `deriveCallHistoryShell`, `contactDirectory`, `callHistoryProjection`, `parsePersistedCallHistoryDocument`, `DeleteCallHistoryEntryUseCase`, `dialpadHistoryRecall`
   - Integration: `InMemoryCallHistoryRepository`, `FileCallHistoryRepository`, `ListCallHistoryUseCase`, `RedialFromHistoryUseCase`, `DeleteCallHistoryEntryUseCase`, `createRealAccountBootstrap`
   - Renderer: `HistoryPanelShell`, `HistoryDetailPanel`, `HistoryDeleteConfirmationModal`, `HistoryShellRoutePanel`, `useCallHistoryDetailShell`, `useContactEditShell`, navigation guards
   - E2E: deferred until harness exists; manual smoke: `handoffs/Shell-Navigation-Phase6-Smoke-Checklist.md`

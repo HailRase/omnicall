@@ -6,7 +6,11 @@ import {
   type HeadsetDevice,
   type HeadsetHardwareEvent,
 } from "@domain/index.js";
-import type { HeadsetGateway } from "@ports/headset/HeadsetGateway.js";
+import type {
+  HeadsetGateway,
+  HeadsetGrantedDeviceInfo,
+  TryAutoReconnectOptions,
+} from "@ports/headset/HeadsetGateway.js";
 import { createPlatformError } from "@shared/errors/index.js";
 import { err, ok } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
@@ -33,6 +37,7 @@ import {
   subscribeHidConnectEvents,
   subscribeInputReports,
 } from "./webHidClient.js";
+import { pickGrantedHidDevice } from "./pickGrantedHidDevice.js";
 
 function mapNativeDevice(device: HIDDevice): HeadsetDevice {
   return {
@@ -42,6 +47,18 @@ function mapNativeDevice(device: HIDDevice): HeadsetDevice {
     productName: device.productName,
     connectionState: device.opened ? "connected" : "disconnected",
   };
+}
+
+function nativeDeviceId(device: HIDDevice): string {
+  return `${device.vendorId}:${device.productId}:${device.productName}`;
+}
+
+function pickGrantedDevice(
+  granted: ReadonlyArray<HIDDevice>,
+  preferredDeviceId: string | null | undefined,
+): HIDDevice | undefined {
+  const withIds = granted.map((device) => ({ device, id: nativeDeviceId(device) }));
+  return pickGrantedHidDevice(withIds, preferredDeviceId)?.device;
 }
 
 /**
@@ -56,9 +73,14 @@ export class WebHidHeadsetAdapter implements HeadsetGateway {
   private edgeDetector = createHidEdgeDetector(false);
   private firstReportSeen = false;
   private autoReconnectEnabled = true;
+  private preferredDeviceId: string | null = null;
 
   setAutoReconnectEnabled(enabled: boolean): void {
     this.autoReconnectEnabled = enabled;
+  }
+
+  setPreferredDeviceId(deviceId: string | null): void {
+    this.preferredDeviceId = deviceId;
   }
 
   isSupported(): boolean {
@@ -66,10 +88,24 @@ export class WebHidHeadsetAdapter implements HeadsetGateway {
   }
 
   async connect(): Promise<Result<HeadsetDevice, PlatformError>> {
+    return this.connectGrantedDevice(null);
+  }
+
+  async connectGrantedDevice(
+    deviceId: string | null,
+  ): Promise<Result<HeadsetDevice, PlatformError>> {
     if (!this.isSupported()) {
       return err(createPlatformError("operation_failed", "headset_hid_unsupported"));
     }
     try {
+      if (deviceId !== null) {
+        const granted = await getGrantedHidDevices();
+        const match = granted.find((device) => nativeDeviceId(device) === deviceId);
+        if (match === undefined) {
+          return err(createPlatformError("operation_failed", "headset_device_not_found"));
+        }
+        return await this.attachDevice(match);
+      }
       const device = await requestHidDevice();
       if (device === null) {
         return err(createPlatformError("operation_failed", "headset_picker_cancelled"));
@@ -86,13 +122,19 @@ export class WebHidHeadsetAdapter implements HeadsetGateway {
     return ok(undefined);
   }
 
-  async tryAutoReconnect(): Promise<Result<HeadsetDevice | null, PlatformError>> {
+  async tryAutoReconnect(
+    options: TryAutoReconnectOptions = {},
+  ): Promise<Result<HeadsetDevice | null, PlatformError>> {
     if (!this.isSupported() || !this.autoReconnectEnabled) {
       return ok(null);
     }
+    if (this.nativeDevice !== null) {
+      return ok(mapNativeDevice(this.nativeDevice));
+    }
     try {
       const granted = await getGrantedHidDevices();
-      const device = granted[0];
+      const preferred = options.preferredDeviceId ?? this.preferredDeviceId;
+      const device = pickGrantedDevice(granted, preferred);
       if (device === undefined) {
         return ok(null);
       }
@@ -104,6 +146,21 @@ export class WebHidHeadsetAdapter implements HeadsetGateway {
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : "headset_auto_reconnect_failed";
       return err(createPlatformError("operation_failed", message, error));
+    }
+  }
+
+  async listGrantedDevices(): Promise<ReadonlyArray<HeadsetGrantedDeviceInfo>> {
+    if (!this.isSupported()) {
+      return [];
+    }
+    try {
+      const granted = await getGrantedHidDevices();
+      return granted.map((device) => ({
+        id: nativeDeviceId(device),
+        productName: device.productName,
+      }));
+    } catch {
+      return [];
     }
   }
 
@@ -190,9 +247,29 @@ export class WebHidHeadsetAdapter implements HeadsetGateway {
       }, signal);
       subscribeHidConnectEvents(
         (connected) => {
-          if (this.nativeDevice === null && this.autoReconnectEnabled) {
-            void this.attachDevice(connected);
+          if (this.nativeDevice !== null || !this.autoReconnectEnabled) {
+            return;
           }
+          const connectedId = nativeDeviceId(connected);
+          if (
+            this.preferredDeviceId !== null &&
+            this.preferredDeviceId !== connectedId
+          ) {
+            // Prefer waiting for the remembered device; still accept if only this one plugs in.
+            void getGrantedHidDevices().then((granted) => {
+              if (this.nativeDevice !== null) {
+                return;
+              }
+              const preferred = pickGrantedDevice(granted, this.preferredDeviceId);
+              if (preferred !== undefined) {
+                void this.attachDevice(preferred);
+                return;
+              }
+              void this.attachDevice(connected);
+            });
+            return;
+          }
+          void this.attachDevice(connected);
         },
         (disconnected) => {
           if (this.nativeDevice === disconnected) {

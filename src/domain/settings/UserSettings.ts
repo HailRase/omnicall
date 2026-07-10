@@ -25,7 +25,7 @@ import {
   type NotificationStacking,
 } from "./NotificationSettings.js";
 
-export const SETTINGS_SCHEMA_VERSION = 4 as const;
+export const SETTINGS_SCHEMA_VERSION = 5 as const;
 
 export type SettingsSchemaVersion = typeof SETTINGS_SCHEMA_VERSION;
 
@@ -58,6 +58,8 @@ export type UserSettings = Readonly<{
   codecPreferences: CodecPreferences;
   headsetEnabled: boolean;
   headsetAutoReconnect: boolean;
+  /** Last successfully connected headset id (`vendorId:productId:productName`). */
+  headsetPreferredDeviceId: string | null;
 }>;
 
 export { MIN_SIP_REREGISTER_INTERVAL_SEC, MIN_SIP_RECONNECT_INTERVAL_SEC };
@@ -93,5 +95,6 @@ export function createDefaultUserSettings(): UserSettings {
     codecPreferences: createDefaultCodecPreferences(),
     headsetEnabled: false,
     headsetAutoReconnect: true,
+    headsetPreferredDeviceId: null,
   };
 }

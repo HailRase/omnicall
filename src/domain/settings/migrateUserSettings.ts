@@ -18,7 +18,7 @@ export type MigrateUserSettingsResult =
   | Readonly<{ ok: false; error: SettingsMigrationError }>;
 
 /**
- * - Purpose: upgrade persisted or in-memory settings to UserSettings v4.
+ * - Purpose: upgrade persisted or in-memory settings to UserSettings v5.
  * - Inputs: unknown raw blob and optional v0 legacy fragments.
  * - Outputs: migrated UserSettings or migration error.
  */
@@ -51,12 +51,12 @@ export function migrateUserSettings(
     return { ok: true, value: validated.value };
   }
 
-  if (version === 3) {
-    return coerceToUserSettingsV4(record);
+  if (version === 4 || version === 3) {
+    return coerceToUserSettingsV5(record);
   }
 
   if (version === 2) {
-    return coerceToUserSettingsV4({
+    return coerceToUserSettingsV5({
       ...createDefaultUserSettings(),
       ...record,
       schemaVersion: SETTINGS_SCHEMA_VERSION,
@@ -64,7 +64,7 @@ export function migrateUserSettings(
   }
 
   if (version === 1) {
-    return { ok: true, value: migrateV1ToV4(record) };
+    return { ok: true, value: migrateV1ToV5(record) };
   }
 
   if (version === 0 || version === undefined) {
@@ -97,9 +97,10 @@ function formatSchemaVersion(version: unknown): string {
   return "unknown";
 }
 
-function coerceToUserSettingsV4(
+function coerceToUserSettingsV5(
   record: Record<string, unknown>,
 ): MigrateUserSettingsResult {
+  const preferredRaw = record["headsetPreferredDeviceId"];
   const candidate = {
     ...record,
     schemaVersion: SETTINGS_SCHEMA_VERSION,
@@ -109,6 +110,10 @@ function coerceToUserSettingsV4(
       typeof record["headsetAutoReconnect"] === "boolean"
         ? record["headsetAutoReconnect"]
         : true,
+    headsetPreferredDeviceId:
+      typeof preferredRaw === "string" && preferredRaw.trim().length > 0
+        ? preferredRaw.trim()
+        : null,
   };
   const validated = validateUserSettings(candidate);
   if (!validated.ok) {
@@ -120,7 +125,7 @@ function coerceToUserSettingsV4(
   return { ok: true, value: validated.value };
 }
 
-function migrateV1ToV4(record: Record<string, unknown>): UserSettings {
+function migrateV1ToV5(record: Record<string, unknown>): UserSettings {
   const defaults = createDefaultUserSettings();
   const v1Validated = validateV1Fragments(record);
   const parsedLanguage = parseSupportedLanguage(record["language"]);
@@ -156,6 +161,7 @@ function migrateV1ToV4(record: Record<string, unknown>): UserSettings {
     codecPreferences: defaults.codecPreferences,
     headsetEnabled: defaults.headsetEnabled,
     headsetAutoReconnect: defaults.headsetAutoReconnect,
+    headsetPreferredDeviceId: defaults.headsetPreferredDeviceId,
   };
 }
 
@@ -179,7 +185,8 @@ function validateV1Fragments(record: Record<string, unknown>): V1Fragment {
   const multiSessionsEnabled = record["multiSessionsEnabled"];
   const autoUnholdOnTransferFailure = record["autoUnholdOnTransferFailure"];
   const autoAnswerTimeoutSec = record["autoAnswerTimeoutSec"];
-  const autoAnswerDuringActiveSessionEnabled = record["autoAnswerDuringActiveSessionEnabled"];
+  const autoAnswerDuringActiveSessionEnabled =
+    record["autoAnswerDuringActiveSessionEnabled"];
   const ringbackToneEnabled = record["ringbackToneEnabled"];
   const sipAutoReregisterEnabled = record["sipAutoReregisterEnabled"];
   const sipReregisterIntervalSec = record["sipReregisterIntervalSec"];
@@ -187,22 +194,28 @@ function validateV1Fragments(record: Record<string, unknown>): V1Fragment {
 
   return {
     ...(parsedTheme !== undefined ? { theme: parsedTheme } : {}),
-    ...(typeof multiSessionsEnabled === "boolean" ? { multiSessionsEnabled } : {}),
+    ...(typeof multiSessionsEnabled === "boolean"
+      ? { multiSessionsEnabled }
+      : {}),
     ...(typeof autoUnholdOnTransferFailure === "boolean"
       ? { autoUnholdOnTransferFailure }
       : {}),
-    ...(autoAnswerTimeoutSec === null
-      ? { autoAnswerTimeoutSec: null }
-      : typeof autoAnswerTimeoutSec === "number"
-        ? { autoAnswerTimeoutSec }
-        : {}),
+    ...(autoAnswerTimeoutSec === null || typeof autoAnswerTimeoutSec === "number"
+      ? { autoAnswerTimeoutSec }
+      : {}),
     ...(typeof autoAnswerDuringActiveSessionEnabled === "boolean"
       ? { autoAnswerDuringActiveSessionEnabled }
       : {}),
     ...(typeof ringbackToneEnabled === "boolean" ? { ringbackToneEnabled } : {}),
-    ...(typeof sipAutoReregisterEnabled === "boolean" ? { sipAutoReregisterEnabled } : {}),
-    ...(typeof sipReregisterIntervalSec === "number" ? { sipReregisterIntervalSec } : {}),
-    ...(typeof sipReregisterMaxAttempts === "number" ? { sipReregisterMaxAttempts } : {}),
+    ...(typeof sipAutoReregisterEnabled === "boolean"
+      ? { sipAutoReregisterEnabled }
+      : {}),
+    ...(typeof sipReregisterIntervalSec === "number"
+      ? { sipReregisterIntervalSec }
+      : {}),
+    ...(typeof sipReregisterMaxAttempts === "number"
+      ? { sipReregisterMaxAttempts }
+      : {}),
   };
 }
 
@@ -211,7 +224,6 @@ function migrateFromLegacy(legacy?: UserSettingsV0Legacy): UserSettings {
   if (legacy === undefined) {
     return defaults;
   }
-
   return {
     ...defaults,
     multiSessionsEnabled: legacy.multiCallSettings.multiSessionsEnabled,
@@ -228,32 +240,26 @@ function readV0Fragments(
   if (legacy !== undefined) {
     return legacy;
   }
-
-  const multiRaw = record["multiCallSettings"];
-  const autoAnswer = record["autoAnswerTimeoutSec"];
-
-  if (typeof multiRaw !== "object" || multiRaw === null) {
+  const multiCallSettings = record["multiCallSettings"];
+  const autoAnswerTimeoutSec = record["autoAnswerTimeoutSec"];
+  if (
+    typeof multiCallSettings !== "object" ||
+    multiCallSettings === null ||
+    (autoAnswerTimeoutSec !== null && typeof autoAnswerTimeoutSec !== "number")
+  ) {
     return null;
   }
-
-  const multi = multiRaw as Record<string, unknown>;
-  if (typeof multi["multiSessionsEnabled"] !== "boolean") {
+  const multi = multiCallSettings as Record<string, unknown>;
+  if (
+    typeof multi["multiSessionsEnabled"] !== "boolean" ||
+    typeof multi["autoUnholdOnTransferFailure"] !== "boolean"
+  ) {
     return null;
   }
-
-  const autoUnhold = multi["autoUnholdOnTransferFailure"];
-  const autoAnswerTimeoutSec =
-    autoAnswer === null || autoAnswer === undefined
-      ? null
-      : typeof autoAnswer === "number"
-        ? autoAnswer
-        : null;
-
   return {
     multiCallSettings: {
       multiSessionsEnabled: multi["multiSessionsEnabled"],
-      autoUnholdOnTransferFailure:
-        typeof autoUnhold === "boolean" ? autoUnhold : true,
+      autoUnholdOnTransferFailure: multi["autoUnholdOnTransferFailure"],
     },
     autoAnswerTimeoutSec,
   };

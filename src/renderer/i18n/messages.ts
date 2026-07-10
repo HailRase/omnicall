@@ -520,14 +520,14 @@ const ruMessages = {
   "settings.codecs.errors.reorderFailed": "Не удалось изменить порядок кодеков.",
   "settings.headset.title": "Гарнитура",
   "settings.headset.description":
-    "Опциональное управление звонками с USB-гарнитуры Jabra или Plantronics/Poly через Web HID.",
-  "settings.headset.enabled.label": "Включить интеграцию с гарнитурой",
+    "USB-гарнитура Jabra/Poly: статус и устройство сверху, опции снизу.",
+  "settings.headset.enabled.label": "Включить интеграцию",
   "settings.headset.enabled.description":
     "При выключении софтфон работает как обычно, без USB-гарнитуры.",
   "settings.headset.autoReconnect.label": "Автопереподключение",
   "settings.headset.autoReconnect.description":
     "Подключать ранее разрешённую гарнитуру при запуске и при USB plug.",
-  "settings.headset.status.label": "Состояние подключения",
+  "settings.headset.status.label": "Состояние",
   "settings.headset.status.disabled": "Интеграция выключена",
   "settings.headset.status.disconnected": "Не подключена",
   "settings.headset.status.connecting": "Подключение…",
@@ -536,6 +536,9 @@ const ruMessages = {
   "settings.headset.status.unsupported": "Web HID недоступен",
   "settings.headset.deviceLabel": (params: Readonly<{ name: string }>) =>
     `Устройство: ${params.name}`,
+  "settings.headset.device.selectLabel": "Устройство гарнитуры",
+  "settings.headset.device.placeholder": "Выберите устройство",
+  "settings.headset.device.add": "Добавить устройство…",
   "settings.headset.connect": "Подключить",
   "settings.headset.disconnect": "Отключить",
   "notification.headset.fault.connect_failed":
@@ -549,6 +552,7 @@ const ruMessages = {
   "notification.headset.fault.led_blocked":
     "Индикаторы гарнитуры недоступны (ограничение ОС). Кнопки могут работать; переподключите устройство при необходимости.",
   "activeCall.disabled.headsetSyncInProgress": "Синхронизация с гарнитурой…",
+  "activeCall.disabled.outgoingDialInProgress": "Дождитесь соединения исходящего вызова",
   "bootstrap.loading": "Загрузка приложения…",
   "settings.systemState.transport.idle": "Неактивно",
   "settings.systemState.transport.connecting": "Подключение",
@@ -1298,14 +1302,14 @@ const enMessages: MessageShape = {
   "settings.codecs.errors.reorderFailed": "Could not reorder codecs.",
   "settings.headset.title": "Headset",
   "settings.headset.description":
-    "Optional USB headset call control for Jabra or Plantronics/Poly via Web HID.",
-  "settings.headset.enabled.label": "Enable headset integration",
+    "USB headset (Jabra/Poly): status and device on top, options below.",
+  "settings.headset.enabled.label": "Enable integration",
   "settings.headset.enabled.description":
     "When off, the softphone works normally without a USB headset.",
   "settings.headset.autoReconnect.label": "Auto-reconnect",
   "settings.headset.autoReconnect.description":
     "Reconnect a previously granted headset on startup and USB plug.",
-  "settings.headset.status.label": "Connection status",
+  "settings.headset.status.label": "Status",
   "settings.headset.status.disabled": "Integration disabled",
   "settings.headset.status.disconnected": "Not connected",
   "settings.headset.status.connecting": "Connecting…",
@@ -1313,6 +1317,9 @@ const enMessages: MessageShape = {
   "settings.headset.status.error": "Connection error",
   "settings.headset.status.unsupported": "Web HID unavailable",
   "settings.headset.deviceLabel": (params) => `Device: ${params.name}`,
+  "settings.headset.device.selectLabel": "Headset device",
+  "settings.headset.device.placeholder": "Select a device",
+  "settings.headset.device.add": "Add device…",
   "settings.headset.connect": "Connect",
   "settings.headset.disconnect": "Disconnect",
   "notification.headset.fault.connect_failed":
@@ -1326,6 +1333,7 @@ const enMessages: MessageShape = {
   "notification.headset.fault.led_blocked":
     "Headset indicators are blocked by the OS. Buttons may still work; reconnect the device if needed.",
   "activeCall.disabled.headsetSyncInProgress": "Syncing with headset…",
+  "activeCall.disabled.outgoingDialInProgress": "Wait until the outgoing call connects",
   "settings.systemState.transport.idle": "Idle",
   "settings.systemState.transport.connecting": "Connecting",
   "settings.systemState.transport.connected": "Connected",
@@ -2046,14 +2054,14 @@ const frMessages: MessageShape = {
   "settings.codecs.errors.reorderFailed": "Impossible de modifier l'ordre des codecs.",
   "settings.headset.title": "Micro-casque",
   "settings.headset.description":
-    "Controle d'appel USB optionnel pour Jabra ou Plantronics/Poly via Web HID.",
-  "settings.headset.enabled.label": "Activer l'intégration micro-casque",
+    "Micro-casque USB (Jabra/Poly) : statut et appareil en haut, options en bas.",
+  "settings.headset.enabled.label": "Activer l'integration",
   "settings.headset.enabled.description":
     "Desactive, le softphone fonctionne sans micro-casque USB.",
   "settings.headset.autoReconnect.label": "Reconnexion automatique",
   "settings.headset.autoReconnect.description":
     "Reconnecter un micro-casque deja autorise au demarrage et a la branche USB.",
-  "settings.headset.status.label": "Etat de connexion",
+  "settings.headset.status.label": "Etat",
   "settings.headset.status.disabled": "Integration desactivee",
   "settings.headset.status.disconnected": "Non connecte",
   "settings.headset.status.connecting": "Connexion…",
@@ -2061,6 +2069,9 @@ const frMessages: MessageShape = {
   "settings.headset.status.error": "Erreur de connexion",
   "settings.headset.status.unsupported": "Web HID indisponible",
   "settings.headset.deviceLabel": (params) => `Appareil : ${params.name}`,
+  "settings.headset.device.selectLabel": "Appareil micro-casque",
+  "settings.headset.device.placeholder": "Choisir un appareil",
+  "settings.headset.device.add": "Ajouter un appareil…",
   "settings.headset.connect": "Connecter",
   "settings.headset.disconnect": "Deconnecter",
   "notification.headset.fault.connect_failed":
@@ -2074,6 +2085,7 @@ const frMessages: MessageShape = {
   "notification.headset.fault.led_blocked":
     "Les indicateurs du micro-casque sont bloques par le systeme. Les boutons peuvent fonctionner ; reconnectez l'appareil si besoin.",
   "activeCall.disabled.headsetSyncInProgress": "Synchronisation avec le micro-casque…",
+  "activeCall.disabled.outgoingDialInProgress": "Attendez que l'appel sortant soit connecte",
   "settings.systemState.transport.idle": "Inactif",
   "settings.systemState.transport.connecting": "Connexion",
   "settings.systemState.transport.connected": "Connecte",
@@ -2797,14 +2809,14 @@ const deMessages: MessageShape = {
   "settings.codecs.errors.reorderFailed": "Codec-Reihenfolge konnte nicht geaendert werden.",
   "settings.headset.title": "Headset",
   "settings.headset.description":
-    "Optionale USB-Headset-Anrufsteuerung fur Jabra oder Plantronics/Poly uber Web HID.",
-  "settings.headset.enabled.label": "Headset-Integration aktivieren",
+    "USB-Headset (Jabra/Poly): Status und Gerat oben, Optionen darunter.",
+  "settings.headset.enabled.label": "Integration aktivieren",
   "settings.headset.enabled.description":
     "Wenn aus, arbeitet das Softphone normal ohne USB-Headset.",
   "settings.headset.autoReconnect.label": "Automatisch verbinden",
   "settings.headset.autoReconnect.description":
     "Zuvor freigegebenes Headset beim Start und USB-Plug wieder verbinden.",
-  "settings.headset.status.label": "Verbindungsstatus",
+  "settings.headset.status.label": "Status",
   "settings.headset.status.disabled": "Integration deaktiviert",
   "settings.headset.status.disconnected": "Nicht verbunden",
   "settings.headset.status.connecting": "Verbinden…",
@@ -2812,6 +2824,9 @@ const deMessages: MessageShape = {
   "settings.headset.status.error": "Verbindungsfehler",
   "settings.headset.status.unsupported": "Web HID nicht verfugbar",
   "settings.headset.deviceLabel": (params) => `Gerat: ${params.name}`,
+  "settings.headset.device.selectLabel": "Headset-Gerat",
+  "settings.headset.device.placeholder": "Gerat auswahlen",
+  "settings.headset.device.add": "Gerat hinzufugen…",
   "settings.headset.connect": "Verbinden",
   "settings.headset.disconnect": "Trennen",
   "notification.headset.fault.connect_failed":
@@ -2825,6 +2840,7 @@ const deMessages: MessageShape = {
   "notification.headset.fault.led_blocked":
     "Headset-Anzeigen sind durch das Betriebssystem blockiert. Tasten konnen funktionieren; Gerät bei Bedarf neu verbinden.",
   "activeCall.disabled.headsetSyncInProgress": "Synchronisierung mit Headset…",
+  "activeCall.disabled.outgoingDialInProgress": "Warten Sie, bis der ausgehende Anruf verbunden ist",
   "settings.systemState.transport.idle": "Leerlauf",
   "settings.systemState.transport.connecting": "Verbinden",
   "settings.systemState.transport.connected": "Verbunden",

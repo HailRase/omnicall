@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
   InMemorySettingsRepository,
+  MockHeadsetGateway,
   MockMediaGateway,
   MockTelephonyGateway,
   InMemorySavedAccountProfileRepository,
@@ -961,5 +962,47 @@ describe("AccountBootstrapFacade integration", () => {
 
     await facade.endUserSession.execute();
     await expect(facade.getActiveSipAccount()).resolves.toBeNull();
+  });
+
+  it("applies headset settings and auto-reconnects preferred device after authorize", async () => {
+    const headset = new MockHeadsetGateway();
+    headset.setGrantedDevices([
+      { id: "mock-headset-1", productName: "First" },
+      { id: "mock-headset-2", productName: "Preferred" },
+    ]);
+    const settings = new InMemorySettingsRepository({
+      bootstrapConfig: {},
+    });
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: settings,
+      headsetGateway: headset,
+      logger: createTestLogger(),
+    });
+
+    const account = {
+      username: "headset.agent",
+      password: "secret",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    };
+    const accountKey = deriveSettingsAccountKeyFromIdentity({
+      username: account.username,
+      domain: account.domain,
+      server: account.server,
+    });
+    await settings.saveUserSettings(accountKey, {
+      ...createDefaultUserSettings(),
+      headsetEnabled: true,
+      headsetAutoReconnect: true,
+      headsetPreferredDeviceId: "mock-headset-2",
+    });
+
+    await facade.authorizeManualAccount(account);
+
+    const connected = headset.getConnectedDevice();
+    expect(connected).not.toBeNull();
+    expect(connected?.id).toBe("mock-headset-2");
   });
 });

@@ -50,8 +50,10 @@ export type HeadsetIntegrationServiceDeps = Readonly<{
 export class HeadsetIntegrationService {
   private orchestrator: HeadsetSessionOrchestrator | null = null;
   private enabled = false;
+  private preferredDeviceId: string | null = null;
   private operatorSelectedCallId: string | null = null;
   private onSyncBusyChanged: (() => void) | null = null;
+  private onPreferredDeviceChanged: ((deviceId: string) => void) | null = null;
 
   private readonly connectUseCase: ConnectHeadsetDeviceUseCase;
   private readonly disconnectUseCase: DisconnectHeadsetDeviceUseCase;
@@ -77,6 +79,10 @@ export class HeadsetIntegrationService {
 
   setSyncBusyListener(listener: (() => void) | null): void {
     this.onSyncBusyChanged = listener;
+  }
+
+  setPreferredDeviceChangedListener(listener: ((deviceId: string) => void) | null): void {
+    this.onPreferredDeviceChanged = listener;
   }
 
   beginUiHoldSync(sessionId: string, intent: "hold" | "resume"): boolean {
@@ -119,6 +125,20 @@ export class HeadsetIntegrationService {
     this.onSyncBusyChanged?.();
   }
 
+  /**
+   * - Purpose: clear UI mute sync after a successful mute/unmute Use Case.
+   * - Inputs: session id and resulting muted flag.
+   * - Outputs: matched sync clear + busy listener refresh.
+   */
+  confirmUiMuteSync(sessionId: string, muted: boolean): void {
+    const queue = this.orchestrator?.getSyncQueue();
+    if (queue === undefined) {
+      return;
+    }
+    queue.clearMuteSyncIfMatched(sessionId, muted);
+    this.onSyncBusyChanged?.();
+  }
+
   isSyncBusy(): boolean {
     return this.orchestrator?.getSyncQueue().hasPendingSyncIntent() ?? false;
   }
@@ -136,6 +156,8 @@ export class HeadsetIntegrationService {
   }
 
   async applySettings(settings: UserSettings): Promise<void> {
+    this.preferredDeviceId = settings.headsetPreferredDeviceId;
+    this.deps.gateway.setPreferredDeviceId(settings.headsetPreferredDeviceId);
     this.deps.gateway.setAutoReconnectEnabled(settings.headsetAutoReconnect);
     const shouldEnable = settings.headsetEnabled;
     if (shouldEnable === this.enabled) {
@@ -160,12 +182,15 @@ export class HeadsetIntegrationService {
     }
   }
 
-  async connectDevice(): Promise<void> {
+  async connectDevice(deviceId: string | null = null): Promise<void> {
     if (!this.enabled) {
       return;
     }
     const correlationId = createCorrelationId();
-    const result = await this.connectUseCase.execute({ correlationId });
+    const result =
+      deviceId === null
+        ? await this.connectUseCase.execute({ correlationId })
+        : await this.deps.gateway.connectGrantedDevice(deviceId);
     if (!result.ok) {
       this.deps.logger.warn("headset_connect_failed", {
         correlationId,
@@ -183,6 +208,7 @@ export class HeadsetIntegrationService {
       );
       return;
     }
+    this.rememberPreferredDevice(result.value.id);
     this.deps.eventPublisher.publish(
       createHeadsetConnected(correlationId, result.value.id, result.value.productName),
     );
@@ -203,17 +229,36 @@ export class HeadsetIntegrationService {
       return;
     }
     const correlationId = createCorrelationId();
-    const result = await this.autoReconnectUseCase.execute({ correlationId });
+    const result = await this.autoReconnectUseCase.execute({
+      correlationId,
+      preferredDeviceId: this.preferredDeviceId,
+    });
     if (!result.ok) {
       return;
     }
     if (result.value === null) {
       return;
     }
+    this.rememberPreferredDevice(result.value.id);
     this.deps.eventPublisher.publish(
       createHeadsetConnected(correlationId, result.value.id, result.value.productName),
     );
     this.orchestrator?.onDeviceConnected();
+  }
+
+  async listGrantedDevices(): Promise<
+    ReadonlyArray<Readonly<{ id: string; productName: string }>>
+  > {
+    return this.deps.gateway.listGrantedDevices();
+  }
+
+  private rememberPreferredDevice(deviceId: string): void {
+    if (this.preferredDeviceId === deviceId) {
+      return;
+    }
+    this.preferredDeviceId = deviceId;
+    this.deps.gateway.setPreferredDeviceId(deviceId);
+    this.onPreferredDeviceChanged?.(deviceId);
   }
 
   onCallProjectionsChanged(): void {

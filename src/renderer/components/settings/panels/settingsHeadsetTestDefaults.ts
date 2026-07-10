@@ -5,9 +5,11 @@ export const settingsHeadsetStoryDefaults = {
   headsetConnectionProjection: initialHeadsetConnectionProjection(),
   headsetEnabled: false,
   headsetAutoReconnect: true,
+  preferredDeviceId: null as string | null,
+  grantedDevices: [] as ReadonlyArray<Readonly<{ id: string; productName: string }>>,
   onHeadsetEnabledChange: () => undefined,
   onHeadsetAutoReconnectChange: () => undefined,
-  onConnectHeadset: () => undefined,
+  onConnectHeadset: (_deviceId: string | null) => undefined,
   onDisconnectHeadset: () => undefined,
 } as const;
 

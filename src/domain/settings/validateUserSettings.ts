@@ -122,6 +122,11 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
     true,
     errors,
   );
+  const headsetPreferredDeviceId = readOptionalNonEmptyString(
+    record,
+    "headsetPreferredDeviceId",
+    errors,
+  );
 
   if (errors.length > 0) {
     return { ok: false, errors };
@@ -154,6 +159,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
       codecPreferences,
       headsetEnabled,
       headsetAutoReconnect,
+      headsetPreferredDeviceId,
     },
   };
 }
@@ -364,6 +370,22 @@ function readDismissedUpdateBannerVersion(
   }
   if (typeof raw !== "string" || raw.trim().length === 0) {
     errors.push("dismissedUpdateBannerVersion_invalid");
+    return null;
+  }
+  return raw.trim();
+}
+
+function readOptionalNonEmptyString(
+  record: Record<string, unknown>,
+  field: string,
+  errors: string[],
+): string | null {
+  const raw = record[field];
+  if (raw === undefined || raw === null) {
+    return null;
+  }
+  if (typeof raw !== "string" || raw.trim().length === 0) {
+    errors.push(`${field}_invalid`);
     return null;
   }
   return raw.trim();

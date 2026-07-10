@@ -82,7 +82,18 @@ export class HeadsetSyncQueue {
   }
 
   getMuteIntent(): boolean | null {
+    this.pruneExpiredIntents();
     return this.muteIntent;
+  }
+
+  /**
+   * - Purpose: expose in-flight mute session for snapshot match (may differ from focus).
+   * - Inputs: none.
+   * - Outputs: mute intent session id, or null when no mute intent is open.
+   */
+  getMuteIntentSessionId(): string | null {
+    this.pruneExpiredIntents();
+    return this.muteIntent !== null ? this.muteSessionId : null;
   }
 
   hasPendingSyncIntent(): boolean {
@@ -177,16 +188,29 @@ export class HeadsetSyncQueue {
       this.muteSessionId = null;
       this.muteIntent = null;
       this.muteIntentUntil = 0;
+      // Drop stale UI busy so loader cannot stick after unmatched intent timeout.
+      this.muteUiSessionId = null;
+      this.muteUiBusyUntil = 0;
+      this.clearUiBusyClearTimer();
+      this.onUiBusyPossiblyCleared?.();
     }
   }
 
   private armUiBusyClearTimer(): void {
     this.clearUiBusyClearTimer();
-    const delay = Math.max(0, this.muteUiBusyUntil - Date.now());
+    const now = Date.now();
+    // Cover both short UI settle and unmatched intent timeout so loader cannot stick forever.
+    let deadline = this.muteUiBusyUntil;
+    if (this.muteIntent !== null) {
+      deadline = Math.max(deadline, this.muteIntentUntil);
+    }
+    const delay = Math.max(0, deadline - now);
     this.uiBusyClearTimer = setTimeout(() => {
       this.uiBusyClearTimer = null;
+      this.pruneExpiredIntents();
       if (this.muteIntent === null) {
         this.muteUiSessionId = null;
+        this.muteUiBusyUntil = 0;
       }
       this.onUiBusyPossiblyCleared?.();
     }, delay);

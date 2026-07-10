@@ -13,6 +13,7 @@ import {
   type HeadsetFaultReason,
 } from "@domain/headset/events/headsetEvents.js";
 import type { HeadsetCallSnapshot } from "./buildHeadsetCallSnapshot.js";
+import { hasPendingOutgoingDial } from "./buildHeadsetCallSnapshot.js";
 import {
   canToggleMuteFromHeadset,
   forwardHeadsetHardwareEvent,
@@ -86,6 +87,18 @@ export class HeadsetSessionOrchestrator {
   onSnapshotChanged(next: HeadsetCallSnapshot): void {
     if (!this.started) {
       return;
+    }
+
+    // Outgoing dial owns headset focus — drop stale UI mute sync so held controls
+    // cannot keep a stuck loader while mute is blocked for the dial window.
+    const muteIntentSessionId = this.queue.getMuteIntentSessionId();
+    if (
+      hasPendingOutgoingDial(next) &&
+      muteIntentSessionId !== null &&
+      muteIntentSessionId !== next.focusSessionId
+    ) {
+      this.queue.abortMuteSync();
+      this.deps.onSyncBusyChanged?.();
     }
 
     const applied = this.reconcileToDevice(this.lastSnapshot, next);
@@ -235,6 +248,14 @@ export class HeadsetSessionOrchestrator {
       return;
     }
 
+    const snapshot = this.deps.getSnapshot();
+
+    // Incoming / outgoing dial: never toggle app mute; restore presence LED even if sync-locked.
+    if (event.type === "muteChanged" && !canToggleMuteFromHeadset(snapshot)) {
+      this.enqueueCommands(resolveMuteRejectedLedCommands(snapshot));
+      return;
+    }
+
     if (event.type === "muteChanged" && this.queue.isHardwareMuteLocked()) {
       return;
     }
@@ -248,15 +269,6 @@ export class HeadsetSessionOrchestrator {
       event.type === "hookOn" &&
       (this.queue.getHoldIntent() !== null || this.queue.isHoldSyncGuardActive())
     ) {
-      return;
-    }
-
-    const snapshot = this.deps.getSnapshot();
-
-    // Incoming / outgoing dial: same policy — never toggle app mute; restore presence LED
-    // (do not send bare setMute — that forces offHook and breaks ring/dial LED).
-    if (event.type === "muteChanged" && !canToggleMuteFromHeadset(snapshot)) {
-      this.enqueueCommands(resolveMuteRejectedLedCommands(snapshot));
       return;
     }
 
@@ -312,8 +324,23 @@ export class HeadsetSessionOrchestrator {
   private clearMatchedSyncGuards(next: HeadsetCallSnapshot): void {
     if (next.focusSessionId !== undefined) {
       this.queue.clearHoldSyncIfMatched(next.focusSessionId, next.focusedIsOnHold);
+    }
+
+    // Match mute intent against the session that was muted (UI may mute held while
+    // headset focus stays on outgoing dial).
+    const muteSessionId = this.queue.getMuteIntentSessionId();
+    if (muteSessionId !== null) {
+      const mutedFromMap = next.mutedBySessionId[muteSessionId];
+      const muted =
+        mutedFromMap ??
+        (next.focusSessionId === muteSessionId ? next.focusedIsMuted : undefined);
+      if (muted !== undefined) {
+        this.queue.clearMuteSyncIfMatched(muteSessionId, muted);
+      }
+    } else if (next.focusSessionId !== undefined) {
       this.queue.clearMuteSyncIfMatched(next.focusSessionId, next.focusedIsMuted);
     }
+
     this.deps.onSyncBusyChanged?.();
   }
 }

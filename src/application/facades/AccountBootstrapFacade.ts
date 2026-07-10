@@ -398,6 +398,9 @@ export class AccountBootstrapFacade {
         isDnd: () => this.getIsDndRef(),
       },
     });
+    this.headsetIntegration.setPreferredDeviceChangedListener((deviceId) => {
+      void this.persistHeadsetPreferredDeviceId(deviceId);
+    });
 
     deps.telephonyGateway.setIncomingCallHandler(async (notification) => {
       await this.callEngine.handleIncomingReceived({ notification });
@@ -1000,6 +1003,7 @@ export class AccountBootstrapFacade {
     const settings = await this.loadUserSettingsForAccountKey(accountKey);
     this.sipRecoveryOrchestration.applyRecoverySettings(settings);
     await this.callEngine.refreshAutoAnswerSchedules();
+    await this.applyHeadsetUserSettings(settings);
   }
 
   private async saveUserSettingsInternal(
@@ -1143,6 +1147,12 @@ export class AccountBootstrapFacade {
     this.headsetIntegration.setSyncBusyListener(listener);
   }
 
+  setHeadsetPreferredDeviceChangedListener(
+    listener: ((deviceId: string) => void) | null,
+  ): void {
+    this.headsetIntegration.setPreferredDeviceChangedListener(listener);
+  }
+
   notifyHeadsetProjectionsChanged(multiLine: MultiLineCallProjection): void {
     this.multiLineProjectionForToggle = multiLine;
     this.headsetIntegration.onCallProjectionsChanged();
@@ -1170,8 +1180,14 @@ export class AccountBootstrapFacade {
     );
   }
 
-  async connectHeadsetDevice(): Promise<void> {
-    await this.headsetIntegration.connectDevice();
+  async listGrantedHeadsetDevices(): Promise<
+    ReadonlyArray<Readonly<{ id: string; productName: string }>>
+  > {
+    return this.headsetIntegration.listGrantedDevices();
+  }
+
+  async connectHeadsetDevice(deviceId: string | null = null): Promise<void> {
+    await this.headsetIntegration.connectDevice(deviceId);
   }
 
   async disconnectHeadsetDevice(): Promise<void> {
@@ -1180,6 +1196,28 @@ export class AccountBootstrapFacade {
 
   async applyHeadsetUserSettings(settings: UserSettings): Promise<void> {
     await this.headsetIntegration.applySettings(settings);
+  }
+
+  async persistHeadsetPreferredDeviceId(deviceId: string): Promise<void> {
+    try {
+      const accountKey = await this.resolveSettingsAccountKey();
+      const settings = await this.loadUserSettingsForAccountKey(accountKey);
+      if (settings.headsetPreferredDeviceId === deviceId) {
+        return;
+      }
+      await this.saveUserSettingsInternal(accountKey, {
+        ...settings,
+        headsetPreferredDeviceId: deviceId,
+      });
+    } catch (error: unknown) {
+      this.deps.logger.warn("headset_preferred_device_persist_failed", {
+        featureId: "F-012",
+        boundedContext: "Headset",
+        operation: "persist_preferred_headset",
+        result: "failure",
+        errorMessage: error instanceof Error ? error.message : "unknown",
+      });
+    }
   }
 
   async muteCall(callId: CallId): Promise<Result<Call, PlatformError>> {
@@ -1193,6 +1231,8 @@ export class AccountBootstrapFacade {
     const result = await this.muteCall(createCallId(callId));
     if (!result.ok) {
       this.headsetIntegration.abortUiMuteSync(callId);
+    } else {
+      this.headsetIntegration.confirmUiMuteSync(callId, true);
     }
     return result;
   }
@@ -1208,6 +1248,8 @@ export class AccountBootstrapFacade {
     const result = await this.unmuteCall(createCallId(callId));
     if (!result.ok) {
       this.headsetIntegration.abortUiMuteSync(callId);
+    } else {
+      this.headsetIntegration.confirmUiMuteSync(callId, false);
     }
     return result;
   }

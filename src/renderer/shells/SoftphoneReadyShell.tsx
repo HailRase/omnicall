@@ -276,6 +276,8 @@ function SoftphoneShellLayoutRoute({
               headsetConnectionProjection={settingsActions.headsetConnectionProjection}
               headsetEnabled={settingsActions.headsetEnabled}
               headsetAutoReconnect={settingsActions.headsetAutoReconnect}
+              preferredDeviceId={settingsActions.preferredDeviceId}
+              grantedDevices={settingsActions.grantedDevices}
               onHeadsetEnabledChange={settingsActions.onHeadsetEnabledChange}
               onHeadsetAutoReconnectChange={settingsActions.onHeadsetAutoReconnectChange}
               onConnectHeadset={settingsActions.onConnectHeadset}

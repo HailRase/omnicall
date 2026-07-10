@@ -131,6 +131,32 @@ describe("Dialpad", () => {
     expect(onCall).toHaveBeenCalledTimes(1);
   });
 
+  it("enables call button when empty but history recall is available", () => {
+    renderDialpad({
+      callDisabledReason: null,
+      numberValue: "",
+      canRecallLastNumber: true,
+    });
+    expect(screen.getByTestId("dialpad-call")).toBeEnabled();
+  });
+
+  it("walks history with arrow keys", () => {
+    const onHistoryNewer = vi.fn();
+    const onHistoryOlder = vi.fn();
+    renderDialpad({
+      numberValue: "",
+      canRecallLastNumber: true,
+      onHistoryNewer,
+      onHistoryOlder,
+    });
+
+    fireEvent.keyDown(screen.getByTestId("dialpad-panel"), { key: "ArrowDown" });
+    fireEvent.keyDown(screen.getByTestId("dialpad-panel"), { key: "ArrowUp" });
+
+    expect(onHistoryNewer).toHaveBeenCalledTimes(1);
+    expect(onHistoryOlder).toHaveBeenCalledTimes(1);
+  });
+
   it("hides keypad when established call exists and input is empty", () => {
     renderDialpad({ hasEstablishedCall: true, numberValue: "" });
     expect(screen.queryByTestId("dialpad-key-1")).not.toBeInTheDocument();
