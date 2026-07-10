@@ -93,4 +93,25 @@ describe("HeadsetSyncQueue mute locks", () => {
     expect(queue.getBusyState().isBusy).toBe(false);
     expect(onClear).toHaveBeenCalled();
   });
+
+  it("echo swallows matching mute bit but allows opposite user override for latch", () => {
+    const queue = new HeadsetSyncQueue();
+    expect(queue.beginMuteSessionSync("c1", true)).toBe(true);
+    queue.clearMuteSyncIfMatched("c1", true);
+
+    expect(queue.shouldIgnoreHardwareMuteEvent(true, true, "latch")).toBe(true);
+    expect(queue.shouldIgnoreHardwareMuteEvent(false, true, "latch")).toBe(false);
+
+    expect(queue.beginMuteSessionSync("c1", false)).toBe(true);
+    expect(queue.shouldIgnoreHardwareMuteEvent(false, true, "latch")).toBe(true);
+  });
+
+  it("pulse echo swallows opposite unmute bounce", () => {
+    const queue = new HeadsetSyncQueue();
+    expect(queue.beginMuteSessionSync("c1", true)).toBe(true);
+    queue.clearMuteSyncIfMatched("c1", true);
+
+    expect(queue.shouldIgnoreHardwareMuteEvent(false, true, "pulse")).toBe(true);
+    expect(queue.shouldIgnoreHardwareMuteEvent(true, true, "pulse")).toBe(true);
+  });
 });

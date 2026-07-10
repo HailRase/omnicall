@@ -70,7 +70,7 @@ export class WebHidHeadsetAdapter implements HeadsetGateway {
   private nativeDevice: HIDDevice | null = null;
   private readonly listeners = new Set<(event: HeadsetHardwareEvent) => void>();
   private abortController: AbortController | null = null;
-  private edgeDetector = createHidEdgeDetector(false);
+  private edgeDetector = createHidEdgeDetector(false, "pulse");
   private firstReportSeen = false;
   private autoReconnectEnabled = true;
   private preferredDeviceId: string | null = null;
@@ -215,7 +215,6 @@ export class WebHidHeadsetAdapter implements HeadsetGateway {
         this.edgeDetector.syncState({ hookSwitch: false, phoneMute: false });
         return;
       case "setHoldIndicator":
-        // Match hold LED (offHook false); keep mute bit for selected-held mute toggle.
         this.edgeDetector.syncState({
           hookSwitch: false,
           phoneMute: command.muted === true,
@@ -236,7 +235,7 @@ export class WebHidHeadsetAdapter implements HeadsetGateway {
     try {
       await openHidDevice(device);
       const parser = resolveHidReportParser(device);
-      this.edgeDetector = createHidEdgeDetector(parser.supportsHold);
+      this.edgeDetector = createHidEdgeDetector(parser.supportsHold, parser.muteInputMode);
       this.firstReportSeen = false;
       this.nativeDevice = device;
       this.abortController?.abort();

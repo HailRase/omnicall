@@ -128,7 +128,7 @@ describe("HeadsetSessionOrchestrator", () => {
     orchestrator.stop();
   });
 
-  it("toggles mute on muted:true only (jssip parity)", async () => {
+  it("applies absolute mute from headset including muted:false", async () => {
     const gateway = new MockHeadsetGateway();
     await gateway.connect();
     const onSetMute = vi.fn();
@@ -172,68 +172,61 @@ describe("HeadsetSessionOrchestrator", () => {
     orchestrator.onSnapshotChanged(current);
     await new Promise((resolve) => setTimeout(resolve, 0));
 
-    // muted:false is ignored (jssip toggle-on-true).
+    gateway.emitHardwareEvent({ type: "muteChanged", muted: false });
+    expect(onSetMute).toHaveBeenCalledWith("active-1", false);
+    expect(onSetMute).toHaveBeenCalledTimes(2);
+    orchestrator.stop();
+  });
+
+  it("pulse mode ignores unmute bounce after mute press (Jabra HSC016)", async () => {
+    const gateway = new MockHeadsetGateway();
+    gateway.setMuteInputMode("pulse");
+    await gateway.connect();
+    const onSetMute = vi.fn();
+    let current = snapshot({
+      activeSessionId: "active-1",
+      focusSessionId: "active-1",
+      focusReason: "active",
+      focusedIsMuted: false,
+      establishedCount: 1,
+      establishedSessionIds: ["active-1"],
+      mutedBySessionId: { "active-1": false },
+    });
+
+    const orchestrator = new HeadsetSessionOrchestrator({
+      gateway,
+      eventPublisher: new InMemoryDomainEventBus(),
+      logger: createTestLogger({ featureId: "F-012", boundedContext: "Headset" }),
+      getSnapshot: () => current,
+      callbacks: {
+        onAnswer: vi.fn(),
+        onReject: vi.fn(),
+        onHangup: vi.fn(),
+        onToggleHold: vi.fn(),
+        onSetMute,
+      },
+    });
+
+    orchestrator.start();
+    orchestrator.onDeviceConnected();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+
+    gateway.emitHardwareEvent({ type: "muteChanged", muted: true });
+    expect(onSetMute).toHaveBeenCalledWith("active-1", true);
+
+    current = {
+      ...current,
+      focusedIsMuted: true,
+      activeIsMuted: true,
+      mutedBySessionId: { "active-1": true },
+    };
+    orchestrator.onSnapshotChanged(current);
+
     gateway.emitHardwareEvent({ type: "muteChanged", muted: false });
     expect(onSetMute).toHaveBeenCalledTimes(1);
 
     vi.useFakeTimers();
     try {
-      vi.setSystemTime(Date.now() + 600);
-      gateway.emitHardwareEvent({ type: "muteChanged", muted: true });
-      expect(onSetMute).toHaveBeenCalledWith("active-1", false);
-    } finally {
-      vi.useRealTimers();
-    }
-    orchestrator.stop();
-  });
-
-  it("does not re-arm mute guard on LED setMute so next press works after window", async () => {
-    const gateway = new MockHeadsetGateway();
-    await gateway.connect();
-    const onSetMute = vi.fn();
-    let current = snapshot({
-      activeSessionId: "active-1",
-      focusSessionId: "active-1",
-      focusReason: "active",
-      focusedIsMuted: false,
-      establishedCount: 1,
-      establishedSessionIds: ["active-1"],
-      mutedBySessionId: { "active-1": false },
-    });
-
-    const orchestrator = new HeadsetSessionOrchestrator({
-      gateway,
-      eventPublisher: new InMemoryDomainEventBus(),
-      logger: createTestLogger({ featureId: "F-012", boundedContext: "Headset" }),
-      getSnapshot: () => current,
-      callbacks: {
-        onAnswer: vi.fn(),
-        onReject: vi.fn(),
-        onHangup: vi.fn(),
-        onToggleHold: vi.fn(),
-        onSetMute,
-      },
-    });
-
-    orchestrator.start();
-    orchestrator.onDeviceConnected();
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    gateway.emitHardwareEvent({ type: "muteChanged", muted: true });
-    expect(onSetMute).toHaveBeenCalledWith("active-1", true);
-
-    current = {
-      ...current,
-      focusedIsMuted: true,
-      activeIsMuted: true,
-      mutedBySessionId: { "active-1": true },
-    };
-    orchestrator.onSnapshotChanged(current);
-    await new Promise((resolve) => setTimeout(resolve, 0));
-
-    vi.useFakeTimers();
-    try {
-      // After mute settle, next muted:true toggles unmute.
       vi.setSystemTime(Date.now() + 500);
       gateway.emitHardwareEvent({ type: "muteChanged", muted: true });
       expect(onSetMute).toHaveBeenCalledWith("active-1", false);
@@ -283,8 +276,7 @@ describe("HeadsetSessionOrchestrator", () => {
     gateway.emitHardwareEvent({ type: "muteChanged", muted: true });
     gateway.emitHardwareEvent({ type: "muteChanged", muted: true });
     expect(onSetMute).toHaveBeenCalledTimes(1);
-    expect(orchestrator.getSyncQueue().getBusyState().muteSessionId).toBe("active-1");
-    expect(orchestrator.getSyncQueue().isHardwareMuteLocked()).toBe(true);
+    expect(orchestrator.getSyncQueue().isMuteSyncGuardActive()).toBe(true);
     orchestrator.stop();
   });
 

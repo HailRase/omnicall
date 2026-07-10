@@ -1,4 +1,4 @@
-import type { HeadsetHardwareEvent } from "@domain/index.js";
+import type { HeadsetHardwareEvent, HeadsetMuteInputMode } from "@domain/index.js";
 import type { HeadsetCallSnapshot } from "./buildHeadsetCallSnapshot.js";
 import { hasPendingOutgoingDial } from "./buildHeadsetCallSnapshot.js";
 import { resolveHangupTargetId } from "./resolveHangupTargetId.js";
@@ -20,6 +20,7 @@ type ForwardContext = Readonly<{
   hookGuard: { suppressedUntil: number };
   acceptGuard: { suppressedUntil: number };
   queue: HeadsetSyncQueue;
+  muteInputMode: HeadsetMuteInputMode;
 }>;
 
 function hasActiveConversation(snapshot: HeadsetCallSnapshot): boolean {
@@ -81,10 +82,11 @@ function resumeFocusedHeld(
  * - Inputs: hardware event, call snapshot, incoming id, callbacks, guard context.
  * - Outputs: invokes application callbacks when policy allows.
  *
- * Aligned with jssip-phone `forwardDeviceEventToApp`, plus softphone focus policies:
+ * Softphone focus policies:
  * - hookOff + held focus → resume
  * - hookOn → hangup focused established/outgoing (including Held)
- * - muteChanged → toggle only when event.muted === true (Held included)
+ * - muteChanged pulse → toggle on muted:true only (ignore release bounce)
+ * - muteChanged latch → absolute mute bit when it differs from app
  */
 export function forwardHeadsetHardwareEvent(
   event: HeadsetHardwareEvent,
@@ -118,7 +120,6 @@ export function forwardHeadsetHardwareEvent(
       return;
     }
 
-    // Hold LED uses offHook:false — green press is hookOff → resume (jssip-phone).
     if (resumeFocusedHeld(snapshot, callbacks, context)) {
       return;
     }
@@ -165,12 +166,7 @@ export function forwardHeadsetHardwareEvent(
   }
 
   if (event.type === "muteChanged") {
-    // jssip-phone: only muted:true edges toggle; muted:false is ignored.
-    if (
-      !canToggleMuteFromHeadset(snapshot) ||
-      context.queue.isHardwareMuteLocked() ||
-      event.muted !== true
-    ) {
+    if (!canToggleMuteFromHeadset(snapshot)) {
       return;
     }
 
@@ -179,11 +175,37 @@ export function forwardHeadsetHardwareEvent(
       return;
     }
 
-    const nextMuted = !snapshot.focusedIsMuted;
-    if (!context.queue.beginMuteSessionSync(focusId, nextMuted)) {
+    if (
+      context.queue.shouldIgnoreHardwareMuteEvent(
+        event.muted,
+        snapshot.focusedIsMuted,
+        context.muteInputMode,
+      )
+    ) {
       return;
     }
-    callbacks.onSetMute(focusId, nextMuted);
+
+    // Pulse (Jabra HSC016 0x07/0x03): each press toggles; release is ignored upstream.
+    if (context.muteInputMode === "pulse") {
+      if (event.muted !== true) {
+        return;
+      }
+      const nextMuted = !snapshot.focusedIsMuted;
+      if (!context.queue.beginMuteSessionSync(focusId, nextMuted)) {
+        return;
+      }
+      callbacks.onSetMute(focusId, nextMuted);
+      return;
+    }
+
+    // Latch (Poly BW3320): apply absolute mute bit when it differs from app.
+    if (event.muted === snapshot.focusedIsMuted) {
+      return;
+    }
+    if (!context.queue.beginMuteSessionSync(focusId, event.muted)) {
+      return;
+    }
+    callbacks.onSetMute(focusId, event.muted);
     return;
   }
 

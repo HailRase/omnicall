@@ -16,9 +16,13 @@ export type HidLedState = Readonly<{
   ringing: boolean;
 }>;
 
+export type HidMuteInputMode = "pulse" | "latch";
+
 export type HidReportParser = Readonly<{
   vendor: string;
   supportsHold: boolean;
+  /** pulse = press/release pair; latch = absolute phoneMute bit. */
+  muteInputMode: HidMuteInputMode;
   parseUpdate: (reportId: number, data: DataView) => HidTelephonyUpdate | null;
 }>;
 

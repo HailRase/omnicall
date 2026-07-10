@@ -13,6 +13,7 @@ import {
   ToastTitle,
   ToastViewport,
 } from "./Toast.js";
+import styles from "./Toast.module.css";
 
 afterEach(() => {
   cleanup();
@@ -198,5 +199,20 @@ describe("Toast", () => {
     );
 
     expect(container.querySelector("ol.custom-viewport")).not.toBeNull();
+  });
+
+  it("offsets top placement below shell window controls", () => {
+    const { container } = render(
+      <ToastProvider>
+        <ToastRoot defaultOpen>
+          <ToastTitle>Top toast</ToastTitle>
+        </ToastRoot>
+        <ToastViewport placement="top-right" />
+      </ToastProvider>,
+    );
+
+    const viewport = container.querySelector("ol");
+    expect(viewport).not.toBeNull();
+    expect(viewport).toHaveClass(styles.viewportTopRight ?? "");
   });
 });

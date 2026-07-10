@@ -383,14 +383,18 @@ export class AccountBootstrapFacade {
         toggleHoldCallById: (callId) => this.toggleHoldCallFromHeadset(callId),
         muteCallById: async (callId) => {
           const result = await this.muteCall(createCallId(callId));
-          if (!result.ok) {
+          if (result.ok) {
+            this.headsetIntegration.confirmUiMuteSync(callId, true);
+          } else {
             this.headsetIntegration.abortUiMuteSync(callId);
           }
           return result;
         },
         unmuteCallById: async (callId) => {
           const result = await this.unmuteCall(createCallId(callId));
-          if (!result.ok) {
+          if (result.ok) {
+            this.headsetIntegration.confirmUiMuteSync(callId, false);
+          } else {
             this.headsetIntegration.abortUiMuteSync(callId);
           }
           return result;

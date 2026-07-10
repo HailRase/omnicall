@@ -14,15 +14,19 @@ function snapshot(partial: Partial<HeadsetCallSnapshot>): HeadsetCallSnapshot {
   };
 }
 
-function createContext(): {
+function createContext(
+  muteInputMode: "pulse" | "latch" = "latch",
+): {
   hookGuard: { suppressedUntil: number };
   acceptGuard: { suppressedUntil: number };
   queue: HeadsetSyncQueue;
+  muteInputMode: "pulse" | "latch";
 } {
   return {
     hookGuard: { suppressedUntil: 0 },
     acceptGuard: { suppressedUntil: 0 },
     queue: new HeadsetSyncQueue(),
+    muteInputMode,
   };
 }
 
@@ -172,9 +176,41 @@ describe("forwardHeadsetHardwareEvent (jssip-phone parity)", () => {
     expect(onHangup).toHaveBeenCalledWith("active-1");
   });
 
-  it("toggles mute on muted:true and ignores muted:false", () => {
+  it("applies absolute mute on muted:true and muted:false for latch mode", () => {
     const onSetMute = vi.fn();
-    const context = createContext();
+    const context = createContext("latch");
+    const active = snapshot({
+      activeSessionId: "active-1",
+      focusSessionId: "active-1",
+      focusedIsMuted: false,
+      establishedCount: 1,
+      establishedSessionIds: ["active-1"],
+    });
+
+    forwardHeadsetHardwareEvent(
+      { type: "muteChanged", muted: true },
+      active,
+      undefined,
+      callbacks({ onSetMute }),
+      context,
+    );
+    expect(onSetMute).toHaveBeenCalledWith("active-1", true);
+
+    context.queue.abortMuteSync("active-1");
+    forwardHeadsetHardwareEvent(
+      { type: "muteChanged", muted: false },
+      { ...active, focusedIsMuted: true },
+      undefined,
+      callbacks({ onSetMute }),
+      context,
+    );
+    expect(onSetMute).toHaveBeenCalledWith("active-1", false);
+    expect(onSetMute).toHaveBeenCalledTimes(2);
+  });
+
+  it("pulse mode toggles on muted:true and ignores muted:false", () => {
+    const onSetMute = vi.fn();
+    const context = createContext("pulse");
     const active = snapshot({
       activeSessionId: "active-1",
       focusSessionId: "active-1",
@@ -213,29 +249,9 @@ describe("forwardHeadsetHardwareEvent (jssip-phone parity)", () => {
     expect(onSetMute).toHaveBeenCalledTimes(2);
   });
 
-  it("ignores muted:false while already muted", () => {
+  it("ignores mute while mute sync intent is pending", () => {
     const onSetMute = vi.fn();
-    const context = createContext();
-
-    forwardHeadsetHardwareEvent(
-      { type: "muteChanged", muted: false },
-      snapshot({
-        activeSessionId: "active-1",
-        focusSessionId: "active-1",
-        focusedIsMuted: true,
-        establishedCount: 1,
-        establishedSessionIds: ["active-1"],
-      }),
-      undefined,
-      callbacks({ onSetMute }),
-      context,
-    );
-    expect(onSetMute).not.toHaveBeenCalled();
-  });
-
-  it("ignores mute while mute sync guard is active", () => {
-    const onSetMute = vi.fn();
-    const context = createContext();
+    const context = createContext("latch");
     expect(context.queue.beginMuteSessionSync("active-1", true)).toBe(true);
 
     forwardHeadsetHardwareEvent(

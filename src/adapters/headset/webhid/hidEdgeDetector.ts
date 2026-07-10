@@ -1,4 +1,4 @@
-import type { HidPhoneAction, HidTelephonyUpdate } from "./hidTypes.js";
+import type { HidMuteInputMode, HidPhoneAction, HidTelephonyUpdate } from "./hidTypes.js";
 
 type HidTelephonyState = Readonly<{
   hookSwitch: boolean;
@@ -33,7 +33,15 @@ export type HidEdgeDetector = Readonly<{
   getState: () => HidTelephonyState;
 }>;
 
-export function createHidEdgeDetector(supportsHold = false): HidEdgeDetector {
+/**
+ * - Purpose: convert HID telephony updates into edge actions for the headset gateway.
+ * - Inputs: telephony bit updates; muteInputMode (pulse vs latch).
+ * - Outputs: hook/mute/hold actions; pulse unmute only resets state (no event).
+ */
+export function createHidEdgeDetector(
+  supportsHold = false,
+  muteInputMode: HidMuteInputMode = "latch",
+): HidEdgeDetector {
   let state: HidTelephonyState = { ...INITIAL_STATE };
 
   return {
@@ -48,6 +56,10 @@ export function createHidEdgeDetector(supportsHold = false): HidEdgeDetector {
 
       if (update.phoneMute !== undefined && previous.phoneMute !== next.phoneMute) {
         state = next;
+        // Jabra HSC016: 0x07 press / 0x03 release — release must not unmute the app.
+        if (muteInputMode === "pulse" && !next.phoneMute) {
+          return null;
+        }
         return { type: "mute", state: next.phoneMute ? "muted" : "unmuted" };
       }
 
@@ -83,7 +95,6 @@ export function mapHidPhoneActionToHardwareEvent(
     return action.state === "off" ? { type: "hookOff" } : { type: "hookOn" };
   }
   if (action.type === "mute") {
-    // Emit both edges; forward policy toggles only on muted===true (jssip-phone).
     return { type: "muteChanged", muted: action.state === "muted" };
   }
   if (action.type === "hold") {

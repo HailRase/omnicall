@@ -1,3 +1,10 @@
+/**
+ * - Purpose: describe headset control capabilities for adapters and orchestrator.
+ * - Inputs: vendor parser / gateway connection state.
+ * - Outputs: feature flags plus mute input semantics (pulse vs latch).
+ */
+export type HeadsetMuteInputMode = "pulse" | "latch";
+
 export type HeadsetCapabilities = Readonly<{
   supportsAnswer: boolean;
   supportsReject: boolean;
@@ -7,6 +14,8 @@ export type HeadsetCapabilities = Readonly<{
   supportsOutgoingSignal: boolean;
   supportsIncomingSignal: boolean;
   supportsRejectOnHookOn: boolean;
+  /** pulse = press/release (Jabra HSC016); latch = absolute mute bit (Poly BW3320). */
+  muteInputMode: HeadsetMuteInputMode;
 }>;
 
 export function createDefaultHeadsetCapabilities(): HeadsetCapabilities {
@@ -19,5 +28,6 @@ export function createDefaultHeadsetCapabilities(): HeadsetCapabilities {
     supportsOutgoingSignal: false,
     supportsIncomingSignal: false,
     supportsRejectOnHookOn: false,
+    muteInputMode: "pulse",
   };
 }

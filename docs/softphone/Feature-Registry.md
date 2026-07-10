@@ -322,7 +322,9 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - LED sync consumes state projections.
   - Headset session focus follows: incoming → outgoing → operator selection → primary → active → held (`resolveHeadsetSessionFocus`).
   - Hook-on hangup targets the focused established/outgoing session (including Held).
-  - Mute from headset applies to the focused established session (including Held); hold LED clears mute LED (telephony mute preserved in UI); resume restores session mute to headset.
+  - Mute from headset: pulse devices (Jabra HSC016) toggle on muted:true only (release bounce collapsed); latch devices (Poly BW3320) apply absolute mute bit; hold LED clears mute LED (telephony mute preserved in UI); resume restores session mute to headset.
+  - Headset mute echo: pulse swallows all mute events in echo window; latch swallows only redundant matching bits (opposite = user override).
+  - Headset-initiated mute/unmute confirms sync intent immediately after Use Case success (same as UI path) so rapid presses are not blocked.
   - Headset mute is rejected during incoming waiting and outgoing dial (restore presence LED even if sync-locked); UI mute sync clears against the muted session id, not only headset focus.
   - Outgoing dial auto-captures headset focus over operator selection.
   - After answering an incoming call, UI/headset selection stays on the answered session; reject/miss restores prior selection.

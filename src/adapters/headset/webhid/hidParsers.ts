@@ -25,6 +25,7 @@ function parseStandardTelephonyByte(byte0: number): HidTelephonyUpdate {
 const jabraHsc016Parser: HidReportParser = {
   vendor: "jabra",
   supportsHold: false,
+  muteInputMode: "pulse",
   parseUpdate(reportId: number, data: DataView): HidTelephonyUpdate | null {
     if (data.byteLength === 0) {
       return null;
@@ -61,12 +62,18 @@ const jabraHsc016Parser: HidReportParser = {
 const jabraParser: HidReportParser = {
   vendor: "jabra",
   supportsHold: false,
+  // Many Jabra telephony reports pulse mute (press/release); treat as pulse.
+  muteInputMode: "pulse",
   parseUpdate(reportId: number, data: DataView): HidTelephonyUpdate | null {
     if (reportId === 1 || data.byteLength === 0) {
       return null;
     }
     if (reportId === 2) {
       const byte0 = data.getUint8(0);
+      // Same press/release pair as HSC016 — do not treat as hook transitions.
+      if (byte0 === 0x07 || byte0 === 0x03) {
+        return { phoneMute: (byte0 & 0x04) !== 0 };
+      }
       return {
         hookSwitch: (byte0 & 0x01) !== 0,
         phoneMute: (byte0 & 0x04) !== 0,
@@ -86,6 +93,7 @@ const jabraParser: HidReportParser = {
 const plantronicsBw3320Parser: HidReportParser = {
   vendor: "plantronics",
   supportsHold: false,
+  muteInputMode: "latch",
   parseUpdate(reportId: number, data: DataView): HidTelephonyUpdate | null {
     if (reportId !== PLANTRONICS_BW3320_TELEPHONY_REPORT_ID || data.byteLength === 0) {
       return null;
@@ -101,6 +109,7 @@ const plantronicsBw3320Parser: HidReportParser = {
 const plantronicsParser: HidReportParser = {
   vendor: "plantronics",
   supportsHold: false,
+  muteInputMode: "latch",
   parseUpdate(reportId: number, data: DataView): HidTelephonyUpdate | null {
     if (reportId !== HID_INPUT_REPORT_ID_DEFAULT || data.byteLength === 0) {
       return null;
@@ -112,6 +121,7 @@ const plantronicsParser: HidReportParser = {
 const genericTelephonyParser: HidReportParser = {
   vendor: "generic",
   supportsHold: false,
+  muteInputMode: "pulse",
   parseUpdate(reportId: number, data: DataView): HidTelephonyUpdate | null {
     if (reportId !== HID_INPUT_REPORT_ID_DEFAULT || data.byteLength === 0) {
       return null;
@@ -148,5 +158,6 @@ export function resolveHeadsetCapabilitiesFromParser(
     supportsOutgoingSignal: true,
     supportsIncomingSignal: true,
     supportsRejectOnHookOn: true,
+    muteInputMode: parser.muteInputMode,
   };
 }

@@ -106,6 +106,33 @@ export class HeadsetSyncQueue {
     return this.hasPendingSyncIntent() || this.isMuteSyncGuardActive();
   }
 
+  /**
+   * - Purpose: decide whether a headset muteChanged is firmware echo vs user action.
+   * - Inputs: reported mute bit, current app mute, mute input mode (pulse|latch).
+   * - Outputs: true = swallow event; false = forward to mute policy.
+   *
+   * Pending mute/hold intent always blocks.
+   * Pulse (Jabra HSC016): echo window swallows all mute events (release bounce).
+   * Latch (Poly): echo swallows only redundant matching bits; opposite = user override.
+   */
+  shouldIgnoreHardwareMuteEvent(
+    eventMuted: boolean,
+    currentMuted: boolean,
+    muteInputMode: "pulse" | "latch" = "pulse",
+  ): boolean {
+    this.pruneExpiredIntents();
+    if (this.hasPendingSyncIntent()) {
+      return true;
+    }
+    if (!this.isMuteSyncGuardActive()) {
+      return false;
+    }
+    if (muteInputMode === "pulse") {
+      return true;
+    }
+    return eventMuted === currentMuted;
+  }
+
   isHardwareHoldLocked(): boolean {
     this.pruneExpiredIntents();
     return this.hasPendingSyncIntent() || this.isHoldSyncGuardActive();
@@ -183,12 +210,10 @@ export class HeadsetSyncQueue {
       this.holdSessionId = null;
       this.holdIntent = null;
     }
-    // Intent timeout is independent of firmware echo — echo must not drop in-flight mute.
     if (this.muteIntent !== null && now >= this.muteIntentUntil) {
       this.muteSessionId = null;
       this.muteIntent = null;
       this.muteIntentUntil = 0;
-      // Drop stale UI busy so loader cannot stick after unmatched intent timeout.
       this.muteUiSessionId = null;
       this.muteUiBusyUntil = 0;
       this.clearUiBusyClearTimer();
@@ -199,7 +224,6 @@ export class HeadsetSyncQueue {
   private armUiBusyClearTimer(): void {
     this.clearUiBusyClearTimer();
     const now = Date.now();
-    // Cover both short UI settle and unmatched intent timeout so loader cannot stick forever.
     let deadline = this.muteUiBusyUntil;
     if (this.muteIntent !== null) {
       deadline = Math.max(deadline, this.muteIntentUntil);

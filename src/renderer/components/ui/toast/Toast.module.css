@@ -13,12 +13,12 @@
 }
 
 .viewport-top-right {
-  top: 0;
+  top: var(--incoming-call-banner-top);
   right: 0;
 }
 
 .viewport-top-left {
-  top: 0;
+  top: var(--incoming-call-banner-top);
   left: 0;
 }
 

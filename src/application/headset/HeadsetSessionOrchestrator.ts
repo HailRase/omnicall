@@ -256,7 +256,14 @@ export class HeadsetSessionOrchestrator {
       return;
     }
 
-    if (event.type === "muteChanged" && this.queue.isHardwareMuteLocked()) {
+    if (
+      event.type === "muteChanged" &&
+      this.queue.shouldIgnoreHardwareMuteEvent(
+        event.muted,
+        snapshot.focusedIsMuted,
+        this.deps.gateway.getCapabilities().muteInputMode,
+      )
+    ) {
       return;
     }
 
@@ -280,6 +287,7 @@ export class HeadsetSessionOrchestrator {
       hookGuard: this.hookGuard,
       acceptGuard: this.acceptGuard,
       queue: this.queue,
+      muteInputMode: this.deps.gateway.getCapabilities().muteInputMode,
     });
     this.deps.onSyncBusyChanged?.();
   }
