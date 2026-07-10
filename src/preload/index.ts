@@ -184,6 +184,20 @@ const softphoneApi: SoftphonePreloadApi = {
     }
     return parsed;
   },
+  setHeadsetPreferredDeviceId: async (deviceId) => {
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.headsetSetPreferredDeviceId,
+      { deviceId },
+    );
+    if (
+      typeof response !== "object" ||
+      response === null ||
+      typeof (response as Record<string, unknown>)["ok"] !== "boolean"
+    ) {
+      return { ok: false };
+    }
+    return { ok: (response as Record<string, unknown>)["ok"] === true };
+  },
 };
 
 contextBridge.exposeInMainWorld("softphone", softphoneApi);

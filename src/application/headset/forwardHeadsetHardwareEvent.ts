@@ -1,8 +1,13 @@
-import type { HeadsetHardwareEvent, HeadsetMuteInputMode } from "@domain/index.js";
+import type { HeadsetHardwareEvent } from "@domain/index.js";
 import type { HeadsetCallSnapshot } from "./buildHeadsetCallSnapshot.js";
 import { hasPendingOutgoingDial } from "./buildHeadsetCallSnapshot.js";
+import type { HeadsetOrchestratorPolicyContext } from "./policies/HeadsetOrchestratorPolicyContext.js";
+import { resolveHoldActionFromHookOff } from "./policies/headsetHoldPolicy.js";
+import {
+  resolveNextMutedForHardwareEvent,
+  shouldApplyHardwareMuteChange,
+} from "./policies/headsetMutePolicy.js";
 import { resolveHangupTargetId } from "./resolveHangupTargetId.js";
-import type { HeadsetSyncQueue } from "./HeadsetSyncQueue.js";
 
 export const HOOK_ON_SUPPRESS_MS = 600;
 export const WAITING_CALL_ANSWER_GUARD_MS = 1500;
@@ -14,13 +19,6 @@ export type HeadsetHardwareCallbacks = Readonly<{
   onToggleHold: (callId: string) => void;
   onSetMute: (callId: string, muted: boolean) => void;
   isDnd?: () => boolean;
-}>;
-
-type ForwardContext = Readonly<{
-  hookGuard: { suppressedUntil: number };
-  acceptGuard: { suppressedUntil: number };
-  queue: HeadsetSyncQueue;
-  muteInputMode: HeadsetMuteInputMode;
 }>;
 
 function hasActiveConversation(snapshot: HeadsetCallSnapshot): boolean {
@@ -59,12 +57,17 @@ export function canToggleMuteFromHeadset(snapshot: HeadsetCallSnapshot): boolean
 function resumeFocusedHeld(
   snapshot: HeadsetCallSnapshot,
   callbacks: HeadsetHardwareCallbacks,
-  context: ForwardContext,
+  context: HeadsetOrchestratorPolicyContext,
 ): boolean {
-  if (snapshot.focusSessionId === undefined || !snapshot.focusedIsOnHold) {
+  if (snapshot.focusSessionId === undefined) {
     return false;
   }
-  if (context.queue.isHardwareHoldLocked()) {
+  const action = resolveHoldActionFromHookOff({
+    holdSemantics: context.holdSemantics,
+    focusedIsOnHold: snapshot.focusedIsOnHold,
+    hardwareHoldLocked: context.queue.isHardwareHoldLocked(),
+  });
+  if (action !== "resume") {
     return false;
   }
 
@@ -79,21 +82,21 @@ function resumeFocusedHeld(
 
 /**
  * - Purpose: map normalized headset hardware events to telephony callbacks.
- * - Inputs: hardware event, call snapshot, incoming id, callbacks, guard context.
+ * - Inputs: hardware event, call snapshot, incoming id, callbacks, policy context.
  * - Outputs: invokes application callbacks when policy allows.
  *
  * Softphone focus policies:
- * - hookOff + held focus → resume
+ * - hookOff + held focus → resume (holdSemantics default)
  * - hookOn → hangup focused established/outgoing (including Held)
  * - muteChanged pulse → toggle on muted:true only (ignore release bounce)
- * - muteChanged latch → absolute mute bit when it differs from app
+ * - muteChanged latch + absolute → authoritative mute bit when it differs
  */
 export function forwardHeadsetHardwareEvent(
   event: HeadsetHardwareEvent,
   snapshot: HeadsetCallSnapshot,
   incomingSessionId: string | undefined,
   callbacks: HeadsetHardwareCallbacks,
-  context: ForwardContext,
+  context: HeadsetOrchestratorPolicyContext,
 ): void {
   const hasIncoming = snapshot.incomingWaitingCount > 0;
 
@@ -153,6 +156,9 @@ export function forwardHeadsetHardwareEvent(
       if (hasActiveConversation(snapshot)) {
         return;
       }
+      if (!context.capabilities.supportsRejectOnHookOn) {
+        return;
+      }
 
       callbacks.onReject(incomingSessionId);
       return;
@@ -166,7 +172,7 @@ export function forwardHeadsetHardwareEvent(
   }
 
   if (event.type === "muteChanged") {
-    if (!canToggleMuteFromHeadset(snapshot)) {
+    if (!context.capabilities.supportsMute || !canToggleMuteFromHeadset(snapshot)) {
       return;
     }
 
@@ -198,18 +204,32 @@ export function forwardHeadsetHardwareEvent(
       return;
     }
 
-    // Latch (Poly BW3320): apply absolute mute bit when it differs from app.
-    if (event.muted === snapshot.focusedIsMuted) {
+    // Latch: absolute (default) or toggle semantics from policy traits.
+    if (
+      !shouldApplyHardwareMuteChange(
+        context.muteSemantics,
+        event.muted,
+        snapshot.focusedIsMuted,
+      )
+    ) {
       return;
     }
-    if (!context.queue.beginMuteSessionSync(focusId, event.muted)) {
+    const nextMuted = resolveNextMutedForHardwareEvent(
+      context.muteSemantics,
+      event.muted,
+      snapshot.focusedIsMuted,
+    );
+    if (!context.queue.beginMuteSessionSync(focusId, nextMuted)) {
       return;
     }
-    callbacks.onSetMute(focusId, event.muted);
+    callbacks.onSetMute(focusId, nextMuted);
     return;
   }
 
   if (event.type === "holdPressed" && snapshot.focusSessionId !== undefined) {
+    if (!context.capabilities.supportsHold) {
+      return;
+    }
     if (
       snapshot.incomingWaitingCount > 0 ||
       isFocusOnOutgoing(snapshot) ||

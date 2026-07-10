@@ -173,7 +173,7 @@ describe("buildHeadsetCallSnapshot", () => {
           },
           {
             callId: "out-1",
-            role: "secondary",
+            role: "consultation",
             state: "Connecting",
             muted: false,
             displayLabel: null,

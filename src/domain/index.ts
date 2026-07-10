@@ -594,11 +594,16 @@ export type { HeadsetConnectionState } from "./headset/HeadsetConnectionState.js
 export type { HeadsetDeviceId } from "./headset/HeadsetDeviceId.js";
 export { createHeadsetDeviceId } from "./headset/HeadsetDeviceId.js";
 export type { HeadsetDevice } from "./headset/HeadsetDevice.js";
-export type { HeadsetCapabilities, HeadsetMuteInputMode } from "./headset/HeadsetCapabilities.js";
+export type {
+  HeadsetCapabilities,
+  HeadsetHoldSemantics,
+  HeadsetMuteInputMode,
+  HeadsetMuteSemantics,
+} from "./headset/HeadsetCapabilities.js";
 export { createDefaultHeadsetCapabilities } from "./headset/HeadsetCapabilities.js";
 export type { HeadsetCommand, HeadsetCommandType } from "./headset/HeadsetCommand.js";
 export type { HeadsetHardwareEvent } from "./headset/HeadsetHardwareEvent.js";
-export type { HeadsetFaultReason } from "./headset/events/headsetEvents.js";
+export type { HeadsetFaultReason, HeadsetConnectedCapabilities } from "./headset/events/headsetEvents.js";
 export {
   createHeadsetAnswerPressed,
   createHeadsetConnected,

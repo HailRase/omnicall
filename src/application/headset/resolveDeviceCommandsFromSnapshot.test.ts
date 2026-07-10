@@ -8,7 +8,7 @@ import {
   resolveInitialConnectCommands,
 } from "./resolveDeviceCommandsFromSnapshot.js";
 
-function snapshot(partial: Partial<HeadsetCallSnapshot>): HeadsetCallSnapshot {
+function snapshot(partial: Partial<HeadsetCallSnapshot> = {}): HeadsetCallSnapshot {
   return {
     ...initialHeadsetCallSnapshot(),
     ...partial,

@@ -541,6 +541,17 @@ const ruMessages = {
   "settings.headset.device.add": "Добавить устройство…",
   "settings.headset.connect": "Подключить",
   "settings.headset.disconnect": "Отключить",
+  "settings.headset.capabilities.label": (params: Readonly<{ summary: string }>) =>
+    `Кнопки: ${params.summary}`,
+  "settings.headset.capabilities.separator": ", ",
+  "settings.headset.capabilities.answer": "ответ",
+  "settings.headset.capabilities.reject": "отклонение",
+  "settings.headset.capabilities.hangup": "сброс",
+  "settings.headset.capabilities.mute": (params: Readonly<{ mode: string }>) =>
+    `mute (${params.mode})`,
+  "settings.headset.capabilities.muteMode.pulse": "pulse",
+  "settings.headset.capabilities.muteMode.latch": "latch",
+  "settings.headset.capabilities.hold": "hold",
   "notification.headset.fault.connect_failed":
     "Не удалось подключить гарнитуру. Откройте Настройки → Гарнитура и нажмите «Подключить», проверьте USB-кабель.",
   "notification.headset.fault.unsupported":
@@ -1322,6 +1333,15 @@ const enMessages: MessageShape = {
   "settings.headset.device.add": "Add device…",
   "settings.headset.connect": "Connect",
   "settings.headset.disconnect": "Disconnect",
+  "settings.headset.capabilities.label": (params) => `Controls: ${params.summary}`,
+  "settings.headset.capabilities.separator": ", ",
+  "settings.headset.capabilities.answer": "answer",
+  "settings.headset.capabilities.reject": "reject",
+  "settings.headset.capabilities.hangup": "hang up",
+  "settings.headset.capabilities.mute": (params) => `mute (${params.mode})`,
+  "settings.headset.capabilities.muteMode.pulse": "pulse",
+  "settings.headset.capabilities.muteMode.latch": "latch",
+  "settings.headset.capabilities.hold": "hold",
   "notification.headset.fault.connect_failed":
     "Could not connect the headset. Open Settings → Headset and click Connect, then check the USB cable.",
   "notification.headset.fault.unsupported":
@@ -2074,6 +2094,15 @@ const frMessages: MessageShape = {
   "settings.headset.device.add": "Ajouter un appareil…",
   "settings.headset.connect": "Connecter",
   "settings.headset.disconnect": "Deconnecter",
+  "settings.headset.capabilities.label": (params) => `Commandes : ${params.summary}`,
+  "settings.headset.capabilities.separator": ", ",
+  "settings.headset.capabilities.answer": "repondre",
+  "settings.headset.capabilities.reject": "rejeter",
+  "settings.headset.capabilities.hangup": "raccrocher",
+  "settings.headset.capabilities.mute": (params) => `muet (${params.mode})`,
+  "settings.headset.capabilities.muteMode.pulse": "pulse",
+  "settings.headset.capabilities.muteMode.latch": "latch",
+  "settings.headset.capabilities.hold": "attente",
   "notification.headset.fault.connect_failed":
     "Impossible de connecter le micro-casque. Ouvrez Parametres → Micro-casque, cliquez Connecter et verifiez le cable USB.",
   "notification.headset.fault.unsupported":
@@ -2829,6 +2858,15 @@ const deMessages: MessageShape = {
   "settings.headset.device.add": "Gerat hinzufugen…",
   "settings.headset.connect": "Verbinden",
   "settings.headset.disconnect": "Trennen",
+  "settings.headset.capabilities.label": (params) => `Tasten: ${params.summary}`,
+  "settings.headset.capabilities.separator": ", ",
+  "settings.headset.capabilities.answer": "annehmen",
+  "settings.headset.capabilities.reject": "ablehnen",
+  "settings.headset.capabilities.hangup": "auflegen",
+  "settings.headset.capabilities.mute": (params) => `stumm (${params.mode})`,
+  "settings.headset.capabilities.muteMode.pulse": "pulse",
+  "settings.headset.capabilities.muteMode.latch": "latch",
+  "settings.headset.capabilities.hold": "halten",
   "notification.headset.fault.connect_failed":
     "Headset konnte nicht verbunden werden. Offnen Sie Einstellungen → Headset, klicken Sie Verbinden und pruefen Sie das USB-Kabel.",
   "notification.headset.fault.unsupported":

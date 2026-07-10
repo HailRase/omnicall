@@ -1,4 +1,7 @@
-import type { HeadsetConnectionProjection } from "@application/projections/headset/headsetConnectionProjection.js";
+import type {
+  HeadsetCapabilitiesInfo,
+  HeadsetConnectionProjection,
+} from "@application/projections/headset/headsetConnectionProjection.js";
 import type { Translator } from "../../../i18n/index.js";
 
 export type HeadsetGrantedDeviceOption = Readonly<{
@@ -35,6 +38,45 @@ export function resolveHeadsetConnectionStateLabel(
     default:
       return t("settings.headset.status.disconnected");
   }
+}
+
+/**
+ * - Purpose: build localized capability summary for connected headset.
+ * - Inputs: capabilities info and translator.
+ * - Outputs: comma-separated feature list or null when empty.
+ */
+export function resolveHeadsetCapabilitiesSummary(
+  capabilities: HeadsetCapabilitiesInfo,
+  t: Translator,
+): string | null {
+  const parts: string[] = [];
+  if (capabilities.supportsAnswer) {
+    parts.push(t("settings.headset.capabilities.answer"));
+  }
+  if (capabilities.supportsReject) {
+    parts.push(t("settings.headset.capabilities.reject"));
+  }
+  if (capabilities.supportsHangup) {
+    parts.push(t("settings.headset.capabilities.hangup"));
+  }
+  if (capabilities.supportsMute) {
+    parts.push(
+      t("settings.headset.capabilities.mute", {
+        mode: t(
+          capabilities.muteInputMode === "pulse"
+            ? "settings.headset.capabilities.muteMode.pulse"
+            : "settings.headset.capabilities.muteMode.latch",
+        ),
+      }),
+    );
+  }
+  if (capabilities.supportsHold) {
+    parts.push(t("settings.headset.capabilities.hold"));
+  }
+  if (parts.length === 0) {
+    return null;
+  }
+  return parts.join(t("settings.headset.capabilities.separator"));
 }
 
 /**

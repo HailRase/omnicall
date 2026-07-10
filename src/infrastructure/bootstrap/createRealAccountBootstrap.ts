@@ -7,11 +7,11 @@ import {
   JsSipTelephonyAdapter,
   SettingsRepositoryCodecPreferencesAdapter,
 } from "@adapters/index.js";
-import { WebHidHeadsetAdapter } from "@adapters/headset/webhid/WebHidHeadsetAdapter.js";
 import { createConsoleLogger } from "@infrastructure/logging/index.js";
 import type { Logger } from "@ports/index.js";
 import type { LogContext } from "@ports/index.js";
 import type { CreateAccountBootstrapOptions } from "./createMockAccountBootstrap.js";
+import { createHeadsetGateway } from "./createHeadsetGateway.js";
 import { createRealBootstrapSettingsRepository } from "./createRealBootstrapSettingsRepository.js";
 import { createRealBootstrapSavedAccountProfileRepository } from "./createRealBootstrapSavedAccountProfileRepository.js";
 import { createRealBootstrapContactRepository } from "./createRealBootstrapContactRepository.js";
@@ -132,7 +132,7 @@ export function createRealAccountBootstrap(
     }),
   );
   const hostIntegrationGateway = new MockHostIntegrationGateway();
-  const headsetGateway = new WebHidHeadsetAdapter();
+  const headsetGateway = createHeadsetGateway("webhid");
 
   const facade = new AccountBootstrapFacade({
     telephonyGateway,

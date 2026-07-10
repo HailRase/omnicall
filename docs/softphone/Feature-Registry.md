@@ -312,7 +312,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-071`, `LF-072`, `LF-073`, `LF-074`, `LF-075`
 - Context: Headset
 - Priority: high
-- Status: **implemented** (P10 WU1–WU4 — Web HID v1, orchestrator, settings UI, ADR-0007)
+- Status: **implemented** (P10 WU1–WU4 — Web HID v1, orchestrator, settings UI, ADR-0007; EXT-1/2/3 vendor profile registry — no user-visible change)
 - Owner: TBD
 - Inputs: hardware answer, hangup, hold, mute events
 - Outputs: application commands and headset state events
@@ -335,15 +335,19 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Preferred headset id (`headsetPreferredDeviceId`, settings schema v5) is persisted on successful connect; auto-reconnect and USB plug prefer that id among granted devices, else first granted.
   - Settings headset panel is status-first: connection status, granted-device Select, Connect/Disconnect, then short Enable / Auto-reconnect toggles.
 - Test Coverage:
-  - Unit: `buildHeadsetCallSnapshot.test.ts`, `resolveHeadsetSessionFocus.test.ts`, `resolveDeviceCommandsFromSnapshot.test.ts`, `forwardHeadsetHardwareEvent.test.ts`, `HeadsetSessionOrchestrator.test.ts`, `pickGrantedHidDevice.test.ts`, `SettingsHeadsetPanel.test.tsx`, `migrateUserSettings.test.ts` (v5)
+  - Unit: `buildHeadsetCallSnapshot.test.ts`, `resolveHeadsetSessionFocus.test.ts`, `resolveDeviceCommandsFromSnapshot.test.ts`, `forwardHeadsetHardwareEvent.test.ts`, `headsetPolicies.test.ts`, `HeadsetSessionOrchestrator.test.ts`, `pickGrantedHidDevice.test.ts`, `resolveHeadsetVendorProfile.test.ts`, `vendorProfileParity.test.ts`, `createHeadsetGateway.test.ts`, `SettingsHeadsetPanel.test.tsx`, `migrateUserSettings.test.ts` (v5)
   - Integration: `MockHeadsetGateway.ts`, `AccountBootstrapFacade` headset wiring (authorize → preferred auto-reconnect)
   - E2E: deferred until device harness exists
 - Evidence:
   - Domain/ports: `src/domain/headset/`, `src/ports/headset/HeadsetGateway.ts`, `UserSettings.headsetPreferredDeviceId`
-  - Application: `src/application/headset/` (incl. `session/resolveHeadsetSessionFocus.ts`), `src/application/services/headset/HeadsetIntegrationService.ts`
-  - Adapters: `src/adapters/headset/webhid/`, `src/adapters/mock/MockHeadsetGateway.ts`
+  - Application: `src/application/headset/` (incl. `session/resolveHeadsetSessionFocus.ts`, `policies/headsetMutePolicy.ts`, `policies/headsetHoldPolicy.ts`), `src/application/services/headset/HeadsetIntegrationService.ts`
+  - Contract: `docs/softphone/HEADSET-SYNC-CONTRACT.md`
+  - Adapters: `src/adapters/headset/webhid/` (incl. `profiles/`, `resolveHeadsetVendorProfile`), `src/adapters/headset/sdk/SdkHeadsetGatewayStub.ts`, `src/adapters/mock/MockHeadsetGateway.ts`
+  - Infrastructure: `src/infrastructure/bootstrap/createHeadsetGateway.ts`
   - UI: `SettingsHeadsetPanel.tsx`, `useCallFeatureShell.ts` selection → `setHeadsetSelectedCallId`, `headsetSyncBusyProjection.ts`, `applyHeadsetSyncBusyToActiveCallControls.ts`
   - ADR: `docs/softphone/adr/ADR-0007-headset-web-hid.md`
+  - Extensibility: EXT-1–11 **done** (vendor profiles, gateway factory, policies, SyncContract, capabilities UI, HID picker preferred id) — `handoffs/P10-Headset-Extensibility-Handoff.md`
+  - Acceptance: connected headset shows capability summary in Settings (answer/reject/hangup/mute mode; hold only when supported); Electron `select-hid-device` prefers remembered softphone device id when present in the HID list
 
 ## F-013: Call History
 

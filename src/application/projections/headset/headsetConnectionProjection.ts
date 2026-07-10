@@ -1,5 +1,20 @@
-import type { DomainEvent, HeadsetConnectionState, HeadsetFaultReason } from "@domain/index.js";
+import type { DomainEvent, HeadsetConnectionState, HeadsetFaultReason, HeadsetMuteInputMode } from "@domain/index.js";
 import { isSessionResetEvent } from "../platform/sessionResetEvents.js";
+
+/**
+ * - Purpose: UI-facing headset capability flags from the connected gateway.
+ * - Inputs: subset of HeadsetCapabilities after connect.
+ * - Outputs: projection field for Settings headset panel.
+ */
+export type HeadsetCapabilitiesInfo = Readonly<{
+  supportsAnswer: boolean;
+  supportsReject: boolean;
+  supportsHangup: boolean;
+  supportsHold: boolean;
+  supportsMute: boolean;
+  supportsRejectOnHookOn: boolean;
+  muteInputMode: HeadsetMuteInputMode;
+}>;
 
 export type HeadsetConnectionProjection = Readonly<{
   isSupported: boolean;
@@ -10,6 +25,7 @@ export type HeadsetConnectionProjection = Readonly<{
   autoReconnect: boolean;
   lastFaultReason: HeadsetFaultReason | null;
   lastFaultAt: string | null;
+  capabilities: HeadsetCapabilitiesInfo | null;
 }>;
 
 export function initialHeadsetConnectionProjection(): HeadsetConnectionProjection {
@@ -22,6 +38,7 @@ export function initialHeadsetConnectionProjection(): HeadsetConnectionProjectio
     autoReconnect: true,
     lastFaultReason: null,
     lastFaultAt: null,
+    capabilities: null,
   };
 }
 
@@ -47,6 +64,7 @@ export function reduceHeadsetConnectionProjection(
         deviceLabel: asOptionalString(event["productName"]),
         lastFaultReason: null,
         lastFaultAt: null,
+        capabilities: asCapabilitiesInfo(event["capabilities"]),
       };
     case "HeadsetDisconnected":
       return {
@@ -54,6 +72,7 @@ export function reduceHeadsetConnectionProjection(
         connectionState: "disconnected",
         deviceId: null,
         deviceLabel: null,
+        capabilities: null,
       };
     case "HeadsetFaultOccurred": {
       const reason = asFaultReason(event["reason"]);
@@ -63,11 +82,13 @@ export function reduceHeadsetConnectionProjection(
           : reason === "usb_disconnected"
             ? "disconnected"
             : "error";
+      const cleared = reason === "usb_disconnected";
       return {
         ...projection,
         connectionState: nextState,
-        deviceId: reason === "usb_disconnected" ? null : projection.deviceId,
-        deviceLabel: reason === "usb_disconnected" ? null : projection.deviceLabel,
+        deviceId: cleared ? null : projection.deviceId,
+        deviceLabel: cleared ? null : projection.deviceLabel,
+        capabilities: cleared ? null : projection.capabilities,
         lastFaultReason: reason,
         lastFaultAt: typeof event.occurredAt === "string" ? event.occurredAt : null,
       };
@@ -94,6 +115,8 @@ export function applyHeadsetSettingsToProjection(
     deviceLabel,
     lastFaultReason: _projection.lastFaultReason,
     lastFaultAt: _projection.lastFaultAt,
+    capabilities:
+      connectionState === "connected" ? _projection.capabilities : null,
   };
 }
 
@@ -112,4 +135,24 @@ function asFaultReason(value: unknown): HeadsetFaultReason | null {
     return value;
   }
   return null;
+}
+
+function asCapabilitiesInfo(value: unknown): HeadsetCapabilitiesInfo | null {
+  if (value === null || typeof value !== "object") {
+    return null;
+  }
+  const record = value as Record<string, unknown>;
+  const muteInputMode = record["muteInputMode"];
+  if (muteInputMode !== "pulse" && muteInputMode !== "latch") {
+    return null;
+  }
+  return {
+    supportsAnswer: record["supportsAnswer"] === true,
+    supportsReject: record["supportsReject"] === true,
+    supportsHangup: record["supportsHangup"] === true,
+    supportsHold: record["supportsHold"] === true,
+    supportsMute: record["supportsMute"] === true,
+    supportsRejectOnHookOn: record["supportsRejectOnHookOn"] === true,
+    muteInputMode,
+  };
 }

@@ -73,6 +73,15 @@ describe("SettingsHeadsetPanel", () => {
           connectionState: "connected",
           deviceId: "1:2:Mock",
           deviceLabel: "Mock Headset",
+          capabilities: {
+            supportsAnswer: true,
+            supportsReject: true,
+            supportsHangup: true,
+            supportsHold: false,
+            supportsMute: true,
+            supportsRejectOnHookOn: true,
+            muteInputMode: "latch",
+          },
         }}
         headsetEnabled
         headsetAutoReconnect
@@ -87,6 +96,9 @@ describe("SettingsHeadsetPanel", () => {
 
     expect(screen.getByTestId("settings-headset-status")).toHaveTextContent("Подключена");
     expect(screen.getByTestId("settings-headset-device-label")).toHaveTextContent("Mock Headset");
+    expect(screen.getByTestId("settings-headset-capabilities")).toHaveTextContent(
+      "Кнопки: ответ, отклонение, сброс, mute (latch)",
+    );
     expect(screen.getByTestId("settings-headset-device-select")).toBeDisabled();
     expect(screen.getByTestId("settings-headset-disconnect")).toBeEnabled();
     expect(screen.getByTestId("settings-headset-enabled-toggle")).toBeInTheDocument();

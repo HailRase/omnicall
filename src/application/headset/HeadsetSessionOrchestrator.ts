@@ -249,6 +249,7 @@ export class HeadsetSessionOrchestrator {
     }
 
     const snapshot = this.deps.getSnapshot();
+    const capabilities = this.deps.gateway.getCapabilities();
 
     // Incoming / outgoing dial: never toggle app mute; restore presence LED even if sync-locked.
     if (event.type === "muteChanged" && !canToggleMuteFromHeadset(snapshot)) {
@@ -261,9 +262,13 @@ export class HeadsetSessionOrchestrator {
       this.queue.shouldIgnoreHardwareMuteEvent(
         event.muted,
         snapshot.focusedIsMuted,
-        this.deps.gateway.getCapabilities().muteInputMode,
+        capabilities.muteInputMode,
       )
     ) {
+      return;
+    }
+
+    if (event.type === "holdPressed" && !capabilities.supportsHold) {
       return;
     }
 
@@ -284,10 +289,13 @@ export class HeadsetSessionOrchestrator {
     const correlationId = createCorrelationId();
     this.publishHardwareDomainEvent(event, incomingId, snapshot, correlationId);
     forwardHeadsetHardwareEvent(event, snapshot, incomingId, this.deps.callbacks, {
+      capabilities,
+      muteSemantics: capabilities.muteSemantics,
+      holdSemantics: capabilities.holdSemantics,
+      muteInputMode: capabilities.muteInputMode,
       hookGuard: this.hookGuard,
       acceptGuard: this.acceptGuard,
       queue: this.queue,
-      muteInputMode: this.deps.gateway.getCapabilities().muteInputMode,
     });
     this.deps.onSyncBusyChanged?.();
   }

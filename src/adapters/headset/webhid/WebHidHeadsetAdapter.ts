@@ -15,6 +15,7 @@ import { createPlatformError } from "@shared/errors/index.js";
 import { err, ok } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
 import type { Result } from "@shared/result/index.js";
+import type { HeadsetVendorProfile } from "../types/HeadsetVendorProfile.js";
 import {
   createHidEdgeDetector,
   mapHidPhoneActionToHardwareEvent,
@@ -23,12 +24,9 @@ import {
   isHidLedOutputBlocked,
   performTelephonyHandshake,
 } from "./hidLedOutput.js";
-import {
-  resolveHeadsetCapabilitiesFromParser,
-  resolveHidReportParser,
-} from "./hidParsers.js";
 import { isWebHidSupported } from "./hidTypes.js";
 import { executeHeadsetCommand } from "./executeHeadsetCommand.js";
+import { resolveHeadsetVendorProfile } from "./resolveHeadsetVendorProfile.js";
 import {
   closeHidDevice,
   getGrantedHidDevices,
@@ -62,12 +60,13 @@ function pickGrantedDevice(
 }
 
 /**
- * - Purpose: Web HID headset gateway for Jabra and Plantronics/Poly devices.
+ * - Purpose: Web HID headset gateway transport (vendor logic via profiles).
  * - Inputs: connect/disconnect, headset commands, HID input reports.
  * - Outputs: normalized hardware events and LED sync results.
  */
 export class WebHidHeadsetAdapter implements HeadsetGateway {
   private nativeDevice: HIDDevice | null = null;
+  private activeProfile: HeadsetVendorProfile | null = null;
   private readonly listeners = new Set<(event: HeadsetHardwareEvent) => void>();
   private abortController: AbortController | null = null;
   private edgeDetector = createHidEdgeDetector(false, "pulse");
@@ -172,10 +171,15 @@ export class WebHidHeadsetAdapter implements HeadsetGateway {
   }
 
   getCapabilities(): HeadsetCapabilities {
-    if (this.nativeDevice === null) {
+    if (this.activeProfile === null) {
       return createDefaultHeadsetCapabilities();
     }
-    return resolveHeadsetCapabilitiesFromParser(resolveHidReportParser(this.nativeDevice));
+    const { capabilities, quirks } = this.activeProfile;
+    return {
+      ...capabilities,
+      muteSemantics: quirks?.muteSemantics ?? capabilities.muteSemantics,
+      holdSemantics: quirks?.holdSemantics ?? capabilities.holdSemantics,
+    };
   }
 
   async send(command: HeadsetCommand): Promise<Result<void, PlatformError>> {
@@ -234,15 +238,19 @@ export class WebHidHeadsetAdapter implements HeadsetGateway {
   private async attachDevice(device: HIDDevice): Promise<Result<HeadsetDevice, PlatformError>> {
     try {
       await openHidDevice(device);
-      const parser = resolveHidReportParser(device);
-      this.edgeDetector = createHidEdgeDetector(parser.supportsHold, parser.muteInputMode);
+      const profile = resolveHeadsetVendorProfile(device);
+      this.edgeDetector = createHidEdgeDetector(
+        profile.parser.supportsHold,
+        profile.parser.muteInputMode,
+      );
       this.firstReportSeen = false;
       this.nativeDevice = device;
+      this.activeProfile = profile;
       this.abortController?.abort();
       this.abortController = new AbortController();
       const signal = this.abortController.signal;
       subscribeInputReports(device, (event) => {
-        this.handleInputReport(event, parser.vendor);
+        this.handleInputReport(event);
       }, signal);
       subscribeHidConnectEvents(
         (connected) => {
@@ -294,6 +302,7 @@ export class WebHidHeadsetAdapter implements HeadsetGateway {
       await closeHidDevice(this.nativeDevice);
     }
     this.nativeDevice = null;
+    this.activeProfile = null;
     this.edgeDetector.reset();
     this.firstReportSeen = false;
     if (options.notifyUsbRemoved === true) {
@@ -301,13 +310,13 @@ export class WebHidHeadsetAdapter implements HeadsetGateway {
     }
   }
 
-  private handleInputReport(event: HIDInputReportEvent, vendor: string): void {
+  private handleInputReport(event: HIDInputReportEvent): void {
     const device = this.nativeDevice;
-    if (device === null) {
+    const profile = this.activeProfile;
+    if (device === null || profile === null) {
       return;
     }
-    const parser = resolveHidReportParser(device);
-    const update = parser.parseUpdate(event.reportId, event.data);
+    const update = profile.parser.parseUpdate(event.reportId, event.data);
     if (update === null) {
       return;
     }
@@ -315,8 +324,9 @@ export class WebHidHeadsetAdapter implements HeadsetGateway {
     if (!this.firstReportSeen) {
       this.firstReportSeen = true;
       this.edgeDetector.syncState(update);
-      if (vendor === "jabra" && update.hookSwitch === true) {
-        this.emit({ type: "hookOff" });
+      const synthetic = profile.quirks?.syntheticEventsOnFirstReport?.(update) ?? [];
+      for (const hardwareEvent of synthetic) {
+        this.emit(hardwareEvent);
       }
       return;
     }

@@ -143,6 +143,8 @@ export class MockHeadsetGateway implements HeadsetGateway {
       supportsIncomingSignal: true,
       supportsRejectOnHookOn: true,
       muteInputMode: this.muteInputMode,
+      muteSemantics: "absolute",
+      holdSemantics: "hookOffResumesWhenHoldLed",
     };
   }
 

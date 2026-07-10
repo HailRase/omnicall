@@ -3,6 +3,7 @@ import { createCorrelationId } from "@shared/correlation-id/index.js";
 import {
   createHeadsetConnected,
   createHeadsetDeviceId,
+  createHeadsetDisconnected,
   createHeadsetFaultOccurred,
 } from "@domain/index.js";
 import {
@@ -33,6 +34,43 @@ describe("headsetConnectionProjection faults", () => {
     expect(reconnected.connectionState).toBe("connected");
     expect(reconnected.deviceId).toBe("1:2:test");
     expect(reconnected.deviceLabel).toBe("Test Headset");
+  });
+
+  it("stores capabilities from HeadsetConnected and clears on disconnect", () => {
+    const connected = reduceHeadsetConnectionProjection(
+      initialHeadsetConnectionProjection(),
+      createHeadsetConnected(
+        createCorrelationId(),
+        createHeadsetDeviceId("1:2:test"),
+        "Test Headset",
+        {
+          supportsAnswer: true,
+          supportsReject: true,
+          supportsHangup: true,
+          supportsHold: false,
+          supportsMute: true,
+          supportsRejectOnHookOn: true,
+          muteInputMode: "pulse",
+        },
+      ),
+    );
+
+    expect(connected.capabilities).toEqual({
+      supportsAnswer: true,
+      supportsReject: true,
+      supportsHangup: true,
+      supportsHold: false,
+      supportsMute: true,
+      supportsRejectOnHookOn: true,
+      muteInputMode: "pulse",
+    });
+
+    const disconnected = reduceHeadsetConnectionProjection(
+      connected,
+      createHeadsetDisconnected(createCorrelationId(), createHeadsetDeviceId("1:2:test")),
+    );
+
+    expect(disconnected.capabilities).toBeNull();
   });
 
   it("marks usb disconnect as disconnected with warning fault", () => {

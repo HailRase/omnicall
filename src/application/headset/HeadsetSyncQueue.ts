@@ -21,6 +21,7 @@ const MUTE_UI_BUSY_MIN_MS = 250;
  * - Purpose: exclusive mute/hold locks with separate UI busy vs headset echo windows.
  * - Inputs: begin/clear/abort sync intents, enqueue LED tasks.
  * - Outputs: busy projection for UI; hardware echo lock independent of UI begin.
+ * - Contract: docs/softphone/HEADSET-SYNC-CONTRACT.md (LED reconcile never begin*; timers locked).
  */
 export class HeadsetSyncQueue {
   private chain: Promise<void> = Promise.resolve();

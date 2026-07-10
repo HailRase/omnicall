@@ -1,5 +1,6 @@
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { createDomainEvent } from "../../shared/DomainEvent.js";
+import type { HeadsetMuteInputMode } from "../HeadsetCapabilities.js";
 import type { HeadsetDeviceId } from "../HeadsetDeviceId.js";
 
 export type HeadsetFaultReason =
@@ -8,6 +9,17 @@ export type HeadsetFaultReason =
   | "usb_disconnected"
   | "device_error"
   | "led_blocked";
+
+/** UI/projection snapshot of gateway capabilities at connect time. */
+export type HeadsetConnectedCapabilities = Readonly<{
+  supportsAnswer: boolean;
+  supportsReject: boolean;
+  supportsHangup: boolean;
+  supportsHold: boolean;
+  supportsMute: boolean;
+  supportsRejectOnHookOn: boolean;
+  muteInputMode: HeadsetMuteInputMode;
+}>;
 
 export type HeadsetConnected = ReturnType<typeof createHeadsetConnected>;
 export type HeadsetDisconnected = ReturnType<typeof createHeadsetDisconnected>;
@@ -27,10 +39,12 @@ export function createHeadsetConnected(
   correlationId: CorrelationId,
   deviceId: HeadsetDeviceId,
   productName: string,
+  capabilities?: HeadsetConnectedCapabilities,
 ) {
   return createDomainEvent("HeadsetConnected", correlationId, {
     deviceId,
     productName,
+    ...(capabilities !== undefined ? { capabilities } : {}),
   });
 }
 

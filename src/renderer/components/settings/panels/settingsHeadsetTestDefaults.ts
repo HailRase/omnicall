@@ -9,7 +9,9 @@ export const settingsHeadsetStoryDefaults = {
   grantedDevices: [] as ReadonlyArray<Readonly<{ id: string; productName: string }>>,
   onHeadsetEnabledChange: () => undefined,
   onHeadsetAutoReconnectChange: () => undefined,
-  onConnectHeadset: (_deviceId: string | null) => undefined,
+  onConnectHeadset: (deviceId: string | null): void => {
+    void deviceId;
+  },
   onDisconnectHeadset: () => undefined,
 } as const;
 

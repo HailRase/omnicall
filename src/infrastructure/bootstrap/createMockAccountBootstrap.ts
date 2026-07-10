@@ -6,7 +6,6 @@ import {
   InMemorySettingsRepository,
   createArbiterMediaGateway,
 } from "@adapters/index.js";
-import { MockHeadsetGateway } from "@adapters/mock/MockHeadsetGateway.js";
 import { createTestLogger } from "@infrastructure/logging/index.js";
 import type { AppBootstrapConfig } from "@domain/index.js";
 import type { FileSystemPort } from "@ports/filesystem/FileSystemPort.js";
@@ -18,6 +17,7 @@ import type {
   ContactCsvFileGateway,
   SecretStoragePort,
 } from "@ports/index.js";
+import { createHeadsetGateway } from "./createHeadsetGateway.js";
 
 /**
  * - Purpose: compose mock-based AccountBootstrapFacade for dev, tests, and renderer bootstrap.
@@ -79,7 +79,7 @@ export function createMockAccountBootstrap(
     telephonyGateway,
     mediaGateway,
     settingsRepository,
-    headsetGateway: new MockHeadsetGateway(),
+    headsetGateway: createHeadsetGateway("mock"),
     ...(options.savedAccountProfileRepository !== undefined
       ? { savedAccountProfileRepository: options.savedAccountProfileRepository }
       : {}),

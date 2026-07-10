@@ -242,6 +242,7 @@ export {
   MIN_AUTO_ANSWER_TIMEOUT_SEC,
   type UserSettings,
 } from "@domain/index.js";
+export type { HeadsetFaultReason } from "@domain/index.js";
 export {
   reorderAudioCodecs,
   reorderVideoCodecs,

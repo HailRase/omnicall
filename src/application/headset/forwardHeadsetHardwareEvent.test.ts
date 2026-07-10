@@ -1,13 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
+import { createDefaultHeadsetCapabilities } from "@domain/index.js";
 import {
   initialHeadsetCallSnapshot,
   type HeadsetCallSnapshot,
 } from "./buildHeadsetCallSnapshot.js";
 import { forwardHeadsetHardwareEvent } from "./forwardHeadsetHardwareEvent.js";
+import type { HeadsetOrchestratorPolicyContext } from "./policies/HeadsetOrchestratorPolicyContext.js";
 import { HeadsetSyncQueue } from "./HeadsetSyncQueue.js";
 import { resolveHangupTargetId } from "./resolveHangupTargetId.js";
 
-function snapshot(partial: Partial<HeadsetCallSnapshot>): HeadsetCallSnapshot {
+function snapshot(partial: Partial<HeadsetCallSnapshot> = {}): HeadsetCallSnapshot {
   return {
     ...initialHeadsetCallSnapshot(),
     ...partial,
@@ -15,18 +17,32 @@ function snapshot(partial: Partial<HeadsetCallSnapshot>): HeadsetCallSnapshot {
 }
 
 function createContext(
-  muteInputMode: "pulse" | "latch" = "latch",
-): {
-  hookGuard: { suppressedUntil: number };
-  acceptGuard: { suppressedUntil: number };
-  queue: HeadsetSyncQueue;
-  muteInputMode: "pulse" | "latch";
-} {
+  overrides: Partial<HeadsetOrchestratorPolicyContext> & {
+    muteInputMode?: "pulse" | "latch";
+  } = {},
+): HeadsetOrchestratorPolicyContext {
+  const muteInputMode = overrides.muteInputMode ?? "latch";
+  const baseCapabilities = createDefaultHeadsetCapabilities();
   return {
-    hookGuard: { suppressedUntil: 0 },
-    acceptGuard: { suppressedUntil: 0 },
-    queue: new HeadsetSyncQueue(),
+    capabilities: {
+      ...baseCapabilities,
+      supportsAnswer: true,
+      supportsReject: true,
+      supportsHangup: true,
+      supportsMute: true,
+      supportsRejectOnHookOn: true,
+      supportsHold: false,
+      muteInputMode,
+      muteSemantics: "absolute",
+      holdSemantics: "hookOffResumesWhenHoldLed",
+      ...overrides.capabilities,
+    },
+    muteSemantics: overrides.muteSemantics ?? "absolute",
+    holdSemantics: overrides.holdSemantics ?? "hookOffResumesWhenHoldLed",
     muteInputMode,
+    queue: overrides.queue ?? new HeadsetSyncQueue(),
+    hookGuard: overrides.hookGuard ?? { suppressedUntil: 0 },
+    acceptGuard: overrides.acceptGuard ?? { suppressedUntil: 0 },
   };
 }
 
@@ -178,7 +194,7 @@ describe("forwardHeadsetHardwareEvent (jssip-phone parity)", () => {
 
   it("applies absolute mute on muted:true and muted:false for latch mode", () => {
     const onSetMute = vi.fn();
-    const context = createContext("latch");
+    const context = createContext({ muteInputMode: "latch" });
     const active = snapshot({
       activeSessionId: "active-1",
       focusSessionId: "active-1",
@@ -210,7 +226,7 @@ describe("forwardHeadsetHardwareEvent (jssip-phone parity)", () => {
 
   it("pulse mode toggles on muted:true and ignores muted:false", () => {
     const onSetMute = vi.fn();
-    const context = createContext("pulse");
+    const context = createContext({ muteInputMode: "pulse" });
     const active = snapshot({
       activeSessionId: "active-1",
       focusSessionId: "active-1",
@@ -251,7 +267,7 @@ describe("forwardHeadsetHardwareEvent (jssip-phone parity)", () => {
 
   it("ignores mute while mute sync intent is pending", () => {
     const onSetMute = vi.fn();
-    const context = createContext("latch");
+    const context = createContext({ muteInputMode: "latch" });
     expect(context.queue.beginMuteSessionSync("active-1", true)).toBe(true);
 
     forwardHeadsetHardwareEvent(
@@ -350,5 +366,114 @@ describe("forwardHeadsetHardwareEvent (jssip-phone parity)", () => {
       createContext(),
     );
     expect(onHangup).toHaveBeenCalledWith("out-1");
+  });
+
+  it("ignores holdPressed when supportsHold is false", () => {
+    const onToggleHold = vi.fn();
+    forwardHeadsetHardwareEvent(
+      { type: "holdPressed" },
+      snapshot({
+        focusSessionId: "active-1",
+        activeSessionId: "active-1",
+        establishedCount: 1,
+        establishedSessionIds: ["active-1"],
+      }),
+      undefined,
+      callbacks({ onToggleHold }),
+      createContext({
+        capabilities: {
+          ...createDefaultHeadsetCapabilities(),
+          supportsHold: false,
+          supportsMute: true,
+          supportsRejectOnHookOn: true,
+        },
+      }),
+    );
+    expect(onToggleHold).not.toHaveBeenCalled();
+  });
+
+  it("toggles hold when supportsHold is true", () => {
+    const onToggleHold = vi.fn();
+    forwardHeadsetHardwareEvent(
+      { type: "holdPressed" },
+      snapshot({
+        focusSessionId: "active-1",
+        activeSessionId: "active-1",
+        establishedCount: 1,
+        establishedSessionIds: ["active-1"],
+      }),
+      undefined,
+      callbacks({ onToggleHold }),
+      createContext({
+        capabilities: {
+          ...createDefaultHeadsetCapabilities(),
+          supportsHold: true,
+          supportsMute: true,
+          supportsRejectOnHookOn: true,
+        },
+      }),
+    );
+    expect(onToggleHold).toHaveBeenCalledWith("active-1");
+  });
+
+  it("skips incoming reject on hookOn when supportsRejectOnHookOn is false", () => {
+    const onReject = vi.fn();
+    forwardHeadsetHardwareEvent(
+      { type: "hookOn" },
+      snapshot({
+        focusSessionId: "in-1",
+        incomingWaitingCount: 1,
+        firstIncomingCallId: "in-1",
+      }),
+      "in-1",
+      callbacks({ onReject }),
+      createContext({
+        capabilities: {
+          ...createDefaultHeadsetCapabilities(),
+          supportsRejectOnHookOn: false,
+          supportsMute: true,
+        },
+      }),
+    );
+    expect(onReject).not.toHaveBeenCalled();
+  });
+
+  it("does not resume held on hookOff under dedicatedHoldButton semantics", () => {
+    const onToggleHold = vi.fn();
+    forwardHeadsetHardwareEvent(
+      { type: "hookOff" },
+      snapshot({
+        focusSessionId: "held-1",
+        focusedIsOnHold: true,
+        heldSessionIds: ["held-1"],
+        establishedCount: 1,
+        establishedSessionIds: ["held-1"],
+      }),
+      undefined,
+      callbacks({ onToggleHold }),
+      createContext({ holdSemantics: "dedicatedHoldButton" }),
+    );
+    expect(onToggleHold).not.toHaveBeenCalled();
+  });
+
+  it("applies toggle mute semantics on latch devices", () => {
+    const onSetMute = vi.fn();
+    forwardHeadsetHardwareEvent(
+      { type: "muteChanged", muted: true },
+      snapshot({
+        focusSessionId: "active-1",
+        activeSessionId: "active-1",
+        focusedIsMuted: true,
+        establishedCount: 1,
+        establishedSessionIds: ["active-1"],
+      }),
+      undefined,
+      callbacks({ onSetMute }),
+      createContext({
+        muteInputMode: "latch",
+        muteSemantics: "toggle",
+      }),
+    );
+    expect(onSetMute).toHaveBeenCalledWith("active-1", false);
   });
 });

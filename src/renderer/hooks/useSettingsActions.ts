@@ -489,6 +489,15 @@ export function useSettingsActions(
   ]);
 
   useEffect(() => {
+    if (typeof window.softphone?.setHeadsetPreferredDeviceId !== "function") {
+      return;
+    }
+    void window.softphone.setHeadsetPreferredDeviceId(
+      userSettings.headsetPreferredDeviceId,
+    );
+  }, [userSettings.headsetPreferredDeviceId]);
+
+  useEffect(() => {
     const connectedId = headsetConnectionProjection.deviceId;
     if (connectedId === null) {
       return;

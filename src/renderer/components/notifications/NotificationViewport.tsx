@@ -15,7 +15,7 @@ const NOTIFICATION_EDGE_OFFSET_PX = 24;
 
 function resolveNotificationToasterOffset(
   placement: ToastPlacement,
-): ToasterProps["offset"] {
+): NonNullable<ToasterProps["offset"]> {
   if (placement.startsWith("top")) {
     return {
       top: "var(--incoming-call-banner-top)",

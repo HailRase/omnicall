@@ -1,9 +1,21 @@
 # Handoffs
 
 - Purpose: work-unit deliverables and gate checklists for implementation agents.
-- Active: **P11** files in this folder (`P11-*`).
+- Active: **P11** files (`P11-*`) and **P10 extensibility** (`P10-Headset-Extensibility-*`).
 - Archive: completed phases **P02–P08** in `archive/P0N/`.
 - Live status: `../STATUS.md`.
+
+## Active (P10 extensibility)
+
+| Handoff | Topic |
+|---------|-------|
+| `P10-Headset-Extensibility-Handoff.md` | Master map, regression gate, WU order |
+| `P10-Headset-Extensibility-WU1-Agent-Prompt.md` | Vendor profile registry (T-014) |
+| `P10-Headset-Extensibility-WU4-Agent-Prompt.md` | Gateway factory (T-015) |
+| `P10-Headset-Extensibility-WU5-Agent-Prompt.md` | Capabilities + policies (T-016) |
+| `P10-Headset-Integration-Handoff.md` | P10 baseline (done) + link to extensibility |
+
+See also: `../HEADSET-VENDOR-ONBOARDING.md`
 
 ## Active (P11)
 

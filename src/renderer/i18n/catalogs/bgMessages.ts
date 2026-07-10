@@ -430,6 +430,17 @@ export const bgMessages: MessageShape = {
   "settings.headset.device.add": "Добави устройство…",
   "settings.headset.connect": "Свържи",
   "settings.headset.disconnect": "Прекъсни",
+  "settings.headset.capabilities.label": (params: Readonly<{ summary: string }>) =>
+    `Бутони: ${params.summary}`,
+  "settings.headset.capabilities.separator": ", ",
+  "settings.headset.capabilities.answer": "отговор",
+  "settings.headset.capabilities.reject": "отказ",
+  "settings.headset.capabilities.hangup": "затваряне",
+  "settings.headset.capabilities.mute": (params: Readonly<{ mode: string }>) =>
+    `mute (${params.mode})`,
+  "settings.headset.capabilities.muteMode.pulse": "pulse",
+  "settings.headset.capabilities.muteMode.latch": "latch",
+  "settings.headset.capabilities.hold": "hold",
   "notification.headset.fault.connect_failed":
     "Неуспешно свързване на слушалките. Отворете Настройки → Слушалки и натиснете «Свържи», проверете USB кабела.",
   "notification.headset.fault.unsupported":

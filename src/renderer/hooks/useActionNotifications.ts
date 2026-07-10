@@ -1,7 +1,6 @@
 import { useEffect } from "react";
-import type { ActiveCallControlsProjection } from "@application/index.js";
+import type { ActiveCallControlsProjection, HeadsetFaultReason } from "@application/index.js";
 import type { AccountAuthorizationErrorProjection } from "@application/projections/settings/mapAccountAuthorizationError.js";
-import type { HeadsetFaultReason } from "@domain/index.js";
 import type { TranslationKey } from "../i18n/messages.js";
 import type {
   NotificationDescriptor,

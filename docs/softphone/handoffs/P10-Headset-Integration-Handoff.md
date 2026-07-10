@@ -57,6 +57,20 @@ Aligned with working `jssip-phone` `forwardDeviceEventToApp` / orchestrator / `s
 - **Hangup:** `hookOn` → `activeSessionId` / outgoing only; never held-only.
 - **Guards:** arm only from `beginHold/MuteSessionSync` (device/UI), never from LED reconcile writes.
 
+## Extensibility track (2026-07-10)
+
+P10 delivery is complete; next work is **vendor/transport extensibility without orchestrator rewrite**:
+
+| Doc | Purpose |
+| --- | --- |
+| `P10-Headset-Extensibility-Handoff.md` | Master WU map, regression gate, anti-patterns |
+| `P10-Headset-Extensibility-WU1-Agent-Prompt.md` | EXT-1/2/3: `HeadsetVendorProfile` registry |
+| `P10-Headset-Extensibility-WU4-Agent-Prompt.md` | EXT-4/10: `createHeadsetGateway` factory |
+| `P10-Headset-Extensibility-WU5-Agent-Prompt.md` | EXT-5–8: capabilities + mute/hold policies |
+| `HEADSET-VENDOR-ONBOARDING.md` | Add-new-vendor checklist |
+
+Task queue: `T-014` … `T-018` in `TASK-QUEUE.md`.
+
 ## Key paths
 
 - `src/domain/headset/`

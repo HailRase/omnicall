@@ -6,6 +6,7 @@ import { Button, Select, Switch, type SelectItemOption } from "../../ui/index.js
 import formStyles from "../SettingsForm.module.css";
 import {
   HEADSET_DEVICE_PICKER_VALUE,
+  resolveHeadsetCapabilitiesSummary,
   resolveHeadsetConnectionStateLabel,
   resolveHeadsetDeviceSelectValue,
   type HeadsetGrantedDeviceOption,
@@ -68,6 +69,13 @@ export function SettingsHeadsetPanel({
     ];
   }, [grantedDevices, t]);
 
+  const capabilitiesSummary = useMemo((): string | null => {
+    if (projection.connectionState !== "connected" || projection.capabilities === null) {
+      return null;
+    }
+    return resolveHeadsetCapabilitiesSummary(projection.capabilities, t);
+  }, [projection.capabilities, projection.connectionState, t]);
+
   function handleConnect(): void {
     if (selectedDeviceId === HEADSET_DEVICE_PICKER_VALUE) {
       onConnectHeadset(null);
@@ -90,6 +98,14 @@ export function SettingsHeadsetPanel({
             {projection.deviceLabel !== null ? (
               <p className={formStyles.blockHint} data-testid="settings-headset-device-label">
                 {t("settings.headset.deviceLabel", { name: projection.deviceLabel })}
+              </p>
+            ) : null}
+            {capabilitiesSummary !== null ? (
+              <p
+                className={formStyles.blockHint}
+                data-testid="settings-headset-capabilities"
+              >
+                {t("settings.headset.capabilities.label", { summary: capabilitiesSummary })}
               </p>
             ) : null}
             <div className={formStyles.languageSelectField}>

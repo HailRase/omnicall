@@ -15,6 +15,7 @@ import {
   HeadsetSessionOrchestrator,
 } from "../../headset/HeadsetSessionOrchestrator.js";
 import type { HeadsetSyncQueue } from "../../headset/HeadsetSyncQueue.js";
+import { toHeadsetConnectedCapabilities } from "../../headset/toHeadsetConnectedCapabilities.js";
 import type { IncomingCallProjection } from "../../projections/telephony/incomingCallProjection.js";
 import type { MultiLineCallProjection } from "../../projections/telephony/multiLineCallProjection.js";
 import {
@@ -210,7 +211,12 @@ export class HeadsetIntegrationService {
     }
     this.rememberPreferredDevice(result.value.id);
     this.deps.eventPublisher.publish(
-      createHeadsetConnected(correlationId, result.value.id, result.value.productName),
+      createHeadsetConnected(
+        correlationId,
+        result.value.id,
+        result.value.productName,
+        toHeadsetConnectedCapabilities(this.deps.gateway.getCapabilities()),
+      ),
     );
     this.orchestrator?.onDeviceConnected();
   }
@@ -241,7 +247,12 @@ export class HeadsetIntegrationService {
     }
     this.rememberPreferredDevice(result.value.id);
     this.deps.eventPublisher.publish(
-      createHeadsetConnected(correlationId, result.value.id, result.value.productName),
+      createHeadsetConnected(
+        correlationId,
+        result.value.id,
+        result.value.productName,
+        toHeadsetConnectedCapabilities(this.deps.gateway.getCapabilities()),
+      ),
     );
     this.orchestrator?.onDeviceConnected();
   }

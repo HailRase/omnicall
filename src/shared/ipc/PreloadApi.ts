@@ -43,6 +43,9 @@ export type SoftphonePreloadApi = Readonly<{
   saveContactsCsvExportDialog: (
     payload: ContactsCsvSaveExportDialogPayload,
   ) => Promise<ContactsCsvSaveExportDialogResponse>;
+  setHeadsetPreferredDeviceId: (
+    deviceId: string | null,
+  ) => Promise<Readonly<{ ok: boolean }>>;
 }>;
 
 declare global {
