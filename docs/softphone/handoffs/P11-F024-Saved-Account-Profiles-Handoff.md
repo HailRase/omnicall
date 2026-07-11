@@ -2,7 +2,7 @@
 
 - Scope: **F-024** saved SIP account profiles for quick sign-in; extends **F-023** per-account settings persistence.
 - Legacy: **LF-077** (saved profile list + per-account settings on authorize).
-- Out of scope: credential remember-me / password persistence (Path A — `SecretStoragePort` contract only).
+- Remember-password: optional «Remember password on this PC» via `SecretStoragePort` (secure storage only; never in saved-profiles JSON).
 
 ## Delivered
 
@@ -11,14 +11,14 @@
 | Design context | `docs/softphone/P11-Local-Account-Profiles-Design.md` |
 | Domain | `src/domain/settings/SavedAccountProfile.ts`, `persistedSavedAccountProfiles.ts`, `formatSavedAccountProfileSelectorLabel.ts`, `matchesSipAccountIdentity.ts` |
 | Application | `SaveAccountProfileUseCase`, `ListSavedAccountProfilesUseCase`, `DeleteSavedAccountProfileUseCase`, `TouchSavedAccountProfileUseCase` |
-| Projections | `deriveSavedAccountProfileSelectorOptions.ts`, `deriveSavedProfilePanelMode.ts`, `mapAccountAuthorizationError.ts`, `sanitizeRegistrationServerMessage.ts`, `resolveAccountAuthorizeTargetIdentity.ts` |
+| Projections | `deriveSavedAccountProfileSelectorOptions.ts`, `deriveSavedProfilePanelMode.ts`, `deriveSavedProfileCredentialPromptState.ts`, `mapAccountAuthorizationError.ts`, `sanitizeRegistrationServerMessage.ts`, `resolveAccountAuthorizeTargetIdentity.ts` |
 | Port | `src/ports/settings/SavedAccountProfileRepository.ts` |
 | Adapters | `InMemorySavedAccountProfileRepository.ts`, `FileSavedAccountProfileRepository.ts`, `profileStoragePaths.ts` |
 | Bootstrap | `createRealBootstrapSavedAccountProfileRepository.ts`, `createMockAccountBootstrap.ts`, `createRealAccountBootstrap.ts` |
-| Facade | `AccountBootstrapFacade.ts` — `authorizeManualAccount`, `authorizeSavedAccountProfile`, `deleteSavedAccountProfile`, `ensureUnregisteredBeforeAccountSwitch`, metadata non-blocking |
+| Facade | `AccountBootstrapFacade.ts` — `authorizeManualAccount`, `authorizeSavedAccountProfile`, `deleteSavedAccountProfile`, `forgetRememberedSipPassword`, `ensureUnregisteredBeforeAccountSwitch`, metadata non-blocking |
 | UI | `SavedAccountProfileSelector.tsx`, `DeleteSavedAccountProfileConfirmationModal.tsx`, `SwitchSavedAccountProfileConfirmationModal.tsx`, `AccountPanel.tsx`, `SettingsAccountPanel.tsx` |
 | Hooks | `useAccountActions.ts`, `useSettingsActions.ts` |
-| i18n | `src/renderer/i18n/messages.ts` — `account.profile.*`, `account.error.*`, `account.warning.*` (ru/en/fr/de) |
+| i18n | `src/renderer/i18n/messages.ts` — `account.profile.*`, `account.error.*`, `account.warning.*` (ru/en/fr/de/bg) |
 
 ## Authorize flow (saved profile)
 
@@ -33,7 +33,8 @@ SettingsAccountPanel → useAccountActions → facade.authorizeSavedAccountProfi
 ## F-024 Gate
 
 - [x] Tab navigation («New» first) + keyboard-accessible tablist
-- [x] Password-only panel for unauthenticated saved tab
+- [x] Password-only panel for unauthenticated saved tab (or Sign in only when remembered password exists)
+- [x] Remember-password checkbox + secure storage; forget remembered password; failed remembered sign-in reveals password field
 - [x] New tab save-profile checkbox + duplicate guard
 - [x] Switch A→B: unregister before register (submit only)
 - [x] Metadata save/touch non-blocking (`metadataWarning`)
@@ -44,7 +45,7 @@ SettingsAccountPanel → useAccountActions → facade.authorizeSavedAccountProfi
 - [x] Settings apply only after successful registration
 - [x] Feature Registry F-024 → implemented
 - [x] LF-077 evidence updated in Legacy-Feature-Coverage
-- [x] i18n parity ru/en/fr/de; `i18n:check` PASS
+- [x] i18n parity ru/en/fr/de/bg; `i18n:check` PASS
 - [x] UI catalog synced (`SavedAccountProfileSelector`, modals)
 
 ## Verification
@@ -53,12 +54,20 @@ SettingsAccountPanel → useAccountActions → facade.authorizeSavedAccountProfi
 npm run test && npm run lint && npm run typecheck && npm run i18n:check && npm run registry:check && npm run ui:catalog:check
 ```
 
-Baseline pre-F-024 **1189** → **1274 tests passed**, 1 skipped (`0a2ae05`).
+Baseline pre-F-024 **1189** → **1274** at gate close (`0a2ae05`); post-gate follow-ups (remember-password UX, auth-loop fix) → **1727 tests passed**, 1 skipped (verified 2026-07-11).
 
-## Manual smoke (verified 2026-07-06)
+## Post-gate follow-ups (2026-07-07 — 2026-07-08)
+
+| Fix | Path |
+| --- | --- |
+| Remember-password UX (hide password field when stored) | `deriveSavedProfileCredentialPromptState.ts`, `AccountPanel.tsx`, `useAccountActions.ts` |
+| Auth-loop regression (stable identity key in effect deps) | `useAccountActions.ts`, `useAccountActions.test.ts` |
+
+## Manual smoke (verified 2026-07-06; remember-password UX 2026-07-08)
 
 - [x] Save profile on New tab → re-open Settings → profile tab appears.
-- [x] Select saved tab while logged out → password-only + Sign in.
+- [x] Select saved tab while logged out → password-only + Sign in (or Sign in only when password remembered).
+- [x] Remembered password sign-in → failed auth reveals password field without clearing profile tab.
 - [x] Switch registered profile A → B → confirm modal → B registers; failed auth does not apply target settings.
 - [x] Delete saved profile → confirm → selection returns to New.
 - [x] SIP 403/404 → server detail banner, not «wrong password».
