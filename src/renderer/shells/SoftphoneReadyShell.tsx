@@ -34,6 +34,8 @@ import { SoftphoneLayout } from "../widgets/SoftphoneLayout/SoftphoneLayout.js";
 import { CallContextShell } from "./call/CallContextShell.js";
 import { CallControlsShell } from "./call/CallControlsShell.js";
 import { IncomingCallOverlayShell } from "./call/IncomingCallOverlayShell.js";
+import { VideoFullscreenModal } from "../components/call/VideoFullscreenModal.js";
+import { ScreenSharePickerDialog } from "../components/call/ScreenSharePickerDialog.js";
 import { SessionFeatureShell } from "./SessionFeatureShell.js";
 import { SoftphoneShellHeader } from "./SoftphoneShellHeader.js";
 
@@ -70,7 +72,6 @@ function SoftphoneShellLayoutRoute({
   const { blockingAuthState, isSipRegistered } = useAuthShellFlags();
   const overlayShell = useOverlayShell();
   const shellNavigation = useShellNavigation();
-  useShellWindowLayout({ settingsOpen: overlayShell.settingsOpen });
   const [settingsSidebarExpanded, setSettingsSidebarExpanded] = useState(false);
   const settingsActions = useSettingsActions({
     facade,
@@ -130,6 +131,14 @@ function SoftphoneShellLayoutRoute({
     onMenuClose: userAvatarMenu.close,
   });
   const callBindings = useCallFeatureShell({ facade });
+  const isVideoFullscreen =
+    callBindings.controlTargetVideoState?.sessionView === "fullscreen";
+  const fullscreenCallId = callBindings.controlTargetLine?.callId ?? null;
+  const fullscreenVideoState = callBindings.controlTargetVideoState;
+  useShellWindowLayout({
+    settingsOpen: overlayShell.settingsOpen,
+    videoFullscreen: isVideoFullscreen,
+  });
   const appUpdate = useAppUpdate({
     backgroundCheckOnMount: true,
     dismissedUpdateBannerVersion: settingsActions.userSettings.dismissedUpdateBannerVersion,
@@ -166,6 +175,7 @@ function SoftphoneShellLayoutRoute({
 
   return (
     <SoftphoneLayout
+      videoFullscreen={isVideoFullscreen}
       header={
         <>
           <SoftphoneShellHeader
@@ -183,9 +193,57 @@ function SoftphoneShellLayoutRoute({
           <CallContextShell bindings={callBindings} />
         </>
       }
-      controls={<CallControlsShell bindings={callBindings} />}
+      controls={
+        isVideoFullscreen ? null : <CallControlsShell bindings={callBindings} />
+      }
       overlays={
         <>
+          {isVideoFullscreen &&
+          fullscreenCallId !== null &&
+          fullscreenVideoState !== null ? (
+            <VideoFullscreenModal
+              open
+              callId={fullscreenCallId}
+              videoState={fullscreenVideoState}
+              line={callBindings.controlTargetLine}
+              onBindSurfaces={callBindings.videoCallActions.bindVideoSurfaces}
+              onMute={callBindings.callLinesActions.handleMuteLine}
+              onUnmute={callBindings.callLinesActions.handleUnmuteLine}
+              onToggleCamera={(callId) => {
+                callBindings.videoCallActions.handleToggleCamera(
+                  callId,
+                  fullscreenVideoState,
+                );
+              }}
+              onToggleScreenShare={(callId) => {
+                callBindings.videoCallActions.handleToggleScreenShare(
+                  callId,
+                  fullscreenVideoState,
+                );
+              }}
+              onSetSessionView={callBindings.videoCallActions.handleSetSessionView}
+              onHangup={(callId) => {
+                callBindings.exitVideoFullscreen();
+                callBindings.callLinesActions.handleHangupLine(callId);
+              }}
+              onClose={(callId) => {
+                callBindings.videoCallActions.handleSetSessionView(callId, "expanded");
+              }}
+            />
+          ) : null}
+          <ScreenSharePickerDialog
+            open={callBindings.screenSharePicker.open}
+            loading={callBindings.screenSharePicker.loading}
+            confirming={callBindings.screenSharePicker.confirming}
+            errorKey={callBindings.screenSharePicker.errorKey}
+            activeKind={callBindings.screenSharePicker.activeKind}
+            selectedSourceId={callBindings.screenSharePicker.selectedSourceId}
+            sources={callBindings.screenSharePicker.sources}
+            onActiveKindChange={callBindings.screenSharePicker.setActiveKind}
+            onSelectSource={callBindings.screenSharePicker.selectSource}
+            onConfirm={callBindings.screenSharePicker.confirm}
+            onCancel={callBindings.screenSharePicker.cancel}
+          />
           <IncomingCallOverlayShell callBindings={callBindings} overlayShell={overlayShell} />
           <ShellRouteDataController facade={facade} />
           <HistoryShellRoutePanel facade={facade} notify={notifications.notify} />

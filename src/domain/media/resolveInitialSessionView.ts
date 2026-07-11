@@ -16,9 +16,9 @@ export type ResolveInitialSessionViewInput = Readonly<{
 }>;
 
 /**
- * - Purpose: pick compact/expanded/fullscreen for a new call.
+ * - Purpose: pick expanded/hidden/fullscreen for a new call.
  * - Inputs: ResolveInitialSessionViewInput.
- * - Outputs: SessionViewMode (audio calls keep default compact).
+ * - Outputs: SessionViewMode (audio calls keep default expanded).
  */
 export function resolveInitialSessionView(
   input: ResolveInitialSessionViewInput,

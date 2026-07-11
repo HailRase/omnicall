@@ -29,6 +29,9 @@ export type SessionViewModeChangedEvent = ReturnType<
 export type CameraAvailabilityChangedEvent = ReturnType<
   typeof createCameraAvailabilityChangedEvent
 >;
+export type IncomingRemoteVideoOfferedChangedEvent = ReturnType<
+  typeof createIncomingRemoteVideoOfferedChangedEvent
+>;
 
 export type VideoMediaDomainEvent =
   | CallMediaModeSelectedEvent
@@ -36,7 +39,8 @@ export type VideoMediaDomainEvent =
   | LocalVideoSourceChangedEvent
   | RemoteVideoPresenceChangedEvent
   | SessionViewModeChangedEvent
-  | CameraAvailabilityChangedEvent;
+  | CameraAvailabilityChangedEvent
+  | IncomingRemoteVideoOfferedChangedEvent;
 
 export function createCallMediaModeSelectedEvent(
   correlationId: CorrelationId,
@@ -125,5 +129,26 @@ export function createCameraAvailabilityChangedEvent(
   return createDomainEvent("CameraAvailabilityChanged", correlationId, {
     callId,
     available,
+  });
+}
+
+/**
+ * - Purpose: signal whether the ringing inbound offer includes active video.
+ * - Inputs: correlation id, call id, offered flag from remote SDP.
+ * - Outputs: IncomingRemoteVideoOfferedChanged domain event.
+ */
+export function createIncomingRemoteVideoOfferedChangedEvent(
+  correlationId: CorrelationId,
+  callId: CallId,
+  offered: boolean,
+): ReturnType<
+  typeof createDomainEvent<
+    "IncomingRemoteVideoOfferedChanged",
+    { callId: CallId; offered: boolean }
+  >
+> {
+  return createDomainEvent("IncomingRemoteVideoOfferedChanged", correlationId, {
+    callId,
+    offered,
   });
 }

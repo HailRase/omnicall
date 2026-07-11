@@ -103,13 +103,17 @@ function attachExistingReceiverTracks(
 export function wirePeerConnectionRemoteVideo(
   connection: unknown,
   videoElement: HTMLVideoElement,
-  options?: Readonly<{ attachTrackListener?: boolean }>,
+  options?: Readonly<{
+    attachTrackListener?: boolean;
+    onRemoteVideoPresent?: (present: boolean) => void;
+  }>,
 ): boolean {
   if (!isRtcPeerConnectionLike(connection)) {
     return false;
   }
 
   attachExistingRemoteVideoTracks(connection, videoElement);
+  options?.onRemoteVideoPresent?.(hasLiveRemoteVideoTrack(connection));
 
   const attachTrackListener = options?.attachTrackListener !== false;
   if (attachTrackListener) {
@@ -128,6 +132,10 @@ export function wirePeerConnectionRemoteVideo(
         videoElement.srcObject = currentStream;
       }
       void videoElement.play().catch(() => undefined);
+      options?.onRemoteVideoPresent?.(true);
+      event.track.addEventListener("ended", () => {
+        options?.onRemoteVideoPresent?.(hasLiveRemoteVideoTrack(connection));
+      });
     });
   }
 
@@ -141,6 +149,24 @@ export function refreshPeerConnectionRemoteVideo(
   return wirePeerConnectionRemoteVideo(connection, videoElement, {
     attachTrackListener: false,
   });
+}
+
+/**
+ * - Purpose: detect whether the peer connection currently receives a live video track.
+ * - Inputs: opaque RTCPeerConnection-like object.
+ * - Outputs: true when any non-ended video receiver track exists.
+ */
+export function hasLiveRemoteVideoTrack(connection: unknown): boolean {
+  if (!isRtcPeerConnectionLike(connection)) {
+    return false;
+  }
+  for (const receiver of connection.getReceivers()) {
+    const track = receiver.track;
+    if (track !== null && track.kind === "video" && track.readyState !== "ended") {
+      return true;
+    }
+  }
+  return false;
 }
 
 export function bindLocalVideoPreview(

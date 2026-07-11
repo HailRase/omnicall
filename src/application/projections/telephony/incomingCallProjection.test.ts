@@ -29,5 +29,49 @@ describe("incomingCallProjection", () => {
     expect(ringing.uiState).toBe("autoAnswerCountdown");
     expect(ringing.autoAnswerTimeoutSec).toBe(5);
     expect(ringing.autoAnswerExpiresAt).not.toBeNull();
+    expect(ringing.incomingRemoteVideoOffered).toBeNull();
+  });
+
+  it("maps incoming remote video offered for ringing call", () => {
+    const correlationId = createCorrelationId();
+    const received = reduceIncomingCallProjection(initialIncomingCallProjection(), {
+      type: "IncomingCallReceived",
+      correlationId,
+      occurredAt: new Date().toISOString(),
+      callId: "in-1",
+      phoneNumber: "+12025550100",
+      direction: "incoming",
+    });
+    const withOffer = reduceIncomingCallProjection(received, {
+      type: "IncomingRemoteVideoOfferedChanged",
+      correlationId,
+      occurredAt: new Date().toISOString(),
+      callId: "in-1",
+      offered: false,
+    });
+    expect(withOffer.incomingRemoteVideoOffered).toBe(false);
+  });
+
+  it("preserves early video-offered flag across IncomingCallReceived", () => {
+    const correlationId = createCorrelationId();
+    const early = reduceIncomingCallProjection(initialIncomingCallProjection(), {
+      type: "IncomingRemoteVideoOfferedChanged",
+      correlationId,
+      occurredAt: new Date().toISOString(),
+      callId: "in-2",
+      offered: true,
+    });
+    expect(early.incomingRemoteVideoOffered).toBe(true);
+
+    const received = reduceIncomingCallProjection(early, {
+      type: "IncomingCallReceived",
+      correlationId,
+      occurredAt: new Date().toISOString(),
+      callId: "in-2",
+      phoneNumber: "+12025550111",
+      direction: "incoming",
+    });
+    expect(received.callId).toBe("in-2");
+    expect(received.incomingRemoteVideoOffered).toBe(true);
   });
 });

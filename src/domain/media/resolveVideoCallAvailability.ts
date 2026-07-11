@@ -10,7 +10,8 @@ export type VideoCallDisabledReason =
   | "videoCall.disabled.secondSessionBlocked"
   | "videoCall.disabled.holdAllInProgress"
   | "videoCall.disabled.captureUnavailable"
-  | "videoCall.disabled.featureNotReady";
+  | "videoCall.disabled.featureNotReady"
+  | "videoCall.disabled.remoteVideoNotOffered";
 
 export type ResolveVideoCallAvailabilityInput = Readonly<{
   numberValid: boolean;
@@ -21,6 +22,11 @@ export type ResolveVideoCallAvailabilityInput = Readonly<{
   videoCaptureAvailable: boolean;
   /** Gate until JsSIP video WU is wired; default false keeps audio-only safe. */
   videoFeatureReady: boolean;
+  /**
+   * Incoming answer only: remote INVITE offer has active video.
+   * Omit for outbound dial; `false` hides Answer with video.
+   */
+  remoteVideoOffered?: boolean;
 }>;
 
 export type ResolveVideoCallAvailabilityResult =
@@ -52,6 +58,9 @@ export function resolveVideoCallAvailability(
   }
   if (!input.videoCaptureAvailable) {
     return { enabled: false, reason: "videoCall.disabled.captureUnavailable" };
+  }
+  if (input.remoteVideoOffered === false) {
+    return { enabled: false, reason: "videoCall.disabled.remoteVideoNotOffered" };
   }
   return { enabled: true };
 }

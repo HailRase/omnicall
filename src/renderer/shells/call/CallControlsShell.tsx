@@ -106,7 +106,10 @@ export function CallControlsShell({ bindings }: CallControlsShellProps): JSX.Ele
             if (controlTargetVideoState === null) {
               return;
             }
-            videoCallActions.handleCycleSessionView(callId, controlTargetVideoState);
+            videoCallActions.handleSetSessionView(callId, "fullscreen");
+          }}
+          onSetSessionView={(callId, sessionView) => {
+            videoCallActions.handleSetSessionView(callId, sessionView);
           }}
         />
       ) : null}

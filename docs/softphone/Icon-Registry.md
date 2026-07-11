@@ -36,7 +36,7 @@
 | `sip.reregister` | Manual SIP re-register | `RefreshCcw` | `RefreshCcwIcon` | `SettingsSystemStatePanel` (Phase 6) | planned |
 | `call.answer` | Answer ringing call | `PhoneCall` | `PhoneCallIcon` | `IncomingCallOverlay`, `CallLineRow` | active |
 | `call.reject` | Reject incoming call | `PhoneOff` | `PhoneOffIcon` | `IncomingCallOverlay`, `CampaignEventModal` | active |
-| `call.hangup` | Hang up active call | `PhoneOff` | `PhoneOffIcon` | `CallLineRow`, `ActiveCallControlsPanel` | active |
+| `call.hangup` | Hang up active call | `Phone` | `PhoneIcon` | `CallLineRow`, `ActiveCallControlsPanel`, `CallControlsBar`, `VideoFullscreenControlsBar` | active |
 | `call.hold` | Hold call | `Pause` | `PauseIcon` | `CallLineRow`, `ActiveCallControlsPanel`, `MultiCallHoldAllIndicator` | active |
 | `call.resume` | Resume held call | `Play` | `PlayIcon` | `CallLineRow`, `ActiveCallControlsPanel` | active |
 | `call.mute` | Mute microphone | `MicOff` | `MicOffIcon` | `CallLineRow`, `ActiveCallControlsPanel` | active |
@@ -47,6 +47,7 @@
 | `call.screenShareStop` | Stop screen share | `MonitorUp` | — | `CallControlsBar` | active |
 | `call.videoExpand` | Expand video view | `Maximize2` | — | `CallControlsBar` | active |
 | `call.videoCollapse` | Collapse video view from fullscreen | `Minimize2` | — | `CallControlsBar` | active |
+| `call.videoHidden` | Hide video surfaces (session view) | `EyeOff` | — | `VideoFullscreenControlsBar`, `CallControlsBar` | active |
 | `call.transfer` | Start transfer | `PhoneForwarded` | `PhoneForwardedIcon` | `CallLineRow`, `TransferPanel` | active |
 | `call.incoming` | Incoming call indicator | `PhoneIncoming` | `PhoneIncomingIcon` | `IncomingCallOverlay` | active |
 | `call.outgoing` | Outgoing call indicator | `Phone` | `PhoneIcon` | `OutgoingCallCard` | active |

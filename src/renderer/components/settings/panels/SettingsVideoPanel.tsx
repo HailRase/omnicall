@@ -37,8 +37,8 @@ export type SettingsVideoPanelProps = Readonly<{
 const SESSION_VIEW_OPTIONS: ReadonlyArray<
   Readonly<{ value: SessionViewMode; label: TranslationKey }>
 > = [
-  { value: "compact", label: "settings.video.defaultView.compact" },
   { value: "expanded", label: "settings.video.defaultView.expanded" },
+  { value: "hidden", label: "settings.video.defaultView.hidden" },
   { value: "fullscreen", label: "settings.video.defaultView.fullscreen" },
 ];
 

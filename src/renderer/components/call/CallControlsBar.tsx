@@ -3,6 +3,7 @@ import type { JSX, MouseEvent } from "react";
 import type {
   CallLineCardViewModel,
   CallVideoMediaState,
+  SessionViewMode,
 } from "@application/index.js";
 import {
   areCameraControlsEnabled,
@@ -12,6 +13,12 @@ import { useI18n } from "../../i18n/index.js";
 import { AppIcon } from "../icons/AppIcon.js";
 import type { IconSemanticId } from "../icons/iconCatalog.js";
 import { IconTooltip } from "../icons/IconTooltip.js";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu/index.js";
 import styles from "./CallControlsBar.module.css";
 
 export type CallControlsBarProps = Readonly<{
@@ -29,6 +36,7 @@ export type CallControlsBarProps = Readonly<{
   onToggleCamera?: (callId: string) => void;
   onToggleScreenShare?: (callId: string) => void;
   onExpandVideo?: (callId: string) => void;
+  onSetSessionView?: (callId: string, sessionView: SessionViewMode) => void;
 }>;
 
 type LabeledControlProps = Readonly<{
@@ -64,6 +72,7 @@ export function CallControlsBar({
   onToggleCamera,
   onToggleScreenShare,
   onExpandVideo,
+  onSetSessionView,
 }: CallControlsBarProps): JSX.Element | null {
   const { t } = useI18n();
   const controllableStates = new Set(["Active", "Held", "Connecting", "Ringing"]);
@@ -94,16 +103,13 @@ export function CallControlsBar({
     videoState !== null &&
     !isPreConnect &&
     !registrationBlocked;
-  const isFullscreenView = videoState?.sessionView === "fullscreen";
-  const expandIconId: IconSemanticId = isFullscreenView
-    ? "call.videoCollapse"
-    : "call.videoExpand";
-  const expandLabel = isFullscreenView
-    ? t("call.controls.label.videoCollapse")
-    : t("call.controls.label.videoExpand");
-  const expandAriaLabel = isFullscreenView
-    ? t("icons.call.videoCollapse")
-    : t("icons.call.videoExpand");
+  const viewModeIconId: IconSemanticId =
+    videoState?.sessionView === "hidden"
+      ? "call.videoHidden"
+      : videoState?.sessionView === "fullscreen"
+        ? "call.videoExpand"
+        : "call.videoCollapse";
+  const viewModeCaption = t("call.controls.label.viewMode");
 
   const muteBlocked =
     isPreConnect ||
@@ -194,11 +200,65 @@ export function CallControlsBar({
             }}
           />
         ) : null}
-        {isVideoCall && onExpandVideo !== undefined ? (
+        {isVideoCall && onSetSessionView !== undefined ? (
+          <div className={styles.control}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className={clsx(styles.button, !viewExpandEnabled && styles.buttonDisabled)}
+                  data-testid={`control-video-view-mode-line-${line.callId}`}
+                  aria-label={viewModeCaption}
+                  disabled={!viewExpandEnabled}
+                >
+                  <AppIcon id={viewModeIconId} decorative />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" side="top">
+                {videoState?.sessionView !== "fullscreen" ? (
+                  <DropdownMenuItem
+                    data-testid="control-view-mode-fullscreen"
+                    onSelect={() => {
+                      onSetSessionView(line.callId, "fullscreen");
+                    }}
+                  >
+                    <AppIcon id="call.videoExpand" decorative />
+                    <span>{t("call.video.viewMode.fullscreen")}</span>
+                  </DropdownMenuItem>
+                ) : null}
+                {videoState?.sessionView !== "expanded" ? (
+                  <DropdownMenuItem
+                    data-testid="control-view-mode-expanded"
+                    onSelect={() => {
+                      onSetSessionView(line.callId, "expanded");
+                    }}
+                  >
+                    <AppIcon id="call.videoCollapse" decorative />
+                    <span>{t("call.video.viewMode.expanded")}</span>
+                  </DropdownMenuItem>
+                ) : null}
+                {videoState?.sessionView !== "hidden" ? (
+                  <DropdownMenuItem
+                    data-testid="control-view-mode-hidden"
+                    onSelect={() => {
+                      onSetSessionView(line.callId, "hidden");
+                    }}
+                  >
+                    <AppIcon id="call.videoHidden" decorative />
+                    <span>{t("call.video.viewMode.hidden")}</span>
+                  </DropdownMenuItem>
+                ) : null}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <span className={clsx(styles.caption, !viewExpandEnabled && styles.captionDisabled)}>
+              {viewModeCaption}
+            </span>
+          </div>
+        ) : isVideoCall && onExpandVideo !== undefined ? (
           <LabeledControl
-            iconId={expandIconId}
-            label={expandLabel}
-            ariaLabel={expandAriaLabel}
+            iconId={viewModeIconId}
+            label={viewModeCaption}
+            ariaLabel={viewModeCaption}
             testId={`control-video-expand-line-${line.callId}`}
             disabled={!viewExpandEnabled}
             onClick={() => {

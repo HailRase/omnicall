@@ -22,6 +22,11 @@ import type {
   SecretStorageOperation,
   SecretStorageResponse,
 } from "./SecretStorageContract.js";
+import type {
+  ListDisplaySourcesResponse,
+  SetPendingDisplaySourcePayload,
+  SetPendingDisplaySourceResponse,
+} from "./DisplayCaptureContract.js";
 
 export type SoftphonePreloadApi = Readonly<{
   getPlatformVersion: () => Promise<PlatformVersionResponse>;
@@ -43,6 +48,10 @@ export type SoftphonePreloadApi = Readonly<{
   saveContactsCsvExportDialog: (
     payload: ContactsCsvSaveExportDialogPayload,
   ) => Promise<ContactsCsvSaveExportDialogResponse>;
+  listDisplaySources: () => Promise<ListDisplaySourcesResponse>;
+  setPendingDisplaySource: (
+    payload: SetPendingDisplaySourcePayload,
+  ) => Promise<SetPendingDisplaySourceResponse>;
 }>;
 
 declare global {

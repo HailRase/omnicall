@@ -28,6 +28,8 @@ export function IncomingCallOverlayShell({
     incomingCallProjection: callBindings.incomingCallProjection,
     shellRouteName: route.name,
     incomingSessionCardVisible: callBindings.incomingSessionCardVisible,
+    videoFullscreen:
+      callBindings.controlTargetVideoState?.sessionView === "fullscreen",
   });
   const overlayActions = useIncomingCallOverlayActions({
     incomingCallProjection: callBindings.incomingCallProjection,
@@ -41,6 +43,7 @@ export function IncomingCallOverlayShell({
     setCallMode: callBindings.setCallMode,
     closeNumberEntryOverlay: callBindings.closeNumberEntryOverlay,
     selectIncomingCall: callBindings.selectIncomingCall,
+    exitVideoFullscreen: callBindings.exitVideoFullscreen,
   });
   const autoAnswerSecondsRemaining = useAutoAnswerCountdown(
     callBindings.incomingCallProjection.autoAnswerExpiresAt,
@@ -61,7 +64,11 @@ export function IncomingCallOverlayShell({
       rejectDisabledReason={callBindings.incomingCallActions.rejectDisabledReason}
       onOpenCallSurface={overlayActions.handleOpenCallSurface}
       onAnswer={overlayActions.handleAnswer}
-      onAnswerWithVideo={overlayActions.handleAnswerWithVideo}
+      onAnswerWithVideo={
+        callBindings.incomingCallActions.canAnswerWithVideo
+          ? overlayActions.handleAnswerWithVideo
+          : undefined
+      }
       onReject={overlayActions.handleReject}
       onDismiss={overlayVm.handleDismiss}
     />

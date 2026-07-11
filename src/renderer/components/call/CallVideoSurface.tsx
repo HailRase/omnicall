@@ -20,12 +20,23 @@ export type CallVideoSurfaceProps = Readonly<{
     remoteVideoElement: HTMLVideoElement,
     localVideoElement: HTMLVideoElement,
   ) => void;
+  /** fullscreen: PiP with 24px edge inset matching control-bar `--space-lg`. */
+  pipMode?: "default" | "fullscreen";
 }>;
 
 type PipOffset = Readonly<{ x: number; y: number }>;
 
 const BIND_RETRY_MS = 400;
 const BIND_RETRY_ATTEMPTS = 12;
+/** Matches VideoFullscreenControlsBar `bottom: var(--space-lg)` (24px). */
+const FULLSCREEN_PIP_EDGE_INSET_PX = 24;
+
+function resolveFullscreenPipInsets(): Readonly<{ x: number; y: number }> {
+  return {
+    x: FULLSCREEN_PIP_EDGE_INSET_PX,
+    y: FULLSCREEN_PIP_EDGE_INSET_PX,
+  };
+}
 
 /**
  * - Purpose: present remote/local video with draggable/hideable local PiP.
@@ -36,6 +47,7 @@ export function CallVideoSurface({
   callId,
   videoState,
   onBindSurfaces,
+  pipMode = "default",
 }: CallVideoSurfaceProps): JSX.Element | null {
   const { t } = useI18n();
   const remoteRef = useRef<HTMLVideoElement | null>(null);
@@ -44,6 +56,7 @@ export function CallVideoSurface({
   const localPaneRef = useRef<HTMLDivElement | null>(null);
   const [localPipHidden, setLocalPipHidden] = useState(false);
   const [pipOffset, setPipOffset] = useState<PipOffset>({ x: 0, y: 0 });
+  const livePipOffsetRef = useRef<PipOffset>({ x: 0, y: 0 });
   const dragRef = useRef<
     Readonly<{
       pointerId: number;
@@ -99,6 +112,7 @@ export function CallVideoSurface({
     videoState.localVideoSource,
     videoState.remoteVideoPresent,
     videoState.sessionView,
+    videoState.cameraAvailable,
   ]);
 
   useEffect(() => {
@@ -106,22 +120,55 @@ export function CallVideoSurface({
   }, [callId]);
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
+    if (pipMode === "fullscreen") {
+      setLocalPipHidden(false);
+    }
+  }, [pipMode, videoState.sessionView]);
+
+  const applyPipOffset = useCallback((offset: PipOffset): void => {
+    livePipOffsetRef.current = offset;
+    setPipOffset(offset);
+  }, []);
+
+  useEffect(() => {
+    const placeDefaultPip = (): void => {
+      if (dragRef.current !== null) {
+        return;
+      }
       const pane = remotePaneRef.current;
       const pip = localPaneRef.current;
       if (pane === null || pip === null) {
-        setPipOffset({ x: 0, y: 0 });
         return;
       }
-      setPipOffset({
-        x: Math.max(0, pane.clientWidth - pip.offsetWidth - 8),
-        y: Math.max(0, pane.clientHeight - pip.offsetHeight - 8),
+      if (pane.clientWidth < 8 || pane.clientHeight < 8 || pip.offsetWidth < 8) {
+        return;
+      }
+      const insets =
+        pipMode === "fullscreen"
+          ? resolveFullscreenPipInsets()
+          : { x: 8, y: 8 };
+      applyPipOffset({
+        x: Math.max(insets.x, pane.clientWidth - pip.offsetWidth - insets.x),
+        y: Math.max(insets.y, pane.clientHeight - pip.offsetHeight - insets.y),
       });
-    });
+    };
+
+    const frame = window.requestAnimationFrame(placeDefaultPip);
+    const pane = remotePaneRef.current;
+    const observer =
+      typeof ResizeObserver !== "undefined" && pane !== null
+        ? new ResizeObserver(() => {
+            placeDefaultPip();
+          })
+        : null;
+    if (observer !== null && pane !== null) {
+      observer.observe(pane);
+    }
     return () => {
       window.cancelAnimationFrame(frame);
+      observer?.disconnect();
     };
-  }, [callId, videoState.sessionView]);
+  }, [applyPipOffset, callId, pipMode, videoState.sessionView, videoState.localVideoMuted]);
 
   const clampPipOffset = useCallback((next: PipOffset): PipOffset => {
     const pane = remotePaneRef.current;
@@ -129,13 +176,17 @@ export function CallVideoSurface({
     if (pane === null || pip === null) {
       return next;
     }
-    const maxX = Math.max(0, pane.clientWidth - pip.offsetWidth);
-    const maxY = Math.max(0, pane.clientHeight - pip.offsetHeight);
+    const insets =
+      pipMode === "fullscreen"
+        ? resolveFullscreenPipInsets()
+        : { x: 0, y: 0 };
+    const maxX = Math.max(insets.x, pane.clientWidth - pip.offsetWidth - insets.x);
+    const maxY = Math.max(insets.y, pane.clientHeight - pip.offsetHeight - insets.y);
     return {
-      x: Math.min(Math.max(0, next.x), maxX),
-      y: Math.min(Math.max(0, next.y), maxY),
+      x: Math.min(Math.max(insets.x, next.x), maxX),
+      y: Math.min(Math.max(insets.y, next.y), maxY),
     };
-  }, []);
+  }, [pipMode]);
 
   const handlePipPointerDown = (event: ReactPointerEvent<HTMLDivElement>): void => {
     if (event.button !== 0 || localPipHidden) {
@@ -146,12 +197,13 @@ export function CallVideoSurface({
       return;
     }
     event.currentTarget.setPointerCapture(event.pointerId);
+    const origin = livePipOffsetRef.current;
     dragRef.current = {
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
-      originX: pipOffset.x,
-      originY: pipOffset.y,
+      originX: origin.x,
+      originY: origin.y,
       moved: false,
     };
   };
@@ -167,12 +219,12 @@ export function CallVideoSurface({
       return;
     }
     dragRef.current = { ...drag, moved: true };
-    setPipOffset(
-      clampPipOffset({
-        x: drag.originX + dx,
-        y: drag.originY + dy,
-      }),
-    );
+    const next = clampPipOffset({
+      x: drag.originX + dx,
+      y: drag.originY + dy,
+    });
+    livePipOffsetRef.current = next;
+    setPipOffset(next);
   };
 
   const handlePipPointerUp = (event: ReactPointerEvent<HTMLDivElement>): void => {
@@ -193,18 +245,26 @@ export function CallVideoSurface({
   const showRemote = shouldShowRemoteVideoSurface(videoState);
   const localMuted =
     videoState.localVideoMuted && videoState.localVideoSource !== "screen";
+  const fullscreenPipSuppressed = pipMode === "fullscreen" && localMuted;
+  const localPaneVisuallyHidden =
+    fullscreenPipSuppressed || (pipMode === "default" && localPipHidden);
   const viewClass =
-    videoState.sessionView === "fullscreen"
+    videoState.sessionView === "fullscreen" || pipMode === "fullscreen"
       ? styles.fullscreen
-      : videoState.sessionView === "expanded"
-        ? styles.expanded
-        : styles.compact;
+      : styles.expanded;
+  const localPaneClass =
+    pipMode === "fullscreen"
+      ? `${styles.localPane} ${styles.localPaneFullscreen}${
+          fullscreenPipSuppressed ? ` ${styles.localPaneHidden}` : ""
+        }`
+      : `${styles.localPane}${localPipHidden ? ` ${styles.localPaneHidden}` : ""}`;
 
   return (
     <section
       className={`${styles.surface} ${viewClass}`}
       data-testid={`call-video-surface-${callId}`}
       data-session-view={videoState.sessionView}
+      data-pip-mode={pipMode}
       aria-label={t("call.video.surfaceAria")}
     >
       <div ref={remotePaneRef} className={styles.remotePane}>
@@ -228,15 +288,16 @@ export function CallVideoSurface({
 
         <div
           ref={localPaneRef}
-          className={`${styles.localPane} ${localPipHidden ? styles.localPaneHidden : ""}`}
+          className={localPaneClass}
           style={{ transform: `translate(${pipOffset.x}px, ${pipOffset.y}px)` }}
           data-muted={localMuted ? "true" : "false"}
           data-source={videoState.localVideoSource}
           data-testid={`call-video-local-pane-${callId}`}
-          onPointerDown={handlePipPointerDown}
-          onPointerMove={handlePipPointerMove}
-          onPointerUp={handlePipPointerUp}
-          onPointerCancel={handlePipPointerUp}
+          data-pip-visible={localPaneVisuallyHidden ? "false" : "true"}
+          onPointerDown={localPaneVisuallyHidden ? undefined : handlePipPointerDown}
+          onPointerMove={localPaneVisuallyHidden ? undefined : handlePipPointerMove}
+          onPointerUp={localPaneVisuallyHidden ? undefined : handlePipPointerUp}
+          onPointerCancel={localPaneVisuallyHidden ? undefined : handlePipPointerUp}
         >
           <video
             ref={localRef}
@@ -247,24 +308,26 @@ export function CallVideoSurface({
             muted
             hidden={localMuted}
           />
-          {localMuted ? (
+          {localMuted && pipMode === "default" ? (
             <p className={styles.localMutedLabel}>{t("call.video.cameraOff")}</p>
           ) : null}
-          <button
-            type="button"
-            className={styles.localHideButton}
-            data-testid={`call-video-local-hide-${callId}`}
-            aria-label={t("call.video.hideLocalPreview")}
-            onClick={(event) => {
-              event.stopPropagation();
-              setLocalPipHidden(true);
-            }}
-          >
-            <AppIcon id="overlay.close" size={12} decorative />
-          </button>
+          {pipMode === "default" ? (
+            <button
+              type="button"
+              className={styles.localHideButton}
+              data-testid={`call-video-local-hide-${callId}`}
+              aria-label={t("call.video.hideLocalPreview")}
+              onClick={(event) => {
+                event.stopPropagation();
+                setLocalPipHidden(true);
+              }}
+            >
+              <AppIcon id="overlay.close" size={12} decorative />
+            </button>
+          ) : null}
         </div>
 
-        {localPipHidden ? (
+        {pipMode === "default" && localPipHidden ? (
           <button
             type="button"
             className={styles.localShowButton}

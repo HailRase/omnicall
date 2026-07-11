@@ -52,9 +52,13 @@ describe("CallVideoMediaState", () => {
     expect(areCameraControlsEnabled(state)).toBe(false);
   });
 
-  it("allows screen share only in fullscreen video mode", () => {
+  it("allows screen share in expanded or fullscreen video mode", () => {
     let state = createInitialCallVideoMediaState("video");
+    expect(isScreenShareAllowed(state)).toBe(true);
+    state = setSessionViewMode(state, "hidden");
     expect(isScreenShareAllowed(state)).toBe(false);
+    state = setSessionViewMode(state, "expanded");
+    expect(isScreenShareAllowed(state)).toBe(true);
     state = setSessionViewMode(state, "fullscreen");
     expect(isScreenShareAllowed(state)).toBe(true);
   });

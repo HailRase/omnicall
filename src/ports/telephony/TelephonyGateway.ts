@@ -79,6 +79,12 @@ export type TelephonyRemoteVideoPresenceNotification = Readonly<{
   correlationId: CorrelationId;
 }>;
 
+export type TelephonyIncomingRemoteVideoOfferedNotification = Readonly<{
+  callId: CallId;
+  offered: boolean;
+  correlationId: CorrelationId;
+}>;
+
 export type TelephonyCameraAvailabilityNotification = Readonly<{
   callId: CallId;
   available: boolean;
@@ -165,6 +171,12 @@ export interface TelephonyGateway {
   setRemoteVideoPresenceHandler(
     handler:
       | ((notification: TelephonyRemoteVideoPresenceNotification) => Promise<void>)
+      | null,
+  ): () => void;
+  /** F-027: adapter invokes when ringing inbound offer video presence is known. */
+  setIncomingRemoteVideoOfferedHandler(
+    handler:
+      | ((notification: TelephonyIncomingRemoteVideoOfferedNotification) => Promise<void>)
       | null,
   ): () => void;
   /** F-027: adapter invokes after local camera probe/capture result is known. */

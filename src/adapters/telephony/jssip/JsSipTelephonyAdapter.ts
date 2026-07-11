@@ -15,6 +15,7 @@ import type {
   TelephonyRemoteHoldNotification,
   TelephonyRemoteResumeNotification,
   TelephonyRemoteVideoPresenceNotification,
+  TelephonyIncomingRemoteVideoOfferedNotification,
   TelephonyCameraAvailabilityNotification,
   TelephonyGateway,
   TelephonyIncomingCallNotification,
@@ -124,6 +125,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
   private readonly mediaModeByCallId = new Map<CallId, CallMediaMode>();
   private readonly remoteSdpByCallId = new Map<CallId, string>();
   private readonly remoteVideoPresenceByCallId = new Map<CallId, boolean>();
+  private readonly incomingRemoteVideoOfferedByCallId = new Map<CallId, boolean>();
   private ua: JsSipUaPort | null = null;
   private storedAccount: SipAccount | null = null;
   private lastCorrelationId: CorrelationId = createCorrelationId();
@@ -148,6 +150,9 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     | null = null;
   private remoteVideoPresenceHandler:
     | ((notification: TelephonyRemoteVideoPresenceNotification) => Promise<void>)
+    | null = null;
+  private incomingRemoteVideoOfferedHandler:
+    | ((notification: TelephonyIncomingRemoteVideoOfferedNotification) => Promise<void>)
     | null = null;
   private cameraAvailabilityHandler:
     | ((notification: TelephonyCameraAvailabilityNotification) => Promise<void>)
@@ -284,6 +289,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       this.mediaModeByCallId.clear();
       this.remoteSdpByCallId.clear();
       this.remoteVideoPresenceByCallId.clear();
+      this.incomingRemoteVideoOfferedByCallId.clear();
 
       this.logger.info("jssip_unregister_succeeded", {
         correlationId,
@@ -1077,6 +1083,17 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     };
   }
 
+  setIncomingRemoteVideoOfferedHandler(
+    handler:
+      | ((notification: TelephonyIncomingRemoteVideoOfferedNotification) => Promise<void>)
+      | null,
+  ): () => void {
+    this.incomingRemoteVideoOfferedHandler = handler;
+    return () => {
+      this.incomingRemoteVideoOfferedHandler = null;
+    };
+  }
+
   setCameraAvailabilityHandler(
     handler:
       | ((notification: TelephonyCameraAvailabilityNotification) => Promise<void>)
@@ -1177,6 +1194,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     this.mediaModeByCallId.delete(callId);
     this.remoteSdpByCallId.delete(callId);
     this.remoteVideoPresenceByCallId.delete(callId);
+    this.incomingRemoteVideoOfferedByCallId.delete(callId);
     this.logger.debug("jssip_peer_connection_unbound", {
       correlationId: this.lastCorrelationId,
       featureId: FEATURE_ID_REGISTRATION,
@@ -1306,7 +1324,14 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       callId,
     });
 
+    // Publish IncomingCallReceived first so offered SDP can bind to projection.callId.
     await this.incomingCallHandler(notification);
+
+    const inviteSdp =
+      extractInviteRequestSdp(event.request) ?? this.remoteSdpByCallId.get(callId) ?? null;
+    if (inviteSdp !== null) {
+      this.handleRemoteSdp(callId, correlationId, inviteSdp);
+    }
   }
 
   private async handleSessionConfirmed(
@@ -1398,10 +1423,63 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     sdp: string,
   ): void {
     this.remoteSdpByCallId.set(callId, sdp);
+    if (!this.mediaModeByCallId.has(callId)) {
+      this.notifyIncomingRemoteVideoOffered(callId, correlationId, sdp);
+      return;
+    }
     if (this.mediaModeByCallId.get(callId) !== "video") {
       return;
     }
     this.notifyRemoteVideoPresence(callId, correlationId, sdp);
+  }
+
+  private notifyIncomingRemoteVideoOffered(
+    callId: CallId,
+    correlationId: CorrelationId,
+    sdp: string,
+  ): void {
+    const offered = detectRemoteVideoPresence(sdp);
+    if (this.incomingRemoteVideoOfferedByCallId.get(callId) === offered) {
+      return;
+    }
+    this.incomingRemoteVideoOfferedByCallId.set(callId, offered);
+    this.logger.info("jssip_incoming_remote_video_offered_detected", {
+      correlationId,
+      featureId: FEATURE_ID_VIDEO_CALLS,
+      boundedContext: "Media",
+      operation: "incoming_remote_video_offered",
+      callId,
+      result: offered ? "offered" : "absent",
+    });
+    void this.dispatchIncomingRemoteVideoOffered({
+      callId,
+      offered,
+      correlationId,
+    });
+  }
+
+  private async dispatchIncomingRemoteVideoOffered(
+    notification: TelephonyIncomingRemoteVideoOfferedNotification,
+  ): Promise<void> {
+    if (this.incomingRemoteVideoOfferedHandler === null) {
+      return;
+    }
+    try {
+      await this.incomingRemoteVideoOfferedHandler(notification);
+    } catch (error: unknown) {
+      this.logger.error(
+        "jssip_incoming_remote_video_offered_handler_failed",
+        {
+          correlationId: notification.correlationId,
+          featureId: FEATURE_ID_VIDEO_CALLS,
+          boundedContext: "Media",
+          operation: "incoming_remote_video_offered",
+          callId: notification.callId,
+          result: normalizeUnknownError(error).code,
+        },
+        error,
+      );
+    }
   }
 
   private handleRemoteInfoNoVideo(
@@ -1887,6 +1965,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       this.mediaModeByCallId.clear();
       this.remoteSdpByCallId.clear();
       this.remoteVideoPresenceByCallId.clear();
+      this.incomingRemoteVideoOfferedByCallId.clear();
       this.registrationInvalidated = true;
       this.transportConnectedNotified = false;
       this.intentionalShutdown = false;
@@ -1936,4 +2015,20 @@ function isJsSipNewRtcSessionEvent(value: unknown): value is JsSipNewRtcSessionE
 
   const session = candidate.session as { id?: unknown };
   return typeof session.id === "string";
+}
+
+/**
+ * - Purpose: read SDP body from inbound INVITE request when already present.
+ * - Inputs: JsSIP newRTCSession request object.
+ * - Outputs: SDP string or null when body is missing/non-SDP.
+ */
+function extractInviteRequestSdp(request: unknown): string | null {
+  if (typeof request !== "object" || request === null) {
+    return null;
+  }
+  const body = (request as { body?: unknown }).body;
+  if (typeof body !== "string" || !body.includes("m=")) {
+    return null;
+  }
+  return body;
 }

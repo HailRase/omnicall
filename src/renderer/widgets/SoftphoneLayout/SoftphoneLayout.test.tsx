@@ -25,4 +25,24 @@ describe("SoftphoneLayout", () => {
     expect(screen.getByTestId("layout-controls-zone")).toHaveTextContent("Controls");
     expect(screen.getByTestId("layout-overlay-layer")).toHaveTextContent("Overlays");
   });
+
+  it("applies video fullscreen context fill class", () => {
+    render(
+      <SoftphoneLayout
+        videoFullscreen
+        header={<span>Header</span>}
+        context={<span>Context</span>}
+        controls={<span>Controls</span>}
+        overlays={<span>Overlays</span>}
+      />,
+    );
+
+    expect(screen.getByTestId("softphone-layout")).toHaveAttribute(
+      "data-video-fullscreen",
+      "true",
+    );
+    expect(screen.getByTestId("layout-context-zone").className).toMatch(
+      /contextVideoFullscreen|context-video-fullscreen/,
+    );
+  });
 });

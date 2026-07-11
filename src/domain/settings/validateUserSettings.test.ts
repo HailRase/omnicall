@@ -224,7 +224,7 @@ describe("validateUserSettings", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.preferredAudioInputDeviceId).toBeNull();
-      expect(result.value.defaultSessionView).toBe("compact");
+      expect(result.value.defaultSessionView).toBe("expanded");
       expect(result.value.autoFullscreenOnConference).toBe(false);
       expect(result.value.conferenceNumberSubstring).toBeNull();
     }

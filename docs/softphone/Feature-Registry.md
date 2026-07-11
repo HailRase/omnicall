@@ -734,18 +734,22 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: _none_ (new product feature; behavioral parity with legacy OS-1509 video ? see `video-integration/video-integration.md`)
 - Context: Media | Telephony | Settings
 - Priority: high
-- Status: **in progress** (WU1-WU7 + Settings Video UI done; WU8 SBC smoke next)
+- Status: **in progress** (WU1-WU7 + Settings Video UI done; WU9a–WU9c video UX: answer gate, screen-share picker/caps, fullscreen modal + session views expanded|hidden|fullscreen + outbound sender sync; WU8 SBC smoke next)
 - Owner: TBD
 - Inputs: per-call media mode (audio|video), device prefs, session view, capture probe, SIP/WebRTC session
 - Outputs: video-capable calls, cam/mic/screen controls, view modes, projections, Domain events
 - Acceptance Criteria:
   - Per-call `mediaMode` (ADR-0008); no global `audioOnly` as primary UX.
   - Dialpad: audio Call + Video call button; Video call disabled with semantic reason keys until ready/guards fail.
+  - Incoming: «Answer with video» only when remote INVITE SDP offers active video (`IncomingRemoteVideoOfferedChanged`); audio-only inbound hides the action.
   - Video-mode calls negotiate video m-line; local camera privacy-muted until user enables.
   - Single Media mute/source path (`replaceTrack` / capture port); no dual JsSIP mute paths.
   - Stub video track when camera unavailable (preserve SDP video m-line).
-  - Remote no-video via SDP and/or SIP INFO mapped to `remoteVideoPresent`.
-  - Session views: compact | expanded | fullscreen; local PiP; screen share in fullscreen with `track.onended`.
+  - Remote no-video via SDP and/or SIP INFO and live receiver tracks mapped to `remoteVideoPresent`.
+  - Session views: expanded (minimal) | hidden (no video blocks) | fullscreen (edge-to-edge modal); local PiP (hidden in fullscreen when local camera off); screen share from expanded or fullscreen with `track.onended`.
+  - Screen share opens in-app source picker (screen/window via IPC `desktopCapturer`; screens+windows enumerated separately; PNG data-URL previews via `toPNG` + CSP `img-src data:`); main grants only the user-selected pending source (`useSystemPicker: false`); cancel never mutates video projection.
+  - Screen capture caps: getDisplayMedia ≤1920×1080 @15–30fps; outbound `contentHint=detail` + maxFramerate/maxBitrate on sender after replaceTrack.
+  - Fullscreen session view expands Electron shell to display work area and opens edge-to-edge video modal with oval controls (mic/camera off = red bg + white icon; hangup = Phone on red; macOS-like blur bar); close (X) returns to expanded/minimal; PiP clamped ≥24px (`--space-lg`) from edges; view-mode menu omits the active mode; leaving fullscreen / call end / answer-another always restores compact main-display bounds; incoming overlay stays on top; answer exits video fullscreen to expanded + main dialpad surface.
   - Settings: preferred devices, default view, auto-fullscreen, video codecs applied on video sessions.
   - Existing audio mute/hold/headset/DTMF paths remain green; default `mediaMode: audio` until JsSIP video WU.
   - UI binds projections only; no gUM/SIP/MediaStream in Domain or Zustand.
@@ -768,3 +772,6 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (WU7): `answerCallById(callId, mediaMode?)`; `handleAnswerIncomingWithVideo`; Answer with video on `IncomingCallSessionCard` + `IncomingCallOverlay`; hold disables cam/screen on controls bar; i18n ru/en/fr/de/bg
 - Implementation evidence (WU8 prep): handoffs/P13-Video-Calls-WU8-SBC-Smoke-Checklist.md; resolveInitialSessionView; screen-share onended wiring; SIP INFO `no-video-remote`; default/auto session view on make/answer
 - Implementation evidence (Settings Video UI): `SettingsVideoPanel`; `useVideoSettingsPanel`; `LocalMediaCapturePort.listInputDevices` / `startCameraPreview` / `stopCameraPreview`; facade bind/list/preview; Settings nav `video`; i18n ru/en/fr/de/bg
+- Implementation evidence (WU9a inbound video-answer gate): hide Answer with video unless remote SDP offers video; remote bind stability; work-area fullscreen; expanded screen share; display-media handler
+- Implementation evidence (WU9b screen-share picker + caps): `DisplayCaptureContract` + IPC list/set-pending; `registerDisplayCaptureIpc`; pending source store; `installDisplayMediaRequestHandler` grants selected source only; `ScreenSharePickerDialog` + `useScreenSharePicker`; `applyScreenShareEncodingPolicy`; capture constraints 1080p/15–30fps; i18n ru/en/fr/de/bg
+- Implementation evidence (WU9c video UX refactor): session views `expanded|hidden|fullscreen` (legacy compact→expanded); `VideoFullscreenModal` + oval `VideoFullscreenControlsBar` + close→expanded; view-mode DropdownMenu (omit active mode); fullscreen PiP hidden when cam off, edge inset 24px; mic polarity + red off/hangup styling; macOS-like blur chrome; shell compact restore (snapshot guard); screen-share picker: separate screen/window enum, `toPNG` previews, CSP `img-src data:`; incoming overlay above fullscreen; picker marquee labels

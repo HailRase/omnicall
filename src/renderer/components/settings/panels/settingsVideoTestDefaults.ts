@@ -4,7 +4,7 @@ import type { SettingsVideoPanelProps } from "./SettingsVideoPanel.js";
 export const settingsVideoStoryDefaults: SettingsVideoPanelProps = {
   preferredAudioInputDeviceId: null,
   preferredVideoInputDeviceId: null,
-  defaultSessionView: "compact",
+  defaultSessionView: "expanded",
   autoFullscreenOnConference: false,
   conferenceNumberSubstring: null,
   audioDevices: [

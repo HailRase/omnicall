@@ -14,6 +14,7 @@ import type {
   TelephonyRemoteHoldNotification,
   TelephonyRemoteResumeNotification,
   TelephonyRemoteVideoPresenceNotification,
+  TelephonyIncomingRemoteVideoOfferedNotification,
   TelephonyCameraAvailabilityNotification,
   TelephonyIncomingCallNotification,
   TelephonyRegistrationFailedNotification,
@@ -118,6 +119,9 @@ export class MockTelephonyGateway implements TelephonyGateway {
     | null = null;
   private remoteVideoPresenceHandler:
     | ((notification: TelephonyRemoteVideoPresenceNotification) => Promise<void>)
+    | null = null;
+  private incomingRemoteVideoOfferedHandler:
+    | ((notification: TelephonyIncomingRemoteVideoOfferedNotification) => Promise<void>)
     | null = null;
   private cameraAvailabilityHandler:
     | ((notification: TelephonyCameraAvailabilityNotification) => Promise<void>)
@@ -627,6 +631,17 @@ export class MockTelephonyGateway implements TelephonyGateway {
     };
   }
 
+  setIncomingRemoteVideoOfferedHandler(
+    handler:
+      | ((notification: TelephonyIncomingRemoteVideoOfferedNotification) => Promise<void>)
+      | null,
+  ): () => void {
+    this.incomingRemoteVideoOfferedHandler = handler;
+    return () => {
+      this.incomingRemoteVideoOfferedHandler = null;
+    };
+  }
+
   setCameraAvailabilityHandler(
     handler:
       | ((notification: TelephonyCameraAvailabilityNotification) => Promise<void>)
@@ -749,6 +764,14 @@ export class MockTelephonyGateway implements TelephonyGateway {
   ): Promise<void> {
     if (this.remoteVideoPresenceHandler !== null) {
       await this.remoteVideoPresenceHandler(notification);
+    }
+  }
+
+  async simulateIncomingRemoteVideoOffered(
+    notification: TelephonyIncomingRemoteVideoOfferedNotification,
+  ): Promise<void> {
+    if (this.incomingRemoteVideoOfferedHandler !== null) {
+      await this.incomingRemoteVideoOfferedHandler(notification);
     }
   }
 

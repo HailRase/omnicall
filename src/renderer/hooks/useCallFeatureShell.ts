@@ -20,6 +20,7 @@ import { useSoftphoneCallActions } from "./useSoftphoneCallActions.js";
 import { useIncomingCallActions } from "./useIncomingCallActions.js";
 import { useSoftphoneProjections } from "./useSoftphoneProjections.js";
 import { useVideoCallActions } from "./useVideoCallActions.js";
+import { useScreenSharePicker } from "./useScreenSharePicker.js";
 import { applyHeadsetSyncBusyToActiveCallControls } from "@application/projections/headset/applyHeadsetSyncBusyToActiveCallControls.js";
 
 type UseCallFeatureShellInput = Readonly<{
@@ -129,7 +130,11 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     contacts,
   });
   const callLinesActions = useCallLinesActions({ facade, shell: callLinesShell });
-  const videoCallActions = useVideoCallActions({ facade });
+  const screenSharePicker = useScreenSharePicker({ facade });
+  const videoCallActions = useVideoCallActions({
+    facade,
+    openScreenSharePicker: screenSharePicker.openPicker,
+  });
 
   const handleTransferLine = (callId: string): void => {
     const line = callLinesShell.lines.find((entry) => entry.callId === callId);
@@ -231,6 +236,18 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     }
     return callVideoMediaUiProjection.byCallId[callId] ?? null;
   }, [callVideoMediaUiProjection.byCallId, controlTargetLine?.callId]);
+
+  const exitVideoFullscreen = useCallback((): void => {
+    const callId = controlTargetLine?.callId;
+    const videoState = controlTargetVideoState;
+    if (callId === undefined || videoState === null) {
+      return;
+    }
+    if (videoState.sessionView !== "fullscreen") {
+      return;
+    }
+    videoCallActions.handleSetSessionView(callId, "expanded");
+  }, [controlTargetLine?.callId, controlTargetVideoState, videoCallActions]);
 
   const outgoingDisplayName = useMemo(() => {
     const presentation = buildContactDirectory(contacts).resolvePresentation({
@@ -350,6 +367,8 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     controlTargetLine,
     controlTargetVideoState,
     videoCallActions,
+    screenSharePicker,
+    exitVideoFullscreen,
     selectCallLine,
     selectIncomingCall,
     incomingCallId,

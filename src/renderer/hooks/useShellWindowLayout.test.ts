@@ -9,33 +9,46 @@ vi.mock("@adapters/platform/PreloadShellWindowGateway.js", () => ({
 }));
 
 describe("useShellWindowLayout", () => {
-  it("syncs layout when settings open state changes", () => {
+  it("syncs layout when settings or video fullscreen state changes", () => {
     const syncSpy = vi
-      .spyOn(ShellWindowLayoutService.prototype, "syncForSettingsOverlay")
+      .spyOn(ShellWindowLayoutService.prototype, "syncLayout")
       .mockResolvedValue(undefined);
 
     const { rerender } = renderHook(
-      ({ settingsOpen }) => useShellWindowLayout({ settingsOpen }),
-      { initialProps: { settingsOpen: false } },
+      ({ settingsOpen, videoFullscreen }) =>
+        useShellWindowLayout({ settingsOpen, videoFullscreen }),
+      { initialProps: { settingsOpen: false, videoFullscreen: false } },
     );
 
     expect(syncSpy).not.toHaveBeenCalled();
 
     act(() => {
-      rerender({ settingsOpen: true });
+      rerender({ settingsOpen: true, videoFullscreen: false });
     });
 
     expect(syncSpy).toHaveBeenCalledWith({
       settingsOpen: true,
+      videoFullscreen: false,
       reducedMotion: expect.any(Boolean) as boolean,
     });
 
     act(() => {
-      rerender({ settingsOpen: false });
+      rerender({ settingsOpen: false, videoFullscreen: true });
     });
 
     expect(syncSpy).toHaveBeenLastCalledWith({
       settingsOpen: false,
+      videoFullscreen: true,
+      reducedMotion: expect.any(Boolean) as boolean,
+    });
+
+    act(() => {
+      rerender({ settingsOpen: false, videoFullscreen: false });
+    });
+
+    expect(syncSpy).toHaveBeenLastCalledWith({
+      settingsOpen: false,
+      videoFullscreen: false,
       reducedMotion: expect.any(Boolean) as boolean,
     });
 

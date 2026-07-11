@@ -2,9 +2,9 @@
 
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
-**Updated:** 2026-07-09  
-**Tests:** typecheck green; media/settings video panel targeted tests — last verified 2026-07-09 (F-027 Settings Video UI)
-**Lint / typecheck:** green (last verified 2026-07-09)
+**Updated:** 2026-07-11  
+**Tests:** typecheck green; targeted video/shell layout tests — last verified 2026-07-11 (F-027 WU9 video stability)
+**Lint / typecheck:** green (last verified 2026-07-11)
 
 **Guides (onboarding):** [`guides/README.md`](../../guides/README.md) — установка, пользователь, агенты Cursor, релизы.
 
@@ -12,7 +12,7 @@
 
 **P10 — Headset integration (F-012)** — **done** (`handoffs/P10-Headset-Integration-Handoff.md`)
 
-**P13 — Video calls (F-027)** — **in progress** (WU1–WU7 + Settings Video UI done; WU8 SBC smoke next)
+**P13 — Video calls (F-027)** — **in progress** (WU1–WU7 + Settings Video UI + WU9a/b/WU10 stability done; WU8 SBC smoke next)
 
 | WU | Status | Notes |
 | --- | --- | --- |
@@ -24,6 +24,7 @@
 | WU6 UI dial + surfaces | done | dual dial; `CallVideoSurface`; cam/screen/view controls; store projection |
 | WU7 Incoming video answer | done | Answer + Answer with video; hold disables cam/screen controls |
 | Settings Video UI | done | Settings → Video: devices, preview, default view, auto-fullscreen |
+| WU9a/b + WU10 | done | inbound video-answer SDP gate; remote bind/presence stability; screen share from expanded; work-area `video-fullscreen` shell |
 | WU8 SBC smoke + close | pending | checklist `handoffs/P13-Video-Calls-WU8-SBC-Smoke-Checklist.md`; needs manual SBC |
 
 Design: `P13-Video-Calls-Design.md`. ADR: `adr/ADR-0008-video-calls-media-mode.md`.

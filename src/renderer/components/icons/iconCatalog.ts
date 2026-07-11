@@ -118,6 +118,7 @@ export type IconSemanticId =
   | "call.screenShareStop"
   | "call.videoExpand"
   | "call.videoCollapse"
+  | "call.videoHidden"
   | "call.transfer"
   | "call.incoming"
   | "call.outgoing"
@@ -317,11 +318,16 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     usage: ["IncomingCallOverlay", "IncomingCallSessionCard"],
   },
   "call.hangup": {
-    static: PhoneOff,
-    animated: PhoneOffIcon,
+    static: Phone,
+    animated: PhoneIcon,
     defaultLabelKey: "icons.call.hangup",
     defaultSize: 20,
-    usage: ["CallLineRow", "ActiveCallControlsPanel"],
+    usage: [
+      "CallLineRow",
+      "ActiveCallControlsPanel",
+      "CallControlsBar",
+      "VideoFullscreenControlsBar",
+    ],
   },
   "call.hold": {
     static: Pause,
@@ -387,6 +393,12 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultSize: 20,
     usage: ["CallControlsBar: control-video-expand (collapse from fullscreen)"],
   },
+  "call.videoHidden": {
+    static: EyeOff,
+    defaultLabelKey: "icons.call.videoHidden",
+    defaultSize: 20,
+    usage: ["VideoFullscreenControlsBar: view-mode-hidden"],
+  },
   "call.transfer": {
     static: PhoneForwarded,
     animated: PhoneForwardedIcon,
@@ -425,6 +437,7 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
       "LogoutActiveSessionConfirmationModal",
       "TransferPanel: control-cancel-transfer",
       "UpdateAvailableBanner: update-available-banner-later",
+      "VideoFullscreenModal",
     ],
   },
   "dial.call": {

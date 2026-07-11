@@ -14,7 +14,7 @@ const videoState: CallVideoMediaState = {
   localVideoMuted: true,
   localVideoSource: "camera",
   remoteVideoPresent: false,
-  sessionView: "compact",
+  sessionView: "expanded",
   cameraAvailable: true,
 };
 
@@ -64,5 +64,45 @@ describe("CallVideoSurface", () => {
       />,
     );
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it("hides local PiP in fullscreen when local camera is off", () => {
+    render(
+      <CallVideoSurface
+        callId="call-1"
+        videoState={{
+          ...videoState,
+          localVideoMuted: true,
+          sessionView: "fullscreen",
+        }}
+        onBindSurfaces={vi.fn()}
+        pipMode="fullscreen"
+      />,
+    );
+
+    const pane = screen.getByTestId("call-video-local-pane-call-1");
+    expect(pane).toHaveAttribute("data-pip-visible", "false");
+    expect(pane.className).toMatch(/localPaneHidden/);
+    expect(screen.queryByText("Камера выкл.")).not.toBeInTheDocument();
+  });
+
+  it("keeps local PiP visible in fullscreen when camera is on", () => {
+    render(
+      <CallVideoSurface
+        callId="call-1"
+        videoState={{
+          ...videoState,
+          localVideoMuted: false,
+          sessionView: "fullscreen",
+        }}
+        onBindSurfaces={vi.fn()}
+        pipMode="fullscreen"
+      />,
+    );
+
+    expect(screen.getByTestId("call-video-local-pane-call-1")).toHaveAttribute(
+      "data-pip-visible",
+      "true",
+    );
   });
 });

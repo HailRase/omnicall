@@ -28,6 +28,7 @@ type UseIncomingCallOverlayActionsInput = Readonly<{
   setCallMode: (mode: "number" | "dtmf", dtmfPanelCallId?: string | null) => void;
   closeNumberEntryOverlay: () => void;
   selectIncomingCall: () => void;
+  exitVideoFullscreen: () => void;
 }>;
 
 type UseIncomingCallOverlayActionsResult = Readonly<{
@@ -57,11 +58,13 @@ export function useIncomingCallOverlayActions(
     setCallMode,
     closeNumberEntryOverlay,
     selectIncomingCall,
+    exitVideoFullscreen,
   } = input;
 
   const wasAnsweringRef = useRef(false);
 
   const focusMainCallSurface = useCallback((): void => {
+    exitVideoFullscreen();
     goToDialpad();
     if (settingsOpen) {
       closeSettings();
@@ -75,6 +78,7 @@ export function useIncomingCallOverlayActions(
   }, [
     closeNumberEntryOverlay,
     closeSettings,
+    exitVideoFullscreen,
     goToDialpad,
     selectIncomingCall,
     setCallMode,

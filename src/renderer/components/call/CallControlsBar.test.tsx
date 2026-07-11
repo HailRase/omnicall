@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { CallLineCardViewModel } from "@application/index.js";
 import { CallControlsBar } from "./CallControlsBar.js";
@@ -220,5 +221,38 @@ describe("CallControlsBar", () => {
     );
 
     expect(screen.getByTestId("control-video-expand-line-call-1")).toBeEnabled();
+  });
+
+  it("omits current session view from view-mode menu", async () => {
+    const user = userEvent.setup();
+    render(
+      <CallControlsBar
+        line={activeLine}
+        videoState={{
+          mediaMode: "video",
+          localVideoMuted: false,
+          localVideoSource: "camera",
+          remoteVideoPresent: true,
+          sessionView: "expanded",
+          cameraAvailable: true,
+        }}
+        onHold={vi.fn()}
+        onResume={vi.fn()}
+        onMute={vi.fn()}
+        onUnmute={vi.fn()}
+        onHangup={vi.fn()}
+        onTransfer={vi.fn()}
+        onShowDtmf={vi.fn()}
+        onShowNumberEntry={vi.fn()}
+        onToggleCamera={vi.fn()}
+        onToggleScreenShare={vi.fn()}
+        onSetSessionView={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByTestId("control-video-view-mode-line-call-1"));
+    expect(screen.queryByTestId("control-view-mode-expanded")).not.toBeInTheDocument();
+    expect(await screen.findByTestId("control-view-mode-fullscreen")).toBeInTheDocument();
+    expect(screen.getByTestId("control-view-mode-hidden")).toBeInTheDocument();
   });
 });

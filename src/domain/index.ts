@@ -612,7 +612,6 @@ export {
   SESSION_VIEW_MODES,
   isSessionViewMode,
   parseSessionViewMode,
-  resolveNextSessionViewMode,
 } from "./media/SessionViewMode.js";
 export type { CallVideoMediaState } from "./media/CallVideoMediaState.js";
 export {
@@ -625,6 +624,7 @@ export {
   setRemoteVideoPresent,
   setSessionViewMode,
   shouldShowRemoteVideoSurface,
+  shouldShowVideoSurfaces,
 } from "./media/CallVideoMediaState.js";
 export type {
   ResolveVideoCallAvailabilityInput,
@@ -637,6 +637,7 @@ export { resolveInitialSessionView } from "./media/resolveInitialSessionView.js"
 export type {
   CallMediaModeSelectedEvent,
   CameraAvailabilityChangedEvent,
+  IncomingRemoteVideoOfferedChangedEvent,
   LocalVideoMutedChangedEvent,
   LocalVideoSourceChangedEvent,
   RemoteVideoPresenceChangedEvent,
@@ -646,6 +647,7 @@ export type {
 export {
   createCallMediaModeSelectedEvent,
   createCameraAvailabilityChangedEvent,
+  createIncomingRemoteVideoOfferedChangedEvent,
   createLocalVideoMutedChangedEvent,
   createLocalVideoSourceChangedEvent,
   createRemoteVideoPresenceChangedEvent,

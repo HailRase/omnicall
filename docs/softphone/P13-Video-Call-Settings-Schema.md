@@ -17,7 +17,7 @@ Migration: v0…v4 → v5 via `migrateUserSettings`; missing video fields get sa
 | --- | --- | --- | --- |
 | `preferredAudioInputDeviceId` | `string \| null` | `null` | Mic deviceId; null = system default |
 | `preferredVideoInputDeviceId` | `string \| null` | `null` | Camera deviceId; null = system default |
-| `defaultSessionView` | `compact \| expanded \| fullscreen` | `compact` | Layout after video connect |
+| `defaultSessionView` | `expanded \| hidden \| fullscreen` | `expanded` | Layout after video connect (legacy `compact` migrates to `expanded`) |
 | `autoFullscreenOnConference` | `boolean` | `false` | Auto fullscreen when substring matches |
 | `conferenceNumberSubstring` | `string \| null` | `null` | Optional remote-number match; null disables |
 

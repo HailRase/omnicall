@@ -23,6 +23,7 @@ type UseIncomingCallActionsResult = Readonly<{
   handleRejectIncoming: () => void;
   answerDisabledReason: string | null;
   videoAnswerDisabledReason: string | null;
+  canAnswerWithVideo: boolean;
   rejectDisabledReason: string | null;
 }>;
 
@@ -64,6 +65,8 @@ export function useIncomingCallActions(
         holdAllInProgress: multiCallProjection.holdAllInProgress,
         videoCaptureAvailable: true,
         videoFeatureReady: true,
+        // Hide only when SDP explicitly has no video; null = still detecting.
+        remoteVideoOffered: incomingCallProjection.incomingRemoteVideoOffered !== false,
       });
       if (!videoAvailability.enabled) {
         return;
@@ -111,12 +114,23 @@ export function useIncomingCallActions(
     holdAllInProgress: multiCallProjection.holdAllInProgress,
     videoCaptureAvailable: true,
     videoFeatureReady: true,
+    remoteVideoOffered: incomingCallProjection.incomingRemoteVideoOffered !== false,
   });
+  // Show Answer with video unless inbound offer is known audio-only.
+  const canAnswerWithVideo =
+    incomingCallProjection.incomingRemoteVideoOffered !== false &&
+    videoAvailability.enabled;
   const videoAnswerDisabledReason =
-    answerDisabledReason ??
-    mapVideoCallDisabledReason(
-      videoAvailability.enabled ? null : videoAvailability.reason,
-    );
+    canAnswerWithVideo
+      ? null
+      : answerDisabledReason ??
+        mapVideoCallDisabledReason(
+          incomingCallProjection.incomingRemoteVideoOffered === false
+            ? "videoCall.disabled.remoteVideoNotOffered"
+            : videoAvailability.enabled
+              ? null
+              : videoAvailability.reason,
+        );
 
   const rejectDisabledReason =
     incomingCallProjection.uiState === "answering"
@@ -129,6 +143,7 @@ export function useIncomingCallActions(
     handleRejectIncoming,
     answerDisabledReason,
     videoAnswerDisabledReason,
+    canAnswerWithVideo,
     rejectDisabledReason,
   };
 }

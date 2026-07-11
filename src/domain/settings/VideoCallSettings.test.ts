@@ -17,7 +17,9 @@ describe("VideoCallSettings parsers", () => {
   });
 
   it("parses session view modes", () => {
-    expect(parseDefaultSessionViewSetting("compact")).toBe("compact");
+    expect(parseDefaultSessionViewSetting("compact")).toBe("expanded");
+    expect(parseDefaultSessionViewSetting("hidden")).toBe("hidden");
+    expect(parseDefaultSessionViewSetting("expanded")).toBe("expanded");
     expect(parseDefaultSessionViewSetting("expanded")).toBe("expanded");
     expect(parseDefaultSessionViewSetting("fullscreen")).toBe("fullscreen");
     expect(parseDefaultSessionViewSetting("minified")).toBeNull();

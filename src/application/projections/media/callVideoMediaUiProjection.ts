@@ -76,8 +76,8 @@ export function reduceCallVideoMediaUiProjection(
       const sessionView = event["sessionView"];
       if (
         callId === null ||
-        (sessionView !== "compact" &&
-          sessionView !== "expanded" &&
+        (sessionView !== "expanded" &&
+          sessionView !== "hidden" &&
           sessionView !== "fullscreen")
       ) {
         return projection;

@@ -1,4 +1,4 @@
-export type ShellWindowLayoutMode = "compact" | "settings";
+export type ShellWindowLayoutMode = "compact" | "settings" | "video-fullscreen";
 
 export type ShellWindowRectangle = Readonly<{
   x: number;
@@ -31,7 +31,7 @@ export type ShellWindowLayoutEasing = "settings-open" | "settings-close";
 
 /**
  * - Purpose: resolve whether the shell window accepts user resize for a layout mode (F-016).
- * - Inputs: compact or settings layout mode.
+ * - Inputs: compact, settings, or video-fullscreen layout mode.
  * - Outputs: true only in settings mode.
  */
 export function resolveShellWindowResizable(mode: ShellWindowLayoutMode): boolean {
@@ -39,7 +39,7 @@ export function resolveShellWindowResizable(mode: ShellWindowLayoutMode): boolea
 }
 
 /**
- * - Purpose: derive target BrowserWindow bounds for compact or settings shell layout (F-016).
+ * - Purpose: derive target BrowserWindow bounds for shell layout modes (F-016 / F-027).
  * - Inputs: layout mode, work area, saved compact dimensions, settings-session height.
  * - Outputs: target rectangle in screen coordinates.
  */
@@ -49,6 +49,15 @@ export function resolveShellWindowTargetBounds(
   compactDimensions: ShellWindowCompactDimensions,
   settingsSessionHeight: number,
 ): ShellWindowRectangle {
+  if (mode === "video-fullscreen") {
+    return {
+      x: workArea.x,
+      y: workArea.y,
+      width: workArea.width,
+      height: workArea.height,
+    };
+  }
+
   if (mode === "settings") {
     return computeCenteredBounds(
       workArea,

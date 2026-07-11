@@ -128,10 +128,22 @@ export function areCameraControlsEnabled(state: CallVideoMediaState): boolean {
 }
 
 /**
- * - Purpose: whether screen-share toggle is allowed (fullscreen layout).
+ * - Purpose: whether local/remote video UI blocks should render.
  * - Inputs: CallVideoMediaState.
- * - Outputs: true when video mode and fullscreen session view.
+ * - Outputs: true when video mode and session view is not hidden.
+ */
+export function shouldShowVideoSurfaces(state: CallVideoMediaState): boolean {
+  return state.mediaMode === "video" && state.sessionView !== "hidden";
+}
+
+/**
+ * - Purpose: whether screen-share toggle is allowed (expanded or fullscreen).
+ * - Inputs: CallVideoMediaState.
+ * - Outputs: true when video mode and session view shows video surfaces.
  */
 export function isScreenShareAllowed(state: CallVideoMediaState): boolean {
-  return state.mediaMode === "video" && state.sessionView === "fullscreen";
+  return (
+    state.mediaMode === "video" &&
+    (state.sessionView === "expanded" || state.sessionView === "fullscreen")
+  );
 }

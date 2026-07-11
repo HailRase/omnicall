@@ -23,6 +23,7 @@ import type { PlatformError } from "@shared/errors/index.js";
 import type { Result } from "@shared/result/index.js";
 import {
   bindLocalVideoPreview,
+  hasLiveRemoteVideoTrack,
   refreshPeerConnectionRemoteVideo,
   setLocalAudioTracksEnabled,
   wirePeerConnectionRemoteAudio,
@@ -35,11 +36,16 @@ const FEATURE_ID_VIDEO = "F-027";
 
 export type PeerConnectionProvider = (callId: CallId) => unknown;
 export type LocalVideoStreamProvider = (callId: CallId) => MediaStream | null;
+export type RemoteVideoTracksChangedHandler = (
+  callId: CallId,
+  present: boolean,
+) => void;
 
 export type BrowserMediaAdapterOptions = Readonly<{
   logger: Logger;
   getPeerConnection: PeerConnectionProvider;
   getLocalVideoStream?: LocalVideoStreamProvider;
+  onRemoteVideoTracksChanged?: RemoteVideoTracksChangedHandler;
   rootElement?: HTMLElement;
   tonePlayer?: WebAudioTonePlayer;
 }>;
@@ -57,18 +63,20 @@ export class BrowserMediaAdapter implements MediaGateway {
   private readonly logger: Logger;
   private readonly getPeerConnection: PeerConnectionProvider;
   private readonly getLocalVideoStream: LocalVideoStreamProvider | null;
+  private readonly onRemoteVideoTracksChanged: RemoteVideoTracksChangedHandler | null;
   private readonly explicitRootElement: HTMLElement | undefined;
   private resolvedRootElement: HTMLElement | null = null;
   private readonly tonePlayer: WebAudioTonePlayer;
   private readonly callStates = new Map<CallId, CallMediaState>();
   private readonly mutedCalls = new Set<CallId>();
   private readonly wiredRemoteAudioCalls = new Set<CallId>();
-  private readonly wiredRemoteVideoCalls = new Set<CallId>();
+  private readonly remoteVideoBoundConnectionByCallId = new Map<CallId, unknown>();
 
   constructor(options: BrowserMediaAdapterOptions) {
     this.logger = options.logger;
     this.getPeerConnection = options.getPeerConnection;
     this.getLocalVideoStream = options.getLocalVideoStream ?? null;
+    this.onRemoteVideoTracksChanged = options.onRemoteVideoTracksChanged ?? null;
     this.explicitRootElement = options.rootElement;
     this.tonePlayer = options.tonePlayer ?? new WebAudioTonePlayer();
   }
@@ -167,12 +175,23 @@ export class BrowserMediaAdapter implements MediaGateway {
 
       const connection = this.getPeerConnection(command.callId);
       if (connection !== null && connection !== undefined) {
-        const alreadyWired = this.wiredRemoteVideoCalls.has(command.callId);
-        const wired = alreadyWired
+        const boundConnection = this.remoteVideoBoundConnectionByCallId.get(
+          command.callId,
+        );
+        const sameConnection = boundConnection === connection;
+        const wired = sameConnection
           ? refreshPeerConnectionRemoteVideo(connection, remoteElement)
-          : wirePeerConnectionRemoteVideo(connection, remoteElement);
+          : wirePeerConnectionRemoteVideo(connection, remoteElement, {
+              attachTrackListener: true,
+              onRemoteVideoPresent: (present) => {
+                this.onRemoteVideoTracksChanged?.(command.callId, present);
+              },
+            });
         if (wired) {
-          this.wiredRemoteVideoCalls.add(command.callId);
+          this.remoteVideoBoundConnectionByCallId.set(command.callId, connection);
+          if (sameConnection) {
+            this.notifyRemoteVideoTracksIfNeeded(command.callId, connection);
+          }
         }
       } else {
         this.logger.warn("browser_media_peer_connection_missing", {
@@ -195,7 +214,7 @@ export class BrowserMediaAdapter implements MediaGateway {
         operation: "bind_call_video_surfaces",
         callId: command.callId,
         result: "succeeded",
-        remoteWired: this.wiredRemoteVideoCalls.has(command.callId),
+        remoteWired: this.remoteVideoBoundConnectionByCallId.has(command.callId),
         localPreview: localStream !== null,
       });
       return Promise.resolve(ok(undefined));
@@ -380,10 +399,12 @@ export class BrowserMediaAdapter implements MediaGateway {
       state.remoteAudioElement.remove();
       this.callStates.delete(callId);
       this.wiredRemoteAudioCalls.delete(callId);
+      this.remoteVideoBoundConnectionByCallId.delete(callId);
     }
 
     this.tonePlayer.dispose();
     this.mutedCalls.clear();
+    this.remoteVideoBoundConnectionByCallId.clear();
   }
 
   private async playTone(
@@ -450,6 +471,16 @@ export class BrowserMediaAdapter implements MediaGateway {
       });
       return ok(undefined);
     });
+  }
+
+  private notifyRemoteVideoTracksIfNeeded(
+    callId: CallId,
+    connection: unknown,
+  ): void {
+    if (this.onRemoteVideoTracksChanged === null) {
+      return;
+    }
+    this.onRemoteVideoTracksChanged(callId, hasLiveRemoteVideoTrack(connection));
   }
 
   private tryEnsureRemoteAudioElement(

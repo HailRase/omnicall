@@ -462,6 +462,14 @@ export class AccountBootstrapFacade {
       );
       return Promise.resolve();
     });
+    deps.telephonyGateway.setIncomingRemoteVideoOfferedHandler((notification) => {
+      this.callEngine.handleIncomingRemoteVideoOffered(
+        notification.callId,
+        notification.offered,
+        notification.correlationId,
+      );
+      return Promise.resolve();
+    });
     deps.telephonyGateway.setCameraAvailabilityHandler((notification) => {
       this.callEngine.handleCameraAvailability(
         notification.callId,
@@ -1601,6 +1609,10 @@ export class AccountBootstrapFacade {
     correlationId: CorrelationId,
   ): Promise<void> {
     return this.callEngine.handlePeerConnectionAvailable(callId, correlationId);
+  }
+
+  notifyRemoteVideoPresenceFromMedia(callId: CallId, present: boolean): void {
+    this.callEngine.handleRemoteVideoPresence(callId, present);
   }
 }
 

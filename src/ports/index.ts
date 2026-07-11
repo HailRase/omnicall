@@ -51,6 +51,7 @@ export type {
   TelephonyRemoteHoldNotification,
   TelephonyRemoteResumeNotification,
   TelephonyRemoteVideoPresenceNotification,
+  TelephonyIncomingRemoteVideoOfferedNotification,
   TelephonyCameraAvailabilityNotification,
   TelephonyIncomingCallNotification,
   TelephonyTransportConnectingNotification,

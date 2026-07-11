@@ -47,7 +47,7 @@ export class SwitchLocalVideoSourceUseCase {
     }
     if (input.source === "screen" && !isScreenShareAllowed(current)) {
       return err(
-        createPlatformError("operation_failed", "screen_share_requires_fullscreen"),
+        createPlatformError("operation_failed", "screen_share_requires_expanded_view"),
       );
     }
 

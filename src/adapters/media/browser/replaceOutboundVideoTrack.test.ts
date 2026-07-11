@@ -1,8 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
-import { replaceOutboundVideoSenderTrack } from "./replaceOutboundVideoTrack.js";
+import {
+  isOutboundVideoSenderSynced,
+  replaceOutboundVideoSenderTrack,
+} from "./replaceOutboundVideoTrack.js";
 
 function createTrack(kind: "audio" | "video"): MediaStreamTrack {
-  return { kind, enabled: true, stop: vi.fn() } as unknown as MediaStreamTrack;
+  return {
+    kind,
+    enabled: true,
+    readyState: "live",
+    stop: vi.fn(),
+  } as unknown as MediaStreamTrack;
 }
 
 describe("replaceOutboundVideoSenderTrack", () => {
@@ -17,8 +25,8 @@ describe("replaceOutboundVideoSenderTrack", () => {
     };
 
     const next = createTrack("video");
-    const replaced = await replaceOutboundVideoSenderTrack(connection, next);
-    expect(replaced).toBe(true);
+    const sender = await replaceOutboundVideoSenderTrack(connection, next);
+    expect(sender).not.toBeNull();
     expect(replaceTrack).toHaveBeenCalledWith(next);
     expect(videoTrack.kind).toBe("video");
   });
@@ -29,8 +37,8 @@ describe("replaceOutboundVideoSenderTrack", () => {
       getSenders: () => [{ track: createTrack("audio"), replaceTrack: audioReplace }],
     };
 
-    const replaced = await replaceOutboundVideoSenderTrack(connection, createTrack("video"));
-    expect(replaced).toBe(false);
+    const sender = await replaceOutboundVideoSenderTrack(connection, createTrack("video"));
+    expect(sender).toBeNull();
     expect(audioReplace).not.toHaveBeenCalled();
   });
 
@@ -44,8 +52,20 @@ describe("replaceOutboundVideoSenderTrack", () => {
     };
 
     const next = createTrack("video");
-    const replaced = await replaceOutboundVideoSenderTrack(connection, next);
-    expect(replaced).toBe(true);
+    const sender = await replaceOutboundVideoSenderTrack(connection, next);
+    expect(sender).not.toBeNull();
     expect(replaceTrack).toHaveBeenCalledWith(next);
+  });
+
+  it("detects sender sync against local stream track", () => {
+    const local = createTrack("video");
+    const synced = {
+      getSenders: () => [{ track: local, replaceTrack: vi.fn() }],
+    };
+    const mismatched = {
+      getSenders: () => [{ track: createTrack("video"), replaceTrack: vi.fn() }],
+    };
+    expect(isOutboundVideoSenderSynced(synced, local)).toBe(true);
+    expect(isOutboundVideoSenderSynced(mismatched, local)).toBe(false);
   });
 });

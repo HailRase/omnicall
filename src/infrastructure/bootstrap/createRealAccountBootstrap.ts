@@ -148,12 +148,16 @@ export function createRealAccountBootstrap(
     },
   });
   telephonyGateway = configuredTelephonyGateway;
+  let facadeRef: AccountBootstrapFacade | null = null;
   const mediaGateway = new ArbiterMediaGateway(
     new BrowserMediaAdapter({
       logger: createBootstrapLogger({ featureId: "F-005", boundedContext: "Media" }),
       getPeerConnection: (callId) =>
         configuredTelephonyGateway.getPeerConnectionForCall(callId),
       getLocalVideoStream: (callId) => localMediaCapture.getStreamForCall(callId),
+      onRemoteVideoTracksChanged: (callId, present) => {
+        facadeRef?.notifyRemoteVideoPresenceFromMedia(callId, present);
+      },
     }),
   );
   const hostIntegrationGateway = new MockHostIntegrationGateway();
@@ -179,6 +183,7 @@ export function createRealAccountBootstrap(
     hostIntegrationGateway,
     logger: createBootstrapLogger({ featureId: "F-001", boundedContext: "Telephony" }),
   });
+  facadeRef = facade;
 
   configuredTelephonyGateway.setPeerConnectionBoundHandler(async (notification) => {
     await facade.notifyPeerConnectionAvailable(

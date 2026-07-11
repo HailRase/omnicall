@@ -28,7 +28,7 @@ mediaMode: audio | video
 localVideoMuted: boolean          // privacy default true for video mode
 localVideoSource: camera | screen | none
 remoteVideoPresent: boolean       // from SDP / INFO / tracks
-sessionView: compact | expanded | fullscreen
+sessionView: expanded | hidden | fullscreen
 cameraAvailable: boolean          // probe result for this session
 ```
 

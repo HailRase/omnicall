@@ -27,7 +27,7 @@ describe("migrateUserSettings", () => {
       expect(result.value.schemaVersion).toBe(5);
       expect(result.value.multiSessionsEnabled).toBe(false);
       expect(result.value.headsetEnabled).toBe(false);
-      expect(result.value.defaultSessionView).toBe("compact");
+      expect(result.value.defaultSessionView).toBe("expanded");
       expect(result.value.preferredVideoInputDeviceId).toBeNull();
     }
   });
@@ -61,7 +61,7 @@ describe("migrateUserSettings", () => {
       expect(result.value.schemaVersion).toBe(5);
       expect(result.value.preferredAudioInputDeviceId).toBeNull();
       expect(result.value.preferredVideoInputDeviceId).toBeNull();
-      expect(result.value.defaultSessionView).toBe("compact");
+      expect(result.value.defaultSessionView).toBe("expanded");
       expect(result.value.autoFullscreenOnConference).toBe(false);
       expect(result.value.conferenceNumberSubstring).toBeNull();
     }
@@ -81,7 +81,7 @@ describe("migrateUserSettings", () => {
       expect(result.value.schemaVersion).toBe(5);
       expect(result.value.headsetEnabled).toBe(false);
       expect(result.value.headsetAutoReconnect).toBe(true);
-      expect(result.value.defaultSessionView).toBe("compact");
+      expect(result.value.defaultSessionView).toBe("expanded");
     }
   });
 

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { resolveInitialSessionView } from "./resolveInitialSessionView.js";
 
 describe("resolveInitialSessionView", () => {
-  it("keeps compact for audio mode", () => {
+  it("keeps default expanded for audio mode", () => {
     expect(
       resolveInitialSessionView({
         mediaMode: "audio",
@@ -11,7 +11,7 @@ describe("resolveInitialSessionView", () => {
         autoFullscreenOnConference: true,
         conferenceNumberSubstring: "vconf-sel",
       }),
-    ).toBe("compact");
+    ).toBe("expanded");
   });
 
   it("uses defaultSessionView for video without conference match", () => {
@@ -19,11 +19,11 @@ describe("resolveInitialSessionView", () => {
       resolveInitialSessionView({
         mediaMode: "video",
         remoteNumber: "1202",
-        defaultSessionView: "expanded",
+        defaultSessionView: "hidden",
         autoFullscreenOnConference: true,
         conferenceNumberSubstring: "vconf-sel",
       }),
-    ).toBe("expanded");
+    ).toBe("hidden");
   });
 
   it("forces fullscreen when conference substring matches", () => {
@@ -31,7 +31,7 @@ describe("resolveInitialSessionView", () => {
       resolveInitialSessionView({
         mediaMode: "video",
         remoteNumber: "vconf-sel-42",
-        defaultSessionView: "compact",
+        defaultSessionView: "expanded",
         autoFullscreenOnConference: true,
         conferenceNumberSubstring: "vconf-sel",
       }),

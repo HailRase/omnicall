@@ -334,10 +334,10 @@ export {
   areCameraControlsEnabled,
   isScreenShareAllowed,
   shouldShowRemoteVideoSurface,
+  shouldShowVideoSurfaces,
   resolveVideoCallAvailability,
   isSessionViewMode,
   parseSessionViewMode,
-  resolveNextSessionViewMode,
   SESSION_VIEW_MODES,
 } from "@domain/index.js";
 export type { CallVideoMediaState, SessionViewMode, VideoCallDisabledReason } from "@domain/index.js";

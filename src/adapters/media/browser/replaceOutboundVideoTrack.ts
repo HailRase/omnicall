@@ -59,19 +59,46 @@ function resolveVideoSender(connection: RtcPeerConnectionLike): RtcVideoSender |
   return null;
 }
 
+/**
+ * - Purpose: read current outbound video sender track without replacing.
+ * - Inputs: opaque peer connection.
+ * - Outputs: sender track or null when no video sender.
+ */
+export function resolveOutboundVideoSenderTrack(
+  connection: unknown,
+): MediaStreamTrack | null {
+  if (!isRtcPeerConnectionWithReplaceTrack(connection)) {
+    return null;
+  }
+  return resolveVideoSender(connection)?.track ?? null;
+}
+
+/**
+ * - Purpose: detect stream vs RTCRtpSender video track mismatch after answer.
+ * - Inputs: peer connection and local stream video track.
+ * - Outputs: true when sender already carries the same track object.
+ */
+export function isOutboundVideoSenderSynced(
+  connection: unknown,
+  localVideoTrack: MediaStreamTrack,
+): boolean {
+  const senderTrack = resolveOutboundVideoSenderTrack(connection);
+  return senderTrack === localVideoTrack;
+}
+
 export async function replaceOutboundVideoSenderTrack(
   connection: unknown,
   nextTrack: MediaStreamTrack | null,
-): Promise<boolean> {
+): Promise<RtcVideoSender | null> {
   if (!isRtcPeerConnectionWithReplaceTrack(connection)) {
-    return false;
+    return null;
   }
 
   const target = resolveVideoSender(connection);
   if (target === null || typeof target.replaceTrack !== "function") {
-    return false;
+    return null;
   }
 
   await target.replaceTrack(nextTrack);
-  return true;
+  return target;
 }

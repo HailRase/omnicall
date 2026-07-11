@@ -25,6 +25,8 @@ export function mapVideoCallDisabledReason(
       return translateCurrent("dialpad.videoCall.disabled.captureUnavailable");
     case "videoCall.disabled.featureNotReady":
       return translateCurrent("dialpad.videoCall.disabled.featureNotReady");
+    case "videoCall.disabled.remoteVideoNotOffered":
+      return translateCurrent("incoming.answerVideo.disabled.noRemoteVideo");
     default:
       return translateCurrent("common.actionUnavailable");
   }

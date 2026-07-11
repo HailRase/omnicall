@@ -12,6 +12,7 @@ import {
   createCallRemoteHeldEvent,
   createCallRemoteResumedEvent,
   createCameraAvailabilityChangedEvent,
+  createIncomingRemoteVideoOfferedChangedEvent,
   createRemoteVideoPresenceChangedEvent,
 } from "@domain/index.js";
 import { createPlatformError } from "@shared/errors/index.js";
@@ -241,6 +242,30 @@ export class CallEngine {
       callId,
       result: "succeeded",
       present,
+    });
+  }
+
+  handleIncomingRemoteVideoOffered(
+    callId: CallId,
+    offered: boolean,
+    correlationId?: CorrelationId,
+  ): void {
+    const resolvedCorrelationId = correlationId ?? createCorrelationId();
+    this.eventPublisher.publish(
+      createIncomingRemoteVideoOfferedChangedEvent(
+        resolvedCorrelationId,
+        callId,
+        offered,
+      ),
+    );
+    this.logger.info("call_incoming_remote_video_offered_changed", {
+      correlationId: resolvedCorrelationId,
+      featureId: "F-027",
+      boundedContext: "Media",
+      operation: "incoming_remote_video_offered",
+      callId,
+      result: "succeeded",
+      offered,
     });
   }
 

@@ -74,6 +74,7 @@ describe("useIncomingCallOverlayActions", () => {
         setCallMode,
         closeNumberEntryOverlay,
         selectIncomingCall,
+        exitVideoFullscreen: vi.fn(),
       }),
     );
 
@@ -111,6 +112,7 @@ describe("useIncomingCallOverlayActions", () => {
         setCallMode: vi.fn(),
         closeNumberEntryOverlay: vi.fn(),
         selectIncomingCall: vi.fn(),
+        exitVideoFullscreen: vi.fn(),
       }),
     );
 
@@ -143,6 +145,7 @@ describe("useIncomingCallOverlayActions", () => {
         setCallMode: vi.fn(),
         closeNumberEntryOverlay: vi.fn(),
         selectIncomingCall: vi.fn(),
+        exitVideoFullscreen: vi.fn(),
       }),
     );
 
@@ -175,6 +178,7 @@ describe("useIncomingCallOverlayActions", () => {
         setCallMode: vi.fn(),
         closeNumberEntryOverlay: vi.fn(),
         selectIncomingCall: vi.fn(),
+        exitVideoFullscreen: vi.fn(),
       }),
     );
 
@@ -223,6 +227,7 @@ describe("useIncomingCallOverlayActions", () => {
         setCallMode: vi.fn(),
         closeNumberEntryOverlay: vi.fn(),
         selectIncomingCall: vi.fn(),
+        exitVideoFullscreen: vi.fn(),
       }),
     );
 

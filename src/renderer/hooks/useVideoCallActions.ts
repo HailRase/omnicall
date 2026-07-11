@@ -4,18 +4,17 @@ import type { CallVideoMediaState, SessionViewMode } from "@application/index.js
 import {
   areCameraControlsEnabled,
   isScreenShareAllowed,
-  resolveNextSessionViewMode,
 } from "@application/index.js";
 
 type UseVideoCallActionsInput = Readonly<{
   facade: AccountBootstrapFacade;
+  openScreenSharePicker: (callId: string) => void;
 }>;
 
 type UseVideoCallActionsResult = Readonly<{
   handleToggleCamera: (callId: string, state: CallVideoMediaState) => void;
   handleToggleScreenShare: (callId: string, state: CallVideoMediaState) => void;
   handleSetSessionView: (callId: string, sessionView: SessionViewMode) => void;
-  handleCycleSessionView: (callId: string, state: CallVideoMediaState) => void;
   bindVideoSurfaces: (
     callId: string,
     remoteVideoElement: HTMLVideoElement,
@@ -25,13 +24,13 @@ type UseVideoCallActionsResult = Readonly<{
 
 /**
  * - Purpose: bind video mute/source/view intents to facade Use Cases.
- * - Inputs: account bootstrap facade.
- * - Outputs: guarded handlers for CallControlsBar and CallVideoSurface.
+ * - Inputs: account bootstrap facade and screen-share picker opener.
+ * - Outputs: guarded handlers for CallControlsBar and video surfaces.
  */
 export function useVideoCallActions(
   input: UseVideoCallActionsInput,
 ): UseVideoCallActionsResult {
-  const { facade } = input;
+  const { facade, openScreenSharePicker } = input;
 
   const handleToggleCamera = useCallback(
     (callId: string, state: CallVideoMediaState): void => {
@@ -55,31 +54,14 @@ export function useVideoCallActions(
       if (!isScreenShareAllowed(state)) {
         return;
       }
-      void facade.switchLocalVideoSourceById(callId, "screen", false);
+      openScreenSharePicker(callId);
     },
-    [facade],
+    [facade, openScreenSharePicker],
   );
 
   const handleSetSessionView = useCallback(
     (callId: string, sessionView: SessionViewMode): void => {
       facade.setSessionViewModeById(callId, sessionView);
-    },
-    [facade],
-  );
-
-  const handleCycleSessionView = useCallback(
-    (callId: string, state: CallVideoMediaState): void => {
-      if (state.mediaMode !== "video") {
-        return;
-      }
-      const latest = facade.getCallVideoMediaState(callId) ?? state;
-      if (latest.mediaMode !== "video") {
-        return;
-      }
-      facade.setSessionViewModeById(
-        callId,
-        resolveNextSessionViewMode(latest.sessionView),
-      );
     },
     [facade],
   );
@@ -103,7 +85,6 @@ export function useVideoCallActions(
     handleToggleCamera,
     handleToggleScreenShare,
     handleSetSessionView,
-    handleCycleSessionView,
     bindVideoSurfaces,
   };
 }

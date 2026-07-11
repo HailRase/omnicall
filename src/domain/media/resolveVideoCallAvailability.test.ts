@@ -77,5 +77,15 @@ describe("resolveVideoCallAvailability", () => {
       enabled: false,
       reason: "videoCall.disabled.captureUnavailable",
     });
+
+    expect(
+      resolveVideoCallAvailability({
+        ...readyBase,
+        remoteVideoOffered: false,
+      }),
+    ).toEqual({
+      enabled: false,
+      reason: "videoCall.disabled.remoteVideoNotOffered",
+    });
   });
 });

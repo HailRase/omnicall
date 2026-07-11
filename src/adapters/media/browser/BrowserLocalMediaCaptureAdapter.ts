@@ -22,6 +22,7 @@ import { err, ok } from "@shared/result/index.js";
 import type { Result } from "@shared/result/index.js";
 import { createLocalMediaStreamHandle } from "./createLocalMediaStreamHandle.js";
 import { createStubVideoTrack } from "./createStubVideoTrack.js";
+import { applyScreenShareEncodingPolicy } from "./applyScreenShareEncodingPolicy.js";
 import { replaceOutboundVideoSenderTrack } from "./replaceOutboundVideoTrack.js";
 
 const FEATURE_ID = "F-027";
@@ -364,7 +365,11 @@ export class BrowserLocalMediaCaptureAdapter implements LocalMediaCapturePort {
       if (command.source === "screen") {
         const screenStream = await this.mediaDevices.getDisplayMedia({
           audio: false,
-          video: true,
+          video: {
+            width: { ideal: 1920, max: 1920 },
+            height: { ideal: 1080, max: 1080 },
+            frameRate: { ideal: 15, max: 30 },
+          },
         });
         const screenTrack = screenStream.getVideoTracks()[0];
         if (screenTrack === undefined) {
@@ -404,12 +409,16 @@ export class BrowserLocalMediaCaptureAdapter implements LocalMediaCapturePort {
       nextTrack.enabled = !command.muted;
 
       const connection = this.getPeerConnection(command.callId);
-      const replaced = await replaceOutboundVideoSenderTrack(connection, nextTrack);
-      if (!replaced) {
+      const sender = await replaceOutboundVideoSenderTrack(connection, nextTrack);
+      if (sender === null) {
         nextTrack.stop();
         return err(
           createPlatformError("operation_failed", "video_sender_replace_failed"),
         );
+      }
+
+      if (command.source === "screen") {
+        applyScreenShareEncodingPolicy(nextTrack, sender);
       }
 
       replaceVideoTracksOnStream(state.stream, nextTrack);
@@ -427,6 +436,40 @@ export class BrowserLocalMediaCaptureAdapter implements LocalMediaCapturePort {
 
       return ok(undefined);
     } catch (error: unknown) {
+      if (isDisplayMediaUserCancel(error)) {
+        this.logger.info("local_media_screen_share_cancelled", {
+          correlationId: command.correlationId,
+          featureId: FEATURE_ID,
+          boundedContext: "Media",
+          operation: "replace_outbound_video_track",
+          callId: command.callId,
+          result: "cancelled",
+        });
+        return err(
+          createPlatformError("cancelled", "screen_share_picker_cancelled", error),
+        );
+      }
+      if (isDisplayMediaNotSupported(error)) {
+        this.logger.error(
+          "local_media_screen_share_not_supported",
+          {
+            correlationId: command.correlationId,
+            featureId: FEATURE_ID,
+            boundedContext: "Media",
+            operation: "replace_outbound_video_track",
+            callId: command.callId,
+            result: "operation_failed",
+          },
+          error,
+        );
+        return err(
+          createPlatformError(
+            "operation_failed",
+            "screen_share_not_supported_in_host",
+            error,
+          ),
+        );
+      }
       const platformError = normalizeUnknownError(error);
       this.logger.error(
         "local_media_video_source_replace_failed",
@@ -460,8 +503,8 @@ export class BrowserLocalMediaCaptureAdapter implements LocalMediaCapturePort {
 
     try {
       const videoTracks = state.stream.getVideoTracks();
-      if (videoTracks.length === 0) {
-        // No live camera track yet — capture/replace once to restore outbound video.
+      if (videoTracks.length === 0 || (!command.muted && state.usedStubVideoTrack)) {
+        // No live camera track yet, or unmute from stub — capture/replace real camera.
         return await this.replaceOutboundVideoTrack({
           callId: command.callId,
           source: "camera",
@@ -474,6 +517,17 @@ export class BrowserLocalMediaCaptureAdapter implements LocalMediaCapturePort {
       }
 
       for (const track of videoTracks) {
+        if (track.readyState === "ended") {
+          return await this.replaceOutboundVideoTrack({
+            callId: command.callId,
+            source: "camera",
+            ...(command.videoDeviceId !== undefined
+              ? { videoDeviceId: command.videoDeviceId }
+              : {}),
+            muted: command.muted,
+            correlationId: command.correlationId,
+          });
+        }
         track.enabled = !command.muted;
       }
 
@@ -623,4 +677,20 @@ function replaceVideoTracksOnStream(stream: MediaStream, nextTrack: MediaStreamT
     track.stop();
   }
   stream.addTrack(nextTrack);
+}
+
+function isDisplayMediaUserCancel(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) {
+    return false;
+  }
+  const name = (error as { name?: unknown }).name;
+  return name === "NotAllowedError" || name === "AbortError";
+}
+
+function isDisplayMediaNotSupported(error: unknown): boolean {
+  if (typeof error !== "object" || error === null) {
+    return false;
+  }
+  const name = (error as { name?: unknown }).name;
+  return name === "NotSupportedError";
 }
