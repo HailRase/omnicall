@@ -2,6 +2,7 @@ import type { CallId } from "@domain/index.js";
 import type {
   CaptureLocalMediaCommand,
   CaptureLocalMediaResult,
+  EnsureOutboundVideoSenderSyncedCommand,
   LocalMediaCapturePort,
   LocalMediaProbeResult,
   LocalMediaStreamHandle,
@@ -206,6 +207,12 @@ export class MockLocalMediaCapturePort implements LocalMediaCapturePort {
       muted: command.muted,
       correlationId: command.correlationId,
     });
+  }
+
+  ensureOutboundVideoSenderSynced(
+    _command: EnsureOutboundVideoSenderSyncedCommand,
+  ): Promise<Result<void, PlatformError>> {
+    return Promise.resolve(ok(undefined));
   }
 
   releaseLocalMedia(

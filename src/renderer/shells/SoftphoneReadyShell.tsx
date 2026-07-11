@@ -1,6 +1,7 @@
 import { useState, type JSX } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import type { AccountPanelActionReasonKey } from "@application/index.js";
+import { resolveFullscreenVideoSession } from "@application/index.js";
 import { NotificationViewport } from "../components/notifications/NotificationViewport.js";
 import { UpdateAvailableBanner } from "../components/updates/UpdateAvailableBanner.js";
 import { SettingsFullscreenOverlay } from "../components/settings/SettingsFullscreenOverlay.js";
@@ -67,6 +68,7 @@ function SoftphoneShellLayoutRoute({
     projection,
     multiCallProjection,
     applyMultiCallSettings,
+    callVideoMediaUiProjection,
   } =
     useSoftphoneProjections();
   const { blockingAuthState, isSipRegistered } = useAuthShellFlags();
@@ -131,10 +133,19 @@ function SoftphoneShellLayoutRoute({
     onMenuClose: userAvatarMenu.close,
   });
   const callBindings = useCallFeatureShell({ facade });
-  const isVideoFullscreen =
-    callBindings.controlTargetVideoState?.sessionView === "fullscreen";
-  const fullscreenCallId = callBindings.controlTargetLine?.callId ?? null;
-  const fullscreenVideoState = callBindings.controlTargetVideoState;
+  const fullscreenSession = resolveFullscreenVideoSession(
+    callVideoMediaUiProjection.byCallId,
+  );
+  const isVideoFullscreen = fullscreenSession !== null;
+  const fullscreenCallId = fullscreenSession?.callId ?? null;
+  const fullscreenVideoState = fullscreenSession?.videoState ?? null;
+  const fullscreenLine =
+    fullscreenCallId === null
+      ? null
+      : (callBindings.callLinesShell.lines.find((line) => line.callId === fullscreenCallId) ??
+        (callBindings.controlTargetLine?.callId === fullscreenCallId
+          ? callBindings.controlTargetLine
+          : null));
   useShellWindowLayout({
     settingsOpen: overlayShell.settingsOpen,
     videoFullscreen: isVideoFullscreen,
@@ -205,7 +216,7 @@ function SoftphoneShellLayoutRoute({
               open
               callId={fullscreenCallId}
               videoState={fullscreenVideoState}
-              line={callBindings.controlTargetLine}
+              line={fullscreenLine}
               onBindSurfaces={callBindings.videoCallActions.bindVideoSurfaces}
               onMute={callBindings.callLinesActions.handleMuteLine}
               onUnmute={callBindings.callLinesActions.handleUnmuteLine}

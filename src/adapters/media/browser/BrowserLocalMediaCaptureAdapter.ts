@@ -2,6 +2,7 @@ import type { CallId } from "@domain/index.js";
 import type {
   CaptureLocalMediaCommand,
   CaptureLocalMediaResult,
+  EnsureOutboundVideoSenderSyncedCommand,
   LocalMediaCapturePort,
   LocalMediaProbeResult,
   LocalMediaStreamHandle,
@@ -23,7 +24,10 @@ import type { Result } from "@shared/result/index.js";
 import { createLocalMediaStreamHandle } from "./createLocalMediaStreamHandle.js";
 import { createStubVideoTrack } from "./createStubVideoTrack.js";
 import { applyScreenShareEncodingPolicy } from "./applyScreenShareEncodingPolicy.js";
-import { replaceOutboundVideoSenderTrack } from "./replaceOutboundVideoTrack.js";
+import {
+  isOutboundVideoSenderSynced,
+  replaceOutboundVideoSenderTrack,
+} from "./replaceOutboundVideoTrack.js";
 
 const FEATURE_ID = "F-027";
 
@@ -531,6 +535,13 @@ export class BrowserLocalMediaCaptureAdapter implements LocalMediaCapturePort {
         track.enabled = !command.muted;
       }
 
+      // Inbound answer can leave RTCRtpSender.track null; enabling the stream track alone
+      // does not attach RTP — sync sender to the live local track.
+      await this.ensureOutboundVideoSenderSynced({
+        callId: command.callId,
+        correlationId: command.correlationId,
+      });
+
       this.logger.info("local_media_video_muted_toggled", {
         correlationId: command.correlationId,
         featureId: FEATURE_ID,
@@ -544,6 +555,70 @@ export class BrowserLocalMediaCaptureAdapter implements LocalMediaCapturePort {
     } catch (error: unknown) {
       return err(normalizeUnknownError(error));
     }
+  }
+
+  async ensureOutboundVideoSenderSynced(
+    command: EnsureOutboundVideoSenderSyncedCommand,
+  ): Promise<Result<void, PlatformError>> {
+    const state = this.byCallId.get(command.callId);
+    if (state === undefined) {
+      return ok(undefined);
+    }
+
+    const localVideoTrack = state.stream
+      .getVideoTracks()
+      .find((track) => track.readyState !== "ended");
+    if (localVideoTrack === undefined) {
+      return ok(undefined);
+    }
+
+    const maxAttempts = 12;
+    for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
+      const connection = this.getPeerConnection(command.callId);
+      if (isOutboundVideoSenderSynced(connection, localVideoTrack)) {
+        if (attempt > 0) {
+          this.logger.info("local_media_outbound_video_sender_synced", {
+            correlationId: command.correlationId,
+            featureId: FEATURE_ID,
+            boundedContext: "Media",
+            operation: "ensure_outbound_video_sender_synced",
+            callId: command.callId,
+            result: "succeeded",
+            attempt: attempt + 1,
+          });
+        }
+        return ok(undefined);
+      }
+
+      const sender = await replaceOutboundVideoSenderTrack(connection, localVideoTrack);
+      if (sender !== null && isOutboundVideoSenderSynced(connection, localVideoTrack)) {
+        this.logger.info("local_media_outbound_video_sender_synced", {
+          correlationId: command.correlationId,
+          featureId: FEATURE_ID,
+          boundedContext: "Media",
+          operation: "ensure_outbound_video_sender_synced",
+          callId: command.callId,
+          result: "succeeded",
+          attempt: attempt + 1,
+        });
+        return ok(undefined);
+      }
+
+      if (attempt < maxAttempts - 1) {
+        await delayMs(50);
+      }
+    }
+
+    this.logger.warn("local_media_outbound_video_sender_sync_unresolved", {
+      correlationId: command.correlationId,
+      featureId: FEATURE_ID,
+      boundedContext: "Media",
+      operation: "ensure_outbound_video_sender_synced",
+      callId: command.callId,
+      result: "unresolved",
+      attempts: maxAttempts,
+    });
+    return ok(undefined);
   }
 
   releaseLocalMedia(
@@ -693,4 +768,10 @@ function isDisplayMediaNotSupported(error: unknown): boolean {
   }
   const name = (error as { name?: unknown }).name;
   return name === "NotSupportedError";
+}
+
+function delayMs(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }

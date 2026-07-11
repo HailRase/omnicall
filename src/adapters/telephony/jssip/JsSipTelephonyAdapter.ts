@@ -611,6 +611,14 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       };
       session.answer(mediaOptions);
       this.notifyRemoteVideoPresenceFromCachedSdp(callId, correlationId);
+      if (resolvedMediaMode === "video" && this.localMediaCapturePort !== null) {
+        await this.localMediaCapturePort.ensureOutboundVideoSenderSynced({
+          callId,
+          correlationId,
+        });
+        // JsSIP may finish sender/track wiring after answer() returns; retry without blocking.
+        this.scheduleOutboundVideoSenderSync(callId, correlationId);
+      }
       this.logger.info("jssip_answer_call_succeeded", {
         correlationId,
         featureId: FEATURE_ID_INCOMING,
@@ -1171,6 +1179,17 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     });
 
     const correlationId = this.callCorrelations.get(callId);
+    if (
+      this.mediaModeByCallId.get(callId) === "video" &&
+      this.localMediaCapturePort !== null &&
+      correlationId !== undefined
+    ) {
+      void this.localMediaCapturePort.ensureOutboundVideoSenderSynced({
+        callId,
+        correlationId,
+      });
+    }
+
     if (this.peerConnectionBoundHandler === null || correlationId === undefined) {
       return;
     }
@@ -1563,6 +1582,31 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
         },
         error,
       );
+    }
+  }
+
+  private scheduleOutboundVideoSenderSync(
+    callId: CallId,
+    correlationId: CorrelationId,
+  ): void {
+    const port = this.localMediaCapturePort;
+    if (port === null) {
+      return;
+    }
+
+    for (const delayMs of [120, 400, 900]) {
+      void (async (): Promise<void> => {
+        await new Promise<void>((resolve) => {
+          setTimeout(resolve, delayMs);
+        });
+        if (this.mediaModeByCallId.get(callId) !== "video") {
+          return;
+        }
+        if (!this.capturedLocalMediaCallIds.has(callId)) {
+          return;
+        }
+        await port.ensureOutboundVideoSenderSynced({ callId, correlationId });
+      })();
     }
   }
 

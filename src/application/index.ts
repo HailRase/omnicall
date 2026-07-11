@@ -331,6 +331,10 @@ export {
   type CallVideoMediaUiProjection,
 } from "./projections/media/callVideoMediaUiProjection.js";
 export {
+  resolveFullscreenVideoSession,
+  type FullscreenVideoSession,
+} from "./projections/media/resolveFullscreenVideoSession.js";
+export {
   areCameraControlsEnabled,
   isScreenShareAllowed,
   shouldShowRemoteVideoSurface,

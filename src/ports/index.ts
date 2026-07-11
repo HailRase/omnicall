@@ -30,6 +30,7 @@ export type {
   ReleaseLocalMediaCommand,
   ReplaceOutboundVideoTrackCommand,
   SetLocalVideoMutedCommand,
+  EnsureOutboundVideoSenderSyncedCommand,
   StartCameraPreviewCommand,
   StartCameraPreviewResult,
   StopCameraPreviewCommand,

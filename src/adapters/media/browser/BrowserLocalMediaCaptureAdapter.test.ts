@@ -249,11 +249,11 @@ describe("BrowserLocalMediaCaptureAdapter", () => {
 
   it("setLocalVideoMuted toggles existing camera track enabled flag", async () => {
     const replaceTrack = vi.fn(() => Promise.resolve(undefined));
-    const peerConnection = {
-      getSenders: () => [{ track: createTrack("video"), replaceTrack }],
-    };
     const videoTrack = createTrack("video");
     videoTrack.enabled = false;
+    const peerConnection = {
+      getSenders: () => [{ track: videoTrack, replaceTrack }],
+    };
 
     const mediaDevices: MediaDevicesLike = {
       getUserMedia: vi.fn((constraints: MediaStreamConstraints) => {
@@ -295,6 +295,49 @@ describe("BrowserLocalMediaCaptureAdapter", () => {
       correlationId: createCorrelationId(),
     });
     expect(muted.ok).toBe(true);
+    expect(videoTrack.enabled).toBe(false);
+  });
+
+  it("ensureOutboundVideoSenderSynced replaces null sender track after answer", async () => {
+    const replaceTrack = vi.fn(() => Promise.resolve(undefined));
+    const videoTrack = createTrack("video");
+    videoTrack.enabled = false;
+    const videoSender = { track: null as MediaStreamTrack | null, replaceTrack };
+    const peerConnection = {
+      getSenders: () => [{ track: createTrack("audio"), replaceTrack: vi.fn() }, videoSender],
+    };
+
+    const mediaDevices: MediaDevicesLike = {
+      getUserMedia: vi.fn((constraints: MediaStreamConstraints) => {
+        if (constraints.audio) {
+          return Promise.resolve(createFakeStream([createTrack("audio")]));
+        }
+        return Promise.resolve(createFakeStream([videoTrack]));
+      }),
+      getDisplayMedia: vi.fn(),
+    };
+
+    const adapter = new BrowserLocalMediaCaptureAdapter({
+      logger: createLogger(),
+      getPeerConnection: () => peerConnection,
+      mediaDevices,
+    });
+
+    const callId = createCallId("call-sync-1");
+    await adapter.captureLocalMedia({
+      callId,
+      includeVideo: true,
+      initialVideoMuted: true,
+      allowStubVideoTrack: false,
+      correlationId: createCorrelationId(),
+    });
+
+    const synced = await adapter.ensureOutboundVideoSenderSynced({
+      callId,
+      correlationId: createCorrelationId(),
+    });
+    expect(synced.ok).toBe(true);
+    expect(replaceTrack).toHaveBeenCalledWith(videoTrack);
     expect(videoTrack.enabled).toBe(false);
   });
 

@@ -7,6 +7,7 @@ import {
   deriveCallControlTarget,
   deriveIncomingCallSessionCardVisible,
   deriveResumeMultiCallDisabledReason,
+  resolveFullscreenVideoSession,
 } from "@application/index.js";
 import { mapActiveCallControlDisabledReason } from "../helpers/mapActiveCallControlLabels.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
@@ -238,16 +239,12 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
   }, [callVideoMediaUiProjection.byCallId, controlTargetLine?.callId]);
 
   const exitVideoFullscreen = useCallback((): void => {
-    const callId = controlTargetLine?.callId;
-    const videoState = controlTargetVideoState;
-    if (callId === undefined || videoState === null) {
+    const session = resolveFullscreenVideoSession(callVideoMediaUiProjection.byCallId);
+    if (session === null) {
       return;
     }
-    if (videoState.sessionView !== "fullscreen") {
-      return;
-    }
-    videoCallActions.handleSetSessionView(callId, "expanded");
-  }, [controlTargetLine?.callId, controlTargetVideoState, videoCallActions]);
+    videoCallActions.handleSetSessionView(session.callId, "expanded");
+  }, [callVideoMediaUiProjection.byCallId, videoCallActions]);
 
   const outgoingDisplayName = useMemo(() => {
     const presentation = buildContactDirectory(contacts).resolvePresentation({

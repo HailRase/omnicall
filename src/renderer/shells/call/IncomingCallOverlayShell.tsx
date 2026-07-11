@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { resolveFullscreenVideoSession } from "@application/index.js";
 import { IncomingCallOverlay } from "../../components/call/IncomingCallOverlay.js";
 import { useAutoAnswerCountdown } from "../../hooks/useAutoAnswerCountdown.js";
 import type { CallFeatureShellBindings } from "../../hooks/useCallFeatureShell.js";
@@ -23,13 +24,14 @@ export function IncomingCallOverlayShell({
   overlayShell,
 }: IncomingCallOverlayShellProps): JSX.Element {
   const { route, goToDialpad } = useShellNavigation();
-  const { transferProjection } = useSoftphoneProjections();
+  const { transferProjection, callVideoMediaUiProjection } = useSoftphoneProjections();
+  const videoFullscreen =
+    resolveFullscreenVideoSession(callVideoMediaUiProjection.byCallId) !== null;
   const overlayVm = useIncomingCallOverlayShell({
     incomingCallProjection: callBindings.incomingCallProjection,
     shellRouteName: route.name,
     incomingSessionCardVisible: callBindings.incomingSessionCardVisible,
-    videoFullscreen:
-      callBindings.controlTargetVideoState?.sessionView === "fullscreen",
+    videoFullscreen,
   });
   const overlayActions = useIncomingCallOverlayActions({
     incomingCallProjection: callBindings.incomingCallProjection,

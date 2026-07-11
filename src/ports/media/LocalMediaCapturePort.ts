@@ -80,6 +80,11 @@ export type StopCameraPreviewCommand = Readonly<{
   correlationId: CorrelationId;
 }>;
 
+export type EnsureOutboundVideoSenderSyncedCommand = Readonly<{
+  callId: CallId;
+  correlationId: CorrelationId;
+}>;
+
 export interface LocalMediaCapturePort {
   probeAvailability(
     command: ProbeLocalMediaCommand,
@@ -110,6 +115,14 @@ export interface LocalMediaCapturePort {
 
   setLocalVideoMuted(
     command: SetLocalVideoMutedCommand,
+  ): Promise<Result<void, PlatformError>>;
+
+  /**
+   * Align RTCRtpSender video track with the captured local stream track.
+   * Idempotent; used after inbound video answer when JsSIP leaves sender.track null.
+   */
+  ensureOutboundVideoSenderSynced(
+    command: EnsureOutboundVideoSenderSyncedCommand,
   ): Promise<Result<void, PlatformError>>;
 
   releaseLocalMedia(
