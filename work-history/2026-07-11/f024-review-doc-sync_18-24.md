@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-11 18:24
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `a2baa11`
 
 ## Где
 - `docs/softphone/handoffs/P11-F024-Saved-Account-Profiles-Handoff.md`
