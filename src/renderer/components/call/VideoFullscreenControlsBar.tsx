@@ -83,9 +83,11 @@ export function VideoFullscreenControlsBar({
 }: VideoFullscreenControlsBarProps): JSX.Element {
   const { t } = useI18n();
   const muted = line?.muted === true;
+  const screenShareActive = videoState.localVideoSource === "screen";
   const cameraOff = videoState.localVideoMuted;
   const cameraEnabled = areCameraControlsEnabled(videoState);
-  const screenShareEnabled = isScreenShareAllowed(videoState);
+  const screenShareEnabled =
+    screenShareActive || isScreenShareAllowed(videoState);
   const currentView: ViewModeOption =
     VIEW_MODE_OPTIONS.find((option) => option.value === videoState.sessionView) ?? {
       value: "fullscreen",
@@ -140,25 +142,21 @@ export function VideoFullscreenControlsBar({
 
       <button
         type="button"
-        className={styles.button}
+        className={clsx(styles.button, screenShareActive && styles.buttonOff)}
         data-testid={`fullscreen-control-screen-share-${callId}`}
         aria-label={
-          videoState.localVideoSource === "screen"
+          screenShareActive
             ? t("icons.call.screenShareStop")
             : t("icons.call.screenShare")
         }
-        aria-pressed={videoState.localVideoSource === "screen"}
+        aria-pressed={screenShareActive}
         disabled={!screenShareEnabled}
         onClick={() => {
           onToggleScreenShare(callId);
         }}
       >
         <AppIcon
-          id={
-            videoState.localVideoSource === "screen"
-              ? "call.screenShareStop"
-              : "call.screenShare"
-          }
+          id={screenShareActive ? "call.screenShareStop" : "call.screenShare"}
           decorative
         />
       </button>

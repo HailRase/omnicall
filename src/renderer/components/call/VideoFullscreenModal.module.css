@@ -47,19 +47,39 @@
   width: 2.5rem;
   height: 2.5rem;
   padding: 0;
-  border: 1px solid color-mix(in srgb, var(--color-border-control) 28%, transparent);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--color-bg-surface) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-border-control) 22%, transparent);
+  background: color-mix(in srgb, var(--color-bg-surface) 14%, transparent);
   color: var(--color-text-primary);
   cursor: pointer;
   backdrop-filter: blur(28px) saturate(1.35);
   -webkit-backdrop-filter: blur(28px) saturate(1.35);
   box-shadow: var(--shadow-menu-elevated);
   pointer-events: auto;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease;
 }
 
 .close-button:hover {
-  background: color-mix(in srgb, var(--color-bg-surface-highlight) 55%, transparent);
+  background: color-mix(in srgb, var(--color-bg-surface-highlight) 42%, transparent);
+  border-color: color-mix(in srgb, var(--color-border-control) 40%, transparent);
+}
+
+/* Light theme: glass over dark video — white icon, denser frosted plate. */
+:root:not([data-theme="dark"]) .close-button {
+  border: 1px solid color-mix(in srgb, #ffffff 28%, transparent);
+  background: color-mix(in srgb, #ffffff 18%, transparent);
+  color: #ffffff;
+  backdrop-filter: blur(28px) saturate(1.4);
+  -webkit-backdrop-filter: blur(28px) saturate(1.4);
+}
+
+:root:not([data-theme="dark"]) .close-button:hover {
+  background: color-mix(in srgb, #ffffff 32%, transparent);
+  border-color: color-mix(in srgb, #ffffff 48%, transparent);
+  color: #ffffff;
 }
 
 .close-button:focus-visible {

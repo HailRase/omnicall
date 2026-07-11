@@ -175,15 +175,15 @@
 }
 
 .video-call-button-ready {
-  border-color: var(--color-border-focus);
-  background: var(--color-bg-surface-alt);
-  color: var(--color-text-primary);
+  border-color: var(--color-border-success);
+  background: var(--color-status-online);
+  color: #fff;
   cursor: pointer;
+  box-shadow: var(--shadow-control-knob);
 }
 
 .video-call-button-ready:hover {
-  background: var(--color-bg-surface-highlight);
-  border-color: var(--color-border-focus);
+  filter: brightness(1.05);
 }
 
 .video-call-button-ready:active {

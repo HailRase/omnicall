@@ -98,6 +98,26 @@ describe("VideoFullscreenControlsBar", () => {
     );
   });
 
+  it("marks active screen share and keeps stop control enabled", () => {
+    render(
+      <VideoFullscreenControlsBar
+        callId="call-1"
+        line={activeLine}
+        videoState={{
+          ...videoState,
+          localVideoSource: "screen",
+          localVideoMuted: true,
+        }}
+        {...noopHandlers}
+      />,
+    );
+
+    const screenShare = screen.getByTestId("fullscreen-control-screen-share-call-1");
+    expect(screenShare).toBeEnabled();
+    expect(screenShare).toHaveAttribute("aria-pressed", "true");
+    expect(screenShare.className).toMatch(/buttonOff/);
+  });
+
   it("omits the currently selected view mode from the menu", async () => {
     const user = userEvent.setup();
     render(

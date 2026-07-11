@@ -28,6 +28,9 @@
   background: transparent;
   color: var(--color-text-primary);
   cursor: pointer;
+  transition:
+    background 140ms ease,
+    color 140ms ease;
 }
 
 .button:hover:not(:disabled):not(.button-off):not(.hangup) {
@@ -64,4 +67,22 @@
   background: var(--color-status-failed-hover);
   filter: none;
   opacity: 1;
+}
+
+/*
+ * Light theme over dark video: default icons white; hover = soft white plate.
+ * Off/hangup keep red plate + white icon.
+ */
+:root:not([data-theme="dark"]) .bar {
+  border: 1px solid color-mix(in srgb, #ffffff 22%, transparent);
+  background: color-mix(in srgb, #ffffff 14%, transparent);
+}
+
+:root:not([data-theme="dark"]) .button:not(.button-off):not(.hangup) {
+  color: #ffffff;
+}
+
+:root:not([data-theme="dark"]) .button:hover:not(:disabled):not(.button-off):not(.hangup) {
+  background: color-mix(in srgb, #ffffff 22%, transparent);
+  color: #ffffff;
 }
