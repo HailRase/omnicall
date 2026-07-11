@@ -408,14 +408,23 @@ export const bgMessages: MessageShape = {
   "settings.general.themeDescription": "Цветова схема на приложението. Прилага се веднага след избор.",
   "settings.general.themeLabel": "Тема на интерфейса",
   "settings.headset.description":
-    "USB слушалки (Jabra/Poly): статус и устройство отгоре, опции отдолу.",
+    "USB слушалки Jabra и Poly/Plantronics. Първо включете интеграцията, после натиснете «Свържи слушалки» и разрешете достъп в системния диалог.",
   "settings.headset.title": "Слушалки",
   "settings.headset.enabled.label": "Включи интеграция",
   "settings.headset.enabled.description":
     "Когато е изключено, софтфонът работи нормално без USB слушалки.",
   "settings.headset.autoReconnect.label": "Автоматично свързване",
   "settings.headset.autoReconnect.description":
-    "Свързване на предварително разрешено устройство при старт и USB plug.",
+    "След вход и при USB plug автоматично свързване на предварително разрешено устройство.",
+  "settings.headset.autoReconnect.pendingHint":
+    "Слушалките не са свързани. Натиснете «Свържи» или изчакайте автосвързване при USB.",
+  "settings.headset.emptyState.hint":
+    "Свържете слушалките по USB, после натиснете «Свържи слушалки» и разрешете достъп в диалога на Windows.",
+  "settings.headset.connectPrimary.add": "Свържи слушалки",
+  "settings.headset.connectPrimary.named": (params: Readonly<{ name: string }>) =>
+    `Свържи ${params.name}`,
+  "settings.headset.connectDisabled.enableFirst":
+    "Първо включете интеграцията на слушалките по-горе.",
   "settings.headset.status.label": "Състояние",
   "settings.headset.status.disabled": "Интеграцията е изключена",
   "settings.headset.status.disconnected": "Не е свързано",
@@ -436,6 +445,8 @@ export const bgMessages: MessageShape = {
   "settings.headset.capabilities.answer": "отговор",
   "settings.headset.capabilities.reject": "отказ",
   "settings.headset.capabilities.hangup": "затваряне",
+  "settings.headset.capabilities.muteUser": "микрофон",
+  "settings.headset.capabilities.holdUser": "задържане",
   "settings.headset.capabilities.mute": (params: Readonly<{ mode: string }>) =>
     `mute (${params.mode})`,
   "settings.headset.capabilities.muteMode.pulse": "pulse",

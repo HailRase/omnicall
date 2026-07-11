@@ -186,6 +186,7 @@ export function forwardHeadsetHardwareEvent(
         event.muted,
         snapshot.focusedIsMuted,
         context.muteInputMode,
+        context.muteEchoPolicy,
       )
     ) {
       return;

@@ -39,7 +39,10 @@ export const polyBw3320Profile: HeadsetVendorProfile = {
     PLANTRONICS_BW3320_PRODUCT_IDS.has(device.productId),
   parser,
   ledProfile: () => polyBw3320LedProfile,
-  capabilities: capabilitiesFromParser(parser),
+  capabilities: {
+    ...capabilitiesFromParser(parser),
+    muteEchoPolicy: "swallowAll",
+  },
   quirks: {
     muteSemantics: "absolute",
     holdSemantics: "hookOffResumesWhenHoldLed",

@@ -30,6 +30,7 @@ export class MockHeadsetGateway implements HeadsetGateway {
   private autoReconnectEnabled = true;
   private preferredDeviceId: string | null = null;
   private muteInputMode: HeadsetCapabilities["muteInputMode"] = "latch";
+  private muteEchoPolicy: HeadsetCapabilities["muteEchoPolicy"] = "matchOnly";
   private grantedDevices: HeadsetGrantedDeviceInfo[] = [
     { id: "mock-headset-1", productName: "Mock Jabra Headset" },
   ];
@@ -60,6 +61,10 @@ export class MockHeadsetGateway implements HeadsetGateway {
 
   setMuteInputMode(mode: HeadsetCapabilities["muteInputMode"]): void {
     this.muteInputMode = mode;
+  }
+
+  setMuteEchoPolicy(policy: HeadsetCapabilities["muteEchoPolicy"]): void {
+    this.muteEchoPolicy = policy;
   }
 
   setGrantedDevices(devices: ReadonlyArray<HeadsetGrantedDeviceInfo>): void {
@@ -143,6 +148,7 @@ export class MockHeadsetGateway implements HeadsetGateway {
       supportsIncomingSignal: true,
       supportsRejectOnHookOn: true,
       muteInputMode: this.muteInputMode,
+      muteEchoPolicy: this.muteEchoPolicy,
       muteSemantics: "absolute",
       holdSemantics: "hookOffResumesWhenHoldLed",
     };

@@ -1,6 +1,7 @@
 import type {
   HeadsetCapabilities,
   HeadsetHoldSemantics,
+  HeadsetMuteEchoPolicy,
   HeadsetMuteInputMode,
   HeadsetMuteSemantics,
 } from "@domain/index.js";
@@ -16,6 +17,7 @@ export type HeadsetOrchestratorPolicyContext = Readonly<{
   muteSemantics: HeadsetMuteSemantics;
   holdSemantics: HeadsetHoldSemantics;
   muteInputMode: HeadsetMuteInputMode;
+  muteEchoPolicy: HeadsetMuteEchoPolicy;
   queue: HeadsetSyncQueue;
   hookGuard: { suppressedUntil: number };
   acceptGuard: { suppressedUntil: number };

@@ -19,9 +19,11 @@ function snapshot(partial: Partial<HeadsetCallSnapshot> = {}): HeadsetCallSnapsh
 function createContext(
   overrides: Partial<HeadsetOrchestratorPolicyContext> & {
     muteInputMode?: "pulse" | "latch";
+    muteEchoPolicy?: "swallowAll" | "matchOnly";
   } = {},
 ): HeadsetOrchestratorPolicyContext {
   const muteInputMode = overrides.muteInputMode ?? "latch";
+  const muteEchoPolicy = overrides.muteEchoPolicy ?? "matchOnly";
   const baseCapabilities = createDefaultHeadsetCapabilities();
   return {
     capabilities: {
@@ -33,6 +35,7 @@ function createContext(
       supportsRejectOnHookOn: true,
       supportsHold: false,
       muteInputMode,
+      muteEchoPolicy,
       muteSemantics: "absolute",
       holdSemantics: "hookOffResumesWhenHoldLed",
       ...overrides.capabilities,
@@ -40,6 +43,7 @@ function createContext(
     muteSemantics: overrides.muteSemantics ?? "absolute",
     holdSemantics: overrides.holdSemantics ?? "hookOffResumesWhenHoldLed",
     muteInputMode,
+    muteEchoPolicy,
     queue: overrides.queue ?? new HeadsetSyncQueue(),
     hookGuard: overrides.hookGuard ?? { suppressedUntil: 0 },
     acceptGuard: overrides.acceptGuard ?? { suppressedUntil: 0 },

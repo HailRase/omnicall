@@ -185,6 +185,14 @@ export class HeadsetSessionOrchestrator {
       this.queue.armHardwareMuteEcho();
     }
 
+    if (commands.some((command) => command.type === "setMute")) {
+      const { muteEchoPolicy } = this.deps.gateway.getCapabilities();
+      if (muteEchoPolicy === "swallowAll") {
+        // Poly latch firmware often emits opposite mute bit while mute LED settles.
+        this.queue.armHardwareMuteEcho();
+      }
+    }
+
     this.enqueueCommands(commands);
     return true;
   }
@@ -263,6 +271,7 @@ export class HeadsetSessionOrchestrator {
         event.muted,
         snapshot.focusedIsMuted,
         capabilities.muteInputMode,
+        capabilities.muteEchoPolicy,
       )
     ) {
       return;
@@ -293,6 +302,7 @@ export class HeadsetSessionOrchestrator {
       muteSemantics: capabilities.muteSemantics,
       holdSemantics: capabilities.holdSemantics,
       muteInputMode: capabilities.muteInputMode,
+      muteEchoPolicy: capabilities.muteEchoPolicy,
       hookGuard: this.hookGuard,
       acceptGuard: this.acceptGuard,
       queue: this.queue,

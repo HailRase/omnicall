@@ -41,7 +41,7 @@ export function resolveHeadsetConnectionStateLabel(
 }
 
 /**
- * - Purpose: build localized capability summary for connected headset.
+ * - Purpose: build operator-facing capability summary for connected headset.
  * - Inputs: capabilities info and translator.
  * - Outputs: comma-separated feature list or null when empty.
  */
@@ -60,23 +60,31 @@ export function resolveHeadsetCapabilitiesSummary(
     parts.push(t("settings.headset.capabilities.hangup"));
   }
   if (capabilities.supportsMute) {
-    parts.push(
-      t("settings.headset.capabilities.mute", {
-        mode: t(
-          capabilities.muteInputMode === "pulse"
-            ? "settings.headset.capabilities.muteMode.pulse"
-            : "settings.headset.capabilities.muteMode.latch",
-        ),
-      }),
-    );
+    parts.push(t("settings.headset.capabilities.muteUser"));
   }
   if (capabilities.supportsHold) {
-    parts.push(t("settings.headset.capabilities.hold"));
+    parts.push(t("settings.headset.capabilities.holdUser"));
   }
   if (parts.length === 0) {
     return null;
   }
   return parts.join(t("settings.headset.capabilities.separator"));
+}
+
+/**
+ * - Purpose: primary connect button label from selection and grant state.
+ * - Inputs: selected device name, granted count, translator.
+ * - Outputs: localized connect CTA string.
+ */
+export function resolveHeadsetPrimaryConnectLabel(
+  selectedDeviceName: string | null,
+  grantedDeviceCount: number,
+  t: Translator,
+): string {
+  if (selectedDeviceName !== null && grantedDeviceCount > 0) {
+    return t("settings.headset.connectPrimary.named", { name: selectedDeviceName });
+  }
+  return t("settings.headset.connectPrimary.add");
 }
 
 /**

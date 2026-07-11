@@ -65,6 +65,8 @@ Reviewers do not write production code or work-history.
 4. `docs/softphone/Feature-Registry.md`
 5. Current handoff in `docs/softphone/handoffs/`
 
+**Headset (F-012):** before any bugfix or vendor work read `docs/softphone/HEADSET-AGENT-ONBOARDING.md` → `HEADSET-SYNC-CONTRACT.md` → `HEADSET-VENDOR-ONBOARDING.md` (if new device).
+
 ## Rules (`.cursor/rules/`)
 
 | Rule | Scope |

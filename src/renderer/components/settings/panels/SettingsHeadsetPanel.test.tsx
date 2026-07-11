@@ -40,6 +40,9 @@ describe("SettingsHeadsetPanel", () => {
 
     await user.click(screen.getByTestId("settings-headset-connect"));
     expect(onConnectHeadset).toHaveBeenCalledWith("1:2:Mock");
+    expect(screen.getByTestId("settings-headset-connect")).toHaveTextContent(
+      "Подключить Mock Headset",
+    );
   });
 
   it("shows disabled status when integration is off", () => {
@@ -60,10 +63,11 @@ describe("SettingsHeadsetPanel", () => {
     expect(screen.getByTestId("settings-headset-status")).toHaveTextContent(
       "Интеграция выключена",
     );
-    expect(screen.getByTestId("settings-headset-connect")).toBeDisabled();
+    expect(screen.queryByTestId("settings-headset-connect")).toBeNull();
+    expect(screen.getByTestId("settings-headset-enable-first-hint")).toBeInTheDocument();
   });
 
-  it("renders compact status block above toggles", () => {
+  it("renders enable toggles before connection status and user-friendly capabilities", () => {
     render(
       <SettingsHeadsetPanel
         projection={{
@@ -97,11 +101,37 @@ describe("SettingsHeadsetPanel", () => {
     expect(screen.getByTestId("settings-headset-status")).toHaveTextContent("Подключена");
     expect(screen.getByTestId("settings-headset-device-label")).toHaveTextContent("Mock Headset");
     expect(screen.getByTestId("settings-headset-capabilities")).toHaveTextContent(
-      "Кнопки: ответ, отклонение, сброс, mute (latch)",
+      "Кнопки: ответ, отклонение, сброс, микрофон",
     );
-    expect(screen.getByTestId("settings-headset-device-select")).toBeDisabled();
+    expect(screen.queryByTestId("settings-headset-device-select")).toBeNull();
     expect(screen.getByTestId("settings-headset-disconnect")).toBeEnabled();
     expect(screen.getByTestId("settings-headset-enabled-toggle")).toBeInTheDocument();
     expect(screen.getByTestId("settings-headset-auto-reconnect-toggle")).toBeInTheDocument();
+  });
+
+  it("shows empty grant hint when integration is on and no devices granted", () => {
+    render(
+      <SettingsHeadsetPanel
+        projection={{
+          ...initialHeadsetConnectionProjection(),
+          isSupported: true,
+          isEnabled: true,
+          connectionState: "disconnected",
+        }}
+        headsetEnabled
+        headsetAutoReconnect
+        preferredDeviceId={null}
+        grantedDevices={[]}
+        onHeadsetEnabledChange={vi.fn()}
+        onHeadsetAutoReconnectChange={vi.fn()}
+        onConnectHeadset={vi.fn()}
+        onDisconnectHeadset={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("settings-headset-empty-hint")).toBeInTheDocument();
+    expect(screen.getByTestId("settings-headset-connect")).toHaveTextContent(
+      "Подключить гарнитуру",
+    );
   });
 });

@@ -65,6 +65,7 @@ import {
 } from "@application/projections/telephony/sipSessionHealthProjection.js";
 import {
   initialHeadsetConnectionProjection,
+  mergeHeadsetUserSettingsIntoProjection,
   reduceHeadsetConnectionProjection,
   type HeadsetConnectionProjection,
 } from "@application/projections/headset/headsetConnectionProjection.js";
@@ -103,6 +104,9 @@ type AccountBootstrapStore = Readonly<{
     contacts: ContactsProjection["contacts"],
   ) => void;
   setContactsLoadError: (errorKey: string) => void;
+  syncHeadsetUserSettingsToProjection: (
+    settings: Readonly<{ headsetEnabled: boolean; headsetAutoReconnect: boolean }>,
+  ) => void;
 }>;
 
 export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => ({
@@ -318,6 +322,15 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
   setContactsLoadError: (errorKey) => {
     set((state) => ({
       contactsProjection: applyContactsLoadError(state.contactsProjection, errorKey),
+    }));
+  },
+
+  syncHeadsetUserSettingsToProjection: (settings) => {
+    set((state) => ({
+      headsetConnectionProjection: mergeHeadsetUserSettingsIntoProjection(
+        state.headsetConnectionProjection,
+        settings,
+      ),
     }));
   },
 }));

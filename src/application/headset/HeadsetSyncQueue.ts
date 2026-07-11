@@ -114,12 +114,14 @@ export class HeadsetSyncQueue {
    *
    * Pending mute/hold intent always blocks.
    * Pulse (Jabra HSC016): echo window swallows all mute events (release bounce).
-   * Latch (Poly): echo swallows only redundant matching bits; opposite = user override.
+   * Latch + swallowAll (Poly): echo window swallows all firmware LED bounce.
+   * Latch + matchOnly: echo swallows only redundant matching bits; opposite = user override.
    */
   shouldIgnoreHardwareMuteEvent(
     eventMuted: boolean,
     currentMuted: boolean,
     muteInputMode: "pulse" | "latch" = "pulse",
+    muteEchoPolicy: "swallowAll" | "matchOnly" = "matchOnly",
   ): boolean {
     this.pruneExpiredIntents();
     if (this.hasPendingSyncIntent()) {
@@ -128,7 +130,7 @@ export class HeadsetSyncQueue {
     if (!this.isMuteSyncGuardActive()) {
       return false;
     }
-    if (muteInputMode === "pulse") {
+    if (muteInputMode === "pulse" || muteEchoPolicy === "swallowAll") {
       return true;
     }
     return eventMuted === currentMuted;

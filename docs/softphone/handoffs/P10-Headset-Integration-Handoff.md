@@ -23,12 +23,32 @@
 
 ## Manual smoke (device)
 
-1. Enable headset in Settings → connect USB Jabra or Poly device.
+1. Settings → Гарнитура → enable integration → «Подключить гарнитуру» (see `HEADSET-AGENT-ONBOARDING.md` §5).
 2. Incoming call: answer/reject from hook; LED ring on incoming.
-3. Active call: hangup/mute from headset; hold/mute UI blocked during sync.
-4. Outgoing call: off-hook LED while dialing.
+3. Active call: hangup/mute from headset **and** session bar; mute LED stable on Poly.
+4. Outgoing call: off-hook LED while dialing; mute blocked.
 
-## Deferred
+## Post-delivery fixes
+
+| Date | Topic | Doc |
+| --- | --- | --- |
+| 2026-07-10 | Focus, sync guards, pulse/latch split | work-history `headset-mute-pulse-latch_*` |
+| 2026-07-11 | Poly `muteEchoPolicy: swallowAll`, settings UX, projection sync | `HEADSET-AGENT-ONBOARDING.md`, work-history `poly-mute-headset-ux_13-11.md` |
+
+## Sync contract (current)
+
+- LED reconcile never opens mute/hold intent (`HEADSET-SYNC-CONTRACT.md`).
+- Jabra pulse: echo swallows all events in window.
+- Poly latch: `swallowAll` + `armHardwareMuteEcho` only on Poly `setMute` reconcile.
+- Do not arm extended echo on Jabra pulse `setMute` (regression: rapid press test).
+
+## Critical bugfixes (2026-07-10, historical)
+
+Aligned with working `jssip-phone` reference — **superseded in part by 2026-07-11 Poly echo policy**:
+
+- **Hold LED:** `offHook: false` + ringing — green press is `hookOff` → resume; hold sync guard swallows `hookOn` echo.
+- **Hangup:** `hookOn` → focused established/outgoing; never held-only.
+- **Guards:** arm only from `beginHold/MuteSessionSync` (device/UI), never from LED reconcile writes.
 
 - Native Jabra/Poly SDK adapters (new `HeadsetGateway` implementation).
 - E2E harness with physical device automation.
@@ -48,16 +68,7 @@
 | WU-G Regression gate | **done** | headset unit/projection/notification tests; i18n keys; typecheck |
 | WU-H Policy lock (2026-07-10) | **done** | Q1 hangup=focus; Q2 mute=focus incl. Held; Q3 outgoing captures focus; Q6 post-answer stays on answered |
 
-## Critical bugfixes (2026-07-10)
-
-Aligned with working `jssip-phone` `forwardDeviceEventToApp` / orchestrator / `syncLedOnHold`:
-
-- **Mute:** toggle only on `muteChanged.muted === true` (ignore unmuted bounce); do not re-arm mute guard on LED `setMute`.
-- **Hold LED:** `offHook: false` + ringing — green press is `hookOff` → resume; hold sync guard (2s) swallows `hookOn` echo from LED write.
-- **Hangup:** `hookOn` → `activeSessionId` / outgoing only; never held-only.
-- **Guards:** arm only from `beginHold/MuteSessionSync` (device/UI), never from LED reconcile writes.
-
-## Extensibility track (2026-07-10)
+## Deferred
 
 P10 delivery is complete; next work is **vendor/transport extensibility without orchestrator rewrite**:
 
@@ -68,10 +79,13 @@ P10 delivery is complete; next work is **vendor/transport extensibility without 
 | `P10-Headset-Extensibility-WU4-Agent-Prompt.md` | EXT-4/10: `createHeadsetGateway` factory |
 | `P10-Headset-Extensibility-WU5-Agent-Prompt.md` | EXT-5–8: capabilities + mute/hold policies |
 | `HEADSET-VENDOR-ONBOARDING.md` | Add-new-vendor checklist |
+| `HEADSET-AGENT-ONBOARDING.md` | **Agent map:** layers, flows, Jabra vs Poly, where to edit |
 
 Task queue: `T-014` … `T-018` in `TASK-QUEUE.md`.
 
 ## Key paths
+
+- **Onboarding:** `docs/softphone/HEADSET-AGENT-ONBOARDING.md`
 
 - `src/domain/headset/`
 - `src/application/headset/`, `src/application/services/headset/`

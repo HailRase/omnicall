@@ -5,6 +5,9 @@
  */
 export type HeadsetMuteInputMode = "pulse" | "latch";
 
+/** swallowAll = ignore firmware bounce in echo window (Poly); matchOnly = latch user override. */
+export type HeadsetMuteEchoPolicy = "swallowAll" | "matchOnly";
+
 export type HeadsetMuteSemantics = "absolute" | "toggle";
 
 export type HeadsetHoldSemantics =
@@ -22,6 +25,8 @@ export type HeadsetCapabilities = Readonly<{
   supportsRejectOnHookOn: boolean;
   /** pulse = press/release (Jabra HSC016); latch = absolute mute bit (Poly BW3320). */
   muteInputMode: HeadsetMuteInputMode;
+  /** Firmware LED echo handling during sync window. */
+  muteEchoPolicy: HeadsetMuteEchoPolicy;
   /** absolute = event.muted authoritative; toggle = invert focused mute. */
   muteSemantics: HeadsetMuteSemantics;
   /** hookOffResumesWhenHoldLed = Jabra/Poly default; dedicatedHoldButton = holdPressed only. */
@@ -39,6 +44,7 @@ export function createDefaultHeadsetCapabilities(): HeadsetCapabilities {
     supportsIncomingSignal: false,
     supportsRejectOnHookOn: false,
     muteInputMode: "pulse",
+    muteEchoPolicy: "matchOnly",
     muteSemantics: "absolute",
     holdSemantics: "hookOffResumesWhenHoldLed",
   };

@@ -323,7 +323,8 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Headset session focus follows: incoming → outgoing → operator selection → primary → active → held (`resolveHeadsetSessionFocus`).
   - Hook-on hangup targets the focused established/outgoing session (including Held).
   - Mute from headset: pulse devices (Jabra HSC016) toggle on muted:true only (release bounce collapsed); latch devices (Poly BW3320) apply absolute mute bit; hold LED clears mute LED (telephony mute preserved in UI); resume restores session mute to headset.
-  - Headset mute echo: pulse swallows all mute events in echo window; latch swallows only redundant matching bits (opposite = user override).
+  - Headset mute echo: pulse swallows all mute events in echo window; Poly latch uses `muteEchoPolicy: swallowAll` for firmware LED bounce; generic latch matchOnly keeps opposite as user override outside LED echo.
+  - App→device `setMute` LED reconcile arms extended hardware mute echo (same as hold/resume path).
   - Headset-initiated mute/unmute confirms sync intent immediately after Use Case success (same as UI path) so rapid presses are not blocked.
   - Headset mute is rejected during incoming waiting and outgoing dial (restore presence LED even if sync-locked); UI mute sync clears against the muted session id, not only headset focus.
   - Outgoing dial auto-captures headset focus over operator selection.
@@ -333,7 +334,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - USB unplug: disconnect + fault toast; no automatic failover to another granted device.
   - Authorize / profile switch applies headset user settings (`applyActiveProfileSettingsSideEffects` → `applyHeadsetUserSettings`) so auto-reconnect runs after login.
   - Preferred headset id (`headsetPreferredDeviceId`, settings schema v5) is persisted on successful connect; auto-reconnect and USB plug prefer that id among granted devices, else first granted.
-  - Settings headset panel is status-first: connection status, granted-device Select, Connect/Disconnect, then short Enable / Auto-reconnect toggles.
+  - Settings headset panel: enable/auto-reconnect toggles with hints first, guided connect CTA, empty-grant and auto-reconnect hints; `mergeHeadsetUserSettingsIntoProjection` keeps status in sync with saved settings.
 - Test Coverage:
   - Unit: `buildHeadsetCallSnapshot.test.ts`, `resolveHeadsetSessionFocus.test.ts`, `resolveDeviceCommandsFromSnapshot.test.ts`, `forwardHeadsetHardwareEvent.test.ts`, `headsetPolicies.test.ts`, `HeadsetSessionOrchestrator.test.ts`, `pickGrantedHidDevice.test.ts`, `resolveHeadsetVendorProfile.test.ts`, `vendorProfileParity.test.ts`, `createHeadsetGateway.test.ts`, `SettingsHeadsetPanel.test.tsx`, `migrateUserSettings.test.ts` (v5)
   - Integration: `MockHeadsetGateway.ts`, `AccountBootstrapFacade` headset wiring (authorize → preferred auto-reconnect)

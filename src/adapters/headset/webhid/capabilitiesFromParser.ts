@@ -17,6 +17,7 @@ export function capabilitiesFromParser(parser: HidReportParser): HeadsetCapabili
     supportsIncomingSignal: true,
     supportsRejectOnHookOn: true,
     muteInputMode: parser.muteInputMode,
+    muteEchoPolicy: "matchOnly",
     muteSemantics: "absolute",
     holdSemantics: "hookOffResumesWhenHoldLed",
   };

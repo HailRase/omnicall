@@ -37,7 +37,10 @@ export const polyGenericProfile: HeadsetVendorProfile = {
   match: (device: HIDDevice): boolean => device.vendorId === HID_VENDOR_PLANTRONICS,
   parser,
   ledProfile: createStandardLedProfile,
-  capabilities: capabilitiesFromParser(parser),
+  capabilities: {
+    ...capabilitiesFromParser(parser),
+    muteEchoPolicy: "swallowAll",
+  },
   quirks: {
     muteSemantics: "absolute",
     holdSemantics: "hookOffResumesWhenHoldLed",

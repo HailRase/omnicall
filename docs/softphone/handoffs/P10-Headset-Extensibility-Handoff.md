@@ -123,7 +123,9 @@ src/adapters/headset/               ← new: profiles/, types/
 src/application/headset/
 src/application/services/headset/HeadsetIntegrationService.ts
 src/infrastructure/bootstrap/createRealAccountBootstrap.ts
+docs/softphone/HEADSET-AGENT-ONBOARDING.md
 docs/softphone/HEADSET-VENDOR-ONBOARDING.md
+docs/softphone/HEADSET-SYNC-CONTRACT.md
 ```
 
 ---
@@ -131,5 +133,7 @@ docs/softphone/HEADSET-VENDOR-ONBOARDING.md
 ## Related docs
 
 - `P10-Headset-Integration-Handoff.md` — delivered baseline
+- **`HEADSET-AGENT-ONBOARDING.md`** — agent layer map, flows, Jabra vs Poly, debug table
 - `HEADSET-VENDOR-ONBOARDING.md` — add-new-vendor checklist
+- `HEADSET-SYNC-CONTRACT.md` — SyncQueue invariants, mute echo policy
 - `headset-integration/headset-integration.md` — legacy jssip-phone reference (not runtime)

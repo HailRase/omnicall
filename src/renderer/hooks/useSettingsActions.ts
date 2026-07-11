@@ -136,6 +136,10 @@ export function useSettingsActions(
       if (result.ok) {
         setUserSettings(result.value);
         applyLoadedUserSettings(result.value, applyMultiCallSettings);
+        useAccountBootstrapStore.getState().syncHeadsetUserSettingsToProjection({
+          headsetEnabled: result.value.headsetEnabled,
+          headsetAutoReconnect: result.value.headsetAutoReconnect,
+        });
       }
     });
   }, [activeProfileSettingsSyncKey, applyMultiCallSettings, facade]);
@@ -158,6 +162,10 @@ export function useSettingsActions(
           setCodecPreferencesError(null);
           setUserSettings(result.value);
           applyLoadedUserSettings(result.value, applyMultiCallSettings);
+          useAccountBootstrapStore.getState().syncHeadsetUserSettingsToProjection({
+            headsetEnabled: result.value.headsetEnabled,
+            headsetAutoReconnect: result.value.headsetAutoReconnect,
+          });
         })
         .catch((error: unknown) => {
           setSettingsUpdateError(resolveSettingsUpdateError(error));

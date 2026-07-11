@@ -597,6 +597,7 @@ export type { HeadsetDevice } from "./headset/HeadsetDevice.js";
 export type {
   HeadsetCapabilities,
   HeadsetHoldSemantics,
+  HeadsetMuteEchoPolicy,
   HeadsetMuteInputMode,
   HeadsetMuteSemantics,
 } from "./headset/HeadsetCapabilities.js";

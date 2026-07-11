@@ -520,13 +520,22 @@ const ruMessages = {
   "settings.codecs.errors.reorderFailed": "Не удалось изменить порядок кодеков.",
   "settings.headset.title": "Гарнитура",
   "settings.headset.description":
-    "USB-гарнитура Jabra/Poly: статус и устройство сверху, опции снизу.",
+    "USB-гарнитуры Jabra и Poly/Plantronics. Сначала включите интеграцию, затем нажмите «Подключить гарнитуру» и выберите устройство в системном диалоге.",
   "settings.headset.enabled.label": "Включить интеграцию",
   "settings.headset.enabled.description":
     "При выключении софтфон работает как обычно, без USB-гарнитуры.",
   "settings.headset.autoReconnect.label": "Автопереподключение",
   "settings.headset.autoReconnect.description":
-    "Подключать ранее разрешённую гарнитуру при запуске и при USB plug.",
+    "После входа и при подключении USB автоматически подключать ранее разрешённую гарнитуру.",
+  "settings.headset.autoReconnect.pendingHint":
+    "Гарнитура не подключена. Нажмите «Подключить» или дождитесь автоподключения при USB.",
+  "settings.headset.emptyState.hint":
+    "Подключите гарнитуру по USB, затем нажмите «Подключить гарнитуру» и разрешите доступ в диалоге Windows.",
+  "settings.headset.connectPrimary.add": "Подключить гарнитуру",
+  "settings.headset.connectPrimary.named": (params: Readonly<{ name: string }>) =>
+    `Подключить ${params.name}`,
+  "settings.headset.connectDisabled.enableFirst":
+    "Сначала включите интеграцию гарнитуры выше.",
   "settings.headset.status.label": "Состояние",
   "settings.headset.status.disabled": "Интеграция выключена",
   "settings.headset.status.disconnected": "Не подключена",
@@ -547,6 +556,8 @@ const ruMessages = {
   "settings.headset.capabilities.answer": "ответ",
   "settings.headset.capabilities.reject": "отклонение",
   "settings.headset.capabilities.hangup": "сброс",
+  "settings.headset.capabilities.muteUser": "микрофон",
+  "settings.headset.capabilities.holdUser": "удержание",
   "settings.headset.capabilities.mute": (params: Readonly<{ mode: string }>) =>
     `mute (${params.mode})`,
   "settings.headset.capabilities.muteMode.pulse": "pulse",
@@ -1313,13 +1324,21 @@ const enMessages: MessageShape = {
   "settings.codecs.errors.reorderFailed": "Could not reorder codecs.",
   "settings.headset.title": "Headset",
   "settings.headset.description":
-    "USB headset (Jabra/Poly): status and device on top, options below.",
+    "USB headsets Jabra and Poly/Plantronics. Enable integration first, then click Connect headset and allow access in the system dialog.",
   "settings.headset.enabled.label": "Enable integration",
   "settings.headset.enabled.description":
     "When off, the softphone works normally without a USB headset.",
   "settings.headset.autoReconnect.label": "Auto-reconnect",
   "settings.headset.autoReconnect.description":
-    "Reconnect a previously granted headset on startup and USB plug.",
+    "After sign-in and on USB plug, automatically connect a previously granted headset.",
+  "settings.headset.autoReconnect.pendingHint":
+    "Headset is not connected. Click Connect or wait for auto-connect when USB is plugged in.",
+  "settings.headset.emptyState.hint":
+    "Plug in the headset via USB, then click Connect headset and allow access in the Windows dialog.",
+  "settings.headset.connectPrimary.add": "Connect headset",
+  "settings.headset.connectPrimary.named": (params) => `Connect ${params.name}`,
+  "settings.headset.connectDisabled.enableFirst":
+    "Enable headset integration above first.",
   "settings.headset.status.label": "Status",
   "settings.headset.status.disabled": "Integration disabled",
   "settings.headset.status.disconnected": "Not connected",
@@ -1338,6 +1357,8 @@ const enMessages: MessageShape = {
   "settings.headset.capabilities.answer": "answer",
   "settings.headset.capabilities.reject": "reject",
   "settings.headset.capabilities.hangup": "hang up",
+  "settings.headset.capabilities.muteUser": "microphone",
+  "settings.headset.capabilities.holdUser": "hold",
   "settings.headset.capabilities.mute": (params) => `mute (${params.mode})`,
   "settings.headset.capabilities.muteMode.pulse": "pulse",
   "settings.headset.capabilities.muteMode.latch": "latch",
@@ -2074,13 +2095,21 @@ const frMessages: MessageShape = {
   "settings.codecs.errors.reorderFailed": "Impossible de modifier l'ordre des codecs.",
   "settings.headset.title": "Micro-casque",
   "settings.headset.description":
-    "Micro-casque USB (Jabra/Poly) : statut et appareil en haut, options en bas.",
+    "Micro-casques USB Jabra et Poly/Plantronics. Activez l'integration, puis cliquez sur Connecter le micro-casque et autorisez l'acces dans la boite de dialogue systeme.",
   "settings.headset.enabled.label": "Activer l'integration",
   "settings.headset.enabled.description":
     "Desactive, le softphone fonctionne sans micro-casque USB.",
   "settings.headset.autoReconnect.label": "Reconnexion automatique",
   "settings.headset.autoReconnect.description":
-    "Reconnecter un micro-casque deja autorise au demarrage et a la branche USB.",
+    "Apres connexion et branchement USB, reconnecter automatiquement un micro-casque deja autorise.",
+  "settings.headset.autoReconnect.pendingHint":
+    "Micro-casque non connecte. Cliquez sur Connecter ou attendez la reconnexion automatique au branchement USB.",
+  "settings.headset.emptyState.hint":
+    "Branchez le micro-casque en USB, puis cliquez sur Connecter le micro-casque et autorisez l'acces dans la boite Windows.",
+  "settings.headset.connectPrimary.add": "Connecter le micro-casque",
+  "settings.headset.connectPrimary.named": (params) => `Connecter ${params.name}`,
+  "settings.headset.connectDisabled.enableFirst":
+    "Activez d'abord l'integration du micro-casque ci-dessus.",
   "settings.headset.status.label": "Etat",
   "settings.headset.status.disabled": "Integration desactivee",
   "settings.headset.status.disconnected": "Non connecte",
@@ -2099,6 +2128,8 @@ const frMessages: MessageShape = {
   "settings.headset.capabilities.answer": "repondre",
   "settings.headset.capabilities.reject": "rejeter",
   "settings.headset.capabilities.hangup": "raccrocher",
+  "settings.headset.capabilities.muteUser": "microphone",
+  "settings.headset.capabilities.holdUser": "attente",
   "settings.headset.capabilities.mute": (params) => `muet (${params.mode})`,
   "settings.headset.capabilities.muteMode.pulse": "pulse",
   "settings.headset.capabilities.muteMode.latch": "latch",
@@ -2838,13 +2869,21 @@ const deMessages: MessageShape = {
   "settings.codecs.errors.reorderFailed": "Codec-Reihenfolge konnte nicht geaendert werden.",
   "settings.headset.title": "Headset",
   "settings.headset.description":
-    "USB-Headset (Jabra/Poly): Status und Gerat oben, Optionen darunter.",
+    "USB-Headsets Jabra und Poly/Plantronics. Integration zuerst aktivieren, dann Headset verbinden klicken und Zugriff im Systemdialog erlauben.",
   "settings.headset.enabled.label": "Integration aktivieren",
   "settings.headset.enabled.description":
     "Wenn aus, arbeitet das Softphone normal ohne USB-Headset.",
   "settings.headset.autoReconnect.label": "Automatisch verbinden",
   "settings.headset.autoReconnect.description":
-    "Zuvor freigegebenes Headset beim Start und USB-Plug wieder verbinden.",
+    "Nach Anmeldung und USB-Stecker automatisch ein zuvor freigegebenes Headset verbinden.",
+  "settings.headset.autoReconnect.pendingHint":
+    "Headset nicht verbunden. Auf Verbinden klicken oder auf Auto-Verbindung beim USB-Stecker warten.",
+  "settings.headset.emptyState.hint":
+    "Headset per USB anschliessen, dann Headset verbinden klicken und Zugriff im Windows-Dialog erlauben.",
+  "settings.headset.connectPrimary.add": "Headset verbinden",
+  "settings.headset.connectPrimary.named": (params) => `${params.name} verbinden`,
+  "settings.headset.connectDisabled.enableFirst":
+    "Aktivieren Sie zuerst die Headset-Integration oben.",
   "settings.headset.status.label": "Status",
   "settings.headset.status.disabled": "Integration deaktiviert",
   "settings.headset.status.disconnected": "Nicht verbunden",
@@ -2863,6 +2902,8 @@ const deMessages: MessageShape = {
   "settings.headset.capabilities.answer": "annehmen",
   "settings.headset.capabilities.reject": "ablehnen",
   "settings.headset.capabilities.hangup": "auflegen",
+  "settings.headset.capabilities.muteUser": "Mikrofon",
+  "settings.headset.capabilities.holdUser": "Halten",
   "settings.headset.capabilities.mute": (params) => `stumm (${params.mode})`,
   "settings.headset.capabilities.muteMode.pulse": "pulse",
   "settings.headset.capabilities.muteMode.latch": "latch",

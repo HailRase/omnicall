@@ -45,4 +45,17 @@ describe("resolveHeadsetVendorProfile match order", () => {
     );
     expect(profile.id).toBe("generic-telephony");
   });
+
+  it("Poly profiles use swallowAll mute echo policy for firmware LED bounce", () => {
+    const bw3320Id = [...PLANTRONICS_BW3320_PRODUCT_IDS][0]!;
+    const bw3320 = resolveHeadsetVendorProfile(
+      createMockHidDevice({ vendorId: HID_VENDOR_PLANTRONICS, productId: bw3320Id }),
+    );
+    const genericPoly = resolveHeadsetVendorProfile(
+      createMockHidDevice({ vendorId: HID_VENDOR_PLANTRONICS, productId: 0x9999 }),
+    );
+
+    expect(bw3320.capabilities.muteEchoPolicy).toBe("swallowAll");
+    expect(genericPoly.capabilities.muteEchoPolicy).toBe("swallowAll");
+  });
 });

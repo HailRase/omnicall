@@ -120,6 +120,22 @@ export function applyHeadsetSettingsToProjection(
   };
 }
 
+/**
+ * - Purpose: merge persisted headset user flags into live connection projection.
+ * - Inputs: current projection and headset settings fields.
+ * - Outputs: projection with isEnabled/autoReconnect aligned to settings.
+ */
+export function mergeHeadsetUserSettingsIntoProjection(
+  projection: HeadsetConnectionProjection,
+  settings: Readonly<{ headsetEnabled: boolean; headsetAutoReconnect: boolean }>,
+): HeadsetConnectionProjection {
+  return {
+    ...projection,
+    isEnabled: settings.headsetEnabled,
+    autoReconnect: settings.headsetAutoReconnect,
+  };
+}
+
 function asOptionalString(value: unknown): string | null {
   return typeof value === "string" ? value : null;
 }
