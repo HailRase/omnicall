@@ -69,8 +69,9 @@ export class MockLocalMediaCapturePort implements LocalMediaCapturePort {
   }
 
   listInputDevices(
-    _correlationId: CorrelationId,
+    correlationId: CorrelationId,
   ): Promise<Result<ReadonlyArray<MediaInputDeviceInfo>, PlatformError>> {
+    void correlationId;
     if (this.scenario === "failure") {
       return Promise.resolve(
         err(createPlatformError("operation_failed", "mock_list_devices_failed")),
@@ -80,8 +81,9 @@ export class MockLocalMediaCapturePort implements LocalMediaCapturePort {
   }
 
   startCameraPreview(
-    _command: StartCameraPreviewCommand,
+    command: StartCameraPreviewCommand,
   ): Promise<Result<StartCameraPreviewResult, PlatformError>> {
+    void command;
     if (this.scenario === "failure" || this.scenario === "no_camera") {
       return Promise.resolve(
         err(createPlatformError("operation_failed", "mock_preview_failed")),
@@ -210,8 +212,9 @@ export class MockLocalMediaCapturePort implements LocalMediaCapturePort {
   }
 
   ensureOutboundVideoSenderSynced(
-    _command: EnsureOutboundVideoSenderSyncedCommand,
+    command: EnsureOutboundVideoSenderSyncedCommand,
   ): Promise<Result<void, PlatformError>> {
+    void command;
     return Promise.resolve(ok(undefined));
   }
 

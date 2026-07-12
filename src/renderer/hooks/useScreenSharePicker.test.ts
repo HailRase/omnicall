@@ -65,8 +65,8 @@ describe("useScreenSharePicker", () => {
     });
     expect(result.current.selectedSourceId).toBe("window:1:0");
 
-    await act(async () => {
-      result.current.confirm();
+    act(() => {
+      void result.current.confirm();
     });
 
     await waitFor(() => {

@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const { getSources, fromFrame } = vi.hoisted(() => ({
-  getSources: vi.fn(async () => [
-    { id: "screen:0:0", name: "Entire Screen" },
-    { id: "window:1:0", name: "App" },
-  ]),
+  getSources: vi.fn(() =>
+    Promise.resolve([
+      { id: "screen:0:0", name: "Entire Screen" },
+      { id: "window:1:0", name: "App" },
+    ]),
+  ),
   fromFrame: vi.fn(),
 }));
 
