@@ -3,6 +3,7 @@ import type { CodecPreferenceMutationError } from "@domain/index.js";
 export type CodecPreferenceMutationMessageKey =
   | "settings.codecs.errors.telephoneEventRequired"
   | "settings.codecs.errors.lastVoiceCodecRequired"
+  | "settings.codecs.errors.lastVideoCodecRequired"
   | "settings.codecs.errors.unknownAudioCodec"
   | "settings.codecs.errors.unknownVideoCodec"
   | "settings.codecs.errors.reorderFailed";
@@ -20,6 +21,8 @@ export function mapCodecPreferenceMutationError(
       return "settings.codecs.errors.telephoneEventRequired";
     case "last_voice_audio_codec_cannot_disable":
       return "settings.codecs.errors.lastVoiceCodecRequired";
+    case "last_video_codec_cannot_disable":
+      return "settings.codecs.errors.lastVideoCodecRequired";
     case "unknown_audio_codec_id":
       return "settings.codecs.errors.unknownAudioCodec";
     case "unknown_video_codec_id":

@@ -256,7 +256,10 @@ export {
   mapCodecPreferenceMutationError,
   type CodecPreferenceMutationMessageKey,
 } from "./settings/mapCodecPreferenceMutationError.js";
-export { isAudioCodecToggleDisabled } from "./settings/deriveCodecCheckboxDisabled.js";
+export {
+  isAudioCodecToggleDisabled,
+  isVideoCodecToggleDisabled,
+} from "./settings/deriveCodecCheckboxDisabled.js";
 export { SafeLogoutUseCase } from "./use-cases/platform/SafeLogoutUseCase.js";
 export { EndUserSessionUseCase } from "./use-cases/platform/EndUserSessionUseCase.js";
 export type { EndUserSessionInput } from "./use-cases/platform/EndUserSessionUseCase.js";

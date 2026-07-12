@@ -49,12 +49,24 @@ describe("SettingsCodecsPanel", () => {
     expect(onAudioCodecEnabledChange).toHaveBeenCalledWith("pcmu", false);
   });
 
-  it("keeps video codec controls disabled as future-only", () => {
+  it("emits video codec toggle changes and keeps controls enabled", async () => {
+    const onVideoCodecEnabledChange = vi.fn();
+    const user = userEvent.setup();
+
     render(<SettingsCodecsPanel {...baseProps} />);
 
-    expect(screen.getByTestId("settings-codecs-video-future-only")).toBeInTheDocument();
-    expect(screen.getByTestId("settings-codecs-video-toggle-vp8")).toBeDisabled();
-    expect(screen.getByTestId("settings-codecs-video-drag-vp8")).toBeDisabled();
+    expect(screen.getByTestId("settings-codecs-video-toggle-vp8")).toBeEnabled();
+    expect(screen.getByTestId("settings-codecs-video-drag-vp8")).toBeEnabled();
+
+    cleanup();
+    render(
+      <SettingsCodecsPanel
+        {...baseProps}
+        onVideoCodecEnabledChange={onVideoCodecEnabledChange}
+      />,
+    );
+    await user.click(screen.getByTestId("settings-codecs-video-toggle-vp8"));
+    expect(onVideoCodecEnabledChange).toHaveBeenCalledWith("vp8", false);
   });
 
   it("keeps telephone-event checkbox disabled", () => {
@@ -74,5 +86,18 @@ describe("SettingsCodecsPanel", () => {
     expect(screen.getByTestId("settings-codecs-error")).toHaveTextContent(
       "Должен остаться включённым хотя бы один голосовой аудиокодек.",
     );
+  });
+
+  it("disables toggle for the last enabled video codec", () => {
+    const onlyH264Enabled = {
+      ...defaultPreferences,
+      video: defaultPreferences.video.map((entry) => ({
+        ...entry,
+        enabled: entry.id === "h264",
+      })),
+    };
+
+    render(<SettingsCodecsPanel {...baseProps} codecPreferences={onlyH264Enabled} />);
+    expect(screen.getByTestId("settings-codecs-video-toggle-h264")).toBeDisabled();
   });
 });

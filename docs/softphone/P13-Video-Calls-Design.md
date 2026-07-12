@@ -17,7 +17,7 @@ Full behavioral video parity with legacy OS-1509, adapted to Axatalk layers — 
 
 Disabled reasons for Video call (projection keys): invalid number, not registered, multi-call block, video capture unavailable (when stub disabled), hold-all in progress.
 
-Settings retain: preferred cam/mic, default session view, auto-fullscreen for conference patterns, video codec order — **not** a primary audio/video switch.
+Settings retain: preferred cam/mic, default session view, auto-fullscreen for conference patterns, and user-defined video codec priority (default SIP-first: H.264 → VP8 → VP9 → AV1) — **not** a primary audio/video switch.
 
 ## Domain facts (no MediaStream)
 

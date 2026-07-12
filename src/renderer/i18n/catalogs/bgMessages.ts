@@ -392,6 +392,7 @@ export const bgMessages: MessageShape = {
   "settings.codecs.description": "Ред и активиране на кодеци за нови обаждания. Промените не засягат активните сесии.",
   "settings.codecs.dragHandleLabel": "Плъзнете, за да промените приоритета",
   "settings.codecs.errors.lastVoiceCodecRequired": "Поне един гласов аудио кодек трябва да остане включен.",
+  "settings.codecs.errors.lastVideoCodecRequired": "Поне един видео кодек трябва да остане включен.",
   "settings.codecs.errors.reorderFailed": "Не може да се пренаредят кодеците.",
   "settings.codecs.errors.telephoneEventRequired": "DTMF кодекът (telephone-event) не може да бъде изключен.",
   "settings.codecs.errors.unknownAudioCodec": "Неизвестен аудио кодек.",
@@ -400,7 +401,8 @@ export const bgMessages: MessageShape = {
   "settings.codecs.title": "Кодеци",
   "settings.codecs.video.av1": "AV1",
   "settings.codecs.video.h264": "H.264",
-  "settings.codecs.video.hint": "За бъдещи видео обаждания. Обажданията днес са само с аудио.",
+  "settings.codecs.video.hint":
+    "Върхът на списъка има най-висок приоритет по време на SDP преговори за нови видео обаждания.",
   "settings.codecs.video.legend": "Видео",
   "settings.codecs.video.vp8": "VP8",
   "settings.codecs.video.vp9": "VP9",

@@ -3,6 +3,7 @@ import {
   VOICE_AUDIO_CODEC_IDS,
   type AudioCodecId,
   type CodecPreferences,
+  type VideoCodecId,
 } from "@domain/index.js";
 
 /**
@@ -35,4 +36,24 @@ export function isAudioCodecToggleDisabled(
   );
 
   return otherEnabledVoice.length === 0;
+}
+
+/**
+ * - Purpose: decide whether video codec enable checkbox is locked in settings UI.
+ * - Inputs: current CodecPreferences and target video codec id.
+ * - Outputs: true when codec is the last enabled video codec.
+ */
+export function isVideoCodecToggleDisabled(
+  preferences: CodecPreferences,
+  codecId: VideoCodecId,
+): boolean {
+  const entry = preferences.video.find((row) => row.id === codecId);
+  if (entry === undefined || !entry.enabled) {
+    return false;
+  }
+
+  const otherEnabledVideo = preferences.video.filter(
+    (row) => row.id !== codecId && row.enabled,
+  );
+  return otherEnabledVideo.length === 0;
 }

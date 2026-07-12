@@ -10,6 +10,7 @@ export type CodecPreferenceMutationError =
   | "unknown_video_codec_id"
   | "telephone_event_cannot_disable"
   | "last_voice_audio_codec_cannot_disable"
+  | "last_video_codec_cannot_disable"
   | "reorder_index_out_of_range";
 
 export type CodecPreferenceMutationResult =
@@ -62,6 +63,15 @@ export function setVideoCodecEnabled(
 ): CodecPreferenceMutationResult {
   if (!preferences.video.some((entry) => entry.id === codecId)) {
     return { ok: false, error: "unknown_video_codec_id" };
+  }
+
+  if (!enabled) {
+    const otherEnabledVideo = preferences.video.filter(
+      (entry) => entry.id !== codecId && entry.enabled,
+    );
+    if (otherEnabledVideo.length === 0) {
+      return { ok: false, error: "last_video_codec_cannot_disable" };
+    }
   }
 
   return {

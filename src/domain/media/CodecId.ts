@@ -14,7 +14,7 @@ export const AUDIO_CODEC_IDS = [
 
 export type AudioCodecId = (typeof AUDIO_CODEC_IDS)[number];
 
-export const VIDEO_CODEC_IDS = ["vp8", "vp9", "h264", "av1"] as const;
+export const VIDEO_CODEC_IDS = ["h264", "vp8", "vp9", "av1"] as const;
 
 export type VideoCodecId = (typeof VIDEO_CODEC_IDS)[number];
 

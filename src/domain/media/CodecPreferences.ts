@@ -36,7 +36,7 @@ const DEFAULT_VIDEO_ENABLED: Readonly<Record<VideoCodecId, boolean>> = {
 };
 
 /**
- * - Purpose: factory defaults aligned with common WebRTC browser capability order.
+ * - Purpose: factory defaults aligned with SIP/WebRTC interoperability baseline.
  * - Inputs: none.
  * - Outputs: full CodecPreferences with all known codecs present.
  */

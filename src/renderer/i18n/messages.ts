@@ -538,7 +538,8 @@ const ruMessages = {
   "settings.codecs.audio.legend": "Аудио",
   "settings.codecs.audio.hint": "Верх списка — высший приоритет при согласовании SDP.",
   "settings.codecs.video.legend": "Видео",
-  "settings.codecs.video.hint": "Для будущих видеозвонков. Сейчас звонки только аудио.",
+  "settings.codecs.video.hint":
+    "Верх списка — высший приоритет при согласовании SDP для новых видеозвонков.",
   "settings.codecs.audio.opus": "Opus",
   "settings.codecs.audio.pcmu": "G.711 μ-law (PCMU)",
   "settings.codecs.audio.pcma": "G.711 A-law (PCMA)",
@@ -552,6 +553,8 @@ const ruMessages = {
     "Кодек DTMF (telephone-event) нельзя отключить.",
   "settings.codecs.errors.lastVoiceCodecRequired":
     "Должен остаться включённым хотя бы один голосовой аудиокодек.",
+  "settings.codecs.errors.lastVideoCodecRequired":
+    "Должен остаться включённым хотя бы один видеокодек.",
   "settings.codecs.errors.unknownAudioCodec": "Неизвестный аудиокодек.",
   "settings.codecs.errors.unknownVideoCodec": "Неизвестный видеокодек.",
   "settings.codecs.errors.reorderFailed": "Не удалось изменить порядок кодеков.",
@@ -1425,7 +1428,8 @@ const enMessages: MessageShape = {
   "settings.codecs.audio.legend": "Audio",
   "settings.codecs.audio.hint": "Top of the list is highest priority during SDP negotiation.",
   "settings.codecs.video.legend": "Video",
-  "settings.codecs.video.hint": "For future video calls. Calls are audio-only today.",
+  "settings.codecs.video.hint":
+    "Top of the list is highest priority during SDP negotiation for new video calls.",
   "settings.codecs.audio.opus": "Opus",
   "settings.codecs.audio.pcmu": "G.711 μ-law (PCMU)",
   "settings.codecs.audio.pcma": "G.711 A-law (PCMA)",
@@ -1439,6 +1443,8 @@ const enMessages: MessageShape = {
     "DTMF codec (telephone-event) cannot be disabled.",
   "settings.codecs.errors.lastVoiceCodecRequired":
     "At least one voice audio codec must stay enabled.",
+  "settings.codecs.errors.lastVideoCodecRequired":
+    "At least one video codec must stay enabled.",
   "settings.codecs.errors.unknownAudioCodec": "Unknown audio codec.",
   "settings.codecs.errors.unknownVideoCodec": "Unknown video codec.",
   "settings.codecs.errors.reorderFailed": "Could not reorder codecs.",
@@ -2275,7 +2281,8 @@ const frMessages: MessageShape = {
   "settings.codecs.audio.legend": "Audio",
   "settings.codecs.audio.hint": "Le haut de la liste a la priorite la plus elevee lors de la negociation SDP.",
   "settings.codecs.video.legend": "Video",
-  "settings.codecs.video.hint": "Pour les futurs appels video. Les appels sont audio uniquement pour l'instant.",
+  "settings.codecs.video.hint":
+    "Le haut de la liste a la priorite la plus elevee lors de la negociation SDP pour les nouveaux appels video.",
   "settings.codecs.audio.opus": "Opus",
   "settings.codecs.audio.pcmu": "G.711 μ-law (PCMU)",
   "settings.codecs.audio.pcma": "G.711 A-law (PCMA)",
@@ -2289,6 +2296,8 @@ const frMessages: MessageShape = {
     "Le codec DTMF (telephone-event) ne peut pas etre desactive.",
   "settings.codecs.errors.lastVoiceCodecRequired":
     "Au moins un codec audio vocal doit rester active.",
+  "settings.codecs.errors.lastVideoCodecRequired":
+    "Au moins un codec video doit rester active.",
   "settings.codecs.errors.unknownAudioCodec": "Codec audio inconnu.",
   "settings.codecs.errors.unknownVideoCodec": "Codec video inconnu.",
   "settings.codecs.errors.reorderFailed": "Impossible de modifier l'ordre des codecs.",
@@ -3128,7 +3137,8 @@ const deMessages: MessageShape = {
   "settings.codecs.audio.legend": "Audio",
   "settings.codecs.audio.hint": "Oben in der Liste hat die hoechste Prioritaet bei der SDP-Aushandlung.",
   "settings.codecs.video.legend": "Video",
-  "settings.codecs.video.hint": "Fuer kuenftige Videoanrufe. Anrufe sind derzeit nur Audio.",
+  "settings.codecs.video.hint":
+    "Oben in der Liste hat die hoechste Prioritaet bei der SDP-Aushandlung fuer neue Videoanrufe.",
   "settings.codecs.audio.opus": "Opus",
   "settings.codecs.audio.pcmu": "G.711 μ-law (PCMU)",
   "settings.codecs.audio.pcma": "G.711 A-law (PCMA)",
@@ -3142,6 +3152,8 @@ const deMessages: MessageShape = {
     "DTMF-Codec (telephone-event) kann nicht deaktiviert werden.",
   "settings.codecs.errors.lastVoiceCodecRequired":
     "Mindestens ein Sprach-Audiocodec muss aktiviert bleiben.",
+  "settings.codecs.errors.lastVideoCodecRequired":
+    "Mindestens ein Videocodec muss aktiviert bleiben.",
   "settings.codecs.errors.unknownAudioCodec": "Unbekannter Audiocodec.",
   "settings.codecs.errors.unknownVideoCodec": "Unbekannter Videocodec.",
   "settings.codecs.errors.reorderFailed": "Codec-Reihenfolge konnte nicht geaendert werden.",

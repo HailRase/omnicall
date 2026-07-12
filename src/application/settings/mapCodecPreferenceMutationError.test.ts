@@ -13,4 +13,10 @@ describe("mapCodecPreferenceMutationError", () => {
       "settings.codecs.errors.lastVoiceCodecRequired",
     );
   });
+
+  it("maps last video codec guard to translation key", () => {
+    expect(mapCodecPreferenceMutationError("last_video_codec_cannot_disable")).toBe(
+      "settings.codecs.errors.lastVideoCodecRequired",
+    );
+  });
 });

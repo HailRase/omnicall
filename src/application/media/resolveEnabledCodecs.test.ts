@@ -43,4 +43,14 @@ describe("resolveEnabledCodecs", () => {
     expect(resolved.audioMimeTypes).not.toContain("audio/opus");
     expect(resolved.audioMimeTypes[0]).toBe("audio/PCMU");
   });
+
+  it("uses SIP-first default video codec priority", () => {
+    const resolved = resolveEnabledCodecs(createDefaultCodecPreferences());
+    expect(resolved.videoMimeTypes).toEqual([
+      "video/H264",
+      "video/VP8",
+      "video/VP9",
+      "video/AV1",
+    ]);
+  });
 });

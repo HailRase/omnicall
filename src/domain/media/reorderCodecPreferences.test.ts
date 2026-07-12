@@ -59,8 +59,8 @@ describe("reorderCodecPreferences", () => {
     const result = reorderVideoCodecs(preferences, 0, 2);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.video[0]?.id).toBe("vp9");
-      expect(result.value.video[2]?.id).toBe("vp8");
+      expect(result.value.video[0]?.id).toBe("vp8");
+      expect(result.value.video[2]?.id).toBe("h264");
     }
   });
 
@@ -70,6 +70,23 @@ describe("reorderCodecPreferences", () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.video.find((entry) => entry.id === "vp8")?.enabled).toBe(false);
+    }
+  });
+
+  it("blocks disabling the last enabled video codec", () => {
+    const preferences = createDefaultCodecPreferences();
+    const onlyH264Enabled = {
+      ...preferences,
+      video: preferences.video.map((entry) => ({
+        ...entry,
+        enabled: entry.id === "h264",
+      })),
+    };
+
+    const result = setVideoCodecEnabled(onlyH264Enabled, "h264", false);
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toBe("last_video_codec_cannot_disable");
     }
   });
 });

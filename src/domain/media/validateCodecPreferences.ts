@@ -5,6 +5,7 @@ import {
   parseVideoCodecId,
   VIDEO_CODEC_IDS,
   type AudioCodecId,
+  type VideoCodecId,
 } from "./CodecId.js";
 import type { CodecPreferenceEntry } from "./CodecPreferenceEntry.js";
 import {
@@ -52,7 +53,7 @@ export function validateCodecPreferences(value: unknown): ValidateCodecPreferenc
   const normalizedAudio = normalizeEntries(audio, AUDIO_CODEC_IDS);
   const normalizedVideo = normalizeEntries(video, VIDEO_CODEC_IDS);
 
-  const businessErrors = validateBusinessRules(normalizedAudio);
+  const businessErrors = validateBusinessRules(normalizedAudio, normalizedVideo);
   if (businessErrors.length > 0) {
     return { ok: false, errors: businessErrors };
   }
@@ -158,6 +159,7 @@ function validateOrderPermutation<TId extends string>(
 
 function validateBusinessRules(
   audio: ReadonlyArray<CodecPreferenceEntry<AudioCodecId>>,
+  video: ReadonlyArray<CodecPreferenceEntry<VideoCodecId>>,
 ): string[] {
   const errors: string[] = [];
 
@@ -173,6 +175,11 @@ function validateBusinessRules(
 
   if (enabledVoiceCount < 1) {
     errors.push("codecPreferences_at_least_one_voice_audio_required");
+  }
+
+  const enabledVideoCount = video.filter((entry) => entry.enabled).length;
+  if (enabledVideoCount < 1) {
+    errors.push("codecPreferences_at_least_one_video_required");
   }
 
   return errors;

@@ -64,6 +64,18 @@ describe("validateCodecPreferences", () => {
     }
   });
 
+  it("rejects when all video codecs are disabled", () => {
+    const defaults = createDefaultCodecPreferences();
+    const result = validateCodecPreferences({
+      ...defaults,
+      video: defaults.video.map((entry) => ({ ...entry, enabled: false })),
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors).toContain("codecPreferences_at_least_one_video_required");
+    }
+  });
+
   it("rejects invalid order permutation", () => {
     const defaults = createDefaultCodecPreferences();
     const result = validateCodecPreferences({
