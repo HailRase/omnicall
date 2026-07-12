@@ -13,6 +13,9 @@ import type {
   TelephonyCallAnsweredNotification,
   TelephonyRemoteHoldNotification,
   TelephonyRemoteResumeNotification,
+  TelephonyRemoteVideoPresenceNotification,
+  TelephonyIncomingRemoteVideoOfferedNotification,
+  TelephonyCameraAvailabilityNotification,
   TelephonyIncomingCallNotification,
   TelephonyRegistrationFailedNotification,
   TelephonyTransportConnectingNotification,
@@ -75,6 +78,8 @@ export class MockTelephonyGateway implements TelephonyGateway {
   private readonly delayMs: number;
   private registered = false;
   private transportConnected = false;
+  private readonly makeCallCommands: MakeCallCommand[] = [];
+  private readonly answerCallCommands: AnswerCallCommand[] = [];
   private readonly dialedNumbers: string[] = [];
   private readonly sentTones: string[] = [];
   private readonly hangupCalls: string[] = [];
@@ -111,6 +116,15 @@ export class MockTelephonyGateway implements TelephonyGateway {
     | null = null;
   private remoteResumeHandler:
     | ((notification: TelephonyRemoteResumeNotification) => Promise<void>)
+    | null = null;
+  private remoteVideoPresenceHandler:
+    | ((notification: TelephonyRemoteVideoPresenceNotification) => Promise<void>)
+    | null = null;
+  private incomingRemoteVideoOfferedHandler:
+    | ((notification: TelephonyIncomingRemoteVideoOfferedNotification) => Promise<void>)
+    | null = null;
+  private cameraAvailabilityHandler:
+    | ((notification: TelephonyCameraAvailabilityNotification) => Promise<void>)
     | null = null;
   private transportDisconnectedHandler:
     | ((notification: TelephonyTransportDisconnectedNotification) => Promise<void>)
@@ -220,6 +234,10 @@ export class MockTelephonyGateway implements TelephonyGateway {
     return this.dialedNumbers;
   }
 
+  getMakeCallCommands(): ReadonlyArray<MakeCallCommand> {
+    return this.makeCallCommands;
+  }
+
   getSentTones(): ReadonlyArray<string> {
     return this.sentTones;
   }
@@ -230,6 +248,10 @@ export class MockTelephonyGateway implements TelephonyGateway {
 
   getAnsweredCalls(): ReadonlyArray<string> {
     return this.answeredCalls;
+  }
+
+  getAnswerCallCommands(): ReadonlyArray<AnswerCallCommand> {
+    return this.answerCallCommands;
   }
 
   getHeldCalls(): ReadonlyArray<string> {
@@ -370,6 +392,7 @@ export class MockTelephonyGateway implements TelephonyGateway {
       await sleep(this.delayMs);
     }
 
+    this.makeCallCommands.push(command);
     this.dialedNumbers.push(command.number);
 
     if (this.makeCallScenario === "failed_busy") {
@@ -438,6 +461,7 @@ export class MockTelephonyGateway implements TelephonyGateway {
         createPlatformError("operation_failed", `Answer failed for ${command.callId}`),
       );
     }
+    this.answerCallCommands.push(command);
     this.answeredCalls.push(command.callId);
     return ok(undefined);
   }
@@ -596,6 +620,39 @@ export class MockTelephonyGateway implements TelephonyGateway {
     };
   }
 
+  setRemoteVideoPresenceHandler(
+    handler:
+      | ((notification: TelephonyRemoteVideoPresenceNotification) => Promise<void>)
+      | null,
+  ): () => void {
+    this.remoteVideoPresenceHandler = handler;
+    return () => {
+      this.remoteVideoPresenceHandler = null;
+    };
+  }
+
+  setIncomingRemoteVideoOfferedHandler(
+    handler:
+      | ((notification: TelephonyIncomingRemoteVideoOfferedNotification) => Promise<void>)
+      | null,
+  ): () => void {
+    this.incomingRemoteVideoOfferedHandler = handler;
+    return () => {
+      this.incomingRemoteVideoOfferedHandler = null;
+    };
+  }
+
+  setCameraAvailabilityHandler(
+    handler:
+      | ((notification: TelephonyCameraAvailabilityNotification) => Promise<void>)
+      | null,
+  ): () => void {
+    this.cameraAvailabilityHandler = handler;
+    return () => {
+      this.cameraAvailabilityHandler = null;
+    };
+  }
+
   /** P08 WU2: simulate SIP transport disconnect for integration tests. */
   setTransportDisconnectedHandler(
     handler: ((notification: TelephonyTransportDisconnectedNotification) => Promise<void>) | null,
@@ -699,6 +756,30 @@ export class MockTelephonyGateway implements TelephonyGateway {
   async simulateRemoteResume(notification: TelephonyRemoteResumeNotification): Promise<void> {
     if (this.remoteResumeHandler !== null) {
       await this.remoteResumeHandler(notification);
+    }
+  }
+
+  async simulateRemoteVideoPresence(
+    notification: TelephonyRemoteVideoPresenceNotification,
+  ): Promise<void> {
+    if (this.remoteVideoPresenceHandler !== null) {
+      await this.remoteVideoPresenceHandler(notification);
+    }
+  }
+
+  async simulateIncomingRemoteVideoOffered(
+    notification: TelephonyIncomingRemoteVideoOfferedNotification,
+  ): Promise<void> {
+    if (this.incomingRemoteVideoOfferedHandler !== null) {
+      await this.incomingRemoteVideoOfferedHandler(notification);
+    }
+  }
+
+  async simulateCameraAvailability(
+    notification: TelephonyCameraAvailabilityNotification,
+  ): Promise<void> {
+    if (this.cameraAvailabilityHandler !== null) {
+      await this.cameraAvailabilityHandler(notification);
     }
   }
 }

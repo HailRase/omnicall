@@ -3,6 +3,7 @@ declare const classes: {
   readonly actionButtons: string;
   readonly anchor: string;
   readonly answerButton: string;
+  readonly answerVideoButton: string;
   readonly autoAnswerFill: string;
   readonly autoAnswerHint: string;
   readonly autoAnswerTrack: string;

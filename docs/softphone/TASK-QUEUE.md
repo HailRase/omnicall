@@ -6,6 +6,7 @@
 
 | ID | Priority | Task | F-XXX | Command | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
+| T-019 | 0 | Video calls full parity (P13) | F-027 | `/logic` → `/adapter` → `/ui` | claimed | WU1–WU7 done; WU8 manual SBC — `handoffs/P13-Video-Calls-WU8-SBC-Smoke-Checklist.md` |
 | T-014 | 0 | Headset vendor profile registry (EXT-1/2/3) | F-012 | `/adapter` | done | closed 2026-07-10 — `profiles/` + `resolveHeadsetVendorProfile`; next T-015 |
 | T-015 | 1 | Headset gateway factory (EXT-4) | F-012 | `/adapter` | done | closed 2026-07-10 — `createHeadsetGateway` + SdkHeadsetGatewayStub; next T-016 |
 | T-016 | 2 | Headset capabilities + mute/hold policies (EXT-5–8) | F-012 | `/logic` | done | closed 2026-07-10 — policies + SyncContract; next EXT-9/11 optional |

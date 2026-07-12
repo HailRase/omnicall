@@ -12,16 +12,20 @@ function prefersReducedMotion(): boolean {
 
 type UseShellWindowLayoutInput = Readonly<{
   settingsOpen: boolean;
+  videoFullscreen: boolean;
 }>;
 
 /**
- * - Purpose: sync Electron window bounds with settings overlay open state (F-016).
- * - Inputs: settings overlay open flag.
- * - Outputs: invokes ShellWindowLayoutService when open state changes.
+ * - Purpose: sync Electron window bounds with settings and video fullscreen (F-016/F-027).
+ * - Inputs: settings overlay open flag and video fullscreen session view flag.
+ * - Outputs: invokes ShellWindowLayoutService when either flag changes.
  */
 export function useShellWindowLayout(input: UseShellWindowLayoutInput): void {
-  const { settingsOpen } = input;
-  const previousOpenRef = useRef<boolean | null>(null);
+  const { settingsOpen, videoFullscreen } = input;
+  const previousRef = useRef<Readonly<{
+    settingsOpen: boolean;
+    videoFullscreen: boolean;
+  }> | null>(null);
   const serviceRef = useRef<ShellWindowLayoutService | null>(null);
 
   useEffect(() => {
@@ -29,20 +33,33 @@ export function useShellWindowLayout(input: UseShellWindowLayoutInput): void {
       serviceRef.current = new ShellWindowLayoutService(new PreloadShellWindowGateway());
     }
 
-    if (previousOpenRef.current === null) {
-      previousOpenRef.current = settingsOpen;
+    const previous = previousRef.current;
+    if (previous === null) {
+      previousRef.current = { settingsOpen, videoFullscreen };
+      // Apply immediately when mounting already expanded (settings / video fullscreen).
+      if (settingsOpen || videoFullscreen) {
+        void serviceRef.current.syncLayout({
+          settingsOpen,
+          videoFullscreen,
+          reducedMotion: prefersReducedMotion(),
+        });
+      }
       return;
     }
 
-    if (previousOpenRef.current === settingsOpen) {
+    if (
+      previous.settingsOpen === settingsOpen &&
+      previous.videoFullscreen === videoFullscreen
+    ) {
       return;
     }
 
-    previousOpenRef.current = settingsOpen;
+    previousRef.current = { settingsOpen, videoFullscreen };
 
-    void serviceRef.current.syncForSettingsOverlay({
+    void serviceRef.current.syncLayout({
       settingsOpen,
+      videoFullscreen,
       reducedMotion: prefersReducedMotion(),
     });
-  }, [settingsOpen]);
+  }, [settingsOpen, videoFullscreen]);
 }

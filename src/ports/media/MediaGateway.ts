@@ -13,6 +13,14 @@ export type AttachRemoteAudioCommand = Readonly<{
   correlationId: CorrelationId;
 }>;
 
+export type BindCallVideoSurfacesCommand = Readonly<{
+  callId: CallId;
+  correlationId: CorrelationId;
+  /** Opaque HTMLVideoElement from renderer; never inspected outside Media adapter. */
+  remoteVideoElement: unknown;
+  localVideoElement: unknown;
+}>;
+
 export type PlayRingbackToneCommand = Readonly<{
   callId: CallId;
   correlationId: CorrelationId;
@@ -69,6 +77,9 @@ export interface MediaGateway {
   attachRemoteAudio(
     command: AttachRemoteAudioCommand,
   ): Promise<Result<RemoteAudioAttachOutcome, PlatformError>>;
+  bindCallVideoSurfaces(
+    command: BindCallVideoSurfacesCommand,
+  ): Promise<Result<void, PlatformError>>;
   playRingbackTone(
     command: PlayRingbackToneCommand,
   ): Promise<Result<void, PlatformError>>;

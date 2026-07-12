@@ -24,6 +24,10 @@ describe("resolveShellWindowResizable", () => {
   it("enables user resize in settings mode", () => {
     expect(resolveShellWindowResizable("settings")).toBe(true);
   });
+
+  it("disables user resize in video-fullscreen mode", () => {
+    expect(resolveShellWindowResizable("video-fullscreen")).toBe(false);
+  });
 });
 
 describe("resolveShellWindowTargetBounds", () => {
@@ -59,6 +63,22 @@ describe("resolveShellWindowTargetBounds", () => {
       y: Math.round((1080 - 720) / 2),
       width: 1000,
       height: 720,
+    });
+  });
+
+  it("fills the work area in video-fullscreen mode", () => {
+    const bounds = resolveShellWindowTargetBounds(
+      "video-fullscreen",
+      WORK_AREA,
+      { width: 420, height: 720 },
+      720,
+    );
+
+    expect(bounds).toEqual({
+      x: 0,
+      y: 0,
+      width: 1920,
+      height: 1080,
     });
   });
 });

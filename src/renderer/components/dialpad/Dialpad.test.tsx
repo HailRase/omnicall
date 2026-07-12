@@ -157,6 +157,27 @@ describe("Dialpad", () => {
     expect(onHistoryOlder).toHaveBeenCalledTimes(1);
   });
 
+  it("calls video-call binding on video button press", () => {
+    const onVideoCall = vi.fn();
+    renderDialpad({
+      callDisabledReason: null,
+      videoCallDisabledReason: null,
+      numberValue: "12345",
+      onVideoCall,
+    });
+    fireEvent.click(screen.getByTestId("dialpad-video-call"));
+    expect(onVideoCall).toHaveBeenCalledTimes(1);
+  });
+
+  it("disables video call button when reason is set", () => {
+    renderDialpad({
+      numberValue: "12345",
+      videoCallDisabledReason: "Camera unavailable",
+      onVideoCall: vi.fn(),
+    });
+    expect(screen.getByTestId("dialpad-video-call")).toBeDisabled();
+  });
+
   it("hides keypad when established call exists and input is empty", () => {
     renderDialpad({ hasEstablishedCall: true, numberValue: "" });
     expect(screen.queryByTestId("dialpad-key-1")).not.toBeInTheDocument();

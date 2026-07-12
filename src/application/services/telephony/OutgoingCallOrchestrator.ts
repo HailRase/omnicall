@@ -4,12 +4,14 @@ import {
   createCallAnsweredEvent,
   createCallFailedEvent,
   createCallId,
+  createCallMediaModeSelectedEvent,
   createCallProgressReceivedEvent,
   createFailedToneStartedEvent,
   createOutgoingCall,
   createOutgoingCallRequestedEvent,
   createOutgoingCallStartedEvent,
   createRingbackToneStartedEvent,
+  DEFAULT_CALL_MEDIA_MODE,
   mapCallFailureReason,
   type Call,
   type CallFailureReason,
@@ -19,6 +21,7 @@ import type {
   DomainEventPublisher,
   Logger,
   MediaGateway,
+  SettingsRepository,
   TelephonyGateway,
 } from "@ports/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
@@ -27,11 +30,13 @@ import { createPlatformError, normalizeUnknownError } from "@shared/errors/index
 import { err, isErr, ok, type Result } from "@shared/result/index.js";
 import type { CallTracker } from "./CallTracker.js";
 import type { MultiCallPolicyService } from "./MultiCallPolicyService.js";
+import type { CallVideoMediaProjection } from "../../projections/media/CallVideoMediaProjection.js";
 import {
   cancelScheduledTonePlaybackStop,
   scheduleTonePlaybackStop,
 } from "./scheduleTonePlaybackStop.js";
 import { attachRemoteAudioWhenReady } from "./remoteAudioAttach.js";
+import { applyInitialSessionViewForCall } from "./applyInitialSessionViewForCall.js";
 import { resolveTerminalFailureToneDuration } from "../../policies/tonePlaybackPolicy.js";
 import type {
   HandleCallAnsweredInput,
@@ -43,9 +48,11 @@ import type {
 type OutgoingCallOrchestratorDeps = Readonly<{
   telephonyGateway: TelephonyGateway;
   mediaGateway: MediaGateway;
+  settingsRepository: SettingsRepository;
   eventPublisher: DomainEventPublisher;
   logger: Logger;
   callTracker: CallTracker;
+  videoMediaProjection: CallVideoMediaProjection;
   multiCallPolicyService: MultiCallPolicyService;
 }>;
 
@@ -82,7 +89,9 @@ export class OutgoingCallOrchestrator {
     }
 
     const callId = input.callId ?? createCallId(`call-${correlationId}`);
+    const mediaMode = input.mediaMode ?? DEFAULT_CALL_MEDIA_MODE;
     const initialCall = createOutgoingCall(callId, input.phoneNumber);
+    this.deps.videoMediaProjection.selectMediaMode(callId, mediaMode);
 
     this.deps.eventPublisher.publish(
       createOutgoingCallRequestedEvent(correlationId, {
@@ -90,6 +99,15 @@ export class OutgoingCallOrchestrator {
         phoneNumber: input.phoneNumber,
       }),
     );
+    this.deps.eventPublisher.publish(
+      createCallMediaModeSelectedEvent(correlationId, callId, mediaMode),
+    );
+    await applyInitialSessionViewForCall(this.deps, {
+      callId,
+      mediaMode,
+      remoteNumber: input.phoneNumber,
+      correlationId,
+    });
 
     this.deps.logger.info("outgoing_call_requested", {
       correlationId,
@@ -99,6 +117,7 @@ export class OutgoingCallOrchestrator {
       previousState: "Idle",
       nextState: "Connecting",
       result: "requested",
+      mediaMode,
     });
 
     const requested = applyCallTransition(initialCall, "outgoing_requested");
@@ -114,6 +133,7 @@ export class OutgoingCallOrchestrator {
       const gatewayResult = await this.deps.telephonyGateway.makeCall({
         callId,
         number: input.phoneNumber,
+        mediaMode,
         correlationId,
       });
 
@@ -278,6 +298,7 @@ export class OutgoingCallOrchestrator {
 
     await this.playFailureTone(call.id, correlationId, reason, details);
     this.deps.callTracker.trackCall(failedCall);
+    this.deps.videoMediaProjection.remove(call.id);
 
     return err(createPlatformError("operation_failed", details));
   }

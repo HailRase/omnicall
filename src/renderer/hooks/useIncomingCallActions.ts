@@ -1,10 +1,12 @@
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
   deriveIncomingAnswerDisabledReason,
+  resolveVideoCallAvailability,
   type IncomingCallProjection,
   type MultiCallProjection,
 } from "@application/index.js";
 import { mapDialpadDisabledReason } from "../helpers/mapDialpadDisabledReason.js";
+import { mapVideoCallDisabledReason } from "../helpers/mapVideoCallDisabledReason.js";
 import { translateCurrent } from "../i18n/index.js";
 
 type UseIncomingCallActionsInput = Readonly<{
@@ -17,8 +19,11 @@ type UseIncomingCallActionsInput = Readonly<{
 
 type UseIncomingCallActionsResult = Readonly<{
   handleAnswerIncoming: () => void;
+  handleAnswerIncomingWithVideo: () => void;
   handleRejectIncoming: () => void;
   answerDisabledReason: string | null;
+  videoAnswerDisabledReason: string | null;
+  canAnswerWithVideo: boolean;
   rejectDisabledReason: string | null;
 }>;
 
@@ -43,7 +48,7 @@ export function useIncomingCallActions(
     ? null
     : mapDialpadDisabledReason("disabledByNotRegistered");
 
-  const handleAnswerIncoming = (): void => {
+  const answerIncoming = (mediaMode: "audio" | "video"): void => {
     if (
       facade === null ||
       incomingCallProjection.callId === null ||
@@ -52,12 +57,37 @@ export function useIncomingCallActions(
     ) {
       return;
     }
-    setIncomingUiState("answering");
-    void facade.answerCallById(incomingCallProjection.callId).then((result) => {
-      if (!result.ok) {
-        setIncomingUiState("answerFailed");
+    if (mediaMode === "video") {
+      const videoAvailability = resolveVideoCallAvailability({
+        numberValid: true,
+        sipRegistered: isSipRegistered,
+        secondSessionBlocked: policyAnswerDisabled === "multi.call.disabled.secondSession",
+        holdAllInProgress: multiCallProjection.holdAllInProgress,
+        videoCaptureAvailable: true,
+        videoFeatureReady: true,
+        // Hide only when SDP explicitly has no video; null = still detecting.
+        remoteVideoOffered: incomingCallProjection.incomingRemoteVideoOffered !== false,
+      });
+      if (!videoAvailability.enabled) {
+        return;
       }
-    });
+    }
+    setIncomingUiState("answering");
+    void facade
+      .answerCallById(incomingCallProjection.callId, mediaMode)
+      .then((result) => {
+        if (!result.ok) {
+          setIncomingUiState("answerFailed");
+        }
+      });
+  };
+
+  const handleAnswerIncoming = (): void => {
+    answerIncoming("audio");
+  };
+
+  const handleAnswerIncomingWithVideo = (): void => {
+    answerIncoming("video");
   };
 
   const handleRejectIncoming = (): void => {
@@ -76,6 +106,32 @@ export function useIncomingCallActions(
     incomingCallProjection.uiState === "rejecting"
       ? translateCurrent("incoming.status.rejecting")
       : (registrationAnswerDisabled ?? mapPolicyDisabledReason(policyAnswerDisabled));
+
+  const videoAvailability = resolveVideoCallAvailability({
+    numberValid: true,
+    sipRegistered: isSipRegistered,
+    secondSessionBlocked: policyAnswerDisabled === "multi.call.disabled.secondSession",
+    holdAllInProgress: multiCallProjection.holdAllInProgress,
+    videoCaptureAvailable: true,
+    videoFeatureReady: true,
+    remoteVideoOffered: incomingCallProjection.incomingRemoteVideoOffered !== false,
+  });
+  // Show Answer with video unless inbound offer is known audio-only.
+  const canAnswerWithVideo =
+    incomingCallProjection.incomingRemoteVideoOffered !== false &&
+    videoAvailability.enabled;
+  const videoAnswerDisabledReason =
+    canAnswerWithVideo
+      ? null
+      : answerDisabledReason ??
+        mapVideoCallDisabledReason(
+          incomingCallProjection.incomingRemoteVideoOffered === false
+            ? "videoCall.disabled.remoteVideoNotOffered"
+            : videoAvailability.enabled
+              ? null
+              : videoAvailability.reason,
+        );
+
   const rejectDisabledReason =
     incomingCallProjection.uiState === "answering"
       ? translateCurrent("incoming.status.answering")
@@ -83,8 +139,11 @@ export function useIncomingCallActions(
 
   return {
     handleAnswerIncoming,
+    handleAnswerIncomingWithVideo,
     handleRejectIncoming,
     answerDisabledReason,
+    videoAnswerDisabledReason,
+    canAnswerWithVideo,
     rejectDisabledReason,
   };
 }

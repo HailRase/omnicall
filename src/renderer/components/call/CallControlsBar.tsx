@@ -1,15 +1,30 @@
 import clsx from "clsx";
 import type { JSX, MouseEvent } from "react";
-import type { CallLineCardViewModel } from "@application/index.js";
+import type {
+  CallLineCardViewModel,
+  CallVideoMediaState,
+  SessionViewMode,
+} from "@application/index.js";
+import {
+  areCameraControlsEnabled,
+  isScreenShareAllowed,
+} from "@application/index.js";
 import { useI18n } from "../../i18n/index.js";
 import { AppIcon } from "../icons/AppIcon.js";
 import type { IconSemanticId } from "../icons/iconCatalog.js";
 import { IconTooltip } from "../icons/IconTooltip.js";
 import { Spinner } from "../ui/spinner/index.js";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu/index.js";
 import styles from "./CallControlsBar.module.css";
 
 export type CallControlsBarProps = Readonly<{
   line: CallLineCardViewModel | null;
+  videoState?: CallVideoMediaState | null;
   registrationDisabledReason?: string | null;
   onHold: (callId: string) => void;
   onResume: (callId: string) => void;
@@ -19,6 +34,10 @@ export type CallControlsBarProps = Readonly<{
   onTransfer: (callId: string) => void;
   onShowDtmf: () => void;
   onShowNumberEntry: () => void;
+  onToggleCamera?: (callId: string) => void;
+  onToggleScreenShare?: (callId: string) => void;
+  onExpandVideo?: (callId: string) => void;
+  onSetSessionView?: (callId: string, sessionView: SessionViewMode) => void;
 }>;
 
 type LabeledControlProps = Readonly<{
@@ -42,6 +61,7 @@ type LabeledControlProps = Readonly<{
  */
 export function CallControlsBar({
   line,
+  videoState = null,
   registrationDisabledReason = null,
   onHold,
   onResume,
@@ -51,6 +71,10 @@ export function CallControlsBar({
   onTransfer,
   onShowDtmf,
   onShowNumberEntry,
+  onToggleCamera,
+  onToggleScreenShare,
+  onExpandVideo,
+  onSetSessionView,
 }: CallControlsBarProps): JSX.Element | null {
   const { t } = useI18n();
   const controllableStates = new Set(["Active", "Held", "Connecting", "Ringing"]);
@@ -61,6 +85,33 @@ export function CallControlsBar({
   const isPreConnect = line.state === "Connecting" || line.state === "Ringing";
   const isHeld = line.state === "Held";
   const registrationBlocked = registrationDisabledReason !== null;
+  const isVideoCall = videoState?.mediaMode === "video";
+  const cameraEnabled =
+    isVideoCall &&
+    videoState !== null &&
+    !isPreConnect &&
+    !isHeld &&
+    !registrationBlocked &&
+    areCameraControlsEnabled(videoState);
+  const screenShareEnabled =
+    isVideoCall &&
+    videoState !== null &&
+    !isPreConnect &&
+    !isHeld &&
+    !registrationBlocked &&
+    (videoState.localVideoSource === "screen" || isScreenShareAllowed(videoState));
+  const viewExpandEnabled =
+    isVideoCall &&
+    videoState !== null &&
+    !isPreConnect &&
+    !registrationBlocked;
+  const viewModeIconId: IconSemanticId =
+    videoState?.sessionView === "hidden"
+      ? "call.videoHidden"
+      : videoState?.sessionView === "fullscreen"
+        ? "call.videoExpand"
+        : "call.videoCollapse";
+  const viewModeCaption = t("call.controls.label.viewMode");
 
   const muteReason = line.muted ? line.unmuteDisabledReason : line.muteDisabledReason;
   const holdReason = isHeld ? line.resumeDisabledReason : line.holdDisabledReason;
@@ -103,6 +154,122 @@ export function CallControlsBar({
             }
           }}
         />
+        {isVideoCall && onToggleCamera !== undefined ? (
+          <LabeledControl
+            iconId={
+              videoState?.localVideoMuted === false
+                ? "call.cameraOn"
+                : "call.cameraOff"
+            }
+            label={
+              videoState?.localVideoMuted === false
+                ? t("call.controls.label.cameraOn")
+                : t("call.controls.label.cameraOff")
+            }
+            ariaLabel={
+              videoState?.localVideoMuted === false
+                ? t("icons.call.cameraOn")
+                : t("icons.call.cameraOff")
+            }
+            testId={`control-camera-line-${line.callId}`}
+            muted={videoState?.localVideoMuted === true}
+            disabled={!cameraEnabled}
+            onClick={() => {
+              onToggleCamera(line.callId);
+            }}
+          />
+        ) : null}
+        {isVideoCall && onToggleScreenShare !== undefined ? (
+          <LabeledControl
+            iconId={
+              videoState?.localVideoSource === "screen"
+                ? "call.screenShareStop"
+                : "call.screenShare"
+            }
+            label={
+              videoState?.localVideoSource === "screen"
+                ? t("call.controls.label.screenShareStop")
+                : t("call.controls.label.screenShare")
+            }
+            ariaLabel={
+              videoState?.localVideoSource === "screen"
+                ? t("icons.call.screenShareStop")
+                : t("icons.call.screenShare")
+            }
+            testId={`control-screen-share-line-${line.callId}`}
+            muted={videoState?.localVideoSource === "screen"}
+            disabled={!screenShareEnabled}
+            onClick={() => {
+              onToggleScreenShare(line.callId);
+            }}
+          />
+        ) : null}
+        {isVideoCall && onSetSessionView !== undefined ? (
+          <div className={styles.control}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  type="button"
+                  className={clsx(styles.button, !viewExpandEnabled && styles.buttonDisabled)}
+                  data-testid={`control-video-view-mode-line-${line.callId}`}
+                  aria-label={viewModeCaption}
+                  disabled={!viewExpandEnabled}
+                >
+                  <AppIcon id={viewModeIconId} decorative />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" side="top">
+                {videoState?.sessionView !== "fullscreen" ? (
+                  <DropdownMenuItem
+                    data-testid="control-view-mode-fullscreen"
+                    onSelect={() => {
+                      onSetSessionView(line.callId, "fullscreen");
+                    }}
+                  >
+                    <AppIcon id="call.videoExpand" decorative />
+                    <span>{t("call.video.viewMode.fullscreen")}</span>
+                  </DropdownMenuItem>
+                ) : null}
+                {videoState?.sessionView !== "expanded" ? (
+                  <DropdownMenuItem
+                    data-testid="control-view-mode-expanded"
+                    onSelect={() => {
+                      onSetSessionView(line.callId, "expanded");
+                    }}
+                  >
+                    <AppIcon id="call.videoCollapse" decorative />
+                    <span>{t("call.video.viewMode.expanded")}</span>
+                  </DropdownMenuItem>
+                ) : null}
+                {videoState?.sessionView !== "hidden" ? (
+                  <DropdownMenuItem
+                    data-testid="control-view-mode-hidden"
+                    onSelect={() => {
+                      onSetSessionView(line.callId, "hidden");
+                    }}
+                  >
+                    <AppIcon id="call.videoHidden" decorative />
+                    <span>{t("call.video.viewMode.hidden")}</span>
+                  </DropdownMenuItem>
+                ) : null}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <span className={clsx(styles.caption, !viewExpandEnabled && styles.captionDisabled)}>
+              {viewModeCaption}
+            </span>
+          </div>
+        ) : isVideoCall && onExpandVideo !== undefined ? (
+          <LabeledControl
+            iconId={viewModeIconId}
+            label={viewModeCaption}
+            ariaLabel={viewModeCaption}
+            testId={`control-video-expand-line-${line.callId}`}
+            disabled={!viewExpandEnabled}
+            onClick={() => {
+              onExpandVideo(line.callId);
+            }}
+          />
+        ) : null}
         <LabeledControl
           iconId={isHeld ? "call.resume" : "call.hold"}
           label={isHeld ? t("call.controls.label.resume") : t("call.controls.label.hold")}

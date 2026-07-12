@@ -9,6 +9,7 @@ export type ShellWindowLayoutPayload = Readonly<{
 const SHELL_WINDOW_LAYOUT_MODES: ReadonlyArray<ShellWindowLayoutMode> = [
   "compact",
   "settings",
+  "video-fullscreen",
 ];
 
 /**

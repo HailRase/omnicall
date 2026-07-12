@@ -14,6 +14,9 @@ import type {
   TelephonyCallAnsweredNotification,
   TelephonyRemoteHoldNotification,
   TelephonyRemoteResumeNotification,
+  TelephonyRemoteVideoPresenceNotification,
+  TelephonyIncomingRemoteVideoOfferedNotification,
+  TelephonyCameraAvailabilityNotification,
   TelephonyGateway,
   TelephonyIncomingCallNotification,
   TelephonyTransportConnectingNotification,
@@ -21,9 +24,18 @@ import type {
   TelephonyTransportDisconnectedNotification,
   TelephonyRegistrationFailedNotification,
 } from "@ports/index.js";
-import type { CallId, SipAccount } from "@domain/index.js";
+import type {
+  CallId,
+  CallMediaMode,
+  SipAccount,
+} from "@domain/index.js";
 import { createCallId, mapSipRegistrationFailureFromParts } from "@domain/index.js";
-import type { Logger, CodecPreferencesPort } from "@ports/index.js";
+import type {
+  CodecPreferencesPort,
+  LocalMediaCapturePort,
+  LocalMediaStreamHandle,
+  Logger,
+} from "@ports/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { createPlatformError, normalizeUnknownError } from "@shared/errors/index.js";
@@ -54,6 +66,7 @@ import { ensureJsSipRtcSessionPort, resolveReplacesForRefer, resolveReplacesStor
 import { awaitJsSipRegistration } from "./awaitJsSipRegistration.js";
 import { extractJsSipRegistrationFailureParts } from "./extractJsSipRegistrationFailureParts.js";
 import { resolveJsSipTransportUrl } from "./resolveJsSipTransportUrl.js";
+import { detectRemoteVideoPresence } from "./detectRemoteVideoPresence.js";
 
 const FEATURE_ID_REGISTRATION = "F-001";
 const FEATURE_ID_INCOMING = "F-002";
@@ -63,14 +76,22 @@ const FEATURE_ID_REMOTE_HOLD = "F-004";
 const FEATURE_ID_BLIND_TRANSFER = "F-006";
 const FEATURE_ID_ATTENDED_TRANSFER = "F-007";
 const FEATURE_ID_DTMF = "F-008";
+const FEATURE_ID_VIDEO_CALLS = "F-027";
 
 const DEFAULT_TRANSPORT_CONNECTION_TIMEOUT_MS = 10_000;
 
 export type JsSipTelephonyAdapterOptions = Readonly<{
   logger: Logger;
   createUserAgent?: JsSipUserAgentFactory;
-  /** WU-3: injected for WU-4 SDP/codec apply on makeCall/answer. */
   codecPreferencesPort?: CodecPreferencesPort;
+  localMediaCapturePort?: LocalMediaCapturePort;
+  resolveLocalMediaStream?: (handle: LocalMediaStreamHandle) => object | null;
+  getPreferredMediaDeviceIds?: () => Promise<
+    Readonly<{
+      audioDeviceId?: string;
+      videoDeviceId?: string;
+    }>
+  >;
 }>;
 
 export type TelephonyPeerConnectionBoundNotification = Readonly<{
@@ -87,12 +108,24 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
   private readonly logger: Logger;
   private readonly createUserAgent: JsSipUserAgentFactory;
   private readonly codecPreferencesPort: CodecPreferencesPort | null;
+  private readonly localMediaCapturePort: LocalMediaCapturePort | null;
+  private readonly resolveLocalMediaStream:
+    | ((handle: LocalMediaStreamHandle) => object | null)
+    | null;
+  private readonly getPreferredMediaDeviceIds:
+    | (() => Promise<Readonly<{ audioDeviceId?: string; videoDeviceId?: string }>>)
+    | null;
   private readonly sessions = new Map<CallId, JsSipRtcSessionPort>();
   private readonly replacesSessions = new Map<CallId, unknown>();
   private readonly peerConnections = new Map<CallId, unknown>();
   private readonly callCorrelations = new Map<CallId, CorrelationId>();
   private readonly callIdBySessionId = new Map<string, CallId>();
   private readonly referInFlightCallIds = new Set<CallId>();
+  private readonly capturedLocalMediaCallIds = new Set<CallId>();
+  private readonly mediaModeByCallId = new Map<CallId, CallMediaMode>();
+  private readonly remoteSdpByCallId = new Map<CallId, string>();
+  private readonly remoteVideoPresenceByCallId = new Map<CallId, boolean>();
+  private readonly incomingRemoteVideoOfferedByCallId = new Map<CallId, boolean>();
   private ua: JsSipUaPort | null = null;
   private storedAccount: SipAccount | null = null;
   private lastCorrelationId: CorrelationId = createCorrelationId();
@@ -115,6 +148,15 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
   private remoteResumeHandler:
     | ((notification: TelephonyRemoteResumeNotification) => Promise<void>)
     | null = null;
+  private remoteVideoPresenceHandler:
+    | ((notification: TelephonyRemoteVideoPresenceNotification) => Promise<void>)
+    | null = null;
+  private incomingRemoteVideoOfferedHandler:
+    | ((notification: TelephonyIncomingRemoteVideoOfferedNotification) => Promise<void>)
+    | null = null;
+  private cameraAvailabilityHandler:
+    | ((notification: TelephonyCameraAvailabilityNotification) => Promise<void>)
+    | null = null;
   private peerConnectionBoundHandler:
     | ((notification: TelephonyPeerConnectionBoundNotification) => Promise<void>)
     | null = null;
@@ -135,6 +177,9 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     this.logger = options.logger;
     this.createUserAgent = options.createUserAgent ?? createJsSipUserAgent;
     this.codecPreferencesPort = options.codecPreferencesPort ?? null;
+    this.localMediaCapturePort = options.localMediaCapturePort ?? null;
+    this.resolveLocalMediaStream = options.resolveLocalMediaStream ?? null;
+    this.getPreferredMediaDeviceIds = options.getPreferredMediaDeviceIds ?? null;
   }
 
   getCodecPreferencesPort(): CodecPreferencesPort | null {
@@ -232,6 +277,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     try {
       const ua = this.ua;
       await this.stopUa(ua);
+      await this.releaseAllCapturedLocalMedia(correlationId);
       this.ua = null;
       this.storedAccount = null;
       this.sessions.clear();
@@ -239,6 +285,11 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       this.peerConnections.clear();
       this.callCorrelations.clear();
       this.callIdBySessionId.clear();
+      this.capturedLocalMediaCallIds.clear();
+      this.mediaModeByCallId.clear();
+      this.remoteSdpByCallId.clear();
+      this.remoteVideoPresenceByCallId.clear();
+      this.incomingRemoteVideoOfferedByCallId.clear();
 
       this.logger.info("jssip_unregister_succeeded", {
         correlationId,
@@ -415,7 +466,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
   }
 
   async makeCall(command: MakeCallCommand): Promise<Result<MakeCallProgress, PlatformError>> {
-    const { callId, number, correlationId } = command;
+    const { callId, number, correlationId, mediaMode } = command;
     this.lastCorrelationId = correlationId;
 
     if (this.ua === null || !this.effectiveIsRegistered() || this.storedAccount === null) {
@@ -436,12 +487,31 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     });
 
     try {
+      const resolvedMediaMode = mediaMode ?? "audio";
+      if (resolvedMediaMode === "video" && this.localMediaCapturePort === null) {
+        this.logJsSipManagedVideoCapture(callId, correlationId);
+      }
+      let mediaStream: object | null = null;
+      if (resolvedMediaMode === "video" && this.localMediaCapturePort !== null) {
+        const captureResult = await this.captureVideoMediaIfConfigured(
+          callId,
+          correlationId,
+        );
+        if (!captureResult.ok) {
+          return err(captureResult.error);
+        }
+        mediaStream = captureResult.value;
+      }
       const resolvedPromise = resolveJsSipSessionCodecs(
         this.codecPreferencesPort,
         this.logger,
       );
-      const mediaOptions = buildJsSipCallMediaOptions();
+      const mediaOptions = {
+        ...buildJsSipCallMediaOptions(resolvedMediaMode),
+        ...(mediaStream !== null ? { mediaStream } : {}),
+      };
       const session = this.ua.call(target, mediaOptions);
+      this.mediaModeByCallId.set(callId, resolvedMediaMode);
       this.registerSession(callId, session, correlationId);
       this.attachSessionLifecycle(
         callId,
@@ -458,6 +528,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
         logger: this.logger,
         correlationId,
         featureId: FEATURE_ID_OUTGOING,
+        ...(resolvedMediaMode === "video" ? { includeVideo: true } : {}),
       });
 
       const progressResult = await progressPromise;
@@ -473,6 +544,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
 
       return progressResult;
     } catch (error: unknown) {
+      await this.releaseCapturedLocalMedia(callId, correlationId);
       const normalized = normalizeUnknownError(error);
       this.logger.error(
         "jssip_make_call_failed",
@@ -491,7 +563,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
   }
 
   async answerCall(command: AnswerCallCommand): Promise<Result<void, PlatformError>> {
-    const { callId, correlationId } = command;
+    const { callId, correlationId, mediaMode } = command;
     this.lastCorrelationId = correlationId;
 
     const session = this.sessions.get(callId);
@@ -508,16 +580,45 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     });
 
     try {
+      const resolvedMediaMode = mediaMode ?? "audio";
+      this.mediaModeByCallId.set(callId, resolvedMediaMode);
+      if (resolvedMediaMode === "video" && this.localMediaCapturePort === null) {
+        this.logJsSipManagedVideoCapture(callId, correlationId);
+      }
+      let mediaStream: object | null = null;
+      if (resolvedMediaMode === "video" && this.localMediaCapturePort !== null) {
+        const captureResult = await this.captureVideoMediaIfConfigured(
+          callId,
+          correlationId,
+        );
+        if (!captureResult.ok) {
+          return err(captureResult.error);
+        }
+        mediaStream = captureResult.value;
+      }
       await prepareJsSipSessionCodecPreferences({
         session,
         codecPreferencesPort: this.codecPreferencesPort,
         logger: this.logger,
         correlationId,
         featureId: FEATURE_ID_INCOMING,
+        ...(resolvedMediaMode === "video" ? { includeVideo: true } : {}),
       });
 
-      const mediaOptions = buildJsSipCallMediaOptions();
+      const mediaOptions = {
+        ...buildJsSipCallMediaOptions(resolvedMediaMode),
+        ...(mediaStream !== null ? { mediaStream } : {}),
+      };
       session.answer(mediaOptions);
+      this.notifyRemoteVideoPresenceFromCachedSdp(callId, correlationId);
+      if (resolvedMediaMode === "video" && this.localMediaCapturePort !== null) {
+        await this.localMediaCapturePort.ensureOutboundVideoSenderSynced({
+          callId,
+          correlationId,
+        });
+        // JsSIP may finish sender/track wiring after answer() returns; retry without blocking.
+        this.scheduleOutboundVideoSenderSync(callId, correlationId);
+      }
       this.logger.info("jssip_answer_call_succeeded", {
         correlationId,
         featureId: FEATURE_ID_INCOMING,
@@ -528,6 +629,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       });
       return ok(undefined);
     } catch (error: unknown) {
+      await this.releaseCapturedLocalMedia(callId, correlationId);
       const normalized = normalizeUnknownError(error);
       this.logger.error(
         "jssip_answer_call_failed",
@@ -978,6 +1080,39 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     };
   }
 
+  setRemoteVideoPresenceHandler(
+    handler:
+      | ((notification: TelephonyRemoteVideoPresenceNotification) => Promise<void>)
+      | null,
+  ): () => void {
+    this.remoteVideoPresenceHandler = handler;
+    return () => {
+      this.remoteVideoPresenceHandler = null;
+    };
+  }
+
+  setIncomingRemoteVideoOfferedHandler(
+    handler:
+      | ((notification: TelephonyIncomingRemoteVideoOfferedNotification) => Promise<void>)
+      | null,
+  ): () => void {
+    this.incomingRemoteVideoOfferedHandler = handler;
+    return () => {
+      this.incomingRemoteVideoOfferedHandler = null;
+    };
+  }
+
+  setCameraAvailabilityHandler(
+    handler:
+      | ((notification: TelephonyCameraAvailabilityNotification) => Promise<void>)
+      | null,
+  ): () => void {
+    this.cameraAvailabilityHandler = handler;
+    return () => {
+      this.cameraAvailabilityHandler = null;
+    };
+  }
+
   setPeerConnectionBoundHandler(
     handler: ((notification: TelephonyPeerConnectionBoundNotification) => Promise<void>) | null,
   ): () => void {
@@ -1044,6 +1179,17 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     });
 
     const correlationId = this.callCorrelations.get(callId);
+    if (
+      this.mediaModeByCallId.get(callId) === "video" &&
+      this.localMediaCapturePort !== null &&
+      correlationId !== undefined
+    ) {
+      void this.localMediaCapturePort.ensureOutboundVideoSenderSynced({
+        callId,
+        correlationId,
+      });
+    }
+
     if (this.peerConnectionBoundHandler === null || correlationId === undefined) {
       return;
     }
@@ -1064,6 +1210,10 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     this.sessions.delete(callId);
     this.replacesSessions.delete(callId);
     this.callCorrelations.delete(callId);
+    this.mediaModeByCallId.delete(callId);
+    this.remoteSdpByCallId.delete(callId);
+    this.remoteVideoPresenceByCallId.delete(callId);
+    this.incomingRemoteVideoOfferedByCallId.delete(callId);
     this.logger.debug("jssip_peer_connection_unbound", {
       correlationId: this.lastCorrelationId,
       featureId: FEATURE_ID_REGISTRATION,
@@ -1109,6 +1259,12 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       },
       onRemoteResume: (resumedCallId, resumedCorrelationId) => {
         void this.handleRemoteResume(resumedCallId, resumedCorrelationId);
+      },
+      onRemoteSdp: (sdpCallId, sdpCorrelationId, sdp) => {
+        this.handleRemoteSdp(sdpCallId, sdpCorrelationId, sdp);
+      },
+      onRemoteInfoNoVideo: (infoCallId, infoCorrelationId) => {
+        this.handleRemoteInfoNoVideo(infoCallId, infoCorrelationId);
       },
       ...(options?.notifyOnConfirmed === true
         ? {
@@ -1170,13 +1326,6 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
 
     this.registerSession(callId, event.session, correlationId);
     this.attachSessionLifecycle(callId, port, correlationId, FEATURE_ID_INCOMING);
-    void prepareJsSipSessionCodecPreferences({
-      session: event.session,
-      codecPreferencesPort: this.codecPreferencesPort,
-      logger: this.logger,
-      correlationId,
-      featureId: FEATURE_ID_INCOMING,
-    });
 
     const remoteHeader = port.getRemoteIdentityHeader();
     const notification = mapTelephonyIncomingNotification({
@@ -1194,7 +1343,14 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       callId,
     });
 
+    // Publish IncomingCallReceived first so offered SDP can bind to projection.callId.
     await this.incomingCallHandler(notification);
+
+    const inviteSdp =
+      extractInviteRequestSdp(event.request) ?? this.remoteSdpByCallId.get(callId) ?? null;
+    if (inviteSdp !== null) {
+      this.handleRemoteSdp(callId, correlationId, inviteSdp);
+    }
   }
 
   private async handleSessionConfirmed(
@@ -1224,6 +1380,7 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
       return;
     }
 
+    await this.releaseCapturedLocalMedia(callId, correlationId);
     this.unbindPeerConnection(callId);
 
     if (this.callEndedHandler === null) {
@@ -1277,6 +1434,332 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     });
 
     await this.remoteResumeHandler({ callId, correlationId });
+  }
+
+  private handleRemoteSdp(
+    callId: CallId,
+    correlationId: CorrelationId,
+    sdp: string,
+  ): void {
+    this.remoteSdpByCallId.set(callId, sdp);
+    if (!this.mediaModeByCallId.has(callId)) {
+      this.notifyIncomingRemoteVideoOffered(callId, correlationId, sdp);
+      return;
+    }
+    if (this.mediaModeByCallId.get(callId) !== "video") {
+      return;
+    }
+    this.notifyRemoteVideoPresence(callId, correlationId, sdp);
+  }
+
+  private notifyIncomingRemoteVideoOffered(
+    callId: CallId,
+    correlationId: CorrelationId,
+    sdp: string,
+  ): void {
+    const offered = detectRemoteVideoPresence(sdp);
+    if (this.incomingRemoteVideoOfferedByCallId.get(callId) === offered) {
+      return;
+    }
+    this.incomingRemoteVideoOfferedByCallId.set(callId, offered);
+    this.logger.info("jssip_incoming_remote_video_offered_detected", {
+      correlationId,
+      featureId: FEATURE_ID_VIDEO_CALLS,
+      boundedContext: "Media",
+      operation: "incoming_remote_video_offered",
+      callId,
+      result: offered ? "offered" : "absent",
+    });
+    void this.dispatchIncomingRemoteVideoOffered({
+      callId,
+      offered,
+      correlationId,
+    });
+  }
+
+  private async dispatchIncomingRemoteVideoOffered(
+    notification: TelephonyIncomingRemoteVideoOfferedNotification,
+  ): Promise<void> {
+    if (this.incomingRemoteVideoOfferedHandler === null) {
+      return;
+    }
+    try {
+      await this.incomingRemoteVideoOfferedHandler(notification);
+    } catch (error: unknown) {
+      this.logger.error(
+        "jssip_incoming_remote_video_offered_handler_failed",
+        {
+          correlationId: notification.correlationId,
+          featureId: FEATURE_ID_VIDEO_CALLS,
+          boundedContext: "Media",
+          operation: "incoming_remote_video_offered",
+          callId: notification.callId,
+          result: normalizeUnknownError(error).code,
+        },
+        error,
+      );
+    }
+  }
+
+  private handleRemoteInfoNoVideo(
+    callId: CallId,
+    correlationId: CorrelationId,
+  ): void {
+    if (this.mediaModeByCallId.get(callId) !== "video") {
+      return;
+    }
+    if (this.remoteVideoPresenceByCallId.get(callId) === false) {
+      return;
+    }
+    this.remoteVideoPresenceByCallId.set(callId, false);
+    this.logger.info("jssip_remote_info_no_video", {
+      correlationId,
+      featureId: FEATURE_ID_VIDEO_CALLS,
+      boundedContext: "Media",
+      operation: "remote_info_no_video",
+      callId,
+      result: "absent",
+    });
+    void this.dispatchRemoteVideoPresence({
+      callId,
+      present: false,
+      correlationId,
+    });
+  }
+
+  private notifyRemoteVideoPresenceFromCachedSdp(
+    callId: CallId,
+    correlationId: CorrelationId,
+  ): void {
+    if (this.mediaModeByCallId.get(callId) !== "video") {
+      return;
+    }
+    const sdp = this.remoteSdpByCallId.get(callId);
+    if (sdp !== undefined) {
+      this.notifyRemoteVideoPresence(callId, correlationId, sdp);
+    }
+  }
+
+  private notifyRemoteVideoPresence(
+    callId: CallId,
+    correlationId: CorrelationId,
+    sdp: string,
+  ): void {
+    const present = detectRemoteVideoPresence(sdp);
+    if (this.remoteVideoPresenceByCallId.get(callId) === present) {
+      return;
+    }
+    this.remoteVideoPresenceByCallId.set(callId, present);
+    this.logger.info("jssip_remote_video_presence_detected", {
+      correlationId,
+      featureId: FEATURE_ID_VIDEO_CALLS,
+      boundedContext: "Media",
+      operation: "remote_video_presence",
+      callId,
+      result: present ? "present" : "absent",
+    });
+    void this.dispatchRemoteVideoPresence({ callId, present, correlationId });
+  }
+
+  private async dispatchRemoteVideoPresence(
+    notification: TelephonyRemoteVideoPresenceNotification,
+  ): Promise<void> {
+    if (this.remoteVideoPresenceHandler === null) {
+      return;
+    }
+    try {
+      await this.remoteVideoPresenceHandler(notification);
+    } catch (error: unknown) {
+      this.logger.error(
+        "jssip_remote_video_presence_handler_failed",
+        {
+          correlationId: notification.correlationId,
+          featureId: FEATURE_ID_VIDEO_CALLS,
+          boundedContext: "Media",
+          operation: "remote_video_presence",
+          callId: notification.callId,
+          result: normalizeUnknownError(error).code,
+        },
+        error,
+      );
+    }
+  }
+
+  private scheduleOutboundVideoSenderSync(
+    callId: CallId,
+    correlationId: CorrelationId,
+  ): void {
+    const port = this.localMediaCapturePort;
+    if (port === null) {
+      return;
+    }
+
+    for (const delayMs of [120, 400, 900]) {
+      void (async (): Promise<void> => {
+        await new Promise<void>((resolve) => {
+          setTimeout(resolve, delayMs);
+        });
+        if (this.mediaModeByCallId.get(callId) !== "video") {
+          return;
+        }
+        if (!this.capturedLocalMediaCallIds.has(callId)) {
+          return;
+        }
+        await port.ensureOutboundVideoSenderSynced({ callId, correlationId });
+      })();
+    }
+  }
+
+  private async captureVideoMediaIfConfigured(
+    callId: CallId,
+    correlationId: CorrelationId,
+  ): Promise<Result<object, PlatformError>> {
+    if (this.localMediaCapturePort === null) {
+      return err(
+        createPlatformError("operation_failed", "Local media capture is unavailable"),
+      );
+    }
+
+    const deviceIds = await this.resolvePreferredMediaDeviceIds(correlationId);
+    const result = await this.localMediaCapturePort.captureLocalMedia({
+      callId,
+      includeVideo: true,
+      initialVideoMuted: true,
+      allowStubVideoTrack: true,
+      correlationId,
+      ...deviceIds,
+    });
+    if (!result.ok) {
+      this.logVideoCaptureFailure(callId, correlationId, result.error);
+      return result;
+    }
+
+    this.capturedLocalMediaCallIds.add(callId);
+    const stream = this.resolveLocalMediaStream?.(result.value.handle) ?? null;
+    if (stream === null) {
+      await this.releaseCapturedLocalMedia(callId, correlationId);
+      const error = createPlatformError(
+        "operation_failed",
+        "Captured local media stream could not be resolved",
+      );
+      this.logVideoCaptureFailure(callId, correlationId, error);
+      return err(error);
+    }
+    void this.dispatchCameraAvailability({
+      callId,
+      available: !result.value.usedStubVideoTrack,
+      correlationId,
+    });
+    return ok(stream);
+  }
+
+  private async dispatchCameraAvailability(
+    notification: TelephonyCameraAvailabilityNotification,
+  ): Promise<void> {
+    if (this.cameraAvailabilityHandler === null) {
+      return;
+    }
+    try {
+      await this.cameraAvailabilityHandler(notification);
+    } catch (error: unknown) {
+      this.logger.error(
+        "jssip_camera_availability_handler_failed",
+        {
+          correlationId: notification.correlationId,
+          featureId: FEATURE_ID_VIDEO_CALLS,
+          boundedContext: "Media",
+          operation: "camera_availability",
+          callId: notification.callId,
+          result: normalizeUnknownError(error).code,
+        },
+        error,
+      );
+    }
+  }
+
+  private logVideoCaptureFailure(
+    callId: CallId,
+    correlationId: CorrelationId,
+    error: PlatformError,
+  ): void {
+    this.logger.error("jssip_video_capture_failed", {
+      correlationId,
+      featureId: FEATURE_ID_VIDEO_CALLS,
+      boundedContext: "Media",
+      operation: "capture_local_media",
+      callId,
+      result: error.code,
+      normalizedError: error.message,
+    });
+  }
+
+  private logJsSipManagedVideoCapture(
+    callId: CallId,
+    correlationId: CorrelationId,
+  ): void {
+    this.logger.info("jssip_video_capture_delegated", {
+      correlationId,
+      featureId: FEATURE_ID_VIDEO_CALLS,
+      boundedContext: "Media",
+      operation: "capture_local_media",
+      callId,
+      result: "jssip_get_user_media",
+    });
+  }
+
+  private async resolvePreferredMediaDeviceIds(
+    correlationId: CorrelationId,
+  ): Promise<Readonly<{ audioDeviceId?: string; videoDeviceId?: string }>> {
+    if (this.getPreferredMediaDeviceIds === null) {
+      return {};
+    }
+    try {
+      return await this.getPreferredMediaDeviceIds();
+    } catch (error: unknown) {
+      this.logger.warn("jssip_media_device_preferences_unavailable", {
+        correlationId,
+        featureId: FEATURE_ID_VIDEO_CALLS,
+        boundedContext: "Settings",
+        operation: "resolve_media_device_preferences",
+        result: normalizeUnknownError(error).code,
+      });
+      return {};
+    }
+  }
+
+  private async releaseCapturedLocalMedia(
+    callId: CallId,
+    correlationId: CorrelationId,
+  ): Promise<void> {
+    if (
+      !this.capturedLocalMediaCallIds.delete(callId) ||
+      this.localMediaCapturePort === null
+    ) {
+      return;
+    }
+    const result = await this.localMediaCapturePort.releaseLocalMedia({
+      callId,
+      correlationId,
+    });
+    if (!result.ok) {
+      this.logger.warn("jssip_local_media_release_failed", {
+        correlationId,
+        featureId: FEATURE_ID_VIDEO_CALLS,
+        boundedContext: "Media",
+        operation: "release_local_media",
+        callId,
+        result: result.error.code,
+      });
+    }
+  }
+
+  private async releaseAllCapturedLocalMedia(
+    correlationId: CorrelationId,
+  ): Promise<void> {
+    const callIds = [...this.capturedLocalMediaCallIds];
+    await Promise.all(
+      callIds.map((callId) => this.releaseCapturedLocalMedia(callId, correlationId)),
+    );
   }
 
   private async handleTransportConnecting(): Promise<void> {
@@ -1515,12 +1998,18 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     try {
       await this.stopUa(this.ua);
     } finally {
+      await this.releaseAllCapturedLocalMedia(this.lastCorrelationId);
       this.ua = null;
       this.sessions.clear();
       this.replacesSessions.clear();
       this.peerConnections.clear();
       this.callCorrelations.clear();
       this.callIdBySessionId.clear();
+      this.capturedLocalMediaCallIds.clear();
+      this.mediaModeByCallId.clear();
+      this.remoteSdpByCallId.clear();
+      this.remoteVideoPresenceByCallId.clear();
+      this.incomingRemoteVideoOfferedByCallId.clear();
       this.registrationInvalidated = true;
       this.transportConnectedNotified = false;
       this.intentionalShutdown = false;
@@ -1570,4 +2059,20 @@ function isJsSipNewRtcSessionEvent(value: unknown): value is JsSipNewRtcSessionE
 
   const session = candidate.session as { id?: unknown };
   return typeof session.id === "string";
+}
+
+/**
+ * - Purpose: read SDP body from inbound INVITE request when already present.
+ * - Inputs: JsSIP newRTCSession request object.
+ * - Outputs: SDP string or null when body is missing/non-SDP.
+ */
+function extractInviteRequestSdp(request: unknown): string | null {
+  if (typeof request !== "object" || request === null) {
+    return null;
+  }
+  const body = (request as { body?: unknown }).body;
+  if (typeof body !== "string" || !body.includes("m=")) {
+    return null;
+  }
+  return body;
 }

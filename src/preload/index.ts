@@ -23,6 +23,11 @@ import {
   parseSecretStorageOperation,
   parseSecretStorageResponse,
 } from "@shared/ipc/SecretStorageContract.js";
+import {
+  parseListDisplaySourcesResponse,
+  parseSetPendingDisplaySourcePayload,
+  parseSetPendingDisplaySourceResponse,
+} from "@shared/ipc/DisplayCaptureContract.js";
 
 const softphoneApi: SoftphonePreloadApi = {
   getPlatformVersion: () => ipcRenderer.invoke(IPC_CHANNELS.platformGetVersion),
@@ -197,6 +202,29 @@ const softphoneApi: SoftphonePreloadApi = {
       return { ok: false };
     }
     return { ok: (response as Record<string, unknown>)["ok"] === true };
+  },
+  listDisplaySources: async () => {
+    const response: unknown = await ipcRenderer.invoke(IPC_CHANNELS.mediaListDisplaySources);
+    const parsed = parseListDisplaySourcesResponse(response);
+    if (parsed === null) {
+      return { ok: false, reason: "invalid_response" };
+    }
+    return parsed;
+  },
+  setPendingDisplaySource: async (payload) => {
+    const parsedPayload = parseSetPendingDisplaySourcePayload(payload);
+    if (parsedPayload === null) {
+      return { ok: false, reason: "invalid_payload" };
+    }
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.mediaSetPendingDisplaySource,
+      parsedPayload,
+    );
+    const parsed = parseSetPendingDisplaySourceResponse(response);
+    if (parsed === null) {
+      return { ok: false, reason: "invalid_response" };
+    }
+    return parsed;
   },
 };
 

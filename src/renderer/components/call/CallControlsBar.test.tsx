@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { CallLineCardViewModel } from "@application/index.js";
 import { CallControlsBar } from "./CallControlsBar.js";
@@ -18,7 +19,7 @@ const activeLine: CallLineCardViewModel = {
   displayName: "+12025550100",
   statusLabel: "call.line.status.active",
   durationStartedAt: Date.now(),
-primaryAction: "hangup",
+  primaryAction: "hangup",
   showIconRow: true,
   showLocalHoldBadge: false,
   showRemoteHoldBadge: false,
@@ -183,5 +184,100 @@ describe("CallControlsBar", () => {
     expect(muteButton).toBeDisabled();
     expect(muteButton).toHaveAttribute("aria-busy", "true");
     expect(muteButton).toHaveAttribute("data-loading", "true");
+  });
+
+  it("shows camera controls for video-mode active line", () => {
+    const onToggleCamera = vi.fn();
+    render(
+      <CallControlsBar
+        line={activeLine}
+        videoState={{
+          mediaMode: "video",
+          localVideoMuted: true,
+          localVideoSource: "camera",
+          remoteVideoPresent: true,
+          sessionView: "fullscreen",
+          cameraAvailable: true,
+        }}
+        onHold={vi.fn()}
+        onResume={vi.fn()}
+        onMute={vi.fn()}
+        onUnmute={vi.fn()}
+        onHangup={vi.fn()}
+        onTransfer={vi.fn()}
+        onShowDtmf={vi.fn()}
+        onShowNumberEntry={vi.fn()}
+        onToggleCamera={onToggleCamera}
+        onToggleScreenShare={vi.fn()}
+        onExpandVideo={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("control-camera-line-call-1")).toBeInTheDocument();
+    expect(screen.getByTestId("control-screen-share-line-call-1")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("control-camera-line-call-1"));
+    expect(onToggleCamera).toHaveBeenCalledWith("call-1");
+  });
+
+  it("keeps expand control enabled in fullscreen so view can cycle back", () => {
+    render(
+      <CallControlsBar
+        line={activeLine}
+        videoState={{
+          mediaMode: "video",
+          localVideoMuted: true,
+          localVideoSource: "camera",
+          remoteVideoPresent: true,
+          sessionView: "fullscreen",
+          cameraAvailable: true,
+        }}
+        onHold={vi.fn()}
+        onResume={vi.fn()}
+        onMute={vi.fn()}
+        onUnmute={vi.fn()}
+        onHangup={vi.fn()}
+        onTransfer={vi.fn()}
+        onShowDtmf={vi.fn()}
+        onShowNumberEntry={vi.fn()}
+        onToggleCamera={vi.fn()}
+        onToggleScreenShare={vi.fn()}
+        onExpandVideo={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("control-video-expand-line-call-1")).toBeEnabled();
+  });
+
+  it("omits current session view from view-mode menu", async () => {
+    const user = userEvent.setup();
+    render(
+      <CallControlsBar
+        line={activeLine}
+        videoState={{
+          mediaMode: "video",
+          localVideoMuted: false,
+          localVideoSource: "camera",
+          remoteVideoPresent: true,
+          sessionView: "expanded",
+          cameraAvailable: true,
+        }}
+        onHold={vi.fn()}
+        onResume={vi.fn()}
+        onMute={vi.fn()}
+        onUnmute={vi.fn()}
+        onHangup={vi.fn()}
+        onTransfer={vi.fn()}
+        onShowDtmf={vi.fn()}
+        onShowNumberEntry={vi.fn()}
+        onToggleCamera={vi.fn()}
+        onToggleScreenShare={vi.fn()}
+        onSetSessionView={vi.fn()}
+      />,
+    );
+
+    await user.click(screen.getByTestId("control-video-view-mode-line-call-1"));
+    expect(screen.queryByTestId("control-view-mode-expanded")).not.toBeInTheDocument();
+    expect(await screen.findByTestId("control-view-mode-fullscreen")).toBeInTheDocument();
+    expect(screen.getByTestId("control-view-mode-hidden")).toBeInTheDocument();
   });
 });

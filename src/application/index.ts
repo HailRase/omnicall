@@ -331,4 +331,31 @@ export {
   type HeaderChromeShellViewModel,
   type RegistrationDotVariant,
 } from "./projections/platform/deriveHeaderChromeShell.js";
-export { deriveActiveCallControlsShell } from "./projections/telephony/deriveActiveCallControlsShell.js";
+export {
+  deriveActiveCallControlsShell,
+} from "./projections/telephony/deriveActiveCallControlsShell.js";
+export {
+  initialCallVideoMediaUiProjection,
+  reduceCallVideoMediaUiProjection,
+  type CallVideoMediaUiProjection,
+} from "./projections/media/callVideoMediaUiProjection.js";
+export {
+  resolveFullscreenVideoSession,
+  type FullscreenVideoSession,
+} from "./projections/media/resolveFullscreenVideoSession.js";
+export {
+  areCameraControlsEnabled,
+  isScreenShareAllowed,
+  shouldShowRemoteVideoSurface,
+  shouldShowVideoSurfaces,
+  resolveVideoCallAvailability,
+  isSessionViewMode,
+  parseSessionViewMode,
+  SESSION_VIEW_MODES,
+} from "@domain/index.js";
+export type { CallVideoMediaState, SessionViewMode, VideoCallDisabledReason } from "@domain/index.js";
+export type {
+  LocalMediaStreamHandle,
+  MediaInputDeviceInfo,
+  StartCameraPreviewResult,
+} from "@ports/index.js";

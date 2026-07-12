@@ -187,6 +187,60 @@ describe("applyCodecPreferencesToPeerConnection", () => {
     expect(setCodecPreferences).toHaveBeenCalledTimes(1);
   });
 
+  it("applies video codec preferences to video transceivers in video mode", () => {
+    const audioSetter = vi.fn();
+    const videoSetter = vi.fn();
+    const connection = {
+      getTransceivers: () => [
+        {
+          sender: { track: { kind: "audio" } },
+          setCodecPreferences: audioSetter,
+        },
+        {
+          sender: { track: { kind: "video" } },
+          setCodecPreferences: videoSetter,
+        },
+      ],
+    };
+
+    const originalReceiver = globalThis.RTCRtpReceiver;
+    globalThis.RTCRtpReceiver = {
+      getCapabilities: (kind: string) => ({
+        codecs:
+          kind === "video"
+            ? [
+                { mimeType: "video/VP8", clockRate: 90000 },
+                { mimeType: "video/H264", clockRate: 90000 },
+                { mimeType: "video/rtx", clockRate: 90000 },
+              ]
+            : [{ mimeType: "audio/opus", clockRate: 48000 }],
+      }),
+    } as unknown as typeof RTCRtpReceiver;
+
+    try {
+      applyCodecPreferencesToPeerConnection(
+        connection,
+        {
+          audioMimeTypes: ["audio/opus"],
+          videoMimeTypes: ["video/H264", "video/VP8"],
+        },
+        applyContext,
+        true,
+      );
+    } finally {
+      globalThis.RTCRtpReceiver = originalReceiver;
+    }
+
+    expect(audioSetter).toHaveBeenCalledTimes(1);
+    expect(videoSetter).toHaveBeenCalledTimes(1);
+    const codecs = videoSetter.mock.calls[0]?.[0] as Array<{ mimeType: string }>;
+    expect(codecs.map((codec) => codec.mimeType)).toEqual([
+      "video/H264",
+      "video/VP8",
+      "video/rtx",
+    ]);
+  });
+
   it("no-ops for invalid peer connection input", () => {
     expect(() =>
       applyCodecPreferencesToPeerConnection(

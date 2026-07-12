@@ -8,6 +8,7 @@ export type SettingsSectionId =
   | "system-state"
   | "diagnostics"
   | "codecs"
+  | "video"
   | "headset";
 
 export type SettingsNavItem = Readonly<{
@@ -53,6 +54,12 @@ export const SETTINGS_NAV_ITEMS: ReadonlyArray<SettingsNavItem> = [
     labelKey: "settings.nav.codecs",
     iconId: "settings.codecs",
     testId: "settings-nav-codecs",
+  },
+  {
+    id: "video",
+    labelKey: "settings.nav.video",
+    iconId: "settings.video",
+    testId: "settings-nav-video",
   },
   {
     id: "headset",

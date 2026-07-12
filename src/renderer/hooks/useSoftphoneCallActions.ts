@@ -10,10 +10,12 @@ type UseSoftphoneCallActionsInput = Readonly<{
   activeCallControlsProjection: ActiveCallControlsProjection;
   dialedNumber: string;
   callDisabledReason: string | null;
+  videoCallDisabledReason: string | null;
 }>;
 
 type UseSoftphoneCallActionsResult = Readonly<{
   handleDialpadCall: () => void;
+  handleDialpadVideoCall: () => void;
   handleSendDtmf: (tone: string) => void;
   handleHoldCall: () => void;
   handleResumeCall: () => void;
@@ -25,7 +27,7 @@ type UseSoftphoneCallActionsResult = Readonly<{
 
 /**
  * - Purpose: bind softphone call UI intents to AccountBootstrapFacade methods.
- * - Inputs: facade, call projections, dialed number, disabled reason.
+ * - Inputs: facade, call projections, dialed number, disabled reasons.
  * - Outputs: callback handlers for dialpad and active call controls.
  */
 export function useSoftphoneCallActions(
@@ -37,6 +39,7 @@ export function useSoftphoneCallActions(
     activeCallControlsProjection,
     dialedNumber,
     callDisabledReason,
+    videoCallDisabledReason,
   } = input;
 
   const handleDialpadCall = (): void => {
@@ -44,6 +47,13 @@ export function useSoftphoneCallActions(
       return;
     }
     void facade.makeCall(dialedNumber);
+  };
+
+  const handleDialpadVideoCall = (): void => {
+    if (facade === null || videoCallDisabledReason !== null) {
+      return;
+    }
+    void facade.makeCall(dialedNumber, undefined, "video");
   };
 
   const handleSendDtmf = (tone: string): void => {
@@ -142,6 +152,7 @@ export function useSoftphoneCallActions(
 
   return {
     handleDialpadCall,
+    handleDialpadVideoCall,
     handleSendDtmf,
     handleHoldCall,
     handleResumeCall,

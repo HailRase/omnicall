@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { SHELL_WINDOW_LAYOUT } from "@domain/platform/ShellWindowLayout.js";
-import { ShellWindowController } from "./ShellWindowController.js";
+import { ShellWindowController, sanitizeCompactDimensions } from "./ShellWindowController.js";
 
 const WORK_AREA = {
   x: 0,
@@ -108,5 +108,50 @@ describe("ShellWindowController", () => {
       width: 420,
       height: 720,
     });
+  });
+
+  it("restores compact size after video-fullscreen without corrupting snapshot", async () => {
+    const compactBounds = {
+      x: 1920 - 420 - SHELL_WINDOW_LAYOUT.screenMargin,
+      y: 1080 - 720 - SHELL_WINDOW_LAYOUT.screenMargin,
+      width: 420,
+      height: 720,
+    };
+    const window = createMockWindow(compactBounds);
+    const controller = new ShellWindowController(
+      window as unknown as Electron.BrowserWindow,
+      () => WORK_AREA,
+    );
+
+    controller.placeCompactAtStartup();
+    await controller.applyLayout("video-fullscreen", 0, true);
+    expect(window.getBounds()).toEqual({
+      x: 0,
+      y: 0,
+      width: 1920,
+      height: 1080,
+    });
+
+    // Re-entrant fullscreen apply must not overwrite compact snapshot with work-area size.
+    await controller.applyLayout("video-fullscreen", 0, true);
+    await controller.applyLayout("compact", 0, true);
+
+    expect(window.getBounds()).toEqual(compactBounds);
+    expect(controller.getState().compactDimensions).toEqual({
+      width: 420,
+      height: 720,
+    });
+  });
+
+  it("sanitizes compact dimensions that look like the work area", () => {
+    expect(
+      sanitizeCompactDimensions({ width: 1900, height: 1060 }, WORK_AREA),
+    ).toEqual({
+      width: SHELL_WINDOW_LAYOUT.compactDefaultWidth,
+      height: SHELL_WINDOW_LAYOUT.compactDefaultHeight,
+    });
+    expect(
+      sanitizeCompactDimensions({ width: 420, height: 720 }, WORK_AREA),
+    ).toEqual({ width: 420, height: 720 });
   });
 });

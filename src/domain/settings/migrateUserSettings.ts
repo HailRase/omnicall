@@ -2,6 +2,13 @@ import type { MultiCallSettings } from "../telephony/MultiCallPolicy.js";
 import { createDefaultUserSettings, SETTINGS_SCHEMA_VERSION, type UserSettings } from "./UserSettings.js";
 import { parseSupportedLanguage } from "./SupportedLanguage.js";
 import { validateUserSettings } from "./validateUserSettings.js";
+import {
+  DEFAULT_AUTO_FULLSCREEN_ON_CONFERENCE,
+  DEFAULT_CONFERENCE_NUMBER_SUBSTRING,
+  DEFAULT_DEFAULT_SESSION_VIEW,
+  DEFAULT_PREFERRED_AUDIO_INPUT_DEVICE_ID,
+  DEFAULT_PREFERRED_VIDEO_INPUT_DEVICE_ID,
+} from "./VideoCallSettings.js";
 
 export type UserSettingsV0Legacy = Readonly<{
   multiCallSettings: MultiCallSettings;
@@ -114,6 +121,29 @@ function coerceToUserSettingsV5(
       typeof preferredRaw === "string" && preferredRaw.trim().length > 0
         ? preferredRaw.trim()
         : null,
+    preferredAudioInputDeviceId:
+      typeof record["preferredAudioInputDeviceId"] === "string" ||
+      record["preferredAudioInputDeviceId"] === null
+        ? record["preferredAudioInputDeviceId"]
+        : DEFAULT_PREFERRED_AUDIO_INPUT_DEVICE_ID,
+    preferredVideoInputDeviceId:
+      typeof record["preferredVideoInputDeviceId"] === "string" ||
+      record["preferredVideoInputDeviceId"] === null
+        ? record["preferredVideoInputDeviceId"]
+        : DEFAULT_PREFERRED_VIDEO_INPUT_DEVICE_ID,
+    defaultSessionView:
+      typeof record["defaultSessionView"] === "string"
+        ? record["defaultSessionView"]
+        : DEFAULT_DEFAULT_SESSION_VIEW,
+    autoFullscreenOnConference:
+      typeof record["autoFullscreenOnConference"] === "boolean"
+        ? record["autoFullscreenOnConference"]
+        : DEFAULT_AUTO_FULLSCREEN_ON_CONFERENCE,
+    conferenceNumberSubstring:
+      typeof record["conferenceNumberSubstring"] === "string" ||
+      record["conferenceNumberSubstring"] === null
+        ? record["conferenceNumberSubstring"]
+        : DEFAULT_CONFERENCE_NUMBER_SUBSTRING,
   };
   const validated = validateUserSettings(candidate);
   if (!validated.ok) {
@@ -162,6 +192,11 @@ function migrateV1ToV5(record: Record<string, unknown>): UserSettings {
     headsetEnabled: defaults.headsetEnabled,
     headsetAutoReconnect: defaults.headsetAutoReconnect,
     headsetPreferredDeviceId: defaults.headsetPreferredDeviceId,
+    preferredAudioInputDeviceId: defaults.preferredAudioInputDeviceId,
+    preferredVideoInputDeviceId: defaults.preferredVideoInputDeviceId,
+    defaultSessionView: defaults.defaultSessionView,
+    autoFullscreenOnConference: defaults.autoFullscreenOnConference,
+    conferenceNumberSubstring: defaults.conferenceNumberSubstring,
   };
 }
 

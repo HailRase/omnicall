@@ -1,6 +1,10 @@
-import type { AppBootstrapConfig } from "@domain/index.js";
-import type { SipAccountId, SipAccountInput } from "@domain/index.js";
-import type { PhoneStatus } from "@domain/index.js";
+import type {
+  AppBootstrapConfig,
+  CallMediaMode,
+  PhoneStatus,
+  SipAccountId,
+  SipAccountInput,
+} from "@domain/index.js";
 import { err, isErr, ok, type Result } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
 import { createPlatformError, normalizeUnknownError } from "@shared/errors/index.js";
@@ -19,6 +23,9 @@ import { UnregisterAccountUseCase } from "../use-cases/settings/UnregisterAccoun
 import { ResolveStartupModeUseCase } from "../use-cases/platform/ResolveStartupModeUseCase.js";
 import { SendDtmfUseCase } from "../use-cases/telephony/SendDtmfUseCase.js";
 import { UnmuteCallUseCase } from "../use-cases/telephony/UnmuteCallUseCase.js";
+import { SetLocalVideoMutedUseCase } from "../use-cases/media/SetLocalVideoMutedUseCase.js";
+import { SetSessionViewModeUseCase } from "../use-cases/media/SetSessionViewModeUseCase.js";
+import { SwitchLocalVideoSourceUseCase } from "../use-cases/media/SwitchLocalVideoSourceUseCase.js";
 import { BlindTransferUseCase } from "../use-cases/telephony/BlindTransferUseCase.js";
 import { StartConsultationUseCase } from "../use-cases/telephony/StartConsultationUseCase.js";
 import { AttendedTransferUseCase } from "../use-cases/telephony/AttendedTransferUseCase.js";
@@ -39,7 +46,10 @@ import type {
   DomainEventPublisher,
   HeadsetGateway,
   HostIntegrationGateway,
+  LocalMediaCapturePort,
+  LocalMediaStreamHandle,
   Logger,
+  MediaInputDeviceInfo,
   SavedAccountProfileRepository,
   SettingsRepository,
   CallHistoryRepository,
@@ -48,6 +58,7 @@ import type {
   TelephonyGateway,
   MediaGateway,
   SecretStoragePort,
+  StartCameraPreviewResult,
 } from "@ports/index.js";
 import {
   createSecretStorageScopeKey,
@@ -68,6 +79,8 @@ import {
   deriveSavedAccountProfileId,
   type Call,
   type CallId,
+  type CallVideoMediaState,
+  type SessionViewMode,
 } from "@domain/index.js";
 import { resolveSettingsAccountKey } from "../settings/resolveSettingsAccountKey.js";
 import { loadUserSettingsWithLegacyMigration } from "../settings/loadUserSettingsWithLegacyMigration.js";
@@ -144,6 +157,7 @@ export type AccountBootstrapFacadeDeps = Readonly<{
   telephonyGateway: TelephonyGateway;
   mediaGateway: MediaGateway;
   settingsRepository: SettingsRepository;
+  localMediaCapturePort?: LocalMediaCapturePort;
   savedAccountProfileRepository?: SavedAccountProfileRepository;
   callHistoryRepository?: CallHistoryRepository;
   contactRepository?: ContactRepository;
@@ -174,6 +188,9 @@ export class AccountBootstrapFacade {
   readonly resumeCallUseCase: ResumeCallUseCase;
   readonly muteCallUseCase: MuteCallUseCase;
   readonly unmuteCallUseCase: UnmuteCallUseCase;
+  private readonly setLocalVideoMutedUseCase: SetLocalVideoMutedUseCase | null;
+  private readonly switchLocalVideoSourceUseCase: SwitchLocalVideoSourceUseCase | null;
+  private readonly setSessionViewModeUseCase: SetSessionViewModeUseCase;
   readonly answerCallUseCase: AnswerCallUseCase;
   readonly rejectCallUseCase: RejectCallUseCase;
   readonly sendDtmfUseCase: SendDtmfUseCase;
@@ -356,6 +373,33 @@ export class AccountBootstrapFacade {
     this.resumeCallUseCase = new ResumeCallUseCase(this.callEngine, deps.logger);
     this.muteCallUseCase = new MuteCallUseCase(this.callEngine, deps.logger);
     this.unmuteCallUseCase = new UnmuteCallUseCase(this.callEngine, deps.logger);
+    if (deps.localMediaCapturePort !== undefined) {
+      this.setLocalVideoMutedUseCase = new SetLocalVideoMutedUseCase(
+        deps.localMediaCapturePort,
+        this.callEngine.getVideoMediaProjection(),
+        this.eventPublisher,
+        deps.logger,
+      );
+      this.switchLocalVideoSourceUseCase = new SwitchLocalVideoSourceUseCase(
+        deps.localMediaCapturePort,
+        this.callEngine.getVideoMediaProjection(),
+        this.eventPublisher,
+        deps.logger,
+      );
+    } else {
+      this.setLocalVideoMutedUseCase = null;
+      this.switchLocalVideoSourceUseCase = null;
+    }
+    this.setSessionViewModeUseCase = new SetSessionViewModeUseCase(
+      this.callEngine.getVideoMediaProjection(),
+      this.eventPublisher,
+      deps.logger,
+    );
+    if (deps.localMediaCapturePort?.onScreenShareEnded !== undefined) {
+      deps.localMediaCapturePort.onScreenShareEnded((callId) => {
+        void this.switchLocalVideoSourceById(callId, "camera", true);
+      });
+    }
     this.answerCallUseCase = new AnswerCallUseCase(this.callEngine, deps.logger);
     this.rejectCallUseCase = new RejectCallUseCase(
       this.callEngine,
@@ -431,6 +475,30 @@ export class AccountBootstrapFacade {
         notification.correlationId,
       ),
     );
+    deps.telephonyGateway.setRemoteVideoPresenceHandler((notification) => {
+      this.callEngine.handleRemoteVideoPresence(
+        notification.callId,
+        notification.present,
+        notification.correlationId,
+      );
+      return Promise.resolve();
+    });
+    deps.telephonyGateway.setIncomingRemoteVideoOfferedHandler((notification) => {
+      this.callEngine.handleIncomingRemoteVideoOffered(
+        notification.callId,
+        notification.offered,
+        notification.correlationId,
+      );
+      return Promise.resolve();
+    });
+    deps.telephonyGateway.setCameraAvailabilityHandler((notification) => {
+      this.callEngine.handleCameraAvailability(
+        notification.callId,
+        notification.available,
+        notification.correlationId,
+      );
+      return Promise.resolve();
+    });
 
     this.sipRecoveryOrchestration = new SipRecoveryOrchestrationService({
       telephonyGateway: deps.telephonyGateway,
@@ -1054,14 +1122,16 @@ export class AccountBootstrapFacade {
     );
   }
 
-  async makeCall(number: string, callId?: CallId): Promise<Result<Call, PlatformError>> {
-    const callInput =
-      callId === undefined
-        ? { number }
-        : {
-            number,
-            callId,
-          };
+  async makeCall(
+    number: string,
+    callId?: CallId,
+    mediaMode?: CallMediaMode,
+  ): Promise<Result<Call, PlatformError>> {
+    const callInput = {
+      number,
+      ...(callId !== undefined ? { callId } : {}),
+      ...(mediaMode !== undefined ? { mediaMode } : {}),
+    };
     return this.makeCallUseCase.execute(callInput);
   }
 
@@ -1258,6 +1328,134 @@ export class AccountBootstrapFacade {
     return result;
   }
 
+  getCallVideoMediaState(callId: string): CallVideoMediaState | null {
+    return this.callEngine.getCallVideoMediaState(createCallId(callId));
+  }
+
+  async setLocalVideoMutedById(
+    callId: string,
+    muted: boolean,
+  ): Promise<Result<CallVideoMediaState, PlatformError>> {
+    if (this.setLocalVideoMutedUseCase === null) {
+      return err(
+        createPlatformError("operation_failed", "local_media_capture_unavailable"),
+      );
+    }
+    return this.setLocalVideoMutedUseCase.execute({
+      callId: createCallId(callId),
+      muted,
+    });
+  }
+
+  async switchLocalVideoSourceById(
+    callId: string,
+    source: "camera" | "screen",
+    muted: boolean,
+  ): Promise<Result<CallVideoMediaState, PlatformError>> {
+    if (this.switchLocalVideoSourceUseCase === null) {
+      return err(
+        createPlatformError("operation_failed", "local_media_capture_unavailable"),
+      );
+    }
+    return this.switchLocalVideoSourceUseCase.execute({
+      callId: createCallId(callId),
+      source,
+      muted,
+    });
+  }
+
+  setSessionViewModeById(
+    callId: string,
+    sessionView: SessionViewMode,
+  ): Result<CallVideoMediaState, PlatformError> {
+    return this.setSessionViewModeUseCase.execute({
+      callId: createCallId(callId),
+      sessionView,
+    });
+  }
+
+  async bindCallVideoSurfacesById(
+    callId: string,
+    remoteVideoElement: unknown,
+    localVideoElement: unknown,
+  ): Promise<Result<void, PlatformError>> {
+    return this.deps.mediaGateway.bindCallVideoSurfaces({
+      callId: createCallId(callId),
+      correlationId: createCorrelationId(),
+      remoteVideoElement,
+      localVideoElement,
+    });
+  }
+
+  async listMediaInputDevices(): Promise<
+    Result<ReadonlyArray<MediaInputDeviceInfo>, PlatformError>
+  > {
+    const port = this.deps.localMediaCapturePort;
+    if (port === undefined) {
+      return err(
+        createPlatformError("operation_failed", "local_media_capture_unavailable"),
+      );
+    }
+    return port.listInputDevices(createCorrelationId());
+  }
+
+  async startCameraPreview(
+    videoDeviceId?: string,
+  ): Promise<Result<StartCameraPreviewResult, PlatformError>> {
+    const port = this.deps.localMediaCapturePort;
+    if (port === undefined) {
+      return err(
+        createPlatformError("operation_failed", "local_media_capture_unavailable"),
+      );
+    }
+    return port.startCameraPreview({
+      correlationId: createCorrelationId(),
+      ...(videoDeviceId !== undefined ? { videoDeviceId } : {}),
+    });
+  }
+
+  async stopCameraPreview(
+    handle: LocalMediaStreamHandle,
+  ): Promise<Result<void, PlatformError>> {
+    const port = this.deps.localMediaCapturePort;
+    if (port === undefined) {
+      return err(
+        createPlatformError("operation_failed", "local_media_capture_unavailable"),
+      );
+    }
+    return port.stopCameraPreview({
+      handle,
+      correlationId: createCorrelationId(),
+    });
+  }
+
+  bindCameraPreviewElement(
+    handle: LocalMediaStreamHandle,
+    videoElement: unknown,
+  ): Result<void, PlatformError> {
+    const port = this.deps.localMediaCapturePort;
+    if (port === undefined || port.getStreamForHandle === undefined) {
+      return err(
+        createPlatformError("operation_failed", "local_media_capture_unavailable"),
+      );
+    }
+    if (!(videoElement instanceof HTMLVideoElement)) {
+      return err(
+        createPlatformError("validation_failed", "camera_preview_element_invalid"),
+      );
+    }
+    const stream = port.getStreamForHandle(handle);
+    if (stream === null) {
+      return err(
+        createPlatformError("operation_failed", "camera_preview_handle_unknown"),
+      );
+    }
+    videoElement.srcObject = stream;
+    videoElement.muted = true;
+    void videoElement.play().catch(() => undefined);
+    return ok(undefined);
+  }
+
   async blindTransfer(
     callId: CallId,
     targetNumber: string,
@@ -1330,12 +1528,21 @@ export class AccountBootstrapFacade {
     return this.cancelTransfer(createCallId(callId));
   }
 
-  async answerCall(callId: CallId): Promise<Result<Call, PlatformError>> {
-    return this.answerCallUseCase.execute({ callId });
+  async answerCall(
+    callId: CallId,
+    mediaMode?: "audio" | "video",
+  ): Promise<Result<Call, PlatformError>> {
+    return this.answerCallUseCase.execute({
+      callId,
+      ...(mediaMode !== undefined ? { mediaMode } : {}),
+    });
   }
 
-  async answerCallById(callId: string): Promise<Result<Call, PlatformError>> {
-    return this.answerCall(createCallId(callId));
+  async answerCallById(
+    callId: string,
+    mediaMode?: "audio" | "video",
+  ): Promise<Result<Call, PlatformError>> {
+    return this.answerCall(createCallId(callId), mediaMode);
   }
 
   async rejectCall(
@@ -1519,6 +1726,10 @@ export class AccountBootstrapFacade {
     correlationId: CorrelationId,
   ): Promise<void> {
     return this.callEngine.handlePeerConnectionAvailable(callId, correlationId);
+  }
+
+  notifyRemoteVideoPresenceFromMedia(callId: CallId, present: boolean): void {
+    this.callEngine.handleRemoteVideoPresence(callId, present);
   }
 }
 

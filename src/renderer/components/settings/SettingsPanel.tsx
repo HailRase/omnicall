@@ -6,6 +6,7 @@ import type {
   CodecPreferences,
   NotificationPlacement,
   NotificationStacking,
+  SessionViewMode,
   SipAccountInput,
   SipSystemStateShellView,
   SupportedLanguage,
@@ -18,6 +19,7 @@ import type { AccountAuthorizationErrorProjection } from "@application/projectio
 import { IconButton } from "../ui/index.js";
 import { useI18n } from "../../i18n/index.js";
 import type { HeadsetConnectionProjection } from "@application/projections/headset/headsetConnectionProjection.js";
+import type { VideoSettingsDeviceOption } from "../../hooks/useVideoSettingsPanel.js";
 import type { SettingsSectionId } from "./settingsSections.js";
 import { resolveSettingsContentHeaderTitle } from "./settingsSections.js";
 import type { TranslationKey } from "../../i18n/messages.js";
@@ -29,6 +31,7 @@ import { SettingsGeneralPanel } from "./panels/SettingsGeneralPanel.js";
 import { SettingsHeadsetPanel } from "./panels/SettingsHeadsetPanel.js";
 import { SettingsSessionsPanel } from "./panels/SettingsSessionsPanel.js";
 import { SettingsSystemStatePanel } from "./panels/SettingsSystemStatePanel.js";
+import { SettingsVideoPanel } from "./panels/SettingsVideoPanel.js";
 import styles from "./SettingsPanel.module.css";
 
 export type SettingsPanelProps = Readonly<{
@@ -101,6 +104,23 @@ export type SettingsPanelProps = Readonly<{
   onHeadsetAutoReconnectChange: (enabled: boolean) => void;
   onConnectHeadset: (deviceId: string | null) => void;
   onDisconnectHeadset: () => void;
+  preferredAudioInputDeviceId: string | null;
+  preferredVideoInputDeviceId: string | null;
+  defaultSessionView: SessionViewMode;
+  autoFullscreenOnConference: boolean;
+  conferenceNumberSubstring: string | null;
+  videoAudioDevices: ReadonlyArray<VideoSettingsDeviceOption>;
+  videoCameraDevices: ReadonlyArray<VideoSettingsDeviceOption>;
+  videoDevicesLoading: boolean;
+  videoDevicesError: boolean;
+  videoPreviewError: boolean;
+  videoPreviewRef: (element: HTMLVideoElement | null) => void;
+  onPreferredAudioInputDeviceIdChange: (deviceId: string | null) => void;
+  onPreferredVideoInputDeviceIdChange: (deviceId: string | null) => void;
+  onDefaultSessionViewChange: (view: SessionViewMode) => void;
+  onAutoFullscreenOnConferenceChange: (enabled: boolean) => void;
+  onConferenceNumberSubstringChange: (value: string | null) => void;
+  onRefreshVideoDevices: () => void;
   account: Readonly<{
     form: SipAccountInput;
     submitting: boolean;
@@ -199,6 +219,23 @@ export function SettingsPanel({
   onHeadsetAutoReconnectChange,
   onConnectHeadset,
   onDisconnectHeadset,
+  preferredAudioInputDeviceId,
+  preferredVideoInputDeviceId,
+  defaultSessionView,
+  autoFullscreenOnConference,
+  conferenceNumberSubstring,
+  videoAudioDevices,
+  videoCameraDevices,
+  videoDevicesLoading,
+  videoDevicesError,
+  videoPreviewError,
+  videoPreviewRef,
+  onPreferredAudioInputDeviceIdChange,
+  onPreferredVideoInputDeviceIdChange,
+  onDefaultSessionViewChange,
+  onAutoFullscreenOnConferenceChange,
+  onConferenceNumberSubstringChange,
+  onRefreshVideoDevices,
   account,
 }: SettingsPanelProps): JSX.Element {
   const { t } = useI18n();
@@ -329,6 +366,29 @@ export function SettingsPanel({
           onAudioCodecReorder={onAudioCodecReorder}
           onVideoCodecReorder={onVideoCodecReorder}
           mutationErrorKey={codecPreferencesError}
+        />
+      );
+      break;
+    case "video":
+      sectionContent = (
+        <SettingsVideoPanel
+          preferredAudioInputDeviceId={preferredAudioInputDeviceId}
+          preferredVideoInputDeviceId={preferredVideoInputDeviceId}
+          defaultSessionView={defaultSessionView}
+          autoFullscreenOnConference={autoFullscreenOnConference}
+          conferenceNumberSubstring={conferenceNumberSubstring}
+          audioDevices={videoAudioDevices}
+          videoDevices={videoCameraDevices}
+          devicesLoading={videoDevicesLoading}
+          devicesError={videoDevicesError}
+          previewError={videoPreviewError}
+          previewVideoRef={videoPreviewRef}
+          onPreferredAudioInputDeviceIdChange={onPreferredAudioInputDeviceIdChange}
+          onPreferredVideoInputDeviceIdChange={onPreferredVideoInputDeviceIdChange}
+          onDefaultSessionViewChange={onDefaultSessionViewChange}
+          onAutoFullscreenOnConferenceChange={onAutoFullscreenOnConferenceChange}
+          onConferenceNumberSubstringChange={onConferenceNumberSubstringChange}
+          onRefreshDevices={onRefreshVideoDevices}
         />
       );
       break;

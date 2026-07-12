@@ -5,12 +5,14 @@ import {
   deriveDialpadDisabledReason,
   isDialpadNumberValid,
   resolveHistoryWalkStep,
+  resolveVideoCallAvailability,
   type CallProjection,
   type AccountBootstrapProjection,
   type DialpadMode,
   type MultiCallProjection,
 } from "@application/index.js";
 import { mapDialpadDisabledReason } from "../helpers/mapDialpadDisabledReason.js";
+import { mapVideoCallDisabledReason } from "../helpers/mapVideoCallDisabledReason.js";
 
 type UseDialpadShellInput = Readonly<{
   projection: AccountBootstrapProjection;
@@ -32,13 +34,14 @@ type UseDialpadShellResult = Readonly<{
   dialpadMode: DialpadMode;
   isCalling: boolean;
   callDisabledReason: string | null;
+  videoCallDisabledReason: string | null;
   inputDisabledReason: string | null;
 }>;
 
 /**
- * - Purpose: derive dialpad UI state, history recall walk, and disabled reasons.
+ * - Purpose: derive dialpad UI state, history recall walk, and call disabled reasons.
  * - Inputs: account/call projections and newest-first history remote numbers.
- * - Outputs: dialpad values, recall helpers, and localized disabled reasons.
+ * - Outputs: dialpad values, recall helpers, audio/video disabled reasons.
  */
 export function useDialpadShell(input: UseDialpadShellInput): UseDialpadShellResult {
   const { projection, callProjection, multiCallProjection, historyRemoteNumbers } = input;
@@ -101,6 +104,35 @@ export function useDialpadShell(input: UseDialpadShellInput): UseDialpadShellRes
     ],
   );
 
+  const videoAvailability = useMemo(
+    () =>
+      resolveVideoCallAvailability({
+        numberValid: !hasInvalidNumber,
+        sipRegistered: isSipRegistered,
+        secondSessionBlocked: multiCallProjection.isSecondSessionDisabled,
+        holdAllInProgress: multiCallProjection.holdAllInProgress,
+        // Capture probe UI wiring lands with device settings; allow dial when feature ready.
+        videoCaptureAvailable: true,
+        videoFeatureReady: true,
+      }),
+    [
+      hasInvalidNumber,
+      isSipRegistered,
+      multiCallProjection.holdAllInProgress,
+      multiCallProjection.isSecondSessionDisabled,
+    ],
+  );
+
+  const videoCallDisabledReason = useMemo(() => {
+    if (isCalling) {
+      return mapDialpadDisabledReason("disabledByConnectingInProgress");
+    }
+    if (!videoAvailability.enabled) {
+      return mapVideoCallDisabledReason(videoAvailability.reason);
+    }
+    return null;
+  }, [isCalling, videoAvailability]);
+
   return {
     dialedNumber,
     setDialedNumber,
@@ -124,6 +156,7 @@ export function useDialpadShell(input: UseDialpadShellInput): UseDialpadShellRes
     dialpadMode: callProjection.mode,
     isCalling,
     callDisabledReason: mapDialpadDisabledReason(disabledState),
+    videoCallDisabledReason,
     inputDisabledReason: isSipRegistered
       ? null
       : mapDialpadDisabledReason("disabledByNotRegistered"),

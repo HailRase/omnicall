@@ -10,7 +10,7 @@ This document defines the implementation order for the Electron rewrite.
 
 **legacy operator integration removed** per ADR-0005. See `adr/ADR-0005-remove-legacy-operator-integration.md`.
 
-Active track: **P11** shell/settings UX (**WU0–WU5 + UI-4 + post-WU5 polish done**), **F-008 DTMF real**, P10 headset, P12 host API. RAT R1–R4 + step 08 **closed**. **RAT transfer (step 07): backlog** — `real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md`. See `STATUS.md`.
+Active track: **P13 video calls (F-027)** in progress (WU1–WU7 done; WU8 SBC smoke), **P11** polish remaining, **F-008 DTMF real**, P12 host API. RAT R1–R4 + step 08 **closed**. **RAT transfer (step 07): backlog** — `real-integration/TRANSFER-REAL-ADAPTER-BACKLOG.md`. See `STATUS.md`.
 
 **Not in active scope:** P06/P07 legacy operator integration (removed per ADR-0005).
 
@@ -245,7 +245,7 @@ Legacy IDs:
 
 - `LF-022`
 - `LF-024`
-- `LF-027`
+- `LF-026`
 
 Goal:
 
@@ -553,6 +553,35 @@ Gate:
 - `window.Softphone` is mutated in one file only.
 - Every legacy method maps to Use Case or query.
 - Compatibility tests cover old host API.
+
+## Phase 13: Video Calls
+
+Feature ID: **F-027**. ADR: `adr/ADR-0008-video-calls-media-mode.md`. Design: `P13-Video-Calls-Design.md`.
+
+Legacy IDs:
+
+- _none_ (new product feature; behavioral parity with legacy OS-1509 video analysis)
+
+Goal:
+
+Enable bidirectional video calls with per-call media mode, privacy-muted camera, view modes, screen share, and settings — without breaking audio-only telephony.
+
+Order:
+
+1. Domain media mode / video state / availability policy + Media capture port (WU1).
+2. Settings schema for devices and default view (WU2).
+3. Application Use Cases + CallEngine `mediaMode` plumbing with SDP still audio (WU3).
+4. Browser capture adapter: gUM, stub track, replaceTrack mute/source (WU4).
+5. JsSIP video enablement, SDP/INFO no-video, video codecs (WU5 — gated).
+6. UI: dual dial buttons, video surfaces, session views, PiP, screen share (WU6).
+7. Incoming video answer, hold/video control rules, multi-session (WU7).
+8. Manual SBC smoke + registry/STATUS close (WU8).
+
+Gate:
+
+- Default `mediaMode: audio` until WU5; existing mute/hold/headset tests green.
+- No MediaStream in Domain or Zustand; single Media mute path.
+- Dialpad Video call uses projection disabled reasons; no global `audioOnly` primary UX.
 
 ## Final Product Parity Gate
 

@@ -9,6 +9,7 @@ import {
   deriveResumeMultiCallDisabledReason,
   resolveDialpadCallIntent,
   resolveOutgoingInProgressCallId,
+  resolveFullscreenVideoSession,
 } from "@application/index.js";
 
 import { mapActiveCallControlDisabledReason } from "../helpers/mapActiveCallControlLabels.js";
@@ -22,7 +23,12 @@ import { useDialpadShell } from "./useDialpadShell.js";
 import { useSoftphoneCallActions } from "./useSoftphoneCallActions.js";
 import { useIncomingCallActions } from "./useIncomingCallActions.js";
 import { useSoftphoneProjections } from "./useSoftphoneProjections.js";
-import { applyHeadsetSyncBusyToActiveCallControls, applyHeadsetSyncBusyToCallLine } from "@application/projections/headset/applyHeadsetSyncBusyToActiveCallControls.js";
+import { useVideoCallActions } from "./useVideoCallActions.js";
+import { useScreenSharePicker } from "./useScreenSharePicker.js";
+import {
+  applyHeadsetSyncBusyToActiveCallControls,
+  applyHeadsetSyncBusyToCallLine,
+} from "@application/projections/headset/applyHeadsetSyncBusyToActiveCallControls.js";
 
 type UseCallFeatureShellInput = Readonly<{
   facade: AccountBootstrapFacade;
@@ -42,6 +48,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     multiCallProjection,
     transferProjection,
     multiLineCallProjection,
+    callVideoMediaUiProjection,
     setCallMode,
     setIncomingUiState,
   } = useSoftphoneProjections();
@@ -80,6 +87,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     dialpadMode,
     isCalling,
     callDisabledReason,
+    videoCallDisabledReason,
     inputDisabledReason,
   } = useDialpadShell({
     projection,
@@ -94,6 +102,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     activeCallControlsProjection: adjustedActiveCallControlsProjection,
     dialedNumber,
     callDisabledReason,
+    videoCallDisabledReason,
   });
 
   const incomingCallActions = useIncomingCallActions({
@@ -162,6 +171,11 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
   const callLinesActions = useCallLinesActions({
     facade,
     shell: callLinesShellWithSyncBusy,
+  });
+  const screenSharePicker = useScreenSharePicker({ facade });
+  const videoCallActions = useVideoCallActions({
+    facade,
+    openScreenSharePicker: screenSharePicker.openPicker,
   });
 
   const handleTransferLine = (callId: string): void => {
@@ -360,6 +374,22 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     selectedCallId,
   ]);
 
+  const controlTargetVideoState = useMemo(() => {
+    const callId = controlTargetLine?.callId;
+    if (callId === undefined) {
+      return null;
+    }
+    return callVideoMediaUiProjection.byCallId[callId] ?? null;
+  }, [callVideoMediaUiProjection.byCallId, controlTargetLine?.callId]);
+
+  const exitVideoFullscreen = useCallback((): void => {
+    const session = resolveFullscreenVideoSession(callVideoMediaUiProjection.byCallId);
+    if (session === null) {
+      return;
+    }
+    videoCallActions.handleSetSessionView(session.callId, "expanded");
+  }, [callVideoMediaUiProjection.byCallId, videoCallActions]);
+
   const outgoingDisplayName = useMemo(() => {
     const presentation = buildContactDirectory(contacts).resolvePresentation({
       remoteNumber: dialedNumber,
@@ -426,6 +456,14 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     numberEntryOverlayOpen,
   ]);
 
+  const handleDialpadVideoCall = useCallback((): void => {
+    callActions.handleDialpadVideoCall();
+    clearDialedNumber();
+    if (numberEntryOverlayOpen) {
+      setNumberEntryOverlayOpen(false);
+    }
+  }, [callActions, clearDialedNumber, numberEntryOverlayOpen]);
+
   const openNumberEntryOverlay = useCallback((): void => {
     setNumberEntryOverlayOpen(true);
   }, []);
@@ -472,6 +510,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     dialpadMode,
     isCalling,
     callDisabledReason,
+    videoCallDisabledReason,
     inputDisabledReason,
     callActions,
     incomingCallActions,
@@ -488,6 +527,10 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     hasEstablishedCall,
     hasCallInProgress,
     controlTargetLine,
+    controlTargetVideoState,
+    videoCallActions,
+    screenSharePicker,
+    exitVideoFullscreen,
     selectCallLine,
     selectIncomingCall,
     incomingCallId,
@@ -498,6 +541,7 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
     openNumberEntryOverlay,
     closeNumberEntryOverlay,
     handleDialpadCall,
+    handleDialpadVideoCall,
     outgoingDisplayName,
   };
 }

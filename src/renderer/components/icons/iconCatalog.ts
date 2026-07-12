@@ -43,6 +43,11 @@ import {
   User,
   UserRoundPlus,
   Users,
+  Video,
+  VideoOff,
+  MonitorUp,
+  Maximize2,
+  Minimize2,
   X,
 } from "lucide-react";
 import {
@@ -94,6 +99,7 @@ export type IconSemanticId =
   | "settings.sessions"
   | "settings.system-state"
   | "settings.codecs"
+  | "settings.video"
   | "settings.headset"
   | "settings.nav.expand"
   | "settings.nav.collapse"
@@ -106,12 +112,20 @@ export type IconSemanticId =
   | "call.resume"
   | "call.mute"
   | "call.unmute"
+  | "call.cameraOn"
+  | "call.cameraOff"
+  | "call.screenShare"
+  | "call.screenShareStop"
+  | "call.videoExpand"
+  | "call.videoCollapse"
+  | "call.videoHidden"
   | "call.transfer"
   | "call.incoming"
   | "call.outgoing"
   | "call.phone-off"
   | "overlay.close"
   | "dial.call"
+  | "dial.videoCall"
   | "dial.delete"
   | "dial.clear"
   | "dial.dtmf"
@@ -246,6 +260,12 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultSize: 20,
     usage: ["SettingsSidebar: settings-nav-codecs"],
   },
+  "settings.video": {
+    static: Video,
+    defaultLabelKey: "icons.settings.video",
+    defaultSize: 20,
+    usage: ["SettingsSidebar: settings-nav-video"],
+  },
   "settings.headset": {
     static: Headphones,
     defaultLabelKey: "icons.settings.headset",
@@ -298,11 +318,16 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     usage: ["IncomingCallOverlay", "IncomingCallSessionCard"],
   },
   "call.hangup": {
-    static: PhoneOff,
-    animated: PhoneOffIcon,
+    static: Phone,
+    animated: PhoneIcon,
     defaultLabelKey: "icons.call.hangup",
     defaultSize: 20,
-    usage: ["CallLineRow", "ActiveCallControlsPanel"],
+    usage: [
+      "CallLineRow",
+      "ActiveCallControlsPanel",
+      "CallControlsBar",
+      "VideoFullscreenControlsBar",
+    ],
   },
   "call.hold": {
     static: Pause,
@@ -331,6 +356,48 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.call.unmute",
     defaultSize: 20,
     usage: ["CallLineRow", "ActiveCallControlsPanel"],
+  },
+  "call.cameraOn": {
+    static: Video,
+    defaultLabelKey: "icons.call.cameraOn",
+    defaultSize: 20,
+    usage: ["CallControlsBar: control-camera"],
+  },
+  "call.cameraOff": {
+    static: VideoOff,
+    defaultLabelKey: "icons.call.cameraOff",
+    defaultSize: 20,
+    usage: ["CallControlsBar: control-camera"],
+  },
+  "call.screenShare": {
+    static: MonitorUp,
+    defaultLabelKey: "icons.call.screenShare",
+    defaultSize: 20,
+    usage: ["CallControlsBar: control-screen-share"],
+  },
+  "call.screenShareStop": {
+    static: MonitorUp,
+    defaultLabelKey: "icons.call.screenShareStop",
+    defaultSize: 20,
+    usage: ["CallControlsBar: control-screen-share"],
+  },
+  "call.videoExpand": {
+    static: Maximize2,
+    defaultLabelKey: "icons.call.videoExpand",
+    defaultSize: 20,
+    usage: ["CallControlsBar: control-video-expand"],
+  },
+  "call.videoCollapse": {
+    static: Minimize2,
+    defaultLabelKey: "icons.call.videoCollapse",
+    defaultSize: 20,
+    usage: ["CallControlsBar: control-video-expand (collapse from fullscreen)"],
+  },
+  "call.videoHidden": {
+    static: EyeOff,
+    defaultLabelKey: "icons.call.videoHidden",
+    defaultSize: 20,
+    usage: ["VideoFullscreenControlsBar: view-mode-hidden"],
   },
   "call.transfer": {
     static: PhoneForwarded,
@@ -370,6 +437,7 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
       "LogoutActiveSessionConfirmationModal",
       "TransferPanel: control-cancel-transfer",
       "UpdateAvailableBanner: update-available-banner-later",
+      "VideoFullscreenModal",
     ],
   },
   "dial.call": {
@@ -377,6 +445,12 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.dial.call",
     defaultSize: 20,
     usage: ["Dialpad: dialpad-call"],
+  },
+  "dial.videoCall": {
+    static: Video,
+    defaultLabelKey: "icons.dial.videoCall",
+    defaultSize: 20,
+    usage: ["Dialpad: dialpad-video-call"],
   },
   "dial.delete": {
     static: Delete,

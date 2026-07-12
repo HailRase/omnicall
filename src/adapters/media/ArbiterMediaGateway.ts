@@ -1,6 +1,7 @@
 import { TonePlaybackCoordinator } from "@application/services/telephony/TonePlaybackCoordinator.js";
 import type {
   AttachRemoteAudioCommand,
+  BindCallVideoSurfacesCommand,
   MediaGateway,
   MuteCallCommand,
   PlayBusyToneCommand,
@@ -39,6 +40,12 @@ export class ArbiterMediaGateway implements MediaGateway {
     command: AttachRemoteAudioCommand,
   ): Promise<Result<RemoteAudioAttachOutcome, PlatformError>> {
     return this.delegate.attachRemoteAudio(command);
+  }
+
+  bindCallVideoSurfaces(
+    command: BindCallVideoSurfacesCommand,
+  ): Promise<Result<void, PlatformError>> {
+    return this.delegate.bindCallVideoSurfaces(command);
   }
 
   playRingbackTone(

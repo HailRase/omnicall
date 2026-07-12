@@ -14,6 +14,8 @@ export type DeriveIncomingCallGlobalOverlayVisibleInput = Readonly<{
   dismissedCallId: string | null;
   shellRouteName: IncomingCallOverlayShellRouteName;
   incomingSessionCardVisible: boolean;
+  /** When true, force top-center banner above video fullscreen modal. */
+  videoFullscreen?: boolean;
 }>;
 
 /**
@@ -31,6 +33,10 @@ export function deriveIncomingCallGlobalOverlayVisible(
 
   if (ringingCallId === null || ringingCallId === input.dismissedCallId) {
     return false;
+  }
+
+  if (input.videoFullscreen === true) {
+    return true;
   }
 
   if (input.shellRouteName === "dialpad") {

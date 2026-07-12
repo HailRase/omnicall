@@ -29,4 +29,18 @@ describe("parseShellWindowLayoutPayload", () => {
   it("rejects non-object input", () => {
     expect(parseShellWindowLayoutPayload(null)).toBeNull();
   });
+
+  it("accepts video-fullscreen mode", () => {
+    expect(
+      parseShellWindowLayoutPayload({
+        mode: "video-fullscreen",
+        animationDurationMs: 280,
+        reducedMotion: false,
+      }),
+    ).toEqual({
+      mode: "video-fullscreen",
+      animationDurationMs: 280,
+      reducedMotion: false,
+    });
+  });
 });

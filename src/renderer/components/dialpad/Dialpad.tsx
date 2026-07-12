@@ -13,6 +13,7 @@ export type DialpadProps = Readonly<{
   mode: DialpadMode;
   isCalling: boolean;
   callDisabledReason: string | null;
+  videoCallDisabledReason?: string | null;
   inputDisabledReason: string | null;
   canRecallLastNumber?: boolean;
   hasEstablishedCall?: boolean;
@@ -23,6 +24,7 @@ export type DialpadProps = Readonly<{
   onCall: () => void;
   onHistoryNewer?: () => void;
   onHistoryOlder?: () => void;
+  onVideoCall?: () => void;
   onOpenContacts?: () => void;
   contactsDisabledReason?: string | null;
   onSendDtmf: (tone: string) => void;
@@ -59,6 +61,7 @@ export function Dialpad({
   mode,
   isCalling,
   callDisabledReason,
+  videoCallDisabledReason = null,
   inputDisabledReason,
   canRecallLastNumber = false,
   hasEstablishedCall = false,
@@ -69,6 +72,7 @@ export function Dialpad({
   onCall,
   onHistoryNewer,
   onHistoryOlder,
+  onVideoCall,
   onOpenContacts,
   contactsDisabledReason = null,
   onClose,
@@ -92,9 +96,16 @@ export function Dialpad({
     callDisabledReason === null &&
     !isCalling &&
     (hasDigits || canRecallLastNumber);
+  const canVideoDial =
+    onVideoCall !== undefined &&
+    videoCallDisabledReason === null &&
+    hasDigits &&
+    !isCalling;
   const callLabel = t("dialpad.call.label");
   const connectingLabel = t("dialpad.call.connectingLabel");
 
+  const videoCallLabel = t("dialpad.videoCall.label");
+  const videoCallTooltip = videoCallDisabledReason ?? videoCallLabel;
   const handleKeyPress = (key: string): void => {
     if (isInputDisabled) {
       return;
@@ -306,29 +317,52 @@ export function Dialpad({
         </div>
       ) : null}
 
-      <IconTooltip label={callDisabledReason ?? callLabel} className={styles.callButtonTooltipHost}>
-        <button
-          type="button"
-          className={clsx(
-            styles.callButton,
-            canDial && styles.callButtonReady,
-            isCalling && styles.callButtonBusy,
-          )}
-          data-testid="dialpad-call"
-          aria-label={isCalling ? t("dialpad.call.connectingAria") : t("dialpad.call.ariaLabel")}
-          disabled={!canDial}
-          onClick={onCall}
+      <div className={styles.callActions}>
+        <IconTooltip
+          label={callDisabledReason ?? callLabel}
+          className={styles.callButtonTooltipHost}
         >
-          <AppIcon id="dial.call" size={18} decorative />
-          {!canDial && callDisabledReason !== null && numberValue.length === 0 ? (
-            <span className={styles.callButtonReason}>{callDisabledReason}</span>
-          ) : (
-            <span className={styles.callButtonLabel}>
-              {isCalling ? connectingLabel : callLabel}
-            </span>
-          )}
-        </button>
-      </IconTooltip>
+          <button
+            type="button"
+            className={clsx(
+              styles.callButton,
+              canDial && styles.callButtonReady,
+              isCalling && styles.callButtonBusy,
+            )}
+            data-testid="dialpad-call"
+            aria-label={isCalling ? t("dialpad.call.connectingAria") : t("dialpad.call.ariaLabel")}
+            disabled={!canDial}
+            onClick={onCall}
+          >
+            <AppIcon id="dial.call" size={18} decorative />
+            {!canDial && callDisabledReason !== null && numberValue.length === 0 ? (
+              <span className={styles.callButtonReason}>{callDisabledReason}</span>
+            ) : (
+              <span className={styles.callButtonLabel}>
+                {isCalling ? connectingLabel : callLabel}
+              </span>
+            )}
+          </button>
+        </IconTooltip>
+
+        {onVideoCall !== undefined ? (
+          <IconTooltip label={videoCallTooltip} className={styles.videoCallButtonTooltipHost}>
+            <button
+              type="button"
+              className={clsx(
+                styles.videoCallButton,
+                canVideoDial && styles.videoCallButtonReady,
+              )}
+              data-testid="dialpad-video-call"
+              aria-label={t("dialpad.videoCall.ariaLabel")}
+              disabled={!canVideoDial}
+              onClick={onVideoCall}
+            >
+              <AppIcon id="dial.videoCall" size={18} decorative />
+            </button>
+          </IconTooltip>
+        ) : null}
+      </div>
     </section>
   );
 }

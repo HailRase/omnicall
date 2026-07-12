@@ -155,13 +155,14 @@
 
 .actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: var(--space-xs);
   padding: 0 var(--space-sm) var(--space-sm);
 }
 
 .reject-button,
-.answer-button {
+.answer-button,
+.answer-video-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -185,13 +186,20 @@
   background: var(--color-status-online);
 }
 
+.answer-video-button {
+  background: var(--color-status-online);
+  border: 1px solid var(--color-border-focus);
+}
+
 .reject-button:hover:not(:disabled),
-.answer-button:hover:not(:disabled) {
+.answer-button:hover:not(:disabled),
+.answer-video-button:hover:not(:disabled) {
   opacity: 0.82;
 }
 
 .reject-button:disabled,
-.answer-button:disabled {
+.answer-button:disabled,
+.answer-video-button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
 }

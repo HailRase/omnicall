@@ -19,12 +19,13 @@ export type PrepareJsSipSessionCodecPreferencesOptions = Readonly<{
   logger: Logger;
   correlationId: CorrelationId;
   featureId: string;
+  includeVideo?: boolean;
 }>;
 
 /**
- * - Purpose: resolve persisted codec prefs and wire listeners before SDP offer/answer.
- * - Inputs: RTC session port, codec port, logger correlation metadata.
- * - Outputs: resolved audio MIME order; idempotent per session id.
+ * - Purpose: resolve persisted codec prefs and wire before SDP offer/answer.
+ * - Inputs: session, codec port, logger metadata, optional video flag.
+ * - Outputs: resolved audio/video MIME order; idempotent per session id.
  */
 export async function prepareJsSipSessionCodecPreferences(
   options: PrepareJsSipSessionCodecPreferencesOptions,
@@ -66,6 +67,7 @@ export function wireJsSipSessionCodecPreferencesSync(
     logger: Logger;
     correlationId: CorrelationId;
     featureId: string;
+    includeVideo?: boolean;
   }>,
 ): void {
   const port = ensureJsSipRtcSessionPort(options.session);
@@ -79,6 +81,7 @@ export function wireJsSipSessionCodecPreferencesSync(
     logger: options.logger,
     correlationId: options.correlationId,
     featureId: options.featureId,
+    ...(options.includeVideo === true ? { includeVideo: true } : {}),
   });
   wiredSessionIds.add(port.id);
   resolvedBySessionId.set(port.id, options.resolved);
@@ -112,6 +115,7 @@ async function resolveAndWire(
     logger: options.logger,
     correlationId: options.correlationId,
     featureId: options.featureId,
+    ...(options.includeVideo === true ? { includeVideo: true } : {}),
   });
   return resolved;
 }

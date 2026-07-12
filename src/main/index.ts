@@ -30,6 +30,8 @@ import {
   setPreferredSoftphoneHidDeviceId,
 } from "./headset/preferredSoftphoneHidDeviceStore.js";
 import { parseHeadsetSetPreferredDeviceIdPayload } from "@shared/ipc/HeadsetPreferredDeviceContract.js";
+import { installDisplayMediaRequestHandler } from "./media/installDisplayMediaRequestHandler.js";
+import { registerDisplayCaptureIpc } from "./media/registerDisplayCaptureIpc.js";
 
 const logger = createConsoleLogger({
   boundedContext: "Integration",
@@ -389,12 +391,14 @@ function registerIpcHandlers(): void {
 }
 
 function setupHidPermissions(): void {
+  const allowedPermissions = new Set(["media", "notifications", "hid", "display-capture"]);
+
   session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => {
-    callback(["media", "notifications", "hid"].includes(permission));
+    callback(allowedPermissions.has(permission));
   });
 
   session.defaultSession.setPermissionCheckHandler((_webContents, permission) => {
-    return ["media", "notifications", "hid"].includes(permission);
+    return allowedPermissions.has(permission);
   });
 
   session.defaultSession.on("select-hid-device", (event, details, callback) => {
@@ -428,6 +432,14 @@ void app.whenReady().then(() => {
   registerSecretStorageIpc();
   registerContactsCsvIpc();
   setupHidPermissions();
+  registerDisplayCaptureIpc();
+  installDisplayMediaRequestHandler({
+    session: session.defaultSession,
+    logger: createConsoleLogger({
+      boundedContext: "Media",
+      featureId: "F-027",
+    }),
+  });
   createMainWindow();
 
   app.on("activate", () => {

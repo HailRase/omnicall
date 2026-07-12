@@ -12,7 +12,8 @@ export type JsSipRtcSessionEventName =
   | "ended"
   | "failed"
   | "hold"
-  | "unhold";
+  | "unhold"
+  | "newInfo";
 
 export type JsSipRtcSessionListener = (...args: unknown[]) => void;
 

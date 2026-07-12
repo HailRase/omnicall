@@ -10,6 +10,7 @@ import {
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
 import { MockCodecPreferencesPort } from "@adapters/mock/MockCodecPreferencesPort.js";
+import { MockLocalMediaCapturePort } from "@adapters/mock/MockLocalMediaCapturePort.js";
 import { JsSipTelephonyAdapter } from "./JsSipTelephonyAdapter.js";
 import { resetJsSipSessionCodecPreferencesStateForTests } from "./prepareJsSipSessionCodecPreferences.js";
 import type {
@@ -364,13 +365,23 @@ describe("JsSipTelephonyAdapter", () => {
 
   function createAdapter(
     mockUa: MockJsSipUa,
-    options?: Readonly<{ codecPreferencesPort?: MockCodecPreferencesPort }>,
+    options?: Readonly<{
+      codecPreferencesPort?: MockCodecPreferencesPort;
+      localMediaCapturePort?: MockLocalMediaCapturePort;
+      resolveLocalMediaStream?: () => object | null;
+    }>,
   ): JsSipTelephonyAdapter {
     return new JsSipTelephonyAdapter({
       logger: createTestLogger({ featureId: "F-001", boundedContext: "Telephony" }),
       createUserAgent: () => mockUa,
       ...(options?.codecPreferencesPort !== undefined
         ? { codecPreferencesPort: options.codecPreferencesPort }
+        : {}),
+      ...(options?.localMediaCapturePort !== undefined
+        ? { localMediaCapturePort: options.localMediaCapturePort }
+        : {}),
+      ...(options?.resolveLocalMediaStream !== undefined
+        ? { resolveLocalMediaStream: options.resolveLocalMediaStream }
         : {}),
     });
   }
@@ -945,6 +956,149 @@ describe("JsSipTelephonyAdapter", () => {
     expect(mockUa.callInvocations[0]?.target).toBe("sip:200@pbx.example");
   });
 
+  it("enables outbound video SDP and delegates capture to JsSIP when not injected", async () => {
+    const mockUa = new MockJsSipUa();
+    const logger = createTestLogger();
+    const adapter = new JsSipTelephonyAdapter({
+      logger,
+      createUserAgent: () => mockUa,
+    });
+    await registerAdapter(adapter, mockUa);
+
+    const makePromise = adapter.makeCall({
+      callId: createCallId("out-video-deferred"),
+      number: createPhoneNumber("206"),
+      mediaMode: "video",
+      correlationId: createCorrelationId(),
+    });
+    const invocation = mockUa.callInvocations[0];
+    invocation?.session.emit("confirmed");
+    await makePromise;
+
+    expect(invocation?.options).toEqual(
+      expect.objectContaining({
+        mediaConstraints: { audio: true, video: true },
+        rtcOfferConstraints: {
+          offerToReceiveAudio: true,
+          offerToReceiveVideo: true,
+        },
+      }),
+    );
+    expect(
+      logger.entries.some((entry) => entry.message === "jssip_video_capture_delegated"),
+    ).toBe(true);
+  });
+
+  it("keeps explicit outbound audio mode video-free", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+
+    const makePromise = adapter.makeCall({
+      callId: createCallId("out-audio"),
+      number: createPhoneNumber("207"),
+      mediaMode: "audio",
+      correlationId: createCorrelationId(),
+    });
+    const invocation = mockUa.callInvocations[0];
+    invocation?.session.emit("confirmed");
+    await makePromise;
+
+    expect(invocation?.options).toEqual(
+      expect.objectContaining({
+        mediaConstraints: { audio: true, video: false },
+      }),
+    );
+  });
+
+  it("passes privacy-muted captured media stream to outbound video call", async () => {
+    const mockUa = new MockJsSipUa();
+    const capture = new MockLocalMediaCapturePort();
+    const mediaStream = { id: "local-video-stream" };
+    const adapter = createAdapter(mockUa, {
+      localMediaCapturePort: capture,
+      resolveLocalMediaStream: () => mediaStream,
+    });
+    await registerAdapter(adapter, mockUa);
+
+    const callId = createCallId("out-video-captured");
+    const makePromise = adapter.makeCall({
+      callId,
+      number: createPhoneNumber("208"),
+      mediaMode: "video",
+      correlationId: createCorrelationId(),
+    });
+    await vi.waitFor(() => {
+      expect(mockUa.callInvocations).toHaveLength(1);
+    });
+    const invocation = mockUa.callInvocations[0];
+    invocation?.session.emit("confirmed");
+    await makePromise;
+
+    expect(capture.getCaptures()).toEqual([
+      expect.objectContaining({
+        callId,
+        includeVideo: true,
+        initialVideoMuted: true,
+      }),
+    ]);
+    expect(invocation?.options).toEqual(
+      expect.objectContaining({ mediaStream }),
+    );
+  });
+
+  it("fails explicit video call when injected capture fails", async () => {
+    const mockUa = new MockJsSipUa();
+    const capture = new MockLocalMediaCapturePort("failure");
+    const adapter = createAdapter(mockUa, {
+      localMediaCapturePort: capture,
+      resolveLocalMediaStream: () => ({ id: "unused" }),
+    });
+    await registerAdapter(adapter, mockUa);
+
+    const result = await adapter.makeCall({
+      callId: createCallId("out-video-capture-failed"),
+      number: createPhoneNumber("209"),
+      mediaMode: "video",
+      correlationId: createCorrelationId(),
+    });
+
+    expect(result.ok).toBe(false);
+    expect(mockUa.callInvocations).toHaveLength(0);
+  });
+
+  it("notifies remote video absence from accepted remote SDP", async () => {
+    const mockUa = new MockJsSipUa();
+    const adapter = createAdapter(mockUa);
+    await registerAdapter(adapter, mockUa);
+    const handler = vi.fn(() => Promise.resolve());
+    adapter.setRemoteVideoPresenceHandler(handler);
+
+    const callId = createCallId("out-remote-no-video");
+    const correlationId = createCorrelationId();
+    const makePromise = adapter.makeCall({
+      callId,
+      number: createPhoneNumber("210"),
+      mediaMode: "video",
+      correlationId,
+    });
+    const session = mockUa.callInvocations[0]?.session;
+    session?.emit("sdp", {
+      originator: "remote",
+      type: "answer",
+      sdp: "v=0\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111\r\nm=video 0 UDP/TLS/RTP/SAVPF 96\r\n",
+    });
+    session?.emit("confirmed");
+    await makePromise;
+    await vi.waitFor(() => {
+      expect(handler).toHaveBeenCalledWith({
+        callId,
+        present: false,
+        correlationId,
+      });
+    });
+  });
+
   it("makeCall returns progress 183 when session emits early media", async () => {
     const mockUa = new MockJsSipUa();
     const adapter = createAdapter(mockUa);
@@ -1121,7 +1275,7 @@ describe("JsSipTelephonyAdapter", () => {
     );
   });
 
-  it("answerCall invokes session answer with audio constraints", async () => {
+  it("answers video mode with video constraints", async () => {
     const mockUa = new MockJsSipUa();
     const adapter = createAdapter(mockUa);
     await registerAdapter(adapter, mockUa);
@@ -1135,6 +1289,7 @@ describe("JsSipTelephonyAdapter", () => {
 
     const result = await adapter.answerCall({
       callId,
+      mediaMode: "video",
       correlationId: createCorrelationId(),
     });
 
@@ -1142,8 +1297,47 @@ describe("JsSipTelephonyAdapter", () => {
     expect(session.answerCalls).toBe(1);
     expect(session.answerOptions).toEqual(
       expect.objectContaining({
-        mediaConstraints: { audio: true, video: false },
+        mediaConstraints: { audio: true, video: true },
+        rtcOfferConstraints: {
+          offerToReceiveAudio: true,
+          offerToReceiveVideo: true,
+        },
       }),
+    );
+  });
+
+  it("passes privacy-muted captured media stream when answering video", async () => {
+    const mockUa = new MockJsSipUa();
+    const capture = new MockLocalMediaCapturePort();
+    const mediaStream = { id: "incoming-video-stream" };
+    const adapter = createAdapter(mockUa, {
+      localMediaCapturePort: capture,
+      resolveLocalMediaStream: () => mediaStream,
+    });
+    await registerAdapter(adapter, mockUa);
+    adapter.setIncomingCallHandler(() => Promise.resolve());
+
+    const callId = createCallId("incoming-video-captured");
+    const session = new MockJsSipRtcSession(callId);
+    mockUa.emitIncomingSession(session);
+    await Promise.resolve();
+
+    const result = await adapter.answerCall({
+      callId,
+      mediaMode: "video",
+      correlationId: createCorrelationId(),
+    });
+
+    expect(result.ok).toBe(true);
+    expect(capture.getCaptures()).toEqual([
+      expect.objectContaining({
+        callId,
+        includeVideo: true,
+        initialVideoMuted: true,
+      }),
+    ]);
+    expect(session.answerOptions).toEqual(
+      expect.objectContaining({ mediaStream }),
     );
   });
 

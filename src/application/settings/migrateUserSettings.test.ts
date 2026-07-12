@@ -28,6 +28,8 @@ describe("migrateUserSettings", () => {
       expect(result.value.multiSessionsEnabled).toBe(false);
       expect(result.value.headsetEnabled).toBe(false);
       expect(result.value.headsetPreferredDeviceId).toBeNull();
+      expect(result.value.defaultSessionView).toBe("expanded");
+      expect(result.value.preferredVideoInputDeviceId).toBeNull();
     }
   });
 
@@ -44,29 +46,39 @@ describe("migrateUserSettings", () => {
     }
   });
 
-  it("migrates v4 payload to v5 with preferred device default", () => {
+  it("migrates v4 payload to v5 with headset and video preference defaults", () => {
     const v4 = {
       ...createDefaultUserSettings(),
       schemaVersion: 4 as const,
     };
     delete (v4 as { headsetPreferredDeviceId?: unknown }).headsetPreferredDeviceId;
-    const result = migrateUserSettings({ ...v4, schemaVersion: 4 });
+    delete (v4 as { preferredAudioInputDeviceId?: unknown }).preferredAudioInputDeviceId;
+    delete (v4 as { preferredVideoInputDeviceId?: unknown }).preferredVideoInputDeviceId;
+    delete (v4 as { defaultSessionView?: unknown }).defaultSessionView;
+    delete (v4 as { autoFullscreenOnConference?: unknown }).autoFullscreenOnConference;
+    delete (v4 as { conferenceNumberSubstring?: unknown }).conferenceNumberSubstring;
+
+    const result = migrateUserSettings(v4);
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.schemaVersion).toBe(5);
       expect(result.value.headsetPreferredDeviceId).toBeNull();
+      expect(result.value.preferredAudioInputDeviceId).toBeNull();
+      expect(result.value.preferredVideoInputDeviceId).toBeNull();
+      expect(result.value.defaultSessionView).toBe("expanded");
+      expect(result.value.autoFullscreenOnConference).toBe(false);
+      expect(result.value.conferenceNumberSubstring).toBeNull();
     }
   });
 
-  it("migrates v3 payload to v5 with headset defaults", () => {
+  it("migrates v3 payload to v5 with headset and video defaults", () => {
     const v3 = {
       ...createDefaultUserSettings(),
       schemaVersion: 3 as const,
-      headsetEnabled: undefined,
-      headsetAutoReconnect: undefined,
     };
     delete (v3 as { headsetEnabled?: unknown }).headsetEnabled;
     delete (v3 as { headsetAutoReconnect?: unknown }).headsetAutoReconnect;
+    delete (v3 as { preferredVideoInputDeviceId?: unknown }).preferredVideoInputDeviceId;
     const result = migrateUserSettings(v3);
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -74,6 +86,7 @@ describe("migrateUserSettings", () => {
       expect(result.value.headsetEnabled).toBe(false);
       expect(result.value.headsetAutoReconnect).toBe(true);
       expect(result.value.headsetPreferredDeviceId).toBeNull();
+      expect(result.value.defaultSessionView).toBe("expanded");
     }
   });
 
@@ -93,7 +106,7 @@ describe("migrateUserSettings", () => {
     }
   });
 
-  it("migrates v1 payload to v5 with transport and codec defaults", () => {
+  it("migrates v1 payload to v5 with transport, codec, headset, and video defaults", () => {
     const v1 = {
       schemaVersion: 1,
       theme: "dark" as const,
@@ -112,6 +125,27 @@ describe("migrateUserSettings", () => {
       expect(result.value.schemaVersion).toBe(5);
       expect(result.value.theme).toBe("dark");
       expect(result.value.headsetEnabled).toBe(false);
+      expect(result.value.autoFullscreenOnConference).toBe(false);
+    }
+  });
+
+  it("preserves video preferences when migrating v4 with values", () => {
+    const v4 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 4 as const,
+      preferredVideoInputDeviceId: "camera-abc",
+      defaultSessionView: "fullscreen" as const,
+      autoFullscreenOnConference: true,
+      conferenceNumberSubstring: "vconf-sel",
+    };
+    const result = migrateUserSettings(v4);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(5);
+      expect(result.value.preferredVideoInputDeviceId).toBe("camera-abc");
+      expect(result.value.defaultSessionView).toBe("fullscreen");
+      expect(result.value.autoFullscreenOnConference).toBe(true);
+      expect(result.value.conferenceNumberSubstring).toBe("vconf-sel");
     }
   });
 
