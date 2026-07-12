@@ -3,8 +3,12 @@ declare const classes: {
   readonly cardLabel: string;
   readonly cardLabelText: string;
   readonly cardSelected: string;
+  readonly content: string;
   readonly error: string;
+  readonly footer: string;
   readonly grid: string;
+  readonly header: string;
+  readonly layout: string;
   readonly status: string;
   readonly tab: string;
   readonly tabActive: string;
