@@ -3,7 +3,8 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import type { JSX } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { setupJsdomRadix } from "../test/setupJsdomRadix.js";
 import { IncomingCallSessionCard } from "../components/call/IncomingCallSessionCard.js";
 import { ContactsPanelShell } from "../components/contacts/ContactsPanelShell.js";
 import { HistoryPanelShell } from "../components/history/HistoryPanelShell.js";
@@ -46,6 +47,10 @@ function createIncomingCallLayoutHarness({
 }
 
 describe("shell overlay incoming call layering", () => {
+  beforeEach(() => {
+    setupJsdomRadix();
+  });
+
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();
