@@ -5,6 +5,19 @@ Public release history for **Axatalk** distribution builds.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer. Git tag: `v<version>`.
 
+## [0.10.2] - 2026-07-12
+
+### Fixed
+
+- upgrade release version
+
+## [0.10.1] - 2026-07-12
+
+### Fixed
+
+- Video codec prority
+- Sync video codec settings with new sessions
+
 ## [0.10.0] - 2026-07-12
 
 ### Added

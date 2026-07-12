@@ -7,6 +7,19 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [0.10.2] - 2026-07-12
+
+### Fixed
+
+- upgrade release version
+
+## [0.10.1] - 2026-07-12
+
+### Fixed
+
+- Video codec prority
+- Sync video codec settings with new sessions
+
 ## [0.10.0] - 2026-07-12
 
 ### Added
@@ -234,7 +247,9 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.10.0...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.10.2...main
+[0.10.2]: https://github.com/HailRase/softphone-electron/releases/tag/v0.10.2
+[0.10.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.10.1
 [0.10.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.10.0
 [0.9.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.9.0
 [0.8.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.8.0
