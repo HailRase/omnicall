@@ -5,6 +5,22 @@ Public release history for **Axatalk** distribution builds.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer. Git tag: `v<version>`.
 
+## [0.10.3] - 2026-07-13
+
+### Changed
+
+- Fullscreen screen-share picker with a dedicated Google Chrome tab filter
+- Click PiP preview to swap local and remote video surfaces
+- Settings → Video: optional enable local camera after call connects
+- Dialpad call button group styling; incoming call card visual polish
+
+### Fixed
+
+- Outbound video no longer downgrades to audio-only on transient media-track flapping (SIP/SDP signal only)
+- Remote video presence stays stable during active video calls
+- Toast and update banners respect safe zones around window controls
+- Notification when remote party answers an outbound video call with audio only
+
 ## [0.10.2] - 2026-07-12
 
 ### Fixed
