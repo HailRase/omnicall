@@ -16,7 +16,7 @@ Manual gate before closing F-027. Run with real adapters against a video-capable
 | V2 | Dialpad **Video call** | Video m-line; local cam privacy-muted; surface + cam control visible | |
 | V3 | Enable camera mid-call | Local preview appears; remote sees video (if peer supports) | |
 | V4 | Disable camera | Local preview muted/placeholder; outbound video muted via replaceTrack | |
-| V5 | Expand → fullscreen → screen share | Screen share only in fullscreen; stop restores camera muted | |
+| V5 | Expanded or fullscreen → screen share | In-app picker (screen/window); share from expanded or fullscreen; stop restores camera muted | |
 | V6 | OS stop screen share (`onended`) | Source returns to camera (muted); no stuck screen track | |
 | V7 | Incoming **Answer** | Audio answer; no forced video | |
 | V8 | Incoming **Answer with video** | Video mode; surface + cam controls | |

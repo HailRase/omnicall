@@ -2,9 +2,9 @@
 
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
-**Updated:** 2026-07-11  
-**Tests:** 1727 passed, 1 skipped (`npm run test`); typecheck green; targeted video/shell layout tests — last verified 2026-07-11 (F-024 review doc sync + F-027 WU9 video stability)  
-**Lint / typecheck:** green (last verified 2026-07-11)
+**Updated:** 2026-07-12  
+**Tests:** 1844 passed, 1 skipped (`npm run test`); typecheck green; targeted video/shell layout tests — last verified 2026-07-12 (P13 WU9/WU10 gate doc sync)  
+**Lint / typecheck:** green (last verified 2026-07-12)
 
 **Guides (onboarding):** [`guides/README.md`](../../guides/README.md) — установка, пользователь, агенты Cursor, релизы.
 
@@ -24,7 +24,7 @@
 | WU6 UI dial + surfaces | done | dual dial; `CallVideoSurface`; cam/screen/view controls; store projection |
 | WU7 Incoming video answer | done | Answer + Answer with video; hold disables cam/screen controls |
 | Settings Video UI | done | Settings → Video: devices, preview, default view, auto-fullscreen |
-| WU9a/b + WU10 | done | inbound video-answer SDP gate; remote bind/presence stability; screen share from expanded; work-area `video-fullscreen` shell |
+| WU9a/b + WU10 | done | `handoffs/P13-Video-Calls-WU9-WU10-Handoff.md` — answer gate, picker, fullscreen UX, stability |
 | WU8 SBC smoke + close | pending | checklist `handoffs/P13-Video-Calls-WU8-SBC-Smoke-Checklist.md`; needs manual SBC |
 
 Design: `P13-Video-Calls-Design.md`. ADR: `adr/ADR-0008-video-calls-media-mode.md`.
