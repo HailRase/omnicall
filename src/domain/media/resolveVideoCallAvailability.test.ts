@@ -31,6 +31,17 @@ describe("resolveVideoCallAvailability", () => {
     expect(
       resolveVideoCallAvailability({
         ...readyBase,
+        sipRegistered: false,
+        numberValid: false,
+      }),
+    ).toEqual({
+      enabled: false,
+      reason: "videoCall.disabled.notRegistered",
+    });
+
+    expect(
+      resolveVideoCallAvailability({
+        ...readyBase,
         numberValid: false,
       }),
     ).toEqual({

@@ -105,4 +105,27 @@ describe("CallVideoSurface", () => {
       "true",
     );
   });
+
+  it("swaps local and remote surfaces on preview click", () => {
+    const onBindSurfaces = vi.fn();
+    render(
+      <CallVideoSurface
+        callId="call-1"
+        videoState={{ ...videoState, localVideoMuted: false, remoteVideoPresent: true }}
+        onBindSurfaces={onBindSurfaces}
+      />,
+    );
+
+    const initialCall = onBindSurfaces.mock.calls.at(-1);
+    expect(initialCall?.[1]).toHaveAttribute("data-testid", "call-video-remote-call-1");
+    expect(initialCall?.[2]).toHaveAttribute("data-testid", "call-video-local-call-1");
+
+    const pane = screen.getByTestId("call-video-local-pane-call-1");
+    fireEvent.click(pane);
+
+    const swappedCall = onBindSurfaces.mock.calls.at(-1);
+    expect(swappedCall?.[1]).toHaveAttribute("data-testid", "call-video-local-call-1");
+    expect(swappedCall?.[2]).toHaveAttribute("data-testid", "call-video-remote-call-1");
+  });
+
 });

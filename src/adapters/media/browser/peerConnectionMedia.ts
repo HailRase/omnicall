@@ -162,7 +162,11 @@ export function hasLiveRemoteVideoTrack(connection: unknown): boolean {
   }
   for (const receiver of connection.getReceivers()) {
     const track = receiver.track;
-    if (track !== null && track.kind === "video" && track.readyState !== "ended") {
+    if (
+      track !== null &&
+      track.kind === "video" &&
+      track.readyState !== "ended"
+    ) {
       return true;
     }
   }

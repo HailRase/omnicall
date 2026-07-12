@@ -11,12 +11,15 @@ import type { Call, CallId, CallVideoMediaState } from "@domain/index.js";
 import {
   createCallRemoteHeldEvent,
   createCallRemoteResumedEvent,
+  createCallDowngradedToAudioOnlyEvent,
+  createCallMediaModeSelectedEvent,
   createCameraAvailabilityChangedEvent,
   createIncomingRemoteVideoOfferedChangedEvent,
   createRemoteVideoPresenceChangedEvent,
 } from "@domain/index.js";
 import { createPlatformError } from "@shared/errors/index.js";
 import type { Result } from "@shared/result/index.js";
+import { isErr } from "@shared/result/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { ActiveCallControlService } from "./ActiveCallControlService.js";
@@ -79,6 +82,7 @@ export type {
 export class CallEngine {
   private readonly callTracker = new CallTracker();
   private readonly videoMediaProjection = new CallVideoMediaProjection();
+  private readonly outboundRemoteAudioOnlyCandidates = new Set<CallId>();
   private readonly activeCallControlService: ActiveCallControlService;
   private readonly multiCallPolicyService: MultiCallPolicyService;
   private readonly outgoingCallOrchestrator: OutgoingCallOrchestrator;
@@ -221,6 +225,24 @@ export class CallEngine {
     present: boolean,
     correlationId?: CorrelationId,
   ): void {
+    this.applyRemoteVideoPresence(callId, present, correlationId, true);
+  }
+
+  handleRemoteVideoPresenceFromMedia(
+    callId: CallId,
+    present: boolean,
+    correlationId?: CorrelationId,
+  ): void {
+    this.applyRemoteVideoPresence(callId, present, correlationId, false);
+  }
+
+  private applyRemoteVideoPresence(
+    callId: CallId,
+    present: boolean,
+    correlationId: CorrelationId | undefined,
+    allowOutboundDowngrade: boolean,
+  ): void {
+    const before = this.videoMediaProjection.getByCallId(callId);
     const next = this.videoMediaProjection.setRemoteVideoPresent(callId, present);
     if (next === null) {
       return;
@@ -242,6 +264,71 @@ export class CallEngine {
       callId,
       result: "succeeded",
       present,
+    });
+
+    if (!allowOutboundDowngrade) {
+      return;
+    }
+
+    if (!present && before?.mediaMode === "video") {
+      const tracked = this.callTracker.getTrackedCall(callId);
+      if (!isErr(tracked) && tracked.value.direction === "outgoing") {
+        this.outboundRemoteAudioOnlyCandidates.add(callId);
+        if (tracked.value.state === "Active") {
+          this.downgradeCallToAudioOnly(callId, resolvedCorrelationId, "remote_audio_only");
+        }
+      }
+    } else if (present) {
+      this.outboundRemoteAudioOnlyCandidates.delete(callId);
+    }
+  }
+
+  private tryDowngradeDeferredOutboundVideoToAudio(
+    callId: CallId,
+    correlationId: CorrelationId,
+  ): void {
+    if (!this.outboundRemoteAudioOnlyCandidates.has(callId)) {
+      return;
+    }
+
+    const tracked = this.callTracker.getTrackedCall(callId);
+    if (isErr(tracked) || tracked.value.direction !== "outgoing") {
+      return;
+    }
+    if (tracked.value.state !== "Active") {
+      return;
+    }
+
+    this.downgradeCallToAudioOnly(callId, correlationId, "remote_audio_only");
+  }
+
+  private downgradeCallToAudioOnly(
+    callId: CallId,
+    correlationId: CorrelationId,
+    reason: "remote_audio_only",
+  ): void {
+    const current = this.videoMediaProjection.getByCallId(callId);
+    if (current === null || current.mediaMode === "audio") {
+      this.outboundRemoteAudioOnlyCandidates.delete(callId);
+      return;
+    }
+
+    this.videoMediaProjection.selectMediaMode(callId, "audio");
+    this.eventPublisher.publish(
+      createCallMediaModeSelectedEvent(correlationId, callId, "audio"),
+    );
+    this.eventPublisher.publish(
+      createCallDowngradedToAudioOnlyEvent(correlationId, callId, reason),
+    );
+    this.outboundRemoteAudioOnlyCandidates.delete(callId);
+    this.logger.info("call_downgraded_to_audio_only", {
+      correlationId,
+      featureId: "F-027",
+      boundedContext: "Media",
+      operation: "downgrade_to_audio_only",
+      callId,
+      result: "succeeded",
+      reason,
     });
   }
 
@@ -331,6 +418,7 @@ export class CallEngine {
     );
     await this.incomingCallOrchestrator.handleCallEnded(callId, resolvedCorrelationId);
     this.videoMediaProjection.remove(callId);
+    this.outboundRemoteAudioOnlyCandidates.delete(callId);
   }
 
   handleRemoteHold(callId: CallId, correlationId?: CorrelationId): void {
@@ -401,9 +489,12 @@ export class CallEngine {
       });
     }
 
+    const resolvedCorrelationId = correlationId ?? createCorrelationId();
+    this.tryDowngradeDeferredOutboundVideoToAudio(callId, resolvedCorrelationId);
+
     this.transferCallControlService.completeConsultationWhenAnswered(
       callId,
-      correlationId ?? createCorrelationId(),
+      resolvedCorrelationId,
     );
   }
 
@@ -434,6 +525,7 @@ export class CallEngine {
 
     if (tracked.direction === "outgoing") {
       await this.outgoingCallOrchestrator.retryRemoteAudioAttach(input);
+      this.tryDowngradeDeferredOutboundVideoToAudio(callId, resolvedCorrelationId);
       return;
     }
 

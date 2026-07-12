@@ -41,6 +41,7 @@ import {
   DEFAULT_AUTO_FULLSCREEN_ON_CONFERENCE,
   DEFAULT_CONFERENCE_NUMBER_SUBSTRING,
   DEFAULT_DEFAULT_SESSION_VIEW,
+  DEFAULT_ENABLE_LOCAL_VIDEO_AFTER_CONNECT,
   DEFAULT_PREFERRED_AUDIO_INPUT_DEVICE_ID,
   DEFAULT_PREFERRED_VIDEO_INPUT_DEVICE_ID,
   parseConferenceNumberSubstring,
@@ -158,6 +159,12 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
     errors,
   );
   const conferenceNumberSubstring = readConferenceNumberSubstring(record, errors);
+  const enableLocalVideoAfterConnect = readBooleanWithDefault(
+    record,
+    "enableLocalVideoAfterConnect",
+    DEFAULT_ENABLE_LOCAL_VIDEO_AFTER_CONNECT,
+    errors,
+  );
 
   if (errors.length > 0) {
     return { ok: false, errors };
@@ -196,6 +203,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
       defaultSessionView,
       autoFullscreenOnConference,
       conferenceNumberSubstring,
+      enableLocalVideoAfterConnect,
     },
   };
 }

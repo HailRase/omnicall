@@ -109,6 +109,7 @@ export type SettingsPanelProps = Readonly<{
   defaultSessionView: SessionViewMode;
   autoFullscreenOnConference: boolean;
   conferenceNumberSubstring: string | null;
+  enableLocalVideoAfterConnect: boolean;
   videoAudioDevices: ReadonlyArray<VideoSettingsDeviceOption>;
   videoCameraDevices: ReadonlyArray<VideoSettingsDeviceOption>;
   videoDevicesLoading: boolean;
@@ -120,6 +121,7 @@ export type SettingsPanelProps = Readonly<{
   onDefaultSessionViewChange: (view: SessionViewMode) => void;
   onAutoFullscreenOnConferenceChange: (enabled: boolean) => void;
   onConferenceNumberSubstringChange: (value: string | null) => void;
+  onEnableLocalVideoAfterConnectChange: (enabled: boolean) => void;
   onRefreshVideoDevices: () => void;
   account: Readonly<{
     form: SipAccountInput;
@@ -224,6 +226,7 @@ export function SettingsPanel({
   defaultSessionView,
   autoFullscreenOnConference,
   conferenceNumberSubstring,
+  enableLocalVideoAfterConnect,
   videoAudioDevices,
   videoCameraDevices,
   videoDevicesLoading,
@@ -235,6 +238,7 @@ export function SettingsPanel({
   onDefaultSessionViewChange,
   onAutoFullscreenOnConferenceChange,
   onConferenceNumberSubstringChange,
+  onEnableLocalVideoAfterConnectChange,
   onRefreshVideoDevices,
   account,
 }: SettingsPanelProps): JSX.Element {
@@ -377,6 +381,7 @@ export function SettingsPanel({
           defaultSessionView={defaultSessionView}
           autoFullscreenOnConference={autoFullscreenOnConference}
           conferenceNumberSubstring={conferenceNumberSubstring}
+          enableLocalVideoAfterConnect={enableLocalVideoAfterConnect}
           audioDevices={videoAudioDevices}
           videoDevices={videoCameraDevices}
           devicesLoading={videoDevicesLoading}
@@ -388,6 +393,7 @@ export function SettingsPanel({
           onDefaultSessionViewChange={onDefaultSessionViewChange}
           onAutoFullscreenOnConferenceChange={onAutoFullscreenOnConferenceChange}
           onConferenceNumberSubstringChange={onConferenceNumberSubstringChange}
+          onEnableLocalVideoAfterConnectChange={onEnableLocalVideoAfterConnectChange}
           onRefreshDevices={onRefreshVideoDevices}
         />
       );

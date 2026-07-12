@@ -6,7 +6,7 @@ describe("assertPersistedProfileJsonExcludesSecrets", () => {
     expect(() =>
       assertPersistedProfileJsonExcludesSecrets(
         JSON.stringify({
-          schemaVersion: 5,
+          schemaVersion: 6,
           language: "ru",
           theme: "light",
           multiSessionsEnabled: true,

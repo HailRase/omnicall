@@ -638,6 +638,7 @@ export type {
   CallMediaModeSelectedEvent,
   CameraAvailabilityChangedEvent,
   IncomingRemoteVideoOfferedChangedEvent,
+  CallDowngradedToAudioOnlyEvent,
   LocalVideoMutedChangedEvent,
   LocalVideoSourceChangedEvent,
   RemoteVideoPresenceChangedEvent,
@@ -646,6 +647,7 @@ export type {
 } from "./media/events/videoMediaEvents.js";
 export {
   createCallMediaModeSelectedEvent,
+  createCallDowngradedToAudioOnlyEvent,
   createCameraAvailabilityChangedEvent,
   createIncomingRemoteVideoOfferedChangedEvent,
   createLocalVideoMutedChangedEvent,

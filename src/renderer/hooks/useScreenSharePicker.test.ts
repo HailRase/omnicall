@@ -40,6 +40,13 @@ describe("useScreenSharePicker", () => {
           thumbnailDataUrl: null,
           appIconDataUrl: null,
         },
+        {
+          id: "window:2:0",
+          name: "Tab 1 - Google Chrome",
+          kind: "window",
+          thumbnailDataUrl: null,
+          appIconDataUrl: null,
+        },
       ],
     });
     setPendingDisplaySource.mockResolvedValue({ ok: true });
@@ -66,11 +73,16 @@ describe("useScreenSharePicker", () => {
     expect(result.current.selectedSourceId).toBe("window:1:0");
 
     act(() => {
+      result.current.setActiveKind("chromeTab");
+    });
+    expect(result.current.selectedSourceId).toBe("window:2:0");
+
+    act(() => {
       void result.current.confirm();
     });
 
     await waitFor(() => {
-      expect(setPendingDisplaySource).toHaveBeenCalledWith({ sourceId: "window:1:0" });
+      expect(setPendingDisplaySource).toHaveBeenCalledWith({ sourceId: "window:2:0" });
       expect(switchLocalVideoSourceById).toHaveBeenCalledWith("call-1", "screen", false);
       expect(result.current.open).toBe(false);
     });

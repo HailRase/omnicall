@@ -8,9 +8,10 @@ import { useCallback, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import type {
   DisplayCaptureSourceDto,
-  DisplayCaptureSourceKind,
 } from "@shared/ipc/DisplayCaptureContract.js";
 import type { TranslationKey } from "../i18n/index.js";
+
+export type ScreenSharePickerSourceKind = "screen" | "window" | "chromeTab";
 
 type UseScreenSharePickerInput = Readonly<{
   facade: AccountBootstrapFacade;
@@ -21,11 +22,11 @@ export type UseScreenSharePickerResult = Readonly<{
   loading: boolean;
   confirming: boolean;
   errorKey: TranslationKey | null;
-  activeKind: DisplayCaptureSourceKind;
+  activeKind: ScreenSharePickerSourceKind;
   selectedSourceId: string | null;
   sources: ReadonlyArray<DisplayCaptureSourceDto>;
   openPicker: (callId: string) => void;
-  setActiveKind: (kind: DisplayCaptureSourceKind) => void;
+  setActiveKind: (kind: ScreenSharePickerSourceKind) => void;
   selectSource: (sourceId: string) => void;
   confirm: () => void;
   cancel: () => void;
@@ -44,7 +45,7 @@ export function useScreenSharePicker(
   const [loading, setLoading] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [errorKey, setErrorKey] = useState<TranslationKey | null>(null);
-  const [activeKind, setActiveKind] = useState<DisplayCaptureSourceKind>("screen");
+  const [activeKind, setActiveKind] = useState<ScreenSharePickerSourceKind>("screen");
   const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
   const [sources, setSources] = useState<ReadonlyArray<DisplayCaptureSourceDto>>([]);
   const [callId, setCallId] = useState<string | null>(null);
@@ -119,10 +120,10 @@ export function useScreenSharePicker(
   }, [callId, confirming, facade, reset, selectedSourceId]);
 
   const handleSetActiveKind = useCallback(
-    (kind: DisplayCaptureSourceKind): void => {
+    (kind: ScreenSharePickerSourceKind): void => {
       setActiveKind(kind);
       setSelectedSourceId((current) => {
-        const inKind = sources.filter((source) => source.kind === kind);
+        const inKind = sources.filter((source) => isSourceInPickerKind(source, kind));
         if (inKind.some((source) => source.id === current)) {
           return current;
         }
@@ -132,7 +133,9 @@ export function useScreenSharePicker(
     [sources],
   );
 
-  const filteredSources = sources.filter((source) => source.kind === activeKind);
+  const filteredSources = sources.filter((source) =>
+    isSourceInPickerKind(source, activeKind),
+  );
 
   return {
     open,
@@ -148,4 +151,21 @@ export function useScreenSharePicker(
     confirm,
     cancel,
   };
+}
+
+function isSourceInPickerKind(
+  source: DisplayCaptureSourceDto,
+  kind: ScreenSharePickerSourceKind,
+): boolean {
+  if (kind === "screen") {
+    return source.kind === "screen";
+  }
+  if (kind === "window") {
+    return source.kind === "window" && !isGoogleChromeSource(source);
+  }
+  return source.kind === "window" && isGoogleChromeSource(source);
+}
+
+function isGoogleChromeSource(source: DisplayCaptureSourceDto): boolean {
+  return /google chrome|chrome/i.test(source.name);
 }

@@ -13,6 +13,7 @@ import { useAuthShellFlags } from "../hooks/useAuthShellFlags.js";
 import { useCallFeatureShell } from "../hooks/useCallFeatureShell.js";
 import { useHeaderChromeShell } from "../hooks/useHeaderChromeShell.js";
 import { useNotifications } from "../hooks/useNotifications.js";
+import { useVideoCallNotifications } from "../hooks/useVideoCallNotifications.js";
 import { useOverlayShell } from "../hooks/useOverlayShell.js";
 import { useShellWindowLayout } from "../hooks/useShellWindowLayout.js";
 import { useShellWindowControls } from "../hooks/useShellWindowControls.js";
@@ -185,6 +186,10 @@ function SoftphoneShellLayoutRoute({
       reason: settingsActions.headsetConnectionProjection.lastFaultReason,
       occurredAt: settingsActions.headsetConnectionProjection.lastFaultAt,
     },
+  });
+  useVideoCallNotifications({
+    eventPublisher: facade.eventPublisher,
+    notifications,
   });
   const windowControls = useShellWindowControls({ isShuttingDown });
 
@@ -366,6 +371,7 @@ function SoftphoneShellLayoutRoute({
               defaultSessionView={settingsActions.defaultSessionView}
               autoFullscreenOnConference={settingsActions.autoFullscreenOnConference}
               conferenceNumberSubstring={settingsActions.conferenceNumberSubstring}
+              enableLocalVideoAfterConnect={settingsActions.enableLocalVideoAfterConnect}
               videoAudioDevices={videoSettingsPanel.audioDevices}
               videoCameraDevices={videoSettingsPanel.videoDevices}
               videoDevicesLoading={videoSettingsPanel.devicesLoading}
@@ -384,6 +390,9 @@ function SoftphoneShellLayoutRoute({
               }
               onConferenceNumberSubstringChange={
                 settingsActions.onConferenceNumberSubstringChange
+              }
+              onEnableLocalVideoAfterConnectChange={
+                settingsActions.onEnableLocalVideoAfterConnectChange
               }
               onRefreshVideoDevices={videoSettingsPanel.refreshDevices}
               account={{

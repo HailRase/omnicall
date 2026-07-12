@@ -55,8 +55,10 @@ export function CallVideoSurface({
   const remotePaneRef = useRef<HTMLDivElement | null>(null);
   const localPaneRef = useRef<HTMLDivElement | null>(null);
   const [localPipHidden, setLocalPipHidden] = useState(false);
+  const [previewSwapped, setPreviewSwapped] = useState(false);
   const [pipOffset, setPipOffset] = useState<PipOffset>({ x: 0, y: 0 });
   const livePipOffsetRef = useRef<PipOffset>({ x: 0, y: 0 });
+  const movedDuringDragRef = useRef(false);
   const dragRef = useRef<
     Readonly<{
       pointerId: number;
@@ -85,7 +87,9 @@ export function CallVideoSurface({
       if (remote === null || local === null) {
         return;
       }
-      onBindSurfaces(callId, remote, local);
+      const remoteTarget = previewSwapped ? local : remote;
+      const localTarget = previewSwapped ? remote : local;
+      onBindSurfaces(callId, remoteTarget, localTarget);
       attempts += 1;
       const srcObject = remote.srcObject;
       const hasRemote =
@@ -107,6 +111,7 @@ export function CallVideoSurface({
   }, [
     callId,
     onBindSurfaces,
+    previewSwapped,
     videoState.mediaMode,
     videoState.localVideoMuted,
     videoState.localVideoSource,
@@ -117,6 +122,7 @@ export function CallVideoSurface({
 
   useEffect(() => {
     setLocalPipHidden(false);
+    setPreviewSwapped(false);
   }, [callId]);
 
   useEffect(() => {
@@ -196,7 +202,10 @@ export function CallVideoSurface({
     if (target instanceof Element && target.closest("button") !== null) {
       return;
     }
-    event.currentTarget.setPointerCapture(event.pointerId);
+    if (typeof event.currentTarget.setPointerCapture === "function") {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+    movedDuringDragRef.current = false;
     const origin = livePipOffsetRef.current;
     dragRef.current = {
       pointerId: event.pointerId,
@@ -210,7 +219,7 @@ export function CallVideoSurface({
 
   const handlePipPointerMove = (event: ReactPointerEvent<HTMLDivElement>): void => {
     const drag = dragRef.current;
-    if (drag === null || drag.pointerId !== event.pointerId) {
+    if (drag === null) {
       return;
     }
     const dx = event.clientX - drag.startX;
@@ -219,6 +228,7 @@ export function CallVideoSurface({
       return;
     }
     dragRef.current = { ...drag, moved: true };
+    movedDuringDragRef.current = true;
     const next = clampPipOffset({
       x: drag.originX + dx,
       y: drag.originY + dy,
@@ -229,11 +239,30 @@ export function CallVideoSurface({
 
   const handlePipPointerUp = (event: ReactPointerEvent<HTMLDivElement>): void => {
     const drag = dragRef.current;
-    if (drag === null || drag.pointerId !== event.pointerId) {
+    if (drag === null) {
       return;
     }
     dragRef.current = null;
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+    if (
+      typeof event.currentTarget.hasPointerCapture === "function" &&
+      typeof event.currentTarget.releasePointerCapture === "function" &&
+      event.currentTarget.hasPointerCapture(event.pointerId)
+    ) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  const handlePipPointerCancel = (event: ReactPointerEvent<HTMLDivElement>): void => {
+    const drag = dragRef.current;
+    if (drag === null) {
+      return;
+    }
+    dragRef.current = null;
+    if (
+      typeof event.currentTarget.hasPointerCapture === "function" &&
+      typeof event.currentTarget.releasePointerCapture === "function" &&
+      event.currentTarget.hasPointerCapture(event.pointerId)
+    ) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
   };
@@ -245,6 +274,8 @@ export function CallVideoSurface({
   const showRemote = shouldShowRemoteVideoSurface(videoState);
   const localMuted =
     videoState.localVideoMuted && videoState.localVideoSource !== "screen";
+  const showRemoteInPreview = previewSwapped;
+  const showLocalInPreview = !previewSwapped;
   const fullscreenPipSuppressed = pipMode === "fullscreen" && localMuted;
   const localPaneVisuallyHidden =
     fullscreenPipSuppressed || (pipMode === "default" && localPipHidden);
@@ -270,20 +301,27 @@ export function CallVideoSurface({
       <div ref={remotePaneRef} className={styles.remotePane}>
         <video
           ref={remoteRef}
-          className={styles.remoteVideo}
+          className={`${styles.remoteVideo}${
+            previewSwapped && videoState.localVideoSource !== "screen"
+              ? ` ${styles.remoteVideoLocal}`
+              : ""
+          }`}
           data-testid={`call-video-remote-${callId}`}
           autoPlay
           playsInline
           muted={false}
-          hidden={!showRemote}
+          hidden={previewSwapped ? localMuted : !showRemote}
         />
-        {!showRemote ? (
+        {!previewSwapped && !showRemote ? (
           <p
             className={styles.placeholder}
             data-testid={`call-video-remote-placeholder-${callId}`}
           >
             {t("call.video.remotePlaceholder")}
           </p>
+        ) : null}
+        {previewSwapped && localMuted ? (
+          <p className={styles.placeholder}>{t("call.video.cameraOff")}</p>
         ) : null}
 
         <div
@@ -297,18 +335,34 @@ export function CallVideoSurface({
           onPointerDown={localPaneVisuallyHidden ? undefined : handlePipPointerDown}
           onPointerMove={localPaneVisuallyHidden ? undefined : handlePipPointerMove}
           onPointerUp={localPaneVisuallyHidden ? undefined : handlePipPointerUp}
-          onPointerCancel={localPaneVisuallyHidden ? undefined : handlePipPointerUp}
+          onPointerCancel={localPaneVisuallyHidden ? undefined : handlePipPointerCancel}
+          onClick={
+            localPaneVisuallyHidden
+              ? undefined
+              : () => {
+                  if (movedDuringDragRef.current) {
+                    movedDuringDragRef.current = false;
+                    return;
+                  }
+                  setPreviewSwapped((value) => !value);
+                }
+          }
         >
           <video
             ref={localRef}
-            className={styles.localVideo}
+            className={`${styles.localVideo}${
+              showRemoteInPreview ? ` ${styles.localVideoRemote}` : ""
+            }`}
             data-testid={`call-video-local-${callId}`}
             autoPlay
             playsInline
             muted
-            hidden={localMuted}
+            hidden={showLocalInPreview ? localMuted : !showRemote}
           />
-          {localMuted && pipMode === "default" ? (
+          {!showLocalInPreview && !showRemote ? (
+            <p className={styles.localMutedLabel}>{t("call.video.remotePlaceholder")}</p>
+          ) : null}
+          {localMuted && showLocalInPreview && pipMode === "default" ? (
             <p className={styles.localMutedLabel}>{t("call.video.cameraOff")}</p>
           ) : null}
           {pipMode === "default" ? (

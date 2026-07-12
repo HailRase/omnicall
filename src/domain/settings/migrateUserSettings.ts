@@ -6,6 +6,7 @@ import {
   DEFAULT_AUTO_FULLSCREEN_ON_CONFERENCE,
   DEFAULT_CONFERENCE_NUMBER_SUBSTRING,
   DEFAULT_DEFAULT_SESSION_VIEW,
+  DEFAULT_ENABLE_LOCAL_VIDEO_AFTER_CONNECT,
   DEFAULT_PREFERRED_AUDIO_INPUT_DEVICE_ID,
   DEFAULT_PREFERRED_VIDEO_INPUT_DEVICE_ID,
 } from "./VideoCallSettings.js";
@@ -58,12 +59,12 @@ export function migrateUserSettings(
     return { ok: true, value: validated.value };
   }
 
-  if (version === 4 || version === 3) {
-    return coerceToUserSettingsV5(record);
+  if (version === 5 || version === 4 || version === 3) {
+    return coerceToUserSettingsV6(record);
   }
 
   if (version === 2) {
-    return coerceToUserSettingsV5({
+    return coerceToUserSettingsV6({
       ...createDefaultUserSettings(),
       ...record,
       schemaVersion: SETTINGS_SCHEMA_VERSION,
@@ -104,7 +105,7 @@ function formatSchemaVersion(version: unknown): string {
   return "unknown";
 }
 
-function coerceToUserSettingsV5(
+function coerceToUserSettingsV6(
   record: Record<string, unknown>,
 ): MigrateUserSettingsResult {
   const preferredRaw = record["headsetPreferredDeviceId"];
@@ -144,6 +145,10 @@ function coerceToUserSettingsV5(
       record["conferenceNumberSubstring"] === null
         ? record["conferenceNumberSubstring"]
         : DEFAULT_CONFERENCE_NUMBER_SUBSTRING,
+    enableLocalVideoAfterConnect:
+      typeof record["enableLocalVideoAfterConnect"] === "boolean"
+        ? record["enableLocalVideoAfterConnect"]
+        : DEFAULT_ENABLE_LOCAL_VIDEO_AFTER_CONNECT,
   };
   const validated = validateUserSettings(candidate);
   if (!validated.ok) {
@@ -197,6 +202,7 @@ function migrateV1ToV5(record: Record<string, unknown>): UserSettings {
     defaultSessionView: defaults.defaultSessionView,
     autoFullscreenOnConference: defaults.autoFullscreenOnConference,
     conferenceNumberSubstring: defaults.conferenceNumberSubstring,
+    enableLocalVideoAfterConnect: defaults.enableLocalVideoAfterConnect,
   };
 }
 

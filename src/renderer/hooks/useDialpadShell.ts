@@ -124,14 +124,15 @@ export function useDialpadShell(input: UseDialpadShellInput): UseDialpadShellRes
   );
 
   const videoCallDisabledReason = useMemo(() => {
-    if (isCalling) {
-      return mapDialpadDisabledReason("disabledByConnectingInProgress");
+    const baseReason = mapDialpadDisabledReason(disabledState);
+    if (baseReason !== null) {
+      return baseReason;
     }
     if (!videoAvailability.enabled) {
       return mapVideoCallDisabledReason(videoAvailability.reason);
     }
     return null;
-  }, [isCalling, videoAvailability]);
+  }, [disabledState, videoAvailability]);
 
   return {
     dialedNumber,

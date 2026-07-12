@@ -38,6 +38,7 @@ describe("ScreenSharePickerDialog", () => {
 
     expect(screen.getByTestId("screen-share-picker-dialog")).toBeInTheDocument();
     expect(screen.getByText("Entire Screen")).toBeInTheDocument();
+    expect(screen.getByTestId("screen-share-picker-tab-chrome-tab")).toBeInTheDocument();
     fireEvent.click(screen.getByTestId("screen-share-picker-source-screen:0:0"));
     expect(onSelectSource).toHaveBeenCalledWith("screen:0:0");
     fireEvent.click(screen.getByTestId("screen-share-picker-confirm"));
@@ -51,7 +52,7 @@ describe("ScreenSharePickerDialog", () => {
         loading={false}
         confirming={false}
         errorKey={null}
-        activeKind="window"
+        activeKind="chromeTab"
         selectedSourceId="window:1:0"
         sources={[
           {

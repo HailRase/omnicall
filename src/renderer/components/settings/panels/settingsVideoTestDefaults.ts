@@ -7,6 +7,7 @@ export const settingsVideoStoryDefaults: SettingsVideoPanelProps = {
   defaultSessionView: "expanded",
   autoFullscreenOnConference: false,
   conferenceNumberSubstring: null,
+  enableLocalVideoAfterConnect: false,
   audioDevices: [
     { value: "__system_default__", label: "system-default" },
     { value: "mic-1", label: "mock-mic" },
@@ -24,6 +25,7 @@ export const settingsVideoStoryDefaults: SettingsVideoPanelProps = {
   onDefaultSessionViewChange: () => undefined,
   onAutoFullscreenOnConferenceChange: () => undefined,
   onConferenceNumberSubstringChange: () => undefined,
+  onEnableLocalVideoAfterConnectChange: () => undefined,
   onRefreshDevices: () => undefined,
 };
 
@@ -34,5 +36,6 @@ export const settingsVideoTestDefaults: SettingsVideoPanelProps = {
   onDefaultSessionViewChange: vi.fn(),
   onAutoFullscreenOnConferenceChange: vi.fn(),
   onConferenceNumberSubstringChange: vi.fn(),
+  onEnableLocalVideoAfterConnectChange: vi.fn(),
   onRefreshDevices: vi.fn(),
 };

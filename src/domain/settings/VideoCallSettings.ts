@@ -21,6 +21,7 @@ export const DEFAULT_PREFERRED_VIDEO_INPUT_DEVICE_ID: string | null = null;
 export const DEFAULT_DEFAULT_SESSION_VIEW: SessionViewMode = DEFAULT_SESSION_VIEW_MODE;
 export const DEFAULT_AUTO_FULLSCREEN_ON_CONFERENCE = false;
 export const DEFAULT_CONFERENCE_NUMBER_SUBSTRING: string | null = null;
+export const DEFAULT_ENABLE_LOCAL_VIDEO_AFTER_CONNECT = false;
 
 /**
  * - Purpose: narrow persisted device id to string or null (system default).

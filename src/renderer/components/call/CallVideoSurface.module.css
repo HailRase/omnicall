@@ -62,6 +62,10 @@
   object-fit: contain;
 }
 
+.remote-video-local {
+  transform: scaleX(-1);
+}
+
 .placeholder,
 .local-muted-label {
   margin: 0;
@@ -125,6 +129,10 @@
   position: absolute;
   inset: 0;
   transform: scaleX(-1);
+}
+
+.local-video-remote {
+  transform: none;
 }
 
 .local-pane[data-source="screen"] .local-video {

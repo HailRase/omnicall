@@ -82,11 +82,13 @@ type UseSettingsActionsResult = Readonly<{
   defaultSessionView: SessionViewMode;
   autoFullscreenOnConference: boolean;
   conferenceNumberSubstring: string | null;
+  enableLocalVideoAfterConnect: boolean;
   onPreferredAudioInputDeviceIdChange: (deviceId: string | null) => void;
   onPreferredVideoInputDeviceIdChange: (deviceId: string | null) => void;
   onDefaultSessionViewChange: (view: SessionViewMode) => void;
   onAutoFullscreenOnConferenceChange: (enabled: boolean) => void;
   onConferenceNumberSubstringChange: (value: string | null) => void;
+  onEnableLocalVideoAfterConnectChange: (enabled: boolean) => void;
 }>;
 
 function resolveSettingsUpdateError(error: unknown): string {
@@ -599,6 +601,16 @@ export function useSettingsActions(
     [persistUserSettings, userSettings],
   );
 
+  const onEnableLocalVideoAfterConnectChange = useCallback(
+    (enabled: boolean): void => {
+      persistUserSettings({
+        ...userSettings,
+        enableLocalVideoAfterConnect: enabled,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
   return {
     account,
     userSettings,
@@ -641,10 +653,12 @@ export function useSettingsActions(
     defaultSessionView: userSettings.defaultSessionView,
     autoFullscreenOnConference: userSettings.autoFullscreenOnConference,
     conferenceNumberSubstring: userSettings.conferenceNumberSubstring,
+    enableLocalVideoAfterConnect: userSettings.enableLocalVideoAfterConnect,
     onPreferredAudioInputDeviceIdChange,
     onPreferredVideoInputDeviceIdChange,
     onDefaultSessionViewChange,
     onAutoFullscreenOnConferenceChange,
     onConferenceNumberSubstringChange,
+    onEnableLocalVideoAfterConnectChange,
   };
 }

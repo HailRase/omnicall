@@ -549,7 +549,27 @@ export class AccountBootstrapFacade {
 
     this.eventPublisher.subscribe((event) => {
       this.trackSipRegistrationState(event);
+      if (event.type === "CallAnswered") {
+        const rawCallId = event["callId"];
+        if (typeof rawCallId === "string" && rawCallId.length > 0) {
+          void this.applyLocalVideoAfterConnectForCall(createCallId(rawCallId));
+        }
+      }
     });
+  }
+
+  private async applyLocalVideoAfterConnectForCall(callId: ReturnType<typeof createCallId>): Promise<void> {
+    const videoState = this.callEngine.getCallVideoMediaState(callId);
+    if (videoState === null || videoState.mediaMode !== "video") {
+      return;
+    }
+
+    const settingsResult = await this.getUserSettingsForAccount();
+    if (!settingsResult.ok || !settingsResult.value.enableLocalVideoAfterConnect) {
+      return;
+    }
+
+    await this.setLocalVideoMutedById(callId, false);
   }
 
   private trackSipRegistrationState(event: { type: string }): void {
@@ -1729,7 +1749,7 @@ export class AccountBootstrapFacade {
   }
 
   notifyRemoteVideoPresenceFromMedia(callId: CallId, present: boolean): void {
-    this.callEngine.handleRemoteVideoPresence(callId, present);
+    this.callEngine.handleRemoteVideoPresenceFromMedia(callId, present);
   }
 }
 

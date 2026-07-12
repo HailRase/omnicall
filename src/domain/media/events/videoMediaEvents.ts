@@ -32,6 +32,9 @@ export type CameraAvailabilityChangedEvent = ReturnType<
 export type IncomingRemoteVideoOfferedChangedEvent = ReturnType<
   typeof createIncomingRemoteVideoOfferedChangedEvent
 >;
+export type CallDowngradedToAudioOnlyEvent = ReturnType<
+  typeof createCallDowngradedToAudioOnlyEvent
+>;
 
 export type VideoMediaDomainEvent =
   | CallMediaModeSelectedEvent
@@ -40,7 +43,8 @@ export type VideoMediaDomainEvent =
   | RemoteVideoPresenceChangedEvent
   | SessionViewModeChangedEvent
   | CameraAvailabilityChangedEvent
-  | IncomingRemoteVideoOfferedChangedEvent;
+  | IncomingRemoteVideoOfferedChangedEvent
+  | CallDowngradedToAudioOnlyEvent;
 
 export function createCallMediaModeSelectedEvent(
   correlationId: CorrelationId,
@@ -150,5 +154,26 @@ export function createIncomingRemoteVideoOfferedChangedEvent(
   return createDomainEvent("IncomingRemoteVideoOfferedChanged", correlationId, {
     callId,
     offered,
+  });
+}
+
+/**
+ * - Purpose: signal outbound video call fell back to audio-only after remote answer.
+ * - Inputs: correlation id, call id, semantic downgrade reason key.
+ * - Outputs: CallDowngradedToAudioOnly domain event for UI notification.
+ */
+export function createCallDowngradedToAudioOnlyEvent(
+  correlationId: CorrelationId,
+  callId: CallId,
+  reason: "remote_audio_only",
+): ReturnType<
+  typeof createDomainEvent<
+    "CallDowngradedToAudioOnly",
+    { callId: CallId; reason: "remote_audio_only" }
+  >
+> {
+  return createDomainEvent("CallDowngradedToAudioOnly", correlationId, {
+    callId,
+    reason,
   });
 }

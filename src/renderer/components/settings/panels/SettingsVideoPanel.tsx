@@ -20,6 +20,7 @@ export type SettingsVideoPanelProps = Readonly<{
   defaultSessionView: SessionViewMode;
   autoFullscreenOnConference: boolean;
   conferenceNumberSubstring: string | null;
+  enableLocalVideoAfterConnect: boolean;
   audioDevices: ReadonlyArray<VideoSettingsDeviceOption>;
   videoDevices: ReadonlyArray<VideoSettingsDeviceOption>;
   devicesLoading: boolean;
@@ -31,6 +32,7 @@ export type SettingsVideoPanelProps = Readonly<{
   onDefaultSessionViewChange: (view: SessionViewMode) => void;
   onAutoFullscreenOnConferenceChange: (enabled: boolean) => void;
   onConferenceNumberSubstringChange: (value: string | null) => void;
+  onEnableLocalVideoAfterConnectChange: (enabled: boolean) => void;
   onRefreshDevices: () => void;
 }>;
 
@@ -53,6 +55,7 @@ export function SettingsVideoPanel({
   defaultSessionView,
   autoFullscreenOnConference,
   conferenceNumberSubstring,
+  enableLocalVideoAfterConnect,
   audioDevices,
   videoDevices,
   devicesLoading,
@@ -64,6 +67,7 @@ export function SettingsVideoPanel({
   onDefaultSessionViewChange,
   onAutoFullscreenOnConferenceChange,
   onConferenceNumberSubstringChange,
+  onEnableLocalVideoAfterConnectChange,
   onRefreshDevices,
 }: SettingsVideoPanelProps): JSX.Element {
   const { t } = useI18n();
@@ -209,6 +213,28 @@ export function SettingsVideoPanel({
                 onValueChange={handleSessionViewChange}
               />
             </div>
+          </div>
+
+          <div className={formStyles.settingBlock}>
+            <label
+              className={formStyles.toggleRow}
+              htmlFor="settings-video-enable-local-video-after-connect"
+            >
+              <span className={formStyles.toggleText}>
+                <span className={formStyles.toggleLabel}>
+                  {t("settings.video.enableLocalVideoAfterConnect.label")}
+                </span>
+                <span className={formStyles.toggleDescription}>
+                  {t("settings.video.enableLocalVideoAfterConnect.description")}
+                </span>
+              </span>
+              <Switch
+                id="settings-video-enable-local-video-after-connect"
+                checked={enableLocalVideoAfterConnect}
+                data-testid="settings-video-enable-local-video-after-connect-toggle"
+                onCheckedChange={onEnableLocalVideoAfterConnectChange}
+              />
+            </label>
           </div>
 
           <div className={formStyles.settingBlock}>

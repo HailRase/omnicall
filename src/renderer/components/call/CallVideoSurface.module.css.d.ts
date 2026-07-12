@@ -8,9 +8,11 @@ declare const classes: {
   readonly localPaneHidden: string;
   readonly localShowButton: string;
   readonly localVideo: string;
+  readonly localVideoRemote: string;
   readonly placeholder: string;
   readonly remotePane: string;
   readonly remoteVideo: string;
+  readonly remoteVideoLocal: string;
   readonly surface: string;
 };
 export default classes;

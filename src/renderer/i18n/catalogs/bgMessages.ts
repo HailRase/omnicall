@@ -110,10 +110,12 @@ export const bgMessages: MessageShape = {
   "call.video.hideLocalPreview": "Скрий моето видео",
   "call.video.showLocalPreview": "Покажи моето видео",
   "call.video.screenShare.picker.title": "Споделяне на екран",
-  "call.video.screenShare.picker.description": "Изберете екран или прозорец на приложение",
+  "call.video.screenShare.picker.description":
+    "Изберете екран, приложение или раздел в Google Chrome",
   "call.video.screenShare.picker.tabsAria": "Тип източник за споделяне",
   "call.video.screenShare.picker.tabScreen": "Екрани",
   "call.video.screenShare.picker.tabWindow": "Приложения",
+  "call.video.screenShare.picker.tabChrome": "Раздели в Google Chrome",
   "call.video.screenShare.picker.loading": "Зареждане на източници…",
   "call.video.screenShare.picker.empty": "Няма налични източници",
   "call.video.screenShare.picker.confirm": "Сподели",
@@ -505,6 +507,8 @@ export const bgMessages: MessageShape = {
     "Грешка в слушалките. Изключете и включете USB, след това свържете отново в Настройки → Слушалки.",
   "notification.headset.fault.led_blocked":
     "Индикаторите на слушалките са блокирани от ОС. Бутоните може да работят; свържете отново при нужда.",
+  "notification.video.remoteAudioOnly":
+    "Абонентът прие обаждането само с аудио. Видеорежимът е изключен.",
 
   "settings.video.description":
     "Изберете микрофон и камера за видеоразговори. Прегледът използва избраната камера.",
@@ -541,6 +545,9 @@ export const bgMessages: MessageShape = {
   "settings.video.conferenceSubstring.description":
     "Съвпадение с отдалечения номер за автоцял екран. Празно изключва правилото.",
   "settings.video.conferenceSubstring.placeholder": "напр. conf",
+  "settings.video.enableLocalVideoAfterConnect.label": "Включване на камерата след свързване",
+  "settings.video.enableLocalVideoAfterConnect.description":
+    "При видеообаждания автоматично включва локалната камера след установяване на връзка. Иначе камерата остава изключена до бутона Видео.",
 
   "activeCall.disabled.headsetSyncInProgress": "Синхронизация със слушалки…",
   "activeCall.disabled.outgoingDialInProgress": "Изчакайте исходящото обаждане да се свърже",

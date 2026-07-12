@@ -1,12 +1,13 @@
 /**
  * - Purpose: detect whether remote SDP accepted an active video media section.
  * - Inputs: remote SDP offer or answer text.
- * - Outputs: true only for a valid m=video line with a non-zero port.
+ * - Outputs: true only when remote can send video to local peer.
  */
 export function detectRemoteVideoPresence(sdp: string): boolean {
-  for (const rawLine of sdp.split(/\r?\n/u)) {
-    const line = rawLine.trim();
-    if (!line.startsWith("m=video ")) {
+  const lines = sdp.split(/\r?\n/u).map((line) => line.trim());
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (line === undefined || !line.startsWith("m=video ")) {
       continue;
     }
 
@@ -20,8 +21,42 @@ export function detectRemoteVideoPresence(sdp: string): boolean {
       return false;
     }
 
-    return Number(firstPortToken) > 0;
+    if (Number(firstPortToken) <= 0) {
+      continue;
+    }
+
+    const direction = resolveVideoDirection(lines, index + 1);
+    if (direction === "inactive" || direction === "recvonly") {
+      continue;
+    }
+
+    return true;
   }
 
   return false;
+}
+
+type SdpDirection = "sendrecv" | "sendonly" | "recvonly" | "inactive";
+
+function resolveVideoDirection(lines: ReadonlyArray<string>, startIndex: number): SdpDirection {
+  let direction: SdpDirection = "sendrecv";
+  for (let index = startIndex; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (line === undefined || line.length === 0) {
+      continue;
+    }
+    if (line.startsWith("m=")) {
+      break;
+    }
+    if (line === "a=sendrecv") {
+      direction = "sendrecv";
+    } else if (line === "a=sendonly") {
+      direction = "sendonly";
+    } else if (line === "a=recvonly") {
+      direction = "recvonly";
+    } else if (line === "a=inactive") {
+      direction = "inactive";
+    }
+  }
+  return direction;
 }

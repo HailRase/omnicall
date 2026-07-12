@@ -68,6 +68,7 @@ describe("settings overlay with layout zones", () => {
               defaultSessionView={settingsVideoStoryDefaults.defaultSessionView}
               autoFullscreenOnConference={settingsVideoStoryDefaults.autoFullscreenOnConference}
               conferenceNumberSubstring={settingsVideoStoryDefaults.conferenceNumberSubstring}
+              enableLocalVideoAfterConnect={settingsVideoStoryDefaults.enableLocalVideoAfterConnect}
               videoAudioDevices={settingsVideoStoryDefaults.audioDevices}
               videoCameraDevices={settingsVideoStoryDefaults.videoDevices}
               videoDevicesLoading={settingsVideoStoryDefaults.devicesLoading}
@@ -86,6 +87,9 @@ describe("settings overlay with layout zones", () => {
               }
               onConferenceNumberSubstringChange={
                 settingsVideoStoryDefaults.onConferenceNumberSubstringChange
+              }
+              onEnableLocalVideoAfterConnectChange={
+                settingsVideoStoryDefaults.onEnableLocalVideoAfterConnectChange
               }
               onRefreshVideoDevices={settingsVideoStoryDefaults.onRefreshDevices}
             />

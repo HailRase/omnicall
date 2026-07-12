@@ -29,11 +29,12 @@ import {
   DEFAULT_AUTO_FULLSCREEN_ON_CONFERENCE,
   DEFAULT_CONFERENCE_NUMBER_SUBSTRING,
   DEFAULT_DEFAULT_SESSION_VIEW,
+  DEFAULT_ENABLE_LOCAL_VIDEO_AFTER_CONNECT,
   DEFAULT_PREFERRED_AUDIO_INPUT_DEVICE_ID,
   DEFAULT_PREFERRED_VIDEO_INPUT_DEVICE_ID,
 } from "./VideoCallSettings.js";
 
-export const SETTINGS_SCHEMA_VERSION = 5 as const;
+export const SETTINGS_SCHEMA_VERSION = 6 as const;
 
 export type SettingsSchemaVersion = typeof SETTINGS_SCHEMA_VERSION;
 
@@ -78,6 +79,8 @@ export type UserSettings = Readonly<{
   autoFullscreenOnConference: boolean;
   /** Optional remote-number substring for conference auto-fullscreen; null disables match. */
   conferenceNumberSubstring: string | null;
+  /** When true, unmute local camera after a video call connects. */
+  enableLocalVideoAfterConnect: boolean;
 }>;
 
 export { MIN_SIP_REREGISTER_INTERVAL_SEC, MIN_SIP_RECONNECT_INTERVAL_SEC };
@@ -119,5 +122,6 @@ export function createDefaultUserSettings(): UserSettings {
     defaultSessionView: DEFAULT_DEFAULT_SESSION_VIEW,
     autoFullscreenOnConference: DEFAULT_AUTO_FULLSCREEN_ON_CONFERENCE,
     conferenceNumberSubstring: DEFAULT_CONFERENCE_NUMBER_SUBSTRING,
+    enableLocalVideoAfterConnect: DEFAULT_ENABLE_LOCAL_VIDEO_AFTER_CONNECT,
   };
 }

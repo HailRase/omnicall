@@ -44,9 +44,6 @@ export function resolveVideoCallAvailability(
   if (!input.videoFeatureReady) {
     return { enabled: false, reason: "videoCall.disabled.featureNotReady" };
   }
-  if (!input.numberValid) {
-    return { enabled: false, reason: "videoCall.disabled.invalidNumber" };
-  }
   if (!input.sipRegistered) {
     return { enabled: false, reason: "videoCall.disabled.notRegistered" };
   }
@@ -55,6 +52,9 @@ export function resolveVideoCallAvailability(
   }
   if (input.secondSessionBlocked) {
     return { enabled: false, reason: "videoCall.disabled.secondSessionBlocked" };
+  }
+  if (!input.numberValid) {
+    return { enabled: false, reason: "videoCall.disabled.invalidNumber" };
   }
   if (!input.videoCaptureAvailable) {
     return { enabled: false, reason: "videoCall.disabled.captureUnavailable" };

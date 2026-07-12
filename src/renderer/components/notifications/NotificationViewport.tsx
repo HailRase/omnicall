@@ -12,6 +12,10 @@ import {
 import styles from "./NotificationViewport.module.css";
 
 const NOTIFICATION_EDGE_OFFSET_PX = 24;
+const NOTIFICATION_EDGE_OFFSET_SAFE_START =
+  "calc(24px + var(--shell-window-controls-safe-inline-start))";
+const NOTIFICATION_EDGE_OFFSET_SAFE_END =
+  "calc(24px + var(--shell-window-controls-safe-inline-end))";
 
 function resolveNotificationToasterOffset(
   placement: ToastPlacement,
@@ -19,9 +23,9 @@ function resolveNotificationToasterOffset(
   if (placement.startsWith("top")) {
     return {
       top: "var(--incoming-call-banner-top)",
-      right: NOTIFICATION_EDGE_OFFSET_PX,
+      right: NOTIFICATION_EDGE_OFFSET_SAFE_END,
       bottom: NOTIFICATION_EDGE_OFFSET_PX,
-      left: NOTIFICATION_EDGE_OFFSET_PX,
+      left: NOTIFICATION_EDGE_OFFSET_SAFE_START,
     };
   }
 

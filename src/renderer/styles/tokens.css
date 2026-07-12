@@ -23,6 +23,12 @@
   --shell-titlebar-controls-height: 34px;
   --shell-mac-traffic-lights-width: 68px;
   --shell-frameless-controls-width: 144px;
+  --shell-window-controls-safe-inline-start: calc(
+    var(--space-sm) + var(--shell-mac-traffic-lights-width)
+  );
+  --shell-window-controls-safe-inline-end: calc(
+    var(--space-sm) + var(--shell-frameless-controls-width)
+  );
   --shell-mac-traffic-light-idle: #8a8a8a;
   --shell-mac-traffic-light-close: #ff5f57;
   --shell-mac-traffic-light-minimize: #febc2e;
@@ -113,9 +119,9 @@
   --color-status-not-registered: #94a3b8;
 
   /* Incoming call banner (iOS compact) */
-  --incoming-call-banner-bg: rgb(246 246 246 / 86%);
-  --incoming-call-banner-backdrop-blur: 24px;
-  --incoming-call-banner-backdrop-saturate: 180%;
+  --incoming-call-banner-bg: rgb(246 246 246 / 72%);
+  --incoming-call-banner-backdrop-blur: 28px;
+  --incoming-call-banner-backdrop-saturate: 165%;
   --incoming-call-banner-radius: 14px;
   --incoming-call-banner-padding: 14px;
   --incoming-call-banner-top-offset: 10px;
@@ -218,7 +224,7 @@
   --color-status-not-registered: #5c6b82;
 
   /* Incoming call banner (iOS compact) */
-  --incoming-call-banner-bg: rgb(36 36 38 / 88%);
+  --incoming-call-banner-bg: rgb(36 36 38 / 74%);
   --incoming-call-icon-circle-bg: rgb(34 170 74 / 44%);
   --incoming-call-icon-color: #4ef078;
   --incoming-call-auto-answer-track: rgb(255 255 255 / 12%);

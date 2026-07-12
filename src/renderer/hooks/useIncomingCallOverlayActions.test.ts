@@ -48,12 +48,13 @@ function createTransferActions() {
 }
 
 describe("useIncomingCallOverlayActions", () => {
-  it("body navigation goes to dialpad without answer", () => {
+  it("body navigation goes to dialpad without answer and exits fullscreen", () => {
     const goToDialpad = vi.fn();
     const closeSettings = vi.fn();
     const setCallMode = vi.fn();
     const closeNumberEntryOverlay = vi.fn();
     const selectIncomingCall = vi.fn();
+    const exitVideoFullscreen = vi.fn();
     const incomingCallActions = createIncomingActions();
 
     const { result } = renderHook(() =>
@@ -74,7 +75,7 @@ describe("useIncomingCallOverlayActions", () => {
         setCallMode,
         closeNumberEntryOverlay,
         selectIncomingCall,
-        exitVideoFullscreen: vi.fn(),
+        exitVideoFullscreen,
       }),
     );
 
@@ -82,6 +83,7 @@ describe("useIncomingCallOverlayActions", () => {
       result.current.handleOpenCallSurface();
     });
 
+    expect(exitVideoFullscreen).toHaveBeenCalledTimes(1);
     expect(goToDialpad).toHaveBeenCalledTimes(1);
     expect(closeSettings).toHaveBeenCalledTimes(1);
     expect(setCallMode).toHaveBeenCalledWith("number");
@@ -156,8 +158,9 @@ describe("useIncomingCallOverlayActions", () => {
     expect(incomingCallActions.handleAnswerIncoming).toHaveBeenCalledTimes(1);
   });
 
-  it("navigates to main after successful answer", async () => {
+  it("navigates to main after successful answer without exiting fullscreen", async () => {
     const goToDialpad = vi.fn();
+    const exitVideoFullscreen = vi.fn();
     let projection: IncomingCallProjection = {
       ...initialIncomingCallProjection(),
       visible: true,
@@ -178,7 +181,7 @@ describe("useIncomingCallOverlayActions", () => {
         setCallMode: vi.fn(),
         closeNumberEntryOverlay: vi.fn(),
         selectIncomingCall: vi.fn(),
-        exitVideoFullscreen: vi.fn(),
+        exitVideoFullscreen,
       }),
     );
 
@@ -191,6 +194,7 @@ describe("useIncomingCallOverlayActions", () => {
     await waitFor(() => {
       expect(goToDialpad).toHaveBeenCalledTimes(1);
     });
+    expect(exitVideoFullscreen).not.toHaveBeenCalled();
   });
 
   it("closes transfer target selection UI mode on answer navigation", async () => {

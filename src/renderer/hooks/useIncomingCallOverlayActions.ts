@@ -64,7 +64,6 @@ export function useIncomingCallOverlayActions(
   const wasAnsweringRef = useRef(false);
 
   const focusMainCallSurface = useCallback((): void => {
-    exitVideoFullscreen();
     goToDialpad();
     if (settingsOpen) {
       closeSettings();
@@ -78,7 +77,6 @@ export function useIncomingCallOverlayActions(
   }, [
     closeNumberEntryOverlay,
     closeSettings,
-    exitVideoFullscreen,
     goToDialpad,
     selectIncomingCall,
     setCallMode,
@@ -110,8 +108,9 @@ export function useIncomingCallOverlayActions(
   ]);
 
   const handleOpenCallSurface = useCallback((): void => {
+    exitVideoFullscreen();
     focusMainCallSurface();
-  }, [focusMainCallSurface]);
+  }, [exitVideoFullscreen, focusMainCallSurface]);
 
   const handleAnswer = useCallback((): void => {
     incomingCallActions.handleAnswerIncoming();

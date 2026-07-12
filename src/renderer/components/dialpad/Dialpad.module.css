@@ -86,23 +86,27 @@
   align-items: stretch;
   width: 100%;
   height: 3rem;
+  padding: 2px;
   border-radius: var(--radius-control);
   border: 1px solid var(--color-border-subtle);
   background: var(--color-bg-surface-deep);
   overflow: hidden;
   transition:
     border-color 140ms ease,
-    box-shadow 140ms ease;
+    box-shadow 140ms ease,
+    background 140ms ease;
 }
 
 .call-action-group-actionable {
   border-color: var(--color-border-success);
+  background: var(--color-status-online);
   box-shadow: var(--shadow-control-knob);
 }
 
 .call-action-segment-host {
   display: flex;
   min-width: 0;
+  border-radius: calc(var(--radius-control) - 2px);
 }
 
 .call-action-segment-host:first-child {
@@ -141,17 +145,27 @@
 }
 
 .call-action-segment-ready {
-  background: var(--color-status-online);
+  background: transparent;
   color: #fff;
   cursor: pointer;
+  border-radius: calc(var(--radius-control) - 3px);
+}
+
+.call-action-group-actionable .call-action-segment-ready:hover:not(:disabled) {
+  background: color-mix(in srgb, #ffffff 16%, transparent);
+}
+
+.call-action-group-actionable .call-action-segment-ready:active:not(:disabled) {
+  background: color-mix(in srgb, #000000 12%, transparent);
+  transform: scale(0.98);
 }
 
 .call-action-segment-ready:hover {
-  filter: brightness(1.05);
+  filter: none;
 }
 
 .call-action-segment-ready:active {
-  transform: scale(0.98);
+  filter: none;
 }
 
 .call-action-segment-ready:disabled {
@@ -171,12 +185,14 @@
 .call-action-divider {
   flex-shrink: 0;
   width: 1px;
-  align-self: stretch;
-  background: color-mix(in srgb, var(--color-border-subtle) 70%, transparent);
+  align-self: center;
+  height: calc(100% - 0.75rem);
+  margin-inline: 1px;
+  background: color-mix(in srgb, var(--color-border-subtle) 45%, transparent);
 }
 
 .call-action-group-actionable .call-action-divider {
-  background: color-mix(in srgb, #ffffff 28%, transparent);
+  background: color-mix(in srgb, #ffffff 32%, transparent);
 }
 
 .call-action-label {

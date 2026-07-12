@@ -96,6 +96,7 @@ const panelDefaults = {
   defaultSessionView: settingsVideoStoryDefaults.defaultSessionView,
   autoFullscreenOnConference: settingsVideoStoryDefaults.autoFullscreenOnConference,
   conferenceNumberSubstring: settingsVideoStoryDefaults.conferenceNumberSubstring,
+  enableLocalVideoAfterConnect: settingsVideoStoryDefaults.enableLocalVideoAfterConnect,
   videoAudioDevices: settingsVideoStoryDefaults.audioDevices,
   videoCameraDevices: settingsVideoStoryDefaults.videoDevices,
   videoDevicesLoading: settingsVideoStoryDefaults.devicesLoading,
@@ -111,6 +112,8 @@ const panelDefaults = {
     settingsVideoStoryDefaults.onAutoFullscreenOnConferenceChange,
   onConferenceNumberSubstringChange:
     settingsVideoStoryDefaults.onConferenceNumberSubstringChange,
+  onEnableLocalVideoAfterConnectChange:
+    settingsVideoStoryDefaults.onEnableLocalVideoAfterConnectChange,
   onRefreshVideoDevices: settingsVideoStoryDefaults.onRefreshDevices,
 } as const;
 

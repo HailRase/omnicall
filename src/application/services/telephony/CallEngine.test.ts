@@ -565,6 +565,76 @@ describe("CallEngine", () => {
     expect(telephony.getAnswerCallCommands()[0]?.mediaMode).toBe("video");
   });
 
+  it("downgrades outbound video call to audio when remote party has no video", async () => {
+    const telephony = new MockTelephonyGateway({ makeCallScenario: "answered" });
+    const events = new InMemoryDomainEventBus();
+    const collectedEvents: DomainEvent[] = [];
+    events.subscribe((event) => {
+      collectedEvents.push(event);
+    });
+    const engine = new CallEngine(
+      telephony,
+      new MockMediaGateway(),
+      new InMemorySettingsRepository(),
+      events,
+      createTestLogger(),
+    );
+    const callId = createCallId("outbound-audio-only");
+
+    await engine.makeCall({
+      callId,
+      phoneNumber: createPhoneNumber("+12025550199"),
+      mediaMode: "video",
+    });
+
+    expect(engine.getCallVideoMediaState(callId)?.mediaMode).toBe("video");
+
+    engine.handleRemoteVideoPresence(callId, false, createCorrelationId());
+
+    expect(engine.getCallVideoMediaState(callId)?.mediaMode).toBe("audio");
+    expect(
+      collectedEvents.some((event) => event.type === "CallDowngradedToAudioOnly"),
+    ).toBe(true);
+  });
+
+  it("defers outbound downgrade until call is active when remote audio-only arrives early", async () => {
+    const telephony = new MockTelephonyGateway({ makeCallScenario: "connecting" });
+    const events = new InMemoryDomainEventBus();
+    const collectedEvents: DomainEvent[] = [];
+    events.subscribe((event) => {
+      collectedEvents.push(event);
+    });
+    const engine = new CallEngine(
+      telephony,
+      new MockMediaGateway(),
+      new InMemorySettingsRepository(),
+      events,
+      createTestLogger(),
+    );
+    const callId = createCallId("outbound-audio-only-deferred");
+
+    const makeResult = await engine.makeCall({
+      callId,
+      phoneNumber: createPhoneNumber("+12025550188"),
+      mediaMode: "video",
+    });
+    expect(makeResult.ok).toBe(true);
+    expect(engine.getCallVideoMediaState(callId)?.mediaMode).toBe("video");
+
+    engine.handleRemoteVideoPresence(callId, false, createCorrelationId());
+    expect(engine.getCallVideoMediaState(callId)?.mediaMode).toBe("video");
+    expect(
+      collectedEvents.some((event) => event.type === "CallDowngradedToAudioOnly"),
+    ).toBe(false);
+
+    await engine.handleOutboundCallAnswered(callId, createCorrelationId());
+
+    expect(engine.getCallVideoMediaState(callId)?.mediaMode).toBe("audio");
+    expect(
+      collectedEvents.some((event) => event.type === "CallDowngradedToAudioOnly"),
+    ).toBe(true);
+  });
+
   it("projects remote video presence reported by telephony adapter", async () => {
     const engine = new CallEngine(
       new MockTelephonyGateway(),
@@ -586,6 +656,36 @@ describe("CallEngine", () => {
     engine.handleRemoteVideoPresence(callId, true, createCorrelationId());
 
     expect(engine.getCallVideoMediaState(callId)?.remoteVideoPresent).toBe(true);
+  });
+
+  it("does not downgrade outbound video call on media-track absence signal", async () => {
+    const telephony = new MockTelephonyGateway({ makeCallScenario: "answered" });
+    const events = new InMemoryDomainEventBus();
+    const collectedEvents: DomainEvent[] = [];
+    events.subscribe((event) => {
+      collectedEvents.push(event);
+    });
+    const engine = new CallEngine(
+      telephony,
+      new MockMediaGateway(),
+      new InMemorySettingsRepository(),
+      events,
+      createTestLogger(),
+    );
+    const callId = createCallId("outbound-media-signal-only");
+
+    await engine.makeCall({
+      callId,
+      phoneNumber: createPhoneNumber("+12025550193"),
+      mediaMode: "video",
+    });
+
+    engine.handleRemoteVideoPresenceFromMedia(callId, false, createCorrelationId());
+
+    expect(engine.getCallVideoMediaState(callId)?.mediaMode).toBe("video");
+    expect(
+      collectedEvents.some((event) => event.type === "CallDowngradedToAudioOnly"),
+    ).toBe(false);
   });
 
   it("fails reject in invalid state when incoming call is missing", async () => {

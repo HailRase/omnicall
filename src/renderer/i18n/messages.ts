@@ -307,10 +307,12 @@ const ruMessages = {
   "call.video.hideLocalPreview": "Скрыть своё видео",
   "call.video.showLocalPreview": "Показать своё видео",
   "call.video.screenShare.picker.title": "Трансляция экрана",
-  "call.video.screenShare.picker.description": "Выберите экран или окно для трансляции",
+  "call.video.screenShare.picker.description":
+    "Выберите экран, приложение или вкладку Google Chrome для трансляции",
   "call.video.screenShare.picker.tabsAria": "Тип источника трансляции",
   "call.video.screenShare.picker.tabScreen": "Экраны",
   "call.video.screenShare.picker.tabWindow": "Приложения",
+  "call.video.screenShare.picker.tabChrome": "Вкладки Google Chrome",
   "call.video.screenShare.picker.loading": "Загрузка источников…",
   "call.video.screenShare.picker.empty": "Нет доступных источников",
   "call.video.screenShare.picker.confirm": "Транслировать",
@@ -614,6 +616,8 @@ const ruMessages = {
     "Ошибка гарнитуры. Отключите и подключите USB, затем переподключите устройство в Настройках → Гарнитура.",
   "notification.headset.fault.led_blocked":
     "Индикаторы гарнитуры недоступны (ограничение ОС). Кнопки могут работать; переподключите устройство при необходимости.",
+  "notification.video.remoteAudioOnly":
+    "Абонент принял вызов только в режиме аудио. Видеорежим отключён.",
 
   "settings.video.description":
     "Выберите микрофон и камеру для видеозвонков. Предпросмотр использует выбранную камеру.",
@@ -650,6 +654,9 @@ const ruMessages = {
   "settings.video.conferenceSubstring.description":
     "Совпадение с remote-номером включает автополный экран. Пусто — правило выключено.",
   "settings.video.conferenceSubstring.placeholder": "Например conf",
+  "settings.video.enableLocalVideoAfterConnect.label": "Включать камеру после подключения",
+  "settings.video.enableLocalVideoAfterConnect.description":
+    "При видеовызове автоматически включать локальную камеру после установления соединения. Иначе камера остаётся выключенной до нажатия кнопки «Видео».",
 
   "activeCall.disabled.headsetSyncInProgress": "Синхронизация с гарнитурой…",
   "activeCall.disabled.outgoingDialInProgress": "Дождитесь соединения исходящего вызова",
@@ -1208,10 +1215,12 @@ const enMessages: MessageShape = {
   "call.video.hideLocalPreview": "Hide my video",
   "call.video.showLocalPreview": "Show my video",
   "call.video.screenShare.picker.title": "Share screen",
-  "call.video.screenShare.picker.description": "Choose a screen or application window to share",
+  "call.video.screenShare.picker.description":
+    "Choose a screen, application, or Google Chrome tab to share",
   "call.video.screenShare.picker.tabsAria": "Screen share source type",
   "call.video.screenShare.picker.tabScreen": "Screens",
   "call.video.screenShare.picker.tabWindow": "Applications",
+  "call.video.screenShare.picker.tabChrome": "Google Chrome tabs",
   "call.video.screenShare.picker.loading": "Loading sources…",
   "call.video.screenShare.picker.empty": "No sources available",
   "call.video.screenShare.picker.confirm": "Share",
@@ -1500,6 +1509,8 @@ const enMessages: MessageShape = {
     "Headset error. Unplug and replug USB, then reconnect in Settings → Headset.",
   "notification.headset.fault.led_blocked":
     "Headset indicators are blocked by the OS. Buttons may still work; reconnect the device if needed.",
+  "notification.video.remoteAudioOnly":
+    "The callee answered in audio-only mode. Video mode has been turned off.",
 
   "settings.video.description":
     "Choose microphone and camera for video calls. Preview uses the selected camera.",
@@ -1536,6 +1547,9 @@ const enMessages: MessageShape = {
   "settings.video.conferenceSubstring.description":
     "Match against the remote number to enable auto fullscreen. Empty disables the rule.",
   "settings.video.conferenceSubstring.placeholder": "e.g. conf",
+  "settings.video.enableLocalVideoAfterConnect.label": "Enable camera after connect",
+  "settings.video.enableLocalVideoAfterConnect.description":
+    "On video calls, automatically turn on the local camera once the call connects. Otherwise the camera stays off until you press Video.",
 
   "activeCall.disabled.headsetSyncInProgress": "Syncing with headset…",
   "activeCall.disabled.outgoingDialInProgress": "Wait until the outgoing call connects",
@@ -2061,10 +2075,12 @@ const frMessages: MessageShape = {
   "call.video.hideLocalPreview": "Masquer ma video",
   "call.video.showLocalPreview": "Afficher ma video",
   "call.video.screenShare.picker.title": "Partage d'ecran",
-  "call.video.screenShare.picker.description": "Choisissez un ecran ou une fenetre d'application",
+  "call.video.screenShare.picker.description":
+    "Choisissez un ecran, une application ou un onglet Google Chrome",
   "call.video.screenShare.picker.tabsAria": "Type de source de partage",
   "call.video.screenShare.picker.tabScreen": "Ecrans",
   "call.video.screenShare.picker.tabWindow": "Applications",
+  "call.video.screenShare.picker.tabChrome": "Onglets Google Chrome",
   "call.video.screenShare.picker.loading": "Chargement des sources…",
   "call.video.screenShare.picker.empty": "Aucune source disponible",
   "call.video.screenShare.picker.confirm": "Partager",
@@ -2353,6 +2369,8 @@ const frMessages: MessageShape = {
     "Erreur du micro-casque. Debranchez puis rebranchez l'USB, puis reconnectez dans Parametres → Micro-casque.",
   "notification.headset.fault.led_blocked":
     "Les indicateurs du micro-casque sont bloques par le systeme. Les boutons peuvent fonctionner ; reconnectez l'appareil si besoin.",
+  "notification.video.remoteAudioOnly":
+    "Le correspondant a repondu en audio seul. Le mode video a ete desactive.",
 
   "settings.video.description":
     "Choisissez le micro et la camera pour les appels video. L'apercu utilise la camera selectionnee.",
@@ -2389,6 +2407,9 @@ const frMessages: MessageShape = {
   "settings.video.conferenceSubstring.description":
     "Correspondance avec le numero distant pour le plein ecran auto. Vide desactive la regle.",
   "settings.video.conferenceSubstring.placeholder": "ex. conf",
+  "settings.video.enableLocalVideoAfterConnect.label": "Activer la camera apres connexion",
+  "settings.video.enableLocalVideoAfterConnect.description":
+    "Sur les appels video, activer automatiquement la camera locale une fois l'appel etabli. Sinon la camera reste desactivee jusqu'au bouton Video.",
 
   "activeCall.disabled.headsetSyncInProgress": "Synchronisation avec le micro-casque…",
   "activeCall.disabled.outgoingDialInProgress": "Attendez que l'appel sortant soit connecte",
@@ -2917,10 +2938,12 @@ const deMessages: MessageShape = {
   "call.video.hideLocalPreview": "Eigenes Video ausblenden",
   "call.video.showLocalPreview": "Eigenes Video einblenden",
   "call.video.screenShare.picker.title": "Bildschirm teilen",
-  "call.video.screenShare.picker.description": "Waehlen Sie einen Bildschirm oder ein Anwendungsfenster",
+  "call.video.screenShare.picker.description":
+    "Waehlen Sie einen Bildschirm, eine Anwendung oder einen Google-Chrome-Tab",
   "call.video.screenShare.picker.tabsAria": "Quelle fuer Bildschirmfreigabe",
   "call.video.screenShare.picker.tabScreen": "Bildschirme",
   "call.video.screenShare.picker.tabWindow": "Anwendungen",
+  "call.video.screenShare.picker.tabChrome": "Google-Chrome-Tabs",
   "call.video.screenShare.picker.loading": "Quellen werden geladen…",
   "call.video.screenShare.picker.empty": "Keine Quellen verfuegbar",
   "call.video.screenShare.picker.confirm": "Teilen",
@@ -3209,6 +3232,8 @@ const deMessages: MessageShape = {
     "Headset-Fehler. USB trennen und erneut anschliessen, dann in Einstellungen → Headset verbinden.",
   "notification.headset.fault.led_blocked":
     "Headset-Anzeigen sind durch das Betriebssystem blockiert. Tasten konnen funktionieren; Gerät bei Bedarf neu verbinden.",
+  "notification.video.remoteAudioOnly":
+    "Der Gespraechspartner hat nur mit Audio geantwortet. Der Videomodus wurde deaktiviert.",
 
   "settings.video.description":
     "Mikrofon und Kamera fuer Videoanrufe waehlen. Die Vorschau nutzt die gewaehlte Kamera.",
@@ -3245,6 +3270,9 @@ const deMessages: MessageShape = {
   "settings.video.conferenceSubstring.description":
     "Abgleich mit der Gegenstellennummer fuer Auto-Vollbild. Leer deaktiviert die Regel.",
   "settings.video.conferenceSubstring.placeholder": "z. B. conf",
+  "settings.video.enableLocalVideoAfterConnect.label": "Kamera nach Verbindung aktivieren",
+  "settings.video.enableLocalVideoAfterConnect.description":
+    "Bei Videoanrufen die lokale Kamera nach Verbindungsaufbau automatisch einschalten. Sonst bleibt die Kamera aus, bis Sie Video druecken.",
 
   "activeCall.disabled.headsetSyncInProgress": "Synchronisierung mit Headset…",
   "activeCall.disabled.outgoingDialInProgress": "Warten Sie, bis der ausgehende Anruf verbunden ist",

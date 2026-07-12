@@ -77,6 +77,7 @@ const panelBaseProps = {
   defaultSessionView: settingsVideoTestDefaults.defaultSessionView,
   autoFullscreenOnConference: settingsVideoTestDefaults.autoFullscreenOnConference,
   conferenceNumberSubstring: settingsVideoTestDefaults.conferenceNumberSubstring,
+  enableLocalVideoAfterConnect: settingsVideoTestDefaults.enableLocalVideoAfterConnect,
   videoAudioDevices: settingsVideoTestDefaults.audioDevices,
   videoCameraDevices: settingsVideoTestDefaults.videoDevices,
   videoDevicesLoading: settingsVideoTestDefaults.devicesLoading,
@@ -92,6 +93,8 @@ const panelBaseProps = {
     settingsVideoTestDefaults.onAutoFullscreenOnConferenceChange,
   onConferenceNumberSubstringChange:
     settingsVideoTestDefaults.onConferenceNumberSubstringChange,
+  onEnableLocalVideoAfterConnectChange:
+    settingsVideoTestDefaults.onEnableLocalVideoAfterConnectChange,
   onRefreshVideoDevices: settingsVideoTestDefaults.onRefreshDevices,
 } as const;
 

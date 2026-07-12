@@ -66,7 +66,7 @@ describe("validateUserSettings", () => {
 
   it("rejects missing boolean fields", () => {
     const result = validateUserSettings({
-      schemaVersion: 5,
+      schemaVersion: 6,
       autoAnswerTimeoutSec: null,
     });
     expect(result.ok).toBe(false);

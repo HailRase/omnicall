@@ -1,17 +1,47 @@
-.tabs {
+.content {
+  padding: var(--space-lg);
+}
+
+.layout {
   display: flex;
-  gap: var(--space-2xs);
-  margin-bottom: var(--space-sm);
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  gap: var(--space-md);
+}
+
+.header {
+  max-width: 68rem;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-xs);
 }
 
 .tab {
-  flex: 1;
-  padding: var(--space-2xs) var(--space-xs);
+  height: 2.5rem;
   border: 1px solid var(--color-border-control);
   border-radius: var(--radius-control);
   background: var(--color-bg-surface);
   color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+}
+
+.tab:hover {
+  background: var(--color-bg-surface-alt);
+}
+
+.tab:focus-visible {
+  outline: 2px solid var(--color-outline-focus);
+  outline-offset: 2px;
 }
 
 .tab-active {
@@ -22,25 +52,40 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
-  gap: var(--space-xs);
-  max-height: 18rem;
+  flex: 1;
+  min-height: 14rem;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: var(--space-sm);
   overflow: auto;
-  min-height: 8rem;
-  padding: var(--space-2xs);
+  padding-right: var(--space-2xs);
+  align-content: start;
 }
 
 .card {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2xs);
-  padding: var(--space-2xs);
+  gap: var(--space-xs);
+  padding: var(--space-xs);
   border: 1px solid var(--color-border-control);
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-panel);
   background: var(--color-bg-surface-alt);
   color: var(--color-text-primary);
-  cursor: pointer;
   text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.card:hover {
+  border-color: var(--color-border-focus);
+  transform: translateY(-1px);
+}
+
+.card:focus-visible {
+  outline: 2px solid var(--color-outline-focus);
+  outline-offset: 2px;
 }
 
 .card-selected {
@@ -51,7 +96,7 @@
 .thumb,
 .thumb-placeholder {
   width: 100%;
-  min-height: 4.5rem;
+  min-height: 7.5rem;
   aspect-ratio: 16 / 9;
   object-fit: cover;
   border-radius: var(--radius-control);
@@ -61,57 +106,29 @@
 
 .thumb-icon {
   object-fit: contain;
-  padding: var(--space-sm);
+  padding: var(--space-lg);
 }
 
 .card-label {
   display: block;
-  font-size: 0.75rem;
-  line-height: 1.25;
-  overflow: hidden;
-  white-space: nowrap;
+  min-height: 2.5rem;
+  font-size: var(--font-size-sm);
+  line-height: 1.35;
 }
 
 .card-label-text {
-  display: inline-block;
-  max-width: 100%;
+  display: -webkit-box;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-  vertical-align: bottom;
-}
-
-.card:hover .card-label-text,
-.card:focus-visible .card-label-text {
-  text-overflow: clip;
-  animation: screen-share-label-marquee 6s linear infinite;
-}
-
-@keyframes screen-share-label-marquee {
-  0%,
-  10% {
-    transform: translateX(0);
-  }
-
-  90%,
-  100% {
-    transform: translateX(calc(-100% + 8.5rem));
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .card:hover .card-label-text,
-  .card:focus-visible .card-label-text {
-    animation: none;
-    text-overflow: ellipsis;
-  }
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 .status,
 .error {
   margin: 0;
-  font-size: 0.8125rem;
-  line-height: 1.3;
+  font-size: var(--font-size-sm);
+  line-height: 1.35;
 }
 
 .status {
@@ -121,5 +138,36 @@
 
 .error {
   color: var(--color-text-danger);
-  margin-top: var(--space-xs);
+}
+
+.footer {
+  margin-top: 0;
+  padding-top: var(--space-xs);
+  border-top: 1px solid var(--color-border-subtle);
+  background: var(--color-bg-surface-elevated);
+}
+
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .content {
+    padding: var(--space-md);
+  }
+
+  .tabs {
+    grid-template-columns: 1fr;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .thumb,
+  .thumb-placeholder {
+    min-height: 9rem;
+  }
 }

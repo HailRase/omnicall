@@ -24,7 +24,7 @@ describe("migrateUserSettings", () => {
     );
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(5);
+      expect(result.value.schemaVersion).toBe(6);
       expect(result.value.multiSessionsEnabled).toBe(false);
       expect(result.value.headsetEnabled).toBe(false);
       expect(result.value.headsetPreferredDeviceId).toBeNull();
@@ -61,7 +61,7 @@ describe("migrateUserSettings", () => {
     const result = migrateUserSettings(v4);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(5);
+      expect(result.value.schemaVersion).toBe(6);
       expect(result.value.headsetPreferredDeviceId).toBeNull();
       expect(result.value.preferredAudioInputDeviceId).toBeNull();
       expect(result.value.preferredVideoInputDeviceId).toBeNull();
@@ -82,7 +82,7 @@ describe("migrateUserSettings", () => {
     const result = migrateUserSettings(v3);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(5);
+      expect(result.value.schemaVersion).toBe(6);
       expect(result.value.headsetEnabled).toBe(false);
       expect(result.value.headsetAutoReconnect).toBe(true);
       expect(result.value.headsetPreferredDeviceId).toBeNull();
@@ -101,7 +101,7 @@ describe("migrateUserSettings", () => {
     const result = migrateUserSettings(v2);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(5);
+      expect(result.value.schemaVersion).toBe(6);
       expect(result.value.codecPreferences).toEqual(createDefaultUserSettings().codecPreferences);
     }
   });
@@ -122,7 +122,7 @@ describe("migrateUserSettings", () => {
     const result = migrateUserSettings(v1);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(5);
+      expect(result.value.schemaVersion).toBe(6);
       expect(result.value.theme).toBe("dark");
       expect(result.value.headsetEnabled).toBe(false);
       expect(result.value.autoFullscreenOnConference).toBe(false);
@@ -141,7 +141,7 @@ describe("migrateUserSettings", () => {
     const result = migrateUserSettings(v4);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(5);
+      expect(result.value.schemaVersion).toBe(6);
       expect(result.value.preferredVideoInputDeviceId).toBe("camera-abc");
       expect(result.value.defaultSessionView).toBe("fullscreen");
       expect(result.value.autoFullscreenOnConference).toBe(true);

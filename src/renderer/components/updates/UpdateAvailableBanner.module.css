@@ -1,9 +1,19 @@
 .anchor {
   position: fixed;
   top: var(--incoming-call-banner-top);
-  left: 50%;
+  left: calc(
+    var(--shell-window-controls-safe-inline-start) +
+      (100vw - var(--shell-window-controls-safe-inline-start) - var(--shell-window-controls-safe-inline-end)) /
+      2
+  );
   z-index: 1;
-  width: min(28rem, calc(100vw - 2 * var(--space-md)));
+  width: min(
+    28rem,
+    calc(
+      100vw - var(--shell-window-controls-safe-inline-start) -
+        var(--shell-window-controls-safe-inline-end) - 2 * var(--space-md)
+    )
+  );
   transform: translateX(-50%);
   pointer-events: none;
 }
