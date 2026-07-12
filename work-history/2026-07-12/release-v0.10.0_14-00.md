@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-12 14:00
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `722a5a6` (merge `ad37bcf`)
 
 ## Где
 - `package.json`, `CHANGELOG.md`, `distribution/CHANGELOG.md`, `distribution/update-manifest.json`
