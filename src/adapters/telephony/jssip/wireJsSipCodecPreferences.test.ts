@@ -106,6 +106,37 @@ describe("wireJsSipCodecPreferences", () => {
     expect(reinviteOffer.sdp).toContain("m=audio 9 UDP/TLS/RTP/SAVPF 0 111 110");
   });
 
+  it("munges video codec order for video sessions", () => {
+    const session = new MockSession();
+    wireJsSipCodecPreferences({
+      session,
+      resolved: {
+        audioMimeTypes: ["audio/opus"],
+        videoMimeTypes: ["video/H264", "video/VP8"],
+      },
+      logger: createTestLogger({ featureId: "F-027", boundedContext: "Media" }),
+      correlationId: createCorrelationId(),
+      featureId: "F-027",
+      includeVideo: true,
+    });
+    const event = {
+      originator: "local",
+      type: "offer",
+      sdp: [
+        "m=audio 9 UDP/TLS/RTP/SAVPF 111",
+        "a=rtpmap:111 opus/48000/2",
+        "m=video 9 UDP/TLS/RTP/SAVPF 96 102 97",
+        "a=rtpmap:96 VP8/90000",
+        "a=rtpmap:102 H264/90000",
+        "a=rtpmap:97 rtx/90000",
+      ].join("\r\n"),
+    };
+
+    session.emit("sdp", event);
+
+    expect(event.sdp).toContain("m=video 9 UDP/TLS/RTP/SAVPF 102 96 97");
+  });
+
   it("ignores remote sdp events", () => {
     const session = new MockSession();
     wireJsSipCodecPreferences({

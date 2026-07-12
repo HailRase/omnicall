@@ -3,8 +3,10 @@ declare const classes: {
   readonly button: string;
   readonly buttonDanger: string;
   readonly buttonDisabled: string;
+  readonly buttonLoading: string;
   readonly buttonMuted: string;
   readonly buttonResume: string;
+  readonly buttonSpinner: string;
   readonly caption: string;
   readonly captionDisabled: string;
   readonly control: string;

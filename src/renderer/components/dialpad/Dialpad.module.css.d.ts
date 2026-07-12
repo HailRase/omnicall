@@ -1,4 +1,5 @@
 declare const classes: {
+  readonly callActions: string;
   readonly callButton: string;
   readonly callButtonBusy: string;
   readonly callButtonLabel: string;
@@ -19,5 +20,8 @@ declare const classes: {
   readonly panel: string;
   readonly panelInputDisabled: string;
   readonly panelOverlay: string;
+  readonly videoCallButton: string;
+  readonly videoCallButtonReady: string;
+  readonly videoCallButtonTooltipHost: string;
 };
 export default classes;

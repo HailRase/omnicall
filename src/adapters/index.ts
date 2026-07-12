@@ -17,6 +17,13 @@ export type {
   BrowserMediaAdapterOptions,
   PeerConnectionProvider,
 } from "./media/browser/BrowserMediaAdapter.js";
+export { BrowserLocalMediaCaptureAdapter } from "./media/browser/BrowserLocalMediaCaptureAdapter.js";
+export type {
+  BrowserLocalMediaCaptureAdapterOptions,
+  MediaDevicesLike,
+} from "./media/browser/BrowserLocalMediaCaptureAdapter.js";
+export { MockLocalMediaCapturePort } from "./mock/MockLocalMediaCapturePort.js";
+export type { MockLocalMediaCaptureScenario } from "./mock/MockLocalMediaCapturePort.js";
 export { MockHostIntegrationGateway } from "./mock/MockHostIntegrationGateway.js";
 export { MockShellWindowGateway } from "./mock/MockShellWindowGateway.js";
 export type { MockShellWindowGatewayState } from "./mock/MockShellWindowGateway.js";
@@ -52,5 +59,7 @@ export type { InMemorySettingsState } from "./settings/InMemorySettingsRepositor
 export { SettingsRepositoryCodecPreferencesAdapter } from "./settings/SettingsRepositoryCodecPreferencesAdapter.js";
 export type { SettingsRepositoryCodecPreferencesAdapterOptions } from "./settings/SettingsRepositoryCodecPreferencesAdapter.js";
 export { MockCodecPreferencesPort } from "./mock/MockCodecPreferencesPort.js";
+export { MockHeadsetGateway } from "./mock/MockHeadsetGateway.js";
+export { WebHidHeadsetAdapter } from "./headset/webhid/WebHidHeadsetAdapter.js";
 export { InMemorySecretStorageAdapter } from "./secrets/InMemorySecretStorageAdapter.js";
 export { PreloadSecretStorageAdapter } from "./secrets/PreloadSecretStorageAdapter.js";

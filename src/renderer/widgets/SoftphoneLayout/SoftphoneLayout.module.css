@@ -31,6 +31,15 @@
   background: var(--color-bg-shell-body);
 }
 
+.layout-video-fullscreen .header {
+  flex-shrink: 0;
+}
+
+.context-video-fullscreen {
+  overflow: hidden;
+  padding: 0;
+}
+
 .controls {
   display: grid;
   gap: var(--space-xs);

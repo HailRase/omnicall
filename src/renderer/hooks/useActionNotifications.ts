@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import type { ActiveCallControlsProjection } from "@application/index.js";
+import type { ActiveCallControlsProjection, HeadsetFaultReason } from "@application/index.js";
 import type { AccountAuthorizationErrorProjection } from "@application/projections/settings/mapAccountAuthorizationError.js";
 import type { TranslationKey } from "../i18n/messages.js";
 import type {
@@ -26,6 +26,10 @@ type UseActionNotificationsInput = Readonly<{
   settingsUpdateError: string | null;
   sipActionSuccessKey: TranslationKey | null;
   sipActionErrorText: string | null;
+  headsetFault: Readonly<{
+    reason: HeadsetFaultReason | null;
+    occurredAt: string | null;
+  }>;
 }>;
 
 function buildAccountErrorDescriptor(
@@ -45,6 +49,30 @@ function buildAccountErrorDescriptor(
   };
 }
 
+function mapHeadsetFaultMessageKey(reason: HeadsetFaultReason): TranslationKey {
+  switch (reason) {
+    case "connect_failed":
+      return "notification.headset.fault.connect_failed";
+    case "unsupported":
+      return "notification.headset.fault.unsupported";
+    case "usb_disconnected":
+      return "notification.headset.fault.usb_disconnected";
+    case "device_error":
+      return "notification.headset.fault.device_error";
+    case "led_blocked":
+      return "notification.headset.fault.led_blocked";
+  }
+}
+
+function headsetFaultLevel(
+  reason: HeadsetFaultReason,
+): NotificationDescriptor["level"] {
+  if (reason === "usb_disconnected" || reason === "led_blocked") {
+    return "warning";
+  }
+  return "error";
+}
+
 /**
  * - Purpose: bridge action outcome sources into unified renderer notifications.
  * - Inputs: action feedback projections and callbacks from feature hooks.
@@ -61,6 +89,7 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
     settingsUpdateError,
     sipActionSuccessKey,
     sipActionErrorText,
+    headsetFault,
   } = input;
   const { notify } = notifications;
   const {
@@ -171,4 +200,14 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
       messageText: sipActionErrorText,
     });
   }, [notify, sipActionErrorText]);
+
+  useEffect(() => {
+    if (headsetFault.reason === null || headsetFault.occurredAt === null) {
+      return;
+    }
+    notify({
+      level: headsetFaultLevel(headsetFault.reason),
+      messageKey: mapHeadsetFaultMessageKey(headsetFault.reason),
+    });
+  }, [headsetFault.occurredAt, headsetFault.reason, notify]);
 }

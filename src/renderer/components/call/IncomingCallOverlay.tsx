@@ -22,9 +22,11 @@ export type IncomingCallOverlayProps = Readonly<{
   autoAnswerSecondsRemaining: number | null;
   uiState: IncomingCallUiState;
   answerDisabledReason: string | null;
+  videoAnswerDisabledReason?: string | null;
   rejectDisabledReason: string | null;
   onOpenCallSurface: () => void;
   onAnswer: () => void;
+  onAnswerWithVideo?: (() => void) | undefined;
   onReject: () => void;
   onDismiss: () => void;
 }>;
@@ -94,9 +96,11 @@ export function IncomingCallOverlay({
   autoAnswerSecondsRemaining,
   uiState,
   answerDisabledReason,
+  videoAnswerDisabledReason = null,
   rejectDisabledReason,
   onOpenCallSurface,
   onAnswer,
+  onAnswerWithVideo,
   onReject,
   onDismiss,
 }: IncomingCallOverlayProps): JSX.Element {
@@ -260,6 +264,25 @@ export function IncomingCallOverlay({
                     >
                       <AppIcon id="call.answer" size={16} decorative />
                     </motion.button>
+                    {onAnswerWithVideo !== undefined ? (
+                      <motion.button
+                        type="button"
+                        className={clsx(styles.actionButton, styles.answerVideoButton)}
+                        data-testid="answer-call-video"
+                        aria-label={t("incoming.answerVideoAria")}
+                        disabled={videoAnswerDisabledReason !== null}
+                        {...(prefersReducedMotion
+                          ? {}
+                          : { whileHover: { scale: 1.05 }, whileTap: { scale: 0.94 } })}
+                        transition={buttonTransition}
+                        onClick={(event) => {
+                          stopActionPropagation(event);
+                          onAnswerWithVideo();
+                        }}
+                      >
+                        <AppIcon id="dial.videoCall" size={16} decorative />
+                      </motion.button>
+                    ) : null}
                     <motion.button
                       type="button"
                       className={clsx(styles.actionButton, styles.rejectButton)}

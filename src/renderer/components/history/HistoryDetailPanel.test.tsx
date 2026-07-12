@@ -33,9 +33,12 @@ const sampleEntry = {
   presentationSource: "contact",
   directionLabel: "Входящий",
   outcomeLabel: "Завершён",
+  endReasonLabel: "Завершил оператор",
   dateLabel: "7 июл. 2026 г.",
   timeLabel: "13:00",
   durationLabel: "90 с",
+  ringDurationLabel: "20 с",
+  talkDurationLabel: "70 с",
   redialDisabledReason: null,
 } as const;
 
@@ -86,7 +89,10 @@ describe("HistoryDetailPanel", () => {
 
     expect(screen.getByTestId("history-detail-panel")).toHaveTextContent("Alice");
     expect(screen.getByTestId("history-detail-panel")).toHaveTextContent("Входящий");
+    expect(screen.getByTestId("history-detail-panel")).toHaveTextContent("Завершил оператор");
     expect(screen.getByTestId("history-detail-panel")).toHaveTextContent("90 с");
+    expect(screen.getByTestId("history-detail-panel")).toHaveTextContent("20 с");
+    expect(screen.getByTestId("history-detail-panel")).toHaveTextContent("70 с");
 
     fireEvent.click(screen.getByTestId("history-detail-redial"));
     expect(onRedial).toHaveBeenCalledOnce();

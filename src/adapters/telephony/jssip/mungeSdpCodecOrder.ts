@@ -1,26 +1,29 @@
 const AUXILIARY_CODEC_TOKENS = ["rtx", "red", "ulpfec", "fec", "telephone-event"] as const;
 
 /**
- * - Purpose: reorder and filter audio payload types in local SDP before send.
- * - Inputs: SDP text and preferred enabled audio MIME types (audio/opus, …).
- * - Outputs: SDP with m=audio payload order aligned to preferences; keeps FEC/RTX.
+ * - Purpose: reorder and filter audio/video payload types in local SDP.
+ * - Inputs: SDP text and preferred enabled audio/video MIME types.
+ * - Outputs: SDP media payload order aligned to preferences; keeps auxiliaries.
  */
 export function mungeSdpCodecOrder(
   sdp: string,
   preferredAudioMimeTypes: readonly string[],
+  preferredVideoMimeTypes: readonly string[] = [],
 ): string {
-  if (preferredAudioMimeTypes.length === 0) {
+  if (preferredAudioMimeTypes.length === 0 && preferredVideoMimeTypes.length === 0) {
     return sdp;
   }
 
-  const normalizedPreferences = preferredAudioMimeTypes.map(normalizeMimeType);
+  const normalizedAudioPreferences = preferredAudioMimeTypes.map(normalizeMimeType);
+  const normalizedVideoPreferences = preferredVideoMimeTypes.map(normalizeMimeType);
   const lines = sdp.split(/\r?\n/u);
   const output: string[] = [];
   let index = 0;
 
   while (index < lines.length) {
     const line = lines[index] ?? "";
-    if (!line.startsWith("m=audio ")) {
+    const mediaKind = resolveMediaKind(line);
+    if (mediaKind === null) {
       output.push(line);
       index += 1;
       continue;
@@ -28,19 +31,26 @@ export function mungeSdpCodecOrder(
 
     const sectionEnd = findMediaSectionEnd(lines, index + 1);
     const section = lines.slice(index, sectionEnd);
-    output.push(...reorderAudioMediaSection(section, normalizedPreferences));
+    const preferences =
+      mediaKind === "audio" ? normalizedAudioPreferences : normalizedVideoPreferences;
+    output.push(...reorderMediaSection(section, mediaKind, preferences));
     index = sectionEnd;
   }
 
   return joinSdpLines(output, sdp);
 }
 
-function reorderAudioMediaSection(
+function reorderMediaSection(
   sectionLines: readonly string[],
+  mediaKind: "audio" | "video",
   preferredMimeTypes: readonly string[],
 ): readonly string[] {
   const mediaLine = sectionLines[0];
-  if (mediaLine === undefined || !mediaLine.startsWith("m=audio ")) {
+  if (
+    mediaLine === undefined ||
+    !mediaLine.startsWith(`m=${mediaKind} `) ||
+    preferredMimeTypes.length === 0
+  ) {
     return sectionLines;
   }
 
@@ -50,7 +60,7 @@ function reorderAudioMediaSection(
     return sectionLines;
   }
 
-  const payloadCodecByType = buildPayloadCodecMap(sectionLines);
+  const payloadCodecByType = buildPayloadCodecMap(sectionLines, mediaKind);
   const usedPayloadTypes = new Set<string>();
   const orderedVoicePayloadTypes: string[] = [];
 
@@ -87,7 +97,10 @@ function reorderAudioMediaSection(
     .filter((line) => shouldKeepAttributeLine(line, allowedPayloadTypes));
 }
 
-function buildPayloadCodecMap(sectionLines: readonly string[]): Map<string, string> {
+function buildPayloadCodecMap(
+  sectionLines: readonly string[],
+  mediaKind: "audio" | "video",
+): Map<string, string> {
   const payloadCodecByType = new Map<string, string>();
 
   for (const line of sectionLines) {
@@ -104,7 +117,7 @@ function buildPayloadCodecMap(sectionLines: readonly string[]): Map<string, stri
     if (codecName === undefined || codecName.length === 0) {
       continue;
     }
-    payloadCodecByType.set(payloadType, `audio/${codecName}`);
+    payloadCodecByType.set(payloadType, `${mediaKind}/${codecName}`);
   }
 
   return payloadCodecByType;
@@ -113,6 +126,16 @@ function buildPayloadCodecMap(sectionLines: readonly string[]): Map<string, stri
 function isAuxiliaryMimeType(mimeType: string): boolean {
   const normalized = mimeType.toLowerCase();
   return AUXILIARY_CODEC_TOKENS.some((token) => normalized.includes(token));
+}
+
+function resolveMediaKind(line: string): "audio" | "video" | null {
+  if (line.startsWith("m=audio ")) {
+    return "audio";
+  }
+  if (line.startsWith("m=video ")) {
+    return "video";
+  }
+  return null;
 }
 
 function shouldKeepAttributeLine(line: string, allowedPayloadTypes: ReadonlySet<string>): boolean {

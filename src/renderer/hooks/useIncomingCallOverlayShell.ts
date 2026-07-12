@@ -9,6 +9,7 @@ type UseIncomingCallOverlayShellInput = Readonly<{
   incomingCallProjection: IncomingCallProjection;
   shellRouteName: IncomingCallOverlayShellRouteName;
   incomingSessionCardVisible: boolean;
+  videoFullscreen?: boolean;
 }>;
 
 type UseIncomingCallOverlayShellResult = Readonly<{
@@ -24,7 +25,8 @@ type UseIncomingCallOverlayShellResult = Readonly<{
 export function useIncomingCallOverlayShell(
   input: UseIncomingCallOverlayShellInput,
 ): UseIncomingCallOverlayShellResult {
-  const { incomingCallProjection, shellRouteName, incomingSessionCardVisible } = input;
+  const { incomingCallProjection, shellRouteName, incomingSessionCardVisible, videoFullscreen } =
+    input;
   const [dismissedCallId, setDismissedCallId] = useState<string | null>(null);
 
   const ringingCallId =
@@ -45,12 +47,14 @@ export function useIncomingCallOverlayShell(
         dismissedCallId,
         shellRouteName,
         incomingSessionCardVisible,
+        ...(videoFullscreen === true ? { videoFullscreen: true } : {}),
       }),
     [
       dismissedCallId,
       incomingCallProjection,
       incomingSessionCardVisible,
       shellRouteName,
+      videoFullscreen,
     ],
   );
 

@@ -1,4 +1,10 @@
-import type { Call, CallId, DtmfTone, PhoneNumber } from "@domain/index.js";
+import type {
+  Call,
+  CallId,
+  CallMediaMode,
+  DtmfTone,
+  PhoneNumber,
+} from "@domain/index.js";
 import type { TelephonyIncomingCallNotification } from "@ports/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 
@@ -10,6 +16,7 @@ import type { CorrelationId } from "@shared/correlation-id/index.js";
 export type MakeCallInput = Readonly<{
   phoneNumber: PhoneNumber;
   callId?: CallId;
+  mediaMode?: CallMediaMode;
   correlationId?: CorrelationId;
 }>;
 
@@ -92,6 +99,7 @@ export type HandleCallFailedInput = Readonly<{
 
 export type AnswerCallInput = Readonly<{
   callId: CallId;
+  mediaMode?: CallMediaMode;
   correlationId?: CorrelationId;
   autoAnswered?: boolean;
   timeoutSec?: number;

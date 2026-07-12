@@ -119,6 +119,8 @@ export function reduceMultiLineCallProjection(
         "Active",
         parseOccurredAtMs(event.occurredAt),
       );
+    case "CallProgressReceived":
+      return updateLineState(projection, asRequiredString(event["callId"]), "Ringing");
     case "CallHeld":
       return updateLineState(projection, asRequiredString(event["callId"]), "Held");
     case "CallResumed":

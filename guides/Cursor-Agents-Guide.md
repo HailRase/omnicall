@@ -186,3 +186,19 @@ Stop gate. Только <X>. Out of scope: <Y>.
 ```
 
 Добавляйте строку в `TASK-QUEUE.md` при передаче между агентами.
+
+## Гарнитура (F-012)
+
+Перед правками mute, LED, connect или settings panel:
+
+1. [`HEADSET-AGENT-ONBOARDING.md`](../docs/softphone/HEADSET-AGENT-ONBOARDING.md) — **где что живёт**, потоки bar↔headset↔LED
+2. [`HEADSET-SYNC-CONTRACT.md`](../docs/softphone/HEADSET-SYNC-CONTRACT.md) — invariants, `muteEchoPolicy`
+3. [`HEADSET-VENDOR-ONBOARDING.md`](../docs/softphone/HEADSET-VENDOR-ONBOARDING.md) — только новый vendor/profile
+
+| Симптом | Смотреть первым |
+|---------|-----------------|
+| Poly mute мигает | `muteEchoPolicy`, `HeadsetSyncQueue`, Poly profiles |
+| Jabra сломался после Poly fix | не arm echo на pulse `setMute`; тест pulse bounce |
+| «Интеграция выключена» при включённом toggle | `mergeHeadsetUserSettingsIntoProjection`, store sync |
+| Auto-reconnect не работает | HID grant (один раз picker), `applyHeadsetUserSettings` |
+| Кнопки гарнитуры игнорируются | `resolveHeadsetSessionFocus`, `forwardHeadsetHardwareEvent` |

@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import { IncomingCallSessionCard } from "../../components/call/IncomingCallSessionCard.js";
 import { MultiCallHoldAllIndicator } from "../../components/call/MultiCallHoldAllIndicator.js";
 import { CallIdleEmptyState } from "../../components/call/CallIdleEmptyState.js";
+import { CallVideoSurface } from "../../components/call/CallVideoSurface.js";
 import { DtmfKeypadPanel } from "../../components/call/DtmfKeypadPanel.js";
 import { CallSessionCard } from "../../components/call/CallSessionCard.js";
 import { CallSessionStack } from "../../components/call/CallSessionStack.js";
@@ -42,6 +43,8 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
     incomingCallId,
     isIncomingSelected,
     incomingSessionCardVisible,
+    controlTargetVideoState,
+    videoCallActions,
   } = bindings;
 
   const controlTargetCallId = controlTargetLine?.callId ?? null;
@@ -82,8 +85,30 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
     !hasIncomingCall &&
     !nonIncomingLinesShell.visible;
 
+  const showVideoSurface =
+    !isTransferMode &&
+    !isTransferSuccessCelebration &&
+    !isDtmfMode &&
+    !isNumberEntryOverlay &&
+    controlTargetCallId !== null &&
+    controlTargetVideoState !== null &&
+    controlTargetVideoState.mediaMode === "video" &&
+    controlTargetVideoState.sessionView === "expanded";
+  const isVideoFullscreen = controlTargetVideoState?.sessionView === "fullscreen";
+  const unifiedSessionCard =
+    showVideoSurface &&
+    singleNonIncomingLine !== null &&
+    singleNonIncomingLine.callId === controlTargetCallId
+      ? singleNonIncomingLine
+      : null;
+  const showSeparateSessionCards = !isVideoFullscreen && unifiedSessionCard === null;
+
   return (
-    <div className={styles.zone} data-testid="call-context-zone">
+    <div
+      className={`${styles.zone}${isVideoFullscreen ? ` ${styles.zoneVideoFullscreen}` : ""}`}
+      data-testid="call-context-zone"
+      data-video-fullscreen={isVideoFullscreen ? "true" : "false"}
+    >
       <MultiCallHoldAllIndicator visible={multiCallProjection.holdAllInProgress} />
 
       {isTransferSuccessCelebration ? (
@@ -125,7 +150,40 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
 
       {!isTransferMode && !isTransferSuccessCelebration && !isDtmfMode && !isNumberEntryOverlay ? (
         <>
-          {incomingSessionCardVisible && incomingCallId !== null ? (
+          {showVideoSurface &&
+          controlTargetCallId !== null &&
+          controlTargetVideoState !== null ? (
+            <div className={styles.sessionBlock} data-testid="call-session-block">
+              <CallVideoSurface
+                callId={controlTargetCallId}
+                videoState={controlTargetVideoState}
+                onBindSurfaces={videoCallActions.bindVideoSurfaces}
+              />
+              {unifiedSessionCard !== null ? (
+                <div className={styles.sessionBlockCard}>
+                  <CallSessionCard
+                    line={unifiedSessionCard}
+                    isActive={
+                      hasIncomingCall &&
+                      unifiedSessionCard.callId === controlTargetCallId
+                    }
+                    {...(hasIncomingCall
+                      ? {
+                          showSelectionChrome: true,
+                          onClick: () => {
+                            selectCallLine(unifiedSessionCard.callId);
+                          },
+                        }
+                      : {})}
+                  />
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          {incomingSessionCardVisible &&
+          incomingCallId !== null &&
+          !isVideoFullscreen ? (
             <IncomingCallSessionCard
               callId={incomingCallId}
               callerNumber={incomingCallShell.identity.callerNumber}
@@ -135,42 +193,52 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
               uiState={incomingCallProjection.uiState}
               isSelected={isIncomingSelected}
               answerDisabledReason={incomingCallActions.answerDisabledReason}
+              videoAnswerDisabledReason={incomingCallActions.videoAnswerDisabledReason}
               rejectDisabledReason={incomingCallActions.rejectDisabledReason}
               onSelect={selectIncomingCall}
               onAnswer={incomingCallActions.handleAnswerIncoming}
+              onAnswerWithVideo={
+                incomingCallActions.canAnswerWithVideo
+                  ? incomingCallActions.handleAnswerIncomingWithVideo
+                  : undefined
+              }
               onReject={incomingCallActions.handleRejectIncoming}
             />
           ) : null}
 
-          <CallSessionStack
-            shell={nonIncomingLinesShell}
-            activeCallId={controlTargetCallId}
-            onSelectLine={selectCallLine}
-          />
-
-          {singleNonIncomingLine !== null ? (
-            <div className={styles.singleCard}>
-              <CallSessionCard
-                line={singleNonIncomingLine}
-                isActive={
-                  hasIncomingCall &&
-                  singleNonIncomingLine.callId === controlTargetCallId
-                }
-                {...(hasIncomingCall
-                  ? {
-                      showSelectionChrome: true,
-                      onClick: () => {
-                        selectCallLine(singleNonIncomingLine.callId);
-                      },
-                    }
-                  : {})}
+          {showSeparateSessionCards ? (
+            <>
+              <CallSessionStack
+                shell={nonIncomingLinesShell}
+                activeCallId={controlTargetCallId}
+                onSelectLine={selectCallLine}
               />
-            </div>
+
+              {singleNonIncomingLine !== null ? (
+                <div className={styles.singleCard}>
+                  <CallSessionCard
+                    line={singleNonIncomingLine}
+                    isActive={
+                      hasIncomingCall &&
+                      singleNonIncomingLine.callId === controlTargetCallId
+                    }
+                    {...(hasIncomingCall
+                      ? {
+                          showSelectionChrome: true,
+                          onClick: () => {
+                            selectCallLine(singleNonIncomingLine.callId);
+                          },
+                        }
+                      : {})}
+                  />
+                </div>
+              ) : null}
+            </>
           ) : null}
         </>
       ) : null}
 
-      {showIdleState ? <CallIdleEmptyState /> : null}
+      {showIdleState && !isVideoFullscreen ? <CallIdleEmptyState /> : null}
 
       {showOutgoingCard &&
       !isTransferMode &&

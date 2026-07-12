@@ -19,6 +19,7 @@ export function useCallLinesShell(
   activeCallControlsProjection: ActiveCallControlsProjection,
   transferProjection: TransferProjection,
   contacts: ReadonlyArray<Contact>,
+  incomingCallId: string | null = null,
 ): ReturnType<typeof deriveCallLinesShell> {
   return useMemo(
     () =>
@@ -28,6 +29,7 @@ export function useCallLinesShell(
         activeCallControlsProjection,
         transferProjection,
         contacts,
+        incomingCallId,
       }),
     [
       multiLineCallProjection,
@@ -35,6 +37,7 @@ export function useCallLinesShell(
       activeCallControlsProjection,
       transferProjection,
       contacts,
+      incomingCallId,
     ],
   );
 }

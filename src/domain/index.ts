@@ -35,6 +35,18 @@ export {
   MAX_AUTO_ANSWER_TIMEOUT_SEC,
   SETTINGS_SCHEMA_VERSION,
 } from "./settings/UserSettings.js";
+export {
+  DEFAULT_AUTO_FULLSCREEN_ON_CONFERENCE,
+  DEFAULT_CONFERENCE_NUMBER_SUBSTRING,
+  DEFAULT_DEFAULT_SESSION_VIEW,
+  DEFAULT_PREFERRED_AUDIO_INPUT_DEVICE_ID,
+  DEFAULT_PREFERRED_VIDEO_INPUT_DEVICE_ID,
+  MAX_CONFERENCE_NUMBER_SUBSTRING_LENGTH,
+  MAX_MEDIA_DEVICE_ID_LENGTH,
+  parseConferenceNumberSubstring,
+  parseDefaultSessionViewSetting,
+  parsePreferredMediaDeviceId,
+} from "./settings/VideoCallSettings.js";
 export type { ValidateUserSettingsResult } from "./settings/validateUserSettings.js";
 export { validateUserSettings } from "./settings/validateUserSettings.js";
 export type {
@@ -82,6 +94,7 @@ export {
 export { matchesSipAccountIdentity } from "./settings/matchesSipAccountIdentity.js";
 export type {
   CallHistoryDirection,
+  CallHistoryEndReason,
   CallHistoryEntry,
   CallHistoryOutcome,
   CallHistorySessionSnapshot,
@@ -579,6 +592,67 @@ export {
   setAudioCodecEnabled,
   setVideoCodecEnabled,
 } from "./media/reorderCodecPreferences.js";
+export type { CallMediaMode } from "./media/CallMediaMode.js";
+export {
+  CALL_MEDIA_MODES,
+  DEFAULT_CALL_MEDIA_MODE,
+  isCallMediaMode,
+  parseCallMediaMode,
+} from "./media/CallMediaMode.js";
+export type { LocalVideoSource } from "./media/LocalVideoSource.js";
+export {
+  DEFAULT_LOCAL_VIDEO_SOURCE,
+  LOCAL_VIDEO_SOURCES,
+  isLocalVideoSource,
+  parseLocalVideoSource,
+} from "./media/LocalVideoSource.js";
+export type { SessionViewMode } from "./media/SessionViewMode.js";
+export {
+  DEFAULT_SESSION_VIEW_MODE,
+  SESSION_VIEW_MODES,
+  isSessionViewMode,
+  parseSessionViewMode,
+} from "./media/SessionViewMode.js";
+export type { CallVideoMediaState } from "./media/CallVideoMediaState.js";
+export {
+  areCameraControlsEnabled,
+  createInitialCallVideoMediaState,
+  isScreenShareAllowed,
+  setCameraAvailable,
+  setLocalVideoMuted,
+  setLocalVideoSource,
+  setRemoteVideoPresent,
+  setSessionViewMode,
+  shouldShowRemoteVideoSurface,
+  shouldShowVideoSurfaces,
+} from "./media/CallVideoMediaState.js";
+export type {
+  ResolveVideoCallAvailabilityInput,
+  ResolveVideoCallAvailabilityResult,
+  VideoCallDisabledReason,
+} from "./media/resolveVideoCallAvailability.js";
+export { resolveVideoCallAvailability } from "./media/resolveVideoCallAvailability.js";
+export type { ResolveInitialSessionViewInput } from "./media/resolveInitialSessionView.js";
+export { resolveInitialSessionView } from "./media/resolveInitialSessionView.js";
+export type {
+  CallMediaModeSelectedEvent,
+  CameraAvailabilityChangedEvent,
+  IncomingRemoteVideoOfferedChangedEvent,
+  LocalVideoMutedChangedEvent,
+  LocalVideoSourceChangedEvent,
+  RemoteVideoPresenceChangedEvent,
+  SessionViewModeChangedEvent,
+  VideoMediaDomainEvent,
+} from "./media/events/videoMediaEvents.js";
+export {
+  createCallMediaModeSelectedEvent,
+  createCameraAvailabilityChangedEvent,
+  createIncomingRemoteVideoOfferedChangedEvent,
+  createLocalVideoMutedChangedEvent,
+  createLocalVideoSourceChangedEvent,
+  createRemoteVideoPresenceChangedEvent,
+  createSessionViewModeChangedEvent,
+} from "./media/events/videoMediaEvents.js";
 export {
   SIP_RECONNECT_POLICY_CONFIG,
   canScheduleReconnectAttempt,
@@ -589,3 +663,28 @@ export {
   isTerminalReconnectFailure,
   planReconnectAttempt,
 } from "./shared/recovery/ReconnectPolicy.js";
+export type { HeadsetConnectionState } from "./headset/HeadsetConnectionState.js";
+export type { HeadsetDeviceId } from "./headset/HeadsetDeviceId.js";
+export { createHeadsetDeviceId } from "./headset/HeadsetDeviceId.js";
+export type { HeadsetDevice } from "./headset/HeadsetDevice.js";
+export type {
+  HeadsetCapabilities,
+  HeadsetHoldSemantics,
+  HeadsetMuteEchoPolicy,
+  HeadsetMuteInputMode,
+  HeadsetMuteSemantics,
+} from "./headset/HeadsetCapabilities.js";
+export { createDefaultHeadsetCapabilities } from "./headset/HeadsetCapabilities.js";
+export type { HeadsetCommand, HeadsetCommandType } from "./headset/HeadsetCommand.js";
+export type { HeadsetHardwareEvent } from "./headset/HeadsetHardwareEvent.js";
+export type { HeadsetFaultReason, HeadsetConnectedCapabilities } from "./headset/events/headsetEvents.js";
+export {
+  createHeadsetAnswerPressed,
+  createHeadsetConnected,
+  createHeadsetDisconnected,
+  createHeadsetFaultOccurred,
+  createHeadsetHangupPressed,
+  createHeadsetHoldPressed,
+  createHeadsetLedSyncRequested,
+  createHeadsetMutePressed,
+} from "./headset/events/headsetEvents.js";

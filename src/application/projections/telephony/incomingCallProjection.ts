@@ -26,6 +26,8 @@ export type IncomingCallProjection = Readonly<{
   rejectReasonRequired: boolean;
   selectedBreakReason: string | null;
   ringingIndicator: "idle" | "ringing";
+  /** null = SDP not yet known; false = audio-only offer; true = video offered. */
+  incomingRemoteVideoOffered: boolean | null;
 }>;
 
 export function initialIncomingCallProjection(): IncomingCallProjection {
@@ -40,6 +42,7 @@ export function initialIncomingCallProjection(): IncomingCallProjection {
     rejectReasonRequired: false,
     selectedBreakReason: null,
     ringingIndicator: "idle",
+    incomingRemoteVideoOffered: null,
   };
 }
 
@@ -52,15 +55,23 @@ export function reduceIncomingCallProjection(
   }
 
   switch (event.type) {
-    case "IncomingCallReceived":
+    case "IncomingCallReceived": {
+      const nextCallId = asOptionalString(event["callId"]);
+      // Preserve early SDP offered flag only when it arrived before callId was set.
+      const preserveEarlyOffered =
+        projection.callId === null && projection.incomingRemoteVideoOffered !== null;
       return {
         ...projection,
         visible: true,
-        callId: asOptionalString(event["callId"]),
+        callId: nextCallId,
         callerNumber: asOptionalString(event["phoneNumber"]),
         uiState: "callerIdentityLoading",
         selectedBreakReason: null,
+        incomingRemoteVideoOffered: preserveEarlyOffered
+          ? projection.incomingRemoteVideoOffered
+          : null,
       };
+    }
     case "IncomingCallRingingStarted": {
       const autoAnswerTimeoutSec = asOptionalNumber(event["autoAnswerTimeoutSec"]);
       return {
@@ -90,7 +101,22 @@ export function reduceIncomingCallProjection(
         visible: false,
         uiState: "dndAutoRejecting",
         ringingIndicator: "idle",
+        incomingRemoteVideoOffered: null,
       };
+    case "IncomingRemoteVideoOfferedChanged": {
+      const callId = asOptionalString(event["callId"]);
+      if (callId === null || typeof event["offered"] !== "boolean") {
+        return projection;
+      }
+      // Allow early apply before IncomingCallReceived; ignore events for other calls.
+      if (projection.callId !== null && projection.callId !== callId) {
+        return projection;
+      }
+      return {
+        ...projection,
+        incomingRemoteVideoOffered: event["offered"],
+      };
+    }
     case "CallAnswered":
       return {
         ...projection,
@@ -99,6 +125,7 @@ export function reduceIncomingCallProjection(
         ringingIndicator: "idle",
         autoAnswerTimeoutSec: null,
         autoAnswerExpiresAt: null,
+        incomingRemoteVideoOffered: null,
       };
     case "CallRejected":
       return {
@@ -108,6 +135,7 @@ export function reduceIncomingCallProjection(
         ringingIndicator: "idle",
         autoAnswerTimeoutSec: null,
         autoAnswerExpiresAt: null,
+        incomingRemoteVideoOffered: null,
       };
     case "IncomingCallEndedBeforeAnswer":
       if (!projection.visible) {
@@ -120,6 +148,7 @@ export function reduceIncomingCallProjection(
         ringingIndicator: "idle",
         autoAnswerTimeoutSec: null,
         autoAnswerExpiresAt: null,
+        incomingRemoteVideoOffered: null,
       };
     case "CallFailed":
       if (!projection.visible) {

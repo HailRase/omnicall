@@ -7,6 +7,10 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+### Removed
+
+- Legacy operator platform integration removed per ADR-0005; documentation, rules, and agent skills updated for SIP-only product path.
+
 ## [0.9.0] - 2026-07-08
 
 ### Added

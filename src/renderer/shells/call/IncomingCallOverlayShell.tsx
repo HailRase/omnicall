@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { resolveFullscreenVideoSession } from "@application/index.js";
 import { IncomingCallOverlay } from "../../components/call/IncomingCallOverlay.js";
 import { useAutoAnswerCountdown } from "../../hooks/useAutoAnswerCountdown.js";
 import type { CallFeatureShellBindings } from "../../hooks/useCallFeatureShell.js";
@@ -23,11 +24,14 @@ export function IncomingCallOverlayShell({
   overlayShell,
 }: IncomingCallOverlayShellProps): JSX.Element {
   const { route, goToDialpad } = useShellNavigation();
-  const { transferProjection } = useSoftphoneProjections();
+  const { transferProjection, callVideoMediaUiProjection } = useSoftphoneProjections();
+  const videoFullscreen =
+    resolveFullscreenVideoSession(callVideoMediaUiProjection.byCallId) !== null;
   const overlayVm = useIncomingCallOverlayShell({
     incomingCallProjection: callBindings.incomingCallProjection,
     shellRouteName: route.name,
     incomingSessionCardVisible: callBindings.incomingSessionCardVisible,
+    videoFullscreen,
   });
   const overlayActions = useIncomingCallOverlayActions({
     incomingCallProjection: callBindings.incomingCallProjection,
@@ -41,6 +45,7 @@ export function IncomingCallOverlayShell({
     setCallMode: callBindings.setCallMode,
     closeNumberEntryOverlay: callBindings.closeNumberEntryOverlay,
     selectIncomingCall: callBindings.selectIncomingCall,
+    exitVideoFullscreen: callBindings.exitVideoFullscreen,
   });
   const autoAnswerSecondsRemaining = useAutoAnswerCountdown(
     callBindings.incomingCallProjection.autoAnswerExpiresAt,
@@ -55,9 +60,17 @@ export function IncomingCallOverlayShell({
       autoAnswerSecondsRemaining={autoAnswerSecondsRemaining}
       uiState={callBindings.incomingCallProjection.uiState}
       answerDisabledReason={callBindings.incomingCallActions.answerDisabledReason}
+      videoAnswerDisabledReason={
+        callBindings.incomingCallActions.videoAnswerDisabledReason
+      }
       rejectDisabledReason={callBindings.incomingCallActions.rejectDisabledReason}
       onOpenCallSurface={overlayActions.handleOpenCallSurface}
       onAnswer={overlayActions.handleAnswer}
+      onAnswerWithVideo={
+        callBindings.incomingCallActions.canAnswerWithVideo
+          ? overlayActions.handleAnswerWithVideo
+          : undefined
+      }
       onReject={overlayActions.handleReject}
       onDismiss={overlayVm.handleDismiss}
     />

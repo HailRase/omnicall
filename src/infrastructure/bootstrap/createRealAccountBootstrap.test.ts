@@ -360,7 +360,7 @@ describe("createRealAccountBootstrap", () => {
     ].join("\n");
     const gateway = new MockContactCsvFileGateway({
       importContents: importCsv,
-      exportResult: { kind: "success" },
+      exportResult: { kind: "success", savedFileName: "contacts-export.csv" },
     });
 
     const facade = createRealAccountBootstrap({
@@ -522,7 +522,7 @@ describe("createSoftphoneComposition bootstrap factories", () => {
       importContents: [CONTACT_CSV_CANONICAL_HEADER, "Via Composition,+12025550101,,,"].join(
         "\n",
       ),
-      exportResult: { kind: "success" },
+      exportResult: { kind: "success", savedFileName: "contacts-export.csv" },
     });
 
     const facade = createSoftphoneComposition({

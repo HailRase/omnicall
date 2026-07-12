@@ -28,6 +28,9 @@
 | ARCHIVE | `handoffs/archive/P0N/` | Completed phase handoffs (P02–P08) |
 | DOCUMENT | `Agent-Prompts.md` | Prompt index → handoffs and skills |
 | RAT | `real-integration/` | Real adapter track (PROGRESS, steps, smoke) |
+| HEADSET | `HEADSET-AGENT-ONBOARDING.md` | **F-012 agent map:** layers, mute sync, settings UX |
+| HEADSET | `HEADSET-VENDOR-ONBOARDING.md` | Add USB HID vendor profile |
+| HEADSET | `HEADSET-SYNC-CONTRACT.md` | SyncQueue invariants, mute echo policy |
 
 ## Cursor Rules (`.cursor/rules/`)
 

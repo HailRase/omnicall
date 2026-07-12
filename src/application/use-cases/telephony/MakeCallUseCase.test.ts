@@ -8,6 +8,7 @@ import {
   MockTelephonyGateway,
 } from "@adapters/index.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
+import { createCallId } from "@domain/index.js";
 
 describe("MakeCallUseCase", () => {
   it("rejects empty phone number before gateway call", async () => {
@@ -30,20 +31,23 @@ describe("MakeCallUseCase", () => {
 
   it("allows single-digit extension through mock gateway", async () => {
     const telephony = new MockTelephonyGateway({ makeCallScenario: "answered" });
-    const useCase = new MakeCallUseCase(
-      new CallEngine(
-        telephony,
-        new MockMediaGateway(),
-        new InMemorySettingsRepository(),
-        new InMemoryDomainEventBus(),
-        createTestLogger(),
-      ),
+    const engine = new CallEngine(
+      telephony,
+      new MockMediaGateway(),
+      new InMemorySettingsRepository(),
+      new InMemoryDomainEventBus(),
       createTestLogger(),
     );
+    const useCase = new MakeCallUseCase(engine, createTestLogger());
 
     const result = await useCase.execute({ number: "4" });
     expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
     expect(telephony.getDialedNumbers()).toEqual(["4"]);
+    expect(telephony.getMakeCallCommands()[0]?.mediaMode).toBe("audio");
+    expect(engine.getCallVideoMediaState(result.value.id)?.mediaMode).toBe("audio");
   });
 
   it("creates outgoing answered call through mock gateway", async () => {
@@ -74,11 +78,51 @@ describe("MakeCallUseCase", () => {
     expect(result.value.state).toBe("Active");
     expect(eventTypes).toEqual([
       "OutgoingCallRequested",
+      "CallMediaModeSelected",
       "OutgoingCallStarted",
       "CallAnswered",
       "RemoteAudioAttached",
     ]);
     expect(telephony.getDialedNumbers()).toEqual(["+12025550147"]);
+  });
+
+  it("projects and emits an explicitly selected video media mode", async () => {
+    const events = new InMemoryDomainEventBus();
+    const telephony = new MockTelephonyGateway({ makeCallScenario: "answered" });
+    const engine = new CallEngine(
+      telephony,
+      new MockMediaGateway(),
+      new InMemorySettingsRepository(),
+      events,
+      createTestLogger(),
+    );
+    const useCase = new MakeCallUseCase(engine, createTestLogger());
+    const callId = createCallId("video-call");
+    let selectedMode = "";
+
+    events.subscribe((event) => {
+      if (event.type === "CallMediaModeSelected") {
+        const mediaMode = event["mediaMode"];
+        selectedMode = typeof mediaMode === "string" ? mediaMode : "";
+      }
+    });
+
+    const result = await useCase.execute({
+      number: "+12025550148",
+      callId,
+      mediaMode: "video",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(selectedMode).toBe("video");
+    expect(engine.getCallVideoMediaState(callId)).toEqual(
+      expect.objectContaining({
+        mediaMode: "video",
+        localVideoMuted: true,
+        localVideoSource: "camera",
+      }),
+    );
+    expect(telephony.getMakeCallCommands()[0]?.mediaMode).toBe("video");
   });
 });
 

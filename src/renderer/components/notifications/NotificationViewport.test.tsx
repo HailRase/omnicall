@@ -296,4 +296,26 @@ describe("NotificationViewport", () => {
     expect(getComputedStyle(toaster as Element).pointerEvents).toBe("auto");
   });
 
+  it("offsets top placement below shell window controls", async () => {
+    render(
+      <NotificationViewport
+        placement="top-right"
+        stacking="stacked"
+        durationMs={10_000}
+        maxVisible={3}
+        items={[baseItem]}
+        onDismiss={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(document.querySelector("[data-sonner-toaster]")).not.toBeNull();
+    });
+
+    const toaster = document.querySelector("[data-sonner-toaster]") as HTMLElement;
+    expect(toaster.style.getPropertyValue("--offset-top")).toBe(
+      "var(--incoming-call-banner-top)",
+    );
+  });
+
 });

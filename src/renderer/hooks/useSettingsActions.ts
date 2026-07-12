@@ -21,6 +21,7 @@ import {
   type AppTheme,
   type AudioCodecId,
   type CodecPreferenceMutationMessageKey,
+  type SessionViewMode,
   type SupportedLanguage,
   type UserSettings,
   type VideoCodecId,
@@ -30,6 +31,7 @@ import { DEFAULT_AUTO_ANSWER_TIMEOUT_SEC } from "../components/settings/panels/S
 import { setRendererLanguage, translateCurrent } from "../i18n/index.js";
 import { useAccountActions } from "./useAccountActions.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
+import type { HeadsetConnectionProjection } from "@application/projections/headset/headsetConnectionProjection.js";
 
 type UseSettingsActionsInput = Readonly<{
   facade: AccountBootstrapFacade | null;
@@ -66,6 +68,25 @@ type UseSettingsActionsResult = Readonly<{
   onVideoCodecReorder: (fromIndex: number, toIndex: number) => void;
   codecPreferencesError: CodecPreferenceMutationMessageKey | null;
   settingsUpdateError: string | null;
+  headsetEnabled: boolean;
+  headsetAutoReconnect: boolean;
+  preferredDeviceId: string | null;
+  grantedDevices: ReadonlyArray<Readonly<{ id: string; productName: string }>>;
+  onHeadsetEnabledChange: (enabled: boolean) => void;
+  onHeadsetAutoReconnectChange: (enabled: boolean) => void;
+  onConnectHeadset: (deviceId: string | null) => void;
+  onDisconnectHeadset: () => void;
+  headsetConnectionProjection: HeadsetConnectionProjection;
+  preferredAudioInputDeviceId: string | null;
+  preferredVideoInputDeviceId: string | null;
+  defaultSessionView: SessionViewMode;
+  autoFullscreenOnConference: boolean;
+  conferenceNumberSubstring: string | null;
+  onPreferredAudioInputDeviceIdChange: (deviceId: string | null) => void;
+  onPreferredVideoInputDeviceIdChange: (deviceId: string | null) => void;
+  onDefaultSessionViewChange: (view: SessionViewMode) => void;
+  onAutoFullscreenOnConferenceChange: (enabled: boolean) => void;
+  onConferenceNumberSubstringChange: (value: string | null) => void;
 }>;
 
 function resolveSettingsUpdateError(error: unknown): string {
@@ -101,12 +122,18 @@ export function useSettingsActions(
 ): UseSettingsActionsResult {
   const { facade, currentSettings, applyMultiCallSettings, isSipRegistered = false } = input;
   const projection = useAccountBootstrapStore((state) => state.projection);
+  const headsetConnectionProjection = useAccountBootstrapStore(
+    (state) => state.headsetConnectionProjection,
+  );
   const registeredIdentity = deriveRegisteredAccountIdentity(projection);
   const account = useAccountActions({ facade, isSipRegistered, registeredIdentity });
   const activeProfileSettingsSyncKey = useAccountBootstrapStore((state) =>
     deriveActiveProfileSettingsSyncKey(state.projection),
   );
   const [settingsUpdateError, setSettingsUpdateError] = useState<string | null>(null);
+  const [grantedDevices, setGrantedDevices] = useState<
+    ReadonlyArray<Readonly<{ id: string; productName: string }>>
+  >([]);
   const [codecPreferencesError, setCodecPreferencesError] =
     useState<CodecPreferenceMutationMessageKey | null>(null);
   const [userSettings, setUserSettings] = useState<UserSettings>(createDefaultUserSettings());
@@ -120,6 +147,10 @@ export function useSettingsActions(
       if (result.ok) {
         setUserSettings(result.value);
         applyLoadedUserSettings(result.value, applyMultiCallSettings);
+        useAccountBootstrapStore.getState().syncHeadsetUserSettingsToProjection({
+          headsetEnabled: result.value.headsetEnabled,
+          headsetAutoReconnect: result.value.headsetAutoReconnect,
+        });
       }
     });
   }, [activeProfileSettingsSyncKey, applyMultiCallSettings, facade]);
@@ -142,6 +173,10 @@ export function useSettingsActions(
           setCodecPreferencesError(null);
           setUserSettings(result.value);
           applyLoadedUserSettings(result.value, applyMultiCallSettings);
+          useAccountBootstrapStore.getState().syncHeadsetUserSettingsToProjection({
+            headsetEnabled: result.value.headsetEnabled,
+            headsetAutoReconnect: result.value.headsetAutoReconnect,
+          });
         })
         .catch((error: unknown) => {
           setSettingsUpdateError(resolveSettingsUpdateError(error));
@@ -434,6 +469,136 @@ export function useSettingsActions(
     [persistUserSettings, userSettings],
   );
 
+  const onHeadsetEnabledChange = useCallback(
+    (enabled: boolean): void => {
+      persistUserSettings({
+        ...userSettings,
+        headsetEnabled: enabled,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onHeadsetAutoReconnectChange = useCallback(
+    (enabled: boolean): void => {
+      persistUserSettings({
+        ...userSettings,
+        headsetAutoReconnect: enabled,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const refreshGrantedHeadsetDevices = useCallback((): void => {
+    if (facade === null) {
+      setGrantedDevices([]);
+      return;
+    }
+    void facade.listGrantedHeadsetDevices().then((devices) => {
+      setGrantedDevices(devices);
+    });
+  }, [facade]);
+
+  useEffect(() => {
+    refreshGrantedHeadsetDevices();
+  }, [
+    refreshGrantedHeadsetDevices,
+    headsetConnectionProjection.connectionState,
+    headsetConnectionProjection.deviceId,
+  ]);
+
+  useEffect(() => {
+    if (typeof window.softphone?.setHeadsetPreferredDeviceId !== "function") {
+      return;
+    }
+    void window.softphone.setHeadsetPreferredDeviceId(
+      userSettings.headsetPreferredDeviceId,
+    );
+  }, [userSettings.headsetPreferredDeviceId]);
+
+  useEffect(() => {
+    const connectedId = headsetConnectionProjection.deviceId;
+    if (connectedId === null) {
+      return;
+    }
+    setUserSettings((previous) =>
+      previous.headsetPreferredDeviceId === connectedId
+        ? previous
+        : { ...previous, headsetPreferredDeviceId: connectedId },
+    );
+  }, [headsetConnectionProjection.deviceId]);
+
+  const onConnectHeadset = useCallback(
+    (deviceId: string | null): void => {
+      if (facade === null) {
+        return;
+      }
+      void facade.connectHeadsetDevice(deviceId).then(() => {
+        refreshGrantedHeadsetDevices();
+      });
+    },
+    [facade, refreshGrantedHeadsetDevices],
+  );
+
+  const onDisconnectHeadset = useCallback((): void => {
+    if (facade === null) {
+      return;
+    }
+    void facade.disconnectHeadsetDevice().then(() => {
+      refreshGrantedHeadsetDevices();
+    });
+  }, [facade, refreshGrantedHeadsetDevices]);
+
+  const onPreferredAudioInputDeviceIdChange = useCallback(
+    (deviceId: string | null): void => {
+      persistUserSettings({
+        ...userSettings,
+        preferredAudioInputDeviceId: deviceId,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onPreferredVideoInputDeviceIdChange = useCallback(
+    (deviceId: string | null): void => {
+      persistUserSettings({
+        ...userSettings,
+        preferredVideoInputDeviceId: deviceId,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onDefaultSessionViewChange = useCallback(
+    (view: SessionViewMode): void => {
+      persistUserSettings({
+        ...userSettings,
+        defaultSessionView: view,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onAutoFullscreenOnConferenceChange = useCallback(
+    (enabled: boolean): void => {
+      persistUserSettings({
+        ...userSettings,
+        autoFullscreenOnConference: enabled,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
+  const onConferenceNumberSubstringChange = useCallback(
+    (value: string | null): void => {
+      persistUserSettings({
+        ...userSettings,
+        conferenceNumberSubstring: value,
+      });
+    },
+    [persistUserSettings, userSettings],
+  );
+
   return {
     account,
     userSettings,
@@ -462,5 +627,24 @@ export function useSettingsActions(
     onVideoCodecReorder,
     codecPreferencesError,
     settingsUpdateError,
+    headsetEnabled: userSettings.headsetEnabled,
+    headsetAutoReconnect: userSettings.headsetAutoReconnect,
+    preferredDeviceId: userSettings.headsetPreferredDeviceId,
+    grantedDevices,
+    onHeadsetEnabledChange,
+    onHeadsetAutoReconnectChange,
+    onConnectHeadset,
+    onDisconnectHeadset,
+    headsetConnectionProjection,
+    preferredAudioInputDeviceId: userSettings.preferredAudioInputDeviceId,
+    preferredVideoInputDeviceId: userSettings.preferredVideoInputDeviceId,
+    defaultSessionView: userSettings.defaultSessionView,
+    autoFullscreenOnConference: userSettings.autoFullscreenOnConference,
+    conferenceNumberSubstring: userSettings.conferenceNumberSubstring,
+    onPreferredAudioInputDeviceIdChange,
+    onPreferredVideoInputDeviceIdChange,
+    onDefaultSessionViewChange,
+    onAutoFullscreenOnConferenceChange,
+    onConferenceNumberSubstringChange,
   };
 }

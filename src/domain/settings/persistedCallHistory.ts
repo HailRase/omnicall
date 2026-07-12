@@ -1,13 +1,26 @@
-import { createCallId } from "../telephony/CallId.js";
 import type {
   CallHistoryDirection,
+  CallHistoryEndReason,
   CallHistoryEntry,
   CallHistoryOutcome,
 } from "./CallHistoryEntry.js";
-import { createCallHistoryEntryId } from "./CallHistoryEntryId.js";
 import { MAX_CALL_HISTORY_ENTRIES } from "./CallHistoryRetention.js";
+import {
+  buildValidatedCallHistoryEntry,
+  parsePersistedCallHistoryEntryV1,
+} from "./persistedCallHistoryMigration.js";
+import {
+  hasForbiddenSecretField,
+  readCallHistoryDirection,
+  readCallHistoryEndReason,
+  readCallHistoryOutcome,
+  readNonNegativeInteger,
+  readNullableString,
+  readRequiredString,
+} from "./persistedCallHistoryReaders.js";
 
-export const CALL_HISTORY_DOCUMENT_SCHEMA_VERSION = 1 as const;
+export const CALL_HISTORY_DOCUMENT_SCHEMA_VERSION = 2 as const;
+export const CALL_HISTORY_DOCUMENT_SCHEMA_VERSION_V1 = 1 as const;
 
 export type CallHistoryDocumentV1 = Readonly<{
   schemaVersion: typeof CALL_HISTORY_DOCUMENT_SCHEMA_VERSION;
@@ -26,7 +39,7 @@ export type CallHistoryDocumentParseResult =
       readonly error: Readonly<{ readonly code: CallHistoryDocumentParseErrorCode }>;
     };
 
-type PersistedCallHistoryEntryRecordV1 = Readonly<{
+type PersistedCallHistoryEntryRecordV2 = Readonly<{
   id: string;
   callId: string;
   direction: CallHistoryDirection;
@@ -35,12 +48,15 @@ type PersistedCallHistoryEntryRecordV1 = Readonly<{
   startedAt: string;
   endedAt: string;
   durationSec: number;
+  ringDurationSec: number;
+  talkDurationSec: number;
   outcome: CallHistoryOutcome;
+  endReason: CallHistoryEndReason;
 }>;
 
-type PersistedCallHistoryDocumentV1 = Readonly<{
+type PersistedCallHistoryDocumentV2 = Readonly<{
   schemaVersion: typeof CALL_HISTORY_DOCUMENT_SCHEMA_VERSION;
-  entries: ReadonlyArray<PersistedCallHistoryEntryRecordV1>;
+  entries: ReadonlyArray<PersistedCallHistoryEntryRecordV2>;
 }>;
 
 /**
@@ -51,7 +67,7 @@ type PersistedCallHistoryDocumentV1 = Readonly<{
 export function serializeCallHistoryDocument(
   entries: ReadonlyArray<CallHistoryEntry>,
 ): string {
-  const document: PersistedCallHistoryDocumentV1 = {
+  const document: PersistedCallHistoryDocumentV2 = {
     schemaVersion: CALL_HISTORY_DOCUMENT_SCHEMA_VERSION,
     entries: entries.map(toPersistedCallHistoryEntryRecord),
   };
@@ -78,7 +94,10 @@ export function parsePersistedCallHistoryDocument(
   const record = raw as Record<string, unknown>;
   const schemaVersion = record["schemaVersion"];
 
-  if (schemaVersion !== CALL_HISTORY_DOCUMENT_SCHEMA_VERSION) {
+  if (
+    schemaVersion !== CALL_HISTORY_DOCUMENT_SCHEMA_VERSION &&
+    schemaVersion !== CALL_HISTORY_DOCUMENT_SCHEMA_VERSION_V1
+  ) {
     return { ok: false, error: { code: "unsupported_schema_version" } };
   }
 
@@ -90,7 +109,10 @@ export function parsePersistedCallHistoryDocument(
   const entries: CallHistoryEntry[] = [];
 
   for (const entry of entriesRaw) {
-    const parsedEntry = parsePersistedCallHistoryEntry(entry);
+    const parsedEntry =
+      schemaVersion === CALL_HISTORY_DOCUMENT_SCHEMA_VERSION_V1
+        ? parsePersistedCallHistoryEntryV1(entry)
+        : parsePersistedCallHistoryEntryV2(entry);
     if (parsedEntry === null) {
       continue;
     }
@@ -116,7 +138,7 @@ export function parsePersistedCallHistoryDocument(
   };
 }
 
-function parsePersistedCallHistoryEntry(raw: unknown): CallHistoryEntry | null {
+function parsePersistedCallHistoryEntryV2(raw: unknown): CallHistoryEntry | null {
   if (typeof raw !== "object" || raw === null) {
     return null;
   }
@@ -129,7 +151,10 @@ function parsePersistedCallHistoryEntry(raw: unknown): CallHistoryEntry | null {
   const startedAt = readRequiredString(record, "startedAt");
   const endedAt = readRequiredString(record, "endedAt");
   const durationSec = readNonNegativeInteger(record, "durationSec");
+  const ringDurationSec = readNonNegativeInteger(record, "ringDurationSec");
+  const talkDurationSec = readNonNegativeInteger(record, "talkDurationSec");
   const outcome = readCallHistoryOutcome(record, "outcome");
+  const endReason = readCallHistoryEndReason(record, "endReason");
 
   if (
     idRaw === null ||
@@ -139,45 +164,33 @@ function parsePersistedCallHistoryEntry(raw: unknown): CallHistoryEntry | null {
     startedAt === null ||
     endedAt === null ||
     durationSec === null ||
-    outcome === null
+    ringDurationSec === null ||
+    talkDurationSec === null ||
+    outcome === null ||
+    endReason === null
   ) {
     return null;
   }
 
-  const entryId = createCallHistoryEntryId(idRaw);
-  if (entryId === null) {
-    return null;
-  }
-
-  const callId = createCallId(callIdRaw);
-  const displayLabel = readNullableString(record, "displayLabel");
-
-  const startedAtMs = Date.parse(startedAt);
-  const endedAtMs = Date.parse(endedAt);
-  if (Number.isNaN(startedAtMs) || Number.isNaN(endedAtMs) || endedAtMs < startedAtMs) {
-    return null;
-  }
-
-  if (remoteNumber.trim().length === 0) {
-    return null;
-  }
-
-  return {
-    id: entryId,
-    callId,
+  return buildValidatedCallHistoryEntry({
+    idRaw,
+    callIdRaw,
     direction,
-    remoteNumber: remoteNumber.trim(),
-    displayLabel,
+    remoteNumber,
+    displayLabel: readNullableString(record, "displayLabel"),
     startedAt,
     endedAt,
     durationSec,
+    ringDurationSec,
+    talkDurationSec,
     outcome,
-  };
+    endReason,
+  });
 }
 
 function toPersistedCallHistoryEntryRecord(
   entry: CallHistoryEntry,
-): PersistedCallHistoryEntryRecordV1 {
+): PersistedCallHistoryEntryRecordV2 {
   return {
     id: entry.id,
     callId: entry.callId,
@@ -187,104 +200,9 @@ function toPersistedCallHistoryEntryRecord(
     startedAt: entry.startedAt,
     endedAt: entry.endedAt,
     durationSec: entry.durationSec,
+    ringDurationSec: entry.ringDurationSec,
+    talkDurationSec: entry.talkDurationSec,
     outcome: entry.outcome,
+    endReason: entry.endReason,
   };
-}
-
-function readRequiredString(record: Record<string, unknown>, key: string): string | null {
-  const value = record[key];
-  if (typeof value !== "string") {
-    return null;
-  }
-  return value;
-}
-
-function readNullableString(record: Record<string, unknown>, key: string): string | null {
-  const value = record[key];
-  if (value === null) {
-    return null;
-  }
-  if (typeof value !== "string") {
-    return null;
-  }
-  return value;
-}
-
-function readNonNegativeInteger(
-  record: Record<string, unknown>,
-  key: string,
-): number | null {
-  const value = record[key];
-  if (typeof value !== "number" || !Number.isInteger(value) || value < 0) {
-    return null;
-  }
-  return value;
-}
-
-function readCallHistoryDirection(
-  record: Record<string, unknown>,
-  key: string,
-): CallHistoryDirection | null {
-  const value = record[key];
-  if (value === "incoming" || value === "outgoing") {
-    return value;
-  }
-  return null;
-}
-
-function readCallHistoryOutcome(
-  record: Record<string, unknown>,
-  key: string,
-): CallHistoryOutcome | null {
-  const value = record[key];
-  if (value === "completed" || value === "missed" || value === "failed") {
-    return value;
-  }
-  return null;
-}
-
-const FORBIDDEN_SECRET_FIELD_FRAGMENTS = [
-  "password",
-  "token",
-  "credential",
-  "secret",
-] as const;
-
-function hasForbiddenSecretField(value: unknown): boolean {
-  try {
-    scanValueForForbiddenSecretFields(value, []);
-    return false;
-  } catch {
-    return true;
-  }
-}
-
-function scanValueForForbiddenSecretFields(
-  value: unknown,
-  path: ReadonlyArray<string>,
-): void {
-  if (Array.isArray(value)) {
-    value.forEach((entry, index) => {
-      scanValueForForbiddenSecretFields(entry, [...path, String(index)]);
-    });
-    return;
-  }
-
-  if (typeof value !== "object" || value === null) {
-    return;
-  }
-
-  for (const [fieldName, nestedValue] of Object.entries(value)) {
-    if (isForbiddenSecretFieldName(fieldName)) {
-      throw new Error(`forbidden_secret_field:${fieldName}`);
-    }
-    scanValueForForbiddenSecretFields(nestedValue, [...path, fieldName]);
-  }
-}
-
-function isForbiddenSecretFieldName(fieldName: string): boolean {
-  const normalized = fieldName.trim().toLowerCase();
-  return FORBIDDEN_SECRET_FIELD_FRAGMENTS.some((fragment) =>
-    normalized.includes(fragment),
-  );
 }

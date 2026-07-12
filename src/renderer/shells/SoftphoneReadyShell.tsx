@@ -1,6 +1,7 @@
 import { useState, type JSX } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import type { AccountPanelActionReasonKey } from "@application/index.js";
+import { resolveFullscreenVideoSession } from "@application/index.js";
 import { NotificationViewport } from "../components/notifications/NotificationViewport.js";
 import { UpdateAvailableBanner } from "../components/updates/UpdateAvailableBanner.js";
 import { SettingsFullscreenOverlay } from "../components/settings/SettingsFullscreenOverlay.js";
@@ -23,6 +24,7 @@ import {
 } from "../hooks/useSipSystemStateActions.js";
 import { useUserAvatarMenu } from "../hooks/useUserAvatarMenu.js";
 import { useUserAvatarMenuActions } from "../hooks/useUserAvatarMenuActions.js";
+import { useVideoSettingsPanel } from "../hooks/useVideoSettingsPanel.js";
 import type { useSoftphoneShellChrome } from "../hooks/useSoftphoneShellChrome.js";
 import { useSoftphoneProjections } from "../hooks/useSoftphoneProjections.js";
 import { useI18n } from "../i18n/index.js";
@@ -33,6 +35,8 @@ import { SoftphoneLayout } from "../widgets/SoftphoneLayout/SoftphoneLayout.js";
 import { CallContextShell } from "./call/CallContextShell.js";
 import { CallControlsShell } from "./call/CallControlsShell.js";
 import { IncomingCallOverlayShell } from "./call/IncomingCallOverlayShell.js";
+import { VideoFullscreenModal } from "../components/call/VideoFullscreenModal.js";
+import { ScreenSharePickerDialog } from "../components/call/ScreenSharePickerDialog.js";
 import { SessionFeatureShell } from "./SessionFeatureShell.js";
 import { SoftphoneShellHeader } from "./SoftphoneShellHeader.js";
 
@@ -64,12 +68,12 @@ function SoftphoneShellLayoutRoute({
     projection,
     multiCallProjection,
     applyMultiCallSettings,
+    callVideoMediaUiProjection,
   } =
     useSoftphoneProjections();
   const { blockingAuthState, isSipRegistered } = useAuthShellFlags();
   const overlayShell = useOverlayShell();
   const shellNavigation = useShellNavigation();
-  useShellWindowLayout({ settingsOpen: overlayShell.settingsOpen });
   const [settingsSidebarExpanded, setSettingsSidebarExpanded] = useState(false);
   const settingsActions = useSettingsActions({
     facade,
@@ -80,6 +84,15 @@ function SoftphoneShellLayoutRoute({
     applyMultiCallSettings,
     isSipRegistered,
   });
+  const videoSettingsPanel = useVideoSettingsPanel(
+    {
+      facade,
+      preferredVideoInputDeviceId: settingsActions.preferredVideoInputDeviceId,
+      sectionActive:
+        overlayShell.settingsOpen && overlayShell.settingsSection === "video",
+    },
+    t("settings.video.systemDefault"),
+  );
   const accountActions = settingsActions.account;
   const accountPanelShell = useAccountPanelShell({
     form: accountActions.form,
@@ -120,6 +133,23 @@ function SoftphoneShellLayoutRoute({
     onMenuClose: userAvatarMenu.close,
   });
   const callBindings = useCallFeatureShell({ facade });
+  const fullscreenSession = resolveFullscreenVideoSession(
+    callVideoMediaUiProjection.byCallId,
+  );
+  const isVideoFullscreen = fullscreenSession !== null;
+  const fullscreenCallId = fullscreenSession?.callId ?? null;
+  const fullscreenVideoState = fullscreenSession?.videoState ?? null;
+  const fullscreenLine =
+    fullscreenCallId === null
+      ? null
+      : (callBindings.callLinesShell.lines.find((line) => line.callId === fullscreenCallId) ??
+        (callBindings.controlTargetLine?.callId === fullscreenCallId
+          ? callBindings.controlTargetLine
+          : null));
+  useShellWindowLayout({
+    settingsOpen: overlayShell.settingsOpen,
+    videoFullscreen: isVideoFullscreen,
+  });
   const appUpdate = useAppUpdate({
     backgroundCheckOnMount: true,
     dismissedUpdateBannerVersion: settingsActions.userSettings.dismissedUpdateBannerVersion,
@@ -151,11 +181,16 @@ function SoftphoneShellLayoutRoute({
     settingsUpdateError: settingsActions.settingsUpdateError,
     sipActionSuccessKey: sipSystemStateActions.actionSuccessKey,
     sipActionErrorText,
+    headsetFault: {
+      reason: settingsActions.headsetConnectionProjection.lastFaultReason,
+      occurredAt: settingsActions.headsetConnectionProjection.lastFaultAt,
+    },
   });
   const windowControls = useShellWindowControls({ isShuttingDown });
 
   return (
     <SoftphoneLayout
+      videoFullscreen={isVideoFullscreen}
       header={
         <>
           <SoftphoneShellHeader
@@ -173,9 +208,57 @@ function SoftphoneShellLayoutRoute({
           <CallContextShell bindings={callBindings} />
         </>
       }
-      controls={<CallControlsShell bindings={callBindings} />}
+      controls={
+        isVideoFullscreen ? null : <CallControlsShell bindings={callBindings} />
+      }
       overlays={
         <>
+          {isVideoFullscreen &&
+          fullscreenCallId !== null &&
+          fullscreenVideoState !== null ? (
+            <VideoFullscreenModal
+              open
+              callId={fullscreenCallId}
+              videoState={fullscreenVideoState}
+              line={fullscreenLine}
+              onBindSurfaces={callBindings.videoCallActions.bindVideoSurfaces}
+              onMute={callBindings.callLinesActions.handleMuteLine}
+              onUnmute={callBindings.callLinesActions.handleUnmuteLine}
+              onToggleCamera={(callId) => {
+                callBindings.videoCallActions.handleToggleCamera(
+                  callId,
+                  fullscreenVideoState,
+                );
+              }}
+              onToggleScreenShare={(callId) => {
+                callBindings.videoCallActions.handleToggleScreenShare(
+                  callId,
+                  fullscreenVideoState,
+                );
+              }}
+              onSetSessionView={callBindings.videoCallActions.handleSetSessionView}
+              onHangup={(callId) => {
+                callBindings.exitVideoFullscreen();
+                callBindings.callLinesActions.handleHangupLine(callId);
+              }}
+              onClose={(callId) => {
+                callBindings.videoCallActions.handleSetSessionView(callId, "expanded");
+              }}
+            />
+          ) : null}
+          <ScreenSharePickerDialog
+            open={callBindings.screenSharePicker.open}
+            loading={callBindings.screenSharePicker.loading}
+            confirming={callBindings.screenSharePicker.confirming}
+            errorKey={callBindings.screenSharePicker.errorKey}
+            activeKind={callBindings.screenSharePicker.activeKind}
+            selectedSourceId={callBindings.screenSharePicker.selectedSourceId}
+            sources={callBindings.screenSharePicker.sources}
+            onActiveKindChange={callBindings.screenSharePicker.setActiveKind}
+            onSelectSource={callBindings.screenSharePicker.selectSource}
+            onConfirm={callBindings.screenSharePicker.confirm}
+            onCancel={callBindings.screenSharePicker.cancel}
+          />
           <IncomingCallOverlayShell callBindings={callBindings} overlayShell={overlayShell} />
           <ShellRouteDataController facade={facade} />
           <HistoryShellRoutePanel facade={facade} notify={notifications.notify} />
@@ -202,7 +285,6 @@ function SoftphoneShellLayoutRoute({
             <SettingsPanel
               activeSection={overlayShell.settingsSection}
               sidebarExpanded={settingsSidebarExpanded}
-              isSipRegistered={isSipRegistered}
               onClose={overlayShell.closeOverlay}
               onSectionChange={overlayShell.setSettingsSection}
               onSidebarExpandedChange={setSettingsSidebarExpanded}
@@ -270,6 +352,40 @@ function SoftphoneShellLayoutRoute({
               onAudioCodecReorder={settingsActions.onAudioCodecReorder}
               onVideoCodecReorder={settingsActions.onVideoCodecReorder}
               codecPreferencesError={settingsActions.codecPreferencesError}
+              headsetConnectionProjection={settingsActions.headsetConnectionProjection}
+              headsetEnabled={settingsActions.headsetEnabled}
+              headsetAutoReconnect={settingsActions.headsetAutoReconnect}
+              preferredDeviceId={settingsActions.preferredDeviceId}
+              grantedDevices={settingsActions.grantedDevices}
+              onHeadsetEnabledChange={settingsActions.onHeadsetEnabledChange}
+              onHeadsetAutoReconnectChange={settingsActions.onHeadsetAutoReconnectChange}
+              onConnectHeadset={settingsActions.onConnectHeadset}
+              onDisconnectHeadset={settingsActions.onDisconnectHeadset}
+              preferredAudioInputDeviceId={settingsActions.preferredAudioInputDeviceId}
+              preferredVideoInputDeviceId={settingsActions.preferredVideoInputDeviceId}
+              defaultSessionView={settingsActions.defaultSessionView}
+              autoFullscreenOnConference={settingsActions.autoFullscreenOnConference}
+              conferenceNumberSubstring={settingsActions.conferenceNumberSubstring}
+              videoAudioDevices={videoSettingsPanel.audioDevices}
+              videoCameraDevices={videoSettingsPanel.videoDevices}
+              videoDevicesLoading={videoSettingsPanel.devicesLoading}
+              videoDevicesError={videoSettingsPanel.devicesError}
+              videoPreviewError={videoSettingsPanel.previewError}
+              videoPreviewRef={videoSettingsPanel.previewVideoRef}
+              onPreferredAudioInputDeviceIdChange={
+                settingsActions.onPreferredAudioInputDeviceIdChange
+              }
+              onPreferredVideoInputDeviceIdChange={
+                settingsActions.onPreferredVideoInputDeviceIdChange
+              }
+              onDefaultSessionViewChange={settingsActions.onDefaultSessionViewChange}
+              onAutoFullscreenOnConferenceChange={
+                settingsActions.onAutoFullscreenOnConferenceChange
+              }
+              onConferenceNumberSubstringChange={
+                settingsActions.onConferenceNumberSubstringChange
+              }
+              onRefreshVideoDevices={videoSettingsPanel.refreshDevices}
               account={{
                 form: accountActions.form,
                 submitting: accountActions.submitting,

@@ -53,8 +53,10 @@ function createSampleEntry(index: number) {
     startedAt: "2026-07-07T10:00:00.000Z",
     endedAt: "2026-07-07T10:01:00.000Z",
     wasAnswered: true,
+    answeredAt: "2026-07-07T10:00:20.000Z",
     failed: false,
-    missedBeforeAnswer: false,
+    localHangup: true,
+    remoteCancelBeforeAnswer: false,
   });
   if (!created.ok) {
     throw new Error("expected valid entry");

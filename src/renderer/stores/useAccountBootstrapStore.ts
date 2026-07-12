@@ -63,6 +63,23 @@ import {
   reduceSipSessionHealthProjection,
   type SipSessionHealthProjection,
 } from "@application/projections/telephony/sipSessionHealthProjection.js";
+import {
+  initialHeadsetConnectionProjection,
+  mergeHeadsetUserSettingsIntoProjection,
+  reduceHeadsetConnectionProjection,
+  type HeadsetConnectionProjection,
+} from "@application/projections/headset/headsetConnectionProjection.js";
+import {
+  initialHeadsetSyncBusyProjection,
+  mapHeadsetSyncBusyState,
+  type HeadsetSyncBusyProjection,
+} from "@application/projections/headset/headsetSyncBusyProjection.js";
+import {
+  initialCallVideoMediaUiProjection,
+  reduceCallVideoMediaUiProjection,
+  type CallVideoMediaUiProjection,
+} from "@application/projections/media/callVideoMediaUiProjection.js";
+
 type AccountBootstrapStore = Readonly<{
   projection: AccountBootstrapProjection;
   callProjection: CallProjection;
@@ -74,6 +91,9 @@ type AccountBootstrapStore = Readonly<{
   sipSessionHealthProjection: SipSessionHealthProjection;
   callHistoryProjection: CallHistoryProjection;
   contactsProjection: ContactsProjection;
+  headsetConnectionProjection: HeadsetConnectionProjection;
+  headsetSyncBusyProjection: HeadsetSyncBusyProjection;
+  callVideoMediaUiProjection: CallVideoMediaUiProjection;
   bindFacade: (facade: AccountBootstrapFacade) => () => void;
   setCallMode: (mode: DialpadMode, dtmfPanelCallId?: string | null) => void;
   setIncomingUiState: (uiState: IncomingCallUiState) => void;
@@ -90,6 +110,9 @@ type AccountBootstrapStore = Readonly<{
     contacts: ContactsProjection["contacts"],
   ) => void;
   setContactsLoadError: (errorKey: string) => void;
+  syncHeadsetUserSettingsToProjection: (
+    settings: Readonly<{ headsetEnabled: boolean; headsetAutoReconnect: boolean }>,
+  ) => void;
 }>;
 
 export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => ({
@@ -103,8 +126,38 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
   sipSessionHealthProjection: initialSipSessionHealthProjection(),
   callHistoryProjection: initialCallHistoryProjection(),
   contactsProjection: initialContactsProjection(),
+  headsetConnectionProjection: initialHeadsetConnectionProjection(),
+  headsetSyncBusyProjection: initialHeadsetSyncBusyProjection(),
+  callVideoMediaUiProjection: initialCallVideoMediaUiProjection(),
 
   bindFacade: (facade) => {
+    facade.setHeadsetProjectionSources(
+      () => useAccountBootstrapStore.getState().multiLineCallProjection,
+      () => useAccountBootstrapStore.getState().incomingCallProjection,
+      () => useAccountBootstrapStore.getState().projection.phoneStatus === "dnd",
+    );
+    set({
+      headsetConnectionProjection: {
+        ...useAccountBootstrapStore.getState().headsetConnectionProjection,
+        isSupported: facade.getHeadsetGateway().isSupported(),
+      },
+    });
+
+    const syncHeadsetBusy = (): void => {
+      set({
+        headsetSyncBusyProjection: mapHeadsetSyncBusyState(
+          facade.getHeadsetSyncBusyState(),
+        ),
+      });
+    };
+    facade.setHeadsetSyncBusyListener(syncHeadsetBusy);
+
+    const notifyHeadsetAfterCommit = (): void => {
+      const committed = useAccountBootstrapStore.getState();
+      facade.notifyHeadsetProjectionsChanged(committed.multiLineCallProjection);
+      syncHeadsetBusy();
+    };
+
     const refreshMultiCallProjection = (): void => {
       void facade.refreshUserSettingsProjections({
         applyMultiCallSettings: (settings) => {
@@ -153,36 +206,48 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
     refreshMultiCallProjection();
 
     const unsubscribe = facade.eventPublisher.subscribe((event) => {
-      set((state) => ({
-        projection: reduceAccountBootstrapProjection(state.projection, event),
-        callProjection: reduceCallProjection(state.callProjection, event),
-        activeCallControlsProjection: reduceActiveCallControlsProjection(
-          state.activeCallControlsProjection,
-          event,
-        ),
-        incomingCallProjection: reduceIncomingCallProjection(
-          state.incomingCallProjection,
-          event,
-        ),
-        multiCallProjection: reduceMultiCallProjection(state.multiCallProjection, event),
-        transferProjection: reduceTransferProjection(state.transferProjection, event),
-        multiLineCallProjection: reduceMultiLineCallProjection(
+      set((state) => {
+        const multiLineCallProjection = reduceMultiLineCallProjection(
           state.multiLineCallProjection,
           event,
-        ),
-        sipSessionHealthProjection: reduceSipSessionHealthProjection(
-          state.sipSessionHealthProjection,
+        );
+        const incomingCallProjection = reduceIncomingCallProjection(
+          state.incomingCallProjection,
           event,
-        ),
-        callHistoryProjection: reduceCallHistoryProjection(
-          state.callHistoryProjection,
-          event,
-        ),
-        contactsProjection: reduceContactsProjection(
-          state.contactsProjection,
-          event,
-        ),
-      }));
+        );
+        return {
+          projection: reduceAccountBootstrapProjection(state.projection, event),
+          callProjection: reduceCallProjection(state.callProjection, event),
+          activeCallControlsProjection: reduceActiveCallControlsProjection(
+            state.activeCallControlsProjection,
+            event,
+          ),
+          incomingCallProjection,
+          multiCallProjection: reduceMultiCallProjection(state.multiCallProjection, event),
+          transferProjection: reduceTransferProjection(state.transferProjection, event),
+          multiLineCallProjection,
+          sipSessionHealthProjection: reduceSipSessionHealthProjection(
+            state.sipSessionHealthProjection,
+            event,
+          ),
+          callHistoryProjection: reduceCallHistoryProjection(
+            state.callHistoryProjection,
+            event,
+          ),
+          contactsProjection: reduceContactsProjection(state.contactsProjection, event),
+          headsetConnectionProjection: reduceHeadsetConnectionProjection(
+            state.headsetConnectionProjection,
+            event,
+          ),
+          callVideoMediaUiProjection: reduceCallVideoMediaUiProjection(
+            state.callVideoMediaUiProjection,
+            event,
+          ),
+        };
+      });
+      // Must run AFTER Zustand commits — calling getState() inside set() reads stale projections
+      // and leaves headset lastSnapshot stuck on incoming (ring LED never clears).
+      notifyHeadsetAfterCommit();
 
       if (event.type === "RegistrationSucceeded") {
         refreshMultiCallProjection();
@@ -265,6 +330,15 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
   setContactsLoadError: (errorKey) => {
     set((state) => ({
       contactsProjection: applyContactsLoadError(state.contactsProjection, errorKey),
+    }));
+  },
+
+  syncHeadsetUserSettingsToProjection: (settings) => {
+    set((state) => ({
+      headsetConnectionProjection: mergeHeadsetUserSettingsIntoProjection(
+        state.headsetConnectionProjection,
+        settings,
+      ),
     }));
   },
 }));

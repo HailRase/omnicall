@@ -7,6 +7,8 @@ import { SettingsPanel } from "../../components/settings/SettingsPanel.js";
 import { systemStateTestDefaults } from "../../components/settings/panels/settingsSystemStateTestDefaults.js";
 import { settingsCodecTestDefaults } from "../../components/settings/panels/settingsCodecTestDefaults.js";
 import { settingsAccountTestDefaults } from "../../components/settings/panels/settingsAccountTestDefaults.js";
+import { settingsHeadsetStoryDefaults } from "../../components/settings/panels/settingsHeadsetTestDefaults.js";
+import { settingsVideoStoryDefaults } from "../../components/settings/panels/settingsVideoTestDefaults.js";
 import { settingsOverlayWindowControlsTestDefaults } from "../../components/settings/settingsOverlayWindowControlsTestDefaults.js";
 import { SoftphoneLayout } from "./SoftphoneLayout.js";
 
@@ -25,7 +27,6 @@ describe("settings overlay with layout zones", () => {
           >
             <SettingsPanel
               activeSection="sessions"
-              isSipRegistered={true}
               sidebarExpanded={false}
               onClose={() => undefined}
               onSectionChange={vi.fn()}
@@ -61,6 +62,32 @@ describe("settings overlay with layout zones", () => {
               onCheckForUpdates={() => undefined}
               onOpenDownloadPage={() => undefined}
               account={settingsAccountTestDefaults}
+              {...settingsHeadsetStoryDefaults}
+              preferredAudioInputDeviceId={settingsVideoStoryDefaults.preferredAudioInputDeviceId}
+              preferredVideoInputDeviceId={settingsVideoStoryDefaults.preferredVideoInputDeviceId}
+              defaultSessionView={settingsVideoStoryDefaults.defaultSessionView}
+              autoFullscreenOnConference={settingsVideoStoryDefaults.autoFullscreenOnConference}
+              conferenceNumberSubstring={settingsVideoStoryDefaults.conferenceNumberSubstring}
+              videoAudioDevices={settingsVideoStoryDefaults.audioDevices}
+              videoCameraDevices={settingsVideoStoryDefaults.videoDevices}
+              videoDevicesLoading={settingsVideoStoryDefaults.devicesLoading}
+              videoDevicesError={settingsVideoStoryDefaults.devicesError}
+              videoPreviewError={settingsVideoStoryDefaults.previewError}
+              videoPreviewRef={settingsVideoStoryDefaults.previewVideoRef}
+              onPreferredAudioInputDeviceIdChange={
+                settingsVideoStoryDefaults.onPreferredAudioInputDeviceIdChange
+              }
+              onPreferredVideoInputDeviceIdChange={
+                settingsVideoStoryDefaults.onPreferredVideoInputDeviceIdChange
+              }
+              onDefaultSessionViewChange={settingsVideoStoryDefaults.onDefaultSessionViewChange}
+              onAutoFullscreenOnConferenceChange={
+                settingsVideoStoryDefaults.onAutoFullscreenOnConferenceChange
+              }
+              onConferenceNumberSubstringChange={
+                settingsVideoStoryDefaults.onConferenceNumberSubstringChange
+              }
+              onRefreshVideoDevices={settingsVideoStoryDefaults.onRefreshDevices}
             />
           </SettingsFullscreenOverlay>
         }

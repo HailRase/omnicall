@@ -6,11 +6,13 @@ export type SoftphoneLayoutProps = Readonly<{
   context: ReactNode;
   controls: ReactNode;
   overlays: ReactNode;
+  /** When true, context zone fills work area for video fullscreen (F-027). */
+  videoFullscreen?: boolean;
 }>;
 
 /**
  * - Purpose: four-zone desktop shell (header, context, controls, overlay layer).
- * - Inputs: slot nodes for each layout zone.
+ * - Inputs: slot nodes for each layout zone; optional video fullscreen fill mode.
  * - Outputs: structured layout with stable zone test IDs for smoke and Storybook.
  * @uiMeta lf=LF-011 f=F-014 smoke=R7-*
  */
@@ -19,14 +21,22 @@ export function SoftphoneLayout({
   context,
   controls,
   overlays,
+  videoFullscreen = false,
 }: SoftphoneLayoutProps): JSX.Element {
   return (
-    <div className={styles.layout} data-testid="softphone-layout">
+    <div
+      className={`${styles.layout}${videoFullscreen ? ` ${styles.layoutVideoFullscreen}` : ""}`}
+      data-testid="softphone-layout"
+      data-video-fullscreen={videoFullscreen ? "true" : "false"}
+    >
       <div className={styles.header} data-testid="layout-header-zone">
         {header}
       </div>
       <div className={styles.main}>
-        <div className={styles.context} data-testid="layout-context-zone">
+        <div
+          className={`${styles.context}${videoFullscreen ? ` ${styles.contextVideoFullscreen}` : ""}`}
+          data-testid="layout-context-zone"
+        >
           {context}
         </div>
         <div className={styles.controls} data-testid="layout-controls-zone">

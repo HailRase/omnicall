@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, nativeTheme, screen, shell } from "electron";
+import { app, BrowserWindow, ipcMain, nativeTheme, screen, session, shell } from "electron";
 import { join } from "node:path";
 import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
 import {
@@ -24,6 +24,14 @@ import { AppShutdownCoordinator } from "./lifecycle/AppShutdownCoordinator.js";
 import { installApplicationMenu } from "./lifecycle/createApplicationMenu.js";
 import { installDeveloperWebContentsShortcuts } from "./lifecycle/installDeveloperWebContentsShortcuts.js";
 import { isMainProcessDevMode } from "./lifecycle/resolveMainProcessDevMode.js";
+import { pickSelectHidDeviceId } from "./headset/pickSelectHidDevice.js";
+import {
+  getPreferredSoftphoneHidDeviceId,
+  setPreferredSoftphoneHidDeviceId,
+} from "./headset/preferredSoftphoneHidDeviceStore.js";
+import { parseHeadsetSetPreferredDeviceIdPayload } from "@shared/ipc/HeadsetPreferredDeviceContract.js";
+import { installDisplayMediaRequestHandler } from "./media/installDisplayMediaRequestHandler.js";
+import { registerDisplayCaptureIpc } from "./media/registerDisplayCaptureIpc.js";
 
 const logger = createConsoleLogger({
   boundedContext: "Integration",
@@ -371,6 +379,42 @@ function registerIpcHandlers(): void {
       ? { ok: true as const }
       : { ok: false as const, reason: result.reason };
   });
+
+  ipcMain.handle(IPC_CHANNELS.headsetSetPreferredDeviceId, (_event, payload: unknown) => {
+    const parsed = parseHeadsetSetPreferredDeviceIdPayload(payload);
+    if (parsed === null) {
+      return { ok: false as const };
+    }
+    setPreferredSoftphoneHidDeviceId(parsed.deviceId);
+    return { ok: true as const };
+  });
+}
+
+function setupHidPermissions(): void {
+  const allowedPermissions = new Set(["media", "notifications", "hid", "display-capture"]);
+
+  session.defaultSession.setPermissionRequestHandler((_webContents, permission, callback) => {
+    callback(allowedPermissions.has(permission));
+  });
+
+  session.defaultSession.setPermissionCheckHandler((_webContents, permission) => {
+    return allowedPermissions.has(permission);
+  });
+
+  session.defaultSession.on("select-hid-device", (event, details, callback) => {
+    event.preventDefault();
+    const selectedId = pickSelectHidDeviceId(
+      details.deviceList,
+      getPreferredSoftphoneHidDeviceId(),
+    );
+    callback(selectedId);
+  });
+
+  logger.info("hid_permissions_configured", {
+    correlationId: createCorrelationId(),
+    operation: "setup_hid_permissions",
+    result: "success",
+  });
 }
 
 void app.whenReady().then(() => {
@@ -387,6 +431,15 @@ void app.whenReady().then(() => {
   registerProfilesPersistenceIpc();
   registerSecretStorageIpc();
   registerContactsCsvIpc();
+  setupHidPermissions();
+  registerDisplayCaptureIpc();
+  installDisplayMediaRequestHandler({
+    session: session.defaultSession,
+    logger: createConsoleLogger({
+      boundedContext: "Media",
+      featureId: "F-027",
+    }),
+  });
   createMainWindow();
 
   app.on("activate", () => {

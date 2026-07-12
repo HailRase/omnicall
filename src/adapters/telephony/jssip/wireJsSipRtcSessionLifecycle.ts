@@ -16,6 +16,8 @@ export type WireJsSipRtcSessionLifecycleOptions = Readonly<{
   onSessionConfirmed?: (callId: CallId, correlationId: CorrelationId) => void;
   onRemoteHold?: (callId: CallId, correlationId: CorrelationId) => void;
   onRemoteResume?: (callId: CallId, correlationId: CorrelationId) => void;
+  onRemoteSdp?: (callId: CallId, correlationId: CorrelationId, sdp: string) => void;
+  onRemoteInfoNoVideo?: (callId: CallId, correlationId: CorrelationId) => void;
 }>;
 
 /**
@@ -37,6 +39,8 @@ export function wireJsSipRtcSessionLifecycle(
     onSessionConfirmed,
     onRemoteHold,
     onRemoteResume,
+    onRemoteSdp,
+    onRemoteInfoNoVideo,
   } = options;
 
   let ended = false;
@@ -78,6 +82,8 @@ export function wireJsSipRtcSessionLifecycle(
     session.off("failed", handleFailed);
     session.off("hold", handleHold);
     session.off("unhold", handleUnhold);
+    session.off("sdp", handleSdp);
+    session.off("newInfo", handleNewInfo);
     onSessionEnded(callId, correlationId);
   };
 
@@ -93,6 +99,25 @@ export function wireJsSipRtcSessionLifecycle(
       return;
     }
     onRemoteResume(callId, correlationId);
+  };
+
+  const handleSdp = (...args: unknown[]): void => {
+    if (onRemoteSdp === undefined) {
+      return;
+    }
+    const sdp = extractRemoteSdp(args[0]);
+    if (sdp !== null) {
+      onRemoteSdp(callId, correlationId, sdp);
+    }
+  };
+
+  const handleNewInfo = (...args: unknown[]): void => {
+    if (onRemoteInfoNoVideo === undefined) {
+      return;
+    }
+    if (isNoVideoRemoteInfo(args[0])) {
+      onRemoteInfoNoVideo(callId, correlationId);
+    }
   };
 
   const handleEnded = (): void => {
@@ -116,9 +141,38 @@ export function wireJsSipRtcSessionLifecycle(
   if (onRemoteResume !== undefined) {
     session.on("unhold", handleUnhold);
   }
+  if (onRemoteSdp !== undefined) {
+    session.on("sdp", handleSdp);
+  }
+  if (onRemoteInfoNoVideo !== undefined) {
+    session.on("newInfo", handleNewInfo);
+  }
 
   const existingConnection = session.getConnection();
   if (existingConnection !== null) {
     onPeerConnection(callId, existingConnection);
   }
+}
+
+function extractRemoteSdp(event: unknown): string | null {
+  if (typeof event !== "object" || event === null) {
+    return null;
+  }
+  const candidate = event as { originator?: unknown; sdp?: unknown };
+  return candidate.originator === "remote" && typeof candidate.sdp === "string"
+    ? candidate.sdp
+    : null;
+}
+
+function isNoVideoRemoteInfo(event: unknown): boolean {
+  if (typeof event !== "object" || event === null) {
+    return false;
+  }
+  const candidate = event as { request?: unknown };
+  const request = candidate.request;
+  if (typeof request !== "object" || request === null) {
+    return false;
+  }
+  const body = (request as { body?: unknown }).body;
+  return typeof body === "string" && body.trim() === "no-video-remote";
 }

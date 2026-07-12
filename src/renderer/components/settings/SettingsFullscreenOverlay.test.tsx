@@ -8,6 +8,8 @@ import { SettingsPanel } from "./SettingsPanel.js";
 import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefaults.js";
 import { settingsCodecTestDefaults } from "./panels/settingsCodecTestDefaults.js";
 import { settingsAccountTestDefaults } from "./panels/settingsAccountTestDefaults.js";
+import { settingsHeadsetTestDefaults } from "./panels/settingsHeadsetTestDefaults.js";
+import { settingsVideoTestDefaults } from "./panels/settingsVideoTestDefaults.js";
 import { settingsOverlayWindowControlsTestDefaults } from "./settingsOverlayWindowControlsTestDefaults.js";
 
 const appUpdateDefaults = {
@@ -23,7 +25,6 @@ const appUpdateDefaults = {
 
 const panelProps = {
   activeSection: "general" as const,
-  isSipRegistered: true,
   sidebarExpanded: false,
   onClose: vi.fn(),
   onSectionChange: vi.fn(),
@@ -52,6 +53,28 @@ const panelProps = {
   ...settingsCodecTestDefaults,
   account: settingsAccountTestDefaults,
   ...appUpdateDefaults,
+  ...settingsHeadsetTestDefaults,
+  preferredAudioInputDeviceId: settingsVideoTestDefaults.preferredAudioInputDeviceId,
+  preferredVideoInputDeviceId: settingsVideoTestDefaults.preferredVideoInputDeviceId,
+  defaultSessionView: settingsVideoTestDefaults.defaultSessionView,
+  autoFullscreenOnConference: settingsVideoTestDefaults.autoFullscreenOnConference,
+  conferenceNumberSubstring: settingsVideoTestDefaults.conferenceNumberSubstring,
+  videoAudioDevices: settingsVideoTestDefaults.audioDevices,
+  videoCameraDevices: settingsVideoTestDefaults.videoDevices,
+  videoDevicesLoading: settingsVideoTestDefaults.devicesLoading,
+  videoDevicesError: settingsVideoTestDefaults.devicesError,
+  videoPreviewError: settingsVideoTestDefaults.previewError,
+  videoPreviewRef: settingsVideoTestDefaults.previewVideoRef,
+  onPreferredAudioInputDeviceIdChange:
+    settingsVideoTestDefaults.onPreferredAudioInputDeviceIdChange,
+  onPreferredVideoInputDeviceIdChange:
+    settingsVideoTestDefaults.onPreferredVideoInputDeviceIdChange,
+  onDefaultSessionViewChange: settingsVideoTestDefaults.onDefaultSessionViewChange,
+  onAutoFullscreenOnConferenceChange:
+    settingsVideoTestDefaults.onAutoFullscreenOnConferenceChange,
+  onConferenceNumberSubstringChange:
+    settingsVideoTestDefaults.onConferenceNumberSubstringChange,
+  onRefreshVideoDevices: settingsVideoTestDefaults.onRefreshDevices,
 };
 
 describe("SettingsFullscreenOverlay", () => {

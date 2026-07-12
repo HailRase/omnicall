@@ -94,14 +94,15 @@ describe("deriveIncomingCallGlobalOverlayVisible", () => {
     ).toBe(true);
   });
 
-  it("respects dismiss state per callId", () => {
+  it("shows overlay on dialpad during video fullscreen even when session card visible", () => {
     expect(
       deriveIncomingCallGlobalOverlayVisible({
         incomingCallProjection: ringingProjection("call-a"),
-        dismissedCallId: "call-a",
-        shellRouteName: "history",
-        incomingSessionCardVisible: false,
+        dismissedCallId: null,
+        shellRouteName: "dialpad",
+        incomingSessionCardVisible: true,
+        videoFullscreen: true,
       }),
-    ).toBe(false);
+    ).toBe(true);
   });
 });

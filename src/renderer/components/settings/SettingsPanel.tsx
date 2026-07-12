@@ -6,6 +6,7 @@ import type {
   CodecPreferences,
   NotificationPlacement,
   NotificationStacking,
+  SessionViewMode,
   SipAccountInput,
   SipSystemStateShellView,
   SupportedLanguage,
@@ -17,6 +18,8 @@ import type { SavedProfilePanelMode } from "@application/projections/settings/de
 import type { AccountAuthorizationErrorProjection } from "@application/projections/settings/mapAccountAuthorizationError.js";
 import { IconButton } from "../ui/index.js";
 import { useI18n } from "../../i18n/index.js";
+import type { HeadsetConnectionProjection } from "@application/projections/headset/headsetConnectionProjection.js";
+import type { VideoSettingsDeviceOption } from "../../hooks/useVideoSettingsPanel.js";
 import type { SettingsSectionId } from "./settingsSections.js";
 import { resolveSettingsContentHeaderTitle } from "./settingsSections.js";
 import type { TranslationKey } from "../../i18n/messages.js";
@@ -28,12 +31,12 @@ import { SettingsGeneralPanel } from "./panels/SettingsGeneralPanel.js";
 import { SettingsHeadsetPanel } from "./panels/SettingsHeadsetPanel.js";
 import { SettingsSessionsPanel } from "./panels/SettingsSessionsPanel.js";
 import { SettingsSystemStatePanel } from "./panels/SettingsSystemStatePanel.js";
+import { SettingsVideoPanel } from "./panels/SettingsVideoPanel.js";
 import styles from "./SettingsPanel.module.css";
 
 export type SettingsPanelProps = Readonly<{
   activeSection: SettingsSectionId;
   sidebarExpanded: boolean;
-  isSipRegistered: boolean;
   onClose: () => void;
   onSectionChange: (sectionId: SettingsSectionId) => void;
   onSidebarExpandedChange: (expanded: boolean) => void;
@@ -92,6 +95,32 @@ export type SettingsPanelProps = Readonly<{
   onAudioCodecReorder: (fromIndex: number, toIndex: number) => void;
   onVideoCodecReorder: (fromIndex: number, toIndex: number) => void;
   codecPreferencesError: CodecPreferenceMutationMessageKey | null;
+  headsetConnectionProjection: HeadsetConnectionProjection;
+  headsetEnabled: boolean;
+  headsetAutoReconnect: boolean;
+  preferredDeviceId: string | null;
+  grantedDevices: ReadonlyArray<Readonly<{ id: string; productName: string }>>;
+  onHeadsetEnabledChange: (enabled: boolean) => void;
+  onHeadsetAutoReconnectChange: (enabled: boolean) => void;
+  onConnectHeadset: (deviceId: string | null) => void;
+  onDisconnectHeadset: () => void;
+  preferredAudioInputDeviceId: string | null;
+  preferredVideoInputDeviceId: string | null;
+  defaultSessionView: SessionViewMode;
+  autoFullscreenOnConference: boolean;
+  conferenceNumberSubstring: string | null;
+  videoAudioDevices: ReadonlyArray<VideoSettingsDeviceOption>;
+  videoCameraDevices: ReadonlyArray<VideoSettingsDeviceOption>;
+  videoDevicesLoading: boolean;
+  videoDevicesError: boolean;
+  videoPreviewError: boolean;
+  videoPreviewRef: (element: HTMLVideoElement | null) => void;
+  onPreferredAudioInputDeviceIdChange: (deviceId: string | null) => void;
+  onPreferredVideoInputDeviceIdChange: (deviceId: string | null) => void;
+  onDefaultSessionViewChange: (view: SessionViewMode) => void;
+  onAutoFullscreenOnConferenceChange: (enabled: boolean) => void;
+  onConferenceNumberSubstringChange: (value: string | null) => void;
+  onRefreshVideoDevices: () => void;
   account: Readonly<{
     form: SipAccountInput;
     submitting: boolean;
@@ -143,7 +172,6 @@ export type SettingsPanelProps = Readonly<{
 export function SettingsPanel({
   activeSection,
   sidebarExpanded,
-  isSipRegistered,
   onClose,
   onSectionChange,
   onSidebarExpandedChange,
@@ -182,6 +210,32 @@ export function SettingsPanel({
   onAudioCodecReorder,
   onVideoCodecReorder,
   codecPreferencesError,
+  headsetConnectionProjection,
+  headsetEnabled,
+  headsetAutoReconnect,
+  preferredDeviceId,
+  grantedDevices,
+  onHeadsetEnabledChange,
+  onHeadsetAutoReconnectChange,
+  onConnectHeadset,
+  onDisconnectHeadset,
+  preferredAudioInputDeviceId,
+  preferredVideoInputDeviceId,
+  defaultSessionView,
+  autoFullscreenOnConference,
+  conferenceNumberSubstring,
+  videoAudioDevices,
+  videoCameraDevices,
+  videoDevicesLoading,
+  videoDevicesError,
+  videoPreviewError,
+  videoPreviewRef,
+  onPreferredAudioInputDeviceIdChange,
+  onPreferredVideoInputDeviceIdChange,
+  onDefaultSessionViewChange,
+  onAutoFullscreenOnConferenceChange,
+  onConferenceNumberSubstringChange,
+  onRefreshVideoDevices,
   account,
 }: SettingsPanelProps): JSX.Element {
   const { t } = useI18n();
@@ -315,8 +369,43 @@ export function SettingsPanel({
         />
       );
       break;
+    case "video":
+      sectionContent = (
+        <SettingsVideoPanel
+          preferredAudioInputDeviceId={preferredAudioInputDeviceId}
+          preferredVideoInputDeviceId={preferredVideoInputDeviceId}
+          defaultSessionView={defaultSessionView}
+          autoFullscreenOnConference={autoFullscreenOnConference}
+          conferenceNumberSubstring={conferenceNumberSubstring}
+          audioDevices={videoAudioDevices}
+          videoDevices={videoCameraDevices}
+          devicesLoading={videoDevicesLoading}
+          devicesError={videoDevicesError}
+          previewError={videoPreviewError}
+          previewVideoRef={videoPreviewRef}
+          onPreferredAudioInputDeviceIdChange={onPreferredAudioInputDeviceIdChange}
+          onPreferredVideoInputDeviceIdChange={onPreferredVideoInputDeviceIdChange}
+          onDefaultSessionViewChange={onDefaultSessionViewChange}
+          onAutoFullscreenOnConferenceChange={onAutoFullscreenOnConferenceChange}
+          onConferenceNumberSubstringChange={onConferenceNumberSubstringChange}
+          onRefreshDevices={onRefreshVideoDevices}
+        />
+      );
+      break;
     case "headset":
-      sectionContent = <SettingsHeadsetPanel />;
+      sectionContent = (
+        <SettingsHeadsetPanel
+          projection={headsetConnectionProjection}
+          headsetEnabled={headsetEnabled}
+          headsetAutoReconnect={headsetAutoReconnect}
+          preferredDeviceId={preferredDeviceId}
+          grantedDevices={grantedDevices}
+          onHeadsetEnabledChange={onHeadsetEnabledChange}
+          onHeadsetAutoReconnectChange={onHeadsetAutoReconnectChange}
+          onConnectHeadset={onConnectHeadset}
+          onDisconnectHeadset={onDisconnectHeadset}
+        />
+      );
       break;
     default: {
       const exhaustive: never = activeSection;
@@ -329,7 +418,6 @@ export function SettingsPanel({
       <SettingsSidebar
         activeSection={activeSection}
         expanded={sidebarExpanded}
-        isSipRegistered={isSipRegistered}
         onSectionChange={onSectionChange}
         onToggleExpanded={handleToggleSidebar}
       />

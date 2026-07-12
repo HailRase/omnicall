@@ -3,6 +3,7 @@ import type { IncomingCallProjection, TransferProjection } from "@application/in
 
 type IncomingCallActionsSlice = Readonly<{
   handleAnswerIncoming: () => void;
+  handleAnswerIncomingWithVideo: () => void;
   handleRejectIncoming: () => void;
 }>;
 
@@ -27,11 +28,13 @@ type UseIncomingCallOverlayActionsInput = Readonly<{
   setCallMode: (mode: "number" | "dtmf", dtmfPanelCallId?: string | null) => void;
   closeNumberEntryOverlay: () => void;
   selectIncomingCall: () => void;
+  exitVideoFullscreen: () => void;
 }>;
 
 type UseIncomingCallOverlayActionsResult = Readonly<{
   handleOpenCallSurface: () => void;
   handleAnswer: () => void;
+  handleAnswerWithVideo: () => void;
   handleReject: () => void;
 }>;
 
@@ -55,11 +58,13 @@ export function useIncomingCallOverlayActions(
     setCallMode,
     closeNumberEntryOverlay,
     selectIncomingCall,
+    exitVideoFullscreen,
   } = input;
 
   const wasAnsweringRef = useRef(false);
 
   const focusMainCallSurface = useCallback((): void => {
+    exitVideoFullscreen();
     goToDialpad();
     if (settingsOpen) {
       closeSettings();
@@ -73,6 +78,7 @@ export function useIncomingCallOverlayActions(
   }, [
     closeNumberEntryOverlay,
     closeSettings,
+    exitVideoFullscreen,
     goToDialpad,
     selectIncomingCall,
     setCallMode,
@@ -111,6 +117,10 @@ export function useIncomingCallOverlayActions(
     incomingCallActions.handleAnswerIncoming();
   }, [incomingCallActions]);
 
+  const handleAnswerWithVideo = useCallback((): void => {
+    incomingCallActions.handleAnswerIncomingWithVideo();
+  }, [incomingCallActions]);
+
   const handleReject = useCallback((): void => {
     incomingCallActions.handleRejectIncoming();
   }, [incomingCallActions]);
@@ -118,6 +128,7 @@ export function useIncomingCallOverlayActions(
   return {
     handleOpenCallSurface,
     handleAnswer,
+    handleAnswerWithVideo,
     handleReject,
   };
 }

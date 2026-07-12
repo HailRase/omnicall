@@ -2,6 +2,12 @@ export { InMemoryDomainEventBus } from "./events/InMemoryDomainEventBus.js";
 export { CallEngine } from "./services/telephony/CallEngine.js";
 export { ActiveCallControlService } from "./services/telephony/ActiveCallControlService.js";
 export { isDialpadNumberValid } from "./helpers/dialpadValidation.js";
+export {
+  buildDialpadHistoryNumbers,
+  resolveDialpadCallIntent,
+  resolveHistoryWalkStep,
+  type DialpadCallIntent,
+} from "./helpers/dialpadHistoryRecall.js";
 export type { AppBootstrapConfig, PhoneStatus, SipAccountInput, MultiCallSettings } from "@domain/index.js";
 export { phoneStatusLabel } from "@domain/index.js";
 export { AuthorizeSipAccountUseCase } from "./use-cases/settings/AuthorizeSipAccountUseCase.js";
@@ -92,6 +98,8 @@ export {
   type CallLineStatusInput,
 } from "./projections/telephony/deriveCallLineStatusLabel.js";
 export { deriveCallControlTarget } from "./projections/telephony/deriveCallControlTarget.js";
+export { resolveOutgoingInProgressCallId } from "./projections/telephony/resolveOutgoingInProgressCallId.js";
+
 export { deriveIncomingCallControlLine } from "./projections/telephony/deriveIncomingCallControlLine.js";
 export {
   deriveIncomingCallIdentityShell,
@@ -234,6 +242,7 @@ export {
   MIN_AUTO_ANSWER_TIMEOUT_SEC,
   type UserSettings,
 } from "@domain/index.js";
+export type { HeadsetFaultReason } from "@domain/index.js";
 export {
   reorderAudioCodecs,
   reorderVideoCodecs,
@@ -260,11 +269,6 @@ export {
   deriveDefaultSettingsSection,
   type SettingsEntrySection,
 } from "./projections/settings/deriveDefaultSettingsSection.js";
-export {
-  deriveSettingsSectionDisabledReason,
-  type SettingsNavSectionId,
-  type SettingsSectionDisabledReasonKey,
-} from "./projections/settings/deriveSettingsSectionDisabledReason.js";
 export {
   deriveActiveProfileSettingsSyncKey,
 } from "./projections/settings/deriveSettingsAccountProfileShell.js";
@@ -327,4 +331,31 @@ export {
   type HeaderChromeShellViewModel,
   type RegistrationDotVariant,
 } from "./projections/platform/deriveHeaderChromeShell.js";
-export { deriveActiveCallControlsShell } from "./projections/telephony/deriveActiveCallControlsShell.js";
+export {
+  deriveActiveCallControlsShell,
+} from "./projections/telephony/deriveActiveCallControlsShell.js";
+export {
+  initialCallVideoMediaUiProjection,
+  reduceCallVideoMediaUiProjection,
+  type CallVideoMediaUiProjection,
+} from "./projections/media/callVideoMediaUiProjection.js";
+export {
+  resolveFullscreenVideoSession,
+  type FullscreenVideoSession,
+} from "./projections/media/resolveFullscreenVideoSession.js";
+export {
+  areCameraControlsEnabled,
+  isScreenShareAllowed,
+  shouldShowRemoteVideoSurface,
+  shouldShowVideoSurfaces,
+  resolveVideoCallAvailability,
+  isSessionViewMode,
+  parseSessionViewMode,
+  SESSION_VIEW_MODES,
+} from "@domain/index.js";
+export type { CallVideoMediaState, SessionViewMode, VideoCallDisabledReason } from "@domain/index.js";
+export type {
+  LocalMediaStreamHandle,
+  MediaInputDeviceInfo,
+  StartCameraPreviewResult,
+} from "@ports/index.js";

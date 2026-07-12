@@ -15,9 +15,20 @@ export type CallHistoryDetailShellViewModel = Readonly<{
   contactId: string | null;
   presentationSource: CallerPresentationSource;
   directionKey: "history.direction.incoming" | "history.direction.outgoing";
-  outcomeKey: "history.outcome.completed" | "history.outcome.missed" | "history.outcome.failed";
+  outcomeKey:
+    | "history.outcome.completed"
+    | "history.outcome.missed"
+    | "history.outcome.canceled"
+    | "history.outcome.failed";
+  endReasonKey:
+    | "history.endReason.local_hangup"
+    | "history.endReason.remote_cancel"
+    | "history.endReason.failure"
+    | "history.endReason.unknown";
   startedAtIso: string;
   durationSec: number;
+  ringDurationSec: number;
+  talkDurationSec: number;
   redialDisabledReasonKey: CallHistoryRedialDisabledReasonKey | null;
 }>;
 
@@ -26,9 +37,12 @@ export type CallHistoryDetailShellEntry = Readonly<{
   remoteNumber: string;
   displayLabel: string | null;
   direction: "incoming" | "outgoing";
-  outcome: "completed" | "missed" | "failed";
+  outcome: "completed" | "missed" | "canceled" | "failed";
+  endReason: "local_hangup" | "remote_cancel" | "failure" | "unknown";
   startedAt: string;
   durationSec: number;
+  ringDurationSec: number;
+  talkDurationSec: number;
 }>;
 
 /**
@@ -65,8 +79,11 @@ export function deriveCallHistoryDetailShell(input: Readonly<{
         ? "history.direction.incoming"
         : "history.direction.outgoing",
     outcomeKey: mapOutcomeKey(input.entry.outcome),
+    endReasonKey: mapEndReasonKey(input.entry.endReason),
     startedAtIso: input.entry.startedAt,
     durationSec: input.entry.durationSec,
+    ringDurationSec: input.entry.ringDurationSec,
+    talkDurationSec: input.entry.talkDurationSec,
     redialDisabledReasonKey: globalRedialReason,
   };
 }
@@ -79,8 +96,25 @@ function mapOutcomeKey(
       return "history.outcome.completed";
     case "missed":
       return "history.outcome.missed";
+    case "canceled":
+      return "history.outcome.canceled";
     case "failed":
       return "history.outcome.failed";
+  }
+}
+
+function mapEndReasonKey(
+  endReason: CallHistoryDetailShellEntry["endReason"],
+): CallHistoryDetailShellViewModel["endReasonKey"] {
+  switch (endReason) {
+    case "local_hangup":
+      return "history.endReason.local_hangup";
+    case "remote_cancel":
+      return "history.endReason.remote_cancel";
+    case "failure":
+      return "history.endReason.failure";
+    case "unknown":
+      return "history.endReason.unknown";
   }
 }
 

@@ -30,10 +30,13 @@ export type HistoryEntryRouteSnapshot = Readonly<{
   remoteNumber: string;
   displayLabel: string | null;
   direction: "incoming" | "outgoing";
-  outcome: "completed" | "missed" | "failed";
+  outcome: "completed" | "missed" | "canceled" | "failed";
+  endReason: "local_hangup" | "remote_cancel" | "failure" | "unknown";
   startedAt: string;
   endedAt: string;
   durationSec: number;
+  ringDurationSec: number;
+  talkDurationSec: number;
 }>;
 
 export type ContactRouteData = Readonly<{

@@ -540,6 +540,54 @@ describe("CallEngine", () => {
     expect(result.ok).toBe(false);
   });
 
+  it("projects selected media mode when answering an incoming call", async () => {
+    const telephony = new MockTelephonyGateway();
+    const engine = new CallEngine(
+      telephony,
+      new MockMediaGateway(),
+      new InMemorySettingsRepository(),
+      new InMemoryDomainEventBus(),
+      createTestLogger(),
+    );
+    const callId = createCallId("incoming-video");
+
+    await engine.handleIncomingReceived({
+      notification: {
+        callId,
+        remoteNumber: "+12025550130",
+        correlationId: createCorrelationId(),
+      },
+    });
+    const result = await engine.answerCall({ callId, mediaMode: "video" });
+
+    expect(result.ok).toBe(true);
+    expect(engine.getCallVideoMediaState(callId)?.mediaMode).toBe("video");
+    expect(telephony.getAnswerCallCommands()[0]?.mediaMode).toBe("video");
+  });
+
+  it("projects remote video presence reported by telephony adapter", async () => {
+    const engine = new CallEngine(
+      new MockTelephonyGateway(),
+      new MockMediaGateway(),
+      new InMemorySettingsRepository(),
+      new InMemoryDomainEventBus(),
+      createTestLogger(),
+    );
+    const callId = createCallId("incoming-remote-video");
+    await engine.handleIncomingReceived({
+      notification: {
+        callId,
+        remoteNumber: "+12025550131",
+        correlationId: createCorrelationId(),
+      },
+    });
+    await engine.answerCall({ callId, mediaMode: "video" });
+
+    engine.handleRemoteVideoPresence(callId, true, createCorrelationId());
+
+    expect(engine.getCallVideoMediaState(callId)?.remoteVideoPresent).toBe(true);
+  });
+
   it("fails reject in invalid state when incoming call is missing", async () => {
     const engine = new CallEngine(
       new MockTelephonyGateway(),

@@ -31,14 +31,15 @@ export type ApplyCodecPreferencesContext = Readonly<{
 }>;
 
 /**
- * - Purpose: apply user audio codec order on RTCPeerConnection via setCodecPreferences.
- * - Inputs: peer connection, resolved enabled audio MIME lists, logging context.
- * - Outputs: reordered audio capabilities on audio transceivers; SDP munging remains fallback.
+ * - Purpose: apply user codec order via RTCRtpTransceiver.setCodecPreferences.
+ * - Inputs: peer connection, resolved MIME lists, logging context, video-mode flag.
+ * - Outputs: reordered audio and optional video capabilities; SDP remains fallback.
  */
 export function applyCodecPreferencesToPeerConnection(
   connection: unknown,
   resolved: ResolvedEnabledCodecs,
   context: ApplyCodecPreferencesContext,
+  includeVideo = false,
 ): void {
   if (!isRtpPeerConnectionLike(connection)) {
     return;
@@ -52,50 +53,80 @@ export function applyCodecPreferencesToPeerConnection(
     return;
   }
 
-  const audioCapabilities = RTCRtpReceiver.getCapabilities("audio");
-  if (audioCapabilities === null || audioCapabilities.codecs.length === 0) {
+  applyKindCodecPreferences(
+    connection,
+    "audio",
+    resolved.audioMimeTypes,
+    context,
+  );
+  if (includeVideo) {
+    applyKindCodecPreferences(
+      connection,
+      "video",
+      resolved.videoMimeTypes,
+      context,
+    );
+  }
+}
+
+function applyKindCodecPreferences(
+  connection: RtpPeerConnectionLike,
+  kind: "audio" | "video",
+  preferredMimeTypes: readonly string[],
+  context: ApplyCodecPreferencesContext,
+): void {
+  const capabilities = RTCRtpReceiver.getCapabilities(kind);
+  if (capabilities === null || capabilities.codecs.length === 0) {
     return;
   }
 
-  const orderedAudioCodecs = buildOrderedAudioCodecCapabilities(
-    audioCapabilities.codecs,
-    resolved.audioMimeTypes,
+  const orderedCodecs = buildOrderedCodecCapabilities(
+    capabilities.codecs,
+    preferredMimeTypes,
   );
-
-  if (orderedAudioCodecs.length === 0) {
+  if (orderedCodecs.length === 0) {
     return;
   }
 
   for (const transceiver of connection.getTransceivers()) {
-    if (!isAudioTransceiver(transceiver)) {
+    if (!isMediaKindTransceiver(transceiver, kind)) {
       continue;
     }
     if (typeof transceiver.setCodecPreferences !== "function") {
       continue;
     }
-
-    try {
-      transceiver.setCodecPreferences(orderedAudioCodecs);
-    } catch (error: unknown) {
-      const normalized = normalizeUnknownError(error);
-      context.logger.warn("jssip_set_codec_preferences_failed", {
-        correlationId: context.correlationId,
-        featureId: context.featureId,
-        codecFeatureId: FEATURE_ID_CODEC_PREFERENCES,
-        boundedContext: "Media",
-        operation: "jssip_set_codec_preferences",
-        result: "sdp_munging_fallback",
-        errorMessage: normalized.message,
-      });
-    }
+    setTransceiverCodecPreferences(transceiver, orderedCodecs, kind, context);
   }
 }
 
-function buildOrderedAudioCodecCapabilities(
+function setTransceiverCodecPreferences(
+  transceiver: RtpTransceiverLike,
+  codecs: RtpCodecCapability[],
+  kind: "audio" | "video",
+  context: ApplyCodecPreferencesContext,
+): void {
+  try {
+    transceiver.setCodecPreferences?.(codecs);
+  } catch (error: unknown) {
+    const normalized = normalizeUnknownError(error);
+    context.logger.warn("jssip_set_codec_preferences_failed", {
+      correlationId: context.correlationId,
+      featureId: context.featureId,
+      codecFeatureId: FEATURE_ID_CODEC_PREFERENCES,
+      boundedContext: "Media",
+      operation: "jssip_set_codec_preferences",
+      mediaKind: kind,
+      result: "sdp_munging_fallback",
+      errorMessage: normalized.message,
+    });
+  }
+}
+
+function buildOrderedCodecCapabilities(
   browserCodecs: readonly RtpCodecCapability[],
-  preferredAudioMimeTypes: readonly string[],
+  preferredMimeTypes: readonly string[],
 ): RtpCodecCapability[] {
-  const normalizedPreferences = preferredAudioMimeTypes.map(normalizeMimeType);
+  const normalizedPreferences = preferredMimeTypes.map(normalizeMimeType);
   const usedIndices = new Set<number>();
   const ordered: RtpCodecCapability[] = [];
 
@@ -133,7 +164,10 @@ function buildOrderedAudioCodecCapabilities(
   return ordered;
 }
 
-function isAudioTransceiver(transceiver: RtpTransceiverLike): boolean {
+function isMediaKindTransceiver(
+  transceiver: RtpTransceiverLike,
+  expectedKind: "audio" | "video",
+): boolean {
   if (transceiver.stopped === true) {
     return false;
   }
@@ -141,11 +175,7 @@ function isAudioTransceiver(transceiver: RtpTransceiverLike): boolean {
   const kind =
     transceiver.sender?.track?.kind ?? transceiver.receiver?.track?.kind ?? undefined;
 
-  if (kind === "video") {
-    return false;
-  }
-
-  return kind === "audio" || kind === undefined;
+  return kind === expectedKind || (expectedKind === "audio" && kind === undefined);
 }
 
 function isAuxiliaryMimeType(mimeType: string): boolean {

@@ -1,6 +1,10 @@
-import type { AppBootstrapConfig } from "@domain/index.js";
-import type { SipAccountId, SipAccountInput } from "@domain/index.js";
-import type { PhoneStatus } from "@domain/index.js";
+import type {
+  AppBootstrapConfig,
+  CallMediaMode,
+  PhoneStatus,
+  SipAccountId,
+  SipAccountInput,
+} from "@domain/index.js";
 import { err, isErr, ok, type Result } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
 import { createPlatformError, normalizeUnknownError } from "@shared/errors/index.js";
@@ -19,6 +23,9 @@ import { UnregisterAccountUseCase } from "../use-cases/settings/UnregisterAccoun
 import { ResolveStartupModeUseCase } from "../use-cases/platform/ResolveStartupModeUseCase.js";
 import { SendDtmfUseCase } from "../use-cases/telephony/SendDtmfUseCase.js";
 import { UnmuteCallUseCase } from "../use-cases/telephony/UnmuteCallUseCase.js";
+import { SetLocalVideoMutedUseCase } from "../use-cases/media/SetLocalVideoMutedUseCase.js";
+import { SetSessionViewModeUseCase } from "../use-cases/media/SetSessionViewModeUseCase.js";
+import { SwitchLocalVideoSourceUseCase } from "../use-cases/media/SwitchLocalVideoSourceUseCase.js";
 import { BlindTransferUseCase } from "../use-cases/telephony/BlindTransferUseCase.js";
 import { StartConsultationUseCase } from "../use-cases/telephony/StartConsultationUseCase.js";
 import { AttendedTransferUseCase } from "../use-cases/telephony/AttendedTransferUseCase.js";
@@ -37,8 +44,12 @@ import { InMemorySipSessionHealthReadModel } from "../read-models/InMemorySipSes
 import { MockTelephonyGateway } from "@adapters/mock/MockTelephonyGateway.js";
 import type {
   DomainEventPublisher,
+  HeadsetGateway,
   HostIntegrationGateway,
+  LocalMediaCapturePort,
+  LocalMediaStreamHandle,
   Logger,
+  MediaInputDeviceInfo,
   SavedAccountProfileRepository,
   SettingsRepository,
   CallHistoryRepository,
@@ -47,6 +58,7 @@ import type {
   TelephonyGateway,
   MediaGateway,
   SecretStoragePort,
+  StartCameraPreviewResult,
 } from "@ports/index.js";
 import {
   createSecretStorageScopeKey,
@@ -67,6 +79,8 @@ import {
   deriveSavedAccountProfileId,
   type Call,
   type CallId,
+  type CallVideoMediaState,
+  type SessionViewMode,
 } from "@domain/index.js";
 import { resolveSettingsAccountKey } from "../settings/resolveSettingsAccountKey.js";
 import { loadUserSettingsWithLegacyMigration } from "../settings/loadUserSettingsWithLegacyMigration.js";
@@ -93,7 +107,14 @@ import { ImportContactsCsvUseCase } from "../use-cases/contacts/ImportContactsCs
 import { ExportContactsCsvUseCase } from "../use-cases/contacts/ExportContactsCsvUseCase.js";
 import type { ContactsCsvImportSummary } from "../use-cases/contacts/ImportContactsCsvUseCase.js";
 import { CallHistoryRecordingOrchestrationService } from "../services/contacts/CallHistoryRecordingOrchestrationService.js";
+import { MockHeadsetGateway } from "@adapters/mock/MockHeadsetGateway.js";
 import { LOCAL_SAVED_PROFILE_NOT_FOUND_MESSAGE } from "../projections/settings/isLocalSavedProfileNotFoundError.js";
+import { HeadsetIntegrationService } from "../services/headset/HeadsetIntegrationService.js";
+import type { MultiLineCallProjection } from "../projections/telephony/multiLineCallProjection.js";
+import { initialMultiLineCallProjection } from "../projections/telephony/multiLineCallProjection.js";
+import type { IncomingCallProjection } from "../projections/telephony/incomingCallProjection.js";
+import { initialIncomingCallProjection } from "../projections/telephony/incomingCallProjection.js";
+import type { HeadsetSyncBusyState } from "../headset/HeadsetSyncQueue.js";
 import type {
   SavedAccountProfile,
   SavedAccountProfileId,
@@ -120,7 +141,7 @@ export type ContactsCsvImportOutcome = Readonly<
 
 export type ContactsCsvExportOutcome = Readonly<
   | { kind: "cancelled" }
-  | { kind: "exported"; contactCount: number }
+  | { kind: "exported"; contactCount: number; savedFileName: string }
 >;
 
 export type ProfileScopedDataProjectionHandlers = Readonly<{
@@ -136,12 +157,14 @@ export type AccountBootstrapFacadeDeps = Readonly<{
   telephonyGateway: TelephonyGateway;
   mediaGateway: MediaGateway;
   settingsRepository: SettingsRepository;
+  localMediaCapturePort?: LocalMediaCapturePort;
   savedAccountProfileRepository?: SavedAccountProfileRepository;
   callHistoryRepository?: CallHistoryRepository;
   contactRepository?: ContactRepository;
   contactCsvFileGateway?: ContactCsvFileGateway;
   secretStoragePort?: SecretStoragePort;
   hostIntegrationGateway?: HostIntegrationGateway;
+  headsetGateway?: HeadsetGateway;
   logger: Logger;
   eventPublisher?: DomainEventPublisher;
 }>;
@@ -165,6 +188,9 @@ export class AccountBootstrapFacade {
   readonly resumeCallUseCase: ResumeCallUseCase;
   readonly muteCallUseCase: MuteCallUseCase;
   readonly unmuteCallUseCase: UnmuteCallUseCase;
+  private readonly setLocalVideoMutedUseCase: SetLocalVideoMutedUseCase | null;
+  private readonly switchLocalVideoSourceUseCase: SwitchLocalVideoSourceUseCase | null;
+  private readonly setSessionViewModeUseCase: SetSessionViewModeUseCase;
   readonly answerCallUseCase: AnswerCallUseCase;
   readonly rejectCallUseCase: RejectCallUseCase;
   readonly sendDtmfUseCase: SendDtmfUseCase;
@@ -207,6 +233,11 @@ export class AccountBootstrapFacade {
   private sipSessionRegistered = false;
   private readonly callEngine: CallEngine;
   private readonly sipRecoveryOrchestration: SipRecoveryOrchestrationService;
+  private readonly headsetIntegration: HeadsetIntegrationService;
+  private getMultiLineProjectionRef: () => MultiLineCallProjection = initialMultiLineCallProjection;
+  private getIncomingProjectionRef: () => IncomingCallProjection = initialIncomingCallProjection;
+  private getIsDndRef: () => boolean = () => false;
+  private multiLineProjectionForToggle: MultiLineCallProjection = initialMultiLineCallProjection();
 
   constructor(private readonly deps: AccountBootstrapFacadeDeps) {
     this.eventPublisher = deps.eventPublisher ?? new InMemoryDomainEventBus();
@@ -342,6 +373,33 @@ export class AccountBootstrapFacade {
     this.resumeCallUseCase = new ResumeCallUseCase(this.callEngine, deps.logger);
     this.muteCallUseCase = new MuteCallUseCase(this.callEngine, deps.logger);
     this.unmuteCallUseCase = new UnmuteCallUseCase(this.callEngine, deps.logger);
+    if (deps.localMediaCapturePort !== undefined) {
+      this.setLocalVideoMutedUseCase = new SetLocalVideoMutedUseCase(
+        deps.localMediaCapturePort,
+        this.callEngine.getVideoMediaProjection(),
+        this.eventPublisher,
+        deps.logger,
+      );
+      this.switchLocalVideoSourceUseCase = new SwitchLocalVideoSourceUseCase(
+        deps.localMediaCapturePort,
+        this.callEngine.getVideoMediaProjection(),
+        this.eventPublisher,
+        deps.logger,
+      );
+    } else {
+      this.setLocalVideoMutedUseCase = null;
+      this.switchLocalVideoSourceUseCase = null;
+    }
+    this.setSessionViewModeUseCase = new SetSessionViewModeUseCase(
+      this.callEngine.getVideoMediaProjection(),
+      this.eventPublisher,
+      deps.logger,
+    );
+    if (deps.localMediaCapturePort?.onScreenShareEnded !== undefined) {
+      deps.localMediaCapturePort.onScreenShareEnded((callId) => {
+        void this.switchLocalVideoSourceById(callId, "camera", true);
+      });
+    }
     this.answerCallUseCase = new AnswerCallUseCase(this.callEngine, deps.logger);
     this.rejectCallUseCase = new RejectCallUseCase(
       this.callEngine,
@@ -354,6 +412,43 @@ export class AccountBootstrapFacade {
     this.attendedTransferUseCase = new AttendedTransferUseCase(this.callEngine, deps.logger);
     this.startTransferUseCase = new StartTransferUseCase(this.callEngine, deps.logger);
     this.cancelTransferUseCase = new CancelTransferUseCase(this.callEngine, deps.logger);
+
+    const headsetGateway = deps.headsetGateway ?? new MockHeadsetGateway();
+    this.headsetIntegration = new HeadsetIntegrationService({
+      gateway: headsetGateway,
+      eventPublisher: this.eventPublisher,
+      logger: deps.logger,
+      getMultiLineProjection: () => this.getMultiLineProjectionRef(),
+      getIncomingProjection: () => this.getIncomingProjectionRef(),
+      callbacks: {
+        answerCallById: (callId) => this.answerCallById(callId),
+        rejectCallById: (callId) => this.rejectCallById(callId),
+        hangupCallById: (callId) => this.hangupCallById(callId),
+        toggleHoldCallById: (callId) => this.toggleHoldCallFromHeadset(callId),
+        muteCallById: async (callId) => {
+          const result = await this.muteCall(createCallId(callId));
+          if (result.ok) {
+            this.headsetIntegration.confirmUiMuteSync(callId, true);
+          } else {
+            this.headsetIntegration.abortUiMuteSync(callId);
+          }
+          return result;
+        },
+        unmuteCallById: async (callId) => {
+          const result = await this.unmuteCall(createCallId(callId));
+          if (result.ok) {
+            this.headsetIntegration.confirmUiMuteSync(callId, false);
+          } else {
+            this.headsetIntegration.abortUiMuteSync(callId);
+          }
+          return result;
+        },
+        isDnd: () => this.getIsDndRef(),
+      },
+    });
+    this.headsetIntegration.setPreferredDeviceChangedListener((deviceId) => {
+      void this.persistHeadsetPreferredDeviceId(deviceId);
+    });
 
     deps.telephonyGateway.setIncomingCallHandler(async (notification) => {
       await this.callEngine.handleIncomingReceived({ notification });
@@ -380,6 +475,30 @@ export class AccountBootstrapFacade {
         notification.correlationId,
       ),
     );
+    deps.telephonyGateway.setRemoteVideoPresenceHandler((notification) => {
+      this.callEngine.handleRemoteVideoPresence(
+        notification.callId,
+        notification.present,
+        notification.correlationId,
+      );
+      return Promise.resolve();
+    });
+    deps.telephonyGateway.setIncomingRemoteVideoOfferedHandler((notification) => {
+      this.callEngine.handleIncomingRemoteVideoOffered(
+        notification.callId,
+        notification.offered,
+        notification.correlationId,
+      );
+      return Promise.resolve();
+    });
+    deps.telephonyGateway.setCameraAvailabilityHandler((notification) => {
+      this.callEngine.handleCameraAvailability(
+        notification.callId,
+        notification.available,
+        notification.correlationId,
+      );
+      return Promise.resolve();
+    });
 
     this.sipRecoveryOrchestration = new SipRecoveryOrchestrationService({
       telephonyGateway: deps.telephonyGateway,
@@ -460,6 +579,10 @@ export class AccountBootstrapFacade {
     if (existingAccount !== null && phoneStatus !== "offline") {
       await this.registerAccount.execute({ account: existingAccount });
     }
+
+    const accountKey = await this.resolveSettingsAccountKey();
+    const userSettings = await this.loadUserSettingsForAccountKey(accountKey);
+    await this.applyHeadsetUserSettings(userSettings);
   }
 
   async authorizeManualAccount(
@@ -704,6 +827,7 @@ export class AccountBootstrapFacade {
     return ok({
       kind: "exported",
       contactCount: exportResult.value.contactCount,
+      savedFileName: saveResult.savedFileName,
     });
   }
 
@@ -860,6 +984,7 @@ export class AccountBootstrapFacade {
     try {
       const accountKey = await this.resolveSettingsAccountKey();
       const saved = await this.saveUserSettingsInternal(accountKey, settings);
+      await this.applyHeadsetUserSettings(saved);
       return ok(saved);
     } catch (error: unknown) {
       return err(normalizeUnknownError(error));
@@ -950,6 +1075,7 @@ export class AccountBootstrapFacade {
     const settings = await this.loadUserSettingsForAccountKey(accountKey);
     this.sipRecoveryOrchestration.applyRecoverySettings(settings);
     await this.callEngine.refreshAutoAnswerSchedules();
+    await this.applyHeadsetUserSettings(settings);
   }
 
   private async saveUserSettingsInternal(
@@ -996,14 +1122,16 @@ export class AccountBootstrapFacade {
     );
   }
 
-  async makeCall(number: string, callId?: CallId): Promise<Result<Call, PlatformError>> {
-    const callInput =
-      callId === undefined
-        ? { number }
-        : {
-            number,
-            callId,
-          };
+  async makeCall(
+    number: string,
+    callId?: CallId,
+    mediaMode?: CallMediaMode,
+  ): Promise<Result<Call, PlatformError>> {
+    const callInput = {
+      number,
+      ...(callId !== undefined ? { callId } : {}),
+      ...(mediaMode !== undefined ? { mediaMode } : {}),
+    };
     return this.makeCallUseCase.execute(callInput);
   }
 
@@ -1031,7 +1159,14 @@ export class AccountBootstrapFacade {
   }
 
   async holdCallById(callId: string): Promise<Result<Call, PlatformError>> {
-    return this.holdCall(createCallId(callId));
+    if (!this.headsetIntegration.beginUiHoldSync(callId, "hold")) {
+      return err(createPlatformError("operation_failed", "headset_sync_in_progress"));
+    }
+    const result = await this.holdCall(createCallId(callId));
+    if (!result.ok) {
+      this.headsetIntegration.abortUiHoldSync(callId);
+    }
+    return result;
   }
 
   async resumeCall(callId: CallId): Promise<Result<Call, PlatformError>> {
@@ -1039,7 +1174,124 @@ export class AccountBootstrapFacade {
   }
 
   async resumeCallById(callId: string): Promise<Result<Call, PlatformError>> {
-    return this.resumeCall(createCallId(callId));
+    if (!this.headsetIntegration.beginUiHoldSync(callId, "resume")) {
+      return err(createPlatformError("operation_failed", "headset_sync_in_progress"));
+    }
+    const result = await this.resumeCall(createCallId(callId));
+    if (!result.ok) {
+      this.headsetIntegration.abortUiHoldSync(callId);
+    }
+    return result;
+  }
+
+  async toggleHoldCallById(callId: string): Promise<Result<Call, PlatformError>> {
+    const line = this.multiLineProjectionForToggle.lines.find((entry) => entry.callId === callId);
+    if (line?.state === "Held") {
+      return this.resumeCallById(callId);
+    }
+    return this.holdCallById(callId);
+  }
+
+  /**
+   * - Purpose: headset-originated hold/resume without re-arming UI hold sync.
+   * - Inputs: call id from headset focus.
+   * - Outputs: hold or resume Use Case result.
+   */
+  async toggleHoldCallFromHeadset(callId: string): Promise<Result<Call, PlatformError>> {
+    const line = this.multiLineProjectionForToggle.lines.find((entry) => entry.callId === callId);
+    if (line?.state === "Held") {
+      return this.resumeCall(createCallId(callId));
+    }
+    return this.holdCall(createCallId(callId));
+  }
+
+  setHeadsetProjectionSources(
+    getMultiLine: () => MultiLineCallProjection,
+    getIncoming: () => IncomingCallProjection,
+    getIsDnd?: () => boolean,
+  ): void {
+    this.getMultiLineProjectionRef = getMultiLine;
+    this.getIncomingProjectionRef = getIncoming;
+    if (getIsDnd !== undefined) {
+      this.getIsDndRef = getIsDnd;
+    }
+  }
+
+  setHeadsetSyncBusyListener(listener: (() => void) | null): void {
+    this.headsetIntegration.setSyncBusyListener(listener);
+  }
+
+  setHeadsetPreferredDeviceChangedListener(
+    listener: ((deviceId: string) => void) | null,
+  ): void {
+    this.headsetIntegration.setPreferredDeviceChangedListener(listener);
+  }
+
+  notifyHeadsetProjectionsChanged(multiLine: MultiLineCallProjection): void {
+    this.multiLineProjectionForToggle = multiLine;
+    this.headsetIntegration.onCallProjectionsChanged();
+  }
+
+  setHeadsetSelectedCallId(callId: string | null): void {
+    this.headsetIntegration.setSelectedCallId(callId);
+  }
+
+  getHeadsetSelectedCallId(): string | null {
+    return this.headsetIntegration.getSelectedCallId();
+  }
+
+  getHeadsetGateway(): HeadsetGateway {
+    return this.headsetIntegration.getGateway();
+  }
+
+  getHeadsetSyncBusyState(): HeadsetSyncBusyState {
+    return (
+      this.headsetIntegration.getSyncQueue()?.getBusyState() ?? {
+        holdSessionId: null,
+        muteSessionId: null,
+        isBusy: false,
+      }
+    );
+  }
+
+  async listGrantedHeadsetDevices(): Promise<
+    ReadonlyArray<Readonly<{ id: string; productName: string }>>
+  > {
+    return this.headsetIntegration.listGrantedDevices();
+  }
+
+  async connectHeadsetDevice(deviceId: string | null = null): Promise<void> {
+    await this.headsetIntegration.connectDevice(deviceId);
+  }
+
+  async disconnectHeadsetDevice(): Promise<void> {
+    await this.headsetIntegration.disconnectDevice();
+  }
+
+  async applyHeadsetUserSettings(settings: UserSettings): Promise<void> {
+    await this.headsetIntegration.applySettings(settings);
+  }
+
+  async persistHeadsetPreferredDeviceId(deviceId: string): Promise<void> {
+    try {
+      const accountKey = await this.resolveSettingsAccountKey();
+      const settings = await this.loadUserSettingsForAccountKey(accountKey);
+      if (settings.headsetPreferredDeviceId === deviceId) {
+        return;
+      }
+      await this.saveUserSettingsInternal(accountKey, {
+        ...settings,
+        headsetPreferredDeviceId: deviceId,
+      });
+    } catch (error: unknown) {
+      this.deps.logger.warn("headset_preferred_device_persist_failed", {
+        featureId: "F-012",
+        boundedContext: "Headset",
+        operation: "persist_preferred_headset",
+        result: "failure",
+        errorMessage: error instanceof Error ? error.message : "unknown",
+      });
+    }
   }
 
   async muteCall(callId: CallId): Promise<Result<Call, PlatformError>> {
@@ -1047,7 +1299,16 @@ export class AccountBootstrapFacade {
   }
 
   async muteCallById(callId: string): Promise<Result<Call, PlatformError>> {
-    return this.muteCall(createCallId(callId));
+    if (!this.headsetIntegration.beginUiMuteSync(callId, true)) {
+      return err(createPlatformError("operation_failed", "headset_sync_in_progress"));
+    }
+    const result = await this.muteCall(createCallId(callId));
+    if (!result.ok) {
+      this.headsetIntegration.abortUiMuteSync(callId);
+    } else {
+      this.headsetIntegration.confirmUiMuteSync(callId, true);
+    }
+    return result;
   }
 
   async unmuteCall(callId: CallId): Promise<Result<Call, PlatformError>> {
@@ -1055,7 +1316,144 @@ export class AccountBootstrapFacade {
   }
 
   async unmuteCallById(callId: string): Promise<Result<Call, PlatformError>> {
-    return this.unmuteCall(createCallId(callId));
+    if (!this.headsetIntegration.beginUiMuteSync(callId, false)) {
+      return err(createPlatformError("operation_failed", "headset_sync_in_progress"));
+    }
+    const result = await this.unmuteCall(createCallId(callId));
+    if (!result.ok) {
+      this.headsetIntegration.abortUiMuteSync(callId);
+    } else {
+      this.headsetIntegration.confirmUiMuteSync(callId, false);
+    }
+    return result;
+  }
+
+  getCallVideoMediaState(callId: string): CallVideoMediaState | null {
+    return this.callEngine.getCallVideoMediaState(createCallId(callId));
+  }
+
+  async setLocalVideoMutedById(
+    callId: string,
+    muted: boolean,
+  ): Promise<Result<CallVideoMediaState, PlatformError>> {
+    if (this.setLocalVideoMutedUseCase === null) {
+      return err(
+        createPlatformError("operation_failed", "local_media_capture_unavailable"),
+      );
+    }
+    return this.setLocalVideoMutedUseCase.execute({
+      callId: createCallId(callId),
+      muted,
+    });
+  }
+
+  async switchLocalVideoSourceById(
+    callId: string,
+    source: "camera" | "screen",
+    muted: boolean,
+  ): Promise<Result<CallVideoMediaState, PlatformError>> {
+    if (this.switchLocalVideoSourceUseCase === null) {
+      return err(
+        createPlatformError("operation_failed", "local_media_capture_unavailable"),
+      );
+    }
+    return this.switchLocalVideoSourceUseCase.execute({
+      callId: createCallId(callId),
+      source,
+      muted,
+    });
+  }
+
+  setSessionViewModeById(
+    callId: string,
+    sessionView: SessionViewMode,
+  ): Result<CallVideoMediaState, PlatformError> {
+    return this.setSessionViewModeUseCase.execute({
+      callId: createCallId(callId),
+      sessionView,
+    });
+  }
+
+  async bindCallVideoSurfacesById(
+    callId: string,
+    remoteVideoElement: unknown,
+    localVideoElement: unknown,
+  ): Promise<Result<void, PlatformError>> {
+    return this.deps.mediaGateway.bindCallVideoSurfaces({
+      callId: createCallId(callId),
+      correlationId: createCorrelationId(),
+      remoteVideoElement,
+      localVideoElement,
+    });
+  }
+
+  async listMediaInputDevices(): Promise<
+    Result<ReadonlyArray<MediaInputDeviceInfo>, PlatformError>
+  > {
+    const port = this.deps.localMediaCapturePort;
+    if (port === undefined) {
+      return err(
+        createPlatformError("operation_failed", "local_media_capture_unavailable"),
+      );
+    }
+    return port.listInputDevices(createCorrelationId());
+  }
+
+  async startCameraPreview(
+    videoDeviceId?: string,
+  ): Promise<Result<StartCameraPreviewResult, PlatformError>> {
+    const port = this.deps.localMediaCapturePort;
+    if (port === undefined) {
+      return err(
+        createPlatformError("operation_failed", "local_media_capture_unavailable"),
+      );
+    }
+    return port.startCameraPreview({
+      correlationId: createCorrelationId(),
+      ...(videoDeviceId !== undefined ? { videoDeviceId } : {}),
+    });
+  }
+
+  async stopCameraPreview(
+    handle: LocalMediaStreamHandle,
+  ): Promise<Result<void, PlatformError>> {
+    const port = this.deps.localMediaCapturePort;
+    if (port === undefined) {
+      return err(
+        createPlatformError("operation_failed", "local_media_capture_unavailable"),
+      );
+    }
+    return port.stopCameraPreview({
+      handle,
+      correlationId: createCorrelationId(),
+    });
+  }
+
+  bindCameraPreviewElement(
+    handle: LocalMediaStreamHandle,
+    videoElement: unknown,
+  ): Result<void, PlatformError> {
+    const port = this.deps.localMediaCapturePort;
+    if (port === undefined || port.getStreamForHandle === undefined) {
+      return err(
+        createPlatformError("operation_failed", "local_media_capture_unavailable"),
+      );
+    }
+    if (!(videoElement instanceof HTMLVideoElement)) {
+      return err(
+        createPlatformError("validation_failed", "camera_preview_element_invalid"),
+      );
+    }
+    const stream = port.getStreamForHandle(handle);
+    if (stream === null) {
+      return err(
+        createPlatformError("operation_failed", "camera_preview_handle_unknown"),
+      );
+    }
+    videoElement.srcObject = stream;
+    videoElement.muted = true;
+    void videoElement.play().catch(() => undefined);
+    return ok(undefined);
   }
 
   async blindTransfer(
@@ -1130,12 +1528,21 @@ export class AccountBootstrapFacade {
     return this.cancelTransfer(createCallId(callId));
   }
 
-  async answerCall(callId: CallId): Promise<Result<Call, PlatformError>> {
-    return this.answerCallUseCase.execute({ callId });
+  async answerCall(
+    callId: CallId,
+    mediaMode?: "audio" | "video",
+  ): Promise<Result<Call, PlatformError>> {
+    return this.answerCallUseCase.execute({
+      callId,
+      ...(mediaMode !== undefined ? { mediaMode } : {}),
+    });
   }
 
-  async answerCallById(callId: string): Promise<Result<Call, PlatformError>> {
-    return this.answerCall(createCallId(callId));
+  async answerCallById(
+    callId: string,
+    mediaMode?: "audio" | "video",
+  ): Promise<Result<Call, PlatformError>> {
+    return this.answerCall(createCallId(callId), mediaMode);
   }
 
   async rejectCall(
@@ -1319,6 +1726,10 @@ export class AccountBootstrapFacade {
     correlationId: CorrelationId,
   ): Promise<void> {
     return this.callEngine.handlePeerConnectionAvailable(callId, correlationId);
+  }
+
+  notifyRemoteVideoPresenceFromMedia(callId: CallId, present: boolean): void {
+    this.callEngine.handleRemoteVideoPresence(callId, present);
   }
 }
 

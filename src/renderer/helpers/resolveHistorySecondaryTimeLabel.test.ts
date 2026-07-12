@@ -12,8 +12,11 @@ describe("resolveHistorySecondaryTimeLabel", () => {
     presentationSource: "number" as const,
     directionKey: "history.direction.incoming" as const,
     outcomeKey: "history.outcome.missed" as const,
+    endReasonKey: "history.endReason.remote_cancel" as const,
     startedAtIso: "2026-07-07T13:05:00.000Z",
     durationSec: 0,
+    ringDurationSec: 0,
+    talkDurationSec: 0,
     redialDisabledReasonKey: null,
   };
 
@@ -21,25 +24,26 @@ describe("resolveHistorySecondaryTimeLabel", () => {
     const label = resolveHistorySecondaryTimeLabel({
       entry: baseEntry,
       language: "en",
-      translateDuration: (seconds) => `${seconds}s`,
       formatClockTime: () => "13:05",
     });
 
     expect(label).toBe("13:05");
   });
 
-  it("shows duration for completed answered calls", () => {
+  it("shows clock time for completed answered calls", () => {
     const label = resolveHistorySecondaryTimeLabel({
       entry: {
         ...baseEntry,
         outcomeKey: "history.outcome.completed",
+        endReasonKey: "history.endReason.local_hangup",
         durationSec: 90,
+        ringDurationSec: 20,
+        talkDurationSec: 70,
       },
       language: "en",
-      translateDuration: (seconds) => `${seconds}s`,
       formatClockTime: () => "13:05",
     });
 
-    expect(label).toBe("90s");
+    expect(label).toBe("13:05");
   });
 });

@@ -12,7 +12,9 @@ export type ActiveControlDisabledReason =
   | "mute_requires_active_or_held"
   | "already_muted"
   | "not_muted"
-  | "hangup_not_allowed";
+  | "hangup_not_allowed"
+  | "headset_sync_in_progress"
+  | "outgoing_dial_in_progress";
 
 export type ActiveCallControlOperationError = Readonly<{
   operation: ActiveCallControlOperation;

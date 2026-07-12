@@ -3,11 +3,34 @@ import { createDefaultUserSettings } from "./UserSettings.js";
 import { validateUserSettings } from "./validateUserSettings.js";
 
 describe("validateUserSettings", () => {
-  it("accepts default v3 settings", () => {
+  it("accepts optional headsetPreferredDeviceId", () => {
+    const result = validateUserSettings({
+      ...createDefaultUserSettings(),
+      headsetPreferredDeviceId: "0b0e:0300:Jabra",
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.headsetPreferredDeviceId).toBe("0b0e:0300:Jabra");
+    }
+  });
+
+  it("accepts default v5 settings", () => {
     const result = validateUserSettings(createDefaultUserSettings());
+
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value).toEqual(createDefaultUserSettings());
+    }
+  });
+
+  it("defaults headsetPreferredDeviceId to null when missing", () => {
+    const payload = { ...createDefaultUserSettings() } as Record<string, unknown>;
+    delete payload["headsetPreferredDeviceId"];
+    const result = validateUserSettings(payload);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.headsetPreferredDeviceId).toBeNull();
     }
   });
 
@@ -32,11 +55,8 @@ describe("validateUserSettings", () => {
 
   it("rejects invalid auto-answer timeout", () => {
     const result = validateUserSettings({
-      schemaVersion: 3,
-      multiSessionsEnabled: true,
-      autoUnholdOnTransferFailure: true,
+      ...createDefaultUserSettings(),
       autoAnswerTimeoutSec: -1,
-      ringbackToneEnabled: true,
     });
     expect(result.ok).toBe(false);
     if (!result.ok) {
@@ -46,23 +66,16 @@ describe("validateUserSettings", () => {
 
   it("rejects missing boolean fields", () => {
     const result = validateUserSettings({
-      schemaVersion: 3,
+      schemaVersion: 5,
       autoAnswerTimeoutSec: null,
     });
     expect(result.ok).toBe(false);
   });
 
   it("defaults theme to light when field is missing", () => {
-    const result = validateUserSettings({
-      schemaVersion: 3,
-      multiSessionsEnabled: true,
-      autoUnholdOnTransferFailure: true,
-      autoAnswerTimeoutSec: null,
-      ringbackToneEnabled: true,
-      sipAutoReregisterEnabled: true,
-      sipReregisterIntervalSec: 5,
-      sipReregisterMaxAttempts: 3,
-    });
+    const payload = { ...createDefaultUserSettings() } as Record<string, unknown>;
+    delete payload["theme"];
+    const result = validateUserSettings(payload);
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.theme).toBe("light");
@@ -81,16 +94,9 @@ describe("validateUserSettings", () => {
   });
 
   it("defaults autoAnswerDuringActiveSessionEnabled when field is missing", () => {
-    const result = validateUserSettings({
-      schemaVersion: 3,
-      multiSessionsEnabled: true,
-      autoUnholdOnTransferFailure: true,
-      autoAnswerTimeoutSec: null,
-      ringbackToneEnabled: true,
-      sipAutoReregisterEnabled: true,
-      sipReregisterIntervalSec: 5,
-      sipReregisterMaxAttempts: 3,
-    });
+    const payload = { ...createDefaultUserSettings() } as Record<string, unknown>;
+    delete payload["autoAnswerDuringActiveSessionEnabled"];
+    const result = validateUserSettings(payload);
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value.autoAnswerDuringActiveSessionEnabled).toBe(false);
@@ -192,7 +198,7 @@ describe("validateUserSettings", () => {
     }
   });
 
-  it("accepts v3 codec preferences payload", () => {
+  it("accepts v5 codec preferences payload", () => {
     const defaults = createDefaultUserSettings();
     const result = validateUserSettings({
       ...defaults,
@@ -208,6 +214,53 @@ describe("validateUserSettings", () => {
       expect(result.value.codecPreferences.audio.find((entry) => entry.id === "opus")?.enabled).toBe(
         false,
       );
+    }
+  });
+
+  it("accepts video call preference fields", () => {
+    const result = validateUserSettings({
+      ...createDefaultUserSettings(),
+      preferredAudioInputDeviceId: "mic-1",
+      preferredVideoInputDeviceId: "cam-2",
+      defaultSessionView: "expanded",
+      autoFullscreenOnConference: true,
+      conferenceNumberSubstring: "vconf-sel",
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.preferredAudioInputDeviceId).toBe("mic-1");
+      expect(result.value.preferredVideoInputDeviceId).toBe("cam-2");
+      expect(result.value.defaultSessionView).toBe("expanded");
+      expect(result.value.autoFullscreenOnConference).toBe(true);
+      expect(result.value.conferenceNumberSubstring).toBe("vconf-sel");
+    }
+  });
+
+  it("defaults missing video preference fields", () => {
+    const payload = { ...createDefaultUserSettings() } as Record<string, unknown>;
+    delete payload["preferredAudioInputDeviceId"];
+    delete payload["preferredVideoInputDeviceId"];
+    delete payload["defaultSessionView"];
+    delete payload["autoFullscreenOnConference"];
+    delete payload["conferenceNumberSubstring"];
+    const result = validateUserSettings(payload);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.preferredAudioInputDeviceId).toBeNull();
+      expect(result.value.defaultSessionView).toBe("expanded");
+      expect(result.value.autoFullscreenOnConference).toBe(false);
+      expect(result.value.conferenceNumberSubstring).toBeNull();
+    }
+  });
+
+  it("rejects invalid defaultSessionView", () => {
+    const result = validateUserSettings({
+      ...createDefaultUserSettings(),
+      defaultSessionView: "minified",
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors).toContain("defaultSessionView_invalid");
     }
   });
 });

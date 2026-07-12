@@ -1,0 +1,88 @@
+.bar {
+  position: absolute;
+  left: 50%;
+  bottom: var(--space-lg);
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-md);
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-border-control) 28%, transparent);
+  background: color-mix(in srgb, var(--color-bg-surface) 22%, transparent);
+  backdrop-filter: blur(28px) saturate(1.35);
+  -webkit-backdrop-filter: blur(28px) saturate(1.35);
+  box-shadow: var(--shadow-menu-elevated);
+  pointer-events: auto;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    color 140ms ease;
+}
+
+.button:hover:not(:disabled):not(.button-off):not(.hangup) {
+  background: color-mix(in srgb, var(--color-bg-surface-highlight) 55%, transparent);
+}
+
+.button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--color-outline-focus);
+  outline-offset: 2px;
+}
+
+.button-off {
+  color: var(--color-text-on-accent);
+  background: var(--color-status-failed);
+}
+
+.button-off:hover:not(:disabled) {
+  color: var(--color-text-on-accent);
+  background: var(--color-status-failed-hover);
+}
+
+.hangup {
+  color: var(--color-text-on-accent);
+  background: var(--color-status-failed);
+}
+
+.hangup:hover:not(:disabled) {
+  color: var(--color-text-on-accent);
+  background: var(--color-status-failed-hover);
+  filter: none;
+  opacity: 1;
+}
+
+/*
+ * Light theme over dark video: default icons white; hover = soft white plate.
+ * Off/hangup keep red plate + white icon.
+ */
+:root:not([data-theme="dark"]) .bar {
+  border: 1px solid color-mix(in srgb, #ffffff 22%, transparent);
+  background: color-mix(in srgb, #ffffff 14%, transparent);
+}
+
+:root:not([data-theme="dark"]) .button:not(.button-off):not(.hangup) {
+  color: #ffffff;
+}
+
+:root:not([data-theme="dark"]) .button:hover:not(:disabled):not(.button-off):not(.hangup) {
+  background: color-mix(in srgb, #ffffff 22%, transparent);
+  color: #ffffff;
+}

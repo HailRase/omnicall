@@ -5,6 +5,8 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefaults.js";
 import { settingsCodecTestDefaults } from "./panels/settingsCodecTestDefaults.js";
+import { settingsHeadsetTestDefaults } from "./panels/settingsHeadsetTestDefaults.js";
+import { settingsVideoTestDefaults } from "./panels/settingsVideoTestDefaults.js";
 import { settingsAccountTestDefaults } from "./panels/settingsAccountTestDefaults.js";
 import { setupJsdomRadix } from "../../test/setupJsdomRadix.js";
 import { SettingsPanel } from "./SettingsPanel.js";
@@ -57,7 +59,6 @@ const autoAnswerDefaults = {
 const codecDefaults = settingsCodecTestDefaults;
 
 const panelBaseProps = {
-  isSipRegistered: true,
   sidebarExpanded: false,
   onClose: vi.fn(),
   onSectionChange: vi.fn(),
@@ -70,6 +71,28 @@ const panelBaseProps = {
   ...autoAnswerDefaults,
   ...appUpdateDefaults,
   ...codecDefaults,
+  ...settingsHeadsetTestDefaults,
+  preferredAudioInputDeviceId: settingsVideoTestDefaults.preferredAudioInputDeviceId,
+  preferredVideoInputDeviceId: settingsVideoTestDefaults.preferredVideoInputDeviceId,
+  defaultSessionView: settingsVideoTestDefaults.defaultSessionView,
+  autoFullscreenOnConference: settingsVideoTestDefaults.autoFullscreenOnConference,
+  conferenceNumberSubstring: settingsVideoTestDefaults.conferenceNumberSubstring,
+  videoAudioDevices: settingsVideoTestDefaults.audioDevices,
+  videoCameraDevices: settingsVideoTestDefaults.videoDevices,
+  videoDevicesLoading: settingsVideoTestDefaults.devicesLoading,
+  videoDevicesError: settingsVideoTestDefaults.devicesError,
+  videoPreviewError: settingsVideoTestDefaults.previewError,
+  videoPreviewRef: settingsVideoTestDefaults.previewVideoRef,
+  onPreferredAudioInputDeviceIdChange:
+    settingsVideoTestDefaults.onPreferredAudioInputDeviceIdChange,
+  onPreferredVideoInputDeviceIdChange:
+    settingsVideoTestDefaults.onPreferredVideoInputDeviceIdChange,
+  onDefaultSessionViewChange: settingsVideoTestDefaults.onDefaultSessionViewChange,
+  onAutoFullscreenOnConferenceChange:
+    settingsVideoTestDefaults.onAutoFullscreenOnConferenceChange,
+  onConferenceNumberSubstringChange:
+    settingsVideoTestDefaults.onConferenceNumberSubstringChange,
+  onRefreshVideoDevices: settingsVideoTestDefaults.onRefreshDevices,
 } as const;
 
 describe("SettingsPanel", () => {
@@ -135,6 +158,13 @@ describe("SettingsPanel", () => {
 
     await user.click(screen.getByTestId("settings-nav-system-state"));
     expect(onSectionChange).toHaveBeenCalledWith("system-state");
+  });
+
+  it("renders video settings panel", () => {
+    render(<SettingsPanel {...panelBaseProps} activeSection="video" />);
+
+    expect(screen.getByTestId("settings-video-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("settings-section-title")).toHaveTextContent("Настройки (Видео)");
   });
 
   it("renders system state panel with Russian labels", () => {

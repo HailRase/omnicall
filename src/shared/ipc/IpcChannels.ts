@@ -14,6 +14,9 @@ export const IPC_CHANNELS = {
   secretsInvoke: "secrets:invoke",
   contactsCsvOpenImportDialog: "contacts-csv:open-import-dialog",
   contactsCsvSaveExportDialog: "contacts-csv:save-export-dialog",
+  headsetSetPreferredDeviceId: "headset:set-preferred-device-id",
+  mediaListDisplaySources: "media:list-display-sources",
+  mediaSetPendingDisplaySource: "media:set-pending-display-source",
 } as const;
 
 export type IpcChannel =

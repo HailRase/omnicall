@@ -103,7 +103,7 @@ Deprecated operator-related IDs (non-exhaustive): `LF-001`–`LF-005`, `LF-018`�
 | LF-050 | P07 | Operator | High | Block call button from legacy RESERVED state | `useBlockedCallButton` | legacy operator platform reserved state disables calling deterministically. |
 | LF-051 | P12 | Integration | High | External call button block | `setCallButtonDisabled` | Host API can block call button through typed adapter. |
 | LF-052 | P09 | Telephony | Medium | Redial or call from journal | `Display`, `Journal` | History entries can initiate calls via Use Case. |
-| LF-053 | P09 | Settings | Medium | Call history in local storage | `call-history`, `Journal` | Call events persist through repository abstraction. |
+| LF-053 | P09 | Settings | Medium | Call history in local storage | `call-history`, `Journal` | Call events persist through repository abstraction. Evidence: `CallHistoryEntry` v2 (`endReason`, ring/talk durations), `persistedCallHistory` schema v2 + v1 migrate, `CallHistoryCallTracker`, `RecordCallHistoryUseCase`. |
 | LF-054 | P09 | Settings | Low | Limit call history to 100 records | `saveCall` | Repository enforces retention policy. |
 | LF-055 | P11 | UI | Medium | Collapse and expand UI | `CollapseButton`, `Display` | Desktop shell supports compact softphone mode; shell window layout expands for settings (F-016) — `ShellWindowLayout`, `ShellWindowController`. |
 | LF-056 | P11 | UI | Low | Draggable widget | `DraggableButton` | Startup/settings anchor via `ShellWindowController.placeCompactAtStartup` + `resolveShellWindowTargetBounds` (F-016); full drag handle deferred. |
@@ -121,11 +121,11 @@ Deprecated operator-related IDs (non-exhaustive): `LF-001`–`LF-005`, `LF-018`�
 | LF-068 | P09 | Telephony | Low | SIP message logging | `initUAConfig` socket wrap | SIP diagnostics can be enabled without leaking secrets. |
 | LF-069 | P09 | Integration | Medium | Export logs to Excel | `Logs`, `xlsx` | Logs export works through explicit diagnostics UI. |
 | LF-070 | P09 | UI | Low | SIP and non-SIP log filter | `Logs` | Diagnostics UI filters log categories. |
-| LF-071 | P10 | Headset | High | WebHID headset connection | `headsetConnection` | Device connection is isolated behind `HeadsetGateway`. |
-| LF-072 | P10 | Headset | High | HID hook controls answer, hangup, hold | `usePhoneCommands`, orchestrator | Hardware commands enter through Use Cases. |
-| LF-073 | P10 | Headset | Medium | HID mute sync and LED | `ledOutputSync`, `useHidLedSync` | LED state follows media projection. |
-| LF-074 | P10 | UI | Medium | Headset UI block during sync | `useHeadsetCallController` | UI prevents conflicting actions during headset sync. |
-| LF-075 | P10 | Headset | Medium | Native Jabra adapter | `headsetAdapters` | Vendor implementation stays inside adapter. |
+| LF-071 | P10 | Headset | High | WebHID headset connection | `headsetConnection` | `HeadsetGateway` + `WebHidHeadsetAdapter`, settings connect/disconnect, Electron HID permissions — `src/ports/headset/`, `src/adapters/headset/webhid/`, `src/main/index.ts` (`setupHidPermissions`). |
+| LF-072 | P10 | Headset | High | HID hook controls answer, hangup, hold | `usePhoneCommands`, orchestrator | `HeadsetSessionOrchestrator`, `forwardHeadsetHardwareEvent.ts`, facade Use Cases — hardware never bypasses Call Engine. |
+| LF-073 | P10 | Headset | Medium | HID mute sync and LED | `ledOutputSync`, `useHidLedSync` | `resolveDeviceCommandsFromSnapshot.ts`, `hidLedOutput.ts`, snapshot-diff reconcile in orchestrator. |
+| LF-074 | P10 | UI | Medium | Headset UI block during sync | `useHeadsetCallController` | `headsetSyncBusyProjection.ts`, `applyHeadsetSyncBusyToActiveCallControls.ts`, `useCallFeatureShell.ts`. |
+| LF-075 | P10 | Headset | Medium | Native Jabra adapter | `headsetAdapters` | v1: vendor profiles in Web HID (`hidParsers.ts`, `hidLedOutput.ts`); native SDK deferred per ADR-0007. |
 | LF-076 | P11 | Settings | High | Auto-answer, RBT, multisession settings | `Common`, `setUserConfig` | WU1: `SettingsOverlay` multi-session toggle. WU3: settings via avatar menu. WU4: schema fields `autoAnswerTimeoutSec`, `ringbackToneEnabled`, `multiSessionsEnabled` in `UserSettings` v1 — `P11-Settings-Schema-Design.md`. |
 | LF-077 | P11 | Settings | High | Per-user config in local storage | `JSSIP_CONFIGS` | WU4: `UserSettings` v3 schema. **F-023 done:** disk persistence, profile switch on authorize, composite profile key — `P11-Local-Account-Profiles-Design.md`, `FileSettingsRepository.ts`, `AccountBootstrapFacade.test.ts` (A→B→A). **F-024 done:** saved SIP profile list + quick sign-in UI — `SavedAccountProfile.ts`, `SavedAccountProfileSelector.tsx`, `handoffs/P11-F024-Saved-Account-Profiles-Handoff.md`. |
 | LF-078 | P06 | Settings | Medium | Break reasons from legacy platform (removed) | `setBreakReasons` | WU3: `legacy break-reasons sync`, `BreakReasonsReceived`, `SettingsRepository.setAllowedBreakReasons` — see `removed archives|

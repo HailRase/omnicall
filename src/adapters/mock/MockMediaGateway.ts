@@ -1,5 +1,6 @@
 import type {
   AttachRemoteAudioCommand,
+  BindCallVideoSurfacesCommand,
   MediaGateway,
   MuteCallCommand,
   PlayBusyToneCommand,
@@ -28,6 +29,7 @@ export type MockMediaScenario = "success" | "failure";
 export class MockMediaGateway implements MediaGateway {
   private scenario: MockMediaScenario;
   private readonly remoteAudioAttachedCalls = new Set<string>();
+  private readonly videoSurfaceBoundCalls = new Set<string>();
   private readonly ringbackCalls = new Set<string>();
   private readonly incomingRingtoneCalls = new Set<string>();
   private readonly busyToneCalls = new Set<string>();
@@ -45,6 +47,10 @@ export class MockMediaGateway implements MediaGateway {
 
   isRemoteAudioAttached(callId: string): boolean {
     return this.remoteAudioAttachedCalls.has(callId);
+  }
+
+  isVideoSurfaceBound(callId: string): boolean {
+    return this.videoSurfaceBoundCalls.has(callId);
   }
 
   isRingbackPlaying(callId: string): boolean {
@@ -88,6 +94,23 @@ export class MockMediaGateway implements MediaGateway {
     this.remoteAudioAttachedCalls.clear();
     this.remoteAudioAttachedCalls.add(command.callId);
     return Promise.resolve(ok("attached"));
+  }
+
+  bindCallVideoSurfaces(
+    command: BindCallVideoSurfacesCommand,
+  ): Promise<Result<void, PlatformError>> {
+    if (this.scenario === "failure") {
+      return Promise.resolve(
+        err(
+          createPlatformError(
+            "operation_failed",
+            `Video surface bind failed for ${command.callId}`,
+          ),
+        ),
+      );
+    }
+    this.videoSurfaceBoundCalls.add(command.callId);
+    return Promise.resolve(ok(undefined));
   }
 
   playRingbackTone(

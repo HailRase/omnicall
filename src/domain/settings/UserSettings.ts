@@ -24,8 +24,16 @@ import {
   type NotificationPlacement,
   type NotificationStacking,
 } from "./NotificationSettings.js";
+import type { SessionViewMode } from "../media/SessionViewMode.js";
+import {
+  DEFAULT_AUTO_FULLSCREEN_ON_CONFERENCE,
+  DEFAULT_CONFERENCE_NUMBER_SUBSTRING,
+  DEFAULT_DEFAULT_SESSION_VIEW,
+  DEFAULT_PREFERRED_AUDIO_INPUT_DEVICE_ID,
+  DEFAULT_PREFERRED_VIDEO_INPUT_DEVICE_ID,
+} from "./VideoCallSettings.js";
 
-export const SETTINGS_SCHEMA_VERSION = 3 as const;
+export const SETTINGS_SCHEMA_VERSION = 5 as const;
 
 export type SettingsSchemaVersion = typeof SETTINGS_SCHEMA_VERSION;
 
@@ -56,14 +64,28 @@ export type UserSettings = Readonly<{
   /** Suppress startup update banner until manifest reports a newer version. */
   dismissedUpdateBannerVersion: string | null;
   codecPreferences: CodecPreferences;
+  headsetEnabled: boolean;
+  headsetAutoReconnect: boolean;
+  /** Last successfully connected headset id (`vendorId:productId:productName`). */
+  headsetPreferredDeviceId: string | null;
+  /** Preferred mic deviceId; null = browser/system default. */
+  preferredAudioInputDeviceId: string | null;
+  /** Preferred camera deviceId; null = browser/system default. */
+  preferredVideoInputDeviceId: string | null;
+  /** Session layout applied when a video call connects. */
+  defaultSessionView: SessionViewMode;
+  /** When true and conference substring matches remote number, open fullscreen. */
+  autoFullscreenOnConference: boolean;
+  /** Optional remote-number substring for conference auto-fullscreen; null disables match. */
+  conferenceNumberSubstring: string | null;
 }>;
 
 export { MIN_SIP_REREGISTER_INTERVAL_SEC, MIN_SIP_RECONNECT_INTERVAL_SEC };
 
 /**
- * - Purpose: default v2 user settings for fresh install.
+ * - Purpose: default user settings for fresh install.
  * - Inputs: none.
- * - Outputs: validated UserSettings v2 aggregate.
+ * - Outputs: validated UserSettings aggregate at current schema version.
  */
 export function createDefaultUserSettings(): UserSettings {
   return {
@@ -89,5 +111,13 @@ export function createDefaultUserSettings(): UserSettings {
     sipAutoRegisterOnStartup: false,
     dismissedUpdateBannerVersion: null,
     codecPreferences: createDefaultCodecPreferences(),
+    headsetEnabled: false,
+    headsetAutoReconnect: true,
+    headsetPreferredDeviceId: null,
+    preferredAudioInputDeviceId: DEFAULT_PREFERRED_AUDIO_INPUT_DEVICE_ID,
+    preferredVideoInputDeviceId: DEFAULT_PREFERRED_VIDEO_INPUT_DEVICE_ID,
+    defaultSessionView: DEFAULT_DEFAULT_SESSION_VIEW,
+    autoFullscreenOnConference: DEFAULT_AUTO_FULLSCREEN_ON_CONFERENCE,
+    conferenceNumberSubstring: DEFAULT_CONFERENCE_NUMBER_SUBSTRING,
   };
 }

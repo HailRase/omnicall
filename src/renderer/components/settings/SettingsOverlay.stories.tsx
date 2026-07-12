@@ -4,6 +4,8 @@ import { SettingsPanel } from "./SettingsPanel.js";
 import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefaults.js";
 import { settingsCodecTestDefaults } from "./panels/settingsCodecTestDefaults.js";
 import { settingsAccountTestDefaults } from "./panels/settingsAccountTestDefaults.js";
+import { settingsHeadsetStoryDefaults } from "./panels/settingsHeadsetTestDefaults.js";
+import { settingsVideoStoryDefaults } from "./panels/settingsVideoTestDefaults.js";
 import type { ShellWindowControlsViewModel } from "../../hooks/useShellWindowControls.js";
 
 const storyWindowControls: ShellWindowControlsViewModel = {
@@ -76,7 +78,6 @@ const appUpdateDefaults = {
 } as const;
 
 const panelDefaults = {
-  isSipRegistered: true,
   sidebarExpanded: false,
   onClose: () => undefined,
   onSectionChange: () => undefined,
@@ -89,6 +90,28 @@ const panelDefaults = {
   ...themeDefaults,
   ...autoAnswerDefaults,
   ...appUpdateDefaults,
+  ...settingsHeadsetStoryDefaults,
+  preferredAudioInputDeviceId: settingsVideoStoryDefaults.preferredAudioInputDeviceId,
+  preferredVideoInputDeviceId: settingsVideoStoryDefaults.preferredVideoInputDeviceId,
+  defaultSessionView: settingsVideoStoryDefaults.defaultSessionView,
+  autoFullscreenOnConference: settingsVideoStoryDefaults.autoFullscreenOnConference,
+  conferenceNumberSubstring: settingsVideoStoryDefaults.conferenceNumberSubstring,
+  videoAudioDevices: settingsVideoStoryDefaults.audioDevices,
+  videoCameraDevices: settingsVideoStoryDefaults.videoDevices,
+  videoDevicesLoading: settingsVideoStoryDefaults.devicesLoading,
+  videoDevicesError: settingsVideoStoryDefaults.devicesError,
+  videoPreviewError: settingsVideoStoryDefaults.previewError,
+  videoPreviewRef: settingsVideoStoryDefaults.previewVideoRef,
+  onPreferredAudioInputDeviceIdChange:
+    settingsVideoStoryDefaults.onPreferredAudioInputDeviceIdChange,
+  onPreferredVideoInputDeviceIdChange:
+    settingsVideoStoryDefaults.onPreferredVideoInputDeviceIdChange,
+  onDefaultSessionViewChange: settingsVideoStoryDefaults.onDefaultSessionViewChange,
+  onAutoFullscreenOnConferenceChange:
+    settingsVideoStoryDefaults.onAutoFullscreenOnConferenceChange,
+  onConferenceNumberSubstringChange:
+    settingsVideoStoryDefaults.onConferenceNumberSubstringChange,
+  onRefreshVideoDevices: settingsVideoStoryDefaults.onRefreshDevices,
 } as const;
 
 export const GeneralSection: Story = {
@@ -150,6 +173,32 @@ export const CodecsSection: Story = {
   args: {
     ...panelDefaults,
     activeSection: "codecs",
+  },
+};
+
+export const HeadsetSection: Story = {
+  args: {
+    ...panelDefaults,
+    activeSection: "headset",
+    headsetEnabled: true,
+    headsetConnectionProjection: {
+      ...settingsHeadsetStoryDefaults.headsetConnectionProjection,
+      isSupported: true,
+      isEnabled: true,
+      connectionState: "connected",
+      deviceLabel: "Jabra Evolve2 65",
+    },
+  },
+};
+
+export const VideoSection: Story = {
+  args: {
+    ...panelDefaults,
+    activeSection: "video",
+    preferredVideoInputDeviceId: "cam-1",
+    defaultSessionView: "expanded",
+    autoFullscreenOnConference: true,
+    conferenceNumberSubstring: "conf",
   },
 };
 

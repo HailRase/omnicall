@@ -55,6 +55,28 @@ describe("ContactCsvCodec", () => {
     expect(parsed.value.rows[1]?.values.notes).toBe('Note "VIP"');
   });
 
+  it("parses Excel-style semicolon-delimited CSV", () => {
+    const csv = [
+      "displayName;primaryPhone;secondaryPhone;company;notes",
+      "Alex Agent;+12025550100;;Axatalk;",
+    ].join("\n");
+
+    const parsed = parseContactsCsv(csv);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      return;
+    }
+
+    expect(parsed.value.rows).toHaveLength(1);
+    expect(parsed.value.rows[0]?.values).toEqual({
+      displayName: "Alex Agent",
+      primaryPhone: "+12025550100",
+      secondaryPhone: "",
+      company: "Axatalk",
+      notes: "",
+    });
+  });
+
   it("rejects invalid quotes and missing headers", () => {
     expect(parseContactsCsv('"unclosed').ok).toBe(false);
     expect(parseContactsCsv("name,phone\nAlex,+1202").ok).toBe(false);

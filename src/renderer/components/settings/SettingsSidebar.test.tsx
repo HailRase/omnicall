@@ -20,7 +20,6 @@ function renderSidebar(
     <SettingsSidebar
       activeSection="general"
       expanded={false}
-      isSipRegistered={true}
       onSectionChange={vi.fn()}
       onToggleExpanded={vi.fn()}
       {...props}
@@ -64,13 +63,13 @@ describe("SettingsSidebar", () => {
     expect(screen.getByText("Диагностика")).toBeVisible();
   });
 
-  it("disables non-account sections when SIP is not registered", () => {
-    renderSidebar({ activeSection: "account", isSipRegistered: false });
+  it("keeps all sections enabled when SIP is not registered", () => {
+    renderSidebar({ activeSection: "account" });
 
     expect(screen.getByTestId("settings-nav-account")).toBeEnabled();
-    expect(screen.getByTestId("settings-nav-general")).toBeDisabled();
-    expect(screen.getByTestId("settings-nav-sessions")).toBeDisabled();
-    expect(screen.getByTestId("settings-nav-diagnostics")).toBeDisabled();
+    expect(screen.getByTestId("settings-nav-general")).toBeEnabled();
+    expect(screen.getByTestId("settings-nav-sessions")).toBeEnabled();
+    expect(screen.getByTestId("settings-nav-diagnostics")).toBeEnabled();
   });
 
   it("shows full system-state label without truncation when expanded", () => {
@@ -96,8 +95,8 @@ describe("SettingsSidebar", () => {
     expect(screen.getByRole("tooltip")).toHaveTextContent("Состояние системы");
   });
 
-  it("shows disabled reason tooltip for locked sections when collapsed", () => {
-    renderSidebar({ isSipRegistered: false });
+  it("shows section tooltip on collapsed nav hover when SIP is not registered", () => {
+    renderSidebar();
 
     const generalButton = screen.getByTestId("settings-nav-general");
     const tooltipHost = generalButton.closest('[data-testid="icon-tooltip-host"]');
@@ -108,9 +107,7 @@ describe("SettingsSidebar", () => {
       vi.advanceTimersByTime(ICON_TOOLTIP_DELAY_MS);
     });
 
-    expect(screen.getByRole("tooltip")).toHaveTextContent(
-      "Сначала авторизуйтесь в разделе «Аккаунт»",
-    );
+    expect(screen.getByRole("tooltip")).toHaveTextContent("Общее");
   });
 
   it("does not show nav tooltips when expanded", () => {

@@ -3,6 +3,7 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { UpdateAvailableBanner } from "./UpdateAvailableBanner.js";
+import styles from "./UpdateAvailableBanner.module.css";
 
 afterEach(() => {
   cleanup();
@@ -26,6 +27,7 @@ describe("UpdateAvailableBanner", () => {
   it("renders overlay card with title and latest version", () => {
     render(<UpdateAvailableBanner {...baseProps} />);
 
+    expect(screen.getByTestId("update-available-banner-anchor")).toBeInTheDocument();
     expect(screen.getByTestId("update-available-banner")).toBeInTheDocument();
     expect(screen.getByText("Доступно обновление")).toBeInTheDocument();
     expect(screen.getByTestId("update-available-banner-message")).toHaveTextContent("2.0.0");
@@ -34,6 +36,12 @@ describe("UpdateAvailableBanner", () => {
     expect(screen.queryByTestId("update-available-banner-dismiss")).not.toBeInTheDocument();
     expect(screen.queryByTestId("update-available-banner-release-notes")).not.toBeInTheDocument();
     expect(screen.queryByTestId("update-available-banner-backdrop")).not.toBeInTheDocument();
+  });
+
+  it("anchors below shell window controls via shared banner top token class", () => {
+    render(<UpdateAvailableBanner {...baseProps} />);
+
+    expect(screen.getByTestId("update-available-banner-anchor")).toHaveClass(styles.anchor);
   });
 
   it("calls download callback from primary action", () => {
