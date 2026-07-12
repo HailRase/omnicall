@@ -169,6 +169,17 @@ describe("Dialpad", () => {
     expect(onVideoCall).toHaveBeenCalledTimes(1);
   });
 
+  it("enables video call button when empty but history recall is available", () => {
+    renderDialpad({
+      callDisabledReason: null,
+      videoCallDisabledReason: null,
+      numberValue: "",
+      canRecallLastNumber: true,
+      onVideoCall: vi.fn(),
+    });
+    expect(screen.getByTestId("dialpad-video-call")).toBeEnabled();
+  });
+
   it("disables video call button when reason is set", () => {
     renderDialpad({
       numberValue: "12345",

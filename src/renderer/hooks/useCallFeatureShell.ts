@@ -457,12 +457,27 @@ export function useCallFeatureShell({ facade }: UseCallFeatureShellInput) {
   ]);
 
   const handleDialpadVideoCall = useCallback((): void => {
+    const intent = resolveDialpadCallIntent(dialedNumber, historyNumbers[0] ?? null);
+    if (intent.type === "noop") {
+      return;
+    }
+    if (intent.type === "fill") {
+      applyHistoryNumber(intent.number, 0);
+      return;
+    }
     callActions.handleDialpadVideoCall();
     clearDialedNumber();
     if (numberEntryOverlayOpen) {
       setNumberEntryOverlayOpen(false);
     }
-  }, [callActions, clearDialedNumber, numberEntryOverlayOpen]);
+  }, [
+    applyHistoryNumber,
+    callActions,
+    clearDialedNumber,
+    dialedNumber,
+    historyNumbers,
+    numberEntryOverlayOpen,
+  ]);
 
   const openNumberEntryOverlay = useCallback((): void => {
     setNumberEntryOverlayOpen(true);

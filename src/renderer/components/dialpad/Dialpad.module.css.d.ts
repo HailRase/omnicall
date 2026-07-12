@@ -1,11 +1,15 @@
 declare const classes: {
-  readonly callActions: string;
-  readonly callButton: string;
-  readonly callButtonBusy: string;
-  readonly callButtonLabel: string;
-  readonly callButtonReady: string;
-  readonly callButtonReason: string;
-  readonly callButtonTooltipHost: string;
+  readonly callActionDivider: string;
+  readonly callActionGroup: string;
+  readonly callActionGroupActionable: string;
+  readonly callActionLabel: string;
+  readonly callActionReason: string;
+  readonly callActionSegment: string;
+  readonly callActionSegmentBusy: string;
+  readonly callActionSegmentCall: string;
+  readonly callActionSegmentHost: string;
+  readonly callActionSegmentReady: string;
+  readonly callActionSegmentVideo: string;
   readonly deleteButton: string;
   readonly inputActionButton: string;
   readonly inputField: string;
@@ -20,8 +24,5 @@ declare const classes: {
   readonly panel: string;
   readonly panelInputDisabled: string;
   readonly panelOverlay: string;
-  readonly videoCallButton: string;
-  readonly videoCallButtonReady: string;
-  readonly videoCallButtonTooltipHost: string;
 };
 export default classes;

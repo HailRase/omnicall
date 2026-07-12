@@ -99,8 +99,8 @@ export function Dialpad({
   const canVideoDial =
     onVideoCall !== undefined &&
     videoCallDisabledReason === null &&
-    hasDigits &&
-    !isCalling;
+    !isCalling &&
+    (hasDigits || canRecallLastNumber);
   const callLabel = t("dialpad.call.label");
   const connectingLabel = t("dialpad.call.connectingLabel");
 
@@ -317,17 +317,23 @@ export function Dialpad({
         </div>
       ) : null}
 
-      <div className={styles.callActions}>
+      <div
+        className={clsx(
+          styles.callActionGroup,
+          (canDial || canVideoDial) && styles.callActionGroupActionable,
+        )}
+      >
         <IconTooltip
           label={callDisabledReason ?? callLabel}
-          className={styles.callButtonTooltipHost}
+          className={styles.callActionSegmentHost}
         >
           <button
             type="button"
             className={clsx(
-              styles.callButton,
-              canDial && styles.callButtonReady,
-              isCalling && styles.callButtonBusy,
+              styles.callActionSegment,
+              styles.callActionSegmentCall,
+              canDial && styles.callActionSegmentReady,
+              isCalling && styles.callActionSegmentBusy,
             )}
             data-testid="dialpad-call"
             aria-label={isCalling ? t("dialpad.call.connectingAria") : t("dialpad.call.ariaLabel")}
@@ -336,9 +342,9 @@ export function Dialpad({
           >
             <AppIcon id="dial.call" size={18} decorative />
             {!canDial && callDisabledReason !== null && numberValue.length === 0 ? (
-              <span className={styles.callButtonReason}>{callDisabledReason}</span>
+              <span className={styles.callActionReason}>{callDisabledReason}</span>
             ) : (
-              <span className={styles.callButtonLabel}>
+              <span className={styles.callActionLabel}>
                 {isCalling ? connectingLabel : callLabel}
               </span>
             )}
@@ -346,21 +352,25 @@ export function Dialpad({
         </IconTooltip>
 
         {onVideoCall !== undefined ? (
-          <IconTooltip label={videoCallTooltip} className={styles.videoCallButtonTooltipHost}>
-            <button
-              type="button"
-              className={clsx(
-                styles.videoCallButton,
-                canVideoDial && styles.videoCallButtonReady,
-              )}
-              data-testid="dialpad-video-call"
-              aria-label={t("dialpad.videoCall.ariaLabel")}
-              disabled={!canVideoDial}
-              onClick={onVideoCall}
-            >
-              <AppIcon id="dial.videoCall" size={18} decorative />
-            </button>
-          </IconTooltip>
+          <>
+            <div className={styles.callActionDivider} aria-hidden="true" />
+            <IconTooltip label={videoCallTooltip} className={styles.callActionSegmentHost}>
+              <button
+                type="button"
+                className={clsx(
+                  styles.callActionSegment,
+                  styles.callActionSegmentVideo,
+                  canVideoDial && styles.callActionSegmentReady,
+                )}
+                data-testid="dialpad-video-call"
+                aria-label={t("dialpad.videoCall.ariaLabel")}
+                disabled={!canVideoDial}
+                onClick={onVideoCall}
+              >
+                <AppIcon id="dial.videoCall" size={18} decorative />
+              </button>
+            </IconTooltip>
+          </>
         ) : null}
       </div>
     </section>
