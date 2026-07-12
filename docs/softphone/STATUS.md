@@ -3,7 +3,7 @@
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
 **Updated:** 2026-07-12  
-**Tests:** 1844 passed, 1 skipped (`npm run test`); typecheck green; targeted video/shell layout tests — last verified 2026-07-12 (P13 WU9/WU10 gate doc sync)  
+**Tests:** 1844 passed, 1 skipped (`npm run test`); typecheck green — last verified 2026-07-12 (release v0.10.0 preflight)  
 **Lint / typecheck:** green (last verified 2026-07-12)
 
 **Guides (onboarding):** [`guides/README.md`](../../guides/README.md) — установка, пользователь, агенты Cursor, релизы.
@@ -77,9 +77,9 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 | Field | Value |
 | --- | --- |
-| Shipped | **0.9.0** (`v0.9.0`, 2026-07-08) — F-002 global incoming call overlay, F-025 contacts CSV fix |
-| Previous | **0.8.0** (F-013 call history, F-025 contacts, shell navigation), **0.7.1** (F-016 settings-only resize) |
-| Next cut | **0.9.1** (PATCH) or **0.10.0** (MINOR) per SemVer table in `RELEASE-PLAYBOOK.md` |
+| Shipped | **0.10.0** (`v0.10.0`, 2026-07-12) — F-012 headset, F-027 video calls, F-013 history polish, SIP-only path |
+| Previous | **0.9.0** (F-002 incoming overlay, F-025 contacts CSV), **0.8.0** (F-013 call history, F-025 contacts, shell navigation), **0.7.1** (F-016 settings-only resize) |
+| Next cut | **0.10.1** (PATCH) or **0.11.0** (MINOR) per SemVer table in `RELEASE-PLAYBOOK.md` |
 | Source repo | `HailRase/softphone-electron` (target: **private**) |
 | Distribution | [`HailRase/axatalk-releases`](https://github.com/HailRase/axatalk-releases) (public: installers + manifest) |
 | Manifest (live) | `axatalk-releases/main/update-manifest.json` |

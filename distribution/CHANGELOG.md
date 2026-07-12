@@ -5,6 +5,24 @@ Public release history for **Axatalk** distribution builds.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer. Git tag: `v<version>`.
 
+## [0.10.0] - 2026-07-12
+
+### Added
+
+- Headset integration via Web HID — answer, hangup, mute, hold, and LED sync for supported Jabra and Poly devices; headset settings panel
+- Video calls — Video call button on dialpad, camera and screen sharing, fullscreen session view, answer incoming calls with video, Settings → Video for devices and preview
+- Call history — outcome labels, end reason, and call duration display
+
+### Removed
+
+- Legacy operator platform integration; SIP-only telephony is the product path
+
+### Fixed
+
+- Headset mute, hold, and LED synchronization reliability
+- Video call UX — screen-share source picker, inbound video-answer detection, fullscreen controls
+- Contact CSV export on frameless Windows builds
+
 ## [0.9.0] - 2026-07-08
 
 ### Added

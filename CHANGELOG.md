@@ -7,9 +7,24 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-07-12
+
+### Added
+
+- F-012: интеграция гарнитуры Web HID (Jabra/Poly) — ответ, сброс, mute, hold, LED sync; панель настроек гарнитуры
+- F-027: видеозвонки — кнопка Video call на dialpad, камера и трансляция экрана, fullscreen-модалка, «Ответить с видео» на входящем; Settings → Video (устройства, превью, кодеки)
+- F-013: история звонков — исход, причина завершения, длительность
+
 ### Removed
 
-- Legacy operator platform integration removed per ADR-0005; documentation, rules, and agent skills updated for SIP-only product path.
+- Legacy operator platform integration removed per ADR-0005; SIP-only bootstrap — единственный продуктовый путь
+
+### Fixed
+
+- F-012: hardening mute/hold/LED sync; Poly pulse/latch desync
+- F-027: picker источника screen-share, SDP-gate для inbound video answer, polish fullscreen UX
+- F-025: экспорт контактов CSV в frameless Electron
+- F-002: выравнивание shell-теста панели перевода
 
 ## [0.9.0] - 2026-07-08
 
@@ -219,7 +234,8 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.9.0...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.10.0...main
+[0.10.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.10.0
 [0.9.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.9.0
 [0.8.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.8.0
 [0.7.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.7.1
