@@ -800,3 +800,28 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (WU9a inbound video-answer gate): hide Answer with video unless remote SDP offers video; remote bind stability; work-area fullscreen; expanded screen share; display-media handler
 - Implementation evidence (WU9b screen-share picker + caps): `DisplayCaptureContract` + IPC list/set-pending; `registerDisplayCaptureIpc`; pending source store; `installDisplayMediaRequestHandler` grants selected source only; `ScreenSharePickerDialog` + `useScreenSharePicker`; `applyScreenShareEncodingPolicy`; capture constraints 1080p/15–30fps; i18n ru/en/fr/de/bg
 - Implementation evidence (WU9c video UX refactor): session views `expanded|hidden|fullscreen`; `resolveFullscreenVideoSession` keeps fullscreen modal/layout while incoming overlays; `ensureOutboundVideoSenderSynced` after inbound video answer + unmute path; `VideoFullscreenModal` close→expanded; PiP 24px inset; screen-share CSP/`toPNG` previews; shell compact restore snapshot guard
+
+## F-028: OCP Module Integration
+
+- Legacy IDs: `LF-018`, `LF-019`, `LF-041`, `LF-042`, `LF-043`, `LF-044`, `LF-045`, `LF-046`, `LF-047`, `LF-048`, `LF-049`
+- Context: Integration
+- Priority: high
+- Status: **in-progress** (E-01 domain model done; E-02 ports next)
+- Owner: TBD
+- Inputs: OCP WebSocket session, operator status/reason payloads, SIP telephony domain events, host-page commands
+- Outputs: operator status FSM, OCP gateway commands, session projections, telephony bridge events
+- Acceptance Criteria:
+  - SIP telephony works without OCP; OCP is optional integration module.
+  - Operator status transitions validated in Domain before gateway commands.
+  - Single `OcpGateway` WebSocket; no global `window.ws` patching.
+  - Settings → Integrations → OCP Module is the only OCP configuration surface.
+  - Operator status selector visible only when `ocpSession.isAuthenticated === true`.
+  - Credentials never appear in Domain Events; token stored via `SecretStoragePort`.
+  - `callType: internal | external | sdk` on status-change commands for audit trail.
+  - All user-visible strings localized (`ru`, `en`, `fr`, `de`, `bg`).
+- Test Coverage:
+  - Unit: `OperatorStatus`, `OperatorStatusMachine`, `OperatorProfile`, OCP domain events
+  - Integration: mock `OcpGateway`, Use Cases, telephony bridge (E-03+)
+  - E2E: deferred until OCP UI wiring complete
+- Design: `ocp-integration/OCP-IMPLEMENTATION-PLAN.md`, `ocp-integration/ocp-integration.md`
+- Implementation evidence (E-01): `src/domain/integration/ocp/OperatorStatus.ts`, `OperatorStatusReason.ts`, `OperatorProfile.ts`, `OcpTransitionRules.ts`, `OperatorStatusMachine.ts`, `events/*`, unit tests
