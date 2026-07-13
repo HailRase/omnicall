@@ -87,6 +87,9 @@ export type {
   EmitSoftPhoneBreakReasonCommand,
   HostIntegrationGateway,
 } from "./integration/HostIntegrationGateway.js";
+export type { OcpGateway, Unsubscribe } from "./integration/OcpGateway.js";
+export type { OcpOperatorReadModel } from "./integration/OcpOperatorReadModel.js";
+export type { DndReadModel } from "./settings/DndReadModel.js";
 export type { Logger, LogContext, LogEntry, LogLevel } from "./logging/index.js";
 export type {
   ApplyShellWindowLayoutCommand,

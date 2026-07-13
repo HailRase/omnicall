@@ -3,7 +3,7 @@
 **Feature:** F-028 — OCP Module Integration  
 **Bounded context:** Integration (не Telephony)  
 **Последнее обновление:** 2026-07-13  
-**Текущий статус:** 🟡 E-01 готов; следующий — E-02 (Port Contract)  
+**Текущий статус:** 🟢 E-04 готов; следующий — E-05 (Projections + Bridge Services)  
 **Версия схемы настроек:** v6 → v7 (добавляется `ocpIntegration`)  
 **Команда для продолжения работы:** `/logic` или `/ui` + ссылка на этот файл
 
@@ -14,9 +14,9 @@
 | Этап | Название | Статус |
 |------|----------|--------|
 | [E-01](#e-01--domain-model--operator-bounded-context) | Domain Model — Operator Bounded Context | 🟢 |
-| [E-02](#e-02--port-contract--ocp-protocol-types) | Port Contract + OCP Protocol Types | 🔴 |
-| [E-03](#e-03--websocket-адаптер) | WebSocket Адаптер | 🔴 |
-| [E-04](#e-04--application--use-cases) | Application — Use Cases | 🔴 |
+| [E-02](#e-02--port-contract--ocp-protocol-types) | Port Contract + OCP Protocol Types | 🟢 |
+| [E-03](#e-03--websocket-адаптер) | WebSocket Адаптер | 🟢 |
+| [E-04](#e-04--application--use-cases) | Application — Use Cases | 🟢 |
 | [E-05](#e-05--application--projections--bridge-services) | Application — Projections + Bridge Services | 🔴 |
 | [E-06](#e-06--usersettings-v7--settings-ui-integrations) | UserSettings v7 + Settings UI (Integrations) | 🔴 |
 | [E-07](#e-07--ui--operator-status-selector-в-хедере) | UI — Operator Status Selector в хедере | 🔴 |
@@ -167,7 +167,7 @@ src/domain/integration/ocp/
 
 ## E-02 — Port Contract + OCP Protocol Types
 
-**Статус:** 🔴 Не начато  
+**Статус:** 🟢 Готово (2026-07-13, `/logic`)  
 **Команда:** `/logic`  
 **Зависимости:** E-01
 
@@ -216,12 +216,12 @@ src/domain/integration/ocp/
 
 ### Чеклист
 
-- [ ] `OcpConnectionState` — union type:
+- [x] `OcpConnectionState` — union type:
   - `'disconnected' | 'connecting' | 'connected' | 'authenticated' | 'reconnecting' | 'sessionClosed' | 'failed'`
-- [ ] `OcpConnectionConfig` value object:
+- [x] `OcpConnectionConfig` value object:
   - `{ readonly domain: string; readonly authToken: string }`
   - Валидация: домен непустой, токен непустой
-- [ ] `OcpCommand` discriminated union (поле `kind`):
+- [x] `OcpCommand` discriminated union (поле `kind`):
   - `{ kind: 'auth'; token: string }`
   - `{ kind: 'change_status_to_ready'; operatorId: number; reasonId: number; callType: 'internal' | 'external' | 'sdk' }`
   - `{ kind: 'change_status_to_break'; operatorId: number; reasonId: number; callType: 'internal' | 'external' | 'sdk' }`
@@ -232,7 +232,7 @@ src/domain/integration/ocp/
   - `{ kind: 'campaign_accept'; operatorId: number; campaignEventId: string }`
   - `{ kind: 'campaign_reject'; operatorId: number; campaignEventId: string }`
   - `{ kind: 'logging'; payload: Record<string, unknown> }` — для action-логов
-- [ ] `OcpIncomingMessage` discriminated union (поле `entity`):
+- [x] `OcpIncomingMessage` discriminated union (поле `entity`):
   - `{ entity: 'creds'; data: OcpCredsPayload }`
   - `{ entity: 'users'; data: OcpUsersPayload }`
   - `{ entity: 'operator_status_reasons'; data: OcpStatusReasonPayload[] }`
@@ -241,7 +241,7 @@ src/domain/integration/ocp/
   - `{ entity: 'campaign_events'; data: OcpCampaignEventPayload }`
   - `{ entity: 'calls'; data: OcpCallsPayload }`
   - `{ entity: 'Error'; data: { code: 'SESSION_EXIST' | 'INVALID_TOKEN' | string } }`
-- [ ] `OcpGateway` интерфейс:
+- [x] `OcpGateway` интерфейс:
   ```typescript
   export interface OcpGateway {
     connect(config: OcpConnectionConfig): void;
@@ -253,17 +253,17 @@ src/domain/integration/ocp/
     dispose(): void;
   }
   ```
-- [ ] Экспорт через `src/ports/index.ts`
-- [ ] Compile-only тест: exhaustive switch по `OcpCommand.kind` и `OcpIncomingMessage.entity`
+- [x] Экспорт через `src/ports/index.ts`
+- [x] Compile-only тест: exhaustive switch по `OcpCommand.kind` и `OcpIncomingMessage.entity`
 
 ### Примечания
-> *(заполняется агентом во время работы)*
+> E-02 завершён 2026-07-13. Порт `OcpGateway` и протокольные типы в `src/ports/integration/` и `src/domain/integration/ocp/protocol/`. Payload-типы нормализованы в camelCase для Application; wire snake_case — зона адаптера E-03. Следующий этап: E-03 WebSocket Adapter (`/adapter`).
 
 ---
 
 ## E-03 — WebSocket Адаптер
 
-**Статус:** 🔴 Не начато  
+**Статус:** 🟢 Готово (2026-07-13, `/adapter`)  
 **Команда:** `/adapter`  
 **Зависимости:** E-01, E-02
 
@@ -333,7 +333,7 @@ src/adapters/mock/
 
 ### Чеклист
 
-- [ ] `OcpWebSocketAdapter`:
+- [x] `OcpWebSocketAdapter`:
   - `connect(config)`: URL = `wss://{domain}/ws`, создаёт WS, вешает handlers
   - `onopen`: отправляет auth команду `{ command: "auth", entity: "proxy_users", payload: token, type: "auth_proxy_users" }`
   - `onmessage`: `parseOcpMessage(e.data)` → dispatch через `messageHandlers`
@@ -343,19 +343,19 @@ src/adapters/mock/
   - `onerror`: логировать, не выбрасывать
   - `sendCommand(cmd)`: `ws.readyState === WebSocket.OPEN` ? send : `Result.err`
   - `dispose()`: `reconnectScheduler.cancel()`, `ws.close()`, очистить handlers
-- [ ] Политика реконнекта через `ReconnectScheduler`: 5с задержка, max 6 попыток, при исчерпании `state = 'failed'`
-- [ ] `parseOcpMessage.ts`: `unknown` → `Result<OcpIncomingMessage, 'unknown_entity' | 'parse_error'>`
+- [x] Политика реконнекта через `ReconnectScheduler`: 5с задержка, max 6 попыток, при исчерпании `state = 'failed'`
+- [x] `parseOcpMessage.ts`: `unknown` → `ParseOcpMessageResult` (`unknown_entity` | `parse_error`)
   - Нормализация `users[].status.reason_id`: `null/undefined` → `0`
   - Неизвестный entity → `Result.err + logger.debug`
-- [ ] `buildOcpCommandPayload.ts`: маппинг `OcpCommand.kind` → wire-format JSON
-- [ ] `MockOcpGateway.ts`:
+- [x] `buildOcpCommandPayload.ts`: маппинг `OcpCommand.kind` → wire-format JSON
+- [x] `MockOcpGateway.ts`:
   - `simulateMessage(msg: OcpIncomingMessage): void`
   - `simulateDisconnect(): void`
   - `simulateAuthSuccess(operatorId: number): void` — shortcut для тестов
   - `getSentCommands(): ReadonlyArray<OcpCommand>`
   - `getLastSentCommand(): OcpCommand | undefined`
   - `clearSentCommands(): void`
-- [ ] Тесты `OcpWebSocketAdapter.test.ts`:
+- [x] Тесты `OcpWebSocketAdapter.test.ts`:
   - connect → WS создан с правильным URL
   - onopen → auth команда отправлена
   - `Error SESSION_EXIST` → state = 'sessionClosed', реконнект не запускается
@@ -363,17 +363,17 @@ src/adapters/mock/
   - 6 попыток → state = 'failed'
   - dispose() → ReconnectScheduler.cancel вызван
   - sendCommand когда `!OPEN` → `Result.err`
-- [ ] Тесты `parseOcpMessage.test.ts`:
+- [x] Тесты `parseOcpMessage.test.ts`:
   - creds → OK; users с null reason_id → нормализован; unknown entity → err
 
 ### Примечания
-> *(заполняется агентом во время работы)*
+> E-03 завершён 2026-07-13. `OcpWebSocketAdapter`, `parseOcpMessage`, `buildOcpCommandPayload`, `MockOcpGateway` в `src/adapters/`. `ReconnectScheduler` вынесен в `src/shared/scheduling/` для использования адаптерами без импорта Application. Следующий этап: E-04 Use Cases (`/logic`).
 
 ---
 
 ## E-04 — Application — Use Cases
 
-**Статус:** 🔴 Не начато  
+**Статус:** 🟢 Готово (2026-07-13, `/logic`)  
 **Команда:** `/logic`  
 **Зависимости:** E-01, E-02
 
@@ -445,27 +445,27 @@ src/ports/integration/
 
 ### Чеклист
 
-- [ ] `OcpOperatorReadModel` port: `getCurrentOperatorProfile(): OperatorProfile | null`, `getReservedStatus(): OperatorStatus | null`
-- [ ] `ConnectOcpUseCase`: `execute({ domain, authToken }): Promise<Result<void, PlatformError>>` → `gateway.connect(config)`; логирует domain (без токена!)
-- [ ] `DisconnectOcpUseCase`: `execute(): Promise<Result<void, PlatformError>>` → `gateway.disconnect('logout')`
-- [ ] `ChangeOperatorStatusUseCase`:
+- [x] `OcpOperatorReadModel` port: `getCurrentOperatorProfile(): OperatorProfile | null`, `getReservedStatus(): OperatorStatus | null`
+- [x] `ConnectOcpUseCase`: `execute({ domain, authToken }): Promise<Result<void, PlatformError>>` → `gateway.connect(config)`; логирует domain (без токена!)
+- [x] `DisconnectOcpUseCase`: `execute(): Promise<Result<void, PlatformError>>` → `gateway.disconnect('logout')`
+- [x] `ChangeOperatorStatusUseCase`:
   - Input: `{ targetStatus: 'ready' | 'break'; reasonId: number; callType: 'internal' | 'external' | 'sdk' }`
   - DND guard → `Result.err('dnd_blocks_ready')`
   - FSM validation → `Result.err('transition_not_allowed')`
   - busy → `update_post_call_status`; idle → `change_status_to_ready|break`
   - Тесты: busy routing, idle routing, DND guard, FSM reject
-- [ ] `LogoutOperatorUseCase`:
+- [x] `LogoutOperatorUseCase`:
   - Input: `{ reasonId: number; cascadeSipLogout?: boolean; callType: 'internal' | 'external' | 'sdk' }`
   - Отправляет `change_status_to_logout`
   - Вызывает `gateway.disconnect('logout')` → state = 'sessionClosed'
   - Если `cascadeSipLogout` → публикует `OperatorLoggedOut` event (Application сервис слушает и вызывает `EndUserSessionUseCase`)
   - Тест: команда отправлена, disconnect вызван, SIP logout опционален
-- [ ] `ReservePostCallStatusUseCase`: `execute({ operatorId, targetStatus, reasonId })` → всегда `update_post_call_status`
-- [ ] `AcceptCampaignUseCase` / `RejectCampaignUseCase`: `execute({ operatorId, campaignEventId })` → команда
-- [ ] Все Use Cases: `Result<void, PlatformError>`, корреляция, `featureId: 'F-028'`
+- [x] `ReservePostCallStatusUseCase`: `execute({ operatorId, targetStatus, reasonId })` → всегда `update_post_call_status`
+- [x] `AcceptCampaignUseCase` / `RejectCampaignUseCase`: `execute({ operatorId, campaignEventId })` → команда
+- [x] Все Use Cases: `Result<void, PlatformError>`, корреляция, `featureId: 'F-028'`
 
 ### Примечания
-> *(заполняется агентом во время работы)*
+> E-04 завершён 2026-07-13. Use Cases в `src/application/use-cases/integration/ocp/`, порты `OcpOperatorReadModel` и `DndReadModel`. Busy-операторы резервируют статус через `update_post_call_status` без FSM-проверки (как в legacy). Следующий этап: E-05 Projections + Bridge Services (`/logic`).
 
 ---
 

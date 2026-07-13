@@ -806,7 +806,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-018`, `LF-019`, `LF-041`, `LF-042`, `LF-043`, `LF-044`, `LF-045`, `LF-046`, `LF-047`, `LF-048`, `LF-049`
 - Context: Integration
 - Priority: high
-- Status: **in-progress** (E-01 domain model done; E-02 ports next)
+- Status: **in-progress** (E-01 domain model done; E-02 port contract done; E-03 adapter done; E-04 use cases done; E-05 projections next)
 - Owner: TBD
 - Inputs: OCP WebSocket session, operator status/reason payloads, SIP telephony domain events, host-page commands
 - Outputs: operator status FSM, OCP gateway commands, session projections, telephony bridge events
@@ -825,3 +825,6 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - E2E: deferred until OCP UI wiring complete
 - Design: `ocp-integration/OCP-IMPLEMENTATION-PLAN.md`, `ocp-integration/ocp-integration.md`
 - Implementation evidence (E-01): `src/domain/integration/ocp/OperatorStatus.ts`, `OperatorStatusReason.ts`, `OperatorProfile.ts`, `OcpTransitionRules.ts`, `OperatorStatusMachine.ts`, `events/*`, unit tests
+- Implementation evidence (E-02): `src/ports/integration/OcpGateway.ts`, `src/domain/integration/ocp/OcpConnectionConfig.ts`, `OcpConnectionState.ts`, `protocol/OcpCommand.ts`, `protocol/OcpIncomingMessage.ts`, `protocol/OcpMessageEnvelope.ts`, exhaustive union tests
+- Implementation evidence (E-03): `src/adapters/integration/ocp/OcpWebSocketAdapter.ts`, `parseOcpMessage.ts`, `buildOcpCommandPayload.ts`, `src/adapters/mock/MockOcpGateway.ts`, `src/shared/scheduling/ReconnectScheduler.ts`, adapter tests
+- Implementation evidence (E-04): `src/application/use-cases/integration/ocp/*`, `src/ports/integration/OcpOperatorReadModel.ts`, `src/ports/settings/DndReadModel.ts`, Use Case unit tests with `MockOcpGateway`
