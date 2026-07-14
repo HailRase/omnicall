@@ -6,6 +6,7 @@ import {
   isDialpadNumberValid,
   resolveHistoryWalkStep,
   resolveVideoCallAvailability,
+  selectIsCallButtonBlocked,
   type CallProjection,
   type AccountBootstrapProjection,
   type DialpadMode,
@@ -13,6 +14,8 @@ import {
 } from "@application/index.js";
 import { mapDialpadDisabledReason } from "../helpers/mapDialpadDisabledReason.js";
 import { mapVideoCallDisabledReason } from "../helpers/mapVideoCallDisabledReason.js";
+import { translateCurrent } from "../i18n/index.js";
+import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 
 type UseDialpadShellInput = Readonly<{
   projection: AccountBootstrapProjection;
@@ -123,7 +126,17 @@ export function useDialpadShell(input: UseDialpadShellInput): UseDialpadShellRes
     ],
   );
 
+  const ocpOperatorStatus = useAccountBootstrapStore(
+    (state) => state.ocpOperatorStatusProjection,
+  );
+  const ocpCallBlockedReason = selectIsCallButtonBlocked(ocpOperatorStatus)
+    ? translateCurrent("ocp.dialpad.reservedToCall")
+    : null;
+
   const videoCallDisabledReason = useMemo(() => {
+    if (ocpCallBlockedReason !== null) {
+      return ocpCallBlockedReason;
+    }
     const baseReason = mapDialpadDisabledReason(disabledState);
     if (baseReason !== null) {
       return baseReason;
@@ -132,7 +145,7 @@ export function useDialpadShell(input: UseDialpadShellInput): UseDialpadShellRes
       return mapVideoCallDisabledReason(videoAvailability.reason);
     }
     return null;
-  }, [disabledState, videoAvailability]);
+  }, [disabledState, ocpCallBlockedReason, videoAvailability]);
 
   return {
     dialedNumber,
@@ -156,7 +169,7 @@ export function useDialpadShell(input: UseDialpadShellInput): UseDialpadShellRes
     canRecallLastNumber,
     dialpadMode: callProjection.mode,
     isCalling,
-    callDisabledReason: mapDialpadDisabledReason(disabledState),
+    callDisabledReason: ocpCallBlockedReason ?? mapDialpadDisabledReason(disabledState),
     videoCallDisabledReason,
     inputDisabledReason: isSipRegistered
       ? null

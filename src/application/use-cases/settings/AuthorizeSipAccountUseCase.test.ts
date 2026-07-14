@@ -101,4 +101,44 @@ describe("AuthorizeSipAccountUseCase", () => {
       expect(resolveSettingsAccountKeyFromSipAccount(result.value)).toBe(expectedKey);
     }
   });
+
+  it("ocp source skips ManualSipAuthorizationRequested and redacts password in event", async () => {
+    const events = new InMemoryDomainEventBus();
+    const published: Array<{ type: string; password?: string }> = [];
+    events.subscribe((event) => {
+      const credentials = event["credentials"];
+      const password =
+        typeof credentials === "object" &&
+        credentials !== null &&
+        "password" in credentials &&
+        typeof credentials.password === "string"
+          ? credentials.password
+          : undefined;
+      published.push({ type: event.type, ...(password !== undefined ? { password } : {}) });
+    });
+
+    const useCase = new AuthorizeSipAccountUseCase(
+      new InMemorySettingsRepository(),
+      events,
+      createTestLogger(),
+    );
+
+    const result = await useCase.execute({
+      account: {
+        username: "ocp-user",
+        password: "ocp-secret",
+        domain: "pbx",
+        server: "sip:pbx",
+      },
+      source: "ocp",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(published.map((entry) => entry.type)).not.toContain(
+      "ManualSipAuthorizationRequested",
+    );
+    expect(published.map((entry) => entry.type)).toContain("SipCredentialsReceived");
+    const credsEvent = published.find((entry) => entry.type === "SipCredentialsReceived");
+    expect(credsEvent?.password).toBe("");
+  });
 });

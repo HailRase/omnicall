@@ -1,4 +1,4 @@
-import { useState, type JSX } from "react";
+import { useEffect, useState, type JSX } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import type { AccountPanelActionReasonKey } from "@application/index.js";
 import { resolveFullscreenVideoSession } from "@application/index.js";
@@ -19,6 +19,9 @@ import { useShellWindowLayout } from "../hooks/useShellWindowLayout.js";
 import { useShellWindowControls } from "../hooks/useShellWindowControls.js";
 import { useAppUpdate } from "../hooks/useAppUpdate.js";
 import { useSettingsActions } from "../hooks/useSettingsActions.js";
+import { useOcpSettingsPanel } from "../hooks/useOcpSettingsPanel.js";
+import { useOperatorStatusSelector } from "../hooks/useOperatorStatusSelector.js";
+import { mapOcpNotificationToToastDescriptor } from "../integration/ocp/createOcpToastNotificationPresenter.js";
 import {
   useSipSystemStateActions,
   useSipSystemStateShell,
@@ -33,6 +36,16 @@ import { ShellNavigationController, ShellRouteDataController, ShellRoutePanelOut
 import { HistoryShellRoutePanel } from "./history/HistoryShellRoutePanel.js";
 import { ContactsShellRoutePanel } from "./contacts/ContactsShellRoutePanel.js";
 import { SoftphoneLayout } from "../widgets/SoftphoneLayout/SoftphoneLayout.js";
+import { OperatorStatusSelector } from "../widgets/OperatorStatusSelector/OperatorStatusSelector.js";
+import { OcpConnectionBanner } from "../components/integration/ocp/OcpConnectionBanner.js";
+import { OcpPostCallStatusModal } from "../components/integration/ocp/OcpPostCallStatusModal.js";
+import { OcpCampaignEventModal } from "../components/integration/ocp/OcpCampaignEventModal.js";
+import { OcpLogoutReasonModal } from "../components/integration/ocp/OcpLogoutReasonModal.js";
+import { OcpProxyStatusScreen } from "../components/integration/ocp/OcpProxyStatusScreen.js";
+import { OcpRejectBreakReasonModal } from "../components/integration/ocp/OcpRejectBreakReasonModal.js";
+import { useOcpCampaignModal } from "../hooks/useOcpCampaignModal.js";
+import { useOcpLogoutModal } from "../hooks/useOcpLogoutModal.js";
+import { useOcpRejectWithBreak } from "../hooks/useOcpRejectWithBreak.js";
 import { CallContextShell } from "./call/CallContextShell.js";
 import { CallControlsShell } from "./call/CallControlsShell.js";
 import { IncomingCallOverlayShell } from "./call/IncomingCallOverlayShell.js";
@@ -117,22 +130,6 @@ function SoftphoneShellLayoutRoute({
     sipAutoReregisterEnabled: settingsActions.userSettings.sipAutoReregisterEnabled,
   });
   const userAvatarMenu = useUserAvatarMenu();
-  const userAvatarMenuActions = useUserAvatarMenuActions({
-    facade,
-    phoneStatus: projection.phoneStatus,
-    phoneStatusDisabled: blockingAuthState,
-    isSipRegistered,
-    authUiState: projection.authUiState,
-    sessionLogoutActions,
-    onOpenSettings: overlayShell.openSettings,
-    onOpenHistory: () => {
-      shellNavigation.navigateTo({ name: "history" });
-    },
-    onOpenContacts: () => {
-      shellNavigation.navigateTo({ name: "contacts" });
-    },
-    onMenuClose: userAvatarMenu.close,
-  });
   const callBindings = useCallFeatureShell({ facade });
   const fullscreenSession = resolveFullscreenVideoSession(
     callVideoMediaUiProjection.byCallId,
@@ -161,6 +158,66 @@ function SoftphoneShellLayoutRoute({
     stacking: settingsActions.userSettings.notificationStacking,
     durationMs: settingsActions.userSettings.notificationDurationMs,
     maxVisible: settingsActions.userSettings.notificationMaxVisible,
+  });
+  useEffect(() => {
+    const notify = notifications.notify;
+    facade.setOcpNotificationHandler((payload) => {
+      const descriptor = mapOcpNotificationToToastDescriptor(payload);
+      if (descriptor !== null) {
+        notify(descriptor);
+      }
+    });
+    return () => {
+      facade.setOcpNotificationHandler(null);
+    };
+  }, [facade, notifications]);
+  const ocpSettingsPanel = useOcpSettingsPanel({
+    facade,
+    userSettings: settingsActions.userSettings,
+    onUserSettingsChange: settingsActions.applyUserSettingsSnapshot,
+  });
+  const ocpLogoutModal = useOcpLogoutModal({
+    facade,
+    sessionLogoutActions,
+    notify: notifications.notify,
+  });
+  const ocpCampaignModal = useOcpCampaignModal({
+    facade,
+    notify: notifications.notify,
+  });
+  const ocpRejectWithBreak = useOcpRejectWithBreak({
+    facade,
+    callId: callBindings.incomingCallProjection.callId,
+    rejectIncoming: callBindings.incomingCallActions.handleRejectIncoming,
+    rejectIncomingWithBreakReason:
+      callBindings.incomingCallActions.handleRejectIncomingWithBreakReason,
+    notify: notifications.notify,
+  });
+  const userAvatarMenuActions = useUserAvatarMenuActions({
+    facade,
+    phoneStatus: projection.phoneStatus,
+    phoneStatusDisabled: blockingAuthState,
+    isSipRegistered,
+    authUiState: projection.authUiState,
+    sessionLogoutActions,
+    onOpenSettings: overlayShell.openSettings,
+    onOpenHistory: () => {
+      shellNavigation.navigateTo({ name: "history" });
+    },
+    onOpenContacts: () => {
+      shellNavigation.navigateTo({ name: "contacts" });
+    },
+    onMenuClose: userAvatarMenu.close,
+    onLogout: ocpLogoutModal.handleRequestLogout,
+  });
+  const operatorStatusSelector = useOperatorStatusSelector({
+    facade,
+    isSipRegistered,
+    dndEnabled: projection.phoneStatus === "dnd",
+    onOpenIntegrationsSettings: () => {
+      overlayShell.openSettings("integrations");
+    },
+    notify: notifications.notify,
   });
   const sipActionErrorText =
     sipSystemStateActions.actionErrorDetail ??
@@ -204,13 +261,34 @@ function SoftphoneShellLayoutRoute({
             userAvatarMenuActions={userAvatarMenuActions}
             windowControls={windowControls}
             suppressWindowControls={overlayShell.settingsOpen}
+            operatorStatusSlot={
+              <OperatorStatusSelector
+                vm={operatorStatusSelector.vm}
+                onSelectReason={operatorStatusSelector.onSelectReason}
+              />
+            }
+          />
+          <OcpConnectionBanner
+            visible={
+              operatorStatusSelector.vm.isReconnecting ||
+              operatorStatusSelector.vm.isFailed
+            }
+            mode={
+              operatorStatusSelector.vm.isFailed ? "failed" : "reconnecting"
+            }
+            reconnectAttempt={operatorStatusSelector.vm.reconnectAttempt}
+            maxReconnectAttempts={operatorStatusSelector.vm.maxReconnectAttempts}
+            onRetry={operatorStatusSelector.onRetryConnect}
           />
         </>
       }
       context={
         <>
           <SessionFeatureShell sessionLogoutActions={sessionLogoutActions} />
-          <CallContextShell bindings={callBindings} />
+          <CallContextShell
+            bindings={callBindings}
+            ocpRejectWithBreak={ocpRejectWithBreak}
+          />
         </>
       }
       controls={
@@ -264,7 +342,60 @@ function SoftphoneShellLayoutRoute({
             onConfirm={callBindings.screenSharePicker.confirm}
             onCancel={callBindings.screenSharePicker.cancel}
           />
-          <IncomingCallOverlayShell callBindings={callBindings} overlayShell={overlayShell} />
+          <IncomingCallOverlayShell
+            callBindings={callBindings}
+            overlayShell={overlayShell}
+            ocpRejectWithBreak={ocpRejectWithBreak}
+          />
+          <OcpProxyStatusScreen
+            proxyStatus={operatorStatusSelector.vm.proxyStatus}
+            onOpenIntegrations={operatorStatusSelector.onOpenIntegrationsSettings}
+          />
+          <OcpLogoutReasonModal
+            open={ocpLogoutModal.modalOpen}
+            reasons={ocpLogoutModal.reasons}
+            selectedReasonId={ocpLogoutModal.selectedReasonId}
+            submitting={ocpLogoutModal.submitting}
+            requireReasonSelection={ocpLogoutModal.requireReasonSelection}
+            onSelectReason={ocpLogoutModal.handleSelectReason}
+            onConfirm={() => {
+              void ocpLogoutModal.handleConfirm();
+            }}
+            onCancel={ocpLogoutModal.handleCancel}
+          />
+          <OcpCampaignEventModal
+            open={ocpCampaignModal.open}
+            campaign={ocpCampaignModal.campaign}
+            submitting={ocpCampaignModal.submitting}
+            pendingAction={ocpCampaignModal.pendingAction}
+            onAccept={() => {
+              void ocpCampaignModal.handleAccept();
+            }}
+            onReject={() => {
+              void ocpCampaignModal.handleReject();
+            }}
+          />
+          <OcpRejectBreakReasonModal
+            open={ocpRejectWithBreak.modalOpen}
+            reasons={ocpRejectWithBreak.reasons}
+            selectedReasonId={ocpRejectWithBreak.selectedReasonId}
+            submitting={ocpRejectWithBreak.submitting}
+            onSelectReason={ocpRejectWithBreak.handleSelectReason}
+            onConfirm={() => {
+              void ocpRejectWithBreak.handleConfirm();
+            }}
+            onCancel={ocpRejectWithBreak.handleCancel}
+          />
+          <OcpPostCallStatusModal
+            open={operatorStatusSelector.postCallModal.open}
+            pendingReasonLabel={operatorStatusSelector.postCallModal.pendingReasonLabel}
+            chosenAction={operatorStatusSelector.postCallModal.chosenAction}
+            submitting={operatorStatusSelector.postCallModal.submitting}
+            onChooseFinish={operatorStatusSelector.onPostCallChooseFinish}
+            onChooseReserve={operatorStatusSelector.onPostCallChooseReserve}
+            onConfirm={operatorStatusSelector.onPostCallConfirm}
+            onCancel={operatorStatusSelector.onPostCallCancel}
+          />
           <ShellRouteDataController facade={facade} />
           <HistoryShellRoutePanel facade={facade} notify={notifications.notify} />
           <ContactsShellRoutePanel facade={facade} notify={notifications.notify} />
@@ -395,6 +526,27 @@ function SoftphoneShellLayoutRoute({
                 settingsActions.onEnableLocalVideoAfterConnectChange
               }
               onRefreshVideoDevices={videoSettingsPanel.refreshDevices}
+              integrations={{
+                ocp: {
+                  settings: ocpSettingsPanel.settings,
+                  session: ocpSettingsPanel.session,
+                  tokenDraft: ocpSettingsPanel.tokenDraft,
+                  tokenVisible: ocpSettingsPanel.tokenVisible,
+                  hasSavedToken: ocpSettingsPanel.hasSavedToken,
+                  actionLoading: ocpSettingsPanel.actionLoading,
+                  errorKey: ocpSettingsPanel.errorKey,
+                  onEnabledChange: ocpSettingsPanel.onEnabledChange,
+                  onDomainChange: ocpSettingsPanel.onDomainChange,
+                  onAutoConnectChange: ocpSettingsPanel.onAutoConnectChange,
+                  onAutoSipAuthChange: ocpSettingsPanel.onAutoSipAuthChange,
+                  onTokenDraftChange: ocpSettingsPanel.onTokenDraftChange,
+                  onTokenVisibleChange: ocpSettingsPanel.onTokenVisibleChange,
+                  onSaveToken: ocpSettingsPanel.onSaveToken,
+                  onDeleteToken: ocpSettingsPanel.onDeleteToken,
+                  onConnect: ocpSettingsPanel.onConnect,
+                  onDisconnect: ocpSettingsPanel.onDisconnect,
+                },
+              }}
               account={{
                 form: accountActions.form,
                 submitting: accountActions.submitting,

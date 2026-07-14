@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { setupJsdomRadix } from "../../test/setupJsdomRadix.js";
 import { IncomingCallSessionCard } from "./IncomingCallSessionCard.js";
@@ -17,7 +18,7 @@ const baseProps = {
   callId: "incoming-1",
   callerNumber: "+12025550100",
   displayName: "John Doe",
-autoAnswerSecondsRemaining: null,
+  autoAnswerSecondsRemaining: null,
   autoAnswerTimeoutSec: null,
   uiState: "incomingRinging" as const,
   isSelected: true,
@@ -78,6 +79,33 @@ describe("IncomingCallSessionCard", () => {
     fireEvent.click(screen.getByTestId("reject-call"));
     expect(onAnswer).toHaveBeenCalledTimes(1);
     expect(onReject).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows OCP reject choice menu when enabled", async () => {
+    const user = userEvent.setup();
+    const onRejectWithoutBreak = vi.fn();
+    const onRejectWithBreak = vi.fn();
+    const onReject = vi.fn();
+
+    render(
+      <IncomingCallSessionCard
+        {...baseProps}
+        rejectChoiceEnabled
+        onReject={onReject}
+        onRejectWithoutBreak={onRejectWithoutBreak}
+        onRejectWithBreak={onRejectWithBreak}
+      />,
+    );
+
+    await user.click(screen.getByTestId("reject-call"));
+    expect(onReject).not.toHaveBeenCalled();
+
+    await user.click(screen.getByTestId("reject-call-without-break"));
+    expect(onRejectWithoutBreak).toHaveBeenCalledTimes(1);
+
+    await user.click(screen.getByTestId("reject-call"));
+    await user.click(screen.getByTestId("reject-call-with-break"));
+    expect(onRejectWithBreak).toHaveBeenCalledTimes(1);
   });
 
   it("shows answer disabled reason", () => {

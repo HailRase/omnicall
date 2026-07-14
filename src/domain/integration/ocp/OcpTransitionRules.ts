@@ -6,12 +6,20 @@
 
 import { OperatorStatus, type OperatorStatus as OperatorStatusType } from "./OperatorStatus.js";
 
+/** User-selectable idle targets (ready/break reason change + logout). */
+const USER_IDLE_TARGETS: ReadonlyArray<OperatorStatusType> = [
+  OperatorStatus.READY,
+  OperatorStatus.BREAK,
+  OperatorStatus.LOGOUT,
+];
+
 export const OPERATOR_STATUS_TRANSITIONS: ReadonlyMap<
   OperatorStatusType,
   ReadonlyArray<OperatorStatusType>
 > = new Map([
-  [OperatorStatus.READY, [OperatorStatus.BREAK, OperatorStatus.LOGOUT]],
-  [OperatorStatus.BREAK, [OperatorStatus.READY, OperatorStatus.LOGOUT]],
+  [OperatorStatus.READY, USER_IDLE_TARGETS],
+  [OperatorStatus.BREAK, USER_IDLE_TARGETS],
+  [OperatorStatus.PREPARING_TO_WORK, USER_IDLE_TARGETS],
   [
     OperatorStatus.POST_CALL_PROCESSING,
     [OperatorStatus.READY, OperatorStatus.BREAK, OperatorStatus.LOGOUT],
@@ -20,7 +28,6 @@ export const OPERATOR_STATUS_TRANSITIONS: ReadonlyMap<
   [OperatorStatus.RESERVED_TO_CALL, []],
   [OperatorStatus.TALKING, []],
   [OperatorStatus.HOLD, []],
-  [OperatorStatus.PREPARING_TO_WORK, []],
   [OperatorStatus.LOGOUT, []],
   [OperatorStatus.AUTH, []],
   [OperatorStatus.RECONNECTED, []],

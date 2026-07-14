@@ -561,7 +561,7 @@ No Redux/Zustand for OCP. `campaignEventState` is exposed from context but dupli
 |----------------------|-------------------------|
 | `StatusesProvider` + `useWs` | Application layer + Operator WebSocket adapter |
 | `USER_STATUS_RULES` | Domain state machine (Operator bounded context) |
-| `window.Softphone.ocpModule` | Typed host-page IPC / preload bridge (P12) |
+| `window.Softphone.ocpModule` | **Not ported.** Future: `ExternalClientGateway` + `ExternalCommandRouter` (WS) → Facade `authenticateOcpFromHost` / `changeOcpStatusFromHost` |
 | CustomEvents | Typed domain events / ports |
 | `operator_status_reasons` | Operator bounded context read model |
 | No REST | Keep WS-only or add typed port |
@@ -582,7 +582,7 @@ Replace the CustomEvent bus with typed port interfaces and domain events per `Ar
 3. Application projections for dropdown and timer
 4. Renderer UI (StatusSelector, LogoutReasonModal) using UI Kit
 5. SIP ↔ OCP bridge as application orchestration (not CustomEvents)
-6. Host-page integration via typed preload API (P12)
+6. Host-page integration via **ExternalClientGateway** / **ExternalCommandRouter** (not `window.Softphone`)
 
 ---
 
@@ -600,4 +600,4 @@ Replace the CustomEvent bus with typed port interfaces and domain events per `Ar
 
 **Status enum and rules:** `src/constants/ocpStatuses.ts`.
 
-**Do not port as-is:** `window.Softphone` patching, CustomEvent bus, `window.ws` global, god-object `DisplayProvider`.
+**Do not port as-is:** `window.Softphone` patching, CustomEvent bus, `window.ws` global, god-object `DisplayProvider`. External tabs use WS gateway, not DOM globals.

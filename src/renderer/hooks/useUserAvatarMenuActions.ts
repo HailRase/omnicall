@@ -19,6 +19,8 @@ type UseUserAvatarMenuActionsInput = Readonly<{
   onOpenHistory: () => void;
   onOpenContacts: () => void;
   onMenuClose: () => void;
+  /** When set, replaces default SIP-only end-session (e.g. OCP reason modal). */
+  onLogout?: () => void;
 }>;
 
 export type UseUserAvatarMenuActionsResult = Readonly<{
@@ -53,6 +55,7 @@ export function useUserAvatarMenuActions(
     onOpenHistory,
     onOpenContacts,
     onMenuClose,
+    onLogout,
   } = input;
 
   const dndDisabledReason = mapAvatarMenuDndDisabledReason({
@@ -114,8 +117,12 @@ export function useUserAvatarMenuActions(
     }
 
     onMenuClose();
+    if (onLogout !== undefined) {
+      onLogout();
+      return;
+    }
     sessionLogoutActions.handleEndSession();
-  }, [logoutDisabledReason, onMenuClose, sessionLogoutActions]);
+  }, [logoutDisabledReason, onLogout, onMenuClose, sessionLogoutActions]);
 
   return {
     dndEnabled,

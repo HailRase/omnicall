@@ -29,10 +29,14 @@ export class MockOcpGateway implements OcpGateway {
     this.setConnectionState("connected");
   }
 
-  disconnect(reason?: "logout" | "error"): void {
+  disconnect(reason?: "logout" | "error" | "terminate"): void {
     this.connected = false;
     if (reason === "error") {
       this.setConnectionState("failed");
+      return;
+    }
+    if (reason === "terminate") {
+      this.setConnectionState("sessionClosed");
       return;
     }
     this.setConnectionState("disconnected");

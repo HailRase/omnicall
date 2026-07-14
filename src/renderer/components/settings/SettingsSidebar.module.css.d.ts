@@ -1,6 +1,12 @@
 declare const classes: {
   readonly navButton: string;
   readonly navButtonActive: string;
+  readonly navChildButton: string;
+  readonly navChildItem: string;
+  readonly navChildList: string;
+  readonly navGroup: string;
+  readonly navGroupChevron: string;
+  readonly navGroupChevronOpen: string;
   readonly navIcon: string;
   readonly navItem: string;
   readonly navLabel: string;

@@ -21,6 +21,7 @@ type UseIncomingCallActionsResult = Readonly<{
   handleAnswerIncoming: () => void;
   handleAnswerIncomingWithVideo: () => void;
   handleRejectIncoming: () => void;
+  handleRejectIncomingWithBreakReason: (breakReason: string) => Promise<boolean>;
   answerDisabledReason: string | null;
   videoAnswerDisabledReason: string | null;
   canAnswerWithVideo: boolean;
@@ -102,6 +103,24 @@ export function useIncomingCallActions(
     });
   };
 
+  const handleRejectIncomingWithBreakReason = async (
+    breakReason: string,
+  ): Promise<boolean> => {
+    if (facade === null || incomingCallProjection.callId === null) {
+      return false;
+    }
+    setIncomingUiState("rejecting");
+    const result = await facade.rejectCallById(
+      incomingCallProjection.callId,
+      breakReason,
+    );
+    if (!result.ok) {
+      setIncomingUiState("rejectFailed");
+      return false;
+    }
+    return true;
+  };
+
   const answerDisabledReason =
     incomingCallProjection.uiState === "rejecting"
       ? translateCurrent("incoming.status.rejecting")
@@ -141,6 +160,7 @@ export function useIncomingCallActions(
     handleAnswerIncoming,
     handleAnswerIncomingWithVideo,
     handleRejectIncoming,
+    handleRejectIncomingWithBreakReason,
     answerDisabledReason,
     videoAnswerDisabledReason,
     canAnswerWithVideo,

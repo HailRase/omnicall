@@ -2,10 +2,10 @@
 
 **Feature:** F-028 — OCP Module Integration  
 **Bounded context:** Integration (не Telephony)  
-**Последнее обновление:** 2026-07-13  
-**Текущий статус:** 🟢 E-04 готов; следующий — E-05 (Projections + Bridge Services)  
-**Версия схемы настроек:** v6 → v7 (добавляется `ocpIntegration`)  
-**Команда для продолжения работы:** `/logic` или `/ui` + ссылка на этот файл
+**Последнее обновление:** 2026-07-14  
+**Текущий статус:** 🟢 E-01…E-13 done — F-028 implemented  
+**Версия схемы настроек:** v7 (`ocpIntegration`)  
+**Команда для продолжения работы:** `/preflight` → `/review` (закрытие F-028) или EXT design  
 
 ---
 
@@ -17,15 +17,15 @@
 | [E-02](#e-02--port-contract--ocp-protocol-types) | Port Contract + OCP Protocol Types | 🟢 |
 | [E-03](#e-03--websocket-адаптер) | WebSocket Адаптер | 🟢 |
 | [E-04](#e-04--application--use-cases) | Application — Use Cases | 🟢 |
-| [E-05](#e-05--application--projections--bridge-services) | Application — Projections + Bridge Services | 🔴 |
-| [E-06](#e-06--usersettings-v7--settings-ui-integrations) | UserSettings v7 + Settings UI (Integrations) | 🔴 |
-| [E-07](#e-07--ui--operator-status-selector-в-хедере) | UI — Operator Status Selector в хедере | 🔴 |
-| [E-08](#e-08--ui--модальное-окно-выхода-с-причиной) | UI — Модальное окно выхода с причиной | 🔴 |
-| [E-09](#e-09--ui--кампании--ocp-уведомления) | UI — Кампании + OCP Уведомления | 🔴 |
-| [E-10](#e-10--telephony--ocp-bridge-полное-подключение) | Telephony ↔ OCP Bridge (полное подключение) | 🔴 |
-| [E-11](#e-11--sip-авторизация-из-ocp-creds) | SIP Авторизация из OCP `creds` | 🔴 |
-| [E-12](#e-12--host-page-api-p12) | Host-Page API (P12) | 🔴 |
-| [E-13](#e-13--i18n-полнота--integration-tests--wu-gate) | i18n, Integration Tests, WU Gate | 🔴 |
+| [E-05](#e-05--application--projections--bridge-services) | Application — Projections + Bridge Services | 🟢 |
+| [E-06](#e-06--usersettings-v7--settings-ui-integrations) | UserSettings v7 + Settings UI (Integrations) | 🟢 |
+| [E-07](#e-07--ui--operator-status-selector-в-хедере) | UI — Operator Status Selector в хедере | 🟢 |
+| [E-08](#e-08--ui--модальное-окно-выхода-с-причиной) | UI — Модальное окно выхода с причиной | 🟢 |
+| [E-09](#e-09--ui--кампании--ocp-уведомления) | UI — Кампании + OCP Уведомления | 🟢 |
+| [E-10](#e-10--telephony--ocp-bridge-полное-подключение) | Telephony ↔ OCP Bridge (полное подключение) | 🟢 |
+| [E-11](#e-11--sip-авторизация-из-ocp-creds) | SIP Авторизация из OCP `creds` | 🟢 |
+| [E-12](#e-12--external-ocp-command-surface-p12-prep) | External OCP command surface (P12 prep) | 🟢 |
+| [E-13](#e-13--i18n-полнота--integration-tests--wu-gate) | i18n, Integration Tests, WU Gate | 🟢 |
 | [EXT](#ext--задел-на-будущее--external-sdk-gateway) | **Задел: External SDK Gateway** | 📋 Проектирование |
 
 ---
@@ -37,7 +37,7 @@
 1. **OCP — интеграция, не ядро.** SIP-телефония работает без OCP. OCP не должен попадать в `src/domain/telephony/` или `src/application/use-cases/telephony/`.
 2. **Layering:** UI → Application → Domain → Ports → Adapters → Infrastructure. Нарушения недопустимы.
 3. **Domain Events, не прямые вызовы.** Telephony не знает об OCP. OCP Bridge подписывается на доменные события Telephony через `DomainEventPublisher`.
-4. **OCP Gateway — единственный WebSocket.** Никаких глобальных объектов (`window.ws`), никакого patching `window.Softphone` из нескольких мест.
+4. **OCP Gateway — единственный WebSocket к OCP.** Никаких глобальных объектов (`window.ws`). Legacy `window.Softphone` **не портируется** — внешние вкладки через будущий `ExternalClientGateway` / `ExternalCommandRouter`.
 5. **Settings → Интеграции → OCP Module** — единственное место конфигурации OCP в UI.
 6. **Статус оператора в хедере** виден только когда `ocpSession.isAuthenticated === true`.
 7. **i18n обязателен.** Все видимые строки → ключи в каталогах `ru`, `en`, `fr`, `de`, `bg`.
@@ -136,10 +136,9 @@ src/domain/integration/ocp/
   - Метод `withUpdatedStatus(status, reasonId, since): OperatorProfile` → новый объект (иммутабельность)
 - [x] `OcpTransitionRules.ts`:
   - `OPERATOR_STATUS_TRANSITIONS: ReadonlyMap<OperatorStatus, ReadonlyArray<OperatorStatus>>`
-  - READY → [BREAK, LOGOUT]
-  - BREAK → [READY, LOGOUT]
+  - READY / BREAK / PREPARING_TO_WORK → [READY, BREAK, LOGOUT] (reason change + idle exits)
   - POST_CALL_PROCESSING → [READY, BREAK, LOGOUT]
-  - Системные статусы → пустой массив (клиент не инициирует)
+  - Системные busy-статусы → пустой массив (клиент не инициирует apply; reserve идёт через Use Case)
 - [x] `OperatorStatusMachine.ts`:
   - `validateTransition(from, to): Result<void, 'transition_not_allowed'>`
   - `isBusy(status): boolean`
@@ -471,7 +470,7 @@ src/ports/integration/
 
 ## E-05 — Application — Projections + Bridge Services
 
-**Статус:** 🔴 Не начато  
+**Статус:** 🟢 Готово (2026-07-14, `/logic`)  
 **Команда:** `/logic`  
 **Зависимости:** E-01, E-02, E-03 (MockOcpGateway), E-04
 
@@ -543,29 +542,29 @@ src/application/services/integration/
 
 #### Проекции
 
-- [ ] `ocpSessionProjection`:
+- [x] `ocpSessionProjection`:
   - State: `{ connectionState: OcpConnectionState; isAuthenticated: boolean; domain: string | null; proxyStatus: 'SESSION_EXIST' | 'INVALID_TOKEN' | null; reconnectAttempt: number }`
   - Обновляется из `gateway.onConnectionStateChange` и `gateway.onMessage` (entity: 'Error')
   - Selectors: `selectIsOcpConnected`, `selectOcpProxyStatus`, `selectOcpDomain`
   - Тест: полный цикл состояний, SESSION_EXIST block
-- [ ] `operatorStatusProjection` (реализует `OcpOperatorReadModel`):
+- [x] `operatorStatusProjection` (реализует `OcpOperatorReadModel`):
   - State: `{ operatorId: number | null; status: OperatorStatus | null; reasonId: number; statusSince: number | null; isBusy: boolean; reservedStatus: OperatorStatus | null; reservedReasonId: number | null }`
   - Обновляется из `entity: 'users'` → `users[0]`
   - Selectors: `selectOperatorStatus`, `selectOperatorIsBusy`, `selectIsCallButtonBlocked`
   - `getCurrentOperatorProfile()` и `getReservedStatus()` реализуют `OcpOperatorReadModel`
   - Тест: обновление, нормализация reason_id
-- [ ] `ocpReasonsProjection`:
+- [x] `ocpReasonsProjection`:
   - State: `{ readyReasons: OperatorStatusReason[]; breakReasons: OperatorStatusReason[]; logoutReasons: OperatorStatusReason[] }`
   - Обновляется из `entity: 'operator_status_reasons'`
   - localStorage кэш ключ `ocp-break-reasons-{operatorId}`
   - Тест: фильтрация по parentStatus
-- [ ] `campaignEventProjection`:
+- [x] `campaignEventProjection`:
   - State: `{ activeCampaign: OcpCampaignEventPayload | null }`
   - Тест: set/clear
 
 #### Bridge Services
 
-- [ ] `OcpTelephonyBridgeService`:
+- [x] `OcpTelephonyBridgeService`:
   - `IncomingCallReceived` → `get_main_acallid`
   - `OutgoingCallStarted` → `get_main_acallid`
   - `CallAnswered` → `get_main_acallid` (sync)
@@ -575,29 +574,29 @@ src/application/services/integration/
   - Если `!isAuthenticated` → пропускать команды
   - `dispose()` — снять все подписки
   - Тест: CallEnded → dlg_stop; без auth → нет команд
-- [ ] `OcpDndBridgeService`:
+- [x] `OcpDndBridgeService`:
   - `PhoneStatusChanged { dnd: true }` + idle → `ChangeOperatorStatusUseCase({ targetStatus: 'break', callType: 'internal' })`
   - `PhoneStatusChanged { dnd: true }` + busy → `ReservePostCallStatusUseCase`
   - Тест: DND on idle → break; DND on busy → reserve
-- [ ] `OcpNotificationService`:
-  - `entity: 'notification'` → `notificationStore.addNotification`
-  - Тест: notification entity → toast добавлен
-- [ ] `OcpSipCredentialService` — stub (полная реализация в E-11)
-- [ ] Bootstrap wiring в `createRealAccountBootstrap.ts`:
+- [x] `OcpNotificationService`:
+  - `entity: 'notification'` → `OcpNotificationPresenter.present` (UI wires toast in E-09 / T-021)
+  - Тест: notification entity → presenter called
+- [x] `OcpSipCredentialService` — stub (полная реализация в E-11)
+- [x] Bootstrap wiring в `createRealAccountBootstrap.ts`:
   - Создать `OcpWebSocketAdapter`, передать в Use Cases и Bridge Services
   - Bridge Services стартуют при инициализации
   - `dispose()` вызывается при `ShutdownCleanupUseCase`
-- [ ] `createMockAccountBootstrap.ts`: использовать `MockOcpGateway`
+- [x] `createMockAccountBootstrap.ts`: использовать `MockOcpGateway`
 
 ### Примечания
-> *(заполняется агентом во время работы)*
+> E-05 завершён 2026-07-14. Application projections — чистые reduce/selectors (сериализуемые); runtime hub `OcpProjectionHub` реализует `OcpOperatorReadModel`. Zustand wiring в renderer — подзадача `/ui` (T-021). Notification через порт `OcpNotificationPresenter`, не прямой импорт renderer. Next: E-06.
 
 ---
 
 ## E-06 — UserSettings v7 + Settings UI (Integrations)
 
-**Статус:** 🔴 Не начато  
-**Команда:** `/logic` (схема) + `/ui` (панель)  
+**Статус:** 🟢 Schema + Facade + Settings Integrations UI готовы (2026-07-14, T-021 `/ui`)
+**Команда:** `/logic` (схема) + `/ui` (панель) — done
 **Зависимости:** E-01, E-04
 
 ### Цель
@@ -646,7 +645,7 @@ src/renderer/components/settings/
 
 #### Domain
 
-- [ ] `OcpIntegrationSettings`:
+- [x] `OcpIntegrationSettings`:
   ```typescript
   type OcpIntegrationSettings = {
     readonly enabled: boolean;
@@ -658,54 +657,40 @@ src/renderer/components/settings/
     enabled: false, domain: '', autoConnect: false, autoSipAuth: false
   };
   ```
-- [ ] `SETTINGS_SCHEMA_VERSION = 7` в `UserSettings.ts`
-- [ ] Поле `ocpIntegration: OcpIntegrationSettings` в `UserSettings`
-- [ ] `migrateUserSettings` v6→v7: инъектировать `OCP_INTEGRATION_DEFAULTS`
-- [ ] `validateUserSettings`: валидировать `ocpIntegration.domain` (строка, допустима пустая)
-- [ ] Тесты миграции и валидации
-- [ ] Токен **не в `UserSettings`** — только через `SecretStoragePort` с ключом `'ocp-token'`
+- [x] `SETTINGS_SCHEMA_VERSION = 7` в `UserSettings.ts`
+- [x] Поле `ocpIntegration: OcpIntegrationSettings` в `UserSettings`
+- [x] `migrateUserSettings` v6→v7: инъектировать `OCP_INTEGRATION_DEFAULTS`
+- [x] `validateUserSettings`: валидировать `ocpIntegration.domain` (строка, допустима пустая)
+- [x] Тесты миграции и валидации
+- [x] Токен **не в `UserSettings`** — только через `SecretStoragePort` с ключом `'ocp-token'`
+- [x] Facade actions: `updateOcpSettings`, `saveOcpToken` / `getOcpToken` / `deleteOcpToken`, `connectOcp` / `disconnectOcp`
 
 #### Renderer
 
-- [ ] `settingsSections.ts`: добавить `"integrations"` в `SettingsSectionId` и `SETTINGS_NAV_ITEMS`
+- [x] `settingsSections.ts`: добавить `"integrations"` в `SettingsSectionId` и `SETTINGS_NAV_ITEMS`
   - `labelKey: "settings.nav.integrations"`, `iconId: "settings.integrations"`, `testId: "settings-nav-integrations"`
-- [ ] Иконка `settings.integrations` в `iconCatalog.ts` (Lucide `Plug` или `Cable`) + запись в `Icon-Registry.md`
-- [ ] Facade actions в `AccountBootstrapFacade`:
-  - `updateOcpSettings(s: OcpIntegrationSettings): Promise<Result<void, PlatformError>>`
-  - `saveOcpToken(token: string): Promise<Result<void, PlatformError>>` → SecretStoragePort
-  - `getOcpToken(): Promise<Result<string | null, PlatformError>>`
-  - `deleteOcpToken(): Promise<Result<void, PlatformError>>`
-  - `connectOcp(): Promise<Result<void, PlatformError>>` → `ConnectOcpUseCase`
-  - `disconnectOcp(): Promise<Result<void, PlatformError>>` → `DisconnectOcpUseCase`
-- [ ] Hook `useOcpSettingsPanel`: читает `ocpSessionProjection`, вызывает facade actions
-- [ ] `SettingsIntegrationsPanel.tsx`: заголовок + `OcpModuleSettingsCard` (extensible структура)
-- [ ] `OcpModuleSettingsCard.tsx`:
+- [x] Иконка `settings.integrations` в `iconCatalog.ts` (Lucide `Plug`) + запись в `Icon-Registry.md`
+- [x] Hook `useOcpSettingsPanel`: читает `ocpSessionProjection`, вызывает facade actions
+- [x] `SettingsIntegrationsPanel.tsx`: заголовок + `OcpModuleSettingsCard` (extensible структура)
+- [x] `OcpModuleSettingsCard.tsx`:
   - Toggle «Включить OCP Module» (enabled)
   - Поле «OCP Domain», Toggle «Автоподключение», Toggle «Авторизовать SIP из OCP»
   - Поле токена (type=password, show/hide) + кнопка «Сохранить токен» / «Удалить токен»
   - Кнопка «Подключиться» / «Отключиться» + статус-индикатор
   - `data-testid="ocp-module-settings-card"`
-- [ ] Добавить `SettingsIntegrationsPanel` в `SettingsPanel.tsx`
-- [ ] i18n ключи (ru, en, fr, de, bg):
-  - `settings.nav.integrations`, `settings.integrations.title`
-  - `settings.integrations.ocp.title`, `settings.integrations.ocp.description`
-  - `settings.integrations.ocp.enabled`, `settings.integrations.ocp.domain`
-  - `settings.integrations.ocp.domain.placeholder`, `settings.integrations.ocp.autoConnect`
-  - `settings.integrations.ocp.autoSipAuth`, `settings.integrations.ocp.token`
-  - `settings.integrations.ocp.token.save`, `settings.integrations.ocp.token.delete`
-  - `settings.integrations.ocp.connect`, `settings.integrations.ocp.disconnect`
-  - `settings.integrations.ocp.status.*` (disconnected/connecting/authenticated/reconnecting/failed/sessionClosed)
-  - `settings.integrations.ocp.error.domainRequired`, `settings.integrations.ocp.error.tokenRequired`
-- [ ] Тесты: enabled/disabled state, domain required guard, token save/delete, connect/disconnect
+- [x] Добавить `SettingsIntegrationsPanel` в `SettingsPanel.tsx`
+- [x] i18n ключи (ru, en, fr, de, bg)
+- [x] Тесты: enabled/disabled state, domain required guard, token save/delete, connect/disconnect
+- [x] Zustand OCP projections sync + toast presenter → `useNotifications`
 
 ### Примечания
-> *(заполняется агентом во время работы)*
+> E-06 полностью закрыт 2026-07-14 (T-021 `/ui`): Integrations panel, OCP card, projection wiring, toast sink. Next: E-07 status selector или E-10/E-11.
 
 ---
 
 ## E-07 — UI — Operator Status Selector в хедере
 
-**Статус:** 🔴 Не начато  
+**Статус:** 🟢 Готово (2026-07-14)  
 **Команда:** `/ui`  
 **Зависимости:** E-04, E-05, E-06
 
@@ -774,86 +759,82 @@ src/renderer/components/integration/ocp/
 
 ### Чеклист
 
-- [ ] `useOperatorStatusSelector`: pure view model, никаких Zustand в компоненте
-- [ ] `OperatorStatusSelector.tsx`:
+- [x] `useOperatorStatusSelector`: pure view model, никаких Zustand в компоненте
+- [x] `OperatorStatusSelector.tsx`:
   - Не рендерится если `!isAuthenticated`
   - Status dot + reasonLabel + `OcpStatusTimer` + chevron → trigger для `OcpStatusDropdown`
   - `data-testid="ocp-status-selector"`, CSS Modules + semantic tokens, light + dark
-- [ ] `OcpStatusDropdown`: Radix DropdownMenu, группы Ready/Break, disabled states с tooltip
+- [x] `OcpStatusDropdown`: Radix DropdownMenu, группы Ready/Break, disabled states с tooltip
   - Ready disabled если SIP не зарегистрирован: `data-testid="ocp-ready-disabled-sip"`
   - Ready disabled если DND: `data-testid="ocp-ready-disabled-dnd"`
   - Skip если same reasonId выбран
-- [ ] `OcpStatusTimer`: `useEffect + setInterval` с cleanup, `aria-label`
-- [ ] `OcpConnectionBanner`:
+- [x] `OcpStatusTimer`: `useCallDuration` (interval + cleanup), `aria-label`
+- [x] `OcpConnectionBanner`:
   - reconnecting: «Переподключение… (попытка N из 6)»
   - failed: «Не удалось подключиться. Попробовать снова?»
-  - Кнопка Retry → `RetryOcpConnectionUseCase`, `data-testid="ocp-retry-connect"`
-- [ ] `OcpProxyStatusScreen`: blocking overlay, SESSION_EXIST/INVALID_TOKEN, кнопка → Settings → Integrations
-- [ ] Интеграция в `SoftphoneShellHeader.tsx` + `SoftphoneReadyShell.tsx`
-- [ ] i18n ключи для ru, en, fr, de, bg: `ocp.status.*`, `ocp.dropdown.*`, `ocp.connection.*`, `ocp.proxyStatus.*`
-- [ ] Тесты: hidden when !auth, busy disables dropdown, DND guard, click → Use Case called
-- [ ] Stories: authenticated/disconnected/busy/dnd-guard (light + dark)
+  - Кнопка Retry → `facade.connectOcp()`, `data-testid="ocp-retry-connect"`
+- [x] `OcpProxyStatusScreen`: blocking overlay, SESSION_EXIST/INVALID_TOKEN, кнопка → Settings → Integrations
+- [x] Интеграция в `SoftphoneShellHeader.tsx` + `SoftphoneReadyShell.tsx`
+- [x] i18n ключи для ru, en, fr, de, bg: `ocp.status.*`, `ocp.dropdown.*`, `ocp.connection.*`, `ocp.proxyStatus.*`, `ocp.operatorStatus.*`
+- [x] Тесты: hidden when !auth, busy disables dropdown, DND guard, click → Use Case called
+- [x] Stories: authenticated/disconnected/busy/dnd-guard (light + dark)
 
 ### Примечания
-> *(заполняется агентом во время работы)*
+> Hook: `src/renderer/hooks/useOperatorStatusSelector.ts` (не widgets/hooks — eslint/UI-Architecture + facade pattern как `useOcpSettingsPanel`).
+> Chrome tests: `OcpStatusChrome.test.tsx` (timer/banner/proxy). Retry = `AccountBootstrapFacade.connectOcp`.
 
 ---
 
 ## E-08 — UI — Модальное окно выхода с причиной
 
-**Статус:** 🔴 Не начато  
+**Статус:** 🟢 Готово  
 **Команда:** `/ui`  
 **Зависимости:** E-04, E-05, E-07
 
 ### Цель
-Модальное окно выбора причины выхода из OCP. Вход — из меню аватара (отдельный пункт, не SIP logout).
+Модальное окно выбора причины выхода из OCP. Вход — из пункта «Выйти» меню аватара.
 
 ### Направление реализации
 
 **Паттерны:**
-- `src/renderer/components/history/HistoryDeleteConfirmationModal.tsx` — AlertDialog с confirm/cancel
-- `src/renderer/components/ui/dialog/` — UI Kit Dialog (Radix)
-- `src/renderer/hooks/useShellWindowControls.ts` — state machine в hook
+- `ShellDialpadPanel` `sidebar` — тот же left slide-in, что contacts/history (не modal scrim)
+- `LogoutOperatorUseCase` + SIP cascade через `OperatorLoggedOut` (Application)
 
-**Ключевой момент — разделение logout:**  
-«Выйти из OCP» и «Выйти из аккаунта» (SIP) — **два разных пункта меню**. Первый виден только если `isOcpAuthenticated`. Второй — стандартный SIP logout. Они **не каскадируются** автоматически (если `cascadeSipLogout = false` в `LogoutOperatorUseCase`).
+**Ключевой момент — единая кнопка «Выйти»:**  
+Если `ocpIntegration.enabled && isAuthenticated` → fullscreen overlay с радио-причинами → confirm → OCP logout (`cascadeSipLogout: true`) + SIP logout.  
+Если модуль выключен / нет OCP auth → только SIP logout (как раньше).  
+Отдельный пункт «Выйти из OCP» **не** добавлялся (override плана по запросу продукта).
 
 **Радио-список причин:**  
-Используй `<Radio>` из UI Kit или нативный `<input type="radio">` с CSS Modules styling. Каждый item — `reasonId + defaultDescription`. Confirm button `disabled` пока не выбрана причина.
+Native `<input type="radio">` + CSS Modules. Confirm `disabled` без выбора / при empty list / submitting.
 
 ### Файловая структура
 
 ```
 src/renderer/components/integration/ocp/
 ├── OcpLogoutReasonModal.tsx + .module.css + .test.tsx
-└── hooks/useOcpLogoutModal.ts
+src/renderer/hooks/useOcpLogoutModal.ts + .test.ts
 ```
 
 ### Чеклист
 
-- [ ] `OcpLogoutReasonModal.tsx`: UI Kit Dialog, радио-список logout reasons, Cancel + Confirm (disabled без выбора)
+- [x] `OcpLogoutReasonModal.tsx`: ShellDialpadPanel sidebar (contacts/history-like), радио-список, Cancel + Confirm
   - `data-testid`: `ocp-logout-reasons-modal`, `ocp-logout-cancel`, `ocp-logout-confirm`
-  - Escape → закрыть без выхода (Radix обеспечивает)
+  - Escape → закрыть без выхода
   - CSS Modules + semantic tokens, light + dark
-- [ ] `useOcpLogoutModal`:
-  - `open/close` state
-  - `selectedReasonId: number | null`
-  - `handleConfirm` → `LogoutOperatorUseCase({ reasonId, callType: 'internal', cascadeSipLogout: false })`
-  - Toast при ошибке
-- [ ] Интеграция в `UserAvatarMenu`:
-  - Пункт «Выйти из OCP» виден только если `isOcpAuthenticated`
-  - Отдельно от «Выйти из аккаунта»
-- [ ] i18n (ru, en, fr, de, bg): `ocp.logout.menuItem`, `ocp.logout.modal.*`
-- [ ] Тесты: нет auth → пункт скрыт; confirm disabled без выбора; confirm → Use Case вызван
+- [x] `useOcpLogoutModal`: open/close, selectedReasonId, confirm → LogoutOperator + SIP end session
+- [x] Интеграция в avatar menu logout branch (не отдельный пункт)
+- [x] i18n (ru, en, fr, de, bg): `ocp.logout.modal.*`
+- [x] Тесты: OCP off → SIP; confirm disabled без выбора; confirm → Use Case + SIP
 
 ### Примечания
-> *(заполняется агентом во время работы)*
+Реализовано 2026-07-14. Продуктовый override: cascade OCP+SIP с одной кнопки «Выйти».
 
 ---
 
 ## E-09 — UI — Кампании + OCP Уведомления
 
-**Статус:** 🔴 Не начато  
+**Статус:** 🟢 Готово (2026-07-14)  
 **Команда:** `/ui`  
 **Зависимости:** E-04, E-05
 
@@ -864,10 +845,10 @@ src/renderer/components/integration/ocp/
 
 **Паттерны:**
 - `src/renderer/components/updates/UpdateAvailableBanner.tsx` — overlay/modal поверх shell
-- `src/renderer/hooks/useNotifications.ts` + `src/renderer/stores/notificationStore.ts` — существующая toast-система
+- `src/renderer/hooks/useNotifications.ts` + `NotificationViewport` в `SoftphoneReadyShell` — существующая toast-система (отдельного `notificationStore` нет и не создавать)
 
 **OCP Notifications → Toast:**  
-`OcpNotificationService` (E-05) уже вызывает `notificationStore`. Здесь нужно только убедиться, что `useNotifications` корректно подключён в `SoftphoneReadyShell`. Никаких новых toast-механизмов — переиспользовать существующий.
+`OcpNotificationService` (E-05) вызывает порт `OcpNotificationPresenter` (сейчас `NoopOcpNotificationPresenter`). В E-09 UI даёт реализацию: `present(payload)` → map в `NotificationDescriptor` → `notify(...)` из `useNotifications` в `SoftphoneReadyShell` (тот же канал, что телефония/аккаунт). Никаких новых toast-механизмов и Zustand store для нотификаций — переиспользовать существующий хук. Store имеет смысл только позже, если toast sink понадобится вне React (host-page / SDK).
 
 **`CampaignEventModal`:**  
 Не закрывается по Escape (обязательный выбор — принять или отклонить). Показывается когда `campaignEventProjection.activeCampaign !== null`. После Accept/Reject — `campaignEventProjection` очищается.
@@ -877,29 +858,36 @@ src/renderer/components/integration/ocp/
 ```
 src/renderer/components/integration/ocp/
 ├── OcpCampaignEventModal.tsx + .module.css + .test.tsx
-└── hooks/useOcpCampaignModal.ts
+└── (presentational)
+
+src/renderer/hooks/useOcpCampaignModal.ts + .test.ts
+
+src/renderer/integration/ocp/
+└── createOcpToastNotificationPresenter.ts  — done in T-021
 ```
 
 ### Чеклист
 
-- [ ] `OcpCampaignEventModal.tsx`: UI Kit Dialog, no Escape close, Accept + Reject кнопки
+- [x] `OcpCampaignEventModal.tsx`: UI Kit Dialog, no Escape close, Accept + Reject кнопки
   - `data-testid`: `ocp-campaign-modal`, `ocp-campaign-accept`, `ocp-campaign-reject`
   - CSS Modules + semantic tokens, light + dark
-- [ ] `useOcpCampaignModal`: читает `campaignEventProjection`, вызывает Accept/Reject use cases
-- [ ] Интеграция в overlay layer `SoftphoneReadyShell`
-- [ ] OCP Notification toasts: убедиться что `OcpNotificationService` подключён к `notificationStore`
-- [ ] i18n (ru, en, fr, de, bg): `ocp.campaign.modal.*`
-- [ ] Тесты: modal visible when campaign active; accept → use case called; reject → use case called
+- [x] `useOcpCampaignModal`: читает `campaignEventProjection`, вызывает Accept/Reject use cases
+- [x] Интеграция в overlay layer `SoftphoneReadyShell`
+- [x] OCP Notification toasts: UI-реализация `OcpNotificationPresenter` → `useNotifications.notify` (без `notificationStore`) — done in T-021
+- [x] i18n (ru, en, fr, de, bg): `ocp.campaign.modal.*`
+- [x] Тесты: modal visible when campaign active; accept → use case called; reject → use case called; notification payload → `notify` called (toasts in T-021)
 
 ### Примечания
-> *(заполняется агентом во время работы)*
+> 2026-07-14: убран несуществующий `notificationStore` из спецификации. Sink = `OcpNotificationPresenter` → `useNotifications.notify` (как телефония). Zustand store для toast не планировать до внешних sink (host/SDK).
+> T-021 (2026-07-14): toast wiring выполнен (`CallbackOcpNotificationPresenter` + `mapOcpNotificationToToastDescriptor`). E-09 — campaign modal.
+> 2026-07-14: E-09 закрыт — `OcpCampaignEventModal` + `useOcpCampaignModal` в ReadyShell overlays.
 
 ---
 
 ## E-10 — Telephony ↔ OCP Bridge (полное подключение)
 
-**Статус:** 🔴 Не начато  
-**Команда:** `/logic`  
+**Статус:** 🟢 Готово (2026-07-14) — logic + UI (`/ui` T-025)  
+**Команда:** `/logic` → `/ui`  
 **Зависимости:** E-04, E-05
 
 ### Цель
@@ -920,36 +908,37 @@ src/renderer/components/integration/ocp/
 Selector `selectIsCallButtonBlocked` из `operatorStatusProjection`. Подключить к `useDialpadShell`: `callDisabled = existingCallDisabled || isCallButtonBlocked`. Disabled reason — `'ocp.dialpad.reservedToCall'` (i18n key).
 
 **Break reason на отклонение:**  
-В `IncomingCallSessionCard` добавить опциональный dropdownMenu/select «Отклонить с причиной» (показывается только если `isOcpAuthenticated && breakReasons.length > 0`). При выборе → `RejectCallUseCase` + `ReservePostCallStatusUseCase({ targetStatus: 'break', reasonId })`.
+При OCP auth + наличии break reasons кнопка Reject открывает DropdownMenu («без перерыва» / «с указанием перерыва»). Выбор «с перерывом» → Dialog со списком причин → `RejectCall` + `ReservePostCallStatus({ targetStatus: 'break', reasonId })`. Без OCP — обычный reject.
 
 ### Чеклист
 
-- [ ] `OcpTelephonyBridgeService` — полная реализация:
+- [x] `OcpTelephonyBridgeService` — полная реализация:
   - Events → команды: IncomingCallReceived/OutgoingCallStarted/CallAnswered → `get_main_acallid`
   - CallEnded/CallFailed → `dlg_stop` (с acallId из OcpCallCorrelationMap)
   - `entity: 'calls'` → заполнить OcpCallCorrelationMap
   - Map очищается при CallEnded/CallFailed
   - Guard: `if (!isAuthenticated) return`
   - `dispose()` — все подписки
-- [ ] Selector `selectIsCallButtonBlocked` в `operatorStatusProjection`
-- [ ] Подключить `selectIsCallButtonBlocked` к `useDialpadShell` / `useSoftphoneCallActions`
-- [ ] Disabled reason i18n key: `ocp.dialpad.reservedToCall` (5 локалей)
-- [ ] «Отклонить с причиной» в `IncomingCallSessionCard` (опциональный пункт, только если OCP auth)
-- [ ] i18n: `ocp.dialpad.reservedToCall`, `ocp.incomingCall.rejectWithBreakReason`
-- [ ] Integration test `OcpTelephonyBridge.integration.test.ts`:
+- [x] Selector `selectIsCallButtonBlocked` в `operatorStatusProjection`
+- [x] Подключить `selectIsCallButtonBlocked` к `useDialpadShell` / `useSoftphoneCallActions` — **`/ui` T-025**
+- [x] Disabled reason i18n key: `ocp.dialpad.reservedToCall` (5 локалей)
+- [x] «Отклонить с причиной» в `IncomingCallSessionCard` / Overlay (опциональный пункт, только если OCP auth) — **`/ui` T-025**
+- [x] i18n: `ocp.dialpad.reservedToCall`, `ocp.incomingCall.rejectWithBreakReason`, `ocp.incomingCall.rejectWithoutBreak`, `ocp.incomingCall.breakModal.*`
+- [x] Integration test `OcpTelephonyBridge.integration.test.ts`:
   - `IncomingCallReceived` → `get_main_acallid` отправлен
   - `CallEnded` → `dlg_stop` с правильным acallId
   - Без OCP auth → команды не отправляются
   - `status === RESERVED_TO_CALL` → `selectIsCallButtonBlocked === true`
 
 ### Примечания
-> *(заполняется агентом во время работы)*
+> 2026-07-14 `/logic`: bridge + selector + integration tests + i18n keys готовы.  
+> 2026-07-14 `/ui` T-025: dialpad block + reject choice menu + break Dialog wired; E-10 closed.
 
 ---
 
 ## E-11 — SIP Авторизация из OCP `creds`
 
-**Статус:** 🔴 Не начато  
+**Статус:** 🟢 Готово (2026-07-14)  
 **Команда:** `/logic`  
 **Зависимости:** E-04, E-05
 
@@ -969,91 +958,67 @@ Selector `selectIsCallButtonBlocked` из `operatorStatusProjection`. Подкл
 
 ### Чеклист
 
-- [ ] `OcpSipCredentialService` — полная реализация:
-  - `entity: 'creds'` → if `autoSipAuth && !sipRegistered` → `AuthorizeSipAccountUseCase`
+- [x] `OcpSipCredentialService` — полная реализация:
+  - `entity: 'creds'` → if `autoSipAuth && !sipRegistered` → `AuthorizeSipAccountUseCase` + `RegisterAccountUseCase`
   - `entity: 'creds'` → if `autoSipAuth && sipRegistered` → `logger.debug` + skip
   - `entity: 'creds'` → if `!autoSipAuth` → skip
-  - Пароль **не логировать**
-  - `Result.err` от `AuthorizeSipAccountUseCase` → `logger.error`, не throw
-- [ ] Тесты `OcpSipCredentialService.test.ts`:
+  - Пароль **не логировать**; для `source: "ocp"` пароль редactится в `SipCredentialsReceived`
+  - `Result.err` от Use Case → `logger.error`, не throw
+- [x] Тесты `OcpSipCredentialService.test.ts`:
   - creds + autoSipAuth=true + unregistered → Use Case вызван
   - creds + autoSipAuth=false → Use Case не вызван
   - creds + registered → Use Case не вызван
 
 ### Примечания
-> *(заполняется агентом во время работы)*
+> 2026-07-14: wired via `OcpIntegrationComposition` + Facade getters (`ocpAutoSipAuthEnabled`, `sipSessionRegistered`). After authorize success also calls `RegisterAccountUseCase` so auto-auth actually registers SIP.
 
 ---
 
-## E-12 — Host-Page API (P12)
+## E-12 — External OCP Command Surface (P12 prep)
 
-**Статус:** 🔴 Не начато  
-**Команда:** `/logic` + `/adapter`  
+
+**Статус:** 🟢 Done (2026-07-14; Softphone global removed same day)  
+**Команда:** `/logic`  
 **Зависимости:** E-04, E-05
 
 ### Цель
-Typed host-page API для OCP. CRM-страница может запустить OCP через `authenticateOCPModule` DOM event или через `window.Softphone.ocpModule.*`. Это часть P12 External Host API.
+Typed external OCP command surface for future browser-tab integration. **Не** порт legacy `window.Softphone` / `authenticateOCPModule` (это был embed widget в старой CRM). В Axatalk вкладка браузера будет ходить через `ExternalClientGateway` + `ExternalCommandRouter` (WS → main) — реализация gateway позже.
 
 ### Направление реализации
 
-**Паттерны:**
-- `src/shared/ipc/SecretStorageContract.ts` — как строятся typed IPC channels
-- `src/preload/index.ts` — как добавить методы в `window.Softphone`
-- `src/adapters/platform/PreloadAppLifecycleGateway.ts` — minimal typed bridge
+- `src/shared/host-api/OcpHostApiContract.ts` — channel ids + payload parsers
+- `AccountBootstrapFacade.authenticateOcpFromHost` / `changeOcpStatusFromHost` / `getOcpConnectionState`
+- Status changes use `callType: 'external'`
+- Нет `window.Softphone`, нет DOM CustomEvent host bridge
 
-**`authenticateOCPModule` DOM event:**  
-Host-page диспатчит `new CustomEvent('authenticateOCPModule', { detail: { ocpDomain, ocpAuthToken } })`. В renderer (preload) — слушаем этот event, валидируем payload, форвардим через IPC → main → `ConnectOcpUseCase`. Payload валидируется на preload-уровне (не передаём необработанные объекты в main).
-
-**Typed IPC channels:**  
-Следуй паттерну `SecretStorageContract.ts`: `export const OcpIntegrationContract = { authenticate: 'ocp:authenticate', ... } as const`. Каждый channel — строковая константа + типы запроса/ответа.
-
-**`window.Softphone.ocpModule`:**  
-Добавлять только в preload `index.ts`, не в адаптерах или компонентах. Методы: `authenticate`, `changeStatusToReady`, `changeStatusToBreak`, `getSessionState`. Все с `callType: 'external'` при делегировании в Use Cases.
-
-**Для External SDK (задел):**  
-`window.Softphone.ocpModule` — это первый слой внешнего API. External SDK (browser tab) в будущем не будет использовать `window.Softphone` напрямую (он не встроен в host-page). Вместо этого он подключится через local WebSocket. Но **Use Cases и Facade** уже будут готовы — они будут вызываться одинаково из обоих путей. Именно поэтому `callType: 'sdk'` заложен сейчас.
+**Для External SDK / Gateway (задел):**  
+Future router вызывает те же Facade methods; Use Cases уже принимают `callType: 'external' | 'sdk'`.
 
 ### Файловая структура
 
 ```
-src/shared/ipc/
-└── OcpIntegrationContract.ts       — typed IPC channels
+src/shared/host-api/
+└── OcpHostApiContract.ts
 
-src/main/integration/
-└── registerOcpIntegrationIpc.ts    — main process handlers
-
-src/preload/index.ts                — добавить ocpModule в window.Softphone
+src/application/facades/AccountBootstrapFacade.ts  — external OCP command methods
 ```
 
 ### Чеклист
 
-- [ ] `OcpIntegrationContract.ts`:
-  - `ocp:authenticate` → `{ ocpDomain: string; ocpAuthToken: string }`
-  - `ocp:change-status-ready` → `{ reasonId?: number }`
-  - `ocp:change-status-break` → `{ reasonId: number }`
-  - `ocp:get-session-state` → ответ `OcpConnectionState`
-- [ ] `preload/index.ts` — `window.Softphone.ocpModule`:
-  - `authenticate(config: { ocpDomain, ocpAuthToken }): void` — IPC `ocp:authenticate`
-  - `changeStatusToReady(reasonId?: number): void` — IPC `ocp:change-status-ready`
-  - `changeStatusToBreak(reasonId: number): void` — IPC `ocp:change-status-break`
-  - `getSessionState(): Promise<OcpConnectionState>` — IPC `ocp:get-session-state`
-  - Payload валидируется в preload
-- [ ] `authenticateOCPModule` DOM event listener в renderer bootstrap → IPC `ocp:authenticate`
-- [ ] `registerOcpIntegrationIpc.ts` в main:
-  - `ocp:authenticate` → `ConnectOcpUseCase` через facade
-  - `ocp:change-status-*` → `ChangeOperatorStatusUseCase` с `callType: 'external'`
-  - `ocp:get-session-state` → читает из проекции
-- [ ] Тест `OcpIntegrationContract.test.ts`: типы компилируются, нет `any`
+- [x] `OcpHostApiContract.ts`: channels `ocp:authenticate` / ready / break / get-session-state + parsers
+- [x] Facade host methods with `callType: 'external'`
+- [x] `window.Softphone` / Softphone host adapter — **removed** (not applicable to Electron product)
+- [x] Tests: contract + facade host methods
 
 ### Примечания
-> *(заполняется агентом во время работы)*
+> Legacy jssip-phone used `window.Softphone` for script-embed widgets. Axatalk replaces that with ExternalClientGateway (future). E-12 only prepares contract + Facade entry points.
 
 ---
 
 ## E-13 — i18n, Integration Tests, WU Gate
 
-**Статус:** 🔴 Не начато  
-**Команда:** `/preflight` → `/review`  
+**Статус:** 🟢 Готово (2026-07-14, `/logic`)
+**Команда:** `/preflight` → `/review`
 **Зависимости:** все предыдущие этапы
 
 ### Цель
@@ -1063,17 +1028,17 @@ src/preload/index.ts                — добавить ocpModule в window.Sof
 
 **`/preflight` команда** запускает: `npm run lint`, `npm run typecheck`, `npm run i18n:check`, `npm run registry:check`, `npm run test`. Все должны быть PASS.
 
-**Integration test паттерн:**  
+**Integration test паттерн:**
 Следуй `src/application/integration/SipRecoveryOrchestration.integration.test.ts` — test с реальными Use Cases + MockGateway. Тест описывает полный lifecycle: connect → auth → changeStatus → dlgStop → logout.
 
 ### Чеклист
 
 #### i18n
-- [ ] `npm run i18n:check` — PASS
-- [ ] Каталоги ru, en, fr, de, bg — все `ocp.*` и `settings.integrations.*` ключи добавлены
+- [x] `npm run i18n:check` — PASS
+- [x] Каталоги ru, en, fr, de, bg — все `ocp.*` и `settings.integrations.*` ключи добавлены
 
 #### Integration Tests
-- [ ] `OcpFullFlow.integration.test.ts`:
+- [x] `OcpFullFlow.integration.test.ts`:
   - Connect → auth (simulateMessage users) → `operatorStatusProjection` обновлён
   - ChangeStatus READY→BREAK → `change_status_to_break` в MockOcpGateway.sentCommands
   - `CallEndedEvent` → `dlg_stop` отправлен (через bridge)
@@ -1082,18 +1047,18 @@ src/preload/index.ts                — добавить ocpModule в window.Sof
   - SESSION_EXIST → no reconnect
 
 #### Lint + Typecheck
-- [ ] `npm run lint` — PASS (нет `any`, `@ts-ignore`, `@deprecated`)
-- [ ] `npm run typecheck` — PASS
-- [ ] `npm run registry:check` — PASS
-- [ ] 0 regression в `npm run test`
+- [x] `npm run lint` — PASS (нет `any`, `@ts-ignore`, `@deprecated`)
+- [x] `npm run typecheck` — PASS
+- [x] `npm run registry:check` — PASS
+- [x] 0 regression в `npm run test`
 
 #### Feature Registry
-- [ ] F-028 → `implemented` в `Feature-Registry.md`
-- [ ] LF-018, LF-019, LF-041–LF-049 → реализованы через F-028 в `Legacy-Feature-Coverage.md`
-- [ ] `STATUS.md` обновлён
+- [x] F-028 → `implemented` в `Feature-Registry.md`
+- [x] LF-018, LF-019, LF-041–LF-049 → реализованы через F-028 в `Legacy-Feature-Coverage.md`
+- [x] `STATUS.md` обновлён
 
 #### Manual Smoke (опциональный)
-- [ ] `ocp-integration/OCP-Smoke-Checklist.md` создан:
+- [x] `ocp-integration/OCP-Smoke-Checklist.md` создан:
   - SM-1: Settings → Integrations → OCP → connect → статус READY в хедере
   - SM-2: READY → BREAK → точка оранжевая
   - SM-3: Входящий звонок → `get_main_acallid` в WS logs
@@ -1101,10 +1066,10 @@ src/preload/index.ts                — добавить ocpModule в window.Sof
   - SM-5: Logout с причиной → `change_status_to_logout`
   - SM-6: WS disconnect 10с → баннер → реконнект
   - SM-7: SESSION_EXIST → блокирующий экран
-  - SM-8: `window.Softphone.ocpModule.changeStatusToBreak(7)` из консоли → статус сменился
+  - SM-8: External command `changeOcpStatusFromHost({ targetStatus: 'break', reasonId: 7 })` (future WS gateway) → статус сменился
 
 ### Примечания
-> *(заполняется агентом во время работы)*
+> E-13 завершён 2026-07-14 (`/logic`). `OcpFullFlow.integration.test.ts` покрывает lifecycle + WS reconnect/SESSION_EXIST. i18n parity already green from E-06…E-10. F-028 → `implemented`. Следующий шаг: `/preflight` → `/review`.
 
 ---
 
@@ -1156,7 +1121,7 @@ src/preload/index.ts                — добавить ocpModule в window.Sof
 
 #### 1. Use Cases — source-agnostic
 
-Все Use Cases в E-04 **не знают** откуда пришёл запрос — из renderer (IPC), host-page (`window.Softphone`), или SDK (local WS). Единственный индикатор источника — `callType: 'internal' | 'external' | 'sdk'`. Use Case передаёт его в OcpCommand для аудит-трейла.
+Все Use Cases в E-04 **не знают** откуда пришёл запрос — из renderer UI, external tab (`ExternalCommandRouter`), или SDK. Единственный индикатор источника — `callType: 'internal' | 'external' | 'sdk'`. Use Case передаёт его в OcpCommand для аудит-трейла.
 
 ✅ **Что нужно сейчас:** `callType: 'internal' | 'external' | 'sdk'` — заложить в тип `OcpCommand` (сделано в E-02).  
 ❌ **Что НЕ делать:** не привязывать Use Cases к renderer-специфичным типам (React, Zustand state).
@@ -1296,7 +1261,7 @@ E-06, E-07, E-08, E-09, E-10, E-11, E-12 могут выполняться **п�
 
 1. **Никакой бизнес-логики OCP в React-компонентах** — только hooks → Use Cases через facade.
 2. **Никакого `window.ws` глобала** — только typed `OcpGateway` порт.
-3. **Nikакого patching `window.Softphone` из нескольких мест** — только `preload/index.ts`.
+3. **Никакого `window.Softphone`** — external tabs → `ExternalClientGateway` + `ExternalCommandRouter` (будущее).
 4. **Нет `setInterval` для `get_main_acallid`** — только event-driven через Domain Events.
 5. **Нет прямой зависимости OCP → Telephony domain** — только через `DomainEventPublisher`.
 6. **Нет DOM `CustomEvent`** — только `DomainEventPublisher`.
@@ -1306,3 +1271,20 @@ E-06, E-07, E-08, E-09, E-10, E-11, E-12 могут выполняться **п�
 10. **Нет `any`, `@ts-ignore`, `as unknown as`** в затронутом коде.
 11. **Projection state — только serializable значения** — `number` timestamps, plain arrays/objects, никаких `Date`, `Map`, `Set` в store state. Это обязательное условие для будущего External SDK.
 12. **Use Cases не знают об источнике вызова** — только `callType` в параметрах. Никаких renderer-specific типов в Use Cases.
+
+---
+
+## Audit remediation notes (2026-07-14)
+
+Closed post-E-13 audit gaps **without** implementing ExternalClientGateway:
+
+| Gap | Fix |
+| --- | --- |
+| LF-049 `entity: terminate` ignored | `OcpSessionLifecycleService` → `disconnect("terminate")` → `sessionClosed` + Domain Events + SIP cascade |
+| Renderer called `getOcpIntegration().*.execute` | Facade methods only; `getOcpIntegration` marked `@internal` |
+| Domain event factories unused | Published from lifecycle / Use Cases on real transitions |
+| `instanceof CallbackOcpNotificationPresenter` | Port optional `setHandler` |
+| `autoConnect` unused | `AccountBootstrapFacade.maybeAutoConnectOcp` after `initialize` |
+| Host logout missing | `OcpHostApiContract` `ocp:logout` + `logoutOcpFromHost` |
+
+**Still future (EXT):** ExternalClientGateway, ExternalCommandRouter, local WS in main — not implemented.

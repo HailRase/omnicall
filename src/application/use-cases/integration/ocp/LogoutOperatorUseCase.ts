@@ -1,4 +1,5 @@
 import { createOperatorLoggedOutEvent } from "@domain/integration/ocp/events/OperatorLoggedOut.js";
+import { createOperatorSessionEndedEvent } from "@domain/integration/ocp/events/OperatorSessionEnded.js";
 import type { OcpCommandCallType } from "@domain/integration/ocp/protocol/OcpCommand.js";
 import type { OcpGateway } from "@ports/integration/OcpGateway.js";
 import type { OcpOperatorReadModel } from "@ports/integration/OcpOperatorReadModel.js";
@@ -24,7 +25,7 @@ export type LogoutOperatorInput = Readonly<{
 /**
  * - Purpose: log out OCP operator with reason and optionally signal SIP cascade.
  * - Inputs: reason id, optional SIP cascade flag, call source type.
- * - Outputs: logout command, gateway disconnect, optional OperatorLoggedOut event.
+ * - Outputs: logout command, gateway disconnect, OperatorSessionEnded + optional OperatorLoggedOut.
  */
 export class LogoutOperatorUseCase {
   constructor(
@@ -80,6 +81,14 @@ export class LogoutOperatorUseCase {
     }
 
     this.deps.ocpGateway.disconnect("logout");
+
+    this.deps.eventPublisher.publish(
+      createOperatorSessionEndedEvent(correlationId, {
+        operatorId: profile.operatorId,
+        reason: "logout",
+        timestamp: Date.now(),
+      }),
+    );
 
     if (input.cascadeSipLogout === true) {
       this.deps.eventPublisher.publish(

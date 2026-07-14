@@ -66,10 +66,41 @@ describe("validateUserSettings", () => {
 
   it("rejects missing boolean fields", () => {
     const result = validateUserSettings({
-      schemaVersion: 6,
+      schemaVersion: 7,
       autoAnswerTimeoutSec: null,
     });
     expect(result.ok).toBe(false);
+  });
+
+  it("accepts empty OCP domain and defaults when ocpIntegration is missing", () => {
+    const payload = { ...createDefaultUserSettings() } as Record<string, unknown>;
+    delete payload["ocpIntegration"];
+    const result = validateUserSettings(payload);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.ocpIntegration).toEqual({
+        enabled: false,
+        domain: "",
+        autoConnect: false,
+        autoSipAuth: false,
+      });
+    }
+  });
+
+  it("rejects invalid ocpIntegration shape", () => {
+    const result = validateUserSettings({
+      ...createDefaultUserSettings(),
+      ocpIntegration: {
+        enabled: true,
+        domain: 42,
+        autoConnect: false,
+        autoSipAuth: false,
+      },
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors).toContain("ocpIntegration_invalid");
+    }
   });
 
   it("defaults theme to light when field is missing", () => {

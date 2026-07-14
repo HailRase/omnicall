@@ -7,9 +7,12 @@ import type { Result } from "@shared/result/index.js";
 
 export type Unsubscribe = () => void;
 
+/** Gateway close reasons — `terminate` / terminal logout paths map to `sessionClosed`. */
+export type OcpDisconnectReason = "logout" | "error" | "terminate";
+
 export interface OcpGateway {
   connect(config: OcpConnectionConfig): void;
-  disconnect(reason?: "logout" | "error"): void;
+  disconnect(reason?: OcpDisconnectReason): void;
   sendCommand(cmd: OcpCommand): Result<void, PlatformError>;
   getConnectionState(): OcpConnectionState;
   onConnectionStateChange(handler: (state: OcpConnectionState) => void): Unsubscribe;

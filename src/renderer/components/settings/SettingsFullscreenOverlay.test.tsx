@@ -9,6 +9,7 @@ import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefault
 import { settingsCodecTestDefaults } from "./panels/settingsCodecTestDefaults.js";
 import { settingsAccountTestDefaults } from "./panels/settingsAccountTestDefaults.js";
 import { settingsHeadsetTestDefaults } from "./panels/settingsHeadsetTestDefaults.js";
+import { settingsIntegrationsTestDefaults } from "./panels/settingsIntegrationsTestDefaults.js";
 import { settingsVideoTestDefaults } from "./panels/settingsVideoTestDefaults.js";
 import { settingsOverlayWindowControlsTestDefaults } from "./settingsOverlayWindowControlsTestDefaults.js";
 
@@ -54,6 +55,7 @@ const panelProps = {
   account: settingsAccountTestDefaults,
   ...appUpdateDefaults,
   ...settingsHeadsetTestDefaults,
+  ...settingsIntegrationsTestDefaults,
   preferredAudioInputDeviceId: settingsVideoTestDefaults.preferredAudioInputDeviceId,
   preferredVideoInputDeviceId: settingsVideoTestDefaults.preferredVideoInputDeviceId,
   defaultSessionView: settingsVideoTestDefaults.defaultSessionView,

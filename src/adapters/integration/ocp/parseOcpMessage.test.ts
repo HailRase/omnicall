@@ -48,6 +48,60 @@ describe("parseOcpMessage", () => {
     }
   });
 
+  it("parses users with string ids and missing status_time", () => {
+    const result = parseOcpMessage({
+      entity: "users",
+      payload: {
+        id: "3347",
+        status: { value: "1", reason_id: "17" },
+      },
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok && result.value.entity === "users") {
+      expect(result.value.data.operatorId).toBe(3347);
+      expect(result.value.data.status).toBe(OperatorStatus.READY);
+      expect(result.value.data.reasonId).toBe(17);
+      expect(result.value.data.statusSince.length).toBeGreaterThan(0);
+    }
+  });
+
+  it("parses operator_status_reasons with coerced numeric fields", () => {
+    const result = parseOcpMessage({
+      entity: "operator_status_reasons",
+      payload: [
+        {
+          id: "7",
+          status: "7",
+          default_description: "Coffee",
+        },
+        {
+          id: 17,
+          status: OperatorStatus.LOGOUT,
+          description: "End of shift",
+        },
+      ],
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok && result.value.entity === "operator_status_reasons") {
+      expect(result.value.data).toEqual([
+        {
+          id: 7,
+          parentStatus: OperatorStatus.BREAK,
+          defaultDescription: "Coffee",
+          timeDelta: null,
+        },
+        {
+          id: 17,
+          parentStatus: OperatorStatus.LOGOUT,
+          defaultDescription: "End of shift",
+          timeDelta: null,
+        },
+      ]);
+    }
+  });
+
   it("returns err for unknown entity", () => {
     const result = parseOcpMessage({
       entity: "future_entity",

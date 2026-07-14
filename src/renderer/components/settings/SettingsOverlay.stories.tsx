@@ -5,6 +5,7 @@ import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefault
 import { settingsCodecTestDefaults } from "./panels/settingsCodecTestDefaults.js";
 import { settingsAccountTestDefaults } from "./panels/settingsAccountTestDefaults.js";
 import { settingsHeadsetStoryDefaults } from "./panels/settingsHeadsetTestDefaults.js";
+import { settingsIntegrationsStoryDefaults } from "./panels/settingsIntegrationsTestDefaults.js";
 import { settingsVideoStoryDefaults } from "./panels/settingsVideoTestDefaults.js";
 import type { ShellWindowControlsViewModel } from "../../hooks/useShellWindowControls.js";
 
@@ -115,6 +116,7 @@ const panelDefaults = {
   onEnableLocalVideoAfterConnectChange:
     settingsVideoStoryDefaults.onEnableLocalVideoAfterConnectChange,
   onRefreshVideoDevices: settingsVideoStoryDefaults.onRefreshDevices,
+  ...settingsIntegrationsStoryDefaults,
 } as const;
 
 export const GeneralSection: Story = {

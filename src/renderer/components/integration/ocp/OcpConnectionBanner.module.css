@@ -1,0 +1,35 @@
+.anchor {
+  position: fixed;
+  top: var(--incoming-call-banner-top);
+  left: calc(
+    var(--shell-window-controls-safe-inline-start) +
+      (100vw - var(--shell-window-controls-safe-inline-start) - var(--shell-window-controls-safe-inline-end)) /
+      2
+  );
+  z-index: 1;
+  width: min(
+    28rem,
+    calc(
+      100vw - var(--shell-window-controls-safe-inline-start) -
+        var(--shell-window-controls-safe-inline-end) - 2 * var(--space-md)
+    )
+  );
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.alert {
+  padding: var(--space-sm) var(--space-md);
+  box-shadow: var(--shadow-menu-elevated);
+  pointer-events: auto;
+}
+
+.actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: var(--space-2xs);
+}

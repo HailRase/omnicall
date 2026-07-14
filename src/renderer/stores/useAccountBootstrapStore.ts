@@ -79,6 +79,22 @@ import {
   reduceCallVideoMediaUiProjection,
   type CallVideoMediaUiProjection,
 } from "@application/projections/media/callVideoMediaUiProjection.js";
+import {
+  initialOcpSessionProjection,
+  type OcpSessionProjection,
+} from "@application/projections/integration/ocpSessionProjection.js";
+import {
+  initialOperatorStatusProjection,
+  type OperatorStatusProjection,
+} from "@application/projections/integration/operatorStatusProjection.js";
+import {
+  initialOcpReasonsProjection,
+  type OcpReasonsProjection,
+} from "@application/projections/integration/ocpReasonsProjection.js";
+import {
+  initialCampaignEventProjection,
+  type CampaignEventProjection,
+} from "@application/projections/integration/campaignEventProjection.js";
 
 type AccountBootstrapStore = Readonly<{
   projection: AccountBootstrapProjection;
@@ -94,6 +110,10 @@ type AccountBootstrapStore = Readonly<{
   headsetConnectionProjection: HeadsetConnectionProjection;
   headsetSyncBusyProjection: HeadsetSyncBusyProjection;
   callVideoMediaUiProjection: CallVideoMediaUiProjection;
+  ocpSessionProjection: OcpSessionProjection;
+  ocpOperatorStatusProjection: OperatorStatusProjection;
+  ocpReasonsProjection: OcpReasonsProjection;
+  ocpCampaignEventProjection: CampaignEventProjection;
   bindFacade: (facade: AccountBootstrapFacade) => () => void;
   setCallMode: (mode: DialpadMode, dtmfPanelCallId?: string | null) => void;
   setIncomingUiState: (uiState: IncomingCallUiState) => void;
@@ -129,6 +149,10 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
   headsetConnectionProjection: initialHeadsetConnectionProjection(),
   headsetSyncBusyProjection: initialHeadsetSyncBusyProjection(),
   callVideoMediaUiProjection: initialCallVideoMediaUiProjection(),
+  ocpSessionProjection: initialOcpSessionProjection(),
+  ocpOperatorStatusProjection: initialOperatorStatusProjection(),
+  ocpReasonsProjection: initialOcpReasonsProjection(),
+  ocpCampaignEventProjection: initialCampaignEventProjection(),
 
   bindFacade: (facade) => {
     facade.setHeadsetProjectionSources(
@@ -142,6 +166,17 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
         isSupported: facade.getHeadsetGateway().isSupported(),
       },
     });
+
+    const syncOcpProjections = (): void => {
+      set({
+        ocpSessionProjection: facade.getOcpSessionSnapshot(),
+        ocpOperatorStatusProjection: facade.getOcpOperatorSnapshot(),
+        ocpReasonsProjection: facade.getOcpReasonsSnapshot(),
+        ocpCampaignEventProjection: facade.getOcpCampaignSnapshot(),
+      });
+    };
+    syncOcpProjections();
+    const unsubscribeOcpHub = facade.subscribeOcpProjections(syncOcpProjections);
 
     const syncHeadsetBusy = (): void => {
       set({
@@ -255,7 +290,10 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
       }
     });
 
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+      unsubscribeOcpHub();
+    };
   },
 
   setCallMode: (mode, dtmfPanelCallId = null) => {

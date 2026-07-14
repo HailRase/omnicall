@@ -10,6 +10,10 @@ import {
   DEFAULT_PREFERRED_AUDIO_INPUT_DEVICE_ID,
   DEFAULT_PREFERRED_VIDEO_INPUT_DEVICE_ID,
 } from "./VideoCallSettings.js";
+import {
+  OCP_INTEGRATION_DEFAULTS,
+  parseOcpIntegrationSettings,
+} from "./OcpIntegrationSettings.js";
 
 export type UserSettingsV0Legacy = Readonly<{
   multiCallSettings: MultiCallSettings;
@@ -26,7 +30,7 @@ export type MigrateUserSettingsResult =
   | Readonly<{ ok: false; error: SettingsMigrationError }>;
 
 /**
- * - Purpose: upgrade persisted or in-memory settings to UserSettings v5.
+ * - Purpose: upgrade persisted or in-memory settings to UserSettings v7.
  * - Inputs: unknown raw blob and optional v0 legacy fragments.
  * - Outputs: migrated UserSettings or migration error.
  */
@@ -59,12 +63,12 @@ export function migrateUserSettings(
     return { ok: true, value: validated.value };
   }
 
-  if (version === 5 || version === 4 || version === 3) {
-    return coerceToUserSettingsV6(record);
+  if (version === 6 || version === 5 || version === 4 || version === 3) {
+    return coerceToUserSettingsV7(record);
   }
 
   if (version === 2) {
-    return coerceToUserSettingsV6({
+    return coerceToUserSettingsV7({
       ...createDefaultUserSettings(),
       ...record,
       schemaVersion: SETTINGS_SCHEMA_VERSION,
@@ -72,7 +76,7 @@ export function migrateUserSettings(
   }
 
   if (version === 1) {
-    return { ok: true, value: migrateV1ToV5(record) };
+    return { ok: true, value: migrateV1ToCurrent(record) };
   }
 
   if (version === 0 || version === undefined) {
@@ -105,10 +109,17 @@ function formatSchemaVersion(version: unknown): string {
   return "unknown";
 }
 
-function coerceToUserSettingsV6(
+function coerceToUserSettingsV7(
   record: Record<string, unknown>,
 ): MigrateUserSettingsResult {
   const preferredRaw = record["headsetPreferredDeviceId"];
+  const parsedOcp = parseOcpIntegrationSettings(record["ocpIntegration"]);
+  if (parsedOcp === null) {
+    return {
+      ok: false,
+      error: { code: "validation_failed", message: "ocpIntegration_invalid" },
+    };
+  }
   const candidate = {
     ...record,
     schemaVersion: SETTINGS_SCHEMA_VERSION,
@@ -149,6 +160,7 @@ function coerceToUserSettingsV6(
       typeof record["enableLocalVideoAfterConnect"] === "boolean"
         ? record["enableLocalVideoAfterConnect"]
         : DEFAULT_ENABLE_LOCAL_VIDEO_AFTER_CONNECT,
+    ocpIntegration: parsedOcp,
   };
   const validated = validateUserSettings(candidate);
   if (!validated.ok) {
@@ -160,7 +172,7 @@ function coerceToUserSettingsV6(
   return { ok: true, value: validated.value };
 }
 
-function migrateV1ToV5(record: Record<string, unknown>): UserSettings {
+function migrateV1ToCurrent(record: Record<string, unknown>): UserSettings {
   const defaults = createDefaultUserSettings();
   const v1Validated = validateV1Fragments(record);
   const parsedLanguage = parseSupportedLanguage(record["language"]);
@@ -203,6 +215,7 @@ function migrateV1ToV5(record: Record<string, unknown>): UserSettings {
     autoFullscreenOnConference: defaults.autoFullscreenOnConference,
     conferenceNumberSubstring: defaults.conferenceNumberSubstring,
     enableLocalVideoAfterConnect: defaults.enableLocalVideoAfterConnect,
+    ocpIntegration: OCP_INTEGRATION_DEFAULTS,
   };
 }
 

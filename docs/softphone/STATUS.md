@@ -2,9 +2,9 @@
 
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
-**Updated:** 2026-07-12  
-**Tests:** 1844 passed, 1 skipped (`npm run test`); typecheck green — last verified 2026-07-12 (release v0.10.0 preflight)  
-**Lint / typecheck:** green (last verified 2026-07-12)
+**Updated:** 2026-07-14  
+**Tests:** 2041 passed, 1 skipped (`npm run test`); typecheck/lint/i18n green — last verified after F-028 T-029 status selector layout 2026-07-14
+**Lint / typecheck:** green (last verified 2026-07-14)
 
 **Guides (onboarding):** [`guides/README.md`](../../guides/README.md) — установка, пользователь, агенты Cursor, релизы.
 
@@ -50,12 +50,12 @@ Design: `P13-Video-Calls-Design.md`. ADR: `adr/ADR-0008-video-calls-media-mode.m
 
 See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
-1. **F-027** WU8 manual SBC smoke (checklist) → then registry **implemented** — `handoffs/P13-Video-Calls-WU8-SBC-Smoke-Checklist.md`
-2. P11 polish: UI-6 Radix modals — `/ui`
-3. **F-008** DTMF real adapter — `/adapter`
-4. P12 host API foundation
+1. **F-028** T-029 status selector current-first + shell-edge width done — `/preflight` → `/review`
+2. **F-027** WU8 manual SBC smoke (checklist) → then registry **implemented** — `handoffs/P13-Video-Calls-WU8-SBC-Smoke-Checklist.md`
+3. P11 polish: UI-6 Radix modals — `/ui`
+4. **F-008** DTMF real adapter — `/adapter`
 
-**Recently closed (TASK-QUEUE):** **T-013 / F-013** call history outcome/endReason/durations (`39afae2`, `handoffs/P09-F013-Call-History-Display-Logic-Handoff.md`), **P10 / F-012** headset Web HID integration (`handoffs/P10-Headset-Integration-Handoff.md`, ADR-0007), RAT SIP core merged to `main` (`feature/real-adapters` stale ancestor), **F-024** saved SIP account profiles (`0a2ae05`, `handoffs/P11-F024-Saved-Account-Profiles-Handoff.md`), **F-023** local account profiles + disk persistence (T-011), **F-022 / T-009 / T-010** codec preferences (LF-084), **T-008** SIP transport/register state refactor (`TRANSPORT-REGISTER-STATE-REFACTORING.md`), T-007 Call UI design parity (`handoffs/P11-Call-UI-Design-Parity-Handoff.md`), post-WU5 shell polish (`handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`), T-005 fullscreen settings panel, T-001 icon tooltips, T-002 AppIcon wiring, **F-014 SIP registration retry** (`handoffs/P08-SIP-Registration-Retry-Handoff.md`).
+**Recently closed (TASK-QUEUE):** **T-029 / F-028** status selector current-first + width/ellipsis (2026-07-14), **T-028 / F-028** status selector polish + single-step post-call modal (2026-07-14), **T-027 / F-028** OCP status UX (FSM + reserve/post-call modal; 2026-07-14), **T-026 / F-028** OCP UI polish (status selector, logout footer, Integrations nested nav; 2026-07-14), **F-028 audit remediation** terminate+Facade+events+autoConnect (2026-07-14), **F-028 E-13** i18n + `OcpFullFlow` + registry/`implemented` (2026-07-14), **F-028 E-12** OCP external command contract + Facade (no `window.Softphone`; 2026-07-14), **T-025 / F-028 E-10 UI** dialpad block + reject-with-break (2026-07-14), **T-020 E-10/E-11 logic** OCP telephony bridge + SIP from creds (2026-07-14), **T-024 / F-028 E-09** OCP campaign accept/reject modal (2026-07-14), **T-023 / F-028 E-08** OCP logout reason modal + cascade SIP (2026-07-14), **T-022 / F-028 E-07** Operator Status Selector header UI (2026-07-14), **T-021 / F-028** Settings Integrations UI + OCP toast wiring (2026-07-14), **T-013 / F-013** call history outcome/endReason/durations (`39afae2`, `handoffs/P09-F013-Call-History-Display-Logic-Handoff.md`), **P10 / F-012** headset Web HID integration (`handoffs/P10-Headset-Integration-Handoff.md`, ADR-0007), RAT SIP core merged to `main` (`feature/real-adapters` stale ancestor), **F-024** saved SIP account profiles (`0a2ae05`, `handoffs/P11-F024-Saved-Account-Profiles-Handoff.md`), **F-023** local account profiles + disk persistence (T-011), **F-022 / T-009 / T-010** codec preferences (LF-084), **T-008** SIP transport/register state refactor (`TRANSPORT-REGISTER-STATE-REFACTORING.md`), T-007 Call UI design parity (`handoffs/P11-Call-UI-Design-Parity-Handoff.md`), post-WU5 shell polish (`handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`), T-005 fullscreen settings panel, T-001 icon tooltips, T-002 AppIcon wiring, **F-014 SIP registration retry** (`handoffs/P08-SIP-Registration-Retry-Handoff.md`).
 
 ## RAT (Real Adapter Track)
 

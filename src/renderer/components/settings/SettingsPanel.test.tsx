@@ -7,6 +7,7 @@ import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefault
 import { settingsCodecTestDefaults } from "./panels/settingsCodecTestDefaults.js";
 import { settingsHeadsetTestDefaults } from "./panels/settingsHeadsetTestDefaults.js";
 import { settingsVideoTestDefaults } from "./panels/settingsVideoTestDefaults.js";
+import { settingsIntegrationsTestDefaults } from "./panels/settingsIntegrationsTestDefaults.js";
 import { settingsAccountTestDefaults } from "./panels/settingsAccountTestDefaults.js";
 import { setupJsdomRadix } from "../../test/setupJsdomRadix.js";
 import { SettingsPanel } from "./SettingsPanel.js";
@@ -96,6 +97,7 @@ const panelBaseProps = {
   onEnableLocalVideoAfterConnectChange:
     settingsVideoTestDefaults.onEnableLocalVideoAfterConnectChange,
   onRefreshVideoDevices: settingsVideoTestDefaults.onRefreshDevices,
+  ...settingsIntegrationsTestDefaults,
 } as const;
 
 describe("SettingsPanel", () => {

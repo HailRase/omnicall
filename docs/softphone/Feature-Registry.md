@@ -294,18 +294,19 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-051`, `LF-065`, `LF-080`, `LF-081`
 - Context: Integration
 - Priority: critical
-- Status: planned
+- Status: **planned** (legacy `window.Softphone` **not ported**; future path: `ExternalClientGateway` + `ExternalCommandRouter` over local WS → main)
 - Owner: TBD
-- Inputs: host commands, optional legacy `window.Softphone` calls
-- Outputs: typed commands and external events
+- Inputs: external commands from browser tabs via WS (not DOM globals)
+- Outputs: typed commands routed to Facade / Use Cases with `callType: 'external' | 'sdk'`
 - Acceptance Criteria:
-  - No multi-file mutation of `window.Softphone`.
-  - Contract is owned by one adapter.
-  - Legacy DOM events are mapped to typed internal events.
+  - No `window.Softphone` global API in Axatalk.
+  - External tab integration uses one gateway + command router (future).
+  - OCP external command payloads reuse `OcpHostApiContract` + Facade host methods (F-028 E-12).
 - Test Coverage:
-  - Unit: command/event mapping
-  - Integration: host adapter tests
-  - E2E: host-page contract harness
+  - Unit: command payload parsing (F-028 E-12)
+  - Integration: deferred until ExternalClientGateway exists
+  - E2E: deferred
+- Implementation evidence (OCP command surface): `src/shared/host-api/OcpHostApiContract.ts`; Facade `authenticateOcpFromHost` / `changeOcpStatusFromHost` / `getOcpConnectionState`
 
 ## F-012: Headset Call Controls
 
@@ -806,25 +807,45 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-018`, `LF-019`, `LF-041`, `LF-042`, `LF-043`, `LF-044`, `LF-045`, `LF-046`, `LF-047`, `LF-048`, `LF-049`
 - Context: Integration
 - Priority: high
-- Status: **in-progress** (E-01 domain model done; E-02 port contract done; E-03 adapter done; E-04 use cases done; E-05 projections next)
+- Status: **implemented** (E-01…E-13 closed 2026-07-14)
 - Owner: TBD
 - Inputs: OCP WebSocket session, operator status/reason payloads, SIP telephony domain events, host-page commands
 - Outputs: operator status FSM, OCP gateway commands, session projections, telephony bridge events
 - Acceptance Criteria:
   - SIP telephony works without OCP; OCP is optional integration module.
   - Operator status transitions validated in Domain before gateway commands.
+  - Idle operators can change Ready↔Break reasons (including Break→Break) and leave Preparing-to-work to Ready/Break/Logout.
+  - Busy operators keep the status selector enabled; Ready/Break selection reserves via `update_post_call_status` with user toast.
+  - During Post-call processing, UI offers finish-vs-reserve (two-step modal); finish uses `intent: apply`, reserve uses `intent: reserve`.
   - Single `OcpGateway` WebSocket; no global `window.ws` patching.
-  - Settings → Integrations → OCP Module is the only OCP configuration surface.
+  - Settings → Integrations is a parent nav group; OCP Module is a child leaf (extensible for future integrations).
   - Operator status selector visible only when `ocpSession.isAuthenticated === true`.
   - Credentials never appear in Domain Events; token stored via `SecretStoragePort`.
   - `callType: internal | external | sdk` on status-change commands for audit trail.
+  - External OCP commands validated via `OcpHostApiContract`; Facade entry points ready for future `ExternalCommandRouter` (no `window.Softphone`).
   - All user-visible strings localized (`ru`, `en`, `fr`, `de`, `bg`).
 - Test Coverage:
   - Unit: `OperatorStatus`, `OperatorStatusMachine`, `OperatorProfile`, OCP domain events
-  - Integration: mock `OcpGateway`, Use Cases, telephony bridge (E-03+)
-  - E2E: deferred until OCP UI wiring complete
+  - Integration: mock `OcpGateway`, Use Cases, telephony bridge, `OcpFullFlow.integration.test.ts` (E-13)
+  - E2E: deferred — manual smoke `ocp-integration/OCP-Smoke-Checklist.md`
 - Design: `ocp-integration/OCP-IMPLEMENTATION-PLAN.md`, `ocp-integration/ocp-integration.md`
 - Implementation evidence (E-01): `src/domain/integration/ocp/OperatorStatus.ts`, `OperatorStatusReason.ts`, `OperatorProfile.ts`, `OcpTransitionRules.ts`, `OperatorStatusMachine.ts`, `events/*`, unit tests
 - Implementation evidence (E-02): `src/ports/integration/OcpGateway.ts`, `src/domain/integration/ocp/OcpConnectionConfig.ts`, `OcpConnectionState.ts`, `protocol/OcpCommand.ts`, `protocol/OcpIncomingMessage.ts`, `protocol/OcpMessageEnvelope.ts`, exhaustive union tests
 - Implementation evidence (E-03): `src/adapters/integration/ocp/OcpWebSocketAdapter.ts`, `parseOcpMessage.ts`, `buildOcpCommandPayload.ts`, `src/adapters/mock/MockOcpGateway.ts`, `src/shared/scheduling/ReconnectScheduler.ts`, adapter tests
-- Implementation evidence (E-04): `src/application/use-cases/integration/ocp/*`, `src/ports/integration/OcpOperatorReadModel.ts`, `src/ports/settings/DndReadModel.ts`, Use Case unit tests with `MockOcpGateway`
+- Implementation evidence (E-04): `src/application/use-cases/integration/ocp/ChangeOperatorStatusUseCase.ts`, `ConnectOcpUseCase.ts`, `LogoutOperatorUseCase.ts`, `ReservePostCallStatusUseCase.ts`, `AcceptCampaignUseCase.ts`, `RejectCampaignUseCase.ts`, `DisconnectOcpUseCase.ts`, `src/ports/integration/OcpOperatorReadModel.ts`, `src/ports/settings/DndReadModel.ts`, Use Case unit tests with `MockOcpGateway`
+- Implementation evidence (E-05): `src/application/projections/integration/operatorStatusProjection.ts`, `ocpSessionProjection.ts`, `ocpReasonsProjection.ts`, `campaignEventProjection.ts`, `OcpProjectionHub`, `OcpTelephonyBridgeService`, `OcpDndBridgeService`, `OcpNotificationService`, `OcpSipCredentialService`, bootstrap wiring in `createRealAccountBootstrap` / `createMockAccountBootstrap`, unit tests
+- Implementation evidence (E-06 logic): `OcpIntegrationSettings`, `UserSettings` schema v7 + `migrateUserSettings` v6→v7, `validateUserSettings` ocpIntegration, `OCP_TOKEN_SECRET_ID` via `SecretStoragePort`, `AccountBootstrapFacade` update/save/get/delete token + connect/disconnect OCP
+- Implementation evidence (T-021 / E-06 UI): Settings nav Integrations parent group + OCP Module child (`settings-nav-integrations` / `settings-nav-integrations-ocp`); `SettingsIntegrationsPanel` + `OcpModuleSettingsCard`; `useOcpSettingsPanel`; Zustand OCP projection sync via `OcpProjectionHub.subscribe`; `CallbackOcpNotificationPresenter` + `mapOcpNotificationToToastDescriptor` → `useNotifications`; i18n ru/en/fr/de/bg; component tests
+- Implementation evidence (E-07 UI): `OperatorStatusSelector` widget + `useOperatorStatusSelector`; pill chip (`width: auto`, max-width, ellipsis + title tooltip, translucent timer); `OcpStatusDropdown` Ready/Break subtitle groups; `OcpStatusTimer` / `OcpConnectionBanner` / `OcpProxyStatusScreen`; header slot in `SoftphoneShellHeader` + ReadyShell wiring; change-status Use Case bind; i18n `ocp.status.*` / `ocp.dropdown.*` / `ocp.connection.*` / `ocp.proxyStatus.*` / `ocp.operatorStatus.*`; stories + unit tests
+- Implementation evidence (E-08 UI): avatar «Выйти» reads live `OcpProjectionHub`; opens `OcpLogoutReasonModal` for any live OCP session (`connected|authenticated|connecting|reconnecting`); footer actions right-aligned; authenticated → `LogoutOperator` + SIP; connected-only → `disconnectOcp` + SIP; otherwise SIP-only; i18n `ocp.logout.modal.*`; hook/component tests
+- Implementation evidence (T-026 UI polish 2026-07-14): status selector visual polish + truncation tooltip; dropdown group subtitle hierarchy; logout footer end-align; Settings Integrations nested nav; icon `settings.integrations.ocp`; tests + i18n keys `settings.nav.integrations.ocp`
+- Implementation evidence (E-09 UI): `OcpCampaignEventModal` (UI Kit Dialog, no Escape/outside dismiss) when `campaignEventProjection.activeCampaign !== null`; `useOcpCampaignModal` → Accept/Reject Use Cases + `clearActiveCampaign`; toast sink already via T-021; i18n `ocp.campaign.modal.*`; hook/component tests
+- Implementation evidence (E-10 logic): `OcpTelephonyBridgeService` call lifecycle (`get_main_acallid` / `dlg_stop` + correlation map); `selectIsCallButtonBlocked`; `OcpTelephonyBridge.integration.test.ts`; i18n keys `ocp.dialpad.reservedToCall`, `ocp.incomingCall.rejectWithBreakReason`
+- Implementation evidence (T-025 / E-10 UI): `useDialpadShell` blocks dial/video on `RESERVED_TO_CALL`; `IncomingCallRejectControl` choice menu (without break / with break); `OcpRejectBreakReasonModal` + `useOcpRejectWithBreak` → RejectCall + ReservePostCallStatus; overlay + session card wiring; i18n `ocp.incomingCall.rejectWithoutBreak` / `ocp.incomingCall.breakModal.*`; component/hook tests
+- Implementation evidence (E-11): `OcpSipCredentialService` → `AuthorizeSipAccountUseCase` (`source: "ocp"`, password redacted in events) + `RegisterAccountUseCase`; guards `autoSipAuth` / `sipRegistered`; Facade wiring; unit tests
+- Implementation evidence (E-12): `OcpHostApiContract` + parsers (`ocp:authenticate` / status / `ocp:logout` / `ocp:disconnect`); Facade `authenticateOcpFromHost` / `changeOcpStatusFromHost` / `logoutOcpFromHost` / `disconnectOcpFromHost` / `getOcpConnectionState` (for future ExternalClientGateway); **no** `window.Softphone`; unit tests (contract + facade)
+- Implementation evidence (E-13): `src/application/integration/OcpFullFlow.integration.test.ts` (connect→auth→break→dlg_stop→logout; authenticate→terminate→sessionClosed; reconnect×6→failed; SESSION_EXIST); i18n parity `ocp.*` / `settings.integrations.*` (ru/en/fr/de/bg); smoke `ocp-integration/OCP-Smoke-Checklist.md`; Legacy LF-018/019/041–049 → F-028
+- Implementation evidence (audit remediation 2026-07-14): `OcpSessionLifecycleService` (LF-049 terminate → `sessionClosed` + `OperatorSessionEnded`/`OperatorLoggedOut`); `OcpSipCascadeBridgeService` (SIP teardown on `OperatorLoggedOut`); Facade UI command surface (`changeOcpOperatorStatus`, `logoutOcpOperator`, `reserveOcpPostCallStatus`, accept/reject campaign, projection getters/`subscribeOcpProjections`); Domain Events published on real paths; `OcpNotificationPresenter.setHandler` (no adapter `instanceof`); `maybeAutoConnectOcp` after bootstrap
+- Implementation evidence (T-027 status UX 2026-07-14): FSM Ready/Break/Preparing idle targets; `resolveOperatorStatusChangeMode`; `ChangeOperatorStatusUseCase` intent `auto|apply|reserve` + reserved outcome/event; selector stays enabled when busy; reservation toast; `OcpPostCallStatusModal` finish/reserve; i18n `ocp.status.reservedToast` / `ocp.postCall.modal.*`
+- Implementation evidence (T-028 UI polish 2026-07-14): reason-only chip (no «Входящий»/«Готов» fallback); sticky last reason on RINGING; no box-shadow; hover border `--color-status-online`; shrink/ellipsis + title tooltip; compact fonts; single-step post-call modal (status + choices + Cancel/Confirm, no close X)
+- Implementation evidence (T-029 selector UX 2026-07-14): dropdown pins current reason first (`currentItems` + `ocp.dropdown.currentGroup`), Ready/Break lists exclude current; Break→Break remains `change_status_to_break`; header slot fills to softphone edge (`max-width: 100%`, `min-width: 0`, ellipsis); truncated label uses `IconTooltip`; i18n ru/en/fr/de/bg

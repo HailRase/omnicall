@@ -23,6 +23,19 @@ const BOUNDED_CONTEXT = "Integration";
 const DEFAULT_RECONNECT_DELAY_MS = 5000;
 const DEFAULT_MAX_RECONNECT_ATTEMPTS = 6;
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function safeParseJsonRecord(raw: string): Record<string, unknown> | null {
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return isRecord(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
 export type WebSocketFactory = (url: string) => WebSocket;
 
 export type OcpWebSocketAdapterDeps = Readonly<{
@@ -75,12 +88,16 @@ export class OcpWebSocketAdapter implements OcpGateway {
     this.createWebSocket();
   }
 
-  disconnect(reason?: "logout" | "error"): void {
+  disconnect(reason?: "logout" | "error" | "terminate"): void {
     this.manualDisconnect = true;
     this.reconnectScheduler.cancelAll();
     this.closeWebSocket();
     if (reason === "error") {
       this.setConnectionState("failed");
+      return;
+    }
+    if (reason === "terminate") {
+      this.setConnectionState("sessionClosed");
       return;
     }
     this.setConnectionState("disconnected");
@@ -178,11 +195,25 @@ export class OcpWebSocketAdapter implements OcpGateway {
   private handleMessage(raw: unknown): void {
     const parsed = parseOcpMessage(raw);
     if (!parsed.ok) {
+      const envelope = typeof raw === "string" ? safeParseJsonRecord(raw) : isRecord(raw) ? raw : null;
+      const entity =
+        envelope !== null && typeof envelope["entity"] === "string"
+          ? envelope["entity"]
+          : "unknown";
       if (parsed.error === "unknown_entity") {
         this.logger.debug("OcpWS unknown entity", {
           featureId: FEATURE_ID,
           boundedContext: BOUNDED_CONTEXT,
           operation: "ocp_websocket_parse",
+          entity,
+        });
+      } else {
+        this.logger.warn("OcpWS message parse failed", {
+          featureId: FEATURE_ID,
+          boundedContext: BOUNDED_CONTEXT,
+          operation: "ocp_websocket_parse",
+          entity,
+          result: parsed.error,
         });
       }
       return;

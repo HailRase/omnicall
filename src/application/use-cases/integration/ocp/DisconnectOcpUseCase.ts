@@ -1,4 +1,7 @@
-import type { OcpGateway } from "@ports/integration/OcpGateway.js";
+import type {
+  OcpDisconnectReason,
+  OcpGateway,
+} from "@ports/integration/OcpGateway.js";
 import type { Logger } from "@ports/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
@@ -12,11 +15,12 @@ import {
 
 export type DisconnectOcpInput = Readonly<{
   correlationId?: CorrelationId;
+  reason?: Exclude<OcpDisconnectReason, "error">;
 }>;
 
 /**
  * - Purpose: close OCP session without sending logout status command.
- * - Inputs: optional correlation id.
+ * - Inputs: optional correlation id and disconnect reason (`logout` | `terminate`).
  * - Outputs: gateway disconnect side effect.
  */
 export class DisconnectOcpUseCase {
@@ -29,7 +33,9 @@ export class DisconnectOcpUseCase {
     input: DisconnectOcpInput = {},
   ): Promise<Result<void, PlatformError>> {
     const correlationId = input.correlationId ?? createCorrelationId();
+    const reason = input.reason ?? "logout";
     const previousState = this.ocpGateway.getConnectionState();
+    const nextState = reason === "terminate" ? "sessionClosed" : "disconnected";
 
     this.logger.info("disconnect_ocp_requested", {
       correlationId,
@@ -37,17 +43,19 @@ export class DisconnectOcpUseCase {
       boundedContext: OCP_BOUNDED_CONTEXT,
       operation: "disconnect_ocp",
       previousState,
-      nextState: "disconnected",
+      nextState,
+      reason,
       result: "requested",
     });
 
-    this.ocpGateway.disconnect("logout");
+    this.ocpGateway.disconnect(reason);
 
     this.logger.info("disconnect_ocp_completed", {
       correlationId,
       featureId: OCP_USE_CASE_FEATURE_ID,
       boundedContext: OCP_BOUNDED_CONTEXT,
       operation: "disconnect_ocp",
+      reason,
       result: "completed",
     });
 

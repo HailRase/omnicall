@@ -24,7 +24,7 @@ describe("migrateUserSettings", () => {
     );
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(6);
+      expect(result.value.schemaVersion).toBe(7);
       expect(result.value.multiSessionsEnabled).toBe(false);
       expect(result.value.headsetEnabled).toBe(false);
       expect(result.value.headsetPreferredDeviceId).toBeNull();
@@ -33,20 +33,64 @@ describe("migrateUserSettings", () => {
     }
   });
 
-  it("passes through valid v5 payload", () => {
-    const v5 = {
+  it("passes through valid current-schema payload", () => {
+    const current = {
       ...createDefaultUserSettings(),
       multiSessionsEnabled: false,
       headsetPreferredDeviceId: "1:2:Headset",
     };
-    const result = migrateUserSettings(v5);
+    const result = migrateUserSettings(current);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value).toEqual(v5);
+      expect(result.value).toEqual(current);
     }
   });
 
-  it("migrates v4 payload to v5 with headset and video preference defaults", () => {
+  it("migrates v6 payload to v7 with OCP integration defaults", () => {
+    const v6 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 6 as const,
+    };
+    delete (v6 as { ocpIntegration?: unknown }).ocpIntegration;
+
+    const result = migrateUserSettings(v6);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(7);
+      expect(result.value.ocpIntegration).toEqual({
+        enabled: false,
+        domain: "",
+        autoConnect: false,
+        autoSipAuth: false,
+      });
+    }
+  });
+
+  it("preserves OCP settings when migrating v6 with values", () => {
+    const v6 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 6 as const,
+      ocpIntegration: {
+        enabled: true,
+        domain: "ocp.example.com",
+        autoConnect: true,
+        autoSipAuth: true,
+      },
+    };
+    const result = migrateUserSettings(v6);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(7);
+      expect(result.value.ocpIntegration).toEqual({
+        enabled: true,
+        domain: "ocp.example.com",
+        autoConnect: true,
+        autoSipAuth: true,
+      });
+    }
+  });
+
+  it("migrates v4 payload to v7 with headset, video, and OCP defaults", () => {
     const v4 = {
       ...createDefaultUserSettings(),
       schemaVersion: 4 as const,
@@ -61,7 +105,7 @@ describe("migrateUserSettings", () => {
     const result = migrateUserSettings(v4);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(6);
+      expect(result.value.schemaVersion).toBe(7);
       expect(result.value.headsetPreferredDeviceId).toBeNull();
       expect(result.value.preferredAudioInputDeviceId).toBeNull();
       expect(result.value.preferredVideoInputDeviceId).toBeNull();
@@ -82,7 +126,7 @@ describe("migrateUserSettings", () => {
     const result = migrateUserSettings(v3);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(6);
+      expect(result.value.schemaVersion).toBe(7);
       expect(result.value.headsetEnabled).toBe(false);
       expect(result.value.headsetAutoReconnect).toBe(true);
       expect(result.value.headsetPreferredDeviceId).toBeNull();
@@ -101,7 +145,7 @@ describe("migrateUserSettings", () => {
     const result = migrateUserSettings(v2);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(6);
+      expect(result.value.schemaVersion).toBe(7);
       expect(result.value.codecPreferences).toEqual(createDefaultUserSettings().codecPreferences);
     }
   });
@@ -122,7 +166,7 @@ describe("migrateUserSettings", () => {
     const result = migrateUserSettings(v1);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(6);
+      expect(result.value.schemaVersion).toBe(7);
       expect(result.value.theme).toBe("dark");
       expect(result.value.headsetEnabled).toBe(false);
       expect(result.value.autoFullscreenOnConference).toBe(false);
@@ -141,7 +185,7 @@ describe("migrateUserSettings", () => {
     const result = migrateUserSettings(v4);
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.value.schemaVersion).toBe(6);
+      expect(result.value.schemaVersion).toBe(7);
       expect(result.value.preferredVideoInputDeviceId).toBe("camera-abc");
       expect(result.value.defaultSessionView).toBe("fullscreen");
       expect(result.value.autoFullscreenOnConference).toBe(true);

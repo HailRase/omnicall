@@ -1,3 +1,9 @@
+/**
+ * - Purpose: compose mock-based AccountBootstrapFacade for dev, tests, and renderer bootstrap.
+ * - Inputs: optional bootstrap config and mock adapter scenario overrides.
+ * - Outputs: wired AccountBootstrapFacade ready for initialize().
+ */
+
 import { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
   MockHostIntegrationGateway,
@@ -6,6 +12,9 @@ import {
   InMemorySettingsRepository,
   createArbiterMediaGateway,
 } from "@adapters/index.js";
+import { MockOcpGateway } from "@adapters/mock/MockOcpGateway.js";
+import { InMemoryOcpReasonsCache } from "@adapters/mock/InMemoryOcpReasonsCache.js";
+import { CallbackOcpNotificationPresenter } from "@adapters/integration/ocp/CallbackOcpNotificationPresenter.js";
 import { createTestLogger } from "@infrastructure/logging/index.js";
 import type { AppBootstrapConfig } from "@domain/index.js";
 import type { FileSystemPort } from "@ports/filesystem/FileSystemPort.js";
@@ -16,14 +25,12 @@ import type {
   ContactRepository,
   ContactCsvFileGateway,
   SecretStoragePort,
+  OcpGateway,
+  OcpReasonsCachePort,
+  OcpNotificationPresenter,
 } from "@ports/index.js";
 import { createHeadsetGateway } from "./createHeadsetGateway.js";
 
-/**
- * - Purpose: compose mock-based AccountBootstrapFacade for dev, tests, and renderer bootstrap.
- * - Inputs: optional bootstrap config and mock adapter scenario overrides.
- * - Outputs: wired AccountBootstrapFacade ready for initialize().
- */
 export type CreateAccountBootstrapOptions = Readonly<{
   bootstrapConfig?: AppBootstrapConfig;
   profilesStorageRoot?: string;
@@ -34,6 +41,9 @@ export type CreateAccountBootstrapOptions = Readonly<{
   contactCsvFileGateway?: ContactCsvFileGateway;
   callHistoryRepository?: CallHistoryRepository;
   secretStoragePort?: SecretStoragePort;
+  ocpGateway?: OcpGateway;
+  ocpReasonsCache?: OcpReasonsCachePort;
+  ocpNotificationPresenter?: OcpNotificationPresenter;
   telephonyScenario?: "success" | "failure";
   makeCallScenario?:
     | "connecting"
@@ -80,6 +90,10 @@ export function createMockAccountBootstrap(
     mediaGateway,
     settingsRepository,
     headsetGateway: createHeadsetGateway("mock"),
+    ocpGateway: options.ocpGateway ?? new MockOcpGateway(),
+    ocpReasonsCache: options.ocpReasonsCache ?? new InMemoryOcpReasonsCache(),
+    ocpNotificationPresenter:
+      options.ocpNotificationPresenter ?? new CallbackOcpNotificationPresenter(),
     ...(options.savedAccountProfileRepository !== undefined
       ? { savedAccountProfileRepository: options.savedAccountProfileRepository }
       : {}),

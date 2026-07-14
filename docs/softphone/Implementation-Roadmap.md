@@ -522,37 +522,22 @@ Legacy IDs:
 
 Goal:
 
-Preserve host-page integration compatibility while centralizing all global API behavior.
+Replace legacy embed `window.Softphone` with Electron-native external integration: browser tab ↔ local WebSocket ↔ Electron main (`ExternalClientGateway` + `ExternalCommandRouter`).
 
 Order:
 
-1. Define `ExternalSoftphoneApi` contract.
-2. Define compatibility matrix for legacy methods.
-3. Implement one `HostSoftphoneApiAdapter`.
-4. Map methods:
-   - `authorize`
-   - `logout`
-   - `answer`
-   - `hangup`
-   - `callNumber`
-   - `getActiveCallId`
-   - `isRegistered`
-   - `isSoftPhoneWsConnected`
-   - `setCallButtonDisabled`
-   - `setBreakReasons`
-   - `ocpModule.changeStatusToReady`
-   - `ocpModule.changeStatusToBreak`
-   - `ocpModule.blockSoftPhoneNotification`
-   - `onInit`
-5. Map legacy external call events.
-6. Add compatibility tests.
-7. Document deprecations.
+1. Define typed external command contract (OCP subset done in F-028 E-12: `OcpHostApiContract` + Facade).
+2. Implement `ExternalClientGateway` (WS server in main) — future.
+3. Implement `ExternalCommandRouter` → Facade / Use Cases with `callType: 'external' | 'sdk'` — future.
+4. Map former host capabilities (authorize, call controls, OCP status, dialpad block, etc.) onto typed commands — no DOM globals.
+5. Add compatibility/integration tests for the WS command surface.
+6. Document that legacy `window.Softphone` is **not ported**.
 
 Gate:
 
-- `window.Softphone` is mutated in one file only.
-- Every legacy method maps to Use Case or query.
-- Compatibility tests cover old host API.
+- No `window.Softphone` in product code.
+- Every external command maps to Use Case or query via Facade.
+- OCP external path covered by F-028 E-12 Facade methods until WS gateway lands.
 
 ## Phase 13: Video Calls
 

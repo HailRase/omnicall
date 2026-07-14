@@ -46,3 +46,23 @@ export function isWorking(status: OperatorStatusType): boolean {
 export function canUserInitiate(status: OperatorStatusType): boolean {
   return USER_INITIATABLE_STATUSES.has(status);
 }
+
+/**
+ * How a user-initiated ready/break selection should be handled for the current status.
+ * - `direct` — send change_status_to_* immediately (idle / preparing).
+ * - `reserve` — send update_post_call_status (busy call lifecycle).
+ * - `choose` — UI must ask finish-vs-reserve (post-call processing).
+ */
+export type OperatorStatusChangeMode = "direct" | "reserve" | "choose";
+
+export function resolveOperatorStatusChangeMode(
+  status: OperatorStatusType,
+): OperatorStatusChangeMode {
+  if (status === OperatorStatus.POST_CALL_PROCESSING) {
+    return "choose";
+  }
+  if (isBusy(status)) {
+    return "reserve";
+  }
+  return "direct";
+}

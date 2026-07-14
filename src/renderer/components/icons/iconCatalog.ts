@@ -37,6 +37,7 @@ import {
   Play,
   RefreshCcw,
   RotateCcw,
+  Server,
   Settings,
   SlidersHorizontal,
   Trash2,
@@ -48,6 +49,7 @@ import {
   MonitorUp,
   Maximize2,
   Minimize2,
+  Plug,
   X,
 } from "lucide-react";
 import {
@@ -101,6 +103,8 @@ export type IconSemanticId =
   | "settings.codecs"
   | "settings.video"
   | "settings.headset"
+  | "settings.integrations"
+  | "settings.integrations.ocp"
   | "settings.nav.expand"
   | "settings.nav.collapse"
   | "session.end"
@@ -271,6 +275,18 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.settings.headset",
     defaultSize: 20,
     usage: ["SettingsSidebar: settings-nav-headset"],
+  },
+  "settings.integrations": {
+    static: Plug,
+    defaultLabelKey: "icons.settings.integrations",
+    defaultSize: 20,
+    usage: ["SettingsSidebar: settings-nav-integrations"],
+  },
+  "settings.integrations.ocp": {
+    static: Server,
+    defaultLabelKey: "icons.settings.integrations.ocp",
+    defaultSize: 18,
+    usage: ["SettingsSidebar: settings-nav-integrations-ocp"],
   },
   "settings.nav.expand": {
     static: ChevronRight,

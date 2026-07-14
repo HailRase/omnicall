@@ -47,6 +47,12 @@ export {
   parseDefaultSessionViewSetting,
   parsePreferredMediaDeviceId,
 } from "./settings/VideoCallSettings.js";
+export type { OcpIntegrationSettings } from "./settings/OcpIntegrationSettings.js";
+export {
+  MAX_OCP_DOMAIN_LENGTH,
+  OCP_INTEGRATION_DEFAULTS,
+  parseOcpIntegrationSettings,
+} from "./settings/OcpIntegrationSettings.js";
 export type { ValidateUserSettingsResult } from "./settings/validateUserSettings.js";
 export { validateUserSettings } from "./settings/validateUserSettings.js";
 export type {
@@ -539,6 +545,7 @@ export {
 } from "./telephony/events/callEvents.js";
 export type {
   SipCredentialsReceivedEvent,
+  SipCredentialsSource,
   AccessDeniedDetectedEvent,
   AccessDeniedSource,
   AccountBootstrapDomainEvent,

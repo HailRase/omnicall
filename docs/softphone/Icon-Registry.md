@@ -30,6 +30,8 @@
 | `settings.system-state` | Settings system state section (SIP transport/register) | `Gauge` | — | `SettingsSidebar` (Phase 6) | planned |
 | `settings.codecs` | Settings codecs section | `AudioLines` | `AudioLinesIcon` | `SettingsSidebar` | active |
 | `settings.headset` | Settings headset section | `Headphones` | — | `SettingsSidebar` | active |
+| `settings.integrations` | Settings integrations parent group | `Plug` | — | `SettingsSidebar` | active |
+| `settings.integrations.ocp` | Settings OCP Module child under Integrations | `Server` | — | `SettingsSidebar` | active |
 | `settings.nav.expand` | Expand settings sidebar | `ChevronRight` | `ChevronRightIcon` | `SettingsSidebar` | active |
 | `settings.nav.collapse` | Collapse settings sidebar | `ChevronLeft` | `ChevronLeftIcon` | `SettingsSidebar` | active |
 | `session.end` | End user session | `LogOut` | `LogoutIcon` | `UserAvatarMenu`, `LogoutActiveSessionConfirmationModal` | active |

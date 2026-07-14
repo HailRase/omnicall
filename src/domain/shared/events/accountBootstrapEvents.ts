@@ -7,9 +7,14 @@ export type SipCredentialsReceivedEvent = ReturnType<
   typeof createSipCredentialsReceivedEvent
 >;
 
+export type SipCredentialsSource = "manual" | "ocp";
+
 export function createSipCredentialsReceivedEvent(
   correlationId: CorrelationId,
-  payload: Readonly<{ credentials: SipAccountInput; source: "manual" }>,
+  payload: Readonly<{
+    credentials: SipAccountInput;
+    source: SipCredentialsSource;
+  }>,
 ) {
   return createDomainEvent("SipCredentialsReceived", correlationId, payload);
 }
@@ -29,7 +34,7 @@ export function createManualSipAuthorizationRequestedEvent(
   );
 }
 
-export type AccessDeniedSource = "manual";
+export type AccessDeniedSource = SipCredentialsSource;
 
 export type AccessDeniedDetectedEvent = ReturnType<
   typeof createAccessDeniedDetectedEvent

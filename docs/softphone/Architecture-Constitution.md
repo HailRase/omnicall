@@ -264,16 +264,15 @@ Owns:
 Responsible for:
 
 - legacy operator platform
-- CRM contracts
-- host-page contracts
+- CRM / browser-tab external contracts
 - Electron IPC contracts
-- future integrations
+- future integrations (`ExternalClientGateway`)
 
 Owns:
 
 - `Integration`
 - `IntegrationSession`
-- `ExternalSoftphoneApi`
+- `ExternalClientGateway` / `ExternalCommandRouter` (future)
 
 ## Communication Rules
 

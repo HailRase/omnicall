@@ -68,8 +68,23 @@ function readOptionalString(
 }
 
 function readNumber(record: Record<string, unknown>, key: string): number | null {
-  const value = record[key];
-  return typeof value === "number" && Number.isFinite(value) ? value : null;
+  return coerceFiniteNumber(record[key]);
+}
+
+function coerceFiniteNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value.trim());
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function coerceOperatorStatusValue(value: unknown): ReturnType<typeof parseOperatorStatus> {
+  const asNumber = coerceFiniteNumber(value);
+  return asNumber === null ? null : parseOperatorStatus(asNumber);
 }
 
 function readBoolean(record: Record<string, unknown>, key: string): boolean | null {
@@ -78,11 +93,21 @@ function readBoolean(record: Record<string, unknown>, key: string): boolean | nu
 }
 
 function readReasonId(statusRecord: Record<string, unknown>): number {
-  const reasonId = statusRecord["reason_id"];
-  if (reasonId === null || reasonId === undefined) {
-    return 0;
+  const reasonId = coerceFiniteNumber(statusRecord["reason_id"]);
+  return reasonId ?? 0;
+}
+
+function readStatusTime(record: Record<string, unknown>): string {
+  const raw = record["status_time"];
+  if (typeof raw === "string" && raw.trim().length > 0) {
+    return raw.trim();
   }
-  return typeof reasonId === "number" && Number.isFinite(reasonId) ? reasonId : 0;
+  const asNumber = coerceFiniteNumber(raw);
+  if (asNumber !== null) {
+    const millis = asNumber < 1_000_000_000_000 ? asNumber * 1000 : asNumber;
+    return new Date(millis).toISOString();
+  }
+  return new Date().toISOString();
 }
 
 function parseEnvelope(raw: unknown): Record<string, unknown> | null {
@@ -112,29 +137,40 @@ function parseCredsPayload(payload: unknown): OcpCredsPayload | null {
 }
 
 function parseUsersPayload(payload: unknown): OcpUsersPayload | null {
-  const users = Array.isArray(payload) ? payload : null;
-  if (users === null || users.length === 0) {
-    return null;
-  }
-  const first: unknown = users[0];
+  const first: unknown = Array.isArray(payload)
+    ? payload[0]
+    : isRecord(payload)
+      ? payload
+      : null;
   if (!isRecord(first)) {
     return null;
   }
+
   const operatorId = readNumber(first, "id");
-  const statusRecord = first["status"];
-  const statusSince = readString(first, "status_time");
-  if (operatorId === null || !isRecord(statusRecord) || statusSince === null) {
+  if (operatorId === null) {
     return null;
   }
-  const status = parseOperatorStatus(statusRecord["value"]);
+
+  const statusField: unknown = first["status"];
+  let status: ReturnType<typeof parseOperatorStatus> = null;
+  let reasonId = 0;
+
+  if (isRecord(statusField)) {
+    status = coerceOperatorStatusValue(statusField["value"]);
+    reasonId = readReasonId(statusField);
+  } else {
+    status = coerceOperatorStatusValue(statusField);
+  }
+
   if (status === null) {
     return null;
   }
+
   return {
     operatorId,
     status,
-    reasonId: readReasonId(statusRecord),
-    statusSince,
+    reasonId,
+    statusSince: readStatusTime(first),
   };
 }
 
@@ -150,8 +186,11 @@ function parseStatusReasonsPayload(
       return null;
     }
     const id = readNumber(entry, "id");
-    const parentStatus = parseOperatorStatus(entry["status"]);
-    const defaultDescription = readString(entry, "default_description");
+    const parentStatus = coerceOperatorStatusValue(entry["status"]);
+    const defaultDescription =
+      readString(entry, "default_description") ??
+      readString(entry, "description") ??
+      readString(entry, "name");
     if (id === null || parentStatus === null || defaultDescription === null) {
       return null;
     }
@@ -159,9 +198,7 @@ function parseStatusReasonsPayload(
     const timeDelta =
       timeDeltaRaw === null || timeDeltaRaw === undefined
         ? null
-        : typeof timeDeltaRaw === "number" && Number.isFinite(timeDeltaRaw)
-          ? timeDeltaRaw
-          : null;
+        : coerceFiniteNumber(timeDeltaRaw);
     reasons.push({
       id,
       parentStatus,

@@ -240,6 +240,9 @@ export {
   createDefaultUserSettings,
   MAX_AUTO_ANSWER_TIMEOUT_SEC,
   MIN_AUTO_ANSWER_TIMEOUT_SEC,
+  OCP_INTEGRATION_DEFAULTS,
+  parseOcpIntegrationSettings,
+  type OcpIntegrationSettings,
   type UserSettings,
 } from "@domain/index.js";
 export type { HeadsetFaultReason } from "@domain/index.js";
@@ -346,6 +349,58 @@ export {
   resolveFullscreenVideoSession,
   type FullscreenVideoSession,
 } from "./projections/media/resolveFullscreenVideoSession.js";
+export {
+  initialOcpSessionProjection,
+  reduceOcpSessionFromConnectionState,
+  reduceOcpSessionFromMessage,
+  applyOcpSessionDomain,
+  selectIsOcpConnected,
+  selectOcpProxyStatus,
+  selectOcpDomain,
+  type OcpSessionProjection,
+  type OcpProxyStatus,
+} from "./projections/integration/ocpSessionProjection.js";
+export type { OcpNotificationPayload } from "@domain/integration/ocp/protocol/OcpIncomingMessage.js";
+export {
+  initialOperatorStatusProjection,
+  reduceOperatorStatusFromUsers,
+  applyOperatorReservedStatus,
+  clearOperatorReservedStatus,
+  selectOperatorStatus,
+  selectOperatorIsBusy,
+  selectIsCallButtonBlocked,
+  toOperatorProfile,
+  type OperatorStatusProjection,
+} from "./projections/integration/operatorStatusProjection.js";
+export {
+  OperatorStatus,
+  OPERATOR_STATUS_LABEL_KEY,
+  OCP_MAX_RECONNECT_ATTEMPTS,
+  resolveOperatorStatusTone,
+  resolveOperatorStatusColorVar,
+  resolveOperatorStatusLabelKey,
+  isOperatorStatusBusy,
+  isOperatorStatusSelectorDisabled,
+  resolveOperatorStatusChangeMode,
+  resolveOperatorStatusChangeModeFromProjection,
+  type OcpOperatorStatusLabelKey,
+  type OperatorStatusChangeMode,
+  type OperatorStatusValue,
+  type OperatorStatusTone,
+} from "./projections/integration/operatorStatusPresentation.js";
+export {
+  initialOcpReasonsProjection,
+  reduceOcpReasonsFromPayload,
+  type OcpReasonsProjection,
+} from "./projections/integration/ocpReasonsProjection.js";
+export {
+  initialCampaignEventProjection,
+  reduceCampaignEventFromPayload,
+  clearCampaignEvent,
+  type CampaignEventProjection,
+} from "./projections/integration/campaignEventProjection.js";
+export { OcpProjectionHub } from "./read-models/OcpProjectionHub.js";
+export { OcpIntegrationComposition } from "./services/integration/OcpIntegrationComposition.js";
 export {
   areCameraControlsEnabled,
   isScreenShareAllowed,

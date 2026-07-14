@@ -1,4 +1,4 @@
-import type { JSX } from "react";
+import type { JSX, ReactNode } from "react";
 import type { HeaderChromeShellViewModel } from "@application/index.js";
 import type { UseUserAvatarMenuActionsResult } from "../hooks/useUserAvatarMenuActions.js";
 import type { UseUserAvatarMenuResult } from "../hooks/useUserAvatarMenu.js";
@@ -17,6 +17,7 @@ type SoftphoneShellHeaderProps = Readonly<{
   userAvatarMenuActions: UseUserAvatarMenuActionsResult;
   windowControls: ShellWindowControlsViewModel;
   suppressWindowControls?: boolean;
+  operatorStatusSlot?: ReactNode;
 }>;
 
 /**
@@ -31,6 +32,7 @@ export function SoftphoneShellHeader({
   userAvatarMenuActions,
   windowControls,
   suppressWindowControls = false,
+  operatorStatusSlot = null,
 }: SoftphoneShellHeaderProps): JSX.Element {
   const { t } = useI18n();
   const statusLabel =
@@ -92,6 +94,9 @@ export function SoftphoneShellHeader({
                     sipStatusTimerSuffix={headerChrome.sipStatusTimerSuffix}
                     sipStatusTone={headerChrome.sipStatusTone}
                   />
+                ) : null}
+                {operatorStatusSlot !== null ? (
+                  <div className={styles.operatorStatusSlot}>{operatorStatusSlot}</div>
                 ) : null}
               </div>
             </div>

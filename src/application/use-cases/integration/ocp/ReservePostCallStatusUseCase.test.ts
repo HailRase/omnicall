@@ -2,13 +2,23 @@ import { describe, expect, it } from "vitest";
 import { MockOcpGateway } from "@adapters/mock/MockOcpGateway.js";
 import { OperatorStatus } from "@domain/integration/ocp/OperatorStatus.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
+import { InMemoryDomainEventBus } from "../../../events/InMemoryDomainEventBus.js";
 import { ReservePostCallStatusUseCase } from "./ReservePostCallStatusUseCase.js";
 
 describe("ReservePostCallStatusUseCase", () => {
-  it("always sends update_post_call_status", async () => {
+  it("always sends update_post_call_status and publishes reservation event", async () => {
     const gateway = new MockOcpGateway();
     gateway.connect({ domain: "ocp.example.com", authToken: "token" });
-    const useCase = new ReservePostCallStatusUseCase(gateway, createTestLogger());
+    const bus = new InMemoryDomainEventBus();
+    const published: string[] = [];
+    bus.subscribe((event) => {
+      published.push(event.type);
+    });
+    const useCase = new ReservePostCallStatusUseCase({
+      ocpGateway: gateway,
+      eventPublisher: bus,
+      logger: createTestLogger(),
+    });
 
     const result = await useCase.execute({
       operatorId: 7,
@@ -23,5 +33,6 @@ describe("ReservePostCallStatusUseCase", () => {
       reasonId: 7,
       reservedStatus: OperatorStatus.BREAK,
     });
+    expect(published).toContain("OperatorStatusReservationSet");
   });
 });

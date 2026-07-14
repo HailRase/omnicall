@@ -23,7 +23,22 @@
   display: flex;
   align-items: center;
   gap: var(--space-xs);
+  flex: 1 1 auto;
   min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.operator-status-slot {
+  display: flex;
+  flex: 1 1 0;
+  align-items: stretch;
+  box-sizing: border-box;
+  min-width: 0;
+  /* Fill remaining header to the softphone edge; never widen the shell. */
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .avatar-group {

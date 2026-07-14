@@ -120,4 +120,33 @@ describe("SettingsSidebar", () => {
 
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
   });
+
+  it("shows nested OCP Module under Integrations when expanded", async () => {
+    vi.useRealTimers();
+    const user = userEvent.setup();
+    const onSectionChange = vi.fn();
+    renderSidebar({
+      activeSection: "integrations",
+      expanded: true,
+      onSectionChange,
+    });
+
+    expect(screen.getByTestId("settings-nav-integrations")).toBeInTheDocument();
+    expect(screen.getByTestId("settings-nav-group-integrations-group")).toBeInTheDocument();
+    expect(screen.getByTestId("settings-nav-integrations-ocp")).toBeInTheDocument();
+    expect(screen.getByText("OCP Module")).toBeVisible();
+
+    await user.click(screen.getByTestId("settings-nav-integrations-ocp"));
+    expect(onSectionChange).toHaveBeenCalledWith("integrations");
+  });
+
+  it("opens first Integrations child when parent is clicked while collapsed", async () => {
+    vi.useRealTimers();
+    const user = userEvent.setup();
+    const onSectionChange = vi.fn();
+    renderSidebar({ activeSection: "general", onSectionChange });
+
+    await user.click(screen.getByTestId("settings-nav-integrations"));
+    expect(onSectionChange).toHaveBeenCalledWith("integrations");
+  });
 });

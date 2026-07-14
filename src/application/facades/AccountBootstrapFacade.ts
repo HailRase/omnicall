@@ -50,6 +50,9 @@ import type {
   LocalMediaStreamHandle,
   Logger,
   MediaInputDeviceInfo,
+  OcpGateway,
+  OcpNotificationPresenter,
+  OcpReasonsCachePort,
   SavedAccountProfileRepository,
   SettingsRepository,
   CallHistoryRepository,
@@ -60,8 +63,16 @@ import type {
   SecretStoragePort,
   StartCameraPreviewResult,
 } from "@ports/index.js";
+import { OcpIntegrationComposition } from "../services/integration/OcpIntegrationComposition.js";
+import type { ChangeOperatorStatusOutcome } from "../use-cases/integration/ocp/ChangeOperatorStatusUseCase.js";
+import { InMemoryOcpReasonsCache } from "@adapters/mock/InMemoryOcpReasonsCache.js";
+import { CallbackOcpNotificationPresenter } from "@adapters/integration/ocp/CallbackOcpNotificationPresenter.js";
+import type { OcpConnectionState } from "@domain/integration/ocp/OcpConnectionState.js";
+import type { OcpNotificationPayload } from "@domain/integration/ocp/protocol/OcpIncomingMessage.js";
+import { MockOcpGateway } from "@adapters/mock/MockOcpGateway.js";
 import {
   createSecretStorageScopeKey,
+  OCP_TOKEN_SECRET_ID,
   SIP_PASSWORD_SECRET_ID,
   type SecretStorageScopeKey,
 } from "@ports/secrets/SecretStoragePort.js";
@@ -77,9 +88,11 @@ import {
   toMultiCallSettings,
   validateUserSettings,
   deriveSavedAccountProfileId,
+  parseOcpIntegrationSettings,
   type Call,
   type CallId,
   type CallVideoMediaState,
+  type OcpIntegrationSettings,
   type SessionViewMode,
 } from "@domain/index.js";
 import { resolveSettingsAccountKey } from "../settings/resolveSettingsAccountKey.js";
@@ -165,6 +178,9 @@ export type AccountBootstrapFacadeDeps = Readonly<{
   secretStoragePort?: SecretStoragePort;
   hostIntegrationGateway?: HostIntegrationGateway;
   headsetGateway?: HeadsetGateway;
+  ocpGateway?: OcpGateway;
+  ocpReasonsCache?: OcpReasonsCachePort;
+  ocpNotificationPresenter?: OcpNotificationPresenter;
   logger: Logger;
   eventPublisher?: DomainEventPublisher;
 }>;
@@ -231,9 +247,11 @@ export class AccountBootstrapFacade {
   private readonly secretStoragePort: SecretStoragePort;
 
   private sipSessionRegistered = false;
+  private ocpAutoSipAuthEnabled = false;
   private readonly callEngine: CallEngine;
   private readonly sipRecoveryOrchestration: SipRecoveryOrchestrationService;
   private readonly headsetIntegration: HeadsetIntegrationService;
+  private readonly ocpIntegration: OcpIntegrationComposition;
   private getMultiLineProjectionRef: () => MultiLineCallProjection = initialMultiLineCallProjection;
   private getIncomingProjectionRef: () => IncomingCallProjection = initialIncomingCallProjection;
   private getIsDndRef: () => boolean = () => false;
@@ -547,6 +565,23 @@ export class AccountBootstrapFacade {
       deps.logger,
     );
 
+    this.ocpIntegration = new OcpIntegrationComposition({
+      ocpGateway: deps.ocpGateway ?? new MockOcpGateway(),
+      eventPublisher: this.eventPublisher,
+      logger: deps.logger,
+      reasonsCache: deps.ocpReasonsCache ?? new InMemoryOcpReasonsCache(),
+      notificationPresenter:
+        deps.ocpNotificationPresenter ?? new CallbackOcpNotificationPresenter(),
+      authorizeSipAccount: this.authorizeSipAccount,
+      registerAccount: this.registerAccount,
+      isAutoSipAuthEnabled: () => this.ocpAutoSipAuthEnabled,
+      isSipRegistered: () => this.sipSessionRegistered,
+      endUserSession: async (correlationId) => {
+        await this.endUserSession.execute({ correlationId });
+      },
+    });
+    this.shutdownCleanup.registerDisposable(this.ocpIntegration);
+
     this.eventPublisher.subscribe((event) => {
       this.trackSipRegistrationState(event);
       if (event.type === "CallAnswered") {
@@ -602,7 +637,9 @@ export class AccountBootstrapFacade {
 
     const accountKey = await this.resolveSettingsAccountKey();
     const userSettings = await this.loadUserSettingsForAccountKey(accountKey);
+    this.ocpAutoSipAuthEnabled = userSettings.ocpIntegration.autoSipAuth;
     await this.applyHeadsetUserSettings(userSettings);
+    await this.maybeAutoConnectOcp();
   }
 
   async authorizeManualAccount(
@@ -1737,8 +1774,484 @@ export class AccountBootstrapFacade {
     );
   }
 
+  /**
+   * @internal Test/composition access only — renderer must use Facade OCP methods.
+   */
+  getOcpIntegration(): OcpIntegrationComposition {
+    return this.ocpIntegration;
+  }
+
+  /**
+   * - Purpose: attach renderer toast sink to OCP notification presenter (T-021 / E-09).
+   * - Inputs: handler or null to clear.
+   * - Outputs: side-effect wiring via port `setHandler` (no adapter instanceof).
+   */
+  setOcpNotificationHandler(
+    handler: ((notification: OcpNotificationPayload) => void) | null,
+  ): void {
+    const presenter: OcpNotificationPresenter =
+      this.ocpIntegration.notificationPresenter;
+    presenter.setHandler?.(handler);
+  }
+
+  /**
+   * - Purpose: change operator status from UI (callType internal).
+   */
+  changeOcpOperatorStatus(
+    input: Readonly<{
+      targetStatus: "ready" | "break";
+      reasonId: number;
+      intent?: "auto" | "apply" | "reserve";
+      correlationId?: CorrelationId;
+    }>,
+  ): Promise<Result<ChangeOperatorStatusOutcome, PlatformError>> {
+    return this.ocpIntegration.changeOperatorStatus.execute({
+      targetStatus: input.targetStatus,
+      reasonId: input.reasonId,
+      callType: "internal",
+      ...(input.intent !== undefined ? { intent: input.intent } : {}),
+      ...(input.correlationId !== undefined ? { correlationId: input.correlationId } : {}),
+    });
+  }
+
+  /**
+   * - Purpose: logout OCP operator from UI with optional SIP cascade event.
+   */
+  logoutOcpOperator(
+    input: Readonly<{
+      reasonId: number;
+      cascadeSipLogout?: boolean;
+      correlationId?: CorrelationId;
+    }>,
+  ): Promise<Result<void, PlatformError>> {
+    return this.ocpIntegration.logoutOperator.execute({
+      reasonId: input.reasonId,
+      callType: "internal",
+      ...(input.cascadeSipLogout !== undefined
+        ? { cascadeSipLogout: input.cascadeSipLogout }
+        : {}),
+      ...(input.correlationId !== undefined ? { correlationId: input.correlationId } : {}),
+    });
+  }
+
+  /**
+   * - Purpose: reserve post-call operator status from UI.
+   */
+  reserveOcpPostCallStatus(
+    input: Readonly<{
+      operatorId: number;
+      targetStatus: "ready" | "break";
+      reasonId: number;
+      correlationId?: CorrelationId;
+    }>,
+  ): Promise<Result<void, PlatformError>> {
+    return this.ocpIntegration.reservePostCallStatus.execute({
+      operatorId: input.operatorId,
+      targetStatus: input.targetStatus,
+      reasonId: input.reasonId,
+      ...(input.correlationId !== undefined ? { correlationId: input.correlationId } : {}),
+    });
+  }
+
+  /**
+   * - Purpose: accept active OCP campaign event from UI.
+   */
+  acceptOcpCampaign(
+    input: Readonly<{
+      operatorId: number;
+      campaignEventId: string;
+      correlationId?: CorrelationId;
+    }>,
+  ): Promise<Result<void, PlatformError>> {
+    return this.ocpIntegration.acceptCampaign.execute({
+      operatorId: input.operatorId,
+      campaignEventId: input.campaignEventId,
+      ...(input.correlationId !== undefined ? { correlationId: input.correlationId } : {}),
+    });
+  }
+
+  /**
+   * - Purpose: reject active OCP campaign event from UI.
+   */
+  rejectOcpCampaign(
+    input: Readonly<{
+      operatorId: number;
+      campaignEventId: string;
+      correlationId?: CorrelationId;
+    }>,
+  ): Promise<Result<void, PlatformError>> {
+    return this.ocpIntegration.rejectCampaign.execute({
+      operatorId: input.operatorId,
+      campaignEventId: input.campaignEventId,
+      ...(input.correlationId !== undefined ? { correlationId: input.correlationId } : {}),
+    });
+  }
+
+  getOcpSessionSnapshot(): ReturnType<
+    OcpIntegrationComposition["projectionHub"]["getSessionProjection"]
+  > {
+    return this.ocpIntegration.projectionHub.getSessionProjection();
+  }
+
+  getOcpOperatorSnapshot(): ReturnType<
+    OcpIntegrationComposition["projectionHub"]["getOperatorProjection"]
+  > {
+    return this.ocpIntegration.projectionHub.getOperatorProjection();
+  }
+
+  getOcpReasonsSnapshot(): ReturnType<
+    OcpIntegrationComposition["projectionHub"]["getReasonsProjection"]
+  > {
+    return this.ocpIntegration.projectionHub.getReasonsProjection();
+  }
+
+  getOcpCampaignSnapshot(): ReturnType<
+    OcpIntegrationComposition["projectionHub"]["getCampaignProjection"]
+  > {
+    return this.ocpIntegration.projectionHub.getCampaignProjection();
+  }
+
+  subscribeOcpProjections(listener: () => void): () => void {
+    return this.ocpIntegration.projectionHub.subscribe(listener);
+  }
+
+  clearOcpActiveCampaign(): void {
+    this.ocpIntegration.projectionHub.clearActiveCampaign();
+  }
+
+  /**
+   * - Purpose: external logout — LogoutOperator with callType external + SIP cascade.
+   */
+  logoutOcpFromHost(
+    input: Readonly<{
+      reasonId: number;
+      correlationId?: CorrelationId;
+    }>,
+  ): Promise<Result<void, PlatformError>> {
+    this.deps.logger.info("ocp_host_logout_requested", {
+      ...(input.correlationId !== undefined ? { correlationId: input.correlationId } : {}),
+      featureId: "F-028",
+      boundedContext: "Integration",
+      operation: "logout_ocp_from_host",
+      reasonId: input.reasonId,
+      result: "requested",
+    });
+    return this.ocpIntegration.logoutOperator.execute({
+      reasonId: input.reasonId,
+      callType: "external",
+      cascadeSipLogout: true,
+      ...(input.correlationId !== undefined ? { correlationId: input.correlationId } : {}),
+    });
+  }
+
+  /**
+   * - Purpose: external disconnect without logout status command.
+   */
+  disconnectOcpFromHost(
+    correlationId?: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    this.deps.logger.info("ocp_host_disconnect_requested", {
+      ...(correlationId !== undefined ? { correlationId } : {}),
+      featureId: "F-028",
+      boundedContext: "Integration",
+      operation: "disconnect_ocp_from_host",
+      result: "requested",
+    });
+    return this.disconnectOcp(correlationId);
+  }
+
+  async updateOcpSettings(
+    ocpIntegration: OcpIntegrationSettings,
+    correlationId?: CorrelationId,
+  ): Promise<Result<UserSettings, PlatformError>> {
+    const parsed = parseOcpIntegrationSettings(ocpIntegration);
+    if (parsed === null) {
+      return err(
+        createPlatformError("validation_failed", "ocpIntegration_invalid", {
+          reason: "ocpIntegration_invalid",
+        }),
+      );
+    }
+
+    try {
+      const accountKey = await this.resolveSettingsAccountKey();
+      const current = await this.loadUserSettingsForAccountKey(accountKey);
+      const saved = await this.saveUserSettingsInternal(accountKey, {
+        ...current,
+        ocpIntegration: parsed,
+      });
+      this.ocpAutoSipAuthEnabled = parsed.autoSipAuth;
+      this.deps.logger.info("ocp_settings_updated", {
+        ...(correlationId !== undefined ? { correlationId } : {}),
+        featureId: "F-028",
+        boundedContext: "Integration",
+        operation: "update_ocp_settings",
+        result: "completed",
+        enabled: parsed.enabled,
+        domain: parsed.domain,
+        autoConnect: parsed.autoConnect,
+        autoSipAuth: parsed.autoSipAuth,
+      });
+      return ok(saved);
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+  }
+
+  async saveOcpToken(
+    token: string,
+    correlationId?: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    const trimmed = token.trim();
+    if (trimmed.length === 0) {
+      return err(
+        createPlatformError("validation_failed", "auth_token_required", {
+          reason: "auth_token_required",
+        }),
+      );
+    }
+
+    try {
+      const scopeKey = await this.resolveOcpTokenSecretScopeKey();
+      await this.secretStoragePort.saveSecret(scopeKey, OCP_TOKEN_SECRET_ID, trimmed);
+      this.deps.logger.info("ocp_token_saved", {
+        ...(correlationId !== undefined ? { correlationId } : {}),
+        featureId: "F-028",
+        boundedContext: "Integration",
+        operation: "save_ocp_token",
+        result: "completed",
+      });
+      return ok(undefined);
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+  }
+
+  async getOcpToken(): Promise<Result<string | null, PlatformError>> {
+    try {
+      const scopeKey = await this.resolveOcpTokenSecretScopeKey();
+      const token = await this.secretStoragePort.loadSecret(scopeKey, OCP_TOKEN_SECRET_ID);
+      return ok(token);
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+  }
+
+  async deleteOcpToken(
+    correlationId?: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    try {
+      const scopeKey = await this.resolveOcpTokenSecretScopeKey();
+      await this.secretStoragePort.deleteSecret(scopeKey, OCP_TOKEN_SECRET_ID);
+      this.deps.logger.info("ocp_token_deleted", {
+        ...(correlationId !== undefined ? { correlationId } : {}),
+        featureId: "F-028",
+        boundedContext: "Integration",
+        operation: "delete_ocp_token",
+        result: "completed",
+      });
+      return ok(undefined);
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+  }
+
+  async connectOcp(
+    correlationId?: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    const settingsResult = await this.getUserSettingsForAccount();
+    if (isErr(settingsResult)) {
+      return settingsResult;
+    }
+
+    const tokenResult = await this.getOcpToken();
+    if (isErr(tokenResult)) {
+      return tokenResult;
+    }
+
+    return this.ocpIntegration.connectOcp.execute({
+      domain: settingsResult.value.ocpIntegration.domain,
+      authToken: tokenResult.value ?? "",
+      ...(correlationId !== undefined ? { correlationId } : {}),
+    });
+  }
+
+  disconnectOcp(
+    correlationId?: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    return this.ocpIntegration.disconnectOcp.execute(
+      correlationId === undefined ? {} : { correlationId },
+    );
+  }
+
+  /**
+   * - Purpose: external authenticate — persist domain/token and connect OCP.
+   * - Inputs: ocpDomain + ocpAuthToken from future ExternalCommandRouter (callType external).
+   * - Outputs: connect result; token never logged.
+   */
+  async authenticateOcpFromHost(
+    input: Readonly<{
+      ocpDomain: string;
+      ocpAuthToken: string;
+      correlationId?: CorrelationId;
+    }>,
+  ): Promise<Result<void, PlatformError>> {
+    const persistResult = await this.persistOcpHostCredentials(input);
+    if (isErr(persistResult)) {
+      return persistResult;
+    }
+
+    const domain = input.ocpDomain.trim();
+    this.ocpIntegration.projectionHub.setSessionDomain(domain);
+    this.deps.logger.info("ocp_host_authenticate_requested", {
+      ...(input.correlationId !== undefined ? { correlationId: input.correlationId } : {}),
+      featureId: "F-028",
+      boundedContext: "Integration",
+      operation: "authenticate_ocp_from_host",
+      domain,
+      result: "requested",
+    });
+
+    return this.ocpIntegration.connectOcp.execute({
+      domain,
+      authToken: input.ocpAuthToken.trim(),
+      ...(input.correlationId !== undefined ? { correlationId: input.correlationId } : {}),
+    });
+  }
+
+  /**
+   * - Purpose: external operator status change with callType external.
+   * - Inputs: ready|break target and reason id (future ExternalCommandRouter).
+   * - Outputs: ChangeOperatorStatus Use Case result.
+   */
+  changeOcpStatusFromHost(
+    input: Readonly<{
+      targetStatus: "ready" | "break";
+      reasonId: number;
+      intent?: "auto" | "apply" | "reserve";
+      correlationId?: CorrelationId;
+    }>,
+  ): Promise<Result<ChangeOperatorStatusOutcome, PlatformError>> {
+    return this.ocpIntegration.changeOperatorStatus.execute({
+      targetStatus: input.targetStatus,
+      reasonId: input.reasonId,
+      callType: "external",
+      ...(input.intent !== undefined ? { intent: input.intent } : {}),
+      ...(input.correlationId !== undefined ? { correlationId: input.correlationId } : {}),
+    });
+  }
+
+  getOcpConnectionState(): OcpConnectionState {
+    return this.ocpIntegration.projectionHub.getSessionProjection().connectionState;
+  }
+
+  /**
+   * - Purpose: connect OCP when settings enable autoConnect and token exists.
+   * - Inputs: loaded UserSettings + SecretStorage token (idempotent).
+   * - Outputs: connect side effect or skipped; never throws; token never logged.
+   */
+  async maybeAutoConnectOcp(
+    correlationId?: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    const settingsResult = await this.getUserSettingsForAccount();
+    if (isErr(settingsResult)) {
+      return settingsResult;
+    }
+
+    const ocp = settingsResult.value.ocpIntegration;
+    if (!ocp.enabled || !ocp.autoConnect) {
+      return ok(undefined);
+    }
+
+    const state = this.getOcpConnectionState();
+    if (
+      state === "connecting" ||
+      state === "connected" ||
+      state === "authenticated" ||
+      state === "reconnecting"
+    ) {
+      return ok(undefined);
+    }
+
+    const tokenResult = await this.getOcpToken();
+    if (isErr(tokenResult)) {
+      return tokenResult;
+    }
+    const token = tokenResult.value?.trim() ?? "";
+    if (token.length === 0) {
+      this.deps.logger.info("ocp_auto_connect_skipped_missing_token", {
+        ...(correlationId !== undefined ? { correlationId } : {}),
+        featureId: "F-028",
+        boundedContext: "Integration",
+        operation: "maybe_auto_connect_ocp",
+        result: "skipped_missing_token",
+      });
+      return ok(undefined);
+    }
+
+    this.deps.logger.info("ocp_auto_connect_requested", {
+      ...(correlationId !== undefined ? { correlationId } : {}),
+      featureId: "F-028",
+      boundedContext: "Integration",
+      operation: "maybe_auto_connect_ocp",
+      domain: ocp.domain,
+      result: "requested",
+    });
+
+    const connectResult = await this.connectOcp(correlationId);
+    if (isErr(connectResult)) {
+      this.deps.logger.error(
+        "ocp_auto_connect_failed",
+        {
+          ...(correlationId !== undefined ? { correlationId } : {}),
+          featureId: "F-028",
+          boundedContext: "Integration",
+          operation: "maybe_auto_connect_ocp",
+          result: connectResult.error.code,
+        },
+        connectResult.error,
+      );
+      return connectResult;
+    }
+
+    return ok(undefined);
+  }
+
+  private async persistOcpHostCredentials(
+    input: Readonly<{
+      ocpDomain: string;
+      ocpAuthToken: string;
+      correlationId?: CorrelationId;
+    }>,
+  ): Promise<Result<void, PlatformError>> {
+    const settingsResult = await this.getUserSettingsForAccount();
+    if (isErr(settingsResult)) {
+      return settingsResult;
+    }
+
+    const updateResult = await this.updateOcpSettings(
+      {
+        ...settingsResult.value.ocpIntegration,
+        enabled: true,
+        domain: input.ocpDomain.trim(),
+      },
+      input.correlationId,
+    );
+    if (isErr(updateResult)) {
+      return updateResult;
+    }
+
+    return this.saveOcpToken(input.ocpAuthToken, input.correlationId);
+  }
+
+  private async resolveOcpTokenSecretScopeKey(): Promise<SecretStorageScopeKey> {
+    const accountKey = await this.resolveSettingsAccountKey();
+    return createSecretStorageScopeKey(accountKey);
+  }
+
   dispose(): void {
     this.sipRecoveryOrchestration.dispose();
+    this.ocpIntegration.dispose();
   }
 
   notifyPeerConnectionAvailable(

@@ -48,6 +48,11 @@ import {
   parseDefaultSessionViewSetting,
   parsePreferredMediaDeviceId,
 } from "./VideoCallSettings.js";
+import {
+  OCP_INTEGRATION_DEFAULTS,
+  parseOcpIntegrationSettings,
+  type OcpIntegrationSettings,
+} from "./OcpIntegrationSettings.js";
 
 export type ValidateUserSettingsResult =
   | Readonly<{ ok: true; value: UserSettings }>
@@ -165,6 +170,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
     DEFAULT_ENABLE_LOCAL_VIDEO_AFTER_CONNECT,
     errors,
   );
+  const ocpIntegration = readOcpIntegration(record, errors);
 
   if (errors.length > 0) {
     return { ok: false, errors };
@@ -204,6 +210,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
       autoFullscreenOnConference,
       conferenceNumberSubstring,
       enableLocalVideoAfterConnect,
+      ocpIntegration,
     },
   };
 }
@@ -512,6 +519,18 @@ function readConferenceNumberSubstring(
   if (parsed === undefined) {
     errors.push("conferenceNumberSubstring_invalid");
     return DEFAULT_CONFERENCE_NUMBER_SUBSTRING;
+  }
+  return parsed;
+}
+
+function readOcpIntegration(
+  record: Record<string, unknown>,
+  errors: string[],
+): OcpIntegrationSettings {
+  const parsed = parseOcpIntegrationSettings(record["ocpIntegration"]);
+  if (parsed === null) {
+    errors.push("ocpIntegration_invalid");
+    return { ...OCP_INTEGRATION_DEFAULTS };
   }
   return parsed;
 }

@@ -5,6 +5,7 @@ import { useAutoAnswerCountdown } from "../../hooks/useAutoAnswerCountdown.js";
 import type { CallFeatureShellBindings } from "../../hooks/useCallFeatureShell.js";
 import { useIncomingCallOverlayActions } from "../../hooks/useIncomingCallOverlayActions.js";
 import { useIncomingCallOverlayShell } from "../../hooks/useIncomingCallOverlayShell.js";
+import type { UseOcpRejectWithBreakResult } from "../../hooks/useOcpRejectWithBreak.js";
 import type { UseOverlayShellResult } from "../../hooks/useOverlayShell.js";
 import { useShellNavigation } from "../../navigation/index.js";
 import { useSoftphoneProjections } from "../../hooks/useSoftphoneProjections.js";
@@ -12,6 +13,7 @@ import { useSoftphoneProjections } from "../../hooks/useSoftphoneProjections.js"
 type IncomingCallOverlayShellProps = Readonly<{
   callBindings: CallFeatureShellBindings;
   overlayShell: UseOverlayShellResult;
+  ocpRejectWithBreak: UseOcpRejectWithBreakResult;
 }>;
 
 /**
@@ -22,6 +24,7 @@ type IncomingCallOverlayShellProps = Readonly<{
 export function IncomingCallOverlayShell({
   callBindings,
   overlayShell,
+  ocpRejectWithBreak,
 }: IncomingCallOverlayShellProps): JSX.Element {
   const { route, goToDialpad } = useShellNavigation();
   const { transferProjection, callVideoMediaUiProjection } = useSoftphoneProjections();
@@ -64,6 +67,7 @@ export function IncomingCallOverlayShell({
         callBindings.incomingCallActions.videoAnswerDisabledReason
       }
       rejectDisabledReason={callBindings.incomingCallActions.rejectDisabledReason}
+      rejectChoiceEnabled={ocpRejectWithBreak.rejectChoiceEnabled}
       onOpenCallSurface={overlayActions.handleOpenCallSurface}
       onAnswer={overlayActions.handleAnswer}
       onAnswerWithVideo={
@@ -72,6 +76,8 @@ export function IncomingCallOverlayShell({
           : undefined
       }
       onReject={overlayActions.handleReject}
+      onRejectWithoutBreak={ocpRejectWithBreak.handleRejectWithoutBreak}
+      onRejectWithBreak={ocpRejectWithBreak.handleRequestRejectWithBreak}
       onDismiss={overlayVm.handleDismiss}
     />
   );

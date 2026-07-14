@@ -9,10 +9,9 @@ import { formatAutoAnswerCountdownLabel } from "../../helpers/formatAutoAnswerCo
 import { useI18n } from "../../i18n/index.js";
 
 import { AppIcon } from "../icons/index.js";
-
+import { IncomingCallRejectControl } from "./IncomingCallRejectControl.js";
 import { IncomingCallStatusMessage } from "./IncomingCallStatusMessage.js";
 import { TruncatedTextLine } from "./TruncatedTextLine.js";
-
 import styles from "./IncomingCallOverlay.module.css";
 
 export type IncomingCallOverlayProps = Readonly<{
@@ -24,10 +23,13 @@ export type IncomingCallOverlayProps = Readonly<{
   answerDisabledReason: string | null;
   videoAnswerDisabledReason?: string | null;
   rejectDisabledReason: string | null;
+  rejectChoiceEnabled?: boolean;
   onOpenCallSurface: () => void;
   onAnswer: () => void;
   onAnswerWithVideo?: (() => void) | undefined;
   onReject: () => void;
+  onRejectWithoutBreak?: () => void;
+  onRejectWithBreak?: () => void;
   onDismiss: () => void;
 }>;
 
@@ -98,10 +100,13 @@ export function IncomingCallOverlay({
   answerDisabledReason,
   videoAnswerDisabledReason = null,
   rejectDisabledReason,
+  rejectChoiceEnabled = false,
   onOpenCallSurface,
   onAnswer,
   onAnswerWithVideo,
   onReject,
+  onRejectWithoutBreak,
+  onRejectWithBreak,
   onDismiss,
 }: IncomingCallOverlayProps): JSX.Element {
   const { t } = useI18n();
@@ -283,23 +288,15 @@ export function IncomingCallOverlay({
                         <AppIcon id="dial.videoCall" size={16} decorative />
                       </motion.button>
                     ) : null}
-                    <motion.button
-                      type="button"
+                    <IncomingCallRejectControl
+                      rejectDisabledReason={rejectDisabledReason}
+                      rejectChoiceEnabled={rejectChoiceEnabled}
+                      onReject={onReject}
+                      onRejectWithoutBreak={onRejectWithoutBreak ?? onReject}
+                      onRejectWithBreak={onRejectWithBreak ?? onReject}
                       className={clsx(styles.actionButton, styles.rejectButton)}
-                      data-testid="reject-call"
-                      aria-label={t("incoming.rejectAria")}
-                      disabled={rejectDisabledReason !== null}
-                      {...(prefersReducedMotion
-                        ? {}
-                        : { whileHover: { scale: 1.05 }, whileTap: { scale: 0.94 } })}
-                      transition={buttonTransition}
-                      onClick={(event) => {
-                        stopActionPropagation(event);
-                        onReject();
-                      }}
-                    >
-                      <AppIcon id="call.reject" size={16} decorative />
-                    </motion.button>
+                      stopPropagationOnClick
+                    />
                   </div>
                 </div>
               </div>

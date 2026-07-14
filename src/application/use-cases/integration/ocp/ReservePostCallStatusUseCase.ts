@@ -1,5 +1,6 @@
+import { createOperatorStatusReservationSetEvent } from "@domain/integration/ocp/events/OperatorStatusReservationSet.js";
 import type { OcpGateway } from "@ports/integration/OcpGateway.js";
-import type { Logger } from "@ports/index.js";
+import type { DomainEventPublisher, Logger } from "@ports/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { ok } from "@shared/result/index.js";
@@ -22,12 +23,15 @@ export type ReservePostCallStatusInput = Readonly<{
 /**
  * - Purpose: reserve next operator status while busy on a call.
  * - Inputs: operator id, target status, reason id.
- * - Outputs: update_post_call_status gateway command.
+ * - Outputs: update_post_call_status gateway command + OperatorStatusReservationSet.
  */
 export class ReservePostCallStatusUseCase {
   constructor(
-    private readonly ocpGateway: OcpGateway,
-    private readonly logger: Logger,
+    private readonly deps: Readonly<{
+      ocpGateway: OcpGateway;
+      eventPublisher: DomainEventPublisher;
+      logger: Logger;
+    }>,
   ) {}
 
   execute(
@@ -36,7 +40,7 @@ export class ReservePostCallStatusUseCase {
     const correlationId = input.correlationId ?? createCorrelationId();
     const reservedStatus = mapOcpUserTargetStatus(input.targetStatus);
 
-    this.logger.info("reserve_post_call_status_requested", {
+    this.deps.logger.info("reserve_post_call_status_requested", {
       correlationId,
       featureId: OCP_USE_CASE_FEATURE_ID,
       boundedContext: OCP_BOUNDED_CONTEXT,
@@ -46,7 +50,7 @@ export class ReservePostCallStatusUseCase {
       result: "requested",
     });
 
-    const sendResult = this.ocpGateway.sendCommand({
+    const sendResult = this.deps.ocpGateway.sendCommand({
       kind: "update_post_call_status",
       operatorId: input.operatorId,
       reasonId: input.reasonId,
@@ -54,7 +58,7 @@ export class ReservePostCallStatusUseCase {
     });
 
     if (!sendResult.ok) {
-      this.logger.error(
+      this.deps.logger.error(
         "reserve_post_call_status_send_failed",
         {
           correlationId,
@@ -68,7 +72,15 @@ export class ReservePostCallStatusUseCase {
       return Promise.resolve(sendResult);
     }
 
-    this.logger.info("reserve_post_call_status_completed", {
+    this.deps.eventPublisher.publish(
+      createOperatorStatusReservationSetEvent(correlationId, {
+        operatorId: input.operatorId,
+        reservedStatus,
+        reservedReasonId: input.reasonId,
+      }),
+    );
+
+    this.deps.logger.info("reserve_post_call_status_completed", {
       correlationId,
       featureId: OCP_USE_CASE_FEATURE_ID,
       boundedContext: OCP_BOUNDED_CONTEXT,

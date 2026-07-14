@@ -1005,4 +1005,261 @@ describe("AccountBootstrapFacade integration", () => {
     expect(connected).not.toBeNull();
     expect(connected?.id).toBe("mock-headset-2");
   });
+
+  it("updates OCP settings and stores token outside UserSettings JSON", async () => {
+    const settings = new InMemorySettingsRepository({ bootstrapConfig: {} });
+    const secretStorage = new InMemorySecretStorageAdapter();
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: settings,
+      secretStoragePort: secretStorage,
+      logger: createTestLogger(),
+    });
+
+    const updateResult = await facade.updateOcpSettings({
+      enabled: true,
+      domain: "ocp.example.com",
+      autoConnect: true,
+      autoSipAuth: false,
+    });
+    expect(updateResult.ok).toBe(true);
+    if (updateResult.ok) {
+      expect(updateResult.value.ocpIntegration).toEqual({
+        enabled: true,
+        domain: "ocp.example.com",
+        autoConnect: true,
+        autoSipAuth: false,
+      });
+    }
+
+    const saveToken = await facade.saveOcpToken("secret-ocp-token");
+    expect(saveToken.ok).toBe(true);
+
+    const loadedToken = await facade.getOcpToken();
+    expect(loadedToken.ok).toBe(true);
+    if (loadedToken.ok) {
+      expect(loadedToken.value).toBe("secret-ocp-token");
+    }
+
+    const loadedSettings = await facade.getUserSettingsForAccount();
+    expect(loadedSettings.ok).toBe(true);
+    if (loadedSettings.ok) {
+      expect(JSON.stringify(loadedSettings.value)).not.toContain("secret-ocp-token");
+      expect(
+        Object.prototype.hasOwnProperty.call(loadedSettings.value, "ocpToken"),
+      ).toBe(false);
+    }
+
+    const deleteToken = await facade.deleteOcpToken();
+    expect(deleteToken.ok).toBe(true);
+    const afterDelete = await facade.getOcpToken();
+    expect(afterDelete.ok).toBe(true);
+    if (afterDelete.ok) {
+      expect(afterDelete.value).toBeNull();
+    }
+  });
+
+  it("connects and disconnects OCP via facade using settings domain and stored token", async () => {
+    const { MockOcpGateway } = await import("@adapters/mock/MockOcpGateway.js");
+    const gateway = new MockOcpGateway();
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
+      secretStoragePort: new InMemorySecretStorageAdapter(),
+      ocpGateway: gateway,
+      logger: createTestLogger(),
+    });
+
+    await facade.updateOcpSettings({
+      enabled: true,
+      domain: "ocp.example.com",
+      autoConnect: false,
+      autoSipAuth: false,
+    });
+    await facade.saveOcpToken("token-abc");
+
+    const connectResult = await facade.connectOcp();
+    expect(connectResult.ok).toBe(true);
+    expect(gateway.getConnectionState()).toBe("connected");
+
+    const disconnectResult = await facade.disconnectOcp();
+    expect(disconnectResult.ok).toBe(true);
+    expect(gateway.getConnectionState()).toBe("disconnected");
+  });
+
+  it("rejects empty OCP token saves", async () => {
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
+      secretStoragePort: new InMemorySecretStorageAdapter(),
+      logger: createTestLogger(),
+    });
+
+    const result = await facade.saveOcpToken("   ");
+    expect(result.ok).toBe(false);
+    if (isErr(result)) {
+      expect(result.error.code).toBe("validation_failed");
+    }
+  });
+
+  it("authenticates OCP from host and changes status with callType external", async () => {
+    const { MockOcpGateway } = await import("@adapters/mock/MockOcpGateway.js");
+    const gateway = new MockOcpGateway();
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
+      secretStoragePort: new InMemorySecretStorageAdapter(),
+      ocpGateway: gateway,
+      logger: createTestLogger(),
+    });
+
+    const authResult = await facade.authenticateOcpFromHost({
+      ocpDomain: " host.example.com ",
+      ocpAuthToken: " host-secret ",
+    });
+    expect(authResult.ok).toBe(true);
+    expect(facade.getOcpConnectionState()).toBe("connected");
+
+    const settings = await facade.getUserSettingsForAccount();
+    expect(settings.ok).toBe(true);
+    if (settings.ok) {
+      expect(settings.value.ocpIntegration.domain).toBe("host.example.com");
+      expect(settings.value.ocpIntegration.enabled).toBe(true);
+    }
+
+    const token = await facade.getOcpToken();
+    expect(token.ok && token.value).toBe("host-secret");
+
+    gateway.simulateAuthSuccess(9);
+    expect(facade.getOcpConnectionState()).toBe("authenticated");
+
+    const breakResult = await facade.changeOcpStatusFromHost({
+      targetStatus: "break",
+      reasonId: 11,
+    });
+    expect(breakResult.ok).toBe(true);
+    expect(gateway.getLastSentCommand()).toEqual({
+      kind: "change_status_to_break",
+      operatorId: 9,
+      reasonId: 11,
+      callType: "external",
+    });
+  });
+
+  it("autoConnects OCP when enabled + autoConnect + token present", async () => {
+    const { MockOcpGateway } = await import("@adapters/mock/MockOcpGateway.js");
+    const gateway = new MockOcpGateway();
+    const connectSpy = vi.spyOn(gateway, "connect");
+    const settingsRepository = new InMemorySettingsRepository({ bootstrapConfig: {} });
+    const secretStoragePort = new InMemorySecretStorageAdapter();
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository,
+      secretStoragePort,
+      ocpGateway: gateway,
+      logger: createTestLogger(),
+    });
+
+    await facade.updateOcpSettings({
+      enabled: true,
+      domain: "ocp.auto.example",
+      autoConnect: true,
+      autoSipAuth: false,
+    });
+    await facade.saveOcpToken("auto-token");
+
+    const result = await facade.maybeAutoConnectOcp();
+    expect(result.ok).toBe(true);
+    expect(connectSpy).toHaveBeenCalledTimes(1);
+    expect(gateway.getConnectionState()).toBe("connected");
+  });
+
+  it("skips autoConnect when token missing", async () => {
+    const { MockOcpGateway } = await import("@adapters/mock/MockOcpGateway.js");
+    const gateway = new MockOcpGateway();
+    const connectSpy = vi.spyOn(gateway, "connect");
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
+      secretStoragePort: new InMemorySecretStorageAdapter(),
+      ocpGateway: gateway,
+      logger: createTestLogger(),
+    });
+
+    await facade.updateOcpSettings({
+      enabled: true,
+      domain: "ocp.auto.example",
+      autoConnect: true,
+      autoSipAuth: false,
+    });
+
+    const result = await facade.maybeAutoConnectOcp();
+    expect(result.ok).toBe(true);
+    expect(connectSpy).not.toHaveBeenCalled();
+  });
+
+  it("skips autoConnect when autoConnect is false", async () => {
+    const { MockOcpGateway } = await import("@adapters/mock/MockOcpGateway.js");
+    const gateway = new MockOcpGateway();
+    const connectSpy = vi.spyOn(gateway, "connect");
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
+      secretStoragePort: new InMemorySecretStorageAdapter(),
+      ocpGateway: gateway,
+      logger: createTestLogger(),
+    });
+
+    await facade.updateOcpSettings({
+      enabled: true,
+      domain: "ocp.auto.example",
+      autoConnect: false,
+      autoSipAuth: false,
+    });
+    await facade.saveOcpToken("token");
+
+    const result = await facade.maybeAutoConnectOcp();
+    expect(result.ok).toBe(true);
+    expect(connectSpy).not.toHaveBeenCalled();
+  });
+
+  it("logs out OCP from host with callType external", async () => {
+    const { MockOcpGateway } = await import("@adapters/mock/MockOcpGateway.js");
+    const gateway = new MockOcpGateway();
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
+      secretStoragePort: new InMemorySecretStorageAdapter(),
+      ocpGateway: gateway,
+      logger: createTestLogger(),
+    });
+
+    await facade.updateOcpSettings({
+      enabled: true,
+      domain: "ocp.example.com",
+      autoConnect: false,
+      autoSipAuth: false,
+    });
+    await facade.saveOcpToken("token-host-logout");
+    await facade.connectOcp();
+    gateway.simulateAuthSuccess(3);
+
+    const logoutResult = await facade.logoutOcpFromHost({ reasonId: 9 });
+    expect(logoutResult.ok).toBe(true);
+    expect(gateway.getLastSentCommand()).toEqual({
+      kind: "change_status_to_logout",
+      operatorId: 3,
+      reasonId: 9,
+      callType: "external",
+    });
+    expect(gateway.getConnectionState()).toBe("disconnected");
+  });
 });

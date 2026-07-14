@@ -11,10 +11,12 @@ import { TransferPanel } from "../../components/call/TransferPanel.js";
 import { TransferSuccessOverlay } from "../../components/call/TransferSuccessOverlay.js";
 import { useAutoAnswerCountdown } from "../../hooks/useAutoAnswerCountdown.js";
 import type { CallFeatureShellBindings } from "../../hooks/useCallFeatureShell.js";
+import type { UseOcpRejectWithBreakResult } from "../../hooks/useOcpRejectWithBreak.js";
 import styles from "./CallContextShell.module.css";
 
 type CallContextShellProps = Readonly<{
   bindings: CallFeatureShellBindings;
+  ocpRejectWithBreak: UseOcpRejectWithBreakResult;
 }>;
 
 /**
@@ -22,7 +24,10 @@ type CallContextShellProps = Readonly<{
  * - Inputs: call feature shell bindings from useCallFeatureShell.
  * - Outputs: context zone markup; stays mounted when settings overlay opens.
  */
-export function CallContextShell({ bindings }: CallContextShellProps): JSX.Element {
+export function CallContextShell({
+  bindings,
+  ocpRejectWithBreak,
+}: CallContextShellProps): JSX.Element {
   const {
     callProjection,
     multiCallProjection,
@@ -195,6 +200,7 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
               answerDisabledReason={incomingCallActions.answerDisabledReason}
               videoAnswerDisabledReason={incomingCallActions.videoAnswerDisabledReason}
               rejectDisabledReason={incomingCallActions.rejectDisabledReason}
+              rejectChoiceEnabled={ocpRejectWithBreak.rejectChoiceEnabled}
               onSelect={selectIncomingCall}
               onAnswer={incomingCallActions.handleAnswerIncoming}
               onAnswerWithVideo={
@@ -203,6 +209,8 @@ export function CallContextShell({ bindings }: CallContextShellProps): JSX.Eleme
                   : undefined
               }
               onReject={incomingCallActions.handleRejectIncoming}
+              onRejectWithoutBreak={ocpRejectWithBreak.handleRejectWithoutBreak}
+              onRejectWithBreak={ocpRejectWithBreak.handleRequestRejectWithBreak}
             />
           ) : null}
 

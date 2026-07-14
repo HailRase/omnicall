@@ -129,6 +129,16 @@ describe("OcpWebSocketAdapter", () => {
     expect(instances).toHaveLength(1);
   });
 
+  it("disconnect(terminate) sets sessionClosed and does not reconnect", () => {
+    adapter.connect({ domain: "ocp.example.com", authToken: "token-1" });
+    instances[0]?.simulateOpen();
+    adapter.disconnect("terminate");
+
+    vi.advanceTimersByTime(30000);
+    expect(adapter.getConnectionState()).toBe("sessionClosed");
+    expect(instances).toHaveLength(1);
+  });
+
   it("onclose schedules reconnect via ReconnectScheduler", () => {
     adapter.connect({ domain: "ocp.example.com", authToken: "token-1" });
     instances[0]?.simulateOpen();

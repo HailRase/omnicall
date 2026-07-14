@@ -32,7 +32,9 @@ import { SettingsHeadsetPanel } from "./panels/SettingsHeadsetPanel.js";
 import { SettingsSessionsPanel } from "./panels/SettingsSessionsPanel.js";
 import { SettingsSystemStatePanel } from "./panels/SettingsSystemStatePanel.js";
 import { SettingsVideoPanel } from "./panels/SettingsVideoPanel.js";
+import { SettingsIntegrationsPanel } from "./panels/SettingsIntegrationsPanel.js";
 import styles from "./SettingsPanel.module.css";
+import type { OcpModuleSettingsCardProps } from "./panels/OcpModuleSettingsCard.js";
 
 export type SettingsPanelProps = Readonly<{
   activeSection: SettingsSectionId;
@@ -123,6 +125,9 @@ export type SettingsPanelProps = Readonly<{
   onConferenceNumberSubstringChange: (value: string | null) => void;
   onEnableLocalVideoAfterConnectChange: (enabled: boolean) => void;
   onRefreshVideoDevices: () => void;
+  integrations: Readonly<{
+    ocp: OcpModuleSettingsCardProps;
+  }>;
   account: Readonly<{
     form: SipAccountInput;
     submitting: boolean;
@@ -240,6 +245,7 @@ export function SettingsPanel({
   onConferenceNumberSubstringChange,
   onEnableLocalVideoAfterConnectChange,
   onRefreshVideoDevices,
+  integrations,
   account,
 }: SettingsPanelProps): JSX.Element {
   const { t } = useI18n();
@@ -412,6 +418,9 @@ export function SettingsPanel({
           onDisconnectHeadset={onDisconnectHeadset}
         />
       );
+      break;
+    case "integrations":
+      sectionContent = <SettingsIntegrationsPanel ocp={integrations.ocp} />;
       break;
     default: {
       const exhaustive: never = activeSection;

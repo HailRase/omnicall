@@ -1,3 +1,9 @@
+/**
+ * - Purpose: ordered app shutdown cleanup for SIP sessions (LF-079).
+ * - Inputs: shutdown source and optional correlation id.
+ * - Outputs: SIP teardown via orchestrator; AppShutdownRequested; optional extra dispose.
+ */
+
 import { createAppShutdownRequestedEvent } from "@domain/platform/appLifecycleEvents.js";
 import type { DomainEventPublisher, Logger } from "@ports/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
@@ -16,19 +22,28 @@ export type ShutdownCleanupInput = Readonly<{
   correlationId?: CorrelationId;
 }>;
 
+export type ShutdownDisposable = Readonly<{
+  dispose(): void;
+}>;
+
 /**
  * - Purpose: ordered app shutdown cleanup for SIP sessions (LF-079).
  * - Inputs: shutdown source and optional correlation id.
- * - Outputs: SIP teardown via orchestrator; AppShutdownRequested.
+ * - Outputs: SIP teardown via orchestrator; AppShutdownRequested; registered disposables.
  */
 export class ShutdownCleanupUseCase {
   private cleanupCompleted = false;
+  private readonly additionalDisposables: ShutdownDisposable[] = [];
 
   constructor(
     private readonly sessionTeardown: SessionTeardownOrchestrationService,
     private readonly eventPublisher: DomainEventPublisher,
     private readonly logger: Logger,
   ) {}
+
+  registerDisposable(disposable: ShutdownDisposable): void {
+    this.additionalDisposables.push(disposable);
+  }
 
   async execute(input: ShutdownCleanupInput): Promise<Result<void, PlatformError>> {
     const correlationId = input.correlationId ?? createCorrelationId();
@@ -74,6 +89,7 @@ export class ShutdownCleanupUseCase {
         });
       }
 
+      this.disposeAdditional();
       this.cleanupCompleted = true;
 
       this.logger.info("shutdown_cleanup_completed", {
@@ -101,5 +117,12 @@ export class ShutdownCleanupUseCase {
       );
       return err(normalized);
     }
+  }
+
+  private disposeAdditional(): void {
+    for (const disposable of this.additionalDisposables) {
+      disposable.dispose();
+    }
+    this.additionalDisposables.length = 0;
   }
 }

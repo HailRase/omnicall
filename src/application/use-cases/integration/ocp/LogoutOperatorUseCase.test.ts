@@ -36,7 +36,7 @@ describe("LogoutOperatorUseCase", () => {
       callType: "internal",
     });
     expect(gateway.getConnectionState()).toBe("disconnected");
-    expect(published).toHaveLength(0);
+    expect(published).toEqual(["OperatorSessionEnded"]);
   });
 
   it("publishes OperatorLoggedOut when cascadeSipLogout is true", async () => {
@@ -62,6 +62,7 @@ describe("LogoutOperatorUseCase", () => {
     });
 
     expect(result.ok).toBe(true);
+    expect(published).toContain("OperatorSessionEnded");
     expect(published).toContain("OperatorLoggedOut");
   });
 });

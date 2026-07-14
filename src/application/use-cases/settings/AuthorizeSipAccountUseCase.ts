@@ -22,7 +22,7 @@ import { loadUserSettingsWithLegacyMigration } from "../../settings/loadUserSett
 export type AuthorizeSipAccountInput = Readonly<{
   account: SipAccountInput;
   correlationId?: CorrelationId;
-  source?: "manual";
+  source?: "manual" | "ocp";
 }>;
 
 export class AuthorizeSipAccountUseCase {
@@ -56,7 +56,7 @@ export class AuthorizeSipAccountUseCase {
 
       this.eventPublisher.publish(
         createAccessDeniedDetectedEvent(correlationId, {
-          source: "manual",
+          source,
           reason: message,
         }),
       );
@@ -67,6 +67,7 @@ export class AuthorizeSipAccountUseCase {
         boundedContext: "Telephony",
         operation: "authorize_sip_account",
         result: validationErrors.join(","),
+        source,
       });
 
       return err(createPlatformError("validation_failed", message, validationErrors));
@@ -109,9 +110,20 @@ export class AuthorizeSipAccountUseCase {
       );
     }
 
+    // OCP path: never put SIP password into Domain Events (F-028 AC).
+    const eventCredentials =
+      source === "ocp"
+        ? {
+            username: input.account.username,
+            password: "",
+            domain: input.account.domain,
+            server: input.account.server,
+          }
+        : input.account;
+
     this.eventPublisher.publish(
       createSipCredentialsReceivedEvent(correlationId, {
-        credentials: input.account,
+        credentials: eventCredentials,
         source,
       }),
     );

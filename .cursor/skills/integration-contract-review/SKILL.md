@@ -1,13 +1,13 @@
 ---
 name: integration-contract-review
-description: SKILL - Use for legacy operator WebSocket, host-page API, window.Softphone, DOM events, Electron IPC, CRM integrations, and external contracts.
+description: SKILL - Use for OCP WebSocket, ExternalClientGateway, Electron IPC, CRM integrations, and external contracts (legacy window.Softphone is not ported).
 ---
 
 # SKILL: Integration Contract Review
 
 Use this skill before changing external contracts.
 
-External contracts include legacy operator WebSocket, host-page APIs, legacy `window.Softphone`, DOM events, Electron IPC, and CRM integrations.
+External contracts include OCP WebSocket, future ExternalClientGateway / ExternalCommandRouter, Electron IPC, and CRM integrations. Legacy embed `window.Softphone` is documented as historical only and must not be reintroduced.
 
 ## Inputs
 
@@ -48,11 +48,11 @@ Each external contract must have one owner.
 Allowed owners:
 
 - `OcpIntegrationAdapter`
-- `HostSoftphoneApiAdapter`
+- `ExternalClientGateway` / `ExternalCommandRouter` (future)
 - `ElectronIpcAdapter`
 - `CrmIntegrationAdapter`
 
-Never mutate a global API from multiple files.
+Never introduce product APIs via browser globals (`window.Softphone` and similar).
 
 ## legacy operator platform Rules
 
@@ -70,26 +70,33 @@ legacy operator platform messages must be typed and validated before entering Ap
 
 ## Host API Rules
 
-Legacy `window.Softphone` may exist only as an adapter.
+Legacy embed `window.Softphone` is **not ported** to Axatalk.
 
-It must:
+External browser tabs must use:
 
-- expose a stable typed facade
-- map calls to Use Cases
-- emit typed integration events
-- avoid multi-file mutation
-- avoid direct SIP access
+- `ExternalClientGateway` (local WS into Electron main) — future
+- `ExternalCommandRouter` → Facade / Use Cases with `callType: 'external' | 'sdk'`
+
+Until the gateway exists, OCP external entry points live on `AccountBootstrapFacade` (`authenticateOcpFromHost`, `changeOcpStatusFromHost`) with validated payloads from `OcpHostApiContract`.
+
+Forbidden:
+
+- mutating `window.Softphone` (or any host global API)
+- multi-file patching of browser globals for product APIs
+- direct SIP access from external command adapters
 
 ## DOM Event Rules
 
-DOM events are external integration details.
+DOM events as a host-page embed bus are legacy-only (jssip-phone).
 
-They must:
+Axatalk product code must not rely on CustomEvents for CRM ↔ softphone command transport.
+
+If a DOM event appears at a browser boundary temporarily, it must:
 
 - be isolated in Integration adapters
 - use typed payloads internally
 - be validated on input
-- be documented in the contract
+- be documented as transitional
 
 Domain must never depend on DOM events.
 
@@ -142,5 +149,5 @@ Do not complete an integration change until:
 - payloads are typed
 - input is validated
 - legacy operator platform remains optional
-- global mutation is centralized
+- global mutation is forbidden for host APIs
 - compatibility risks are documented

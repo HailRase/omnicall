@@ -89,6 +89,7 @@ type UseSettingsActionsResult = Readonly<{
   onAutoFullscreenOnConferenceChange: (enabled: boolean) => void;
   onConferenceNumberSubstringChange: (value: string | null) => void;
   onEnableLocalVideoAfterConnectChange: (enabled: boolean) => void;
+  applyUserSettingsSnapshot: (settings: UserSettings) => void;
 }>;
 
 function resolveSettingsUpdateError(error: unknown): string {
@@ -611,6 +612,18 @@ export function useSettingsActions(
     [persistUserSettings, userSettings],
   );
 
+  const applyUserSettingsSnapshot = useCallback(
+    (settings: UserSettings): void => {
+      setUserSettings(settings);
+      applyLoadedUserSettings(settings, applyMultiCallSettings);
+      useAccountBootstrapStore.getState().syncHeadsetUserSettingsToProjection({
+        headsetEnabled: settings.headsetEnabled,
+        headsetAutoReconnect: settings.headsetAutoReconnect,
+      });
+    },
+    [applyMultiCallSettings],
+  );
+
   return {
     account,
     userSettings,
@@ -660,5 +673,6 @@ export function useSettingsActions(
     onAutoFullscreenOnConferenceChange,
     onConferenceNumberSubstringChange,
     onEnableLocalVideoAfterConnectChange,
+    applyUserSettingsSnapshot,
   };
 }

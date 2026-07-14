@@ -64,11 +64,11 @@ Old `useWs` responsibilities must split into:
 - reconnect policy
 - operator projections
 
-Old `window.Softphone` behavior must move to:
+Old `window.Softphone` embed API must **not** be ported. External tab behavior moves to:
 
-- `HostSoftphoneApiAdapter`
-- typed external contract
-- application queries and commands
+- `ExternalClientGateway` + `ExternalCommandRouter` (future)
+- typed external command contracts (`OcpHostApiContract` for OCP)
+- Facade / Use Cases with `callType: 'external' | 'sdk'`
 
 Old headset orchestration must move to:
 
