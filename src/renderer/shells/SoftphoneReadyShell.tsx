@@ -22,6 +22,7 @@ import { useSettingsActions } from "../hooks/useSettingsActions.js";
 import { useOcpSettingsPanel } from "../hooks/useOcpSettingsPanel.js";
 import { useOperatorStatusSelector } from "../hooks/useOperatorStatusSelector.js";
 import { mapOcpNotificationToToastDescriptor } from "../integration/ocp/createOcpToastNotificationPresenter.js";
+import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 import {
   useSipSystemStateActions,
   useSipSystemStateShell,
@@ -41,7 +42,7 @@ import { OcpConnectionBanner } from "../components/integration/ocp/OcpConnection
 import { OcpPostCallStatusModal } from "../components/integration/ocp/OcpPostCallStatusModal.js";
 import { OcpCampaignEventModal } from "../components/integration/ocp/OcpCampaignEventModal.js";
 import { OcpLogoutReasonModal } from "../components/integration/ocp/OcpLogoutReasonModal.js";
-import { OcpProxyStatusScreen } from "../components/integration/ocp/OcpProxyStatusScreen.js";
+import { mapOcpAuthFeedbackToMessageKey } from "../integration/ocp/mapOcpAuthFeedbackToToast.js";
 import { OcpRejectBreakReasonModal } from "../components/integration/ocp/OcpRejectBreakReasonModal.js";
 import { useOcpCampaignModal } from "../hooks/useOcpCampaignModal.js";
 import { useOcpLogoutModal } from "../hooks/useOcpLogoutModal.js";
@@ -171,10 +172,25 @@ function SoftphoneShellLayoutRoute({
       facade.setOcpNotificationHandler(null);
     };
   }, [facade, notifications]);
+  const ocpAuthFeedback = useAccountBootstrapStore(
+    (state) => state.ocpSessionProjection.authFeedback,
+  );
+  useEffect(() => {
+    if (ocpAuthFeedback === null) {
+      return;
+    }
+    const messageKey = mapOcpAuthFeedbackToMessageKey(ocpAuthFeedback.reason);
+    notifications.notify({
+      id: `ocp-auth-feedback-${ocpAuthFeedback.nonce}`,
+      level: "warning",
+      messageKey,
+    });
+    facade.clearOcpAuthFeedback();
+  }, [facade, notifications, ocpAuthFeedback]);
   const ocpSettingsPanel = useOcpSettingsPanel({
     facade,
-    userSettings: settingsActions.userSettings,
-    onUserSettingsChange: settingsActions.applyUserSettingsSnapshot,
+    initialLoginHint: accountActions.form.username,
+    onActiveUserSettingsRefresh: settingsActions.applyUserSettingsSnapshot,
   });
   const ocpLogoutModal = useOcpLogoutModal({
     facade,
@@ -346,10 +362,6 @@ function SoftphoneShellLayoutRoute({
             callBindings={callBindings}
             overlayShell={overlayShell}
             ocpRejectWithBreak={ocpRejectWithBreak}
-          />
-          <OcpProxyStatusScreen
-            proxyStatus={operatorStatusSelector.vm.proxyStatus}
-            onOpenIntegrations={operatorStatusSelector.onOpenIntegrationsSettings}
           />
           <OcpLogoutReasonModal
             open={ocpLogoutModal.modalOpen}
@@ -530,19 +542,21 @@ function SoftphoneShellLayoutRoute({
                 ocp: {
                   settings: ocpSettingsPanel.settings,
                   session: ocpSettingsPanel.session,
-                  tokenDraft: ocpSettingsPanel.tokenDraft,
-                  tokenVisible: ocpSettingsPanel.tokenVisible,
-                  hasSavedToken: ocpSettingsPanel.hasSavedToken,
+                  login: ocpSettingsPanel.login,
+                  loginOptions: ocpSettingsPanel.loginOptions,
+                  apiKeyDraft: ocpSettingsPanel.apiKeyDraft,
+                  apiKeyVisible: ocpSettingsPanel.apiKeyVisible,
+                  hasSavedApiKey: ocpSettingsPanel.hasSavedApiKey,
                   actionLoading: ocpSettingsPanel.actionLoading,
                   errorKey: ocpSettingsPanel.errorKey,
+                  onLoginChange: ocpSettingsPanel.onLoginChange,
                   onEnabledChange: ocpSettingsPanel.onEnabledChange,
                   onDomainChange: ocpSettingsPanel.onDomainChange,
                   onAutoConnectChange: ocpSettingsPanel.onAutoConnectChange,
-                  onAutoSipAuthChange: ocpSettingsPanel.onAutoSipAuthChange,
-                  onTokenDraftChange: ocpSettingsPanel.onTokenDraftChange,
-                  onTokenVisibleChange: ocpSettingsPanel.onTokenVisibleChange,
-                  onSaveToken: ocpSettingsPanel.onSaveToken,
-                  onDeleteToken: ocpSettingsPanel.onDeleteToken,
+                  onApiKeyDraftChange: ocpSettingsPanel.onApiKeyDraftChange,
+                  onApiKeyVisibleChange: ocpSettingsPanel.onApiKeyVisibleChange,
+                  onSaveApiKey: ocpSettingsPanel.onSaveApiKey,
+                  onDeleteApiKey: ocpSettingsPanel.onDeleteApiKey,
                   onConnect: ocpSettingsPanel.onConnect,
                   onDisconnect: ocpSettingsPanel.onDisconnect,
                 },
@@ -573,6 +587,8 @@ function SoftphoneShellLayoutRoute({
                 rememberPasswordDisabled: accountActions.rememberPasswordDisabled,
                 rememberPasswordDisabledReasonKey: accountActions.rememberPasswordDisabledReasonKey,
                 passwordHintKey: accountActions.passwordHintKey,
+                authorizeViaOcpVisible: accountActions.authorizeViaOcpVisible,
+                authorizeViaOcpChecked: accountActions.authorizeViaOcpChecked,
                 deleteConfirmationOpen: accountActions.deleteConfirmationOpen,
                 switchConfirmationOpen: accountActions.switchConfirmationOpen,
                 switchFromLogin: accountActions.switchFromLogin,
@@ -584,6 +600,7 @@ function SoftphoneShellLayoutRoute({
                 onProfileSelect: accountActions.selectProfile,
                 onSaveProfileChange: accountActions.setSaveProfileChecked,
                 onRememberPasswordChange: accountActions.setRememberPasswordChecked,
+                onAuthorizeViaOcpChange: accountActions.setAuthorizeViaOcpChecked,
                 onForgetRememberedPassword: accountActions.forgetRememberedPassword,
                 onDeleteProfileRequest: accountActions.requestDeleteSelectedProfile,
                 onDeleteProfileConfirm: accountActions.confirmDeleteSelectedProfile,

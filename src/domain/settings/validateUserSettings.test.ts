@@ -66,7 +66,7 @@ describe("validateUserSettings", () => {
 
   it("rejects missing boolean fields", () => {
     const result = validateUserSettings({
-      schemaVersion: 7,
+      schemaVersion: 8,
       autoAnswerTimeoutSec: null,
     });
     expect(result.ok).toBe(false);
@@ -82,7 +82,7 @@ describe("validateUserSettings", () => {
         enabled: false,
         domain: "",
         autoConnect: false,
-        autoSipAuth: false,
+        linked: false,
       });
     }
   });
@@ -94,7 +94,7 @@ describe("validateUserSettings", () => {
         enabled: true,
         domain: 42,
         autoConnect: false,
-        autoSipAuth: false,
+        linked: false,
       },
     });
     expect(result.ok).toBe(false);

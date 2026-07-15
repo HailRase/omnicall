@@ -52,6 +52,7 @@ import type {
   MediaInputDeviceInfo,
   OcpGateway,
   OcpNotificationPresenter,
+  OcpProxyAuthenticatePort,
   OcpReasonsCachePort,
   SavedAccountProfileRepository,
   SettingsRepository,
@@ -70,9 +71,10 @@ import { CallbackOcpNotificationPresenter } from "@adapters/integration/ocp/Call
 import type { OcpConnectionState } from "@domain/integration/ocp/OcpConnectionState.js";
 import type { OcpNotificationPayload } from "@domain/integration/ocp/protocol/OcpIncomingMessage.js";
 import { MockOcpGateway } from "@adapters/mock/MockOcpGateway.js";
+import { MockOcpProxyAuthenticatePort } from "@adapters/mock/MockOcpProxyAuthenticatePort.js";
 import {
   createSecretStorageScopeKey,
-  OCP_TOKEN_SECRET_ID,
+  OCP_PROXY_API_KEY_SECRET_ID,
   SIP_PASSWORD_SECRET_ID,
   type SecretStorageScopeKey,
 } from "@ports/secrets/SecretStoragePort.js";
@@ -82,9 +84,12 @@ import { CallEngine } from "@application/services/telephony/CallEngine.js";
 import type { MultiCallSettings } from "@domain/index.js";
 import type { SettingsAccountKey, UserSettings } from "@domain/index.js";
 import {
+  buildOcpConnectLoginOptions,
   createCallId,
   mergeMultiCallIntoUserSettings,
   matchesSipAccountIdentity,
+  resolveOcpConnectLoginTarget,
+  resolveSettingsAccountKeyFromSipAccount,
   toMultiCallSettings,
   validateUserSettings,
   deriveSavedAccountProfileId,
@@ -92,6 +97,8 @@ import {
   type Call,
   type CallId,
   type CallVideoMediaState,
+  type OcpConnectLoginOption,
+  type OcpConnectLoginTarget,
   type OcpIntegrationSettings,
   type SessionViewMode,
 } from "@domain/index.js";
@@ -179,6 +186,7 @@ export type AccountBootstrapFacadeDeps = Readonly<{
   hostIntegrationGateway?: HostIntegrationGateway;
   headsetGateway?: HeadsetGateway;
   ocpGateway?: OcpGateway;
+  ocpProxyAuthenticate?: OcpProxyAuthenticatePort;
   ocpReasonsCache?: OcpReasonsCachePort;
   ocpNotificationPresenter?: OcpNotificationPresenter;
   logger: Logger;
@@ -247,7 +255,8 @@ export class AccountBootstrapFacade {
   private readonly secretStoragePort: SecretStoragePort;
 
   private sipSessionRegistered = false;
-  private ocpAutoSipAuthEnabled = false;
+  /** Last SecretStorage scope used for OCP api-key (may differ from post-SIP account key). */
+  private lastOcpSecretScopeKey: SecretStorageScopeKey | null = null;
   private readonly callEngine: CallEngine;
   private readonly sipRecoveryOrchestration: SipRecoveryOrchestrationService;
   private readonly headsetIntegration: HeadsetIntegrationService;
@@ -572,9 +581,10 @@ export class AccountBootstrapFacade {
       reasonsCache: deps.ocpReasonsCache ?? new InMemoryOcpReasonsCache(),
       notificationPresenter:
         deps.ocpNotificationPresenter ?? new CallbackOcpNotificationPresenter(),
+      proxyAuthenticate:
+        deps.ocpProxyAuthenticate ?? new MockOcpProxyAuthenticatePort(),
       authorizeSipAccount: this.authorizeSipAccount,
       registerAccount: this.registerAccount,
-      isAutoSipAuthEnabled: () => this.ocpAutoSipAuthEnabled,
       isSipRegistered: () => this.sipSessionRegistered,
       endUserSession: async (correlationId) => {
         await this.endUserSession.execute({ correlationId });
@@ -610,11 +620,62 @@ export class AccountBootstrapFacade {
   private trackSipRegistrationState(event: { type: string }): void {
     if (event.type === "RegistrationSucceeded") {
       this.sipSessionRegistered = true;
+      if (this.getOcpConnectionState() === "authenticated") {
+        void this.syncOcpLinkageToActiveAccount();
+      }
       return;
     }
 
     if (event.type === "UnregistrationSucceeded" || event.type === "UserSessionEnded") {
       this.sipSessionRegistered = false;
+    }
+  }
+
+  /**
+   * - Purpose: after SIP register from OCP creds, ensure linked+apiKey live on SIP account key.
+   * - Inputs: active SIP account + last OCP secret scope (may be guest before register).
+   * - Outputs: profile-scoped OCP settings for saved-account checkbox.
+   */
+  private async syncOcpLinkageToActiveAccount(): Promise<void> {
+    try {
+      const account = await this.deps.settingsRepository.getSipAccount();
+      if (account === null) {
+        return;
+      }
+      const targetKey = await this.resolveSettingsAccountKey();
+      const targetSettings = await this.loadUserSettingsForAccountKey(targetKey);
+      const domain =
+        this.ocpIntegration.projectionHub.getSessionProjection().domain?.trim() ||
+        targetSettings.ocpIntegration.domain;
+      if (domain.length === 0) {
+        return;
+      }
+      const scopeSource =
+        this.lastOcpSecretScopeKey ?? createSecretStorageScopeKey(targetKey);
+      const apiKey = await this.secretStoragePort.loadSecret(
+        scopeSource,
+        OCP_PROXY_API_KEY_SECRET_ID,
+      );
+      await this.saveUserSettingsInternal(targetKey, {
+        ...targetSettings,
+        ocpIntegration: {
+          ...targetSettings.ocpIntegration,
+          enabled: true,
+          domain,
+          linked: true,
+        },
+      });
+      if (apiKey !== null && apiKey.trim().length > 0) {
+        const scopeTarget = createSecretStorageScopeKey(targetKey);
+        await this.secretStoragePort.saveSecret(
+          scopeTarget,
+          OCP_PROXY_API_KEY_SECRET_ID,
+          apiKey,
+        );
+        this.lastOcpSecretScopeKey = scopeTarget;
+      }
+    } catch {
+      // best-effort linkage sync
     }
   }
 
@@ -637,7 +698,7 @@ export class AccountBootstrapFacade {
 
     const accountKey = await this.resolveSettingsAccountKey();
     const userSettings = await this.loadUserSettingsForAccountKey(accountKey);
-    this.ocpAutoSipAuthEnabled = userSettings.ocpIntegration.autoSipAuth;
+    await this.purgeLegacyOcpAuthToken();
     await this.applyHeadsetUserSettings(userSettings);
     await this.maybeAutoConnectOcp();
   }
@@ -1115,6 +1176,12 @@ export class AccountBootstrapFacade {
       return this.deps.settingsRepository.getUserSettings(accountKey);
     }
 
+    const activeKey = resolveSettingsAccountKeyFromSipAccount(account);
+    // Cross-profile load must not run active-SIP identity legacy migration.
+    if (accountKey !== activeKey) {
+      return this.deps.settingsRepository.getUserSettings(accountKey);
+    }
+
     return loadUserSettingsWithLegacyMigration({
       settingsRepository: this.deps.settingsRepository,
       compositeAccountKey: accountKey,
@@ -1144,8 +1211,12 @@ export class AccountBootstrapFacade {
       throw new Error(`settings_validation_failed:${validated.errors.join(",")}`);
     }
     await this.deps.settingsRepository.saveUserSettings(accountKey, validated.value);
-    this.sipRecoveryOrchestration.applyRecoverySettings(validated.value);
-    await this.callEngine.refreshAutoAnswerSchedules();
+    // Only mutate live recovery/auto-answer when saving the active profile bucket.
+    const activeKey = await this.resolveSettingsAccountKey();
+    if (accountKey === activeKey) {
+      this.sipRecoveryOrchestration.applyRecoverySettings(validated.value);
+      await this.callEngine.refreshAutoAnswerSchedules();
+    }
     return validated.value;
   }
 
@@ -1962,8 +2033,9 @@ export class AccountBootstrapFacade {
 
   async updateOcpSettings(
     ocpIntegration: OcpIntegrationSettings,
-    correlationId?: CorrelationId,
+    options?: CorrelationId | OcpSettingsScopeOptions,
   ): Promise<Result<UserSettings, PlatformError>> {
+    const scope = normalizeOcpSettingsScopeOptions(options);
     const parsed = parseOcpIntegrationSettings(ocpIntegration);
     if (parsed === null) {
       return err(
@@ -1974,15 +2046,17 @@ export class AccountBootstrapFacade {
     }
 
     try {
-      const accountKey = await this.resolveSettingsAccountKey();
+      const accountKey =
+        scope.accountKey ?? (await this.resolveSettingsAccountKey());
       const current = await this.loadUserSettingsForAccountKey(accountKey);
       const saved = await this.saveUserSettingsInternal(accountKey, {
         ...current,
         ocpIntegration: parsed,
       });
-      this.ocpAutoSipAuthEnabled = parsed.autoSipAuth;
       this.deps.logger.info("ocp_settings_updated", {
-        ...(correlationId !== undefined ? { correlationId } : {}),
+        ...(scope.correlationId !== undefined
+          ? { correlationId: scope.correlationId }
+          : {}),
         featureId: "F-028",
         boundedContext: "Integration",
         operation: "update_ocp_settings",
@@ -1990,7 +2064,7 @@ export class AccountBootstrapFacade {
         enabled: parsed.enabled,
         domain: parsed.domain,
         autoConnect: parsed.autoConnect,
-        autoSipAuth: parsed.autoSipAuth,
+        linked: parsed.linked,
       });
       return ok(saved);
     } catch (error: unknown) {
@@ -1998,27 +2072,37 @@ export class AccountBootstrapFacade {
     }
   }
 
-  async saveOcpToken(
-    token: string,
-    correlationId?: CorrelationId,
+  async saveOcpProxyApiKey(
+    apiKey: string,
+    options?: CorrelationId | OcpSettingsScopeOptions,
   ): Promise<Result<void, PlatformError>> {
-    const trimmed = token.trim();
+    const scope = normalizeOcpSettingsScopeOptions(options);
+    const trimmed = apiKey.trim();
     if (trimmed.length === 0) {
       return err(
-        createPlatformError("validation_failed", "auth_token_required", {
-          reason: "auth_token_required",
+        createPlatformError("validation_failed", "api_key_required", {
+          reason: "api_key_required",
         }),
       );
     }
 
     try {
-      const scopeKey = await this.resolveOcpTokenSecretScopeKey();
-      await this.secretStoragePort.saveSecret(scopeKey, OCP_TOKEN_SECRET_ID, trimmed);
-      this.deps.logger.info("ocp_token_saved", {
-        ...(correlationId !== undefined ? { correlationId } : {}),
+      const accountKey =
+        scope.accountKey ?? (await this.resolveSettingsAccountKey());
+      const scopeKey = createSecretStorageScopeKey(accountKey);
+      this.lastOcpSecretScopeKey = scopeKey;
+      await this.secretStoragePort.saveSecret(
+        scopeKey,
+        OCP_PROXY_API_KEY_SECRET_ID,
+        trimmed,
+      );
+      this.deps.logger.info("ocp_proxy_api_key_saved", {
+        ...(scope.correlationId !== undefined
+          ? { correlationId: scope.correlationId }
+          : {}),
         featureId: "F-028",
         boundedContext: "Integration",
-        operation: "save_ocp_token",
+        operation: "save_ocp_proxy_api_key",
         result: "completed",
       });
       return ok(undefined);
@@ -2027,27 +2111,39 @@ export class AccountBootstrapFacade {
     }
   }
 
-  async getOcpToken(): Promise<Result<string | null, PlatformError>> {
+  async getOcpProxyApiKey(
+    options?: Readonly<{ accountKey?: SettingsAccountKey }>,
+  ): Promise<Result<string | null, PlatformError>> {
     try {
-      const scopeKey = await this.resolveOcpTokenSecretScopeKey();
-      const token = await this.secretStoragePort.loadSecret(scopeKey, OCP_TOKEN_SECRET_ID);
-      return ok(token);
+      const accountKey =
+        options?.accountKey ?? (await this.resolveSettingsAccountKey());
+      const scopeKey = createSecretStorageScopeKey(accountKey);
+      const apiKey = await this.secretStoragePort.loadSecret(
+        scopeKey,
+        OCP_PROXY_API_KEY_SECRET_ID,
+      );
+      return ok(apiKey);
     } catch (error: unknown) {
       return err(normalizeUnknownError(error));
     }
   }
 
-  async deleteOcpToken(
-    correlationId?: CorrelationId,
+  async deleteOcpProxyApiKey(
+    options?: CorrelationId | OcpSettingsScopeOptions,
   ): Promise<Result<void, PlatformError>> {
+    const scope = normalizeOcpSettingsScopeOptions(options);
     try {
-      const scopeKey = await this.resolveOcpTokenSecretScopeKey();
-      await this.secretStoragePort.deleteSecret(scopeKey, OCP_TOKEN_SECRET_ID);
-      this.deps.logger.info("ocp_token_deleted", {
-        ...(correlationId !== undefined ? { correlationId } : {}),
+      const accountKey =
+        scope.accountKey ?? (await this.resolveSettingsAccountKey());
+      const scopeKey = createSecretStorageScopeKey(accountKey);
+      await this.secretStoragePort.deleteSecret(scopeKey, OCP_PROXY_API_KEY_SECRET_ID);
+      this.deps.logger.info("ocp_proxy_api_key_deleted", {
+        ...(scope.correlationId !== undefined
+          ? { correlationId: scope.correlationId }
+          : {}),
         featureId: "F-028",
         boundedContext: "Integration",
-        operation: "delete_ocp_token",
+        operation: "delete_ocp_proxy_api_key",
         result: "completed",
       });
       return ok(undefined);
@@ -2056,23 +2152,227 @@ export class AccountBootstrapFacade {
     }
   }
 
+  /**
+   * - Purpose: saved-profile login options for Integrations OCP login picker (/ui).
+   * - Outputs: empty array when no saved profiles (UI shows plain input).
+   */
+  async listOcpConnectLoginOptions(): Promise<
+    Result<ReadonlyArray<OcpConnectLoginOption>, PlatformError>
+  > {
+    const profilesResult = await this.listSavedAccountProfiles();
+    if (isErr(profilesResult)) {
+      return profilesResult;
+    }
+    return ok(buildOcpConnectLoginOptions(profilesResult.value));
+  }
+
+  /**
+   * - Purpose: resolve OCP settings bucket for typed/selected login (Integrations panel).
+   * - Inputs: login (+ optional accountKey when username is ambiguous).
+   * - Outputs: target + ocpIntegration + hasApiKey; other UserSettings fields unchanged on persist.
+   */
+  async getOcpModulePanelState(
+    input: Readonly<{
+      login: string;
+      accountKey?: SettingsAccountKey;
+    }>,
+  ): Promise<
+    Result<
+      Readonly<{
+        target: OcpConnectLoginTarget;
+        settings: OcpIntegrationSettings;
+        hasApiKey: boolean;
+        loginOptions: ReadonlyArray<OcpConnectLoginOption>;
+      }>,
+      PlatformError
+    >
+  > {
+    const profilesResult = await this.listSavedAccountProfiles();
+    if (isErr(profilesResult)) {
+      return profilesResult;
+    }
+    const loginOptions = buildOcpConnectLoginOptions(profilesResult.value);
+    const targetResult = resolveOcpConnectLoginTarget(
+      input.login,
+      profilesResult.value,
+      input.accountKey,
+    );
+    if (!targetResult.ok) {
+      return err(
+        createPlatformError("validation_failed", targetResult.reason, {
+          reason: targetResult.reason,
+        }),
+      );
+    }
+    try {
+      const settings = await this.loadUserSettingsForAccountKey(
+        targetResult.value.accountKey,
+      );
+      const apiKeyResult = await this.getOcpProxyApiKey({
+        accountKey: targetResult.value.accountKey,
+      });
+      if (isErr(apiKeyResult)) {
+        return apiKeyResult;
+      }
+      return ok({
+        target: targetResult.value,
+        settings: settings.ocpIntegration,
+        hasApiKey: (apiKeyResult.value?.trim() ?? "").length > 0,
+        loginOptions,
+      });
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+  }
+
+  /**
+   * - Purpose: whether saved-account UI may show «Authorize via OCP» checkbox.
+   * - Inputs: optional account key (saved profile id); else active settings bucket.
+   * - Outputs: available when linked && domain && apiKey saved for that key.
+   */
+  async getOcpSignInAvailability(
+    options?: Readonly<{ accountKey?: SettingsAccountKey }>,
+  ): Promise<Result<Readonly<{ available: boolean }>, PlatformError>> {
+    const accountKey =
+      options?.accountKey ?? (await this.resolveSettingsAccountKey());
+    try {
+      const settings = await this.loadUserSettingsForAccountKey(accountKey);
+      const ocp = settings.ocpIntegration;
+      if (!ocp.linked || ocp.domain.trim().length === 0) {
+        return ok({ available: false });
+      }
+      const scopeKey = createSecretStorageScopeKey(accountKey);
+      const apiKey = await this.secretStoragePort.loadSecret(
+        scopeKey,
+        OCP_PROXY_API_KEY_SECRET_ID,
+      );
+      return ok({ available: (apiKey?.trim() ?? "").length > 0 });
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+  }
+
+  clearOcpAuthFeedback(): void {
+    this.ocpIntegration.projectionHub.clearAuthFeedback();
+  }
+
+  /**
+   * - Purpose: HTTP authenticate + WS connect using saved domain/apiKey and SIP login.
+   * - Inputs:
+   *   - Integrations/host: `{ login, accountKey? }` → settings scoped to login target
+   *   - autoConnect/retry: bare correlationId / no args → active SIP settings bucket
+   * - Outputs: authenticated session or non-blocking auth feedback errors.
+   */
   async connectOcp(
-    correlationId?: CorrelationId,
+    input?:
+      | Readonly<{
+          login?: string;
+          accountKey?: SettingsAccountKey;
+          correlationId?: CorrelationId;
+        }>
+      | CorrelationId,
   ): Promise<Result<void, PlatformError>> {
-    const settingsResult = await this.getUserSettingsForAccount();
-    if (isErr(settingsResult)) {
-      return settingsResult;
+    const correlationId =
+      typeof input === "string" ? input : input?.correlationId;
+    const scopedInput =
+      typeof input === "object" && input !== undefined ? input : undefined;
+    const usesLoginPickerScope =
+      scopedInput !== undefined &&
+      (scopedInput.login !== undefined || scopedInput.accountKey !== undefined);
+
+    let accountKey: SettingsAccountKey;
+    let login: string;
+
+    if (usesLoginPickerScope) {
+      const profilesResult = await this.listSavedAccountProfiles();
+      if (isErr(profilesResult)) {
+        return profilesResult;
+      }
+      const targetResult = resolveOcpConnectLoginTarget(
+        scopedInput.login ?? "",
+        profilesResult.value,
+        scopedInput.accountKey,
+      );
+      if (!targetResult.ok) {
+        if (targetResult.reason === "login_required") {
+          this.ocpIntegration.projectionHub.setAuthFeedback("LOGIN_REQUIRED");
+        }
+        return err(
+          createPlatformError("validation_failed", targetResult.reason, {
+            reason: targetResult.reason,
+          }),
+        );
+      }
+      accountKey = targetResult.value.accountKey;
+      login = targetResult.value.login;
+    } else {
+      accountKey = await this.resolveSettingsAccountKey();
+      const loginResult = await this.resolveOcpLogin(undefined);
+      if (isErr(loginResult)) {
+        return loginResult;
+      }
+      login = loginResult.value;
     }
 
-    const tokenResult = await this.getOcpToken();
-    if (isErr(tokenResult)) {
-      return tokenResult;
+    let settings: UserSettings;
+    try {
+      settings = await this.loadUserSettingsForAccountKey(accountKey);
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
     }
 
-    return this.ocpIntegration.connectOcp.execute({
-      domain: settingsResult.value.ocpIntegration.domain,
-      authToken: tokenResult.value ?? "",
+    let apiKey = "";
+    try {
+      const scopeKey = createSecretStorageScopeKey(accountKey);
+      this.lastOcpSecretScopeKey = scopeKey;
+      apiKey =
+        (
+          await this.secretStoragePort.loadSecret(scopeKey, OCP_PROXY_API_KEY_SECRET_ID)
+        )?.trim() ?? "";
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+    if (apiKey.length === 0) {
+      this.ocpIntegration.projectionHub.setAuthFeedback("API_KEY_REQUIRED");
+      return err(
+        createPlatformError("validation_failed", "api_key_required", {
+          reason: "api_key_required",
+        }),
+      );
+    }
+
+    const connectResult = await this.ocpIntegration.authenticateAndConnect.execute({
+      domain: settings.ocpIntegration.domain,
+      login,
+      apiKey,
       ...(correlationId !== undefined ? { correlationId } : {}),
+    });
+
+    if (isErr(connectResult)) {
+      return connectResult;
+    }
+
+    return this.markOcpLinked(settings.ocpIntegration, correlationId, accountKey);
+  }
+
+  /**
+   * - Purpose: saved-account sign-in via OCP (no SIP password).
+   * - Inputs: SIP login username + optional saved-profile account key for OCP secrets scope.
+   * - Outputs: OCP authenticate+connect; SIP creds applied by OcpSipCredentialService.
+   */
+  async signInViaOcp(
+    input: Readonly<{
+      login: string;
+      accountKey?: SettingsAccountKey;
+      correlationId?: CorrelationId;
+    }>,
+  ): Promise<Result<void, PlatformError>> {
+    return this.connectOcp({
+      login: input.login,
+      ...(input.accountKey !== undefined ? { accountKey: input.accountKey } : {}),
+      ...(input.correlationId !== undefined
+        ? { correlationId: input.correlationId }
+        : {}),
     });
   }
 
@@ -2085,14 +2385,15 @@ export class AccountBootstrapFacade {
   }
 
   /**
-   * - Purpose: external authenticate — persist domain/token and connect OCP.
-   * - Inputs: ocpDomain + ocpAuthToken from future ExternalCommandRouter (callType external).
-   * - Outputs: connect result; token never logged.
+   * - Purpose: external authenticate — persist domain/apiKey and HTTP+WS connect.
+   * - Inputs: ocpDomain + login + apiKey from future ExternalCommandRouter.
+   * - Outputs: connect result; secrets never logged.
    */
   async authenticateOcpFromHost(
     input: Readonly<{
       ocpDomain: string;
-      ocpAuthToken: string;
+      login: string;
+      apiKey: string;
       correlationId?: CorrelationId;
     }>,
   ): Promise<Result<void, PlatformError>> {
@@ -2102,20 +2403,38 @@ export class AccountBootstrapFacade {
     }
 
     const domain = input.ocpDomain.trim();
-    this.ocpIntegration.projectionHub.setSessionDomain(domain);
     this.deps.logger.info("ocp_host_authenticate_requested", {
       ...(input.correlationId !== undefined ? { correlationId: input.correlationId } : {}),
       featureId: "F-028",
       boundedContext: "Integration",
       operation: "authenticate_ocp_from_host",
       domain,
+      login: input.login.trim(),
       result: "requested",
     });
 
-    return this.ocpIntegration.connectOcp.execute({
-      domain,
-      authToken: input.ocpAuthToken.trim(),
-      ...(input.correlationId !== undefined ? { correlationId: input.correlationId } : {}),
+    const profilesResult = await this.listSavedAccountProfiles();
+    if (isErr(profilesResult)) {
+      return profilesResult;
+    }
+    const targetResult = resolveOcpConnectLoginTarget(
+      input.login,
+      profilesResult.value,
+    );
+    if (!targetResult.ok) {
+      return err(
+        createPlatformError("validation_failed", targetResult.reason, {
+          reason: targetResult.reason,
+        }),
+      );
+    }
+
+    return this.connectOcp({
+      login: targetResult.value.login,
+      accountKey: targetResult.value.accountKey,
+      ...(input.correlationId !== undefined
+        ? { correlationId: input.correlationId }
+        : {}),
     });
   }
 
@@ -2146,9 +2465,9 @@ export class AccountBootstrapFacade {
   }
 
   /**
-   * - Purpose: connect OCP when settings enable autoConnect and token exists.
-   * - Inputs: loaded UserSettings + SecretStorage token (idempotent).
-   * - Outputs: connect side effect or skipped; never throws; token never logged.
+   * - Purpose: connect OCP when settings enable autoConnect and apiKey+login exist.
+   * - Inputs: loaded UserSettings + SecretStorage api key + SIP account username.
+   * - Outputs: authenticate+connect side effect or skipped; secrets never logged.
    */
   async maybeAutoConnectOcp(
     correlationId?: CorrelationId,
@@ -2173,18 +2492,29 @@ export class AccountBootstrapFacade {
       return ok(undefined);
     }
 
-    const tokenResult = await this.getOcpToken();
-    if (isErr(tokenResult)) {
-      return tokenResult;
+    const apiKeyResult = await this.getOcpProxyApiKey();
+    if (isErr(apiKeyResult)) {
+      return apiKeyResult;
     }
-    const token = tokenResult.value?.trim() ?? "";
-    if (token.length === 0) {
-      this.deps.logger.info("ocp_auto_connect_skipped_missing_token", {
+    if ((apiKeyResult.value?.trim() ?? "").length === 0) {
+      this.deps.logger.info("ocp_auto_connect_skipped_missing_api_key", {
         ...(correlationId !== undefined ? { correlationId } : {}),
         featureId: "F-028",
         boundedContext: "Integration",
         operation: "maybe_auto_connect_ocp",
-        result: "skipped_missing_token",
+        result: "skipped_missing_api_key",
+      });
+      return ok(undefined);
+    }
+
+    const loginResult = await this.resolveOcpLogin();
+    if (isErr(loginResult)) {
+      this.deps.logger.info("ocp_auto_connect_skipped_missing_login", {
+        ...(correlationId !== undefined ? { correlationId } : {}),
+        featureId: "F-028",
+        boundedContext: "Integration",
+        operation: "maybe_auto_connect_ocp",
+        result: "skipped_missing_login",
       });
       return ok(undefined);
     }
@@ -2198,6 +2528,8 @@ export class AccountBootstrapFacade {
       result: "requested",
     });
 
+    // Use active SIP settings bucket (not login-picker resolution) to avoid
+    // provisional username-only keys when composite SIP profile already exists.
     const connectResult = await this.connectOcp(correlationId);
     if (isErr(connectResult)) {
       this.deps.logger.error(
@@ -2220,31 +2552,114 @@ export class AccountBootstrapFacade {
   private async persistOcpHostCredentials(
     input: Readonly<{
       ocpDomain: string;
-      ocpAuthToken: string;
+      login: string;
+      apiKey: string;
       correlationId?: CorrelationId;
     }>,
   ): Promise<Result<void, PlatformError>> {
-    const settingsResult = await this.getUserSettingsForAccount();
-    if (isErr(settingsResult)) {
-      return settingsResult;
+    const profilesResult = await this.listSavedAccountProfiles();
+    if (isErr(profilesResult)) {
+      return profilesResult;
+    }
+    const targetResult = resolveOcpConnectLoginTarget(
+      input.login,
+      profilesResult.value,
+    );
+    if (!targetResult.ok) {
+      return err(
+        createPlatformError("validation_failed", targetResult.reason, {
+          reason: targetResult.reason,
+        }),
+      );
+    }
+    const accountKey = targetResult.value.accountKey;
+
+    let currentOcp: OcpIntegrationSettings;
+    try {
+      const current = await this.loadUserSettingsForAccountKey(accountKey);
+      currentOcp = current.ocpIntegration;
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
     }
 
     const updateResult = await this.updateOcpSettings(
       {
-        ...settingsResult.value.ocpIntegration,
+        ...currentOcp,
         enabled: true,
         domain: input.ocpDomain.trim(),
       },
-      input.correlationId,
+      {
+        accountKey,
+        ...(input.correlationId !== undefined
+          ? { correlationId: input.correlationId }
+          : {}),
+      },
     );
     if (isErr(updateResult)) {
       return updateResult;
     }
 
-    return this.saveOcpToken(input.ocpAuthToken, input.correlationId);
+    return this.saveOcpProxyApiKey(input.apiKey, {
+      accountKey,
+      ...(input.correlationId !== undefined
+        ? { correlationId: input.correlationId }
+        : {}),
+    });
   }
 
-  private async resolveOcpTokenSecretScopeKey(): Promise<SecretStorageScopeKey> {
+  private async resolveOcpLogin(
+    explicitLogin?: string,
+  ): Promise<Result<string, PlatformError>> {
+    const trimmed = explicitLogin?.trim() ?? "";
+    if (trimmed.length > 0) {
+      return ok(trimmed);
+    }
+    const account = await this.deps.settingsRepository.getSipAccount();
+    const username = account?.username.trim() ?? "";
+    if (username.length === 0) {
+      this.ocpIntegration.projectionHub.setAuthFeedback("LOGIN_REQUIRED");
+      return err(
+        createPlatformError("validation_failed", "login_required", {
+          reason: "login_required",
+        }),
+      );
+    }
+    return ok(username);
+  }
+
+  private async markOcpLinked(
+    current: OcpIntegrationSettings,
+    correlationId?: CorrelationId,
+    accountKey?: SettingsAccountKey,
+  ): Promise<Result<void, PlatformError>> {
+    if (current.linked) {
+      return ok(undefined);
+    }
+    const next: OcpIntegrationSettings = {
+      ...current,
+      linked: true,
+      enabled: true,
+    };
+    const updateResult = await this.updateOcpSettings(next, {
+      ...(accountKey !== undefined ? { accountKey } : {}),
+      ...(correlationId !== undefined ? { correlationId } : {}),
+    });
+    if (isErr(updateResult)) {
+      return updateResult;
+    }
+    return ok(undefined);
+  }
+
+  private async purgeLegacyOcpAuthToken(): Promise<void> {
+    try {
+      const scopeKey = await this.resolveOcpSecretScopeKey();
+      await this.secretStoragePort.deleteSecret(scopeKey, "ocp-token");
+    } catch {
+      // best-effort migration cleanup
+    }
+  }
+
+  private async resolveOcpSecretScopeKey(): Promise<SecretStorageScopeKey> {
     const accountKey = await this.resolveSettingsAccountKey();
     return createSecretStorageScopeKey(accountKey);
   }
@@ -2264,6 +2679,23 @@ export class AccountBootstrapFacade {
   notifyRemoteVideoPresenceFromMedia(callId: CallId, present: boolean): void {
     this.callEngine.handleRemoteVideoPresenceFromMedia(callId, present);
   }
+}
+
+type OcpSettingsScopeOptions = Readonly<{
+  correlationId?: CorrelationId;
+  accountKey?: SettingsAccountKey;
+}>;
+
+function normalizeOcpSettingsScopeOptions(
+  options?: CorrelationId | OcpSettingsScopeOptions,
+): OcpSettingsScopeOptions {
+  if (options === undefined) {
+    return {};
+  }
+  if (typeof options === "string") {
+    return { correlationId: options };
+  }
+  return options;
 }
 
 function resolveAuthorizeManualAccountOptions(

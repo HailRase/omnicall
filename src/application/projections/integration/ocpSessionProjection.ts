@@ -1,20 +1,32 @@
 /**
- * - Purpose: serializable OCP session/connection projection for Application + future SDK push.
- * - Inputs: OcpGateway connection states and Error entity messages.
- * - Outputs: auth/proxy/domain snapshot selectors.
+ * - Purpose: serializable OCP session/connection projection for Application + UI.
+ * - Inputs: OcpGateway connection states, Error entities, orchestrator auth feedback.
+ * - Outputs: auth/domain snapshot selectors.
  */
 
 import type { OcpConnectionState } from "@domain/integration/ocp/OcpConnectionState.js";
 import type { OcpErrorCode } from "@domain/integration/ocp/protocol/OcpIncomingMessage.js";
 import type { OcpIncomingMessage } from "@domain/integration/ocp/protocol/OcpIncomingMessage.js";
 
-export type OcpProxyStatus = "SESSION_EXIST" | "INVALID_TOKEN";
+/** Non-blocking auth feedback for toasts (SESSION_EXIST / timeout / HTTP failures). */
+export type OcpAuthFeedbackReason =
+  | "SESSION_EXIST"
+  | "INVALID_TOKEN"
+  | "AUTH_TIMEOUT"
+  | "HTTP_AUTH_FAILED"
+  | "LOGIN_REQUIRED"
+  | "API_KEY_REQUIRED";
+
+export type OcpAuthFeedback = Readonly<{
+  reason: OcpAuthFeedbackReason;
+  nonce: number;
+}>;
 
 export type OcpSessionProjection = Readonly<{
   connectionState: OcpConnectionState;
   isAuthenticated: boolean;
   domain: string | null;
-  proxyStatus: OcpProxyStatus | null;
+  authFeedback: OcpAuthFeedback | null;
   reconnectAttempt: number;
 }>;
 
@@ -23,7 +35,7 @@ export function initialOcpSessionProjection(): OcpSessionProjection {
     connectionState: "disconnected",
     isAuthenticated: false,
     domain: null,
-    proxyStatus: null,
+    authFeedback: null,
     reconnectAttempt: 0,
   };
 }
@@ -46,10 +58,8 @@ export function reduceOcpSessionFromConnectionState(
     connectionState,
     isAuthenticated: connectionState === "authenticated",
     reconnectAttempt,
-    proxyStatus:
-      connectionState === "authenticated" || connectionState === "connected"
-        ? null
-        : projection.proxyStatus,
+    authFeedback:
+      connectionState === "authenticated" ? null : projection.authFeedback,
   };
 }
 
@@ -73,7 +83,6 @@ export function reduceOcpSessionFromMessage(
       ...projection,
       connectionState: "sessionClosed",
       isAuthenticated: false,
-      proxyStatus: null,
     };
   }
 
@@ -90,6 +99,30 @@ export function applyOcpSessionDomain(
   };
 }
 
+/**
+ * - Purpose: set non-blocking auth feedback for toast UI (nonce from hub).
+ */
+export function applyOcpAuthFeedback(
+  projection: OcpSessionProjection,
+  reason: OcpAuthFeedbackReason,
+  nonce: number,
+): OcpSessionProjection {
+  return {
+    ...projection,
+    authFeedback: { reason, nonce },
+    isAuthenticated: false,
+  };
+}
+
+export function clearOcpAuthFeedback(
+  projection: OcpSessionProjection,
+): OcpSessionProjection {
+  return {
+    ...projection,
+    authFeedback: null,
+  };
+}
+
 export function selectIsOcpConnected(projection: OcpSessionProjection): boolean {
   return (
     projection.connectionState === "connected" ||
@@ -97,10 +130,10 @@ export function selectIsOcpConnected(projection: OcpSessionProjection): boolean 
   );
 }
 
-export function selectOcpProxyStatus(
+export function selectOcpAuthFeedback(
   projection: OcpSessionProjection,
-): OcpProxyStatus | null {
-  return projection.proxyStatus;
+): OcpAuthFeedback | null {
+  return projection.authFeedback;
 }
 
 export function selectOcpDomain(projection: OcpSessionProjection): string | null {
@@ -112,18 +145,10 @@ function applyProxyError(
   code: OcpErrorCode,
 ): OcpSessionProjection {
   if (code === "SESSION_EXIST") {
-    return {
-      ...projection,
-      proxyStatus: "SESSION_EXIST",
-      isAuthenticated: false,
-    };
+    return applyOcpAuthFeedback(projection, "SESSION_EXIST", Date.now());
   }
   if (code === "INVALID_TOKEN") {
-    return {
-      ...projection,
-      proxyStatus: "INVALID_TOKEN",
-      isAuthenticated: false,
-    };
+    return applyOcpAuthFeedback(projection, "INVALID_TOKEN", Date.now());
   }
   return projection;
 }

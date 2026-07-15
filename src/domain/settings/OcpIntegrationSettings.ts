@@ -11,19 +11,20 @@ export type OcpIntegrationSettings = Readonly<{
   enabled: boolean;
   domain: string;
   autoConnect: boolean;
-  autoSipAuth: boolean;
+  /** True after at least one successful OCP authenticate+session for this account key. */
+  linked: boolean;
 }>;
 
 export const OCP_INTEGRATION_DEFAULTS: OcpIntegrationSettings = {
   enabled: false,
   domain: "",
   autoConnect: false,
-  autoSipAuth: false,
+  linked: false,
 };
 
 /**
  * - Purpose: narrow unknown ocpIntegration blob to typed settings.
- * - Inputs: unknown field value from persisted JSON.
+ * - Inputs: unknown field value from persisted JSON (v8 linked, or legacy autoSipAuth).
  * - Outputs: OcpIntegrationSettings or null when shape/types are invalid.
  */
 export function parseOcpIntegrationSettings(
@@ -40,7 +41,6 @@ export function parseOcpIntegrationSettings(
   const enabled = record["enabled"];
   const domain = record["domain"];
   const autoConnect = record["autoConnect"];
-  const autoSipAuth = record["autoSipAuth"];
 
   if (typeof enabled !== "boolean") {
     return null;
@@ -51,9 +51,12 @@ export function parseOcpIntegrationSettings(
   if (typeof autoConnect !== "boolean") {
     return null;
   }
-  if (typeof autoSipAuth !== "boolean") {
-    return null;
-  }
+
+  const linkedRaw = record["linked"];
+  const linked =
+    typeof linkedRaw === "boolean"
+      ? linkedRaw
+      : false;
 
   const trimmedDomain = domain.trim();
   if (trimmedDomain.length > MAX_OCP_DOMAIN_LENGTH) {
@@ -64,6 +67,6 @@ export function parseOcpIntegrationSettings(
     enabled,
     domain: trimmedDomain,
     autoConnect,
-    autoSipAuth,
+    linked,
   };
 }

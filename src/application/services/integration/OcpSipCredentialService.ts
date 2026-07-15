@@ -1,6 +1,6 @@
 /**
- * - Purpose: apply SIP account from OCP `creds` when autoSipAuth is enabled.
- * - Inputs: OCP gateway creds entity + SIP registration / settings guards.
+ * - Purpose: apply SIP account from OCP `creds` after OCP connect (always on).
+ * - Inputs: OCP gateway creds entity + SIP registration guard.
  * - Outputs: AuthorizeSipAccount + RegisterAccount orchestration (no password logs).
  */
 
@@ -18,12 +18,11 @@ export type OcpSipCredentialServiceDeps = Readonly<{
   logger: Logger;
   authorizeSipAccount: AuthorizeSipAccountUseCase;
   registerAccount: RegisterAccountUseCase;
-  isAutoSipAuthEnabled: () => boolean;
   isSipRegistered: () => boolean;
 }>;
 
 /**
- * Observes OCP `creds` and optionally authorizes + registers SIP.
+ * Observes OCP `creds` and authorizes + registers SIP when not already registered.
  */
 export class OcpSipCredentialService {
   private unsubscribe: (() => void) | null = null;
@@ -46,18 +45,6 @@ export class OcpSipCredentialService {
     }
 
     const { username, domain } = message.data;
-
-    if (!this.deps.isAutoSipAuthEnabled()) {
-      this.deps.logger.debug("ocp_sip_credentials_skipped_auto_auth_disabled", {
-        featureId: FEATURE_ID,
-        boundedContext: BOUNDED_CONTEXT,
-        operation: "ocp_sip_credentials",
-        domain,
-        username,
-        result: "skipped_auto_sip_auth_disabled",
-      });
-      return;
-    }
 
     if (this.deps.isSipRegistered()) {
       this.deps.logger.debug("ocp_sip_credentials_skipped_already_registered", {

@@ -15,7 +15,6 @@ import {
   resolveOperatorStatusColorVar,
   resolveOperatorStatusLabelKey,
   type OcpOperatorStatusLabelKey,
-  type OcpProxyStatus,
 } from "@application/index.js";
 import { isOk } from "@shared/result/index.js";
 import type { TranslationKey } from "../i18n/messages.js";
@@ -51,7 +50,6 @@ export type OperatorStatusSelectorVm = Readonly<{
   isFailed: boolean;
   reconnectAttempt: number;
   maxReconnectAttempts: number;
-  proxyStatus: OcpProxyStatus | null;
 }>;
 
 export type OcpPostCallStatusModalVm = Readonly<{
@@ -253,7 +251,6 @@ export function useOperatorStatusSelector(
     isFailed: session.connectionState === "failed",
     reconnectAttempt: session.reconnectAttempt,
     maxReconnectAttempts: OCP_MAX_RECONNECT_ATTEMPTS,
-    proxyStatus: session.proxyStatus,
   };
 
   const notify = input.notify;

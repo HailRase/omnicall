@@ -65,6 +65,10 @@ type AccountPanelProps = Readonly<{
 
   forgetRememberedPasswordVisible?: boolean;
 
+  authorizeViaOcpVisible?: boolean;
+
+  authorizeViaOcpChecked?: boolean;
+
   passwordInputRef?: RefObject<HTMLInputElement | null>;
 
   onFieldChange: (field: keyof SipAccountInput, value: string) => void;
@@ -72,6 +76,8 @@ type AccountPanelProps = Readonly<{
   onSaveProfileChange?: (checked: boolean) => void;
 
   onRememberPasswordChange?: (checked: boolean) => void;
+
+  onAuthorizeViaOcpChange?: (checked: boolean) => void;
 
   onForgetRememberedPassword?: () => void;
 
@@ -131,6 +137,10 @@ export function AccountPanel({
 
   forgetRememberedPasswordVisible = false,
 
+  authorizeViaOcpVisible = false,
+
+  authorizeViaOcpChecked = false,
+
   passwordInputRef,
 
   onFieldChange,
@@ -138,6 +148,8 @@ export function AccountPanel({
   onSaveProfileChange,
 
   onRememberPasswordChange,
+
+  onAuthorizeViaOcpChange,
 
   onForgetRememberedPassword,
 
@@ -409,6 +421,29 @@ export function AccountPanel({
 
           </label>
 
+        ) : null}
+
+        {authorizeViaOcpVisible ? (
+          <label
+            className={formStyles.toggleRow}
+            data-testid="account-authorize-via-ocp-row"
+          >
+            <span className={formStyles.toggleText}>
+              <span className={formStyles.toggleLabel}>
+                {t("account.profile.authorizeViaOcp")}
+              </span>
+            </span>
+            <Switch
+              id="account-authorize-via-ocp"
+              checked={authorizeViaOcpChecked}
+              disabled={disabled || submitting}
+              data-testid="account-authorize-via-ocp-checkbox"
+              aria-label={t("account.profile.authorizeViaOcp.ariaLabel")}
+              onCheckedChange={(checked) => {
+                onAuthorizeViaOcpChange?.(checked);
+              }}
+            />
+          </label>
         ) : null}
 
         <div className={clsx(styles.actions, passwordOnly && styles.actionsPasswordOnly)}>

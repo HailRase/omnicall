@@ -17,13 +17,29 @@ describe("parseOcpIntegrationSettings", () => {
         enabled: true,
         domain: "  ocp.example.com  ",
         autoConnect: true,
-        autoSipAuth: false,
+        linked: true,
       }),
     ).toEqual({
       enabled: true,
       domain: "ocp.example.com",
       autoConnect: true,
-      autoSipAuth: false,
+      linked: true,
+    });
+  });
+
+  it("defaults linked false when legacy autoSipAuth shape is present", () => {
+    expect(
+      parseOcpIntegrationSettings({
+        enabled: true,
+        domain: "ocp.example.com",
+        autoConnect: false,
+        autoSipAuth: true,
+      }),
+    ).toEqual({
+      enabled: true,
+      domain: "ocp.example.com",
+      autoConnect: false,
+      linked: false,
     });
   });
 
@@ -43,7 +59,7 @@ describe("parseOcpIntegrationSettings", () => {
         enabled: "yes",
         domain: "",
         autoConnect: false,
-        autoSipAuth: false,
+        linked: false,
       }),
     ).toBeNull();
     expect(
@@ -51,7 +67,7 @@ describe("parseOcpIntegrationSettings", () => {
         enabled: true,
         domain: 1,
         autoConnect: false,
-        autoSipAuth: false,
+        linked: false,
       }),
     ).toBeNull();
   });

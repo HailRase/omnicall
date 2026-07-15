@@ -32,5 +32,8 @@ export function createSecretStorageScopeKey(value: string): SecretStorageScopeKe
 /** Canonical secret id for SIP password when secure storage is enabled. */
 export const SIP_PASSWORD_SECRET_ID = "sip-password" as const;
 
-/** Canonical secret id for OCP Module auth token (never persisted in UserSettings JSON). */
-export const OCP_TOKEN_SECRET_ID = "ocp-token" as const;
+/** Legacy secret id removed in F-028 HTTP auth — migration cleanup only. */
+export const LEGACY_OCP_TOKEN_SECRET_ID = "ocp-token" as const;
+
+/** Canonical secret id for OCP Proxy API key (never persisted in UserSettings JSON). */
+export const OCP_PROXY_API_KEY_SECRET_ID = "ocp-proxy-api-key" as const;

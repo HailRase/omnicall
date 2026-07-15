@@ -37,6 +37,7 @@ function createFacadeMock(
     .mockResolvedValue(options.hasRememberedSipPassword ?? false);
   const forgetRememberedSipPassword = vi.fn().mockResolvedValue(ok(undefined));
   const getActiveSipAccount = vi.fn().mockResolvedValue(null);
+  const getOcpSignInAvailability = vi.fn().mockResolvedValue(ok({ available: false }));
 
   const facade = {
     listSavedAccountProfiles,
@@ -46,6 +47,8 @@ function createFacadeMock(
     hasRememberedSipPassword,
     forgetRememberedSipPassword,
     getActiveSipAccount,
+    getOcpSignInAvailability,
+    signInViaOcp: vi.fn().mockResolvedValue(ok(undefined)),
   } as unknown as AccountBootstrapFacade;
 
   return {

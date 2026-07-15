@@ -21,7 +21,8 @@ export type OcpHostApiChannel =
 
 export type OcpAuthenticatePayload = Readonly<{
   ocpDomain: string;
-  ocpAuthToken: string;
+  login: string;
+  apiKey: string;
 }>;
 
 export type OcpChangeStatusReadyPayload = Readonly<{
@@ -44,7 +45,8 @@ export type OcpHostSessionStateResponse = Readonly<{
 export const OCP_EXTERNAL_DEFAULT_READY_REASON_ID = 0;
 
 const MAX_DOMAIN_LENGTH = 253;
-const MAX_TOKEN_LENGTH = 4096;
+const MAX_LOGIN_LENGTH = 256;
+const MAX_API_KEY_LENGTH = 4096;
 
 function isFiniteInteger(value: unknown): value is number {
   return typeof value === "number" && Number.isInteger(value) && Number.isFinite(value);
@@ -59,8 +61,8 @@ function asRecord(value: unknown): Record<string, unknown> | null {
 
 /**
  * - Purpose: validate external authenticate payload at boundary.
- * - Inputs: unknown command body (domain + token).
- * - Outputs: trimmed domain/token or null when invalid.
+ * - Inputs: unknown command body (domain + login + apiKey). Legacy ocpAuthToken rejected.
+ * - Outputs: trimmed fields or null when invalid.
  */
 export function parseOcpAuthenticatePayload(value: unknown): OcpAuthenticatePayload | null {
   const record = asRecord(value);
@@ -68,22 +70,37 @@ export function parseOcpAuthenticatePayload(value: unknown): OcpAuthenticatePayl
     return null;
   }
 
+  // Reject legacy token-based host payload explicitly.
+  if ("ocpAuthToken" in record && !("apiKey" in record)) {
+    return null;
+  }
+
   const ocpDomain = record["ocpDomain"];
-  const ocpAuthToken = record["ocpAuthToken"];
-  if (typeof ocpDomain !== "string" || typeof ocpAuthToken !== "string") {
+  const login = record["login"];
+  const apiKey = record["apiKey"];
+  if (
+    typeof ocpDomain !== "string" ||
+    typeof login !== "string" ||
+    typeof apiKey !== "string"
+  ) {
     return null;
   }
 
   const domain = ocpDomain.trim();
-  const token = ocpAuthToken.trim();
-  if (domain.length === 0 || token.length === 0) {
+  const trimmedLogin = login.trim();
+  const trimmedApiKey = apiKey.trim();
+  if (domain.length === 0 || trimmedLogin.length === 0 || trimmedApiKey.length === 0) {
     return null;
   }
-  if (domain.length > MAX_DOMAIN_LENGTH || token.length > MAX_TOKEN_LENGTH) {
+  if (
+    domain.length > MAX_DOMAIN_LENGTH ||
+    trimmedLogin.length > MAX_LOGIN_LENGTH ||
+    trimmedApiKey.length > MAX_API_KEY_LENGTH
+  ) {
     return null;
   }
 
-  return { ocpDomain: domain, ocpAuthToken: token };
+  return { ocpDomain: domain, login: trimmedLogin, apiKey: trimmedApiKey };
 }
 
 /**

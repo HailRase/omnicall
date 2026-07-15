@@ -23,7 +23,7 @@ function createLoggerSpy(): ReturnType<typeof createTestLogger> & {
 }
 
 describe("OcpSipCredentialService", () => {
-  it("authorizes and registers when autoSipAuth and unregistered", async () => {
+  it("authorizes and registers when unregistered", async () => {
     const gateway = new MockOcpGateway();
     const account = createSipAccount(createSipAccountId("1001"), {
       username: "1001",
@@ -46,7 +46,6 @@ describe("OcpSipCredentialService", () => {
       logger,
       authorizeSipAccount,
       registerAccount,
-      isAutoSipAuthEnabled: () => true,
       isSipRegistered: () => false,
     });
 
@@ -81,39 +80,6 @@ describe("OcpSipCredentialService", () => {
     service.dispose();
   });
 
-  it("skips when autoSipAuth is disabled", async () => {
-    const gateway = new MockOcpGateway();
-    const authorizeExecute = vi.fn(() => Promise.resolve(ok(undefined)));
-    const registerExecute = vi.fn(() => Promise.resolve(ok(undefined)));
-    const service = new OcpSipCredentialService({
-      ocpGateway: gateway,
-      logger: createLoggerSpy(),
-      authorizeSipAccount: {
-        execute: authorizeExecute,
-      } as unknown as AuthorizeSipAccountUseCase,
-      registerAccount: {
-        execute: registerExecute,
-      } as unknown as RegisterAccountUseCase,
-      isAutoSipAuthEnabled: () => false,
-      isSipRegistered: () => false,
-    });
-
-    gateway.simulateMessage({
-      entity: "creds",
-      data: {
-        username: "1001",
-        password: "secret",
-        domain: "pbx.example",
-        server: "sip:pbx.example",
-      },
-    });
-
-    await Promise.resolve();
-    expect(authorizeExecute).not.toHaveBeenCalled();
-    expect(registerExecute).not.toHaveBeenCalled();
-    service.dispose();
-  });
-
   it("skips when SIP already registered", async () => {
     const gateway = new MockOcpGateway();
     const authorizeExecute = vi.fn(() => Promise.resolve(ok(undefined)));
@@ -129,7 +95,6 @@ describe("OcpSipCredentialService", () => {
       registerAccount: {
         execute: registerExecute,
       } as unknown as RegisterAccountUseCase,
-      isAutoSipAuthEnabled: () => true,
       isSipRegistered: () => true,
     });
 
@@ -166,7 +131,6 @@ describe("OcpSipCredentialService", () => {
       registerAccount: {
         execute: registerExecute,
       } as unknown as RegisterAccountUseCase,
-      isAutoSipAuthEnabled: () => true,
       isSipRegistered: () => false,
     });
 

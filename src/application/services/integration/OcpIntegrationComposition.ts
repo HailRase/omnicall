@@ -7,6 +7,7 @@
 import type { DomainEventPublisher, Logger } from "@ports/index.js";
 import type { OcpGateway } from "@ports/integration/OcpGateway.js";
 import type { OcpNotificationPresenter } from "@ports/integration/OcpNotificationPresenter.js";
+import type { OcpProxyAuthenticatePort } from "@ports/integration/OcpProxyAuthenticatePort.js";
 import type { OcpReasonsCachePort } from "@ports/integration/OcpReasonsCachePort.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { OcpProjectionHub } from "../../read-models/OcpProjectionHub.js";
@@ -20,6 +21,7 @@ import { AcceptCampaignUseCase } from "../../use-cases/integration/ocp/AcceptCam
 import { RejectCampaignUseCase } from "../../use-cases/integration/ocp/RejectCampaignUseCase.js";
 import type { AuthorizeSipAccountUseCase } from "../../use-cases/settings/AuthorizeSipAccountUseCase.js";
 import type { RegisterAccountUseCase } from "../../use-cases/settings/RegisterAccountUseCase.js";
+import { OcpAuthenticateAndConnectService } from "./OcpAuthenticateAndConnectService.js";
 import { OcpTelephonyBridgeService } from "./OcpTelephonyBridgeService.js";
 import { OcpDndBridgeService } from "./OcpDndBridgeService.js";
 import { OcpNotificationService } from "./OcpNotificationService.js";
@@ -33,9 +35,9 @@ export type OcpIntegrationCompositionDeps = Readonly<{
   logger: Logger;
   reasonsCache: OcpReasonsCachePort;
   notificationPresenter: OcpNotificationPresenter;
+  proxyAuthenticate: OcpProxyAuthenticatePort;
   authorizeSipAccount: AuthorizeSipAccountUseCase;
   registerAccount: RegisterAccountUseCase;
-  isAutoSipAuthEnabled: () => boolean;
   isSipRegistered: () => boolean;
   endUserSession: (correlationId: CorrelationId) => Promise<void>;
   initialDndEnabled?: boolean;
@@ -52,6 +54,7 @@ export class OcpIntegrationComposition {
   readonly acceptCampaign: AcceptCampaignUseCase;
   readonly rejectCampaign: RejectCampaignUseCase;
   readonly notificationPresenter: OcpNotificationPresenter;
+  readonly authenticateAndConnect: OcpAuthenticateAndConnectService;
 
   private readonly telephonyBridge: OcpTelephonyBridgeService;
   private readonly dndBridge: OcpDndBridgeService;
@@ -80,6 +83,14 @@ export class OcpIntegrationComposition {
 
     this.connectOcp = new ConnectOcpUseCase(deps.ocpGateway, deps.logger);
     this.disconnectOcp = new DisconnectOcpUseCase(deps.ocpGateway, deps.logger);
+    this.authenticateAndConnect = new OcpAuthenticateAndConnectService({
+      proxyAuthenticate: deps.proxyAuthenticate,
+      connectOcp: this.connectOcp,
+      disconnectOcp: this.disconnectOcp,
+      ocpGateway: deps.ocpGateway,
+      projectionHub: this.projectionHub,
+      logger: deps.logger,
+    });
     this.changeOperatorStatus = new ChangeOperatorStatusUseCase({
       ocpGateway: deps.ocpGateway,
       operatorReadModel: this.projectionHub,
@@ -129,7 +140,6 @@ export class OcpIntegrationComposition {
       logger: deps.logger,
       authorizeSipAccount: deps.authorizeSipAccount,
       registerAccount: deps.registerAccount,
-      isAutoSipAuthEnabled: deps.isAutoSipAuthEnabled,
       isSipRegistered: deps.isSipRegistered,
     });
     this.sessionLifecycle = new OcpSessionLifecycleService({

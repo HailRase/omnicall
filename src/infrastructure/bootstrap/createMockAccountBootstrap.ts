@@ -26,6 +26,7 @@ import type {
   ContactCsvFileGateway,
   SecretStoragePort,
   OcpGateway,
+  OcpProxyAuthenticatePort,
   OcpReasonsCachePort,
   OcpNotificationPresenter,
 } from "@ports/index.js";
@@ -42,6 +43,7 @@ export type CreateAccountBootstrapOptions = Readonly<{
   callHistoryRepository?: CallHistoryRepository;
   secretStoragePort?: SecretStoragePort;
   ocpGateway?: OcpGateway;
+  ocpProxyAuthenticate?: OcpProxyAuthenticatePort;
   ocpReasonsCache?: OcpReasonsCachePort;
   ocpNotificationPresenter?: OcpNotificationPresenter;
   telephonyScenario?: "success" | "failure";

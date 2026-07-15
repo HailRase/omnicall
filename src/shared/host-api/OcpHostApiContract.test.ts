@@ -22,20 +22,42 @@ describe("OcpHostApiContract", () => {
     expect(
       parseOcpAuthenticatePayload({
         ocpDomain: "  ocp.example.com  ",
-        ocpAuthToken: "  token-value  ",
+        login: "  agent1  ",
+        apiKey: "  key-value  ",
       }),
     ).toEqual({
       ocpDomain: "ocp.example.com",
-      ocpAuthToken: "token-value",
+      login: "agent1",
+      apiKey: "key-value",
     });
   });
 
-  it("rejects authenticate payload with empty domain or token", () => {
+  it("rejects legacy ocpAuthToken-only payload", () => {
     expect(
-      parseOcpAuthenticatePayload({ ocpDomain: " ", ocpAuthToken: "token" }),
+      parseOcpAuthenticatePayload({
+        ocpDomain: "ocp.example.com",
+        ocpAuthToken: "legacy-token",
+      }),
+    ).toBeNull();
+  });
+
+  it("rejects authenticate payload with empty domain, login, or apiKey", () => {
+    expect(
+      parseOcpAuthenticatePayload({ ocpDomain: " ", login: "agent", apiKey: "key" }),
     ).toBeNull();
     expect(
-      parseOcpAuthenticatePayload({ ocpDomain: "ocp.example.com", ocpAuthToken: "" }),
+      parseOcpAuthenticatePayload({
+        ocpDomain: "ocp.example.com",
+        login: "",
+        apiKey: "key",
+      }),
+    ).toBeNull();
+    expect(
+      parseOcpAuthenticatePayload({
+        ocpDomain: "ocp.example.com",
+        login: "agent",
+        apiKey: "",
+      }),
     ).toBeNull();
   });
 

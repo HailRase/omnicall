@@ -8,11 +8,14 @@ import {
   InMemorySavedAccountProfileRepository,
 } from "@adapters/index.js";
 import { InMemorySecretStorageAdapter } from "@adapters/secrets/InMemorySecretStorageAdapter.js";
+import { MockOcpProxyAuthenticatePort } from "@adapters/mock/MockOcpProxyAuthenticatePort.js";
 import { InMemoryContactRepository } from "@adapters/settings/InMemoryContactRepository.js";
 import { FileSettingsRepository } from "@adapters/settings/FileSettingsRepository.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
 import {
   createDefaultUserSettings,
+  createSipAccount,
+  createSipAccountId,
   deriveLegacyUsernameOnlySettingsAccountKeyFromIdentity,
   deriveSettingsAccountKeyFromIdentity,
   type UserSettings,
@@ -1006,7 +1009,14 @@ describe("AccountBootstrapFacade integration", () => {
     expect(connected?.id).toBe("mock-headset-2");
   });
 
-  it("updates OCP settings and stores token outside UserSettings JSON", async () => {
+  const ocpTestSipAccount = createSipAccount(createSipAccountId("ocp-agent"), {
+    username: "ocp-agent",
+    password: "secret",
+    domain: "pbx.example",
+    server: "sip:pbx.example",
+  });
+
+  it("updates OCP settings and stores api key outside UserSettings JSON", async () => {
     const settings = new InMemorySettingsRepository({ bootstrapConfig: {} });
     const secretStorage = new InMemorySecretStorageAdapter();
     const facade = new AccountBootstrapFacade({
@@ -1021,7 +1031,7 @@ describe("AccountBootstrapFacade integration", () => {
       enabled: true,
       domain: "ocp.example.com",
       autoConnect: true,
-      autoSipAuth: false,
+      linked: false,
     });
     expect(updateResult.ok).toBe(true);
     if (updateResult.ok) {
@@ -1029,46 +1039,49 @@ describe("AccountBootstrapFacade integration", () => {
         enabled: true,
         domain: "ocp.example.com",
         autoConnect: true,
-        autoSipAuth: false,
+        linked: false,
       });
     }
 
-    const saveToken = await facade.saveOcpToken("secret-ocp-token");
-    expect(saveToken.ok).toBe(true);
+    const saveApiKey = await facade.saveOcpProxyApiKey("secret-ocp-api-key");
+    expect(saveApiKey.ok).toBe(true);
 
-    const loadedToken = await facade.getOcpToken();
-    expect(loadedToken.ok).toBe(true);
-    if (loadedToken.ok) {
-      expect(loadedToken.value).toBe("secret-ocp-token");
+    const loadedApiKey = await facade.getOcpProxyApiKey();
+    expect(loadedApiKey.ok).toBe(true);
+    if (loadedApiKey.ok) {
+      expect(loadedApiKey.value).toBe("secret-ocp-api-key");
     }
 
     const loadedSettings = await facade.getUserSettingsForAccount();
     expect(loadedSettings.ok).toBe(true);
     if (loadedSettings.ok) {
-      expect(JSON.stringify(loadedSettings.value)).not.toContain("secret-ocp-token");
+      expect(JSON.stringify(loadedSettings.value)).not.toContain("secret-ocp-api-key");
       expect(
-        Object.prototype.hasOwnProperty.call(loadedSettings.value, "ocpToken"),
+        Object.prototype.hasOwnProperty.call(loadedSettings.value, "ocpProxyApiKey"),
       ).toBe(false);
     }
 
-    const deleteToken = await facade.deleteOcpToken();
-    expect(deleteToken.ok).toBe(true);
-    const afterDelete = await facade.getOcpToken();
+    const deleteApiKey = await facade.deleteOcpProxyApiKey();
+    expect(deleteApiKey.ok).toBe(true);
+    const afterDelete = await facade.getOcpProxyApiKey();
     expect(afterDelete.ok).toBe(true);
     if (afterDelete.ok) {
       expect(afterDelete.value).toBeNull();
     }
   });
 
-  it("connects and disconnects OCP via facade using settings domain and stored token", async () => {
+  it("connects and disconnects OCP via facade using settings domain and stored api key", async () => {
     const { MockOcpGateway } = await import("@adapters/mock/MockOcpGateway.js");
     const gateway = new MockOcpGateway();
+    const settings = new InMemorySettingsRepository({ bootstrapConfig: {} });
+    await settings.saveSipAccount(ocpTestSipAccount);
     const facade = new AccountBootstrapFacade({
       telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
       mediaGateway: new MockMediaGateway(),
-      settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
+      settingsRepository: settings,
       secretStoragePort: new InMemorySecretStorageAdapter(),
       ocpGateway: gateway,
+      ocpProxyAuthenticate: new MockOcpProxyAuthenticatePort(),
       logger: createTestLogger(),
     });
 
@@ -1076,20 +1089,25 @@ describe("AccountBootstrapFacade integration", () => {
       enabled: true,
       domain: "ocp.example.com",
       autoConnect: false,
-      autoSipAuth: false,
+      linked: false,
     });
-    await facade.saveOcpToken("token-abc");
+    await facade.saveOcpProxyApiKey("api-key-abc");
 
-    const connectResult = await facade.connectOcp();
+    const connectPending = facade.connectOcp();
+    await vi.waitFor(() => {
+      expect(gateway.getConnectionState()).toBe("connected");
+    });
+    gateway.simulateAuthSuccess(1);
+    const connectResult = await connectPending;
     expect(connectResult.ok).toBe(true);
-    expect(gateway.getConnectionState()).toBe("connected");
+    expect(gateway.getConnectionState()).toBe("authenticated");
 
     const disconnectResult = await facade.disconnectOcp();
     expect(disconnectResult.ok).toBe(true);
     expect(gateway.getConnectionState()).toBe("disconnected");
   });
 
-  it("rejects empty OCP token saves", async () => {
+  it("rejects empty OCP api key saves", async () => {
     const facade = new AccountBootstrapFacade({
       telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
       mediaGateway: new MockMediaGateway(),
@@ -1098,7 +1116,7 @@ describe("AccountBootstrapFacade integration", () => {
       logger: createTestLogger(),
     });
 
-    const result = await facade.saveOcpToken("   ");
+    const result = await facade.saveOcpProxyApiKey("   ");
     expect(result.ok).toBe(false);
     if (isErr(result)) {
       expect(result.error.code).toBe("validation_failed");
@@ -1114,28 +1132,37 @@ describe("AccountBootstrapFacade integration", () => {
       settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
       secretStoragePort: new InMemorySecretStorageAdapter(),
       ocpGateway: gateway,
+      ocpProxyAuthenticate: new MockOcpProxyAuthenticatePort(),
       logger: createTestLogger(),
     });
 
-    const authResult = await facade.authenticateOcpFromHost({
+    const authPending = facade.authenticateOcpFromHost({
       ocpDomain: " host.example.com ",
-      ocpAuthToken: " host-secret ",
+      login: "ocp-agent",
+      apiKey: " host-secret ",
     });
-    expect(authResult.ok).toBe(true);
-    expect(facade.getOcpConnectionState()).toBe("connected");
-
-    const settings = await facade.getUserSettingsForAccount();
-    expect(settings.ok).toBe(true);
-    if (settings.ok) {
-      expect(settings.value.ocpIntegration.domain).toBe("host.example.com");
-      expect(settings.value.ocpIntegration.enabled).toBe(true);
-    }
-
-    const token = await facade.getOcpToken();
-    expect(token.ok && token.value).toBe("host-secret");
-
+    await vi.waitFor(() => {
+      expect(gateway.getConnectionState()).toBe("connected");
+    });
     gateway.simulateAuthSuccess(9);
+    const authResult = await authPending;
+    expect(authResult.ok).toBe(true);
     expect(facade.getOcpConnectionState()).toBe("authenticated");
+
+    const panel = await facade.getOcpModulePanelState({ login: "ocp-agent" });
+    expect(panel.ok).toBe(true);
+    if (!panel.ok) {
+      return;
+    }
+    expect(panel.value.settings.domain).toBe("host.example.com");
+    expect(panel.value.settings.enabled).toBe(true);
+    expect(panel.value.settings.linked).toBe(true);
+    expect(panel.value.hasApiKey).toBe(true);
+
+    const apiKey = await facade.getOcpProxyApiKey({
+      accountKey: panel.value.target.accountKey,
+    });
+    expect(apiKey.ok && apiKey.value).toBe("host-secret");
 
     const breakResult = await facade.changeOcpStatusFromHost({
       targetStatus: "break",
@@ -1150,11 +1177,12 @@ describe("AccountBootstrapFacade integration", () => {
     });
   });
 
-  it("autoConnects OCP when enabled + autoConnect + token present", async () => {
+  it("autoConnects OCP when enabled + autoConnect + api key and SIP login present", async () => {
     const { MockOcpGateway } = await import("@adapters/mock/MockOcpGateway.js");
     const gateway = new MockOcpGateway();
     const connectSpy = vi.spyOn(gateway, "connect");
     const settingsRepository = new InMemorySettingsRepository({ bootstrapConfig: {} });
+    await settingsRepository.saveSipAccount(ocpTestSipAccount);
     const secretStoragePort = new InMemorySecretStorageAdapter();
     const facade = new AccountBootstrapFacade({
       telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
@@ -1162,6 +1190,7 @@ describe("AccountBootstrapFacade integration", () => {
       settingsRepository,
       secretStoragePort,
       ocpGateway: gateway,
+      ocpProxyAuthenticate: new MockOcpProxyAuthenticatePort(),
       logger: createTestLogger(),
     });
 
@@ -1169,26 +1198,34 @@ describe("AccountBootstrapFacade integration", () => {
       enabled: true,
       domain: "ocp.auto.example",
       autoConnect: true,
-      autoSipAuth: false,
+      linked: false,
     });
-    await facade.saveOcpToken("auto-token");
+    await facade.saveOcpProxyApiKey("auto-api-key");
 
-    const result = await facade.maybeAutoConnectOcp();
+    const autoConnectPending = facade.maybeAutoConnectOcp();
+    await vi.waitFor(() => {
+      expect(gateway.getConnectionState()).toBe("connected");
+    });
+    gateway.simulateAuthSuccess(1);
+    const result = await autoConnectPending;
     expect(result.ok).toBe(true);
     expect(connectSpy).toHaveBeenCalledTimes(1);
-    expect(gateway.getConnectionState()).toBe("connected");
+    expect(gateway.getConnectionState()).toBe("authenticated");
   });
 
-  it("skips autoConnect when token missing", async () => {
+  it("skips autoConnect when api key missing", async () => {
     const { MockOcpGateway } = await import("@adapters/mock/MockOcpGateway.js");
     const gateway = new MockOcpGateway();
     const connectSpy = vi.spyOn(gateway, "connect");
+    const settingsRepository = new InMemorySettingsRepository({ bootstrapConfig: {} });
+    await settingsRepository.saveSipAccount(ocpTestSipAccount);
     const facade = new AccountBootstrapFacade({
       telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
       mediaGateway: new MockMediaGateway(),
-      settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
+      settingsRepository,
       secretStoragePort: new InMemorySecretStorageAdapter(),
       ocpGateway: gateway,
+      ocpProxyAuthenticate: new MockOcpProxyAuthenticatePort(),
       logger: createTestLogger(),
     });
 
@@ -1196,7 +1233,7 @@ describe("AccountBootstrapFacade integration", () => {
       enabled: true,
       domain: "ocp.auto.example",
       autoConnect: true,
-      autoSipAuth: false,
+      linked: false,
     });
 
     const result = await facade.maybeAutoConnectOcp();
@@ -1208,12 +1245,15 @@ describe("AccountBootstrapFacade integration", () => {
     const { MockOcpGateway } = await import("@adapters/mock/MockOcpGateway.js");
     const gateway = new MockOcpGateway();
     const connectSpy = vi.spyOn(gateway, "connect");
+    const settingsRepository = new InMemorySettingsRepository({ bootstrapConfig: {} });
+    await settingsRepository.saveSipAccount(ocpTestSipAccount);
     const facade = new AccountBootstrapFacade({
       telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
       mediaGateway: new MockMediaGateway(),
-      settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
+      settingsRepository,
       secretStoragePort: new InMemorySecretStorageAdapter(),
       ocpGateway: gateway,
+      ocpProxyAuthenticate: new MockOcpProxyAuthenticatePort(),
       logger: createTestLogger(),
     });
 
@@ -1221,9 +1261,9 @@ describe("AccountBootstrapFacade integration", () => {
       enabled: true,
       domain: "ocp.auto.example",
       autoConnect: false,
-      autoSipAuth: false,
+      linked: false,
     });
-    await facade.saveOcpToken("token");
+    await facade.saveOcpProxyApiKey("api-key");
 
     const result = await facade.maybeAutoConnectOcp();
     expect(result.ok).toBe(true);
@@ -1233,12 +1273,15 @@ describe("AccountBootstrapFacade integration", () => {
   it("logs out OCP from host with callType external", async () => {
     const { MockOcpGateway } = await import("@adapters/mock/MockOcpGateway.js");
     const gateway = new MockOcpGateway();
+    const settings = new InMemorySettingsRepository({ bootstrapConfig: {} });
+    await settings.saveSipAccount(ocpTestSipAccount);
     const facade = new AccountBootstrapFacade({
       telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
       mediaGateway: new MockMediaGateway(),
-      settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
+      settingsRepository: settings,
       secretStoragePort: new InMemorySecretStorageAdapter(),
       ocpGateway: gateway,
+      ocpProxyAuthenticate: new MockOcpProxyAuthenticatePort(),
       logger: createTestLogger(),
     });
 
@@ -1246,11 +1289,17 @@ describe("AccountBootstrapFacade integration", () => {
       enabled: true,
       domain: "ocp.example.com",
       autoConnect: false,
-      autoSipAuth: false,
+      linked: false,
     });
-    await facade.saveOcpToken("token-host-logout");
-    await facade.connectOcp();
+    await facade.saveOcpProxyApiKey("api-key-host-logout");
+
+    const connectPending = facade.connectOcp();
+    await vi.waitFor(() => {
+      expect(gateway.getConnectionState()).toBe("connected");
+    });
     gateway.simulateAuthSuccess(3);
+    const connectResult = await connectPending;
+    expect(connectResult.ok).toBe(true);
 
     const logoutResult = await facade.logoutOcpFromHost({ reasonId: 9 });
     expect(logoutResult.ok).toBe(true);
@@ -1261,5 +1310,180 @@ describe("AccountBootstrapFacade integration", () => {
       callType: "external",
     });
     expect(gateway.getConnectionState()).toBe("disconnected");
+  });
+
+  it("lists OCP connect login options from saved profiles", async () => {
+    const savedProfiles = new InMemorySavedAccountProfileRepository();
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
+      savedAccountProfileRepository: savedProfiles,
+      logger: createTestLogger(),
+    });
+
+    await facade.saveSavedAccountProfile({
+      username: "agent-one",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    });
+    await facade.saveSavedAccountProfile({
+      username: "agent-two",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    });
+
+    const options = await facade.listOcpConnectLoginOptions();
+    expect(options.ok).toBe(true);
+    if (options.ok) {
+      expect(options.value.map((item) => item.login)).toEqual([
+        "agent-one",
+        "agent-two",
+      ]);
+    }
+  });
+
+  it("scopes OCP settings to selected existing login without mutating active SIP prefs", async () => {
+    const settings = new InMemorySettingsRepository({ bootstrapConfig: {} });
+    const secretStorage = new InMemorySecretStorageAdapter();
+    const savedProfiles = new InMemorySavedAccountProfileRepository();
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: settings,
+      secretStoragePort: secretStorage,
+      savedAccountProfileRepository: savedProfiles,
+      logger: createTestLogger(),
+    });
+
+    await settings.saveSipAccount(ocpTestSipAccount);
+    await facade.saveUserSettings({
+      ...createDefaultUserSettings(),
+      language: "en",
+      ocpIntegration: {
+        enabled: false,
+        domain: "active-ocp.example",
+        autoConnect: false,
+        linked: false,
+      },
+    });
+
+    const saved = await facade.saveSavedAccountProfile({
+      username: "other-agent",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    });
+    expect(saved.ok).toBe(true);
+    if (!saved.ok) {
+      return;
+    }
+
+    const panel = await facade.getOcpModulePanelState({ login: "other-agent" });
+    expect(panel.ok).toBe(true);
+    if (!panel.ok) {
+      return;
+    }
+    expect(panel.value.target.kind).toBe("existing");
+    expect(panel.value.target.accountKey).toBe(saved.value.id);
+
+    const update = await facade.updateOcpSettings(
+      {
+        enabled: true,
+        domain: "other-ocp.example",
+        autoConnect: false,
+        linked: false,
+      },
+      { accountKey: panel.value.target.accountKey },
+    );
+    expect(update.ok).toBe(true);
+    await facade.saveOcpProxyApiKey("other-api-key", {
+      accountKey: panel.value.target.accountKey,
+    });
+
+    const activeSettings = await facade.getUserSettingsForAccount();
+    expect(activeSettings.ok).toBe(true);
+    if (activeSettings.ok) {
+      expect(activeSettings.value.language).toBe("en");
+      expect(activeSettings.value.ocpIntegration.domain).toBe("active-ocp.example");
+    }
+
+    const scoped = await facade.getOcpModulePanelState({ login: "other-agent" });
+    expect(scoped.ok).toBe(true);
+    if (scoped.ok) {
+      expect(scoped.value.settings.domain).toBe("other-ocp.example");
+      expect(scoped.value.hasApiKey).toBe(true);
+    }
+  });
+
+  it("persists OCP settings for a new typed login under provisional username key", async () => {
+    const { MockOcpGateway } = await import("@adapters/mock/MockOcpGateway.js");
+    const gateway = new MockOcpGateway();
+    const settings = new InMemorySettingsRepository({ bootstrapConfig: {} });
+    const secretStorage = new InMemorySecretStorageAdapter();
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: settings,
+      secretStoragePort: secretStorage,
+      ocpGateway: gateway,
+      ocpProxyAuthenticate: new MockOcpProxyAuthenticatePort(),
+      logger: createTestLogger(),
+    });
+
+    const panel = await facade.getOcpModulePanelState({ login: "brand-new" });
+    expect(panel.ok).toBe(true);
+    if (!panel.ok) {
+      return;
+    }
+    expect(panel.value.target.kind).toBe("new");
+    expect(panel.value.target.accountKey).toBe("brand-new");
+
+    await facade.updateOcpSettings(
+      {
+        enabled: true,
+        domain: "new-ocp.example",
+        autoConnect: false,
+        linked: false,
+      },
+      { accountKey: panel.value.target.accountKey },
+    );
+    await facade.saveOcpProxyApiKey("new-api-key", {
+      accountKey: panel.value.target.accountKey,
+    });
+
+    const connectPending = facade.connectOcp({
+      login: "brand-new",
+      accountKey: panel.value.target.accountKey,
+    });
+    await vi.waitFor(() => {
+      expect(gateway.getConnectionState()).toBe("connected");
+    });
+    gateway.simulateAuthSuccess(7);
+    const connectResult = await connectPending;
+    expect(connectResult.ok).toBe(true);
+
+    const after = await facade.getOcpModulePanelState({ login: "brand-new" });
+    expect(after.ok).toBe(true);
+    if (after.ok) {
+      expect(after.value.settings.linked).toBe(true);
+      expect(after.value.settings.domain).toBe("new-ocp.example");
+      expect(after.value.hasApiKey).toBe(true);
+    }
+  });
+
+  it("rejects connectOcp via login picker when login is empty", async () => {
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
+      ocpProxyAuthenticate: new MockOcpProxyAuthenticatePort(),
+      logger: createTestLogger(),
+    });
+
+    const result = await facade.connectOcp({ login: "   " });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.message).toBe("login_required");
+    }
   });
 });

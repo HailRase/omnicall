@@ -80,7 +80,7 @@ export type {
   SecretStorageScopeKey,
 } from "./secrets/SecretStoragePort.js";
 export {
-  OCP_TOKEN_SECRET_ID,
+  OCP_PROXY_API_KEY_SECRET_ID,
   SIP_PASSWORD_SECRET_ID,
   createSecretStorageScopeKey,
 } from "./secrets/SecretStoragePort.js";
@@ -93,6 +93,11 @@ export type { OcpOperatorReadModel } from "./integration/OcpOperatorReadModel.js
 export type { OcpReasonsCachePort } from "./integration/OcpReasonsCachePort.js";
 export { buildOcpBreakReasonsCacheKey } from "./integration/OcpReasonsCachePort.js";
 export type { OcpNotificationPresenter } from "./integration/OcpNotificationPresenter.js";
+export type {
+  OcpProxyAuthenticateInput,
+  OcpProxyAuthenticateOutcome,
+  OcpProxyAuthenticatePort,
+} from "./integration/OcpProxyAuthenticatePort.js";
 export type { DndReadModel } from "./settings/DndReadModel.js";
 export type { Logger, LogContext, LogEntry, LogLevel } from "./logging/index.js";
 export type {

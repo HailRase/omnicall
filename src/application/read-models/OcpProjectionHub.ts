@@ -23,10 +23,13 @@ import {
   type OcpReasonsProjection,
 } from "../projections/integration/ocpReasonsProjection.js";
 import {
+  applyOcpAuthFeedback,
   applyOcpSessionDomain,
+  clearOcpAuthFeedback,
   initialOcpSessionProjection,
   reduceOcpSessionFromConnectionState,
   reduceOcpSessionFromMessage,
+  type OcpAuthFeedbackReason,
   type OcpSessionProjection,
 } from "../projections/integration/ocpSessionProjection.js";
 import {
@@ -53,6 +56,7 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
   private campaign: CampaignEventProjection = initialCampaignEventProjection();
   private readonly unsubscribers: Unsubscribe[] = [];
   private readonly changeListeners = new Set<() => void>();
+  private authFeedbackNonce = 0;
 
   constructor(private readonly deps: OcpProjectionHubDeps) {
     this.unsubscribers.push(
@@ -105,6 +109,21 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
 
   setSessionDomain(domain: string): void {
     this.session = applyOcpSessionDomain(this.session, domain);
+    this.notifyChangeListeners();
+  }
+
+  setAuthFeedback(reason: OcpAuthFeedbackReason): void {
+    this.authFeedbackNonce += 1;
+    this.session = applyOcpAuthFeedback(
+      this.session,
+      reason,
+      this.authFeedbackNonce,
+    );
+    this.notifyChangeListeners();
+  }
+
+  clearAuthFeedback(): void {
+    this.session = clearOcpAuthFeedback(this.session);
     this.notifyChangeListeners();
   }
 

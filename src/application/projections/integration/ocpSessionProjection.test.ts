@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  applyOcpAuthFeedback,
   applyOcpSessionDomain,
   initialOcpSessionProjection,
   reduceOcpSessionFromConnectionState,
   reduceOcpSessionFromMessage,
   selectIsOcpConnected,
+  selectOcpAuthFeedback,
   selectOcpDomain,
-  selectOcpProxyStatus,
 } from "./ocpSessionProjection.js";
 
 describe("ocpSessionProjection", () => {
@@ -21,20 +22,20 @@ describe("ocpSessionProjection", () => {
       entity: "Error",
       data: { code: "SESSION_EXIST" },
     });
-    expect(selectOcpProxyStatus(projection)).toBe("SESSION_EXIST");
+    expect(selectOcpAuthFeedback(projection)?.reason).toBe("SESSION_EXIST");
 
     projection = reduceOcpSessionFromConnectionState(projection, "authenticated");
     expect(projection.isAuthenticated).toBe(true);
-    expect(selectOcpProxyStatus(projection)).toBeNull();
+    expect(selectOcpAuthFeedback(projection)).toBeNull();
   });
 
-  it("blocks SESSION_EXIST and INVALID_TOKEN proxy statuses", () => {
+  it("maps INVALID_TOKEN to authFeedback", () => {
     let projection = initialOcpSessionProjection();
     projection = reduceOcpSessionFromMessage(projection, {
       entity: "Error",
       data: { code: "INVALID_TOKEN" },
     });
-    expect(selectOcpProxyStatus(projection)).toBe("INVALID_TOKEN");
+    expect(selectOcpAuthFeedback(projection)?.reason).toBe("INVALID_TOKEN");
     expect(projection.isAuthenticated).toBe(false);
   });
 
@@ -71,5 +72,17 @@ describe("ocpSessionProjection", () => {
     projection = reduceOcpSessionFromMessage(projection, { entity: "terminate" });
     expect(projection.connectionState).toBe("sessionClosed");
     expect(projection.isAuthenticated).toBe(false);
+  });
+
+  it("applyOcpAuthFeedback uses nonce", () => {
+    const projection = applyOcpAuthFeedback(
+      initialOcpSessionProjection(),
+      "AUTH_TIMEOUT",
+      42,
+    );
+    expect(selectOcpAuthFeedback(projection)).toEqual({
+      reason: "AUTH_TIMEOUT",
+      nonce: 42,
+    });
   });
 });

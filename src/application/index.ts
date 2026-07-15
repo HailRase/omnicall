@@ -284,6 +284,7 @@ export {
 } from "./projections/settings/deriveSavedAccountProfileSelectorOptions.js";
 export {
   createSettingsAccountKey,
+  type SettingsAccountKey,
   type SavedAccountProfile,
   type SavedAccountProfileId,
   type Contact,
@@ -354,12 +355,24 @@ export {
   reduceOcpSessionFromConnectionState,
   reduceOcpSessionFromMessage,
   applyOcpSessionDomain,
+  applyOcpAuthFeedback,
+  clearOcpAuthFeedback,
   selectIsOcpConnected,
-  selectOcpProxyStatus,
+  selectOcpAuthFeedback,
   selectOcpDomain,
   type OcpSessionProjection,
-  type OcpProxyStatus,
+  type OcpAuthFeedback,
+  type OcpAuthFeedbackReason,
 } from "./projections/integration/ocpSessionProjection.js";
+export type {
+  OcpConnectLoginOption,
+  OcpConnectLoginTarget,
+  OcpConnectLoginTargetResult,
+} from "@domain/index.js";
+export {
+  buildOcpConnectLoginOptions,
+  resolveOcpConnectLoginTarget,
+} from "@domain/index.js";
 export type { OcpNotificationPayload } from "@domain/integration/ocp/protocol/OcpIncomingMessage.js";
 export {
   initialOperatorStatusProjection,

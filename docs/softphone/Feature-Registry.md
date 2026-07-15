@@ -807,9 +807,9 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-018`, `LF-019`, `LF-041`, `LF-042`, `LF-043`, `LF-044`, `LF-045`, `LF-046`, `LF-047`, `LF-048`, `LF-049`
 - Context: Integration
 - Priority: high
-- Status: **implemented** (E-01…E-13 closed 2026-07-14)
+- Status: **implemented** (E-01…E-13 closed 2026-07-14; HTTP auth delta 2026-07-15)
 - Owner: TBD
-- Inputs: OCP WebSocket session, operator status/reason payloads, SIP telephony domain events, host-page commands
+- Inputs: OCP HTTP authenticate + WebSocket session, operator status/reason payloads, SIP telephony domain events, host-page commands
 - Outputs: operator status FSM, OCP gateway commands, session projections, telephony bridge events
 - Acceptance Criteria:
   - SIP telephony works without OCP; OCP is optional integration module.
@@ -820,9 +820,14 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Single `OcpGateway` WebSocket; no global `window.ws` patching.
   - Settings → Integrations is a parent nav group; OCP Module is a child leaf (extensible for future integrations).
   - Operator status selector visible only when `ocpSession.isAuthenticated === true`.
-  - Credentials never appear in Domain Events; token stored via `SecretStoragePort`.
+  - Connect obtains ephemeral `softphone_auth_token` via `GET https://{domain}/proxy/authenticate?login={sipUsername}` with header `Ocp-Proxy-Api-Key`; token is never persisted (api-key + domain + `linked` are).
+  - Integrations OCP Module requires an explicit login (typed or selected from saved profiles); settings/api-key persist scoped to that login’s settings bucket (`existing` profile id or provisional username-only key for new login) without mutating other UserSettings fields of the active SIP session.
+  - SIP credentials from `entity:creds` always authorize+register when OCP connects (no `autoSipAuth` toggle).
+  - `SESSION_EXIST` / auth timeout (15s) / HTTP auth failures show non-blocking toasts; reconnect retry allowed.
+  - Saved SIP accounts with prior successful OCP (`linked` + api-key) show «Authorize via OCP» checkbox; when on, sign-in skips SIP password.
+  - Credentials never appear in Domain Events; `Ocp-Proxy-Api-Key` stored via `SecretStoragePort`.
   - `callType: internal | external | sdk` on status-change commands for audit trail.
-  - External OCP commands validated via `OcpHostApiContract`; Facade entry points ready for future `ExternalCommandRouter` (no `window.Softphone`).
+  - External OCP authenticate payload is `{ ocpDomain, login, apiKey }` (`OcpHostApiContract`); Facade entry points ready for future `ExternalCommandRouter` (no `window.Softphone`).
   - All user-visible strings localized (`ru`, `en`, `fr`, `de`, `bg`).
 - Test Coverage:
   - Unit: `OperatorStatus`, `OperatorStatusMachine`, `OperatorProfile`, OCP domain events
@@ -834,7 +839,10 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (E-03): `src/adapters/integration/ocp/OcpWebSocketAdapter.ts`, `parseOcpMessage.ts`, `buildOcpCommandPayload.ts`, `src/adapters/mock/MockOcpGateway.ts`, `src/shared/scheduling/ReconnectScheduler.ts`, adapter tests
 - Implementation evidence (E-04): `src/application/use-cases/integration/ocp/ChangeOperatorStatusUseCase.ts`, `ConnectOcpUseCase.ts`, `LogoutOperatorUseCase.ts`, `ReservePostCallStatusUseCase.ts`, `AcceptCampaignUseCase.ts`, `RejectCampaignUseCase.ts`, `DisconnectOcpUseCase.ts`, `src/ports/integration/OcpOperatorReadModel.ts`, `src/ports/settings/DndReadModel.ts`, Use Case unit tests with `MockOcpGateway`
 - Implementation evidence (E-05): `src/application/projections/integration/operatorStatusProjection.ts`, `ocpSessionProjection.ts`, `ocpReasonsProjection.ts`, `campaignEventProjection.ts`, `OcpProjectionHub`, `OcpTelephonyBridgeService`, `OcpDndBridgeService`, `OcpNotificationService`, `OcpSipCredentialService`, bootstrap wiring in `createRealAccountBootstrap` / `createMockAccountBootstrap`, unit tests
-- Implementation evidence (E-06 logic): `OcpIntegrationSettings`, `UserSettings` schema v7 + `migrateUserSettings` v6→v7, `validateUserSettings` ocpIntegration, `OCP_TOKEN_SECRET_ID` via `SecretStoragePort`, `AccountBootstrapFacade` update/save/get/delete token + connect/disconnect OCP
+- Implementation evidence (E-06 logic): `OcpIntegrationSettings`, `UserSettings` schema v7 + `migrateUserSettings` v6→v7, `validateUserSettings` ocpIntegration (superseded by v8 HTTP-auth delta below)
+- Implementation evidence (HTTP auth 2026-07-15): UserSettings schema **v8** (`linked`, no `autoSipAuth`); `OCP_PROXY_API_KEY_SECRET_ID`; `OcpProxyAuthenticatePort` + `OcpProxyAuthenticateHttpAdapter` + `MockOcpProxyAuthenticatePort`; `OcpAuthenticateAndConnectService` (HTTP→WS→15s authenticated); Facade `connectOcp`/`signInViaOcp`/`getOcpSignInAvailability`/`authenticateOcpFromHost({ocpDomain,login,apiKey})`; `ocpSessionProjection.authFeedback` toasts; always-on `OcpSipCredentialService`; UI Integrations api-key + Account checkbox
+- Implementation evidence (login picker logic 2026-07-15): Domain `resolveOcpConnectLoginTarget` / `buildOcpConnectLoginOptions`; Facade `listOcpConnectLoginOptions`, `getOcpModulePanelState`, scoped `updateOcpSettings`/`saveOcpProxyApiKey` via `{ accountKey }`; `connectOcp({ login, accountKey? })` picker path vs active-SIP autoConnect/retry; cross-profile save does not apply live recovery side-effects
+- Implementation evidence (T-031 UI 2026-07-15): `useOcpSettingsPanel` login-scoped wiring; `OcpModuleSettingsCard` login Input (+ datalist when saved profiles); Connect disabled without login; i18n ru/en/fr/de/bg (`settings.integrations.ocp.login*`); component tests
 - Implementation evidence (T-021 / E-06 UI): Settings nav Integrations parent group + OCP Module child (`settings-nav-integrations` / `settings-nav-integrations-ocp`); `SettingsIntegrationsPanel` + `OcpModuleSettingsCard`; `useOcpSettingsPanel`; Zustand OCP projection sync via `OcpProjectionHub.subscribe`; `CallbackOcpNotificationPresenter` + `mapOcpNotificationToToastDescriptor` → `useNotifications`; i18n ru/en/fr/de/bg; component tests
 - Implementation evidence (E-07 UI): `OperatorStatusSelector` widget + `useOperatorStatusSelector`; pill chip (`width: auto`, max-width, ellipsis + title tooltip, translucent timer); `OcpStatusDropdown` Ready/Break subtitle groups; `OcpStatusTimer` / `OcpConnectionBanner` / `OcpProxyStatusScreen`; header slot in `SoftphoneShellHeader` + ReadyShell wiring; change-status Use Case bind; i18n `ocp.status.*` / `ocp.dropdown.*` / `ocp.connection.*` / `ocp.proxyStatus.*` / `ocp.operatorStatus.*`; stories + unit tests
 - Implementation evidence (E-08 UI): avatar «Выйти» reads live `OcpProjectionHub`; opens `OcpLogoutReasonModal` for any live OCP session (`connected|authenticated|connecting|reconnecting`); footer actions right-aligned; authenticated → `LogoutOperator` + SIP; connected-only → `disconnectOcp` + SIP; otherwise SIP-only; i18n `ocp.logout.modal.*`; hook/component tests

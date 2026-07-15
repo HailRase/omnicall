@@ -1,6 +1,9 @@
 import clsx from "clsx";
-import { useEffect, useState, type ChangeEvent, type JSX } from "react";
-import type { OcpIntegrationSettings } from "@application/index.js";
+import { useEffect, useId, useState, type ChangeEvent, type JSX } from "react";
+import type {
+  OcpConnectLoginOption,
+  OcpIntegrationSettings,
+} from "@application/index.js";
 import type { OcpSessionProjection } from "@application/projections/integration/ocpSessionProjection.js";
 import {
   resolveOcpStatusLabelKey,
@@ -15,19 +18,21 @@ import styles from "./OcpModuleSettingsCard.module.css";
 export type OcpModuleSettingsCardProps = Readonly<{
   settings: OcpIntegrationSettings;
   session: OcpSessionProjection;
-  tokenDraft: string;
-  tokenVisible: boolean;
-  hasSavedToken: boolean;
+  login: string;
+  loginOptions: ReadonlyArray<OcpConnectLoginOption>;
+  apiKeyDraft: string;
+  apiKeyVisible: boolean;
+  hasSavedApiKey: boolean;
   actionLoading: UseOcpSettingsPanelResult["actionLoading"];
   errorKey: OcpSettingsPanelErrorKey | null;
+  onLoginChange: (login: string) => void;
   onEnabledChange: (enabled: boolean) => void;
   onDomainChange: (domain: string) => void;
   onAutoConnectChange: (autoConnect: boolean) => void;
-  onAutoSipAuthChange: (autoSipAuth: boolean) => void;
-  onTokenDraftChange: (token: string) => void;
-  onTokenVisibleChange: (visible: boolean) => void;
-  onSaveToken: () => void;
-  onDeleteToken: () => void;
+  onApiKeyDraftChange: (apiKey: string) => void;
+  onApiKeyVisibleChange: (visible: boolean) => void;
+  onSaveApiKey: () => void;
+  onDeleteApiKey: () => void;
   onConnect: () => void;
   onDisconnect: () => void;
 }>;
@@ -44,37 +49,42 @@ const STATUS_DOT_CLASS: Record<OcpSessionProjection["connectionState"], string> 
 
 /**
  * - Purpose: present OCP Module configuration card inside Settings → Integrations.
- * - Inputs: settings + session projection + token/connection callbacks.
+ * - Inputs: login-scoped settings + session projection + connection callbacks.
  * - Outputs: localized controls without facade/SIP access.
  * @uiMeta f=F-028 lf=LF-018,LF-019
  */
 export function OcpModuleSettingsCard({
   settings,
   session,
-  tokenDraft,
-  tokenVisible,
-  hasSavedToken,
+  login,
+  loginOptions,
+  apiKeyDraft,
+  apiKeyVisible,
+  hasSavedApiKey,
   actionLoading,
   errorKey,
+  onLoginChange,
   onEnabledChange,
   onDomainChange,
   onAutoConnectChange,
-  onAutoSipAuthChange,
-  onTokenDraftChange,
-  onTokenVisibleChange,
-  onSaveToken,
-  onDeleteToken,
+  onApiKeyDraftChange,
+  onApiKeyVisibleChange,
+  onSaveApiKey,
+  onDeleteApiKey,
   onConnect,
   onDisconnect,
 }: OcpModuleSettingsCardProps): JSX.Element {
   const { t } = useI18n();
+  const loginListId = useId();
   const [domainDraft, setDomainDraft] = useState(settings.domain);
+  const hasLogin = login.trim().length > 0;
+  const hasLoginSuggestions = loginOptions.length > 0;
 
   useEffect(() => {
     setDomainDraft(settings.domain);
   }, [settings.domain]);
 
-  const fieldsDisabled = !settings.enabled;
+  const fieldsDisabled = !settings.enabled || !hasLogin;
   const isBusy = actionLoading !== null;
   const isConnected =
     session.connectionState === "connected" ||
@@ -82,6 +92,7 @@ export function OcpModuleSettingsCard({
     session.connectionState === "reconnecting";
   const canConnect =
     settings.enabled &&
+    hasLogin &&
     !isBusy &&
     session.connectionState !== "connecting" &&
     !isConnected;
@@ -90,9 +101,9 @@ export function OcpModuleSettingsCard({
     !isBusy &&
     (isConnected || session.connectionState === "connecting");
   const statusKey = resolveOcpStatusLabelKey(settings.enabled, session.connectionState);
-  const tokenToggleLabel = tokenVisible
-    ? t("settings.integrations.ocp.token.hide")
-    : t("settings.integrations.ocp.token.show");
+  const apiKeyToggleLabel = apiKeyVisible
+    ? t("settings.integrations.ocp.apiKey.hide")
+    : t("settings.integrations.ocp.apiKey.show");
 
   function handleDomainBlur(): void {
     const trimmed = domainDraft.trim();
@@ -103,6 +114,10 @@ export function OcpModuleSettingsCard({
 
   function handleDomainChange(event: ChangeEvent<HTMLInputElement>): void {
     setDomainDraft(event.target.value);
+  }
+
+  function handleLoginChange(event: ChangeEvent<HTMLInputElement>): void {
+    onLoginChange(event.target.value);
   }
 
   return (
@@ -126,11 +141,45 @@ export function OcpModuleSettingsCard({
             <Switch
               id="ocp-module-enabled"
               checked={settings.enabled}
-              disabled={isBusy}
+              disabled={isBusy || !hasLogin}
               data-testid="ocp-module-enabled-toggle"
               onCheckedChange={onEnabledChange}
             />
           </label>
+        </div>
+
+        <div className={formStyles.settingBlock}>
+          <label className={formStyles.fieldLabel} htmlFor="ocp-module-login">
+            {t("settings.integrations.ocp.login")}
+          </label>
+          <Input
+            id="ocp-module-login"
+            size="sm"
+            value={login}
+            disabled={isBusy}
+            list={hasLoginSuggestions ? loginListId : undefined}
+            autoComplete="username"
+            placeholder={t("settings.integrations.ocp.login.placeholder")}
+            data-testid="ocp-module-login-input"
+            aria-describedby="ocp-module-login-hint"
+            onChange={handleLoginChange}
+          />
+          {hasLoginSuggestions ? (
+            <datalist id={loginListId} data-testid="ocp-module-login-datalist">
+              {loginOptions.map((option) => (
+                <option
+                  key={option.accountKey}
+                  value={option.login}
+                  label={option.displayName}
+                />
+              ))}
+            </datalist>
+          ) : null}
+          <p className={formStyles.blockHint} id="ocp-module-login-hint">
+            {hasLoginSuggestions
+              ? t("settings.integrations.ocp.login.hintWithProfiles")
+              : t("settings.integrations.ocp.login.hint")}
+          </p>
         </div>
 
         <div
@@ -182,59 +231,37 @@ export function OcpModuleSettingsCard({
             fieldsDisabled && formStyles.settingBlockDisabled,
           )}
         >
-          <label className={formStyles.toggleRow} htmlFor="ocp-module-auto-sip-auth">
-            <span className={formStyles.toggleText}>
-              <span className={formStyles.toggleLabel}>
-                {t("settings.integrations.ocp.autoSipAuth")}
-              </span>
-            </span>
-            <Switch
-              id="ocp-module-auto-sip-auth"
-              checked={settings.autoSipAuth}
-              disabled={fieldsDisabled || isBusy}
-              data-testid="ocp-module-auto-sip-auth-toggle"
-              onCheckedChange={onAutoSipAuthChange}
-            />
-          </label>
-        </div>
-
-        <div
-          className={clsx(
-            formStyles.settingBlock,
-            fieldsDisabled && formStyles.settingBlockDisabled,
-          )}
-        >
-          <label className={formStyles.fieldLabel} htmlFor="ocp-module-token">
-            {t("settings.integrations.ocp.token")}
+          <label className={formStyles.fieldLabel} htmlFor="ocp-module-api-key">
+            {t("settings.integrations.ocp.apiKey")}
           </label>
           <div className={styles.tokenField}>
             <Input
-              id="ocp-module-token"
+              id="ocp-module-api-key"
               className={styles.tokenInput}
               size="sm"
-              type={tokenVisible ? "text" : "password"}
-              value={tokenDraft}
+              type={apiKeyVisible ? "text" : "password"}
+              value={apiKeyDraft}
               disabled={fieldsDisabled || isBusy}
               autoComplete="off"
               placeholder={
-                hasSavedToken
-                  ? t("settings.integrations.ocp.token.savedPlaceholder")
-                  : t("settings.integrations.ocp.token.placeholder")
+                hasSavedApiKey
+                  ? t("settings.integrations.ocp.apiKey.savedPlaceholder")
+                  : t("settings.integrations.ocp.apiKey.placeholder")
               }
-              data-testid="ocp-module-token-input"
+              data-testid="ocp-module-api-key-input"
               onChange={(event) => {
-                onTokenDraftChange(event.target.value);
+                onApiKeyDraftChange(event.target.value);
               }}
             />
             <IconButton
-              iconId={tokenVisible ? "form.password.show" : "form.password.hide"}
-              ariaLabel={tokenToggleLabel}
-              data-testid="ocp-module-token-visibility-toggle"
+              iconId={apiKeyVisible ? "form.password.show" : "form.password.hide"}
+              ariaLabel={apiKeyToggleLabel}
+              data-testid="ocp-module-api-key-visibility-toggle"
               variant="ghost"
               size="sm"
               disabled={fieldsDisabled || isBusy}
               onClick={() => {
-                onTokenVisibleChange(!tokenVisible);
+                onApiKeyVisibleChange(!apiKeyVisible);
               }}
             />
           </div>
@@ -242,27 +269,27 @@ export function OcpModuleSettingsCard({
             <Button
               size="sm"
               variant="secondary"
-              data-testid="ocp-module-token-save"
-              disabled={fieldsDisabled || isBusy || tokenDraft.trim().length === 0}
-              loading={actionLoading === "save-token"}
-              onClick={onSaveToken}
+              data-testid="ocp-module-api-key-save"
+              disabled={fieldsDisabled || isBusy || apiKeyDraft.trim().length === 0}
+              loading={actionLoading === "save-api-key"}
+              onClick={onSaveApiKey}
             >
-              {t("settings.integrations.ocp.token.save")}
+              {t("settings.integrations.ocp.apiKey.save")}
             </Button>
             <Button
               size="sm"
               variant="ghost"
-              data-testid="ocp-module-token-delete"
-              disabled={fieldsDisabled || isBusy || !hasSavedToken}
-              loading={actionLoading === "delete-token"}
-              onClick={onDeleteToken}
+              data-testid="ocp-module-api-key-delete"
+              disabled={fieldsDisabled || isBusy || !hasSavedApiKey}
+              loading={actionLoading === "delete-api-key"}
+              onClick={onDeleteApiKey}
             >
-              {t("settings.integrations.ocp.token.delete")}
+              {t("settings.integrations.ocp.apiKey.delete")}
             </Button>
           </div>
-          {hasSavedToken ? (
-            <p className={formStyles.blockHint} data-testid="ocp-module-token-saved-hint">
-              {t("settings.integrations.ocp.token.savedHint")}
+          {hasSavedApiKey ? (
+            <p className={formStyles.blockHint} data-testid="ocp-module-api-key-saved-hint">
+              {t("settings.integrations.ocp.apiKey.savedHint")}
             </p>
           ) : null}
         </div>
@@ -279,6 +306,11 @@ export function OcpModuleSettingsCard({
           {!settings.enabled ? (
             <p className={formStyles.blockHint} data-testid="ocp-module-enable-first-hint">
               {t("settings.integrations.ocp.connectDisabled.enableFirst")}
+            </p>
+          ) : null}
+          {settings.enabled && !hasLogin ? (
+            <p className={formStyles.blockHint} data-testid="ocp-module-login-required-hint">
+              {t("settings.integrations.ocp.connectDisabled.loginRequired")}
             </p>
           ) : null}
           <div className={formStyles.actionRow}>

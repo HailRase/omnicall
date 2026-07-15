@@ -30,7 +30,7 @@ export type MigrateUserSettingsResult =
   | Readonly<{ ok: false; error: SettingsMigrationError }>;
 
 /**
- * - Purpose: upgrade persisted or in-memory settings to UserSettings v7.
+ * - Purpose: upgrade persisted or in-memory settings to UserSettings v8.
  * - Inputs: unknown raw blob and optional v0 legacy fragments.
  * - Outputs: migrated UserSettings or migration error.
  */
@@ -63,12 +63,12 @@ export function migrateUserSettings(
     return { ok: true, value: validated.value };
   }
 
-  if (version === 6 || version === 5 || version === 4 || version === 3) {
-    return coerceToUserSettingsV7(record);
+  if (version === 7 || version === 6 || version === 5 || version === 4 || version === 3) {
+    return coerceToCurrentUserSettings(record);
   }
 
   if (version === 2) {
-    return coerceToUserSettingsV7({
+    return coerceToCurrentUserSettings({
       ...createDefaultUserSettings(),
       ...record,
       schemaVersion: SETTINGS_SCHEMA_VERSION,
@@ -109,7 +109,7 @@ function formatSchemaVersion(version: unknown): string {
   return "unknown";
 }
 
-function coerceToUserSettingsV7(
+function coerceToCurrentUserSettings(
   record: Record<string, unknown>,
 ): MigrateUserSettingsResult {
   const preferredRaw = record["headsetPreferredDeviceId"];

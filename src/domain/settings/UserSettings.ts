@@ -38,7 +38,7 @@ import {
   type OcpIntegrationSettings,
 } from "./OcpIntegrationSettings.js";
 
-export const SETTINGS_SCHEMA_VERSION = 7 as const;
+export const SETTINGS_SCHEMA_VERSION = 8 as const;
 
 export type SettingsSchemaVersion = typeof SETTINGS_SCHEMA_VERSION;
 

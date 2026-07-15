@@ -34,6 +34,8 @@ export type SettingsAccountPanelProps = Readonly<{
   rememberPasswordDisabled: boolean;
   rememberPasswordDisabledReasonKey: TranslationKey | null;
   passwordHintKey: TranslationKey | null;
+  authorizeViaOcpVisible: boolean;
+  authorizeViaOcpChecked: boolean;
   deleteConfirmationOpen: boolean;
   switchConfirmationOpen: boolean;
   switchFromLogin: string;
@@ -45,6 +47,7 @@ export type SettingsAccountPanelProps = Readonly<{
   onProfileSelect: (profileId: SavedAccountProfileId | null) => void;
   onSaveProfileChange: (checked: boolean) => void;
   onRememberPasswordChange: (checked: boolean) => void;
+  onAuthorizeViaOcpChange: (checked: boolean) => void;
   onForgetRememberedPassword: () => void;
   onDeleteProfileRequest: (profileId: SavedAccountProfileId) => void;
   onDeleteProfileConfirm: () => void;
@@ -80,6 +83,8 @@ export function SettingsAccountPanel({
   rememberPasswordDisabled,
   rememberPasswordDisabledReasonKey,
   passwordHintKey,
+  authorizeViaOcpVisible,
+  authorizeViaOcpChecked,
   deleteConfirmationOpen,
   switchConfirmationOpen,
   switchFromLogin,
@@ -91,6 +96,7 @@ export function SettingsAccountPanel({
   onProfileSelect,
   onSaveProfileChange,
   onRememberPasswordChange,
+  onAuthorizeViaOcpChange,
   onForgetRememberedPassword,
   onDeleteProfileRequest,
   onDeleteProfileConfirm,
@@ -153,10 +159,13 @@ export function SettingsAccountPanel({
           rememberPasswordChecked={rememberPasswordChecked}
           rememberPasswordDisabled={rememberPasswordDisabled}
           rememberPasswordDisabledReasonKey={rememberPasswordDisabledReasonKey}
+          authorizeViaOcpVisible={authorizeViaOcpVisible}
+          authorizeViaOcpChecked={authorizeViaOcpChecked}
           passwordInputRef={passwordInputRef}
           onFieldChange={onFieldChange}
           onSaveProfileChange={onSaveProfileChange}
           onRememberPasswordChange={onRememberPasswordChange}
+          onAuthorizeViaOcpChange={onAuthorizeViaOcpChange}
           onForgetRememberedPassword={onForgetRememberedPassword}
           onSubmit={onSubmit}
           onLogout={onLogout}

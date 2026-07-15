@@ -257,7 +257,7 @@ describe("OcpFullFlow integration (E-13)", () => {
       hub.dispose();
     });
 
-    it("SESSION_EXIST via mock marks projection proxyStatus without reconnect commands", async () => {
+    it("SESSION_EXIST via mock marks projection authFeedback without reconnect commands", async () => {
       const gateway = new MockOcpGateway();
       const hub = new OcpProjectionHub({ ocpGateway: gateway });
       const logger = createTestLogger({
@@ -279,7 +279,7 @@ describe("OcpFullFlow integration (E-13)", () => {
       });
 
       const session = hub.getSessionProjection();
-      expect(session.proxyStatus).toBe("SESSION_EXIST");
+      expect(session.authFeedback?.reason).toBe("SESSION_EXIST");
       expect(session.connectionState).toBe("sessionClosed");
       expect(session.isAuthenticated).toBe(false);
       expect(gateway.getSentCommands()).toHaveLength(0);

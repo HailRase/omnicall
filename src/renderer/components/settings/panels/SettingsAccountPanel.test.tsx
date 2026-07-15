@@ -98,6 +98,10 @@ const baseProps = {
 
   passwordHintKey: null,
 
+  authorizeViaOcpVisible: false,
+
+  authorizeViaOcpChecked: false,
+
   deleteConfirmationOpen: false,
   switchConfirmationOpen: false,
   switchFromLogin: "",
@@ -115,6 +119,8 @@ const baseProps = {
   onSaveProfileChange: vi.fn(),
 
   onRememberPasswordChange: vi.fn(),
+
+  onAuthorizeViaOcpChange: vi.fn(),
 
   onForgetRememberedPassword: vi.fn(),
 

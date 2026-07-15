@@ -53,6 +53,15 @@ export {
   OCP_INTEGRATION_DEFAULTS,
   parseOcpIntegrationSettings,
 } from "./settings/OcpIntegrationSettings.js";
+export type {
+  OcpConnectLoginOption,
+  OcpConnectLoginTarget,
+  OcpConnectLoginTargetResult,
+} from "./integration/ocp/resolveOcpConnectLoginTarget.js";
+export {
+  buildOcpConnectLoginOptions,
+  resolveOcpConnectLoginTarget,
+} from "./integration/ocp/resolveOcpConnectLoginTarget.js";
 export type { ValidateUserSettingsResult } from "./settings/validateUserSettings.js";
 export { validateUserSettings } from "./settings/validateUserSettings.js";
 export type {

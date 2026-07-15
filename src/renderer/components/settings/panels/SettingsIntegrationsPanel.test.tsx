@@ -3,6 +3,7 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createSettingsAccountKey } from "@application/index.js";
 import { initialOcpSessionProjection } from "@application/projections/integration/ocpSessionProjection.js";
 import { OCP_INTEGRATION_DEFAULTS } from "@application/index.js";
 import { setupJsdomRadix } from "../../../test/setupJsdomRadix.js";
@@ -23,19 +24,21 @@ function renderCard(
   const props = {
     settings: { ...OCP_INTEGRATION_DEFAULTS, enabled: true, domain: "ocp.example" },
     session: initialOcpSessionProjection(),
-    tokenDraft: "",
-    tokenVisible: false,
-    hasSavedToken: false,
+    login: "agent-1",
+    loginOptions: [],
+    apiKeyDraft: "",
+    apiKeyVisible: false,
+    hasSavedApiKey: false,
     actionLoading: null,
     errorKey: null,
+    onLoginChange: vi.fn(),
     onEnabledChange: vi.fn(),
     onDomainChange: vi.fn(),
     onAutoConnectChange: vi.fn(),
-    onAutoSipAuthChange: vi.fn(),
-    onTokenDraftChange: vi.fn(),
-    onTokenVisibleChange: vi.fn(),
-    onSaveToken: vi.fn(),
-    onDeleteToken: vi.fn(),
+    onApiKeyDraftChange: vi.fn(),
+    onApiKeyVisibleChange: vi.fn(),
+    onSaveApiKey: vi.fn(),
+    onDeleteApiKey: vi.fn(),
     onConnect: vi.fn(),
     onDisconnect: vi.fn(),
     ...overrides,
@@ -48,83 +51,84 @@ describe("OcpModuleSettingsCard", () => {
   it("disables fields and connect when module is off", () => {
     renderCard({
       settings: { ...OCP_INTEGRATION_DEFAULTS, enabled: false },
+      login: "agent-1",
     });
+    expect(screen.getByTestId("ocp-module-domain-input")).toBeDisabled();
+    expect(screen.getByTestId("ocp-module-api-key-input")).toBeDisabled();
+    expect(screen.queryByTestId("ocp-module-connect")).not.toBeInTheDocument();
+  });
 
-    expect(screen.getByTestId("ocp-module-status")).toHaveTextContent("Модуль выключен");
-    expect(screen.getByTestId("ocp-module-enable-first-hint")).toBeInTheDocument();
-    expect(screen.queryByTestId("ocp-module-connect")).toBeNull();
+  it("hides connect and shows hint when login is empty", () => {
+    renderCard({
+      settings: { ...OCP_INTEGRATION_DEFAULTS, enabled: true },
+      login: "",
+    });
+    expect(screen.queryByTestId("ocp-module-connect")).not.toBeInTheDocument();
+    expect(screen.getByTestId("ocp-module-login-required-hint")).toBeInTheDocument();
     expect(screen.getByTestId("ocp-module-domain-input")).toBeDisabled();
   });
 
-  it("emits enable toggle and connect when enabled", async () => {
+  it("calls connect when enabled with login", async () => {
     const user = userEvent.setup();
-    const props = renderCard();
-
-    await user.click(screen.getByTestId("ocp-module-enabled-toggle"));
-    expect(props.onEnabledChange).toHaveBeenCalledWith(false);
-
+    const props = renderCard({ hasSavedApiKey: true, login: "agent-1" });
     await user.click(screen.getByTestId("ocp-module-connect"));
     expect(props.onConnect).toHaveBeenCalled();
   });
 
-  it("emits token save/delete and shows disconnect when connected", async () => {
-    const user = userEvent.setup();
-    const props = renderCard({
-      tokenDraft: "secret-token",
-      hasSavedToken: true,
-      session: {
-        ...initialOcpSessionProjection(),
-        connectionState: "authenticated",
-        isAuthenticated: true,
-      },
+  it("renders datalist when saved profiles exist", () => {
+    renderCard({
+      loginOptions: [
+        {
+          login: "agent-a",
+          accountKey: createSettingsAccountKey("agent-a@pbx.example"),
+          displayName: "agent-a",
+        },
+      ],
     });
-
-    await user.click(screen.getByTestId("ocp-module-token-save"));
-    expect(props.onSaveToken).toHaveBeenCalled();
-
-    await user.click(screen.getByTestId("ocp-module-token-delete"));
-    expect(props.onDeleteToken).toHaveBeenCalled();
-
-    await user.click(screen.getByTestId("ocp-module-disconnect"));
-    expect(props.onDisconnect).toHaveBeenCalled();
-    expect(screen.getByTestId("ocp-module-status")).toHaveTextContent("Авторизовано");
+    expect(screen.getByTestId("ocp-module-login-datalist")).toBeInTheDocument();
+    expect(screen.getByTestId("ocp-module-login-input")).toHaveAttribute("list");
   });
 
-  it("shows domain required error key text", () => {
-    renderCard({
-      errorKey: "settings.integrations.ocp.error.domainRequired",
-    });
-    expect(screen.getByTestId("ocp-module-error")).toHaveTextContent("Укажите OCP Domain.");
+  it("uses plain input without datalist when no saved profiles", () => {
+    renderCard({ loginOptions: [] });
+    expect(screen.queryByTestId("ocp-module-login-datalist")).not.toBeInTheDocument();
+    expect(screen.getByTestId("ocp-module-login-input")).not.toHaveAttribute("list");
+  });
+
+  it("does not show auto SIP auth toggle", () => {
+    renderCard();
+    expect(screen.queryByTestId("ocp-module-auto-sip-auth-toggle")).not.toBeInTheDocument();
   });
 });
 
 describe("SettingsIntegrationsPanel", () => {
-  it("renders extensible panel with OCP card", () => {
+  it("renders OCP card", () => {
     render(
       <SettingsIntegrationsPanel
         ocp={{
           settings: { ...OCP_INTEGRATION_DEFAULTS },
           session: initialOcpSessionProjection(),
-          tokenDraft: "",
-          tokenVisible: false,
-          hasSavedToken: false,
+          login: "",
+          loginOptions: [],
+          apiKeyDraft: "",
+          apiKeyVisible: false,
+          hasSavedApiKey: false,
           actionLoading: null,
           errorKey: null,
+          onLoginChange: vi.fn(),
           onEnabledChange: vi.fn(),
           onDomainChange: vi.fn(),
           onAutoConnectChange: vi.fn(),
-          onAutoSipAuthChange: vi.fn(),
-          onTokenDraftChange: vi.fn(),
-          onTokenVisibleChange: vi.fn(),
-          onSaveToken: vi.fn(),
-          onDeleteToken: vi.fn(),
+          onApiKeyDraftChange: vi.fn(),
+          onApiKeyVisibleChange: vi.fn(),
+          onSaveApiKey: vi.fn(),
+          onDeleteApiKey: vi.fn(),
           onConnect: vi.fn(),
           onDisconnect: vi.fn(),
         }}
       />,
     );
-
-    expect(screen.getByTestId("settings-integrations-panel")).toBeInTheDocument();
     expect(screen.getByTestId("ocp-module-settings-card")).toBeInTheDocument();
+    expect(screen.getByTestId("ocp-module-login-input")).toBeInTheDocument();
   });
 });

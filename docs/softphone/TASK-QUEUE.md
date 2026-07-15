@@ -2,10 +2,12 @@
 
 > Optional queue for agents when user does not specify a task. `scope-intake` reads this after `STATUS.md`.
 
-**Updated:** 2026-07-14
+**Updated:** 2026-07-15
 
 | ID | Priority | Task | F-XXX | Command | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
+| T-031 | 0 | OCP Integrations login input-select + scoped settings wire | F-028 | `/ui` | done | closed 2026-07-15 — Input+datalist login; scoped save/connect; i18n 5 locales; next `/preflight` → `/review` |
+| T-030 | 0 | OCP HTTP authenticate + saved-account OCP sign-in | F-028 | `/logic` → `/ui` | done | HTTP auth + login-picker Application API (2026-07-15); UI picker → T-031; next `/preflight` → `/review` after T-031 |
 | T-029 | 0 | OCP status selector: current-first + width/ellipsis + break↔break UX | F-028 | `/logic` | done | closed 2026-07-14 — pin current in dropdown; fill to shell edge + IconTooltip; Break→Break verified |
 | T-028 | 0 | OCP status selector polish + single-step post-call modal | F-028 | `/ui` | done | closed 2026-07-14 — reason-only chip, hover border, no widen, post-call one-step |
 | T-027 | 0 | OCP status UX: break↔break, busy selector, reserve toast, post-call modal | F-028 | `/logic` | done | closed 2026-07-14 — FSM + ChangeOperatorStatus intent + OcpPostCallStatusModal |

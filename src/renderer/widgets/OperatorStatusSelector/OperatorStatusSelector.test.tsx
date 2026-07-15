@@ -68,7 +68,6 @@ function buildVm(
     isFailed: false,
     reconnectAttempt: 0,
     maxReconnectAttempts: 6,
-    proxyStatus: null,
     ...overrides,
   };
 }

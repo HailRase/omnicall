@@ -113,6 +113,8 @@ type UseAccountActionsResult = Readonly<{
   rememberPasswordDisabled: boolean;
   rememberPasswordDisabledReasonKey: TranslationKey | null;
   passwordHintKey: TranslationKey | null;
+  authorizeViaOcpVisible: boolean;
+  authorizeViaOcpChecked: boolean;
   profileSwitchAllowed: boolean;
   deleteConfirmationOpen: boolean;
   switchConfirmationOpen: boolean;
@@ -124,6 +126,7 @@ type UseAccountActionsResult = Readonly<{
   selectProfile: (profileId: SavedAccountProfileId | null) => void;
   setSaveProfileChecked: (checked: boolean) => void;
   setRememberPasswordChecked: (checked: boolean) => void;
+  setAuthorizeViaOcpChecked: (checked: boolean) => void;
   forgetRememberedPassword: () => void;
   requestDeleteSelectedProfile: (profileId: SavedAccountProfileId) => void;
   confirmDeleteSelectedProfile: () => void;
@@ -156,6 +159,8 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
   const [saveProfileChecked, setSaveProfileChecked] = useState(false);
   const [rememberPasswordChecked, setRememberPasswordChecked] = useState(false);
   const [hasRememberedPassword, setHasRememberedPassword] = useState(false);
+  const [authorizeViaOcpAvailable, setAuthorizeViaOcpAvailable] = useState(false);
+  const [authorizeViaOcpChecked, setAuthorizeViaOcpChecked] = useState(false);
   const [forcePasswordEntryForSelectedProfile, setForcePasswordEntryForSelectedProfile] =
     useState(false);
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
@@ -207,10 +212,24 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     forcePasswordEntry: forcePasswordEntryForSelectedProfile,
   });
 
-  const passwordFieldVisible = credentialPromptState.passwordFieldVisible;
-  const rememberPasswordVisible = credentialPromptState.rememberPasswordVisible;
-  const forgetRememberedPasswordVisible = credentialPromptState.forgetRememberedPasswordVisible;
-  const passwordHintKey: TranslationKey | null = credentialPromptState.passwordHintKey;
+  const authorizeViaOcpVisible =
+    authorizeViaOcpAvailable && selectedProfileId !== null && !isSipRegistered;
+  const passwordFieldVisible =
+    authorizeViaOcpVisible && authorizeViaOcpChecked
+      ? false
+      : credentialPromptState.passwordFieldVisible;
+  const rememberPasswordVisible =
+    authorizeViaOcpVisible && authorizeViaOcpChecked
+      ? false
+      : credentialPromptState.rememberPasswordVisible;
+  const forgetRememberedPasswordVisible =
+    authorizeViaOcpVisible && authorizeViaOcpChecked
+      ? false
+      : credentialPromptState.forgetRememberedPasswordVisible;
+  const passwordHintKey: TranslationKey | null =
+    authorizeViaOcpVisible && authorizeViaOcpChecked
+      ? null
+      : credentialPromptState.passwordHintKey;
   const rememberPasswordDisabled =
     panelMode === "newFull" && !saveProfileChecked;
   const rememberPasswordDisabledReasonKey: TranslationKey | null =
@@ -359,9 +378,30 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
       clearFeedback();
 
       const usedRememberedPasswordSignIn =
-        selectedProfileId !== null && !passwordFieldVisible;
+        selectedProfileId !== null && !passwordFieldVisible && !authorizeViaOcpChecked;
 
       try {
+        if (
+          authorizeViaOcpVisible &&
+          authorizeViaOcpChecked &&
+          selectedProfileId !== null
+        ) {
+          const login = (selectedProfile?.username ?? form.username).trim();
+          const ocpResult = await facade.signInViaOcp({
+            login,
+            accountKey: selectedProfileId,
+          });
+          if (isErr(ocpResult)) {
+            // SESSION_EXIST / timeout / HTTP errors surface via OCP authFeedback toasts.
+            scheduleFeedbackClear();
+            return;
+          }
+          setSuccessKey(ACCOUNT_SUCCESS_KEY);
+          scheduleFeedbackClear();
+          reloadSavedProfiles();
+          return;
+        }
+
         const result =
           selectedProfileId === null
             ? await facade.authorizeManualAccount(form, {
@@ -403,6 +443,8 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
       }
     })();
   }, [
+    authorizeViaOcpChecked,
+    authorizeViaOcpVisible,
     facade,
     form,
     reloadSavedProfiles,
@@ -410,6 +452,7 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     rememberPasswordChecked,
     scheduleFeedbackClear,
     passwordFieldVisible,
+    selectedProfile,
     selectedProfileId,
     submitting,
     clearFeedback,
@@ -574,6 +617,36 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
   }, [facade, selectedProfileId, savedProfiles]);
 
   useEffect(() => {
+    if (facade === null || selectedProfileId === null) {
+      setAuthorizeViaOcpAvailable(false);
+      setAuthorizeViaOcpChecked(false);
+      return;
+    }
+
+    let cancelled = false;
+    void facade
+      .getOcpSignInAvailability({ accountKey: selectedProfileId })
+      .then((result) => {
+        if (cancelled) {
+          return;
+        }
+        if (!result.ok) {
+          setAuthorizeViaOcpAvailable(false);
+          setAuthorizeViaOcpChecked(false);
+          return;
+        }
+        setAuthorizeViaOcpAvailable(result.value.available);
+        if (!result.value.available) {
+          setAuthorizeViaOcpChecked(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [facade, selectedProfileId, savedProfiles]);
+
+  useEffect(() => {
     if (
       facade === null ||
       !isSipRegistered ||
@@ -665,6 +738,8 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     rememberPasswordDisabled,
     rememberPasswordDisabledReasonKey,
     passwordHintKey,
+    authorizeViaOcpVisible,
+    authorizeViaOcpChecked,
     profileSwitchAllowed,
     deleteConfirmationOpen,
     switchConfirmationOpen,
@@ -676,6 +751,7 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     selectProfile,
     setSaveProfileChecked,
     setRememberPasswordChecked,
+    setAuthorizeViaOcpChecked,
     forgetRememberedPassword,
     requestDeleteSelectedProfile,
     confirmDeleteSelectedProfile,

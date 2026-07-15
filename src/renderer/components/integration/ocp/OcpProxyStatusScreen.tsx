@@ -1,5 +1,4 @@
 import type { JSX } from "react";
-import type { OcpProxyStatus } from "@application/index.js";
 import { useI18n } from "../../../i18n/index.js";
 import {
   Dialog,
@@ -12,8 +11,10 @@ import {
 import { Button } from "../../ui/button/index.js";
 import styles from "./OcpProxyStatusScreen.module.css";
 
+type OcpProxyBlockingStatus = "SESSION_EXIST" | "INVALID_TOKEN";
+
 export type OcpProxyStatusScreenProps = Readonly<{
-  proxyStatus: OcpProxyStatus | null;
+  proxyStatus: OcpProxyBlockingStatus | null;
   onOpenIntegrations: () => void;
 }>;
 

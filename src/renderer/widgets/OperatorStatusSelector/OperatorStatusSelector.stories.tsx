@@ -38,7 +38,6 @@ const authenticatedVm: OperatorStatusSelectorVm = {
   isFailed: false,
   reconnectAttempt: 0,
   maxReconnectAttempts: 6,
-  proxyStatus: null,
 };
 
 const meta = {

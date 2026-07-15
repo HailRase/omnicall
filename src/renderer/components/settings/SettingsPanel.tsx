@@ -150,24 +150,27 @@ export type SettingsPanelProps = Readonly<{
     rememberPasswordDisabled: boolean;
     rememberPasswordDisabledReasonKey: TranslationKey | null;
     passwordHintKey: TranslationKey | null;
-  deleteConfirmationOpen: boolean;
-  switchConfirmationOpen: boolean;
-  switchFromLogin: string;
-  switchToLogin: string;
-  passwordInputRef: RefObject<HTMLInputElement | null>;
+    authorizeViaOcpVisible: boolean;
+    authorizeViaOcpChecked: boolean;
+    deleteConfirmationOpen: boolean;
+    switchConfirmationOpen: boolean;
+    switchFromLogin: string;
+    switchToLogin: string;
+    passwordInputRef: RefObject<HTMLInputElement | null>;
     onFieldChange: (field: keyof SipAccountInput, value: string) => void;
     onSubmit: () => void;
     onLogout: () => void;
     onProfileSelect: (profileId: SavedAccountProfileId | null) => void;
     onSaveProfileChange: (checked: boolean) => void;
     onRememberPasswordChange: (checked: boolean) => void;
+    onAuthorizeViaOcpChange: (checked: boolean) => void;
     onForgetRememberedPassword: () => void;
     onDeleteProfileRequest: (profileId: SavedAccountProfileId) => void;
-  onDeleteProfileConfirm: () => void;
-  onDeleteProfileCancel: () => void;
-  onSwitchProfileConfirm: () => void;
-  onSwitchProfileCancel: () => void;
-}>;
+    onDeleteProfileConfirm: () => void;
+    onDeleteProfileCancel: () => void;
+    onSwitchProfileConfirm: () => void;
+    onSwitchProfileCancel: () => void;
+  }>;
 }>;
 
 /**
@@ -279,6 +282,8 @@ export function SettingsPanel({
           rememberPasswordDisabled={account.rememberPasswordDisabled}
           rememberPasswordDisabledReasonKey={account.rememberPasswordDisabledReasonKey}
           passwordHintKey={account.passwordHintKey}
+          authorizeViaOcpVisible={account.authorizeViaOcpVisible}
+          authorizeViaOcpChecked={account.authorizeViaOcpChecked}
           deleteConfirmationOpen={account.deleteConfirmationOpen}
           switchConfirmationOpen={account.switchConfirmationOpen}
           switchFromLogin={account.switchFromLogin}
@@ -290,6 +295,7 @@ export function SettingsPanel({
           onProfileSelect={account.onProfileSelect}
           onSaveProfileChange={account.onSaveProfileChange}
           onRememberPasswordChange={account.onRememberPasswordChange}
+          onAuthorizeViaOcpChange={account.onAuthorizeViaOcpChange}
           onForgetRememberedPassword={account.onForgetRememberedPassword}
           onDeleteProfileRequest={account.onDeleteProfileRequest}
           onDeleteProfileConfirm={account.onDeleteProfileConfirm}

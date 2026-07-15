@@ -11,6 +11,7 @@ import {
 import { OcpWebSocketAdapter } from "@adapters/integration/ocp/OcpWebSocketAdapter.js";
 import { LocalStorageOcpReasonsCache } from "@adapters/integration/ocp/LocalStorageOcpReasonsCache.js";
 import { CallbackOcpNotificationPresenter } from "@adapters/integration/ocp/CallbackOcpNotificationPresenter.js";
+import { OcpProxyAuthenticateHttpAdapter } from "@adapters/integration/ocp/OcpProxyAuthenticateHttpAdapter.js";
 import { createConsoleLogger } from "@infrastructure/logging/index.js";
 import type { Logger } from "@ports/index.js";
 import type { LogContext } from "@ports/index.js";
@@ -177,6 +178,11 @@ export function createRealAccountBootstrap(
       : new LocalStorageOcpReasonsCache(localStorage));
   const ocpNotificationPresenter =
     options.ocpNotificationPresenter ?? new CallbackOcpNotificationPresenter();
+  const ocpProxyAuthenticate =
+    options.ocpProxyAuthenticate ??
+    new OcpProxyAuthenticateHttpAdapter({
+      logger: createBootstrapLogger({ featureId: "F-028", boundedContext: "Integration" }),
+    });
 
   const facade = new AccountBootstrapFacade({
     telephonyGateway: configuredTelephonyGateway,
@@ -185,6 +191,7 @@ export function createRealAccountBootstrap(
     localMediaCapturePort: localMediaCapture,
     headsetGateway,
     ocpGateway,
+    ocpProxyAuthenticate,
     ...(ocpReasonsCache !== undefined ? { ocpReasonsCache } : {}),
     ocpNotificationPresenter,
     ...(savedAccountProfileRepository !== undefined
