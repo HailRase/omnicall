@@ -14,7 +14,6 @@ import {
   createPhoneNumber,
 } from "@domain/index.js";
 import { OperatorStatus } from "@domain/integration/ocp/OperatorStatus.js";
-import type { OcpConnectionState } from "@domain/integration/ocp/OcpConnectionState.js";
 import { createTestLogger } from "@infrastructure/logging/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { InMemoryDomainEventBus } from "../events/InMemoryDomainEventBus.js";
@@ -246,7 +245,8 @@ describe("OcpFullFlow integration (E-13)", () => {
 
       gateway.simulateMessage({ entity: "terminate" });
 
-      expect(gateway.getConnectionState()).toBe("sessionClosed");
+      // Transport closes to disconnected; projection keeps legacy sessionClosed.
+      expect(gateway.getConnectionState()).toBe("disconnected");
       expect(hub.getSessionProjection().connectionState).toBe("sessionClosed");
       expect(hub.getSessionProjection().isAuthenticated).toBe(false);
       expect(published).toContain("OperatorSessionEnded");
@@ -280,7 +280,11 @@ describe("OcpFullFlow integration (E-13)", () => {
 
       const session = hub.getSessionProjection();
       expect(session.authFeedback?.reason).toBe("SESSION_EXIST");
-      expect(session.connectionState).toBe("sessionClosed");
+      expect(session.authorizationState).toEqual({
+        phase: "rejected",
+        reason: "SESSION_EXIST",
+      });
+      expect(session.serverState).toBe("failed");
       expect(session.isAuthenticated).toBe(false);
       expect(gateway.getSentCommands()).toHaveLength(0);
 
@@ -288,7 +292,7 @@ describe("OcpFullFlow integration (E-13)", () => {
     });
   });
 
-  describe("WebSocket reconnect (OcpWebSocketAdapter)", () => {
+  describe("WebSocket transport-only (OcpWebSocketAdapter, ADR-AF-002)", () => {
     let instances: TestWebSocket[] = [];
     let adapter: OcpWebSocketAdapter;
 
@@ -304,8 +308,6 @@ describe("OcpFullFlow integration (E-13)", () => {
           boundedContext: "Integration",
         }),
         webSocketFactory: (url) => new WebSocket(url),
-        reconnectDelayMs: 5000,
-        maxReconnectAttempts: 6,
       });
     });
 
@@ -315,39 +317,32 @@ describe("OcpFullFlow integration (E-13)", () => {
       vi.unstubAllGlobals();
     });
 
-    it("exhausts 6 reconnect attempts then state = failed", () => {
-      const states: OcpConnectionState[] = [];
+    it("unexpected close sets failed and does not open stale-token sockets", () => {
+      const states: string[] = [];
       adapter.onConnectionStateChange((state) => {
         states.push(state);
       });
 
       adapter.connect({ domain: "ocp.example.com", authToken: "token-1" });
+      instances[0]?.simulateOpen();
+      instances[0]?.simulateClose();
 
-      for (let attempt = 0; attempt < 7; attempt += 1) {
-        instances.at(-1)?.simulateClose();
-        if (adapter.getConnectionState() === "failed") {
-          break;
-        }
-        vi.advanceTimersByTime(5000);
-      }
-
+      vi.advanceTimersByTime(30_000);
       expect(adapter.getConnectionState()).toBe("failed");
-      expect(states).toContain("reconnecting");
-      expect(states).toContain("failed");
-      expect(instances.length).toBeGreaterThanOrEqual(6);
+      expect(states).not.toContain("reconnecting");
+      expect(instances).toHaveLength(1);
     });
 
-    it("SESSION_EXIST → sessionClosed and no reconnect sockets", () => {
+    it("SESSION_EXIST → failed and no reconnect sockets", () => {
       adapter.connect({ domain: "ocp.example.com", authToken: "token-1" });
       instances[0]?.simulateOpen();
       instances[0]?.simulateMessage({
         entity: "Error",
         payload: { code: "SESSION_EXIST" },
       });
-      instances[0]?.simulateClose();
 
       vi.advanceTimersByTime(30_000);
-      expect(adapter.getConnectionState()).toBe("sessionClosed");
+      expect(adapter.getConnectionState()).toBe("failed");
       expect(instances).toHaveLength(1);
     });
   });

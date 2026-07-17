@@ -13,7 +13,6 @@ type UseAccountPanelShellInput = Readonly<{
   panelDisabled: boolean;
   authUiState: AuthUiState;
   sessionLogoutActions: UseSessionLogoutActionsResult;
-  profileSwitchAllowed?: boolean;
 }>;
 
 /**
@@ -30,7 +29,6 @@ export function useAccountPanelShell(
     panelDisabled,
     authUiState,
     sessionLogoutActions,
-    profileSwitchAllowed = false,
   } = input;
 
   return useMemo(
@@ -40,7 +38,6 @@ export function useAccountPanelShell(
         form,
         submitting,
         panelDisabled,
-        profileSwitchAllowed,
         sessionLogoutDisabledReason:
           authUiState === "sip_registered"
             ? sessionLogoutActions.shell.endSessionDisabledReason
@@ -50,7 +47,6 @@ export function useAccountPanelShell(
       authUiState,
       form,
       panelDisabled,
-      profileSwitchAllowed,
       sessionLogoutActions.shell.endSessionDisabledReason,
       submitting,
     ],

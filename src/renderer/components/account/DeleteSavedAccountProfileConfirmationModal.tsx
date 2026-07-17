@@ -14,6 +14,7 @@ import {
 
 export type DeleteSavedAccountProfileConfirmationModalProps = Readonly<{
   open: boolean;
+  loading?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }>;
@@ -25,6 +26,7 @@ export type DeleteSavedAccountProfileConfirmationModalProps = Readonly<{
  */
 export function DeleteSavedAccountProfileConfirmationModal({
   open,
+  loading = false,
   onConfirm,
   onCancel,
 }: DeleteSavedAccountProfileConfirmationModalProps): JSX.Element {
@@ -36,7 +38,9 @@ export function DeleteSavedAccountProfileConfirmationModal({
         data-testid="delete-saved-account-profile-modal"
         aria-label={t("account.profile.delete.confirmDialogAria")}
         onEscapeKeyDown={() => {
-          onCancel();
+          if (!loading) {
+            onCancel();
+          }
         }}
       >
         <AlertDialogHeader>
@@ -52,6 +56,7 @@ export function DeleteSavedAccountProfileConfirmationModal({
               variant="ghost"
               aria-label={t("account.profile.delete.cancelAria")}
               data-testid="delete-saved-account-profile-cancel"
+              disabled={loading}
               onClick={onCancel}
             >
               {t("common.cancel")}
@@ -62,6 +67,7 @@ export function DeleteSavedAccountProfileConfirmationModal({
               variant="destructive"
               aria-label={t("account.profile.delete.confirmAria")}
               data-testid="delete-saved-account-profile-confirm"
+              loading={loading}
               onClick={onConfirm}
             >
               {t("account.profile.delete")}

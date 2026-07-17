@@ -114,11 +114,42 @@ export const DisabledTab: Story = {
   ),
 };
 
+function SlidingModeTabs(): JSX.Element {
+  const [value, setValue] = useState("sip_only");
+
+  return (
+    <div style={{ display: "grid", gap: "var(--space-sm)", maxWidth: "28rem" }}>
+      <p style={{ margin: 0, color: "var(--color-text-secondary)", fontSize: "var(--font-size-xs)" }}>
+        Sliding selected thumb (`indicator="slide"`).
+      </p>
+      <Tabs value={value} onValueChange={setValue}>
+        <TabsList
+          aria-label="Account sign-in modes"
+          indicator="slide"
+          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", width: "100%" }}
+        >
+          <TabsTrigger value="sip_only" style={{ width: "100%" }}>
+            SIP only
+          </TabsTrigger>
+          <TabsTrigger value="ocp" style={{ width: "100%" }}>
+            OCP Module
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+    </div>
+  );
+}
+
+export const SlidingIndicator: Story = {
+  render: () => <SlidingModeTabs />,
+};
+
 export const LightTheme: Story = {
   parameters: { theme: "light" },
   render: () => (
     <div style={{ display: "grid", gap: "var(--space-lg)" }}>
       <SettingsTabs />
+      <SlidingModeTabs />
       <Tabs defaultValue="account" orientation="vertical">
         <div style={{ display: "flex", gap: "var(--space-md)", alignItems: "flex-start" }}>
           <TabsList aria-label="Vertical light theme sections">
@@ -144,6 +175,7 @@ export const DarkTheme: Story = {
   render: () => (
     <div style={{ display: "grid", gap: "var(--space-lg)" }}>
       <SettingsTabs />
+      <SlidingModeTabs />
       <Tabs defaultValue="account" orientation="vertical">
         <div style={{ display: "flex", gap: "var(--space-md)", alignItems: "flex-start" }}>
           <TabsList aria-label="Vertical dark theme sections">

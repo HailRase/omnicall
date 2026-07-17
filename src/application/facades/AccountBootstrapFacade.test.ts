@@ -24,9 +24,10 @@ import { NodeFileSystemAdapter } from "@infrastructure/filesystem/NodeFileSystem
 import type { SavedAccountProfileRepository } from "@ports/index.js";
 import {
   createSecretStorageScopeKey,
+  OCP_PROXY_API_KEY_SECRET_ID,
   SIP_PASSWORD_SECRET_ID,
 } from "@ports/secrets/SecretStoragePort.js";
-import { isErr } from "@shared/result/index.js";
+import { isErr, ok } from "@shared/result/index.js";
 import { mkdtemp, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
@@ -203,6 +204,7 @@ describe("AccountBootstrapFacade integration", () => {
       sipAutoReconnectEnabled: false,
     });
 
+    await facade.endUserSession.execute();
     await facade.authorizeManualAccount(accountB);
     expect(await settings.getActiveProfileKey()).toBe(keyB);
 
@@ -223,6 +225,7 @@ describe("AccountBootstrapFacade integration", () => {
       sipAutoReconnectEnabled: true,
     });
 
+    await facade.endUserSession.execute();
     await facade.authorizeManualAccount(accountA);
     expect(await settings.getActiveProfileKey()).toBe(keyA);
 
@@ -288,6 +291,7 @@ describe("AccountBootstrapFacade integration", () => {
       autoUnholdOnTransferFailure: true,
     });
 
+    await facade.endUserSession.execute();
     await facade.authorizeManualAccount(accountB);
     await facade.updateMultiCallSettings({
       multiSessionsEnabled: true,
@@ -372,6 +376,7 @@ describe("AccountBootstrapFacade integration", () => {
       autoUnholdOnTransferFailure: true,
     });
 
+    await facade.endUserSession.execute();
     await facade.authorizeManualAccount({
       username: "1002",
       password: "secret-b",
@@ -628,7 +633,7 @@ describe("AccountBootstrapFacade integration", () => {
     expect((await settings.getUserSettings(key)).language).toBe("en");
   });
 
-  it("succeeds manual auth when save profile metadata fails after registration", async () => {
+  it("blocks login when opted-in save profile metadata fails before attempt", async () => {
     const telephony = new MockTelephonyGateway({ registrationScenario: "success" });
     const baseRepo = new InMemorySavedAccountProfileRepository();
     const failingRepo: SavedAccountProfileRepository = {
@@ -636,9 +641,11 @@ describe("AccountBootstrapFacade integration", () => {
       getProfileById: (id) => baseRepo.getProfileById(id),
       deleteProfile: (id) => baseRepo.deleteProfile(id),
       touchLastUsedAt: (id) => baseRepo.touchLastUsedAt(id),
+      markProfileSuccessful: (id, at) => baseRepo.markProfileSuccessful(id, at),
       saveProfile: () => Promise.reject(new Error("profile persistence failed")),
     };
-    const facade = new AccountBootstrapFacade({      telephonyGateway: telephony,
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: telephony,
       mediaGateway: new MockMediaGateway(),
       settingsRepository: new InMemorySettingsRepository({
         bootstrapConfig: {},
@@ -657,12 +664,8 @@ describe("AccountBootstrapFacade integration", () => {
       { saveProfile: true },
     );
 
-    expect(isErr(result)).toBe(false);
-    if (!result.ok) {
-      return;
-    }
-    expect(result.value.metadataWarning).toBe("profile_save_failed");
-    expect(telephony.isRegistered()).toBe(true);
+    expect(isErr(result)).toBe(true);
+    expect(telephony.isRegistered()).toBe(false);
     expect(await failingRepo.listProfiles()).toHaveLength(0);
   });
 
@@ -673,7 +676,8 @@ describe("AccountBootstrapFacade integration", () => {
       listProfiles: () => baseRepo.listProfiles(),
       getProfileById: (id) => baseRepo.getProfileById(id),
       deleteProfile: (id) => baseRepo.deleteProfile(id),
-      saveProfile: (input) => baseRepo.saveProfile(input),
+      saveProfile: (input, options) => baseRepo.saveProfile(input, options),
+      markProfileSuccessful: (id, at) => baseRepo.markProfileSuccessful(id, at),
       touchLastUsedAt: () => Promise.reject(new Error("touch failed")),
     };
     const facade = new AccountBootstrapFacade({      telephonyGateway: telephony,
@@ -700,11 +704,11 @@ describe("AccountBootstrapFacade integration", () => {
     if (!result.ok) {
       return;
     }
-    expect(result.value.metadataWarning).toBe("profile_touch_failed");
+    expect(result.value.metadataWarnings).toContain("profile_touch_failed");
     expect(telephony.isRegistered()).toBe(true);
   });
 
-  it("ends current user session before authorizing a different profile", async () => {
+  it("rejects authorize while SIP session is active without unregistering", async () => {
     const telephony = new MockTelephonyGateway({ registrationScenario: "success" });
     const settings = new InMemorySettingsRepository({
       bootstrapConfig: {},
@@ -733,16 +737,35 @@ describe("AccountBootstrapFacade integration", () => {
 
     const endSessionSpy = vi.spyOn(facade.endUserSession, "execute");
 
-    const result = await facade.authorizeManualAccount(accountB);
-    expect(isErr(result)).toBe(false);
-    expect(endSessionSpy).toHaveBeenCalledOnce();
+    const otherResult = await facade.authorizeManualAccount(accountB);
+    expect(isErr(otherResult)).toBe(true);
+    if (!isErr(otherResult)) {
+      return;
+    }
+    expect(otherResult.error.message).toBe("account_sign_in_logout_required");
+    expect(otherResult.error.cause).toEqual({
+      reason: "account.signIn.disabled.logoutFirst",
+    });
+
+    const sameResult = await facade.authorizeManualAccount(accountA);
+    expect(isErr(sameResult)).toBe(true);
+    expect(endSessionSpy).not.toHaveBeenCalled();
     expect(telephony.isRegistered()).toBe(true);
     const stored = await settings.getSipAccount();
-    expect(stored?.username).toBe("1002");
+    expect(stored?.username).toBe("1001");
   });
 
-  it("saves remembered SIP password only after successful manual auth", async () => {
+  it("promotes profile/settings on Login even when SIP registration fails (ADR-AF-005)", async () => {
     const secretStorage = new InMemorySecretStorageAdapter();
+    const savedProfiles = new InMemorySavedAccountProfileRepository();
+    const settings = new InMemorySettingsRepository({ bootstrapConfig: {} });
+    const previousKey = deriveSettingsAccountKeyFromIdentity({
+      username: "active.user",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    });
+    await settings.setActiveProfileKey(previousKey);
+
     const account = {
       username: "max.operator",
       password: "secret",
@@ -756,31 +779,36 @@ describe("AccountBootstrapFacade integration", () => {
     const failingFacade = new AccountBootstrapFacade({
       telephonyGateway: new MockTelephonyGateway({ registrationScenario: "failure" }),
       mediaGateway: new MockMediaGateway(),
-      settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
+      settingsRepository: settings,
+      savedAccountProfileRepository: savedProfiles,
       secretStoragePort: secretStorage,
       logger: createTestLogger(),
     });
 
-    const failed = await failingFacade.authorizeManualAccount(
-      { ...account, password: "wrong" },
-      { rememberPassword: true },
-    );
-    expect(isErr(failed)).toBe(true);
-    await expect(secretStorage.loadSecret(scopeKey, SIP_PASSWORD_SECRET_ID)).resolves.toBeNull();
-
-    const facade = new AccountBootstrapFacade({
-      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
-      mediaGateway: new MockMediaGateway(),
-      settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
-      secretStoragePort: secretStorage,
-      logger: createTestLogger(),
+    const activated = await failingFacade.authorizeManualAccount(account, {
+      saveProfile: true,
+      rememberPassword: true,
     });
-
-    const success = await facade.authorizeManualAccount(account, { rememberPassword: true });
-    expect(isErr(success)).toBe(false);
+    expect(isErr(activated)).toBe(false);
+    if (!activated.ok) {
+      return;
+    }
+    expect(activated.value.telephony.status).toBe("registration_failed");
     await expect(secretStorage.loadSecret(scopeKey, SIP_PASSWORD_SECRET_ID)).resolves.toBe(
       "secret",
     );
+    expect(await settings.getActiveProfileKey()).toBe(
+      deriveSettingsAccountKeyFromIdentity(account),
+    );
+    const promoted = await savedProfiles.listProfiles();
+    expect(promoted[0]?.lifecycleStatus).toBe("successful");
+
+    // Login locked while account session active even without SIP-ready.
+    const blocked = await failingFacade.authorizeManualAccount({
+      ...account,
+      username: "other.user",
+    });
+    expect(isErr(blocked)).toBe(true);
   });
 
   it("authorizes saved profile with remembered password when password field is empty", async () => {
@@ -845,13 +873,32 @@ describe("AccountBootstrapFacade integration", () => {
     if (profileId === undefined) {
       return;
     }
+    const legacyScopeKey = createSecretStorageScopeKey(
+      deriveLegacyUsernameOnlySettingsAccountKeyFromIdentity(account),
+    );
+    await secretStorage.saveSecret(
+      scopeKey,
+      OCP_PROXY_API_KEY_SECRET_ID,
+      "profile-api-key",
+    );
+    await secretStorage.saveSecret(
+      legacyScopeKey,
+      OCP_PROXY_API_KEY_SECRET_ID,
+      "legacy-api-key",
+    );
 
     const deleted = await facade.deleteSavedAccountProfile(profileId);
     expect(deleted.ok).toBe(true);
     await expect(secretStorage.loadSecret(scopeKey, SIP_PASSWORD_SECRET_ID)).resolves.toBeNull();
+    await expect(
+      secretStorage.loadSecret(scopeKey, OCP_PROXY_API_KEY_SECRET_ID),
+    ).resolves.toBeNull();
+    await expect(
+      secretStorage.loadSecret(legacyScopeKey, OCP_PROXY_API_KEY_SECRET_ID),
+    ).resolves.toBeNull();
   });
 
-  it("returns non-blocking warning when remembered password save fails", async () => {
+  it("blocks login when opted-in remembered password save fails", async () => {
     const failingSecretStorage: InMemorySecretStorageAdapter = new InMemorySecretStorageAdapter();
     vi.spyOn(failingSecretStorage, "saveSecret").mockRejectedValue(
       new Error("encryption_unavailable"),
@@ -875,11 +922,8 @@ describe("AccountBootstrapFacade integration", () => {
       { rememberPassword: true },
     );
 
-    expect(isErr(result)).toBe(false);
-    if (!result.ok) {
-      return;
-    }
-    expect(result.value.metadataWarning).toBe("password_save_failed");
+    expect(isErr(result)).toBe(true);
+    await expect(facade.getActiveSipAccount()).resolves.toBeNull();
   });
 
   it("forgetRememberedSipPassword deletes only secret and keeps profile", async () => {
@@ -940,6 +984,44 @@ describe("AccountBootstrapFacade integration", () => {
       return;
     }
     expect(result.error.code).toBe("not_found");
+  });
+
+  it("loads saved secrets only through the selected-profile boundary", async () => {
+    const secretStorage = new InMemorySecretStorageAdapter();
+    const savedProfiles = new InMemorySavedAccountProfileRepository();
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: new InMemorySettingsRepository({ bootstrapConfig: {} }),
+      savedAccountProfileRepository: savedProfiles,
+      secretStoragePort: secretStorage,
+      logger: createTestLogger(),
+    });
+    const account = {
+      username: "boundary.user",
+      password: "sip-secret",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    };
+    await facade.authorizeManualAccount(account, {
+      saveProfile: true,
+      rememberPassword: true,
+    });
+    const profileId = (await savedProfiles.listProfiles())[0]?.id;
+    expect(profileId).toBeDefined();
+    if (profileId === undefined) {
+      return;
+    }
+    await secretStorage.saveSecret(
+      createSecretStorageScopeKey(profileId),
+      OCP_PROXY_API_KEY_SECRET_ID,
+      "ocp-secret",
+    );
+
+    const result = await facade.loadSavedAccountProfileSecrets(profileId);
+    expect(result).toEqual(
+      ok({ sipPassword: "sip-secret", ocpApiKey: "ocp-secret" }),
+    );
   });
 
   it("getActiveSipAccount returns session account after auth and null after logout", async () => {
@@ -1007,6 +1089,77 @@ describe("AccountBootstrapFacade integration", () => {
     const connected = headset.getConnectedDevice();
     expect(connected).not.toBeNull();
     expect(connected?.id).toBe("mock-headset-2");
+  });
+
+  it("skips startup SIP registration when sipAutoRegisterOnStartup is disabled", async () => {
+    const telephony = new MockTelephonyGateway({ registrationScenario: "success" });
+    const account = createSipAccount(createSipAccountId("startup-user"), {
+      username: "startup-user",
+      password: "secret",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    });
+    const settings = new InMemorySettingsRepository({
+      bootstrapConfig: {},
+      phoneStatus: "online",
+    });
+    await settings.saveSipAccount(account);
+    const accountKey = deriveSettingsAccountKeyFromIdentity({
+      username: account.username,
+      domain: account.domain,
+      server: account.server,
+    });
+    await settings.saveUserSettings(accountKey, {
+      ...createDefaultUserSettings(),
+      sipAutoRegisterOnStartup: false,
+    });
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: telephony,
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: settings,
+      logger: createTestLogger(),
+    });
+
+    await facade.initialize({});
+
+    expect(telephony.isRegistered()).toBe(false);
+    expect(facade.hasStartupRegistrationFailure()).toBe(false);
+  });
+
+  it("surfaces startup registration failure when sipAutoRegisterOnStartup is enabled", async () => {
+    const telephony = new MockTelephonyGateway({ registrationScenario: "failure" });
+    const account = createSipAccount(createSipAccountId("startup-fail"), {
+      username: "startup-fail",
+      password: "secret",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    });
+    const settings = new InMemorySettingsRepository({
+      bootstrapConfig: {},
+      phoneStatus: "online",
+    });
+    await settings.saveSipAccount(account);
+    const accountKey = deriveSettingsAccountKeyFromIdentity({
+      username: account.username,
+      domain: account.domain,
+      server: account.server,
+    });
+    await settings.saveUserSettings(accountKey, {
+      ...createDefaultUserSettings(),
+      sipAutoRegisterOnStartup: true,
+    });
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: telephony,
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: settings,
+      logger: createTestLogger(),
+    });
+
+    await facade.initialize({});
+
+    expect(facade.hasStartupRegistrationFailure()).toBe(true);
+    const retryResult = await facade.retryStartupRegistration();
+    expect(retryResult.ok).toBe(false);
   });
 
   const ocpTestSipAccount = createSipAccount(createSipAccountId("ocp-agent"), {
@@ -1097,14 +1250,111 @@ describe("AccountBootstrapFacade integration", () => {
     await vi.waitFor(() => {
       expect(gateway.getConnectionState()).toBe("connected");
     });
-    gateway.simulateAuthSuccess(1);
+    gateway.simulateAuthSuccessWithCredentials(1, {
+      username: ocpTestSipAccount.username,
+      domain: ocpTestSipAccount.domain,
+      server: ocpTestSipAccount.server,
+    });
     const connectResult = await connectPending;
     expect(connectResult.ok).toBe(true);
-    expect(gateway.getConnectionState()).toBe("authenticated");
+    expect(gateway.getConnectionState()).toBe("connected");
+    expect(facade.getOcpConnectionState()).toBe("authenticated");
+    expect(
+      facade.getOcpSessionSnapshot().authorizationProgress.stage,
+    ).toBe("ready");
 
     const disconnectResult = await facade.disconnectOcp();
     expect(disconnectResult.ok).toBe(true);
     expect(gateway.getConnectionState()).toBe("disconnected");
+  });
+
+  it("keeps OCP proxy domain for reconnect token when creds use a distinct SIP domain", async () => {
+    const { MockOcpGateway } = await import("@adapters/mock/MockOcpGateway.js");
+    const gateway = new MockOcpGateway();
+    const settings = new InMemorySettingsRepository({ bootstrapConfig: {} });
+    const profiles = new InMemorySavedAccountProfileRepository();
+    const proxy = new MockOcpProxyAuthenticatePort();
+    await settings.saveSipAccount(ocpTestSipAccount);
+    const accountKey = deriveSettingsAccountKeyFromIdentity(ocpTestSipAccount);
+    await profiles.saveProfile(
+      {
+        username: ocpTestSipAccount.username,
+        domain: ocpTestSipAccount.domain,
+        server: ocpTestSipAccount.server,
+      },
+      { ocpDomain: "ocp.example.com", lifecycleStatus: "successful" },
+    );
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: settings,
+      savedAccountProfileRepository: profiles,
+      secretStoragePort: new InMemorySecretStorageAdapter(),
+      ocpGateway: gateway,
+      ocpProxyAuthenticate: proxy,
+      logger: createTestLogger(),
+    });
+
+    await facade.updateOcpSettings(
+      {
+        enabled: true,
+        domain: "ocp.example.com",
+        autoConnect: false,
+        linked: false,
+      },
+      { accountKey },
+    );
+    await facade.saveOcpProxyApiKey("api-key-abc", { accountKey });
+
+    const connectPending = facade.connectOcp();
+    await vi.waitFor(() => {
+      expect(gateway.getConnectionState()).toBe("connected");
+    });
+    gateway.simulateAuthSuccessWithCredentials(1, {
+      username: ocpTestSipAccount.username,
+      domain: ocpTestSipAccount.domain,
+      server: ocpTestSipAccount.server,
+    });
+    expect((await connectPending).ok).toBe(true);
+    // Creds SIP host must not replace OCP proxy hostname (root cause of wrong token URL).
+    expect(facade.getOcpSessionSnapshot().domain).toBe("ocp.example.com");
+    expect(facade.getOcpSessionSnapshot().primaryRecoveryAction).toBe("reconnect");
+
+    const afterConnect = await settings.getUserSettings(accountKey);
+    expect(afterConnect.ocpIntegration.domain).toBe("ocp.example.com");
+    expect(proxy.calls.map((call) => call.domain)).toEqual(["ocp.example.com"]);
+
+    // Simulate legacy pollution: settings accidentally equal SIP PBX host.
+    await facade.updateOcpSettings(
+      {
+        ...afterConnect.ocpIntegration,
+        domain: ocpTestSipAccount.domain,
+      },
+      { accountKey },
+    );
+
+    const reconnectPending = facade.dispatchAccountRecoveryAction("reconnect");
+    await vi.waitFor(() => {
+      expect(proxy.calls.length).toBe(2);
+      expect(proxy.calls.at(-1)?.domain).toBe("ocp.example.com");
+    });
+    await vi.waitFor(() => {
+      expect(gateway.getConnectionState()).toBe("connected");
+    });
+    gateway.simulateAuthSuccessWithCredentials(2, {
+      username: ocpTestSipAccount.username,
+      domain: ocpTestSipAccount.domain,
+      server: ocpTestSipAccount.server,
+    });
+    const reconnectResult = await reconnectPending;
+    expect(reconnectResult.ok).toBe(true);
+    // Exactly one fresh-token HTTP call for Reconnect — no delayed transport-recovery twin.
+    expect(proxy.calls.map((call) => call.domain)).toEqual([
+      "ocp.example.com",
+      "ocp.example.com",
+    ]);
+    const healed = await settings.getUserSettings(accountKey);
+    expect(healed.ocpIntegration.domain).toBe("ocp.example.com");
   });
 
   it("rejects empty OCP api key saves", async () => {
@@ -1144,7 +1394,11 @@ describe("AccountBootstrapFacade integration", () => {
     await vi.waitFor(() => {
       expect(gateway.getConnectionState()).toBe("connected");
     });
-    gateway.simulateAuthSuccess(9);
+    gateway.simulateAuthSuccessWithCredentials(9, {
+      username: "ocp-agent",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    });
     const authResult = await authPending;
     expect(authResult.ok).toBe(true);
     expect(facade.getOcpConnectionState()).toBe("authenticated");
@@ -1206,11 +1460,16 @@ describe("AccountBootstrapFacade integration", () => {
     await vi.waitFor(() => {
       expect(gateway.getConnectionState()).toBe("connected");
     });
-    gateway.simulateAuthSuccess(1);
+    gateway.simulateAuthSuccessWithCredentials(1, {
+      username: ocpTestSipAccount.username,
+      domain: ocpTestSipAccount.domain,
+      server: ocpTestSipAccount.server,
+    });
     const result = await autoConnectPending;
     expect(result.ok).toBe(true);
     expect(connectSpy).toHaveBeenCalledTimes(1);
-    expect(gateway.getConnectionState()).toBe("authenticated");
+    expect(gateway.getConnectionState()).toBe("connected");
+    expect(facade.getOcpConnectionState()).toBe("authenticated");
   });
 
   it("skips autoConnect when api key missing", async () => {
@@ -1297,7 +1556,11 @@ describe("AccountBootstrapFacade integration", () => {
     await vi.waitFor(() => {
       expect(gateway.getConnectionState()).toBe("connected");
     });
-    gateway.simulateAuthSuccess(3);
+    gateway.simulateAuthSuccessWithCredentials(3, {
+      username: ocpTestSipAccount.username,
+      domain: ocpTestSipAccount.domain,
+      server: ocpTestSipAccount.server,
+    });
     const connectResult = await connectPending;
     expect(connectResult.ok).toBe(true);
 
@@ -1458,7 +1721,11 @@ describe("AccountBootstrapFacade integration", () => {
     await vi.waitFor(() => {
       expect(gateway.getConnectionState()).toBe("connected");
     });
-    gateway.simulateAuthSuccess(7);
+    gateway.simulateAuthSuccessWithCredentials(7, {
+      username: "brand-new",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    });
     const connectResult = await connectPending;
     expect(connectResult.ok).toBe(true);
 
@@ -1485,5 +1752,59 @@ describe("AccountBootstrapFacade integration", () => {
     if (!result.ok) {
       expect(result.error.message).toBe("login_required");
     }
+  });
+
+  it("retries preserved OCP authorization after SESSION_EXIST failure", async () => {
+    const { MockOcpGateway } = await import("@adapters/mock/MockOcpGateway.js");
+    const gateway = new MockOcpGateway();
+    const proxy = new MockOcpProxyAuthenticatePort();
+    proxy.setBehavior({ kind: "session_exist" });
+    const settings = new InMemorySettingsRepository({ bootstrapConfig: {} });
+    await settings.saveSipAccount(ocpTestSipAccount);
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: settings,
+      secretStoragePort: new InMemorySecretStorageAdapter(),
+      ocpGateway: gateway,
+      ocpProxyAuthenticate: proxy,
+      logger: createTestLogger(),
+    });
+
+    await facade.updateOcpSettings({
+      enabled: true,
+      domain: "ocp.example.com",
+      autoConnect: false,
+      linked: false,
+    });
+    await facade.saveOcpProxyApiKey("api-key-abc");
+
+    const first = await facade.connectOcp();
+    expect(first.ok).toBe(false);
+    if (!first.ok) {
+      expect(first.error.message).toBe("ocp_session_exist");
+    }
+    expect(
+      facade.getOcpSessionSnapshot().authorizationProgress.stage,
+    ).toBe("ocp_session_exist");
+    expect(
+      facade.getOcpSessionSnapshot().authorizationProgress.retryAvailable,
+    ).toBe(true);
+
+    proxy.setBehavior({ kind: "token", token: "retry-token" });
+    const retryPending = facade.retryAuthorization();
+    await vi.waitFor(() => {
+      expect(gateway.getConnectionState()).toBe("connected");
+    });
+    gateway.simulateAuthSuccessWithCredentials(99, {
+      username: ocpTestSipAccount.username,
+      domain: ocpTestSipAccount.domain,
+      server: ocpTestSipAccount.server,
+    });
+    const retryResult = await retryPending;
+    expect(retryResult.ok).toBe(true);
+    expect(
+      facade.getOcpSessionSnapshot().authorizationProgress.stage,
+    ).toBe("ready");
   });
 });

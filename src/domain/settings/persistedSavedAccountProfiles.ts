@@ -4,8 +4,11 @@ import {
   createSavedAccountProfileId,
   type SavedAccountProfile,
 } from "./SavedAccountProfile.js";
+import type { SavedAccountProfileLifecycleStatus } from "./savedAccountProfileLifecycle.js";
+import { resolveSavedAccountProfileLifecycleStatus } from "./savedAccountProfileLifecycle.js";
 
-export const SAVED_ACCOUNT_PROFILES_SCHEMA_VERSION = 1 as const;
+export const SAVED_ACCOUNT_PROFILES_SCHEMA_VERSION = 2 as const;
+export const SAVED_ACCOUNT_PROFILES_LEGACY_SCHEMA_VERSION = 1 as const;
 
 export type SavedAccountProfilesDocumentV1 = Readonly<{
   schemaVersion: typeof SAVED_ACCOUNT_PROFILES_SCHEMA_VERSION;
@@ -25,30 +28,33 @@ export type SavedAccountProfilesParseResult =
       readonly error: Readonly<{ readonly code: SavedAccountProfilesParseErrorCode }>;
     };
 
-type PersistedSavedAccountProfileRecordV1 = Readonly<{
+type PersistedSavedAccountProfileRecordV2 = Readonly<{
   id: string;
   username: string;
   domain: string;
   server: string;
   displayName: string;
+  lifecycleStatus?: SavedAccountProfileLifecycleStatus;
   createdAt?: string;
   lastUsedAt?: string;
+  successfulUseAt?: string;
+  ocpDomain?: string;
 }>;
 
-type PersistedSavedAccountProfilesDocumentV1 = Readonly<{
+type PersistedSavedAccountProfilesDocumentV2 = Readonly<{
   schemaVersion: typeof SAVED_ACCOUNT_PROFILES_SCHEMA_VERSION;
-  profiles: ReadonlyArray<PersistedSavedAccountProfileRecordV1>;
+  profiles: ReadonlyArray<PersistedSavedAccountProfileRecordV2>;
 }>;
 
 /**
  * - Purpose: serialize saved account profiles document for atomic persistence.
  * - Inputs: validated SavedAccountProfile list.
- * - Outputs: JSON string without secret fields.
+ * - Outputs: JSON string without secret fields (schema v2).
  */
 export function serializeSavedAccountProfilesDocument(
   profiles: ReadonlyArray<SavedAccountProfile>,
 ): string {
-  const document: PersistedSavedAccountProfilesDocumentV1 = {
+  const document: PersistedSavedAccountProfilesDocumentV2 = {
     schemaVersion: SAVED_ACCOUNT_PROFILES_SCHEMA_VERSION,
     profiles: profiles.map(toPersistedSavedAccountProfileRecord),
   };
@@ -60,7 +66,7 @@ export function serializeSavedAccountProfilesDocument(
 
 /**
  * - Purpose: parse unknown JSON into saved account profiles document.
- * - Inputs: parsed JSON value from profiles store file.
+ * - Inputs: parsed JSON value from profiles store file (v1 or v2).
  * - Outputs: validated document or classified parse error.
  */
 export function parsePersistedSavedAccountProfilesDocument(
@@ -78,8 +84,10 @@ export function parsePersistedSavedAccountProfilesDocument(
 
   const record = raw as Record<string, unknown>;
   const schemaVersion = record["schemaVersion"];
+  const acceptsLegacy = schemaVersion === SAVED_ACCOUNT_PROFILES_LEGACY_SCHEMA_VERSION;
+  const acceptsCurrent = schemaVersion === SAVED_ACCOUNT_PROFILES_SCHEMA_VERSION;
 
-  if (schemaVersion !== SAVED_ACCOUNT_PROFILES_SCHEMA_VERSION) {
+  if (!acceptsLegacy && !acceptsCurrent) {
     return { ok: false, error: { code: "unsupported_schema_version" } };
   }
 
@@ -91,7 +99,7 @@ export function parsePersistedSavedAccountProfilesDocument(
   const profiles: SavedAccountProfile[] = [];
 
   for (const entry of profilesRaw) {
-    const parsedProfile = parsePersistedSavedAccountProfileEntry(entry);
+    const parsedProfile = parsePersistedSavedAccountProfileEntry(entry, acceptsLegacy);
     if (!parsedProfile.ok) {
       return { ok: false, error: { code: "invalid_profile_entry" } };
     }
@@ -114,6 +122,7 @@ export function parsePersistedSavedAccountProfilesDocument(
 
 function parsePersistedSavedAccountProfileEntry(
   raw: unknown,
+  legacyDocument: boolean,
 ):
   | { readonly ok: true; readonly value: SavedAccountProfile }
   | { readonly ok: false } {
@@ -132,15 +141,20 @@ function parsePersistedSavedAccountProfileEntry(
   }
 
   const displayNameRaw = readOptionalString(record, "displayName");
-
   const createdAt = readOptionalIsoString(record, "createdAt");
   const lastUsedAt = readOptionalIsoString(record, "lastUsedAt");
+  const successfulUseAt = readOptionalIsoString(record, "successfulUseAt");
+  const ocpDomain = readOptionalString(record, "ocpDomain");
+  const lifecycleStatus = resolveLifecycleFromPersistedRecord(record, legacyDocument);
 
   const created = createSavedAccountProfile(
     { username, domain, server },
     {
+      lifecycleStatus,
       ...(createdAt !== undefined ? { createdAt } : {}),
       ...(lastUsedAt !== undefined ? { lastUsedAt } : {}),
+      ...(successfulUseAt !== undefined ? { successfulUseAt } : {}),
+      ...(ocpDomain !== undefined ? { ocpDomain } : {}),
     },
   );
 
@@ -148,8 +162,7 @@ function parsePersistedSavedAccountProfileEntry(
     return { ok: false };
   }
 
-  const expectedId = created.value.id;
-  if (createSavedAccountProfileId(idRaw) !== expectedId) {
+  if (createSavedAccountProfileId(idRaw) !== created.value.id) {
     return { ok: false };
   }
 
@@ -165,17 +178,38 @@ function parsePersistedSavedAccountProfileEntry(
   };
 }
 
+function resolveLifecycleFromPersistedRecord(
+  record: Record<string, unknown>,
+  legacyDocument: boolean,
+): SavedAccountProfileLifecycleStatus {
+  if (legacyDocument) {
+    return "successful";
+  }
+
+  const raw = record["lifecycleStatus"];
+  if (raw === "draft" || raw === "successful") {
+    return raw;
+  }
+
+  return resolveSavedAccountProfileLifecycleStatus(undefined);
+}
+
 function toPersistedSavedAccountProfileRecord(
   profile: SavedAccountProfile,
-): PersistedSavedAccountProfileRecordV1 {
+): PersistedSavedAccountProfileRecordV2 {
   return {
     id: profile.id,
     username: profile.username,
     domain: profile.domain,
     server: profile.server,
     displayName: profile.displayName,
+    lifecycleStatus: profile.lifecycleStatus,
     ...(profile.createdAt !== undefined ? { createdAt: profile.createdAt } : {}),
     ...(profile.lastUsedAt !== undefined ? { lastUsedAt: profile.lastUsedAt } : {}),
+    ...(profile.successfulUseAt !== undefined
+      ? { successfulUseAt: profile.successfulUseAt }
+      : {}),
+    ...(profile.ocpDomain !== undefined ? { ocpDomain: profile.ocpDomain } : {}),
   };
 }
 

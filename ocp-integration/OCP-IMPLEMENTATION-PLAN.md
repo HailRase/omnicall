@@ -2,10 +2,30 @@
 
 **Feature:** F-028 — OCP Module Integration  
 **Bounded context:** Integration (не Telephony)  
-**Последнее обновление:** 2026-07-14  
-**Текущий статус:** 🟢 E-01…E-13 done — F-028 implemented  
-**Версия схемы настроек:** v7 (`ocpIntegration`)  
-**Команда для продолжения работы:** `/preflight` → `/review` (закрытие F-028) или EXT design  
+**Последнее обновление:** 2026-07-17
+**Текущий статус:** 🟡 E-01…E-13 + Auth Flow Hardening implemented; staging SM-1…20 pending
+**Версия схемы настроек:** v9 (`notificationPopupEnabled`)
+**Команда для продолжения работы:** staging smoke checklist
+
+### Delta 2026-07-17 — Auth Flow Hardening
+
+- OCP sign-in exposes five timeout-owned execution stages and a fresh-flow restart.
+- Socket epoch rejects stale messages from superseded connections.
+- Account session, OCP authorization and SIP readiness are independent outcomes.
+- Saved profile secrets use ADR-AF-006 local-form boundary hydration.
+- Auth notifications pass through the F-029 rolling 24-hour journal.
+
+### Delta 2026-07-16 — Simplify SIP/OCP authorization
+
+| Item | Change |
+| --- | --- |
+| Orchestration | `OcpBackedSignInOrchestrationService`: HTTP→WS→creds→SIP register; one correlation ID; success only on `sip_ready` |
+| Progress | `authorizationProgress` on `OcpSessionProjection` (preparing…ready / failures + retry) |
+| Credentials | `OcpSipCredentialService.waitAndApplyNext` + identity mismatch when SIP already registered |
+| INVALID_TOKEN | `OcpInvalidTokenReauthService` — one capped HTTP re-auth via Facade `connectOcp` (no stale-token WS reconnect) |
+| Account UX | Two methods: account linking (default when linked) vs phone password; progress status |
+| Integrations UX | Progressive first-time: login→domain→key→«Connect and sign in»; Enable/autoConnect after linked |
+| Manual smoke | Still required: `OCP-Smoke-Checklist.md` — do not claim production readiness until checked |
 
 ---
 
@@ -953,6 +973,9 @@ Selector `selectIsCallButtonBlocked` из `operatorStatusProjection`. Подкл
 **Безопасность:**  
 Никогда не логировать SIP пароль. Передавать credentials только через параметры Use Case, не через domain events. Следуй `assertPersistedProfileJsonExcludesSecrets.ts` — проверить что creds не попадают в persistence.
 
+**OCP domain ≠ SIP domain:**  
+`entity:creds`.domain — hostname SIP/PBX. Он **не** должен перезаписывать `OcpSessionProjection.domain` (OCP proxy host) и **не** должен использоваться для `GET /proxy/authenticate` / reconnect. HTTP token всегда на `ocpIntegration.domain` / `profile.ocpDomain` (`resolveOcpProxyAuthenticateDomain`).
+
 **Guard:**  
 `autoSipAuth === true` AND `SIP не зарегистрирован` — только тогда вызывать `AuthorizeSipAccountUseCase`. Если SIP уже registered — `logger.debug`, не перерегистрировать.
 
@@ -971,6 +994,7 @@ Selector `selectIsCallButtonBlocked` из `operatorStatusProjection`. Подкл
 
 ### Примечания
 > 2026-07-14: wired via `OcpIntegrationComposition` + Facade getters (`ocpAutoSipAuthEnabled`, `sipSessionRegistered`). After authorize success also calls `RegisterAccountUseCase` so auto-auth actually registers SIP.
+> 2026-07-17: fixed reconnect bug — `creds` no longer overwrote OCP session domain with SIP host; fresh-token reconnect uses `resolveOcpProxyAuthenticateDomain`.
 
 ---
 

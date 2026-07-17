@@ -1,19 +1,16 @@
-import { initialOcpSessionProjection } from "@application/projections/integration/ocpSessionProjection.js";
 import { OCP_INTEGRATION_DEFAULTS } from "@application/index.js";
 import { vi } from "vitest";
 import type { OcpModuleSettingsCardProps } from "./OcpModuleSettingsCard.js";
 
 const ocpCardDefaults = {
-  settings: { ...OCP_INTEGRATION_DEFAULTS },
-  session: initialOcpSessionProjection(),
-  login: "",
-  loginOptions: [],
+  settings: { ...OCP_INTEGRATION_DEFAULTS, linked: true, enabled: true, domain: "ocp.example" },
+  activeLoginLabel: "agent-1",
   apiKeyDraft: "",
   apiKeyVisible: false,
-  hasSavedApiKey: false,
+  hasSavedApiKey: true,
   actionLoading: null,
   errorKey: null,
-  onLoginChange: vi.fn(),
+  configEditable: true,
   onEnabledChange: vi.fn(),
   onDomainChange: vi.fn(),
   onAutoConnectChange: vi.fn(),
@@ -21,8 +18,6 @@ const ocpCardDefaults = {
   onApiKeyVisibleChange: vi.fn(),
   onSaveApiKey: vi.fn(),
   onDeleteApiKey: vi.fn(),
-  onConnect: vi.fn(),
-  onDisconnect: vi.fn(),
 } satisfies OcpModuleSettingsCardProps;
 
 export const settingsIntegrationsTestDefaults = {
@@ -35,7 +30,6 @@ export const settingsIntegrationsStoryDefaults = {
   integrations: {
     ocp: {
       ...ocpCardDefaults,
-      onLoginChange: () => undefined,
       onEnabledChange: () => undefined,
       onDomainChange: () => undefined,
       onAutoConnectChange: () => undefined,
@@ -43,8 +37,6 @@ export const settingsIntegrationsStoryDefaults = {
       onApiKeyVisibleChange: () => undefined,
       onSaveApiKey: () => undefined,
       onDeleteApiKey: () => undefined,
-      onConnect: () => undefined,
-      onDisconnect: () => undefined,
     } satisfies OcpModuleSettingsCardProps,
   },
 } as const;

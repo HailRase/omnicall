@@ -4,10 +4,77 @@
   gap: var(--space-xs);
 }
 
+.login-field {
+  width: 100%;
+  max-width: 28rem;
+}
+
+.login-clear-button {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+}
+
+.login-select-trigger {
+  height: 24px;
+  padding: 0 var(--space-xs) 0 10px;
+  border-color: var(--color-border-subtle);
+  border-radius: 8px;
+  background: var(--color-bg-surface-alt);
+  color: var(--color-text-emphasis);
+}
+
+.login-select-trigger:hover:not(:disabled) {
+  border-color: var(--color-border-default);
+  background: var(--color-bg-surface-highlight);
+}
+
+.login-select-trigger:active:not(:disabled) {
+  background: var(--color-bg-surface-deep);
+}
+
+.login-select-trigger[data-state="open"] .login-select-chevron {
+  transform: rotate(180deg);
+}
+
+.login-select-chevron {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-secondary);
+  transition: transform 120ms ease;
+}
+
+.login-option-label {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.login-option-meta {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+}
+
+.status-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+}
+
 .status-row {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+}
+
+.status-label {
+  color: var(--color-text-secondary);
+  min-width: 7rem;
 }
 
 .status-dot {

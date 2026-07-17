@@ -5,3 +5,54 @@
 .toast-icon-error {
   color: var(--color-status-failed);
 }
+
+.toast-content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 1 auto;
+  max-width: min(42%, 9.5rem);
+  min-width: 0;
+  height: auto;
+  min-height: 24px;
+  margin-left: var(--toast-button-margin-start);
+  margin-right: var(--toast-button-margin-end);
+  padding: 2px 8px;
+  border: none;
+  border-radius: var(--radius-control);
+  background: var(--normal-text);
+  color: var(--normal-bg);
+  font-family: inherit;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.25;
+  cursor: pointer;
+  outline: none;
+}
+
+.action-button:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-outline-focus) 70%, transparent);
+}
+
+.action-label {
+  display: -webkit-box;
+  overflow: hidden;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  text-align: center;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.action-tooltip {
+  z-index: calc(var(--z-toast) + 50);
+}

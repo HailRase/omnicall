@@ -31,7 +31,11 @@ export class EndUserSessionUseCase {
     private readonly logger: Logger,
   ) {
     this.eventPublisher.subscribe((event) => {
-      if (event.type === "RegistrationSucceeded") {
+      // New local account session (Login) or SIP-ready both re-arm logout (ADR-AF-005).
+      if (
+        event.type === "RegistrationSucceeded" ||
+        event.type === "AccountSessionActivated"
+      ) {
         this.logoutCompletedForCurrentSession = false;
       }
     });
@@ -68,21 +72,32 @@ export class EndUserSessionUseCase {
     });
 
     if (!teardownResult.ok) {
-      this.logger.error(
-        "end_user_session_failed",
-        {
-          correlationId,
-          featureId: FEATURE_ID,
-          boundedContext: "Telephony",
-          operation: "end_user_session",
-          result: teardownResult.error.code,
-        },
-        teardownResult.error,
-      );
-      return teardownResult;
-    }
+      // Concurrent teardown must not clear the account session (ADR-AF-005).
+      if (isTeardownInProgressError(teardownResult.error)) {
+        this.logger.error(
+          "end_user_session_failed",
+          {
+            correlationId,
+            featureId: FEATURE_ID,
+            boundedContext: "Telephony",
+            operation: "end_user_session",
+            result: teardownResult.error.code,
+          },
+          teardownResult.error,
+        );
+        return teardownResult;
+      }
 
-    if (teardownResult.value.steps.length === 0) {
+      // Best-effort: SIP may already be gone after a partial step failure — still end
+      // the local account session so Login re-enables (aligned with SafeLogoutUseCase).
+      this.logger.warn("end_user_session_sip_partial_failure", {
+        correlationId,
+        featureId: FEATURE_ID,
+        boundedContext: "Telephony",
+        operation: "end_user_session",
+        result: teardownResult.error.code,
+      });
+    } else if (teardownResult.value.steps.length === 0) {
       this.logger.warn("end_user_session_incomplete_teardown", {
         correlationId,
         featureId: FEATURE_ID,
@@ -104,12 +119,19 @@ export class EndUserSessionUseCase {
       featureId: FEATURE_ID,
       boundedContext: "Telephony",
       operation: "end_user_session",
-      result: "completed",
+      result: teardownResult.ok ? "completed" : "completed_with_sip_partial_failure",
       nextState: "session_ended",
     });
 
     this.logoutCompletedForCurrentSession = true;
 
-    return ok(teardownResult.value);
+    return ok(teardownResult.ok ? teardownResult.value : { steps: [] });
   }
+}
+
+function isTeardownInProgressError(error: PlatformError): boolean {
+  if (typeof error.cause !== "object" || error.cause === null) {
+    return false;
+  }
+  return (error.cause as Readonly<{ reason?: unknown }>).reason === "teardown_in_progress";
 }

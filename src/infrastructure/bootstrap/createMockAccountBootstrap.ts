@@ -29,6 +29,7 @@ import type {
   OcpProxyAuthenticatePort,
   OcpReasonsCachePort,
   OcpNotificationPresenter,
+  UserNotificationJournalRepository,
 } from "@ports/index.js";
 import { createHeadsetGateway } from "./createHeadsetGateway.js";
 
@@ -42,6 +43,7 @@ export type CreateAccountBootstrapOptions = Readonly<{
   contactCsvFileGateway?: ContactCsvFileGateway;
   callHistoryRepository?: CallHistoryRepository;
   secretStoragePort?: SecretStoragePort;
+  userNotificationJournalRepository?: UserNotificationJournalRepository;
   ocpGateway?: OcpGateway;
   ocpProxyAuthenticate?: OcpProxyAuthenticatePort;
   ocpReasonsCache?: OcpReasonsCachePort;
@@ -110,6 +112,12 @@ export function createMockAccountBootstrap(
       : {}),
     ...(options.secretStoragePort !== undefined
       ? { secretStoragePort: options.secretStoragePort }
+      : {}),
+    ...(options.userNotificationJournalRepository !== undefined
+      ? {
+          userNotificationJournalRepository:
+            options.userNotificationJournalRepository,
+        }
       : {}),
     hostIntegrationGateway,
     logger: createTestLogger({ featureId: "F-001", boundedContext: "Telephony" }),

@@ -1,5 +1,6 @@
 .toaster:global([data-sonner-toaster]) {
-  z-index: var(--z-toast);
+  /* Override Sonner default 999999999 so tooltips (--z-tooltip) can stack above. */
+  z-index: var(--z-toast) !important;
   font-family: var(--font-family-ui);
   --toast-close-button-start: unset;
   --toast-close-button-end: 0;
@@ -31,6 +32,20 @@
 .toaster :global([data-sonner-toast][data-styled="true"]) {
   border-radius: var(--radius-panel);
   box-shadow: var(--shadow-menu-elevated);
+}
+
+.toaster :global([data-sonner-toast][data-styled="true"] [data-content]) {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.toaster :global([data-sonner-toast][data-styled="true"] [data-button]) {
+  flex: 0 1 auto;
+  max-width: min(42%, 9.5rem);
+  min-width: 0;
+  height: auto;
+  min-height: 24px;
+  white-space: normal;
 }
 
 .toaster :global([data-sonner-toast][data-styled="true"] [data-description]) {

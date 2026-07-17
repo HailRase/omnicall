@@ -1,39 +1,52 @@
+import type { SettingsNavigationAvailability } from "@application/index.js";
 import clsx from "clsx";
-import { motion, useReducedMotion } from "framer-motion";
-import { useEffect, useState, type JSX } from "react";
-import { AppIcon, IconTooltip } from "../icons/index.js";
-import { Button, IconButton } from "../ui/index.js";
+import { useEffect, useRef, useState, type JSX } from "react";
+import { AppIcon } from "../icons/index.js";
+import { IconTooltip } from "../icons/IconTooltip.js";
+import {
+  IconButton,
+  Sidebar,
+  SidebarContent,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+  SidebarProvider,
+} from "../ui/index.js";
 import { useI18n } from "../../i18n/index.js";
 import type { SettingsNavGroup, SettingsNavLeaf, SettingsSectionId } from "./settingsSections.js";
 import { isSettingsSectionInGroup, SETTINGS_NAV_TREE } from "./settingsSections.js";
 import styles from "./SettingsSidebar.module.css";
 
-const COLLAPSED_WIDTH_PX = 56;
-const EXPANDED_WIDTH_PX = 220;
+const NAV_ICON_SIZE = 16;
+const CHILD_ICON_SIZE = 14;
+const CHEVRON_ICON_SIZE = 12;
 
 export type SettingsSidebarProps = Readonly<{
   activeSection: SettingsSectionId;
   expanded: boolean;
+  sectionAvailability: SettingsNavigationAvailability;
   onSectionChange: (sectionId: SettingsSectionId) => void;
   onToggleExpanded: () => void;
 }>;
 
 /**
- * - Purpose: render collapsible settings navigation rail with overlay expand mode.
- * - Inputs: active section, expanded flag, section and expand callbacks.
- * - Outputs: animated icon rail with nested Integrations → OCP Module; collapsed hover tooltips.
+ * - Purpose: render collapsible settings navigation using UI Kit Sidebar primitives.
+ * - Inputs: active section, expanded flag, availability VM, section and expand callbacks.
+ * - Outputs: icon rail with flyout expand, nested Integrations → OCP Module, gated tooltips.
  */
 export function SettingsSidebar({
   activeSection,
   expanded,
+  sectionAvailability,
   onSectionChange,
   onToggleExpanded,
 }: SettingsSidebarProps): JSX.Element {
   const { t } = useI18n();
-  const prefersReducedMotion = useReducedMotion();
-  const transition = prefersReducedMotion
-    ? { duration: 0 }
-    : { duration: 0.28, ease: [0.22, 1, 0.36, 1] as const };
+  const rootRef = useRef<HTMLElement>(null);
 
   const [openGroupIds, setOpenGroupIds] = useState<ReadonlyArray<string>>(() =>
     resolveOpenGroupsForSection(activeSection),
@@ -49,6 +62,34 @@ export function SettingsSidebar({
     });
   }, [activeSection]);
 
+  useEffect(() => {
+    if (!expanded) {
+      return;
+    }
+
+    function handlePointerDown(event: PointerEvent): void {
+      const target = event.target;
+      if (!(target instanceof Node)) {
+        return;
+      }
+      if (rootRef.current?.contains(target)) {
+        return;
+      }
+      onToggleExpanded();
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+    };
+  }, [expanded, onToggleExpanded]);
+
+  function handleOpenChange(nextOpen: boolean): void {
+    if (nextOpen !== expanded) {
+      onToggleExpanded();
+    }
+  }
+
   function toggleGroup(groupId: string): void {
     setOpenGroupIds((prev) =>
       prev.includes(groupId) ? prev.filter((id) => id !== groupId) : [...prev, groupId],
@@ -56,18 +97,22 @@ export function SettingsSidebar({
   }
 
   function handleGroupClick(group: SettingsNavGroup): void {
+    const firstChild = group.children[0];
+    if (firstChild === undefined) {
+      return;
+    }
+    const childAvailability = sectionAvailability.bySection[firstChild.id];
+    if (childAvailability !== undefined && !childAvailability.enabled) {
+      return;
+    }
     if (!expanded) {
-      const firstChild = group.children[0];
-      if (firstChild !== undefined) {
-        onSectionChange(firstChild.id);
-      }
+      onSectionChange(firstChild.id);
       return;
     }
     const isOpen = openGroupIds.includes(group.id);
     if (!isOpen) {
       toggleGroup(group.id);
-      const firstChild = group.children[0];
-      if (firstChild !== undefined && !isSettingsSectionInGroup(group, activeSection)) {
+      if (!isSettingsSectionInGroup(group, activeSection)) {
         onSectionChange(firstChild.id);
       }
       return;
@@ -77,189 +122,268 @@ export function SettingsSidebar({
 
   return (
     <nav
-      className={styles.rail}
+      ref={rootRef}
+      className={styles.root}
       data-testid="settings-sidebar"
       data-expanded={expanded ? "true" : "false"}
+      data-pre-auth-gate={sectionAvailability.isPreAuthGateActive ? "true" : "false"}
       aria-label={t("settings.nav.label")}
     >
-      <motion.div
-        className={clsx(styles.panel, expanded && styles.panelExpanded)}
-        initial={false}
-        animate={{ width: expanded ? EXPANDED_WIDTH_PX : COLLAPSED_WIDTH_PX }}
-        transition={transition}
+      <SidebarProvider
+        open={expanded}
+        onOpenChange={handleOpenChange}
+        enableKeyboardShortcut={false}
+        className={styles.provider}
       >
-        <div className={clsx(styles.panelInner, expanded && styles.panelInnerExpanded)}>
-          <div className={styles.toggleSlot}>
+        <Sidebar
+          collapsible="icon"
+          mobileTitle={t("settings.nav.label")}
+          className={styles.sidebar}
+        >
+          <SidebarHeader className={styles.header}>
             <IconButton
               iconId={expanded ? "settings.nav.collapse" : "settings.nav.expand"}
               ariaLabel={
-                expanded
-                  ? t("settings.nav.collapseMenu")
-                  : t("settings.nav.expandMenu")
+                expanded ? t("settings.nav.collapseMenu") : t("settings.nav.expandMenu")
               }
               data-testid={expanded ? "settings-sidebar-collapse" : "settings-sidebar-expand"}
-              variant="secondary"
-              size="lg"
+              variant="ghost"
+              size="sm"
               className={styles.toggleButton}
               aria-expanded={expanded}
               onClick={onToggleExpanded}
             />
-          </div>
-          <ul className={styles.navList} role="list">
-            {SETTINGS_NAV_TREE.map((node) => {
-              if (node.kind === "item") {
-                return (
-                  <li key={node.id} className={styles.navItem}>
-                    <SettingsNavLeafButton
+          </SidebarHeader>
+          <SidebarContent className={styles.content}>
+            <SidebarMenu className={styles.menu}>
+              {SETTINGS_NAV_TREE.map((node) => {
+                if (node.kind === "item") {
+                  return (
+                    <SettingsNavLeafItem
+                      key={node.id}
                       item={node}
                       activeSection={activeSection}
                       expanded={expanded}
-                      transition={transition}
+                      sectionAvailability={sectionAvailability}
                       onSectionChange={onSectionChange}
                     />
-                  </li>
-                );
-              }
+                  );
+                }
 
-              const groupOpen = openGroupIds.includes(node.id);
-              const groupActive = isSettingsSectionInGroup(node, activeSection);
-              const groupLabel = t(node.labelKey);
+                const groupOpen = openGroupIds.includes(node.id);
+                const groupActive = isSettingsSectionInGroup(node, activeSection);
+                const groupLabel = t(node.labelKey);
+                const firstChild = node.children[0];
+                const groupBlocked =
+                  firstChild !== undefined &&
+                  sectionAvailability.bySection[firstChild.id]?.enabled === false;
+                const groupDisabledReason =
+                  groupBlocked && firstChild !== undefined
+                    ? sectionAvailability.bySection[firstChild.id]?.disabledReasonKey
+                    : null;
+                const groupDisabledTooltip =
+                  groupDisabledReason !== null && groupDisabledReason !== undefined
+                    ? t(groupDisabledReason)
+                    : "";
 
-              return (
-                <li key={node.id} className={styles.navItem}>
-                  <div className={styles.navGroup}>
-                    <IconTooltip
-                      label={expanded ? "" : groupLabel}
-                      placement="right"
-                      className={styles.navTooltipHost}
-                    >
-                      <Button
-                        variant="ghost"
+                const groupButton = (
+                  <SidebarMenuButton
+                    isActive={groupActive}
+                    disabled={groupBlocked}
+                    {...(expanded || groupBlocked
+                      ? {}
+                      : { tooltip: groupLabel })}
+                    data-testid={node.testId}
+                    aria-expanded={expanded ? groupOpen : undefined}
+                    aria-controls={expanded ? `settings-nav-group-${node.id}` : undefined}
+                    aria-label={groupLabel}
+                    aria-disabled={groupBlocked || undefined}
+                    className={styles.menuButton}
+                    onClick={() => {
+                      handleGroupClick(node);
+                    }}
+                  >
+                    <span className={styles.iconSlot}>
+                      <AppIcon id={node.iconId} decorative size={NAV_ICON_SIZE} />
+                    </span>
+                    <span className={styles.label}>{groupLabel}</span>
+                    {expanded ? (
+                      <span
                         className={clsx(
-                          styles.navButton,
-                          groupActive && styles.navButtonActive,
+                          styles.groupChevron,
+                          groupOpen && styles.groupChevronOpen,
                         )}
-                        data-testid={node.testId}
-                        aria-expanded={expanded ? groupOpen : undefined}
-                        aria-controls={
-                          expanded ? `settings-nav-group-${node.id}` : undefined
-                        }
-                        aria-label={groupLabel}
-                        onClick={() => {
-                          handleGroupClick(node);
-                        }}
+                        aria-hidden
                       >
-                        <span className={styles.navIcon}>
-                          <AppIcon id={node.iconId} decorative />
-                        </span>
-                        <motion.span
-                          className={styles.navLabel}
-                          initial={false}
-                          animate={{ opacity: expanded ? 1 : 0 }}
-                          transition={transition}
-                          aria-hidden={!expanded}
-                        >
-                          {groupLabel}
-                        </motion.span>
-                        {expanded ? (
-                          <span
-                            className={clsx(
-                              styles.navGroupChevron,
-                              groupOpen && styles.navGroupChevronOpen,
-                            )}
-                            aria-hidden
-                          >
-                            <AppIcon id="ui.select.chevron" decorative size={14} />
-                          </span>
-                        ) : null}
-                      </Button>
-                    </IconTooltip>
+                        <AppIcon
+                          id="ui.select.chevron"
+                          decorative
+                          size={CHEVRON_ICON_SIZE}
+                        />
+                      </span>
+                    ) : null}
+                  </SidebarMenuButton>
+                );
+
+                return (
+                  <SidebarMenuItem key={node.id}>
+                    {groupBlocked && groupDisabledTooltip.length > 0 ? (
+                      <IconTooltip label={groupDisabledTooltip} placement="right">
+                        <span className={styles.disabledNavWrap}>{groupButton}</span>
+                      </IconTooltip>
+                    ) : (
+                      groupButton
+                    )}
                     {expanded && groupOpen ? (
-                      <ul
+                      <SidebarMenuSub
                         id={`settings-nav-group-${node.id}`}
-                        className={styles.navChildList}
-                        role="list"
+                        className={styles.subMenu}
                         data-testid={`settings-nav-group-${node.id}`}
                       >
                         {node.children.map((child) => (
-                          <li key={child.id} className={styles.navChildItem}>
-                            <SettingsNavLeafButton
-                              item={child}
-                              activeSection={activeSection}
-                              expanded={expanded}
-                              transition={transition}
-                              onSectionChange={onSectionChange}
-                              child
-                            />
-                          </li>
+                          <SettingsNavChildItem
+                            key={child.id}
+                            item={child}
+                            activeSection={activeSection}
+                            sectionAvailability={sectionAvailability}
+                            onSectionChange={onSectionChange}
+                          />
                         ))}
-                      </ul>
+                      </SidebarMenuSub>
                     ) : null}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      </motion.div>
+                  </SidebarMenuItem>
+                );
+              })}
+            </SidebarMenu>
+          </SidebarContent>
+        </Sidebar>
+      </SidebarProvider>
     </nav>
   );
 }
 
-type MotionTransition = Readonly<{ duration: number; ease?: readonly [number, number, number, number] }>;
-
-type SettingsNavLeafButtonProps = Readonly<{
+type SettingsNavLeafItemProps = Readonly<{
   item: SettingsNavLeaf;
   activeSection: SettingsSectionId;
   expanded: boolean;
-  transition: MotionTransition;
+  sectionAvailability: SettingsNavigationAvailability;
   onSectionChange: (sectionId: SettingsSectionId) => void;
-  child?: boolean;
 }>;
 
-function SettingsNavLeafButton({
+function SettingsNavLeafItem({
   item,
   activeSection,
   expanded,
-  transition,
+  sectionAvailability,
   onSectionChange,
-  child = false,
-}: SettingsNavLeafButtonProps): JSX.Element {
+}: SettingsNavLeafItemProps): JSX.Element {
   const { t } = useI18n();
   const isActive = item.id === activeSection;
   const sectionLabel = t(item.labelKey);
-  const tooltipLabel = expanded ? "" : sectionLabel;
+  const availability = sectionAvailability.bySection[item.id];
+  const blocked = availability?.enabled === false;
+  const disabledReason =
+    blocked && availability.disabledReasonKey !== null
+      ? t(availability.disabledReasonKey)
+      : "";
+
+  const button = (
+    <SidebarMenuButton
+      isActive={isActive}
+      disabled={blocked}
+      {...(expanded || blocked ? {} : { tooltip: sectionLabel })}
+      data-testid={item.testId}
+      aria-current={isActive ? "page" : undefined}
+      aria-label={sectionLabel}
+      aria-disabled={blocked || undefined}
+      className={styles.menuButton}
+      onClick={() => {
+        if (!blocked) {
+          onSectionChange(item.id);
+        }
+      }}
+    >
+      <span className={styles.iconSlot}>
+        <AppIcon id={item.iconId} decorative size={NAV_ICON_SIZE} />
+      </span>
+      <span className={styles.label}>{sectionLabel}</span>
+    </SidebarMenuButton>
+  );
 
   return (
-    <IconTooltip label={tooltipLabel} placement="right" className={styles.navTooltipHost}>
-      <Button
-        variant="ghost"
-        className={clsx(
-          styles.navButton,
-          child && styles.navChildButton,
-          isActive && styles.navButtonActive,
-        )}
-        data-testid={item.testId}
-        aria-current={isActive ? "page" : undefined}
-        aria-label={sectionLabel}
-        onClick={() => {
+    <SidebarMenuItem>
+      {blocked && disabledReason.length > 0 ? (
+        <IconTooltip label={disabledReason} placement="right">
+          <span className={styles.disabledNavWrap}>{button}</span>
+        </IconTooltip>
+      ) : (
+        button
+      )}
+    </SidebarMenuItem>
+  );
+}
+
+type SettingsNavChildItemProps = Readonly<{
+  item: SettingsNavLeaf;
+  activeSection: SettingsSectionId;
+  sectionAvailability: SettingsNavigationAvailability;
+  onSectionChange: (sectionId: SettingsSectionId) => void;
+}>;
+
+function SettingsNavChildItem({
+  item,
+  activeSection,
+  sectionAvailability,
+  onSectionChange,
+}: SettingsNavChildItemProps): JSX.Element {
+  const { t } = useI18n();
+  const isActive = item.id === activeSection;
+  const sectionLabel = t(item.labelKey);
+  const availability = sectionAvailability.bySection[item.id];
+  const blocked = availability?.enabled === false;
+  const disabledReason =
+    blocked && availability.disabledReasonKey !== null
+      ? t(availability.disabledReasonKey)
+      : "";
+
+  const childButton = (
+    <button
+      type="button"
+      data-testid={item.testId}
+      aria-current={isActive ? "page" : undefined}
+      aria-label={sectionLabel}
+      aria-disabled={blocked || undefined}
+      disabled={blocked}
+      onClick={() => {
+        if (!blocked) {
           onSectionChange(item.id);
-        }}
+        }
+      }}
+    >
+      <span className={styles.childIconSlot}>
+        <AppIcon id={item.iconId} decorative size={CHILD_ICON_SIZE} />
+      </span>
+      <span className={styles.childLabel}>{sectionLabel}</span>
+    </button>
+  );
+
+  return (
+    <SidebarMenuSubItem>
+      <SidebarMenuSubButton
+        asChild
+        isActive={isActive}
+        size="sm"
+        className={styles.childButton}
       >
-        <span className={styles.navIcon}>
-          <AppIcon id={item.iconId} decorative />
-        </span>
-        <motion.span
-          className={styles.navLabel}
-          initial={false}
-          animate={{ opacity: expanded ? 1 : 0 }}
-          transition={transition}
-          aria-hidden={!expanded}
-        >
-          {sectionLabel}
-        </motion.span>
-      </Button>
-    </IconTooltip>
+        {blocked && disabledReason.length > 0 ? (
+          <IconTooltip label={disabledReason} placement="right">
+            <span className={styles.disabledNavWrap}>{childButton}</span>
+          </IconTooltip>
+        ) : (
+          childButton
+        )}
+      </SidebarMenuSubButton>
+    </SidebarMenuSubItem>
   );
 }
 

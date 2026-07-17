@@ -1,19 +1,26 @@
 import type { JSX, RefObject } from "react";
-import clsx from "clsx";
 import type { SavedAccountProfileId } from "@application/index.js";
 import type { SavedAccountProfileSelectorOption } from "@application/projections/settings/deriveSavedAccountProfileSelectorOptions.js";
 import type { SavedProfilePanelMode } from "@application/projections/settings/deriveSavedProfilePanelMode.js";
 import type { AccountAuthorizationErrorProjection } from "@application/projections/settings/mapAccountAuthorizationError.js";
-import type { SipAccountInput } from "@application/index.js";
+import {
+  initialAuthorizationProgressProjection,
+  type AuthorizationProgressProjection,
+} from "@application/projections/settings/authorizationProgressProjection.js";
+import type { OcpRecoveryAction, SipAccountInput } from "@application/index.js";
 import type { TranslationKey } from "../../../i18n/messages.js";
+import type { AccountUiSignInMode, OcpDraftFields } from "../../../hooks/accountActionsHelpers.js";
 import { AccountPanel } from "../../account/AccountPanel.js";
 import { DeleteSavedAccountProfileConfirmationModal } from "../../account/DeleteSavedAccountProfileConfirmationModal.js";
-import { SwitchSavedAccountProfileConfirmationModal } from "../../account/SwitchSavedAccountProfileConfirmationModal.js";
+import { DiscardAccountDraftConfirmationModal } from "../../account/DiscardAccountDraftConfirmationModal.js";
+import { OverwriteSavedAccountCredentialsConfirmationModal } from "../../account/OverwriteSavedAccountCredentialsConfirmationModal.js";
 import { SavedAccountProfileSelector } from "../../account/SavedAccountProfileSelector.js";
 import styles from "./SettingsAccountPanel.module.css";
 
 export type SettingsAccountPanelProps = Readonly<{
   form: SipAccountInput;
+  ocpDraft: OcpDraftFields;
+  signInMode: AccountUiSignInMode;
   submitting: boolean;
   error: AccountAuthorizationErrorProjection | null;
   successKey: TranslationKey | null;
@@ -21,7 +28,6 @@ export type SettingsAccountPanelProps = Readonly<{
   panelMode: SavedProfilePanelMode;
   disabled?: boolean;
   authorizeDisabledReason: string | null;
-  logoutDisabledReason: string | null;
   savedProfileOptions: ReadonlyArray<SavedAccountProfileSelectorOption>;
   selectedProfileId: SavedAccountProfileId | null;
   saveProfileChecked: boolean;
@@ -30,39 +36,47 @@ export type SettingsAccountPanelProps = Readonly<{
   rememberPasswordChecked: boolean;
   passwordFieldVisible: boolean;
   rememberPasswordVisible: boolean;
-  forgetRememberedPasswordVisible: boolean;
   rememberPasswordDisabled: boolean;
-  rememberPasswordDisabledReasonKey: TranslationKey | null;
   passwordHintKey: TranslationKey | null;
-  authorizeViaOcpVisible: boolean;
-  authorizeViaOcpChecked: boolean;
+  showOcpDomainField: boolean;
+  showOcpApiKeyField: boolean;
+  hasSavedOcpApiKey: boolean;
+  allowedRecoveryActions: ReadonlyArray<OcpRecoveryAction>;
+  onRecoveryAction: (action: OcpRecoveryAction) => void;
+  authorizationProgress?: AuthorizationProgressProjection;
+  canForgetSavedSipPassword?: boolean;
+  onForgetSavedSipPassword?: () => void;
   deleteConfirmationOpen: boolean;
-  switchConfirmationOpen: boolean;
-  switchFromLogin: string;
-  switchToLogin: string;
+  deleteSubmitting?: boolean;
   passwordInputRef: RefObject<HTMLInputElement | null>;
   onFieldChange: (field: keyof SipAccountInput, value: string) => void;
+  onOcpFieldChange: (field: keyof OcpDraftFields, value: string) => void;
+  onSignInModeChange: (mode: AccountUiSignInMode) => void;
   onSubmit: () => void;
-  onLogout: () => void;
   onProfileSelect: (profileId: SavedAccountProfileId | null) => void;
   onSaveProfileChange: (checked: boolean) => void;
   onRememberPasswordChange: (checked: boolean) => void;
-  onAuthorizeViaOcpChange: (checked: boolean) => void;
-  onForgetRememberedPassword: () => void;
   onDeleteProfileRequest: (profileId: SavedAccountProfileId) => void;
   onDeleteProfileConfirm: () => void;
   onDeleteProfileCancel: () => void;
-  onSwitchProfileConfirm: () => void;
-  onSwitchProfileCancel: () => void;
+  overwriteConfirmationOpen?: boolean;
+  draftDiscardConfirmationOpen?: boolean;
+  onDraftDiscardConfirm?: () => void;
+  onDraftDiscardCancel?: () => void;
+  onOverwriteCredentialsConfirm?: () => void;
+  onOverwriteCredentialsContinue?: () => void;
+  onOverwriteCredentialsCancel?: () => void;
 }>;
 
 /**
- * - Purpose: embed saved profile tabs and SIP account authorization form in settings.
- * - Inputs: account form state, saved profile tab state, and field callbacks.
+ * - Purpose: embed saved profile tabs and SIP/OCP account sign-in form in settings (WU-04).
+ * - Inputs: account form state, mode, OCP draft, recovery actions, field callbacks.
  * - Outputs: presentational account settings section without Use Case calls.
  */
 export function SettingsAccountPanel({
   form,
+  ocpDraft,
+  signInMode,
   submitting,
   error,
   successKey,
@@ -70,7 +84,6 @@ export function SettingsAccountPanel({
   panelMode,
   disabled = false,
   authorizeDisabledReason,
-  logoutDisabledReason,
   savedProfileOptions,
   selectedProfileId,
   saveProfileChecked,
@@ -79,42 +92,44 @@ export function SettingsAccountPanel({
   rememberPasswordChecked,
   passwordFieldVisible,
   rememberPasswordVisible,
-  forgetRememberedPasswordVisible,
   rememberPasswordDisabled,
-  rememberPasswordDisabledReasonKey,
   passwordHintKey,
-  authorizeViaOcpVisible,
-  authorizeViaOcpChecked,
+  showOcpDomainField,
+  showOcpApiKeyField,
+  hasSavedOcpApiKey,
+  allowedRecoveryActions,
+  onRecoveryAction,
+  authorizationProgress = initialAuthorizationProgressProjection(),
+  canForgetSavedSipPassword = false,
+  onForgetSavedSipPassword,
   deleteConfirmationOpen,
-  switchConfirmationOpen,
-  switchFromLogin,
-  switchToLogin,
+  deleteSubmitting = false,
   passwordInputRef,
   onFieldChange,
+  onOcpFieldChange,
+  onSignInModeChange,
   onSubmit,
-  onLogout,
   onProfileSelect,
   onSaveProfileChange,
   onRememberPasswordChange,
-  onAuthorizeViaOcpChange,
-  onForgetRememberedPassword,
   onDeleteProfileRequest,
   onDeleteProfileConfirm,
   onDeleteProfileCancel,
-  onSwitchProfileConfirm,
-  onSwitchProfileCancel,
+  overwriteConfirmationOpen = false,
+  draftDiscardConfirmationOpen = false,
+  onDraftDiscardConfirm = () => undefined,
+  onDraftDiscardCancel = () => undefined,
+  onOverwriteCredentialsConfirm = () => undefined,
+  onOverwriteCredentialsContinue = () => undefined,
+  onOverwriteCredentialsCancel = () => undefined,
 }: SettingsAccountPanelProps): JSX.Element {
-  const rememberedPasswordSignInOnly =
-    panelMode === "savedPasswordOnly" &&
-    !passwordFieldVisible &&
-    forgetRememberedPasswordVisible;
+  const saveProfileVisible = selectedProfileId === null;
+  const sharedRememberPasswordVisible =
+    selectedProfileId === null && rememberPasswordVisible;
 
   return (
     <div
-      className={clsx(
-        styles.wrapper,
-        rememberedPasswordSignInOnly && styles.wrapperRememberedSignInOnly,
-      )}
+      className={styles.wrapper}
       data-testid="settings-account-panel"
     >
       <div className={styles.tabsRow}>
@@ -128,18 +143,12 @@ export function SettingsAccountPanel({
       </div>
 
       <div
-        className={clsx(
-          styles.formCenter,
-          rememberedPasswordSignInOnly && styles.formCenterRememberedSignInOnly,
-        )}
-        data-testid={
-          rememberedPasswordSignInOnly
-            ? "settings-account-form-remembered-sign-in"
-            : undefined
-        }
+        className={styles.formCenter}
       >
         <AccountPanel
           form={form}
+          ocpDraft={ocpDraft}
+          signInMode={signInMode}
           submitting={submitting}
           error={error}
           successKey={successKey}
@@ -147,49 +156,55 @@ export function SettingsAccountPanel({
           panelMode={panelMode}
           disabled={disabled}
           authorizeDisabledReason={authorizeDisabledReason}
-          logoutDisabledReason={logoutDisabledReason}
           passwordHintKey={passwordHintKey}
           passwordFieldVisible={passwordFieldVisible}
-          saveProfileVisible={panelMode === "newFull"}
+          saveProfileVisible={saveProfileVisible}
           saveProfileChecked={saveProfileChecked}
           saveProfileDisabled={saveProfileDisabled}
           saveProfileDisabledReasonKey={saveProfileDisabledReasonKey}
-          rememberPasswordVisible={rememberPasswordVisible}
-          forgetRememberedPasswordVisible={forgetRememberedPasswordVisible}
+          rememberPasswordVisible={sharedRememberPasswordVisible}
           rememberPasswordChecked={rememberPasswordChecked}
           rememberPasswordDisabled={rememberPasswordDisabled}
-          rememberPasswordDisabledReasonKey={rememberPasswordDisabledReasonKey}
-          authorizeViaOcpVisible={authorizeViaOcpVisible}
-          authorizeViaOcpChecked={authorizeViaOcpChecked}
+          showOcpDomainField={showOcpDomainField}
+          showOcpApiKeyField={showOcpApiKeyField}
+          showOcpLoginField={selectedProfileId === null}
+          hasSavedOcpApiKey={hasSavedOcpApiKey}
+          allowedRecoveryActions={allowedRecoveryActions}
+          onRecoveryAction={onRecoveryAction}
+          authorizationProgress={authorizationProgress}
+          canForgetSavedSipPassword={canForgetSavedSipPassword}
+          {...(onForgetSavedSipPassword !== undefined
+            ? { onForgetSavedSipPassword }
+            : {})}
           passwordInputRef={passwordInputRef}
           onFieldChange={onFieldChange}
+          onOcpFieldChange={onOcpFieldChange}
+          onSignInModeChange={onSignInModeChange}
           onSaveProfileChange={onSaveProfileChange}
           onRememberPasswordChange={onRememberPasswordChange}
-          onAuthorizeViaOcpChange={onAuthorizeViaOcpChange}
-          onForgetRememberedPassword={onForgetRememberedPassword}
           onSubmit={onSubmit}
-          onLogout={onLogout}
           showTitle={false}
         />
       </div>
 
       <DeleteSavedAccountProfileConfirmationModal
         open={deleteConfirmationOpen}
+        loading={deleteSubmitting}
         onConfirm={onDeleteProfileConfirm}
         onCancel={onDeleteProfileCancel}
       />
-
-      {switchConfirmationOpen ? (
-        <div className={styles.modalBackdrop} data-testid="account-settings-modal-backdrop">
-          <SwitchSavedAccountProfileConfirmationModal
-            open={switchConfirmationOpen}
-            fromLogin={switchFromLogin}
-            toLogin={switchToLogin}
-            onConfirm={onSwitchProfileConfirm}
-            onCancel={onSwitchProfileCancel}
-          />
-        </div>
-      ) : null}
+      <OverwriteSavedAccountCredentialsConfirmationModal
+        open={overwriteConfirmationOpen}
+        loading={submitting}
+        onConfirm={onOverwriteCredentialsConfirm}
+        onContinueWithoutOverwrite={onOverwriteCredentialsContinue}
+        onCancel={onOverwriteCredentialsCancel}
+      />
+      <DiscardAccountDraftConfirmationModal
+        open={draftDiscardConfirmationOpen}
+        onConfirm={onDraftDiscardConfirm}
+        onCancel={onDraftDiscardCancel}
+      />
     </div>
   );
 }

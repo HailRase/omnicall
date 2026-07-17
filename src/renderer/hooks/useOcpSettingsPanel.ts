@@ -1,40 +1,37 @@
 /**
- * - Purpose: bind Settings → Integrations → OCP Module card to facade login-scoped APIs.
- * - Inputs: AccountBootstrapFacade, optional login hint, refresh active UserSettings snapshot.
- * - Outputs: presentational props for OcpModuleSettingsCard; no SIP/Electron.
+ * - Purpose: bind Settings → Integrations → OCP Module card to active-profile edit APIs.
+ * - Inputs: AccountBootstrapFacade, SIP-ready flag, refresh active UserSettings snapshot.
+ * - Outputs: presentational props for edit-only OcpModuleSettingsCard; no SIP/Electron.
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
+  deriveOcpModuleEditShell,
   OCP_INTEGRATION_DEFAULTS,
-  type OcpConnectLoginOption,
   type OcpIntegrationSettings,
-  type SettingsAccountKey,
   type UserSettings,
 } from "@application/index.js";
 import type { OcpSessionProjection } from "@application/projections/integration/ocpSessionProjection.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
+import { useAuthShellFlags } from "./useAuthShellFlags.js";
 
 export type OcpSettingsPanelErrorKey =
   | "settings.integrations.ocp.error.domainRequired"
   | "settings.integrations.ocp.error.apiKeyRequired"
-  | "settings.integrations.ocp.error.loginRequired"
-  | "settings.integrations.ocp.error.loginAmbiguous"
-  | "settings.integrations.ocp.error.saveFailed"
-  | "settings.integrations.ocp.error.connectFailed";
+  | "settings.integrations.ocp.error.saveFailed";
 
 export type UseOcpSettingsPanelResult = Readonly<{
   settings: OcpIntegrationSettings;
   session: OcpSessionProjection;
-  login: string;
-  loginOptions: ReadonlyArray<OcpConnectLoginOption>;
+  activeLoginLabel: string | null;
   apiKeyDraft: string;
   apiKeyVisible: boolean;
   hasSavedApiKey: boolean;
-  actionLoading: "save-api-key" | "delete-api-key" | "connect" | "disconnect" | null;
+  actionLoading: "save-api-key" | "delete-api-key" | null;
   errorKey: OcpSettingsPanelErrorKey | null;
-  onLoginChange: (login: string) => void;
+  configEditable: boolean;
+  openAccountForRecoveryVisible: boolean;
   onEnabledChange: (enabled: boolean) => void;
   onDomainChange: (domain: string) => void;
   onAutoConnectChange: (autoConnect: boolean) => void;
@@ -42,47 +39,26 @@ export type UseOcpSettingsPanelResult = Readonly<{
   onApiKeyVisibleChange: (visible: boolean) => void;
   onSaveApiKey: () => void;
   onDeleteApiKey: () => void;
-  onConnect: () => void;
-  onDisconnect: () => void;
+  onOpenAccountForRecovery: () => void;
 }>;
 
 type UseOcpSettingsPanelInput = Readonly<{
   facade: AccountBootstrapFacade | null;
-  /** Optional seed from Account form username (not live bind). */
-  initialLoginHint?: string;
   onActiveUserSettingsRefresh: (settings: UserSettings) => void;
+  onOpenAccountSettings: () => void;
 }>;
 
-const LOGIN_RESOLVE_DEBOUNCE_MS = 250;
-
-function resolveActionErrorKey(code: string | undefined): OcpSettingsPanelErrorKey {
-  if (code === "api_key_required") {
-    return "settings.integrations.ocp.error.apiKeyRequired";
-  }
-  if (code === "login_required") {
-    return "settings.integrations.ocp.error.loginRequired";
-  }
-  if (code === "login_ambiguous") {
-    return "settings.integrations.ocp.error.loginAmbiguous";
-  }
-  if (code === "domain_required" || code === "ocpIntegration_invalid") {
-    return "settings.integrations.ocp.error.domainRequired";
-  }
-  return "settings.integrations.ocp.error.connectFailed";
-}
-
 /**
- * - Purpose: orchestrate login-scoped OCP settings and connection controls for Integrations UI.
+ * - Purpose: orchestrate active-profile OCP configuration editing (ADR-AF-003 edit-only).
  */
 export function useOcpSettingsPanel(
   input: UseOcpSettingsPanelInput,
 ): UseOcpSettingsPanelResult {
-  const { facade, initialLoginHint = "", onActiveUserSettingsRefresh } = input;
+  const { facade, onActiveUserSettingsRefresh, onOpenAccountSettings } = input;
   const session = useAccountBootstrapStore((state) => state.ocpSessionProjection);
-  const [login, setLogin] = useState(initialLoginHint);
-  const [accountKey, setAccountKey] = useState<SettingsAccountKey | undefined>(undefined);
-  const [loginOptions, setLoginOptions] = useState<ReadonlyArray<OcpConnectLoginOption>>([]);
+  const { hasActiveAccountSession } = useAuthShellFlags();
   const [settings, setSettings] = useState<OcpIntegrationSettings>(OCP_INTEGRATION_DEFAULTS);
+  const [activeLoginLabel, setActiveLoginLabel] = useState<string | null>(null);
   const [apiKeyDraft, setApiKeyDraft] = useState("");
   const [apiKeyVisible, setApiKeyVisible] = useState(false);
   const [hasSavedApiKey, setHasSavedApiKey] = useState(false);
@@ -90,7 +66,10 @@ export function useOcpSettingsPanel(
     UseOcpSettingsPanelResult["actionLoading"]
   >(null);
   const [errorKey, setErrorKey] = useState<OcpSettingsPanelErrorKey | null>(null);
-  const loginRequestIdRef = useRef(0);
+
+  const editShell = deriveOcpModuleEditShell({
+    hasActiveAccountSession,
+  });
 
   const refreshActiveSettings = useCallback(async (): Promise<void> => {
     if (facade === null) {
@@ -102,86 +81,50 @@ export function useOcpSettingsPanel(
     }
   }, [facade, onActiveUserSettingsRefresh]);
 
-  const applyPanelState = useCallback(
-    (panel: Readonly<{
-      target: Readonly<{ accountKey: SettingsAccountKey }>;
-      settings: OcpIntegrationSettings;
-      hasApiKey: boolean;
-      loginOptions: ReadonlyArray<OcpConnectLoginOption>;
-    }>): void => {
-      setAccountKey(panel.target.accountKey);
-      setSettings(panel.settings);
-      setHasSavedApiKey(panel.hasApiKey);
-      setLoginOptions(panel.loginOptions);
-      setApiKeyDraft("");
-    },
-    [],
-  );
-
-  useEffect(() => {
+  const loadActivePanel = useCallback(async (): Promise<void> => {
     if (facade === null) {
-      setLoginOptions([]);
-      setAccountKey(undefined);
       setSettings(OCP_INTEGRATION_DEFAULTS);
       setHasSavedApiKey(false);
+      setActiveLoginLabel(null);
       return;
     }
-    let cancelled = false;
-    void facade.listOcpConnectLoginOptions().then((result) => {
-      if (cancelled || !result.ok) {
-        return;
-      }
-      setLoginOptions(result.value);
-    });
-    return () => {
-      cancelled = true;
-    };
+    const settingsResult = await facade.getUserSettingsForAccount();
+    if (!settingsResult.ok) {
+      setErrorKey("settings.integrations.ocp.error.saveFailed");
+      return;
+    }
+    const apiKeyResult = await facade.getOcpProxyApiKey();
+    if (!apiKeyResult.ok) {
+      setErrorKey("settings.integrations.ocp.error.saveFailed");
+      return;
+    }
+    setErrorKey(null);
+    setSettings(settingsResult.value.ocpIntegration);
+    setHasSavedApiKey((apiKeyResult.value?.trim() ?? "").length > 0);
+    setApiKeyDraft("");
+    const activeAccount = await facade.getActiveSipAccount();
+    const username = activeAccount?.username.trim() ?? "";
+    setActiveLoginLabel(username.length > 0 ? username : null);
   }, [facade]);
 
   useEffect(() => {
-    if (facade === null) {
+    void loadActivePanel();
+  }, [loadActivePanel]);
+
+  // Re-load when local account session activates so Integrations binds the active bucket.
+  useEffect(() => {
+    if (!hasActiveAccountSession) {
       return;
     }
-    const trimmed = login.trim();
-    if (trimmed.length === 0) {
-      setAccountKey(undefined);
-      setSettings(OCP_INTEGRATION_DEFAULTS);
-      setHasSavedApiKey(false);
-      return;
-    }
-
-    const requestId = ++loginRequestIdRef.current;
-    const timer = setTimeout(() => {
-      void facade.getOcpModulePanelState({ login: trimmed }).then((result) => {
-        if (requestId !== loginRequestIdRef.current) {
-          return;
-        }
-        if (!result.ok) {
-          setErrorKey(resolveActionErrorKey(result.error.message || result.error.code));
-          setAccountKey(undefined);
-          return;
-        }
-        setErrorKey(null);
-        applyPanelState(result.value);
-      });
-    }, LOGIN_RESOLVE_DEBOUNCE_MS);
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [applyPanelState, facade, login]);
+    void loadActivePanel();
+  }, [hasActiveAccountSession, loadActivePanel]);
 
   const persistOcpSettings = useCallback(
     async (next: OcpIntegrationSettings): Promise<boolean> => {
-      if (facade === null) {
+      if (facade === null || !editShell.configEditable) {
         return false;
       }
-      const trimmedLogin = login.trim();
-      if (trimmedLogin.length === 0 || accountKey === undefined) {
-        setErrorKey("settings.integrations.ocp.error.loginRequired");
-        return false;
-      }
-      const result = await facade.updateOcpSettings(next, { accountKey });
+      const result = await facade.updateOcpSettings(next);
       if (!result.ok) {
         setErrorKey("settings.integrations.ocp.error.saveFailed");
         return false;
@@ -191,13 +134,8 @@ export function useOcpSettingsPanel(
       await refreshActiveSettings();
       return true;
     },
-    [accountKey, facade, login, refreshActiveSettings],
+    [editShell.configEditable, facade, refreshActiveSettings],
   );
-
-  const onLoginChange = useCallback((value: string): void => {
-    setLogin(value);
-    setErrorKey(null);
-  }, []);
 
   const onEnabledChange = useCallback(
     (enabled: boolean): void => {
@@ -221,12 +159,7 @@ export function useOcpSettingsPanel(
   );
 
   const onSaveApiKey = useCallback((): void => {
-    if (facade === null) {
-      return;
-    }
-    const trimmedLogin = login.trim();
-    if (trimmedLogin.length === 0 || accountKey === undefined) {
-      setErrorKey("settings.integrations.ocp.error.loginRequired");
+    if (facade === null || !editShell.configEditable) {
       return;
     }
     const trimmed = apiKeyDraft.trim();
@@ -236,10 +169,10 @@ export function useOcpSettingsPanel(
     }
     setActionLoading("save-api-key");
     void facade
-      .saveOcpProxyApiKey(trimmed, { accountKey })
+      .saveOcpProxyApiKey(trimmed)
       .then(async (result) => {
         if (!result.ok) {
-          setErrorKey(resolveActionErrorKey(result.error.code));
+          setErrorKey("settings.integrations.ocp.error.saveFailed");
           return;
         }
         setErrorKey(null);
@@ -250,19 +183,15 @@ export function useOcpSettingsPanel(
       .finally(() => {
         setActionLoading(null);
       });
-  }, [accountKey, apiKeyDraft, facade, login, refreshActiveSettings]);
+  }, [apiKeyDraft, editShell.configEditable, facade, refreshActiveSettings]);
 
   const onDeleteApiKey = useCallback((): void => {
-    if (facade === null) {
-      return;
-    }
-    if (accountKey === undefined) {
-      setErrorKey("settings.integrations.ocp.error.loginRequired");
+    if (facade === null || !editShell.configEditable) {
       return;
     }
     setActionLoading("delete-api-key");
     void facade
-      .deleteOcpProxyApiKey({ accountKey })
+      .deleteOcpProxyApiKey()
       .then(async (result) => {
         if (!result.ok) {
           setErrorKey("settings.integrations.ocp.error.saveFailed");
@@ -276,100 +205,23 @@ export function useOcpSettingsPanel(
       .finally(() => {
         setActionLoading(null);
       });
-  }, [accountKey, facade, refreshActiveSettings]);
+  }, [editShell.configEditable, facade, refreshActiveSettings]);
 
-  const onConnect = useCallback((): void => {
-    if (facade === null) {
-      return;
-    }
-    const trimmedLogin = login.trim();
-    if (trimmedLogin.length === 0 || accountKey === undefined) {
-      setErrorKey("settings.integrations.ocp.error.loginRequired");
-      return;
-    }
-    if (settings.domain.trim().length === 0) {
-      setErrorKey("settings.integrations.ocp.error.domainRequired");
-      return;
-    }
-    if (!hasSavedApiKey && apiKeyDraft.trim().length === 0) {
-      setErrorKey("settings.integrations.ocp.error.apiKeyRequired");
-      return;
-    }
-    setActionLoading("connect");
-    const connectInput = { login: trimmedLogin, accountKey };
-    const connectPromise =
-      apiKeyDraft.trim().length > 0 && !hasSavedApiKey
-        ? facade.saveOcpProxyApiKey(apiKeyDraft.trim(), { accountKey }).then((saveResult) => {
-            if (!saveResult.ok) {
-              return saveResult;
-            }
-            setHasSavedApiKey(true);
-            setApiKeyDraft("");
-            return facade.connectOcp(connectInput);
-          })
-        : facade.connectOcp(connectInput);
-    void connectPromise
-      .then(async (result) => {
-        if (!result.ok) {
-          setErrorKey(
-            resolveActionErrorKey(result.error.message || result.error.code),
-          );
-          return;
-        }
-        setErrorKey(null);
-        const panel = await facade.getOcpModulePanelState({
-          login: trimmedLogin,
-          accountKey,
-        });
-        if (panel.ok) {
-          applyPanelState(panel.value);
-        }
-        await refreshActiveSettings();
-      })
-      .finally(() => {
-        setActionLoading(null);
-      });
-  }, [
-    accountKey,
-    apiKeyDraft,
-    applyPanelState,
-    facade,
-    hasSavedApiKey,
-    login,
-    refreshActiveSettings,
-    settings.domain,
-  ]);
-
-  const onDisconnect = useCallback((): void => {
-    if (facade === null) {
-      return;
-    }
-    setActionLoading("disconnect");
-    void facade
-      .disconnectOcp()
-      .then((result) => {
-        if (!result.ok) {
-          setErrorKey("settings.integrations.ocp.error.connectFailed");
-          return;
-        }
-        setErrorKey(null);
-      })
-      .finally(() => {
-        setActionLoading(null);
-      });
-  }, [facade]);
+  const onOpenAccountForRecovery = useCallback((): void => {
+    onOpenAccountSettings();
+  }, [onOpenAccountSettings]);
 
   return {
     settings,
     session,
-    login,
-    loginOptions,
+    activeLoginLabel,
     apiKeyDraft,
     apiKeyVisible,
     hasSavedApiKey,
     actionLoading,
     errorKey,
-    onLoginChange,
+    configEditable: editShell.configEditable,
+    openAccountForRecoveryVisible: editShell.openAccountForRecoveryVisible,
     onEnabledChange,
     onDomainChange,
     onAutoConnectChange,
@@ -377,42 +229,54 @@ export function useOcpSettingsPanel(
     onApiKeyVisibleChange: setApiKeyVisible,
     onSaveApiKey,
     onDeleteApiKey,
-    onConnect,
-    onDisconnect,
+    onOpenAccountForRecovery,
   };
 }
 
-export type OcpStatusTranslationKey =
-  | "settings.integrations.ocp.status.disconnected"
-  | "settings.integrations.ocp.status.connecting"
-  | "settings.integrations.ocp.status.connected"
-  | "settings.integrations.ocp.status.authenticated"
-  | "settings.integrations.ocp.status.reconnecting"
-  | "settings.integrations.ocp.status.failed"
-  | "settings.integrations.ocp.status.sessionClosed"
-  | "settings.integrations.ocp.status.disabled";
+export type OcpServerStatusTranslationKey =
+  | "account.server.status.disconnected"
+  | "account.server.status.connecting"
+  | "account.server.status.connected"
+  | "account.server.status.reconnecting"
+  | "account.server.status.failed";
 
-export function resolveOcpStatusLabelKey(
-  enabled: boolean,
-  connectionState: OcpSessionProjection["connectionState"],
-): OcpStatusTranslationKey {
-  if (!enabled) {
-    return "settings.integrations.ocp.status.disabled";
-  }
-  switch (connectionState) {
+export type OcpAuthorizationStatusTranslationKey =
+  | "account.authorization.status.idle"
+  | "account.authorization.status.pending"
+  | "account.authorization.status.authorized"
+  | "account.authorization.status.timeout"
+  | "account.authorization.status.rejected";
+
+export function resolveOcpServerStatusLabelKey(
+  serverState: OcpSessionProjection["serverState"],
+): OcpServerStatusTranslationKey {
+  switch (serverState) {
     case "connecting":
-      return "settings.integrations.ocp.status.connecting";
+      return "account.server.status.connecting";
     case "connected":
-      return "settings.integrations.ocp.status.connected";
-    case "authenticated":
-      return "settings.integrations.ocp.status.authenticated";
+      return "account.server.status.connected";
     case "reconnecting":
-      return "settings.integrations.ocp.status.reconnecting";
+      return "account.server.status.reconnecting";
     case "failed":
-      return "settings.integrations.ocp.status.failed";
-    case "sessionClosed":
-      return "settings.integrations.ocp.status.sessionClosed";
+      return "account.server.status.failed";
     default:
-      return "settings.integrations.ocp.status.disconnected";
+      return "account.server.status.disconnected";
+  }
+}
+
+export function resolveOcpAuthorizationStatusLabelKey(
+  authorizationState: OcpSessionProjection["authorizationState"],
+): OcpAuthorizationStatusTranslationKey {
+  switch (authorizationState.phase) {
+    case "pending":
+      return "account.authorization.status.pending";
+    case "authorized":
+      return "account.authorization.status.authorized";
+    case "timeout":
+      return "account.authorization.status.timeout";
+    case "rejected":
+      return "account.authorization.status.rejected";
+    default:
+      return "account.authorization.status.idle";
   }
 }

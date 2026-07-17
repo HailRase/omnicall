@@ -8,11 +8,13 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 import { useOverlayShell } from "./useOverlayShell.js";
 
-function setSipRegistered(registered: boolean): void {
+/** Gate Settings on account session (ADR-AF-005), not SIP-ready alone. */
+function setAccountSessionActive(active: boolean): void {
   useAccountBootstrapStore.setState({
     projection: {
       ...initialAccountBootstrapProjection(),
-      authUiState: registered ? "sip_registered" : "sip_only_ready",
+      authUiState: active ? "sip_registered" : "sip_only_ready",
+      hasActiveAccountSession: active,
     },
   });
 }
@@ -43,7 +45,7 @@ function useTestLocation(): string {
 
 describe("useOverlayShell", () => {
   beforeEach(() => {
-    setSipRegistered(true);
+    setAccountSessionActive(true);
   });
 
   afterEach(() => {
@@ -52,7 +54,7 @@ describe("useOverlayShell", () => {
     });
   });
 
-  it("opens settings on general section when SIP is registered", () => {
+  it("opens settings on general section when account session is active", () => {
     const { result } = renderHook(
       () => ({
         overlay: useOverlayShell(),
@@ -70,8 +72,8 @@ describe("useOverlayShell", () => {
     expect(result.current.pathname).toBe("/settings/general");
   });
 
-  it("opens settings on account section when SIP is not registered", () => {
-    setSipRegistered(false);
+  it("opens settings on account section when account session is inactive", () => {
+    setAccountSessionActive(false);
 
     const { result } = renderHook(
       () => ({
@@ -90,8 +92,8 @@ describe("useOverlayShell", () => {
     expect(result.current.pathname).toBe("/settings/account");
   });
 
-  it("redirects canonical /settings route to account when SIP is not registered", async () => {
-    setSipRegistered(false);
+  it("redirects canonical /settings route to account when account session is inactive", async () => {
+    setAccountSessionActive(false);
 
     const { result } = renderHook(
       () => ({
@@ -107,8 +109,8 @@ describe("useOverlayShell", () => {
     expect(result.current.overlay.settingsSection).toBe("account");
   });
 
-  it("keeps direct settings section route when SIP is not registered", async () => {
-    setSipRegistered(false);
+  it("redirects blocked direct settings section to account when account session is inactive", async () => {
+    setAccountSessionActive(false);
 
     const { result } = renderHook(
       () => ({
@@ -119,14 +121,29 @@ describe("useOverlayShell", () => {
     );
 
     await waitFor(() => {
-      expect(result.current.overlay.settingsOpen).toBe(true);
+      expect(result.current.pathname).toBe("/settings/account");
     });
-    expect(result.current.pathname).toBe("/settings/general");
-    expect(result.current.overlay.settingsSection).toBe("general");
+    expect(result.current.overlay.settingsSection).toBe("account");
   });
 
-  it("navigates from account to general when SIP is not registered", () => {
-    setSipRegistered(false);
+  it("redirects integrations deep link to account when account session is inactive", async () => {
+    setAccountSessionActive(false);
+
+    const { result } = renderHook(
+      () => ({
+        overlay: useOverlayShell(),
+        pathname: useTestLocation(),
+      }),
+      { wrapper: createRouterWrapper(["/settings/integrations"]) },
+    );
+
+    await waitFor(() => {
+      expect(result.current.pathname).toBe("/settings/account");
+    });
+  });
+
+  it("clamps setSettingsSection to account when account session is inactive", () => {
+    setAccountSessionActive(false);
 
     const { result } = renderHook(
       () => ({
@@ -140,12 +157,12 @@ describe("useOverlayShell", () => {
       result.current.overlay.setSettingsSection("general");
     });
 
-    expect(result.current.overlay.settingsSection).toBe("general");
-    expect(result.current.pathname).toBe("/settings/general");
+    expect(result.current.overlay.settingsSection).toBe("account");
+    expect(result.current.pathname).toBe("/settings/account");
   });
 
-  it("allows changing settings section when SIP is not registered", () => {
-    setSipRegistered(false);
+  it("clamps codecs navigation when account session is inactive", () => {
+    setAccountSessionActive(false);
 
     const { result } = renderHook(
       () => ({
@@ -159,12 +176,12 @@ describe("useOverlayShell", () => {
       result.current.overlay.setSettingsSection("codecs");
     });
 
-    expect(result.current.overlay.settingsSection).toBe("codecs");
-    expect(result.current.pathname).toBe("/settings/codecs");
+    expect(result.current.overlay.settingsSection).toBe("account");
+    expect(result.current.pathname).toBe("/settings/account");
   });
 
-  it("opens diagnostics section from header shortcut", () => {
-    setSipRegistered(true);
+  it("opens diagnostics section from header shortcut when account session is active", () => {
+    setAccountSessionActive(true);
 
     const { result } = renderHook(
       () => ({
@@ -183,8 +200,8 @@ describe("useOverlayShell", () => {
     expect(result.current.pathname).toBe("/settings/diagnostics");
   });
 
-  it("opens diagnostics section from header shortcut when SIP is not registered", () => {
-    setSipRegistered(false);
+  it("opens account instead of diagnostics when account session is inactive", () => {
+    setAccountSessionActive(false);
 
     const { result } = renderHook(
       () => ({
@@ -199,8 +216,8 @@ describe("useOverlayShell", () => {
     });
 
     expect(result.current.overlay.settingsOpen).toBe(true);
-    expect(result.current.overlay.settingsSection).toBe("diagnostics");
-    expect(result.current.pathname).toBe("/settings/diagnostics");
+    expect(result.current.overlay.settingsSection).toBe("account");
+    expect(result.current.pathname).toBe("/settings/account");
   });
 
   it("closes overlay and returns to previous shell destination", () => {
@@ -230,7 +247,7 @@ describe("useOverlayShell", () => {
     expect(result.current.pathname).toBe("/history");
   });
 
-  it("opens requested section via route", () => {
+  it("opens requested section via route when account session is active", () => {
     const { result } = renderHook(() => useOverlayShell(), {
       wrapper: createRouterWrapper(["/"]),
     });
@@ -244,7 +261,7 @@ describe("useOverlayShell", () => {
   });
 
   it("ignores non-section click event when used as onClick handler", () => {
-    setSipRegistered(true);
+    setAccountSessionActive(true);
 
     const { result } = renderHook(() => useOverlayShell(), {
       wrapper: createRouterWrapper(["/"]),
@@ -273,5 +290,23 @@ describe("useOverlayShell", () => {
 
     expect(result.current.overlay.settingsSection).toBe("account");
     expect(result.current.pathname).toBe("/settings/account");
+  });
+
+  it("keeps active account session on all sections including integrations", async () => {
+    setAccountSessionActive(true);
+
+    const { result } = renderHook(
+      () => ({
+        overlay: useOverlayShell(),
+        pathname: useTestLocation(),
+      }),
+      { wrapper: createRouterWrapper(["/settings/integrations"]) },
+    );
+
+    await waitFor(() => {
+      expect(result.current.overlay.settingsOpen).toBe(true);
+    });
+    expect(result.current.pathname).toBe("/settings/integrations");
+    expect(result.current.overlay.settingsSection).toBe("integrations");
   });
 });

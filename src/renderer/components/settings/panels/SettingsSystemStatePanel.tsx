@@ -1,6 +1,11 @@
 import clsx from "clsx";
 import { useEffect, useId, useRef, useState, type JSX } from "react";
-import type { SipConnectionJournalEntry, SipSystemStateShellView } from "@application/index.js";
+import type {
+  OcpRecoveryAction,
+  OcpSystemStateShellView,
+  SipConnectionJournalEntry,
+  SipSystemStateShellView,
+} from "@application/index.js";
 import {
   MIN_SIP_RECONNECT_INTERVAL_SEC,
   MIN_SIP_REREGISTER_INTERVAL_SEC,
@@ -10,9 +15,10 @@ import { formatLocaleDateTime, useI18n } from "../../../i18n/index.js";
 import { AppIcon } from "../../icons/AppIcon.js";
 import { IconTooltip } from "../../icons/IconTooltip.js";
 import { SettingsNumberInput } from "../SettingsNumberInput.js";
-import { Button, Switch } from "../../ui/index.js";
+import { Button, Switch, Tabs, TabsList, TabsTrigger } from "../../ui/index.js";
 import formStyles from "../SettingsForm.module.css";
 import styles from "./SettingsSystemStatePanel.module.css";
+import { SettingsSystemStateOcpTab } from "./SettingsSystemStateOcpTab.js";
 import {
   deriveRegistrationIndicatorTone,
   deriveSummaryIndicatorTone,
@@ -21,8 +27,13 @@ import {
   type SipStateIndicatorTone,
 } from "./settingsSystemStatePanelHelpers.js";
 
+type SystemStateTabId = "sip" | "ocp";
+
 export type SettingsSystemStatePanelProps = Readonly<{
   shell: SipSystemStateShellView;
+  ocpShell: OcpSystemStateShellView;
+  ocpRecoveryActionLoading: OcpRecoveryAction | null;
+  onOcpRecoveryAction: (action: OcpRecoveryAction) => void;
   sipAutoReconnectEnabled: boolean;
   onSipAutoReconnectChange: (enabled: boolean) => void;
   sipReconnectIntervalSec: number;
@@ -247,6 +258,9 @@ function journalEntryKey(entry: SipConnectionJournalEntry): string {
  */
 export function SettingsSystemStatePanel({
   shell,
+  ocpShell,
+  ocpRecoveryActionLoading,
+  onOcpRecoveryAction,
   sipAutoReconnectEnabled,
   onSipAutoReconnectChange,
   sipReconnectIntervalSec,
@@ -267,6 +281,10 @@ export function SettingsSystemStatePanel({
   actionLoading,
 }: SettingsSystemStatePanelProps): JSX.Element {
   const { t, language } = useI18n();
+  const [activeTab, setActiveTab] = useState<SystemStateTabId>("sip");
+  const ocpTabDisabled = !ocpShell.ocpModuleEnabled;
+  const ocpTabDisabledReason =
+    ocpShell.tabDisabledReasonKey === null ? null : t(ocpShell.tabDisabledReasonKey);
   const transportLabel = t(shell.transportStateLabelKey);
   const registrationLabel = t(shell.registrationStateLabelKey);
   const summaryText = t(shell.summaryLabelKey);
@@ -283,6 +301,12 @@ export function SettingsSystemStatePanel({
   const autoRegisterStartupDescriptionId = useId();
   const knownJournalKeysRef = useRef<ReadonlySet<string>>(new Set());
   const [highlightedKeys, setHighlightedKeys] = useState<ReadonlySet<string>>(new Set());
+
+  useEffect(() => {
+    if (ocpTabDisabled && activeTab === "ocp") {
+      setActiveTab("sip");
+    }
+  }, [ocpTabDisabled, activeTab]);
 
   useEffect(() => {
     const currentKeys = new Set(shell.journalEntries.map((entry) => journalEntryKey(entry)));
@@ -325,6 +349,51 @@ export function SettingsSystemStatePanel({
 
   return (
     <div className={formStyles.panelStack} data-testid="settings-system-state-panel">
+      <Tabs
+        value={activeTab}
+        onValueChange={(value) => {
+          if (value === "sip" || value === "ocp") {
+            setActiveTab(value);
+          }
+        }}
+      >
+        <TabsList
+          className={styles.systemStateTabs}
+          data-testid="settings-system-state-tabs"
+          aria-label={t("settings.systemState.tabsAria")}
+        >
+          <TabsTrigger value="sip" data-testid="settings-system-state-tab-sip">
+            {t("settings.systemState.tab.sipServer")}
+          </TabsTrigger>
+          <IconTooltip label={ocpTabDisabledReason ?? ""}>
+            <span className={styles.ocpTabTriggerWrap}>
+              <TabsTrigger
+                value="ocp"
+                data-testid="settings-system-state-tab-ocp"
+                disabled={ocpTabDisabled}
+                aria-label={
+                  ocpTabDisabledReason === null
+                    ? t("settings.systemState.tab.ocpModule")
+                    : `${t("settings.systemState.tab.ocpModule")}. ${ocpTabDisabledReason}`
+                }
+              >
+                {t("settings.systemState.tab.ocpModule")}
+              </TabsTrigger>
+            </span>
+          </IconTooltip>
+        </TabsList>
+      </Tabs>
+
+      {activeTab === "ocp" ? (
+        <SettingsSystemStateOcpTab
+          shell={ocpShell}
+          recoveryActionLoading={ocpRecoveryActionLoading}
+          onRecoveryAction={onOcpRecoveryAction}
+        />
+      ) : null}
+
+      {activeTab === "sip" ? (
+      <>
       <fieldset className={formStyles.sectionCard}>
         <legend className={formStyles.sectionTitle}>
           {t("settings.systemState.currentState.legend")}
@@ -654,6 +723,8 @@ export function SettingsSystemStatePanel({
           </div>
         </div>
       </fieldset>
+      </>
+      ) : null}
     </div>
   );
 }

@@ -18,6 +18,8 @@ describe("mapOcpNotificationToToastDescriptor", () => {
       id: "ocp-notification-n1",
       level: "error",
       messageText: "OCP failed",
+      module: "ocp",
+      functionId: "ocp.notification",
     });
   });
 

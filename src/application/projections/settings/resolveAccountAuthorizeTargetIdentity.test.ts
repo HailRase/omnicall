@@ -9,6 +9,7 @@ const savedProfile: SavedAccountProfile = {
   domain: "pbx.example.com",
   server: "wss://sip.example.com",
   displayName: "1001",
+  lifecycleStatus: "successful",
 };
 
 describe("resolveAccountAuthorizeTargetIdentity", () => {

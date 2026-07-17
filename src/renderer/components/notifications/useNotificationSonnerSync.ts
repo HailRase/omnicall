@@ -4,6 +4,7 @@ import type { SupportedLanguage } from "@application/index.js";
 import { useI18n } from "../../i18n/index.js";
 import { toast } from "../ui/sonner/index.js";
 import { AppIcon } from "../icons/AppIcon.js";
+import { NotificationToastAction } from "./NotificationToastAction.js";
 import notificationToastStyles from "./NotificationToast.module.css";
 import { resolveNotificationMessage } from "./resolveNotificationMessage.js";
 
@@ -148,19 +149,23 @@ export function useNotificationSonnerSync({
         duration,
         closeButton: true,
         icon,
-        ...(item.action !== null
+        ...(item.action !== null && actionLabel !== null
           ? {
-              action: {
+              action: createElement(NotificationToastAction, {
                 label: actionLabel,
                 onClick: () => {
                   latestItemsByIdRef.current.get(item.id)?.action?.onClick();
+                  toast.dismiss(item.id);
                 },
-              },
+              }),
             }
           : {}),
         onDismiss: handleClose,
         onAutoClose: handleClose,
         testId: "notification-toast",
+        classNames: {
+          content: notificationToastStyles.toastContent ?? "",
+        },
       });
 
       trackedSnapshotsRef.current.set(item.id, nextSnapshot);

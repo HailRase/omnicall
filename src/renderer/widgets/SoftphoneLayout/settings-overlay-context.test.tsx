@@ -2,6 +2,7 @@
 import "@testing-library/jest-dom/vitest";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { deriveSettingsNavigationAvailability } from "@application/index.js";
 import { SettingsFullscreenOverlay } from "../../components/settings/SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "../../components/settings/SettingsPanel.js";
 import { systemStateTestDefaults } from "../../components/settings/panels/settingsSystemStateTestDefaults.js";
@@ -29,6 +30,9 @@ describe("settings overlay with layout zones", () => {
             <SettingsPanel
               activeSection="sessions"
               sidebarExpanded={false}
+              sectionAvailability={deriveSettingsNavigationAvailability({
+                hasActiveAccountSession: true,
+              })}
               onClose={() => undefined}
               onSectionChange={vi.fn()}
               onSidebarExpandedChange={vi.fn()}

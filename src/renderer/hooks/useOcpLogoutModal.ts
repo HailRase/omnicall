@@ -1,6 +1,6 @@
 /**
  * - Purpose: open OCP logout-reason overlay or fall through to SIP logout.
- * - Inputs: facade, SIP session logout actions, optional notify.
+ * - Inputs: facade, fallback SIP session actions, optional notify.
  * - Outputs: modal state + request/confirm/cancel handlers (no Domain rules).
  *
  * Gate reads live OcpProjectionHub at click time (avoids stale Zustand/settings):
@@ -8,8 +8,7 @@
  * - otherwise → SIP-only logout
  *
  * Confirm:
- * - authenticated → LogoutOperator(reason) then SIP
- * - connected-only (no operator profile yet) → DisconnectOcp then SIP
+ * Application owns the complete OCP → SIP → local account cascade.
  */
 
 import { useCallback, useState } from "react";
@@ -108,8 +107,21 @@ export function useOcpLogoutModal(input: UseOcpLogoutModalInput): UseOcpLogoutMo
       return;
     }
 
-    endSipSession();
-  }, [endSipSession, facade, logoutReasons.length]);
+    if (facade === null) {
+      endSipSession();
+      return;
+    }
+    void facade.logoutAccountSession().then((result) => {
+      if (isErr(result)) {
+        notify?.({
+          level: "error",
+          messageKey: "ocp.logout.modal.error",
+          module: "account",
+          functionId: "account.logout",
+        });
+      }
+    });
+  }, [endSipSession, facade, logoutReasons.length, notify]);
 
   const handleSelectReason = useCallback((reasonId: number): void => {
     setSelectedReasonId(reasonId);
@@ -131,48 +143,22 @@ export function useOcpLogoutModal(input: UseOcpLogoutModalInput): UseOcpLogoutMo
     }
 
     setSubmitting(true);
-    const live = readLiveOcpSession(facade);
-    const operator = facade.getOcpOperatorSnapshot();
-    const canSendLogoutCommand =
-      selectedReasonId !== null &&
-      operator.operatorId !== null &&
-      operator.status !== null;
-
-    if (canSendLogoutCommand && selectedReasonId !== null) {
-      const result = await facade.logoutOcpOperator({
-        reasonId: selectedReasonId,
-        cascadeSipLogout: true,
-      });
-
-      if (isErr(result)) {
-        setSubmitting(false);
-        notify?.({
-          level: "error",
-          messageKey: "ocp.logout.modal.error",
-        });
-        return;
-      }
-    } else if (live.isAuthenticated) {
+    const result = await facade.logoutAccountSession(
+      selectedReasonId === null ? {} : { reasonId: selectedReasonId },
+    );
+    if (isErr(result)) {
       setSubmitting(false);
+      notify?.({
+        level: "error",
+        messageKey: "ocp.logout.modal.error",
+        module: "account",
+        functionId: "account.logout",
+      });
       return;
-    } else {
-      const disconnectResult = await facade.disconnectOcp();
-      if (isErr(disconnectResult)) {
-        setSubmitting(false);
-        notify?.({
-          level: "error",
-          messageKey: "ocp.logout.modal.error",
-        });
-        return;
-      }
     }
 
     resetModal();
-    // SIP cascade is owned by Application (OperatorLoggedOut → EndUserSession).
-    // Keep a best-effort UI fallback for disconnect-only / already-cascaded paths.
-    endSipSession();
   }, [
-    endSipSession,
     facade,
     notify,
     requireReasonSelection,

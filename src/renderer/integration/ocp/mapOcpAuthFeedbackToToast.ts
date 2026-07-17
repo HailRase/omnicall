@@ -23,5 +23,11 @@ export function mapOcpAuthFeedbackToMessageKey(
       return "ocp.authFeedback.loginRequired";
     case "API_KEY_REQUIRED":
       return "ocp.authFeedback.apiKeyRequired";
+    case "SIP_REGISTRATION_FAILED":
+      return "ocp.authFeedback.sipRegistrationFailed";
+    case "SIP_IDENTITY_MISMATCH":
+      return "ocp.authFeedback.sipIdentityMismatch";
+    case "CREDENTIALS_TIMEOUT":
+      return "ocp.authFeedback.credentialsTimeout";
   }
 }

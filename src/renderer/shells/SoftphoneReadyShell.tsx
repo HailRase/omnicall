@@ -1,5 +1,6 @@
-import { useEffect, useState, type JSX } from "react";
+import { useCallback, useEffect, useState, type JSX } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
+import type { QueryUserNotificationJournalInput } from "@application/use-cases/settings/QueryUserNotificationJournalUseCase.js";
 import type { AccountPanelActionReasonKey } from "@application/index.js";
 import { resolveFullscreenVideoSession } from "@application/index.js";
 import { NotificationViewport } from "../components/notifications/NotificationViewport.js";
@@ -12,7 +13,11 @@ import { useAccountPanelShell } from "../hooks/useAccountPanelShell.js";
 import { useAuthShellFlags } from "../hooks/useAuthShellFlags.js";
 import { useCallFeatureShell } from "../hooks/useCallFeatureShell.js";
 import { useHeaderChromeShell } from "../hooks/useHeaderChromeShell.js";
-import { useNotifications } from "../hooks/useNotifications.js";
+import {
+  useNotifications,
+  type NotificationDescriptor,
+  type NotificationParams,
+} from "../hooks/useNotifications.js";
 import { useVideoCallNotifications } from "../hooks/useVideoCallNotifications.js";
 import { useOverlayShell } from "../hooks/useOverlayShell.js";
 import { useShellWindowLayout } from "../hooks/useShellWindowLayout.js";
@@ -27,6 +32,7 @@ import {
   useSipSystemStateActions,
   useSipSystemStateShell,
 } from "../hooks/useSipSystemStateActions.js";
+import { useOcpSystemStateShell } from "../hooks/useOcpSystemStateShell.js";
 import { useUserAvatarMenu } from "../hooks/useUserAvatarMenu.js";
 import { useUserAvatarMenuActions } from "../hooks/useUserAvatarMenuActions.js";
 import { useVideoSettingsPanel } from "../hooks/useVideoSettingsPanel.js";
@@ -61,6 +67,18 @@ type SoftphoneReadyShellProps = Readonly<{
   isShuttingDown: boolean;
 }>;
 
+function sanitizeNotificationParamsForCapture(
+  params: NotificationParams | undefined,
+): Readonly<Record<string, string | number>> {
+  const sanitized: Record<string, string | number> = {};
+  for (const [key, value] of Object.entries(params ?? {})) {
+    if (value !== undefined) {
+      sanitized[key] = value;
+    }
+  }
+  return sanitized;
+}
+
 /**
  * - Purpose: compose post-bootstrap feature shells inside SoftphoneLayout zones.
  * - Inputs: account bootstrap facade and shared shell chrome hooks.
@@ -88,8 +106,16 @@ function SoftphoneShellLayoutRoute({
     useSoftphoneProjections();
   const { blockingAuthState, isSipRegistered } = useAuthShellFlags();
   const overlayShell = useOverlayShell();
+  const openSystemState = useCallback((): void => {
+    overlayShell.openSettings("system-state");
+  }, [overlayShell]);
   const shellNavigation = useShellNavigation();
   const [settingsSidebarExpanded, setSettingsSidebarExpanded] = useState(false);
+  const queryNotificationHistory = useCallback(
+    (input: QueryUserNotificationJournalInput) =>
+      facade.queryUserNotificationJournal(input),
+    [facade],
+  );
   const settingsActions = useSettingsActions({
     facade,
     currentSettings: {
@@ -115,15 +141,22 @@ function SoftphoneShellLayoutRoute({
     panelDisabled: blockingAuthState,
     authUiState: projection.authUiState,
     sessionLogoutActions,
-    profileSwitchAllowed: accountActions.profileSwitchAllowed,
   });
   const translateAccountActionReason = (
     reasonKey: AccountPanelActionReasonKey | null,
   ): string | null => (reasonKey === null ? null : t(reasonKey));
+  const accountAuthorizeDisabledReason =
+    accountActions.loginDisabledReasonKey !== null
+      ? t(accountActions.loginDisabledReasonKey)
+      : translateAccountActionReason(accountPanelShell.authorizeDisabledReason);
   const sipSystemStateActions = useSipSystemStateActions({ facade });
   const sipSystemStateShell = useSipSystemStateShell({
     userSettings: settingsActions.userSettings,
     journalEntries: sipSystemStateActions.journalEntries,
+  });
+  const ocpSystemState = useOcpSystemStateShell({
+    facade,
+    ocpModuleEnabled: settingsActions.userSettings.ocpIntegration.enabled,
   });
   const headerChrome = useHeaderChromeShell({
     dndEnabled: projection.phoneStatus === "dnd",
@@ -154,11 +187,55 @@ function SoftphoneShellLayoutRoute({
     dismissedUpdateBannerVersion: settingsActions.userSettings.dismissedUpdateBannerVersion,
     onDismissUpdateBannerVersion: settingsActions.onDismissUpdateBannerVersion,
   });
+  const resolveNotificationTitle = useCallback(
+    (descriptor: NotificationDescriptor): string => {
+      if (descriptor.messageText !== undefined) {
+        return descriptor.messageText;
+      }
+      if (descriptor.messageKey !== undefined) {
+        return t(descriptor.messageKey);
+      }
+      return "";
+    },
+    [t],
+  );
+  const captureNotification = useCallback(
+    async (
+      descriptor: NotificationDescriptor,
+      id: string,
+      titleSnapshot: string,
+    ): Promise<Readonly<{ shouldPresentPopup: boolean }>> => {
+      const result = await facade.captureUserNotification({
+        id,
+        level: descriptor.level,
+        module: descriptor.module ?? "system",
+        functionId: descriptor.functionId ?? "renderer.notification",
+        titleKey: descriptor.messageKey ?? null,
+        titleParams: sanitizeNotificationParamsForCapture(
+          descriptor.messageParams,
+        ),
+        titleSnapshot,
+        popupEnabled: settingsActions.userSettings.notificationPopupEnabled,
+        correlationId: descriptor.correlationId ?? null,
+      });
+      return {
+        shouldPresentPopup: result.ok
+          ? result.value.shouldPresentPopup
+          : settingsActions.userSettings.notificationPopupEnabled,
+      };
+    },
+    [
+      facade,
+      settingsActions.userSettings.notificationPopupEnabled,
+    ],
+  );
   const notifications = useNotifications({
     placement: settingsActions.userSettings.notificationPlacement,
     stacking: settingsActions.userSettings.notificationStacking,
     durationMs: settingsActions.userSettings.notificationDurationMs,
     maxVisible: settingsActions.userSettings.notificationMaxVisible,
+    capture: captureNotification,
+    resolveTitle: resolveNotificationTitle,
   });
   useEffect(() => {
     const notify = notifications.notify;
@@ -184,13 +261,22 @@ function SoftphoneShellLayoutRoute({
       id: `ocp-auth-feedback-${ocpAuthFeedback.nonce}`,
       level: "warning",
       messageKey,
+      action: {
+        id: "ocp-auth-feedback-open-system-state",
+        labelKey: "account.notification.openSystemStateAction",
+        onClick: () => {
+          openSystemState();
+        },
+      },
     });
     facade.clearOcpAuthFeedback();
-  }, [facade, notifications, ocpAuthFeedback]);
+  }, [facade, notifications, ocpAuthFeedback, openSystemState]);
   const ocpSettingsPanel = useOcpSettingsPanel({
     facade,
-    initialLoginHint: accountActions.form.username,
     onActiveUserSettingsRefresh: settingsActions.applyUserSettingsSnapshot,
+    onOpenAccountSettings: () => {
+      overlayShell.openSettings("account");
+    },
   });
   const ocpLogoutModal = useOcpLogoutModal({
     facade,
@@ -240,6 +326,7 @@ function SoftphoneShellLayoutRoute({
     (sipSystemStateActions.actionErrorKey !== null ? t(sipSystemStateActions.actionErrorKey) : null);
   useActionNotifications({
     notifications,
+    onOpenSystemState: openSystemState,
     accountFeedback: {
       error: accountActions.error,
       successKey: accountActions.successKey,
@@ -433,9 +520,11 @@ function SoftphoneShellLayoutRoute({
             <SettingsPanel
               activeSection={overlayShell.settingsSection}
               sidebarExpanded={settingsSidebarExpanded}
+              sectionAvailability={overlayShell.settingsNavigationAvailability}
               onClose={overlayShell.closeOverlay}
               onSectionChange={overlayShell.setSettingsSection}
               onSidebarExpandedChange={setSettingsSidebarExpanded}
+              notificationHistoryQuery={queryNotificationHistory}
               language={settingsActions.userSettings.language}
               onLanguageChange={settingsActions.onLanguageChange}
               theme={settingsActions.userSettings.theme}
@@ -473,6 +562,9 @@ function SoftphoneShellLayoutRoute({
               onOpenDownloadPage={appUpdate.onOpenDownloadPage}
               systemState={{
                 shell: sipSystemStateShell,
+                ocpShell: ocpSystemState.shell,
+                ocpRecoveryActionLoading: ocpSystemState.recoveryActionLoading,
+                onOcpRecoveryAction: ocpSystemState.onRecoveryAction,
                 sipAutoReconnectEnabled: settingsActions.userSettings.sipAutoReconnectEnabled,
                 onSipAutoReconnectChange: settingsActions.onSipAutoReconnectToggle,
                 sipReconnectIntervalSec: settingsActions.userSettings.sipReconnectIntervalSec,
@@ -541,15 +633,13 @@ function SoftphoneShellLayoutRoute({
               integrations={{
                 ocp: {
                   settings: ocpSettingsPanel.settings,
-                  session: ocpSettingsPanel.session,
-                  login: ocpSettingsPanel.login,
-                  loginOptions: ocpSettingsPanel.loginOptions,
+                  activeLoginLabel: ocpSettingsPanel.activeLoginLabel,
                   apiKeyDraft: ocpSettingsPanel.apiKeyDraft,
                   apiKeyVisible: ocpSettingsPanel.apiKeyVisible,
                   hasSavedApiKey: ocpSettingsPanel.hasSavedApiKey,
                   actionLoading: ocpSettingsPanel.actionLoading,
                   errorKey: ocpSettingsPanel.errorKey,
-                  onLoginChange: ocpSettingsPanel.onLoginChange,
+                  configEditable: ocpSettingsPanel.configEditable,
                   onEnabledChange: ocpSettingsPanel.onEnabledChange,
                   onDomainChange: ocpSettingsPanel.onDomainChange,
                   onAutoConnectChange: ocpSettingsPanel.onAutoConnectChange,
@@ -557,24 +647,19 @@ function SoftphoneShellLayoutRoute({
                   onApiKeyVisibleChange: ocpSettingsPanel.onApiKeyVisibleChange,
                   onSaveApiKey: ocpSettingsPanel.onSaveApiKey,
                   onDeleteApiKey: ocpSettingsPanel.onDeleteApiKey,
-                  onConnect: ocpSettingsPanel.onConnect,
-                  onDisconnect: ocpSettingsPanel.onDisconnect,
                 },
               }}
               account={{
                 form: accountActions.form,
+                ocpDraft: accountActions.ocpDraft,
+                signInMode: accountActions.signInMode,
                 submitting: accountActions.submitting,
                 error: accountActions.error,
                 successKey: accountActions.successKey,
                 warningKey: accountActions.warningKey,
                 panelMode: accountActions.panelMode,
                 disabled: blockingAuthState,
-                authorizeDisabledReason: translateAccountActionReason(
-                  accountPanelShell.authorizeDisabledReason,
-                ),
-                logoutDisabledReason: translateAccountActionReason(
-                  accountPanelShell.logoutDisabledReason,
-                ),
+                authorizeDisabledReason: accountAuthorizeDisabledReason,
                 savedProfileOptions: accountActions.savedProfileOptions,
                 selectedProfileId: accountActions.selectedProfileId,
                 saveProfileChecked: accountActions.saveProfileChecked,
@@ -583,30 +668,43 @@ function SoftphoneShellLayoutRoute({
                 rememberPasswordChecked: accountActions.rememberPasswordChecked,
                 passwordFieldVisible: accountActions.passwordFieldVisible,
                 rememberPasswordVisible: accountActions.rememberPasswordVisible,
-                forgetRememberedPasswordVisible: accountActions.forgetRememberedPasswordVisible,
                 rememberPasswordDisabled: accountActions.rememberPasswordDisabled,
-                rememberPasswordDisabledReasonKey: accountActions.rememberPasswordDisabledReasonKey,
                 passwordHintKey: accountActions.passwordHintKey,
-                authorizeViaOcpVisible: accountActions.authorizeViaOcpVisible,
-                authorizeViaOcpChecked: accountActions.authorizeViaOcpChecked,
+                showOcpDomainField: accountActions.showOcpDomainField,
+                showOcpApiKeyField: accountActions.showOcpApiKeyField,
+                hasSavedOcpApiKey: accountActions.hasSavedOcpApiKey,
+                allowedRecoveryActions: accountActions.allowedRecoveryActions,
+                onRecoveryAction: accountActions.handleRecoveryAction,
+                authorizationProgress: accountActions.authorizationProgress,
+                canForgetSavedSipPassword:
+                  accountActions.canForgetSavedSipPassword,
+                onForgetSavedSipPassword:
+                  accountActions.forgetSavedSipPassword,
                 deleteConfirmationOpen: accountActions.deleteConfirmationOpen,
-                switchConfirmationOpen: accountActions.switchConfirmationOpen,
-                switchFromLogin: accountActions.switchFromLogin,
-                switchToLogin: accountActions.switchToLogin,
+                deleteSubmitting: accountActions.deleteSubmitting,
                 passwordInputRef: accountActions.passwordInputRef,
                 onFieldChange: accountActions.updateField,
+                onOcpFieldChange: accountActions.updateOcpField,
+                onSignInModeChange: accountActions.setSignInMode,
                 onSubmit: accountActions.handleSubmit,
-                onLogout: sessionLogoutActions.handleEndSession,
                 onProfileSelect: accountActions.selectProfile,
                 onSaveProfileChange: accountActions.setSaveProfileChecked,
                 onRememberPasswordChange: accountActions.setRememberPasswordChecked,
-                onAuthorizeViaOcpChange: accountActions.setAuthorizeViaOcpChecked,
-                onForgetRememberedPassword: accountActions.forgetRememberedPassword,
                 onDeleteProfileRequest: accountActions.requestDeleteSelectedProfile,
                 onDeleteProfileConfirm: accountActions.confirmDeleteSelectedProfile,
                 onDeleteProfileCancel: accountActions.cancelDeleteSelectedProfile,
-                onSwitchProfileConfirm: accountActions.confirmSwitchProfile,
-                onSwitchProfileCancel: accountActions.cancelSwitchProfile,
+                overwriteConfirmationOpen: accountActions.overwriteConfirmationOpen,
+                draftDiscardConfirmationOpen:
+                  accountActions.draftDiscardConfirmationOpen,
+                onDraftDiscardConfirm:
+                  accountActions.confirmDiscardDraftAndSelectProfile,
+                onDraftDiscardCancel: accountActions.cancelDiscardDraft,
+                onOverwriteCredentialsConfirm:
+                  accountActions.confirmOverwriteExistingCredentials,
+                onOverwriteCredentialsContinue:
+                  accountActions.continueWithoutOverwritingCredentials,
+                onOverwriteCredentialsCancel:
+                  accountActions.cancelOverwriteExistingCredentials,
               }}
             />
           </SettingsFullscreenOverlay>

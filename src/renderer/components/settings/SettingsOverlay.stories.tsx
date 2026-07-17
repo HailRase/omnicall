@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { deriveSettingsNavigationAvailability } from "@application/index.js";
 import { SettingsFullscreenOverlay } from "./SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "./SettingsPanel.js";
 import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefaults.js";
@@ -80,6 +81,9 @@ const appUpdateDefaults = {
 
 const panelDefaults = {
   sidebarExpanded: false,
+  sectionAvailability: deriveSettingsNavigationAvailability({
+    hasActiveAccountSession: true,
+  }),
   onClose: () => undefined,
   onSectionChange: () => undefined,
   onSidebarExpandedChange: () => undefined,
@@ -221,8 +225,7 @@ export const AccountSectionRegisteredLight: Story = {
     activeSection: "account",
     account: {
       ...accountDefaults,
-      authorizeDisabledReason: "Вы уже в сети. Для смены аккаунта нажмите «Выйти»",
-      logoutDisabledReason: null,
+      authorizeDisabledReason: "Необходимо выйти из аккаунта",
     },
     theme: "light",
   },
@@ -239,8 +242,7 @@ export const AccountSectionRegisteredDark: Story = {
     activeSection: "account",
     account: {
       ...accountDefaults,
-      authorizeDisabledReason: "Вы уже в сети. Для смены аккаунта нажмите «Выйти»",
-      logoutDisabledReason: null,
+      authorizeDisabledReason: "Необходимо выйти из аккаунта",
     },
     theme: "dark",
   },

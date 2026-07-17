@@ -7,6 +7,34 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-07-17
+
+### Added
+
+- Пятиэтапный OCP-вход с отдельными таймаутами, точным failed stage и полным перезапуском flow.
+- Локальный rolling 24-hour журнал уведомлений с фильтрами, поиском, пагинацией и suppressed marker.
+- Однокнопочный вход из сохранённого профиля с замаскированными SIP/OCP секретами.
+
+### Changed
+
+- Account session, OCP authorization и SIP readiness разделены на независимые состояния.
+- Выход выполняется единым Application-каскадом OCP → SIP → local account session.
+- Ошибки входа остаются видимыми до редактирования/retry; overwrite и dirty-draft UX стали явными.
+
+### Fixed
+
+- Устранена обработка stale OCP сообщений от заменённого WebSocket.
+- Profile/secret persistence получила monotonic lifecycle, compensation и corruption recovery.
+- Секреты исключены из Domain Events, retry snapshots, логов и журнала уведомлений.
+
+## [0.10.4] - 2026-07-17
+
+### Fixed
+
+- Account: отмена диалога обновления профиля больше не запускает авторизацию.
+- Account: добавлено продолжение входа без перезаписи и проверка изменений SIP/OCP-полей.
+- Account: диагностические статусы перенесены в «Состояние системы», уведомления разделяют подключение и регистрацию.
+
 ## [0.10.3] - 2026-07-13
 
 ### Changed

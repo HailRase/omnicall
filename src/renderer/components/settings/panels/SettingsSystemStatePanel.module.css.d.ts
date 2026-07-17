@@ -24,6 +24,7 @@ declare const classes: {
   readonly liveSummary: string;
   readonly manualActionItem: string;
   readonly manualActionList: string;
+  readonly ocpTabTriggerWrap: string;
   readonly recoveryBlock: string;
   readonly recoveryIntro: string;
   readonly recoverySubsection: string;
@@ -43,5 +44,6 @@ declare const classes: {
   readonly stateReason: string;
   readonly stateRow: string;
   readonly stateValue: string;
+  readonly systemStateTabs: string;
 };
 export default classes;

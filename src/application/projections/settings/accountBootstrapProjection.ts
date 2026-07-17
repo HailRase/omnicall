@@ -24,6 +24,8 @@ export type AccountBootstrapProjection = Readonly<{
   sipDomain: string | null;
   sipServer: string | null;
   lastError: string | null;
+  /** Local account session active (settings unlocked); independent of SIP-ready (ADR-AF-005). */
+  hasActiveAccountSession: boolean;
 }>;
 
 export const initialAccountBootstrapProjection = (): AccountBootstrapProjection => ({
@@ -34,6 +36,7 @@ export const initialAccountBootstrapProjection = (): AccountBootstrapProjection 
   sipDomain: null,
   sipServer: null,
   lastError: null,
+  hasActiveAccountSession: false,
 });
 
 function applyRegistrationEvent(
@@ -164,6 +167,13 @@ function applyBootstrapEvent(
         sipDomain: null,
         sipServer: null,
         lastError: null,
+        hasActiveAccountSession: false,
+      };
+    }
+    case "AccountSessionActivated": {
+      return {
+        ...projection,
+        hasActiveAccountSession: true,
       };
     }
     case "SipCredentialsReceived": {

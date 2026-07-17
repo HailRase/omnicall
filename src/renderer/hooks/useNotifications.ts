@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { TranslationKey } from "../i18n/messages.js";
+import type { UserNotificationModuleFilter as UserNotificationModule } from "@application/projections/settings/userNotificationJournalViewModel.js";
 
 export type NotificationLevel = "info" | "success" | "warning" | "error";
 
@@ -20,6 +21,9 @@ export type NotificationDescriptor = Readonly<{
   durationMs?: number;
   action?: NotificationAction;
   onClose?: () => void;
+  module?: UserNotificationModule;
+  functionId?: string;
+  correlationId?: string | null;
 }>;
 
 export type NotificationItem = Readonly<{
@@ -39,6 +43,12 @@ export type UseNotificationsInput = Readonly<{
   stacking: "stacked" | "single";
   durationMs: number;
   maxVisible: number;
+  capture?: (
+    descriptor: NotificationDescriptor,
+    id: string,
+    titleSnapshot: string,
+  ) => Promise<Readonly<{ shouldPresentPopup: boolean }>>;
+  resolveTitle?: (descriptor: NotificationDescriptor) => string;
 }>;
 
 export type UseNotificationsResult = Readonly<{
@@ -119,7 +129,14 @@ function areNotificationItemsEqual(left: NotificationItem, right: NotificationIt
  * - Outputs: visible list, enqueue API, and dismiss controls.
  */
 export function useNotifications(input: UseNotificationsInput): UseNotificationsResult {
-  const { placement, stacking, durationMs, maxVisible } = input;
+  const {
+    placement,
+    stacking,
+    durationMs,
+    maxVisible,
+    capture,
+    resolveTitle,
+  } = input;
   const [queue, setQueue] = useState<ReadonlyArray<NotificationItem>>([]);
   const durationRef = useRef(durationMs);
 
@@ -143,7 +160,7 @@ export function useNotifications(input: UseNotificationsInput): UseNotifications
         onClose: descriptor.onClose ?? null,
       };
 
-      setQueue((previous) => {
+      const enqueue = (): void => setQueue((previous) => {
         const existingItem = previous.find((existing) => existing.id === id);
         if (existingItem !== undefined && areNotificationItemsEqual(existingItem, item)) {
           return previous;
@@ -155,9 +172,28 @@ export function useNotifications(input: UseNotificationsInput): UseNotifications
         return [item, ...withoutSameId];
       });
 
+      if (capture === undefined) {
+        enqueue();
+      } else {
+        const titleSnapshot =
+          resolveTitle?.(descriptor) ??
+          descriptor.messageText ??
+          descriptor.messageKey ??
+          "";
+        void capture(descriptor, id, titleSnapshot)
+          .then((outcome) => {
+            if (outcome.shouldPresentPopup) {
+              enqueue();
+            }
+          })
+          .catch(() => {
+            enqueue();
+          });
+      }
+
       return id;
     },
-    [stacking],
+    [capture, resolveTitle, stacking],
   );
 
   const dismiss = useCallback((id: string): void => {

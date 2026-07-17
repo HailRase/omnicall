@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   createDefaultUserSettings,
+  SETTINGS_SCHEMA_VERSION,
   createSettingsAccountKey,
   createSipAccountId,
   type UserSettings,
@@ -152,7 +153,7 @@ describe("FileSettingsRepository", () => {
     );
 
     const migrated = await repository.getUserSettings(accountKey);
-    expect(migrated.schemaVersion).toBe(8);
+    expect(migrated.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
     expect(migrated.language).toBe("ru");
   });
 

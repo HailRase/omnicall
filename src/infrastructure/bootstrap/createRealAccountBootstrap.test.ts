@@ -321,7 +321,9 @@ describe("createRealAccountBootstrap", () => {
       };
     };
 
-    await facade.authorizeManualAccount(accountA);
+    // Profile-bucket isolation: promote via AuthorizeSipAccount (default promoteActiveSession).
+    // Full authorizeManualAccount requires successful register (deferred promotion — ADR-AF-001).
+    await facade.authorizeSipAccount.execute({ account: accountA, source: "manual" });
     await facade.createContact({
       displayName: "Alice",
       primaryPhone: "+12025550100",
@@ -332,7 +334,7 @@ describe("createRealAccountBootstrap", () => {
     expect(afterA.readContacts()).toHaveLength(1);
     expect(afterA.readContacts()[0]?.displayName).toBe("Alice");
 
-    await facade.authorizeManualAccount(accountB);
+    await facade.authorizeSipAccount.execute({ account: accountB, source: "manual" });
     const afterB = captureHandlers();
     await facade.refreshProfileScopedDataProjections(afterB.handlers);
     expect(afterB.readContacts()).toHaveLength(0);
@@ -342,7 +344,7 @@ describe("createRealAccountBootstrap", () => {
       primaryPhone: "+12025550101",
     });
 
-    await facade.authorizeManualAccount(accountA);
+    await facade.authorizeSipAccount.execute({ account: accountA, source: "manual" });
     const restoredA = captureHandlers();
     await facade.refreshProfileScopedDataProjections(restoredA.handlers);
     expect(restoredA.readContacts()).toHaveLength(1);

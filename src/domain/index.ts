@@ -62,6 +62,8 @@ export {
   buildOcpConnectLoginOptions,
   resolveOcpConnectLoginTarget,
 } from "./integration/ocp/resolveOcpConnectLoginTarget.js";
+export type { ResolveOcpProxyAuthenticateDomainInput } from "./integration/ocp/resolveOcpProxyAuthenticateDomain.js";
+export { resolveOcpProxyAuthenticateDomain } from "./integration/ocp/resolveOcpProxyAuthenticateDomain.js";
 export type { ValidateUserSettingsResult } from "./settings/validateUserSettings.js";
 export { validateUserSettings } from "./settings/validateUserSettings.js";
 export type {
@@ -91,6 +93,7 @@ export {
 export { formatSettingsAccountIdentityLabel } from "./settings/formatSettingsAccountIdentityLabel.js";
 export { formatSavedAccountProfileSelectorLabel } from "./settings/formatSavedAccountProfileSelectorLabel.js";
 export type {
+  CreateSavedAccountProfileOptions,
   SavedAccountProfile,
   SavedAccountProfileId,
   SavedAccountProfileInput,
@@ -106,6 +109,54 @@ export {
   normalizeSavedAccountProfileFields,
   validateSavedAccountProfileInput,
 } from "./settings/SavedAccountProfile.js";
+export type { SavedAccountProfileLifecycleStatus } from "./settings/savedAccountProfileLifecycle.js";
+export {
+  hasCompleteOcpConfiguration,
+  isDraftSavedAccountProfile,
+  isSuccessfulSavedAccountProfile,
+  markSavedAccountProfileSuccessful,
+  mergeSavedAccountProfileLifecycleStatus,
+  resolveSavedAccountProfileLifecycleStatus,
+} from "./settings/savedAccountProfileLifecycle.js";
+export type {
+  AccountSignInMetadataWarning,
+  AccountSignInOutcome,
+  AccountTelephonyOutcome,
+} from "./settings/AccountSignInOutcome.js";
+export {
+  createReadyAccountSignInOutcome,
+  createSipRegistrationFailedAccountSignInOutcome,
+} from "./settings/AccountSignInOutcome.js";
+export type {
+  UserNotificationJournalEntry,
+  UserNotificationJournalEntryId,
+  UserNotificationLevel,
+  UserNotificationModule,
+  UserNotificationTitleParam,
+} from "./settings/UserNotificationJournalEntry.js";
+export {
+  createUserNotificationJournalEntryId,
+  USER_NOTIFICATION_LEVELS,
+  USER_NOTIFICATION_MODULES,
+} from "./settings/UserNotificationJournalEntry.js";
+export {
+  MAX_USER_NOTIFICATION_TITLE_LENGTH,
+  retainUserNotificationJournalEntries,
+  sanitizeUserNotificationText,
+  sanitizeUserNotificationTitleParams,
+  toUserNotificationAccountDisplayLabel,
+  USER_NOTIFICATION_JOURNAL_RETENTION_MS,
+} from "./settings/userNotificationJournalPolicy.js";
+export type {
+  UserNotificationJournalDocument,
+  UserNotificationJournalParseErrorCode,
+  UserNotificationJournalParseResult,
+} from "./settings/persistedUserNotificationJournal.js";
+export {
+  parsePersistedUserNotificationJournalDocument,
+  serializeUserNotificationJournalDocument,
+  USER_NOTIFICATION_JOURNAL_SCHEMA_VERSION,
+} from "./settings/persistedUserNotificationJournal.js";
 export { matchesSipAccountIdentity } from "./settings/matchesSipAccountIdentity.js";
 export type {
   CallHistoryDirection,
@@ -155,6 +206,7 @@ export type {
 } from "./settings/persistedSavedAccountProfiles.js";
 export {
   parsePersistedSavedAccountProfilesDocument,
+  SAVED_ACCOUNT_PROFILES_LEGACY_SCHEMA_VERSION,
   SAVED_ACCOUNT_PROFILES_SCHEMA_VERSION,
   serializeSavedAccountProfilesDocument,
 } from "./settings/persistedSavedAccountProfiles.js";
@@ -554,10 +606,12 @@ export {
 } from "./telephony/events/callEvents.js";
 export type {
   SipCredentialsReceivedEvent,
+  SipCredentialIdentity,
   SipCredentialsSource,
   AccessDeniedDetectedEvent,
   AccessDeniedSource,
   AccountBootstrapDomainEvent,
+  AccountSessionActivatedEvent,
   ManualSipAuthorizationRequestedEvent,
   PhoneStatusChangedEvent,
   StartupModeResolvedEvent,
@@ -565,11 +619,23 @@ export type {
 } from "./shared/events/accountBootstrapEvents.js";
 export {
   createAccessDeniedDetectedEvent,
+  createAccountSessionActivatedEvent,
   createManualSipAuthorizationRequestedEvent,
   createPhoneStatusChangedEvent,
   createSipCredentialsReceivedEvent,
   createStartupModeResolvedEvent,
 } from "./shared/events/accountBootstrapEvents.js";
+export type {
+  OcpSignInExecutionStage,
+  OcpSignInProgress,
+  OcpSignInProgressFailure,
+  OcpSignInProgressStage,
+} from "./integration/ocp/OcpSignInProgress.js";
+export {
+  isOcpSignInExecutionStage,
+  OCP_SIGN_IN_EXECUTION_STAGES,
+  OCP_SIGN_IN_STAGE_TIMEOUT_MS,
+} from "./integration/ocp/OcpSignInProgress.js";
 export type { ReconnectPolicyConfig, ReconnectSchedulePlan, RandomSource } from "./shared/recovery/ReconnectPolicy.js";
 export type { TonePlaybackKind } from "./media/TonePlaybackKind.js";
 export { TONE_PLAYBACK_KINDS, isTonePlaybackKind } from "./media/TonePlaybackKind.js";

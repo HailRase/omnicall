@@ -3,6 +3,7 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { deriveSettingsNavigationAvailability } from "@application/index.js";
 import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefaults.js";
 import { settingsCodecTestDefaults } from "./panels/settingsCodecTestDefaults.js";
 import { settingsHeadsetTestDefaults } from "./panels/settingsHeadsetTestDefaults.js";
@@ -61,6 +62,9 @@ const codecDefaults = settingsCodecTestDefaults;
 
 const panelBaseProps = {
   sidebarExpanded: false,
+  sectionAvailability: deriveSettingsNavigationAvailability({
+    hasActiveAccountSession: true,
+  }),
   onClose: vi.fn(),
   onSectionChange: vi.fn(),
   onSidebarExpandedChange: vi.fn(),

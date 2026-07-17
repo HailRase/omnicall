@@ -5,6 +5,8 @@ export type AuthShellFlags = Readonly<{
   showAccountPanel: boolean;
   blockingAuthState: boolean;
   isSipRegistered: boolean;
+  /** Local account session active — Settings gate + Login lock (ADR-AF-005). */
+  hasActiveAccountSession: boolean;
 }>;
 
 const BLOCKING_AUTH_STATES: ReadonlyArray<AuthUiState> = [
@@ -22,7 +24,7 @@ const ACCOUNT_PANEL_STATES: ReadonlyArray<AuthUiState> = [
 /**
  * - Purpose: derive auth-related shell visibility flags from bootstrap projection.
  * - Inputs: account bootstrap projection.
- * - Outputs: account panel visibility and blocking auth state flags.
+ * - Outputs: panel visibility, SIP-ready, and account-session gate flags.
  */
 export function deriveAuthShellFlags(
   projection: AccountBootstrapProjection,
@@ -33,5 +35,6 @@ export function deriveAuthShellFlags(
     showAccountPanel: ACCOUNT_PANEL_STATES.includes(projection.authUiState),
     blockingAuthState,
     isSipRegistered: !blockingAuthState && projection.authUiState === "sip_registered",
+    hasActiveAccountSession: projection.hasActiveAccountSession,
   };
 }

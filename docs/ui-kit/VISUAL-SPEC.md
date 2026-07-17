@@ -290,6 +290,35 @@ Badge:
 - semibold small text.
 - icon gap: `var(--space-2xs)`.
 
+## Tabs Canon
+
+Radix Tabs with a segmented track:
+
+- Track: `--color-bg-surface-alt`, hairline `--color-border-subtle`, control radius, compact padding.
+- Trigger idle: transparent surface, secondary text; no visible item border.
+- Trigger hover (not active): `--color-bg-surface-highlight`, primary text; same thumb radius as selected (`--tabs-thumb-radius`).
+- Trigger selected: `--color-bg-surface`, hairline border, `--shadow-control-knob`, primary text.
+- Optional `TabsList indicator="slide"`: one shared thumb animates `transform` / size between active triggers (same selected tokens). Idle/hover/active triggers stay borderless; only the thumb carries the selected border/shadow.
+- Reduced motion: disable indicator and trigger transitions.
+
+## Table Canon
+
+Native HTML table composition (shadcn-like). There is no Radix Table primitive; keep semantic `table` / `thead` / `tbody` / `tfoot` / `tr` / `th` / `td` / `caption`.
+
+- Root wraps the table in a full-width horizontal overflow container.
+- Header row height target: `40px`.
+- Cell padding: `var(--space-xs) var(--space-sm)`.
+- Hairline row dividers: `1px solid var(--color-border-subtle)`.
+- Header text: medium weight, `--color-text-secondary`.
+- Body text: `--color-text-primary`.
+- Row hover: `--color-bg-surface-alt`.
+- Selected row: `data-state="selected"` with `--color-bg-surface-highlight`.
+- Footer: `--color-bg-surface-alt`, medium weight, top border.
+- Caption: below table, `--font-size-xs`, `--color-text-secondary`.
+- Optional framed look belongs to the product/story wrapper (border + panel radius), not the primitive root.
+- Typed cell alignment: `left | center | right` via `align` + `data-align`.
+- Reduced motion: disable row background transition.
+
 ## Focus And Keyboard Gate
 
 Every story for interactive components must support keyboard verification:

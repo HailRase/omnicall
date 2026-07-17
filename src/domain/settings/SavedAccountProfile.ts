@@ -3,6 +3,7 @@ import {
   deriveSettingsAccountKeyFromIdentity,
   type SettingsAccountIdentity,
 } from "./deriveSettingsAccountKey.js";
+import type { SavedAccountProfileLifecycleStatus } from "./savedAccountProfileLifecycle.js";
 import { createSettingsAccountKey, type SettingsAccountKey } from "./SettingsAccountKey.js";
 
 export type SavedAccountProfileId = SettingsAccountKey;
@@ -13,14 +14,27 @@ export type SavedAccountProfile = Readonly<{
   domain: string;
   server: string;
   displayName: string;
+  /** Draft until SIP-ready success; legacy missing → treated as successful on read. */
+  lifecycleStatus: SavedAccountProfileLifecycleStatus;
   createdAt?: string;
   lastUsedAt?: string;
+  successfulUseAt?: string;
+  /** Non-secret OCP domain for draft completeness checks (never API key). */
+  ocpDomain?: string;
 }>;
 
 export type SavedAccountProfileInput = Readonly<{
   username: string;
   domain: string;
   server: string;
+}>;
+
+export type CreateSavedAccountProfileOptions = Readonly<{
+  createdAt?: string;
+  lastUsedAt?: string;
+  successfulUseAt?: string;
+  lifecycleStatus?: SavedAccountProfileLifecycleStatus;
+  ocpDomain?: string;
 }>;
 
 export type SavedAccountProfileValidationError =
@@ -104,10 +118,7 @@ export function findSavedAccountProfileByInput(
  */
 export function createSavedAccountProfile(
   input: SavedAccountProfileInput,
-  options?: Readonly<{
-    createdAt?: string;
-    lastUsedAt?: string;
-  }>,
+  options?: CreateSavedAccountProfileOptions,
 ):
   | { readonly ok: true; readonly value: SavedAccountProfile }
   | {
@@ -121,6 +132,7 @@ export function createSavedAccountProfile(
 
   const normalized = normalizeSavedAccountProfileFields(input);
   const id = deriveSavedAccountProfileId(normalized);
+  const ocpDomain = normalizeOptionalOcpDomain(options?.ocpDomain);
 
   return {
     ok: true,
@@ -130,10 +142,23 @@ export function createSavedAccountProfile(
       domain: normalized.domain,
       server: normalized.server,
       displayName: normalized.username,
+      lifecycleStatus: options?.lifecycleStatus ?? "draft",
       ...(options?.createdAt !== undefined ? { createdAt: options.createdAt } : {}),
       ...(options?.lastUsedAt !== undefined ? { lastUsedAt: options.lastUsedAt } : {}),
+      ...(options?.successfulUseAt !== undefined
+        ? { successfulUseAt: options.successfulUseAt }
+        : {}),
+      ...(ocpDomain !== undefined ? { ocpDomain } : {}),
     },
   };
+}
+
+function normalizeOptionalOcpDomain(value: string | undefined): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
 }
 
 /**

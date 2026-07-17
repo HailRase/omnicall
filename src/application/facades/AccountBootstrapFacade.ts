@@ -40,6 +40,10 @@ import { ShutdownCleanupUseCase } from "../use-cases/platform/ShutdownCleanupUse
 import { SipRecoveryOrchestrationService } from "../services/recovery/SipRecoveryOrchestrationService.js";
 import type { SipConnectionJournalEntry } from "../services/recovery/SipConnectionJournal.js";
 import { SessionTeardownOrchestrationService } from "../services/platform/SessionTeardownOrchestrationService.js";
+import {
+  AccountLogoutOrchestrationService,
+  type AccountLogoutOutcome,
+} from "../services/platform/AccountLogoutOrchestrationService.js";
 import { InMemorySipSessionHealthReadModel } from "../read-models/InMemorySipSessionHealthReadModel.js";
 import { MockTelephonyGateway } from "@adapters/mock/MockTelephonyGateway.js";
 import type {
@@ -62,9 +66,15 @@ import type {
   TelephonyGateway,
   MediaGateway,
   SecretStoragePort,
+  UserNotificationJournalRepository,
   StartCameraPreviewResult,
 } from "@ports/index.js";
 import { OcpIntegrationComposition } from "../services/integration/OcpIntegrationComposition.js";
+import {
+  isAuthorizationRetryableStage,
+  resolveAuthorizationRetryStrategy,
+  type AuthorizationAttemptContext,
+} from "../projections/settings/authorizationRetryContext.js";
 import type { ChangeOperatorStatusOutcome } from "../use-cases/integration/ocp/ChangeOperatorStatusUseCase.js";
 import { InMemoryOcpReasonsCache } from "@adapters/mock/InMemoryOcpReasonsCache.js";
 import { CallbackOcpNotificationPresenter } from "@adapters/integration/ocp/CallbackOcpNotificationPresenter.js";
@@ -79,21 +89,34 @@ import {
   type SecretStorageScopeKey,
 } from "@ports/secrets/SecretStoragePort.js";
 import { InMemorySecretStorageAdapter } from "@adapters/secrets/InMemorySecretStorageAdapter.js";
+import { InMemoryUserNotificationJournalRepository } from "@adapters/settings/InMemoryUserNotificationJournalRepository.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { CallEngine } from "@application/services/telephony/CallEngine.js";
 import type { MultiCallSettings } from "@domain/index.js";
 import type { SettingsAccountKey, UserSettings } from "@domain/index.js";
 import {
   buildOcpConnectLoginOptions,
+  createAccountSessionActivatedEvent,
   createCallId,
   mergeMultiCallIntoUserSettings,
-  matchesSipAccountIdentity,
   resolveOcpConnectLoginTarget,
+  resolveOcpProxyAuthenticateDomain,
   resolveSettingsAccountKeyFromSipAccount,
   toMultiCallSettings,
   validateUserSettings,
-  deriveSavedAccountProfileId,
   parseOcpIntegrationSettings,
+  createReadyAccountSignInOutcome,
+  createSipRegistrationFailedAccountSignInOutcome,
+  deriveLegacyUsernameOnlySettingsAccountKeyFromIdentity,
+  deriveSavedAccountProfileId,
+  deriveSettingsAccountKeyFromIdentity,
+  type AccountSignInMetadataWarning,
+  type AccountSignInOutcome,
+  ANONYMOUS_SETTINGS_ACCOUNT,
+  toUserNotificationAccountDisplayLabel,
+  type UserNotificationLevel,
+  type UserNotificationModule,
+  type UserNotificationTitleParam,
   type Call,
   type CallId,
   type CallVideoMediaState,
@@ -112,6 +135,34 @@ import { ListSavedAccountProfilesUseCase } from "../use-cases/settings/ListSaved
 import { SaveAccountProfileUseCase } from "../use-cases/settings/SaveAccountProfileUseCase.js";
 import { DeleteSavedAccountProfileUseCase } from "../use-cases/settings/DeleteSavedAccountProfileUseCase.js";
 import { TouchSavedAccountProfileUseCase } from "../use-cases/settings/TouchSavedAccountProfileUseCase.js";
+import { PersistDraftAccountArtifactsUseCase } from "../use-cases/settings/PersistDraftAccountArtifactsUseCase.js";
+import { AttemptScopedSecretScope } from "../services/settings/AttemptScopedSecretScope.js";
+import { ProfileSecretLifecycleService } from "../services/settings/ProfileSecretLifecycleService.js";
+import { RecordUserNotificationUseCase } from "../use-cases/settings/RecordUserNotificationUseCase.js";
+import {
+  QueryUserNotificationJournalUseCase,
+  type QueryUserNotificationJournalInput,
+  type QueryUserNotificationJournalOutcome,
+} from "../use-cases/settings/QueryUserNotificationJournalUseCase.js";
+import {
+  UserNotificationCaptureService,
+  type UserNotificationCaptureOutcome,
+} from "../services/settings/UserNotificationCaptureService.js";
+import { PromoteAuthorizedSipSessionUseCase } from "../use-cases/settings/PromoteAuthorizedSipSessionUseCase.js";
+import { ResolveSavedAccountProfileAvailabilityUseCase } from "../use-cases/settings/ResolveSavedAccountProfileAvailabilityUseCase.js";
+import type { SavedAccountProfileAvailabilityView } from "../projections/settings/deriveSavedAccountProfileAvailability.js";
+import {
+  createAccountSignInLogoutRequiredError,
+  createAccountSignInValidationError,
+  validateAccountSignInCommand,
+  type AccountSignInCommand,
+} from "./accountSignInCommand.js";
+import {
+  deriveAccountSignInViewModel,
+  type AccountSignInViewModel,
+} from "../projections/settings/accountSignInViewModel.js";
+import type { OcpRecoveryAction } from "@domain/integration/ocp/ocpDualFsm.js";
+import { resolveAllowedOcpRecoveryAction } from "@domain/integration/ocp/ocpDualFsm.js";
 import { RecordCallHistoryUseCase } from "../use-cases/contacts/RecordCallHistoryUseCase.js";
 import { ListCallHistoryUseCase } from "../use-cases/contacts/ListCallHistoryUseCase.js";
 import { GetCallHistoryEntryUseCase } from "../use-cases/contacts/GetCallHistoryEntryUseCase.js";
@@ -145,13 +196,23 @@ import type {
   ContactUpdateInput,
 } from "@domain/index.js";
 
-export type AuthorizeAccountMetadataWarning =
-  | "profile_save_failed"
-  | "profile_touch_failed"
-  | "password_save_failed";
+export type AuthorizeAccountMetadataWarning = AccountSignInMetadataWarning;
+export type AuthorizeAccountOutcome = AccountSignInOutcome;
 
-export type AuthorizeAccountOutcome = Readonly<{
-  metadataWarning?: AuthorizeAccountMetadataWarning;
+export type SavedAccountProfileSecrets = Readonly<{
+  sipPassword: string | null;
+  ocpApiKey: string | null;
+}>;
+export type CaptureUserNotificationCommand = Readonly<{
+  id?: string;
+  level: UserNotificationLevel;
+  module: UserNotificationModule;
+  functionId: string;
+  titleKey?: string | null;
+  titleParams?: Readonly<Record<string, UserNotificationTitleParam>>;
+  titleSnapshot: string;
+  popupEnabled: boolean;
+  correlationId?: string | null;
 }>;
 
 export type ContactsCsvImportOutcome = Readonly<
@@ -183,6 +244,7 @@ export type AccountBootstrapFacadeDeps = Readonly<{
   contactRepository?: ContactRepository;
   contactCsvFileGateway?: ContactCsvFileGateway;
   secretStoragePort?: SecretStoragePort;
+  userNotificationJournalRepository?: UserNotificationJournalRepository;
   hostIntegrationGateway?: HostIntegrationGateway;
   headsetGateway?: HeadsetGateway;
   ocpGateway?: OcpGateway;
@@ -197,6 +259,13 @@ export type AuthorizeManualAccountOptions = Readonly<{
   correlationId?: CorrelationId;
   saveProfile?: boolean;
   rememberPassword?: boolean;
+  /** Non-secret OCP domain persisted on draft profile when saveProfile is opted in. */
+  ocpDomain?: string;
+  saveOcpApiKey?: boolean;
+  /** Boundary-only OCP API key; never projected or logged. */
+  ocpApiKey?: string;
+  /** When false, caller owns `recordAuthorizationAttempt` (saved-profile path). */
+  recordAttempt?: boolean;
 }>;
 
 export class AccountBootstrapFacade {
@@ -228,6 +297,7 @@ export class AccountBootstrapFacade {
   readonly reregisterSip: ReregisterSipUseCase;
   readonly safeLogout: SafeLogoutUseCase;
   readonly endUserSession: EndUserSessionUseCase;
+  private readonly accountLogoutOrchestration: AccountLogoutOrchestrationService;
   readonly shutdownCleanup: ShutdownCleanupUseCase;
 
   private readonly savedAccountProfileRepository: SavedAccountProfileRepository;
@@ -235,6 +305,13 @@ export class AccountBootstrapFacade {
   private readonly saveAccountProfileUseCase: SaveAccountProfileUseCase;
   private readonly deleteSavedAccountProfileUseCase: DeleteSavedAccountProfileUseCase;
   private readonly touchSavedAccountProfileUseCase: TouchSavedAccountProfileUseCase;
+  private readonly persistDraftAccountArtifactsUseCase: PersistDraftAccountArtifactsUseCase;
+  private readonly promoteAuthorizedSipSessionUseCase: PromoteAuthorizedSipSessionUseCase;
+  private readonly resolveSavedAccountProfileAvailabilityUseCase: ResolveSavedAccountProfileAvailabilityUseCase;
+  private readonly secretStoragePort: SecretStoragePort;
+  private readonly profileSecretLifecycle: ProfileSecretLifecycleService;
+  private readonly userNotificationCapture: UserNotificationCaptureService;
+  private readonly queryUserNotificationJournalUseCase: QueryUserNotificationJournalUseCase;
 
   private readonly callHistoryRepository: CallHistoryRepository;
   private readonly listCallHistoryUseCase: ListCallHistoryUseCase;
@@ -252,9 +329,15 @@ export class AccountBootstrapFacade {
   private readonly importContactsCsvUseCase: ImportContactsCsvUseCase;
   private readonly exportContactsCsvUseCase: ExportContactsCsvUseCase;
   private readonly contactCsvFileGateway: ContactCsvFileGateway | null;
-  private readonly secretStoragePort: SecretStoragePort;
 
   private sipSessionRegistered = false;
+  /** Local account session active (settings unlocked / Login locked) — ADR-AF-005. */
+  private accountSessionActive = false;
+  /** Last non-secret authorization attempt for a single Retry action (F-028). */
+  private lastAuthorizationAttempt: AuthorizationAttemptContext | null = null;
+  private readonly attemptScopedSecrets = new AttemptScopedSecretScope();
+  /** Startup auto-register failed while `sipAutoRegisterOnStartup` is enabled (F-001). */
+  private startupRegistrationFailed = false;
   /** Last SecretStorage scope used for OCP api-key (may differ from post-SIP account key). */
   private lastOcpSecretScopeKey: SecretStorageScopeKey | null = null;
   private readonly callEngine: CallEngine;
@@ -286,6 +369,39 @@ export class AccountBootstrapFacade {
       this.savedAccountProfileRepository,
       deps.logger,
     );
+    this.secretStoragePort = deps.secretStoragePort ?? new InMemorySecretStorageAdapter();
+    this.profileSecretLifecycle = new ProfileSecretLifecycleService(
+      this.secretStoragePort,
+    );
+    const notificationJournalRepository =
+      deps.userNotificationJournalRepository ??
+      new InMemoryUserNotificationJournalRepository();
+    this.userNotificationCapture = new UserNotificationCaptureService(
+      new RecordUserNotificationUseCase(
+        notificationJournalRepository,
+        deps.logger,
+      ),
+    );
+    this.queryUserNotificationJournalUseCase =
+      new QueryUserNotificationJournalUseCase(notificationJournalRepository);
+    this.persistDraftAccountArtifactsUseCase = new PersistDraftAccountArtifactsUseCase(
+      this.savedAccountProfileRepository,
+      this.secretStoragePort,
+      deps.logger,
+    );
+    this.promoteAuthorizedSipSessionUseCase = new PromoteAuthorizedSipSessionUseCase(
+      deps.settingsRepository,
+      this.savedAccountProfileRepository,
+      this.secretStoragePort,
+      deps.logger,
+      this.eventPublisher,
+    );
+    this.resolveSavedAccountProfileAvailabilityUseCase =
+      new ResolveSavedAccountProfileAvailabilityUseCase(
+        this.savedAccountProfileRepository,
+        this.secretStoragePort,
+        deps.logger,
+      );
     this.callHistoryRepository =
       deps.callHistoryRepository ?? new InMemoryCallHistoryRepository();
     const recordCallHistoryUseCase = new RecordCallHistoryUseCase(
@@ -341,7 +457,6 @@ export class AccountBootstrapFacade {
       deps.logger,
     );
     this.contactCsvFileGateway = deps.contactCsvFileGateway ?? null;
-    this.secretStoragePort = deps.secretStoragePort ?? new InMemorySecretStorageAdapter();
     const callHistoryRecordingOrchestration = new CallHistoryRecordingOrchestrationService(
       recordCallHistoryUseCase,
       deps.logger,
@@ -585,9 +700,56 @@ export class AccountBootstrapFacade {
         deps.ocpProxyAuthenticate ?? new MockOcpProxyAuthenticatePort(),
       authorizeSipAccount: this.authorizeSipAccount,
       registerAccount: this.registerAccount,
+      promoteAuthorizedSipSession: this.promoteAuthorizedSipSessionUseCase,
       isSipRegistered: () => this.sipSessionRegistered,
+      getActiveSipIdentity: async () => {
+        const account = await this.getActiveSipAccount();
+        if (account === null) {
+          return null;
+        }
+        return {
+          username: account.username,
+          domain: account.domain,
+          server: account.server,
+        };
+      },
       endUserSession: async (correlationId) => {
         await this.endUserSession.execute({ correlationId });
+      },
+      // Deferred call: INVALID_TOKEN arrives after construction; HTTP re-auth via connectOcp.
+      reauthenticateOnInvalidToken: () => this.connectOcp(),
+      // Application-owned fresh-token reconnect (ADR-AF-002) — never adapter stale token.
+      recoverTransportWithFreshToken: (correlationId) => this.connectOcp(correlationId),
+    });
+    this.accountLogoutOrchestration = new AccountLogoutOrchestrationService({
+      readOcpSession: () => {
+        const session = this.ocpIntegration.projectionHub.getSessionProjection();
+        return {
+          isAuthenticated: session.isAuthenticated,
+          isLive:
+            session.serverState === "connected" ||
+            session.serverState === "connecting" ||
+            session.serverState === "reconnecting",
+          hasOperatorSnapshot:
+            this.ocpIntegration.projectionHub.getCurrentOperatorProfile() !== null,
+        };
+      },
+      logoutOperator: (reasonId) =>
+        this.ocpIntegration.logoutOperator.execute({
+          reasonId,
+          cascadeSipLogout: false,
+          callType: "internal",
+        }),
+      disconnectOcp: () => this.ocpIntegration.disconnectOcp.execute(),
+      endUserSession: () => this.endUserSession.execute(),
+      disarmOcpTransportRecovery: () => {
+        this.ocpIntegration.disarmTransportRecoveryForUserLogout();
+      },
+      resetOcpProjectionsToIdle: () => {
+        this.ocpIntegration.resetProjectionsToIdleAfterUserLogout();
+      },
+      restoreOcpTransportRecoveryTracking: () => {
+        this.ocpIntegration.restoreTransportRecoveryTrackingAfterFailedLogout();
       },
     });
     this.shutdownCleanup.registerDisposable(this.ocpIntegration);
@@ -618,15 +780,27 @@ export class AccountBootstrapFacade {
   }
 
   private trackSipRegistrationState(event: { type: string }): void {
+    if (event.type === "AccountSessionActivated") {
+      this.accountSessionActive = true;
+      return;
+    }
+
     if (event.type === "RegistrationSucceeded") {
       this.sipSessionRegistered = true;
+      this.accountSessionActive = true;
       if (this.getOcpConnectionState() === "authenticated") {
         void this.syncOcpLinkageToActiveAccount();
       }
       return;
     }
 
-    if (event.type === "UnregistrationSucceeded" || event.type === "UserSessionEnded") {
+    if (event.type === "UserSessionEnded") {
+      this.sipSessionRegistered = false;
+      this.accountSessionActive = false;
+      return;
+    }
+
+    if (event.type === "UnregistrationSucceeded") {
       this.sipSessionRegistered = false;
     }
   }
@@ -635,6 +809,8 @@ export class AccountBootstrapFacade {
    * - Purpose: after SIP register from OCP creds, ensure linked+apiKey live on SIP account key.
    * - Inputs: active SIP account + last OCP secret scope (may be guest before register).
    * - Outputs: profile-scoped OCP settings for saved-account checkbox.
+   *
+   * Session domain is the OCP proxy hostname (set at authenticate), never `entity:creds` SIP host.
    */
   private async syncOcpLinkageToActiveAccount(): Promise<void> {
     try {
@@ -644,9 +820,12 @@ export class AccountBootstrapFacade {
       }
       const targetKey = await this.resolveSettingsAccountKey();
       const targetSettings = await this.loadUserSettingsForAccountKey(targetKey);
-      const domain =
-        this.ocpIntegration.projectionHub.getSessionProjection().domain?.trim() ||
-        targetSettings.ocpIntegration.domain;
+      const domain = resolveOcpProxyAuthenticateDomain({
+        settingsOcpDomain: targetSettings.ocpIntegration.domain,
+        sessionOcpDomain:
+          this.ocpIntegration.projectionHub.getSessionProjection().domain,
+        sipAccountDomain: account.domain,
+      });
       if (domain.length === 0) {
         return;
       }
@@ -690,16 +869,40 @@ export class AccountBootstrapFacade {
       return;
     }
 
-    const phoneStatus = await this.deps.settingsRepository.getPhoneStatus();
-    const existingAccount = await this.deps.settingsRepository.getSipAccount();
-    if (existingAccount !== null && phoneStatus !== "offline") {
-      await this.registerAccount.execute({ account: existingAccount });
-    }
-
     const accountKey = await this.resolveSettingsAccountKey();
     const userSettings = await this.loadUserSettingsForAccountKey(accountKey);
     await this.purgeLegacyOcpAuthToken();
     await this.applyHeadsetUserSettings(userSettings);
+
+    const phoneStatus = await this.deps.settingsRepository.getPhoneStatus();
+    const existingAccount = await this.deps.settingsRepository.getSipAccount();
+    if (existingAccount !== null) {
+      // Restored disk account counts as an active local session (ADR-AF-005).
+      this.eventPublisher.publish(
+        createAccountSessionActivatedEvent(createCorrelationId(), {
+          profileKey: resolveSettingsAccountKeyFromSipAccount(existingAccount),
+        }),
+      );
+    }
+    if (
+      existingAccount !== null &&
+      phoneStatus !== "offline" &&
+      userSettings.sipAutoRegisterOnStartup
+    ) {
+      const registerResult = await this.registerAccount.execute({ account: existingAccount });
+      if (isErr(registerResult)) {
+        this.startupRegistrationFailed = true;
+        this.deps.logger.warn("startup_sip_registration_failed", {
+          featureId: "F-001",
+          boundedContext: "Settings",
+          operation: "initialize",
+          result: registerResult.error.message,
+        });
+      } else {
+        this.startupRegistrationFailed = false;
+      }
+    }
+
     await this.maybeAutoConnectOcp();
   }
 
@@ -708,32 +911,54 @@ export class AccountBootstrapFacade {
     options?: CorrelationId | AuthorizeManualAccountOptions,
   ): Promise<Result<AuthorizeAccountOutcome, PlatformError>> {
     const resolvedOptions = resolveAuthorizeManualAccountOptions(options);
-    const correlationId = resolvedOptions.correlationId;
-
-    const switchResult = await this.ensureUnregisteredBeforeAccountSwitch(account, correlationId);
-    if (isErr(switchResult)) {
-      return switchResult;
+    const correlationId = resolvedOptions.correlationId ?? createCorrelationId();
+    if (resolvedOptions.recordAttempt !== false) {
+      this.attemptScopedSecrets.store(correlationId, {
+        sipPassword: account.password,
+      });
+      this.recordAuthorizationAttempt({
+        kind: "manual_sip",
+        correlationId,
+        sipIdentity: {
+          username: account.username,
+          domain: account.domain,
+          server: account.server,
+        },
+        ...(resolvedOptions.saveProfile === true ? { saveProfile: true } : {}),
+        ...(resolvedOptions.rememberPassword === true
+          ? { rememberPassword: true }
+          : {}),
+      });
     }
 
-    const authorizeInput =
-      correlationId === undefined
-        ? { account, source: "manual" as const }
-        : { account, correlationId, source: "manual" as const };
+    const draftResult = await this.persistOptedInDraftArtifacts(account, resolvedOptions, correlationId);
+    if (isErr(draftResult)) {
+      return draftResult;
+    }
 
-    const authorizeResult = await this.authorizeSipAccount.execute(authorizeInput);
+    const sessionGate = this.rejectIfSipSessionActive();
+    if (isErr(sessionGate)) {
+      return sessionGate;
+    }
+
+    const authorizeResult = await this.authorizeSipAccount.execute({
+      account,
+      correlationId,
+      source: "manual",
+      promoteActiveSession: false,
+    });
 
     if (isErr(authorizeResult)) {
       return authorizeResult;
     }
 
-    const registerInput =
-      correlationId === undefined
-        ? { account: authorizeResult.value }
-        : { account: authorizeResult.value, correlationId };
-
-    const registerResult = await this.registerAccount.execute(registerInput);
-    if (isErr(registerResult)) {
-      return registerResult;
+    // ADR-AF-005: promote settings/profile on Login before SIP register outcome.
+    const promoteResult = await this.promoteAuthorizedSipSessionUseCase.execute({
+      account: authorizeResult.value,
+      correlationId,
+    });
+    if (isErr(promoteResult)) {
+      return promoteResult;
     }
 
     try {
@@ -742,52 +967,199 @@ export class AccountBootstrapFacade {
       return err(normalizeUnknownError(error));
     }
 
-    let metadataWarning: AuthorizeAccountMetadataWarning | undefined;
-    if (resolvedOptions.saveProfile === true) {
-      try {
-        const saveResult = await this.saveAccountProfileUseCase.execute({
-          profile: {
-            username: account.username,
-            domain: account.domain,
-            server: account.server,
-          },
-          ...(correlationId !== undefined ? { correlationId } : {}),
-        });
-        if (isErr(saveResult)) {
-          this.deps.logger.warn("saved_account_profile_save_after_auth_failed", {
-            ...(correlationId !== undefined ? { correlationId } : {}),
-            featureId: "F-024",
-            boundedContext: "Settings",
-            operation: "authorize_manual_account",
-            result: saveResult.error.code,
-          });
-          metadataWarning = "profile_save_failed";
+    const registerResult = await this.registerAccount.execute({
+      account: authorizeResult.value,
+      correlationId,
+    });
+    if (isErr(registerResult)) {
+      this.startupRegistrationFailed = true;
+      this.deps.logger.warn("account_sign_in_sip_registration_failed", {
+        correlationId,
+        featureId: "F-001",
+        boundedContext: "Telephony",
+        operation: "authorize_manual_account",
+        result: registerResult.error.message,
+      });
+      return ok(createSipRegistrationFailedAccountSignInOutcome());
+    }
+
+    this.startupRegistrationFailed = false;
+    return ok(createReadyAccountSignInOutcome());
+  }
+
+  resolveSavedAccountProfileAvailability(
+    profileId: SavedAccountProfileId,
+    correlationId?: CorrelationId,
+  ): Promise<Result<SavedAccountProfileAvailabilityView, PlatformError>> {
+    return this.resolveSavedAccountProfileAvailabilityUseCase.execute({
+      profileId,
+      ...(correlationId !== undefined ? { correlationId } : {}),
+    });
+  }
+
+  /**
+   * - Purpose: unified Account sign-in command (SIP-only or OCP) — ADR-AF-003 / WU-03.
+   * - Inputs: typed mode, profile ref, non-secret fields, boundary-only secrets, save prefs.
+   * - Outputs: SIP-ready outcome or semantic PlatformError; never unregisters an active session.
+   */
+  async signInAccount(
+    command: AccountSignInCommand,
+  ): Promise<Result<AuthorizeAccountOutcome, PlatformError>> {
+    const validated = validateAccountSignInCommand(command);
+    if (isErr(validated)) {
+      return validated;
+    }
+
+    const sessionGate = this.rejectIfSipSessionActive();
+    if (isErr(sessionGate)) {
+      return sessionGate;
+    }
+
+    if (command.mode === "sip_only") {
+      return this.executeSipOnlyAccountSignIn(command);
+    }
+    return this.executeOcpAccountSignIn(command);
+  }
+
+  /**
+   * - Purpose: secret-free Account sign-in read model for shell/hooks (WU-03).
+   * - Inputs: optional selected profile id for hydration flags.
+   * - Outputs: profile options, secret booleans, login disabled reason, Server/Auth recovery keys.
+   */
+  async getAccountSignInViewModel(
+    options?: Readonly<{ selectedProfileId?: SavedAccountProfileId | null }>,
+  ): Promise<Result<AccountSignInViewModel, PlatformError>> {
+    const profilesResult = await this.listSavedAccountProfiles();
+    if (isErr(profilesResult)) {
+      return profilesResult;
+    }
+
+    const availabilities: SavedAccountProfileAvailabilityView[] = [];
+    for (const profile of profilesResult.value) {
+      const availability = await this.resolveSavedAccountProfileAvailability(profile.id);
+      if (isErr(availability)) {
+        return availability;
+      }
+      availabilities.push(availability.value);
+    }
+
+    const session = this.ocpIntegration.projectionHub.getSessionProjection();
+    return ok(
+      deriveAccountSignInViewModel({
+        isSipRegistered: this.sipSessionRegistered,
+        hasActiveAccountSession: this.accountSessionActive,
+        availabilities,
+        selectedProfileId: options?.selectedProfileId ?? null,
+        dualFsm: {
+          serverState: session.serverState,
+          authorizationState: session.authorizationState,
+          terminalSessionClosed: session.connectionState === "sessionClosed",
+        },
+        authorizationProgress: session.authorizationProgress,
+      }),
+    );
+  }
+
+  /**
+   * - Purpose: dispatch an explicit dual-FSM recovery action (ADR-AF-002 / WU-03).
+   * - Inputs: recovery action key validated against current Server/Auth snapshot.
+   * - Outputs: recovery result; rejects actions not allowed by the dual FSM.
+   */
+  async dispatchAccountRecoveryAction(
+    action: OcpRecoveryAction,
+    correlationId?: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    const session = this.ocpIntegration.projectionHub.getSessionProjection();
+    const allowed = resolveAllowedOcpRecoveryAction(
+      {
+        serverState: session.serverState,
+        authorizationState: session.authorizationState,
+        terminalSessionClosed: session.connectionState === "sessionClosed",
+      },
+      action,
+    );
+    if (allowed === null) {
+      return err(
+        createPlatformError("operation_failed", "authorization_retry_unavailable", {
+          reason: "authorization_retry_unavailable",
+        }),
+      );
+    }
+
+    const retryCorrelationId = correlationId ?? createCorrelationId();
+    this.deps.logger.info("account_recovery_action_requested", {
+      correlationId: retryCorrelationId,
+      featureId: "F-028",
+      boundedContext: "Integration",
+      operation: "dispatch_account_recovery_action",
+      action: allowed,
+      result: "requested",
+    });
+
+    switch (allowed) {
+      case "retry_authorization": {
+        if (session.activeAttemptId === null) {
+          return err(
+            createPlatformError("operation_failed", "ocp_auth_retry_no_attempt", {
+              reason: "ocp_auth_retry_no_attempt",
+            }),
+          );
         }
-      } catch (error: unknown) {
-        const normalized = normalizeUnknownError(error);
-        this.deps.logger.warn("saved_account_profile_save_after_auth_failed", {
-          ...(correlationId !== undefined ? { correlationId } : {}),
-          featureId: "F-024",
-          boundedContext: "Settings",
-          operation: "authorize_manual_account",
-          result: normalized.message,
-        });
-        metadataWarning = "profile_save_failed";
+        const retryResult =
+          await this.ocpIntegration.backedSignIn.retryAuthorization({
+            operationCorrelationId: retryCorrelationId,
+            targetAttemptId: session.activeAttemptId,
+          });
+        if (isErr(retryResult)) {
+          return retryResult;
+        }
+        return retryResult.value.phase === "sip_ready"
+          ? ok(undefined)
+          : err(retryResult.value.error);
+      }
+      case "retry_server":
+      case "reconnect":
+        return this.executeOcpRecoveryRepeatSignIn(retryCorrelationId);
+      default: {
+        const _exhaustive: never = allowed;
+        return _exhaustive;
       }
     }
+  }
 
-    if (resolvedOptions.rememberPassword === true) {
-      const passwordWarning = await this.persistSipPasswordSecretForAccount(account, correlationId);
-      if (passwordWarning !== undefined) {
-        metadataWarning = metadataWarning ?? passwordWarning;
-      }
+  private async persistOptedInDraftArtifacts(
+    account: SipAccountInput,
+    options: AuthorizeManualAccountOptions,
+    correlationId: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    const saveProfile = options.saveProfile === true;
+    const rememberPassword = options.rememberPassword === true;
+    const saveOcpApiKey = options.saveOcpApiKey === true;
+    if (!saveProfile && !rememberPassword && !saveOcpApiKey) {
+      return ok(undefined);
     }
 
-    if (metadataWarning === undefined) {
-      return ok({});
-    }
+    const draftResult = await this.persistDraftAccountArtifactsUseCase.execute({
+      profile: {
+        username: account.username,
+        domain: account.domain,
+        server: account.server,
+      },
+      saveProfile,
+      rememberPassword,
+      ...(rememberPassword ? { sipPassword: account.password } : {}),
+      ...(options.ocpDomain !== undefined ? { ocpDomain: options.ocpDomain } : {}),
+      saveOcpApiKey,
+      ...(saveOcpApiKey && options.ocpApiKey !== undefined
+        ? { ocpApiKey: options.ocpApiKey }
+        : {}),
+      correlationId,
+    });
 
-    return ok({ metadataWarning });
+    if (isErr(draftResult)) {
+      return draftResult;
+    }
+    return ok(undefined);
   }
 
   listSavedAccountProfiles(): Promise<Result<ReadonlyArray<SavedAccountProfile>, PlatformError>> {
@@ -963,6 +1335,26 @@ export class AccountBootstrapFacade {
     profileId: SavedAccountProfileId,
     correlationId?: CorrelationId,
   ): Promise<Result<void, PlatformError>> {
+    const profile =
+      await this.savedAccountProfileRepository.getProfileById(profileId);
+    const secretScopes: string[] = [profileId];
+    if (profile !== null) {
+      const identity = {
+        username: profile.username,
+        domain: profile.domain,
+        server: profile.server,
+      };
+      secretScopes.push(
+        deriveSettingsAccountKeyFromIdentity(identity),
+        deriveLegacyUsernameOnlySettingsAccountKeyFromIdentity(identity),
+      );
+    }
+    try {
+      await this.profileSecretLifecycle.deleteAllScopes(secretScopes);
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+
     const deleteResult = await this.deleteSavedAccountProfileUseCase.execute({
       profileId,
       ...(correlationId !== undefined ? { correlationId } : {}),
@@ -970,20 +1362,6 @@ export class AccountBootstrapFacade {
 
     if (isErr(deleteResult)) {
       return deleteResult;
-    }
-
-    try {
-      await this.deleteSipPasswordSecret(profileId);
-    } catch (error: unknown) {
-      const normalized = normalizeUnknownError(error);
-      this.deps.logger.warn("sip_password_secret_delete_failed", {
-        ...(correlationId !== undefined ? { correlationId } : {}),
-        featureId: "F-023",
-        boundedContext: "Settings",
-        operation: "delete_saved_account_profile",
-        result: normalized.message,
-        profileId,
-      });
     }
 
     return deleteResult;
@@ -1007,6 +1385,27 @@ export class AccountBootstrapFacade {
       return resolvedPassword;
     }
 
+    const correlationId = resolvedOptions.correlationId ?? createCorrelationId();
+    if (resolvedPassword.value.length > 0) {
+      this.attemptScopedSecrets.store(correlationId, {
+        sipPassword: resolvedPassword.value,
+      });
+    }
+    this.recordAuthorizationAttempt({
+      kind: "saved_profile_sip",
+      correlationId,
+      profileId,
+      sipIdentity: {
+        username: profile.username,
+        domain: profile.domain,
+        server: profile.server,
+      },
+      usedRememberedPassword: password.trim().length === 0,
+      ...(resolvedOptions.rememberPassword === true
+        ? { rememberPassword: true }
+        : {}),
+    });
+
     const authorizeResult = await this.authorizeManualAccount(
       {
         username: profile.username,
@@ -1014,7 +1413,7 @@ export class AccountBootstrapFacade {
         server: profile.server,
         password: resolvedPassword.value,
       },
-      resolvedOptions,
+      { ...resolvedOptions, correlationId, recordAttempt: false },
     );
 
     if (isErr(authorizeResult)) {
@@ -1039,10 +1438,9 @@ export class AccountBootstrapFacade {
           result: touchResult.error.code,
           profileId,
         });
-        return ok({
-          metadataWarning:
-            authorizeResult.value.metadataWarning ?? "profile_touch_failed",
-        });
+        return ok(
+          appendAccountMetadataWarning(authorizeResult.value, "profile_touch_failed"),
+        );
       }
     } catch (error: unknown) {
       const normalized = normalizeUnknownError(error);
@@ -1056,9 +1454,9 @@ export class AccountBootstrapFacade {
         result: normalized.message,
         profileId,
       });
-      return ok({
-        metadataWarning: authorizeResult.value.metadataWarning ?? "profile_touch_failed",
-      });
+      return ok(
+        appendAccountMetadataWarning(authorizeResult.value, "profile_touch_failed"),
+      );
     }
 
     return ok(authorizeResult.value);
@@ -1094,6 +1492,37 @@ export class AccountBootstrapFacade {
     } catch (error: unknown) {
       return err(normalizeUnknownError(error));
     }
+  }
+
+  async captureUserNotification(
+    command: CaptureUserNotificationCommand,
+  ): Promise<Result<UserNotificationCaptureOutcome, PlatformError>> {
+    const accountKey = await this.resolveSettingsAccountKey();
+    return this.userNotificationCapture.capture({
+      popupEnabled: command.popupEnabled,
+      notification: {
+        ...(command.id !== undefined ? { id: command.id } : {}),
+        accountKey,
+        accountDisplayLabel:
+          accountKey === ANONYMOUS_SETTINGS_ACCOUNT
+            ? "system"
+            : toUserNotificationAccountDisplayLabel(accountKey),
+        level: command.level,
+        module: command.module,
+        functionId: command.functionId,
+        titleKey: command.titleKey ?? null,
+        titleParams: command.titleParams ?? {},
+        titleSnapshot: command.titleSnapshot,
+        suppressedAtEmission: !command.popupEnabled,
+        correlationId: command.correlationId ?? null,
+      },
+    });
+  }
+
+  queryUserNotificationJournal(
+    input: QueryUserNotificationJournalInput = {},
+  ): Promise<QueryUserNotificationJournalOutcome> {
+    return this.queryUserNotificationJournalUseCase.execute(input);
   }
 
   async saveUserSettings(
@@ -1137,31 +1566,514 @@ export class AccountBootstrapFacade {
     }
   }
 
-  private async ensureUnregisteredBeforeAccountSwitch(
-    targetAccount: SipAccountInput,
-    correlationId?: CorrelationId,
-  ): Promise<Result<void, PlatformError>> {
-    const currentAccount = await this.deps.settingsRepository.getSipAccount();
-    if (currentAccount === null) {
+  /**
+   * - Purpose: block Account sign-in while a local account session is active (ADR-AF-005).
+   * - Inputs: none (reads facade account-session flag).
+   * - Outputs: logout-required error; never unregisters/switches identity.
+   */
+  private rejectIfSipSessionActive(): Result<void, PlatformError> {
+    if (!this.accountSessionActive) {
       return ok(undefined);
     }
+    return err(createAccountSignInLogoutRequiredError());
+  }
 
-    if (matchesSipAccountIdentity(currentAccount, targetAccount)) {
-      return ok(undefined);
+  private async executeSipOnlyAccountSignIn(
+    command: AccountSignInCommand,
+  ): Promise<Result<AuthorizeAccountOutcome, PlatformError>> {
+    const save = command.save ?? {};
+    const options: AuthorizeManualAccountOptions = {
+      ...(command.correlationId !== undefined
+        ? { correlationId: command.correlationId }
+        : {}),
+      ...(save.saveProfile === true ? { saveProfile: true } : {}),
+      ...(save.rememberPassword === true ? { rememberPassword: true } : {}),
+      ...(save.saveOcpApiKey === true ? { saveOcpApiKey: true } : {}),
+      ...(command.ocp?.domain !== undefined ? { ocpDomain: command.ocp.domain } : {}),
+      ...(command.ocp?.apiKey !== undefined ? { ocpApiKey: command.ocp.apiKey } : {}),
+    };
+
+    if (command.profile.kind === "saved") {
+      return this.authorizeSavedAccountProfile(
+        command.profile.profileId,
+        command.sip?.password ?? "",
+        options,
+      );
     }
 
-    if (!this.sipSessionRegistered) {
-      return ok(undefined);
+    const sip = command.sip;
+    if (sip === undefined) {
+      return err(
+        createAccountSignInValidationError("account.signIn.validation.sipFieldsRequired"),
+      );
     }
 
-    const endSessionResult = await this.endUserSession.execute(
-      correlationId === undefined ? {} : { correlationId },
+    return this.authorizeManualAccount(
+      {
+        username: sip.username,
+        domain: sip.domain,
+        server: sip.server,
+        password: sip.password ?? "",
+      },
+      options,
     );
-    if (isErr(endSessionResult)) {
-      return endSessionResult;
+  }
+
+  private async executeOcpAccountSignIn(
+    command: AccountSignInCommand,
+  ): Promise<Result<AuthorizeAccountOutcome, PlatformError>> {
+    const correlationId = command.correlationId ?? createCorrelationId();
+    const save = command.save ?? {};
+    const persistApiKey = save.saveOcpApiKey === true;
+    const login = (command.ocp?.login ?? "").trim();
+    const domain = command.ocp?.domain?.trim() ?? "";
+    const boundaryApiKey = command.ocp?.apiKey?.trim() ?? "";
+
+    // Persist opted-in draft first so login-target resolution uses the composite profile key.
+    if (
+      command.profile.kind === "new_draft" &&
+      (save.saveProfile === true || save.rememberPassword === true || persistApiKey)
+    ) {
+      if (login.length === 0 || domain.length === 0) {
+        return err(
+          createAccountSignInValidationError(
+            login.length === 0
+              ? "account.signIn.validation.ocpLoginRequired"
+              : "account.signIn.validation.ocpConfigRequired",
+          ),
+        );
+      }
+      const sipIdentity = command.sip ?? {
+        username: login,
+        domain,
+        server: `sip:${domain}`,
+      };
+      const boundarySipPassword = command.sip?.password?.trim() ?? "";
+      const rememberPasswordNow =
+        save.rememberPassword === true && boundarySipPassword.length > 0;
+      const draftResult = await this.persistDraftAccountArtifactsUseCase.execute({
+        profile: {
+          username: sipIdentity.username,
+          domain: sipIdentity.domain.length > 0 ? sipIdentity.domain : domain,
+          server:
+            sipIdentity.server.trim().length > 0
+              ? sipIdentity.server
+              : `sip:${domain}`,
+        },
+        saveProfile: save.saveProfile === true,
+        rememberPassword: rememberPasswordNow,
+        ...(rememberPasswordNow ? { sipPassword: boundarySipPassword } : {}),
+        ocpDomain: domain,
+        saveOcpApiKey: persistApiKey,
+        ...(persistApiKey && boundaryApiKey.length > 0
+          ? { ocpApiKey: boundaryApiKey }
+          : {}),
+        correlationId,
+      });
+      if (isErr(draftResult)) {
+        return draftResult;
+      }
     }
 
+    const materials = await this.resolveOcpAccountSignInMaterials(command);
+    if (isErr(materials)) {
+      return materials;
+    }
+
+    const { login: resolvedLogin, domain: resolvedDomain, apiKey, accountKey } =
+      materials.value;
+
+    if (
+      command.profile.kind === "saved" &&
+      (save.saveProfile === true || save.rememberPassword === true || persistApiKey)
+    ) {
+      const boundarySipPassword = command.sip?.password?.trim() ?? "";
+      const rememberPasswordNow =
+        save.rememberPassword === true && boundarySipPassword.length > 0;
+      const draftResult = await this.persistDraftAccountArtifactsUseCase.execute({
+        profile: {
+          username: resolvedLogin,
+          domain: resolvedDomain,
+          server: `sip:${resolvedDomain}`,
+        },
+        saveProfile: save.saveProfile === true,
+        rememberPassword: rememberPasswordNow,
+        ...(rememberPasswordNow ? { sipPassword: boundarySipPassword } : {}),
+        ocpDomain: resolvedDomain,
+        saveOcpApiKey: persistApiKey,
+        ...(persistApiKey ? { ocpApiKey: apiKey } : {}),
+        correlationId,
+      });
+      if (isErr(draftResult)) {
+        return draftResult;
+      }
+    }
+
+    const domainPersistResult = await this.ensureOcpDomainForAccount({
+      accountKey,
+      domain: resolvedDomain,
+      correlationId,
+    });
+    if (isErr(domainPersistResult)) {
+      return domainPersistResult;
+    }
+
+    // ADR-AF-005: select the provisional bucket atomically before unlocking Settings.
+    try {
+      await this.deps.settingsRepository.setActiveProfileKey(accountKey);
+      await this.applyActiveProfileSettingsSideEffects();
+    } catch (error: unknown) {
+      const normalized = normalizeUnknownError(error);
+      this.deps.logger.warn("ocp_account_session_activation_failed", {
+        correlationId,
+        featureId: "F-028",
+        boundedContext: "Settings",
+        operation: "execute_ocp_account_sign_in",
+        result: normalized.message,
+      });
+      return err(normalized);
+    }
+    this.eventPublisher.publish(
+      createAccountSessionActivatedEvent(correlationId, { profileKey: accountKey }),
+    );
+
+    if (persistApiKey) {
+      const keyResult = await this.saveOcpProxyApiKey(apiKey, {
+        accountKey,
+        correlationId,
+      });
+      if (isErr(keyResult)) {
+        return keyResult;
+      }
+    }
+
+    this.attemptScopedSecrets.store(correlationId, { ocpApiKey: apiKey });
+    this.recordAuthorizationAttempt({
+      kind: "saved_profile_ocp",
+      correlationId,
+      login: resolvedLogin,
+      accountKey,
+    });
+
+    // Prefer connectOcp when a persisted key exists; otherwise use boundary key once.
+    if (!persistApiKey && boundaryApiKey.length > 0) {
+      const signInResult = await this.ocpIntegration.backedSignIn.execute({
+        domain: resolvedDomain,
+        login: resolvedLogin,
+        apiKey,
+        correlationId,
+      });
+      if (isErr(signInResult)) {
+        return signInResult;
+      }
+      if (signInResult.value.phase === "ocp_authenticated_sip_failed") {
+        await this.markOcpLinked(
+          (await this.loadUserSettingsForAccountKey(accountKey)).ocpIntegration,
+          correlationId,
+          accountKey,
+        );
+        return err(signInResult.value.error);
+      }
+      const linkedResult = await this.markOcpLinked(
+        (await this.loadUserSettingsForAccountKey(accountKey)).ocpIntegration,
+        correlationId,
+        accountKey,
+      );
+      if (isErr(linkedResult)) {
+        return linkedResult;
+      }
+      const rememberResult =
+        await this.persistOcpDerivedSipPassword(command, correlationId);
+      if (isErr(rememberResult)) {
+        return rememberResult;
+      }
+      this.startupRegistrationFailed = false;
+      return ok(createReadyAccountSignInOutcome());
+    }
+
+    const connectResult = await this.connectOcp({
+      login: resolvedLogin,
+      accountKey,
+      correlationId,
+    });
+    if (isErr(connectResult)) {
+      return connectResult;
+    }
+    const rememberResult =
+      await this.persistOcpDerivedSipPassword(command, correlationId);
+    if (isErr(rememberResult)) {
+      return rememberResult;
+    }
+    return ok(createReadyAccountSignInOutcome());
+  }
+
+  private async persistOcpDerivedSipPassword(
+    command: AccountSignInCommand,
+    correlationId: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    if (command.save?.rememberPassword !== true) {
+      return ok(undefined);
+    }
+    try {
+      const account = await this.deps.settingsRepository.getSipAccount();
+      if (account === null || account.password.length === 0) {
+        return err(
+          createPlatformError("not_found", "ocp_derived_sip_password_missing", {
+            reason: "ocp_derived_sip_password_missing",
+          }),
+        );
+      }
+      const profileId = deriveSavedAccountProfileId(account);
+      await this.secretStoragePort.saveSecret(
+        createSecretStorageScopeKey(profileId),
+        SIP_PASSWORD_SECRET_ID,
+        account.password,
+      );
+      return ok(undefined);
+    } catch (error: unknown) {
+      this.deps.logger.warn("ocp_derived_sip_password_save_failed", {
+        correlationId,
+        featureId: "F-024",
+        boundedContext: "Settings",
+        operation: "persist_ocp_derived_sip_password",
+        result: normalizeUnknownError(error).message,
+      });
+      return err(normalizeUnknownError(error));
+    }
+  }
+
+  private async ensureOcpDomainForAccount(
+    input: Readonly<{
+      accountKey: SettingsAccountKey;
+      domain: string;
+      correlationId: CorrelationId;
+    }>,
+  ): Promise<Result<void, PlatformError>> {
+    let current: UserSettings;
+    try {
+      current = await this.loadUserSettingsForAccountKey(input.accountKey);
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+    if (current.ocpIntegration.domain.trim() === input.domain.trim()) {
+      return ok(undefined);
+    }
+    const updateResult = await this.updateOcpSettings(
+      {
+        ...current.ocpIntegration,
+        enabled: true,
+        domain: input.domain.trim(),
+      },
+      {
+        accountKey: input.accountKey,
+        correlationId: input.correlationId,
+      },
+    );
+    if (isErr(updateResult)) {
+      return updateResult;
+    }
     return ok(undefined);
+  }
+
+  /**
+   * - Purpose: resolve OCP proxy hostname for HTTP authenticate; heal SIP-polluted settings.
+   * - Inputs: account key + loaded settings for that bucket.
+   * - Outputs: OCP domain string or validation_failed when unresolved.
+   */
+  private async resolveAndHealOcpProxyDomain(input: Readonly<{
+    accountKey: SettingsAccountKey;
+    settings: UserSettings;
+    correlationId: CorrelationId;
+  }>): Promise<Result<string, PlatformError>> {
+    let profileOcpDomain: string | undefined;
+    const profilesResult = await this.listSavedAccountProfiles();
+    if (profilesResult.ok) {
+      const profile = profilesResult.value.find(
+        (candidate) => candidate.id === input.accountKey,
+      );
+      profileOcpDomain = profile?.ocpDomain;
+    }
+
+    let sipAccountDomain: string | undefined;
+    try {
+      const account = await this.deps.settingsRepository.getSipAccount();
+      sipAccountDomain = account?.domain;
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+
+    const domain = resolveOcpProxyAuthenticateDomain({
+      settingsOcpDomain: input.settings.ocpIntegration.domain,
+      ...(profileOcpDomain !== undefined ? { profileOcpDomain } : {}),
+      sessionOcpDomain:
+        this.ocpIntegration.projectionHub.getSessionProjection().domain,
+      ...(sipAccountDomain !== undefined ? { sipAccountDomain } : {}),
+    });
+
+    if (domain.length === 0) {
+      return err(
+        createPlatformError("validation_failed", "domain_required", {
+          reason: "domain_required",
+        }),
+      );
+    }
+
+    if (domain !== input.settings.ocpIntegration.domain.trim()) {
+      const healResult = await this.ensureOcpDomainForAccount({
+        accountKey: input.accountKey,
+        domain,
+        correlationId: input.correlationId,
+      });
+      if (isErr(healResult)) {
+        return healResult;
+      }
+    }
+
+    return ok(domain);
+  }
+
+  private async resolveOcpAccountSignInMaterials(
+    command: AccountSignInCommand,
+  ): Promise<
+    Result<
+      Readonly<{
+        login: string;
+        domain: string;
+        apiKey: string;
+        accountKey: SettingsAccountKey;
+      }>,
+      PlatformError
+    >
+  > {
+    const login = (command.ocp?.login ?? "").trim();
+    if (login.length === 0) {
+      return err(
+        createAccountSignInValidationError("account.signIn.validation.ocpLoginRequired"),
+      );
+    }
+
+    if (command.profile.kind === "saved") {
+      const availability = await this.resolveSavedAccountProfileAvailability(
+        command.profile.profileId,
+        command.correlationId,
+      );
+      if (isErr(availability)) {
+        return availability;
+      }
+
+      const accountKey = command.profile.profileId;
+      let settings: UserSettings;
+      try {
+        settings = await this.loadUserSettingsForAccountKey(accountKey);
+      } catch (error: unknown) {
+        return err(normalizeUnknownError(error));
+      }
+
+      const domain =
+        command.ocp?.domain?.trim() ||
+        availability.value.profile.ocpDomain?.trim() ||
+        settings.ocpIntegration.domain.trim();
+
+      let apiKey = command.ocp?.apiKey?.trim() ?? "";
+      if (apiKey.length === 0) {
+        try {
+          const scopeKey = createSecretStorageScopeKey(accountKey);
+          apiKey =
+            (
+              await this.secretStoragePort.loadSecret(scopeKey, OCP_PROXY_API_KEY_SECRET_ID)
+            )?.trim() ?? "";
+        } catch (error: unknown) {
+          return err(normalizeUnknownError(error));
+        }
+      }
+
+      if (domain.length === 0 || apiKey.length === 0) {
+        return err(
+          createAccountSignInValidationError("account.signIn.validation.ocpConfigRequired"),
+        );
+      }
+
+      return ok({ login, domain, apiKey, accountKey });
+    }
+
+    const domain = command.ocp?.domain?.trim() ?? "";
+    const apiKey = command.ocp?.apiKey?.trim() ?? "";
+    if (domain.length === 0 || apiKey.length === 0) {
+      return err(
+        createAccountSignInValidationError("account.signIn.validation.ocpConfigRequired"),
+      );
+    }
+
+    const profilesResult = await this.listSavedAccountProfiles();
+    if (isErr(profilesResult)) {
+      return profilesResult;
+    }
+    const targetResult = resolveOcpConnectLoginTarget(login, profilesResult.value);
+    if (!targetResult.ok) {
+      return err(
+        createPlatformError("validation_failed", targetResult.reason, {
+          reason: targetResult.reason,
+        }),
+      );
+    }
+
+    return ok({
+      login: targetResult.value.login,
+      domain,
+      apiKey,
+      accountKey: targetResult.value.accountKey,
+    });
+  }
+
+  private async executeOcpRecoveryRepeatSignIn(
+    correlationId: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    const context = this.lastAuthorizationAttempt;
+    if (context === null) {
+      return this.connectOcp(correlationId);
+    }
+    const attemptSecrets = this.attemptScopedSecrets.read(context.correlationId);
+    if (
+      (context.kind === "saved_profile_ocp" ||
+        context.kind === "ocp_integrations_connect") &&
+      context.accountKey !== undefined &&
+      context.login !== undefined &&
+      attemptSecrets?.ocpApiKey !== undefined
+    ) {
+      const settings = await this.loadUserSettingsForAccountKey(context.accountKey);
+      const domainResult = await this.resolveAndHealOcpProxyDomain({
+        accountKey: context.accountKey,
+        settings,
+        correlationId,
+      });
+      if (isErr(domainResult)) {
+        return domainResult;
+      }
+      const retryResult = await this.ocpIntegration.backedSignIn.retryServer({
+        domain: domainResult.value,
+        login: context.login,
+        apiKey: attemptSecrets.ocpApiKey,
+        correlationId,
+      });
+      if (isErr(retryResult)) {
+        return retryResult;
+      }
+      return retryResult.value.phase === "sip_ready"
+        ? ok(undefined)
+        : err(retryResult.value.error);
+    }
+    // Active-bucket OCP attempts must not force login-picker scope on retry.
+    if (context.kind === "saved_profile_ocp") {
+      return this.connectOcp(correlationId);
+    }
+    if (context.kind === "ocp_integrations_connect") {
+      return this.connectOcp({
+        login: context.login ?? "",
+        ...(context.accountKey !== undefined ? { accountKey: context.accountKey } : {}),
+        correlationId,
+      });
+    }
+    return this.connectOcp(correlationId);
   }
 
   private resolveSettingsAccountKey(): Promise<SettingsAccountKey> {
@@ -1781,6 +2693,31 @@ export class AccountBootstrapFacade {
     }
   }
 
+  /**
+   * Narrow renderer boundary from ADR-AF-006: secrets enter selected-profile local
+   * form state only and must never be stored in projections, events, or logs.
+   */
+  async loadSavedAccountProfileSecrets(
+    profileId: SavedAccountProfileId,
+  ): Promise<Result<SavedAccountProfileSecrets, PlatformError>> {
+    const profile = await this.savedAccountProfileRepository.getProfileById(profileId);
+    if (profile === null) {
+      return err(
+        createPlatformError("not_found", LOCAL_SAVED_PROFILE_NOT_FOUND_MESSAGE),
+      );
+    }
+    try {
+      const scopeKey = createSecretStorageScopeKey(profileId);
+      const [sipPassword, ocpApiKey] = await Promise.all([
+        this.secretStoragePort.loadSecret(scopeKey, SIP_PASSWORD_SECRET_ID),
+        this.secretStoragePort.loadSecret(scopeKey, OCP_PROXY_API_KEY_SECRET_ID),
+      ]);
+      return ok({ sipPassword, ocpApiKey });
+    } catch (error: unknown) {
+      return err(normalizeUnknownError(error));
+    }
+  }
+
   private async resolvePasswordForSavedProfileAuthorize(
     profileId: SavedAccountProfileId,
     password: string,
@@ -1801,40 +2738,6 @@ export class AccountBootstrapFacade {
       return ok(storedPassword);
     } catch (error: unknown) {
       return err(normalizeUnknownError(error));
-    }
-  }
-
-  private resolveSipPasswordSecretScopeKey(account: SipAccountInput): SecretStorageScopeKey {
-    return createSecretStorageScopeKey(
-      deriveSavedAccountProfileId({
-        username: account.username,
-        domain: account.domain,
-        server: account.server,
-      }),
-    );
-  }
-
-  private async persistSipPasswordSecretForAccount(
-    account: SipAccountInput,
-    correlationId?: CorrelationId,
-  ): Promise<AuthorizeAccountMetadataWarning | undefined> {
-    try {
-      await this.secretStoragePort.saveSecret(
-        this.resolveSipPasswordSecretScopeKey(account),
-        SIP_PASSWORD_SECRET_ID,
-        account.password,
-      );
-      return undefined;
-    } catch (error: unknown) {
-      const normalized = normalizeUnknownError(error);
-      this.deps.logger.warn("sip_password_secret_save_failed", {
-        ...(correlationId !== undefined ? { correlationId } : {}),
-        featureId: "F-023",
-        boundedContext: "Settings",
-        operation: "persist_sip_password_secret",
-        result: normalized.message,
-      });
-      return "password_save_failed";
     }
   }
 
@@ -1903,6 +2806,12 @@ export class AccountBootstrapFacade {
         : {}),
       ...(input.correlationId !== undefined ? { correlationId: input.correlationId } : {}),
     });
+  }
+
+  logoutAccountSession(input: Readonly<{
+    reasonId?: number;
+  }> = {}): Promise<Result<AccountLogoutOutcome, PlatformError>> {
+    return this.accountLogoutOrchestration.execute(input);
   }
 
   /**
@@ -2257,11 +3166,14 @@ export class AccountBootstrapFacade {
   }
 
   /**
-   * - Purpose: HTTP authenticate + WS connect using saved domain/apiKey and SIP login.
+   * - Purpose: HTTP authenticate + WS connect using saved OCP domain/apiKey and SIP login.
    * - Inputs:
    *   - Integrations/host: `{ login, accountKey? }` → settings scoped to login target
    *   - autoConnect/retry: bare correlationId / no args → active SIP settings bucket
    * - Outputs: authenticated session or non-blocking auth feedback errors.
+   *
+   * Token HTTP host is always the OCP proxy domain (`ocpIntegration` / `profile.ocpDomain`),
+   * never the SIP PBX domain from `entity:creds`.
    */
   async connectOcp(
     input?:
@@ -2341,24 +3253,235 @@ export class AccountBootstrapFacade {
       );
     }
 
-    const connectResult = await this.ocpIntegration.authenticateAndConnect.execute({
-      domain: settings.ocpIntegration.domain,
-      login,
-      apiKey,
-      ...(correlationId !== undefined ? { correlationId } : {}),
+    const attemptCorrelationId = correlationId ?? createCorrelationId();
+    const domainResult = await this.resolveAndHealOcpProxyDomain({
+      accountKey,
+      settings,
+      correlationId: attemptCorrelationId,
     });
-
-    if (isErr(connectResult)) {
-      return connectResult;
+    if (isErr(domainResult)) {
+      return domainResult;
     }
 
-    return this.markOcpLinked(settings.ocpIntegration, correlationId, accountKey);
+    this.recordAuthorizationAttempt({
+      kind: usesLoginPickerScope ? "ocp_integrations_connect" : "saved_profile_ocp",
+      correlationId: attemptCorrelationId,
+      login,
+      accountKey,
+    });
+
+    const signInResult = await this.ocpIntegration.backedSignIn.execute({
+      domain: domainResult.value,
+      login,
+      apiKey,
+      correlationId: attemptCorrelationId,
+    });
+
+    if (isErr(signInResult)) {
+      return signInResult;
+    }
+
+    if (signInResult.value.phase === "ocp_authenticated_sip_failed") {
+      // OCP session may still be live; mark linked but surface SIP failure to caller.
+      await this.markOcpLinked(settings.ocpIntegration, attemptCorrelationId, accountKey);
+      return err(signInResult.value.error);
+    }
+
+    const linkedResult = await this.markOcpLinked(
+      settings.ocpIntegration,
+      attemptCorrelationId,
+      accountKey,
+    );
+    if (isErr(linkedResult)) {
+      return linkedResult;
+    }
+
+    this.startupRegistrationFailed = false;
+    return ok(undefined);
+  }
+
+  /**
+   * - Purpose: legacy single Retry for the last failed authorization attempt.
+   * - Inputs: optional correlationId for observability.
+   * - Outputs: routes OCP dual-FSM recoveries via `dispatchAccountRecoveryAction` when possible.
+   * Prefer `dispatchAccountRecoveryAction` for new Account UI (WU-04).
+   */
+  async retryAuthorization(
+    correlationId?: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    const progress =
+      this.ocpIntegration.projectionHub.getSessionProjection().authorizationProgress;
+    if (!isAuthorizationRetryableStage(progress.stage, progress.retryAvailable)) {
+      return err(
+        createPlatformError("operation_failed", "authorization_retry_unavailable", {
+          reason: "authorization_retry_unavailable",
+        }),
+      );
+    }
+
+    const context = this.lastAuthorizationAttempt;
+    const session = this.ocpIntegration.projectionHub.getSessionProjection();
+    const strategy = resolveAuthorizationRetryStrategy(progress.stage, context, {
+      isOcpSessionLive: this.isOcpSessionLive(),
+      primaryOcpRecoveryAction: session.primaryRecoveryAction,
+    });
+    if (strategy === null || context === null) {
+      return err(
+        createPlatformError("operation_failed", "authorization_retry_unavailable", {
+          reason: "authorization_retry_unavailable",
+        }),
+      );
+    }
+
+    const retryCorrelationId = correlationId ?? createCorrelationId();
+    this.deps.logger.info("authorization_retry_requested", {
+      correlationId: retryCorrelationId,
+      featureId: "F-028",
+      boundedContext: "Integration",
+      operation: "retry_authorization",
+      strategy,
+      stage: progress.stage,
+      result: "requested",
+    });
+
+    switch (strategy) {
+      case "retry_ocp_authorization":
+        return this.dispatchAccountRecoveryAction("retry_authorization", retryCorrelationId);
+      case "retry_ocp_server":
+        return this.dispatchAccountRecoveryAction("retry_server", retryCorrelationId);
+      case "reconnect_ocp":
+        return this.dispatchAccountRecoveryAction("reconnect", retryCorrelationId);
+      case "repeat_ocp_sign_in":
+        return this.executeOcpRecoveryRepeatSignIn(retryCorrelationId);
+      case "repeat_sip_register_only": {
+        const account = await this.deps.settingsRepository.getSipAccount();
+        if (account === null) {
+          return err(
+            createPlatformError("not_found", "sip_account_missing", {
+              reason: "sip_account_missing",
+            }),
+          );
+        }
+        const registerResult = await this.registerAccount.execute({
+          account,
+          correlationId: retryCorrelationId,
+        });
+        if (registerResult.ok) {
+          this.startupRegistrationFailed = false;
+          this.ocpIntegration.backedSignIn.clearProgress();
+        }
+        return registerResult;
+      }
+      case "repeat_sip_authorize": {
+        const scopedSecrets = this.attemptScopedSecrets.read(context.correlationId);
+        if (context.kind === "saved_profile_sip" && context.profileId !== undefined) {
+          const savedResult = await this.authorizeSavedAccountProfile(
+            context.profileId,
+            context.usedRememberedPassword === true
+              ? ""
+              : (scopedSecrets?.sipPassword ?? ""),
+            {
+              correlationId: retryCorrelationId,
+              recordAttempt: false,
+              ...(context.rememberPassword === true ? { rememberPassword: true } : {}),
+            },
+          );
+          if (isErr(savedResult)) {
+            return savedResult;
+          }
+          return ok(undefined);
+        }
+        if (
+          context.sipIdentity !== undefined &&
+          scopedSecrets?.sipPassword !== undefined
+        ) {
+          const manualResult = await this.authorizeManualAccount(
+            {
+              ...context.sipIdentity,
+              password: scopedSecrets.sipPassword,
+            },
+            {
+            correlationId: retryCorrelationId,
+            recordAttempt: false,
+            ...(context.saveProfile === true ? { saveProfile: true } : {}),
+            ...(context.rememberPassword === true ? { rememberPassword: true } : {}),
+            },
+          );
+          if (isErr(manualResult)) {
+            return manualResult;
+          }
+          return ok(undefined);
+        }
+        return err(
+          createPlatformError("operation_failed", "authorization_retry_unavailable", {
+            reason: "authorization_retry_unavailable",
+          }),
+        );
+      }
+      default: {
+        const _exhaustive: never = strategy;
+        return _exhaustive;
+      }
+    }
+  }
+
+  /**
+   * - Purpose: retry startup SIP registration after `sipAutoRegisterOnStartup` failure.
+   * - Inputs: stored SIP account from settings repository.
+   * - Outputs: register result; clears persistent startup failure flag on success.
+   */
+  async retryStartupRegistration(
+    correlationId?: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    if (!this.startupRegistrationFailed) {
+      return err(
+        createPlatformError("operation_failed", "startup_registration_retry_unavailable", {
+          reason: "startup_registration_retry_unavailable",
+        }),
+      );
+    }
+
+    const account = await this.deps.settingsRepository.getSipAccount();
+    if (account === null) {
+      return err(
+        createPlatformError("not_found", "sip_account_missing", {
+          reason: "sip_account_missing",
+        }),
+      );
+    }
+
+    const registerResult = await this.registerAccount.execute({
+      account,
+      correlationId: correlationId ?? createCorrelationId(),
+    });
+    if (registerResult.ok) {
+      this.startupRegistrationFailed = false;
+    }
+    return registerResult;
+  }
+
+  hasStartupRegistrationFailure(): boolean {
+    return this.startupRegistrationFailed;
+  }
+
+  private recordAuthorizationAttempt(context: AuthorizationAttemptContext): void {
+    this.lastAuthorizationAttempt = context;
+  }
+
+  private isOcpSessionLive(): boolean {
+    const session = this.ocpIntegration.projectionHub.getSessionProjection();
+    return (
+      session.authorizationState.phase === "authorized" ||
+      session.serverState === "connected" ||
+      session.serverState === "reconnecting"
+    );
   }
 
   /**
    * - Purpose: saved-account sign-in via OCP (no SIP password).
    * - Inputs: SIP login username + optional saved-profile account key for OCP secrets scope.
-   * - Outputs: OCP authenticate+connect; SIP creds applied by OcpSipCredentialService.
+   * - Outputs: ok only after SIP registration succeeded (or matching identity already registered).
+   * Prefer `signInAccount({ mode: "ocp", ... })` for new Account UI (WU-04).
    */
   async signInViaOcp(
     input: Readonly<{
@@ -2367,6 +3490,10 @@ export class AccountBootstrapFacade {
       correlationId?: CorrelationId;
     }>,
   ): Promise<Result<void, PlatformError>> {
+    const sessionGate = this.rejectIfSipSessionActive();
+    if (isErr(sessionGate)) {
+      return sessionGate;
+    }
     return this.connectOcp({
       login: input.login,
       ...(input.accountKey !== undefined ? { accountKey: input.accountKey } : {}),
@@ -2685,6 +3812,18 @@ type OcpSettingsScopeOptions = Readonly<{
   correlationId?: CorrelationId;
   accountKey?: SettingsAccountKey;
 }>;
+
+function appendAccountMetadataWarning(
+  outcome: AccountSignInOutcome,
+  warning: AccountSignInMetadataWarning,
+): AccountSignInOutcome {
+  return outcome.metadataWarnings.includes(warning)
+    ? outcome
+    : {
+        ...outcome,
+        metadataWarnings: [...outcome.metadataWarnings, warning],
+      };
+}
 
 function normalizeOcpSettingsScopeOptions(
   options?: CorrelationId | OcpSettingsScopeOptions,

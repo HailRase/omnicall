@@ -1,4 +1,4 @@
-import type { SipSystemStateShellView } from "@application/index.js";
+import type { OcpSystemStateShellView, SipSystemStateShellView } from "@application/index.js";
 
 export const idleSystemStateShell: SipSystemStateShellView = {
   transportState: "idle",
@@ -16,8 +16,27 @@ export const idleSystemStateShell: SipSystemStateShellView = {
   journalEntries: [],
 };
 
+export const idleOcpSystemStateShell: OcpSystemStateShellView = {
+  ocpModuleEnabled: true,
+  tabDisabledReasonKey: null,
+  serverState: "disconnected",
+  authorizationState: { phase: "idle" },
+  serverStateLabelKey: "settings.systemState.ocp.server.disconnected",
+  authorizationStateLabelKey: "settings.systemState.ocp.authorization.idle",
+  primaryRecoveryAction: null,
+  allowedRecoveryActions: [],
+  recoveryActionLabelKeys: {
+    retry_server: "settings.systemState.ocp.action.retryServer",
+    retry_authorization: "settings.systemState.ocp.action.retryAuthorization",
+    reconnect: "settings.systemState.ocp.action.reconnect",
+  },
+};
+
 export const systemStateTestDefaults = {
   shell: idleSystemStateShell,
+  ocpShell: idleOcpSystemStateShell,
+  ocpRecoveryActionLoading: null,
+  onOcpRecoveryAction: () => undefined,
   sipAutoReconnectEnabled: true,
   onSipAutoReconnectChange: () => undefined,
   sipReconnectIntervalSec: 5,

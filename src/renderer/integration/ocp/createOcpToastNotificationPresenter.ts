@@ -45,6 +45,8 @@ export function mapOcpNotificationToToastDescriptor(
     id: `ocp-notification-${payload.id}`,
     level: mapOcpNotificationLevel(payload.type),
     messageText: body,
+    module: "ocp",
+    functionId: "ocp.notification",
     ...(payload.sticky === true ? { durationMs: 0 } : {}),
   };
 }

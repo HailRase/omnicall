@@ -2,10 +2,21 @@
 
 > Optional queue for agents when user does not specify a task. `scope-intake` reads this after `STATUS.md`.
 
-**Updated:** 2026-07-15
+**Updated:** 2026-07-17
 
 | ID | Priority | Task | F-XXX | Command | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
+| T-042 | 0 | OCP Reconnect must not send duplicate /proxy/authenticate (recovery race) | F-028 | `/logic` | done | closed 2026-07-17 — ignoreTransportDrops after cancelAll until next connecting\|connected |
+| T-041 | 0 | OCP Reconnect token must use OCP Domain, not SIP Domain from creds | F-028 | `/logic` | done | closed 2026-07-17 — creds no longer overwrite session domain; resolveOcpProxyAuthenticateDomain + heal |
+| T-040 | 0 | Avatar logout must not start OCP reconnect; reset OCP projections to idle | F-028,F-014 | `/logic` | done | closed 2026-07-17 — disarm transport recovery before disconnect + hub.resetToIdle |
+| T-039 | 0 | Login stays disabled after logout when SIP connected but auth failed | F-001,F-014,F-024 | `/logic` | done | closed 2026-07-17 — EndUserSession publishes UserSessionEnded on partial teardown; Account VM refreshes on `hasActiveAccountSession` |
+| T-038 | 0 | Notification history Settings panel → UI Kit Table | F-029 | `/ui` | done | closed 2026-07-17 — UI Kit Table + column/level i18n; filters/pagination preserved |
+| T-037 | 0 | Overwrite credentials confirm loops back to the same prompt instead of signing in | F-024 | `/ui` | done | closed 2026-07-17 — confirm calls `handleSubmit(true, true)`; hook regression test |
+| T-036 | 0 | Account OCP/SIP mode-isolated validation (New OCP draft false required-fields toast) | F-001,F-024,F-028 | `/logic` | done | closed 2026-07-17 — OCP ignores SIP leftovers + rememberPassword without SIP password |
+| T-035 | 0 | Overwrite credentials modal: Cancel + ButtonGroup split (continue / overwrite menu) | F-024 | `/ui` | done | closed 2026-07-17 — Cancel + ButtonGroup (continue primary, overwrite in menu) |
+| T-034 | 0 | System State SIP/OCP tabs UI (remove status from Account/OCP Module) | F-016,F-028 | `/ui` | done | closed 2026-07-16 — SIP/OCP tabs + `deriveOcpSystemStateShell`; dual status stripped from Account + OCP Module; next WU-06 |
+| T-033 | 0 | Auth Flow Refactoring + Hardening + notification journal | F-001,F-014,F-016,F-023,F-024,F-028,F-029 | `/logic` → `/ui` | done | closed 2026-07-17 — WU-00…06 + Hardening WU-07-01…11; ADR-AF-001…007 |
+| T-032 | 0 | Unified SIP/OCP authorization gate fixes (retry, startup register, renderer coverage) | F-001,F-014,F-024,F-028 | `/logic` → `/ui` | done | `handoffs/P11-Unified-Authorization-Gate-Handoff.md` — closed 2026-07-16; sign-in ownership superseded by ADR-AF-003 / T-033; SM-1…SM-16 still unchecked |
 | T-031 | 0 | OCP Integrations login input-select + scoped settings wire | F-028 | `/ui` | done | closed 2026-07-15 — Input+datalist login; scoped save/connect; i18n 5 locales; next `/preflight` → `/review` |
 | T-030 | 0 | OCP HTTP authenticate + saved-account OCP sign-in | F-028 | `/logic` → `/ui` | done | HTTP auth + login-picker Application API (2026-07-15); UI picker → T-031; next `/preflight` → `/review` after T-031 |
 | T-029 | 0 | OCP status selector: current-first + width/ellipsis + break↔break UX | F-028 | `/logic` | done | closed 2026-07-14 — pin current in dropdown; fill to shell edge + IconTooltip; Break→Break verified |

@@ -32,6 +32,7 @@
 | `settings.headset` | Settings headset section | `Headphones` | — | `SettingsSidebar` | active |
 | `settings.integrations` | Settings integrations parent group | `Plug` | — | `SettingsSidebar` | active |
 | `settings.integrations.ocp` | Settings OCP Module child under Integrations | `Server` | — | `SettingsSidebar` | active |
+| `settings.notifications` | Settings notification history section | `Bell` | `BellIcon` | `SettingsSidebar` | active |
 | `settings.nav.expand` | Expand settings sidebar | `ChevronRight` | `ChevronRightIcon` | `SettingsSidebar` | active |
 | `settings.nav.collapse` | Collapse settings sidebar | `ChevronLeft` | `ChevronLeftIcon` | `SettingsSidebar` | active |
 | `session.end` | End user session | `LogOut` | `LogoutIcon` | `UserAvatarMenu`, `LogoutActiveSessionConfirmationModal` | active |
@@ -67,7 +68,8 @@
 | `action.retry` | Retry failed operation | `RotateCcw` | `RotateCcwIcon` | `CallLineRow`, `ActiveCallControlsPanel` | active |
 | `transfer.consultation` | Start consultation call | `PhoneCall` | `PhoneCallIcon` | `TransferPanel` | active |
 | `connection.retry` | Retry connection | `RotateCcw` | `RotateCcwIcon` | `SettingsSystemStatePanel` (Phase 6) | planned |
-| `ui.select.chevron` | Expand select options | `ChevronDown` | — | `Select` | active |
+| `ui.select.chevron` | Expand select options | `ChevronDown` | — | `Select`; overwrite credentials split menu | active |
+| `ui.sidebar.toggle` | Toggle UI Kit sidebar | `PanelLeft` | — | `SidebarTrigger` | active |
 | `phone.dnd.on` | DND mode active (bell on) | `Bell` | — | `UserAvatarMenu` | active |
 | `phone.dnd.off` | DND mode inactive (bell off) | `BellOff` | — | `UserAvatarMenu` | active |
 | `updates.available` | Update available prompt | `Download` | — | `UpdateAvailableBanner` | active |

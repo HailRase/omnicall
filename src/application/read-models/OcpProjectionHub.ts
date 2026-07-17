@@ -1,16 +1,17 @@
 /**
  * - Purpose: gateway-driven OCP projection hub implementing OcpOperatorReadModel.
- * - Inputs: OcpGateway messages/state, optional reasons cache hydration.
- * - Outputs: session/operator/reasons/campaign snapshots for Use Cases and UI.
+ * - Inputs: OcpGateway transport states/messages, optional reasons cache hydration.
+ * - Outputs: dual-FSM session/operator/reasons/campaign snapshots for Use Cases and UI.
  */
 
 import type { OperatorProfile } from "@domain/integration/ocp/OperatorProfile.js";
 import type { OperatorStatus as OperatorStatusType } from "@domain/integration/ocp/OperatorStatus.js";
-import type { OcpConnectionState } from "@domain/integration/ocp/OcpConnectionState.js";
+import type { OcpServerState } from "@domain/integration/ocp/OcpServerState.js";
 import type { OcpIncomingMessage } from "@domain/integration/ocp/protocol/OcpIncomingMessage.js";
 import type { OcpGateway, Unsubscribe } from "@ports/integration/OcpGateway.js";
 import type { OcpOperatorReadModel } from "@ports/integration/OcpOperatorReadModel.js";
 import type { OcpReasonsCachePort } from "@ports/integration/OcpReasonsCachePort.js";
+import type { CorrelationId } from "@shared/correlation-id/index.js";
 import {
   initialCampaignEventProjection,
   reduceCampaignEventFromPayload,
@@ -23,15 +24,19 @@ import {
   type OcpReasonsProjection,
 } from "../projections/integration/ocpReasonsProjection.js";
 import {
+  applyAuthorizationProgress,
+  applyOcpActiveAttemptId,
   applyOcpAuthFeedback,
   applyOcpSessionDomain,
   clearOcpAuthFeedback,
   initialOcpSessionProjection,
-  reduceOcpSessionFromConnectionState,
+  reduceOcpSessionFromAuthorization,
+  reduceOcpSessionFromServerState,
   reduceOcpSessionFromMessage,
   type OcpAuthFeedbackReason,
   type OcpSessionProjection,
 } from "../projections/integration/ocpSessionProjection.js";
+import type { AuthorizationProgressProjection } from "../projections/settings/authorizationProgressProjection.js";
 import {
   applyOperatorReservedStatus,
   clearOperatorReservedStatus,
@@ -47,7 +52,7 @@ export type OcpProjectionHubDeps = Readonly<{
 }>;
 
 /**
- * Holds serializable OCP projections; updated only from gateway callbacks.
+ * Holds serializable OCP projections; updated from gateway callbacks + Application marks.
  */
 export class OcpProjectionHub implements OcpOperatorReadModel {
   private session: OcpSessionProjection = initialOcpSessionProjection();
@@ -57,18 +62,33 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
   private readonly unsubscribers: Unsubscribe[] = [];
   private readonly changeListeners = new Set<() => void>();
   private authFeedbackNonce = 0;
+  private activeSocketEpoch: number | null = null;
 
   constructor(private readonly deps: OcpProjectionHubDeps) {
     this.unsubscribers.push(
       deps.ocpGateway.onConnectionStateChange((state) => {
-        this.applyConnectionState(state);
+        this.applyServerState(state);
       }),
     );
-    this.unsubscribers.push(
-      deps.ocpGateway.onMessage((message) => {
-        this.applyMessage(message);
-      }),
-    );
+    if (deps.ocpGateway.onMessageEnvelope !== undefined) {
+      this.unsubscribers.push(
+        deps.ocpGateway.onMessageEnvelope((envelope) => {
+          if (
+            this.activeSocketEpoch !== null &&
+            envelope.socketEpoch !== this.activeSocketEpoch
+          ) {
+            return;
+          }
+          this.applyMessage(envelope.message);
+        }),
+      );
+    } else {
+      this.unsubscribers.push(
+        deps.ocpGateway.onMessage((message) => {
+          this.applyMessage(message);
+        }),
+      );
+    }
   }
 
   /**
@@ -112,6 +132,51 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
     this.notifyChangeListeners();
   }
 
+  /**
+   * Begin or supersede an OCP attempt. Late events with a different id are ignored.
+   */
+  beginAttempt(attemptId: CorrelationId): void {
+    this.activeSocketEpoch = this.deps.ocpGateway.getSocketEpoch?.() ?? null;
+    this.session = applyOcpActiveAttemptId(this.session, attemptId);
+    this.notifyChangeListeners();
+  }
+
+  bindActiveAttemptToCurrentSocket(attemptId: CorrelationId): void {
+    if (!this.isActiveAttempt(attemptId)) {
+      return;
+    }
+    this.activeSocketEpoch = this.deps.ocpGateway.getSocketEpoch?.() ?? null;
+  }
+
+  clearAttempt(): void {
+    this.activeSocketEpoch = null;
+    this.session = applyOcpActiveAttemptId(this.session, null);
+    this.notifyChangeListeners();
+  }
+
+  isActiveAttempt(attemptId: CorrelationId): boolean {
+    return this.session.activeAttemptId === attemptId;
+  }
+
+  markAuthorizationPending(attemptId: CorrelationId): void {
+    if (!this.isActiveAttempt(attemptId)) {
+      return;
+    }
+    this.session = reduceOcpSessionFromAuthorization(this.session, {
+      type: "auth_requested",
+    });
+    this.notifyChangeListeners();
+  }
+
+  /** Application-owned reconnect loop marks transport as reconnecting. */
+  markServerReconnecting(attemptId: CorrelationId): void {
+    if (!this.isActiveAttempt(attemptId)) {
+      return;
+    }
+    this.session = reduceOcpSessionFromServerState(this.session, "reconnecting");
+    this.notifyChangeListeners();
+  }
+
   setAuthFeedback(reason: OcpAuthFeedbackReason): void {
     this.authFeedbackNonce += 1;
     this.session = applyOcpAuthFeedback(
@@ -124,6 +189,11 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
 
   clearAuthFeedback(): void {
     this.session = clearOcpAuthFeedback(this.session);
+    this.notifyChangeListeners();
+  }
+
+  setAuthorizationProgress(progress: AuthorizationProgressProjection): void {
+    this.session = applyAuthorizationProgress(this.session, progress);
     this.notifyChangeListeners();
   }
 
@@ -149,6 +219,20 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
     this.notifyChangeListeners();
   }
 
+  /**
+   * Cold-start reset after intentional user logout (not server terminate).
+   * Clears session/operator/campaign/attempt so UI matches a freshly opened app.
+   * Keeps cached reasons for the next sign-in.
+   */
+  resetToIdle(): void {
+    this.activeSocketEpoch = null;
+    this.authFeedbackNonce = 0;
+    this.session = initialOcpSessionProjection();
+    this.operator = initialOperatorStatusProjection();
+    this.campaign = initialCampaignEventProjection();
+    this.notifyChangeListeners();
+  }
+
   dispose(): void {
     for (const unsubscribe of this.unsubscribers) {
       unsubscribe();
@@ -163,8 +247,8 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
     }
   }
 
-  private applyConnectionState(state: OcpConnectionState): void {
-    this.session = reduceOcpSessionFromConnectionState(this.session, state);
+  private applyServerState(state: OcpServerState): void {
+    this.session = reduceOcpSessionFromServerState(this.session, state);
     this.notifyChangeListeners();
   }
 

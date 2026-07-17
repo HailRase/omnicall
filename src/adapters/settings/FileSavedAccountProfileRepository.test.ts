@@ -1,7 +1,7 @@
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   deriveSettingsAccountKeyFromIdentity,
   SAVED_ACCOUNT_PROFILES_SCHEMA_VERSION,
@@ -70,11 +70,25 @@ describe("FileSavedAccountProfileRepository", () => {
     const json = await readFile(resolveSavedAccountProfilesFilePath(root), "utf8");
     expect(json).toContain("alex.supervisor");
     expect(json).not.toContain("password");
+    expect(json).toContain('"lifecycleStatus":"draft"');
+    expect(json).toContain(`"schemaVersion":${SAVED_ACCOUNT_PROFILES_SCHEMA_VERSION}`);
 
     const second = createRepositoryForRoot(root, filesystem);
     const profiles = await second.listProfiles();
     expect(profiles).toHaveLength(1);
     expect(profiles[0]?.username).toBe("alex.supervisor");
+    expect(profiles[0]?.lifecycleStatus).toBe("draft");
+  });
+
+  it("marks draft profile successful and persists marker", async () => {
+    const { repository: first, root, filesystem } = await createTestRepository();
+    const saved = await first.saveProfile(profileInput, { lifecycleStatus: "draft" });
+
+    await first.markProfileSuccessful(saved.id, "2026-07-16T12:00:00.000Z");
+    const second = createRepositoryForRoot(root, filesystem);
+    const reloaded = await second.getProfileById(saved.id);
+    expect(reloaded?.lifecycleStatus).toBe("successful");
+    expect(reloaded?.successfulUseAt).toBe("2026-07-16T12:00:00.000Z");
   });
 
   it("save is idempotent for duplicate identity", async () => {
@@ -108,6 +122,12 @@ describe("FileSavedAccountProfileRepository", () => {
 
     const reloaded = createRepositoryForRoot(root, filesystem);
     expect(await reloaded.listProfiles()).toEqual([]);
+    await expect(reloaded.saveProfile(profileInput)).rejects.toThrow(
+      "saved_account_profiles_document_requires_recovery",
+    );
+    await expect(
+      readFile(resolveSavedAccountProfilesFilePath(root), "utf8"),
+    ).resolves.toBe("{not-json");
   });
 
   it("recovers conservatively from unsupported schema version", async () => {
@@ -154,5 +174,23 @@ describe("FileSavedAccountProfileRepository", () => {
     const saved = await repository.saveProfile(profileInput);
     const expectedId = deriveSettingsAccountKeyFromIdentity(profileInput);
     expect(saved.id).toBe(expectedId);
+  });
+
+  it("rolls memory back when atomic file write fails", async () => {
+    const { repository, filesystem } = await createTestRepository();
+    const saved = await repository.saveProfile(profileInput, {
+      lifecycleStatus: "successful",
+    });
+    vi.spyOn(filesystem, "writeTextFileAtomic").mockRejectedValueOnce(
+      new Error("disk_full"),
+    );
+
+    await expect(
+      repository.saveProfile(profileInput, { ocpDomain: "ocp.example" }),
+    ).rejects.toThrow("disk_full");
+
+    const after = await repository.getProfileById(saved.id);
+    expect(after?.ocpDomain).toBeUndefined();
+    expect(after?.lifecycleStatus).toBe("successful");
   });
 });

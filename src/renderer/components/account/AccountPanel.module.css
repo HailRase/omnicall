@@ -34,9 +34,117 @@
   opacity: 0.72;
 }
 
-.actions {
+.mode-tabs {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2xs);
+  width: 100%;
+  margin-bottom: var(--space-sm);
+}
+
+.mode-tab-trigger {
+  flex: 1;
+  width: 100%;
+  border: none;
+  box-shadow: none;
+}
+
+.mode-tab-trigger[data-state="active"],
+.mode-tab-trigger[data-state="inactive"],
+.mode-tab-trigger:hover:not(:disabled) {
+  border: none;
+  box-shadow: none;
+}
+
+.status-block {
+  display: grid;
+  gap: var(--space-2xs);
+  margin-top: var(--space-2xs);
+  padding: var(--space-sm);
+  border-radius: var(--radius-control);
+  border: 1px solid color-mix(in srgb, var(--color-border-control) 40%, transparent);
+  background: color-mix(in srgb, var(--color-bg-surface-highlight) 70%, transparent);
+}
+
+.status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2xs) var(--space-sm);
+  margin: 0;
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
+  color: var(--color-text-primary);
+}
+
+.status-label {
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.recovery-actions {
+  display: grid;
+  gap: var(--space-2xs);
+  margin-top: var(--space-2xs);
+}
+
+.auth-progress {
+  margin: var(--space-xs) 0 0;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-control);
+  border: 1px solid color-mix(in srgb, var(--color-border-control) 40%, transparent);
+  background: color-mix(in srgb, var(--color-bg-surface-highlight) 70%, transparent);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
+}
+
+.startup-registration-failed {
+  display: grid;
+  gap: var(--space-xs);
+  margin-top: var(--space-xs);
+  padding: var(--space-sm);
+  border-radius: var(--radius-control);
+  border: 1px solid color-mix(in srgb, var(--color-status-failed) 24%, transparent);
+  background: color-mix(in srgb, var(--color-status-failed) 8%, transparent);
+  color: var(--color-text-danger);
+  font-size: var(--font-size-xs);
+  line-height: 1.4;
+}
+
+.startup-registration-failed p {
+  margin: 0;
+}
+
+.retry-action {
+  width: 100%;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-control);
+  border: 1px solid var(--color-border-control);
+  background: var(--color-bg-control);
+  color: var(--color-text-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.35;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease;
+}
+
+.retry-action:hover:not(:disabled) {
+  border-color: var(--color-accent-primary);
+  background: var(--color-bg-surface-highlight);
+}
+
+.retry-action:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--space-sm);
   margin-top: var(--space-2xs);
 }
@@ -63,11 +171,13 @@
   min-width: 0;
 }
 
-.primary-action,
-.logout-action {
+.primary-action {
   width: 100%;
   padding: var(--space-xs) var(--space-sm);
   border-radius: var(--radius-control);
+  border: 1px solid var(--color-border-control);
+  background: var(--color-accent-primary);
+  color: var(--color-text-on-accent, #fff);
   font-size: 0.875rem;
   font-weight: 400;
   line-height: 1.35;
@@ -76,39 +186,16 @@
   transition:
     background 140ms ease,
     border-color 140ms ease,
-    color 140ms ease,
-    filter 140ms ease;
-}
-
-.primary-action {
-  border: 1px solid var(--color-border-control);
-  background: var(--color-accent-primary);
-  color: #fff;
+    color 140ms ease;
 }
 
 .primary-action:hover:not(:disabled) {
-  filter: brightness(1.05);
+  background: var(--color-accent-primary-hover, var(--color-accent-primary));
+  border-color: var(--color-accent-primary-hover, var(--color-border-control));
 }
 
 .primary-action:disabled {
   opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.logout-action {
-  border: 1px solid var(--color-border-default);
-  background: var(--color-bg-control);
-  color: var(--color-text-secondary);
-}
-
-.logout-action:hover:not(:disabled) {
-  border-color: var(--color-border-control);
-  background: var(--color-bg-surface-highlight);
-  color: var(--color-text-primary);
-}
-
-.logout-action:disabled {
-  opacity: 0.5;
   cursor: not-allowed;
 }
 

@@ -2,11 +2,19 @@
 import "@testing-library/jest-dom/vitest";
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { ICON_TOOLTIP_DELAY_MS } from "../../icons/iconTooltipDelay.js";
+import { setupJsdomRadix } from "../../../test/setupJsdomRadix.js";
 import { SettingsSystemStatePanel } from "./SettingsSystemStatePanel.js";
-import { idleSystemStateShell } from "./settingsSystemStateTestDefaults.js";
+import {
+  idleOcpSystemStateShell,
+  idleSystemStateShell,
+} from "./settingsSystemStateTestDefaults.js";
+
+beforeEach(() => {
+  setupJsdomRadix();
+});
 
 afterEach(() => {
   cleanup();
@@ -16,6 +24,9 @@ afterEach(() => {
 
 const baseProps = {
   shell: idleSystemStateShell,
+  ocpShell: idleOcpSystemStateShell,
+  ocpRecoveryActionLoading: null,
+  onOcpRecoveryAction: vi.fn(),
   sipAutoReconnectEnabled: true,
   onSipAutoReconnectChange: vi.fn(),
   sipReconnectIntervalSec: 5,
@@ -37,12 +48,58 @@ const baseProps = {
 };
 
 describe("SettingsSystemStatePanel", () => {
-  it("renders current state with Russian labels", () => {
+  it("renders SIP/OCP tabs and SIP state with Russian labels", () => {
     render(<SettingsSystemStatePanel {...baseProps} />);
 
+    expect(screen.getByTestId("settings-system-state-tabs")).toBeInTheDocument();
+    expect(screen.getByTestId("settings-system-state-tab-sip")).toHaveTextContent("SIP сервер");
+    expect(screen.getByTestId("settings-system-state-tab-ocp")).toHaveTextContent("OCP-модуль");
     expect(screen.getByTestId("settings-sip-transport-state")).toHaveTextContent("Неактивно");
     expect(screen.getByTestId("settings-sip-registration-state")).toHaveTextContent("Неактивна");
     expect(screen.getByTestId("settings-sip-summary-label")).toHaveTextContent("Не подключено");
+  });
+
+  it("switches to OCP tab and shows dual status plus recovery action", async () => {
+    const user = userEvent.setup();
+    const onOcpRecoveryAction = vi.fn();
+    const ocpShell = {
+      ...idleOcpSystemStateShell,
+      serverState: "failed" as const,
+      serverStateLabelKey: "settings.systemState.ocp.server.failed" as const,
+      primaryRecoveryAction: "retry_server" as const,
+      allowedRecoveryActions: ["retry_server" as const],
+    };
+
+    render(
+      <SettingsSystemStatePanel
+        {...baseProps}
+        ocpShell={ocpShell}
+        onOcpRecoveryAction={onOcpRecoveryAction}
+      />,
+    );
+
+    await user.click(screen.getByTestId("settings-system-state-tab-ocp"));
+    expect(screen.getByTestId("settings-ocp-server-status")).toHaveTextContent("Ошибка");
+    expect(screen.getByTestId("settings-ocp-authorization-status")).toHaveTextContent(
+      "Неактивна",
+    );
+    await user.click(screen.getByTestId("settings-ocp-retry-server"));
+    expect(onOcpRecoveryAction).toHaveBeenCalledWith("retry_server");
+  });
+
+  it("disables OCP tab when module is off", () => {
+    render(
+      <SettingsSystemStatePanel
+        {...baseProps}
+        ocpShell={{
+          ...idleOcpSystemStateShell,
+          ocpModuleEnabled: false,
+          tabDisabledReasonKey: "settings.systemState.ocp.tab.disabled.moduleOff",
+        }}
+      />,
+    );
+
+    expect(screen.getByTestId("settings-system-state-tab-ocp")).toBeDisabled();
   });
 
   it("announces live state summary for screen readers", () => {

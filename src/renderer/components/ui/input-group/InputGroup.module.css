@@ -1,0 +1,221 @@
+.group {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-control);
+  background: var(--color-bg-surface);
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    background-color 120ms ease,
+    opacity 120ms ease;
+}
+
+/* Block addons need a second row; keep inline suffix/prefix on one line. */
+.group:has([data-align="block-start"]),
+.group:has([data-align="block-end"]) {
+  flex-wrap: wrap;
+}
+
+.group:focus-within {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 1px var(--color-border-focus);
+}
+
+.group[data-invalid="true"] {
+  border-color: var(--color-border-danger-accent);
+}
+
+.group[data-invalid="true"]:focus-within {
+  border-color: var(--color-border-danger-accent);
+  box-shadow: 0 0 0 1px var(--color-border-danger-accent);
+}
+
+.group[data-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.group[data-readonly="true"] {
+  background: var(--color-bg-surface-alt);
+}
+
+.size-sm {
+  min-height: 32px;
+}
+
+.size-md {
+  min-height: 36px;
+}
+
+.size-lg {
+  min-height: 40px;
+}
+
+.control {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: inherit;
+  line-height: 1.25;
+}
+
+.control::placeholder {
+  color: var(--color-text-muted);
+}
+
+.control:focus-visible {
+  outline: none;
+}
+
+.control:disabled {
+  cursor: not-allowed;
+}
+
+.control[data-readonly="true"] {
+  cursor: default;
+}
+
+.control-input.size-sm {
+  height: 32px;
+  padding: 0 var(--space-sm);
+  font-size: var(--font-size-xs);
+}
+
+.control-input.size-md {
+  height: 36px;
+  padding: 0 var(--space-md);
+}
+
+.control-input.size-lg {
+  height: 40px;
+  padding: 0 var(--space-lg);
+}
+
+.control-textarea.size-sm {
+  min-height: 64px;
+  padding: var(--space-xs) var(--space-sm);
+  font-size: var(--font-size-xs);
+  line-height: 1.5;
+}
+
+.control-textarea.size-md {
+  min-height: 80px;
+  padding: var(--space-sm) var(--space-md);
+  line-height: 1.5;
+}
+
+.control-textarea.size-lg {
+  min-height: 96px;
+  padding: var(--space-sm) var(--space-lg);
+  line-height: 1.5;
+}
+
+.control-textarea[data-resize="none"] {
+  resize: none;
+}
+
+.control-textarea[data-resize="vertical"] {
+  resize: vertical;
+}
+
+.group[data-disabled="true"] .control {
+  cursor: not-allowed;
+}
+
+.group[data-readonly="true"] .control {
+  cursor: default;
+}
+
+.addon {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  cursor: text;
+  user-select: none;
+}
+
+.group[data-disabled="true"] .addon {
+  cursor: not-allowed;
+}
+
+.addon-align-inline-start {
+  order: -1;
+  flex: 0 0 auto;
+  padding-top: var(--space-2xs);
+  padding-bottom: var(--space-2xs);
+  padding-left: var(--space-sm);
+}
+
+.addon-align-inline-end {
+  order: 1;
+  flex: 0 0 auto;
+  padding-top: var(--space-2xs);
+  padding-right: var(--space-2xs);
+  padding-bottom: var(--space-2xs);
+}
+
+.addon-align-block-start {
+  flex-basis: 100%;
+  order: -2;
+  width: 100%;
+  justify-content: flex-start;
+  padding: var(--space-sm) var(--space-sm) 0;
+}
+
+.addon-align-block-end {
+  flex-basis: 100%;
+  order: 2;
+  width: 100%;
+  justify-content: flex-start;
+  padding: 0 var(--space-sm) var(--space-sm);
+}
+
+.text {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.group-button {
+  box-shadow: none;
+}
+
+.group-button-size-xs {
+  height: 24px;
+  padding: 0 var(--space-xs);
+  font-size: var(--font-size-xs);
+}
+
+.group-button-size-sm {
+  height: 32px;
+  padding: 0 var(--space-sm);
+  font-size: var(--font-size-xs);
+}
+
+.group-button-size-icon-xs {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+}
+
+.group-button-size-icon-sm {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+}

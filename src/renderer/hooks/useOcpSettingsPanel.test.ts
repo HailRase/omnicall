@@ -1,22 +1,36 @@
 import { describe, expect, it } from "vitest";
-import { resolveOcpStatusLabelKey } from "./useOcpSettingsPanel.js";
+import {
+  resolveOcpAuthorizationStatusLabelKey,
+  resolveOcpServerStatusLabelKey,
+} from "./useOcpSettingsPanel.js";
 
-describe("resolveOcpStatusLabelKey", () => {
-  it("returns disabled when module is off", () => {
-    expect(resolveOcpStatusLabelKey(false, "authenticated")).toBe(
-      "settings.integrations.ocp.status.disabled",
+describe("resolveOcpServerStatusLabelKey", () => {
+  it("maps server states", () => {
+    expect(resolveOcpServerStatusLabelKey("connecting")).toBe(
+      "account.server.status.connecting",
+    );
+    expect(resolveOcpServerStatusLabelKey("failed")).toBe(
+      "account.server.status.failed",
+    );
+    expect(resolveOcpServerStatusLabelKey("disconnected")).toBe(
+      "account.server.status.disconnected",
     );
   });
+});
 
-  it("maps connection states", () => {
-    expect(resolveOcpStatusLabelKey(true, "connecting")).toBe(
-      "settings.integrations.ocp.status.connecting",
+describe("resolveOcpAuthorizationStatusLabelKey", () => {
+  it("maps authorization phases", () => {
+    expect(resolveOcpAuthorizationStatusLabelKey({ phase: "pending" })).toBe(
+      "account.authorization.status.pending",
     );
-    expect(resolveOcpStatusLabelKey(true, "failed")).toBe(
-      "settings.integrations.ocp.status.failed",
-    );
-    expect(resolveOcpStatusLabelKey(true, "disconnected")).toBe(
-      "settings.integrations.ocp.status.disconnected",
+    expect(
+      resolveOcpAuthorizationStatusLabelKey({
+        phase: "rejected",
+        reason: "INVALID_TOKEN",
+      }),
+    ).toBe("account.authorization.status.rejected");
+    expect(resolveOcpAuthorizationStatusLabelKey({ phase: "idle" })).toBe(
+      "account.authorization.status.idle",
     );
   });
 });

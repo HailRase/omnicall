@@ -23,6 +23,11 @@ export type AuthorizeSipAccountInput = Readonly<{
   account: SipAccountInput;
   correlationId?: CorrelationId;
   source?: "manual" | "ocp";
+  /**
+   * When false, skip activeProfileKey / settings promotion (ADR-AF-001).
+   * Caller must promote after SIP registration succeeds.
+   */
+  promoteActiveSession?: boolean;
 }>;
 
 export class AuthorizeSipAccountUseCase {
@@ -37,11 +42,12 @@ export class AuthorizeSipAccountUseCase {
   ): Promise<Result<SipAccount, ReturnType<typeof createPlatformError>>> {
     const correlationId = input.correlationId ?? createCorrelationId();
     const source = input.source ?? "manual";
+    const promoteActiveSession = input.promoteActiveSession !== false;
 
     if (source === "manual") {
       this.eventPublisher.publish(
         createManualSipAuthorizationRequestedEvent(correlationId, {
-          account: input.account,
+          account: toSipCredentialIdentity(input.account),
         }),
       );
     }
@@ -79,6 +85,38 @@ export class AuthorizeSipAccountUseCase {
     );
     const profileKey = resolveSettingsAccountKeyFromSipAccount(account);
 
+    if (promoteActiveSession) {
+      const promoteResult = await this.persistActiveSession(account, profileKey, correlationId);
+      if (!promoteResult.ok) {
+        return promoteResult;
+      }
+    }
+
+    this.eventPublisher.publish(
+      createSipCredentialsReceivedEvent(correlationId, {
+        credentials: toSipCredentialIdentity(input.account),
+        source,
+      }),
+    );
+
+    this.logger.info("sip_account_authorized", {
+      correlationId,
+      featureId: "F-001",
+      boundedContext: "Telephony",
+      operation: "authorize_sip_account",
+      result: "succeeded",
+      profileKey,
+      promoteActiveSession,
+    });
+
+    return ok(account);
+  }
+
+  private async persistActiveSession(
+    account: SipAccount,
+    profileKey: ReturnType<typeof resolveSettingsAccountKeyFromSipAccount>,
+    correlationId: CorrelationId,
+  ): Promise<Result<SipAccount, ReturnType<typeof createPlatformError>>> {
     try {
       await this.settingsRepository.saveSipAccount(account);
       await this.settingsRepository.setActiveProfileKey(profileKey);
@@ -92,6 +130,7 @@ export class AuthorizeSipAccountUseCase {
         },
         logger: this.logger,
       });
+      return ok(account);
     } catch (error: unknown) {
       const normalized = normalizeUnknownError(error);
       this.logger.warn("sip_authorization_settings_persistence_failed", {
@@ -109,34 +148,17 @@ export class AuthorizeSipAccountUseCase {
         ),
       );
     }
-
-    // OCP path: never put SIP password into Domain Events (F-028 AC).
-    const eventCredentials =
-      source === "ocp"
-        ? {
-            username: input.account.username,
-            password: "",
-            domain: input.account.domain,
-            server: input.account.server,
-          }
-        : input.account;
-
-    this.eventPublisher.publish(
-      createSipCredentialsReceivedEvent(correlationId, {
-        credentials: eventCredentials,
-        source,
-      }),
-    );
-
-    this.logger.info("sip_account_authorized", {
-      correlationId,
-      featureId: "F-001",
-      boundedContext: "Telephony",
-      operation: "authorize_sip_account",
-      result: "succeeded",
-      profileKey,
-    });
-
-    return ok(account);
   }
+}
+
+function toSipCredentialIdentity(account: SipAccountInput): Readonly<{
+  username: string;
+  domain: string;
+  server: string;
+}> {
+  return {
+    username: account.username,
+    domain: account.domain,
+    server: account.server,
+  };
 }

@@ -56,7 +56,7 @@ describe("useActionNotifications", () => {
     const input = createBaseInput({
       accountFeedback: {
         error: null,
-        successKey: "account.success.authorizationSucceeded",
+        successKey: "account.success.sipRegistrationSucceeded",
         warningKey: null,
       },
     });
@@ -94,6 +94,27 @@ describe("useActionNotifications", () => {
       accountFeedback: {
         ...input.accountFeedback,
       },
+    });
+
+    expect(input.notifications.notify).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not re-emit account recovery guidance when callback identity changes", () => {
+    const input = createBaseInput({
+      accountFeedback: {
+        successKey: null,
+        warningKey: null,
+        error: { key: "account.error.authorizationFailed" },
+      },
+      onOpenSystemState: vi.fn(),
+    });
+    const { rerender } = renderHook((props: HookInput) => useActionNotifications(props), {
+      initialProps: input,
+    });
+
+    rerender({
+      ...input,
+      onOpenSystemState: vi.fn(),
     });
 
     expect(input.notifications.notify).toHaveBeenCalledTimes(2);
@@ -168,7 +189,7 @@ describe("useActionNotifications", () => {
       dtmfError: "dtmf failed",
       logoutErrorMessage: "logout failed",
       settingsUpdateError: "settings failed",
-      sipActionSuccessKey: "account.success.authorizationSucceeded",
+        sipActionSuccessKey: "account.success.sipRegistrationSucceeded",
       sipActionErrorText: "sip action failed",
     });
     const { rerender } = renderHook((props: HookInput) => useActionNotifications(props), {
@@ -196,6 +217,8 @@ describe("useActionNotifications", () => {
     expect(input.notifications.notify).toHaveBeenCalledWith({
       level: "warning",
       messageKey: "notification.headset.fault.usb_disconnected",
+      module: "headset",
+      functionId: "headset.fault",
     });
   });
 });

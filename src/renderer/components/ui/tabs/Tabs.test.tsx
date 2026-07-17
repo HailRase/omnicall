@@ -1,11 +1,13 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { createRef, useState, type JSX } from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { setupJsdomRadix } from "../../../test/setupJsdomRadix.js";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./Tabs.js";
 
+beforeEach(setupJsdomRadix);
 afterEach(() => {
   cleanup();
 });
@@ -198,6 +200,60 @@ describe("Tabs", () => {
     );
 
     expect(screen.getByRole("tab", { name: "Account" })).toHaveClass("custom-tab-trigger");
+  });
+
+  it("renders sliding indicator and moves it when the active tab changes", async () => {
+    const user = userEvent.setup();
+    // Prototype method extract for restore after mock; not an unbound call site.
+    // eslint-disable-next-line @typescript-eslint/unbound-method -- intentional prototype patch
+    const originalGetBoundingClientRect = Element.prototype.getBoundingClientRect;
+    Element.prototype.getBoundingClientRect = function getBoundingClientRectMock(): DOMRect {
+      const element = this as HTMLElement;
+      if (element.getAttribute("role") === "tablist") {
+        return new DOMRect(0, 0, 300, 40);
+      }
+      if (element.getAttribute("data-state") === "active") {
+        const isAudio = element.textContent === "Audio";
+        return new DOMRect(isAudio ? 120 : 8, 4, 100, 32);
+      }
+      if (element.getAttribute("role") === "tab") {
+        return new DOMRect(8, 4, 100, 32);
+      }
+      return new DOMRect(0, 0, 0, 0);
+    };
+
+    try {
+      render(
+        <Tabs defaultValue="account">
+          <TabsList aria-label="Sliding sections" indicator="slide">
+            <TabsTrigger value="account">Account</TabsTrigger>
+            <TabsTrigger value="audio">Audio</TabsTrigger>
+          </TabsList>
+          <TabsContent value="account">Account panel</TabsContent>
+          <TabsContent value="audio">Audio panel</TabsContent>
+        </Tabs>,
+      );
+
+      const indicator = screen.getByTestId("ui-tabs-indicator");
+      await waitFor(() => {
+        expect(indicator).toHaveAttribute("data-ready", "true");
+      });
+      expect(indicator).toHaveStyle({
+        transform: "translate(8px, 4px)",
+        width: "100px",
+        height: "32px",
+      });
+
+      await user.click(screen.getByRole("tab", { name: "Audio" }));
+
+      await waitFor(() => {
+        expect(indicator).toHaveStyle({
+          transform: "translate(120px, 4px)",
+        });
+      });
+    } finally {
+      Element.prototype.getBoundingClientRect = originalGetBoundingClientRect;
+    }
   });
 
   it("protects controlled disabled attribute from native prop override", async () => {

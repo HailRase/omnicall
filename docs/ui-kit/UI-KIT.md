@@ -438,6 +438,127 @@ Checklist:
 - [x] Native prop spread cannot override controlled UI state
 - [x] Documentation status updated
 
+### InputGroup
+
+Status: [ ] planned [ ] in progress [x] done
+Radix: no
+Priority: P1
+
+Purpose:
+
+- Composable bordered input group inspired by shadcn/ui `InputGroup`.
+- Groups addons, compact buttons, static text, input, and textarea in one focus ring.
+- Complements `Input` prefix/suffix props with slot-based composition.
+
+API:
+
+- composable `InputGroup`, `InputGroupAddon`, `InputGroupInput`, `InputGroupTextarea`, `InputGroupButton`, `InputGroupText`
+- `InputGroup.size`: `sm | md | lg`
+- `InputGroupAddon.align`: `inline-start | inline-end | block-start | block-end`
+- `InputGroupButton.size`: `xs | sm | icon-xs | icon-sm`
+- `InputGroupButton.variant`: `Button` variants
+- controls expose `invalid`, `disabled`, `readOnly`, and native input/textarea props
+
+Stories:
+
+- [x] Default
+- [x] Variants
+- [x] Sizes
+- [x] Disabled
+- [x] Invalid
+- [x] Textarea With Action
+- [x] Light Theme
+- [x] Dark Theme
+
+Tests:
+
+- [x] Renders grouped input with addon text.
+- [x] Forwards value changes from `InputGroupInput`.
+- [x] Applies `aria-invalid` when invalid.
+- [x] Blocks change handler when disabled.
+- [x] Forwards refs to root and control.
+- [x] Preserves caller `className`.
+- [x] Reflects disabled/invalid on group container.
+- [x] Focuses control when addon is clicked.
+- [x] Skips addon focus redirect for nested buttons.
+- [x] Renders `InputGroupTextarea`.
+- [x] Protects controlled invalid/disabled attributes from native prop override.
+
+Checklist:
+
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Typed variants implemented
+- [x] Applicable Universal Quality Gates satisfied
+- [x] Storybook added under `UI Kit/Input Group`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified
+- [x] Documentation status updated
+
+### ButtonGroup
+
+Status: [ ] planned [ ] in progress [x] done
+Radix: partial (`@radix-ui/react-slot` for text, `@radix-ui/react-separator` for separator)
+Priority: P1
+
+Purpose:
+
+- Composable action button group inspired by shadcn/ui `ButtonGroup`.
+- Groups related action buttons (and optional input/text slots) with shared edges.
+- Not a selection control — use a future `ToggleGroup` for pressed-state toggles.
+
+API:
+
+- composable `ButtonGroup`, `ButtonGroupText`, `ButtonGroupSeparator`
+- `ButtonGroup.orientation`: `horizontal | vertical` (default `horizontal`)
+- `ButtonGroup` root: `role="group"`, `data-slot="button-group"`, `data-orientation`
+- `ButtonGroupText.asChild?: boolean` (Radix `Slot`)
+- `ButtonGroupSeparator.orientation`: `horizontal | vertical` (default `vertical`)
+- `ButtonGroupSeparator.decorative?: boolean` (default `true`)
+- children: `Button`, `Input`, nested `ButtonGroup`, `DropdownMenu` trigger, etc.
+
+Stories:
+
+- [x] Default
+- [x] Orientation
+- [x] Sizes
+- [x] Separator / Split
+- [x] With Text
+- [x] Nested
+- [x] With Input
+- [x] With Dropdown
+- [x] Disabled
+- [x] Light Theme
+- [x] Dark Theme
+
+Tests:
+
+- [x] Renders `role="group"` with children.
+- [x] Applies `data-orientation`.
+- [x] Forwards root ref and preserves `className`.
+- [x] Protects controlled `role` / `data-slot` / `data-orientation` from native override.
+- [x] Renders decorative separator by default.
+- [x] Applies separator orientation.
+- [x] Renders `ButtonGroupText`.
+- [x] Supports `ButtonGroupText asChild`.
+- [x] Nested groups keep group roles.
+- [x] Child `Button` click still works inside the group.
+
+Checklist:
+
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Typed variants implemented
+- [x] Applicable Universal Quality Gates satisfied
+- [x] Storybook added under `UI Kit/Button Group`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified
+- [x] Documentation status updated
+
 ### Textarea
 
 Status: [ ] planned [ ] in progress [x] done
@@ -1512,6 +1633,62 @@ Checklist:
 - [ ] Accessibility verified
 - [ ] Documentation status updated
 
+### Sidebar
+
+Status: [ ] planned [ ] in progress [x] done
+Radix: partial (`Dialog` mobile sheet, `@radix-ui/react-slot` composition)
+Priority: P1
+
+Purpose:
+
+- shadcn/ui-like composable application sidebar for navigation shells.
+- Supports `offcanvas`, `icon`, and `none` collapsible modes plus `sidebar`, `floating`, and `inset` variants.
+- Mobile viewport uses Radix Dialog sheet; desktop uses fixed peer gap + container layout.
+- Context provider exposes `useSidebar`, keyboard shortcut (`Ctrl/Cmd+B`), and mobile sheet state.
+
+API:
+
+- composable `SidebarProvider`, `Sidebar`, `SidebarInset`, `SidebarTrigger`, `SidebarRail`, `SidebarHeader`, `SidebarFooter`, `SidebarContent`, `SidebarSeparator`, `SidebarInput`
+- composable `SidebarGroup`, `SidebarGroupLabel`, `SidebarGroupAction`, `SidebarGroupContent`
+- composable `SidebarMenu`, `SidebarMenuItem`, `SidebarMenuButton`, `SidebarMenuAction`, `SidebarMenuBadge`, `SidebarMenuSkeleton`, `SidebarMenuSub`, `SidebarMenuSubItem`, `SidebarMenuSubButton`
+- `Sidebar`: `side`, `variant`, `collapsible`, required `mobileTitle`, optional `mobileDescription`
+- `SidebarMenuButton`: `asChild`, `isActive`, `variant`, `size`, `tooltip`
+- `SidebarProvider`: `defaultOpen`, `open`, `onOpenChange`, `enableKeyboardShortcut`, `forceMobile`, `mobileBreakpoint`
+
+Stories:
+
+- [x] Default
+- [x] Variants
+- [x] Collapsible Modes
+- [x] Mobile Sheet
+- [x] Controlled
+- [x] Light Theme
+- [x] Dark Theme
+
+Tests:
+
+- [x] `useSidebar` throws outside provider.
+- [x] `SidebarTrigger` toggles desktop open state.
+- [x] Controlled `open`/`onOpenChange` works.
+- [x] `Ctrl+B` keyboard shortcut toggles sidebar.
+- [x] Mobile sheet opens with `forceMobile`.
+- [x] Active menu button exposes `data-active`.
+- [x] Preserves caller `className` on inset.
+- [x] External controlled close updates provider state.
+
+Checklist:
+
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Typed variants implemented
+- [x] Applicable Universal Quality Gates satisfied
+- [x] Storybook added under `UI Kit/Sidebar`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified
+- [x] Documentation status updated
+
 ### Tabs
 
 Status: [ ] planned [ ] in progress [x] done
@@ -1523,6 +1700,7 @@ Purpose:
 - Section switching component.
 - Supports controlled state and keyboard navigation.
 - Uses Radix Tabs.
+- Optional sliding selected thumb (`TabsList indicator="slide"`) for clear selected state and smooth transfer between triggers.
 
 API:
 
@@ -1530,6 +1708,7 @@ API:
 - `defaultValue?: string`
 - `onValueChange`
 - `orientation?: "horizontal" | "vertical"`
+- `TabsList.indicator?: "none" | "slide"` (default `none`)
 - composable list/trigger/content components
 
 Stories:
@@ -1538,6 +1717,7 @@ Stories:
 - [x] Controlled
 - [x] Vertical
 - [x] Disabled Tab
+- [x] Sliding Indicator
 - [x] Light Theme
 - [x] Dark Theme
 
@@ -1546,6 +1726,7 @@ Tests:
 - [x] Switches tab on click.
 - [x] Supports keyboard navigation.
 - [x] Emits selected value.
+- [x] Sliding indicator measures active trigger and updates on change.
 
 Checklist:
 
@@ -1559,6 +1740,67 @@ Checklist:
 - [x] Light/dark verified
 - [x] Accessibility verified
 - [x] Documentation status updated
+
+### Table
+
+Status: [ ] planned [ ] in progress [x] done
+Radix: no
+Priority: P1
+
+Purpose:
+
+- shadcn-like semantic data table composition for dense lists and summaries.
+- Native HTML table elements only — no Radix Table primitive exists.
+- Supports caption, header/body/footer sections, hover, and selected row surfaces.
+- All visible copy comes from callers or story fixtures.
+
+API:
+
+- composable: `Table`, `TableHeader`, `TableBody`, `TableFooter`, `TableRow`, `TableHead`, `TableCell`, `TableCaption`
+- `Table` ref targets the native `<table>`; `className` applies to the table root
+- overflow wrapper is internal (`data-slot="table-container"`)
+- `TableHead` / `TableCell` `align`: `left | center | right`
+- selected row via caller `data-state="selected"` on `TableRow`
+
+Stories:
+
+- [x] Default
+- [x] With Selected Row
+- [x] Without Footer
+- [x] Alignment
+- [x] Dense Composition
+- [x] Light Theme
+- [x] Dark Theme
+
+Tests:
+
+- [x] Renders semantic table structure and caption.
+- [x] Forwards ref to the native table element.
+- [x] Preserves className on the table root and wraps with overflow container.
+- [x] Applies typed align classes and data-align.
+- [x] Keeps selected row data-state for surface styling.
+- [x] Renders slot data attributes for composable sections.
+- [x] Supports column header association for accessible cells.
+- [x] Does not hardcode product copy inside the primitive.
+
+Checklist:
+
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Typed alignment implemented
+- [x] Applicable Universal Quality Gates satisfied (Base + Feedback/Display)
+- [x] Storybook added under `UI Kit/Table`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified
+- [x] Documentation status updated
+
+Inherited gates:
+
+- Base: rest-before-controlled, className/ref on table root, semantic tokens, no filter/brightness, light/dark stories
+- Feedback/Display: semantic table roles, selected/hover tone tokens, reduced-motion row transition, slot rendering tests
+- Native Control / Form / Radix: not applicable (display composition; no Radix Table)
 
 ### Avatar
 

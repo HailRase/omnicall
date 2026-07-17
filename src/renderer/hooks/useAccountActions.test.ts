@@ -1,14 +1,17 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
-import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
   createSettingsAccountKey,
   type SavedAccountProfile,
 } from "@application/index.js";
+import type { AccountSignInViewModel } from "@application/projections/settings/accountSignInViewModel.js";
+import { initialAuthorizationProgressProjection } from "@application/projections/settings/authorizationProgressProjection.js";
 import { createPlatformError } from "@shared/errors/index.js";
 import { err, ok } from "@shared/result/index.js";
-import { useAccountActions } from "./useAccountActions.js";
+import { initialAccountBootstrapProjection } from "@application/projections/settings/accountBootstrapProjection.js";
+import { useAccountActions, type AccountActionsFacadeBinding } from "./useAccountActions.js";
+import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 
 const savedProfileFixture: SavedAccountProfile = {
   id: createSettingsAccountKey("1001@pbx.example.com"),
@@ -16,55 +19,90 @@ const savedProfileFixture: SavedAccountProfile = {
   domain: "pbx.example.com",
   server: "wss://sip.example.com",
   displayName: "1001",
+  lifecycleStatus: "successful",
 };
 
+function createSignInViewModel(
+  overrides: Partial<AccountSignInViewModel> = {},
+): AccountSignInViewModel {
+  return {
+    isSipRegistered: false,
+    hasActiveAccountSession: false,
+    loginDisabledReason: null,
+    sipProfileOptions: [{ id: savedProfileFixture.id, label: "1001" }],
+    ocpProfileOptions: [],
+    selectedProfile: null,
+    serverState: "disconnected",
+    authorizationState: { phase: "idle" },
+    authorizationProgress: initialAuthorizationProgressProjection(),
+    primaryRecoveryAction: null,
+    allowedRecoveryActions: [],
+    ...overrides,
+  };
+}
+
 function createFacadeMock(
-  options: Readonly<{ hasRememberedSipPassword?: boolean }> = {},
+  options: Readonly<{
+    hasRememberedSipPassword?: boolean;
+    sipPassword?: string | null;
+    ocpApiKey?: string | null;
+  }> = {},
 ): {
-  facade: AccountBootstrapFacade;
-  authorizeManualAccount: ReturnType<typeof vi.fn>;
-  authorizeSavedAccountProfile: ReturnType<typeof vi.fn>;
+  facade: AccountActionsFacadeBinding;
+  signInAccount: ReturnType<typeof vi.fn>;
   listSavedAccountProfiles: ReturnType<typeof vi.fn>;
   hasRememberedSipPassword: ReturnType<typeof vi.fn>;
   forgetRememberedSipPassword: ReturnType<typeof vi.fn>;
   getActiveSipAccount: ReturnType<typeof vi.fn>;
+  getAccountSignInViewModel: ReturnType<typeof vi.fn>;
+  dispatchAccountRecoveryAction: ReturnType<typeof vi.fn>;
 } {
-  const authorizeSavedAccountProfile = vi.fn().mockResolvedValue(ok(undefined));
-  const authorizeManualAccount = vi.fn().mockResolvedValue(ok(undefined));
+  const signInAccount = vi.fn().mockResolvedValue(ok(undefined));
   const listSavedAccountProfiles = vi.fn().mockResolvedValue(ok([savedProfileFixture]));
   const hasRememberedSipPassword = vi
     .fn()
     .mockResolvedValue(options.hasRememberedSipPassword ?? false);
   const forgetRememberedSipPassword = vi.fn().mockResolvedValue(ok(undefined));
+  const loadSavedAccountProfileSecrets = vi.fn().mockResolvedValue(
+    ok({
+      sipPassword: options.sipPassword ?? null,
+      ocpApiKey: options.ocpApiKey ?? null,
+    }),
+  );
   const getActiveSipAccount = vi.fn().mockResolvedValue(null);
-  const getOcpSignInAvailability = vi.fn().mockResolvedValue(ok({ available: false }));
+  const getAccountSignInViewModel = vi.fn().mockResolvedValue(ok(createSignInViewModel()));
+  const dispatchAccountRecoveryAction = vi.fn().mockResolvedValue(ok(undefined));
 
   const facade = {
     listSavedAccountProfiles,
-    authorizeManualAccount,
-    authorizeSavedAccountProfile,
+    signInAccount,
+    getAccountSignInViewModel,
+    dispatchAccountRecoveryAction,
     deleteSavedAccountProfile: vi.fn().mockResolvedValue(ok(undefined)),
     hasRememberedSipPassword,
+    loadSavedAccountProfileSecrets,
     forgetRememberedSipPassword,
     getActiveSipAccount,
-    getOcpSignInAvailability,
-    signInViaOcp: vi.fn().mockResolvedValue(ok(undefined)),
-  } as unknown as AccountBootstrapFacade;
+  } satisfies AccountActionsFacadeBinding;
 
   return {
     facade,
-    authorizeManualAccount,
-    authorizeSavedAccountProfile,
+    signInAccount,
     listSavedAccountProfiles,
     hasRememberedSipPassword,
     forgetRememberedSipPassword,
     getActiveSipAccount,
+    getAccountSignInViewModel,
+    dispatchAccountRecoveryAction,
   };
 }
 
 describe("useAccountActions", () => {
   afterEach(() => {
     cleanup();
+    useAccountBootstrapStore.setState({
+      projection: initialAccountBootstrapProjection(),
+    });
   });
 
   beforeEach(() => {
@@ -72,6 +110,12 @@ describe("useAccountActions", () => {
     vi.stubEnv("VITE_SIP_DOMAIN", "");
     vi.stubEnv("VITE_SIP_SERVER", "");
     vi.stubEnv("VITE_SIP_PASSWORD", "");
+    useAccountBootstrapStore.setState({
+      projection: {
+        ...initialAccountBootstrapProjection(),
+        hasActiveAccountSession: true,
+      },
+    });
   });
 
   it("loads saved profile options on mount", async () => {
@@ -84,12 +128,11 @@ describe("useAccountActions", () => {
     expect(result.current.savedProfileOptions[0]?.label).toBe("1001");
   });
 
-  it("hides password prompt when saved profile has remembered password", async () => {
-    const { facade, hasRememberedSipPassword } = createFacadeMock({
+  it("keeps the password input visible for a saved profile", async () => {
+    const { facade } = createFacadeMock({
       hasRememberedSipPassword: true,
     });
     const profileId = savedProfileFixture.id;
-
     const { result } = renderHook(() => useAccountActions({ facade }));
 
     await waitFor(() => {
@@ -100,25 +143,14 @@ describe("useAccountActions", () => {
       result.current.selectProfile(profileId);
     });
 
-    await waitFor(() => {
-      expect(hasRememberedSipPassword).toHaveBeenCalledWith(profileId);
-    });
-
-    await waitFor(() => {
-      expect(result.current.passwordFieldVisible).toBe(false);
-    });
-
-    expect(result.current.rememberPasswordVisible).toBe(false);
-    expect(result.current.forgetRememberedPasswordVisible).toBe(true);
-    expect(result.current.passwordHintKey).toBeNull();
+    expect(result.current.passwordFieldVisible).toBe(true);
   });
 
-  it("authorizes saved profile with remembered password via empty password submit", async () => {
-    const { facade, authorizeSavedAccountProfile } = createFacadeMock({
+  it("signs in saved profile through signInAccount", async () => {
+    const { facade, signInAccount } = createFacadeMock({
       hasRememberedSipPassword: true,
     });
     const profileId = savedProfileFixture.id;
-
     const { result } = renderHook(() => useAccountActions({ facade }));
 
     await waitFor(() => {
@@ -129,235 +161,64 @@ describe("useAccountActions", () => {
       result.current.selectProfile(profileId);
     });
 
-    await waitFor(() => {
-      expect(result.current.passwordFieldVisible).toBe(false);
-    });
+    expect(result.current.passwordFieldVisible).toBe(true);
 
     act(() => {
       result.current.handleSubmit();
     });
 
     await waitFor(() => {
-      expect(authorizeSavedAccountProfile).toHaveBeenCalledWith(profileId, "", {
-        rememberPassword: false,
-      });
+      expect(signInAccount).toHaveBeenCalledWith(
+        expect.objectContaining({
+          mode: "sip_only",
+          profile: { kind: "saved", profileId },
+        }),
+      );
     });
   });
 
-  it("keeps compact remembered-password UI after 403 forbidden registration failure", async () => {
-    const { facade, authorizeSavedAccountProfile } = createFacadeMock({
-      hasRememberedSipPassword: true,
+  it("loads masked-form secrets and signs in without an overwrite prompt", async () => {
+    const { facade, signInAccount } = createFacadeMock({
+      sipPassword: "saved-sip-secret",
+      ocpApiKey: "saved-ocp-secret",
     });
-    authorizeSavedAccountProfile.mockResolvedValue(
-      err(
-        createPlatformError(
-          "operation_failed",
-          "SIP registration failed: 403 Rejected (forbidden)",
-        ),
-      ),
-    );
-    const profileId = savedProfileFixture.id;
-
     const { result } = renderHook(() => useAccountActions({ facade }));
 
     await waitFor(() => {
       expect(result.current.savedProfileOptions).toHaveLength(1);
     });
-
-    act(() => {
-      result.current.selectProfile(profileId);
-    });
-
-    await waitFor(() => {
-      expect(result.current.passwordFieldVisible).toBe(false);
-    });
-
-    act(() => {
-      result.current.handleSubmit();
-    });
-
-    await waitFor(() => {
-      expect(result.current.error?.key).toBe("account.error.serverRegistration");
-    });
-
-    expect(result.current.passwordFieldVisible).toBe(false);
-    expect(result.current.rememberPasswordVisible).toBe(false);
-    expect(result.current.forgetRememberedPasswordVisible).toBe(true);
-    expect(result.current.selectedProfileId).toBe(profileId);
-  });
-
-  it("reveals password entry after remembered-password authentication failure", async () => {
-    const { facade, authorizeSavedAccountProfile } = createFacadeMock({
-      hasRememberedSipPassword: true,
-    });
-    authorizeSavedAccountProfile.mockResolvedValue(
-      err(
-        createPlatformError(
-          "operation_failed",
-          "SIP registration failed for user: Authentication Error",
-        ),
-      ),
-    );
-    const profileId = savedProfileFixture.id;
-
-    const { result } = renderHook(() => useAccountActions({ facade }));
-
-    await waitFor(() => {
-      expect(result.current.savedProfileOptions).toHaveLength(1);
-    });
-
-    act(() => {
-      result.current.selectProfile(profileId);
-    });
-
-    await waitFor(() => {
-      expect(result.current.passwordFieldVisible).toBe(false);
-    });
-
-    act(() => {
-      result.current.handleSubmit();
-    });
-
-    await waitFor(() => {
-      expect(result.current.passwordFieldVisible).toBe(true);
-    });
-
-    expect(result.current.rememberPasswordVisible).toBe(true);
-    expect(result.current.forgetRememberedPasswordVisible).toBe(false);
-    expect(result.current.selectedProfileId).toBe(profileId);
-    expect(result.current.error?.key).toBe("account.error.invalidCredentials");
-  });
-
-  it("reveals password entry after remembered-password local secret load failure", async () => {
-    const { facade, authorizeSavedAccountProfile } = createFacadeMock({
-      hasRememberedSipPassword: true,
-    });
-    authorizeSavedAccountProfile.mockResolvedValue(
-      err(createPlatformError("unknown", "secret_load_failed")),
-    );
-    const profileId = savedProfileFixture.id;
-
-    const { result } = renderHook(() => useAccountActions({ facade }));
-
-    await waitFor(() => {
-      expect(result.current.savedProfileOptions).toHaveLength(1);
-    });
-
-    act(() => {
-      result.current.selectProfile(profileId);
-    });
-
-    await waitFor(() => {
-      expect(result.current.passwordFieldVisible).toBe(false);
-    });
-
-    act(() => {
-      result.current.handleSubmit();
-    });
-
-    await waitFor(() => {
-      expect(result.current.passwordFieldVisible).toBe(true);
-    });
-
-    expect(result.current.rememberPasswordVisible).toBe(true);
-    expect(result.current.forgetRememberedPasswordVisible).toBe(false);
-    expect(result.current.selectedProfileId).toBe(profileId);
-  });
-
-  it("resets forced password entry when switching to another saved profile", async () => {
-    const otherProfile: SavedAccountProfile = {
-      id: createSettingsAccountKey("1002@pbx.example.com"),
-      username: "1002",
-      domain: "pbx.example.com",
-      server: "wss://sip.example.com",
-      displayName: "1002",
-    };
-    const { facade, authorizeSavedAccountProfile, listSavedAccountProfiles } = createFacadeMock({
-      hasRememberedSipPassword: true,
-    });
-    listSavedAccountProfiles.mockResolvedValue(ok([savedProfileFixture, otherProfile]));
-    authorizeSavedAccountProfile.mockResolvedValue(
-      err(
-        createPlatformError(
-          "operation_failed",
-          "SIP registration failed for user: Authentication Error",
-        ),
-      ),
-    );
-
-    const { result } = renderHook(() => useAccountActions({ facade }));
-
-    await waitFor(() => {
-      expect(result.current.savedProfileOptions).toHaveLength(2);
-    });
-
     act(() => {
       result.current.selectProfile(savedProfileFixture.id);
     });
-
     await waitFor(() => {
-      expect(result.current.passwordFieldVisible).toBe(false);
+      expect(result.current.form.password).toBe("saved-sip-secret");
+      expect(result.current.ocpDraft.apiKey).toBe("saved-ocp-secret");
     });
-
     act(() => {
       result.current.handleSubmit();
     });
 
     await waitFor(() => {
-      expect(result.current.passwordFieldVisible).toBe(true);
+      expect(signInAccount).toHaveBeenCalledOnce();
     });
-
-    act(() => {
-      result.current.selectProfile(otherProfile.id);
-    });
-
-    await waitFor(() => {
-      expect(result.current.passwordFieldVisible).toBe(false);
-    });
+    expect(result.current.overwriteConfirmationOpen).toBe(false);
   });
 
-  it("prefills form and clears password when selecting a saved profile", async () => {
-    const { facade } = createFacadeMock();
-    const profileId = savedProfileFixture.id;
-
-    const { result } = renderHook(() => useAccountActions({ facade }));
-
-    await waitFor(() => {
-      expect(result.current.savedProfileOptions).toHaveLength(1);
-    });
-
-    act(() => {
-      result.current.selectProfile(profileId);
-    });
-
-    expect(result.current.selectedProfileId).toBe(profileId);
-    expect(result.current.form.password).toBe("");
-    expect(result.current.form.username).toBe("1001");
-    expect(result.current.passwordFieldVisible).toBe(true);
-    expect(result.current.passwordHintKey).toBe("account.profile.passwordHint.savedProfile");
-  });
-
-  it("allows profile switch while registered when another saved profile is selected", async () => {
-    const { facade } = createFacadeMock();
-    const otherProfile: SavedAccountProfile = {
-      id: createSettingsAccountKey("1002@pbx.example.com"),
-      username: "1002",
-      domain: "pbx.example.com",
-      server: "wss://sip.example.com",
-      displayName: "1002",
-    };
-    const listSavedAccountProfiles = vi
-      .fn()
-      .mockResolvedValue(ok([savedProfileFixture, otherProfile]));
-
-    const facadeWithProfiles = {
-      ...facade,
-      listSavedAccountProfiles,
-    } as unknown as AccountBootstrapFacade;
+  it("blocks submit when SIP is registered and exposes logout-first reason", async () => {
+    const { facade, signInAccount, getAccountSignInViewModel } = createFacadeMock();
+    getAccountSignInViewModel.mockResolvedValue(
+      ok(
+        createSignInViewModel({
+          isSipRegistered: true,
+          hasActiveAccountSession: true,
+          loginDisabledReason: "account.signIn.disabled.logoutFirst",
+        }),
+      ),
+    );
 
     const { result } = renderHook(() =>
       useAccountActions({
-        facade: facadeWithProfiles,
+        facade,
         isSipRegistered: true,
         registeredIdentity: {
           username: "1001",
@@ -368,131 +229,69 @@ describe("useAccountActions", () => {
     );
 
     await waitFor(() => {
-      expect(result.current.savedProfileOptions).toHaveLength(2);
-    });
-
-    act(() => {
-      result.current.selectProfile(otherProfile.id);
-    });
-
-    expect(result.current.profileSwitchAllowed).toBe(true);
-  });
-
-  it("resets to New when SIP registration ends", async () => {
-    const { facade } = createFacadeMock();
-    const { result, rerender } = renderHook(
-      ({ isSipRegistered }) => useAccountActions({ facade, isSipRegistered }),
-      { initialProps: { isSipRegistered: true } },
-    );
-
-    await waitFor(() => {
-      expect(result.current.savedProfileOptions).toHaveLength(1);
-    });
-
-    act(() => {
-      result.current.selectProfile(result.current.savedProfileOptions[0]!.id);
-    });
-
-    rerender({ isSipRegistered: false });
-
-    await waitFor(() => {
-      expect(result.current.selectedProfileId).toBeNull();
-    });
-  });
-
-  it("authorizes saved profile with password via facade", async () => {
-    const { facade, authorizeSavedAccountProfile } = createFacadeMock();
-    const profileId = savedProfileFixture.id;
-
-    const { result } = renderHook(() => useAccountActions({ facade }));
-
-    await waitFor(() => {
-      expect(result.current.savedProfileOptions).toHaveLength(1);
-    });
-
-    act(() => {
-      result.current.selectProfile(profileId);
-    });
-
-    act(() => {
-      result.current.updateField("password", "secret");
+      expect(result.current.loginDisabledReasonKey).toBe(
+        "account.signIn.disabled.logoutFirst",
+      );
     });
 
     act(() => {
       result.current.handleSubmit();
     });
 
-    await waitFor(() => {
-      expect(authorizeSavedAccountProfile).toHaveBeenCalledWith(profileId, "secret", {
-        rememberPassword: false,
-      });
-    });
+    expect(signInAccount).not.toHaveBeenCalled();
   });
 
-  it("maps manual authorize registration failure to localized error key", async () => {
-    const { facade, authorizeManualAccount } = createFacadeMock();
-    authorizeManualAccount.mockResolvedValue(
-      err(
-        createPlatformError(
-          "operation_failed",
-          "SIP registration failed for user: Authentication Error",
-        ),
+  it("re-enables Login after account session clears (avatar logout)", async () => {
+    const { facade, getAccountSignInViewModel } = createFacadeMock();
+    getAccountSignInViewModel.mockResolvedValue(
+      ok(
+        createSignInViewModel({
+          hasActiveAccountSession: true,
+          loginDisabledReason: "account.signIn.disabled.logoutFirst",
+        }),
       ),
     );
 
     const { result } = renderHook(() => useAccountActions({ facade }));
 
-    act(() => {
-      result.current.updateField("username", "1001");
-      result.current.updateField("password", "wrong");
-      result.current.updateField("domain", "pbx.example.com");
-      result.current.updateField("server", "wss://sip.example.com");
-      result.current.handleSubmit();
-    });
-
     await waitFor(() => {
-      expect(result.current.error?.key).toBe("account.error.invalidCredentials");
+      expect(result.current.loginDisabledReasonKey).toBe(
+        "account.signIn.disabled.logoutFirst",
+      );
     });
-  });
 
-  it("maps saved profile not found to profileNotFound error key", async () => {
-    const { facade, authorizeSavedAccountProfile } = createFacadeMock();
-    authorizeSavedAccountProfile.mockResolvedValue(
-      err(createPlatformError("not_found", "Saved account profile was not found")),
+    getAccountSignInViewModel.mockResolvedValue(
+      ok(
+        createSignInViewModel({
+          hasActiveAccountSession: false,
+          loginDisabledReason: null,
+        }),
+      ),
     );
-    const profileId = savedProfileFixture.id;
-
-    const { result } = renderHook(() => useAccountActions({ facade }));
-
-    await waitFor(() => {
-      expect(result.current.savedProfileOptions).toHaveLength(1);
-    });
 
     act(() => {
-      result.current.selectProfile(profileId);
-    });
-
-    act(() => {
-      result.current.updateField("password", "secret");
-    });
-
-    act(() => {
-      result.current.handleSubmit();
+      useAccountBootstrapStore.setState({
+        projection: {
+          ...initialAccountBootstrapProjection(),
+          hasActiveAccountSession: false,
+        },
+      });
     });
 
     await waitFor(() => {
-      expect(result.current.error?.key).toBe("account.error.profileNotFound");
+      expect(result.current.loginDisabledReasonKey).toBeNull();
     });
   });
 
-  it("opens switch confirmation when registered and submitting another profile", async () => {
-    const { facade, authorizeSavedAccountProfile, listSavedAccountProfiles } = createFacadeMock();
+  it("does not open switch confirmation when selecting another profile while registered", async () => {
+    const { facade, signInAccount, listSavedAccountProfiles } = createFacadeMock();
     const otherProfile: SavedAccountProfile = {
       id: createSettingsAccountKey("1002@pbx.example.com"),
       username: "1002",
       domain: "pbx.example.com",
       server: "wss://sip.example.com",
       displayName: "1002",
+      lifecycleStatus: "successful",
     };
     listSavedAccountProfiles.mockResolvedValue(ok([savedProfileFixture, otherProfile]));
 
@@ -517,295 +316,286 @@ describe("useAccountActions", () => {
     });
 
     act(() => {
-      result.current.updateField("password", "secret");
+      result.current.handleSubmit();
+    });
+
+    expect(signInAccount).not.toHaveBeenCalled();
+    expect(result.current.loginDisabledReasonKey).toBe(
+      "account.signIn.disabled.logoutFirst",
+    );
+  });
+
+  it("builds OCP sign-in command with opted-in save before login", async () => {
+    const { facade, signInAccount } = createFacadeMock();
+    const { result } = renderHook(() => useAccountActions({ facade }));
+
+    act(() => {
+      result.current.setSignInMode("ocp");
+      result.current.setSaveProfileChecked(true);
+      result.current.updateOcpField("login", "agent");
+      result.current.updateOcpField("domain", "ocp.example");
+      result.current.updateOcpField("apiKey", "proxy-key");
     });
 
     act(() => {
       result.current.handleSubmit();
     });
 
-    expect(result.current.switchConfirmationOpen).toBe(true);
-    expect(result.current.switchFromLogin).toBe("1001");
-    expect(result.current.switchToLogin).toBe("1002");
-    expect(authorizeSavedAccountProfile).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(signInAccount).toHaveBeenCalledWith(
+        expect.objectContaining({
+          mode: "ocp",
+          profile: { kind: "new_draft" },
+          ocp: expect.objectContaining({
+            login: "agent",
+            domain: "ocp.example",
+            apiKey: "proxy-key",
+          }),
+          save: expect.objectContaining({
+            saveProfile: true,
+            saveOcpApiKey: true,
+          }),
+        }),
+      );
+    });
+  });
+
+  it("dispatches state-specific recovery action", async () => {
+    const { facade, dispatchAccountRecoveryAction, getAccountSignInViewModel } =
+      createFacadeMock();
+    getAccountSignInViewModel.mockResolvedValue(
+      ok(
+        createSignInViewModel({
+          serverState: "failed",
+          allowedRecoveryActions: ["retry_server"],
+          primaryRecoveryAction: "retry_server",
+        }),
+      ),
+    );
+
+    const { result } = renderHook(() => useAccountActions({ facade }));
+
+    await waitFor(() => {
+      expect(result.current.allowedRecoveryActions).toContain("retry_server");
+    });
 
     act(() => {
-      result.current.confirmSwitchProfile();
+      result.current.handleRecoveryAction("retry_server");
     });
 
     await waitFor(() => {
-      expect(authorizeSavedAccountProfile).toHaveBeenCalledWith(otherProfile.id, "secret", {
-        rememberPassword: false,
-      });
+      expect(dispatchAccountRecoveryAction).toHaveBeenCalledWith("retry_server");
     });
-    expect(result.current.switchConfirmationOpen).toBe(false);
-    expect(result.current.selectedProfileId).toBe(otherProfile.id);
+  });
+
+  it("keeps password entry visible after authentication failure", async () => {
+    const { facade, signInAccount } = createFacadeMock({
+      hasRememberedSipPassword: true,
+    });
+    signInAccount.mockResolvedValue(
+      err(
+        createPlatformError(
+          "operation_failed",
+          "SIP registration failed for user: Authentication Error",
+        ),
+      ),
+    );
+    const profileId = savedProfileFixture.id;
+    const { result } = renderHook(() => useAccountActions({ facade }));
+
+    await waitFor(() => {
+      expect(result.current.savedProfileOptions).toHaveLength(1);
+    });
+
+    act(() => {
+      result.current.selectProfile(profileId);
+    });
+
+    expect(result.current.passwordFieldVisible).toBe(true);
+
+    act(() => {
+      result.current.handleSubmit();
+    });
+
+    await waitFor(() => {
+      expect(result.current.passwordFieldVisible).toBe(true);
+    });
+  });
+
+  it("passes rememberPassword option via signInAccount for new SIP draft", async () => {
+    const { facade, signInAccount } = createFacadeMock();
+    const { result } = renderHook(() => useAccountActions({ facade }));
+
+    act(() => {
+      result.current.setSaveProfileChecked(true);
+      result.current.setRememberPasswordChecked(true);
+      result.current.updateField("username", "1001");
+      result.current.updateField("password", "secret");
+      result.current.updateField("domain", "pbx.example.com");
+      result.current.updateField("server", "wss://sip.example.com");
+    });
+
+    act(() => {
+      result.current.handleSubmit();
+    });
+
+    await waitFor(() => {
+      expect(signInAccount).toHaveBeenCalledWith(
+        expect.objectContaining({
+          mode: "sip_only",
+          profile: { kind: "new_draft" },
+          sip: expect.objectContaining({
+            username: "1001",
+            password: "secret",
+          }),
+          save: expect.objectContaining({
+            saveProfile: true,
+            rememberPassword: true,
+          }),
+        }),
+      );
+    });
+  });
+
+  it("confirms a changed selected profile before overwriting its credentials", async () => {
+    const { facade, signInAccount } = createFacadeMock();
+    const { result } = renderHook(() => useAccountActions({ facade }));
+
+    await waitFor(() => {
+      expect(result.current.savedProfileOptions).toHaveLength(1);
+    });
+    act(() => {
+      result.current.selectProfile(savedProfileFixture.id);
+    });
+    await waitFor(() => {
+      expect(result.current.selectedProfileId).toBe(savedProfileFixture.id);
+    });
+    act(() => {
+      result.current.updateField("password", "new-secret");
+    });
+    act(() => {
+      result.current.handleSubmit();
+    });
+
+    expect(result.current.overwriteConfirmationOpen).toBe(true);
+    expect(signInAccount).not.toHaveBeenCalled();
+
+    act(() => {
+      result.current.cancelOverwriteExistingCredentials();
+    });
+    expect(signInAccount).not.toHaveBeenCalled();
+
+    act(() => {
+      result.current.handleSubmit();
+    });
+    expect(result.current.overwriteConfirmationOpen).toBe(true);
+
+    act(() => {
+      result.current.continueWithoutOverwritingCredentials();
+    });
+
+    await waitFor(() => {
+      expect(signInAccount).toHaveBeenCalledWith(
+        expect.objectContaining({
+          profile: { kind: "saved", profileId: savedProfileFixture.id },
+        }),
+      );
+    });
+  });
+
+  it("signs in with overwrite after confirming the overwrite prompt (T-037)", async () => {
+    const { facade, signInAccount } = createFacadeMock();
+    const { result } = renderHook(() => useAccountActions({ facade }));
+
+    await waitFor(() => {
+      expect(result.current.savedProfileOptions).toHaveLength(1);
+    });
+    act(() => {
+      result.current.selectProfile(savedProfileFixture.id);
+    });
+    await waitFor(() => {
+      expect(result.current.selectedProfileId).toBe(savedProfileFixture.id);
+    });
+    act(() => {
+      result.current.updateField("password", "new-secret");
+    });
+    act(() => {
+      result.current.handleSubmit();
+    });
+
+    expect(result.current.overwriteConfirmationOpen).toBe(true);
+    expect(signInAccount).not.toHaveBeenCalled();
+
+    act(() => {
+      result.current.confirmOverwriteExistingCredentials();
+    });
+
+    await waitFor(() => {
+      expect(signInAccount).toHaveBeenCalledOnce();
+    });
+    expect(signInAccount).toHaveBeenCalledWith(
+      expect.objectContaining({
+        profile: { kind: "saved", profileId: savedProfileFixture.id },
+        sip: expect.objectContaining({
+          password: "new-secret",
+        }),
+        save: expect.objectContaining({
+          saveProfile: true,
+          rememberPassword: true,
+        }),
+      }),
+    );
+    await waitFor(() => {
+      expect(result.current.overwriteConfirmationOpen).toBe(false);
+    });
+  });
+
+  it("does not discard a dirty new-profile draft without confirmation", async () => {
+    const { facade } = createFacadeMock();
+    const { result } = renderHook(() => useAccountActions({ facade }));
+    await waitFor(() => {
+      expect(result.current.savedProfileOptions).toHaveLength(1);
+    });
+    act(() => {
+      result.current.updateField("username", "draft-user");
+    });
+    act(() => {
+      result.current.selectProfile(savedProfileFixture.id);
+    });
+
+    expect(result.current.draftDiscardConfirmationOpen).toBe(true);
+    expect(result.current.selectedProfileId).toBeNull();
+
+    act(() => {
+      result.current.confirmDiscardDraftAndSelectProfile();
+    });
+    expect(result.current.selectedProfileId).toBe(savedProfileFixture.id);
+  });
+
+  it("clears ephemeral secrets when switching mode", () => {
+    const { facade } = createFacadeMock();
+    const { result } = renderHook(() => useAccountActions({ facade }));
+
+    act(() => {
+      result.current.updateField("password", "sip-secret");
+      result.current.updateOcpField("apiKey", "api-secret");
+      result.current.setSignInMode("ocp");
+    });
+
+    expect(result.current.form.password).toBe("");
+    expect(result.current.ocpDraft.apiKey).toBe("");
   });
 
   it("disables remember password until save profile is checked on New tab", () => {
     const { facade } = createFacadeMock();
     const { result } = renderHook(() => useAccountActions({ facade }));
 
-    expect(result.current.rememberPasswordVisible).toBe(true);
     expect(result.current.rememberPasswordDisabled).toBe(true);
-    expect(result.current.rememberPasswordDisabledReasonKey).toBe(
-      "account.profile.rememberPassword.disabledRequiresSave",
-    );
 
     act(() => {
       result.current.setSaveProfileChecked(true);
     });
 
     expect(result.current.rememberPasswordDisabled).toBe(false);
-  });
-
-  it("clears remember password when save profile is unchecked", () => {
-    const { facade } = createFacadeMock();
-    const { result } = renderHook(() => useAccountActions({ facade }));
-
-    act(() => {
-      result.current.setSaveProfileChecked(true);
-      result.current.setRememberPasswordChecked(true);
-      result.current.setSaveProfileChecked(false);
-    });
-
-    expect(result.current.rememberPasswordChecked).toBe(false);
-  });
-
-  it("enables remember password for saved profile without remembered password", async () => {
-    const { facade } = createFacadeMock();
-    const { result } = renderHook(() => useAccountActions({ facade }));
-
-    await waitFor(() => {
-      expect(result.current.savedProfileOptions).toHaveLength(1);
-    });
-
-    act(() => {
-      result.current.selectProfile(savedProfileFixture.id);
-    });
-
-    expect(result.current.rememberPasswordVisible).toBe(true);
-    expect(result.current.passwordFieldVisible).toBe(true);
-    expect(result.current.rememberPasswordDisabled).toBe(false);
-  });
-
-  it("forget action reveals password field and remember checkbox", async () => {
-    const { facade, forgetRememberedSipPassword } = createFacadeMock({
-      hasRememberedSipPassword: true,
-    });
-    const profileId = savedProfileFixture.id;
-
-    const { result } = renderHook(() => useAccountActions({ facade }));
-
-    await waitFor(() => {
-      expect(result.current.savedProfileOptions).toHaveLength(1);
-    });
-
-    act(() => {
-      result.current.selectProfile(profileId);
-    });
-
-    await waitFor(() => {
-      expect(result.current.forgetRememberedPasswordVisible).toBe(true);
-    });
-
-    act(() => {
-      result.current.forgetRememberedPassword();
-    });
-
-    await waitFor(() => {
-      expect(forgetRememberedSipPassword).toHaveBeenCalledWith(profileId);
-      expect(result.current.passwordFieldVisible).toBe(true);
-      expect(result.current.rememberPasswordVisible).toBe(true);
-      expect(result.current.forgetRememberedPasswordVisible).toBe(false);
-      expect(result.current.selectedProfileId).toBe(profileId);
-    });
-  });
-
-  it("populates active session password for registered saved profile full form", async () => {
-    const { facade, getActiveSipAccount } = createFacadeMock();
-    getActiveSipAccount.mockResolvedValue({
-      username: "1001",
-      password: "session-secret",
-      domain: "pbx.example.com",
-      server: "wss://sip.example.com",
-    });
-    const profileId = savedProfileFixture.id;
-
-    const { result } = renderHook(() =>
-      useAccountActions({
-        facade,
-        isSipRegistered: true,
-        registeredIdentity: {
-          username: "1001",
-          domain: "pbx.example.com",
-          server: "wss://sip.example.com",
-        },
-      }),
-    );
-
-    await waitFor(() => {
-      expect(result.current.savedProfileOptions).toHaveLength(1);
-    });
-
-    act(() => {
-      result.current.selectProfile(profileId);
-    });
-
-    await waitFor(() => {
-      expect(getActiveSipAccount).toHaveBeenCalled();
-      expect(result.current.panelMode).toBe("savedFull");
-      expect(result.current.form.password).toBe("session-secret");
-    });
-  });
-
-  it("keeps active session password sync stable when saved profiles reload", async () => {
-    const { facade, getActiveSipAccount, listSavedAccountProfiles } = createFacadeMock();
-    getActiveSipAccount.mockResolvedValue({
-      username: "1001",
-      password: "session-secret",
-      domain: "pbx.example.com",
-      server: "wss://sip.example.com",
-    });
-    listSavedAccountProfiles
-      .mockResolvedValueOnce(ok([savedProfileFixture]))
-      .mockResolvedValueOnce(ok([{ ...savedProfileFixture }]));
-
-    const { result } = renderHook(() =>
-      useAccountActions({
-        facade,
-        isSipRegistered: true,
-        registeredIdentity: {
-          username: "1001",
-          domain: "pbx.example.com",
-          server: "wss://sip.example.com",
-        },
-      }),
-    );
-
-    await waitFor(() => {
-      expect(result.current.savedProfileOptions).toHaveLength(1);
-    });
-
-    act(() => {
-      result.current.selectProfile(savedProfileFixture.id);
-    });
-
-    await waitFor(() => {
-      expect(result.current.panelMode).toBe("savedFull");
-      expect(result.current.form.password).toBe("session-secret");
-    });
-    expect(getActiveSipAccount).toHaveBeenCalledTimes(1);
-
-    act(() => {
-      result.current.reloadSavedProfiles();
-    });
-
-    await waitFor(() => {
-      expect(listSavedAccountProfiles).toHaveBeenCalledTimes(2);
-    });
-    expect(result.current.form.password).toBe("session-secret");
-    expect(getActiveSipAccount).toHaveBeenCalledTimes(1);
-  });
-
-  it("does not preload stored secret into inactive saved profile password", async () => {
-    const { facade, getActiveSipAccount } = createFacadeMock({
-      hasRememberedSipPassword: true,
-    });
-    const profileId = savedProfileFixture.id;
-
-    const { result } = renderHook(() => useAccountActions({ facade }));
-
-    await waitFor(() => {
-      expect(result.current.savedProfileOptions).toHaveLength(1);
-    });
-
-    act(() => {
-      result.current.selectProfile(profileId);
-    });
-
-    await waitFor(() => {
-      expect(result.current.passwordFieldVisible).toBe(false);
-    });
-
-    expect(result.current.form.password).toBe("");
-    expect(getActiveSipAccount).not.toHaveBeenCalled();
-  });
-
-  it("clears password when SIP registration ends", async () => {
-    const { facade, getActiveSipAccount } = createFacadeMock();
-    getActiveSipAccount.mockResolvedValue({
-      username: "1001",
-      password: "session-secret",
-      domain: "pbx.example.com",
-      server: "wss://sip.example.com",
-    });
-
-    const { result, rerender } = renderHook(
-      ({ isSipRegistered }) =>
-        useAccountActions({
-          facade,
-          isSipRegistered,
-          registeredIdentity: isSipRegistered
-            ? {
-                username: "1001",
-                domain: "pbx.example.com",
-                server: "wss://sip.example.com",
-              }
-            : null,
-        }),
-      { initialProps: { isSipRegistered: true } },
-    );
-
-    await waitFor(() => {
-      expect(result.current.savedProfileOptions).toHaveLength(1);
-    });
-
-    act(() => {
-      result.current.selectProfile(savedProfileFixture.id);
-    });
-
-    await waitFor(() => {
-      expect(result.current.form.password).toBe("session-secret");
-    });
-
-    act(() => {
-      rerender({ isSipRegistered: false });
-    });
-
-    await waitFor(() => {
-      expect(result.current.form.password).toBe("");
-    });
-  });
-
-  it("passes rememberPassword option to manual authorize", async () => {
-    const { facade, authorizeManualAccount } = createFacadeMock();
-    const { result } = renderHook(() => useAccountActions({ facade }));
-
-    act(() => {
-      result.current.setSaveProfileChecked(true);
-    });
-
-    act(() => {
-      result.current.setRememberPasswordChecked(true);
-    });
-
-    act(() => {
-      result.current.updateField("username", "1001");
-      result.current.updateField("password", "secret");
-      result.current.updateField("domain", "pbx.example.com");
-      result.current.updateField("server", "wss://sip.example.com");
-    });
-
-    act(() => {
-      result.current.handleSubmit();
-    });
-
-    await waitFor(() => {
-      expect(authorizeManualAccount).toHaveBeenCalledWith(
-        expect.objectContaining({ username: "1001", password: "secret" }),
-        expect.objectContaining({ saveProfile: true, rememberPassword: true }),
-      );
-    });
   });
 });

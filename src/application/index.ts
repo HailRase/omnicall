@@ -11,6 +11,13 @@ export {
 export type { AppBootstrapConfig, PhoneStatus, SipAccountInput, MultiCallSettings } from "@domain/index.js";
 export { phoneStatusLabel } from "@domain/index.js";
 export { AuthorizeSipAccountUseCase } from "./use-cases/settings/AuthorizeSipAccountUseCase.js";
+export { PersistDraftAccountArtifactsUseCase } from "./use-cases/settings/PersistDraftAccountArtifactsUseCase.js";
+export { PromoteAuthorizedSipSessionUseCase } from "./use-cases/settings/PromoteAuthorizedSipSessionUseCase.js";
+export { ResolveSavedAccountProfileAvailabilityUseCase } from "./use-cases/settings/ResolveSavedAccountProfileAvailabilityUseCase.js";
+export {
+  deriveSavedAccountProfileAvailability,
+  type SavedAccountProfileAvailabilityView,
+} from "./projections/settings/deriveSavedAccountProfileAvailability.js";
 export { ChangePhoneStatusUseCase } from "./use-cases/settings/ChangePhoneStatusUseCase.js";
 export { MakeCallUseCase } from "./use-cases/telephony/MakeCallUseCase.js";
 export { AnswerCallUseCase } from "./use-cases/telephony/AnswerCallUseCase.js";
@@ -39,6 +46,24 @@ export {
   type AuthorizeAccountOutcome,
   type AuthorizeAccountMetadataWarning,
 } from "./facades/AccountBootstrapFacade.js";
+export {
+  validateAccountSignInCommand,
+  createAccountSignInLogoutRequiredError,
+  ACCOUNT_SIGN_IN_LOGOUT_REQUIRED_MESSAGE,
+  type AccountSignInCommand,
+  type AccountSignInMode,
+  type AccountSignInProfileRef,
+  type AccountSignInSavePreferences,
+  type AccountSignInRejectReasonKey,
+} from "./facades/accountSignInCommand.js";
+export {
+  deriveAccountSignInViewModel,
+  deriveAccountOcpProfileOptions,
+  deriveAllowedAccountRecoveryActions,
+  type AccountSignInViewModel,
+  type AccountSignInSelectedProfileView,
+  type AccountSignInLoginDisabledReasonKey,
+} from "./projections/settings/accountSignInViewModel.js";
 export {
   initialAccountBootstrapProjection,
   reduceAccountBootstrapProjection,
@@ -276,6 +301,29 @@ export {
   type SettingsEntrySection,
 } from "./projections/settings/deriveDefaultSettingsSection.js";
 export {
+  deriveSettingsNavigationAvailability,
+  isSettingsNavSectionId,
+  resolveAllowedSettingsSection,
+  SETTINGS_NAV_SECTION_IDS,
+  type SettingsNavDisabledReasonKey,
+  type SettingsNavSectionId,
+  type SettingsNavigationAvailability,
+  type SettingsSectionAvailability,
+} from "./projections/settings/deriveSettingsNavigationAvailability.js";
+export {
+  deriveOcpModuleEditShell,
+  type OcpModuleEditShell,
+  type OcpModuleEditShellInput,
+} from "./projections/settings/deriveOcpModuleEditShell.js";
+export {
+  deriveOcpSystemStateShell,
+  type OcpSystemStateShellInput,
+  type OcpSystemStateShellView,
+  type OcpServerStateLabelKey,
+  type OcpAuthorizationStateLabelKey,
+  type OcpRecoveryActionLabelKey,
+} from "./projections/integration/deriveOcpSystemStateShell.js";
+export {
   deriveActiveProfileSettingsSyncKey,
 } from "./projections/settings/deriveSettingsAccountProfileShell.js";
 export {
@@ -306,6 +354,9 @@ export {
   type AccountPanelActionsShellInput,
   type AccountPanelActionReasonKey,
 } from "./projections/settings/deriveAccountPanelActionsShell.js";
+export type { OcpRecoveryAction } from "@domain/integration/ocp/ocpDualFsm.js";
+export type { OcpServerState } from "@domain/integration/ocp/OcpServerState.js";
+export type { OcpAuthorizationState } from "@domain/integration/ocp/OcpAuthorizationState.js";
 export {
   mapAccountAuthorizationError,
   type AccountAuthorizationErrorKey,
@@ -353,17 +404,42 @@ export {
 export {
   initialOcpSessionProjection,
   reduceOcpSessionFromConnectionState,
+  reduceOcpSessionFromServerState,
   reduceOcpSessionFromMessage,
   applyOcpSessionDomain,
   applyOcpAuthFeedback,
   clearOcpAuthFeedback,
+  applyAuthorizationProgress,
   selectIsOcpConnected,
   selectOcpAuthFeedback,
   selectOcpDomain,
+  selectOcpServerState,
+  selectOcpAuthorizationState,
+  selectPrimaryRecoveryAction,
   type OcpSessionProjection,
   type OcpAuthFeedback,
   type OcpAuthFeedbackReason,
 } from "./projections/integration/ocpSessionProjection.js";
+export {
+  initialAuthorizationProgressProjection,
+  applyAuthorizationProgressStage,
+  clearAuthorizationProgress,
+  mapAuthorizationFailureStage,
+  type AuthorizationProgressProjection,
+  type AuthorizationProgressStage,
+} from "./projections/settings/authorizationProgressProjection.js";
+export {
+  isAuthorizationRetryableStage,
+  resolveAuthorizationRetryStrategy,
+  type AuthorizationAttemptContext,
+  type AuthorizationAttemptKind,
+  type AuthorizationRetryStrategy,
+} from "./projections/settings/authorizationRetryContext.js";
+export {
+  OcpBackedSignInOrchestrationService,
+  type OcpBackedSignInOutcome,
+  type OcpBackedSignInInput,
+} from "./services/integration/OcpBackedSignInOrchestrationService.js";
 export type {
   OcpConnectLoginOption,
   OcpConnectLoginTarget,

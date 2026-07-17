@@ -9,6 +9,7 @@ export const CONTACTS_DIRECTORY_NAME = "contacts";
 export const CALL_HISTORY_DIRECTORY_NAME = "call-history";
 export const PROFILES_INDEX_FILE_NAME = "index.json";
 export const SAVED_ACCOUNT_PROFILES_FILE_NAME = "saved-accounts.json";
+export const USER_NOTIFICATION_JOURNAL_FILE_NAME = "notification-journal.json";
 
 function joinStoragePath(...segments: ReadonlyArray<string>): string {
   return segments
@@ -105,6 +106,13 @@ export function resolveSavedAccountProfilesFilePath(storageRoot: string): string
   return joinStoragePath(
     resolveProfilesRootPath(storageRoot),
     SAVED_ACCOUNT_PROFILES_FILE_NAME,
+  );
+}
+
+export function resolveUserNotificationJournalFilePath(storageRoot: string): string {
+  return joinStoragePath(
+    resolveProfilesRootPath(storageRoot),
+    USER_NOTIFICATION_JOURNAL_FILE_NAME,
   );
 }
 

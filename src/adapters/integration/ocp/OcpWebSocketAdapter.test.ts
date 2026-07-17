@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { OperatorStatus } from "@domain/integration/ocp/OperatorStatus.js";
-import type { OcpConnectionState } from "@domain/integration/ocp/OcpConnectionState.js";
+import type { OcpServerState } from "@domain/integration/ocp/OcpServerState.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
 import { OcpWebSocketAdapter } from "./OcpWebSocketAdapter.js";
 
@@ -71,19 +71,18 @@ function createTestWebSocketClass(): {
 describe("OcpWebSocketAdapter", () => {
   let instances: TestWebSocket[] = [];
   let adapter: OcpWebSocketAdapter;
-  const stateChanges: OcpConnectionState[] = [];
+  const stateChanges: OcpServerState[] = [];
 
   beforeEach(() => {
     vi.useFakeTimers();
     const socketHarness = createTestWebSocketClass();
     instances = socketHarness.instances;
     vi.stubGlobal("WebSocket", socketHarness.WebSocket);
+    stateChanges.length = 0;
 
     adapter = new OcpWebSocketAdapter({
       logger: createTestLogger({ featureId: "F-028", boundedContext: "Integration" }),
       webSocketFactory: (url) => new WebSocket(url),
-      reconnectDelayMs: 5000,
-      maxReconnectAttempts: 6,
     });
     adapter.onConnectionStateChange((state) => {
       stateChanges.push(state);
@@ -102,75 +101,61 @@ describe("OcpWebSocketAdapter", () => {
     expect(instances[0]?.url).toBe("wss://ocp.example.com/ws");
   });
 
-  it("onopen sends auth command", () => {
+  it("onopen does not send auth — Application owns auth command", () => {
     adapter.connect({ domain: "ocp.example.com", authToken: "token-1" });
     instances[0]?.simulateOpen();
 
-    expect(instances[0]?.sent).toHaveLength(1);
-    expect(JSON.parse(instances[0]?.sent[0] ?? "{}")).toEqual({
-      command: "auth",
-      entity: "proxy_users",
-      payload: "token-1",
-      type: "auth_proxy_users",
-    });
+    expect(adapter.getConnectionState()).toBe("connected");
+    expect(instances[0]?.sent).toHaveLength(0);
   });
 
-  it("SESSION_EXIST sets sessionClosed and does not reconnect", () => {
+  it("SESSION_EXIST closes transport as failed and does not reconnect", () => {
+    const messages: unknown[] = [];
+    adapter.onMessage((msg) => {
+      messages.push(msg);
+    });
     adapter.connect({ domain: "ocp.example.com", authToken: "token-1" });
     instances[0]?.simulateOpen();
     instances[0]?.simulateMessage({
       entity: "Error",
       payload: { code: "SESSION_EXIST" },
     });
-    instances[0]?.simulateClose();
 
     vi.advanceTimersByTime(30000);
-    expect(adapter.getConnectionState()).toBe("sessionClosed");
+    expect(adapter.getConnectionState()).toBe("failed");
     expect(instances).toHaveLength(1);
+    expect(messages).toHaveLength(1);
   });
 
-  it("disconnect(terminate) sets sessionClosed and does not reconnect", () => {
+  it("disconnect(terminate) sets disconnected and does not reconnect", () => {
     adapter.connect({ domain: "ocp.example.com", authToken: "token-1" });
     instances[0]?.simulateOpen();
     adapter.disconnect("terminate");
 
     vi.advanceTimersByTime(30000);
-    expect(adapter.getConnectionState()).toBe("sessionClosed");
+    expect(adapter.getConnectionState()).toBe("disconnected");
     expect(instances).toHaveLength(1);
   });
 
-  it("onclose schedules reconnect via ReconnectScheduler", () => {
+  it("unexpected close sets failed and does not schedule stale-token reconnect", () => {
     adapter.connect({ domain: "ocp.example.com", authToken: "token-1" });
     instances[0]?.simulateOpen();
     instances[0]?.simulateClose();
 
-    expect(adapter.getConnectionState()).toBe("reconnecting");
-    vi.advanceTimersByTime(5000);
-    expect(instances).toHaveLength(2);
-  });
-
-  it("sets failed after max reconnect attempts", () => {
-    adapter.connect({ domain: "ocp.example.com", authToken: "token-1" });
-
-    for (let attempt = 0; attempt < 7; attempt += 1) {
-      instances.at(-1)?.simulateClose();
-      if (adapter.getConnectionState() === "failed") {
-        break;
-      }
-      vi.advanceTimersByTime(5000);
-    }
-
     expect(adapter.getConnectionState()).toBe("failed");
-    expect(instances.length).toBeGreaterThanOrEqual(6);
+    vi.advanceTimersByTime(30000);
+    expect(instances).toHaveLength(1);
+    expect(stateChanges).not.toContain("reconnecting");
   });
 
-  it("dispose cancels pending reconnect", () => {
+  it("dispose detaches handlers and does not open new sockets", () => {
     adapter.connect({ domain: "ocp.example.com", authToken: "token-1" });
-    instances[0]?.simulateClose();
+    instances[0]?.simulateOpen();
     adapter.dispose();
 
     vi.advanceTimersByTime(30000);
     expect(instances).toHaveLength(1);
+    expect(adapter.getConnectionState()).toBe("disconnected");
   });
 
   it("sendCommand returns err when socket is not OPEN", () => {
@@ -185,9 +170,12 @@ describe("OcpWebSocketAdapter", () => {
     expect(result.ok).toBe(false);
   });
 
-  it("transitions to authenticated on first users message", () => {
+  it("sendCommand auth succeeds when open; users does not change transport state", () => {
     adapter.connect({ domain: "ocp.example.com", authToken: "token-1" });
     instances[0]?.simulateOpen();
+    const sendResult = adapter.sendCommand({ kind: "auth", token: "fresh-token" });
+    expect(sendResult.ok).toBe(true);
+
     instances[0]?.simulateMessage({
       entity: "users",
       payload: [
@@ -199,6 +187,6 @@ describe("OcpWebSocketAdapter", () => {
       ],
     });
 
-    expect(adapter.getConnectionState()).toBe("authenticated");
+    expect(adapter.getConnectionState()).toBe("connected");
   });
 });

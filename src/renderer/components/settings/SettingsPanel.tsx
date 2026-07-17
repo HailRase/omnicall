@@ -7,7 +7,9 @@ import type {
   NotificationPlacement,
   NotificationStacking,
   SessionViewMode,
+  SettingsNavigationAvailability,
   SipAccountInput,
+  OcpSystemStateShellView,
   SipSystemStateShellView,
   SupportedLanguage,
   VideoCodecId,
@@ -16,6 +18,7 @@ import type { SavedAccountProfileId } from "@application/index.js";
 import type { SavedAccountProfileSelectorOption } from "@application/projections/settings/deriveSavedAccountProfileSelectorOptions.js";
 import type { SavedProfilePanelMode } from "@application/projections/settings/deriveSavedProfilePanelMode.js";
 import type { AccountAuthorizationErrorProjection } from "@application/projections/settings/mapAccountAuthorizationError.js";
+import type { AuthorizationProgressProjection } from "@application/projections/settings/authorizationProgressProjection.js";
 import { IconButton } from "../ui/index.js";
 import { useI18n } from "../../i18n/index.js";
 import type { HeadsetConnectionProjection } from "@application/projections/headset/headsetConnectionProjection.js";
@@ -23,6 +26,8 @@ import type { VideoSettingsDeviceOption } from "../../hooks/useVideoSettingsPane
 import type { SettingsSectionId } from "./settingsSections.js";
 import { resolveSettingsContentHeaderTitle } from "./settingsSections.js";
 import type { TranslationKey } from "../../i18n/messages.js";
+import type { AccountUiSignInMode, OcpDraftFields } from "../../hooks/accountActionsHelpers.js";
+import type { OcpRecoveryAction } from "@application/index.js";
 import { SettingsSidebar } from "./SettingsSidebar.js";
 import { SettingsAccountPanel } from "./panels/SettingsAccountPanel.js";
 import { SettingsCodecsPanel } from "./panels/SettingsCodecsPanel.js";
@@ -33,15 +38,21 @@ import { SettingsSessionsPanel } from "./panels/SettingsSessionsPanel.js";
 import { SettingsSystemStatePanel } from "./panels/SettingsSystemStatePanel.js";
 import { SettingsVideoPanel } from "./panels/SettingsVideoPanel.js";
 import { SettingsIntegrationsPanel } from "./panels/SettingsIntegrationsPanel.js";
+import {
+  SettingsNotificationHistoryPanel,
+  type NotificationHistoryQuery,
+} from "./panels/SettingsNotificationHistoryPanel.js";
 import styles from "./SettingsPanel.module.css";
 import type { OcpModuleSettingsCardProps } from "./panels/OcpModuleSettingsCard.js";
 
 export type SettingsPanelProps = Readonly<{
   activeSection: SettingsSectionId;
   sidebarExpanded: boolean;
+  sectionAvailability: SettingsNavigationAvailability;
   onClose: () => void;
   onSectionChange: (sectionId: SettingsSectionId) => void;
   onSidebarExpandedChange: (expanded: boolean) => void;
+  notificationHistoryQuery?: NotificationHistoryQuery;
   language: SupportedLanguage;
   onLanguageChange: (language: SupportedLanguage) => void;
   theme: AppTheme;
@@ -72,6 +83,9 @@ export type SettingsPanelProps = Readonly<{
   onOpenDownloadPage: () => void;
   systemState: Readonly<{
     shell: SipSystemStateShellView;
+    ocpShell: OcpSystemStateShellView;
+    ocpRecoveryActionLoading: OcpRecoveryAction | null;
+    onOcpRecoveryAction: (action: OcpRecoveryAction) => void;
     sipAutoReconnectEnabled: boolean;
     onSipAutoReconnectChange: (enabled: boolean) => void;
     sipReconnectIntervalSec: number;
@@ -130,6 +144,8 @@ export type SettingsPanelProps = Readonly<{
   }>;
   account: Readonly<{
     form: SipAccountInput;
+    ocpDraft: OcpDraftFields;
+    signInMode: AccountUiSignInMode;
     submitting: boolean;
     error: AccountAuthorizationErrorProjection | null;
     successKey: TranslationKey | null;
@@ -137,7 +153,6 @@ export type SettingsPanelProps = Readonly<{
     panelMode: SavedProfilePanelMode;
     disabled: boolean;
     authorizeDisabledReason: string | null;
-    logoutDisabledReason: string | null;
     savedProfileOptions: ReadonlyArray<SavedAccountProfileSelectorOption>;
     selectedProfileId: SavedAccountProfileId | null;
     saveProfileChecked: boolean;
@@ -146,30 +161,36 @@ export type SettingsPanelProps = Readonly<{
     rememberPasswordChecked: boolean;
     passwordFieldVisible: boolean;
     rememberPasswordVisible: boolean;
-    forgetRememberedPasswordVisible: boolean;
     rememberPasswordDisabled: boolean;
-    rememberPasswordDisabledReasonKey: TranslationKey | null;
     passwordHintKey: TranslationKey | null;
-    authorizeViaOcpVisible: boolean;
-    authorizeViaOcpChecked: boolean;
+    showOcpDomainField: boolean;
+    showOcpApiKeyField: boolean;
+    hasSavedOcpApiKey: boolean;
+    allowedRecoveryActions: ReadonlyArray<OcpRecoveryAction>;
+    onRecoveryAction: (action: OcpRecoveryAction) => void;
+    authorizationProgress?: AuthorizationProgressProjection;
+    canForgetSavedSipPassword?: boolean;
+    onForgetSavedSipPassword?: () => void;
     deleteConfirmationOpen: boolean;
-    switchConfirmationOpen: boolean;
-    switchFromLogin: string;
-    switchToLogin: string;
+    deleteSubmitting?: boolean;
     passwordInputRef: RefObject<HTMLInputElement | null>;
     onFieldChange: (field: keyof SipAccountInput, value: string) => void;
+    onOcpFieldChange: (field: keyof OcpDraftFields, value: string) => void;
+    onSignInModeChange: (mode: AccountUiSignInMode) => void;
     onSubmit: () => void;
-    onLogout: () => void;
     onProfileSelect: (profileId: SavedAccountProfileId | null) => void;
     onSaveProfileChange: (checked: boolean) => void;
     onRememberPasswordChange: (checked: boolean) => void;
-    onAuthorizeViaOcpChange: (checked: boolean) => void;
-    onForgetRememberedPassword: () => void;
     onDeleteProfileRequest: (profileId: SavedAccountProfileId) => void;
     onDeleteProfileConfirm: () => void;
     onDeleteProfileCancel: () => void;
-    onSwitchProfileConfirm: () => void;
-    onSwitchProfileCancel: () => void;
+    overwriteConfirmationOpen?: boolean;
+    draftDiscardConfirmationOpen?: boolean;
+    onDraftDiscardConfirm?: () => void;
+    onDraftDiscardCancel?: () => void;
+    onOverwriteCredentialsConfirm?: () => void;
+    onOverwriteCredentialsContinue?: () => void;
+    onOverwriteCredentialsCancel?: () => void;
   }>;
 }>;
 
@@ -182,9 +203,11 @@ export type SettingsPanelProps = Readonly<{
 export function SettingsPanel({
   activeSection,
   sidebarExpanded,
+  sectionAvailability,
   onClose,
   onSectionChange,
   onSidebarExpandedChange,
+  notificationHistoryQuery,
   language,
   onLanguageChange,
   theme,
@@ -262,6 +285,8 @@ export function SettingsPanel({
       sectionContent = (
         <SettingsAccountPanel
           form={account.form}
+          ocpDraft={account.ocpDraft}
+          signInMode={account.signInMode}
           submitting={account.submitting}
           error={account.error}
           successKey={account.successKey}
@@ -269,7 +294,6 @@ export function SettingsPanel({
           panelMode={account.panelMode}
           disabled={account.disabled}
           authorizeDisabledReason={account.authorizeDisabledReason}
-          logoutDisabledReason={account.logoutDisabledReason}
           savedProfileOptions={account.savedProfileOptions}
           selectedProfileId={account.selectedProfileId}
           saveProfileChecked={account.saveProfileChecked}
@@ -278,30 +302,52 @@ export function SettingsPanel({
           rememberPasswordChecked={account.rememberPasswordChecked}
           passwordFieldVisible={account.passwordFieldVisible}
           rememberPasswordVisible={account.rememberPasswordVisible}
-          forgetRememberedPasswordVisible={account.forgetRememberedPasswordVisible}
           rememberPasswordDisabled={account.rememberPasswordDisabled}
-          rememberPasswordDisabledReasonKey={account.rememberPasswordDisabledReasonKey}
           passwordHintKey={account.passwordHintKey}
-          authorizeViaOcpVisible={account.authorizeViaOcpVisible}
-          authorizeViaOcpChecked={account.authorizeViaOcpChecked}
+          showOcpDomainField={account.showOcpDomainField}
+          showOcpApiKeyField={account.showOcpApiKeyField}
+          hasSavedOcpApiKey={account.hasSavedOcpApiKey}
+          allowedRecoveryActions={account.allowedRecoveryActions}
+          onRecoveryAction={account.onRecoveryAction}
+          {...(account.authorizationProgress !== undefined
+            ? { authorizationProgress: account.authorizationProgress }
+            : {})}
+          canForgetSavedSipPassword={account.canForgetSavedSipPassword === true}
+          {...(account.onForgetSavedSipPassword !== undefined
+            ? { onForgetSavedSipPassword: account.onForgetSavedSipPassword }
+            : {})}
           deleteConfirmationOpen={account.deleteConfirmationOpen}
-          switchConfirmationOpen={account.switchConfirmationOpen}
-          switchFromLogin={account.switchFromLogin}
-          switchToLogin={account.switchToLogin}
           passwordInputRef={account.passwordInputRef}
           onFieldChange={account.onFieldChange}
+          onOcpFieldChange={account.onOcpFieldChange}
+          onSignInModeChange={account.onSignInModeChange}
           onSubmit={account.onSubmit}
-          onLogout={account.onLogout}
           onProfileSelect={account.onProfileSelect}
           onSaveProfileChange={account.onSaveProfileChange}
           onRememberPasswordChange={account.onRememberPasswordChange}
-          onAuthorizeViaOcpChange={account.onAuthorizeViaOcpChange}
-          onForgetRememberedPassword={account.onForgetRememberedPassword}
           onDeleteProfileRequest={account.onDeleteProfileRequest}
           onDeleteProfileConfirm={account.onDeleteProfileConfirm}
           onDeleteProfileCancel={account.onDeleteProfileCancel}
-          onSwitchProfileConfirm={account.onSwitchProfileConfirm}
-          onSwitchProfileCancel={account.onSwitchProfileCancel}
+          deleteSubmitting={account.deleteSubmitting ?? false}
+          overwriteConfirmationOpen={account.overwriteConfirmationOpen ?? false}
+          draftDiscardConfirmationOpen={
+            account.draftDiscardConfirmationOpen ?? false
+          }
+          onDraftDiscardConfirm={
+            account.onDraftDiscardConfirm ?? (() => undefined)
+          }
+          onDraftDiscardCancel={
+            account.onDraftDiscardCancel ?? (() => undefined)
+          }
+          onOverwriteCredentialsConfirm={
+            account.onOverwriteCredentialsConfirm ?? (() => undefined)
+          }
+          onOverwriteCredentialsContinue={
+            account.onOverwriteCredentialsContinue ?? (() => undefined)
+          }
+          onOverwriteCredentialsCancel={
+            account.onOverwriteCredentialsCancel ?? (() => undefined)
+          }
         />
       );
       break;
@@ -349,6 +395,9 @@ export function SettingsPanel({
       sectionContent = (
         <SettingsSystemStatePanel
           shell={systemState.shell}
+          ocpShell={systemState.ocpShell}
+          ocpRecoveryActionLoading={systemState.ocpRecoveryActionLoading}
+          onOcpRecoveryAction={systemState.onOcpRecoveryAction}
           sipAutoReconnectEnabled={systemState.sipAutoReconnectEnabled}
           onSipAutoReconnectChange={systemState.onSipAutoReconnectChange}
           sipReconnectIntervalSec={systemState.sipReconnectIntervalSec}
@@ -372,6 +421,14 @@ export function SettingsPanel({
       break;
     case "diagnostics":
       sectionContent = <SettingsDiagnosticsPanel />;
+      break;
+    case "notifications":
+      sectionContent =
+        notificationHistoryQuery === undefined ? (
+          <p>{t("settings.notifications.unavailable")}</p>
+        ) : (
+          <SettingsNotificationHistoryPanel query={notificationHistoryQuery} />
+        );
       break;
     case "codecs":
       sectionContent = (
@@ -439,6 +496,7 @@ export function SettingsPanel({
       <SettingsSidebar
         activeSection={activeSection}
         expanded={sidebarExpanded}
+        sectionAvailability={sectionAvailability}
         onSectionChange={onSectionChange}
         onToggleExpanded={handleToggleSidebar}
       />

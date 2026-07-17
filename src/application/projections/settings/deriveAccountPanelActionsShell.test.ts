@@ -61,7 +61,7 @@ describe("deriveAccountPanelActionsShell", () => {
     });
   });
 
-  it("enables authorize when registered user switches to another profile", () => {
+  it("keeps authorize disabled when registered (no switch-account path)", () => {
     expect(
       deriveAccountPanelActionsShell({
         authUiState: "sip_registered",
@@ -69,10 +69,9 @@ describe("deriveAccountPanelActionsShell", () => {
         submitting: false,
         panelDisabled: false,
         sessionLogoutDisabledReason: null,
-        profileSwitchAllowed: true,
       }),
     ).toEqual({
-      authorizeDisabledReason: null,
+      authorizeDisabledReason: "account.actions.disabled.alreadyAuthorized",
       logoutDisabledReason: null,
     });
   });

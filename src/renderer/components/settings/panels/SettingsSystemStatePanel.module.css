@@ -1,3 +1,13 @@
+.system-state-tabs {
+  width: 100%;
+  margin-bottom: var(--space-sm);
+}
+
+.ocp-tab-trigger-wrap {
+  display: inline-flex;
+  min-width: 0;
+}
+
 .state-panel {
   display: flex;
   flex-direction: column;

@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  deriveOcpAuthorizationIndicatorTone,
+  deriveOcpServerIndicatorTone,
   deriveRegistrationIndicatorTone,
   deriveSummaryIndicatorTone,
   deriveTransportIndicatorTone,
@@ -28,5 +30,13 @@ describe("settingsSystemStatePanelHelpers", () => {
   it("detects interval below minimum", () => {
     expect(isIntervalBelowMinimum(4, 5)).toBe(true);
     expect(isIntervalBelowMinimum(5, 5)).toBe(false);
+  });
+
+  it("maps OCP server and authorization states to indicator tones", () => {
+    expect(deriveOcpServerIndicatorTone("connected")).toBe("positive");
+    expect(deriveOcpServerIndicatorTone("failed")).toBe("negative");
+    expect(deriveOcpAuthorizationIndicatorTone({ phase: "authorized" })).toBe("positive");
+    expect(deriveOcpAuthorizationIndicatorTone({ phase: "timeout" })).toBe("negative");
+    expect(deriveOcpAuthorizationIndicatorTone({ phase: "idle" })).toBe("neutral");
   });
 });

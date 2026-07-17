@@ -7,7 +7,10 @@ import {
 } from "@domain/index.js";
 import type { FileSystemPort } from "@ports/filesystem/FileSystemPort.js";
 import type { Logger } from "@ports/logging/Logger.js";
-import type { SavedAccountProfileRepository } from "@ports/settings/SavedAccountProfileRepository.js";
+import type {
+  SavedAccountProfileRepository,
+  SaveSavedAccountProfileOptions,
+} from "@ports/settings/SavedAccountProfileRepository.js";
 import { assertPersistedProfileJsonExcludesSecrets } from "./assertPersistedProfileJsonExcludesSecrets.js";
 import { InMemorySavedAccountProfileRepository } from "./InMemorySavedAccountProfileRepository.js";
 import {
@@ -33,6 +36,7 @@ export class FileSavedAccountProfileRepository implements SavedAccountProfileRep
   private readonly logger: Logger | undefined;
   private persistStateLoaded = false;
   private persistStateLoadPromise: Promise<void> | null = null;
+  private corruptDocumentDetected = false;
 
   constructor(options: FileSavedAccountProfileRepositoryOptions) {
     this.storageRoot = options.storageRoot;
@@ -45,23 +49,62 @@ export class FileSavedAccountProfileRepository implements SavedAccountProfileRep
     return this.memory.listProfiles();
   }
 
-  async saveProfile(input: SavedAccountProfileInput): Promise<SavedAccountProfile> {
+  async saveProfile(
+    input: SavedAccountProfileInput,
+    options?: SaveSavedAccountProfileOptions,
+  ): Promise<SavedAccountProfile> {
     await this.ensurePersistedStateLoaded();
-    const saved = await this.memory.saveProfile(input);
-    await this.persistProfilesDocument();
-    return saved;
+    const snapshot = await this.memory.listProfiles();
+    try {
+      const saved = await this.memory.saveProfile(input, options);
+      await this.persistProfilesDocument();
+      return saved;
+    } catch (error: unknown) {
+      this.memory.replaceProfiles(snapshot);
+      throw error;
+    }
   }
 
   async deleteProfile(profileId: SavedAccountProfileId): Promise<void> {
     await this.ensurePersistedStateLoaded();
-    await this.memory.deleteProfile(profileId);
-    await this.persistProfilesDocument();
+    const snapshot = await this.memory.listProfiles();
+    try {
+      await this.memory.deleteProfile(profileId);
+      await this.persistProfilesDocument();
+    } catch (error: unknown) {
+      this.memory.replaceProfiles(snapshot);
+      throw error;
+    }
   }
 
   async touchLastUsedAt(profileId: SavedAccountProfileId): Promise<void> {
     await this.ensurePersistedStateLoaded();
-    await this.memory.touchLastUsedAt(profileId);
-    await this.persistProfilesDocument();
+    const snapshot = await this.memory.listProfiles();
+    try {
+      await this.memory.touchLastUsedAt(profileId);
+      await this.persistProfilesDocument();
+    } catch (error: unknown) {
+      this.memory.replaceProfiles(snapshot);
+      throw error;
+    }
+  }
+
+  async markProfileSuccessful(
+    profileId: SavedAccountProfileId,
+    successfulUseAt: string,
+  ): Promise<SavedAccountProfile | null> {
+    await this.ensurePersistedStateLoaded();
+    const snapshot = await this.memory.listProfiles();
+    try {
+      const promoted = await this.memory.markProfileSuccessful(profileId, successfulUseAt);
+      if (promoted !== null) {
+        await this.persistProfilesDocument();
+      }
+      return promoted;
+    } catch (error: unknown) {
+      this.memory.replaceProfiles(snapshot);
+      throw error;
+    }
   }
 
   async getProfileById(profileId: SavedAccountProfileId): Promise<SavedAccountProfile | null> {
@@ -108,6 +151,7 @@ export class FileSavedAccountProfileRepository implements SavedAccountProfileRep
       resolveSavedAccountProfilesFilePath(this.storageRoot),
     );
     if (json === null) {
+      this.corruptDocumentDetected = false;
       return;
     }
 
@@ -115,20 +159,26 @@ export class FileSavedAccountProfileRepository implements SavedAccountProfileRep
     try {
       parsed = JSON.parse(json) as unknown;
     } catch {
+      this.corruptDocumentDetected = true;
       this.logCorruptDocument("invalid_json");
       return;
     }
 
     const documentResult = parsePersistedSavedAccountProfilesDocument(parsed);
     if (!documentResult.ok) {
+      this.corruptDocumentDetected = true;
       this.logCorruptDocument(documentResult.error.code);
       return;
     }
 
+    this.corruptDocumentDetected = false;
     this.memory.replaceProfiles(documentResult.value.profiles);
   }
 
   private async persistProfilesDocument(): Promise<void> {
+    if (this.corruptDocumentDetected) {
+      throw new Error("saved_account_profiles_document_requires_recovery");
+    }
     const profiles = await this.memory.listProfiles();
     const serialized = serializeSavedAccountProfilesDocument(profiles);
     assertPersistedProfileJsonExcludesSecrets(serialized);

@@ -2,6 +2,7 @@ declare const classes: {
   readonly actionTooltipHost: string;
   readonly actions: string;
   readonly actionsPasswordOnly: string;
+  readonly authProgress: string;
   readonly buttonWrap: string;
   readonly feedback: string;
   readonly feedbackError: string;
@@ -13,12 +14,19 @@ declare const classes: {
   readonly form: string;
   readonly input: string;
   readonly label: string;
-  readonly logoutAction: string;
+  readonly modeTabTrigger: string;
+  readonly modeTabs: string;
   readonly passwordField: string;
   readonly passwordInput: string;
   readonly passwordToggle: string;
   readonly passwordToggleIcon: string;
   readonly primaryAction: string;
+  readonly recoveryActions: string;
+  readonly retryAction: string;
   readonly saveProfileDisabled: string;
+  readonly startupRegistrationFailed: string;
+  readonly statusBlock: string;
+  readonly statusLabel: string;
+  readonly statusRow: string;
 };
 export default classes;

@@ -30,7 +30,7 @@ export type MigrateUserSettingsResult =
   | Readonly<{ ok: false; error: SettingsMigrationError }>;
 
 /**
- * - Purpose: upgrade persisted or in-memory settings to UserSettings v8.
+ * - Purpose: upgrade persisted or in-memory settings to UserSettings v9.
  * - Inputs: unknown raw blob and optional v0 legacy fragments.
  * - Outputs: migrated UserSettings or migration error.
  */
@@ -63,7 +63,14 @@ export function migrateUserSettings(
     return { ok: true, value: validated.value };
   }
 
-  if (version === 7 || version === 6 || version === 5 || version === 4 || version === 3) {
+  if (
+    version === 8 ||
+    version === 7 ||
+    version === 6 ||
+    version === 5 ||
+    version === 4 ||
+    version === 3
+  ) {
     return coerceToCurrentUserSettings(record);
   }
 
@@ -133,6 +140,10 @@ function coerceToCurrentUserSettings(
       typeof preferredRaw === "string" && preferredRaw.trim().length > 0
         ? preferredRaw.trim()
         : null,
+    notificationPopupEnabled:
+      typeof record["notificationPopupEnabled"] === "boolean"
+        ? record["notificationPopupEnabled"]
+        : true,
     preferredAudioInputDeviceId:
       typeof record["preferredAudioInputDeviceId"] === "string" ||
       record["preferredAudioInputDeviceId"] === null
@@ -186,6 +197,7 @@ function migrateV1ToCurrent(record: Record<string, unknown>): UserSettings {
     notificationDurationMs: defaults.notificationDurationMs,
     notificationClosable: defaults.notificationClosable,
     notificationMaxVisible: defaults.notificationMaxVisible,
+    notificationPopupEnabled: defaults.notificationPopupEnabled,
     multiSessionsEnabled: v1Validated.multiSessionsEnabled ?? defaults.multiSessionsEnabled,
     autoUnholdOnTransferFailure:
       v1Validated.autoUnholdOnTransferFailure ?? defaults.autoUnholdOnTransferFailure,

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { ActiveCallControlsProjection, HeadsetFaultReason } from "@application/index.js";
 import type { AccountAuthorizationErrorProjection } from "@application/projections/settings/mapAccountAuthorizationError.js";
 import type { TranslationKey } from "../i18n/messages.js";
@@ -16,6 +16,7 @@ type UseActionNotificationsInput = Readonly<{
     successKey: TranslationKey | null;
     warningKey: TranslationKey | null;
   }>;
+  onOpenSystemState?: () => void;
   callControls: Readonly<{
     projection: ActiveCallControlsProjection;
     onRetry: () => void;
@@ -82,6 +83,7 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
   const {
     notifications,
     accountFeedback,
+    onOpenSystemState,
     callControls,
     dtmfError,
     transferFailure,
@@ -92,6 +94,8 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
     headsetFault,
   } = input;
   const { notify } = notifications;
+  const openSystemStateRef = useRef(onOpenSystemState);
+  openSystemStateRef.current = onOpenSystemState;
   const {
     projection: callControlsProjection,
     onRetry: retryCallOperation,
@@ -106,6 +110,8 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
     notify({
       level: "success",
       messageKey: accountFeedback.successKey,
+      module: "account",
+      functionId: "account.sign_in",
     });
   }, [accountFeedback.successKey, notify]);
 
@@ -116,6 +122,8 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
     notify({
       level: "warning",
       messageKey: accountFeedback.warningKey,
+      module: "account",
+      functionId: "account.sign_in_metadata",
     });
   }, [accountFeedback.warningKey, notify]);
 
@@ -123,7 +131,26 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
     if (accountError === null) {
       return;
     }
-    notify(buildAccountErrorDescriptor(accountError));
+    notify({
+      ...buildAccountErrorDescriptor(accountError),
+      module: "account",
+      functionId: "account.sign_in",
+    });
+    if (openSystemStateRef.current !== undefined) {
+      notify({
+        level: "info",
+        messageKey: "account.notification.openSystemState",
+        module: "account",
+        functionId: "account.open_system_state",
+        action: {
+          id: "account-open-system-state",
+          labelKey: "account.notification.openSystemStateAction",
+          onClick: () => {
+            openSystemStateRef.current?.();
+          },
+        },
+      });
+    }
   }, [accountError, notify]);
 
   useEffect(() => {
@@ -133,6 +160,8 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
     notify({
       level: "error",
       messageText: lastOperationError.message,
+      module: "telephony",
+      functionId: `call.${lastOperationError.operation}`,
       action: {
         id: `retry-call-${lastOperationError.operation}`,
         labelKey: "common.retry",
@@ -148,6 +177,8 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
     notify({
       level: "error",
       messageText: dtmfError,
+      module: "telephony",
+      functionId: "call.dtmf",
     });
   }, [dtmfError, notify]);
 
@@ -158,6 +189,8 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
     notify({
       level: "error",
       messageText: transferFailure,
+      module: "telephony",
+      functionId: "call.transfer",
     });
   }, [notify, transferFailure]);
 
@@ -168,6 +201,8 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
     notify({
       level: "error",
       messageText: logoutErrorMessage,
+      module: "account",
+      functionId: "account.logout",
     });
   }, [logoutErrorMessage, notify]);
 
@@ -178,6 +213,8 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
     notify({
       level: "error",
       messageText: settingsUpdateError,
+      module: "settings",
+      functionId: "settings.update",
     });
   }, [notify, settingsUpdateError]);
 
@@ -188,6 +225,8 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
     notify({
       level: "success",
       messageKey: sipActionSuccessKey,
+      module: "telephony",
+      functionId: "sip.recovery",
     });
   }, [notify, sipActionSuccessKey]);
 
@@ -198,6 +237,8 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
     notify({
       level: "error",
       messageText: sipActionErrorText,
+      module: "telephony",
+      functionId: "sip.recovery",
     });
   }, [notify, sipActionErrorText]);
 
@@ -208,6 +249,8 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
     notify({
       level: headsetFaultLevel(headsetFault.reason),
       messageKey: mapHeadsetFaultMessageKey(headsetFault.reason),
+      module: "headset",
+      functionId: "headset.fault",
     });
   }, [headsetFault.occurredAt, headsetFault.reason, notify]);
 }

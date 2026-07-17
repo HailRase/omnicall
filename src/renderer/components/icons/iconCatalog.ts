@@ -27,6 +27,7 @@ import {
   MicOff,
   Minus,
   Pause,
+  PanelLeft,
   Phone,
   PhoneCall,
   PhoneForwarded,
@@ -55,6 +56,7 @@ import {
 import {
   ActivityIcon,
   AudioLinesIcon,
+  BellIcon,
   CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -105,6 +107,7 @@ export type IconSemanticId =
   | "settings.headset"
   | "settings.integrations"
   | "settings.integrations.ocp"
+  | "settings.notifications"
   | "settings.nav.expand"
   | "settings.nav.collapse"
   | "session.end"
@@ -142,6 +145,7 @@ export type IconSemanticId =
   | "transfer.consultation"
   | "connection.retry"
   | "ui.select.chevron"
+  | "ui.sidebar.toggle"
   | "phone.dnd.on"
   | "phone.dnd.off"
   | "updates.available"
@@ -287,6 +291,13 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.settings.integrations.ocp",
     defaultSize: 18,
     usage: ["SettingsSidebar: settings-nav-integrations-ocp"],
+  },
+  "settings.notifications": {
+    static: Bell,
+    animated: BellIcon,
+    defaultLabelKey: "icons.settings.notifications",
+    defaultSize: 20,
+    usage: ["SettingsSidebar: settings-nav-notifications"],
   },
   "settings.nav.expand": {
     static: ChevronRight,
@@ -549,7 +560,16 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     static: ChevronDown,
     defaultLabelKey: "icons.ui.select.chevron",
     defaultSize: 16,
-    usage: ["Select: select-trigger-chevron"],
+    usage: [
+      "Select: select-trigger-chevron",
+      "OverwriteSavedAccountCredentialsConfirmationModal: more-actions",
+    ],
+  },
+  "ui.sidebar.toggle": {
+    static: PanelLeft,
+    defaultLabelKey: "icons.ui.sidebar.toggle",
+    defaultSize: 16,
+    usage: ["Sidebar: SidebarTrigger"],
   },
   "phone.dnd.on": {
     static: Bell,

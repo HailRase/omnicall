@@ -1,31 +1,38 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } from "react";
-import type {
-  AccountBootstrapFacade,
-  AuthorizeAccountOutcome,
-} from "@application/facades/AccountBootstrapFacade.js";
+import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
+import type { AccountSignInViewModel } from "@application/projections/settings/accountSignInViewModel.js";
+import { initialAuthorizationProgressProjection } from "@application/projections/settings/authorizationProgressProjection.js";
 import { deriveSavedAccountProfileSelectorOptions } from "@application/projections/settings/deriveSavedAccountProfileSelectorOptions.js";
 import type { SavedAccountProfileSelectorOption } from "@application/projections/settings/deriveSavedAccountProfileSelectorOptions.js";
-import { deriveSavedProfileCredentialPromptState } from "@application/projections/settings/deriveSavedProfileCredentialPromptState.js";
 import {
   deriveSavedProfilePanelMode,
   type SavedProfilePanelMode,
 } from "@application/projections/settings/deriveSavedProfilePanelMode.js";
-import { formatAccountSwitchLoginLabel } from "@application/projections/settings/formatAccountSwitchLoginLabel.js";
-import { resolveAccountAuthorizeTargetIdentity } from "@application/projections/settings/resolveAccountAuthorizeTargetIdentity.js";
 import {
   mapAccountAuthorizationError,
   type AccountAuthorizationErrorProjection,
 } from "@application/projections/settings/mapAccountAuthorizationError.js";
-import { shouldRevealPasswordEntryAfterRememberedSignInFailure } from "@application/projections/settings/shouldRevealPasswordEntryAfterRememberedSignInFailure.js";
-import type { SipAccountInput, SavedAccountProfile, SavedAccountProfileId } from "@application/index.js";
+import type {
+  OcpRecoveryAction,
+  SipAccountInput,
+  SavedAccountProfile,
+  SavedAccountProfileId,
+} from "@application/index.js";
 import {
   findSavedAccountProfileByInput,
-  matchesSipAccountIdentity,
   type SettingsAccountIdentity,
 } from "@application/projections/settings/savedProfileIdentity.js";
 import { isErr } from "@shared/result/index.js";
 import { readSipEnvDefaults } from "../bootstrap/readSipEnvDefaults.js";
 import type { TranslationKey } from "../i18n/messages.js";
+import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
+import {
+  buildAccountSignInCommand,
+  deriveOcpConfigFieldVisibility,
+  resolveMetadataWarningKey,
+  type AccountUiSignInMode,
+  type OcpDraftFields,
+} from "./accountActionsHelpers.js";
 
 const EMPTY_FORM: SipAccountInput = {
   username: "",
@@ -34,13 +41,32 @@ const EMPTY_FORM: SipAccountInput = {
   server: "",
 };
 
-const ACCOUNT_SUCCESS_KEY = "account.success.authorizationSucceeded" as const;
+const EMPTY_OCP: OcpDraftFields = {
+  login: "",
+  domain: "",
+  apiKey: "",
+};
+
+const SIP_SUCCESS_KEY = "account.success.sipRegistrationSucceeded" as const;
+const OCP_SUCCESS_KEY = "account.success.ocpAndSipReady" as const;
+const PROFILE_OVERWRITE_SUCCESS_KEY = "account.success.profileUpdated" as const;
 const ACCOUNT_ERROR_UNKNOWN_KEY = "account.error.authorizationFailed" as const;
-const PROFILE_SAVE_WARNING_KEY = "account.warning.profileSaveFailed" as const;
-const PROFILE_TOUCH_WARNING_KEY = "account.warning.profileTouchFailed" as const;
-const PASSWORD_SAVE_WARNING_KEY = "account.warning.passwordSaveFailed" as const;
 const FEEDBACK_CLEAR_MS = 3200;
 const NEW_PROFILE_SELECTION = null;
+
+const EMPTY_SIGN_IN_VM: AccountSignInViewModel = {
+  isSipRegistered: false,
+  hasActiveAccountSession: false,
+  loginDisabledReason: null,
+  sipProfileOptions: [],
+  ocpProfileOptions: [],
+  selectedProfile: null,
+  serverState: "disconnected",
+  authorizationState: { phase: "idle" },
+  authorizationProgress: initialAuthorizationProgressProjection(),
+  primaryRecoveryAction: null,
+  allowedRecoveryActions: [],
+};
 
 function isSameSipAccountInput(left: SipAccountInput, right: SipAccountInput): boolean {
   return (
@@ -55,7 +81,6 @@ function deriveSettingsIdentitySyncKey(identity: SettingsAccountIdentity | null)
   if (identity === null) {
     return null;
   }
-
   return `${identity.username}\u0000${identity.domain}\u0000${identity.server}`;
 }
 
@@ -66,36 +91,29 @@ function buildInitialForm(): SipAccountInput {
   };
 }
 
-function resolveMetadataWarningKey(
-  outcome: AuthorizeAccountOutcome,
-): TranslationKey | null {
-  if (outcome.metadataWarning === "profile_save_failed") {
-    return PROFILE_SAVE_WARNING_KEY;
-  }
-  if (outcome.metadataWarning === "profile_touch_failed") {
-    return PROFILE_TOUCH_WARNING_KEY;
-  }
-  if (outcome.metadataWarning === "password_save_failed") {
-    return PASSWORD_SAVE_WARNING_KEY;
-  }
-  return null;
-}
-
-function resolveSubmitTargetIdentity(
-  form: SipAccountInput,
-  selectedProfile: SavedAccountProfile | null,
-): SettingsAccountIdentity | null {
-  return resolveAccountAuthorizeTargetIdentity(form, selectedProfile);
-}
+export type AccountActionsFacadeBinding = Pick<
+  AccountBootstrapFacade,
+  | "listSavedAccountProfiles"
+  | "signInAccount"
+  | "getAccountSignInViewModel"
+  | "dispatchAccountRecoveryAction"
+  | "deleteSavedAccountProfile"
+  | "hasRememberedSipPassword"
+  | "loadSavedAccountProfileSecrets"
+  | "forgetRememberedSipPassword"
+  | "getActiveSipAccount"
+>;
 
 type UseAccountActionsInput = Readonly<{
-  facade: AccountBootstrapFacade | null;
+  facade: AccountActionsFacadeBinding | null;
   isSipRegistered?: boolean;
   registeredIdentity?: SettingsAccountIdentity | null;
 }>;
 
 type UseAccountActionsResult = Readonly<{
   form: SipAccountInput;
+  ocpDraft: OcpDraftFields;
+  signInMode: AccountUiSignInMode;
   submitting: boolean;
   error: AccountAuthorizationErrorProjection | null;
   successKey: TranslationKey | null;
@@ -109,37 +127,46 @@ type UseAccountActionsResult = Readonly<{
   rememberPasswordChecked: boolean;
   passwordFieldVisible: boolean;
   rememberPasswordVisible: boolean;
-  forgetRememberedPasswordVisible: boolean;
   rememberPasswordDisabled: boolean;
-  rememberPasswordDisabledReasonKey: TranslationKey | null;
   passwordHintKey: TranslationKey | null;
-  authorizeViaOcpVisible: boolean;
-  authorizeViaOcpChecked: boolean;
-  profileSwitchAllowed: boolean;
+  showOcpDomainField: boolean;
+  showOcpApiKeyField: boolean;
+  hasSavedOcpApiKey: boolean;
+  canForgetSavedSipPassword: boolean;
+  loginDisabledReasonKey: TranslationKey | null;
+  serverState: AccountSignInViewModel["serverState"];
+  authorizationState: AccountSignInViewModel["authorizationState"];
+  authorizationProgress: AccountSignInViewModel["authorizationProgress"];
+  allowedRecoveryActions: ReadonlyArray<OcpRecoveryAction>;
   deleteConfirmationOpen: boolean;
-  switchConfirmationOpen: boolean;
-  switchFromLogin: string;
-  switchToLogin: string;
+  deleteSubmitting: boolean;
+  overwriteConfirmationOpen: boolean;
+  draftDiscardConfirmationOpen: boolean;
   passwordInputRef: RefObject<HTMLInputElement | null>;
   updateField: (field: keyof SipAccountInput, value: string) => void;
+  updateOcpField: (field: keyof OcpDraftFields, value: string) => void;
+  setSignInMode: (mode: AccountUiSignInMode) => void;
   handleSubmit: () => void;
   selectProfile: (profileId: SavedAccountProfileId | null) => void;
   setSaveProfileChecked: (checked: boolean) => void;
   setRememberPasswordChecked: (checked: boolean) => void;
-  setAuthorizeViaOcpChecked: (checked: boolean) => void;
-  forgetRememberedPassword: () => void;
   requestDeleteSelectedProfile: (profileId: SavedAccountProfileId) => void;
   confirmDeleteSelectedProfile: () => void;
   cancelDeleteSelectedProfile: () => void;
-  confirmSwitchProfile: () => void;
-  cancelSwitchProfile: () => void;
+  confirmOverwriteExistingCredentials: () => void;
+  continueWithoutOverwritingCredentials: () => void;
+  cancelOverwriteExistingCredentials: () => void;
+  confirmDiscardDraftAndSelectProfile: () => void;
+  cancelDiscardDraft: () => void;
   reloadSavedProfiles: () => void;
+  handleRecoveryAction: (action: OcpRecoveryAction) => void;
+  forgetSavedSipPassword: () => void;
 }>;
 
 /**
- * - Purpose: bind SIP account form UI to saved-profile and manual authorize facade methods.
- * - Inputs: account bootstrap facade, SIP registration flag, and registered identity projection.
- * - Outputs: form state, saved profile tab state, submit handlers, and confirmation modal flags.
+ * - Purpose: bind Account form UI to Facade signInAccount / recovery / profile VMs (WU-04).
+ * - Inputs: account bootstrap facade, SIP registration flag, registered identity.
+ * - Outputs: form state, mode, OCP draft, recovery actions — no switch/logout/generic retry.
  */
 export function useAccountActions(input: UseAccountActionsInput): UseAccountActionsResult {
   const {
@@ -148,6 +175,8 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     registeredIdentity = null,
   } = input;
   const [form, setForm] = useState<SipAccountInput>(buildInitialForm);
+  const [ocpDraft, setOcpDraft] = useState<OcpDraftFields>(EMPTY_OCP);
+  const [signInMode, setSignInModeState] = useState<AccountUiSignInMode>("sip_only");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<AccountAuthorizationErrorProjection | null>(null);
   const [successKey, setSuccessKey] = useState<TranslationKey | null>(null);
@@ -158,23 +187,39 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
   );
   const [saveProfileChecked, setSaveProfileChecked] = useState(false);
   const [rememberPasswordChecked, setRememberPasswordChecked] = useState(false);
-  const [hasRememberedPassword, setHasRememberedPassword] = useState(false);
-  const [authorizeViaOcpAvailable, setAuthorizeViaOcpAvailable] = useState(false);
-  const [authorizeViaOcpChecked, setAuthorizeViaOcpChecked] = useState(false);
-  const [forcePasswordEntryForSelectedProfile, setForcePasswordEntryForSelectedProfile] =
-    useState(false);
   const [deleteConfirmationOpen, setDeleteConfirmationOpen] = useState(false);
-  const [switchConfirmationOpen, setSwitchConfirmationOpen] = useState(false);
-  const [switchFromLogin, setSwitchFromLogin] = useState("");
-  const [switchToLogin, setSwitchToLogin] = useState("");
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
   const [deleteTargetProfileId, setDeleteTargetProfileId] =
     useState<SavedAccountProfileId | null>(null);
+  const [overwriteConfirmationOpen, setOverwriteConfirmationOpen] = useState(false);
+  const [pendingProfileSelection, setPendingProfileSelection] =
+    useState<SavedAccountProfileId | null>(null);
+  const [draftDiscardConfirmationOpen, setDraftDiscardConfirmationOpen] =
+    useState(false);
+  const [signInViewModel, setSignInViewModel] =
+    useState<AccountSignInViewModel>(EMPTY_SIGN_IN_VM);
   const feedbackClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const passwordInputRef = useRef<HTMLInputElement | null>(null);
+  const profileSelectionGenerationRef = useRef(0);
+  const loadedProfileSecretsRef = useRef<Readonly<{
+    sipPassword: string;
+    ocpApiKey: string;
+  }>>({ sipPassword: "", ocpApiKey: "" });
+  const initialFormRef = useRef<SipAccountInput>(buildInitialForm());
   const wasSipRegisteredRef = useRef(false);
-  const suppressRegistrationEndResetRef = useRef(false);
   const savedProfilesByIdRef = useRef<ReadonlyMap<SavedAccountProfileId, SavedAccountProfile>>(
     new Map(),
+  );
+
+  const ocpServerState = useAccountBootstrapStore(
+    (state) => state.ocpSessionProjection.serverState,
+  );
+  const ocpAuthorizationPhase = useAccountBootstrapStore(
+    (state) => state.ocpSessionProjection.authorizationState.phase,
+  );
+  // Login lock follows ADR-AF-005 account session — refresh after avatar logout.
+  const hasActiveAccountSession = useAccountBootstrapStore(
+    (state) => state.projection.hasActiveAccountSession,
   );
 
   const savedProfileOptions = deriveSavedAccountProfileSelectorOptions(savedProfiles);
@@ -200,40 +245,47 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
       }),
     [form.domain, form.server, form.username, savedProfiles],
   );
+  const selectedProfileMetadataChanged =
+    selectedProfile !== null &&
+    (selectedProfile.username !== form.username ||
+      selectedProfile.domain !== form.domain ||
+      selectedProfile.server !== form.server);
+  const selectedProfileCredentialsChanged =
+    selectedProfile !== null &&
+    (form.password !== loadedProfileSecretsRef.current.sipPassword ||
+      ocpDraft.apiKey !== loadedProfileSecretsRef.current.ocpApiKey);
+  const selectedProfileHasChanges =
+    selectedProfileMetadataChanged ||
+    selectedProfileCredentialsChanged ||
+    (selectedProfile !== null &&
+      (selectedProfile.ocpDomain ?? "") !== ocpDraft.domain.trim());
 
-  const saveProfileDisabled = duplicateSavedProfile !== null;
+  const saveProfileDisabled = duplicateSavedProfile !== null && selectedProfileId === null;
   const saveProfileDisabledReasonKey: TranslationKey | null = saveProfileDisabled
     ? "account.profile.saveCheckbox.duplicate"
     : null;
 
-  const credentialPromptState = deriveSavedProfileCredentialPromptState({
-    panelMode,
-    hasRememberedPassword,
-    forcePasswordEntry: forcePasswordEntryForSelectedProfile,
-  });
-
-  const authorizeViaOcpVisible =
-    authorizeViaOcpAvailable && selectedProfileId !== null && !isSipRegistered;
-  const passwordFieldVisible =
-    authorizeViaOcpVisible && authorizeViaOcpChecked
-      ? false
-      : credentialPromptState.passwordFieldVisible;
-  const rememberPasswordVisible =
-    authorizeViaOcpVisible && authorizeViaOcpChecked
-      ? false
-      : credentialPromptState.rememberPasswordVisible;
-  const forgetRememberedPasswordVisible =
-    authorizeViaOcpVisible && authorizeViaOcpChecked
-      ? false
-      : credentialPromptState.forgetRememberedPasswordVisible;
-  const passwordHintKey: TranslationKey | null =
-    authorizeViaOcpVisible && authorizeViaOcpChecked
-      ? null
-      : credentialPromptState.passwordHintKey;
+  const passwordFieldVisible = signInMode === "sip_only";
+  const rememberPasswordVisible = selectedProfileId === null;
+  const passwordHintKey: TranslationKey | null = null;
   const rememberPasswordDisabled =
     panelMode === "newFull" && !saveProfileChecked;
-  const rememberPasswordDisabledReasonKey: TranslationKey | null =
-    rememberPasswordDisabled ? "account.profile.rememberPassword.disabledRequiresSave" : null;
+
+  const ocpFieldVisibility = deriveOcpConfigFieldVisibility({
+    selectedProfileId,
+    hasCompleteOcpConfiguration:
+      signInViewModel.selectedProfile?.hasCompleteOcpConfiguration === true,
+    hasSavedOcpApiKey: signInViewModel.selectedProfile?.hasSavedOcpApiKey === true,
+    ocpDomain:
+      signInViewModel.selectedProfile?.ocpDomain ??
+      selectedProfile?.ocpDomain,
+  });
+
+  const loginDisabledReasonKey: TranslationKey | null =
+    signInViewModel.loginDisabledReason ??
+    (signInViewModel.hasActiveAccountSession || isSipRegistered
+      ? "account.signIn.disabled.logoutFirst"
+      : null);
 
   const clearFeedbackTimer = useCallback((): void => {
     if (feedbackClearTimerRef.current !== null) {
@@ -265,6 +317,28 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     clearFeedbackTimer();
   }, [clearFeedbackTimer]);
 
+  const refreshSignInViewModel = useCallback((): void => {
+    if (facade === null) {
+      setSignInViewModel({
+        ...EMPTY_SIGN_IN_VM,
+        isSipRegistered,
+        hasActiveAccountSession: isSipRegistered,
+        loginDisabledReason: isSipRegistered
+          ? "account.signIn.disabled.logoutFirst"
+          : null,
+      });
+      return;
+    }
+
+    void facade
+      .getAccountSignInViewModel({ selectedProfileId })
+      .then((result) => {
+        if (result.ok) {
+          setSignInViewModel(result.value);
+        }
+      });
+  }, [facade, isSipRegistered, selectedProfileId]);
+
   const reloadSavedProfiles = useCallback((): void => {
     if (facade === null) {
       setSavedProfiles([]);
@@ -276,60 +350,95 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
       if (!result.ok) {
         return;
       }
-
       setSavedProfiles(result.value);
       savedProfilesByIdRef.current = new Map(
         result.value.map((profile) => [profile.id, profile] as const),
       );
+      refreshSignInViewModel();
     });
-  }, [facade]);
+  }, [facade, refreshSignInViewModel]);
 
   useEffect(() => {
     reloadSavedProfiles();
   }, [reloadSavedProfiles]);
 
+  useEffect(() => {
+    refreshSignInViewModel();
+  }, [
+    refreshSignInViewModel,
+    ocpServerState,
+    ocpAuthorizationPhase,
+    hasActiveAccountSession,
+  ]);
+
   const resetToNewProfile = useCallback((): void => {
+    profileSelectionGenerationRef.current += 1;
     setSelectedProfileId(NEW_PROFILE_SELECTION);
+    loadedProfileSecretsRef.current = { sipPassword: "", ocpApiKey: "" };
     setSaveProfileChecked(false);
     setRememberPasswordChecked(false);
-    setHasRememberedPassword(false);
-    setForcePasswordEntryForSelectedProfile(false);
     setForm(buildInitialForm());
+    setOcpDraft(EMPTY_OCP);
     clearFeedback();
   }, [clearFeedback]);
 
   useEffect(() => {
     if (wasSipRegisteredRef.current && !isSipRegistered) {
-      if (!suppressRegistrationEndResetRef.current) {
-        resetToNewProfile();
-      } else {
-        setForm((current) => ({
-          ...current,
-          password: "",
-        }));
-      }
+      resetToNewProfile();
     }
     wasSipRegisteredRef.current = isSipRegistered;
   }, [isSipRegistered, resetToNewProfile]);
 
-  const applySavedProfileSelection = useCallback((profileId: SavedAccountProfileId): void => {
-    const profile = savedProfilesByIdRef.current.get(profileId);
-    if (profile === undefined) {
-      return;
-    }
+  const applySavedProfileSelection = useCallback(
+    (profileId: SavedAccountProfileId): void => {
+      const profile = savedProfilesByIdRef.current.get(profileId);
+      if (profile === undefined) {
+        return;
+      }
 
-    setSelectedProfileId(profileId);
-    setSaveProfileChecked(false);
-    setRememberPasswordChecked(false);
-    setForcePasswordEntryForSelectedProfile(false);
-    setForm({
-      username: profile.username,
-      password: "",
-      domain: profile.domain,
-      server: profile.server,
-    });
-    clearFeedback();
-  }, [clearFeedback]);
+      setSelectedProfileId(profileId);
+      loadedProfileSecretsRef.current = { sipPassword: "", ocpApiKey: "" };
+      setSaveProfileChecked(false);
+      setRememberPasswordChecked(false);
+      setForm({
+        username: profile.username,
+        password: "",
+        domain: profile.domain,
+        server: profile.server,
+      });
+      setOcpDraft({
+        login: profile.username,
+        domain: profile.ocpDomain ?? "",
+        apiKey: "",
+      });
+      clearFeedback();
+      const selectionGeneration = profileSelectionGenerationRef.current + 1;
+      profileSelectionGenerationRef.current = selectionGeneration;
+      if (facade !== null) {
+        void facade.loadSavedAccountProfileSecrets(profileId).then((result) => {
+          if (
+            profileSelectionGenerationRef.current !== selectionGeneration ||
+            !result.ok
+          ) {
+            return;
+          }
+          loadedProfileSecretsRef.current = {
+            sipPassword: result.value.sipPassword ?? "",
+            ocpApiKey: result.value.ocpApiKey ?? "",
+          };
+          setForm((current) => ({
+            ...current,
+            password: result.value.sipPassword ?? "",
+          }));
+          setOcpDraft((current) => ({
+            ...current,
+            apiKey: result.value.ocpApiKey ?? "",
+          }));
+        });
+      }
+    },
+    [clearFeedback, facade],
+  );
 
   const selectProfile = useCallback(
     (profileId: SavedAccountProfileId | null): void => {
@@ -337,39 +446,115 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
         resetToNewProfile();
         return;
       }
-
+      const hasDirtyDraft =
+        selectedProfileId === null &&
+        (!isSameSipAccountInput(form, initialFormRef.current) ||
+          ocpDraft.login.length > 0 ||
+          ocpDraft.domain.length > 0 ||
+          ocpDraft.apiKey.length > 0 ||
+          saveProfileChecked ||
+          rememberPasswordChecked);
+      if (hasDirtyDraft) {
+        setPendingProfileSelection(profileId);
+        setDraftDiscardConfirmationOpen(true);
+        return;
+      }
       applySavedProfileSelection(profileId);
     },
-    [applySavedProfileSelection, resetToNewProfile],
+    [
+      applySavedProfileSelection,
+      form,
+      ocpDraft,
+      rememberPasswordChecked,
+      resetToNewProfile,
+      saveProfileChecked,
+      selectedProfileId,
+    ],
   );
 
-  const updateField = useCallback(
-    (field: keyof SipAccountInput, value: string): void => {
-      if (
-        selectedProfileId !== null &&
-        (field === "username" || field === "domain" || field === "server")
-      ) {
-        const profile = savedProfilesByIdRef.current.get(selectedProfileId);
-        if (profile !== undefined && profile[field] !== value) {
-          setSelectedProfileId(NEW_PROFILE_SELECTION);
-          setSaveProfileChecked(false);
-          setRememberPasswordChecked(false);
-          setHasRememberedPassword(false);
-          setForcePasswordEntryForSelectedProfile(false);
-        }
-      }
+  const confirmDiscardDraftAndSelectProfile = useCallback((): void => {
+    if (pendingProfileSelection !== null) {
+      applySavedProfileSelection(pendingProfileSelection);
+    }
+    setPendingProfileSelection(null);
+    setDraftDiscardConfirmationOpen(false);
+  }, [applySavedProfileSelection, pendingProfileSelection]);
 
+  const cancelDiscardDraft = useCallback((): void => {
+    setPendingProfileSelection(null);
+    setDraftDiscardConfirmationOpen(false);
+  }, []);
+
+  const setSignInMode = useCallback(
+    (mode: AccountUiSignInMode): void => {
+      setSignInModeState(mode);
+      const selectedSecrets =
+        selectedProfileId === null
+          ? { sipPassword: "", ocpApiKey: "" }
+          : loadedProfileSecretsRef.current;
       setForm((current) => ({
         ...current,
-        [field]: value,
+        password: selectedSecrets.sipPassword,
       }));
+      setOcpDraft((current) => ({
+        ...current,
+        apiKey: selectedSecrets.ocpApiKey,
+      }));
+      // Mode-local secrets/opt-ins must not leak across SIP-only ↔ OCP validation.
+      if (mode === "ocp") {
+        setRememberPasswordChecked(false);
+      }
       clearFeedback();
     },
     [clearFeedback, selectedProfileId],
   );
 
-  const executeAuthorize = useCallback((): void => {
-    if (facade === null || submitting) {
+  const updateField = useCallback(
+    (field: keyof SipAccountInput, value: string): void => {
+      setForm((current) => ({
+        ...current,
+        [field]: value,
+      }));
+      if (field === "username") {
+        setOcpDraft((current) => ({ ...current, login: value }));
+      }
+      clearFeedback();
+    },
+    [clearFeedback],
+  );
+
+  const updateOcpField = useCallback(
+    (field: keyof OcpDraftFields, value: string): void => {
+      setOcpDraft((current) => ({
+        ...current,
+        [field]: value,
+      }));
+      if (field === "login") {
+        setForm((current) => ({ ...current, username: value }));
+      }
+      clearFeedback();
+    },
+    [clearFeedback],
+  );
+
+  const handleSubmit = useCallback((
+    overwriteExistingCredentials = false,
+    skipOverwritePrompt = false,
+  ): void => {
+    if (facade === null || submitting || loginDisabledReasonKey !== null) {
+      return;
+    }
+    if (
+      !skipOverwritePrompt &&
+      ((selectedProfileId === null &&
+        duplicateSavedProfile !== null &&
+        (saveProfileChecked ||
+          rememberPasswordChecked ||
+          form.password.trim().length > 0 ||
+          ocpDraft.apiKey.trim().length > 0)) ||
+        (selectedProfileId !== null && selectedProfileHasChanges))
+    ) {
+      setOverwriteConfirmationOpen(true);
       return;
     }
 
@@ -377,126 +562,98 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
       setSubmitting(true);
       clearFeedback();
 
-      const usedRememberedPasswordSignIn =
-        selectedProfileId !== null && !passwordFieldVisible && !authorizeViaOcpChecked;
-
       try {
-        if (
-          authorizeViaOcpVisible &&
-          authorizeViaOcpChecked &&
-          selectedProfileId !== null
-        ) {
-          const login = (selectedProfile?.username ?? form.username).trim();
-          const ocpResult = await facade.signInViaOcp({
-            login,
-            accountKey: selectedProfileId,
-          });
-          if (isErr(ocpResult)) {
-            // SESSION_EXIST / timeout / HTTP errors surface via OCP authFeedback toasts.
-            scheduleFeedbackClear();
-            return;
-          }
-          setSuccessKey(ACCOUNT_SUCCESS_KEY);
-          scheduleFeedbackClear();
-          reloadSavedProfiles();
-          return;
-        }
+        const command = buildAccountSignInCommand({
+          mode: signInMode,
+          selectedProfileId,
+          form,
+          ocp: ocpDraft,
+          saveProfile: saveProfileChecked,
+          rememberPassword: rememberPasswordChecked,
+          passwordFieldVisible,
+          showOcpDomain: ocpFieldVisibility.showDomain,
+          showOcpApiKey: ocpFieldVisibility.showApiKey,
+          ...(overwriteExistingCredentials ? { overwriteExistingCredentials: true } : {}),
+          ...(selectedProfileMetadataChanged
+            ? { authenticateAsNewDraft: true }
+            : {}),
+        });
 
-        const result =
-          selectedProfileId === null
-            ? await facade.authorizeManualAccount(form, {
-                saveProfile: saveProfileChecked,
-                rememberPassword: rememberPasswordChecked,
-              })
-            : await facade.authorizeSavedAccountProfile(
-                selectedProfileId,
-                usedRememberedPasswordSignIn ? "" : form.password,
-                {
-                  rememberPassword: usedRememberedPasswordSignIn
-                    ? false
-                    : rememberPasswordChecked,
-                },
-              );
-
+        const result = await facade.signInAccount(command);
         if (isErr(result)) {
-          if (
-            usedRememberedPasswordSignIn &&
-            shouldRevealPasswordEntryAfterRememberedSignInFailure(result.error)
-          ) {
-            setForcePasswordEntryForSelectedProfile(true);
+          if (overwriteExistingCredentials) {
+            setOverwriteConfirmationOpen(false);
           }
           setError(mapAccountAuthorizationError(result.error));
-          scheduleFeedbackClear();
           return;
         }
 
-        setSuccessKey(ACCOUNT_SUCCESS_KEY);
+        if (
+          overwriteExistingCredentials &&
+          selectedProfileMetadataChanged &&
+          selectedProfileId !== null
+        ) {
+          const deleteResult = await facade.deleteSavedAccountProfile(selectedProfileId);
+          if (isErr(deleteResult)) {
+            setWarningKey("account.warning.profileTouchFailed");
+          }
+        }
+
+        setSuccessKey(
+          overwriteExistingCredentials
+            ? PROFILE_OVERWRITE_SUCCESS_KEY
+            : signInMode === "ocp"
+              ? OCP_SUCCESS_KEY
+              : SIP_SUCCESS_KEY,
+        );
+        if (overwriteExistingCredentials) {
+          setOverwriteConfirmationOpen(false);
+        }
         setWarningKey(resolveMetadataWarningKey(result.value));
         scheduleFeedbackClear();
         reloadSavedProfiles();
       } catch {
+        if (overwriteExistingCredentials) {
+          setOverwriteConfirmationOpen(false);
+        }
         setError({ key: ACCOUNT_ERROR_UNKNOWN_KEY });
-        scheduleFeedbackClear();
       } finally {
-        suppressRegistrationEndResetRef.current = false;
         setSubmitting(false);
       }
     })();
   }, [
-    authorizeViaOcpChecked,
-    authorizeViaOcpVisible,
-    facade,
-    form,
-    reloadSavedProfiles,
-    saveProfileChecked,
-    rememberPasswordChecked,
-    scheduleFeedbackClear,
-    passwordFieldVisible,
-    selectedProfile,
-    selectedProfileId,
-    submitting,
     clearFeedback,
-  ]);
-
-  const handleSubmit = useCallback((): void => {
-    if (facade === null || submitting) {
-      return;
-    }
-
-    const targetIdentity = resolveSubmitTargetIdentity(form, selectedProfile);
-    if (
-      isSipRegistered &&
-      registeredIdentity !== null &&
-      targetIdentity !== null &&
-      !matchesSipAccountIdentity(registeredIdentity, targetIdentity)
-    ) {
-      setSwitchFromLogin(formatAccountSwitchLoginLabel(registeredIdentity, savedProfiles));
-      setSwitchToLogin(formatAccountSwitchLoginLabel(targetIdentity, savedProfiles));
-      setSwitchConfirmationOpen(true);
-      return;
-    }
-
-    executeAuthorize();
-  }, [
-    executeAuthorize,
+    duplicateSavedProfile,
     facade,
     form,
-    isSipRegistered,
-    registeredIdentity,
-    savedProfiles,
-    selectedProfile,
+    loginDisabledReasonKey,
+    ocpDraft,
+    ocpFieldVisibility.showApiKey,
+    ocpFieldVisibility.showDomain,
+    passwordFieldVisible,
+    reloadSavedProfiles,
+    rememberPasswordChecked,
+    saveProfileChecked,
+    scheduleFeedbackClear,
+    selectedProfileId,
+    selectedProfileHasChanges,
+    selectedProfileMetadataChanged,
+    signInMode,
     submitting,
   ]);
 
-  const confirmSwitchProfile = useCallback((): void => {
-    setSwitchConfirmationOpen(false);
-    suppressRegistrationEndResetRef.current = true;
-    executeAuthorize();
-  }, [executeAuthorize]);
+  const confirmOverwriteExistingCredentials = useCallback((): void => {
+    handleSubmit(true, true);
+  }, [handleSubmit]);
 
-  const cancelSwitchProfile = useCallback((): void => {
-    setSwitchConfirmationOpen(false);
+  const cancelOverwriteExistingCredentials = useCallback((): void => {
+    setOverwriteConfirmationOpen(false);
   }, []);
+
+  const continueWithoutOverwritingCredentials = useCallback((): void => {
+    setOverwriteConfirmationOpen(false);
+    handleSubmit(false, true);
+  }, [handleSubmit]);
 
   const requestDeleteSelectedProfile = useCallback((profileId: SavedAccountProfileId): void => {
     setDeleteTargetProfileId(profileId);
@@ -515,13 +672,13 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     }
 
     const profileId = deleteTargetProfileId;
-    cancelDeleteSelectedProfile();
+    setDeleteSubmitting(true);
 
     void (async (): Promise<void> => {
       const result = await facade.deleteSavedAccountProfile(profileId);
       if (isErr(result)) {
+        setDeleteSubmitting(false);
         setError(mapAccountAuthorizationError(result.error));
-        scheduleFeedbackClear();
         return;
       }
 
@@ -530,6 +687,8 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
       }
 
       reloadSavedProfiles();
+      setDeleteSubmitting(false);
+      cancelDeleteSelectedProfile();
     })();
   }, [
     cancelDeleteSelectedProfile,
@@ -537,23 +696,8 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     facade,
     reloadSavedProfiles,
     resetToNewProfile,
-    scheduleFeedbackClear,
     selectedProfileId,
   ]);
-
-  const authorizeTargetIdentity = useMemo(
-    () => resolveAccountAuthorizeTargetIdentity(form, selectedProfile),
-    [form, selectedProfile],
-  );
-
-  const profileSwitchAllowed = useMemo(
-    () =>
-      isSipRegistered &&
-      registeredIdentity !== null &&
-      authorizeTargetIdentity !== null &&
-      !matchesSipAccountIdentity(registeredIdentity, authorizeTargetIdentity),
-    [authorizeTargetIdentity, isSipRegistered, registeredIdentity],
-  );
 
   useEffect(() => {
     if (saveProfileDisabled && saveProfileChecked) {
@@ -567,92 +711,14 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     }
   }, [rememberPasswordChecked, rememberPasswordDisabled]);
 
-  const forgetRememberedPassword = useCallback((): void => {
-    if (facade === null || selectedProfileId === null || submitting) {
-      return;
-    }
-
-    const profileId = selectedProfileId;
-
-    void (async (): Promise<void> => {
-      const result = await facade.forgetRememberedSipPassword(profileId);
-      if (isErr(result)) {
-        setError(mapAccountAuthorizationError(result.error));
-        scheduleFeedbackClear();
-        return;
-      }
-
-      setHasRememberedPassword(false);
-      setForcePasswordEntryForSelectedProfile(true);
-      setRememberPasswordChecked(false);
-      clearFeedback();
-      queueMicrotask(() => {
-        passwordInputRef.current?.focus();
-      });
-    })();
-  }, [
-    clearFeedback,
-    facade,
-    scheduleFeedbackClear,
-    selectedProfileId,
-    submitting,
-  ]);
-
-  useEffect(() => {
-    if (facade === null || selectedProfileId === null) {
-      setHasRememberedPassword(false);
-      return;
-    }
-
-    let cancelled = false;
-    void facade.hasRememberedSipPassword(selectedProfileId).then((remembered) => {
-      if (!cancelled) {
-        setHasRememberedPassword(remembered);
-      }
-    });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [facade, selectedProfileId, savedProfiles]);
-
-  useEffect(() => {
-    if (facade === null || selectedProfileId === null) {
-      setAuthorizeViaOcpAvailable(false);
-      setAuthorizeViaOcpChecked(false);
-      return;
-    }
-
-    let cancelled = false;
-    void facade
-      .getOcpSignInAvailability({ accountKey: selectedProfileId })
-      .then((result) => {
-        if (cancelled) {
-          return;
-        }
-        if (!result.ok) {
-          setAuthorizeViaOcpAvailable(false);
-          setAuthorizeViaOcpChecked(false);
-          return;
-        }
-        setAuthorizeViaOcpAvailable(result.value.available);
-        if (!result.value.available) {
-          setAuthorizeViaOcpChecked(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [facade, selectedProfileId, savedProfiles]);
-
   useEffect(() => {
     if (
       facade === null ||
       !isSipRegistered ||
       registeredIdentitySyncKey === null ||
       selectedProfileId === null ||
-      panelMode !== "savedFull"
+      panelMode !== "savedFull" ||
+      signInMode !== "sip_only"
     ) {
       return;
     }
@@ -691,6 +757,7 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     panelMode,
     registeredIdentitySyncKey,
     selectedProfileId,
+    signInMode,
   ]);
 
   useEffect(() => {
@@ -713,14 +780,74 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
       });
     }
   }, [
-    forcePasswordEntryForSelectedProfile,
     panelMode,
     passwordFieldVisible,
     selectedProfileId,
   ]);
 
+  const handleRecoveryAction = useCallback(
+    (action: OcpRecoveryAction): void => {
+      if (facade === null || submitting) {
+        return;
+      }
+      if (!signInViewModel.allowedRecoveryActions.includes(action)) {
+        return;
+      }
+
+      void (async (): Promise<void> => {
+        setSubmitting(true);
+        clearFeedback();
+        try {
+          const result = await facade.dispatchAccountRecoveryAction(action);
+          if (isErr(result)) {
+            scheduleFeedbackClear();
+            return;
+          }
+          setSuccessKey(SIP_SUCCESS_KEY);
+          scheduleFeedbackClear();
+          reloadSavedProfiles();
+        } catch {
+          setError({ key: ACCOUNT_ERROR_UNKNOWN_KEY });
+        } finally {
+          setSubmitting(false);
+        }
+      })();
+    },
+    [
+      clearFeedback,
+      facade,
+      reloadSavedProfiles,
+      scheduleFeedbackClear,
+      signInViewModel.allowedRecoveryActions,
+      submitting,
+    ],
+  );
+
+  const forgetSavedSipPassword = useCallback((): void => {
+    if (facade === null || selectedProfileId === null || submitting) {
+      return;
+    }
+    void (async (): Promise<void> => {
+      setSubmitting(true);
+      const result = await facade.forgetRememberedSipPassword(selectedProfileId);
+      if (result.ok) {
+        loadedProfileSecretsRef.current = {
+          ...loadedProfileSecretsRef.current,
+          sipPassword: "",
+        };
+        setForm((current) => ({ ...current, password: "" }));
+        refreshSignInViewModel();
+      } else {
+        setError(mapAccountAuthorizationError(result.error));
+      }
+      setSubmitting(false);
+    })();
+  }, [facade, refreshSignInViewModel, selectedProfileId, submitting]);
+
   return {
     form,
+    ocpDraft,
+    signInMode,
     submitting,
     error,
     successKey,
@@ -734,30 +861,41 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     rememberPasswordChecked,
     passwordFieldVisible,
     rememberPasswordVisible,
-    forgetRememberedPasswordVisible,
     rememberPasswordDisabled,
-    rememberPasswordDisabledReasonKey,
     passwordHintKey,
-    authorizeViaOcpVisible,
-    authorizeViaOcpChecked,
-    profileSwitchAllowed,
+    showOcpDomainField: ocpFieldVisibility.showDomain,
+    showOcpApiKeyField: ocpFieldVisibility.showApiKey,
+    hasSavedOcpApiKey: signInViewModel.selectedProfile?.hasSavedOcpApiKey === true,
+    canForgetSavedSipPassword:
+      selectedProfileId !== null &&
+      signInViewModel.selectedProfile?.hasSavedSipPassword === true,
+    loginDisabledReasonKey,
+    serverState: signInViewModel.serverState,
+    authorizationState: signInViewModel.authorizationState,
+    authorizationProgress: signInViewModel.authorizationProgress,
+    allowedRecoveryActions: signInViewModel.allowedRecoveryActions,
     deleteConfirmationOpen,
-    switchConfirmationOpen,
-    switchFromLogin,
-    switchToLogin,
+    deleteSubmitting,
+    overwriteConfirmationOpen,
+    draftDiscardConfirmationOpen,
     passwordInputRef,
     updateField,
+    updateOcpField,
+    setSignInMode,
     handleSubmit,
     selectProfile,
     setSaveProfileChecked,
     setRememberPasswordChecked,
-    setAuthorizeViaOcpChecked,
-    forgetRememberedPassword,
     requestDeleteSelectedProfile,
     confirmDeleteSelectedProfile,
     cancelDeleteSelectedProfile,
-    confirmSwitchProfile,
-    cancelSwitchProfile,
+    confirmOverwriteExistingCredentials,
+    cancelOverwriteExistingCredentials,
+    confirmDiscardDraftAndSelectProfile,
+    cancelDiscardDraft,
+    continueWithoutOverwritingCredentials,
     reloadSavedProfiles,
+    handleRecoveryAction,
+    forgetSavedSipPassword,
   };
 }

@@ -44,4 +44,21 @@ describe("deriveAuthShellFlags", () => {
       }).isSipRegistered,
     ).toBe(false);
   });
+
+  it("exposes hasActiveAccountSession from projection independently of SIP-ready", () => {
+    expect(
+      deriveAuthShellFlags({
+        ...initialAccountBootstrapProjection(),
+        authUiState: "sip_registration_failed",
+        hasActiveAccountSession: true,
+      }).hasActiveAccountSession,
+    ).toBe(true);
+    expect(
+      deriveAuthShellFlags({
+        ...initialAccountBootstrapProjection(),
+        authUiState: "sip_only_ready",
+        hasActiveAccountSession: false,
+      }).hasActiveAccountSession,
+    ).toBe(false);
+  });
 });

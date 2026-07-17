@@ -62,14 +62,17 @@ export function SavedAccountProfileSelector({
           className={styles.tablist}
           data-testid="saved-account-profile-tablist"
         >
-          <TabsTrigger
-            value={NEW_PROFILE_TAB_VALUE}
-            id="saved-profile-tab-new"
-            disabled={disabled}
-            data-testid="saved-account-profile-tab-new"
-          >
-            {t("account.profile.option.new")}
-          </TabsTrigger>
+          <div className={styles.profileTabShell} data-testid="saved-account-profile-tab-new-group">
+            <TabsTrigger
+              value={NEW_PROFILE_TAB_VALUE}
+              id="saved-profile-tab-new"
+              disabled={disabled}
+              className={styles.profileTabTrigger}
+              data-testid="saved-account-profile-tab-new"
+            >
+              {t("account.profile.option.new")}
+            </TabsTrigger>
+          </div>
           {options.map((option) => (
             <div
               key={option.id}

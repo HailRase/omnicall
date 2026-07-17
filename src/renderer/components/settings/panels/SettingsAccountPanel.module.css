@@ -21,7 +21,7 @@
 
 .form-center-remembered-sign-in-only {
   flex: 1;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   min-height: 0;
 }

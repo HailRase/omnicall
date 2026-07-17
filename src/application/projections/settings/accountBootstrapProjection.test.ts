@@ -120,7 +120,6 @@ describe("accountBootstrapProjection", () => {
       createSipCredentialsReceivedEvent(correlationId, {
         credentials: {
           username: "alex.operator",
-          password: "secret",
           domain: "example.com",
           server: "sip.example.com",
         },
@@ -152,7 +151,6 @@ describe("accountBootstrapProjection", () => {
       createSipCredentialsReceivedEvent(correlationId, {
         credentials: {
           username: "agent",
-          password: "secret",
           domain: "example.com",
           server: "sip.example.com",
         },

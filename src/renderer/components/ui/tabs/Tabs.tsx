@@ -2,18 +2,24 @@ import * as TabsPrimitive from "@radix-ui/react-tabs";
 import clsx from "clsx";
 import {
   forwardRef,
+  useRef,
   type ComponentPropsWithoutRef,
   type ComponentRef,
   type JSX,
   type Ref,
 } from "react";
 import styles from "./Tabs.module.css";
+import { useTabsSlidingIndicator } from "./useTabsSlidingIndicator.js";
+
+export type TabsIndicator = "none" | "slide";
 
 export type TabsProps = Readonly<ComponentPropsWithoutRef<typeof TabsPrimitive.Root>>;
 
 export type TabsListProps = Readonly<
   Omit<ComponentPropsWithoutRef<typeof TabsPrimitive.List>, "className"> & {
     className?: string;
+    /** Sliding selected thumb for equal-sized / simple trigger rows. */
+    indicator?: TabsIndicator;
   }
 >;
 
@@ -56,15 +62,51 @@ export function Tabs({
 
 /**
  * - Purpose: roving-focus tab strip hosting trigger buttons.
- * - Inputs: className and Radix list props including loop and aria-label.
+ * - Inputs: className, optional sliding indicator, and Radix list props.
  * - Outputs: styled tab list with orientation-aware layout.
  */
 export const TabsList = forwardRef(function TabsList(
-  { className, ...rest }: TabsListProps,
+  { className, indicator = "none", children, ...rest }: TabsListProps,
   ref: Ref<ComponentRef<typeof TabsPrimitive.List>>,
 ): JSX.Element {
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const slideEnabled = indicator === "slide";
+  const slideRect = useTabsSlidingIndicator(listRef, slideEnabled);
+
+  function assignRef(node: HTMLDivElement | null): void {
+    listRef.current = node;
+    if (typeof ref === "function") {
+      ref(node);
+      return;
+    }
+    if (ref !== null) {
+      ref.current = node;
+    }
+  }
+
   return (
-    <TabsPrimitive.List ref={ref} className={clsx(styles.list, className)} {...rest} />
+    <TabsPrimitive.List
+      ref={assignRef}
+      className={clsx(styles.list, className)}
+      data-indicator={indicator}
+      {...rest}
+    >
+      {slideEnabled ? (
+        <span
+          aria-hidden
+          className={styles.indicator}
+          data-slot="tabs-indicator"
+          data-ready={slideRect.ready ? "true" : "false"}
+          data-testid="ui-tabs-indicator"
+          style={{
+            transform: `translate(${String(slideRect.x)}px, ${String(slideRect.y)}px)`,
+            width: `${String(slideRect.width)}px`,
+            height: `${String(slideRect.height)}px`,
+          }}
+        />
+      ) : null}
+      {children}
+    </TabsPrimitive.List>
   );
 });
 

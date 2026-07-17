@@ -69,6 +69,29 @@ describe("parsePersistedSavedAccountProfilesDocument", () => {
     });
   });
 
+  it("migrates legacy schema v1 profiles to successful lifecycle", () => {
+    const result = parsePersistedSavedAccountProfilesDocument({
+      schemaVersion: 1,
+      profiles: [
+        {
+          id: "agent@pbx.example",
+          username: "agent",
+          domain: "pbx.example",
+          server: "wss://pbx.example/ws",
+          displayName: "agent",
+        },
+      ],
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(result.value.schemaVersion).toBe(SAVED_ACCOUNT_PROFILES_SCHEMA_VERSION);
+    expect(result.value.profiles[0]?.lifecycleStatus).toBe("successful");
+  });
+
   it("rejects invalid shape", () => {
     expect(parsePersistedSavedAccountProfilesDocument(null)).toEqual({
       ok: false,

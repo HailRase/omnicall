@@ -1,7 +1,12 @@
 import { createDomainEvent } from "../DomainEvent.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import type { PhoneStatus } from "../PhoneStatus.js";
-import type { SipAccountInput } from "../../telephony/SipAccount.js";
+
+export type SipCredentialIdentity = Readonly<{
+  username: string;
+  domain: string;
+  server: string;
+}>;
 
 export type SipCredentialsReceivedEvent = ReturnType<
   typeof createSipCredentialsReceivedEvent
@@ -12,7 +17,7 @@ export type SipCredentialsSource = "manual" | "ocp";
 export function createSipCredentialsReceivedEvent(
   correlationId: CorrelationId,
   payload: Readonly<{
-    credentials: SipAccountInput;
+    credentials: SipCredentialIdentity;
     source: SipCredentialsSource;
   }>,
 ) {
@@ -25,7 +30,7 @@ export type ManualSipAuthorizationRequestedEvent = ReturnType<
 
 export function createManualSipAuthorizationRequestedEvent(
   correlationId: CorrelationId,
-  payload: Readonly<{ account: SipAccountInput }>,
+  payload: Readonly<{ account: SipCredentialIdentity }>,
 ) {
   return createDomainEvent(
     "ManualSipAuthorizationRequested",
@@ -71,9 +76,26 @@ export function createStartupModeResolvedEvent(
   return createDomainEvent("StartupModeResolved", correlationId, payload);
 }
 
+export type AccountSessionActivatedEvent = ReturnType<
+  typeof createAccountSessionActivatedEvent
+>;
+
+/**
+ * - Purpose: mark local account session active (settings unlocked) independent of SIP-ready (ADR-AF-005).
+ * - Inputs: correlation id + optional profile key string for observability.
+ * - Outputs: Domain Event consumed by bootstrap projection / logout gate.
+ */
+export function createAccountSessionActivatedEvent(
+  correlationId: CorrelationId,
+  payload: Readonly<{ profileKey?: string }> = {},
+) {
+  return createDomainEvent("AccountSessionActivated", correlationId, payload);
+}
+
 export type AccountBootstrapDomainEvent =
   | ManualSipAuthorizationRequestedEvent
   | AccessDeniedDetectedEvent
   | PhoneStatusChangedEvent
   | StartupModeResolvedEvent
-  | SipCredentialsReceivedEvent;
+  | SipCredentialsReceivedEvent
+  | AccountSessionActivatedEvent;

@@ -38,7 +38,7 @@ describe("OcpSessionLifecycleService", () => {
 
     gateway.simulateMessage({ entity: "terminate" });
 
-    expect(gateway.getConnectionState()).toBe("sessionClosed");
+    expect(gateway.getConnectionState()).toBe("disconnected");
     expect(hub.getSessionProjection().connectionState).toBe("sessionClosed");
     expect(hub.getSessionProjection().isAuthenticated).toBe(false);
     expect(published).toContain("OperatorSessionEnded");

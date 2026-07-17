@@ -65,8 +65,12 @@ export type {
   IncomingCallSettings,
   SettingsRepository,
 } from "./settings/SettingsRepository.js";
-export type { SavedAccountProfileRepository } from "./settings/SavedAccountProfileRepository.js";
+export type {
+  SavedAccountProfileRepository,
+  SaveSavedAccountProfileOptions,
+} from "./settings/SavedAccountProfileRepository.js";
 export type { CallHistoryRepository } from "./settings/CallHistoryRepository.js";
+export type { UserNotificationJournalRepository } from "./settings/UserNotificationJournalRepository.js";
 export type { ContactRepository } from "./settings/ContactRepository.js";
 export type {
   ContactCsvExportDialogInput,

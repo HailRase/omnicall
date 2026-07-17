@@ -49,4 +49,28 @@ export type BadgeTone = "default" | "muted" | "success" | "warning" | "destructi
 
 export type BadgeSize = "sm" | "md";
 
+export type TableCellAlign = "left" | "center" | "right";
+
 export type AlertVariant = "default" | "destructive";
+
+export type InputGroupAddonAlign =
+  | "inline-start"
+  | "inline-end"
+  | "block-start"
+  | "block-end";
+
+export type InputGroupButtonSize = "xs" | "sm" | "icon-xs" | "icon-sm";
+
+export type ButtonGroupOrientation = "horizontal" | "vertical";
+
+export type SidebarSide = "left" | "right";
+
+export type SidebarVariant = "sidebar" | "floating" | "inset";
+
+export type SidebarCollapsible = "offcanvas" | "icon" | "none";
+
+export type SidebarMenuButtonVariant = "default" | "outline";
+
+export type SidebarMenuButtonSize = "default" | "sm" | "lg";
+
+export type SidebarMenuSubButtonSize = "sm" | "md";

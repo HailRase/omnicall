@@ -1,16 +1,23 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
+import { deriveSettingsNavigationAvailability } from "@application/index.js";
 import type { ComponentProps } from "react";
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { ICON_TOOLTIP_DELAY_MS } from "../icons/iconTooltipDelay.js";
 import { SettingsSidebar } from "./SettingsSidebar.js";
 
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
   vi.restoreAllMocks();
+});
+
+const postAuthAvailability = deriveSettingsNavigationAvailability({
+  hasActiveAccountSession: true,
+});
+const preAuthAvailability = deriveSettingsNavigationAvailability({
+  hasActiveAccountSession: false,
 });
 
 function renderSidebar(
@@ -20,6 +27,7 @@ function renderSidebar(
     <SettingsSidebar
       activeSection="general"
       expanded={false}
+      sectionAvailability={postAuthAvailability}
       onSectionChange={vi.fn()}
       onToggleExpanded={vi.fn()}
       {...props}
@@ -63,13 +71,70 @@ describe("SettingsSidebar", () => {
     expect(screen.getByText("Диагностика")).toBeVisible();
   });
 
-  it("keeps all sections enabled when SIP is not registered", () => {
+  it("disables non-Account sections before SIP registration", () => {
+    renderSidebar({
+      activeSection: "account",
+      sectionAvailability: preAuthAvailability,
+    });
+
+    expect(screen.getByTestId("settings-sidebar")).toHaveAttribute(
+      "data-pre-auth-gate",
+      "true",
+    );
+    expect(screen.getByTestId("settings-nav-account")).toBeEnabled();
+    expect(screen.getByTestId("settings-nav-general")).toBeDisabled();
+    expect(screen.getByTestId("settings-nav-sessions")).toBeDisabled();
+    expect(screen.getByTestId("settings-nav-diagnostics")).toBeDisabled();
+    expect(screen.getByTestId("settings-nav-integrations")).toBeDisabled();
+  });
+
+  it("keeps all sections enabled after SIP registration", () => {
     renderSidebar({ activeSection: "account" });
 
     expect(screen.getByTestId("settings-nav-account")).toBeEnabled();
     expect(screen.getByTestId("settings-nav-general")).toBeEnabled();
     expect(screen.getByTestId("settings-nav-sessions")).toBeEnabled();
     expect(screen.getByTestId("settings-nav-diagnostics")).toBeEnabled();
+  });
+
+  it("marks the active section in collapsed icon rail", () => {
+    renderSidebar({ activeSection: "notifications", expanded: false });
+
+    expect(screen.getByTestId("settings-nav-notifications")).toHaveAttribute(
+      "data-active",
+      "true",
+    );
+    expect(screen.getByTestId("settings-nav-general")).not.toHaveAttribute(
+      "data-active",
+    );
+  });
+
+  it("shows authorize-first tooltip on disabled nav when pre-auth", async () => {
+    vi.useRealTimers();
+    const user = userEvent.setup();
+    renderSidebar({
+      activeSection: "account",
+      sectionAvailability: preAuthAvailability,
+    });
+
+    await user.hover(screen.getByTestId("settings-nav-general"));
+    expect(await screen.findByRole("tooltip")).toHaveTextContent(
+      "Сначала авторизуйтесь в разделе «Аккаунт»",
+    );
+  });
+
+  it("does not navigate to Integrations when pre-auth group is clicked", async () => {
+    vi.useRealTimers();
+    const user = userEvent.setup();
+    const onSectionChange = vi.fn();
+    renderSidebar({
+      activeSection: "account",
+      sectionAvailability: preAuthAvailability,
+      onSectionChange,
+    });
+
+    await user.click(screen.getByTestId("settings-nav-integrations"));
+    expect(onSectionChange).not.toHaveBeenCalled();
   });
 
   it("shows full system-state label without truncation when expanded", () => {
@@ -80,43 +145,22 @@ describe("SettingsSidebar", () => {
     expect(label.textContent).toBe("Состояние системы");
   });
 
-  it("shows section tooltip on collapsed nav hover", () => {
+  it("shows section tooltip on collapsed nav hover", async () => {
+    vi.useRealTimers();
+    const user = userEvent.setup();
     renderSidebar();
 
-    const systemStateButton = screen.getByTestId("settings-nav-system-state");
-    const tooltipHost = systemStateButton.closest('[data-testid="icon-tooltip-host"]');
-    expect(tooltipHost).not.toBeNull();
+    await user.hover(screen.getByTestId("settings-nav-system-state"));
 
-    fireEvent.pointerEnter(tooltipHost as Element);
-    act(() => {
-      vi.advanceTimersByTime(ICON_TOOLTIP_DELAY_MS);
-    });
-
-    expect(screen.getByRole("tooltip")).toHaveTextContent("Состояние системы");
+    expect(await screen.findByRole("tooltip")).toHaveTextContent("Состояние системы");
   });
 
-  it("shows section tooltip on collapsed nav hover when SIP is not registered", () => {
-    renderSidebar();
-
-    const generalButton = screen.getByTestId("settings-nav-general");
-    const tooltipHost = generalButton.closest('[data-testid="icon-tooltip-host"]');
-    expect(tooltipHost).not.toBeNull();
-
-    fireEvent.pointerEnter(tooltipHost as Element);
-    act(() => {
-      vi.advanceTimersByTime(ICON_TOOLTIP_DELAY_MS);
-    });
-
-    expect(screen.getByRole("tooltip")).toHaveTextContent("Общее");
-  });
-
-  it("does not show nav tooltips when expanded", () => {
+  it("does not show nav tooltips when expanded and enabled", async () => {
+    vi.useRealTimers();
+    const user = userEvent.setup();
     renderSidebar({ expanded: true });
 
-    fireEvent.pointerEnter(screen.getByTestId("settings-nav-system-state"));
-    act(() => {
-      vi.advanceTimersByTime(ICON_TOOLTIP_DELAY_MS);
-    });
+    await user.hover(screen.getByTestId("settings-nav-system-state"));
 
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
   });
@@ -148,5 +192,40 @@ describe("SettingsSidebar", () => {
 
     await user.click(screen.getByTestId("settings-nav-integrations"));
     expect(onSectionChange).toHaveBeenCalledWith("integrations");
+  });
+
+  it("collapses expanded sidebar when clicking outside", async () => {
+    vi.useRealTimers();
+    const user = userEvent.setup();
+    const onToggleExpanded = vi.fn();
+
+    render(
+      <div>
+        <SettingsSidebar
+          activeSection="general"
+          expanded={true}
+          sectionAvailability={postAuthAvailability}
+          onSectionChange={vi.fn()}
+          onToggleExpanded={onToggleExpanded}
+        />
+        <button type="button" data-testid="settings-outside-target">
+          Outside
+        </button>
+      </div>,
+    );
+
+    await user.click(screen.getByTestId("settings-outside-target"));
+    expect(onToggleExpanded).toHaveBeenCalledOnce();
+  });
+
+  it("does not collapse when clicking inside expanded sidebar", async () => {
+    vi.useRealTimers();
+    const user = userEvent.setup();
+    const onToggleExpanded = vi.fn();
+
+    renderSidebar({ expanded: true, onToggleExpanded });
+
+    await user.click(screen.getByTestId("settings-nav-general"));
+    expect(onToggleExpanded).not.toHaveBeenCalled();
   });
 });

@@ -1,0 +1,21 @@
+declare const classes: {
+  readonly addon: string;
+  readonly addonAlignBlockEnd: string;
+  readonly addonAlignBlockStart: string;
+  readonly addonAlignInlineEnd: string;
+  readonly addonAlignInlineStart: string;
+  readonly control: string;
+  readonly controlInput: string;
+  readonly controlTextarea: string;
+  readonly group: string;
+  readonly groupButton: string;
+  readonly groupButtonSizeIconSm: string;
+  readonly groupButtonSizeIconXs: string;
+  readonly groupButtonSizeSm: string;
+  readonly groupButtonSizeXs: string;
+  readonly sizeLg: string;
+  readonly sizeMd: string;
+  readonly sizeSm: string;
+  readonly text: string;
+};
+export default classes;

@@ -35,7 +35,8 @@ export class DisconnectOcpUseCase {
     const correlationId = input.correlationId ?? createCorrelationId();
     const reason = input.reason ?? "logout";
     const previousState = this.ocpGateway.getConnectionState();
-    const nextState = reason === "terminate" ? "sessionClosed" : "disconnected";
+    // Transport ends disconnected; Application maps terminate → dual-FSM terminal projection.
+    const nextState = "disconnected";
 
     this.logger.info("disconnect_ocp_requested", {
       correlationId,

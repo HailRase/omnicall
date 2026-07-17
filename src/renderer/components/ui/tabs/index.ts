@@ -4,6 +4,7 @@ export {
   TabsList,
   TabsTrigger,
   type TabsContentProps,
+  type TabsIndicator,
   type TabsListProps,
   type TabsProps,
   type TabsTriggerProps,

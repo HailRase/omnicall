@@ -21,10 +21,12 @@ import { createRealBootstrapSettingsRepository } from "./createRealBootstrapSett
 import { createRealBootstrapSavedAccountProfileRepository } from "./createRealBootstrapSavedAccountProfileRepository.js";
 import { createRealBootstrapContactRepository } from "./createRealBootstrapContactRepository.js";
 import { createRealBootstrapCallHistoryRepository } from "./createRealBootstrapCallHistoryRepository.js";
+import { FileUserNotificationJournalRepository } from "@adapters/settings/FileUserNotificationJournalRepository.js";
 import type {
   CallHistoryRepository,
   ContactRepository,
   SavedAccountProfileRepository,
+  UserNotificationJournalRepository,
 } from "@ports/index.js";
 
 function createBootstrapLogger(context: LogContext): Logger {
@@ -89,6 +91,28 @@ function resolveRealSavedAccountProfileRepository(
   });
 }
 
+function resolveRealNotificationJournalRepository(
+  options: CreateAccountBootstrapOptions,
+): UserNotificationJournalRepository | undefined {
+  if (options.userNotificationJournalRepository !== undefined) {
+    return options.userNotificationJournalRepository;
+  }
+  if (
+    options.profilesStorageRoot === undefined ||
+    options.filesystem === undefined
+  ) {
+    return undefined;
+  }
+  return new FileUserNotificationJournalRepository({
+    storageRoot: options.profilesStorageRoot,
+    filesystem: options.filesystem,
+    logger: createBootstrapLogger({
+      featureId: "F-029",
+      boundedContext: "Settings",
+    }),
+  });
+}
+
 function resolveRealSettingsRepository(options: CreateAccountBootstrapOptions) {
   if (options.settingsRepository !== undefined) {
     return options.settingsRepository;
@@ -121,6 +145,8 @@ export function createRealAccountBootstrap(
   const savedAccountProfileRepository = resolveRealSavedAccountProfileRepository(options);
   const contactRepository = resolveRealContactRepository(options, settingsRepository);
   const callHistoryRepository = resolveRealCallHistoryRepository(options, settingsRepository);
+  const userNotificationJournalRepository =
+    resolveRealNotificationJournalRepository(options);
   const codecPreferencesPort = new SettingsRepositoryCodecPreferencesAdapter({
     settingsRepository,
     resolveAccountKey: () => resolveSettingsAccountKey(settingsRepository),
@@ -199,6 +225,9 @@ export function createRealAccountBootstrap(
       : {}),
     ...(contactRepository !== undefined ? { contactRepository } : {}),
     ...(callHistoryRepository !== undefined ? { callHistoryRepository } : {}),
+    ...(userNotificationJournalRepository !== undefined
+      ? { userNotificationJournalRepository }
+      : {}),
     ...(options.contactCsvFileGateway !== undefined
       ? { contactCsvFileGateway: options.contactCsvFileGateway }
       : {}),

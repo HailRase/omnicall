@@ -219,6 +219,34 @@ describe("NotificationViewport", () => {
     expect(onAction).toHaveBeenCalledTimes(1);
   });
 
+  it("keeps notification message visible beside a long action label", async () => {
+    const item: NotificationItem = {
+      ...baseItem,
+      id: "long-action",
+      messageText: "Не удалось сохранить настройки аккаунта",
+      durationMs: 10_000,
+      action: {
+        id: "open-system-state",
+        labelKey: "account.notification.openSystemStateAction",
+        onClick: vi.fn(),
+      },
+    };
+
+    renderViewport([item]);
+
+    await waitFor(() => {
+      expect(
+        screen.getByText("Не удалось сохранить настройки аккаунта"),
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Открыть состояние системы" }),
+      ).toBeInTheDocument();
+    });
+
+    const action = screen.getByTestId("notification-toast-action");
+    expect(action.className).toMatch(/actionButton|action-button/);
+  });
+
   it("applies single mode viewport settings", () => {
     render(
       <NotificationViewport

@@ -1,0 +1,22 @@
+declare const classes: {
+  readonly body: string;
+  readonly fieldLabel: string;
+  readonly filterField: string;
+  readonly pagination: string;
+  readonly paginationControls: string;
+  readonly paginationMeta: string;
+  readonly paginationPage: string;
+  readonly paginationSelect: string;
+  readonly root: string;
+  readonly searchField: string;
+  readonly statusHint: string;
+  readonly statusIcon: string;
+  readonly statusPanel: string;
+  readonly statusTitle: string;
+  readonly tableFrame: string;
+  readonly timeCell: string;
+  readonly titleCell: string;
+  readonly toolbar: string;
+  readonly userCell: string;
+};
+export default classes;

@@ -70,7 +70,7 @@ describe("AuthorizeSipAccountUseCase", () => {
     expect(published).toContain("SipCredentialsReceived");
   });
 
-  it("sets active profile key from authorized SIP identity", async () => {
+  it("sets active profile key from authorized SIP identity when promotion is enabled", async () => {
     const settings = new InMemorySettingsRepository();
     const useCase = new AuthorizeSipAccountUseCase(
       settings,
@@ -102,7 +102,38 @@ describe("AuthorizeSipAccountUseCase", () => {
     }
   });
 
-  it("ocp source skips ManualSipAuthorizationRequested and redacts password in event", async () => {
+  it("does not change active profile key when promotion is deferred", async () => {
+    const settings = new InMemorySettingsRepository();
+    const previousKey = deriveSettingsAccountKeyFromIdentity({
+      username: "active",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    });
+    await settings.setActiveProfileKey(previousKey);
+
+    const useCase = new AuthorizeSipAccountUseCase(
+      settings,
+      new InMemoryDomainEventBus(),
+      createTestLogger(),
+    );
+
+    const result = await useCase.execute({
+      account: {
+        username: "candidate",
+        password: "secret",
+        domain: "pbx.example",
+        server: "sip:pbx.example",
+      },
+      source: "manual",
+      promoteActiveSession: false,
+    });
+
+    expect(result.ok).toBe(true);
+    expect(await settings.getActiveProfileKey()).toBe(previousKey);
+    expect(await settings.getSipAccount()).toBeNull();
+  });
+
+  it("ocp source skips ManualSipAuthorizationRequested and omits password from events", async () => {
     const events = new InMemoryDomainEventBus();
     const published: Array<{ type: string; password?: string }> = [];
     events.subscribe((event) => {
@@ -139,6 +170,33 @@ describe("AuthorizeSipAccountUseCase", () => {
     );
     expect(published.map((entry) => entry.type)).toContain("SipCredentialsReceived");
     const credsEvent = published.find((entry) => entry.type === "SipCredentialsReceived");
-    expect(credsEvent?.password).toBe("");
+    expect(credsEvent?.password).toBeUndefined();
+  });
+
+  it("manual source omits password from all events", async () => {
+    const events = new InMemoryDomainEventBus();
+    const serializedEvents: string[] = [];
+    events.subscribe((event) => {
+      serializedEvents.push(JSON.stringify(event));
+    });
+    const useCase = new AuthorizeSipAccountUseCase(
+      new InMemorySettingsRepository(),
+      events,
+      createTestLogger(),
+    );
+
+    const result = await useCase.execute({
+      account: {
+        username: "manual-user",
+        password: "never-publish-this-secret",
+        domain: "pbx",
+        server: "sip:pbx",
+      },
+      source: "manual",
+    });
+
+    expect(result.ok).toBe(true);
+    expect(serializedEvents.join("\n")).not.toContain("never-publish-this-secret");
+    expect(serializedEvents.join("\n")).not.toContain('"password"');
   });
 });

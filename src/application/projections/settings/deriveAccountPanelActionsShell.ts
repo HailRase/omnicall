@@ -7,7 +7,6 @@ export type AccountPanelActionsShellInput = Readonly<{
   submitting: boolean;
   panelDisabled: boolean;
   sessionLogoutDisabledReason: AccountPanelActionReasonKey | null;
-  profileSwitchAllowed?: boolean;
 }>;
 
 export type AccountPanelActionsShell = Readonly<{
@@ -36,7 +35,9 @@ function isFormEmpty(form: SipAccountInput): boolean {
 /**
  * - Purpose: derive authorize/logout button disabled reasons for account settings panel.
  * - Inputs: auth state, form values, submit flags, session logout disabled reason.
- * - Outputs: Russian disabled reasons or null when the control is enabled.
+ * - Outputs: semantic reason keys or null when the control is enabled.
+ * - Note: SIP-registered Login disable prefers `account.signIn.disabled.logoutFirst` in WU-04 UI;
+ *   this shell still emits alreadyAuthorized for non-VM consumers / avatar-adjacent logout hints.
  */
 export function deriveAccountPanelActionsShell(
   input: AccountPanelActionsShellInput,
@@ -48,7 +49,7 @@ export function deriveAccountPanelActionsShell(
     authorizeDisabledReason = "account.actions.disabled.waitCurrentOperation";
   } else if (input.submitting) {
     authorizeDisabledReason = "account.actions.disabled.authorizeInProgress";
-  } else if (isAuthorized && input.profileSwitchAllowed !== true) {
+  } else if (isAuthorized) {
     authorizeDisabledReason = "account.actions.disabled.alreadyAuthorized";
   }
 

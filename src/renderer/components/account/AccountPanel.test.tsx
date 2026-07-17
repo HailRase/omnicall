@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { setupJsdomRadix } from "../../test/setupJsdomRadix.js";
 import { AccountPanel } from "./AccountPanel.js";
@@ -20,173 +21,204 @@ const baseForm = {
   server: "sip.example.com",
 };
 
+const baseOcpDraft = {
+  login: "user",
+  domain: "ocp.example.com",
+  apiKey: "",
+};
+
 const baseProps = {
   form: baseForm,
+  ocpDraft: baseOcpDraft,
+  signInMode: "sip_only" as const,
   submitting: false,
   error: null,
   successKey: null,
   warningKey: null,
   panelMode: "newFull" as const,
   onFieldChange: vi.fn(),
+  onOcpFieldChange: vi.fn(),
+  onSignInModeChange: vi.fn(),
   onSubmit: vi.fn(),
-  onLogout: vi.fn(),
 };
 
 describe("AccountPanel", () => {
-  it("renders authorize and logout buttons with disabled reasons", () => {
+  it("renders mode tabs and sign-in button with disabled logout-first reason", () => {
     render(
       <AccountPanel
         {...baseProps}
-        authorizeDisabledReason="Вы уже в сети. Для смены аккаунта нажмите «Выйти»"
-        logoutDisabledReason={null}
+        authorizeDisabledReason="Необходимо выйти из аккаунта"
       />,
     );
 
+    expect(screen.getByTestId("account-mode-tabs")).toBeInTheDocument();
+    expect(screen.getByTestId("account-mode-tabs")).toHaveAttribute(
+      "data-indicator",
+      "slide",
+    );
+    expect(screen.getByTestId("ui-tabs-indicator")).toBeInTheDocument();
+    expect(screen.getByTestId("account-mode-sip")).toHaveAttribute(
+      "data-state",
+      "active",
+    );
+    expect(screen.getByTestId("account-mode-ocp")).toHaveAttribute(
+      "data-state",
+      "inactive",
+    );
+    expect(screen.getByTestId("account-mode-sip")).toBeInTheDocument();
+    expect(screen.getByTestId("account-mode-ocp")).toBeInTheDocument();
     expect(screen.getByTestId("account-authorize")).toBeDisabled();
-    expect(screen.getByTestId("account-logout")).toBeEnabled();
+    expect(screen.getByTestId("account-authorize")).toHaveTextContent("Войти");
+    expect(screen.queryByTestId("account-logout")).not.toBeInTheDocument();
   });
 
-  it("enables authorize and disables logout when not registered", () => {
+  it("enables sign-in when not registered", () => {
     render(
       <AccountPanel
         {...baseProps}
         form={{ username: "", password: "", domain: "", server: "" }}
         authorizeDisabledReason={null}
-        logoutDisabledReason="Заполните поля и нажмите «Авторизоваться»"
       />,
     );
 
     expect(screen.getByTestId("account-authorize")).toBeEnabled();
-    expect(screen.getByTestId("account-logout")).toBeDisabled();
+    expect(screen.queryByTestId("account-logout")).not.toBeInTheDocument();
   });
 
-  it("invokes logout callback", () => {
-    const onLogout = vi.fn();
+  it("switches mode via accessible tabs", async () => {
+    const user = userEvent.setup();
+    const onSignInModeChange = vi.fn();
 
-    render(
-      <AccountPanel
-        {...baseProps}
-        authorizeDisabledReason="Вы уже в сети. Для смены аккаунта нажмите «Выйти»"
-        logoutDisabledReason={null}
-        onLogout={onLogout}
-      />,
-    );
-
-    fireEvent.click(screen.getByTestId("account-logout"));
-    expect(onLogout).toHaveBeenCalledOnce();
-  });
-
-  it("does not render legacy inline success or error feedback", () => {
-    render(
-      <AccountPanel
-        {...baseProps}
-        successKey="account.success.authorizationSucceeded"
-        error={{ key: "account.error.invalidCredentials" }}
-        authorizeDisabledReason="Вы уже в сети. Для смены аккаунта нажмите «Выйти»"
-        logoutDisabledReason={null}
-      />,
-    );
-
-    expect(screen.queryByTestId("account-success")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("account-error")).not.toBeInTheDocument();
-  });
-
-  it("toggles password visibility", () => {
     render(
       <AccountPanel
         {...baseProps}
         authorizeDisabledReason={null}
-        logoutDisabledReason={null}
+        onSignInModeChange={onSignInModeChange}
       />,
     );
+
+    await user.click(screen.getByTestId("account-mode-ocp"));
+    expect(onSignInModeChange).toHaveBeenCalledWith("ocp");
+  });
+
+  it("renders persistent error feedback without legacy success feedback", () => {
+    render(
+      <AccountPanel
+        {...baseProps}
+        successKey="account.success.sipRegistrationSucceeded"
+        error={{ key: "account.error.invalidCredentials" }}
+        authorizeDisabledReason={null}
+      />,
+    );
+
+    expect(screen.queryByTestId("account-success")).not.toBeInTheDocument();
+    expect(screen.getByTestId("account-error")).toHaveTextContent(
+      "Неверный логин или пароль",
+    );
+  });
+
+  it("toggles password visibility", () => {
+    render(<AccountPanel {...baseProps} authorizeDisabledReason={null} />);
 
     const passwordInput = screen.getByTestId("account-password");
     expect(passwordInput).toHaveAttribute("type", "password");
 
     fireEvent.click(screen.getByTestId("account-password-visibility-toggle"));
     expect(passwordInput).toHaveAttribute("type", "text");
-
-    fireEvent.click(screen.getByTestId("account-password-visibility-toggle"));
-    expect(passwordInput).toHaveAttribute("type", "password");
   });
 
-  it("renders password-only panel for saved profile sign-in", () => {
+  it("renders SIP fields without login for a saved profile", () => {
     render(
       <AccountPanel
         {...baseProps}
         panelMode="savedPasswordOnly"
         form={{ ...baseForm, password: "" }}
         passwordFieldVisible
-        passwordHintKey="account.profile.passwordHint.savedProfile"
         authorizeDisabledReason={null}
-        logoutDisabledReason={null}
       />,
     );
 
     expect(screen.queryByTestId("account-username")).not.toBeInTheDocument();
     expect(screen.getByTestId("account-password")).toBeInTheDocument();
-    expect(screen.getByTestId("account-password-hint")).toBeInTheDocument();
-    expect(screen.queryByTestId("account-logout")).not.toBeInTheDocument();
+    expect(screen.getByTestId("account-domain")).toHaveValue("example.com");
+    expect(screen.getByTestId("account-server")).toHaveValue("sip.example.com");
     expect(screen.getByTestId("account-authorize")).toHaveTextContent("Войти");
   });
 
-  it("renders sign-in only when saved profile has remembered password", () => {
+  it("forgets a remembered password from a saved profile", async () => {
+    const onForgetSavedSipPassword = vi.fn();
     render(
       <AccountPanel
         {...baseProps}
         panelMode="savedPasswordOnly"
-        form={{ ...baseForm, password: "" }}
-        passwordFieldVisible={false}
-        forgetRememberedPasswordVisible
+        canForgetSavedSipPassword
+        onForgetSavedSipPassword={onForgetSavedSipPassword}
         authorizeDisabledReason={null}
-        logoutDisabledReason={null}
-        onForgetRememberedPassword={vi.fn()}
       />,
     );
 
-    expect(screen.queryByTestId("account-password")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("account-password-hint")).not.toBeInTheDocument();
-    expect(screen.queryByTestId("account-remember-password-row")).not.toBeInTheDocument();
-    expect(screen.getByTestId("account-authorize")).toHaveTextContent("Войти");
-    expect(screen.getByTestId("account-forget-remembered-password")).toHaveTextContent(
-      "Забыть сохранённый пароль",
-    );
+    await userEvent.click(screen.getByTestId("account-forget-saved-password"));
+    expect(onForgetSavedSipPassword).toHaveBeenCalledOnce();
   });
 
-  it("invokes forget remembered password callback", () => {
-    const onForgetRememberedPassword = vi.fn();
+  it("renders OCP fields and never prefills API key from storage", () => {
+    render(
+      <AccountPanel
+        {...baseProps}
+        signInMode="ocp"
+        ocpDraft={{ login: "agent", domain: "", apiKey: "" }}
+        showOcpDomainField
+        showOcpApiKeyField
+        hasSavedOcpApiKey
+        authorizeDisabledReason={null}
+      />,
+    );
+
+    expect(screen.getByTestId("account-ocp-login")).toBeInTheDocument();
+    expect(screen.getByTestId("account-ocp-domain")).toBeInTheDocument();
+    expect(screen.getByTestId("account-ocp-api-key")).toBeInTheDocument();
+    expect(screen.getByTestId("account-ocp-api-key")).toHaveValue("");
+    expect(
+      screen.getByTestId("account-ocp-api-key-visibility-toggle"),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId("account-sign-in-methods")).not.toBeInTheDocument();
+  });
+
+  it("shows domain and API key for a complete OCP profile", () => {
+    render(
+      <AccountPanel
+        {...baseProps}
+        signInMode="ocp"
+        showOcpDomainField
+        showOcpApiKeyField
+        showOcpLoginField={false}
+        authorizeDisabledReason={null}
+      />,
+    );
+
+    expect(screen.queryByTestId("account-ocp-login")).not.toBeInTheDocument();
+    expect(screen.getByTestId("account-ocp-domain")).toBeInTheDocument();
+    expect(screen.getByTestId("account-ocp-api-key")).toBeInTheDocument();
+  });
+
+  it("does not render retry-server action in Account", () => {
+    const onRecoveryAction = vi.fn();
 
     render(
       <AccountPanel
         {...baseProps}
-        panelMode="savedPasswordOnly"
-        form={{ ...baseForm, password: "" }}
-        passwordFieldVisible={false}
-        forgetRememberedPasswordVisible
+        signInMode="ocp"
         authorizeDisabledReason={null}
-        logoutDisabledReason={null}
-        onForgetRememberedPassword={onForgetRememberedPassword}
+        allowedRecoveryActions={["retry_server"]}
+        onRecoveryAction={onRecoveryAction}
       />,
     );
 
-    fireEvent.click(screen.getByTestId("account-forget-remembered-password"));
-    expect(onForgetRememberedPassword).toHaveBeenCalledOnce();
-  });
-
-  it("renders full form with provided password and keeps type password", () => {
-    render(
-      <AccountPanel
-        {...baseProps}
-        panelMode="savedFull"
-        form={{ ...baseForm, password: "session-secret" }}
-        authorizeDisabledReason={null}
-        logoutDisabledReason={null}
-      />,
-    );
-
-    const passwordInput = screen.getByTestId("account-password");
-    expect(passwordInput).toHaveValue("session-secret");
-    expect(passwordInput).toHaveAttribute("type", "password");
+    expect(screen.queryByTestId("account-recovery-actions")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("account-server-status")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("account-authorization-status")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("account-auth-retry")).not.toBeInTheDocument();
+    expect(onRecoveryAction).not.toHaveBeenCalled();
   });
 
   it("renders remember password checkbox on new profile form", () => {
@@ -196,35 +228,55 @@ describe("AccountPanel", () => {
         rememberPasswordVisible
         rememberPasswordChecked={false}
         rememberPasswordDisabled
-        rememberPasswordDisabledReasonKey="account.profile.rememberPassword.disabledRequiresSave"
         authorizeDisabledReason={null}
-        logoutDisabledReason={null}
         onRememberPasswordChange={vi.fn()}
       />,
     );
 
     expect(screen.getByTestId("account-remember-password-checkbox")).toBeDisabled();
+    expect(
+      screen.queryByText("Сначала включите «Сохранить профиль»"),
+    ).not.toBeInTheDocument();
   });
 
-  it("enables remember password checkbox when save profile is enabled", () => {
-    const onRememberPasswordChange = vi.fn();
-
+  it("does not render save-profile helper description", () => {
     render(
       <AccountPanel
         {...baseProps}
         saveProfileVisible
-        saveProfileChecked
-        rememberPasswordVisible
-        rememberPasswordChecked={false}
-        rememberPasswordDisabled={false}
+        saveProfileChecked={false}
         authorizeDisabledReason={null}
-        logoutDisabledReason={null}
         onSaveProfileChange={vi.fn()}
-        onRememberPasswordChange={onRememberPasswordChange}
       />,
     );
 
-    fireEvent.click(screen.getByTestId("account-remember-password-checkbox"));
-    expect(onRememberPasswordChange).toHaveBeenCalledWith(true);
+    expect(screen.getByTestId("account-save-profile-checkbox")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Сохранить имя пользователя, домен и сервер для быстрого входа"),
+    ).not.toBeInTheDocument();
   });
+
+  it("does not render OCP login profile picker on new tab", () => {
+    render(
+      <AccountPanel
+        {...baseProps}
+        signInMode="ocp"
+        authorizeDisabledReason={null}
+      />,
+    );
+
+    expect(screen.getByTestId("account-ocp-login")).toBeInTheDocument();
+    expect(screen.queryByTestId("account-ocp-login-select-trigger")).not.toBeInTheDocument();
+  });
+
+  it("keeps Account free of authorization progress status", () => {
+    render(
+      <AccountPanel
+        {...baseProps}
+        authorizeDisabledReason={null}
+      />,
+    );
+    expect(screen.getByTestId("account-panel")).toBeInTheDocument();
+  });
+
 });

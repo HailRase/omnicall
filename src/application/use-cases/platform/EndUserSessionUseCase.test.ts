@@ -13,7 +13,9 @@ import {
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
 import { createPlatformError } from "@shared/errors/index.js";
-import { err } from "@shared/result/index.js";
+import { err, ok } from "@shared/result/index.js";
+import { createAccountSessionActivatedEvent } from "@domain/shared/events/accountBootstrapEvents.js";
+import { createSettingsAccountKey } from "@domain/index.js";
 
 describe("EndUserSessionUseCase", () => {
   function createUseCase() {
@@ -114,5 +116,62 @@ describe("EndUserSessionUseCase", () => {
 
     expect(result.ok).toBe(false);
     expect(published).not.toContain("UserSessionEnded");
+  });
+
+  it("publishes UserSessionEnded after SIP partial teardown failure", async () => {
+    const { useCase, executeSpy, eventPublisher } = createUseCase();
+    const published: string[] = [];
+    eventPublisher.subscribe((event) => {
+      published.push(event.type);
+    });
+
+    executeSpy.mockResolvedValueOnce(
+      err(
+        createPlatformError(
+          "operation_failed",
+          "Session teardown completed with failures for end_user_session",
+        ),
+      ),
+    );
+
+    const result = await useCase.execute({});
+
+    expect(result.ok).toBe(true);
+    expect(published).toContain("UserSessionEnded");
+  });
+
+  it("re-arms logout after AccountSessionActivated following partial-failure logout", async () => {
+    const correlationId = createCorrelationId();
+    const { useCase, executeSpy, eventPublisher } = createUseCase();
+
+    executeSpy.mockResolvedValueOnce(
+      err(
+        createPlatformError(
+          "operation_failed",
+          "Session teardown completed with failures for end_user_session",
+        ),
+      ),
+    );
+    await useCase.execute({});
+
+    eventPublisher.publish(
+      createAccountSessionActivatedEvent(correlationId, {
+        profileKey: createSettingsAccountKey("1001@pbx.example.com"),
+      }),
+    );
+
+    executeSpy.mockResolvedValueOnce(
+      ok({
+        steps: [
+          { step: "dispose_recovery", ok: true },
+          { step: "hangup_all_calls", ok: true },
+          { step: "release_all_media", ok: true },
+          { step: "sip_unregister", ok: true },
+        ],
+      }),
+    );
+    await useCase.execute({});
+
+    expect(executeSpy).toHaveBeenCalledTimes(2);
   });
 });

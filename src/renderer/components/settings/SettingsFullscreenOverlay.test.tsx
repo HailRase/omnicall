@@ -3,6 +3,7 @@ import "@testing-library/jest-dom/vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import { deriveSettingsNavigationAvailability } from "@application/index.js";
 import { SettingsFullscreenOverlay } from "./SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "./SettingsPanel.js";
 import { systemStateTestDefaults } from "./panels/settingsSystemStateTestDefaults.js";
@@ -27,6 +28,9 @@ const appUpdateDefaults = {
 const panelProps = {
   activeSection: "general" as const,
   sidebarExpanded: false,
+  sectionAvailability: deriveSettingsNavigationAvailability({
+    hasActiveAccountSession: true,
+  }),
   onClose: vi.fn(),
   onSectionChange: vi.fn(),
   onSidebarExpandedChange: vi.fn(),

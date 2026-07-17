@@ -38,7 +38,7 @@ import {
   type OcpIntegrationSettings,
 } from "./OcpIntegrationSettings.js";
 
-export const SETTINGS_SCHEMA_VERSION = 8 as const;
+export const SETTINGS_SCHEMA_VERSION = 9 as const;
 
 export type SettingsSchemaVersion = typeof SETTINGS_SCHEMA_VERSION;
 
@@ -54,6 +54,7 @@ export type UserSettings = Readonly<{
   notificationDurationMs: number;
   notificationClosable: boolean;
   notificationMaxVisible: number;
+  notificationPopupEnabled: boolean;
   multiSessionsEnabled: boolean;
   autoUnholdOnTransferFailure: boolean;
   autoAnswerTimeoutSec: number | null;
@@ -106,6 +107,7 @@ export function createDefaultUserSettings(): UserSettings {
     notificationDurationMs: DEFAULT_NOTIFICATION_DURATION_MS,
     notificationClosable: DEFAULT_NOTIFICATION_CLOSABLE,
     notificationMaxVisible: DEFAULT_NOTIFICATION_MAX_VISIBLE,
+    notificationPopupEnabled: true,
     multiSessionsEnabled: true,
     autoUnholdOnTransferFailure: true,
     autoAnswerTimeoutSec: null,

@@ -27,6 +27,7 @@ export function useSoftphoneShellChrome(input: UseSoftphoneShellChromeInput) {
     () =>
       pickSessionLogoutProjectionInput({
         authUiState: projection.authUiState,
+        hasActiveAccountSession: projection.hasActiveAccountSession,
         multiCallProjection,
         incomingCallProjection,
         transferProjection,
@@ -34,6 +35,7 @@ export function useSoftphoneShellChrome(input: UseSoftphoneShellChromeInput) {
       }),
     [
       projection.authUiState,
+      projection.hasActiveAccountSession,
       multiCallProjection,
       incomingCallProjection,
       transferProjection,

@@ -1,16 +1,22 @@
 /**
- * - Purpose: real OCP WebSocket transport implementing OcpGateway port.
+ * - Purpose: real OCP WebSocket transport implementing OcpGateway (transport-only).
  * - Inputs: OcpConnectionConfig, OcpCommand, lifecycle callbacks.
- * - Outputs: connection state changes and parsed OcpIncomingMessage events.
+ * - Outputs: server/transport state changes and parsed OcpIncomingMessage events.
+ *
+ * ADR-AF-002: no scheduled reconnect with retained authToken; no auto-auth on open;
+ * Application owns fresh-token recovery and auth send.
  */
 
 import type { OcpConnectionConfig } from "@domain/integration/ocp/OcpConnectionConfig.js";
-import type { OcpConnectionState } from "@domain/integration/ocp/OcpConnectionState.js";
+import type { OcpServerState } from "@domain/integration/ocp/OcpServerState.js";
 import type { OcpCommand } from "@domain/integration/ocp/protocol/OcpCommand.js";
 import type { OcpIncomingMessage } from "@domain/integration/ocp/protocol/OcpIncomingMessage.js";
-import { ReconnectScheduler } from "@shared/scheduling/ReconnectScheduler.js";
 import type { Logger } from "@ports/logging/Logger.js";
-import type { OcpGateway, Unsubscribe } from "@ports/integration/OcpGateway.js";
+import type {
+  OcpGateway,
+  OcpGatewayMessageEnvelope,
+  Unsubscribe,
+} from "@ports/integration/OcpGateway.js";
 import { createPlatformError } from "@shared/errors/index.js";
 import { err, ok } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
@@ -20,8 +26,6 @@ import { parseOcpMessage } from "./parseOcpMessage.js";
 
 const FEATURE_ID = "F-028";
 const BOUNDED_CONTEXT = "Integration";
-const DEFAULT_RECONNECT_DELAY_MS = 5000;
-const DEFAULT_MAX_RECONNECT_ATTEMPTS = 6;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -41,26 +45,24 @@ export type WebSocketFactory = (url: string) => WebSocket;
 export type OcpWebSocketAdapterDeps = Readonly<{
   logger: Logger;
   webSocketFactory?: WebSocketFactory;
-  reconnectDelayMs?: number;
-  maxReconnectAttempts?: number;
 }>;
 
 export class OcpWebSocketAdapter implements OcpGateway {
   private readonly logger: Logger;
   private readonly webSocketFactory: WebSocketFactory;
-  private readonly reconnectDelayMs: number;
-  private readonly maxReconnectAttempts: number;
-  private readonly reconnectScheduler: ReconnectScheduler;
   private readonly messageHandlers = new Set<(msg: OcpIncomingMessage) => void>();
-  private readonly stateHandlers = new Set<(state: OcpConnectionState) => void>();
+  private readonly envelopeHandlers = new Set<
+    (envelope: OcpGatewayMessageEnvelope) => void
+  >();
+  private readonly stateHandlers = new Set<(state: OcpServerState) => void>();
 
   private ws: WebSocket | null = null;
-  private config: OcpConnectionConfig | null = null;
-  private connectionState: OcpConnectionState = "disconnected";
-  private reconnectAttempts = 0;
-  private hasAuthenticated = false;
+  /** Hostname only — ephemeral token is never retained for reconnect. */
+  private domain: string | null = null;
+  private connectionState: OcpServerState = "disconnected";
   private manualDisconnect = false;
   private disposed = false;
+  private socketEpoch = 0;
 
   constructor(deps: OcpWebSocketAdapterDeps) {
     this.logger = deps.logger.child({
@@ -68,38 +70,26 @@ export class OcpWebSocketAdapter implements OcpGateway {
       boundedContext: BOUNDED_CONTEXT,
     });
     this.webSocketFactory =
-      deps.webSocketFactory ??
-      ((url: string) => new WebSocket(url));
-    this.reconnectDelayMs = deps.reconnectDelayMs ?? DEFAULT_RECONNECT_DELAY_MS;
-    this.maxReconnectAttempts =
-      deps.maxReconnectAttempts ?? DEFAULT_MAX_RECONNECT_ATTEMPTS;
-    this.reconnectScheduler = new ReconnectScheduler();
+      deps.webSocketFactory ?? ((url: string) => new WebSocket(url));
   }
 
   connect(config: OcpConnectionConfig): void {
     if (this.disposed) {
       return;
     }
-    this.config = config;
+    this.domain = config.domain;
     this.manualDisconnect = false;
-    this.hasAuthenticated = false;
-    this.reconnectAttempts = 0;
-    this.reconnectScheduler.cancelAll();
     this.createWebSocket();
   }
 
   disconnect(reason?: "logout" | "error" | "terminate"): void {
     this.manualDisconnect = true;
-    this.reconnectScheduler.cancelAll();
     this.closeWebSocket();
     if (reason === "error") {
       this.setConnectionState("failed");
       return;
     }
-    if (reason === "terminate") {
-      this.setConnectionState("sessionClosed");
-      return;
-    }
+    // terminate/logout: transport closes to disconnected; Application maps terminal auth.
     this.setConnectionState("disconnected");
   }
 
@@ -117,11 +107,11 @@ export class OcpWebSocketAdapter implements OcpGateway {
     return ok(undefined);
   }
 
-  getConnectionState(): OcpConnectionState {
+  getConnectionState(): OcpServerState {
     return this.connectionState;
   }
 
-  onConnectionStateChange(handler: (state: OcpConnectionState) => void): Unsubscribe {
+  onConnectionStateChange(handler: (state: OcpServerState) => void): Unsubscribe {
     this.stateHandlers.add(handler);
     return () => {
       this.stateHandlers.delete(handler);
@@ -135,36 +125,55 @@ export class OcpWebSocketAdapter implements OcpGateway {
     };
   }
 
+  onMessageEnvelope(
+    handler: (envelope: OcpGatewayMessageEnvelope) => void,
+  ): Unsubscribe {
+    this.envelopeHandlers.add(handler);
+    return () => {
+      this.envelopeHandlers.delete(handler);
+    };
+  }
+
+  getSocketEpoch(): number {
+    return this.socketEpoch;
+  }
+
   dispose(): void {
     this.disposed = true;
     this.manualDisconnect = true;
-    this.reconnectScheduler.dispose();
     this.closeWebSocket();
     this.messageHandlers.clear();
+    this.envelopeHandlers.clear();
     this.stateHandlers.clear();
-    this.config = null;
+    this.domain = null;
     this.setConnectionState("disconnected");
   }
 
   private createWebSocket(): void {
-    if (this.disposed || this.config === null) {
+    if (this.disposed || this.domain === null) {
       return;
     }
     this.closeWebSocket();
-    this.setConnectionState(
-      this.reconnectAttempts > 0 ? "reconnecting" : "connecting",
-    );
-    const url = `wss://${this.config.domain}/ws`;
+    this.setConnectionState("connecting");
+    const url = `wss://${this.domain}/ws`;
     const socket = this.webSocketFactory(url);
+    this.socketEpoch += 1;
+    const socketEpoch = this.socketEpoch;
     this.ws = socket;
     socket.onopen = () => {
-      this.handleOpen();
+      if (this.ws === socket) {
+        this.handleOpen();
+      }
     };
     socket.onmessage = (event: MessageEvent<string>) => {
-      this.handleMessage(event.data);
+      if (this.ws === socket) {
+        this.handleMessage(event.data, socketEpoch);
+      }
     };
     socket.onclose = () => {
-      this.handleClose();
+      if (this.ws === socket) {
+        this.handleClose();
+      }
     };
     socket.onerror = () => {
       this.logger.error("OcpWS error", {
@@ -176,26 +185,19 @@ export class OcpWebSocketAdapter implements OcpGateway {
   }
 
   private handleOpen(): void {
-    if (this.config === null) {
-      return;
-    }
-    this.reconnectAttempts = 0;
     this.setConnectionState("connected");
-    const authResult = this.sendCommand({ kind: "auth", token: this.config.authToken });
-    if (!authResult.ok) {
-      this.logger.error("OcpWS auth send failed", {
-        featureId: FEATURE_ID,
-        boundedContext: BOUNDED_CONTEXT,
-        operation: "ocp_websocket_auth",
-        result: "failed",
-      });
-    }
+    // Auth is Application-owned — do not send retained token here.
   }
 
-  private handleMessage(raw: unknown): void {
+  private handleMessage(raw: unknown, socketEpoch: number): void {
     const parsed = parseOcpMessage(raw);
     if (!parsed.ok) {
-      const envelope = typeof raw === "string" ? safeParseJsonRecord(raw) : isRecord(raw) ? raw : null;
+      const envelope =
+        typeof raw === "string"
+          ? safeParseJsonRecord(raw)
+          : isRecord(raw)
+            ? raw
+            : null;
       const entity =
         envelope !== null && typeof envelope["entity"] === "string"
           ? envelope["entity"]
@@ -221,35 +223,29 @@ export class OcpWebSocketAdapter implements OcpGateway {
 
     const message = parsed.value;
     if (message.entity === "Error") {
-      if (message.data.code === "SESSION_EXIST" || message.data.code === "INVALID_TOKEN") {
+      if (
+        message.data.code === "SESSION_EXIST" ||
+        message.data.code === "INVALID_TOKEN"
+      ) {
+        // Close transport; do not schedule reconnect. Application classifies recovery.
         this.manualDisconnect = true;
-        this.reconnectScheduler.cancelAll();
-        this.setConnectionState("sessionClosed");
+        this.dispatchMessage(message, socketEpoch);
+        this.closeWebSocket();
+        this.setConnectionState("failed");
+        return;
       }
     }
 
-    if (message.entity === "users" && !this.hasAuthenticated) {
-      this.hasAuthenticated = true;
-      this.setConnectionState("authenticated");
-    }
-
-    this.dispatchMessage(message);
+    this.dispatchMessage(message, socketEpoch);
   }
 
   private handleClose(): void {
     this.ws = null;
-    if (this.disposed || this.manualDisconnect || this.connectionState === "sessionClosed") {
+    if (this.disposed || this.manualDisconnect) {
       return;
     }
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      this.setConnectionState("failed");
-      return;
-    }
-    this.reconnectAttempts += 1;
-    this.setConnectionState("reconnecting");
-    this.reconnectScheduler.schedule(this.reconnectDelayMs, () => {
-      this.createWebSocket();
-    });
+    // Unexpected drop — Application owns fresh-token recovery (no adapter reconnect).
+    this.setConnectionState("failed");
   }
 
   private closeWebSocket(): void {
@@ -270,13 +266,19 @@ export class OcpWebSocketAdapter implements OcpGateway {
     }
   }
 
-  private dispatchMessage(message: OcpIncomingMessage): void {
+  private dispatchMessage(
+    message: OcpIncomingMessage,
+    socketEpoch: number,
+  ): void {
     for (const handler of this.messageHandlers) {
       handler(message);
     }
+    for (const handler of this.envelopeHandlers) {
+      handler({ socketEpoch, message });
+    }
   }
 
-  private setConnectionState(nextState: OcpConnectionState): void {
+  private setConnectionState(nextState: OcpServerState): void {
     if (this.connectionState === nextState) {
       return;
     }

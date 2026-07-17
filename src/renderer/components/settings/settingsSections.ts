@@ -7,6 +7,7 @@ export type SettingsSectionId =
   | "sessions"
   | "system-state"
   | "diagnostics"
+  | "notifications"
   | "codecs"
   | "video"
   | "headset"
@@ -74,6 +75,13 @@ export const SETTINGS_NAV_TREE: ReadonlyArray<SettingsNavNode> = [
     labelKey: "settings.nav.diagnostics",
     iconId: "shell.diagnostics",
     testId: "settings-nav-diagnostics",
+  },
+  {
+    kind: "item",
+    id: "notifications",
+    labelKey: "settings.nav.notifications",
+    iconId: "settings.notifications",
+    testId: "settings-nav-notifications",
   },
   {
     kind: "item",

@@ -65,6 +65,16 @@
   --color-bg-success: #ecfdf3;
   --color-bg-sidebar-expanded: rgb(255 255 255 / 92%);
 
+  /* Sidebar (UI Kit) */
+  --color-bg-sidebar: var(--color-bg-surface);
+  --color-text-sidebar: var(--color-text-primary);
+  --color-bg-sidebar-accent: var(--color-bg-surface-alt);
+  --color-text-sidebar-accent: var(--color-text-primary);
+  --color-border-sidebar: var(--color-border-subtle);
+  --sidebar-width: 16rem;
+  --sidebar-width-icon: 3rem;
+  --sidebar-width-mobile: 18rem;
+
   /* Shell layout zones */
   --color-bg-shell-header: var(--color-bg-surface);
   --color-bg-shell-body: var(--color-bg-app);
@@ -174,6 +184,13 @@
   --color-bg-danger-strong: #4a2028;
   --color-bg-success: #1a3a2a;
   --color-bg-sidebar-expanded: rgb(13 18 28 / 86%);
+
+  /* Sidebar (UI Kit) */
+  --color-bg-sidebar: var(--color-bg-surface);
+  --color-text-sidebar: var(--color-text-primary);
+  --color-bg-sidebar-accent: var(--color-bg-surface-alt);
+  --color-text-sidebar-accent: var(--color-text-primary);
+  --color-border-sidebar: var(--color-border-subtle);
 
   /* Text */
   --color-text-primary: #e8edf5;

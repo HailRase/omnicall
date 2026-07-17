@@ -84,6 +84,12 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
   const notificationDurationMs = readNotificationDurationMs(record, errors);
   const notificationClosable = readNotificationClosable(record, errors);
   const notificationMaxVisible = readNotificationMaxVisible(record, errors);
+  const notificationPopupEnabled = readBooleanWithDefault(
+    record,
+    "notificationPopupEnabled",
+    true,
+    errors,
+  );
   const multiSessionsEnabled = readBoolean(record, "multiSessionsEnabled", errors);
   const autoUnholdOnTransferFailure = readBoolean(
     record,
@@ -187,6 +193,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
       notificationDurationMs,
       notificationClosable,
       notificationMaxVisible,
+      notificationPopupEnabled,
       multiSessionsEnabled,
       autoUnholdOnTransferFailure,
       autoAnswerTimeoutSec,

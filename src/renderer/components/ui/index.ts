@@ -10,6 +10,14 @@ export {
 } from "./alert/index.js";
 export { Badge, type BadgeProps } from "./badge/index.js";
 export { Button, type ButtonProps } from "./button/index.js";
+export {
+  ButtonGroup,
+  ButtonGroupSeparator,
+  ButtonGroupText,
+  type ButtonGroupProps,
+  type ButtonGroupSeparatorProps,
+  type ButtonGroupTextProps,
+} from "./button-group/index.js";
 export { Checkbox, type CheckboxProps } from "./checkbox/index.js";
 export {
   AlertDialog,
@@ -70,6 +78,20 @@ export {
 export { FormField, type FormFieldProps } from "./form-field/index.js";
 export { IconButton, type IconButtonProps } from "./icon-button/index.js";
 export { Input, type InputProps } from "./input/index.js";
+export {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupInput,
+  InputGroupText,
+  InputGroupTextarea,
+  type InputGroupAddonProps,
+  type InputGroupButtonProps,
+  type InputGroupInputProps,
+  type InputGroupProps,
+  type InputGroupTextProps,
+  type InputGroupTextareaProps,
+} from "./input-group/index.js";
 export { Label, type LabelProps } from "./label/index.js";
 export { Progress, type ProgressProps } from "./progress/index.js";
 export { Notification, type NotificationProps } from "./notification/index.js";
@@ -82,11 +104,79 @@ export { Toaster, type ToasterProps } from "./sonner/index.js";
 export { toast, type ExternalToast } from "./sonner/index.js";
 export { Switch, type SwitchProps } from "./switch/index.js";
 export {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+  type TableBodyProps,
+  type TableCaptionProps,
+  type TableCellProps,
+  type TableFooterProps,
+  type TableHeadProps,
+  type TableHeaderProps,
+  type TableProps,
+  type TableRowProps,
+} from "./table/index.js";
+export {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupAction,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarInput,
+  SidebarInset,
+  SidebarMenu,
+  SidebarMenuAction,
+  SidebarMenuBadge,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSkeleton,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+  SidebarProvider,
+  SidebarRail,
+  SidebarSeparator,
+  SidebarTrigger,
+  useSidebar,
+  type SidebarContentProps,
+  type SidebarFooterProps,
+  type SidebarGroupActionProps,
+  type SidebarGroupContentProps,
+  type SidebarGroupLabelProps,
+  type SidebarGroupProps,
+  type SidebarHeaderProps,
+  type SidebarInputProps,
+  type SidebarInsetProps,
+  type SidebarMenuActionProps,
+  type SidebarMenuBadgeProps,
+  type SidebarMenuButtonProps,
+  type SidebarMenuItemProps,
+  type SidebarMenuProps,
+  type SidebarMenuSkeletonProps,
+  type SidebarMenuSubButtonProps,
+  type SidebarMenuSubItemProps,
+  type SidebarMenuSubProps,
+  type SidebarProps,
+  type SidebarProviderProps,
+  type SidebarRailProps,
+  type SidebarSeparatorProps,
+  type SidebarTriggerProps,
+} from "./sidebar/index.js";
+export {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
   type TabsContentProps,
+  type TabsIndicator,
   type TabsListProps,
   type TabsProps,
   type TabsTriggerProps,
@@ -122,16 +212,26 @@ export {
 } from "./tooltip/index.js";
 export type {
   AlertVariant,
+  ButtonGroupOrientation,
   ButtonSize,
   ButtonVariant,
   ControlSize,
   DialogSize,
   IconButtonVariant,
+  InputGroupAddonAlign,
+  InputGroupButtonSize,
   ProgressTone,
+  SidebarCollapsible,
+  SidebarMenuButtonSize,
+  SidebarMenuButtonVariant,
+  SidebarMenuSubButtonSize,
+  SidebarSide,
+  SidebarVariant,
   TextareaResize,
   ToastPlacement,
   ToastTone,
   SonnerPosition,
   NotificationTone,
   SkeletonShape,
+  TableCellAlign,
 } from "./types.js";

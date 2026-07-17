@@ -11,22 +11,38 @@ type AccountPasswordFieldProps = Readonly<{
   disabled: boolean;
   inputRef?: RefObject<HTMLInputElement | null> | undefined;
   onChange: (value: string) => void;
+  placeholder?: string;
+  autoComplete?: string;
+  "aria-label"?: string;
+  inputTestId?: string;
+  toggleTestId?: string;
+  showAriaLabel?: string;
+  hideAriaLabel?: string;
 }>;
 
 /**
- * - Purpose: render SIP account password input with visibility toggle.
- * - Inputs: password value, disabled state, optional input ref, change callback.
- * - Outputs: accessible password field without business logic.
+ * - Purpose: render secret input (SIP password / OCP API key) with visibility toggle.
+ * - Inputs: value, disabled, optional labels/test ids, change callback.
+ * - Outputs: accessible password-style field matching Account SIP password chrome.
  */
 export function AccountPasswordField({
   value,
   disabled,
   inputRef,
   onChange,
+  placeholder,
+  autoComplete,
+  "aria-label": ariaLabel,
+  inputTestId = "account-password",
+  toggleTestId = "account-password-visibility-toggle",
+  showAriaLabel,
+  hideAriaLabel,
 }: AccountPasswordFieldProps): JSX.Element {
   const { t } = useI18n();
   const [visible, setVisible] = useState(false);
-  const toggleLabel = !visible ? t("account.password.show") : t("account.password.hide");
+  const resolvedShowLabel = showAriaLabel ?? t("account.password.show");
+  const resolvedHideLabel = hideAriaLabel ?? t("account.password.hide");
+  const toggleLabel = !visible ? resolvedShowLabel : resolvedHideLabel;
 
   return (
     <div className={styles.passwordField}>
@@ -36,7 +52,10 @@ export function AccountPasswordField({
         type={!visible ? "password" : "text"}
         value={value}
         disabled={disabled}
-        data-testid="account-password"
+        placeholder={placeholder}
+        autoComplete={autoComplete}
+        aria-label={ariaLabel}
+        data-testid={inputTestId}
         onChange={(event) => {
           onChange(event.target.value);
         }}
@@ -45,7 +64,7 @@ export function AccountPasswordField({
         type="button"
         className={styles.passwordToggle}
         data-password-toggle="true"
-        data-testid="account-password-visibility-toggle"
+        data-testid={toggleTestId}
         aria-label={toggleLabel}
         disabled={disabled}
         onClick={() => {

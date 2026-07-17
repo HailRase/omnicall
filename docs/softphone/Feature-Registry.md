@@ -104,12 +104,15 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - DND shown in header only when `isConnected && isRegistered && dndEnabled` (not as transport/presence substitute).
   - Header SIP status line via `deriveSipStatusShell` (Russian labels per ADR-0004 ?1.2); no user-selectable online/offline presence.
   - Phone status changes run through `ChangePhoneStatusUseCase` and emit `PhoneStatusChanged` (DND flag only when registered).
+  - **Auth Flow Refactoring (ADR-AF-001/003, corrective):** SIP-only sign-in remains available without OCP; Account is the sole sign-in surface; Login disabled while SIP registered (avatar logout only); opted-in draft profile/secret save may run before attempt without promoting active session until SIP-ready.
 - Test Coverage:
   - Unit: `SipSessionHealth` invariants, transport FSM, registration state transitions, `deriveSipStatusShell` header rows, phone status use case, manual SIP validation
   - Integration: mock telephony gateway transport events, SIP-only bootstrap facade, effective registered guard on disconnect
+  - Facade: `AccountBootstrapFacade.test.ts` (`sipAutoRegisterOnStartup` bootstrap gate, startup registration failure flag, `retryStartupRegistration`)
   - E2E: deferred until SIP sandbox exists
 - Real Adapter Track: **done** (RAT step 02, 2026-06-24) ? `JsSipTelephonyAdapter` on `@hailrase/jssip` fork; register/unregister/reconnect + transport disconnect; manual SBC R1 PASS; fork notes: `real-integration/JSSIP-FORK.md`
 - Refactor plan: `docs/softphone/TRANSPORT-REGISTER-STATE-REFACTORING.md` (T-008)
+- Corrective track: `auth-flow/auth-flow-refactoring.md` + `handoffs/P11-Auth-Flow-Refactoring-Handoff.md`
 
 ## F-002: Incoming Call
 
@@ -430,12 +433,15 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Failure reasons normalized (`mapSipRegistrationFailureKey`) and shown in Russian in settings panel and header.
   - App shutdown IPC triggers `ShutdownCleanupUseCase` with hangup, unregister, scheduler dispose (LF-079).
   - SIP-only user logout: `hangupAll ? unregister({ all: true }) ? ua.stop() ? SipSessionReset ? idle`; all recovery timers cleared (LF-079).
+  - **OCP recovery (ADR-AF-002, corrective F-028):** Server/transport and Authorization are independent projections; Application owns fresh-HTTP-token reconnect; adapter must not reconnect with a retained ephemeral token; auth-only retry reuses the open socket; `SESSION_EXIST` forces server retry (new socket).
 - Test Coverage:
   - Unit: `SipSessionHealth`, `buildSipTransportRecoveryPolicy`, `buildSipRegistrationRecoveryPolicy`, `sipSessionHealthProjection`, `deriveSipStatusShell`, `deriveSipSystemStateShell`, `ReconnectScheduler`, `ManualSipTransportReconnectUseCase`, `SipRecoveryOrchestrationService` (pause/resume during active call ? Q6), `EndUserSessionUseCase`, `SessionTeardownOrchestrationService`
   - Integration: `SipRecoveryOrchestration.integration.test.ts` (transport?registration order, pause during call, uniform auth retry, manual reconnect)
   - Component: `SettingsSystemStatePanel`, `LogoutActiveSessionConfirmationModal`; header SIP status (no overlay)
+  - Facade: `AccountBootstrapFacade.test.ts` (`sipAutoRegisterOnStartup` honored at bootstrap; persistent startup failure + retry)
   - E2E: deferred until harness exists
 - Refactor plan: `docs/softphone/TRANSPORT-REGISTER-STATE-REFACTORING.md` (T-008)
+- Corrective track (OCP dual FSM): `auth-flow/auth-flow-refactoring.md` WU-02; ADR-AF-002
 - Supersedes: LF-057 overlay UX, LF-009 avatar ring (cancelled)
 
 ## F-015: Legacy Call Sync And Campaigns
@@ -453,7 +459,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-055`, `LF-056`, `LF-060`, `LF-076`, `LF-077`, `LF-082`, `LF-084`, `LF-085`, `LF-086`, `LF-087`, `LF-032` (multi-session toggle)
 - Context: Settings
 - Priority: high
-- Status: **in_progress** (P11 WU0?WU5 + UI-4 **done**; T-008 system-state panel **done** ? ADR-0004; open: UI-6 Radix modals, draggable LF-056)
+- Status: **in_progress** (P11 WU0–WU5 + UI-4 **done**; T-008 system-state panel **done** — ADR-0004; Auth Flow gate ADR-AF-004/005 + T-034 SIP/OCP tabs **done**; open: UI-6 Radix modals, draggable LF-056)
 - Owner: TBD
 - Inputs: user settings, account identity, shell interactions, SIP session health projection
 - Outputs: persisted settings (v2), theme, menu projections, system-state panel VM
@@ -463,7 +469,8 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Corrupt or unsupported schema version surfaces observable error (no silent security-sensitive defaults).
   - **Overlay navigation:** settings open fullscreen over call context; diagnostics is a settings section; call context stays mounted (`UI-Architecture.md`).
   - **Settings route alignment (shell navigation Phase 5):** `#/settings` and `#/settings/:sectionId` open the same fullscreen overlay; invalid section ids fall back to `general`; closing returns to the prior shell route via router state/history; section changes use `replace` without polluting history; active-call overlay rule unchanged.
-  - **Settings entry section:** opening settings without an explicit section navigates to **Account** when SIP is not registered, otherwise **General**; canonical `#/settings` redirects to account when unauthenticated (`deriveDefaultSettingsSection`, `useOverlayShell`); other settings sections remain freely navigable without SIP registration.
+  - **Settings entry section:** opening settings without an explicit section navigates to **Account** when SIP is not registered, otherwise **General**; canonical `#/settings` redirects to account when unauthenticated (`deriveDefaultSettingsSection`, `useOverlayShell`).
+  - **Settings authorization gate (ADR-AF-004, corrective):** before SIP-ready, Account is the **only** available Settings section; sidebar + route/overlay guard disable and redirect all other sections with reason `settings.nav.disabled.authorizeFirst`; after SIP registration all permitted sections return; active-call overlay remains mounted.
   - **Account password visibility:** SIP account password fields expose show/hide toggle with accessible labels (`AccountPasswordField`, `form.password.show` / `form.password.hide` icons).
   - **Settings sidebar:** collapsed icon rail with `IconTooltip` section labels (`placement: right`); expanded labels overlay content without shrinking the panel; long labels wrap up to two lines; no duplicate overlay header ? content header shows `????????? ({??????})` and a minimal close icon.
   - **Settings sections:** Account (SIP auth), General (theme LF-082), **????????? ???????** (`system-state` ? ADR-0004), Sessions (multi-call), Diagnostics (F-017 stub), Codecs (stub), Headset (P10 stub).
@@ -670,6 +677,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Optional secure storage via `SecretStoragePort` + Electron `safeStorage` IPC (**Path B implemented** for remember-password on saved profiles).
   - ?Forget remembered password? deletes only local secure SIP password secret; profile metadata and per-account settings retained.
   - Active authorized account may display in-memory session password in account form password field (not preloaded from secure storage for inactive profiles).
+  - **Draft lifecycle (ADR-AF-001, corrective):** opted-in draft profile metadata + secrets may persist before SIP-ready; failed candidate does not become `activeProfileKey` / active SIP session or apply candidate settings; success marker only after SIP registration; query VMs expose secret availability booleans only.
 - Test Coverage:
   - Unit: profile key derivation, normalization edge cases
   - Adapter: `InMemorySettingsRepository` per-account isolation; `FileSettingsRepository` cross-instance persistence, corrupt JSON
@@ -678,12 +686,14 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Component: settings account panel profile label (if UI changed)
   - E2E: deferred until harness exists
 - Design: `docs/softphone/P11-Local-Account-Profiles-Design.md`
+- Corrective track: `auth-flow/auth-flow-refactoring.md` WU-01; ADR-AF-001
 - Implementation evidence (Step 2 domain): `src/domain/settings/deriveSettingsAccountKey.ts`, `deriveSettingsAccountKey.test.ts`, `resolveSettingsAccountKey.ts`, `resolveSettingsAccountKey.test.ts`
 - Implementation evidence (Step 3 ports): `src/ports/settings/SettingsRepository.ts` (`getActiveProfileKey`, `setActiveProfileKey`, `listKnownProfileKeys`), `InMemorySettingsRepository.ts`, `InMemorySettingsRepository.test.ts`, `FileSettingsRepository.ts` delegation
 - Implementation evidence (Step 4 disk): `src/ports/filesystem/FileSystemPort.ts`, `src/infrastructure/filesystem/NodeFileSystemAdapter.ts`, `src/adapters/settings/profileStoragePaths.ts`, `profilesIndexDocument.ts`, `parsePersistedUserSettings.ts`, `FileSettingsRepository.ts`, `FileSettingsRepository.test.ts`
 - Implementation evidence (Step 5 secrets Path A): `src/ports/secrets/SecretStoragePort.ts`, `src/adapters/settings/assertPersistedProfileJsonExcludesSecrets.ts`, `assertPersistedProfileJsonExcludesSecrets.test.ts`
 - Implementation evidence (Path B remember-password): `src/shared/ipc/SecretStorageContract.ts`, `src/main/secrets/registerSecretStorageIpc.ts`, `src/adapters/secrets/PreloadSecretStorageAdapter.ts`, `InMemorySecretStorageAdapter.ts`, `AccountBootstrapFacade.ts` (`forgetRememberedSipPassword`, `getActiveSipAccount`), `deriveSavedProfileCredentialPromptState.ts`, `useAccountActions.ts`, `AccountPanel.tsx`, `messages.ts` + `catalogs/bgMessages.ts`
-- Implementation evidence (Step 6 application): `AuthorizeSipAccountUseCase.ts` (`setActiveProfileKey` on authorize), `application/settings/resolveSettingsAccountKey.ts`, `AccountBootstrapFacade.ts` (`applyActiveProfileSettingsSideEffects`, profile-aware save/load), `AccountBootstrapFacade.test.ts` (A?B?A restore)
+- Implementation evidence (Step 6 application): `AuthorizeSipAccountUseCase.ts` (`setActiveProfileKey` when `promoteActiveSession`), `PromoteAuthorizedSipSessionUseCase.ts` (post-SIP-ready promotion), `application/settings/resolveSettingsAccountKey.ts`, `AccountBootstrapFacade.ts` (`applyActiveProfileSettingsSideEffects`, profile-aware save/load), `AccountBootstrapFacade.test.ts` (A?B?A restore)
+- Implementation evidence (WU-01 draft lifecycle): `PersistDraftAccountArtifactsUseCase.ts`, `savedAccountProfileLifecycle.ts`, `migrateProfileScopedSecrets.ts`
 - Implementation evidence (Step 7 composition): `createRealAccountBootstrap.ts`, `createRealBootstrapSettingsRepository.ts`, `resolveAxatalkProfilesStorageRoot.ts`, `registerProfilesPersistenceIpc.ts`, `PreloadFileSystemAdapter.ts`, `createRealAccountBootstrap.test.ts`, `resolveRealBootstrapDiskOptions.ts`
 - Implementation evidence (Step 8 UI): `formatSettingsAccountIdentityLabel.ts`, `deriveActiveProfileSettingsSyncKey`, `SettingsAccountPanel.tsx` (account form only), `accountBootstrapProjection.ts` (`sipDomain`), `SettingsAccountPanel.test.tsx`, `SettingsOverlay.stories.tsx` (light + dark registered)
 - Implementation evidence (Step 9 migration): `deriveLegacyUsernameOnlySettingsAccountKey.ts`, `loadUserSettingsWithLegacyMigration.ts`, `AuthorizeSipAccountUseCase.ts`, `AccountBootstrapFacade.ts` (`loadUserSettingsForAccountKey`), `loadUserSettingsWithLegacyMigration.test.ts`, `FileSettingsRepository.test.ts` (legacy on-disk), `AccountBootstrapFacade.test.ts` (legacy authorize)
@@ -695,36 +705,40 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-077` (saved profile list + quick sign-in UX; extends F-023 per-account persistence)
 - Context: Settings
 - Priority: high
-- Status: **implemented** (corrective pass 2026-07-06)
+- Status: **implemented** (corrective pass 2026-07-06); **corrective Auth Flow track in progress** (ADR-AF-001/003/004 WU-01…WU-05 done; WU-06 verification pending)
 - Owner: TBD
-- Inputs: saved profile list from facade, manual/saved authorize, delete profile, profile switching
+- Inputs: saved profile list from facade, manual/saved authorize, delete profile, profile selection (no live-session switch)
 - Outputs: tab-style profile navigation in Settings ? Account, password-only saved tab when unauthenticated, full form when registered, save-on-authorize checkbox on New, delete confirmation, safe server error display
 - Acceptance Criteria:
   - Tab navigation shows localized ?New? first; saved tabs show username with domain/server disambiguation when needed; keyboard-accessible tablist.
-  - Unauthenticated saved tab shows password + Sign in only when no remembered password is stored; when remembered password exists, tab shows Sign in + Forget remembered password only and loads credentials from secure storage on submit.
-  - Failed remembered-password sign-in reveals password field and remember-password controls without clearing selected profile.
-  - Forget remembered password deletes only local secure secret; profile tab stays selected; manual password entry restored.
+  - Selected saved profiles keep their non-secret SIP/OCP configuration visible while hiding the already selected login; secure secrets are never prefilled.
+  - Save profile and Remember password switches are shown only for a New draft and apply equally to SIP-only and OCP module modes.
+  - A New draft matching an existing profile asks only when the entered profile data differs; the dialog offers cancel plus a split continue control (primary: continue without saving; menu: overwrite). Cancel closes without authorization.
   - Registered saved profile full form may show active in-memory session password in password field (type=password by default).
   - New tab shows full form and save-profile switch; duplicate identity disables save switch with explanation.
-  - Switching registered profile A ? B unregisters A before sending B credentials (on submit only).
-  - Successful registration never fails because profile metadata save or `lastUsedAt` touch failed; non-blocking warnings only.
+  - **Identity change (ADR-AF-003):** while SIP is registered, Login is disabled; operator must avatar-logout before another identity. Account must **not** unregister/switch on submit (`ensureUnregisteredBeforeAccountSwitch` removed from Account path). Removing switch-account confirmation is intentional (LF-077 behavior change).
+  - Opted-in pre-auth draft/secret writes block login on failure (ADR-AF-001). Post-success `lastUsedAt` touch remains non-blocking warning only.
   - Server/SIP errors (403 license/policy, 404 not found) show sanitized server detail ? not mislabeled as wrong password unless authentication-related.
   - Local saved profile missing shows `account.error.profileNotFound`; SIP 404 shows server registration error.
   - Delete requires confirmation; after delete selection returns to New; logout resets to New.
   - Password never persisted in saved profiles JSON, logs, UI snapshots, or tests; optional remember-password uses secure storage only.
   - Optional ?Remember password on this PC? checkbox: disabled unless Save profile is checked (New tab) or a saved profile is selected; unchecking Save profile clears remember-password.
-  - Remembered password is saved only after successful registration; failed auth must not overwrite it; profile delete removes remembered password; logout keeps remembered password.
-  - Secure storage failure surfaces non-blocking `account.warning.passwordSaveFailed` while authorization may still succeed.
+  - **Remember / save timing (ADR-AF-001):** when operator opts in, draft metadata + remembered SIP password (+ OCP API key in OCP mode) persist **before** the auth attempt; failed attempt leaves reusable draft and must not promote active session/settings; profile delete removes associated secrets; logout keeps remembered password.
+  - Secure storage failure for an opted-in artifact is visible and blocks login only for that requested artifact (never silent drop).
   - Per-account settings load after successful registration from New or saved profile; failed auth does not apply target profile settings.
+  - Account contains no logout control, no Retry server action, and no transport/registration progress statuses; transport recovery and detailed failure diagnostics remain in System State.
+  - Successful feedback distinguishes SIP registration from OCP+SIP readiness; failed authorization feedback offers navigation to System State.
 - Test Coverage:
   - Unit: `formatSavedAccountProfileSelectorLabel`, `deriveSavedAccountProfileSelectorOptions`, `mapAccountAuthorizationError`, `sanitizeRegistrationServerMessage`, `deriveSavedProfilePanelMode`, `deriveSavedProfileCredentialPromptState`, `matchesSipAccountIdentity`
-  - Facade: `AccountBootstrapFacade.test.ts` (metadata non-blocking, switching unregister, settings A?B?A)
-  - Hook: `useAccountActions.test.ts`
-  - Component: `SavedAccountProfileSelector`, `DeleteSavedAccountProfileConfirmationModal`, `SettingsAccountPanel`, `AccountPanel`
+  - Facade: `AccountBootstrapFacade.test.ts` / `AccountBootstrapFacade.accountSignIn.test.ts` (metadata non-blocking; active-session reject without unregister; settings A→B→A after explicit logout; `signInAccount` / Account VM)
+  - Hook: `useAccountActions.test.ts` (T-037: overwrite confirm bypasses already-accepted prompt and calls `signInAccount`)
+  - Component: `SavedAccountProfileSelector`, `DeleteSavedAccountProfileConfirmationModal`, `OverwriteSavedAccountCredentialsConfirmationModal` (Cancel + ButtonGroup split continue/overwrite), `SettingsAccountPanel`, `AccountPanel` (SIP/OCP mode tabs, dual-status recovery, no Account logout/switch/generic retry, startup registration CTA)
   - Bootstrap: `createRealAccountBootstrap.test.ts`, mock repository injection
+
   - E2E: deferred
-- Implementation evidence: `AccountBootstrapFacade.ts` (`forgetRememberedSipPassword`, `getActiveSipAccount`), `deriveSavedProfileCredentialPromptState.ts`, `mapAccountAuthorizationError.ts`, `SavedAccountProfileSelector.tsx`, `AccountPanel.tsx`, `useAccountActions.ts`, `useSettingsActions.ts`, `SettingsAccountPanel.tsx`, `createMockAccountBootstrap.ts`, `messages.ts` (ru/en/fr/de/bg)
-- Handoff: `docs/softphone/handoffs/P11-F024-Saved-Account-Profiles-Handoff.md`
+- Implementation evidence: `AccountBootstrapFacade.ts` (`forgetRememberedSipPassword`, `getActiveSipAccount`), `deriveSavedProfileCredentialPromptState.ts`, `mapAccountAuthorizationError.ts`, `SavedAccountProfileSelector.tsx`, `AccountPanel.tsx`, `useAccountActions.ts` (`confirmOverwriteExistingCredentials` → `handleSubmit(true, true)`, T-037), `useSettingsActions.ts`, `SettingsAccountPanel.tsx`, `createMockAccountBootstrap.ts`, `messages.ts` (ru/en/fr/de/bg)
+- Implementation evidence (WU-01 ADR-AF-001): `savedAccountProfileLifecycle.ts`, `persistedSavedAccountProfiles.ts` (schema v2 + v1 migrate), `PersistDraftAccountArtifactsUseCase.ts`, `PromoteAuthorizedSipSessionUseCase.ts`, `deriveSavedAccountProfileAvailability.ts`, `ResolveSavedAccountProfileAvailabilityUseCase.ts`, `AuthorizeSipAccountUseCase.ts` (`promoteActiveSession`), `AccountBootstrapFacade.ts` (pre-auth draft persist + deferred promote), `FileSavedAccountProfileRepository.ts` / `InMemorySavedAccountProfileRepository.ts` (`markProfileSuccessful`)
+- Handoff: `docs/softphone/handoffs/P11-F024-Saved-Account-Profiles-Handoff.md`; corrective: `handoffs/P11-Auth-Flow-Refactoring-Handoff.md`
 
 ## F-025: Local Contacts
 
@@ -807,33 +821,43 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-018`, `LF-019`, `LF-041`, `LF-042`, `LF-043`, `LF-044`, `LF-045`, `LF-046`, `LF-047`, `LF-048`, `LF-049`
 - Context: Integration
 - Priority: high
-- Status: **implemented** (E-01…E-13 closed 2026-07-14; HTTP auth delta 2026-07-15)
+- Status: **corrective in progress** (E-01…E-13 + unified auth 2026-07-16 remain shipped baseline; Auth Flow Refactoring WU-00 done 2026-07-16 — **not** production-ready until plan smoke + WU-06)
 - Owner: TBD
 - Inputs: OCP HTTP authenticate + WebSocket session, operator status/reason payloads, SIP telephony domain events, host-page commands
-- Outputs: operator status FSM, OCP gateway commands, session projections, telephony bridge events
+- Outputs: operator status FSM, OCP gateway commands, dual Server/Authorization projections, telephony bridge events, Account-owned authorization progress
 - Acceptance Criteria:
   - SIP telephony works without OCP; OCP is optional integration module.
   - Operator status transitions validated in Domain before gateway commands.
   - Idle operators can change Ready↔Break reasons (including Break→Break) and leave Preparing-to-work to Ready/Break/Logout.
   - Busy operators keep the status selector enabled; Ready/Break selection reserves via `update_post_call_status` with user toast.
   - During Post-call processing, UI offers finish-vs-reserve (two-step modal); finish uses `intent: apply`, reserve uses `intent: reserve`.
-  - Single `OcpGateway` WebSocket; no global `window.ws` patching.
-  - Settings → Integrations is a parent nav group; OCP Module is a child leaf (extensible for future integrations).
+  - Single `OcpGateway` WebSocket; no global `window.ws` patching; **one-socket invariant** proven by tests (ADR-AF-002).
+  - Settings → Integrations is a parent nav group; OCP Module is a child leaf (extensible for future integrations); **pre-auth gated** with other non-Account sections until local account session (ADR-AF-005 / ADR-AF-004 amended).
   - Operator status selector visible only when `ocpSession.isAuthenticated === true`.
-  - Connect obtains ephemeral `softphone_auth_token` via `GET https://{domain}/proxy/authenticate?login={sipUsername}` with header `Ocp-Proxy-Api-Key`; token is never persisted (api-key + domain + `linked` are).
-  - Integrations OCP Module requires an explicit login (typed or selected from saved profiles); settings/api-key persist scoped to that login’s settings bucket (`existing` profile id or provisional username-only key for new login) without mutating other UserSettings fields of the active SIP session.
+  - Ephemeral `softphone_auth_token` via `GET https://{ocpDomain}/proxy/authenticate?login={sipUsername}` with header `Ocp-Proxy-Api-Key`; **`ocpDomain` is the OCP proxy host** (`ocpIntegration.domain` / `profile.ocpDomain`), **never** the SIP PBX domain from `entity:creds`; token is never persisted; Application acquires a **fresh** token before every new socket (ADR-AF-002).
+  - **Account sole OCP sign-in (ADR-AF-003):** Settings → Account OCP module mode owns login/domain/key input and the only sign-in command; Save profile / Remember password available in OCP mode; complete OCP profiles hide domain/key; incomplete profiles ask only missing fields.
+  - **Mode-isolated Account validation:** SIP-only and OCP Module validate independently — OCP new-draft requires only login/domain/API key and must not fail on empty SIP password/server leftovers or Remember-password without a boundary SIP password (deferred until entity:creds).
+  - **Account session before SIP-ready (ADR-AF-005):** Login promotes profile/settings immediately; SIP `403`/register failure does not undo the session or re-enable Login; Settings gate uses `hasActiveAccountSession`.
+  - **OCP Module edit-only after account session (ADR-AF-003/005):** no first-time Connect/Disconnect/login picker/generic Retry; active-profile configuration only (enabled, autoConnect, domain, API key rotate/save/delete); Server/Authorization status owned by System State OCP tab.
   - SIP credentials from `entity:creds` always authorize+register when OCP connects (no `autoSipAuth` toggle).
-  - `SESSION_EXIST` / auth timeout (15s) / HTTP auth failures show non-blocking toasts; reconnect retry allowed.
-  - Saved SIP accounts with prior successful OCP (`linked` + api-key) show «Authorize via OCP» checkbox; when on, sign-in skips SIP password.
+  - **Dual FSM recovery (ADR-AF-002):** independent Server (`disconnected|connecting|connected|reconnecting|failed`) and Authorization (`idle|pending|authorized|timeout|rejected`) projections; `Retry server` / `Retry authorization` / `Reconnect` semantics as in the plan; `SESSION_EXIST` → server retry only; auth-only retry never opens a second socket; canonical UI surface is System State OCP tab (`deriveOcpSystemStateShell`; tab disabled when `ocpIntegration.enabled === false`).
+  - **Unified OCP-backed sign-in:** `OcpBackedSignInOrchestrationService` owns HTTP→WS→creds→SIP authorize→SIP register with attempt/correlation ID; account settings unlock on Login; typed `ocp_authenticated_sip_failed` when OCP live but phone registration fails.
+  - **INVALID_TOKEN:** adapter does not reconnect with stale token; Application-owned recovery per ADR-AF-002 (capped / manual as implemented in WU-02).
+  - **Identity lock:** if a local account session is active, Facade rejects new OCP/SIP sign-in (no silent unregister); avatar logout is the only logout entry point (OCP reason cascade preserved).
+  - Disconnect OCP keeps SIP; Logout cascades SIP via `EndUserSessionUseCase`.
+  - **Intentional avatar logout (ADR-AF-002):** disarm Application-owned OCP transport recovery before disconnect; after successful OCP end, reset session/operator/campaign projections to cold-start idle (no reconnecting banner). Unexpected socket drops still recover with fresh HTTP token.
   - Credentials never appear in Domain Events; `Ocp-Proxy-Api-Key` stored via `SecretStoragePort`.
   - `callType: internal | external | sdk` on status-change commands for audit trail.
   - External OCP authenticate payload is `{ ocpDomain, login, apiKey }` (`OcpHostApiContract`); Facade entry points ready for future `ExternalCommandRouter` (no `window.Softphone`).
   - All user-visible strings localized (`ru`, `en`, `fr`, `de`, `bg`).
+  - Staging smoke (`ocp-integration/OCP-Smoke-Checklist.md`) required before production-ready claim — **not** checked as of WU-00.
 - Test Coverage:
-  - Unit: `OperatorStatus`, `OperatorStatusMachine`, `OperatorProfile`, OCP domain events
-  - Integration: mock `OcpGateway`, Use Cases, telephony bridge, `OcpFullFlow.integration.test.ts` (E-13)
-  - E2E: deferred — manual smoke `ocp-integration/OCP-Smoke-Checklist.md`
+  - Unit: `OperatorStatus`, `OperatorStatusMachine`, `OperatorProfile`, OCP domain events; `ocpDualFsm`, `OcpBackedSignInOrchestrationService`, `OcpSipCredentialService`, `OcpInvalidTokenReauthService`, `OcpAuthenticateAndConnectService` (fresh-token + same-socket retry), `OcpTransportRecoveryService`, `authorizationProgressProjection`, `authorizationRetryContext`
+  - Integration: mock `OcpGateway`, Use Cases, telephony bridge, `OcpFullFlow.integration.test.ts` (E-13 transport-only); Facade connect waits for SIP-ready; `AccountBootstrapFacade.test.ts` (`retryAuthorization` after SESSION_EXIST); WU-02: fresh-token / same-socket / SESSION_EXIST / stale-attempt / no adapter reconnect; WU-03: `signInAccount` / `getAccountSignInViewModel` / `dispatchAccountRecoveryAction` / active-session reject
+  - Renderer: **WU-04 done** — `AccountPanel` / `SettingsAccountPanel` mode tabs + OCP InputGroup; no Account logout/switch/generic retry; **WU-05 done** — Settings pre-auth gate + edit-only OCP Module; **T-034 done** — System State SIP/OCP tabs own Server/Authorization; Account keeps in-progress recovery actions only
+  - E2E: deferred — manual smoke `ocp-integration/OCP-Smoke-Checklist.md` + plan WU-06 checklist (unchecked)
 - Design: `ocp-integration/OCP-IMPLEMENTATION-PLAN.md`, `ocp-integration/ocp-integration.md`
+- Corrective track: `auth-flow/auth-flow-refactoring.md`; ADRs ADR-AF-001…004; handoff `handoffs/P11-Auth-Flow-Refactoring-Handoff.md`
 - Implementation evidence (E-01): `src/domain/integration/ocp/OperatorStatus.ts`, `OperatorStatusReason.ts`, `OperatorProfile.ts`, `OcpTransitionRules.ts`, `OperatorStatusMachine.ts`, `events/*`, unit tests
 - Implementation evidence (E-02): `src/ports/integration/OcpGateway.ts`, `src/domain/integration/ocp/OcpConnectionConfig.ts`, `OcpConnectionState.ts`, `protocol/OcpCommand.ts`, `protocol/OcpIncomingMessage.ts`, `protocol/OcpMessageEnvelope.ts`, exhaustive union tests
 - Implementation evidence (E-03): `src/adapters/integration/ocp/OcpWebSocketAdapter.ts`, `parseOcpMessage.ts`, `buildOcpCommandPayload.ts`, `src/adapters/mock/MockOcpGateway.ts`, `src/shared/scheduling/ReconnectScheduler.ts`, adapter tests
@@ -841,8 +865,10 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (E-05): `src/application/projections/integration/operatorStatusProjection.ts`, `ocpSessionProjection.ts`, `ocpReasonsProjection.ts`, `campaignEventProjection.ts`, `OcpProjectionHub`, `OcpTelephonyBridgeService`, `OcpDndBridgeService`, `OcpNotificationService`, `OcpSipCredentialService`, bootstrap wiring in `createRealAccountBootstrap` / `createMockAccountBootstrap`, unit tests
 - Implementation evidence (E-06 logic): `OcpIntegrationSettings`, `UserSettings` schema v7 + `migrateUserSettings` v6→v7, `validateUserSettings` ocpIntegration (superseded by v8 HTTP-auth delta below)
 - Implementation evidence (HTTP auth 2026-07-15): UserSettings schema **v8** (`linked`, no `autoSipAuth`); `OCP_PROXY_API_KEY_SECRET_ID`; `OcpProxyAuthenticatePort` + `OcpProxyAuthenticateHttpAdapter` + `MockOcpProxyAuthenticatePort`; `OcpAuthenticateAndConnectService` (HTTP→WS→15s authenticated); Facade `connectOcp`/`signInViaOcp`/`getOcpSignInAvailability`/`authenticateOcpFromHost({ocpDomain,login,apiKey})`; `ocpSessionProjection.authFeedback` toasts; always-on `OcpSipCredentialService`; UI Integrations api-key + Account checkbox
+- Implementation evidence (unified auth gate fixes 2026-07-16): `authorizationRetryContext`; Facade `retryAuthorization`/`retryStartupRegistration`/`hasStartupRegistrationFailure`; Account + Integrations single retry + startup CTA; typed test doubles (`sipUseCaseTestDoubles`, `AccountActionsFacadeBinding`); handoff `docs/softphone/handoffs/P11-Unified-Authorization-Gate-Handoff.md`
+- Implementation evidence (unified auth 2026-07-16): `authorizationProgressProjection`; `OcpBackedSignInOrchestrationService`; `OcpSipCredentialService.waitAndApplyNext` + identity match; `OcpInvalidTokenReauthService`; Facade `connectOcp`/`signInViaOcp` return ok only on `sip_ready`; Account two-method UX + progress; Integrations progressive «Connect and sign in»; i18n `account.authProgress.*` / `account.profile.signInViaOcp*` / `settings.integrations.ocp.connectAndSignIn`
 - Implementation evidence (login picker logic 2026-07-15): Domain `resolveOcpConnectLoginTarget` / `buildOcpConnectLoginOptions`; Facade `listOcpConnectLoginOptions`, `getOcpModulePanelState`, scoped `updateOcpSettings`/`saveOcpProxyApiKey` via `{ accountKey }`; `connectOcp({ login, accountKey? })` picker path vs active-SIP autoConnect/retry; cross-profile save does not apply live recovery side-effects
-- Implementation evidence (T-031 UI 2026-07-15): `useOcpSettingsPanel` login-scoped wiring; `OcpModuleSettingsCard` login Input (+ datalist when saved profiles); Connect disabled without login; i18n ru/en/fr/de/bg (`settings.integrations.ocp.login*`); component tests
+- Implementation evidence (T-031 UI 2026-07-15): `useOcpSettingsPanel` login-scoped wiring; `OcpModuleSettingsCard` login InputGroup + DropdownMenu picker (saved profiles) + clear; Connect disabled without login; i18n ru/en/fr/de/bg (`settings.integrations.ocp.login*`); component tests
 - Implementation evidence (T-021 / E-06 UI): Settings nav Integrations parent group + OCP Module child (`settings-nav-integrations` / `settings-nav-integrations-ocp`); `SettingsIntegrationsPanel` + `OcpModuleSettingsCard`; `useOcpSettingsPanel`; Zustand OCP projection sync via `OcpProjectionHub.subscribe`; `CallbackOcpNotificationPresenter` + `mapOcpNotificationToToastDescriptor` → `useNotifications`; i18n ru/en/fr/de/bg; component tests
 - Implementation evidence (E-07 UI): `OperatorStatusSelector` widget + `useOperatorStatusSelector`; pill chip (`width: auto`, max-width, ellipsis + title tooltip, translucent timer); `OcpStatusDropdown` Ready/Break subtitle groups; `OcpStatusTimer` / `OcpConnectionBanner` / `OcpProxyStatusScreen`; header slot in `SoftphoneShellHeader` + ReadyShell wiring; change-status Use Case bind; i18n `ocp.status.*` / `ocp.dropdown.*` / `ocp.connection.*` / `ocp.proxyStatus.*` / `ocp.operatorStatus.*`; stories + unit tests
 - Implementation evidence (E-08 UI): avatar «Выйти» reads live `OcpProjectionHub`; opens `OcpLogoutReasonModal` for any live OCP session (`connected|authenticated|connecting|reconnecting`); footer actions right-aligned; authenticated → `LogoutOperator` + SIP; connected-only → `disconnectOcp` + SIP; otherwise SIP-only; i18n `ocp.logout.modal.*`; hook/component tests
@@ -857,3 +883,38 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (T-027 status UX 2026-07-14): FSM Ready/Break/Preparing idle targets; `resolveOperatorStatusChangeMode`; `ChangeOperatorStatusUseCase` intent `auto|apply|reserve` + reserved outcome/event; selector stays enabled when busy; reservation toast; `OcpPostCallStatusModal` finish/reserve; i18n `ocp.status.reservedToast` / `ocp.postCall.modal.*`
 - Implementation evidence (T-028 UI polish 2026-07-14): reason-only chip (no «Входящий»/«Готов» fallback); sticky last reason on RINGING; no box-shadow; hover border `--color-status-online`; shrink/ellipsis + title tooltip; compact fonts; single-step post-call modal (status + choices + Cancel/Confirm, no close X)
 - Implementation evidence (T-029 selector UX 2026-07-14): dropdown pins current reason first (`currentItems` + `ocp.dropdown.currentGroup`), Ready/Break lists exclude current; Break→Break remains `change_status_to_break`; header slot fills to softphone edge (`max-width: 100%`, `min-width: 0`, ellipsis); truncated label uses `IconTooltip`; i18n ru/en/fr/de/bg
+- Implementation evidence (Auth Flow WU-04 UI 2026-07-16): `AccountPanel` SIP/OCP Tabs + OCP InputGroup fields; `useAccountActions` → `signInAccount` / dual-FSM recovery; removed Account logout, switch modal, generic retry; i18n `account.mode.tabsAria` / `account.server.*` / `account.authorization.*`; tests + `ui:catalog`; handoff WU-04 evidence
+- Implementation evidence (Auth Flow WU-05 2026-07-16): `deriveSettingsNavigationAvailability` + `resolveAllowedSettingsSection`; `useOverlayShell` route guard; `SettingsSidebar` disabled + `settings.nav.disabled.authorizeFirst`; `OcpModuleSettingsCard` / `useOcpSettingsPanel` edit-only active profile (no Connect/Disconnect/login picker/retry); dual status read-only + `ocp-module-open-account-recovery`; i18n `settings.integrations.ocp.editOnly.*` / `activeProfile` / `openAccountForRecovery`
+- Implementation evidence (ADR-AF-005 2026-07-16 logic): `AccountSessionActivated` event; promote-before-register in `authorizeManualAccount` / `OcpSipCredentialService`; Settings gate + Login lock on `hasActiveAccountSession`; `deriveOcpSystemStateShell` + i18n `settings.systemState.ocp.*` / tab keys
+- Implementation evidence (T-034 UI 2026-07-16): `SettingsSystemStatePanel` SIP/OCP Tabs; `SettingsSystemStateOcpTab` + `useOcpSystemStateShell`; OCP tab disabled when module off; stripped `account-server-status` / `ocp-module-*-status`; tests + `ui:catalog`; overlay tests aligned to `hasActiveAccountSession`
+- Implementation evidence (mode-isolated Account validation 2026-07-17): `validateAccountSignInCommand` OCP path ignores SIP fields; `buildAccountSignInCommand` derives provisional SIP identity from OCP draft only and omits `rememberPassword` without boundary SIP password; `PersistDraftAccountArtifactsUseCase` soft-skips empty SIP password when `ocpDomain` present; Facade OCP draft persist aligned; tests in `accountSignInCommand.test.ts` / `accountActionsHelpers.test.ts` / `AccountBootstrapFacade.accountSignIn.test.ts`
+- Implementation evidence (Auth Flow Hardening 2026-07-17): three-axis account/OCP/SIP outcomes; five-stage OCP progress with stage timeouts and socket epoch; atomic profile/secret compensation; selected-profile secret boundary (ADR-AF-006); persistent Account errors; unified Application logout outcome.
+- Implementation evidence (T-039 logout→Login re-enable 2026-07-17): `EndUserSessionUseCase` publishes `UserSessionEnded` after best-effort SIP teardown (partial failures included; concurrent teardown still blocked); `useAccountActions` refreshes Account sign-in VM when `hasActiveAccountSession` clears; tests `EndUserSessionUseCase.test.ts` / `useAccountActions.test.ts`
+- Implementation evidence (T-040 logout idle reset 2026-07-17): `AccountLogoutOrchestrationService` disarms `OcpTransportRecoveryService` before intentional disconnect and resets `OcpProjectionHub` to idle; `cancelAll` clears `wasLive`; failed logout re-arms tracking; tests `AccountLogoutOrchestrationService.test.ts` / `OcpTransportRecoveryService.test.ts` / `OcpProjectionHub.test.ts`
+- Implementation evidence (OCP vs SIP domain on reconnect 2026-07-17): `entity:creds` must not overwrite session OCP hostname; `resolveOcpProxyAuthenticateDomain` + Facade `connectOcp`/`reconnect` heal SIP-polluted `ocpIntegration.domain`; tests `resolveOcpProxyAuthenticateDomain.test.ts` / `ocpSessionProjection.test.ts` / `AccountBootstrapFacade.test.ts`
+- Implementation evidence (single `/proxy/authenticate` on Reconnect 2026-07-17): `OcpTransportRecoveryService.ignoreTransportDrops` after `cancelAll` until next `connecting|connected`; prevents delayed twin HTTP from async WS close racing hub progress; tests `OcpTransportRecoveryService.test.ts`
+
+## F-029: User Notification Journal
+
+- Legacy IDs: none
+- Context: Settings
+- Priority: high
+- Status: verification in progress
+- Owner: TBD
+- Inputs: sanitized user-facing notification descriptors from the central Application capture sink
+- Outputs: rolling 24-hour journal entries and popup-present/suppressed decision
+- Acceptance Criteria:
+  - Every notification is recorded even when popup display is disabled.
+  - Entries retain date/time, stable account identity and label, title, module, function, level, correlation id, and `suppressedAtEmission`.
+  - Secret-like values are redacted before persistence.
+  - Settings offers identity/module filters, title search, and pagination.
+  - Entries older than 24 hours are pruned automatically.
+- Test Coverage:
+  - Domain: sanitization, persistence parsing and rolling retention.
+  - Application: capture, popup suppression, filtering and pagination.
+  - Adapters: atomic file persistence and corrupt-document recovery.
+  - Renderer: Settings history as UI Kit `Table` (time/user/title/module/level/popup), suppressed marker and page controls.
+  - Account display labels show only the local part before `@` in filters and table rows.
+  - Settings nav uses animated `settings.notifications` (`Bell` / `BellIcon`).
+- Architecture: ADR-AF-007; `UserNotificationCaptureService` → `UserNotificationJournalRepository` → file/in-memory adapters.
+- Implementation evidence: `RecordUserNotificationUseCase`, `QueryUserNotificationJournalUseCase`, `FileUserNotificationJournalRepository`, `useNotifications`, `SettingsNotificationHistoryPanel`, `NotificationHistoryTable`, `toUserNotificationAccountDisplayLabel`.

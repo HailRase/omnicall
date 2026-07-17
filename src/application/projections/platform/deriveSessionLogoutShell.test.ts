@@ -8,6 +8,7 @@ import { initialTransferProjection } from "../telephony/transferProjection.js";
 describe("deriveSessionLogoutShell", () => {
   const baseInput = {
     authUiState: "sip_registered" as const,
+    hasActiveAccountSession: true,
     multiCallProjection: initialMultiCallProjection(),
     incomingCallProjection: initialIncomingCallProjection(),
     transferProjection: initialTransferProjection(),
@@ -22,6 +23,25 @@ describe("deriveSessionLogoutShell", () => {
     expect(shell.showEndSessionControl).toBe(true);
     expect(shell.endSessionDisabledReason).toBeNull();
     expect(shell.logoutConfirmationRequired).toBe(false);
+  });
+
+  it("shows end session control when account session is active after SIP failure", () => {
+    const shell = deriveSessionLogoutShell({
+      ...baseInput,
+      authUiState: "sip_registration_failed",
+    });
+
+    expect(shell.showEndSessionControl).toBe(true);
+  });
+
+  it("hides end session control without an active account session", () => {
+    const shell = deriveSessionLogoutShell({
+      ...baseInput,
+      authUiState: "sip_only_ready",
+      hasActiveAccountSession: false,
+    });
+
+    expect(shell.showEndSessionControl).toBe(false);
   });
 
   it("requires confirmation when established call exists", () => {

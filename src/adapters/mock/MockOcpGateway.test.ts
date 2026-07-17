@@ -4,7 +4,7 @@ import { OperatorStatus } from "@domain/integration/ocp/OperatorStatus.js";
 import { MockOcpGateway } from "./MockOcpGateway.js";
 
 describe("MockOcpGateway", () => {
-  it("records sent commands and simulates auth success", () => {
+  it("records sent commands; auth success does not change transport state", () => {
     const gateway = new MockOcpGateway();
     gateway.connect({ domain: "ocp.example.com", authToken: "token" });
 
@@ -24,16 +24,17 @@ describe("MockOcpGateway", () => {
     });
     gateway.simulateAuthSuccess(42);
 
-    expect(gateway.getConnectionState()).toBe("authenticated");
-    expect(states.at(-1)).toBe("authenticated");
+    // Transport-only: users does not flip gateway to authenticated.
+    expect(gateway.getConnectionState()).toBe("connected");
+    expect(states).toHaveLength(0);
     expect(OperatorStatus.READY).toBe(1);
   });
 
-  it("simulateDisconnect sets disconnected state", () => {
+  it("simulateDisconnect sets failed (unexpected drop)", () => {
     const gateway = new MockOcpGateway();
     gateway.connect({ domain: "ocp.example.com", authToken: "token" });
     gateway.simulateDisconnect();
-    expect(gateway.getConnectionState()).toBe("disconnected");
+    expect(gateway.getConnectionState()).toBe("failed");
   });
 
   it("clearSentCommands empties command trace", () => {
@@ -43,5 +44,14 @@ describe("MockOcpGateway", () => {
     gateway.clearSentCommands();
     expect(gateway.getSentCommands()).toHaveLength(0);
     expect(gateway.getLastSentCommand()).toBeUndefined();
+  });
+
+  it("increments socket generation on each connect (one-socket identity)", () => {
+    const gateway = new MockOcpGateway();
+    gateway.connect({ domain: "ocp.example.com", authToken: "t1" });
+    const first = gateway.getSocketGeneration();
+    gateway.disconnect("logout");
+    gateway.connect({ domain: "ocp.example.com", authToken: "t2" });
+    expect(gateway.getSocketGeneration()).toBe(first + 1);
   });
 });

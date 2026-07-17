@@ -5,10 +5,10 @@ export type SettingsEntrySection = "account" | "general";
 /**
  * - Purpose: derive initial settings section when user opens settings without explicit tab.
  * - Inputs: auth shell flags from account bootstrap projection.
- * - Outputs: account tab when SIP is not registered, otherwise general tab.
+ * - Outputs: account tab when no local account session; otherwise general.
  */
 export function deriveDefaultSettingsSection(
-  authFlags: Pick<AuthShellFlags, "isSipRegistered">,
+  authFlags: Pick<AuthShellFlags, "hasActiveAccountSession">,
 ): SettingsEntrySection {
-  return authFlags.isSipRegistered ? "general" : "account";
+  return authFlags.hasActiveAccountSession ? "general" : "account";
 }

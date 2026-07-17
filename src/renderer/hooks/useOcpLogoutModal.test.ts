@@ -9,6 +9,8 @@ import {
 } from "@application/index.js";
 import { ok, err } from "@shared/result/index.js";
 import { createPlatformError } from "@shared/errors/index.js";
+import type { PlatformError } from "@shared/errors/index.js";
+import type { Result } from "@shared/result/index.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 import { useOcpLogoutModal } from "./useOcpLogoutModal.js";
 import type { UseSessionLogoutActionsResult } from "./useSessionLogoutActions.js";
@@ -42,9 +44,20 @@ function createSessionLogoutActions(): UseSessionLogoutActionsResult {
 function createFacade(session: {
   isAuthenticated: boolean;
   connectionState: string;
-  logoutOcpOperator?: ReturnType<typeof vi.fn>;
-  disconnectOcp?: ReturnType<typeof vi.fn>;
+  logoutOcpOperator?: (
+    input: Readonly<{ reasonId: number; cascadeSipLogout: boolean }>,
+  ) => Promise<Result<void, PlatformError>>;
+  disconnectOcp?: () => Promise<Result<void, PlatformError>>;
+  logoutAccountSession?: (
+    input: Readonly<{ reasonId?: number }>,
+  ) => Promise<Result<unknown, PlatformError>>;
 }): never {
+  const logoutOcpOperator: NonNullable<typeof session.logoutOcpOperator> =
+    session.logoutOcpOperator ??
+    (() => Promise.resolve(ok(undefined)));
+  const disconnectOcp: NonNullable<typeof session.disconnectOcp> =
+    session.disconnectOcp ??
+    (() => Promise.resolve(ok(undefined)));
   return {
     getOcpSessionSnapshot: () => session,
     getOcpOperatorSnapshot: () =>
@@ -67,9 +80,28 @@ function createFacade(session: {
             reservedStatus: null,
             reservedReasonId: null,
           },
-    logoutOcpOperator:
-      session.logoutOcpOperator ?? vi.fn().mockResolvedValue(ok(undefined)),
-    disconnectOcp: session.disconnectOcp ?? vi.fn().mockResolvedValue(ok(undefined)),
+    logoutOcpOperator,
+    disconnectOcp,
+    logoutAccountSession:
+      session.logoutAccountSession ??
+      vi.fn(async (input: Readonly<{ reasonId?: number }>) => {
+        if (session.isAuthenticated && input.reasonId !== undefined) {
+          const result = await logoutOcpOperator({
+            reasonId: input.reasonId,
+            cascadeSipLogout: true,
+          });
+          return result.ok
+            ? ok({ ocpStep: "operator_logout", sipSessionEnded: true })
+            : result;
+        }
+        if (session.connectionState !== "disconnected") {
+          const result = await disconnectOcp();
+          return result.ok
+            ? ok({ ocpStep: "disconnect", sipSessionEnded: true })
+            : result;
+        }
+        return ok({ ocpStep: "not_connected", sipSessionEnded: true });
+      }),
   } as never;
 }
 
@@ -90,7 +122,7 @@ describe("useOcpLogoutModal", () => {
       result.current.handleRequestLogout();
     });
 
-    expect(sessionLogoutActions.handleEndSession).toHaveBeenCalledTimes(1);
+    expect(sessionLogoutActions.handleEndSession).not.toHaveBeenCalled();
     expect(result.current.modalOpen).toBe(false);
   });
 
@@ -173,7 +205,7 @@ describe("useOcpLogoutModal", () => {
     });
 
     expect(disconnectOcp).toHaveBeenCalledTimes(1);
-    expect(sessionLogoutActions.handleEndSession).toHaveBeenCalledTimes(1);
+    expect(sessionLogoutActions.handleEndSession).not.toHaveBeenCalled();
     expect(result.current.modalOpen).toBe(false);
   });
 
@@ -217,7 +249,7 @@ describe("useOcpLogoutModal", () => {
       reasonId: 9,
       cascadeSipLogout: true,
     });
-    expect(sessionLogoutActions.handleEndSession).toHaveBeenCalledTimes(1);
+    expect(sessionLogoutActions.handleEndSession).not.toHaveBeenCalled();
     expect(result.current.modalOpen).toBe(false);
   });
 
@@ -251,6 +283,8 @@ describe("useOcpLogoutModal", () => {
     expect(notify).toHaveBeenCalledWith({
       level: "error",
       messageKey: "ocp.logout.modal.error",
+      module: "account",
+      functionId: "account.logout",
     });
     expect(sessionLogoutActions.handleEndSession).not.toHaveBeenCalled();
     expect(result.current.modalOpen).toBe(true);

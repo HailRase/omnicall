@@ -53,7 +53,9 @@ export type { JsSipTelephonyAdapterOptions } from "./telephony/jssip/JsSipTeleph
 export { InMemorySettingsRepository } from "./settings/InMemorySettingsRepository.js";
 export { InMemorySavedAccountProfileRepository } from "./settings/InMemorySavedAccountProfileRepository.js";
 export { InMemoryCallHistoryRepository } from "./settings/InMemoryCallHistoryRepository.js";
+export { InMemoryUserNotificationJournalRepository } from "./settings/InMemoryUserNotificationJournalRepository.js";
 export { FileSavedAccountProfileRepository } from "./settings/FileSavedAccountProfileRepository.js";
+export { FileUserNotificationJournalRepository } from "./settings/FileUserNotificationJournalRepository.js";
 export { InMemorySettingsRepository as MockSettingsRepository } from "./settings/InMemorySettingsRepository.js";
 export type { InMemorySettingsState } from "./settings/InMemorySettingsRepository.js";
 export { SettingsRepositoryCodecPreferencesAdapter } from "./settings/SettingsRepositoryCodecPreferencesAdapter.js";

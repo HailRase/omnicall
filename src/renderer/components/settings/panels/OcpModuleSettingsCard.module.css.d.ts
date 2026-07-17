@@ -1,5 +1,12 @@
 declare const classes: {
   readonly card: string;
+  readonly loginClearButton: string;
+  readonly loginField: string;
+  readonly loginOptionLabel: string;
+  readonly loginOptionMeta: string;
+  readonly loginSelectChevron: string;
+  readonly loginSelectTrigger: string;
+  readonly statusBlock: string;
   readonly statusDot: string;
   readonly statusDotAuthenticated: string;
   readonly statusDotConnected: string;
@@ -7,6 +14,7 @@ declare const classes: {
   readonly statusDotFailed: string;
   readonly statusDotReconnecting: string;
   readonly statusDotSessionClosed: string;
+  readonly statusLabel: string;
   readonly statusRow: string;
   readonly tokenActions: string;
   readonly tokenField: string;
