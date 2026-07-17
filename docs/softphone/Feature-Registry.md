@@ -105,14 +105,18 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Header SIP status line via `deriveSipStatusShell` (Russian labels per ADR-0004 ?1.2); no user-selectable online/offline presence.
   - Phone status changes run through `ChangePhoneStatusUseCase` and emit `PhoneStatusChanged` (DND flag only when registered).
   - **Auth Flow Refactoring (ADR-AF-001/003, corrective):** SIP-only sign-in remains available without OCP; Account is the sole sign-in surface; Login disabled while SIP registered (avatar logout only); opted-in draft profile/secret save may run before attempt without promoting active session until SIP-ready.
+  - **SIP-only staged notifications (F-001/F-029, 2026-07-17):** SIP-only ready emits two success toasts — transport connected, then registration succeeded. `ok` + `telephony.registration_failed` never claims phone registered; failure toast shows mapped error text and CTA «Состояние системы» when transport/registration fails (ADR-0004 / ADR-AF-005).
 - Test Coverage:
   - Unit: `SipSessionHealth` invariants, transport FSM, registration state transitions, `deriveSipStatusShell` header rows, phone status use case, manual SIP validation
   - Integration: mock telephony gateway transport events, SIP-only bootstrap facade, effective registered guard on disconnect
-  - Facade: `AccountBootstrapFacade.test.ts` (`sipAutoRegisterOnStartup` bootstrap gate, startup registration failure flag, `retryStartupRegistration`)
+  - Facade: `AccountBootstrapFacade.test.ts` (`sipAutoRegisterOnStartup` bootstrap gate, startup registration failure flag, `retryStartupRegistration`, registration_failed detail/transportConnected)
+  - Application: `deriveAccountSignInNotificationFeedback.test.ts` (staged SIP success keys; transport-up vs transport-down failure)
+  - Renderer: `useAccountActions.test.ts`, `useActionNotifications.test.ts` (no false SIP-ready success; System State CTA on error toast)
   - E2E: deferred until SIP sandbox exists
 - Real Adapter Track: **done** (RAT step 02, 2026-06-24) ? `JsSipTelephonyAdapter` on `@hailrase/jssip` fork; register/unregister/reconnect + transport disconnect; manual SBC R1 PASS; fork notes: `real-integration/JSSIP-FORK.md`
 - Refactor plan: `docs/softphone/TRANSPORT-REGISTER-STATE-REFACTORING.md` (T-008)
 - Corrective track: `auth-flow/auth-flow-refactoring.md` + `handoffs/P11-Auth-Flow-Refactoring-Handoff.md`
+- Implementation evidence (staged notifications): `AccountSignInOutcome.ts`, `deriveAccountSignInNotificationFeedback.ts`, `AccountBootstrapFacade.ts` (`sipTransportConnected`), `useAccountActions.ts`, `useActionNotifications.ts`
 
 ## F-002: Incoming Call
 
@@ -837,6 +841,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Ephemeral `softphone_auth_token` via `GET https://{ocpDomain}/proxy/authenticate?login={sipUsername}` with header `Ocp-Proxy-Api-Key`; **`ocpDomain` is the OCP proxy host** (`ocpIntegration.domain` / `profile.ocpDomain`), **never** the SIP PBX domain from `entity:creds`; token is never persisted; Application acquires a **fresh** token before every new socket (ADR-AF-002).
   - **Account sole OCP sign-in (ADR-AF-003):** Settings → Account OCP module mode owns login/domain/key input and the only sign-in command; Save profile / Remember password available in OCP mode; complete OCP profiles hide domain/key; incomplete profiles ask only missing fields.
   - **Mode-isolated Account validation:** SIP-only and OCP Module validate independently — OCP new-draft requires only login/domain/API key and must not fail on empty SIP password/server leftovers or Remember-password without a boundary SIP password (deferred until entity:creds).
+  - **Saved SIP identity from creds:** after OCP SIP-ready, opted-in saved profile SIP `domain` / `server` / password come from `entity:creds`; `ocpDomain` stays the OCP proxy host. Provisional drafts keyed by OCP host are migrated/deleted (never leave OCP Domain in SIP fields).
   - **Account session before SIP-ready (ADR-AF-005):** Login promotes profile/settings immediately; SIP `403`/register failure does not undo the session or re-enable Login; Settings gate uses `hasActiveAccountSession`.
   - **OCP Module edit-only after account session (ADR-AF-003/005):** no first-time Connect/Disconnect/login picker/generic Retry; active-profile configuration only (enabled, autoConnect, domain, API key rotate/save/delete); Server/Authorization status owned by System State OCP tab.
   - SIP credentials from `entity:creds` always authorize+register when OCP connects (no `autoSipAuth` toggle).
@@ -892,6 +897,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (T-039 logout→Login re-enable 2026-07-17): `EndUserSessionUseCase` publishes `UserSessionEnded` after best-effort SIP teardown (partial failures included; concurrent teardown still blocked); `useAccountActions` refreshes Account sign-in VM when `hasActiveAccountSession` clears; tests `EndUserSessionUseCase.test.ts` / `useAccountActions.test.ts`
 - Implementation evidence (T-040 logout idle reset 2026-07-17): `AccountLogoutOrchestrationService` disarms `OcpTransportRecoveryService` before intentional disconnect and resets `OcpProjectionHub` to idle; `cancelAll` clears `wasLive`; failed logout re-arms tracking; tests `AccountLogoutOrchestrationService.test.ts` / `OcpTransportRecoveryService.test.ts` / `OcpProjectionHub.test.ts`
 - Implementation evidence (OCP vs SIP domain on reconnect 2026-07-17): `entity:creds` must not overwrite session OCP hostname; `resolveOcpProxyAuthenticateDomain` + Facade `connectOcp`/`reconnect` heal SIP-polluted `ocpIntegration.domain`; tests `resolveOcpProxyAuthenticateDomain.test.ts` / `ocpSessionProjection.test.ts` / `AccountBootstrapFacade.test.ts`
+- Implementation evidence (OCP saved SIP profile from creds 2026-07-17): `persistOcpDerivedSipArtifacts` writes SIP domain/server/password from active SipAccount after creds; migrates/deletes provisional OCP-host draft; `buildAccountSignInCommand` keeps rememberPassword until creds; tests `AccountBootstrapFacade.accountSignIn.test.ts` / `accountActionsHelpers.test.ts`
 - Implementation evidence (single `/proxy/authenticate` on Reconnect 2026-07-17): `OcpTransportRecoveryService.ignoreTransportDrops` after `cancelAll` until next `connecting|connected`; prevents delayed twin HTTP from async WS close racing hub progress; tests `OcpTransportRecoveryService.test.ts`
 
 ## F-029: User Notification Journal
@@ -916,5 +922,6 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Renderer: Settings history as UI Kit `Table` (time/user/title/module/level/popup), suppressed marker and page controls.
   - Account display labels show only the local part before `@` in filters and table rows.
   - Settings nav uses animated `settings.notifications` (`Bell` / `BellIcon`).
+  - SIP-only sign-in success is two journaled toasts (`account.success.sipTransportConnected`, `account.success.sipRegistrationSucceeded`); SIP connect/register errors attach toast action `account.notification.openSystemStateAction` («Состояние системы»).
 - Architecture: ADR-AF-007; `UserNotificationCaptureService` → `UserNotificationJournalRepository` → file/in-memory adapters.
-- Implementation evidence: `RecordUserNotificationUseCase`, `QueryUserNotificationJournalUseCase`, `FileUserNotificationJournalRepository`, `useNotifications`, `SettingsNotificationHistoryPanel`, `NotificationHistoryTable`, `toUserNotificationAccountDisplayLabel`.
+- Implementation evidence: `RecordUserNotificationUseCase`, `QueryUserNotificationJournalUseCase`, `FileUserNotificationJournalRepository`, `useNotifications`, `SettingsNotificationHistoryPanel`, `NotificationHistoryTable`, `toUserNotificationAccountDisplayLabel`, `deriveAccountSignInNotificationFeedback`.

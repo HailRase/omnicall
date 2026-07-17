@@ -70,7 +70,7 @@ describe("accountActionsHelpers", () => {
     });
   });
 
-  it("builds OCP command from OCP draft only and ignores empty SIP form + rememberPassword", () => {
+  it("builds OCP command from OCP draft only and keeps rememberPassword until entity:creds", () => {
     const command = buildAccountSignInCommand({
       mode: "ocp",
       selectedProfileId: null,
@@ -107,10 +107,10 @@ describe("accountActionsHelpers", () => {
       },
       save: {
         saveProfile: true,
+        rememberPassword: true,
         saveOcpApiKey: true,
       },
     });
-    expect(command.save?.rememberPassword).toBeUndefined();
   });
 
   it("maps recovery actions to canonical test ids", () => {

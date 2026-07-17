@@ -133,19 +133,19 @@ export function buildAccountSignInCommand(input: Readonly<{
   const ocpDomain = input.ocp.domain.trim();
   const apiKey = input.ocp.apiKey.trim();
   // OCP sign-in must not depend on SIP-only form leftovers (password/server).
-  // Provisional SIP identity for draft profile keys is derived from OCP login/domain only.
+  // Provisional SIP identity is OCP login/domain only until entity:creds; Application
+  // rewrites saved SIP domain/server/password from creds after SIP-ready (ADR-AF-001).
   const provisionalSipDomain = ocpDomain;
   const provisionalSipServer =
     provisionalSipDomain.length > 0 ? `sip:${provisionalSipDomain}` : "";
-  // Remember-password without a boundary SIP password is deferred (OCP entity:creds).
+  // Remember-password without a boundary SIP password is deferred until entity:creds —
+  // keep the opt-in flag so Facade can persist the creds password after register.
   const boundarySipPassword = input.form.password.trim();
   const ocpSave = {
     ...(input.saveProfile || input.overwriteExistingCredentials
       ? { saveProfile: true }
       : {}),
-    ...(input.rememberPassword && boundarySipPassword.length > 0
-      ? { rememberPassword: true }
-      : {}),
+    ...(input.rememberPassword ? { rememberPassword: true } : {}),
     ...(saveOcpApiKey ? { saveOcpApiKey: true } : {}),
   };
 

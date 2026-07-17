@@ -413,18 +413,20 @@ const ruMessages = {
   "account.error.profileNotFound": "Сохранённый профиль не найден. Выберите «Новый» или другой профиль",
   "account.error.validationFailed": "Заполните обязательные поля аккаунта",
   "account.error.serverRegistration": (params: Readonly<{ detail: string }>) =>
-    `Ошибка регистрации на сервере: ${params.detail}`,
+    `Ошибка регистрации на сервере: ${params?.detail ?? ""}`,
   "account.notification.openSystemState": "Проверьте подробности подключения в разделе «Состояние системы».",
-  "account.notification.openSystemStateAction": "Открыть состояние системы",
+  "account.notification.openSystemStateAction": "Состояние системы",
   "account.warning.profileSaveFailed":
     "Вход выполнен, но не удалось сохранить профиль. Повторите позже.",
   "account.warning.profileTouchFailed":
     "Вход выполнен, но не удалось обновить дату использования профиля.",
   "account.warning.passwordSaveFailed":
     "Вход выполнен, но не удалось сохранить пароль на этом ПК. Повторите позже.",
-  "account.success.sipRegistrationSucceeded": "SIP-сервер подключён, телефон зарегистрирован",
+  "account.success.sipTransportConnected": "SIP-сервер подключён",
+  "account.success.sipRegistrationSucceeded": "Регистрация прошла успешно",
   "account.success.ocpAndSipReady": "OCP подключён, телефон зарегистрирован",
   "account.success.profileUpdated": "Данные сохранённого профиля обновлены",
+  "account.error.sipRegistrationFailed": "Регистрация на SIP-сервере не выполнена",
   "account.profile.tabs.ariaLabel": "Профили SIP-аккаунта",
   "account.profile.selector.ariaLabel": "Выбор сохранённого профиля",
   "account.profile.option.new": "Новый",
@@ -1607,18 +1609,20 @@ const enMessages: MessageShape = {
     "Saved profile was not found. Select New or choose another profile",
   "account.error.validationFailed": "Fill in the required account fields",
   "account.error.serverRegistration": (params: Readonly<{ detail: string }>) =>
-    `Server registration error: ${params.detail}`,
+    `Server registration error: ${params?.detail ?? ""}`,
   "account.notification.openSystemState": "Check connection details in System State.",
-  "account.notification.openSystemStateAction": "Open System State",
+  "account.notification.openSystemStateAction": "System State",
   "account.warning.profileSaveFailed":
     "Sign-in succeeded, but the profile could not be saved. Try again later.",
   "account.warning.profileTouchFailed":
     "Sign-in succeeded, but the profile last-used date could not be updated.",
   "account.warning.passwordSaveFailed":
     "Sign-in succeeded, but the password could not be saved on this PC. Try again later.",
-  "account.success.sipRegistrationSucceeded": "SIP server connected and phone registered",
+  "account.success.sipTransportConnected": "SIP server connected",
+  "account.success.sipRegistrationSucceeded": "Registration succeeded",
   "account.success.ocpAndSipReady": "OCP connected and phone registered",
   "account.success.profileUpdated": "Saved profile data updated",
+  "account.error.sipRegistrationFailed": "SIP server registration failed",
   "account.profile.tabs.ariaLabel": "SIP account profiles",
   "account.profile.selector.ariaLabel": "Saved profile selection",
   "account.profile.option.new": "New",
@@ -2739,18 +2743,20 @@ const frMessages: MessageShape = {
     "Profil enregistre introuvable. Selectionnez Nouveau ou un autre profil",
   "account.error.validationFailed": "Remplissez les champs obligatoires du compte",
   "account.error.serverRegistration": (params: Readonly<{ detail: string }>) =>
-    `Erreur d'enregistrement serveur : ${params.detail}`,
+    `Erreur d'enregistrement serveur : ${params?.detail ?? ""}`,
   "account.notification.openSystemState": "Consultez les details de connexion dans « Etat du systeme ».",
-  "account.notification.openSystemStateAction": "Ouvrir l'etat du systeme",
+  "account.notification.openSystemStateAction": "Etat du systeme",
   "account.warning.profileSaveFailed":
     "Connexion reussie, mais le profil n'a pas pu etre enregistre. Reessayez plus tard.",
   "account.warning.profileTouchFailed":
     "Connexion reussie, mais la date d'utilisation du profil n'a pas pu etre mise a jour.",
   "account.warning.passwordSaveFailed":
     "Connexion reussie, mais le mot de passe n'a pas pu etre enregistre sur ce PC. Reessayez plus tard.",
-  "account.success.sipRegistrationSucceeded": "Serveur SIP connecte et telephone enregistre",
+  "account.success.sipTransportConnected": "Serveur SIP connecte",
+  "account.success.sipRegistrationSucceeded": "Enregistrement reussi",
   "account.success.ocpAndSipReady": "OCP connecte et telephone enregistre",
   "account.success.profileUpdated": "Donnees du profil enregistre mises a jour",
+  "account.error.sipRegistrationFailed": "Echec de l'enregistrement sur le serveur SIP",
   "account.profile.tabs.ariaLabel": "Profils de compte SIP",
   "account.profile.selector.ariaLabel": "Selection du profil enregistre",
   "account.profile.option.new": "Nouveau",
@@ -3875,18 +3881,20 @@ const deMessages: MessageShape = {
     "Gespeichertes Profil nicht gefunden. Neu waehlen oder anderes Profil auswaehlen",
   "account.error.validationFailed": "Pflichtfelder des Kontos ausfuellen",
   "account.error.serverRegistration": (params: Readonly<{ detail: string }>) =>
-    `Server-Registrierungsfehler: ${params.detail}`,
+    `Server-Registrierungsfehler: ${params?.detail ?? ""}`,
   "account.notification.openSystemState": "Prüfen Sie die Verbindungsdetails unter „Systemstatus“.",
-  "account.notification.openSystemStateAction": "Systemstatus öffnen",
+  "account.notification.openSystemStateAction": "Systemstatus",
   "account.warning.profileSaveFailed":
     "Anmeldung erfolgreich, aber das Profil konnte nicht gespeichert werden. Spaeter erneut versuchen.",
   "account.warning.profileTouchFailed":
     "Anmeldung erfolgreich, aber das letzte Nutzungsdatum konnte nicht aktualisiert werden.",
   "account.warning.passwordSaveFailed":
     "Anmeldung erfolgreich, aber das Passwort konnte auf diesem PC nicht gespeichert werden. Spaeter erneut versuchen.",
-  "account.success.sipRegistrationSucceeded": "SIP-Server verbunden und Telefon registriert",
+  "account.success.sipTransportConnected": "SIP-Server verbunden",
+  "account.success.sipRegistrationSucceeded": "Registrierung erfolgreich",
   "account.success.ocpAndSipReady": "OCP verbunden und Telefon registriert",
   "account.success.profileUpdated": "Gespeicherte Profildaten aktualisiert",
+  "account.error.sipRegistrationFailed": "SIP-Server-Registrierung fehlgeschlagen",
   "account.profile.tabs.ariaLabel": "SIP-Kontoprofile",
   "account.profile.selector.ariaLabel": "Auswahl des gespeicherten Profils",
   "account.profile.option.new": "Neu",

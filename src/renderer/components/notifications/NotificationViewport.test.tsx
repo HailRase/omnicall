@@ -239,7 +239,7 @@ describe("NotificationViewport", () => {
         screen.getByText("Не удалось сохранить настройки аккаунта"),
       ).toBeInTheDocument();
       expect(
-        screen.getByRole("button", { name: "Открыть состояние системы" }),
+        screen.getByRole("button", { name: "Состояние системы" }),
       ).toBeInTheDocument();
     });
 

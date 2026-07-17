@@ -329,8 +329,9 @@ function SoftphoneShellLayoutRoute({
     onOpenSystemState: openSystemState,
     accountFeedback: {
       error: accountActions.error,
-      successKey: accountActions.successKey,
+      successKeys: accountActions.successKeys,
       warningKey: accountActions.warningKey,
+      openSystemStateAction: accountActions.openSystemStateAction,
     },
     callControls: {
       projection: callBindings.activeCallControlsProjection,

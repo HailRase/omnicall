@@ -794,6 +794,10 @@ describe("AccountBootstrapFacade integration", () => {
       return;
     }
     expect(activated.value.telephony.status).toBe("registration_failed");
+    if (activated.value.telephony.status === "registration_failed") {
+      expect(activated.value.telephony.detail.length).toBeGreaterThan(0);
+      expect(activated.value.telephony.transportConnected).toBe(false);
+    }
     await expect(secretStorage.loadSecret(scopeKey, SIP_PASSWORD_SECRET_ID)).resolves.toBe(
       "secret",
     );

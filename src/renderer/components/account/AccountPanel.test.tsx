@@ -117,6 +117,23 @@ describe("AccountPanel", () => {
     );
   });
 
+  it("renders parameterized serverRegistration error without crashing", () => {
+    render(
+      <AccountPanel
+        {...baseProps}
+        error={{
+          key: "account.error.serverRegistration",
+          params: { detail: "403 Forbidden" },
+        }}
+        authorizeDisabledReason={null}
+      />,
+    );
+
+    expect(screen.getByTestId("account-error")).toHaveTextContent(
+      "Ошибка регистрации на сервере: 403 Forbidden",
+    );
+  });
+
   it("toggles password visibility", () => {
     render(<AccountPanel {...baseProps} authorizeDisabledReason={null} />);
 

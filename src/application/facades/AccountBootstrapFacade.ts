@@ -137,6 +137,7 @@ import { DeleteSavedAccountProfileUseCase } from "../use-cases/settings/DeleteSa
 import { TouchSavedAccountProfileUseCase } from "../use-cases/settings/TouchSavedAccountProfileUseCase.js";
 import { PersistDraftAccountArtifactsUseCase } from "../use-cases/settings/PersistDraftAccountArtifactsUseCase.js";
 import { AttemptScopedSecretScope } from "../services/settings/AttemptScopedSecretScope.js";
+import { migrateProfileScopedSecrets } from "../services/settings/migrateProfileScopedSecrets.js";
 import { ProfileSecretLifecycleService } from "../services/settings/ProfileSecretLifecycleService.js";
 import { RecordUserNotificationUseCase } from "../use-cases/settings/RecordUserNotificationUseCase.js";
 import {
@@ -331,6 +332,8 @@ export class AccountBootstrapFacade {
   private readonly contactCsvFileGateway: ContactCsvFileGateway | null;
 
   private sipSessionRegistered = false;
+  /** SIP WebSocket transport reached connected (ADR-0004) — independent of REGISTER. */
+  private sipTransportConnected = false;
   /** Local account session active (settings unlocked / Login locked) — ADR-AF-005. */
   private accountSessionActive = false;
   /** Last non-secret authorization attempt for a single Retry action (F-028). */
@@ -785,6 +788,20 @@ export class AccountBootstrapFacade {
       return;
     }
 
+    if (event.type === "SipTransportConnected" || event.type === "SipTransportReconnectSucceeded") {
+      this.sipTransportConnected = true;
+      return;
+    }
+
+    if (
+      event.type === "SipTransportDisconnected" ||
+      event.type === "SipTransportConnecting" ||
+      event.type === "SipTransportReconnectAttemptStarted"
+    ) {
+      this.sipTransportConnected = false;
+      return;
+    }
+
     if (event.type === "RegistrationSucceeded") {
       this.sipSessionRegistered = true;
       this.accountSessionActive = true;
@@ -796,12 +813,14 @@ export class AccountBootstrapFacade {
 
     if (event.type === "UserSessionEnded") {
       this.sipSessionRegistered = false;
+      this.sipTransportConnected = false;
       this.accountSessionActive = false;
       return;
     }
 
     if (event.type === "UnregistrationSucceeded") {
       this.sipSessionRegistered = false;
+      this.sipTransportConnected = false;
     }
   }
 
@@ -979,8 +998,14 @@ export class AccountBootstrapFacade {
         boundedContext: "Telephony",
         operation: "authorize_manual_account",
         result: registerResult.error.message,
+        transportConnected: this.sipTransportConnected,
       });
-      return ok(createSipRegistrationFailedAccountSignInOutcome());
+      return ok(
+        createSipRegistrationFailedAccountSignInOutcome({
+          detail: registerResult.error.message,
+          transportConnected: this.sipTransportConnected,
+        }),
+      );
     }
 
     this.startupRegistrationFailed = false;
@@ -1687,15 +1712,34 @@ export class AccountBootstrapFacade {
       command.profile.kind === "saved" &&
       (save.saveProfile === true || save.rememberPassword === true || persistApiKey)
     ) {
+      // Never write OCP proxy host into SIP domain/server — keep existing SIP identity.
+      // SIP fields are corrected from entity:creds after connect (persistOcpDerivedSipArtifacts).
+      const existingProfile = await this.savedAccountProfileRepository.getProfileById(
+        command.profile.profileId,
+      );
+      const sipIdentity =
+        existingProfile !== null
+          ? {
+              username: existingProfile.username,
+              domain: existingProfile.domain,
+              server: existingProfile.server,
+            }
+          : command.sip !== undefined
+            ? {
+                username: command.sip.username,
+                domain: command.sip.domain,
+                server: command.sip.server,
+              }
+            : {
+                username: resolvedLogin,
+                domain: resolvedDomain,
+                server: `sip:${resolvedDomain}`,
+              };
       const boundarySipPassword = command.sip?.password?.trim() ?? "";
       const rememberPasswordNow =
         save.rememberPassword === true && boundarySipPassword.length > 0;
       const draftResult = await this.persistDraftAccountArtifactsUseCase.execute({
-        profile: {
-          username: resolvedLogin,
-          domain: resolvedDomain,
-          server: `sip:${resolvedDomain}`,
-        },
+        profile: sipIdentity,
         saveProfile: save.saveProfile === true,
         rememberPassword: rememberPasswordNow,
         ...(rememberPasswordNow ? { sipPassword: boundarySipPassword } : {}),
@@ -1783,7 +1827,7 @@ export class AccountBootstrapFacade {
         return linkedResult;
       }
       const rememberResult =
-        await this.persistOcpDerivedSipPassword(command, correlationId);
+        await this.persistOcpDerivedSipArtifacts(command, correlationId);
       if (isErr(rememberResult)) {
         return rememberResult;
       }
@@ -1800,20 +1844,29 @@ export class AccountBootstrapFacade {
       return connectResult;
     }
     const rememberResult =
-      await this.persistOcpDerivedSipPassword(command, correlationId);
+      await this.persistOcpDerivedSipArtifacts(command, correlationId);
     if (isErr(rememberResult)) {
       return rememberResult;
     }
     return ok(createReadyAccountSignInOutcome());
   }
 
-  private async persistOcpDerivedSipPassword(
+  /**
+   * - Purpose: after OCP entity:creds authorize+register, persist SIP identity from creds.
+   * - Inputs: sign-in save flags + active SipAccount (username/password/domain/server from creds).
+   * - Outputs: saved profile metadata with SIP domain/server + optional password; migrates
+   *   secrets off provisional OCP-host draft keys (ADR-AF-001). Never stores OCP Domain as SIP.
+   */
+  private async persistOcpDerivedSipArtifacts(
     command: AccountSignInCommand,
     correlationId: CorrelationId,
   ): Promise<Result<void, PlatformError>> {
-    if (command.save?.rememberPassword !== true) {
+    const saveProfile = command.save?.saveProfile === true;
+    const rememberPassword = command.save?.rememberPassword === true;
+    if (!saveProfile && !rememberPassword) {
       return ok(undefined);
     }
+
     try {
       const account = await this.deps.settingsRepository.getSipAccount();
       if (account === null || account.password.length === 0) {
@@ -1823,19 +1876,102 @@ export class AccountBootstrapFacade {
           }),
         );
       }
-      const profileId = deriveSavedAccountProfileId(account);
-      await this.secretStoragePort.saveSecret(
-        createSecretStorageScopeKey(profileId),
-        SIP_PASSWORD_SECRET_ID,
-        account.password,
-      );
-      return ok(undefined);
-    } catch (error: unknown) {
-      this.deps.logger.warn("ocp_derived_sip_password_save_failed", {
+
+      const sipIdentity = {
+        username: account.username,
+        domain: account.domain,
+        server: account.server,
+      };
+      const sipProfileId = deriveSavedAccountProfileId(sipIdentity);
+      const ocpDomain = command.ocp?.domain?.trim() ?? "";
+      const provisionalLogin = (command.ocp?.login ?? account.username).trim();
+
+      const provisionalKeys = new Set<SettingsAccountKey>([
+        deriveLegacyUsernameOnlySettingsAccountKeyFromIdentity(sipIdentity),
+      ]);
+      if (ocpDomain.length > 0 && provisionalLogin.length > 0) {
+        provisionalKeys.add(
+          deriveSavedAccountProfileId({
+            username: provisionalLogin,
+            domain: ocpDomain,
+            server: `sip:${ocpDomain}`,
+          }),
+        );
+      }
+      if (command.sip !== undefined) {
+        provisionalKeys.add(
+          deriveSavedAccountProfileId({
+            username: command.sip.username,
+            domain: command.sip.domain,
+            server: command.sip.server,
+          }),
+        );
+      }
+
+      for (const fromKey of provisionalKeys) {
+        if (fromKey === sipProfileId) {
+          continue;
+        }
+        await migrateProfileScopedSecrets({
+          secretStorage: this.secretStoragePort,
+          fromScopeKey: fromKey,
+          toScopeKey: sipProfileId,
+          logger: this.deps.logger,
+          correlationId,
+        });
+        // Retire provisional OCP API key after copy — profile id is replaced by SIP identity.
+        await this.secretStoragePort.deleteSecret(
+          createSecretStorageScopeKey(fromKey),
+          OCP_PROXY_API_KEY_SECRET_ID,
+        );
+      }
+
+      if (saveProfile) {
+        await this.savedAccountProfileRepository.saveProfile(sipIdentity, {
+          lifecycleStatus: "successful",
+          successfulUseAt: new Date().toISOString(),
+          ...(ocpDomain.length > 0 ? { ocpDomain } : {}),
+        });
+
+        for (const fromKey of provisionalKeys) {
+          if (fromKey === sipProfileId) {
+            continue;
+          }
+          const provisionalProfile =
+            await this.savedAccountProfileRepository.getProfileById(fromKey);
+          if (provisionalProfile !== null) {
+            await this.savedAccountProfileRepository.deleteProfile(
+              provisionalProfile.id,
+            );
+          }
+        }
+      }
+
+      if (rememberPassword) {
+        await this.secretStoragePort.saveSecret(
+          createSecretStorageScopeKey(sipProfileId),
+          SIP_PASSWORD_SECRET_ID,
+          account.password,
+        );
+      }
+
+      this.deps.logger.info("ocp_derived_sip_artifacts_persisted", {
         correlationId,
         featureId: "F-024",
         boundedContext: "Settings",
-        operation: "persist_ocp_derived_sip_password",
+        operation: "persist_ocp_derived_sip_artifacts",
+        result: "succeeded",
+        profileId: sipProfileId,
+        saveProfile,
+        rememberPassword,
+      });
+      return ok(undefined);
+    } catch (error: unknown) {
+      this.deps.logger.warn("ocp_derived_sip_artifacts_persist_failed", {
+        correlationId,
+        featureId: "F-024",
+        boundedContext: "Settings",
+        operation: "persist_ocp_derived_sip_artifacts",
         result: normalizeUnknownError(error).message,
       });
       return err(normalizeUnknownError(error));

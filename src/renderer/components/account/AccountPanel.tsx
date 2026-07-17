@@ -7,6 +7,7 @@ import type {
 } from "@application/index.js";
 import type { AuthorizationProgressProjection } from "@application/projections/settings/authorizationProgressProjection.js";
 import type { AccountAuthorizationErrorProjection } from "@application/projections/settings/mapAccountAuthorizationError.js";
+import { formatAccountAuthorizationError } from "../../helpers/formatAccountAuthorizationError.js";
 import { useI18n } from "../../i18n/index.js";
 import type { TranslationKey } from "../../i18n/messages.js";
 import type { AccountUiSignInMode, OcpDraftFields } from "../../hooks/accountActionsHelpers.js";
@@ -173,9 +174,7 @@ export function AccountPanel({
         {error !== null ? (
           <Alert variant="destructive" role="alert" data-testid="account-error">
             <AlertDescription>
-              {error.params === undefined
-                ? t(error.key)
-                : t(error.key).replace("{detail}", error.params.detail)}
+              {formatAccountAuthorizationError(t, error)}
             </AlertDescription>
           </Alert>
         ) : null}

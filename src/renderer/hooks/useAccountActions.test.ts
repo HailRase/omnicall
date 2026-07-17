@@ -2,7 +2,9 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
 import {
+  createReadyAccountSignInOutcome,
   createSettingsAccountKey,
+  createSipRegistrationFailedAccountSignInOutcome,
   type SavedAccountProfile,
 } from "@application/index.js";
 import type { AccountSignInViewModel } from "@application/projections/settings/accountSignInViewModel.js";
@@ -57,7 +59,9 @@ function createFacadeMock(
   getAccountSignInViewModel: ReturnType<typeof vi.fn>;
   dispatchAccountRecoveryAction: ReturnType<typeof vi.fn>;
 } {
-  const signInAccount = vi.fn().mockResolvedValue(ok(undefined));
+  const signInAccount = vi
+    .fn()
+    .mockResolvedValue(ok(createReadyAccountSignInOutcome()));
   const listSavedAccountProfiles = vi.fn().mockResolvedValue(ok([savedProfileFixture]));
   const hasRememberedSipPassword = vi
     .fn()
@@ -174,6 +178,42 @@ describe("useAccountActions", () => {
           profile: { kind: "saved", profileId },
         }),
       );
+    });
+
+    await waitFor(() => {
+      expect(result.current.successKeys).toEqual([
+        "account.success.sipTransportConnected",
+        "account.success.sipRegistrationSucceeded",
+      ]);
+    });
+  });
+
+  it("surfaces registration failure without false SIP-ready success", async () => {
+    const { facade, signInAccount } = createFacadeMock();
+    signInAccount.mockResolvedValue(
+      ok(
+        createSipRegistrationFailedAccountSignInOutcome({
+          detail: "Authentication Error",
+          transportConnected: true,
+        }),
+      ),
+    );
+    const { result } = renderHook(() => useAccountActions({ facade }));
+
+    act(() => {
+      result.current.updateField("username", "1001");
+      result.current.updateField("password", "secret");
+      result.current.updateField("domain", "pbx.example.com");
+      result.current.updateField("server", "wss://sip.example.com");
+      result.current.handleSubmit();
+    });
+
+    await waitFor(() => {
+      expect(result.current.successKeys).toEqual([
+        "account.success.sipTransportConnected",
+      ]);
+      expect(result.current.error).toEqual({ key: "account.error.invalidCredentials" });
+      expect(result.current.openSystemStateAction).toBe(true);
     });
   });
 

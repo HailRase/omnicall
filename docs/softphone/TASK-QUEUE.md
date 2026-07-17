@@ -6,6 +6,8 @@
 
 | ID | Priority | Task | F-XXX | Command | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
+| T-044 | 0 | OCP sign-in: persist SIP domain/server/password from entity:creds, not OCP Domain | F-024,F-028 | `/logic` | done | closed 2026-07-17 — persistOcpDerivedSipArtifacts; provisional OCP-host draft migrated/deleted |
+| T-043 | 0 | SIP-only sign-in: split transport/registration toasts + System State error CTA | F-001,F-029 | `/logic` | done | closed 2026-07-17 — deriveAccountSignInNotificationFeedback; no false SIP-ready success |
 | T-042 | 0 | OCP Reconnect must not send duplicate /proxy/authenticate (recovery race) | F-028 | `/logic` | done | closed 2026-07-17 — ignoreTransportDrops after cancelAll until next connecting\|connected |
 | T-041 | 0 | OCP Reconnect token must use OCP Domain, not SIP Domain from creds | F-028 | `/logic` | done | closed 2026-07-17 — creds no longer overwrite session domain; resolveOcpProxyAuthenticateDomain + heal |
 | T-040 | 0 | Avatar logout must not start OCP reconnect; reset OCP projections to idle | F-028,F-014 | `/logic` | done | closed 2026-07-17 — disarm transport recovery before disconnect + hub.resetToIdle |

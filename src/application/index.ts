@@ -47,6 +47,12 @@ export {
   type AuthorizeAccountMetadataWarning,
 } from "./facades/AccountBootstrapFacade.js";
 export {
+  createReadyAccountSignInOutcome,
+  createSipRegistrationFailedAccountSignInOutcome,
+  type AccountSignInOutcome,
+  type AccountTelephonyOutcome,
+} from "@domain/index.js";
+export {
   validateAccountSignInCommand,
   createAccountSignInLogoutRequiredError,
   ACCOUNT_SIGN_IN_LOGOUT_REQUIRED_MESSAGE,
@@ -362,6 +368,12 @@ export {
   type AccountAuthorizationErrorKey,
   type AccountAuthorizationErrorProjection,
 } from "./projections/settings/mapAccountAuthorizationError.js";
+export {
+  deriveAccountSignInNotificationFeedback,
+  shouldAttachOpenSystemStateAction,
+  type AccountSignInNotificationFeedback,
+  type AccountSignInSuccessMessageKey,
+} from "./projections/settings/deriveAccountSignInNotificationFeedback.js";
 export {
   deriveSavedProfilePanelMode,
   type SavedProfilePanelMode,

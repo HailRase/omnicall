@@ -976,6 +976,9 @@ Selector `selectIsCallButtonBlocked` из `operatorStatusProjection`. Подкл
 **OCP domain ≠ SIP domain:**  
 `entity:creds`.domain — hostname SIP/PBX. Он **не** должен перезаписывать `OcpSessionProjection.domain` (OCP proxy host) и **не** должен использоваться для `GET /proxy/authenticate` / reconnect. HTTP token всегда на `ocpIntegration.domain` / `profile.ocpDomain` (`resolveOcpProxyAuthenticateDomain`).
 
+**Saved SIP profile after OCP sign-in:**  
+Opt-in draft may temporarily key metadata by OCP login/host before creds. After SIP-ready, Application must persist saved-profile SIP `domain` / `server` / password from `entity:creds` (and keep `ocpDomain` as the separate OCP proxy field). Never leave OCP Domain written into SIP domain/server (ADR-AF-001 migration).
+
 **Guard:**  
 `autoSipAuth === true` AND `SIP не зарегистрирован` — только тогда вызывать `AuthorizeSipAccountUseCase`. Если SIP уже registered — `logger.debug`, не перерегистрировать.
 
@@ -995,6 +998,7 @@ Selector `selectIsCallButtonBlocked` из `operatorStatusProjection`. Подкл
 ### Примечания
 > 2026-07-14: wired via `OcpIntegrationComposition` + Facade getters (`ocpAutoSipAuthEnabled`, `sipSessionRegistered`). After authorize success also calls `RegisterAccountUseCase` so auto-auth actually registers SIP.
 > 2026-07-17: fixed reconnect bug — `creds` no longer overwrote OCP session domain with SIP host; fresh-token reconnect uses `resolveOcpProxyAuthenticateDomain`.
+> 2026-07-17: fixed saved-profile bug — after OCP sign-in, SIP domain/server/password persist from `entity:creds` via `persistOcpDerivedSipArtifacts` (provisional OCP-host draft migrated/deleted).
 
 ---
 

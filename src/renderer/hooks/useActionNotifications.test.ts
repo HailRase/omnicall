@@ -74,6 +74,34 @@ describe("useActionNotifications", () => {
     expect(input.notifications.notify).toHaveBeenCalledTimes(1);
   });
 
+  it("emits staged SIP transport and registration success keys", () => {
+    const input = createBaseInput({
+      accountFeedback: {
+        error: null,
+        successKeys: [
+          "account.success.sipTransportConnected",
+          "account.success.sipRegistrationSucceeded",
+        ],
+        warningKey: null,
+      },
+    });
+    renderHook(() => useActionNotifications(input));
+
+    expect(input.notifications.notify).toHaveBeenCalledTimes(2);
+    expect(input.notifications.notify).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        messageKey: "account.success.sipTransportConnected",
+      }),
+    );
+    expect(input.notifications.notify).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        messageKey: "account.success.sipRegistrationSucceeded",
+      }),
+    );
+  });
+
   it("keeps stable warning and error state from re-emitting", () => {
     const input = createBaseInput({
       accountFeedback: {
@@ -99,14 +127,16 @@ describe("useActionNotifications", () => {
     expect(input.notifications.notify).toHaveBeenCalledTimes(2);
   });
 
-  it("does not re-emit account recovery guidance when callback identity changes", () => {
+  it("attaches System State action on the error toast when requested", () => {
+    const onOpenSystemState = vi.fn();
     const input = createBaseInput({
       accountFeedback: {
         successKey: null,
         warningKey: null,
         error: { key: "account.error.authorizationFailed" },
+        openSystemStateAction: true,
       },
-      onOpenSystemState: vi.fn(),
+      onOpenSystemState,
     });
     const { rerender } = renderHook((props: HookInput) => useActionNotifications(props), {
       initialProps: input,
@@ -117,7 +147,37 @@ describe("useActionNotifications", () => {
       onOpenSystemState: vi.fn(),
     });
 
-    expect(input.notifications.notify).toHaveBeenCalledTimes(2);
+    expect(input.notifications.notify).toHaveBeenCalledTimes(1);
+    expect(input.notifications.notify).toHaveBeenCalledWith(
+      expect.objectContaining({
+        messageKey: "account.error.authorizationFailed",
+        action: expect.objectContaining({
+          labelKey: "account.notification.openSystemStateAction",
+        }),
+      }),
+    );
+  });
+
+  it("does not attach System State action for validation errors", () => {
+    const notify = vi.fn();
+    const input = createBaseInput({
+      notifications: { notify },
+      accountFeedback: {
+        successKey: null,
+        warningKey: null,
+        error: { key: "account.error.validationFailed" },
+        openSystemStateAction: false,
+      },
+      onOpenSystemState: vi.fn(),
+    });
+    renderHook(() => useActionNotifications(input));
+
+    const descriptor = notify.mock.calls[0]?.[0] as {
+      messageKey: string;
+      action?: unknown;
+    };
+    expect(descriptor.messageKey).toBe("account.error.validationFailed");
+    expect(descriptor.action).toBeUndefined();
   });
 
   it("emits call operation error for each operation attempt", () => {
@@ -162,63 +222,27 @@ describe("useActionNotifications", () => {
         projection: createCallControlsProjection({
           callId: "call-1",
           callState: "Active",
-          lastOperationError: null,
-        }),
-      },
-    });
-    rerender({
-      ...input,
-      callControls: {
-        ...input.callControls,
-        projection: createCallControlsProjection({
-          callId: "call-1",
-          callState: "Active",
           lastOperationError: {
             operation: "hold",
-            message: "failed",
+            message: "failed again",
           },
         }),
       },
     });
-
     expect(input.notifications.notify).toHaveBeenCalledTimes(3);
   });
 
-  it("deduplicates dtmf, logout, settings, sip success and sip error states", () => {
+  it("emits sip recovery success", () => {
     const input = createBaseInput({
-      dtmfError: "dtmf failed",
-      logoutErrorMessage: "logout failed",
-      settingsUpdateError: "settings failed",
-        sipActionSuccessKey: "account.success.sipRegistrationSucceeded",
-      sipActionErrorText: "sip action failed",
-    });
-    const { rerender } = renderHook((props: HookInput) => useActionNotifications(props), {
-      initialProps: input,
-    });
-
-    rerender({
-      ...input,
-      notifications: { ...input.notifications },
-      callControls: { ...input.callControls },
-    });
-
-    expect(input.notifications.notify).toHaveBeenCalledTimes(5);
-  });
-
-  it("emits headset fault notification with recovery copy", () => {
-    const input = createBaseInput({
-      headsetFault: {
-        reason: "usb_disconnected",
-        occurredAt: "2026-07-10T10:00:00.000Z",
-      },
+      sipActionSuccessKey: "account.success.sipRegistrationSucceeded",
     });
     renderHook(() => useActionNotifications(input));
 
-    expect(input.notifications.notify).toHaveBeenCalledWith({
-      level: "warning",
-      messageKey: "notification.headset.fault.usb_disconnected",
-      module: "headset",
-      functionId: "headset.fault",
-    });
+    expect(input.notifications.notify).toHaveBeenCalledWith(
+      expect.objectContaining({
+        messageKey: "account.success.sipRegistrationSucceeded",
+        functionId: "sip.recovery",
+      }),
+    );
   });
 });

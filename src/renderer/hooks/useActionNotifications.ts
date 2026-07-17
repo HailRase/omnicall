@@ -13,8 +13,10 @@ type UseActionNotificationsInput = Readonly<{
   notifications: NotificationApi;
   accountFeedback: Readonly<{
     error: AccountAuthorizationErrorProjection | null;
-    successKey: TranslationKey | null;
+    successKey?: TranslationKey | null;
+    successKeys?: ReadonlyArray<TranslationKey>;
     warningKey: TranslationKey | null;
+    openSystemStateAction?: boolean;
   }>;
   onOpenSystemState?: () => void;
   callControls: Readonly<{
@@ -48,6 +50,18 @@ function buildAccountErrorDescriptor(
     level: "error",
     messageKey: error.key,
   };
+}
+
+function resolveAccountSuccessKeys(
+  feedback: UseActionNotificationsInput["accountFeedback"],
+): ReadonlyArray<TranslationKey> {
+  if (feedback.successKeys !== undefined && feedback.successKeys.length > 0) {
+    return feedback.successKeys;
+  }
+  if (feedback.successKey !== null && feedback.successKey !== undefined) {
+    return [feedback.successKey];
+  }
+  return [];
 }
 
 function mapHeadsetFaultMessageKey(reason: HeadsetFaultReason): TranslationKey {
@@ -101,19 +115,28 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
     onRetry: retryCallOperation,
   } = callControls;
   const accountError = accountFeedback.error;
+  const accountSuccessSignature = resolveAccountSuccessKeys(accountFeedback).join("\u0000");
   const lastOperationError = callControlsProjection.lastOperationError;
+  const attachOpenSystemState =
+    accountFeedback.openSystemStateAction === true &&
+    openSystemStateRef.current !== undefined;
 
   useEffect(() => {
-    if (accountFeedback.successKey === null) {
+    if (accountSuccessSignature.length === 0) {
       return;
     }
-    notify({
-      level: "success",
-      messageKey: accountFeedback.successKey,
-      module: "account",
-      functionId: "account.sign_in",
-    });
-  }, [accountFeedback.successKey, notify]);
+    for (const messageKey of accountSuccessSignature.split("\u0000")) {
+      if (messageKey.length === 0) {
+        continue;
+      }
+      notify({
+        level: "success",
+        messageKey: messageKey as TranslationKey,
+        module: "account",
+        functionId: "account.sign_in",
+      });
+    }
+  }, [accountSuccessSignature, notify]);
 
   useEffect(() => {
     if (accountFeedback.warningKey === null) {
@@ -135,23 +158,19 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
       ...buildAccountErrorDescriptor(accountError),
       module: "account",
       functionId: "account.sign_in",
+      ...(attachOpenSystemState
+        ? {
+            action: {
+              id: "account-open-system-state",
+              labelKey: "account.notification.openSystemStateAction" as const,
+              onClick: () => {
+                openSystemStateRef.current?.();
+              },
+            },
+          }
+        : {}),
     });
-    if (openSystemStateRef.current !== undefined) {
-      notify({
-        level: "info",
-        messageKey: "account.notification.openSystemState",
-        module: "account",
-        functionId: "account.open_system_state",
-        action: {
-          id: "account-open-system-state",
-          labelKey: "account.notification.openSystemStateAction",
-          onClick: () => {
-            openSystemStateRef.current?.();
-          },
-        },
-      });
-    }
-  }, [accountError, notify]);
+  }, [accountError, attachOpenSystemState, notify]);
 
   useEffect(() => {
     if (lastOperationError === null) {
@@ -239,6 +258,17 @@ export function useActionNotifications(input: UseActionNotificationsInput): void
       messageText: sipActionErrorText,
       module: "telephony",
       functionId: "sip.recovery",
+      ...(openSystemStateRef.current !== undefined
+        ? {
+            action: {
+              id: "sip-recovery-open-system-state",
+              labelKey: "account.notification.openSystemStateAction" as const,
+              onClick: () => {
+                openSystemStateRef.current?.();
+              },
+            },
+          }
+        : {}),
     });
   }, [notify, sipActionErrorText]);
 

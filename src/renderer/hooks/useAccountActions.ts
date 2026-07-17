@@ -27,6 +27,10 @@ import { readSipEnvDefaults } from "../bootstrap/readSipEnvDefaults.js";
 import type { TranslationKey } from "../i18n/messages.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 import {
+  deriveAccountSignInNotificationFeedback,
+  shouldAttachOpenSystemStateAction,
+} from "@application/projections/settings/deriveAccountSignInNotificationFeedback.js";
+import {
   buildAccountSignInCommand,
   deriveOcpConfigFieldVisibility,
   resolveMetadataWarningKey,
@@ -47,9 +51,10 @@ const EMPTY_OCP: OcpDraftFields = {
   apiKey: "",
 };
 
-const SIP_SUCCESS_KEY = "account.success.sipRegistrationSucceeded" as const;
-const OCP_SUCCESS_KEY = "account.success.ocpAndSipReady" as const;
-const PROFILE_OVERWRITE_SUCCESS_KEY = "account.success.profileUpdated" as const;
+const SIP_READY_SUCCESS_KEYS = [
+  "account.success.sipTransportConnected",
+  "account.success.sipRegistrationSucceeded",
+] as const satisfies ReadonlyArray<TranslationKey>;
 const ACCOUNT_ERROR_UNKNOWN_KEY = "account.error.authorizationFailed" as const;
 const FEEDBACK_CLEAR_MS = 3200;
 const NEW_PROFILE_SELECTION = null;
@@ -116,7 +121,10 @@ type UseAccountActionsResult = Readonly<{
   signInMode: AccountUiSignInMode;
   submitting: boolean;
   error: AccountAuthorizationErrorProjection | null;
+  /** Last success key for inline panel feedback (toasts use `successKeys`). */
   successKey: TranslationKey | null;
+  successKeys: ReadonlyArray<TranslationKey>;
+  openSystemStateAction: boolean;
   warningKey: TranslationKey | null;
   panelMode: SavedProfilePanelMode;
   savedProfileOptions: ReadonlyArray<SavedAccountProfileSelectorOption>;
@@ -179,8 +187,10 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
   const [signInMode, setSignInModeState] = useState<AccountUiSignInMode>("sip_only");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<AccountAuthorizationErrorProjection | null>(null);
-  const [successKey, setSuccessKey] = useState<TranslationKey | null>(null);
+  const [successKeys, setSuccessKeys] = useState<ReadonlyArray<TranslationKey>>([]);
+  const [openSystemStateAction, setOpenSystemStateAction] = useState(false);
   const [warningKey, setWarningKey] = useState<TranslationKey | null>(null);
+  const successKey = successKeys.length > 0 ? successKeys[successKeys.length - 1]! : null;
   const [savedProfiles, setSavedProfiles] = useState<ReadonlyArray<SavedAccountProfile>>([]);
   const [selectedProfileId, setSelectedProfileId] = useState<SavedAccountProfileId | null>(
     NEW_PROFILE_SELECTION,
@@ -298,7 +308,8 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     clearFeedbackTimer();
     feedbackClearTimerRef.current = setTimeout(() => {
       setError(null);
-      setSuccessKey(null);
+      setSuccessKeys([]);
+      setOpenSystemStateAction(false);
       setWarningKey(null);
       feedbackClearTimerRef.current = null;
     }, FEEDBACK_CLEAR_MS);
@@ -312,7 +323,8 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
 
   const clearFeedback = useCallback((): void => {
     setError(null);
-    setSuccessKey(null);
+    setSuccessKeys([]);
+    setOpenSystemStateAction(false);
     setWarningKey(null);
     clearFeedbackTimer();
   }, [clearFeedbackTimer]);
@@ -584,7 +596,9 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
           if (overwriteExistingCredentials) {
             setOverwriteConfirmationOpen(false);
           }
-          setError(mapAccountAuthorizationError(result.error));
+          const mapped = mapAccountAuthorizationError(result.error);
+          setError(mapped);
+          setOpenSystemStateAction(shouldAttachOpenSystemStateAction(mapped));
           return;
         }
 
@@ -599,13 +613,14 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
           }
         }
 
-        setSuccessKey(
-          overwriteExistingCredentials
-            ? PROFILE_OVERWRITE_SUCCESS_KEY
-            : signInMode === "ocp"
-              ? OCP_SUCCESS_KEY
-              : SIP_SUCCESS_KEY,
-        );
+        const feedback = deriveAccountSignInNotificationFeedback({
+          outcome: result.value,
+          mode: signInMode,
+          overwriteExistingCredentials,
+        });
+        setSuccessKeys(feedback.successKeys);
+        setError(feedback.error);
+        setOpenSystemStateAction(feedback.attachOpenSystemStateAction);
         if (overwriteExistingCredentials) {
           setOverwriteConfirmationOpen(false);
         }
@@ -617,6 +632,7 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
           setOverwriteConfirmationOpen(false);
         }
         setError({ key: ACCOUNT_ERROR_UNKNOWN_KEY });
+        setOpenSystemStateAction(true);
       } finally {
         setSubmitting(false);
       }
@@ -803,11 +819,13 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
             scheduleFeedbackClear();
             return;
           }
-          setSuccessKey(SIP_SUCCESS_KEY);
+          setSuccessKeys([...SIP_READY_SUCCESS_KEYS]);
+          setOpenSystemStateAction(false);
           scheduleFeedbackClear();
           reloadSavedProfiles();
         } catch {
           setError({ key: ACCOUNT_ERROR_UNKNOWN_KEY });
+          setOpenSystemStateAction(true);
         } finally {
           setSubmitting(false);
         }
@@ -851,6 +869,8 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     submitting,
     error,
     successKey,
+    successKeys,
+    openSystemStateAction,
     warningKey,
     panelMode,
     savedProfileOptions,

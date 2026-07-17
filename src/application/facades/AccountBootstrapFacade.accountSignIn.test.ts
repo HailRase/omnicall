@@ -248,6 +248,88 @@ describe("AccountBootstrapFacade account sign-in (WU-03)", () => {
     ).resolves.toBe("test-sip-password");
   });
 
+  it("signInAccount ocp saveProfile persists SIP domain/server from entity:creds not OCP Domain", async () => {
+    const gateway = new MockOcpGateway();
+    const secrets = new InMemorySecretStorageAdapter();
+    const profiles = new InMemorySavedAccountProfileRepository();
+    const settings = new InMemorySettingsRepository({ bootstrapConfig: {} });
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: settings,
+      ocpGateway: gateway,
+      ocpProxyAuthenticate: new MockOcpProxyAuthenticatePort(),
+      secretStoragePort: secrets,
+      savedAccountProfileRepository: profiles,
+      logger: createTestLogger(),
+    });
+
+    const pending = facade.signInAccount({
+      mode: "ocp",
+      profile: { kind: "new_draft" },
+      ocp: {
+        login: "max.supervisor",
+        domain: "ocp-proxy.example",
+        apiKey: "proxy-key",
+      },
+      // Production UI sends provisional SIP identity = OCP host until creds arrive.
+      sip: {
+        username: "max.supervisor",
+        domain: "ocp-proxy.example",
+        server: "sip:ocp-proxy.example",
+      },
+      save: {
+        saveProfile: true,
+        rememberPassword: true,
+        saveOcpApiKey: true,
+      },
+    });
+
+    await vi.waitFor(() => {
+      expect(gateway.getConnectionState()).toBe("connected");
+    });
+    gateway.simulateAuthSuccessWithCredentials(1, {
+      username: "max.supervisor",
+      password: "Hso_2kJ7P7De",
+      domain: "dev-qms.onedemoserver.online",
+      server: "onedemoserver.online",
+    });
+
+    const result = await pending;
+    expect(result.ok).toBe(true);
+
+    const sipProfileId = deriveSavedAccountProfileId({
+      username: "max.supervisor",
+      domain: "dev-qms.onedemoserver.online",
+      server: "onedemoserver.online",
+    });
+    const provisionalOcpProfileId = deriveSavedAccountProfileId({
+      username: "max.supervisor",
+      domain: "ocp-proxy.example",
+      server: "sip:ocp-proxy.example",
+    });
+
+    const saved = await profiles.getProfileById(sipProfileId);
+    expect(saved).not.toBeNull();
+    expect(saved?.domain).toBe("dev-qms.onedemoserver.online");
+    expect(saved?.server).toBe("onedemoserver.online");
+    expect(saved?.ocpDomain).toBe("ocp-proxy.example");
+    expect(saved?.lifecycleStatus).toBe("successful");
+
+    await expect(profiles.getProfileById(provisionalOcpProfileId)).resolves.toBeNull();
+
+    await expect(
+      secrets.loadSecret(
+        createSecretStorageScopeKey(sipProfileId),
+        SIP_PASSWORD_SECRET_ID,
+      ),
+    ).resolves.toBe("Hso_2kJ7P7De");
+
+    const account = await settings.getSipAccount();
+    expect(account?.domain).toBe("dev-qms.onedemoserver.online");
+    expect(account?.server).toBe("onedemoserver.online");
+  });
+
   it("dispatchAccountRecoveryAction rejects actions not allowed by dual FSM", async () => {
     const facade = new AccountBootstrapFacade({
       telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
