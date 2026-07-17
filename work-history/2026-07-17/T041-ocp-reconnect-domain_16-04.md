@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-17 16:04
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `2b2c4ce`
 
 ## Где
 - `src/application/projections/integration/ocpSessionProjection.ts`

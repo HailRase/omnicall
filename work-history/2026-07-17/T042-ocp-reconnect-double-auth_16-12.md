@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-17 16:12
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `2b2c4ce`
 
 ## Где
 - `src/application/services/integration/OcpTransportRecoveryService.ts`
