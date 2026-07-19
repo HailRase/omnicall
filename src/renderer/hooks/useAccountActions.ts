@@ -103,6 +103,7 @@ export type AccountActionsFacadeBinding = Pick<
   | "getAccountSignInViewModel"
   | "dispatchAccountRecoveryAction"
   | "cancelOcpSignInAttempt"
+  | "recoverOcpSignInFromModal"
   | "deleteSavedAccountProfile"
   | "hasRememberedSipPassword"
   | "loadSavedAccountProfileSecrets"
@@ -885,19 +886,40 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     if (facade === null || submitting) {
       return;
     }
-    // Full clean restart: idle reset + new attempt from stage 1 (not resume failed stage).
+    // Application-owned recovery (ADR-AF-005): never signInAccount / identity gate.
     void (async (): Promise<void> => {
       setSubmitting(true);
       clearFeedback();
+      setOcpSignInModalOpen(true);
       try {
-        await facade.cancelOcpSignInAttempt();
+        const result = await facade.recoverOcpSignInFromModal();
+        if (isErr(result)) {
+          const mapped = mapAccountAuthorizationError(result.error);
+          setError(mapped);
+          setOpenSystemStateAction(shouldAttachOpenSystemStateAction(mapped));
+          // Keep modal open so recovery failure stays visible (progress already seeded).
+          return;
+        }
+        setSuccessKeys([...SIP_READY_SUCCESS_KEYS]);
+        setOpenSystemStateAction(false);
+        scheduleFeedbackClear();
+        refreshSignInViewModel();
+        reloadSavedProfiles();
+      } catch {
+        setError({ key: ACCOUNT_ERROR_UNKNOWN_KEY });
+        setOpenSystemStateAction(true);
       } finally {
         setSubmitting(false);
-        setOcpSignInModalOpen(true);
-        handleSubmit(false, true);
       }
     })();
-  }, [clearFeedback, facade, handleSubmit, submitting]);
+  }, [
+    clearFeedback,
+    facade,
+    refreshSignInViewModel,
+    reloadSavedProfiles,
+    scheduleFeedbackClear,
+    submitting,
+  ]);
 
   const handleOcpSignInSuccessSettled = useCallback((): void => {
     setOcpSignInModalOpen(false);

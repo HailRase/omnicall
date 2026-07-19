@@ -7,11 +7,23 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [0.11.1] - 2026-07-19
+
+### Fixed
+
+- OCP modal Reconnect больше не вызывает новый Login: recovery через Facade при уже активной account session (ADR-AF-005).
+- Отмена OCP sign-in не даёт stale attempt перезаписывать progress и не запускает promote/register после cancel.
+- Disconnect OCP возвращает Server/Auth в idle, сохраняя локальную сессию и уже установленный SIP.
+
+### Changed
+
+- Подпись Disconnect в модалке OCP: «Отключить OCP» (все локали), чтобы не путать с полным Logout.
+
+## [0.11.0] - 2026-07-17
+
 ### Changed
 
 - OCP-вход в Account открывает модалку с blur-фоном: общий и поэтапный Progress (заполнение по таймауту этапа), зелёный/красный статус, tooltip причины ошибки, footer «Отключиться» / «Переподключиться».
-
-## [0.11.0] - 2026-07-17
 
 ### Added
 

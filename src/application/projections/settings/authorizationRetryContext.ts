@@ -5,6 +5,7 @@
  */
 
 import type {
+  OcpSignInExecutionStage,
   SavedAccountProfileId,
   SettingsAccountKey,
   SipCredentialIdentity,
@@ -116,4 +117,40 @@ export function resolveAuthorizationRetryStrategy(
     default:
       return null;
   }
+}
+
+/**
+ * First visible modal execution stage for a recovery strategy (immediate progress).
+ * Full OCP restarts begin at HTTP token; same-socket auth and SIP-only paths skip earlier bars.
+ */
+export function resolveOcpRecoveryFirstVisibleStage(
+  strategy: AuthorizationRetryStrategy,
+): OcpSignInExecutionStage {
+  switch (strategy) {
+    case "retry_ocp_authorization":
+      return "awaiting_authorization_data";
+    case "repeat_sip_register_only":
+      return "authorizing_sip";
+    case "repeat_sip_authorize":
+      return "connecting_sip_transport";
+    case "repeat_ocp_sign_in":
+    case "retry_ocp_server":
+    case "reconnect_ocp":
+      return "requesting_authorization_token";
+    default: {
+      const _exhaustive: never = strategy;
+      return _exhaustive;
+    }
+  }
+}
+
+/** True when recovery should clear prior completed stage bars (full OCP restart). */
+export function shouldResetOcpRecoveryCompletedStages(
+  strategy: AuthorizationRetryStrategy,
+): boolean {
+  return (
+    strategy === "repeat_ocp_sign_in" ||
+    strategy === "retry_ocp_server" ||
+    strategy === "reconnect_ocp"
+  );
 }

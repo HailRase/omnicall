@@ -96,7 +96,32 @@ describe("OcpSignInProgress", () => {
     expect(screen.queryByTestId("account-ocp-progress-failure")).not.toBeInTheDocument();
     await userEvent.click(screen.getByTestId("account-ocp-progress-reconnect"));
     expect(onReconnect).toHaveBeenCalledOnce();
+    expect(screen.getByTestId("account-ocp-progress-disconnect")).toHaveTextContent(
+      "Отключить OCP",
+    );
     await userEvent.click(screen.getByTestId("account-ocp-progress-disconnect"));
     expect(onDisconnect).toHaveBeenCalledOnce();
+  });
+
+  it("announces semantic active stage via live region without percent ticks", () => {
+    const progress = applyAuthorizationExecutionStage(
+      initialAuthorizationProgressProjection(),
+      "requesting_authorization_token",
+      "attempt-live",
+      Date.now(),
+    );
+    render(
+      <OcpSignInProgress
+        open={true}
+        progress={progress}
+        reconnectEnabled={false}
+        onDisconnect={vi.fn()}
+        onReconnect={vi.fn()}
+      />,
+    );
+
+    const live = screen.getByTestId("account-ocp-progress-live-status");
+    expect(live).toHaveAttribute("role", "status");
+    expect(live).toHaveTextContent("Выполняется");
   });
 });

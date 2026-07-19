@@ -395,4 +395,95 @@ describe("OcpBackedSignInOrchestrationService", () => {
     sipCredentialService.dispose();
     hub.dispose();
   });
+
+  it("cancel during connect prevents stale progress overwrite by superseded run", async () => {
+    const { gateway, hub, service, dispose } = createHarness({
+      sessionTimeoutMs: 5_000,
+    });
+    const correlationId = createCorrelationId();
+    const pending = service.execute({
+      domain: "ocp.example.com",
+      login: "1001",
+      apiKey: "key-1",
+      correlationId,
+    });
+
+    await vi.waitFor(() => {
+      expect(service.isInFlight()).toBe(true);
+    });
+
+    service.cancelUserSignIn("user_cancel");
+    expect(hub.getSessionProjection().authorizationProgress.stage).toBe("idle");
+    expect(hub.getSessionProjection().activeAttemptId).toBeNull();
+    expect(service.isInFlight()).toBe(false);
+
+    // Seed a newer recovery attempt; cancelled run must not overwrite it.
+    service.seedVisibleRecoveryStage(
+      "requesting_authorization_token",
+      createCorrelationId(),
+      { resetCompletedStages: true },
+    );
+    const seeded =
+      hub.getSessionProjection().authorizationProgress.executionStage;
+    expect(seeded).toBe("requesting_authorization_token");
+
+    const result = await pending;
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.message).toBe("ocp_attempt_cancelled");
+    }
+    expect(hub.getSessionProjection().authorizationProgress.executionStage).toBe(
+      "requesting_authorization_token",
+    );
+    // Keep gateway from hanging the suite.
+    gateway.simulateAuthSuccessWithCredentials(12, {
+      username: "1001",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    });
+    dispose();
+  });
+
+  it("old execute finally does not clear ownership of a newer run", async () => {
+    const { gateway, hub, service, dispose } = createHarness();
+    const first = service.execute({
+      domain: "ocp.example.com",
+      login: "1001",
+      apiKey: "key-1",
+      correlationId: createCorrelationId(),
+    });
+
+    await vi.waitFor(() => {
+      expect(service.isInFlight()).toBe(true);
+    });
+    service.cancelUserSignIn("user_cancel");
+
+    const secondCorrelation = createCorrelationId();
+    const second = service.execute({
+      domain: "ocp.example.com",
+      login: "1001",
+      apiKey: "key-1",
+      correlationId: secondCorrelation,
+    });
+
+    await vi.waitFor(() => {
+      expect(gateway.getConnectionState()).toBe("connected");
+    });
+    gateway.simulateAuthSuccessWithCredentials(12, {
+      username: "1001",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    });
+
+    const firstResult = await first;
+    expect(firstResult.ok).toBe(false);
+
+    const secondResult = await second;
+    expect(secondResult.ok).toBe(true);
+    if (secondResult.ok) {
+      expect(secondResult.value.phase).toBe("sip_ready");
+    }
+    expect(hub.getSessionProjection().authorizationProgress.stage).toBe("ready");
+    dispose();
+  });
 });

@@ -2,9 +2,10 @@ import { describe, expect, it, vi } from "vitest";
 import { createSipAccount, createSipAccountId } from "@domain/index.js";
 import { MockOcpGateway } from "@adapters/mock/MockOcpGateway.js";
 import { createTestLogger } from "@infrastructure/logging/index.js";
-import { ok, err } from "@shared/result/index.js";
-import { createPlatformError } from "@shared/errors/index.js";
+import { ok, err, type Result } from "@shared/result/index.js";
+import { createPlatformError, type PlatformError } from "@shared/errors/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
+import type { SipAccount } from "@domain/index.js";
 import { OcpSipCredentialService } from "./OcpSipCredentialService.js";
 import {
   createAuthorizeSipAccountStub,
@@ -227,6 +228,126 @@ describe("OcpSipCredentialService", () => {
     if (!result.ok) {
       expect(result.error.message).toBe("ocp_credentials_timeout");
     }
+    service.dispose();
+  });
+
+  it("cancelWait resolves waiter and skips promote/register after authorize settles", async () => {
+    const gateway = new MockOcpGateway();
+    const account = createSipAccount(createSipAccountId("1001"), {
+      username: "1001",
+      password: "secret",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    });
+    let resolveAuthorize!: (value: Result<SipAccount, PlatformError>) => void;
+    const authorizeExecute = vi.fn(
+      () =>
+        new Promise<Result<SipAccount, PlatformError>>((resolve) => {
+          resolveAuthorize = resolve;
+        }),
+    );
+    const promoteExecute = vi.fn(() => Promise.resolve(ok(undefined)));
+    const registerExecute = vi.fn(() => Promise.resolve(ok(undefined)));
+    const correlationId = createCorrelationId();
+
+    const service = new OcpSipCredentialService({
+      ocpGateway: gateway,
+      logger: createLoggerSpy(),
+      authorizeSipAccount: createAuthorizeSipAccountStub(authorizeExecute),
+      registerAccount: createRegisterAccountStub(registerExecute),
+      promoteAuthorizedSipSession: createPromoteAuthorizedSipSessionStub(promoteExecute),
+      isSipRegistered: () => false,
+      getActiveSipIdentity: () => Promise.resolve(null),
+    });
+
+    const pending = service.waitAndApplyNext(correlationId);
+    gateway.simulateSipCredentials({
+      username: "1001",
+      password: "secret-password",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    });
+
+    await vi.waitFor(() => {
+      expect(authorizeExecute).toHaveBeenCalledOnce();
+    });
+
+    service.cancelWait(
+      correlationId,
+      createPlatformError("operation_failed", "ocp_attempt_cancelled", {
+        reason: "ocp_attempt_cancelled",
+      }),
+    );
+
+    const cancelResult = await pending;
+    expect(cancelResult.ok).toBe(false);
+    if (!cancelResult.ok) {
+      expect(cancelResult.error.message).toBe("ocp_attempt_cancelled");
+    }
+
+    resolveAuthorize(ok(account));
+    await vi.waitFor(() => {
+      expect(promoteExecute).not.toHaveBeenCalled();
+      expect(registerExecute).not.toHaveBeenCalled();
+    });
+
+    service.dispose();
+  });
+
+  it("cancel after promote but before register skips register", async () => {
+    const gateway = new MockOcpGateway();
+    const account = createSipAccount(createSipAccountId("1001"), {
+      username: "1001",
+      password: "secret",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    });
+    let resolvePromote!: (value: Result<void, PlatformError>) => void;
+    const authorizeExecute = vi.fn(() => Promise.resolve(ok(account)));
+    const promoteExecute = vi.fn(
+      () =>
+        new Promise<Result<void, PlatformError>>((resolve) => {
+          resolvePromote = resolve;
+        }),
+    );
+    const registerExecute = vi.fn(() => Promise.resolve(ok(undefined)));
+    const correlationId = createCorrelationId();
+
+    const service = new OcpSipCredentialService({
+      ocpGateway: gateway,
+      logger: createLoggerSpy(),
+      authorizeSipAccount: createAuthorizeSipAccountStub(authorizeExecute),
+      registerAccount: createRegisterAccountStub(registerExecute),
+      promoteAuthorizedSipSession: createPromoteAuthorizedSipSessionStub(promoteExecute),
+      isSipRegistered: () => false,
+      getActiveSipIdentity: () => Promise.resolve(null),
+    });
+
+    const pending = service.waitAndApplyNext(correlationId);
+    gateway.simulateSipCredentials({
+      username: "1001",
+      password: "secret-password",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    });
+
+    await vi.waitFor(() => {
+      expect(promoteExecute).toHaveBeenCalledOnce();
+    });
+
+    service.cancelWait(
+      correlationId,
+      createPlatformError("operation_failed", "ocp_attempt_cancelled", {
+        reason: "ocp_attempt_cancelled",
+      }),
+    );
+    await pending;
+
+    resolvePromote(ok(undefined));
+    await vi.waitFor(() => {
+      expect(registerExecute).not.toHaveBeenCalled();
+    });
+
     service.dispose();
   });
 });

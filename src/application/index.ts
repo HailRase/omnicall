@@ -443,6 +443,8 @@ export {
 export {
   isAuthorizationRetryableStage,
   resolveAuthorizationRetryStrategy,
+  resolveOcpRecoveryFirstVisibleStage,
+  shouldResetOcpRecoveryCompletedStages,
   type AuthorizationAttemptContext,
   type AuthorizationAttemptKind,
   type AuthorizationRetryStrategy,

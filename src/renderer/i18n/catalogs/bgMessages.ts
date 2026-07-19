@@ -674,7 +674,7 @@ export const bgMessages: MessageShape = {
   "account.authProgress.status.failed": "Грешка",
   "account.authProgress.status.timeout": "Времето изтече",
   "account.authProgress.restart": "Започни входа отначало",
-  "account.authProgress.disconnect": "Изключи се",
+  "account.authProgress.disconnect": "Изключи OCP",
   "account.authProgress.reconnect": "Свържи се отново",
   "account.authProgress.reconnectDisabled.inProgress": "Повторното свързване е налично след грешка на етап.",
   "account.authProgress.reconnectDisabled.unavailable": "Повторното свързване в момента не е налично.",

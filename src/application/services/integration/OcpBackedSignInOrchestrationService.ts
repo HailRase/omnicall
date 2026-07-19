@@ -14,6 +14,7 @@ import type { Result } from "@shared/result/index.js";
 import type { OcpProjectionHub } from "../../read-models/OcpProjectionHub.js";
 import {
   applyAuthorizationExecutionFailure,
+  applyAuthorizationExecutionStage,
   applyAuthorizationProgressStage,
   clearAuthorizationProgress,
   mapAuthorizationFailureKind,
@@ -65,14 +66,22 @@ export type OcpBackedSignInOrchestrationDeps = Readonly<{
 }>;
 
 export class OcpBackedSignInOrchestrationService {
-  private inFlight = false;
+  /**
+   * Ownership token for the active execute/retryAuthorization run.
+   * Cleared only by the owning run's `finally` or by explicit supersession cancel.
+   */
+  private activeRunId: CorrelationId | null = null;
 
   constructor(private readonly deps: OcpBackedSignInOrchestrationDeps) {}
+
+  isInFlight(): boolean {
+    return this.activeRunId !== null;
+  }
 
   async execute(
     input: OcpBackedSignInInput,
   ): Promise<Result<OcpBackedSignInOutcome, PlatformError>> {
-    if (this.inFlight) {
+    if (this.activeRunId !== null) {
       return err(
         createPlatformError("operation_failed", "ocp_sign_in_in_flight", {
           reason: "ocp_sign_in_in_flight",
@@ -81,11 +90,14 @@ export class OcpBackedSignInOrchestrationService {
     }
 
     const correlationId = input.correlationId ?? createCorrelationId();
-    this.inFlight = true;
+    const runId = correlationId;
+    this.activeRunId = runId;
     this.deps.cancelTransportRecovery?.("sign_in_supersede");
 
     try {
-      this.setProgress("preparing", correlationId);
+      if (!this.setProgress("preparing", correlationId, runId)) {
+        return this.cancelledResult();
+      }
 
       this.deps.logger.info("ocp_backed_sign_in_requested", {
         correlationId,
@@ -101,7 +113,17 @@ export class OcpBackedSignInOrchestrationService {
       const credentialsWait =
         this.deps.sipCredentialService.waitAndApplyNext(correlationId);
 
-      this.setProgress("connecting_ocp", correlationId);
+      if (!this.setProgress("connecting_ocp", correlationId, runId)) {
+        this.deps.sipCredentialService.cancelWait(
+          correlationId,
+          createPlatformError("operation_failed", "ocp_attempt_cancelled", {
+            reason: "ocp_attempt_cancelled",
+          }),
+        );
+        await credentialsWait;
+        return this.cancelledResult();
+      }
+
       const connectResult = await this.deps.authenticateAndConnect.execute({
         domain: input.domain,
         login: input.login,
@@ -109,15 +131,29 @@ export class OcpBackedSignInOrchestrationService {
         correlationId,
       });
 
+      if (!this.isCurrentRun(runId)) {
+        this.deps.sipCredentialService.cancelWait(
+          correlationId,
+          createPlatformError("operation_failed", "ocp_attempt_cancelled", {
+            reason: "ocp_attempt_cancelled",
+          }),
+        );
+        await credentialsWait;
+        return this.cancelledResult();
+      }
+
       if (!connectResult.ok) {
         this.deps.sipCredentialService.cancelWait(
           correlationId,
           connectResult.error,
         );
         await credentialsWait;
+        if (!this.isCurrentRun(runId)) {
+          return this.cancelledResult();
+        }
         const stage = mapAuthorizationFailureStage(connectResult.error.message);
-        this.setProgress(stage, correlationId);
-        this.markExecutionFailure(connectResult.error.message);
+        this.setProgress(stage, correlationId, runId);
+        this.markExecutionFailure(connectResult.error.message, runId);
         if (connectResult.error.message !== "ocp_auth_timeout") {
           this.deps.authenticateAndConnect.clearAttemptToken();
         }
@@ -132,12 +168,17 @@ export class OcpBackedSignInOrchestrationService {
         return connectResult;
       }
 
-      this.setProgress("receiving_credentials", correlationId);
+      if (!this.setProgress("receiving_credentials", correlationId, runId)) {
+        return this.cancelledResult();
+      }
       const applyResult = await credentialsWait;
+      if (!this.isCurrentRun(runId)) {
+        return this.cancelledResult();
+      }
       if (!applyResult.ok) {
         const stage = mapAuthorizationFailureStage(applyResult.error.message);
-        this.setProgress(stage, correlationId);
-        this.markExecutionFailure(applyResult.error.message);
+        this.setProgress(stage, correlationId, runId);
+        this.markExecutionFailure(applyResult.error.message, runId);
         if (applyResult.error.message === "ocp_credentials_timeout") {
           this.deps.projectionHub.setAuthFeedback("CREDENTIALS_TIMEOUT");
         }
@@ -145,13 +186,13 @@ export class OcpBackedSignInOrchestrationService {
         return err(applyResult.error);
       }
 
-      const mapped = this.mapApplyOutcome(applyResult.value, correlationId);
+      const mapped = this.mapApplyOutcome(applyResult.value, correlationId, runId);
       if (mapped.ok && mapped.value.phase === "sip_ready") {
         this.deps.authenticateAndConnect.clearAttemptToken();
       }
       return mapped;
     } finally {
-      this.inFlight = false;
+      this.endRun(runId);
     }
   }
 
@@ -161,7 +202,7 @@ export class OcpBackedSignInOrchestrationService {
   async retryAuthorization(
     input: OcpAuthorizationRetryInput = {},
   ): Promise<Result<OcpBackedSignInOutcome, PlatformError>> {
-    if (this.inFlight) {
+    if (this.activeRunId !== null) {
       return err(
         createPlatformError("operation_failed", "ocp_sign_in_in_flight", {
           reason: "ocp_sign_in_in_flight",
@@ -180,35 +221,58 @@ export class OcpBackedSignInOrchestrationService {
     }
     const operationCorrelationId =
       input.operationCorrelationId ?? createCorrelationId();
-    this.inFlight = true;
+    const runId = operationCorrelationId;
+    this.activeRunId = runId;
     try {
       const credentialsWait =
         this.deps.sipCredentialService.waitAndApplyNext(targetAttemptId);
       const authorizationResult =
         await this.deps.authenticateAndConnect.retryAuthorization(targetAttemptId);
+      if (!this.isCurrentRun(runId)) {
+        this.deps.sipCredentialService.cancelWait(
+          targetAttemptId,
+          createPlatformError("operation_failed", "ocp_attempt_cancelled", {
+            reason: "ocp_attempt_cancelled",
+          }),
+        );
+        await credentialsWait;
+        return this.cancelledResult();
+      }
       if (!authorizationResult.ok) {
         this.deps.sipCredentialService.cancelWait(
           targetAttemptId,
           authorizationResult.error,
         );
         await credentialsWait;
+        if (!this.isCurrentRun(runId)) {
+          return this.cancelledResult();
+        }
         return authorizationResult;
       }
-      this.setProgress("receiving_credentials", operationCorrelationId);
+      if (!this.setProgress("receiving_credentials", operationCorrelationId, runId)) {
+        return this.cancelledResult();
+      }
       const applyResult = await credentialsWait;
+      if (!this.isCurrentRun(runId)) {
+        return this.cancelledResult();
+      }
       if (!applyResult.ok) {
         const stage = mapAuthorizationFailureStage(applyResult.error.message);
-        this.setProgress(stage, operationCorrelationId);
-        this.markExecutionFailure(applyResult.error.message);
+        this.setProgress(stage, operationCorrelationId, runId);
+        this.markExecutionFailure(applyResult.error.message, runId);
         return applyResult;
       }
-      const mapped = this.mapApplyOutcome(applyResult.value, operationCorrelationId);
+      const mapped = this.mapApplyOutcome(
+        applyResult.value,
+        operationCorrelationId,
+        runId,
+      );
       if (mapped.ok && mapped.value.phase === "sip_ready") {
         this.deps.authenticateAndConnect.clearAttemptToken();
       }
       return mapped;
     } finally {
-      this.inFlight = false;
+      this.endRun(runId);
     }
   }
 
@@ -225,6 +289,24 @@ export class OcpBackedSignInOrchestrationService {
     this.deps.projectionHub.setAuthorizationProgress(clearAuthorizationProgress());
   }
 
+  /**
+   * Seed a visible execution stage immediately (before async recovery I/O).
+   * Full restarts clear prior stage history; partial recoveries keep completed prefixes.
+   */
+  seedVisibleRecoveryStage(
+    executionStage: OcpSignInExecutionStage,
+    correlationId: CorrelationId,
+    options?: Readonly<{ resetCompletedStages?: boolean }>,
+  ): void {
+    const reset = options?.resetCompletedStages === true;
+    const base = reset
+      ? clearAuthorizationProgress()
+      : this.deps.projectionHub.getSessionProjection().authorizationProgress;
+    this.deps.projectionHub.setAuthorizationProgress(
+      applyAuthorizationExecutionStage(base, executionStage, correlationId),
+    );
+  }
+
   /** Terminal cleanup: timers/waiters/token/recovery. */
   terminateAttempt(reason: string): void {
     this.deps.cancelTransportRecovery?.(reason);
@@ -236,30 +318,61 @@ export class OcpBackedSignInOrchestrationService {
   /**
    * User cancel from Account progress modal: supersede waiters and clear progress to idle.
    * Caller still disconnects the OCP socket when needed.
+   * Ownership is cleared immediately so a newer recover/execute can start; the superseded
+   * run's `finally` must not clear a newer run (guarded by run identity).
    */
   cancelUserSignIn(reason = "user_cancel"): void {
     const attemptId =
       this.deps.projectionHub.getSessionProjection().activeAttemptId;
+    const cancelError = createPlatformError(
+      "operation_failed",
+      "ocp_attempt_cancelled",
+      { reason: "ocp_attempt_cancelled" },
+    );
     if (attemptId !== null) {
-      this.deps.sipCredentialService.cancelWait(
-        attemptId,
-        createPlatformError("operation_failed", "ocp_attempt_cancelled", {
-          reason: "ocp_attempt_cancelled",
-        }),
-      );
+      this.deps.sipCredentialService.cancelWait(attemptId, cancelError);
+    } else {
+      this.deps.sipCredentialService.cancelInFlightApplies();
     }
+    // Supersede ownership before terminate so late setProgress is ignored.
+    this.activeRunId = null;
     this.terminateAttempt(reason);
-    this.inFlight = false;
+  }
+
+  private isCurrentRun(runId: CorrelationId): boolean {
+    return this.activeRunId === runId;
+  }
+
+  private endRun(runId: CorrelationId): void {
+    if (this.activeRunId === runId) {
+      this.activeRunId = null;
+    }
+  }
+
+  private cancelledResult(): Result<OcpBackedSignInOutcome, PlatformError> {
+    return err(
+      createPlatformError("operation_failed", "ocp_attempt_cancelled", {
+        reason: "ocp_attempt_cancelled",
+      }),
+    );
   }
 
   private mapApplyOutcome(
     outcome: OcpSipCredentialApplyOutcome,
     correlationId: CorrelationId,
+    runId: CorrelationId,
   ): Result<OcpBackedSignInOutcome, PlatformError> {
+    if (!this.isCurrentRun(runId)) {
+      return this.cancelledResult();
+    }
     switch (outcome.kind) {
+      case "cancelled":
+        return this.cancelledResult();
       case "applied":
       case "already_matching": {
-        this.setProgress("ready", correlationId);
+        if (!this.setProgress("ready", correlationId, runId)) {
+          return this.cancelledResult();
+        }
         this.deps.logger.info("ocp_backed_sign_in_sip_ready", {
           correlationId,
           featureId: FEATURE_ID,
@@ -275,8 +388,8 @@ export class OcpBackedSignInOrchestrationService {
           "ocp_sip_identity_mismatch",
           { reason: "ocp_sip_identity_mismatch" },
         );
-        this.setProgress("ocp_connected_sip_failed", correlationId);
-        this.markExecutionFailure(error.message);
+        this.setProgress("ocp_connected_sip_failed", correlationId, runId);
+        this.markExecutionFailure(error.message, runId);
         this.deps.projectionHub.setAuthFeedback("SIP_IDENTITY_MISMATCH");
         return ok({
           phase: "ocp_authenticated_sip_failed",
@@ -286,8 +399,8 @@ export class OcpBackedSignInOrchestrationService {
         });
       }
       case "authorize_failed": {
-        this.setProgress("ocp_connected_sip_failed", correlationId);
-        this.markExecutionFailure(outcome.error.message);
+        this.setProgress("ocp_connected_sip_failed", correlationId, runId);
+        this.markExecutionFailure(outcome.error.message, runId);
         return ok({
           phase: "ocp_authenticated_sip_failed",
           correlationId,
@@ -303,8 +416,8 @@ export class OcpBackedSignInOrchestrationService {
         });
       }
       case "register_failed": {
-        this.setProgress("sip_registration_failed", correlationId);
-        this.markExecutionFailure(outcome.error.message);
+        this.setProgress("sip_registration_failed", correlationId, runId);
+        this.markExecutionFailure(outcome.error.message, runId);
         this.deps.projectionHub.setAuthFeedback("SIP_REGISTRATION_FAILED");
         return ok({
           phase: "ocp_authenticated_sip_failed",
@@ -327,10 +440,17 @@ export class OcpBackedSignInOrchestrationService {
     }
   }
 
+  /**
+   * @returns false when the run is no longer active (caller must not continue side effects).
+   */
   private setProgress(
     stage: AuthorizationProgressStage,
     correlationId: CorrelationId,
-  ): void {
+    runId: CorrelationId,
+  ): boolean {
+    if (!this.isCurrentRun(runId)) {
+      return false;
+    }
     this.deps.projectionHub.setAuthorizationProgress(
       applyAuthorizationProgressStage(
         this.deps.projectionHub.getSessionProjection().authorizationProgress,
@@ -338,12 +458,17 @@ export class OcpBackedSignInOrchestrationService {
         correlationId,
       ),
     );
+    return true;
   }
 
   private markExecutionFailure(
     message: string,
+    runId: CorrelationId,
     failedStage?: OcpSignInExecutionStage | null,
   ): void {
+    if (!this.isCurrentRun(runId)) {
+      return;
+    }
     const current =
       this.deps.projectionHub.getSessionProjection().authorizationProgress;
     const failureKind = mapAuthorizationFailureKind(message);

@@ -2,6 +2,12 @@
  * - Purpose: apply SIP account from OCP `creds` (orchestrated wait or opportunistic).
  * - Inputs: OCP gateway creds entity + SIP registration/identity guards + correlationId.
  * - Outputs: AuthorizeSipAccount + RegisterAccount with typed apply result (no password logs).
+ *
+ * Cancellation model (no unsafe Promise abort):
+ * - `cancelWait` / `cancelInFlightApplies` bump `applyEpoch`.
+ * - Checkpoints after each await skip promote/register/progress when epoch changed.
+ * - Non-cancellable boundary: once `promoteAuthorizedSipSession` has resolved ok,
+ *   account session stays (ADR-AF-005); we still skip register if cancelled mid-promote await.
  */
 
 import { matchesSipAccountIdentity } from "@domain/index.js";
@@ -40,6 +46,7 @@ export type OcpSipCredentialApplyOutcome =
   | Readonly<{ kind: "applied" }>
   | Readonly<{ kind: "already_matching" }>
   | Readonly<{ kind: "identity_mismatch" }>
+  | Readonly<{ kind: "cancelled" }>
   | Readonly<{ kind: "authorize_failed"; error: PlatformError }>
   | Readonly<{ kind: "register_failed"; error: PlatformError }>;
 
@@ -74,6 +81,8 @@ export class OcpSipCredentialService {
   private unsubscribe: (() => void) | null = null;
   private applying = false;
   private pendingWaiter: PendingWaiter | null = null;
+  /** Bumped on cancel; apply checkpoints compare against epoch captured at apply start. */
+  private applyEpoch = 0;
   private readonly credentialsTimeoutMs: number;
 
   constructor(private readonly deps: OcpSipCredentialServiceDeps) {
@@ -85,6 +94,7 @@ export class OcpSipCredentialService {
   }
 
   dispose(): void {
+    this.applyEpoch += 1;
     this.clearPendingWaiter(
       err(
         createPlatformError("operation_failed", "ocp_credentials_disposed", {
@@ -145,14 +155,25 @@ export class OcpSipCredentialService {
   }
 
   /**
-   * - Purpose: cancel an armed credentials waiter (OCP connect failed early).
+   * - Purpose: cancel an armed credentials waiter and supersede in-flight apply.
    * - Inputs: correlationId of the waiter + error to surface to the waiter.
+   * - Side effects after this call: authorize Promise may settle, but promote/register
+   *   and progress hooks are skipped at checkpoints.
    */
   cancelWait(correlationId: CorrelationId, error: PlatformError): void {
+    this.applyEpoch += 1;
     if (this.pendingWaiter?.correlationId !== correlationId) {
       return;
     }
     this.clearPendingWaiter(err(error));
+  }
+
+  /**
+   * Supersede any in-flight apply when attempt id is already cleared.
+   * Does not resolve a waiter unless one is still pending (caller should cancelWait first).
+   */
+  cancelInFlightApplies(): void {
+    this.applyEpoch += 1;
   }
 
   private clearPendingWaiter(
@@ -165,6 +186,10 @@ export class OcpSipCredentialService {
     this.pendingWaiter = null;
     clearTimeout(waiter.timer);
     waiter.resolve(result);
+  }
+
+  private isApplyEpochCurrent(epochAtStart: number): boolean {
+    return this.applyEpoch === epochAtStart;
   }
 
   private async handleMessage(message: OcpIncomingMessage): Promise<void> {
@@ -195,9 +220,19 @@ export class OcpSipCredentialService {
     }
 
     this.applying = true;
+    const epochAtStart = this.applyEpoch;
+    const waiterCorrelationId = waiter?.correlationId ?? null;
     try {
-      const outcome = await this.applyCredentials(payload, correlationId);
-      if (waiter !== null) {
+      const outcome = await this.applyCredentials(
+        payload,
+        correlationId,
+        epochAtStart,
+      );
+      // Never resolve a newer recovery waiter with a superseded apply outcome.
+      if (
+        waiterCorrelationId !== null &&
+        this.pendingWaiter?.correlationId === waiterCorrelationId
+      ) {
         this.clearPendingWaiter(ok(outcome));
       }
     } catch (error: unknown) {
@@ -212,7 +247,10 @@ export class OcpSipCredentialService {
         username: payload.username,
         result: messageText,
       });
-      if (waiter !== null) {
+      if (
+        waiterCorrelationId !== null &&
+        this.pendingWaiter?.correlationId === waiterCorrelationId
+      ) {
         this.clearPendingWaiter(
           err(
             createPlatformError("operation_failed", "ocp_sip_credentials_threw", {
@@ -229,11 +267,19 @@ export class OcpSipCredentialService {
   private async applyCredentials(
     payload: OcpSipCredentialsPayload,
     correlationId: CorrelationId,
+    epochAtStart: number,
   ): Promise<OcpSipCredentialApplyOutcome> {
     const { username, domain, server } = payload;
 
+    if (!this.isApplyEpochCurrent(epochAtStart)) {
+      return { kind: "cancelled" };
+    }
+
     if (this.deps.isSipRegistered()) {
       const active = await this.deps.getActiveSipIdentity();
+      if (!this.isApplyEpochCurrent(epochAtStart)) {
+        return { kind: "cancelled" };
+      }
       if (active !== null) {
         const incoming: SettingsAccountIdentity = {
           username,
@@ -277,6 +323,10 @@ export class OcpSipCredentialService {
       return { kind: "already_matching" };
     }
 
+    if (!this.isApplyEpochCurrent(epochAtStart)) {
+      return { kind: "cancelled" };
+    }
+
     this.deps.logger.info("ocp_sip_credentials_received", {
       correlationId,
       featureId: FEATURE_ID,
@@ -288,6 +338,11 @@ export class OcpSipCredentialService {
     });
     this.deps.onRegisteringPhone?.(correlationId);
     this.deps.onExecutionStage?.("connecting_sip_transport", correlationId);
+
+    // Checkpoint before authorize.
+    if (!this.isApplyEpochCurrent(epochAtStart)) {
+      return { kind: "cancelled" };
+    }
 
     const authorizeResult = await raceResultWithTimeout(
       this.deps.authorizeSipAccount.execute({
@@ -305,6 +360,11 @@ export class OcpSipCredentialService {
       "ocp_sip_transport_timeout",
     );
 
+    // Checkpoint after authorize — do not promote if cancelled.
+    if (!this.isApplyEpochCurrent(epochAtStart)) {
+      return { kind: "cancelled" };
+    }
+
     if (!authorizeResult.ok) {
       this.deps.logger.error("ocp_sip_authorize_failed", {
         correlationId,
@@ -318,11 +378,23 @@ export class OcpSipCredentialService {
       return { kind: "authorize_failed", error: authorizeResult.error };
     }
 
+    // Checkpoint before promote.
+    if (!this.isApplyEpochCurrent(epochAtStart)) {
+      return { kind: "cancelled" };
+    }
+
     // ADR-AF-005: promote account/settings before SIP register outcome.
+    // Non-cancellable boundary once this await resolves ok — session is kept.
     const promoteResult = await this.deps.promoteAuthorizedSipSession.execute({
       account: authorizeResult.value,
       correlationId,
     });
+
+    // Checkpoint after promote — skip register if cancelled during promote.
+    if (!this.isApplyEpochCurrent(epochAtStart)) {
+      return { kind: "cancelled" };
+    }
+
     if (!promoteResult.ok) {
       this.deps.logger.error("ocp_sip_promote_failed", {
         correlationId,
@@ -336,6 +408,11 @@ export class OcpSipCredentialService {
       return { kind: "authorize_failed", error: promoteResult.error };
     }
 
+    // Checkpoint before register.
+    if (!this.isApplyEpochCurrent(epochAtStart)) {
+      return { kind: "cancelled" };
+    }
+
     this.deps.onExecutionStage?.("authorizing_sip", correlationId);
     const registerResult = await raceResultWithTimeout(
       this.deps.registerAccount.execute({
@@ -345,6 +422,11 @@ export class OcpSipCredentialService {
       OCP_SIGN_IN_STAGE_TIMEOUT_MS.authorizing_sip,
       "ocp_sip_authorization_timeout",
     );
+
+    // Checkpoint after register — do not publish applied if superseded.
+    if (!this.isApplyEpochCurrent(epochAtStart)) {
+      return { kind: "cancelled" };
+    }
 
     if (!registerResult.ok) {
       this.deps.logger.warn("ocp_sip_register_failed_after_promote", {

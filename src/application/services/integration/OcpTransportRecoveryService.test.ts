@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MockOcpGateway } from "@adapters/mock/MockOcpGateway.js";
 import { createTestLogger } from "@infrastructure/logging/index.js";
+import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { ok } from "@shared/result/index.js";
 import { OcpProjectionHub } from "../../read-models/OcpProjectionHub.js";
 import { OcpTransportRecoveryService } from "./OcpTransportRecoveryService.js";
@@ -28,9 +29,13 @@ describe("OcpTransportRecoveryService", () => {
       maxReconnectAttempts: 3,
     });
 
+    const attemptId = createCorrelationId();
+    hub.beginAttempt(attemptId);
     gateway.connect({ domain: "ocp.example.com", authToken: "t1" });
+    hub.bindActiveAttemptToCurrentSocket(attemptId);
     gateway.simulateAuthSuccess(5);
     expect(hub.getSessionProjection().isAuthenticated).toBe(true);
+    expect(hub.getSessionProjection().serverState).toBe("connected");
 
     gateway.simulateDisconnect();
     // Recovery marks reconnecting immediately, then invokes fresh-token callback after delay.

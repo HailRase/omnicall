@@ -7,6 +7,7 @@ declare const classes: {
   readonly item: string;
   readonly label: string;
   readonly list: string;
+  readonly liveRegion: string;
   readonly main: string;
   readonly overlayBlur: string;
   readonly stageBar: string;

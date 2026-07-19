@@ -13,6 +13,7 @@ import {
   createSecretStorageScopeKey,
 } from "@ports/secrets/SecretStoragePort.js";
 import { deriveSavedAccountProfileId } from "@domain/index.js";
+import { createPlatformError } from "@shared/errors/index.js";
 import { isErr } from "@shared/result/index.js";
 import { AccountBootstrapFacade } from "./AccountBootstrapFacade.js";
 
@@ -343,5 +344,114 @@ describe("AccountBootstrapFacade account sign-in (WU-03)", () => {
     if (isErr(result)) {
       expect(result.error.message).toBe("authorization_retry_unavailable");
     }
+  });
+
+  it("failed OCP sign-in activates account session; modal recovery does not call new Login", async () => {
+    const gateway = new MockOcpGateway();
+    const proxy = new MockOcpProxyAuthenticatePort();
+    proxy.setBehavior({
+      kind: "error",
+      error: createPlatformError("operation_failed", "ocp_unavailable", {
+        reason: "ocp_unavailable",
+      }),
+    });
+    const settings = new InMemorySettingsRepository({ bootstrapConfig: {} });
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: settings,
+      ocpGateway: gateway,
+      ocpProxyAuthenticate: proxy,
+      secretStoragePort: new InMemorySecretStorageAdapter(),
+      savedAccountProfileRepository: new InMemorySavedAccountProfileRepository(),
+      logger: createTestLogger(),
+    });
+
+    const signIn = await facade.signInAccount({
+      mode: "ocp",
+      profile: { kind: "new_draft" },
+      ocp: {
+        login: "1001",
+        domain: "ocp.example",
+        apiKey: "proxy-key",
+      },
+      save: { saveOcpApiKey: true, saveProfile: true },
+    });
+    expect(signIn.ok).toBe(false);
+    await expect(settings.getActiveProfileKey()).resolves.not.toBeNull();
+
+    const signInAgain = await facade.signInAccount({
+      mode: "ocp",
+      profile: { kind: "new_draft" },
+      ocp: {
+        login: "1001",
+        domain: "ocp.example",
+        apiKey: "proxy-key",
+      },
+    });
+    expect(isErr(signInAgain)).toBe(true);
+    if (isErr(signInAgain)) {
+      expect(signInAgain.error.message).toBe("account_sign_in_logout_required");
+    }
+
+    // Recovery while session active uses dedicated entry (not identity gate).
+    proxy.setBehavior({ kind: "token", token: "tok-recovery" });
+    const recoverPending = facade.recoverOcpSignInFromModal();
+    const progress =
+      facade.getOcpSessionSnapshot().authorizationProgress.executionStage;
+    expect(progress).toBe("requesting_authorization_token");
+
+    await vi.waitFor(() => {
+      expect(gateway.getConnectionState()).toBe("connected");
+    });
+    gateway.simulateAuthSuccessWithCredentials(1, {
+      username: "1001",
+      domain: "pbx.example",
+      server: "sip:pbx.example",
+    });
+    const recover = await recoverPending;
+    expect(recover.ok).toBe(true);
+  });
+
+  it("cancelOcpSignInAttempt returns OCP idle and preserves account session", async () => {
+    const gateway = new MockOcpGateway();
+    const settings = new InMemorySettingsRepository({ bootstrapConfig: {} });
+    const facade = new AccountBootstrapFacade({
+      telephonyGateway: new MockTelephonyGateway({ registrationScenario: "success" }),
+      mediaGateway: new MockMediaGateway(),
+      settingsRepository: settings,
+      ocpGateway: gateway,
+      ocpProxyAuthenticate: new MockOcpProxyAuthenticatePort(),
+      secretStoragePort: new InMemorySecretStorageAdapter(),
+      savedAccountProfileRepository: new InMemorySavedAccountProfileRepository(),
+      logger: createTestLogger(),
+    });
+
+    const pending = facade.signInAccount({
+      mode: "ocp",
+      profile: { kind: "new_draft" },
+      ocp: {
+        login: "1001",
+        domain: "ocp.example",
+        apiKey: "proxy-key",
+      },
+      save: { saveOcpApiKey: true, saveProfile: true },
+    });
+
+    await vi.waitFor(() => {
+      expect(gateway.getConnectionState()).toBe("connected");
+    });
+    await expect(settings.getActiveProfileKey()).resolves.not.toBeNull();
+
+    const cancel = await facade.cancelOcpSignInAttempt();
+    expect(cancel.ok).toBe(true);
+    const session = facade.getOcpSessionSnapshot();
+    expect(session.serverState).toBe("disconnected");
+    expect(session.authorizationState.phase).toBe("idle");
+    expect(session.activeAttemptId).toBeNull();
+    expect(session.authorizationProgress.stage).toBe("idle");
+    await expect(settings.getActiveProfileKey()).resolves.not.toBeNull();
+
+    await pending;
   });
 });

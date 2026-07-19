@@ -9,7 +9,7 @@ export type UserHeaderIdentityProps = Readonly<{
   sipStatusLabel: string;
   sipStatusTimerSuffix: string | null;
   sipStatusTone: SipStatusDotTone;
-  /** `menu` — full-width block inside avatar popup; `inline` — legacy compact header stack. */
+  /** Layout variant: menu (avatar popup) or inline (header stack). */
   variant?: "inline" | "menu";
 }>;
 

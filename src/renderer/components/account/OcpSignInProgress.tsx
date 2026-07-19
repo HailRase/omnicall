@@ -1,4 +1,4 @@
-import { useEffect, useState, type JSX } from "react";
+import { useEffect, useRef, useState, type JSX } from "react";
 import type {
   AuthorizationProgressProjection,
   OcpSignInExecutionStage,
@@ -92,9 +92,19 @@ export function OcpSignInProgress({
 }: OcpSignInProgressProps): JSX.Element {
   const { t } = useI18n();
   const [nowMs, setNowMs] = useState(() => Date.now());
+  const [liveStatus, setLiveStatus] = useState("");
   const view = deriveOcpSignInProgressView(progress, nowMs);
   const shouldTick =
     open && (view.overallState === "active" || view.hasLatentFailure);
+  const lastAnnouncedRef = useRef<string>("");
+  const activeStage = view.stages.find((stage) => stage.state === "active");
+  const failedStage = view.stages.find((stage) => stage.state === "failed");
+
+  // Reset wall-clock when attempt/stage ownership changes so a new run never
+  // inherits a stale percent from the previous attempt.
+  useEffect(() => {
+    setNowMs(Date.now());
+  }, [progress.correlationId, progress.executionStage, progress.stageStartedAtMs]);
 
   useEffect(() => {
     if (!shouldTick) {
@@ -119,6 +129,27 @@ export function OcpSignInProgress({
       window.clearTimeout(timer);
     };
   }, [open, view.hasFailure, view.hasLatentFailure, view.isReady, onSuccessSettled]);
+
+  // Announce only semantic stage/state changes — never 50ms percent ticks.
+  useEffect(() => {
+    if (!open) {
+      lastAnnouncedRef.current = "";
+      setLiveStatus("");
+      return;
+    }
+    let next = "";
+    if (view.isReady && !view.hasFailure) {
+      next = t("account.authProgress.status.completed");
+    } else if (failedStage !== undefined) {
+      next = `${t(STAGE_KEY[failedStage.stage])}: ${t("account.authProgress.status.failed")}`;
+    } else if (activeStage !== undefined) {
+      next = `${t(STAGE_KEY[activeStage.stage])}: ${t("account.authProgress.status.active")}`;
+    }
+    if (next.length > 0 && next !== lastAnnouncedRef.current) {
+      lastAnnouncedRef.current = next;
+      setLiveStatus(next);
+    }
+  }, [activeStage, failedStage, open, t, view.hasFailure, view.isReady]);
 
   const reconnectDisabled = busy || !reconnectEnabled || !view.hasFailure;
   const reconnectDisabledReason = reconnectDisabled
@@ -175,6 +206,16 @@ export function OcpSignInProgress({
             {t("account.authProgress.modalDescription")}
           </DialogDescription>
         </DialogHeader>
+
+        <div
+          className={styles.liveRegion}
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          data-testid="account-ocp-progress-live-status"
+        >
+          {liveStatus}
+        </div>
 
         <ol className={styles.list} aria-label={t("account.authProgress.stagesAria")}>
           {view.stages.map((stageView) => {
