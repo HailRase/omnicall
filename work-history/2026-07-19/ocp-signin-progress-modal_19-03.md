@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-19 19:03
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `d3114b0`
 
 ## Где
 - `src/application/projections/settings/authorizationProgressProjection.ts`

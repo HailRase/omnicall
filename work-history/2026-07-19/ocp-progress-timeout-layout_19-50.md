@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-19 19:50
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `d3114b0`
 
 ## Где
 - `deriveOcpSignInProgressView.ts` — latent failure → blue fill until timeout

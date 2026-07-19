@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-19 19:35
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `d3114b0`
 
 ## Где
 - `AccountBootstrapFacade.cancelOcpSignInAttempt` + `OcpProjectionHub.applyServerState`
