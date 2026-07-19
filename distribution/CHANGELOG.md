@@ -5,6 +5,56 @@ Public release history for **Axatalk** distribution builds.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer. Git tag: `v<version>`.
 
+## [0.11.2] - 2026-07-19
+
+### Fixed
+
+- Saved-credentials overwrite dialog closes immediately after confirm (no wait for full OCP/SIP sign-in)
+- Overwrite dialog Cancel stays visible in the footer
+- “Overwrite and sign in” menu no longer hides under the dialog
+- Disconnect OCP in the sign-in progress modal returns to full pre-login idle so Login is available again
+- Account Reconnect is shown only for the profile that owns the active session
+
+## [0.11.1] - 2026-07-19
+
+### Fixed
+
+- OCP sign-in modal Reconnect recovers the current attempt without starting a new Login
+- Cancelling OCP sign-in no longer lets a stale attempt overwrite progress or start SIP register
+- Settings OCP disconnect returns Server/Auth to idle while keeping the local account session and established SIP
+
+### Changed
+
+- Modal Disconnect label clarified as “Disconnect OCP” (all locales)
+
+## [0.11.0] - 2026-07-17
+
+### Added
+
+- OCP sign-in progress modal with timed per-stage progress, status icons, failure detail, Disconnect and Reconnect
+- Five-stage OCP sign-in with stage timeouts and full flow restart
+- Rolling 24-hour notification journal with filters, search, and pagination
+- One-click sign-in from a saved profile with masked SIP/OCP secrets
+
+### Changed
+
+- Account session, OCP authorization, and SIP readiness are independent states
+- Logout is a single Application cascade: OCP → SIP → local account session
+- Sign-in errors stay visible until edit or retry; overwrite and dirty-draft UX are explicit
+
+### Fixed
+
+- Stale OCP messages from a replaced WebSocket are ignored
+- Profile and secret persistence recover from corruption; secrets stay out of events and logs
+
+## [0.10.4] - 2026-07-17
+
+### Fixed
+
+- Cancelling the saved-profile update dialog no longer starts authorization
+- Continue sign-in without overwrite, plus SIP/OCP field change checks
+- Diagnostic statuses moved to System State; connection and registration notifications are separate
+
 ## [0.10.3] - 2026-07-13
 
 ### Changed
