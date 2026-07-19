@@ -678,7 +678,7 @@ export const bgMessages: MessageShape = {
   "account.authProgress.reconnect": "Свържи се отново",
   "account.authProgress.failure.timeout": "Превишено е времето за изчакване на заявката",
   "account.authProgress.failure.credentialsTimeout": "Телефонните данни не бяха получени навреме. Опитайте отново.",
-  "account.authProgress.failure.sessionExist": "Сесия в модул OCP вече е отворена. Завършете я на другото устройство и опитайте отново.",
+  "account.authProgress.failure.sessionExist": "Сесията вече съществува. Затворете съществуващите сесии.",
   "account.authProgress.failure.httpFailed": "Няма достъп до модула. Проверете домейна и API ключа.",
   "account.authProgress.failure.invalidApiKey": "Невалиден API ключ на модула (PROXY_API_KEY).",
   "account.authProgress.failure.http404": "Сървърът на модула не е намерен (404). Проверете OCP домейна.",

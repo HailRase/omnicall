@@ -207,7 +207,11 @@ export function OcpSignInProgress({
                 : null;
             const statusText =
               stageView.state === "failed"
-                ? t("account.authProgress.status.timeout")
+                ? t(
+                    stageView.failureKind === "timeout"
+                      ? "account.authProgress.status.timeout"
+                      : "account.authProgress.status.failed",
+                  )
                 : stageView.state === "completed"
                   ? t("account.authProgress.status.completed")
                   : stageView.state === "active"

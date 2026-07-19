@@ -80,6 +80,24 @@ function hasElapsedTimeoutWindow(
 }
 
 /**
+ * Definitive server answers (HTTP 200 SESSION_EXIST, invalid API key, …)
+ * must surface immediately — the request already completed successfully.
+ * Network/transport drops still wait out the stage timeout bar.
+ */
+function shouldRevealFailureImmediately(
+  failureKind: AuthorizationProgressFailureKind | null,
+): boolean {
+  return (
+    failureKind === "session_exist" ||
+    failureKind === "invalid_api_key" ||
+    failureKind === "sip_identity_mismatch" ||
+    failureKind === "sip_authorize_failed" ||
+    failureKind === "sip_register_failed" ||
+    failureKind === "cancelled"
+  );
+}
+
+/**
  * Pure view of OCP sign-in progress for modal rendering / tests.
  */
 export function deriveOcpSignInProgressView(
@@ -105,11 +123,14 @@ export function deriveOcpSignInProgressView(
       const active = progress.executionStage === stage && !failed;
 
       if (failed) {
-        const reveal = hasElapsedTimeoutWindow(
-          progress.stageStartedAtMs,
-          timeoutMs,
-          nowMs,
-        );
+        const immediate = shouldRevealFailureImmediately(progress.failureKind);
+        const reveal =
+          immediate ||
+          hasElapsedTimeoutWindow(
+            progress.stageStartedAtMs,
+            timeoutMs,
+            nowMs,
+          );
         if (!reveal) {
           hasLatentFailure = true;
           return {
@@ -127,14 +148,16 @@ export function deriveOcpSignInProgressView(
           };
         }
         hasRevealedFailure = true;
-        // After the timeout window: present as timeout wait expiry (operator copy).
-        // Keep original failureCode for support tooltip detail.
+        // Immediate server answers keep their real kind; latent network waits
+        // become timeout after the bar finishes.
         return {
           stage,
           state: "failed",
           percent: 100,
           timeoutMs,
-          failureKind: "timeout",
+          failureKind: immediate
+            ? progress.failureKind
+            : "timeout",
           failureCode: progress.failureCode,
           awaitingTimeoutReveal: false,
         };

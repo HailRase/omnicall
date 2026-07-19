@@ -51,7 +51,7 @@ describe("deriveOcpSignInProgressView", () => {
     expect(stage?.awaitingTimeoutReveal).toBe(true);
   });
 
-  it("reveals timeout failure after the stage timeout window", () => {
+  it("reveals timeout failure after the stage timeout window for network errors", () => {
     const active = applyAuthorizationExecutionStage(
       initialAuthorizationProgressProjection(),
       "submitting_token_to_ocp",
@@ -60,8 +60,8 @@ describe("deriveOcpSignInProgressView", () => {
     );
     const failed = applyAuthorizationExecutionFailure(active, {
       reason: "failed",
-      failureKind: "session_exist",
-      failureCode: "ocp_session_exist",
+      failureKind: "transport",
+      failureCode: "Failed to fetch",
     });
     const view = deriveOcpSignInProgressView(failed, 15_000);
 
@@ -72,8 +72,33 @@ describe("deriveOcpSignInProgressView", () => {
     );
     expect(stage?.state).toBe("failed");
     expect(stage?.failureKind).toBe("timeout");
-    expect(stage?.failureCode).toBe("ocp_session_exist");
+    expect(stage?.failureCode).toBe("Failed to fetch");
     expect(stage?.percent).toBe(100);
+  });
+
+  it("reveals SESSION_EXIST immediately without waiting for timeout", () => {
+    const active = applyAuthorizationExecutionStage(
+      initialAuthorizationProgressProjection(),
+      "requesting_authorization_token",
+      "corr-session",
+      Date.now(),
+    );
+    const failed = applyAuthorizationExecutionFailure(active, {
+      reason: "failed",
+      failureKind: "session_exist",
+      failureCode: "ocp_session_exist",
+    });
+    const view = deriveOcpSignInProgressView(failed, Date.now());
+
+    expect(view.hasFailure).toBe(true);
+    expect(view.hasLatentFailure).toBe(false);
+    expect(view.overallState).toBe("failed");
+    const stage = view.stages.find(
+      (entry) => entry.stage === "requesting_authorization_token",
+    );
+    expect(stage?.state).toBe("failed");
+    expect(stage?.failureKind).toBe("session_exist");
+    expect(stage?.failureCode).toBe("ocp_session_exist");
   });
 
   it("completes all stages when ready", () => {
