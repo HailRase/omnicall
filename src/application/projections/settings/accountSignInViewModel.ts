@@ -96,13 +96,26 @@ export function deriveAccountOcpProfileOptions(
 
 /**
  * - Purpose: list recovery action keys allowed by the dual FSM (no localization).
+ * - Inputs: dual-FSM snapshot + whether the selected profile owns the live account session.
+ * - `reconnect` is live-session recovery — only when the selected profile matches the
+ *   active account (never on other saved profiles).
  */
 export function deriveAllowedAccountRecoveryActions(
   snapshot: OcpDualFsmSnapshot,
+  options: Readonly<{
+    selectedProfileOwnsActiveSession?: boolean;
+  }> = {},
 ): ReadonlyArray<OcpRecoveryAction> {
-  return ALL_RECOVERY_ACTIONS.filter(
-    (action) => resolveAllowedOcpRecoveryAction(snapshot, action) !== null,
-  );
+  const selectedOwnsSession = options.selectedProfileOwnsActiveSession === true;
+  return ALL_RECOVERY_ACTIONS.filter((action) => {
+    if (resolveAllowedOcpRecoveryAction(snapshot, action) === null) {
+      return false;
+    }
+    if (action === "reconnect" && !selectedOwnsSession) {
+      return false;
+    }
+    return true;
+  });
 }
 
 /**
@@ -113,6 +126,8 @@ export function deriveAccountSignInViewModel(input: Readonly<{
   hasActiveAccountSession: boolean;
   availabilities: ReadonlyArray<SavedAccountProfileAvailabilityView>;
   selectedProfileId: SavedAccountProfileId | null;
+  /** Active account key for the current local session (null when logged out). */
+  activeSessionProfileId?: SavedAccountProfileId | null;
   dualFsm: OcpDualFsmSnapshot;
   authorizationProgress?: AuthorizationProgressProjection;
 }>): AccountSignInViewModel {
@@ -123,6 +138,12 @@ export function deriveAccountSignInViewModel(input: Readonly<{
       : (input.availabilities.find(
           (row) => row.profile.id === input.selectedProfileId,
         ) ?? null);
+  const activeSessionProfileId = input.activeSessionProfileId ?? null;
+  const selectedProfileOwnsActiveSession =
+    input.hasActiveAccountSession &&
+    input.selectedProfileId !== null &&
+    activeSessionProfileId !== null &&
+    input.selectedProfileId === activeSessionProfileId;
 
   return {
     isSipRegistered: input.isSipRegistered,
@@ -138,6 +159,8 @@ export function deriveAccountSignInViewModel(input: Readonly<{
     authorizationProgress:
       input.authorizationProgress ?? initialAuthorizationProgressProjection(),
     primaryRecoveryAction: selectPrimaryOcpRecoveryAction(input.dualFsm),
-    allowedRecoveryActions: deriveAllowedAccountRecoveryActions(input.dualFsm),
+    allowedRecoveryActions: deriveAllowedAccountRecoveryActions(input.dualFsm, {
+      selectedProfileOwnsActiveSession,
+    }),
   };
 }

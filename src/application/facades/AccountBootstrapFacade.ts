@@ -1078,12 +1078,16 @@ export class AccountBootstrapFacade {
     }
 
     const session = this.ocpIntegration.projectionHub.getSessionProjection();
+    const activeSessionProfileId = this.accountSessionActive
+      ? await this.resolveSettingsAccountKey()
+      : null;
     return ok(
       deriveAccountSignInViewModel({
         isSipRegistered: this.sipSessionRegistered,
         hasActiveAccountSession: this.accountSessionActive,
         availabilities,
         selectedProfileId: options?.selectedProfileId ?? null,
+        activeSessionProfileId,
         dualFsm: {
           serverState: session.serverState,
           authorizationState: session.authorizationState,
@@ -3776,13 +3780,12 @@ export class AccountBootstrapFacade {
   }
 
   /**
-   * - Purpose: cancel in-flight OCP sign-in from Account modal and return dual FSM to idle.
+   * - Purpose: cancel in-flight / modal OCP sign-in and return to pre-login idle.
    * - Inputs: optional correlation id for disconnect logging.
-   * - Outputs: socket disconnected + cold-start OCP projections (progress/server/auth idle).
-   * - Does **not** end the local account session (ADR-AF-005) and does **not** unregister
-   *   an already established SIP session. Full pre-login idle is owned by avatar Logout.
+   * - Outputs: OCP socket + projections idle, then local account session + SIP teardown
+   *   (`UserSessionEnded`) so Login re-enables without a separate avatar Logout.
    * - If physical disconnect fails: returns typed failure; projections still forced to OCP idle;
-   *   transport recovery remains disarmed.
+   *   transport recovery remains disarmed; account-session teardown is still attempted.
    */
   async cancelOcpSignInAttempt(
     correlationId?: CorrelationId,
@@ -3790,9 +3793,15 @@ export class AccountBootstrapFacade {
     const opCorrelationId = correlationId ?? createCorrelationId();
     // Capture/cancel waiters + supersede apply epoch before clearAttempt; then close socket.
     this.ocpIntegration.backedSignIn.cancelUserSignIn("user_cancel");
+    // Must run before gateway disconnect — recovery arms synchronously on drop (ADR-AF-002).
+    this.ocpIntegration.disarmTransportRecoveryForUserLogout();
     const disconnectResult = await this.disconnectOcp(opCorrelationId);
-    // OCP cold idle (not full user logout): clears session/operator/campaign/progress.
     this.ocpIntegration.resetProjectionsToIdleAfterUserLogout();
+
+    // Modal Disconnect owns full pre-login idle (not Settings OCP-only disconnect).
+    const sessionResult = await this.endUserSession.execute({
+      correlationId: opCorrelationId,
+    });
 
     if (isErr(disconnectResult)) {
       this.deps.logger.warn("ocp_sign_in_cancel_disconnect_failed", {
@@ -3805,12 +3814,23 @@ export class AccountBootstrapFacade {
       return disconnectResult;
     }
 
+    if (isErr(sessionResult)) {
+      this.deps.logger.warn("ocp_sign_in_cancel_session_end_failed", {
+        correlationId: opCorrelationId,
+        featureId: "F-028",
+        boundedContext: "Integration",
+        operation: "cancel_ocp_sign_in_attempt",
+        result: sessionResult.error.message,
+      });
+      return err(sessionResult.error);
+    }
+
     this.deps.logger.info("ocp_sign_in_cancel_idle", {
       correlationId: opCorrelationId,
       featureId: "F-028",
       boundedContext: "Integration",
       operation: "cancel_ocp_sign_in_attempt",
-      result: "ocp_idle",
+      result: "pre_login_idle",
     });
     return ok(undefined);
   }

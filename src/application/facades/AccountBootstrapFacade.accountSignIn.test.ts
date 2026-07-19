@@ -413,7 +413,7 @@ describe("AccountBootstrapFacade account sign-in (WU-03)", () => {
     expect(recover.ok).toBe(true);
   });
 
-  it("cancelOcpSignInAttempt returns OCP idle and preserves account session", async () => {
+  it("cancelOcpSignInAttempt returns OCP idle and clears account session for Login", async () => {
     const gateway = new MockOcpGateway();
     const settings = new InMemorySettingsRepository({ bootstrapConfig: {} });
     const facade = new AccountBootstrapFacade({
@@ -450,7 +450,13 @@ describe("AccountBootstrapFacade account sign-in (WU-03)", () => {
     expect(session.authorizationState.phase).toBe("idle");
     expect(session.activeAttemptId).toBeNull();
     expect(session.authorizationProgress.stage).toBe("idle");
-    await expect(settings.getActiveProfileKey()).resolves.not.toBeNull();
+
+    const vm = await facade.getAccountSignInViewModel();
+    expect(vm.ok).toBe(true);
+    if (vm.ok) {
+      expect(vm.value.hasActiveAccountSession).toBe(false);
+      expect(vm.value.loginDisabledReason).toBeNull();
+    }
 
     await pending;
   });
