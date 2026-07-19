@@ -28,8 +28,8 @@ import {
 
 /**
  * - `auto` — busy → reserve; idle → FSM apply (host/DND default).
- * - `apply` — always FSM + change_status_to_* (finish post-call).
- * - `reserve` — always update_post_call_status.
+ * - `apply` — always FSM + change_status_to_* (finish post-call appeal).
+ * - `reserve` — always update_post_call_status (busy + post-call selection).
  */
 export type ChangeOperatorStatusIntent = "auto" | "apply" | "reserve";
 

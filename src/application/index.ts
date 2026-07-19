@@ -482,13 +482,20 @@ export {
   resolveOperatorStatusLabelKey,
   isOperatorStatusBusy,
   isOperatorStatusSelectorDisabled,
+  isPostCallProcessing,
   resolveOperatorStatusChangeMode,
   resolveOperatorStatusChangeModeFromProjection,
+  resolvePostCallFinishTarget,
+  resolvePostCallFinishAppealProjection,
   type OcpOperatorStatusLabelKey,
   type OperatorStatusChangeMode,
   type OperatorStatusValue,
   type OperatorStatusTone,
+  type PostCallFinishTarget,
+  type PostCallFinishAppealProjection,
 } from "./projections/integration/operatorStatusPresentation.js";
+export { FinishPostCallAppealUseCase } from "./use-cases/integration/ocp/FinishPostCallAppealUseCase.js";
+export type { FinishPostCallAppealInput } from "./use-cases/integration/ocp/FinishPostCallAppealUseCase.js";
 export {
   initialOcpReasonsProjection,
   reduceOcpReasonsFromPayload,

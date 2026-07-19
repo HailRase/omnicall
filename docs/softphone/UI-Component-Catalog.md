@@ -54,10 +54,9 @@
 | `OcpCampaignEventModal` | `src/renderer/components/integration/ocp/OcpCampaignEventModal.tsx` | `OcpCampaignEventModalProps` | ocp-campaign-modal, ocp-campaign-details, ocp-campaign-reject, ocp-campaign-accept | f=F-028 lf=LF-047 |
 | `OcpConnectionBanner` | `src/renderer/components/integration/ocp/OcpConnectionBanner.tsx` | `OcpConnectionBannerProps` | ocp-connection-banner-anchor, ocp-connection-banner, ocp-connection-banner-message, ocp-retry-connect | — |
 | `OcpLogoutReasonModal` | `src/renderer/components/integration/ocp/OcpLogoutReasonModal.tsx` | `OcpLogoutReasonModalProps` | ocp-logout-cancel-action, ocp-logout-confirm, ocp-logout-reasons-empty | f=F-028 lf=LF-048 |
-| `OcpPostCallStatusModal` | `src/renderer/components/integration/ocp/OcpPostCallStatusModal.tsx` | `OcpPostCallStatusModalProps` | ocp-post-call-status-modal, ocp-post-call-pending-reason, ocp-post-call-choose-finish, ocp-post-call-choose-reserve, ocp-post-call-cancel, ocp-post-call-confirm | f=F-028 lf=LF-044 |
 | `OcpProxyStatusScreen` | `src/renderer/components/integration/ocp/OcpProxyStatusScreen.tsx` | `OcpProxyStatusScreenProps` | ocp-proxy-status-screen, ocp-proxy-open-integrations | — |
 | `OcpRejectBreakReasonModal` | `src/renderer/components/integration/ocp/OcpRejectBreakReasonModal.tsx` | `OcpRejectBreakReasonModalProps` | ocp-reject-break-modal, ocp-reject-break-empty, ocp-reject-break-cancel, ocp-reject-break-confirm | f=F-028 |
-| `OcpStatusDropdown` | `src/renderer/components/integration/ocp/OcpStatusDropdown.tsx` | `OcpStatusDropdownProps` | ocp-status-dropdown, ocp-status-dropdown-ready, ocp-status-dropdown-breaks | — |
+| `OcpStatusDropdown` | `src/renderer/components/integration/ocp/OcpStatusDropdown.tsx` | `OcpStatusDropdownProps` | ocp-status-dropdown, ocp-status-dropdown-ready, ocp-status-dropdown-breaks, ocp-post-call-finish-footer, ocp-post-call-finish-appeal | f=F-028 lf=LF-044 |
 | `OcpStatusTimer` | `src/renderer/components/integration/ocp/OcpStatusTimer.tsx` | `OcpStatusTimerProps` | ocp-status-timer | — |
 | `ListQuickCallButton` | `src/renderer/components/list/ListQuickCallButton.tsx` | `ListQuickCallButtonProps` | — | — |
 | `ListQuickCallReveal` | `src/renderer/components/list/ListQuickCallReveal.tsx` | `ListQuickCallRevealProps` | — | — |

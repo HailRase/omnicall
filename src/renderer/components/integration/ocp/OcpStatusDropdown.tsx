@@ -1,6 +1,9 @@
 import clsx from "clsx";
 import type { JSX } from "react";
-import type { OcpStatusDropdownItemVm } from "../../../hooks/useOperatorStatusSelector.js";
+import type {
+  OcpStatusDropdownItemVm,
+  PostCallFinishAppealVm,
+} from "../../../hooks/useOperatorStatusSelector.js";
 import type { TranslationKey } from "../../../i18n/messages.js";
 import { useI18n } from "../../../i18n/index.js";
 import {
@@ -14,15 +17,17 @@ import {
 import styles from "./OcpStatusDropdown.module.css";
 
 /** Max visible break reasons before the break list scrolls; Ready stays pinned above. */
-export const OCP_STATUS_BREAK_VISIBLE_COUNT = 6;
+export const OCP_STATUS_BREAK_VISIBLE_COUNT = 5;
 
 export type OcpStatusDropdownProps = Readonly<{
   disabled: boolean;
   disabledReasonKey: TranslationKey | null;
   readyItems: ReadonlyArray<OcpStatusDropdownItemVm>;
   breakItems: ReadonlyArray<OcpStatusDropdownItemVm>;
+  finishAppeal: PostCallFinishAppealVm;
   trigger: JSX.Element;
   onSelectReason: (targetStatus: "ready" | "break", reasonId: number) => void;
+  onFinishAppeal: () => void;
 }>;
 
 function renderStatusOption(
@@ -65,17 +70,25 @@ function renderStatusOption(
 
 /**
  * - Purpose: Radix dropdown of Ready/Break OCP reasons for the header selector.
- * - Inputs: reason item VMs, disabled state, trigger, select callback.
- * - Outputs: pinned Ready, separator, scrollable Break list; current option styled and inert.
+ * - Inputs: reason item VMs, optional post-call finish footer, disabled state, trigger, callbacks.
+ * - Outputs: pinned Ready, separator, scrollable Break list, optional finish-appeal footer.
  */
 export function OcpStatusDropdown({
   disabled,
   readyItems,
   breakItems,
+  finishAppeal,
   trigger,
   onSelectReason,
+  onFinishAppeal,
 }: OcpStatusDropdownProps): JSX.Element {
   const { t } = useI18n();
+
+  const finishStatusLabel =
+    finishAppeal.statusLabel.length > 0
+      ? finishAppeal.statusLabel
+      : t("ocp.operatorStatus.ready");
+  const finishLabel = t("ocp.postCall.finishAppeal", { status: finishStatusLabel });
 
   return (
     <div className={styles.root}>
@@ -112,6 +125,31 @@ export function OcpStatusDropdown({
                 renderStatusOption(item, "break", t, onSelectReason),
               )}
             </DropdownMenuGroup>
+          ) : null}
+          {finishAppeal.visible ? (
+            <>
+              <DropdownMenuSeparator className={styles.separator} />
+              <div className={styles.finishFooter} data-testid="ocp-post-call-finish-footer">
+                <DropdownMenuItem
+                  className={styles.finishAppeal}
+                  disabled={finishAppeal.disabled}
+                  disabledReason={
+                    finishAppeal.disabledReasonKey !== null
+                      ? t(finishAppeal.disabledReasonKey)
+                      : null
+                  }
+                  data-testid="ocp-post-call-finish-appeal"
+                  onSelect={() => {
+                    if (finishAppeal.disabled) {
+                      return;
+                    }
+                    onFinishAppeal();
+                  }}
+                >
+                  {finishLabel}
+                </DropdownMenuItem>
+              </div>
+            </>
           ) : null}
         </DropdownMenuContent>
       </DropdownMenu>

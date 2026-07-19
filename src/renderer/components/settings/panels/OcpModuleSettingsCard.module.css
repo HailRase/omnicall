@@ -99,23 +99,3 @@
 .status-dot-session-closed {
   background: var(--color-status-failed);
 }
-
-.token-field {
-  display: flex;
-  align-items: center;
-  gap: var(--space-xs);
-  width: 100%;
-  max-width: 28rem;
-}
-
-.token-input {
-  flex: 1;
-  min-width: 0;
-}
-
-.token-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-sm);
-  margin-top: var(--space-xs);
-}

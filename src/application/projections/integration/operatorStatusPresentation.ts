@@ -12,15 +12,25 @@ import {
 } from "@domain/integration/ocp/OperatorStatus.js";
 import {
   isBusy,
+  isPostCallProcessing,
   resolveOperatorStatusChangeMode,
+  resolvePostCallFinishTarget,
   type OperatorStatusChangeMode,
+  type PostCallFinishTarget,
 } from "@domain/integration/ocp/OperatorStatusMachine.js";
 
-export { OperatorStatus, OPERATOR_STATUS_LABEL_KEY, resolveOperatorStatusChangeMode };
+export {
+  OperatorStatus,
+  OPERATOR_STATUS_LABEL_KEY,
+  isPostCallProcessing,
+  resolveOperatorStatusChangeMode,
+  resolvePostCallFinishTarget,
+};
 export type {
   OcpOperatorStatusLabelKey,
   OperatorStatusChangeMode,
   OperatorStatusType as OperatorStatusValue,
+  PostCallFinishTarget,
 };
 
 /** Matches `OcpWebSocketAdapter` default max reconnect attempts. */
@@ -90,4 +100,36 @@ export function resolveOperatorStatusChangeModeFromProjection(
     return null;
   }
   return resolveOperatorStatusChangeMode(status);
+}
+
+export type PostCallFinishAppealProjection = Readonly<{
+  visible: boolean;
+  targetStatus: "ready" | "break";
+  reasonId: number;
+  usedReservation: boolean;
+}>;
+
+/**
+ * Footer finish-appeal control is only shown during post-call processing.
+ */
+export function resolvePostCallFinishAppealProjection(
+  status: OperatorStatusType | null,
+  reservedStatus: OperatorStatusType | null,
+  reservedReasonId: number | null,
+): PostCallFinishAppealProjection {
+  if (status === null || !isPostCallProcessing(status)) {
+    return {
+      visible: false,
+      targetStatus: "ready",
+      reasonId: OperatorStatus.READY,
+      usedReservation: false,
+    };
+  }
+  const target = resolvePostCallFinishTarget(reservedStatus, reservedReasonId);
+  return {
+    visible: true,
+    targetStatus: target.targetStatus,
+    reasonId: target.reasonId,
+    usedReservation: target.usedReservation,
+  };
 }

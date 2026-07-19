@@ -236,41 +236,7 @@ describe("useOperatorStatusSelector", () => {
     );
   });
 
-  it("opens post-call modal instead of immediate change", () => {
-    setAuthenticatedReady();
-    useAccountBootstrapStore.setState({
-      ocpOperatorStatusProjection: {
-        ...useAccountBootstrapStore.getState().ocpOperatorStatusProjection,
-        status: OperatorStatus.POST_CALL_PROCESSING,
-        isBusy: true,
-        reasonId: 0,
-      },
-    });
-    const changeOcpOperatorStatus = vi.fn();
-    const facade = {
-      changeOcpOperatorStatus,
-      connectOcp: vi.fn(),
-    };
-    const { result } = renderHook(() =>
-      useOperatorStatusSelector({
-        facade: facade as never,
-        isSipRegistered: true,
-        dndEnabled: false,
-        onOpenIntegrationsSettings: vi.fn(),
-      }),
-    );
-
-    act(() => {
-      result.current.onSelectReason("break", 7);
-    });
-
-    expect(changeOcpOperatorStatus).not.toHaveBeenCalled();
-    expect(result.current.postCallModal.open).toBe(true);
-    expect(result.current.postCallModal.pendingReasonLabel).toBe("Toilet break");
-    expect(result.current.postCallModal.chosenAction).toBeNull();
-  });
-
-  it("applies finish intent from post-call modal confirm", async () => {
+  it("reserves immediately during post-call processing without modal", async () => {
     setAuthenticatedReady();
     useAccountBootstrapStore.setState({
       ocpOperatorStatusProjection: {
@@ -282,10 +248,64 @@ describe("useOperatorStatusSelector", () => {
     });
     const changeOcpOperatorStatus = vi.fn().mockResolvedValue({
       ok: true,
+      value: { kind: "reserved", targetStatus: "break", reasonId: 7 },
+    });
+    const notify = vi.fn();
+    const facade = {
+      changeOcpOperatorStatus,
+      finishOcpPostCallAppeal: vi.fn(),
+      connectOcp: vi.fn(),
+    };
+    const { result } = renderHook(() =>
+      useOperatorStatusSelector({
+        facade: facade as never,
+        isSipRegistered: true,
+        dndEnabled: false,
+        onOpenIntegrationsSettings: vi.fn(),
+        notify,
+      }),
+    );
+
+    expect(result.current.finishAppeal.visible).toBe(true);
+    expect(result.current.finishAppeal.statusLabel).toBe("Ready");
+
+    await act(async () => {
+      result.current.onSelectReason("break", 7);
+      await Promise.resolve();
+    });
+
+    expect(changeOcpOperatorStatus).toHaveBeenCalledWith({
+      targetStatus: "break",
+      reasonId: 7,
+      intent: "reserve",
+    });
+    expect(notify).toHaveBeenCalledWith(
+      expect.objectContaining({
+        messageKey: "ocp.status.reservedToast",
+        messageParams: { reason: "Toilet break" },
+      }),
+    );
+  });
+
+  it("shows reserved reason on finish appeal and calls finish use case", async () => {
+    setAuthenticatedReady();
+    useAccountBootstrapStore.setState({
+      ocpOperatorStatusProjection: {
+        ...useAccountBootstrapStore.getState().ocpOperatorStatusProjection,
+        status: OperatorStatus.POST_CALL_PROCESSING,
+        isBusy: true,
+        reasonId: 0,
+        reservedStatus: OperatorStatus.BREAK,
+        reservedReasonId: 7,
+      },
+    });
+    const finishOcpPostCallAppeal = vi.fn().mockResolvedValue({
+      ok: true,
       value: { kind: "applied", targetStatus: "break", reasonId: 7 },
     });
     const facade = {
-      changeOcpOperatorStatus,
+      changeOcpOperatorStatus: vi.fn(),
+      finishOcpPostCallAppeal,
       connectOcp: vi.fn(),
     };
     const { result } = renderHook(() =>
@@ -297,26 +317,19 @@ describe("useOperatorStatusSelector", () => {
       }),
     );
 
-    act(() => {
-      result.current.onSelectReason("break", 7);
-      result.current.onPostCallChooseFinish();
-    });
-    expect(result.current.postCallModal.chosenAction).toBe("finish");
+    expect(result.current.finishAppeal.visible).toBe(true);
+    expect(result.current.finishAppeal.statusLabel).toBe("Toilet break");
 
     await act(async () => {
-      result.current.onPostCallConfirm();
+      result.current.onFinishAppeal();
       await Promise.resolve();
     });
 
-    expect(changeOcpOperatorStatus).toHaveBeenCalledWith({
-      targetStatus: "break",
-      reasonId: 7,
-      intent: "apply",
-    });
-    expect(result.current.postCallModal.open).toBe(false);
+    expect(finishOcpPostCallAppeal).toHaveBeenCalledTimes(1);
+    expect(result.current.finishAppeal.submitting).toBe(false);
   });
 
-  it("closes post-call modal after reserve confirm even if notify throws", async () => {
+  it("keeps finish appeal available after reserve notify throws", async () => {
     setAuthenticatedReady();
     useAccountBootstrapStore.setState({
       ocpOperatorStatusProjection: {
@@ -332,6 +345,7 @@ describe("useOperatorStatusSelector", () => {
     });
     const facade = {
       changeOcpOperatorStatus,
+      finishOcpPostCallAppeal: vi.fn(),
       connectOcp: vi.fn(),
     };
     const notify = vi.fn(() => {
@@ -347,13 +361,8 @@ describe("useOperatorStatusSelector", () => {
       }),
     );
 
-    act(() => {
-      result.current.onSelectReason("break", 7);
-      result.current.onPostCallChooseReserve();
-    });
-
     await act(async () => {
-      result.current.onPostCallConfirm();
+      result.current.onSelectReason("break", 7);
       await Promise.resolve();
     });
 
@@ -362,8 +371,7 @@ describe("useOperatorStatusSelector", () => {
       reasonId: 7,
       intent: "reserve",
     });
-    expect(result.current.postCallModal.open).toBe(false);
-    expect(result.current.postCallModal.submitting).toBe(false);
+    expect(result.current.finishAppeal.visible).toBe(true);
   });
 
   it("falls back to system status label while ringing and talking", () => {

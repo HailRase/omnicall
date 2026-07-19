@@ -1,6 +1,17 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import type { OperatorStatusSelectorVm } from "../../hooks/useOperatorStatusSelector.js";
+import type {
+  OperatorStatusSelectorVm,
+  PostCallFinishAppealVm,
+} from "../../hooks/useOperatorStatusSelector.js";
 import { OperatorStatusSelector } from "./OperatorStatusSelector.js";
+
+const hiddenFinishAppeal: PostCallFinishAppealVm = {
+  visible: false,
+  statusLabel: "",
+  submitting: false,
+  disabled: false,
+  disabledReasonKey: null,
+};
 
 const authenticatedVm: OperatorStatusSelectorVm = {
   isAuthenticated: true,
@@ -45,7 +56,9 @@ const meta = {
   parameters: { layout: "padded" },
   args: {
     vm: authenticatedVm,
+    finishAppeal: hiddenFinishAppeal,
     onSelectReason: () => undefined,
+    onFinishAppeal: () => undefined,
   },
 } satisfies Meta<typeof OperatorStatusSelector>;
 
@@ -232,6 +245,44 @@ export const CurrentBreakSelectedLight: Story = {
     },
   },
   parameters: { themes: { themeOverride: "light" } },
+};
+
+export const PostCallFinishAppealLight: Story = {
+  args: {
+    vm: {
+      ...authenticatedVm,
+      statusColor: "var(--color-status-offline)",
+      reasonLabel: "",
+      allowStatusLabelFallback: true,
+      statusLabelKey: "ocp.operatorStatus.postCallProcessing",
+      readyItems: [
+        {
+          reasonId: 1,
+          label: "Ready for calls",
+          targetStatus: "ready",
+          disabled: false,
+          disabledReasonKey: null,
+          testId: null,
+          isCurrent: false,
+        },
+      ],
+    },
+    finishAppeal: {
+      visible: true,
+      statusLabel: "Lunch break",
+      submitting: false,
+      disabled: false,
+      disabledReasonKey: null,
+    },
+  },
+  parameters: { themes: { themeOverride: "light" } },
+};
+
+export const PostCallFinishAppealDark: Story = {
+  args: {
+    ...PostCallFinishAppealLight.args,
+  },
+  parameters: { themes: { themeOverride: "dark" } },
 };
 
 export const CurrentBreakSelectedDark: Story = {

@@ -127,6 +127,10 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
     return this.operator.reservedStatus;
   }
 
+  getReservedReasonId(): number | null {
+    return this.operator.reservedReasonId;
+  }
+
   setSessionDomain(domain: string): void {
     this.session = applyOcpSessionDomain(this.session, domain);
     this.notifyChangeListeners();

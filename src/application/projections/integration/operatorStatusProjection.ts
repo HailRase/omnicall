@@ -46,15 +46,24 @@ export function reduceOperatorStatusFromUsers(
     Number.isFinite(users.reasonId) ? users.reasonId : null,
   );
   const statusSince = parseStatusSinceMs(users.statusSince);
+  const nextBusy = isOperatorBusy(users.status);
 
-  return {
+  const next: OperatorStatusProjection = {
     ...projection,
     operatorId: users.operatorId,
     status: users.status,
     reasonId,
     statusSince,
-    isBusy: isOperatorBusy(users.status),
+    isBusy: nextBusy,
   };
+
+  // Reservation is only meaningful while busy (call lifecycle / post-call).
+  // Clear when the operator returns to idle so the next call starts clean.
+  if (!nextBusy) {
+    return clearOperatorReservedStatus(next);
+  }
+
+  return next;
 }
 
 export function applyOperatorReservedStatus(

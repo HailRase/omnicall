@@ -167,16 +167,8 @@ const ruMessages = {
   "ocp.dropdown.disabledDnd": "Статус «Доступен» недоступен при включённом «Не беспокоить».",
   "ocp.status.reservedToast": (params: Readonly<{ reason: string }>) =>
     `Вы зарезервировали статус «${params?.reason ?? ""}» после звонка`,
-  "ocp.postCall.modal.title": "Статус после обработки",
-  "ocp.postCall.modal.description":
-    "Выберите, что сделать с выбранным статусом: завершить обращение или зарезервировать на потом.",
-  "ocp.postCall.modal.pendingStatus": "Выбранный статус",
-  "ocp.postCall.modal.actionsAria": "Действие со статусом",
-  "ocp.postCall.modal.finish": "Завершить обращение",
-  "ocp.postCall.modal.finishHint": "Статус применится сразу после подтверждения.",
-  "ocp.postCall.modal.reserve": "Зарезервировать статус",
-  "ocp.postCall.modal.reserveHint": "Статус применится после текущего звонка.",
-  "ocp.postCall.modal.confirm": "Подтвердить",
+  "ocp.postCall.finishAppeal": (params: Readonly<{ status: string }>) =>
+    `Завершить обращение: ${params?.status ?? ""}`,
   "ocp.connection.reconnectingTitle": "OCP",
   "ocp.connection.reconnecting": (params: Readonly<{ attempt: number; max: number }>) =>
     `Переподключение… (попытка ${params.attempt} из ${params.max})`,
@@ -1330,16 +1322,8 @@ const enMessages: MessageShape = {
   "ocp.dropdown.disabledDnd": "Available status is unavailable while Do Not Disturb is on.",
   "ocp.status.reservedToast": (params) =>
     `You reserved status "${params?.reason ?? ""}" after the call`,
-  "ocp.postCall.modal.title": "Status after processing",
-  "ocp.postCall.modal.description":
-    "Choose what to do with the selected status: finish the contact or reserve it for later.",
-  "ocp.postCall.modal.pendingStatus": "Selected status",
-  "ocp.postCall.modal.actionsAria": "Status action",
-  "ocp.postCall.modal.finish": "Finish contact",
-  "ocp.postCall.modal.finishHint": "The status will apply immediately after confirmation.",
-  "ocp.postCall.modal.reserve": "Reserve status",
-  "ocp.postCall.modal.reserveHint": "The status will apply after the current call.",
-  "ocp.postCall.modal.confirm": "Confirm",
+  "ocp.postCall.finishAppeal": (params) =>
+    `Finish contact: ${params?.status ?? ""}`,
   "ocp.connection.reconnectingTitle": "OCP",
   "ocp.connection.reconnecting": (params) =>
     `Reconnecting… (attempt ${params.attempt} of ${params.max})`,
@@ -2468,16 +2452,8 @@ const frMessages: MessageShape = {
   "ocp.dropdown.disabledDnd": "Statut Disponible indisponible lorsque Ne pas deranger est actif.",
   "ocp.status.reservedToast": (params) =>
     `Vous avez reserve le statut « ${params?.reason ?? ""} » apres l'appel`,
-  "ocp.postCall.modal.title": "Statut apres traitement",
-  "ocp.postCall.modal.description":
-    "Choisissez l'action pour le statut selectionne : terminer le contact ou le reserver pour plus tard.",
-  "ocp.postCall.modal.pendingStatus": "Statut selectionne",
-  "ocp.postCall.modal.actionsAria": "Action sur le statut",
-  "ocp.postCall.modal.finish": "Terminer le contact",
-  "ocp.postCall.modal.finishHint": "Le statut s'appliquera immediatement apres confirmation.",
-  "ocp.postCall.modal.reserve": "Reserver le statut",
-  "ocp.postCall.modal.reserveHint": "Le statut s'appliquera apres l'appel en cours.",
-  "ocp.postCall.modal.confirm": "Confirmer",
+  "ocp.postCall.finishAppeal": (params) =>
+    `Terminer le contact : ${params?.status ?? ""}`,
   "ocp.connection.reconnectingTitle": "OCP",
   "ocp.connection.reconnecting": (params) =>
     `Reconnexion… (tentative ${params.attempt} sur ${params.max})`,
@@ -3603,16 +3579,8 @@ const deMessages: MessageShape = {
   "ocp.dropdown.disabledDnd": "Status Verfuegbar nicht verfuegbar bei aktivem Nicht stoeren.",
   "ocp.status.reservedToast": (params) =>
     `Sie haben den Status „${params?.reason ?? ""}“ nach dem Anruf reserviert`,
-  "ocp.postCall.modal.title": "Status nach Bearbeitung",
-  "ocp.postCall.modal.description":
-    "Waehlen Sie die Aktion fuer den Status: Kontakt beenden oder spaeter reservieren.",
-  "ocp.postCall.modal.pendingStatus": "Gewaehlter Status",
-  "ocp.postCall.modal.actionsAria": "Statusaktion",
-  "ocp.postCall.modal.finish": "Kontakt beenden",
-  "ocp.postCall.modal.finishHint": "Der Status wird sofort nach Bestaetigung angewendet.",
-  "ocp.postCall.modal.reserve": "Status reservieren",
-  "ocp.postCall.modal.reserveHint": "Der Status wird nach dem aktuellen Anruf angewendet.",
-  "ocp.postCall.modal.confirm": "Bestaetigen",
+  "ocp.postCall.finishAppeal": (params) =>
+    `Kontakt beenden: ${params?.status ?? ""}`,
   "ocp.connection.reconnectingTitle": "OCP",
   "ocp.connection.reconnecting": (params) =>
     `Erneute Verbindung… (Versuch ${params.attempt} von ${params.max})`,

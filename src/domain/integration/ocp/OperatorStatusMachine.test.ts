@@ -4,7 +4,9 @@ import { OperatorStatus } from "./OperatorStatus.js";
 import {
   canUserInitiate,
   isBusy,
+  isPostCallProcessing,
   resolveOperatorStatusChangeMode,
+  resolvePostCallFinishTarget,
   validateTransition,
 } from "./OperatorStatusMachine.js";
 
@@ -83,7 +85,27 @@ describe("OperatorStatusMachine", () => {
       "reserve",
     );
     expect(resolveOperatorStatusChangeMode(OperatorStatus.POST_CALL_PROCESSING)).toBe(
-      "choose",
+      "reserve",
     );
+    expect(isPostCallProcessing(OperatorStatus.POST_CALL_PROCESSING)).toBe(true);
+    expect(isPostCallProcessing(OperatorStatus.TALKING)).toBe(false);
+  });
+
+  it("resolves finish-appeal target from reservation or defaults to ready", () => {
+    expect(resolvePostCallFinishTarget(null, null)).toEqual({
+      targetStatus: "ready",
+      reasonId: OperatorStatus.READY,
+      usedReservation: false,
+    });
+    expect(resolvePostCallFinishTarget(OperatorStatus.BREAK, 7)).toEqual({
+      targetStatus: "break",
+      reasonId: 7,
+      usedReservation: true,
+    });
+    expect(resolvePostCallFinishTarget(OperatorStatus.READY, 1)).toEqual({
+      targetStatus: "ready",
+      reasonId: 1,
+      usedReservation: true,
+    });
   });
 });

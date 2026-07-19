@@ -1,6 +1,8 @@
 declare const classes: {
   readonly breakGroup: string;
   readonly content: string;
+  readonly finishAppeal: string;
+  readonly finishFooter: string;
   readonly group: string;
   readonly option: string;
   readonly optionBreak: string;

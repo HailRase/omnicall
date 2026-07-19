@@ -747,16 +747,8 @@ export const bgMessages: MessageShape = {
   "ocp.dropdown.disabledDnd": "Статус «Достъпен» недостъпен при включено «Не безпокой».",
   "ocp.status.reservedToast": (params) =>
     `Резервирахте статус „${params?.reason ?? ""}“ след обаждането`,
-  "ocp.postCall.modal.title": "Статус след обработка",
-  "ocp.postCall.modal.description":
-    "Изберете действие за статуса: завършете обръщението или го резервирайте за по-късно.",
-  "ocp.postCall.modal.pendingStatus": "Избран статус",
-  "ocp.postCall.modal.actionsAria": "Действие със статуса",
-  "ocp.postCall.modal.finish": "Завърши обръщението",
-  "ocp.postCall.modal.finishHint": "Статусът ще се приложи веднага след потвърждение.",
-  "ocp.postCall.modal.reserve": "Резервирай статус",
-  "ocp.postCall.modal.reserveHint": "Статусът ще се приложи след текущото обаждане.",
-  "ocp.postCall.modal.confirm": "Потвърди",
+  "ocp.postCall.finishAppeal": (params) =>
+    `Завърши обръщението: ${params?.status ?? ""}`,
   "ocp.connection.reconnectingTitle": "OCP",
   "ocp.connection.reconnecting": (params) =>
     `Повторно свързване… (опит ${params.attempt} от ${params.max})`,

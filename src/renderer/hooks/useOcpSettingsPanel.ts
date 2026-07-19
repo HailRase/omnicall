@@ -1,6 +1,6 @@
 /**
  * - Purpose: bind Settings → Integrations → OCP Module card to active-profile edit APIs.
- * - Inputs: AccountBootstrapFacade, SIP-ready flag, refresh active UserSettings snapshot.
+ * - Inputs: AccountBootstrapFacade, refresh active UserSettings snapshot.
  * - Outputs: presentational props for edit-only OcpModuleSettingsCard; no SIP/Electron.
  */
 
@@ -18,27 +18,18 @@ import { useAuthShellFlags } from "./useAuthShellFlags.js";
 
 export type OcpSettingsPanelErrorKey =
   | "settings.integrations.ocp.error.domainRequired"
-  | "settings.integrations.ocp.error.apiKeyRequired"
   | "settings.integrations.ocp.error.saveFailed";
 
 export type UseOcpSettingsPanelResult = Readonly<{
   settings: OcpIntegrationSettings;
   session: OcpSessionProjection;
   activeLoginLabel: string | null;
-  apiKeyDraft: string;
-  apiKeyVisible: boolean;
-  hasSavedApiKey: boolean;
-  actionLoading: "save-api-key" | "delete-api-key" | null;
   errorKey: OcpSettingsPanelErrorKey | null;
   configEditable: boolean;
   openAccountForRecoveryVisible: boolean;
   onEnabledChange: (enabled: boolean) => void;
   onDomainChange: (domain: string) => void;
   onAutoConnectChange: (autoConnect: boolean) => void;
-  onApiKeyDraftChange: (apiKey: string) => void;
-  onApiKeyVisibleChange: (visible: boolean) => void;
-  onSaveApiKey: () => void;
-  onDeleteApiKey: () => void;
   onOpenAccountForRecovery: () => void;
 }>;
 
@@ -50,6 +41,7 @@ type UseOcpSettingsPanelInput = Readonly<{
 
 /**
  * - Purpose: orchestrate active-profile OCP configuration editing (ADR-AF-003 edit-only).
+ * - API key is acquired during OCP authorization, not edited in Integrations.
  */
 export function useOcpSettingsPanel(
   input: UseOcpSettingsPanelInput,
@@ -59,12 +51,6 @@ export function useOcpSettingsPanel(
   const { hasActiveAccountSession } = useAuthShellFlags();
   const [settings, setSettings] = useState<OcpIntegrationSettings>(OCP_INTEGRATION_DEFAULTS);
   const [activeLoginLabel, setActiveLoginLabel] = useState<string | null>(null);
-  const [apiKeyDraft, setApiKeyDraft] = useState("");
-  const [apiKeyVisible, setApiKeyVisible] = useState(false);
-  const [hasSavedApiKey, setHasSavedApiKey] = useState(false);
-  const [actionLoading, setActionLoading] = useState<
-    UseOcpSettingsPanelResult["actionLoading"]
-  >(null);
   const [errorKey, setErrorKey] = useState<OcpSettingsPanelErrorKey | null>(null);
 
   const editShell = deriveOcpModuleEditShell({
@@ -84,7 +70,6 @@ export function useOcpSettingsPanel(
   const loadActivePanel = useCallback(async (): Promise<void> => {
     if (facade === null) {
       setSettings(OCP_INTEGRATION_DEFAULTS);
-      setHasSavedApiKey(false);
       setActiveLoginLabel(null);
       return;
     }
@@ -93,15 +78,8 @@ export function useOcpSettingsPanel(
       setErrorKey("settings.integrations.ocp.error.saveFailed");
       return;
     }
-    const apiKeyResult = await facade.getOcpProxyApiKey();
-    if (!apiKeyResult.ok) {
-      setErrorKey("settings.integrations.ocp.error.saveFailed");
-      return;
-    }
     setErrorKey(null);
     setSettings(settingsResult.value.ocpIntegration);
-    setHasSavedApiKey((apiKeyResult.value?.trim() ?? "").length > 0);
-    setApiKeyDraft("");
     const activeAccount = await facade.getActiveSipAccount();
     const username = activeAccount?.username.trim() ?? "";
     setActiveLoginLabel(username.length > 0 ? username : null);
@@ -158,55 +136,6 @@ export function useOcpSettingsPanel(
     [persistOcpSettings, settings],
   );
 
-  const onSaveApiKey = useCallback((): void => {
-    if (facade === null || !editShell.configEditable) {
-      return;
-    }
-    const trimmed = apiKeyDraft.trim();
-    if (trimmed.length === 0) {
-      setErrorKey("settings.integrations.ocp.error.apiKeyRequired");
-      return;
-    }
-    setActionLoading("save-api-key");
-    void facade
-      .saveOcpProxyApiKey(trimmed)
-      .then(async (result) => {
-        if (!result.ok) {
-          setErrorKey("settings.integrations.ocp.error.saveFailed");
-          return;
-        }
-        setErrorKey(null);
-        setApiKeyDraft("");
-        setHasSavedApiKey(true);
-        await refreshActiveSettings();
-      })
-      .finally(() => {
-        setActionLoading(null);
-      });
-  }, [apiKeyDraft, editShell.configEditable, facade, refreshActiveSettings]);
-
-  const onDeleteApiKey = useCallback((): void => {
-    if (facade === null || !editShell.configEditable) {
-      return;
-    }
-    setActionLoading("delete-api-key");
-    void facade
-      .deleteOcpProxyApiKey()
-      .then(async (result) => {
-        if (!result.ok) {
-          setErrorKey("settings.integrations.ocp.error.saveFailed");
-          return;
-        }
-        setErrorKey(null);
-        setApiKeyDraft("");
-        setHasSavedApiKey(false);
-        await refreshActiveSettings();
-      })
-      .finally(() => {
-        setActionLoading(null);
-      });
-  }, [editShell.configEditable, facade, refreshActiveSettings]);
-
   const onOpenAccountForRecovery = useCallback((): void => {
     onOpenAccountSettings();
   }, [onOpenAccountSettings]);
@@ -215,20 +144,12 @@ export function useOcpSettingsPanel(
     settings,
     session,
     activeLoginLabel,
-    apiKeyDraft,
-    apiKeyVisible,
-    hasSavedApiKey,
-    actionLoading,
     errorKey,
     configEditable: editShell.configEditable,
     openAccountForRecoveryVisible: editShell.openAccountForRecoveryVisible,
     onEnabledChange,
     onDomainChange,
     onAutoConnectChange,
-    onApiKeyDraftChange: setApiKeyDraft,
-    onApiKeyVisibleChange: setApiKeyVisible,
-    onSaveApiKey,
-    onDeleteApiKey,
     onOpenAccountForRecovery,
   };
 }

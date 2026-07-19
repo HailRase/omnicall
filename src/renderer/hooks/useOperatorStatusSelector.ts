@@ -1,7 +1,7 @@
 /**
  * - Purpose: build presentational VM for OCP operator status selector + connection chrome.
  * - Inputs: facade, SIP registration, DND, open-Settings callback, optional notify; Zustand OCP projections.
- * - Outputs: serializable-friendly VM + callbacks (change status / post-call modal / retry).
+ * - Outputs: serializable-friendly VM + callbacks (change status / finish appeal / retry).
  */
 
 import { useCallback, useState } from "react";
@@ -13,6 +13,7 @@ import {
   resolveOperatorStatusChangeModeFromProjection,
   resolveOperatorStatusColorVar,
   resolveOperatorStatusLabelKey,
+  resolvePostCallFinishAppealProjection,
   type OcpOperatorStatusLabelKey,
 } from "@application/index.js";
 import { isOk } from "@shared/result/index.js";
@@ -49,23 +50,20 @@ export type OperatorStatusSelectorVm = Readonly<{
   maxReconnectAttempts: number;
 }>;
 
-export type OcpPostCallStatusModalVm = Readonly<{
-  open: boolean;
-  pendingTargetStatus: "ready" | "break";
-  pendingReasonId: number;
-  pendingReasonLabel: string;
-  chosenAction: "finish" | "reserve" | null;
+export type PostCallFinishAppealVm = Readonly<{
+  visible: boolean;
+  /** Localized reason / Available label shown after the finish prefix. */
+  statusLabel: string;
   submitting: boolean;
+  disabled: boolean;
+  disabledReasonKey: TranslationKey | null;
 }>;
 
 export type UseOperatorStatusSelectorResult = Readonly<{
   vm: OperatorStatusSelectorVm;
-  postCallModal: OcpPostCallStatusModalVm;
+  finishAppeal: PostCallFinishAppealVm;
   onSelectReason: (targetStatus: "ready" | "break", reasonId: number) => void;
-  onPostCallChooseFinish: () => void;
-  onPostCallChooseReserve: () => void;
-  onPostCallConfirm: () => void;
-  onPostCallCancel: () => void;
+  onFinishAppeal: () => void;
   onRetryConnect: () => void;
   onOpenIntegrationsSettings: () => void;
 }>;
@@ -83,15 +81,6 @@ type PendingSelection = Readonly<{
   reasonId: number;
   reasonLabel: string;
 }>;
-
-const CLOSED_POST_CALL_MODAL: OcpPostCallStatusModalVm = {
-  open: false,
-  pendingTargetStatus: "break",
-  pendingReasonId: 0,
-  pendingReasonLabel: "",
-  chosenAction: null,
-  submitting: false,
-};
 
 function resolveReadyDisabled(
   isSipRegistered: boolean,
@@ -125,6 +114,7 @@ function isIdleUserStatus(status: number | null): boolean {
 /**
  * - Purpose: sole projection consumer for operator status header chrome.
  * - Chip label follows server `users` projection only (no optimistic click override).
+ * - Post-call: reason clicks reserve; footer finish applies reserved or Ready.
  */
 export function useOperatorStatusSelector(
   input: UseOperatorStatusSelectorInput,
@@ -133,8 +123,7 @@ export function useOperatorStatusSelector(
   const operator = useAccountBootstrapStore((state) => state.ocpOperatorStatusProjection);
   const reasons = useAccountBootstrapStore((state) => state.ocpReasonsProjection);
 
-  const [postCallModal, setPostCallModal] =
-    useState<OcpPostCallStatusModalVm>(CLOSED_POST_CALL_MODAL);
+  const [finishSubmitting, setFinishSubmitting] = useState(false);
 
   const readyGuard = resolveReadyDisabled(input.isSipRegistered, input.dndEnabled);
   const dropdownDisabled = isOperatorStatusSelectorDisabled(operator.status);
@@ -177,6 +166,34 @@ export function useOperatorStatusSelector(
     isCurrent:
       operator.status === OperatorStatus.BREAK && operator.reasonId === reason.id,
   }));
+
+  const finishProjection = resolvePostCallFinishAppealProjection(
+    operator.status,
+    operator.reservedStatus,
+    operator.reservedReasonId,
+  );
+
+  const finishStatusLabel = finishProjection.visible
+    ? resolveFinishAppealStatusLabel(
+        finishProjection.targetStatus,
+        finishProjection.reasonId,
+        reasons.readyReasons,
+        reasons.breakReasons,
+      )
+    : "";
+
+  const finishDisabledByDnd =
+    finishProjection.visible &&
+    finishProjection.targetStatus === "ready" &&
+    input.dndEnabled;
+
+  const finishAppeal: PostCallFinishAppealVm = {
+    visible: finishProjection.visible,
+    statusLabel: finishStatusLabel,
+    submitting: finishSubmitting,
+    disabled: finishDisabledByDnd || finishSubmitting,
+    disabledReasonKey: finishDisabledByDnd ? "ocp.dropdown.disabledDnd" : null,
+  };
 
   const vm: OperatorStatusSelectorVm = {
     isAuthenticated: session.isAuthenticated,
@@ -259,19 +276,6 @@ export function useOperatorStatusSelector(
       );
       const selection: PendingSelection = { targetStatus, reasonId, reasonLabel };
       const mode = resolveOperatorStatusChangeModeFromProjection(operator.status);
-
-      if (mode === "choose") {
-        setPostCallModal({
-          open: true,
-          pendingTargetStatus: targetStatus,
-          pendingReasonId: reasonId,
-          pendingReasonLabel: reasonLabel,
-          chosenAction: null,
-          submitting: false,
-        });
-        return;
-      }
-
       const intent = mode === "reserve" ? "reserve" : "auto";
       void executeChange(selection, intent);
     },
@@ -286,41 +290,19 @@ export function useOperatorStatusSelector(
     ],
   );
 
-  const onPostCallChooseFinish = useCallback((): void => {
-    setPostCallModal((prev) =>
-      prev.open ? { ...prev, chosenAction: "finish" } : prev,
-    );
-  }, []);
-
-  const onPostCallChooseReserve = useCallback((): void => {
-    setPostCallModal((prev) =>
-      prev.open ? { ...prev, chosenAction: "reserve" } : prev,
-    );
-  }, []);
-
-  const onPostCallCancel = useCallback((): void => {
-    setPostCallModal(CLOSED_POST_CALL_MODAL);
-  }, []);
-
-  const onPostCallConfirm = useCallback((): void => {
-    if (!postCallModal.open || postCallModal.chosenAction === null) {
+  const onFinishAppeal = useCallback((): void => {
+    if (input.facade === null || !finishAppeal.visible || finishAppeal.disabled) {
       return;
     }
-    const selection: PendingSelection = {
-      targetStatus: postCallModal.pendingTargetStatus,
-      reasonId: postCallModal.pendingReasonId,
-      reasonLabel: postCallModal.pendingReasonLabel,
-    };
-    const intent = postCallModal.chosenAction === "finish" ? "apply" : "reserve";
-    setPostCallModal((prev) => ({ ...prev, submitting: true }));
+    setFinishSubmitting(true);
     void (async () => {
       try {
-        await executeChange(selection, intent);
+        await input.facade?.finishOcpPostCallAppeal();
       } finally {
-        setPostCallModal(CLOSED_POST_CALL_MODAL);
+        setFinishSubmitting(false);
       }
     })();
-  }, [executeChange, postCallModal]);
+  }, [finishAppeal.disabled, finishAppeal.visible, input.facade]);
 
   const onRetryConnect = useCallback((): void => {
     if (input.facade === null) {
@@ -331,12 +313,9 @@ export function useOperatorStatusSelector(
 
   return {
     vm,
-    postCallModal,
+    finishAppeal,
     onSelectReason,
-    onPostCallChooseFinish,
-    onPostCallChooseReserve,
-    onPostCallConfirm,
-    onPostCallCancel,
+    onFinishAppeal,
     onRetryConnect,
     onOpenIntegrationsSettings: input.onOpenIntegrationsSettings,
   };
@@ -351,6 +330,30 @@ function resolveReasonLabel(
   const list = targetStatus === "ready" ? readyReasons : breakReasons;
   const found = list.find((reason) => reason.id === reasonId);
   return found?.defaultDescription ?? "";
+}
+
+function resolveFinishAppealStatusLabel(
+  targetStatus: "ready" | "break",
+  reasonId: number,
+  readyReasons: ReadonlyArray<Readonly<{ id: number; defaultDescription: string }>>,
+  breakReasons: ReadonlyArray<Readonly<{ id: number; defaultDescription: string }>>,
+): string {
+  const fromCatalog = resolveReasonLabel(
+    reasonId,
+    targetStatus,
+    readyReasons,
+    breakReasons,
+  );
+  if (fromCatalog.length > 0) {
+    return fromCatalog;
+  }
+  if (targetStatus === "ready") {
+    return (
+      readyReasons.find((reason) => reason.id === OperatorStatus.READY)
+        ?.defaultDescription ?? ""
+    );
+  }
+  return "";
 }
 
 /**

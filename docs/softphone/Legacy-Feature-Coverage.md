@@ -94,7 +94,7 @@ Deprecated operator-related IDs (non-exhaustive): `LF-001`–`LF-005`, `LF-018`�
 | LF-041 | P06 | Operator | Critical | Legacy operator status selector (removed) | `legacy status selector` | **ADR-0005** legacy removed. Parity via **F-028**: `OperatorStatusSelector` + `OcpStatusDropdown` (E-07). |
 | LF-042 | P06 | Operator | Critical | Change status to Ready | `handleChangeToReady` | **ADR-0005** legacy removed. Parity via **F-028**: `ChangeOperatorStatusUseCase` → `change_status_to_ready`. |
 | LF-043 | P06 | Operator | Critical | Change status to Break with reason | `handleChangeToBreak` | **ADR-0005** legacy removed. Parity via **F-028**: `ChangeOperatorStatusUseCase` → `change_status_to_break` + reason pickers. |
-| LF-044 | P06 | Operator | Critical | Post-call status while busy | `PROXY_POST_CALL_STATUS` | **ADR-0005** legacy removed. Parity via **F-028**: `ReservePostCallStatusUseCase` / `update_post_call_status`. |
+| LF-044 | P06 | Operator | Critical | Post-call status while busy | `PROXY_POST_CALL_STATUS` | **ADR-0005** legacy removed. Parity via **F-028**: `ReservePostCallStatusUseCase` / `update_post_call_status` + `FinishPostCallAppealUseCase` (T-048 finish footer). |
 | LF-045 | P06 | Operator | High | Status transition validation | `USER_STATUS_RULES` | **ADR-0005** legacy removed. Parity via **F-028**: `OperatorStatusMachine` + Use Case guards. |
 | LF-046 | P06 | UI | Medium | Status duration timer | `StatusTimer` | **ADR-0005** legacy removed. Parity via **F-028**: `OcpStatusTimer` (E-07). |
 | LF-047 | P06 | Operator | High | Logout with reason | `StatusReasonsModal`, `Header` | **ADR-0005** legacy removed. Parity via **F-028**: `LogoutOperatorUseCase` + `OcpLogoutReasonModal` (E-08). |

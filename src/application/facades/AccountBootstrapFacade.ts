@@ -2970,6 +2970,20 @@ export class AccountBootstrapFacade {
   }
 
   /**
+   * - Purpose: finish post-call appeal (apply reserved status or Ready).
+   */
+  finishOcpPostCallAppeal(
+    input: Readonly<{
+      correlationId?: CorrelationId;
+    }> = {},
+  ): Promise<Result<ChangeOperatorStatusOutcome, PlatformError>> {
+    return this.ocpIntegration.finishPostCallAppeal.execute({
+      callType: "internal",
+      ...(input.correlationId !== undefined ? { correlationId: input.correlationId } : {}),
+    });
+  }
+
+  /**
    * - Purpose: accept active OCP campaign event from UI.
    */
   acceptOcpCampaign(
