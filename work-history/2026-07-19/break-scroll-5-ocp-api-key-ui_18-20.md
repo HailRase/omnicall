@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-19 18:20
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `4551f39`
 
 ## Где
 - `src/renderer/components/integration/ocp/OcpStatusDropdown.*`

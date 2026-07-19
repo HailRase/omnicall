@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-19 17:28
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `4551f39`
 
 ## Где
 - `src/domain/integration/ocp/OperatorStatusMachine.ts`
