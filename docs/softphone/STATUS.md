@@ -78,9 +78,9 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 | Field | Value |
 | --- | --- |
-| Shipped | **0.10.3** (`v0.10.3`, 2026-07-13) — F-027 video UX hardening, screen-share picker, PiP swap, audio-only detection |
-| Previous | **0.10.2**, **0.10.0** (`v0.10.0`, 2026-07-12) — F-012 headset, F-027 video calls, F-013 history polish, SIP-only path |
-| Next cut | **0.10.4** (PATCH) or **0.11.0** (MINOR) per SemVer table in `RELEASE-PLAYBOOK.md` |
+| Shipped | **0.11.2** (`v0.11.2`, 2026-07-19) — OCP modal Disconnect → pre-login idle; scoped Account reconnect; overwrite modal UX |
+| Previous | **0.11.1**, **0.11.0**, **0.10.3** — OCP auth modal/recovery, Auth Flow Hardening (F-029), F-027 video UX |
+| Next cut | **0.11.3** (PATCH) or **0.12.0** (MINOR) per SemVer table in `RELEASE-PLAYBOOK.md` |
 | Source repo | `HailRase/softphone-electron` (target: **private**) |
 | Distribution | [`HailRase/axatalk-releases`](https://github.com/HailRase/axatalk-releases) (public: installers + manifest) |
 | Manifest (live) | `axatalk-releases/main/update-manifest.json` |

@@ -7,11 +7,15 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [0.11.2] - 2026-07-19
+
 ### Fixed
 
-- Модалка перезаписи сохранённых данных больше не ждёт весь OCP/SIP sign-in: закрывается сразу после подтверждения (перезапись — быстрый pre-auth persist).
-- Футер overwrite-диалога снова Cancel + ButtonGroup (continue / overwrite в меню) — «Отмена» не выталкивается за край модалки.
-- Меню «Перезаписать и войти» больше не уходит под AlertDialog (z-popover + portal в content, без transform-containing-block).
+- Модалка перезаписи сохранённых данных закрывается сразу после подтверждения (не ждёт весь OCP/SIP sign-in).
+- Футер overwrite-диалога: Cancel + ButtonGroup — «Отмена» не выталкивается за край модалки.
+- Меню «Перезаписать и войти» больше не уходит под AlertDialog.
+- Disconnect OCP в модалке входа возвращает полный pre-login idle (account session + SIP), чтобы «Войти» снова был доступен без avatar Logout.
+- «Переподключить» в Account показывается только для профиля с активной account session.
 
 ## [0.11.1] - 2026-07-19
 
@@ -19,7 +23,7 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - OCP modal Reconnect больше не вызывает новый Login: recovery через Facade при уже активной account session (ADR-AF-005).
 - Отмена OCP sign-in не даёт stale attempt перезаписывать progress и не запускает promote/register после cancel.
-- Disconnect OCP возвращает Server/Auth в idle, сохраняя локальную сессию и уже установленный SIP.
+- Disconnect OCP (Settings / OCP-only) возвращает Server/Auth в idle, сохраняя локальную сессию и уже установленный SIP.
 
 ### Changed
 
@@ -313,7 +317,11 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.10.3...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.11.2...main
+[0.11.2]: https://github.com/HailRase/softphone-electron/releases/tag/v0.11.2
+[0.11.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.11.1
+[0.11.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.11.0
+[0.10.4]: https://github.com/HailRase/softphone-electron/releases/tag/v0.10.4
 [0.10.3]: https://github.com/HailRase/softphone-electron/releases/tag/v0.10.3
 [0.10.2]: https://github.com/HailRase/softphone-electron/releases/tag/v0.10.2
 [0.10.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.10.1
