@@ -13,7 +13,7 @@ import { OcpSignInProgress } from "./OcpSignInProgress.js";
 afterEach(cleanup);
 
 describe("OcpSignInProgress", () => {
-  it("renders compact row with stage title and status beside icon", () => {
+  it("renders compact row with stage title, status icon, and status text", () => {
     const progress = applyAuthorizationExecutionStage(
       initialAuthorizationProgressProjection(),
       "awaiting_authorization_data",
@@ -36,6 +36,8 @@ describe("OcpSignInProgress", () => {
     ).toHaveAttribute("data-state", "active");
     expect(screen.getByText("Аутентификация токена в модуле")).toBeInTheDocument();
     expect(screen.getByText("Выполняется")).toBeInTheDocument();
+    expect(screen.getByTestId("account-ocp-progress-active-icon")).toBeInTheDocument();
+    expect(screen.queryByTestId("account-ocp-progress-overall")).not.toBeInTheDocument();
   });
 
   it("keeps reconnect disabled while early failure still fills blue", () => {
@@ -65,7 +67,7 @@ describe("OcpSignInProgress", () => {
     expect(screen.getByTestId("account-ocp-progress-reconnect")).toBeDisabled();
   });
 
-  it("reveals timeout after window and reconnects from footer", async () => {
+  it("shows generic failed status with tooltip icon and reconnects from footer", async () => {
     const onDisconnect = vi.fn();
     const onReconnect = vi.fn();
     const active = applyAuthorizationExecutionStage(
@@ -88,8 +90,10 @@ describe("OcpSignInProgress", () => {
       />,
     );
 
-    expect(screen.getByText("Таймаут")).toBeInTheDocument();
+    expect(screen.getByText("Ошибка")).toBeInTheDocument();
+    expect(screen.queryByText("Таймаут")).not.toBeInTheDocument();
     expect(screen.getByTestId("account-ocp-progress-failure-icon")).toBeInTheDocument();
+    expect(screen.queryByTestId("account-ocp-progress-failure")).not.toBeInTheDocument();
     await userEvent.click(screen.getByTestId("account-ocp-progress-reconnect"));
     expect(onReconnect).toHaveBeenCalledOnce();
     await userEvent.click(screen.getByTestId("account-ocp-progress-disconnect"));

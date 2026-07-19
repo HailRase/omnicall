@@ -13,7 +13,6 @@ import {
 } from "../../integration/ocp/mapOcpSignInFailureToMessageKey.js";
 import { useI18n } from "../../i18n/index.js";
 import type { TranslationKey } from "../../i18n/messages.js";
-import { AppIcon } from "../icons/AppIcon.js";
 import { IconTooltip } from "../icons/IconTooltip.js";
 import {
   Button,
@@ -27,6 +26,7 @@ import {
   type ProgressTone,
 } from "../ui/index.js";
 import styles from "./OcpSignInProgress.module.css";
+import { OcpSignInProgressStatusIcon } from "./OcpSignInProgressStatusIcon.js";
 
 const STAGE_KEY: Record<OcpSignInExecutionStage, TranslationKey> = {
   requesting_authorization_token: "account.authProgress.stage.httpToken",
@@ -62,43 +62,17 @@ function resolveTone(
   return "default";
 }
 
-function StageStatusIcon({
-  state,
-  failureLabel,
-}: Readonly<{
-  state: OcpSignInStageVisualState;
-  failureLabel: string | null;
-}>): JSX.Element {
+function resolveStatusTextKey(state: OcpSignInStageVisualState): TranslationKey {
+  if (state === "failed") {
+    return "account.authProgress.status.failed";
+  }
   if (state === "completed") {
-    return (
-      <span className={styles.statusIcon} data-state="completed" aria-hidden="true">
-        <AppIcon id="notification.success" size={14} decorative />
-      </span>
-    );
+    return "account.authProgress.status.completed";
   }
-  if (state === "failed" && failureLabel !== null) {
-    return (
-      <IconTooltip label={failureLabel}>
-        <button
-          type="button"
-          className={styles.statusIcon}
-          data-state="failed"
-          aria-label={failureLabel}
-          data-testid="account-ocp-progress-failure-icon"
-        >
-          <AppIcon id="notification.error" size={14} decorative />
-        </button>
-      </IconTooltip>
-    );
+  if (state === "active") {
+    return "account.authProgress.status.active";
   }
-  return (
-    <span
-      className={styles.statusIcon}
-      data-state={state}
-      aria-hidden="true"
-      data-testid={state === "active" ? "account-ocp-progress-active-icon" : undefined}
-    />
-  );
+  return "account.authProgress.status.pending";
 }
 
 /**
@@ -146,6 +120,28 @@ export function OcpSignInProgress({
     };
   }, [open, view.hasFailure, view.hasLatentFailure, view.isReady, onSuccessSettled]);
 
+  const reconnectDisabled = busy || !reconnectEnabled || !view.hasFailure;
+  const reconnectDisabledReason = reconnectDisabled
+    ? busy
+      ? t("account.authProgress.reconnectDisabled.busy")
+      : !view.hasFailure
+        ? t("account.authProgress.reconnectDisabled.inProgress")
+        : t("account.authProgress.reconnectDisabled.unavailable")
+    : null;
+
+  const reconnectButton = (
+    <Button
+      type="button"
+      variant="primary"
+      size="sm"
+      disabled={reconnectDisabled}
+      data-testid="account-ocp-progress-reconnect"
+      onClick={onReconnect}
+    >
+      {t("account.authProgress.reconnect")}
+    </Button>
+  );
+
   return (
     <Dialog
       open={open}
@@ -157,7 +153,7 @@ export function OcpSignInProgress({
       }}
     >
       <DialogContent
-        size="sm"
+        size="md"
         className={styles.content}
         overlayClassName={styles.overlayBlur}
         closeLabel={t("account.authProgress.disconnect")}
@@ -180,17 +176,6 @@ export function OcpSignInProgress({
           </DialogDescription>
         </DialogHeader>
 
-        <section className={styles.overall} aria-label={t("account.authProgress.overallAria")}>
-          <p className={styles.overallLabel}>{t("account.authProgress.overallLabel")}</p>
-          <Progress
-            className={styles.overallBar}
-            value={view.overallPercent}
-            tone={resolveTone(view.overallState)}
-            data-testid="account-ocp-progress-overall"
-            aria-label={t("account.authProgress.overallAria")}
-          />
-        </section>
-
         <ol className={styles.list} aria-label={t("account.authProgress.stagesAria")}>
           {view.stages.map((stageView) => {
             const failureLabel =
@@ -205,18 +190,6 @@ export function OcpSignInProgress({
                     stageView.failureCode,
                   )
                 : null;
-            const statusText =
-              stageView.state === "failed"
-                ? t(
-                    stageView.failureKind === "timeout"
-                      ? "account.authProgress.status.timeout"
-                      : "account.authProgress.status.failed",
-                  )
-                : stageView.state === "completed"
-                  ? t("account.authProgress.status.completed")
-                  : stageView.state === "active"
-                    ? t("account.authProgress.status.active")
-                    : t("account.authProgress.status.pending");
 
             return (
               <li
@@ -235,8 +208,11 @@ export function OcpSignInProgress({
                   />
                 </div>
                 <div className={styles.status}>
-                  <span className={styles.statusText}>{statusText}</span>
-                  <StageStatusIcon state={stageView.state} failureLabel={failureLabel} />
+                  <OcpSignInProgressStatusIcon
+                    state={stageView.state}
+                    failureLabel={failureLabel}
+                  />
+                  <span className={styles.statusText}>{t(resolveStatusTextKey(stageView.state))}</span>
                 </div>
               </li>
             );
@@ -246,7 +222,7 @@ export function OcpSignInProgress({
         <DialogFooter className={styles.footer}>
           <Button
             type="button"
-            variant="destructive"
+            variant={view.hasFailure ? "destructive" : "outline"}
             size="sm"
             disabled={busy}
             data-testid="account-ocp-progress-disconnect"
@@ -254,18 +230,13 @@ export function OcpSignInProgress({
           >
             {t("account.authProgress.disconnect")}
           </Button>
-          <div className={styles.footerEnd}>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              disabled={busy || !reconnectEnabled || !view.hasFailure}
-              data-testid="account-ocp-progress-reconnect"
-              onClick={onReconnect}
-            >
-              {t("account.authProgress.reconnect")}
-            </Button>
-          </div>
+          {reconnectDisabledReason !== null ? (
+            <IconTooltip label={reconnectDisabledReason}>
+              <span className={styles.disabledTooltipHost}>{reconnectButton}</span>
+            </IconTooltip>
+          ) : (
+            reconnectButton
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

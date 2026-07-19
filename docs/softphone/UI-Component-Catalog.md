@@ -11,7 +11,8 @@
 | `AccountPasswordField` | `src/renderer/components/account/AccountPasswordField.tsx` | `—` | — | — |
 | `DeleteSavedAccountProfileConfirmationModal` | `src/renderer/components/account/DeleteSavedAccountProfileConfirmationModal.tsx` | `DeleteSavedAccountProfileConfirmationModalProps` | delete-saved-account-profile-modal, delete-saved-account-profile-cancel, delete-saved-account-profile-confirm | — |
 | `DiscardAccountDraftConfirmationModal` | `src/renderer/components/account/DiscardAccountDraftConfirmationModal.tsx` | `—` | discard-account-draft-modal, discard-account-draft-confirm | — |
-| `OcpSignInProgress` | `src/renderer/components/account/OcpSignInProgress.tsx` | `—` | account-ocp-progress, account-ocp-progress-restart | — |
+| `OcpSignInProgress` | `src/renderer/components/account/OcpSignInProgress.tsx` | `—` | account-ocp-progress-reconnect, account-ocp-progress-modal, account-ocp-progress-overall, account-ocp-progress-failure, account-ocp-progress-disconnect | — |
+| `OcpSignInProgressStatusIcon` | `src/renderer/components/account/OcpSignInProgressStatusIcon.tsx` | `OcpSignInProgressStatusIconProps` | account-ocp-progress-failure-icon | — |
 | `OverwriteSavedAccountCredentialsConfirmationModal` | `src/renderer/components/account/OverwriteSavedAccountCredentialsConfirmationModal.tsx` | `OverwriteSavedAccountCredentialsConfirmationModalProps` | overwrite-saved-account-credentials-modal, overwrite-saved-account-credentials-cancel, overwrite-saved-account-credentials-continue, overwrite-saved-account-credentials-confirm | f=F-024 |
 | `SavedAccountProfileSelector` | `src/renderer/components/account/SavedAccountProfileSelector.tsx` | `SavedAccountProfileSelectorProps` | saved-account-profile-selector, saved-account-profile-tablist, saved-account-profile-tab-new-group, saved-account-profile-tab-new, saved-account-profile-tab-group, saved-account-profile-tab | — |
 | `ActiveCallControlsPanel` | `src/renderer/components/call/ActiveCallControlsPanel.tsx` | `ActiveCallControlsPanelProps` | active-call-controls, active-call-mute-indicator, control-disabled-reason | — |
@@ -56,7 +57,7 @@
 | `OcpLogoutReasonModal` | `src/renderer/components/integration/ocp/OcpLogoutReasonModal.tsx` | `OcpLogoutReasonModalProps` | ocp-logout-cancel-action, ocp-logout-confirm, ocp-logout-reasons-empty | f=F-028 lf=LF-048 |
 | `OcpProxyStatusScreen` | `src/renderer/components/integration/ocp/OcpProxyStatusScreen.tsx` | `OcpProxyStatusScreenProps` | ocp-proxy-status-screen, ocp-proxy-open-integrations | — |
 | `OcpRejectBreakReasonModal` | `src/renderer/components/integration/ocp/OcpRejectBreakReasonModal.tsx` | `OcpRejectBreakReasonModalProps` | ocp-reject-break-modal, ocp-reject-break-empty, ocp-reject-break-cancel, ocp-reject-break-confirm | f=F-028 |
-| `OcpStatusDropdown` | `src/renderer/components/integration/ocp/OcpStatusDropdown.tsx` | `OcpStatusDropdownProps` | ocp-status-dropdown, ocp-status-dropdown-ready, ocp-status-dropdown-breaks, ocp-post-call-finish-footer, ocp-post-call-finish-appeal | f=F-028 lf=LF-044 |
+| `OcpStatusDropdown` | `src/renderer/components/integration/ocp/OcpStatusDropdown.tsx` | `OcpStatusDropdownProps` | ocp-status-dropdown, ocp-status-dropdown-ready, ocp-status-dropdown-breaks, ocp-post-call-finish-footer, ocp-post-call-finish-appeal | — |
 | `OcpStatusTimer` | `src/renderer/components/integration/ocp/OcpStatusTimer.tsx` | `OcpStatusTimerProps` | ocp-status-timer | — |
 | `ListQuickCallButton` | `src/renderer/components/list/ListQuickCallButton.tsx` | `ListQuickCallButtonProps` | — | — |
 | `ListQuickCallReveal` | `src/renderer/components/list/ListQuickCallReveal.tsx` | `ListQuickCallRevealProps` | — | — |
@@ -70,7 +71,7 @@
 | `SettingsSidebar` | `src/renderer/components/settings/SettingsSidebar.tsx` | `SettingsSidebarProps` | settings-sidebar | — |
 | `CodecPreferencesSortableList` | `src/renderer/components/settings/panels/CodecPreferencesSortableList.tsx` | `CodecPreferencesSortableListProps` | — | — |
 | `NotificationHistoryTable` | `src/renderer/components/settings/panels/NotificationHistoryTable.tsx` | `—` | settings-notification-history-table | — |
-| `OcpModuleSettingsCard` | `src/renderer/components/settings/panels/OcpModuleSettingsCard.tsx` | `OcpModuleSettingsCardProps` | ocp-module-settings-card, ocp-module-active-login, ocp-module-enabled-toggle, ocp-module-auto-connect-toggle, ocp-module-domain-input, ocp-module-api-key-input, ocp-module-api-key-visibility-toggle, ocp-module-api-key-save, ocp-module-api-key-delete, ocp-module-api-key-saved-hint, ocp-module-error | f=F-028 lf=LF-086,LF-087 |
+| `OcpModuleSettingsCard` | `src/renderer/components/settings/panels/OcpModuleSettingsCard.tsx` | `OcpModuleSettingsCardProps` | ocp-module-settings-card, ocp-module-active-login, ocp-module-enabled-toggle, ocp-module-auto-connect-toggle, ocp-module-domain-input, ocp-module-error | f=F-028 lf=LF-086,LF-087 |
 | `SettingsAccountPanel` | `src/renderer/components/settings/panels/SettingsAccountPanel.tsx` | `SettingsAccountPanelProps` | settings-account-panel | — |
 | `SettingsCodecsPanel` | `src/renderer/components/settings/panels/SettingsCodecsPanel.tsx` | `SettingsCodecsPanelProps` | settings-codecs-panel, settings-codecs-error | — |
 | `SettingsDiagnosticsPanel` | `src/renderer/components/settings/panels/SettingsDiagnosticsPanel.tsx` | `—` | — | — |

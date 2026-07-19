@@ -21,12 +21,14 @@
   padding-right: 4.5rem;
 }
 
-.root:has(> svg) {
+.root:has(> svg),
+.root:has(> [data-slot="alert-icon"]) {
   grid-template-columns: auto minmax(0, 1fr);
   column-gap: var(--space-xs);
 }
 
-.root > svg {
+.root > svg,
+.root > [data-slot="alert-icon"] {
   grid-column: 1;
   grid-row: 1 / span 2;
   align-self: start;

@@ -1,16 +1,13 @@
 declare const classes: {
   readonly content: string;
   readonly description: string;
+  readonly disabledTooltipHost: string;
   readonly footer: string;
-  readonly footerEnd: string;
   readonly header: string;
   readonly item: string;
   readonly label: string;
   readonly list: string;
   readonly main: string;
-  readonly overall: string;
-  readonly overallBar: string;
-  readonly overallLabel: string;
   readonly overlayBlur: string;
   readonly stageBar: string;
   readonly status: string;
