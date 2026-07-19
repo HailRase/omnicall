@@ -29,8 +29,8 @@ describe("parseOcpMessage", () => {
     }
   });
 
-  it("normalizes users reason_id null to 0", () => {
-    const result = parseOcpMessage({
+  it("resolves users reason_id null to status.value for system statuses", () => {
+    const ready = parseOcpMessage({
       entity: "users",
       payload: [
         {
@@ -41,10 +41,23 @@ describe("parseOcpMessage", () => {
       ],
     });
 
-    expect(result.ok).toBe(true);
-    if (result.ok && result.value.entity === "users") {
-      expect(result.value.data.reasonId).toBe(0);
-      expect(result.value.data.operatorId).toBe(42);
+    expect(ready.ok).toBe(true);
+    if (ready.ok && ready.value.entity === "users") {
+      expect(ready.value.data.status).toBe(OperatorStatus.READY);
+      expect(ready.value.data.reasonId).toBe(OperatorStatus.READY);
+      expect(ready.value.data.operatorId).toBe(42);
+    }
+
+    const ringing = parseOcpMessage({
+      entity: "users",
+      payload: {
+        id: 7,
+        status: { value: OperatorStatus.RINGING, reason_id: null },
+      },
+    });
+    expect(ringing.ok).toBe(true);
+    if (ringing.ok && ringing.value.entity === "users") {
+      expect(ringing.value.data.reasonId).toBe(OperatorStatus.RINGING);
     }
   });
 

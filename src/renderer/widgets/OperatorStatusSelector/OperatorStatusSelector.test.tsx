@@ -41,7 +41,7 @@ function buildVm(
     timerSince: Date.now() - 65_000,
     isDropdownDisabled: false,
     dropdownDisabledReasonKey: null,
-    currentItems: [
+    readyItems: [
       {
         reasonId: 1,
         label: "Ready for calls",
@@ -52,7 +52,6 @@ function buildVm(
         isCurrent: true,
       },
     ],
-    readyItems: [],
     breakItems: [
       {
         reasonId: 2,
@@ -95,12 +94,13 @@ describe("OperatorStatusSelector", () => {
     expect(screen.getByTestId("ocp-status-timer")).toHaveTextContent("00:01:05");
   });
 
-  it("shows reason label only (never falls back to status key)", () => {
+  it("prefers reason label over status key when both are present", () => {
     render(
       <OperatorStatusSelector
         vm={buildVm({
           statusLabelKey: "ocp.operatorStatus.ringing",
           reasonLabel: "Доступен",
+          allowStatusLabelFallback: false,
         })}
         onSelectReason={vi.fn()}
       />,
@@ -108,6 +108,22 @@ describe("OperatorStatusSelector", () => {
     expect(screen.getByTestId("ocp-status-label")).toHaveTextContent("Доступен");
     expect(screen.getByTestId("ocp-status-label")).not.toHaveTextContent(
       "ocp.operatorStatus.ringing",
+    );
+  });
+
+  it("falls back to status key for system call statuses", () => {
+    render(
+      <OperatorStatusSelector
+        vm={buildVm({
+          statusLabelKey: "ocp.operatorStatus.talking",
+          reasonLabel: "",
+          allowStatusLabelFallback: true,
+        })}
+        onSelectReason={vi.fn()}
+      />,
+    );
+    expect(screen.getByTestId("ocp-status-label")).toHaveTextContent(
+      "ocp.operatorStatus.talking",
     );
   });
 
@@ -150,6 +166,25 @@ describe("OperatorStatusSelector", () => {
 
     scrollSpy.mockRestore();
     clientSpy.mockRestore();
+  });
+
+  it("keeps label slot constrained so long status cannot widen the shell", () => {
+    render(
+      <OperatorStatusSelector
+        vm={buildVm({
+          reasonLabel: "Очень длинный статус оператора который не должен расширять окно",
+        })}
+        onSelectReason={vi.fn()}
+      />,
+    );
+
+    const label = screen.getByTestId("ocp-status-label");
+    const tooltipOrSlot = label.parentElement;
+    const labelSlot = tooltipOrSlot?.parentElement;
+
+    expect(screen.getByTestId("ocp-status-selector-root")).toBeInTheDocument();
+    expect(labelSlot?.className ?? "").toMatch(/labelSlot/);
+    expect(label.className).toMatch(/label/);
   });
 });
 

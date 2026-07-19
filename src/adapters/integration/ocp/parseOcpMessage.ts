@@ -4,7 +4,10 @@
  * - Outputs: Result with entity-discriminated union or parse/entity errors.
  */
 
-import { parseOperatorStatus } from "@domain/integration/ocp/OperatorStatus.js";
+import {
+  parseOperatorStatus,
+  resolveOperatorReasonId,
+} from "@domain/integration/ocp/OperatorStatus.js";
 import type {
   OcpCallsPayload,
   OcpCampaignEventPayload,
@@ -92,9 +95,8 @@ function readBoolean(record: Record<string, unknown>, key: string): boolean | nu
   return typeof value === "boolean" ? value : null;
 }
 
-function readReasonId(statusRecord: Record<string, unknown>): number {
-  const reasonId = coerceFiniteNumber(statusRecord["reason_id"]);
-  return reasonId ?? 0;
+function readWireReasonId(statusRecord: Record<string, unknown>): number | null {
+  return coerceFiniteNumber(statusRecord["reason_id"]);
 }
 
 function readStatusTime(record: Record<string, unknown>): string {
@@ -153,11 +155,11 @@ function parseUsersPayload(payload: unknown): OcpUsersPayload | null {
 
   const statusField: unknown = first["status"];
   let status: ReturnType<typeof parseOperatorStatus> = null;
-  let reasonId = 0;
+  let wireReasonId: number | null = null;
 
   if (isRecord(statusField)) {
     status = coerceOperatorStatusValue(statusField["value"]);
-    reasonId = readReasonId(statusField);
+    wireReasonId = readWireReasonId(statusField);
   } else {
     status = coerceOperatorStatusValue(statusField);
   }
@@ -169,7 +171,7 @@ function parseUsersPayload(payload: unknown): OcpUsersPayload | null {
   return {
     operatorId,
     status,
-    reasonId,
+    reasonId: resolveOperatorReasonId(status, wireReasonId),
     statusSince: readStatusTime(first),
   };
 }

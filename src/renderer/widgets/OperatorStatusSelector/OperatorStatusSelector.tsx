@@ -99,11 +99,13 @@ export function OperatorStatusSelector({
         aria-hidden
         data-testid="ocp-status-dot"
       />
-      <IconTooltip label={overflowTooltipLabel} className={styles.labelTooltipHost}>
-        <span ref={labelRef} className={styles.label} data-testid="ocp-status-label">
-          {label}
-        </span>
-      </IconTooltip>
+      <span className={styles.labelSlot}>
+        <IconTooltip label={overflowTooltipLabel} className={styles.labelTooltipHost}>
+          <span ref={labelRef} className={styles.label} data-testid="ocp-status-label">
+            {label}
+          </span>
+        </IconTooltip>
+      </span>
       <OcpStatusTimer since={vm.timerSince} className={styles.timer} />
       <AppIcon
         id="ui.select.chevron"
@@ -119,7 +121,6 @@ export function OperatorStatusSelector({
       <OcpStatusDropdown
         disabled={vm.isDropdownDisabled}
         disabledReasonKey={vm.dropdownDisabledReasonKey}
-        currentItems={vm.currentItems}
         readyItems={vm.readyItems}
         breakItems={vm.breakItems}
         trigger={trigger}

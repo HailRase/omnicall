@@ -40,6 +40,8 @@
 
 .titlebar-leading {
   min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
   padding: var(--space-xs) var(--space-sm);
   -webkit-app-region: no-drag;
 }

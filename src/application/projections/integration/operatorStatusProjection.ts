@@ -8,6 +8,7 @@ import { createOperatorProfile } from "@domain/integration/ocp/OperatorProfile.j
 import type { OperatorProfile } from "@domain/integration/ocp/OperatorProfile.js";
 import {
   OperatorStatus,
+  resolveOperatorReasonId,
   type OperatorStatus as OperatorStatusType,
 } from "@domain/integration/ocp/OperatorStatus.js";
 import { isBusy as isOperatorBusy } from "@domain/integration/ocp/OperatorStatusMachine.js";
@@ -39,7 +40,11 @@ export function reduceOperatorStatusFromUsers(
   projection: OperatorStatusProjection,
   users: OcpUsersPayload,
 ): OperatorStatusProjection {
-  const reasonId = normalizeReasonId(users.reasonId);
+  // Adapter already resolves null→status; re-apply for NaN/undefined defense.
+  const reasonId = resolveOperatorReasonId(
+    users.status,
+    Number.isFinite(users.reasonId) ? users.reasonId : null,
+  );
   const statusSince = parseStatusSinceMs(users.statusSince);
 
   return {

@@ -123,9 +123,9 @@ describe("useOperatorStatusSelector", () => {
         onOpenIntegrationsSettings: vi.fn(),
       }),
     );
-    expect(result.current.vm.currentItems[0]?.disabled).toBe(true);
     expect(result.current.vm.readyItems[0]?.disabled).toBe(true);
     expect(result.current.vm.readyItems[0]?.testId).toBe("ocp-ready-disabled-dnd");
+    expect(result.current.vm.readyItems.every((item) => item.disabled)).toBe(true);
   });
 
   it("marks ready items disabled when SIP is not registered", () => {
@@ -316,7 +316,57 @@ describe("useOperatorStatusSelector", () => {
     expect(result.current.postCallModal.open).toBe(false);
   });
 
-  it("keeps ready reason label while ringing instead of system status name", () => {
+  it("closes post-call modal after reserve confirm even if notify throws", async () => {
+    setAuthenticatedReady();
+    useAccountBootstrapStore.setState({
+      ocpOperatorStatusProjection: {
+        ...useAccountBootstrapStore.getState().ocpOperatorStatusProjection,
+        status: OperatorStatus.POST_CALL_PROCESSING,
+        isBusy: true,
+        reasonId: 0,
+      },
+    });
+    const changeOcpOperatorStatus = vi.fn().mockResolvedValue({
+      ok: true,
+      value: { kind: "reserved", targetStatus: "break", reasonId: 7 },
+    });
+    const facade = {
+      changeOcpOperatorStatus,
+      connectOcp: vi.fn(),
+    };
+    const notify = vi.fn(() => {
+      throw new TypeError("Cannot read properties of undefined (reading 'reason')");
+    });
+    const { result } = renderHook(() =>
+      useOperatorStatusSelector({
+        facade: facade as never,
+        isSipRegistered: true,
+        dndEnabled: false,
+        onOpenIntegrationsSettings: vi.fn(),
+        notify,
+      }),
+    );
+
+    act(() => {
+      result.current.onSelectReason("break", 7);
+      result.current.onPostCallChooseReserve();
+    });
+
+    await act(async () => {
+      result.current.onPostCallConfirm();
+      await Promise.resolve();
+    });
+
+    expect(changeOcpOperatorStatus).toHaveBeenCalledWith({
+      targetStatus: "break",
+      reasonId: 7,
+      intent: "reserve",
+    });
+    expect(result.current.postCallModal.open).toBe(false);
+    expect(result.current.postCallModal.submitting).toBe(false);
+  });
+
+  it("falls back to system status label while ringing and talking", () => {
     setAuthenticatedReady();
     useAccountBootstrapStore.setState({
       ocpReasonsProjection: {
@@ -352,6 +402,7 @@ describe("useOperatorStatusSelector", () => {
       }),
     );
     expect(result.current.vm.reasonLabel).toBe("Доступен");
+    expect(result.current.vm.allowStatusLabelFallback).toBe(false);
 
     useAccountBootstrapStore.setState({
       ocpOperatorStatusProjection: {
@@ -362,7 +413,56 @@ describe("useOperatorStatusSelector", () => {
       },
     });
     rerender();
-    expect(result.current.vm.reasonLabel).toBe("Доступен");
+    expect(result.current.vm.reasonLabel).toBe("");
+    expect(result.current.vm.allowStatusLabelFallback).toBe(true);
+    expect(result.current.vm.statusLabelKey).toBe("ocp.operatorStatus.ringing");
+
+    useAccountBootstrapStore.setState({
+      ocpOperatorStatusProjection: {
+        ...useAccountBootstrapStore.getState().ocpOperatorStatusProjection,
+        status: OperatorStatus.TALKING,
+        reasonId: 0,
+        isBusy: true,
+      },
+    });
+    rerender();
+    expect(result.current.vm.reasonLabel).toBe("");
+    expect(result.current.vm.allowStatusLabelFallback).toBe(true);
+    expect(result.current.vm.statusLabelKey).toBe("ocp.operatorStatus.talking");
+  });
+
+  it("falls back to Available status label when Ready has no matching reason", () => {
+    setAuthenticatedReady();
+    useAccountBootstrapStore.setState({
+      ocpReasonsProjection: {
+        readyReasons: [
+          {
+            id: 1,
+            parentStatus: OperatorStatus.READY,
+            defaultDescription: "Доступен",
+          },
+        ],
+        breakReasons: [],
+        logoutReasons: [],
+      },
+      ocpOperatorStatusProjection: {
+        ...useAccountBootstrapStore.getState().ocpOperatorStatusProjection,
+        status: OperatorStatus.READY,
+        reasonId: 0,
+        isBusy: false,
+      },
+    });
+    const { result } = renderHook(() =>
+      useOperatorStatusSelector({
+        facade: null,
+        isSipRegistered: true,
+        dndEnabled: false,
+        onOpenIntegrationsSettings: vi.fn(),
+      }),
+    );
+    expect(result.current.vm.reasonLabel).toBe("");
+    expect(result.current.vm.allowStatusLabelFallback).toBe(true);
+    expect(result.current.vm.statusLabelKey).toBe("ocp.operatorStatus.ready");
   });
 
   it("switches break reason to ready reason without sticky break text", () => {
@@ -488,6 +588,91 @@ describe("useOperatorStatusSelector", () => {
     expect(changeOcpOperatorStatus).not.toHaveBeenCalled();
   });
 
+  it("marks no option current for Preparing / Ringing / unmatched Ready reasonId", () => {
+    setAuthenticatedReady();
+
+    useAccountBootstrapStore.setState({
+      ocpOperatorStatusProjection: {
+        ...useAccountBootstrapStore.getState().ocpOperatorStatusProjection,
+        status: OperatorStatus.PREPARING_TO_WORK,
+        reasonId: 0,
+      },
+    });
+    const preparing = renderHook(() =>
+      useOperatorStatusSelector({
+        facade: null,
+        isSipRegistered: true,
+        dndEnabled: false,
+        onOpenIntegrationsSettings: vi.fn(),
+      }),
+    );
+    expect(preparing.result.current.vm.readyItems.every((item) => !item.isCurrent)).toBe(
+      true,
+    );
+    expect(preparing.result.current.vm.breakItems.every((item) => !item.isCurrent)).toBe(
+      true,
+    );
+    preparing.unmount();
+
+    useAccountBootstrapStore.setState({
+      ocpOperatorStatusProjection: {
+        ...useAccountBootstrapStore.getState().ocpOperatorStatusProjection,
+        status: OperatorStatus.RINGING,
+        reasonId: 0,
+      },
+    });
+    const ringing = renderHook(() =>
+      useOperatorStatusSelector({
+        facade: null,
+        isSipRegistered: true,
+        dndEnabled: false,
+        onOpenIntegrationsSettings: vi.fn(),
+      }),
+    );
+    expect(ringing.result.current.vm.readyItems.every((item) => !item.isCurrent)).toBe(
+      true,
+    );
+    expect(ringing.result.current.vm.breakItems.every((item) => !item.isCurrent)).toBe(
+      true,
+    );
+    ringing.unmount();
+
+    useAccountBootstrapStore.setState({
+      ocpOperatorStatusProjection: {
+        ...useAccountBootstrapStore.getState().ocpOperatorStatusProjection,
+        status: OperatorStatus.READY,
+        reasonId: 0,
+      },
+    });
+    const unmatchedReady = renderHook(() =>
+      useOperatorStatusSelector({
+        facade: null,
+        isSipRegistered: true,
+        dndEnabled: false,
+        onOpenIntegrationsSettings: vi.fn(),
+      }),
+    );
+    expect(
+      unmatchedReady.result.current.vm.readyItems.every((item) => !item.isCurrent),
+    ).toBe(true);
+  });
+
+  it("marks Ready option current only when status READY and reasonId matches", () => {
+    setAuthenticatedReady();
+    const { result } = renderHook(() =>
+      useOperatorStatusSelector({
+        facade: null,
+        isSipRegistered: true,
+        dndEnabled: false,
+        onOpenIntegrationsSettings: vi.fn(),
+      }),
+    );
+
+    expect(result.current.vm.readyItems).toEqual([
+      expect.objectContaining({ reasonId: 1, isCurrent: true }),
+    ]);
+  });
+
   it("allows break-to-break reason change", () => {
     setAuthenticatedReady();
     useAccountBootstrapStore.setState({
@@ -515,14 +700,21 @@ describe("useOperatorStatusSelector", () => {
       }),
     );
 
-    expect(result.current.vm.currentItems).toEqual([
-      expect.objectContaining({
-        reasonId: 7,
-        targetStatus: "break",
-        isCurrent: true,
-      }),
-    ]);
-    expect(result.current.vm.breakItems.map((item) => item.reasonId)).toEqual([11]);
+    expect(result.current.vm.breakItems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          reasonId: 7,
+          targetStatus: "break",
+          isCurrent: true,
+        }),
+        expect.objectContaining({
+          reasonId: 11,
+          targetStatus: "break",
+          isCurrent: false,
+        }),
+      ]),
+    );
+    expect(result.current.vm.breakItems.map((item) => item.reasonId)).toEqual([7, 11]);
 
     act(() => {
       result.current.onSelectReason("break", 11);
@@ -535,7 +727,46 @@ describe("useOperatorStatusSelector", () => {
     });
   });
 
-  it("pins current ready reason above other dropdown items", () => {
+  it("keeps chip label from server projection until users entity updates", async () => {
+    setAuthenticatedReady();
+    const changeOcpOperatorStatus = vi.fn().mockResolvedValue({
+      ok: true,
+      value: { kind: "applied", targetStatus: "break", reasonId: 7 },
+    });
+    const facade = {
+      changeOcpOperatorStatus,
+      connectOcp: vi.fn(),
+    };
+    const { result, rerender } = renderHook(() =>
+      useOperatorStatusSelector({
+        facade: facade as never,
+        isSipRegistered: true,
+        dndEnabled: false,
+        onOpenIntegrationsSettings: vi.fn(),
+      }),
+    );
+    expect(result.current.vm.reasonLabel).toBe("Ready");
+
+    await act(async () => {
+      result.current.onSelectReason("break", 7);
+      await Promise.resolve();
+    });
+
+    expect(result.current.vm.reasonLabel).toBe("Ready");
+
+    useAccountBootstrapStore.setState({
+      ocpOperatorStatusProjection: {
+        ...useAccountBootstrapStore.getState().ocpOperatorStatusProjection,
+        status: OperatorStatus.BREAK,
+        reasonId: 7,
+        isBusy: false,
+      },
+    });
+    rerender();
+    expect(result.current.vm.reasonLabel).toBe("Toilet break");
+  });
+
+  it("lists ready reasons then break reasons without pinning current aside", () => {
     setAuthenticatedReady();
     useAccountBootstrapStore.setState({
       ocpReasonsProjection: {
@@ -570,8 +801,8 @@ describe("useOperatorStatusSelector", () => {
       }),
     );
 
-    expect(result.current.vm.currentItems.map((item) => item.reasonId)).toEqual([1]);
-    expect(result.current.vm.readyItems.map((item) => item.reasonId)).toEqual([3]);
+    expect(result.current.vm.readyItems.map((item) => item.reasonId)).toEqual([1, 3]);
+    expect(result.current.vm.readyItems[0]?.isCurrent).toBe(true);
     expect(result.current.vm.breakItems.map((item) => item.reasonId)).toEqual([7]);
   });
 });

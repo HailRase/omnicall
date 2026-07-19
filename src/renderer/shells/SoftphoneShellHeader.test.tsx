@@ -70,7 +70,7 @@ describe("SoftphoneShellHeader", () => {
     expect(screen.getByTestId("shell-header")).toBeInTheDocument();
   });
 
-  it("renders avatar, registration dot, and SIP status without recovery controls", () => {
+  it("keeps avatar and registration dot in header without inline identity", () => {
     render(
       <SoftphoneShellHeader
         headerChrome={headerChrome}
@@ -83,8 +83,8 @@ describe("SoftphoneShellHeader", () => {
     expect(screen.getByTestId("user-avatar")).toHaveTextContent("AB");
     expect(screen.getByTestId("user-avatar")).toHaveAttribute("aria-haspopup", "menu");
     expect(screen.getByTestId("registration-status-dot")).toBeInTheDocument();
-    expect(screen.getByTestId("user-header-identity")).toBeInTheDocument();
-    expect(screen.getByTestId("user-sip-status")).toHaveTextContent("Зарегистрирован");
+    expect(screen.queryByTestId("user-header-identity")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("user-menu-identity")).not.toBeInTheDocument();
     expect(screen.queryByTestId("control-open-settings")).not.toBeInTheDocument();
     expect(screen.queryByTestId("control-end-session")).not.toBeInTheDocument();
     expect(screen.queryByTestId("control-toggle-collapse")).not.toBeInTheDocument();
@@ -92,7 +92,7 @@ describe("SoftphoneShellHeader", () => {
     expect(screen.queryByTestId("connection-overlay")).not.toBeInTheDocument();
   });
 
-  it("shows reconnect timer suffix in SIP status line", () => {
+  it("shows identity and SIP status with timer inside open avatar menu", () => {
     render(
       <SoftphoneShellHeader
         headerChrome={{
@@ -107,13 +107,30 @@ describe("SoftphoneShellHeader", () => {
             timer: "01:23",
           },
         }}
-        userAvatarMenu={userAvatarMenu}
+        userAvatarMenu={{ ...userAvatarMenu, open: true }}
         userAvatarMenuActions={userAvatarMenuActions}
         windowControls={windowControls}
       />,
     );
 
+    expect(screen.getByTestId("user-menu-identity")).toBeInTheDocument();
+    expect(screen.getByTestId("user-header-identity")).toHaveTextContent("agent");
     expect(screen.getByTestId("user-sip-status")).toHaveTextContent("Нет соединения");
     expect(screen.getByTestId("user-sip-status-timer")).toHaveTextContent("01:23");
+  });
+
+  it("reserves header row for operator status slot beside avatar", () => {
+    render(
+      <SoftphoneShellHeader
+        headerChrome={headerChrome}
+        userAvatarMenu={userAvatarMenu}
+        userAvatarMenuActions={userAvatarMenuActions}
+        windowControls={windowControls}
+        operatorStatusSlot={<div data-testid="operator-status-fixture">Status</div>}
+      />,
+    );
+
+    expect(screen.getByTestId("operator-status-fixture")).toBeInTheDocument();
+    expect(screen.queryByTestId("user-header-identity")).not.toBeInTheDocument();
   });
 });

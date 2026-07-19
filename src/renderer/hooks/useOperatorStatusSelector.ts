@@ -4,10 +4,9 @@
  * - Outputs: serializable-friendly VM + callbacks (change status / post-call modal / retry).
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
-  isOperatorStatusBusy,
   isOperatorStatusSelectorDisabled,
   OCP_MAX_RECONNECT_ATTEMPTS,
   OperatorStatus,
@@ -42,8 +41,6 @@ export type OperatorStatusSelectorVm = Readonly<{
   timerSince: number | null;
   isDropdownDisabled: boolean;
   dropdownDisabledReasonKey: TranslationKey | null;
-  /** Current ready/break reason pinned above Ready/Break groups. */
-  currentItems: ReadonlyArray<OcpStatusDropdownItemVm>;
   readyItems: ReadonlyArray<OcpStatusDropdownItemVm>;
   breakItems: ReadonlyArray<OcpStatusDropdownItemVm>;
   isReconnecting: boolean;
@@ -117,29 +114,6 @@ function resolveReadyDisabled(
   return { disabled: false, reasonKey: null, testId: null };
 }
 
-/**
- * Pin the active ready/break reason above groups so the menu reads
- * «current → everything else» without duplicating the current row.
- */
-export function partitionOperatorStatusDropdownItems(
-  readyItems: ReadonlyArray<OcpStatusDropdownItemVm>,
-  breakItems: ReadonlyArray<OcpStatusDropdownItemVm>,
-): Readonly<{
-  currentItems: ReadonlyArray<OcpStatusDropdownItemVm>;
-  readyItems: ReadonlyArray<OcpStatusDropdownItemVm>;
-  breakItems: ReadonlyArray<OcpStatusDropdownItemVm>;
-}> {
-  const currentItems = [
-    ...readyItems.filter((item) => item.isCurrent),
-    ...breakItems.filter((item) => item.isCurrent),
-  ];
-  return {
-    currentItems,
-    readyItems: readyItems.filter((item) => !item.isCurrent),
-    breakItems: breakItems.filter((item) => !item.isCurrent),
-  };
-}
-
 function isIdleUserStatus(status: number | null): boolean {
   return (
     status === OperatorStatus.READY ||
@@ -150,6 +124,7 @@ function isIdleUserStatus(status: number | null): boolean {
 
 /**
  * - Purpose: sole projection consumer for operator status header chrome.
+ * - Chip label follows server `users` projection only (no optimistic click override).
  */
 export function useOperatorStatusSelector(
   input: UseOperatorStatusSelectorInput,
@@ -160,65 +135,39 @@ export function useOperatorStatusSelector(
 
   const [postCallModal, setPostCallModal] =
     useState<OcpPostCallStatusModalVm>(CLOSED_POST_CALL_MODAL);
-  const lastReasonLabelRef = useRef("");
-  const [optimisticReasonLabel, setOptimisticReasonLabel] = useState<string | null>(
-    null,
-  );
 
   const readyGuard = resolveReadyDisabled(input.isSipRegistered, input.dndEnabled);
   const dropdownDisabled = isOperatorStatusSelectorDisabled(operator.status);
 
-  const resolvedReasonLabel = resolveCurrentReasonLabel(
-    operator.reasonId,
-    operator.status,
-    reasons.readyReasons,
-    reasons.breakReasons,
-  );
-  if (resolvedReasonLabel.length > 0) {
-    lastReasonLabelRef.current = resolvedReasonLabel;
-  }
-
-  useEffect(() => {
-    if (
-      optimisticReasonLabel !== null &&
-      resolvedReasonLabel.length > 0 &&
-      resolvedReasonLabel === optimisticReasonLabel
-    ) {
-      setOptimisticReasonLabel(null);
-    }
-  }, [optimisticReasonLabel, resolvedReasonLabel]);
-
   const idle = isIdleUserStatus(operator.status);
-  const systemBusy =
-    operator.status !== null && isOperatorStatusBusy(operator.status) && !idle;
 
   /**
-   * Idle Ready/Break: never keep a sticky label from the previous parent status
-   * (Break→Ready must not keep «Toilet» while the dot turns green).
-   * System busy (RINGING/…): keep last ready/break reason so «Входящий» is not shown.
-   * Optimistic label covers the gap after user click until users entity arrives.
+   * Idle Ready/Break/Preparing: show reason description from operator_status_reasons.
+   * System/busy (RINGING/TALKING/…): leave reason empty so UI falls back to
+   * statusLabelKey (canonical OCP labels: Звонок, Разговор, …).
    */
-  const displayReasonLabel =
-    optimisticReasonLabel !== null && optimisticReasonLabel.length > 0
-      ? optimisticReasonLabel
-      : resolvedReasonLabel.length > 0
-        ? resolvedReasonLabel
-        : systemBusy
-          ? lastReasonLabelRef.current
-          : "";
+  const displayReasonLabel = idle
+    ? resolveCurrentReasonLabel(
+        operator.reasonId,
+        operator.status,
+        reasons.readyReasons,
+        reasons.breakReasons,
+      )
+    : "";
 
-  const readyItemsRaw = reasons.readyReasons.map((reason) => ({
+  const readyItems = reasons.readyReasons.map((reason) => ({
     reasonId: reason.id,
     label: reason.defaultDescription,
     targetStatus: "ready" as const,
     disabled: readyGuard.disabled,
     disabledReasonKey: readyGuard.reasonKey,
     testId: readyGuard.testId,
+    // Strict match only — Preparing / Ringing / Talking / unknown reasonId → no active option.
     isCurrent:
       operator.status === OperatorStatus.READY && operator.reasonId === reason.id,
   }));
 
-  const breakItemsRaw = reasons.breakReasons.map((reason) => ({
+  const breakItems = reasons.breakReasons.map((reason) => ({
     reasonId: reason.id,
     label: reason.defaultDescription,
     targetStatus: "break" as const,
@@ -229,22 +178,16 @@ export function useOperatorStatusSelector(
       operator.status === OperatorStatus.BREAK && operator.reasonId === reason.id,
   }));
 
-  const {
-    currentItems,
-    readyItems,
-    breakItems,
-  } = partitionOperatorStatusDropdownItems(readyItemsRaw, breakItemsRaw);
-
   const vm: OperatorStatusSelectorVm = {
     isAuthenticated: session.isAuthenticated,
     statusColor: resolveOperatorStatusColorVar(operator.status),
     reasonLabel: displayReasonLabel,
-    allowStatusLabelFallback: idle && displayReasonLabel.length === 0,
+    allowStatusLabelFallback:
+      displayReasonLabel.length === 0 && operator.status !== null,
     statusLabelKey: resolveOperatorStatusLabelKey(operator.status),
     timerSince: operator.statusSince,
     isDropdownDisabled: dropdownDisabled,
     dropdownDisabledReasonKey: null,
-    currentItems,
     readyItems,
     breakItems,
     isReconnecting: session.connectionState === "reconnecting",
@@ -281,7 +224,11 @@ export function useOperatorStatusSelector(
         intent,
       });
       if (isOk(result) && result.value.kind === "reserved") {
-        notifyReserved(selection.reasonLabel);
+        try {
+          notifyReserved(selection.reasonLabel);
+        } catch {
+          // Reservation succeeded; toast resolution must not fail the command path.
+        }
       }
     },
     [input.facade, notifyReserved],
@@ -311,10 +258,6 @@ export function useOperatorStatusSelector(
         reasons.breakReasons,
       );
       const selection: PendingSelection = { targetStatus, reasonId, reasonLabel };
-      if (reasonLabel.length > 0) {
-        setOptimisticReasonLabel(reasonLabel);
-        lastReasonLabelRef.current = reasonLabel;
-      }
       const mode = resolveOperatorStatusChangeModeFromProjection(operator.status);
 
       if (mode === "choose") {
@@ -371,8 +314,11 @@ export function useOperatorStatusSelector(
     const intent = postCallModal.chosenAction === "finish" ? "apply" : "reserve";
     setPostCallModal((prev) => ({ ...prev, submitting: true }));
     void (async () => {
-      await executeChange(selection, intent);
-      setPostCallModal(CLOSED_POST_CALL_MODAL);
+      try {
+        await executeChange(selection, intent);
+      } finally {
+        setPostCallModal(CLOSED_POST_CALL_MODAL);
+      }
     })();
   }, [executeChange, postCallModal]);
 
@@ -408,8 +354,8 @@ function resolveReasonLabel(
 }
 
 /**
- * Resolve reason text scoped to the current parent status so Break→Ready
- * never keeps a break description under a ready color.
+ * Resolve reason text for idle Ready/Break/Preparing only.
+ * Break→Ready must not keep a break description under a ready color.
  */
 function resolveCurrentReasonLabel(
   reasonId: number,
@@ -427,9 +373,5 @@ function resolveCurrentReasonLabel(
       breakReasons.find((reason) => reason.id === reasonId)?.defaultDescription ?? ""
     );
   }
-  const fromReady = readyReasons.find((reason) => reason.id === reasonId);
-  if (fromReady !== undefined) {
-    return fromReady.defaultDescription;
-  }
-  return breakReasons.find((reason) => reason.id === reasonId)?.defaultDescription ?? "";
+  return "";
 }

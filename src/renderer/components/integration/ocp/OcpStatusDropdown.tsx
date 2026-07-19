@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { JSX } from "react";
 import type { OcpStatusDropdownItemVm } from "../../../hooks/useOperatorStatusSelector.js";
 import type { TranslationKey } from "../../../i18n/messages.js";
@@ -7,37 +8,74 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../../ui/dropdown-menu/index.js";
 import styles from "./OcpStatusDropdown.module.css";
 
+/** Max visible break reasons before the break list scrolls; Ready stays pinned above. */
+export const OCP_STATUS_BREAK_VISIBLE_COUNT = 6;
+
 export type OcpStatusDropdownProps = Readonly<{
   disabled: boolean;
   disabledReasonKey: TranslationKey | null;
-  currentItems: ReadonlyArray<OcpStatusDropdownItemVm>;
   readyItems: ReadonlyArray<OcpStatusDropdownItemVm>;
   breakItems: ReadonlyArray<OcpStatusDropdownItemVm>;
   trigger: JSX.Element;
   onSelectReason: (targetStatus: "ready" | "break", reasonId: number) => void;
 }>;
 
+function renderStatusOption(
+  item: OcpStatusDropdownItemVm,
+  targetStatus: "ready" | "break",
+  t: (key: TranslationKey) => string,
+  onSelectReason: (targetStatus: "ready" | "break", reasonId: number) => void,
+): JSX.Element {
+  const isCurrent = item.isCurrent;
+  const isPolicyDisabled = item.disabled && !isCurrent;
+
+  return (
+    <DropdownMenuItem
+      key={`${targetStatus}-${item.reasonId}`}
+      className={clsx(
+        styles.option,
+        targetStatus === "ready" ? styles.optionReady : styles.optionBreak,
+        isCurrent && styles.optionCurrent,
+      )}
+      disabled={isCurrent || item.disabled}
+      disabledReason={
+        isPolicyDisabled && item.disabledReasonKey !== null
+          ? t(item.disabledReasonKey)
+          : null
+      }
+      data-testid={item.testId ?? undefined}
+      data-current={isCurrent ? "true" : undefined}
+      aria-current={isCurrent ? "true" : undefined}
+      onSelect={() => {
+        if (isCurrent) {
+          return;
+        }
+        onSelectReason(targetStatus, item.reasonId);
+      }}
+    >
+      {item.label}
+    </DropdownMenuItem>
+  );
+}
+
 /**
  * - Purpose: Radix dropdown of Ready/Break OCP reasons for the header selector.
- * - Inputs: reason item VMs (current pinned first), disabled state, trigger, select callback.
- * - Outputs: accessible menu with current reason, then Ready/Break group subtitles.
+ * - Inputs: reason item VMs, disabled state, trigger, select callback.
+ * - Outputs: pinned Ready, separator, scrollable Break list; current option styled and inert.
  */
 export function OcpStatusDropdown({
   disabled,
-  currentItems,
   readyItems,
   breakItems,
   trigger,
   onSelectReason,
 }: OcpStatusDropdownProps): JSX.Element {
   const { t } = useI18n();
-  const hasOtherGroups = readyItems.length > 0 || breakItems.length > 0;
 
   return (
     <div className={styles.root}>
@@ -51,71 +89,28 @@ export function OcpStatusDropdown({
           data-testid="ocp-status-dropdown"
           className={styles.content}
         >
-          {currentItems.length > 0 ? (
-            <DropdownMenuGroup className={styles.group}>
-              <DropdownMenuLabel className={styles.groupLabel}>
-                {t("ocp.dropdown.currentGroup")}
-              </DropdownMenuLabel>
-              {currentItems.map((item) => (
-                <DropdownMenuItem
-                  key={`current-${item.targetStatus}-${item.reasonId}`}
-                  className={styles.option}
-                  disabled
-                  data-testid="ocp-status-current"
-                  aria-current="true"
-                >
-                  {item.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuGroup>
-          ) : null}
-          {currentItems.length > 0 && hasOtherGroups ? (
-            <DropdownMenuSeparator className={styles.separator} />
-          ) : null}
           {readyItems.length > 0 ? (
-            <DropdownMenuGroup className={styles.group}>
-              <DropdownMenuLabel className={styles.groupLabel}>
-                {t("ocp.dropdown.readyGroup")}
-              </DropdownMenuLabel>
-              {readyItems.map((item) => (
-                <DropdownMenuItem
-                  key={`ready-${item.reasonId}`}
-                  className={styles.option}
-                  disabled={item.disabled}
-                  disabledReason={
-                    item.disabled && item.disabledReasonKey !== null
-                      ? t(item.disabledReasonKey)
-                      : null
-                  }
-                  data-testid={item.testId ?? undefined}
-                  onSelect={() => {
-                    onSelectReason("ready", item.reasonId);
-                  }}
-                >
-                  {item.label}
-                </DropdownMenuItem>
-              ))}
+            <DropdownMenuGroup
+              className={styles.group}
+              data-testid="ocp-status-dropdown-ready"
+            >
+              {readyItems.map((item) =>
+                renderStatusOption(item, "ready", t, onSelectReason),
+              )}
             </DropdownMenuGroup>
           ) : null}
           {readyItems.length > 0 && breakItems.length > 0 ? (
             <DropdownMenuSeparator className={styles.separator} />
           ) : null}
           {breakItems.length > 0 ? (
-            <DropdownMenuGroup className={styles.group}>
-              <DropdownMenuLabel className={styles.groupLabel}>
-                {t("ocp.dropdown.breakGroup")}
-              </DropdownMenuLabel>
-              {breakItems.map((item) => (
-                <DropdownMenuItem
-                  key={`break-${item.reasonId}`}
-                  className={styles.option}
-                  onSelect={() => {
-                    onSelectReason("break", item.reasonId);
-                  }}
-                >
-                  {item.label}
-                </DropdownMenuItem>
-              ))}
+            <DropdownMenuGroup
+              className={clsx(styles.group, styles.breakGroup)}
+              data-testid="ocp-status-dropdown-breaks"
+              data-visible-count={OCP_STATUS_BREAK_VISIBLE_COUNT}
+            >
+              {breakItems.map((item) =>
+                renderStatusOption(item, "break", t, onSelectReason),
+              )}
             </DropdownMenuGroup>
           ) : null}
         </DropdownMenuContent>

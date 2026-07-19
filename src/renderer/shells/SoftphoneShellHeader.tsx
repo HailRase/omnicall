@@ -8,7 +8,6 @@ import { useI18n } from "../i18n/index.js";
 import { RegistrationStatusDot } from "../components/header/RegistrationStatusDot.js";
 import { UserAvatar } from "../components/header/UserAvatar.js";
 import { UserAvatarMenu } from "../components/header/UserAvatarMenu.js";
-import { UserHeaderIdentity } from "../components/header/UserHeaderIdentity.js";
 import styles from "./SoftphoneShellHeader.module.css";
 
 type SoftphoneShellHeaderProps = Readonly<{
@@ -22,8 +21,8 @@ type SoftphoneShellHeaderProps = Readonly<{
 
 /**
  * - Purpose: render global shell header with avatar and registration dot.
- * - Inputs: header chrome view-model and avatar menu callbacks.
- * - Outputs: header bar with compact registration visibility (LF-011).
+ * - Inputs: header chrome view-model, avatar menu callbacks, optional OCP status slot.
+ * - Outputs: header bar — avatar/menu + full-width operator status (identity lives in menu).
  * @uiMeta lf=LF-011,LF-076,LF-086 f=F-016 smoke=R7-*
  */
 export function SoftphoneShellHeader({
@@ -46,6 +45,19 @@ export function SoftphoneShellHeader({
           status: t(headerChrome.registrationDotAriaLabelParams.statusKey),
           timer: headerChrome.registrationDotAriaLabelParams.timer ?? "",
         });
+
+  const menuIdentity =
+    headerChrome.showUserIdentity &&
+    headerChrome.displayName !== null &&
+    statusLabel !== null &&
+    headerChrome.sipStatusTone !== null
+      ? {
+          displayName: headerChrome.displayName,
+          sipStatusLabel: statusLabel,
+          sipStatusTimerSuffix: headerChrome.sipStatusTimerSuffix,
+          sipStatusTone: headerChrome.sipStatusTone,
+        }
+      : null;
 
   return (
     <header className={styles.header} data-testid="shell-header">
@@ -72,6 +84,7 @@ export function SoftphoneShellHeader({
                     open={userAvatarMenu.open}
                     menuRef={userAvatarMenu.menuRef}
                     position={userAvatarMenu.position}
+                    identity={menuIdentity}
                     dndEnabled={userAvatarMenuActions.dndEnabled}
                     dndDisabledReason={userAvatarMenuActions.dndDisabledReason}
                     historyDisabledReason={userAvatarMenuActions.historyDisabledReason}
@@ -84,17 +97,6 @@ export function SoftphoneShellHeader({
                     onLogout={userAvatarMenuActions.handleLogout}
                   />
                 </div>
-                {headerChrome.showUserIdentity &&
-                headerChrome.displayName !== null &&
-                statusLabel !== null &&
-                headerChrome.sipStatusTone !== null ? (
-                  <UserHeaderIdentity
-                    displayName={headerChrome.displayName}
-                    sipStatusLabel={statusLabel}
-                    sipStatusTimerSuffix={headerChrome.sipStatusTimerSuffix}
-                    sipStatusTone={headerChrome.sipStatusTone}
-                  />
-                ) : null}
                 {operatorStatusSlot !== null ? (
                   <div className={styles.operatorStatusSlot}>{operatorStatusSlot}</div>
                 ) : null}

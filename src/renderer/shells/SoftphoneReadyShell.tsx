@@ -4,6 +4,7 @@ import type { QueryUserNotificationJournalInput } from "@application/use-cases/s
 import type { AccountPanelActionReasonKey } from "@application/index.js";
 import { resolveFullscreenVideoSession } from "@application/index.js";
 import { NotificationViewport } from "../components/notifications/NotificationViewport.js";
+import { resolveNotificationDescriptorTitle } from "../components/notifications/resolveNotificationDescriptorTitle.js";
 import { UpdateAvailableBanner } from "../components/updates/UpdateAvailableBanner.js";
 import { SettingsFullscreenOverlay } from "../components/settings/SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "../components/settings/SettingsPanel.js";
@@ -95,7 +96,7 @@ function SoftphoneShellLayoutRoute({
   shellChrome,
   isShuttingDown,
 }: SoftphoneReadyShellProps): JSX.Element {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { sessionLogoutActions } = shellChrome;
   const {
     projection,
@@ -188,16 +189,9 @@ function SoftphoneShellLayoutRoute({
     onDismissUpdateBannerVersion: settingsActions.onDismissUpdateBannerVersion,
   });
   const resolveNotificationTitle = useCallback(
-    (descriptor: NotificationDescriptor): string => {
-      if (descriptor.messageText !== undefined) {
-        return descriptor.messageText;
-      }
-      if (descriptor.messageKey !== undefined) {
-        return t(descriptor.messageKey);
-      }
-      return "";
-    },
-    [t],
+    (descriptor: NotificationDescriptor): string =>
+      resolveNotificationDescriptorTitle(descriptor, language),
+    [language],
   );
   const captureNotification = useCallback(
     async (

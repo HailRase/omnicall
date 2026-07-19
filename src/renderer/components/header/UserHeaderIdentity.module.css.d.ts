@@ -2,6 +2,7 @@ declare const classes: {
   readonly displayName: string;
   readonly displayNameTooltipHost: string;
   readonly identity: string;
+  readonly identityMenu: string;
   readonly sipStatus: string;
   readonly sipStatusBlock: string;
   readonly sipStatusTimer: string;

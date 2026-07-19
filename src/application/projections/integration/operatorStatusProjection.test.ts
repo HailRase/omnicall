@@ -12,7 +12,7 @@ import {
 } from "./operatorStatusProjection.js";
 
 describe("operatorStatusProjection", () => {
-  it("updates from users payload and normalizes reason_id", () => {
+  it("updates from users payload and resolves omitted reason_id to status", () => {
     const projection = reduceOperatorStatusFromUsers(initialOperatorStatusProjection(), {
       operatorId: 7,
       status: OperatorStatus.READY,
@@ -22,10 +22,22 @@ describe("operatorStatusProjection", () => {
 
     expect(projection.operatorId).toBe(7);
     expect(selectOperatorStatus(projection)).toBe(OperatorStatus.READY);
-    expect(projection.reasonId).toBe(0);
+    expect(projection.reasonId).toBe(OperatorStatus.READY);
     expect(normalizeReasonId(undefined)).toBe(0);
     expect(selectOperatorIsBusy(projection)).toBe(false);
     expect(toOperatorProfile(projection)?.operatorId).toBe(7);
+  });
+
+  it("keeps explicit break reason_id from users payload", () => {
+    const projection = reduceOperatorStatusFromUsers(initialOperatorStatusProjection(), {
+      operatorId: 7,
+      status: OperatorStatus.BREAK,
+      reasonId: 42,
+      statusSince: "2026-07-14T10:00:00.000Z",
+    });
+
+    expect(projection.status).toBe(OperatorStatus.BREAK);
+    expect(projection.reasonId).toBe(42);
   });
 
   it("marks busy talking and blocks call button on RESERVED_TO_CALL", () => {

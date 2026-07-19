@@ -11,7 +11,7 @@ const authenticatedVm: OperatorStatusSelectorVm = {
   timerSince: Date.now() - 125_000,
   isDropdownDisabled: false,
   dropdownDisabledReasonKey: null,
-  currentItems: [
+  readyItems: [
     {
       reasonId: 1,
       label: "Ready for calls",
@@ -22,7 +22,6 @@ const authenticatedVm: OperatorStatusSelectorVm = {
       isCurrent: true,
     },
   ],
-  readyItems: [],
   breakItems: [
     {
       reasonId: 7,
@@ -67,9 +66,8 @@ export const BusyLight: Story = {
     vm: {
       ...authenticatedVm,
       statusColor: "var(--color-status-offline)",
-      reasonLabel: "",
+      reasonLabel: "Ready for calls",
       statusLabelKey: "ocp.operatorStatus.talking",
-      currentItems: [],
       readyItems: [
         {
           reasonId: 1,
@@ -93,9 +91,8 @@ export const BusyDark: Story = {
     vm: {
       ...authenticatedVm,
       statusColor: "var(--color-status-offline)",
-      reasonLabel: "",
+      reasonLabel: "Ready for calls",
       statusLabelKey: "ocp.operatorStatus.talking",
-      currentItems: [],
       readyItems: [
         {
           reasonId: 1,
@@ -118,7 +115,6 @@ export const DndGuardLight: Story = {
   args: {
     vm: {
       ...authenticatedVm,
-      currentItems: [],
       readyItems: [
         {
           reasonId: 1,
@@ -139,7 +135,6 @@ export const DndGuardDark: Story = {
   args: {
     vm: {
       ...authenticatedVm,
-      currentItems: [],
       readyItems: [
         {
           reasonId: 1,
@@ -164,4 +159,84 @@ export const DisconnectedHidden: Story = {
     },
   },
   parameters: { themes: { themeOverride: "light" } },
+};
+
+export const ManyBreakReasonsScroll: Story = {
+  args: {
+    vm: {
+      ...authenticatedVm,
+      reasonLabel: "Доступен",
+      readyItems: [
+        {
+          reasonId: 1,
+          label: "Доступен",
+          targetStatus: "ready",
+          disabled: false,
+          disabledReasonKey: null,
+          testId: null,
+          isCurrent: true,
+        },
+      ],
+      breakItems: Array.from({ length: 10 }, (_, index) => ({
+        reasonId: 10 + index,
+        label: `Перерыв ${index + 1}`,
+        targetStatus: "break" as const,
+        disabled: false,
+        disabledReasonKey: null,
+        testId: null,
+        isCurrent: false,
+      })),
+    },
+  },
+  parameters: { themes: { themeOverride: "light" } },
+};
+
+export const CurrentBreakSelectedLight: Story = {
+  args: {
+    vm: {
+      ...authenticatedVm,
+      statusColor: "var(--color-status-dnd)",
+      reasonLabel: "Обед",
+      statusLabelKey: "ocp.operatorStatus.break",
+      readyItems: [
+        {
+          reasonId: 1,
+          label: "Доступен",
+          targetStatus: "ready",
+          disabled: false,
+          disabledReasonKey: null,
+          testId: null,
+          isCurrent: false,
+        },
+      ],
+      breakItems: [
+        {
+          reasonId: 7,
+          label: "Обед",
+          targetStatus: "break",
+          disabled: false,
+          disabledReasonKey: null,
+          testId: "ocp-break-current",
+          isCurrent: true,
+        },
+        {
+          reasonId: 8,
+          label: "Кофе",
+          targetStatus: "break",
+          disabled: false,
+          disabledReasonKey: null,
+          testId: null,
+          isCurrent: false,
+        },
+      ],
+    },
+  },
+  parameters: { themes: { themeOverride: "light" } },
+};
+
+export const CurrentBreakSelectedDark: Story = {
+  args: {
+    ...CurrentBreakSelectedLight.args,
+  },
+  parameters: { themes: { themeOverride: "dark" } },
 };

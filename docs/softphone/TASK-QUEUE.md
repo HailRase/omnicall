@@ -2,10 +2,13 @@
 
 > Optional queue for agents when user does not specify a task. `scope-intake` reads this after `STATUS.md`.
 
-**Updated:** 2026-07-17
+**Updated:** 2026-07-19
 
 | ID | Priority | Task | F-XXX | Command | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
+| T-047 | 0 | OCP users: wire reason_id null → status.value for system statuses | F-028 | `/logic` | done | closed 2026-07-19 — Domain `resolveOperatorReasonId`; parse + projection; READY/RINGING/… match reason catalog |
+| T-046 | 0 | Header: move SIP identity into avatar menu; status selector fills width without shell widen | F-016,F-028 | `/ui` | done | closed 2026-07-19 — identity in menu (non-selectable) + separator; OperatorStatusSelector ellipsis/tooltip; no shell width growth |
+| T-045 | 0 | OCP status selector: server-driven chip + flat Ready/Break dropdown | F-028 | `/logic` | done | closed 2026-07-19 — chip from users projection only; flat Ready → Separator → Break; no «Текущий»/group labels |
 | T-044 | 0 | OCP sign-in: persist SIP domain/server/password from entity:creds, not OCP Domain | F-024,F-028 | `/logic` | done | closed 2026-07-17 — persistOcpDerivedSipArtifacts; provisional OCP-host draft migrated/deleted |
 | T-043 | 0 | SIP-only sign-in: split transport/registration toasts + System State error CTA | F-001,F-029 | `/logic` | done | closed 2026-07-17 — deriveAccountSignInNotificationFeedback; no false SIP-ready success |
 | T-042 | 0 | OCP Reconnect must not send duplicate /proxy/authenticate (recovery race) | F-028 | `/logic` | done | closed 2026-07-17 — ignoreTransportDrops after cancelAll until next connecting\|connected |

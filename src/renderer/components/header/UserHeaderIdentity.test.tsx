@@ -37,4 +37,18 @@ describe("UserHeaderIdentity", () => {
     expect(screen.getByTestId("user-sip-status")).toHaveTextContent("Не зарегистрирован");
     expect(screen.getByTestId("user-sip-status-timer")).toHaveTextContent("04:59");
   });
+
+  it("supports menu variant for avatar popup header", () => {
+    render(
+      <UserHeaderIdentity
+        variant="menu"
+        displayName="alex.operator"
+        sipStatusLabel="Зарегистрирован"
+        sipStatusTimerSuffix={null}
+        sipStatusTone="registered"
+      />,
+    );
+
+    expect(screen.getByTestId("user-header-identity")).toHaveAttribute("data-variant", "menu");
+  });
 });

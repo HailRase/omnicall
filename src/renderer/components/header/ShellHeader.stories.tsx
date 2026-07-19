@@ -135,3 +135,15 @@ export const NotRegistered: Story = {
     },
   },
 };
+
+export const AvatarMenuWithIdentity: Story = {
+  args: {
+    ...baseHeaderArgs,
+    userAvatarMenu: {
+      ...baseHeaderArgs.userAvatarMenu,
+      open: true,
+      position: { top: 72, left: 24 },
+    },
+  },
+  parameters: { themes: { themeOverride: "light" } },
+};
