@@ -3,6 +3,8 @@ import { createCorrelationId } from "@shared/correlation-id/index.js";
 import {
   isAuthorizationRetryableStage,
   resolveAuthorizationRetryStrategy,
+  resolveOcpRecoveryFirstVisibleStage,
+  shouldResetOcpRecoveryCompletedStages,
   type AuthorizationAttemptContext,
 } from "./authorizationRetryContext.js";
 
@@ -75,5 +77,24 @@ describe("authorizationRetryContext", () => {
         isOcpSessionLive: false,
       }),
     ).toBe("repeat_sip_authorize");
+  });
+
+  it("maps recovery strategies to first visible modal stages", () => {
+    expect(resolveOcpRecoveryFirstVisibleStage("retry_ocp_server")).toBe(
+      "requesting_authorization_token",
+    );
+    expect(resolveOcpRecoveryFirstVisibleStage("retry_ocp_authorization")).toBe(
+      "awaiting_authorization_data",
+    );
+    expect(resolveOcpRecoveryFirstVisibleStage("repeat_sip_register_only")).toBe(
+      "authorizing_sip",
+    );
+    expect(resolveOcpRecoveryFirstVisibleStage("repeat_sip_authorize")).toBe(
+      "connecting_sip_transport",
+    );
+    expect(shouldResetOcpRecoveryCompletedStages("reconnect_ocp")).toBe(true);
+    expect(shouldResetOcpRecoveryCompletedStages("retry_ocp_authorization")).toBe(
+      false,
+    );
   });
 });

@@ -15,6 +15,12 @@ const baseProps = {
   open: true,
   menuRef: { current: null },
   position: { top: 12, left: 24 },
+  identity: {
+    displayName: "alex.operator",
+    sipStatusLabel: "Зарегистрирован",
+    sipStatusTimerSuffix: null as string | null,
+    sipStatusTone: "registered" as const,
+  },
   dndEnabled: false,
   dndDisabledReason: null,
   historyDisabledReason: null,
@@ -40,6 +46,47 @@ describe("UserAvatarMenu", () => {
       removeListener: vi.fn(),
       dispatchEvent: vi.fn(),
     }));
+  });
+
+  it("renders non-selectable identity header before action items", () => {
+    render(<UserAvatarMenu {...baseProps} />);
+
+    const menu = screen.getByTestId("user-avatar-menu");
+    const identity = screen.getByTestId("user-menu-identity");
+    const menuChildren = Array.from(menu.children);
+
+    expect(identity).toHaveAttribute("role", "presentation");
+    expect(identity).toHaveTextContent("alex.operator");
+    expect(screen.getByTestId("user-sip-status")).toHaveTextContent("Зарегистрирован");
+    expect(screen.getByTestId("user-header-identity")).toHaveAttribute("data-variant", "menu");
+    expect(menuChildren[0]).toBe(identity);
+    expect(menuChildren[1]).toHaveAttribute("role", "separator");
+    expect(screen.getByTestId("user-menu-open-contacts")).toBeInTheDocument();
+    expect(screen.queryByRole("menuitem", { name: /alex\.operator/i })).not.toBeInTheDocument();
+  });
+
+  it("renders recovery timer in identity header", () => {
+    render(
+      <UserAvatarMenu
+        {...baseProps}
+        identity={{
+          displayName: "agent",
+          sipStatusLabel: "Не зарегистрирован",
+          sipStatusTimerSuffix: "04:59",
+          sipStatusTone: "not_registered",
+        }}
+      />,
+    );
+
+    expect(screen.getByTestId("user-sip-status")).toHaveTextContent("Не зарегистрирован");
+    expect(screen.getByTestId("user-sip-status-timer")).toHaveTextContent("04:59");
+  });
+
+  it("omits identity header when identity is null", () => {
+    render(<UserAvatarMenu {...baseProps} identity={null} />);
+
+    expect(screen.queryByTestId("user-menu-identity")).not.toBeInTheDocument();
+    expect(screen.getByTestId("user-menu-open-contacts")).toBeInTheDocument();
   });
 
   it("renders settings, contacts, history, DND, and logout items in Russian", () => {

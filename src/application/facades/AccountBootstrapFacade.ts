@@ -73,8 +73,16 @@ import { OcpIntegrationComposition } from "../services/integration/OcpIntegratio
 import {
   isAuthorizationRetryableStage,
   resolveAuthorizationRetryStrategy,
+  resolveOcpRecoveryFirstVisibleStage,
+  shouldResetOcpRecoveryCompletedStages,
   type AuthorizationAttemptContext,
+  type AuthorizationRetryStrategy,
 } from "../projections/settings/authorizationRetryContext.js";
+import {
+  applyAuthorizationExecutionStage,
+  clearAuthorizationProgress,
+  type AuthorizationProgressStage,
+} from "../projections/settings/authorizationProgressProjection.js";
 import type { ChangeOperatorStatusOutcome } from "../use-cases/integration/ocp/ChangeOperatorStatusUseCase.js";
 import { InMemoryOcpReasonsCache } from "@adapters/mock/InMemoryOcpReasonsCache.js";
 import { CallbackOcpNotificationPresenter } from "@adapters/integration/ocp/CallbackOcpNotificationPresenter.js";
@@ -99,6 +107,7 @@ import {
   createAccountSessionActivatedEvent,
   createCallId,
   mergeMultiCallIntoUserSettings,
+  OCP_SIGN_IN_EXECUTION_STAGES,
   resolveOcpConnectLoginTarget,
   resolveOcpProxyAuthenticateDomain,
   resolveSettingsAccountKeyFromSipAccount,
@@ -1069,12 +1078,16 @@ export class AccountBootstrapFacade {
     }
 
     const session = this.ocpIntegration.projectionHub.getSessionProjection();
+    const activeSessionProfileId = this.accountSessionActive
+      ? await this.resolveSettingsAccountKey()
+      : null;
     return ok(
       deriveAccountSignInViewModel({
         isSipRegistered: this.sipSessionRegistered,
         hasActiveAccountSession: this.accountSessionActive,
         availabilities,
         selectedProfileId: options?.selectedProfileId ?? null,
+        activeSessionProfileId,
         dualFsm: {
           serverState: session.serverState,
           authorizationState: session.authorizationState,
@@ -2970,6 +2983,20 @@ export class AccountBootstrapFacade {
   }
 
   /**
+   * - Purpose: finish post-call appeal (apply reserved status or Ready).
+   */
+  finishOcpPostCallAppeal(
+    input: Readonly<{
+      correlationId?: CorrelationId;
+    }> = {},
+  ): Promise<Result<ChangeOperatorStatusOutcome, PlatformError>> {
+    return this.ocpIntegration.finishPostCallAppeal.execute({
+      callType: "internal",
+      ...(input.correlationId !== undefined ? { correlationId: input.correlationId } : {}),
+    });
+  }
+
+  /**
    * - Purpose: accept active OCP campaign event from UI.
    */
   acceptOcpCampaign(
@@ -3441,10 +3468,83 @@ export class AccountBootstrapFacade {
    * - Inputs: optional correlationId for observability.
    * - Outputs: routes OCP dual-FSM recoveries via `dispatchAccountRecoveryAction` when possible.
    * Prefer `dispatchAccountRecoveryAction` for new Account UI (WU-04).
+   * Modal Reconnect must use `recoverOcpSignInFromModal` (never `signInAccount`).
    */
   async retryAuthorization(
     correlationId?: CorrelationId,
   ): Promise<Result<void, PlatformError>> {
+    const resolved = this.resolveAuthorizationRetryPlan();
+    if (isErr(resolved)) {
+      return resolved;
+    }
+    const retryCorrelationId = correlationId ?? createCorrelationId();
+    this.deps.logger.info("authorization_retry_requested", {
+      correlationId: retryCorrelationId,
+      featureId: "F-028",
+      boundedContext: "Integration",
+      operation: "retry_authorization",
+      strategy: resolved.value.strategy,
+      stage: resolved.value.stage,
+      result: "requested",
+    });
+    return this.executeResolvedAuthorizationRetry(
+      resolved.value.strategy,
+      resolved.value.context,
+      retryCorrelationId,
+    );
+  }
+
+  /**
+   * - Purpose: Account modal Reconnect — Application-owned recovery while account session may already be active (ADR-AF-005).
+   * - Inputs: optional correlationId for the recovery operation.
+   * - Outputs: typed Result; never passes `signInAccount` / identity gate; seeds visible progress immediately.
+   * - Side effects: reuses `lastAuthorizationAttempt` + attempt-scoped secrets; may open one fresh OCP socket per ADR-AF-002.
+   */
+  async recoverOcpSignInFromModal(
+    correlationId?: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    if (this.ocpIntegration.backedSignIn.isInFlight()) {
+      return err(
+        createPlatformError("operation_failed", "ocp_sign_in_in_flight", {
+          reason: "ocp_sign_in_in_flight",
+        }),
+      );
+    }
+
+    const resolved = this.resolveAuthorizationRetryPlan();
+    if (isErr(resolved)) {
+      return resolved;
+    }
+
+    const retryCorrelationId = correlationId ?? createCorrelationId();
+    const { strategy, context, stage } = resolved.value;
+    this.seedOcpModalRecoveryProgress(strategy, retryCorrelationId);
+
+    this.deps.logger.info("ocp_modal_recovery_requested", {
+      correlationId: retryCorrelationId,
+      featureId: "F-028",
+      boundedContext: "Integration",
+      operation: "recover_ocp_sign_in_from_modal",
+      strategy,
+      stage,
+      result: "requested",
+    });
+
+    return this.executeResolvedAuthorizationRetry(
+      strategy,
+      context,
+      retryCorrelationId,
+    );
+  }
+
+  private resolveAuthorizationRetryPlan(): Result<
+    Readonly<{
+      strategy: AuthorizationRetryStrategy;
+      context: AuthorizationAttemptContext;
+      stage: AuthorizationProgressStage;
+    }>,
+    PlatformError
+  > {
     const progress =
       this.ocpIntegration.projectionHub.getSessionProjection().authorizationProgress;
     if (!isAuthorizationRetryableStage(progress.stage, progress.retryAvailable)) {
@@ -3469,20 +3569,52 @@ export class AccountBootstrapFacade {
       );
     }
 
-    const retryCorrelationId = correlationId ?? createCorrelationId();
-    this.deps.logger.info("authorization_retry_requested", {
-      correlationId: retryCorrelationId,
-      featureId: "F-028",
-      boundedContext: "Integration",
-      operation: "retry_authorization",
-      strategy,
-      stage: progress.stage,
-      result: "requested",
-    });
+    return ok({ strategy, context, stage: progress.stage });
+  }
 
+  private seedOcpModalRecoveryProgress(
+    strategy: AuthorizationRetryStrategy,
+    correlationId: CorrelationId,
+  ): void {
+    const firstStage = resolveOcpRecoveryFirstVisibleStage(strategy);
+    const resetCompleted = shouldResetOcpRecoveryCompletedStages(strategy);
+    if (resetCompleted) {
+      this.ocpIntegration.backedSignIn.seedVisibleRecoveryStage(
+        firstStage,
+        correlationId,
+        { resetCompletedStages: true },
+      );
+      return;
+    }
+
+    const stageIndex = OCP_SIGN_IN_EXECUTION_STAGES.indexOf(firstStage);
+    const completed =
+      stageIndex > 0
+        ? OCP_SIGN_IN_EXECUTION_STAGES.slice(0, stageIndex)
+        : [];
+    this.ocpIntegration.projectionHub.setAuthorizationProgress(
+      applyAuthorizationExecutionStage(
+        {
+          ...clearAuthorizationProgress(),
+          completedExecutionStages: completed,
+        },
+        firstStage,
+        correlationId,
+      ),
+    );
+  }
+
+  private async executeResolvedAuthorizationRetry(
+    strategy: AuthorizationRetryStrategy,
+    context: AuthorizationAttemptContext,
+    retryCorrelationId: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
     switch (strategy) {
       case "retry_ocp_authorization":
-        return this.dispatchAccountRecoveryAction("retry_authorization", retryCorrelationId);
+        return this.dispatchAccountRecoveryAction(
+          "retry_authorization",
+          retryCorrelationId,
+        );
       case "retry_ocp_server":
         return this.dispatchAccountRecoveryAction("retry_server", retryCorrelationId);
       case "reconnect_ocp":
@@ -3537,10 +3669,10 @@ export class AccountBootstrapFacade {
               password: scopedSecrets.sipPassword,
             },
             {
-            correlationId: retryCorrelationId,
-            recordAttempt: false,
-            ...(context.saveProfile === true ? { saveProfile: true } : {}),
-            ...(context.rememberPassword === true ? { rememberPassword: true } : {}),
+              correlationId: retryCorrelationId,
+              recordAttempt: false,
+              ...(context.saveProfile === true ? { saveProfile: true } : {}),
+              ...(context.rememberPassword === true ? { rememberPassword: true } : {}),
             },
           );
           if (isErr(manualResult)) {
@@ -3645,6 +3777,62 @@ export class AccountBootstrapFacade {
     return this.ocpIntegration.disconnectOcp.execute(
       correlationId === undefined ? {} : { correlationId },
     );
+  }
+
+  /**
+   * - Purpose: cancel in-flight / modal OCP sign-in and return to pre-login idle.
+   * - Inputs: optional correlation id for disconnect logging.
+   * - Outputs: OCP socket + projections idle, then local account session + SIP teardown
+   *   (`UserSessionEnded`) so Login re-enables without a separate avatar Logout.
+   * - If physical disconnect fails: returns typed failure; projections still forced to OCP idle;
+   *   transport recovery remains disarmed; account-session teardown is still attempted.
+   */
+  async cancelOcpSignInAttempt(
+    correlationId?: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    const opCorrelationId = correlationId ?? createCorrelationId();
+    // Capture/cancel waiters + supersede apply epoch before clearAttempt; then close socket.
+    this.ocpIntegration.backedSignIn.cancelUserSignIn("user_cancel");
+    // Must run before gateway disconnect — recovery arms synchronously on drop (ADR-AF-002).
+    this.ocpIntegration.disarmTransportRecoveryForUserLogout();
+    const disconnectResult = await this.disconnectOcp(opCorrelationId);
+    this.ocpIntegration.resetProjectionsToIdleAfterUserLogout();
+
+    // Modal Disconnect owns full pre-login idle (not Settings OCP-only disconnect).
+    const sessionResult = await this.endUserSession.execute({
+      correlationId: opCorrelationId,
+    });
+
+    if (isErr(disconnectResult)) {
+      this.deps.logger.warn("ocp_sign_in_cancel_disconnect_failed", {
+        correlationId: opCorrelationId,
+        featureId: "F-028",
+        boundedContext: "Integration",
+        operation: "cancel_ocp_sign_in_attempt",
+        result: disconnectResult.error.message,
+      });
+      return disconnectResult;
+    }
+
+    if (isErr(sessionResult)) {
+      this.deps.logger.warn("ocp_sign_in_cancel_session_end_failed", {
+        correlationId: opCorrelationId,
+        featureId: "F-028",
+        boundedContext: "Integration",
+        operation: "cancel_ocp_sign_in_attempt",
+        result: sessionResult.error.message,
+      });
+      return err(sessionResult.error);
+    }
+
+    this.deps.logger.info("ocp_sign_in_cancel_idle", {
+      correlationId: opCorrelationId,
+      featureId: "F-028",
+      boundedContext: "Integration",
+      operation: "cancel_ocp_sign_in_attempt",
+      result: "pre_login_idle",
+    });
+    return ok(undefined);
   }
 
   /**

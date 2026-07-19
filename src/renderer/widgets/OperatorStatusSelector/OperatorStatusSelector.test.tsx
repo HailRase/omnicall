@@ -8,7 +8,10 @@ import {
   initialOcpSessionProjection,
   initialOperatorStatusProjection,
 } from "@application/index.js";
-import type { OperatorStatusSelectorVm } from "../../hooks/useOperatorStatusSelector.js";
+import type {
+  OperatorStatusSelectorVm,
+  PostCallFinishAppealVm,
+} from "../../hooks/useOperatorStatusSelector.js";
 import { OperatorStatusSelector } from "./OperatorStatusSelector.js";
 
 vi.mock("../../i18n/index.js", () => ({
@@ -20,6 +23,9 @@ vi.mock("../../i18n/index.js", () => ({
       if (key === "ocp.status.timer.aria" && params !== undefined) {
         return `In status for ${String(params["elapsed"])}`;
       }
+      if (key === "ocp.postCall.finishAppeal" && params !== undefined) {
+        return `Finish contact: ${String(params["status"])}`;
+      }
       return key;
     },
   }),
@@ -28,6 +34,14 @@ vi.mock("../../i18n/index.js", () => ({
 afterEach(() => {
   cleanup();
 });
+
+const HIDDEN_FINISH_APPEAL: PostCallFinishAppealVm = {
+  visible: false,
+  statusLabel: "",
+  submitting: false,
+  disabled: false,
+  disabledReasonKey: null,
+};
 
 function buildVm(
   overrides: Partial<OperatorStatusSelectorVm> = {},
@@ -41,7 +55,7 @@ function buildVm(
     timerSince: Date.now() - 65_000,
     isDropdownDisabled: false,
     dropdownDisabledReasonKey: null,
-    currentItems: [
+    readyItems: [
       {
         reasonId: 1,
         label: "Ready for calls",
@@ -52,7 +66,6 @@ function buildVm(
         isCurrent: true,
       },
     ],
-    readyItems: [],
     breakItems: [
       {
         reasonId: 2,
@@ -77,7 +90,9 @@ describe("OperatorStatusSelector", () => {
     const { container } = render(
       <OperatorStatusSelector
         vm={buildVm({ isAuthenticated: false })}
+        finishAppeal={HIDDEN_FINISH_APPEAL}
         onSelectReason={vi.fn()}
+        onFinishAppeal={vi.fn()}
       />,
     );
     expect(container).toBeEmptyDOMElement();
@@ -86,7 +101,12 @@ describe("OperatorStatusSelector", () => {
 
   it("shows status label and timer when authenticated", () => {
     render(
-      <OperatorStatusSelector vm={buildVm()} onSelectReason={vi.fn()} />,
+      <OperatorStatusSelector
+        vm={buildVm()}
+        finishAppeal={HIDDEN_FINISH_APPEAL}
+        onSelectReason={vi.fn()}
+        onFinishAppeal={vi.fn()}
+      />,
     );
     expect(screen.getByTestId("ocp-status-selector")).toBeInTheDocument();
     expect(screen.getByTestId("ocp-status-label")).toHaveTextContent(
@@ -95,19 +115,40 @@ describe("OperatorStatusSelector", () => {
     expect(screen.getByTestId("ocp-status-timer")).toHaveTextContent("00:01:05");
   });
 
-  it("shows reason label only (never falls back to status key)", () => {
+  it("prefers reason label over status key when both are present", () => {
     render(
       <OperatorStatusSelector
         vm={buildVm({
           statusLabelKey: "ocp.operatorStatus.ringing",
           reasonLabel: "Доступен",
+          allowStatusLabelFallback: false,
         })}
+        finishAppeal={HIDDEN_FINISH_APPEAL}
         onSelectReason={vi.fn()}
+        onFinishAppeal={vi.fn()}
       />,
     );
     expect(screen.getByTestId("ocp-status-label")).toHaveTextContent("Доступен");
     expect(screen.getByTestId("ocp-status-label")).not.toHaveTextContent(
       "ocp.operatorStatus.ringing",
+    );
+  });
+
+  it("falls back to status key for system call statuses", () => {
+    render(
+      <OperatorStatusSelector
+        vm={buildVm({
+          statusLabelKey: "ocp.operatorStatus.talking",
+          reasonLabel: "",
+          allowStatusLabelFallback: true,
+        })}
+        finishAppeal={HIDDEN_FINISH_APPEAL}
+        onSelectReason={vi.fn()}
+        onFinishAppeal={vi.fn()}
+      />,
+    );
+    expect(screen.getByTestId("ocp-status-label")).toHaveTextContent(
+      "ocp.operatorStatus.talking",
     );
   });
 
@@ -120,7 +161,9 @@ describe("OperatorStatusSelector", () => {
           statusLabelKey: "ocp.operatorStatus.talking",
           reasonLabel: "Доступен",
         })}
+        finishAppeal={HIDDEN_FINISH_APPEAL}
         onSelectReason={vi.fn()}
+        onFinishAppeal={vi.fn()}
       />,
     );
     expect(screen.getByTestId("ocp-status-selector")).toBeDisabled();
@@ -139,7 +182,9 @@ describe("OperatorStatusSelector", () => {
         vm={buildVm({
           reasonLabel: "Very long operator status reason that should truncate",
         })}
+        finishAppeal={HIDDEN_FINISH_APPEAL}
         onSelectReason={vi.fn()}
+        onFinishAppeal={vi.fn()}
       />,
     );
 
@@ -150,6 +195,27 @@ describe("OperatorStatusSelector", () => {
 
     scrollSpy.mockRestore();
     clientSpy.mockRestore();
+  });
+
+  it("keeps label slot constrained so long status cannot widen the shell", () => {
+    render(
+      <OperatorStatusSelector
+        vm={buildVm({
+          reasonLabel: "Очень длинный статус оператора который не должен расширять окно",
+        })}
+        finishAppeal={HIDDEN_FINISH_APPEAL}
+        onSelectReason={vi.fn()}
+        onFinishAppeal={vi.fn()}
+      />,
+    );
+
+    const label = screen.getByTestId("ocp-status-label");
+    const tooltipOrSlot = label.parentElement;
+    const labelSlot = tooltipOrSlot?.parentElement;
+
+    expect(screen.getByTestId("ocp-status-selector-root")).toBeInTheDocument();
+    expect(labelSlot?.className ?? "").toMatch(/labelSlot/);
+    expect(label.className).toMatch(/label/);
   });
 });
 

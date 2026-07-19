@@ -25,29 +25,24 @@ const baseProps = {
     domain: "ocp.example.com",
   },
   activeLoginLabel: "1001",
-  apiKeyDraft: "",
-  apiKeyVisible: false,
-  hasSavedApiKey: true,
-  actionLoading: null,
   errorKey: null,
   configEditable: true,
   onEnabledChange: vi.fn(),
   onDomainChange: vi.fn(),
   onAutoConnectChange: vi.fn(),
-  onApiKeyDraftChange: vi.fn(),
-  onApiKeyVisibleChange: vi.fn(),
-  onSaveApiKey: vi.fn(),
-  onDeleteApiKey: vi.fn(),
 } as const;
 
 describe("OcpModuleSettingsCard", () => {
-  it("renders edit-only controls without Connect/Disconnect/status chrome", () => {
+  it("renders edit-only controls without Connect/Disconnect/API-key chrome", () => {
     render(<OcpModuleSettingsCard {...baseProps} />);
 
     expect(screen.getByTestId("ocp-module-active-login")).toHaveTextContent("1001");
     expect(screen.getByTestId("ocp-module-enabled-toggle")).toBeInTheDocument();
     expect(screen.getByTestId("ocp-module-auto-connect-toggle")).toBeInTheDocument();
     expect(screen.getByTestId("ocp-module-domain-input")).toBeInTheDocument();
+    expect(screen.queryByTestId("ocp-module-api-key-input")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("ocp-module-api-key-save")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("ocp-module-api-key-delete")).not.toBeInTheDocument();
     expect(screen.queryByTestId("ocp-module-server-status")).not.toBeInTheDocument();
     expect(screen.queryByTestId("ocp-module-authorization-status")).not.toBeInTheDocument();
     expect(screen.queryByTestId("ocp-module-dual-status")).not.toBeInTheDocument();

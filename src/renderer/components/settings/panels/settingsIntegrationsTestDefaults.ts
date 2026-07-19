@@ -5,19 +5,11 @@ import type { OcpModuleSettingsCardProps } from "./OcpModuleSettingsCard.js";
 const ocpCardDefaults = {
   settings: { ...OCP_INTEGRATION_DEFAULTS, linked: true, enabled: true, domain: "ocp.example" },
   activeLoginLabel: "agent-1",
-  apiKeyDraft: "",
-  apiKeyVisible: false,
-  hasSavedApiKey: true,
-  actionLoading: null,
   errorKey: null,
   configEditable: true,
   onEnabledChange: vi.fn(),
   onDomainChange: vi.fn(),
   onAutoConnectChange: vi.fn(),
-  onApiKeyDraftChange: vi.fn(),
-  onApiKeyVisibleChange: vi.fn(),
-  onSaveApiKey: vi.fn(),
-  onDeleteApiKey: vi.fn(),
 } satisfies OcpModuleSettingsCardProps;
 
 export const settingsIntegrationsTestDefaults = {
@@ -33,10 +25,6 @@ export const settingsIntegrationsStoryDefaults = {
       onEnabledChange: () => undefined,
       onDomainChange: () => undefined,
       onAutoConnectChange: () => undefined,
-      onApiKeyDraftChange: () => undefined,
-      onApiKeyVisibleChange: () => undefined,
-      onSaveApiKey: () => undefined,
-      onDeleteApiKey: () => undefined,
     } satisfies OcpModuleSettingsCardProps,
   },
 } as const;

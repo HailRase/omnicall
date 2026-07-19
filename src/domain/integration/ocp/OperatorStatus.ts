@@ -121,3 +121,22 @@ export function isOperatorStatus(value: unknown): value is OperatorStatus {
 export function parseOperatorStatus(value: unknown): OperatorStatus | null {
   return isOperatorStatus(value) ? value : null;
 }
+
+/**
+ * OCP wire often sends `reason_id: null` for system statuses (READY, RINGING, …).
+ * System status ids coincide with their canonical reason ids, so an omitted reason
+ * resolves to the status value. Explicit finite reason ids are kept as-is.
+ */
+export function resolveOperatorReasonId(
+  status: OperatorStatus,
+  wireReasonId: number | null | undefined,
+): number {
+  if (
+    wireReasonId === null ||
+    wireReasonId === undefined ||
+    !Number.isFinite(wireReasonId)
+  ) {
+    return status;
+  }
+  return wireReasonId;
+}

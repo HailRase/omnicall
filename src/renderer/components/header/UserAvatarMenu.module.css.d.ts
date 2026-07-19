@@ -1,5 +1,6 @@
 declare const classes: {
   readonly divider: string;
+  readonly identityHeader: string;
   readonly item: string;
   readonly itemDanger: string;
   readonly itemDndActive: string;

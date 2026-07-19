@@ -73,6 +73,11 @@
 | `phone.dnd.on` | DND mode active (bell on) | `Bell` | — | `UserAvatarMenu` | active |
 | `phone.dnd.off` | DND mode inactive (bell off) | `BellOff` | — | `UserAvatarMenu` | active |
 | `updates.available` | Update available prompt | `Download` | — | `UpdateAvailableBanner` | active |
+| `account.authProgress.status.completed` | OCP sign-in stage complete | `CircleCheck` | `CircleCheckIcon` | `OcpSignInProgress` | active |
+| `account.authProgress.status.active` | OCP sign-in stage in progress | `LoaderCircle` | `LoaderCircleIcon` | `OcpSignInProgress` | active |
+| `account.authProgress.status.pending` | OCP sign-in stage pending | `CircleDashed` | `CircleDashedIcon` | `OcpSignInProgress` | active |
+| `account.authProgress.status.failed` | OCP sign-in stage failed | `CircleAlert` | `BadgeAlertIcon` | `OcpSignInProgress` | active |
+| `account.authProgress.status.timeout` | OCP sign-in stage timed out | `Hourglass` | `HourglassIcon` | `OcpSignInProgress` | active |
 
 ## Adding an entry
 

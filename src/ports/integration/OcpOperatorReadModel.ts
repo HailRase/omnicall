@@ -9,4 +9,5 @@ import type { OperatorStatus } from "@domain/integration/ocp/OperatorStatus.js";
 export interface OcpOperatorReadModel {
   getCurrentOperatorProfile(): OperatorProfile | null;
   getReservedStatus(): OperatorStatus | null;
+  getReservedReasonId(): number | null;
 }

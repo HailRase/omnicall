@@ -16,8 +16,5 @@ declare const classes: {
   readonly statusDotSessionClosed: string;
   readonly statusLabel: string;
   readonly statusRow: string;
-  readonly tokenActions: string;
-  readonly tokenField: string;
-  readonly tokenInput: string;
 };
 export default classes;

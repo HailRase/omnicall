@@ -6,7 +6,10 @@ import {
   useState,
   type JSX,
 } from "react";
-import type { OperatorStatusSelectorVm } from "../../hooks/useOperatorStatusSelector.js";
+import type {
+  OperatorStatusSelectorVm,
+  PostCallFinishAppealVm,
+} from "../../hooks/useOperatorStatusSelector.js";
 import { AppIcon } from "../../components/icons/AppIcon.js";
 import { IconTooltip } from "../../components/icons/IconTooltip.js";
 import { OcpStatusDropdown } from "../../components/integration/ocp/OcpStatusDropdown.js";
@@ -16,7 +19,9 @@ import styles from "./OperatorStatusSelector.module.css";
 
 export type OperatorStatusSelectorProps = Readonly<{
   vm: OperatorStatusSelectorVm;
+  finishAppeal: PostCallFinishAppealVm;
   onSelectReason: (targetStatus: "ready" | "break", reasonId: number) => void;
+  onFinishAppeal: () => void;
 }>;
 
 /**
@@ -26,7 +31,9 @@ export type OperatorStatusSelectorProps = Readonly<{
  */
 export function OperatorStatusSelector({
   vm,
+  finishAppeal,
   onSelectReason,
+  onFinishAppeal,
 }: OperatorStatusSelectorProps): JSX.Element | null {
   const { t } = useI18n();
   const labelRef = useRef<HTMLSpanElement>(null);
@@ -99,11 +106,13 @@ export function OperatorStatusSelector({
         aria-hidden
         data-testid="ocp-status-dot"
       />
-      <IconTooltip label={overflowTooltipLabel} className={styles.labelTooltipHost}>
-        <span ref={labelRef} className={styles.label} data-testid="ocp-status-label">
-          {label}
-        </span>
-      </IconTooltip>
+      <span className={styles.labelSlot}>
+        <IconTooltip label={overflowTooltipLabel} className={styles.labelTooltipHost}>
+          <span ref={labelRef} className={styles.label} data-testid="ocp-status-label">
+            {label}
+          </span>
+        </IconTooltip>
+      </span>
       <OcpStatusTimer since={vm.timerSince} className={styles.timer} />
       <AppIcon
         id="ui.select.chevron"
@@ -119,11 +128,12 @@ export function OperatorStatusSelector({
       <OcpStatusDropdown
         disabled={vm.isDropdownDisabled}
         disabledReasonKey={vm.dropdownDisabledReasonKey}
-        currentItems={vm.currentItems}
         readyItems={vm.readyItems}
         breakItems={vm.breakItems}
+        finishAppeal={finishAppeal}
         trigger={trigger}
         onSelectReason={onSelectReason}
+        onFinishAppeal={onFinishAppeal}
       />
     </div>
   );

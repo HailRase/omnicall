@@ -8,6 +8,20 @@
   max-width: 200px;
 }
 
+.identity-menu {
+  flex-shrink: 0;
+  width: 100%;
+  max-width: none;
+  box-sizing: border-box;
+  padding: var(--space-2xs) var(--space-xs);
+  gap: 2px;
+  pointer-events: none;
+}
+
+.identity-menu .display-name-tooltip-host {
+  pointer-events: auto;
+}
+
 .display-name-tooltip-host {
   display: block;
   min-width: 0;

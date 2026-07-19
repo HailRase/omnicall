@@ -266,12 +266,16 @@ describe("OcpFullFlow integration (E-13)", () => {
       });
       const connectOcp = new ConnectOcpUseCase(gateway, logger);
 
+      const attemptId = createCorrelationId();
+      hub.beginAttempt(attemptId);
       await connectOcp.execute({
         domain: "ocp.example",
         authToken: "token-exist",
       });
+      hub.bindActiveAttemptToCurrentSocket(attemptId);
       gateway.simulateAuthSuccess(99);
       expect(hub.getSessionProjection().isAuthenticated).toBe(true);
+      expect(hub.getSessionProjection().serverState).toBe("connected");
 
       gateway.simulateMessage({
         entity: "Error",

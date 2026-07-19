@@ -1,15 +1,25 @@
 import clsx from "clsx";
 import type { JSX, RefObject } from "react";
 import { createPortal } from "react-dom";
+import type { SipStatusDotTone } from "@application/index.js";
 import type { AnchoredMenuPosition } from "../../helpers/computeAnchoredMenuPosition.js";
 import { useI18n } from "../../i18n/index.js";
 import { AppIcon, IconTooltip } from "../icons/index.js";
+import { UserHeaderIdentity } from "./UserHeaderIdentity.js";
 import styles from "./UserAvatarMenu.module.css";
+
+export type UserAvatarMenuIdentity = Readonly<{
+  displayName: string;
+  sipStatusLabel: string;
+  sipStatusTimerSuffix: string | null;
+  sipStatusTone: SipStatusDotTone;
+}>;
 
 export type UserAvatarMenuProps = Readonly<{
   open: boolean;
   menuRef: RefObject<HTMLDivElement | null>;
   position: AnchoredMenuPosition;
+  identity: UserAvatarMenuIdentity | null;
   dndEnabled: boolean;
   dndDisabledReason: string | null;
   historyDisabledReason: string | null;
@@ -24,14 +34,15 @@ export type UserAvatarMenuProps = Readonly<{
 
 /**
  * - Purpose: render auto-positioned user menu from avatar anchor.
- * - Inputs: open flag, position, DND/logout disabled reasons, action callbacks.
- * - Outputs: portal menu with settings, DND toggle, and logout items.
+ * - Inputs: open flag, position, optional identity header, DND/logout reasons, actions.
+ * - Outputs: portal menu with non-selectable identity, then actions (settings/DND/logout).
  * @uiMeta lf=LF-086 f=F-016 smoke=R7-*
  */
 export function UserAvatarMenu({
   open,
   menuRef,
   position,
+  identity,
   dndEnabled,
   dndDisabledReason,
   historyDisabledReason,
@@ -62,6 +73,25 @@ export function UserAvatarMenu({
       data-testid="user-avatar-menu"
       style={{ top: position.top, left: position.left }}
     >
+      {identity !== null ? (
+        <>
+          <div
+            className={styles.identityHeader}
+            role="presentation"
+            data-testid="user-menu-identity"
+          >
+            <UserHeaderIdentity
+              variant="menu"
+              displayName={identity.displayName}
+              sipStatusLabel={identity.sipStatusLabel}
+              sipStatusTimerSuffix={identity.sipStatusTimerSuffix}
+              sipStatusTone={identity.sipStatusTone}
+            />
+          </div>
+          <div className={styles.divider} role="separator" />
+        </>
+      ) : null}
+
       <IconTooltip label={contactsDisabledReason ?? ""} className={styles.itemTooltipHost}>
         <button
           type="button"

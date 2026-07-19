@@ -52,6 +52,10 @@ export function AuthAccountShell({
       successKey={accountActions.successKey}
       warningKey={accountActions.warningKey}
       authorizationProgress={accountActions.authorizationProgress}
+      ocpSignInModalOpen={accountActions.ocpSignInModalOpen}
+      onOcpSignInDisconnect={accountActions.handleOcpSignInDisconnect}
+      onOcpSignInReconnect={accountActions.handleOcpSignInReconnect}
+      onOcpSignInSuccessSettled={accountActions.handleOcpSignInSuccessSettled}
       panelMode="newFull"
       disabled={disabled}
       authorizeDisabledReason={authorizeDisabledReason}

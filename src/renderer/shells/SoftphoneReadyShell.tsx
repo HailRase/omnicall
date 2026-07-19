@@ -4,6 +4,7 @@ import type { QueryUserNotificationJournalInput } from "@application/use-cases/s
 import type { AccountPanelActionReasonKey } from "@application/index.js";
 import { resolveFullscreenVideoSession } from "@application/index.js";
 import { NotificationViewport } from "../components/notifications/NotificationViewport.js";
+import { resolveNotificationDescriptorTitle } from "../components/notifications/resolveNotificationDescriptorTitle.js";
 import { UpdateAvailableBanner } from "../components/updates/UpdateAvailableBanner.js";
 import { SettingsFullscreenOverlay } from "../components/settings/SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "../components/settings/SettingsPanel.js";
@@ -45,7 +46,6 @@ import { ContactsShellRoutePanel } from "./contacts/ContactsShellRoutePanel.js";
 import { SoftphoneLayout } from "../widgets/SoftphoneLayout/SoftphoneLayout.js";
 import { OperatorStatusSelector } from "../widgets/OperatorStatusSelector/OperatorStatusSelector.js";
 import { OcpConnectionBanner } from "../components/integration/ocp/OcpConnectionBanner.js";
-import { OcpPostCallStatusModal } from "../components/integration/ocp/OcpPostCallStatusModal.js";
 import { OcpCampaignEventModal } from "../components/integration/ocp/OcpCampaignEventModal.js";
 import { OcpLogoutReasonModal } from "../components/integration/ocp/OcpLogoutReasonModal.js";
 import { mapOcpAuthFeedbackToMessageKey } from "../integration/ocp/mapOcpAuthFeedbackToToast.js";
@@ -95,7 +95,7 @@ function SoftphoneShellLayoutRoute({
   shellChrome,
   isShuttingDown,
 }: SoftphoneReadyShellProps): JSX.Element {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const { sessionLogoutActions } = shellChrome;
   const {
     projection,
@@ -188,16 +188,9 @@ function SoftphoneShellLayoutRoute({
     onDismissUpdateBannerVersion: settingsActions.onDismissUpdateBannerVersion,
   });
   const resolveNotificationTitle = useCallback(
-    (descriptor: NotificationDescriptor): string => {
-      if (descriptor.messageText !== undefined) {
-        return descriptor.messageText;
-      }
-      if (descriptor.messageKey !== undefined) {
-        return t(descriptor.messageKey);
-      }
-      return "";
-    },
-    [t],
+    (descriptor: NotificationDescriptor): string =>
+      resolveNotificationDescriptorTitle(descriptor, language),
+    [language],
   );
   const captureNotification = useCallback(
     async (
@@ -368,7 +361,9 @@ function SoftphoneShellLayoutRoute({
             operatorStatusSlot={
               <OperatorStatusSelector
                 vm={operatorStatusSelector.vm}
+                finishAppeal={operatorStatusSelector.finishAppeal}
                 onSelectReason={operatorStatusSelector.onSelectReason}
+                onFinishAppeal={operatorStatusSelector.onFinishAppeal}
               />
             }
           />
@@ -485,16 +480,6 @@ function SoftphoneShellLayoutRoute({
               void ocpRejectWithBreak.handleConfirm();
             }}
             onCancel={ocpRejectWithBreak.handleCancel}
-          />
-          <OcpPostCallStatusModal
-            open={operatorStatusSelector.postCallModal.open}
-            pendingReasonLabel={operatorStatusSelector.postCallModal.pendingReasonLabel}
-            chosenAction={operatorStatusSelector.postCallModal.chosenAction}
-            submitting={operatorStatusSelector.postCallModal.submitting}
-            onChooseFinish={operatorStatusSelector.onPostCallChooseFinish}
-            onChooseReserve={operatorStatusSelector.onPostCallChooseReserve}
-            onConfirm={operatorStatusSelector.onPostCallConfirm}
-            onCancel={operatorStatusSelector.onPostCallCancel}
           />
           <ShellRouteDataController facade={facade} />
           <HistoryShellRoutePanel facade={facade} notify={notifications.notify} />
@@ -635,19 +620,11 @@ function SoftphoneShellLayoutRoute({
                 ocp: {
                   settings: ocpSettingsPanel.settings,
                   activeLoginLabel: ocpSettingsPanel.activeLoginLabel,
-                  apiKeyDraft: ocpSettingsPanel.apiKeyDraft,
-                  apiKeyVisible: ocpSettingsPanel.apiKeyVisible,
-                  hasSavedApiKey: ocpSettingsPanel.hasSavedApiKey,
-                  actionLoading: ocpSettingsPanel.actionLoading,
                   errorKey: ocpSettingsPanel.errorKey,
                   configEditable: ocpSettingsPanel.configEditable,
                   onEnabledChange: ocpSettingsPanel.onEnabledChange,
                   onDomainChange: ocpSettingsPanel.onDomainChange,
                   onAutoConnectChange: ocpSettingsPanel.onAutoConnectChange,
-                  onApiKeyDraftChange: ocpSettingsPanel.onApiKeyDraftChange,
-                  onApiKeyVisibleChange: ocpSettingsPanel.onApiKeyVisibleChange,
-                  onSaveApiKey: ocpSettingsPanel.onSaveApiKey,
-                  onDeleteApiKey: ocpSettingsPanel.onDeleteApiKey,
                 },
               }}
               account={{
@@ -677,6 +654,11 @@ function SoftphoneShellLayoutRoute({
                 allowedRecoveryActions: accountActions.allowedRecoveryActions,
                 onRecoveryAction: accountActions.handleRecoveryAction,
                 authorizationProgress: accountActions.authorizationProgress,
+                ocpSignInModalOpen: accountActions.ocpSignInModalOpen,
+                onOcpSignInDisconnect: accountActions.handleOcpSignInDisconnect,
+                onOcpSignInReconnect: accountActions.handleOcpSignInReconnect,
+                onOcpSignInSuccessSettled:
+                  accountActions.handleOcpSignInSuccessSettled,
                 canForgetSavedSipPassword:
                   accountActions.canForgetSavedSipPassword,
                 onForgetSavedSipPassword:

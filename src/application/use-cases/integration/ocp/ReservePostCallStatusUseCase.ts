@@ -6,6 +6,7 @@ import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { ok } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
 import type { Result } from "@shared/result/index.js";
+import type { OcpReservedStatusWriter } from "./ChangeOperatorStatusUseCase.js";
 import {
   mapOcpUserTargetStatus,
   OCP_BOUNDED_CONTEXT,
@@ -23,7 +24,7 @@ export type ReservePostCallStatusInput = Readonly<{
 /**
  * - Purpose: reserve next operator status while busy on a call.
  * - Inputs: operator id, target status, reason id.
- * - Outputs: update_post_call_status gateway command + OperatorStatusReservationSet.
+ * - Outputs: update_post_call_status gateway command + local reserved projection + event.
  */
 export class ReservePostCallStatusUseCase {
   constructor(
@@ -31,6 +32,7 @@ export class ReservePostCallStatusUseCase {
       ocpGateway: OcpGateway;
       eventPublisher: DomainEventPublisher;
       logger: Logger;
+      reservedStatusWriter: OcpReservedStatusWriter;
     }>,
   ) {}
 
@@ -72,6 +74,10 @@ export class ReservePostCallStatusUseCase {
       return Promise.resolve(sendResult);
     }
 
+    this.deps.reservedStatusWriter.setReservedStatus(
+      reservedStatus,
+      input.reasonId,
+    );
     this.deps.eventPublisher.publish(
       createOperatorStatusReservationSetEvent(correlationId, {
         operatorId: input.operatorId,

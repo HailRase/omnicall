@@ -9,6 +9,7 @@ export class MockOcpOperatorReadModel implements OcpOperatorReadModel {
   constructor(
     private profile: OperatorProfile | null = null,
     private reservedStatus: OperatorStatusType | null = null,
+    private reservedReasonId: number | null = null,
   ) {}
 
   getCurrentOperatorProfile(): OperatorProfile | null {
@@ -19,8 +20,20 @@ export class MockOcpOperatorReadModel implements OcpOperatorReadModel {
     return this.reservedStatus;
   }
 
+  getReservedReasonId(): number | null {
+    return this.reservedReasonId;
+  }
+
   setProfile(profile: OperatorProfile | null): void {
     this.profile = profile;
+  }
+
+  setReserved(
+    reservedStatus: OperatorStatusType | null,
+    reservedReasonId: number | null = null,
+  ): void {
+    this.reservedStatus = reservedStatus;
+    this.reservedReasonId = reservedReasonId;
   }
 }
 

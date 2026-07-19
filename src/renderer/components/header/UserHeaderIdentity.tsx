@@ -9,6 +9,8 @@ export type UserHeaderIdentityProps = Readonly<{
   sipStatusLabel: string;
   sipStatusTimerSuffix: string | null;
   sipStatusTone: SipStatusDotTone;
+  /** Layout variant: menu (avatar popup) or inline (header stack). */
+  variant?: "inline" | "menu";
 }>;
 
 const SIP_STATUS_TONE_CLASS: Record<SipStatusDotTone, string> = {
@@ -23,9 +25,9 @@ const SIP_STATUS_TONE_CLASS: Record<SipStatusDotTone, string> = {
 };
 
 /**
- * - Purpose: compact user name and SIP status line beside header avatar.
- * - Inputs: display name, SIP status label, optional timer suffix, tone.
- * - Outputs: truncated name stack with colored SIP status text.
+ * - Purpose: user name + SIP registration status (header or avatar menu header).
+ * - Inputs: display name, SIP status label, optional timer suffix, tone, layout variant.
+ * - Outputs: truncated name stack with colored SIP status text (non-interactive).
  * @uiMeta lf=LF-086 f=F-016 smoke=R7-*
  */
 export function UserHeaderIdentity({
@@ -33,9 +35,14 @@ export function UserHeaderIdentity({
   sipStatusLabel,
   sipStatusTimerSuffix,
   sipStatusTone,
+  variant = "inline",
 }: UserHeaderIdentityProps): JSX.Element {
   return (
-    <div className={styles.identity} data-testid="user-header-identity">
+    <div
+      className={clsx(styles.identity, variant === "menu" && styles.identityMenu)}
+      data-testid="user-header-identity"
+      data-variant={variant}
+    >
       <IconTooltip label={displayName} className={styles.displayNameTooltipHost}>
         <span className={styles.displayName}>{displayName}</span>
       </IconTooltip>

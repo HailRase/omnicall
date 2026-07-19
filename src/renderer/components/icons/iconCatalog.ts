@@ -10,7 +10,9 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  CircleAlert,
   CircleCheck,
+  CircleDashed,
   CircleX,
   Coffee,
   Delete,
@@ -21,7 +23,9 @@ import {
   Gauge,
   Grid3x3,
   Headphones,
+  Hourglass,
   Layers,
+  LoaderCircle,
   LogOut,
   Mic,
   MicOff,
@@ -56,14 +60,18 @@ import {
 import {
   ActivityIcon,
   AudioLinesIcon,
+  BadgeAlertIcon,
   BellIcon,
   CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   CircleCheckIcon,
+  CircleDashedIcon,
   CoffeeIcon,
   DeleteIcon,
+  HourglassIcon,
   LayersIcon,
+  LoaderCircleIcon,
   LogoutIcon,
   MicIcon,
   MicOffIcon,
@@ -150,7 +158,12 @@ export type IconSemanticId =
   | "phone.dnd.off"
   | "updates.available"
   | "notification.success"
-  | "notification.error";
+  | "notification.error"
+  | "account.authProgress.status.completed"
+  | "account.authProgress.status.active"
+  | "account.authProgress.status.pending"
+  | "account.authProgress.status.failed"
+  | "account.authProgress.status.timeout";
 
 export type IconCatalogEntry = Readonly<{
   static: LucideIcon;
@@ -600,6 +613,41 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.overlay.close",
     defaultSize: 16,
     usage: ["NotificationViewport: error toast icon"],
+  },
+  "account.authProgress.status.completed": {
+    static: CircleCheck,
+    animated: CircleCheckIcon,
+    defaultLabelKey: "account.authProgress.status.completed",
+    defaultSize: 14,
+    usage: ["OcpSignInProgress: stage status completed"],
+  },
+  "account.authProgress.status.active": {
+    static: LoaderCircle,
+    animated: LoaderCircleIcon,
+    defaultLabelKey: "account.authProgress.status.active",
+    defaultSize: 14,
+    usage: ["OcpSignInProgress: stage status active"],
+  },
+  "account.authProgress.status.pending": {
+    static: CircleDashed,
+    animated: CircleDashedIcon,
+    defaultLabelKey: "account.authProgress.status.pending",
+    defaultSize: 14,
+    usage: ["OcpSignInProgress: stage status pending"],
+  },
+  "account.authProgress.status.failed": {
+    static: CircleAlert,
+    animated: BadgeAlertIcon,
+    defaultLabelKey: "account.authProgress.status.failed",
+    defaultSize: 14,
+    usage: ["OcpSignInProgress: stage status failed"],
+  },
+  "account.authProgress.status.timeout": {
+    static: Hourglass,
+    animated: HourglassIcon,
+    defaultLabelKey: "account.authProgress.status.timeout",
+    defaultSize: 14,
+    usage: ["OcpSignInProgress: stage status timeout"],
   },
 };
 

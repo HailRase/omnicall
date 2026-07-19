@@ -18,7 +18,7 @@ describe("OverwriteSavedAccountCredentialsConfirmationModal", () => {
     setRendererLanguage("ru");
   });
 
-  it("renders two explicit choices when open", () => {
+  it("renders cancel plus split continue control when open", () => {
     render(
       <OverwriteSavedAccountCredentialsConfirmationModal
         open
@@ -34,9 +34,8 @@ describe("OverwriteSavedAccountCredentialsConfirmationModal", () => {
     expect(screen.getByTestId("overwrite-saved-account-credentials-continue")).toHaveTextContent(
       "Войти без сохранения",
     );
-    expect(screen.getByTestId("overwrite-saved-account-credentials-confirm")).toHaveTextContent(
-      "Перезаписать и войти",
-    );
+    expect(screen.getByTestId("overwrite-saved-account-credentials-more")).toBeInTheDocument();
+    expect(screen.queryByTestId("overwrite-saved-account-credentials-confirm")).not.toBeInTheDocument();
   });
 
   it("invokes continue without overwrite from the primary split action", async () => {
@@ -59,7 +58,7 @@ describe("OverwriteSavedAccountCredentialsConfirmationModal", () => {
     expect(onConfirm).not.toHaveBeenCalled();
   });
 
-  it("invokes overwrite from the explicit action", async () => {
+  it("invokes overwrite from the split menu action", async () => {
     setRendererLanguage("en");
     const user = userEvent.setup();
     const onConfirm = vi.fn();
@@ -74,12 +73,13 @@ describe("OverwriteSavedAccountCredentialsConfirmationModal", () => {
       />,
     );
 
+    await user.click(screen.getByTestId("overwrite-saved-account-credentials-more"));
     await user.click(screen.getByTestId("overwrite-saved-account-credentials-confirm"));
     expect(onConfirm).toHaveBeenCalledOnce();
     expect(onContinueWithoutOverwrite).not.toHaveBeenCalled();
   });
 
-  it("shows overwrite loader and disables the alternative while submitting", () => {
+  it("disables cancel and split actions while submitting", () => {
     render(
       <OverwriteSavedAccountCredentialsConfirmationModal
         open
@@ -90,10 +90,9 @@ describe("OverwriteSavedAccountCredentialsConfirmationModal", () => {
       />,
     );
 
-    const confirmButton = screen.getByTestId("overwrite-saved-account-credentials-confirm");
-    expect(confirmButton).toHaveAttribute("aria-busy", "true");
-    expect(confirmButton).toBeDisabled();
+    expect(screen.getByTestId("overwrite-saved-account-credentials-cancel")).toBeDisabled();
     expect(screen.getByTestId("overwrite-saved-account-credentials-continue")).toBeDisabled();
+    expect(screen.getByTestId("overwrite-saved-account-credentials-more")).toBeDisabled();
   });
 
   it("invokes cancel callback", async () => {

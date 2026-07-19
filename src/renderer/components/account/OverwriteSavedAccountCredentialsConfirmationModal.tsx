@@ -1,5 +1,6 @@
-import type { JSX } from "react";
+import { useState, type JSX } from "react";
 import { useI18n } from "../../i18n/index.js";
+import { AppIcon } from "../icons/AppIcon.js";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -9,6 +10,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   Button,
+  ButtonGroup,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "../ui/index.js";
 import styles from "./OverwriteSavedAccountCredentialsConfirmationModal.module.css";
 
@@ -34,10 +40,12 @@ export function OverwriteSavedAccountCredentialsConfirmationModal({
   onCancel,
 }: OverwriteSavedAccountCredentialsConfirmationModalProps): JSX.Element {
   const { t } = useI18n();
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
 
   return (
     <AlertDialog open={open}>
       <AlertDialogContent
+        ref={setPortalContainer}
         className={styles.content}
         data-testid="overwrite-saved-account-credentials-modal"
         aria-label={t("account.profile.overwrite.confirmDialogAria")}
@@ -64,21 +72,46 @@ export function OverwriteSavedAccountCredentialsConfirmationModal({
               {t("common.cancel")}
             </Button>
           </AlertDialogCancel>
-          <Button
-            variant="outline"
-            data-testid="overwrite-saved-account-credentials-continue"
-            disabled={loading}
-            onClick={onContinueWithoutOverwrite}
+          <ButtonGroup
+            className={styles.actions}
+            aria-label={t("account.profile.overwrite.actionsGroupAria")}
           >
-            {t("account.profile.overwrite.continueWithoutSaving")}
-          </Button>
-          <Button
-            data-testid="overwrite-saved-account-credentials-confirm"
-            loading={loading}
-            onClick={onConfirm}
-          >
-            {t("account.profile.overwrite.confirm")}
-          </Button>
+            <Button
+              data-testid="overwrite-saved-account-credentials-continue"
+              disabled={loading}
+              onClick={onContinueWithoutOverwrite}
+            >
+              {t("account.profile.overwrite.continueWithoutSaving")}
+            </Button>
+            {/* modal=false + portal into dialog: avoid AlertDialog inert/z-index trap */}
+            <DropdownMenu modal={false}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="icon"
+                  disabled={loading}
+                  aria-label={t("account.profile.overwrite.moreActionsAria")}
+                  data-testid="overwrite-saved-account-credentials-more"
+                >
+                  <AppIcon id="ui.select.chevron" decorative />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                container={portalContainer}
+                className={styles.menu}
+              >
+                <DropdownMenuItem
+                  data-testid="overwrite-saved-account-credentials-confirm"
+                  disabled={loading}
+                  onSelect={() => {
+                    onConfirm();
+                  }}
+                >
+                  {t("account.profile.overwrite.confirm")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </ButtonGroup>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

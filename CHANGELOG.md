@@ -7,7 +7,29 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+### Fixed
+
+- Модалка перезаписи сохранённых данных больше не ждёт весь OCP/SIP sign-in: закрывается сразу после подтверждения (перезапись — быстрый pre-auth persist).
+- Футер overwrite-диалога снова Cancel + ButtonGroup (continue / overwrite в меню) — «Отмена» не выталкивается за край модалки.
+- Меню «Перезаписать и войти» больше не уходит под AlertDialog (z-popover + portal в content, без transform-containing-block).
+
+## [0.11.1] - 2026-07-19
+
+### Fixed
+
+- OCP modal Reconnect больше не вызывает новый Login: recovery через Facade при уже активной account session (ADR-AF-005).
+- Отмена OCP sign-in не даёт stale attempt перезаписывать progress и не запускает promote/register после cancel.
+- Disconnect OCP возвращает Server/Auth в idle, сохраняя локальную сессию и уже установленный SIP.
+
+### Changed
+
+- Подпись Disconnect в модалке OCP: «Отключить OCP» (все локали), чтобы не путать с полным Logout.
+
 ## [0.11.0] - 2026-07-17
+
+### Changed
+
+- OCP-вход в Account открывает модалку с blur-фоном: общий и поэтапный Progress (заполнение по таймауту этапа), зелёный/красный статус, tooltip причины ошибки, footer «Отключиться» / «Переподключиться».
 
 ### Added
 

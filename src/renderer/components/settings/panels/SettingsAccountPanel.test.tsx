@@ -210,14 +210,14 @@ describe("SettingsAccountPanel", () => {
     expect(screen.queryByTestId("account-success")).not.toBeInTheDocument();
   });
 
-  it("shows overwrite loader while the replacement sign-in is running", () => {
+  it("disables overwrite dialog actions while sign-in is submitting", () => {
     renderPanel({
       overwriteConfirmationOpen: true,
       submitting: true,
     });
 
-    const confirmButton = screen.getByTestId("overwrite-saved-account-credentials-confirm");
-    expect(confirmButton).toHaveAttribute("aria-busy", "true");
-    expect(confirmButton).toBeDisabled();
+    expect(screen.getByTestId("overwrite-saved-account-credentials-cancel")).toBeDisabled();
+    expect(screen.getByTestId("overwrite-saved-account-credentials-continue")).toBeDisabled();
+    expect(screen.getByTestId("overwrite-saved-account-credentials-more")).toBeDisabled();
   });
 });

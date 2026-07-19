@@ -147,6 +147,48 @@ describe("accountSignInViewModel", () => {
     expect(vm.allowedRecoveryActions).toEqual(["retry_server"]);
   });
 
+  it("shows reconnect only for the saved profile that owns the active account session", () => {
+    const alex = profile("alex.supervisor@pbx.example", "alex.supervisor", "ocp.example");
+    const yura = profile("yura.supervisor@pbx.example", "yura.supervisor", "ocp.example");
+    const authorized = {
+      serverState: "connected" as const,
+      authorizationState: authorizedOcpAuthorizationState(),
+      terminalSessionClosed: false,
+    };
+
+    const onActive = deriveAccountSignInViewModel({
+      isSipRegistered: true,
+      hasActiveAccountSession: true,
+      availabilities: [
+        availability(alex, { hasSavedOcpApiKey: true, hasCompleteOcpConfiguration: true }),
+        availability(yura, { hasSavedOcpApiKey: true, hasCompleteOcpConfiguration: true }),
+      ],
+      selectedProfileId: alex.id,
+      activeSessionProfileId: alex.id,
+      dualFsm: authorized,
+    });
+    expect(onActive.allowedRecoveryActions).toEqual(["reconnect"]);
+
+    const onOther = deriveAccountSignInViewModel({
+      isSipRegistered: true,
+      hasActiveAccountSession: true,
+      availabilities: [
+        availability(alex, { hasSavedOcpApiKey: true, hasCompleteOcpConfiguration: true }),
+        availability(yura, { hasSavedOcpApiKey: true, hasCompleteOcpConfiguration: true }),
+      ],
+      selectedProfileId: yura.id,
+      activeSessionProfileId: alex.id,
+      dualFsm: authorized,
+    });
+    expect(onOther.allowedRecoveryActions).toEqual([]);
+
+    expect(
+      deriveAllowedAccountRecoveryActions(authorized, {
+        selectedProfileOwnsActiveSession: false,
+      }),
+    ).toEqual([]);
+  });
+
   it("maps null availability to null selected profile view", () => {
     expect(toAccountSignInSelectedProfileView(null)).toBeNull();
   });

@@ -13,12 +13,14 @@ import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { OcpProjectionHub } from "../../read-models/OcpProjectionHub.js";
 import { InMemoryDndReadModel } from "../../read-models/InMemoryDndReadModel.js";
 import { ChangeOperatorStatusUseCase } from "../../use-cases/integration/ocp/ChangeOperatorStatusUseCase.js";
+import { FinishPostCallAppealUseCase } from "../../use-cases/integration/ocp/FinishPostCallAppealUseCase.js";
 import { ReservePostCallStatusUseCase } from "../../use-cases/integration/ocp/ReservePostCallStatusUseCase.js";
 import { ConnectOcpUseCase } from "../../use-cases/integration/ocp/ConnectOcpUseCase.js";
 import { DisconnectOcpUseCase } from "../../use-cases/integration/ocp/DisconnectOcpUseCase.js";
 import { LogoutOperatorUseCase } from "../../use-cases/integration/ocp/LogoutOperatorUseCase.js";
 import { AcceptCampaignUseCase } from "../../use-cases/integration/ocp/AcceptCampaignUseCase.js";
 import { RejectCampaignUseCase } from "../../use-cases/integration/ocp/RejectCampaignUseCase.js";
+import type { OperatorStatus as OperatorStatusType } from "@domain/integration/ocp/OperatorStatus.js";
 import type { SettingsAccountIdentity } from "@domain/settings/deriveSettingsAccountKey.js";
 import type { AuthorizeSipAccountUseCase } from "../../use-cases/settings/AuthorizeSipAccountUseCase.js";
 import type { PromoteAuthorizedSipSessionUseCase } from "../../use-cases/settings/PromoteAuthorizedSipSessionUseCase.js";
@@ -72,6 +74,7 @@ export class OcpIntegrationComposition {
   readonly disconnectOcp: DisconnectOcpUseCase;
   readonly changeOperatorStatus: ChangeOperatorStatusUseCase;
   readonly reservePostCallStatus: ReservePostCallStatusUseCase;
+  readonly finishPostCallAppeal: FinishPostCallAppealUseCase;
   readonly logoutOperator: LogoutOperatorUseCase;
   readonly acceptCampaign: AcceptCampaignUseCase;
   readonly rejectCampaign: RejectCampaignUseCase;
@@ -127,21 +130,31 @@ export class OcpIntegrationComposition {
         );
       },
     });
+    const reservedStatusWriter = {
+      setReservedStatus: (
+        reservedStatus: OperatorStatusType,
+        reservedReasonId: number,
+      ) => {
+        this.projectionHub.setReservedStatus(reservedStatus, reservedReasonId);
+      },
+    };
     this.changeOperatorStatus = new ChangeOperatorStatusUseCase({
       ocpGateway: deps.ocpGateway,
       operatorReadModel: this.projectionHub,
       dndReadModel: this.dndReadModel,
       logger: deps.logger,
       eventPublisher: deps.eventPublisher,
-      reservedStatusWriter: {
-        setReservedStatus: (reservedStatus, reservedReasonId) => {
-          this.projectionHub.setReservedStatus(reservedStatus, reservedReasonId);
-        },
-      },
+      reservedStatusWriter,
     });
     this.reservePostCallStatus = new ReservePostCallStatusUseCase({
       ocpGateway: deps.ocpGateway,
       eventPublisher: deps.eventPublisher,
+      logger: deps.logger,
+      reservedStatusWriter,
+    });
+    this.finishPostCallAppeal = new FinishPostCallAppealUseCase({
+      operatorReadModel: this.projectionHub,
+      changeOperatorStatus: this.changeOperatorStatus,
       logger: deps.logger,
     });
     this.logoutOperator = new LogoutOperatorUseCase({

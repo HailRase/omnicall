@@ -1,13 +1,32 @@
-import type { JSX } from "react";
-import {
-  OCP_SIGN_IN_EXECUTION_STAGES,
-  type OcpSignInExecutionStage,
-  type AuthorizationProgressProjection,
+import { useEffect, useRef, useState, type JSX } from "react";
+import type {
+  AuthorizationProgressProjection,
+  OcpSignInExecutionStage,
 } from "@application/projections/settings/authorizationProgressProjection.js";
+import {
+  deriveOcpSignInProgressView,
+  type OcpSignInStageVisualState,
+} from "@application/projections/settings/deriveOcpSignInProgressView.js";
+import {
+  formatOcpSignInFailureTooltip,
+  mapOcpSignInFailureToMessageKey,
+} from "../../integration/ocp/mapOcpSignInFailureToMessageKey.js";
 import { useI18n } from "../../i18n/index.js";
 import type { TranslationKey } from "../../i18n/messages.js";
-import { Button } from "../ui/index.js";
+import { IconTooltip } from "../icons/IconTooltip.js";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  Progress,
+  type ProgressTone,
+} from "../ui/index.js";
 import styles from "./OcpSignInProgress.module.css";
+import { OcpSignInProgressStatusIcon } from "./OcpSignInProgressStatusIcon.js";
 
 const STAGE_KEY: Record<OcpSignInExecutionStage, TranslationKey> = {
   requesting_authorization_token: "account.authProgress.stage.httpToken",
@@ -17,75 +36,250 @@ const STAGE_KEY: Record<OcpSignInExecutionStage, TranslationKey> = {
   authorizing_sip: "account.authProgress.stage.sipAuthorization",
 };
 
+const TICK_MS = 50;
+const SUCCESS_CLOSE_MS = 900;
+
 type OcpSignInProgressProps = Readonly<{
+  open: boolean;
   progress: AuthorizationProgressProjection;
-  onRestart: () => void;
+  reconnectEnabled: boolean;
+  busy?: boolean;
+  onDisconnect: () => void;
+  onReconnect: () => void;
+  onOpenChange?: (open: boolean) => void;
+  onSuccessSettled?: () => void;
 }>;
 
-export function OcpSignInProgress({
-  progress,
-  onRestart,
-}: OcpSignInProgressProps): JSX.Element | null {
-  const { t } = useI18n();
-  const isVisible =
-    progress.executionStage !== null ||
-    progress.completedExecutionStages.length > 0 ||
-    progress.failedExecutionStage !== null;
-  if (!isVisible) {
-    return null;
+function resolveTone(
+  state: OcpSignInStageVisualState | "idle" | "active" | "completed" | "failed",
+): ProgressTone {
+  if (state === "failed") {
+    return "destructive";
   }
+  if (state === "completed") {
+    return "success";
+  }
+  return "default";
+}
+
+function resolveStatusTextKey(state: OcpSignInStageVisualState): TranslationKey {
+  if (state === "failed") {
+    return "account.authProgress.status.failed";
+  }
+  if (state === "completed") {
+    return "account.authProgress.status.completed";
+  }
+  if (state === "active") {
+    return "account.authProgress.status.active";
+  }
+  return "account.authProgress.status.pending";
+}
+
+/**
+ * - Purpose: modal OCP sign-in progress with timed stage bars and recovery footer.
+ * - Inputs: live authorization progress projection + disconnect/reconnect callbacks.
+ * - Outputs: accessible Dialog; no Facade/SIP ownership.
+ */
+export function OcpSignInProgress({
+  open,
+  progress,
+  reconnectEnabled,
+  busy = false,
+  onDisconnect,
+  onReconnect,
+  onOpenChange,
+  onSuccessSettled,
+}: OcpSignInProgressProps): JSX.Element {
+  const { t } = useI18n();
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  const [liveStatus, setLiveStatus] = useState("");
+  const view = deriveOcpSignInProgressView(progress, nowMs);
+  const shouldTick =
+    open && (view.overallState === "active" || view.hasLatentFailure);
+  const lastAnnouncedRef = useRef<string>("");
+  const activeStage = view.stages.find((stage) => stage.state === "active");
+  const failedStage = view.stages.find((stage) => stage.state === "failed");
+
+  // Reset wall-clock when attempt/stage ownership changes so a new run never
+  // inherits a stale percent from the previous attempt.
+  useEffect(() => {
+    setNowMs(Date.now());
+  }, [progress.correlationId, progress.executionStage, progress.stageStartedAtMs]);
+
+  useEffect(() => {
+    if (!shouldTick) {
+      return;
+    }
+    const timer = window.setInterval(() => {
+      setNowMs(Date.now());
+    }, TICK_MS);
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, [shouldTick, progress.executionStage, progress.stageStartedAtMs]);
+
+  useEffect(() => {
+    if (!open || !view.isReady || view.hasFailure || view.hasLatentFailure) {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      onSuccessSettled?.();
+    }, SUCCESS_CLOSE_MS);
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [open, view.hasFailure, view.hasLatentFailure, view.isReady, onSuccessSettled]);
+
+  // Announce only semantic stage/state changes — never 50ms percent ticks.
+  useEffect(() => {
+    if (!open) {
+      lastAnnouncedRef.current = "";
+      setLiveStatus("");
+      return;
+    }
+    let next = "";
+    if (view.isReady && !view.hasFailure) {
+      next = t("account.authProgress.status.completed");
+    } else if (failedStage !== undefined) {
+      next = `${t(STAGE_KEY[failedStage.stage])}: ${t("account.authProgress.status.failed")}`;
+    } else if (activeStage !== undefined) {
+      next = `${t(STAGE_KEY[activeStage.stage])}: ${t("account.authProgress.status.active")}`;
+    }
+    if (next.length > 0 && next !== lastAnnouncedRef.current) {
+      lastAnnouncedRef.current = next;
+      setLiveStatus(next);
+    }
+  }, [activeStage, failedStage, open, t, view.hasFailure, view.isReady]);
+
+  const reconnectDisabled = busy || !reconnectEnabled || !view.hasFailure;
+  const reconnectDisabledReason = reconnectDisabled
+    ? busy
+      ? t("account.authProgress.reconnectDisabled.busy")
+      : !view.hasFailure
+        ? t("account.authProgress.reconnectDisabled.inProgress")
+        : t("account.authProgress.reconnectDisabled.unavailable")
+    : null;
+
+  const reconnectButton = (
+    <Button
+      type="button"
+      variant="primary"
+      size="sm"
+      disabled={reconnectDisabled}
+      data-testid="account-ocp-progress-reconnect"
+      onClick={onReconnect}
+    >
+      {t("account.authProgress.reconnect")}
+    </Button>
+  );
 
   return (
-    <section
-      className={styles.root}
-      aria-label={t("account.authProgress.stagesAria")}
-      aria-live="polite"
-      data-testid="account-ocp-progress"
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) {
+          onDisconnect();
+        }
+        onOpenChange?.(nextOpen);
+      }}
     >
-      <ol className={styles.list}>
-        {OCP_SIGN_IN_EXECUTION_STAGES.map((stage, index) => {
-          const failed = progress.failedExecutionStage === stage;
-          const completed = progress.completedExecutionStages.includes(stage);
-          const active = progress.executionStage === stage && !failed;
-          const status = failed
-            ? t(
-                progress.failureReason === "timeout"
-                  ? "account.authProgress.status.timeout"
-                  : "account.authProgress.status.failed",
-              )
-            : completed
-              ? t("account.authProgress.status.completed")
-              : active
-                ? t("account.authProgress.status.active")
-                : t("account.authProgress.status.pending");
-          return (
-            <li
-              key={stage}
-              className={styles.item}
-              data-state={
-                failed ? "failed" : completed ? "completed" : active ? "active" : "pending"
-              }
-            >
-              <span className={styles.index} aria-hidden="true">
-                {index + 1}
-              </span>
-              <span className={styles.label}>{t(STAGE_KEY[stage])}</span>
-              <span className={styles.status}>{status}</span>
-            </li>
-          );
-        })}
-      </ol>
-      {progress.failedExecutionStage !== null ? (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          data-testid="account-ocp-progress-restart"
-          onClick={onRestart}
+      <DialogContent
+        size="md"
+        className={styles.content}
+        overlayClassName={styles.overlayBlur}
+        closeLabel={t("account.authProgress.disconnect")}
+        showCloseButton={false}
+        onPointerDownOutside={(event) => {
+          event.preventDefault();
+        }}
+        onEscapeKeyDown={(event) => {
+          event.preventDefault();
+          onDisconnect();
+        }}
+        data-testid="account-ocp-progress-modal"
+      >
+        <DialogHeader className={styles.header}>
+          <DialogTitle className={styles.title}>
+            {t("account.authProgress.modalTitle")}
+          </DialogTitle>
+          <DialogDescription className={styles.description}>
+            {t("account.authProgress.modalDescription")}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div
+          className={styles.liveRegion}
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+          data-testid="account-ocp-progress-live-status"
         >
-          {t("account.authProgress.restart")}
-        </Button>
-      ) : null}
-    </section>
+          {liveStatus}
+        </div>
+
+        <ol className={styles.list} aria-label={t("account.authProgress.stagesAria")}>
+          {view.stages.map((stageView) => {
+            const failureLabel =
+              stageView.state === "failed"
+                ? formatOcpSignInFailureTooltip(
+                    t(
+                      mapOcpSignInFailureToMessageKey(
+                        stageView.failureKind,
+                        stageView.failureCode,
+                      ),
+                    ),
+                    stageView.failureCode,
+                  )
+                : null;
+
+            return (
+              <li
+                key={stageView.stage}
+                className={styles.item}
+                data-state={stageView.state}
+                data-testid={`account-ocp-progress-stage-${stageView.stage}`}
+              >
+                <div className={styles.main}>
+                  <span className={styles.label}>{t(STAGE_KEY[stageView.stage])}</span>
+                  <Progress
+                    className={styles.stageBar}
+                    value={stageView.percent}
+                    tone={resolveTone(stageView.state)}
+                    aria-label={t(STAGE_KEY[stageView.stage])}
+                  />
+                </div>
+                <div className={styles.status}>
+                  <OcpSignInProgressStatusIcon
+                    state={stageView.state}
+                    failureLabel={failureLabel}
+                  />
+                  <span className={styles.statusText}>{t(resolveStatusTextKey(stageView.state))}</span>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+
+        <DialogFooter className={styles.footer}>
+          <Button
+            type="button"
+            variant={view.hasFailure ? "destructive" : "outline"}
+            size="sm"
+            disabled={busy}
+            data-testid="account-ocp-progress-disconnect"
+            onClick={onDisconnect}
+          >
+            {t("account.authProgress.disconnect")}
+          </Button>
+          {reconnectDisabledReason !== null ? (
+            <IconTooltip label={reconnectDisabledReason}>
+              <span className={styles.disabledTooltipHost}>{reconnectButton}</span>
+            </IconTooltip>
+          ) : (
+            reconnectButton
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

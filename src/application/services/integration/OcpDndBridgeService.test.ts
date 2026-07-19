@@ -49,6 +49,7 @@ describe("OcpDndBridgeService", () => {
       ocpGateway: gateway,
       eventPublisher: bus,
       logger,
+      reservedStatusWriter: { setReservedStatus: () => undefined },
     });
 
     const bridge = new OcpDndBridgeService({
@@ -101,6 +102,7 @@ describe("OcpDndBridgeService", () => {
       ocpGateway: gateway,
       eventPublisher: bus,
       logger,
+      reservedStatusWriter: { setReservedStatus: () => undefined },
     });
 
     const bridge = new OcpDndBridgeService({

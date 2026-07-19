@@ -58,6 +58,8 @@ function createFacadeMock(
   getActiveSipAccount: ReturnType<typeof vi.fn>;
   getAccountSignInViewModel: ReturnType<typeof vi.fn>;
   dispatchAccountRecoveryAction: ReturnType<typeof vi.fn>;
+  recoverOcpSignInFromModal: ReturnType<typeof vi.fn>;
+  cancelOcpSignInAttempt: ReturnType<typeof vi.fn>;
 } {
   const signInAccount = vi
     .fn()
@@ -76,12 +78,16 @@ function createFacadeMock(
   const getActiveSipAccount = vi.fn().mockResolvedValue(null);
   const getAccountSignInViewModel = vi.fn().mockResolvedValue(ok(createSignInViewModel()));
   const dispatchAccountRecoveryAction = vi.fn().mockResolvedValue(ok(undefined));
+  const recoverOcpSignInFromModal = vi.fn().mockResolvedValue(ok(undefined));
+  const cancelOcpSignInAttempt = vi.fn().mockResolvedValue(ok(undefined));
 
   const facade = {
     listSavedAccountProfiles,
     signInAccount,
     getAccountSignInViewModel,
     dispatchAccountRecoveryAction,
+    cancelOcpSignInAttempt,
+    recoverOcpSignInFromModal,
     deleteSavedAccountProfile: vi.fn().mockResolvedValue(ok(undefined)),
     hasRememberedSipPassword,
     loadSavedAccountProfileSecrets,
@@ -98,6 +104,8 @@ function createFacadeMock(
     getActiveSipAccount,
     getAccountSignInViewModel,
     dispatchAccountRecoveryAction,
+    recoverOcpSignInFromModal,
+    cancelOcpSignInAttempt,
   };
 }
 
@@ -544,7 +552,14 @@ describe("useAccountActions", () => {
   });
 
   it("signs in with overwrite after confirming the overwrite prompt (T-037)", async () => {
+    const signInOutcome = ok(createReadyAccountSignInOutcome());
+    let resolveSignIn: ((value: typeof signInOutcome) => void) | undefined;
+    const deferredSignIn = new Promise<typeof signInOutcome>((resolve) => {
+      resolveSignIn = resolve;
+    });
     const { facade, signInAccount } = createFacadeMock();
+    signInAccount.mockReturnValue(deferredSignIn);
+
     const { result } = renderHook(() => useAccountActions({ facade }));
 
     await waitFor(() => {
@@ -570,6 +585,9 @@ describe("useAccountActions", () => {
       result.current.confirmOverwriteExistingCredentials();
     });
 
+    // Confirm dialog must dismiss before auth finishes — overwrite is not the long wait.
+    expect(result.current.overwriteConfirmationOpen).toBe(false);
+
     await waitFor(() => {
       expect(signInAccount).toHaveBeenCalledOnce();
     });
@@ -585,9 +603,12 @@ describe("useAccountActions", () => {
         }),
       }),
     );
-    await waitFor(() => {
-      expect(result.current.overwriteConfirmationOpen).toBe(false);
+
+    await act(async () => {
+      resolveSignIn?.(signInOutcome);
+      await deferredSignIn;
     });
+    expect(result.current.overwriteConfirmationOpen).toBe(false);
   });
 
   it("does not discard a dirty new-profile draft without confirmation", async () => {
@@ -637,5 +658,94 @@ describe("useAccountActions", () => {
     });
 
     expect(result.current.rememberPasswordDisabled).toBe(false);
+  });
+
+  it("modal Reconnect calls recoverOcpSignInFromModal and never signInAccount", async () => {
+    const { facade, signInAccount, recoverOcpSignInFromModal } = createFacadeMock();
+    const { result } = renderHook(() => useAccountActions({ facade }));
+
+    act(() => {
+      result.current.setSignInMode("ocp");
+      result.current.handleOcpSignInReconnect();
+    });
+
+    await waitFor(() => {
+      expect(recoverOcpSignInFromModal).toHaveBeenCalledOnce();
+    });
+    expect(signInAccount).not.toHaveBeenCalled();
+    expect(result.current.ocpSignInModalOpen).toBe(true);
+  });
+
+  it("modal Reconnect works while account session is active (ADR-AF-005)", async () => {
+    const { facade, signInAccount, recoverOcpSignInFromModal, getAccountSignInViewModel } =
+      createFacadeMock();
+    getAccountSignInViewModel.mockResolvedValue(
+      ok(
+        createSignInViewModel({
+          hasActiveAccountSession: true,
+          loginDisabledReason: "account.signIn.disabled.logoutFirst",
+        }),
+      ),
+    );
+    const { result } = renderHook(() => useAccountActions({ facade }));
+
+    await waitFor(() => {
+      expect(result.current.loginDisabledReasonKey).toBe(
+        "account.signIn.disabled.logoutFirst",
+      );
+    });
+
+    act(() => {
+      result.current.handleOcpSignInReconnect();
+    });
+
+    await waitFor(() => {
+      expect(recoverOcpSignInFromModal).toHaveBeenCalledOnce();
+    });
+    expect(signInAccount).not.toHaveBeenCalled();
+    expect(result.current.ocpSignInModalOpen).toBe(true);
+  });
+
+  it("keeps modal open when modal recovery returns a typed error", async () => {
+    const { facade, recoverOcpSignInFromModal } = createFacadeMock();
+    recoverOcpSignInFromModal.mockResolvedValue(
+      err(
+        createPlatformError("operation_failed", "authorization_retry_unavailable", {
+          reason: "authorization_retry_unavailable",
+        }),
+      ),
+    );
+    const { result } = renderHook(() => useAccountActions({ facade }));
+
+    act(() => {
+      result.current.handleOcpSignInReconnect();
+    });
+
+    await waitFor(() => {
+      expect(result.current.error).not.toBeNull();
+    });
+    expect(result.current.ocpSignInModalOpen).toBe(true);
+  });
+
+  it("Disconnect closes modal after cancelOcpSignInAttempt", async () => {
+    const { facade, cancelOcpSignInAttempt } = createFacadeMock();
+    const { result } = renderHook(() => useAccountActions({ facade }));
+
+    act(() => {
+      result.current.setSignInMode("ocp");
+      result.current.handleOcpSignInReconnect();
+    });
+    await waitFor(() => {
+      expect(result.current.ocpSignInModalOpen).toBe(true);
+    });
+
+    act(() => {
+      result.current.handleOcpSignInDisconnect();
+    });
+
+    await waitFor(() => {
+      expect(cancelOcpSignInAttempt).toHaveBeenCalledOnce();
+      expect(result.current.ocpSignInModalOpen).toBe(false);
+    });
   });
 });

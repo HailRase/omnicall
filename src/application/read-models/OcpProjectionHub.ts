@@ -127,6 +127,10 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
     return this.operator.reservedStatus;
   }
 
+  getReservedReasonId(): number | null {
+    return this.operator.reservedReasonId;
+  }
+
   setSessionDomain(domain: string): void {
     this.session = applyOcpSessionDomain(this.session, domain);
     this.notifyChangeListeners();
@@ -248,6 +252,16 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
   }
 
   private applyServerState(state: OcpServerState): void {
+    // After cancel → cold idle: ignore late connecting/connected/failed/reconnecting
+    // from a superseded in-flight ConnectOcp (ADR-AF-002). Owned attempts
+    // (activeAttemptId set) and live sessions still accept transport transitions.
+    const isColdIdle =
+      this.session.activeAttemptId === null &&
+      this.session.serverState === "disconnected" &&
+      this.session.authorizationState.phase === "idle";
+    if (isColdIdle && state !== "disconnected") {
+      return;
+    }
     this.session = reduceOcpSessionFromServerState(this.session, state);
     this.notifyChangeListeners();
   }

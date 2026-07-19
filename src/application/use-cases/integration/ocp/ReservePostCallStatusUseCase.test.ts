@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { MockOcpGateway } from "@adapters/mock/MockOcpGateway.js";
 import { OperatorStatus } from "@domain/integration/ocp/OperatorStatus.js";
 import { createTestLogger } from "@infrastructure/logging/TestLogger.js";
@@ -14,10 +14,12 @@ describe("ReservePostCallStatusUseCase", () => {
     bus.subscribe((event) => {
       published.push(event.type);
     });
+    const setReservedStatus = vi.fn();
     const useCase = new ReservePostCallStatusUseCase({
       ocpGateway: gateway,
       eventPublisher: bus,
       logger: createTestLogger(),
+      reservedStatusWriter: { setReservedStatus },
     });
 
     const result = await useCase.execute({
@@ -33,6 +35,7 @@ describe("ReservePostCallStatusUseCase", () => {
       reasonId: 7,
       reservedStatus: OperatorStatus.BREAK,
     });
+    expect(setReservedStatus).toHaveBeenCalledWith(OperatorStatus.BREAK, 7);
     expect(published).toContain("OperatorStatusReservationSet");
   });
 });
