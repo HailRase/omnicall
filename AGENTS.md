@@ -12,6 +12,8 @@
 - UI Kit plan: `docs/ui-kit/UI-KIT.md`
 - UI Kit visual canon: `docs/ui-kit/VISUAL-SPEC.md`
 - **SIP transport/register refactor (T-008):** `docs/softphone/TRANSPORT-REGISTER-STATE-REFACTORING.md`
+- **Axatalk SDK project:** `axatalk-sdk/README.md`
+- **Desktop SDK integration (F-011/P12):** `axatalk-sdk-integration/README.md`
 
 ## Commands (`.cursor/commands/`)
 
@@ -31,6 +33,9 @@
 | `/review` | WU gate reviewer |
 | `/rat-review` | RAT gate reviewer |
 | `/audit` | Holistic super reviewer |
+| `/sdk-project` | Execute one standalone SDK work unit |
+| `/sdk-integration` | Execute one desktop SDK integration work unit |
+| `/sdk-review` | Review one SDK or desktop integration work unit |
 
 ## Implementation agents
 
@@ -41,6 +46,8 @@
 | `/logic` | `.cursor/skills/domain-implementation-agent/SKILL.md` |
 | `/adapter` | `docs/softphone/real-integration/MASTER-AGENT-PROMPT.md` |
 | `/release` | `.cursor/skills/release-agent/SKILL.md` |
+| `/sdk-project` | `axatalk-sdk/.cursor/skills/axatalk-sdk-implementation/SKILL.md` |
+| `/sdk-integration` | `.cursor/skills/axatalk-sdk-integration/SKILL.md` |
 
 Product implementation agents run **scope-intake** first. `/ui-kit` follows `docs/ui-kit/UI-KIT.md`; `/release` runs **release cut** only (not scope-intake).
 
@@ -92,7 +99,7 @@ Reviewers do not write production code or work-history.
 
 ## Skills index
 
-`scope-intake`, `ui-implementation-agent`, `ui-kit-component-agent`, `domain-implementation-agent`, `holistic-reviewer`, `feature-slice-design`, `implementation-phase-planning`, `softphone-architecture-review`, `telephony-flow-review`, `integration-contract-review`, `legacy-feature-migration`, `ux-ui-flow-design`, `softphone-reviewer`, `real-integration-agent`, `release-agent`, `icons`
+`scope-intake`, `ui-implementation-agent`, `ui-kit-component-agent`, `domain-implementation-agent`, `holistic-reviewer`, `feature-slice-design`, `implementation-phase-planning`, `softphone-architecture-review`, `telephony-flow-review`, `integration-contract-review`, `legacy-feature-migration`, `ux-ui-flow-design`, `softphone-reviewer`, `real-integration-agent`, `release-agent`, `axatalk-sdk-integration`, `icons`
 
 ## User Cursor settings
 

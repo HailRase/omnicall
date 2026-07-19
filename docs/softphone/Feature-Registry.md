@@ -309,10 +309,15 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - No `window.Softphone` global API in Axatalk.
   - External tab integration uses one gateway + command router (future).
   - OCP external command payloads reuse `OcpHostApiContract` + Facade host methods (F-028 E-12).
+  - The WebSocket server lives in Electron main and reaches the single renderer Application composition through a typed, validated broker; no second Facade or Call Engine is created.
+  - Exact Origin, pairing, per-client capabilities, replay protection, resource limits, revocation, and PII redaction fail closed before product data is exposed.
+  - SIP-only mode remains independent from SDK and OCP; SDK startup or failure cannot block core softphone startup.
+  - Public commands/events use versioned DTOs and compatibility fixtures rather than internal Domain Events, JsSIP objects, or OCP wire payloads.
 - Test Coverage:
   - Unit: command payload parsing (F-028 E-12)
   - Integration: deferred until ExternalClientGateway exists
   - E2E: deferred
+- Implementation plans: `axatalk-sdk/README.md`; `axatalk-sdk-integration/README.md`
 - Implementation evidence (OCP command surface): `src/shared/host-api/OcpHostApiContract.ts`; Facade `authenticateOcpFromHost` / `changeOcpStatusFromHost` / `getOcpConnectionState`
 
 ## F-012: Headset Call Controls
