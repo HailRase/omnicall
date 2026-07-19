@@ -654,6 +654,11 @@ function SoftphoneShellLayoutRoute({
                 allowedRecoveryActions: accountActions.allowedRecoveryActions,
                 onRecoveryAction: accountActions.handleRecoveryAction,
                 authorizationProgress: accountActions.authorizationProgress,
+                ocpSignInModalOpen: accountActions.ocpSignInModalOpen,
+                onOcpSignInDisconnect: accountActions.handleOcpSignInDisconnect,
+                onOcpSignInReconnect: accountActions.handleOcpSignInReconnect,
+                onOcpSignInSuccessSettled:
+                  accountActions.handleOcpSignInSuccessSettled,
                 canForgetSavedSipPassword:
                   accountActions.canForgetSavedSipPassword,
                 onForgetSavedSipPassword:

@@ -3662,6 +3662,23 @@ export class AccountBootstrapFacade {
   }
 
   /**
+   * - Purpose: cancel in-flight OCP sign-in from Account modal and return dual FSM to idle.
+   * - Inputs: optional correlation id for disconnect logging.
+   * - Outputs: socket disconnected + cold-start OCP projections (progress/server/auth idle).
+   */
+  async cancelOcpSignInAttempt(
+    correlationId?: CorrelationId,
+  ): Promise<Result<void, PlatformError>> {
+    // Capture/cancel waiters before clearAttempt; then close socket; then cold idle.
+    this.ocpIntegration.backedSignIn.cancelUserSignIn("user_cancel");
+    const disconnectResult = await this.disconnectOcp(correlationId);
+    // Same cold-start path as intentional avatar logout (ADR-AF-002) — kills
+    // "connecting" banners and stale dual-FSM recovery affordances.
+    this.ocpIntegration.resetProjectionsToIdleAfterUserLogout();
+    return disconnectResult;
+  }
+
+  /**
    * - Purpose: external authenticate — persist domain/apiKey and HTTP+WS connect.
    * - Inputs: ocpDomain + login + apiKey from future ExternalCommandRouter.
    * - Outputs: connect result; secrets never logged.

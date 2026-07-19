@@ -1,9 +1,21 @@
 declare const classes: {
-  readonly index: string;
+  readonly content: string;
+  readonly description: string;
+  readonly footer: string;
+  readonly footerEnd: string;
+  readonly header: string;
   readonly item: string;
   readonly label: string;
   readonly list: string;
-  readonly root: string;
+  readonly main: string;
+  readonly overall: string;
+  readonly overallBar: string;
+  readonly overallLabel: string;
+  readonly overlayBlur: string;
+  readonly stageBar: string;
   readonly status: string;
+  readonly statusIcon: string;
+  readonly statusText: string;
+  readonly title: string;
 };
 export default classes;

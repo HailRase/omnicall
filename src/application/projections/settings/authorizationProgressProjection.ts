@@ -1,7 +1,7 @@
 /**
  * - Purpose: unified user-facing authorization progress across SIP and OCP sign-in.
  * - Inputs: orchestration stage transitions (Application services / Facade).
- * - Outputs: serializable stage + retry flag for Account / Integrations UI.
+ * - Outputs: serializable stage + retry flag + timed execution progress for Account UI.
  */
 import {
   OCP_SIGN_IN_EXECUTION_STAGES,
@@ -27,16 +27,46 @@ export type AuthorizationProgressStage =
   | "ocp_session_exist"
   | "retry_available";
 
+/** Normalized failure kind for tooltips / recovery copy (not localized). */
+export type AuthorizationProgressFailureKind =
+  | "timeout"
+  | "session_exist"
+  | "http_failed"
+  | "invalid_api_key"
+  | "transport"
+  | "sip_identity_mismatch"
+  | "sip_authorize_failed"
+  | "sip_register_failed"
+  | "credentials_timeout"
+  | "cancelled"
+  | "operation_failed";
+
 export type AuthorizationProgressProjection = Readonly<{
   stage: AuthorizationProgressStage;
-  /** True when UI should offer a single Retry for the failed stage. */
+  /** True when UI should offer a Retry for the failed stage. */
   retryAvailable: boolean;
   /** Correlation id of the in-flight or last completed attempt (observability). */
   correlationId: string | null;
   executionStage: OcpSignInExecutionStage | null;
   completedExecutionStages: ReadonlyArray<OcpSignInExecutionStage>;
   failedExecutionStage: OcpSignInExecutionStage | null;
+  /**
+   * Coarse failure class retained for existing tests/consumers.
+   * Prefer `failureKind` for new UI.
+   */
   failureReason: "timeout" | "failed" | null;
+  failureKind: AuthorizationProgressFailureKind | null;
+  /** Technical reason / PlatformError.message for diagnostics mapping. */
+  failureCode: string | null;
+  /** Wall-clock start of the active execution stage (for timed progress bars). */
+  stageStartedAtMs: number | null;
+}>;
+
+export type ApplyAuthorizationExecutionFailureInput = Readonly<{
+  reason: "timeout" | "failed";
+  failureKind?: AuthorizationProgressFailureKind;
+  failureCode?: string | null;
+  failedStage?: OcpSignInExecutionStage | null;
 }>;
 
 export function initialAuthorizationProgressProjection(): AuthorizationProgressProjection {
@@ -48,6 +78,9 @@ export function initialAuthorizationProgressProjection(): AuthorizationProgressP
     completedExecutionStages: [],
     failedExecutionStage: null,
     failureReason: null,
+    failureKind: null,
+    failureCode: null,
+    stageStartedAtMs: null,
   };
 }
 
@@ -75,6 +108,9 @@ export function applyAuthorizationProgressStage(
           completedExecutionStages: [...OCP_SIGN_IN_EXECUTION_STAGES],
           failedExecutionStage: null,
           failureReason: null,
+          failureKind: null,
+          failureCode: null,
+          stageStartedAtMs: null,
         }
       : {}),
   };
@@ -84,6 +120,7 @@ export function applyAuthorizationExecutionStage(
   projection: AuthorizationProgressProjection,
   executionStage: OcpSignInExecutionStage,
   correlationId: string,
+  stageStartedAtMs: number = Date.now(),
 ): AuthorizationProgressProjection {
   const completed =
     projection.executionStage !== null &&
@@ -98,19 +135,35 @@ export function applyAuthorizationExecutionStage(
     completedExecutionStages: completed,
     failedExecutionStage: null,
     failureReason: null,
+    failureKind: null,
+    failureCode: null,
     retryAvailable: false,
     correlationId,
+    stageStartedAtMs,
   };
 }
 
 export function applyAuthorizationExecutionFailure(
   projection: AuthorizationProgressProjection,
-  reason: "timeout" | "failed",
+  input: ApplyAuthorizationExecutionFailureInput | "timeout" | "failed",
 ): AuthorizationProgressProjection {
+  const normalized: ApplyAuthorizationExecutionFailureInput =
+    typeof input === "string" ? { reason: input } : input;
+  const failureKind =
+    normalized.failureKind ??
+    (normalized.reason === "timeout" ? "timeout" : "operation_failed");
   return {
     ...projection,
-    failedExecutionStage: projection.executionStage,
-    failureReason: reason,
+    failedExecutionStage:
+      normalized.failedStage !== undefined
+        ? normalized.failedStage
+        : projection.executionStage,
+    failureReason: normalized.reason,
+    failureKind,
+    failureCode:
+      normalized.failureCode === undefined
+        ? projection.failureCode
+        : normalized.failureCode,
     retryAvailable: true,
   };
 }
@@ -159,5 +212,54 @@ export function mapAuthorizationFailureStage(
         return "ocp_unavailable";
       }
       return "sip_registration_failed";
+  }
+}
+
+/** Map PlatformError message to a normalized failure kind for UI tooltips. */
+export function mapAuthorizationFailureKind(
+  reason: string,
+): AuthorizationProgressFailureKind {
+  const normalized = reason.toLowerCase();
+  if (normalized.includes("timeout")) {
+    return normalized.includes("credentials") ? "credentials_timeout" : "timeout";
+  }
+  if (
+    normalized.includes("proxy_api_key") ||
+    normalized.includes("invalid api key") ||
+    normalized.includes("invalid_api_key")
+  ) {
+    return "invalid_api_key";
+  }
+  switch (reason) {
+    case "ocp_session_exist":
+      return "session_exist";
+    case "ocp_sip_identity_mismatch":
+      return "sip_identity_mismatch";
+    case "ocp_sip_authorize_failed":
+      return "sip_authorize_failed";
+    case "ocp_sip_register_failed":
+      return "sip_register_failed";
+    case "ocp_attempt_cancelled":
+    case "user_cancel":
+      return "cancelled";
+    case "ocp_http_auth_failed":
+    case "HTTP_AUTH_FAILED":
+    case "ocp_proxy_authenticate_http_failed":
+      return "http_failed";
+    default:
+      if (
+        normalized.includes("http") ||
+        normalized.includes("404") ||
+        normalized.includes("500") ||
+        normalized.includes("401") ||
+        normalized.includes("403") ||
+        normalized.includes("400")
+      ) {
+        return "http_failed";
+      }
+      if (normalized.includes("transport") || normalized.includes("socket")) {
+        return "transport";
+      }
+      return "operation_failed";
   }
 }

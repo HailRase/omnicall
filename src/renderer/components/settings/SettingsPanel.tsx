@@ -169,6 +169,10 @@ export type SettingsPanelProps = Readonly<{
     allowedRecoveryActions: ReadonlyArray<OcpRecoveryAction>;
     onRecoveryAction: (action: OcpRecoveryAction) => void;
     authorizationProgress?: AuthorizationProgressProjection;
+    ocpSignInModalOpen?: boolean;
+    onOcpSignInDisconnect?: () => void;
+    onOcpSignInReconnect?: () => void;
+    onOcpSignInSuccessSettled?: () => void;
     canForgetSavedSipPassword?: boolean;
     onForgetSavedSipPassword?: () => void;
     deleteConfirmationOpen: boolean;
@@ -311,6 +315,18 @@ export function SettingsPanel({
           onRecoveryAction={account.onRecoveryAction}
           {...(account.authorizationProgress !== undefined
             ? { authorizationProgress: account.authorizationProgress }
+            : {})}
+          {...(account.ocpSignInModalOpen !== undefined
+            ? { ocpSignInModalOpen: account.ocpSignInModalOpen }
+            : {})}
+          {...(account.onOcpSignInDisconnect !== undefined
+            ? { onOcpSignInDisconnect: account.onOcpSignInDisconnect }
+            : {})}
+          {...(account.onOcpSignInReconnect !== undefined
+            ? { onOcpSignInReconnect: account.onOcpSignInReconnect }
+            : {})}
+          {...(account.onOcpSignInSuccessSettled !== undefined
+            ? { onOcpSignInSuccessSettled: account.onOcpSignInSuccessSettled }
             : {})}
           canForgetSavedSipPassword={account.canForgetSavedSipPassword === true}
           {...(account.onForgetSavedSipPassword !== undefined

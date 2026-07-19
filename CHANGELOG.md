@@ -7,6 +7,10 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+### Changed
+
+- OCP-вход в Account открывает модалку с blur-фоном: общий и поэтапный Progress (заполнение по таймауту этапа), зелёный/красный статус, tooltip причины ошибки, footer «Отключиться» / «Переподключиться».
+
 ## [0.11.0] - 2026-07-17
 
 ### Added

@@ -16,8 +16,10 @@ import {
   applyAuthorizationExecutionFailure,
   applyAuthorizationProgressStage,
   clearAuthorizationProgress,
+  mapAuthorizationFailureKind,
   mapAuthorizationFailureStage,
   type AuthorizationProgressStage,
+  type OcpSignInExecutionStage,
 } from "../../projections/settings/authorizationProgressProjection.js";
 import type { OcpAuthenticateAndConnectService } from "./OcpAuthenticateAndConnectService.js";
 import type {
@@ -231,6 +233,25 @@ export class OcpBackedSignInOrchestrationService {
     this.clearProgress();
   }
 
+  /**
+   * User cancel from Account progress modal: supersede waiters and clear progress to idle.
+   * Caller still disconnects the OCP socket when needed.
+   */
+  cancelUserSignIn(reason = "user_cancel"): void {
+    const attemptId =
+      this.deps.projectionHub.getSessionProjection().activeAttemptId;
+    if (attemptId !== null) {
+      this.deps.sipCredentialService.cancelWait(
+        attemptId,
+        createPlatformError("operation_failed", "ocp_attempt_cancelled", {
+          reason: "ocp_attempt_cancelled",
+        }),
+      );
+    }
+    this.terminateAttempt(reason);
+    this.inFlight = false;
+  }
+
   private mapApplyOutcome(
     outcome: OcpSipCredentialApplyOutcome,
     correlationId: CorrelationId,
@@ -319,14 +340,23 @@ export class OcpBackedSignInOrchestrationService {
     );
   }
 
-  private markExecutionFailure(message: string): void {
+  private markExecutionFailure(
+    message: string,
+    failedStage?: OcpSignInExecutionStage | null,
+  ): void {
     const current =
       this.deps.projectionHub.getSessionProjection().authorizationProgress;
+    const failureKind = mapAuthorizationFailureKind(message);
     this.deps.projectionHub.setAuthorizationProgress(
-      applyAuthorizationExecutionFailure(
-        current,
-        message.includes("timeout") ? "timeout" : "failed",
-      ),
+      applyAuthorizationExecutionFailure(current, {
+        reason: failureKind === "timeout" || failureKind === "credentials_timeout"
+          ? "timeout"
+          : "failed",
+        failureKind,
+        failureCode: message,
+        failedStage:
+          failedStage !== undefined ? failedStage : current.executionStage,
+      }),
     );
   }
 }

@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestLogger } from "@infrastructure/logging/index.js";
-import { createPlatformError } from "@shared/errors/index.js";
 import { OcpProxyAuthenticateHttpAdapter } from "./OcpProxyAuthenticateHttpAdapter.js";
 
 describe("OcpProxyAuthenticateHttpAdapter", () => {
@@ -83,10 +82,45 @@ describe("OcpProxyAuthenticateHttpAdapter", () => {
 
     expect(result.ok).toBe(false);
     if (!result.ok) {
-      expect(result.error).toEqual(
-        expect.objectContaining(
-          createPlatformError("operation_failed", "ocp_proxy_authenticate_http_failed"),
-        ),
+      expect(result.error.message).toBe("ocp_proxy_authenticate_http_401");
+      expect(result.error.cause).toEqual(
+        expect.objectContaining({
+          reason: "ocp_proxy_authenticate_http_failed",
+          status: 401,
+        }),
+      );
+    }
+  });
+
+  it("surfaces Invalid PROXY_API_KEY detail from HTTP 400 body", async () => {
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(
+        new Response(JSON.stringify({ detail: "Invalid PROXY_API_KEY" }), {
+          status: 400,
+          headers: { "Content-Type": "application/json" },
+        }),
+      ),
+    ) as unknown as typeof fetch;
+    const adapter = new OcpProxyAuthenticateHttpAdapter({
+      logger: createTestLogger(),
+      fetchImpl,
+    });
+
+    const result = await adapter.authenticate({
+      domain: "ocp.example.com",
+      login: "agent1",
+      apiKey: "bad-key",
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error.message).toBe("Invalid PROXY_API_KEY");
+      expect(result.error.cause).toEqual(
+        expect.objectContaining({
+          reason: "ocp_proxy_authenticate_http_failed",
+          status: 400,
+          detail: "Invalid PROXY_API_KEY",
+        }),
       );
     }
   });

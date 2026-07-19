@@ -21,6 +21,7 @@ export type DialogTriggerProps = Readonly<
 export type DialogContentProps = Readonly<
   Omit<ComponentPropsWithoutRef<typeof DialogPrimitive.Content>, "className"> & {
     className?: string;
+    overlayClassName?: string;
     size?: DialogSize;
     closeLabel: string;
     showCloseButton?: boolean;
@@ -89,6 +90,7 @@ export const DialogTrigger = forwardRef(function DialogTrigger(
 export const DialogContent = forwardRef(function DialogContent(
   {
     className,
+    overlayClassName,
     size = "md",
     closeLabel,
     showCloseButton = true,
@@ -101,7 +103,7 @@ export const DialogContent = forwardRef(function DialogContent(
 ): JSX.Element {
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Overlay className={styles.overlay} />
+      <DialogPrimitive.Overlay className={clsx(styles.overlay, overlayClassName)} />
       <DialogPrimitive.Content
         ref={ref}
         className={clsx(styles.content, SIZE_CLASS[size], className)}

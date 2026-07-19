@@ -102,6 +102,7 @@ export type AccountActionsFacadeBinding = Pick<
   | "signInAccount"
   | "getAccountSignInViewModel"
   | "dispatchAccountRecoveryAction"
+  | "cancelOcpSignInAttempt"
   | "deleteSavedAccountProfile"
   | "hasRememberedSipPassword"
   | "loadSavedAccountProfileSecrets"
@@ -145,6 +146,7 @@ type UseAccountActionsResult = Readonly<{
   serverState: AccountSignInViewModel["serverState"];
   authorizationState: AccountSignInViewModel["authorizationState"];
   authorizationProgress: AccountSignInViewModel["authorizationProgress"];
+  ocpSignInModalOpen: boolean;
   allowedRecoveryActions: ReadonlyArray<OcpRecoveryAction>;
   deleteConfirmationOpen: boolean;
   deleteSubmitting: boolean;
@@ -168,6 +170,9 @@ type UseAccountActionsResult = Readonly<{
   cancelDiscardDraft: () => void;
   reloadSavedProfiles: () => void;
   handleRecoveryAction: (action: OcpRecoveryAction) => void;
+  handleOcpSignInDisconnect: () => void;
+  handleOcpSignInReconnect: () => void;
+  handleOcpSignInSuccessSettled: () => void;
   forgetSavedSipPassword: () => void;
 }>;
 
@@ -208,6 +213,7 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     useState(false);
   const [signInViewModel, setSignInViewModel] =
     useState<AccountSignInViewModel>(EMPTY_SIGN_IN_VM);
+  const [ocpSignInModalOpen, setOcpSignInModalOpen] = useState(false);
   const feedbackClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const passwordInputRef = useRef<HTMLInputElement | null>(null);
   const profileSelectionGenerationRef = useRef(0);
@@ -226,6 +232,9 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
   );
   const ocpAuthorizationPhase = useAccountBootstrapStore(
     (state) => state.ocpSessionProjection.authorizationState.phase,
+  );
+  const liveAuthorizationProgress = useAccountBootstrapStore(
+    (state) => state.ocpSessionProjection.authorizationProgress,
   );
   // Login lock follows ADR-AF-005 account session — refresh after avatar logout.
   const hasActiveAccountSession = useAccountBootstrapStore(
@@ -573,6 +582,9 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     void (async (): Promise<void> => {
       setSubmitting(true);
       clearFeedback();
+      if (signInMode === "ocp") {
+        setOcpSignInModalOpen(true);
+      }
 
       try {
         const command = buildAccountSignInCommand({
@@ -599,6 +611,16 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
           const mapped = mapAccountAuthorizationError(result.error);
           setError(mapped);
           setOpenSystemStateAction(shouldAttachOpenSystemStateAction(mapped));
+          const progressSnapshot =
+            useAccountBootstrapStore.getState().ocpSessionProjection.authorizationProgress;
+          if (
+            signInMode === "ocp" &&
+            progressSnapshot.executionStage === null &&
+            progressSnapshot.failedExecutionStage === null &&
+            progressSnapshot.completedExecutionStages.length === 0
+          ) {
+            setOcpSignInModalOpen(false);
+          }
           return;
         }
 
@@ -841,6 +863,46 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     ],
   );
 
+  const handleOcpSignInDisconnect = useCallback((): void => {
+    if (facade === null) {
+      setOcpSignInModalOpen(false);
+      return;
+    }
+    void (async (): Promise<void> => {
+      setSubmitting(true);
+      clearFeedback();
+      try {
+        await facade.cancelOcpSignInAttempt();
+      } finally {
+        setOcpSignInModalOpen(false);
+        setSubmitting(false);
+        refreshSignInViewModel();
+      }
+    })();
+  }, [clearFeedback, facade, refreshSignInViewModel]);
+
+  const handleOcpSignInReconnect = useCallback((): void => {
+    if (facade === null || submitting) {
+      return;
+    }
+    // Full clean restart: idle reset + new attempt from stage 1 (not resume failed stage).
+    void (async (): Promise<void> => {
+      setSubmitting(true);
+      clearFeedback();
+      try {
+        await facade.cancelOcpSignInAttempt();
+      } finally {
+        setSubmitting(false);
+        setOcpSignInModalOpen(true);
+        handleSubmit(false, true);
+      }
+    })();
+  }, [clearFeedback, facade, handleSubmit, submitting]);
+
+  const handleOcpSignInSuccessSettled = useCallback((): void => {
+    setOcpSignInModalOpen(false);
+  }, []);
+
   const forgetSavedSipPassword = useCallback((): void => {
     if (facade === null || selectedProfileId === null || submitting) {
       return;
@@ -892,7 +954,8 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     loginDisabledReasonKey,
     serverState: signInViewModel.serverState,
     authorizationState: signInViewModel.authorizationState,
-    authorizationProgress: signInViewModel.authorizationProgress,
+    authorizationProgress: liveAuthorizationProgress,
+    ocpSignInModalOpen,
     allowedRecoveryActions: signInViewModel.allowedRecoveryActions,
     deleteConfirmationOpen,
     deleteSubmitting,
@@ -916,6 +979,9 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
     continueWithoutOverwritingCredentials,
     reloadSavedProfiles,
     handleRecoveryAction,
+    handleOcpSignInDisconnect,
+    handleOcpSignInReconnect,
+    handleOcpSignInSuccessSettled,
     forgetSavedSipPassword,
   };
 }

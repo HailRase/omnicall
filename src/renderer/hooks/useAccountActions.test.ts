@@ -82,6 +82,7 @@ function createFacadeMock(
     signInAccount,
     getAccountSignInViewModel,
     dispatchAccountRecoveryAction,
+    cancelOcpSignInAttempt: vi.fn().mockResolvedValue(ok(undefined)),
     deleteSavedAccountProfile: vi.fn().mockResolvedValue(ok(undefined)),
     hasRememberedSipPassword,
     loadSavedAccountProfileSecrets,

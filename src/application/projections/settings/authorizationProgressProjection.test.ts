@@ -5,6 +5,7 @@ import {
   applyAuthorizationProgressStage,
   clearAuthorizationProgress,
   initialAuthorizationProgressProjection,
+  mapAuthorizationFailureKind,
   mapAuthorizationFailureStage,
 } from "./authorizationProgressProjection.js";
 
@@ -18,6 +19,9 @@ describe("authorizationProgressProjection", () => {
       completedExecutionStages: [],
       failedExecutionStage: null,
       failureReason: null,
+      failureKind: null,
+      failureCode: null,
+      stageStartedAtMs: null,
     });
   });
 
@@ -26,19 +30,28 @@ describe("authorizationProgressProjection", () => {
       initialAuthorizationProgressProjection(),
       "requesting_authorization_token",
       "corr-stage",
+      1_000,
     );
     const submit = applyAuthorizationExecutionStage(
       token,
       "submitting_token_to_ocp",
       "corr-stage",
+      2_000,
     );
-    const failed = applyAuthorizationExecutionFailure(submit, "timeout");
+    const failed = applyAuthorizationExecutionFailure(submit, {
+      reason: "timeout",
+      failureKind: "timeout",
+      failureCode: "ocp_auth_timeout",
+    });
 
     expect(failed.completedExecutionStages).toEqual([
       "requesting_authorization_token",
     ]);
     expect(failed.failedExecutionStage).toBe("submitting_token_to_ocp");
     expect(failed.failureReason).toBe("timeout");
+    expect(failed.failureKind).toBe("timeout");
+    expect(failed.failureCode).toBe("ocp_auth_timeout");
+    expect(failed.stageStartedAtMs).toBe(2_000);
   });
 
   it("marks retry on failure stages", () => {
@@ -61,6 +74,7 @@ describe("authorizationProgressProjection", () => {
       initialAuthorizationProgressProjection(),
     );
     expect(progressed.stage).toBe("ready");
+    expect(progressed.completedExecutionStages).toHaveLength(5);
   });
 
   it("maps failure reasons to stages", () => {
@@ -75,6 +89,18 @@ describe("authorizationProgressProjection", () => {
     );
     expect(mapAuthorizationFailureStage("ocp_sip_identity_mismatch")).toBe(
       "ocp_connected_sip_failed",
+    );
+  });
+
+  it("maps failure codes to kinds", () => {
+    expect(mapAuthorizationFailureKind("ocp_session_exist")).toBe("session_exist");
+    expect(mapAuthorizationFailureKind("ocp_auth_timeout")).toBe("timeout");
+    expect(mapAuthorizationFailureKind("http_404")).toBe("http_failed");
+    expect(mapAuthorizationFailureKind("Invalid PROXY_API_KEY")).toBe(
+      "invalid_api_key",
+    );
+    expect(mapAuthorizationFailureKind("ocp_sip_register_failed")).toBe(
+      "sip_register_failed",
     );
   });
 });

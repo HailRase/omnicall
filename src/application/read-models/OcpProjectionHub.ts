@@ -252,6 +252,14 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
   }
 
   private applyServerState(state: OcpServerState): void {
+    // After cancel/idle reset there is no active attempt — ignore late connect
+    // events from a superseded in-flight ConnectOcp (ADR-AF-002 cold idle).
+    if (
+      this.session.activeAttemptId === null &&
+      state !== "disconnected"
+    ) {
+      return;
+    }
     this.session = reduceOcpSessionFromServerState(this.session, state);
     this.notifyChangeListeners();
   }

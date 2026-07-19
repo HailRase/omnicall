@@ -96,6 +96,11 @@ export class OcpProxyAuthenticateHttpAdapter implements OcpProxyAuthenticatePort
       });
 
       if (!response.ok) {
+        const httpDetail = await readOcpProxyAuthenticateErrorDetail(response);
+        const technicalMessage =
+          httpDetail !== null
+            ? httpDetail
+            : `ocp_proxy_authenticate_http_${response.status}`;
         this.deps.logger.warn("ocp_proxy_authenticate_http_failed", {
           ...(input.correlationId !== undefined
             ? { correlationId: input.correlationId }
@@ -106,13 +111,14 @@ export class OcpProxyAuthenticateHttpAdapter implements OcpProxyAuthenticatePort
           domain,
           login,
           result: `http_${response.status}`,
+          ...(httpDetail !== null ? { detail: httpDetail } : {}),
         });
         return err(
-          createPlatformError(
-            "operation_failed",
-            "ocp_proxy_authenticate_http_failed",
-            { reason: "ocp_proxy_authenticate_http_failed", status: response.status },
-          ),
+          createPlatformError("operation_failed", technicalMessage, {
+            reason: "ocp_proxy_authenticate_http_failed",
+            status: response.status,
+            ...(httpDetail !== null ? { detail: httpDetail } : {}),
+          }),
         );
       }
 
@@ -187,4 +193,24 @@ export class OcpProxyAuthenticateHttpAdapter implements OcpProxyAuthenticatePort
       clearTimeout(timer);
     }
   }
+}
+
+async function readOcpProxyAuthenticateErrorDetail(
+  response: Response,
+): Promise<string | null> {
+  try {
+    const body: unknown = await response.json();
+    if (typeof body === "object" && body !== null && "detail" in body) {
+      const detail: unknown = Reflect.get(body, "detail");
+      if (typeof detail === "string" && detail.trim().length > 0) {
+        return detail.trim();
+      }
+    }
+    if (typeof body === "string" && body.trim().length > 0) {
+      return body.trim();
+    }
+  } catch {
+    // Non-JSON error bodies stay as status-only technical keys.
+  }
+  return null;
 }

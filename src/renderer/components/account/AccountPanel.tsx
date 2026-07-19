@@ -61,6 +61,10 @@ type AccountPanelProps = Readonly<{
   allowedRecoveryActions?: ReadonlyArray<OcpRecoveryAction>;
   onRecoveryAction?: (action: OcpRecoveryAction) => void;
   authorizationProgress?: AuthorizationProgressProjection;
+  ocpSignInModalOpen?: boolean;
+  onOcpSignInDisconnect?: () => void;
+  onOcpSignInReconnect?: () => void;
+  onOcpSignInSuccessSettled?: () => void;
   canForgetSavedSipPassword?: boolean;
   passwordInputRef?: RefObject<HTMLInputElement | null>;
   onFieldChange: (field: keyof SipAccountInput, value: string) => void;
@@ -102,7 +106,11 @@ export function AccountPanel({
   hasSavedOcpApiKey = false,
   allowedRecoveryActions = [],
   onRecoveryAction,
-  authorizationProgress,
+  authorizationProgress = undefined,
+  ocpSignInModalOpen = false,
+  onOcpSignInDisconnect,
+  onOcpSignInReconnect,
+  onOcpSignInSuccessSettled,
   canForgetSavedSipPassword = false,
   passwordInputRef,
   onFieldChange,
@@ -328,12 +336,24 @@ export function AccountPanel({
           </>
         )}
 
-        {signInMode === "ocp" && authorizationProgress !== undefined ? (
+        {authorizationProgress !== undefined ? (
           <OcpSignInProgress
+            open={ocpSignInModalOpen}
             progress={authorizationProgress}
-            onRestart={() => {
-              onRecoveryAction?.("retry_server");
+            reconnectEnabled={
+              authorizationProgress.retryAvailable ||
+              authorizationProgress.failedExecutionStage !== null
+            }
+            busy={submitting}
+            onDisconnect={() => {
+              onOcpSignInDisconnect?.();
             }}
+            onReconnect={() => {
+              onOcpSignInReconnect?.();
+            }}
+            {...(onOcpSignInSuccessSettled !== undefined
+              ? { onSuccessSettled: onOcpSignInSuccessSettled }
+              : {})}
           />
         ) : null}
 
