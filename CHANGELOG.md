@@ -7,6 +7,12 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+### Fixed
+
+- Модалка перезаписи сохранённых данных больше не ждёт весь OCP/SIP sign-in: закрывается сразу после подтверждения (перезапись — быстрый pre-auth persist).
+- Футер overwrite-диалога снова Cancel + ButtonGroup (continue / overwrite в меню) — «Отмена» не выталкивается за край модалки.
+- Меню «Перезаписать и войти» больше не уходит под AlertDialog (z-popover + portal в content, без transform-containing-block).
+
 ## [0.11.1] - 2026-07-19
 
 ### Fixed

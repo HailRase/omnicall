@@ -23,6 +23,8 @@ export type DropdownMenuContentProps = Readonly<
     className?: string;
     align?: "start" | "center" | "end";
     side?: "top" | "right" | "bottom" | "left";
+    /** Portal host; use dialog content when nesting inside AlertDialog/Dialog. */
+    container?: HTMLElement | null;
   }
 >;
 
@@ -102,12 +104,15 @@ export const DropdownMenuContent = forwardRef(function DropdownMenuContent(
     side = "bottom",
     align = "start",
     sideOffset = 4,
+    container = null,
     ...rest
   }: DropdownMenuContentProps,
   ref: Ref<ComponentRef<typeof DropdownMenuPrimitive.Content>>,
 ): JSX.Element {
   return (
-    <DropdownMenuPrimitive.Portal>
+    <DropdownMenuPrimitive.Portal
+      {...(container !== null ? { container } : {})}
+    >
       <DropdownMenuPrimitive.Content
         ref={ref}
         side={side}

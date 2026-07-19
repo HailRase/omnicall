@@ -42,6 +42,8 @@
   --z-shell-dialpad-panel: 5;
   --z-shell-modal-overlay: 10;
   --z-modal: 200;
+  /* Menus/selects nested above dialogs; below toasts/tooltips */
+  --z-popover: 250;
   --z-toast: 300;
   --z-tooltip: 350;
 

@@ -6,6 +6,7 @@
 
 | ID | Priority | Task | F-XXX | Command | Status | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
+| T-049 | 0 | Overwrite modal: dismiss before sign-in settles + restore ButtonGroup footer | F-024 | `/logic` → `/ui` | done | closed 2026-07-19 — confirm closes immediately; Cancel + ButtonGroup continue/menu-overwrite |
 | T-048 | 0 | OCP post-call: reserve in dropdown + finish-appeal footer (no modal) | F-028 | `/logic` → `/ui` | done | closed 2026-07-19 — FinishPostCallAppealUseCase; clear reserved on idle; footer button |
 | T-047 | 0 | OCP users: wire reason_id null → status.value for system statuses | F-028 | `/logic` | done | closed 2026-07-19 — Domain `resolveOperatorReasonId`; parse + projection; READY/RINGING/… match reason catalog |
 | T-046 | 0 | Header: move SIP identity into avatar menu; status selector fills width without shell widen | F-016,F-028 | `/ui` | done | closed 2026-07-19 — identity in menu (non-selectable) + separator; OperatorStatusSelector ellipsis/tooltip; no shell width growth |

@@ -552,7 +552,14 @@ describe("useAccountActions", () => {
   });
 
   it("signs in with overwrite after confirming the overwrite prompt (T-037)", async () => {
+    const signInOutcome = ok(createReadyAccountSignInOutcome());
+    let resolveSignIn: ((value: typeof signInOutcome) => void) | undefined;
+    const deferredSignIn = new Promise<typeof signInOutcome>((resolve) => {
+      resolveSignIn = resolve;
+    });
     const { facade, signInAccount } = createFacadeMock();
+    signInAccount.mockReturnValue(deferredSignIn);
+
     const { result } = renderHook(() => useAccountActions({ facade }));
 
     await waitFor(() => {
@@ -578,6 +585,9 @@ describe("useAccountActions", () => {
       result.current.confirmOverwriteExistingCredentials();
     });
 
+    // Confirm dialog must dismiss before auth finishes — overwrite is not the long wait.
+    expect(result.current.overwriteConfirmationOpen).toBe(false);
+
     await waitFor(() => {
       expect(signInAccount).toHaveBeenCalledOnce();
     });
@@ -593,9 +603,12 @@ describe("useAccountActions", () => {
         }),
       }),
     );
-    await waitFor(() => {
-      expect(result.current.overwriteConfirmationOpen).toBe(false);
+
+    await act(async () => {
+      resolveSignIn?.(signInOutcome);
+      await deferredSignIn;
     });
+    expect(result.current.overwriteConfirmationOpen).toBe(false);
   });
 
   it("does not discard a dirty new-profile draft without confirmation", async () => {

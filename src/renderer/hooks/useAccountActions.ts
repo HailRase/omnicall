@@ -682,6 +682,9 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
   ]);
 
   const confirmOverwriteExistingCredentials = useCallback((): void => {
+    // Close confirm UI immediately — persist/overwrite is pre-auth inside signInAccount;
+    // keeping the dialog open until SIP/OCP ready made overwrite look like a long I/O wait.
+    setOverwriteConfirmationOpen(false);
     handleSubmit(true, true);
   }, [handleSubmit]);
 
