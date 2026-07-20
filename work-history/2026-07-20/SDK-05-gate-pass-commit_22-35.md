@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-20 22:35
 **Статус:** выполнено
-**Коммит:** (см. git log после commit)
+**Коммит:** `8794fbb`
 
 ## Где
 - `axatalk-sdk/docs/WORK-UNITS.md`, `axatalk-sdk/evidence/SDK-05-read-only-beta-api.md`
