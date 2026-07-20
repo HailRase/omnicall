@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-20 23:31
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `4990c02`
 
 ## Где
 - `axatalk-sdk/packages/sdk/src/internal/account-activate-wire.ts`
