@@ -2,7 +2,7 @@
 
 ## Progress
 
-- [ ] DI-00 — ADRs, baseline, and P12 handoff (`pending`)
+- [x] DI-00 — ADRs, baseline, and P12 handoff (`done`)
 - [ ] DI-01 — Protocol contracts, ports, and mocks (`pending`)
 - [ ] DI-02 — Typed main-to-renderer broker (`pending`)
 - [ ] DI-03 — Loopback WebSocket transport (`pending`)
@@ -42,6 +42,8 @@ Each agent must include this checklist in its handoff:
 
 Prerequisites: none.
 
+Status: **`done`** (2026-07-20) — `/sdk-review` PASS
+
 Agent prompt:
 
 > Prepare the architecture gate for F-011/P12. Create the required ADRs and a detailed
@@ -51,14 +53,43 @@ Agent prompt:
 
 Checklist:
 
-- [ ] process ownership and broker lifecycle ADR.
-- [ ] transport/browser discovery ADR.
-- [ ] pairing/capability/replay ADR.
-- [ ] protocol/version/privacy/ownership ADR.
-- [ ] window policy and SDK sign-in relationship ADR.
-- [ ] P12 handoff with DI-01…DI-10 gates.
-- [ ] automated and manual baseline recorded.
-- [ ] architecture review passes.
+- [x] process ownership and broker lifecycle ADR.
+- [x] transport/browser discovery ADR.
+- [x] pairing/capability/replay ADR.
+- [x] protocol/version/privacy/ownership ADR.
+- [x] window policy and SDK sign-in relationship ADR.
+- [x] P12 handoff with DI-01…DI-10 gates.
+- [x] automated and manual baseline recorded.
+- [x] architecture review passes. *(`/sdk-review` PASS 2026-07-20; High/Low findings remediated)*
+
+### Handoff checklist (DI-00)
+
+- Work unit: DI-00
+- Prerequisites verified: none required
+- Feature/LF IDs: F-011; LF-051, LF-065, LF-080, LF-081
+- Bounded contexts: Integration (primary)
+- Layers changed: documentation / ADR only (no `src/`)
+- Files added/changed:
+  - `docs/softphone/adr/ADR-0009-sdk-process-ownership-broker-lifecycle.md`
+  - `docs/softphone/adr/ADR-0010-sdk-local-transport-endpoint-discovery.md`
+  - `docs/softphone/adr/ADR-0011-sdk-pairing-origin-capabilities.md`
+  - `docs/softphone/adr/ADR-0012-sdk-protocol-versioning-privacy-ownership.md`
+  - `docs/softphone/adr/ADR-0013-sdk-window-policy-and-signin.md`
+  - `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`
+  - `axatalk-sdk-integration/evidence/DI-00-baseline.md`
+  - `axatalk-sdk-integration/00-SNAPSHOT.md`
+  - `axatalk-sdk/docs/PROTOCOL.md` (open decisions table)
+  - Feature Registry F-011 planning refs; `STATUS.md`
+- Commands/events added: none (design only)
+- Security impact: policy ADRs accepted; implementation deferred to DI-03/04; open PoP/schema/PII rows owned by SDK-01
+- Regression risks: none from code (docs-only); catalog check pre-existing fail recorded
+- Automated tests: `npm run release:preflight` PASS — 2297 passed / 1 skipped
+- Manual evidence: smoke checklist frozen; not executed this session
+- Verification commands: `npm run release:preflight`, `npm run i18n:check`, `npm run ui:catalog:check`
+- Registry/Legacy/STATUS changes: planning refs only; F-011 remains `planned`
+- Remaining risks / open: O-SCHEMA-1, O-DISC-*, O-BRW-*, O-POP-*, O-CAP-1, O-PII-1, O-OWN-1, O-CAMP-1, O-OCP-1 (see P12 handoff)
+- Evidence: `axatalk-sdk-integration/evidence/DI-00-baseline.md`
+- Reviewer: `/sdk-review` PASS (2026-07-20); High/Low findings remediated in follow-up
 
 ## DI-01 — Protocol Contracts, Ports, and Mocks
 

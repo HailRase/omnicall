@@ -532,7 +532,7 @@ Execution package:
 
 Order:
 
-1. Close ADRs for protocol, process ownership, browser transport, pairing/capabilities, privacy, compatibility, and window policy.
+1. Close ADRs for protocol, process ownership, browser transport, pairing/capabilities, privacy, compatibility, and window policy (**DI-00 done** — ADR-0009…0013; open precision rows → SDK-01).
 2. Define the versioned public protocol and compatibility fixtures (OCP subset already exists in F-028 E-12 as an internal host-command baseline).
 3. Implement the typed main-to-renderer broker to the single existing renderer Application composition.
 4. Implement the secure `ExternalClientGateway` WebSocket server in main: loopback, exact Origin, pairing, capabilities, replay/resource limits, and revocation.

@@ -94,7 +94,9 @@ administrative feature with its own ADR, capability, local approval, audit, and 
 - Mutations are serialized per call or account aggregate.
 - Destructive commands support ownership/lease policy and expected revision.
 - Conflicts return stable errors such as `conflict`, `stale_state`, or `not_owner`.
-- `window.hide` is denied during incoming or active calls unless desktop policy explicitly allows it.
+- `window.hide` is unavailable in protocol v1 until tray/background policy is accepted
+  (ADR-0013). When later enabled, hide remains denied during incoming or active calls
+  unless that policy explicitly allows it.
 - Focus-stealing window operations are rate-limited.
 - Logout requires the OCP reason workflow when applicable.
 

@@ -301,23 +301,27 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-051`, `LF-065`, `LF-080`, `LF-081`
 - Context: Integration
 - Priority: critical
-- Status: **planned** (legacy `window.Softphone` **not ported**; future path: `ExternalClientGateway` + `ExternalCommandRouter` over local WS → main)
+- Status: **planned** (legacy `window.Softphone` **not ported**; architecture gate DI-00 `done` — ADRs ADR-0009…0013; implementation not started)
 - Owner: TBD
 - Inputs: external commands from browser tabs via WS (not DOM globals)
-- Outputs: typed commands routed to Facade / Use Cases with `callType: 'external' | 'sdk'`
+- Outputs: typed commands routed to Facade / Use Cases with `callType: 'sdk'` (F-028 E-12 host methods retain `callType: 'external'`)
 - Acceptance Criteria:
   - No `window.Softphone` global API in Axatalk.
   - External tab integration uses one gateway + command router (future).
   - OCP external command payloads reuse `OcpHostApiContract` + Facade host methods (F-028 E-12).
-  - The WebSocket server lives in Electron main and reaches the single renderer Application composition through a typed, validated broker; no second Facade or Call Engine is created.
-  - Exact Origin, pairing, per-client capabilities, replay protection, resource limits, revocation, and PII redaction fail closed before product data is exposed.
-  - SIP-only mode remains independent from SDK and OCP; SDK startup or failure cannot block core softphone startup.
-  - Public commands/events use versioned DTOs and compatibility fixtures rather than internal Domain Events, JsSIP objects, or OCP wire payloads.
+  - The WebSocket server lives in Electron main and reaches the single renderer Application composition through a typed, validated broker; no second Facade or Call Engine is created (ADR-0009).
+  - Exact Origin, pairing, per-client capabilities, replay protection, resource limits, revocation, and PII redaction fail closed before product data is exposed (ADR-0010/0011/0012).
+  - SIP-only mode remains independent from SDK and OCP; SDK startup or failure cannot block core softphone startup (ADR-0009).
+  - Public commands/events use versioned DTOs and compatibility fixtures rather than internal Domain Events, JsSIP objects, or OCP wire payloads (ADR-0012).
+  - Protocol v1 has no raw SIP/OCP credential commands; SDK account activation uses opaque saved-profile references via the unified Account path (ADR-0013 / ADR-AF-003).
+  - `window:hide` remains unavailable until tray/background policy is accepted (ADR-0013).
 - Test Coverage:
   - Unit: command payload parsing (F-028 E-12)
   - Integration: deferred until ExternalClientGateway exists
-  - E2E: deferred
-- Implementation plans: `axatalk-sdk/README.md`; `axatalk-sdk-integration/README.md`
+  - E2E: deferred until DI-10 packaged gate
+- Implementation plans: `axatalk-sdk/README.md`; `axatalk-sdk-integration/README.md`; `axatalk-sdk-integration/WORK-UNITS.md` (DI-00…DI-10); `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`
+- Architecture ADRs: `docs/softphone/adr/ADR-0009-sdk-process-ownership-broker-lifecycle.md`; `ADR-0010`; `ADR-0011`; `ADR-0012`; `ADR-0013`
+- Baseline evidence: `axatalk-sdk-integration/evidence/DI-00-baseline.md`
 - Implementation evidence (OCP command surface): `src/shared/host-api/OcpHostApiContract.ts`; Facade `authenticateOcpFromHost` / `changeOcpStatusFromHost` / `getOcpConnectionState`
 
 ## F-012: Headset Call Controls

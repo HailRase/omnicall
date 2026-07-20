@@ -54,12 +54,13 @@ Evidence:
 
 ## SDK-01 — Protocol and Security ADRs
 
-Prerequisites: SDK-00 done; desktop DI-00 started.
+Prerequisites: SDK-00 done; desktop DI-00 done (**DI-00 `done`** — ADR-0009…0013 Accepted; close open rows O-* in `PROTOCOL.md`).
 
 Agent prompt:
 
 > Close the open decisions in `docs/PROTOCOL.md` with ADRs shared with the desktop
-> integration track. Perform browser feasibility spikes only; do not implement product APIs.
+> integration track (respect desktop ADR-0009…0013 policy baselines). Perform browser
+> feasibility spikes only; do not implement product APIs.
 
 Checklist:
 
@@ -77,6 +78,7 @@ Evidence:
 - ADRs:
 - Browser spike:
 - Reviewer:
+- Desktop policy baseline: ADR-0009…0013 / P12 handoff open-decision table
 
 ## SDK-02 — Protocol Package
 

@@ -2,18 +2,32 @@
 
 ## Snapshot Purpose
 
-This file freezes the pre-P12 architecture and scope. DI-00 must refresh test counts and
-runtime evidence before production implementation begins.
+This file freezes the pre-P12 architecture and scope. DI-00 refreshed automated counts and
+recorded evidence on 2026-07-20.
 
 ## Product Baseline
 
 - Axatalk Desktop version: `0.11.2`
-- F-011 Host Integration Contract: `planned`
-- P12 External Host API Compatibility: not started
+- Branch / commits (DI-00): `feature/axatalk-sdk` — code preflight `5114c02`; docs `_PENDING_`
+- F-011 Host Integration Contract: `planned` (architecture gate DI-00 `done`)
+- P12 External Host API Compatibility: architecture started (DI-00); implementation not started
 - F-028 OCP command subset E-12: implemented
 - SIP-only product path: implemented and mandatory
 - OCP module: optional
 - Legacy `window.Softphone`: intentionally not ported
+
+## DI-00 Architecture Gate
+
+| ADR | Topic |
+| --- | --- |
+| ADR-0009 | Process ownership + typed broker lifecycle |
+| ADR-0010 | Local transport, discovery, browser support |
+| ADR-0011 | Pairing, Origin, capabilities, replay, revocation |
+| ADR-0012 | Protocol versioning, privacy, call ownership |
+| ADR-0013 | Window policy + SDK sign-in vs ADR-AF-003 |
+
+Evidence: `axatalk-sdk-integration/evidence/DI-00-baseline.md`  
+Handoff: `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`
 
 ## Current Process Ownership
 
@@ -24,6 +38,8 @@ runtime evidence before production implementation begins.
   by that renderer composition.
 - Preload exposes a narrow typed `window.softphone` API with context isolation, sandbox,
   disabled Node integration, and web security enabled.
+- Future SDK path (ADR-0009): main WS gateway → typed broker → renderer
+  `ExternalCommandRouter` → existing Facades / Use Cases / Call Engine.
 
 ## Existing Reusable Assets
 
@@ -47,10 +63,10 @@ runtime evidence before production implementation begins.
 - typed main-to-renderer command broker;
 - `ExternalCommandRouter`;
 - public snapshot/event mapper;
-- pairing, Origin, capability, replay, revoke, and resource policies;
+- pairing, Origin, capability, replay, revoke, and resource policies (implementation);
 - SDK settings and operational UX;
 - public call command mapping;
-- window show/hide public policy;
+- window show/hide public implementation (`hide` policy-gated per ADR-0013);
 - protocol integration and packaged E2E tests.
 
 ## Frozen Non-Goals
@@ -64,18 +80,16 @@ runtime evidence before production implementation begins.
 - no relocation of the complete telephony stack to main;
 - no stable npm publication before P12 close.
 
-## Baseline Verification to Capture in DI-00
+## Baseline Verification (DI-00 captured)
 
-- current branch and commit;
-- `npm run release:preflight`;
-- `npm run i18n:check`;
-- `npm run ui:catalog:check`;
-- current automated test counts;
-- SIP-only authorization/register/logout smoke;
-- incoming/outgoing/answer/hangup smoke;
-- OCP authenticate/status/logout-reason smoke where staging is available;
-- app close/restart cleanup;
-- redacted baseline logs.
+| Item | Result |
+| --- | --- |
+| Branch / commits | `feature/axatalk-sdk` / code `5114c02` + docs `_PENDING_` |
+| `npm run release:preflight` | PASS — 2297 passed / 1 skipped |
+| `npm run i18n:check` | PASS |
+| `npm run ui:catalog:check` | FAIL — pre-existing catalog drift (recorded) |
+| Manual SIP/OCP/call smoke | Checklist frozen; execution deferred to owning DI units / DI-10 |
+| Evidence path | `axatalk-sdk-integration/evidence/DI-00-baseline.md` |
 
 ## Baseline Rule
 

@@ -70,13 +70,15 @@ commands may not terminate in main.
 
 ## Phase DI-00 — Architecture and Baseline
 
-- Create ADRs and the P12 handoff.
-- Capture current preflight baseline and manual call/OCP regression checklist.
-- Resolve SDK protocol open decisions with SDK-01.
-- Update F-011 acceptance criteria and ownership without claiming implementation.
-- Define exact process lifecycle during renderer reload, app quit, and desktop restart.
+Status: **`done`** (2026-07-20). Evidence: `evidence/DI-00-baseline.md`. `/sdk-review` PASS.
 
-Gate: architecture review passes; no production code.
+- Created ADRs ADR-0009…0013 and detailed P12 handoff with DI-01…DI-10 gates.
+- Captured automated preflight baseline and froze manual smoke checklist for later runs.
+- Synchronized open protocol decisions with SDK-01 ownership IDs in `PROTOCOL.md`.
+- Updated F-011 acceptance/planning refs and STATUS without claiming implementation.
+- Defined process lifecycle for renderer reload, app quit, and desktop restart (ADR-0009).
+
+Gate closed. Next: SDK-00 (`/sdk-project`), then SDK-01; DI-01 only after DI-00 + SDK-01.
 
 ## Phase DI-01 — Public Contracts and Ports
 

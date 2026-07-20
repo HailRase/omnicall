@@ -182,11 +182,27 @@ Raw exceptions and upstream SIP/OCP messages never cross the boundary.
 
 ## Open Decisions for SDK-01
 
-- Runtime schema library and canonical generation direction.
-- Endpoint discovery and browser policy compatibility.
-- Proof-of-possession mechanism for paired clients.
-- Exact PII redaction levels.
-- Call ownership and lease semantics.
-- Whether campaign events enter v1 or a later capability.
+Desktop DI-00 closed architecture policy in ADR-0009…0013. The rows below remain **open**
+and are owned by **SDK-01** (shared freeze with the listed DI units). IDs match the P12
+handoff.
 
-No implementation agent may decide these implicitly in production code.
+| ID | Decision | Owner | Blocks |
+| --- | --- | --- | --- |
+| O-SCHEMA-1 | Runtime schema library and canonical generation direction | SDK-01 | SDK-02, DI-01 |
+| O-DISC-1 | Exact discovery URL/path, response schema, and versioning | SDK-01 | SDK-03, DI-03 |
+| O-DISC-2 | Discovery via tiny loopback HTTP helper vs WS-only bootstrap | SDK-01 | DI-03 |
+| O-BRW-1 | Confirmed Chrome/Edge/Firefox policy matrix for HTTPS→loopback WS | SDK-01 | SDK-05 E2E |
+| O-BRW-2 | Private Network Access / permission-prompt UX keys | SDK-01 → DI-09 | DI-09 |
+| O-POP-1 | Proof-of-possession mechanism for paired clients | SDK-01 | SDK-04, DI-04 |
+| O-POP-2 | Pairing ceremony / approve payload shape with desktop | SDK-01 + DI-04 | DI-04, DI-09 |
+| O-CAP-1 | Default capability sets per pairing profile | SDK-01 + DI-04 | DI-04 |
+| O-PII-1 | Exact PII redaction levels / mask formats | SDK-01 | SDK-05, DI-05 |
+| O-OWN-1 | Exact call ownership and lease semantics | SDK-01 | SDK-06, DI-06 |
+| O-CAMP-1 | Whether campaign events enter v1 or a later capability | SDK-01 | SDK-05, DI-05 |
+| O-OCP-1 | Public operator field names vs F-028 E-12 map | SDK-01 + DI-07 | DI-07 |
+
+Policy baselines (not open): loopback-only bind, exact Origin, no raw credentials in v1,
+per-client events, `window:hide` gated, Account sole human sign-in (ADR-AF-003) with opaque
+saved-profile activation only.
+
+No implementation agent may decide open rows implicitly in production code.
