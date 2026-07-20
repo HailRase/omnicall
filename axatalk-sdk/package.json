@@ -23,6 +23,8 @@
     "package:check": "node ./scripts/package-check.mjs",
     "docs:check": "node ./scripts/docs-check.mjs",
     "preflight": "node ./scripts/preflight.mjs",
+    "sbom": "node ./scripts/sbom.mjs",
+    "release:check": "node ./scripts/release-check.mjs",
     "changeset": "changeset"
   },
   "devDependencies": {

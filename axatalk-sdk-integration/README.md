@@ -54,7 +54,7 @@ Native window commands remain in main.
 
 ## Current Status
 
-- F-011: **in progress** (DI-01…DI-09 `done`; DI-10 pending)
+- F-011: **in progress** (DI-01…DI-09 `done`; DI-10 `blocked` — awaits explicit intake; SDK-00…SDK-10 Mode A `done`)
 - ADRs: ADR-0009…0013 Accepted; precision rows closed by SDK-01 ADR-0014…0017 (`done`)
 - SDK-02: `@axatalk/protocol` `done`; desktop consumes same fixtures (DI-01)
 - P12 handoff: `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`

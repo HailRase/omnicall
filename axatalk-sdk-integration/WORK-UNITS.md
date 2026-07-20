@@ -12,7 +12,7 @@
 - [x] DI-07 — Operator status and logout workflow (`done`)
 - [x] DI-08 — Saved-profile activation (`done`)
 - [x] DI-09 — Settings and operational UX (`done`)
-- [ ] DI-10 — Compatibility, E2E, and P12 close (`blocked` — SDK-00…SDK-09 `done`; awaits explicit `/sdk-integration` DI-10 intake; not auto-started; no human waiver)
+- [ ] DI-10 — Compatibility, E2E, and P12 close (`blocked` — SDK-00…SDK-10 Mode A `done`; awaits explicit `/sdk-integration` DI-10 intake; not auto-started; no human waiver)
 
 Allowed statuses: `pending`, `in progress`, `review`, `done`, `blocked`.
 
@@ -534,9 +534,9 @@ Checklist:
 
 ## DI-10 — Compatibility, E2E, and P12 Close
 
-Prerequisites: DI-01…DI-09 and SDK-00…SDK-09 done.
+Prerequisites: DI-01…DI-09 and SDK-00…SDK-09 done. (SDK-10 Mode A RC staging also `done`.)
 
-Status: **`blocked`** (2026-07-20) — SDK prereqs closed; awaits explicit `/sdk-integration` DI-10 intake (not auto-started)
+Status: **`blocked`** (2026-07-21) — SDK prereqs closed (incl. SDK-10 Mode A); awaits explicit `/sdk-integration` DI-10 intake (not auto-started)
 
 ### Blocker (hard-stop)
 
@@ -544,10 +544,11 @@ Status: **`blocked`** (2026-07-20) — SDK prereqs closed; awaits explicit `/sdk
 | --- | --- | --- |
 | Desktop DI-00…DI-09 | `done` | **PASS** — all `done` |
 | SDK-00…SDK-09 | `done` (or explicit human waiver) | **PASS** — SDK-09 `/sdk-review` PASS 2026-07-20 |
+| SDK-10 Mode A | RC-ready / stable-blocked (optional for DI-10 intake) | **PASS** — `/sdk-review` PASS 2026-07-20; no npm `latest` |
 | Human waiver | documents deferred browser E2E cells **and** forbids F-011 `implemented` | **n/a** (SDK prereqs met) |
-| Desktop version | `0.11.2` until justified P12 close bump | **PASS** (`0.11.2` @ `2f5b7ef`) |
+| Desktop version | `0.11.2` until justified P12 close bump | **PASS** (`0.11.2`) |
 | F-011 | stays `in progress` until real packaged evidence | **PASS** — unchanged |
-| Explicit intake | `/sdk-integration` DI-10 only | **pending** — not auto-started from SDK-09 review |
+| Explicit intake | `/sdk-integration` DI-10 only | **pending** — not auto-started from SDK-10 review |
 
 Evidence: `axatalk-sdk-integration/evidence/DI-10-blocker-sdk-prereqs.md`
 

@@ -1,7 +1,8 @@
 # Axatalk SDK — Developer Guide
 
 Canonical developer documentation for `@axatalk/sdk` while the workspace incubates
-inside the desktop repository. **Not published to npm yet** (SDK-10).
+inside the desktop repository. **RC staging (SDK-10 Mode A)** — not on npm `latest`;
+stable blocked on desktop DI-10.
 
 Public contract truth: [`etc/api/sdk.api.md`](../../etc/api/sdk.api.md).  
 Example (fake peer only): [`examples/crm-pairing-lite/`](../../examples/crm-pairing-lite/).
@@ -21,6 +22,8 @@ Example (fake peer only): [`examples/crm-pairing-lite/`](../../examples/crm-pair
 | 9 | [Logout workflow](./logout-workflow.md) | prepare → confirm / abandon |
 | 10 | [Saved-profile activation](./saved-profile-activation.md) | Opaque `profileRef`; server-grant only |
 | 11 | [Upgrade & deprecation](./upgrade-deprecation.md) | Additive fields; protocol vs package |
+| 12 | [Compatibility matrix](./compatibility-matrix.md) | Browser + SDK↔desktop gates (DI-10 cells) |
+| 13 | [Release, rollback, revoke & support](./release-and-support.md) | RC tag, SBOM, provenance, stable gate |
 
 ## Hard rules (every page assumes these)
 
@@ -34,4 +37,4 @@ Example (fake peer only): [`examples/crm-pairing-lite/`](../../examples/crm-pair
 
 - [`../ARCHITECTURE.md`](../ARCHITECTURE.md), [`../SECURITY.md`](../SECURITY.md), [`../PROTOCOL.md`](../PROTOCOL.md)
 - Desktop grant UX (operators elevate `account.activate`): DI-09 — Settings integrations
-- Feature Registry: F-011 remains **in progress** until SDK-10 + DI-10 close
+- Feature Registry: F-011 remains **in progress** until DI-10 / P12 close (SDK-10 Mode A does not flip it)

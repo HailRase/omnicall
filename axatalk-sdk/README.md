@@ -55,9 +55,9 @@ are stable.
 - Protocol package: **SDK-02 done**
 - Transport / auth / client APIs: **SDK-03…SDK-08 done**
 - Developer docs & examples: **SDK-09 done** (`evidence/SDK-09-developer-docs-examples.md`)
-- Public API: `AxatalkClient` namespaces (lifecycle, `calls`, `account`, `operator`, `window.show`) — **47** symbols; **not published**
-- Release candidate / npm publication: **SDK-10 pending** (not started)
-- F-011 / P12: **not closed** — desktop DI-10 remains **blocked** until explicit `/sdk-integration` DI-10 intake (SDK-09 done; not auto-started)
+- Public API: `AxatalkClient` namespaces (lifecycle, `calls`, `account`, `operator`, `window.show`) — **47** symbols
+- Release candidate staging: **SDK-10 Mode A done** — RC-ready / stable-blocked; **no** npm `latest`; prerelease mode `rc` entered (`0.1.0-rc.0` on `changeset version`)
+- F-011 / P12: **not closed** — desktop DI-10 remains **blocked** until explicit `/sdk-integration` DI-10 intake
 - Production readiness: not claimed
 
 ### Local commands
@@ -66,6 +66,7 @@ are stable.
 cd axatalk-sdk
 npm ci
 npm run preflight
+npm run release:check
 ```
 
 Node engines: `>=20.19.0`.

@@ -7,7 +7,11 @@
 | `@axatalk/protocol` | Runtime schemas + shared types |
 | `@axatalk/sdk` | Browser / Node-capable client (`AxatalkClient`) |
 
-**Today:** incubating workspace under `axatalk-sdk/`. **Not published.**  
+**Today:** incubating workspace under `axatalk-sdk/` (`private: true`, `0.0.0`).  
+First public RC target: `@axatalk/sdk@0.1.0-rc.0` / `@axatalk/protocol@0.1.0-rc.0` on
+npm dist-tag **`rc`** — see [release-and-support](./release-and-support.md).  
+**Not** on `latest` until DI-10 packaged E2E passes.
+
 Install for local development:
 
 ```bash

@@ -59,7 +59,9 @@ const requiredGuide = [
   'logout-workflow.md',
   'saved-profile-activation.md',
   'security-anti-patterns.md',
-  'upgrade-deprecation.md'
+  'upgrade-deprecation.md',
+  'compatibility-matrix.md',
+  'release-and-support.md'
 ];
 
 for (const name of requiredGuide) {

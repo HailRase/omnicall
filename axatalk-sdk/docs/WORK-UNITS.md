@@ -22,7 +22,7 @@ Allowed statuses: `pending`, `in progress`, `review`, `done`, `blocked`.
 - [x] SDK-07 — Operator and logout workflows (`done`)
 - [x] SDK-08 — Saved-profile activation (`done`)
 - [x] SDK-09 — Developer documentation and examples (`done`)
-- [ ] SDK-10 — Release candidate and stable release (`pending`)
+- [x] SDK-10 — Release candidate and stable release (`done` — Mode A RC-ready / stable-blocked)
 
 ---
 
@@ -378,7 +378,10 @@ Evidence:
 
 ## SDK-10 — Release Candidate and Stable Release
 
-Prerequisites: all earlier SDK and desktop DI work units done.
+Prerequisites: all earlier SDK units done. Full stable also requires desktop DI-10 `done`
+(packaged Electron E2E). **Mode A (RC staging)** applies while DI-10 is not `done`.
+
+Status: **`done`** (2026-07-20) — Mode A RC-ready / stable-blocked; no registry publish
 
 Agent prompt:
 
@@ -387,17 +390,30 @@ Agent prompt:
 
 Checklist:
 
-- [ ] clean-install preflight.
-- [ ] package API and tarball checks.
-- [ ] browser and SDK/desktop compatibility matrix.
-- [ ] packaged Electron E2E.
-- [ ] architecture review.
-- [ ] security review.
-- [ ] changelog, SBOM, provenance, rollback, and revoke procedure.
-- [ ] release candidate validated before stable promotion.
+- [x] clean-install preflight. (`npm ci` after wipe + `preflight` PASS; re-verified 2026-07-21)
+- [x] package API and tarball checks. (`api:check` 47/169; `package:check` fortress PASS)
+- [x] browser and SDK/desktop compatibility matrix. (Chromium PASS; desktop matrix **blocked on DI-10**)
+- [ ] packaged Electron E2E. (**blocked on DI-10** — not claimed PASS; remaining track gate)
+- [x] architecture review. (publish-surface self-check PASS; formal review deferred to Mode B)
+- [x] security review. (tarball/SBOM/docs privilege self-check PASS; formal gate deferred to Mode B)
+- [x] changelog, SBOM, provenance, rollback, and revoke procedure.
+- [ ] release candidate validated before stable promotion. (RC dry-run path ready; registry RC not published; stable **blocked on DI-10**)
 
 Evidence:
 
-- Release candidate:
-- Gate reports:
-- Stable release:
+- Release candidate: `axatalk-sdk/evidence/SDK-10-release-candidate.md`
+- Gate reports: same evidence (Mode A self-checks + DI-10 blocker pointers)
+- Stable release: **blocked on DI-10** (no stable evidence)
+
+Verification snapshot:
+
+- sdk src **115** / workspace **123** / types **7** / browser **7** / api **47**/**169**
+- `docs:check` PASS; `preflight` PASS; `release:check` PASS (`publishPerformed=false`)
+- npm registry publish: **none**
+- F-011 remains `in progress`; DI-10 not auto-started
+- Reviewer: `/sdk-review` **PASS** 2026-07-20 — Mode A (RC-ready / stable-blocked); zero Blockers;
+  High remediated 2026-07-21 (`changeset pre enter rc` → verified bump plan `0.1.0-rc.0`);
+  Lows remediated (README status, DI-10 blocker evidence, clean-install re-verify);
+  independent: wipe+`npm ci`+`preflight`+`release:check` PASS; next `/sdk-integration` **DI-10 only**
+  (not auto-started; no SDK-11)
+

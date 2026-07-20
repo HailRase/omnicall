@@ -113,7 +113,10 @@ for (const pkg of packages) {
       // Test-only helpers must never ship in @axatalk/sdk production tarball.
       file.includes('fake-transport') ||
       file.includes('auth-test-peer') ||
-      file.includes('test-helpers')
+      file.includes('test-helpers') ||
+      file.includes('crm-pairing-lite-harness') ||
+      file.includes('crm-pairing-lite-demo') ||
+      file.includes('/docs/')
   );
   if (forbidden.length > 0) {
     console.error(`Forbidden files in ${filename}:`);

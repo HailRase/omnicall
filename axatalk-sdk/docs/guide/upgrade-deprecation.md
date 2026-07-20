@@ -19,8 +19,8 @@
 ## Deprecation window
 
 See **ADR-0017**. Deprecated symbols receive a documented window before removal.
-This incubation build has **no npm stable** yet — treat the API report as the freeze line
-for SDK-09 docs.
+RC staging (SDK-10 Mode A) freezes the public API at `etc/api/sdk.api.md` (**47** symbols).
+No npm `latest` / stable until DI-10 closes packaged E2E gates.
 
 ## Rollback / revoke (ops)
 
@@ -30,4 +30,5 @@ for SDK-09 docs.
 | Capability strip | `permission-changed` / subsequent `forbidden` |
 | Desktop downgrade | May yield `incompatible_version` |
 
-Rollback of a published package is an SDK-10 / release concern — not claimed here.
+Package rollback, npm dist-tags, SBOM, provenance, and support policy:
+see [Release, rollback, revoke & support](./release-and-support.md).

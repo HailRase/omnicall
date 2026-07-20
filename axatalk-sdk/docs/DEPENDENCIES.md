@@ -52,6 +52,13 @@ JSON bytes.
 
 ## Publish posture
 
-- Packages are `private: true` during incubation.
-- `publishConfig.access=public` and `publishConfig.provenance=true` are scaffolded only.
-- CI uploads tarball artifacts and **never** runs `npm publish`.
+- Packages remain `private: true` / `0.0.0` during incubation and **SDK-10 Mode A** (RC staging).
+- `publishConfig.access=public` and `publishConfig.provenance=true` are scaffolded and
+  verified by `npm run release:check`.
+- First public RC target: `0.1.0-rc.0` on npm dist-tag **`rc`** (never `latest` while DI-10 open).
+- Workspace is in changesets **prerelease mode** (`.changeset/pre.json`, tag `rc`) so
+  `changeset version` yields `0.1.0-rc.0`, not bare `0.1.0`.
+- CI / local scripts pack tarballs and generate SBOM (`npm run sbom`); they **never** run
+  `npm publish` to a registry from automation in this track.
+- Stable / `latest` publish is fail-closed until desktop DI-10 packaged E2E evidence exists
+  (or an explicit human waiver). See `docs/guide/release-and-support.md`.
