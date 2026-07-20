@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-20 23:47
 **Статус:** выполнено
-**Коммит:** (см. следующий commit hash)
+**Коммит:** `e06a8ac`
 
 ## Где
 - `axatalk-sdk/packages/sdk/src/docs/crm-pairing-lite-demo.ts`
