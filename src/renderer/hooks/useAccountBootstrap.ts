@@ -32,7 +32,15 @@ export function useAccountBootstrap(): Readonly<{
         await activeFacade.initialize(bootstrapOptions.config);
 
         if (!cancelled) {
-          const bound = bindSdkBrokerSession();
+          const settingsResult = await activeFacade.getUserSettingsForAccount();
+          const ocpModuleEnabled =
+            settingsResult.ok === true
+              ? settingsResult.value.ocpIntegration.enabled
+              : false;
+          const bound = bindSdkBrokerSession({
+            facade: activeFacade,
+            ocpModuleEnabled,
+          });
           disposeSdkBroker = bound.dispose;
           setStatus("ready");
         }

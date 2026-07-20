@@ -34,6 +34,10 @@ import type {
   SdkBrokerReplyIpcResponse,
   SdkBrokerRequestIpcPayload,
 } from "./SdkBrokerContract.js";
+import type {
+  SdkGatewayPublishEventIpcPayload,
+  SdkGatewayPublishEventIpcResponse,
+} from "./SdkGatewayEventContract.js";
 
 export type SoftphonePreloadApi = Readonly<{
   getPlatformVersion: () => Promise<PlatformVersionResponse>;
@@ -74,6 +78,10 @@ export type SoftphonePreloadApi = Readonly<{
   setSdkBrokerReady: (
     payload: SdkBrokerReadyIpcPayload,
   ) => Promise<SdkBrokerReadyIpcResponse>;
+  /** DI-05: publish redacted public SDK event for per-client gateway fan-out. */
+  publishSdkGatewayEvent: (
+    payload: SdkGatewayPublishEventIpcPayload,
+  ) => Promise<SdkGatewayPublishEventIpcResponse>;
 }>;
 
 declare global {

@@ -34,6 +34,10 @@ import {
   parseSdkBrokerReplyIpcPayload,
   parseSdkBrokerRequestIpcPayload,
 } from "@shared/ipc/SdkBrokerContract.js";
+import {
+  parseSdkGatewayPublishEventIpcPayload,
+  parseSdkGatewayPublishEventIpcResponse,
+} from "@shared/ipc/SdkGatewayEventContract.js";
 
 const softphoneApi: SoftphonePreloadApi = {
   getPlatformVersion: () => ipcRenderer.invoke(IPC_CHANNELS.platformGetVersion),
@@ -265,6 +269,22 @@ const softphoneApi: SoftphonePreloadApi = {
       parsed,
     );
     return parseSdkBrokerAckResponse(response) ?? { ok: false };
+  },
+  publishSdkGatewayEvent: async (payload) => {
+    const parsed = parseSdkGatewayPublishEventIpcPayload(payload);
+    if (parsed === null) {
+      return { ok: false, delivered: 0 };
+    }
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.sdkGatewayPublishEvent,
+      parsed,
+    );
+    return (
+      parseSdkGatewayPublishEventIpcResponse(response) ?? {
+        ok: false,
+        delivered: 0,
+      }
+    );
   },
 };
 

@@ -23,6 +23,8 @@ export const IPC_CHANNELS = {
   sdkBrokerReply: "sdk-broker:reply",
   /** Renderer → main: composition readiness for product broker traffic. */
   sdkBrokerSetReady: "sdk-broker:set-ready",
+  /** Renderer → main: publish redacted public SDK event for per-client fan-out (DI-05). */
+  sdkGatewayPublishEvent: "sdk-gateway:publish-event",
 } as const;
 
 export type IpcChannel =

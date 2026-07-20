@@ -1,6 +1,5 @@
 /**
- * Fail-closed inbound routing for SDK gateway (DI-03/DI-04).
- * Product snapshots never succeed until DI-05; unauthenticated product → deny.
+ * Fail-closed inbound routing for SDK gateway (DI-03…DI-05).
  */
 
 import type {
@@ -9,6 +8,7 @@ import type {
   ProtocolErrorCode,
   WireMessage,
 } from "@axatalk/protocol";
+import { productDenialCodeForCommand } from "@axatalk/protocol";
 
 import {
   connectionHasCapability,
@@ -23,6 +23,8 @@ export type SdkConnectionRouteView = Readonly<{
   grantedCapabilities: readonly CapabilityId[];
 }>;
 
+type CommandMessage = Extract<WireMessage, { kind: "command" }>;
+
 export type SdkInboundRoute =
   | { readonly action: "server_hello" }
   | { readonly action: "pairing_request"; readonly message: PairingRequest }
@@ -30,7 +32,7 @@ export type SdkInboundRoute =
   | {
       readonly action: "command_deny";
       readonly requestId: string;
-      readonly commandType: Extract<WireMessage, { kind: "command" }>["type"];
+      readonly commandType: CommandMessage["type"];
       readonly code: ProtocolErrorCode;
     }
   | {
@@ -38,9 +40,20 @@ export type SdkInboundRoute =
       readonly requestId: string;
     }
   | {
+      readonly action: "command_broker";
+      readonly requestId: string;
+      readonly commandType: "sdk:get-snapshot";
+      readonly message: CommandMessage;
+    }
+  | {
+      readonly action: "command_window";
+      readonly requestId: string;
+      readonly commandType: "window:show" | "window:get-state";
+    }
+  | {
       readonly action: "command_not_ready";
       readonly requestId: string;
-      readonly commandType: Extract<WireMessage, { kind: "command" }>["type"];
+      readonly commandType: CommandMessage["type"];
     }
   | { readonly action: "close"; readonly code: ProtocolErrorCode };
 
@@ -81,7 +94,7 @@ export function routeSdkInbound(
 }
 
 function routeCommand(
-  message: Extract<WireMessage, { kind: "command" }>,
+  message: CommandMessage,
   view: SdkConnectionRouteView,
 ): SdkInboundRoute {
   if (view.authState !== "authenticated") {
@@ -93,13 +106,25 @@ function routeCommand(
     };
   }
 
+  // ADR-0013: v1-unavailable commands (e.g. window:hide) → forbidden before
+  // capability / not_ready fall-through.
+  const productDenial = productDenialCodeForCommand(message.type);
+  if (productDenial !== null) {
+    return {
+      action: "command_deny",
+      requestId: message.requestId,
+      commandType: message.type,
+      code: productDenial,
+    };
+  }
+
   const required = requiredCapabilityForCommand(message.type);
   if (!connectionHasCapability(view.grantedCapabilities, required)) {
     return {
       action: "command_deny",
       requestId: message.requestId,
       commandType: message.type,
-      code: required === null ? "forbidden" : "forbidden",
+      code: "forbidden",
     };
   }
 
@@ -107,11 +132,27 @@ function routeCommand(
     return { action: "command_ping", requestId: message.requestId };
   }
 
-  // Authenticated + capable product paths land in DI-05+.
+  if (message.type === "sdk:get-snapshot") {
+    return {
+      action: "command_broker",
+      requestId: message.requestId,
+      commandType: "sdk:get-snapshot",
+      message,
+    };
+  }
+
+  if (message.type === "window:show" || message.type === "window:get-state") {
+    return {
+      action: "command_window",
+      requestId: message.requestId,
+      commandType: message.type,
+    };
+  }
+
+  // Call / operator / account mutations land in DI-06+.
   return {
     action: "command_not_ready",
     requestId: message.requestId,
     commandType: message.type,
   };
 }
-

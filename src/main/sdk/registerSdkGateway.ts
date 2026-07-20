@@ -1,5 +1,5 @@
 /**
- * Electron main registration for the loopback SDK WebSocket gateway (DI-03/DI-04).
+ * Electron main registration for the loopback SDK WebSocket gateway (DI-03…DI-05).
  * Does not import Domain or Facades. Gateway failure must not block softphone.
  */
 
@@ -9,8 +9,14 @@ import { LocalWsServerAdapter } from "@adapters/integration/LocalWsServerAdapter
 import { createConsoleLogger } from "@infrastructure/logging/index.js";
 import { resolveAxatalkProfilesStorageRoot } from "@infrastructure/bootstrap/resolveAxatalkProfilesStorageRoot.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
-import { app } from "electron";
+import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
+import {
+  parseSdkGatewayPublishEventIpcPayload,
+} from "@shared/ipc/SdkGatewayEventContract.js";
+import { BrowserWindow, app, ipcMain } from "electron";
 
+import { createSdkGatewayProductSurface } from "./createSdkGatewayProductSurface.js";
+import { getSdkBroker } from "./registerSdkBrokerIpc.js";
 import { ElectronSafeStorageSecretService } from "../secrets/ElectronSafeStorageSecretService.js";
 import { MainProcessSecretStorageAdapter } from "../secrets/MainProcessSecretStorageAdapter.js";
 
@@ -21,6 +27,7 @@ const logger = createConsoleLogger({
 
 let gateway: LocalWsServerAdapter | null = null;
 let primaryInstance = true;
+let publishEventIpcRegistered = false;
 
 /** Record Electron single-instance ownership before claiming the fixed endpoint. */
 export function setSdkGatewayPrimaryInstance(isPrimary: boolean): void {
@@ -59,6 +66,16 @@ export async function startSdkGateway(options: {
       });
     },
   });
+
+  if (enabled) {
+    gateway.setProductSurface(
+      createSdkGatewayProductSurface({
+        getBroker: () => getSdkBroker(),
+        getMainWindow: () => BrowserWindow.getAllWindows()[0] ?? null,
+      }),
+    );
+    registerPublishEventIpc();
+  }
 
   const result = await gateway.start();
   if (!result.ok) {
@@ -133,4 +150,23 @@ export async function resetSdkGatewayRegistrationForTests(): Promise<void> {
   }
   gateway = null;
   primaryInstance = true;
+  if (publishEventIpcRegistered && typeof ipcMain?.removeHandler === "function") {
+    ipcMain.removeHandler(IPC_CHANNELS.sdkGatewayPublishEvent);
+    publishEventIpcRegistered = false;
+  }
+}
+
+function registerPublishEventIpc(): void {
+  if (publishEventIpcRegistered || typeof ipcMain?.handle !== "function") {
+    return;
+  }
+  publishEventIpcRegistered = true;
+  ipcMain.handle(IPC_CHANNELS.sdkGatewayPublishEvent, (_event, payload: unknown) => {
+    const parsed = parseSdkGatewayPublishEventIpcPayload(payload);
+    if (parsed === null || gateway === null) {
+      return { ok: false as const, delivered: 0 };
+    }
+    const delivered = gateway.publishPublicEvent(parsed.draft);
+    return { ok: true as const, delivered };
+  });
 }

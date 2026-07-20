@@ -1,6 +1,5 @@
 /**
- * Protocol message builders for SDK gateway (DI-03/DI-04).
- * No product snapshot success replies (DI-05).
+ * Protocol message builders for SDK gateway (DI-03…DI-05).
  */
 
 import {
@@ -12,6 +11,7 @@ import {
   type CommandType,
   type PairingProfile,
   type ProtocolErrorCode,
+  type WireJsonObject,
   type WireMessage,
 } from "@axatalk/protocol";
 
@@ -110,7 +110,7 @@ export function buildCommandSuccessReply(input: {
   readonly identity: SdkGatewayIdentity;
   readonly now: () => Date;
   readonly revision?: number;
-  readonly result?: Readonly<Record<string, never>>;
+  readonly result?: WireJsonObject;
 }): WireMessage {
   return {
     protocolVersion: PROTOCOL_MAJOR,

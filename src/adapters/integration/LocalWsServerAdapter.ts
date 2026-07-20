@@ -1,4 +1,4 @@
-/** Real loopback WS ExternalClientGateway (DI-03/DI-04). No snapshot success (DI-05). */
+/** Real loopback WS ExternalClientGateway (DI-03…DI-05). */
 
 import type { Server as HttpServer } from "node:http";
 import {
@@ -19,17 +19,16 @@ import {
   SDK_GATEWAY_DEFAULT_PORT,
   type SdkGatewayLimits,
 } from "./sdkGatewayConfig.js";
-import {
-  createGatewayIdentityShell,
-  type SdkGatewayIdentity,
-} from "./sdkGatewayMessages.js";
-import { closeHttpServer, type SdkGatewayLogFn } from "./localWsServerHelpers.js";
-import { bindLocalWsServer } from "./localWsServerBind.js";
+import type { SdkGatewayLogFn } from "./localWsServerHelpers.js";
 import {
   type LocalWsServerAdapterOptions,
   type LocalWsStartResult,
 } from "./localWsServerAdapterTypes.js";
 import { LocalWsSessionRegistry } from "./LocalWsSessionRegistry.js";
+import {
+  bindLocalWsListening,
+  disposeLocalWsListening,
+} from "./localWsServerLifecycle.js";
 import { loadSdkOriginAllowlistFromEnv } from "./sdkGatewayOriginPolicy.js";
 import { isApprovedLoopbackBindHost } from "./sdkGatewayPeer.js";
 import {
@@ -37,6 +36,7 @@ import {
   createAutoApprovePairingApprover,
 } from "./sdkGatewayPairingApprover.js";
 import { SdkGatewayPairingStore } from "./sdkGatewayPairingStore.js";
+import type { SdkGatewayProductSurface } from "./sdkGatewayProductSurface.js";
 import type {
   SdkPairedClientPublicMeta,
   SdkPairingApprover,
@@ -61,9 +61,9 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
   private readonly pairingStore: SdkGatewayPairingStore | null;
   private readonly deferredApprover: DeferredSdkPairingApprover;
   private readonly pairingApprover: SdkPairingApprover;
+  private productSurface: SdkGatewayProductSurface | null;
   private httpServer: HttpServer | null = null;
   private wss: WebSocketServer | null = null;
-  private identity: SdkGatewayIdentity | null = null;
   private sessions: LocalWsSessionRegistry | null = null;
   private accepting = true;
   private listening = false;
@@ -79,7 +79,6 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
     this.onLog = options.onLog;
     this.allowedOrigins =
       options.allowedOrigins ?? loadSdkOriginAllowlistFromEnv();
-    // Enabled gateways require SecretStoragePort (no insecure in-memory default).
     this.pairingStore =
       options.secretStorage !== undefined
         ? new SdkGatewayPairingStore(options.secretStorage)
@@ -90,6 +89,15 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
       (options.autoApprovePairing === true
         ? createAutoApprovePairingApprover()
         : this.deferredApprover.approver);
+    this.productSurface = options.productSurface ?? null;
+  }
+
+  setProductSurface(surface: SdkGatewayProductSurface | null): void {
+    this.productSurface = surface;
+  }
+
+  publishPublicEvent(draft: unknown): number {
+    return this.sessions?.publishPublicEvent(draft) ?? 0;
   }
 
   getStatus(): ExternalClientGatewayStatus {
@@ -215,47 +223,31 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
     if (pairingStore === null) {
       return { ok: false, reason: "missing_secret_storage" };
     }
-    const shell = createGatewayIdentityShell(this.desktopVersion);
-    this.identity = {
-      ...shell,
-      maxMessageBytes: this.limits.maxMessageBytes,
-      heartbeatSeconds: this.limits.heartbeatSeconds,
-    };
-    this.sessions = new LocalWsSessionRegistry({
-      limits: this.limits,
-      now: this.now,
-      validateWire: (input) => this.validateWireInbound(input),
-      getIdentity: () => this.identity,
-      pairingStore,
-      pairingApprover: this.pairingApprover,
-      ...(this.onLog !== undefined ? { onLog: this.onLog } : {}),
-    });
-
-    const bound = await bindLocalWsServer({
+    const bound = await bindLocalWsListening({
+      desktopVersion: this.desktopVersion,
       host: this.host,
       port: this.port,
       limits: this.limits,
-      identity: this.identity,
-      sessions: this.sessions,
+      pairingStore,
+      pairingApprover: this.pairingApprover,
       allowedOrigins: this.allowedOrigins,
       getAccepting: () => this.accepting,
       getListening: () => this.listening,
-      resolveWsHostPort: () => this.getBoundAddress() ?? {
-        host: this.host,
-        port: this.port,
-      },
+      resolveWsHostPort: () =>
+        this.getBoundAddress() ?? { host: this.host, port: this.port },
+      getProductSurface: () => this.productSurface,
+      validateWireInbound: (value) => this.validateWireInbound(value),
+      now: this.now,
       ...(this.onLog !== undefined ? { onLog: this.onLog } : {}),
     });
     if (!bound.ok) {
-      this.identity = null;
-      this.sessions = null;
       this.log("sdk_gateway_bind_failed", {
         reason: "bind_failed",
         code: bound.code,
       });
       return { ok: false, reason: "bind_failed" };
     }
-
+    this.sessions = bound.sessions;
     this.httpServer = bound.httpServer;
     this.wss = bound.wss;
     this.listening = true;
@@ -263,24 +255,15 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
   }
 
   private async disposeAll(): Promise<void> {
-    this.sessions?.terminateAll();
+    await disposeLocalWsListening({
+      sessions: this.sessions,
+      wss: this.wss,
+      httpServer: this.httpServer,
+    });
     this.sessions = null;
-    const wss = this.wss;
     this.wss = null;
-    if (wss !== null) {
-      await new Promise<void>((resolve) => {
-        wss.close(() => {
-          resolve();
-        });
-      });
-    }
-    const httpServer = this.httpServer;
     this.httpServer = null;
     this.listening = false;
-    this.identity = null;
-    if (httpServer !== null) {
-      await closeHttpServer(httpServer);
-    }
   }
 
   private log(

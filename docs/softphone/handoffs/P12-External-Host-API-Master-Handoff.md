@@ -7,7 +7,7 @@
 | Feature | F-011 Host Integration Contract |
 | Legacy | LF-051, LF-065, LF-080, LF-081 |
 | Phase | P12 External Host API Compatibility |
-| Feature status | **in progress** (DI-01…DI-04 `done`; no product snapshots) |
+| Feature status | **in progress** (DI-01…DI-05 `done`) |
 | Branch | `feature/axatalk-sdk` |
 | Desktop version | `0.11.2` |
 | DI-00 | `done` — `/sdk-review` PASS 2026-07-20 |
@@ -16,7 +16,8 @@
 | DI-02 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-02-typed-main-renderer-broker.md` |
 | DI-03 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-03-loopback-websocket-transport.md` |
 | DI-04 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-04-pairing-origin-capabilities.md` |
-| Next | **DI-05** via `/sdk-integration` (snapshots/events/`window:show`) |
+| DI-05 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-05-read-only-snapshot-events-window-show.md` |
+| Next | **DI-06** via `/sdk-integration` (do not mark F-011 `implemented`) |
 
 ## Mission
 
@@ -70,7 +71,7 @@ SDK and Electron-native local gateway while preserving every existing softphone 
 - [x] Per-client pairing, capabilities, expiry, and revocation (ADR-0011) — DI-04 `done`.
 - [x] Replay/idempotency and aggregate command serialization (ADR-0011/0012) — DI-04 challenge/request dedup `done`; aggregate mutation serialization DI-06.
 - [x] Resource limits, heartbeat, backpressure, and safe teardown (ADR-0010) — DI-03 `done`.
-- [x] Per-client redacted events; no indiscriminate broadcast (ADR-0012) — implement DI-05.
+- [x] Per-client redacted events; no indiscriminate broadcast (ADR-0012) — DI-05 `done`.
 - [x] No raw SIP/OCP credentials in protocol v1 (ADR-0013).
 - [x] Independent security review has no Blocker — **DI-04** `/sdk-review` PASS; full packaged matrix remains **DI-10**.
 
@@ -148,6 +149,7 @@ Automated matrix: `axatalk-sdk-integration/TEST-MATRIX.md`.
 - [x] DI-02 evidence exists; `/sdk-review` PASS (`evidence/DI-02-typed-main-renderer-broker.md`).
 - [x] DI-03 evidence exists; `/sdk-review` PASS (`evidence/DI-03-loopback-websocket-transport.md`).
 - [x] DI-04 evidence exists; `/sdk-review` PASS (`evidence/DI-04-pairing-origin-capabilities.md`).
+- [x] DI-05 evidence exists; `/sdk-review` PASS (`evidence/DI-05-read-only-snapshot-events-window-show.md`).
 - [ ] No premature `implemented` status — enforced until DI-10.
 
 ## DI-00 Evidence Summary
@@ -172,6 +174,6 @@ P12 closes only when:
 
 ## Next Agent Prompt
 
-1. Implement **DI-05** snapshots/events/`window:show` via `/sdk-integration` (separate session).
+1. Start **DI-06** call command router via `/sdk-integration` (separate session). Do not mark F-011 `implemented`.
 2. Keep Domain free of protocol / Zod / Electron / ws imports; gateway must not import Facades/Call Engine.
 3. Do not mark F-011 `implemented` until DI-10.

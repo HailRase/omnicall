@@ -7,7 +7,7 @@
 - [x] DI-02 — Typed main-to-renderer broker (`done`)
 - [x] DI-03 — Loopback WebSocket transport (`done`)
 - [x] DI-04 — Pairing, Origin, capabilities, and revocation (`done`)
-- [ ] DI-05 — Read-only snapshot, events, and window show (`pending`)
+- [x] DI-05 — Read-only snapshot, events, and window show (`done`)
 - [ ] DI-06 — Call command router (`pending`)
 - [ ] DI-07 — Operator status and logout workflow (`pending`)
 - [ ] DI-08 — Saved-profile activation (`pending`)
@@ -335,6 +335,8 @@ Checklist:
 
 Prerequisites: DI-04 and SDK-05 ready.
 
+Status: **`done`** (2026-07-20) — `/sdk-review` PASS
+
 Agent prompt:
 
 > Add per-client redacted snapshot and stable event delivery. Implement only window show as a
@@ -343,14 +345,38 @@ Agent prompt:
 
 Checklist:
 
-- [ ] snapshot assembler.
-- [ ] public call/registration/account/operator event mapper.
-- [ ] per-capability redaction.
-- [ ] per-client subscriptions; no broadcast.
-- [ ] sequence/revision and resync.
-- [ ] show/restore/focus policy and rate limit.
-- [ ] SIP-only and OCP-disabled tests.
-- [ ] SDK-05 interoperability.
+- [x] snapshot assembler.
+- [x] public call/registration/account/operator event mapper.
+- [x] per-capability redaction.
+- [x] per-client subscriptions; no broadcast.
+- [x] sequence/revision and resync.
+- [x] show/restore/focus policy and rate limit.
+- [x] SIP-only and OCP-disabled tests.
+- [ ] SDK-05 interoperability. *(paired client gate; desktop surface closed — client package still pending)*
+
+### Handoff checklist (DI-05)
+
+- Work unit: DI-05
+- Prerequisites verified: DI-04 `done` (`/sdk-review` PASS); SDK-01…SDK-03 `done`; protocol fixtures consumed
+- Feature/LF IDs: F-011; LF-051, LF-065, LF-080, LF-081
+- Bounded contexts: Integration (primary)
+- Layers changed: Application mappers/handlers; gateway product dispatch; main window + IPC; renderer broker bind; preload
+- Files added/changed:
+  - Application: `ExternalSdkReadHandler.ts`, `ExternalSdkSnapshotAssembler.ts`, `ExternalSdkEventMapper.ts`, `sdkPrivacyRedaction.ts`, `readSdkProductStateFromStore.ts`
+  - Gateway: `sdkGatewayProductDispatch.ts`, `sdkGatewaySnapshotMessage.ts`, `sdkGatewayEventFanout.ts`, `sdkGatewayWindowHandler.ts`, route/dispatch/registry/adapter
+  - Main: `createSdkGatewayProductSurface.ts`, `registerSdkGateway.ts`
+  - IPC/preload: `SdkGatewayEventContract.ts`, `publishSdkGatewayEvent`
+  - evidence `axatalk-sdk-integration/evidence/DI-05-read-only-snapshot-events-window-show.md`
+- Commands/events added: `sdk:get-snapshot` success; `window:show` / `window:get-state`; public event fan-out; `window:visibility-changed`
+- Security impact: capability-gated read-only surface; redaction enforced; per-client events; revoke stops delivery; DI-04 invariants preserved
+- Regression risks: additive product path; SIP/OCP/call untouched; F-011 not implemented
+- Automated tests: focused DI-05 set **60 passed**; full `npm test` **2407 passed / 1 skipped** (gate + Low remediations)
+- Manual evidence: smoke not claimed
+- Verification commands: focused vitest; `npm test`; `npm run lint`; `npm run typecheck`; `npm run registry:check` (**71 found / 0 missing**)
+- Registry/Legacy/STATUS changes: F-011 remains `in progress`; DI-05 → `done`
+- Remaining risks: SDK-05 client interoperability; OCP enabled flag sampled at bind; post-auth auto-snapshot deferred; client-owned sequence-gap resync (SDK-05)
+- Evidence: `axatalk-sdk-integration/evidence/DI-05-read-only-snapshot-events-window-show.md`
+- Reviewer: `/sdk-review` **PASS** (2026-07-20) — no Blockers; Low nits only; next DI-06 via `/sdk-integration`
 
 ## DI-06 — Call Command Router
 

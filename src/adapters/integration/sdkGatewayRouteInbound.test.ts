@@ -87,7 +87,7 @@ describe("routeSdkInbound", () => {
     });
   });
 
-  it("returns not_ready for capable snapshot until DI-05", () => {
+  it("routes capable snapshot to broker path (DI-05)", () => {
     expect(
       routeSdkInbound(getSnapshot, {
         handshakeComplete: true,
@@ -95,9 +95,29 @@ describe("routeSdkInbound", () => {
         grantedCapabilities: ["session.read.redacted"],
       }),
     ).toEqual({
-      action: "command_not_ready",
+      action: "command_broker",
       requestId: "req_test_001",
       commandType: "sdk:get-snapshot",
+      message: getSnapshot,
+    });
+  });
+
+  it("routes window:show to main window path", () => {
+    const show = {
+      ...getSnapshot,
+      type: "window:show" as const,
+      payload: {},
+    };
+    expect(
+      routeSdkInbound(show, {
+        handshakeComplete: true,
+        authState: "authenticated",
+        grantedCapabilities: ["window.show"],
+      }),
+    ).toEqual({
+      action: "command_window",
+      requestId: "req_test_001",
+      commandType: "window:show",
     });
   });
 
@@ -116,6 +136,46 @@ describe("routeSdkInbound", () => {
     ).toEqual({
       action: "command_ping",
       requestId: "req_test_001",
+    });
+  });
+
+  it("denies window:hide as forbidden on v1 product surface (ADR-0013)", () => {
+    const hide = {
+      ...getSnapshot,
+      type: "window:hide" as const,
+      payload: {},
+    };
+    expect(
+      routeSdkInbound(hide, {
+        handshakeComplete: true,
+        authState: "authenticated",
+        grantedCapabilities: ["window.hide"],
+      }),
+    ).toEqual({
+      action: "command_deny",
+      requestId: "req_test_001",
+      commandType: "window:hide",
+      code: "forbidden",
+    });
+  });
+
+  it("denies window:show without window.show capability", () => {
+    const show = {
+      ...getSnapshot,
+      type: "window:show" as const,
+      payload: {},
+    };
+    expect(
+      routeSdkInbound(show, {
+        handshakeComplete: true,
+        authState: "authenticated",
+        grantedCapabilities: ["session.read.redacted"],
+      }),
+    ).toEqual({
+      action: "command_deny",
+      requestId: "req_test_001",
+      commandType: "window:show",
+      code: "forbidden",
     });
   });
 });

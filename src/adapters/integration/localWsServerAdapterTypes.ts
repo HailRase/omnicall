@@ -6,6 +6,7 @@ import type { SecretStoragePort } from "@ports/secrets/SecretStoragePort.js";
 
 import type { SdkGatewayLimits } from "./sdkGatewayConfig.js";
 import type { SdkGatewayLogFn } from "./localWsServerHelpers.js";
+import type { SdkGatewayProductSurface } from "./sdkGatewayProductSurface.js";
 import type { SdkPairingApprover } from "./sdkGatewayPairingTypes.js";
 
 export type LocalWsStartResult =
@@ -35,4 +36,6 @@ export type LocalWsServerAdapterOptions = Readonly<{
   secretStorage?: SecretStoragePort;
   pairingApprover?: SdkPairingApprover;
   autoApprovePairing?: boolean;
+  /** DI-05 product surface (broker + window). Absent → product cmds stay not_ready. */
+  productSurface?: SdkGatewayProductSurface;
 }>;

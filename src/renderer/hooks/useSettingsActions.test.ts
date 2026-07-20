@@ -49,6 +49,7 @@ function createSoftphonePreloadApiMock(
     setPendingDisplaySource: vi.fn().mockResolvedValue({ ok: true }),
     onSdkBrokerRequest: vi.fn().mockReturnValue(() => {}),
     replySdkBrokerRequest: vi.fn().mockResolvedValue({ ok: true }),
+    publishSdkGatewayEvent: vi.fn().mockResolvedValue({ ok: true, delivered: 0 }),
     setSdkBrokerReady: vi.fn().mockResolvedValue({ ok: true }),
     ...overrides,
   };

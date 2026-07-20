@@ -19,6 +19,11 @@ import {
 } from "./sdkGatewayMessages.js";
 import type { SdkPairingApprover } from "./sdkGatewayPairingTypes.js";
 import type { SdkGatewayPairingStore } from "./sdkGatewayPairingStore.js";
+import {
+  fanoutSdkPublicEvent,
+  parseSdkPublicEventDraft,
+} from "./sdkGatewayEventFanout.js";
+import type { SdkGatewayProductSurface } from "./sdkGatewayProductSurface.js";
 import { SdkRequestDedupCache } from "./sdkGatewayRequestDedup.js";
 import { dispatchSdkValidatedMessage } from "./sdkGatewaySessionDispatch.js";
 import {
@@ -41,6 +46,7 @@ export type LocalWsSessionRegistryDeps = Readonly<{
   getIdentity: () => SdkGatewayIdentity | null;
   pairingStore: SdkGatewayPairingStore;
   pairingApprover: SdkPairingApprover;
+  getProductSurface?: () => SdkGatewayProductSurface | null;
   onLog?: SdkGatewayLogFn;
 }>;
 
@@ -52,6 +58,7 @@ export class LocalWsSessionRegistry {
   private readonly getIdentity: () => SdkGatewayIdentity | null;
   private readonly pairingStore: SdkGatewayPairingStore;
   private readonly pairingApprover: SdkPairingApprover;
+  private readonly getProductSurface: () => SdkGatewayProductSurface | null;
   private readonly challenges = new SdkAuthChallengeCache();
   private readonly requestDedup = new SdkRequestDedupCache();
   private readonly onLog: SdkGatewayLogFn | undefined;
@@ -64,6 +71,7 @@ export class LocalWsSessionRegistry {
     this.getIdentity = deps.getIdentity;
     this.pairingStore = deps.pairingStore;
     this.pairingApprover = deps.pairingApprover;
+    this.getProductSurface = deps.getProductSurface ?? (() => null);
     this.onLog = deps.onLog;
   }
 
@@ -155,6 +163,27 @@ export class LocalWsSessionRegistry {
     return true;
   }
 
+  /**
+   * Fan-out a validated public event draft to each authorized connection.
+   * Returns delivered count (0 when identity missing or draft invalid).
+   */
+  publishPublicEvent(draftInput: unknown): number {
+    const identity = this.getIdentity();
+    const draft = parseSdkPublicEventDraft(draftInput);
+    if (identity === null || draft === null) {
+      return 0;
+    }
+    return fanoutSdkPublicEvent({
+      connections: this.connections.values(),
+      identity,
+      now: this.now,
+      draft,
+      sendJson: (c, m) => {
+        this.sendJson(c, m);
+      },
+    });
+  }
+
   private parseAndDispatch(
     connection: SdkGatewayConnection,
     text: string,
@@ -201,6 +230,7 @@ export class LocalWsSessionRegistry {
         this.log(event, fields);
       },
       isSessionExpired: (c) => this.isSessionExpired(c),
+      productSurface: this.getProductSurface(),
     });
   }
 

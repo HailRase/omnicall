@@ -5,7 +5,7 @@ import { SdkAuthChallengeCache } from "./sdkGatewayAuthChallenge.js";
 describe("SdkAuthChallengeCache", () => {
   it("consumes a fresh challenge once and rejects replay", () => {
     const cache = new SdkAuthChallengeCache();
-    let nowMs = Date.parse("2026-07-20T09:00:00.000Z");
+    const nowMs = Date.parse("2026-07-20T09:00:00.000Z");
     const now = (): Date => new Date(nowMs);
     const challenge = cache.issue({
       clientId: "client_1",

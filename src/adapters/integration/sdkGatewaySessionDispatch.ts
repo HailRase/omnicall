@@ -1,5 +1,5 @@
 /**
- * Handshake + command dispatch helpers for LocalWsSessionRegistry (DI-04).
+ * Handshake + command dispatch helpers for LocalWsSessionRegistry (DI-04/DI-05).
  */
 
 import type { ClientHello, ProtocolErrorCode, WireMessage } from "@axatalk/protocol";
@@ -14,6 +14,8 @@ import {
 } from "./sdkGatewayMessages.js";
 import type { SdkPairingApprover } from "./sdkGatewayPairingTypes.js";
 import type { SdkGatewayPairingStore } from "./sdkGatewayPairingStore.js";
+import { dispatchSdkProductRoute } from "./sdkGatewayProductDispatch.js";
+import type { SdkGatewayProductSurface } from "./sdkGatewayProductSurface.js";
 import { SdkRequestDedupCache } from "./sdkGatewayRequestDedup.js";
 import { routeSdkInbound } from "./sdkGatewayRouteInbound.js";
 import {
@@ -186,6 +188,7 @@ export async function dispatchSdkValidatedMessage(input: {
     fields: Readonly<Record<string, string | number | boolean>>,
   ) => void;
   readonly isSessionExpired: (connection: SdkGatewayConnection) => boolean;
+  readonly productSurface: SdkGatewayProductSurface | null;
 }): Promise<void> {
   if (input.isSessionExpired(input.connection)) {
     input.closeConnection(input.connection, "unauthenticated");
@@ -248,6 +251,38 @@ export async function dispatchSdkValidatedMessage(input: {
       sendJson: input.sendJson,
       closeConnection: input.closeConnection,
       log: input.log,
+    });
+    return;
+  }
+  if (route.action === "command_broker" || route.action === "command_window") {
+    await dispatchSdkProductRoute({
+      route,
+      productSurface: input.productSurface,
+      context: {
+        connection: input.connection,
+        getIdentity: input.getIdentity,
+        requestDedup: input.requestDedup,
+        now: input.now,
+        sendJson: input.sendJson,
+        closeConnection: input.closeConnection,
+        log: input.log,
+      },
+      onNotReady: (productRoute) => {
+        handleSdkCommandRoute({
+          connection: input.connection,
+          route: {
+            action: "command_not_ready",
+            requestId: productRoute.requestId,
+            commandType: productRoute.commandType,
+          },
+          getIdentity: input.getIdentity,
+          requestDedup: input.requestDedup,
+          now: input.now,
+          sendJson: input.sendJson,
+          closeConnection: input.closeConnection,
+          log: input.log,
+        });
+      },
     });
     return;
   }
