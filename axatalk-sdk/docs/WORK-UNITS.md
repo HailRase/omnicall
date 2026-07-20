@@ -13,7 +13,7 @@ Allowed statuses: `pending`, `in progress`, `review`, `done`, `blocked`.
 ## Progress
 
 - [x] SDK-00 — Package workspace and CI (`done`)
-- [ ] SDK-01 — Protocol and security ADRs (`pending`)
+- [x] SDK-01 — Protocol and security ADRs (`done`)
 - [ ] SDK-02 — `@axatalk/protocol` (`pending`)
 - [ ] SDK-03 — Transport and connection state machine (`pending`)
 - [ ] SDK-04 — Pairing, authentication, and capabilities (`pending`)
@@ -58,6 +58,8 @@ Evidence:
 
 Prerequisites: SDK-00 done; desktop DI-00 done (**DI-00 `done`** — ADR-0009…0013 Accepted; close open rows O-* in `PROTOCOL.md`).
 
+Status: **`done`** (2026-07-20) — `/sdk-review` PASS
+
 Agent prompt:
 
 > Close the open decisions in `docs/PROTOCOL.md` with ADRs shared with the desktop
@@ -66,21 +68,23 @@ Agent prompt:
 
 Checklist:
 
-- [ ] schema source-of-truth decision.
-- [ ] endpoint discovery and supported browser policy decision.
-- [ ] pairing and proof-of-possession decision.
-- [ ] PII redaction and capability matrix.
-- [ ] command ownership, idempotency, and revision policy.
-- [ ] protocol support and deprecation window.
-- [ ] F-028 OCP command naming mapped without leaking OCP wire protocol.
-- [ ] desktop reviewer approval recorded.
+- [x] schema source-of-truth decision. *(ADR-0014 — Zod)*
+- [x] endpoint discovery and supported browser policy decision. *(ADR-0015 + browser spike)*
+- [x] pairing and proof-of-possession decision. *(ADR-0016)*
+- [x] PII redaction and capability matrix. *(ADR-0017 PII + ADR-0016 profiles)*
+- [x] command ownership, idempotency, and revision policy. *(ADR-0017)*
+- [x] protocol support and deprecation window. *(ADR-0017)*
+- [x] F-028 OCP command naming mapped without leaking OCP wire protocol. *(ADR-0017 O-OCP-1)*
+- [x] desktop reviewer approval recorded. *(`/sdk-review` PASS 2026-07-20)*
 
 Evidence:
 
-- ADRs:
-- Browser spike:
-- Reviewer:
-- Desktop policy baseline: ADR-0009…0013 / P12 handoff open-decision table
+- ADRs: `docs/softphone/adr/ADR-0014` … `ADR-0017` (amendments on ADR-0010/0011/0012)
+- Browser spike: `axatalk-sdk/evidence/SDK-01-browser-spike.md`
+- Unit evidence: `axatalk-sdk/evidence/SDK-01-protocol-adrs.md`
+- Fixtures format: `axatalk-sdk/docs/COMPATIBILITY-FIXTURES.md`
+- Reviewer: `/sdk-review` **PASS** 2026-07-20 — all O-* closed; no product API/Zod install/`src/`; preflight PASS; Low: interactive LNA deferred to SDK-05/DI-10; Zod size to SDK-02
+- Desktop policy baseline: ADR-0009…0013 + ADR-0014…0017 / P12 handoff closed O-* table
 
 ## SDK-02 — Protocol Package
 

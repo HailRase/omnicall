@@ -6,7 +6,7 @@ DOCUMENT.
 
 ## Status
 
-Accepted (2026-07-20) — with open proof-of-possession detail owned by SDK-01
+Accepted (2026-07-20) — open PoP/profile detail **closed by SDK-01** (ADR-0016, 2026-07-20)
 
 ## Context
 
@@ -64,16 +64,17 @@ revocation before any product state is exposed (DI-04).
 9. **Audit logs:** allowlisted fields only (command type, request ID, client ID, correlation
    ID, result, duration). No payloads, tokens, secrets, or unauthorized PII.
 
-## Open Decisions (owner: SDK-01; shared freeze with DI-04)
+## Open Decisions
 
-| ID | Decision | Owner | Blocks |
-| --- | --- | --- | --- |
-| O-POP-1 | Exact proof-of-possession mechanism (challenge/response algorithm, key types) | SDK-01 | SDK-04, DI-04 |
-| O-POP-2 | Pairing UX ceremony details shared with desktop (approve payload shape) | SDK-01 + DI-04 | DI-04, DI-09 |
-| O-CAP-1 | Default capability sets per pairing profile (presentation vs operator vs call) | SDK-01 + DI-04 | DI-04 |
+**Closed by SDK-01** — see **ADR-0016** (shared freeze with DI-04 implementation).
 
-Policy requirements above are closed; cryptographic/wire details must not be invented in
-DI-03 transport code.
+| ID | Resolution |
+| --- | --- |
+| O-POP-1 | Web Crypto ECDSA P-256 challenge/response; non-extractable keys in IndexedDB |
+| O-POP-2 | `pairing:request` / `pending` / `approved`\|`denied` payload shapes in ADR-0016 |
+| O-CAP-1 | Profiles `presentation` / `operator` / `call_controller` with listed defaults |
+
+DI-03 transport must not invent crypto or capability grants; DI-04 implements ADR-0016.
 
 ## Alternatives Considered
 

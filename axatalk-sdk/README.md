@@ -43,7 +43,7 @@ are stable.
 
 - Planning: complete
 - Workspace / tooling / CI: **SDK-00 done** (`evidence/SDK-00-workspace.md`)
-- Protocol decisions: **next = SDK-01** (O-* still open)
+- Protocol decisions: **SDK-01 done** (O-* closed via ADR-0014…0017; `/sdk-review` PASS)
 - Protocol implementation: not started (SDK-02)
 - SDK client implementation: not started
 - Public API: **none** (placeholder packages only)

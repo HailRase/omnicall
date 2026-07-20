@@ -21,6 +21,10 @@ Attackers include:
 - Desktop fails closed when the configured port is occupied.
 - Frame size, message depth, connection count, and outbound queue are bounded.
 - Idle and unauthenticated connections expire.
+- Endpoint discovery is loopback HTTP only (`ADR-0015`); discovery documents never carry
+  pairing secrets or tokens.
+- HTTPS CRM pages require browser Local Network Access / loopback permission before
+  discovery or WebSocket succeed; denial maps to stable client errors (not silent success).
 
 ### Origin
 
@@ -33,6 +37,8 @@ Attackers include:
 - Pairing requires an explicit local user or administrator decision.
 - Each client installation receives a distinct revocable identity.
 - Pairing material is never embedded in JavaScript bundles or URLs.
+- Proof-of-possession uses Web Crypto ECDSA P-256 with a non-extractable private key
+  persisted only via IndexedDB (`ADR-0016`); never `localStorage` / `sessionStorage`.
 - Session credentials are short-lived and bound to Origin, client ID, server instance,
   and negotiated capabilities.
 - Replay is limited with nonces, unique request IDs, expiry, and a bounded deduplication cache.

@@ -32,3 +32,12 @@ Node.js package docs: https://nodejs.org/docs/latest/api/packages.html
 - Packages are `private: true` during incubation.
 - `publishConfig.access=public` and `publishConfig.provenance=true` are scaffolded only.
 - CI uploads tarball artifacts and **never** runs `npm publish`.
+
+## Approved for SDK-02 (not installed in SDK-01)
+
+| Package | Planned | Purpose | ADR |
+| --- | --- | --- | --- |
+| `zod` | `^4` (lock exact on install; registry `4.4.3` on 2026-07-20) | Runtime protocol schemas in `@axatalk/protocol` | ADR-0014 |
+
+SDK-01 does **not** add runtime dependencies. SDK-02 must install, lock, record gzipped
+bundle evidence, and keep `protocol` free of desktop imports.

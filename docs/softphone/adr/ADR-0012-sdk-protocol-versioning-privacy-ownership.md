@@ -6,7 +6,7 @@ DOCUMENT.
 
 ## Status
 
-Accepted (2026-07-20) — with open precision items owned by SDK-01
+Accepted (2026-07-20) — open precision items **closed by SDK-01** (ADR-0014/0017, 2026-07-20)
 
 ## Context
 
@@ -62,15 +62,17 @@ browser tabs cannot corrupt call state.
 7. **Campaign events:** `operator:campaign-offered` / `operator:campaign-cleared` stay
    listed in PROTOCOL.md but enter v1 only after privacy review (open item below).
 
-## Open Decisions (owner: SDK-01; freeze before SDK-02 schemas)
+## Open Decisions
 
-| ID | Decision | Owner | Blocks |
-| --- | --- | --- | --- |
-| O-SCHEMA-1 | Runtime schema library and canonical generation direction | SDK-01 | SDK-02, DI-01 |
-| O-PII-1 | Exact PII redaction levels / mask formats per capability | SDK-01 | SDK-05, DI-05 |
-| O-OWN-1 | Exact call ownership and lease semantics (timers, transfer of lease) | SDK-01 | SDK-06, DI-06 |
-| O-CAMP-1 | Whether campaign events enter protocol v1 or a later capability | SDK-01 | SDK-05, DI-05 |
-| O-OCP-1 | Public operator field names vs F-028 E-12 differences (compatibility map) | SDK-01 + DI-07 | DI-07 |
+**Closed by SDK-01** — see **ADR-0014** (schema) and **ADR-0017** (PII/ownership/campaign/OCP/deprecation).
+
+| ID | Resolution |
+| --- | --- |
+| O-SCHEMA-1 | Zod schemas → inferred types; fixture layout in ADR-0014 |
+| O-PII-1 | Single v1 level `session.read.redacted` with mask formats in ADR-0017 |
+| O-OWN-1 | Owner = originate/answer client; `expectedRevision`; no steal in v1 |
+| O-CAMP-1 | Campaign events deferred past protocol v1 |
+| O-OCP-1 | Public ↔ E-12 map table in ADR-0017; no `ocp:*` / secrets on public WS |
 
 ## Alternatives Considered
 
@@ -82,7 +84,7 @@ browser tabs cannot corrupt call state.
 
 ## Consequences
 
-- SDK-01 must close open rows before production schemas (SDK-02) and product exposure.
+- SDK-01 closed open rows (ADR-0014/0017); SDK-02 may implement schemas against them.
 - DI-01 consumes fixtures without inventing redaction/ownership rules.
 - Compatibility matrix in `TEST-MATRIX.md` is mandatory for DI-10.
 

@@ -301,7 +301,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-051`, `LF-065`, `LF-080`, `LF-081`
 - Context: Integration
 - Priority: critical
-- Status: **planned** (legacy `window.Softphone` **not ported**; architecture gate DI-00 `done` — ADRs ADR-0009…0013; SDK-00 workspace/CI **`done`**; product implementation not started)
+- Status: **planned** (legacy `window.Softphone` **not ported**; architecture gate DI-00 `done` — ADRs ADR-0009…0013; SDK-00 workspace/CI **`done`**; SDK-01 protocol/security ADRs ADR-0014…0017 **`done`**; product implementation not started)
 - Owner: TBD
 - Inputs: external commands from browser tabs via WS (not DOM globals)
 - Outputs: typed commands routed to Facade / Use Cases with `callType: 'sdk'` (F-028 E-12 host methods retain `callType: 'external'`)
@@ -320,8 +320,9 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Integration: deferred until ExternalClientGateway exists
   - E2E: deferred until DI-10 packaged gate
 - Implementation plans: `axatalk-sdk/README.md`; `axatalk-sdk-integration/README.md`; `axatalk-sdk-integration/WORK-UNITS.md` (DI-00…DI-10); `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`
-- Architecture ADRs: `docs/softphone/adr/ADR-0009-sdk-process-ownership-broker-lifecycle.md`; `ADR-0010`; `ADR-0011`; `ADR-0012`; `ADR-0013`
+- Architecture ADRs: `docs/softphone/adr/ADR-0009-sdk-process-ownership-broker-lifecycle.md`; `ADR-0010`; `ADR-0011`; `ADR-0012`; `ADR-0013`; `ADR-0014`; `ADR-0015`; `ADR-0016`; `ADR-0017`
 - Baseline evidence: `axatalk-sdk-integration/evidence/DI-00-baseline.md`
+- SDK-01 evidence: `axatalk-sdk/evidence/SDK-01-protocol-adrs.md`; `axatalk-sdk/evidence/SDK-01-browser-spike.md`
 - Implementation evidence (OCP command surface): `src/shared/host-api/OcpHostApiContract.ts`; Facade `authenticateOcpFromHost` / `changeOcpStatusFromHost` / `getOcpConnectionState`
 
 ## F-012: Headset Call Controls

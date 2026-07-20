@@ -6,7 +6,7 @@ DOCUMENT.
 
 ## Status
 
-Accepted (2026-07-20) — with open items owned by SDK-01
+Accepted (2026-07-20) — open items **closed by SDK-01** (ADR-0015, 2026-07-20)
 
 ## Context
 
@@ -58,17 +58,18 @@ DI-03/SDK-03 implement transport.
    - Unsupported browsers fail closed with a stable client error; desktop still serves
      supported clients.
 
-## Open Decisions (owner: SDK-01; must close before SDK-03 / DI-03 product exposure)
+## Open Decisions
 
-| ID | Decision | Owner | Blocks |
-| --- | --- | --- | --- |
-| O-DISC-1 | Exact discovery URL/path, response schema, and versioning | SDK-01 | SDK-03, DI-03 endpoint publish |
-| O-DISC-2 | Whether discovery uses a tiny loopback HTTP helper vs WS-only bootstrap | SDK-01 | DI-03 |
-| O-BRW-1 | Confirmed Chrome/Edge/Firefox policy matrix for HTTPS→loopback WS | SDK-01 | SDK-05 packaged E2E |
-| O-BRW-2 | Private Network Access / permission-prompt UX copy keys (i18n later in DI-09) | SDK-01 → DI-09 | DI-09 |
+**Closed by SDK-01** — see **ADR-0015** and `axatalk-sdk/evidence/SDK-01-browser-spike.md`.
 
-Desktop agents must not invent these in production code; if blocked, mark the DI unit
-`blocked` and cite this ADR.
+| ID | Resolution |
+| --- | --- |
+| O-DISC-1 | `GET http://127.0.0.1:17341/axatalk/v1/discovery`; schema in ADR-0015 |
+| O-DISC-2 | Tiny loopback HTTP helper on the gateway listener (not WS-only) |
+| O-BRW-1 | Chrome/Edge/Firefox supported with LNA allow; Safari unsupported in P12 |
+| O-BRW-2 | Stable i18n key IDs reserved; copy lands in DI-09 |
+
+Desktop agents must implement ADR-0015 as written; inventing alternate URLs is a Blocker.
 
 ## Alternatives Considered
 
@@ -94,6 +95,6 @@ Desktop agents must not invent these in production code; if blocked, mark the DI
 ## Related Links
 
 - Feature Registry: F-011
-- `axatalk-sdk/docs/PROTOCOL.md` (Open Decisions)
+- `axatalk-sdk/docs/PROTOCOL.md` (Closed Decisions / ADR-0015)
 - `axatalk-sdk/docs/SECURITY.md`
 - Related: ADR-0009, ADR-0011

@@ -7,14 +7,15 @@
 | Feature | F-011 Host Integration Contract |
 | Legacy | LF-051, LF-065, LF-080, LF-081 |
 | Phase | P12 External Host API Compatibility |
-| Feature status | **planned** (architecture gate DI-00 `done`; not implemented) |
+| Feature status | **planned** (architecture gate DI-00 `done`; SDK-01 ADRs `done`; not implemented) |
 | Branch | `feature/axatalk-sdk` |
 | Desktop version | `0.11.2` |
 | Code preflight commit | `5114c02` |
 | DI-00 docs commit | `18fb3f1` |
 | DI-00 | `done` — `/sdk-review` PASS 2026-07-20 |
 | SDK-00 | `done` — `/sdk-review` PASS 2026-07-20 |
-| Next | **SDK-01** (shared open rows O-*); DI-01 after DI-00 + SDK-01 |
+| SDK-01 | `done` — `/sdk-review` PASS 2026-07-20 (ADR-0014…0017) |
+| Next | **SDK-02** (`@axatalk/protocol`); DI-01 after DI-00 + SDK-01 (both `done`) |
 
 ## Mission
 
@@ -39,10 +40,14 @@ SDK and Electron-native local gateway while preserving every existing softphone 
 | ADR | Topic | Status |
 | --- | --- | --- |
 | [ADR-0009](../adr/ADR-0009-sdk-process-ownership-broker-lifecycle.md) | Main/renderer ownership + broker lifecycle | Accepted |
-| [ADR-0010](../adr/ADR-0010-sdk-local-transport-endpoint-discovery.md) | Loopback transport, discovery, browsers | Accepted + open rows → SDK-01 |
-| [ADR-0011](../adr/ADR-0011-sdk-pairing-origin-capabilities.md) | Origin, pairing, capabilities, replay, revoke | Accepted + PoP detail → SDK-01 |
-| [ADR-0012](../adr/ADR-0012-sdk-protocol-versioning-privacy-ownership.md) | Versioning, privacy, call ownership | Accepted + precision → SDK-01 |
+| [ADR-0010](../adr/ADR-0010-sdk-local-transport-endpoint-discovery.md) | Loopback transport, discovery, browsers | Accepted; precision → ADR-0015 |
+| [ADR-0011](../adr/ADR-0011-sdk-pairing-origin-capabilities.md) | Origin, pairing, capabilities, replay, revoke | Accepted; PoP/profiles → ADR-0016 |
+| [ADR-0012](../adr/ADR-0012-sdk-protocol-versioning-privacy-ownership.md) | Versioning, privacy, call ownership | Accepted; precision → ADR-0014/0017 |
 | [ADR-0013](../adr/ADR-0013-sdk-window-policy-and-signin.md) | Window show/hide + AF-003 sign-in relationship | Accepted |
+| [ADR-0014](../adr/ADR-0014-sdk-runtime-schema-source-of-truth.md) | Zod schema SoT + fixture format | Accepted (SDK-01) |
+| [ADR-0015](../adr/ADR-0015-sdk-discovery-and-browser-lna-policy.md) | Discovery URL + browser LNA matrix | Accepted (SDK-01) |
+| [ADR-0016](../adr/ADR-0016-sdk-pop-pairing-capability-profiles.md) | PoP, pairing ceremony, capability profiles | Accepted (SDK-01) |
+| [ADR-0017](../adr/ADR-0017-sdk-privacy-ownership-ocp-map-deprecation.md) | PII, ownership, campaign, OCP map, deprecation | Accepted (SDK-01) |
 
 ### Architecture non-negotiables (gate)
 
@@ -68,22 +73,22 @@ SDK and Electron-native local gateway while preserving every existing softphone 
 - [x] No raw SIP/OCP credentials in protocol v1 (ADR-0013).
 - [ ] Independent security review has no Blocker — **DI-04 / DI-10**.
 
-### Open decisions shared with SDK-01
+### Protocol precision decisions (SDK-01)
 
-Recorded in ADR-0010/0011/0012 and `axatalk-sdk/docs/PROTOCOL.md`. Desktop must not invent
-them in production code. Summary:
+Previously open O-* rows are **closed** in ADR-0014…0017 and
+`axatalk-sdk/docs/PROTOCOL.md`. Desktop must implement them as written (no silent drift).
 
-| ID | Topic | Owner | Blocks |
-| --- | --- | --- | --- |
-| O-DISC-1/2 | Discovery URL/schema vs HTTP helper | SDK-01 | DI-03 endpoint publish |
-| O-BRW-1/2 | Browser HTTPS→loopback WS matrix + PNA UX | SDK-01 → DI-09 | SDK-05 / DI-09 |
-| O-POP-1/2 | Proof-of-possession + pairing ceremony | SDK-01 + DI-04 | DI-04 |
-| O-CAP-1 | Default capability profiles | SDK-01 + DI-04 | DI-04 |
-| O-SCHEMA-1 | Runtime schema library / generation | SDK-01 | SDK-02, DI-01 |
-| O-PII-1 | Exact PII mask levels | SDK-01 | DI-05 |
-| O-OWN-1 | Call ownership/lease timers | SDK-01 | DI-06 |
-| O-CAMP-1 | Campaign events in v1? | SDK-01 | DI-05 |
-| O-OCP-1 | Public operator names vs F-028 E-12 | SDK-01 + DI-07 | DI-07 |
+| ID | Topic | Resolution |
+| --- | --- | --- |
+| O-DISC-1/2 | Discovery URL/schema vs HTTP helper | ADR-0015 |
+| O-BRW-1/2 | Browser HTTPS→loopback WS matrix + PNA UX keys | ADR-0015 → DI-09 |
+| O-POP-1/2 | Proof-of-possession + pairing ceremony | ADR-0016 |
+| O-CAP-1 | Default capability profiles | ADR-0016 |
+| O-SCHEMA-1 | Runtime schema library / generation | ADR-0014 |
+| O-PII-1 | Exact PII mask levels | ADR-0017 |
+| O-OWN-1 | Call ownership / revision / idempotency | ADR-0017 |
+| O-CAMP-1 | Campaign events in v1? | ADR-0017 — deferred |
+| O-OCP-1 | Public operator names vs F-028 E-12 | ADR-0017 |
 
 ## Mandatory Order
 
@@ -162,6 +167,6 @@ P12 closes only when:
 
 ## Next Agent Prompt
 
-1. Run `/sdk-project` for **SDK-01** (protocol/security ADRs; close PROTOCOL O-* with desktop DI-00 ADR-0009…0013 baselines). Do **not** implement product APIs.
-2. Do **not** start DI-01 until DI-00 and SDK-01 are done.
+1. Run `/sdk-project` for **SDK-02** (`@axatalk/protocol` schemas, golden fixtures, API report). Do **not** implement AxatalkClient transport/product methods.
+2. DI-01 may start only with DI-00 + SDK-01 done (both `done`); keep Domain free of protocol imports.
 3. Do not install desktop production dependencies or write product `src/` until the owning DI unit.

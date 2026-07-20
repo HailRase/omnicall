@@ -78,7 +78,7 @@ Status: **`done`** (2026-07-20). Evidence: `evidence/DI-00-baseline.md`. `/sdk-r
 - Updated F-011 acceptance/planning refs and STATUS without claiming implementation.
 - Defined process lifecycle for renderer reload, app quit, and desktop restart (ADR-0009).
 
-Gate closed. Next: SDK-00 (`/sdk-project`), then SDK-01; DI-01 only after DI-00 + SDK-01.
+Gate closed. SDK-00 `done`; SDK-01 ADR-0014…0017 `done` (`/sdk-review` PASS). DI-01 only after DI-00 + SDK-01.
 
 ## Phase DI-01 — Public Contracts and Ports
 
