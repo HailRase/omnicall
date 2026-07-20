@@ -8,7 +8,7 @@ recorded evidence on 2026-07-20.
 ## Product Baseline
 
 - Axatalk Desktop version: `0.11.2`
-- Branch / commits (DI-00): `feature/axatalk-sdk` — code preflight `5114c02`; docs `_PENDING_`
+- Branch / commits (DI-00): `feature/axatalk-sdk` — code preflight `5114c02`; docs `18fb3f1`
 - F-011 Host Integration Contract: `planned` (architecture gate DI-00 `done`)
 - P12 External Host API Compatibility: architecture started (DI-00); implementation not started
 - F-028 OCP command subset E-12: implemented
@@ -84,7 +84,7 @@ Handoff: `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`
 
 | Item | Result |
 | --- | --- |
-| Branch / commits | `feature/axatalk-sdk` / code `5114c02` + docs `_PENDING_` |
+| Branch / commits | `feature/axatalk-sdk` / code `5114c02` + docs `18fb3f1` |
 | `npm run release:preflight` | PASS — 2297 passed / 1 skipped |
 | `npm run i18n:check` | PASS |
 | `npm run ui:catalog:check` | FAIL — pre-existing catalog drift (recorded) |

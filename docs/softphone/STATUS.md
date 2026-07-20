@@ -3,7 +3,7 @@
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
 **Updated:** 2026-07-20
-**Tests:** 2297 passed / 1 skipped (DI-00 code preflight on `feature/axatalk-sdk` @ `5114c02`; docs commit `_PENDING_`)
+**Tests:** 2297 passed / 1 skipped (DI-00 code preflight on `feature/axatalk-sdk` @ `5114c02`; docs commit `18fb3f1`)
 **Lint / typecheck:** green (last verified 2026-07-20 via `npm run release:preflight`)
 
 **Auth Flow Refactoring / Hardening:** implementation + automated gate complete 2026-07-17 — independent account/OCP/SIP state, five-stage OCP progress, crash-safe saved profiles/secrets, one-click saved-profile entry, persistent auth errors and rolling 24-hour notification journal (F-029). Real staging OCP smoke SM-1…20 remains external verification. Version: `0.11.0`.

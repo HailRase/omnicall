@@ -57,7 +57,7 @@ Native window commands remain in main.
 - F-011: **planned** (DI-00 architecture gate `done`; not implemented)
 - ADRs: ADR-0009…0013 Accepted (open precision rows → SDK-01)
 - P12 handoff: `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`
-- Baseline: `evidence/DI-00-baseline.md` (2297 passed / 1 skipped on code preflight `5114c02`; docs `_PENDING_`)
+- Baseline: `evidence/DI-00-baseline.md` (2297 passed / 1 skipped on code preflight `5114c02`; docs `18fb3f1`)
 - OCP E-12 command subset: implemented
 - External gateway: not implemented
 - External command router: not implemented

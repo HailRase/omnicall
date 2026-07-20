@@ -11,7 +11,7 @@
 | Branch | `feature/axatalk-sdk` |
 | Desktop version | `0.11.2` |
 | Code preflight commit | `5114c02` |
-| DI-00 docs commit | `_PENDING_` |
+| DI-00 docs commit | `18fb3f1` |
 | DI-00 | `done` — `/sdk-review` PASS 2026-07-20 |
 | Next | SDK-00 (`/sdk-project`), then SDK-01 (shared open rows); DI-01 after DI-00 + SDK-01 |
 

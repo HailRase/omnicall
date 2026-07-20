@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-20 11:46
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `18fb3f1`
 
 ## Где
 - `docs/softphone/adr/ADR-0009-sdk-process-ownership-broker-lifecycle.md`

@@ -3,7 +3,7 @@
 **Date:** 2026-07-20 11:45 (local)  
 **Branch:** `feature/axatalk-sdk`  
 **Code preflight commit:** `5114c02` (automated suite; no `src/` changes for DI-00)  
-**DI-00 docs commit:** `_PENDING_`  
+**DI-00 docs commit:** `18fb3f1`  
 **Desktop version:** `0.11.2`  
 **OS:** Darwin 24.5.0 arm64  
 **Node:** v22.20.0  
