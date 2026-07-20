@@ -39,6 +39,10 @@ import type {
   SdkGatewayPublishEventIpcPayload,
   SdkGatewayPublishEventIpcResponse,
 } from "./SdkGatewayEventContract.js";
+import type {
+  SdkGatewaySettingsOperation,
+  SdkGatewaySettingsResponse,
+} from "./SdkGatewaySettingsContract.js";
 
 export type SoftphonePreloadApi = Readonly<{
   getPlatformVersion: () => Promise<PlatformVersionResponse>;
@@ -89,6 +93,10 @@ export type SoftphonePreloadApi = Readonly<{
   publishSdkGatewayEvent: (
     payload: SdkGatewayPublishEventIpcPayload,
   ) => Promise<SdkGatewayPublishEventIpcResponse>;
+  /** DI-09: Settings operational invoke for local SDK gateway (no secrets). */
+  invokeSdkGatewaySettings: (
+    operation: SdkGatewaySettingsOperation,
+  ) => Promise<SdkGatewaySettingsResponse>;
 }>;
 
 declare global {

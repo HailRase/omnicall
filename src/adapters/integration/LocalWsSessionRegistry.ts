@@ -85,6 +85,36 @@ export class LocalWsSessionRegistry {
     return this.connections.size;
   }
 
+  /** Allowlisted auth-state counts for Settings diagnostics (no payloads). */
+  countByAuthState(): Readonly<{
+    authenticated: number;
+    unauthenticated: number;
+    authenticating: number;
+    revoked: number;
+  }> {
+    let authenticated = 0;
+    let unauthenticated = 0;
+    let authenticating = 0;
+    let revoked = 0;
+    for (const connection of this.connections.values()) {
+      switch (connection.authState) {
+        case "authenticated":
+          authenticated += 1;
+          break;
+        case "authenticating":
+          authenticating += 1;
+          break;
+        case "revoked":
+          revoked += 1;
+          break;
+        default:
+          unauthenticated += 1;
+          break;
+      }
+    }
+    return { authenticated, unauthenticated, authenticating, revoked };
+  }
+
   /** Desktop-owned short-lived activate grant + privileged capability elevation. */
   issueAccountActivateGrant(input: {
     readonly clientId: string;

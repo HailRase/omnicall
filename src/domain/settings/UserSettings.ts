@@ -37,8 +37,12 @@ import {
   OCP_INTEGRATION_DEFAULTS,
   type OcpIntegrationSettings,
 } from "./OcpIntegrationSettings.js";
+import {
+  SDK_INTEGRATION_DEFAULTS,
+  type SdkIntegrationSettings,
+} from "./SdkIntegrationSettings.js";
 
-export const SETTINGS_SCHEMA_VERSION = 9 as const;
+export const SETTINGS_SCHEMA_VERSION = 10 as const;
 
 export type SettingsSchemaVersion = typeof SETTINGS_SCHEMA_VERSION;
 
@@ -88,6 +92,8 @@ export type UserSettings = Readonly<{
   enableLocalVideoAfterConnect: boolean;
   /** Optional OCP Module integration preferences (token is not stored here). */
   ocpIntegration: OcpIntegrationSettings;
+  /** Local SDK WebSocket gateway preferences (no secrets / pairing keys). */
+  sdkIntegration: SdkIntegrationSettings;
 }>;
 
 export { MIN_SIP_REREGISTER_INTERVAL_SEC, MIN_SIP_RECONNECT_INTERVAL_SEC };
@@ -132,5 +138,6 @@ export function createDefaultUserSettings(): UserSettings {
     conferenceNumberSubstring: DEFAULT_CONFERENCE_NUMBER_SUBSTRING,
     enableLocalVideoAfterConnect: DEFAULT_ENABLE_LOCAL_VIDEO_AFTER_CONNECT,
     ocpIntegration: OCP_INTEGRATION_DEFAULTS,
+    sdkIntegration: SDK_INTEGRATION_DEFAULTS,
   };
 }

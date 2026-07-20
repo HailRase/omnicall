@@ -26,6 +26,7 @@ import { useShellWindowControls } from "../hooks/useShellWindowControls.js";
 import { useAppUpdate } from "../hooks/useAppUpdate.js";
 import { useSettingsActions } from "../hooks/useSettingsActions.js";
 import { useOcpSettingsPanel } from "../hooks/useOcpSettingsPanel.js";
+import { useSdkSettingsPanel } from "../hooks/useSdkSettingsPanel.js";
 import { useOperatorStatusSelector } from "../hooks/useOperatorStatusSelector.js";
 import { mapOcpNotificationToToastDescriptor } from "../integration/ocp/createOcpToastNotificationPresenter.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
@@ -270,6 +271,10 @@ function SoftphoneShellLayoutRoute({
     onOpenAccountSettings: () => {
       overlayShell.openSettings("account");
     },
+  });
+  const sdkSettingsPanel = useSdkSettingsPanel({
+    facade,
+    onActiveUserSettingsRefresh: settingsActions.applyUserSettingsSnapshot,
   });
   const ocpLogoutModal = useOcpLogoutModal({
     facade,
@@ -625,6 +630,30 @@ function SoftphoneShellLayoutRoute({
                   onEnabledChange: ocpSettingsPanel.onEnabledChange,
                   onDomainChange: ocpSettingsPanel.onDomainChange,
                   onAutoConnectChange: ocpSettingsPanel.onAutoConnectChange,
+                },
+                sdk: {
+                  settings: sdkSettingsPanel.settings,
+                  diagnostics: sdkSettingsPanel.diagnostics,
+                  allowedOriginsLive: sdkSettingsPanel.allowedOriginsLive,
+                  pairedClients: sdkSettingsPanel.pairedClients,
+                  pendingPairing: sdkSettingsPanel.pendingPairing,
+                  profileOptions: sdkSettingsPanel.profileOptions,
+                  selectedClientId: sdkSettingsPanel.selectedClientId,
+                  selectedProfileId: sdkSettingsPanel.selectedProfileId,
+                  lastGrant: sdkSettingsPanel.lastGrant,
+                  originsDraft: sdkSettingsPanel.originsDraft,
+                  errorKey: sdkSettingsPanel.errorKey,
+                  busy: sdkSettingsPanel.busy,
+                  onEnabledChange: sdkSettingsPanel.onEnabledChange,
+                  onOriginsDraftChange: sdkSettingsPanel.onOriginsDraftChange,
+                  onOriginsSave: sdkSettingsPanel.onOriginsSave,
+                  onRefresh: sdkSettingsPanel.onRefresh,
+                  onApprovePairing: sdkSettingsPanel.onApprovePairing,
+                  onDenyPairing: sdkSettingsPanel.onDenyPairing,
+                  onRevokeClient: sdkSettingsPanel.onRevokeClient,
+                  onSelectClientId: sdkSettingsPanel.onSelectClientId,
+                  onSelectProfileId: sdkSettingsPanel.onSelectProfileId,
+                  onIssueActivateGrant: sdkSettingsPanel.onIssueActivateGrant,
                 },
               }}
               account={{

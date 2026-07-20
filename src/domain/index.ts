@@ -53,6 +53,14 @@ export {
   OCP_INTEGRATION_DEFAULTS,
   parseOcpIntegrationSettings,
 } from "./settings/OcpIntegrationSettings.js";
+export type { SdkIntegrationSettings } from "./settings/SdkIntegrationSettings.js";
+export {
+  MAX_SDK_ALLOWED_ORIGINS,
+  MAX_SDK_ORIGIN_LENGTH,
+  SDK_INTEGRATION_DEFAULTS,
+  parseSdkIntegrationSettings,
+  parseSdkOriginsDraft,
+} from "./settings/SdkIntegrationSettings.js";
 export type {
   OcpConnectLoginOption,
   OcpConnectLoginTarget,

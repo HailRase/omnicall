@@ -53,6 +53,10 @@ import {
   parseOcpIntegrationSettings,
   type OcpIntegrationSettings,
 } from "./OcpIntegrationSettings.js";
+import {
+  parseSdkIntegrationSettings,
+  type SdkIntegrationSettings,
+} from "./SdkIntegrationSettings.js";
 
 export type ValidateUserSettingsResult =
   | Readonly<{ ok: true; value: UserSettings }>
@@ -177,6 +181,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
     errors,
   );
   const ocpIntegration = readOcpIntegration(record, errors);
+  const sdkIntegration = readSdkIntegration(record, errors);
 
   if (errors.length > 0) {
     return { ok: false, errors };
@@ -218,6 +223,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
       conferenceNumberSubstring,
       enableLocalVideoAfterConnect,
       ocpIntegration,
+      sdkIntegration,
     },
   };
 }
@@ -538,6 +544,22 @@ function readOcpIntegration(
   if (parsed === null) {
     errors.push("ocpIntegration_invalid");
     return { ...OCP_INTEGRATION_DEFAULTS };
+  }
+  return parsed;
+}
+
+function readSdkIntegration(
+  record: Record<string, unknown>,
+  errors: string[],
+): SdkIntegrationSettings {
+  const parsed = parseSdkIntegrationSettings(record["sdkIntegration"]);
+  if (parsed === null) {
+    errors.push("sdkIntegration_invalid");
+    return {
+      enabled: true,
+      allowedOrigins: [],
+      originsManaged: false,
+    };
   }
   return parsed;
 }

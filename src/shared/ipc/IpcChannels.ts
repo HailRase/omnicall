@@ -27,6 +27,8 @@ export const IPC_CHANNELS = {
   sdkBrokerClientSessionEnded: "sdk-broker:client-session-ended",
   /** Renderer → main: publish redacted public SDK event for per-client fan-out (DI-05). */
   sdkGatewayPublishEvent: "sdk-gateway:publish-event",
+  /** Renderer → main: Settings operational controls for local SDK gateway (DI-09). */
+  sdkGatewaySettingsInvoke: "sdk-gateway:settings-invoke",
 } as const;
 
 export type IpcChannel =

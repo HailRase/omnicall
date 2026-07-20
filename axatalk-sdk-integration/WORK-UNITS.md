@@ -11,7 +11,7 @@
 - [x] DI-06 — Call command router (`done`)
 - [x] DI-07 — Operator status and logout workflow (`done`)
 - [x] DI-08 — Saved-profile activation (`done`)
-- [ ] DI-09 — Settings and operational UX (`pending`)
+- [x] DI-09 — Settings and operational UX (`done`)
 - [ ] DI-10 — Compatibility, E2E, and P12 close (`pending`)
 
 Allowed statuses: `pending`, `in progress`, `review`, `done`, `blocked`.
@@ -504,6 +504,8 @@ Checklist:
 
 Prerequisites: DI-04 stable; DI-05 operational requirements known.
 
+Status: **`done`** (2026-07-20) — `/sdk-review` PASS
+
 Agent prompt:
 
 > Add the SDK Server settings surface using the UI Kit and all supported locales. Expose
@@ -512,13 +514,23 @@ Agent prompt:
 
 Checklist:
 
-- [ ] settings schema and migration.
-- [ ] Application commands/projections.
-- [ ] UI Kit-based integration card.
-- [ ] light/dark stories and tests.
-- [ ] accessibility and disabled reasons.
-- [ ] `ru`, `en`, `fr`, `de`, `bg` parity.
-- [ ] hide remains disabled until tray/policy ADR is implemented.
+- [x] settings schema and migration.
+- [x] Application commands/projections.
+- [x] UI Kit-based integration card.
+- [x] light/dark stories and tests.
+- [x] accessibility and disabled reasons.
+- [x] `ru`, `en`, `fr`, `de`, `bg` parity.
+- [x] hide remains disabled until tray/policy ADR is implemented.
+
+### Handoff checklist (DI-09)
+
+- Work unit: DI-09
+- Status: **`done`**
+- Evidence: `axatalk-sdk-integration/evidence/DI-09-settings-operational-ux.md`
+- Automated tests: focused DI-09 + DI-04…DI-08 subset **48 passed** (independent `/sdk-review` re-verify); full `npm test` **2491 passed / 1 skipped**; lint/typecheck/i18n/registry PASS
+- Registry/Legacy/STATUS changes: F-011 remains `in progress`; DI-09 → **`done`**; version **0.11.2**
+- Remaining risks: packaged E2E / hostile matrix (DI-10); SDK browser package may lag; machine-scoped gateway policy stored in account settings bucket
+- Reviewer: `/sdk-review` PASS 2026-07-20 — DI-09 **`done`**; no Blockers; Lows remediated same day (deep IPC snapshot parse + card revoke/grant tests); next `/sdk-integration` DI-10 only (separate session)
 
 ## DI-10 — Compatibility, E2E, and P12 Close
 

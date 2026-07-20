@@ -50,6 +50,10 @@ function createSoftphonePreloadApiMock(
     onSdkBrokerRequest: vi.fn().mockReturnValue(() => {}),
     replySdkBrokerRequest: vi.fn().mockResolvedValue({ ok: true }),
     publishSdkGatewayEvent: vi.fn().mockResolvedValue({ ok: true, delivered: 0 }),
+    invokeSdkGatewaySettings: vi.fn().mockResolvedValue({
+      ok: false,
+      reason: "preload_unavailable",
+    }),
     setSdkBrokerReady: vi.fn().mockResolvedValue({ ok: true }),
     onSdkClientSessionEnded: vi.fn().mockReturnValue(() => {}),
     ...overrides,

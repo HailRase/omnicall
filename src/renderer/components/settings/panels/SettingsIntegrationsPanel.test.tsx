@@ -15,13 +15,18 @@ afterEach(() => {
 });
 
 describe("SettingsIntegrationsPanel", () => {
-  it("renders edit-only OCP module card", () => {
+  it("renders OCP and SDK Server cards with hide disabled", () => {
     render(
-      <SettingsIntegrationsPanel ocp={settingsIntegrationsTestDefaults.integrations.ocp} />,
+      <SettingsIntegrationsPanel
+        ocp={settingsIntegrationsTestDefaults.integrations.ocp}
+        sdk={settingsIntegrationsTestDefaults.integrations.sdk}
+      />,
     );
 
     expect(screen.getByTestId("ocp-module-settings-card")).toBeInTheDocument();
     expect(screen.queryByTestId("ocp-module-connect")).not.toBeInTheDocument();
     expect(screen.queryByTestId("ocp-module-disconnect")).not.toBeInTheDocument();
+    expect(screen.getByTestId("sdk-module-settings-card")).toBeInTheDocument();
+    expect(screen.getByTestId("sdk-module-hide-toggle")).toBeDisabled();
   });
 });

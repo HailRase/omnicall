@@ -78,4 +78,8 @@ export const BG_FUNCTION_TEMPLATES = {
     \`Минималната стойност е \${params.min} сек\``,
   "dialpad.keys.dialAria": `(params: Readonly<{ key: string }>) => \`Набери \${params.key}\``,
   "shell.overlay.closeTitleAria": `(params: Readonly<{ title: string }>) => \`Затвори: \${params.title}\``,
+  "settings.integrations.sdk.origins.live": `(params: Readonly<{ origins: string }>) =>
+    \`Активен allowlist: \${params.origins}\``,
+  "settings.integrations.sdk.grant.result": `(params: Readonly<{ profileRef: string }>) =>
+    \`profileRef: \${params.profileRef}\``,
 };

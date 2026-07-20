@@ -69,6 +69,25 @@ describe("migrateUserSettings", () => {
     }
   });
 
+  it("migrates v9 payload to v10 with SDK integration defaults (fail closed)", () => {
+    const v9 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 9 as const,
+    };
+    delete (v9 as { sdkIntegration?: unknown }).sdkIntegration;
+
+    const result = migrateUserSettings(v9);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
+      expect(result.value.sdkIntegration).toEqual({
+        enabled: true,
+        allowedOrigins: [],
+        originsManaged: false,
+      });
+    }
+  });
+
   it("preserves OCP settings when migrating v6 with values (legacy autoSipAuth → linked false)", () => {
     const v6 = {
       ...createDefaultUserSettings(),

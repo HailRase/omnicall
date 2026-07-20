@@ -42,6 +42,7 @@ import type {
   SdkPairingApprover,
   SdkPairingPendingRequest,
 } from "./sdkGatewayPairingTypes.js";
+import type { SdkGatewayDiagnosticsProjection } from "@shared/ipc/SdkGatewaySettingsContract.js";
 
 export type {
   LocalWsServerAdapterOptions,
@@ -67,6 +68,7 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
   private sessions: LocalWsSessionRegistry | null = null;
   private accepting = true;
   private listening = false;
+  private lastErrorCode: string | null = null;
 
   constructor(options: LocalWsServerAdapterOptions) {
     this.desktopVersion = options.desktopVersion;
@@ -124,6 +126,36 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
 
   getAllowedOrigins(): readonly string[] {
     return this.allowedOrigins;
+  }
+
+  /**
+   * Allowlisted operational diagnostics for Settings UX (DI-09).
+   * Never includes payloads, secrets, or public keys.
+   */
+  getDiagnosticsSnapshot(
+    pairedClientCount = 0,
+  ): SdkGatewayDiagnosticsProjection {
+    const authCounts = this.sessions?.countByAuthState() ?? {
+      authenticated: 0,
+      unauthenticated: 0,
+      authenticating: 0,
+      revoked: 0,
+    };
+    const bound = this.getBoundAddress();
+    const status = this.getStatus() === "listening" ? "listening" : "disabled";
+    return {
+      status,
+      bindHost: bound?.host ?? null,
+      bindPort: bound?.port ?? null,
+      connectionCount: this.getConnectionCount(),
+      authenticatedCount: authCounts.authenticated,
+      unauthenticatedCount: authCounts.unauthenticated + authCounts.authenticating,
+      pendingPairingCount: this.listPendingPairingRequests().length,
+      pairedClientCount,
+      allowedOriginsCount: this.allowedOrigins.length,
+      lastErrorCode: this.lastErrorCode,
+      windowHideAvailable: false,
+    };
   }
 
   listPendingPairingRequests(): readonly SdkPairingPendingRequest[] {
@@ -196,23 +228,28 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
 
   async start(): Promise<LocalWsStartResult> {
     if (!this.enabled) {
+      this.lastErrorCode = null;
       return { ok: false, reason: "disabled" };
     }
     if (this.pairingStore === null) {
+      this.lastErrorCode = "missing_secret_storage";
       this.log("sdk_gateway_start_denied", { reason: "missing_secret_storage" });
       return { ok: false, reason: "missing_secret_storage" };
     }
     if (!this.accepting) {
+      this.lastErrorCode = "shutting_down";
       return { ok: false, reason: "shutting_down" };
     }
     if (this.listening) {
       return { ok: false, reason: "already_listening" };
     }
     if (!this.mayClaimEndpoint()) {
+      this.lastErrorCode = "not_primary_instance";
       this.log("sdk_gateway_start_denied", { reason: "not_primary_instance" });
       return { ok: false, reason: "not_primary_instance" };
     }
     if (!isApprovedLoopbackBindHost(this.host)) {
+      this.lastErrorCode = "invalid_bind_host";
       this.log("sdk_gateway_start_denied", { reason: "invalid_bind_host" });
       return { ok: false, reason: "invalid_bind_host" };
     }
@@ -262,6 +299,7 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
       ...(this.onLog !== undefined ? { onLog: this.onLog } : {}),
     });
     if (!bound.ok) {
+      this.lastErrorCode = bound.code;
       this.log("sdk_gateway_bind_failed", {
         reason: "bind_failed",
         code: bound.code,
@@ -272,6 +310,7 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
     this.httpServer = bound.httpServer;
     this.wss = bound.wss;
     this.listening = true;
+    this.lastErrorCode = null;
     return { ok: true, host: bound.host, port: bound.port };
   }
 

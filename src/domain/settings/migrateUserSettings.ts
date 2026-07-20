@@ -14,6 +14,10 @@ import {
   OCP_INTEGRATION_DEFAULTS,
   parseOcpIntegrationSettings,
 } from "./OcpIntegrationSettings.js";
+import {
+  SDK_INTEGRATION_DEFAULTS,
+  parseSdkIntegrationSettings,
+} from "./SdkIntegrationSettings.js";
 
 export type UserSettingsV0Legacy = Readonly<{
   multiCallSettings: MultiCallSettings;
@@ -30,7 +34,7 @@ export type MigrateUserSettingsResult =
   | Readonly<{ ok: false; error: SettingsMigrationError }>;
 
 /**
- * - Purpose: upgrade persisted or in-memory settings to UserSettings v9.
+ * - Purpose: upgrade persisted or in-memory settings to UserSettings v10.
  * - Inputs: unknown raw blob and optional v0 legacy fragments.
  * - Outputs: migrated UserSettings or migration error.
  */
@@ -64,6 +68,7 @@ export function migrateUserSettings(
   }
 
   if (
+    version === 9 ||
     version === 8 ||
     version === 7 ||
     version === 6 ||
@@ -127,6 +132,13 @@ function coerceToCurrentUserSettings(
       error: { code: "validation_failed", message: "ocpIntegration_invalid" },
     };
   }
+  const parsedSdk = parseSdkIntegrationSettings(record["sdkIntegration"]);
+  if (parsedSdk === null) {
+    return {
+      ok: false,
+      error: { code: "validation_failed", message: "sdkIntegration_invalid" },
+    };
+  }
   const candidate = {
     ...record,
     schemaVersion: SETTINGS_SCHEMA_VERSION,
@@ -172,6 +184,7 @@ function coerceToCurrentUserSettings(
         ? record["enableLocalVideoAfterConnect"]
         : DEFAULT_ENABLE_LOCAL_VIDEO_AFTER_CONNECT,
     ocpIntegration: parsedOcp,
+    sdkIntegration: parsedSdk,
   };
   const validated = validateUserSettings(candidate);
   if (!validated.ok) {
@@ -228,6 +241,7 @@ function migrateV1ToCurrent(record: Record<string, unknown>): UserSettings {
     conferenceNumberSubstring: defaults.conferenceNumberSubstring,
     enableLocalVideoAfterConnect: defaults.enableLocalVideoAfterConnect,
     ocpIntegration: OCP_INTEGRATION_DEFAULTS,
+    sdkIntegration: SDK_INTEGRATION_DEFAULTS,
   };
 }
 

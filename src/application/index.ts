@@ -274,8 +274,17 @@ export {
   OCP_INTEGRATION_DEFAULTS,
   parseOcpIntegrationSettings,
   type OcpIntegrationSettings,
+  SDK_INTEGRATION_DEFAULTS,
+  parseSdkIntegrationSettings,
+  parseSdkOriginsDraft,
+  type SdkIntegrationSettings,
   type UserSettings,
 } from "@domain/index.js";
+export {
+  persistSdkIntegrationSettings,
+  type PersistSdkIntegrationSettingsResult,
+  type SdkGatewaySettingsInvoker,
+} from "./settings/persistSdkIntegrationSettings.js";
 export type { HeadsetFaultReason } from "@domain/index.js";
 export {
   reorderAudioCodecs,
