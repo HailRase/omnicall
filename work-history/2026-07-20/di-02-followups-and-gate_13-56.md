@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-20 13:56
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `8b2d9ad`
 
 ## Где
 - `src/adapters/integration/MainToRendererBroker.ts`
