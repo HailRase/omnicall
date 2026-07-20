@@ -11,6 +11,7 @@
   },
   "include": [
     "packages/*/src/**/*.ts",
+    "examples/*/src/**/*.ts",
     "tests/**/*.ts",
     "vitest.config.ts",
     "vitest.browser.config.ts",

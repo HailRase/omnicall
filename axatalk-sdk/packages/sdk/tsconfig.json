@@ -14,6 +14,7 @@
     "src/**/*.browser.test.ts",
     "src/**/test-helpers.ts",
     "src/**/auth-test-peer.ts",
-    "src/**/fake-transport.ts"
+    "src/**/fake-transport.ts",
+    "src/docs/**"
   ]
 }

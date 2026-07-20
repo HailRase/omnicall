@@ -9,7 +9,8 @@
     "npm": ">=10.0.0"
   },
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "examples/*"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
@@ -20,6 +21,7 @@
     "typecheck": "tsc -b --pretty false",
     "api:check": "node ./scripts/api-check.mjs",
     "package:check": "node ./scripts/package-check.mjs",
+    "docs:check": "node ./scripts/docs-check.mjs",
     "preflight": "node ./scripts/preflight.mjs",
     "changeset": "changeset"
   },

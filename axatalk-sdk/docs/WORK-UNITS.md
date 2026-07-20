@@ -21,7 +21,7 @@ Allowed statuses: `pending`, `in progress`, `review`, `done`, `blocked`.
 - [x] SDK-06 — Call control API (`done`)
 - [x] SDK-07 — Operator and logout workflows (`done`)
 - [x] SDK-08 — Saved-profile activation (`done`)
-- [ ] SDK-09 — Developer documentation and examples (`pending`)
+- [x] SDK-09 — Developer documentation and examples (`done`)
 - [ ] SDK-10 — Release candidate and stable release (`pending`)
 
 ---
@@ -341,29 +341,40 @@ Evidence:
 
 ## SDK-09 — Documentation and Examples
 
-Prerequisites: stable release-candidate API.
+Prerequisites: stable release-candidate API (SDK-00…SDK-08 `done`).
+
+Status: **`done`** (2026-07-20) — `/sdk-review` PASS
 
 Agent prompt:
 
 > Produce complete developer documentation and an example application against the fake peer.
 > Every example must compile, be secure by default, and explain capability failures.
 
+Public surface documented: `etc/api/sdk.api.md` — **47** symbols (unchanged).
+No new public methods. Privileged strip unchanged. Fake peer not packed.
+
+Non-goals held: SDK-10; npm publish; F-011 `implemented`; DI-10 unblock; desktop `src/`;
+`window.hide` as available; invent `account:list-profiles`; pairing escalate for
+`account.activate`; raw credential APIs; mutation replay / disconnect hangup helpers.
+
 Checklist:
 
-- [ ] installation and support matrix.
-- [ ] pairing quick start.
-- [ ] API, events, errors, and capabilities reference.
-- [ ] reconnect and multi-tab guidance.
-- [ ] logout workflow guide.
-- [ ] security anti-patterns.
-- [ ] upgrade/deprecation guide.
-- [ ] example and documentation tests.
+- [x] installation and support matrix.
+- [x] pairing quick start.
+- [x] API, events, errors, and capabilities reference.
+- [x] reconnect and multi-tab guidance.
+- [x] logout workflow guide.
+- [x] security anti-patterns.
+- [x] upgrade/deprecation guide.
+- [x] example and documentation tests.
 
 Evidence:
 
-- Documentation index:
-- Example CI:
-- Reviewer:
+- Documentation index: `docs/guide/README.md`
+- Example CI: `examples/crm-pairing-lite/` + `packages/sdk/src/docs/` + `npm run docs:check`
+- Unit evidence: `axatalk-sdk/evidence/SDK-09-developer-docs-examples.md`
+- Verification (implementation session): sdk src **113**, workspace **121**, types **7**, browser **7**, api **47**, protocol **169**
+- Reviewer: `/sdk-review` **PASS** 2026-07-20 — zero Blockers; Lows remediated same day (Web Storage runtime detect + API inventory 47); post-fix: sdk src **115**, workspace **123**, types **7**, browser **7**, api **47**, protocol **169**, docs:check PASS; F-011 remains `in progress`; DI-10 still blocked (not auto-started); next `/sdk-project` SDK-10 only
 
 ## SDK-10 — Release Candidate and Stable Release
 

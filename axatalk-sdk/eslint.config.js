@@ -21,7 +21,7 @@ export default defineConfig(
   eslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
   {
-    files: ['packages/**/*.ts', 'tests/**/*.ts'],
+    files: ['packages/**/*.ts', 'examples/**/*.ts', 'tests/**/*.ts'],
     languageOptions: {
       parserOptions: {
         project: ['./tsconfig.eslint.json'],

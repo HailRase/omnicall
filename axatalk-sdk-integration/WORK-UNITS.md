@@ -12,7 +12,7 @@
 - [x] DI-07 — Operator status and logout workflow (`done`)
 - [x] DI-08 — Saved-profile activation (`done`)
 - [x] DI-09 — Settings and operational UX (`done`)
-- [ ] DI-10 — Compatibility, E2E, and P12 close (`blocked` — SDK-08…SDK-09 still open; no human waiver)
+- [ ] DI-10 — Compatibility, E2E, and P12 close (`blocked` — SDK-00…SDK-09 `done`; awaits explicit `/sdk-integration` DI-10 intake; not auto-started; no human waiver)
 
 Allowed statuses: `pending`, `in progress`, `review`, `done`, `blocked`.
 
@@ -536,27 +536,27 @@ Checklist:
 
 Prerequisites: DI-01…DI-09 and SDK-00…SDK-09 done.
 
-Status: **`blocked`** (2026-07-20) — hard-stop before coding
+Status: **`blocked`** (2026-07-20) — SDK prereqs closed; awaits explicit `/sdk-integration` DI-10 intake (not auto-started)
 
 ### Blocker (hard-stop)
 
 | Check | Required | Actual |
 | --- | --- | --- |
 | Desktop DI-00…DI-09 | `done` | **PASS** — all `done` |
-| SDK-00…SDK-07 | `done` | **PASS** — SDK-07 `/sdk-review` PASS 2026-07-20 |
-| SDK-08…SDK-09 | `done` (or explicit human waiver) | **FAIL** — SDK-08…SDK-09 still `pending` in `axatalk-sdk/docs/WORK-UNITS.md` |
-| Human waiver | documents deferred browser E2E cells **and** forbids F-011 `implemented` | **absent** |
+| SDK-00…SDK-09 | `done` (or explicit human waiver) | **PASS** — SDK-09 `/sdk-review` PASS 2026-07-20 |
+| Human waiver | documents deferred browser E2E cells **and** forbids F-011 `implemented` | **n/a** (SDK prereqs met) |
 | Desktop version | `0.11.2` until justified P12 close bump | **PASS** (`0.11.2` @ `2f5b7ef`) |
 | F-011 | stays `in progress` until real packaged evidence | **PASS** — unchanged |
+| Explicit intake | `/sdk-integration` DI-10 only | **pending** — not auto-started from SDK-09 review |
 
 Evidence: `axatalk-sdk-integration/evidence/DI-10-blocker-sdk-prereqs.md`
 
-**Unblock paths (exactly one):**
+**Next (exactly one):**
 
-1. Finish SDK track through SDK-09 (`/sdk-project` SDK-08…SDK-09, each reviewed), then re-run `/sdk-integration` DI-10 only; **or**
+1. Run `/sdk-integration` **DI-10 only** in a separate session; **or**
 2. Provide an explicit human waiver that lists which browser E2E / client-package cells are deferred and **forbids** marking F-011 `implemented` / P12 closed / SemVer MINOR bump until those cells are real.
 
-Until then: no hostile/compat fortress coding under DI-10, no packaged browser claims, no registry close.
+Until DI-10 intake: no hostile/compat fortress coding under DI-10, no packaged browser claims, no registry close.
 
 Agent prompt:
 

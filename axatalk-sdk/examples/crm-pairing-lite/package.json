@@ -1,0 +1,13 @@
+{
+  "name": "@axatalk/example-crm-pairing-lite",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Fake-peer CRM pairing example for @axatalk/sdk (not published)",
+  "exports": {
+    ".": "./src/crm-app.ts"
+  },
+  "dependencies": {
+    "@axatalk/sdk": "0.0.0"
+  }
+}

@@ -12,6 +12,14 @@ Domain Events.
 
 ## Start Here
 
+### Integrators (developer docs)
+
+1. [`docs/guide/README.md`](docs/guide/README.md) — canonical developer guide
+2. [`examples/crm-pairing-lite/`](examples/crm-pairing-lite/) — fake-peer CRM example
+3. Public API report: [`etc/api/sdk.api.md`](etc/api/sdk.api.md)
+
+### Agents (implementation)
+
 Every agent must read these files in order:
 
 1. [`AGENTS.md`](AGENTS.md)
@@ -42,12 +50,14 @@ are stable.
 ## Current Status
 
 - Planning: complete
-- Workspace / tooling / CI: **SDK-00 done** (`evidence/SDK-00-workspace.md`)
-- Protocol decisions: **SDK-01 done** (O-* closed via ADR-0014…0017; `/sdk-review` PASS)
-- Protocol implementation: **SDK-02 in review** (`@axatalk/protocol` + fixtures; `evidence/SDK-02-protocol-package.md`)
-- SDK client implementation: not started
-- Public API: **protocol schemas/types only** (no `AxatalkClient`)
-- npm publication: **not started** (CI uploads tarballs only)
+- Workspace / tooling / CI: **SDK-00 done**
+- Protocol decisions: **SDK-01 done**
+- Protocol package: **SDK-02 done**
+- Transport / auth / client APIs: **SDK-03…SDK-08 done**
+- Developer docs & examples: **SDK-09 done** (`evidence/SDK-09-developer-docs-examples.md`)
+- Public API: `AxatalkClient` namespaces (lifecycle, `calls`, `account`, `operator`, `window.show`) — **47** symbols; **not published**
+- Release candidate / npm publication: **SDK-10 pending** (not started)
+- F-011 / P12: **not closed** — desktop DI-10 remains **blocked** until explicit `/sdk-integration` DI-10 intake (SDK-09 done; not auto-started)
 - Production readiness: not claimed
 
 ### Local commands

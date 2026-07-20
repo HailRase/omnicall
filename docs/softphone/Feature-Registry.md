@@ -301,7 +301,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-051`, `LF-065`, `LF-080`, `LF-081`
 - Context: Integration
 - Priority: critical
-- Status: **in progress** (legacy `window.Softphone` **not ported**; architecture gate DI-00 `done`; SDK-00…SDK-08 `done`; SDK-09 still open; DI-01…DI-09 **`done`**; DI-10 **`blocked`** — SDK-09 not `done`, no waiver; F-011 not implemented)
+- Status: **in progress** (legacy `window.Softphone` **not ported**; architecture gate DI-00 `done`; SDK-00…SDK-09 `done`; SDK-10 **`pending`**; DI-01…DI-09 **`done`**; DI-10 **`blocked`** — awaits explicit `/sdk-integration` DI-10 intake (not auto-started; no waiver); F-011 not implemented)
 - Owner: TBD
 - Inputs: external commands from browser tabs via WS (not DOM globals)
 - Outputs: typed commands routed to Facade / Use Cases with `callType: 'sdk'` (F-028 E-12 host methods retain `callType: 'external'`)
@@ -341,6 +341,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Implementation evidence (DI-07 operator/logout): `src/application/integration/ExternalSdkOperatorHandler.ts`; `ExternalSdkOperatorPort.ts`; `createSdkOperatorPortFromFacade.ts`; `mapSdkOperatorReasons.ts`; `externalSdkLogoutCommands.ts`; `ExternalSdkProductHandler.ts`; Facade `changeOcpStatusFromHost` `callType: "sdk"`; `LocalWsServerAdapter.operator.test.ts`; `bindSdkBrokerSession.ts`
 - DI-08 evidence: `axatalk-sdk-integration/evidence/DI-08-saved-profile-activation.md`
 - SDK-08 evidence: `axatalk-sdk/evidence/SDK-08-saved-profile-activation.md` (`done` — `/sdk-review` PASS; privileged `account.activateProfile` client)
+- SDK-09 evidence: `axatalk-sdk/evidence/SDK-09-developer-docs-examples.md` (`done` — developer guide + fake-peer example; not published; SDK-10 pending)
 - DI-09 evidence: `axatalk-sdk-integration/evidence/DI-09-settings-operational-ux.md`
 - Implementation evidence (DI-08 activate): `ExternalSdkAccountHandler.ts`; `ExternalSdkAccountPort.ts`; `createSdkAccountPortFromFacade.ts`; `sdkProfileRefCodec.ts`; `sdkAccountActivateGrantStore.ts`; `sdkGatewayActivateApproval.ts`; `LocalWsServerAdapter.issueAccountActivateGrant`; `bindSdkBrokerSession.ts`
 - Implementation evidence (SDK-08 client): `packages/sdk/src/internal/account-activate-commands.ts`; `account-activate-wire.ts`; `public/axatalk-client.activate.test.ts`; `tests/browser/axatalk-client-activate.browser.test.ts`

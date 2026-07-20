@@ -30,5 +30,6 @@ run('npm', ['run', 'test:types']);
 run('npm', ['run', 'test:browser']);
 run('npm', ['run', 'api:check']);
 run('npm', ['run', 'package:check']);
+run('npm', ['run', 'docs:check']);
 
 console.log('\nSDK preflight PASS');
