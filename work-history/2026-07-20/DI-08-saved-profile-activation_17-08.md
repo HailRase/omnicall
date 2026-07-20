@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-20 17:22
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `510eb38`
 
 ## Где
 - `src/application/integration/ExternalSdkAccountHandler.ts` (+ port / Facade binding)
