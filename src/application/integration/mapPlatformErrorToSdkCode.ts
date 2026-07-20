@@ -1,8 +1,9 @@
 /**
- * Map PlatformError → stable protocol codes (DI-06). No ad hoc strings.
+ * Map PlatformError → stable protocol codes (DI-06/DI-08). No ad hoc strings.
  */
 
 import type { ProtocolErrorCode } from "@axatalk/protocol";
+import { ACCOUNT_SIGN_IN_LOGOUT_REQUIRED_MESSAGE } from "@application/facades/accountSignInCommand.js";
 import type { PlatformError } from "@shared/errors/index.js";
 
 export function mapPlatformErrorToSdkCode(
@@ -14,6 +15,12 @@ export function mapPlatformErrorToSdkCode(
       isCauseReason(error.cause, "ocp_logout_reason_required"))
   ) {
     return "interaction_required";
+  }
+  if (
+    error.message === ACCOUNT_SIGN_IN_LOGOUT_REQUIRED_MESSAGE ||
+    isCauseReason(error.cause, "account.signIn.disabled.logoutFirst")
+  ) {
+    return "conflict";
   }
   switch (error.code) {
     case "validation_failed":

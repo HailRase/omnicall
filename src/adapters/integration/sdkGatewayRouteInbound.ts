@@ -146,7 +146,8 @@ function routeCommand(
     message.type === "operator:get-reasons" ||
     message.type === "operator:change-status" ||
     message.type === "account:prepare-logout" ||
-    message.type === "account:confirm-logout"
+    message.type === "account:confirm-logout" ||
+    message.type === "account:activate-profile"
   ) {
     return {
       action: "command_broker",
@@ -164,7 +165,7 @@ function routeCommand(
     };
   }
 
-  // Account activate lands in DI-08; window:hide denied earlier via productDenial.
+  // window:hide denied earlier via productDenial; unknown cmds stay not_ready.
   return {
     action: "command_not_ready",
     requestId: message.requestId,

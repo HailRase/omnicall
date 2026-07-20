@@ -1,6 +1,5 @@
 /**
- * Composite Application handler for SDK broker product commands (DI-05…DI-07).
- * Routes read / call / operator surfaces; account activate stays DI-08.
+ * Composite Application handler for SDK broker product commands (DI-05…DI-08).
  */
 
 import {
@@ -14,6 +13,7 @@ import type {
   ExternalHandlerResult,
 } from "@ports/integration/ExternalCommandHandler.js";
 
+import { ExternalSdkAccountHandler } from "./ExternalSdkAccountHandler.js";
 import { ExternalSdkCallHandler } from "./ExternalSdkCallHandler.js";
 import { ExternalSdkOperatorHandler } from "./ExternalSdkOperatorHandler.js";
 import { ExternalSdkReadHandler } from "./ExternalSdkReadHandler.js";
@@ -22,17 +22,20 @@ export type ExternalSdkProductHandlerOptions = Readonly<{
   readHandler: ExternalSdkReadHandler;
   callHandler: ExternalSdkCallHandler;
   operatorHandler: ExternalSdkOperatorHandler;
+  accountHandler: ExternalSdkAccountHandler;
 }>;
 
 export class ExternalSdkProductHandler implements ExternalCommandHandler {
   private readonly readHandler: ExternalSdkReadHandler;
   private readonly callHandler: ExternalSdkCallHandler;
   private readonly operatorHandler: ExternalSdkOperatorHandler;
+  private readonly accountHandler: ExternalSdkAccountHandler;
 
   constructor(options: ExternalSdkProductHandlerOptions) {
     this.readHandler = options.readHandler;
     this.callHandler = options.callHandler;
     this.operatorHandler = options.operatorHandler;
+    this.accountHandler = options.accountHandler;
   }
 
   getRevision(): number {
@@ -74,6 +77,9 @@ export class ExternalSdkProductHandler implements ExternalCommandHandler {
         code: denial ?? "forbidden",
         retryable: false,
       });
+    }
+    if (this.accountHandler.handlesCommandType(message.type)) {
+      return this.accountHandler.handleCommand(message, context);
     }
     if (this.callHandler.handlesCommandType(message.type)) {
       return this.callHandler.handleCommand(message, context);

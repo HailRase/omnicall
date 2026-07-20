@@ -13,6 +13,8 @@ import type { SdkGatewayProductSurface } from "./sdkGatewayProductSurface.js";
 import { buildWindowVisibilityEvent } from "./sdkGatewaySnapshotMessage.js";
 import type { SdkRequestDedupCache } from "./sdkGatewayRequestDedup.js";
 import { deliverSdkSnapshotReply } from "./sdkGatewaySnapshotDispatch.js";
+import type { SdkAccountActivateGrantStore } from "./sdkAccountActivateGrantStore.js";
+import { denyActivateWithoutLocalApproval } from "./sdkGatewayActivateApproval.js";
 
 export type SdkProductCommandRoute =
   | {
@@ -38,6 +40,7 @@ export type SdkProductDispatchContext = Readonly<{
     event: string,
     fields: Readonly<Record<string, string | number | boolean>>,
   ) => void;
+  readonly activateGrantStore: SdkAccountActivateGrantStore;
 }>;
 
 /** Run product route or fall back to not_ready when surface is absent. */
@@ -72,6 +75,7 @@ export async function handleSdkProductCommand(input: {
     event: string,
     fields: Readonly<Record<string, string | number | boolean>>,
   ) => void;
+  readonly activateGrantStore: SdkAccountActivateGrantStore;
   readonly emitToConnection: (
     connection: SdkGatewayConnection,
     message: WireMessage,
@@ -138,6 +142,22 @@ export async function handleSdkProductCommand(input: {
         }),
       );
     }
+    return;
+  }
+
+  if (
+    input.route.action === "command_broker" &&
+    denyActivateWithoutLocalApproval({
+      connection: input.connection,
+      requestDedup: input.requestDedup,
+      now: input.now,
+      sendJson: input.sendJson,
+      log: input.log,
+      activateGrantStore: input.activateGrantStore,
+      identity,
+      command: input.route.message,
+    })
+  ) {
     return;
   }
 

@@ -155,6 +155,27 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
     return this.sessions.revokeClient(clientId);
   }
 
+  /**
+   * Desktop-owned short-lived activate grant (DI-08). Elevates live sessions.
+   * Returns opaque profileRef for the client — never secrets.
+   */
+  issueAccountActivateGrant(input: {
+    readonly clientId: string;
+    readonly profileId: string;
+    readonly ttlMs?: number;
+  }):
+    | { readonly ok: true; readonly profileRef: string }
+    | { readonly ok: false; readonly reason: "not_listening" | "invalid_profile" | "ref_too_long" } {
+    if (this.sessions === null) {
+      return { ok: false, reason: "not_listening" };
+    }
+    const issued = this.sessions.issueAccountActivateGrant(input);
+    if (!issued.ok) {
+      return issued;
+    }
+    return { ok: true, profileRef: issued.grant.profileRef };
+  }
+
   validateWireInbound(
     input: unknown,
   ): ExternalGatewayValidationResult<WireMessage> {

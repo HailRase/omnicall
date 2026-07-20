@@ -13,6 +13,7 @@ import {
 import { createPlatformError } from "@shared/errors/index.js";
 import { err, ok } from "@shared/result/index.js";
 
+import { ExternalSdkAccountHandler } from "./ExternalSdkAccountHandler.js";
 import { ExternalSdkCallHandler } from "./ExternalSdkCallHandler.js";
 import type { ExternalSdkCallPort } from "./ExternalSdkCallPort.js";
 import { ExternalSdkOperatorHandler } from "./ExternalSdkOperatorHandler.js";
@@ -106,10 +107,20 @@ function createProductSurface(port: ExternalSdkCallPort = createPort()) {
     },
     revisionClock,
   });
+  const accountHandler = new ExternalSdkAccountHandler({
+    accountPort: {
+      activateSavedProfile: () =>
+        Promise.resolve(
+          err(createPlatformError("forbidden", "sdk_activate_not_used")),
+        ),
+    },
+    revisionClock,
+  });
   const product = new ExternalSdkProductHandler({
     readHandler,
     callHandler,
     operatorHandler,
+    accountHandler,
   });
   return { product, ownership, revisionClock, port };
 }

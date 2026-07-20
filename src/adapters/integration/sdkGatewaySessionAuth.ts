@@ -23,6 +23,8 @@ import {
   isValidSdkPopPublicKey,
   verifySdkPopSignature,
 } from "./sdkGatewayPopCrypto.js";
+import type { SdkAccountActivateGrantStore } from "./sdkAccountActivateGrantStore.js";
+import { elevateAccountActivateCapability } from "./sdkAccountActivateCapability.js";
 
 export const SDK_PAIRING_PENDING_TTL_MS = 5 * 60_000;
 export const SDK_AUTH_SESSION_TTL_MS = 30 * 60_000;
@@ -39,6 +41,7 @@ export type SdkSessionAuthDeps = Readonly<{
     event: string,
     fields: Readonly<Record<string, string | number | boolean>>,
   ) => void;
+  activateGrantStore: SdkAccountActivateGrantStore;
 }>;
 
 export async function handlePairingRequest(
@@ -199,6 +202,14 @@ export async function handleAuthProof(
   connection.grantedCapabilities = paired.grantedCapabilities;
   connection.sessionExpiresAtMs =
     deps.now().getTime() + SDK_AUTH_SESSION_TTL_MS;
+  if (
+    deps.activateGrantStore.hasAnyValidGrant(
+      message.clientId,
+      deps.now().getTime(),
+    )
+  ) {
+    elevateAccountActivateCapability(connection);
+  }
   deps.audit("sdk_gateway_auth_ok", {
     clientId: message.clientId,
     result: "authenticated",

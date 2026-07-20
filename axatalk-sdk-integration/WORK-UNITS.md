@@ -10,7 +10,7 @@
 - [x] DI-05 — Read-only snapshot, events, and window show (`done`)
 - [x] DI-06 — Call command router (`done`)
 - [x] DI-07 — Operator status and logout workflow (`done`)
-- [ ] DI-08 — Saved-profile activation (`pending`)
+- [x] DI-08 — Saved-profile activation (`done`)
 - [ ] DI-09 — Settings and operational UX (`pending`)
 - [ ] DI-10 — Compatibility, E2E, and P12 close (`pending`)
 
@@ -469,7 +469,9 @@ Checklist:
 
 ## DI-08 — Saved-Profile Activation
 
-Prerequisites: DI-07 done; SDK-08 security approval.
+Prerequisites: DI-07 done; SDK-08 security approval (ADR-0013 §B + AF-003/005/006 Accepted; SDK-08 client package non-blocking).
+
+Status: **`done`** (2026-07-20) — `/sdk-review` PASS
 
 Agent prompt:
 
@@ -478,13 +480,25 @@ Agent prompt:
 
 Checklist:
 
-- [ ] opaque approved profile references.
-- [ ] privileged short-lived capability and local approval.
-- [ ] active-session lock.
-- [ ] desktop-only secret hydration.
-- [ ] revoke/expiry/race tests.
-- [ ] ADR-AF-003/005/006 regression tests.
-- [ ] security review passes.
+- [x] opaque approved profile references.
+- [x] privileged short-lived capability and local approval.
+- [x] active-session lock.
+- [x] desktop-only secret hydration.
+- [x] revoke/expiry/race tests.
+- [x] ADR-AF-003/005/006 regression tests.
+- [x] security review passes. (`/sdk-review` PASS 2026-07-20 — Low hygiene only)
+
+### Handoff checklist (DI-08)
+
+- Work unit: DI-08
+- Prerequisites verified: DI-00…DI-07 `done`; ADR-0013 §B + AF-003/005/006 Accepted; protocol `account:activate-profile` from SDK-02; SDK-08 client package may remain pending
+- Status: **`done`**
+- Evidence: `axatalk-sdk-integration/evidence/DI-08-saved-profile-activation.md`
+- Security impact: capability + local-approval gated activate; secrets desktop-only; logout-first → `conflict`; DI-04…DI-07 invariants preserved
+- Automated tests: focused DI-04…DI-08 **140 passed** (post-Low remediation); full `npm test` **2482 passed / 1 skipped**; lint/typecheck PASS; `registry:check` **74/0**
+- Registry/Legacy/STATUS changes: F-011 remains `in progress`; DI-08 → **`done`**
+- Remaining risks: Settings grant UX (DI-09); SDK-08 client package; packaged E2E at DI-10
+- Reviewer: `/sdk-review` PASS 2026-07-20 — DI-08 **`done`**; Lows remediated same day (WS revoke/disconnect, OCP-disabled test, TTL cap strip, registry split); next `/sdk-integration` DI-09 only (separate session)
 
 ## DI-09 — Settings and Operational UX
 

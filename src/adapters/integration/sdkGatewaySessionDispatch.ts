@@ -23,6 +23,8 @@ import {
   handlePairingRequest,
   type SdkSessionAuthDeps,
 } from "./sdkGatewaySessionAuth.js";
+import type { SdkAccountActivateGrantStore } from "./sdkAccountActivateGrantStore.js";
+import { syncAccountActivateCapabilityForConnection } from "./sdkAccountActivateSession.js";
 
 export type SdkCommandRoute =
   | {
@@ -177,6 +179,7 @@ export async function dispatchSdkValidatedMessage(input: {
   readonly now: () => Date;
   readonly connectionCount: number;
   readonly heartbeatSeconds: number;
+  readonly activateGrantStore: SdkAccountActivateGrantStore;
   readonly sendJson: (connection: SdkGatewayConnection, message: WireMessage) => void;
   readonly closeConnection: (connection: SdkGatewayConnection, reason: string) => void;
   readonly startHeartbeat: (connection: SdkGatewayConnection) => void;
@@ -191,6 +194,12 @@ export async function dispatchSdkValidatedMessage(input: {
     input.closeConnection(input.connection, "unauthenticated");
     return;
   }
+  // DI-08: drop stale account.activate before capability routing (grant TTL).
+  syncAccountActivateCapabilityForConnection(
+    input.connection,
+    input.activateGrantStore,
+    input.now().getTime(),
+  );
   const route = routeSdkInbound(input.message, {
     handshakeComplete: input.connection.handshakeComplete,
     authState: input.connection.authState,
@@ -225,6 +234,7 @@ export async function dispatchSdkValidatedMessage(input: {
     sendJson: input.sendJson,
     closeConnection: input.closeConnection,
     audit: input.log,
+    activateGrantStore: input.activateGrantStore,
   };
   if (route.action === "pairing_request") {
     await handlePairingRequest(authDeps, input.connection, route.message);
@@ -263,6 +273,7 @@ export async function dispatchSdkValidatedMessage(input: {
         sendJson: input.sendJson,
         closeConnection: input.closeConnection,
         log: input.log,
+        activateGrantStore: input.activateGrantStore,
       },
       onNotReady: (productRoute) => {
         handleSdkCommandRoute({

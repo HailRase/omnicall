@@ -7,7 +7,7 @@
 | Feature | F-011 Host Integration Contract |
 | Legacy | LF-051, LF-065, LF-080, LF-081 |
 | Phase | P12 External Host API Compatibility |
-| Feature status | **in progress** (DI-01…DI-07 `done`; next DI-08) |
+| Feature status | **in progress** (DI-01…DI-08 `done`; DI-09 pending) |
 | Branch | `feature/axatalk-sdk` |
 | Desktop version | `0.11.2` |
 | DI-00 | `done` — `/sdk-review` PASS 2026-07-20 |
@@ -19,7 +19,8 @@
 | DI-05 | **`done`** — `/sdk-review` PASS 2026-07-20 re-gate; evidence `axatalk-sdk-integration/evidence/DI-05-read-only-snapshot-events-window-show.md` |
 | DI-06 | **`done`** — call command router + revision-contract fix; evidence `axatalk-sdk-integration/evidence/DI-06-call-command-router.md` |
 | DI-07 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-07-operator-logout-workflow.md` |
-| Next | **`/sdk-integration` DI-08 only** (do not mark F-011 `implemented`) |
+| DI-08 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-08-saved-profile-activation.md` |
+| Next | **`/sdk-integration` DI-09 only** (Settings / operational UX; do not mark F-011 `implemented`) |
 
 ## Mission
 
@@ -153,6 +154,8 @@ Automated matrix: `axatalk-sdk-integration/TEST-MATRIX.md`.
 - [x] DI-04 evidence exists; `/sdk-review` PASS (`evidence/DI-04-pairing-origin-capabilities.md`).
 - [x] DI-05 evidence exists; `/sdk-review` PASS re-gate (`evidence/DI-05-read-only-snapshot-events-window-show.md`).
 - [x] DI-06 evidence exists; status **`done`** (`evidence/DI-06-call-command-router.md`) — revision contract remediated 2026-07-20.
+- [x] DI-07 evidence exists; `/sdk-review` PASS (`evidence/DI-07-operator-logout-workflow.md`).
+- [x] DI-08 evidence exists; `/sdk-review` PASS (`evidence/DI-08-saved-profile-activation.md`).
 - [x] No premature `implemented` status — enforced until DI-10.
 
 ## DI-00 Evidence Summary
@@ -177,7 +180,7 @@ P12 closes only when:
 
 ## Next Agent Prompt
 
-1. Run **`/sdk-integration` DI-08 only** — saved-profile activation (opaque refs; no secrets on wire).
+1. Run **`/sdk-integration` DI-09 only** — Settings and operational UX (enablement, origins, paired clients, revoke, safe diagnostics; hide remains disabled).
 2. Do not mark F-011 `implemented` until DI-10 close.
 3. Keep SDK-07/SDK-08 client packages non-blocking where protocol DTOs already exist.
 4. Keep Domain free of protocol / Zod / Electron / ws imports; gateway must not import Facades/Call Engine.

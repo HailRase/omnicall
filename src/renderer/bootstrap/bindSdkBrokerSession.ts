@@ -1,17 +1,20 @@
 /**
- * Bind DI-05…DI-07 SDK surface to the single Application composition.
- * Broker: ping + get-snapshot + call:* + operator/logout → Facade / Call Engine.
+ * Bind DI-05…DI-08 SDK surface to the single Application composition.
+ * Broker: ping + get-snapshot + call:* + operator/logout + activate-profile → Facade.
  * Events: Domain → public draft.
  */
 
 import { RendererSdkBrokerSession } from "@adapters/integration/RendererSdkBrokerSession.js";
+import { ExternalSdkAccountHandler } from "@application/integration/ExternalSdkAccountHandler.js";
 import { ExternalSdkCallHandler } from "@application/integration/ExternalSdkCallHandler.js";
 import { ExternalSdkOperatorHandler } from "@application/integration/ExternalSdkOperatorHandler.js";
 import { ExternalSdkProductHandler } from "@application/integration/ExternalSdkProductHandler.js";
 import { ExternalSdkReadHandler } from "@application/integration/ExternalSdkReadHandler.js";
+import { createSdkAccountPortFromFacade } from "@application/integration/createSdkAccountPortFromFacade.js";
 import { createSdkOperatorPortFromFacade } from "@application/integration/createSdkOperatorPortFromFacade.js";
 import { mapDomainEventToSdkPublicDraft } from "@application/integration/ExternalSdkEventMapper.js";
 import { readSdkProductStateFromStore } from "@application/integration/readSdkProductStateFromStore.js";
+import { SdkAggregateMutex } from "@application/integration/SdkAggregateMutex.js";
 import { SdkCallOwnershipRegistry } from "@application/integration/SdkCallOwnershipRegistry.js";
 import { SdkSessionRevisionClock } from "@application/integration/SdkSessionRevisionClock.js";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
@@ -47,6 +50,7 @@ export function bindSdkBrokerSession(
 ): BoundSdkBrokerSession {
   const revisionClock = new SdkSessionRevisionClock();
   const ownership = new SdkCallOwnershipRegistry();
+  const accountMutex = new SdkAggregateMutex();
   const readHandler = new ExternalSdkReadHandler({
     readProductState: () =>
       readSdkProductStateFromStore(useAccountBootstrapStore.getState(), {
@@ -69,6 +73,7 @@ export function bindSdkBrokerSession(
     },
     ownership,
     revisionClock,
+    mutex: accountMutex,
   });
   const operatorHandler = new ExternalSdkOperatorHandler({
     operatorPort: createSdkOperatorPortFromFacade({
@@ -78,11 +83,23 @@ export function bindSdkBrokerSession(
         : {}),
     }),
     revisionClock,
+    mutex: accountMutex,
+  });
+  const accountHandler = new ExternalSdkAccountHandler({
+    accountPort: createSdkAccountPortFromFacade({
+      facade: options.facade,
+      ...(options.ocpModuleEnabled !== undefined
+        ? { ocpModuleEnabled: options.ocpModuleEnabled }
+        : {}),
+    }),
+    revisionClock,
+    mutex: accountMutex,
   });
   const handler = new ExternalSdkProductHandler({
     readHandler,
     callHandler,
     operatorHandler,
+    accountHandler,
   });
   const sessionEpoch = `${BROKER_SESSION_EPOCH_PREFIX}${Date.now().toString(36)}`;
   const session = new RendererSdkBrokerSession({

@@ -149,6 +149,45 @@ async function handshake(
   return expectType(await queue.next(), "sdk:server-hello");
 }
 
+type PopTestKeys = ReturnType<typeof generateSdkPopTestKeyPair>;
+
+async function authOperatorSession(
+  adapter: LocalWsServerAdapter,
+  clientId: string,
+  keys: PopTestKeys,
+): Promise<{
+  ws: WebSocket;
+  queue: MessageQueue;
+  hello: Extract<WireMessage, { type: "sdk:server-hello" }>;
+}> {
+  const port = adapter.getBoundAddress()!.port;
+  const authWs = await openWs(port);
+  const authQueue = attachMessageQueue(authWs);
+  const hello = await handshake(authQueue, authWs, clientId);
+  const challenge = hello.authChallenge!;
+  authWs.send(
+    JSON.stringify({
+      protocolVersion: PROTOCOL_MAJOR,
+      kind: "auth",
+      type: "sdk:auth-proof",
+      challengeId: challenge.challengeId,
+      clientId,
+      signature: signSdkPopPayload({
+        privateKey: keys.privateKey,
+        serverInstanceId: hello.serverInstanceId,
+        sessionEpoch: hello.sessionEpoch,
+        origin: TEST_ORIGIN,
+        clientId,
+        challengeId: challenge.challengeId,
+        nonce: challenge.nonce,
+      }),
+      occurredAt: "2026-07-20T09:00:00.000Z",
+    }),
+  );
+  await new Promise((r) => setTimeout(r, 40));
+  return { ws: authWs, queue: authQueue, hello };
+}
+
 async function pairAuthOperator(
   adapter: LocalWsServerAdapter,
   clientId: string,
@@ -156,6 +195,7 @@ async function pairAuthOperator(
   ws: WebSocket;
   queue: MessageQueue;
   hello: Extract<WireMessage, { type: "sdk:server-hello" }>;
+  keys: PopTestKeys;
 }> {
   const keys = generateSdkPopTestKeyPair();
   const port = adapter.getBoundAddress()!.port;
@@ -186,31 +226,8 @@ async function pairAuthOperator(
   pairWs.close();
   await once(pairWs, "close");
 
-  const authWs = await openWs(port);
-  const authQueue = attachMessageQueue(authWs);
-  const hello = await handshake(authQueue, authWs, clientId);
-  const challenge = hello.authChallenge!;
-  authWs.send(
-    JSON.stringify({
-      protocolVersion: PROTOCOL_MAJOR,
-      kind: "auth",
-      type: "sdk:auth-proof",
-      challengeId: challenge.challengeId,
-      clientId,
-      signature: signSdkPopPayload({
-        privateKey: keys.privateKey,
-        serverInstanceId: hello.serverInstanceId,
-        sessionEpoch: hello.sessionEpoch,
-        origin: TEST_ORIGIN,
-        clientId,
-        challengeId: challenge.challengeId,
-        nonce: challenge.nonce,
-      }),
-      occurredAt: "2026-07-20T09:00:00.000Z",
-    }),
-  );
-  await new Promise((r) => setTimeout(r, 40));
-  return { ws: authWs, queue: authQueue, hello };
+  const session = await authOperatorSession(adapter, clientId, keys);
+  return { ...session, keys };
 }
 
 describe("LocalWsServerAdapter DI-07 operator/logout", () => {
@@ -434,5 +451,339 @@ describe("LocalWsServerAdapter DI-07 operator/logout", () => {
     await once(ws, "close");
     await new Promise((r) => setTimeout(r, 40));
     expect(ended).toContain("client_op_end_001");
+  });
+
+  it("DI-08: denies account:activate-profile without capability", async () => {
+    let brokerCalls = 0;
+    const adapter = await startAdapter({
+      productSurface: createSurface({
+        requestProductCommand: () => {
+          brokerCalls += 1;
+          return Promise.resolve({ ok: false as const, code: "operation_failed" });
+        },
+      }),
+    });
+    const keys = generateSdkPopTestKeyPair();
+    const port = adapter.getBoundAddress()!.port;
+    const pairWs = await openWs(port);
+    const pairQueue = attachMessageQueue(pairWs);
+    await handshake(pairQueue, pairWs);
+    pairWs.send(
+      JSON.stringify({
+        protocolVersion: PROTOCOL_MAJOR,
+        kind: "pairing",
+        type: "pairing:request",
+        clientId: "client_act_pres_001",
+        clientPublicKey: keys.publicKeyBase64Url,
+        keyAlgorithm: "ECDSA-P256-SHA256",
+        application: { name: "fixture-crm", version: "1.0.0" },
+        requestedProfile: "presentation",
+        requestedCapabilities: ["session.read.redacted"],
+        occurredAt: "2026-07-20T09:00:00.000Z",
+      }),
+    );
+    expectType(await pairQueue.next(), "pairing:pending");
+    expectType(await pairQueue.next(), "pairing:approved");
+    pairQueue.close();
+    pairWs.close();
+    await once(pairWs, "close");
+
+    const authWs = await openWs(port);
+    const authQueue = attachMessageQueue(authWs);
+    const hello = await handshake(authQueue, authWs, "client_act_pres_001");
+    const challenge = hello.authChallenge!;
+    authWs.send(
+      JSON.stringify({
+        protocolVersion: PROTOCOL_MAJOR,
+        kind: "auth",
+        type: "sdk:auth-proof",
+        challengeId: challenge.challengeId,
+        clientId: "client_act_pres_001",
+        signature: signSdkPopPayload({
+          privateKey: keys.privateKey,
+          serverInstanceId: hello.serverInstanceId,
+          sessionEpoch: hello.sessionEpoch,
+          origin: TEST_ORIGIN,
+          clientId: "client_act_pres_001",
+          challengeId: challenge.challengeId,
+          nonce: challenge.nonce,
+        }),
+        occurredAt: "2026-07-20T09:00:00.000Z",
+      }),
+    );
+    await new Promise((r) => setTimeout(r, 40));
+
+    authWs.send(
+      JSON.stringify({
+        protocolVersion: PROTOCOL_MAJOR,
+        kind: "command",
+        type: "account:activate-profile",
+        requestId: "req_act_forbid_001",
+        serverInstanceId: hello.serverInstanceId,
+        sessionEpoch: hello.sessionEpoch,
+        occurredAt: "2026-07-20T09:00:00.000Z",
+        payload: { profileRef: "prf_dGVzdA", expectedRevision: 1 },
+      }),
+    );
+    const reply = await authQueue.next();
+    expect(reply.kind).toBe("reply");
+    if (reply.kind === "reply" && !reply.ok) {
+      expect(reply.error.code).toBe("forbidden");
+    }
+    expect(brokerCalls).toBe(0);
+    authQueue.close();
+    authWs.close();
+  });
+
+  it("DI-08: grant elevates activate-profile to broker", async () => {
+    let seenClientId: string | undefined;
+    const adapter = await startAdapter({
+      productSurface: createSurface({
+        requestProductCommand: (command, context) => {
+          seenClientId = context?.clientId;
+          if (command.kind !== "command") {
+            return Promise.resolve({
+              ok: false as const,
+              code: "invalid_message",
+            });
+          }
+          return Promise.resolve({
+            ok: true as const,
+            revision: 3,
+            reply: {
+              protocolVersion: PROTOCOL_MAJOR,
+              kind: "reply" as const,
+              ok: true as const,
+              requestId: command.requestId,
+              commandType: "account:activate-profile" as const,
+              serverInstanceId: "srv_desktop_test_001",
+              sessionEpoch: "epoch_desktop_test_001",
+              occurredAt: "2026-07-20T09:00:00.000Z",
+              revision: 3,
+              result: { activated: true, mode: "sip_only" },
+            },
+          });
+        },
+      }),
+    });
+    const clientId = "client_act_ok_001";
+    const { ws, queue, hello } = await pairAuthOperator(adapter, clientId);
+    const grant = adapter.issueAccountActivateGrant({
+      clientId,
+      profileId: "1001@pbx.example",
+    });
+    expect(grant.ok).toBe(true);
+    if (!grant.ok) {
+      return;
+    }
+    ws.send(
+      JSON.stringify({
+        protocolVersion: PROTOCOL_MAJOR,
+        kind: "command",
+        type: "account:activate-profile",
+        requestId: "req_act_ok_ws_001",
+        serverInstanceId: hello.serverInstanceId,
+        sessionEpoch: hello.sessionEpoch,
+        occurredAt: "2026-07-20T09:00:00.000Z",
+        payload: { profileRef: grant.profileRef, expectedRevision: 1 },
+      }),
+    );
+    const reply = await queue.next();
+    expect(reply).toMatchObject({
+      kind: "reply",
+      ok: true,
+      commandType: "account:activate-profile",
+      revision: 3,
+      result: { activated: true, mode: "sip_only" },
+    });
+    expect(seenClientId).toBe(clientId);
+    expect(JSON.stringify(reply)).not.toMatch(/password|apiKey|secret/i);
+    queue.close();
+    ws.close();
+  });
+
+  it("DI-08: grant for other profileRef still forbids activate", async () => {
+    let brokerCalls = 0;
+    const adapter = await startAdapter({
+      productSurface: createSurface({
+        requestProductCommand: () => {
+          brokerCalls += 1;
+          return Promise.resolve({ ok: false as const, code: "operation_failed" });
+        },
+      }),
+    });
+    const clientId = "client_act_mismatch_001";
+    const { ws, queue, hello } = await pairAuthOperator(adapter, clientId);
+    const grant = adapter.issueAccountActivateGrant({
+      clientId,
+      profileId: "1001@pbx.example",
+    });
+    expect(grant.ok).toBe(true);
+    ws.send(
+      JSON.stringify({
+        protocolVersion: PROTOCOL_MAJOR,
+        kind: "command",
+        type: "account:activate-profile",
+        requestId: "req_act_mismatch_001",
+        serverInstanceId: hello.serverInstanceId,
+        sessionEpoch: hello.sessionEpoch,
+        occurredAt: "2026-07-20T09:00:00.000Z",
+        payload: { profileRef: "prf_b3RoZXI", expectedRevision: 1 },
+      }),
+    );
+    const reply = await queue.next();
+    expect(reply.kind).toBe("reply");
+    if (reply.kind === "reply" && !reply.ok) {
+      expect(reply.error.code).toBe("forbidden");
+    }
+    expect(brokerCalls).toBe(0);
+    queue.close();
+    ws.close();
+  });
+
+  it("DI-08: disconnect clears grants; re-auth activate without new grant is forbidden", async () => {
+    let brokerCalls = 0;
+    const adapter = await startAdapter({
+      productSurface: createSurface({
+        requestProductCommand: () => {
+          brokerCalls += 1;
+          return Promise.resolve({ ok: false as const, code: "operation_failed" });
+        },
+      }),
+    });
+    const clientId = "client_act_disc_001";
+    const { ws, queue, keys } = await pairAuthOperator(adapter, clientId);
+    const grant = adapter.issueAccountActivateGrant({
+      clientId,
+      profileId: "1001@pbx.example",
+    });
+    expect(grant.ok).toBe(true);
+    if (!grant.ok) {
+      return;
+    }
+    const profileRef = grant.profileRef;
+    queue.close();
+    ws.close();
+    await once(ws, "close");
+    await new Promise((r) => setTimeout(r, 40));
+
+    const session = await authOperatorSession(adapter, clientId, keys);
+    session.ws.send(
+      JSON.stringify({
+        protocolVersion: PROTOCOL_MAJOR,
+        kind: "command",
+        type: "account:activate-profile",
+        requestId: "req_act_disc_001",
+        serverInstanceId: session.hello.serverInstanceId,
+        sessionEpoch: session.hello.sessionEpoch,
+        occurredAt: "2026-07-20T09:00:00.000Z",
+        payload: { profileRef, expectedRevision: 1 },
+      }),
+    );
+    const reply = await session.queue.next();
+    expect(reply.kind).toBe("reply");
+    if (reply.kind === "reply" && !reply.ok) {
+      expect(reply.error.code).toBe("forbidden");
+    }
+    expect(brokerCalls).toBe(0);
+    session.queue.close();
+    session.ws.close();
+  });
+
+  it("DI-08: revoke clears grants; re-pair activate without new grant is forbidden", async () => {
+    let brokerCalls = 0;
+    const adapter = await startAdapter({
+      productSurface: createSurface({
+        requestProductCommand: () => {
+          brokerCalls += 1;
+          return Promise.resolve({ ok: false as const, code: "operation_failed" });
+        },
+      }),
+    });
+    const clientId = "client_act_rev_001";
+    const { ws, queue } = await pairAuthOperator(adapter, clientId);
+    const grant = adapter.issueAccountActivateGrant({
+      clientId,
+      profileId: "1001@pbx.example",
+    });
+    expect(grant.ok).toBe(true);
+    if (!grant.ok) {
+      return;
+    }
+    const profileRef = grant.profileRef;
+    const revoked = await adapter.revokePairedClient(clientId);
+    expect(revoked).toBe(true);
+    expectType(await queue.next(), "sdk:revoked");
+    await once(ws, "close");
+    queue.close();
+
+    const { ws: ws2, queue: queue2, hello } = await pairAuthOperator(
+      adapter,
+      clientId,
+    );
+    ws2.send(
+      JSON.stringify({
+        protocolVersion: PROTOCOL_MAJOR,
+        kind: "command",
+        type: "account:activate-profile",
+        requestId: "req_act_rev_001",
+        serverInstanceId: hello.serverInstanceId,
+        sessionEpoch: hello.sessionEpoch,
+        occurredAt: "2026-07-20T09:00:00.000Z",
+        payload: { profileRef, expectedRevision: 1 },
+      }),
+    );
+    const reply = await queue2.next();
+    expect(reply.kind).toBe("reply");
+    if (reply.kind === "reply" && !reply.ok) {
+      expect(reply.error.code).toBe("forbidden");
+    }
+    expect(brokerCalls).toBe(0);
+    queue2.close();
+    ws2.close();
+  });
+
+  it("DI-08: expired grant strips capability and forbids activate", async () => {
+    let brokerCalls = 0;
+    const adapter = await startAdapter({
+      productSurface: createSurface({
+        requestProductCommand: () => {
+          brokerCalls += 1;
+          return Promise.resolve({ ok: false as const, code: "operation_failed" });
+        },
+      }),
+    });
+    const clientId = "client_act_ttl_001";
+    const { ws, queue, hello } = await pairAuthOperator(adapter, clientId);
+    const grant = adapter.issueAccountActivateGrant({
+      clientId,
+      profileId: "1001@pbx.example",
+      ttlMs: 40,
+    });
+    expect(grant.ok).toBe(true);
+    if (!grant.ok) {
+      return;
+    }
+    await new Promise((r) => setTimeout(r, 80));
+    ws.send(
+      JSON.stringify({
+        protocolVersion: PROTOCOL_MAJOR,
+        kind: "command",
+        type: "account:activate-profile",
+        requestId: "req_act_ttl_001",
+        serverInstanceId: hello.serverInstanceId,
+        sessionEpoch: hello.sessionEpoch,
+        occurredAt: "2026-07-20T09:00:00.000Z",
+        payload: { profileRef: grant.profileRef, expectedRevision: 1 },
+      }),
+    );
+    const reply = await queue.next();
+    expect(reply.kind).toBe("reply");
+    if (reply.kind === "reply" && !reply.ok) {
+      expect(reply.error.code).toBe("forbidden");
+    }
+    expect(brokerCalls).toBe(0);
+    queue.close();
+    ws.close();
   });
 });

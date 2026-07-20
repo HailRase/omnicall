@@ -13,10 +13,7 @@ import {
   type SdkGatewaySocket,
 } from "./sdkGatewayConnection.js";
 import { createSdkOpaqueId } from "./sdkGatewayIds.js";
-import {
-  buildSdkRevokedEvent,
-  type SdkGatewayIdentity,
-} from "./sdkGatewayMessages.js";
+import type { SdkGatewayIdentity } from "./sdkGatewayMessages.js";
 import type { SdkPairingApprover } from "./sdkGatewayPairingTypes.js";
 import type { SdkGatewayPairingStore } from "./sdkGatewayPairingStore.js";
 import {
@@ -25,15 +22,20 @@ import {
 } from "./sdkGatewayEventFanout.js";
 import type { SdkGatewayProductSurface } from "./sdkGatewayProductSurface.js";
 import { SdkRequestDedupCache } from "./sdkGatewayRequestDedup.js";
-import { dispatchSdkValidatedMessage } from "./sdkGatewaySessionDispatch.js";
 import {
   armSdkGatewayIdleTimer,
   bindSdkGatewaySocketHandlers,
   closeSdkGatewayConnection,
   sendSdkGatewayJson,
-  startSdkGatewayHeartbeat,
 } from "./sdkGatewaySessionSocket.js";
 import type { SdkGatewayLogFn } from "./localWsServerHelpers.js";
+import {
+  SdkAccountActivateGrantStore,
+  type IssueSdkAccountActivateGrantResult,
+} from "./sdkAccountActivateGrantStore.js";
+import { issueAccountActivateGrantOnSessions } from "./sdkAccountActivateSession.js";
+import { parseAndDispatchLocalWsSession } from "./localWsSessionInbound.js";
+import { revokeLocalWsClient } from "./localWsSessionRevoke.js";
 
 export type LocalWsSessionRegistryDeps = Readonly<{
   limits: SdkGatewayLimits;
@@ -48,6 +50,7 @@ export type LocalWsSessionRegistryDeps = Readonly<{
   pairingApprover: SdkPairingApprover;
   getProductSurface?: () => SdkGatewayProductSurface | null;
   onLog?: SdkGatewayLogFn;
+  activateGrantStore?: SdkAccountActivateGrantStore;
 }>;
 
 export class LocalWsSessionRegistry {
@@ -62,6 +65,7 @@ export class LocalWsSessionRegistry {
   private readonly challenges = new SdkAuthChallengeCache();
   private readonly requestDedup = new SdkRequestDedupCache();
   private readonly onLog: SdkGatewayLogFn | undefined;
+  private readonly activateGrantStore: SdkAccountActivateGrantStore;
   private revokeEventSequence = 0;
 
   constructor(deps: LocalWsSessionRegistryDeps) {
@@ -73,10 +77,31 @@ export class LocalWsSessionRegistry {
     this.pairingApprover = deps.pairingApprover;
     this.getProductSurface = deps.getProductSurface ?? (() => null);
     this.onLog = deps.onLog;
+    this.activateGrantStore =
+      deps.activateGrantStore ?? new SdkAccountActivateGrantStore();
   }
 
   get size(): number {
     return this.connections.size;
+  }
+
+  /** Desktop-owned short-lived activate grant + privileged capability elevation. */
+  issueAccountActivateGrant(input: {
+    readonly clientId: string;
+    readonly profileId: string;
+    readonly ttlMs?: number;
+  }): IssueSdkAccountActivateGrantResult {
+    return issueAccountActivateGrantOnSessions({
+      activateGrantStore: this.activateGrantStore,
+      connections: this.connections.values(),
+      clientId: input.clientId,
+      profileId: input.profileId,
+      nowMs: this.now().getTime(),
+      ...(input.ttlMs !== undefined ? { ttlMs: input.ttlMs } : {}),
+      log: (event, fields) => {
+        this.log(event, fields);
+      },
+    });
   }
 
   attach(socket: SdkGatewaySocket, origin: string): void {
@@ -132,41 +157,30 @@ export class LocalWsSessionRegistry {
   }
 
   async revokeClient(clientId: string): Promise<boolean> {
-    const ok = await this.pairingStore.revoke(
+    return revokeLocalWsClient({
       clientId,
-      this.now().toISOString(),
-    );
-    if (!ok) {
-      return false;
-    }
-    const identity = this.getIdentity();
-    for (const connection of [...this.connections.values()]) {
-      if (connection.clientId !== clientId) {
-        continue;
-      }
-      if (identity !== null) {
+      pairingStore: this.pairingStore,
+      activateGrantStore: this.activateGrantStore,
+      connections: this.connections,
+      getIdentity: this.getIdentity,
+      now: this.now,
+      sendJson: (c, m) => {
+        this.sendJson(c, m);
+      },
+      closeConnection: (c, reason) => {
+        this.closeConnection(c, reason);
+      },
+      log: (event, fields) => {
+        this.log(event, fields);
+      },
+      nextRevokeSequence: () => {
         this.revokeEventSequence += 1;
-        this.sendJson(
-          connection,
-          buildSdkRevokedEvent({
-            identity,
-            now: this.now,
-            sequence: this.revokeEventSequence,
-            reasonCode: "revoked",
-          }),
-        );
-      }
-      connection.authState = "revoked";
-      this.closeConnection(connection, "revoked");
-    }
-    this.log("sdk_gateway_client_revoked", { clientId, result: "revoked" });
-    return true;
+        return this.revokeEventSequence;
+      },
+    });
   }
 
-  /**
-   * Fan-out a validated public event draft to each authorized connection.
-   * Returns delivered count (0 when identity missing or draft invalid).
-   */
+  /** Fan-out validated public event draft; 0 when identity/draft invalid. */
   publishPublicEvent(draftInput: unknown): number {
     const identity = this.getIdentity();
     const draft = parseSdkPublicEventDraft(draftInput);
@@ -188,21 +202,10 @@ export class LocalWsSessionRegistry {
     connection: SdkGatewayConnection,
     text: string,
   ): void {
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(text) as unknown;
-    } catch {
-      this.closeConnection(connection, "invalid_json");
-      return;
-    }
-    const validated = this.validateWire(parsed);
-    if (!validated.success) {
-      this.closeConnection(connection, validated.code);
-      return;
-    }
-    void dispatchSdkValidatedMessage({
+    parseAndDispatchLocalWsSession({
       connection,
-      message: validated.data,
+      text,
+      validateWire: this.validateWire,
       getIdentity: this.getIdentity,
       pairingStore: this.pairingStore,
       pairingApprover: this.pairingApprover,
@@ -210,27 +213,19 @@ export class LocalWsSessionRegistry {
       requestDedup: this.requestDedup,
       now: this.now,
       connectionCount: this.connections.size,
-      heartbeatSeconds: this.limits.heartbeatSeconds,
+      limits: this.limits,
+      activateGrantStore: this.activateGrantStore,
+      productSurface: this.getProductSurface(),
       sendJson: (c, m) => {
         this.sendJson(c, m);
       },
       closeConnection: (c, reason) => {
         this.closeConnection(c, reason);
       },
-      startHeartbeat: (c) => {
-        startSdkGatewayHeartbeat({
-          connection: c,
-          heartbeatSeconds: this.limits.heartbeatSeconds,
-          closeConnection: (conn, reason) => {
-            this.closeConnection(conn, reason);
-          },
-        });
-      },
+      isSessionExpired: (c) => this.isSessionExpired(c),
       log: (event, fields) => {
         this.log(event, fields);
       },
-      isSessionExpired: (c) => this.isSessionExpired(c),
-      productSurface: this.getProductSurface(),
     });
   }
 
@@ -287,6 +282,7 @@ export class LocalWsSessionRegistry {
     this.connections.delete(connection.id);
     const clientId = connection.clientId;
     if (clientId !== null && clientId.length > 0) {
+      this.activateGrantStore.clearForClient(clientId);
       this.getProductSurface()?.onClientSessionEnded?.(clientId);
     }
   }

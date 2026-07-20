@@ -54,7 +54,7 @@ Native window commands remain in main.
 
 ## Current Status
 
-- F-011: **in progress** (DI-01…DI-07 `done`; next DI-08)
+- F-011: **in progress** (DI-01…DI-08 `done`; DI-09 pending)
 - ADRs: ADR-0009…0013 Accepted; precision rows closed by SDK-01 ADR-0014…0017 (`done`)
 - SDK-02: `@axatalk/protocol` `done`; desktop consumes same fixtures (DI-01)
 - P12 handoff: `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`
@@ -66,9 +66,10 @@ Native window commands remain in main.
 - DI-05 evidence: `evidence/DI-05-read-only-snapshot-events-window-show.md` (`done` — `/sdk-review` PASS)
 - DI-06 evidence: `evidence/DI-06-call-command-router.md` (`done` — `/sdk-review` PASS)
 - DI-07 evidence: `evidence/DI-07-operator-logout-workflow.md` (`done` — `/sdk-review` PASS)
+- DI-08 evidence: `evidence/DI-08-saved-profile-activation.md` (`done` — `/sdk-review` PASS)
 - OCP E-12 command subset: implemented
-- External gateway: loopback WS + pairing/PoP/capabilities + read-only + call + operator/logout (DI-07 `done`); mock retained
-- External handlers: `ExternalSdkProductHandler` (read + call + operator); account activate deferred DI-08
+- External gateway: loopback WS + pairing/PoP/capabilities + read-only + call + operator/logout + activate-profile (DI-08 `done`); mock retained
+- External handlers: `ExternalSdkProductHandler` (read + call + operator + account activate)
 - Main-to-renderer command broker: real IPC adapter `done` (DI-02); mock retained for unit tests
 - SDK pairing/settings: not implemented (DI-09)
 - Read-only event/snapshot transport: implemented (DI-05 `done`)

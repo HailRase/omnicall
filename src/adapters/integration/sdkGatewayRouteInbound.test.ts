@@ -274,11 +274,11 @@ describe("routeSdkInbound", () => {
     });
   });
 
-  it("keeps account:activate-profile as not_ready (DI-08)", () => {
+  it("routes account:activate-profile to command_broker when capable (DI-08)", () => {
     const activate = {
       ...getSnapshot,
       type: "account:activate-profile" as const,
-      payload: { profileRef: "profile_opaque_001", expectedRevision: 1 },
+      payload: { profileRef: "prf_dGVzdA", expectedRevision: 1 },
     };
     expect(
       routeSdkInbound(activate, {
@@ -287,9 +287,10 @@ describe("routeSdkInbound", () => {
         grantedCapabilities: ["account.activate"],
       }),
     ).toEqual({
-      action: "command_not_ready",
+      action: "command_broker",
       requestId: "req_test_001",
       commandType: "account:activate-profile",
+      message: activate,
     });
   });
 });
