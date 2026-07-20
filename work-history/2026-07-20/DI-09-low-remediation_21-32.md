@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-20 21:32
 **Статус:** выполнено
-**Коммит:** `09f2853`
+**Коммит:** `de3a092`
 
 ## Где
 - `src/shared/ipc/parseSdkGatewaySettingsSnapshot.ts`
