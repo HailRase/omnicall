@@ -9,8 +9,8 @@ recorded evidence on 2026-07-20.
 
 - Axatalk Desktop version: `0.11.2`
 - Branch / commits (DI-00): `feature/axatalk-sdk` — code preflight `5114c02`; docs `18fb3f1`
-- F-011 Host Integration Contract: `in progress` (DI-01…DI-04 `done`; DI-05 `review`)
-- P12 External Host API Compatibility: architecture closed (DI-00); DI-01…DI-04 `done`; DI-05 `review`; next DI-06 after gate
+- F-011 Host Integration Contract: `in progress` (DI-01…DI-05 `done`; next DI-06)
+- P12 External Host API Compatibility: architecture closed (DI-00); DI-01…DI-05 `done`; next DI-06
 - F-028 OCP command subset E-12: implemented
 - SIP-only product path: implemented and mandatory
 - OCP module: optional

@@ -7,7 +7,7 @@
 | Feature | F-011 Host Integration Contract |
 | Legacy | LF-051, LF-065, LF-080, LF-081 |
 | Phase | P12 External Host API Compatibility |
-| Feature status | **in progress** (DI-01…DI-05 `done`) |
+| Feature status | **in progress** (DI-01…DI-05 `done`; next DI-06) |
 | Branch | `feature/axatalk-sdk` |
 | Desktop version | `0.11.2` |
 | DI-00 | `done` — `/sdk-review` PASS 2026-07-20 |
@@ -16,7 +16,7 @@
 | DI-02 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-02-typed-main-renderer-broker.md` |
 | DI-03 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-03-loopback-websocket-transport.md` |
 | DI-04 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-04-pairing-origin-capabilities.md` |
-| DI-05 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-05-read-only-snapshot-events-window-show.md` |
+| DI-05 | **`done`** — `/sdk-review` PASS 2026-07-20 re-gate; evidence `axatalk-sdk-integration/evidence/DI-05-read-only-snapshot-events-window-show.md` |
 | Next | **DI-06** via `/sdk-integration` (do not mark F-011 `implemented`) |
 
 ## Mission
@@ -149,8 +149,8 @@ Automated matrix: `axatalk-sdk-integration/TEST-MATRIX.md`.
 - [x] DI-02 evidence exists; `/sdk-review` PASS (`evidence/DI-02-typed-main-renderer-broker.md`).
 - [x] DI-03 evidence exists; `/sdk-review` PASS (`evidence/DI-03-loopback-websocket-transport.md`).
 - [x] DI-04 evidence exists; `/sdk-review` PASS (`evidence/DI-04-pairing-origin-capabilities.md`).
-- [x] DI-05 evidence exists; `/sdk-review` PASS (`evidence/DI-05-read-only-snapshot-events-window-show.md`).
-- [ ] No premature `implemented` status — enforced until DI-10.
+- [x] DI-05 evidence exists; `/sdk-review` PASS re-gate (`evidence/DI-05-read-only-snapshot-events-window-show.md`).
+- [x] No premature `implemented` status — enforced until DI-10.
 
 ## DI-00 Evidence Summary
 

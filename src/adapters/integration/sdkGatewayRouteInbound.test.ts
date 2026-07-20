@@ -143,7 +143,8 @@ describe("routeSdkInbound", () => {
     const hide = {
       ...getSnapshot,
       type: "window:hide" as const,
-      payload: {},
+      // Schema-valid deny fixture (protocol requires expectedRevision); product still forbidden (ADR-0013).
+      payload: { expectedRevision: 12 },
     };
     expect(
       routeSdkInbound(hide, {

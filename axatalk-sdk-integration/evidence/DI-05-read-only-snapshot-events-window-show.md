@@ -1,7 +1,7 @@
 # DI-05 Evidence — Read-only Snapshot, Events, and Window Show
 
 **Date:** 2026-07-20  
-**Status:** `done` (`/sdk-review` PASS 2026-07-20)  
+**Status:** `done` (`/sdk-review` **PASS** 2026-07-20 re-gate after typecheck remediation)  
 **Desktop version:** `0.11.2` (unchanged)  
 **Feature:** F-011 remains `in progress` (not `implemented`)
 
@@ -30,6 +30,7 @@
 4. **`window:get-state`** — main-only visibility read under `window.show`.
 5. **Fail-closed** — unauth → `unauthenticated`; missing cap → `forbidden`; no product surface / broker not ready → `not_ready`; revoke stops further fan-out/snapshots; DI-06+ commands stay `not_ready`.
 6. **Privacy** — ADR-0017 phone/display masks; OCP-disabled omits operator section; audit logs allowlisted (no payloads/PII).
+7. **Remediation** — `window:hide` deny fixture is schema-valid (`expectedRevision` present); product denial remains `forbidden` (ADR-0013).
 
 ## Key files
 
@@ -40,9 +41,9 @@
 | Main | `createSdkGatewayProductSurface.ts`, `registerSdkGateway.ts` |
 | Renderer bind | `bindSdkBrokerSession.ts`, `useAccountBootstrap.ts` |
 | IPC | `SdkGatewayEventContract.ts`, `IpcChannels.sdkGatewayPublishEvent`, preload `publishSdkGatewayEvent` |
-| Tests | `LocalWsServerAdapter.product.test.ts`, privacy/assembler/event mapper unit tests |
+| Tests | `LocalWsServerAdapter.product.test.ts`, `sdkGatewayRouteInbound.test.ts`, privacy/assembler/event mapper unit tests |
 
-## Verification (exact)
+## Verification (exact, re-gate 2026-07-20)
 
 ```bash
 npx vitest run \
@@ -55,14 +56,13 @@ npx vitest run \
   src/application/integration/sdkPrivacyRedaction.test.ts \
   src/application/integration/ExternalSdkSnapshotAssembler.test.ts \
   src/application/integration/ExternalSdkEventMapper.test.ts
-# → focused suites 60 passed (9 files; product 8; privacy/assembler/mapper covered)
-# → re-verified after Low remediations 2026-07-20
+# → focused suites 60 passed (9 files)
 
 npm test
 # → 2407 passed / 1 skipped
 
 npm run lint        # PASS
-npm run typecheck   # PASS
+npm run typecheck   # PASS (prior High remediated)
 npm run registry:check  # 71 found / 0 missing
 ```
 
@@ -75,6 +75,7 @@ npm run registry:check  # 71 found / 0 missing
 | Auth + cap | redacted snapshot success |
 | Event fan-out | per-connection sequences; distinct eventIds |
 | `window:show` | requires `window.show`; shell path; visibility event |
+| `window:hide` | product-denied `forbidden`; fixture type-valid (`expectedRevision`) |
 | Revoke | stops further events; SIP composition untouched |
 | Log hygiene | no phone/nonce/signature in command logs |
 | Domain boundary | `sdk-dependency-boundary` green |
@@ -97,4 +98,4 @@ npm run registry:check  # 71 found / 0 missing
 
 ## Reviewer
 
-`/sdk-review` **PASS** (2026-07-20) — no Blockers/High. Low remediations same day: `window:hide` → `forbidden` via `productDenialCodeForCommand`; product tests for `window:show` without cap, event skip without `session.read.redacted`, monotonic sequence + `get-snapshot` resync. Next: DI-06 via `/sdk-integration`.
+`/sdk-review` **PASS** (2026-07-20 re-gate). Prior FAIL High closed: `sdkGatewayRouteInbound.test.ts` `window:hide` payload includes `expectedRevision: 12` (schema-valid deny); `npm run typecheck` exits 0; ADR-0013 deny semantics unchanged. No Blockers. DI-05 → `done`. F-011 remains `in progress`. Version `0.11.2` unchanged. Next: DI-06 only.

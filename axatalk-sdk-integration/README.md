@@ -63,9 +63,9 @@ Native window commands remain in main.
 - DI-02 evidence: `evidence/DI-02-typed-main-renderer-broker.md` (`/sdk-review` PASS)
 - DI-03 evidence: `evidence/DI-03-loopback-websocket-transport.md` (`/sdk-review` PASS)
 - DI-04 evidence: `evidence/DI-04-pairing-origin-capabilities.md` (`/sdk-review` PASS)
-- DI-05 evidence: `evidence/DI-05-read-only-snapshot-events-window-show.md` (`review` — awaiting `/sdk-review`)
+- DI-05 evidence: `evidence/DI-05-read-only-snapshot-events-window-show.md` (`done` — `/sdk-review` PASS)
 - OCP E-12 command subset: implemented
-- External gateway: loopback WS + pairing/PoP/capabilities + read-only product surface (DI-05 `review`); mock retained
+- External gateway: loopback WS + pairing/PoP/capabilities + read-only product surface (DI-05 `done`); mock retained
 - External read handler: `ExternalSdkReadHandler` (ping + get-snapshot); call routers deferred DI-06+
 - Main-to-renderer command broker: real IPC adapter `done` (DI-02); mock retained for unit tests
 - SDK pairing/settings: not implemented (DI-09)

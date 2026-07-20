@@ -335,7 +335,7 @@ Checklist:
 
 Prerequisites: DI-04 and SDK-05 ready.
 
-Status: **`done`** (2026-07-20) — `/sdk-review` PASS
+Status: **`done`** (2026-07-20) — `/sdk-review` PASS (re-gate after typecheck remediation)
 
 Agent prompt:
 
@@ -353,6 +353,7 @@ Checklist:
 - [x] show/restore/focus policy and rate limit.
 - [x] SIP-only and OCP-disabled tests.
 - [ ] SDK-05 interoperability. *(paired client gate; desktop surface closed — client package still pending)*
+- [x] `npm run typecheck` green. *(remediated 2026-07-20 — schema-valid `window:hide` deny fixture)*
 
 ### Handoff checklist (DI-05)
 
@@ -370,13 +371,13 @@ Checklist:
 - Commands/events added: `sdk:get-snapshot` success; `window:show` / `window:get-state`; public event fan-out; `window:visibility-changed`
 - Security impact: capability-gated read-only surface; redaction enforced; per-client events; revoke stops delivery; DI-04 invariants preserved
 - Regression risks: additive product path; SIP/OCP/call untouched; F-011 not implemented
-- Automated tests: focused DI-05 set **60 passed**; full `npm test` **2407 passed / 1 skipped** (gate + Low remediations)
+- Automated tests: focused DI-05 set **60 passed**; full `npm test` **2407 passed / 1 skipped**; `npm run lint` PASS; `npm run typecheck` PASS; `npm run registry:check` **71/0**
 - Manual evidence: smoke not claimed
-- Verification commands: focused vitest; `npm test`; `npm run lint`; `npm run typecheck`; `npm run registry:check` (**71 found / 0 missing**)
-- Registry/Legacy/STATUS changes: F-011 remains `in progress`; DI-05 → `done`
-- Remaining risks: SDK-05 client interoperability; OCP enabled flag sampled at bind; post-auth auto-snapshot deferred; client-owned sequence-gap resync (SDK-05)
+- Verification commands: focused vitest; `npm test`; `npm run lint`; `npm run typecheck`; `npm run registry:check`
+- Registry/Legacy/STATUS changes: F-011 remains `in progress`; DI-05 → **`done`**
+- Remaining risks: SDK-05 client interoperability; OCP enabled flag sampled at bind; post-auth auto-snapshot deferred
 - Evidence: `axatalk-sdk-integration/evidence/DI-05-read-only-snapshot-events-window-show.md`
-- Reviewer: `/sdk-review` **PASS** (2026-07-20) — no Blockers; Low nits only; next DI-06 via `/sdk-integration`
+- Reviewer: `/sdk-review` **PASS** (2026-07-20 re-gate) — prior High remediated (`window:hide` fixture includes `expectedRevision`; typecheck green); ADR-0013 deny unchanged
 
 ## DI-06 — Call Command Router
 
