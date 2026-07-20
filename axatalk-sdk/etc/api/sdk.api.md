@@ -13,6 +13,14 @@ import type { SnapshotMessage } from '@axatalk/protocol';
 import type { WireJsonObject } from '@axatalk/protocol';
 
 // @public
+export type ActivateProfileResult = {
+    readonly activated: true;
+    readonly mode: string;
+    readonly profileLabel?: string;
+    readonly revision: number;
+};
+
+// @public
 export type AuthClient = {
     readonly getState: () => ConnectionState;
     readonly getGrantedCapabilities: () => readonly CapabilityId[];
@@ -62,6 +70,10 @@ export type AxatalkAccountApi = {
         readonly reasonId?: number;
         readonly expectedRevision: number;
     }) => Promise<ConfirmLogoutResult>;
+    readonly activateProfile: (input: {
+        readonly profileRef: string;
+        readonly expectedRevision: number;
+    }) => Promise<ActivateProfileResult>;
 };
 
 // @public

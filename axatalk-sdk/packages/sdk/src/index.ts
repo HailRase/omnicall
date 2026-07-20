@@ -1,7 +1,7 @@
 /**
  * `@axatalk/sdk` — browser client for Axatalk Desktop local protocol.
  *
- * SDK-07: AxatalkClient with namespaced operator + account logout workflows.
+ * SDK-08: AxatalkClient with privileged namespaced account.activateProfile.
  *
  * @packageDocumentation
  */
@@ -26,6 +26,7 @@ export {
   type AxatalkEvent,
   type AxatalkOperatorApi,
   type AxatalkWindowApi,
+  type ActivateProfileResult,
   type CallMutationResult,
   type ConfirmLogoutResult,
   type OperatorReason,

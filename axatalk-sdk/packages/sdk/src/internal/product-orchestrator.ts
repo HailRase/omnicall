@@ -1,9 +1,13 @@
 /**
- * Product orchestration: snapshot cache, events, window, calls, operator, logout.
+ * Product orchestration: snapshot, events, window, calls, operator, account.
  */
 
 import type { CapabilityId, SnapshotMessage } from '@axatalk/protocol';
 
+import {
+  createAccountActivateCommandApi,
+  type AccountActivateCommandApi
+} from './account-activate-commands.js';
 import {
   createAccountLogoutCommandApi,
   type AccountLogoutCommandApi
@@ -67,6 +71,7 @@ export type ProductOrchestrator = {
   readonly changeOperatorStatus: OperatorCommandApi['changeStatus'];
   readonly prepareLogout: AccountLogoutCommandApi['prepareLogout'];
   readonly confirmLogout: AccountLogoutCommandApi['confirmLogout'];
+  readonly activateProfile: AccountActivateCommandApi['activateProfile'];
   readonly dispose: () => void;
 };
 
@@ -89,7 +94,8 @@ export function createProductOrchestrator(deps: {
   const calls = createCallCommandApi(commandDeps);
   const windowApi = createWindowCommandApi(commandDeps);
   const operator = createOperatorCommandApi(commandDeps);
-  const account = createAccountLogoutCommandApi(commandDeps);
+  const accountLogout = createAccountLogoutCommandApi(commandDeps);
+  const accountActivate = createAccountActivateCommandApi(commandDeps);
 
   const removeAcquisition = (acquisition: SnapshotAcquisition): void => {
     pendingAcquisitions = pendingAcquisitions.filter(
@@ -256,8 +262,9 @@ export function createProductOrchestrator(deps: {
     sendDtmf: calls.sendDtmf,
     getOperatorReasons: operator.getReasons,
     changeOperatorStatus: operator.changeStatus,
-    prepareLogout: account.prepareLogout,
-    confirmLogout: account.confirmLogout,
+    prepareLogout: accountLogout.prepareLogout,
+    confirmLogout: accountLogout.confirmLogout,
+    activateProfile: accountActivate.activateProfile,
     dispose: () => {
       invalidate();
       hub.clearListeners();

@@ -1,9 +1,10 @@
 /**
- * Public API type surface for AxatalkClient namespaces (SDK-05…SDK-07).
+ * Public API type surface for AxatalkClient namespaces (SDK-05…SDK-08).
  */
 
 import type { CapabilityId, SnapshotMessage } from '@axatalk/protocol';
 
+import type { ActivateProfileResult } from '../internal/account-activate-commands.js';
 import type {
   ConfirmLogoutResult,
   PrepareLogoutResult
@@ -99,8 +100,9 @@ export type AxatalkOperatorApi = {
 };
 
 /**
- * Account logout namespace (`session.logout`). No activate-profile (SDK-08).
- * Cancel = abandon token / disconnect — no public cancel command.
+ * Account namespace: logout (`session.logout`) + privileged activate
+ * (`account.activate`, server-granted only). Cancel logout = abandon token /
+ * disconnect — no public cancel command. No raw credentials / list-profiles.
  * @public
  */
 export type AxatalkAccountApi = {
@@ -112,6 +114,10 @@ export type AxatalkAccountApi = {
     readonly reasonId?: number;
     readonly expectedRevision: number;
   }) => Promise<ConfirmLogoutResult>;
+  readonly activateProfile: (input: {
+    readonly profileRef: string;
+    readonly expectedRevision: number;
+  }) => Promise<ActivateProfileResult>;
 };
 
 /**

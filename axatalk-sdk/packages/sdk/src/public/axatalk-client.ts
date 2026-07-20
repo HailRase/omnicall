@@ -1,5 +1,6 @@
 /**
- * AxatalkClient factory — read path (SDK-05) + calls (SDK-06) + operator/logout (SDK-07).
+ * AxatalkClient factory — read (SDK-05), calls (SDK-06), operator/logout (SDK-07),
+ * privileged saved-profile activate (SDK-08).
  */
 
 import { createAuthOrchestrator } from '../internal/auth-orchestrator.js';
@@ -22,6 +23,7 @@ import type {
 
 export type { AxatalkEvent, PublicEventType };
 export { AxatalkClientError, isAxatalkClientError, PUBLIC_EVENT_TYPES };
+export type { ActivateProfileResult } from '../internal/account-activate-commands.js';
 export type {
   ConfirmLogoutResult,
   PrepareLogoutResult
@@ -200,7 +202,8 @@ export function createAxatalkClient(
     }),
     account: Object.freeze({
       prepareLogout: (input) => product.prepareLogout(input),
-      confirmLogout: (input) => product.confirmLogout(input)
+      confirmLogout: (input) => product.confirmLogout(input),
+      activateProfile: (input) => product.activateProfile(input)
     })
   };
 }

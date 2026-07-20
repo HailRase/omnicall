@@ -20,7 +20,7 @@ Allowed statuses: `pending`, `in progress`, `review`, `done`, `blocked`.
 - [x] SDK-05 — Read-only beta API (`done`)
 - [x] SDK-06 — Call control API (`done`)
 - [x] SDK-07 — Operator and logout workflows (`done`)
-- [ ] SDK-08 — Saved-profile activation (`pending`)
+- [x] SDK-08 — Saved-profile activation (`done`)
 - [ ] SDK-09 — Developer documentation and examples (`pending`)
 - [ ] SDK-10 — Release candidate and stable release (`pending`)
 
@@ -299,25 +299,45 @@ Evidence:
 
 Prerequisites: SDK-07; privileged security gate approved; desktop DI-08 done.
 
+Status: **`done`** (2026-07-20) — `/sdk-review` PASS
+
 Agent prompt:
 
 > Add activation of desktop-approved saved profile references without reading, accepting,
 > storing, or returning SIP/OCP secrets.
 
+Public API (namespaced only):
+
+```ts
+client.account.activateProfile({ profileRef, expectedRevision })
+```
+
+Command: `account:activate-profile` · Capability: privileged `account.activate` (server-granted
+only; never client-default-requestable via `sanitizeRequestedCapabilities`).
+
+Non-goals held: SDK-09 docs; npm publish; F-011 `implemented`; `window.hide`; raw credentials;
+desktop `src/` edits; campaign events; invent `account:list-profiles`; pairing escalate;
+auto-replay on reconnect; activate/hangup/confirm-logout on disconnect.
+
 Checklist:
 
-- [ ] approved profile reference DTO.
-- [ ] privileged capability and local approval.
-- [ ] active-session conflict.
-- [ ] revoke/expiry behavior.
-- [ ] no secret fields in API report, fixtures, logs, or examples.
-- [ ] security review passes.
+- [x] approved profile reference DTO.
+- [x] privileged capability and local approval.
+- [x] active-session conflict.
+- [x] revoke/expiry behavior.
+- [x] no secret fields in API report, fixtures, logs, or examples.
+- [x] security review passes. *(`/sdk-review` PASS 2026-07-20)*
 
 Evidence:
 
-- Secret scan:
-- Security review:
-- Desktop DI-08 evidence:
+- Unit evidence: `axatalk-sdk/evidence/SDK-08-saved-profile-activation.md`
+- Workflow tests: `packages/sdk/src/public/axatalk-client.activate.test.ts` (+ browser activate path)
+- Secret scan: `api:check` + diagnostics privacy tests (no password/apiKey in API report; needles absent)
+- Security review: `/sdk-review` **PASS** 2026-07-20
+- Desktop DI-08 evidence: `axatalk-sdk-integration/evidence/DI-08-saved-profile-activation.md`
+- Reviewer: `/sdk-review` **PASS** 2026-07-20 — zero Blockers; Low remediated same day (mid-flight `disconnect()` activate reject); post-fix independent: sdk src **106**, workspace **114**, types **6**, browser **7**, api **47**, protocol **169**, desktop oracle **9**; F-011 remains `in progress`; DI-10 still blocked on SDK-09; next `/sdk-project` SDK-09 only
+- Explicit non-goals: no SDK-09 ship in this unit; F-011 not `implemented`; DI-10 still blocked on SDK-09
+
 
 ## SDK-09 — Documentation and Examples
 

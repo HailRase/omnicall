@@ -7,8 +7,9 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const packages = ['protocol', 'sdk'];
 
-/** SDK-07 allowlist — auth + read path + calls + namespaced operator/account logout. */
+/** SDK-08 allowlist — auth + read + calls + operator/logout + activate result. */
 const SDK_ALLOWED_SYMBOLS = new Set([
+  'ActivateProfileResult',
   'AuthClient',
   'AuthClientOptions',
   'AuthSessionSnapshot',
@@ -135,7 +136,7 @@ for (const name of packages) {
 
   if (name === 'sdk') {
     if (symbols.length === 0) {
-      console.error(`Expected SDK-07 public surface in ${reportPath}`);
+      console.error(`Expected SDK-08 public surface in ${reportPath}`);
       process.exit(1);
     }
     for (const symbol of symbols) {
@@ -144,7 +145,7 @@ for (const name of packages) {
         process.exit(1);
       }
       if (!SDK_ALLOWED_SYMBOLS.has(symbol)) {
-        console.error(`Unexpected public SDK symbol (not in SDK-07 allowlist): ${symbol}`);
+        console.error(`Unexpected public SDK symbol (not in SDK-08 allowlist): ${symbol}`);
         process.exit(1);
       }
     }
@@ -206,6 +207,22 @@ for (const name of packages) {
     }
     if (!report.includes('readonly account:')) {
       console.error('AxatalkClient must expose namespaced account API');
+      process.exit(1);
+    }
+    if (!report.includes('activateProfile')) {
+      console.error('AxatalkAccountApi must expose activateProfile (SDK-08)');
+      process.exit(1);
+    }
+    if (!symbols.includes('ActivateProfileResult')) {
+      console.error('SDK API must export ActivateProfileResult');
+      process.exit(1);
+    }
+    if (
+      /\bpassword\b/i.test(report) ||
+      /\bapiKey\b/i.test(report) ||
+      /\bsipPassword\b/i.test(report)
+    ) {
+      console.error('SDK API report must not contain secret field names');
       process.exit(1);
     }
     console.log(
