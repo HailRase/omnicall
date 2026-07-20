@@ -301,7 +301,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-051`, `LF-065`, `LF-080`, `LF-081`
 - Context: Integration
 - Priority: critical
-- Status: **planned** (legacy `window.Softphone` **not ported**; architecture gate DI-00 `done` — ADRs ADR-0009…0013; SDK-00 workspace/CI **`done`**; SDK-01 protocol/security ADRs ADR-0014…0017 **`done`**; product implementation not started)
+- Status: **in progress** (legacy `window.Softphone` **not ported**; architecture gate DI-00 `done`; SDK-00…SDK-02 `done`; **DI-01** protocol ports/mocks/fixture consume **`review`** — not product gateway; F-011 not implemented)
 - Owner: TBD
 - Inputs: external commands from browser tabs via WS (not DOM globals)
 - Outputs: typed commands routed to Facade / Use Cases with `callType: 'sdk'` (F-028 E-12 host methods retain `callType: 'external'`)
@@ -316,14 +316,17 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - Protocol v1 has no raw SIP/OCP credential commands; SDK account activation uses opaque saved-profile references via the unified Account path (ADR-0013 / ADR-AF-003).
   - `window:hide` remains unavailable until tray/background policy is accepted (ADR-0013).
 - Test Coverage:
-  - Unit: command payload parsing (F-028 E-12)
-  - Integration: deferred until ExternalClientGateway exists
+  - Unit: command payload parsing (F-028 E-12); DI-01 fixture corpus consume + mock gateway/broker + Domain dependency-boundary
+  - Integration: deferred until ExternalClientGateway transport exists (DI-03+)
   - E2E: deferred until DI-10 packaged gate
 - Implementation plans: `axatalk-sdk/README.md`; `axatalk-sdk-integration/README.md`; `axatalk-sdk-integration/WORK-UNITS.md` (DI-00…DI-10); `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`
 - Architecture ADRs: `docs/softphone/adr/ADR-0009-sdk-process-ownership-broker-lifecycle.md`; `ADR-0010`; `ADR-0011`; `ADR-0012`; `ADR-0013`; `ADR-0014`; `ADR-0015`; `ADR-0016`; `ADR-0017`
 - Baseline evidence: `axatalk-sdk-integration/evidence/DI-00-baseline.md`
 - SDK-01 evidence: `axatalk-sdk/evidence/SDK-01-protocol-adrs.md`; `axatalk-sdk/evidence/SDK-01-browser-spike.md`
+- SDK-02 evidence: `axatalk-sdk/evidence/SDK-02-protocol-package.md`
+- DI-01 evidence: `axatalk-sdk-integration/evidence/DI-01-protocol-ports-mocks.md`
 - Implementation evidence (OCP command surface): `src/shared/host-api/OcpHostApiContract.ts`; Facade `authenticateOcpFromHost` / `changeOcpStatusFromHost` / `getOcpConnectionState`
+- Implementation evidence (DI-01 contracts): `src/ports/integration/ExternalClientGateway.ts`; `MainToRendererBrokerPort.ts`; `ExternalCommandHandler.ts`; `src/adapters/mock/MockExternalClientGateway.ts`; `MockMainToRendererBroker.ts`; `MockExternalCommandHandler.ts`; consume tests `src/ports/integration/protocol-fixture-consume.test.ts`
 
 ## F-012: Headset Call Controls
 

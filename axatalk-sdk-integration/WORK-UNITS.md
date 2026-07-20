@@ -3,7 +3,7 @@
 ## Progress
 
 - [x] DI-00 — ADRs, baseline, and P12 handoff (`done`)
-- [ ] DI-01 — Protocol contracts, ports, and mocks (`pending`)
+- [ ] DI-01 — Protocol contracts, ports, and mocks (`review`)
 - [ ] DI-02 — Typed main-to-renderer broker (`pending`)
 - [ ] DI-03 — Loopback WebSocket transport (`pending`)
 - [ ] DI-04 — Pairing, Origin, capabilities, and revocation (`pending`)
@@ -93,7 +93,28 @@ Checklist:
 
 ## DI-01 — Protocol Contracts, Ports, and Mocks
 
-Prerequisites: DI-00 and SDK-01 done.
+Prerequisites: DI-00 and SDK-01 done; SDK-02 `@axatalk/protocol` done (peer consume).
+
+Status: **`review`** (2026-07-20) — awaiting `/sdk-review`
+
+### Intake (before coding)
+
+- Feature/LF: F-011; LF-051, LF-065, LF-080, LF-081
+- Bounded context: Integration (primary). No Telephony Domain rules in this unit.
+- Layers allowed: Ports + Application-boundary adapters/tests; consume `@axatalk/protocol`
+  outside Domain only.
+- Layers forbidden for business logic: Domain, React UI, Zustand stores, Call Engine,
+  JsSIP adapters, OCP wire adapters (except interface stubs).
+- Regression risks (refuse to break):
+  1. SIP-only sign-in / register / recover / logout with OCP disabled
+  2. Optional OCP remains optional (no forced OCP)
+  3. Active call controls / media / headset paths untouched
+  4. No second Application composition / Facade in main
+  5. No Domain import of Zod / `@axatalk/protocol` / Electron / IPC
+  6. Preload/sandbox not weakened
+  7. No `window.Softphone` / DOM event bus resurrection
+  8. Transfer backlog not touched
+  9. No secret/PII leakage into new logs or DTOs
 
 Agent prompt:
 
@@ -102,13 +123,42 @@ Agent prompt:
 
 Checklist:
 
-- [ ] protocol package/fixture integration.
-- [ ] external gateway and broker ports.
-- [ ] command/query handler interfaces.
-- [ ] mock gateway and broker.
-- [ ] valid/invalid fixture tests.
-- [ ] dependency-boundary tests.
-- [ ] F-011 remains `in progress`, not implemented.
+- [x] protocol package/fixture integration.
+- [x] external gateway and broker ports.
+- [x] command/query handler interfaces.
+- [x] mock gateway and broker.
+- [x] valid/invalid fixture tests.
+- [x] dependency-boundary tests.
+- [x] F-011 remains `in progress`, not implemented.
+
+### Handoff checklist (DI-01)
+
+- Work unit: DI-01
+- Prerequisites verified: DI-00 `done`; SDK-01 `done`; SDK-02 `done`
+- Feature/LF IDs: F-011; LF-051, LF-065, LF-080, LF-081
+- Bounded contexts: Integration
+- Layers changed: Ports + mock adapters + tests; `package.json` file dep on `@axatalk/protocol`; eslint Domain restriction + `axatalk-sdk/**` ignore
+- Files added/changed:
+  - `src/ports/integration/ExternalClientGateway.ts`
+  - `src/ports/integration/MainToRendererBrokerPort.ts`
+  - `src/ports/integration/ExternalCommandHandler.ts`
+  - `src/adapters/mock/MockExternalClientGateway.ts` (+ test)
+  - `src/adapters/mock/MockMainToRendererBroker.ts` (+ test)
+  - `src/adapters/mock/MockExternalCommandHandler.ts` (+ test)
+  - `src/ports/integration/protocol-fixture-consume.test.ts`
+  - `src/ports/integration/sdk-dependency-boundary.test.ts`
+  - `axatalk-sdk-integration/evidence/DI-01-protocol-ports-mocks.md`
+  - Feature Registry / STATUS / P12 handoff (factual)
+- Commands/events added: none (interfaces only)
+- Security impact: fail-closed protocol validation in mocks; no transport/IPC; Domain import ban
+- Regression risks: additive/inert; full suite green (2321 / 1 skipped)
+- Automated tests: 24 DI-01 tests; full `npm test` PASS
+- Manual evidence: smoke not claimed
+- Verification commands: focused vitest; `npm test`; `npm run lint`; `npm run typecheck`
+- Registry/Legacy/STATUS changes: F-011 → `in progress`; not `implemented`
+- Remaining risks: DI-02 broker ownership; live mapper schema tightness; smoke deferred to DI-10
+- Evidence: `axatalk-sdk-integration/evidence/DI-01-protocol-ports-mocks.md`
+- Reviewer: `/sdk-review` for DI-01 — **do not start DI-02**
 
 ## DI-02 — Typed Main-to-Renderer Broker
 

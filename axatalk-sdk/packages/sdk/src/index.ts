@@ -1,8 +1,8 @@
 /**
- * Placeholder entry for `@axatalk/sdk`.
+ * `@axatalk/sdk` public entry.
  *
- * SDK-00 intentionally exports no public client surface.
- * Transport and AxatalkClient arrive in later work units after protocol decisions.
+ * SDK-03 implements internal transport + connection state machine only.
+ * Public AxatalkClient surface remains empty until SDK-05 (api:check enforced).
  */
 
 import type {} from '@axatalk/protocol';

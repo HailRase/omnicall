@@ -54,14 +54,16 @@ Native window commands remain in main.
 
 ## Current Status
 
-- F-011: **planned** (DI-00 architecture gate `done`; not implemented)
+- F-011: **in progress** (DI-01 contracts/ports/mocks `review`; no product gateway)
 - ADRs: ADR-0009…0013 Accepted; precision rows closed by SDK-01 ADR-0014…0017 (`done`)
+- SDK-02: `@axatalk/protocol` `done`; desktop consumes same fixtures (DI-01)
 - P12 handoff: `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`
-- Baseline: `evidence/DI-00-baseline.md` (2297 passed / 1 skipped on code preflight `5114c02`; docs `18fb3f1`)
+- Baseline: `evidence/DI-00-baseline.md`
+- DI-01 evidence: `evidence/DI-01-protocol-ports-mocks.md`
 - OCP E-12 command subset: implemented
-- External gateway: not implemented
+- External gateway port + mocks: **present** (no real transport)
 - External command router: not implemented
-- Main-to-renderer command broker: not implemented
+- Main-to-renderer command broker: port + mock only (real IPC = DI-02)
 - SDK pairing/settings: not implemented
 - Read-only event/snapshot transport: not implemented
 

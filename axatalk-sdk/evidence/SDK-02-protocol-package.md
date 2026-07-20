@@ -71,22 +71,15 @@ Results (2026-07-20):
 
 Zod size evidence recorded in `docs/DEPENDENCIES.md`: esbuild ESM bundle ≈532.6 KiB raw / **~78.0 KiB gzip**.
 
-## Desktop DI-01 consume contract (gap — not faked)
+## Desktop DI-01 consume contract (closed by DI-01)
 
-DI-01 is **not done**. Checklist item “desktop consumes the same fixtures successfully” remains open and is **blocked on DI-01**, not on missing SDK fixtures.
+DI-01 is in **`review`**. Desktop now depends on workspace `@axatalk/protocol`
+(`file:axatalk-sdk/packages/protocol`) outside Domain and consumes
+`packages/protocol/fixtures/**` byte-identical (valid accept / invalid + meta codes).
 
-DI-01 must:
+Evidence: `axatalk-sdk-integration/evidence/DI-01-protocol-ports-mocks.md`.
 
-1. Depend on workspace `@axatalk/protocol` (or identical published package) **outside Domain**.
-2. Load fixture bytes from `axatalk-sdk/packages/protocol/fixtures/**` (or package export `./fixtures/*`) **without translation**.
-3. Run valid → accept / invalid → `expectedErrorCode` from sibling `meta/**/*.meta.json`.
-4. Keep Domain free of Zod/protocol imports; validate only at Application/adapter boundaries.
-5. Not invent a second schema language.
-
-No minimal desktop fixture runner was added in this session (prefer DI-01 checklist ownership; avoid product gateway / Domain coupling).
-
-**Desktop DI-02 evidence:** N/A (prerequisite DI-01 absent).
-
+**Desktop DI-02 evidence:** N/A until DI-01 `/sdk-review` PASS.
 ## Remaining risks
 
 - DI-01 may discover schema tightness issues (opaque-id regex, mask refinements, reply `result` as open record) when wiring real mappers — resolve via ADR or additive fixture updates, not a second schema stack.

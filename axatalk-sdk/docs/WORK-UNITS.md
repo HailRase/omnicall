@@ -15,7 +15,7 @@ Allowed statuses: `pending`, `in progress`, `review`, `done`, `blocked`.
 - [x] SDK-00 — Package workspace and CI (`done`)
 - [x] SDK-01 — Protocol and security ADRs (`done`)
 - [x] SDK-02 — `@axatalk/protocol` (`done`)
-- [ ] SDK-03 — Transport and connection state machine (`pending`)
+- [x] SDK-03 — Transport and connection state machine (`done`)
 - [ ] SDK-04 — Pairing, authentication, and capabilities (`pending`)
 - [ ] SDK-05 — Read-only beta API (`pending`)
 - [ ] SDK-06 — Call control API (`pending`)
@@ -107,7 +107,7 @@ Checklist:
 - [x] stable error and capability types.
 - [x] valid and invalid golden fixtures.
 - [x] compatibility helpers and API report.
-- [ ] desktop consumes the same fixtures successfully. *(blocked on DI-01; consume contract in evidence — open DI-01 item, not an SDK-02 Blocker)*
+- [x] desktop consumes the same fixtures successfully. *(closed by DI-01 — `axatalk-sdk-integration/evidence/DI-01-protocol-ports-mocks.md`; byte-identical corpus under `packages/protocol/fixtures/**`)*
 - [x] package and type tests pass.
 
 Evidence:
@@ -123,6 +123,8 @@ Evidence:
 
 Prerequisites: SDK-02 done.
 
+Status: **`done`** (2026-07-20) — `/sdk-review` PASS
+
 Agent prompt:
 
 > Implement the internal transport port and explicit SDK connection state machine using a
@@ -130,19 +132,20 @@ Agent prompt:
 
 Checklist:
 
-- [ ] explicit states and legal transitions.
-- [ ] request correlation and timeout cleanup.
-- [ ] heartbeat and bounded jittered reconnect.
-- [ ] abort/disconnect cleanup.
-- [ ] no mutation replay.
-- [ ] redaction-safe diagnostics.
-- [ ] fake-time tests prove no resource leaks.
+- [x] explicit states and legal transitions.
+- [x] request correlation and timeout cleanup.
+- [x] heartbeat and bounded jittered reconnect.
+- [x] abort/disconnect cleanup.
+- [x] no mutation replay.
+- [x] redaction-safe diagnostics.
+- [x] fake-time tests prove no resource leaks.
 
 Evidence:
 
-- State-machine tests:
-- Resource-cleanup tests:
-- Reviewer:
+- State-machine tests: `packages/sdk/src/internal/connection-state.test.ts`, `connection-session.test.ts`
+- Resource-cleanup tests: `packages/sdk/src/internal/connection-session.test.ts` (timers/listeners/pending)
+- Unit evidence: `axatalk-sdk/evidence/SDK-03-transport-state-machine.md`
+- Reviewer: `/sdk-review` **PASS** 2026-07-20 — independent re-run: `npx vitest run packages/sdk/src` (18), `npm run lint`, `npm run preflight` PASS; public `@axatalk/sdk` surface empty; fake transport only; mutation non-replay + diagnostics redaction + leak proofs verified. Post-review Low fixes: FakeTransport excluded from pack; payload-free mutation counter.
 
 ## SDK-04 — Pairing, Authentication, and Capabilities
 

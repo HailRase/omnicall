@@ -7,15 +7,13 @@
 | Feature | F-011 Host Integration Contract |
 | Legacy | LF-051, LF-065, LF-080, LF-081 |
 | Phase | P12 External Host API Compatibility |
-| Feature status | **planned** (architecture gate DI-00 `done`; SDK-01 ADRs `done`; not implemented) |
+| Feature status | **in progress** (DI-01 contracts/ports/mocks `review`; no product gateway) |
 | Branch | `feature/axatalk-sdk` |
 | Desktop version | `0.11.2` |
-| Code preflight commit | `5114c02` |
-| DI-00 docs commit | `18fb3f1` |
 | DI-00 | `done` — `/sdk-review` PASS 2026-07-20 |
-| SDK-00 | `done` — `/sdk-review` PASS 2026-07-20 |
-| SDK-01 | `done` — `/sdk-review` PASS 2026-07-20 (ADR-0014…0017) |
-| Next | **SDK-02** (`@axatalk/protocol`); DI-01 after DI-00 + SDK-01 (both `done`) |
+| SDK-00…SDK-02 | `done` — `/sdk-review` PASS |
+| DI-01 | **`review`** — evidence `axatalk-sdk-integration/evidence/DI-01-protocol-ports-mocks.md` |
+| Next | `/sdk-review` for DI-01; then **DI-02** (typed broker) |
 
 ## Mission
 
@@ -138,11 +136,12 @@ Automated matrix: `axatalk-sdk-integration/TEST-MATRIX.md`.
 
 ## Documentation Gate
 
-- [x] F-011 planning references point at ADRs + packages (status remains planned).
+- [x] F-011 planning references point at ADRs + packages (status **`in progress`** after DI-01 contracts; not implemented).
 - [x] LF-051/065/080/081 remain planned with execution-package pointers (no false done).
-- [x] STATUS notes DI-00 architecture gate without claiming implementation.
+- [x] STATUS notes DI-00 architecture gate and DI-01 contract progress without claiming product gateway.
 - [x] Protocol/security open decisions synchronized with SDK-01 ownership.
 - [x] Work-history and DI-00 evidence exist.
+- [x] DI-01 evidence exists (`evidence/DI-01-protocol-ports-mocks.md`).
 - [ ] No premature `implemented` status — enforced until DI-10.
 
 ## DI-00 Evidence Summary
@@ -167,6 +166,6 @@ P12 closes only when:
 
 ## Next Agent Prompt
 
-1. Run `/sdk-project` for **SDK-02** (`@axatalk/protocol` schemas, golden fixtures, API report). Do **not** implement AxatalkClient transport/product methods.
-2. DI-01 may start only with DI-00 + SDK-01 done (both `done`); keep Domain free of protocol imports.
-3. Do not install desktop production dependencies or write product `src/` until the owning DI unit.
+1. Run **`/sdk-review` for DI-01** (do not start DI-02 until PASS).
+2. After DI-01 `done`: implement **DI-02** typed main-to-renderer broker only (no network server).
+3. SDK-03 may proceed independently on the SDK workspace (client transport); keep Domain free of protocol imports.

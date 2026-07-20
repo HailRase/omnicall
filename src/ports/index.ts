@@ -92,6 +92,27 @@ export type {
   EmitSoftPhoneBreakReasonCommand,
   HostIntegrationGateway,
 } from "./integration/HostIntegrationGateway.js";
+export type {
+  ExternalClientGateway,
+  ExternalClientGatewayStatus,
+  ExternalGatewayValidationFailure,
+  ExternalGatewayValidationResult,
+  ExternalGatewayValidationSuccess,
+} from "./integration/ExternalClientGateway.js";
+export type {
+  BrokerProductRequest,
+  BrokerRequestFailure,
+  BrokerRequestResult,
+  BrokerRequestSuccess,
+  MainToRendererBrokerPort,
+} from "./integration/MainToRendererBrokerPort.js";
+export type {
+  ExternalCommandHandler,
+  ExternalHandlerFailure,
+  ExternalHandlerResult,
+  ExternalHandlerSuccess,
+  ExternalQueryHandler,
+} from "./integration/ExternalCommandHandler.js";
 export type { OcpGateway, Unsubscribe } from "./integration/OcpGateway.js";
 export type { OcpOperatorReadModel } from "./integration/OcpOperatorReadModel.js";
 export type { OcpReasonsCachePort } from "./integration/OcpReasonsCachePort.js";
