@@ -7,7 +7,7 @@
 | Feature | F-011 Host Integration Contract |
 | Legacy | LF-051, LF-065, LF-080, LF-081 |
 | Phase | P12 External Host API Compatibility |
-| Feature status | **in progress** (DI-01…DI-03 `done`; no pairing/product snapshots) |
+| Feature status | **in progress** (DI-01…DI-04 `done`; no product snapshots) |
 | Branch | `feature/axatalk-sdk` |
 | Desktop version | `0.11.2` |
 | DI-00 | `done` — `/sdk-review` PASS 2026-07-20 |
@@ -15,7 +15,8 @@
 | DI-01 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-01-protocol-ports-mocks.md` |
 | DI-02 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-02-typed-main-renderer-broker.md` |
 | DI-03 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-03-loopback-websocket-transport.md` |
-| Next | **DI-04** pairing/Origin (`/sdk-integration`) |
+| DI-04 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-04-pairing-origin-capabilities.md` |
+| Next | **DI-05** via `/sdk-integration` (snapshots/events/`window:show`) |
 
 ## Mission
 
@@ -65,13 +66,13 @@ SDK and Electron-native local gateway while preserving every existing softphone 
 ### Security gate (policy closed; implementation later)
 
 - [x] Loopback-only endpoint and single-instance ownership (ADR-0010) — DI-03 `done`.
-- [x] Exact Origin gate before data exchange (ADR-0011) — implement DI-04.
-- [x] Per-client pairing, capabilities, expiry, and revocation (ADR-0011) — implement DI-04.
-- [x] Replay/idempotency and aggregate command serialization (ADR-0011/0012) — implement DI-04/06.
+- [x] Exact Origin gate before data exchange (ADR-0011) — DI-04 `done`.
+- [x] Per-client pairing, capabilities, expiry, and revocation (ADR-0011) — DI-04 `done`.
+- [x] Replay/idempotency and aggregate command serialization (ADR-0011/0012) — DI-04 challenge/request dedup `done`; aggregate mutation serialization DI-06.
 - [x] Resource limits, heartbeat, backpressure, and safe teardown (ADR-0010) — DI-03 `done`.
 - [x] Per-client redacted events; no indiscriminate broadcast (ADR-0012) — implement DI-05.
 - [x] No raw SIP/OCP credentials in protocol v1 (ADR-0013).
-- [ ] Independent security review has no Blocker — **DI-04 / DI-10**.
+- [x] Independent security review has no Blocker — **DI-04** `/sdk-review` PASS; full packaged matrix remains **DI-10**.
 
 ### Protocol precision decisions (SDK-01)
 
@@ -115,7 +116,7 @@ Independent `/sdk-review` is required after every work unit.
 | DI-01 | Protocol ports/mocks/fixtures; Domain free of protocol; F-011 still planned/in progress | DI-00 + SDK-01 |
 | DI-02 | Typed broker; validation; reload/quit behavior; one composition | DI-01 |
 | DI-03 | Loopback WS; limits; no product data unauthenticated | DI-02 |
-| DI-04 | Origin/pairing/capabilities/replay/revoke; security review no Blocker | DI-03 + SDK-04 ready |
+| DI-04 | Origin/pairing/capabilities/replay/revoke; security review no Blocker | DI-03; SDK-04 optional (desktop server-side) |
 | DI-05 | Redacted snapshot/events; `window:show`; SIP-only/OCP-off tests | DI-04 + SDK-05 |
 | DI-06 | Call commands via Call Engine; race/idempotency suite | DI-05 + SDK-06 |
 | DI-07 | Operator/logout via existing orchestration; `callType: "sdk"` | DI-06 + SDK-07 |
@@ -145,6 +146,8 @@ Automated matrix: `axatalk-sdk-integration/TEST-MATRIX.md`.
 - [x] Work-history and DI-00 evidence exist.
 - [x] DI-01 evidence exists; `/sdk-review` PASS (`evidence/DI-01-protocol-ports-mocks.md`).
 - [x] DI-02 evidence exists; `/sdk-review` PASS (`evidence/DI-02-typed-main-renderer-broker.md`).
+- [x] DI-03 evidence exists; `/sdk-review` PASS (`evidence/DI-03-loopback-websocket-transport.md`).
+- [x] DI-04 evidence exists; `/sdk-review` PASS (`evidence/DI-04-pairing-origin-capabilities.md`).
 - [ ] No premature `implemented` status — enforced until DI-10.
 
 ## DI-00 Evidence Summary
@@ -169,7 +172,6 @@ P12 closes only when:
 
 ## Next Agent Prompt
 
-1. DI-03 is **`done`** (`/sdk-review` PASS 2026-07-20).
-2. Implement **DI-04** pairing/Origin/capabilities/revocation via `/sdk-integration` (separate session).
-3. Keep Domain free of protocol / Zod / Electron / ws imports; gateway must not import Facades/Call Engine.
-4. Do not mark F-011 `implemented` until DI-10.
+1. Implement **DI-05** snapshots/events/`window:show` via `/sdk-integration` (separate session).
+2. Keep Domain free of protocol / Zod / Electron / ws imports; gateway must not import Facades/Call Engine.
+3. Do not mark F-011 `implemented` until DI-10.

@@ -6,10 +6,13 @@ import {
   WS_PATH,
   validateWireMessage,
 } from "@axatalk/protocol";
+import { InMemorySecretStorageAdapter } from "@adapters/secrets/InMemorySecretStorageAdapter.js";
 import { afterEach, describe, expect, it } from "vitest";
 import { WebSocket } from "ws";
 
 import { LocalWsServerAdapter } from "./LocalWsServerAdapter.js";
+
+const TEST_ORIGIN = "https://crm.example";
 
 const fixturesHello = {
   protocolVersion: 1,
@@ -43,6 +46,8 @@ async function startAdapter(
     desktopVersion: "0.11.2-test",
     host: "127.0.0.1",
     port: 0,
+    allowedOrigins: [TEST_ORIGIN],
+    secretStorage: new InMemorySecretStorageAdapter(),
     ...overrides,
   });
   adapters.push(adapter);
@@ -58,7 +63,9 @@ function boundPort(adapter: LocalWsServerAdapter): number {
 }
 
 function openClient(port: number, headers?: Record<string, string>): WebSocket {
-  return new WebSocket(`ws://127.0.0.1:${port}${WS_PATH}`, { headers });
+  return new WebSocket(`ws://127.0.0.1:${port}${WS_PATH}`, {
+    headers: { Origin: TEST_ORIGIN, ...headers },
+  });
 }
 
 async function waitOpen(ws: WebSocket): Promise<void> {
@@ -120,6 +127,7 @@ describe("LocalWsServerAdapter", () => {
       desktopVersion: "0.11.2-test",
       host: "127.0.0.1",
       port,
+      secretStorage: new InMemorySecretStorageAdapter(),
     });
     adapters.push(adapter);
     const result = await adapter.start();
@@ -139,10 +147,24 @@ describe("LocalWsServerAdapter", () => {
       host: "127.0.0.1",
       port: 0,
       mayClaimEndpoint: () => false,
+      secretStorage: new InMemorySecretStorageAdapter(),
     });
     adapters.push(adapter);
     const result = await adapter.start();
     expect(result).toEqual({ ok: false, reason: "not_primary_instance" });
+    expect(adapter.getStatus()).toBe("disabled");
+  });
+
+  it("fails closed when secret storage is missing for an enabled gateway", async () => {
+    const adapter = new LocalWsServerAdapter({
+      desktopVersion: "0.11.2-test",
+      host: "127.0.0.1",
+      port: 0,
+      allowedOrigins: [TEST_ORIGIN],
+    });
+    adapters.push(adapter);
+    const result = await adapter.start();
+    expect(result).toEqual({ ok: false, reason: "missing_secret_storage" });
     expect(adapter.getStatus()).toBe("disabled");
   });
 
@@ -151,6 +173,7 @@ describe("LocalWsServerAdapter", () => {
       desktopVersion: "0.11.2-test",
       host: "0.0.0.0",
       port: 0,
+      secretStorage: new InMemorySecretStorageAdapter(),
     });
     adapters.push(adapter);
     const result = await adapter.start();

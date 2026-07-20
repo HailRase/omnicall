@@ -1,7 +1,8 @@
 /**
- * Per-connection state for the handshake-only loopback SDK gateway (DI-03).
+ * Per-connection state for the loopback SDK gateway (DI-03/DI-04).
  */
 
+import type { CapabilityId } from "@axatalk/protocol";
 import type { RawData } from "ws";
 
 import type { SdkGatewayLimits } from "./sdkGatewayConfig.js";
@@ -19,10 +20,22 @@ export type SdkGatewaySocket = {
   terminate(): void;
 };
 
+export type SdkGatewayAuthState =
+  | "unauthenticated"
+  | "authenticating"
+  | "authenticated"
+  | "revoked";
+
 export type SdkGatewayConnection = {
   readonly id: string;
   readonly socket: SdkGatewaySocket;
+  readonly origin: string;
   handshakeComplete: boolean;
+  authState: SdkGatewayAuthState;
+  clientId: string | null;
+  grantedCapabilities: readonly CapabilityId[];
+  sessionExpiresAtMs: number | null;
+  eventSequence: number;
   lastActivityMs: number;
   inboundTimestampsMs: number[];
   outboundQueueDepth: number;
@@ -35,12 +48,19 @@ export type SdkGatewayConnection = {
 export function createSdkGatewayConnection(
   id: string,
   socket: SdkGatewaySocket,
+  origin: string,
   nowMs: number,
 ): SdkGatewayConnection {
   return {
     id,
     socket,
+    origin,
     handshakeComplete: false,
+    authState: "unauthenticated",
+    clientId: null,
+    grantedCapabilities: [],
+    sessionExpiresAtMs: null,
+    eventSequence: 0,
     lastActivityMs: nowMs,
     inboundTimestampsMs: [],
     outboundQueueDepth: 0,

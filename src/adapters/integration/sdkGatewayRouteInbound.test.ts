@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { routeUnauthenticatedInbound } from "./sdkGatewayRouteInbound.js";
+import { routeSdkInbound } from "./sdkGatewayRouteInbound.js";
 
 const clientHello = {
   protocolVersion: 1,
@@ -26,16 +26,38 @@ const getSnapshot = {
   payload: {},
 };
 
-describe("routeUnauthenticatedInbound", () => {
+const pairingRequest = {
+  protocolVersion: 1,
+  kind: "pairing" as const,
+  type: "pairing:request" as const,
+  clientId: "client_test_001",
+  clientPublicKey: "YWJj",
+  keyAlgorithm: "ECDSA-P256-SHA256" as const,
+  application: { name: "fixture-crm", version: "1.0.0" },
+  requestedProfile: "presentation" as const,
+  requestedCapabilities: ["session.read.redacted" as const],
+  occurredAt: "2026-07-20T09:00:00.000Z",
+};
+
+const unauthView = {
+  handshakeComplete: true,
+  authState: "unauthenticated" as const,
+  grantedCapabilities: [] as const,
+};
+
+describe("routeSdkInbound", () => {
   it("accepts first client-hello", () => {
-    expect(routeUnauthenticatedInbound(clientHello, false)).toEqual({
-      action: "server_hello",
-    });
+    expect(
+      routeSdkInbound(clientHello, {
+        handshakeComplete: false,
+        authState: "unauthenticated",
+        grantedCapabilities: [],
+      }),
+    ).toEqual({ action: "server_hello" });
   });
 
   it("denies product snapshot with unauthenticated", () => {
-    const route = routeUnauthenticatedInbound(getSnapshot, true);
-    expect(route).toEqual({
+    expect(routeSdkInbound(getSnapshot, unauthView)).toEqual({
       action: "command_deny",
       requestId: "req_test_001",
       commandType: "sdk:get-snapshot",
@@ -43,22 +65,57 @@ describe("routeUnauthenticatedInbound", () => {
     });
   });
 
-  it("closes pairing/auth before DI-04", () => {
-    const pairing = {
-      protocolVersion: 1,
-      kind: "pairing" as const,
-      type: "pairing:request" as const,
-      clientId: "client_test_001",
-      clientPublicKey: "YWJj",
-      keyAlgorithm: "ECDSA-P256-SHA256" as const,
-      application: { name: "fixture-crm", version: "1.0.0" },
-      requestedProfile: "presentation" as const,
-      requestedCapabilities: ["session.read.redacted" as const],
-      occurredAt: "2026-07-20T09:00:00.000Z",
-    };
-    expect(routeUnauthenticatedInbound(pairing, true)).toEqual({
-      action: "close",
+  it("routes pairing request after handshake", () => {
+    expect(routeSdkInbound(pairingRequest, unauthView)).toEqual({
+      action: "pairing_request",
+      message: pairingRequest,
+    });
+  });
+
+  it("denies snapshot without capability when authenticated", () => {
+    expect(
+      routeSdkInbound(getSnapshot, {
+        handshakeComplete: true,
+        authState: "authenticated",
+        grantedCapabilities: [],
+      }),
+    ).toEqual({
+      action: "command_deny",
+      requestId: "req_test_001",
+      commandType: "sdk:get-snapshot",
       code: "forbidden",
+    });
+  });
+
+  it("returns not_ready for capable snapshot until DI-05", () => {
+    expect(
+      routeSdkInbound(getSnapshot, {
+        handshakeComplete: true,
+        authState: "authenticated",
+        grantedCapabilities: ["session.read.redacted"],
+      }),
+    ).toEqual({
+      action: "command_not_ready",
+      requestId: "req_test_001",
+      commandType: "sdk:get-snapshot",
+    });
+  });
+
+  it("allows sdk:ping when authenticated", () => {
+    const ping = {
+      ...getSnapshot,
+      type: "sdk:ping" as const,
+      payload: {},
+    };
+    expect(
+      routeSdkInbound(ping, {
+        handshakeComplete: true,
+        authState: "authenticated",
+        grantedCapabilities: [],
+      }),
+    ).toEqual({
+      action: "command_ping",
+      requestId: "req_test_001",
     });
   });
 });

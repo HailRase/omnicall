@@ -1,30 +1,34 @@
 /**
- * Connection registry for handshake-only loopback WS gateway (DI-03).
+ * Connection registry for loopback WS gateway (DI-03 transport + DI-04 auth).
  */
 
 import type { WireMessage } from "@axatalk/protocol";
-import type { RawData } from "ws";
-import { WebSocket } from "ws";
 
+import { SdkAuthChallengeCache } from "./sdkGatewayAuthChallenge.js";
 import type { SdkGatewayLimits } from "./sdkGatewayConfig.js";
 import {
   clearSdkGatewayConnectionTimers,
   createSdkGatewayConnection,
-  recordInboundAndCheckRate,
   type SdkGatewayConnection,
   type SdkGatewaySocket,
 } from "./sdkGatewayConnection.js";
 import { createSdkOpaqueId } from "./sdkGatewayIds.js";
 import {
-  buildCommandFailureReply,
-  buildServerHello,
+  buildSdkRevokedEvent,
   type SdkGatewayIdentity,
 } from "./sdkGatewayMessages.js";
-import { routeUnauthenticatedInbound } from "./sdkGatewayRouteInbound.js";
+import type { SdkPairingApprover } from "./sdkGatewayPairingTypes.js";
+import type { SdkGatewayPairingStore } from "./sdkGatewayPairingStore.js";
+import { SdkRequestDedupCache } from "./sdkGatewayRequestDedup.js";
+import { dispatchSdkValidatedMessage } from "./sdkGatewaySessionDispatch.js";
 import {
-  rawDataToString,
-  type SdkGatewayLogFn,
-} from "./localWsServerHelpers.js";
+  armSdkGatewayIdleTimer,
+  bindSdkGatewaySocketHandlers,
+  closeSdkGatewayConnection,
+  sendSdkGatewayJson,
+  startSdkGatewayHeartbeat,
+} from "./sdkGatewaySessionSocket.js";
+import type { SdkGatewayLogFn } from "./localWsServerHelpers.js";
 
 export type LocalWsSessionRegistryDeps = Readonly<{
   limits: SdkGatewayLimits;
@@ -35,6 +39,8 @@ export type LocalWsSessionRegistryDeps = Readonly<{
     | { success: true; data: WireMessage }
     | { success: false; code: string };
   getIdentity: () => SdkGatewayIdentity | null;
+  pairingStore: SdkGatewayPairingStore;
+  pairingApprover: SdkPairingApprover;
   onLog?: SdkGatewayLogFn;
 }>;
 
@@ -44,13 +50,20 @@ export class LocalWsSessionRegistry {
   private readonly now: () => Date;
   private readonly validateWire: LocalWsSessionRegistryDeps["validateWire"];
   private readonly getIdentity: () => SdkGatewayIdentity | null;
+  private readonly pairingStore: SdkGatewayPairingStore;
+  private readonly pairingApprover: SdkPairingApprover;
+  private readonly challenges = new SdkAuthChallengeCache();
+  private readonly requestDedup = new SdkRequestDedupCache();
   private readonly onLog: SdkGatewayLogFn | undefined;
+  private revokeEventSequence = 0;
 
   constructor(deps: LocalWsSessionRegistryDeps) {
     this.limits = deps.limits;
     this.now = deps.now;
     this.validateWire = deps.validateWire;
     this.getIdentity = deps.getIdentity;
+    this.pairingStore = deps.pairingStore;
+    this.pairingApprover = deps.pairingApprover;
     this.onLog = deps.onLog;
   }
 
@@ -58,36 +71,43 @@ export class LocalWsSessionRegistry {
     return this.connections.size;
   }
 
-  attach(socket: SdkGatewaySocket): void {
+  attach(socket: SdkGatewaySocket, origin: string): void {
     const id = createSdkOpaqueId("conn");
     const connection = createSdkGatewayConnection(
       id,
       socket,
+      origin,
       this.now().getTime(),
     );
     this.connections.set(id, connection);
     this.log("sdk_gateway_connection_opened", {
       connectionCount: this.connections.size,
     });
-
     connection.handshakeTimer = setTimeout(() => {
       this.closeConnection(connection, "handshake_timeout");
     }, this.limits.handshakeTimeoutMs);
-    this.armIdleTimer(connection);
-
-    socket.on("message", (data, isBinary) => {
-      this.onSocketMessage(connection, data, isBinary);
-    });
-    socket.on("pong", () => {
-      connection.awaitingPong = false;
-      connection.lastActivityMs = this.now().getTime();
-      this.armIdleTimer(connection);
-    });
-    socket.on("close", () => {
-      this.removeConnection(connection);
-    });
-    socket.on("error", () => {
-      this.closeConnection(connection, "socket_error");
+    this.armIdle(connection);
+    bindSdkGatewaySocketHandlers({
+      connection,
+      onMessage: (conn, text) => {
+        this.parseAndDispatch(conn, text);
+      },
+      onActivity: (conn) => {
+        this.armIdle(conn);
+      },
+      onClose: (conn) => {
+        this.removeConnection(conn);
+      },
+      closeConnection: (conn, reason) => {
+        this.closeConnection(conn, reason);
+      },
+      limits: this.limits,
+      nowMs: () => this.now().getTime(),
+      logRateLimited: () => {
+        this.log("sdk_gateway_rate_limited", {
+          connectionCount: this.connections.size,
+        });
+      },
     });
   }
 
@@ -103,31 +123,36 @@ export class LocalWsSessionRegistry {
     this.connections.clear();
   }
 
-  private onSocketMessage(
-    connection: SdkGatewayConnection,
-    data: RawData,
-    isBinary: boolean,
-  ): void {
-    if (isBinary) {
-      this.closeConnection(connection, "binary_frame");
-      return;
+  async revokeClient(clientId: string): Promise<boolean> {
+    const ok = await this.pairingStore.revoke(
+      clientId,
+      this.now().toISOString(),
+    );
+    if (!ok) {
+      return false;
     }
-    const text = rawDataToString(data);
-    if (Buffer.byteLength(text, "utf8") > this.limits.maxMessageBytes) {
-      this.closeConnection(connection, "oversized_frame");
-      return;
+    const identity = this.getIdentity();
+    for (const connection of [...this.connections.values()]) {
+      if (connection.clientId !== clientId) {
+        continue;
+      }
+      if (identity !== null) {
+        this.revokeEventSequence += 1;
+        this.sendJson(
+          connection,
+          buildSdkRevokedEvent({
+            identity,
+            now: this.now,
+            sequence: this.revokeEventSequence,
+            reasonCode: "revoked",
+          }),
+        );
+      }
+      connection.authState = "revoked";
+      this.closeConnection(connection, "revoked");
     }
-    if (
-      !recordInboundAndCheckRate(connection, this.now().getTime(), this.limits)
-    ) {
-      this.log("sdk_gateway_rate_limited", {
-        connectionCount: this.connections.size,
-      });
-      this.closeConnection(connection, "rate_limited");
-      return;
-    }
-    this.armIdleTimer(connection);
-    this.parseAndDispatch(connection, text);
+    this.log("sdk_gateway_client_revoked", { clientId, result: "revoked" });
+    return true;
   }
 
   private parseAndDispatch(
@@ -146,120 +171,85 @@ export class LocalWsSessionRegistry {
       this.closeConnection(connection, validated.code);
       return;
     }
-    this.dispatchValidated(connection, validated.data);
-  }
-
-  private dispatchValidated(
-    connection: SdkGatewayConnection,
-    message: WireMessage,
-  ): void {
-    const route = routeUnauthenticatedInbound(
-      message,
-      connection.handshakeComplete,
-    );
-    if (route.action === "server_hello") {
-      this.completeHandshake(connection);
-      return;
-    }
-    if (route.action === "command_deny") {
-      const identity = this.getIdentity();
-      if (identity === null) {
-        this.closeConnection(connection, "not_ready");
-        return;
-      }
-      this.sendJson(
-        connection,
-        buildCommandFailureReply({
-          requestId: route.requestId,
-          commandType: route.commandType,
-          code: route.code,
-          identity,
-          now: this.now,
-        }),
-      );
-      return;
-    }
-    this.closeConnection(connection, route.code);
-  }
-
-  private completeHandshake(connection: SdkGatewayConnection): void {
-    const identity = this.getIdentity();
-    if (identity === null) {
-      this.closeConnection(connection, "not_ready");
-      return;
-    }
-    if (connection.handshakeTimer !== null) {
-      clearTimeout(connection.handshakeTimer);
-      connection.handshakeTimer = null;
-    }
-    connection.handshakeComplete = true;
-    this.sendJson(connection, buildServerHello(identity, this.now));
-    this.startHeartbeat(connection);
-    this.log("sdk_gateway_handshake_ok", {
+    void dispatchSdkValidatedMessage({
+      connection,
+      message: validated.data,
+      getIdentity: this.getIdentity,
+      pairingStore: this.pairingStore,
+      pairingApprover: this.pairingApprover,
+      challenges: this.challenges,
+      requestDedup: this.requestDedup,
+      now: this.now,
       connectionCount: this.connections.size,
+      heartbeatSeconds: this.limits.heartbeatSeconds,
+      sendJson: (c, m) => {
+        this.sendJson(c, m);
+      },
+      closeConnection: (c, reason) => {
+        this.closeConnection(c, reason);
+      },
+      startHeartbeat: (c) => {
+        startSdkGatewayHeartbeat({
+          connection: c,
+          heartbeatSeconds: this.limits.heartbeatSeconds,
+          closeConnection: (conn, reason) => {
+            this.closeConnection(conn, reason);
+          },
+        });
+      },
+      log: (event, fields) => {
+        this.log(event, fields);
+      },
+      isSessionExpired: (c) => this.isSessionExpired(c),
     });
+  }
+
+  private isSessionExpired(connection: SdkGatewayConnection): boolean {
+    if (
+      connection.authState === "authenticated" &&
+      connection.sessionExpiresAtMs !== null &&
+      connection.sessionExpiresAtMs <= this.now().getTime()
+    ) {
+      connection.authState = "unauthenticated";
+      connection.grantedCapabilities = [];
+      return true;
+    }
+    return false;
   }
 
   private sendJson(connection: SdkGatewayConnection, message: WireMessage): void {
-    if (connection.socket.readyState !== WebSocket.OPEN) {
-      return;
-    }
-    if (connection.outboundQueueDepth >= this.limits.maxOutboundQueue) {
-      this.closeConnection(connection, "outbound_queue_full");
-      return;
-    }
-    connection.outboundQueueDepth += 1;
-    connection.socket.send(JSON.stringify(message), (error) => {
-      connection.outboundQueueDepth = Math.max(
-        0,
-        connection.outboundQueueDepth - 1,
-      );
-      if (error !== undefined && error !== null) {
-        this.closeConnection(connection, "send_failed");
-      }
+    sendSdkGatewayJson({
+      connection,
+      message,
+      maxOutboundQueue: this.limits.maxOutboundQueue,
+      closeConnection: (c, reason) => {
+        this.closeConnection(c, reason);
+      },
     });
   }
 
-  private startHeartbeat(connection: SdkGatewayConnection): void {
-    const intervalMs = this.limits.heartbeatSeconds * 1000;
-    connection.heartbeatTimer = setInterval(() => {
-      if (connection.awaitingPong) {
-        this.closeConnection(connection, "heartbeat_missed");
-        return;
-      }
-      if (connection.socket.readyState !== WebSocket.OPEN) {
-        return;
-      }
-      connection.awaitingPong = true;
-      connection.socket.ping();
-    }, intervalMs);
-  }
-
-  private armIdleTimer(connection: SdkGatewayConnection): void {
-    if (connection.idleTimer !== null) {
-      clearTimeout(connection.idleTimer);
-    }
-    connection.idleTimer = setTimeout(() => {
-      this.closeConnection(connection, "unauth_idle_timeout");
-    }, this.limits.unauthIdleMs);
+  private armIdle(connection: SdkGatewayConnection): void {
+    armSdkGatewayIdleTimer({
+      connection,
+      unauthIdleMs: this.limits.unauthIdleMs,
+      closeConnection: (c, reason) => {
+        this.closeConnection(c, reason);
+      },
+    });
   }
 
   private closeConnection(
     connection: SdkGatewayConnection,
     reason: string,
   ): void {
-    this.log("sdk_gateway_connection_closed", {
+    closeSdkGatewayConnection({
+      connection,
       reason,
-      connectionCount: Math.max(0, this.connections.size - 1),
+      connections: this.connections,
+      log: (event, fields) => {
+        this.log(event, fields);
+      },
     });
-    clearSdkGatewayConnectionTimers(connection);
-    this.connections.delete(connection.id);
-    if (
-      connection.socket.readyState === WebSocket.OPEN ||
-      connection.socket.readyState === WebSocket.CONNECTING
-    ) {
-      connection.socket.close(1008, reason.slice(0, 120));
-    }
   }
 
   private removeConnection(connection: SdkGatewayConnection): void {

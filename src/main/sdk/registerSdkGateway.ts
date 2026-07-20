@@ -1,11 +1,18 @@
 /**
- * Electron main registration for the loopback SDK WebSocket gateway (DI-03).
+ * Electron main registration for the loopback SDK WebSocket gateway (DI-03/DI-04).
  * Does not import Domain or Facades. Gateway failure must not block softphone.
  */
 
+import { join } from "node:path";
+
 import { LocalWsServerAdapter } from "@adapters/integration/LocalWsServerAdapter.js";
 import { createConsoleLogger } from "@infrastructure/logging/index.js";
+import { resolveAxatalkProfilesStorageRoot } from "@infrastructure/bootstrap/resolveAxatalkProfilesStorageRoot.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
+import { app } from "electron";
+
+import { ElectronSafeStorageSecretService } from "../secrets/ElectronSafeStorageSecretService.js";
+import { MainProcessSecretStorageAdapter } from "../secrets/MainProcessSecretStorageAdapter.js";
 
 const logger = createConsoleLogger({
   boundedContext: "Integration",
@@ -25,7 +32,7 @@ export function isSdkGatewayPrimaryInstance(): boolean {
 }
 
 /**
- * Start the handshake-only loopback gateway when enabled.
+ * Start the loopback gateway when enabled (pairing/auth DI-04).
  * Failures are logged and swallowed so SIP-only boot continues.
  */
 export async function startSdkGateway(options: {
@@ -43,6 +50,7 @@ export async function startSdkGateway(options: {
     desktopVersion: options.desktopVersion,
     enabled,
     mayClaimEndpoint: () => primaryInstance,
+    ...(enabled ? { secretStorage: createGatewaySecretStorage() } : {}),
     onLog: (event, fields) => {
       logger.info(event, {
         correlationId: createCorrelationId(),
@@ -63,7 +71,6 @@ export async function startSdkGateway(options: {
       operation: "sdk_gateway_start",
       result: result.reason,
     });
-    // Keep instance for status/diagnostics; not listening.
     return gateway;
   }
 
@@ -94,6 +101,29 @@ export async function stopSdkGateway(): Promise<void> {
 
 export function getSdkGateway(): LocalWsServerAdapter | null {
   return gateway;
+}
+
+/** Narrow main API for pairing approve (Settings UX lands in DI-09). */
+export function approveSdkPairingRequest(pairingRequestId: string): boolean {
+  return gateway?.approvePairingRequest(pairingRequestId) ?? false;
+}
+
+export function denySdkPairingRequest(pairingRequestId: string): boolean {
+  return gateway?.denyPairingRequest(pairingRequestId) ?? false;
+}
+
+export async function revokeSdkPairedClient(clientId: string): Promise<boolean> {
+  if (gateway === null) {
+    return false;
+  }
+  return gateway.revokePairedClient(clientId);
+}
+
+function createGatewaySecretStorage(): MainProcessSecretStorageAdapter {
+  const storageRoot = resolveAxatalkProfilesStorageRoot(app.getPath("userData"));
+  return new MainProcessSecretStorageAdapter(
+    new ElectronSafeStorageSecretService(join(storageRoot, "secrets")),
+  );
 }
 
 /** Test-only reset. */

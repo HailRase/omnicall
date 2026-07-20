@@ -85,6 +85,9 @@ export type {
 } from "./secrets/SecretStoragePort.js";
 export {
   OCP_PROXY_API_KEY_SECRET_ID,
+  SDK_PAIRED_CLIENTS_INDEX_SECRET_ID,
+  SDK_PAIRED_CLIENT_SECRET_ID_PREFIX,
+  SDK_PAIRING_SCOPE_KEY,
   SIP_PASSWORD_SECRET_ID,
   createSecretStorageScopeKey,
 } from "./secrets/SecretStoragePort.js";

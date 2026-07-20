@@ -6,7 +6,7 @@
 - [x] DI-01 — Protocol contracts, ports, and mocks (`done`)
 - [x] DI-02 — Typed main-to-renderer broker (`done`)
 - [x] DI-03 — Loopback WebSocket transport (`done`)
-- [ ] DI-04 — Pairing, Origin, capabilities, and revocation (`pending`)
+- [x] DI-04 — Pairing, Origin, capabilities, and revocation (`done`)
 - [ ] DI-05 — Read-only snapshot, events, and window show (`pending`)
 - [ ] DI-06 — Call command router (`pending`)
 - [ ] DI-07 — Operator status and logout workflow (`pending`)
@@ -273,7 +273,17 @@ Checklist:
 
 ## DI-04 — Pairing, Origin, Capabilities, and Revocation
 
-Prerequisites: DI-03 and SDK-04 protocol side ready.
+Prerequisites: DI-03 done; SDK-01/02/03 done; SDK-04 may remain pending (desktop server-side only).
+
+Status: **`done`** (2026-07-20) — `/sdk-review` PASS
+
+### Intake (before coding)
+
+- Feature/LF: F-011; LF-080, LF-081 (primary); LF-051, LF-065
+- Bounded context: Integration (primary)
+- Layers: adapters/integration, main/sdk, ports/secrets IDs, main secret storage adapter
+- Layers forbidden: Domain rules, product snapshot/event mappers (DI-05), call routers (DI-06+), full Settings UX (DI-09), second Application composition
+- Regression risks refused: SIP-only boot; optional OCP; DI-03 transport limits; Domain free of protocol; sandbox/preload; no Softphone; transfer backlog; no secret/PII in logs
 
 Agent prompt:
 
@@ -283,14 +293,43 @@ Agent prompt:
 
 Checklist:
 
-- [ ] exact Origin allowlist.
-- [ ] local/admin approval.
-- [ ] secure per-client storage.
-- [ ] nonce/request replay protection.
-- [ ] capability check per command/subscription.
-- [ ] revoke and expiry.
-- [ ] safe audit logs.
-- [ ] independent security review passes.
+- [x] exact Origin allowlist.
+- [x] local/admin approval.
+- [x] secure per-client storage.
+- [x] nonce/request replay protection.
+- [x] capability check per command/subscription.
+- [x] revoke and expiry.
+- [x] safe audit logs.
+- [x] independent security review passes. *(`/sdk-review` PASS 2026-07-20 — no Blockers; High/Low remediations closed same day)*
+
+### Handoff checklist (DI-04)
+
+- Work unit: DI-04
+- Prerequisites verified: DI-00…DI-03 `done`; SDK-01…SDK-03 `done`; SDK-04 not required for desktop server-side
+- Feature/LF IDs: F-011; LF-080, LF-081
+- Bounded contexts: Integration
+- Layers changed: integration adapters, main SDK registration, SecretStorage scope IDs, main SecretStoragePort adapter
+- Files added/changed:
+  - `src/adapters/integration/sdkGatewayOriginPolicy.ts` (+ test)
+  - `src/adapters/integration/sdkGatewayPairingStore.ts` / `sdkGatewayPairingTypes.ts` / `sdkGatewayPairingApprover.ts`
+  - `src/adapters/integration/sdkGatewayPopCrypto.ts` (+ test)
+  - `src/adapters/integration/sdkGatewayAuthChallenge.ts` / `sdkGatewayCapabilities.ts` / `sdkGatewayRequestDedup.ts`
+  - `src/adapters/integration/sdkGatewaySessionAuth.ts` / `sdkGatewaySessionDispatch.ts` / `sdkGatewaySessionSocket.ts`
+  - `src/adapters/integration/LocalWsServerAdapter.ts` / `LocalWsSessionRegistry.ts` / `localWsServerUpgrade.ts` / `localWsServerBind.ts`
+  - `src/adapters/integration/LocalWsServerAdapter.auth.test.ts`
+  - `src/main/sdk/registerSdkGateway.ts` / `src/main/secrets/MainProcessSecretStorageAdapter.ts`
+  - `src/ports/secrets/SecretStoragePort.ts` (SDK pairing secret IDs)
+  - evidence `axatalk-sdk-integration/evidence/DI-04-pairing-origin-capabilities.md`
+- Commands/events added: pairing/auth wire handling; `sdk:revoked` on revoke; `sdk:ping` success after auth only
+- Security impact: fail-closed Origin/pairing/PoP/capabilities/replay/revoke; audit allowlist; no SIP teardown on revoke
+- Regression risks: Origin required (DI-03 missing-Origin clients must send allowlisted Origin); empty allowlist rejects all upgrades
+- Automated tests: focused DI-04 set 44 passed; full `npm test` 2385 passed / 1 skipped (re-verified by `/sdk-review`)
+- Manual evidence: smoke not claimed
+- Verification commands: focused vitest; `npm test`; `npm run lint`; `npm run typecheck`; `npm run registry:check`
+- Registry/Legacy/STATUS changes: F-011 remains `in progress`; DI-04 → `done`
+- Remaining risks: Settings UX (DI-09); product snapshots (DI-05); SDK-04 client auth package
+- Evidence: `axatalk-sdk-integration/evidence/DI-04-pairing-origin-capabilities.md`
+- Reviewer: `/sdk-review` **PASS** (2026-07-20) — no Blockers; High/Low remediations closed same day; next DI-05 via `/sdk-integration`
 
 ## DI-05 — Read-Only Snapshot, Events, and Window Show
 

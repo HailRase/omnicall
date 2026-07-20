@@ -1,5 +1,6 @@
 /**
  * Loopback peer / bind checks for the SDK gateway (DI-03 / ADR-0010).
+ * Origin allowlist helpers live in sdkGatewayOriginPolicy (DI-04).
  */
 
 /** True when the remote socket address is an approved loopback address. */
@@ -28,13 +29,3 @@ export function isApprovedLoopbackBindHost(host: string): boolean {
   return normalized === "127.0.0.1" || normalized === "::1";
 }
 
-/**
- * DI-03 Origin gate (pre-pairing): reject explicit `null` Origin.
- * Exact allowlist enforcement lands in DI-04.
- */
-export function isRejectedUpgradeOrigin(originHeader: string | undefined): boolean {
-  if (originHeader === undefined) {
-    return false;
-  }
-  return originHeader.trim().toLowerCase() === "null";
-}

@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import {
   isApprovedLoopbackBindHost,
   isLoopbackRemoteAddress,
-  isRejectedUpgradeOrigin,
 } from "./sdkGatewayPeer.js";
 
 describe("sdkGatewayPeer", () => {
@@ -29,12 +28,5 @@ describe("sdkGatewayPeer", () => {
     expect(isApprovedLoopbackBindHost("localhost")).toBe(false);
     expect(isApprovedLoopbackBindHost("192.168.1.10")).toBe(false);
     expect(isApprovedLoopbackBindHost("")).toBe(false);
-  });
-
-  it("rejects explicit null Origin only", () => {
-    expect(isRejectedUpgradeOrigin("null")).toBe(true);
-    expect(isRejectedUpgradeOrigin("NULL")).toBe(true);
-    expect(isRejectedUpgradeOrigin("https://crm.example")).toBe(false);
-    expect(isRejectedUpgradeOrigin(undefined)).toBe(false);
   });
 });

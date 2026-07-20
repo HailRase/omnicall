@@ -3,6 +3,7 @@
  */
 
 import { validateWireMessage, type WireMessage } from "@axatalk/protocol";
+import { InMemorySecretStorageAdapter } from "@adapters/secrets/InMemorySecretStorageAdapter.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { RawData } from "ws";
 
@@ -10,6 +11,8 @@ import { LocalWsSessionRegistry } from "./LocalWsSessionRegistry.js";
 import type { SdkGatewaySocket } from "./sdkGatewayConnection.js";
 import { DEFAULT_SDK_GATEWAY_LIMITS } from "./sdkGatewayConfig.js";
 import type { SdkGatewayIdentity } from "./sdkGatewayMessages.js";
+import { createAutoDenyPairingApprover } from "./sdkGatewayPairingApprover.js";
+import { SdkGatewayPairingStore } from "./sdkGatewayPairingStore.js";
 
 class TestGatewaySocket implements SdkGatewaySocket {
   readyState = 1;
@@ -83,6 +86,8 @@ const clientHello = {
   occurredAt: "2026-07-20T09:00:00.000Z",
 } as const satisfies WireMessage;
 
+const TEST_ORIGIN = "https://crm.example";
+
 function validateWire(
   input: unknown,
 ):
@@ -95,6 +100,26 @@ function validateWire(
   return { success: false, code: result.code };
 }
 
+function createRegistry(
+  overrides: Partial<ConstructorParameters<typeof LocalWsSessionRegistry>[0]> = {},
+): LocalWsSessionRegistry {
+  return new LocalWsSessionRegistry({
+    limits: {
+      ...DEFAULT_SDK_GATEWAY_LIMITS,
+      maxOutboundQueue: 1,
+      heartbeatSeconds: 60,
+      handshakeTimeoutMs: 60_000,
+      unauthIdleMs: 60_000,
+    },
+    now: () => new Date("2026-07-20T09:00:00.000Z"),
+    validateWire,
+    getIdentity: () => identity,
+    pairingStore: new SdkGatewayPairingStore(new InMemorySecretStorageAdapter()),
+    pairingApprover: createAutoDenyPairingApprover(),
+    ...overrides,
+  });
+}
+
 describe("LocalWsSessionRegistry limits", () => {
   beforeEach(() => {
     vi.useFakeTimers();
@@ -104,10 +129,10 @@ describe("LocalWsSessionRegistry limits", () => {
     vi.useRealTimers();
   });
 
-  it("closes when outbound queue is full", () => {
+  it("closes when outbound queue is full", async () => {
     const closedReasons: string[] = [];
     const socket = new TestGatewaySocket({ stallSend: true });
-    const registry = new LocalWsSessionRegistry({
+    const registry = createRegistry({
       limits: {
         ...DEFAULT_SDK_GATEWAY_LIMITS,
         maxOutboundQueue: 1,
@@ -115,9 +140,6 @@ describe("LocalWsSessionRegistry limits", () => {
         handshakeTimeoutMs: 60_000,
         unauthIdleMs: 60_000,
       },
-      now: () => new Date("2026-07-20T09:00:00.000Z"),
-      validateWire,
-      getIdentity: () => identity,
       onLog: (event, fields) => {
         if (event === "sdk_gateway_connection_closed") {
           closedReasons.push(String(fields["reason"] ?? ""));
@@ -125,9 +147,11 @@ describe("LocalWsSessionRegistry limits", () => {
       },
     });
 
-    registry.attach(socket);
+    registry.attach(socket, TEST_ORIGIN);
     socket.emitMessage(JSON.stringify(clientHello));
-    expect(registry.size).toBe(1);
+    await vi.waitFor(() => {
+      expect(registry.size).toBe(1);
+    });
 
     socket.emitMessage(
       JSON.stringify({
@@ -141,24 +165,22 @@ describe("LocalWsSessionRegistry limits", () => {
         payload: {},
       }),
     );
-
-    expect(closedReasons).toContain("outbound_queue_full");
+    await vi.waitFor(() => {
+      expect(closedReasons).toContain("outbound_queue_full");
+    });
     expect(registry.size).toBe(0);
   });
 
-  it("closes on heartbeat miss when pong never arrives", () => {
+  it("closes on heartbeat miss when pong never arrives", async () => {
     const closedReasons: string[] = [];
     const socket = new TestGatewaySocket();
-    const registry = new LocalWsSessionRegistry({
+    const registry = createRegistry({
       limits: {
         ...DEFAULT_SDK_GATEWAY_LIMITS,
         heartbeatSeconds: 1,
         handshakeTimeoutMs: 60_000,
         unauthIdleMs: 60_000,
       },
-      now: () => new Date("2026-07-20T09:00:00.000Z"),
-      validateWire,
-      getIdentity: () => identity,
       onLog: (event, fields) => {
         if (event === "sdk_gateway_connection_closed") {
           closedReasons.push(String(fields["reason"] ?? ""));
@@ -166,11 +188,14 @@ describe("LocalWsSessionRegistry limits", () => {
       },
     });
 
-    registry.attach(socket);
+    registry.attach(socket, TEST_ORIGIN);
     socket.emitMessage(JSON.stringify(clientHello));
+    await vi.waitFor(() => {
+      expect(registry.size).toBe(1);
+    });
 
-    vi.advanceTimersByTime(1000);
-    vi.advanceTimersByTime(1000);
+    await vi.advanceTimersByTimeAsync(1000);
+    await vi.advanceTimersByTimeAsync(1000);
 
     expect(closedReasons).toContain("heartbeat_missed");
     expect(registry.size).toBe(0);

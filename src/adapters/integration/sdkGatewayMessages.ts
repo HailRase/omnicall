@@ -1,13 +1,16 @@
 /**
- * Protocol message builders for handshake-only SDK gateway (DI-03).
- * No product snapshot / success replies.
+ * Protocol message builders for SDK gateway (DI-03/DI-04).
+ * No product snapshot success replies (DI-05).
  */
 
 import {
   PROTOCOL_MAJOR,
   PROTOCOL_MAX,
   PROTOCOL_MIN,
+  type AuthChallenge,
+  type CapabilityId,
   type CommandType,
+  type PairingProfile,
   type ProtocolErrorCode,
   type WireMessage,
 } from "@axatalk/protocol";
@@ -53,23 +56,28 @@ export function buildDiscoveryDocument(
   };
 }
 
-export function buildServerHello(
-  identity: SdkGatewayIdentity,
-  now: () => Date,
-): WireMessage {
+export function buildServerHello(input: {
+  readonly identity: SdkGatewayIdentity;
+  readonly now: () => Date;
+  readonly pairingRequired: boolean;
+  readonly authChallenge?: AuthChallenge;
+}): WireMessage {
   return {
     protocolVersion: PROTOCOL_MAJOR,
     kind: "handshake",
     type: "sdk:server-hello",
     selectedProtocolVersion: PROTOCOL_MAJOR,
-    desktopVersion: identity.desktopVersion,
-    serverInstanceId: identity.serverInstanceId,
-    sessionEpoch: identity.sessionEpoch,
+    desktopVersion: input.identity.desktopVersion,
+    serverInstanceId: input.identity.serverInstanceId,
+    sessionEpoch: input.identity.sessionEpoch,
     serverNonce: createSdkBase64UrlNonce(),
-    pairingRequired: true,
-    maxMessageBytes: identity.maxMessageBytes,
-    heartbeatSeconds: identity.heartbeatSeconds,
-    occurredAt: createSdkIsoTimestamp(now),
+    pairingRequired: input.pairingRequired,
+    ...(input.authChallenge !== undefined
+      ? { authChallenge: input.authChallenge }
+      : {}),
+    maxMessageBytes: input.identity.maxMessageBytes,
+    heartbeatSeconds: input.identity.heartbeatSeconds,
+    occurredAt: createSdkIsoTimestamp(input.now),
   };
 }
 
@@ -93,6 +101,93 @@ export function buildCommandFailureReply(input: {
       code: input.code,
       retryable: input.code === "rate_limited" || input.code === "not_ready",
     },
+  };
+}
+
+export function buildCommandSuccessReply(input: {
+  readonly requestId: string;
+  readonly commandType: CommandType;
+  readonly identity: SdkGatewayIdentity;
+  readonly now: () => Date;
+  readonly revision?: number;
+  readonly result?: Readonly<Record<string, never>>;
+}): WireMessage {
+  return {
+    protocolVersion: PROTOCOL_MAJOR,
+    kind: "reply",
+    ok: true,
+    requestId: input.requestId,
+    commandType: input.commandType,
+    serverInstanceId: input.identity.serverInstanceId,
+    sessionEpoch: input.identity.sessionEpoch,
+    occurredAt: createSdkIsoTimestamp(input.now),
+    revision: input.revision ?? 0,
+    result: input.result ?? {},
+  };
+}
+
+export function buildPairingPending(input: {
+  readonly pairingRequestId: string;
+  readonly expiresAt: string;
+  readonly now: () => Date;
+}): WireMessage {
+  return {
+    protocolVersion: PROTOCOL_MAJOR,
+    kind: "pairing",
+    type: "pairing:pending",
+    pairingRequestId: input.pairingRequestId,
+    expiresAt: input.expiresAt,
+    occurredAt: createSdkIsoTimestamp(input.now),
+  };
+}
+
+export function buildPairingApproved(input: {
+  readonly clientId: string;
+  readonly profile: PairingProfile;
+  readonly grantedCapabilities: readonly CapabilityId[];
+  readonly now: () => Date;
+}): WireMessage {
+  return {
+    protocolVersion: PROTOCOL_MAJOR,
+    kind: "pairing",
+    type: "pairing:approved",
+    clientId: input.clientId,
+    profile: input.profile,
+    grantedCapabilities: [...input.grantedCapabilities],
+    occurredAt: createSdkIsoTimestamp(input.now),
+  };
+}
+
+export function buildPairingDenied(input: {
+  readonly clientId: string;
+  readonly now: () => Date;
+}): WireMessage {
+  return {
+    protocolVersion: PROTOCOL_MAJOR,
+    kind: "pairing",
+    type: "pairing:denied",
+    clientId: input.clientId,
+    occurredAt: createSdkIsoTimestamp(input.now),
+  };
+}
+
+export function buildSdkRevokedEvent(input: {
+  readonly identity: SdkGatewayIdentity;
+  readonly now: () => Date;
+  readonly sequence: number;
+  readonly reasonCode: string;
+}): WireMessage {
+  return {
+    protocolVersion: PROTOCOL_MAJOR,
+    kind: "event",
+    type: "sdk:revoked",
+    eventId: createSdkOpaqueId("evt"),
+    sequence: input.sequence,
+    serverInstanceId: input.identity.serverInstanceId,
+    sessionEpoch: input.identity.sessionEpoch,
+    occurredAt: createSdkIsoTimestamp(input.now),
+    revision: 0,
+    payload: { reasonCode: input.reasonCode },
   };
 }
 
