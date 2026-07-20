@@ -1,7 +1,7 @@
 # DI-06 — Call Command Router (evidence)
 
 **Date:** 2026-07-20  
-**Status:** `done` (revision-contract remediation verified; gate closed by implementation re-verify + commit)  
+**Status:** `done` (revision-contract remediation verified; commit `6681118`)  
 **Desktop version:** `0.11.2` (unchanged)  
 **Feature:** F-011 remains `in progress` (not `implemented`)
 

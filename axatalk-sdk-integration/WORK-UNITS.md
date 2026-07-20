@@ -431,7 +431,7 @@ Checklist:
 - Registry/Legacy/STATUS changes: F-011 remains `in progress`; DI-06 → **`done`**
 - Remaining risks: SDK-06 client package; DI-07/08 routers; packaged E2E at DI-10
 - Evidence: `axatalk-sdk-integration/evidence/DI-06-call-command-router.md`
-- Reviewer: `/sdk-review` FAIL 2026-07-20 (revision contract High) → remediated same day; independent re-verify PASS (reply-chain + snapshot→mutate); DI-06 **`done`**
+- Reviewer: `/sdk-review` FAIL 2026-07-20 (revision contract High) → remediated same day; independent re-verify PASS (reply-chain + snapshot→mutate); DI-06 **`done`** (commit `6681118`)
 
 ## DI-07 — Operator Status and Logout Workflow
 
