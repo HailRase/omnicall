@@ -4,7 +4,7 @@
 **Branch:** `feature/axatalk-sdk`  
 **Desktop version:** `0.11.2`  
 **Work unit:** DI-01 — Protocol Contracts, Ports, and Mocks  
-**Status:** `review` (awaiting `/sdk-review`)
+**Status:** `done` — `/sdk-review` **PASS** (2026-07-20)
 
 ## Prerequisites verified
 
@@ -108,4 +108,5 @@ Root `eslint .` previously also walked nested `axatalk-sdk/**` (separate workspa
 - Verification commands: listed above
 - Registry/Legacy/STATUS changes: F-011 `in progress`; STATUS + P12 handoff factual DI-01 progress
 - Remaining risks: see above
-- Reviewer: **`/sdk-review` for DI-01** (do not start DI-02)
+- Reviewer: `/sdk-review` **PASS** (2026-07-20) — independent re-run: focused 24 PASS; full suite 2321/1; lint/typecheck/registry green.
+- Low nits remediated same day: mock maps validated commands to `BrokerProductRequest`; fixed mock `occurredAt`; store-boundary asserts `targets.length > 0`.

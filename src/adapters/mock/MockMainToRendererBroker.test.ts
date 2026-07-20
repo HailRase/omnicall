@@ -47,8 +47,16 @@ describe("MockMainToRendererBroker", () => {
       expect(result.reply.ok).toBe(true);
       expect(result.reply.commandType).toBe("sdk:ping");
       expect(result.reply.requestId).toBe("req_ping_extra_001");
+      expect(result.reply.occurredAt).toBe("2026-07-20T10:00:00.000Z");
     }
     expect(broker.getHandledRequestIds()).toEqual(["req_ping_extra_001"]);
+    expect(broker.getHandledRequests()).toEqual([
+      {
+        requestId: "req_ping_extra_001",
+        commandType: "sdk:ping",
+        payload: { nonce: "nonce_ping_001" },
+      },
+    ]);
   });
 
   it("denies window:hide on the v1 product surface", async () => {

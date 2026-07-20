@@ -3,7 +3,7 @@
 ## Progress
 
 - [x] DI-00 — ADRs, baseline, and P12 handoff (`done`)
-- [ ] DI-01 — Protocol contracts, ports, and mocks (`review`)
+- [x] DI-01 — Protocol contracts, ports, and mocks (`done`)
 - [ ] DI-02 — Typed main-to-renderer broker (`pending`)
 - [ ] DI-03 — Loopback WebSocket transport (`pending`)
 - [ ] DI-04 — Pairing, Origin, capabilities, and revocation (`pending`)
@@ -95,7 +95,7 @@ Checklist:
 
 Prerequisites: DI-00 and SDK-01 done; SDK-02 `@axatalk/protocol` done (peer consume).
 
-Status: **`review`** (2026-07-20) — awaiting `/sdk-review`
+Status: **`done`** (2026-07-20) — `/sdk-review` PASS
 
 ### Intake (before coding)
 
@@ -158,7 +158,7 @@ Checklist:
 - Registry/Legacy/STATUS changes: F-011 → `in progress`; not `implemented`
 - Remaining risks: DI-02 broker ownership; live mapper schema tightness; smoke deferred to DI-10
 - Evidence: `axatalk-sdk-integration/evidence/DI-01-protocol-ports-mocks.md`
-- Reviewer: `/sdk-review` for DI-01 — **do not start DI-02**
+- Reviewer: `/sdk-review` **PASS** (2026-07-20) — Low nits only; **do not start DI-02 in this review session**
 
 ## DI-02 — Typed Main-to-Renderer Broker
 

@@ -105,6 +105,7 @@ describe("DI-01 SDK dependency boundaries", () => {
       );
     });
     const targets = [...new Set([...storeFiles, ...projectionFiles])];
+    expect(targets.length).toBeGreaterThan(0);
     expect(
       collectViolations(targets, FORBIDDEN_UI_GATEWAY_PATTERNS),
     ).toEqual([]);

@@ -7,13 +7,13 @@
 | Feature | F-011 Host Integration Contract |
 | Legacy | LF-051, LF-065, LF-080, LF-081 |
 | Phase | P12 External Host API Compatibility |
-| Feature status | **in progress** (DI-01 contracts/ports/mocks `review`; no product gateway) |
+| Feature status | **in progress** (DI-01 contracts/ports/mocks `done`; no product gateway) |
 | Branch | `feature/axatalk-sdk` |
 | Desktop version | `0.11.2` |
 | DI-00 | `done` — `/sdk-review` PASS 2026-07-20 |
 | SDK-00…SDK-02 | `done` — `/sdk-review` PASS |
-| DI-01 | **`review`** — evidence `axatalk-sdk-integration/evidence/DI-01-protocol-ports-mocks.md` |
-| Next | `/sdk-review` for DI-01; then **DI-02** (typed broker) |
+| DI-01 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-01-protocol-ports-mocks.md` |
+| Next | **DI-02** typed main-to-renderer broker (`/sdk-integration`) |
 
 ## Mission
 
@@ -138,10 +138,10 @@ Automated matrix: `axatalk-sdk-integration/TEST-MATRIX.md`.
 
 - [x] F-011 planning references point at ADRs + packages (status **`in progress`** after DI-01 contracts; not implemented).
 - [x] LF-051/065/080/081 remain planned with execution-package pointers (no false done).
-- [x] STATUS notes DI-00 architecture gate and DI-01 contract progress without claiming product gateway.
+- [x] STATUS notes DI-00 architecture gate and DI-01 `done` without claiming product gateway.
 - [x] Protocol/security open decisions synchronized with SDK-01 ownership.
 - [x] Work-history and DI-00 evidence exist.
-- [x] DI-01 evidence exists (`evidence/DI-01-protocol-ports-mocks.md`).
+- [x] DI-01 evidence exists; `/sdk-review` PASS (`evidence/DI-01-protocol-ports-mocks.md`).
 - [ ] No premature `implemented` status — enforced until DI-10.
 
 ## DI-00 Evidence Summary
@@ -166,6 +166,6 @@ P12 closes only when:
 
 ## Next Agent Prompt
 
-1. Run **`/sdk-review` for DI-01** (do not start DI-02 until PASS).
-2. After DI-01 `done`: implement **DI-02** typed main-to-renderer broker only (no network server).
-3. SDK-03 may proceed independently on the SDK workspace (client transport); keep Domain free of protocol imports.
+1. Implement **DI-02** typed main-to-renderer broker only (no network server) via `/sdk-integration`.
+2. Keep Domain free of protocol / Zod / Electron / ws imports.
+3. Do not mark F-011 `implemented` until DI-10.

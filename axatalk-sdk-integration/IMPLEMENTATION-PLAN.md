@@ -82,13 +82,14 @@ Gate closed. SDK-00 `done`; SDK-01 ADR-0014…0017 `done` (`/sdk-review` PASS). 
 
 ## Phase DI-01 — Public Contracts and Ports
 
-- Integrate or consume `@axatalk/protocol` without importing it into Domain.
-- Define the external gateway/broker ports at the correct layer.
-- Define focused command/query handler interfaces.
-- Add mock gateway and broker test doubles.
-- Add valid/invalid compatibility fixtures.
+Status: **`done`** (2026-07-20). Evidence: `evidence/DI-01-protocol-ports-mocks.md`. `/sdk-review` PASS.
 
-Gate: contracts compile and test without Electron or real network.
+- Integrated `@axatalk/protocol` (file dep) without Domain imports.
+- Defined external gateway/broker ports and command/query handler interfaces.
+- Added mock gateway, broker, and handler doubles (fail-closed validators).
+- Desktop consumes SDK-02 golden fixtures byte-identical (valid/invalid+meta).
+
+Gate closed: contracts compile and test without Electron or real network.
 
 ## Phase DI-02 — Typed Main-to-Renderer Broker
 

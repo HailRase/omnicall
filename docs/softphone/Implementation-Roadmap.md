@@ -533,8 +533,8 @@ Execution package:
 Order:
 
 1. Close ADRs for protocol, process ownership, browser transport, pairing/capabilities, privacy, compatibility, and window policy (**DI-00 done** — ADR-0009…0013; **SDK-01 done** — ADR-0014…0017 close O-*).
-2. Define the versioned public protocol and compatibility fixtures (**SDK-02 done**; **DI-01 `review`** — desktop consumes same fixtures outside Domain; OCP subset remains F-028 E-12 baseline).
-3. Implement the typed main-to-renderer broker to the single existing renderer Application composition (**DI-02** — after DI-01 `/sdk-review` PASS).
+2. Define the versioned public protocol and compatibility fixtures (**SDK-02 done**; **DI-01 `done`** — desktop consumes same fixtures outside Domain; OCP subset remains F-028 E-12 baseline).
+3. Implement the typed main-to-renderer broker to the single existing renderer Application composition (**DI-02** — next).
 4. Implement the secure `ExternalClientGateway` WebSocket server in main: loopback, exact Origin, pairing, capabilities, replay/resource limits, and revocation.
 5. Implement read-only snapshots/events and `window:show`; validate SDK interoperability before mutations.
 6. Implement `ExternalCommandRouter` → focused handlers / Facade / Use Cases with `callType: 'sdk'`.

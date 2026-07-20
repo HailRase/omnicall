@@ -4,19 +4,21 @@
  */
 
 import type {
+  CommandMessage,
+  CommandType,
   ProtocolErrorCode,
   ReplyMessage,
-  WireJsonObject,
 } from "@axatalk/protocol";
 
 /**
  * Narrow broker envelope after protocol validation. Public DTOs only —
  * not Domain Events, not JsSIP, not OCP wire objects.
+ * Constructed by adapters after `validateWireMessage` succeeds (see mock).
  */
 export type BrokerProductRequest = Readonly<{
   requestId: string;
-  commandType: string;
-  payload: WireJsonObject;
+  commandType: CommandType;
+  payload: CommandMessage["payload"];
   expectedRevision?: number;
 }>;
 
