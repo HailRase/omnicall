@@ -1,9 +1,13 @@
 /**
- * Product orchestration: snapshot cache, events, window.show, call mutations.
+ * Product orchestration: snapshot cache, events, window, calls, operator, logout.
  */
 
 import type { CapabilityId, SnapshotMessage } from '@axatalk/protocol';
 
+import {
+  createAccountLogoutCommandApi,
+  type AccountLogoutCommandApi
+} from './account-logout-commands.js';
 import {
   createCallCommandApi,
   type CallCommandApi,
@@ -13,19 +17,18 @@ import type { ConnectionSession } from './connection-session.js';
 import type { DiagnosticsSink } from './diagnostics.js';
 import { createEventSubscriptionHub } from './event-subscription.js';
 import {
+  createOperatorCommandApi,
+  type OperatorCommandApi
+} from './operator-commands.js';
+import {
   guardCapability,
   guardReady,
   mapPendingFailure,
   mapReplyFailure,
-  readWindowState,
   requireWireIdentity
 } from './product-commands.js';
 import { parseProductInbound } from './product-inbound.js';
-import {
-  buildGetSnapshotBody,
-  buildWindowGetStateBody,
-  buildWindowShowBody
-} from './product-wire.js';
+import { buildGetSnapshotBody } from './product-wire.js';
 import type { AxatalkEvent, PublicEventType } from './public-event-map.js';
 import type { Scheduler } from './scheduler.js';
 import {
@@ -38,13 +41,12 @@ import {
   type SnapshotAcquisition
 } from './snapshot-acquisition.js';
 import { createSnapshotCache } from './snapshot-cache.js';
+import {
+  createWindowCommandApi,
+  type WindowStateResult
+} from './window-commands.js';
 
-export type { CallMutationResult };
-
-export type WindowStateResult = {
-  readonly visible: boolean;
-  readonly revision: number;
-};
+export type { CallMutationResult, WindowStateResult };
 
 export type ProductOrchestrator = {
   readonly onUnhandledMessage: (raw: string) => boolean;
@@ -61,6 +63,10 @@ export type ProductOrchestrator = {
   readonly originateCall: CallCommandApi['originateCall'];
   readonly controlCall: CallCommandApi['controlCall'];
   readonly sendDtmf: CallCommandApi['sendDtmf'];
+  readonly getOperatorReasons: OperatorCommandApi['getReasons'];
+  readonly changeOperatorStatus: OperatorCommandApi['changeStatus'];
+  readonly prepareLogout: AccountLogoutCommandApi['prepareLogout'];
+  readonly confirmLogout: AccountLogoutCommandApi['confirmLogout'];
   readonly dispose: () => void;
 };
 
@@ -75,11 +81,15 @@ export function createProductOrchestrator(deps: {
   const waitTimeoutMs = deps.snapshotWaitTimeoutMs ?? 5_000;
   let resyncInFlight = false;
   let pendingAcquisitions: SnapshotAcquisition[] = [];
-  const calls = createCallCommandApi({
+  const commandDeps = {
     connection: deps.connection,
     scheduler: deps.scheduler,
     getGrantedCapabilities: deps.getGrantedCapabilities
-  });
+  };
+  const calls = createCallCommandApi(commandDeps);
+  const windowApi = createWindowCommandApi(commandDeps);
+  const operator = createOperatorCommandApi(commandDeps);
+  const account = createAccountLogoutCommandApi(commandDeps);
 
   const removeAcquisition = (acquisition: SnapshotAcquisition): void => {
     pendingAcquisitions = pendingAcquisitions.filter(
@@ -232,50 +242,6 @@ export function createProductOrchestrator(deps: {
     return true;
   };
 
-  const runWindowCommand = async (
-    commandType: 'window:show' | 'window:get-state'
-  ): Promise<WindowStateResult> => {
-    const notReady = guardReady(deps.connection);
-    if (notReady !== undefined) {
-      return Promise.reject(notReady);
-    }
-    const missingCap = guardCapability(
-      deps.getGrantedCapabilities(),
-      'window.show'
-    );
-    if (missingCap !== undefined) {
-      return Promise.reject(missingCap);
-    }
-    const identity = requireWireIdentity(deps.connection);
-    if ('code' in identity) {
-      return Promise.reject(identity);
-    }
-    const requestId = crypto.randomUUID();
-    const body =
-      commandType === 'window:show'
-        ? buildWindowShowBody({
-            requestId,
-            serverInstanceId: identity.serverInstanceId,
-            sessionEpoch: identity.sessionEpoch,
-            occurredAtMs: deps.scheduler.now()
-          })
-        : buildWindowGetStateBody({
-            requestId,
-            serverInstanceId: identity.serverInstanceId,
-            sessionEpoch: identity.sessionEpoch,
-            occurredAtMs: deps.scheduler.now()
-          });
-    const result = await deps.connection.request({
-      requestId,
-      commandType,
-      body
-    });
-    if (!result.ok || !result.reply.ok) {
-      return Promise.reject(mapReplyFailure(result));
-    }
-    return readWindowState(result.reply);
-  };
-
   return {
     onUnhandledMessage,
     invalidate,
@@ -283,11 +249,15 @@ export function createProductOrchestrator(deps: {
     getRevision: () => cache.getRevision(),
     getSnapshot: () => getSnapshotInternal(),
     subscribe: hub.subscribe,
-    showWindow: () => runWindowCommand('window:show'),
-    getWindowState: () => runWindowCommand('window:get-state'),
+    showWindow: windowApi.showWindow,
+    getWindowState: windowApi.getWindowState,
     originateCall: calls.originateCall,
     controlCall: calls.controlCall,
     sendDtmf: calls.sendDtmf,
+    getOperatorReasons: operator.getReasons,
+    changeOperatorStatus: operator.changeStatus,
+    prepareLogout: account.prepareLogout,
+    confirmLogout: account.confirmLogout,
     dispose: () => {
       invalidate();
       hub.clearListeners();

@@ -34,4 +34,21 @@ describe('@axatalk/sdk type smoke', () => {
     expectTypeOf<'call:incoming'>().toExtend<PublicEventType>();
     expectTypeOf<'ready'>().toExtend<ConnectionState>();
   });
+
+  it('exposes namespaced operator and account logout (no root / no activate)', () => {
+    expectTypeOf<AxatalkClient>().toHaveProperty('operator');
+    expectTypeOf<AxatalkClient>().toHaveProperty('account');
+    expectTypeOf<AxatalkClient>().not.toHaveProperty('prepareLogout');
+    expectTypeOf<AxatalkClient>().not.toHaveProperty('confirmLogout');
+    expectTypeOf<AxatalkClient>().not.toHaveProperty('changeStatus');
+    expectTypeOf<AxatalkClient>().not.toHaveProperty('getReasons');
+    expectTypeOf<AxatalkClient>().not.toHaveProperty('activateProfile');
+    expectTypeOf<AxatalkClient['operator']>().toHaveProperty('getReasons');
+    expectTypeOf<AxatalkClient['operator']>().toHaveProperty('changeStatus');
+    expectTypeOf<AxatalkClient['account']>().toHaveProperty('prepareLogout');
+    expectTypeOf<AxatalkClient['account']>().toHaveProperty('confirmLogout');
+    expectTypeOf<AxatalkClient['account']>().not.toHaveProperty('activateProfile');
+    expectTypeOf<'operator:status-changed'>().toExtend<PublicEventType>();
+    expectTypeOf<'account:session-ended'>().toExtend<PublicEventType>();
+  });
 });

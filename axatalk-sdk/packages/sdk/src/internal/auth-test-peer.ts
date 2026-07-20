@@ -291,6 +291,7 @@ export function replyCommandFailure(
     readonly code: string;
     readonly retryable: boolean;
     readonly currentRevision?: number;
+    readonly details?: Readonly<Record<string, unknown>>;
   }
 ): boolean {
   for (let index = transport.sent.length - 1; index >= 0; index -= 1) {
@@ -326,7 +327,8 @@ export function replyCommandFailure(
             retryable: error.retryable,
             ...(error.currentRevision !== undefined
               ? { currentRevision: error.currentRevision }
-              : {})
+              : {}),
+            ...(error.details !== undefined ? { details: error.details } : {})
           }
         })
       );
@@ -406,6 +408,27 @@ export function buildCallIncomingEvent(sequence: number, revision = 13): string 
       direction: 'inbound',
       remoteNumber: '+1******7890',
       remoteDisplayName: 'A***'
+    }
+  });
+}
+
+export function buildOperatorStatusChangedEvent(
+  sequence: number,
+  revision = 14
+): string {
+  return JSON.stringify({
+    protocolVersion: 1,
+    kind: 'event',
+    type: 'operator:status-changed',
+    eventId: `evt_op_status_${sequence}`,
+    sequence,
+    serverInstanceId: 'srv_test_001',
+    sessionEpoch: 'epoch_test_001',
+    occurredAt: '2026-07-20T09:00:05.000Z',
+    revision,
+    payload: {
+      status: 'break',
+      reasonId: 10
     }
   });
 }

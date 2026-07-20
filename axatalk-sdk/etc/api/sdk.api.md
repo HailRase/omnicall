@@ -10,6 +10,7 @@ import type { EventMessage } from '@axatalk/protocol';
 import type { PairingProfile } from '@axatalk/protocol';
 import type { ProtocolErrorCode } from '@axatalk/protocol';
 import type { SnapshotMessage } from '@axatalk/protocol';
+import type { WireJsonObject } from '@axatalk/protocol';
 
 // @public
 export type AuthClient = {
@@ -49,6 +50,18 @@ export type AuthSessionSnapshot = {
     readonly clientId: string;
     readonly profile: PairingProfile | undefined;
     readonly grantedCapabilities: readonly CapabilityId[];
+};
+
+// @public
+export type AxatalkAccountApi = {
+    readonly prepareLogout: (input: {
+        readonly expectedRevision: number;
+    }) => Promise<PrepareLogoutResult>;
+    readonly confirmLogout: (input: {
+        readonly logoutToken: string;
+        readonly reasonId?: number;
+        readonly expectedRevision: number;
+    }) => Promise<ConfirmLogoutResult>;
 };
 
 // @public
@@ -111,6 +124,8 @@ export type AxatalkClient = {
     }>) => void) => () => void;
     readonly window: AxatalkWindowApi;
     readonly calls: AxatalkCallsApi;
+    readonly operator: AxatalkOperatorApi;
+    readonly account: AxatalkAccountApi;
 };
 
 // @public
@@ -119,18 +134,21 @@ export class AxatalkClientError extends Error {
         readonly code: ProtocolErrorCode;
         readonly retryable: boolean;
         readonly currentRevision?: number;
+        readonly details?: WireJsonObject;
     });
     // (undocumented)
     readonly code: ProtocolErrorCode;
     // (undocumented)
     readonly currentRevision: number | undefined;
     // (undocumented)
+    readonly details: WireJsonObject | undefined;
+    // (undocumented)
     readonly name = "AxatalkClientError";
     // (undocumented)
     readonly retryable: boolean;
 }
 
-// @public
+// @public (undocumented)
 export type AxatalkClientOptions = AuthClientOptions;
 
 // @public
@@ -139,6 +157,16 @@ export type AxatalkEvent = Extract<EventMessage, {
 }>;
 
 // @public
+export type AxatalkOperatorApi = {
+    readonly getReasons: () => Promise<OperatorReasonsResult>;
+    readonly changeStatus: (input: {
+        readonly target: 'ready' | 'break';
+        readonly reasonId?: number;
+        readonly expectedRevision: number;
+    }) => Promise<OperatorStatusChangeResult>;
+};
+
+// @public (undocumented)
 export type AxatalkWindowApi = {
     readonly show: () => Promise<{
         readonly visible: boolean;
@@ -150,9 +178,15 @@ export type AxatalkWindowApi = {
     }>;
 };
 
-// @public
+// @public (undocumented)
 export type CallMutationResult = {
     readonly callId: string;
+    readonly revision: number;
+};
+
+// @public
+export type ConfirmLogoutResult = {
+    readonly loggedOut: boolean;
     readonly revision: number;
 };
 
@@ -238,6 +272,28 @@ export type JitterSource = {
 };
 
 // @public
+export type OperatorReason = {
+    readonly id: number;
+    readonly label: string;
+    readonly kind: 'ready' | 'break' | 'logout';
+};
+
+// @public (undocumented)
+export type OperatorReasonsResult = {
+    readonly reasons: readonly OperatorReason[];
+    readonly revision: number;
+};
+
+// @public (undocumented)
+export type OperatorStatusChangeResult = {
+    readonly accepted: boolean;
+    readonly kind: string;
+    readonly targetStatus: string;
+    readonly reasonId: number;
+    readonly revision: number;
+};
+
+// @public
 export type PairingRequiredInfo = {
     readonly origin: string;
     readonly requestedProfile: PairingProfile;
@@ -249,6 +305,13 @@ export type PopKeyStore = {
     readonly load: () => Promise<StoredPopIdentity | undefined>;
     readonly save: (identity: StoredPopIdentity) => Promise<void>;
     readonly clear: () => Promise<void>;
+};
+
+// @public
+export type PrepareLogoutResult = {
+    readonly logoutToken: string;
+    readonly requiresReason: boolean;
+    readonly revision: number;
 };
 
 // @public

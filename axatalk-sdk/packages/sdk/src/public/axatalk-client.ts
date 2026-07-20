@@ -1,8 +1,6 @@
 /**
- * AxatalkClient — read path (SDK-05) + capability-gated call mutations (SDK-06).
+ * AxatalkClient factory — read path (SDK-05) + calls (SDK-06) + operator/logout (SDK-07).
  */
-
-import type { CapabilityId, SnapshotMessage } from '@axatalk/protocol';
 
 import { createAuthOrchestrator } from '../internal/auth-orchestrator.js';
 import {
@@ -10,131 +8,38 @@ import {
   isAxatalkClientError
 } from '../internal/client-errors.js';
 import { createConnectionSession } from '../internal/connection-session.js';
-import type { ConnectionState } from '../internal/connection-state.js';
 import { createProductOrchestrator } from '../internal/product-orchestrator.js';
 import {
   PUBLIC_EVENT_TYPES,
   type AxatalkEvent,
   type PublicEventType
 } from '../internal/public-event-map.js';
+import type { PairingRequiredInfo } from './auth-client.js';
 import type {
-  AuthClientOptions,
-  AuthSessionSnapshot,
-  PairingRequiredInfo
-} from './auth-client.js';
+  AxatalkClient,
+  AxatalkClientOptions
+} from './axatalk-client-api.js';
 
 export type { AxatalkEvent, PublicEventType };
 export { AxatalkClientError, isAxatalkClientError, PUBLIC_EVENT_TYPES };
-
-/**
- * Options for {@link createAxatalkClient}. Constructor has no network side effects.
- * @public
- */
-export type AxatalkClientOptions = AuthClientOptions;
-
-/**
- * Typed success for call mutations. `revision` is the next expectedRevision.
- * @public
- */
-export type CallMutationResult = {
-  readonly callId: string;
-  readonly revision: number;
-};
-
-/**
- * Window namespace (show only; hide is never a successful product method).
- * @public
- */
-export type AxatalkWindowApi = {
-  readonly show: () => Promise<{
-    readonly visible: boolean;
-    readonly revision: number;
-  }>;
-  readonly getState: () => Promise<{
-    readonly visible: boolean;
-    readonly revision: number;
-  }>;
-};
-
-/**
- * Call mutation namespace. Every method requires explicit `expectedRevision`
- * (use {@link AxatalkClient.getRevision} / fresh {@link AxatalkClient.getSnapshot}
- * after reconnect — never auto-retry on `stale_state`).
- * @public
- */
-export type AxatalkCallsApi = {
-  readonly originate: (input: {
-    readonly destination: string;
-    readonly expectedRevision: number;
-  }) => Promise<CallMutationResult>;
-  readonly answer: (input: {
-    readonly callId: string;
-    readonly expectedRevision: number;
-  }) => Promise<CallMutationResult>;
-  readonly reject: (input: {
-    readonly callId: string;
-    readonly expectedRevision: number;
-  }) => Promise<CallMutationResult>;
-  readonly hangup: (input: {
-    readonly callId: string;
-    readonly expectedRevision: number;
-  }) => Promise<CallMutationResult>;
-  readonly hold: (input: {
-    readonly callId: string;
-    readonly expectedRevision: number;
-  }) => Promise<CallMutationResult>;
-  readonly resume: (input: {
-    readonly callId: string;
-    readonly expectedRevision: number;
-  }) => Promise<CallMutationResult>;
-  readonly mute: (input: {
-    readonly callId: string;
-    readonly expectedRevision: number;
-  }) => Promise<CallMutationResult>;
-  readonly unmute: (input: {
-    readonly callId: string;
-    readonly expectedRevision: number;
-  }) => Promise<CallMutationResult>;
-  readonly sendDtmf: (input: {
-    readonly callId: string;
-    readonly digits: string;
-    readonly expectedRevision: number;
-  }) => Promise<CallMutationResult>;
-};
-
-/**
- * Axatalk browser client. No operator/account mutation methods (SDK-07/08).
- * @public
- */
-export type AxatalkClient = {
-  readonly getState: () => ConnectionState;
-  readonly getGrantedCapabilities: () => readonly CapabilityId[];
-  readonly getSession: () => AuthSessionSnapshot | undefined;
-  readonly preauthDropCount: () => number;
-  readonly connect: () => Promise<void>;
-  readonly disconnect: () => void;
-  readonly onStateChange: (
-    listener: (state: ConnectionState) => void
-  ) => () => void;
-  readonly onPairingRequired: (
-    listener: (info: PairingRequiredInfo) => void
-  ) => () => void;
-  readonly waitUntil: (
-    predicate: (state: ConnectionState) => boolean,
-    timeoutMs?: number
-  ) => Promise<ConnectionState>;
-  /** Request a fresh redacted snapshot (`sdk:get-snapshot`). */
-  readonly getSnapshot: () => Promise<SnapshotMessage>;
-  /** Last cached snapshot, if any (undefined after invalidate/reconnect). */
-  readonly getCachedSnapshot: () => SnapshotMessage | undefined;
-  readonly getRevision: () => number | undefined;
-  readonly subscribe: <T extends PublicEventType>(
-    type: T,
-    listener: (event: Extract<AxatalkEvent, { type: T }>) => void
-  ) => () => void;
-  readonly window: AxatalkWindowApi;
-  readonly calls: AxatalkCallsApi;
-};
+export type {
+  ConfirmLogoutResult,
+  PrepareLogoutResult
+} from '../internal/account-logout-commands.js';
+export type {
+  OperatorReason,
+  OperatorReasonsResult,
+  OperatorStatusChangeResult
+} from '../internal/operator-commands.js';
+export type {
+  AxatalkAccountApi,
+  AxatalkCallsApi,
+  AxatalkClient,
+  AxatalkClientOptions,
+  AxatalkOperatorApi,
+  AxatalkWindowApi,
+  CallMutationResult
+} from './axatalk-client-api.js';
 
 /**
  * Create an Axatalk client. Does not connect, pair, auth, or fetch.
@@ -288,6 +193,14 @@ export function createAxatalkClient(
       mute: (input) => product.controlCall('call:mute', input),
       unmute: (input) => product.controlCall('call:unmute', input),
       sendDtmf: (input) => product.sendDtmf(input)
+    }),
+    operator: Object.freeze({
+      getReasons: () => product.getOperatorReasons(),
+      changeStatus: (input) => product.changeOperatorStatus(input)
+    }),
+    account: Object.freeze({
+      prepareLogout: (input) => product.prepareLogout(input),
+      confirmLogout: (input) => product.confirmLogout(input)
     })
   };
 }

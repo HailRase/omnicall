@@ -1,7 +1,7 @@
 /**
  * `@axatalk/sdk` — browser client for Axatalk Desktop local protocol.
  *
- * SDK-06: AxatalkClient with namespaced call mutations + SDK-04/05 read path.
+ * SDK-07: AxatalkClient with namespaced operator + account logout workflows.
  *
  * @packageDocumentation
  */
@@ -19,12 +19,19 @@ export {
   createAxatalkClient,
   isAxatalkClientError,
   PUBLIC_EVENT_TYPES,
+  type AxatalkAccountApi,
   type AxatalkCallsApi,
   type AxatalkClient,
   type AxatalkClientOptions,
   type AxatalkEvent,
+  type AxatalkOperatorApi,
   type AxatalkWindowApi,
   type CallMutationResult,
+  type ConfirmLogoutResult,
+  type OperatorReason,
+  type OperatorReasonsResult,
+  type OperatorStatusChangeResult,
+  type PrepareLogoutResult,
   type PublicEventType
 } from './public/axatalk-client.js';
 

@@ -64,6 +64,9 @@ export function mapReplyFailure(result: PendingRequestResult): AxatalkClientErro
     retryable: result.reply.error.retryable,
     ...(result.reply.error.currentRevision !== undefined
       ? { currentRevision: result.reply.error.currentRevision }
+      : {}),
+    ...(result.reply.error.details !== undefined
+      ? { details: result.reply.error.details }
       : {})
   });
 }

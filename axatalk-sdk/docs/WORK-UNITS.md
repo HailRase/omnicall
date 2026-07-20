@@ -19,7 +19,7 @@ Allowed statuses: `pending`, `in progress`, `review`, `done`, `blocked`.
 - [x] SDK-04 — Pairing, authentication, and capabilities (`done`)
 - [x] SDK-05 — Read-only beta API (`done`)
 - [x] SDK-06 — Call control API (`done`)
-- [ ] SDK-07 — Operator and logout workflows (`pending`)
+- [x] SDK-07 — Operator and logout workflows (`done`)
 - [ ] SDK-08 — Saved-profile activation (`pending`)
 - [ ] SDK-09 — Developer documentation and examples (`pending`)
 - [ ] SDK-10 — Release candidate and stable release (`pending`)
@@ -255,21 +255,45 @@ Agent prompt:
 > Add operator status and prepare/confirm logout workflows through public DTOs. OCP remains
 > optional and its wire protocol must not enter the SDK.
 
+Status: **`done`** (2026-07-20) — `/sdk-review` PASS
+
+Public API (namespaced only):
+
+```ts
+client.operator.getReasons()
+client.operator.changeStatus({ target, reasonId?, expectedRevision })
+client.account.prepareLogout({ expectedRevision })
+client.account.confirmLogout({ logoutToken, reasonId?, expectedRevision })
+```
+
+Command matrix: `operator:get-reasons` / `operator:change-status` / `account:prepare-logout` /
+`account:confirm-logout`. Cancel = abandon token / disconnect (no invent `account:cancel-logout`).
+
+Non-goals held: SDK-08 activate; window.hide; campaigns; OCP wire; desktop `src/`; npm publish;
+auto-retry; confirm-on-disconnect; root-level mutations.
+
 Checklist:
 
-- [ ] operator state and reasons.
-- [ ] status change.
-- [ ] prepare logout.
-- [ ] interaction-required result.
-- [ ] confirm/cancel logout.
-- [ ] SIP-only behavior.
-- [ ] OCP reason and recovery tests.
+- [x] operator state and reasons.
+- [x] status change.
+- [x] prepare logout.
+- [x] interaction-required result.
+- [x] confirm/cancel logout.
+- [x] SIP-only behavior.
+- [x] OCP reason and recovery tests.
+- [x] reconnect does not replay operator/logout mutations.
+- [x] SDK disconnect does not logout / does not tear SIP.
+- [x] SDK-05/SDK-06 regressions green.
+- [x] browser coverage (minimal).
+- [x] api-check / package-check updated.
 
 Evidence:
 
-- Workflow tests:
-- SIP-only regression evidence:
-- Reviewer:
+- Unit evidence: `axatalk-sdk/evidence/SDK-07-operator-logout-workflows.md`
+- Workflow tests: `packages/sdk/src/public/axatalk-client.operator.test.ts` (+ browser operator path)
+- SIP-only regression evidence: empty reasons / `not_found` status / prepare-without-interaction in operator tests
+- Reviewer: `/sdk-review` **PASS** 2026-07-20 — zero Blockers; Low remediated same day (operator `conflict` test); independent post-fix: sdk src **88**, workspace **96**, types **6**, browser **6**, api **46**, desktop oracle **33**; F-011 remains `in progress`; DI-10 still blocked on SDK-08…09; next `/sdk-project` SDK-08 only
+- Explicit non-goals: no SDK-08; F-011 not `implemented`; DI-10 still blocked on SDK-08…09
 
 ## SDK-08 — Saved-Profile Activation
 
