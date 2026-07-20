@@ -35,7 +35,7 @@ export type ExternalClientGatewayStatus = "disabled" | "mock" | "listening";
 
 /**
  * Port for the External Client Gateway (ADR-0009/0010).
- * Real loopback transport lands in DI-03; DI-01 provides the contract + mocks.
+ * Real loopback transport: `LocalWsServerAdapter` (DI-03). DI-01 provides the contract + mocks.
  */
 export interface ExternalClientGateway {
   getStatus(): ExternalClientGatewayStatus;

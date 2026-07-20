@@ -5,7 +5,7 @@
 - [x] DI-00 — ADRs, baseline, and P12 handoff (`done`)
 - [x] DI-01 — Protocol contracts, ports, and mocks (`done`)
 - [x] DI-02 — Typed main-to-renderer broker (`done`)
-- [ ] DI-03 — Loopback WebSocket transport (`pending`)
+- [x] DI-03 — Loopback WebSocket transport (`done`)
 - [ ] DI-04 — Pairing, Origin, capabilities, and revocation (`pending`)
 - [ ] DI-05 — Read-only snapshot, events, and window show (`pending`)
 - [ ] DI-06 — Call command router (`pending`)
@@ -220,6 +220,16 @@ Checklist:
 
 Prerequisites: DI-02 done.
 
+Status: **`done`** (2026-07-20) — `/sdk-review` PASS
+
+### Intake (before coding)
+
+- Feature/LF: F-011; LF-051, LF-065, LF-080, LF-081
+- Bounded context: Integration
+- Layers: main infrastructure/adapter, ports implementation, shared validation as needed, tests, evidence/docs
+- Layers forbidden: Domain rules, renderer product UI, pairing storage, snapshot mappers, call/operator routers
+- Regression risks refused: SIP-only auth; optional OCP; call/media/headset; single composition; Domain free of protocol/Electron/ws; sandbox/preload; no `window.Softphone`; transfer backlog; no secret/PII in logs
+
 Agent prompt:
 
 > Implement a handshake-only loopback WebSocket adapter in Electron main. Verify official
@@ -228,13 +238,38 @@ Agent prompt:
 
 Checklist:
 
-- [ ] maintained dependency selected and justified.
-- [ ] loopback-only binding.
-- [ ] single-instance lock and occupied-port failure.
-- [ ] frame/depth/connection/rate/queue limits.
-- [ ] heartbeat and auth timeout.
-- [ ] deterministic teardown.
-- [ ] unauthenticated product access impossible.
+- [x] maintained dependency selected and justified.
+- [x] loopback-only binding.
+- [x] single-instance lock and occupied-port failure.
+- [x] frame/depth/connection/rate/queue limits.
+- [x] heartbeat and auth timeout.
+- [x] deterministic teardown.
+- [x] unauthenticated product access impossible.
+
+### Handoff checklist (DI-03)
+
+- Work unit: DI-03
+- Prerequisites verified: DI-00/01/02 `done` (`/sdk-review` PASS); SDK-01+SDK-02 `done`; SDK-03 `done` (SDK package)
+- Feature/LF IDs: F-011; LF-051, LF-065, LF-080, LF-081
+- Bounded contexts: Integration
+- Layers changed: adapters/integration (LocalWsServerAdapter + helpers), main/sdk registration, package `ws`, tests, evidence/docs
+- Files added/changed:
+  - `src/adapters/integration/LocalWsServerAdapter.ts` (+ test)
+  - `src/adapters/integration/LocalWsSessionRegistry.ts`
+  - `src/adapters/integration/sdkGateway*.ts` / `localWsServer*.ts`
+  - `src/main/sdk/registerSdkGateway.ts` (+ test); wire in `src/main/index.ts`
+  - `package.json` — `ws@8.18.3`, `@types/ws`
+  - `axatalk-sdk-integration/evidence/DI-03-loopback-websocket-transport.md`
+- Commands/events added: none product; handshake + discovery HTTP only; product cmds denied `unauthenticated`
+- Security impact: loopback bind, single-instance, limits, fail-closed unauth product path; Origin allowlist deferred DI-04
+- Regression risks: additive gateway; SIP/OCP/call untouched; F-011 not implemented
+- Automated tests: 35 focused DI-03 (+ mock/boundary/registry); full suite **2370 passed / 1 skipped** (High/Low follow-ups closed)
+- Manual evidence: smoke not claimed
+- Verification commands: focused vitest; `npm test`; `npm run lint`; `npm run typecheck`; `npm run registry:check`
+- Registry/Legacy/STATUS changes: F-011 stays `in progress`; DI-03 → `done`
+- Remaining risks: DI-04 pairing/Origin; DI-05 snapshots; packaged E2E at DI-10
+- Evidence: `axatalk-sdk-integration/evidence/DI-03-loopback-websocket-transport.md`
+- Reviewer: `/sdk-review` **PASS** (2026-07-20) — no Blockers; High/Low follow-ups closed same day; next DI-04 via `/sdk-integration`
 
 ## DI-04 — Pairing, Origin, Capabilities, and Revocation
 

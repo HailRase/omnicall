@@ -105,14 +105,15 @@ Gate closed. Post-review follow-ups closed: cancel-quit restores broker readines
 
 ## Phase DI-03 — Local Gateway Transport
 
-- Select a maintained, non-deprecated WebSocket server dependency after official-doc review.
-- Bind only to loopback and fail closed on port collision.
-- Add frame/depth/connection/queue/heartbeat limits.
-- Implement handshake framing but expose no product data or commands.
-- Add Electron single-instance lock before fixed endpoint ownership.
-- Ensure shutdown disposes server, clients, timers, and broker requests.
+Status: **`done`** (2026-07-20) — `/sdk-review` PASS. Evidence: `evidence/DI-03-loopback-websocket-transport.md`.
 
-Gate: transport and resource-abuse tests pass; unauthenticated clients receive no product data.
+- Selected `ws@8.18.3` (`WebSocketServer`) after Context7 official-doc / deprecation check.
+- Bound loopback-only with fail-closed occupied-port and single-instance ownership.
+- Enforced frame/depth/connection/rate/queue/heartbeat/idle/handshake limits.
+- Handshake + discovery only; product commands denied `unauthenticated`.
+- Shutdown stops acceptance and disposes server/clients/timers without blocking SIP boot.
+
+Gate: `/sdk-review` PASS (High/Low follow-ups non-blocking).
 
 ## Phase DI-04 — Pairing and Authorization
 

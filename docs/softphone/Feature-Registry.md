@@ -301,7 +301,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-051`, `LF-065`, `LF-080`, `LF-081`
 - Context: Integration
 - Priority: critical
-- Status: **in progress** (legacy `window.Softphone` **not ported**; architecture gate DI-00 `done`; SDK-00…SDK-02 `done`; DI-01 ports/mocks **`done`**; **DI-02** typed main↔renderer broker **`done`** (`/sdk-review` PASS) — no WS/product gateway; F-011 not implemented)
+- Status: **in progress** (legacy `window.Softphone` **not ported**; architecture gate DI-00 `done`; SDK-00…SDK-03 `done`; DI-01 ports/mocks **`done`**; DI-02 broker **`done`**; **DI-03** loopback WS transport **`done`** (`/sdk-review` PASS) — handshake/discovery only, no pairing/product snapshots; F-011 not implemented)
 - Owner: TBD
 - Inputs: external commands from browser tabs via WS (not DOM globals)
 - Outputs: typed commands routed to Facade / Use Cases with `callType: 'sdk'` (F-028 E-12 host methods retain `callType: 'external'`)
@@ -317,7 +317,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - `window:hide` remains unavailable until tray/background policy is accepted (ADR-0013).
 - Test Coverage:
   - Unit: command payload parsing (F-028 E-12); DI-01 fixture corpus consume + mock gateway/broker + Domain dependency-boundary
-  - Integration: DI-02 broker loopback (readiness/timeout/cancel/reload/shutdown + one Application probe); WS transport deferred to DI-03+
+  - Integration: DI-02 broker loopback; DI-03 loopback WS bind/limits/handshake/unauth deny/teardown
   - E2E: deferred until DI-10 packaged gate
 - Implementation plans: `axatalk-sdk/README.md`; `axatalk-sdk-integration/README.md`; `axatalk-sdk-integration/WORK-UNITS.md` (DI-00…DI-10); `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`
 - Architecture ADRs: `docs/softphone/adr/ADR-0009-sdk-process-ownership-broker-lifecycle.md`; `ADR-0010`; `ADR-0011`; `ADR-0012`; `ADR-0013`; `ADR-0014`; `ADR-0015`; `ADR-0016`; `ADR-0017`
@@ -326,9 +326,11 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - SDK-02 evidence: `axatalk-sdk/evidence/SDK-02-protocol-package.md`
 - DI-01 evidence: `axatalk-sdk-integration/evidence/DI-01-protocol-ports-mocks.md`
 - DI-02 evidence: `axatalk-sdk-integration/evidence/DI-02-typed-main-renderer-broker.md`
+- DI-03 evidence: `axatalk-sdk-integration/evidence/DI-03-loopback-websocket-transport.md`
 - Implementation evidence (OCP command surface): `src/shared/host-api/OcpHostApiContract.ts`; Facade `authenticateOcpFromHost` / `changeOcpStatusFromHost` / `getOcpConnectionState`
 - Implementation evidence (DI-01 contracts): `src/ports/integration/ExternalClientGateway.ts`; `MainToRendererBrokerPort.ts`; `ExternalCommandHandler.ts`; `src/adapters/mock/MockExternalClientGateway.ts`; `MockMainToRendererBroker.ts`; `MockExternalCommandHandler.ts`; consume tests `src/ports/integration/protocol-fixture-consume.test.ts`
 - Implementation evidence (DI-02 broker): `src/shared/ipc/SdkBrokerContract.ts`; `src/adapters/integration/MainToRendererBroker.ts`; `src/adapters/integration/RendererSdkBrokerSession.ts`; `src/application/integration/SdkBrokerProbeHandler.ts`; `src/main/sdk/registerSdkBrokerIpc.ts`; `src/renderer/bootstrap/bindSdkBrokerSession.ts`
+- Implementation evidence (DI-03 gateway): `src/adapters/integration/LocalWsServerAdapter.ts`; `src/adapters/integration/LocalWsSessionRegistry.ts`; `src/main/sdk/registerSdkGateway.ts`
 
 ## F-012: Headset Call Controls
 

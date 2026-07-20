@@ -38,6 +38,13 @@ import {
   registerSdkBrokerIpc,
   shutdownSdkBroker,
 } from "./sdk/registerSdkBrokerIpc.js";
+import {
+  beginSdkGatewayAppShutdown,
+  cancelSdkGatewayAppShutdown,
+  setSdkGatewayPrimaryInstance,
+  startSdkGateway,
+  stopSdkGateway,
+} from "./sdk/registerSdkGateway.js";
 
 const logger = createConsoleLogger({
   boundedContext: "Integration",
@@ -147,7 +154,8 @@ function requestRendererShutdown(
   source: AppShutdownSource,
   action: AppShutdownAction,
 ): { ok: true } | { ok: false; reason: "shutdown_in_progress" | "window_destroyed" } {
-  // ADR-0009: cancel pending broker work before renderer telephony cleanup.
+  // ADR-0009: stop gateway acceptance + cancel pending broker work before telephony cleanup.
+  beginSdkGatewayAppShutdown();
   beginSdkBrokerAppShutdown();
 
   const correlationId = createCorrelationId();
@@ -194,8 +202,24 @@ function requestRendererShutdown(
 
 function finalizeShutdown(action: AppShutdownAction): void {
   isQuitting = true;
-  // ADR-0009: cancel pending broker work before process exit / telephony teardown path.
+  // ADR-0009: dispose broker sync, then await gateway teardown before process exit.
   shutdownSdkBroker();
+  void completeShutdownAfterGatewayStop(action);
+}
+
+async function completeShutdownAfterGatewayStop(
+  action: AppShutdownAction,
+): Promise<void> {
+  try {
+    await stopSdkGateway();
+  } catch (error: unknown) {
+    logger.warn("sdk_gateway_stop_failed", {
+      correlationId: createCorrelationId(),
+      operation: "sdk_gateway_stop",
+      result: "failed",
+      code: error instanceof Error ? error.name : "unknown",
+    });
+  }
 
   // Force quit, kill, or OS hard shutdown cannot await async SIP logout.
   if (action === "restart") {
@@ -346,8 +370,9 @@ function registerIpcHandlers(): void {
       return { ok: false as const, reason: "rejected" };
     }
 
-    // ADR-0009 / DI-02: restore broker readiness after cancelled quit without reload.
+    // ADR-0009 / DI-02/03: restore broker + gateway acceptance after cancelled quit.
     cancelSdkBrokerAppShutdown();
+    cancelSdkGatewayAppShutdown();
 
     logger.warn("app_shutdown_cancelled", {
       correlationId: parsed.correlationId,
@@ -431,7 +456,28 @@ function setupHidPermissions(): void {
   });
 }
 
+const gotSingleInstanceLock = app.requestSingleInstanceLock();
+setSdkGatewayPrimaryInstance(gotSingleInstanceLock);
+if (!gotSingleInstanceLock) {
+  app.quit();
+} else {
+  app.on("second-instance", () => {
+    const mainWindow = BrowserWindow.getAllWindows()[0];
+    if (mainWindow === undefined || mainWindow.isDestroyed()) {
+      return;
+    }
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore();
+    }
+    mainWindow.focus();
+  });
+}
+
 void app.whenReady().then(() => {
+  if (!gotSingleInstanceLock) {
+    return;
+  }
+
   const correlationId = createCorrelationId();
   installApplicationMenu();
 
@@ -456,6 +502,18 @@ void app.whenReady().then(() => {
     }),
   });
   createMainWindow();
+
+  // DI-03: handshake-only loopback gateway — failure must not block SIP-only boot.
+  void startSdkGateway({ desktopVersion: app.getVersion() }).catch(
+    (error: unknown) => {
+      logger.warn("sdk_gateway_start_unhandled", {
+        correlationId: createCorrelationId(),
+        operation: "sdk_gateway_start",
+        result: "failed",
+        code: error instanceof Error ? error.name : "unknown",
+      });
+    },
+  );
 
   app.on("activate", () => {
     if (BrowserWindow.getAllWindows().length === 0) {

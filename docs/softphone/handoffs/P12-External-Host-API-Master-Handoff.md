@@ -7,14 +7,15 @@
 | Feature | F-011 Host Integration Contract |
 | Legacy | LF-051, LF-065, LF-080, LF-081 |
 | Phase | P12 External Host API Compatibility |
-| Feature status | **in progress** (DI-01 `done`; DI-02 broker `done`; no WS/product gateway) |
+| Feature status | **in progress** (DI-01…DI-03 `done`; no pairing/product snapshots) |
 | Branch | `feature/axatalk-sdk` |
 | Desktop version | `0.11.2` |
 | DI-00 | `done` — `/sdk-review` PASS 2026-07-20 |
-| SDK-00…SDK-02 | `done` — `/sdk-review` PASS |
+| SDK-00…SDK-03 | `done` — `/sdk-review` PASS (SDK package) |
 | DI-01 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-01-protocol-ports-mocks.md` |
 | DI-02 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-02-typed-main-renderer-broker.md` |
-| Next | **DI-03** loopback WebSocket (`/sdk-integration`) |
+| DI-03 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-03-loopback-websocket-transport.md` |
+| Next | **DI-04** pairing/Origin (`/sdk-integration`) |
 
 ## Mission
 
@@ -63,11 +64,11 @@ SDK and Electron-native local gateway while preserving every existing softphone 
 
 ### Security gate (policy closed; implementation later)
 
-- [x] Loopback-only endpoint and single-instance ownership (ADR-0010) — implement DI-03.
+- [x] Loopback-only endpoint and single-instance ownership (ADR-0010) — DI-03 `done`.
 - [x] Exact Origin gate before data exchange (ADR-0011) — implement DI-04.
 - [x] Per-client pairing, capabilities, expiry, and revocation (ADR-0011) — implement DI-04.
 - [x] Replay/idempotency and aggregate command serialization (ADR-0011/0012) — implement DI-04/06.
-- [x] Resource limits, heartbeat, backpressure, and safe teardown (ADR-0010) — implement DI-03.
+- [x] Resource limits, heartbeat, backpressure, and safe teardown (ADR-0010) — DI-03 `done`.
 - [x] Per-client redacted events; no indiscriminate broadcast (ADR-0012) — implement DI-05.
 - [x] No raw SIP/OCP credentials in protocol v1 (ADR-0013).
 - [ ] Independent security review has no Blocker — **DI-04 / DI-10**.
@@ -168,7 +169,7 @@ P12 closes only when:
 
 ## Next Agent Prompt
 
-1. Implement **DI-03** loopback WebSocket transport only (handshake + limits; no product snapshot/commands) via `/sdk-integration`.
-2. Keep Domain free of protocol / Zod / Electron / ws imports; gateway must not import Facades/Call Engine.
-3. DI-02 High/Low follow-ups are closed (cancel-quit broker restore + preferred webContents targeting).
+1. DI-03 is **`done`** (`/sdk-review` PASS 2026-07-20).
+2. Implement **DI-04** pairing/Origin/capabilities/revocation via `/sdk-integration` (separate session).
+3. Keep Domain free of protocol / Zod / Electron / ws imports; gateway must not import Facades/Call Engine.
 4. Do not mark F-011 `implemented` until DI-10.
