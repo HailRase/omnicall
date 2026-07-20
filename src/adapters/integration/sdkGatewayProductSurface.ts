@@ -31,4 +31,9 @@ export type SdkGatewayProductSurface = Readonly<{
   getWindowState: () => SdkWindowStateResult;
   /** Fan-out already-validated public event drafts from renderer. */
   onPublishPublicEvent?: (draft: unknown) => void;
+  /**
+   * Authenticated client socket closed/revoked — abandon pending logout only.
+   * Must not tear SIP or account sessions (ADR-0017 O-OWN-1).
+   */
+  onClientSessionEnded?: (clientId: string) => void;
 }>;

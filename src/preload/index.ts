@@ -30,6 +30,7 @@ import {
 } from "@shared/ipc/DisplayCaptureContract.js";
 import {
   parseSdkBrokerAckResponse,
+  parseSdkBrokerClientSessionEndedIpcPayload,
   parseSdkBrokerReadyIpcPayload,
   parseSdkBrokerReplyIpcPayload,
   parseSdkBrokerRequestIpcPayload,
@@ -269,6 +270,24 @@ const softphoneApi: SoftphonePreloadApi = {
       parsed,
     );
     return parseSdkBrokerAckResponse(response) ?? { ok: false };
+  },
+  onSdkClientSessionEnded: (handler) => {
+    const listener = (
+      _event: Electron.IpcRendererEvent,
+      payload: unknown,
+    ): void => {
+      const parsed = parseSdkBrokerClientSessionEndedIpcPayload(payload);
+      if (parsed !== null) {
+        handler(parsed);
+      }
+    };
+    ipcRenderer.on(IPC_CHANNELS.sdkBrokerClientSessionEnded, listener);
+    return () => {
+      ipcRenderer.removeListener(
+        IPC_CHANNELS.sdkBrokerClientSessionEnded,
+        listener,
+      );
+    };
   },
   publishSdkGatewayEvent: async (payload) => {
     const parsed = parseSdkGatewayPublishEventIpcPayload(payload);

@@ -8,6 +8,13 @@ import type { PlatformError } from "@shared/errors/index.js";
 export function mapPlatformErrorToSdkCode(
   error: PlatformError,
 ): ProtocolErrorCode {
+  if (
+    error.code === "validation_failed" &&
+    (error.message === "ocp_logout_reason_required" ||
+      isCauseReason(error.cause, "ocp_logout_reason_required"))
+  ) {
+    return "interaction_required";
+  }
   switch (error.code) {
     case "validation_failed":
       return "invalid_payload";
@@ -27,4 +34,11 @@ export function mapPlatformErrorToSdkCode(
     default:
       return "operation_failed";
   }
+}
+
+function isCauseReason(cause: unknown, reason: string): boolean {
+  if (typeof cause !== "object" || cause === null) {
+    return false;
+  }
+  return (cause as Record<string, unknown>)["reason"] === reason;
 }

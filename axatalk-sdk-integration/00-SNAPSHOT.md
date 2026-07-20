@@ -9,8 +9,8 @@ recorded evidence on 2026-07-20.
 
 - Axatalk Desktop version: `0.11.2`
 - Branch / commits (DI-00): `feature/axatalk-sdk` — code preflight `5114c02`; docs `18fb3f1`
-- F-011 Host Integration Contract: `in progress` (DI-01…DI-06 `done`; next DI-07)
-- P12 External Host API Compatibility: architecture closed (DI-00); DI-01…DI-06 `done`; next DI-07
+- F-011 Host Integration Contract: `in progress` (DI-01…DI-07 `done`; next DI-08)
+- P12 External Host API Compatibility: architecture closed (DI-00); DI-01…DI-07 `done`; next DI-08
 - F-028 OCP command subset E-12: implemented
 - SIP-only product path: implemented and mandatory
 - OCP module: optional
@@ -59,10 +59,10 @@ Handoff: `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`
 
 - real `LocalWsServerAdapter` / listening gateway — DI-03 **`done`** (handshake + discovery + limits; product still denied);
 - typed main-to-renderer command broker **implementation** — DI-02 `done` (port/mock from DI-01; real IPC adapter landed);
-- operator/account `ExternalCommandRouter` — DI-07/08;
+- operator/account `ExternalCommandRouter` — DI-07 **`done`**; DI-08 pending;
 - pairing, Origin, capability, replay, revoke — DI-04 **`done`** (`/sdk-review` PASS);
 - public snapshot/event mapper + `window:show` — DI-05 **`done`**;
-- public call command mapping — DI-06 **`review`**;
+- public call command mapping — DI-06 **`done`**;
 - SDK settings and operational UX;
 - window hide public implementation (`hide` policy-gated per ADR-0013);
 - protocol integration and packaged E2E tests.

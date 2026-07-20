@@ -234,7 +234,7 @@ describe("routeSdkInbound", () => {
     });
   });
 
-  it("keeps operator:change-status as not_ready (DI-07)", () => {
+  it("routes operator:change-status to command_broker (DI-07)", () => {
     const changeStatus = {
       ...getSnapshot,
       type: "operator:change-status" as const,
@@ -247,9 +247,49 @@ describe("routeSdkInbound", () => {
         grantedCapabilities: ["operator.status.write"],
       }),
     ).toEqual({
-      action: "command_not_ready",
+      action: "command_broker",
       requestId: "req_test_001",
       commandType: "operator:change-status",
+      message: changeStatus,
+    });
+  });
+
+  it("routes account:prepare-logout to command_broker (DI-07)", () => {
+    const prepare = {
+      ...getSnapshot,
+      type: "account:prepare-logout" as const,
+      payload: { expectedRevision: 1 },
+    };
+    expect(
+      routeSdkInbound(prepare, {
+        handshakeComplete: true,
+        authState: "authenticated",
+        grantedCapabilities: ["session.logout"],
+      }),
+    ).toEqual({
+      action: "command_broker",
+      requestId: "req_test_001",
+      commandType: "account:prepare-logout",
+      message: prepare,
+    });
+  });
+
+  it("keeps account:activate-profile as not_ready (DI-08)", () => {
+    const activate = {
+      ...getSnapshot,
+      type: "account:activate-profile" as const,
+      payload: { profileRef: "profile_opaque_001", expectedRevision: 1 },
+    };
+    expect(
+      routeSdkInbound(activate, {
+        handshakeComplete: true,
+        authState: "authenticated",
+        grantedCapabilities: ["account.activate"],
+      }),
+    ).toEqual({
+      action: "command_not_ready",
+      requestId: "req_test_001",
+      commandType: "account:activate-profile",
     });
   });
 });

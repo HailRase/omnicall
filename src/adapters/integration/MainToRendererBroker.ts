@@ -162,6 +162,7 @@ export class MainToRendererBroker implements MainToRendererBrokerPort {
         ...(parsed.currentRevision !== undefined
           ? { currentRevision: parsed.currentRevision }
           : {}),
+        ...(parsed.details !== undefined ? { details: parsed.details } : {}),
       });
     }
 

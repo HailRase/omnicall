@@ -21,6 +21,8 @@ export type ExternalHandlerFailure = Readonly<{
   retryable: boolean;
   /** Present for `stale_state` so clients can resync (ADR-0017). */
   currentRevision?: number;
+  /** Safe public details (e.g. `interaction_required` logoutToken + reasons). */
+  details?: WireJsonObject;
 }>;
 
 export type ExternalHandlerResult = ExternalHandlerSuccess | ExternalHandlerFailure;

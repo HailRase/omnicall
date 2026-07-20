@@ -4,7 +4,11 @@
  * in main/renderer adapters, not in preload.
  */
 
-import { PROTOCOL_ERROR_CODES, type ProtocolErrorCode } from "@axatalk/protocol";
+import {
+  PROTOCOL_ERROR_CODES,
+  type ProtocolErrorCode,
+  type WireJsonObject,
+} from "@axatalk/protocol";
 
 const PROTOCOL_ERROR_CODE_SET: ReadonlySet<string> = new Set(PROTOCOL_ERROR_CODES);
 
@@ -26,6 +30,7 @@ export type SdkBrokerReplyFailureIpcPayload = Readonly<{
   ok: false;
   code: ProtocolErrorCode;
   currentRevision?: number;
+  details?: WireJsonObject;
 }>;
 
 export type SdkBrokerReplyIpcPayload =
@@ -42,6 +47,11 @@ export type SdkBrokerReadyIpcResponse = Readonly<{
 
 export type SdkBrokerReplyIpcResponse = Readonly<{
   ok: boolean;
+}>;
+
+/** Main → renderer: authenticated client socket ended (clear pending logout only). */
+export type SdkBrokerClientSessionEndedIpcPayload = Readonly<{
+  clientId: string;
 }>;
 
 function isNonEmptyString(value: unknown): value is string {
@@ -127,11 +137,19 @@ export function parseSdkBrokerReplyIpcPayload(
   ) {
     return null;
   }
+  const details = candidate["details"];
+  if (
+    details !== undefined &&
+    (typeof details !== "object" || details === null || Array.isArray(details))
+  ) {
+    return null;
+  }
   return {
     brokerRequestId,
     ok: false,
     code,
     ...(typeof currentRevision === "number" ? { currentRevision } : {}),
+    ...(details !== undefined ? { details: details as WireJsonObject } : {}),
   };
 }
 
@@ -152,6 +170,25 @@ export function parseSdkBrokerReadyIpcPayload(
     return null;
   }
   return { ready };
+}
+
+/**
+ * - Purpose: validate main→renderer client-session-ended envelope.
+ * - Inputs: unknown IPC payload.
+ * - Outputs: typed payload or null when invalid.
+ */
+export function parseSdkBrokerClientSessionEndedIpcPayload(
+  value: unknown,
+): SdkBrokerClientSessionEndedIpcPayload | null {
+  if (typeof value !== "object" || value === null) {
+    return null;
+  }
+  const candidate = value as Record<string, unknown>;
+  const clientId = candidate["clientId"];
+  if (!isNonEmptyString(clientId)) {
+    return null;
+  }
+  return { clientId };
 }
 
 /**

@@ -1,5 +1,5 @@
 /**
- * Compose DI-05 product surface: broker queries + native window handler.
+ * Compose DI-05/DI-07 product surface: broker queries + native window handler.
  */
 
 import type { BrowserWindow } from "electron";
@@ -7,6 +7,11 @@ import type { WireMessage } from "@axatalk/protocol";
 import type { MainToRendererBroker } from "@adapters/integration/MainToRendererBroker.js";
 import type { SdkGatewayProductSurface } from "@adapters/integration/sdkGatewayProductSurface.js";
 import { SdkWindowCommandHandler } from "@adapters/integration/sdkGatewayWindowHandler.js";
+import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
+import {
+  parseSdkBrokerClientSessionEndedIpcPayload,
+  type SdkBrokerClientSessionEndedIpcPayload,
+} from "@shared/ipc/SdkBrokerContract.js";
 
 export function createSdkGatewayProductSurface(input: {
   readonly getBroker: () => MainToRendererBroker | null;
@@ -29,5 +34,17 @@ export function createSdkGatewayProductSurface(input: {
     },
     showWindow: () => windowHandler.show(),
     getWindowState: () => windowHandler.getState(),
+    onClientSessionEnded: (clientId: string) => {
+      const payload: SdkBrokerClientSessionEndedIpcPayload = { clientId };
+      const parsed = parseSdkBrokerClientSessionEndedIpcPayload(payload);
+      if (parsed === null) {
+        return;
+      }
+      const win = input.getMainWindow();
+      if (win === null || win.isDestroyed()) {
+        return;
+      }
+      win.webContents.send(IPC_CHANNELS.sdkBrokerClientSessionEnded, parsed);
+    },
   };
 }

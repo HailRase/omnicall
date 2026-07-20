@@ -28,6 +28,7 @@ import type {
   SetPendingDisplaySourceResponse,
 } from "./DisplayCaptureContract.js";
 import type {
+  SdkBrokerClientSessionEndedIpcPayload,
   SdkBrokerReadyIpcPayload,
   SdkBrokerReadyIpcResponse,
   SdkBrokerReplyIpcPayload,
@@ -78,6 +79,12 @@ export type SoftphonePreloadApi = Readonly<{
   setSdkBrokerReady: (
     payload: SdkBrokerReadyIpcPayload,
   ) => Promise<SdkBrokerReadyIpcResponse>;
+  /**
+   * DI-07: subscribe to authenticated SDK client socket end (pending-logout clear only).
+   */
+  onSdkClientSessionEnded: (
+    handler: (payload: SdkBrokerClientSessionEndedIpcPayload) => void,
+  ) => () => void;
   /** DI-05: publish redacted public SDK event for per-client gateway fan-out. */
   publishSdkGatewayEvent: (
     payload: SdkGatewayPublishEventIpcPayload,

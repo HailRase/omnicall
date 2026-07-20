@@ -8,6 +8,7 @@ import type {
   CommandType,
   ProtocolErrorCode,
   ReplyMessage,
+  WireJsonObject,
 } from "@axatalk/protocol";
 
 /**
@@ -31,6 +32,8 @@ export type BrokerRequestFailure = Readonly<{
   ok: false;
   code: ProtocolErrorCode;
   currentRevision?: number;
+  /** Safe public details (e.g. interaction_required logout token + reasons). */
+  details?: WireJsonObject;
 }>;
 
 export type BrokerRequestResult = BrokerRequestSuccess | BrokerRequestFailure;

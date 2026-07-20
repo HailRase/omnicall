@@ -1,6 +1,6 @@
 /**
- * Composite Application handler for SDK broker product commands (DI-05 + DI-06).
- * Routes read vs call surfaces; operator/account stay unsupported until DI-07/08.
+ * Composite Application handler for SDK broker product commands (DI-05…DI-07).
+ * Routes read / call / operator surfaces; account activate stays DI-08.
  */
 
 import {
@@ -15,24 +15,36 @@ import type {
 } from "@ports/integration/ExternalCommandHandler.js";
 
 import { ExternalSdkCallHandler } from "./ExternalSdkCallHandler.js";
+import { ExternalSdkOperatorHandler } from "./ExternalSdkOperatorHandler.js";
 import { ExternalSdkReadHandler } from "./ExternalSdkReadHandler.js";
 
 export type ExternalSdkProductHandlerOptions = Readonly<{
   readHandler: ExternalSdkReadHandler;
   callHandler: ExternalSdkCallHandler;
+  operatorHandler: ExternalSdkOperatorHandler;
 }>;
 
 export class ExternalSdkProductHandler implements ExternalCommandHandler {
   private readonly readHandler: ExternalSdkReadHandler;
   private readonly callHandler: ExternalSdkCallHandler;
+  private readonly operatorHandler: ExternalSdkOperatorHandler;
 
   constructor(options: ExternalSdkProductHandlerOptions) {
     this.readHandler = options.readHandler;
     this.callHandler = options.callHandler;
+    this.operatorHandler = options.operatorHandler;
   }
 
   getRevision(): number {
     return this.readHandler.getRevision();
+  }
+
+  /**
+   * Disconnect/revoke cleanup: abandon pending logout tokens for client.
+   * Does not end SIP calls or account sessions (ADR-0017 O-OWN-1).
+   */
+  abortClientSession(clientId: string): number {
+    return this.operatorHandler.clearPendingLogoutsForClient(clientId);
   }
 
   handleCommand(
@@ -65,6 +77,9 @@ export class ExternalSdkProductHandler implements ExternalCommandHandler {
     }
     if (this.callHandler.handlesCommandType(message.type)) {
       return this.callHandler.handleCommand(message, context);
+    }
+    if (this.operatorHandler.handlesCommandType(message.type)) {
+      return this.operatorHandler.handleCommand(message, context);
     }
     if (
       message.type === "sdk:ping" ||

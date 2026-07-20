@@ -35,12 +35,14 @@ function failureReply(
   brokerRequestId: string,
   code: ProtocolErrorCode,
   currentRevision?: number,
+  details?: WireJsonObject,
 ): SdkBrokerReplyIpcPayload {
   return {
     brokerRequestId,
     ok: false,
     code,
     ...(currentRevision !== undefined ? { currentRevision } : {}),
+    ...(details !== undefined ? { details } : {}),
   };
 }
 
@@ -146,6 +148,7 @@ export class RendererSdkBrokerSession {
         brokerRequestId,
         handlerResult.code,
         handlerResult.currentRevision,
+        handlerResult.details,
       );
     }
 

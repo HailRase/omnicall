@@ -15,6 +15,7 @@ import { err, ok } from "@shared/result/index.js";
 
 import { ExternalSdkCallHandler } from "./ExternalSdkCallHandler.js";
 import type { ExternalSdkCallPort } from "./ExternalSdkCallPort.js";
+import { ExternalSdkOperatorHandler } from "./ExternalSdkOperatorHandler.js";
 import { ExternalSdkProductHandler } from "./ExternalSdkProductHandler.js";
 import { ExternalSdkReadHandler } from "./ExternalSdkReadHandler.js";
 import { SdkCallOwnershipRegistry } from "./SdkCallOwnershipRegistry.js";
@@ -82,7 +83,34 @@ function createProductSurface(port: ExternalSdkCallPort = createPort()) {
     ownership,
     revisionClock,
   });
-  const product = new ExternalSdkProductHandler({ readHandler, callHandler });
+  const operatorHandler = new ExternalSdkOperatorHandler({
+    operatorPort: {
+      changeOperatorStatus: () =>
+        Promise.resolve(
+          err(createPlatformError("not_found", "ocp_operator_profile_missing")),
+        ),
+      listOperatorReasons: () => [],
+      readOcpSession: () => ({
+        isAuthenticated: false,
+        isLive: false,
+        hasOperatorSnapshot: false,
+      }),
+      logoutAccountSession: () =>
+        Promise.resolve(
+          ok({
+            ocpStep: "not_connected",
+            sipSessionEnded: true,
+            operatorSnapshotMissing: false,
+          }),
+        ),
+    },
+    revisionClock,
+  });
+  const product = new ExternalSdkProductHandler({
+    readHandler,
+    callHandler,
+    operatorHandler,
+  });
   return { product, ownership, revisionClock, port };
 }
 

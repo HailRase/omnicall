@@ -3890,8 +3890,8 @@ export class AccountBootstrapFacade {
   }
 
   /**
-   * - Purpose: external operator status change with callType external.
-   * - Inputs: ready|break target and reason id (future ExternalCommandRouter).
+   * - Purpose: external operator status change (host = external, SDK = sdk).
+   * - Inputs: ready|break target and reason id (future ExternalCommandRouter / DI-07).
    * - Outputs: ChangeOperatorStatus Use Case result.
    */
   changeOcpStatusFromHost(
@@ -3900,12 +3900,13 @@ export class AccountBootstrapFacade {
       reasonId: number;
       intent?: "auto" | "apply" | "reserve";
       correlationId?: CorrelationId;
+      callType?: "external" | "sdk";
     }>,
   ): Promise<Result<ChangeOperatorStatusOutcome, PlatformError>> {
     return this.ocpIntegration.changeOperatorStatus.execute({
       targetStatus: input.targetStatus,
       reasonId: input.reasonId,
-      callType: "external",
+      callType: input.callType ?? "external",
       ...(input.intent !== undefined ? { intent: input.intent } : {}),
       ...(input.correlationId !== undefined ? { correlationId: input.correlationId } : {}),
     });

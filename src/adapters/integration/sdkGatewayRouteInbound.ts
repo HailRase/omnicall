@@ -142,7 +142,11 @@ function routeCommand(
     message.type === "call:resume" ||
     message.type === "call:mute" ||
     message.type === "call:unmute" ||
-    message.type === "call:send-dtmf"
+    message.type === "call:send-dtmf" ||
+    message.type === "operator:get-reasons" ||
+    message.type === "operator:change-status" ||
+    message.type === "account:prepare-logout" ||
+    message.type === "account:confirm-logout"
   ) {
     return {
       action: "command_broker",
@@ -160,7 +164,7 @@ function routeCommand(
     };
   }
 
-  // Operator / account mutations land in DI-07/DI-08.
+  // Account activate lands in DI-08; window:hide denied earlier via productDenial.
   return {
     action: "command_not_ready",
     requestId: message.requestId,

@@ -1,12 +1,15 @@
 /**
- * Bind DI-05/DI-06 SDK surface to the single Application composition.
- * Broker: ping + get-snapshot + call:* → Call Engine. Events: Domain → public draft.
+ * Bind DI-05…DI-07 SDK surface to the single Application composition.
+ * Broker: ping + get-snapshot + call:* + operator/logout → Facade / Call Engine.
+ * Events: Domain → public draft.
  */
 
 import { RendererSdkBrokerSession } from "@adapters/integration/RendererSdkBrokerSession.js";
 import { ExternalSdkCallHandler } from "@application/integration/ExternalSdkCallHandler.js";
+import { ExternalSdkOperatorHandler } from "@application/integration/ExternalSdkOperatorHandler.js";
 import { ExternalSdkProductHandler } from "@application/integration/ExternalSdkProductHandler.js";
 import { ExternalSdkReadHandler } from "@application/integration/ExternalSdkReadHandler.js";
+import { createSdkOperatorPortFromFacade } from "@application/integration/createSdkOperatorPortFromFacade.js";
 import { mapDomainEventToSdkPublicDraft } from "@application/integration/ExternalSdkEventMapper.js";
 import { readSdkProductStateFromStore } from "@application/integration/readSdkProductStateFromStore.js";
 import { SdkCallOwnershipRegistry } from "@application/integration/SdkCallOwnershipRegistry.js";
@@ -67,9 +70,19 @@ export function bindSdkBrokerSession(
     ownership,
     revisionClock,
   });
+  const operatorHandler = new ExternalSdkOperatorHandler({
+    operatorPort: createSdkOperatorPortFromFacade({
+      facade: options.facade,
+      ...(options.ocpModuleEnabled !== undefined
+        ? { ocpModuleEnabled: options.ocpModuleEnabled }
+        : {}),
+    }),
+    revisionClock,
+  });
   const handler = new ExternalSdkProductHandler({
     readHandler,
     callHandler,
+    operatorHandler,
   });
   const sessionEpoch = `${BROKER_SESSION_EPOCH_PREFIX}${Date.now().toString(36)}`;
   const session = new RendererSdkBrokerSession({
@@ -84,6 +97,7 @@ export function bindSdkBrokerSession(
       handler,
       ownership,
       dispose: () => {
+        operatorHandler.clearAllPendingLogouts();
         ownership.clearAll();
       },
     };
@@ -94,6 +108,9 @@ export function bindSdkBrokerSession(
     void session.handleRequest(payload).then((reply) => {
       void softphone.replySdkBrokerRequest(reply);
     });
+  });
+  const unsubscribeClientEnded = softphone.onSdkClientSessionEnded((payload) => {
+    handler.abortClientSession(payload.clientId);
   });
 
   const unsubscribeEvents = options.facade.eventPublisher.subscribe((event) => {
@@ -124,7 +141,9 @@ export function bindSdkBrokerSession(
     dispose: () => {
       session.markInactive();
       unsubscribeBroker();
+      unsubscribeClientEnded();
       unsubscribeEvents();
+      operatorHandler.clearAllPendingLogouts();
       ownership.clearAll();
       void softphone.setSdkBrokerReady({ ready: false });
     },

@@ -238,6 +238,9 @@ async function handleBrokerCommand(
       ...(brokerResult.currentRevision !== undefined
         ? { currentRevision: brokerResult.currentRevision }
         : {}),
+      ...(brokerResult.details !== undefined
+        ? { details: brokerResult.details }
+        : {}),
     });
     input.requestDedup.complete(
       command.requestId,

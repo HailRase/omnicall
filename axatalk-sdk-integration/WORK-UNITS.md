@@ -9,7 +9,7 @@
 - [x] DI-04 — Pairing, Origin, capabilities, and revocation (`done`)
 - [x] DI-05 — Read-only snapshot, events, and window show (`done`)
 - [x] DI-06 — Call command router (`done`)
-- [ ] DI-07 — Operator status and logout workflow (`pending`)
+- [x] DI-07 — Operator status and logout workflow (`done`)
 - [ ] DI-08 — Saved-profile activation (`pending`)
 - [ ] DI-09 — Settings and operational UX (`pending`)
 - [ ] DI-10 — Compatibility, E2E, and P12 close (`pending`)
@@ -437,6 +437,8 @@ Checklist:
 
 Prerequisites: DI-06 done; protocol operator/logout DTOs from SDK-02; SDK-07 client package may remain pending (mirror DI-05/DI-06).
 
+Status: **`done`** (2026-07-20) — `/sdk-review` PASS
+
 Agent prompt:
 
 > Map public operator commands to existing F-028 Application behavior with `callType: "sdk"`.
@@ -445,13 +447,25 @@ Agent prompt:
 
 Checklist:
 
-- [ ] operator state/reasons DTO mapper.
-- [ ] status changes.
-- [ ] prepare logout and interaction-required response.
-- [ ] confirm/cancel logout.
-- [ ] recovery disarm/reset preserved.
-- [ ] SIP-only, connected-only, authenticated, and failure paths.
-- [ ] no OCP wire objects cross the boundary.
+- [x] operator state/reasons DTO mapper.
+- [x] status changes.
+- [x] prepare logout and interaction-required response.
+- [x] confirm/cancel logout.
+- [x] recovery disarm/reset preserved.
+- [x] SIP-only, connected-only, authenticated, and failure paths.
+- [x] no OCP wire objects cross the boundary.
+
+### Handoff checklist (DI-07)
+
+- Work unit: DI-07
+- Prerequisites verified: DI-00…DI-06 `done` (`/sdk-review` PASS); protocol operator/logout DTOs from SDK-02; SDK-07 client package may remain pending
+- Checklist: all items complete
+- Evidence: `axatalk-sdk-integration/evidence/DI-07-operator-logout-workflow.md`
+- Security impact: capability-gated operator/logout; public DTOs only; `interaction_required` details safe; DI-04/05/06 invariants preserved (revision peek on reads/prepare)
+- Automated tests: focused DI-04…DI-07 + Low remediation green; full `npm test` **2458 passed / 1 skipped**; lint/typecheck PASS; `registry:check` **74/0**
+- Registry/Legacy/STATUS changes: F-011 remains `in progress`; DI-07 → **`done`**
+- Remaining risks: SDK-07 client package; DI-08 activate-profile; packaged E2E at DI-10
+- Reviewer: `/sdk-review` PASS 2026-07-20 — DI-07 **`done`**; Lows remediated (callType binding test, shared-clock, disconnect clears pending logout); next `/sdk-integration` DI-08 only (separate session)
 
 ## DI-08 — Saved-Profile Activation
 

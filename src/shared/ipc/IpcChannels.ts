@@ -23,6 +23,8 @@ export const IPC_CHANNELS = {
   sdkBrokerReply: "sdk-broker:reply",
   /** Renderer → main: composition readiness for product broker traffic. */
   sdkBrokerSetReady: "sdk-broker:set-ready",
+  /** Main → renderer: authenticated SDK client socket ended (DI-07 pending-logout clear). */
+  sdkBrokerClientSessionEnded: "sdk-broker:client-session-ended",
   /** Renderer → main: publish redacted public SDK event for per-client fan-out (DI-05). */
   sdkGatewayPublishEvent: "sdk-gateway:publish-event",
 } as const;

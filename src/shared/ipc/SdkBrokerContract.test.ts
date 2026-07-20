@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   parseSdkBrokerAckResponse,
+  parseSdkBrokerClientSessionEndedIpcPayload,
   parseSdkBrokerReadyIpcPayload,
   parseSdkBrokerReplyIpcPayload,
   parseSdkBrokerRequestIpcPayload,
@@ -79,5 +80,15 @@ describe("SdkBrokerContract parsers", () => {
     expect(parseSdkBrokerReadyIpcPayload({ ready: "yes" })).toBeNull();
     expect(parseSdkBrokerAckResponse({ ok: true })).toEqual({ ok: true });
     expect(parseSdkBrokerAckResponse({ ok: 1 })).toBeNull();
+  });
+
+  it("parses client-session-ended payload", () => {
+    expect(
+      parseSdkBrokerClientSessionEndedIpcPayload({ clientId: "client_a" }),
+    ).toEqual({ clientId: "client_a" });
+    expect(parseSdkBrokerClientSessionEndedIpcPayload({})).toBeNull();
+    expect(
+      parseSdkBrokerClientSessionEndedIpcPayload({ clientId: "" }),
+    ).toBeNull();
   });
 });

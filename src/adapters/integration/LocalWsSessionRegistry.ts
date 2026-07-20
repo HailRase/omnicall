@@ -285,6 +285,10 @@ export class LocalWsSessionRegistry {
   private removeConnection(connection: SdkGatewayConnection): void {
     clearSdkGatewayConnectionTimers(connection);
     this.connections.delete(connection.id);
+    const clientId = connection.clientId;
+    if (clientId !== null && clientId.length > 0) {
+      this.getProductSurface()?.onClientSessionEnded?.(clientId);
+    }
   }
 
   private log(
