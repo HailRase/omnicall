@@ -1,8 +1,28 @@
 # Axatalk SDK Dependency Ledger
 
 Checked against the npm registry and peer constraints on **2026-07-20**.
-Runtime dependencies in `@axatalk/protocol` and `@axatalk/sdk`: **none** (sdk only
-depends on the workspace protocol package).
+
+## Runtime dependencies
+
+| Package | Version | Package | Purpose | Notes |
+| --- | --- | --- | --- | --- |
+| `zod` | **4.4.3** (exact) | `@axatalk/protocol` only | Runtime protocol schemas (ADR-0014 / O-SCHEMA-1) | Locked in SDK-02. Not imported by `@axatalk/sdk` yet. |
+
+### Zod size evidence (SDK-02, 2026-07-20)
+
+Measured with parent-repo `esbuild` bundling `zod` ESM entry (`format=esm`,
+`platform=neutral`):
+
+| Metric | Value |
+| --- | --- |
+| Bundled bytes | 545 429 (~532.6 KiB) |
+| gzip -9 | **79 834 (~78.0 KiB)** |
+
+Accepted for protocol v1. Valibot remains the documented alternative if a future gate
+treats this footprint as a Blocker (ADR-0014).
+
+`@axatalk/sdk` runtime dependencies: workspace `@axatalk/protocol` only (no direct Zod
+until a later unit needs it at the SDK boundary).
 
 ## Tooling (devDependencies)
 
@@ -27,17 +47,11 @@ depends on the workspace protocol package).
 ESM-first `exports` with `types` listed first, then `import` / `default`, per
 Node.js package docs: https://nodejs.org/docs/latest/api/packages.html
 
+`@axatalk/protocol` also exports `./fixtures/*` for DI-01 / CI consumers of golden
+JSON bytes.
+
 ## Publish posture
 
 - Packages are `private: true` during incubation.
 - `publishConfig.access=public` and `publishConfig.provenance=true` are scaffolded only.
 - CI uploads tarball artifacts and **never** runs `npm publish`.
-
-## Approved for SDK-02 (not installed in SDK-01)
-
-| Package | Planned | Purpose | ADR |
-| --- | --- | --- | --- |
-| `zod` | `^4` (lock exact on install; registry `4.4.3` on 2026-07-20) | Runtime protocol schemas in `@axatalk/protocol` | ADR-0014 |
-
-SDK-01 does **not** add runtime dependencies. SDK-02 must install, lock, record gzipped
-bundle evidence, and keep `protocol` free of desktop imports.

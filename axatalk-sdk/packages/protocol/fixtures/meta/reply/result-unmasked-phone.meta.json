@@ -1,0 +1,4 @@
+{
+  "expectedErrorCode": "invalid_payload",
+  "notes": "reply.result PII field names require ADR-0017 masks"
+}

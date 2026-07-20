@@ -4,6 +4,4376 @@
 
 ```ts
 
-// (No @packageDocumentation comment for this package)
+import { z } from 'zod';
+
+// @public (undocumented)
+export const AccountActivateProfileCommandSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"account:activate-profile">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        profileRef: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const AccountConfirmLogoutCommandSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"account:confirm-logout">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        logoutToken: z.ZodString;
+        reasonId: z.ZodOptional<z.ZodNumber>;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const AccountPrepareLogoutCommandSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"account:prepare-logout">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const AccountSessionActivatedEventSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"account:session-activated">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        profileLabel: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const AccountSessionEndedEventSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"account:session-ended">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        reasonCode: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export type ApplicationIdentity = z.infer<typeof ApplicationIdentitySchema>;
+
+// @public
+export const ApplicationIdentitySchema: z.ZodReadonly<z.ZodObject<{
+    name: z.ZodString;
+    version: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export type AuthChallenge = z.infer<typeof AuthChallengeSchema>;
+
+// @public
+export const AuthChallengeSchema: z.ZodReadonly<z.ZodObject<{
+    challengeId: z.ZodString;
+    nonce: z.ZodString;
+    expiresAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export type AuthProof = z.infer<typeof AuthProofSchema>;
+
+// @public
+export const AuthProofSchema: z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"auth">;
+    type: z.ZodLiteral<"sdk:auth-proof">;
+    challengeId: z.ZodString;
+    clientId: z.ZodString;
+    signature: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export type Base64Url = z.infer<typeof Base64UrlSchema>;
+
+// @public
+export const Base64UrlSchema: z.ZodString;
+
+// @public
+export function buildPopSigningPayload(parts: {
+    readonly serverInstanceId: string;
+    readonly sessionEpoch: string;
+    readonly origin: string;
+    readonly clientId: string;
+    readonly challengeId: string;
+    readonly nonce: string;
+}): string;
+
+// @public (undocumented)
+export const CallAnswerCommandSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:answer">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const CallAnsweredEventSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:answered">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const CallEndedEventSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:ended">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const CallFailedEventSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:failed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const CallHangupCommandSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:hangup">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const CallHeldEventSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:held">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const CallHoldCommandSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:hold">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const CallIncomingEventSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:incoming">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const CallMuteCommandSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:mute">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const CallMutedEventSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:muted">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const CallOriginateCommandSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:originate">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        destination: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const CallOutgoingEventSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:outgoing">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const CallRejectCommandSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:reject">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const CallResumeCommandSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:resume">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const CallResumedEventSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:resumed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const CallRingingEventSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:ringing">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const CallSendDtmfCommandSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:send-dtmf">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        digits: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const CallUnmuteCommandSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:unmute">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const CallUnmutedEventSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:unmuted">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>;
+
+// @public
+export const CAPABILITY_IDS: readonly ["session.read.redacted", "window.show", "window.hide", "operator.status.write", "call.originate", "call.control", "account.activate", "session.logout"];
+
+// @public (undocumented)
+export type CapabilityId = z.infer<typeof CapabilityIdSchema>;
+
+// @public (undocumented)
+export const CapabilityIdListSchema: z.ZodArray<z.ZodEnum<{
+    "session.read.redacted": "session.read.redacted";
+    "window.show": "window.show";
+    "window.hide": "window.hide";
+    "operator.status.write": "operator.status.write";
+    "call.originate": "call.originate";
+    "call.control": "call.control";
+    "account.activate": "account.activate";
+    "session.logout": "session.logout";
+}>>;
+
+// @public (undocumented)
+export const CapabilityIdSchema: z.ZodEnum<{
+    "session.read.redacted": "session.read.redacted";
+    "window.show": "window.show";
+    "window.hide": "window.hide";
+    "operator.status.write": "operator.status.write";
+    "call.originate": "call.originate";
+    "call.control": "call.control";
+    "account.activate": "account.activate";
+    "session.logout": "session.logout";
+}>;
+
+// @public (undocumented)
+export type ClientHello = z.infer<typeof ClientHelloSchema>;
+
+// @public
+export const ClientHelloSchema: z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"handshake">;
+    type: z.ZodLiteral<"sdk:client-hello">;
+    protocolMin: z.ZodNumber;
+    protocolMax: z.ZodNumber;
+    sdkVersion: z.ZodString;
+    application: z.ZodReadonly<z.ZodObject<{
+        name: z.ZodString;
+        version: z.ZodString;
+    }, z.core.$strip>>;
+    clientId: z.ZodOptional<z.ZodString>;
+    requestedCapabilities: z.ZodArray<z.ZodEnum<{
+        "session.read.redacted": "session.read.redacted";
+        "window.show": "window.show";
+        "window.hide": "window.hide";
+        "operator.status.write": "operator.status.write";
+        "call.originate": "call.originate";
+        "call.control": "call.control";
+        "account.activate": "account.activate";
+        "session.logout": "session.logout";
+    }>>;
+    clientNonce: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const COMMAND_TYPES: readonly ["sdk:get-snapshot", "sdk:ping", "window:show", "window:get-state", "window:hide", "call:originate", "call:answer", "call:reject", "call:hangup", "call:hold", "call:resume", "call:mute", "call:unmute", "call:send-dtmf", "account:activate-profile", "account:prepare-logout", "account:confirm-logout", "operator:get-reasons", "operator:change-status"];
+
+// @public (undocumented)
+export type CommandFailureReply = z.infer<typeof CommandFailureReplySchema>;
+
+// @public
+export const CommandFailureReplySchema: z.ZodReadonly<z.ZodObject<{
+    ok: z.ZodLiteral<false>;
+    error: z.ZodReadonly<z.ZodObject<{
+        code: z.ZodEnum<{
+            invalid_message: "invalid_message";
+            invalid_payload: "invalid_payload";
+            unsupported_command: "unsupported_command";
+            incompatible_version: "incompatible_version";
+            unauthenticated: "unauthenticated";
+            forbidden: "forbidden";
+            revoked: "revoked";
+            not_ready: "not_ready";
+            not_found: "not_found";
+            not_owner: "not_owner";
+            conflict: "conflict";
+            stale_state: "stale_state";
+            interaction_required: "interaction_required";
+            timeout: "timeout";
+            rate_limited: "rate_limited";
+            operation_failed: "operation_failed";
+            local_network_permission_required: "local_network_permission_required";
+            local_network_permission_denied: "local_network_permission_denied";
+            discovery_unreachable: "discovery_unreachable";
+        }>;
+        retryable: z.ZodBoolean;
+        currentRevision: z.ZodOptional<z.ZodNumber>;
+        details: z.ZodOptional<z.ZodReadonly<z.ZodRecord<z.ZodString, z.ZodLazy<z.ZodType<WireJsonValue, unknown, z.core.$ZodTypeInternals<WireJsonValue, unknown>>>>>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"reply">;
+    requestId: z.ZodString;
+    commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
+        "sdk:get-snapshot": "sdk:get-snapshot";
+        "sdk:ping": "sdk:ping";
+        "window:show": "window:show";
+        "window:get-state": "window:get-state";
+        "call:originate": "call:originate";
+        "call:answer": "call:answer";
+        "call:reject": "call:reject";
+        "call:hangup": "call:hangup";
+        "call:hold": "call:hold";
+        "call:resume": "call:resume";
+        "call:mute": "call:mute";
+        "call:unmute": "call:unmute";
+        "call:send-dtmf": "call:send-dtmf";
+        "account:activate-profile": "account:activate-profile";
+        "account:prepare-logout": "account:prepare-logout";
+        "account:confirm-logout": "account:confirm-logout";
+        "operator:get-reasons": "operator:get-reasons";
+        "operator:change-status": "operator:change-status";
+    }>;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export type CommandMessage = z.infer<typeof CommandMessageSchema>;
+
+// @public (undocumented)
+export const CommandMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"sdk:get-snapshot">;
+    payload: z.ZodReadonly<z.ZodObject<{}, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"sdk:ping">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        nonce: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"window:show">;
+    payload: z.ZodReadonly<z.ZodObject<{}, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"window:get-state">;
+    payload: z.ZodReadonly<z.ZodObject<{}, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"window:hide">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:originate">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        destination: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:answer">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:reject">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:hangup">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:hold">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:resume">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:mute">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:unmute">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:send-dtmf">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        digits: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"account:activate-profile">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        profileRef: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"account:prepare-logout">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"account:confirm-logout">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        logoutToken: z.ZodString;
+        reasonId: z.ZodOptional<z.ZodNumber>;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:get-reasons">;
+    payload: z.ZodReadonly<z.ZodObject<{}, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:change-status">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        target: z.ZodEnum<{
+            ready: "ready";
+            break: "break";
+        }>;
+        reasonId: z.ZodOptional<z.ZodNumber>;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>], "type">;
+
+// @public (undocumented)
+export type CommandSuccessReply = z.infer<typeof CommandSuccessReplySchema>;
+
+// @public
+export const CommandSuccessReplySchema: z.ZodReadonly<z.ZodObject<{
+    ok: z.ZodLiteral<true>;
+    revision: z.ZodNumber;
+    result: z.ZodReadonly<z.ZodRecord<z.ZodString, z.ZodLazy<z.ZodType<WireJsonValue, unknown, z.core.$ZodTypeInternals<WireJsonValue, unknown>>>>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"reply">;
+    requestId: z.ZodString;
+    commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
+        "sdk:get-snapshot": "sdk:get-snapshot";
+        "sdk:ping": "sdk:ping";
+        "window:show": "window:show";
+        "window:get-state": "window:get-state";
+        "call:originate": "call:originate";
+        "call:answer": "call:answer";
+        "call:reject": "call:reject";
+        "call:hangup": "call:hangup";
+        "call:hold": "call:hold";
+        "call:resume": "call:resume";
+        "call:mute": "call:mute";
+        "call:unmute": "call:unmute";
+        "call:send-dtmf": "call:send-dtmf";
+        "account:activate-profile": "account:activate-profile";
+        "account:prepare-logout": "account:prepare-logout";
+        "account:confirm-logout": "account:confirm-logout";
+        "operator:get-reasons": "operator:get-reasons";
+        "operator:change-status": "operator:change-status";
+    }>;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export type CommandType = z.infer<typeof CommandTypeSchema>;
+
+// @public (undocumented)
+export const CommandTypeSchema: z.ZodEnum<{
+    "window:hide": "window:hide";
+    "sdk:get-snapshot": "sdk:get-snapshot";
+    "sdk:ping": "sdk:ping";
+    "window:show": "window:show";
+    "window:get-state": "window:get-state";
+    "call:originate": "call:originate";
+    "call:answer": "call:answer";
+    "call:reject": "call:reject";
+    "call:hangup": "call:hangup";
+    "call:hold": "call:hold";
+    "call:resume": "call:resume";
+    "call:mute": "call:mute";
+    "call:unmute": "call:unmute";
+    "call:send-dtmf": "call:send-dtmf";
+    "account:activate-profile": "account:activate-profile";
+    "account:prepare-logout": "account:prepare-logout";
+    "account:confirm-logout": "account:confirm-logout";
+    "operator:get-reasons": "operator:get-reasons";
+    "operator:change-status": "operator:change-status";
+}>;
+
+// @public
+export const DEFAULT_CAPABILITY_PROFILES: {
+    readonly presentation: readonly ["session.read.redacted", "window.show"];
+    readonly operator: readonly ["session.read.redacted", "window.show", "operator.status.write", "session.logout"];
+    readonly call_controller: readonly ["session.read.redacted", "window.show", "operator.status.write", "session.logout", "call.originate", "call.control"];
+};
+
+// @public
+export const DEFAULT_DISCOVERY_HOST: "127.0.0.1";
+
+// @public
+export const DEFAULT_DISCOVERY_PORT: 17341;
+
+// @public
+export const DEFAULT_MAX_MESSAGE_BYTES: 65536;
+
+// @public (undocumented)
+export const DEFAULT_VALIDATION_LIMITS: ValidationLimits;
+
+// @public (undocumented)
+export function defaultCapabilitiesForProfile(profile: PairingProfile): readonly CapabilityId[];
+
+// @public
+export const DISCOVERY_PATH: "/axatalk/v1/discovery";
+
+// @public
+export const DISCOVERY_VERSION: 1;
+
+// @public (undocumented)
+export type DiscoveryDocument = z.infer<typeof DiscoveryDocumentSchema>;
+
+// @public
+export const DiscoveryDocumentSchema: z.ZodReadonly<z.ZodObject<{
+    discoveryVersion: z.ZodLiteral<1>;
+    protocolMin: z.ZodNumber;
+    protocolMax: z.ZodNumber;
+    desktopVersion: z.ZodString;
+    serverInstanceId: z.ZodString;
+    wsUrl: z.ZodString;
+    maxMessageBytes: z.ZodNumber;
+    heartbeatSeconds: z.ZodNumber;
+    pairingRequired: z.ZodBoolean;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const EVENT_TYPES: readonly ["call:incoming", "call:outgoing", "call:ringing", "call:answered", "call:ended", "call:failed", "call:held", "call:resumed", "call:muted", "call:unmuted", "registration:changed", "account:session-activated", "account:session-ended", "operator:session-changed", "operator:status-changed", "window:visibility-changed", "sdk:permission-changed", "sdk:revoked", "sdk:server-shutdown"];
+
+// @public (undocumented)
+export type EventMessage = z.infer<typeof EventMessageSchema>;
+
+// @public
+export const EventMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:incoming">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:outgoing">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:ringing">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:answered">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:ended">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:failed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:held">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:resumed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:muted">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:unmuted">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"registration:changed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        state: z.ZodEnum<{
+            failed: "failed";
+            registered: "registered";
+            unregistering: "unregistering";
+            unregistered: "unregistered";
+        }>;
+        reasonCode: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"account:session-activated">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        profileLabel: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"account:session-ended">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        reasonCode: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:session-changed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        connected: z.ZodBoolean;
+        status: z.ZodOptional<z.ZodEnum<{
+            unknown: "unknown";
+            ready: "ready";
+            break: "break";
+            offline: "offline";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:status-changed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        status: z.ZodEnum<{
+            unknown: "unknown";
+            ready: "ready";
+            break: "break";
+            offline: "offline";
+        }>;
+        reasonId: z.ZodOptional<z.ZodNumber>;
+        reasonLabelKey: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"window:visibility-changed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        visible: z.ZodBoolean;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"sdk:permission-changed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        grantedCapabilities: z.ZodArray<z.ZodEnum<{
+            "session.read.redacted": "session.read.redacted";
+            "window.show": "window.show";
+            "window.hide": "window.hide";
+            "operator.status.write": "operator.status.write";
+            "call.originate": "call.originate";
+            "call.control": "call.control";
+            "account.activate": "account.activate";
+            "session.logout": "session.logout";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"sdk:revoked">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        reasonCode: z.ZodString;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"sdk:server-shutdown">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        reasonCode: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>], "type">;
+
+// @public (undocumented)
+export type EventType = z.infer<typeof EventTypeSchema>;
+
+// @public (undocumented)
+export const EventTypeSchema: z.ZodEnum<{
+    "call:incoming": "call:incoming";
+    "call:outgoing": "call:outgoing";
+    "call:ringing": "call:ringing";
+    "call:answered": "call:answered";
+    "call:ended": "call:ended";
+    "call:failed": "call:failed";
+    "call:held": "call:held";
+    "call:resumed": "call:resumed";
+    "call:muted": "call:muted";
+    "call:unmuted": "call:unmuted";
+    "registration:changed": "registration:changed";
+    "account:session-activated": "account:session-activated";
+    "account:session-ended": "account:session-ended";
+    "operator:session-changed": "operator:session-changed";
+    "operator:status-changed": "operator:status-changed";
+    "window:visibility-changed": "window:visibility-changed";
+    "sdk:permission-changed": "sdk:permission-changed";
+    "sdk:revoked": "sdk:revoked";
+    "sdk:server-shutdown": "sdk:server-shutdown";
+}>;
+
+// @public
+export function findForbiddenWireKeys(value: unknown): readonly string[];
+
+// @public
+export const FORBIDDEN_WIRE_KEYS: readonly ["apiKey", "ocpAuthToken", "sipPassword", "sipAuthPassword", "password", "secret", "privateKey", "authorization"];
+
+// @public (undocumented)
+export type HandshakeMessage = z.infer<typeof HandshakeMessageSchema>;
+
+// @public (undocumented)
+export const HandshakeMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"handshake">;
+    type: z.ZodLiteral<"sdk:client-hello">;
+    protocolMin: z.ZodNumber;
+    protocolMax: z.ZodNumber;
+    sdkVersion: z.ZodString;
+    application: z.ZodReadonly<z.ZodObject<{
+        name: z.ZodString;
+        version: z.ZodString;
+    }, z.core.$strip>>;
+    clientId: z.ZodOptional<z.ZodString>;
+    requestedCapabilities: z.ZodArray<z.ZodEnum<{
+        "session.read.redacted": "session.read.redacted";
+        "window.show": "window.show";
+        "window.hide": "window.hide";
+        "operator.status.write": "operator.status.write";
+        "call.originate": "call.originate";
+        "call.control": "call.control";
+        "account.activate": "account.activate";
+        "session.logout": "session.logout";
+    }>>;
+    clientNonce: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"handshake">;
+    type: z.ZodLiteral<"sdk:server-hello">;
+    selectedProtocolVersion: z.ZodNumber;
+    desktopVersion: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    serverNonce: z.ZodString;
+    pairingRequired: z.ZodBoolean;
+    authChallenge: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+        challengeId: z.ZodString;
+        nonce: z.ZodString;
+        expiresAt: z.ZodString;
+    }, z.core.$strip>>>;
+    maxMessageBytes: z.ZodNumber;
+    heartbeatSeconds: z.ZodNumber;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>], "type">;
+
+// @public (undocumented)
+export function isCapabilityInDefaultProfile(profile: PairingProfile, id: CapabilityId): boolean;
+
+// @public
+export function isCommandAvailableInProductV1(type: CommandType): boolean;
+
+// @public
+export function isCurrentProtocolMajor(version: number): boolean;
+
+// @public
+export function isDeferredCampaignEventType(type: string): boolean;
+
+// @public
+export function isIncompatibleProtocolVersion(peerMin: ProtocolVersion, peerMax: ProtocolVersion, localMin?: ProtocolVersion, localMax?: ProtocolVersion): boolean;
+
+// @public (undocumented)
+export type IsoTimestamp = z.infer<typeof IsoTimestampSchema>;
+
+// @public
+export const IsoTimestampSchema: z.ZodString;
+
+// @public (undocumented)
+export function isPrivilegedCapability(id: CapabilityId): boolean;
+
+// @public
+export function isProtocolMajorDropAllowed(parts: {
+    readonly daysSinceSuccessorPublished: number;
+    readonly desktopMinorsSinceSuccessorPublished: number;
+}): boolean;
+
+// @public
+export const MAX_ARRAY_LENGTH: 512;
+
+// @public
+export const MAX_JSON_DEPTH: 32;
+
+// @public
+export const MAX_OBJECT_KEYS: 128;
+
+// @public
+export function negotiateProtocolVersion(clientMin: ProtocolVersion, clientMax: ProtocolVersion, serverMin: ProtocolVersion, serverMax: ProtocolVersion): ProtocolNegotiationResult;
+
+// @public (undocumented)
+export type OpaqueId = z.infer<typeof OpaqueIdSchema>;
+
+// @public
+export const OpaqueIdSchema: z.ZodString;
+
+// @public (undocumented)
+export const OperatorChangeStatusCommandSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:change-status">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        target: z.ZodEnum<{
+            ready: "ready";
+            break: "break";
+        }>;
+        reasonId: z.ZodOptional<z.ZodNumber>;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const OperatorGetReasonsCommandSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:get-reasons">;
+    payload: z.ZodReadonly<z.ZodObject<{}, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const OperatorSessionChangedEventSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:session-changed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        connected: z.ZodBoolean;
+        status: z.ZodOptional<z.ZodEnum<{
+            unknown: "unknown";
+            ready: "ready";
+            break: "break";
+            offline: "offline";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const OperatorStatusChangedEventSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:status-changed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        status: z.ZodEnum<{
+            unknown: "unknown";
+            ready: "ready";
+            break: "break";
+            offline: "offline";
+        }>;
+        reasonId: z.ZodOptional<z.ZodNumber>;
+        reasonLabelKey: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>;
+
+// @public
+export const PAIRING_PROFILES: readonly ["presentation", "operator", "call_controller"];
+
+// @public (undocumented)
+export type PairingApproved = z.infer<typeof PairingApprovedSchema>;
+
+// @public
+export const PairingApprovedSchema: z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"pairing">;
+    type: z.ZodLiteral<"pairing:approved">;
+    clientId: z.ZodString;
+    profile: z.ZodEnum<{
+        presentation: "presentation";
+        operator: "operator";
+        call_controller: "call_controller";
+    }>;
+    grantedCapabilities: z.ZodArray<z.ZodEnum<{
+        "session.read.redacted": "session.read.redacted";
+        "window.show": "window.show";
+        "window.hide": "window.hide";
+        "operator.status.write": "operator.status.write";
+        "call.originate": "call.originate";
+        "call.control": "call.control";
+        "account.activate": "account.activate";
+        "session.logout": "session.logout";
+    }>>;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export type PairingDenied = z.infer<typeof PairingDeniedSchema>;
+
+// @public
+export const PairingDeniedSchema: z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"pairing">;
+    type: z.ZodLiteral<"pairing:denied">;
+    clientId: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export type PairingMessage = z.infer<typeof PairingMessageSchema>;
+
+// @public (undocumented)
+export const PairingMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"pairing">;
+    type: z.ZodLiteral<"pairing:request">;
+    clientId: z.ZodString;
+    clientPublicKey: z.ZodString;
+    keyAlgorithm: z.ZodLiteral<"ECDSA-P256-SHA256">;
+    application: z.ZodReadonly<z.ZodObject<{
+        name: z.ZodString;
+        version: z.ZodString;
+    }, z.core.$strip>>;
+    requestedProfile: z.ZodEnum<{
+        presentation: "presentation";
+        operator: "operator";
+        call_controller: "call_controller";
+    }>;
+    requestedCapabilities: z.ZodArray<z.ZodEnum<{
+        "session.read.redacted": "session.read.redacted";
+        "window.show": "window.show";
+        "window.hide": "window.hide";
+        "operator.status.write": "operator.status.write";
+        "call.originate": "call.originate";
+        "call.control": "call.control";
+        "account.activate": "account.activate";
+        "session.logout": "session.logout";
+    }>>;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"pairing">;
+    type: z.ZodLiteral<"pairing:pending">;
+    pairingRequestId: z.ZodString;
+    expiresAt: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"pairing">;
+    type: z.ZodLiteral<"pairing:approved">;
+    clientId: z.ZodString;
+    profile: z.ZodEnum<{
+        presentation: "presentation";
+        operator: "operator";
+        call_controller: "call_controller";
+    }>;
+    grantedCapabilities: z.ZodArray<z.ZodEnum<{
+        "session.read.redacted": "session.read.redacted";
+        "window.show": "window.show";
+        "window.hide": "window.hide";
+        "operator.status.write": "operator.status.write";
+        "call.originate": "call.originate";
+        "call.control": "call.control";
+        "account.activate": "account.activate";
+        "session.logout": "session.logout";
+    }>>;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"pairing">;
+    type: z.ZodLiteral<"pairing:denied">;
+    clientId: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>], "type">;
+
+// @public (undocumented)
+export type PairingPending = z.infer<typeof PairingPendingSchema>;
+
+// @public
+export const PairingPendingSchema: z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"pairing">;
+    type: z.ZodLiteral<"pairing:pending">;
+    pairingRequestId: z.ZodString;
+    expiresAt: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export type PairingProfile = z.infer<typeof PairingProfileSchema>;
+
+// @public (undocumented)
+export const PairingProfileSchema: z.ZodEnum<{
+    presentation: "presentation";
+    operator: "operator";
+    call_controller: "call_controller";
+}>;
+
+// @public (undocumented)
+export type PairingRequest = z.infer<typeof PairingRequestSchema>;
+
+// @public
+export const PairingRequestSchema: z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"pairing">;
+    type: z.ZodLiteral<"pairing:request">;
+    clientId: z.ZodString;
+    clientPublicKey: z.ZodString;
+    keyAlgorithm: z.ZodLiteral<"ECDSA-P256-SHA256">;
+    application: z.ZodReadonly<z.ZodObject<{
+        name: z.ZodString;
+        version: z.ZodString;
+    }, z.core.$strip>>;
+    requestedProfile: z.ZodEnum<{
+        presentation: "presentation";
+        operator: "operator";
+        call_controller: "call_controller";
+    }>;
+    requestedCapabilities: z.ZodArray<z.ZodEnum<{
+        "session.read.redacted": "session.read.redacted";
+        "window.show": "window.show";
+        "window.hide": "window.hide";
+        "operator.status.write": "operator.status.write";
+        "call.originate": "call.originate";
+        "call.control": "call.control";
+        "account.activate": "account.activate";
+        "session.logout": "session.logout";
+    }>>;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public
+export const POP_KEY_ALGORITHM: "ECDSA-P256-SHA256";
+
+// @public
+export const PRIVILEGED_CAPABILITIES: readonly ["account.activate", "window.hide"];
+
+// @public
+export function productDenialCodeForCommand(type: CommandType): 'forbidden' | null;
+
+// @public
+export const PROTOCOL_DEPRECATION_MIN_DAYS: 90;
+
+// @public
+export const PROTOCOL_DEPRECATION_MIN_DESKTOP_MINORS: 2;
+
+// @public
+export const PROTOCOL_ERROR_CODES: readonly ["invalid_message", "invalid_payload", "unsupported_command", "incompatible_version", "unauthenticated", "forbidden", "revoked", "not_ready", "not_found", "not_owner", "conflict", "stale_state", "interaction_required", "timeout", "rate_limited", "operation_failed", "local_network_permission_required", "local_network_permission_denied", "discovery_unreachable"];
+
+// @public
+export const PROTOCOL_MAJOR: 1;
+
+// @public
+export const PROTOCOL_MAX: 1;
+
+// @public
+export const PROTOCOL_MIN: 1;
+
+// @public (undocumented)
+export type ProtocolDocument = z.infer<typeof ProtocolDocumentSchema>;
+
+// @public (undocumented)
+export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObject<{
+    discoveryVersion: z.ZodLiteral<1>;
+    protocolMin: z.ZodNumber;
+    protocolMax: z.ZodNumber;
+    desktopVersion: z.ZodString;
+    serverInstanceId: z.ZodString;
+    wsUrl: z.ZodString;
+    maxMessageBytes: z.ZodNumber;
+    heartbeatSeconds: z.ZodNumber;
+    pairingRequired: z.ZodBoolean;
+}, z.core.$strip>>, z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"handshake">;
+    type: z.ZodLiteral<"sdk:client-hello">;
+    protocolMin: z.ZodNumber;
+    protocolMax: z.ZodNumber;
+    sdkVersion: z.ZodString;
+    application: z.ZodReadonly<z.ZodObject<{
+        name: z.ZodString;
+        version: z.ZodString;
+    }, z.core.$strip>>;
+    clientId: z.ZodOptional<z.ZodString>;
+    requestedCapabilities: z.ZodArray<z.ZodEnum<{
+        "session.read.redacted": "session.read.redacted";
+        "window.show": "window.show";
+        "window.hide": "window.hide";
+        "operator.status.write": "operator.status.write";
+        "call.originate": "call.originate";
+        "call.control": "call.control";
+        "account.activate": "account.activate";
+        "session.logout": "session.logout";
+    }>>;
+    clientNonce: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"handshake">;
+    type: z.ZodLiteral<"sdk:server-hello">;
+    selectedProtocolVersion: z.ZodNumber;
+    desktopVersion: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    serverNonce: z.ZodString;
+    pairingRequired: z.ZodBoolean;
+    authChallenge: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+        challengeId: z.ZodString;
+        nonce: z.ZodString;
+        expiresAt: z.ZodString;
+    }, z.core.$strip>>>;
+    maxMessageBytes: z.ZodNumber;
+    heartbeatSeconds: z.ZodNumber;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>], "type">, z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"pairing">;
+    type: z.ZodLiteral<"pairing:request">;
+    clientId: z.ZodString;
+    clientPublicKey: z.ZodString;
+    keyAlgorithm: z.ZodLiteral<"ECDSA-P256-SHA256">;
+    application: z.ZodReadonly<z.ZodObject<{
+        name: z.ZodString;
+        version: z.ZodString;
+    }, z.core.$strip>>;
+    requestedProfile: z.ZodEnum<{
+        presentation: "presentation";
+        operator: "operator";
+        call_controller: "call_controller";
+    }>;
+    requestedCapabilities: z.ZodArray<z.ZodEnum<{
+        "session.read.redacted": "session.read.redacted";
+        "window.show": "window.show";
+        "window.hide": "window.hide";
+        "operator.status.write": "operator.status.write";
+        "call.originate": "call.originate";
+        "call.control": "call.control";
+        "account.activate": "account.activate";
+        "session.logout": "session.logout";
+    }>>;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"pairing">;
+    type: z.ZodLiteral<"pairing:pending">;
+    pairingRequestId: z.ZodString;
+    expiresAt: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"pairing">;
+    type: z.ZodLiteral<"pairing:approved">;
+    clientId: z.ZodString;
+    profile: z.ZodEnum<{
+        presentation: "presentation";
+        operator: "operator";
+        call_controller: "call_controller";
+    }>;
+    grantedCapabilities: z.ZodArray<z.ZodEnum<{
+        "session.read.redacted": "session.read.redacted";
+        "window.show": "window.show";
+        "window.hide": "window.hide";
+        "operator.status.write": "operator.status.write";
+        "call.originate": "call.originate";
+        "call.control": "call.control";
+        "account.activate": "account.activate";
+        "session.logout": "session.logout";
+    }>>;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"pairing">;
+    type: z.ZodLiteral<"pairing:denied">;
+    clientId: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>], "type">, z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"auth">;
+    type: z.ZodLiteral<"sdk:auth-proof">;
+    challengeId: z.ZodString;
+    clientId: z.ZodString;
+    signature: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"sdk:get-snapshot">;
+    payload: z.ZodReadonly<z.ZodObject<{}, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"sdk:ping">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        nonce: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"window:show">;
+    payload: z.ZodReadonly<z.ZodObject<{}, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"window:get-state">;
+    payload: z.ZodReadonly<z.ZodObject<{}, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"window:hide">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:originate">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        destination: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:answer">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:reject">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:hangup">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:hold">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:resume">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:mute">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:unmute">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:send-dtmf">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        digits: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"account:activate-profile">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        profileRef: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"account:prepare-logout">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"account:confirm-logout">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        logoutToken: z.ZodString;
+        reasonId: z.ZodOptional<z.ZodNumber>;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:get-reasons">;
+    payload: z.ZodReadonly<z.ZodObject<{}, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:change-status">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        target: z.ZodEnum<{
+            ready: "ready";
+            break: "break";
+        }>;
+        reasonId: z.ZodOptional<z.ZodNumber>;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>], "type">, z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObject<{
+    ok: z.ZodLiteral<true>;
+    revision: z.ZodNumber;
+    result: z.ZodReadonly<z.ZodRecord<z.ZodString, z.ZodLazy<z.ZodType<WireJsonValue, unknown, z.core.$ZodTypeInternals<WireJsonValue, unknown>>>>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"reply">;
+    requestId: z.ZodString;
+    commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
+        "sdk:get-snapshot": "sdk:get-snapshot";
+        "sdk:ping": "sdk:ping";
+        "window:show": "window:show";
+        "window:get-state": "window:get-state";
+        "call:originate": "call:originate";
+        "call:answer": "call:answer";
+        "call:reject": "call:reject";
+        "call:hangup": "call:hangup";
+        "call:hold": "call:hold";
+        "call:resume": "call:resume";
+        "call:mute": "call:mute";
+        "call:unmute": "call:unmute";
+        "call:send-dtmf": "call:send-dtmf";
+        "account:activate-profile": "account:activate-profile";
+        "account:prepare-logout": "account:prepare-logout";
+        "account:confirm-logout": "account:confirm-logout";
+        "operator:get-reasons": "operator:get-reasons";
+        "operator:change-status": "operator:change-status";
+    }>;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    ok: z.ZodLiteral<false>;
+    error: z.ZodReadonly<z.ZodObject<{
+        code: z.ZodEnum<{
+            invalid_message: "invalid_message";
+            invalid_payload: "invalid_payload";
+            unsupported_command: "unsupported_command";
+            incompatible_version: "incompatible_version";
+            unauthenticated: "unauthenticated";
+            forbidden: "forbidden";
+            revoked: "revoked";
+            not_ready: "not_ready";
+            not_found: "not_found";
+            not_owner: "not_owner";
+            conflict: "conflict";
+            stale_state: "stale_state";
+            interaction_required: "interaction_required";
+            timeout: "timeout";
+            rate_limited: "rate_limited";
+            operation_failed: "operation_failed";
+            local_network_permission_required: "local_network_permission_required";
+            local_network_permission_denied: "local_network_permission_denied";
+            discovery_unreachable: "discovery_unreachable";
+        }>;
+        retryable: z.ZodBoolean;
+        currentRevision: z.ZodOptional<z.ZodNumber>;
+        details: z.ZodOptional<z.ZodReadonly<z.ZodRecord<z.ZodString, z.ZodLazy<z.ZodType<WireJsonValue, unknown, z.core.$ZodTypeInternals<WireJsonValue, unknown>>>>>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"reply">;
+    requestId: z.ZodString;
+    commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
+        "sdk:get-snapshot": "sdk:get-snapshot";
+        "sdk:ping": "sdk:ping";
+        "window:show": "window:show";
+        "window:get-state": "window:get-state";
+        "call:originate": "call:originate";
+        "call:answer": "call:answer";
+        "call:reject": "call:reject";
+        "call:hangup": "call:hangup";
+        "call:hold": "call:hold";
+        "call:resume": "call:resume";
+        "call:mute": "call:mute";
+        "call:unmute": "call:unmute";
+        "call:send-dtmf": "call:send-dtmf";
+        "account:activate-profile": "account:activate-profile";
+        "account:prepare-logout": "account:prepare-logout";
+        "account:confirm-logout": "account:confirm-logout";
+        "operator:get-reasons": "operator:get-reasons";
+        "operator:change-status": "operator:change-status";
+    }>;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>], "ok">, z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:incoming">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:outgoing">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:ringing">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:answered">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:ended">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:failed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:held">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:resumed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:muted">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:unmuted">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"registration:changed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        state: z.ZodEnum<{
+            failed: "failed";
+            registered: "registered";
+            unregistering: "unregistering";
+            unregistered: "unregistered";
+        }>;
+        reasonCode: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"account:session-activated">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        profileLabel: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"account:session-ended">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        reasonCode: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:session-changed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        connected: z.ZodBoolean;
+        status: z.ZodOptional<z.ZodEnum<{
+            unknown: "unknown";
+            ready: "ready";
+            break: "break";
+            offline: "offline";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:status-changed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        status: z.ZodEnum<{
+            unknown: "unknown";
+            ready: "ready";
+            break: "break";
+            offline: "offline";
+        }>;
+        reasonId: z.ZodOptional<z.ZodNumber>;
+        reasonLabelKey: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"window:visibility-changed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        visible: z.ZodBoolean;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"sdk:permission-changed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        grantedCapabilities: z.ZodArray<z.ZodEnum<{
+            "session.read.redacted": "session.read.redacted";
+            "window.show": "window.show";
+            "window.hide": "window.hide";
+            "operator.status.write": "operator.status.write";
+            "call.originate": "call.originate";
+            "call.control": "call.control";
+            "account.activate": "account.activate";
+            "session.logout": "session.logout";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"sdk:revoked">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        reasonCode: z.ZodString;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"sdk:server-shutdown">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        reasonCode: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>], "type">, z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"snapshot">;
+    type: z.ZodLiteral<"sdk:snapshot">;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    revision: z.ZodNumber;
+    occurredAt: z.ZodString;
+    sections: z.ZodReadonly<z.ZodObject<{
+        session: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+            clientId: z.ZodString;
+            grantedCapabilities: z.ZodArray<z.ZodEnum<{
+                "session.read.redacted": "session.read.redacted";
+                "window.show": "window.show";
+                "window.hide": "window.hide";
+                "operator.status.write": "operator.status.write";
+                "call.originate": "call.originate";
+                "call.control": "call.control";
+                "account.activate": "account.activate";
+                "session.logout": "session.logout";
+            }>>;
+            authenticated: z.ZodLiteral<true>;
+        }, z.core.$strip>>>;
+        account: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+            signedIn: z.ZodBoolean;
+            profileLabel: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>>>;
+        registration: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+            state: z.ZodEnum<{
+                failed: "failed";
+                registered: "registered";
+                unregistering: "unregistering";
+                unregistered: "unregistered";
+            }>;
+            reasonCode: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>>>;
+        calls: z.ZodOptional<z.ZodArray<z.ZodReadonly<z.ZodObject<{
+            callId: z.ZodString;
+            state: z.ZodEnum<{
+                ringing: "ringing";
+                connecting: "connecting";
+                active: "active";
+                held: "held";
+                ending: "ending";
+                ended: "ended";
+                failed: "failed";
+            }>;
+            direction: z.ZodEnum<{
+                inbound: "inbound";
+                outbound: "outbound";
+            }>;
+            remoteNumber: z.ZodOptional<z.ZodString>;
+            remoteDisplayName: z.ZodOptional<z.ZodString>;
+            muted: z.ZodOptional<z.ZodBoolean>;
+            ownerClientId: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>>>>;
+        operator: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+            connected: z.ZodBoolean;
+            status: z.ZodOptional<z.ZodEnum<{
+                unknown: "unknown";
+                ready: "ready";
+                break: "break";
+                offline: "offline";
+            }>>;
+            reasonId: z.ZodOptional<z.ZodNumber>;
+            reasonLabelKey: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>>>;
+        window: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+            visible: z.ZodBoolean;
+        }, z.core.$strip>>>;
+    }, z.core.$strip>>;
+}, z.core.$strip>>]>]>;
+
+// @public (undocumented)
+export type ProtocolErrorCode = z.infer<typeof ProtocolErrorCodeSchema>;
+
+// @public (undocumented)
+export const ProtocolErrorCodeSchema: z.ZodEnum<{
+    invalid_message: "invalid_message";
+    invalid_payload: "invalid_payload";
+    unsupported_command: "unsupported_command";
+    incompatible_version: "incompatible_version";
+    unauthenticated: "unauthenticated";
+    forbidden: "forbidden";
+    revoked: "revoked";
+    not_ready: "not_ready";
+    not_found: "not_found";
+    not_owner: "not_owner";
+    conflict: "conflict";
+    stale_state: "stale_state";
+    interaction_required: "interaction_required";
+    timeout: "timeout";
+    rate_limited: "rate_limited";
+    operation_failed: "operation_failed";
+    local_network_permission_required: "local_network_permission_required";
+    local_network_permission_denied: "local_network_permission_denied";
+    discovery_unreachable: "discovery_unreachable";
+}>;
+
+// @public (undocumented)
+export type ProtocolErrorObject = z.infer<typeof ProtocolErrorObjectSchema>;
+
+// @public
+export const ProtocolErrorObjectSchema: z.ZodReadonly<z.ZodObject<{
+    code: z.ZodEnum<{
+        invalid_message: "invalid_message";
+        invalid_payload: "invalid_payload";
+        unsupported_command: "unsupported_command";
+        incompatible_version: "incompatible_version";
+        unauthenticated: "unauthenticated";
+        forbidden: "forbidden";
+        revoked: "revoked";
+        not_ready: "not_ready";
+        not_found: "not_found";
+        not_owner: "not_owner";
+        conflict: "conflict";
+        stale_state: "stale_state";
+        interaction_required: "interaction_required";
+        timeout: "timeout";
+        rate_limited: "rate_limited";
+        operation_failed: "operation_failed";
+        local_network_permission_required: "local_network_permission_required";
+        local_network_permission_denied: "local_network_permission_denied";
+        discovery_unreachable: "discovery_unreachable";
+    }>;
+    retryable: z.ZodBoolean;
+    currentRevision: z.ZodOptional<z.ZodNumber>;
+    details: z.ZodOptional<z.ZodReadonly<z.ZodRecord<z.ZodString, z.ZodLazy<z.ZodType<WireJsonValue, unknown, z.core.$ZodTypeInternals<WireJsonValue, unknown>>>>>>;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export type ProtocolNegotiationFailure = {
+    readonly ok: false;
+    readonly code: 'incompatible_version';
+    readonly clientRange: readonly [ProtocolVersion, ProtocolVersion];
+    readonly serverRange: readonly [ProtocolVersion, ProtocolVersion];
+};
+
+// @public (undocumented)
+export type ProtocolNegotiationResult = ProtocolNegotiationSuccess | ProtocolNegotiationFailure;
+
+// @public (undocumented)
+export type ProtocolNegotiationSuccess = {
+    readonly ok: true;
+    readonly selectedVersion: ProtocolVersion;
+};
+
+// @public (undocumented)
+export type ProtocolVersion = z.infer<typeof ProtocolVersionSchema>;
+
+// @public
+export const ProtocolVersionSchema: z.ZodNumber;
+
+// @public (undocumented)
+export type PublicCallState = z.infer<typeof PublicCallStateSchema>;
+
+// @public
+export const PublicCallStateSchema: z.ZodEnum<{
+    ringing: "ringing";
+    connecting: "connecting";
+    active: "active";
+    held: "held";
+    ending: "ending";
+    ended: "ended";
+    failed: "failed";
+}>;
+
+// @public (undocumented)
+export type RedactedDisplayName = z.infer<typeof RedactedDisplayNameSchema>;
+
+// @public
+export const RedactedDisplayNameSchema: z.ZodString;
+
+// @public (undocumented)
+export type RedactedPhone = z.infer<typeof RedactedPhoneSchema>;
+
+// @public
+export const RedactedPhoneSchema: z.ZodString;
+
+// @public (undocumented)
+export const RegistrationChangedEventSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"registration:changed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        state: z.ZodEnum<{
+            failed: "failed";
+            registered: "registered";
+            unregistering: "unregistering";
+            unregistered: "unregistered";
+        }>;
+        reasonCode: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export type ReplyMessage = z.infer<typeof ReplyMessageSchema>;
+
+// @public (undocumented)
+export const ReplyMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObject<{
+    ok: z.ZodLiteral<true>;
+    revision: z.ZodNumber;
+    result: z.ZodReadonly<z.ZodRecord<z.ZodString, z.ZodLazy<z.ZodType<WireJsonValue, unknown, z.core.$ZodTypeInternals<WireJsonValue, unknown>>>>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"reply">;
+    requestId: z.ZodString;
+    commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
+        "sdk:get-snapshot": "sdk:get-snapshot";
+        "sdk:ping": "sdk:ping";
+        "window:show": "window:show";
+        "window:get-state": "window:get-state";
+        "call:originate": "call:originate";
+        "call:answer": "call:answer";
+        "call:reject": "call:reject";
+        "call:hangup": "call:hangup";
+        "call:hold": "call:hold";
+        "call:resume": "call:resume";
+        "call:mute": "call:mute";
+        "call:unmute": "call:unmute";
+        "call:send-dtmf": "call:send-dtmf";
+        "account:activate-profile": "account:activate-profile";
+        "account:prepare-logout": "account:prepare-logout";
+        "account:confirm-logout": "account:confirm-logout";
+        "operator:get-reasons": "operator:get-reasons";
+        "operator:change-status": "operator:change-status";
+    }>;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    ok: z.ZodLiteral<false>;
+    error: z.ZodReadonly<z.ZodObject<{
+        code: z.ZodEnum<{
+            invalid_message: "invalid_message";
+            invalid_payload: "invalid_payload";
+            unsupported_command: "unsupported_command";
+            incompatible_version: "incompatible_version";
+            unauthenticated: "unauthenticated";
+            forbidden: "forbidden";
+            revoked: "revoked";
+            not_ready: "not_ready";
+            not_found: "not_found";
+            not_owner: "not_owner";
+            conflict: "conflict";
+            stale_state: "stale_state";
+            interaction_required: "interaction_required";
+            timeout: "timeout";
+            rate_limited: "rate_limited";
+            operation_failed: "operation_failed";
+            local_network_permission_required: "local_network_permission_required";
+            local_network_permission_denied: "local_network_permission_denied";
+            discovery_unreachable: "discovery_unreachable";
+        }>;
+        retryable: z.ZodBoolean;
+        currentRevision: z.ZodOptional<z.ZodNumber>;
+        details: z.ZodOptional<z.ZodReadonly<z.ZodRecord<z.ZodString, z.ZodLazy<z.ZodType<WireJsonValue, unknown, z.core.$ZodTypeInternals<WireJsonValue, unknown>>>>>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"reply">;
+    requestId: z.ZodString;
+    commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
+        "sdk:get-snapshot": "sdk:get-snapshot";
+        "sdk:ping": "sdk:ping";
+        "window:show": "window:show";
+        "window:get-state": "window:get-state";
+        "call:originate": "call:originate";
+        "call:answer": "call:answer";
+        "call:reject": "call:reject";
+        "call:hangup": "call:hangup";
+        "call:hold": "call:hold";
+        "call:resume": "call:resume";
+        "call:mute": "call:mute";
+        "call:unmute": "call:unmute";
+        "call:send-dtmf": "call:send-dtmf";
+        "account:activate-profile": "account:activate-profile";
+        "account:prepare-logout": "account:prepare-logout";
+        "account:confirm-logout": "account:confirm-logout";
+        "operator:get-reasons": "operator:get-reasons";
+        "operator:change-status": "operator:change-status";
+    }>;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>], "ok">;
+
+// @public
+export const REQUEST_DEDUP_TTL_SECONDS: 120;
+
+// @public (undocumented)
+export type Revision = z.infer<typeof RevisionSchema>;
+
+// @public
+export const RevisionSchema: z.ZodNumber;
+
+// @public (undocumented)
+export const SdkGetSnapshotCommandSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"sdk:get-snapshot">;
+    payload: z.ZodReadonly<z.ZodObject<{}, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const SdkPermissionChangedEventSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"sdk:permission-changed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        grantedCapabilities: z.ZodArray<z.ZodEnum<{
+            "session.read.redacted": "session.read.redacted";
+            "window.show": "window.show";
+            "window.hide": "window.hide";
+            "operator.status.write": "operator.status.write";
+            "call.originate": "call.originate";
+            "call.control": "call.control";
+            "account.activate": "account.activate";
+            "session.logout": "session.logout";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const SdkPingCommandSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"sdk:ping">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        nonce: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const SdkRevokedEventSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"sdk:revoked">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        reasonCode: z.ZodString;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const SdkServerShutdownEventSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"sdk:server-shutdown">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        reasonCode: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export type ServerHello = z.infer<typeof ServerHelloSchema>;
+
+// @public
+export const ServerHelloSchema: z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"handshake">;
+    type: z.ZodLiteral<"sdk:server-hello">;
+    selectedProtocolVersion: z.ZodNumber;
+    desktopVersion: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    serverNonce: z.ZodString;
+    pairingRequired: z.ZodBoolean;
+    authChallenge: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+        challengeId: z.ZodString;
+        nonce: z.ZodString;
+        expiresAt: z.ZodString;
+    }, z.core.$strip>>>;
+    maxMessageBytes: z.ZodNumber;
+    heartbeatSeconds: z.ZodNumber;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const SnapshotAccountSectionSchema: z.ZodReadonly<z.ZodObject<{
+    signedIn: z.ZodBoolean;
+    profileLabel: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export type SnapshotCallSummary = z.infer<typeof SnapshotCallSummarySchema>;
+
+// @public (undocumented)
+export const SnapshotCallSummarySchema: z.ZodReadonly<z.ZodObject<{
+    callId: z.ZodString;
+    state: z.ZodEnum<{
+        ringing: "ringing";
+        connecting: "connecting";
+        active: "active";
+        held: "held";
+        ending: "ending";
+        ended: "ended";
+        failed: "failed";
+    }>;
+    direction: z.ZodEnum<{
+        inbound: "inbound";
+        outbound: "outbound";
+    }>;
+    remoteNumber: z.ZodOptional<z.ZodString>;
+    remoteDisplayName: z.ZodOptional<z.ZodString>;
+    muted: z.ZodOptional<z.ZodBoolean>;
+    ownerClientId: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export type SnapshotMessage = z.infer<typeof SnapshotMessageSchema>;
+
+// @public (undocumented)
+export const SnapshotMessageSchema: z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"snapshot">;
+    type: z.ZodLiteral<"sdk:snapshot">;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    revision: z.ZodNumber;
+    occurredAt: z.ZodString;
+    sections: z.ZodReadonly<z.ZodObject<{
+        session: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+            clientId: z.ZodString;
+            grantedCapabilities: z.ZodArray<z.ZodEnum<{
+                "session.read.redacted": "session.read.redacted";
+                "window.show": "window.show";
+                "window.hide": "window.hide";
+                "operator.status.write": "operator.status.write";
+                "call.originate": "call.originate";
+                "call.control": "call.control";
+                "account.activate": "account.activate";
+                "session.logout": "session.logout";
+            }>>;
+            authenticated: z.ZodLiteral<true>;
+        }, z.core.$strip>>>;
+        account: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+            signedIn: z.ZodBoolean;
+            profileLabel: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>>>;
+        registration: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+            state: z.ZodEnum<{
+                failed: "failed";
+                registered: "registered";
+                unregistering: "unregistering";
+                unregistered: "unregistered";
+            }>;
+            reasonCode: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>>>;
+        calls: z.ZodOptional<z.ZodArray<z.ZodReadonly<z.ZodObject<{
+            callId: z.ZodString;
+            state: z.ZodEnum<{
+                ringing: "ringing";
+                connecting: "connecting";
+                active: "active";
+                held: "held";
+                ending: "ending";
+                ended: "ended";
+                failed: "failed";
+            }>;
+            direction: z.ZodEnum<{
+                inbound: "inbound";
+                outbound: "outbound";
+            }>;
+            remoteNumber: z.ZodOptional<z.ZodString>;
+            remoteDisplayName: z.ZodOptional<z.ZodString>;
+            muted: z.ZodOptional<z.ZodBoolean>;
+            ownerClientId: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>>>>;
+        operator: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+            connected: z.ZodBoolean;
+            status: z.ZodOptional<z.ZodEnum<{
+                unknown: "unknown";
+                ready: "ready";
+                break: "break";
+                offline: "offline";
+            }>>;
+            reasonId: z.ZodOptional<z.ZodNumber>;
+            reasonLabelKey: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>>>;
+        window: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+            visible: z.ZodBoolean;
+        }, z.core.$strip>>>;
+    }, z.core.$strip>>;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const SnapshotOperatorSectionSchema: z.ZodReadonly<z.ZodObject<{
+    connected: z.ZodBoolean;
+    status: z.ZodOptional<z.ZodEnum<{
+        unknown: "unknown";
+        ready: "ready";
+        break: "break";
+        offline: "offline";
+    }>>;
+    reasonId: z.ZodOptional<z.ZodNumber>;
+    reasonLabelKey: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const SnapshotRegistrationSectionSchema: z.ZodReadonly<z.ZodObject<{
+    state: z.ZodEnum<{
+        failed: "failed";
+        registered: "registered";
+        unregistering: "unregistering";
+        unregistered: "unregistered";
+    }>;
+    reasonCode: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export type SnapshotSections = z.infer<typeof SnapshotSectionsSchema>;
+
+// @public (undocumented)
+export const SnapshotSectionsSchema: z.ZodReadonly<z.ZodObject<{
+    session: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+        clientId: z.ZodString;
+        grantedCapabilities: z.ZodArray<z.ZodEnum<{
+            "session.read.redacted": "session.read.redacted";
+            "window.show": "window.show";
+            "window.hide": "window.hide";
+            "operator.status.write": "operator.status.write";
+            "call.originate": "call.originate";
+            "call.control": "call.control";
+            "account.activate": "account.activate";
+            "session.logout": "session.logout";
+        }>>;
+        authenticated: z.ZodLiteral<true>;
+    }, z.core.$strip>>>;
+    account: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+        signedIn: z.ZodBoolean;
+        profileLabel: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>>;
+    registration: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+        state: z.ZodEnum<{
+            failed: "failed";
+            registered: "registered";
+            unregistering: "unregistering";
+            unregistered: "unregistered";
+        }>;
+        reasonCode: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>>;
+    calls: z.ZodOptional<z.ZodArray<z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        direction: z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        muted: z.ZodOptional<z.ZodBoolean>;
+        ownerClientId: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>>>;
+    operator: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+        connected: z.ZodBoolean;
+        status: z.ZodOptional<z.ZodEnum<{
+            unknown: "unknown";
+            ready: "ready";
+            break: "break";
+            offline: "offline";
+        }>>;
+        reasonId: z.ZodOptional<z.ZodNumber>;
+        reasonLabelKey: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>>;
+    window: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+        visible: z.ZodBoolean;
+    }, z.core.$strip>>>;
+}, z.core.$strip>>;
+
+// @public
+export const SnapshotSessionSectionSchema: z.ZodReadonly<z.ZodObject<{
+    clientId: z.ZodString;
+    grantedCapabilities: z.ZodArray<z.ZodEnum<{
+        "session.read.redacted": "session.read.redacted";
+        "window.show": "window.show";
+        "window.hide": "window.hide";
+        "operator.status.write": "operator.status.write";
+        "call.originate": "call.originate";
+        "call.control": "call.control";
+        "account.activate": "account.activate";
+        "session.logout": "session.logout";
+    }>>;
+    authenticated: z.ZodLiteral<true>;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const SnapshotWindowSectionSchema: z.ZodReadonly<z.ZodObject<{
+    visible: z.ZodBoolean;
+}, z.core.$strip>>;
+
+// @public
+export const V1_DEFERRED_CAMPAIGN_EVENTS: readonly ["operator:campaign-offered", "operator:campaign-cleared"];
+
+// @public
+export const V1_PRODUCT_UNAVAILABLE_COMMANDS: readonly ["window:hide"];
+
+// @public
+export function validateDiscoveryDocument(input: unknown, limits?: ValidationLimits): ValidationResult<z.infer<typeof DiscoveryDocumentSchema>>;
+
+// @public
+export function validateWireMessage(input: unknown, limits?: ValidationLimits): ValidationResult<z.infer<typeof WireMessageSchema>>;
+
+// @public
+export function validateWithSchema<T>(schema: z.ZodType<T>, input: unknown, limits?: ValidationLimits): ValidationResult<T>;
+
+// @public (undocumented)
+export type ValidationFailure = {
+    readonly success: false;
+    readonly code: ProtocolErrorCode;
+};
+
+// @public (undocumented)
+export type ValidationLimits = {
+    readonly maxBytes: number;
+    readonly maxDepth: number;
+    readonly maxArrayLength: number;
+    readonly maxObjectKeys: number;
+};
+
+// @public (undocumented)
+export type ValidationResult<T> = ValidationSuccess<T> | ValidationFailure;
+
+// @public (undocumented)
+export type ValidationSuccess<T> = {
+    readonly success: true;
+    readonly data: T;
+};
+
+// @public (undocumented)
+export const WindowGetStateCommandSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"window:get-state">;
+    payload: z.ZodReadonly<z.ZodObject<{}, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public
+export const WindowHideCommandSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"window:hide">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const WindowShowCommandSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"window:show">;
+    payload: z.ZodReadonly<z.ZodObject<{}, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const WindowVisibilityChangedEventSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"window:visibility-changed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        visible: z.ZodBoolean;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export type WireJsonObject = z.infer<typeof WireJsonObjectSchema>;
+
+// @public
+export const WireJsonObjectSchema: z.ZodReadonly<z.ZodRecord<z.ZodString, z.ZodLazy<z.ZodType<WireJsonValue, unknown, z.core.$ZodTypeInternals<WireJsonValue, unknown>>>>>;
+
+// @public
+export type WireJsonValue = string | number | boolean | null | readonly WireJsonValue[] | {
+    readonly [key: string]: WireJsonValue;
+};
+
+// @public (undocumented)
+export const WireJsonValueSchema: z.ZodType<WireJsonValue>;
+
+// @public (undocumented)
+export type WireMessage = z.infer<typeof WireMessageSchema>;
+
+// @public
+export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"handshake">;
+    type: z.ZodLiteral<"sdk:client-hello">;
+    protocolMin: z.ZodNumber;
+    protocolMax: z.ZodNumber;
+    sdkVersion: z.ZodString;
+    application: z.ZodReadonly<z.ZodObject<{
+        name: z.ZodString;
+        version: z.ZodString;
+    }, z.core.$strip>>;
+    clientId: z.ZodOptional<z.ZodString>;
+    requestedCapabilities: z.ZodArray<z.ZodEnum<{
+        "session.read.redacted": "session.read.redacted";
+        "window.show": "window.show";
+        "window.hide": "window.hide";
+        "operator.status.write": "operator.status.write";
+        "call.originate": "call.originate";
+        "call.control": "call.control";
+        "account.activate": "account.activate";
+        "session.logout": "session.logout";
+    }>>;
+    clientNonce: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"handshake">;
+    type: z.ZodLiteral<"sdk:server-hello">;
+    selectedProtocolVersion: z.ZodNumber;
+    desktopVersion: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    serverNonce: z.ZodString;
+    pairingRequired: z.ZodBoolean;
+    authChallenge: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+        challengeId: z.ZodString;
+        nonce: z.ZodString;
+        expiresAt: z.ZodString;
+    }, z.core.$strip>>>;
+    maxMessageBytes: z.ZodNumber;
+    heartbeatSeconds: z.ZodNumber;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>], "type">, z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"pairing">;
+    type: z.ZodLiteral<"pairing:request">;
+    clientId: z.ZodString;
+    clientPublicKey: z.ZodString;
+    keyAlgorithm: z.ZodLiteral<"ECDSA-P256-SHA256">;
+    application: z.ZodReadonly<z.ZodObject<{
+        name: z.ZodString;
+        version: z.ZodString;
+    }, z.core.$strip>>;
+    requestedProfile: z.ZodEnum<{
+        presentation: "presentation";
+        operator: "operator";
+        call_controller: "call_controller";
+    }>;
+    requestedCapabilities: z.ZodArray<z.ZodEnum<{
+        "session.read.redacted": "session.read.redacted";
+        "window.show": "window.show";
+        "window.hide": "window.hide";
+        "operator.status.write": "operator.status.write";
+        "call.originate": "call.originate";
+        "call.control": "call.control";
+        "account.activate": "account.activate";
+        "session.logout": "session.logout";
+    }>>;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"pairing">;
+    type: z.ZodLiteral<"pairing:pending">;
+    pairingRequestId: z.ZodString;
+    expiresAt: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"pairing">;
+    type: z.ZodLiteral<"pairing:approved">;
+    clientId: z.ZodString;
+    profile: z.ZodEnum<{
+        presentation: "presentation";
+        operator: "operator";
+        call_controller: "call_controller";
+    }>;
+    grantedCapabilities: z.ZodArray<z.ZodEnum<{
+        "session.read.redacted": "session.read.redacted";
+        "window.show": "window.show";
+        "window.hide": "window.hide";
+        "operator.status.write": "operator.status.write";
+        "call.originate": "call.originate";
+        "call.control": "call.control";
+        "account.activate": "account.activate";
+        "session.logout": "session.logout";
+    }>>;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"pairing">;
+    type: z.ZodLiteral<"pairing:denied">;
+    clientId: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>], "type">, z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"auth">;
+    type: z.ZodLiteral<"sdk:auth-proof">;
+    challengeId: z.ZodString;
+    clientId: z.ZodString;
+    signature: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"sdk:get-snapshot">;
+    payload: z.ZodReadonly<z.ZodObject<{}, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"sdk:ping">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        nonce: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"window:show">;
+    payload: z.ZodReadonly<z.ZodObject<{}, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"window:get-state">;
+    payload: z.ZodReadonly<z.ZodObject<{}, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"window:hide">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:originate">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        destination: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:answer">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:reject">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:hangup">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:hold">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:resume">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:mute">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:unmute">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:send-dtmf">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        digits: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"account:activate-profile">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        profileRef: z.ZodString;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"account:prepare-logout">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"account:confirm-logout">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        logoutToken: z.ZodString;
+        reasonId: z.ZodOptional<z.ZodNumber>;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:get-reasons">;
+    payload: z.ZodReadonly<z.ZodObject<{}, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:change-status">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        target: z.ZodEnum<{
+            ready: "ready";
+            break: "break";
+        }>;
+        reasonId: z.ZodOptional<z.ZodNumber>;
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>], "type">, z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObject<{
+    ok: z.ZodLiteral<true>;
+    revision: z.ZodNumber;
+    result: z.ZodReadonly<z.ZodRecord<z.ZodString, z.ZodLazy<z.ZodType<WireJsonValue, unknown, z.core.$ZodTypeInternals<WireJsonValue, unknown>>>>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"reply">;
+    requestId: z.ZodString;
+    commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
+        "sdk:get-snapshot": "sdk:get-snapshot";
+        "sdk:ping": "sdk:ping";
+        "window:show": "window:show";
+        "window:get-state": "window:get-state";
+        "call:originate": "call:originate";
+        "call:answer": "call:answer";
+        "call:reject": "call:reject";
+        "call:hangup": "call:hangup";
+        "call:hold": "call:hold";
+        "call:resume": "call:resume";
+        "call:mute": "call:mute";
+        "call:unmute": "call:unmute";
+        "call:send-dtmf": "call:send-dtmf";
+        "account:activate-profile": "account:activate-profile";
+        "account:prepare-logout": "account:prepare-logout";
+        "account:confirm-logout": "account:confirm-logout";
+        "operator:get-reasons": "operator:get-reasons";
+        "operator:change-status": "operator:change-status";
+    }>;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    ok: z.ZodLiteral<false>;
+    error: z.ZodReadonly<z.ZodObject<{
+        code: z.ZodEnum<{
+            invalid_message: "invalid_message";
+            invalid_payload: "invalid_payload";
+            unsupported_command: "unsupported_command";
+            incompatible_version: "incompatible_version";
+            unauthenticated: "unauthenticated";
+            forbidden: "forbidden";
+            revoked: "revoked";
+            not_ready: "not_ready";
+            not_found: "not_found";
+            not_owner: "not_owner";
+            conflict: "conflict";
+            stale_state: "stale_state";
+            interaction_required: "interaction_required";
+            timeout: "timeout";
+            rate_limited: "rate_limited";
+            operation_failed: "operation_failed";
+            local_network_permission_required: "local_network_permission_required";
+            local_network_permission_denied: "local_network_permission_denied";
+            discovery_unreachable: "discovery_unreachable";
+        }>;
+        retryable: z.ZodBoolean;
+        currentRevision: z.ZodOptional<z.ZodNumber>;
+        details: z.ZodOptional<z.ZodReadonly<z.ZodRecord<z.ZodString, z.ZodLazy<z.ZodType<WireJsonValue, unknown, z.core.$ZodTypeInternals<WireJsonValue, unknown>>>>>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"reply">;
+    requestId: z.ZodString;
+    commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
+        "sdk:get-snapshot": "sdk:get-snapshot";
+        "sdk:ping": "sdk:ping";
+        "window:show": "window:show";
+        "window:get-state": "window:get-state";
+        "call:originate": "call:originate";
+        "call:answer": "call:answer";
+        "call:reject": "call:reject";
+        "call:hangup": "call:hangup";
+        "call:hold": "call:hold";
+        "call:resume": "call:resume";
+        "call:mute": "call:mute";
+        "call:unmute": "call:unmute";
+        "call:send-dtmf": "call:send-dtmf";
+        "account:activate-profile": "account:activate-profile";
+        "account:prepare-logout": "account:prepare-logout";
+        "account:confirm-logout": "account:confirm-logout";
+        "operator:get-reasons": "operator:get-reasons";
+        "operator:change-status": "operator:change-status";
+    }>;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>], "ok">, z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:incoming">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:outgoing">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:ringing">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:answered">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:ended">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:failed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:held">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:resumed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:muted">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:unmuted">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        state: z.ZodEnum<{
+            ringing: "ringing";
+            connecting: "connecting";
+            active: "active";
+            held: "held";
+            ending: "ending";
+            ended: "ended";
+            failed: "failed";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        remoteDisplayName: z.ZodOptional<z.ZodString>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"registration:changed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        state: z.ZodEnum<{
+            failed: "failed";
+            registered: "registered";
+            unregistering: "unregistering";
+            unregistered: "unregistered";
+        }>;
+        reasonCode: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"account:session-activated">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        profileLabel: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"account:session-ended">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        reasonCode: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:session-changed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        connected: z.ZodBoolean;
+        status: z.ZodOptional<z.ZodEnum<{
+            unknown: "unknown";
+            ready: "ready";
+            break: "break";
+            offline: "offline";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:status-changed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        status: z.ZodEnum<{
+            unknown: "unknown";
+            ready: "ready";
+            break: "break";
+            offline: "offline";
+        }>;
+        reasonId: z.ZodOptional<z.ZodNumber>;
+        reasonLabelKey: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"window:visibility-changed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        visible: z.ZodBoolean;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"sdk:permission-changed">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        grantedCapabilities: z.ZodArray<z.ZodEnum<{
+            "session.read.redacted": "session.read.redacted";
+            "window.show": "window.show";
+            "window.hide": "window.hide";
+            "operator.status.write": "operator.status.write";
+            "call.originate": "call.originate";
+            "call.control": "call.control";
+            "account.activate": "account.activate";
+            "session.logout": "session.logout";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"sdk:revoked">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        reasonCode: z.ZodString;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"sdk:server-shutdown">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        reasonCode: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>], "type">, z.ZodReadonly<z.ZodObject<{
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"snapshot">;
+    type: z.ZodLiteral<"sdk:snapshot">;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    revision: z.ZodNumber;
+    occurredAt: z.ZodString;
+    sections: z.ZodReadonly<z.ZodObject<{
+        session: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+            clientId: z.ZodString;
+            grantedCapabilities: z.ZodArray<z.ZodEnum<{
+                "session.read.redacted": "session.read.redacted";
+                "window.show": "window.show";
+                "window.hide": "window.hide";
+                "operator.status.write": "operator.status.write";
+                "call.originate": "call.originate";
+                "call.control": "call.control";
+                "account.activate": "account.activate";
+                "session.logout": "session.logout";
+            }>>;
+            authenticated: z.ZodLiteral<true>;
+        }, z.core.$strip>>>;
+        account: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+            signedIn: z.ZodBoolean;
+            profileLabel: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>>>;
+        registration: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+            state: z.ZodEnum<{
+                failed: "failed";
+                registered: "registered";
+                unregistering: "unregistering";
+                unregistered: "unregistered";
+            }>;
+            reasonCode: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>>>;
+        calls: z.ZodOptional<z.ZodArray<z.ZodReadonly<z.ZodObject<{
+            callId: z.ZodString;
+            state: z.ZodEnum<{
+                ringing: "ringing";
+                connecting: "connecting";
+                active: "active";
+                held: "held";
+                ending: "ending";
+                ended: "ended";
+                failed: "failed";
+            }>;
+            direction: z.ZodEnum<{
+                inbound: "inbound";
+                outbound: "outbound";
+            }>;
+            remoteNumber: z.ZodOptional<z.ZodString>;
+            remoteDisplayName: z.ZodOptional<z.ZodString>;
+            muted: z.ZodOptional<z.ZodBoolean>;
+            ownerClientId: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>>>>;
+        operator: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+            connected: z.ZodBoolean;
+            status: z.ZodOptional<z.ZodEnum<{
+                unknown: "unknown";
+                ready: "ready";
+                break: "break";
+                offline: "offline";
+            }>>;
+            reasonId: z.ZodOptional<z.ZodNumber>;
+            reasonLabelKey: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>>>;
+        window: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+            visible: z.ZodBoolean;
+        }, z.core.$strip>>>;
+    }, z.core.$strip>>;
+}, z.core.$strip>>]>;
+
+// @public
+export const WS_PATH: "/axatalk/v1/ws";
 
 ```

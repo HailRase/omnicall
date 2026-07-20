@@ -14,7 +14,7 @@ Allowed statuses: `pending`, `in progress`, `review`, `done`, `blocked`.
 
 - [x] SDK-00 — Package workspace and CI (`done`)
 - [x] SDK-01 — Protocol and security ADRs (`done`)
-- [ ] SDK-02 — `@axatalk/protocol` (`pending`)
+- [x] SDK-02 — `@axatalk/protocol` (`done`)
 - [ ] SDK-03 — Transport and connection state machine (`pending`)
 - [ ] SDK-04 — Pairing, authentication, and capabilities (`pending`)
 - [ ] SDK-05 — Read-only beta API (`pending`)
@@ -88,7 +88,10 @@ Evidence:
 
 ## SDK-02 — Protocol Package
 
-Prerequisites: SDK-01 and desktop DI-01 done.
+Prerequisites: SDK-01 done; desktop DI-01 listed as peer consumer (DI-01 still `pending` —
+fixtures + consume contract ship here; desktop load evidence is a DI-01 checklist item).
+
+Status: **`done`** (2026-07-20) — `/sdk-review` PASS
 
 Agent prompt:
 
@@ -98,20 +101,23 @@ Agent prompt:
 
 Checklist:
 
-- [ ] handshake/auth schemas.
-- [ ] command/reply schemas.
-- [ ] event/snapshot schemas.
-- [ ] stable error and capability types.
-- [ ] valid and invalid golden fixtures.
-- [ ] compatibility helpers and API report.
-- [ ] desktop consumes the same fixtures successfully.
-- [ ] package and type tests pass.
+- [x] handshake/auth schemas.
+- [x] command/reply schemas.
+- [x] event/snapshot schemas.
+- [x] stable error and capability types.
+- [x] valid and invalid golden fixtures.
+- [x] compatibility helpers and API report.
+- [ ] desktop consumes the same fixtures successfully. *(blocked on DI-01; consume contract in evidence — open DI-01 item, not an SDK-02 Blocker)*
+- [x] package and type tests pass.
 
 Evidence:
 
-- Public API report:
-- Fixture paths:
-- Desktop DI-02 evidence:
+- Public API report: `axatalk-sdk/etc/api/protocol.api.md`
+- Fixture paths: `axatalk-sdk/packages/protocol/fixtures/`
+- Unit evidence: `axatalk-sdk/evidence/SDK-02-protocol-package.md`
+- Desktop DI-01 consume: documented in evidence (DI-01 still `pending`; not faked)
+- Desktop DI-02 evidence: N/A
+- Reviewer: `/sdk-review` **PASS** 2026-07-20 — independent rebuild/tests/lint/preflight PASS; zod@4.4.3 protocol-only; fixtures byte-stable; no AxatalkClient; DI-01 consume honesty OK. Post-review fix: CapabilityIdList on permission-changed; WireJsonObjectSchema for reply/error maps; `@public` tags; unknown-key strip + extra fixtures.
 
 ## SDK-03 — Transport and Connection State Machine
 

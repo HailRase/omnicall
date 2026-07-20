@@ -44,9 +44,9 @@ are stable.
 - Planning: complete
 - Workspace / tooling / CI: **SDK-00 done** (`evidence/SDK-00-workspace.md`)
 - Protocol decisions: **SDK-01 done** (O-* closed via ADR-0014…0017; `/sdk-review` PASS)
-- Protocol implementation: not started (SDK-02)
+- Protocol implementation: **SDK-02 in review** (`@axatalk/protocol` + fixtures; `evidence/SDK-02-protocol-package.md`)
 - SDK client implementation: not started
-- Public API: **none** (placeholder packages only)
+- Public API: **protocol schemas/types only** (no `AxatalkClient`)
 - npm publication: **not started** (CI uploads tarballs only)
 - Production readiness: not claimed
 

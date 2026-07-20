@@ -1,7 +1,7 @@
 {
   "name": "@axatalk/protocol",
   "version": "0.0.0",
-  "description": "Axatalk local protocol schemas and public TypeScript contracts (placeholder until SDK-02)",
+  "description": "Axatalk local protocol v1 runtime schemas, inferred types, and compatibility fixtures",
   "type": "module",
   "private": true,
   "license": "UNLICENSED",
@@ -13,12 +13,14 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
-    }
+    },
+    "./fixtures/*": "./fixtures/*"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
+    "fixtures",
     "LICENSE",
     "README.md"
   ],
@@ -30,5 +32,8 @@
   "publishConfig": {
     "access": "public",
     "provenance": true
+  },
+  "dependencies": {
+    "zod": "4.4.3"
   }
 }

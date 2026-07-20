@@ -1,0 +1,4 @@
+{
+  "expectedErrorCode": "invalid_payload",
+  "notes": "Unknown command type fails closed"
+}

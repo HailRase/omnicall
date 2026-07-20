@@ -1,0 +1,4 @@
+{
+  "expectedErrorCode": "invalid_message",
+  "notes": "Campaign events deferred past v1 (O-CAMP-1)"
+}

@@ -1,0 +1,4 @@
+{
+  "expectedErrorCode": "invalid_payload",
+  "notes": "Forbidden wire key inside reply.result (O-OCP-1)"
+}

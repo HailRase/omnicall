@@ -1,0 +1,4 @@
+{
+  "expectedErrorCode": "forbidden",
+  "notes": "window:hide schema may parse, but v1 product surface must deny (ADR-0013). See policy helpers + product-deny test."
+}

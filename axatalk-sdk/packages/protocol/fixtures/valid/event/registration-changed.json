@@ -1,0 +1,14 @@
+{
+  "protocolVersion": 1,
+  "kind": "event",
+  "type": "registration:changed",
+  "eventId": "evt_reg_001",
+  "sequence": 4,
+  "serverInstanceId": "srv_test_001",
+  "sessionEpoch": "epoch_test_001",
+  "occurredAt": "2026-07-20T09:00:07.000Z",
+  "revision": 16,
+  "payload": {
+    "state": "registered"
+  }
+}

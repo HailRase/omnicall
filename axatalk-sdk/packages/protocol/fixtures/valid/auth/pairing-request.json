@@ -1,0 +1,15 @@
+{
+  "protocolVersion": 1,
+  "kind": "pairing",
+  "type": "pairing:request",
+  "clientId": "client_test_002",
+  "clientPublicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEfixturePublicKeyOnly",
+  "keyAlgorithm": "ECDSA-P256-SHA256",
+  "application": {
+    "name": "fixture-crm",
+    "version": "1.0.0"
+  },
+  "requestedProfile": "presentation",
+  "requestedCapabilities": ["session.read.redacted", "window.show"],
+  "occurredAt": "2026-07-20T09:00:00.000Z"
+}

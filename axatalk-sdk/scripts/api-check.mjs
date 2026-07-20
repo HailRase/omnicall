@@ -25,6 +25,19 @@ function run(command, args, cwd) {
   }
 }
 
+/**
+ * @param {string} report
+ * @returns {string[]}
+ */
+function listPublicSymbols(report) {
+  const matches = [
+    ...report.matchAll(
+      /^\s*(export\s+(?:declare\s+)?(?:class|function|const|interface|type|enum)\s+(\w+))/gm
+    )
+  ];
+  return matches.map((m) => m[2]).filter((name) => typeof name === 'string');
+}
+
 const reportDir = path.join(root, 'etc', 'api');
 const tempDir = path.join(root, 'temp', 'api');
 fs.mkdirSync(reportDir, { recursive: true });
@@ -40,7 +53,14 @@ for (const name of packages) {
   }
   run(
     'npx',
-    ['api-extractor', 'run', '--local', '--verbose', '--typescript-compiler-folder', path.join(root, 'node_modules', 'typescript')],
+    [
+      'api-extractor',
+      'run',
+      '--local',
+      '--verbose',
+      '--typescript-compiler-folder',
+      path.join(root, 'node_modules', 'typescript')
+    ],
     pkgDir
   );
 }
@@ -52,17 +72,32 @@ for (const name of packages) {
     process.exit(1);
   }
   const report = fs.readFileSync(reportPath, 'utf8');
-  if (!report.includes('(No exports were found that belong to package')) {
-    // Empty package still produces a report; accept either no-exports wording or empty export table.
-    if (report.includes('export ') && !report.includes('export {}')) {
-      const publicSymbols = [...report.matchAll(/^\s*(export\s+(?:declare\s+)?(?:class|function|const|interface|type|enum)\s+\w+)/gm)];
-      if (publicSymbols.length > 0) {
-        console.error(`Unexpected public API symbols in ${reportPath}`);
-        process.exit(1);
+  const symbols = listPublicSymbols(report);
+
+  if (name === 'sdk') {
+    if (symbols.length > 0) {
+      console.error(`Unexpected public API symbols in ${reportPath}`);
+      for (const symbol of symbols) {
+        console.error(`  - ${symbol}`);
       }
+      process.exit(1);
     }
+    console.log(`API report OK (no public production surface): ${path.relative(root, reportPath)}`);
+    continue;
   }
-  console.log(`API report OK (no public production surface): ${path.relative(root, reportPath)}`);
+
+  // protocol (SDK-02): intentional public schemas/types; still forbid client surface.
+  if (symbols.includes('AxatalkClient')) {
+    console.error(`Forbidden public symbol AxatalkClient in ${reportPath}`);
+    process.exit(1);
+  }
+  if (symbols.length === 0) {
+    console.error(`Expected public protocol API symbols in ${reportPath}`);
+    process.exit(1);
+  }
+  console.log(
+    `API report OK (protocol surface ${symbols.length} symbols, no AxatalkClient): ${path.relative(root, reportPath)}`
+  );
 }
 
 console.log('\napi:check PASS');

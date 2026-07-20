@@ -1,0 +1,18 @@
+{
+  "protocolVersion": 1,
+  "kind": "event",
+  "type": "call:incoming",
+  "eventId": "evt_test_001",
+  "sequence": 1,
+  "serverInstanceId": "srv_test_001",
+  "sessionEpoch": "epoch_test_001",
+  "occurredAt": "2026-07-20T09:00:05.000Z",
+  "revision": 13,
+  "payload": {
+    "callId": "call_test_001",
+    "state": "ringing",
+    "direction": "inbound",
+    "remoteNumber": "+1******7890",
+    "remoteDisplayName": "A***"
+  }
+}

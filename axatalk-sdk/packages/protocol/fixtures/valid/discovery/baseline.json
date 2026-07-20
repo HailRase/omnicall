@@ -1,0 +1,11 @@
+{
+  "discoveryVersion": 1,
+  "protocolMin": 1,
+  "protocolMax": 1,
+  "desktopVersion": "0.1.0-test",
+  "serverInstanceId": "srv_test_001",
+  "wsUrl": "ws://127.0.0.1:17341/axatalk/v1/ws",
+  "maxMessageBytes": 65536,
+  "heartbeatSeconds": 15,
+  "pairingRequired": true
+}

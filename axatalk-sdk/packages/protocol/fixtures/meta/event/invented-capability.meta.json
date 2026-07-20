@@ -1,0 +1,4 @@
+{
+  "expectedErrorCode": "invalid_payload",
+  "notes": "Capability strings must be CAPABILITY_IDS (fail closed)"
+}

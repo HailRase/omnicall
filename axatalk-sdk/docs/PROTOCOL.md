@@ -210,7 +210,8 @@ disconnect does not end calls.
 ## Runtime Schemas
 
 Zod schemas in `@axatalk/protocol` are the source of truth; TypeScript types are inferred
-(**ADR-0014** / O-SCHEMA-1). Implementation starts in SDK-02.
+(**ADR-0014** / O-SCHEMA-1). **SDK-02** implements schemas, validators, fixtures, and
+compatibility helpers under `packages/protocol/`.
 
 ## Capability Profiles
 

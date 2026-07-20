@@ -1,0 +1,19 @@
+{
+  "protocolVersion": 1,
+  "kind": "handshake",
+  "type": "sdk:server-hello",
+  "selectedProtocolVersion": 1,
+  "desktopVersion": "0.1.0-test",
+  "serverInstanceId": "srv_test_001",
+  "sessionEpoch": "epoch_test_001",
+  "serverNonce": "c2VydmVybm9uY2U0NTY",
+  "pairingRequired": false,
+  "authChallenge": {
+    "challengeId": "chal_test_001",
+    "nonce": "Y2hhbGxlbmdlbm9uY2U",
+    "expiresAt": "2026-07-20T09:01:00.000Z"
+  },
+  "maxMessageBytes": 65536,
+  "heartbeatSeconds": 15,
+  "occurredAt": "2026-07-20T09:00:00.100Z"
+}
