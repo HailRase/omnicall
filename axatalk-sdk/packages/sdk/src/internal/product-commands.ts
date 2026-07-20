@@ -81,3 +81,17 @@ export function readWindowState(reply: {
     revision: reply.revision
   };
 }
+
+export function readCallMutationResult(reply: {
+  readonly revision: number;
+  readonly result: Readonly<Record<string, unknown>>;
+}): { readonly callId: string; readonly revision: number } {
+  const callId = reply.result['callId'];
+  if (typeof callId !== 'string' || callId.length === 0) {
+    throw createClientError({ code: 'invalid_payload', retryable: false });
+  }
+  return {
+    callId,
+    revision: reply.revision
+  };
+}

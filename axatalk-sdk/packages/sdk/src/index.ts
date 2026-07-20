@@ -1,7 +1,7 @@
 /**
  * `@axatalk/sdk` — browser client for Axatalk Desktop local protocol.
  *
- * SDK-05 exports read-only AxatalkClient plus SDK-04 auth lifecycle.
+ * SDK-06: AxatalkClient with namespaced call mutations + SDK-04/05 read path.
  *
  * @packageDocumentation
  */
@@ -19,10 +19,12 @@ export {
   createAxatalkClient,
   isAxatalkClientError,
   PUBLIC_EVENT_TYPES,
+  type AxatalkCallsApi,
   type AxatalkClient,
   type AxatalkClientOptions,
   type AxatalkEvent,
   type AxatalkWindowApi,
+  type CallMutationResult,
   type PublicEventType
 } from './public/axatalk-client.js';
 

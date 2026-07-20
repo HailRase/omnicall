@@ -18,13 +18,17 @@ describe('@axatalk/sdk type smoke', () => {
     expectTypeOf<AuthClient>().not.toHaveProperty('window');
   });
 
-  it('exposes read-only AxatalkClient surface', () => {
+  it('exposes AxatalkClient with namespaced calls (no root mutations)', () => {
     expectTypeOf(createAxatalkClient).toBeFunction();
     expectTypeOf<AxatalkClient>().toHaveProperty('getSnapshot');
     expectTypeOf<AxatalkClient>().toHaveProperty('subscribe');
     expectTypeOf<AxatalkClient>().toHaveProperty('window');
+    expectTypeOf<AxatalkClient>().toHaveProperty('calls');
     expectTypeOf<AxatalkClient>().not.toHaveProperty('originate');
     expectTypeOf<AxatalkClient>().not.toHaveProperty('hide');
+    expectTypeOf<AxatalkClient['calls']>().toHaveProperty('originate');
+    expectTypeOf<AxatalkClient['calls']>().toHaveProperty('sendDtmf');
+    expectTypeOf<AxatalkClient['window']>().not.toHaveProperty('hide');
     expectTypeOf<AxatalkClientOptions>().toHaveProperty('origin');
     expectTypeOf<PopKeyStore>().toHaveProperty('clear');
     expectTypeOf<'call:incoming'>().toExtend<PublicEventType>();

@@ -269,6 +269,30 @@ export function replyForbidden(
   transport: FakeTransport,
   commandType: string
 ): boolean {
+  return replyCommandFailure(transport, commandType, {
+    code: 'forbidden',
+    retryable: false
+  });
+}
+
+export function replyCommandSuccess(
+  transport: FakeTransport,
+  commandType: string,
+  result: Record<string, unknown>,
+  revision: number
+): boolean {
+  return replyToCommand(transport, commandType, result, revision);
+}
+
+export function replyCommandFailure(
+  transport: FakeTransport,
+  commandType: string,
+  error: {
+    readonly code: string;
+    readonly retryable: boolean;
+    readonly currentRevision?: number;
+  }
+): boolean {
   for (let index = transport.sent.length - 1; index >= 0; index -= 1) {
     const item = transport.sent[index]!;
     try {
@@ -297,7 +321,13 @@ export function replyForbidden(
           serverInstanceId: parsed.serverInstanceId,
           sessionEpoch: parsed.sessionEpoch,
           occurredAt: '2026-07-20T09:00:00.400Z',
-          error: { code: 'forbidden', retryable: false }
+          error: {
+            code: error.code,
+            retryable: error.retryable,
+            ...(error.currentRevision !== undefined
+              ? { currentRevision: error.currentRevision }
+              : {})
+          }
         })
       );
       return true;
@@ -306,6 +336,57 @@ export function replyForbidden(
     }
   }
   return false;
+}
+
+export function replyCallSuccess(
+  transport: FakeTransport,
+  commandType: string,
+  callId: string,
+  revision: number
+): boolean {
+  return replyCommandSuccess(
+    transport,
+    commandType,
+    { callId, accepted: true },
+    revision
+  );
+}
+
+/** Malformed call success reply (missing/empty callId). */
+export function replyCallSuccessMalformed(
+  transport: FakeTransport,
+  commandType: string,
+  revision: number
+): boolean {
+  return replyCommandSuccess(
+    transport,
+    commandType,
+    { accepted: true },
+    revision
+  );
+}
+
+export function countSentType(
+  transport: FakeTransport,
+  commandType: string
+): number {
+  let count = 0;
+  for (const item of transport.sent) {
+    try {
+      const parsed: unknown = JSON.parse(item);
+      if (
+        typeof parsed === 'object' &&
+        parsed !== null &&
+        'type' in parsed &&
+        parsed.type === commandType
+      ) {
+        count += 1;
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return count;
 }
 
 export function buildCallIncomingEvent(sequence: number, revision = 13): string {

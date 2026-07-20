@@ -1,7 +1,7 @@
 {
   "name": "@axatalk/sdk",
   "version": "0.0.0",
-  "description": "Browser client for Axatalk Desktop local protocol (read-only AxatalkClient + auth/pairing lifecycle)",
+  "description": "Browser client for Axatalk Desktop local protocol (AxatalkClient read path + call control)",
   "type": "module",
   "private": true,
   "license": "UNLICENSED",

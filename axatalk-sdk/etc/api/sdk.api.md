@@ -52,6 +52,47 @@ export type AuthSessionSnapshot = {
 };
 
 // @public
+export type AxatalkCallsApi = {
+    readonly originate: (input: {
+        readonly destination: string;
+        readonly expectedRevision: number;
+    }) => Promise<CallMutationResult>;
+    readonly answer: (input: {
+        readonly callId: string;
+        readonly expectedRevision: number;
+    }) => Promise<CallMutationResult>;
+    readonly reject: (input: {
+        readonly callId: string;
+        readonly expectedRevision: number;
+    }) => Promise<CallMutationResult>;
+    readonly hangup: (input: {
+        readonly callId: string;
+        readonly expectedRevision: number;
+    }) => Promise<CallMutationResult>;
+    readonly hold: (input: {
+        readonly callId: string;
+        readonly expectedRevision: number;
+    }) => Promise<CallMutationResult>;
+    readonly resume: (input: {
+        readonly callId: string;
+        readonly expectedRevision: number;
+    }) => Promise<CallMutationResult>;
+    readonly mute: (input: {
+        readonly callId: string;
+        readonly expectedRevision: number;
+    }) => Promise<CallMutationResult>;
+    readonly unmute: (input: {
+        readonly callId: string;
+        readonly expectedRevision: number;
+    }) => Promise<CallMutationResult>;
+    readonly sendDtmf: (input: {
+        readonly callId: string;
+        readonly digits: string;
+        readonly expectedRevision: number;
+    }) => Promise<CallMutationResult>;
+};
+
+// @public
 export type AxatalkClient = {
     readonly getState: () => ConnectionState;
     readonly getGrantedCapabilities: () => readonly CapabilityId[];
@@ -69,6 +110,7 @@ export type AxatalkClient = {
         type: T;
     }>) => void) => () => void;
     readonly window: AxatalkWindowApi;
+    readonly calls: AxatalkCallsApi;
 };
 
 // @public
@@ -106,6 +148,12 @@ export type AxatalkWindowApi = {
         readonly visible: boolean;
         readonly revision: number;
     }>;
+};
+
+// @public
+export type CallMutationResult = {
+    readonly callId: string;
+    readonly revision: number;
 };
 
 // @public

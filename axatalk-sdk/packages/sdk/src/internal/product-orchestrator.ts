@@ -1,9 +1,14 @@
 /**
- * Read-only product orchestration: snapshot cache, events, window.show.
+ * Product orchestration: snapshot cache, events, window.show, call mutations.
  */
 
 import type { CapabilityId, SnapshotMessage } from '@axatalk/protocol';
 
+import {
+  createCallCommandApi,
+  type CallCommandApi,
+  type CallMutationResult
+} from './call-commands.js';
 import type { ConnectionSession } from './connection-session.js';
 import type { DiagnosticsSink } from './diagnostics.js';
 import { createEventSubscriptionHub } from './event-subscription.js';
@@ -34,6 +39,8 @@ import {
 } from './snapshot-acquisition.js';
 import { createSnapshotCache } from './snapshot-cache.js';
 
+export type { CallMutationResult };
+
 export type WindowStateResult = {
   readonly visible: boolean;
   readonly revision: number;
@@ -51,6 +58,9 @@ export type ProductOrchestrator = {
   ) => () => void;
   readonly showWindow: () => Promise<WindowStateResult>;
   readonly getWindowState: () => Promise<WindowStateResult>;
+  readonly originateCall: CallCommandApi['originateCall'];
+  readonly controlCall: CallCommandApi['controlCall'];
+  readonly sendDtmf: CallCommandApi['sendDtmf'];
   readonly dispose: () => void;
 };
 
@@ -65,6 +75,11 @@ export function createProductOrchestrator(deps: {
   const waitTimeoutMs = deps.snapshotWaitTimeoutMs ?? 5_000;
   let resyncInFlight = false;
   let pendingAcquisitions: SnapshotAcquisition[] = [];
+  const calls = createCallCommandApi({
+    connection: deps.connection,
+    scheduler: deps.scheduler,
+    getGrantedCapabilities: deps.getGrantedCapabilities
+  });
 
   const removeAcquisition = (acquisition: SnapshotAcquisition): void => {
     pendingAcquisitions = pendingAcquisitions.filter(
@@ -270,6 +285,9 @@ export function createProductOrchestrator(deps: {
     subscribe: hub.subscribe,
     showWindow: () => runWindowCommand('window:show'),
     getWindowState: () => runWindowCommand('window:get-state'),
+    originateCall: calls.originateCall,
+    controlCall: calls.controlCall,
+    sendDtmf: calls.sendDtmf,
     dispose: () => {
       invalidate();
       hub.clearListeners();

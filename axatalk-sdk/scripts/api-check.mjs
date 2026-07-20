@@ -7,16 +7,18 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const packages = ['protocol', 'sdk'];
 
-/** SDK-05 allowlist — auth lifecycle + read-only AxatalkClient. */
+/** SDK-06 allowlist — auth + read path + namespaced call control. */
 const SDK_ALLOWED_SYMBOLS = new Set([
   'AuthClient',
   'AuthClientOptions',
   'AuthSessionSnapshot',
+  'AxatalkCallsApi',
   'AxatalkClient',
   'AxatalkClientError',
   'AxatalkClientOptions',
   'AxatalkEvent',
   'AxatalkWindowApi',
+  'CallMutationResult',
   'CONNECTION_STATES',
   'ConnectionState',
   'DiagnosticEvent',
@@ -49,7 +51,6 @@ const SDK_ALLOWED_SYMBOLS = new Set([
 ]);
 
 const SDK_FORBIDDEN_SYMBOLS = new Set([
-  'originate',
   'activateProfile',
   'prepareLogout',
   'confirmLogout'
@@ -124,7 +125,7 @@ for (const name of packages) {
 
   if (name === 'sdk') {
     if (symbols.length === 0) {
-      console.error(`Expected SDK-05 public surface in ${reportPath}`);
+      console.error(`Expected SDK-06 public surface in ${reportPath}`);
       process.exit(1);
     }
     for (const symbol of symbols) {
@@ -133,7 +134,7 @@ for (const name of packages) {
         process.exit(1);
       }
       if (!SDK_ALLOWED_SYMBOLS.has(symbol)) {
-        console.error(`Unexpected public SDK symbol (not in SDK-05 allowlist): ${symbol}`);
+        console.error(`Unexpected public SDK symbol (not in SDK-06 allowlist): ${symbol}`);
         process.exit(1);
       }
     }
@@ -145,12 +146,25 @@ for (const name of packages) {
       console.error('SDK API must export AxatalkClient');
       process.exit(1);
     }
-    if (report.includes('originate') && report.includes('readonly originate')) {
-      console.error('Mutation originate must not appear on public AxatalkClient');
+    if (!symbols.includes('AxatalkCallsApi')) {
+      console.error('SDK API must export AxatalkCallsApi');
+      process.exit(1);
+    }
+    const clientMatch = report.match(
+      /export type AxatalkClient = \{([\s\S]*?)\n\};/
+    );
+    if (clientMatch !== null && /^\s*readonly originate:/m.test(clientMatch[1])) {
+      console.error(
+        'Root-level originate is forbidden; use namespaced AxatalkCallsApi'
+      );
+      process.exit(1);
+    }
+    if (!report.includes('readonly calls:')) {
+      console.error('AxatalkClient must expose namespaced calls API');
       process.exit(1);
     }
     console.log(
-      `API report OK (sdk read-only surface ${symbols.length} symbols): ${path.relative(root, reportPath)}`
+      `API report OK (sdk surface ${symbols.length} symbols): ${path.relative(root, reportPath)}`
     );
     continue;
   }

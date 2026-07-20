@@ -136,6 +136,8 @@ describe('AxatalkClient constructor', () => {
     expect(harness.client).not.toHaveProperty('originate');
     expect(harness.client).not.toHaveProperty('hide');
     expect(harness.client.window).not.toHaveProperty('hide');
+    expect(harness.client.calls).toBeTypeOf('object');
+    expect(harness.client.calls).toHaveProperty('originate');
   });
 });
 

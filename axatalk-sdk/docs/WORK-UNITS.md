@@ -18,7 +18,7 @@ Allowed statuses: `pending`, `in progress`, `review`, `done`, `blocked`.
 - [x] SDK-03 — Transport and connection state machine (`done`)
 - [x] SDK-04 — Pairing, authentication, and capabilities (`done`)
 - [x] SDK-05 — Read-only beta API (`done`)
-- [ ] SDK-06 — Call control API (`pending`)
+- [x] SDK-06 — Call control API (`done`)
 - [ ] SDK-07 — Operator and logout workflows (`pending`)
 - [ ] SDK-08 — Saved-profile activation (`pending`)
 - [ ] SDK-09 — Developer documentation and examples (`pending`)
@@ -214,6 +214,8 @@ Evidence:
 
 Prerequisites: SDK-05 stable; desktop DI-06 done.
 
+Status: **`done`** (2026-07-20) — `/sdk-review` PASS
+
 Agent prompt:
 
 > Add call mutations in the approved order. For each command add capability, revision,
@@ -221,20 +223,28 @@ Agent prompt:
 
 Checklist:
 
-- [ ] originate.
-- [ ] answer/reject.
-- [ ] hang up.
-- [ ] hold/resume.
-- [ ] mute/unmute.
-- [ ] DTMF.
-- [ ] conflict and stale-state errors.
-- [ ] SDK disconnect leaves calls untouched.
+- [x] originate.
+- [x] answer/reject.
+- [x] hang up.
+- [x] hold/resume.
+- [x] mute/unmute.
+- [x] DTMF.
+- [x] conflict and stale-state errors.
+- [x] SDK disconnect leaves calls untouched.
+- [x] reconnect does not replay call mutations.
+- [x] SDK-05 snapshot/window/auth regressions green.
+- [x] browser coverage for call path (minimal).
+- [x] api-check / package-check updated.
 
 Evidence:
 
-- Command matrix:
-- Race tests:
-- Desktop mapping evidence:
+- Unit evidence: `axatalk-sdk/evidence/SDK-06-call-control-api.md`
+- Command matrix: same (table + DI-06 citation)
+- Race tests: reconnect non-replay; disconnect-no-hangup; stale_state/conflict/not_owner; pre-ready/forbidden
+- Desktop mapping evidence: DI-06 oracle **17** tests green (read-only); client is protocol consumer only
+- Independent verification (implementation session): sdk src **66**, workspace preflight **74**, types **5**, browser **5**, api **39** (was **37**), desktop oracle **17**
+- Reviewer: `/sdk-review` **PASS** 2026-07-20 — zero Blockers; Low remediated same day (malformed callId → `invalid_payload`); independent post-fix: sdk src **67**, workspace **75**, types **5**, browser **5**, api **39**, desktop oracle **17**; F-011 remains `in progress`; DI-10 still blocked on SDK-07…09; next `/sdk-project` SDK-07 only
+- Explicit non-goals: no SDK-07; F-011 not `implemented`; DI-10 still blocked on SDK-07…09
 
 ## SDK-07 — Operator and Logout Workflows
 
