@@ -13,7 +13,8 @@
 | Code preflight commit | `5114c02` |
 | DI-00 docs commit | `18fb3f1` |
 | DI-00 | `done` — `/sdk-review` PASS 2026-07-20 |
-| Next | SDK-00 (`/sdk-project`), then SDK-01 (shared open rows); DI-01 after DI-00 + SDK-01 |
+| SDK-00 | `done` — `/sdk-review` PASS 2026-07-20 |
+| Next | **SDK-01** (shared open rows O-*); DI-01 after DI-00 + SDK-01 |
 
 ## Mission
 
@@ -161,6 +162,6 @@ P12 closes only when:
 
 ## Next Agent Prompt
 
-1. Run `/sdk-project` for **SDK-00** (separate session); then **SDK-01** to close open rows O-*.
+1. Run `/sdk-project` for **SDK-01** (protocol/security ADRs; close PROTOCOL O-* with desktop DI-00 ADR-0009…0013 baselines). Do **not** implement product APIs.
 2. Do **not** start DI-01 until DI-00 and SDK-01 are done.
 3. Do not install desktop production dependencies or write product `src/` until the owning DI unit.

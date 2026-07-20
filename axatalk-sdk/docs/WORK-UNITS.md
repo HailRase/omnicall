@@ -12,7 +12,7 @@ Allowed statuses: `pending`, `in progress`, `review`, `done`, `blocked`.
 
 ## Progress
 
-- [ ] SDK-00 — Package workspace and CI (`pending`)
+- [x] SDK-00 — Package workspace and CI (`done`)
 - [ ] SDK-01 — Protocol and security ADRs (`pending`)
 - [ ] SDK-02 — `@axatalk/protocol` (`pending`)
 - [ ] SDK-03 — Transport and connection state machine (`pending`)
@@ -38,19 +38,21 @@ Agent prompt:
 
 Checklist:
 
-- [ ] npm workspace created with protocol and SDK packages.
-- [ ] strict shared and package TypeScript configurations added.
-- [ ] ESM exports and declaration build configured.
-- [ ] lint, typecheck, unit, type, API, package, browser, and preflight scripts added.
-- [ ] CI uses clean install and uploads package tarballs without publishing.
-- [ ] dependency purpose and runtime status documented.
-- [ ] clean install and preflight pass.
+- [x] npm workspace created with protocol and SDK packages.
+- [x] strict shared and package TypeScript configurations added.
+- [x] ESM exports and declaration build configured.
+- [x] lint, typecheck, unit, type, API, package, browser, and preflight scripts added.
+- [x] CI uses clean install and uploads package tarballs without publishing.
+- [x] dependency purpose and runtime status documented.
+- [x] clean install and preflight pass.
 
 Evidence:
 
-- Workspace files:
-- Verification output:
-- Reviewer:
+- Workspace files: `axatalk-sdk/package.json`, `packages/protocol`, `packages/sdk`, `docs/DEPENDENCIES.md`
+- Verification output: `axatalk-sdk/evidence/SDK-00-workspace.md`
+- CI: `.github/workflows/axatalk-sdk-ci.yml`
+- API reports: `axatalk-sdk/etc/api/protocol.api.md`, `axatalk-sdk/etc/api/sdk.api.md`
+- Reviewer: `/sdk-review` **PASS** 2026-07-20 — clean `npm ci` + `preflight` verified; CI browser path PASS; no publish; no public API; O-* untouched; desktop `src/` untouched. Low: deferred browser matrix; root `package-lock.json` version noise unrelated to SDK packages.
 
 ## SDK-01 — Protocol and Security ADRs
 

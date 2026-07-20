@@ -1,8 +1,8 @@
 # Axatalk SDK Project
 
-This directory is the execution package for building the browser-facing Axatalk SDK.
-It is intentionally documentation-only until work unit SDK-00 initializes the standalone
-package. Do not add production source files before SDK-00 is approved.
+This directory is the incubating npm workspace for `@axatalk/protocol` and `@axatalk/sdk`.
+It remains inside the desktop repository until protocol v1 and compatibility fixtures are
+stable enough to extract. Never create a nested Git repository here.
 
 ## Goal
 
@@ -22,6 +22,7 @@ Every agent must read these files in order:
 6. [`docs/WORK-UNITS.md`](docs/WORK-UNITS.md)
 7. [`docs/DEFINITION-OF-DONE.md`](docs/DEFINITION-OF-DONE.md)
 8. [`docs/CONSUMER-SMOKE-CHECKLIST.md`](docs/CONSUMER-SMOKE-CHECKLIST.md)
+9. [`docs/DEPENDENCIES.md`](docs/DEPENDENCIES.md)
 
 The desktop counterpart is documented in
 [`../axatalk-sdk-integration/README.md`](../axatalk-sdk-integration/README.md).
@@ -36,15 +37,28 @@ The recommended end state is a separate publishable repository containing:
 
 During protocol incubation, this directory remains inside the desktop repository so both
 tracks can evolve atomically. Extract it only after protocol v1 and compatibility fixtures
-are stable. Never create a nested Git repository inside this directory.
+are stable.
 
 ## Current Status
 
 - Planning: complete
-- Protocol implementation: not started
-- SDK implementation: not started
-- npm publication: not started
+- Workspace / tooling / CI: **SDK-00 done** (`evidence/SDK-00-workspace.md`)
+- Protocol decisions: **next = SDK-01** (O-* still open)
+- Protocol implementation: not started (SDK-02)
+- SDK client implementation: not started
+- Public API: **none** (placeholder packages only)
+- npm publication: **not started** (CI uploads tarballs only)
 - Production readiness: not claimed
+
+### Local commands
+
+```bash
+cd axatalk-sdk
+npm ci
+npm run preflight
+```
+
+Node engines: `>=20.19.0`.
 
 ## Non-Negotiable Release Rule
 

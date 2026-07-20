@@ -301,7 +301,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-051`, `LF-065`, `LF-080`, `LF-081`
 - Context: Integration
 - Priority: critical
-- Status: **planned** (legacy `window.Softphone` **not ported**; architecture gate DI-00 `done` — ADRs ADR-0009…0013; implementation not started)
+- Status: **planned** (legacy `window.Softphone` **not ported**; architecture gate DI-00 `done` — ADRs ADR-0009…0013; SDK-00 workspace/CI **`done`**; product implementation not started)
 - Owner: TBD
 - Inputs: external commands from browser tabs via WS (not DOM globals)
 - Outputs: typed commands routed to Facade / Use Cases with `callType: 'sdk'` (F-028 E-12 host methods retain `callType: 'external'`)

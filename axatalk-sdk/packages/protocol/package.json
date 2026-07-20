@@ -1,0 +1,34 @@
+{
+  "name": "@axatalk/protocol",
+  "version": "0.0.0",
+  "description": "Axatalk local protocol schemas and public TypeScript contracts (placeholder until SDK-02)",
+  "type": "module",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "node -e \"import('node:fs').then((fs)=>fs.promises.rm('dist',{recursive:true,force:true}))\""
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}
