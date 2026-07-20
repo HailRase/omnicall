@@ -93,13 +93,15 @@ Gate closed: contracts compile and test without Electron or real network.
 
 ## Phase DI-02 — Typed Main-to-Renderer Broker
 
-- Implement request/reply correlation across process boundary.
-- Validate payloads on main ingress, preload/IPC boundary, and renderer ingress.
-- Define startup readiness, renderer reload, timeout, cancellation, and shutdown behavior.
-- Keep preload API minimal; never expose raw `ipcRenderer`.
-- Prove one renderer composition receives every product command.
+Status: **`done`** (2026-07-20). Evidence: `evidence/DI-02-typed-main-renderer-broker.md`. `/sdk-review` PASS.
 
-Gate: broker integration tests pass; no network server yet.
+- Implemented request/reply correlation across process boundary (`MainToRendererBroker`).
+- Validated payloads on main ingress, preload/IPC boundary, and renderer ingress.
+- Defined startup readiness, renderer reload, timeout, cancellation, and shutdown behavior (ADR-0009).
+- Kept preload API minimal (`onSdkBrokerRequest` / `replySdkBrokerRequest` / `setSdkBrokerReady`); no raw `ipcRenderer`.
+- Proved one renderer Application probe handler receives every successful `sdk:ping`.
+
+Gate closed. Post-review follow-ups closed: cancel-quit restores broker readiness; send/reload target the ready webContents.
 
 ## Phase DI-03 — Local Gateway Transport
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
+import { bindSdkBrokerSession } from "../bootstrap/bindSdkBrokerSession.js";
 import { createRendererComposition } from "../bootstrap/createRendererComposition.js";
 import { translateCurrent } from "../i18n/index.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
@@ -18,6 +19,7 @@ export function useAccountBootstrap(): Readonly<{
 
   useEffect(() => {
     let unsubscribe = (): void => undefined;
+    let disposeSdkBroker = (): void => undefined;
     let cancelled = false;
     let activeFacade: AccountBootstrapFacade | null = null;
 
@@ -30,6 +32,8 @@ export function useAccountBootstrap(): Readonly<{
         await activeFacade.initialize(bootstrapOptions.config);
 
         if (!cancelled) {
+          const bound = bindSdkBrokerSession();
+          disposeSdkBroker = bound.dispose;
           setStatus("ready");
         }
       } catch (error: unknown) {
@@ -48,6 +52,7 @@ export function useAccountBootstrap(): Readonly<{
 
     return () => {
       cancelled = true;
+      disposeSdkBroker();
       unsubscribe();
       activeFacade?.dispose();
     };

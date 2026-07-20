@@ -27,6 +27,13 @@ import type {
   SetPendingDisplaySourcePayload,
   SetPendingDisplaySourceResponse,
 } from "./DisplayCaptureContract.js";
+import type {
+  SdkBrokerReadyIpcPayload,
+  SdkBrokerReadyIpcResponse,
+  SdkBrokerReplyIpcPayload,
+  SdkBrokerReplyIpcResponse,
+  SdkBrokerRequestIpcPayload,
+} from "./SdkBrokerContract.js";
 
 export type SoftphonePreloadApi = Readonly<{
   getPlatformVersion: () => Promise<PlatformVersionResponse>;
@@ -55,6 +62,18 @@ export type SoftphonePreloadApi = Readonly<{
   setPendingDisplaySource: (
     payload: SetPendingDisplaySourcePayload,
   ) => Promise<SetPendingDisplaySourceResponse>;
+  /** DI-02: subscribe to main→renderer SDK broker product requests. */
+  onSdkBrokerRequest: (
+    handler: (payload: SdkBrokerRequestIpcPayload) => void,
+  ) => () => void;
+  /** DI-02: reply to a pending SDK broker request. */
+  replySdkBrokerRequest: (
+    payload: SdkBrokerReplyIpcPayload,
+  ) => Promise<SdkBrokerReplyIpcResponse>;
+  /** DI-02: signal Application composition readiness for product broker traffic. */
+  setSdkBrokerReady: (
+    payload: SdkBrokerReadyIpcPayload,
+  ) => Promise<SdkBrokerReadyIpcResponse>;
 }>;
 
 declare global {

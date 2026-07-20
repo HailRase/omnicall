@@ -47,6 +47,9 @@ function createSoftphonePreloadApiMock(
     setHeadsetPreferredDeviceId: vi.fn().mockResolvedValue({ ok: true }),
     listDisplaySources: vi.fn().mockResolvedValue({ ok: true, sources: [] }),
     setPendingDisplaySource: vi.fn().mockResolvedValue({ ok: true }),
+    onSdkBrokerRequest: vi.fn().mockReturnValue(() => {}),
+    replySdkBrokerRequest: vi.fn().mockResolvedValue({ ok: true }),
+    setSdkBrokerReady: vi.fn().mockResolvedValue({ ok: true }),
     ...overrides,
   };
 }

@@ -17,6 +17,12 @@ export const IPC_CHANNELS = {
   headsetSetPreferredDeviceId: "headset:set-preferred-device-id",
   mediaListDisplaySources: "media:list-display-sources",
   mediaSetPendingDisplaySource: "media:set-pending-display-source",
+  /** Main → renderer: push validated SDK broker product request (ADR-0009 / DI-02). */
+  sdkBrokerRequest: "sdk-broker:request",
+  /** Renderer → main: reply for a pending SDK broker request. */
+  sdkBrokerReply: "sdk-broker:reply",
+  /** Renderer → main: composition readiness for product broker traffic. */
+  sdkBrokerSetReady: "sdk-broker:set-ready",
 } as const;
 
 export type IpcChannel =

@@ -28,6 +28,12 @@ import {
   parseSetPendingDisplaySourcePayload,
   parseSetPendingDisplaySourceResponse,
 } from "@shared/ipc/DisplayCaptureContract.js";
+import {
+  parseSdkBrokerAckResponse,
+  parseSdkBrokerReadyIpcPayload,
+  parseSdkBrokerReplyIpcPayload,
+  parseSdkBrokerRequestIpcPayload,
+} from "@shared/ipc/SdkBrokerContract.js";
 
 const softphoneApi: SoftphonePreloadApi = {
   getPlatformVersion: () => ipcRenderer.invoke(IPC_CHANNELS.platformGetVersion),
@@ -225,6 +231,40 @@ const softphoneApi: SoftphonePreloadApi = {
       return { ok: false, reason: "invalid_response" };
     }
     return parsed;
+  },
+  onSdkBrokerRequest: (handler) => {
+    const listener = (_event: Electron.IpcRendererEvent, payload: unknown): void => {
+      const parsed = parseSdkBrokerRequestIpcPayload(payload);
+      if (parsed !== null) {
+        handler(parsed);
+      }
+    };
+    ipcRenderer.on(IPC_CHANNELS.sdkBrokerRequest, listener);
+    return () => {
+      ipcRenderer.removeListener(IPC_CHANNELS.sdkBrokerRequest, listener);
+    };
+  },
+  replySdkBrokerRequest: async (payload) => {
+    const parsed = parseSdkBrokerReplyIpcPayload(payload);
+    if (parsed === null) {
+      return { ok: false };
+    }
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.sdkBrokerReply,
+      parsed,
+    );
+    return parseSdkBrokerAckResponse(response) ?? { ok: false };
+  },
+  setSdkBrokerReady: async (payload) => {
+    const parsed = parseSdkBrokerReadyIpcPayload(payload);
+    if (parsed === null) {
+      return { ok: false };
+    }
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.sdkBrokerSetReady,
+      parsed,
+    );
+    return parseSdkBrokerAckResponse(response) ?? { ok: false };
   },
 };
 

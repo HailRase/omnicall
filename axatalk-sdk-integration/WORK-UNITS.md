@@ -4,7 +4,7 @@
 
 - [x] DI-00 — ADRs, baseline, and P12 handoff (`done`)
 - [x] DI-01 — Protocol contracts, ports, and mocks (`done`)
-- [ ] DI-02 — Typed main-to-renderer broker (`pending`)
+- [x] DI-02 — Typed main-to-renderer broker (`done`)
 - [ ] DI-03 — Loopback WebSocket transport (`pending`)
 - [ ] DI-04 — Pairing, Origin, capabilities, and revocation (`pending`)
 - [ ] DI-05 — Read-only snapshot, events, and window show (`pending`)
@@ -164,6 +164,16 @@ Checklist:
 
 Prerequisites: DI-01 done.
 
+Status: **`done`** (2026-07-20) — `/sdk-review` PASS
+
+### Intake (before coding)
+
+- Feature/LF: F-011; LF-051, LF-065, LF-080, LF-081
+- Bounded context: Integration (primary)
+- Layers: shared IPC, main, preload, ports adapters, thin Application probe + renderer bootstrap bind
+- Layers forbidden: Domain rules, UI Kit, WS/pairing/product routers, second composition
+- Regression risks refused: SIP-only; optional OCP; call/media/headset; single composition; Domain free of protocol; sandbox/preload; no Softphone; transfer backlog; no secret/PII in broker logs
+
 Agent prompt:
 
 > Implement and test the narrow main-to-renderer request/reply broker. Route product commands
@@ -172,13 +182,39 @@ Agent prompt:
 
 Checklist:
 
-- [ ] typed shared IPC channels/envelopes.
-- [ ] runtime validation on every boundary.
-- [ ] minimal preload exposure.
-- [ ] readiness, timeout, cancellation, reload, and shutdown behavior.
-- [ ] pending-request cleanup.
-- [ ] no raw `ipcRenderer`.
-- [ ] no second Facade/composition.
+- [x] typed shared IPC channels/envelopes.
+- [x] runtime validation on every boundary.
+- [x] minimal preload exposure.
+- [x] readiness, timeout, cancellation, reload, and shutdown behavior.
+- [x] pending-request cleanup.
+- [x] no raw `ipcRenderer`.
+- [x] no second Facade/composition.
+
+### Handoff checklist (DI-02)
+
+- Work unit: DI-02
+- Prerequisites verified: DI-00 `done`; DI-01 `done` (`/sdk-review` PASS); SDK-01+SDK-02 `done`
+- Feature/LF IDs: F-011; LF-051, LF-065, LF-080, LF-081
+- Bounded contexts: Integration
+- Layers changed: shared IPC, main registration, preload allowlist, integration adapters, Application probe, renderer bootstrap bind
+- Files added/changed:
+  - `src/shared/ipc/IpcChannels.ts`, `SdkBrokerContract.ts` (+ test), `PreloadApi.ts`
+  - `src/adapters/integration/MainToRendererBroker.ts` (+ test)
+  - `src/adapters/integration/RendererSdkBrokerSession.ts` (+ test)
+  - `src/application/integration/SdkBrokerProbeHandler.ts` (+ test)
+  - `src/main/sdk/registerSdkBrokerIpc.ts`; wire in `src/main/index.ts`
+  - `src/preload/index.ts`; `src/renderer/bootstrap/bindSdkBrokerSession.ts`; `useAccountBootstrap.ts`
+  - `axatalk-sdk-integration/evidence/DI-02-typed-main-renderer-broker.md`
+- Commands/events added: IPC `sdk-broker:request|reply|set-ready`; product probe `sdk:ping` only
+- Security impact: fail-closed IPC parsers; allowlisted broker logs (no payloads); sandbox/preload unchanged
+- Regression risks: additive broker path; SIP/OCP/call paths untouched; F-011 not implemented
+- Automated tests: 23 DI-02 broker/session/contract/probe tests (+ mock/boundary); full suite **2344 passed / 1 skipped** after follow-ups
+- Manual evidence: smoke not claimed
+- Verification commands: focused vitest; `npm test`; `npm run lint`; `npm run typecheck`; `npm run registry:check`
+- Registry/Legacy/STATUS changes: F-011 stays `in progress`; DI-02 → `done`
+- Remaining risks: DI-03 WS transport; product routers deferred; packaged E2E at DI-10
+- Evidence: `axatalk-sdk-integration/evidence/DI-02-typed-main-renderer-broker.md`
+- Reviewer: `/sdk-review` **PASS** (2026-07-20) — no Blockers; High/Low follow-ups closed same day (cancel-quit restore + preferred webContents reload hooks)
 
 ## DI-03 — Loopback WebSocket Transport
 

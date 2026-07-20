@@ -7,13 +7,14 @@
 | Feature | F-011 Host Integration Contract |
 | Legacy | LF-051, LF-065, LF-080, LF-081 |
 | Phase | P12 External Host API Compatibility |
-| Feature status | **in progress** (DI-01 contracts/ports/mocks `done`; no product gateway) |
+| Feature status | **in progress** (DI-01 `done`; DI-02 broker `done`; no WS/product gateway) |
 | Branch | `feature/axatalk-sdk` |
 | Desktop version | `0.11.2` |
 | DI-00 | `done` — `/sdk-review` PASS 2026-07-20 |
 | SDK-00…SDK-02 | `done` — `/sdk-review` PASS |
 | DI-01 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-01-protocol-ports-mocks.md` |
-| Next | **DI-02** typed main-to-renderer broker (`/sdk-integration`) |
+| DI-02 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-02-typed-main-renderer-broker.md` |
+| Next | **DI-03** loopback WebSocket (`/sdk-integration`) |
 
 ## Mission
 
@@ -138,10 +139,11 @@ Automated matrix: `axatalk-sdk-integration/TEST-MATRIX.md`.
 
 - [x] F-011 planning references point at ADRs + packages (status **`in progress`** after DI-01 contracts; not implemented).
 - [x] LF-051/065/080/081 remain planned with execution-package pointers (no false done).
-- [x] STATUS notes DI-00 architecture gate and DI-01 `done` without claiming product gateway.
+- [x] STATUS notes DI-00…DI-02 gates without claiming product gateway.
 - [x] Protocol/security open decisions synchronized with SDK-01 ownership.
 - [x] Work-history and DI-00 evidence exist.
 - [x] DI-01 evidence exists; `/sdk-review` PASS (`evidence/DI-01-protocol-ports-mocks.md`).
+- [x] DI-02 evidence exists; `/sdk-review` PASS (`evidence/DI-02-typed-main-renderer-broker.md`).
 - [ ] No premature `implemented` status — enforced until DI-10.
 
 ## DI-00 Evidence Summary
@@ -166,6 +168,7 @@ P12 closes only when:
 
 ## Next Agent Prompt
 
-1. Implement **DI-02** typed main-to-renderer broker only (no network server) via `/sdk-integration`.
-2. Keep Domain free of protocol / Zod / Electron / ws imports.
-3. Do not mark F-011 `implemented` until DI-10.
+1. Implement **DI-03** loopback WebSocket transport only (handshake + limits; no product snapshot/commands) via `/sdk-integration`.
+2. Keep Domain free of protocol / Zod / Electron / ws imports; gateway must not import Facades/Call Engine.
+3. DI-02 High/Low follow-ups are closed (cancel-quit broker restore + preferred webContents targeting).
+4. Do not mark F-011 `implemented` until DI-10.

@@ -32,6 +32,12 @@ import {
 import { parseHeadsetSetPreferredDeviceIdPayload } from "@shared/ipc/HeadsetPreferredDeviceContract.js";
 import { installDisplayMediaRequestHandler } from "./media/installDisplayMediaRequestHandler.js";
 import { registerDisplayCaptureIpc } from "./media/registerDisplayCaptureIpc.js";
+import {
+  beginSdkBrokerAppShutdown,
+  cancelSdkBrokerAppShutdown,
+  registerSdkBrokerIpc,
+  shutdownSdkBroker,
+} from "./sdk/registerSdkBrokerIpc.js";
 
 const logger = createConsoleLogger({
   boundedContext: "Integration",
@@ -141,6 +147,9 @@ function requestRendererShutdown(
   source: AppShutdownSource,
   action: AppShutdownAction,
 ): { ok: true } | { ok: false; reason: "shutdown_in_progress" | "window_destroyed" } {
+  // ADR-0009: cancel pending broker work before renderer telephony cleanup.
+  beginSdkBrokerAppShutdown();
+
   const correlationId = createCorrelationId();
   const beginResult = shutdownCoordinator.beginShutdown(correlationId, action);
 
@@ -185,6 +194,8 @@ function requestRendererShutdown(
 
 function finalizeShutdown(action: AppShutdownAction): void {
   isQuitting = true;
+  // ADR-0009: cancel pending broker work before process exit / telephony teardown path.
+  shutdownSdkBroker();
 
   // Force quit, kill, or OS hard shutdown cannot await async SIP logout.
   if (action === "restart") {
@@ -335,6 +346,9 @@ function registerIpcHandlers(): void {
       return { ok: false as const, reason: "rejected" };
     }
 
+    // ADR-0009 / DI-02: restore broker readiness after cancelled quit without reload.
+    cancelSdkBrokerAppShutdown();
+
     logger.warn("app_shutdown_cancelled", {
       correlationId: parsed.correlationId,
       operation: "app_cancel_shutdown",
@@ -431,6 +445,7 @@ void app.whenReady().then(() => {
   registerProfilesPersistenceIpc();
   registerSecretStorageIpc();
   registerContactsCsvIpc();
+  registerSdkBrokerIpc();
   setupHidPermissions();
   registerDisplayCaptureIpc();
   installDisplayMediaRequestHandler({

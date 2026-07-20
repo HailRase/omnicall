@@ -9,8 +9,8 @@ recorded evidence on 2026-07-20.
 
 - Axatalk Desktop version: `0.11.2`
 - Branch / commits (DI-00): `feature/axatalk-sdk` — code preflight `5114c02`; docs `18fb3f1`
-- F-011 Host Integration Contract: `in progress` (DI-01 contracts `done`; no product gateway)
-- P12 External Host API Compatibility: architecture closed (DI-00); DI-01 contracts `done` (`/sdk-review` PASS)
+- F-011 Host Integration Contract: `in progress` (DI-01 contracts `done`; DI-02 broker `done`; no WS/product gateway)
+- P12 External Host API Compatibility: architecture closed (DI-00); DI-01 `done`; DI-02 broker `done`
 - F-028 OCP command subset E-12: implemented
 - SIP-only product path: implemented and mandatory
 - OCP module: optional
@@ -58,7 +58,7 @@ Handoff: `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`
 ## Missing Components
 
 - real `LocalWsServerAdapter` / listening gateway (port + mock exist from DI-01);
-- typed main-to-renderer command broker **implementation** (port + mock exist from DI-01);
+- typed main-to-renderer command broker **implementation** — DI-02 `done` (port/mock from DI-01; real IPC adapter landed);
 - `ExternalCommandRouter`;
 - public snapshot/event mapper;
 - pairing, Origin, capability, replay, revoke, and resource policies (implementation);
