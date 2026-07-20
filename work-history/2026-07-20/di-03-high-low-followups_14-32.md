@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-20 14:32
 **Статус:** выполнено
-**Коммит:** `6bf777a`
+**Коммит:** `befbee0`
 
 ## Где
 - `src/adapters/integration/sdkGatewayPeer.ts`

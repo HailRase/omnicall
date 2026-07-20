@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-20 14:08
 **Статус:** выполнено (`/sdk-review` PASS; High/Low follow-ups closed)
-**Коммит:** `6bf777a`
+**Коммит:** `befbee0`
 
 ## Где
 - `src/adapters/integration/LocalWsServerAdapter.ts` (+ helpers/session registry)
