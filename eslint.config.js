@@ -32,6 +32,8 @@ export default tseslint.config(
       "dist/**",
       "node_modules/**",
       "scripts/**",
+      // DI-* Node smoke harnesses (same class as root scripts/** — not product TS).
+      "axatalk-sdk-integration/scripts/**",
       ".storybook/**",
       // Nested SDK workspace has its own ESLint/tsconfig (SDK-00+). Do not lint it from desktop root.
       "axatalk-sdk/**",

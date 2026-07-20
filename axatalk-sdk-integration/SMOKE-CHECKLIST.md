@@ -5,37 +5,40 @@ relevant subset, but no partial run closes P12.
 
 ## Record
 
-- Date:
-- Desktop version/commit:
-- SDK version/commit:
-- Protocol version:
-- OS:
-- Browser/version:
-- Gateway configuration:
-- Test operator/profile:
-- Reviewer:
+- Date: **2026-07-21** (DI-10 partial packaged subset)
+- Desktop version/commit: **0.11.2** / `9e9a61d` (+ DI-10 working tree)
+- SDK version/commit: workspace **0.0.0** (API 47/169) / same repo
+- Protocol version: **1**
+- OS: Windows 10 (19045)
+- Browser/version: Microsoft Edge **150.0.4078.83**
+- Gateway configuration: env allowlist `http://127.0.0.1:8765`; `AXATALK_SDK_GATEWAY=1`; win-unpacked
+- Test operator/profile: **not used** this run (pairing/call cells OPEN)
+- Reviewer: re-request `/sdk-review` DI-10 (FAIL findings remediated 2026-07-21)
+
+Sanitized reports: `evidence/DI-10-packaged-smoke-report.json`, `evidence/DI-10-browser-smoke-report.json`,
+`evidence/DI-10-compatibility-e2e-p12-close.md`.
 
 Do not record credentials, tokens, full phone numbers, or customer data.
 
 ## Setup
 
-- [ ] Packaged Axatalk build installed.
-- [ ] Controlled SIP/OCP test infrastructure available.
-- [ ] Test Origin approved through the desktop UX/policy.
-- [ ] A separate hostile Origin is available.
-- [ ] Logs are enabled with secret/PII redaction.
-- [ ] SDK client starts without cached state from a previous run.
+- [x] Packaged Axatalk build installed. *(win-unpacked `0.11.2`)*
+- [ ] Controlled SIP/OCP test infrastructure available. *(OPEN)*
+- [x] Test Origin approved through the desktop UX/policy. *(env allowlist for smoke Origin; Settings UX path OPEN)*
+- [x] A separate hostile Origin is available.
+- [x] Logs are enabled with secret/PII redaction. *(policy held; no secrets in reports)*
+- [x] SDK client starts without cached state from a previous run. *(fresh Edge profile for browser smoke)*
 
 ## Transport and Pairing
 
-- [ ] Desktop starts with SDK integration disabled and core SIP remains usable.
-- [ ] Enabling integration starts one loopback listener.
-- [ ] Second desktop instance does not own a competing listener.
-- [ ] Hostile, missing, and `null` Origins are rejected.
-- [ ] Approved Origin receives pairing-required without product state.
-- [ ] Pairing approval authenticates only the approved client and capabilities.
-- [ ] Pairing denial, expiry, and revoke fail closed.
-- [ ] Replayed handshake/request is rejected.
+- [ ] Desktop starts with SDK integration disabled and core SIP remains usable. *(OPEN live; automated disable/start-denial cited)*
+- [x] Enabling integration starts one loopback listener. *(discovery :17341)*
+- [ ] Second desktop instance does not own a competing listener. *(OPEN live; automated not-primary cited)*
+- [x] Hostile, missing, and `null` Origins are rejected. *(packaged hostile + unit missing/null)*
+- [x] Approved Origin receives pairing-required without product state.
+- [ ] Pairing approval authenticates only the approved client and capabilities. *(OPEN — Settings UX)*
+- [ ] Pairing denial, expiry, and revoke fail closed. *(OPEN live UI; automated revoke PASS)*
+- [x] Replayed handshake/request is rejected. *(automated PoP/challenge)*
 
 ## Read-Only State
 
@@ -104,9 +107,9 @@ Do not record credentials, tokens, full phone numbers, or customer data.
 
 ## Result
 
-- Overall: PASS / FAIL
-- Failed item IDs:
-- Sanitized evidence paths:
-- Follow-up work unit:
+- Overall: **PARTIAL** (not PASS — remaining OPEN cells forbid P12 / F-011 close)
+- Failed item IDs: none claimed FAIL; OPEN cells listed above + call/OCP/compat prior-release rows
+- Sanitized evidence paths: `evidence/DI-10-compatibility-e2e-p12-close.md`
+- Follow-up work unit: complete OPEN smoke cells after `/sdk-review` DI-10 (or human-named waivers)
 
 P12 may close only with PASS and independent architecture, work-unit, and security reviews.

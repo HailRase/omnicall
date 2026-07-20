@@ -301,7 +301,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-051`, `LF-065`, `LF-080`, `LF-081`
 - Context: Integration
 - Priority: critical
-- Status: **in progress** (legacy `window.Softphone` **not ported**; architecture gate DI-00 `done`; SDK-00…SDK-10 `done` — Mode A RC-ready / stable-blocked (no npm `latest`; no registry publish); DI-01…DI-09 **`done`**; DI-10 **`blocked`** — awaits explicit `/sdk-integration` DI-10 intake (not auto-started; no waiver); F-011 not implemented)
+- Status: **in progress** (legacy `window.Softphone` **not ported**; architecture gate DI-00 `done`; SDK-00…SDK-10 Mode A `done` (RC-ready / stable-blocked; no npm `latest`); DI-01…DI-09 **`done`**; DI-10 **`review`** — FAIL findings remediated 2026-07-21; awaiting re-`/sdk-review`; packaged handshake evidence real; full Settings pair/revoke/call/SIP smoke **OPEN**; F-011 not `implemented`; P12 not closed — `axatalk-sdk-integration/evidence/DI-10-compatibility-e2e-p12-close.md`)
 - Owner: TBD
 - Inputs: external commands from browser tabs via WS (not DOM globals)
 - Outputs: typed commands routed to Facade / Use Cases with `callType: 'sdk'` (F-028 E-12 host methods retain `callType: 'external'`)
@@ -318,7 +318,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Test Coverage:
   - Unit: command payload parsing (F-028 E-12); DI-01 fixture corpus consume + mock gateway/broker + Domain dependency-boundary
   - Integration: DI-02 broker loopback; DI-03 loopback WS bind/limits/handshake/unauth deny/teardown; DI-04 Origin/pairing/PoP/capabilities/revoke; DI-05 redacted snapshot/events/`window:show`; DI-06 call commands via Call Engine (ownership/revision/idempotency); DI-07 operator/logout (`callType: "sdk"`, prepare/confirm, `interaction_required`); DI-08 saved-profile activate (opaque `profileRef`, grant + `account.activate`, logout-first `conflict`); DI-09 Settings SDK Server card (schema v10, origins/paired/revoke/grant UX, hide disabled)
-  - E2E: deferred until DI-10 packaged gate
+  - E2E: DI-10 packaged win-unpacked `0.11.2` + Edge Chromium handshake/hostile/incompat **PASS** (partial); Settings pair/revoke + SIP/OCP call matrix **OPEN** — see `axatalk-sdk-integration/evidence/DI-10-compatibility-e2e-p12-close.md`
 - Implementation plans: `axatalk-sdk/README.md`; `axatalk-sdk-integration/README.md`; `axatalk-sdk-integration/WORK-UNITS.md` (DI-00…DI-10); `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`
 - Architecture ADRs: `docs/softphone/adr/ADR-0009-sdk-process-ownership-broker-lifecycle.md`; `ADR-0010`; `ADR-0011`; `ADR-0012`; `ADR-0013`; `ADR-0014`; `ADR-0015`; `ADR-0016`; `ADR-0017`
 - Baseline evidence: `axatalk-sdk-integration/evidence/DI-00-baseline.md`
@@ -344,6 +344,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - SDK-09 evidence: `axatalk-sdk/evidence/SDK-09-developer-docs-examples.md` (`done` — developer guide + fake-peer example; not published)
 - SDK-10 evidence: `axatalk-sdk/evidence/SDK-10-release-candidate.md` (`done` — Mode A RC staging; stable/packaged E2E blocked on DI-10; no npm `latest`)
 - DI-09 evidence: `axatalk-sdk-integration/evidence/DI-09-settings-operational-ux.md`
+- DI-10 evidence: `axatalk-sdk-integration/evidence/DI-10-compatibility-e2e-p12-close.md` (`review` — FAIL remediated 2026-07-21; re-request `/sdk-review`; F-011 not closed)
 - Implementation evidence (DI-08 activate): `ExternalSdkAccountHandler.ts`; `ExternalSdkAccountPort.ts`; `createSdkAccountPortFromFacade.ts`; `sdkProfileRefCodec.ts`; `sdkAccountActivateGrantStore.ts`; `sdkGatewayActivateApproval.ts`; `LocalWsServerAdapter.issueAccountActivateGrant`; `bindSdkBrokerSession.ts`
 - Implementation evidence (SDK-08 client): `packages/sdk/src/internal/account-activate-commands.ts`; `account-activate-wire.ts`; `public/axatalk-client.activate.test.ts`; `tests/browser/axatalk-client-activate.browser.test.ts`
 - Implementation evidence (DI-09 settings): `SdkIntegrationSettings.ts`; `persistSdkIntegrationSettings.ts`; `SdkGatewaySettingsContract.ts`; `registerSdkGatewaySettingsIpc.ts`; `SdkModuleSettingsCard.tsx`; `useSdkSettingsPanel.ts`

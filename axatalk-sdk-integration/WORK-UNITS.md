@@ -12,7 +12,7 @@
 - [x] DI-07 — Operator status and logout workflow (`done`)
 - [x] DI-08 — Saved-profile activation (`done`)
 - [x] DI-09 — Settings and operational UX (`done`)
-- [ ] DI-10 — Compatibility, E2E, and P12 close (`blocked` — SDK-00…SDK-10 Mode A `done`; awaits explicit `/sdk-integration` DI-10 intake; not auto-started; no human waiver)
+- [ ] DI-10 — Compatibility, E2E, and P12 close (`review` — Blocker/High/Low remediated 2026-07-21; re-request `/sdk-review`; F-011/P12 not closed)
 
 Allowed statuses: `pending`, `in progress`, `review`, `done`, `blocked`.
 
@@ -536,28 +536,20 @@ Checklist:
 
 Prerequisites: DI-01…DI-09 and SDK-00…SDK-09 done. (SDK-10 Mode A RC staging also `done`.)
 
-Status: **`blocked`** (2026-07-21) — SDK prereqs closed (incl. SDK-10 Mode A); awaits explicit `/sdk-integration` DI-10 intake (not auto-started)
+Status: **`review`** (2026-07-21) — `/sdk-review` FAIL findings remediated (ESLint ignore + SDK-10 docs + Edge version + catalog); packaged handshake evidence real; F-011/P12 **not** closed; awaiting re-`/sdk-review`
 
-### Blocker (hard-stop)
+### Intake (hard-stop cleared)
 
 | Check | Required | Actual |
 | --- | --- | --- |
 | Desktop DI-00…DI-09 | `done` | **PASS** — all `done` |
 | SDK-00…SDK-09 | `done` (or explicit human waiver) | **PASS** — SDK-09 `/sdk-review` PASS 2026-07-20 |
 | SDK-10 Mode A | RC-ready / stable-blocked (optional for DI-10 intake) | **PASS** — `/sdk-review` PASS 2026-07-20; no npm `latest` |
-| Human waiver | documents deferred browser E2E cells **and** forbids F-011 `implemented` | **n/a** (SDK prereqs met) |
+| Explicit intake | `/sdk-integration` DI-10 only | **PASS** — this session |
 | Desktop version | `0.11.2` until justified P12 close bump | **PASS** (`0.11.2`) |
-| F-011 | stays `in progress` until real packaged evidence | **PASS** — unchanged |
-| Explicit intake | `/sdk-integration` DI-10 only | **pending** — not auto-started from SDK-10 review |
+| F-011 | stays `in progress` until real packaged evidence | **PASS** — unchanged (full smoke incomplete) |
 
-Evidence: `axatalk-sdk-integration/evidence/DI-10-blocker-sdk-prereqs.md`
-
-**Next (exactly one):**
-
-1. Run `/sdk-integration` **DI-10 only** in a separate session; **or**
-2. Provide an explicit human waiver that lists which browser E2E / client-package cells are deferred and **forbids** marking F-011 `implemented` / P12 closed / SemVer MINOR bump until those cells are real.
-
-Until DI-10 intake: no hostile/compat fortress coding under DI-10, no packaged browser claims, no registry close.
+Evidence: `axatalk-sdk-integration/evidence/DI-10-compatibility-e2e-p12-close.md`
 
 Agent prompt:
 
@@ -567,11 +559,30 @@ Agent prompt:
 
 Checklist:
 
-- [ ] complete automated preflight.
-- [ ] packaged Electron + supported browser E2E.
-- [ ] old/new SDK-desktop matrix.
-- [ ] hostile-client security matrix.
-- [ ] SIP-only/OCP/call/manual smoke.
-- [ ] architecture, WU, and security reviews pass.
-- [ ] F-011, LF-051/065/080/081, STATUS, roadmap, docs, and handoff updated.
-- [ ] rollback and client revocation verified.
+- [x] complete automated preflight. *(remediated: ESLint ignore DI smoke scripts; re-verify counts in evidence)*
+- [x] packaged Electron + supported browser E2E. *(PARTIAL — handshake/security subset PASS; pairing/call OPEN)*
+- [x] old/new SDK-desktop matrix. *(PARTIAL — current+incompat PASS; prior published SDK N/A/OPEN)*
+- [x] hostile-client security matrix. *(PASS automated + packaged Origin; live UI revoke OPEN)*
+- [x] SIP-only/OCP/call/manual smoke. *(PARTIAL — automated independence cited; live OPEN)*
+- [x] architecture, WU, and security reviews pass. *(self-check; formal `/sdk-review` re-requested after remediation; `/arch-review` deferred)*
+- [x] F-011, LF-051/065/080/081, STATUS, roadmap, docs, and handoff updated. *(factual; F-011/LF/P12 not closed)*
+- [x] rollback and client revocation verified. *(automated revoke PASS; packaged UI revoke OPEN)*
+
+### Handoff checklist (DI-10)
+
+- Work unit: DI-10
+- Prerequisites verified: DI-00…DI-09 `done`; SDK-00…SDK-10 Mode A `done`; explicit intake
+- Feature/LF IDs: F-011; LF-051, LF-065, LF-080, LF-081
+- Bounded contexts: Integration
+- Layers changed: tests + evidence/scripts/docs only (no production privilege change)
+- Files added/changed: see evidence file
+- Commands/events added: none
+- Security impact: fortress + packaged Origin/incompat proven; no weaken
+- Regression risks: none intentional; version remains `0.11.2`
+- Automated tests: `LocalWsServerAdapter.compat.test.ts` + prior DI-03…09 suite; full preflight PASS
+- Manual evidence: packaged win-unpacked 0.11.2 + Edge 150 smoke reports (partial checklist)
+- Verification commands: `npm run release:preflight`; SDK `api:check`/`preflight`; `di10-*-smoke.mjs`
+- Registry/Legacy/STATUS changes: F-011 stays `in progress`; P12 open; remaining gates listed
+- Remaining risks / open: Settings pair/revoke live; SIP/OCP call smoke; prior SDK/desktop cells
+- Evidence: `axatalk-sdk-integration/evidence/DI-10-compatibility-e2e-p12-close.md`
+- Reviewer: `/sdk-review` FAIL (2026-07-21) → remediated same day; **re-request `/sdk-review` DI-10 only**

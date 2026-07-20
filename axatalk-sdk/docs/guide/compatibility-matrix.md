@@ -1,7 +1,8 @@
 # Browser & SDK↔Desktop Compatibility Matrix
 
-Release gate matrix for SDK-10. Cells that require packaged Electron or hostile Origin
-evidence are **blocked on DI-10** until that desktop unit is `done`.
+Release gate matrix for SDK-10. Packaged handshake/hostile subset is documented under DI-10
+(`PARTIAL`); remaining product cells (pair/revoke/call/SIP) stay **OPEN** until real evidence
+or a human-named waiver. Do not treat DI-10 WU `done` as F-011/`implemented`.
 
 ## Browser baseline (SDK track)
 
@@ -27,13 +28,13 @@ evidence are **blocked on DI-10** until that desktop unit is `done`.
 | Cell | Owner | Status |
 | --- | --- | --- |
 | Protocol fixture parity (unit / CI) | SDK-02…08 + DI fixtures | Covered in track tests — not a packaged E2E substitute |
-| Pairing + Origin allowlist (live desktop) | DI-04…09 | Desktop units `done`; packaged browser claim → **DI-10** |
-| Hostile Origin / revoked client | DI-10 | **blocked on DI-10** |
-| Old SDK ↔ new desktop | DI-10 | **blocked on DI-10** |
-| New SDK ↔ old desktop | DI-10 | **blocked on DI-10** |
-| Packaged Electron + browser E2E | DI-10 | **blocked on DI-10** — see `axatalk-sdk-integration/evidence/DI-10-blocker-sdk-prereqs.md` |
+| Pairing + Origin allowlist (live desktop) | DI-04…09 | Desktop units `done`; Settings UX pair path still OPEN in DI-10 |
+| Hostile Origin / revoked client | DI-10 | Hostile Origin **PASS** (packaged); live UI revoke **OPEN** — `DI-10-compatibility-e2e-p12-close.md` |
+| Old SDK ↔ new desktop | DI-10 | **OPEN** — no prior published `@axatalk/sdk` |
+| New SDK ↔ old desktop | DI-10 | **OPEN** — prior desktops lack DI gateway surface |
+| Packaged Electron + browser E2E | DI-10 | **PARTIAL PASS** — handshake/hostile/incompat on `0.11.2` + Edge; pair/call/SIP OPEN |
 
 ## Honesty rule
 
-Do **not** mark packaged Electron E2E or full hostile/compat matrix as PASS from the SDK
-track alone. Mode A (RC staging) records Chromium baseline + package fortress only.
+Do **not** mark full packaged product E2E or F-011 `implemented` from handshake-only cells.
+DI-10 `review` documents partial packaged proof; P12 close still requires remaining OPEN cells.

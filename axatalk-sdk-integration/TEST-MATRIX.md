@@ -129,5 +129,18 @@ npm run i18n:check
 npm run ui:catalog:check
 ```
 
-Add dedicated protocol, gateway security, compatibility, and packaged E2E commands during
-their owning work units. DI-10 must document their final canonical names.
+DI-10 canonical verification names (2026-07-21):
+
+```text
+npm run release:preflight
+npm run i18n:check
+npm run ui:catalog:check
+npx vitest run src/adapters/integration/LocalWsServerAdapter.compat.test.ts
+node axatalk-sdk-integration/scripts/di10-packaged-smoke.mjs
+node axatalk-sdk-integration/scripts/di10-browser-smoke.mjs
+# from axatalk-sdk/:
+npm run api:check
+npm run preflight
+```
+
+Evidence: `evidence/DI-10-compatibility-e2e-p12-close.md`.

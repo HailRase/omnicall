@@ -194,14 +194,14 @@ Gate: UI, accessibility, i18n, migration, and security tests pass.
 
 ## Phase DI-10 — Compatibility, E2E, and P12 Close
 
-- Run the full matrix in [`TEST-MATRIX.md`](TEST-MATRIX.md).
-- Test packaged Electron with supported browser and SDK release candidate.
-- Verify old/new protocol compatibility and explicit incompatibility.
-- Complete independent architecture, WU, and security reviews.
-- Update F-011, LF-051/065/080/081, STATUS, roadmap gate, handoff, and user/developer docs.
-- Close P12 only with real evidence.
+Status: **`review`** (2026-07-21). Evidence: `evidence/DI-10-compatibility-e2e-p12-close.md`.
 
-Gate: F-011 is `implemented`, P12 is closed, and no Blocker remains.
+- Automated preflight PASS (2499/1); SDK `api:check` 47/169 held.
+- Packaged Electron `0.11.2` + Edge Chromium handshake / hostile Origin / incompat **PASS** (partial).
+- Settings pair/revoke UX, SIP/OCP call smoke, prior published SDK cells remain **OPEN**.
+- F-011 stays `in progress`; P12 **not** closed; SemVer unchanged (`0.11.2`).
+
+Gate: F-011 `implemented` + P12 close still require remaining OPEN smoke cells + `/sdk-review` PASS.
 
 ## Rollback and Failure Policy
 

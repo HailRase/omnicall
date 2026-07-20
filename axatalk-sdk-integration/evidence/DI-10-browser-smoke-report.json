@@ -1,0 +1,25 @@
+{
+  "date": "2026-07-20T21:12:17.954Z",
+  "mode": "packaged-electron + Edge Chromium page",
+  "origin": "http://127.0.0.1:8765",
+  "browserPath": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+  "browserVersion": "150.0.4078.83",
+  "browserVersionSource": "FileVersionInfo.ProductVersion (recorded 2026-07-21 remediation; matches smoke-run Edge binary)",
+  "done": "ok",
+  "lines": [
+    "PASS packaged.browser_ws_open",
+    "message:{\"protocolVersion\":1,\"kind\":\"handshake\",\"type\":\"sdk:server-hello\",\"selectedProtocolVersion\":1,\"desktopVersion\":\"0.11.2\",",
+    "PASS packaged.browser_handshake",
+    "DONE messages=1"
+  ],
+  "cells": [
+    {
+      "id": "packaged.browser_ws_open",
+      "result": "PASS"
+    },
+    {
+      "id": "packaged.browser_handshake",
+      "result": "PASS"
+    }
+  ]
+}
