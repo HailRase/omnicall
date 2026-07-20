@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-20 14:49
 **Статус:** выполнено (`/sdk-review` PASS; High/Low closed 15:09)
-**Коммит:** —
+**Коммит:** `aa7bea8`
 
 ## Где
 - `src/adapters/integration/` — Origin policy, pairing store, PoP crypto, auth/session dispatch

@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-20 15:09
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `aa7bea8`
 
 ## Где
 - `src/adapters/integration/sdkGatewayPopCrypto.ts` (+ test)
