@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-20 13:23
 **Статус:** выполнено
-**Коммит:** (см. git после commit)
+**Коммит:** `31b6247`
 
 ## Где
 - `src/adapters/mock/MockMainToRendererBroker.ts` (+ test)
