@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-20 23:15
 **Статус:** выполнено
-**Коммит:** _(заполняется после commit)_
+**Коммит:** `b5f6227`
 
 ## Где
 - `axatalk-sdk/packages/sdk/src/public/axatalk-client.ts`, `axatalk-client-api.ts`
