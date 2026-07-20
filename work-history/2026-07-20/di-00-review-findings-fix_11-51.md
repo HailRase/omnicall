@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-20 11:51
 **Статус:** выполнено
-**Коммит:** `18fb3f1`
+**Коммит:** `18fb3f1` (+ SHA pointer `d400456`)
 
 ## Где
 - `docs/softphone/Feature-Registry.md` (F-011 `callType`)
@@ -18,4 +18,4 @@
 Закрыть findings `/sdk-review` для DI-00.
 
 ## Результат
-Findings сняты; docs commit SHA проставляется после коммита.
+Findings сняты. Docs commit `18fb3f1`; SHA pointers в evidence/STATUS/handoff — `d400456`.
