@@ -4,6 +4,7 @@
 
 import type { JitterSource } from './scheduler.js';
 
+/** Bounded reconnect policy. @public */
 export type ReconnectPolicy = {
   readonly maxAttempts: number;
   readonly initialDelayMs: number;

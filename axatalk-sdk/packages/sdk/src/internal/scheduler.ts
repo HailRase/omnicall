@@ -2,20 +2,24 @@
  * Injectable clock/timers for deterministic fake-time tests and leak proofs.
  */
 
+/** @public */
 export type TimerHandle = {
   readonly clear: () => void;
 };
 
+/** Injectable clock/timers. @public */
 export type Scheduler = {
   readonly now: () => number;
   readonly setTimeout: (callback: () => void, delayMs: number) => TimerHandle;
 };
 
+/** @public */
 export type JitterSource = {
   /** Uniform value in [0, 1). */
   readonly nextUnitInterval: () => number;
 };
 
+/** Deterministic fake scheduler surface. @public */
 export type FakeScheduler = Scheduler & {
   readonly advanceBy: (ms: number) => void;
   readonly advanceByAsync: (ms: number) => Promise<void>;
@@ -29,6 +33,7 @@ type PendingTimer = {
   readonly callback: () => void;
 };
 
+/** Deterministic fake scheduler for tests. @public */
 export function createFakeScheduler(startMs = 0): FakeScheduler {
   let nowMs = startMs;
   let nextId = 1;
@@ -94,6 +99,7 @@ export function createFakeScheduler(startMs = 0): FakeScheduler {
   };
 }
 
+/** Fixed jitter source for deterministic reconnect tests. @public */
 export function createFixedJitterSource(value: number): JitterSource {
   if (value < 0 || value >= 1) {
     throw new Error('fixed jitter must be in [0, 1)');

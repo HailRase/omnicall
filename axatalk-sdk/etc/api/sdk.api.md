@@ -4,6 +4,263 @@
 
 ```ts
 
-// (No @packageDocumentation comment for this package)
+import type { ApplicationIdentity } from '@axatalk/protocol';
+import type { CapabilityId } from '@axatalk/protocol';
+import type { EventMessage } from '@axatalk/protocol';
+import type { PairingProfile } from '@axatalk/protocol';
+import type { ProtocolErrorCode } from '@axatalk/protocol';
+import type { SnapshotMessage } from '@axatalk/protocol';
+
+// @public
+export type AuthClient = {
+    readonly getState: () => ConnectionState;
+    readonly getGrantedCapabilities: () => readonly CapabilityId[];
+    readonly getSession: () => AuthSessionSnapshot | undefined;
+    readonly preauthDropCount: () => number;
+    readonly connect: () => Promise<void>;
+    readonly disconnect: () => void;
+    readonly onStateChange: (listener: (state: ConnectionState) => void) => () => void;
+    readonly onPairingRequired: (listener: (info: PairingRequiredInfo) => void) => () => void;
+    readonly waitUntil: (predicate: (state: ConnectionState) => boolean, timeoutMs?: number) => Promise<ConnectionState>;
+};
+
+// @public
+export type AuthClientOptions = {
+    readonly url: string;
+    readonly origin: string;
+    readonly application: ApplicationIdentity;
+    readonly sdkVersion: string;
+    readonly requestedProfile: PairingProfile;
+    readonly requestedCapabilities?: readonly CapabilityId[];
+    readonly keyStore: PopKeyStore;
+    readonly transportFactory: TransportFactory;
+    readonly scheduler: Scheduler;
+    readonly jitter: JitterSource;
+    readonly diagnostics?: DiagnosticsSink;
+    readonly defaultRequestTimeoutMs?: number;
+    readonly reconnect?: ReconnectPolicy;
+    readonly heartbeat?: HeartbeatPolicy;
+};
+
+// @public
+export type AuthSessionSnapshot = {
+    readonly serverInstanceId: string;
+    readonly sessionEpoch: string;
+    readonly clientId: string;
+    readonly profile: PairingProfile | undefined;
+    readonly grantedCapabilities: readonly CapabilityId[];
+};
+
+// @public
+export type AxatalkClient = {
+    readonly getState: () => ConnectionState;
+    readonly getGrantedCapabilities: () => readonly CapabilityId[];
+    readonly getSession: () => AuthSessionSnapshot | undefined;
+    readonly preauthDropCount: () => number;
+    readonly connect: () => Promise<void>;
+    readonly disconnect: () => void;
+    readonly onStateChange: (listener: (state: ConnectionState) => void) => () => void;
+    readonly onPairingRequired: (listener: (info: PairingRequiredInfo) => void) => () => void;
+    readonly waitUntil: (predicate: (state: ConnectionState) => boolean, timeoutMs?: number) => Promise<ConnectionState>;
+    readonly getSnapshot: () => Promise<SnapshotMessage>;
+    readonly getCachedSnapshot: () => SnapshotMessage | undefined;
+    readonly getRevision: () => number | undefined;
+    readonly subscribe: <T extends PublicEventType>(type: T, listener: (event: Extract<AxatalkEvent, {
+        type: T;
+    }>) => void) => () => void;
+    readonly window: AxatalkWindowApi;
+};
+
+// @public
+export class AxatalkClientError extends Error {
+    constructor(input: {
+        readonly code: ProtocolErrorCode;
+        readonly retryable: boolean;
+        readonly currentRevision?: number;
+    });
+    // (undocumented)
+    readonly code: ProtocolErrorCode;
+    // (undocumented)
+    readonly currentRevision: number | undefined;
+    // (undocumented)
+    readonly name = "AxatalkClientError";
+    // (undocumented)
+    readonly retryable: boolean;
+}
+
+// @public
+export type AxatalkClientOptions = AuthClientOptions;
+
+// @public
+export type AxatalkEvent = Extract<EventMessage, {
+    type: PublicEventType;
+}>;
+
+// @public
+export type AxatalkWindowApi = {
+    readonly show: () => Promise<{
+        readonly visible: boolean;
+        readonly revision: number;
+    }>;
+    readonly getState: () => Promise<{
+        readonly visible: boolean;
+        readonly revision: number;
+    }>;
+};
+
+// @public
+export const CONNECTION_STATES: readonly ["idle", "connecting", "handshaking", "pairing_required", "authenticating", "ready", "reconnecting", "incompatible", "revoked", "failed", "closed"];
+
+// @public (undocumented)
+export type ConnectionState = (typeof CONNECTION_STATES)[number];
+
+// @public
+export function createAuthClient(options: AuthClientOptions): AuthClient;
+
+// @public
+export function createAxatalkClient(options: AxatalkClientOptions): AxatalkClient;
+
+// @public
+export function createFakeScheduler(startMs?: number): FakeScheduler;
+
+// @public
+export function createFixedJitterSource(value: number): JitterSource;
+
+// @public
+export function createIndexedDbPopKeyStore(input: {
+    readonly installId: string;
+}): PopKeyStore;
+
+// @public
+export function createMemoryPopKeyStore(initial?: StoredPopIdentity): PopKeyStore & {
+    readonly peek: () => StoredPopIdentity | undefined;
+};
+
+// @public
+export function createRecordingDiagnosticsSink(): DiagnosticsSink & {
+    readonly events: readonly DiagnosticEvent[];
+    readonly clear: () => void;
+};
+
+// @public
+export type DiagnosticEvent = {
+    readonly level: DiagnosticLevel;
+    readonly code: string;
+    readonly connectionState: ConnectionState;
+    readonly requestId?: string;
+    readonly commandType?: string;
+    readonly durationMs?: number;
+    readonly result?: DiagnosticResult;
+    readonly errorCode?: string;
+    readonly attempt?: number;
+};
+
+// @public (undocumented)
+export type DiagnosticLevel = 'debug' | 'info' | 'warn' | 'error';
+
+// @public (undocumented)
+export type DiagnosticResult = 'ok' | 'error' | 'timeout' | 'aborted' | 'rejected';
+
+// @public (undocumented)
+export type DiagnosticsSink = {
+    readonly emit: (event: DiagnosticEvent) => void;
+};
+
+// @public
+export type FakeScheduler = Scheduler & {
+    readonly advanceBy: (ms: number) => void;
+    readonly advanceByAsync: (ms: number) => Promise<void>;
+    readonly pendingTimerCount: () => number;
+    readonly clearAll: () => void;
+};
+
+// @public
+export type HeartbeatPolicy = {
+    readonly enabled: boolean;
+    readonly intervalMs: number;
+    readonly timeoutMs: number;
+};
+
+// @public (undocumented)
+export function isAxatalkClientError(value: unknown): value is AxatalkClientError;
+
+// @public (undocumented)
+export type JitterSource = {
+    readonly nextUnitInterval: () => number;
+};
+
+// @public
+export type PairingRequiredInfo = {
+    readonly origin: string;
+    readonly requestedProfile: PairingProfile;
+    readonly clientId: string | undefined;
+};
+
+// @public
+export type PopKeyStore = {
+    readonly load: () => Promise<StoredPopIdentity | undefined>;
+    readonly save: (identity: StoredPopIdentity) => Promise<void>;
+    readonly clear: () => Promise<void>;
+};
+
+// @public
+export const PUBLIC_EVENT_TYPES: readonly ["call:incoming", "call:outgoing", "call:ringing", "call:answered", "call:ended", "call:failed", "call:held", "call:resumed", "call:muted", "call:unmuted", "registration:changed", "account:session-activated", "account:session-ended", "operator:session-changed", "operator:status-changed", "window:visibility-changed", "sdk:server-shutdown"];
+
+// @public (undocumented)
+export type PublicEventType = (typeof PUBLIC_EVENT_TYPES)[number];
+
+// @public
+export type ReconnectPolicy = {
+    readonly maxAttempts: number;
+    readonly initialDelayMs: number;
+    readonly maxDelayMs: number;
+    readonly jitterRatio: number;
+};
+
+// @public
+export type Scheduler = {
+    readonly now: () => number;
+    readonly setTimeout: (callback: () => void, delayMs: number) => TimerHandle;
+};
+
+// @public
+export type StoredPopIdentity = {
+    readonly clientId: string;
+    readonly publicKeySpkiBase64Url: string;
+    readonly privateKey: CryptoKey;
+    readonly profile: PairingProfile | undefined;
+    readonly grantedCapabilities: readonly CapabilityId[];
+};
+
+// @public (undocumented)
+export type TimerHandle = {
+    readonly clear: () => void;
+};
+
+// @public (undocumented)
+export type TransportCloseInfo = {
+    readonly code: number;
+    readonly reason: string;
+};
+
+// @public (undocumented)
+export type TransportErrorInfo = {
+    readonly name: string;
+    readonly message: string;
+};
+
+// @public (undocumented)
+export type TransportFactory = () => TransportPort;
+
+// @public
+export type TransportPort = {
+    readonly connect: (url: string) => void;
+    readonly send: (data: string) => void;
+    readonly close: (code?: number, reason?: string) => void;
+    readonly onOpen: (handler: () => void) => () => void;
+    readonly onMessage: (handler: (data: string) => void) => () => void;
+    readonly onClose: (handler: (info: TransportCloseInfo) => void) => () => void;
+    readonly onError: (handler: (info: TransportErrorInfo) => void) => () => void;
+};
 
 ```

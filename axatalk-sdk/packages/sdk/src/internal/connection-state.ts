@@ -3,6 +3,7 @@
  * Account/SIP/OCP authorization are never implied by these states.
  */
 
+/** Explicit SDK connection states (ARCHITECTURE.md). @public */
 export const CONNECTION_STATES = [
   'idle',
   'connecting',
@@ -17,6 +18,7 @@ export const CONNECTION_STATES = [
   'closed'
 ] as const;
 
+/** @public */
 export type ConnectionState = (typeof CONNECTION_STATES)[number];
 
 const LEGAL_TRANSITIONS: Readonly<Record<ConnectionState, readonly ConnectionState[]>> = {

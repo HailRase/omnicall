@@ -5,8 +5,10 @@
 
 import type { ConnectionState } from './connection-state.js';
 
+/** @public */
 export type DiagnosticLevel = 'debug' | 'info' | 'warn' | 'error';
 
+/** @public */
 export type DiagnosticResult =
   | 'ok'
   | 'error'
@@ -16,6 +18,7 @@ export type DiagnosticResult =
 
 /**
  * Allowlisted diagnostic event. Extra keys must never be attached by producers.
+ * @public
  */
 export type DiagnosticEvent = {
   readonly level: DiagnosticLevel;
@@ -29,6 +32,7 @@ export type DiagnosticEvent = {
   readonly attempt?: number;
 };
 
+/** @public */
 export type DiagnosticsSink = {
   readonly emit: (event: DiagnosticEvent) => void;
 };
@@ -41,6 +45,10 @@ const FORBIDDEN_DIAGNOSTIC_KEYS = [
   'password',
   'secret',
   'privateKey',
+  'publicKey',
+  'clientPublicKey',
+  'signature',
+  'nonce',
   'apiKey',
   'ocpAuthToken',
   'sipPassword',
@@ -50,6 +58,7 @@ const FORBIDDEN_DIAGNOSTIC_KEYS = [
   'message'
 ] as const;
 
+/** Recording sink for tests; still enforces the allowlist. @public */
 export function createRecordingDiagnosticsSink(): DiagnosticsSink & {
   readonly events: readonly DiagnosticEvent[];
   readonly clear: () => void;

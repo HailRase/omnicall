@@ -6,13 +6,13 @@
     "declarationMap": false,
     "sourceMap": false,
     "noEmit": true,
+    "lib": ["ES2022", "DOM"],
     "types": ["vitest/globals", "node"]
   },
   "include": [
     "packages/*/src/**/*.ts",
     "packages/*/src/**/*.test-d.ts",
     "vitest.config.ts",
-    "vitest.browser.config.ts",
     "tests/**/*.ts",
     "scripts/**/*.mjs",
     "eslint.config.js"

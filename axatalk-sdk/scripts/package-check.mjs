@@ -112,6 +112,7 @@ for (const pkg of packages) {
       file.includes('.env') ||
       // Test-only helpers must never ship in @axatalk/sdk production tarball.
       file.includes('fake-transport') ||
+      file.includes('auth-test-peer') ||
       file.includes('test-helpers')
   );
   if (forbidden.length > 0) {

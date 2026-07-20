@@ -16,8 +16,8 @@ Allowed statuses: `pending`, `in progress`, `review`, `done`, `blocked`.
 - [x] SDK-01 — Protocol and security ADRs (`done`)
 - [x] SDK-02 — `@axatalk/protocol` (`done`)
 - [x] SDK-03 — Transport and connection state machine (`done`)
-- [ ] SDK-04 — Pairing, authentication, and capabilities (`pending`)
-- [ ] SDK-05 — Read-only beta API (`pending`)
+- [x] SDK-04 — Pairing, authentication, and capabilities (`done`)
+- [x] SDK-05 — Read-only beta API (`done`)
 - [ ] SDK-06 — Call control API (`pending`)
 - [ ] SDK-07 — Operator and logout workflows (`pending`)
 - [ ] SDK-08 — Saved-profile activation (`pending`)
@@ -151,6 +151,8 @@ Evidence:
 
 Prerequisites: SDK-03 and desktop DI-04 done.
 
+Status: **`done`** (2026-07-20)
+
 Agent prompt:
 
 > Add protocol negotiation, pairing-required behavior, authenticated sessions, capability
@@ -158,24 +160,27 @@ Agent prompt:
 
 Checklist:
 
-- [ ] version negotiation.
-- [ ] challenge-response flow.
-- [ ] pairing-required state and callback.
-- [ ] capability projection.
-- [ ] revoke and stale-instance handling.
-- [ ] replay tests.
-- [ ] no pre-auth snapshot/events.
-- [ ] interoperability tests pass.
+- [x] version negotiation.
+- [x] challenge-response flow.
+- [x] pairing-required state and callback.
+- [x] capability projection.
+- [x] revoke and stale-instance handling.
+- [x] replay tests.
+- [x] no pre-auth snapshot/events.
+- [x] interoperability tests pass.
 
 Evidence:
 
-- Interoperability matrix:
-- Security tests:
-- Reviewer:
+- Interoperability matrix: `axatalk-sdk/evidence/SDK-04-pairing-auth-capabilities.md`
+- Security tests: `packages/sdk/src/public/auth-client.test.ts`, `packages/sdk/src/internal/pop-crypto.test.ts`
+- Public API report: `axatalk-sdk/etc/api/sdk.api.md` (auth lifecycle; no `AxatalkClient`)
+- Reviewer: `/sdk-review` **PASS** 2026-07-20 — zero Blockers; Lows remediated same day (orchestrator split; IndexedDB Node+Chromium coverage). Post-fix: sdk src **36**, workspace **44**, browser **3**, types **4**, api **28**, desktop PoP oracle **11**; DI-10 still blocked on SDK-05…09; next `/sdk-project` SDK-05 only
 
 ## SDK-05 — Read-Only Beta API
 
 Prerequisites: SDK-04 and desktop DI-05 done.
+
+Status: **`done`** (2026-07-20) — `/sdk-review` **PASS** after refactor re-gate.
 
 Agent prompt:
 
@@ -185,20 +190,25 @@ Agent prompt:
 
 Checklist:
 
-- [ ] side-effect-free constructor.
-- [ ] connect/disconnect/getSnapshot.
-- [ ] typed subscription and unsubscribe.
-- [ ] redacted event map.
-- [ ] sequence gap resync.
-- [ ] reconnect snapshot replacement.
-- [ ] window show capability.
-- [ ] browser tests.
+- [x] side-effect-free constructor.
+- [x] connect/disconnect/getSnapshot. *(incl. no-hang + revision-bound success)*
+- [x] typed subscription and unsubscribe.
+- [x] redacted event map.
+- [x] sequence gap resync.
+- [x] reconnect snapshot replacement.
+- [x] window show capability.
+- [x] browser tests.
+- [x] invalidate/disconnect rejects in-flight getSnapshot.
+- [x] mismatched/missing snapshot revision never returns stale cache as success.
 
 Evidence:
 
-- API report:
-- Browser matrix:
-- Desktop DI-05 evidence:
+- Unit evidence: `axatalk-sdk/evidence/SDK-05-read-only-beta-api.md`
+- API report: `axatalk-sdk/etc/api/sdk.api.md` (read-only `AxatalkClient`, **37** symbols)
+- Browser matrix: Chromium via `AXATALK_SDK_BROWSER=1 npm run test:browser` (**4** tests)
+- Desktop DI-05 evidence: `axatalk-sdk-integration/evidence/DI-05-read-only-snapshot-events-window-show.md`
+
+- Reviewer: `/sdk-review` **PASS** 2026-07-20 (re-gate) — prior FAIL remediations verified; zero Blockers; independent: sdk src **51**, workspace **59**, types **5**, browser **4**, api **37**, desktop oracle **13**; F-011 remains `in progress`; DI-10 still blocked on SDK-06…09; next `/sdk-project` SDK-06 only
 
 ## SDK-06 — Call Control API
 

@@ -7,11 +7,11 @@
 | Feature | F-011 Host Integration Contract |
 | Legacy | LF-051, LF-065, LF-080, LF-081 |
 | Phase | P12 External Host API Compatibility |
-| Feature status | **in progress** (DI-01…DI-09 `done`; DI-10 pending) |
+| Feature status | **in progress** (DI-01…DI-09 `done`; DI-10 **`blocked`** — SDK-06…SDK-09 `pending`) |
 | Branch | `feature/axatalk-sdk` |
 | Desktop version | `0.11.2` |
 | DI-00 | `done` — `/sdk-review` PASS 2026-07-20 |
-| SDK-00…SDK-03 | `done` — `/sdk-review` PASS (SDK package) |
+| SDK-00…SDK-05 | `done` — `/sdk-review` PASS (SDK package; SDK-05 re-gate 2026-07-20) |
 | DI-01 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-01-protocol-ports-mocks.md` |
 | DI-02 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-02-typed-main-renderer-broker.md` |
 | DI-03 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-03-loopback-websocket-transport.md` |
@@ -21,7 +21,7 @@
 | DI-07 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-07-operator-logout-workflow.md` |
 | DI-08 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-08-saved-profile-activation.md` |
 | DI-09 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-09-settings-operational-ux.md` |
-| Next | **`/sdk-integration` DI-10 only** (do not mark F-011 `implemented` until DI-10 evidence) |
+| Next | **`/sdk-project` SDK-06** (or human waiver forbidding F-011 `implemented`); then re-run **`/sdk-integration` DI-10 only** after SDK-06…09 |
 
 ## Mission
 

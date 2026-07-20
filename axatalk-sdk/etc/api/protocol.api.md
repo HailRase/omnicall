@@ -649,10 +649,10 @@ export const CommandFailureReplySchema: z.ZodReadonly<z.ZodObject<{
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
+            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
-            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
             forbidden: "forbidden";
             revoked: "revoked";
@@ -2243,10 +2243,10 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
+            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
-            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
             forbidden: "forbidden";
             revoked: "revoked";
@@ -2797,10 +2797,10 @@ export type ProtocolErrorCode = z.infer<typeof ProtocolErrorCodeSchema>;
 
 // @public (undocumented)
 export const ProtocolErrorCodeSchema: z.ZodEnum<{
+    incompatible_version: "incompatible_version";
     invalid_message: "invalid_message";
     invalid_payload: "invalid_payload";
     unsupported_command: "unsupported_command";
-    incompatible_version: "incompatible_version";
     unauthenticated: "unauthenticated";
     forbidden: "forbidden";
     revoked: "revoked";
@@ -2824,10 +2824,10 @@ export type ProtocolErrorObject = z.infer<typeof ProtocolErrorObjectSchema>;
 // @public
 export const ProtocolErrorObjectSchema: z.ZodReadonly<z.ZodObject<{
     code: z.ZodEnum<{
+        incompatible_version: "incompatible_version";
         invalid_message: "invalid_message";
         invalid_payload: "invalid_payload";
         unsupported_command: "unsupported_command";
-        incompatible_version: "incompatible_version";
         unauthenticated: "unauthenticated";
         forbidden: "forbidden";
         revoked: "revoked";
@@ -2959,10 +2959,10 @@ export const ReplyMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
+            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
-            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
             forbidden: "forbidden";
             revoked: "revoked";
@@ -3824,10 +3824,10 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
+            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
-            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
             forbidden: "forbidden";
             revoked: "revoked";

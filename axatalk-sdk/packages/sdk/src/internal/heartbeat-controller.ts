@@ -6,6 +6,7 @@ import type { ConnectionState } from './connection-state.js';
 import type { DiagnosticsSink } from './diagnostics.js';
 import type { Scheduler, TimerHandle } from './scheduler.js';
 
+/** Ready-state heartbeat policy. @public */
 export type HeartbeatPolicy = {
   readonly enabled: boolean;
   readonly intervalMs: number;

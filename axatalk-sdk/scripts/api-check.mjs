@@ -7,6 +7,54 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const packages = ['protocol', 'sdk'];
 
+/** SDK-05 allowlist — auth lifecycle + read-only AxatalkClient. */
+const SDK_ALLOWED_SYMBOLS = new Set([
+  'AuthClient',
+  'AuthClientOptions',
+  'AuthSessionSnapshot',
+  'AxatalkClient',
+  'AxatalkClientError',
+  'AxatalkClientOptions',
+  'AxatalkEvent',
+  'AxatalkWindowApi',
+  'CONNECTION_STATES',
+  'ConnectionState',
+  'DiagnosticEvent',
+  'DiagnosticLevel',
+  'DiagnosticResult',
+  'DiagnosticsSink',
+  'FakeScheduler',
+  'HeartbeatPolicy',
+  'JitterSource',
+  'PUBLIC_EVENT_TYPES',
+  'PairingRequiredInfo',
+  'PopKeyStore',
+  'PublicEventType',
+  'ReconnectPolicy',
+  'Scheduler',
+  'StoredPopIdentity',
+  'TimerHandle',
+  'TransportCloseInfo',
+  'TransportErrorInfo',
+  'TransportFactory',
+  'TransportPort',
+  'createAuthClient',
+  'createAxatalkClient',
+  'createFakeScheduler',
+  'createFixedJitterSource',
+  'createIndexedDbPopKeyStore',
+  'createMemoryPopKeyStore',
+  'createRecordingDiagnosticsSink',
+  'isAxatalkClientError'
+]);
+
+const SDK_FORBIDDEN_SYMBOLS = new Set([
+  'originate',
+  'activateProfile',
+  'prepareLogout',
+  'confirmLogout'
+]);
+
 /**
  * @param {string} command
  * @param {string[]} args
@@ -44,7 +92,7 @@ fs.mkdirSync(reportDir, { recursive: true });
 fs.mkdirSync(tempDir, { recursive: true });
 
 for (const name of packages) {
-  const pkgDir = path.join(root, 'packages', name);
+  const pkgDir = path.join(root, name === 'protocol' ? 'packages/protocol' : 'packages/sdk');
   const distEntry = path.join(pkgDir, 'dist', 'index.d.ts');
   if (!fs.existsSync(distEntry)) {
     console.error(`Missing build output for @axatalk/${name}: ${distEntry}`);
@@ -75,18 +123,38 @@ for (const name of packages) {
   const symbols = listPublicSymbols(report);
 
   if (name === 'sdk') {
-    if (symbols.length > 0) {
-      console.error(`Unexpected public API symbols in ${reportPath}`);
-      for (const symbol of symbols) {
-        console.error(`  - ${symbol}`);
-      }
+    if (symbols.length === 0) {
+      console.error(`Expected SDK-05 public surface in ${reportPath}`);
       process.exit(1);
     }
-    console.log(`API report OK (no public production surface): ${path.relative(root, reportPath)}`);
+    for (const symbol of symbols) {
+      if (SDK_FORBIDDEN_SYMBOLS.has(symbol)) {
+        console.error(`Forbidden public symbol in SDK API: ${symbol}`);
+        process.exit(1);
+      }
+      if (!SDK_ALLOWED_SYMBOLS.has(symbol)) {
+        console.error(`Unexpected public SDK symbol (not in SDK-05 allowlist): ${symbol}`);
+        process.exit(1);
+      }
+    }
+    if (!symbols.includes('createAxatalkClient')) {
+      console.error('SDK API must export createAxatalkClient');
+      process.exit(1);
+    }
+    if (!symbols.includes('AxatalkClient')) {
+      console.error('SDK API must export AxatalkClient');
+      process.exit(1);
+    }
+    if (report.includes('originate') && report.includes('readonly originate')) {
+      console.error('Mutation originate must not appear on public AxatalkClient');
+      process.exit(1);
+    }
+    console.log(
+      `API report OK (sdk read-only surface ${symbols.length} symbols): ${path.relative(root, reportPath)}`
+    );
     continue;
   }
 
-  // protocol (SDK-02): intentional public schemas/types; still forbid client surface.
   if (symbols.includes('AxatalkClient')) {
     console.error(`Forbidden public symbol AxatalkClient in ${reportPath}`);
     process.exit(1);

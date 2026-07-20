@@ -31,6 +31,11 @@ import {
 import type { JitterSource, Scheduler, TimerHandle } from './scheduler.js';
 import type { TransportFactory, TransportPort } from './transport-port.js';
 
+export type SessionWireIdentity = {
+  readonly serverInstanceId: string;
+  readonly sessionEpoch: string;
+};
+
 export type ConnectionSessionOptions = {
   readonly url: string;
   readonly transportFactory: TransportFactory;
@@ -40,6 +45,8 @@ export type ConnectionSessionOptions = {
   readonly reconnect?: ReconnectPolicy;
   readonly heartbeat?: HeartbeatPolicy;
   readonly defaultRequestTimeoutMs?: number;
+  readonly onUnhandledMessage?: (data: string) => void;
+  readonly onHandshaking?: () => void;
 };
 
 export type OutboundCommandRequest = {
@@ -54,6 +61,9 @@ export type ConnectionSession = {
   readonly getState: () => ConnectionState;
   readonly connect: () => void;
   readonly disconnect: () => void;
+  readonly requestReauth: () => void;
+  readonly setWireIdentity: (identity: SessionWireIdentity | undefined) => void;
+  readonly getWireIdentity: () => SessionWireIdentity | undefined;
   readonly signalPairingRequired: () => void;
   readonly signalAuthenticating: () => void;
   readonly signalReady: (heartbeatSeconds?: number) => void;
@@ -61,6 +71,7 @@ export type ConnectionSession = {
   readonly signalRevoked: () => void;
   readonly signalFailed: () => void;
   readonly request: (command: OutboundCommandRequest) => Promise<PendingRequestResult>;
+  readonly sendRaw: (body: string) => boolean;
   readonly onStateChange: (listener: (state: ConnectionState) => void) => () => void;
   readonly pendingRequestCount: () => number;
   readonly reconnectAttemptCount: () => number;
@@ -82,6 +93,7 @@ export function createConnectionSession(
   let reconnectAttempts = 0;
   let reconnectTimer: TimerHandle | undefined;
   let intentionalClose = false;
+  let wireIdentity: SessionWireIdentity | undefined;
 
   const stateListeners = new Set<(next: ConnectionState) => void>();
   const correlator = createRequestCorrelator({
@@ -144,8 +156,8 @@ export function createConnectionSession(
       kind: 'command',
       type: 'sdk:ping',
       requestId,
-      serverInstanceId: 'pending',
-      sessionEpoch: 'pending',
+      serverInstanceId: wireIdentity?.serverInstanceId ?? 'pending',
+      sessionEpoch: wireIdentity?.sessionEpoch ?? 'pending',
       occurredAt: new Date(options.scheduler.now()).toISOString(),
       payload: {}
     });
@@ -174,10 +186,14 @@ export function createConnectionSession(
       next.onOpen(() => {
         if (state === 'connecting') {
           setState('handshaking');
+          options.onHandshaking?.();
         }
       }),
       next.onMessage((data) => {
-        correlator.handleInbound(data, state);
+        const handled = correlator.handleInbound(data, state);
+        if (!handled) {
+          options.onUnhandledMessage?.(data);
+        }
       }),
       next.onClose(() => {
         detachTransport();
@@ -203,6 +219,7 @@ export function createConnectionSession(
     heartbeat.stop();
     rejectPending('disconnect');
     clearReconnectTimer();
+    wireIdentity = undefined;
 
     if (state !== 'reconnecting' && isReconnectEligible(state)) {
       setState('reconnecting');
@@ -243,11 +260,19 @@ export function createConnectionSession(
     clearReconnectTimer();
     heartbeat.stop();
     rejectPending('aborted');
+    wireIdentity = undefined;
     if (transport !== undefined) {
       transport.close(1000, next);
     }
     detachTransport();
     setState(next);
+  };
+
+  const canSendCommand = (commandType: CommandType): boolean => {
+    if (state === 'ready') {
+      return true;
+    }
+    return state === 'authenticating' && commandType === 'sdk:ping';
   };
 
   return {
@@ -258,6 +283,7 @@ export function createConnectionSession(
       }
       reconnectAttempts = 0;
       correlator.clearMutationLedger();
+      wireIdentity = undefined;
       setState('connecting');
       openTransport();
     },
@@ -269,12 +295,27 @@ export function createConnectionSession(
       clearReconnectTimer();
       heartbeat.stop();
       rejectPending('aborted');
+      wireIdentity = undefined;
       if (transport !== undefined) {
         transport.close(1000, 'client_disconnect');
       }
       detachTransport();
       setState('closed');
     },
+    requestReauth: () => {
+      if (transport === undefined || !isReconnectEligible(state)) {
+        return;
+      }
+      intentionalClose = false;
+      heartbeat.stop();
+      rejectPending('disconnect');
+      wireIdentity = undefined;
+      transport.close(4001, 'reauth_required');
+    },
+    setWireIdentity: (identity) => {
+      wireIdentity = identity;
+    },
+    getWireIdentity: () => wireIdentity,
     signalPairingRequired: () => {
       setState('pairing_required');
     },
@@ -302,8 +343,26 @@ export function createConnectionSession(
     signalFailed: () => {
       enterTerminal('failed');
     },
+    sendRaw: (body) => {
+      if (transport === undefined) {
+        return false;
+      }
+      const allowUnauth =
+        state === 'handshaking' ||
+        state === 'pairing_required' ||
+        state === 'authenticating';
+      if (!allowUnauth && state !== 'ready') {
+        return false;
+      }
+      try {
+        transport.send(body);
+        return true;
+      } catch {
+        return false;
+      }
+    },
     request: async (command) => {
-      if (state !== 'ready' || transport === undefined) {
+      if (!canSendCommand(command.commandType) || transport === undefined) {
         return {
           ok: false,
           errorCode: 'not_ready',
