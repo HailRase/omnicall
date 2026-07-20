@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-20 16:53
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `f24f2b1`
 
 ## Где
 - `src/application/integration/createSdkOperatorPortFromFacade.ts`
