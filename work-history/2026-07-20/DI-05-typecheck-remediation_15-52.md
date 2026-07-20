@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-20 15:52
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `34f31c4`
 
 ## Где
 - `src/adapters/integration/sdkGatewayRouteInbound.test.ts`
