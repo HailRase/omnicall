@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-20 22:53
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `2da212b`
 
 ## Где
 - `axatalk-sdk/packages/sdk/src/public/axatalk-client.calls.test.ts`
