@@ -159,6 +159,9 @@ export class MainToRendererBroker implements MainToRendererBrokerPort {
       return this.settlePending(parsed.brokerRequestId, {
         ok: false,
         code: parsed.code,
+        ...(parsed.currentRevision !== undefined
+          ? { currentRevision: parsed.currentRevision }
+          : {}),
       });
     }
 
@@ -183,7 +186,10 @@ export class MainToRendererBroker implements MainToRendererBrokerPort {
     });
   }
 
-  request(input: unknown): Promise<BrokerRequestResult> {
+  request(
+    input: unknown,
+    context?: { readonly clientId?: string },
+  ): Promise<BrokerRequestResult> {
     if (!this.accepting) {
       return Promise.resolve({ ok: false, code: "operation_failed" });
     }
@@ -208,9 +214,13 @@ export class MainToRendererBroker implements MainToRendererBrokerPort {
 
     const product = toProductRequest(message);
     const brokerRequestId = this.createBrokerRequestId();
+    const clientId = context?.clientId;
     const sent = this.transport.sendRequest({
       brokerRequestId,
       command: message,
+      ...(clientId !== undefined && clientId.length > 0
+        ? { clientId }
+        : {}),
     });
 
     if (!sent) {

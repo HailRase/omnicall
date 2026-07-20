@@ -1,13 +1,8 @@
 /**
- * DI-05 product command execution: snapshot via broker, window via main handler.
+ * DI-05/DI-06 product command execution: snapshot/call via broker, window via main.
  */
 
-import type {
-  CommandType,
-  ProtocolErrorCode,
-  WireMessage,
-} from "@axatalk/protocol";
-import { validateWireMessage } from "@axatalk/protocol";
+import type { CommandType, WireMessage } from "@axatalk/protocol";
 import type { SdkGatewayConnection } from "./sdkGatewayConnection.js";
 import {
   buildCommandFailureReply,
@@ -15,12 +10,9 @@ import {
   type SdkGatewayIdentity,
 } from "./sdkGatewayMessages.js";
 import type { SdkGatewayProductSurface } from "./sdkGatewayProductSurface.js";
-import {
-  buildSdkSnapshotMessage,
-  buildWindowVisibilityEvent,
-  extractProductSectionsFromReplyResult,
-} from "./sdkGatewaySnapshotMessage.js";
+import { buildWindowVisibilityEvent } from "./sdkGatewaySnapshotMessage.js";
 import type { SdkRequestDedupCache } from "./sdkGatewayRequestDedup.js";
+import { deliverSdkSnapshotReply } from "./sdkGatewaySnapshotDispatch.js";
 
 export type SdkProductCommandRoute =
   | {
@@ -91,35 +83,97 @@ export async function handleSdkProductCommand(input: {
     return;
   }
   const { requestId, commandType } = input.route;
-  if (!input.requestDedup.accept(requestId, input.now().getTime())) {
-    sendFailure(input, identity, requestId, commandType, "conflict");
+  const dedup = input.requestDedup.begin(requestId, input.now().getTime());
+  if (dedup.action === "replay") {
+    input.sendJson(input.connection, dedup.reply);
     return;
   }
+  if (dedup.action === "await") {
+    const reply = await dedup.promise;
+    input.sendJson(input.connection, reply);
+    return;
+  }
+
   if (!input.product.isProductReady()) {
-    sendFailure(input, identity, requestId, commandType, "not_ready");
+    const reply = buildCommandFailureReply({
+      requestId,
+      commandType,
+      code: "not_ready",
+      identity,
+      now: input.now,
+    });
+    input.requestDedup.complete(requestId, reply, input.now().getTime());
+    input.sendJson(input.connection, reply);
+    input.log("sdk_gateway_command", {
+      commandType,
+      requestId,
+      result: "not_ready",
+    });
     return;
   }
+
   if (input.route.action === "command_window") {
-    handleWindowCommand(input, identity, input.route.commandType);
+    const windowResult = executeWindowCommand(
+      input,
+      identity,
+      input.route.commandType,
+    );
+    input.requestDedup.complete(
+      requestId,
+      windowResult.reply,
+      input.now().getTime(),
+    );
+    // Reply before visibility event (DI-05 ordering contract).
+    input.sendJson(input.connection, windowResult.reply);
+    if (windowResult.shownRevision !== undefined) {
+      input.connection.eventSequence += 1;
+      input.emitToConnection(
+        input.connection,
+        buildWindowVisibilityEvent({
+          identity,
+          now: input.now,
+          sequence: input.connection.eventSequence,
+          revision: windowResult.shownRevision,
+          visible: true,
+        }),
+      );
+    }
     return;
   }
-  await handleBrokerSnapshot(input, identity, input.route.message);
+
+  await handleBrokerCommand(input, identity, input.route.message);
 }
 
-function handleWindowCommand(
+function executeWindowCommand(
   input: Parameters<typeof handleSdkProductCommand>[0],
   identity: SdkGatewayIdentity,
   commandType: "window:show" | "window:get-state",
-): void {
+): { readonly reply: WireMessage; readonly shownRevision?: number } {
   if (commandType === "window:get-state") {
     const state = input.product.getWindowState();
     if (!state.ok) {
-      sendFailure(input, identity, input.route.requestId, commandType, state.code);
-      return;
+      input.log("sdk_gateway_command", {
+        commandType,
+        requestId: input.route.requestId,
+        result: state.code,
+      });
+      return {
+        reply: buildCommandFailureReply({
+          requestId: input.route.requestId,
+          commandType,
+          code: state.code,
+          identity,
+          now: input.now,
+        }),
+      };
     }
-    input.sendJson(
-      input.connection,
-      buildCommandSuccessReply({
+    input.log("sdk_gateway_command", {
+      commandType,
+      requestId: input.route.requestId,
+      result: "ok",
+    });
+    return {
+      reply: buildCommandSuccessReply({
         requestId: input.route.requestId,
         commandType,
         identity,
@@ -127,23 +181,33 @@ function handleWindowCommand(
         revision: state.revision,
         result: { visible: state.visible },
       }),
-    );
-    input.log("sdk_gateway_command", {
-      commandType,
-      requestId: input.route.requestId,
-      result: "ok",
-    });
-    return;
+    };
   }
 
   const shown = input.product.showWindow();
   if (!shown.ok) {
-    sendFailure(input, identity, input.route.requestId, commandType, shown.code);
-    return;
+    input.log("sdk_gateway_command", {
+      commandType,
+      requestId: input.route.requestId,
+      result: shown.code,
+    });
+    return {
+      reply: buildCommandFailureReply({
+        requestId: input.route.requestId,
+        commandType,
+        code: shown.code,
+        identity,
+        now: input.now,
+      }),
+    };
   }
-  input.sendJson(
-    input.connection,
-    buildCommandSuccessReply({
+  input.log("sdk_gateway_command", {
+    commandType,
+    requestId: input.route.requestId,
+    result: "ok",
+  });
+  return {
+    reply: buildCommandSuccessReply({
       requestId: input.route.requestId,
       commandType,
       identity,
@@ -151,138 +215,69 @@ function handleWindowCommand(
       revision: shown.revision,
       result: { visible: true },
     }),
-  );
-  input.connection.eventSequence += 1;
-  input.emitToConnection(
-    input.connection,
-    buildWindowVisibilityEvent({
-      identity,
-      now: input.now,
-      sequence: input.connection.eventSequence,
-      revision: shown.revision,
-      visible: true,
-    }),
-  );
-  input.log("sdk_gateway_command", {
-    commandType,
-    requestId: input.route.requestId,
-    result: "ok",
-  });
+    shownRevision: shown.revision,
+  };
 }
 
-async function handleBrokerSnapshot(
+async function handleBrokerCommand(
   input: Parameters<typeof handleSdkProductCommand>[0],
   identity: SdkGatewayIdentity,
   command: Extract<WireMessage, { kind: "command" }>,
 ): Promise<void> {
-  const brokerResult = await input.product.requestProductCommand(command);
+  const clientId = input.connection.clientId;
+  const brokerResult = await input.product.requestProductCommand(command, {
+    ...(clientId !== null ? { clientId } : {}),
+  });
   if (!brokerResult.ok) {
-    sendFailure(
-      input,
+    const reply = buildCommandFailureReply({
+      requestId: command.requestId,
+      commandType: command.type,
+      code: brokerResult.code,
       identity,
+      now: input.now,
+      ...(brokerResult.currentRevision !== undefined
+        ? { currentRevision: brokerResult.currentRevision }
+        : {}),
+    });
+    input.requestDedup.complete(
       command.requestId,
-      command.type,
-      brokerResult.code,
+      reply,
+      input.now().getTime(),
     );
-    return;
-  }
-  const reply = brokerResult.reply;
-  if (!reply.ok) {
     input.sendJson(input.connection, reply);
     input.log("sdk_gateway_command", {
       commandType: command.type,
       requestId: command.requestId,
-      result: reply.error.code,
+      result: brokerResult.code,
     });
     return;
   }
-  const productSections = extractProductSectionsFromReplyResult(reply.result);
-  if (productSections === null) {
-    sendFailure(
-      input,
+
+  const reply = brokerResult.reply;
+  if (command.type === "sdk:get-snapshot") {
+    deliverSdkSnapshotReply({
+      connection: input.connection,
+      product: input.product,
       identity,
-      command.requestId,
-      command.type,
-      "operation_failed",
-    );
-    return;
-  }
-  const windowState = input.product.getWindowState();
-  const windowVisible = windowState.ok ? windowState.visible : false;
-  const clientId = input.connection.clientId;
-  if (clientId === null) {
-    sendFailure(input, identity, command.requestId, command.type, "unauthenticated");
-    return;
-  }
-  const snapshot = buildSdkSnapshotMessage({
-    identity,
-    now: input.now,
-    revision: reply.revision,
-    clientId,
-    grantedCapabilities: input.connection.grantedCapabilities,
-    productSections,
-    windowVisible,
-  });
-  if (snapshot === null) {
-    sendFailure(
-      input,
-      identity,
-      command.requestId,
-      command.type,
-      "operation_failed",
-    );
-    return;
-  }
-  const snapshotValidated = validateWireMessage(snapshot);
-  if (!snapshotValidated.success) {
-    sendFailure(
-      input,
-      identity,
-      command.requestId,
-      command.type,
-      "operation_failed",
-    );
-    return;
-  }
-  input.sendJson(input.connection, snapshotValidated.data);
-  input.sendJson(
-    input.connection,
-    buildCommandSuccessReply({
-      requestId: command.requestId,
-      commandType: command.type,
-      identity,
+      command,
+      reply,
+      requestDedup: input.requestDedup,
       now: input.now,
-      revision: reply.revision,
-      result: { accepted: true },
-    }),
+      sendJson: input.sendJson,
+      log: input.log,
+    });
+    return;
+  }
+
+  input.requestDedup.complete(
+    command.requestId,
+    reply,
+    input.now().getTime(),
   );
+  input.sendJson(input.connection, reply);
   input.log("sdk_gateway_command", {
     commandType: command.type,
     requestId: command.requestId,
-    result: "ok",
-  });
-}
-
-function sendFailure(
-  input: Parameters<typeof handleSdkProductCommand>[0],
-  identity: SdkGatewayIdentity,
-  requestId: string,
-  commandType: CommandType,
-  code: ProtocolErrorCode,
-): void {
-  input.sendJson(
-    input.connection,
-    buildCommandFailureReply({
-      requestId,
-      commandType,
-      code,
-      identity,
-      now: input.now,
-    }),
-  );
-  input.log("sdk_gateway_command", {
-    commandType,
-    requestId,
-    result: code,
+    result: reply.ok ? "ok" : reply.error.code,
   });
 }

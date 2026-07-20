@@ -1,20 +1,31 @@
 /**
- * Bind DI-05 read-only SDK surface to the single Application composition.
- * Broker: ping + get-snapshot. Events: Domain → public draft → main fan-out.
+ * Bind DI-05/DI-06 SDK surface to the single Application composition.
+ * Broker: ping + get-snapshot + call:* → Call Engine. Events: Domain → public draft.
  */
 
 import { RendererSdkBrokerSession } from "@adapters/integration/RendererSdkBrokerSession.js";
+import { ExternalSdkCallHandler } from "@application/integration/ExternalSdkCallHandler.js";
+import { ExternalSdkProductHandler } from "@application/integration/ExternalSdkProductHandler.js";
 import { ExternalSdkReadHandler } from "@application/integration/ExternalSdkReadHandler.js";
 import { mapDomainEventToSdkPublicDraft } from "@application/integration/ExternalSdkEventMapper.js";
 import { readSdkProductStateFromStore } from "@application/integration/readSdkProductStateFromStore.js";
+import { SdkCallOwnershipRegistry } from "@application/integration/SdkCallOwnershipRegistry.js";
+import { SdkSessionRevisionClock } from "@application/integration/SdkSessionRevisionClock.js";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
 
 const BROKER_SERVER_INSTANCE_ID = "srv_desktop_local";
 const BROKER_SESSION_EPOCH_PREFIX = "epoch_desktop_";
 
+const TERMINAL_CALL_EVENT_TYPES = new Set<string>([
+  "CallEnded",
+  "CallFailed",
+  "IncomingCallEndedBeforeAnswer",
+]);
+
 export type BoundSdkBrokerSession = Readonly<{
-  handler: ExternalSdkReadHandler;
+  handler: ExternalSdkProductHandler;
+  ownership: SdkCallOwnershipRegistry;
   dispose: () => void;
 }>;
 
@@ -31,12 +42,34 @@ export type BindSdkBrokerSessionOptions = Readonly<{
 export function bindSdkBrokerSession(
   options: BindSdkBrokerSessionOptions,
 ): BoundSdkBrokerSession {
-  const handler = new ExternalSdkReadHandler({
+  const revisionClock = new SdkSessionRevisionClock();
+  const ownership = new SdkCallOwnershipRegistry();
+  const readHandler = new ExternalSdkReadHandler({
     readProductState: () =>
       readSdkProductStateFromStore(useAccountBootstrapStore.getState(), {
-        // Prefer omit operator until settings prove OCP module on (ADR-0012).
         ocpModuleEnabled: options.ocpModuleEnabled === true,
       }),
+    revisionClock,
+    ownership,
+  });
+  const callHandler = new ExternalSdkCallHandler({
+    callPort: {
+      makeCall: (destination) => options.facade.makeCall(destination),
+      answerCall: (callId) => options.facade.answerCall(callId),
+      rejectCall: (callId) => options.facade.rejectCall(callId),
+      hangupCall: (callId) => options.facade.hangupCall(callId),
+      holdCall: (callId) => options.facade.holdCall(callId),
+      resumeCall: (callId) => options.facade.resumeCall(callId),
+      muteCall: (callId) => options.facade.muteCall(callId),
+      unmuteCall: (callId) => options.facade.unmuteCall(callId),
+      sendDtmf: (callId, tone) => options.facade.sendDtmf(callId, tone),
+    },
+    ownership,
+    revisionClock,
+  });
+  const handler = new ExternalSdkProductHandler({
+    readHandler,
+    callHandler,
   });
   const sessionEpoch = `${BROKER_SESSION_EPOCH_PREFIX}${Date.now().toString(36)}`;
   const session = new RendererSdkBrokerSession({
@@ -49,7 +82,10 @@ export function bindSdkBrokerSession(
   if (softphone === undefined) {
     return {
       handler,
-      dispose: () => undefined,
+      ownership,
+      dispose: () => {
+        ownership.clearAll();
+      },
     };
   }
 
@@ -61,6 +97,12 @@ export function bindSdkBrokerSession(
   });
 
   const unsubscribeEvents = options.facade.eventPublisher.subscribe((event) => {
+    if (TERMINAL_CALL_EVENT_TYPES.has(event.type)) {
+      const callIdValue = event["callId"];
+      if (typeof callIdValue === "string" && callIdValue.length > 0) {
+        ownership.finalize(callIdValue);
+      }
+    }
     const draft = mapDomainEventToSdkPublicDraft(event);
     if (draft === null) {
       return;
@@ -78,10 +120,12 @@ export function bindSdkBrokerSession(
 
   return {
     handler,
+    ownership,
     dispose: () => {
       session.markInactive();
       unsubscribeBroker();
       unsubscribeEvents();
+      ownership.clearAll();
       void softphone.setSdkBrokerReady({ ready: false });
     },
   };

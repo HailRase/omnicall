@@ -7,7 +7,7 @@
 | Feature | F-011 Host Integration Contract |
 | Legacy | LF-051, LF-065, LF-080, LF-081 |
 | Phase | P12 External Host API Compatibility |
-| Feature status | **in progress** (DI-01…DI-05 `done`; next DI-06) |
+| Feature status | **in progress** (DI-01…DI-06 `done`; next DI-07) |
 | Branch | `feature/axatalk-sdk` |
 | Desktop version | `0.11.2` |
 | DI-00 | `done` — `/sdk-review` PASS 2026-07-20 |
@@ -17,7 +17,8 @@
 | DI-03 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-03-loopback-websocket-transport.md` |
 | DI-04 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-04-pairing-origin-capabilities.md` |
 | DI-05 | **`done`** — `/sdk-review` PASS 2026-07-20 re-gate; evidence `axatalk-sdk-integration/evidence/DI-05-read-only-snapshot-events-window-show.md` |
-| Next | **DI-06** via `/sdk-integration` (do not mark F-011 `implemented`) |
+| DI-06 | **`done`** — call command router + revision-contract fix; evidence `axatalk-sdk-integration/evidence/DI-06-call-command-router.md` |
+| Next | **DI-07** operator/logout via `/sdk-integration` (do not mark F-011 `implemented`) |
 
 ## Mission
 
@@ -69,7 +70,7 @@ SDK and Electron-native local gateway while preserving every existing softphone 
 - [x] Loopback-only endpoint and single-instance ownership (ADR-0010) — DI-03 `done`.
 - [x] Exact Origin gate before data exchange (ADR-0011) — DI-04 `done`.
 - [x] Per-client pairing, capabilities, expiry, and revocation (ADR-0011) — DI-04 `done`.
-- [x] Replay/idempotency and aggregate command serialization (ADR-0011/0012) — DI-04 challenge/request dedup `done`; aggregate mutation serialization DI-06.
+- [x] Replay/idempotency and aggregate command serialization (ADR-0011/0012) — DI-04 challenge/request dedup `done`; DI-06 call aggregate serialization + cached `requestId` replies `done`.
 - [x] Resource limits, heartbeat, backpressure, and safe teardown (ADR-0010) — DI-03 `done`.
 - [x] Per-client redacted events; no indiscriminate broadcast (ADR-0012) — DI-05 `done`.
 - [x] No raw SIP/OCP credentials in protocol v1 (ADR-0013).
@@ -150,6 +151,7 @@ Automated matrix: `axatalk-sdk-integration/TEST-MATRIX.md`.
 - [x] DI-03 evidence exists; `/sdk-review` PASS (`evidence/DI-03-loopback-websocket-transport.md`).
 - [x] DI-04 evidence exists; `/sdk-review` PASS (`evidence/DI-04-pairing-origin-capabilities.md`).
 - [x] DI-05 evidence exists; `/sdk-review` PASS re-gate (`evidence/DI-05-read-only-snapshot-events-window-show.md`).
+- [x] DI-06 evidence exists; status **`done`** (`evidence/DI-06-call-command-router.md`) — revision contract remediated 2026-07-20.
 - [x] No premature `implemented` status — enforced until DI-10.
 
 ## DI-00 Evidence Summary
@@ -174,6 +176,7 @@ P12 closes only when:
 
 ## Next Agent Prompt
 
-1. Start **DI-06** call command router via `/sdk-integration` (separate session). Do not mark F-011 `implemented`.
-2. Keep Domain free of protocol / Zod / Electron / ws imports; gateway must not import Facades/Call Engine.
-3. Do not mark F-011 `implemented` until DI-10.
+1. Run **`/sdk-integration` DI-07 only** — operator status + logout. Do not mark F-011 `implemented`.
+2. Keep SDK-07 client package non-blocking (protocol DTOs already in SDK-02; mirror DI-05/DI-06).
+3. Keep Domain free of protocol / Zod / Electron / ws imports; gateway must not import Facades/Call Engine.
+4. Do not mark F-011 `implemented` until DI-10.

@@ -17,9 +17,16 @@ export type SdkWindowStateResult =
   | { readonly ok: true; readonly visible: boolean; readonly revision: number }
   | { readonly ok: false; readonly code: ProtocolErrorCode };
 
+export type SdkProductCommandContext = Readonly<{
+  clientId?: string;
+}>;
+
 export type SdkGatewayProductSurface = Readonly<{
   isProductReady: () => boolean;
-  requestProductCommand: (command: WireMessage) => Promise<BrokerRequestResult>;
+  requestProductCommand: (
+    command: WireMessage,
+    context?: SdkProductCommandContext,
+  ) => Promise<BrokerRequestResult>;
   showWindow: () => SdkWindowShowResult;
   getWindowState: () => SdkWindowStateResult;
   /** Fan-out already-validated public event drafts from renderer. */

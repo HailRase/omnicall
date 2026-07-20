@@ -11,6 +11,8 @@ const PROTOCOL_ERROR_CODE_SET: ReadonlySet<string> = new Set(PROTOCOL_ERROR_CODE
 export type SdkBrokerRequestIpcPayload = Readonly<{
   brokerRequestId: string;
   command: unknown;
+  /** Authenticated SDK clientId for ownership checks (DI-06). */
+  clientId?: string;
 }>;
 
 export type SdkBrokerReplySuccessIpcPayload = Readonly<{
@@ -23,6 +25,7 @@ export type SdkBrokerReplyFailureIpcPayload = Readonly<{
   brokerRequestId: string;
   ok: false;
   code: ProtocolErrorCode;
+  currentRevision?: number;
 }>;
 
 export type SdkBrokerReplyIpcPayload =
@@ -68,9 +71,19 @@ export function parseSdkBrokerRequestIpcPayload(
   if (!("command" in candidate)) {
     return null;
   }
+  const clientId = candidate["clientId"];
+  if (
+    clientId !== undefined &&
+    (typeof clientId !== "string" ||
+      clientId.length === 0 ||
+      clientId.length > 128)
+  ) {
+    return null;
+  }
   return {
     brokerRequestId,
     command: candidate["command"],
+    ...(typeof clientId === "string" ? { clientId } : {}),
   };
 }
 
@@ -105,10 +118,20 @@ export function parseSdkBrokerReplyIpcPayload(
   if (!isProtocolErrorCode(code)) {
     return null;
   }
+  const currentRevision = candidate["currentRevision"];
+  if (
+    currentRevision !== undefined &&
+    (typeof currentRevision !== "number" ||
+      !Number.isInteger(currentRevision) ||
+      currentRevision < 0)
+  ) {
+    return null;
+  }
   return {
     brokerRequestId,
     ok: false,
     code,
+    ...(typeof currentRevision === "number" ? { currentRevision } : {}),
   };
 }
 

@@ -17,12 +17,15 @@ export function createSdkGatewayProductSurface(input: {
   });
   return {
     isProductReady: () => input.getBroker()?.isReady() ?? false,
-    requestProductCommand: async (command: WireMessage) => {
+    requestProductCommand: async (
+      command: WireMessage,
+      context?: { readonly clientId?: string },
+    ) => {
       const broker = input.getBroker();
       if (broker === null) {
         return { ok: false, code: "not_ready" };
       }
-      return broker.request(command);
+      return broker.request(command, context);
     },
     showWindow: () => windowHandler.show(),
     getWindowState: () => windowHandler.getState(),

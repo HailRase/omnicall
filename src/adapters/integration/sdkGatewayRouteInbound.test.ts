@@ -179,4 +179,77 @@ describe("routeSdkInbound", () => {
       code: "forbidden",
     });
   });
+
+  it("denies call:originate when unauthenticated", () => {
+    const originate = {
+      ...getSnapshot,
+      type: "call:originate" as const,
+      payload: { destination: "+15551234567", expectedRevision: 1 },
+    };
+    expect(routeSdkInbound(originate, unauthView)).toEqual({
+      action: "command_deny",
+      requestId: "req_test_001",
+      commandType: "call:originate",
+      code: "unauthenticated",
+    });
+  });
+
+  it("denies call:hangup without call.control capability", () => {
+    const hangup = {
+      ...getSnapshot,
+      type: "call:hangup" as const,
+      payload: { callId: "call_001", expectedRevision: 1 },
+    };
+    expect(
+      routeSdkInbound(hangup, {
+        handshakeComplete: true,
+        authState: "authenticated",
+        grantedCapabilities: ["session.read.redacted", "call.originate"],
+      }),
+    ).toEqual({
+      action: "command_deny",
+      requestId: "req_test_001",
+      commandType: "call:hangup",
+      code: "forbidden",
+    });
+  });
+
+  it("routes capable call:originate to broker (DI-06)", () => {
+    const originate = {
+      ...getSnapshot,
+      type: "call:originate" as const,
+      payload: { destination: "+15551234567", expectedRevision: 1 },
+    };
+    expect(
+      routeSdkInbound(originate, {
+        handshakeComplete: true,
+        authState: "authenticated",
+        grantedCapabilities: ["call.originate"],
+      }),
+    ).toEqual({
+      action: "command_broker",
+      requestId: "req_test_001",
+      commandType: "call:originate",
+      message: originate,
+    });
+  });
+
+  it("keeps operator:change-status as not_ready (DI-07)", () => {
+    const changeStatus = {
+      ...getSnapshot,
+      type: "operator:change-status" as const,
+      payload: { target: "ready" as const, expectedRevision: 1 },
+    };
+    expect(
+      routeSdkInbound(changeStatus, {
+        handshakeComplete: true,
+        authState: "authenticated",
+        grantedCapabilities: ["operator.status.write"],
+      }),
+    ).toEqual({
+      action: "command_not_ready",
+      requestId: "req_test_001",
+      commandType: "operator:change-status",
+    });
+  });
 });

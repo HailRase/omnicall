@@ -24,8 +24,13 @@ export type SdkSnapshotProductSections = Readonly<{
   operator?: WireJsonObject;
 }>;
 
+export type AssembleSdkSnapshotOptions = Readonly<{
+  getOwnerClientId?: (callId: string) => string | undefined;
+}>;
+
 export function assembleSdkSnapshotProductSections(
   state: SdkProductStateSnapshot,
+  options: AssembleSdkSnapshotOptions = {},
 ): SdkSnapshotProductSections {
   const account: WireJsonObject = {
     signedIn: state.signedIn,
@@ -40,7 +45,7 @@ export function assembleSdkSnapshotProductSections(
       : {}),
   };
   const calls = state.calls
-    .map((line) => mapCallLine(line))
+    .map((line) => mapCallLine(line, options.getOwnerClientId?.(line.callId)))
     .filter((line): line is WireJsonObject => line !== null)
     .slice(0, 32);
 
@@ -69,7 +74,10 @@ export function assembleSdkSnapshotProductSections(
   };
 }
 
-function mapCallLine(line: SdkProductCallLine): WireJsonObject | null {
+function mapCallLine(
+  line: SdkProductCallLine,
+  ownerClientId: string | undefined,
+): WireJsonObject | null {
   const state = mapSdkPublicCallState(line.state);
   if (state === null) {
     return null;
@@ -85,5 +93,6 @@ function mapCallLine(line: SdkProductCallLine): WireJsonObject | null {
       ? { remoteDisplayName: redactDisplayNameForSdk(line.remoteDisplayName) }
       : {}),
     muted: line.muted,
+    ...(ownerClientId !== undefined ? { ownerClientId } : {}),
   };
 }

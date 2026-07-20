@@ -19,16 +19,26 @@ export type ExternalHandlerFailure = Readonly<{
   ok: false;
   code: ProtocolErrorCode;
   retryable: boolean;
+  /** Present for `stale_state` so clients can resync (ADR-0017). */
+  currentRevision?: number;
 }>;
 
 export type ExternalHandlerResult = ExternalHandlerSuccess | ExternalHandlerFailure;
 
+/** Optional request context from the authenticated gateway session (DI-06). */
+export type ExternalCommandContext = Readonly<{
+  clientId?: string;
+}>;
+
 /**
  * Mutating external commands (call, operator, account, window show, etc.).
- * Call mutations must later pass through Call Engine (DI-06).
+ * Call mutations pass through Call Engine (DI-06).
  */
 export interface ExternalCommandHandler {
-  handleCommand(input: unknown): Promise<ExternalHandlerResult>;
+  handleCommand(
+    input: unknown,
+    context?: ExternalCommandContext,
+  ): Promise<ExternalHandlerResult>;
 }
 
 /**

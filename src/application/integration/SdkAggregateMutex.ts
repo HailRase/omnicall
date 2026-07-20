@@ -1,0 +1,27 @@
+/**
+ * Per-key promise queue for SDK mutation serialization (DI-06 / ADR-0017).
+ */
+
+export class SdkAggregateMutex {
+  private readonly tails = new Map<string, Promise<void>>();
+
+  async runExclusive<T>(key: string, operation: () => Promise<T>): Promise<T> {
+    const previous = this.tails.get(key) ?? Promise.resolve();
+    let release!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const tail = previous.then(() => gate);
+    this.tails.set(key, tail);
+
+    await previous;
+    try {
+      return await operation();
+    } finally {
+      release();
+      if (this.tails.get(key) === tail) {
+        this.tails.delete(key);
+      }
+    }
+  }
+}

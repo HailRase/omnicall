@@ -34,8 +34,14 @@ export type RendererSdkBrokerSessionOptions = Readonly<{
 function failureReply(
   brokerRequestId: string,
   code: ProtocolErrorCode,
+  currentRevision?: number,
 ): SdkBrokerReplyIpcPayload {
-  return { brokerRequestId, ok: false, code };
+  return {
+    brokerRequestId,
+    ok: false,
+    code,
+    ...(currentRevision !== undefined ? { currentRevision } : {}),
+  };
 }
 
 function buildSuccessReply(
@@ -122,7 +128,11 @@ export class RendererSdkBrokerSession {
       return failureReply(envelope.brokerRequestId, denial ?? "forbidden");
     }
 
-    const handlerResult = await this.handler.handleCommand(message);
+    const handlerResult = await this.handler.handleCommand(message, {
+      ...(envelope.clientId !== undefined
+        ? { clientId: envelope.clientId }
+        : {}),
+    });
     return this.toIpcReply(envelope.brokerRequestId, message, handlerResult);
   }
 
@@ -132,7 +142,11 @@ export class RendererSdkBrokerSession {
     handlerResult: ExternalHandlerResult,
   ): SdkBrokerReplyIpcPayload {
     if (!handlerResult.ok) {
-      return failureReply(brokerRequestId, handlerResult.code);
+      return failureReply(
+        brokerRequestId,
+        handlerResult.code,
+        handlerResult.currentRevision,
+      );
     }
 
     const revision = handlerResult.revision ?? 1;

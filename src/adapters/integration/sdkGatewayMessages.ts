@@ -87,6 +87,7 @@ export function buildCommandFailureReply(input: {
   readonly code: ProtocolErrorCode;
   readonly identity: SdkGatewayIdentity;
   readonly now: () => Date;
+  readonly currentRevision?: number;
 }): WireMessage {
   return {
     protocolVersion: PROTOCOL_MAJOR,
@@ -100,6 +101,9 @@ export function buildCommandFailureReply(input: {
     error: {
       code: input.code,
       retryable: input.code === "rate_limited" || input.code === "not_ready",
+      ...(input.currentRevision !== undefined
+        ? { currentRevision: input.currentRevision }
+        : {}),
     },
   };
 }

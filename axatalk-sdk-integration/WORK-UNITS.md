@@ -8,7 +8,7 @@
 - [x] DI-03 — Loopback WebSocket transport (`done`)
 - [x] DI-04 — Pairing, Origin, capabilities, and revocation (`done`)
 - [x] DI-05 — Read-only snapshot, events, and window show (`done`)
-- [ ] DI-06 — Call command router (`pending`)
+- [x] DI-06 — Call command router (`done`)
 - [ ] DI-07 — Operator status and logout workflow (`pending`)
 - [ ] DI-08 — Saved-profile activation (`pending`)
 - [ ] DI-09 — Settings and operational UX (`pending`)
@@ -383,6 +383,16 @@ Checklist:
 
 Prerequisites: DI-05 done; SDK-06 ready.
 
+Status: **`done`** (2026-07-20) — revision-contract remediation verified; High/Low closed
+
+### Intake (DI-06)
+
+- Feature/LF: F-011; LF-051, LF-065, LF-080, LF-081
+- Bounded context: Integration (primary) + Telephony (existing Use Cases / Call Engine)
+- Layers: Application call handler + ownership/revision; gateway route/dispatch; broker bind; tests/evidence
+- Layers forbidden: Domain protocol imports; second Facade/Call Engine in main; DI-07/08 routers; transfer backlog
+- Regression risks: DI-04 security; DI-05 privacy/snapshots; SIP-only; OCP optional; version stays `0.11.2`; F-011 stays `in progress`
+
 Agent prompt:
 
 > Route approved call commands through focused Application handlers and the existing Call
@@ -390,18 +400,42 @@ Agent prompt:
 
 Checklist:
 
-- [ ] originate.
-- [ ] answer/reject.
-- [ ] hang up.
-- [ ] hold/resume.
-- [ ] mute/unmute.
-- [ ] DTMF.
-- [ ] duplicate/conflict/stale/timeout/client-drop tests.
-- [ ] existing critical telephony suite remains green.
+- [x] originate.
+- [x] answer/reject.
+- [x] hang up.
+- [x] hold/resume.
+- [x] mute/unmute.
+- [x] DTMF.
+- [x] duplicate/conflict/stale/timeout/client-drop tests.
+- [x] existing critical telephony suite remains green.
+
+### Handoff checklist (DI-06)
+
+- Work unit: DI-06
+- Prerequisites verified: DI-00…DI-05 `done` (`/sdk-review` PASS); protocol call DTOs from SDK-02 consumed; SDK-06 client package may remain pending
+- Feature/LF: F-011; LF-051, LF-065, LF-080, LF-081
+- Bounded context: Integration + Telephony
+- Layers touched: Application call handler/ownership; gateway route/dispatch/dedup; broker IPC `clientId`; bind session; tests/evidence/docs
+- Expected files:
+  - `src/application/integration/ExternalSdkCallHandler.ts` (+ helpers/port/ownership/mutex/clock)
+  - `src/application/integration/ExternalSdkProductHandler.ts`
+  - `src/adapters/integration/sdkGatewayRouteInbound.ts`
+  - `src/adapters/integration/sdkGatewayProductDispatch.ts`
+  - `src/adapters/integration/sdkGatewayRequestDedup.ts`
+  - `src/renderer/bootstrap/bindSdkBrokerSession.ts`
+  - evidence `axatalk-sdk-integration/evidence/DI-06-call-command-router.md`
+- Security impact: capability-gated call mutations; ownership/`expectedRevision`/idempotency server-side; DI-04/DI-05 invariants preserved; revoke stops further cmds without ending calls
+- Regression risks: operator/account still `not_ready`; SDK-06 client interoperability residual
+- Automated tests: focused DI set **81 passed**; full `npm test` **2428 passed / 1 skipped**; `npm run lint` PASS; `npm run typecheck` PASS; `npm run registry:check` **73/0**
+- Manual smoke: deferred to DI-10 packaged gate
+- Registry/Legacy/STATUS changes: F-011 remains `in progress`; DI-06 → **`done`**
+- Remaining risks: SDK-06 client package; DI-07/08 routers; packaged E2E at DI-10
+- Evidence: `axatalk-sdk-integration/evidence/DI-06-call-command-router.md`
+- Reviewer: `/sdk-review` FAIL 2026-07-20 (revision contract High) → remediated same day; independent re-verify PASS (reply-chain + snapshot→mutate); DI-06 **`done`**
 
 ## DI-07 — Operator Status and Logout Workflow
 
-Prerequisites: DI-06 done; SDK-07 ready.
+Prerequisites: DI-06 done; protocol operator/logout DTOs from SDK-02; SDK-07 client package may remain pending (mirror DI-05/DI-06).
 
 Agent prompt:
 

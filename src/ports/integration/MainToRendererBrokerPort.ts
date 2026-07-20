@@ -30,6 +30,7 @@ export type BrokerRequestSuccess = Readonly<{
 export type BrokerRequestFailure = Readonly<{
   ok: false;
   code: ProtocolErrorCode;
+  currentRevision?: number;
 }>;
 
 export type BrokerRequestResult = BrokerRequestSuccess | BrokerRequestFailure;
@@ -45,6 +46,10 @@ export interface MainToRendererBrokerPort {
   /**
    * Deliver a product request. Input is `unknown` until validated at the boundary.
    * Fail closed with stable protocol codes. Never throws protocol validation errors.
+   * `clientId` is the authenticated SDK principal for ownership (DI-06).
    */
-  request(input: unknown): Promise<BrokerRequestResult>;
+  request(
+    input: unknown,
+    context?: { readonly clientId?: string },
+  ): Promise<BrokerRequestResult>;
 }

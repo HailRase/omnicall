@@ -42,7 +42,7 @@ export type SdkInboundRoute =
   | {
       readonly action: "command_broker";
       readonly requestId: string;
-      readonly commandType: "sdk:get-snapshot";
+      readonly commandType: CommandMessage["type"];
       readonly message: CommandMessage;
     }
   | {
@@ -132,11 +132,22 @@ function routeCommand(
     return { action: "command_ping", requestId: message.requestId };
   }
 
-  if (message.type === "sdk:get-snapshot") {
+  if (
+    message.type === "sdk:get-snapshot" ||
+    message.type === "call:originate" ||
+    message.type === "call:answer" ||
+    message.type === "call:reject" ||
+    message.type === "call:hangup" ||
+    message.type === "call:hold" ||
+    message.type === "call:resume" ||
+    message.type === "call:mute" ||
+    message.type === "call:unmute" ||
+    message.type === "call:send-dtmf"
+  ) {
     return {
       action: "command_broker",
       requestId: message.requestId,
-      commandType: "sdk:get-snapshot",
+      commandType: message.type,
       message,
     };
   }
@@ -149,7 +160,7 @@ function routeCommand(
     };
   }
 
-  // Call / operator / account mutations land in DI-06+.
+  // Operator / account mutations land in DI-07/DI-08.
   return {
     action: "command_not_ready",
     requestId: message.requestId,

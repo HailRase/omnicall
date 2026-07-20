@@ -89,7 +89,11 @@ export class MockMainToRendererBroker implements MainToRendererBrokerPort {
     return this.handledRequests;
   }
 
-  request(input: unknown): Promise<BrokerRequestResult> {
+  request(
+    input: unknown,
+    context?: { readonly clientId?: string },
+  ): Promise<BrokerRequestResult> {
+    void context;
     if (!this.ready) {
       return Promise.resolve({ ok: false, code: "not_ready" });
     }

@@ -110,6 +110,7 @@ export type {
   MainToRendererBrokerPort,
 } from "./integration/MainToRendererBrokerPort.js";
 export type {
+  ExternalCommandContext,
   ExternalCommandHandler,
   ExternalHandlerFailure,
   ExternalHandlerResult,

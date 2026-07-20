@@ -120,29 +120,27 @@ export function handleSdkCommandRoute(input: {
   const requestId = input.route.requestId;
   const commandType =
     input.route.action === "command_ping" ? "sdk:ping" : input.route.commandType;
-  if (!input.requestDedup.accept(requestId, input.now().getTime())) {
-    input.sendJson(
-      input.connection,
-      buildCommandFailureReply({
-        requestId,
-        commandType,
-        code: "conflict",
-        identity,
-        now: input.now,
-      }),
-    );
+  const nowMs = input.now().getTime();
+  const dedup = input.requestDedup.begin(requestId, nowMs);
+  if (dedup.action === "replay") {
+    input.sendJson(input.connection, dedup.reply);
+    return;
+  }
+  if (dedup.action === "await") {
+    void dedup.promise.then((reply) => {
+      input.sendJson(input.connection, reply);
+    });
     return;
   }
   if (input.route.action === "command_ping") {
-    input.sendJson(
-      input.connection,
-      buildCommandSuccessReply({
-        requestId,
-        commandType: "sdk:ping",
-        identity,
-        now: input.now,
-      }),
-    );
+    const reply = buildCommandSuccessReply({
+      requestId,
+      commandType: "sdk:ping",
+      identity,
+      now: input.now,
+    });
+    input.requestDedup.complete(requestId, reply, input.now().getTime());
+    input.sendJson(input.connection, reply);
     input.log("sdk_gateway_command", {
       commandType: "sdk:ping",
       requestId,
@@ -152,16 +150,15 @@ export function handleSdkCommandRoute(input: {
   }
   const code =
     input.route.action === "command_deny" ? input.route.code : "not_ready";
-  input.sendJson(
-    input.connection,
-    buildCommandFailureReply({
-      requestId,
-      commandType,
-      code,
-      identity,
-      now: input.now,
-    }),
-  );
+  const reply = buildCommandFailureReply({
+    requestId,
+    commandType,
+    code,
+    identity,
+    now: input.now,
+  });
+  input.requestDedup.complete(requestId, reply, input.now().getTime());
+  input.sendJson(input.connection, reply);
   input.log("sdk_gateway_command", {
     commandType,
     requestId,
