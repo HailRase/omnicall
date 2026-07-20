@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-20 13:17
 **Статус:** выполнено
-**Коммит:** (см. git log после commit)
+**Коммит:** `cc015b4`
 
 ## Где
 - `axatalk-sdk/packages/sdk/src/internal/request-correlator.ts`
