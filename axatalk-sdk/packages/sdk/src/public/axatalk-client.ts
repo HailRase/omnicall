@@ -8,6 +8,7 @@ import {
   AxatalkClientError,
   isAxatalkClientError
 } from '../internal/client-errors.js';
+import { isOriginBlockedError } from '../internal/origin-policy-errors.js';
 import { createConnectionSession } from '../internal/connection-session.js';
 import { createProductOrchestrator } from '../internal/product-orchestrator.js';
 import {
@@ -22,7 +23,7 @@ import type {
 } from './axatalk-client-api.js';
 
 export type { AxatalkEvent, PublicEventType };
-export { AxatalkClientError, isAxatalkClientError, PUBLIC_EVENT_TYPES };
+export { AxatalkClientError, isAxatalkClientError, isOriginBlockedError, PUBLIC_EVENT_TYPES };
 export type { ActivateProfileResult } from '../internal/account-activate-commands.js';
 export type {
   ConfirmLogoutResult,
@@ -177,6 +178,7 @@ export function createAxatalkClient(
           }
         });
       }),
+    getConnectError: () => connection.getConnectError(),
     getSnapshot: () => product.getSnapshot(),
     getCachedSnapshot: () => product.getCachedSnapshot(),
     getRevision: () => product.getRevision(),

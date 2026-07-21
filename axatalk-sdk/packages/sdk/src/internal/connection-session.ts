@@ -29,6 +29,10 @@ import {
   type PendingRequestResult
 } from './request-correlator.js';
 import type { JitterSource, Scheduler, TimerHandle } from './scheduler.js';
+import type { AxatalkClientError } from './client-errors.js';
+import {
+  mapTransportCloseToOriginPolicyError
+} from './origin-policy-errors.js';
 import type { TransportFactory, TransportPort } from './transport-port.js';
 
 export type SessionWireIdentity = {
@@ -70,6 +74,8 @@ export type ConnectionSession = {
   readonly signalIncompatible: () => void;
   readonly signalRevoked: () => void;
   readonly signalFailed: () => void;
+  readonly signalOriginPolicyFailure: (error: AxatalkClientError) => void;
+  readonly getConnectError: () => AxatalkClientError | undefined;
   readonly request: (command: OutboundCommandRequest) => Promise<PendingRequestResult>;
   readonly sendRaw: (body: string) => boolean;
   readonly onStateChange: (listener: (state: ConnectionState) => void) => () => void;
@@ -94,6 +100,7 @@ export function createConnectionSession(
   let reconnectTimer: TimerHandle | undefined;
   let intentionalClose = false;
   let wireIdentity: SessionWireIdentity | undefined;
+  let connectError: AxatalkClientError | undefined;
 
   const stateListeners = new Set<(next: ConnectionState) => void>();
   const correlator = createRequestCorrelator({
@@ -195,9 +202,14 @@ export function createConnectionSession(
           options.onUnhandledMessage?.(data);
         }
       }),
-      next.onClose(() => {
+      next.onClose((closeInfo) => {
         detachTransport();
         if (intentionalClose || isTerminalConnectionState(state) || state === 'closed') {
+          return;
+        }
+        const originPolicyError = mapTransportCloseToOriginPolicyError(closeInfo, state);
+        if (originPolicyError !== undefined) {
+          signalOriginPolicyFailure(originPolicyError);
           return;
         }
         if (isReconnectEligible(state)) {
@@ -268,6 +280,22 @@ export function createConnectionSession(
     setState(next);
   };
 
+  const signalOriginPolicyFailure = (error: AxatalkClientError): void => {
+    connectError = error;
+    intentionalClose = true;
+    clearReconnectTimer();
+    heartbeat.stop();
+    rejectPending('aborted');
+    wireIdentity = undefined;
+    if (transport !== undefined) {
+      transport.close(1000, 'origin_policy');
+    }
+    detachTransport();
+    if (state !== 'failed') {
+      setState('failed');
+    }
+  };
+
   const canSendCommand = (commandType: CommandType): boolean => {
     if (state === 'ready') {
       return true;
@@ -284,6 +312,7 @@ export function createConnectionSession(
       reconnectAttempts = 0;
       correlator.clearMutationLedger();
       wireIdentity = undefined;
+      connectError = undefined;
       setState('connecting');
       openTransport();
     },
@@ -296,6 +325,7 @@ export function createConnectionSession(
       heartbeat.stop();
       rejectPending('aborted');
       wireIdentity = undefined;
+      connectError = undefined;
       if (transport !== undefined) {
         transport.close(1000, 'client_disconnect');
       }
@@ -343,6 +373,8 @@ export function createConnectionSession(
     signalFailed: () => {
       enterTerminal('failed');
     },
+    signalOriginPolicyFailure,
+    getConnectError: () => connectError,
     sendRaw: (body) => {
       if (transport === undefined) {
         return false;

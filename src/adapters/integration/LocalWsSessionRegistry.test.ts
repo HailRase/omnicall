@@ -13,6 +13,11 @@ import { DEFAULT_SDK_GATEWAY_LIMITS } from "./sdkGatewayConfig.js";
 import type { SdkGatewayIdentity } from "./sdkGatewayMessages.js";
 import { createAutoDenyPairingApprover } from "./sdkGatewayPairingApprover.js";
 import { SdkGatewayPairingStore } from "./sdkGatewayPairingStore.js";
+import { createAutoAllowOriginTrustApprover } from "./sdkGatewayOriginTrustApprover.js";
+import {
+  resolveSdkOriginTrustState,
+  trustEntriesFromAllowlist,
+} from "./sdkGatewayOriginPolicy.js";
 
 class TestGatewaySocket implements SdkGatewaySocket {
   readyState = 1;
@@ -87,6 +92,7 @@ const clientHello = {
 } as const satisfies WireMessage;
 
 const TEST_ORIGIN = "https://crm.example";
+const ORIGIN_TRUST_ENTRIES = trustEntriesFromAllowlist([TEST_ORIGIN]);
 
 function validateWire(
   input: unknown,
@@ -116,6 +122,11 @@ function createRegistry(
     getIdentity: () => identity,
     pairingStore: new SdkGatewayPairingStore(new InMemorySecretStorageAdapter()),
     pairingApprover: createAutoDenyPairingApprover(),
+    getOriginTrustState: (origin) =>
+      resolveSdkOriginTrustState(origin, ORIGIN_TRUST_ENTRIES),
+    originTrustApprover: createAutoAllowOriginTrustApprover(),
+    onOriginTrustDecision: () => {},
+    getOriginMatrixCapabilities: () => [],
     ...overrides,
   });
 }

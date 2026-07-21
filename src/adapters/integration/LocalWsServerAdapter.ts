@@ -1,9 +1,10 @@
-/** Real loopback WS ExternalClientGateway (DI-03…DI-05). */
+/** Real loopback WS ExternalClientGateway (DI-03…DI-05, DI-11). */
 
 import type { Server as HttpServer } from "node:http";
 import {
   validateDiscoveryDocument,
   validateWireMessage,
+  type CapabilityId,
   type DiscoveryDocument,
   type WireMessage,
 } from "@axata/axatalk-protocol";
@@ -13,6 +14,11 @@ import type {
   ExternalGatewayValidationResult,
 } from "@ports/integration/ExternalClientGateway.js";
 import type { WebSocketServer } from "ws";
+import {
+  listEnabledMatrixCapabilities,
+  withMatrixCapability,
+  type SdkOriginTrustEntry,
+} from "@domain/index.js";
 import {
   mergeSdkGatewayLimits,
   SDK_GATEWAY_DEFAULT_HOST,
@@ -29,7 +35,17 @@ import {
   bindLocalWsListening,
   disposeLocalWsListening,
 } from "./localWsServerLifecycle.js";
-import { loadSdkOriginAllowlistFromEnv } from "./sdkGatewayOriginPolicy.js";
+import {
+  loadSdkOriginAllowlistFromEnv,
+  trustEntriesFromAllowlist,
+} from "./sdkGatewayOriginPolicy.js";
+import { applySdkOriginTrustDecision } from "./sdkGatewayOriginTrustAdapterState.js";
+import {
+  createAutoAllowOriginTrustApprover,
+  DeferredSdkOriginTrustApprover,
+  type SdkOriginTrustApprover,
+  type SdkOriginTrustPending,
+} from "./sdkGatewayOriginTrustApprover.js";
 import { isApprovedLoopbackBindHost } from "./sdkGatewayPeer.js";
 import {
   DeferredSdkPairingApprover,
@@ -49,6 +65,17 @@ export type {
   LocalWsStartResult,
 } from "./localWsServerAdapterTypes.js";
 
+function resolveInitialOriginTrustEntries(
+  options: LocalWsServerAdapterOptions,
+): SdkOriginTrustEntry[] {
+  if (options.originTrustEntries !== undefined) {
+    return [...options.originTrustEntries];
+  }
+  const allowlist =
+    options.allowedOrigins ?? loadSdkOriginAllowlistFromEnv();
+  return [...trustEntriesFromAllowlist(allowlist)];
+}
+
 export class LocalWsServerAdapter implements ExternalClientGateway {
   private readonly desktopVersion: string;
   private readonly host: string;
@@ -58,10 +85,15 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
   private readonly limits: SdkGatewayLimits;
   private readonly now: () => Date;
   private readonly onLog: SdkGatewayLogFn | undefined;
-  private readonly allowedOrigins: readonly string[];
+  private originTrustEntries: SdkOriginTrustEntry[];
+  private readonly onOriginTrustChanged:
+    | ((entries: readonly SdkOriginTrustEntry[]) => void)
+    | undefined;
   private readonly pairingStore: SdkGatewayPairingStore | null;
   private readonly deferredApprover: DeferredSdkPairingApprover;
   private readonly pairingApprover: SdkPairingApprover;
+  private readonly deferredOriginTrustApprover: DeferredSdkOriginTrustApprover;
+  private readonly originTrustApprover: SdkOriginTrustApprover;
   private productSurface: SdkGatewayProductSurface | null;
   private httpServer: HttpServer | null = null;
   private wss: WebSocketServer | null = null;
@@ -79,8 +111,25 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
     this.limits = mergeSdkGatewayLimits(options.limits);
     this.now = options.now ?? (() => new Date());
     this.onLog = options.onLog;
-    this.allowedOrigins =
-      options.allowedOrigins ?? loadSdkOriginAllowlistFromEnv();
+    this.originTrustEntries = resolveInitialOriginTrustEntries(options);
+    // Fortress / auto-approve harness: elevate activate in matrix so DI-08 grant
+    // path remains testable; product TOFU Allow still defaults activate off.
+    if (options.autoApprovePairing === true) {
+      this.originTrustEntries = this.originTrustEntries.map((entry) => {
+        if (entry.state !== "allowed" || entry.matrix === null) {
+          return entry;
+        }
+        return {
+          ...entry,
+          matrix: withMatrixCapability(
+            entry.matrix,
+            "account.activate",
+            true,
+          ),
+        };
+      });
+    }
+    this.onOriginTrustChanged = options.onOriginTrustChanged;
     this.pairingStore =
       options.secretStorage !== undefined
         ? new SdkGatewayPairingStore(options.secretStorage)
@@ -91,6 +140,15 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
       (options.autoApprovePairing === true
         ? createAutoApprovePairingApprover()
         : this.deferredApprover.approver);
+    this.deferredOriginTrustApprover = new DeferredSdkOriginTrustApprover();
+    const autoAllowOrigin =
+      options.autoAllowOriginTrust === true ||
+      options.autoApprovePairing === true;
+    this.originTrustApprover =
+      options.originTrustApprover ??
+      (autoAllowOrigin
+        ? createAutoAllowOriginTrustApprover()
+        : this.deferredOriginTrustApprover.approver);
     this.productSurface = options.productSurface ?? null;
   }
 
@@ -125,7 +183,30 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
   }
 
   getAllowedOrigins(): readonly string[] {
-    return this.allowedOrigins;
+    return this.originTrustEntries
+      .filter((entry) => entry.state === "allowed")
+      .map((entry) => entry.origin);
+  }
+
+  getOriginTrustEntries(): readonly SdkOriginTrustEntry[] {
+    return this.originTrustEntries;
+  }
+
+  setOriginTrustEntries(entries: readonly SdkOriginTrustEntry[]): void {
+    this.originTrustEntries = [...entries];
+    this.onOriginTrustChanged?.(this.originTrustEntries);
+  }
+
+  listPendingOriginTrust(): readonly SdkOriginTrustPending[] {
+    return this.deferredOriginTrustApprover.listPending();
+  }
+
+  allowOriginTrust(originTrustRequestId: string): boolean {
+    return this.deferredOriginTrustApprover.allow(originTrustRequestId);
+  }
+
+  denyOriginTrust(originTrustRequestId: string): boolean {
+    return this.deferredOriginTrustApprover.deny(originTrustRequestId);
   }
 
   /**
@@ -152,7 +233,7 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
       unauthenticatedCount: authCounts.unauthenticated + authCounts.authenticating,
       pendingPairingCount: this.listPendingPairingRequests().length,
       pairedClientCount,
-      allowedOriginsCount: this.allowedOrigins.length,
+      allowedOriginsCount: this.getAllowedOrigins().length,
       lastErrorCode: this.lastErrorCode,
       windowHideAvailable: false,
     };
@@ -276,6 +357,24 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
     this.log("sdk_gateway_stopped", { listening: false });
   }
 
+  private persistOriginTrustMutation(
+    input: Readonly<{
+      origin: string;
+      decision: Readonly<{ decision: "allow" } | { decision: "deny" }>;
+    }>,
+  ): void {
+    const next = applySdkOriginTrustDecision(this.originTrustEntries, input);
+    this.setOriginTrustEntries(next);
+  }
+
+  private getOriginMatrixCapabilities(origin: string): readonly CapabilityId[] {
+    const entry = this.originTrustEntries.find((row) => row.origin === origin);
+    if (entry?.state !== "allowed" || entry.matrix === null) {
+      return [];
+    }
+    return listEnabledMatrixCapabilities(entry.matrix);
+  }
+
   private async bindAndListen(): Promise<LocalWsStartResult> {
     const pairingStore = this.pairingStore;
     if (pairingStore === null) {
@@ -288,7 +387,13 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
       limits: this.limits,
       pairingStore,
       pairingApprover: this.pairingApprover,
-      allowedOrigins: this.allowedOrigins,
+      getOriginTrustEntries: () => this.originTrustEntries,
+      originTrustApprover: this.originTrustApprover,
+      onOriginTrustDecision: (decision) => {
+        this.persistOriginTrustMutation(decision);
+      },
+      getOriginMatrixCapabilities: (origin) =>
+        this.getOriginMatrixCapabilities(origin),
       getAccepting: () => this.accepting,
       getListening: () => this.listening,
       resolveWsHostPort: () =>

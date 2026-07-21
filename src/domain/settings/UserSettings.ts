@@ -42,7 +42,7 @@ import {
   type SdkIntegrationSettings,
 } from "./SdkIntegrationSettings.js";
 
-export const SETTINGS_SCHEMA_VERSION = 10 as const;
+export const SETTINGS_SCHEMA_VERSION = 11 as const;
 
 export type SettingsSchemaVersion = typeof SETTINGS_SCHEMA_VERSION;
 

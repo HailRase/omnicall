@@ -24,7 +24,7 @@ export function createSdkGatewayProductSurface(input: {
     isProductReady: () => input.getBroker()?.isReady() ?? false,
     requestProductCommand: async (
       command: WireMessage,
-      context?: { readonly clientId?: string },
+      context?: { readonly clientId?: string; readonly origin?: string },
     ) => {
       const broker = input.getBroker();
       if (broker === null) {

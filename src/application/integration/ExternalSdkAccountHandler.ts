@@ -1,6 +1,6 @@
 /**
- * Application account-activate handler (DI-08 / ADR-0013 §B).
- * Capability + local approval gated in main; this maps wire → Facade sign-in.
+ * Application account-activate handler (DI-08 / DI-11 / ADR-0013 §B / ADR-0018 §E).
+ * Capability + local approval gated in main; consent modal every activate when matrix on.
  */
 
 import type { CommandMessage } from "@axata/axatalk-protocol";
@@ -19,6 +19,7 @@ import {
 } from "@application/facades/accountSignInCommand.js";
 
 import type { ExternalSdkAccountPort } from "./ExternalSdkAccountPort.js";
+import type { SdkActivateConsentPort } from "./SdkActivateConsentPort.js";
 import {
   readExpectedRevision,
   readStringField,
@@ -40,6 +41,11 @@ export type ExternalSdkAccountHandlerOptions = Readonly<{
   revisionClock: SdkSessionRevisionClock;
   mutex?: SdkAggregateMutex;
   nowMs?: () => number;
+  consentPort?: SdkActivateConsentPort;
+  /** True when a consent modal is already open (pending guard). */
+  isConsentPending?: () => boolean;
+  /** Persist Origin matrix activate=false after consent Deny. */
+  onActivateConsentDenied?: (origin: string) => void;
 }>;
 
 type CachedReply = Readonly<{
@@ -55,6 +61,11 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
   private readonly revisionClock: SdkSessionRevisionClock;
   private readonly mutex: SdkAggregateMutex;
   private readonly nowMs: () => number;
+  private readonly consentPort: SdkActivateConsentPort | undefined;
+  private readonly isConsentPending: (() => boolean) | undefined;
+  private readonly onActivateConsentDenied:
+    | ((origin: string) => void)
+    | undefined;
   private readonly idempotency = new Map<string, CachedReply>();
   private readonly inFlight = new Map<string, Promise<ExternalHandlerResult>>();
 
@@ -63,6 +74,9 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
     this.revisionClock = options.revisionClock;
     this.mutex = options.mutex ?? new SdkAggregateMutex();
     this.nowMs = options.nowMs ?? (() => Date.now());
+    this.consentPort = options.consentPort;
+    this.isConsentPending = options.isConsentPending;
+    this.onActivateConsentDenied = options.onActivateConsentDenied;
   }
 
   handlesCommandType(commandType: string): boolean {
@@ -122,12 +136,13 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
       return Promise.resolve(clientGate ?? sdkFail("unauthenticated"));
     }
     return this.mutex.runExclusive(ACCOUNT_LOCK_KEY, () =>
-      this.handleActivate(message.payload),
+      this.handleActivate(message.payload, context?.origin),
     );
   }
 
   private async handleActivate(
     payload: unknown,
+    origin: string | undefined,
   ): Promise<ExternalHandlerResult> {
     const expectedRevision = readExpectedRevision(payload);
     if (expectedRevision === null) {
@@ -141,6 +156,38 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
     const profileRef = readStringField(payload, "profileRef");
     if (profileRef === null || profileRef.trim().length === 0) {
       return sdkFail("invalid_payload");
+    }
+
+    if (this.isConsentPending?.() === true) {
+      return sdkFail("conflict", { activate_consent_pending: true });
+    }
+
+    const lookup = await this.accountPort.lookupSavedProfileLabel(profileRef);
+    if (!lookup.ok) {
+      return mapActivateError(lookup.error);
+    }
+
+    if (this.consentPort !== undefined) {
+      if (origin === undefined || origin.trim().length === 0) {
+        return sdkFail("forbidden", { permission_denied: true });
+      }
+      const decision = await this.consentPort.requestConsent({
+        origin,
+        profileLabel: lookup.value.profileLabel,
+        profileRef,
+      });
+      if (decision === "deny") {
+        // ADR-0018 §E.6 — persist activate-disabled for this Origin.
+        this.onActivateConsentDenied?.(origin);
+        return sdkFail("forbidden", {
+          permission_denied: true,
+          activate_denied_for_origin: true,
+        });
+      }
+      if (decision === "dismiss") {
+        // dismiss/close — clear pending only; do not persist matrix (ADR-0018 §E.7).
+        return sdkFail("forbidden", { permission_denied: true });
+      }
     }
 
     const result = await this.accountPort.activateSavedProfile(profileRef);

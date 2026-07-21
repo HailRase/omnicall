@@ -18,7 +18,9 @@ import { SdkAggregateMutex } from "@application/integration/SdkAggregateMutex.js
 import { SdkCallOwnershipRegistry } from "@application/integration/SdkCallOwnershipRegistry.js";
 import { SdkSessionRevisionClock } from "@application/integration/SdkSessionRevisionClock.js";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
+import { withMatrixCapability } from "@application/index.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
+import { sdkActivateConsentBridge } from "./sdkActivateConsentBridge.js";
 
 const BROKER_SERVER_INSTANCE_ID = "srv_desktop_local";
 const BROKER_SESSION_EPOCH_PREFIX = "epoch_desktop_";
@@ -94,6 +96,43 @@ export function bindSdkBrokerSession(
     }),
     revisionClock,
     mutex: accountMutex,
+    consentPort: sdkActivateConsentBridge,
+    isConsentPending: () => sdkActivateConsentBridge.isPending(),
+    onActivateConsentDenied: (origin) => {
+      void (async () => {
+        const current = await options.facade.getUserSettingsForAccount();
+        if (!current.ok) {
+          return;
+        }
+        const entry = current.value.sdkIntegration.origins.find(
+          (row) => row.origin === origin && row.state === "allowed",
+        );
+        if (entry?.matrix === null || entry === undefined) {
+          return;
+        }
+        const nextMatrix = withMatrixCapability(
+          entry.matrix,
+          "account.activate",
+          false,
+        );
+        const nextOrigins = current.value.sdkIntegration.origins.map((row) =>
+          row.origin === origin ? { ...row, matrix: nextMatrix } : row,
+        );
+        await options.facade.saveUserSettings({
+          ...current.value,
+          sdkIntegration: {
+            ...current.value.sdkIntegration,
+            origins: nextOrigins,
+            originsManaged: true,
+          },
+        });
+        await window.softphone?.invokeSdkGatewaySettings({
+          op: "setOriginMatrix",
+          origin,
+          matrix: nextMatrix,
+        });
+      })();
+    },
   });
   const handler = new ExternalSdkProductHandler({
     readHandler,

@@ -15,9 +15,10 @@ afterEach(() => {
 });
 
 describe("SettingsIntegrationsPanel", () => {
-  it("renders OCP and SDK Server cards with hide disabled", () => {
+  it("renders OCP Module card on integrations section", () => {
     render(
       <SettingsIntegrationsPanel
+        sectionId="integrations"
         ocp={settingsIntegrationsTestDefaults.integrations.ocp}
         sdk={settingsIntegrationsTestDefaults.integrations.sdk}
       />,
@@ -26,6 +27,19 @@ describe("SettingsIntegrationsPanel", () => {
     expect(screen.getByTestId("ocp-module-settings-card")).toBeInTheDocument();
     expect(screen.queryByTestId("ocp-module-connect")).not.toBeInTheDocument();
     expect(screen.queryByTestId("ocp-module-disconnect")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("sdk-module-settings-card")).not.toBeInTheDocument();
+  });
+
+  it("renders SDK card with hide disabled on integrations-sdk section", () => {
+    render(
+      <SettingsIntegrationsPanel
+        sectionId="integrations-sdk"
+        ocp={settingsIntegrationsTestDefaults.integrations.ocp}
+        sdk={settingsIntegrationsTestDefaults.integrations.sdk}
+      />,
+    );
+
+    expect(screen.queryByTestId("ocp-module-settings-card")).not.toBeInTheDocument();
     expect(screen.getByTestId("sdk-module-settings-card")).toBeInTheDocument();
     expect(screen.getByTestId("sdk-module-hide-toggle")).toBeDisabled();
   });

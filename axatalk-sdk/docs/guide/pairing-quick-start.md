@@ -23,7 +23,7 @@ const keyStore =
 
 const client = createAxatalkClient({
   url: 'ws://127.0.0.1:17341/axatalk/v1/ws',
-  origin: 'https://crm.example', // must match desktop allowlist exactly
+  origin: 'https://crm.example', // exact Origin; must be allowed (or first-contact TOFU — ADR-0018)
   application: { name: 'my-crm', version: '1.2.0' },
   sdkVersion: '0.0.0',
   requestedProfile: 'call_controller',
@@ -51,7 +51,9 @@ const client = createAxatalkClient({
 });
 
 client.onPairingRequired((info) => {
-  // Prompt the human to approve this Origin in Axatalk Desktop.
+  // After Origin is allowed (TOFU modal Allow on first contact — ADR-0018), desktop may
+  // still require pairing approval for this client install (ADR-0016).
+  // Denied / blacklisted Origins never open the socket (`origin_blocked` on reconnect).
   console.info('pairing required', info.origin, info.requestedProfile);
 });
 
@@ -87,8 +89,10 @@ void revision;
 
 ## Checklist
 
-- [ ] Origin exact match
+- [ ] Origin exact match; unknown → renderer Allow/Deny modal (ADR-0018); then pairing
+- [ ] Blacklisted → no upgrade (`origin_blocked`); Unblock restores prior `allowed` matrix when applicable
 - [ ] PoP in IndexedDB (browser) or memory (tests) — never Web Storage
 - [ ] Privileged caps **not** in `requestedCapabilities` (and would be stripped anyway)
 - [ ] `getSnapshot()` / `getRevision()` before mutations
 - [ ] Typed errors via `isAxatalkClientError`
+- [ ] Do not confuse Origin deny / `origin_blocked` with product `not_ready` (broker / composition)

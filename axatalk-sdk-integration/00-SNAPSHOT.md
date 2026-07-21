@@ -7,10 +7,10 @@ recorded evidence on 2026-07-20.
 
 ## Product Baseline
 
-- Axatalk Desktop version: `0.11.2`
+- Axatalk Desktop version: `0.12.0`
 - Branch / commits (DI-00): `feature/axatalk-sdk` — code preflight `5114c02`; docs `18fb3f1`
-- F-011 Host Integration Contract: `in progress` (DI-01…DI-09 `done`; DI-10 `review` — partial packaged evidence; not `implemented`)
-- P12 External Host API Compatibility: architecture closed (DI-00); DI-01…DI-09 `done`; DI-10 `review` (see `evidence/DI-10-compatibility-e2e-p12-close.md`)
+- F-011 Host Integration Contract: `in progress` (DI-01…DI-11 `done`; not `implemented` — remaining OPEN DI-10 smoke)
+- P12 External Host API Compatibility: architecture closed (DI-00); DI-01…DI-11 `done` (packaged handshake PARTIAL; pair/call/SIP OPEN; ADR-0018 DI-11 `/sdk-review` PASS)
 - F-028 OCP command subset E-12: implemented
 - SIP-only product path: implemented and mandatory
 - OCP module: optional
@@ -22,9 +22,10 @@ recorded evidence on 2026-07-20.
 | --- | --- |
 | ADR-0009 | Process ownership + typed broker lifecycle |
 | ADR-0010 | Local transport, discovery, browser support |
-| ADR-0011 | Pairing, Origin, capabilities, replay, revocation |
+| ADR-0011 | Pairing, Origin, capabilities, replay, revocation (upgrade admission → ADR-0018) |
 | ADR-0012 | Protocol versioning, privacy, call ownership |
 | ADR-0013 | Window policy + SDK sign-in vs ADR-AF-003 |
+| ADR-0018 | Origin TOFU, blacklist, per-Origin matrix, always-on gateway, activate consent |
 
 Evidence: `axatalk-sdk-integration/evidence/DI-00-baseline.md`  
 Handoff: `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`
@@ -64,6 +65,7 @@ Handoff: `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`
 - public snapshot/event mapper + `window:show` — DI-05 **`done`**;
 - public call command mapping — DI-06 **`done`**;
 - SDK settings and operational UX — DI-09 **`done`**;
+- Origin TOFU / blacklist / per-Origin policy / activate consent — DI-11 **`done`** (ADR-0018; `/sdk-review` PASS);
 - window hide public implementation (`hide` policy-gated per ADR-0013);
 - protocol integration and packaged E2E tests.
 

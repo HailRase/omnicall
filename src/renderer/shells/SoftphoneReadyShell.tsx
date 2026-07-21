@@ -51,6 +51,13 @@ import { OcpCampaignEventModal } from "../components/integration/ocp/OcpCampaign
 import { OcpLogoutReasonModal } from "../components/integration/ocp/OcpLogoutReasonModal.js";
 import { mapOcpAuthFeedbackToMessageKey } from "../integration/ocp/mapOcpAuthFeedbackToToast.js";
 import { OcpRejectBreakReasonModal } from "../components/integration/ocp/OcpRejectBreakReasonModal.js";
+import { SdkOriginTrustConsentModal } from "../components/integration/SdkOriginTrustConsentModal.js";
+import { SdkActivateProfileConsentModal } from "../components/integration/SdkActivateProfileConsentModal.js";
+import {
+  sdkActivateConsentBridge,
+  subscribeSdkActivateConsent,
+} from "../bootstrap/sdkActivateConsentBridge.js";
+import type { SdkActivateConsentPending } from "@application/integration/DeferredSdkActivateConsent.js";
 import { useOcpCampaignModal } from "../hooks/useOcpCampaignModal.js";
 import { useOcpLogoutModal } from "../hooks/useOcpLogoutModal.js";
 import { useOcpRejectWithBreak } from "../hooks/useOcpRejectWithBreak.js";
@@ -112,6 +119,9 @@ function SoftphoneShellLayoutRoute({
   }, [overlayShell]);
   const shellNavigation = useShellNavigation();
   const [settingsSidebarExpanded, setSettingsSidebarExpanded] = useState(false);
+  const [activateConsentPending, setActivateConsentPending] =
+    useState<SdkActivateConsentPending | null>(null);
+  useEffect(() => subscribeSdkActivateConsent(setActivateConsentPending), []);
   const queryNotificationHistory = useCallback(
     (input: QueryUserNotificationJournalInput) =>
       facade.queryUserNotificationJournal(input),
@@ -486,6 +496,36 @@ function SoftphoneShellLayoutRoute({
             }}
             onCancel={ocpRejectWithBreak.handleCancel}
           />
+          <SdkOriginTrustConsentModal
+            open={sdkSettingsPanel.pendingOriginTrust.length > 0}
+            origin={sdkSettingsPanel.pendingOriginTrust[0]?.origin ?? null}
+            onAllow={() => {
+              const pending = sdkSettingsPanel.pendingOriginTrust[0];
+              if (pending !== undefined) {
+                sdkSettingsPanel.onAllowOriginTrust(pending.originTrustRequestId);
+              }
+            }}
+            onDeny={() => {
+              const pending = sdkSettingsPanel.pendingOriginTrust[0];
+              if (pending !== undefined) {
+                sdkSettingsPanel.onDenyOriginTrust(pending.originTrustRequestId);
+              }
+            }}
+          />
+          <SdkActivateProfileConsentModal
+            open={activateConsentPending !== null}
+            origin={activateConsentPending?.origin ?? null}
+            profileLabel={activateConsentPending?.profileLabel ?? null}
+            onAllow={() => {
+              sdkActivateConsentBridge.settle("allow");
+            }}
+            onDeny={() => {
+              sdkActivateConsentBridge.settle("deny");
+            }}
+            onDismiss={() => {
+              sdkActivateConsentBridge.settle("dismiss");
+            }}
+          />
           <ShellRouteDataController facade={facade} />
           <HistoryShellRoutePanel facade={facade} notify={notifications.notify} />
           <ContactsShellRoutePanel facade={facade} notify={notifications.notify} />
@@ -637,6 +677,7 @@ function SoftphoneShellLayoutRoute({
                   allowedOriginsLive: sdkSettingsPanel.allowedOriginsLive,
                   pairedClients: sdkSettingsPanel.pairedClients,
                   pendingPairing: sdkSettingsPanel.pendingPairing,
+                  pendingOriginTrust: sdkSettingsPanel.pendingOriginTrust,
                   profileOptions: sdkSettingsPanel.profileOptions,
                   selectedClientId: sdkSettingsPanel.selectedClientId,
                   selectedProfileId: sdkSettingsPanel.selectedProfileId,
@@ -644,7 +685,6 @@ function SoftphoneShellLayoutRoute({
                   originsDraft: sdkSettingsPanel.originsDraft,
                   errorKey: sdkSettingsPanel.errorKey,
                   busy: sdkSettingsPanel.busy,
-                  onEnabledChange: sdkSettingsPanel.onEnabledChange,
                   onOriginsDraftChange: sdkSettingsPanel.onOriginsDraftChange,
                   onOriginsSave: sdkSettingsPanel.onOriginsSave,
                   onRefresh: sdkSettingsPanel.onRefresh,
@@ -654,6 +694,10 @@ function SoftphoneShellLayoutRoute({
                   onSelectClientId: sdkSettingsPanel.onSelectClientId,
                   onSelectProfileId: sdkSettingsPanel.onSelectProfileId,
                   onIssueActivateGrant: sdkSettingsPanel.onIssueActivateGrant,
+                  onAllowOriginTrust: sdkSettingsPanel.onAllowOriginTrust,
+                  onDenyOriginTrust: sdkSettingsPanel.onDenyOriginTrust,
+                  onUnblockOrigin: sdkSettingsPanel.onUnblockOrigin,
+                  onSetOriginMatrix: sdkSettingsPanel.onSetOriginMatrix,
                 },
               }}
               account={{

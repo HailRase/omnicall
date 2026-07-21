@@ -1,5 +1,5 @@
 /**
- * Account activate port for SDK (DI-08). Secrets stay inside Facade / secure storage.
+ * Account activate port for SDK (DI-08/DI-11). Secrets stay inside Facade / secure storage.
  */
 
 import type { PlatformError } from "@shared/errors/index.js";
@@ -10,6 +10,10 @@ export type SdkActivateProfileOutcome = Readonly<{
   profileLabel?: string;
 }>;
 
+export type SdkActivateProfileLookup = Readonly<{
+  profileLabel: string;
+}>;
+
 export type ExternalSdkAccountPort = Readonly<{
   /**
    * Resolve opaque profileRef → hydrate secrets desktop-only → unified signInAccount.
@@ -18,4 +22,10 @@ export type ExternalSdkAccountPort = Readonly<{
   activateSavedProfile: (
     profileRef: string,
   ) => Promise<Result<SdkActivateProfileOutcome, PlatformError>>;
+  /**
+   * Resolve opaque profileRef to a human label for consent UI without signing in.
+   */
+  lookupSavedProfileLabel: (
+    profileRef: string,
+  ) => Promise<Result<SdkActivateProfileLookup, PlatformError>>;
 }>;

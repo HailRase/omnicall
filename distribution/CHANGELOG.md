@@ -5,6 +5,21 @@ Public release history for **Axatalk** distribution builds.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer. Git tag: `v<version>`.
 
+## [0.12.0] - 2026-07-21
+
+### Added
+
+- SDK Origin first-contact TOFU Allow/Deny modal
+- Origin blacklist with Unblock restore rules
+- Per-Origin capability matrix in Settings → Integrations → Axatalk SDK
+- Activate-profile consent modal (every login when matrix allows activate)
+- Pre-auth access to Axatalk SDK Settings (OCP Module remains gated)
+
+### Changed
+
+- SDK gateway always listens on loopback (Settings enable toggle removed; kill-switch `AXATALK_SDK_GATEWAY=0` only)
+- Machine-common Origin trust store; blacklist wins over env allow seed
+
 ## [0.11.2] - 2026-07-19
 
 ### Fixed

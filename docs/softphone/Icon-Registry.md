@@ -32,6 +32,7 @@
 | `settings.headset` | Settings headset section | `Headphones` | — | `SettingsSidebar` | active |
 | `settings.integrations` | Settings integrations parent group | `Plug` | — | `SettingsSidebar` | active |
 | `settings.integrations.ocp` | Settings OCP Module child under Integrations | `Server` | — | `SettingsSidebar` | active |
+| `settings.integrations.sdk` | Settings Axatalk SDK child under Integrations | `Blocks` | — | `SettingsSidebar` | active |
 | `settings.notifications` | Settings notification history section | `Bell` | `BellIcon` | `SettingsSidebar` | active |
 | `settings.nav.expand` | Expand settings sidebar | `ChevronRight` | `ChevronRightIcon` | `SettingsSidebar` | active |
 | `settings.nav.collapse` | Collapse settings sidebar | `ChevronLeft` | `ChevronLeftIcon` | `SettingsSidebar` | active |

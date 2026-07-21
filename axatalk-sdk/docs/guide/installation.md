@@ -47,7 +47,7 @@ browser Local Network Access / loopback permission policy (**ADR-0015**).
 
 | Constraint | Guidance |
 | --- | --- |
-| Exact Origin | Desktop allowlists the exact Origin string |
+| Exact Origin | Desktop matches the exact Origin string; admission is TOFU/blacklist (ADR-0018) |
 | Discovery | Loopback HTTP discovery only; never embed secrets in discovery docs |
 | Permission denied | Map to stable client errors (`local_network_permission_*`) — not silent success |
 | Mixed content | Prefer documented desktop endpoint URL your product already approved |

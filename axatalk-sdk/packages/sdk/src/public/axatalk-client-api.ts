@@ -5,6 +5,7 @@
 import type { CapabilityId, SnapshotMessage } from '@axata/axatalk-protocol';
 
 import type { ActivateProfileResult } from '../internal/account-activate-commands.js';
+import type { AxatalkClientError } from '../internal/client-errors.js';
 import type {
   ConfirmLogoutResult,
   PrepareLogoutResult
@@ -141,6 +142,7 @@ export type AxatalkClient = {
     predicate: (state: ConnectionState) => boolean,
     timeoutMs?: number
   ) => Promise<ConnectionState>;
+  readonly getConnectError: () => AxatalkClientError | undefined;
   readonly getSnapshot: () => Promise<SnapshotMessage>;
   readonly getCachedSnapshot: () => SnapshotMessage | undefined;
   readonly getRevision: () => number | undefined;

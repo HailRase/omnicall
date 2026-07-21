@@ -24,7 +24,10 @@ describe("registerSdkGateway", () => {
     const previous = process.env["AXATALK_SDK_GATEWAY"];
     process.env["AXATALK_SDK_GATEWAY"] = "0";
     try {
-      const gateway = await startSdkGateway({ desktopVersion: "0.11.2-test" });
+      const gateway = await startSdkGateway({
+        desktopVersion: "0.11.2-test",
+        skipOriginTrustHydrate: true,
+      });
       expect(gateway).not.toBeNull();
       expect(gateway?.getStatus()).toBe("disabled");
     } finally {

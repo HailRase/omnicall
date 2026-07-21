@@ -17,6 +17,7 @@ import { completePopAuth, sendPairingRequest } from './auth-pop-flow.js';
 import { buildClientHelloBody, isoNow } from './auth-wire.js';
 import type { ConnectionSession } from './connection-session.js';
 import type { DiagnosticsSink } from './diagnostics.js';
+import { createOriginDeniedError } from './origin-policy-errors.js';
 import { generatePopKeyPair } from './pop-crypto.js';
 import type { PopKeyStore, StoredPopIdentity } from './pop-key-store.js';
 import { sanitizeRequestedCapabilities } from './requested-capabilities.js';
@@ -220,6 +221,10 @@ export function createAuthOrchestrator(deps: AuthOrchestratorDeps): AuthOrchestr
     }
     if (message.kind === 'pairing_denied') {
       deps.connection.signalFailed();
+      return;
+    }
+    if (message.kind === 'origin_denied') {
+      deps.connection.signalOriginPolicyFailure(createOriginDeniedError());
       return;
     }
     if (message.kind === 'permission_changed') {

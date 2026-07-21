@@ -41,6 +41,8 @@ export type SdkProductDispatchContext = Readonly<{
     fields: Readonly<Record<string, string | number | boolean>>,
   ) => void;
   readonly activateGrantStore: SdkAccountActivateGrantStore;
+  /** ADR-0018: Origin matrix account.activate flag. */
+  readonly isOriginActivateAllowed?: (origin: string) => boolean;
 }>;
 
 /** Run product route or fall back to not_ready when surface is absent. */
@@ -80,6 +82,7 @@ export async function handleSdkProductCommand(input: {
     connection: SdkGatewayConnection,
     message: WireMessage,
   ) => void;
+  readonly isOriginActivateAllowed?: (origin: string) => boolean;
 }): Promise<void> {
   const identity = input.getIdentity();
   if (identity === null) {
@@ -156,6 +159,9 @@ export async function handleSdkProductCommand(input: {
       activateGrantStore: input.activateGrantStore,
       identity,
       command: input.route.message,
+      ...(input.isOriginActivateAllowed !== undefined
+        ? { isOriginActivateAllowed: input.isOriginActivateAllowed }
+        : {}),
     })
   ) {
     return;
@@ -247,6 +253,7 @@ async function handleBrokerCommand(
   const clientId = input.connection.clientId;
   const brokerResult = await input.product.requestProductCommand(command, {
     ...(clientId !== null ? { clientId } : {}),
+    origin: input.connection.origin,
   });
   if (!brokerResult.ok) {
     const reply = buildCommandFailureReply({

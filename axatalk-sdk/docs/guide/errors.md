@@ -8,14 +8,14 @@ Detect with `isAxatalkClientError(error)` then branch on `error.code`.
 
 | Code | Meaning | Host next step |
 | --- | --- | --- |
-| `forbidden` | Missing capability or policy deny | Disable control; explain grant needed |
-| `not_ready` | Client not in `ready` | Wait / show connecting; do not queue mutations blindly |
+| `forbidden` | Missing capability, Origin policy deny (`permission_denied`), or activate consent Deny | Disable control; open Axatalk SDK Settings; do not tight-loop |
+| `not_ready` | Client not in `ready` **or** desktop product broker not ready | Wait / show connecting; distinct from Origin blacklist |
 | `timeout` | No reply in budget | Surface retry UI; do **not** auto-replay non-idempotent cmds |
 | `stale_state` | Revision mismatch; often has `currentRevision` | `getSnapshot()`; retry **once** with new revision if user still intends |
-| `conflict` | Aggregate busy / active session / race | Show conflict; for activate often logout-first |
-| `not_found` | Unknown call / reason / profileRef | Refresh lists; do not invent IDs |
+| `conflict` | Aggregate busy / active session / race / activate consent already pending | Show conflict; for activate often logout-first; wait if consent pending |
+| `not_found` | Unknown call / reason / profileRef / no saved profile | Refresh; for activate guide human to Account UI |
 | `invalid_payload` | Wire/result shape failed closed | Treat as bug / desktop mismatch; do not parse secrets from `details` |
-| `interaction_required` | Human step needed (logout reason) | Read `details.logoutToken`; show modal; confirm or abandon |
+| `interaction_required` | Human step needed (logout reason **or** manual sign-in in progress) | Logout: `details.logoutToken`. Activate: complete Account UI |
 | `revoked` | Session revoked | Clear client; re-pair |
 | `incompatible_version` | Protocol mismatch | Upgrade SDK or desktop; stop |
 | `not_owner` | Another tab/client owns mutation | Coordinate multi-tab; do not force |
@@ -23,8 +23,17 @@ Detect with `isAxatalkClientError(error)` then branch on `error.code`.
 | `rate_limited` | Back off | Honor retryable; jitter |
 | `operation_failed` | Generic failure | Show failure; log code only |
 | `local_network_permission_required` / `_denied` | Browser LNA / loopback | Guide user to allow local network |
-| `discovery_unreachable` | Desktop discovery failed | Is desktop running? |
+| `discovery_unreachable` | Desktop discovery failed | Is desktop running? Gateway always-on per ADR-0018 |
+| `origin_blocked` | Blacklisted Origin — upgrade rejected (no wire JSON) | Operator Unblock in Settings → Axatalk SDK; do not auto-retry |
 | `invalid_message` / `unsupported_command` | Protocol mismatch | Fail closed |
+
+### Origin transport failures (ADR-0018)
+
+| Situation | Typical host signal | Next step |
+| --- | --- | --- |
+| First Origin Deny | `forbidden` + details `origin_denied`, then socket close | Stop retry; wait for operator Allow / Unblock |
+| Blacklisted Origin | Client code `origin_blocked` (upgrade fail) | Operator must Unblock in Settings → Axatalk SDK |
+| Capability / activate policy deny (WS up) | `forbidden` + `permission_denied` | Edit per-Origin matrix; do not treat as blacklist |
 
 ## Mutation recipe template
 

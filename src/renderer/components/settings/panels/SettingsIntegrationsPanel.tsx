@@ -7,6 +7,7 @@ import { SdkModuleSettingsCard } from "./SdkModuleSettingsCard.js";
 import formStyles from "../SettingsForm.module.css";
 
 export type SettingsIntegrationsPanelProps = Readonly<{
+  sectionId?: "integrations" | "integrations-sdk";
   ocp: OcpModuleSettingsCardProps;
   sdk: SdkModuleSettingsCardProps;
 }>;
@@ -17,6 +18,7 @@ export type SettingsIntegrationsPanelProps = Readonly<{
  * @uiMeta f=F-028,F-011
  */
 export function SettingsIntegrationsPanel({
+  sectionId = "integrations",
   ocp,
   sdk,
 }: SettingsIntegrationsPanelProps): JSX.Element {
@@ -25,8 +27,8 @@ export function SettingsIntegrationsPanel({
   return (
     <div className={formStyles.panelStack} data-testid="settings-integrations-panel">
       <p className={formStyles.blockHint}>{t("settings.integrations.description")}</p>
-      <OcpModuleSettingsCard {...ocp} />
-      <SdkModuleSettingsCard {...sdk} />
+      {sectionId === "integrations" ? <OcpModuleSettingsCard {...ocp} /> : null}
+      {sectionId === "integrations-sdk" ? <SdkModuleSettingsCard {...sdk} /> : null}
     </div>
   );
 }

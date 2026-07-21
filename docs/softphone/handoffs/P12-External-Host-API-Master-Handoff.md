@@ -7,9 +7,9 @@
 | Feature | F-011 Host Integration Contract |
 | Legacy | LF-051, LF-065, LF-080, LF-081 |
 | Phase | P12 External Host API Compatibility |
-| Feature status | **in progress** (DI-01…DI-09 `done`; DI-10 **`review`** — FAIL findings remediated 2026-07-21; awaiting re-`/sdk-review`; F-011/P12 not closed) |
+| Feature status | **in progress** (DI-01…DI-11 `done`; DI-11 `/sdk-review` PASS 2026-07-21; F-011/P12 not closed — OPEN DI-10 smoke) |
 | Branch | `feature/axatalk-sdk` |
-| Desktop version | `0.11.2` |
+| Desktop version | `0.12.0` |
 | DI-00 | `done` — `/sdk-review` PASS 2026-07-20 |
 | SDK-00…SDK-10 Mode A | `done` — SDK-10 RC-ready / stable-blocked (no npm `latest`); `/sdk-review` PASS 2026-07-20 |
 | DI-01 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-01-protocol-ports-mocks.md` |
@@ -21,8 +21,9 @@
 | DI-07 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-07-operator-logout-workflow.md` |
 | DI-08 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-08-saved-profile-activation.md` |
 | DI-09 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-09-settings-operational-ux.md` |
-| DI-10 | **`review`** — FAIL findings remediated 2026-07-21; packaged handshake/hostile/incompat real; pair/revoke/call/SIP OPEN — `axatalk-sdk-integration/evidence/DI-10-compatibility-e2e-p12-close.md` |
-| Next | **`/sdk-review` DI-10 only** — then complete remaining OPEN smoke cells or human-named waivers before F-011/`implemented` / P12 close |
+| DI-10 | **`done`** — `/sdk-review` PASS 2026-07-21; packaged handshake/hostile/incompat real; pair/revoke/call/SIP OPEN — `axatalk-sdk-integration/evidence/DI-10-compatibility-e2e-p12-close.md` |
+| DI-11 | **`done`** — `/sdk-review` **PASS** 2026-07-21 (boot hydrate + machine-common `sdk-origin-trust.json`; denied wins over env seed); evidence `axatalk-sdk-integration/evidence/DI-11-origin-tofu-blacklist-activate.md` |
+| Next | Complete remaining OPEN DI-10 smoke cells (pair/revoke/call/SIP) or record human-named waivers → F-011/`implemented` / P12 close (DI-11 already PASS). |
 
 ## Mission
 
@@ -46,7 +47,7 @@ SDK and Electron-native local gateway while preserving every existing softphone 
 
 | ADR | Topic | Status |
 | --- | --- | --- |
-| [ADR-0009](../adr/ADR-0009-sdk-process-ownership-broker-lifecycle.md) | Main/renderer ownership + broker lifecycle | Accepted |
+| [ADR-0009](../adr/ADR-0009-sdk-process-ownership-broker-lifecycle.md) | Main/renderer ownership + broker lifecycle | Accepted; **amended by ADR-0018** (env kill-switch rollback, not Settings toggle) |
 | [ADR-0010](../adr/ADR-0010-sdk-local-transport-endpoint-discovery.md) | Loopback transport, discovery, browsers | Accepted; precision → ADR-0015 |
 | [ADR-0011](../adr/ADR-0011-sdk-pairing-origin-capabilities.md) | Origin, pairing, capabilities, replay, revoke | Accepted; PoP/profiles → ADR-0016 |
 | [ADR-0012](../adr/ADR-0012-sdk-protocol-versioning-privacy-ownership.md) | Versioning, privacy, call ownership | Accepted; precision → ADR-0014/0017 |
@@ -55,6 +56,7 @@ SDK and Electron-native local gateway while preserving every existing softphone 
 | [ADR-0015](../adr/ADR-0015-sdk-discovery-and-browser-lna-policy.md) | Discovery URL + browser LNA matrix | Accepted (SDK-01) |
 | [ADR-0016](../adr/ADR-0016-sdk-pop-pairing-capability-profiles.md) | PoP, pairing ceremony, capability profiles | Accepted (SDK-01) |
 | [ADR-0017](../adr/ADR-0017-sdk-privacy-ownership-ocp-map-deprecation.md) | PII, ownership, campaign, OCP map, deprecation | Accepted (SDK-01) |
+| [ADR-0018](../adr/ADR-0018-sdk-origin-tofu-blacklist-activate-consent.md) | Origin TOFU, blacklist, per-Origin caps, always-on gateway, activate consent | Accepted (2026-07-21); amends ADR-0011/0013/AF-004 |
 
 ### Architecture non-negotiables (gate)
 
@@ -72,12 +74,13 @@ SDK and Electron-native local gateway while preserving every existing softphone 
 ### Security gate (policy closed; implementation later)
 
 - [x] Loopback-only endpoint and single-instance ownership (ADR-0010) — DI-03 `done`.
-- [x] Exact Origin gate before data exchange (ADR-0011) — DI-04 `done`.
+- [x] Exact Origin **match** (ADR-0011); upgrade admission TOFU/blacklist per **ADR-0018** (DI-11 `done`).
 - [x] Per-client pairing, capabilities, expiry, and revocation (ADR-0011) — DI-04 `done`.
+- [x] Per-Origin capability matrix + first-contact modal + blacklist upgrade reject (ADR-0018) — DI-11 `done`.
 - [x] Replay/idempotency and aggregate command serialization (ADR-0011/0012) — DI-04 challenge/request dedup `done`; DI-06 call aggregate serialization + cached `requestId` replies `done`.
 - [x] Resource limits, heartbeat, backpressure, and safe teardown (ADR-0010) — DI-03 `done`.
 - [x] Per-client redacted events; no indiscriminate broadcast (ADR-0012) — DI-05 `done`.
-- [x] No raw SIP/OCP credentials in protocol v1 (ADR-0013).
+- [x] No raw SIP/OCP credentials in protocol v1 (ADR-0013); activate consent UX per ADR-0018 — DI-11 `done`.
 - [x] Independent security review has no Blocker — **DI-04** `/sdk-review` PASS; full packaged matrix remains **DI-10**.
 
 ### Protocol precision decisions (SDK-01)
@@ -110,7 +113,9 @@ Previously open O-* rows are **closed** in ADR-0014…0017 and
 9. **DI-07 + SDK-07** — operator/logout.
 10. **DI-08 + SDK-08** — privileged saved-profile activation.
 11. **DI-09 + SDK-09** — settings and developer experience.
-12. **DI-10 + SDK-10** — compatibility, security, packaged E2E, and release.
+12. **DI-10 + SDK-10** — compatibility, security, packaged E2E (F-011 close only with full evidence).
+13. **DI-11** — Origin TOFU, blacklist, per-Origin capability matrix, always-on gateway,
+    activate consent (ADR-0018); does not by itself close F-011 without smoke evidence.
 
 Independent `/sdk-review` is required after every work unit.
 
@@ -129,6 +134,7 @@ Independent `/sdk-review` is required after every work unit.
 | DI-08 | Opaque profile activation; no secrets on wire; AF-003/005/006 green | DI-07 + SDK-08 |
 | DI-09 | Settings UX + i18n; hide disabled until tray ADR | DI-04 stable |
 | DI-10 | Full matrix + packaged E2E; F-011 → implemented only with real evidence | DI-01…09 + SDK-00…09 |
+| DI-11 | ADR-0018 TOFU/blacklist/per-Origin matrix/always-on/activate consent; AF-004 SDK pre-auth | ADR-0018; DI-04/09 done; DI-10 done for code merge |
 
 ## Regression Gate (unchanged; execute subsets per WU, full at DI-10)
 
@@ -159,7 +165,8 @@ Automated matrix: `axatalk-sdk-integration/TEST-MATRIX.md`.
 - [x] DI-07 evidence exists; `/sdk-review` PASS (`evidence/DI-07-operator-logout-workflow.md`).
 - [x] DI-08 evidence exists; `/sdk-review` PASS (`evidence/DI-08-saved-profile-activation.md`).
 - [x] DI-09 evidence exists; `/sdk-review` PASS (`evidence/DI-09-settings-operational-ux.md`).
-- [x] No premature `implemented` status — enforced until DI-10.
+- [x] No premature `implemented` status — enforced until DI-10 **and** DI-11 PASS
+      (or an explicit human waiver); ADR-0018 Accepted does not close F-011 alone.
 
 ## DI-00 Evidence Summary
 
@@ -174,7 +181,8 @@ Automated matrix: `axatalk-sdk-integration/TEST-MATRIX.md`.
 
 P12 closes only when:
 
-- DI-00…DI-10 and SDK-00…SDK-10 are independently reviewed;
+- DI-00…DI-11 and SDK-00…SDK-10 are independently reviewed (DI-11 = ADR-0018 behavior, or
+  an explicit human waiver recorded in evidence);
 - the complete automated and manual matrices pass;
 - packaged Electron interoperates with the release-candidate SDK;
 - compatibility and rollback are verified;
@@ -183,7 +191,10 @@ P12 closes only when:
 
 ## Next Agent Prompt
 
-1. Run **`/sdk-review` DI-09 only** — Settings and operational UX gate (enablement, origins, paired clients, revoke, grant UX, safe diagnostics; hide remains disabled).
-2. Do not mark F-011 `implemented` until DI-10 close.
-3. Keep SDK-07/SDK-08 client packages non-blocking where protocol DTOs already exist.
-4. Keep Domain free of protocol / Zod / Electron / ws imports; gateway must not import Facades/Call Engine.
+1. Complete remaining OPEN DI-10 smoke cells (pair/revoke/call/SIP) or record human-named
+   waivers before F-011/`implemented` / P12 close.
+2. DI-11 is **`done`** (`/sdk-review` PASS 2026-07-21) — do **not** invent DI-12.
+3. Do not mark F-011 `implemented` until remaining DI-10 smoke/waivers land (DI-11 already PASS).
+4. Keep Domain free of protocol / Zod / Electron / ws imports; gateway must not import
+   Facades/Call Engine.
+5. Do not enable `window.hide`. Do not invent DI-12.

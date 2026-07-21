@@ -27,9 +27,11 @@ export type ExternalHandlerFailure = Readonly<{
 
 export type ExternalHandlerResult = ExternalHandlerSuccess | ExternalHandlerFailure;
 
-/** Optional request context from the authenticated gateway session (DI-06). */
+/** Optional request context from the authenticated gateway session (DI-06/DI-11). */
 export type ExternalCommandContext = Readonly<{
   clientId?: string;
+  /** Exact Origin of the authenticated SDK connection (ADR-0018 activate consent). */
+  origin?: string;
 }>;
 
 /**

@@ -2,9 +2,9 @@
 
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
-**Updated:** 2026-07-20
-**Tests:** 2482 passed / 1 skipped (DI-08 **`done`** — `/sdk-review` PASS + Low remediation)
-**Lint / typecheck:** lint + typecheck green; focused DI-04…DI-08 set **140 passed**; `registry:check` 74/0 OK
+**Updated:** 2026-07-21
+**Tests:** DI-10 `/sdk-review` PASS (packaged/handshake subset); `release:preflight` **2499 passed / 1 skipped** (2026-07-21)
+**Lint / typecheck:** PASS (disposable demo at `ELECTRON/sdk-demo`, outside repo)
 
 **Auth Flow Refactoring / Hardening:** implementation + automated gate complete 2026-07-17 — independent account/OCP/SIP state, five-stage OCP progress, crash-safe saved profiles/secrets, one-click saved-profile entry, persistent auth errors and rolling 24-hour notification journal (F-029). Real staging OCP smoke SM-1…20 remains external verification. Version: `0.11.0`.
 
@@ -58,7 +58,7 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 **Recently closed (TASK-QUEUE):** **T-048 / F-028** OCP post-call reserve + finish-appeal footer (no modal; 2026-07-19), **T-047 / F-028** OCP `reason_id: null` → `status.value` for system statuses (2026-07-19), **T-046 / F-016,F-028** SIP identity in avatar menu + status selector width clamp (2026-07-19), **T-045 / F-028** OCP status selector server-driven chip + flat Ready/Break dropdown (2026-07-19), **T-044 / F-024,F-028** OCP saveProfile SIP domain/server/password from entity:creds (2026-07-17), **T-043 / F-001,F-029** SIP-only staged transport/registration toasts + System State error CTA (2026-07-17), **T-042 / F-028** OCP Reconnect single `/proxy/authenticate` (no recovery twin) (2026-07-17), **T-041 / F-028** OCP Reconnect token uses OCP Domain not SIP Domain (2026-07-17), **T-040 / F-028,F-014** Avatar logout idle reset (no OCP reconnect banner) (2026-07-17), **T-039 / F-001,F-014,F-024** Login re-enable after logout (SIP connected / auth failed) (2026-07-17), **T-036 / F-001,F-024,F-028** Account OCP/SIP mode-isolated validation (2026-07-17), **T-035 / F-024** overwrite modal Cancel + ButtonGroup split (2026-07-17), **T-034 / F-016,F-028** System State SIP/OCP tabs UI (2026-07-16), **T-033 / F-028** Auth Flow Refactoring WU-05 Settings gate + OCP Module edit-only (2026-07-16), **T-033 / F-028** WU-04 Account UI (2026-07-16), **T-033 / F-028** WU-00…WU-03 (2026-07-16), **T-032 / F-028** unified auth gate fixes (2026-07-16; sign-in ownership superseded by ADR-AF-003), **T-029 / F-028** status selector current-first + width/ellipsis (2026-07-14), **T-028 / F-028** status selector polish + single-step post-call modal (2026-07-14), **T-027 / F-028** OCP status UX (FSM + reserve/post-call modal; 2026-07-14), **T-026 / F-028** OCP UI polish (status selector, logout footer, Integrations nested nav; 2026-07-14), **F-028 audit remediation** terminate+Facade+events+autoConnect (2026-07-14), **F-028 E-13** i18n + `OcpFullFlow` + registry/`implemented` (2026-07-14), **F-028 E-12** OCP external command contract + Facade (no `window.Softphone`; 2026-07-14), **T-025 / F-028 E-10 UI** dialpad block + reject-with-break (2026-07-14), **T-020 E-10/E-11 logic** OCP telephony bridge + SIP from creds (2026-07-14), **T-024 / F-028 E-09** OCP campaign accept/reject modal (2026-07-14), **T-023 / F-028 E-08** OCP logout reason modal + cascade SIP (2026-07-14), **T-022 / F-028 E-07** Operator Status Selector header UI (2026-07-14), **T-021 / F-028** Settings Integrations UI + OCP toast wiring (2026-07-14), **T-013 / F-013** call history outcome/endReason/durations (`39afae2`, `handoffs/P09-F013-Call-History-Display-Logic-Handoff.md`), **P10 / F-012** headset Web HID integration (`handoffs/P10-Headset-Integration-Handoff.md`, ADR-0007), RAT SIP core merged to `main` (`feature/real-adapters` stale ancestor), **F-024** saved SIP account profiles (`0a2ae05`, `handoffs/P11-F024-Saved-Account-Profiles-Handoff.md`), **F-023** local account profiles + disk persistence (T-011), **F-022 / T-009 / T-010** codec preferences (LF-084), **T-008** SIP transport/register state refactor (`TRANSPORT-REGISTER-STATE-REFACTORING.md`), T-007 Call UI design parity (`handoffs/P11-Call-UI-Design-Parity-Handoff.md`), post-WU5 shell polish (`handoffs/P11-Post-WU5-Shell-Polish-Handoff.md`), T-005 fullscreen settings panel, T-001 icon tooltips, T-002 AppIcon wiring, **F-014 SIP registration retry** (`handoffs/P08-SIP-Registration-Retry-Handoff.md`).
 
-**Prepared / next transport auth:** **F-011 / P12 External Host API + Axatalk SDK** — DI-00…DI-09 **`done`**; SDK-00…SDK-10 Mode A **`done`**; **DI-10 `review`** — FAIL findings remediated 2026-07-21 (lint/docs/catalog); packaged handshake subset real; F-011 stays **`in progress`** / P12 open. npm package names (2026-07-21): `@axata/axatalk-sdk` + `@axata/axatalk-protocol` (was `@axatalk/*`). Next: **`/sdk-review` DI-10 only**, then complete remaining OPEN smoke (no waivers).
+**Prepared / next transport auth:** **F-011 / P12 External Host API + Axatalk SDK** — DI-00…DI-11 **`done`**; SDK-00…SDK-10 Mode A **`done`**; **ADR-0018** / **DI-11** `/sdk-review` **PASS** 2026-07-21 (boot hydrate + machine-common trust). F-011 stays **`in progress`** / P12 open. Next: remaining OPEN DI-10 smoke/waivers → F-011/`implemented` / P12 close.
 
 ## RAT (Real Adapter Track)
 
@@ -80,9 +80,9 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 | Field | Value |
 | --- | --- |
-| Shipped | **0.11.2** (`v0.11.2`, 2026-07-19) — OCP modal Disconnect → pre-login idle; scoped Account reconnect; overwrite modal UX |
-| Previous | **0.11.1**, **0.11.0**, **0.10.3** — OCP auth modal/recovery, Auth Flow Hardening (F-029), F-027 video UX |
-| Next cut | **0.11.3** (PATCH) or **0.12.0** (MINOR) per SemVer table in `RELEASE-PLAYBOOK.md` |
+| Shipped | **0.12.0** (code bump 2026-07-21; tag/publish via `/release`) — DI-11 Origin TOFU / blacklist / per-Origin matrix / activate consent |
+| Previous | **0.11.2**, **0.11.1**, **0.11.0** — OCP modal Disconnect/reconnect, Auth Flow Hardening (F-029) |
+| Next cut | Tag `v0.12.0` + CI publish when OPEN DI-10 smoke/waivers ready — or PATCH hotfix as needed |
 | Source repo | `HailRase/softphone-electron` (target: **private**) |
 | Distribution | [`HailRase/axatalk-releases`](https://github.com/HailRase/axatalk-releases) (public: installers + manifest) |
 | Manifest (live) | `axatalk-releases/main/update-manifest.json` |

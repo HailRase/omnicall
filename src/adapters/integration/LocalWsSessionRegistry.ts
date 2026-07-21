@@ -3,6 +3,8 @@
  */
 
 import type { WireMessage } from "@axata/axatalk-protocol";
+import type { CapabilityId } from "@axata/axatalk-protocol";
+import type { SdkOriginTrustState } from "@domain/index.js";
 
 import { SdkAuthChallengeCache } from "./sdkGatewayAuthChallenge.js";
 import type { SdkGatewayLimits } from "./sdkGatewayConfig.js";
@@ -36,6 +38,10 @@ import {
 import { issueAccountActivateGrantOnSessions } from "./sdkAccountActivateSession.js";
 import { parseAndDispatchLocalWsSession } from "./localWsSessionInbound.js";
 import { revokeLocalWsClient } from "./localWsSessionRevoke.js";
+import type {
+  SdkOriginTrustApprover,
+  SdkOriginTrustDecision,
+} from "./sdkGatewayOriginTrustApprover.js";
 
 export type LocalWsSessionRegistryDeps = Readonly<{
   limits: SdkGatewayLimits;
@@ -48,6 +54,12 @@ export type LocalWsSessionRegistryDeps = Readonly<{
   getIdentity: () => SdkGatewayIdentity | null;
   pairingStore: SdkGatewayPairingStore;
   pairingApprover: SdkPairingApprover;
+  getOriginTrustState: (origin: string) => SdkOriginTrustState;
+  originTrustApprover: SdkOriginTrustApprover;
+  onOriginTrustDecision: (
+    input: Readonly<{ origin: string; decision: SdkOriginTrustDecision }>,
+  ) => void;
+  getOriginMatrixCapabilities: (origin: string) => readonly CapabilityId[];
   getProductSurface?: () => SdkGatewayProductSurface | null;
   onLog?: SdkGatewayLogFn;
   activateGrantStore?: SdkAccountActivateGrantStore;
@@ -61,6 +73,14 @@ export class LocalWsSessionRegistry {
   private readonly getIdentity: () => SdkGatewayIdentity | null;
   private readonly pairingStore: SdkGatewayPairingStore;
   private readonly pairingApprover: SdkPairingApprover;
+  private readonly getOriginTrustState: (origin: string) => SdkOriginTrustState;
+  private readonly originTrustApprover: SdkOriginTrustApprover;
+  private readonly onOriginTrustDecision: (
+    input: Readonly<{ origin: string; decision: SdkOriginTrustDecision }>,
+  ) => void;
+  private readonly getOriginMatrixCapabilities: (
+    origin: string,
+  ) => readonly CapabilityId[];
   private readonly getProductSurface: () => SdkGatewayProductSurface | null;
   private readonly challenges = new SdkAuthChallengeCache();
   private readonly requestDedup = new SdkRequestDedupCache();
@@ -75,6 +95,10 @@ export class LocalWsSessionRegistry {
     this.getIdentity = deps.getIdentity;
     this.pairingStore = deps.pairingStore;
     this.pairingApprover = deps.pairingApprover;
+    this.getOriginTrustState = deps.getOriginTrustState;
+    this.originTrustApprover = deps.originTrustApprover;
+    this.onOriginTrustDecision = deps.onOriginTrustDecision;
+    this.getOriginMatrixCapabilities = deps.getOriginMatrixCapabilities;
     this.getProductSurface = deps.getProductSurface ?? (() => null);
     this.onLog = deps.onLog;
     this.activateGrantStore =
@@ -239,6 +263,10 @@ export class LocalWsSessionRegistry {
       getIdentity: this.getIdentity,
       pairingStore: this.pairingStore,
       pairingApprover: this.pairingApprover,
+      getOriginTrustState: this.getOriginTrustState,
+      originTrustApprover: this.originTrustApprover,
+      onOriginTrustDecision: this.onOriginTrustDecision,
+      getOriginMatrixCapabilities: this.getOriginMatrixCapabilities,
       challenges: this.challenges,
       requestDedup: this.requestDedup,
       now: this.now,

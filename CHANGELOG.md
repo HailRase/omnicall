@@ -7,6 +7,22 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-07-21
+
+### Added
+
+- SDK Origin TOFU: первое подключение неизвестного Origin показывает modal Allow/Deny.
+- Чёрный список Origin с Unblock (restore matrix для ранее allowed; first-Deny → unknown).
+- Per-Origin capability matrix в Settings → Integrations → Axatalk SDK.
+- Consent modal на каждый `account.activateProfile` (когда matrix разрешает activate).
+- Pre-auth доступ к Settings → Axatalk SDK (OCP Module по-прежнему gated).
+
+### Changed
+
+- SDK gateway всегда слушает loopback (toggle enable в Settings убран; kill-switch только `AXATALK_SDK_GATEWAY=0`).
+- Origin trust хранится machine-common (`sdk-origin-trust.json`); blacklist побеждает env seed.
+- Схема UserSettings v11 (миграция `enabled`/flat allowlist → trust states + matrix).
+
 ## [0.11.2] - 2026-07-19
 
 ### Fixed

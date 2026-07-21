@@ -25,13 +25,26 @@ Attackers include:
   pairing secrets or tokens.
 - HTTPS CRM pages require browser Local Network Access / loopback permission before
   discovery or WebSocket succeed; denial maps to stable client errors (not silent success).
+- SDK loopback gateway **always listens** at primary-instance startup (ADR-0018). Consumer
+  Settings do **not** expose an enable/disable listener toggle. Engineering kill-switch
+  `AXATALK_SDK_GATEWAY=0` (or omit gateway startup) remains support-only.
 
 ### Origin
 
-- The WebSocket upgrade requires an exact approved Origin.
-- Missing, `null`, wildcard, suffix, and substring matches are rejected by default.
+- Origin strings are matched **exactly** (no wildcard / suffix / substring).
+- Missing or `null` Origin is rejected.
+- **Admission** follows ADR-0018 trust states:
+  - `unknown` — accept upgrade → renderer Origin TOFU modal (Allow/Deny); **not** pairing;
+  - `allowed` — accept upgrade → normal pairing / PoP / session (ADR-0016);
+  - `denied` (blacklist) — **reject upgrade** (no socket); first Deny sends wire
+    `forbidden` + details `origin_denied`, then closes.
+- Unblock: previously `allowed` Origins restore to `allowed` with retained matrix;
+  first-contact-only denials restore to `unknown` (modal again).
 - Origin is an additional gate, not proof of client identity.
-
+- Per-Origin capability matrix (Settings) further limits which capabilities may be granted;
+  matrix is ignored while the Origin is blacklisted but retained read-only for Unblock
+  restore (no consumer edits while `denied`).
+- Discovery CORS reflects exact Origin for `unknown` and `allowed` only (ADR-0015).
 ### Pairing
 
 - Pairing requires an explicit local user or administrator decision.
@@ -78,14 +91,25 @@ Normal browser SDK flows must not accept:
 
 Preferred account flow:
 
-1. SDK requests activation of an approved saved profile.
-2. Desktop enforces identity/session policy.
-3. Desktop retrieves secrets from its own secure storage.
-4. SDK receives only an operation result and redacted state.
+1. Origin is `allowed` and the SDK session is authenticated (ADR-0018).
+2. SDK requests activation of a saved profile via opaque `profileRef` (no passwords).
+3. If Origin policy disallows activate → typed `forbidden` + `permission_denied`
+   (no modal; do not silent-ignore).
+4. If no local saved profile → typed `not_found` and desktop may show Account sign-in UI.
+5. Otherwise desktop shows **renderer** consent modal (Allow / Deny) for **this one login**.
+   - Deny → persist activate-disabled for that Origin + `forbidden`; later attempts denied
+     until Settings re-enables activate.
+   - Allow → one sign-in; the **next** activate asks again (no lasting skip-consent grant).
+   - While consent is pending, duplicate activate requests are rejected with primary wire
+     code **`conflict`** (optional details key `activate_consent_pending`); any modal
+     close / choice clears pending (no hang).
+6. Allow → desktop retrieves secrets from its own secure storage and runs the unified
+   Account sign-in path.
+7. SDK receives only an operation result and redacted state.
 
 Raw credential provisioning, if a business requirement proves unavoidable, is a separate
-administrative feature with its own ADR, capability, local approval, audit, and expiry.
-
+administrative feature with its own ADR, capability, local approval, audit, and expiry —
+**deferred**; not part of ADR-0018 / DI-11.
 ## Privacy Policy
 
 - Phone numbers and display names are masked unless a specific capability grants them.
@@ -124,10 +148,15 @@ old request IDs and state, reauthenticates, and obtains a fresh snapshot.
 ## Required Security Tests
 
 - hostile, missing, and `null` Origin;
+- first-contact Deny (typed `forbidden`+`origin_denied` + close) and blacklisted upgrade
+  reject → client `origin_blocked` (ADR-0018);
+- Unblock restore: prior allowed+matrix vs unknown after first Deny;
+- discovery CORS for unknown+allowed only;
 - unauthenticated snapshot/event access;
 - replayed pairing, authentication, and command messages;
 - duplicate request IDs;
-- capability escalation and revoked clients;
+- capability escalation, per-Origin matrix deny, and revoked clients;
+- activate consent Deny / pending guard / missing profile / logout-first conflict;
 - conflicting commands from two tabs;
 - oversized frames, deep JSON, connection flood, and slow consumers;
 - secret and PII absence in logs and unauthorized events;
@@ -135,7 +164,8 @@ old request IDs and state, reauthenticates, and obtains a fresh snapshot.
 - desktop restart or update during an active call;
 - old SDK against new desktop and new SDK against old desktop;
 - OCP endpoint injection and SSRF attempts;
-- logout and hide policy bypass attempts.
+- logout and hide policy bypass attempts;
+- pre-auth Settings → Axatalk SDK reachable; OCP Module still gated (ADR-AF-004 + ADR-0018).
 
 ## Security Release Gate
 

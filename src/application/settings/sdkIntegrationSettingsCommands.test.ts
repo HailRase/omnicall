@@ -7,11 +7,10 @@ import { ok } from "@shared/result/index.js";
 import { persistSdkIntegrationSettings } from "./persistSdkIntegrationSettings.js";
 
 describe("persistSdkIntegrationSettings", () => {
-  it("persists enable/disable and applies gateway policy without secrets", async () => {
+  it("persists Origin trust policy and applies gateway policy without secrets", async () => {
     const current = createDefaultUserSettings();
     const next = {
       ...SDK_INTEGRATION_DEFAULTS,
-      enabled: false,
       originsManaged: true,
     };
     const facade = {
@@ -35,8 +34,9 @@ describe("persistSdkIntegrationSettings", () => {
             lastErrorCode: null,
             windowHideAvailable: false as const,
           },
-          allowedOrigins: [],
-          pairedClients: [],
+          origins: [],
+          pendingOriginTrust: [],
+          paired: [],
           pendingPairing: [],
         },
       }),
@@ -58,9 +58,8 @@ describe("persistSdkIntegrationSettings", () => {
     expect(invoke).toHaveBeenCalledWith({
       op: "applyPolicy",
       policy: {
-        enabled: false,
-        allowedOrigins: [],
         originsManaged: true,
+        origins: [],
       },
     });
     expect(JSON.stringify(invoke.mock.calls)).not.toMatch(/password|apiKey|token/i);

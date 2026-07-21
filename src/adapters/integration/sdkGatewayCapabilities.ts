@@ -62,21 +62,31 @@ export function resolveGrantedCapabilities(input: {
   readonly profile: PairingProfile;
   readonly requestedCapabilities: readonly CapabilityId[];
   readonly explicitGrants?: readonly CapabilityId[];
+  /** Intersect grants with Origin matrix enabled caps (ADR-0018). */
+  readonly originPolicyCapabilities?: readonly CapabilityId[];
 }): readonly CapabilityId[] {
+  let grants: readonly CapabilityId[];
   if (input.explicitGrants !== undefined) {
-    return filterSafeGrants(input.profile, input.explicitGrants);
+    grants = filterSafeGrants(input.profile, input.explicitGrants);
+  } else {
+    const defaults = defaultCapabilitiesForProfile(input.profile);
+    if (input.requestedCapabilities.length === 0) {
+      grants = [...defaults];
+    } else {
+      const requestedInProfile = input.requestedCapabilities.filter((id) =>
+        isCapabilityInDefaultProfile(input.profile, id),
+      );
+      grants = filterSafeGrants(
+        input.profile,
+        requestedInProfile.length > 0 ? requestedInProfile : defaults,
+      );
+    }
   }
-  const defaults = defaultCapabilitiesForProfile(input.profile);
-  if (input.requestedCapabilities.length === 0) {
-    return [...defaults];
+  if (input.originPolicyCapabilities === undefined) {
+    return grants;
   }
-  const requestedInProfile = input.requestedCapabilities.filter((id) =>
-    isCapabilityInDefaultProfile(input.profile, id),
-  );
-  return filterSafeGrants(
-    input.profile,
-    requestedInProfile.length > 0 ? requestedInProfile : defaults,
-  );
+  const policySet = new Set<CapabilityId>(input.originPolicyCapabilities);
+  return grants.filter((id) => policySet.has(id));
 }
 
 function filterSafeGrants(

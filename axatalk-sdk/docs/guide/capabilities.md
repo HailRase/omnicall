@@ -45,7 +45,7 @@ Teaching `requestedCapabilities: ['account.activate']` as a working pattern is a
 | Cap missing on mutation | Typed `forbidden` — show “capability not granted” |
 | `sdk:permission-changed` (internal) → session caps update | Re-read `getGrantedCapabilities()`; disable UI |
 | Mid-session revoke of `account.activate` | Subsequent activate → `forbidden` |
-| Desktop TTL expiry for activate grant | Desktop-owned; SDK sees missing cap / `forbidden` |
+| Desktop TTL expiry for **session** `account.activate` grant | Desktop-owned; SDK sees missing cap / `forbidden`. This is **not** a lasting skip-consent TTL — ADR-0018 still requires a renderer consent modal on **every** activate when Origin policy allows |
 
 Desktop operators elevate `account.activate` in Settings (DI-09). The SDK never
 invents a grant UI.

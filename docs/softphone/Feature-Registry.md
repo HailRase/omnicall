@@ -301,7 +301,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-051`, `LF-065`, `LF-080`, `LF-081`
 - Context: Integration
 - Priority: critical
-- Status: **in progress** (legacy `window.Softphone` **not ported**; architecture gate DI-00 `done`; SDK-00…SDK-10 Mode A `done` (RC-ready / stable-blocked; no npm `latest`); publish names `@axata/axatalk-sdk` + `@axata/axatalk-protocol`; DI-01…DI-09 **`done`**; DI-10 **`review`** — FAIL findings remediated 2026-07-21; awaiting re-`/sdk-review`; packaged handshake evidence real; full Settings pair/revoke/call/SIP smoke **OPEN**; F-011 not `implemented`; P12 not closed — `axatalk-sdk-integration/evidence/DI-10-compatibility-e2e-p12-close.md`)
+- Status: **in progress** (legacy `window.Softphone` **not ported**; architecture gate DI-00 `done`; SDK-00…SDK-10 Mode A `done` (RC-ready / stable-blocked; no npm `latest`); publish names `@axata/axatalk-sdk` + `@axata/axatalk-protocol`; DI-01…DI-11 **`done`** (DI-10 packaged handshake/hostile/incompat PASS; Settings pair/revoke/call/SIP smoke **OPEN**; **ADR-0018** / DI-11 `/sdk-review` **PASS** 2026-07-21); F-011 not `implemented` until remaining DI-10 smoke (or waiver); P12 not closed — `axatalk-sdk-integration/evidence/DI-10-compatibility-e2e-p12-close.md`, `axatalk-sdk-integration/evidence/DI-11-origin-tofu-blacklist-activate.md`)
 - Owner: TBD
 - Inputs: external commands from browser tabs via WS (not DOM globals)
 - Outputs: typed commands routed to Facade / Use Cases with `callType: 'sdk'` (F-028 E-12 host methods retain `callType: 'external'`)
@@ -317,9 +317,10 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - `window:hide` remains unavailable until tray/background policy is accepted (ADR-0013).
 - Test Coverage:
   - Unit: command payload parsing (F-028 E-12); DI-01 fixture corpus consume + mock gateway/broker + Domain dependency-boundary
-  - Integration: DI-02 broker loopback; DI-03 loopback WS bind/limits/handshake/unauth deny/teardown; DI-04 Origin/pairing/PoP/capabilities/revoke; DI-05 redacted snapshot/events/`window:show`; DI-06 call commands via Call Engine (ownership/revision/idempotency); DI-07 operator/logout (`callType: "sdk"`, prepare/confirm, `interaction_required`); DI-08 saved-profile activate (opaque `profileRef`, grant + `account.activate`, logout-first `conflict`); DI-09 Settings SDK Server card (schema v10, origins/paired/revoke/grant UX, hide disabled)
+  - Integration: DI-02 broker loopback; DI-03 loopback WS bind/limits/handshake/unauth deny/teardown; DI-04 Origin/pairing/PoP/capabilities/revoke; DI-05 redacted snapshot/events/`window:show`; DI-06 call commands via Call Engine (ownership/revision/idempotency); DI-07 operator/logout (`callType: "sdk"`, prepare/confirm, `interaction_required`); DI-08 saved-profile activate (opaque `profileRef`, grant + `account.activate`, logout-first `conflict`); DI-09 Settings SDK Server card (origins/paired/revoke/grant UX, hide disabled); **DI-11 `done`** (ADR-0018 TOFU/blacklist/per-Origin matrix/always-on gateway/activate consent/boot hydrate; schema v11)
   - E2E: DI-10 packaged win-unpacked `0.11.2` + Edge Chromium handshake/hostile/incompat **PASS** (partial); Settings pair/revoke + SIP/OCP call matrix **OPEN** — see `axatalk-sdk-integration/evidence/DI-10-compatibility-e2e-p12-close.md`
-- Implementation plans: `axatalk-sdk/README.md`; `axatalk-sdk-integration/README.md`; `axatalk-sdk-integration/WORK-UNITS.md` (DI-00…DI-10); `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`
+- Implementation plans: `axatalk-sdk/README.md`; `axatalk-sdk-integration/README.md`; `axatalk-sdk-integration/WORK-UNITS.md` (DI-00…DI-11); `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`
+- ADR-0018: `docs/softphone/adr/ADR-0018-sdk-origin-tofu-blacklist-activate-consent.md`
 - Architecture ADRs: `docs/softphone/adr/ADR-0009-sdk-process-ownership-broker-lifecycle.md`; `ADR-0010`; `ADR-0011`; `ADR-0012`; `ADR-0013`; `ADR-0014`; `ADR-0015`; `ADR-0016`; `ADR-0017`
 - Baseline evidence: `axatalk-sdk-integration/evidence/DI-00-baseline.md`
 - SDK-01 evidence: `axatalk-sdk/evidence/SDK-01-protocol-adrs.md`; `axatalk-sdk/evidence/SDK-01-browser-spike.md`
@@ -344,7 +345,9 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - SDK-09 evidence: `axatalk-sdk/evidence/SDK-09-developer-docs-examples.md` (`done` — developer guide + fake-peer example; not published)
 - SDK-10 evidence: `axatalk-sdk/evidence/SDK-10-release-candidate.md` (`done` — Mode A RC staging; stable/packaged E2E blocked on DI-10; no npm `latest`)
 - DI-09 evidence: `axatalk-sdk-integration/evidence/DI-09-settings-operational-ux.md`
-- DI-10 evidence: `axatalk-sdk-integration/evidence/DI-10-compatibility-e2e-p12-close.md` (`review` — FAIL remediated 2026-07-21; re-request `/sdk-review`; F-011 not closed)
+- DI-10 evidence: `axatalk-sdk-integration/evidence/DI-10-compatibility-e2e-p12-close.md` (`done` — `/sdk-review` PASS 2026-07-21; F-011 not closed)
+- DI-11 planning: `axatalk-sdk-integration/evidence/DI-11-origin-tofu-blacklist-activate-planning.md`
+- DI-11 evidence: `axatalk-sdk-integration/evidence/DI-11-origin-tofu-blacklist-activate.md` (`done` — `/sdk-review` PASS 2026-07-21)
 - Implementation evidence (DI-08 activate): `ExternalSdkAccountHandler.ts`; `ExternalSdkAccountPort.ts`; `createSdkAccountPortFromFacade.ts`; `sdkProfileRefCodec.ts`; `sdkAccountActivateGrantStore.ts`; `sdkGatewayActivateApproval.ts`; `LocalWsServerAdapter.issueAccountActivateGrant`; `bindSdkBrokerSession.ts`
 - Implementation evidence (SDK-08 client): `packages/sdk/src/internal/account-activate-commands.ts`; `account-activate-wire.ts`; `public/axatalk-client.activate.test.ts`; `tests/browser/axatalk-client-activate.browser.test.ts`
 - Implementation evidence (DI-09 settings): `SdkIntegrationSettings.ts`; `persistSdkIntegrationSettings.ts`; `SdkGatewaySettingsContract.ts`; `registerSdkGatewaySettingsIpc.ts`; `SdkModuleSettingsCard.tsx`; `useSdkSettingsPanel.ts`

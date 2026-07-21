@@ -10,6 +10,8 @@ export const CALL_HISTORY_DIRECTORY_NAME = "call-history";
 export const PROFILES_INDEX_FILE_NAME = "index.json";
 export const SAVED_ACCOUNT_PROFILES_FILE_NAME = "saved-accounts.json";
 export const USER_NOTIFICATION_JOURNAL_FILE_NAME = "notification-journal.json";
+/** Machine-common Origin trust + matrix (ADR-0018 §C.4 / DI-11). */
+export const SDK_ORIGIN_TRUST_FILE_NAME = "sdk-origin-trust.json";
 
 function joinStoragePath(...segments: ReadonlyArray<string>): string {
   return segments
@@ -106,6 +108,18 @@ export function resolveSavedAccountProfilesFilePath(storageRoot: string): string
   return joinStoragePath(
     resolveProfilesRootPath(storageRoot),
     SAVED_ACCOUNT_PROFILES_FILE_NAME,
+  );
+}
+
+/**
+ * - Purpose: resolve machine-common SDK Origin trust document path.
+ * - Inputs: storage root absolute path.
+ * - Outputs: sdk-origin-trust.json under profiles directory (not per-SIP silo).
+ */
+export function resolveSdkOriginTrustFilePath(storageRoot: string): string {
+  return joinStoragePath(
+    resolveProfilesRootPath(storageRoot),
+    SDK_ORIGIN_TRUST_FILE_NAME,
   );
 }
 

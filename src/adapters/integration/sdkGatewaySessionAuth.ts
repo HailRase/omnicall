@@ -2,7 +2,7 @@
  * Pairing ceremony + PoP auth handlers for LocalWsSessionRegistry (DI-04).
  */
 
-import type { AuthProof, PairingRequest, WireMessage } from "@axata/axatalk-protocol";
+import type { AuthProof, CapabilityId, PairingRequest, WireMessage } from "@axata/axatalk-protocol";
 
 import { SdkAuthChallengeCache } from "./sdkGatewayAuthChallenge.js";
 import { resolveGrantedCapabilities } from "./sdkGatewayCapabilities.js";
@@ -42,6 +42,7 @@ export type SdkSessionAuthDeps = Readonly<{
     fields: Readonly<Record<string, string | number | boolean>>,
   ) => void;
   activateGrantStore: SdkAccountActivateGrantStore;
+  getOriginMatrixCapabilities: (origin: string) => readonly CapabilityId[];
 }>;
 
 export async function handlePairingRequest(
@@ -110,6 +111,7 @@ export async function handlePairingRequest(
   const grantedCapabilities = resolveGrantedCapabilities({
     profile,
     requestedCapabilities: message.requestedCapabilities,
+    originPolicyCapabilities: deps.getOriginMatrixCapabilities(connection.origin),
     ...(decision.grantedCapabilities !== undefined
       ? { explicitGrants: decision.grantedCapabilities }
       : {}),

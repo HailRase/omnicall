@@ -81,6 +81,24 @@ export function buildPairingDenied(clientId: string): string {
   });
 }
 
+export function buildOriginDeniedReply(): string {
+  return JSON.stringify({
+    protocolVersion: 1,
+    kind: 'reply',
+    ok: false,
+    requestId: 'origin_trust',
+    commandType: 'sdk:ping',
+    serverInstanceId: 'srv_test_001',
+    sessionEpoch: 'epoch_test_001',
+    occurredAt: '2026-07-20T09:00:00.300Z',
+    error: {
+      code: 'forbidden',
+      retryable: false,
+      details: { origin_denied: true }
+    }
+  });
+}
+
 export function buildRevokedEvent(): string {
   return JSON.stringify({
     protocolVersion: 1,

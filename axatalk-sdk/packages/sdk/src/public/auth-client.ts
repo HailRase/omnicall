@@ -12,6 +12,7 @@ import type {
 import { createAuthOrchestrator } from '../internal/auth-orchestrator.js';
 import { createConnectionSession } from '../internal/connection-session.js';
 import type { ConnectionState } from '../internal/connection-state.js';
+import type { AxatalkClientError } from '../internal/client-errors.js';
 import type { DiagnosticsSink } from '../internal/diagnostics.js';
 import type { PopKeyStore } from '../internal/pop-key-store.js';
 import type { ReconnectPolicy } from '../internal/reconnect-policy.js';
@@ -81,6 +82,7 @@ export type AuthClient = {
     predicate: (state: ConnectionState) => boolean,
     timeoutMs?: number
   ) => Promise<ConnectionState>;
+  readonly getConnectError: () => AxatalkClientError | undefined;
 };
 
 /**
@@ -190,6 +192,7 @@ export function createAuthClient(options: AuthClientOptions): AuthClient {
             resolve(next);
           }
         });
-      })
+      }),
+    getConnectError: () => connection.getConnectError()
   };
 }

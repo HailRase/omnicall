@@ -10,7 +10,7 @@ import type { SdkModuleSettingsCardProps } from "./sdkModuleSettingsCardTypes.js
 export type { SdkModuleSettingsCardProps } from "./sdkModuleSettingsCardTypes.js";
 
 /**
- * - Purpose: present SDK Server operational controls (DI-09); no secrets in DOM.
+ * - Purpose: present Axatalk SDK operational controls (DI-09/DI-11); no secrets in DOM.
  * @uiMeta f=F-011 lf=LF-051,LF-065
  */
 export function SdkModuleSettingsCard(props: SdkModuleSettingsCardProps): JSX.Element {
@@ -31,12 +31,16 @@ export function SdkModuleSettingsCard(props: SdkModuleSettingsCardProps): JSX.El
           settings={props.settings}
           diagnostics={props.diagnostics}
           allowedOriginsLive={props.allowedOriginsLive}
+          pendingOriginTrust={props.pendingOriginTrust}
           originsDraft={props.originsDraft}
           busy={props.busy}
-          onEnabledChange={props.onEnabledChange}
           onOriginsDraftChange={props.onOriginsDraftChange}
           onOriginsSave={props.onOriginsSave}
           onRefresh={props.onRefresh}
+          onAllowOriginTrust={props.onAllowOriginTrust}
+          onDenyOriginTrust={props.onDenyOriginTrust}
+          onUnblockOrigin={props.onUnblockOrigin}
+          onSetOriginMatrix={props.onSetOriginMatrix}
         />
         <SdkModuleSettingsClientsSection
           diagnostics={props.diagnostics}

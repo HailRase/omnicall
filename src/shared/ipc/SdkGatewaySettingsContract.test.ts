@@ -37,6 +37,22 @@ const validPending = {
   profile: "presentation",
   expiresAt: "2026-07-20T01:00:00.000Z",
 };
+const validOrigin = {
+  origin: "https://crm.example",
+  state: "allowed" as const,
+  matrix: {
+    capabilities: {
+      "session.read.redacted": true,
+      "window.show": true,
+      "operator.status.write": true,
+      "session.logout": true,
+      "call.originate": true,
+      "call.control": true,
+      "account.activate": false,
+    },
+  },
+  previouslyAllowed: true,
+};
 
 describe("SdkGatewaySettingsContract", () => {
   it("parses applyPolicy and rejects wildcard origins", () => {
@@ -44,26 +60,23 @@ describe("SdkGatewaySettingsContract", () => {
       parseSdkGatewaySettingsOperation({
         op: "applyPolicy",
         policy: {
-          enabled: true,
-          allowedOrigins: ["https://crm.example"],
           originsManaged: true,
+          origins: [validOrigin],
         },
       }),
     ).toEqual({
       op: "applyPolicy",
       policy: {
-        enabled: true,
-        allowedOrigins: ["https://crm.example"],
         originsManaged: true,
+        origins: [validOrigin],
       },
     });
     expect(
       parseSdkGatewaySettingsOperation({
         op: "applyPolicy",
         policy: {
-          enabled: true,
-          allowedOrigins: ["https://*.example"],
           originsManaged: true,
+          origins: [{ ...validOrigin, origin: "https://*.example" }],
         },
       }),
     ).toBeNull();
@@ -75,15 +88,16 @@ describe("SdkGatewaySettingsContract", () => {
       grant: { ok: true, profileRef: "prf_abc" },
       snapshot: {
         diagnostics: listeningDiagnostics,
-        allowedOrigins: ["https://crm.example"],
-        pairedClients: [validPairedClient],
+        origins: [validOrigin],
+        pendingOriginTrust: [],
+        paired: [validPairedClient],
         pendingPairing: [],
       },
     });
     expect(parsed?.ok).toBe(true);
     if (parsed && parsed.ok && "grant" in parsed) {
       expect(parsed.grant).toEqual({ ok: true, profileRef: "prf_abc" });
-      expect(parsed.snapshot.pairedClients).toEqual([validPairedClient]);
+      expect(parsed.snapshot.paired).toEqual([validPairedClient]);
       expect(JSON.stringify(parsed)).not.toMatch(/password|apiKey|token|privateKey/i);
     }
   });
@@ -93,8 +107,9 @@ describe("SdkGatewaySettingsContract", () => {
       ok: true,
       snapshot: {
         diagnostics: listeningDiagnostics,
-        allowedOrigins: ["https://crm.example"],
-        pairedClients: [validPairedClient],
+        origins: [validOrigin],
+        pendingOriginTrust: [],
+        paired: [validPairedClient],
         pendingPairing: [validPending],
       },
     });
@@ -108,8 +123,9 @@ describe("SdkGatewaySettingsContract", () => {
         ok: true,
         snapshot: {
           diagnostics: listeningDiagnostics,
-          allowedOrigins: ["https://*.evil"],
-          pairedClients: [],
+        origins: [{ ...validOrigin, origin: "https://*.evil" }],
+        pendingOriginTrust: [],
+          paired: [],
           pendingPairing: [],
         },
       }),
@@ -120,8 +136,9 @@ describe("SdkGatewaySettingsContract", () => {
         ok: true,
         snapshot: {
           diagnostics: listeningDiagnostics,
-          allowedOrigins: ["https://crm.example"],
-          pairedClients: [
+          origins: [validOrigin],
+          pendingOriginTrust: [],
+          paired: [
             {
               ...validPairedClient,
               privateKey: "pk_leak",
@@ -138,8 +155,9 @@ describe("SdkGatewaySettingsContract", () => {
         grant: { ok: true, profileRef: "prf_ok", apiKey: "secret" },
         snapshot: {
           diagnostics: listeningDiagnostics,
-          allowedOrigins: ["https://crm.example"],
-          pairedClients: [],
+          origins: [validOrigin],
+          pendingOriginTrust: [],
+          paired: [],
           pendingPairing: [],
         },
       }),
@@ -150,8 +168,9 @@ describe("SdkGatewaySettingsContract", () => {
         ok: true,
         snapshot: {
           diagnostics: listeningDiagnostics,
-          allowedOrigins: ["https://crm.example"],
-          pairedClients: [{ ...validPairedClient, capabilityCount: -1 }],
+          origins: [validOrigin],
+          pendingOriginTrust: [],
+          paired: [{ ...validPairedClient, capabilityCount: -1 }],
           pendingPairing: [],
         },
       }),

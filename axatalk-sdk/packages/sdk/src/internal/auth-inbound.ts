@@ -7,6 +7,7 @@ import {
   PairingApprovedSchema,
   PairingDeniedSchema,
   PairingPendingSchema,
+  ReplyMessageSchema,
   ServerHelloSchema,
   SnapshotMessageSchema,
   validateWithSchema,
@@ -17,6 +18,8 @@ import {
   type ServerHello
 } from '@axata/axatalk-protocol';
 
+import { isOriginDeniedWireDetails } from './origin-policy-errors.js';
+
 export type InboundAuthMessage =
   | { readonly kind: 'server_hello'; readonly message: ServerHello }
   | { readonly kind: 'incompatible' }
@@ -25,6 +28,7 @@ export type InboundAuthMessage =
   | { readonly kind: 'pairing_denied'; readonly message: PairingDenied }
   | { readonly kind: 'permission_changed'; readonly grantedCapabilities: readonly string[] }
   | { readonly kind: 'revoked'; readonly reasonCode: string }
+  | { readonly kind: 'origin_denied' }
   | { readonly kind: 'preauth_product'; readonly type: string }
   | { readonly kind: 'ignored' };
 
@@ -39,6 +43,18 @@ export function parseInboundAuthMessage(raw: string): InboundAuthMessage {
     return { kind: 'ignored' };
   }
   const type = 'type' in parsed ? parsed.type : undefined;
+  const kind = 'kind' in parsed ? parsed.kind : undefined;
+  if (kind === 'reply') {
+    const reply = validateWithSchema(ReplyMessageSchema, parsed);
+    if (
+      reply.success &&
+      !reply.data.ok &&
+      reply.data.error.code === 'forbidden' &&
+      isOriginDeniedWireDetails(reply.data.error.details)
+    ) {
+      return { kind: 'origin_denied' };
+    }
+  }
   if (type === 'sdk:server-hello') {
     const result = validateWithSchema(ServerHelloSchema, parsed);
     if (result.success) {

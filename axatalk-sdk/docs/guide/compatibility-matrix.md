@@ -28,7 +28,7 @@ or a human-named waiver. Do not treat DI-10 WU `done` as F-011/`implemented`.
 | Cell | Owner | Status |
 | --- | --- | --- |
 | Protocol fixture parity (unit / CI) | SDK-02…08 + DI fixtures | Covered in track tests — not a packaged E2E substitute |
-| Pairing + Origin allowlist (live desktop) | DI-04…09 | Desktop units `done`; Settings UX pair path still OPEN in DI-10 |
+| Pairing + Origin trust (live desktop) | DI-04…09; DI-11 (ADR-0018) | DI-04…11 `done` (DI-11 `/sdk-review` PASS — TOFU/blacklist/matrix/boot-hydrate); Settings pair path still OPEN in DI-10 |
 | Hostile Origin / revoked client | DI-10 | Hostile Origin **PASS** (packaged); live UI revoke **OPEN** — `DI-10-compatibility-e2e-p12-close.md` |
 | Old SDK ↔ new desktop | DI-10 | **OPEN** — no prior published `@axata/axatalk-sdk` |
 | New SDK ↔ old desktop | DI-10 | **OPEN** — prior desktops lack DI gateway surface |
@@ -37,4 +37,4 @@ or a human-named waiver. Do not treat DI-10 WU `done` as F-011/`implemented`.
 ## Honesty rule
 
 Do **not** mark full packaged product E2E or F-011 `implemented` from handshake-only cells.
-DI-10 `review` documents partial packaged proof; P12 close still requires remaining OPEN cells.
+DI-10 `done` documents partial packaged proof; P12 close still requires remaining OPEN cells.

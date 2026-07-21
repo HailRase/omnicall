@@ -58,9 +58,34 @@ export {
   MAX_SDK_ALLOWED_ORIGINS,
   MAX_SDK_ORIGIN_LENGTH,
   SDK_INTEGRATION_DEFAULTS,
+  findSdkOriginTrustEntry,
+  listAllowedSdkOrigins,
+  listDeniedSdkOrigins,
+  migrateLegacySdkIntegrationSettings,
   parseSdkIntegrationSettings,
   parseSdkOriginsDraft,
 } from "./settings/SdkIntegrationSettings.js";
+export type {
+  SdkOriginCapabilityMatrix,
+  SdkOriginMatrixCapabilityId,
+  SdkOriginTrustEntry,
+  SdkOriginTrustState,
+} from "./settings/SdkOriginTrust.js";
+export {
+  SDK_ORIGIN_MATRIX_CAPABILITY_IDS,
+  createDefaultSdkOriginCapabilityMatrix,
+  isMatrixCapabilityEnabled,
+  listEnabledMatrixCapabilities,
+  withMatrixCapability,
+} from "./settings/SdkOriginTrust.js";
+export {
+  allowSdkOrigin,
+  denySdkOrigin,
+  removeAllowedSdkOrigin,
+  seedAllowedSdkOrigins,
+  setSdkOriginCapabilityMatrix,
+  unblockSdkOrigin,
+} from "./settings/sdkOriginTrustMutations.js";
 export type {
   OcpConnectLoginOption,
   OcpConnectLoginTarget,

@@ -8,7 +8,9 @@ import type {
   SdkGatewayDiagnosticsProjection,
   SdkPairedClientProjection,
   SdkPendingPairingProjection,
+  SdkPendingOriginTrustProjection,
 } from "@shared/ipc/SdkGatewaySettingsContract.js";
+import type { SdkOriginCapabilityMatrix } from "@application/index.js";
 
 export type SdkModuleSettingsCardProps = Readonly<{
   settings: SdkIntegrationSettings;
@@ -16,6 +18,7 @@ export type SdkModuleSettingsCardProps = Readonly<{
   allowedOriginsLive: readonly string[];
   pairedClients: readonly SdkPairedClientProjection[];
   pendingPairing: readonly SdkPendingPairingProjection[];
+  pendingOriginTrust: readonly SdkPendingOriginTrustProjection[];
   profileOptions: readonly SdkProfileOption[];
   selectedClientId: string | null;
   selectedProfileId: string | null;
@@ -23,7 +26,6 @@ export type SdkModuleSettingsCardProps = Readonly<{
   originsDraft: string;
   errorKey: SdkSettingsPanelErrorKey | null;
   busy: boolean;
-  onEnabledChange: (enabled: boolean) => void;
   onOriginsDraftChange: (value: string) => void;
   onOriginsSave: () => void;
   onRefresh: () => void;
@@ -33,4 +35,8 @@ export type SdkModuleSettingsCardProps = Readonly<{
   onSelectClientId: (clientId: string | null) => void;
   onSelectProfileId: (profileId: string | null) => void;
   onIssueActivateGrant: () => void;
+  onAllowOriginTrust: (requestId: string) => void;
+  onDenyOriginTrust: (requestId: string) => void;
+  onUnblockOrigin: (origin: string) => void;
+  onSetOriginMatrix: (origin: string, matrix: SdkOriginCapabilityMatrix) => void;
 }>;

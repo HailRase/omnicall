@@ -1,11 +1,13 @@
 /**
- * Options / start-result types for LocalWsServerAdapter (DI-03/DI-04).
+ * Options / start-result types for LocalWsServerAdapter (DI-03/DI-04/DI-11).
  */
 
+import type { SdkOriginTrustEntry } from "@domain/index.js";
 import type { SecretStoragePort } from "@ports/secrets/SecretStoragePort.js";
 
 import type { SdkGatewayLimits } from "./sdkGatewayConfig.js";
 import type { SdkGatewayLogFn } from "./localWsServerHelpers.js";
+import type { SdkOriginTrustApprover } from "./sdkGatewayOriginTrustApprover.js";
 import type { SdkGatewayProductSurface } from "./sdkGatewayProductSurface.js";
 import type { SdkPairingApprover } from "./sdkGatewayPairingTypes.js";
 
@@ -32,10 +34,21 @@ export type LocalWsServerAdapterOptions = Readonly<{
   limits?: Partial<SdkGatewayLimits>;
   now?: () => Date;
   onLog?: SdkGatewayLogFn;
+  /**
+   * DI-11 Origin trust store. When omitted, `allowedOrigins` (if provided) or env
+   * seed are converted to allowed entries for test / boot compat.
+   */
+  originTrustEntries?: readonly SdkOriginTrustEntry[];
+  /** Flat allowlist seed for DI-04 fortress test compat; prefer originTrustEntries. */
   allowedOrigins?: readonly string[];
   secretStorage?: SecretStoragePort;
   pairingApprover?: SdkPairingApprover;
   autoApprovePairing?: boolean;
+  originTrustApprover?: SdkOriginTrustApprover;
+  /** Test helper: auto-allow unknown Origins (skip TOFU modal). */
+  autoAllowOriginTrust?: boolean;
   /** DI-05 product surface (broker + window). Absent → product cmds stay not_ready. */
   productSurface?: SdkGatewayProductSurface;
+  /** Persist Origin trust mutations from TOFU / Settings (main wires this). */
+  onOriginTrustChanged?: (entries: readonly SdkOriginTrustEntry[]) => void;
 }>;

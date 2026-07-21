@@ -621,6 +621,10 @@ describe("ExternalSdkOperatorHandler shared revision clock", () => {
           Promise.resolve(
             err(createPlatformError("forbidden", "sdk_activate_not_used")),
           ),
+        lookupSavedProfileLabel: () =>
+          Promise.resolve(
+            err(createPlatformError("forbidden", "sdk_activate_not_used")),
+          ),
       },
       revisionClock,
     });

@@ -50,9 +50,10 @@ Names are conceptual until DI-00 approves exact locations.
 ### Settings
 
 - SDK integration settings schema and migration
-- approved origins and clients
-- pairing/revoke controls
-- server status and diagnostics without secrets
+- Origin trust store: unknown / allowed / denied (blacklist) — ADR-0018
+- Per-Origin capability matrix and paired clients
+- pairing/revoke / activate-grant controls
+- server diagnostics without secrets; **no** normal Settings toggle to stop the listener
 
 ## Dependency Direction
 
@@ -194,20 +195,37 @@ Gate: UI, accessibility, i18n, migration, and security tests pass.
 
 ## Phase DI-10 — Compatibility, E2E, and P12 Close
 
-Status: **`review`** (2026-07-21). Evidence: `evidence/DI-10-compatibility-e2e-p12-close.md`.
+Status: **`done`** (2026-07-21 `/sdk-review` PASS). Evidence: `evidence/DI-10-compatibility-e2e-p12-close.md`.
 
 - Automated preflight PASS (2499/1); SDK `api:check` 47/169 held.
 - Packaged Electron `0.11.2` + Edge Chromium handshake / hostile Origin / incompat **PASS** (partial).
 - Settings pair/revoke UX, SIP/OCP call smoke, prior published SDK cells remain **OPEN**.
 - F-011 stays `in progress`; P12 **not** closed; SemVer unchanged (`0.11.2`).
 
-Gate: F-011 `implemented` + P12 close still require remaining OPEN smoke cells + `/sdk-review` PASS.
+Gate: F-011 `implemented` + P12 close still require remaining OPEN DI-10 smoke cells
+(or an explicit human waiver) — DI-11 `/sdk-review` **PASS** 2026-07-21.
+
+## Phase DI-11 — Origin TOFU, Blacklist, Per-Origin Policy, Activate Consent
+
+Status: **`done`** (`/sdk-review` PASS 2026-07-21; ADR-0018; evidence
+`evidence/DI-11-origin-tofu-blacklist-activate.md`).
+
+- Always-on loopback gateway; remove Settings listener enable toggle (env kill-switch only).
+- Origin states unknown / allowed / denied with renderer first-contact modal and blacklist
+  upgrade reject; Unblock restore rules (prior allowed → allowed+matrix).
+- Per-Origin capability matrix; pre-auth Settings → Integrations → Axatalk SDK (ADR-AF-004).
+- Discovery CORS for unknown+allowed; activate consent every login + pending guard.
+- Machine-common boot hydrate (`sdk-origin-trust.json`); denied wins over env seed.
+
+Gate closed for DI-11. F-011/P12 still need remaining OPEN smoke/waivers.
 
 ## Rollback and Failure Policy
 
-- SDK server can be disabled without affecting core softphone startup.
+- Engineering kill-switch `AXATALK_SDK_GATEWAY=0` may stop the listener without affecting
+  core softphone startup (not a normal Settings toggle — ADR-0018).
 - Gateway startup failure is observable but does not block SIP-only operation.
 - Revoking a client does not terminate calls or account sessions.
+- Blacklisting an Origin rejects future upgrades without tearing SIP/account sessions.
 - Renderer reload rejects pending external requests and forces clients to resync.
 - Protocol incompatibility returns a safe error before state disclosure.
 - Desktop shutdown closes gateway acceptance before telephony cleanup begins.

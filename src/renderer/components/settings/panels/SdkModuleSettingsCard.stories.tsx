@@ -14,7 +14,7 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 const baseArgs = {
-  settings: { ...SDK_INTEGRATION_DEFAULTS, enabled: true, originsManaged: true },
+  settings: { ...SDK_INTEGRATION_DEFAULTS, originsManaged: true },
   diagnostics: {
     status: "listening" as const,
     bindHost: "127.0.0.1",
@@ -42,6 +42,7 @@ const baseArgs = {
     },
   ],
   pendingPairing: [],
+  pendingOriginTrust: [],
   profileOptions: [{ id: "agent@sip.example|sip", label: "agent@sip.example" }],
   selectedClientId: "cli_1",
   selectedProfileId: "agent@sip.example|sip",
@@ -49,7 +50,6 @@ const baseArgs = {
   originsDraft: "https://crm.example",
   errorKey: null,
   busy: false,
-  onEnabledChange: () => undefined,
   onOriginsDraftChange: () => undefined,
   onOriginsSave: () => undefined,
   onRefresh: () => undefined,
@@ -59,6 +59,10 @@ const baseArgs = {
   onSelectClientId: () => undefined,
   onSelectProfileId: () => undefined,
   onIssueActivateGrant: () => undefined,
+  onAllowOriginTrust: () => undefined,
+  onDenyOriginTrust: () => undefined,
+  onUnblockOrigin: () => undefined,
+  onSetOriginMatrix: () => undefined,
 };
 
 export const Light: Story = {

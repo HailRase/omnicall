@@ -10,6 +10,7 @@ import type {
   SdkGatewaySettingsSnapshot,
   SdkPairedClientProjection,
   SdkPendingPairingProjection,
+  SdkPendingOriginTrustProjection,
 } from "@shared/ipc/SdkGatewaySettingsContract.js";
 
 export function resolveSdkGatewayAllowedOrigins(
@@ -18,7 +19,9 @@ export function resolveSdkGatewayAllowedOrigins(
   if (!policy.originsManaged) {
     return loadSdkOriginAllowlistFromEnv();
   }
-  return policy.allowedOrigins;
+  return policy.origins
+    .filter((entry) => entry.state === "allowed")
+    .map((entry) => entry.origin);
 }
 
 export async function buildSdkGatewaySettingsSnapshot(
@@ -39,8 +42,9 @@ export async function buildSdkGatewaySettingsSnapshot(
         lastErrorCode: "gateway_unavailable",
         windowHideAvailable: false,
       },
-      allowedOrigins: [],
-      pairedClients: [],
+      origins: [],
+      pendingOriginTrust: [],
+      paired: [],
       pendingPairing: [],
     };
   }
@@ -68,10 +72,17 @@ export async function buildSdkGatewaySettingsSnapshot(
       expiresAt: pending.expiresAt,
     }));
 
+  const pendingOriginTrust: SdkPendingOriginTrustProjection[] =
+    gateway.listPendingOriginTrust().map((entry) => ({
+      originTrustRequestId: entry.originTrustRequestId,
+      origin: entry.origin,
+    }));
+
   return {
     diagnostics: gateway.getDiagnosticsSnapshot(pairedClients.length),
-    allowedOrigins: [...gateway.getAllowedOrigins()],
-    pairedClients,
+    origins: gateway.getOriginTrustEntries(),
+    pendingOriginTrust,
+    paired: pairedClients,
     pendingPairing,
   };
 }

@@ -501,8 +501,13 @@ export function SettingsPanel({
       );
       break;
     case "integrations":
+    case "integrations-sdk":
       sectionContent = (
-        <SettingsIntegrationsPanel ocp={integrations.ocp} sdk={integrations.sdk} />
+        <SettingsIntegrationsPanel
+          sectionId={activeSection}
+          ocp={integrations.ocp}
+          sdk={integrations.sdk}
+        />
       );
       break;
     default: {

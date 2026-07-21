@@ -6,7 +6,9 @@ DOCUMENT.
 
 ## Status
 
-Accepted (2026-07-20) — open PoP/profile detail **closed by SDK-01** (ADR-0016, 2026-07-20)
+Accepted (2026-07-20) — open PoP/profile detail **closed by SDK-01** (ADR-0016, 2026-07-20).  
+**Origin upgrade gate amended by ADR-0018** (2026-07-21): TOFU + blacklist replace
+pre-allowlist-only WebSocket upgrade; exact Origin match and pairing/capabilities remain.
 
 ## Context
 
@@ -22,9 +24,12 @@ revocation before any product state is exposed (DI-04).
 
 ## Decision
 
-1. **Exact Origin gate:** WebSocket upgrade requires an **exact** Origin string from the
-   desktop allowlist. Missing, `null`, wildcard, suffix, and substring matches are rejected.
-   Origin is an additional gate, **not** client identity.
+1. **Exact Origin gate:** Origin strings are matched **exactly** (missing, `null`, wildcard,
+   suffix, and substring matches are rejected). Origin is an additional gate, **not** client
+   identity. **Upgrade admission** (unknown → renderer TOFU modal Allow/Deny, allowed,
+   denied/blacklist, Unblock restore rules) is defined by **ADR-0018**; this ADR no longer
+   requires the Origin to be pre-listed before the first WebSocket upgrade. Pairing /
+   PoP / session grants remain this ADR + ADR-0016 and run **after** Origin is `allowed`.
 
 2. **Pairing:** Explicit local user/admin approval is required before a client installation
    becomes trusted. Each client receives a distinct revocable identity. Pairing material is
@@ -88,7 +93,8 @@ DI-03 transport must not invent crypto or capability grants; DI-04 implements AD
 
 - DI-04 owns implementation and independent security review gate.
 - DI-05+ product paths assume authenticated + capability-checked sessions.
-- Rollback: revoke all clients / disable gateway.
+- Rollback: revoke all clients / stop gateway via env kill-switch (`AXATALK_SDK_GATEWAY=0`)
+  per ADR-0018 (not a consumer Settings listener toggle).
 
 ## Architecture Checks
 
@@ -100,4 +106,4 @@ DI-03 transport must not invent crypto or capability grants; DI-04 implements AD
 
 - Feature Registry: F-011
 - `axatalk-sdk/docs/SECURITY.md`
-- Related: ADR-0009, ADR-0010, ADR-0012, ADR-AF-006
+- Related: ADR-0009, ADR-0010, ADR-0012, ADR-0018, ADR-AF-006

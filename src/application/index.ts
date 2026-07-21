@@ -277,7 +277,12 @@ export {
   SDK_INTEGRATION_DEFAULTS,
   parseSdkIntegrationSettings,
   parseSdkOriginsDraft,
+  createDefaultSdkOriginCapabilityMatrix,
+  withMatrixCapability,
   type SdkIntegrationSettings,
+  type SdkOriginCapabilityMatrix,
+  type SdkOriginTrustEntry,
+  type SdkOriginTrustState,
   type UserSettings,
 } from "@domain/index.js";
 export {

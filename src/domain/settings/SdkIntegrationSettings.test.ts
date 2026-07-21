@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { createDefaultSdkOriginCapabilityMatrix } from "./SdkOriginTrust.js";
 import {
+  migrateLegacySdkIntegrationSettings,
   parseSdkIntegrationSettings,
   parseSdkOriginsDraft,
   SDK_INTEGRATION_DEFAULTS,
@@ -13,30 +15,36 @@ describe("SdkIntegrationSettings", () => {
   it("accepts fail-closed empty managed origins", () => {
     expect(
       parseSdkIntegrationSettings({
-        enabled: true,
-        allowedOrigins: [],
         originsManaged: true,
+        origins: [],
       }),
     ).toEqual({
-      enabled: true,
-      allowedOrigins: [],
       originsManaged: true,
+      origins: [],
     });
   });
 
   it("rejects wildcards and null origins", () => {
     expect(
       parseSdkIntegrationSettings({
-        enabled: true,
-        allowedOrigins: ["https://*.example.com"],
         originsManaged: true,
+        origins: [{
+          origin: "https://*.example.com",
+          state: "allowed",
+          matrix: null,
+          previouslyAllowed: true,
+        }],
       }),
     ).toBeNull();
     expect(
       parseSdkIntegrationSettings({
-        enabled: true,
-        allowedOrigins: ["null"],
         originsManaged: true,
+        origins: [{
+          origin: "null",
+          state: "allowed",
+          matrix: null,
+          previouslyAllowed: true,
+        }],
       }),
     ).toBeNull();
   });
@@ -47,5 +55,33 @@ describe("SdkIntegrationSettings", () => {
       "https://b.example",
     ]);
     expect(parseSdkOriginsDraft("https://ok.example, *")).toBeNull();
+  });
+
+  it("migrates DI-09 {enabled, allowedOrigins} to trust entries and discards enabled", () => {
+    const legacy = {
+      enabled: false,
+      allowedOrigins: ["https://crm.example.com", "https://helpdesk.example.com"],
+      originsManaged: true,
+    };
+    const migrated = migrateLegacySdkIntegrationSettings(legacy);
+    expect(migrated).toEqual({
+      originsManaged: true,
+      origins: [
+        {
+          origin: "https://crm.example.com",
+          state: "allowed",
+          matrix: createDefaultSdkOriginCapabilityMatrix(),
+          previouslyAllowed: true,
+        },
+        {
+          origin: "https://helpdesk.example.com",
+          state: "allowed",
+          matrix: createDefaultSdkOriginCapabilityMatrix(),
+          previouslyAllowed: true,
+        },
+      ],
+    });
+    expect(parseSdkIntegrationSettings(legacy)).toEqual(migrated);
+    expect(migrated).not.toHaveProperty("enabled");
   });
 });

@@ -3,7 +3,7 @@
 **Date:** 2026-07-20  
 **Status:** `done` — **Mode A RC staging / stable-blocked** (`/sdk-review` PASS 2026-07-20)  
 **Feature:** F-011 remains `in progress` (not `implemented`)  
-**Desktop DI-10:** `review` (2026-07-21) — partial packaged handshake/hostile/incompat evidence real; Settings pair/revoke/call/SIP still OPEN; F-011/P12 still open — `../axatalk-sdk-integration/evidence/DI-10-compatibility-e2e-p12-close.md`  
+**Desktop DI-10:** `done` (2026-07-21 `/sdk-review` PASS) — partial packaged handshake/hostile/incompat evidence real; Settings pair/revoke/call/SIP still OPEN; F-011/P12 still open — `../axatalk-sdk-integration/evidence/DI-10-compatibility-e2e-p12-close.md`  
 **npm publish:** **none** (dry-run skipped because `private: true`; pack + SBOM only)
 
 ## Intake
@@ -12,7 +12,7 @@
 | --- | --- |
 | SDK-00…SDK-09 | `done` (SDK-09 closed post-Low: sdk src **115** / workspace **123**) |
 | SDK-10 was `pending` | set `in progress` → now `review` |
-| DI-10 | **not** `done` → **Mode A** selected (not Mode B) |
+| DI-10 | **`done`** (handshake PARTIAL; product smoke OPEN) → Mode A still selected for SDK stable; Mode B blocked on F-011 product close |
 | F-011 | remains `in progress` |
 | Scope | `axatalk-sdk/` + factual registry / evidence / work-history only |
 
@@ -140,7 +140,7 @@ No intentional test-count delta (docs/scripts only).
 
 ## Remaining gates (must not be forgotten)
 
-1. **DI-10 gate close** — `/sdk-review` PASS for the WU (preflight + honest matrices); then complete remaining OPEN product smoke cells (or human-named waivers) before F-011/`implemented`
+1. **Remaining DI-10 product smoke** — complete OPEN pair/revoke/call/SIP cells (or human-named waivers) before F-011/`implemented`
 2. Human authorize `private: false` + confirm `pre.json` tag `rc` + `changeset version` → `0.1.0-rc.0` + `npm publish --tag rc` (optional RC) — still blocked on F-011/P12 product close for `latest`
 3. Formal architecture + security reviews for Mode B stable
 4. RC validation window, then stable/`latest` only after F-011/P12 close criteria

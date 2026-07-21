@@ -64,6 +64,12 @@ export function readStringField(payload: unknown, key: string): string | null {
 
 export function sdkFail(
   code: ProtocolErrorCode,
+  details?: WireJsonObject,
 ): ExternalHandlerResult {
-  return { ok: false, code, retryable: false };
+  return {
+    ok: false,
+    code,
+    retryable: false,
+    ...(details !== undefined ? { details } : {}),
+  };
 }

@@ -146,7 +146,7 @@ async function handshake(
 }
 
 describe("LocalWsServerAdapter DI-04 auth", () => {
-  it("rejects missing and hostile Origins at upgrade", async () => {
+  it("rejects missing Origin at upgrade; unknown hostile Origins pass upgrade (DI-11 TOFU)", async () => {
     const adapter = await startAdapter();
     const port = boundPort(adapter);
 
@@ -176,8 +176,14 @@ describe("LocalWsServerAdapter DI-04 auth", () => {
 
     await expectRejected();
     await expectRejected({ Origin: "null" });
-    await expectRejected({ Origin: "https://crm.example.evil" });
-    await expectRejected({ Origin: "https://sub.crm.example" });
+
+    const hostileEvil = openClient(port, "https://crm.example.evil");
+    await waitOpen(hostileEvil);
+    hostileEvil.close();
+
+    const hostileSub = openClient(port, "https://sub.crm.example");
+    await waitOpen(hostileSub);
+    hostileSub.close();
 
     const ok = openClient(port);
     await waitOpen(ok);

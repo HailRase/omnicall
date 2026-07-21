@@ -55,7 +55,8 @@ const SDK_ALLOWED_SYMBOLS = new Set([
   'createIndexedDbPopKeyStore',
   'createMemoryPopKeyStore',
   'createRecordingDiagnosticsSink',
-  'isAxatalkClientError'
+  'isAxatalkClientError',
+  'isOriginBlockedError'
 ]);
 
 /** Top-level exports forbidden (namespaced methods are not separate symbols). */

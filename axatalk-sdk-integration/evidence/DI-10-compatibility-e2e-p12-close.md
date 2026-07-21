@@ -1,14 +1,14 @@
 # DI-10 — Compatibility, E2E, and P12 Close (evidence)
 
 **Date:** 2026-07-21  
-**Mode:** Remediation after `/sdk-review` FAIL → re-request `/sdk-review` DI-10 only  
+**Mode:** Gate closed after remediation + re-`/sdk-review`  
 **Desktop version:** `0.11.2` (unchanged; no SemVer bump — F-011 not closed)  
 **Desktop commit (baseline HEAD):** `9e9a61d` (+ DI-10 working-tree / remediation)  
 **SDK workspace:** same repo `axatalk-sdk/` @ HEAD `9e9a61d`  
 **Protocol surface:** `api:check` **47** (`@axata/axatalk-sdk`) / **169** (`@axata/axatalk-protocol`) — unchanged  
 **Feature:** F-011 remains **`in progress`** (not `implemented`)  
 **P12:** remains **open** — remaining smoke cells listed below  
-**Work unit status:** **`review`** (Blocker/High/Low from 2026-07-21 FAIL remediated)
+**Work unit status:** **`done`** — `/sdk-review` **PASS** 2026-07-21 (prior Blocker cleared: disposable demo at `ELECTRON/sdk-demo`, outside softphone; lint green; no `sdk-demo/**` ESLint ignore)
 
 ## Hard-stop / intake
 
@@ -51,9 +51,11 @@ Firefox / Safari: not claimed.
 npm run release:preflight
 ```
 
-**Result (post-remediation 2026-07-21):** PASS — **2499 passed / 1 skipped** (475 files + 1 skipped); lint PASS; typecheck PASS; registry check PASS.
+**Result (post-Blocker clear 2026-07-21):** PASS — **2499 passed / 1 skipped** (475 files + 1 skipped); lint PASS; typecheck PASS; registry check PASS (74/0).
 
-Prior FAIL cause: new DI-10 smoke `.mjs` files were type-checked by ESLint `projectService` (root ignores `scripts/**` but not integration smoke scripts). Fixed via `eslint.config.js` ignore `axatalk-sdk-integration/scripts/**`.
+Blocker clear: disposable live demo moved from `softphone/sdk-demo/` → `ELECTRON/sdk-demo/` (sibling of repo). Root ESLint no longer sees those `.mjs` files. **No** `sdk-demo/**` ESLint ignore added (per human direction). Vendor paths in the relocated demo point at `softphone/axatalk-sdk`.
+
+Prior FAIL cause (2026-07-21 morning): new DI-10 smoke `.mjs` files were type-checked by ESLint `projectService`. Fixed via `eslint.config.js` ignore `axatalk-sdk-integration/scripts/**` (still held).
 
 ```bash
 npm run i18n:check
@@ -153,7 +155,7 @@ Record fields:
 - OS: Windows 10 (19045)
 - Browser: Edge **150.0.4078.83**
 - Gateway: enabled via env allowlist `http://127.0.0.1:8765`
-- Reviewer: pending `/sdk-review`
+- Reviewer: `/sdk-review` **PASS** 2026-07-21
 
 | Area | Result |
 | --- | --- |
@@ -181,7 +183,7 @@ Overall smoke: **PARTIAL** — transport/security packaged subset PASS; product 
 | `window:hide` | Still unavailable |
 | Formal `/arch-review` | Deferred — no structural redesign this unit |
 | Formal security review beyond self-check | Deferred to close of remaining OPEN cells / Mode B |
-| Independent `/sdk-review` | **Requested** (this handoff) |
+| Independent `/sdk-review` | **PASS** 2026-07-21 — DI-10 `done`; F-011/P12 not closed |
 
 ## Registry / LF / P12 close decision
 
@@ -211,16 +213,18 @@ Overall smoke: **PARTIAL** — transport/security packaged subset PASS; product 
 - No Origin / PoP / capability / revision / privacy policy was weakened.
 - No secrets (passwords, apiKeys, tokens, PoP private material, unmasked phones) appear in evidence or reports.
 - Unit tests alone were **not** used to claim full packaged E2E PASS.
-- Request: **`/sdk-review` DI-10 only**. Do not auto-start further units.
+- Re-gate Blocker cleared without ESLint ignore: `sdk-demo` → `ELECTRON/sdk-demo`. `/sdk-review` DI-10 **PASS**. Do not mark F-011 `implemented` / P12 closed from handshake-only evidence; next is DI-11 (ADR-0018) plus remaining OPEN smoke/waivers.
 
 ## Post-`/sdk-review` FAIL remediation (2026-07-21)
 
 | Finding | Fix |
 | --- | --- |
 | Blocker — lint on DI-10 smoke scripts | `eslint.config.js` ignores `axatalk-sdk-integration/scripts/**` |
+| Blocker — lint on disposable `sdk-demo/**` (re-gate) | Relocated to `ELECTRON/sdk-demo` (outside softphone); **no** eslint ignore for sdk-demo |
 | High — stale SDK-10 “blocked on DI-10” | `SDK-10-release-candidate.md` + `compatibility-matrix.md` aligned to PARTIAL/OPEN truth |
 | Low — Edge version missing in report | `browserVersion` in report + script reads ProductVersion on Windows |
 | Low — catalog check | regenerate `UI-Component-Catalog.md` |
+| Low — SMOKE Compatibility checkboxes | current↔current + incompat marked `[x]`; prior/release cells stay OPEN |
 
 ## Files added/changed (this unit)
 

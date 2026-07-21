@@ -3,6 +3,8 @@
  */
 
 import type { ClientHello, ProtocolErrorCode, WireMessage } from "@axata/axatalk-protocol";
+import type { CapabilityId } from "@axata/axatalk-protocol";
+import type { SdkOriginTrustState } from "@domain/index.js";
 
 import { SdkAuthChallengeCache } from "./sdkGatewayAuthChallenge.js";
 import type { SdkGatewayConnection } from "./sdkGatewayConnection.js";
@@ -25,6 +27,15 @@ import {
 } from "./sdkGatewaySessionAuth.js";
 import type { SdkAccountActivateGrantStore } from "./sdkAccountActivateGrantStore.js";
 import { syncAccountActivateCapabilityForConnection } from "./sdkAccountActivateSession.js";
+import type {
+  SdkOriginTrustApprover,
+  SdkOriginTrustDecision,
+} from "./sdkGatewayOriginTrustApprover.js";
+import {
+  ensureSdkOriginTrusted,
+  rejectSdkOriginTrustDenied,
+  type SdkOriginTrustSessionContext,
+} from "./sdkGatewayOriginTrustSession.js";
 
 export type SdkCommandRoute =
   | {
@@ -46,6 +57,11 @@ export async function completeSdkHandshake(input: {
   readonly getIdentity: () => SdkGatewayIdentity | null;
   readonly pairingStore: SdkGatewayPairingStore;
   readonly challenges: SdkAuthChallengeCache;
+  readonly getOriginTrustState: (origin: string) => SdkOriginTrustState;
+  readonly originTrustApprover: SdkOriginTrustApprover;
+  readonly onOriginTrustDecision: (
+    decision: Readonly<{ origin: string; decision: SdkOriginTrustDecision }>,
+  ) => void;
   readonly now: () => Date;
   readonly sendJson: (connection: SdkGatewayConnection, message: WireMessage) => void;
   readonly closeConnection: (connection: SdkGatewayConnection, reason: string) => void;
@@ -99,6 +115,45 @@ export async function completeSdkHandshake(input: {
     connectionCount: input.connectionCount,
     pairingRequired,
   });
+
+  if (input.getOriginTrustState(input.connection.origin) === "unknown") {
+    const originCtx = buildOriginTrustSessionContext(input);
+    const trust = await ensureSdkOriginTrusted(originCtx);
+    if (!trust.allowed) {
+      rejectSdkOriginTrustDenied(originCtx, {
+        originTrustRequestId: trust.originTrustRequestId,
+      });
+    }
+  }
+}
+
+function buildOriginTrustSessionContext(input: {
+  readonly connection: SdkGatewayConnection;
+  readonly getOriginTrustState: (origin: string) => SdkOriginTrustState;
+  readonly originTrustApprover: SdkOriginTrustApprover;
+  readonly onOriginTrustDecision: (
+    decision: Readonly<{ origin: string; decision: SdkOriginTrustDecision }>,
+  ) => void;
+  readonly getIdentity: () => SdkGatewayIdentity | null;
+  readonly sendJson: (connection: SdkGatewayConnection, message: WireMessage) => void;
+  readonly closeConnection: (connection: SdkGatewayConnection, reason: string) => void;
+  readonly now: () => Date;
+  readonly log: (
+    event: string,
+    fields: Readonly<Record<string, string | number | boolean>>,
+  ) => void;
+}): SdkOriginTrustSessionContext {
+  return {
+    connection: input.connection,
+    getOriginTrustState: input.getOriginTrustState,
+    originTrustApprover: input.originTrustApprover,
+    onOriginTrustDecision: input.onOriginTrustDecision,
+    getIdentity: input.getIdentity,
+    sendJson: input.sendJson,
+    closeConnection: input.closeConnection,
+    now: input.now,
+    log: input.log,
+  };
 }
 
 export function handleSdkCommandRoute(input: {
@@ -174,6 +229,12 @@ export async function dispatchSdkValidatedMessage(input: {
   readonly getIdentity: () => SdkGatewayIdentity | null;
   readonly pairingStore: SdkGatewayPairingStore;
   readonly pairingApprover: SdkPairingApprover;
+  readonly getOriginTrustState: (origin: string) => SdkOriginTrustState;
+  readonly originTrustApprover: SdkOriginTrustApprover;
+  readonly onOriginTrustDecision: (
+    input: Readonly<{ origin: string; decision: SdkOriginTrustDecision }>,
+  ) => void;
+  readonly getOriginMatrixCapabilities: (origin: string) => readonly CapabilityId[];
   readonly challenges: SdkAuthChallengeCache;
   readonly requestDedup: SdkRequestDedupCache;
   readonly now: () => Date;
@@ -216,6 +277,9 @@ export async function dispatchSdkValidatedMessage(input: {
       getIdentity: input.getIdentity,
       pairingStore: input.pairingStore,
       challenges: input.challenges,
+      getOriginTrustState: input.getOriginTrustState,
+      originTrustApprover: input.originTrustApprover,
+      onOriginTrustDecision: input.onOriginTrustDecision,
       now: input.now,
       sendJson: input.sendJson,
       closeConnection: input.closeConnection,
@@ -225,6 +289,17 @@ export async function dispatchSdkValidatedMessage(input: {
     });
     return;
   }
+  const originCtx: SdkOriginTrustSessionContext = {
+    connection: input.connection,
+    getOriginTrustState: input.getOriginTrustState,
+    originTrustApprover: input.originTrustApprover,
+    onOriginTrustDecision: input.onOriginTrustDecision,
+    getIdentity: input.getIdentity,
+    sendJson: input.sendJson,
+    closeConnection: input.closeConnection,
+    now: input.now,
+    log: input.log,
+  };
   const authDeps: SdkSessionAuthDeps = {
     pairingStore: input.pairingStore,
     pairingApprover: input.pairingApprover,
@@ -235,12 +310,27 @@ export async function dispatchSdkValidatedMessage(input: {
     closeConnection: input.closeConnection,
     audit: input.log,
     activateGrantStore: input.activateGrantStore,
+    getOriginMatrixCapabilities: input.getOriginMatrixCapabilities,
   };
   if (route.action === "pairing_request") {
+    const trust = await ensureSdkOriginTrusted(originCtx);
+    if (!trust.allowed) {
+      rejectSdkOriginTrustDenied(originCtx, {
+        originTrustRequestId: trust.originTrustRequestId,
+      });
+      return;
+    }
     await handlePairingRequest(authDeps, input.connection, route.message);
     return;
   }
   if (route.action === "auth_proof") {
+    const trust = await ensureSdkOriginTrusted(originCtx);
+    if (!trust.allowed) {
+      rejectSdkOriginTrustDenied(originCtx, {
+        originTrustRequestId: trust.originTrustRequestId,
+      });
+      return;
+    }
     await handleAuthProof(authDeps, input.connection, route.message);
     return;
   }
@@ -274,6 +364,13 @@ export async function dispatchSdkValidatedMessage(input: {
         closeConnection: input.closeConnection,
         log: input.log,
         activateGrantStore: input.activateGrantStore,
+        isOriginActivateAllowed: (origin) => {
+          const caps = input.getOriginMatrixCapabilities(origin);
+          // Fail-closed: empty / missing matrix ⇒ activate off (ADR-0018).
+          // DI-08 harness elevates account.activate via autoApprovePairing matrix;
+          // unit tests omit isOriginActivateAllowed to skip this gate.
+          return caps.includes("account.activate");
+        },
       },
       onNotReady: (productRoute) => {
         handleSdkCommandRoute({

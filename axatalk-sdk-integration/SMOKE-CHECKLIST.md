@@ -13,7 +13,7 @@ relevant subset, but no partial run closes P12.
 - Browser/version: Microsoft Edge **150.0.4078.83**
 - Gateway configuration: env allowlist `http://127.0.0.1:8765`; `AXATALK_SDK_GATEWAY=1`; win-unpacked
 - Test operator/profile: **not used** this run (pairing/call cells OPEN)
-- Reviewer: re-request `/sdk-review` DI-10 (FAIL findings remediated 2026-07-21)
+- Reviewer: `/sdk-review` **PASS** 2026-07-21 (DI-10 `done`; overall smoke still PARTIAL — P12/F-011 not closed)
 
 Sanitized reports: `evidence/DI-10-packaged-smoke-report.json`, `evidence/DI-10-browser-smoke-report.json`,
 `evidence/DI-10-compatibility-e2e-p12-close.md`.
@@ -99,17 +99,17 @@ Do not record credentials, tokens, full phone numbers, or customer data.
 
 ## Compatibility
 
-- [ ] Current SDK ↔ current desktop.
-- [ ] Previous supported SDK ↔ current desktop.
-- [ ] Current SDK ↔ previous supported desktop.
-- [ ] Unsupported protocol receives `incompatible_version` before state disclosure.
-- [ ] Desktop update/restart during an active call preserves the call and safely resynchronizes.
+- [x] Current SDK ↔ current desktop. *(unit + packaged handshake)*
+- [ ] Previous supported SDK ↔ current desktop. *(OPEN — no prior published SDK)*
+- [ ] Current SDK ↔ previous supported desktop. *(OPEN)*
+- [x] Unsupported protocol receives `incompatible_version` before state disclosure. *(unit + packaged)*
+- [ ] Desktop update/restart during an active call preserves the call and safely resynchronizes. *(OPEN)*
 
 ## Result
 
 - Overall: **PARTIAL** (not PASS — remaining OPEN cells forbid P12 / F-011 close)
 - Failed item IDs: none claimed FAIL; OPEN cells listed above + call/OCP/compat prior-release rows
 - Sanitized evidence paths: `evidence/DI-10-compatibility-e2e-p12-close.md`
-- Follow-up work unit: complete OPEN smoke cells after `/sdk-review` DI-10 (or human-named waivers)
+- Follow-up: `/sdk-integration` DI-11 (ADR-0018); complete OPEN smoke cells (or human-named waivers) before F-011/`implemented`
 
 P12 may close only with PASS and independent architecture, work-unit, and security reviews.

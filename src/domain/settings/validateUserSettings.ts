@@ -555,11 +555,7 @@ function readSdkIntegration(
   const parsed = parseSdkIntegrationSettings(record["sdkIntegration"]);
   if (parsed === null) {
     errors.push("sdkIntegration_invalid");
-    return {
-      enabled: true,
-      allowedOrigins: [],
-      originsManaged: false,
-    };
+    return { origins: [], originsManaged: false };
   }
   return parsed;
 }

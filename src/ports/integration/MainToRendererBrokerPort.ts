@@ -53,6 +53,6 @@ export interface MainToRendererBrokerPort {
    */
   request(
     input: unknown,
-    context?: { readonly clientId?: string },
+    context?: { readonly clientId?: string; readonly origin?: string },
   ): Promise<BrokerRequestResult>;
 }

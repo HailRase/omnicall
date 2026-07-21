@@ -31,6 +31,7 @@ export type AuthClient = {
     readonly onStateChange: (listener: (state: ConnectionState) => void) => () => void;
     readonly onPairingRequired: (listener: (info: PairingRequiredInfo) => void) => () => void;
     readonly waitUntil: (predicate: (state: ConnectionState) => boolean, timeoutMs?: number) => Promise<ConnectionState>;
+    readonly getConnectError: () => AxatalkClientError | undefined;
 };
 
 // @public
@@ -128,6 +129,7 @@ export type AxatalkClient = {
     readonly onStateChange: (listener: (state: ConnectionState) => void) => () => void;
     readonly onPairingRequired: (listener: (info: PairingRequiredInfo) => void) => () => void;
     readonly waitUntil: (predicate: (state: ConnectionState) => boolean, timeoutMs?: number) => Promise<ConnectionState>;
+    readonly getConnectError: () => AxatalkClientError | undefined;
     readonly getSnapshot: () => Promise<SnapshotMessage>;
     readonly getCachedSnapshot: () => SnapshotMessage | undefined;
     readonly getRevision: () => number | undefined;
@@ -277,6 +279,9 @@ export type HeartbeatPolicy = {
 
 // @public (undocumented)
 export function isAxatalkClientError(value: unknown): value is AxatalkClientError;
+
+// @public
+export function isOriginBlockedError(value: unknown): value is AxatalkClientError;
 
 // @public (undocumented)
 export type JitterSource = {

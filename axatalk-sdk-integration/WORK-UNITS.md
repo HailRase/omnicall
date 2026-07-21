@@ -12,7 +12,8 @@
 - [x] DI-07 — Operator status and logout workflow (`done`)
 - [x] DI-08 — Saved-profile activation (`done`)
 - [x] DI-09 — Settings and operational UX (`done`)
-- [ ] DI-10 — Compatibility, E2E, and P12 close (`review` — Blocker/High/Low remediated 2026-07-21; re-request `/sdk-review`; F-011/P12 not closed)
+- [x] DI-10 — Compatibility, E2E, and P12 close (`done` — `/sdk-review` PASS 2026-07-21; packaged handshake/hostile/incompat real; remaining pair/revoke/call/SIP OPEN; F-011/P12 not closed)
+- [x] DI-11 — Origin TOFU, blacklist, per-Origin capability policy, always-on gateway, activate consent (`done` — `/sdk-review` PASS 2026-07-21; F-011/P12 not closed)
 
 Allowed statuses: `pending`, `in progress`, `review`, `done`, `blocked`.
 
@@ -536,7 +537,7 @@ Checklist:
 
 Prerequisites: DI-01…DI-09 and SDK-00…SDK-09 done. (SDK-10 Mode A RC staging also `done`.)
 
-Status: **`review`** (2026-07-21) — `/sdk-review` FAIL findings remediated (ESLint ignore + SDK-10 docs + Edge version + catalog); packaged handshake evidence real; F-011/P12 **not** closed; awaiting re-`/sdk-review`
+Status: **`done`** (2026-07-21) — `/sdk-review` PASS; packaged handshake/hostile/incompat evidence real; F-011/P12 **not** closed (remaining OPEN smoke + DI-11)
 
 ### Intake (hard-stop cleared)
 
@@ -559,7 +560,7 @@ Agent prompt:
 
 Checklist:
 
-- [x] complete automated preflight. *(remediated: ESLint ignore DI smoke scripts; re-verify counts in evidence)*
+- [x] complete automated preflight. *(Blocker clear 2026-07-21: demo relocated outside repo; `release:preflight` **2499/1 skipped**)*
 - [x] packaged Electron + supported browser E2E. *(PARTIAL — handshake/security subset PASS; pairing/call OPEN)*
 - [x] old/new SDK-desktop matrix. *(PARTIAL — current+incompat PASS; prior published SDK N/A/OPEN)*
 - [x] hostile-client security matrix. *(PASS automated + packaged Origin; live UI revoke OPEN)*
@@ -579,10 +580,70 @@ Checklist:
 - Commands/events added: none
 - Security impact: fortress + packaged Origin/incompat proven; no weaken
 - Regression risks: none intentional; version remains `0.11.2`
-- Automated tests: `LocalWsServerAdapter.compat.test.ts` + prior DI-03…09 suite; full preflight PASS
+- Automated tests: `LocalWsServerAdapter.compat.test.ts` + prior DI-03…09 suite; `release:preflight` **2499 passed / 1 skipped** (post demo relocate)
 - Manual evidence: packaged win-unpacked 0.11.2 + Edge 150 smoke reports (partial checklist)
 - Verification commands: `npm run release:preflight`; SDK `api:check`/`preflight`; `di10-*-smoke.mjs`
 - Registry/Legacy/STATUS changes: F-011 stays `in progress`; P12 open; remaining gates listed
 - Remaining risks / open: Settings pair/revoke live; SIP/OCP call smoke; prior SDK/desktop cells
 - Evidence: `axatalk-sdk-integration/evidence/DI-10-compatibility-e2e-p12-close.md`
-- Reviewer: `/sdk-review` FAIL (2026-07-21) → remediated same day; **re-request `/sdk-review` DI-10 only**
+- Reviewer: `/sdk-review` **PASS** 2026-07-21 — DI-10 **`done`**; no Blockers; F-011/P12 stay open; next `/sdk-integration` **DI-11 only** (ADR-0018); do not mark F-011 `implemented` until remaining OPEN smoke + DI-11
+
+## DI-11 — Origin TOFU, Blacklist, Per-Origin Policy, Always-On Gateway, Activate Consent
+
+Prerequisites: ADR-0018 Accepted; DI-04 and DI-09 `done`; **DI-10 `done` before merging
+production gateway/Settings behavior** (docs/ADR may land earlier). Do not weaken DI-10
+smoke evidence.
+
+Status: **`done`** (2026-07-21) — `/sdk-review` **PASS**; High/Low remediated. Boot hydrate +
+machine-common store + denied-wins + corrupt fail-closed. F-011/P12 stay open; SemVer **`0.12.0`**.
+
+Agent prompt:
+
+> Implement ADR-0018 on the desktop gateway and Settings without raw credential login.
+> Always-on loopback listener (remove Settings enable toggle). Origin states
+> unknown/allowed/denied with renderer first-contact modal, blacklist upgrade reject,
+> Unblock restore rules, retained per-Origin capability matrix, pre-auth Integrations →
+> Axatalk SDK (ADR-AF-004 exception), discovery CORS for unknown+allowed, and
+> saved-profile activate consent (one login per Allow; pending guard → primary `conflict`
+> with optional `activate_consent_pending`; typed
+> `forbidden`/`origin_blocked`/`not_found`/`conflict`). Update SDK client error mapping +
+> tests.
+> Do not mark F-011 implemented unless P12 close criteria (DI-10+DI-11) are met.
+> Do not enable `window.hide`. Do not invent DI-12.
+
+Checklist:
+
+- [x] ADR-0018 reflected in upgrade path + persist model + Settings schema migration
+      (remove `enabled` listener toggle; migrate origins → trust states + matrix).
+- [x] Always-on gateway; Settings listener toggle removed; kill-switch env documented only.
+- [x] First-contact renderer Allow/Deny modal (Origin only); Deny → `forbidden`+`origin_denied`
+      + close; blacklist → no upgrade (`origin_blocked` client mapping).
+- [x] Unblock: prior `allowed` → restore `allowed`+matrix; first-Deny-only → `unknown`.
+- [x] Cannot add/edit Origin allow/policy or capability matrix while denied; Unblock first.
+      Quick blacklist retains matrix read-only but ignores it while denied.
+- [x] Per-Origin capability matrix; grants ⊆ policy; deny → `forbidden`+`permission_denied`.
+- [x] Pre-auth Settings → Axatalk SDK; OCP Module remains gated (AF-004 derive helper).
+- [x] Discovery CORS for `unknown`+`allowed`; never for `denied`.
+- [x] Activate: matrix off → no modal + `permission_denied`; matrix on → modal every login;
+      Deny → activate-disabled; pending duplicate → primary `conflict` (+ optional
+      `activate_consent_pending`); clear pending on Allow/Deny/dismiss; missing profile →
+      `not_found`.
+- [x] Tests: upgrade matrix, Unblock restore, Settings pre-auth nav, activate consent/pending,
+      SIP-only regression, i18n; boot hydrate denied + denied-vs-env-seed.
+- [x] Guides already updated; keep P12 handoff/evidence in sync; implementation evidence path.
+- [x] `/sdk-review` PASS (2026-07-21); F-011 stays `in progress` until DI-10 remaining smoke/waivers + release criteria.
+
+### Handoff checklist (DI-11)
+
+- Work unit: DI-11
+- Prerequisites verified: ADR-0018; DI-04/DI-09 done; DI-10 done (for code merge)
+- Feature/LF IDs: F-011; LF-080, LF-081; Settings gate F-016/ADR-AF-004
+- Bounded contexts: Integration, Settings, Account
+- Layers changed: main gateway policy, settings schema/IPC, renderer Settings UI,
+  Application derive availability, SDK client origin_blocked mapping
+- Security impact: TOFU expands first-contact surface; blacklist + exact Origin + no
+  raw credentials keep fortress posture
+- Regression risks: ADR-AF-004 nav tests; DI-04 Origin tests; env allowlist seed behavior
+- Reviewer: `/sdk-review` **PASS** (2026-07-21) — prior boot-hydrate Blocker cleared; High/Low noted
+- Evidence: `axatalk-sdk-integration/evidence/DI-11-origin-tofu-blacklist-activate.md`
+- Explicit: F-011 still `in progress`; P12 open; SemVer `0.12.0`; `window.hide` unavailable

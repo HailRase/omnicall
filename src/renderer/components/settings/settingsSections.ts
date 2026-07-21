@@ -11,7 +11,8 @@ export type SettingsSectionId =
   | "codecs"
   | "video"
   | "headset"
-  | "integrations";
+  | "integrations"
+  | "integrations-sdk";
 
 export type SettingsNavLeaf = Readonly<{
   kind: "item";
@@ -117,6 +118,13 @@ export const SETTINGS_NAV_TREE: ReadonlyArray<SettingsNavNode> = [
         labelKey: "settings.nav.integrations.ocp",
         iconId: "settings.integrations.ocp",
         testId: "settings-nav-integrations-ocp",
+      },
+      {
+        kind: "item",
+        id: "integrations-sdk",
+        labelKey: "settings.nav.integrations.sdk",
+        iconId: "settings.integrations.sdk",
+        testId: "settings-nav-integrations-sdk",
       },
     ],
   },

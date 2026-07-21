@@ -19,6 +19,7 @@ export type SdkWindowStateResult =
 
 export type SdkProductCommandContext = Readonly<{
   clientId?: string;
+  origin?: string;
 }>;
 
 export type SdkGatewayProductSurface = Readonly<{

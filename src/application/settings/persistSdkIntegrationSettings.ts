@@ -49,9 +49,8 @@ export async function persistSdkIntegrationSettings(input: {
   const response = await input.invoke({
     op: "applyPolicy",
     policy: {
-      enabled: input.next.enabled,
-      allowedOrigins: input.next.allowedOrigins,
       originsManaged: input.next.originsManaged,
+      origins: input.next.origins,
     },
   });
   if (!response.ok) {

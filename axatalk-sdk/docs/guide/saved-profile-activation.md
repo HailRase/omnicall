@@ -2,7 +2,7 @@
 
 ```ts
 await client.account.activateProfile({
-  profileRef,        // opaque desktop-approved reference
+  profileRef,        // opaque desktop-approved reference (UI may show a label)
   expectedRevision   // from fresh snapshot
 });
 ```
@@ -11,39 +11,53 @@ await client.account.activateProfile({
 
 | Rule | Detail |
 | --- | --- |
-| Capability | Privileged `account.activate` |
+| Capability / policy | Privileged `account.activate` **and** Origin matrix must allow activate (ADR-0018) |
 | Pairing request | **Never** — stripped by `sanitizeRequestedCapabilities` |
-| Grant source | Desktop Settings / admin grant (DI-09); TTL desktop-owned |
+| Consent | Renderer modal Allow/Deny on **every** activate when policy allows and a profile exists |
+| Grant scope | **One login only** — next activate asks again; no lasting skip-consent TTL |
 | Secrets | SDK never accepts/returns SIP password or OCP apiKey |
 | Profile list | **No** `account:list-profiles` in v1 — your product supplies `profileRef` |
+| SIP vs OCP | Property of the **saved profile** inside desktop — not a wire selector |
+
+## Flow (ADR-0018 §E)
+
+1. Origin must be `allowed` (not blacklisted) and session authenticated.
+2. Host calls `activateProfile({ profileRef, expectedRevision })` — **no password**.
+3. Desktop outcomes:
+   - Origin activate policy off → `forbidden` + `permission_denied` (**no modal**).
+   - No matching saved profile → `not_found` (+ Account UI as needed).
+   - Saved profile found + policy on → renderer consent modal:
+     - Allow → one unified Account sign-in with local secrets;
+     - Deny → persist activate-disabled for Origin + `forbidden`; later attempts denied
+       until Settings → Integrations → Axatalk SDK re-enables activate;
+     - While modal open, duplicate activate → `conflict` / pending (no spam);
+     - Any close/choice clears pending (no hang).
+4. Active session → `conflict` (logout-first) unchanged.
 
 ## Failure pedagogy
 
 | Code | Typical cause | Host next step |
 | --- | --- | --- |
-| `forbidden` | Cap not granted / revoked | Direct operator to Axatalk Settings grant |
-| `not_ready` | Called before `ready` | Wait for ready |
-| `conflict` | Active session (logout-first) | Run logout workflow, then retry activate |
+| `forbidden` | Cap/policy deny / consent Deny / activate disabled (`permission_denied`) | Direct operator to Axatalk SDK Settings; do not retry in a tight loop |
+| `not_ready` | Client not in `ready` / product broker not ready | Wait / show connecting |
+| `conflict` | Active session (logout-first) **or** activate consent already pending | Logout workflow, or wait for operator to finish/dismiss modal |
 | `stale_state` | Wrong revision | Refresh snapshot; retry once if intended |
-| `not_found` | Unknown `profileRef` | Fix ref from your desktop-approved channel |
+| `not_found` | Unknown `profileRef` / no saved profile | Fix ref or wait for human sign-in in desktop UI |
+| `interaction_required` | Human must complete an in-progress Account UI step | Focus softphone; poll snapshot `signedIn` — do not invent credentials |
 | `invalid_payload` | Malformed / secret-looking reply | Fail closed; do not parse secrets |
 | `timeout` | No reply | Surface retry; no auto-replay |
 
-## Example pattern (grant injected by peer / desktop)
-
-Production: desktop grants the cap after human approval.  
-Fake-peer demos: peer includes `account.activate` in **granted** capabilities at approve
-time — **not** via client `requestedCapabilities`.
+## Example pattern (grant / policy + consent)
 
 ```ts
 if (!client.getGrantedCapabilities().includes('account.activate')) {
-  // Do not call activateProfile — show grant instructions
+  // Do not call activateProfile — show Settings grant / Origin policy instructions
   return;
 }
 try {
   await client.account.activateProfile({ profileRef, expectedRevision });
 } catch (error: unknown) {
-  // Handle forbidden / conflict / stale_state — see Errors catalog
+  // Handle forbidden / conflict / stale_state / not_found / interaction_required
   void error;
 }
 ```

@@ -18,6 +18,7 @@ export {
   AxatalkClientError,
   createAxatalkClient,
   isAxatalkClientError,
+  isOriginBlockedError,
   PUBLIC_EVENT_TYPES,
   type AxatalkAccountApi,
   type AxatalkCallsApi,

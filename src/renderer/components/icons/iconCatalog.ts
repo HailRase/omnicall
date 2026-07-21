@@ -6,6 +6,7 @@ import {
   AudioLines,
   Bell,
   BellOff,
+  Blocks,
   Check,
   ChevronDown,
   ChevronLeft,
@@ -115,6 +116,7 @@ export type IconSemanticId =
   | "settings.headset"
   | "settings.integrations"
   | "settings.integrations.ocp"
+  | "settings.integrations.sdk"
   | "settings.notifications"
   | "settings.nav.expand"
   | "settings.nav.collapse"
@@ -304,6 +306,12 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.settings.integrations.ocp",
     defaultSize: 18,
     usage: ["SettingsSidebar: settings-nav-integrations-ocp"],
+  },
+  "settings.integrations.sdk": {
+    static: Blocks,
+    defaultLabelKey: "icons.settings.integrations.sdk",
+    defaultSize: 18,
+    usage: ["SettingsSidebar: settings-nav-integrations-sdk"],
   },
   "settings.notifications": {
     static: Bell,

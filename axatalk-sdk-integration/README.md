@@ -54,7 +54,7 @@ Native window commands remain in main.
 
 ## Current Status
 
-- F-011: **in progress** (DI-01…DI-09 `done`; DI-10 `review` — partial packaged evidence; F-011/P12 not closed; SDK-00…SDK-10 Mode A `done`)
+- F-011: **in progress** (DI-01…DI-11 `done`; F-011/P12 not closed — remaining OPEN DI-10 smoke; SDK-00…SDK-10 Mode A `done`)
 - ADRs: ADR-0009…0013 Accepted; precision rows closed by SDK-01 ADR-0014…0017 (`done`)
 - SDK-02: `@axata/axatalk-protocol` `done`; desktop consumes same fixtures (DI-01)
 - P12 handoff: `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`
@@ -72,9 +72,12 @@ Native window commands remain in main.
 - External gateway: loopback WS + pairing/PoP/capabilities + read-only + call + operator/logout + activate-profile (DI-08 `done`); mock retained
 - External handlers: `ExternalSdkProductHandler` (read + call + operator + account activate)
 - Main-to-renderer command broker: real IPC adapter `done` (DI-02); mock retained for unit tests
-- SDK Settings UX: **`done`** (DI-09) — enablement/origins/paired/revoke/grant/diagnostics; hide disabled
+- SDK Settings UX: **`done`** (DI-09) — origins/paired/revoke/grant/diagnostics; hide disabled;
+  **listener enable toggle superseded by DI-11** (always-on gateway per ADR-0018 — `done`)
 - Read-only event/snapshot transport: implemented (DI-05 `done`)
-- Next: **`/sdk-review` DI-10 only** — evidence `evidence/DI-10-compatibility-e2e-p12-close.md`
+- DI-10 evidence: `evidence/DI-10-compatibility-e2e-p12-close.md` (`done` — `/sdk-review` PASS 2026-07-21; handshake subset; pair/call/SIP OPEN)
+- DI-11 evidence: `evidence/DI-11-origin-tofu-blacklist-activate.md` (`done` — `/sdk-review` PASS 2026-07-21)
+- Next: remaining OPEN DI-10 smoke/waivers → F-011/`implemented` / P12 close (DI-11 already PASS)
+- DI-11 planning (decisions frozen): `evidence/DI-11-origin-tofu-blacklist-activate-planning.md`
 
-Do not claim P12 complete until every desktop work unit is reviewed and the packaged
-Electron end-to-end and security gates pass.
+Do not claim P12 complete until remaining packaged smoke/waivers pass (DI-00…DI-11 reviewed).

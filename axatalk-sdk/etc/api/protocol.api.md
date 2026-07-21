@@ -649,10 +649,10 @@ export const CommandFailureReplySchema: z.ZodReadonly<z.ZodObject<{
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
-            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
+            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
             forbidden: "forbidden";
             revoked: "revoked";
@@ -668,6 +668,7 @@ export const CommandFailureReplySchema: z.ZodReadonly<z.ZodObject<{
             local_network_permission_required: "local_network_permission_required";
             local_network_permission_denied: "local_network_permission_denied";
             discovery_unreachable: "discovery_unreachable";
+            origin_blocked: "origin_blocked";
         }>;
         retryable: z.ZodBoolean;
         currentRevision: z.ZodOptional<z.ZodNumber>;
@@ -677,11 +678,11 @@ export const CommandFailureReplySchema: z.ZodReadonly<z.ZodObject<{
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
-        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
+        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -939,11 +940,11 @@ export const CommandSuccessReplySchema: z.ZodReadonly<z.ZodObject<{
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
-        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
+        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -1853,7 +1854,7 @@ export const PROTOCOL_DEPRECATION_MIN_DAYS: 90;
 export const PROTOCOL_DEPRECATION_MIN_DESKTOP_MINORS: 2;
 
 // @public
-export const PROTOCOL_ERROR_CODES: readonly ["invalid_message", "invalid_payload", "unsupported_command", "incompatible_version", "unauthenticated", "forbidden", "revoked", "not_ready", "not_found", "not_owner", "conflict", "stale_state", "interaction_required", "timeout", "rate_limited", "operation_failed", "local_network_permission_required", "local_network_permission_denied", "discovery_unreachable"];
+export const PROTOCOL_ERROR_CODES: readonly ["invalid_message", "invalid_payload", "unsupported_command", "incompatible_version", "unauthenticated", "forbidden", "revoked", "not_ready", "not_found", "not_owner", "conflict", "stale_state", "interaction_required", "timeout", "rate_limited", "operation_failed", "local_network_permission_required", "local_network_permission_denied", "discovery_unreachable", "origin_blocked"];
 
 // @public
 export const PROTOCOL_MAJOR: 1;
@@ -2216,11 +2217,11 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
-        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
+        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -2243,10 +2244,10 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
-            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
+            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
             forbidden: "forbidden";
             revoked: "revoked";
@@ -2262,6 +2263,7 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
             local_network_permission_required: "local_network_permission_required";
             local_network_permission_denied: "local_network_permission_denied";
             discovery_unreachable: "discovery_unreachable";
+            origin_blocked: "origin_blocked";
         }>;
         retryable: z.ZodBoolean;
         currentRevision: z.ZodOptional<z.ZodNumber>;
@@ -2271,11 +2273,11 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
-        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
+        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -2797,10 +2799,10 @@ export type ProtocolErrorCode = z.infer<typeof ProtocolErrorCodeSchema>;
 
 // @public (undocumented)
 export const ProtocolErrorCodeSchema: z.ZodEnum<{
-    incompatible_version: "incompatible_version";
     invalid_message: "invalid_message";
     invalid_payload: "invalid_payload";
     unsupported_command: "unsupported_command";
+    incompatible_version: "incompatible_version";
     unauthenticated: "unauthenticated";
     forbidden: "forbidden";
     revoked: "revoked";
@@ -2816,6 +2818,7 @@ export const ProtocolErrorCodeSchema: z.ZodEnum<{
     local_network_permission_required: "local_network_permission_required";
     local_network_permission_denied: "local_network_permission_denied";
     discovery_unreachable: "discovery_unreachable";
+    origin_blocked: "origin_blocked";
 }>;
 
 // @public (undocumented)
@@ -2824,10 +2827,10 @@ export type ProtocolErrorObject = z.infer<typeof ProtocolErrorObjectSchema>;
 // @public
 export const ProtocolErrorObjectSchema: z.ZodReadonly<z.ZodObject<{
     code: z.ZodEnum<{
-        incompatible_version: "incompatible_version";
         invalid_message: "invalid_message";
         invalid_payload: "invalid_payload";
         unsupported_command: "unsupported_command";
+        incompatible_version: "incompatible_version";
         unauthenticated: "unauthenticated";
         forbidden: "forbidden";
         revoked: "revoked";
@@ -2843,6 +2846,7 @@ export const ProtocolErrorObjectSchema: z.ZodReadonly<z.ZodObject<{
         local_network_permission_required: "local_network_permission_required";
         local_network_permission_denied: "local_network_permission_denied";
         discovery_unreachable: "discovery_unreachable";
+        origin_blocked: "origin_blocked";
     }>;
     retryable: z.ZodBoolean;
     currentRevision: z.ZodOptional<z.ZodNumber>;
@@ -2932,11 +2936,11 @@ export const ReplyMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
-        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
+        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -2959,10 +2963,10 @@ export const ReplyMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
-            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
+            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
             forbidden: "forbidden";
             revoked: "revoked";
@@ -2978,6 +2982,7 @@ export const ReplyMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
             local_network_permission_required: "local_network_permission_required";
             local_network_permission_denied: "local_network_permission_denied";
             discovery_unreachable: "discovery_unreachable";
+            origin_blocked: "origin_blocked";
         }>;
         retryable: z.ZodBoolean;
         currentRevision: z.ZodOptional<z.ZodNumber>;
@@ -2987,11 +2992,11 @@ export const ReplyMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
-        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
+        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -3797,11 +3802,11 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
-        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
+        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -3824,10 +3829,10 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
-            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
+            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
             forbidden: "forbidden";
             revoked: "revoked";
@@ -3843,6 +3848,7 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
             local_network_permission_required: "local_network_permission_required";
             local_network_permission_denied: "local_network_permission_denied";
             discovery_unreachable: "discovery_unreachable";
+            origin_blocked: "origin_blocked";
         }>;
         retryable: z.ZodBoolean;
         currentRevision: z.ZodOptional<z.ZodNumber>;
@@ -3852,11 +3858,11 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
-        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
+        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";

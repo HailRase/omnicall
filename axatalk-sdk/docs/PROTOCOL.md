@@ -187,6 +187,16 @@ Initial error codes:
 - `local_network_permission_required` — client-side / SDK mapping (not a desktop wire code)
 - `local_network_permission_denied` — client-side / SDK mapping
 - `discovery_unreachable` — client-side / SDK mapping
+- `origin_blocked` — client-side / SDK mapping when desktop rejects the WebSocket upgrade
+  for a blacklisted Origin (ADR-0018; no JSON frame on the wire)
+
+Wire details keys (inside `forbidden` / related failures — no secrets):
+
+- `origin_denied` — first-contact Origin Deny (typed reply then close)
+- `permission_denied` — capability or Origin matrix deny (including activate disabled)
+- `activate_denied_for_origin` — activate blocked for Origin after consent Deny / policy
+- `activate_consent_pending` — optional details key with primary wire code `conflict` when
+  a second activate arrives while the consent modal is open (ADR-0018)
 
 Raw exceptions and upstream SIP/OCP messages never cross the boundary.
 
@@ -243,8 +253,11 @@ below with ADR-0014…0017. IDs match the P12 handoff.
 | O-CAMP-1 | Whether campaign events enter v1 or a later capability | ADR-0017 — deferred past v1 | SDK-05, DI-05 |
 | O-OCP-1 | Public operator field names vs F-028 E-12 map | ADR-0017 | DI-07 |
 
-Policy baselines (still closed from DI-00): loopback-only bind, exact Origin, no raw
-credentials in v1, per-client events, `window:hide` gated, Account sole human sign-in
-(ADR-AF-003) with opaque saved-profile activation only.
+Policy baselines (still closed from DI-00 / ADR-0018): loopback-only bind, exact Origin
+match with TOFU/blacklist admission (ADR-0018), discovery CORS for `unknown`+`allowed`,
+no raw credentials in v1, per-client events, `window:hide` gated, Account sole human
+sign-in (ADR-AF-003) with opaque saved-profile activation + per-attempt consent modal
+(ADR-0018). Always-on gateway listener (no normal Settings off toggle; env kill-switch
+only). F-011 close requires DI-11 behavior (or waiver), not docs alone.
 
 No implementation agent may reopen these rows implicitly in production code without a new ADR.

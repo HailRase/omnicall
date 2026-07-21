@@ -12,6 +12,12 @@ import type { SdkPairingApprover } from "./sdkGatewayPairingTypes.js";
 import type { SdkGatewayPairingStore } from "./sdkGatewayPairingStore.js";
 import type { SdkGatewayProductSurface } from "./sdkGatewayProductSurface.js";
 import type { SdkRequestDedupCache } from "./sdkGatewayRequestDedup.js";
+import type {
+  SdkOriginTrustApprover,
+  SdkOriginTrustDecision,
+} from "./sdkGatewayOriginTrustApprover.js";
+import type { SdkOriginTrustState } from "@domain/index.js";
+import type { CapabilityId } from "@axata/axatalk-protocol";
 import { dispatchSdkValidatedMessage } from "./sdkGatewaySessionDispatch.js";
 import { startSdkGatewayHeartbeat } from "./sdkGatewaySessionSocket.js";
 import type { SdkAccountActivateGrantStore } from "./sdkAccountActivateGrantStore.js";
@@ -28,6 +34,12 @@ export type LocalWsSessionInboundDeps = Readonly<{
   getIdentity: () => SdkGatewayIdentity | null;
   pairingStore: SdkGatewayPairingStore;
   pairingApprover: SdkPairingApprover;
+  getOriginTrustState: (origin: string) => SdkOriginTrustState;
+  originTrustApprover: SdkOriginTrustApprover;
+  onOriginTrustDecision: (
+    input: Readonly<{ origin: string; decision: SdkOriginTrustDecision }>,
+  ) => void;
+  getOriginMatrixCapabilities: (origin: string) => readonly CapabilityId[];
   challenges: SdkAuthChallengeCache;
   requestDedup: SdkRequestDedupCache;
   now: () => Date;
@@ -65,6 +77,10 @@ export function parseAndDispatchLocalWsSession(
     getIdentity: deps.getIdentity,
     pairingStore: deps.pairingStore,
     pairingApprover: deps.pairingApprover,
+    getOriginTrustState: deps.getOriginTrustState,
+    originTrustApprover: deps.originTrustApprover,
+    onOriginTrustDecision: deps.onOriginTrustDecision,
+    getOriginMatrixCapabilities: deps.getOriginMatrixCapabilities,
     challenges: deps.challenges,
     requestDedup: deps.requestDedup,
     now: deps.now,

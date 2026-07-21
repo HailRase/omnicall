@@ -37,13 +37,30 @@ export function createSdkAccountPortFromFacade(
   return {
     activateSavedProfile: (profileRef) =>
       activateSavedProfileViaFacade(options, profileRef),
+    lookupSavedProfileLabel: (profileRef) =>
+      lookupSavedProfileLabelViaFacade(options, profileRef),
   };
 }
 
-async function activateSavedProfileViaFacade(
+async function lookupSavedProfileLabelViaFacade(
   options: CreateSdkAccountPortFromFacadeOptions,
   profileRef: string,
-): Promise<Result<SdkActivateProfileOutcome, PlatformError>> {
+): Promise<Result<{ profileLabel: string }, PlatformError>> {
+  const profile = await findApprovedSavedProfile(options, profileRef);
+  if (!profile.ok) {
+    return profile;
+  }
+  const label =
+    profile.value.displayName.trim().length > 0
+      ? profile.value.displayName.trim().slice(0, 128)
+      : profile.value.username.trim().slice(0, 128);
+  return ok({ profileLabel: label.length > 0 ? label : "profile" });
+}
+
+async function findApprovedSavedProfile(
+  options: CreateSdkAccountPortFromFacadeOptions,
+  profileRef: string,
+): Promise<Result<SavedAccountProfile, PlatformError>> {
   const profileIdRaw = decodeSdkProfileRef(profileRef);
   if (profileIdRaw === null) {
     return err(createPlatformError("not_found", PROFILE_NOT_FOUND));
@@ -60,6 +77,18 @@ async function activateSavedProfileViaFacade(
   if (isDraftSavedAccountProfile(profile)) {
     return err(createPlatformError("forbidden", PROFILE_NOT_APPROVED));
   }
+  return ok(profile);
+}
+
+async function activateSavedProfileViaFacade(
+  options: CreateSdkAccountPortFromFacadeOptions,
+  profileRef: string,
+): Promise<Result<SdkActivateProfileOutcome, PlatformError>> {
+  const profileResult = await findApprovedSavedProfile(options, profileRef);
+  if (!profileResult.ok) {
+    return profileResult;
+  }
+  const profile = profileResult.value;
 
   const command = buildActivateCommand(profile, options.ocpModuleEnabled === true);
   if (!command.ok) {

@@ -17,6 +17,8 @@ export type SdkBrokerRequestIpcPayload = Readonly<{
   command: unknown;
   /** Authenticated SDK clientId for ownership checks (DI-06). */
   clientId?: string;
+  /** Exact Origin of the authenticated connection (DI-11 activate consent). */
+  origin?: string;
 }>;
 
 export type SdkBrokerReplySuccessIpcPayload = Readonly<{
@@ -90,10 +92,20 @@ export function parseSdkBrokerRequestIpcPayload(
   ) {
     return null;
   }
+  const origin = candidate["origin"];
+  if (
+    origin !== undefined &&
+    (typeof origin !== "string" ||
+      origin.length === 0 ||
+      origin.length > 253)
+  ) {
+    return null;
+  }
   return {
     brokerRequestId,
     command: candidate["command"],
     ...(typeof clientId === "string" ? { clientId } : {}),
+    ...(typeof origin === "string" ? { origin } : {}),
   };
 }
 

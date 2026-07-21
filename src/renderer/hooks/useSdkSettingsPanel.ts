@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
+  createDefaultSdkOriginCapabilityMatrix,
   parseSdkOriginsDraft,
   SDK_INTEGRATION_DEFAULTS,
   type SdkIntegrationSettings,
@@ -14,6 +15,7 @@ import type {
   SdkGatewaySettingsResponse,
   SdkPairedClientProjection,
   SdkPendingPairingProjection,
+  SdkPendingOriginTrustProjection,
 } from "@shared/ipc/SdkGatewaySettingsContract.js";
 import {
   loadSdkProfileOptions,
@@ -63,6 +65,9 @@ export function useSdkSettingsPanel(
   const [pendingPairing, setPendingPairing] = useState<
     readonly SdkPendingPairingProjection[]
   >([]);
+  const [pendingOriginTrust, setPendingOriginTrust] = useState<
+    readonly SdkPendingOriginTrustProjection[]
+  >([]);
   const [profileOptions, setProfileOptions] = useState<readonly SdkProfileOption[]>([]);
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
@@ -77,16 +82,22 @@ export function useSdkSettingsPanel(
       return;
     }
     setDiagnostics(response.snapshot.diagnostics);
-    setAllowedOriginsLive(response.snapshot.allowedOrigins);
-    setPairedClients(response.snapshot.pairedClients);
+    setAllowedOriginsLive(
+      (response.snapshot.origins ?? [])
+        .filter((entry) => entry.state === "allowed")
+        .map((entry) => entry.origin),
+    );
+    setPairedClients(response.snapshot.paired ?? response.snapshot.pairedClients ?? []);
     setPendingPairing(response.snapshot.pendingPairing);
+    setPendingOriginTrust(response.snapshot.pendingOriginTrust ?? []);
     if ("grant" in response) {
       setLastGrant(response.grant);
     }
   }, []);
 
   const refreshSnapshot = useCallback(async (): Promise<void> => {
-    applySnapshot(await invokeSdkGatewaySettings({ op: "getSnapshot" }));
+    const response = await invokeSdkGatewaySettings({ op: "getSnapshot" });
+    applySnapshot(response);
   }, [applySnapshot, invokeSdkGatewaySettings]);
 
   useEffect(() => {
@@ -103,13 +114,54 @@ export function useSdkSettingsPanel(
         return;
       }
       setErrorKey(null);
-      setSettings(settingsResult.value.sdkIntegration);
-      setOriginsDraft(settingsResult.value.sdkIntegration.allowedOrigins.join("\n"));
       onActiveUserSettingsRefresh(settingsResult.value);
       setProfileOptions(await loadSdkProfileOptions(facade));
-      await refreshSnapshot();
+      // Prefer live gateway trust (machine-common hydrate) over account silo.
+      const response = await invokeSdkGatewaySettings({ op: "getSnapshot" });
+      applySnapshot(response);
+      const snapshotOrigins =
+        response.ok && response.snapshot.origins !== undefined
+          ? response.snapshot.origins
+          : null;
+      // Live gateway snapshot is SoT; mirror into the active account bucket when it differs.
+      const live: SdkIntegrationSettings =
+        snapshotOrigins !== null
+          ? { originsManaged: true, origins: snapshotOrigins }
+          : settingsResult.value.sdkIntegration;
+      setSettings(live);
+      setOriginsDraft(
+        live.origins
+          .filter((entry) => entry.state === "allowed")
+          .map((entry) => entry.origin)
+          .join("\n"),
+      );
+      if (
+        snapshotOrigins !== null &&
+        JSON.stringify(live.origins) !==
+          JSON.stringify(settingsResult.value.sdkIntegration.origins)
+      ) {
+        const mirrored = await facade.saveUserSettings({
+          ...settingsResult.value,
+          sdkIntegration: live,
+        });
+        if (mirrored.ok) {
+          onActiveUserSettingsRefresh(mirrored.value);
+        }
+      }
     })();
-  }, [facade, onActiveUserSettingsRefresh, refreshSnapshot]);
+  }, [
+    applySnapshot,
+    facade,
+    invokeSdkGatewaySettings,
+    onActiveUserSettingsRefresh,
+  ]);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      void refreshSnapshot();
+    }, 1500);
+    return () => window.clearInterval(timer);
+  }, [refreshSnapshot]);
 
   const persistAndApply = useCallback(async (next: SdkIntegrationSettings) => {
     if (facade === null) return;
@@ -134,11 +186,21 @@ export function useSdkSettingsPanel(
     try {
       const response = await invokeSdkGatewaySettings(operation);
       applySnapshot(response);
+      if (
+        response.ok &&
+        response.snapshot.origins !== undefined &&
+        JSON.stringify(response.snapshot.origins) !== JSON.stringify(settings.origins)
+      ) {
+        await persistAndApply({
+          originsManaged: true,
+          origins: response.snapshot.origins,
+        });
+      }
       setErrorKey(response.ok ? null : mapSdkGatewayOpError(operation));
     } finally {
       setBusy(false);
     }
-  }, [applySnapshot, invokeSdkGatewaySettings]);
+  }, [applySnapshot, invokeSdkGatewaySettings, persistAndApply, settings.origins]);
 
   return {
     settings,
@@ -146,6 +208,7 @@ export function useSdkSettingsPanel(
     allowedOriginsLive,
     pairedClients,
     pendingPairing,
+    pendingOriginTrust,
     profileOptions,
     selectedClientId,
     selectedProfileId,
@@ -153,9 +216,6 @@ export function useSdkSettingsPanel(
     originsDraft,
     errorKey,
     busy,
-    onEnabledChange: (enabled) => {
-      void persistAndApply({ ...settings, enabled });
-    },
     onOriginsDraftChange: setOriginsDraft,
     onOriginsSave: () => {
       const parsed = parseSdkOriginsDraft(originsDraft);
@@ -165,7 +225,17 @@ export function useSdkSettingsPanel(
       }
       void persistAndApply({
         ...settings,
-        allowedOrigins: parsed,
+        origins: [
+          ...settings.origins.filter((entry) => entry.state === "denied"),
+          ...parsed.map((origin) => ({
+            origin,
+            state: "allowed" as const,
+            matrix:
+              settings.origins.find((entry) => entry.origin === origin)?.matrix ??
+              createDefaultSdkOriginCapabilityMatrix(),
+            previouslyAllowed: true,
+          })),
+        ],
         originsManaged: true,
       });
     },
@@ -193,6 +263,18 @@ export function useSdkSettingsPanel(
         clientId: selectedClientId,
         profileId: selectedProfileId,
       });
+    },
+    onAllowOriginTrust: (originTrustRequestId) => {
+      void runOp({ op: "allowOriginTrust", originTrustRequestId });
+    },
+    onDenyOriginTrust: (originTrustRequestId) => {
+      void runOp({ op: "denyOriginTrust", originTrustRequestId });
+    },
+    onUnblockOrigin: (origin) => {
+      void runOp({ op: "unblockOrigin", origin });
+    },
+    onSetOriginMatrix: (origin, matrix) => {
+      void runOp({ op: "setOriginMatrix", origin, matrix });
     },
   };
 }

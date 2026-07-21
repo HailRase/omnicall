@@ -6,7 +6,9 @@ DOCUMENT.
 
 ## Status
 
-Accepted (2026-07-20) — closes **O-DISC-1**, **O-DISC-2**, **O-BRW-1**, **O-BRW-2** (SDK-01)
+Accepted (2026-07-20) — closes **O-DISC-1**, **O-DISC-2**, **O-BRW-1**, **O-BRW-2** (SDK-01).
+**CORS eligibility clarified 2026-07-21 by ADR-0018** (`unknown` + `allowed` may receive
+discovery ACAO; `denied` must not).
 
 ## Context
 
@@ -39,8 +41,13 @@ bootstrap (harder to version, no cacheable GET, poorer CRM diagnostics).
    (and `http://[::1]:17341/axatalk/v1/discovery` when IPv6 loopback is enabled).
 
 3. **Method/headers:** GET only. No cookies. No `Authorization`. CORS for browser tabs:
-   reflect **exact** approved Origin when present on the allowlist; otherwise omit ACAO /
+   reflect **exact** Origin in `Access-Control-Allow-Origin` when Origin state is
+   **`unknown` or `allowed`** (ADR-0018 — required so first-contact TOFU can discover the
+   gateway). **`denied` (blacklist) must not** receive discovery ACAO. Documented loopback
+   tooling Origins may be treated as eligible when policy allows. Otherwise omit ACAO /
    fail closed for credentialed misuse. Discovery itself reveals no product PII.
+   WebSocket upgrade admission remains ADR-0018 (`unknown` → renderer modal; `denied` →
+   reject upgrade).
 
 4. **Response schema (`discoveryVersion: 1`)** — JSON object, all fields required unless
    marked optional:
@@ -79,7 +86,8 @@ Host pages for production CRM must be **secure contexts (HTTPS)**. Non-secure pu
 hosts cannot reliably obtain LNA permission and are unsupported.
 
 `http://localhost` / loopback-hosted pages used only for local SDK development may connect
-without public→loopback LNA; still subject to Origin allowlist on the desktop.
+without public→loopback LNA; still subject to Origin trust-store admission on the desktop
+(ADR-0018: `unknown` / `allowed` / `denied`).
 
 ### O-BRW-2 — Permission / UX copy keys (implementation in DI-09)
 
@@ -129,4 +137,4 @@ only if ever needed). Axatalk v1 targets **loopback only**, not LAN devices.
 
 - Closes: O-DISC-1, O-DISC-2, O-BRW-1, O-BRW-2
 - Evidence: `axatalk-sdk/evidence/SDK-01-browser-spike.md`
-- Related: ADR-0010, ADR-0011, MDN Local network access
+- Related: ADR-0010, ADR-0011, ADR-0018, MDN Local network access

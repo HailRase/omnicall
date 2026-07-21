@@ -4,6 +4,10 @@
  */
 
 import { parseSdkGatewaySettingsSnapshot } from "./parseSdkGatewaySettingsSnapshot.js";
+import type {
+  SdkOriginCapabilityMatrix,
+  SdkOriginTrustEntry,
+} from "@domain/settings/SdkOriginTrust.js";
 
 export type SdkGatewayOperationalStatus = "disabled" | "listening";
 
@@ -50,9 +54,8 @@ export type SdkActivateGrantResultProjection =
     }>;
 
 export type SdkGatewaySettingsPolicyPayload = Readonly<{
-  enabled: boolean;
-  allowedOrigins: readonly string[];
   originsManaged: boolean;
+  origins: readonly SdkOriginTrustEntry[];
 }>;
 
 export type SdkGatewaySettingsOperation =
@@ -62,6 +65,17 @@ export type SdkGatewaySettingsOperation =
   | Readonly<{ op: "denyPairing"; pairingRequestId: string }>
   | Readonly<{ op: "revokeClient"; clientId: string }>
   | Readonly<{
+      op: "allowOriginTrust" | "denyOriginTrust";
+      origin?: string;
+      originTrustRequestId?: string;
+    }>
+  | Readonly<{ op: "unblockOrigin"; origin: string }>
+  | Readonly<{
+      op: "setOriginMatrix";
+      origin: string;
+      matrix: SdkOriginCapabilityMatrix;
+    }>
+  | Readonly<{
       op: "issueActivateGrant";
       clientId: string;
       profileId: string;
@@ -69,17 +83,24 @@ export type SdkGatewaySettingsOperation =
 
 export type SdkGatewaySettingsSnapshot = Readonly<{
   diagnostics: SdkGatewayDiagnosticsProjection;
-  allowedOrigins: readonly string[];
-  pairedClients: readonly SdkPairedClientProjection[];
+  origins?: readonly SdkOriginTrustEntry[];
+  pendingOriginTrust?: readonly SdkPendingOriginTrustProjection[];
+  paired?: readonly SdkPairedClientProjection[];
+  pairedClients?: readonly SdkPairedClientProjection[];
+  allowedOrigins?: readonly string[];
   pendingPairing: readonly SdkPendingPairingProjection[];
 }>;
 
+export type SdkPendingOriginTrustProjection = Readonly<{
+  originTrustRequestId: string;
+  origin: string;
+}>;
+
 export type SdkGatewaySettingsResponse =
-  | Readonly<{ ok: true; snapshot: SdkGatewaySettingsSnapshot }>
   | Readonly<{
       ok: true;
-      grant: SdkActivateGrantResultProjection;
       snapshot: SdkGatewaySettingsSnapshot;
+      grant?: SdkActivateGrantResultProjection;
     }>
   | Readonly<{ ok: false; reason: string }>;
 
@@ -96,34 +117,48 @@ function parsePolicy(value: unknown): SdkGatewaySettingsPolicyPayload | null {
     return null;
   }
   const record = value as Record<string, unknown>;
-  if (typeof record["enabled"] !== "boolean") {
-    return null;
-  }
   if (typeof record["originsManaged"] !== "boolean") {
     return null;
   }
-  const originsRaw = record["allowedOrigins"];
+  const originsRaw = record["origins"];
   if (!Array.isArray(originsRaw) || originsRaw.length > MAX_ORIGINS) {
     return null;
   }
-  const allowedOrigins: string[] = [];
+  const origins: SdkOriginTrustEntry[] = [];
   for (const entry of originsRaw) {
-    if (typeof entry !== "string") {
+    if (typeof entry !== "object" || entry === null) {
       return null;
     }
-    const trimmed = entry.trim();
-    if (trimmed.length === 0 || trimmed.length > MAX_ORIGIN_LENGTH) {
+    const row = entry as Record<string, unknown>;
+    if (
+      typeof row["origin"] !== "string" ||
+      typeof row["state"] !== "string" ||
+      typeof row["previouslyAllowed"] !== "boolean"
+    ) {
       return null;
     }
-    if (trimmed.toLowerCase() === "null" || trimmed.includes("*")) {
+    const origin = row["origin"].trim();
+    if (
+      origin.length === 0 ||
+      origin.length > MAX_ORIGIN_LENGTH ||
+      origin.toLowerCase() === "null" ||
+      origin.includes("*") ||
+      (row["state"] !== "unknown" &&
+        row["state"] !== "allowed" &&
+        row["state"] !== "denied")
+    ) {
       return null;
     }
-    allowedOrigins.push(trimmed);
+    origins.push({
+      origin,
+      state: row["state"],
+      previouslyAllowed: row["previouslyAllowed"],
+      matrix: row["matrix"] as SdkOriginTrustEntry["matrix"],
+    });
   }
   return {
-    enabled: record["enabled"],
-    allowedOrigins,
     originsManaged: record["originsManaged"],
+    origins,
   };
 }
 
@@ -165,6 +200,41 @@ export function parseSdkGatewaySettingsOperation(
         return null;
       }
       return { op, clientId: clientId.trim() };
+    }
+    case "allowOriginTrust":
+    case "denyOriginTrust": {
+      const origin = record["origin"];
+      const originTrustRequestId = record["originTrustRequestId"];
+      if (
+        (origin === undefined || !isNonEmptyString(origin) || origin.length > MAX_ORIGIN_LENGTH) &&
+        (originTrustRequestId === undefined ||
+          !isNonEmptyString(originTrustRequestId) ||
+          originTrustRequestId.length > MAX_ID_LENGTH)
+      ) {
+        return null;
+      }
+      return {
+        op,
+        ...(isNonEmptyString(origin) ? { origin: origin.trim() } : {}),
+        ...(isNonEmptyString(originTrustRequestId)
+          ? { originTrustRequestId: originTrustRequestId.trim() }
+          : {}),
+      };
+    }
+    case "unblockOrigin": {
+      const origin = record["origin"];
+      if (!isNonEmptyString(origin) || origin.length > MAX_ORIGIN_LENGTH) {
+        return null;
+      }
+      return { op, origin: origin.trim() };
+    }
+    case "setOriginMatrix": {
+      const origin = record["origin"];
+      const matrix = record["matrix"];
+      if (!isNonEmptyString(origin) || typeof matrix !== "object" || matrix === null) {
+        return null;
+      }
+      return { op, origin: origin.trim(), matrix: matrix as SdkOriginCapabilityMatrix };
     }
     case "issueActivateGrant": {
       const clientId = record["clientId"];

@@ -5,6 +5,10 @@
 import type { LocalWsServerAdapter } from "@adapters/integration/LocalWsServerAdapter.js";
 import { createConsoleLogger } from "@infrastructure/logging/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
+import {
+  setSdkOriginCapabilityMatrix,
+  unblockSdkOrigin,
+} from "@domain/settings/sdkOriginTrustMutations.js";
 import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
 import {
   parseSdkGatewaySettingsOperation,
@@ -78,9 +82,10 @@ async function handleSdkGatewaySettingsOperation(
       logger.info("sdk_gateway_policy_applied", {
         correlationId: createCorrelationId(),
         operation: "sdk_gateway_settings",
-        enabled: operation.policy.enabled,
         originsManaged: operation.policy.originsManaged,
-        allowedOriginsCount: operation.policy.allowedOrigins.length,
+        allowedOriginsCount: operation.policy.origins.filter(
+          (entry) => entry.state === "allowed",
+        ).length,
       });
       const snapshot = await buildSdkGatewaySettingsSnapshot(runtime.getGateway());
       return { ok: true, snapshot };
@@ -127,6 +132,47 @@ async function handleSdkGatewaySettingsOperation(
       });
       const snapshot = await buildSdkGatewaySettingsSnapshot(runtime.getGateway());
       return { ok: true, grant, snapshot };
+    }
+    case "allowOriginTrust":
+    case "denyOriginTrust": {
+      const gateway = runtime.getGateway();
+      if (gateway === null) return { ok: false, reason: "gateway_unavailable" };
+      const pending = gateway.listPendingOriginTrust().find(
+        (entry) =>
+          (operation.originTrustRequestId !== undefined &&
+            entry.originTrustRequestId === operation.originTrustRequestId) ||
+          (operation.origin !== undefined && entry.origin === operation.origin),
+      );
+      if (pending === undefined) return { ok: false, reason: "origin_trust_not_found" };
+      const settled =
+        operation.op === "allowOriginTrust"
+          ? gateway.allowOriginTrust(pending.originTrustRequestId)
+          : gateway.denyOriginTrust(pending.originTrustRequestId);
+      if (!settled) return { ok: false, reason: "origin_trust_not_found" };
+      return { ok: true, snapshot: await buildSdkGatewaySettingsSnapshot(gateway) };
+    }
+    case "unblockOrigin": {
+      const gateway = runtime.getGateway();
+      if (gateway === null) return { ok: false, reason: "gateway_unavailable" };
+      const next = unblockSdkOrigin(
+        { originsManaged: true, origins: gateway.getOriginTrustEntries() },
+        operation.origin,
+      );
+      if (next === null) return { ok: false, reason: "origin_not_denied" };
+      gateway.setOriginTrustEntries(next.origins);
+      return { ok: true, snapshot: await buildSdkGatewaySettingsSnapshot(gateway) };
+    }
+    case "setOriginMatrix": {
+      const gateway = runtime.getGateway();
+      if (gateway === null) return { ok: false, reason: "gateway_unavailable" };
+      const next = setSdkOriginCapabilityMatrix(
+        { originsManaged: true, origins: gateway.getOriginTrustEntries() },
+        operation.origin,
+        operation.matrix,
+      );
+      if (next === null) return { ok: false, reason: "origin_not_allowed" };
+      gateway.setOriginTrustEntries(next.origins);
+      return { ok: true, snapshot: await buildSdkGatewaySettingsSnapshot(gateway) };
     }
     default: {
       const _exhaustive: never = operation;

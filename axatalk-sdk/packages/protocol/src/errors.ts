@@ -26,7 +26,8 @@ export const PROTOCOL_ERROR_CODES = [
   'operation_failed',
   'local_network_permission_required',
   'local_network_permission_denied',
-  'discovery_unreachable'
+  'discovery_unreachable',
+  'origin_blocked'
 ] as const;
 
 /** @public */

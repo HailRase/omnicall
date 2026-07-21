@@ -1,6 +1,7 @@
 ---
 name: axatalk-sdk-integration
-description: Implements one F-011/P12 Axatalk Desktop SDK integration work unit across Electron main, typed IPC, Application routing, security, events, settings, and compatibility tests. Use for DI-00 through DI-10.
+description: Implements one F-011/P12 Axatalk Desktop SDK integration work unit across Electron main, typed IPC, Application routing, security, events, settings, and compatibility tests. Use for DI-00 through DI-11.
+
 disable-model-invocation: true
 ---
 

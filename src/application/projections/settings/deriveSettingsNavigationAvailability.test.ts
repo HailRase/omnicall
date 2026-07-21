@@ -21,6 +21,13 @@ describe("deriveSettingsNavigationAvailability", () => {
       if (sectionId === "account") {
         continue;
       }
+      if (sectionId === "integrations-sdk") {
+        expect(availability.bySection[sectionId]).toEqual({
+          enabled: true,
+          disabledReasonKey: null,
+        });
+        continue;
+      }
       expect(availability.bySection[sectionId]).toEqual({
         enabled: false,
         disabledReasonKey: "settings.nav.disabled.authorizeFirst",
@@ -48,6 +55,9 @@ describe("deriveSettingsNavigationAvailability", () => {
     });
     expect(resolveAllowedSettingsSection(preAuth, "general")).toBe("account");
     expect(resolveAllowedSettingsSection(preAuth, "integrations")).toBe("account");
+    expect(resolveAllowedSettingsSection(preAuth, "integrations-sdk")).toBe(
+      "integrations-sdk",
+    );
     expect(resolveAllowedSettingsSection(preAuth, "diagnostics")).toBe("account");
     expect(resolveAllowedSettingsSection(preAuth, "account")).toBe("account");
 
@@ -56,5 +66,8 @@ describe("deriveSettingsNavigationAvailability", () => {
     });
     expect(resolveAllowedSettingsSection(postAuth, "codecs")).toBe("codecs");
     expect(resolveAllowedSettingsSection(postAuth, "integrations")).toBe("integrations");
+    expect(resolveAllowedSettingsSection(postAuth, "integrations-sdk")).toBe(
+      "integrations-sdk",
+    );
   });
 });

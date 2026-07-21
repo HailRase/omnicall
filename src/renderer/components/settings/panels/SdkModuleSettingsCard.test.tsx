@@ -23,7 +23,7 @@ function createProps(
   overrides: Partial<SdkModuleSettingsCardProps> = {},
 ): SdkModuleSettingsCardProps {
   return {
-    settings: { ...SDK_INTEGRATION_DEFAULTS, enabled: true, originsManaged: true },
+    settings: { ...SDK_INTEGRATION_DEFAULTS, originsManaged: true },
     diagnostics: {
       status: "listening",
       bindHost: "127.0.0.1",
@@ -60,6 +60,7 @@ function createProps(
         expiresAt: "2026-07-20T01:00:00.000Z",
       },
     ],
+    pendingOriginTrust: [],
     profileOptions: [{ id: "user@host|sip", label: "user@host" }],
     selectedClientId: "cli_1",
     selectedProfileId: "user@host|sip",
@@ -67,7 +68,6 @@ function createProps(
     originsDraft: "https://crm.example",
     errorKey: null,
     busy: false,
-    onEnabledChange: vi.fn(),
     onOriginsDraftChange: vi.fn(),
     onOriginsSave: vi.fn(),
     onRefresh: vi.fn(),
@@ -77,6 +77,10 @@ function createProps(
     onSelectClientId: vi.fn(),
     onSelectProfileId: vi.fn(),
     onIssueActivateGrant: vi.fn(),
+    onAllowOriginTrust: vi.fn(),
+    onDenyOriginTrust: vi.fn(),
+    onUnblockOrigin: vi.fn(),
+    onSetOriginMatrix: vi.fn(),
     ...overrides,
   };
 }

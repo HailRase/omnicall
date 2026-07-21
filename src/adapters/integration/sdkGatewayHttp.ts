@@ -31,14 +31,20 @@ export function writeDiscoveryResponse(
   res: ServerResponse,
   identity: SdkGatewayIdentity,
   wsUrl: string,
+  corsOrigin: string | null = null,
 ): void {
   const document = buildDiscoveryDocument(identity, wsUrl);
   const body = JSON.stringify(document);
-  res.writeHead(200, {
+  const headers: Record<string, string | number> = {
     "Content-Type": "application/json; charset=utf-8",
     "Cache-Control": "no-store",
     "Content-Length": Buffer.byteLength(body),
-  });
+  };
+  if (corsOrigin !== null) {
+    headers["Access-Control-Allow-Origin"] = corsOrigin;
+    headers["Vary"] = "Origin";
+  }
+  res.writeHead(200, headers);
   res.end(body);
 }
 
@@ -57,10 +63,11 @@ export function handleDiscoveryHttpRequest(
   res: ServerResponse,
   identity: SdkGatewayIdentity,
   wsUrl: string,
+  corsOrigin: string | null = null,
 ): void {
   const method = req.method ?? "GET";
   if (isDiscoveryGet(req.url, method)) {
-    writeDiscoveryResponse(res, identity, wsUrl);
+    writeDiscoveryResponse(res, identity, wsUrl, corsOrigin);
     return;
   }
   if ((req.url?.split("?")[0] ?? "") === DISCOVERY_PATH) {

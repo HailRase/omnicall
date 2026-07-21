@@ -7,6 +7,8 @@ import { createServer, type Server as HttpServer } from "node:http";
 import { DISCOVERY_PATH } from "@axata/axatalk-protocol";
 import { WebSocketServer } from "ws";
 
+import type { SdkOriginTrustEntry } from "@domain/index.js";
+
 import type { SdkGatewayLimits } from "./sdkGatewayConfig.js";
 import type { SdkGatewayIdentity } from "./sdkGatewayMessages.js";
 import { errorCode, listenHttp, type SdkGatewayLogFn } from "./localWsServerHelpers.js";
@@ -32,7 +34,7 @@ export async function bindLocalWsServer(input: {
   readonly limits: SdkGatewayLimits;
   readonly identity: SdkGatewayIdentity;
   readonly sessions: LocalWsSessionRegistry;
-  readonly allowedOrigins: readonly string[];
+  readonly getOriginTrustEntries: () => readonly SdkOriginTrustEntry[];
   readonly getAccepting: () => boolean;
   readonly getListening: () => boolean;
   readonly resolveWsHostPort: () => Readonly<{ host: string; port: number }>;
@@ -46,6 +48,7 @@ export async function bindLocalWsServer(input: {
       identity: input.identity,
       wsHost: bound.host,
       wsPort: bound.port,
+      originTrustEntries: input.getOriginTrustEntries(),
     });
   });
   const wss = new WebSocketServer({
@@ -63,7 +66,7 @@ export async function bindLocalWsServer(input: {
       listening: input.getListening(),
       connectionCount: input.sessions.size,
       maxConnections: input.limits.maxConnections,
-      allowedOrigins: input.allowedOrigins,
+      originTrustEntries: input.getOriginTrustEntries(),
       onAttach: (ws, origin) => {
         input.sessions.attach(ws, origin);
       },
@@ -88,7 +91,7 @@ export async function bindLocalWsServer(input: {
     host: address.address,
     port: address.port,
     discoveryPath: DISCOVERY_PATH,
-    originAllowlistSize: input.allowedOrigins.length,
+    originTrustCount: input.getOriginTrustEntries().length,
   });
 
   return {

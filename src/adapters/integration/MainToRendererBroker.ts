@@ -189,7 +189,7 @@ export class MainToRendererBroker implements MainToRendererBrokerPort {
 
   request(
     input: unknown,
-    context?: { readonly clientId?: string },
+    context?: { readonly clientId?: string; readonly origin?: string },
   ): Promise<BrokerRequestResult> {
     if (!this.accepting) {
       return Promise.resolve({ ok: false, code: "operation_failed" });
@@ -216,12 +216,14 @@ export class MainToRendererBroker implements MainToRendererBrokerPort {
     const product = toProductRequest(message);
     const brokerRequestId = this.createBrokerRequestId();
     const clientId = context?.clientId;
+    const origin = context?.origin;
     const sent = this.transport.sendRequest({
       brokerRequestId,
       command: message,
       ...(clientId !== undefined && clientId.length > 0
         ? { clientId }
         : {}),
+      ...(origin !== undefined && origin.length > 0 ? { origin } : {}),
     });
 
     if (!sent) {

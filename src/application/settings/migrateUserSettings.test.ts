@@ -81,8 +81,7 @@ describe("migrateUserSettings", () => {
     if (result.ok) {
       expect(result.value.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
       expect(result.value.sdkIntegration).toEqual({
-        enabled: true,
-        allowedOrigins: [],
+        origins: [],
         originsManaged: false,
       });
     }

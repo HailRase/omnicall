@@ -6,7 +6,9 @@ DOCUMENT.
 
 ## Status
 
-Accepted (2026-07-20)
+Accepted (2026-07-20) — **amended 2026-07-21 by ADR-0018**: gateway rollback / disable is
+an engineering env kill-switch (`AXATALK_SDK_GATEWAY=0`), **not** a consumer Settings
+listener toggle (DI-09 enable flag removed by DI-11). Process ownership unchanged.
 
 ## Context
 
@@ -58,8 +60,9 @@ Lifecycle hazards that must be decided before DI-02:
    - **Gateway disable or startup failure:** observable in diagnostics; **must not** block
      SIP-only startup, active calls, logout, or optional OCP.
 
-6. **SIP-only independence:** core softphone must function with SDK integration disabled or
-   failed. OCP remains optional.
+6. **SIP-only independence:** core softphone must function when the SDK gateway is stopped
+   via engineering kill-switch or failed to bind. OCP remains optional. Consumer Settings
+   no longer expose a normal “disable SDK server” toggle (ADR-0018).
 
 ## Alternatives Considered
 
@@ -75,7 +78,9 @@ Lifecycle hazards that must be decided before DI-02:
 - DI-03+ gateway code never imports Domain or Facades.
 - Observability: broker timeouts, reload rejects, and shutdown cancels use allowlisted log
   fields only (no payloads/secrets).
-- Rollback: disable SDK settings flag; remove gateway startup without touching SIP bootstrap.
+- Rollback: set `AXATALK_SDK_GATEWAY=0` (or omit gateway startup) without touching SIP
+  bootstrap — **not** a Settings listener toggle (ADR-0018 supersedes the earlier
+  “SDK settings flag” rollback wording from DI-09 era).
 
 ## Architecture Checks
 
@@ -89,5 +94,5 @@ Lifecycle hazards that must be decided before DI-02:
 - Feature Registry: F-011
 - Roadmap: P12
 - Plans: `axatalk-sdk-integration/IMPLEMENTATION-PLAN.md`, `axatalk-sdk/docs/PROTOCOL.md`
-- Related: ADR-0010, ADR-0011, ADR-0012, ADR-0013
+- Related: ADR-0010, ADR-0011, ADR-0012, ADR-0013, ADR-0018
 - Handoff: `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`

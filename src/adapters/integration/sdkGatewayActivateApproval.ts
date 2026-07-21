@@ -1,5 +1,5 @@
 /**
- * Local-approval gate for account:activate-profile (DI-08).
+ * Local-approval + Origin matrix gate for account:activate-profile (DI-08/DI-11).
  */
 
 import type { WireMessage } from "@axata/axatalk-protocol";
@@ -12,6 +12,43 @@ import {
 import type { SdkAccountActivateGrantStore } from "./sdkAccountActivateGrantStore.js";
 import type { SdkRequestDedupCache } from "./sdkGatewayRequestDedup.js";
 
+function sendActivateForbidden(input: {
+  readonly connection: SdkGatewayConnection;
+  readonly requestDedup: SdkRequestDedupCache;
+  readonly now: () => Date;
+  readonly sendJson: (connection: SdkGatewayConnection, message: WireMessage) => void;
+  readonly log: (
+    event: string,
+    fields: Readonly<Record<string, string | number | boolean>>,
+  ) => void;
+  readonly identity: SdkGatewayIdentity;
+  readonly command: Extract<WireMessage, { kind: "command" }>;
+  readonly detailKey: "permission_denied" | "activate_denied_for_origin";
+}): void {
+  const reply = buildCommandFailureReply({
+    requestId: input.command.requestId,
+    commandType: input.command.type,
+    code: "forbidden",
+    identity: input.identity,
+    now: input.now,
+    details: { [input.detailKey]: true },
+  });
+  input.requestDedup.complete(
+    input.command.requestId,
+    reply,
+    input.now().getTime(),
+  );
+  input.sendJson(input.connection, reply);
+  input.log("sdk_gateway_command", {
+    commandType: input.command.type,
+    requestId: input.command.requestId,
+    result: "forbidden",
+  });
+}
+
+/**
+ * Returns true when the command was denied (reply already sent).
+ */
 export function denyActivateWithoutLocalApproval(input: {
   readonly connection: SdkGatewayConnection;
   readonly requestDedup: SdkRequestDedupCache;
@@ -24,11 +61,29 @@ export function denyActivateWithoutLocalApproval(input: {
   readonly activateGrantStore: SdkAccountActivateGrantStore;
   readonly identity: SdkGatewayIdentity;
   readonly command: Extract<WireMessage, { kind: "command" }>;
+  /**
+   * Origin matrix allows account.activate (ADR-0018).
+   * Omit for DI-08 unit paths that only exercise the grant gate; when provided,
+   * empty/missing matrix must fail closed (caller returns false).
+   */
+  readonly isOriginActivateAllowed?: (origin: string) => boolean;
 }): boolean {
   const { command } = input;
   if (command.type !== "account:activate-profile") {
     return false;
   }
+
+  if (
+    input.isOriginActivateAllowed !== undefined &&
+    !input.isOriginActivateAllowed(input.connection.origin)
+  ) {
+    sendActivateForbidden({
+      ...input,
+      detailKey: "permission_denied",
+    });
+    return true;
+  }
+
   const clientId = input.connection.clientId;
   const profileRef =
     typeof command.payload === "object" &&
@@ -46,23 +101,9 @@ export function denyActivateWithoutLocalApproval(input: {
       input.now().getTime(),
     )
   ) {
-    const reply = buildCommandFailureReply({
-      requestId: command.requestId,
-      commandType: command.type,
-      code: "forbidden",
-      identity: input.identity,
-      now: input.now,
-    });
-    input.requestDedup.complete(
-      command.requestId,
-      reply,
-      input.now().getTime(),
-    );
-    input.sendJson(input.connection, reply);
-    input.log("sdk_gateway_command", {
-      commandType: command.type,
-      requestId: command.requestId,
-      result: "forbidden",
+    sendActivateForbidden({
+      ...input,
+      detailKey: "permission_denied",
     });
     return true;
   }

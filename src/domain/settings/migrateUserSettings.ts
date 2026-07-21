@@ -34,7 +34,7 @@ export type MigrateUserSettingsResult =
   | Readonly<{ ok: false; error: SettingsMigrationError }>;
 
 /**
- * - Purpose: upgrade persisted or in-memory settings to UserSettings v10.
+ * - Purpose: upgrade persisted or in-memory settings to UserSettings v11.
  * - Inputs: unknown raw blob and optional v0 legacy fragments.
  * - Outputs: migrated UserSettings or migration error.
  */
@@ -68,6 +68,7 @@ export function migrateUserSettings(
   }
 
   if (
+    version === 10 ||
     version === 9 ||
     version === 8 ||
     version === 7 ||

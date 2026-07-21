@@ -7,8 +7,10 @@ import type {
   SdkGatewayDiagnosticsProjection,
   SdkPairedClientProjection,
   SdkPendingPairingProjection,
+  SdkPendingOriginTrustProjection,
   SdkGatewaySettingsSnapshot,
 } from "./SdkGatewaySettingsContract.js";
+import type { SdkOriginTrustEntry } from "@domain/settings/SdkOriginTrust.js";
 
 const MAX_ID_LENGTH = 128;
 const MAX_ORIGINS = 64;
@@ -65,6 +67,39 @@ function parseNonNegativeInt(value: unknown): number | null {
   return typeof value === "number" && Number.isInteger(value) && value >= 0
     ? value
     : null;
+}
+
+function parseOriginTrust(value: unknown): SdkOriginTrustEntry | null {
+  if (!isPlainObject(value) || hasForbiddenKey(value)) return null;
+  const origin = parseExactOrigin(value["origin"]);
+  const state = value["state"];
+  const previouslyAllowed = value["previouslyAllowed"];
+  const matrix = value["matrix"];
+  if (
+    origin === null ||
+    (state !== "unknown" && state !== "allowed" && state !== "denied") ||
+    typeof previouslyAllowed !== "boolean" ||
+    (matrix !== null && !isPlainObject(matrix))
+  ) {
+    return null;
+  }
+  return {
+    origin,
+    state,
+    previouslyAllowed,
+    matrix: matrix as SdkOriginTrustEntry["matrix"],
+  };
+}
+
+function parsePendingOriginTrust(
+  value: unknown,
+): SdkPendingOriginTrustProjection | null {
+  if (!isPlainObject(value) || hasForbiddenKey(value)) return null;
+  const originTrustRequestId = parseId(value["originTrustRequestId"]);
+  const origin = parseExactOrigin(value["origin"]);
+  return originTrustRequestId === null || origin === null
+    ? null
+    : { originTrustRequestId, origin };
 }
 
 export function parseDiagnosticsProjection(
@@ -204,8 +239,9 @@ export function parseSdkGatewaySettingsSnapshot(
   if (diagnostics === null) {
     return null;
   }
-  const originsRaw = value["allowedOrigins"];
-  const pairedRaw = value["pairedClients"];
+  const originsRaw = value["origins"];
+  const pairedRaw = value["paired"];
+  const pendingOriginTrust = value["pendingOriginTrust"];
   const pendingRaw = value["pendingPairing"];
   if (
     !Array.isArray(originsRaw) ||
@@ -213,27 +249,29 @@ export function parseSdkGatewaySettingsSnapshot(
     !Array.isArray(pairedRaw) ||
     pairedRaw.length > MAX_PAIRED ||
     !Array.isArray(pendingRaw) ||
-    pendingRaw.length > MAX_PENDING
+    pendingRaw.length > MAX_PENDING ||
+    !Array.isArray(pendingOriginTrust) ||
+    pendingOriginTrust.length > MAX_PENDING
   ) {
     return null;
   }
 
-  const allowedOrigins: string[] = [];
+  const origins: SdkOriginTrustEntry[] = [];
   for (const entry of originsRaw) {
-    const origin = parseExactOrigin(entry);
+    const origin = parseOriginTrust(entry);
     if (origin === null) {
       return null;
     }
-    allowedOrigins.push(origin);
+    origins.push(origin);
   }
 
-  const pairedClients: SdkPairedClientProjection[] = [];
+  const paired: SdkPairedClientProjection[] = [];
   for (const entry of pairedRaw) {
     const client = parsePairedClientProjection(entry);
     if (client === null) {
       return null;
     }
-    pairedClients.push(client);
+    paired.push(client);
   }
 
   const pendingPairing: SdkPendingPairingProjection[] = [];
@@ -245,10 +283,18 @@ export function parseSdkGatewaySettingsSnapshot(
     pendingPairing.push(pending);
   }
 
+  const pendingOriginTrustParsed: SdkPendingOriginTrustProjection[] = [];
+  for (const entry of pendingOriginTrust) {
+    const pending = parsePendingOriginTrust(entry);
+    if (pending === null) return null;
+    pendingOriginTrustParsed.push(pending);
+  }
+
   return {
     diagnostics,
-    allowedOrigins,
-    pairedClients,
+    origins,
+    pendingOriginTrust: pendingOriginTrustParsed,
+    paired,
     pendingPairing,
   };
 }

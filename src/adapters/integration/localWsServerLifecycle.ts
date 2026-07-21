@@ -13,10 +13,14 @@ import {
   type SdkGatewayIdentity,
 } from "./sdkGatewayMessages.js";
 import type { SdkGatewayPairingStore } from "./sdkGatewayPairingStore.js";
+import type { SdkOriginTrustEntry } from "@domain/index.js";
+
+import type { SdkOriginTrustApprover } from "./sdkGatewayOriginTrustApprover.js";
 import type { SdkPairingApprover } from "./sdkGatewayPairingTypes.js";
 import type { SdkGatewayProductSurface } from "./sdkGatewayProductSurface.js";
 import { LocalWsSessionRegistry } from "./LocalWsSessionRegistry.js";
 import type { WireMessage } from "@axata/axatalk-protocol";
+import type { CapabilityId } from "@axata/axatalk-protocol";
 import type { ExternalGatewayValidationResult } from "@ports/integration/ExternalClientGateway.js";
 
 export async function bindLocalWsListening(input: {
@@ -26,7 +30,17 @@ export async function bindLocalWsListening(input: {
   readonly limits: SdkGatewayLimits;
   readonly pairingStore: SdkGatewayPairingStore;
   readonly pairingApprover: SdkPairingApprover;
-  readonly allowedOrigins: readonly string[];
+  readonly getOriginTrustEntries: () => readonly SdkOriginTrustEntry[];
+  readonly originTrustApprover: SdkOriginTrustApprover;
+  readonly onOriginTrustDecision: (
+    input: Readonly<{
+      origin: string;
+      decision: Readonly<{ decision: "allow" } | { decision: "deny" }>;
+    }>,
+  ) => void;
+  readonly getOriginMatrixCapabilities: (
+    origin: string,
+  ) => readonly CapabilityId[];
   readonly getAccepting: () => boolean;
   readonly getListening: () => boolean;
   readonly resolveWsHostPort: () => Readonly<{ host: string; port: number }>;
@@ -62,6 +76,15 @@ export async function bindLocalWsListening(input: {
     getIdentity: () => identityRef,
     pairingStore: input.pairingStore,
     pairingApprover: input.pairingApprover,
+    getOriginTrustState: (origin) => {
+      const entry = input
+        .getOriginTrustEntries()
+        .find((row) => row.origin === origin);
+      return entry?.state ?? "unknown";
+    },
+    originTrustApprover: input.originTrustApprover,
+    onOriginTrustDecision: input.onOriginTrustDecision,
+    getOriginMatrixCapabilities: input.getOriginMatrixCapabilities,
     getProductSurface: input.getProductSurface,
     ...(input.onLog !== undefined ? { onLog: input.onLog } : {}),
   });
@@ -71,7 +94,7 @@ export async function bindLocalWsListening(input: {
     limits: input.limits,
     identity,
     sessions,
-    allowedOrigins: input.allowedOrigins,
+    getOriginTrustEntries: input.getOriginTrustEntries,
     getAccepting: input.getAccepting,
     getListening: input.getListening,
     resolveWsHostPort: input.resolveWsHostPort,

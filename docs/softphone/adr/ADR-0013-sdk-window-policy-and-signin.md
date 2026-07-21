@@ -6,7 +6,8 @@ DOCUMENT.
 
 ## Status
 
-Accepted (2026-07-20)
+Accepted (2026-07-20) — activate consent UX / per-Origin activate deny **extended by
+ADR-0018** (2026-07-21). Raw credential ban unchanged.
 
 ## Context
 
@@ -51,12 +52,17 @@ Two product risks:
 2. **Protocol v1 excludes raw credential commands** (no SIP password, OCP API key, OCP
    session token, or secret-storage values on the wire). This is non-negotiable for P12.
 
-3. **Preferred SDK account path (DI-08):** privileged `account:activate-profile` using an
-   opaque desktop-approved saved profile reference:
-   - requires short-lived `account.activate` capability and local approval;
+3. **Preferred SDK account path (DI-08 + ADR-0018):** privileged `account:activate-profile`
+   using an opaque desktop-approved saved profile reference (`profileRef`):
+   - requires Origin not blacklisted, Origin policy allowing activate, **and** session
+     capability `account.activate`; when policy allows and a saved profile exists, a
+     renderer consent modal Allow is still required on **every** activate (ADR-0018 §E —
+     no lasting skip-consent grant);
    - desktop hydrates secrets only inside secure storage / Application boundaries;
    - delegates to the **unified Account sign-in path** (same Facade command family as UI);
    - preserves **active-session logout-first lock** (ADR-AF-003 / ADR-AF-005);
+   - missing saved profile → typed `not_found` / `interaction_required` + Account UI;
+   - operator Deny on consent → persist activate-disabled for that Origin + `forbidden`;
    - SDK receives only operation result + redacted state — never secrets.
 
 4. **Logout via SDK (DI-07):** `account:prepare-logout` / `account:confirm-logout` map to
@@ -93,4 +99,4 @@ Two product risks:
 - Feature Registry: F-011, F-001, F-024, F-028
 - ADR-AF-003, ADR-AF-005, ADR-AF-006
 - `axatalk-sdk/docs/SECURITY.md` (Credential Policy)
-- Related: ADR-0009, ADR-0011, ADR-0012
+- Related: ADR-0009, ADR-0011, ADR-0012, ADR-0018

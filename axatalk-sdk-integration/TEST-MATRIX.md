@@ -36,6 +36,21 @@ the complete repository preflight and packaged integration matrix.
 - occupied port and second application instance;
 - logs contain no payload, token, secret, or unauthorized PII.
 
+## DI-11 — Origin TOFU / Blacklist / Activate Consent (ADR-0018)
+
+- first-contact `unknown` → renderer modal; Allow → `allowed` + base matrix; Deny →
+  `forbidden`+`origin_denied` + close + blacklist;
+- blacklisted Origin → upgrade reject; client maps `origin_blocked` (non-retryable);
+- Unblock prior-`allowed` restores `allowed`+matrix; first-Deny-only → `unknown`;
+- cannot edit allow/policy while denied; matrix retained but ignored while denied;
+- discovery CORS ACAO for `unknown`+`allowed` only; never for `denied`;
+- always-on gateway; Settings listener enable toggle absent; env kill-switch only;
+- pre-auth Settings → Axatalk SDK reachable; OCP Module still gated (ADR-AF-004);
+- activate: matrix off → `permission_denied` without modal; matrix on → modal every login;
+- activate Deny → activate-disabled; pending duplicate → conflict; dismiss clears pending;
+- no passwords / apiKeys on wire; `window.hide` still unavailable;
+- SIP-only regression green with OCP disabled.
+
 ## Read-Only State Tests
 
 - initial snapshot after authentication;
@@ -110,13 +125,14 @@ Run at least:
 
 Required before public release:
 
-1. Install a packaged Axatalk build.
-2. Enable SDK integration and approve a test Origin/client.
+1. Install a packaged Axatalk build (gateway always-on per ADR-0018; no Settings listener toggle).
+2. Approve a test Origin via first-contact TOFU (or Settings) and complete pairing.
 3. Connect from each supported browser.
 4. Verify authenticated snapshot and redaction.
 5. Exercise approved call and operator workflows against controlled infrastructure.
 6. Revoke the client and prove immediate loss of access.
 7. Restart/update desktop and prove safe resynchronization.
+8. Prove blacklist / Unblock / activate consent paths (DI-11) or record waiver.
 8. Capture versions, platform, results, and sanitized logs.
 
 ## Verification Commands

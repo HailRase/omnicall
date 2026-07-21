@@ -31,6 +31,7 @@ const sdkCardDefaults = {
   allowedOriginsLive: [],
   pairedClients: [],
   pendingPairing: [],
+  pendingOriginTrust: [],
   profileOptions: [],
   selectedClientId: null,
   selectedProfileId: null,
@@ -38,7 +39,6 @@ const sdkCardDefaults = {
   originsDraft: "",
   errorKey: null,
   busy: false,
-  onEnabledChange: vi.fn(),
   onOriginsDraftChange: vi.fn(),
   onOriginsSave: vi.fn(),
   onRefresh: vi.fn(),
@@ -48,6 +48,10 @@ const sdkCardDefaults = {
   onSelectClientId: vi.fn(),
   onSelectProfileId: vi.fn(),
   onIssueActivateGrant: vi.fn(),
+  onAllowOriginTrust: vi.fn(),
+  onDenyOriginTrust: vi.fn(),
+  onUnblockOrigin: vi.fn(),
+  onSetOriginMatrix: vi.fn(),
 } satisfies SdkModuleSettingsCardProps;
 
 export const settingsIntegrationsTestDefaults = {
@@ -61,13 +65,11 @@ export const settingsIntegrationsStoryDefaults = {
   integrations: {
     ocp: {
       ...ocpCardDefaults,
-      onEnabledChange: () => undefined,
       onDomainChange: () => undefined,
       onAutoConnectChange: () => undefined,
     } satisfies OcpModuleSettingsCardProps,
     sdk: {
       ...sdkCardDefaults,
-      onEnabledChange: () => undefined,
       onOriginsDraftChange: () => undefined,
       onOriginsSave: () => undefined,
       onRefresh: () => undefined,
@@ -77,6 +79,10 @@ export const settingsIntegrationsStoryDefaults = {
       onSelectClientId: () => undefined,
       onSelectProfileId: () => undefined,
       onIssueActivateGrant: () => undefined,
+      onAllowOriginTrust: () => undefined,
+      onDenyOriginTrust: () => undefined,
+      onUnblockOrigin: () => undefined,
+      onSetOriginMatrix: () => undefined,
     } satisfies SdkModuleSettingsCardProps,
   },
 } as const;

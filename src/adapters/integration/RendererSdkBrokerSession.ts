@@ -134,6 +134,7 @@ export class RendererSdkBrokerSession {
       ...(envelope.clientId !== undefined
         ? { clientId: envelope.clientId }
         : {}),
+      ...(envelope.origin !== undefined ? { origin: envelope.origin } : {}),
     });
     return this.toIpcReply(envelope.brokerRequestId, message, handlerResult);
   }

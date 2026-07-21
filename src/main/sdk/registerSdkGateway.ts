@@ -1,23 +1,26 @@
 /**
- * Electron main registration for the loopback SDK WebSocket gateway (DI-03…DI-09).
- * Does not import Domain or Facades. Gateway failure must not block softphone.
+ * Electron main registration for the loopback SDK WebSocket gateway (DI-03…DI-11).
+ * Does not import Domain Facades. Gateway failure must not block softphone.
  */
 
-import { join } from "node:path";
-
 import { LocalWsServerAdapter } from "@adapters/integration/LocalWsServerAdapter.js";
-import { createConsoleLogger } from "@infrastructure/logging/index.js";
-import { resolveAxatalkProfilesStorageRoot } from "@infrastructure/bootstrap/resolveAxatalkProfilesStorageRoot.js";
-import { createCorrelationId } from "@shared/correlation-id/index.js";
-import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
 import {
-  parseSdkGatewayPublishEventIpcPayload,
-} from "@shared/ipc/SdkGatewayEventContract.js";
+  loadSdkOriginAllowlistFromEnv,
+  mergePersistedOriginTrustWithEnvSeed,
+} from "@adapters/integration/sdkGatewayOriginPolicy.js";
+import {
+  hydrateSdkOriginTrustForGatewayBoot,
+  persistSdkOriginTrustMachineFromEntries,
+} from "@adapters/integration/sdkOriginTrustMachineStore.js";
+import type { SdkOriginTrustEntry } from "@domain/index.js";
+import { resolveAxatalkProfilesStorageRoot } from "@infrastructure/bootstrap/resolveAxatalkProfilesStorageRoot.js";
+import { createConsoleLogger } from "@infrastructure/logging/index.js";
+import { createCorrelationId } from "@shared/correlation-id/index.js";
 import type {
   SdkActivateGrantResultProjection,
   SdkGatewaySettingsPolicyPayload,
 } from "@shared/ipc/SdkGatewaySettingsContract.js";
-import { BrowserWindow, app, ipcMain } from "electron";
+import { BrowserWindow, app } from "electron";
 
 import { createSdkGatewayProductSurface } from "./createSdkGatewayProductSurface.js";
 import { getSdkBroker } from "./registerSdkBrokerIpc.js";
@@ -25,9 +28,11 @@ import {
   registerSdkGatewaySettingsIpc,
   unregisterSdkGatewaySettingsIpcForTests,
 } from "./registerSdkGatewaySettingsIpc.js";
-import { resolveSdkGatewayAllowedOrigins } from "./sdkGatewaySettingsOps.js";
-import { ElectronSafeStorageSecretService } from "../secrets/ElectronSafeStorageSecretService.js";
-import { MainProcessSecretStorageAdapter } from "../secrets/MainProcessSecretStorageAdapter.js";
+import {
+  createSdkGatewaySecretStorage,
+  registerSdkGatewayPublishEventIpc,
+  unregisterSdkGatewayPublishEventIpcForTests,
+} from "./sdkGatewayRegistrationHelpers.js";
 
 const logger = createConsoleLogger({
   boundedContext: "Integration",
@@ -36,8 +41,8 @@ const logger = createConsoleLogger({
 
 let gateway: LocalWsServerAdapter | null = null;
 let primaryInstance = true;
-let publishEventIpcRegistered = false;
 let lastDesktopVersion = "0.0.0";
+let originTrustStorageRoot: string | null = null;
 
 /** Record Electron single-instance ownership before claiming the fixed endpoint. */
 export function setSdkGatewayPrimaryInstance(isPrimary: boolean): void {
@@ -51,34 +56,41 @@ export function isSdkGatewayPrimaryInstance(): boolean {
 /**
  * Start the loopback gateway when enabled (pairing/auth DI-04).
  * Failures are logged and swallowed so SIP-only boot continues.
+ * Hydrates machine-common Origin trust before listen/upgrade (DI-11).
  */
 export async function startSdkGateway(options: {
   readonly desktopVersion: string;
-  readonly enabled?: boolean;
   readonly allowedOrigins?: readonly string[];
+  readonly originTrustEntries?: readonly SdkOriginTrustEntry[];
+  /** Test override — skip disk hydrate when entries provided. */
+  readonly skipOriginTrustHydrate?: boolean;
 }): Promise<LocalWsServerAdapter | null> {
   if (gateway !== null) {
     return gateway;
   }
 
   lastDesktopVersion = options.desktopVersion;
-  registerPublishEventIpc();
+  registerSdkGatewayPublishEventIpc(() => gateway);
   registerSdkGatewaySettingsIpc({
     getGateway: () => gateway,
     applyPolicy: (policy) => applySdkGatewayPolicy(policy),
     issueActivateGrant: (input) => issueSdkAccountActivateGrant(input),
   });
 
-  const envEnabled = process.env["AXATALK_SDK_GATEWAY"] !== "0";
-  const enabled = options.enabled ?? envEnabled;
-  const allowedOrigins = options.allowedOrigins;
+  const killSwitchOff = process.env["AXATALK_SDK_GATEWAY"] === "0";
+  const bootTrust = await resolveBootOriginTrustEntries(options);
+  // Fail-closed: corrupt/unreadable machine store → do not listen (no env-only reopen).
+  const enabled = !killSwitchOff && bootTrust.ok;
 
   gateway = new LocalWsServerAdapter({
     desktopVersion: options.desktopVersion,
     enabled,
     mayClaimEndpoint: () => primaryInstance,
-    ...(allowedOrigins !== undefined ? { allowedOrigins } : {}),
-    ...(enabled ? { secretStorage: createGatewaySecretStorage() } : {}),
+    originTrustEntries: bootTrust.originTrustEntries,
+    ...(enabled ? { secretStorage: createSdkGatewaySecretStorage() } : {}),
+    onOriginTrustChanged: (entries) => {
+      void persistLiveOriginTrust(entries);
+    },
     onLog: (event, fields) => {
       logger.info(event, {
         correlationId: createCorrelationId(),
@@ -99,15 +111,16 @@ export async function startSdkGateway(options: {
 
   const result = await gateway.start();
   if (!result.ok) {
-    const event =
+    logger.info(
       result.reason === "disabled"
         ? "sdk_gateway_start_skipped"
-        : "sdk_gateway_start_failed";
-    logger.info(event, {
-      correlationId: createCorrelationId(),
-      operation: "sdk_gateway_start",
-      result: result.reason,
-    });
+        : "sdk_gateway_start_failed",
+      {
+        correlationId: createCorrelationId(),
+        operation: "sdk_gateway_start",
+        result: !bootTrust.ok ? "origin_trust_hydrate_failed" : result.reason,
+      },
+    );
     return gateway;
   }
 
@@ -117,30 +130,33 @@ export async function startSdkGateway(options: {
     result: "listening",
     host: result.host,
     port: result.port,
+    originTrustCount: gateway.getOriginTrustEntries().length,
   });
   return gateway;
 }
 
 /**
- * Rebuild gateway with Settings policy (enablement + exact origins).
- * Does not tear SIP/account sessions.
+ * Rebuild gateway trust from Settings policy (exact origins + matrix).
+ * Does not tear SIP/account sessions. Env seed merges; denied always wins.
  */
 export async function applySdkGatewayPolicy(
   policy: SdkGatewaySettingsPolicyPayload,
 ): Promise<LocalWsServerAdapter | null> {
-  const envForcedOff = process.env["AXATALK_SDK_GATEWAY"] === "0";
-  const enabled = !envForcedOff && policy.enabled;
-  const allowedOrigins = resolveSdkGatewayAllowedOrigins(policy);
+  const seed = loadSdkOriginAllowlistFromEnv();
+  const originTrustEntries = mergePersistedOriginTrustWithEnvSeed(
+    policy.origins,
+    seed,
+  );
 
   if (gateway !== null) {
-    await gateway.stop();
-    gateway = null;
+    gateway.setOriginTrustEntries(originTrustEntries);
+    return gateway;
   }
 
   return startSdkGateway({
     desktopVersion: lastDesktopVersion,
-    enabled,
-    allowedOrigins,
+    originTrustEntries,
+    skipOriginTrustHydrate: true,
   });
 }
 
@@ -177,7 +193,6 @@ export function getSdkGateway(): LocalWsServerAdapter | null {
   return gateway;
 }
 
-/** Narrow main API for pairing approve (Settings UX lands in DI-09). */
 export function approveSdkPairingRequest(pairingRequestId: string): boolean {
   return gateway?.approvePairingRequest(pairingRequestId) ?? false;
 }
@@ -193,13 +208,6 @@ export async function revokeSdkPairedClient(clientId: string): Promise<boolean> 
   return gateway.revokePairedClient(clientId);
 }
 
-function createGatewaySecretStorage(): MainProcessSecretStorageAdapter {
-  const storageRoot = resolveAxatalkProfilesStorageRoot(app.getPath("userData"));
-  return new MainProcessSecretStorageAdapter(
-    new ElectronSafeStorageSecretService(join(storageRoot, "secrets")),
-  );
-}
-
 /** Test-only reset. */
 export async function resetSdkGatewayRegistrationForTests(): Promise<void> {
   if (gateway !== null) {
@@ -208,24 +216,83 @@ export async function resetSdkGatewayRegistrationForTests(): Promise<void> {
   gateway = null;
   primaryInstance = true;
   lastDesktopVersion = "0.0.0";
-  if (publishEventIpcRegistered && typeof ipcMain?.removeHandler === "function") {
-    ipcMain.removeHandler(IPC_CHANNELS.sdkGatewayPublishEvent);
-    publishEventIpcRegistered = false;
-  }
+  originTrustStorageRoot = null;
+  unregisterSdkGatewayPublishEventIpcForTests();
   unregisterSdkGatewaySettingsIpcForTests();
 }
 
-function registerPublishEventIpc(): void {
-  if (publishEventIpcRegistered || typeof ipcMain?.handle !== "function") {
-    return;
-  }
-  publishEventIpcRegistered = true;
-  ipcMain.handle(IPC_CHANNELS.sdkGatewayPublishEvent, (_event, payload: unknown) => {
-    const parsed = parseSdkGatewayPublishEventIpcPayload(payload);
-    if (parsed === null || gateway === null) {
-      return { ok: false as const, delivered: 0 };
+type BootOriginTrustResolution =
+  | Readonly<{ ok: true; originTrustEntries: readonly SdkOriginTrustEntry[] }>
+  | Readonly<{ ok: false; originTrustEntries: readonly [] }>;
+
+async function resolveBootOriginTrustEntries(options: {
+  readonly allowedOrigins?: readonly string[];
+  readonly originTrustEntries?: readonly SdkOriginTrustEntry[];
+  readonly skipOriginTrustHydrate?: boolean;
+}): Promise<BootOriginTrustResolution> {
+  if (options.originTrustEntries !== undefined) {
+    if (options.allowedOrigins !== undefined) {
+      return {
+        ok: true,
+        originTrustEntries: mergePersistedOriginTrustWithEnvSeed(
+          options.originTrustEntries,
+          options.allowedOrigins,
+        ),
+      };
     }
-    const delivered = gateway.publishPublicEvent(parsed.draft);
-    return { ok: true as const, delivered };
-  });
+    return { ok: true, originTrustEntries: options.originTrustEntries };
+  }
+
+  if (options.skipOriginTrustHydrate === true) {
+    const seed = options.allowedOrigins ?? loadSdkOriginAllowlistFromEnv();
+    return {
+      ok: true,
+      originTrustEntries: mergePersistedOriginTrustWithEnvSeed([], seed),
+    };
+  }
+
+  const defaultStorageRoot = resolveAxatalkProfilesStorageRoot(
+    app.getPath("userData"),
+  );
+
+  try {
+    const hydrated = await hydrateSdkOriginTrustForGatewayBoot({
+      storageRoot: defaultStorageRoot,
+    });
+    originTrustStorageRoot = hydrated.storageRoot;
+    return { ok: true, originTrustEntries: hydrated.originTrustEntries };
+  } catch (error: unknown) {
+    logger.warn("sdk_gateway_origin_trust_hydrate_failed", {
+      correlationId: createCorrelationId(),
+      operation: "sdk_gateway_start",
+      result: "hydrate_failed_fail_closed",
+      code: error instanceof Error ? error.name : "unknown",
+    });
+    originTrustStorageRoot = defaultStorageRoot;
+    // Fail-closed: empty trust + do not listen (caller sets enabled=false).
+    // Never reopen blacklist via env seed alone.
+    return { ok: false, originTrustEntries: [] };
+  }
+}
+
+async function persistLiveOriginTrust(
+  entries: readonly SdkOriginTrustEntry[],
+): Promise<void> {
+  const storageRoot =
+    originTrustStorageRoot ??
+    resolveAxatalkProfilesStorageRoot(app.getPath("userData"));
+  try {
+    await persistSdkOriginTrustMachineFromEntries({
+      storageRoot,
+      origins: entries,
+      originsManaged: true,
+    });
+  } catch (error: unknown) {
+    logger.warn("sdk_gateway_origin_trust_persist_failed", {
+      correlationId: createCorrelationId(),
+      operation: "sdk_gateway_origin_trust",
+      result: "persist_failed",
+      code: error instanceof Error ? error.name : "unknown",
+    });
+  }
 }
