@@ -3,8 +3,13 @@ import { SDK_INTEGRATION_DEFAULTS } from "./SdkIntegrationSettings.js";
 import {
   allowSdkOrigin,
   denySdkOrigin,
+  renameAllowedSdkOrigin,
   unblockSdkOrigin,
 } from "./sdkOriginTrustMutations.js";
+import {
+  createDefaultSdkOriginCapabilityMatrix,
+  withMatrixCapability,
+} from "./SdkOriginTrust.js";
 
 describe("sdkOriginTrustMutations", () => {
   it("allows, blacklists, and restores a previously allowed origin", () => {
@@ -23,5 +28,51 @@ describe("sdkOriginTrustMutations", () => {
       ? null
       : unblockSdkOrigin(denied, "https://blocked.example");
     expect(restored?.origins).toEqual([]);
+  });
+
+  it("adds multiple allowed origins and renames while keeping matrix", () => {
+    const first = allowSdkOrigin(SDK_INTEGRATION_DEFAULTS, "https://a.example");
+    expect(first).not.toBeNull();
+    const second = allowSdkOrigin(first!, "https://b.example");
+    expect(second?.origins.filter((row) => row.state === "allowed")).toHaveLength(2);
+
+    const toggledMatrix = withMatrixCapability(
+      createDefaultSdkOriginCapabilityMatrix(),
+      "call.originate",
+      false,
+    );
+    const withMatrix = {
+      ...second!,
+      origins: second!.origins.map((row) =>
+        row.origin === "https://a.example"
+          ? { ...row, matrix: toggledMatrix }
+          : row,
+      ),
+    };
+    const renamed = renameAllowedSdkOrigin(
+      withMatrix,
+      "https://a.example",
+      "https://a-renamed.example",
+    );
+    expect(renamed).not.toBeNull();
+    const entry = renamed!.origins.find(
+      (row) => row.origin === "https://a-renamed.example",
+    );
+    expect(entry?.state).toBe("allowed");
+    expect(entry?.matrix?.capabilities["call.originate"]).toBe(false);
+    expect(
+      renamed!.origins.some((row) => row.origin === "https://a.example"),
+    ).toBe(false);
+  });
+
+  it("rejects rename to an existing or blacklisted origin", () => {
+    const a = allowSdkOrigin(SDK_INTEGRATION_DEFAULTS, "https://a.example");
+    const both = allowSdkOrigin(a!, "https://b.example");
+    expect(renameAllowedSdkOrigin(both!, "https://a.example", "https://b.example")).toBeNull();
+
+    const denied = denySdkOrigin(both!, "https://blocked.example");
+    expect(
+      renameAllowedSdkOrigin(denied!, "https://a.example", "https://blocked.example"),
+    ).toBeNull();
   });
 });

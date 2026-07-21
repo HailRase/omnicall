@@ -1,0 +1,132 @@
+.root {
+  width: 100%;
+  color: var(--color-text-primary);
+  font-family: inherit;
+}
+
+.item {
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.header {
+  display: flex;
+  margin: 0;
+}
+
+.trigger {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  width: 100%;
+  margin: 0;
+  padding: var(--space-sm);
+  border: none;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-ui);
+  text-align: left;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    color 120ms ease,
+    background-color 120ms ease,
+    opacity 120ms ease;
+}
+
+.trigger:hover:not(:disabled):not([data-disabled="true"]) {
+  color: var(--color-text-primary);
+  background: var(--color-bg-surface-highlight);
+}
+
+.trigger:active:not(:disabled):not([data-disabled="true"]) {
+  background: var(--color-bg-surface-deep);
+}
+
+.trigger:disabled,
+.trigger[data-disabled],
+.trigger[data-disabled="true"],
+.item[data-disabled] .trigger {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.trigger:focus-visible {
+  outline: 2px solid var(--color-outline-focus);
+  outline-offset: 2px;
+}
+
+.chevron {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+  transition: transform 200ms ease;
+}
+
+.trigger[data-state="open"] .chevron {
+  transform: rotate(180deg);
+}
+
+.content {
+  overflow: hidden;
+  color: var(--color-text-secondary);
+  font-family: inherit;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-ui);
+}
+
+.content[data-state="open"] {
+  animation: accordion-down 200ms ease-out;
+}
+
+.content[data-state="closed"] {
+  animation: accordion-up 200ms ease-out;
+}
+
+.content-inner {
+  padding: 0 var(--space-sm) var(--space-sm);
+}
+
+@keyframes accordion-down {
+  from {
+    height: 0;
+  }
+
+  to {
+    height: var(--radix-accordion-content-height);
+  }
+}
+
+@keyframes accordion-up {
+  from {
+    height: var(--radix-accordion-content-height);
+  }
+
+  to {
+    height: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trigger,
+  .chevron {
+    transition: none;
+  }
+
+  .content[data-state="open"],
+  .content[data-state="closed"] {
+    animation: none;
+  }
+}

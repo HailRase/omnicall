@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import { useState } from "react";
 import type {
   SdkActivateGrantResultProjection,
   SdkPairedClientProjection,
@@ -21,9 +22,22 @@ type Props = Readonly<{
   onIssueActivateGrant: () => void;
 }>;
 
-/** Desktop-owned short-lived activate grant issuance (opaque profileRef only). */
+async function copyText(value: string): Promise<boolean> {
+  if (typeof navigator === "undefined" || navigator.clipboard === undefined) {
+    return false;
+  }
+  try {
+    await navigator.clipboard.writeText(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Stacked temporary profile-access grant form (opaque profileRef only). */
 export function SdkModuleSettingsGrantSection(props: Props): JSX.Element {
   const { t } = useI18n();
+  const [copied, setCopied] = useState(false);
   const {
     pairedClients,
     profileOptions,
@@ -43,11 +57,19 @@ export function SdkModuleSettingsGrantSection(props: Props): JSX.Element {
       label: `${client.applicationName} · ${client.origin}`,
     }));
 
+  async function handleCopy(): Promise<void> {
+    if (lastGrant?.ok !== true) {
+      return;
+    }
+    const ok = await copyText(lastGrant.profileRef);
+    setCopied(ok);
+  }
+
   return (
     <div className={formStyles.settingBlock} data-testid="sdk-module-activate-grant">
       <p className={formStyles.fieldLabel}>{t("settings.integrations.sdk.grant.title")}</p>
       <p className={formStyles.blockHint}>{t("settings.integrations.sdk.grant.hint")}</p>
-      <div className={styles.actionsRow}>
+      <div className={formStyles.stackedForm}>
         <Select
           aria-label={t("settings.integrations.sdk.grant.client")}
           {...(selectedClientId !== null ? { value: selectedClientId } : {})}
@@ -75,22 +97,44 @@ export function SdkModuleSettingsGrantSection(props: Props): JSX.Element {
             onSelectProfileId(value);
           }}
         />
-        <Button
-          type="button"
-          size="sm"
-          disabled={busy || selectedClientId === null || selectedProfileId === null}
-          data-testid="sdk-module-grant-issue"
-          onClick={onIssueActivateGrant}
-        >
-          {t("settings.integrations.sdk.grant.issue")}
-        </Button>
+        <div className={formStyles.stackedFormActions}>
+          <Button
+            type="button"
+            size="sm"
+            variant="secondary"
+            disabled={busy || selectedClientId === null || selectedProfileId === null}
+            data-testid="sdk-module-grant-issue"
+            onClick={onIssueActivateGrant}
+          >
+            {t("settings.integrations.sdk.grant.issue")}
+          </Button>
+        </div>
       </div>
       {lastGrant?.ok === true ? (
-        <p className={styles.grantResult} data-testid="sdk-module-grant-ref">
-          {t("settings.integrations.sdk.grant.result", {
-            profileRef: lastGrant.profileRef,
-          })}
-        </p>
+        <div className={styles.grantResultRow}>
+          <p
+            className={styles.grantResult}
+            data-testid="sdk-module-grant-ref"
+            title={lastGrant.profileRef}
+          >
+            {t("settings.integrations.sdk.grant.result", {
+              profileRef: lastGrant.profileRef,
+            })}
+          </p>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            data-testid="sdk-module-grant-copy"
+            onClick={() => {
+              void handleCopy();
+            }}
+          >
+            {copied
+              ? t("settings.integrations.sdk.grant.copied")
+              : t("settings.integrations.sdk.grant.copy")}
+          </Button>
+        </div>
       ) : null}
       {lastGrant?.ok === false ? (
         <p className={formStyles.error} role="alert">

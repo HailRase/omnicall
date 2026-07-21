@@ -1,9 +1,12 @@
-/** Bind Settings → Integrations → SDK Server card to settings + gateway IPC. */
+/** Bind Settings → Axatalk SDK card to settings + gateway IPC. */
 import { useCallback, useEffect, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
-  createDefaultSdkOriginCapabilityMatrix,
-  parseSdkOriginsDraft,
+  allowSdkOrigin,
+  denySdkOrigin,
+  parseExactSdkOrigin,
+  removeAllowedSdkOrigin,
+  renameAllowedSdkOrigin,
   SDK_INTEGRATION_DEFAULTS,
   type SdkIntegrationSettings,
   type UserSettings,
@@ -45,7 +48,7 @@ type UseSdkSettingsPanelInput = Readonly<{
   invokeSdkGatewaySettings?: SdkGatewayInvoker;
 }>;
 
-/** SDK Server settings + live gateway ops (DI-09). */
+/** SDK Server settings + live gateway ops (DI-09 / DI-11). */
 export function useSdkSettingsPanel(
   input: UseSdkSettingsPanelInput,
 ): UseSdkSettingsPanelResult {
@@ -72,7 +75,7 @@ export function useSdkSettingsPanel(
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [lastGrant, setLastGrant] = useState<SdkActivateGrantResultProjection | null>(null);
-  const [originsDraft, setOriginsDraft] = useState("");
+  const [addOriginDraft, setAddOriginDraft] = useState("");
   const [errorKey, setErrorKey] = useState<SdkSettingsPanelErrorKey | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -104,7 +107,7 @@ export function useSdkSettingsPanel(
     void (async () => {
       if (facade === null) {
         setSettings(SDK_INTEGRATION_DEFAULTS);
-        setOriginsDraft("");
+        setAddOriginDraft("");
         setProfileOptions([]);
         return;
       }
@@ -116,25 +119,17 @@ export function useSdkSettingsPanel(
       setErrorKey(null);
       onActiveUserSettingsRefresh(settingsResult.value);
       setProfileOptions(await loadSdkProfileOptions(facade));
-      // Prefer live gateway trust (machine-common hydrate) over account silo.
       const response = await invokeSdkGatewaySettings({ op: "getSnapshot" });
       applySnapshot(response);
       const snapshotOrigins =
         response.ok && response.snapshot.origins !== undefined
           ? response.snapshot.origins
           : null;
-      // Live gateway snapshot is SoT; mirror into the active account bucket when it differs.
       const live: SdkIntegrationSettings =
         snapshotOrigins !== null
           ? { originsManaged: true, origins: snapshotOrigins }
           : settingsResult.value.sdkIntegration;
       setSettings(live);
-      setOriginsDraft(
-        live.origins
-          .filter((entry) => entry.state === "allowed")
-          .map((entry) => entry.origin)
-          .join("\n"),
-      );
       if (
         snapshotOrigins !== null &&
         JSON.stringify(live.origins) !==
@@ -213,31 +208,24 @@ export function useSdkSettingsPanel(
     selectedClientId,
     selectedProfileId,
     lastGrant,
-    originsDraft,
+    addOriginDraft,
     errorKey,
     busy,
-    onOriginsDraftChange: setOriginsDraft,
-    onOriginsSave: () => {
-      const parsed = parseSdkOriginsDraft(originsDraft);
+    onAddOriginDraftChange: setAddOriginDraft,
+    onAddOrigin: (draft?: string) => {
+      const raw = (draft ?? addOriginDraft).trim();
+      const parsed = parseExactSdkOrigin(raw);
       if (parsed === null) {
         setErrorKey("settings.integrations.sdk.error.originsInvalid");
         return;
       }
-      void persistAndApply({
-        ...settings,
-        origins: [
-          ...settings.origins.filter((entry) => entry.state === "denied"),
-          ...parsed.map((origin) => ({
-            origin,
-            state: "allowed" as const,
-            matrix:
-              settings.origins.find((entry) => entry.origin === origin)?.matrix ??
-              createDefaultSdkOriginCapabilityMatrix(),
-            previouslyAllowed: true,
-          })),
-        ],
-        originsManaged: true,
-      });
+      const next = allowSdkOrigin(settings, parsed);
+      if (next === null) {
+        setErrorKey("settings.integrations.sdk.error.originsInvalid");
+        return;
+      }
+      setAddOriginDraft("");
+      void persistAndApply(next);
     },
     onRefresh: () => {
       void refreshSnapshot();
@@ -273,9 +261,32 @@ export function useSdkSettingsPanel(
     onUnblockOrigin: (origin) => {
       void runOp({ op: "unblockOrigin", origin });
     },
+    onBlacklistOrigin: (origin) => {
+      const next = denySdkOrigin(settings, origin);
+      if (next === null) {
+        setErrorKey("settings.integrations.sdk.error.saveFailed");
+        return;
+      }
+      void persistAndApply(next);
+    },
+    onRemoveAllowedOrigin: (origin) => {
+      const next = removeAllowedSdkOrigin(settings, origin);
+      if (next === null) {
+        setErrorKey("settings.integrations.sdk.error.saveFailed");
+        return;
+      }
+      void persistAndApply(next);
+    },
+    onRenameAllowedOrigin: (previousOrigin, nextOrigin) => {
+      const next = renameAllowedSdkOrigin(settings, previousOrigin, nextOrigin);
+      if (next === null) {
+        setErrorKey("settings.integrations.sdk.error.originsInvalid");
+        return;
+      }
+      void persistAndApply(next);
+    },
     onSetOriginMatrix: (origin, matrix) => {
       void runOp({ op: "setOriginMatrix", origin, matrix });
     },
   };
 }
-

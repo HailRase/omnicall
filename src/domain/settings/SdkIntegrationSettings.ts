@@ -52,6 +52,19 @@ function isValidOriginString(value: string): boolean {
   return true;
 }
 
+/**
+ * - Purpose: parse a single exact Origin string for Settings add/edit.
+ * - Inputs: raw operator text; fails closed on wildcards / null / empty.
+ * - Outputs: trimmed Origin or null when invalid.
+ */
+export function parseExactSdkOrigin(raw: string): string | null {
+  const trimmed = raw.trim();
+  if (!isValidOriginString(trimmed)) {
+    return null;
+  }
+  return trimmed;
+}
+
 function parseTrustState(value: unknown): SdkOriginTrustState | null {
   if (value === "unknown" || value === "allowed" || value === "denied") {
     return value;

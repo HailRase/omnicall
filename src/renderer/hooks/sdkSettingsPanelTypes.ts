@@ -31,11 +31,11 @@ export type UseSdkSettingsPanelResult = Readonly<{
   selectedClientId: string | null;
   selectedProfileId: string | null;
   lastGrant: SdkActivateGrantResultProjection | null;
-  originsDraft: string;
+  addOriginDraft: string;
   errorKey: SdkSettingsPanelErrorKey | null;
   busy: boolean;
-  onOriginsDraftChange: (value: string) => void;
-  onOriginsSave: () => void;
+  onAddOriginDraftChange: (value: string) => void;
+  onAddOrigin: (draft?: string) => void;
   onRefresh: () => void;
   onApprovePairing: (pairingRequestId: string) => void;
   onDenyPairing: (pairingRequestId: string) => void;
@@ -46,6 +46,9 @@ export type UseSdkSettingsPanelResult = Readonly<{
   onAllowOriginTrust: (originTrustRequestId: string) => void;
   onDenyOriginTrust: (originTrustRequestId: string) => void;
   onUnblockOrigin: (origin: string) => void;
+  onBlacklistOrigin: (origin: string) => void;
+  onRemoveAllowedOrigin: (origin: string) => void;
+  onRenameAllowedOrigin: (previousOrigin: string, nextOrigin: string) => void;
   onSetOriginMatrix: (
     origin: string,
     matrix: SdkOriginCapabilityMatrix,

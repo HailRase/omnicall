@@ -5,7 +5,7 @@
   margin: 0;
   padding: 0;
   border: 1px solid transparent;
-  border-radius: var(--radius-control);
+  border-radius: var(--radius-full);
   line-height: 0;
   vertical-align: middle;
   user-select: none;
@@ -62,45 +62,48 @@
 }
 
 .variant-secondary {
-  border-color: var(--color-border-subtle);
-  background: var(--color-bg-surface-alt);
+  border-color: transparent;
+  background: color-mix(in srgb, var(--color-text-primary) 10%, transparent);
   color: var(--color-text-primary);
 }
 
 .variant-secondary:hover:not(:disabled):not([data-loading="true"]) {
-  background: var(--color-bg-surface-highlight);
+  background: color-mix(in srgb, var(--color-text-primary) 16%, transparent);
 }
 
 .variant-secondary:active:not(:disabled):not([data-loading="true"]) {
-  background: var(--color-bg-surface-deep);
+  background: color-mix(in srgb, var(--color-text-primary) 22%, transparent);
 }
 
 .variant-outline {
   border-color: var(--color-border-control);
-  background: var(--color-bg-surface);
+  background: transparent;
   color: var(--color-text-primary);
 }
 
 .variant-outline:hover:not(:disabled):not([data-loading="true"]) {
-  background: var(--color-bg-surface-alt);
+  background: color-mix(in srgb, var(--color-text-primary) 8%, transparent);
+  border-color: var(--color-border-default);
 }
 
 .variant-outline:active:not(:disabled):not([data-loading="true"]) {
-  background: var(--color-bg-surface-deep);
+  background: color-mix(in srgb, var(--color-text-primary) 14%, transparent);
 }
 
 .variant-ghost {
   border-color: transparent;
   background: transparent;
-  color: var(--color-text-primary);
+  color: var(--color-text-secondary);
 }
 
 .variant-ghost:hover:not(:disabled):not([data-loading="true"]) {
-  background: var(--color-bg-surface-alt);
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--color-text-primary) 8%, transparent);
 }
 
 .variant-ghost:active:not(:disabled):not([data-loading="true"]) {
-  background: var(--color-bg-surface-deep);
+  color: var(--color-text-primary);
+  background: color-mix(in srgb, var(--color-text-primary) 14%, transparent);
 }
 
 .variant-destructive {

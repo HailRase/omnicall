@@ -52,6 +52,8 @@
 | `AppIcon` | `src/renderer/components/icons/AppIcon.tsx` | `AppIconProps` | — | — |
 | `IconControlButton` | `src/renderer/components/icons/IconControlButton.tsx` | `IconControlButtonProps` | — | — |
 | `IconTooltip` | `src/renderer/components/icons/IconTooltip.tsx` | `IconTooltipProps` | icon-tooltip-bubble, icon-tooltip-host | — |
+| `SdkActivateProfileConsentModal` | `src/renderer/components/integration/SdkActivateProfileConsentModal.tsx` | `SdkActivateProfileConsentModalProps` | sdk-activate-consent-modal, sdk-activate-consent-deny, sdk-activate-consent-allow | — |
+| `SdkOriginTrustConsentModal` | `src/renderer/components/integration/SdkOriginTrustConsentModal.tsx` | `SdkOriginTrustConsentModalProps` | — | — |
 | `OcpCampaignEventModal` | `src/renderer/components/integration/ocp/OcpCampaignEventModal.tsx` | `OcpCampaignEventModalProps` | ocp-campaign-modal, ocp-campaign-details, ocp-campaign-reject, ocp-campaign-accept | f=F-028 lf=LF-047 |
 | `OcpConnectionBanner` | `src/renderer/components/integration/ocp/OcpConnectionBanner.tsx` | `OcpConnectionBannerProps` | ocp-connection-banner-anchor, ocp-connection-banner, ocp-connection-banner-message, ocp-retry-connect | — |
 | `OcpLogoutReasonModal` | `src/renderer/components/integration/ocp/OcpLogoutReasonModal.tsx` | `OcpLogoutReasonModalProps` | ocp-logout-cancel-action, ocp-logout-confirm, ocp-logout-reasons-empty | f=F-028 lf=LF-048 |
@@ -72,11 +74,18 @@
 | `CodecPreferencesSortableList` | `src/renderer/components/settings/panels/CodecPreferencesSortableList.tsx` | `CodecPreferencesSortableListProps` | — | — |
 | `NotificationHistoryTable` | `src/renderer/components/settings/panels/NotificationHistoryTable.tsx` | `—` | settings-notification-history-table | — |
 | `OcpModuleSettingsCard` | `src/renderer/components/settings/panels/OcpModuleSettingsCard.tsx` | `OcpModuleSettingsCardProps` | ocp-module-settings-card, ocp-module-active-login, ocp-module-enabled-toggle, ocp-module-auto-connect-toggle, ocp-module-domain-input, ocp-module-error | f=F-028 lf=LF-086,LF-087 |
+| `SdkModuleSettingsAttentionSection` | `src/renderer/components/settings/panels/SdkModuleSettingsAttentionSection.tsx` | `—` | sdk-module-attention, sdk-module-pending | — |
+| `SdkModuleSettingsBlockedSitesSection` | `src/renderer/components/settings/panels/SdkModuleSettingsBlockedSitesSection.tsx` | `—` | sdk-module-blacklist, sdk-module-blacklist-empty | — |
 | `SdkModuleSettingsCard` | `src/renderer/components/settings/panels/SdkModuleSettingsCard.tsx` | `—` | sdk-module-settings-card, sdk-module-error | f=F-011 lf=LF-051,LF-065 |
-| `SdkModuleSettingsClientsSection` | `src/renderer/components/settings/panels/SdkModuleSettingsClientsSection.tsx` | `—` | sdk-module-diagnostics, sdk-module-hide-disabled, sdk-module-hide-toggle | — |
-| `SdkModuleSettingsGrantSection` | `src/renderer/components/settings/panels/SdkModuleSettingsGrantSection.tsx` | `—` | sdk-module-activate-grant, sdk-module-grant-client, sdk-module-grant-profile, sdk-module-grant-issue, sdk-module-grant-ref | — |
-| `SdkModuleSettingsPairedSection` | `src/renderer/components/settings/panels/SdkModuleSettingsPairedSection.tsx` | `—` | sdk-module-pending, sdk-module-paired | — |
-| `SdkModuleSettingsPolicySection` | `src/renderer/components/settings/panels/SdkModuleSettingsPolicySection.tsx` | `—` | sdk-module-enabled-toggle, sdk-module-bind, sdk-module-origins-input, sdk-module-origins-save, sdk-module-refresh, sdk-module-origins-live, sdk-module-origins-empty | — |
+| `SdkModuleSettingsClientsSection` | `src/renderer/components/settings/panels/SdkModuleSettingsClientsSection.tsx` | `—` | sdk-module-hide-disabled, sdk-module-hide-toggle | — |
+| `SdkModuleSettingsGrantSection` | `src/renderer/components/settings/panels/SdkModuleSettingsGrantSection.tsx` | `—` | sdk-module-activate-grant, sdk-module-grant-client, sdk-module-grant-profile, sdk-module-grant-issue, sdk-module-grant-ref, sdk-module-grant-copy | — |
+| `SdkModuleSettingsOriginAddressEditor` | `src/renderer/components/settings/panels/SdkModuleSettingsOriginAddressEditor.tsx` | `—` | — | — |
+| `SdkModuleSettingsOriginConfirmDialog` | `src/renderer/components/settings/panels/SdkModuleSettingsOriginConfirmDialog.tsx` | `—` | — | — |
+| `SdkModuleSettingsOriginMatrix` | `src/renderer/components/settings/panels/SdkModuleSettingsOriginMatrix.tsx` | `—` | — | — |
+| `SdkModuleSettingsPairedSection` | `src/renderer/components/settings/panels/SdkModuleSettingsPairedSection.tsx` | `—` | sdk-module-paired | — |
+| `SdkModuleSettingsStatusSection` | `src/renderer/components/settings/panels/SdkModuleSettingsStatusSection.tsx` | `—` | sdk-module-diagnostics, sdk-module-refresh, sdk-module-bind | — |
+| `SdkModuleSettingsTrustedSiteItem` | `src/renderer/components/settings/panels/SdkModuleSettingsTrustedSiteItem.tsx` | `—` | — | — |
+| `SdkModuleSettingsTrustedSitesSection` | `src/renderer/components/settings/panels/SdkModuleSettingsTrustedSitesSection.tsx` | `—` | sdk-module-allowed-origins, sdk-module-origin-add-input, sdk-module-origin-add, sdk-module-origins-empty, sdk-module-trusted-accordion | — |
 | `SettingsAccountPanel` | `src/renderer/components/settings/panels/SettingsAccountPanel.tsx` | `SettingsAccountPanelProps` | settings-account-panel | — |
 | `SettingsCodecsPanel` | `src/renderer/components/settings/panels/SettingsCodecsPanel.tsx` | `SettingsCodecsPanelProps` | settings-codecs-panel, settings-codecs-error | — |
 | `SettingsDiagnosticsPanel` | `src/renderer/components/settings/panels/SettingsDiagnosticsPanel.tsx` | `—` | — | — |
@@ -93,6 +102,7 @@
 | `ShellOverlaySheet` | `src/renderer/components/shell/ShellOverlaySheet.tsx` | `ShellOverlaySheetProps` | — | — |
 | `ShellTitleBar` | `src/renderer/components/shell/ShellTitleBar.tsx` | `ShellTitleBarProps` | shell-titlebar, shell-titlebar | — |
 | `ShellWindowControls` | `src/renderer/components/shell/ShellWindowControls.tsx` | `ShellWindowControlsProps` | shell-window-controls, shell-window-controls | lf=LF-079 f=F-016 |
+| `Accordion` | `src/renderer/components/ui/accordion/Accordion.tsx` | `AccordionProps` | — | — |
 | `AlertDialog` | `src/renderer/components/ui/alert-dialog/AlertDialog.tsx` | `AlertDialogProps` | — | — |
 | `Dialog` | `src/renderer/components/ui/dialog/Dialog.tsx` | `DialogProps` | — | — |
 | `DropdownMenu` | `src/renderer/components/ui/dropdown-menu/DropdownMenu.tsx` | `DropdownMenuProps` | — | — |

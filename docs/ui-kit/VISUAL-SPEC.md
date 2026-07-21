@@ -118,8 +118,14 @@ Button implementation hard rules:
 
 ## IconButton Visual Canon
 
-Icon-only buttons follow the `Button` visual canon plus stricter accessibility rules:
+Icon-only buttons follow the `Button` variant language plus product icon-control shape and stricter accessibility rules:
 
+- Shape is circular (`border-radius: var(--radius-full)`), not control-radius squares.
+- Hit targets stay `sm` 32 / `md` 36 / `lg` 40.
+- `ghost` (default): transparent idle, secondary icon color; hover/active use soft `color-mix` tint of `--color-text-primary` (8% / 14%) and primary icon color — same language as Settings / shell close controls.
+- `secondary`: soft tint fill (10% idle → 16% / 22% hover/active), not solid `--color-bg-surface-alt` tiles.
+- `outline`: transparent fill + control border; hover soft tint + default border.
+- `primary` / `destructive`: filled circular accents matching Button color tokens.
 - `ariaLabel` is required and must control the rendered `aria-label`.
 - `aria-label` must not be overridable through native props.
 - Icons must render through the project semantic icon layer (`AppIcon`), never raw icon imports.
@@ -318,6 +324,19 @@ Native HTML table composition (shadcn-like). There is no Radix Table primitive; 
 - Optional framed look belongs to the product/story wrapper (border + panel radius), not the primitive root.
 - Typed cell alignment: `left | center | right` via `align` + `data-align`.
 - Reduced motion: disable row background transition.
+
+## Accordion Canon
+
+Radix Accordion with calm section stack (no nested cards):
+
+- Root: full width, no border/background chrome on the primitive itself.
+- Item dividers: hairline `1px solid var(--color-border-subtle)`; last item has no bottom border.
+- Trigger: full-width row, transparent background, primary text, medium weight, vertical padding `var(--space-sm)`.
+- Trigger hover: `--color-bg-surface-highlight`; active: `--color-bg-surface-deep`.
+- Trigger focus-visible: global focus ring (`--color-outline-focus`).
+- Chevron: secondary text, rotates 180° when `data-state="open"`.
+- Content: secondary text, height animation via `--radix-accordion-content-height`.
+- Reduced motion: disable chevron and content animations.
 
 ## Focus And Keyboard Gate
 

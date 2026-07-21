@@ -486,6 +486,7 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
       "TransferPanel: control-cancel-transfer",
       "UpdateAvailableBanner: update-available-banner-later",
       "VideoFullscreenModal",
+      "SdkModuleSettingsOriginAddressEditor: cancel",
     ],
   },
   "dial.call": {
@@ -545,13 +546,19 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     animated: CheckIcon,
     defaultLabelKey: "icons.action.confirm",
     defaultSize: 20,
-    usage: ["TransferPanel: control-attended-transfer"],
+    usage: [
+      "TransferPanel: control-attended-transfer",
+      "SdkModuleSettingsOriginAddressEditor: save",
+    ],
   },
   "action.edit": {
     static: Pencil,
     defaultLabelKey: "icons.action.edit",
     defaultSize: 16,
-    usage: ["ContactDetailsPanel: contacts-edit"],
+    usage: [
+      "ContactDetailsPanel: contacts-edit",
+      "SdkModuleSettingsOriginAddressEditor: edit",
+    ],
   },
   "action.retry": {
     static: RotateCcw,
@@ -584,6 +591,7 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     usage: [
       "Select: select-trigger-chevron",
       "OverwriteSavedAccountCredentialsConfirmationModal: more-actions",
+      "Accordion: AccordionTrigger chevron",
     ],
   },
   "ui.sidebar.toggle": {

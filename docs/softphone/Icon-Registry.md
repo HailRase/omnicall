@@ -56,7 +56,7 @@
 | `call.incoming` | Incoming call indicator | `PhoneIncoming` | `PhoneIncomingIcon` | `IncomingCallOverlay` | active |
 | `call.outgoing` | Outgoing call indicator | `Phone` | `PhoneIcon` | `OutgoingCallCard` | active |
 | `call.phone-off` | Connection lost | `PhoneOff` | `PhoneOffIcon` | `SettingsSystemStatePanel` (Phase 6) | planned |
-| `overlay.close` | Close overlay/modal | `X` | `XIcon` | `ShellOverlaySheet`, modals, `OcpToastStack`, transfer cancel | active |
+| `overlay.close` | Close overlay/modal | `X` | `XIcon` | `ShellOverlaySheet`, modals, `OcpToastStack`, transfer cancel, SDK origin edit cancel | active |
 | `dial.call` | Place outgoing call | `PhoneOutgoing` | — | `Dialpad` | active |
 | `dial.videoCall` | Place outgoing video call | `Video` | — | `Dialpad` | active |
 | `dial.delete` | Delete last digit | `Delete` | `DeleteIcon` | `Dialpad` | active |
@@ -64,12 +64,12 @@
 | `operator.ready` | Agent ready status | `CircleCheck` | `CircleCheckIcon` | `StatusSelector` | active |
 | `operator.break` | Agent break status | `Coffee` | `CoffeeIcon` | `StatusSelector` | active |
 | `operator.logout` | Operator platform logout | `LogOut` | `LogoutIcon` | `StatusSelector`, `LogoutReasonModal` | active |
-| `action.confirm` | Confirm action | `Check` | `CheckIcon` | `BreakReasonPicker`, `CampaignEventModal`, `TransferPanel` | active |
-| `action.edit` | Edit contact or record | `Pencil` | — | `ContactDetailsPanel` | active |
+| `action.confirm` | Confirm action | `Check` | `CheckIcon` | `BreakReasonPicker`, `CampaignEventModal`, `TransferPanel`, SDK origin save | active |
+| `action.edit` | Edit contact or record | `Pencil` | — | `ContactDetailsPanel`, SDK origin edit | active |
 | `action.retry` | Retry failed operation | `RotateCcw` | `RotateCcwIcon` | `CallLineRow`, `ActiveCallControlsPanel` | active |
 | `transfer.consultation` | Start consultation call | `PhoneCall` | `PhoneCallIcon` | `TransferPanel` | active |
 | `connection.retry` | Retry connection | `RotateCcw` | `RotateCcwIcon` | `SettingsSystemStatePanel` (Phase 6) | planned |
-| `ui.select.chevron` | Expand select options | `ChevronDown` | — | `Select`; overwrite credentials split menu | active |
+| `ui.select.chevron` | Expand select options | `ChevronDown` | — | `Select`; overwrite credentials split menu; `Accordion` trigger | active |
 | `ui.sidebar.toggle` | Toggle UI Kit sidebar | `PanelLeft` | — | `SidebarTrigger` | active |
 | `phone.dnd.on` | DND mode active (bell on) | `Bell` | — | `UserAvatarMenu` | active |
 | `phone.dnd.off` | DND mode inactive (bell off) | `BellOff` | — | `UserAvatarMenu` | active |

@@ -95,17 +95,22 @@ behavior for consumer desktop is TOFU as above.
 Env `AXATALK_SDK_ALLOWED_ORIGINS` becomes an optional **seed / managed allow** input into
 the same store — not the only gate. Blacklist still wins over allow seed.
 
-### C. Settings IA — Integrations → Axatalk SDK (pre-auth)
+### C. Settings IA — Axatalk SDK (pre-auth)
 
-1. **ADR-AF-004 exception:** Settings → **Integrations → Axatalk SDK** is available
-   **before** account session activation. All other Integrations children (including
-   **OCP Module**) and other Settings sections remain gated as today.
-2. Navigation placement: under Integrations, sibling/sub-item relative to **OCP Module**
-   (Axatalk SDK is the dedicated SDK policy surface; OCP Module stays disabled pre-auth).
+1. **ADR-AF-004 exception:** Settings → **Axatalk SDK** is available **before** account
+   session activation. **Integrations → OCP Module** and other Settings sections remain
+   gated as today.
+2. Navigation placement: **top-level** Settings nav leaf **immediately below** the
+   Integrations group (not nested under Integrations children). Integrations remains
+   OCP Module only; Axatalk SDK is a sibling section in the rail order.
 3. Axatalk SDK Settings contains at least:
    - **Blacklist** (denied Origins) with Unblock;
-   - **Allowed Origins / Domains** with create / edit / delete;
-   - **Per-Origin capability matrix** (see §D);
+   - **Allowed Origins / Domains** with per-Origin create / edit (URL rename keeps matrix) /
+     delete and quick blacklist (not a bulk textarea replace);
+   - **Per-Origin capability matrix** (see §D) — Settings UI exposes **all** matrix
+     capability toggles per allowed Origin (`session.read.redacted`, `window.show`,
+     `operator.status.write`, `session.logout`, `call.originate`, `call.control`,
+     `account.activate`); `window.hide` is shown disabled (ADR-0013);
    - Diagnostics (listen status, bind port, connection counts) without secrets;
    - Paired client revoke controls (from DI-09) remain here; policy lists themselves are
      editable pre-auth.

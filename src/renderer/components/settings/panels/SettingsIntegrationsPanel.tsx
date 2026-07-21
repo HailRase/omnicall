@@ -26,8 +26,12 @@ export function SettingsIntegrationsPanel({
 
   return (
     <div className={formStyles.panelStack} data-testid="settings-integrations-panel">
-      <p className={formStyles.blockHint}>{t("settings.integrations.description")}</p>
-      {sectionId === "integrations" ? <OcpModuleSettingsCard {...ocp} /> : null}
+      {sectionId === "integrations" ? (
+        <>
+          <p className={formStyles.blockHint}>{t("settings.integrations.description")}</p>
+          <OcpModuleSettingsCard {...ocp} />
+        </>
+      ) : null}
       {sectionId === "integrations-sdk" ? <SdkModuleSettingsCard {...sdk} /> : null}
     </div>
   );

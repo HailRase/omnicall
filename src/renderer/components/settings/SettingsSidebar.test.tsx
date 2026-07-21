@@ -71,7 +71,7 @@ describe("SettingsSidebar", () => {
     expect(screen.getByText("Диагностика")).toBeVisible();
   });
 
-  it("disables non-Account sections before SIP registration", () => {
+  it("disables gated sections before account session but keeps top-level Axatalk SDK", () => {
     renderSidebar({
       activeSection: "account",
       sectionAvailability: preAuthAvailability,
@@ -85,7 +85,9 @@ describe("SettingsSidebar", () => {
     expect(screen.getByTestId("settings-nav-general")).toBeDisabled();
     expect(screen.getByTestId("settings-nav-sessions")).toBeDisabled();
     expect(screen.getByTestId("settings-nav-diagnostics")).toBeDisabled();
+    // Integrations (OCP-only group) stays gated; Axatalk SDK is a top-level leaf below it.
     expect(screen.getByTestId("settings-nav-integrations")).toBeDisabled();
+    expect(screen.getByTestId("settings-nav-integrations-sdk")).toBeEnabled();
   });
 
   it("keeps all sections enabled after SIP registration", () => {
@@ -123,7 +125,7 @@ describe("SettingsSidebar", () => {
     );
   });
 
-  it("does not navigate to Integrations when pre-auth group is clicked", async () => {
+  it("does not navigate via Integrations group when pre-auth (OCP gated)", async () => {
     vi.useRealTimers();
     const user = userEvent.setup();
     const onSectionChange = vi.fn();
@@ -135,6 +137,20 @@ describe("SettingsSidebar", () => {
 
     await user.click(screen.getByTestId("settings-nav-integrations"));
     expect(onSectionChange).not.toHaveBeenCalled();
+  });
+
+  it("navigates to Axatalk SDK top-level leaf when pre-auth", async () => {
+    vi.useRealTimers();
+    const user = userEvent.setup();
+    const onSectionChange = vi.fn();
+    renderSidebar({
+      activeSection: "account",
+      sectionAvailability: preAuthAvailability,
+      onSectionChange,
+    });
+
+    await user.click(screen.getByTestId("settings-nav-integrations-sdk"));
+    expect(onSectionChange).toHaveBeenCalledWith("integrations-sdk");
   });
 
   it("shows full system-state label without truncation when expanded", () => {
@@ -165,7 +181,7 @@ describe("SettingsSidebar", () => {
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
   });
 
-  it("shows nested OCP Module under Integrations when expanded", async () => {
+  it("shows nested OCP Module under Integrations and Axatalk SDK as sibling below", async () => {
     vi.useRealTimers();
     const user = userEvent.setup();
     const onSectionChange = vi.fn();
@@ -179,6 +195,10 @@ describe("SettingsSidebar", () => {
     expect(screen.getByTestId("settings-nav-group-integrations-group")).toBeInTheDocument();
     expect(screen.getByTestId("settings-nav-integrations-ocp")).toBeInTheDocument();
     expect(screen.getByText("OCP Module")).toBeVisible();
+    expect(screen.getByTestId("settings-nav-integrations-sdk")).toBeInTheDocument();
+    expect(screen.queryByTestId("settings-nav-group-integrations-group")).not.toContainElement(
+      screen.getByTestId("settings-nav-integrations-sdk"),
+    );
 
     await user.click(screen.getByTestId("settings-nav-integrations-ocp"));
     expect(onSectionChange).toHaveBeenCalledWith("integrations");

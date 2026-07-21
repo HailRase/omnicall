@@ -56,7 +56,7 @@ UI Kit/Alert
 ## Design Sources
 
 - shadcn/ui: visual language, public API shape, variants, composition ideas.
-- Radix UI: Dialog, DropdownMenu, Select, Tooltip, Popover, Tabs, AlertDialog, Checkbox, RadioGroup, Switch.
+- Radix UI: Dialog, DropdownMenu, Select, Tooltip, Popover, Tabs, Accordion, AlertDialog, Checkbox, RadioGroup, Switch.
 - Existing project tokens: `src/renderer/styles/tokens.css`.
 - Existing CSS rules: co-located CSS Modules, kebab-case selectors, camelCase TS access.
 - Visual canon: `docs/ui-kit/VISUAL-SPEC.md`.
@@ -1801,6 +1801,68 @@ Inherited gates:
 - Base: rest-before-controlled, className/ref on table root, semantic tokens, no filter/brightness, light/dark stories
 - Feedback/Display: semantic table roles, selected/hover tone tokens, reduced-motion row transition, slot rendering tests
 - Native Control / Form / Radix: not applicable (display composition; no Radix Table)
+
+### Accordion
+
+Status: [ ] planned [ ] in progress [x] done
+Radix: yes
+Priority: P1
+
+Purpose:
+
+- Expand/collapse section stack for dense settings and help content.
+- Supports single and multiple open modes, collapsible single, controlled/uncontrolled value.
+- Uses Radix Accordion for keyboard and ARIA behavior.
+- Calm hairline item dividers, clear chevron, focus ring — no nested card chrome.
+
+API:
+
+- composable: `Accordion`, `AccordionItem`, `AccordionTrigger`, `AccordionContent`
+- `Accordion.type`: `"single" | "multiple"` (required)
+- `value` / `defaultValue` / `onValueChange` (string for single, string[] for multiple)
+- `collapsible?: boolean` (single type only)
+- `disabled` on root or item
+- `AccordionTrigger` embeds Radix Header + decorative chevron (`ui.select.chevron`)
+
+Stories:
+
+- [x] Default
+- [x] Multiple
+- [x] Controlled
+- [x] Disabled Item
+- [x] Light Theme
+- [x] Dark Theme
+
+Tests:
+
+- [x] Opens and closes items on click.
+- [x] Supports keyboard activation with Enter and Space.
+- [x] Emits selected value.
+- [x] Supports controlled value.
+- [x] Skips disabled item selection.
+- [x] Supports multiple open items.
+- [x] Forwards ref to the accordion trigger.
+- [x] Preserves caller className.
+- [x] Protects controlled disabled attribute.
+
+Checklist:
+
+- [x] Component implemented
+- [x] CSS Module implemented
+- [x] Radix primitive wrapped
+- [x] Applicable Universal Quality Gates satisfied (Base + Radix Primitive)
+- [x] Storybook added under `UI Kit/Accordion`
+- [x] Tests added
+- [x] Barrel export added
+- [x] Light/dark verified
+- [x] Accessibility verified
+- [x] Documentation status updated
+
+Inherited gates:
+
+- Base: rest-before-controlled, className/ref on documented slots, semantic tokens, no filter/brightness, light/dark stories
+- Radix Primitive: Radix owns focus/ARIA, CSS targets `data-state`/`data-disabled`, tests cover open/close, keyboard, disabled, controlled
+- Native Control / Form / Feedback: not applicable
 
 ### Avatar
 

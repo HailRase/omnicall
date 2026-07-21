@@ -6,6 +6,7 @@
 
 import {
   MAX_SDK_ALLOWED_ORIGINS,
+  parseExactSdkOrigin,
   type SdkIntegrationSettings,
 } from "./SdkIntegrationSettings.js";
 import {
@@ -136,6 +137,39 @@ export function removeAllowedSdkOrigin(
     return null;
   }
   return removeOrigin(settings, origin);
+}
+
+/**
+ * Rename an allowed Origin URL while preserving its capability matrix.
+ * Fails closed when `nextOrigin` is invalid, blacklisted, or already present.
+ */
+export function renameAllowedSdkOrigin(
+  settings: SdkIntegrationSettings,
+  previousOrigin: string,
+  nextOriginRaw: string,
+): SdkIntegrationSettings | null {
+  const existing = settings.origins.find((row) => row.origin === previousOrigin);
+  if (existing === undefined || existing.state !== "allowed") {
+    return null;
+  }
+  const nextOrigin = parseExactSdkOrigin(nextOriginRaw);
+  if (nextOrigin === null) {
+    return null;
+  }
+  if (nextOrigin === previousOrigin) {
+    return settings;
+  }
+  const conflict = settings.origins.find((row) => row.origin === nextOrigin);
+  if (conflict !== undefined) {
+    return null;
+  }
+  const withoutPrevious = removeOrigin(settings, previousOrigin);
+  return upsertOrigin(withoutPrevious, {
+    origin: nextOrigin,
+    state: "allowed",
+    matrix: existing.matrix ?? createDefaultSdkOriginCapabilityMatrix(),
+    previouslyAllowed: true,
+  });
 }
 
 /** Seed env allowlist Origins as allowed (blacklist wins). */

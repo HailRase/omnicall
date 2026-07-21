@@ -59,7 +59,7 @@ function resolveTooltipLabel(
 /**
  * - Purpose: icon-only UI Kit action with semantic icon layer and optional tooltip.
  * - Inputs: iconId, ariaLabel, variant, size, tooltip, disabled reason, loading.
- * - Outputs: accessible square button with catalog icon and visual states.
+ * - Outputs: accessible circular icon button with catalog icon and visual states.
  */
 export const IconButton = forwardRef(function IconButton(
   {

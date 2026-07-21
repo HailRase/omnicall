@@ -1,4 +1,7 @@
-import type { SettingsNavigationAvailability } from "@application/index.js";
+import type {
+  SettingsNavDisabledReasonKey,
+  SettingsNavigationAvailability,
+} from "@application/index.js";
 import clsx from "clsx";
 import { useEffect, useRef, useState, type JSX } from "react";
 import { AppIcon } from "../icons/index.js";
@@ -36,7 +39,8 @@ export type SettingsSidebarProps = Readonly<{
 /**
  * - Purpose: render collapsible settings navigation using UI Kit Sidebar primitives.
  * - Inputs: active section, expanded flag, availability VM, section and expand callbacks.
- * - Outputs: icon rail with flyout expand, nested Integrations → OCP Module, gated tooltips.
+ * - Outputs: icon rail with flyout expand, nested Integrations → OCP Module, top-level
+ *   Axatalk SDK below Integrations, gated tooltips.
  */
 export function SettingsSidebar({
   activeSection,
@@ -97,23 +101,19 @@ export function SettingsSidebar({
   }
 
   function handleGroupClick(group: SettingsNavGroup): void {
-    const firstChild = group.children[0];
-    if (firstChild === undefined) {
-      return;
-    }
-    const childAvailability = sectionAvailability.bySection[firstChild.id];
-    if (childAvailability !== undefined && !childAvailability.enabled) {
+    const targetChild = resolveFirstEnabledNavChild(group, sectionAvailability);
+    if (targetChild === undefined) {
       return;
     }
     if (!expanded) {
-      onSectionChange(firstChild.id);
+      onSectionChange(targetChild.id);
       return;
     }
     const isOpen = openGroupIds.includes(group.id);
     if (!isOpen) {
       toggleGroup(group.id);
       if (!isSettingsSectionInGroup(group, activeSection)) {
-        onSectionChange(firstChild.id);
+        onSectionChange(targetChild.id);
       }
       return;
     }
@@ -173,18 +173,13 @@ export function SettingsSidebar({
                 const groupOpen = openGroupIds.includes(node.id);
                 const groupActive = isSettingsSectionInGroup(node, activeSection);
                 const groupLabel = t(node.labelKey);
-                const firstChild = node.children[0];
-                const groupBlocked =
-                  firstChild !== undefined &&
-                  sectionAvailability.bySection[firstChild.id]?.enabled === false;
-                const groupDisabledReason =
-                  groupBlocked && firstChild !== undefined
-                    ? sectionAvailability.bySection[firstChild.id]?.disabledReasonKey
-                    : null;
+                // Group stays clickable when any child is allowed (mixed pre-auth gates).
+                const groupBlocked = isNavGroupBlocked(node, sectionAvailability);
+                const groupDisabledReason = groupBlocked
+                  ? resolveNavGroupDisabledReasonKey(node, sectionAvailability)
+                  : null;
                 const groupDisabledTooltip =
-                  groupDisabledReason !== null && groupDisabledReason !== undefined
-                    ? t(groupDisabledReason)
-                    : "";
+                  groupDisabledReason !== null ? t(groupDisabledReason) : "";
 
                 const groupButton = (
                   <SidebarMenuButton
@@ -394,4 +389,43 @@ function resolveOpenGroupsForSection(sectionId: SettingsSectionId): ReadonlyArra
     }
     return [];
   });
+}
+
+/**
+ * First leaf that the availability VM allows (tree order). Used for group click target
+ * when some children are gated (e.g. pre-auth OCP off, Axatalk SDK on).
+ */
+function resolveFirstEnabledNavChild(
+  group: SettingsNavGroup,
+  sectionAvailability: SettingsNavigationAvailability,
+): SettingsNavLeaf | undefined {
+  return group.children.find(
+    (child) => sectionAvailability.bySection[child.id]?.enabled === true,
+  );
+}
+
+/** True only when every child is blocked (or the group has no children). */
+function isNavGroupBlocked(
+  group: SettingsNavGroup,
+  sectionAvailability: SettingsNavigationAvailability,
+): boolean {
+  return resolveFirstEnabledNavChild(group, sectionAvailability) === undefined;
+}
+
+/** Disabled reason from the first blocked child that carries a semantic key. */
+function resolveNavGroupDisabledReasonKey(
+  group: SettingsNavGroup,
+  sectionAvailability: SettingsNavigationAvailability,
+): SettingsNavDisabledReasonKey | null {
+  for (const child of group.children) {
+    const availability = sectionAvailability.bySection[child.id];
+    if (
+      availability?.enabled === false &&
+      availability.disabledReasonKey !== null &&
+      availability.disabledReasonKey !== undefined
+    ) {
+      return availability.disabledReasonKey;
+    }
+  }
+  return null;
 }

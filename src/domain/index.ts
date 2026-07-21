@@ -62,6 +62,7 @@ export {
   listAllowedSdkOrigins,
   listDeniedSdkOrigins,
   migrateLegacySdkIntegrationSettings,
+  parseExactSdkOrigin,
   parseSdkIntegrationSettings,
   parseSdkOriginsDraft,
 } from "./settings/SdkIntegrationSettings.js";
@@ -82,6 +83,7 @@ export {
   allowSdkOrigin,
   denySdkOrigin,
   removeAllowedSdkOrigin,
+  renameAllowedSdkOrigin,
   seedAllowedSdkOrigins,
   setSdkOriginCapabilityMatrix,
   unblockSdkOrigin,

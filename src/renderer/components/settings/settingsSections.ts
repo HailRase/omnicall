@@ -119,14 +119,15 @@ export const SETTINGS_NAV_TREE: ReadonlyArray<SettingsNavNode> = [
         iconId: "settings.integrations.ocp",
         testId: "settings-nav-integrations-ocp",
       },
-      {
-        kind: "item",
-        id: "integrations-sdk",
-        labelKey: "settings.nav.integrations.sdk",
-        iconId: "settings.integrations.sdk",
-        testId: "settings-nav-integrations-sdk",
-      },
     ],
+  },
+  // Top-level leaf immediately below Integrations (not a group child) — ADR-0018 / AF-004.
+  {
+    kind: "item",
+    id: "integrations-sdk",
+    labelKey: "settings.nav.integrations.sdk",
+    iconId: "settings.integrations.sdk",
+    testId: "settings-nav-integrations-sdk",
   },
 ];
 

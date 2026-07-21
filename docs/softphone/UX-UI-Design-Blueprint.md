@@ -275,6 +275,29 @@ Settings panels:
 6. Diagnostics
 7. Advanced
 
+### Shared Settings content measure (layout rule)
+
+Shared primitives in `SettingsForm.module.css` constrain Settings body content so wide windows do not stretch preference rows edge-to-edge:
+
+| Rule | Target |
+| --- | --- |
+| Complex list pages (`panel-stack`, `section-card`, `content-column`) | **max-width 36rem** (range 32–40rem) |
+| Simple preference fields / toggle rows / stacked forms | **max-width 28rem** |
+| Preference / toggle rows | Label + description left; control immediately after text — **never** `space-between` across a full-bleed pane |
+| Stacked forms (add site, grant access) | Vertical fields; primary action under fields |
+
+Do not reintroduce `max-width: none` on shared Settings form stacks without an ADR-level layout decision.
+
+### Axatalk SDK Settings IA (F-011)
+
+Three UI Kit Tabs (same pattern as Account mode tabs, `indicator="slide"`):
+
+1. **Main** — gateway status (+ refresh), paired clients, temporary profile access, single “window hide unavailable” note  
+2. **Trusted sites** — add site; each site is a UI Kit Accordion item (permissions as labeled Selects allowed/denied; address edit with explicit Save/Cancel)  
+3. **Blocked sites** — origin left, Unblock right  
+
+Attention callouts (TOFU / pairing) appear above the tab strip when present.
+
 Settings must show:
 
 - current value
