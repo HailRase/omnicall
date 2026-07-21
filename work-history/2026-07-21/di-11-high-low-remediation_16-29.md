@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-21 16:29
 **Статус:** выполнено
-**Коммит:** (см. git log после commit)
+**Коммит:** `1e76563`
 
 ## Где
 - `src/adapters/integration/sdkOriginTrustMachineStore.ts`
