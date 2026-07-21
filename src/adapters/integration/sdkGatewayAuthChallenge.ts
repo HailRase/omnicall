@@ -2,7 +2,7 @@
  * Single-use auth challenge / nonce cache (DI-04 / ADR-0016).
  */
 
-import type { AuthChallenge } from "@axatalk/protocol";
+import type { AuthChallenge } from "@axata/axatalk-protocol";
 
 import {
   createSdkBase64UrlNonce,

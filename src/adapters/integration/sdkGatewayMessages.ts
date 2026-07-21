@@ -13,7 +13,7 @@ import {
   type ProtocolErrorCode,
   type WireJsonObject,
   type WireMessage,
-} from "@axatalk/protocol";
+} from "@axata/axatalk-protocol";
 
 import {
   createSdkBase64UrlNonce,

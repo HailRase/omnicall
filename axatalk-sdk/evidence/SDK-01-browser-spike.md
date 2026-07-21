@@ -64,7 +64,7 @@ See ADR-0015 table (`sdk.lna.*`, `sdk.discovery.*`). Copy and i18n catalogs land
 ## Explicit non-goals of this spike
 
 - No Electron gateway implementation (DI-03).
-- No `@axatalk/sdk` transport client (SDK-03).
+- No `@axata/axatalk-sdk` transport client (SDK-03).
 - No Playwright LNA interactive run in CI (deferred; CI still uses existing SDK-00 browser
   scaffold only).
 - No Safari polyfill research.

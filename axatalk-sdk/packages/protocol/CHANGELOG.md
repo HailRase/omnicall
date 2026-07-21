@@ -1,9 +1,9 @@
-# @axatalk/protocol
+# @axata/axatalk-protocol
 
 ## Unreleased — RC staging (SDK-10 Mode A)
 
 First public release candidate target: **`0.1.0-rc.0`** on npm dist-tag **`rc`**
-(linked with `@axatalk/sdk`).
+(linked with `@axata/axatalk-sdk`).
 
 Packages remain `private: true` / `0.0.0` until authorized RC publish.
 Stable / `latest` is **blocked on desktop DI-10**.

@@ -1,5 +1,5 @@
 /**
- * `@axatalk/sdk` — browser client for Axatalk Desktop local protocol.
+ * `@axata/axatalk-sdk` — browser client for Axatalk Desktop local protocol.
  *
  * SDK-08: AxatalkClient with privileged namespaced account.activateProfile.
  *

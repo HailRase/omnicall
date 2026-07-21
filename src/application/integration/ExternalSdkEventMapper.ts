@@ -4,7 +4,7 @@
  */
 
 import type { DomainEvent } from "@domain/index.js";
-import type { WireJsonObject } from "@axatalk/protocol";
+import type { WireJsonObject } from "@axata/axatalk-protocol";
 
 import { mapSdkPublicCallState } from "./mapSdkPublicCallState.js";
 import { mapSdkRegistrationState } from "./mapSdkRegistrationState.js";

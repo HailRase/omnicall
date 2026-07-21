@@ -84,7 +84,7 @@ Gate closed. SDK-00 `done`; SDK-01 ADR-0014…0017 `done` (`/sdk-review` PASS). 
 
 Status: **`done`** (2026-07-20). Evidence: `evidence/DI-01-protocol-ports-mocks.md`. `/sdk-review` PASS.
 
-- Integrated `@axatalk/protocol` (file dep) without Domain imports.
+- Integrated `@axata/axatalk-protocol` (file dep) without Domain imports.
 - Defined external gateway/broker ports and command/query handler interfaces.
 - Added mock gateway, broker, and handler doubles (fail-closed validators).
 - Desktop consumes SDK-02 golden fixtures byte-identical (valid/invalid+meta).

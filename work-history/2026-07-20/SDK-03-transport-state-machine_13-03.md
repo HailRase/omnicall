@@ -14,7 +14,7 @@
 - Явная connection state machine по ARCHITECTURE.md
 - Корреляция request/reply, timeout/abort/disconnect cleanup
 - Heartbeat + bounded jittered reconnect; мутации не переигрываются
-- Redaction-safe diagnostics; публичная поверхность `@axatalk/sdk` пустая
+- Redaction-safe diagnostics; публичная поверхность `@axata/axatalk-sdk` пустая
 
 ## Зачем
 Реализовать SDK-03: механика транспорта и жизненного цикла соединения до pairing/auth (SDK-04) и публичного клиента (SDK-05).

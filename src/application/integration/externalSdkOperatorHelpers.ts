@@ -2,7 +2,7 @@
  * Pure helpers for ExternalSdkOperatorHandler (DI-07).
  */
 
-import type { WireJsonObject } from "@axatalk/protocol";
+import type { WireJsonObject } from "@axata/axatalk-protocol";
 import type { ExternalHandlerResult } from "@ports/integration/ExternalCommandHandler.js";
 
 import type { SdkOperatorReasonDto } from "./ExternalSdkOperatorPort.js";

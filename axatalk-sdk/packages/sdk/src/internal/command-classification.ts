@@ -3,7 +3,7 @@
  * Non-idempotent mutations must never be silently replayed.
  */
 
-import type { CommandType } from '@axatalk/protocol';
+import type { CommandType } from '@axata/axatalk-protocol';
 
 const IDEMPOTENT_COMMANDS: ReadonlySet<CommandType> = new Set([
   'sdk:get-snapshot',

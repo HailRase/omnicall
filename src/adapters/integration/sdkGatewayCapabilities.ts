@@ -9,7 +9,7 @@ import {
   type CapabilityId,
   type CommandType,
   type PairingProfile,
-} from "@axatalk/protocol";
+} from "@axata/axatalk-protocol";
 
 /** Capability required for a command; undefined means auth-only (e.g. sdk:ping). */
 const COMMAND_CAPABILITY: Readonly<

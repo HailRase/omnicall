@@ -6,7 +6,7 @@
 
 ## Scope delivered
 
-Browser-side fail-closed auth client in `@axatalk/sdk`:
+Browser-side fail-closed auth client in `@axata/axatalk-sdk`:
 
 1. Handshake negotiation → `pairing_required` | `authenticating` | `incompatible`
 2. Pairing ceremony (`pairing:request` → pending → approved|denied) + consumer callback
@@ -43,7 +43,7 @@ Browser-side fail-closed auth client in `@axatalk/sdk`:
 
 ## PoP interop vector
 
-- Canonical string: `buildPopSigningPayload` from `@axatalk/protocol` (ADR-0016)
+- Canonical string: `buildPopSigningPayload` from `@axata/axatalk-protocol` (ADR-0016)
 - Signature encoding: Web Crypto ECDSA-P256-SHA256 → IEEE-P1363 base64url
 - Oracle: Node `crypto.verify(..., { dsaEncoding: 'ieee-p1363' })` in `packages/sdk/src/internal/pop-crypto.test.ts`
 - Desktop peer (read-only confirmation): `src/adapters/integration/sdkGatewayPopCrypto.test.ts` + `LocalWsServerAdapter.auth.test.ts` → **11 passed**

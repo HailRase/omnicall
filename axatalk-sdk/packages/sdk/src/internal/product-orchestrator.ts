@@ -2,7 +2,7 @@
  * Product orchestration: snapshot, events, window, calls, operator, account.
  */
 
-import type { CapabilityId, SnapshotMessage } from '@axatalk/protocol';
+import type { CapabilityId, SnapshotMessage } from '@axata/axatalk-protocol';
 
 import {
   createAccountActivateCommandApi,

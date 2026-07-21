@@ -6,7 +6,7 @@
 import type {
   ProtocolErrorCode,
   WireMessage,
-} from "@axatalk/protocol";
+} from "@axata/axatalk-protocol";
 import type { BrokerRequestResult } from "@ports/integration/MainToRendererBrokerPort.js";
 
 export type SdkWindowShowResult =

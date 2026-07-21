@@ -2,7 +2,7 @@
  * Inbound parse + dispatch for LocalWsSessionRegistry (keeps registry under size budget).
  */
 
-import type { WireMessage } from "@axatalk/protocol";
+import type { WireMessage } from "@axata/axatalk-protocol";
 
 import type { SdkAuthChallengeCache } from "./sdkGatewayAuthChallenge.js";
 import type { SdkGatewayLimits } from "./sdkGatewayConfig.js";

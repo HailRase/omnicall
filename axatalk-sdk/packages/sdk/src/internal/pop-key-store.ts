@@ -3,7 +3,7 @@
  * Never localStorage / sessionStorage. Tests use an in-memory store.
  */
 
-import type { CapabilityId, PairingProfile } from '@axatalk/protocol';
+import type { CapabilityId, PairingProfile } from '@axata/axatalk-protocol';
 
 /** Persisted PoP identity (private key non-extractable). @public */
 export type StoredPopIdentity = {

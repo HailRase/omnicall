@@ -2,7 +2,7 @@
  * DI-05/DI-06 product command execution: snapshot/call via broker, window via main.
  */
 
-import type { CommandType, WireMessage } from "@axatalk/protocol";
+import type { CommandType, WireMessage } from "@axata/axatalk-protocol";
 import type { SdkGatewayConnection } from "./sdkGatewayConnection.js";
 import {
   buildCommandFailureReply,

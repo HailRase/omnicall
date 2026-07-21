@@ -1,6 +1,6 @@
 # Axatalk SDK Project
 
-This directory is the incubating npm workspace for `@axatalk/protocol` and `@axatalk/sdk`.
+This directory is the incubating npm workspace for `@axata/axatalk-protocol` and `@axata/axatalk-sdk`.
 It remains inside the desktop repository until protocol v1 and compatibility fixtures are
 stable enough to extract. Never create a nested Git repository here.
 
@@ -39,9 +39,9 @@ The desktop counterpart is documented in
 
 The recommended end state is a separate publishable repository containing:
 
-- `@axatalk/protocol` — runtime schemas and public TypeScript contracts;
-- `@axatalk/sdk` — browser client;
-- optional `@axatalk/sdk-testing` — deterministic test server and fixtures.
+- `@axata/axatalk-protocol` — runtime schemas and public TypeScript contracts;
+- `@axata/axatalk-sdk` — browser client;
+- optional `@axata/axatalk-sdk-testing` — deterministic test server and fixtures.
 
 During protocol incubation, this directory remains inside the desktop repository so both
 tracks can evolve atomically. Extract it only after protocol v1 and compatibility fixtures

@@ -1,6 +1,6 @@
 # Release, Rollback, Revoke & Support
 
-Canonical release procedure for `@axatalk/protocol` and `@axatalk/sdk`.
+Canonical release procedure for `@axata/axatalk-protocol` and `@axata/axatalk-sdk`.
 This page documents **RC staging readiness** and fail-closed stable promotion.
 
 **Mode A (current):** RC artifacts and dry-run are allowed.  
@@ -17,7 +17,7 @@ Electron E2E evidence (or an explicit human waiver naming deferred cells).
 | Tooling | `@changesets/cli` — see `.changeset/` |
 | Workspace today | Packages remain `private: true` / `0.0.0` until a human authorizes RC publish |
 
-Linked packages: bump `@axatalk/protocol` and `@axatalk/sdk` together for the first RC so
+Linked packages: bump `@axata/axatalk-protocol` and `@axata/axatalk-sdk` together for the first RC so
 consumer installs resolve a matching workspace pair.
 
 ### Changeset workflow (when human authorizes publish)
@@ -32,14 +32,14 @@ cd axatalk-sdk
 # If missing: npx changeset pre enter rc
 
 # 1. Confirm DI-10 / waiver gate for the intended tag
-# 2. Flip private:false ONLY for @axatalk/protocol and @axatalk/sdk
+# 2. Flip private:false ONLY for @axata/axatalk-protocol and @axata/axatalk-sdk
 #    (required: config privatePackages.version=false skips private pkgs)
 npx changeset version       # applies pending changesets → 0.1.0-rc.0 + CHANGELOG
 npm run preflight
 npm run release:check       # pack, publishConfig, SBOM, dry-run
 # RC only — always pass --tag rc (matches pre tag):
-npm publish -w @axatalk/protocol --tag rc --access public --provenance
-npm publish -w @axatalk/sdk --tag rc --access public --provenance
+npm publish -w @axata/axatalk-protocol --tag rc --access public --provenance
+npm publish -w @axata/axatalk-sdk --tag rc --access public --provenance
 ```
 
 Never run `npm publish` without `--tag rc` for the first public cut.  
@@ -59,7 +59,7 @@ npx changeset version       # exits prerelease; yields stable version
 | --- | --- |
 | `publishConfig.access` | `public` |
 | `publishConfig.provenance` | `true` |
-| `@axatalk/sdk` `files` | `dist`, `LICENSE`, `README.md` only |
+| `@axata/axatalk-sdk` `files` | `dist`, `LICENSE`, `README.md` only |
 | Forbidden in tarball | `fake-transport`, `auth-test-peer`, `src/docs` harness, tests |
 | Example app | `examples/crm-pairing-lite` stays `private: true` (not an npm release) |
 
@@ -80,7 +80,7 @@ SBOM notes or release prose.
 | Situation | Action |
 | --- | --- |
 | Bad RC on tag `rc` | Publish a fixed `0.1.0-rc.N+1` on `rc`; document the bad build in CHANGELOG |
-| Accidental `latest` | Immediately `npm dist-tag add @axatalk/sdk@<last-good> latest` (and protocol); open incident |
+| Accidental `latest` | Immediately `npm dist-tag add @axata/axatalk-sdk@<last-good> latest` (and protocol); open incident |
 | Consumer on bad RC | Pin prior RC or workspace commit; do not “hot-patch” desktop secrets into the page |
 | Protocol wire break | Desktop returns `incompatible_version`; clients must stop — see upgrade guide |
 

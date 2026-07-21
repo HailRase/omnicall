@@ -10,8 +10,8 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const packages = [
-  { dir: 'packages/protocol', name: '@axatalk/protocol' },
-  { dir: 'packages/sdk', name: '@axatalk/sdk' }
+  { dir: 'packages/protocol', name: '@axata/axatalk-protocol' },
+  { dir: 'packages/sdk', name: '@axata/axatalk-sdk' }
 ];
 
 /**
@@ -49,12 +49,12 @@ for (const pkg of packages) {
     console.error(`${pkg.name}: publishConfig.provenance must be true`);
     process.exit(1);
   }
-  if (pkg.name === '@axatalk/sdk') {
+  if (pkg.name === '@axata/axatalk-sdk') {
     const files = pkgJson.files ?? [];
     const allowed = new Set(['dist', 'LICENSE', 'README.md']);
     for (const entry of files) {
       if (!allowed.has(entry)) {
-        console.error(`@axatalk/sdk files entry not allowed for publish: ${entry}`);
+        console.error(`@axata/axatalk-sdk files entry not allowed for publish: ${entry}`);
         process.exit(1);
       }
     }

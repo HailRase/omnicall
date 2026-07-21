@@ -15,7 +15,7 @@ import type {
   WireMessage
 } from './index.js';
 
-describe('@axatalk/protocol type surface', () => {
+describe('@axata/axatalk-protocol type surface', () => {
   it('infers readonly discovery and wire message types', () => {
     expectTypeOf<DiscoveryDocument>().toMatchTypeOf<{
       readonly discoveryVersion: 1;

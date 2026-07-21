@@ -7,7 +7,7 @@ import type {
   ApplicationIdentity,
   CapabilityId,
   PairingProfile
-} from '@axatalk/protocol';
+} from '@axata/axatalk-protocol';
 
 import { createAuthOrchestrator } from '../internal/auth-orchestrator.js';
 import { createConnectionSession } from '../internal/connection-session.js';

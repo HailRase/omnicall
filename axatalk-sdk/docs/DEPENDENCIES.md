@@ -6,7 +6,7 @@ Checked against the npm registry and peer constraints on **2026-07-20**.
 
 | Package | Version | Package | Purpose | Notes |
 | --- | --- | --- | --- | --- |
-| `zod` | **4.4.3** (exact) | `@axatalk/protocol` only | Runtime protocol schemas (ADR-0014 / O-SCHEMA-1) | Locked in SDK-02. Not imported by `@axatalk/sdk` yet. |
+| `zod` | **4.4.3** (exact) | `@axata/axatalk-protocol` only | Runtime protocol schemas (ADR-0014 / O-SCHEMA-1) | Locked in SDK-02. Not imported by `@axata/axatalk-sdk` yet. |
 
 ### Zod size evidence (SDK-02, 2026-07-20)
 
@@ -21,7 +21,7 @@ Measured with parent-repo `esbuild` bundling `zod` ESM entry (`format=esm`,
 Accepted for protocol v1. Valibot remains the documented alternative if a future gate
 treats this footprint as a Blocker (ADR-0014).
 
-`@axatalk/sdk` runtime dependencies: workspace `@axatalk/protocol` only (no direct Zod
+`@axata/axatalk-sdk` runtime dependencies: workspace `@axata/axatalk-protocol` only (no direct Zod
 until a later unit needs it at the SDK boundary).
 
 ## Tooling (devDependencies)
@@ -47,7 +47,7 @@ until a later unit needs it at the SDK boundary).
 ESM-first `exports` with `types` listed first, then `import` / `default`, per
 Node.js package docs: https://nodejs.org/docs/latest/api/packages.html
 
-`@axatalk/protocol` also exports `./fixtures/*` for DI-01 / CI consumers of golden
+`@axata/axatalk-protocol` also exports `./fixtures/*` for DI-01 / CI consumers of golden
 JSON bytes.
 
 ## Publish posture

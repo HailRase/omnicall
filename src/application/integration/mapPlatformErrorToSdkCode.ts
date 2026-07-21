@@ -2,7 +2,7 @@
  * Map PlatformError → stable protocol codes (DI-06/DI-08). No ad hoc strings.
  */
 
-import type { ProtocolErrorCode } from "@axatalk/protocol";
+import type { ProtocolErrorCode } from "@axata/axatalk-protocol";
 import { ACCOUNT_SIGN_IN_LOGOUT_REQUIRED_MESSAGE } from "@application/facades/accountSignInCommand.js";
 import type { PlatformError } from "@shared/errors/index.js";
 

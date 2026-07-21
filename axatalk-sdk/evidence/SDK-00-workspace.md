@@ -28,8 +28,8 @@ Actions only discovers workflows under `.github/workflows/`. The job uses
 
 | Package | Path | Runtime deps |
 | --- | --- | --- |
-| `@axatalk/protocol` | `packages/protocol` | none |
-| `@axatalk/sdk` | `packages/sdk` | `@axatalk/protocol@0.0.0` (workspace) |
+| `@axata/axatalk-protocol` | `packages/protocol` | none |
+| `@axata/axatalk-sdk` | `packages/sdk` | `@axata/axatalk-protocol@0.0.0` (workspace) |
 
 `packages/sdk-testing` was **not** created (no test consumer yet).
 

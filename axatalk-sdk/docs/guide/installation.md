@@ -4,11 +4,11 @@
 
 | Package | Role |
 | --- | --- |
-| `@axatalk/protocol` | Runtime schemas + shared types |
-| `@axatalk/sdk` | Browser / Node-capable client (`AxatalkClient`) |
+| `@axata/axatalk-protocol` | Runtime schemas + shared types |
+| `@axata/axatalk-sdk` | Browser / Node-capable client (`AxatalkClient`) |
 
 **Today:** incubating workspace under `axatalk-sdk/` (`private: true`, `0.0.0`).  
-First public RC target: `@axatalk/sdk@0.1.0-rc.0` / `@axatalk/protocol@0.1.0-rc.0` on
+First public RC target: `@axata/axatalk-sdk@0.1.0-rc.0` / `@axata/axatalk-protocol@0.1.0-rc.0` on
 npm dist-tag **`rc`** — see [release-and-support](./release-and-support.md).  
 **Not** on `latest` until DI-10 packaged E2E passes.
 
@@ -20,7 +20,7 @@ npm ci
 npm run preflight
 ```
 
-Workspace packages resolve as `@axatalk/sdk` / `@axatalk/protocol` via npm workspaces.
+Workspace packages resolve as `@axata/axatalk-sdk` / `@axata/axatalk-protocol` via npm workspaces.
 
 ## Engines
 

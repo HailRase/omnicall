@@ -98,7 +98,7 @@ npx vitest run \
 
 ## Residual risks
 
-1. **SDK-06 client package** may still be `pending` — desktop server routing consumes `@axatalk/protocol` schemas/fixtures; full client interoperability is a paired SDK gate (mirror DI-05 / SDK-05 note).
+1. **SDK-06 client package** may still be `pending` — desktop server routing consumes `@axata/axatalk-protocol` schemas/fixtures; full client interoperability is a paired SDK gate (mirror DI-05 / SDK-05 note).
 2. Packaged Electron E2E deferred to **DI-10**.
 3. Operator/account mutation routers remain intentionally closed (**DI-07/DI-08**).
 4. Transfer / conference / `call:claim-control` out of v1 (ADR-0017).

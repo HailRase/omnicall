@@ -15,11 +15,11 @@ const repoRoot = path.resolve(
 );
 
 const FORBIDDEN_DOMAIN_PATTERNS = [
-  /from\s+["']@axatalk\/protocol(?:\/[^"']*)?["']/,
+  /from\s+["']@axata\/axatalk-protocol(?:\/[^"']*)?["']/,
   /from\s+["']zod(?:\/[^"']*)?["']/,
   /from\s+["']electron(?:\/[^"']*)?["']/,
   /from\s+["']ws(?:\/[^"']*)?["']/,
-  /require\(\s*["']@axatalk\/protocol/,
+  /require\(\s*["']@axata\/axatalk-protocol/,
   /require\(\s*["']zod/,
   /require\(\s*["']electron/,
   /require\(\s*["']ws/,
@@ -32,7 +32,7 @@ const FORBIDDEN_UI_GATEWAY_PATTERNS = [
   /ExternalQueryHandler/,
   /MockExternalClientGateway/,
   /MockMainToRendererBroker/,
-  /from\s+["']@axatalk\/protocol/,
+  /from\s+["']@axata\/axatalk-protocol/,
 ] as const;
 
 function listSourceFiles(rootDir: string, extensions: readonly string[]): string[] {
@@ -77,7 +77,7 @@ function collectViolations(
 }
 
 describe("DI-01 SDK dependency boundaries", () => {
-  it("keeps Domain free of @axatalk/protocol, zod, electron, and ws", () => {
+  it("keeps Domain free of @axata/axatalk-protocol, zod, electron, and ws", () => {
     const domainFiles = listSourceFiles(path.join(repoRoot, "src/domain"), [
       ".ts",
     ]);

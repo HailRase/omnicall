@@ -8,7 +8,7 @@ import {
   validateWithSchema,
   type EventMessage,
   type SnapshotMessage
-} from '@axatalk/protocol';
+} from '@axata/axatalk-protocol';
 
 export type ProductInbound =
   | { readonly kind: 'snapshot'; readonly message: SnapshotMessage }

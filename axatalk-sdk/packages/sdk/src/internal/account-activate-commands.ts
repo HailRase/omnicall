@@ -3,7 +3,7 @@
  * Privileged `account.activate` — server-granted only; never pairing-default.
  */
 
-import type { CapabilityId } from '@axatalk/protocol';
+import type { CapabilityId } from '@axata/axatalk-protocol';
 
 import { buildAccountActivateProfileBody } from './account-activate-wire.js';
 import { createClientError } from './client-errors.js';

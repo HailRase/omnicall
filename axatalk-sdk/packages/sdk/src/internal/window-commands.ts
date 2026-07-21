@@ -2,7 +2,7 @@
  * Capability-gated window command runner (SDK-05).
  */
 
-import type { CapabilityId } from '@axatalk/protocol';
+import type { CapabilityId } from '@axata/axatalk-protocol';
 
 import type { ConnectionSession } from './connection-session.js';
 import {

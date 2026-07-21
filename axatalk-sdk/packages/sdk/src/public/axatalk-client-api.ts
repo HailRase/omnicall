@@ -2,7 +2,7 @@
  * Public API type surface for AxatalkClient namespaces (SDK-05…SDK-08).
  */
 
-import type { CapabilityId, SnapshotMessage } from '@axatalk/protocol';
+import type { CapabilityId, SnapshotMessage } from '@axata/axatalk-protocol';
 
 import type { ActivateProfileResult } from '../internal/account-activate-commands.js';
 import type {

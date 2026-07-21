@@ -9,7 +9,7 @@ import type {
   ProtocolErrorCode,
   ReplyMessage,
   WireJsonObject,
-} from "@axatalk/protocol";
+} from "@axata/axatalk-protocol";
 
 /**
  * Narrow broker envelope after protocol validation. Public DTOs only —

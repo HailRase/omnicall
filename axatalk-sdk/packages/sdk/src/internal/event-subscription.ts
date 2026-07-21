@@ -9,7 +9,7 @@ import {
   type AxatalkEvent,
   type PublicEventType
 } from './public-event-map.js';
-import type { EventMessage } from '@axatalk/protocol';
+import type { EventMessage } from '@axata/axatalk-protocol';
 
 type AnyListener = (event: AxatalkEvent) => void;
 

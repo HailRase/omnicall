@@ -12,10 +12,10 @@
 - `src/adapters/mock/MockMainToRendererBroker.ts`
 - `src/adapters/mock/MockExternalCommandHandler.ts`
 - `axatalk-sdk-integration/evidence/DI-01-protocol-ports-mocks.md`
-- `package.json` (`@axatalk/protocol` file dep)
+- `package.json` (`@axata/axatalk-protocol` file dep)
 
 ## Что
-- Desktop depends on `@axatalk/protocol` вне Domain; fixtures SDK-02 consume byte-identical
+- Desktop depends on `@axata/axatalk-protocol` вне Domain; fixtures SDK-02 consume byte-identical
 - Порты gateway/broker + command/query handler interfaces (без IPC/WS)
 - Детерминированные моки с fail-closed validation
 - Тесты: fixtures, dependency-boundary, mocks; F-011 → `in progress` (не `implemented`)

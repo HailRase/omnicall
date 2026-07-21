@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-describe('@axatalk/sdk workspace smoke', () => {
+describe('@axata/axatalk-sdk workspace smoke', () => {
   it('exports AxatalkClient factory without root mutation symbols', async () => {
     const mod = await import('./index.js');
     expect(typeof mod.createAuthClient).toBe('function');
@@ -34,6 +34,6 @@ describe('@axatalk/sdk workspace smoke', () => {
     ) {
       throw new Error('Invalid package.json');
     }
-    expect(packageJson.dependencies).toEqual({ '@axatalk/protocol': '0.0.0' });
+    expect(packageJson.dependencies).toEqual({ '@axata/axatalk-protocol': '0.0.0' });
   });
 });

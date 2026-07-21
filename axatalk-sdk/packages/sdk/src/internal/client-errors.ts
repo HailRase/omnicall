@@ -2,7 +2,7 @@
  * Typed client failures for Promise-returning product commands.
  */
 
-import type { ProtocolErrorCode, WireJsonObject } from '@axatalk/protocol';
+import type { ProtocolErrorCode, WireJsonObject } from '@axata/axatalk-protocol';
 
 /**
  * Typed failure for AxatalkClient commands.

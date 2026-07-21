@@ -70,7 +70,7 @@ Gate:
 
 ## Phase SDK-02 — Protocol Package
 
-Purpose: implement `@axatalk/protocol` first.
+Purpose: implement `@axata/axatalk-protocol` first.
 
 Tasks:
 

@@ -31,7 +31,7 @@ Detect with `isAxatalkClientError(error)` then branch on `error.code`.
 Every mutation example should follow this shape:
 
 ```ts
-import { isAxatalkClientError } from '@axatalk/sdk';
+import { isAxatalkClientError } from '@axata/axatalk-sdk';
 
 async function originateSafe(
   client: {

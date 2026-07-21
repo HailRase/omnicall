@@ -40,7 +40,7 @@ As of home push 2026-07-21:
 | --- | --- |
 | Branch | `feature/axatalk-sdk` (pull latest) |
 | Desktop version | `0.11.2` |
-| SDK API | `@axatalk/sdk` **47** / `@axatalk/protocol` **169** |
+| SDK API | `@axata/axatalk-sdk` **47** / `@axata/axatalk-protocol` **169** |
 | DI-00…DI-09 | `done` |
 | SDK-00…SDK-10 Mode A | `done` (RC-ready / stable-blocked; **no** npm `latest`) |
 | DI-10 | `review` — packaged handshake/hostile/incompat evidence real; FAIL findings remediated |
@@ -79,7 +79,7 @@ Propose this default order (adjust only if files contradict):
 5. **After DI-10 `done`:** human chooses path for remaining OPEN cells:
    - **Path A — complete real smoke** (Settings pair/revoke + SIP/OCP call) and record in SMOKE-CHECKLIST, then close F-011/P12 with evidence; justified SemVer MINOR if product-visible close.
    - **Path B — human-named waivers** for specific OPEN cells (name + date + reason in evidence) — only I can authorize waivers; agents must not invent them.
-   - **Path C — defer** product close; keep F-011 `in progress`; do not publish `@axatalk/*` `latest`.
+   - **Path C — defer** product close; keep F-011 `in progress`; do not publish `@axata/axatalk-*` `latest`.
 6. **Only after F-011 close criteria:** consider SDK-10 Mode B / npm publish decisions (separate explicit session).
 
 ### C. Questions for me (mandatory — ask before acting)
@@ -89,7 +89,7 @@ Ask me at least these (adapt if already answered in chat):
 1. После `/sdk-review` DI-10: идём в **полный live smoke** (Path A), **waivers** (Path B), или **откладываем close** (Path C)?
 2. Есть ли в офисе **controlled SIP / OCP** тестовая инфраструктура сегодня?
 3. Нужен ли повторный **packaged smoke** на этом ПК (пересборка `npm run build:win`), или достаточно уже закоммиченных reports с дома?
-4. Планируем ли в ближайшие дни **npm publish** `@axatalk/*` (хотя бы `rc`), или это явно later?
+4. Планируем ли в ближайшие дни **npm publish** `@axata/axatalk-*` (хотя бы `rc`), или это явно later?
 5. Есть ли **человеческое имя** для waiver-подписи, если выберем Path B?
 
 ### D. Hard stops to remind me

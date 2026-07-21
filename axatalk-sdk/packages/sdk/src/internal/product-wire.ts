@@ -2,7 +2,7 @@
  * Product command wire builders (SDK-05 read path + window.show).
  */
 
-import { PROTOCOL_MAJOR } from '@axatalk/protocol';
+import { PROTOCOL_MAJOR } from '@axata/axatalk-protocol';
 
 import { isoNow } from './auth-wire.js';
 

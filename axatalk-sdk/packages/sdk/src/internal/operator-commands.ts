@@ -2,7 +2,7 @@
  * Capability-gated operator command runner (SDK-07).
  */
 
-import type { CapabilityId, CommandType } from '@axatalk/protocol';
+import type { CapabilityId, CommandType } from '@axata/axatalk-protocol';
 
 import { createClientError } from './client-errors.js';
 import type { ConnectionSession } from './connection-session.js';

@@ -1,6 +1,6 @@
 import { createPublicKey, verify } from 'node:crypto';
 
-import { buildPopSigningPayload } from '@axatalk/protocol';
+import { buildPopSigningPayload } from '@axata/axatalk-protocol';
 import { describe, expect, it } from 'vitest';
 
 import { base64UrlToBytes, bytesToBase64Url } from './base64url.js';

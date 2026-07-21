@@ -2,7 +2,7 @@
  * Capability-gated call mutation runner (SDK-06).
  */
 
-import type { CapabilityId, CommandType } from '@axatalk/protocol';
+import type { CapabilityId, CommandType } from '@axata/axatalk-protocol';
 
 import {
   buildCallControlBody,

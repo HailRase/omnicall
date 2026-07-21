@@ -1,13 +1,13 @@
 /**
  * Loopback SDK gateway limits (DI-03 / ADR-0010).
- * Protocol frame/depth defaults come from `@axatalk/protocol`.
+ * Protocol frame/depth defaults come from `@axata/axatalk-protocol`.
  */
 
 import {
   DEFAULT_DISCOVERY_HOST,
   DEFAULT_DISCOVERY_PORT,
   DEFAULT_MAX_MESSAGE_BYTES,
-} from "@axatalk/protocol";
+} from "@axata/axatalk-protocol";
 
 /** Default IPv4 loopback bind host (ADR-0015). */
 export const SDK_GATEWAY_DEFAULT_HOST = DEFAULT_DISCOVERY_HOST;

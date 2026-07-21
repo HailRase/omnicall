@@ -2,7 +2,7 @@
  * Pure helpers for MainToRendererBroker (keep broker class under file-size limit).
  */
 
-import type { CommandMessage } from "@axatalk/protocol";
+import type { CommandMessage } from "@axata/axatalk-protocol";
 import type { BrokerProductRequest } from "@ports/integration/MainToRendererBrokerPort.js";
 
 let brokerRequestSeq = 0;

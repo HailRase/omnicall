@@ -3,8 +3,8 @@
  * Duplicate requestId within TTL returns the cached reply (no second side effect).
  */
 
-import type { WireMessage } from "@axatalk/protocol";
-import { REQUEST_DEDUP_TTL_SECONDS } from "@axatalk/protocol";
+import type { WireMessage } from "@axata/axatalk-protocol";
+import { REQUEST_DEDUP_TTL_SECONDS } from "@axata/axatalk-protocol";
 
 type PendingEntry = {
   readonly kind: "pending";

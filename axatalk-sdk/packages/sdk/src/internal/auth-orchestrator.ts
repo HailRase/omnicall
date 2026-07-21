@@ -9,7 +9,7 @@ import {
   type CapabilityId,
   type PairingProfile,
   type ServerHello
-} from '@axatalk/protocol';
+} from '@axata/axatalk-protocol';
 
 import { parseGrantedCapabilities } from './auth-grants.js';
 import { challengeFromHello, parseInboundAuthMessage } from './auth-inbound.js';

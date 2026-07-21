@@ -14,7 +14,7 @@ Accepted (2026-07-20) — closes **O-DISC-1**, **O-DISC-2**, **O-BRW-1**, **O-BR
 - **Legacy:** LF-080
 - **Roadmap:** P12
 - **Contexts:** Integration
-- **Layers:** Electron main (gateway), `@axatalk/sdk` transport
+- **Layers:** Electron main (gateway), `@axata/axatalk-sdk` transport
 
 ADR-0010 closed loopback-only bind and fail-closed port ownership, but left exact discovery
 URL/schema and HTTPS→loopback browser feasibility to SDK-01. Chrome/Edge Local Network

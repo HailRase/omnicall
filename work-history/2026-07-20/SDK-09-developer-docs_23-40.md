@@ -15,7 +15,7 @@
 
 ## Что
 - Канонический developer guide (`docs/guide/`) — security-first, API/events/errors/capabilities, logout/activate/reconnect
-- Пример CRM (`examples/crm-pairing-lite`) на публичном `@axatalk/sdk` + fake-peer demo в `packages/sdk/src/docs`
+- Пример CRM (`examples/crm-pairing-lite`) на публичном `@axata/axatalk-sdk` + fake-peer demo в `packages/sdk/src/docs`
 - Тесты smoke/secret-scan/types + `npm run docs:check` в preflight
 - Evidence SDK-09 → `review`; F-011 остаётся `in progress`; DI-10 не разблокирован
 

@@ -3,7 +3,7 @@
  */
 
 import type { BrowserWindow } from "electron";
-import type { WireMessage } from "@axatalk/protocol";
+import type { WireMessage } from "@axata/axatalk-protocol";
 import type { MainToRendererBroker } from "@adapters/integration/MainToRendererBroker.js";
 import type { SdkGatewayProductSurface } from "@adapters/integration/sdkGatewayProductSurface.js";
 import { SdkWindowCommandHandler } from "@adapters/integration/sdkGatewayWindowHandler.js";

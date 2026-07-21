@@ -1,16 +1,16 @@
 /**
  * Deterministic ExternalClientGateway test double (DI-01).
- * No sockets, Electron, or JsSIP. Fail closed via `@axatalk/protocol` validators.
+ * No sockets, Electron, or JsSIP. Fail closed via `@axata/axatalk-protocol` validators.
  */
 
 import type {
   DiscoveryDocument,
   WireMessage,
-} from "@axatalk/protocol";
+} from "@axata/axatalk-protocol";
 import {
   validateDiscoveryDocument,
   validateWireMessage,
-} from "@axatalk/protocol";
+} from "@axata/axatalk-protocol";
 import type {
   ExternalClientGateway,
   ExternalClientGatewayStatus,

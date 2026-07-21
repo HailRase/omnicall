@@ -1,5 +1,5 @@
 {
-  "name": "@axatalk/sdk",
+  "name": "@axata/axatalk-sdk",
   "version": "0.0.0",
   "description": "Browser client for Axatalk Desktop local protocol (AxatalkClient read path + call control)",
   "type": "module",
@@ -28,7 +28,7 @@
     "clean": "node -e \"import('node:fs').then((fs)=>fs.promises.rm('dist',{recursive:true,force:true}))\""
   },
   "dependencies": {
-    "@axatalk/protocol": "0.0.0"
+    "@axata/axatalk-protocol": "0.0.0"
   },
   "publishConfig": {
     "access": "public",

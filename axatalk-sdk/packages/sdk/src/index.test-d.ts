@@ -10,7 +10,7 @@ import type {
 } from './index.js';
 import { createAuthClient, createAxatalkClient } from './index.js';
 
-describe('@axatalk/sdk type smoke', () => {
+describe('@axata/axatalk-sdk type smoke', () => {
   it('keeps AuthClient without product methods', () => {
     expectTypeOf(createAuthClient).toBeFunction();
     expectTypeOf<AuthClient>().toHaveProperty('getGrantedCapabilities');

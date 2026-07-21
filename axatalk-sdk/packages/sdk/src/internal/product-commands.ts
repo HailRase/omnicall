@@ -2,7 +2,7 @@
  * Capability-gated product command helpers (snapshot / window).
  */
 
-import type { CapabilityId, ProtocolErrorCode } from '@axatalk/protocol';
+import type { CapabilityId, ProtocolErrorCode } from '@axata/axatalk-protocol';
 
 import { createClientError, type AxatalkClientError } from './client-errors.js';
 import type { ConnectionSession } from './connection-session.js';

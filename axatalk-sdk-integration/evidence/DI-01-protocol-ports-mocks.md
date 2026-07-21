@@ -12,7 +12,7 @@
 | --- | --- |
 | DI-00 `done` (`/sdk-review` PASS) | yes |
 | SDK-01 `done` | yes |
-| SDK-02 `@axatalk/protocol` + fixtures `done` | yes |
+| SDK-02 `@axata/axatalk-protocol` + fixtures `done` | yes |
 | DI-01 was `pending` before this session | yes |
 
 ## Intake (recorded before coding)
@@ -27,7 +27,7 @@
 
 ### Protocol consume (byte-identical)
 
-- Root dependency: `"@axatalk/protocol": "file:axatalk-sdk/packages/protocol"`
+- Root dependency: `"@axata/axatalk-protocol": "file:axatalk-sdk/packages/protocol"`
 - Fixtures loaded from `axatalk-sdk/packages/protocol/fixtures/**` (same tree as SDK-02)
 - Desktop tests accept every `valid/**` and reject every `invalid/**` with sibling `meta/**/*.meta.json` `expectedErrorCode`
 - No parallel Zod/schema stack; Domain has zero protocol imports (test + eslint restriction)
@@ -69,7 +69,7 @@ Root `eslint .` previously also walked nested `axatalk-sdk/**` (separate workspa
 
 ## Boundary proof
 
-- `src/ports/integration/sdk-dependency-boundary.test.ts` — Domain free of `@axatalk/protocol` / zod / electron / ws; renderer components/stores free of gateway ports
+- `src/ports/integration/sdk-dependency-boundary.test.ts` — Domain free of `@axata/axatalk-protocol` / zod / electron / ws; renderer components/stores free of gateway ports
 - `eslint.config.js` — Domain `no-restricted-imports` for the same packages
 
 ## Security / privacy

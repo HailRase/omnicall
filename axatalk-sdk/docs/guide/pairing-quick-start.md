@@ -13,7 +13,7 @@ import {
   createIndexedDbPopKeyStore,
   createMemoryPopKeyStore,
   isAxatalkClientError
-} from '@axatalk/sdk';
+} from '@axata/axatalk-sdk';
 
 // Browser production: IndexedDB. Tests / Node demo: memory.
 const keyStore =

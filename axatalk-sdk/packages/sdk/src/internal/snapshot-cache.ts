@@ -3,7 +3,7 @@
  * Never persists secrets or authorization material.
  */
 
-import type { SnapshotMessage } from '@axatalk/protocol';
+import type { SnapshotMessage } from '@axata/axatalk-protocol';
 
 export type SnapshotCache = {
   readonly get: () => SnapshotMessage | undefined;

@@ -301,7 +301,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-051`, `LF-065`, `LF-080`, `LF-081`
 - Context: Integration
 - Priority: critical
-- Status: **in progress** (legacy `window.Softphone` **not ported**; architecture gate DI-00 `done`; SDK-00…SDK-10 Mode A `done` (RC-ready / stable-blocked; no npm `latest`); DI-01…DI-09 **`done`**; DI-10 **`review`** — FAIL findings remediated 2026-07-21; awaiting re-`/sdk-review`; packaged handshake evidence real; full Settings pair/revoke/call/SIP smoke **OPEN**; F-011 not `implemented`; P12 not closed — `axatalk-sdk-integration/evidence/DI-10-compatibility-e2e-p12-close.md`)
+- Status: **in progress** (legacy `window.Softphone` **not ported**; architecture gate DI-00 `done`; SDK-00…SDK-10 Mode A `done` (RC-ready / stable-blocked; no npm `latest`); publish names `@axata/axatalk-sdk` + `@axata/axatalk-protocol`; DI-01…DI-09 **`done`**; DI-10 **`review`** — FAIL findings remediated 2026-07-21; awaiting re-`/sdk-review`; packaged handshake evidence real; full Settings pair/revoke/call/SIP smoke **OPEN**; F-011 not `implemented`; P12 not closed — `axatalk-sdk-integration/evidence/DI-10-compatibility-e2e-p12-close.md`)
 - Owner: TBD
 - Inputs: external commands from browser tabs via WS (not DOM globals)
 - Outputs: typed commands routed to Facade / Use Cases with `callType: 'sdk'` (F-028 E-12 host methods retain `callType: 'external'`)

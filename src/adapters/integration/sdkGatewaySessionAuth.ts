@@ -2,7 +2,7 @@
  * Pairing ceremony + PoP auth handlers for LocalWsSessionRegistry (DI-04).
  */
 
-import type { AuthProof, PairingRequest, WireMessage } from "@axatalk/protocol";
+import type { AuthProof, PairingRequest, WireMessage } from "@axata/axatalk-protocol";
 
 import { SdkAuthChallengeCache } from "./sdkGatewayAuthChallenge.js";
 import { resolveGrantedCapabilities } from "./sdkGatewayCapabilities.js";

@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = path.join(root, 'temp', 'sbom');
-const workspaces = ['@axatalk/protocol', '@axatalk/sdk'];
+const workspaces = ['@axata/axatalk-protocol', '@axata/axatalk-sdk'];
 
 fs.mkdirSync(outDir, { recursive: true });
 

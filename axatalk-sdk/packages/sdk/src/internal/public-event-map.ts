@@ -3,7 +3,7 @@
  * Domain Event names (CallAnswered, etc.) never appear on this surface.
  */
 
-import type { EventMessage, EventType } from '@axatalk/protocol';
+import type { EventMessage, EventType } from '@axata/axatalk-protocol';
 
 /** Product event types delivered to AxatalkClient subscribers (SDK-05). @public */
 export const PUBLIC_EVENT_TYPES = [

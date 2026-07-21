@@ -12,7 +12,7 @@
 | --- | --- |
 | DI-00 `done` (`/sdk-review` PASS) | yes |
 | DI-01 `done` (`/sdk-review` PASS) | yes |
-| SDK-01 + SDK-02 `@axatalk/protocol` + fixtures `done` | yes |
+| SDK-01 + SDK-02 `@axata/axatalk-protocol` + fixtures `done` | yes |
 | DI-02 was `pending` before this session | yes |
 | F-011 `in progress`, not `implemented` | yes (unchanged) |
 
@@ -35,7 +35,7 @@
 ### Port implementation
 
 - `MainToRendererBroker` implements `MainToRendererBrokerPort`
-- Reuses `BrokerProductRequest` / `BrokerRequestResult` / `@axatalk/protocol` validators
+- Reuses `BrokerProductRequest` / `BrokerRequestResult` / `@axata/axatalk-protocol` validators
 - Mock broker retained for unit tests
 
 ### Lifecycle (ADR-0009)

@@ -22,7 +22,7 @@ browser tabs cannot corrupt call state.
 
 ## Decision
 
-1. **Protocol identity:** Protocol version is independent from `@axatalk/sdk` and Axatalk
+1. **Protocol identity:** Protocol version is independent from `@axata/axatalk-sdk` and Axatalk
    Desktop package versions. Handshake negotiates min/max protocol, SDK version, desktop
    version, capabilities, server instance ID, session epoch, and snapshot revision.
 

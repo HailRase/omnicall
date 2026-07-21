@@ -6,7 +6,7 @@
 
 ## Scope delivered
 
-Internal-only implementation inside `@axatalk/sdk` (`packages/sdk/src/internal/`):
+Internal-only implementation inside `@axata/axatalk-sdk` (`packages/sdk/src/internal/`):
 
 1. Injectable `TransportPort` abstraction (`transport-port.ts`).
 2. Deterministic `FakeTransport` + controller for tests (no real WebSocket).
@@ -24,13 +24,13 @@ Explicit non-goals respected:
 - No PoP crypto / IndexedDB pairing (SDK-04).
 - No desktop DI / IPC / gateway / `src/` product changes.
 - No npm publish.
-- Wire schemas unchanged (consume `@axatalk/protocol` only).
+- Wire schemas unchanged (consume `@axata/axatalk-protocol` only).
 
 ## Public API
 
 `packages/sdk/src/index.ts` still `export {}`.
 
-`api:check` — `@axatalk/sdk` has **no** public production symbols; `@axatalk/protocol` unchanged (no `AxatalkClient`).
+`api:check` — `@axata/axatalk-sdk` has **no** public production symbols; `@axata/axatalk-protocol` unchanged (no `AxatalkClient`).
 
 ## Connection states
 

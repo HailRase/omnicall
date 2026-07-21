@@ -1,4 +1,4 @@
-# @axatalk/sdk
+# @axata/axatalk-sdk
 
 ## Unreleased — RC staging (SDK-10 Mode A)
 

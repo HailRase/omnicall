@@ -13,7 +13,7 @@
 | DI-00 `done` (`/sdk-review` PASS) | yes |
 | DI-01 `done` (`/sdk-review` PASS) | yes |
 | DI-02 `done` (`/sdk-review` PASS; cancel-quit + preferred webContents closed) | yes |
-| SDK-01 + SDK-02 `@axatalk/protocol` + fixtures `done` | yes |
+| SDK-01 + SDK-02 `@axata/axatalk-protocol` + fixtures `done` | yes |
 | SDK-03 transport core in SDK package | `done` (desktop does not import SDK client product APIs into Domain) |
 | DI-03 was `pending` before this session | yes |
 | F-011 `in progress`, not `implemented` | yes (unchanged) |
@@ -56,7 +56,7 @@
 | Limit | Default |
 | --- | --- |
 | Frame size | `DEFAULT_MAX_MESSAGE_BYTES` (65536) via `maxPayload` + validator |
-| JSON depth / keys / arrays | `@axatalk/protocol` validators |
+| JSON depth / keys / arrays | `@axata/axatalk-protocol` validators |
 | Max connections | 8 |
 | Rate limit | 30 msgs / 10s per connection |
 | Outbound queue | 16 |

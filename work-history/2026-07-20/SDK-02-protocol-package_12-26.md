@@ -1,4 +1,4 @@
-# SDK-02 — @axatalk/protocol
+# SDK-02 — @axata/axatalk-protocol
 
 **Дата:** 2026-07-20 12:26
 **Статус:** выполнено
@@ -13,7 +13,7 @@
 - `axatalk-sdk/scripts/api-check.mjs`
 
 ## Что
-- Установлен и зафиксирован `zod@4.4.3` только в `@axatalk/protocol`; размер gzip записан в DEPENDENCIES.md
+- Установлен и зафиксирован `zod@4.4.3` только в `@axata/axatalk-protocol`; размер gzip записан в DEPENDENCIES.md
 - Реализованы runtime-схемы discovery/handshake/pairing/auth/commands/replies/events/snapshot + safe validate
 - Добавлены golden fixtures valid/invalid/meta и unit/type tests
 - Compatibility/policy helpers; `api:check` разрешает protocol surface без AxatalkClient

@@ -2,7 +2,7 @@
  * Format AxatalkClientError for host logs without dumping secret-bearing details.
  */
 
-import { isAxatalkClientError } from '@axatalk/sdk';
+import { isAxatalkClientError } from '@axata/axatalk-sdk';
 
 export type SafeErrorView = {
   readonly kind: 'axatalk' | 'unknown';

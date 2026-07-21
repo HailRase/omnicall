@@ -15,7 +15,7 @@ import {
   type PairingDenied,
   type PairingPending,
   type ServerHello
-} from '@axatalk/protocol';
+} from '@axata/axatalk-protocol';
 
 export type InboundAuthMessage =
   | { readonly kind: 'server_hello'; readonly message: ServerHello }

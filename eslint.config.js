@@ -133,8 +133,8 @@ export default tseslint.config(
           patterns: [
             {
               group: [
-                "@axatalk/protocol",
-                "@axatalk/protocol/*",
+                "@axata/axatalk-protocol",
+                "@axata/axatalk-protocol/*",
                 "zod",
                 "zod/*",
                 "electron",
@@ -143,7 +143,7 @@ export default tseslint.config(
                 "ws/*",
               ],
               message:
-                "Domain must not import @axatalk/protocol, Zod, Electron, or ws (F-011 / ADR-0009).",
+                "Domain must not import @axata/axatalk-protocol, Zod, Electron, or ws (F-011 / ADR-0009).",
             },
           ],
         },

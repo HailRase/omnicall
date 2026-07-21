@@ -8,7 +8,7 @@ import {
   isPrivilegedCapability,
   type CapabilityId,
   type PairingProfile
-} from '@axatalk/protocol';
+} from '@axata/axatalk-protocol';
 
 export function sanitizeRequestedCapabilities(input: {
   readonly profile: PairingProfile;

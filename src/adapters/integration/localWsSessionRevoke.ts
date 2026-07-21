@@ -2,7 +2,7 @@
  * Client revoke + activate-grant cleanup for LocalWsSessionRegistry.
  */
 
-import type { WireMessage } from "@axatalk/protocol";
+import type { WireMessage } from "@axata/axatalk-protocol";
 
 import type { SdkGatewayConnection } from "./sdkGatewayConnection.js";
 import {

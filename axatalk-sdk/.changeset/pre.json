@@ -2,9 +2,9 @@
   "mode": "pre",
   "tag": "rc",
   "initialVersions": {
-    "@axatalk/example-crm-pairing-lite": "0.0.0",
-    "@axatalk/protocol": "0.0.0",
-    "@axatalk/sdk": "0.0.0"
+    "@axata/example-crm-pairing-lite": "0.0.0",
+    "@axata/axatalk-protocol": "0.0.0",
+    "@axata/axatalk-sdk": "0.0.0"
   },
   "changesets": []
 }

@@ -1,6 +1,6 @@
 # Changesets
 
-Release scaffolding for `@axatalk/protocol` and `@axatalk/sdk`.
+Release scaffolding for `@axata/axatalk-protocol` and `@axata/axatalk-sdk`.
 
 ## SDK-10 Mode A (RC staging)
 
@@ -19,12 +19,12 @@ cd axatalk-sdk
 # (re-enter only if missing: npx changeset pre enter rc)
 
 # 1. Confirm DI-10 / waiver gate for the intended tag
-# 2. Flip private:false only for @axatalk/protocol and @axatalk/sdk
+# 2. Flip private:false only for @axata/axatalk-protocol and @axata/axatalk-sdk
 npx changeset version          # → 0.1.0-rc.0 + CHANGELOG
 npm run preflight
 npm run release:check
-npm publish -w @axatalk/protocol --tag rc --access public --provenance
-npm publish -w @axatalk/sdk --tag rc --access public --provenance
+npm publish -w @axata/axatalk-protocol --tag rc --access public --provenance
+npm publish -w @axata/axatalk-sdk --tag rc --access public --provenance
 ```
 
 ## Stable promote (Mode B only — after DI-10)
@@ -35,8 +35,8 @@ npx changeset pre exit
 npx changeset version          # strips -rc → stable 0.1.0 (or next)
 npm run preflight
 npm run release:check
-npm publish -w @axatalk/protocol --tag latest --access public --provenance
-npm publish -w @axatalk/sdk --tag latest --access public --provenance
+npm publish -w @axata/axatalk-protocol --tag latest --access public --provenance
+npm publish -w @axata/axatalk-sdk --tag latest --access public --provenance
 ```
 
 Never publish `latest` while DI-10 is open.  

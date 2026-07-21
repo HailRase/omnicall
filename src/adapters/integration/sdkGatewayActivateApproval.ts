@@ -2,7 +2,7 @@
  * Local-approval gate for account:activate-profile (DI-08).
  */
 
-import type { WireMessage } from "@axatalk/protocol";
+import type { WireMessage } from "@axata/axatalk-protocol";
 
 import type { SdkGatewayConnection } from "./sdkGatewayConnection.js";
 import {

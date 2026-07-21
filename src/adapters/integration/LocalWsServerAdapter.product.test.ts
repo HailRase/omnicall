@@ -9,7 +9,7 @@ import {
   WS_PATH,
   validateWireMessage,
   type WireMessage,
-} from "@axatalk/protocol";
+} from "@axata/axatalk-protocol";
 import { InMemorySecretStorageAdapter } from "@adapters/secrets/InMemorySecretStorageAdapter.js";
 import { afterEach, describe, expect, it } from "vitest";
 import { WebSocket, type RawData } from "ws";

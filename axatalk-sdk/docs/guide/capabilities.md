@@ -24,7 +24,7 @@ pairing; the desktop decides grants. Privileged caps are **never** pairing-defau
 | `operator` | presentation + `operator.status.write`, `session.logout` |
 | `call_controller` | operator + `call.originate`, `call.control` |
 
-Source: `@axatalk/protocol` `DEFAULT_CAPABILITY_PROFILES`.  
+Source: `@axata/axatalk-protocol` `DEFAULT_CAPABILITY_PROFILES`.  
 `account.activate` and `window.hide` are **never** in these defaults.
 
 ## Client sanitize (always)

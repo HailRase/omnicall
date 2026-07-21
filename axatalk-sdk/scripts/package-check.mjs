@@ -6,8 +6,8 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const packages = [
-  { dir: 'packages/protocol', name: '@axatalk/protocol' },
-  { dir: 'packages/sdk', name: '@axatalk/sdk' }
+  { dir: 'packages/protocol', name: '@axata/axatalk-protocol' },
+  { dir: 'packages/sdk', name: '@axata/axatalk-sdk' }
 ];
 
 const outDir = path.join(root, 'temp', 'tarballs');
@@ -110,7 +110,7 @@ for (const pkg of packages) {
       file.endsWith('.test.ts') ||
       file.endsWith('.test-d.ts') ||
       file.includes('.env') ||
-      // Test-only helpers must never ship in @axatalk/sdk production tarball.
+      // Test-only helpers must never ship in @axata/axatalk-sdk production tarball.
       file.includes('fake-transport') ||
       file.includes('auth-test-peer') ||
       file.includes('test-helpers') ||

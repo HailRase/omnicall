@@ -3,7 +3,7 @@
  * IEEE-P1363 signatures (Web Crypto default; matches desktop sdkGatewayPopCrypto).
  */
 
-import { buildPopSigningPayload, POP_KEY_ALGORITHM } from '@axatalk/protocol';
+import { buildPopSigningPayload, POP_KEY_ALGORITHM } from '@axata/axatalk-protocol';
 
 import { bytesToBase64Url } from './base64url.js';
 

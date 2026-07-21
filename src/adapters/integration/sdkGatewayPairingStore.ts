@@ -7,7 +7,7 @@ import {
   PAIRING_PROFILES,
   type CapabilityId,
   type PairingProfile,
-} from "@axatalk/protocol";
+} from "@axata/axatalk-protocol";
 import type { SecretStoragePort } from "@ports/secrets/SecretStoragePort.js";
 import {
   createSecretStorageScopeKey,

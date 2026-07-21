@@ -3,7 +3,7 @@
  * Session + window sections are merged in main (connection / BrowserWindow).
  */
 
-import type { WireJsonObject } from "@axatalk/protocol";
+import type { WireJsonObject } from "@axata/axatalk-protocol";
 
 import { mapSdkOperatorStatus } from "./mapSdkOperatorStatus.js";
 import { mapSdkPublicCallState } from "./mapSdkPublicCallState.js";

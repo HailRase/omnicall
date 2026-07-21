@@ -2,7 +2,7 @@
  * Pure helpers for ExternalSdkCallHandler (DI-06).
  */
 
-import type { ProtocolErrorCode, WireJsonObject } from "@axatalk/protocol";
+import type { ProtocolErrorCode, WireJsonObject } from "@axata/axatalk-protocol";
 import type { PlatformError } from "@shared/errors/index.js";
 import type { Result } from "@shared/result/index.js";
 import type { ExternalHandlerResult } from "@ports/integration/ExternalCommandHandler.js";

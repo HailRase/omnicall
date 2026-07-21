@@ -93,7 +93,7 @@ Checklist:
 
 ## DI-01 — Protocol Contracts, Ports, and Mocks
 
-Prerequisites: DI-00 and SDK-01 done; SDK-02 `@axatalk/protocol` done (peer consume).
+Prerequisites: DI-00 and SDK-01 done; SDK-02 `@axata/axatalk-protocol` done (peer consume).
 
 Status: **`done`** (2026-07-20) — `/sdk-review` PASS
 
@@ -101,7 +101,7 @@ Status: **`done`** (2026-07-20) — `/sdk-review` PASS
 
 - Feature/LF: F-011; LF-051, LF-065, LF-080, LF-081
 - Bounded context: Integration (primary). No Telephony Domain rules in this unit.
-- Layers allowed: Ports + Application-boundary adapters/tests; consume `@axatalk/protocol`
+- Layers allowed: Ports + Application-boundary adapters/tests; consume `@axata/axatalk-protocol`
   outside Domain only.
 - Layers forbidden for business logic: Domain, React UI, Zustand stores, Call Engine,
   JsSIP adapters, OCP wire adapters (except interface stubs).
@@ -110,7 +110,7 @@ Status: **`done`** (2026-07-20) — `/sdk-review` PASS
   2. Optional OCP remains optional (no forced OCP)
   3. Active call controls / media / headset paths untouched
   4. No second Application composition / Facade in main
-  5. No Domain import of Zod / `@axatalk/protocol` / Electron / IPC
+  5. No Domain import of Zod / `@axata/axatalk-protocol` / Electron / IPC
   6. Preload/sandbox not weakened
   7. No `window.Softphone` / DOM event bus resurrection
   8. Transfer backlog not touched
@@ -137,7 +137,7 @@ Checklist:
 - Prerequisites verified: DI-00 `done`; SDK-01 `done`; SDK-02 `done`
 - Feature/LF IDs: F-011; LF-051, LF-065, LF-080, LF-081
 - Bounded contexts: Integration
-- Layers changed: Ports + mock adapters + tests; `package.json` file dep on `@axatalk/protocol`; eslint Domain restriction + `axatalk-sdk/**` ignore
+- Layers changed: Ports + mock adapters + tests; `package.json` file dep on `@axata/axatalk-protocol`; eslint Domain restriction + `axatalk-sdk/**` ignore
 - Files added/changed:
   - `src/ports/integration/ExternalClientGateway.ts`
   - `src/ports/integration/MainToRendererBrokerPort.ts`

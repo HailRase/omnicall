@@ -2,7 +2,7 @@
  * Authenticated session metadata bound after server-hello / PoP success.
  */
 
-import type { CapabilityId, PairingProfile } from '@axatalk/protocol';
+import type { CapabilityId, PairingProfile } from '@axata/axatalk-protocol';
 
 export type SessionIdentity = {
   readonly serverInstanceId: string;

@@ -2,7 +2,7 @@
  * Account logout wire builders (SDK-07). Schema-aligned outbound frames.
  */
 
-import { PROTOCOL_MAJOR } from '@axatalk/protocol';
+import { PROTOCOL_MAJOR } from '@axata/axatalk-protocol';
 
 import { isoNow } from './auth-wire.js';
 

@@ -2,7 +2,7 @@
  * Server-authoritative capability grant parsing (fail closed).
  */
 
-import { CapabilityIdSchema, type CapabilityId } from '@axatalk/protocol';
+import { CapabilityIdSchema, type CapabilityId } from '@axata/axatalk-protocol';
 
 export function parseGrantedCapabilities(
   values: readonly string[]

@@ -1,8 +1,8 @@
 /**
- * `@axatalk/protocol` — runtime schemas and inferred types for Axatalk local protocol v1.
+ * `@axata/axatalk-protocol` — runtime schemas and inferred types for Axatalk local protocol v1.
  *
  * Schemas are the source of truth (ADR-0014). Types are inferred. This package must not
- * import `@axatalk/sdk` or desktop Domain/Application/Electron/React source.
+ * import `@axata/axatalk-sdk` or desktop Domain/Application/Electron/React source.
  *
  * @packageDocumentation
  */

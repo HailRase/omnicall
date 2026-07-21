@@ -1,6 +1,6 @@
 ---
-"@axatalk/protocol": minor
-"@axatalk/sdk": minor
+"@axata/axatalk-protocol": minor
+"@axata/axatalk-sdk": minor
 ---
 
 First public release candidate.

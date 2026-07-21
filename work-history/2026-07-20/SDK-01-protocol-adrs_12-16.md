@@ -18,7 +18,7 @@
 - Desktop `src/` и product API не трогались; SDK-02 не начинался
 
 ## Зачем
-Заморозить protocol/security decisions до реализации `@axatalk/protocol` и DI-01.
+Заморозить protocol/security decisions до реализации `@axata/axatalk-protocol` и DI-01.
 
 ## Результат
 - `cd axatalk-sdk && npm run preflight` → PASS

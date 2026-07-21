@@ -16,7 +16,7 @@ await client.account.confirmLogout({
 ## Interaction required (OCP / reason UI)
 
 ```ts
-import { isAxatalkClientError } from '@axatalk/sdk';
+import { isAxatalkClientError } from '@axata/axatalk-sdk';
 
 try {
   await client.account.prepareLogout({ expectedRevision });

@@ -1,11 +1,11 @@
-# @axatalk/sdk
+# @axata/axatalk-sdk
 
 Browser SDK client for Axatalk Desktop.
 
 **Status:** SDK-05 — read-only `AxatalkClient` (lifecycle, snapshot, typed events,
 capability-gated `window.show`). Call/operator/account mutations arrive in later units.
 
-Depends on `@axatalk/protocol` only. Must never import Axatalk Desktop Domain,
+Depends on `@axata/axatalk-protocol` only. Must never import Axatalk Desktop Domain,
 Application, Electron, JsSIP, React, or Zustand.
 
 Public surface:

@@ -16,7 +16,7 @@ import type { SdkGatewayPairingStore } from "./sdkGatewayPairingStore.js";
 import type { SdkPairingApprover } from "./sdkGatewayPairingTypes.js";
 import type { SdkGatewayProductSurface } from "./sdkGatewayProductSurface.js";
 import { LocalWsSessionRegistry } from "./LocalWsSessionRegistry.js";
-import type { WireMessage } from "@axatalk/protocol";
+import type { WireMessage } from "@axata/axatalk-protocol";
 import type { ExternalGatewayValidationResult } from "@ports/integration/ExternalClientGateway.js";
 
 export async function bindLocalWsListening(input: {

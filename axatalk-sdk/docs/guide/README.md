@@ -1,6 +1,6 @@
 # Axatalk SDK — Developer Guide
 
-Canonical developer documentation for `@axatalk/sdk` while the workspace incubates
+Canonical developer documentation for `@axata/axatalk-sdk` while the workspace incubates
 inside the desktop repository. **RC staging (SDK-10 Mode A)** — not on npm `latest`;
 stable blocked on desktop DI-10.
 

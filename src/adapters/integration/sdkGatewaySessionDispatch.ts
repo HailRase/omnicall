@@ -2,7 +2,7 @@
  * Handshake + command dispatch helpers for LocalWsSessionRegistry (DI-04/DI-05).
  */
 
-import type { ClientHello, ProtocolErrorCode, WireMessage } from "@axatalk/protocol";
+import type { ClientHello, ProtocolErrorCode, WireMessage } from "@axata/axatalk-protocol";
 
 import { SdkAuthChallengeCache } from "./sdkGatewayAuthChallenge.js";
 import type { SdkGatewayConnection } from "./sdkGatewayConnection.js";

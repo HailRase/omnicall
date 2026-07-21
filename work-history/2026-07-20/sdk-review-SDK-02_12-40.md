@@ -1,4 +1,4 @@
-# /sdk-review SDK-02 — @axatalk/protocol
+# /sdk-review SDK-02 — @axata/axatalk-protocol
 
 **Дата:** 2026-07-20 12:40
 **Статус:** выполнено
@@ -16,7 +16,7 @@
 - Пункты DI-01 consume оставлены открытыми осознанно (не фейк)
 
 ## Зачем
-- Закрыть unit gate для `@axatalk/protocol` перед SDK-03 / DI-01
+- Закрыть unit gate для `@axata/axatalk-protocol` перед SDK-03 / DI-01
 
 ## Результат
 - PASS, Blocker нет; High: free-string capabilities в `sdk:permission-changed`, open `reply.result`

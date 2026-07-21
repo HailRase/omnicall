@@ -3,12 +3,12 @@
  * Fail closed on invalid `unknown` input. No Domain, SIP, or OCP side effects.
  */
 
-import type { WireJsonObject } from "@axatalk/protocol";
+import type { WireJsonObject } from "@axata/axatalk-protocol";
 import {
   isCommandAvailableInProductV1,
   productDenialCodeForCommand,
   validateWireMessage,
-} from "@axatalk/protocol";
+} from "@axata/axatalk-protocol";
 import type {
   ExternalCommandHandler,
   ExternalHandlerResult,

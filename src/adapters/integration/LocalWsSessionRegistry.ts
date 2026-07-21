@@ -2,7 +2,7 @@
  * Connection registry for loopback WS gateway (DI-03 transport + DI-04 auth).
  */
 
-import type { WireMessage } from "@axatalk/protocol";
+import type { WireMessage } from "@axata/axatalk-protocol";
 
 import { SdkAuthChallengeCache } from "./sdkGatewayAuthChallenge.js";
 import type { SdkGatewayLimits } from "./sdkGatewayConfig.js";

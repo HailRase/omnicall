@@ -3,7 +3,7 @@
 Subscribe only to **public protocol event type names**.  
 Never import or mirror desktop Domain Event names.
 
-Constant: `PUBLIC_EVENT_TYPES` from `@axatalk/sdk`.
+Constant: `PUBLIC_EVENT_TYPES` from `@axata/axatalk-sdk`.
 
 ## Public types
 

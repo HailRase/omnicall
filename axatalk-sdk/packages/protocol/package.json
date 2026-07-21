@@ -1,5 +1,5 @@
 {
-  "name": "@axatalk/protocol",
+  "name": "@axata/axatalk-protocol",
   "version": "0.0.0",
   "description": "Axatalk local protocol v1 runtime schemas, inferred types, and compatibility fixtures",
   "type": "module",

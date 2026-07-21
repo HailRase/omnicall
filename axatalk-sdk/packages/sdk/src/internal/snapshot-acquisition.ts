@@ -2,7 +2,7 @@
  * Pending getSnapshot acquisitions: revision-bound resolve + typed reject.
  */
 
-import type { SnapshotMessage } from '@axatalk/protocol';
+import type { SnapshotMessage } from '@axata/axatalk-protocol';
 
 import {
   createClientError,

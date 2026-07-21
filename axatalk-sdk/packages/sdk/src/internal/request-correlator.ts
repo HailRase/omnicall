@@ -3,8 +3,8 @@
  * Never replays outbound requests after abort or disconnect.
  */
 
-import type { ProtocolErrorCode, ReplyMessage } from '@axatalk/protocol';
-import { validateWireMessage } from '@axatalk/protocol';
+import type { ProtocolErrorCode, ReplyMessage } from '@axata/axatalk-protocol';
+import { validateWireMessage } from '@axata/axatalk-protocol';
 
 import type { DiagnosticsSink } from './diagnostics.js';
 import type { ConnectionState } from './connection-state.js';

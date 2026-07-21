@@ -18,8 +18,8 @@ or a human-named waiver. Do not treat DI-10 WU `done` as F-011/`implemented`.
 
 | Check | Status | Count / note |
 | --- | --- | --- |
-| `api:check` `@axatalk/sdk` | PASS | **47** symbols |
-| `api:check` `@axatalk/protocol` | PASS | **169** symbols |
+| `api:check` `@axata/axatalk-sdk` | PASS | **47** symbols |
+| `api:check` `@axata/axatalk-protocol` | PASS | **169** symbols |
 | Tarball fortress | PASS | no `fake-transport` / `auth-test-peer` / docs harness |
 | `docs:check` | PASS | secret + privilege scans |
 
@@ -30,7 +30,7 @@ or a human-named waiver. Do not treat DI-10 WU `done` as F-011/`implemented`.
 | Protocol fixture parity (unit / CI) | SDK-02…08 + DI fixtures | Covered in track tests — not a packaged E2E substitute |
 | Pairing + Origin allowlist (live desktop) | DI-04…09 | Desktop units `done`; Settings UX pair path still OPEN in DI-10 |
 | Hostile Origin / revoked client | DI-10 | Hostile Origin **PASS** (packaged); live UI revoke **OPEN** — `DI-10-compatibility-e2e-p12-close.md` |
-| Old SDK ↔ new desktop | DI-10 | **OPEN** — no prior published `@axatalk/sdk` |
+| Old SDK ↔ new desktop | DI-10 | **OPEN** — no prior published `@axata/axatalk-sdk` |
 | New SDK ↔ old desktop | DI-10 | **OPEN** — prior desktops lack DI gateway surface |
 | Packaged Electron + browser E2E | DI-10 | **PARTIAL PASS** — handshake/hostile/incompat on `0.11.2` + Edge; pair/call/SIP OPEN |
 

@@ -10,7 +10,7 @@ import {
   type SnapshotSections,
   type WireJsonObject,
   type WireMessage,
-} from "@axatalk/protocol";
+} from "@axata/axatalk-protocol";
 
 import { createSdkIsoTimestamp, createSdkOpaqueId } from "./sdkGatewayIds.js";
 import type { SdkGatewayIdentity } from "./sdkGatewayMessages.js";

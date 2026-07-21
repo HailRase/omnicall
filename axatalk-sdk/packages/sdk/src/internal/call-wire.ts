@@ -2,7 +2,7 @@
  * Call mutation wire builders (SDK-06). Schema-aligned outbound frames.
  */
 
-import { PROTOCOL_MAJOR } from '@axatalk/protocol';
+import { PROTOCOL_MAJOR } from '@axata/axatalk-protocol';
 
 import { isoNow } from './auth-wire.js';
 

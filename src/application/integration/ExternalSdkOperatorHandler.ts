@@ -3,12 +3,12 @@
  * Maps public protocol → F-028 Facade with callType "sdk". Reads peek-only.
  */
 
-import type { CommandMessage } from "@axatalk/protocol";
+import type { CommandMessage } from "@axata/axatalk-protocol";
 import {
   isCommandAvailableInProductV1,
   productDenialCodeForCommand,
   validateWireMessage,
-} from "@axatalk/protocol";
+} from "@axata/axatalk-protocol";
 import type {
   ExternalCommandContext,
   ExternalCommandHandler,

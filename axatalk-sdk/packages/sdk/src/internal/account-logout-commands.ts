@@ -2,7 +2,7 @@
  * Capability-gated account logout command runner (SDK-07).
  */
 
-import type { CapabilityId, CommandType } from '@axatalk/protocol';
+import type { CapabilityId, CommandType } from '@axata/axatalk-protocol';
 
 import {
   buildAccountConfirmLogoutBody,

@@ -5,7 +5,7 @@
 | Axis | Policy |
 | --- | --- |
 | Protocol major | Wire incompat → `incompatible_version`; clients must stop |
-| Package SemVer (`@axatalk/sdk`) | Separate from protocol; follows npm SemVer once published |
+| Package SemVer (`@axata/axatalk-sdk`) | Separate from protocol; follows npm SemVer once published |
 | Additive optional fields | Compatible (ADR-0017 window) |
 | Removals / renames / semantic changes | Breaking — require major |
 

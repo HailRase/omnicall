@@ -3,12 +3,12 @@
  * Accepts only `sdk:ping`. No call/operator/account product routers.
  */
 
-import type { WireJsonObject } from "@axatalk/protocol";
+import type { WireJsonObject } from "@axata/axatalk-protocol";
 import {
   isCommandAvailableInProductV1,
   productDenialCodeForCommand,
   validateWireMessage,
-} from "@axatalk/protocol";
+} from "@axata/axatalk-protocol";
 import type {
   ExternalCommandHandler,
   ExternalHandlerResult,

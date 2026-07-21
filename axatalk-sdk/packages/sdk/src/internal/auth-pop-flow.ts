@@ -7,7 +7,7 @@ import type {
   CapabilityId,
   PairingProfile,
   ServerHello
-} from '@axatalk/protocol';
+} from '@axata/axatalk-protocol';
 
 import {
   buildAuthProofBody,

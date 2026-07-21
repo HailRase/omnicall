@@ -3,12 +3,12 @@
  * Ownership + expectedRevision + per-call serialization → existing Use Cases.
  */
 
-import type { CommandMessage } from "@axatalk/protocol";
+import type { CommandMessage } from "@axata/axatalk-protocol";
 import {
   isCommandAvailableInProductV1,
   productDenialCodeForCommand,
   validateWireMessage,
-} from "@axatalk/protocol";
+} from "@axata/axatalk-protocol";
 import { createCallId, type CallId } from "@domain/index.js";
 import type {
   ExternalCommandContext,

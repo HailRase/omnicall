@@ -14,7 +14,7 @@ Allowed statuses: `pending`, `in progress`, `review`, `done`, `blocked`.
 
 - [x] SDK-00 — Package workspace and CI (`done`)
 - [x] SDK-01 — Protocol and security ADRs (`done`)
-- [x] SDK-02 — `@axatalk/protocol` (`done`)
+- [x] SDK-02 — `@axata/axatalk-protocol` (`done`)
 - [x] SDK-03 — Transport and connection state machine (`done`)
 - [x] SDK-04 — Pairing, authentication, and capabilities (`done`)
 - [x] SDK-05 — Read-only beta API (`done`)
@@ -95,7 +95,7 @@ Status: **`done`** (2026-07-20) — `/sdk-review` PASS
 
 Agent prompt:
 
-> Implement `@axatalk/protocol` from the approved protocol ADRs. Treat every boundary value
+> Implement `@axata/axatalk-protocol` from the approved protocol ADRs. Treat every boundary value
 > as unknown, provide runtime schemas and golden fixtures, and keep the package independent
 > from SDK and desktop source.
 
@@ -145,7 +145,7 @@ Evidence:
 - State-machine tests: `packages/sdk/src/internal/connection-state.test.ts`, `connection-session.test.ts`
 - Resource-cleanup tests: `packages/sdk/src/internal/connection-session.test.ts` (timers/listeners/pending)
 - Unit evidence: `axatalk-sdk/evidence/SDK-03-transport-state-machine.md`
-- Reviewer: `/sdk-review` **PASS** 2026-07-20 — independent re-run: `npx vitest run packages/sdk/src` (18), `npm run lint`, `npm run preflight` PASS; public `@axatalk/sdk` surface empty; fake transport only; mutation non-replay + diagnostics redaction + leak proofs verified. Post-review Low fixes: FakeTransport excluded from pack; payload-free mutation counter.
+- Reviewer: `/sdk-review` **PASS** 2026-07-20 — independent re-run: `npx vitest run packages/sdk/src` (18), `npm run lint`, `npm run preflight` PASS; public `@axata/axatalk-sdk` surface empty; fake transport only; mutation non-replay + diagnostics redaction + leak proofs verified. Post-review Low fixes: FakeTransport excluded from pack; payload-free mutation counter.
 
 ## SDK-04 — Pairing, Authentication, and Capabilities
 

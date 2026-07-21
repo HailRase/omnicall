@@ -1,4 +1,4 @@
-# SDK-02 — `@axatalk/protocol` evidence
+# SDK-02 — `@axata/axatalk-protocol` evidence
 
 **Date:** 2026-07-20  
 **Status:** `done` — `/sdk-review` **PASS** 2026-07-20  
@@ -13,7 +13,7 @@ Open checklist “desktop consumes fixtures” remains DI-01.
 
 ## Scope delivered
 
-- Runtime dependency: `zod@4.4.3` (exact) in `@axatalk/protocol` only.
+- Runtime dependency: `zod@4.4.3` (exact) in `@axata/axatalk-protocol` only.
 - Zod schemas → inferred readonly TS types → API report (`etc/api/protocol.api.md`).
 - Safe validators (`unknown` → schema) with size/depth/forbidden-key fail-closed codes.
 - Golden fixtures under `packages/protocol/fixtures/{valid,invalid,meta}/`.
@@ -23,7 +23,7 @@ Open checklist “desktop consumes fixtures” remains DI-01.
 
 ## Public API surface (intentional)
 
-Exports from `@axatalk/protocol`:
+Exports from `@axata/axatalk-protocol`:
 
 - Constants: protocol majors, discovery/WS paths/port, capability IDs, default profiles, error-code list, limits, dedup TTL (120s), forbidden wire keys, deferred campaign event names.
 - Schemas + inferred types: discovery, handshake, pairing/auth challenge-proof fields, commands, replies, events, snapshot sections, wire union.
@@ -31,7 +31,7 @@ Exports from `@axatalk/protocol`:
 - Package export `./fixtures/*` for byte-identical DI-01 consumption.
 - **Not exported:** `AxatalkClient`, transport, WebSocket, IndexedDB/crypto client.
 
-`api:check` updated: `@axatalk/sdk` remains empty; `@axatalk/protocol` must export symbols and must not export `AxatalkClient`.
+`api:check` updated: `@axata/axatalk-sdk` remains empty; `@axata/axatalk-protocol` must export symbols and must not export `AxatalkClient`.
 
 ## Protocol compatibility impact
 
@@ -53,7 +53,7 @@ Exports from `@axatalk/protocol`:
 Commands (cwd `axatalk-sdk`):
 
 ```bash
-npm run build -w @axatalk/protocol
+npm run build -w @axata/axatalk-protocol
 npx vitest run packages/protocol/src/index.test.ts
 npx vitest run --typecheck.only packages/protocol/src/index.test-d.ts
 npm run lint
@@ -73,7 +73,7 @@ Zod size evidence recorded in `docs/DEPENDENCIES.md`: esbuild ESM bundle ≈532.
 
 ## Desktop DI-01 consume contract (closed by DI-01)
 
-DI-01 is in **`review`**. Desktop now depends on workspace `@axatalk/protocol`
+DI-01 is in **`review`**. Desktop now depends on workspace `@axata/axatalk-protocol`
 (`file:axatalk-sdk/packages/protocol`) outside Domain and consumes
 `packages/protocol/fixtures/**` byte-identical (valid accept / invalid + meta codes).
 

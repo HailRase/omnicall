@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SnapshotSectionsSchema } from "@axatalk/protocol";
+import { SnapshotSectionsSchema } from "@axata/axatalk-protocol";
 
 import { assembleSdkSnapshotProductSections } from "./ExternalSdkSnapshotAssembler.js";
 import type { SdkProductStateSnapshot } from "./ExternalSdkProductState.js";

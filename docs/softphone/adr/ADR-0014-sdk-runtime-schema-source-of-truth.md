@@ -14,7 +14,7 @@ Accepted (2026-07-20) — closes **O-SCHEMA-1** (SDK-01)
 - **Legacy:** LF-080, LF-081
 - **Roadmap:** P12
 - **Contexts:** Integration
-- **Layers:** `@axatalk/protocol`, desktop DI-01 consumers
+- **Layers:** `@axata/axatalk-protocol`, desktop DI-01 consumers
 
 SDK-02 / DI-01 must share one runtime validation model. ADR-0012 left the library and
 generation direction open. Installing a runtime dependency requires an explicit decision
@@ -24,7 +24,7 @@ generation direction open. Installing a runtime dependency requires an explicit 
 
 ### O-SCHEMA-1 — Runtime schema library and generation
 
-1. **Canonical source of truth:** Zod schemas in `@axatalk/protocol` (`zod@^4`, exact
+1. **Canonical source of truth:** Zod schemas in `@axata/axatalk-protocol` (`zod@^4`, exact
    version locked at install time in SDK-02). Checked on 2026-07-20: npm latest `4.4.3`,
    maintained, not deprecated.
 
@@ -39,11 +39,11 @@ generation direction open. Installing a runtime dependency requires an explicit 
    a Zod schema succeeds. Fail closed with stable codes (`invalid_message`,
    `invalid_payload`, `incompatible_version`).
 
-5. **Desktop consumption:** desktop DI-01 consumes the same `@axatalk/protocol` package (or
+5. **Desktop consumption:** desktop DI-01 consumes the same `@axata/axatalk-protocol` package (or
    identical published schemas/fixtures). Domain remains free of Zod and protocol imports;
    Application/adapters validate at the boundary.
 
-6. **Bundle note:** Zod is a runtime dependency of `@axatalk/protocol` only. SDK-02 must
+6. **Bundle note:** Zod is a runtime dependency of `@axata/axatalk-protocol` only. SDK-02 must
    record gzipped size evidence in `DEPENDENCIES.md` before merge. Alternatives rejected
    below if size becomes a Blocker in SDK-02 review.
 

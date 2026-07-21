@@ -2,7 +2,7 @@
  * Unit coverage for outbound queue + heartbeat miss paths (DI-03 follow-up).
  */
 
-import { validateWireMessage, type WireMessage } from "@axatalk/protocol";
+import { validateWireMessage, type WireMessage } from "@axata/axatalk-protocol";
 import { InMemorySecretStorageAdapter } from "@adapters/secrets/InMemorySecretStorageAdapter.js";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { RawData } from "ws";

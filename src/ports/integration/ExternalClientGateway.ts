@@ -2,7 +2,7 @@
  * Desktop-facing Integration gateway port for the future local SDK WebSocket boundary
  * (F-011 / P12 / DI-01). Interface only — no sockets, IPC, or Electron in this unit.
  *
- * Public wire types come from `@axatalk/protocol`. Domain must never import this port's
+ * Public wire types come from `@axata/axatalk-protocol`. Domain must never import this port's
  * protocol dependency graph via Domain→ports (Domain does not import ports).
  */
 
@@ -10,7 +10,7 @@ import type {
   DiscoveryDocument,
   ProtocolErrorCode,
   WireMessage,
-} from "@axatalk/protocol";
+} from "@axata/axatalk-protocol";
 
 /** Fail-closed inbound validation outcome using stable protocol error codes. */
 export type ExternalGatewayValidationSuccess<T> = Readonly<{

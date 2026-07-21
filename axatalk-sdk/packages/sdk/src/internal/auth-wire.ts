@@ -1,5 +1,5 @@
 /**
- * Auth/pairing/handshake wire builders. Schemas from @axatalk/protocol.
+ * Auth/pairing/handshake wire builders. Schemas from @axata/axatalk-protocol.
  */
 
 import {
@@ -11,7 +11,7 @@ import {
   type CapabilityId,
   type PairingProfile,
   type ServerHello
-} from '@axatalk/protocol';
+} from '@axata/axatalk-protocol';
 
 import { randomBase64Url } from './base64url.js';
 import { popKeyAlgorithmId } from './pop-crypto.js';

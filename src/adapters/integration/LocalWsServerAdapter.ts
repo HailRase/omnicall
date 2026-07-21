@@ -6,7 +6,7 @@ import {
   validateWireMessage,
   type DiscoveryDocument,
   type WireMessage,
-} from "@axatalk/protocol";
+} from "@axata/axatalk-protocol";
 import type {
   ExternalClientGateway,
   ExternalClientGatewayStatus,

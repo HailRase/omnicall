@@ -2,7 +2,7 @@
 
 **Fake peer only — not a production desktop.**
 
-Integrator-facing helpers under `src/` use **only** the public `@axatalk/sdk` surface.
+Integrator-facing helpers under `src/` use **only** the public `@axata/axatalk-sdk` surface.
 The runnable fake-peer demo lives next to SDK-09 tests:
 
 - `packages/sdk/src/docs/crm-pairing-lite-demo.ts`
@@ -38,6 +38,6 @@ npm run docs:check
 
 | File | Role |
 | --- | --- |
-| `src/crm-app.ts` | Integrator helpers — public `@axatalk/sdk` only |
+| `src/crm-app.ts` | Integrator helpers — public `@axata/axatalk-sdk` only |
 | `src/safe-error.ts` | Typed error formatting without secret dumps |
 | `../../packages/sdk/src/docs/crm-pairing-lite-*.ts` | Fake peer driver (workspace tests; not published) |

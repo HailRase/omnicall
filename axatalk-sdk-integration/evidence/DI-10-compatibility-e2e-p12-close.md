@@ -5,7 +5,7 @@
 **Desktop version:** `0.11.2` (unchanged; no SemVer bump — F-011 not closed)  
 **Desktop commit (baseline HEAD):** `9e9a61d` (+ DI-10 working-tree / remediation)  
 **SDK workspace:** same repo `axatalk-sdk/` @ HEAD `9e9a61d`  
-**Protocol surface:** `api:check` **47** (`@axatalk/sdk`) / **169** (`@axatalk/protocol`) — unchanged  
+**Protocol surface:** `api:check` **47** (`@axata/axatalk-sdk`) / **169** (`@axata/axatalk-protocol`) — unchanged  
 **Feature:** F-011 remains **`in progress`** (not `implemented`)  
 **P12:** remains **open** — remaining smoke cells listed below  
 **Work unit status:** **`review`** (Blocker/High/Low from 2026-07-21 FAIL remediated)
@@ -125,7 +125,7 @@ Reports:
 | current SDK protocol ↔ current desktop (unit) | **PASS** | `LocalWsServerAdapter.compat.test.ts` + DI-01…09 fixture parity |
 | current protocol ↔ packaged desktop handshake | **PASS** | packaged + Edge smoke reports |
 | incompatible client ↔ current desktop | **PASS** | unit + packaged (`incompatible_version` / close, zero product msgs) |
-| previous published SDK ↔ current desktop | **OPEN** | no prior public `@axatalk/sdk` release exists (workspace `0.0.0` / RC not published) |
+| previous published SDK ↔ current desktop | **OPEN** | no prior public `@axata/axatalk-sdk` release exists (workspace `0.0.0` / RC not published) |
 | current SDK ↔ previous supported desktop | **OPEN** | prior installers lack DI-01…09 gateway surface; not exercised |
 | desktop restart / update during active call | **OPEN** | requires controlled SIP infra + operator session |
 | SDK reconnect idle/active call | **OPEN** | unit disconnect-no-teardown cited; live packaged call not run |
@@ -191,7 +191,7 @@ Overall smoke: **PARTIAL** — transport/security packaged subset PASS; product 
 | LF-051 / 065 / 080 / 081 close | **NO** — planning/progress notes only | Need packaged paired product evidence |
 | P12 close | **NO** | Remaining OPEN cells above |
 | SemVer MINOR bump | **NO** — remains `0.11.2` | No user-visible F-011 close |
-| npm `@axatalk/*` `latest` | **NO** | Out of scope; SDK Mode B still blocked on full DI-10 close |
+| npm `@axata/axatalk-*` `latest` | **NO** | Out of scope; SDK Mode B still blocked on full DI-10 close |
 
 ## Checklist mapping
 

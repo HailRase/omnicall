@@ -5,7 +5,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Duplex } from "node:stream";
 
-import { WS_PATH } from "@axatalk/protocol";
+import { WS_PATH } from "@axata/axatalk-protocol";
 import type { WebSocketServer } from "ws";
 
 import type { SdkGatewaySocket } from "./sdkGatewayConnection.js";

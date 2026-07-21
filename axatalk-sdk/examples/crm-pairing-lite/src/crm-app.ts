@@ -1,5 +1,5 @@
 /**
- * Integrator-facing CRM helpers — public `@axatalk/sdk` surface only.
+ * Integrator-facing CRM helpers — public `@axata/axatalk-sdk` surface only.
  * Secure defaults: revision-bound mutations, typed errors, no privileged pairing.
  */
 
@@ -8,7 +8,7 @@ import {
   type AxatalkClient,
   type CallMutationResult,
   type PrepareLogoutResult
-} from '@axatalk/sdk';
+} from '@axata/axatalk-sdk';
 
 import { formatSafeError } from './safe-error.js';
 

@@ -3,12 +3,12 @@
  * No IPC, preload, or BrowserWindow. Validates `unknown` with protocol schemas.
  */
 
-import type { CommandMessage, ReplyMessage, WireJsonObject } from "@axatalk/protocol";
+import type { CommandMessage, ReplyMessage, WireJsonObject } from "@axata/axatalk-protocol";
 import {
   isCommandAvailableInProductV1,
   productDenialCodeForCommand,
   validateWireMessage,
-} from "@axatalk/protocol";
+} from "@axata/axatalk-protocol";
 import type {
   BrokerProductRequest,
   BrokerRequestResult,

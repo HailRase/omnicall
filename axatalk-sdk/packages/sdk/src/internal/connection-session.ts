@@ -3,7 +3,7 @@
  * heartbeat, and bounded reconnect. No product AxatalkClient methods.
  */
 
-import type { CommandType } from '@axatalk/protocol';
+import type { CommandType } from '@axata/axatalk-protocol';
 
 import { isMutationCommand } from './command-classification.js';
 import {

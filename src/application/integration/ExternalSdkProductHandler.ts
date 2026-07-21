@@ -6,7 +6,7 @@ import {
   isCommandAvailableInProductV1,
   productDenialCodeForCommand,
   validateWireMessage,
-} from "@axatalk/protocol";
+} from "@axata/axatalk-protocol";
 import type {
   ExternalCommandContext,
   ExternalCommandHandler,

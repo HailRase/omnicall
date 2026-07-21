@@ -7,15 +7,15 @@ import type {
   PairingRequest,
   ProtocolErrorCode,
   WireMessage,
-} from "@axatalk/protocol";
-import { productDenialCodeForCommand } from "@axatalk/protocol";
+} from "@axata/axatalk-protocol";
+import { productDenialCodeForCommand } from "@axata/axatalk-protocol";
 
 import {
   connectionHasCapability,
   requiredCapabilityForCommand,
 } from "./sdkGatewayCapabilities.js";
 import type { SdkGatewayAuthState } from "./sdkGatewayConnection.js";
-import type { CapabilityId } from "@axatalk/protocol";
+import type { CapabilityId } from "@axata/axatalk-protocol";
 
 export type SdkConnectionRouteView = Readonly<{
   handshakeComplete: boolean;

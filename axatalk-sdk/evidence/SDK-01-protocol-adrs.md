@@ -38,7 +38,7 @@ implementation, no SDK-02.
 
 - No changes under desktop `src/`
 - No npm dependency install for Zod (deferred to SDK-02; noted in DEPENDENCIES.md)
-- No `@axatalk/protocol` schemas or fixtures content files yet
+- No `@axata/axatalk-protocol` schemas or fixtures content files yet
 - No DI-01…DI-10 code
 - SDK-02 not started
 

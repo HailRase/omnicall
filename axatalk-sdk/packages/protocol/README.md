@@ -1,4 +1,4 @@
-# @axatalk/protocol
+# @axata/axatalk-protocol
 
 Runtime schemas and inferred TypeScript types for the Axatalk local protocol v1
 (ADR-0014…0017).
@@ -20,11 +20,11 @@ translation.
 ```bash
 cd axatalk-sdk
 npm ci
-npm run build -w @axatalk/protocol
+npm run build -w @axata/axatalk-protocol
 ```
 
 ## Boundaries
 
-- `protocol` must not import `@axatalk/sdk` or desktop `src/`.
+- `protocol` must not import `@axata/axatalk-sdk` or desktop `src/`.
 - Domain must not import this package (desktop Application/adapters validate at the edge).
 - Wire payloads are JSON-safe and redaction-safe; machine-readable errors only.

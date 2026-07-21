@@ -14,7 +14,7 @@ Accepted (2026-07-20) — closes **O-POP-1**, **O-POP-2**, **O-CAP-1** (SDK-01; 
 - **Legacy:** LF-080, LF-081
 - **Roadmap:** P12
 - **Contexts:** Integration, Settings
-- **Layers:** Main pairing store, `@axatalk/sdk` auth, Settings UI (DI-09)
+- **Layers:** Main pairing store, `@axata/axatalk-sdk` auth, Settings UI (DI-09)
 
 ADR-0011 closed Origin, pairing requirement, capability names, replay, and revoke policy.
 Cryptographic proof-of-possession, approve payload shape, and default capability profiles

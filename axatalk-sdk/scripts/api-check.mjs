@@ -107,7 +107,7 @@ for (const name of packages) {
   const pkgDir = path.join(root, name === 'protocol' ? 'packages/protocol' : 'packages/sdk');
   const distEntry = path.join(pkgDir, 'dist', 'index.d.ts');
   if (!fs.existsSync(distEntry)) {
-    console.error(`Missing build output for @axatalk/${name}: ${distEntry}`);
+    console.error(`Missing build output for @axata/axatalk-${name}: ${distEntry}`);
     console.error('Run `npm run build` before api:check.');
     process.exit(1);
   }

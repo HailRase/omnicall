@@ -2,7 +2,7 @@
  * Deterministic fake desktop peer for auth/pairing unit tests.
  */
 
-import type { CapabilityId, PairingProfile } from '@axatalk/protocol';
+import type { CapabilityId, PairingProfile } from '@axata/axatalk-protocol';
 
 import type { FakeTransport } from './fake-transport.js';
 

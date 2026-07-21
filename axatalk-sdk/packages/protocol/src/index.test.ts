@@ -50,7 +50,7 @@ function listJsonFiles(suiteRoot: string): string[] {
   return out.sort();
 }
 
-describe('@axatalk/protocol fixtures', () => {
+describe('@axata/axatalk-protocol fixtures', () => {
   it('accepts every valid fixture', () => {
     const files = listJsonFiles('valid');
     expect(files.length).toBeGreaterThan(0);
@@ -115,7 +115,7 @@ describe('@axatalk/protocol fixtures', () => {
   });
 });
 
-describe('@axatalk/protocol compatibility and constants', () => {
+describe('@axata/axatalk-protocol compatibility and constants', () => {
   it('negotiates overlapping protocol majors', () => {
     expect(negotiateProtocolVersion(1, 1, 1, 2)).toEqual({
       ok: true,

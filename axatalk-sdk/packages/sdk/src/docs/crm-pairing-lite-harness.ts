@@ -10,7 +10,7 @@ import {
   createMemoryPopKeyStore,
   createRecordingDiagnosticsSink,
   type AxatalkClient
-} from '@axatalk/sdk';
+} from '@axata/axatalk-sdk';
 import {
   buildPairingApproved,
   buildPairingPending,

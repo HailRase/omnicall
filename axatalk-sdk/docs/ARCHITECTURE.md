@@ -7,7 +7,7 @@ telephony, operator, account, or Electron business logic.
 
 ```text
 Web application
-  -> @axatalk/sdk
+  -> @axata/axatalk-sdk
   -> secure local WebSocket
   -> Axatalk Desktop gateway
   -> typed main-to-renderer broker
@@ -17,7 +17,7 @@ Web application
 
 ## Package Boundaries
 
-### `@axatalk/protocol`
+### `@axata/axatalk-protocol`
 
 Owns:
 
@@ -35,7 +35,7 @@ Must not own:
 - business rules;
 - generated user-facing text.
 
-### `@axatalk/sdk`
+### `@axata/axatalk-sdk`
 
 Owns:
 
@@ -54,7 +54,7 @@ Must not own:
 - credentials or profile persistence;
 - Electron window behavior.
 
-### `@axatalk/sdk-testing`
+### `@axata/axatalk-sdk-testing`
 
 Optional after SDK-05. Owns deterministic fixtures and a fake protocol peer for integrators.
 It must never contain production credentials or desktop implementation code.
@@ -112,8 +112,8 @@ snapshot sections. Connection state must never imply account authorization.
 ## Dependency Rules
 
 ```text
-application code -> @axatalk/sdk -> @axatalk/protocol
-test code        -> @axatalk/sdk-testing -> @axatalk/protocol
+application code -> @axata/axatalk-sdk -> @axata/axatalk-protocol
+test code        -> @axata/axatalk-sdk-testing -> @axata/axatalk-protocol
 ```
 
 No reverse dependency is allowed. The desktop consumes the same protocol package or the

@@ -7,7 +7,7 @@
 import type {
   ProtocolErrorCode,
   WireJsonObject,
-} from "@axatalk/protocol";
+} from "@axata/axatalk-protocol";
 
 export type ExternalHandlerSuccess = Readonly<{
   ok: true;

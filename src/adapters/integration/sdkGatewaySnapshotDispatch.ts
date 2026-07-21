@@ -2,8 +2,8 @@
  * Snapshot delivery after broker get-snapshot (DI-05).
  */
 
-import type { ProtocolErrorCode, WireMessage } from "@axatalk/protocol";
-import { validateWireMessage } from "@axatalk/protocol";
+import type { ProtocolErrorCode, WireMessage } from "@axata/axatalk-protocol";
+import { validateWireMessage } from "@axata/axatalk-protocol";
 
 import type { SdkGatewayConnection } from "./sdkGatewayConnection.js";
 import {

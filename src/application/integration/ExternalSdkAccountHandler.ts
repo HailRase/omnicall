@@ -3,12 +3,12 @@
  * Capability + local approval gated in main; this maps wire → Facade sign-in.
  */
 
-import type { CommandMessage } from "@axatalk/protocol";
+import type { CommandMessage } from "@axata/axatalk-protocol";
 import {
   isCommandAvailableInProductV1,
   productDenialCodeForCommand,
   validateWireMessage,
-} from "@axatalk/protocol";
+} from "@axata/axatalk-protocol";
 import type {
   ExternalCommandContext,
   ExternalCommandHandler,

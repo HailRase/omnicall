@@ -2,7 +2,7 @@
  * Pairing record / approval types for SDK gateway (DI-04 / ADR-0016).
  */
 
-import type { CapabilityId, PairingProfile } from "@axatalk/protocol";
+import type { CapabilityId, PairingProfile } from "@axata/axatalk-protocol";
 
 export type SdkPairedClientRecord = Readonly<{
   clientId: string;

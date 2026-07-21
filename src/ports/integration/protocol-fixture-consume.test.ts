@@ -1,6 +1,6 @@
 /**
  * DI-01: consume SDK-02 golden fixtures byte-identical from
- * `axatalk-sdk/packages/protocol/fixtures/**` via `@axatalk/protocol` validators.
+ * `axatalk-sdk/packages/protocol/fixtures/**` via `@axata/axatalk-protocol` validators.
  * No translation, renaming, or local schema fork.
  */
 
@@ -14,7 +14,7 @@ import {
   productDenialCodeForCommand,
   validateDiscoveryDocument,
   validateWireMessage,
-} from "@axatalk/protocol";
+} from "@axata/axatalk-protocol";
 import { describe, expect, it } from "vitest";
 
 const fixturesRoot = path.resolve(
