@@ -189,12 +189,32 @@ export function bindSdkBrokerSession(
     });
   });
 
-  void softphone.setSdkBrokerReady({ ready: true });
+  const assertBrokerReady = (): void => {
+    void softphone.setSdkBrokerReady({ ready: true });
+  };
+  // Claim ready now; re-assert after macrotask / pageshow / visibility so a
+  // concurrent main-side clear (spurious load) cannot leave product path stuck
+  // while this composition is still active (ADR-0009: ready must return).
+  assertBrokerReady();
+  const reassertTimer = window.setTimeout(assertBrokerReady, 0);
+  const onPageShow = (): void => {
+    assertBrokerReady();
+  };
+  const onVisibilityChange = (): void => {
+    if (document.visibilityState === "visible") {
+      assertBrokerReady();
+    }
+  };
+  window.addEventListener("pageshow", onPageShow);
+  document.addEventListener("visibilitychange", onVisibilityChange);
 
   return {
     handler,
     ownership,
     dispose: () => {
+      window.clearTimeout(reassertTimer);
+      window.removeEventListener("pageshow", onPageShow);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
       session.markInactive();
       unsubscribeBroker();
       unsubscribeClientEnded();

@@ -140,6 +140,11 @@ function createMainWindow(): BrowserWindow {
 
   installDeveloperWebContentsShortcuts(mainWindow.webContents);
 
+  // Open DevTools before load so early renderer logs (SDK socket bootstrap) are visible.
+  if (isMainProcessDevMode()) {
+    mainWindow.webContents.openDevTools({ mode: "detach" });
+  }
+
   if (process.env["ELECTRON_RENDERER_URL"] !== undefined) {
     void mainWindow.loadURL(process.env["ELECTRON_RENDERER_URL"]);
   } else {

@@ -14,6 +14,8 @@ import {
   parseSdkBrokerReplyIpcPayload,
 } from "@shared/ipc/SdkBrokerContract.js";
 
+import { shouldClearBrokerReadyOnNavigation } from "./sdkBrokerReloadPolicy.js";
+
 const logger = createConsoleLogger({
   boundedContext: "Integration",
   featureId: "F-011",
@@ -73,7 +75,10 @@ function installReloadHook(webContents: WebContents): void {
   }
   reloadHookWebContentsIds.add(webContentsId);
 
-  webContents.on("did-start-loading", () => {
+  // Prefer main-frame document navigations over `did-start-loading`, which also
+  // fires for DevTools/subframes/spurious loads and left compositionReady=false
+  // while React stayed mounted (no second setSdkBrokerReady).
+  webContents.on("did-start-navigation", (details) => {
     if (broker === null) {
       return;
     }
@@ -83,11 +88,21 @@ function installReloadHook(webContents: WebContents): void {
     ) {
       return;
     }
+    if (
+      !shouldClearBrokerReadyOnNavigation({
+        isMainFrame: details.isMainFrame,
+        isSameDocument: details.isSameDocument,
+      })
+    ) {
+      return;
+    }
     logger.info("sdk_broker_renderer_reload", {
       correlationId: createCorrelationId(),
       operation: "sdk_broker_reload",
       result: "pending_rejected",
       webContentsId,
+      isMainFrame: details.isMainFrame,
+      isSameDocument: details.isSameDocument,
     });
     broker.notifyRendererReload();
   });
