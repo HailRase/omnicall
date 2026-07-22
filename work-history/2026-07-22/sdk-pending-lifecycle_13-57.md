@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-22 13:57
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `9d9c474`
 
 ## Где
 - `src/adapters/integration/sdkGatewayOriginTrustApprover.ts`
