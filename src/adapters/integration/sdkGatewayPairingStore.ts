@@ -138,11 +138,18 @@ export class SdkGatewayPairingStore {
       await this.secrets.loadSecret(scopeKey, SDK_PAIRED_CLIENTS_INDEX_SECRET_ID),
     );
     const out: SdkPairedClientPublicMeta[] = [];
+    const staleIds: string[] = [];
     for (const clientId of ids) {
       const record = await this.get(clientId);
-      if (record !== null) {
-        out.push(toPublicMeta(record));
+      if (record === null || record.revokedAt !== null) {
+        // Drop missing / legacy soft-revoked rows — they must not linger in UI or index.
+        staleIds.push(clientId);
+        continue;
       }
+      out.push(toPublicMeta(record));
+    }
+    for (const clientId of staleIds) {
+      await this.remove(clientId);
     }
     return out;
   }
@@ -166,13 +173,32 @@ export class SdkGatewayPairingStore {
     }
   }
 
-  async revoke(clientId: string, revokedAt: string): Promise<boolean> {
+  /**
+   * Revoke = hard delete. Soft-revoked tombstones are noise; wire still emits sdk:revoked
+   * via session close before the record disappears.
+   */
+  async revoke(clientId: string): Promise<boolean> {
+    return this.remove(clientId);
+  }
+
+  async remove(clientId: string): Promise<boolean> {
     const existing = await this.get(clientId);
-    if (existing === null) {
+    const ids = parseClientIds(
+      await this.secrets.loadSecret(scopeKey, SDK_PAIRED_CLIENTS_INDEX_SECRET_ID),
+    );
+    const nextIds = ids.filter((id) => id !== clientId);
+    if (existing === null && nextIds.length === ids.length) {
       return false;
     }
-    await this.save({ ...existing, revokedAt });
-    return true;
+    await this.secrets.deleteSecret(scopeKey, clientSecretId(clientId));
+    if (nextIds.length !== ids.length) {
+      await this.secrets.saveSecret(
+        scopeKey,
+        SDK_PAIRED_CLIENTS_INDEX_SECRET_ID,
+        JSON.stringify(nextIds),
+      );
+    }
+    return existing !== null || nextIds.length !== ids.length;
   }
 
   async findActive(

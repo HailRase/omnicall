@@ -131,19 +131,31 @@ the same store — not the only gate. Blacklist still wins over allow seed.
 ### D. Per-Origin capability policy matrix
 
 1. Each `allowed` Origin has its own matrix of **which capabilities may be granted** to
-   sessions for that Origin (subset of the ADR-0011 catalog).
+   sessions for that Origin (subset of the ADR-0011 catalog). Multiple Origins may be
+   stored concurrently; each keeps an independent matrix (no global matrix).
 2. Pairing / session grants must be ⊆ Origin policy. Desktop strips or denies anything
-   outside the matrix.
-3. Privileged `account.activate` and unavailable `window.hide` remain special:
+   outside the matrix **at approve time** (pairing ceiling).
+3. **Live effective capabilities** for an authenticated session are:
+
+   `effective = pairingOrElevatedGrants ∩ currentOriginMatrix`
+
+   - Matrix **shrink** (operator turns a cap off in Settings) applies on the **next**
+     command / event fan-out / snapshot **without** requiring re-pair or reconnect.
+   - Matrix **expand** does **not** add capabilities beyond the pairing ceiling; the
+     client must re-pair (or receive an explicit elevate path such as activate grant)
+     to obtain newly enabled caps.
+   - When a required capability is present in session grants but stripped by the live
+     matrix → typed **`forbidden`** with details key **`permission_denied`**; do not tear
+     the transport solely for that deny.
+4. Privileged `account.activate` and unavailable `window.hide` remain special:
    - `window.hide` — still unavailable in product v1 (ADR-0013);
    - `account.activate` — matrix flag “activate allowed for this Origin”; actual activate
      still requires the consent path in §E on **every** activate attempt when enabled.
-4. While Origin is `denied`, matrix values are stored read-only for Unblock restore and
+     Live matrix off also fails closed via the effective-cap intersection (and the
+     activate-specific gate).
+5. While Origin is `denied`, matrix values are stored read-only for Unblock restore and
    **not consulted** for authorization. Consumer Settings must not add/edit allow or
    matrix entries until Unblock.
-5. Command denied by matrix while Origin `allowed` and session live → typed **`forbidden`**
-   with details key **`permission_denied`** (or capability-specific key); **do not** tear
-   the transport solely for capability deny.
 
 Default on first Origin Allow (modal): non-privileged `call_controller` defaults
 (`session.read.redacted`, `window.show`, `call.originate`, `call.control`,
@@ -202,11 +214,30 @@ Axatalk SDK. Machine code remains authoritative.
 
 ### G. Modal ownership (renderer)
 
-1. Origin TOFU Allow/Deny and activate consent Allow/Deny are **renderer** UI (modal —
-   explicit choice; not a dismissible toast/notification as the primary control).
-2. Main owns upgrade admission and may hold the connection / command until the renderer
+1. Origin TOFU Allow/Deny, pairing Approve/Deny, and activate consent Allow/Deny are
+   **renderer** UI (explicit choice; not a dismissible toast/notification as the primary
+   control).
+2. **Connect ceremony (presentation, 2026-07-22):** a single root overlay
+   (`SdkConnectCeremonyModal`) hosts:
+   - first-contact Origin trust (transport Allow/Deny) then, after Allow, pairing in the
+     **same** modal (stepper);
+   - pairing-only when the Origin is already `allowed`.
+   Settings → Axatalk SDK remains policy management (trusted/blocked, matrix, revoke,
+   diagnostics) and **must not** host pending TOFU/pairing callouts or auto-open for
+   pairing attention. Security gates stay sequential (ADR-0018 Origin before ADR-0016
+   pairing); the overlay is presentation only.
+3. **Pending lifecycle (2026-07-22):** unresolved TOFU/pairing must not outlive the socket
+   or Origin policy:
+   - socket disconnect → cancel pending Origin trust for that Origin when no other live
+     connections remain (**cancel**, not Deny — do **not** blacklist); deny pending
+     pairing bound to that `connectionId`;
+   - Origin leave `allowed` (remove or blacklist) → deny pending pairing for that Origin
+     and close live sockets; **do not** auto-revoke durable paired clients;
+   - TTL sweeper denies expired pairing pending and cancels stale TOFU pending;
+   - Approve pairing after Origin is no longer `allowed` → deny (no empty-cap pair).
+4. Main owns upgrade admission and may hold the connection / command until the renderer
    reports the decision over the typed broker/IPC (DI-11 names events in evidence).
-3. Main must not invent a second product composition; renderer Application owns the
+5. Main must not invent a second product composition; renderer Application owns the
    decision projection and Settings persistence path.
 
 ### H. Discovery CORS (with ADR-0015)

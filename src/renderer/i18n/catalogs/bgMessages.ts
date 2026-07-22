@@ -655,6 +655,18 @@ export const bgMessages: MessageShape = {
     `Сайтът ${params.origin} иска достъп до softphone чрез SDK.`,
   "settings.integrations.sdk.tofu.allow": "Разреши",
   "settings.integrations.sdk.tofu.deny": "Откажи",
+  "settings.integrations.sdk.ceremony.stepsAria": "Стъпки за връзка със SDK",
+  "settings.integrations.sdk.ceremony.step.transport": "Връзка",
+  "settings.integrations.sdk.ceremony.step.pairing": "Сдвояване",
+  "settings.integrations.sdk.ceremony.waitingTitle": "Изчакване на сдвояване",
+  "settings.integrations.sdk.ceremony.waiting": (params: Readonly<{ origin: string }>) =>
+    `Сайтът ${params.origin} е разрешен. Изчакваме заявка за сдвояване…`,
+  "settings.integrations.sdk.ceremony.waitingCancel": "Отказ",
+  "settings.integrations.sdk.ceremony.pairingMessage": (params: Readonly<{
+    applicationName: string;
+    origin: string;
+  }>) =>
+    `Приложението «${params.applicationName}» от ${params.origin} иска сдвояване.`,
   "settings.integrations.sdk.blacklist.title": "Блокирани сайтове",
   "settings.integrations.sdk.blacklist.unblock": "Деблокирай",
   "settings.integrations.sdk.blacklist.quick": "Блокирай",
@@ -732,7 +744,7 @@ export const bgMessages: MessageShape = {
   "settings.integrations.sdk.paired.revoke": "Отмени",
   "settings.integrations.sdk.paired.revokeTitle": "Отмяна на достъпа на клиента?",
   "settings.integrations.sdk.paired.revokeMessage":
-    "Клиентът ще загуби достъп до SDK. Активните обаждания и сесии на акаунт не се прекратяват.",
+    "Клиентът ще загуби достъп до SDK и ще изчезне от списъка. Активните обаждания и сесии на акаунт не се прекратяват.",
   "settings.integrations.sdk.paired.revokeCancel": "Отказ",
   "settings.integrations.sdk.paired.revokeConfirm": "Отмени",
   "settings.integrations.sdk.grant.title": "Временен достъп до профил",

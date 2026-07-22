@@ -26,7 +26,12 @@
 
 1. **Snapshot** — authenticated + `session.read.redacted` → broker query → redacted product sections → main merges session/window → `sdk:snapshot` + reply `{ accepted: true }`.
 2. **Events** — Domain → Application public drafts → preload IPC → per-connection fan-out with monotonic `sequence` (no cross-client broadcast). Campaign events omitted.
-3. **`window:show`** — main `SdkWindowCommandHandler` (restore/show/focus + rate limit); capability `window.show`; emits `window:visibility-changed`.
+3. **`window:show`** — main `SdkWindowCommandHandler` (restore → show → focus →
+   `moveTop` → temporary always-on-top pulse restoring prior pin + rate limit;
+   ADR-0013 local focus policy); capability `window.show`; emits
+   `window:visibility-changed`. Follow-up (2026-07-22): occluded/minimized
+   Windows foreground raise; shared `bringBrowserWindowToFront` also used for
+   telephony / SDK operator-attention raises (`ShellWindowAttentionController`).
 4. **`window:get-state`** — main-only visibility read under `window.show`.
 5. **Fail-closed** — unauth → `unauthenticated`; missing cap → `forbidden`; no product surface / broker not ready → `not_ready`; revoke stops further fan-out/snapshots; DI-06+ commands stay `not_ready`.
 6. **Privacy** — ADR-0017 phone/display masks; OCP-disabled omits operator section; audit logs allowlisted (no payloads/PII).

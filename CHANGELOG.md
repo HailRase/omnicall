@@ -7,6 +7,21 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+### Added
+
+- Root SDK connect ceremony modal: Origin TOFU → pairing stepper (blur overlay поверх любого shell route); для уже trusted Origin — только pairing.
+- Waiting Cancel в ceremony (без blacklist); gateway cancel pending on disconnect + Origin leave-allowed; TTL sweeper для orphaned pairing/TOFU.
+
+### Changed
+
+- Pairing / TOFU больше не открывают Settings и не показываются callout’ами в Axatalk SDK card; Settings остаётся policy (trusted/blocked/matrix/revoke).
+- Disconnect mid-TOFU больше не пишет Origin в blacklist (`cancel` ≠ Deny).
+
+### Fixed
+
+- SDK `window.show`: софтфон поднимается поверх других приложений (restore/show/focus/`moveTop` + краткий always-on-top pulse с восстановлением прежнего pin), а не только мигает в панели задач Windows (ADR-0013).
+- Входящий/исходящий звонок, SDK Origin trust (TOFU), pairing и activate-consent поднимают окно тем же native helper.
+
 ## [0.12.0] - 2026-07-21
 
 ### Added

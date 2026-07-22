@@ -197,6 +197,10 @@ export function useSdkSettingsPanel(
     }
   }, [applySnapshot, invokeSdkGatewaySettings, persistAndApply, settings.origins]);
 
+  const onRefresh = useCallback((): void => {
+    void refreshSnapshot();
+  }, [refreshSnapshot]);
+
   return {
     settings,
     diagnostics,
@@ -227,9 +231,7 @@ export function useSdkSettingsPanel(
       setAddOriginDraft("");
       void persistAndApply(next);
     },
-    onRefresh: () => {
-      void refreshSnapshot();
-    },
+    onRefresh,
     onApprovePairing: (id) => {
       void runOp({ op: "approvePairing", pairingRequestId: id });
     },

@@ -2,7 +2,7 @@
  * DI-05/DI-06 product command execution: snapshot/call via broker, window via main.
  */
 
-import type { CommandType, WireMessage } from "@axata/axatalk-protocol";
+import type { CommandType, CapabilityId, WireMessage } from "@axata/axatalk-protocol";
 import type { SdkGatewayConnection } from "./sdkGatewayConnection.js";
 import {
   buildCommandFailureReply,
@@ -43,6 +43,8 @@ export type SdkProductDispatchContext = Readonly<{
   readonly activateGrantStore: SdkAccountActivateGrantStore;
   /** ADR-0018: Origin matrix account.activate flag. */
   readonly isOriginActivateAllowed?: (origin: string) => boolean;
+  /** Live grants ∩ Origin matrix for snapshot honesty. */
+  readonly effectiveCapabilities?: readonly CapabilityId[];
 }>;
 
 /** Run product route or fall back to not_ready when surface is absent. */
@@ -83,6 +85,7 @@ export async function handleSdkProductCommand(input: {
     message: WireMessage,
   ) => void;
   readonly isOriginActivateAllowed?: (origin: string) => boolean;
+  readonly effectiveCapabilities?: readonly CapabilityId[];
 }): Promise<void> {
   const identity = input.getIdentity();
   if (identity === null) {
@@ -295,6 +298,8 @@ async function handleBrokerCommand(
       now: input.now,
       sendJson: input.sendJson,
       log: input.log,
+      grantedCapabilities:
+        input.effectiveCapabilities ?? input.connection.grantedCapabilities,
     });
     return;
   }

@@ -2,7 +2,7 @@
  * Snapshot delivery after broker get-snapshot (DI-05).
  */
 
-import type { ProtocolErrorCode, WireMessage } from "@axata/axatalk-protocol";
+import type { ProtocolErrorCode, CapabilityId, WireMessage } from "@axata/axatalk-protocol";
 import { validateWireMessage } from "@axata/axatalk-protocol";
 
 import type { SdkGatewayConnection } from "./sdkGatewayConnection.js";
@@ -31,6 +31,8 @@ export type SnapshotDispatchInput = Readonly<{
     event: string,
     fields: Readonly<Record<string, string | number | boolean>>,
   ) => void;
+  /** Live effective caps (grants ∩ Origin matrix). Defaults to connection grants. */
+  grantedCapabilities?: readonly CapabilityId[];
 }>;
 
 export function deliverSdkSnapshotReply(
@@ -68,7 +70,8 @@ export function deliverSdkSnapshotReply(
     now: input.now,
     revision: reply.revision,
     clientId,
-    grantedCapabilities: input.connection.grantedCapabilities,
+    grantedCapabilities:
+      input.grantedCapabilities ?? input.connection.grantedCapabilities,
     productSections,
     windowVisible,
   });

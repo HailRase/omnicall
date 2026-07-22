@@ -33,7 +33,7 @@ Detect with `isAxatalkClientError(error)` then branch on `error.code`.
 | --- | --- | --- |
 | First Origin Deny | `forbidden` + details `origin_denied`, then socket close | Stop retry; wait for operator Allow / Unblock |
 | Blacklisted Origin | Client code `origin_blocked` (upgrade fail) | Operator must Unblock in Settings → Axatalk SDK |
-| Capability / activate policy deny (WS up) | `forbidden` + `permission_denied` | Edit per-Origin matrix; do not treat as blacklist |
+| Capability / activate policy deny (WS up) | `forbidden` + `permission_denied` | Edit per-Origin matrix; do not treat as blacklist. Applies to live matrix shrink mid-session as well as activate-off |
 
 ## Mutation recipe template
 

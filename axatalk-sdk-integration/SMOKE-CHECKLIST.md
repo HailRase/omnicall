@@ -53,7 +53,15 @@ Do not record credentials, tokens, full phone numbers, or customer data.
 ## Window
 
 - [ ] `window:show` restores a minimized window.
-- [ ] Focus behavior follows rate and local policy.
+- [ ] `window:show` brings Axatalk above other apps when visible but occluded (not only taskbar flash).
+- [ ] Incoming call raises/restores Axatalk above other apps.
+- [ ] Outgoing Connecting raises/restores Axatalk above other apps.
+- [ ] SDK Origin trust (TOFU) pending raises Axatalk above other apps.
+- [ ] SDK Origin TOFU / pairing pending raises Axatalk and shows root `SdkConnectCeremonyModal` (no Settings auto-open).
+- [ ] Waiting Cancel / Escape dismisses ceremony waiting without blacklisting Origin.
+- [ ] Disconnect mid-TOFU closes modal without blacklisting; disconnect mid-pairing clears pending Approve/Deny.
+- [ ] Removing/blacklisting an Origin while pairing is pending closes that socket and clears pending (paired clients remain until explicit revoke).
+- [ ] Focus behavior follows rate and local policy (ADR-0013 bring-to-front; no permanent always-on-top).
 - [ ] Destroyed/unavailable window returns a typed error.
 - [ ] `window:hide` is unavailable unless its policy and tray recovery are implemented.
 - [ ] Active/incoming call policy prevents unsafe hiding.

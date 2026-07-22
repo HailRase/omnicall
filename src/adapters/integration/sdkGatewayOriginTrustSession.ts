@@ -34,7 +34,11 @@ export type SdkOriginTrustSessionContext = Readonly<{
 
 export type EnsureSdkOriginTrustedResult =
   | Readonly<{ allowed: true }>
-  | Readonly<{ allowed: false; originTrustRequestId: string }>;
+  | Readonly<{
+      allowed: false;
+      reason: "denied" | "cancelled" | "blacklisted";
+      originTrustRequestId: string;
+    }>;
 
 /**
  * Ensures Origin is allowed before pairing/auth. Unknown → TOFU (deduped per Origin).
@@ -50,6 +54,7 @@ export async function ensureSdkOriginTrusted(
   if (state === "denied") {
     return {
       allowed: false,
+      reason: "blacklisted",
       originTrustRequestId: createSdkOpaqueId("origin"),
     };
   }
@@ -61,16 +66,40 @@ export async function ensureSdkOriginTrusted(
   };
   ctx.log("sdk_gateway_origin_trust_pending", { origin });
   const decision = await ctx.originTrustApprover(pending);
-  ctx.onOriginTrustDecision({ origin, decision });
   if (decision.decision === "allow") {
+    ctx.onOriginTrustDecision({ origin, decision });
     ctx.log("sdk_gateway_origin_trust_allowed", { origin });
     return { allowed: true };
   }
-  ctx.log("sdk_gateway_origin_trust_denied", { origin });
+  if (decision.decision === "deny") {
+    ctx.onOriginTrustDecision({ origin, decision });
+    ctx.log("sdk_gateway_origin_trust_denied", { origin });
+    return {
+      allowed: false,
+      reason: "denied",
+      originTrustRequestId: pending.originTrustRequestId,
+    };
+  }
+  ctx.log("sdk_gateway_origin_trust_cancelled", { origin });
   return {
     allowed: false,
+    reason: "cancelled",
     originTrustRequestId: pending.originTrustRequestId,
   };
+}
+
+/** Wire deny+close for operator Deny / blacklist; quiet close for cancel. */
+export function applySdkOriginTrustFailure(
+  ctx: SdkOriginTrustSessionContext,
+  trust: Extract<EnsureSdkOriginTrustedResult, { allowed: false }>,
+): void {
+  if (trust.reason === "cancelled") {
+    ctx.closeConnection(ctx.connection, "origin_trust_cancelled");
+    return;
+  }
+  rejectSdkOriginTrustDenied(ctx, {
+    originTrustRequestId: trust.originTrustRequestId,
+  });
 }
 
 /**

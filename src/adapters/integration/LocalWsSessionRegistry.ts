@@ -61,6 +61,8 @@ export type LocalWsSessionRegistryDeps = Readonly<{
   ) => void;
   getOriginMatrixCapabilities: (origin: string) => readonly CapabilityId[];
   getProductSurface?: () => SdkGatewayProductSurface | null;
+  /** Fired after a connection leaves the registry (close / terminate). */
+  onConnectionRemoved?: (connection: SdkGatewayConnection) => void;
   onLog?: SdkGatewayLogFn;
   activateGrantStore?: SdkAccountActivateGrantStore;
 }>;
@@ -82,6 +84,9 @@ export class LocalWsSessionRegistry {
     origin: string,
   ) => readonly CapabilityId[];
   private readonly getProductSurface: () => SdkGatewayProductSurface | null;
+  private readonly onConnectionRemoved:
+    | ((connection: SdkGatewayConnection) => void)
+    | undefined;
   private readonly challenges = new SdkAuthChallengeCache();
   private readonly requestDedup = new SdkRequestDedupCache();
   private readonly onLog: SdkGatewayLogFn | undefined;
@@ -100,6 +105,7 @@ export class LocalWsSessionRegistry {
     this.onOriginTrustDecision = deps.onOriginTrustDecision;
     this.getOriginMatrixCapabilities = deps.getOriginMatrixCapabilities;
     this.getProductSurface = deps.getProductSurface ?? (() => null);
+    this.onConnectionRemoved = deps.onConnectionRemoved;
     this.onLog = deps.onLog;
     this.activateGrantStore =
       deps.activateGrantStore ?? new SdkAccountActivateGrantStore();
@@ -107,6 +113,28 @@ export class LocalWsSessionRegistry {
 
   get size(): number {
     return this.connections.size;
+  }
+
+  countConnectionsForOrigin(origin: string): number {
+    let count = 0;
+    for (const connection of this.connections.values()) {
+      if (connection.origin === origin) {
+        count += 1;
+      }
+    }
+    return count;
+  }
+
+  /** Close every live socket for Origin (policy remove / blacklist). */
+  closeConnectionsForOrigin(origin: string, reason: string): number {
+    let count = 0;
+    for (const connection of [...this.connections.values()]) {
+      if (connection.origin === origin) {
+        this.closeConnection(connection, reason);
+        count += 1;
+      }
+    }
+    return count;
   }
 
   /** Allowlisted auth-state counts for Settings diagnostics (no payloads). */
@@ -249,6 +277,8 @@ export class LocalWsSessionRegistry {
       sendJson: (c, m) => {
         this.sendJson(c, m);
       },
+      getOriginPolicyCapabilities: (origin) =>
+        this.getOriginMatrixCapabilities(origin),
     });
   }
 
@@ -343,6 +373,7 @@ export class LocalWsSessionRegistry {
       this.activateGrantStore.clearForClient(clientId);
       this.getProductSurface()?.onClientSessionEnded?.(clientId);
     }
+    this.onConnectionRemoved?.(connection);
   }
 
   private log(

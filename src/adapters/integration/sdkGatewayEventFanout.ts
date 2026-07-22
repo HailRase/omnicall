@@ -65,11 +65,18 @@ export function deliverSdkEventToConnection(input: {
   readonly now: () => Date;
   readonly draft: SdkPublicEventDraftInput;
   readonly sendJson: (connection: SdkGatewayConnection, message: WireMessage) => void;
+  /** Live Origin matrix enabled caps; omit → grants-only (unit tests). */
+  readonly originPolicyCapabilities?: readonly CapabilityId[];
 }): boolean {
   if (input.connection.authState !== "authenticated") {
     return false;
   }
-  if (!input.connection.grantedCapabilities.includes(EVENT_READ_CAPABILITY)) {
+  const readable =
+    input.originPolicyCapabilities === undefined
+      ? input.connection.grantedCapabilities.includes(EVENT_READ_CAPABILITY)
+      : input.connection.grantedCapabilities.includes(EVENT_READ_CAPABILITY) &&
+        input.originPolicyCapabilities.includes(EVENT_READ_CAPABILITY);
+  if (!readable) {
     return false;
   }
   input.connection.eventSequence += 1;
@@ -99,6 +106,9 @@ export function fanoutSdkPublicEvent(input: {
   readonly now: () => Date;
   readonly draft: SdkPublicEventDraftInput;
   readonly sendJson: (connection: SdkGatewayConnection, message: WireMessage) => void;
+  readonly getOriginPolicyCapabilities?: (
+    origin: string,
+  ) => readonly CapabilityId[];
 }): number {
   let delivered = 0;
   for (const connection of input.connections) {
@@ -109,6 +119,13 @@ export function fanoutSdkPublicEvent(input: {
         now: input.now,
         draft: input.draft,
         sendJson: input.sendJson,
+        ...(input.getOriginPolicyCapabilities !== undefined
+          ? {
+              originPolicyCapabilities: input.getOriginPolicyCapabilities(
+                connection.origin,
+              ),
+            }
+          : {}),
       })
     ) {
       delivered += 1;

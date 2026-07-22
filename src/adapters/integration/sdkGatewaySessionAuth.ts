@@ -3,6 +3,7 @@
  */
 
 import type { AuthProof, CapabilityId, PairingRequest, WireMessage } from "@axata/axatalk-protocol";
+import type { SdkOriginTrustState } from "@domain/index.js";
 
 import { SdkAuthChallengeCache } from "./sdkGatewayAuthChallenge.js";
 import { resolveGrantedCapabilities } from "./sdkGatewayCapabilities.js";
@@ -43,6 +44,7 @@ export type SdkSessionAuthDeps = Readonly<{
   ) => void;
   activateGrantStore: SdkAccountActivateGrantStore;
   getOriginMatrixCapabilities: (origin: string) => readonly CapabilityId[];
+  getOriginTrustState: (origin: string) => SdkOriginTrustState;
 }>;
 
 export async function handlePairingRequest(
@@ -62,6 +64,7 @@ export async function handlePairingRequest(
     pairingRequestId: createSdkOpaqueId("pair"),
     clientId: message.clientId,
     origin: connection.origin,
+    connectionId: connection.id,
     publicKey: message.clientPublicKey,
     keyAlgorithm: message.keyAlgorithm,
     profile: message.requestedProfile,
@@ -104,6 +107,17 @@ export async function handlePairingRequest(
     deps.audit("sdk_gateway_pairing_denied", {
       clientId: message.clientId,
       result: "denied",
+    });
+    return;
+  }
+  if (deps.getOriginTrustState(connection.origin) !== "allowed") {
+    deps.sendJson(
+      connection,
+      buildPairingDenied({ clientId: message.clientId, now: deps.now }),
+    );
+    deps.audit("sdk_gateway_pairing_denied", {
+      clientId: message.clientId,
+      result: "origin_not_allowed",
     });
     return;
   }

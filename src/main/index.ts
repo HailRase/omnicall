@@ -10,6 +10,7 @@ import {
 import { parseOpenExternalUrlPayload } from "@shared/ipc/OpenExternalUrlContract.js";
 import { parseSetNativeThemePayload } from "@shared/ipc/SetNativeThemeContract.js";
 import { parseShellWindowLayoutPayload } from "@shared/ipc/ShellWindowLayoutContract.js";
+import { parseShellWindowRaisePayload } from "@shared/ipc/ShellWindowRaiseContract.js";
 import { createConsoleLogger } from "@infrastructure/logging/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { MAIN_WINDOW_INITIAL_BOUNDS } from "@shared/platform/mainWindowBounds.js";
@@ -17,6 +18,7 @@ import type { AppIconTheme } from "./resolveAppIconPath.js";
 import { resolveAppIconPath } from "./resolveAppIconPath.js";
 import { applyAppIcon } from "./loadAppIcon.js";
 import { ShellWindowController } from "./shellWindow/ShellWindowController.js";
+import { ShellWindowAttentionController } from "./shellWindow/ShellWindowAttentionController.js";
 import { registerProfilesPersistenceIpc } from "./profiles/registerProfilesPersistenceIpc.js";
 import { registerSecretStorageIpc } from "./secrets/registerSecretStorageIpc.js";
 import { registerContactsCsvIpc } from "./contacts/registerContactsCsvIpc.js";
@@ -41,7 +43,9 @@ import {
 import {
   beginSdkGatewayAppShutdown,
   cancelSdkGatewayAppShutdown,
+  getShellWindowAttentionController,
   setSdkGatewayPrimaryInstance,
+  setShellWindowAttentionController,
   startSdkGateway,
   stopSdkGateway,
 } from "./sdk/registerSdkGateway.js";
@@ -59,6 +63,15 @@ const updateLogger = createConsoleLogger({
 const shutdownCoordinator = new AppShutdownCoordinator();
 let isQuitting = false;
 let shellWindowController: ShellWindowController | null = null;
+let shellWindowAttention: ShellWindowAttentionController | null = null;
+
+function getMainBrowserWindow(): BrowserWindow | null {
+  const mainWindow = BrowserWindow.getAllWindows()[0];
+  if (mainWindow === undefined || mainWindow.isDestroyed()) {
+    return null;
+  }
+  return mainWindow;
+}
 
 function resolvePackagedPlatform(): "win32" | "darwin" | "linux" {
   if (process.platform === "win32" || process.platform === "darwin" || process.platform === "linux") {
@@ -424,6 +437,31 @@ function registerIpcHandlers(): void {
       : { ok: false as const, reason: result.reason };
   });
 
+  ipcMain.handle(IPC_CHANNELS.shellWindowRaise, (_event, payload: unknown) => {
+    const parsed = parseShellWindowRaisePayload(payload);
+    if (parsed === null) {
+      return { ok: false as const, reason: "invalid_payload" as const };
+    }
+    const attention =
+      shellWindowAttention ?? getShellWindowAttentionController();
+    if (attention === null) {
+      return { ok: false as const, reason: "not_ready" as const };
+    }
+    const raised = attention.raise({
+      reason: parsed.reason,
+      ...(parsed.dedupeKey !== undefined
+        ? { dedupeKey: parsed.dedupeKey }
+        : {}),
+    });
+    if (!raised.ok) {
+      return {
+        ok: false as const,
+        reason: raised.code === "duplicate" ? ("duplicate" as const) : ("not_ready" as const),
+      };
+    }
+    return { ok: true as const };
+  });
+
   ipcMain.handle(IPC_CHANNELS.headsetSetPreferredDeviceId, (_event, payload: unknown) => {
     const parsed = parseHeadsetSetPreferredDeviceIdPayload(payload);
     if (parsed === null) {
@@ -467,14 +505,20 @@ if (!gotSingleInstanceLock) {
   app.quit();
 } else {
   app.on("second-instance", () => {
-    const mainWindow = BrowserWindow.getAllWindows()[0];
-    if (mainWindow === undefined || mainWindow.isDestroyed()) {
+    const attention =
+      shellWindowAttention ?? getShellWindowAttentionController();
+    if (attention === null) {
+      const mainWindow = getMainBrowserWindow();
+      if (mainWindow === null) {
+        return;
+      }
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore();
+      }
+      mainWindow.focus();
       return;
     }
-    if (mainWindow.isMinimized()) {
-      mainWindow.restore();
-    }
-    mainWindow.focus();
+    attention.raise({ reason: "second_instance" });
   });
 }
 
@@ -507,6 +551,11 @@ void app.whenReady().then(() => {
     }),
   });
   createMainWindow();
+
+  shellWindowAttention = new ShellWindowAttentionController({
+    getMainWindow: getMainBrowserWindow,
+  });
+  setShellWindowAttentionController(shellWindowAttention);
 
   // DI-03: handshake-only loopback gateway — failure must not block SIP-only boot.
   void startSdkGateway({ desktopVersion: app.getVersion() }).catch(

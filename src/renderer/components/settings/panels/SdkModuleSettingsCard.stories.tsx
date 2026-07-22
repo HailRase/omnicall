@@ -63,8 +63,6 @@ const baseArgs = {
       capabilityCount: 3,
     },
   ],
-  pendingPairing: [],
-  pendingOriginTrust: [],
   profileOptions: [{ id: "agent@sip.example|sip", label: "agent@sip.example" }],
   selectedClientId: "cli_1",
   selectedProfileId: "agent@sip.example|sip",
@@ -75,14 +73,10 @@ const baseArgs = {
   onAddOriginDraftChange: () => undefined,
   onAddOrigin: () => undefined,
   onRefresh: () => undefined,
-  onApprovePairing: () => undefined,
-  onDenyPairing: () => undefined,
   onRevokeClient: () => undefined,
   onSelectClientId: () => undefined,
   onSelectProfileId: () => undefined,
   onIssueActivateGrant: () => undefined,
-  onAllowOriginTrust: () => undefined,
-  onDenyOriginTrust: () => undefined,
   onUnblockOrigin: () => undefined,
   onBlacklistOrigin: () => undefined,
   onRemoveAllowedOrigin: () => undefined,
@@ -97,33 +91,5 @@ export const Light: Story = {
 
 export const Dark: Story = {
   args: baseArgs,
-  parameters: { theme: "dark" },
-};
-
-export const PendingAttentionLight: Story = {
-  args: {
-    ...baseArgs,
-    pendingOriginTrust: [
-      {
-        originTrustRequestId: "trust_1",
-        origin: "https://new-crm.example",
-      },
-    ],
-    pendingPairing: [
-      {
-        pairingRequestId: "pair_1",
-        clientId: "cli_2",
-        origin: "https://crm.example",
-        applicationName: "CRM Tab",
-        profile: "presentation",
-        expiresAt: "2026-07-20T01:00:00.000Z",
-      },
-    ],
-  },
-  parameters: { theme: "light" },
-};
-
-export const PendingAttentionDark: Story = {
-  ...PendingAttentionLight,
   parameters: { theme: "dark" },
 };

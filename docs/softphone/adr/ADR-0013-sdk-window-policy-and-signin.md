@@ -31,6 +31,23 @@ Two product risks:
    Restores/focuses the softphone window subject to rate limits and local focus policy.
    Unavailable/destroyed window returns a typed failure. Implemented no earlier than DI-05.
 
+   **Local focus policy (desktop main, DI-05+):** shared native helper
+   `bringBrowserWindowToFront` (restore → `show` → `focus` → `moveTop` → brief
+   temporary `setAlwaysOnTop` pulse that **restores the prior pin**). Used by:
+
+   | Trigger | Path | Notes |
+   | --- | --- | --- |
+   | SDK `window:show` | `SdkWindowCommandHandler` | capability + Origin matrix; **1s rate limit** |
+   | Incoming / outgoing call | renderer edge → IPC `shell:window-raise` | once per `callId`; no shared 1s with SDK show |
+   | Origin TOFU pending | main gateway `onOriginTrustPending` | raise + attention event → snapshot refresh → root `SdkConnectCeremonyModal` (transport step) |
+   | Pairing pending | main gateway `onPairingPending` | raise + attention → snapshot refresh → root `SdkConnectCeremonyModal` (pairing step; no Settings redirect) |
+   | Activate consent pending | renderer → IPC raise | once per origin+profile edge |
+   | Second app instance | main `second-instance` | same bring-to-front helper |
+
+   Must not leave the shell permanently always-on-top. Must not raise on every
+   WebSocket connect/reconnect without operator interaction. Domain / Call Engine
+   never import Electron.
+
 2. **`window:hide` (privileged, capability `window.hide`):** **Unavailable in protocol v1
    product surface until** a dedicated tray/background + active-call policy ADR (or an
    amendment to this ADR) is Accepted. Until then:

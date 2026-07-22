@@ -44,6 +44,10 @@ Attackers include:
 - Per-Origin capability matrix (Settings) further limits which capabilities may be granted;
   matrix is ignored while the Origin is blacklisted but retained read-only for Unblock
   restore (no consumer edits while `denied`).
+- **Live enforcement:** desktop authorizes each command/event/snapshot with
+  `pairingGrants ∩ currentOriginMatrix` (ADR-0018 §D). Matrix shrink applies immediately;
+  matrix expand does not auto-elevate beyond pairing grants. Matrix strip of a still-paired
+  grant → `forbidden` + details `permission_denied`.
 - Discovery CORS reflects exact Origin for `unknown` and `allowed` only (ADR-0015).
 ### Pairing
 
@@ -127,7 +131,14 @@ administrative feature with its own ADR, capability, local approval, audit, and 
 - `window.hide` is unavailable in protocol v1 until tray/background policy is accepted
   (ADR-0013). When later enabled, hide remains denied during incoming or active calls
   unless that policy explicitly allows it.
-- Focus-stealing window operations are rate-limited.
+- Focus-stealing window operations are rate-limited. Authorized `window.show` raises the
+  desktop shell above other apps per ADR-0013 local focus policy (restore/show/focus/
+  z-order; temporary always-on-top pulse must restore any prior pin — never leave the
+  shell permanently always-on-top). The same native helper raises the shell for
+  incoming/outgoing calls and operator-attention flows (Origin TOFU, pairing, activate
+  consent); TOFU/pairing present via root `SdkConnectCeremonyModal` (not Settings
+  auto-open). Telephony raises are
+  not subject to the SDK `window.show` 1s rate limit (edge per callId instead).
 - Logout requires the OCP reason workflow when applicable.
 
 ## Compatibility Safety

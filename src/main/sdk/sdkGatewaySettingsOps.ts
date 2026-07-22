@@ -50,16 +50,18 @@ export async function buildSdkGatewaySettingsSnapshot(
   }
 
   const pairedRaw = await gateway.listPairedClients();
-  const pairedClients: SdkPairedClientProjection[] = pairedRaw.map((client) => ({
-    clientId: client.clientId,
-    origin: client.origin,
-    profile: client.profile,
-    applicationName: client.applicationName,
-    createdAt: client.createdAt,
-    expiresAt: client.expiresAt,
-    revoked: client.revoked,
-    capabilityCount: client.grantedCapabilities.length,
-  }));
+  const pairedClients: SdkPairedClientProjection[] = pairedRaw
+    .filter((client) => !client.revoked)
+    .map((client) => ({
+      clientId: client.clientId,
+      origin: client.origin,
+      profile: client.profile,
+      applicationName: client.applicationName,
+      createdAt: client.createdAt,
+      expiresAt: client.expiresAt,
+      revoked: false,
+      capabilityCount: client.grantedCapabilities.length,
+    }));
 
   const pendingPairing: SdkPendingPairingProjection[] = gateway
     .listPendingPairingRequests()

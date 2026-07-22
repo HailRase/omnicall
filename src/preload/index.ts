@@ -7,6 +7,11 @@ import {
 import { parseOpenExternalUrlPayload } from "@shared/ipc/OpenExternalUrlContract.js";
 import { parseSetNativeThemePayload } from "@shared/ipc/SetNativeThemeContract.js";
 import { parseShellWindowLayoutPayload } from "@shared/ipc/ShellWindowLayoutContract.js";
+import {
+  parseShellOperatorAttentionPayload,
+  parseShellWindowRaisePayload,
+  parseShellWindowRaiseResponse,
+} from "@shared/ipc/ShellWindowRaiseContract.js";
 import { parseProfilesStorageRootResponse } from "@shared/ipc/ProfilesStorageContract.js";
 import type { SoftphonePreloadApi } from "@shared/ipc/PreloadApi.js";
 import type { OpenExternalUrlResponse } from "@shared/ipc/OpenExternalUrlContract.js";
@@ -179,6 +184,34 @@ const softphoneApi: SoftphonePreloadApi = {
     }
 
     await ipcRenderer.invoke(IPC_CHANNELS.shellApplyWindowLayout, parsed);
+  },
+  raiseShellWindow: async (payload) => {
+    const parsed = parseShellWindowRaisePayload(payload);
+    if (parsed === null) {
+      return { ok: false, reason: "invalid_payload" };
+    }
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.shellWindowRaise,
+      parsed,
+    );
+    const parsedResponse = parseShellWindowRaiseResponse(response);
+    if (parsedResponse === null) {
+      return { ok: false, reason: "invalid_payload" };
+    }
+    return parsedResponse;
+  },
+  onShellOperatorAttention: (handler) => {
+    const listener = (_event: Electron.IpcRendererEvent, payload: unknown): void => {
+      const parsed = parseShellOperatorAttentionPayload(payload);
+      if (parsed === null) {
+        return;
+      }
+      handler(parsed);
+    };
+    ipcRenderer.on(IPC_CHANNELS.shellOperatorAttention, listener);
+    return () => {
+      ipcRenderer.removeListener(IPC_CHANNELS.shellOperatorAttention, listener);
+    };
   },
   openContactsCsvImportDialog: async () => {
     const response: unknown = await ipcRenderer.invoke(IPC_CHANNELS.contactsCsvOpenImportDialog);

@@ -49,7 +49,11 @@ the complete repository preflight and packaged integration matrix.
 - activate: matrix off → `permission_denied` without modal; matrix on → modal every login;
 - activate Deny → activate-disabled; pending duplicate → conflict; dismiss clears pending;
 - no passwords / apiKeys on wire; `window.hide` still unavailable;
-- SIP-only regression green with OCP disabled.
+- SIP-only regression green with OCP disabled;
+- **multi-Origin:** two allowed Origins with different matrices receive independent pairing
+  grants; commands honor each Origin’s matrix;
+- **live matrix shrink:** turning a cap off in Settings denies the next command with
+  `forbidden` + `permission_denied` without re-pair (grants ∩ live matrix).
 
 ## Read-Only State Tests
 
@@ -91,7 +95,14 @@ For originate, answer, reject, hang up, hold, resume, mute, unmute, and DTMF:
 ## Window Tests
 
 - show restores minimized window;
-- focus behavior follows local policy and rate limit;
+- show raises an already-visible but occluded window (`show` + `focus` + `moveTop`);
+- foreground pulse uses temporary always-on-top and restores prior pin state;
+- focus behavior follows local policy (ADR-0013) and rate limit;
+- incoming ringing raises shell once per callId (IPC `shell:window-raise`);
+- outgoing Connecting raises shell once per callId;
+- Origin TOFU / pairing pending raise from main; root `SdkConnectCeremonyModal` (no Settings redirect);
+- pending cancelled on disconnect / Origin leave-allowed / TTL sweeper (no blacklist on TOFU cancel);
+- activate consent pending raises via renderer IPC;
 - unavailable/destroyed window returns typed failure;
 - hide is unavailable until tray/background policy is implemented;
 - hide is denied during incoming/active call unless explicitly allowed;

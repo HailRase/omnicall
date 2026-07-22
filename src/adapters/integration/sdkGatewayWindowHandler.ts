@@ -1,9 +1,13 @@
 /**
  * Native window show / get-state for SDK gateway (DI-05 / ADR-0009/0013).
+ *
+ * Uses shared bring-to-front (ADR-0013). Rate-limited focus-stealing for
+ * `window:show` remains mandatory and lives here (not shared with telephony).
  */
 
 import type { BrowserWindow } from "electron";
 
+import { bringBrowserWindowToFront } from "@adapters/platform/bringBrowserWindowToFront.js";
 import type {
   SdkWindowShowResult,
   SdkWindowStateResult,
@@ -44,13 +48,7 @@ export class SdkWindowCommandHandler {
     ) {
       return { ok: false, code: "rate_limited" };
     }
-    if (window.isMinimized()) {
-      window.restore();
-    }
-    if (!window.isVisible()) {
-      window.show();
-    }
-    window.focus();
+    bringBrowserWindowToFront(window);
     this.lastShowMs = now;
     const revision = this.revision;
     this.revision += 1;

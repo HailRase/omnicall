@@ -119,7 +119,7 @@ Result: `{ callId, revision }`. Failures: see [Errors](./errors.md).
 
 | Method | Capability | Notes |
 | --- | --- | --- |
-| `show()` | `window.show` | |
+| `show()` | `window.show` | Desktop restores/raises the shell per ADR-0013 local focus policy (rate-limited). |
 | `getState()` | read | |
 | ~~`hide()`~~ | — | **Not available in v1 product** |
 

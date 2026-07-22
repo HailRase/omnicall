@@ -351,7 +351,9 @@ Checklist:
 - [x] per-capability redaction.
 - [x] per-client subscriptions; no broadcast.
 - [x] sequence/revision and resync.
-- [x] show/restore/focus policy and rate limit.
+- [x] show/restore/focus policy and rate limit. *(2026-07-22: bring-to-front =
+  restore → show → focus → moveTop → temporary always-on-top pulse restoring prior
+  pin; ADR-0013; unit `sdkGatewayWindowHandler.test.ts`)*
 - [x] SIP-only and OCP-disabled tests.
 - [ ] SDK-05 interoperability. *(paired client gate; desktop surface closed — client package still pending)*
 - [x] `npm run typecheck` green. *(remediated 2026-07-20 — schema-valid `window:hide` deny fixture)*

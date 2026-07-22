@@ -42,6 +42,8 @@ function createSoftphonePreloadApiMock(
     minimizeWindow: vi.fn().mockResolvedValue({ ok: true }),
     closeWindow: vi.fn().mockResolvedValue({ ok: true }),
     applyShellWindowLayout: vi.fn().mockResolvedValue(undefined),
+    raiseShellWindow: vi.fn().mockResolvedValue({ ok: true }),
+    onShellOperatorAttention: vi.fn().mockReturnValue(() => {}),
     openContactsCsvImportDialog: vi.fn().mockResolvedValue({ ok: true, cancelled: true }),
     saveContactsCsvExportDialog: vi.fn().mockResolvedValue({ ok: true, cancelled: true }),
     setHeadsetPreferredDeviceId: vi.fn().mockResolvedValue({ ok: true }),

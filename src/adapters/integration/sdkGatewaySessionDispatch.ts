@@ -2,11 +2,20 @@
  * Handshake + command dispatch helpers for LocalWsSessionRegistry (DI-04/DI-05).
  */
 
-import type { ClientHello, ProtocolErrorCode, WireMessage } from "@axata/axatalk-protocol";
-import type { CapabilityId } from "@axata/axatalk-protocol";
+import type {
+  CapabilityId,
+  ClientHello,
+  ProtocolErrorCode,
+  WireMessage,
+} from "@axata/axatalk-protocol";
 import type { SdkOriginTrustState } from "@domain/index.js";
 
 import { SdkAuthChallengeCache } from "./sdkGatewayAuthChallenge.js";
+import {
+  intersectCapabilitiesWithOriginPolicy,
+  isRequiredCapabilityBlockedByOriginPolicy,
+  requiredCapabilityForCommand,
+} from "./sdkGatewayCapabilities.js";
 import type { SdkGatewayConnection } from "./sdkGatewayConnection.js";
 import {
   buildCommandFailureReply,
@@ -32,8 +41,8 @@ import type {
   SdkOriginTrustDecision,
 } from "./sdkGatewayOriginTrustApprover.js";
 import {
+  applySdkOriginTrustFailure,
   ensureSdkOriginTrusted,
-  rejectSdkOriginTrustDenied,
   type SdkOriginTrustSessionContext,
 } from "./sdkGatewayOriginTrustSession.js";
 
@@ -120,9 +129,7 @@ export async function completeSdkHandshake(input: {
     const originCtx = buildOriginTrustSessionContext(input);
     const trust = await ensureSdkOriginTrusted(originCtx);
     if (!trust.allowed) {
-      rejectSdkOriginTrustDenied(originCtx, {
-        originTrustRequestId: trust.originTrustRequestId,
-      });
+      applySdkOriginTrustFailure(originCtx, trust);
     }
   }
 }
@@ -168,6 +175,8 @@ export function handleSdkCommandRoute(input: {
     event: string,
     fields: Readonly<Record<string, string | number | boolean>>,
   ) => void;
+  /** ADR-0018: matrix deny while grant still present. */
+  readonly denyDetails?: Readonly<Record<string, boolean | string | number>>;
 }): void {
   const identity = input.getIdentity();
   if (identity === null) {
@@ -213,6 +222,7 @@ export function handleSdkCommandRoute(input: {
     code,
     identity,
     now: input.now,
+    ...(input.denyDetails !== undefined ? { details: input.denyDetails } : {}),
   });
   input.requestDedup.complete(requestId, reply, input.now().getTime());
   input.sendJson(input.connection, reply);
@@ -261,10 +271,17 @@ export async function dispatchSdkValidatedMessage(input: {
     input.activateGrantStore,
     input.now().getTime(),
   );
+  const originPolicyCapabilities = input.getOriginMatrixCapabilities(
+    input.connection.origin,
+  );
+  const effectiveCapabilities = intersectCapabilitiesWithOriginPolicy(
+    input.connection.grantedCapabilities,
+    originPolicyCapabilities,
+  );
   const route = routeSdkInbound(input.message, {
     handshakeComplete: input.connection.handshakeComplete,
     authState: input.connection.authState,
-    grantedCapabilities: input.connection.grantedCapabilities,
+    grantedCapabilities: effectiveCapabilities,
   });
   if (
     route.action === "server_hello" &&
@@ -311,13 +328,12 @@ export async function dispatchSdkValidatedMessage(input: {
     audit: input.log,
     activateGrantStore: input.activateGrantStore,
     getOriginMatrixCapabilities: input.getOriginMatrixCapabilities,
+    getOriginTrustState: input.getOriginTrustState,
   };
   if (route.action === "pairing_request") {
     const trust = await ensureSdkOriginTrusted(originCtx);
     if (!trust.allowed) {
-      rejectSdkOriginTrustDenied(originCtx, {
-        originTrustRequestId: trust.originTrustRequestId,
-      });
+      applySdkOriginTrustFailure(originCtx, trust);
       return;
     }
     await handlePairingRequest(authDeps, input.connection, route.message);
@@ -326,9 +342,7 @@ export async function dispatchSdkValidatedMessage(input: {
   if (route.action === "auth_proof") {
     const trust = await ensureSdkOriginTrusted(originCtx);
     if (!trust.allowed) {
-      rejectSdkOriginTrustDenied(originCtx, {
-        originTrustRequestId: trust.originTrustRequestId,
-      });
+      applySdkOriginTrustFailure(originCtx, trust);
       return;
     }
     await handleAuthProof(authDeps, input.connection, route.message);
@@ -339,6 +353,14 @@ export async function dispatchSdkValidatedMessage(input: {
     route.action === "command_not_ready" ||
     route.action === "command_ping"
   ) {
+    const matrixDenied =
+      route.action === "command_deny" &&
+      route.code === "forbidden" &&
+      isRequiredCapabilityBlockedByOriginPolicy({
+        granted: input.connection.grantedCapabilities,
+        originPolicyCapabilities,
+        required: requiredCapabilityForCommand(route.commandType),
+      });
     handleSdkCommandRoute({
       connection: input.connection,
       route,
@@ -348,6 +370,7 @@ export async function dispatchSdkValidatedMessage(input: {
       sendJson: input.sendJson,
       closeConnection: input.closeConnection,
       log: input.log,
+      ...(matrixDenied ? { denyDetails: { permission_denied: true } } : {}),
     });
     return;
   }
@@ -364,6 +387,7 @@ export async function dispatchSdkValidatedMessage(input: {
         closeConnection: input.closeConnection,
         log: input.log,
         activateGrantStore: input.activateGrantStore,
+        effectiveCapabilities,
         isOriginActivateAllowed: (origin) => {
           const caps = input.getOriginMatrixCapabilities(origin);
           // Fail-closed: empty / missing matrix ⇒ activate off (ADR-0018).

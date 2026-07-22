@@ -28,10 +28,7 @@ export async function revokeLocalWsClient(input: {
   ) => void;
   readonly nextRevokeSequence: () => number;
 }): Promise<boolean> {
-  const ok = await input.pairingStore.revoke(
-    input.clientId,
-    input.now().toISOString(),
-  );
+  const ok = await input.pairingStore.revoke(input.clientId);
   if (!ok) {
     return false;
   }

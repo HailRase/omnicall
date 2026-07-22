@@ -14,6 +14,9 @@ export function applySdkOriginTrustDecision(
   entries: readonly SdkOriginTrustEntry[],
   input: Readonly<{ origin: string; decision: SdkOriginTrustDecision }>,
 ): readonly SdkOriginTrustEntry[] {
+  if (input.decision.decision === "cancel") {
+    return entries;
+  }
   const settings = { originsManaged: true as const, origins: [...entries] };
   const next =
     input.decision.decision === "allow"

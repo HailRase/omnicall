@@ -5,6 +5,11 @@ import type {
   AppShutdownCancelPayload,
 } from "./AppShutdownContract.js";
 import type { ShellWindowLayoutPayload } from "./ShellWindowLayoutContract.js";
+import type {
+  ShellOperatorAttentionPayload,
+  ShellWindowRaisePayload,
+  ShellWindowRaiseResponse,
+} from "./ShellWindowRaiseContract.js";
 import type { OpenExternalUrlPayload, OpenExternalUrlResponse } from "./OpenExternalUrlContract.js";
 import type { SetNativeThemePayload, SetNativeThemeResponse } from "./SetNativeThemeContract.js";
 import type { ShellWindowControlResponse } from "./ShellWindowControlContract.js";
@@ -60,6 +65,14 @@ export type SoftphonePreloadApi = Readonly<{
   minimizeWindow: () => Promise<ShellWindowControlResponse>;
   closeWindow: () => Promise<ShellWindowControlResponse>;
   applyShellWindowLayout: (payload: ShellWindowLayoutPayload) => Promise<void>;
+  /** ADR-0013: raise softphone above other apps (telephony / consent). */
+  raiseShellWindow: (
+    payload: ShellWindowRaisePayload,
+  ) => Promise<ShellWindowRaiseResponse>;
+  /** Main → renderer: SDK pairing / Origin trust needs operator decision. */
+  onShellOperatorAttention: (
+    handler: (payload: ShellOperatorAttentionPayload) => void,
+  ) => () => void;
   openContactsCsvImportDialog: () => Promise<ContactsCsvOpenImportDialogResponse>;
   saveContactsCsvExportDialog: (
     payload: ContactsCsvSaveExportDialogPayload,

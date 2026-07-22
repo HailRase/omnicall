@@ -4,7 +4,6 @@ import { useI18n } from "../../../i18n/index.js";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/index.js";
 import formStyles from "../SettingsForm.module.css";
 import styles from "./SdkModuleSettingsCard.module.css";
-import { SdkModuleSettingsAttentionSection } from "./SdkModuleSettingsAttentionSection.js";
 import { SdkModuleSettingsBlockedSitesSection } from "./SdkModuleSettingsBlockedSitesSection.js";
 import { SdkModuleSettingsClientsSection } from "./SdkModuleSettingsClientsSection.js";
 import { SdkModuleSettingsStatusSection } from "./SdkModuleSettingsStatusSection.js";
@@ -17,6 +16,7 @@ type SdkSettingsTab = "main" | "trusted" | "blocked";
 
 /**
  * - Purpose: present Axatalk SDK operational controls (DI-09/DI-11); no secrets in DOM.
+ *   Origin TOFU / pairing ceremony lives in root SdkConnectCeremonyModal.
  * @uiMeta f=F-011 lf=LF-051,LF-065
  */
 export function SdkModuleSettingsCard(props: SdkModuleSettingsCardProps): JSX.Element {
@@ -29,16 +29,6 @@ export function SdkModuleSettingsCard(props: SdkModuleSettingsCardProps): JSX.El
       data-testid="sdk-module-settings-card"
       aria-label={t("settings.integrations.sdk.title")}
     >
-      <SdkModuleSettingsAttentionSection
-        pendingOriginTrust={props.pendingOriginTrust}
-        pendingPairing={props.pendingPairing}
-        busy={props.busy}
-        onAllowOriginTrust={props.onAllowOriginTrust}
-        onDenyOriginTrust={props.onDenyOriginTrust}
-        onApprovePairing={props.onApprovePairing}
-        onDenyPairing={props.onDenyPairing}
-      />
-
       <Tabs defaultValue={"main" satisfies SdkSettingsTab}>
         <TabsList
           className={styles.sectionTabs}

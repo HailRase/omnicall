@@ -509,6 +509,10 @@ describe("LocalWsServerAdapter DI-04 auth", () => {
     const revoked = await adapter.revokePairedClient("client_revoke_001");
     expect(revoked).toBe(true);
     expect(sipSessionAlive.value).toBe(true);
+    const afterRevoke = await adapter.listPairedClients();
+    expect(afterRevoke.some((c) => c.clientId === "client_revoke_001")).toBe(
+      false,
+    );
 
     expectMessageType(await authQueue.next(), "sdk:revoked");
     await once(authWs, "close");

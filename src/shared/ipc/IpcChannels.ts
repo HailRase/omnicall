@@ -9,6 +9,10 @@ export const IPC_CHANNELS = {
   shellWindowMinimize: "shell:window-minimize",
   shellWindowClose: "shell:window-close",
   shellApplyWindowLayout: "shell:apply-window-layout",
+  /** Renderer → main: raise softphone above other apps (ADR-0013). */
+  shellWindowRaise: "shell:window-raise",
+  /** Main → renderer: operator must decide SDK pairing / Origin trust. */
+  shellOperatorAttention: "shell:operator-attention",
   profilesGetStorageRoot: "profiles:get-storage-root",
   profilesInvokeFilesystem: "profiles:invoke-filesystem",
   secretsInvoke: "secrets:invoke",

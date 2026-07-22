@@ -23,6 +23,8 @@ import { useVideoCallNotifications } from "../hooks/useVideoCallNotifications.js
 import { useOverlayShell } from "../hooks/useOverlayShell.js";
 import { useShellWindowLayout } from "../hooks/useShellWindowLayout.js";
 import { useShellWindowControls } from "../hooks/useShellWindowControls.js";
+import { useShellWindowAttentionFromCalls } from "../hooks/useShellWindowAttentionFromCalls.js";
+import { useShellWindowAttentionFromSdk } from "../hooks/useShellWindowAttentionFromSdk.js";
 import { useAppUpdate } from "../hooks/useAppUpdate.js";
 import { useSettingsActions } from "../hooks/useSettingsActions.js";
 import { useOcpSettingsPanel } from "../hooks/useOcpSettingsPanel.js";
@@ -51,8 +53,9 @@ import { OcpCampaignEventModal } from "../components/integration/ocp/OcpCampaign
 import { OcpLogoutReasonModal } from "../components/integration/ocp/OcpLogoutReasonModal.js";
 import { mapOcpAuthFeedbackToMessageKey } from "../integration/ocp/mapOcpAuthFeedbackToToast.js";
 import { OcpRejectBreakReasonModal } from "../components/integration/ocp/OcpRejectBreakReasonModal.js";
-import { SdkOriginTrustConsentModal } from "../components/integration/SdkOriginTrustConsentModal.js";
+import { SdkConnectCeremonyModal } from "../components/integration/SdkConnectCeremonyModal.js";
 import { SdkActivateProfileConsentModal } from "../components/integration/SdkActivateProfileConsentModal.js";
+import { useSdkConnectCeremony } from "../hooks/useSdkConnectCeremony.js";
 import {
   sdkActivateConsentBridge,
   subscribeSdkActivateConsent,
@@ -286,6 +289,28 @@ function SoftphoneShellLayoutRoute({
     facade,
     onActiveUserSettingsRefresh: settingsActions.applyUserSettingsSnapshot,
   });
+  useShellWindowAttentionFromCalls({
+    incomingCallProjection: callBindings.incomingCallProjection,
+    callProjection: callBindings.callProjection,
+  });
+  const { onRefresh: refreshSdkSnapshotForAttention } = sdkSettingsPanel;
+  useShellWindowAttentionFromSdk({
+    activateConsentPending,
+    refreshSdkSnapshot: refreshSdkSnapshotForAttention,
+  });
+  const sdkConnectCeremony = useSdkConnectCeremony({
+    pendingOriginTrust: sdkSettingsPanel.pendingOriginTrust,
+    pendingPairing: sdkSettingsPanel.pendingPairing,
+    busy: sdkSettingsPanel.busy,
+    isOriginAllowed: (origin) =>
+      sdkSettingsPanel.settings.origins.some(
+        (entry) => entry.origin === origin && entry.state === "allowed",
+      ) || sdkSettingsPanel.allowedOriginsLive.includes(origin),
+    onAllowOriginTrust: sdkSettingsPanel.onAllowOriginTrust,
+    onDenyOriginTrust: sdkSettingsPanel.onDenyOriginTrust,
+    onApprovePairing: sdkSettingsPanel.onApprovePairing,
+    onDenyPairing: sdkSettingsPanel.onDenyPairing,
+  });
   const ocpLogoutModal = useOcpLogoutModal({
     facade,
     sessionLogoutActions,
@@ -496,21 +521,15 @@ function SoftphoneShellLayoutRoute({
             }}
             onCancel={ocpRejectWithBreak.handleCancel}
           />
-          <SdkOriginTrustConsentModal
-            open={sdkSettingsPanel.pendingOriginTrust.length > 0}
-            origin={sdkSettingsPanel.pendingOriginTrust[0]?.origin ?? null}
-            onAllow={() => {
-              const pending = sdkSettingsPanel.pendingOriginTrust[0];
-              if (pending !== undefined) {
-                sdkSettingsPanel.onAllowOriginTrust(pending.originTrustRequestId);
-              }
-            }}
-            onDeny={() => {
-              const pending = sdkSettingsPanel.pendingOriginTrust[0];
-              if (pending !== undefined) {
-                sdkSettingsPanel.onDenyOriginTrust(pending.originTrustRequestId);
-              }
-            }}
+          <SdkConnectCeremonyModal
+            view={sdkConnectCeremony.view}
+            busy={sdkConnectCeremony.busy}
+            onAllowTransport={sdkConnectCeremony.onAllowTransport}
+            onDenyTransport={sdkConnectCeremony.onDenyTransport}
+            onApprovePairing={sdkConnectCeremony.onApprovePairing}
+            onDenyPairing={sdkConnectCeremony.onDenyPairing}
+            onCancelWaiting={sdkConnectCeremony.onCancelWaiting}
+            onDismiss={sdkConnectCeremony.onDismiss}
           />
           <SdkActivateProfileConsentModal
             open={activateConsentPending !== null}
@@ -676,8 +695,6 @@ function SoftphoneShellLayoutRoute({
                   diagnostics: sdkSettingsPanel.diagnostics,
                   allowedOriginsLive: sdkSettingsPanel.allowedOriginsLive,
                   pairedClients: sdkSettingsPanel.pairedClients,
-                  pendingPairing: sdkSettingsPanel.pendingPairing,
-                  pendingOriginTrust: sdkSettingsPanel.pendingOriginTrust,
                   profileOptions: sdkSettingsPanel.profileOptions,
                   selectedClientId: sdkSettingsPanel.selectedClientId,
                   selectedProfileId: sdkSettingsPanel.selectedProfileId,
@@ -688,14 +705,10 @@ function SoftphoneShellLayoutRoute({
                   onAddOriginDraftChange: sdkSettingsPanel.onAddOriginDraftChange,
                   onAddOrigin: sdkSettingsPanel.onAddOrigin,
                   onRefresh: sdkSettingsPanel.onRefresh,
-                  onApprovePairing: sdkSettingsPanel.onApprovePairing,
-                  onDenyPairing: sdkSettingsPanel.onDenyPairing,
                   onRevokeClient: sdkSettingsPanel.onRevokeClient,
                   onSelectClientId: sdkSettingsPanel.onSelectClientId,
                   onSelectProfileId: sdkSettingsPanel.onSelectProfileId,
                   onIssueActivateGrant: sdkSettingsPanel.onIssueActivateGrant,
-                  onAllowOriginTrust: sdkSettingsPanel.onAllowOriginTrust,
-                  onDenyOriginTrust: sdkSettingsPanel.onDenyOriginTrust,
                   onUnblockOrigin: sdkSettingsPanel.onUnblockOrigin,
                   onBlacklistOrigin: sdkSettingsPanel.onBlacklistOrigin,
                   onRemoveAllowedOrigin: sdkSettingsPanel.onRemoveAllowedOrigin,

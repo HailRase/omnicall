@@ -72,7 +72,9 @@ Required window behavior:
 - minimize to tray
 - restore from tray
 - close behavior with active-call warning
-- incoming call window focus policy
+- incoming / outgoing call window focus policy (raise above other apps via shared
+  main `bringBrowserWindowToFront`; ADR-0013)
+- SDK Origin-trust / pairing / activate-consent operator attention raise (same helper)
 - reconnect overlay visible after restore
 
 Electron main process owns shell behavior.
@@ -296,7 +298,11 @@ Three UI Kit Tabs (same pattern as Account mode tabs, `indicator="slide"`):
 2. **Trusted sites** — add site; each site is a UI Kit Accordion item (permissions as labeled Selects allowed/denied; address edit with explicit Save/Cancel)  
 3. **Blocked sites** — origin left, Unblock right  
 
-Attention callouts (TOFU / pairing) appear above the tab strip when present.
+Attention for Origin TOFU / pairing is a root overlay (`SdkConnectCeremonyModal`) above any
+shell route (including Settings). Settings → Axatalk SDK does not host pending TOFU/pairing
+callouts. Pending must clear with the socket/policy (disconnect → TOFU cancel without
+blacklist; pairing deny-by-connection; Origin leave-allowed closes WS without auto-revoke;
+waiting Cancel/Escape). See ADR-0018 §G.
 
 Settings must show:
 

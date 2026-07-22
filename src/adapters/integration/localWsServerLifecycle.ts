@@ -15,7 +15,10 @@ import {
 import type { SdkGatewayPairingStore } from "./sdkGatewayPairingStore.js";
 import type { SdkOriginTrustEntry } from "@domain/index.js";
 
-import type { SdkOriginTrustApprover } from "./sdkGatewayOriginTrustApprover.js";
+import type {
+  SdkOriginTrustApprover,
+  SdkOriginTrustDecision,
+} from "./sdkGatewayOriginTrustApprover.js";
 import type { SdkPairingApprover } from "./sdkGatewayPairingTypes.js";
 import type { SdkGatewayProductSurface } from "./sdkGatewayProductSurface.js";
 import { LocalWsSessionRegistry } from "./LocalWsSessionRegistry.js";
@@ -35,12 +38,15 @@ export async function bindLocalWsListening(input: {
   readonly onOriginTrustDecision: (
     input: Readonly<{
       origin: string;
-      decision: Readonly<{ decision: "allow" } | { decision: "deny" }>;
+      decision: SdkOriginTrustDecision;
     }>,
   ) => void;
   readonly getOriginMatrixCapabilities: (
     origin: string,
   ) => readonly CapabilityId[];
+  readonly onConnectionRemoved?: (
+    connection: import("./sdkGatewayConnection.js").SdkGatewayConnection,
+  ) => void;
   readonly getAccepting: () => boolean;
   readonly getListening: () => boolean;
   readonly resolveWsHostPort: () => Readonly<{ host: string; port: number }>;
@@ -86,6 +92,9 @@ export async function bindLocalWsListening(input: {
     onOriginTrustDecision: input.onOriginTrustDecision,
     getOriginMatrixCapabilities: input.getOriginMatrixCapabilities,
     getProductSurface: input.getProductSurface,
+    ...(input.onConnectionRemoved !== undefined
+      ? { onConnectionRemoved: input.onConnectionRemoved }
+      : {}),
     ...(input.onLog !== undefined ? { onLog: input.onLog } : {}),
   });
   const bound = await bindLocalWsServer({

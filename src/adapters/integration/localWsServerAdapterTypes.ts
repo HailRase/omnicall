@@ -7,9 +7,15 @@ import type { SecretStoragePort } from "@ports/secrets/SecretStoragePort.js";
 
 import type { SdkGatewayLimits } from "./sdkGatewayConfig.js";
 import type { SdkGatewayLogFn } from "./localWsServerHelpers.js";
-import type { SdkOriginTrustApprover } from "./sdkGatewayOriginTrustApprover.js";
+import type {
+  SdkOriginTrustApprover,
+  SdkOriginTrustPending,
+} from "./sdkGatewayOriginTrustApprover.js";
 import type { SdkGatewayProductSurface } from "./sdkGatewayProductSurface.js";
-import type { SdkPairingApprover } from "./sdkGatewayPairingTypes.js";
+import type {
+  SdkPairingApprover,
+  SdkPairingPendingRequest,
+} from "./sdkGatewayPairingTypes.js";
 
 export type LocalWsStartResult =
   | { readonly ok: true; readonly host: string; readonly port: number }
@@ -51,4 +57,14 @@ export type LocalWsServerAdapterOptions = Readonly<{
   productSurface?: SdkGatewayProductSurface;
   /** Persist Origin trust mutations from TOFU / Settings (main wires this). */
   onOriginTrustChanged?: (entries: readonly SdkOriginTrustEntry[]) => void;
+  /**
+   * Fired when a new deferred Origin-trust (TOFU) request awaits operator decision.
+   * Main uses this for shell raise (ADR-0013). Not used with auto-allow.
+   */
+  onOriginTrustPending?: (pending: SdkOriginTrustPending) => void;
+  /**
+   * Fired when a new deferred pairing request awaits operator decision.
+   * Main uses this for shell raise + Settings attention (ADR-0013).
+   */
+  onPairingPending?: (pending: SdkPairingPendingRequest) => void;
 }>;

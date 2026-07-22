@@ -22,6 +22,8 @@ export type SdkPairingPendingRequest = Readonly<{
   pairingRequestId: string;
   clientId: string;
   origin: string;
+  /** Owning gateway connection — used to cancel pending on disconnect. */
+  connectionId: string;
   publicKey: string;
   keyAlgorithm: "ECDSA-P256-SHA256";
   profile: PairingProfile;

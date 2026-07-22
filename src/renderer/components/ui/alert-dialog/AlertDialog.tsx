@@ -21,6 +21,8 @@ export type AlertDialogTriggerProps = Readonly<
 export type AlertDialogContentProps = Readonly<
   Omit<ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Content>, "className"> & {
     className?: string;
+    /** Optional class on the scrim overlay (e.g. product blur). */
+    overlayClassName?: string;
   }
 >;
 
@@ -84,12 +86,19 @@ export const AlertDialogTrigger = forwardRef(function AlertDialogTrigger(
  * - Outputs: focus-trapped alert dialog panel with scrim overlay and motion tokens.
  */
 export const AlertDialogContent = forwardRef(function AlertDialogContent(
-  { className, children, onOpenAutoFocus, onCloseAutoFocus, ...rest }: AlertDialogContentProps,
+  {
+    className,
+    overlayClassName,
+    children,
+    onOpenAutoFocus,
+    onCloseAutoFocus,
+    ...rest
+  }: AlertDialogContentProps,
   ref: Ref<ComponentRef<typeof AlertDialogPrimitive.Content>>,
 ): JSX.Element {
   return (
     <AlertDialogPrimitive.Portal>
-      <AlertDialogPrimitive.Overlay className={styles.overlay} />
+      <AlertDialogPrimitive.Overlay className={clsx(styles.overlay, overlayClassName)} />
       <AlertDialogPrimitive.Content
         ref={ref}
         className={clsx(styles.content, className)}

@@ -33,6 +33,9 @@ import {
   registerSdkGatewayPublishEventIpc,
   unregisterSdkGatewayPublishEventIpcForTests,
 } from "./sdkGatewayRegistrationHelpers.js";
+import type { ShellWindowAttentionController } from "../shellWindow/ShellWindowAttentionController.js";
+import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
+import type { ShellOperatorAttentionPayload } from "@shared/ipc/ShellWindowRaiseContract.js";
 
 const logger = createConsoleLogger({
   boundedContext: "Integration",
@@ -43,6 +46,44 @@ let gateway: LocalWsServerAdapter | null = null;
 let primaryInstance = true;
 let lastDesktopVersion = "0.0.0";
 let originTrustStorageRoot: string | null = null;
+let shellWindowAttention: ShellWindowAttentionController | null = null;
+
+export function setShellWindowAttentionController(
+  controller: ShellWindowAttentionController | null,
+): void {
+  shellWindowAttention = controller;
+}
+
+export function getShellWindowAttentionController(): ShellWindowAttentionController | null {
+  return shellWindowAttention;
+}
+
+function broadcastOperatorAttention(
+  payload: ShellOperatorAttentionPayload,
+): void {
+  for (const window of BrowserWindow.getAllWindows()) {
+    if (window.isDestroyed()) {
+      continue;
+    }
+    window.webContents.send(IPC_CHANNELS.shellOperatorAttention, payload);
+  }
+}
+
+function handleSdkPairingPending(pairingRequestId: string): void {
+  shellWindowAttention?.raise({
+    reason: "sdk_pairing",
+    dedupeKey: pairingRequestId,
+  });
+  broadcastOperatorAttention({ kind: "sdk_pairing" });
+}
+
+function handleSdkOriginTrustPending(originTrustRequestId: string): void {
+  shellWindowAttention?.raise({
+    reason: "sdk_origin_trust",
+    dedupeKey: originTrustRequestId,
+  });
+  broadcastOperatorAttention({ kind: "sdk_origin_trust" });
+}
 
 /** Record Electron single-instance ownership before claiming the fixed endpoint. */
 export function setSdkGatewayPrimaryInstance(isPrimary: boolean): void {
@@ -90,6 +131,12 @@ export async function startSdkGateway(options: {
     ...(enabled ? { secretStorage: createSdkGatewaySecretStorage() } : {}),
     onOriginTrustChanged: (entries) => {
       void persistLiveOriginTrust(entries);
+    },
+    onPairingPending: (pending) => {
+      handleSdkPairingPending(pending.pairingRequestId);
+    },
+    onOriginTrustPending: (pending) => {
+      handleSdkOriginTrustPending(pending.originTrustRequestId);
     },
     onLog: (event, fields) => {
       logger.info(event, {

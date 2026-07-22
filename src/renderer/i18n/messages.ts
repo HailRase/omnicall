@@ -182,6 +182,18 @@ const ruMessages = {
     `Сайт ${params.origin} запрашивает доступ к softphone через SDK.`,
   "settings.integrations.sdk.tofu.allow": "Разрешить",
   "settings.integrations.sdk.tofu.deny": "Запретить",
+  "settings.integrations.sdk.ceremony.stepsAria": "Шаги подключения SDK",
+  "settings.integrations.sdk.ceremony.step.transport": "Подключение",
+  "settings.integrations.sdk.ceremony.step.pairing": "Сопряжение",
+  "settings.integrations.sdk.ceremony.waitingTitle": "Ожидание сопряжения",
+  "settings.integrations.sdk.ceremony.waiting": (params: Readonly<{ origin: string }>) =>
+    `Сайт ${params.origin} разрешён. Ожидаем запрос на сопряжение…`,
+  "settings.integrations.sdk.ceremony.waitingCancel": "Отмена",
+  "settings.integrations.sdk.ceremony.pairingMessage": (params: Readonly<{
+    applicationName: string;
+    origin: string;
+  }>) =>
+    `Приложение «${params.applicationName}» с сайта ${params.origin} запрашивает сопряжение.`,
   "settings.integrations.sdk.blacklist.title": "Заблокированные сайты",
   "settings.integrations.sdk.blacklist.unblock": "Разблокировать",
   "settings.integrations.sdk.blacklist.quick": "Заблокировать",
@@ -258,7 +270,7 @@ const ruMessages = {
   "settings.integrations.sdk.paired.revoke": "Отозвать",
   "settings.integrations.sdk.paired.revokeTitle": "Отозвать доступ клиента?",
   "settings.integrations.sdk.paired.revokeMessage":
-    "Клиент потеряет доступ к SDK. Активные звонки и сессии аккаунта не завершаются.",
+    "Клиент потеряет доступ к SDK и исчезнет из списка. Активные звонки и сессии аккаунта не завершаются.",
   "settings.integrations.sdk.paired.revokeCancel": "Отмена",
   "settings.integrations.sdk.paired.revokeConfirm": "Отозвать",
   "settings.integrations.sdk.grant.title": "Временный доступ к профилю",
@@ -1479,6 +1491,18 @@ const enMessages: MessageShape = {
     `${params.origin} is requesting softphone access through the SDK.`,
   "settings.integrations.sdk.tofu.allow": "Allow",
   "settings.integrations.sdk.tofu.deny": "Deny",
+  "settings.integrations.sdk.ceremony.stepsAria": "SDK connection steps",
+  "settings.integrations.sdk.ceremony.step.transport": "Connection",
+  "settings.integrations.sdk.ceremony.step.pairing": "Pairing",
+  "settings.integrations.sdk.ceremony.waitingTitle": "Waiting for pairing",
+  "settings.integrations.sdk.ceremony.waiting": (params: Readonly<{ origin: string }>) =>
+    `${params.origin} is allowed. Waiting for a pairing request…`,
+  "settings.integrations.sdk.ceremony.waitingCancel": "Cancel",
+  "settings.integrations.sdk.ceremony.pairingMessage": (params: Readonly<{
+    applicationName: string;
+    origin: string;
+  }>) =>
+    `${params.applicationName} from ${params.origin} is requesting pairing.`,
   "settings.integrations.sdk.blacklist.title": "Blocked sites",
   "settings.integrations.sdk.blacklist.unblock": "Unblock",
   "settings.integrations.sdk.blacklist.quick": "Block",
@@ -1556,7 +1580,7 @@ const enMessages: MessageShape = {
   "settings.integrations.sdk.paired.revoke": "Revoke",
   "settings.integrations.sdk.paired.revokeTitle": "Revoke client access?",
   "settings.integrations.sdk.paired.revokeMessage":
-    "The client will lose SDK access. Active calls and account sessions are not ended.",
+    "The client will lose SDK access and be removed from this list. Active calls and account sessions are not ended.",
   "settings.integrations.sdk.paired.revokeCancel": "Cancel",
   "settings.integrations.sdk.paired.revokeConfirm": "Revoke",
   "settings.integrations.sdk.grant.title": "Temporary profile access",
@@ -2750,6 +2774,18 @@ const frMessages: MessageShape = {
     `${params.origin} demande l’acces au softphone via le SDK.`,
   "settings.integrations.sdk.tofu.allow": "Autoriser",
   "settings.integrations.sdk.tofu.deny": "Refuser",
+  "settings.integrations.sdk.ceremony.stepsAria": "Etapes de connexion SDK",
+  "settings.integrations.sdk.ceremony.step.transport": "Connexion",
+  "settings.integrations.sdk.ceremony.step.pairing": "Appariement",
+  "settings.integrations.sdk.ceremony.waitingTitle": "En attente d’appariement",
+  "settings.integrations.sdk.ceremony.waiting": (params: Readonly<{ origin: string }>) =>
+    `${params.origin} est autorise. En attente de la demande d’appariement…`,
+  "settings.integrations.sdk.ceremony.waitingCancel": "Annuler",
+  "settings.integrations.sdk.ceremony.pairingMessage": (params: Readonly<{
+    applicationName: string;
+    origin: string;
+  }>) =>
+    `${params.applicationName} depuis ${params.origin} demande un appariement.`,
   "settings.integrations.sdk.blacklist.title": "Sites bloques",
   "settings.integrations.sdk.blacklist.unblock": "Debloquer",
   "settings.integrations.sdk.blacklist.quick": "Bloquer",
@@ -2827,7 +2863,7 @@ const frMessages: MessageShape = {
   "settings.integrations.sdk.paired.revoke": "Revoquer",
   "settings.integrations.sdk.paired.revokeTitle": "Revoquer l’acces du client ?",
   "settings.integrations.sdk.paired.revokeMessage":
-    "Le client perdra l’acces SDK. Les appels et sessions de compte actifs ne sont pas termines.",
+    "Le client perdra l’acces SDK et disparaitra de cette liste. Les appels et sessions de compte actifs ne sont pas termines.",
   "settings.integrations.sdk.paired.revokeCancel": "Annuler",
   "settings.integrations.sdk.paired.revokeConfirm": "Revoquer",
   "settings.integrations.sdk.grant.title": "Acces temporaire au profil",
@@ -4018,6 +4054,18 @@ const deMessages: MessageShape = {
     `${params.origin} fordert Softphone-Zugriff ueber das SDK an.`,
   "settings.integrations.sdk.tofu.allow": "Erlauben",
   "settings.integrations.sdk.tofu.deny": "Ablehnen",
+  "settings.integrations.sdk.ceremony.stepsAria": "SDK-Verbindungsschritte",
+  "settings.integrations.sdk.ceremony.step.transport": "Verbindung",
+  "settings.integrations.sdk.ceremony.step.pairing": "Kopplung",
+  "settings.integrations.sdk.ceremony.waitingTitle": "Warte auf Kopplung",
+  "settings.integrations.sdk.ceremony.waiting": (params: Readonly<{ origin: string }>) =>
+    `${params.origin} ist erlaubt. Warte auf Kopplungsanfrage…`,
+  "settings.integrations.sdk.ceremony.waitingCancel": "Abbrechen",
+  "settings.integrations.sdk.ceremony.pairingMessage": (params: Readonly<{
+    applicationName: string;
+    origin: string;
+  }>) =>
+    `${params.applicationName} von ${params.origin} fordert eine Kopplung an.`,
   "settings.integrations.sdk.blacklist.title": "Blockierte Websites",
   "settings.integrations.sdk.blacklist.unblock": "Entsperren",
   "settings.integrations.sdk.blacklist.quick": "Blockieren",
@@ -4095,7 +4143,7 @@ const deMessages: MessageShape = {
   "settings.integrations.sdk.paired.revoke": "Widerrufen",
   "settings.integrations.sdk.paired.revokeTitle": "Client-Zugriff widerrufen?",
   "settings.integrations.sdk.paired.revokeMessage":
-    "Der Client verliert SDK-Zugriff. Aktive Anrufe und Kontositzungen werden nicht beendet.",
+    "Der Client verliert SDK-Zugriff und wird aus dieser Liste entfernt. Aktive Anrufe und Kontositzungen werden nicht beendet.",
   "settings.integrations.sdk.paired.revokeCancel": "Abbrechen",
   "settings.integrations.sdk.paired.revokeConfirm": "Widerrufen",
   "settings.integrations.sdk.grant.title": "Temporaerer Profilzugriff",

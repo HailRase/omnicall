@@ -14,15 +14,25 @@ type Deferred = {
 };
 
 /**
- * Fail-closed approver: decisions must be resolved via approve/deny APIs.
- * Unresolved pending requests time out as deny when the registry expires them.
+ * Fail-closed approver: decisions via approve/deny APIs.
+ * Unresolved pending are denied by disconnect cleanup or TTL sweeper.
  */
 export class DeferredSdkPairingApprover {
   private readonly deferred = new Map<string, Deferred>();
+  private readonly onPending:
+    | ((pending: SdkPairingPendingRequest) => void)
+    | undefined;
+
+  constructor(options?: {
+    readonly onPending?: (pending: SdkPairingPendingRequest) => void;
+  }) {
+    this.onPending = options?.onPending;
+  }
 
   readonly approver: SdkPairingApprover = (pending) =>
     new Promise<SdkPairingApprovalDecision>((resolve) => {
       this.deferred.set(pending.pairingRequestId, { pending, resolve });
+      this.onPending?.(pending);
     });
 
   getPending(
@@ -41,6 +51,44 @@ export class DeferredSdkPairingApprover {
 
   deny(pairingRequestId: string): boolean {
     return this.settle(pairingRequestId, { decision: "deny" });
+  }
+
+  denyByOrigin(origin: string): number {
+    let count = 0;
+    for (const entry of [...this.deferred.values()]) {
+      if (entry.pending.origin === origin) {
+        if (this.deny(entry.pending.pairingRequestId)) {
+          count += 1;
+        }
+      }
+    }
+    return count;
+  }
+
+  denyByConnectionId(connectionId: string): number {
+    let count = 0;
+    for (const entry of [...this.deferred.values()]) {
+      if (entry.pending.connectionId === connectionId) {
+        if (this.deny(entry.pending.pairingRequestId)) {
+          count += 1;
+        }
+      }
+    }
+    return count;
+  }
+
+  /** Deny pending whose expiresAt has elapsed. Returns denied count. */
+  denyExpired(nowMs: number): number {
+    let count = 0;
+    for (const entry of [...this.deferred.values()]) {
+      const expires = Date.parse(entry.pending.expiresAt);
+      if (!Number.isFinite(expires) || expires <= nowMs) {
+        if (this.deny(entry.pending.pairingRequestId)) {
+          count += 1;
+        }
+      }
+    }
+    return count;
   }
 
   private settle(

@@ -44,6 +44,7 @@ import {
   createAutoAllowOriginTrustApprover,
   DeferredSdkOriginTrustApprover,
   type SdkOriginTrustApprover,
+  type SdkOriginTrustDecision,
   type SdkOriginTrustPending,
 } from "./sdkGatewayOriginTrustApprover.js";
 import { isApprovedLoopbackBindHost } from "./sdkGatewayPeer.js";
@@ -64,6 +65,12 @@ export type {
   LocalWsServerAdapterOptions,
   LocalWsStartResult,
 } from "./localWsServerAdapterTypes.js";
+
+/** Origin TOFU wait TTL — cancel (no blacklist) when exceeded. */
+export const SDK_ORIGIN_TRUST_PENDING_TTL_MS = 5 * 60_000;
+
+/** How often pending TOFU/pairing are swept for expiry. */
+export const SDK_PENDING_SWEEP_INTERVAL_MS = 15_000;
 
 function resolveInitialOriginTrustEntries(
   options: LocalWsServerAdapterOptions,
@@ -101,6 +108,7 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
   private accepting = true;
   private listening = false;
   private lastErrorCode: string | null = null;
+  private pendingSweepTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(options: LocalWsServerAdapterOptions) {
     this.desktopVersion = options.desktopVersion;
@@ -134,16 +142,28 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
       options.secretStorage !== undefined
         ? new SdkGatewayPairingStore(options.secretStorage)
         : null;
-    this.deferredApprover = new DeferredSdkPairingApprover();
+    this.deferredApprover = new DeferredSdkPairingApprover(
+      options.autoApprovePairing === true || options.pairingApprover !== undefined
+        ? undefined
+        : options.onPairingPending !== undefined
+          ? { onPending: options.onPairingPending }
+          : undefined,
+    );
     this.pairingApprover =
       options.pairingApprover ??
       (options.autoApprovePairing === true
         ? createAutoApprovePairingApprover()
         : this.deferredApprover.approver);
-    this.deferredOriginTrustApprover = new DeferredSdkOriginTrustApprover();
     const autoAllowOrigin =
       options.autoAllowOriginTrust === true ||
       options.autoApprovePairing === true;
+    this.deferredOriginTrustApprover = new DeferredSdkOriginTrustApprover(
+      autoAllowOrigin || options.originTrustApprover !== undefined
+        ? undefined
+        : options.onOriginTrustPending !== undefined
+          ? { onPending: options.onOriginTrustPending }
+          : undefined,
+    );
     this.originTrustApprover =
       options.originTrustApprover ??
       (autoAllowOrigin
@@ -193,8 +213,95 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
   }
 
   setOriginTrustEntries(entries: readonly SdkOriginTrustEntry[]): void {
+    const previous = this.originTrustEntries;
     this.originTrustEntries = [...entries];
     this.onOriginTrustChanged?.(this.originTrustEntries);
+    this.enforceOriginTrustPolicySideEffects(previous, this.originTrustEntries);
+  }
+
+  /**
+   * When an Origin leaves `allowed` (remove or blacklist), deny pending pairing
+   * and close live sockets. Does not revoke durable paired clients.
+   */
+  private enforceOriginTrustPolicySideEffects(
+    previous: readonly SdkOriginTrustEntry[],
+    next: readonly SdkOriginTrustEntry[],
+  ): void {
+    const nextByOrigin = new Map(next.map((row) => [row.origin, row]));
+    for (const row of previous) {
+      if (row.state !== "allowed") {
+        continue;
+      }
+      const updated = nextByOrigin.get(row.origin);
+      if (updated !== undefined && updated.state === "allowed") {
+        continue;
+      }
+      const deniedPairing = this.deferredApprover.denyByOrigin(row.origin);
+      const closed =
+        this.sessions?.closeConnectionsForOrigin(
+          row.origin,
+          updated?.state === "denied" ? "origin_blacklisted" : "origin_removed",
+        ) ?? 0;
+      this.log("sdk_gateway_origin_policy_enforced", {
+        origin: row.origin,
+        deniedPairing,
+        closedConnections: closed,
+        nextState: updated?.state ?? "absent",
+      });
+    }
+  }
+
+  /** Cancel orphaned ceremony waiters when a socket leaves the registry. */
+  private handleConnectionRemoved(connection: {
+    readonly id: string;
+    readonly origin: string;
+  }): void {
+    const deniedPairing = this.deferredApprover.denyByConnectionId(connection.id);
+    const remaining =
+      this.sessions?.countConnectionsForOrigin(connection.origin) ?? 0;
+    let cancelledTrust = false;
+    if (remaining === 0) {
+      cancelledTrust = this.deferredOriginTrustApprover.cancelByOrigin(
+        connection.origin,
+      );
+    }
+    if (deniedPairing > 0 || cancelledTrust) {
+      this.log("sdk_gateway_pending_cancelled_on_disconnect", {
+        origin: connection.origin,
+        deniedPairing,
+        cancelledTrust,
+      });
+    }
+  }
+
+  private startPendingSweep(): void {
+    this.stopPendingSweep();
+    this.pendingSweepTimer = setInterval(() => {
+      this.sweepExpiredPending();
+    }, SDK_PENDING_SWEEP_INTERVAL_MS);
+    this.pendingSweepTimer.unref?.();
+  }
+
+  private stopPendingSweep(): void {
+    if (this.pendingSweepTimer !== null) {
+      clearInterval(this.pendingSweepTimer);
+      this.pendingSweepTimer = null;
+    }
+  }
+
+  private sweepExpiredPending(): void {
+    const nowMs = this.now().getTime();
+    const deniedPairing = this.deferredApprover.denyExpired(nowMs);
+    const cancelledTrust = this.deferredOriginTrustApprover.cancelExpired(
+      nowMs,
+      SDK_ORIGIN_TRUST_PENDING_TTL_MS,
+    );
+    if (deniedPairing > 0 || cancelledTrust > 0) {
+      this.log("sdk_gateway_pending_sweep", {
+        deniedPairing,
+        cancelledTrust,
+      });
+    }
   }
 
   listPendingOriginTrust(): readonly SdkOriginTrustPending[] {
@@ -263,7 +370,7 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
       return Promise.resolve(false);
     }
     if (this.sessions === null) {
-      return this.pairingStore.revoke(clientId, this.now().toISOString());
+      return this.pairingStore.revoke(clientId);
     }
     return this.sessions.revokeClient(clientId);
   }
@@ -360,9 +467,12 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
   private persistOriginTrustMutation(
     input: Readonly<{
       origin: string;
-      decision: Readonly<{ decision: "allow" } | { decision: "deny" }>;
+      decision: SdkOriginTrustDecision;
     }>,
   ): void {
+    if (input.decision.decision === "cancel") {
+      return;
+    }
     const next = applySdkOriginTrustDecision(this.originTrustEntries, input);
     this.setOriginTrustEntries(next);
   }
@@ -401,6 +511,9 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
       getProductSurface: () => this.productSurface,
       validateWireInbound: (value) => this.validateWireInbound(value),
       now: this.now,
+      onConnectionRemoved: (connection) => {
+        this.handleConnectionRemoved(connection);
+      },
       ...(this.onLog !== undefined ? { onLog: this.onLog } : {}),
     });
     if (!bound.ok) {
@@ -416,10 +529,12 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
     this.wss = bound.wss;
     this.listening = true;
     this.lastErrorCode = null;
+    this.startPendingSweep();
     return { ok: true, host: bound.host, port: bound.port };
   }
 
   private async disposeAll(): Promise<void> {
+    this.stopPendingSweep();
     await disposeLocalWsListening({
       sessions: this.sessions,
       wss: this.wss,

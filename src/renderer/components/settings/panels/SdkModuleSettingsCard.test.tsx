@@ -47,7 +47,7 @@ function createProps(
       connectionCount: 0,
       authenticatedCount: 0,
       unauthenticatedCount: 0,
-      pendingPairingCount: 1,
+      pendingPairingCount: 0,
       pairedClientCount: 1,
       allowedOriginsCount: 1,
       lastErrorCode: null,
@@ -66,17 +66,6 @@ function createProps(
         capabilityCount: 2,
       },
     ],
-    pendingPairing: [
-      {
-        pairingRequestId: "pair_1",
-        clientId: "cli_2",
-        origin: "https://crm.example",
-        applicationName: "CRM Tab",
-        profile: "presentation",
-        expiresAt: "2026-07-20T01:00:00.000Z",
-      },
-    ],
-    pendingOriginTrust: [],
     profileOptions: [{ id: "user@host|sip", label: "user@host" }],
     selectedClientId: "cli_1",
     selectedProfileId: "user@host|sip",
@@ -87,14 +76,10 @@ function createProps(
     onAddOriginDraftChange: vi.fn(),
     onAddOrigin: vi.fn(),
     onRefresh: vi.fn(),
-    onApprovePairing: vi.fn(),
-    onDenyPairing: vi.fn(),
     onRevokeClient: vi.fn(),
     onSelectClientId: vi.fn(),
     onSelectProfileId: vi.fn(),
     onIssueActivateGrant: vi.fn(),
-    onAllowOriginTrust: vi.fn(),
-    onDenyOriginTrust: vi.fn(),
     onUnblockOrigin: vi.fn(),
     onBlacklistOrigin: vi.fn(),
     onRemoveAllowedOrigin: vi.fn(),
@@ -134,6 +119,7 @@ describe("SdkModuleSettingsCard", () => {
     expect(screen.getByTestId("sdk-module-hide-toggle")).toBeDisabled();
     expect(screen.getByTestId("sdk-module-grant-ref")).toHaveTextContent("prf_opaque");
     expect(screen.queryByTestId("sdk-module-blacklist")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("sdk-module-attention")).not.toBeInTheDocument();
     expect(document.body.textContent ?? "").not.toMatch(
       /sip-password|ocp-api-key|Bearer |privateKey|ADR-0013|session\.read\.redacted/i,
     );
@@ -163,14 +149,12 @@ describe("SdkModuleSettingsCard", () => {
     expect(screen.getByTestId("sdk-module-blacklist-empty")).toBeInTheDocument();
   });
 
-  it("approves pending pairing and issues activate grant via callbacks", async () => {
+  it("issues activate grant via callback without inline pairing attention", async () => {
     const user = userEvent.setup();
     const props = createProps();
     render(<SdkModuleSettingsCard {...props} />);
 
-    await user.click(screen.getByTestId("sdk-module-approve-pair_1"));
-    expect(props.onApprovePairing).toHaveBeenCalledWith("pair_1");
-
+    expect(screen.queryByTestId("sdk-module-pending")).not.toBeInTheDocument();
     await user.click(screen.getByTestId("sdk-module-grant-issue"));
     expect(props.onIssueActivateGrant).toHaveBeenCalledTimes(1);
   });
