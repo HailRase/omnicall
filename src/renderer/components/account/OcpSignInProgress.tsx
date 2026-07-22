@@ -39,11 +39,15 @@ const STAGE_KEY: Record<OcpSignInExecutionStage, TranslationKey> = {
 const TICK_MS = 50;
 const SUCCESS_CLOSE_MS = 900;
 
+export type OcpSignInProgressDensity = "comfortable" | "compact";
+
 type OcpSignInProgressProps = Readonly<{
   open: boolean;
   progress: AuthorizationProgressProjection;
   reconnectEnabled: boolean;
   busy?: boolean;
+  /** Shell window density: settings (comfortable) vs dialpad/side panels (compact). */
+  density?: OcpSignInProgressDensity;
   onDisconnect: () => void;
   onReconnect: () => void;
   onOpenChange?: (open: boolean) => void;
@@ -76,7 +80,7 @@ function resolveStatusTextKey(state: OcpSignInStageVisualState): TranslationKey 
 }
 
 /**
- * - Purpose: modal OCP sign-in progress with timed stage bars and recovery footer.
+ * - Purpose: global shell modal for OCP sign-in progress (settings + main + routes).
  * - Inputs: live authorization progress projection + disconnect/reconnect callbacks.
  * - Outputs: accessible Dialog; no Facade/SIP ownership.
  */
@@ -85,6 +89,7 @@ export function OcpSignInProgress({
   progress,
   reconnectEnabled,
   busy = false,
+  density = "comfortable",
   onDisconnect,
   onReconnect,
   onOpenChange,
@@ -184,11 +189,12 @@ export function OcpSignInProgress({
       }}
     >
       <DialogContent
-        size="md"
+        size={density === "compact" ? "sm" : "md"}
         className={styles.content}
         overlayClassName={styles.overlayBlur}
         closeLabel={t("account.authProgress.disconnect")}
         showCloseButton={false}
+        data-density={density}
         onPointerDownOutside={(event) => {
           event.preventDefault();
         }}
@@ -248,12 +254,21 @@ export function OcpSignInProgress({
                     aria-label={t(STAGE_KEY[stageView.stage])}
                   />
                 </div>
-                <div className={styles.status}>
+                <div
+                  className={styles.status}
+                  data-compact-icons={density === "compact" ? "true" : undefined}
+                >
                   <OcpSignInProgressStatusIcon
                     state={stageView.state}
                     failureLabel={failureLabel}
+                    statusLabel={t(resolveStatusTextKey(stageView.state))}
+                    iconsOnly={density === "compact"}
                   />
-                  <span className={styles.statusText}>{t(resolveStatusTextKey(stageView.state))}</span>
+                  {density === "compact" ? null : (
+                    <span className={styles.statusText}>
+                      {t(resolveStatusTextKey(stageView.state))}
+                    </span>
+                  )}
                 </div>
               </li>
             );

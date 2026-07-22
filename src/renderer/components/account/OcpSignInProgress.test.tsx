@@ -124,4 +124,31 @@ describe("OcpSignInProgress", () => {
     expect(live).toHaveAttribute("role", "status");
     expect(live).toHaveTextContent("Выполняется");
   });
+
+  it("applies compact density for the main softphone window", () => {
+    const progress = applyAuthorizationExecutionStage(
+      initialAuthorizationProgressProjection(),
+      "requesting_authorization_token",
+      "attempt-compact",
+      Date.now(),
+    );
+    render(
+      <OcpSignInProgress
+        open={true}
+        progress={progress}
+        reconnectEnabled={false}
+        density="compact"
+        onDisconnect={vi.fn()}
+        onReconnect={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId("account-ocp-progress-modal")).toHaveAttribute(
+      "data-density",
+      "compact",
+    );
+    expect(screen.queryByText("Выполняется")).not.toBeInTheDocument();
+    expect(screen.queryByText("Ожидает")).not.toBeInTheDocument();
+    expect(screen.getByTestId("account-ocp-progress-active-icon")).toBeInTheDocument();
+  });
 });

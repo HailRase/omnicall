@@ -18,7 +18,6 @@ import type { SavedAccountProfileId } from "@application/index.js";
 import type { SavedAccountProfileSelectorOption } from "@application/projections/settings/deriveSavedAccountProfileSelectorOptions.js";
 import type { SavedProfilePanelMode } from "@application/projections/settings/deriveSavedProfilePanelMode.js";
 import type { AccountAuthorizationErrorProjection } from "@application/projections/settings/mapAccountAuthorizationError.js";
-import type { AuthorizationProgressProjection } from "@application/projections/settings/authorizationProgressProjection.js";
 import { IconButton } from "../ui/index.js";
 import { useI18n } from "../../i18n/index.js";
 import type { HeadsetConnectionProjection } from "@application/projections/headset/headsetConnectionProjection.js";
@@ -170,11 +169,6 @@ export type SettingsPanelProps = Readonly<{
     hasSavedOcpApiKey: boolean;
     allowedRecoveryActions: ReadonlyArray<OcpRecoveryAction>;
     onRecoveryAction: (action: OcpRecoveryAction) => void;
-    authorizationProgress?: AuthorizationProgressProjection;
-    ocpSignInModalOpen?: boolean;
-    onOcpSignInDisconnect?: () => void;
-    onOcpSignInReconnect?: () => void;
-    onOcpSignInSuccessSettled?: () => void;
     canForgetSavedSipPassword?: boolean;
     onForgetSavedSipPassword?: () => void;
     deleteConfirmationOpen: boolean;
@@ -315,21 +309,6 @@ export function SettingsPanel({
           hasSavedOcpApiKey={account.hasSavedOcpApiKey}
           allowedRecoveryActions={account.allowedRecoveryActions}
           onRecoveryAction={account.onRecoveryAction}
-          {...(account.authorizationProgress !== undefined
-            ? { authorizationProgress: account.authorizationProgress }
-            : {})}
-          {...(account.ocpSignInModalOpen !== undefined
-            ? { ocpSignInModalOpen: account.ocpSignInModalOpen }
-            : {})}
-          {...(account.onOcpSignInDisconnect !== undefined
-            ? { onOcpSignInDisconnect: account.onOcpSignInDisconnect }
-            : {})}
-          {...(account.onOcpSignInReconnect !== undefined
-            ? { onOcpSignInReconnect: account.onOcpSignInReconnect }
-            : {})}
-          {...(account.onOcpSignInSuccessSettled !== undefined
-            ? { onOcpSignInSuccessSettled: account.onOcpSignInSuccessSettled }
-            : {})}
           canForgetSavedSipPassword={account.canForgetSavedSipPassword === true}
           {...(account.onForgetSavedSipPassword !== undefined
             ? { onForgetSavedSipPassword: account.onForgetSavedSipPassword }

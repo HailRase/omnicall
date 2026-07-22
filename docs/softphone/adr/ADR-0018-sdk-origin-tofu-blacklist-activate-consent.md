@@ -181,12 +181,14 @@ Extends ADR-0013 §B / DI-08 — **does not** introduce raw credential commands.
    If none → **`not_found`** + details `account_incomplete` / `account_not_found`.
 4. **Consent modal** (when signed out or first activate for this client):
    “Origin X wants to sign in as {profileLabel} ({login})” with available method(s) +
-   Allow / Cancel / Deny.
+   compact footer: **Cancel** (split: primary dismiss + chevron menu **Block site** /
+   Deny) and **Allow**.
 5. **Allow:** desktop loads secrets only from secure storage, runs unified Account
    sign-in (ADR-AF-003) for the chosen mode, returns success + redacted state.
-6. **Deny:** persist Origin matrix activate disabled + `forbidden` /
-   `activate_denied_for_origin`. **Cancel/dismiss:** `forbidden` +
-   `authorization_canceled_by_user` (no matrix change).
+6. **Deny (Block site):** persist Origin matrix `account.activate` disabled + `forbidden` /
+   `activate_denied_for_origin`. Settings Trusted-sites matrix must refresh from the
+   gateway snapshot after persist (not blacklist — Origin stays `allowed`). **Cancel/dismiss:**
+   `forbidden` + `authorization_canceled_by_user` (no matrix change).
 7. **Pending guard:** while consent pending → `conflict` + `activate_consent_pending`.
 8. **Session edges:**
    - same login + same `clientId` already in session → success `alreadyAuthenticated`

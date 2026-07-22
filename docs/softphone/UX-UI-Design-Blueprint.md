@@ -302,6 +302,17 @@ Activate consent is a root overlay (`SdkActivateProfileConsentModal`): login fro
 lookup saved profile → method picker when SIP and OCP are both complete. No Settings
 “temporary profile access / profileRef grant”.  
 
+After Allow (OCP mode) — and for any other OCP-backed sign-in (Account Login, Reconnect) —
+the **same** root overlay `OcpSignInProgress` shows stage progress with Disconnect/Reconnect.
+It is mounted in `SoftphoneReadyShell` (not inside Settings Account), so dialpad / contacts /
+history / settings all share it. Density: `comfortable` when Settings is open, `compact` on
+the main softphone window (smaller type/gaps; stage status **icons only**, failure tooltip
+retained).
+
+Activate consent footer: **Cancel** split-button (chevron → **Block site** / Deny) + **Allow**.
+Deny persists `account.activate=false` on the Origin matrix (ADR-0018 §E); Settings Trusted
+sites must reflect the gateway snapshot after Deny (sync via `sdkIntegrationSettingsSync`).
+
 Attention for Origin TOFU / pairing is a root overlay (`SdkConnectCeremonyModal`) above any
 shell route (including Settings). Settings → Axatalk SDK does not host pending TOFU/pairing
 callouts. Pending must clear with the socket/policy (disconnect → TOFU cancel without

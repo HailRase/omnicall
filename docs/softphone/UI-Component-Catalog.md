@@ -52,8 +52,8 @@
 | `AppIcon` | `src/renderer/components/icons/AppIcon.tsx` | `AppIconProps` | — | — |
 | `IconControlButton` | `src/renderer/components/icons/IconControlButton.tsx` | `IconControlButtonProps` | — | — |
 | `IconTooltip` | `src/renderer/components/icons/IconTooltip.tsx` | `IconTooltipProps` | icon-tooltip-bubble, icon-tooltip-host | — |
-| `SdkActivateProfileConsentModal` | `src/renderer/components/integration/SdkActivateProfileConsentModal.tsx` | `SdkActivateProfileConsentModalProps` | sdk-activate-consent-modal, sdk-activate-consent-deny, sdk-activate-consent-allow | — |
-| `SdkConnectCeremonyModal` | `src/renderer/components/integration/SdkConnectCeremonyModal.tsx` | `SdkConnectCeremonyModalProps` | sdk-connect-ceremony-modal, sdk-connect-ceremony-waiting, sdk-connect-ceremony-pairing-meta, sdk-connect-ceremony-deny-transport, sdk-connect-ceremony-allow-transport, sdk-connect-ceremony-deny-pairing | — |
+| `SdkActivateProfileConsentModal` | `src/renderer/components/integration/SdkActivateProfileConsentModal.tsx` | `SdkActivateProfileConsentModalProps` | sdk-activate-consent-modal, sdk-activate-consent-modes, sdk-activate-consent-dismiss, sdk-activate-consent-cancel, sdk-activate-consent-more, sdk-activate-consent-deny, sdk-activate-consent-allow | — |
+| `SdkConnectCeremonyModal` | `src/renderer/components/integration/SdkConnectCeremonyModal.tsx` | `SdkConnectCeremonyModalProps` | sdk-connect-ceremony-modal, sdk-connect-ceremony-waiting, sdk-connect-ceremony-pairing-meta, sdk-connect-ceremony-deny-transport, sdk-connect-ceremony-allow-transport, sdk-connect-ceremony-cancel-waiting, sdk-connect-ceremony-deny-pairing | — |
 | `OcpCampaignEventModal` | `src/renderer/components/integration/ocp/OcpCampaignEventModal.tsx` | `OcpCampaignEventModalProps` | ocp-campaign-modal, ocp-campaign-details, ocp-campaign-reject, ocp-campaign-accept | f=F-028 lf=LF-047 |
 | `OcpConnectionBanner` | `src/renderer/components/integration/ocp/OcpConnectionBanner.tsx` | `OcpConnectionBannerProps` | ocp-connection-banner-anchor, ocp-connection-banner, ocp-connection-banner-message, ocp-retry-connect | — |
 | `OcpLogoutReasonModal` | `src/renderer/components/integration/ocp/OcpLogoutReasonModal.tsx` | `OcpLogoutReasonModalProps` | ocp-logout-cancel-action, ocp-logout-confirm, ocp-logout-reasons-empty | f=F-028 lf=LF-048 |
@@ -77,7 +77,6 @@
 | `SdkModuleSettingsBlockedSitesSection` | `src/renderer/components/settings/panels/SdkModuleSettingsBlockedSitesSection.tsx` | `—` | sdk-module-blacklist, sdk-module-blacklist-empty | — |
 | `SdkModuleSettingsCard` | `src/renderer/components/settings/panels/SdkModuleSettingsCard.tsx` | `—` | sdk-module-settings-card, sdk-module-section-tabs, sdk-module-tab-main, sdk-module-tab-trusted, sdk-module-tab-blocked, sdk-module-error | f=F-011 lf=LF-051,LF-065 |
 | `SdkModuleSettingsClientsSection` | `src/renderer/components/settings/panels/SdkModuleSettingsClientsSection.tsx` | `—` | sdk-module-hide-disabled, sdk-module-hide-toggle | — |
-| `SdkActivateProfileConsentModal` | `src/renderer/components/integration/SdkActivateProfileConsentModal.tsx` | `—` | sdk-activate-consent-modal, sdk-activate-consent-allow, sdk-activate-consent-deny, sdk-activate-consent-cancel, sdk-activate-consent-modes | — |
 | `SdkModuleSettingsOriginAddressEditor` | `src/renderer/components/settings/panels/SdkModuleSettingsOriginAddressEditor.tsx` | `—` | — | — |
 | `SdkModuleSettingsOriginConfirmDialog` | `src/renderer/components/settings/panels/SdkModuleSettingsOriginConfirmDialog.tsx` | `—` | — | — |
 | `SdkModuleSettingsOriginMatrix` | `src/renderer/components/settings/panels/SdkModuleSettingsOriginMatrix.tsx` | `—` | — | — |

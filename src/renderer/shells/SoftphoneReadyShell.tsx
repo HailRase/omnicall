@@ -51,6 +51,7 @@ import { OperatorStatusSelector } from "../widgets/OperatorStatusSelector/Operat
 import { OcpConnectionBanner } from "../components/integration/ocp/OcpConnectionBanner.js";
 import { OcpCampaignEventModal } from "../components/integration/ocp/OcpCampaignEventModal.js";
 import { OcpLogoutReasonModal } from "../components/integration/ocp/OcpLogoutReasonModal.js";
+import { OcpSignInProgress } from "../components/account/OcpSignInProgress.js";
 import { mapOcpAuthFeedbackToMessageKey } from "../integration/ocp/mapOcpAuthFeedbackToToast.js";
 import { OcpRejectBreakReasonModal } from "../components/integration/ocp/OcpRejectBreakReasonModal.js";
 import { SdkConnectCeremonyModal } from "../components/integration/SdkConnectCeremonyModal.js";
@@ -498,6 +499,19 @@ function SoftphoneShellLayoutRoute({
             }}
             onCancel={ocpLogoutModal.handleCancel}
           />
+          <OcpSignInProgress
+            open={accountActions.ocpSignInModalOpen}
+            progress={accountActions.authorizationProgress}
+            reconnectEnabled={
+              accountActions.authorizationProgress.retryAvailable ||
+              accountActions.authorizationProgress.failedExecutionStage !== null
+            }
+            busy={accountActions.submitting}
+            density={overlayShell.settingsOpen ? "comfortable" : "compact"}
+            onDisconnect={accountActions.handleOcpSignInDisconnect}
+            onReconnect={accountActions.handleOcpSignInReconnect}
+            onSuccessSettled={accountActions.handleOcpSignInSuccessSettled}
+          />
           <OcpCampaignEventModal
             open={ocpCampaignModal.open}
             campaign={ocpCampaignModal.campaign}
@@ -733,12 +747,6 @@ function SoftphoneShellLayoutRoute({
                 hasSavedOcpApiKey: accountActions.hasSavedOcpApiKey,
                 allowedRecoveryActions: accountActions.allowedRecoveryActions,
                 onRecoveryAction: accountActions.handleRecoveryAction,
-                authorizationProgress: accountActions.authorizationProgress,
-                ocpSignInModalOpen: accountActions.ocpSignInModalOpen,
-                onOcpSignInDisconnect: accountActions.handleOcpSignInDisconnect,
-                onOcpSignInReconnect: accountActions.handleOcpSignInReconnect,
-                onOcpSignInSuccessSettled:
-                  accountActions.handleOcpSignInSuccessSettled,
                 canForgetSavedSipPassword:
                   accountActions.canForgetSavedSipPassword,
                 onForgetSavedSipPassword:

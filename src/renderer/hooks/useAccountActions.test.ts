@@ -8,7 +8,11 @@ import {
   type SavedAccountProfile,
 } from "@application/index.js";
 import type { AccountSignInViewModel } from "@application/projections/settings/accountSignInViewModel.js";
-import { initialAuthorizationProgressProjection } from "@application/projections/settings/authorizationProgressProjection.js";
+import {
+  applyAuthorizationExecutionStage,
+  initialAuthorizationProgressProjection,
+} from "@application/projections/settings/authorizationProgressProjection.js";
+import { initialOcpSessionProjection } from "@application/projections/integration/ocpSessionProjection.js";
 import { createPlatformError } from "@shared/errors/index.js";
 import { err, ok } from "@shared/result/index.js";
 import { initialAccountBootstrapProjection } from "@application/projections/settings/accountBootstrapProjection.js";
@@ -114,6 +118,7 @@ describe("useAccountActions", () => {
     cleanup();
     useAccountBootstrapStore.setState({
       projection: initialAccountBootstrapProjection(),
+      ocpSessionProjection: initialOcpSessionProjection(),
     });
   });
 
@@ -127,6 +132,7 @@ describe("useAccountActions", () => {
         ...initialAccountBootstrapProjection(),
         hasActiveAccountSession: true,
       },
+      ocpSessionProjection: initialOcpSessionProjection(),
     });
   });
 
@@ -746,6 +752,31 @@ describe("useAccountActions", () => {
     await waitFor(() => {
       expect(cancelOcpSignInAttempt).toHaveBeenCalledOnce();
       expect(result.current.ocpSignInModalOpen).toBe(false);
+    });
+  });
+
+  it("opens progress modal when OCP authorization progress becomes active (SDK path)", async () => {
+    const { facade } = createFacadeMock();
+    const { result } = renderHook(() => useAccountActions({ facade }));
+
+    expect(result.current.ocpSignInModalOpen).toBe(false);
+
+    act(() => {
+      useAccountBootstrapStore.setState({
+        ocpSessionProjection: {
+          ...initialOcpSessionProjection(),
+          authorizationProgress: applyAuthorizationExecutionStage(
+            initialAuthorizationProgressProjection(),
+            "requesting_authorization_token",
+            "sdk-attempt-1",
+            Date.now(),
+          ),
+        },
+      });
+    });
+
+    await waitFor(() => {
+      expect(result.current.ocpSignInModalOpen).toBe(true);
     });
   });
 });

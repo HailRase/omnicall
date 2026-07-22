@@ -30,6 +30,7 @@ import type {
   SdkSettingsPanelErrorKey,
   UseSdkSettingsPanelResult,
 } from "./sdkSettingsPanelTypes.js";
+import { subscribeSdkIntegrationSettingsChanged } from "../bootstrap/sdkIntegrationSettingsSync.js";
 
 export type {
   SdkSettingsPanelErrorKey,
@@ -88,6 +89,12 @@ export function useSdkSettingsPanel(
   const refreshSnapshot = useCallback(async (): Promise<void> => {
     const response = await invokeSdkGatewaySettings({ op: "getSnapshot" });
     applySnapshot(response);
+    if (response.ok && response.snapshot.origins !== undefined) {
+      setSettings({
+        originsManaged: true,
+        origins: response.snapshot.origins,
+      });
+    }
   }, [applySnapshot, invokeSdkGatewaySettings]);
 
   useEffect(() => {
@@ -141,6 +148,12 @@ export function useSdkSettingsPanel(
       void refreshSnapshot();
     }, 1500);
     return () => window.clearInterval(timer);
+  }, [refreshSnapshot]);
+
+  useEffect(() => {
+    return subscribeSdkIntegrationSettingsChanged(() => {
+      void refreshSnapshot();
+    });
   }, [refreshSnapshot]);
 
   const persistAndApply = useCallback(async (next: SdkIntegrationSettings) => {

@@ -50,7 +50,7 @@ export type ExternalSdkAccountHandlerOptions = Readonly<{
   nowMs?: () => number;
   consentPort?: SdkActivateConsentPort;
   isConsentPending?: () => boolean;
-  onActivateConsentDenied?: (origin: string) => void;
+  onActivateConsentDenied?: (origin: string) => void | Promise<void>;
 }>;
 
 type CachedReply = Readonly<{
@@ -69,7 +69,7 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
   private readonly consentPort: SdkActivateConsentPort | undefined;
   private readonly isConsentPending: (() => boolean) | undefined;
   private readonly onActivateConsentDenied:
-    | ((origin: string) => void)
+    | ((origin: string) => void | Promise<void>)
     | undefined;
   private readonly idempotency = new Map<string, CachedReply>();
   private readonly inFlight = new Map<string, Promise<ExternalHandlerResult>>();
@@ -230,7 +230,7 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
         ...(preferredMode !== null ? { preferredMode } : {}),
       });
       if (decision.decision === "deny") {
-        this.onActivateConsentDenied?.(origin);
+        await this.onActivateConsentDenied?.(origin);
         return sdkFail("forbidden", {
           permission_denied: true,
           activate_denied_for_origin: true,
@@ -270,7 +270,7 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
         ...(preferredMode !== null ? { preferredMode } : {}),
       });
       if (decision.decision === "deny") {
-        this.onActivateConsentDenied?.(origin);
+        await this.onActivateConsentDenied?.(origin);
         return sdkFail("forbidden", {
           permission_denied: true,
           activate_denied_for_origin: true,

@@ -2,6 +2,10 @@ import { useCallback, useEffect, useMemo, useRef, useState, type RefObject } fro
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import type { AccountSignInViewModel } from "@application/projections/settings/accountSignInViewModel.js";
 import { initialAuthorizationProgressProjection } from "@application/projections/settings/authorizationProgressProjection.js";
+import {
+  isColdIdleAuthorizationProgress,
+  shouldOpenOcpSignInProgressModal,
+} from "@application/projections/settings/shouldOpenOcpSignInProgressModal.js";
 import { deriveSavedAccountProfileSelectorOptions } from "@application/projections/settings/deriveSavedAccountProfileSelectorOptions.js";
 import type { SavedAccountProfileSelectorOption } from "@application/projections/settings/deriveSavedAccountProfileSelectorOptions.js";
 import {
@@ -215,6 +219,7 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
   const [signInViewModel, setSignInViewModel] =
     useState<AccountSignInViewModel>(EMPTY_SIGN_IN_VM);
   const [ocpSignInModalOpen, setOcpSignInModalOpen] = useState(false);
+  const ocpSignInProgressSeenRef = useRef(false);
   const feedbackClearTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const passwordInputRef = useRef<HTMLInputElement | null>(null);
   const profileSelectionGenerationRef = useRef(0);
@@ -241,6 +246,22 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
   const hasActiveAccountSession = useAccountBootstrapStore(
     (state) => state.projection.hasActiveAccountSession,
   );
+
+  // Global overlay: open for any OCP attempt (manual Login, modal Reconnect, SDK activate).
+  useEffect(() => {
+    if (shouldOpenOcpSignInProgressModal(liveAuthorizationProgress)) {
+      ocpSignInProgressSeenRef.current = true;
+      setOcpSignInModalOpen(true);
+      return;
+    }
+    if (
+      ocpSignInProgressSeenRef.current &&
+      isColdIdleAuthorizationProgress(liveAuthorizationProgress)
+    ) {
+      ocpSignInProgressSeenRef.current = false;
+      setOcpSignInModalOpen(false);
+    }
+  }, [liveAuthorizationProgress]);
 
   const savedProfileOptions = deriveSavedAccountProfileSelectorOptions(savedProfiles);
   const selectedProfile =
@@ -869,6 +890,7 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
 
   const handleOcpSignInDisconnect = useCallback((): void => {
     if (facade === null) {
+      ocpSignInProgressSeenRef.current = false;
       setOcpSignInModalOpen(false);
       return;
     }
@@ -878,6 +900,7 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
       try {
         await facade.cancelOcpSignInAttempt();
       } finally {
+        ocpSignInProgressSeenRef.current = false;
         setOcpSignInModalOpen(false);
         setSubmitting(false);
         refreshSignInViewModel();
@@ -925,6 +948,7 @@ export function useAccountActions(input: UseAccountActionsInput): UseAccountActi
   ]);
 
   const handleOcpSignInSuccessSettled = useCallback((): void => {
+    ocpSignInProgressSeenRef.current = false;
     setOcpSignInModalOpen(false);
   }, []);
 

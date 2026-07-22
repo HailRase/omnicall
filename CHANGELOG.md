@@ -12,13 +12,16 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 - Root SDK connect ceremony modal: Origin TOFU → pairing stepper (blur overlay поверх любого shell route); для уже trusted Origin — только pairing.
 - Waiting Cancel в ceremony (без blacklist); gateway cancel pending on disconnect + Origin leave-allowed; TTL sweeper для orphaned pairing/TOFU.
 - SDK login activate: `account:activate-profile` принимает `login` (+ optional `mode`); consent modal с выбором SIP/OCP; idempotent same-client; reauthorize для другого clientId; `logout_required` informational modal.
+- Global OCP sign-in progress overlay: один `OcpSignInProgress` на shell (dialpad / contacts / history / settings), auto-open по live `authorizationProgress` (в т.ч. SDK OCP activate); density `compact` на главном окне и `comfortable` в settings.
+- Compact OCP progress: статус этапа только иконками (без «Ожидает/Выполняется/…»); tooltip ошибки сохранён.
+- SDK activate consent: компактный footer Cancel▾ (Запретить сайту) + Allow; Deny синхронизирует matrix в Settings Trusted sites.
 
 ### Changed
 
 - Pairing / TOFU больше не открывают Settings и не показываются callout’ами в Axatalk SDK card; Settings остаётся policy (trusted/blocked/matrix/revoke).
 - Disconnect mid-TOFU больше не пишет Origin в blacklist (`cancel` ≠ Deny).
 - Убран Settings «Временный доступ к профилю» / temporary `profileRef` grant; `account.activate` поднимается из Origin matrix + `sdk:permission-changed`.
-
+- OCP progress Dialog снят с `AccountPanel` / Settings mount — только shell host, чтобы overlay не пропадал при закрытых Settings.
 ### Fixed
 
 - SDK `window.show`: софтфон поднимается поверх других приложений (restore/show/focus/`moveTop` + краткий always-on-top pulse с восстановлением прежнего pin), а не только мигает в панели задач Windows (ADR-0013).

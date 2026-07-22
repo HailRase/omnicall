@@ -5,7 +5,6 @@ import type {
   OcpRecoveryAction,
   SipAccountInput,
 } from "@application/index.js";
-import type { AuthorizationProgressProjection } from "@application/projections/settings/authorizationProgressProjection.js";
 import type { AccountAuthorizationErrorProjection } from "@application/projections/settings/mapAccountAuthorizationError.js";
 import { formatAccountAuthorizationError } from "../../helpers/formatAccountAuthorizationError.js";
 import { useI18n } from "../../i18n/index.js";
@@ -17,7 +16,6 @@ import {
 } from "../../hooks/accountActionsHelpers.js";
 import { IconTooltip } from "../icons/IconTooltip.js";
 import { AccountPasswordField } from "./AccountPasswordField.js";
-import { OcpSignInProgress } from "./OcpSignInProgress.js";
 import panelStyles from "../shell/BootstrapPanel.module.css";
 import formStyles from "../settings/SettingsForm.module.css";
 import {
@@ -60,11 +58,6 @@ type AccountPanelProps = Readonly<{
   hasSavedOcpApiKey?: boolean;
   allowedRecoveryActions?: ReadonlyArray<OcpRecoveryAction>;
   onRecoveryAction?: (action: OcpRecoveryAction) => void;
-  authorizationProgress?: AuthorizationProgressProjection;
-  ocpSignInModalOpen?: boolean;
-  onOcpSignInDisconnect?: () => void;
-  onOcpSignInReconnect?: () => void;
-  onOcpSignInSuccessSettled?: () => void;
   canForgetSavedSipPassword?: boolean;
   passwordInputRef?: RefObject<HTMLInputElement | null>;
   onFieldChange: (field: keyof SipAccountInput, value: string) => void;
@@ -106,11 +99,6 @@ export function AccountPanel({
   hasSavedOcpApiKey = false,
   allowedRecoveryActions = [],
   onRecoveryAction,
-  authorizationProgress = undefined,
-  ocpSignInModalOpen = false,
-  onOcpSignInDisconnect,
-  onOcpSignInReconnect,
-  onOcpSignInSuccessSettled,
   canForgetSavedSipPassword = false,
   passwordInputRef,
   onFieldChange,
@@ -335,27 +323,6 @@ export function AccountPanel({
             ) : null}
           </>
         )}
-
-        {authorizationProgress !== undefined ? (
-          <OcpSignInProgress
-            open={ocpSignInModalOpen}
-            progress={authorizationProgress}
-            reconnectEnabled={
-              authorizationProgress.retryAvailable ||
-              authorizationProgress.failedExecutionStage !== null
-            }
-            busy={submitting}
-            onDisconnect={() => {
-              onOcpSignInDisconnect?.();
-            }}
-            onReconnect={() => {
-              onOcpSignInReconnect?.();
-            }}
-            {...(onOcpSignInSuccessSettled !== undefined
-              ? { onSuccessSettled: onOcpSignInSuccessSettled }
-              : {})}
-          />
-        ) : null}
 
         {saveProfileVisible ? (
           <label

@@ -704,6 +704,8 @@ export const bgMessages: MessageShape = {
   "settings.integrations.sdk.activateConsent.allow": "Разреши",
   "settings.integrations.sdk.activateConsent.deny": "Блокирай сайта",
   "settings.integrations.sdk.activateConsent.cancel": "Отказ",
+  "settings.integrations.sdk.activateConsent.cancelGroupAria": "Отказ и допълнителни действия",
+  "settings.integrations.sdk.activateConsent.moreActionsAria": "Допълнителни действия",
   "settings.integrations.sdk.activateConsent.acknowledge": "Разбрах",
   "settings.integrations.sdk.description":
     "Локален достъп за сайтове чрез Axatalk SDK. Паролите и ключовете остават само на този компютър.",

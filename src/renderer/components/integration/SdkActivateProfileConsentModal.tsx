@@ -7,17 +7,23 @@ import { useEffect, useState } from "react";
 import type { SdkActivateMode } from "@application/integration/ExternalSdkAccountPort.js";
 import type { SdkActivateConsentPending } from "@application/integration/DeferredSdkActivateConsent.js";
 import { useI18n } from "../../i18n/index.js";
+import { AppIcon } from "../icons/AppIcon.js";
 import {
   AlertDialog,
-  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
   Button,
+  ButtonGroup,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "../ui/index.js";
 import formStyles from "../settings/SettingsForm.module.css";
+import styles from "./SdkActivateProfileConsentModal.module.css";
 
 export type SdkActivateProfileConsentModalProps = Readonly<{
   pending: SdkActivateConsentPending | null;
@@ -51,6 +57,7 @@ export function SdkActivateProfileConsentModal(
   const [selectedMode, setSelectedMode] = useState<SdkActivateMode>(() =>
     pickInitialMode(pending),
   );
+  const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
     setSelectedMode(pickInitialMode(pending));
@@ -85,17 +92,21 @@ export function SdkActivateProfileConsentModal(
   return (
     <AlertDialog open={open}>
       <AlertDialogContent
+        ref={setPortalContainer}
+        className={styles.content}
         data-testid="sdk-activate-consent-modal"
         aria-label={t(titleKey)}
         onEscapeKeyDown={props.onDismiss}
       >
-        <AlertDialogHeader>
-          <AlertDialogTitle>{t(titleKey)}</AlertDialogTitle>
-          <AlertDialogDescription>{message}</AlertDialogDescription>
+        <AlertDialogHeader className={styles.header}>
+          <AlertDialogTitle className={styles.title}>{t(titleKey)}</AlertDialogTitle>
+          <AlertDialogDescription className={styles.description}>
+            {message}
+          </AlertDialogDescription>
         </AlertDialogHeader>
         {kind !== "logout_required" && modes.length > 1 ? (
           <div
-            className={formStyles.stackedForm}
+            className={styles.modeList}
             role="radiogroup"
             aria-label={t("settings.integrations.sdk.activateConsent.modeLabel")}
             data-testid="sdk-activate-consent-modes"
@@ -121,9 +132,10 @@ export function SdkActivateProfileConsentModal(
             ))}
           </div>
         ) : null}
-        <AlertDialogFooter>
+        <AlertDialogFooter className={styles.footer}>
           {kind === "logout_required" ? (
             <Button
+              size="sm"
               data-testid="sdk-activate-consent-dismiss"
               onClick={props.onDismiss}
             >
@@ -131,23 +143,52 @@ export function SdkActivateProfileConsentModal(
             </Button>
           ) : (
             <>
-              <AlertDialogCancel asChild>
-                <Button
-                  variant="ghost"
-                  data-testid="sdk-activate-consent-deny"
-                  onClick={props.onDeny}
-                >
-                  {t("settings.integrations.sdk.activateConsent.deny")}
-                </Button>
-              </AlertDialogCancel>
-              <Button
-                variant="outline"
-                data-testid="sdk-activate-consent-cancel"
-                onClick={props.onDismiss}
+              <ButtonGroup
+                className={styles.cancelGroup}
+                aria-label={t("settings.integrations.sdk.activateConsent.cancelGroupAria")}
               >
-                {t("settings.integrations.sdk.activateConsent.cancel")}
-              </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  data-testid="sdk-activate-consent-cancel"
+                  onClick={props.onDismiss}
+                >
+                  {t("settings.integrations.sdk.activateConsent.cancel")}
+                </Button>
+                {/* modal=false + portal into dialog: avoid AlertDialog inert/z-index trap */}
+                <DropdownMenu modal={false}>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className={styles.cancelChevron}
+                      aria-label={t(
+                        "settings.integrations.sdk.activateConsent.moreActionsAria",
+                      )}
+                      data-testid="sdk-activate-consent-more"
+                    >
+                      <AppIcon id="ui.select.chevron" decorative size={14} />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align="start"
+                    container={portalContainer}
+                    className={styles.menu}
+                  >
+                    <DropdownMenuItem
+                      destructive
+                      data-testid="sdk-activate-consent-deny"
+                      onSelect={() => {
+                        props.onDeny();
+                      }}
+                    >
+                      {t("settings.integrations.sdk.activateConsent.deny")}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </ButtonGroup>
               <Button
+                size="sm"
                 data-testid="sdk-activate-consent-allow"
                 onClick={() => {
                   const mode = modes.length === 1 ? modes[0]! : selectedMode;

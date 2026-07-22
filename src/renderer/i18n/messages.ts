@@ -231,6 +231,8 @@ const ruMessages = {
   "settings.integrations.sdk.activateConsent.allow": "Разрешить",
   "settings.integrations.sdk.activateConsent.deny": "Запретить сайту",
   "settings.integrations.sdk.activateConsent.cancel": "Отмена",
+  "settings.integrations.sdk.activateConsent.cancelGroupAria": "Отмена и дополнительные действия",
+  "settings.integrations.sdk.activateConsent.moreActionsAria": "Дополнительные действия",
   "settings.integrations.sdk.activateConsent.acknowledge": "Понятно",
   "settings.integrations.sdk.description":
     "Локальный доступ для сайтов через Axatalk SDK. Пароли и ключи остаются только на этом компьютере.",
@@ -1551,6 +1553,8 @@ const enMessages: MessageShape = {
   "settings.integrations.sdk.activateConsent.allow": "Allow",
   "settings.integrations.sdk.activateConsent.deny": "Block site",
   "settings.integrations.sdk.activateConsent.cancel": "Cancel",
+  "settings.integrations.sdk.activateConsent.cancelGroupAria": "Cancel and more actions",
+  "settings.integrations.sdk.activateConsent.moreActionsAria": "More actions",
   "settings.integrations.sdk.activateConsent.acknowledge": "Got it",
   "settings.integrations.sdk.description":
     "Local access for websites through Axatalk SDK. Passwords and keys stay on this computer only.",
@@ -2845,6 +2849,8 @@ const frMessages: MessageShape = {
   "settings.integrations.sdk.activateConsent.allow": "Autoriser",
   "settings.integrations.sdk.activateConsent.deny": "Bloquer le site",
   "settings.integrations.sdk.activateConsent.cancel": "Annuler",
+  "settings.integrations.sdk.activateConsent.cancelGroupAria": "Annuler et actions supplementaires",
+  "settings.integrations.sdk.activateConsent.moreActionsAria": "Actions supplementaires",
   "settings.integrations.sdk.activateConsent.acknowledge": "Compris",
   "settings.integrations.sdk.description":
     "Acces local pour les sites via Axatalk SDK. Mots de passe et cles restent sur cet ordinateur.",
@@ -4136,6 +4142,8 @@ const deMessages: MessageShape = {
   "settings.integrations.sdk.activateConsent.allow": "Erlauben",
   "settings.integrations.sdk.activateConsent.deny": "Site sperren",
   "settings.integrations.sdk.activateConsent.cancel": "Abbrechen",
+  "settings.integrations.sdk.activateConsent.cancelGroupAria": "Abbrechen und weitere Aktionen",
+  "settings.integrations.sdk.activateConsent.moreActionsAria": "Weitere Aktionen",
   "settings.integrations.sdk.activateConsent.acknowledge": "Verstanden",
   "settings.integrations.sdk.description":
     "Lokaler Zugriff fuer Websites ueber Axatalk SDK. Passwoerter und Schluessel bleiben nur auf diesem Computer.",
