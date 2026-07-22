@@ -41,7 +41,7 @@ Two product risks:
    | Incoming / outgoing call | renderer edge → IPC `shell:window-raise` | once per `callId`; no shared 1s with SDK show |
    | Origin TOFU pending | main gateway `onOriginTrustPending` | raise + attention event → snapshot refresh → root `SdkConnectCeremonyModal` (transport step) |
    | Pairing pending | main gateway `onPairingPending` | raise + attention → snapshot refresh → root `SdkConnectCeremonyModal` (pairing step; no Settings redirect) |
-   | Activate consent pending | renderer → IPC raise | once per origin+profile edge |
+   | Activate consent pending | renderer → IPC raise | once per consent episode (`attentionId`, like pairingRequestId); not once per origin+profile forever |
    | Second app instance | main `second-instance` | same bring-to-front helper |
 
    Must not leave the shell permanently always-on-top. Must not raise on every

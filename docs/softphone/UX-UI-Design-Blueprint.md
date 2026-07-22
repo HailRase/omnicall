@@ -312,6 +312,8 @@ retained).
 Activate consent footer: **Cancel** split-button (chevron → **Block site** / Deny) + **Allow**.
 Deny persists `account.activate=false` on the Origin matrix (ADR-0018 §E); Settings Trusted
 sites must reflect the gateway snapshot after Deny (sync via `sdkIntegrationSettingsSync`).
+Window raise on activate consent uses a unique `attentionId` per episode (ADR-0013), so a
+second request after Cancel still brings the softphone to front.
 
 Attention for Origin TOFU / pairing is a root overlay (`SdkConnectCeremonyModal`) above any
 shell route (including Settings). Settings → Axatalk SDK does not host pending TOFU/pairing

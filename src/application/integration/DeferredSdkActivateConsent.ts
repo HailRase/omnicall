@@ -8,6 +8,7 @@ import type {
   SdkActivateConsentRequest,
 } from "./SdkActivateConsentPort.js";
 import type { SdkActivateMode } from "./ExternalSdkAccountPort.js";
+import { createCorrelationId } from "@shared/correlation-id/createCorrelationId.js";
 
 export type SdkActivateConsentPending = Readonly<{
   kind: SdkActivateConsentRequest["kind"];
@@ -15,6 +16,10 @@ export type SdkActivateConsentPending = Readonly<{
   login: string;
   profileLabel: string;
   availableModes: readonly SdkActivateMode[];
+  /**
+   * Unique per consent episode — shell window raise dedupe (ADR-0013), like pairingRequestId.
+   */
+  attentionId: string;
   preferredMode?: SdkActivateMode;
   currentProfileLabel?: string | null;
 }>;
@@ -32,13 +37,17 @@ export class DeferredSdkActivateConsent implements SdkActivateConsentPort {
   private readonly onPendingChange: (
     pending: SdkActivateConsentPending | null,
   ) => void;
+  private readonly createAttentionId: () => string;
 
   constructor(input?: {
     readonly onPendingChange?: (
       pending: SdkActivateConsentPending | null,
     ) => void;
+    readonly createAttentionId?: () => string;
   }) {
     this.onPendingChange = input?.onPendingChange ?? (() => undefined);
+    this.createAttentionId =
+      input?.createAttentionId ?? (() => createCorrelationId());
   }
 
   getPending(): SdkActivateConsentPending | null {
@@ -63,6 +72,7 @@ export class DeferredSdkActivateConsent implements SdkActivateConsentPort {
           login: input.login,
           profileLabel: input.profileLabel,
           availableModes: input.availableModes,
+          attentionId: this.createAttentionId(),
           ...(input.preferredMode !== undefined
             ? { preferredMode: input.preferredMode }
             : {}),
@@ -89,6 +99,7 @@ export class DeferredSdkActivateConsent implements SdkActivateConsentPort {
         login: input.login,
         profileLabel: input.profileLabel,
         availableModes: [],
+        attentionId: this.createAttentionId(),
         currentProfileLabel: input.currentProfileLabel,
       },
       resolve: () => undefined,

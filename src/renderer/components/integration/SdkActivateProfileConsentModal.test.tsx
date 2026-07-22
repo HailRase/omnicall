@@ -14,6 +14,7 @@ const activatePending: SdkActivateConsentPending = {
   login: "1001",
   profileLabel: "Agent 1001",
   availableModes: ["sip_only", "ocp"],
+  attentionId: "att_test_1",
 };
 
 describe("SdkActivateProfileConsentModal", () => {

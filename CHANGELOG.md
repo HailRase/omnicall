@@ -26,6 +26,7 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - SDK `window.show`: софтфон поднимается поверх других приложений (restore/show/focus/`moveTop` + краткий always-on-top pulse с восстановлением прежнего pin), а не только мигает в панели задач Windows (ADR-0013).
 - Входящий/исходящий звонок, SDK Origin trust (TOFU), pairing и activate-consent поднимают окно тем же native helper.
+- Activate consent raise: dedupe по `attentionId` на эпизод (как pairingRequestId), а не по origin+profile — повторный запрос после Cancel снова поднимает окно.
 
 ## [0.12.0] - 2026-07-21
 

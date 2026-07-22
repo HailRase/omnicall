@@ -33,6 +33,8 @@ function defaultOnOperatorAttention(
 /**
  * - Activate consent: raise when pending appears (edge; consent lives in renderer).
  * - Pairing / Origin trust: main raises; refresh snapshot so the root ceremony modal updates.
+ * - Dedupe key is `attentionId` (per consent episode), not origin+profile — so a second
+ *   activate for the same site after Cancel still raises (ADR-0013 / pairingRequestId parity).
  */
 export function useShellWindowAttentionFromSdk(
   input: UseShellWindowAttentionFromSdkInput,
@@ -48,7 +50,7 @@ export function useShellWindowAttentionFromSdk(
       raisedActivateRef.current = null;
       return;
     }
-    const key = `${activateConsentPending.origin}:${activateConsentPending.profileLabel}`;
+    const key = activateConsentPending.attentionId;
     if (raisedActivateRef.current === key) {
       return;
     }
