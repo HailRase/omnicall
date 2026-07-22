@@ -12,7 +12,6 @@ import {
   type UserSettings,
 } from "@application/index.js";
 import type {
-  SdkActivateGrantResultProjection,
   SdkGatewayDiagnosticsProjection,
   SdkGatewaySettingsOperation,
   SdkGatewaySettingsResponse,
@@ -20,10 +19,7 @@ import type {
   SdkPendingPairingProjection,
   SdkPendingOriginTrustProjection,
 } from "@shared/ipc/SdkGatewaySettingsContract.js";
-import {
-  loadSdkProfileOptions,
-  persistSdkIntegrationSettings,
-} from "./sdkSettingsPanelActions.js";
+import { persistSdkIntegrationSettings } from "./sdkSettingsPanelActions.js";
 import {
   defaultSdkGatewayInvoker,
   EMPTY_SDK_DIAGNOSTICS,
@@ -31,13 +27,11 @@ import {
   type SdkGatewayInvoker,
 } from "./sdkSettingsPanelHelpers.js";
 import type {
-  SdkProfileOption,
   SdkSettingsPanelErrorKey,
   UseSdkSettingsPanelResult,
 } from "./sdkSettingsPanelTypes.js";
 
 export type {
-  SdkProfileOption,
   SdkSettingsPanelErrorKey,
   UseSdkSettingsPanelResult,
 } from "./sdkSettingsPanelTypes.js";
@@ -71,10 +65,6 @@ export function useSdkSettingsPanel(
   const [pendingOriginTrust, setPendingOriginTrust] = useState<
     readonly SdkPendingOriginTrustProjection[]
   >([]);
-  const [profileOptions, setProfileOptions] = useState<readonly SdkProfileOption[]>([]);
-  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
-  const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
-  const [lastGrant, setLastGrant] = useState<SdkActivateGrantResultProjection | null>(null);
   const [addOriginDraft, setAddOriginDraft] = useState("");
   const [errorKey, setErrorKey] = useState<SdkSettingsPanelErrorKey | null>(null);
   const [busy, setBusy] = useState(false);
@@ -93,9 +83,6 @@ export function useSdkSettingsPanel(
     setPairedClients(response.snapshot.paired ?? response.snapshot.pairedClients ?? []);
     setPendingPairing(response.snapshot.pendingPairing);
     setPendingOriginTrust(response.snapshot.pendingOriginTrust ?? []);
-    if ("grant" in response) {
-      setLastGrant(response.grant);
-    }
   }, []);
 
   const refreshSnapshot = useCallback(async (): Promise<void> => {
@@ -108,7 +95,6 @@ export function useSdkSettingsPanel(
       if (facade === null) {
         setSettings(SDK_INTEGRATION_DEFAULTS);
         setAddOriginDraft("");
-        setProfileOptions([]);
         return;
       }
       const settingsResult = await facade.getUserSettingsForAccount();
@@ -118,7 +104,6 @@ export function useSdkSettingsPanel(
       }
       setErrorKey(null);
       onActiveUserSettingsRefresh(settingsResult.value);
-      setProfileOptions(await loadSdkProfileOptions(facade));
       const response = await invokeSdkGatewaySettings({ op: "getSnapshot" });
       applySnapshot(response);
       const snapshotOrigins =
@@ -208,10 +193,6 @@ export function useSdkSettingsPanel(
     pairedClients,
     pendingPairing,
     pendingOriginTrust,
-    profileOptions,
-    selectedClientId,
-    selectedProfileId,
-    lastGrant,
     addOriginDraft,
     errorKey,
     busy,
@@ -240,19 +221,6 @@ export function useSdkSettingsPanel(
     },
     onRevokeClient: (clientId) => {
       void runOp({ op: "revokeClient", clientId });
-    },
-    onSelectClientId: setSelectedClientId,
-    onSelectProfileId: setSelectedProfileId,
-    onIssueActivateGrant: () => {
-      if (selectedClientId === null || selectedProfileId === null) {
-        setErrorKey("settings.integrations.sdk.error.grantFailed");
-        return;
-      }
-      void runOp({
-        op: "issueActivateGrant",
-        clientId: selectedClientId,
-        profileId: selectedProfileId,
-      });
     },
     onAllowOriginTrust: (originTrustRequestId) => {
       void runOp({ op: "allowOriginTrust", originTrustRequestId });

@@ -1,6 +1,6 @@
 /**
- * Application account-activate handler (DI-08 / DI-11 / ADR-0013 §B / ADR-0018 §E).
- * Capability + local approval gated in main; consent modal every activate when matrix on.
+ * Application account-activate handler (login path / ADR-0013 §B / ADR-0018 §E).
+ * Capability + Origin matrix gated in main; consent modal for activate / reauthorize.
  */
 
 import type { CommandMessage } from "@axata/axatalk-protocol";
@@ -17,8 +17,15 @@ import type {
 import {
   ACCOUNT_SIGN_IN_LOGOUT_REQUIRED_MESSAGE,
 } from "@application/facades/accountSignInCommand.js";
+import {
+  sdkAccountLoginsMatch,
+  trimSdkAccountLogin,
+} from "@shared/integration/sdkAccountLogin.js";
 
-import type { ExternalSdkAccountPort } from "./ExternalSdkAccountPort.js";
+import type {
+  ExternalSdkAccountPort,
+  SdkActivateMode,
+} from "./ExternalSdkAccountPort.js";
 import type { SdkActivateConsentPort } from "./SdkActivateConsentPort.js";
 import {
   readExpectedRevision,
@@ -42,9 +49,7 @@ export type ExternalSdkAccountHandlerOptions = Readonly<{
   mutex?: SdkAggregateMutex;
   nowMs?: () => number;
   consentPort?: SdkActivateConsentPort;
-  /** True when a consent modal is already open (pending guard). */
   isConsentPending?: () => boolean;
-  /** Persist Origin matrix activate=false after consent Deny. */
   onActivateConsentDenied?: (origin: string) => void;
 }>;
 
@@ -54,7 +59,7 @@ type CachedReply = Readonly<{
 }>;
 
 /**
- * Focused saved-profile activation surface for the single renderer composition.
+ * Login-based saved-profile activation for the single renderer composition.
  */
 export class ExternalSdkAccountHandler implements ExternalCommandHandler {
   private readonly accountPort: ExternalSdkAccountPort;
@@ -136,13 +141,14 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
       return Promise.resolve(clientGate ?? sdkFail("unauthenticated"));
     }
     return this.mutex.runExclusive(ACCOUNT_LOCK_KEY, () =>
-      this.handleActivate(message.payload, context?.origin),
+      this.handleActivate(message.payload, context?.origin, clientId),
     );
   }
 
   private async handleActivate(
     payload: unknown,
     origin: string | undefined,
+    clientId: string,
   ): Promise<ExternalHandlerResult> {
     const expectedRevision = readExpectedRevision(payload);
     if (expectedRevision === null) {
@@ -153,18 +159,102 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
       return sdkCallStale(current);
     }
 
-    const profileRef = readStringField(payload, "profileRef");
-    if (profileRef === null || profileRef.trim().length === 0) {
+    const loginRaw = readStringField(payload, "login");
+    if (loginRaw === null || trimSdkAccountLogin(loginRaw).length === 0) {
       return sdkFail("invalid_payload");
     }
+    const login = trimSdkAccountLogin(loginRaw);
+    const preferredMode = readOptionalMode(payload);
 
     if (this.isConsentPending?.() === true) {
       return sdkFail("conflict", { activate_consent_pending: true });
     }
 
-    const lookup = await this.accountPort.lookupSavedProfileLabel(profileRef);
+    const lookup = await this.accountPort.lookupSavedProfileByLogin(login);
     if (!lookup.ok) {
       return mapActivateError(lookup.error);
+    }
+
+    const availableModes =
+      preferredMode !== null &&
+      lookup.value.availableModes.includes(preferredMode)
+        ? ([preferredMode] as const)
+        : lookup.value.availableModes;
+    if (availableModes.length === 0) {
+      return sdkFail("not_found", { account_incomplete: true });
+    }
+
+    const session = this.accountPort.getActivateSessionView();
+    const sameLogin =
+      session.signedIn &&
+      session.currentLogin !== null &&
+      sdkAccountLoginsMatch(login, session.currentLogin);
+
+    if (session.signedIn && !sameLogin) {
+      this.consentPort?.notifyLogoutRequired?.({
+        origin: origin ?? "",
+        login,
+        profileLabel: lookup.value.profileLabel,
+        currentProfileLabel: session.profileLabel,
+      });
+      return sdkFail("conflict", { logout_required: true });
+    }
+
+    if (sameLogin) {
+      // Same login + same clientId → idempotent success without modal.
+      // Same login + different clientId → reauthorize consent.
+      const lastClientId = this.lastAuthorizedClientByOrigin.get(origin ?? "");
+      if (lastClientId === clientId) {
+        const revision = this.revisionClock.peek();
+        return sdkCallSuccess(
+          {
+            activated: true,
+            alreadyAuthenticated: true,
+            mode: session.currentMode ?? availableModes[0]!,
+            ...(lookup.value.profileLabel.length > 0
+              ? { profileLabel: lookup.value.profileLabel }
+              : {}),
+          },
+          revision,
+        );
+      }
+      if (this.consentPort === undefined || origin === undefined) {
+        return sdkFail("forbidden", { permission_denied: true });
+      }
+      const decision = await this.consentPort.requestConsent({
+        kind: "reauthorize",
+        origin,
+        login,
+        profileLabel: lookup.value.profileLabel,
+        availableModes,
+        ...(preferredMode !== null ? { preferredMode } : {}),
+      });
+      if (decision.decision === "deny") {
+        this.onActivateConsentDenied?.(origin);
+        return sdkFail("forbidden", {
+          permission_denied: true,
+          activate_denied_for_origin: true,
+        });
+      }
+      if (decision.decision === "dismiss") {
+        return sdkFail("forbidden", {
+          permission_denied: true,
+          authorization_canceled_by_user: true,
+        });
+      }
+      this.lastAuthorizedClientByOrigin.set(origin, clientId);
+      const revision = this.revisionClock.peek();
+      return sdkCallSuccess(
+        {
+          activated: true,
+          alreadyAuthenticated: true,
+          mode: decision.mode,
+          ...(lookup.value.profileLabel.length > 0
+            ? { profileLabel: lookup.value.profileLabel }
+            : {}),
+        },
+        revision,
+      );
     }
 
     if (this.consentPort !== undefined) {
@@ -172,29 +262,56 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
         return sdkFail("forbidden", { permission_denied: true });
       }
       const decision = await this.consentPort.requestConsent({
+        kind: "activate",
         origin,
+        login,
         profileLabel: lookup.value.profileLabel,
-        profileRef,
+        availableModes,
+        ...(preferredMode !== null ? { preferredMode } : {}),
       });
-      if (decision === "deny") {
-        // ADR-0018 §E.6 — persist activate-disabled for this Origin.
+      if (decision.decision === "deny") {
         this.onActivateConsentDenied?.(origin);
         return sdkFail("forbidden", {
           permission_denied: true,
           activate_denied_for_origin: true,
         });
       }
-      if (decision === "dismiss") {
-        // dismiss/close — clear pending only; do not persist matrix (ADR-0018 §E.7).
-        return sdkFail("forbidden", { permission_denied: true });
+      if (decision.decision === "dismiss") {
+        return sdkFail("forbidden", {
+          permission_denied: true,
+          authorization_canceled_by_user: true,
+        });
       }
+      const result = await this.accountPort.activateSavedProfileByLogin(
+        login,
+        decision.mode,
+      );
+      if (!result.ok) {
+        return mapActivateError(result.error);
+      }
+      this.lastAuthorizedClientByOrigin.set(origin, clientId);
+      const revision = this.revisionClock.advance();
+      return sdkCallSuccess(
+        {
+          activated: true,
+          mode: result.value.mode,
+          ...(result.value.profileLabel !== undefined
+            ? { profileLabel: result.value.profileLabel }
+            : {}),
+        },
+        revision,
+      );
     }
 
-    const result = await this.accountPort.activateSavedProfile(profileRef);
+    const mode = preferredMode ?? availableModes[0]!;
+    const result = await this.accountPort.activateSavedProfileByLogin(
+      login,
+      mode,
+    );
     if (!result.ok) {
       return mapActivateError(result.error);
     }
-
+    this.lastAuthorizedClientByOrigin.set(origin ?? "", clientId);
     const revision = this.revisionClock.advance();
     return sdkCallSuccess(
       {
@@ -208,6 +325,9 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
     );
   }
 
+  /** Remember last clientId that completed activate consent per Origin. */
+  private readonly lastAuthorizedClientByOrigin = new Map<string, string>();
+
   private pruneCaches(): void {
     const now = this.nowMs();
     for (const [key, entry] of this.idempotency) {
@@ -218,11 +338,28 @@ export class ExternalSdkAccountHandler implements ExternalCommandHandler {
   }
 }
 
+function readOptionalMode(payload: unknown): SdkActivateMode | null {
+  const raw = readStringField(payload, "mode");
+  if (raw === "sip_only" || raw === "ocp") {
+    return raw;
+  }
+  return null;
+}
+
 function mapActivateError(
   error: Parameters<typeof mapPlatformErrorToSdkCode>[0],
 ): ExternalHandlerResult {
   if (error.message === ACCOUNT_SIGN_IN_LOGOUT_REQUIRED_MESSAGE) {
-    return sdkFail("conflict");
+    return sdkFail("conflict", { logout_required: true });
+  }
+  if (error.message === "sdk_activate_account_not_found") {
+    return sdkFail("not_found", { account_not_found: true });
+  }
+  if (error.message === "sdk_activate_account_incomplete") {
+    return sdkFail("not_found", { account_incomplete: true });
+  }
+  if (error.message === "sdk_activate_account_ambiguous") {
+    return sdkFail("conflict", { account_ambiguous: true });
   }
   return {
     ok: false,

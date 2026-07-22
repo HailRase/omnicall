@@ -179,7 +179,7 @@ describe('AxatalkClient activate privilege fortress', () => {
     );
     await expect(
       harness.client.account.activateProfile({
-        profileRef: 'prf_opaque_ref_001',
+        login: 'agent@example.com',
         expectedRevision: 13
       })
     ).rejects.toSatisfy(
@@ -195,7 +195,7 @@ describe('AxatalkClient activate privilege fortress', () => {
     const harness = createHarness();
     await expect(
       harness.client.account.activateProfile({
-        profileRef: 'prf_opaque_ref_001',
+        login: 'agent@example.com',
         expectedRevision: 1
       })
     ).rejects.toSatisfy(
@@ -207,12 +207,13 @@ describe('AxatalkClient activate privilege fortress', () => {
 });
 
 describe('AxatalkClient activateProfile success and fail-closed', () => {
-  it('activateProfile succeeds with opaque profileRef + expectedRevision', async () => {
+  it('activateProfile succeeds with login, mode, and expectedRevision', async () => {
     const harness = createHarness();
     await reachReady(harness);
     const pending = harness.client.account.activateProfile({
-      profileRef: 'prf_opaque_ref_001',
-      expectedRevision: 13
+      login: 'agent@example.com',
+      expectedRevision: 13,
+      mode: 'sip_only'
     });
     await waitFor(() =>
       Boolean(
@@ -223,12 +224,17 @@ describe('AxatalkClient activateProfile success and fail-closed', () => {
       harness.transports.last()!,
       'account:activate-profile'
     ) as {
-      payload: { profileRef: string; expectedRevision: number };
+      payload: {
+        login: string;
+        expectedRevision: number;
+        mode?: 'sip_only' | 'ocp';
+      };
       requestId: string;
     };
     expect(sent.payload).toEqual({
-      profileRef: 'prf_opaque_ref_001',
-      expectedRevision: 13
+      login: 'agent@example.com',
+      expectedRevision: 13,
+      mode: 'sip_only'
     });
     expect(sent.requestId.length).toBeGreaterThan(0);
     expect(
@@ -238,7 +244,8 @@ describe('AxatalkClient activateProfile success and fail-closed', () => {
         {
           activated: true,
           mode: 'sip_only',
-          profileLabel: 'Agent****'
+          profileLabel: 'Agent****',
+          alreadyAuthenticated: false
         },
         14
       )
@@ -247,6 +254,7 @@ describe('AxatalkClient activateProfile success and fail-closed', () => {
       activated: true,
       mode: 'sip_only',
       profileLabel: 'Agent****',
+      alreadyAuthenticated: false,
       revision: 14
     });
   });
@@ -255,7 +263,7 @@ describe('AxatalkClient activateProfile success and fail-closed', () => {
     const harness = createHarness();
     await reachReady(harness);
     const pending = harness.client.account.activateProfile({
-      profileRef: 'prf_opaque_ref_001',
+      login: 'agent@example.com',
       expectedRevision: 13
     });
     await waitFor(() =>
@@ -283,7 +291,7 @@ describe('AxatalkClient activateProfile success and fail-closed', () => {
     const harness = createHarness();
     await reachReady(harness);
     const pending = harness.client.account.activateProfile({
-      profileRef: 'prf_opaque_ref_001',
+      login: 'agent@example.com',
       expectedRevision: 10
     });
     await waitFor(() =>
@@ -309,11 +317,11 @@ describe('AxatalkClient activateProfile success and fail-closed', () => {
     ).toBe(1);
   });
 
-  it('confirm unknown profileRef fails typed', async () => {
+  it('unknown login fails typed', async () => {
     const harness = createHarness();
     await reachReady(harness);
     const pending = harness.client.account.activateProfile({
-      profileRef: 'prf_unknown_ref_zzz',
+      login: 'unknown@example.com',
       expectedRevision: 13
     });
     await waitFor(() =>
@@ -338,7 +346,7 @@ describe('AxatalkClient activateProfile success and fail-closed', () => {
     const harness = createHarness();
     await reachReady(harness);
     const pending = harness.client.account.activateProfile({
-      profileRef: 'prf_opaque_ref_001',
+      login: 'agent@example.com',
       expectedRevision: 13
     });
     await waitFor(() =>
@@ -364,7 +372,7 @@ describe('AxatalkClient activateProfile success and fail-closed', () => {
     const harness = createHarness();
     await reachReady(harness);
     const pending = harness.client.account.activateProfile({
-      profileRef: 'prf_opaque_ref_001',
+      login: 'agent@example.com',
       expectedRevision: 13
     });
     await waitFor(() =>
@@ -395,7 +403,7 @@ describe('AxatalkClient activateProfile success and fail-closed', () => {
     const harness = createHarness();
     await reachReady(harness);
     const pending = harness.client.account.activateProfile({
-      profileRef: 'prf_opaque_ref_001',
+      login: 'agent@example.com',
       expectedRevision: 13
     });
     await waitFor(() =>
@@ -426,7 +434,7 @@ describe('AxatalkClient activateProfile success and fail-closed', () => {
     const harness = createHarness();
     await reachReady(harness);
     const pending = harness.client.account.activateProfile({
-      profileRef: 'prf_opaque_ref_001',
+      login: 'agent@example.com',
       expectedRevision: 13
     });
     await waitFor(() =>
@@ -457,7 +465,7 @@ describe('AxatalkClient activateProfile success and fail-closed', () => {
     );
     await expect(
       harness.client.account.activateProfile({
-        profileRef: 'prf_opaque_ref_001',
+        login: 'agent@example.com',
         expectedRevision: 13
       })
     ).rejects.toSatisfy(
@@ -476,7 +484,7 @@ describe('AxatalkClient activate reconnect / disconnect / privacy', () => {
     await reachReady(harness);
     const firstTransport = harness.transports.last()!;
     const pending = harness.client.account.activateProfile({
-      profileRef: 'prf_opaque_ref_001',
+      login: 'agent@example.com',
       expectedRevision: 13
     });
     await waitFor(() =>
@@ -514,7 +522,7 @@ describe('AxatalkClient activate reconnect / disconnect / privacy', () => {
     await reachReady(harness);
     const transport = harness.transports.last()!;
     const pending = harness.client.account.activateProfile({
-      profileRef: 'prf_opaque_ref_001',
+      login: 'agent@example.com',
       expectedRevision: 13
     });
     await waitFor(() =>
@@ -576,11 +584,11 @@ describe('AxatalkClient activate reconnect / disconnect / privacy', () => {
     expect(allActivate).toBe(0);
   });
 
-  it('privacy: diagnostics never echo secrets / profile secrets', async () => {
+  it('privacy: diagnostics never echo secrets / login', async () => {
     const harness = createHarness();
     await reachReady(harness);
     const pending = harness.client.account.activateProfile({
-      profileRef: 'prf_opaque_ref_001',
+      login: 'agent@example.com',
       expectedRevision: 13
     });
     await waitFor(() =>
@@ -609,7 +617,7 @@ describe('AxatalkClient activate reconnect / disconnect / privacy', () => {
     const serialized = JSON.stringify(harness.diagnostics.events);
     expect(serialized).not.toContain('sip-password-needle-xyz');
     expect(serialized).not.toContain('ocp-apikey-needle-abc');
-    expect(serialized).not.toContain('prf_opaque_ref_001');
+    expect(serialized).not.toContain('agent@example.com');
   });
 
   it('SDK-07 regression: prepareLogout interaction_required still green', async () => {

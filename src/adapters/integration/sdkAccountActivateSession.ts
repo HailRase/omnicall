@@ -1,87 +1,59 @@
 /**
- * Session helpers for short-lived account.activate grants (DI-08).
+ * Sync account.activate on live connections from Origin matrix (not Settings grant).
  */
+
+import type { CapabilityId } from "@axata/axatalk-protocol";
 
 import type { SdkGatewayConnection } from "./sdkGatewayConnection.js";
 import {
   elevateAccountActivateCapability,
   stripAccountActivateCapability,
 } from "./sdkAccountActivateCapability.js";
-import type {
-  IssueSdkAccountActivateGrantResult,
-  SdkAccountActivateGrantStore,
-} from "./sdkAccountActivateGrantStore.js";
 
-/**
- * Issue grant and elevate authenticated connections for the client.
- */
-export function issueAccountActivateGrantOnSessions(input: {
-  readonly activateGrantStore: SdkAccountActivateGrantStore;
-  readonly connections: Iterable<SdkGatewayConnection>;
-  readonly clientId: string;
-  readonly profileId: string;
-  readonly nowMs: number;
-  readonly ttlMs?: number;
-  readonly log: (
-    event: string,
-    fields: Readonly<Record<string, string | number | boolean>>,
-  ) => void;
-}): IssueSdkAccountActivateGrantResult {
-  const issued = input.activateGrantStore.issue({
-    clientId: input.clientId,
-    profileId: input.profileId,
-    nowMs: input.nowMs,
-    ...(input.ttlMs !== undefined ? { ttlMs: input.ttlMs } : {}),
-  });
-  if (!issued.ok) {
-    return issued;
-  }
-  for (const connection of input.connections) {
-    if (
-      connection.clientId === input.clientId &&
-      connection.authState === "authenticated"
-    ) {
-      elevateAccountActivateCapability(connection);
-    }
-  }
-  input.log("sdk_gateway_activate_grant_issued", {
-    clientId: input.clientId,
-    result: "issued",
-  });
-  return issued;
+const ACTIVATE: CapabilityId = "account.activate";
+
+export function originPolicyAllowsAccountActivate(
+  originPolicyCapabilities: readonly CapabilityId[],
+): boolean {
+  return originPolicyCapabilities.includes(ACTIVATE);
 }
 
 /**
- * After prune: strip account.activate when the client has no remaining valid grants.
- * Call before capability routing so expired grants fail closed at the capability gate.
+ * Elevate or strip account.activate on the connection to match Origin matrix.
+ * Returns true when grantedCapabilities changed.
  */
-export function syncAccountActivateCapabilityForConnection(
+export function syncAccountActivateCapabilityFromOriginPolicy(
   connection: SdkGatewayConnection,
-  activateGrantStore: SdkAccountActivateGrantStore,
-  nowMs: number,
-): void {
-  const clientId = connection.clientId;
-  if (clientId === null || clientId.length === 0) {
-    return;
+  originPolicyCapabilities: readonly CapabilityId[],
+): boolean {
+  const allow = originPolicyAllowsAccountActivate(originPolicyCapabilities);
+  const has = connection.grantedCapabilities.includes(ACTIVATE);
+  if (allow && !has) {
+    elevateAccountActivateCapability(connection);
+    return true;
   }
-  activateGrantStore.prune(nowMs);
-  if (!activateGrantStore.hasAnyValidGrant(clientId, nowMs)) {
+  if (!allow && has) {
     stripAccountActivateCapability(connection);
+    return true;
   }
+  return false;
 }
 
 /**
- * Clear grants for client and strip activate from matching live connections.
+ * Pairing / auth grant list: add account.activate when Origin matrix enables it.
+ * Pairing defaults still never include it; matrix is the operator switch.
  */
-export function clearAccountActivateGrantsForClient(input: {
-  readonly activateGrantStore: SdkAccountActivateGrantStore;
-  readonly connections: Iterable<SdkGatewayConnection>;
-  readonly clientId: string;
-}): void {
-  input.activateGrantStore.clearForClient(input.clientId);
-  for (const connection of input.connections) {
-    if (connection.clientId === input.clientId) {
-      stripAccountActivateCapability(connection);
-    }
+export function withOriginMatrixAccountActivate(
+  grants: readonly CapabilityId[],
+  originPolicyCapabilities: readonly CapabilityId[],
+): readonly CapabilityId[] {
+  const allow = originPolicyAllowsAccountActivate(originPolicyCapabilities);
+  const has = grants.includes(ACTIVATE);
+  if (allow && !has) {
+    return [...grants, ACTIVATE];
   }
+  if (!allow && has) {
+    return grants.filter((id) => id !== ACTIVATE);
+  }
+  return grants;
 }

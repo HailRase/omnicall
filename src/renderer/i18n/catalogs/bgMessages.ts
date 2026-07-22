@@ -690,10 +690,21 @@ export const bgMessages: MessageShape = {
   "settings.integrations.sdk.matrix.callControl": "Управление на обаждане",
   "settings.integrations.sdk.matrix.activate": "Активиране на профил на акаунт",
   "settings.integrations.sdk.activateConsent.title": "Разрешаване на активиране на профил?",
-  "settings.integrations.sdk.activateConsent.message": (params: Readonly<{ origin: string; profileLabel: string }>) =>
-    `Сайтът ${params.origin} иска активиране на профил „${params.profileLabel}“.`,
+  "settings.integrations.sdk.activateConsent.message": (params: Readonly<{ origin: string; profileLabel: string; login: string }>) =>
+    `Сайтът ${params.origin} иска вход като „${params.profileLabel}“ (${params.login}).`,
+  "settings.integrations.sdk.activateConsent.reauthorizeTitle": "Разрешаване на достъп до текущата сесия?",
+  "settings.integrations.sdk.activateConsent.reauthorizeMessage": (params: Readonly<{ origin: string; profileLabel: string; login: string }>) =>
+    `Сайтът ${params.origin} (друг клиент) иска достъп до вече активния профил „${params.profileLabel}“ (${params.login}).`,
+  "settings.integrations.sdk.activateConsent.logoutRequiredTitle": "Първо излезте от профила",
+  "settings.integrations.sdk.activateConsent.logoutRequiredMessage": (params: Readonly<{ origin: string; profileLabel: string; currentProfileLabel: string }>) =>
+    `Сайтът ${params.origin} се опитва да влезе като „${params.profileLabel}“, но вече сте в профил „${params.currentProfileLabel}“. Първо излезте.`,
+  "settings.integrations.sdk.activateConsent.modeLabel": "Начин на вход",
+  "settings.integrations.sdk.activateConsent.modeSip": "Само SIP",
+  "settings.integrations.sdk.activateConsent.modeOcp": "OCP модул",
   "settings.integrations.sdk.activateConsent.allow": "Разреши",
-  "settings.integrations.sdk.activateConsent.deny": "Откажи",
+  "settings.integrations.sdk.activateConsent.deny": "Блокирай сайта",
+  "settings.integrations.sdk.activateConsent.cancel": "Отказ",
+  "settings.integrations.sdk.activateConsent.acknowledge": "Разбрах",
   "settings.integrations.sdk.description":
     "Локален достъп за сайтове чрез Axatalk SDK. Паролите и ключовете остават само на този компютър.",
   "settings.integrations.sdk.bind": "Адрес на шлюза",

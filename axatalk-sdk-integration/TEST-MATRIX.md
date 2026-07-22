@@ -103,6 +103,8 @@ For originate, answer, reject, hang up, hold, resume, mute, unmute, and DTMF:
 - Origin TOFU / pairing pending raise from main; root `SdkConnectCeremonyModal` (no Settings redirect);
 - pending cancelled on disconnect / Origin leave-allowed / TTL sweeper (no blacklist on TOFU cancel);
 - activate consent pending raises via renderer IPC;
+- login activate: matrix enables `account.activate`; consent method picker; same-client
+  idempotent; different client reauthorize; logout_required; cancel vs deny details;
 - unavailable/destroyed window returns typed failure;
 - hide is unavailable until tray/background policy is implemented;
 - hide is denied during incoming/active call unless explicitly allowed;

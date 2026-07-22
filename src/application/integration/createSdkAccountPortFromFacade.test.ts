@@ -1,34 +1,41 @@
 /**
- * DI-08: opaque profileRef codec + Facade port mapping (no secrets on command).
+ * DI-11: login-based saved-profile activation via the account facade.
  */
 
 import { describe, expect, it, vi } from "vitest";
 
-import { createSavedAccountProfile } from "@domain/index.js";
+import { createSavedAccountProfile, type SavedAccountProfile } from "@domain/index.js";
 import { createPlatformError } from "@shared/errors/index.js";
 import { err, ok } from "@shared/result/index.js";
-import {
-  decodeSdkProfileRef,
-  encodeSdkProfileRef,
-} from "@shared/integration/sdkProfileRefCodec.js";
 import { ACCOUNT_SIGN_IN_LOGOUT_REQUIRED_MESSAGE } from "@application/facades/accountSignInCommand.js";
+import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 
 import { createSdkAccountPortFromFacade } from "./createSdkAccountPortFromFacade.js";
 
-describe("sdkProfileRefCodec", () => {
-  it("round-trips profile ids that contain @ and |", () => {
-    const id = "1001@pbx.example|alt.host";
-    const ref = encodeSdkProfileRef(id);
-    expect(ref).toMatch(/^prf_[A-Za-z0-9_-]+$/);
-    expect(decodeSdkProfileRef(ref!)).toBe(id);
-  });
+const SIGNED_OUT_SESSION = {
+  signedIn: false,
+  currentLogin: null,
+  currentMode: null,
+  profileLabel: null,
+} as const;
 
-  it("rejects malformed refs", () => {
-    expect(decodeSdkProfileRef("not-a-ref")).toBeNull();
-    expect(decodeSdkProfileRef("prf_")).toBeNull();
-    expect(encodeSdkProfileRef("")).toBeNull();
-  });
-});
+function createFacade(
+  profile: SavedAccountProfile,
+  signInAccount: unknown = vi.fn(() =>
+    Promise.resolve(ok({ kind: "sip_ready" as const })),
+  ),
+  availability: unknown = {
+    hasSavedSipPassword: true,
+    hasCompleteOcpConfiguration: false,
+  },
+): AccountBootstrapFacade {
+  return {
+    listSavedAccountProfiles: () => Promise.resolve(ok([profile])),
+    resolveSavedAccountProfileAvailability: () =>
+      Promise.resolve(ok(availability)),
+    signInAccount,
+  } as never;
+}
 
 describe("createSdkAccountPortFromFacade", () => {
   it("activates SIP-only saved profile without password on the command", async () => {
@@ -48,14 +55,11 @@ describe("createSdkAccountPortFromFacade", () => {
       Promise.resolve(ok({ kind: "sip_ready" as const })),
     );
     const port = createSdkAccountPortFromFacade({
-      facade: {
-        listSavedAccountProfiles: () => Promise.resolve(ok([profile.value])),
-        signInAccount,
-      } as never,
+      facade: createFacade(profile.value, signInAccount),
       ocpModuleEnabled: false,
+      getActivateSessionView: () => SIGNED_OUT_SESSION,
     });
-    const ref = encodeSdkProfileRef(profile.value.id)!;
-    const result = await port.activateSavedProfile(ref);
+    const result = await port.activateSavedProfileByLogin("1001", "sip_only");
     expect(result.ok).toBe(true);
     expect(signInAccount).toHaveBeenCalledWith({
       mode: "sip_only",
@@ -78,14 +82,10 @@ describe("createSdkAccountPortFromFacade", () => {
     }
     const signInAccount = vi.fn();
     const port = createSdkAccountPortFromFacade({
-      facade: {
-        listSavedAccountProfiles: () => Promise.resolve(ok([profile.value])),
-        signInAccount,
-      } as never,
+      facade: createFacade(profile.value, signInAccount),
+      getActivateSessionView: () => SIGNED_OUT_SESSION,
     });
-    const result = await port.activateSavedProfile(
-      encodeSdkProfileRef(profile.value.id)!,
-    );
+    const result = await port.activateSavedProfileByLogin("1001", "sip_only");
     expect(result).toEqual(
       err(createPlatformError("forbidden", "sdk_activate_profile_not_approved")),
     );
@@ -106,22 +106,19 @@ describe("createSdkAccountPortFromFacade", () => {
       return;
     }
     const port = createSdkAccountPortFromFacade({
-      facade: {
-        listSavedAccountProfiles: () => Promise.resolve(ok([profile.value])),
-        signInAccount: () =>
-          Promise.resolve(
-            err(
-              createPlatformError(
-                "operation_failed",
-                ACCOUNT_SIGN_IN_LOGOUT_REQUIRED_MESSAGE,
-              ),
+      facade: createFacade(profile.value, () =>
+        Promise.resolve(
+          err(
+            createPlatformError(
+              "operation_failed",
+              ACCOUNT_SIGN_IN_LOGOUT_REQUIRED_MESSAGE,
             ),
           ),
-      } as never,
+        ),
+      ),
+      getActivateSessionView: () => SIGNED_OUT_SESSION,
     });
-    const result = await port.activateSavedProfile(
-      encodeSdkProfileRef(profile.value.id)!,
-    );
+    const result = await port.activateSavedProfileByLogin("1001", "sip_only");
     expect(result.ok).toBe(false);
     if (result.ok) {
       return;
@@ -148,17 +145,16 @@ describe("createSdkAccountPortFromFacade", () => {
     }
     const signInAccount = vi.fn();
     const port = createSdkAccountPortFromFacade({
-      facade: {
-        listSavedAccountProfiles: () => Promise.resolve(ok([created.value])),
-        signInAccount,
-      } as never,
+      facade: createFacade(created.value, signInAccount, {
+        hasSavedSipPassword: true,
+        hasCompleteOcpConfiguration: true,
+      }),
       ocpModuleEnabled: false,
+      getActivateSessionView: () => SIGNED_OUT_SESSION,
     });
-    const result = await port.activateSavedProfile(
-      encodeSdkProfileRef(created.value.id)!,
-    );
+    const result = await port.activateSavedProfileByLogin("agent1", "ocp");
     expect(result).toEqual(
-      err(createPlatformError("forbidden", "sdk_activate_profile_not_approved")),
+      err(createPlatformError("not_found", "sdk_activate_account_incomplete")),
     );
     expect(signInAccount).not.toHaveBeenCalled();
   });
@@ -184,15 +180,14 @@ describe("createSdkAccountPortFromFacade", () => {
       Promise.resolve(ok({ kind: "sip_ready" as const })),
     );
     const port = createSdkAccountPortFromFacade({
-      facade: {
-        listSavedAccountProfiles: () => Promise.resolve(ok([created.value])),
-        signInAccount,
-      } as never,
+      facade: createFacade(created.value, signInAccount, {
+        hasSavedSipPassword: true,
+        hasCompleteOcpConfiguration: true,
+      }),
       ocpModuleEnabled: true,
+      getActivateSessionView: () => SIGNED_OUT_SESSION,
     });
-    const result = await port.activateSavedProfile(
-      encodeSdkProfileRef(created.value.id)!,
-    );
+    const result = await port.activateSavedProfileByLogin("agent1", "ocp");
     expect(result.ok).toBe(true);
     expect(signInAccount).toHaveBeenCalledWith({
       mode: "ocp",

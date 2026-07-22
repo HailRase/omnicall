@@ -13,9 +13,11 @@ describe("useShellWindowAttentionFromSdk", () => {
   it("raises once when activate consent becomes pending", () => {
     const raiseWindow = vi.fn().mockResolvedValue({ ok: true });
     const pending: SdkActivateConsentPending = {
+      kind: "activate",
       origin: "https://crm.example",
+      login: "1001",
       profileLabel: "Agent",
-      profileRef: "ref_1",
+      availableModes: ["sip_only"],
     };
 
     const { rerender } = renderHook(

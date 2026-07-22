@@ -51,6 +51,18 @@ export const RevisionSchema = z.number().int().nonnegative();
 /** @public */
 export type Revision = z.infer<typeof RevisionSchema>;
 
+/** Saved-account login for activate (trim non-empty; allows @). @public */
+export const AccountLoginSchema = z
+  .string()
+  .min(1)
+  .max(128)
+  .refine((value) => value.trim().length > 0, {
+    error: 'login must be non-empty after trim'
+  });
+
+/** @public */
+export type AccountLogin = z.infer<typeof AccountLoginSchema>;
+
 /**
  * Redacted phone mask (ADR-0017): keep last 4 digits; other digits → `*`;
  * optional leading `+`.

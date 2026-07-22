@@ -110,7 +110,7 @@ test('browser AxatalkClient activateProfile success; disconnect non-activate; no
   await waitFor(() => client.getCachedSnapshot() !== undefined);
 
   const activatePending = client.account.activateProfile({
-    profileRef: 'prf_browser_ref_001',
+    login: 'browser-agent@example.com',
     expectedRevision: 13
   });
   await waitFor(() =>
@@ -143,7 +143,7 @@ test('browser AxatalkClient activateProfile success; disconnect non-activate; no
 
   await expect(
     client.account.activateProfile({
-      profileRef: 'prf_browser_ref_001',
+      login: 'browser-agent@example.com',
       expectedRevision: 14
     })
   ).rejects.toSatisfy(

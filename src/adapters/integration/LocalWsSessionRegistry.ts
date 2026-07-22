@@ -15,7 +15,10 @@ import {
   type SdkGatewaySocket,
 } from "./sdkGatewayConnection.js";
 import { createSdkOpaqueId } from "./sdkGatewayIds.js";
-import type { SdkGatewayIdentity } from "./sdkGatewayMessages.js";
+import {
+  buildSdkPermissionChangedEvent,
+  type SdkGatewayIdentity,
+} from "./sdkGatewayMessages.js";
 import type { SdkPairingApprover } from "./sdkGatewayPairingTypes.js";
 import type { SdkGatewayPairingStore } from "./sdkGatewayPairingStore.js";
 import {
@@ -31,11 +34,7 @@ import {
   sendSdkGatewayJson,
 } from "./sdkGatewaySessionSocket.js";
 import type { SdkGatewayLogFn } from "./localWsServerHelpers.js";
-import {
-  SdkAccountActivateGrantStore,
-  type IssueSdkAccountActivateGrantResult,
-} from "./sdkAccountActivateGrantStore.js";
-import { issueAccountActivateGrantOnSessions } from "./sdkAccountActivateSession.js";
+import { syncAccountActivateCapabilityFromOriginPolicy } from "./sdkAccountActivateSession.js";
 import { parseAndDispatchLocalWsSession } from "./localWsSessionInbound.js";
 import { revokeLocalWsClient } from "./localWsSessionRevoke.js";
 import type {
@@ -64,7 +63,6 @@ export type LocalWsSessionRegistryDeps = Readonly<{
   /** Fired after a connection leaves the registry (close / terminate). */
   onConnectionRemoved?: (connection: SdkGatewayConnection) => void;
   onLog?: SdkGatewayLogFn;
-  activateGrantStore?: SdkAccountActivateGrantStore;
 }>;
 
 export class LocalWsSessionRegistry {
@@ -90,7 +88,6 @@ export class LocalWsSessionRegistry {
   private readonly challenges = new SdkAuthChallengeCache();
   private readonly requestDedup = new SdkRequestDedupCache();
   private readonly onLog: SdkGatewayLogFn | undefined;
-  private readonly activateGrantStore: SdkAccountActivateGrantStore;
   private revokeEventSequence = 0;
 
   constructor(deps: LocalWsSessionRegistryDeps) {
@@ -107,8 +104,6 @@ export class LocalWsSessionRegistry {
     this.getProductSurface = deps.getProductSurface ?? (() => null);
     this.onConnectionRemoved = deps.onConnectionRemoved;
     this.onLog = deps.onLog;
-    this.activateGrantStore =
-      deps.activateGrantStore ?? new SdkAccountActivateGrantStore();
   }
 
   get size(): number {
@@ -167,23 +162,39 @@ export class LocalWsSessionRegistry {
     return { authenticated, unauthenticated, authenticating, revoked };
   }
 
-  /** Desktop-owned short-lived activate grant + privileged capability elevation. */
-  issueAccountActivateGrant(input: {
-    readonly clientId: string;
-    readonly profileId: string;
-    readonly ttlMs?: number;
-  }): IssueSdkAccountActivateGrantResult {
-    return issueAccountActivateGrantOnSessions({
-      activateGrantStore: this.activateGrantStore,
-      connections: this.connections.values(),
-      clientId: input.clientId,
-      profileId: input.profileId,
-      nowMs: this.now().getTime(),
-      ...(input.ttlMs !== undefined ? { ttlMs: input.ttlMs } : {}),
-      log: (event, fields) => {
-        this.log(event, fields);
-      },
-    });
+  /** Sync live account.activate capability after an Origin matrix update. */
+  syncActivateCapabilitiesForOrigin(
+    origin: string,
+    policyCapabilities: readonly CapabilityId[],
+  ): number {
+    const identity = this.getIdentity();
+    if (identity === null) {
+      return 0;
+    }
+    let changed = 0;
+    for (const connection of this.connections.values()) {
+      if (
+        connection.origin !== origin ||
+        !syncAccountActivateCapabilityFromOriginPolicy(
+          connection,
+          policyCapabilities,
+        )
+      ) {
+        continue;
+      }
+      connection.eventSequence += 1;
+      this.sendJson(
+        connection,
+        buildSdkPermissionChangedEvent({
+          identity,
+          now: this.now,
+          sequence: connection.eventSequence,
+          grantedCapabilities: connection.grantedCapabilities,
+        }),
+      );
+      changed += 1;
+    }
+    return changed;
   }
 
   attach(socket: SdkGatewaySocket, origin: string): void {
@@ -242,7 +253,6 @@ export class LocalWsSessionRegistry {
     return revokeLocalWsClient({
       clientId,
       pairingStore: this.pairingStore,
-      activateGrantStore: this.activateGrantStore,
       connections: this.connections,
       getIdentity: this.getIdentity,
       now: this.now,
@@ -302,7 +312,6 @@ export class LocalWsSessionRegistry {
       now: this.now,
       connectionCount: this.connections.size,
       limits: this.limits,
-      activateGrantStore: this.activateGrantStore,
       productSurface: this.getProductSurface(),
       sendJson: (c, m) => {
         this.sendJson(c, m);
@@ -370,7 +379,6 @@ export class LocalWsSessionRegistry {
     this.connections.delete(connection.id);
     const clientId = connection.clientId;
     if (clientId !== null && clientId.length > 0) {
-      this.activateGrantStore.clearForClient(clientId);
       this.getProductSurface()?.onClientSessionEnded?.(clientId);
     }
     this.onConnectionRemoved?.(connection);

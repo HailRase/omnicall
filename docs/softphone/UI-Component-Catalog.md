@@ -77,7 +77,7 @@
 | `SdkModuleSettingsBlockedSitesSection` | `src/renderer/components/settings/panels/SdkModuleSettingsBlockedSitesSection.tsx` | `—` | sdk-module-blacklist, sdk-module-blacklist-empty | — |
 | `SdkModuleSettingsCard` | `src/renderer/components/settings/panels/SdkModuleSettingsCard.tsx` | `—` | sdk-module-settings-card, sdk-module-section-tabs, sdk-module-tab-main, sdk-module-tab-trusted, sdk-module-tab-blocked, sdk-module-error | f=F-011 lf=LF-051,LF-065 |
 | `SdkModuleSettingsClientsSection` | `src/renderer/components/settings/panels/SdkModuleSettingsClientsSection.tsx` | `—` | sdk-module-hide-disabled, sdk-module-hide-toggle | — |
-| `SdkModuleSettingsGrantSection` | `src/renderer/components/settings/panels/SdkModuleSettingsGrantSection.tsx` | `—` | sdk-module-activate-grant, sdk-module-grant-client, sdk-module-grant-profile, sdk-module-grant-issue, sdk-module-grant-ref, sdk-module-grant-copy | — |
+| `SdkActivateProfileConsentModal` | `src/renderer/components/integration/SdkActivateProfileConsentModal.tsx` | `—` | sdk-activate-consent-modal, sdk-activate-consent-allow, sdk-activate-consent-deny, sdk-activate-consent-cancel, sdk-activate-consent-modes | — |
 | `SdkModuleSettingsOriginAddressEditor` | `src/renderer/components/settings/panels/SdkModuleSettingsOriginAddressEditor.tsx` | `—` | — | — |
 | `SdkModuleSettingsOriginConfirmDialog` | `src/renderer/components/settings/panels/SdkModuleSettingsOriginConfirmDialog.tsx` | `—` | — | — |
 | `SdkModuleSettingsOriginMatrix` | `src/renderer/components/settings/panels/SdkModuleSettingsOriginMatrix.tsx` | `—` | — | — |

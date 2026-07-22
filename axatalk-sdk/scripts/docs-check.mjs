@@ -105,22 +105,22 @@ const apiReport = fs.readFileSync(path.join(root, 'etc', 'api', 'sdk.api.md'), '
 const reportExports = [...apiReport.matchAll(/^export (?:type|class|function|const) (\w+)/gm)].map(
   (match) => match[1]
 );
-if (reportExports.length !== 47) {
-  console.error(`Expected 47 sdk.api.md exports, found ${reportExports.length}`);
+if (reportExports.length !== 48) {
+  console.error(`Expected 48 sdk.api.md exports, found ${reportExports.length}`);
   process.exit(1);
 }
 
 const apiReference = fs.readFileSync(path.join(guideRoot, 'api-reference.md'), 'utf8');
 const inventoryMatch = apiReference.match(
-  /## Public symbol inventory \(47\)([\s\S]*?)## Factories/
+  /## Public symbol inventory \(48\)([\s\S]*?)## Factories/
 );
 if (!inventoryMatch) {
-  console.error('api-reference.md missing Public symbol inventory (47) section');
+  console.error('api-reference.md missing Public symbol inventory (48) section');
   process.exit(1);
 }
 const inventoryExports = [...inventoryMatch[1].matchAll(/`(\w+)`/g)].map((match) => match[1]);
-if (inventoryExports.length !== 47) {
-  console.error(`api-reference inventory has ${inventoryExports.length} symbols, expected 47`);
+if (inventoryExports.length !== 48) {
+  console.error(`api-reference inventory has ${inventoryExports.length} symbols, expected 48`);
   process.exit(1);
 }
 const sortedReport = [...reportExports].sort().join(',');

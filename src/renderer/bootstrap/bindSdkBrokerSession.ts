@@ -93,6 +93,24 @@ export function bindSdkBrokerSession(
       ...(options.ocpModuleEnabled !== undefined
         ? { ocpModuleEnabled: options.ocpModuleEnabled }
         : {}),
+      getActivateSessionView: () => {
+        const state = readSdkProductStateFromStore(
+          useAccountBootstrapStore.getState(),
+          {
+            ocpModuleEnabled: options.ocpModuleEnabled === true,
+          },
+        );
+        return {
+          signedIn: state.signedIn,
+          currentLogin: state.profileLabel,
+          currentMode: state.signedIn
+            ? state.ocpConnected
+              ? ("ocp" as const)
+              : ("sip_only" as const)
+            : null,
+          profileLabel: state.profileLabel,
+        };
+      },
     }),
     revisionClock,
     mutex: accountMutex,

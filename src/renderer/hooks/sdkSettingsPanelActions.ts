@@ -1,16 +1,12 @@
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
-  deriveSavedAccountProfileSelectorOptions,
   persistSdkIntegrationSettings as persistSdkIntegrationSettingsApp,
   type SdkIntegrationSettings,
   type UserSettings,
 } from "@application/index.js";
 import type { SdkGatewaySettingsResponse } from "@shared/ipc/SdkGatewaySettingsContract.js";
 import type { SdkGatewayInvoker } from "./sdkSettingsPanelHelpers.js";
-import type {
-  SdkProfileOption,
-  SdkSettingsPanelErrorKey,
-} from "./sdkSettingsPanelTypes.js";
+import type { SdkSettingsPanelErrorKey } from "./sdkSettingsPanelTypes.js";
 
 type PersistResult = Readonly<{
   ok: boolean;
@@ -44,14 +40,3 @@ export async function persistSdkIntegrationSettings(input: {
   };
 }
 
-export async function loadSdkProfileOptions(
-  facade: AccountBootstrapFacade,
-): Promise<readonly SdkProfileOption[]> {
-  const profilesResult = await facade.listSavedAccountProfiles();
-  if (!profilesResult.ok) {
-    return [];
-  }
-  return deriveSavedAccountProfileSelectorOptions(
-    profilesResult.value.filter((profile) => profile.lifecycleStatus !== "draft"),
-  );
-}

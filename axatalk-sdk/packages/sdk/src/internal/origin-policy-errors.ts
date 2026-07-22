@@ -5,10 +5,10 @@
 import type { WireJsonObject } from '@axata/axatalk-protocol';
 
 import {
-  AxatalkClientError,
   createClientError,
   isAxatalkClientError
 } from './client-errors.js';
+import type { AxatalkClientError } from './client-errors.js';
 import type { ConnectionState } from './connection-state.js';
 import type { TransportCloseInfo } from './transport-port.js';
 

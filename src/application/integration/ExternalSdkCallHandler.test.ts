@@ -109,14 +109,20 @@ function createProductSurface(port: ExternalSdkCallPort = createPort()) {
   });
   const accountHandler = new ExternalSdkAccountHandler({
     accountPort: {
-      activateSavedProfile: () =>
+      activateSavedProfileByLogin: () =>
         Promise.resolve(
           err(createPlatformError("forbidden", "sdk_activate_not_used")),
         ),
-      lookupSavedProfileLabel: () =>
+      lookupSavedProfileByLogin: () =>
         Promise.resolve(
           err(createPlatformError("forbidden", "sdk_activate_not_used")),
         ),
+      getActivateSessionView: () => ({
+        signedIn: false,
+        currentLogin: null,
+        currentMode: null,
+        profileLabel: null,
+      }),
     },
     revisionClock,
   });

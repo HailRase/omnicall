@@ -1,5 +1,6 @@
 /**
- * Local-approval + Origin matrix gate for account:activate-profile (DI-08/DI-11).
+ * Origin-matrix gate for account:activate-profile (DI-08/DI-11 / ADR-0018).
+ * Temporary Settings grant removed — matrix + consent modal are the gates.
  */
 
 import type { WireMessage } from "@axata/axatalk-protocol";
@@ -9,7 +10,6 @@ import {
   buildCommandFailureReply,
   type SdkGatewayIdentity,
 } from "./sdkGatewayMessages.js";
-import type { SdkAccountActivateGrantStore } from "./sdkAccountActivateGrantStore.js";
 import type { SdkRequestDedupCache } from "./sdkGatewayRequestDedup.js";
 
 function sendActivateForbidden(input: {
@@ -48,8 +48,9 @@ function sendActivateForbidden(input: {
 
 /**
  * Returns true when the command was denied (reply already sent).
+ * Fail closed when Origin matrix does not allow account.activate.
  */
-export function denyActivateWithoutLocalApproval(input: {
+export function denyActivateWhenOriginPolicyForbids(input: {
   readonly connection: SdkGatewayConnection;
   readonly requestDedup: SdkRequestDedupCache;
   readonly now: () => Date;
@@ -58,49 +59,16 @@ export function denyActivateWithoutLocalApproval(input: {
     event: string,
     fields: Readonly<Record<string, string | number | boolean>>,
   ) => void;
-  readonly activateGrantStore: SdkAccountActivateGrantStore;
   readonly identity: SdkGatewayIdentity;
   readonly command: Extract<WireMessage, { kind: "command" }>;
-  /**
-   * Origin matrix allows account.activate (ADR-0018).
-   * Omit for DI-08 unit paths that only exercise the grant gate; when provided,
-   * empty/missing matrix must fail closed (caller returns false).
-   */
-  readonly isOriginActivateAllowed?: (origin: string) => boolean;
+  readonly isOriginActivateAllowed: (origin: string) => boolean;
 }): boolean {
   const { command } = input;
   if (command.type !== "account:activate-profile") {
     return false;
   }
 
-  if (
-    input.isOriginActivateAllowed !== undefined &&
-    !input.isOriginActivateAllowed(input.connection.origin)
-  ) {
-    sendActivateForbidden({
-      ...input,
-      detailKey: "permission_denied",
-    });
-    return true;
-  }
-
-  const clientId = input.connection.clientId;
-  const profileRef =
-    typeof command.payload === "object" &&
-    command.payload !== null &&
-    "profileRef" in command.payload &&
-    typeof command.payload.profileRef === "string"
-      ? command.payload.profileRef
-      : null;
-  if (
-    clientId === null ||
-    profileRef === null ||
-    !input.activateGrantStore.hasValidGrant(
-      clientId,
-      profileRef,
-      input.now().getTime(),
-    )
-  ) {
+  if (!input.isOriginActivateAllowed(input.connection.origin)) {
     sendActivateForbidden({
       ...input,
       detailKey: "permission_denied",
@@ -109,3 +77,6 @@ export function denyActivateWithoutLocalApproval(input: {
   }
   return false;
 }
+
+/** @deprecated Use denyActivateWhenOriginPolicyForbids */
+export const denyActivateWithoutLocalApproval = denyActivateWhenOriginPolicyForbids;

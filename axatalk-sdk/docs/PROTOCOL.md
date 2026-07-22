@@ -256,7 +256,7 @@ below with ADR-0014…0017. IDs match the P12 handoff.
 Policy baselines (still closed from DI-00 / ADR-0018): loopback-only bind, exact Origin
 match with TOFU/blacklist admission (ADR-0018), discovery CORS for `unknown`+`allowed`,
 no raw credentials in v1, per-client events, `window:hide` gated, Account sole human
-sign-in (ADR-AF-003) with opaque saved-profile activation + per-attempt consent modal
+sign-in (ADR-AF-003) with saved-account login activation + per-attempt consent modal
 (ADR-0018). Always-on gateway listener (no normal Settings off toggle; env kill-switch
 only). F-011 close requires DI-11 behavior (or waiver), not docs alone.
 

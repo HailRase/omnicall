@@ -3,10 +3,10 @@
 Aligns with [`etc/api/sdk.api.md`](../../etc/api/sdk.api.md).  
 If this page disagrees with the API report, the **report wins**.
 
-**Full public inventory:** **47** symbols (see table below). Method/namespace sections are
+**Full public inventory:** **48** symbols (see table below). Method/namespace sections are
 integrator-oriented summaries; the inventory is the complete export list for SDK-09.
 
-## Public symbol inventory (47)
+## Public symbol inventory (48)
 
 | Kind | Symbol |
 | --- | --- |
@@ -40,6 +40,7 @@ integrator-oriented summaries; the inventory is the complete export list for SDK
 | type | `FakeScheduler` |
 | type | `HeartbeatPolicy` |
 | function | `isAxatalkClientError` |
+| function | `isOriginBlockedError` |
 | type | `JitterSource` |
 | type | `OperatorReason` |
 | type | `OperatorReasonsResult` |
@@ -106,7 +107,7 @@ Result: `{ callId, revision }`. Failures: see [Errors](./errors.md).
 | --- | --- | --- |
 | `prepareLogout({ expectedRevision })` | `session.logout` | May throw `interaction_required` + `logoutToken` |
 | `confirmLogout({ logoutToken, reasonId?, expectedRevision })` | `session.logout` | Host confirms; cancel = abandon token |
-| `activateProfile({ profileRef, expectedRevision })` | **`account.activate` (server-granted)** | Opaque ref; never secrets |
+| `activateProfile({ login, expectedRevision, mode? })` | **`account.activate` (server-granted)** | Saved-account login; optional `sip_only` / `ocp`; never secrets |
 
 ## `client.operator`
 

@@ -107,7 +107,8 @@ grants remain authoritative on every command (ADR-0011).
 
 Privileged capabilities **never** appear in default profiles:
 
-- `account.activate` — short-lived grant + local approval (DI-08 / ADR-0013)
+- `account.activate` — Origin matrix enable + per-request consent (DI-08 / ADR-0013 /
+  ADR-0018). **Not** a Settings temporary grant TTL.
 - `window.hide` — unavailable in protocol v1 product surface (ADR-0013)
 
 Requested capabilities outside the selected profile are ignored or require explicit admin

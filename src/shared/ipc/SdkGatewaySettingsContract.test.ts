@@ -82,26 +82,6 @@ describe("SdkGatewaySettingsContract", () => {
     ).toBeNull();
   });
 
-  it("parses grant response without secret fields", () => {
-    const parsed = parseSdkGatewaySettingsResponse({
-      ok: true,
-      grant: { ok: true, profileRef: "prf_abc" },
-      snapshot: {
-        diagnostics: listeningDiagnostics,
-        origins: [validOrigin],
-        pendingOriginTrust: [],
-        paired: [validPairedClient],
-        pendingPairing: [],
-      },
-    });
-    expect(parsed?.ok).toBe(true);
-    if (parsed && parsed.ok && "grant" in parsed) {
-      expect(parsed.grant).toEqual({ ok: true, profileRef: "prf_abc" });
-      expect(parsed.snapshot.paired).toEqual([validPairedClient]);
-      expect(JSON.stringify(parsed)).not.toMatch(/password|apiKey|token|privateKey/i);
-    }
-  });
-
   it("deep-validates paired/pending and rejects secret keys or wildcards", () => {
     const ok = parseSdkGatewaySettingsResponse({
       ok: true,
@@ -144,20 +124,6 @@ describe("SdkGatewaySettingsContract", () => {
               privateKey: "pk_leak",
             },
           ],
-          pendingPairing: [],
-        },
-      }),
-    ).toBeNull();
-
-    expect(
-      parseSdkGatewaySettingsResponse({
-        ok: true,
-        grant: { ok: true, profileRef: "prf_ok", apiKey: "secret" },
-        snapshot: {
-          diagnostics: listeningDiagnostics,
-          origins: [validOrigin],
-          pendingOriginTrust: [],
-          paired: [],
           pendingPairing: [],
         },
       }),

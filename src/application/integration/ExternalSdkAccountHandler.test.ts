@@ -8,8 +8,6 @@ import { describe, expect, it, vi } from "vitest";
 import { createPlatformError } from "@shared/errors/index.js";
 import { err, ok } from "@shared/result/index.js";
 import { ACCOUNT_SIGN_IN_LOGOUT_REQUIRED_MESSAGE } from "@application/facades/accountSignInCommand.js";
-import { encodeSdkProfileRef } from "@shared/integration/sdkProfileRefCodec.js";
-
 import { ExternalSdkAccountHandler } from "./ExternalSdkAccountHandler.js";
 import type { ExternalSdkAccountPort } from "./ExternalSdkAccountPort.js";
 import type { SdkActivateConsentPort } from "./SdkActivateConsentPort.js";
@@ -25,21 +23,33 @@ const BASE = {
 
 const CLIENT = "client_act_001";
 const ORIGIN = "https://crm.example.com";
-const PROFILE_ID = "1001@pbx.example";
-const PROFILE_REF = encodeSdkProfileRef(PROFILE_ID)!;
+const LOGIN = "1001@pbx.example";
 
 function createPort(
   overrides: Partial<ExternalSdkAccountPort> = {},
 ): ExternalSdkAccountPort {
   return {
-    activateSavedProfile: vi.fn(() =>
+    lookupSavedProfileByLogin: vi.fn(() =>
+      Promise.resolve(
+        ok({
+          profileId: "profile_1001",
+          profileLabel: "Agent 1001",
+          username: LOGIN,
+          availableModes: ["sip_only" as const],
+        }),
+      ),
+    ),
+    activateSavedProfileByLogin: vi.fn(() =>
       Promise.resolve(
         ok({ mode: "sip_only" as const, profileLabel: "Agent 1001" }),
       ),
     ),
-    lookupSavedProfileLabel: vi.fn(() =>
-      Promise.resolve(ok({ profileLabel: "Agent 1001" })),
-    ),
+    getActivateSessionView: () => ({
+      signedIn: false,
+      currentLogin: null,
+      currentMode: null,
+      profileLabel: null,
+    }),
     ...overrides,
   };
 }
@@ -68,7 +78,7 @@ describe("ExternalSdkAccountHandler", () => {
       ...BASE,
       type: "account:activate-profile",
       requestId: "req_unauth_act_001",
-      payload: { profileRef: PROFILE_REF, expectedRevision: 1 },
+      payload: { login: LOGIN, expectedRevision: 1 },
     });
     expect(result).toEqual({
       ok: false,
@@ -78,13 +88,13 @@ describe("ExternalSdkAccountHandler", () => {
   });
 
   it("advances revision on success and returns public DTO only", async () => {
-    const activateSavedProfile = vi.fn(() =>
+    const activateSavedProfileByLogin = vi.fn(() =>
       Promise.resolve(
         ok({ mode: "sip_only" as const, profileLabel: "Agent 1001" }),
       ),
     );
     const { handler, revisionClock } = createHandler(
-      createPort({ activateSavedProfile }),
+      createPort({ activateSavedProfileByLogin }),
     );
     const before = revisionClock.peek();
     const result = await handler.handleCommand(
@@ -92,7 +102,7 @@ describe("ExternalSdkAccountHandler", () => {
         ...BASE,
         type: "account:activate-profile",
         requestId: "req_act_ok_001",
-        payload: { profileRef: PROFILE_REF, expectedRevision: before },
+        payload: { login: LOGIN, expectedRevision: before },
       },
       { clientId: CLIENT },
     );
@@ -106,18 +116,18 @@ describe("ExternalSdkAccountHandler", () => {
       revision: before + 1,
     });
     expect(revisionClock.peek()).toBe(before + 1);
-    expect(activateSavedProfile).toHaveBeenCalledWith(PROFILE_REF);
+    expect(activateSavedProfileByLogin).toHaveBeenCalledWith(LOGIN, "sip_only");
     expect(JSON.stringify(result)).not.toMatch(/password|apiKey|secret/i);
   });
 
   it("returns stale_state without side effect when expectedRevision mismatches", async () => {
-    const activateSavedProfile = vi.fn(() =>
+    const activateSavedProfileByLogin = vi.fn(() =>
       Promise.resolve(
         ok({ mode: "sip_only" as const, profileLabel: "Agent 1001" }),
       ),
     );
     const { handler, revisionClock } = createHandler(
-      createPort({ activateSavedProfile }),
+      createPort({ activateSavedProfileByLogin }),
     );
     const current = revisionClock.peek();
     const result = await handler.handleCommand(
@@ -125,7 +135,7 @@ describe("ExternalSdkAccountHandler", () => {
         ...BASE,
         type: "account:activate-profile",
         requestId: "req_act_stale_001",
-        payload: { profileRef: PROFILE_REF, expectedRevision: current + 5 },
+        payload: { login: LOGIN, expectedRevision: current + 5 },
       },
       { clientId: CLIENT },
     );
@@ -135,14 +145,14 @@ describe("ExternalSdkAccountHandler", () => {
       retryable: false,
       currentRevision: current,
     });
-    expect(activateSavedProfile).not.toHaveBeenCalled();
+    expect(activateSavedProfileByLogin).not.toHaveBeenCalled();
     expect(revisionClock.peek()).toBe(current);
   });
 
   it("maps logout-first lock to conflict without advancing", async () => {
     const { handler, revisionClock } = createHandler(
       createPort({
-        activateSavedProfile: () =>
+        activateSavedProfileByLogin: () =>
           Promise.resolve(
             err(
               createPlatformError(
@@ -160,7 +170,7 @@ describe("ExternalSdkAccountHandler", () => {
         ...BASE,
         type: "account:activate-profile",
         requestId: "req_act_lock_001",
-        payload: { profileRef: PROFILE_REF, expectedRevision: before },
+        payload: { login: LOGIN, expectedRevision: before },
       },
       { clientId: CLIENT },
     );
@@ -168,23 +178,24 @@ describe("ExternalSdkAccountHandler", () => {
       ok: false,
       code: "conflict",
       retryable: false,
+      details: { logout_required: true },
     });
     expect(revisionClock.peek()).toBe(before);
   });
 
   it("caches duplicate requestId within TTL without second activate", async () => {
-    const activateSavedProfile = vi.fn(() =>
+    const activateSavedProfileByLogin = vi.fn(() =>
       Promise.resolve(
         ok({ mode: "sip_only" as const, profileLabel: "Agent 1001" }),
       ),
     );
-    const { handler } = createHandler(createPort({ activateSavedProfile }));
+    const { handler } = createHandler(createPort({ activateSavedProfileByLogin }));
     const first = await handler.handleCommand(
       {
         ...BASE,
         type: "account:activate-profile",
         requestId: "req_act_dup_001",
-        payload: { profileRef: PROFILE_REF, expectedRevision: 1 },
+        payload: { login: LOGIN, expectedRevision: 1 },
       },
       { clientId: CLIENT },
     );
@@ -193,24 +204,20 @@ describe("ExternalSdkAccountHandler", () => {
         ...BASE,
         type: "account:activate-profile",
         requestId: "req_act_dup_001",
-        payload: { profileRef: PROFILE_REF, expectedRevision: 1 },
+        payload: { login: LOGIN, expectedRevision: 1 },
       },
       { clientId: CLIENT },
     );
     expect(first).toEqual(second);
-    expect(activateSavedProfile).toHaveBeenCalledTimes(1);
+    expect(activateSavedProfileByLogin).toHaveBeenCalledTimes(1);
   });
 
   it("maps unknown profile to not_found", async () => {
     const { handler } = createHandler(
       createPort({
-        lookupSavedProfileLabel: () =>
+        lookupSavedProfileByLogin: () =>
           Promise.resolve(
-            err(createPlatformError("not_found", "sdk_activate_profile_not_found")),
-          ),
-        activateSavedProfile: () =>
-          Promise.resolve(
-            err(createPlatformError("not_found", "sdk_activate_profile_not_found")),
+            err(createPlatformError("not_found", "sdk_activate_account_not_found")),
           ),
       }),
     );
@@ -219,7 +226,7 @@ describe("ExternalSdkAccountHandler", () => {
         ...BASE,
         type: "account:activate-profile",
         requestId: "req_act_nf_001",
-        payload: { profileRef: PROFILE_REF, expectedRevision: 1 },
+        payload: { login: LOGIN, expectedRevision: 1 },
       },
       { clientId: CLIENT },
     );
@@ -227,19 +234,22 @@ describe("ExternalSdkAccountHandler", () => {
       ok: false,
       code: "not_found",
       retryable: false,
+      details: { account_not_found: true },
     });
   });
 
   it("pending guard returns conflict + activate_consent_pending without activate", async () => {
     const onDenied = vi.fn();
-    const requestConsent = vi.fn(() => Promise.resolve("allow" as const));
-    const activateSavedProfile = vi.fn(() =>
+    const requestConsent = vi.fn(() =>
+      Promise.resolve({ decision: "allow" as const, mode: "sip_only" as const }),
+    );
+    const activateSavedProfileByLogin = vi.fn(() =>
       Promise.resolve(
         ok({ mode: "sip_only" as const, profileLabel: "Agent 1001" }),
       ),
     );
     const consentPort: SdkActivateConsentPort = { requestConsent };
-    const { handler } = createHandler(createPort({ activateSavedProfile }), {
+    const { handler } = createHandler(createPort({ activateSavedProfileByLogin }), {
       consentPort,
       isConsentPending: () => true,
       onActivateConsentDenied: onDenied,
@@ -249,7 +259,7 @@ describe("ExternalSdkAccountHandler", () => {
         ...BASE,
         type: "account:activate-profile",
         requestId: "req_act_pending_001",
-        payload: { profileRef: PROFILE_REF, expectedRevision: 1 },
+        payload: { login: LOGIN, expectedRevision: 1 },
       },
       { clientId: CLIENT, origin: ORIGIN },
     );
@@ -260,21 +270,23 @@ describe("ExternalSdkAccountHandler", () => {
       details: { activate_consent_pending: true },
     });
     expect(requestConsent).not.toHaveBeenCalled();
-    expect(activateSavedProfile).not.toHaveBeenCalled();
+    expect(activateSavedProfileByLogin).not.toHaveBeenCalled();
     expect(onDenied).not.toHaveBeenCalled();
   });
 
-  it("consent allow proceeds to activateSavedProfile", async () => {
+  it("consent allow proceeds to login activation", async () => {
     const onDenied = vi.fn();
-    const requestConsent = vi.fn(() => Promise.resolve("allow" as const));
-    const activateSavedProfile = vi.fn(() =>
+    const requestConsent = vi.fn(() =>
+      Promise.resolve({ decision: "allow" as const, mode: "sip_only" as const }),
+    );
+    const activateSavedProfileByLogin = vi.fn(() =>
       Promise.resolve(
         ok({ mode: "sip_only" as const, profileLabel: "Agent 1001" }),
       ),
     );
     const consentPort: SdkActivateConsentPort = { requestConsent };
     const { handler, revisionClock } = createHandler(
-      createPort({ activateSavedProfile }),
+      createPort({ activateSavedProfileByLogin }),
       {
         consentPort,
         isConsentPending: () => false,
@@ -287,16 +299,18 @@ describe("ExternalSdkAccountHandler", () => {
         ...BASE,
         type: "account:activate-profile",
         requestId: "req_act_consent_allow_001",
-        payload: { profileRef: PROFILE_REF, expectedRevision: before },
+        payload: { login: LOGIN, expectedRevision: before },
       },
       { clientId: CLIENT, origin: ORIGIN },
     );
     expect(requestConsent).toHaveBeenCalledWith({
       origin: ORIGIN,
+      kind: "activate",
+      login: LOGIN,
       profileLabel: "Agent 1001",
-      profileRef: PROFILE_REF,
+      availableModes: ["sip_only"],
     });
-    expect(activateSavedProfile).toHaveBeenCalledWith(PROFILE_REF);
+    expect(activateSavedProfileByLogin).toHaveBeenCalledWith(LOGIN, "sip_only");
     expect(onDenied).not.toHaveBeenCalled();
     expect(result).toEqual({
       ok: true,
@@ -311,14 +325,14 @@ describe("ExternalSdkAccountHandler", () => {
 
   it("consent deny persists via onActivateConsentDenied and returns forbidden", async () => {
     const onDenied = vi.fn();
-    const requestConsent = vi.fn(() => Promise.resolve("deny" as const));
-    const activateSavedProfile = vi.fn(() =>
+    const requestConsent = vi.fn(() => Promise.resolve({ decision: "deny" as const }));
+    const activateSavedProfileByLogin = vi.fn(() =>
       Promise.resolve(
         ok({ mode: "sip_only" as const, profileLabel: "Agent 1001" }),
       ),
     );
     const consentPort: SdkActivateConsentPort = { requestConsent };
-    const { handler } = createHandler(createPort({ activateSavedProfile }), {
+    const { handler } = createHandler(createPort({ activateSavedProfileByLogin }), {
       consentPort,
       isConsentPending: () => false,
       onActivateConsentDenied: onDenied,
@@ -328,12 +342,12 @@ describe("ExternalSdkAccountHandler", () => {
         ...BASE,
         type: "account:activate-profile",
         requestId: "req_act_consent_deny_001",
-        payload: { profileRef: PROFILE_REF, expectedRevision: 1 },
+        payload: { login: LOGIN, expectedRevision: 1 },
       },
       { clientId: CLIENT, origin: ORIGIN },
     );
     expect(onDenied).toHaveBeenCalledWith(ORIGIN);
-    expect(activateSavedProfile).not.toHaveBeenCalled();
+    expect(activateSavedProfileByLogin).not.toHaveBeenCalled();
     expect(result).toEqual({
       ok: false,
       code: "forbidden",
@@ -347,14 +361,16 @@ describe("ExternalSdkAccountHandler", () => {
 
   it("consent dismiss clears path without onActivateConsentDenied", async () => {
     const onDenied = vi.fn();
-    const requestConsent = vi.fn(() => Promise.resolve("dismiss" as const));
-    const activateSavedProfile = vi.fn(() =>
+    const requestConsent = vi.fn(() =>
+      Promise.resolve({ decision: "dismiss" as const }),
+    );
+    const activateSavedProfileByLogin = vi.fn(() =>
       Promise.resolve(
         ok({ mode: "sip_only" as const, profileLabel: "Agent 1001" }),
       ),
     );
     const consentPort: SdkActivateConsentPort = { requestConsent };
-    const { handler } = createHandler(createPort({ activateSavedProfile }), {
+    const { handler } = createHandler(createPort({ activateSavedProfileByLogin }), {
       consentPort,
       isConsentPending: () => false,
       onActivateConsentDenied: onDenied,
@@ -364,29 +380,34 @@ describe("ExternalSdkAccountHandler", () => {
         ...BASE,
         type: "account:activate-profile",
         requestId: "req_act_consent_dismiss_001",
-        payload: { profileRef: PROFILE_REF, expectedRevision: 1 },
+        payload: { login: LOGIN, expectedRevision: 1 },
       },
       { clientId: CLIENT, origin: ORIGIN },
     );
     expect(onDenied).not.toHaveBeenCalled();
-    expect(activateSavedProfile).not.toHaveBeenCalled();
+    expect(activateSavedProfileByLogin).not.toHaveBeenCalled();
     expect(result).toEqual({
       ok: false,
       code: "forbidden",
       retryable: false,
-      details: { permission_denied: true },
+      details: {
+        permission_denied: true,
+        authorization_canceled_by_user: true,
+      },
     });
   });
 
   it("missing profile under consent path returns not_found before modal", async () => {
     const onDenied = vi.fn();
-    const requestConsent = vi.fn(() => Promise.resolve("allow" as const));
+    const requestConsent = vi.fn(() =>
+      Promise.resolve({ decision: "allow" as const, mode: "sip_only" as const }),
+    );
     const consentPort: SdkActivateConsentPort = { requestConsent };
     const { handler } = createHandler(
       createPort({
-        lookupSavedProfileLabel: () =>
+        lookupSavedProfileByLogin: () =>
           Promise.resolve(
-            err(createPlatformError("not_found", "sdk_activate_profile_not_found")),
+            err(createPlatformError("not_found", "sdk_activate_account_not_found")),
           ),
       }),
       {
@@ -400,7 +421,7 @@ describe("ExternalSdkAccountHandler", () => {
         ...BASE,
         type: "account:activate-profile",
         requestId: "req_act_consent_nf_001",
-        payload: { profileRef: PROFILE_REF, expectedRevision: 1 },
+        payload: { login: LOGIN, expectedRevision: 1 },
       },
       { clientId: CLIENT, origin: ORIGIN },
     );
@@ -410,6 +431,7 @@ describe("ExternalSdkAccountHandler", () => {
       ok: false,
       code: "not_found",
       retryable: false,
+      details: { account_not_found: true },
     });
   });
 });

@@ -138,7 +138,7 @@ Post-Low verification (2026-07-20): sdk src **115** (+2), workspace **123** (+2)
 
 - Guide quick start: no `account.activate` / `window.hide` / Web Storage / `sipPassword`
 - Example `src/**/*.ts`: no `localStorage` / `sessionStorage` / credential property keys / privileged `requestedCapabilities`
-- Activate docs: opaque `profileRef` only; grant via peer/desktop, never pairing request
+- Activate docs: saved-account `login` + optional mode; grant via Origin matrix, never pairing request
 - Anti-patterns page may mention forbidden words in prose tables (marked WRONG; not as working APIs)
 
 ## Remaining risks / handoff

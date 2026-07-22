@@ -16,8 +16,9 @@ type WireIdentity = {
 export function buildAccountActivateProfileBody(
   identity: WireIdentity,
   input: {
-    readonly profileRef: string;
+    readonly login: string;
     readonly expectedRevision: number;
+    readonly mode?: 'sip_only' | 'ocp';
   }
 ): string {
   return JSON.stringify({
@@ -29,8 +30,9 @@ export function buildAccountActivateProfileBody(
     sessionEpoch: identity.sessionEpoch,
     occurredAt: isoNow(identity.occurredAtMs),
     payload: {
-      profileRef: input.profileRef,
-      expectedRevision: input.expectedRevision
+      login: input.login,
+      expectedRevision: input.expectedRevision,
+      ...(input.mode === undefined ? {} : { mode: input.mode })
     }
   });
 }

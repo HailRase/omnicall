@@ -3,7 +3,7 @@
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
 **Updated:** 2026-07-22
-**Tests:** `2578 passed / 1 skipped` (2026-07-22; SDK pending lifecycle P0/P1)
+**Tests:** `2570 passed / 1 skipped` (2026-07-22; SDK login activate)
 **Lint / typecheck:** PASS (disposable demo at `ELECTRON/sdk-demo`, outside repo)
 
 **Auth Flow Refactoring / Hardening:** implementation + automated gate complete 2026-07-17 — independent account/OCP/SIP state, five-stage OCP progress, crash-safe saved profiles/secrets, one-click saved-profile entry, persistent auth errors and rolling 24-hour notification journal (F-029). Real staging OCP smoke SM-1…20 remains external verification. Version: `0.11.0`.

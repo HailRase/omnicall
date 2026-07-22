@@ -1,96 +1,117 @@
 /**
- * Bind Facade → ExternalSdkAccountPort (DI-08). No protocol parsing here.
+ * Bind Facade → ExternalSdkAccountPort (login activate path).
  */
 
 import {
-  createSavedAccountProfileId,
   isDraftSavedAccountProfile,
   type SavedAccountProfile,
 } from "@domain/index.js";
 import { createPlatformError } from "@shared/errors/index.js";
 import { err, isErr, ok, type Result } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
-import { decodeSdkProfileRef } from "@shared/integration/sdkProfileRefCodec.js";
+import {
+  sdkAccountLoginsMatch,
+  trimSdkAccountLogin,
+} from "@shared/integration/sdkAccountLogin.js";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import type { AccountSignInCommand } from "@application/facades/accountSignInCommand.js";
 
 import type {
   ExternalSdkAccountPort,
+  SdkActivateMode,
+  SdkActivateProfileLookup,
   SdkActivateProfileOutcome,
+  SdkActivateSessionView,
 } from "./ExternalSdkAccountPort.js";
 
-const PROFILE_NOT_FOUND = "sdk_activate_profile_not_found" as const;
+const PROFILE_NOT_FOUND = "sdk_activate_account_not_found" as const;
+const PROFILE_INCOMPLETE = "sdk_activate_account_incomplete" as const;
+const PROFILE_AMBIGUOUS = "sdk_activate_account_ambiguous" as const;
 const PROFILE_NOT_APPROVED = "sdk_activate_profile_not_approved" as const;
 
 export type CreateSdkAccountPortFromFacadeOptions = Readonly<{
   facade: AccountBootstrapFacade;
-  /** When false/undefined, OCP saved profiles are rejected (SIP-only safe). */
+  /** When false/undefined, OCP saved profiles modes are unavailable. */
   ocpModuleEnabled?: boolean;
+  getActivateSessionView: () => SdkActivateSessionView;
 }>;
 
 /**
- * - Purpose: map opaque profileRef to unified Account sign-in without wire secrets.
+ * - Purpose: map login → saved profile activate without wire secrets.
  */
 export function createSdkAccountPortFromFacade(
   options: CreateSdkAccountPortFromFacadeOptions,
 ): ExternalSdkAccountPort {
   return {
-    activateSavedProfile: (profileRef) =>
-      activateSavedProfileViaFacade(options, profileRef),
-    lookupSavedProfileLabel: (profileRef) =>
-      lookupSavedProfileLabelViaFacade(options, profileRef),
+    lookupSavedProfileByLogin: (login) =>
+      lookupSavedProfileByLoginViaFacade(options, login),
+    activateSavedProfileByLogin: (login, mode) =>
+      activateSavedProfileByLoginViaFacade(options, login, mode),
+    getActivateSessionView: () => options.getActivateSessionView(),
   };
 }
 
-async function lookupSavedProfileLabelViaFacade(
+async function lookupSavedProfileByLoginViaFacade(
   options: CreateSdkAccountPortFromFacadeOptions,
-  profileRef: string,
-): Promise<Result<{ profileLabel: string }, PlatformError>> {
-  const profile = await findApprovedSavedProfile(options, profileRef);
-  if (!profile.ok) {
-    return profile;
+  login: string,
+): Promise<Result<SdkActivateProfileLookup, PlatformError>> {
+  const match = await findApprovedProfileForLogin(options, login);
+  if (!match.ok) {
+    return match;
+  }
+  const availability = await options.facade.resolveSavedAccountProfileAvailability(
+    match.value.id,
+  );
+  if (isErr(availability)) {
+    return availability;
+  }
+  const availableModes = resolveAvailableModes({
+    profile: match.value,
+    hasSavedSipPassword: availability.value.hasSavedSipPassword,
+    hasCompleteOcpConfiguration: availability.value.hasCompleteOcpConfiguration,
+    ocpModuleEnabled: options.ocpModuleEnabled === true,
+  });
+  if (availableModes.length === 0) {
+    return err(createPlatformError("not_found", PROFILE_INCOMPLETE));
   }
   const label =
-    profile.value.displayName.trim().length > 0
-      ? profile.value.displayName.trim().slice(0, 128)
-      : profile.value.username.trim().slice(0, 128);
-  return ok({ profileLabel: label.length > 0 ? label : "profile" });
+    match.value.displayName.trim().length > 0
+      ? match.value.displayName.trim().slice(0, 128)
+      : match.value.username.trim().slice(0, 128);
+  return ok({
+    profileId: match.value.id,
+    profileLabel: label.length > 0 ? label : "profile",
+    username: match.value.username,
+    availableModes,
+  });
 }
 
-async function findApprovedSavedProfile(
+async function activateSavedProfileByLoginViaFacade(
   options: CreateSdkAccountPortFromFacadeOptions,
-  profileRef: string,
-): Promise<Result<SavedAccountProfile, PlatformError>> {
-  const profileIdRaw = decodeSdkProfileRef(profileRef);
-  if (profileIdRaw === null) {
-    return err(createPlatformError("not_found", PROFILE_NOT_FOUND));
-  }
-  const profileId = createSavedAccountProfileId(profileIdRaw);
-  const profilesResult = await options.facade.listSavedAccountProfiles();
-  if (isErr(profilesResult)) {
-    return profilesResult;
-  }
-  const profile = profilesResult.value.find((entry) => entry.id === profileId);
-  if (profile === undefined) {
-    return err(createPlatformError("not_found", PROFILE_NOT_FOUND));
-  }
-  if (isDraftSavedAccountProfile(profile)) {
-    return err(createPlatformError("forbidden", PROFILE_NOT_APPROVED));
-  }
-  return ok(profile);
-}
-
-async function activateSavedProfileViaFacade(
-  options: CreateSdkAccountPortFromFacadeOptions,
-  profileRef: string,
+  login: string,
+  mode: SdkActivateMode,
 ): Promise<Result<SdkActivateProfileOutcome, PlatformError>> {
-  const profileResult = await findApprovedSavedProfile(options, profileRef);
-  if (!profileResult.ok) {
-    return profileResult;
+  const match = await findApprovedProfileForLogin(options, login);
+  if (!match.ok) {
+    return match;
   }
-  const profile = profileResult.value;
+  const availability = await options.facade.resolveSavedAccountProfileAvailability(
+    match.value.id,
+  );
+  if (isErr(availability)) {
+    return availability;
+  }
+  const availableModes = resolveAvailableModes({
+    profile: match.value,
+    hasSavedSipPassword: availability.value.hasSavedSipPassword,
+    hasCompleteOcpConfiguration: availability.value.hasCompleteOcpConfiguration,
+    ocpModuleEnabled: options.ocpModuleEnabled === true,
+  });
+  if (!availableModes.includes(mode)) {
+    return err(createPlatformError("not_found", PROFILE_INCOMPLETE));
+  }
 
-  const command = buildActivateCommand(profile, options.ocpModuleEnabled === true);
+  const command = buildActivateCommand(match.value, mode);
   if (!command.ok) {
     return command;
   }
@@ -101,21 +122,82 @@ async function activateSavedProfileViaFacade(
   }
 
   return ok({
-    mode: command.value.mode,
-    ...(profile.displayName.trim().length > 0
-      ? { profileLabel: profile.displayName.trim().slice(0, 128) }
+    mode,
+    ...(match.value.displayName.trim().length > 0
+      ? { profileLabel: match.value.displayName.trim().slice(0, 128) }
       : {}),
   });
 }
 
+async function findApprovedProfileForLogin(
+  options: CreateSdkAccountPortFromFacadeOptions,
+  login: string,
+): Promise<Result<SavedAccountProfile, PlatformError>> {
+  const trimmed = trimSdkAccountLogin(login);
+  if (trimmed.length === 0) {
+    return err(createPlatformError("not_found", PROFILE_NOT_FOUND));
+  }
+  const profilesResult = await options.facade.listSavedAccountProfiles();
+  if (isErr(profilesResult)) {
+    return profilesResult;
+  }
+  const matches = profilesResult.value.filter(
+    (entry) =>
+      !isDraftSavedAccountProfile(entry) &&
+      sdkAccountLoginsMatch(trimmed, entry.username),
+  );
+  if (matches.length === 0) {
+    const anyDraft = profilesResult.value.some(
+      (entry) =>
+        isDraftSavedAccountProfile(entry) &&
+        sdkAccountLoginsMatch(trimmed, entry.username),
+    );
+    if (anyDraft) {
+      return err(createPlatformError("forbidden", PROFILE_NOT_APPROVED));
+    }
+    return err(createPlatformError("not_found", PROFILE_NOT_FOUND));
+  }
+  if (matches.length > 1) {
+    const sorted = [...matches].sort((a, b) => {
+      const aUsed = a.lastUsedAt ?? a.successfulUseAt ?? a.createdAt ?? "";
+      const bUsed = b.lastUsedAt ?? b.successfulUseAt ?? b.createdAt ?? "";
+      return bUsed.localeCompare(aUsed);
+    });
+    const primary = sorted[0];
+    if (primary === undefined) {
+      return err(createPlatformError("not_found", PROFILE_AMBIGUOUS));
+    }
+    return ok(primary);
+  }
+  return ok(matches[0]!);
+}
+
+function resolveAvailableModes(input: {
+  readonly profile: SavedAccountProfile;
+  readonly hasSavedSipPassword: boolean;
+  readonly hasCompleteOcpConfiguration: boolean;
+  readonly ocpModuleEnabled: boolean;
+}): readonly SdkActivateMode[] {
+  const modes: SdkActivateMode[] = [];
+  const domain = input.profile.domain.trim();
+  const server = input.profile.server.trim();
+  if (input.hasSavedSipPassword && domain.length > 0 && server.length > 0) {
+    modes.push("sip_only");
+  }
+  if (input.ocpModuleEnabled && input.hasCompleteOcpConfiguration) {
+    modes.push("ocp");
+  }
+  return modes;
+}
+
 function buildActivateCommand(
   profile: SavedAccountProfile,
-  ocpModuleEnabled: boolean,
+  mode: SdkActivateMode,
 ): Result<AccountSignInCommand, PlatformError> {
-  const ocpDomain = profile.ocpDomain?.trim() ?? "";
-  if (ocpDomain.length > 0) {
-    if (!ocpModuleEnabled) {
-      return err(createPlatformError("forbidden", PROFILE_NOT_APPROVED));
+  if (mode === "ocp") {
+    const ocpDomain = profile.ocpDomain?.trim() ?? "";
+    if (ocpDomain.length === 0) {
+      return err(createPlatformError("not_found", PROFILE_INCOMPLETE));
     }
     return ok({
       mode: "ocp",

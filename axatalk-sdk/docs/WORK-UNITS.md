@@ -309,7 +309,7 @@ Agent prompt:
 Public API (namespaced only):
 
 ```ts
-client.account.activateProfile({ profileRef, expectedRevision })
+client.account.activateProfile({ login, expectedRevision, mode? })
 ```
 
 Command: `account:activate-profile` · Capability: privileged `account.activate` (server-granted

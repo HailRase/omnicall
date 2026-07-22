@@ -106,7 +106,7 @@ export async function prepareLogoutDemo(
 
 export async function activateIfGranted(
   client: AxatalkClient,
-  profileRef: string
+  login: string
 ): Promise<
   | { readonly ok: true; readonly revision: number }
   | {
@@ -127,7 +127,7 @@ export async function activateIfGranted(
   const expectedRevision = await loadRevision(client);
   try {
     const result = await client.account.activateProfile({
-      profileRef,
+      login,
       expectedRevision
     });
     return { ok: true, revision: result.revision };

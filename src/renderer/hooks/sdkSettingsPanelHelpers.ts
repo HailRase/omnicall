@@ -41,8 +41,5 @@ export function mapSdkGatewayOpError(
   if (operation.op === "revokeClient") {
     return "settings.integrations.sdk.error.revokeFailed";
   }
-  if (operation.op === "issueActivateGrant") {
-    return "settings.integrations.sdk.error.grantFailed";
-  }
   return "settings.integrations.sdk.error.gatewayFailed";
 }

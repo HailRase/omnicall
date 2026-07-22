@@ -17,7 +17,6 @@ import { resolveAxatalkProfilesStorageRoot } from "@infrastructure/bootstrap/res
 import { createConsoleLogger } from "@infrastructure/logging/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import type {
-  SdkActivateGrantResultProjection,
   SdkGatewaySettingsPolicyPayload,
 } from "@shared/ipc/SdkGatewaySettingsContract.js";
 import { BrowserWindow, app } from "electron";
@@ -115,7 +114,6 @@ export async function startSdkGateway(options: {
   registerSdkGatewaySettingsIpc({
     getGateway: () => gateway,
     applyPolicy: (policy) => applySdkGatewayPolicy(policy),
-    issueActivateGrant: (input) => issueSdkAccountActivateGrant(input),
   });
 
   const killSwitchOff = process.env["AXATALK_SDK_GATEWAY"] === "0";
@@ -205,20 +203,6 @@ export async function applySdkGatewayPolicy(
     originTrustEntries,
     skipOriginTrustHydrate: true,
   });
-}
-
-export function issueSdkAccountActivateGrant(input: {
-  readonly clientId: string;
-  readonly profileId: string;
-}): SdkActivateGrantResultProjection {
-  if (gateway === null) {
-    return { ok: false, reason: "not_listening" };
-  }
-  const issued = gateway.issueAccountActivateGrant(input);
-  if (!issued.ok) {
-    return { ok: false, reason: issued.reason };
-  }
-  return { ok: true, profileRef: issued.profileRef };
 }
 
 export function beginSdkGatewayAppShutdown(): void {

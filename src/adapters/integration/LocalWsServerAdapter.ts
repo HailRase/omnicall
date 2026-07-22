@@ -217,6 +217,15 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
     this.originTrustEntries = [...entries];
     this.onOriginTrustChanged?.(this.originTrustEntries);
     this.enforceOriginTrustPolicySideEffects(previous, this.originTrustEntries);
+    for (const entry of this.originTrustEntries) {
+      if (entry.state !== "allowed") {
+        continue;
+      }
+      this.sessions?.syncActivateCapabilitiesForOrigin(
+        entry.origin,
+        this.getOriginMatrixCapabilities(entry.origin),
+      );
+    }
   }
 
   /**
@@ -373,27 +382,6 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
       return this.pairingStore.revoke(clientId);
     }
     return this.sessions.revokeClient(clientId);
-  }
-
-  /**
-   * Desktop-owned short-lived activate grant (DI-08). Elevates live sessions.
-   * Returns opaque profileRef for the client — never secrets.
-   */
-  issueAccountActivateGrant(input: {
-    readonly clientId: string;
-    readonly profileId: string;
-    readonly ttlMs?: number;
-  }):
-    | { readonly ok: true; readonly profileRef: string }
-    | { readonly ok: false; readonly reason: "not_listening" | "invalid_profile" | "ref_too_long" } {
-    if (this.sessions === null) {
-      return { ok: false, reason: "not_listening" };
-    }
-    const issued = this.sessions.issueAccountActivateGrant(input);
-    if (!issued.ok) {
-      return issued;
-    }
-    return { ok: true, profileRef: issued.grant.profileRef };
   }
 
   validateWireInbound(

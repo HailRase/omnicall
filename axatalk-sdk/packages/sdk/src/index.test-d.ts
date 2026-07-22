@@ -50,10 +50,13 @@ describe('@axata/axatalk-sdk type smoke', () => {
     expectTypeOf<AxatalkClient['account']>().toHaveProperty('activateProfile');
     expectTypeOf<
       Parameters<AxatalkClient['account']['activateProfile']>[0]
-    >().toHaveProperty('profileRef');
+    >().toHaveProperty('login');
     expectTypeOf<
       Parameters<AxatalkClient['account']['activateProfile']>[0]
     >().toHaveProperty('expectedRevision');
+    expectTypeOf<
+      Parameters<AxatalkClient['account']['activateProfile']>[0]
+    >().toHaveProperty('mode');
     expectTypeOf<
       Parameters<AxatalkClient['account']['activateProfile']>[0]
     >().not.toHaveProperty('password');

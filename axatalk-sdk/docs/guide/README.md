@@ -20,7 +20,7 @@ Example (fake peer only): [`examples/crm-pairing-lite/`](../../examples/crm-pair
 | 7 | [Errors catalog](./errors.md) | Stable codes + host next steps |
 | 8 | [Reconnect & multi-tab](./reconnect-multi-tab.md) | Fresh snapshot; no mutation replay |
 | 9 | [Logout workflow](./logout-workflow.md) | prepare → confirm / abandon |
-| 10 | [Saved-profile activation](./saved-profile-activation.md) | Opaque `profileRef`; server-grant only |
+| 10 | [Saved-account activation](./saved-profile-activation.md) | Login + optional mode; server-grant only |
 | 11 | [Upgrade & deprecation](./upgrade-deprecation.md) | Additive fields; protocol vs package |
 | 12 | [Compatibility matrix](./compatibility-matrix.md) | Browser + SDK↔desktop gates (DI-10 cells) |
 | 13 | [Release, rollback, revoke & support](./release-and-support.md) | RC tag, SBOM, provenance, stable gate |

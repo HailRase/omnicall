@@ -13,7 +13,7 @@ Detect with `isAxatalkClientError(error)` then branch on `error.code`.
 | `timeout` | No reply in budget | Surface retry UI; do **not** auto-replay non-idempotent cmds |
 | `stale_state` | Revision mismatch; often has `currentRevision` | `getSnapshot()`; retry **once** with new revision if user still intends |
 | `conflict` | Aggregate busy / active session / race / activate consent already pending | Show conflict; for activate often logout-first; wait if consent pending |
-| `not_found` | Unknown call / reason / profileRef / no saved profile | Refresh; for activate guide human to Account UI |
+| `not_found` | Unknown call / reason / login / no saved account | Refresh; for activate correct login or guide human to Account UI |
 | `invalid_payload` | Wire/result shape failed closed | Treat as bug / desktop mismatch; do not parse secrets from `details` |
 | `interaction_required` | Human step needed (logout reason **or** manual sign-in in progress) | Logout: `details.logoutToken`. Activate: complete Account UI |
 | `revoked` | Session revoked | Clear client; re-pair |

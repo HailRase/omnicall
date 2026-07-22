@@ -8,12 +8,12 @@ Fail closed. If a pattern is not listed as allowed, treat it as forbidden.
 | --- | --- | --- |
 | `requestedCapabilities: ['account.activate']` at pairing | Privileged; SDK **strips** it (`sanitizeRequestedCapabilities`) | Operator grants via desktop Settings (DI-09); SDK receives grant on wire |
 | Requesting `window.hide` | Privileged + **unavailable in v1 product** | Do not call; do not document as available |
-| SIP password / OCP `apiKey` in SDK calls | Secrets must stay in desktop secure storage | Opaque `profileRef` + `account.activateProfile` when granted |
+| SIP password / OCP `apiKey` in SDK calls | Secrets must stay in desktop secure storage | Saved-account `login` + `account.activateProfile` when granted |
 | Persist PoP / tokens in `localStorage` / `sessionStorage` | XSS-readable | `createIndexedDbPopKeyStore` (browser) or `createMemoryPopKeyStore` (tests) |
 | Log pairing material, tokens, phones, reply payloads | PII / secret leak | Log `code`, `retryable`, `requestId`, command type only |
 | Auto-replay mutations after reconnect | Non-idempotent; can double-originate | Bind `expectedRevision` on a **fresh** snapshot; user re-issues |
 | Hang up / confirm logout / activate on `disconnect()` | Desktop session must survive SDK crash | `disconnect()` closes transport only |
-| Invent `account:list-profiles` | Not in protocol v1 | Supply `profileRef` from a desktop-approved channel your product owns |
+| Invent `account:list-profiles` | Not in protocol v1 | Supply the saved-account `login` from your product |
 | Auto-confirm logout on disconnect | Destructive side effect | Host UI confirms with `logoutToken`; cancel = abandon token |
 | Treat Origin substring / wildcard as OK | Exact Origin only | Exact approved Origin string |
 
@@ -32,7 +32,7 @@ if (!caps.includes('account.activate')) {
   // show host UI: ask operator to grant in Axatalk Settings
   return;
 }
-await client.account.activateProfile({ profileRef, expectedRevision });
+await client.account.activateProfile({ login, expectedRevision });
 ```
 
 Enforcement lives in product code (`packages/sdk/src/internal/requested-capabilities.ts`),

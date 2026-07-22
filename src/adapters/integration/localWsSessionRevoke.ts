@@ -1,5 +1,5 @@
 /**
- * Client revoke + activate-grant cleanup for LocalWsSessionRegistry.
+ * Client revoke for LocalWsSessionRegistry.
  */
 
 import type { WireMessage } from "@axata/axatalk-protocol";
@@ -10,13 +10,10 @@ import {
   type SdkGatewayIdentity,
 } from "./sdkGatewayMessages.js";
 import type { SdkGatewayPairingStore } from "./sdkGatewayPairingStore.js";
-import type { SdkAccountActivateGrantStore } from "./sdkAccountActivateGrantStore.js";
-import { clearAccountActivateGrantsForClient } from "./sdkAccountActivateSession.js";
 
 export async function revokeLocalWsClient(input: {
   readonly clientId: string;
   readonly pairingStore: SdkGatewayPairingStore;
-  readonly activateGrantStore: SdkAccountActivateGrantStore;
   readonly connections: Map<string, SdkGatewayConnection>;
   readonly getIdentity: () => SdkGatewayIdentity | null;
   readonly now: () => Date;
@@ -32,11 +29,6 @@ export async function revokeLocalWsClient(input: {
   if (!ok) {
     return false;
   }
-  clearAccountActivateGrantsForClient({
-    activateGrantStore: input.activateGrantStore,
-    connections: input.connections.values(),
-    clientId: input.clientId,
-  });
   const identity = input.getIdentity();
   for (const connection of [...input.connections.values()]) {
     if (connection.clientId !== input.clientId) {

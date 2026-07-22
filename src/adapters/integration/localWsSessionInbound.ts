@@ -20,7 +20,6 @@ import type { SdkOriginTrustState } from "@domain/index.js";
 import type { CapabilityId } from "@axata/axatalk-protocol";
 import { dispatchSdkValidatedMessage } from "./sdkGatewaySessionDispatch.js";
 import { startSdkGatewayHeartbeat } from "./sdkGatewaySessionSocket.js";
-import type { SdkAccountActivateGrantStore } from "./sdkAccountActivateGrantStore.js";
 import type { SdkGatewayLogFn } from "./localWsServerHelpers.js";
 
 export type LocalWsSessionInboundDeps = Readonly<{
@@ -45,7 +44,6 @@ export type LocalWsSessionInboundDeps = Readonly<{
   now: () => Date;
   connectionCount: number;
   limits: SdkGatewayLimits;
-  activateGrantStore: SdkAccountActivateGrantStore;
   productSurface: SdkGatewayProductSurface | null;
   sendJson: (connection: SdkGatewayConnection, message: WireMessage) => void;
   closeConnection: (connection: SdkGatewayConnection, reason: string) => void;
@@ -86,7 +84,6 @@ export function parseAndDispatchLocalWsSession(
     now: deps.now,
     connectionCount: deps.connectionCount,
     heartbeatSeconds: deps.limits.heartbeatSeconds,
-    activateGrantStore: deps.activateGrantStore,
     sendJson: deps.sendJson,
     closeConnection: deps.closeConnection,
     startHeartbeat: (c) => {

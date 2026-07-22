@@ -1,10 +1,6 @@
 import type { SdkIntegrationSettings } from "@application/index.js";
+import type { SdkSettingsPanelErrorKey } from "../../../hooks/useSdkSettingsPanel.js";
 import type {
-  SdkSettingsPanelErrorKey,
-  SdkProfileOption,
-} from "../../../hooks/useSdkSettingsPanel.js";
-import type {
-  SdkActivateGrantResultProjection,
   SdkGatewayDiagnosticsProjection,
   SdkPairedClientProjection,
 } from "@shared/ipc/SdkGatewaySettingsContract.js";
@@ -15,10 +11,6 @@ export type SdkModuleSettingsCardProps = Readonly<{
   diagnostics: SdkGatewayDiagnosticsProjection;
   allowedOriginsLive: readonly string[];
   pairedClients: readonly SdkPairedClientProjection[];
-  profileOptions: readonly SdkProfileOption[];
-  selectedClientId: string | null;
-  selectedProfileId: string | null;
-  lastGrant: SdkActivateGrantResultProjection | null;
   addOriginDraft: string;
   errorKey: SdkSettingsPanelErrorKey | null;
   busy: boolean;
@@ -26,9 +18,6 @@ export type SdkModuleSettingsCardProps = Readonly<{
   onAddOrigin: (draft?: string) => void;
   onRefresh: () => void;
   onRevokeClient: (clientId: string) => void;
-  onSelectClientId: (clientId: string | null) => void;
-  onSelectProfileId: (profileId: string | null) => void;
-  onIssueActivateGrant: () => void;
   onUnblockOrigin: (origin: string) => void;
   onBlacklistOrigin: (origin: string) => void;
   onRemoveAllowedOrigin: (origin: string) => void;

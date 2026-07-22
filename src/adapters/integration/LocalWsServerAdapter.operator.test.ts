@@ -16,6 +16,7 @@ import { WebSocket, type RawData } from "ws";
 
 import { LocalWsServerAdapter } from "./LocalWsServerAdapter.js";
 import { rawDataToString } from "./localWsServerHelpers.js";
+import { createAutoApprovePairingApprover } from "./sdkGatewayPairingApprover.js";
 import type { SdkGatewayProductSurface } from "./sdkGatewayProductSurface.js";
 import {
   generateSdkPopTestKeyPair,
@@ -55,7 +56,8 @@ async function startAdapter(
     host: "127.0.0.1",
     port: 0,
     allowedOrigins: [TEST_ORIGIN],
-    autoApprovePairing: true,
+    autoApprovePairing: false,
+    pairingApprover: createAutoApprovePairingApprover(),
     secretStorage: new InMemorySecretStorageAdapter(),
     productSurface: createSurface(),
     ...overrides,
@@ -140,6 +142,7 @@ async function handshake(
         "session.read.redacted",
         "operator.status.write",
         "session.logout",
+        "account.activate",
       ],
       clientNonce: "Y2xpZW50bm9uY2UxMjM",
       occurredAt: "2026-07-20T09:00:00.000Z",
@@ -216,6 +219,7 @@ async function pairAuthOperator(
         "session.read.redacted",
         "operator.status.write",
         "session.logout",
+        "account.activate",
       ],
       occurredAt: "2026-07-20T09:00:00.000Z",
     }),
@@ -310,6 +314,7 @@ describe("LocalWsServerAdapter DI-07 operator/logout", () => {
   it("routes operator:change-status to broker with clientId", async () => {
     let seenClientId: string | undefined;
     const adapter = await startAdapter({
+      autoApprovePairing: true,
       productSurface: createSurface({
         requestProductCommand: (command, context) => {
           seenClientId = context?.clientId;
@@ -522,7 +527,7 @@ describe("LocalWsServerAdapter DI-07 operator/logout", () => {
         serverInstanceId: hello.serverInstanceId,
         sessionEpoch: hello.sessionEpoch,
         occurredAt: "2026-07-20T09:00:00.000Z",
-        payload: { profileRef: "prf_dGVzdA", expectedRevision: 1 },
+        payload: { login: "1001@pbx.example", expectedRevision: 1 },
       }),
     );
     const reply = await authQueue.next();
@@ -535,9 +540,10 @@ describe("LocalWsServerAdapter DI-07 operator/logout", () => {
     authWs.close();
   });
 
-  it("DI-08: grant elevates activate-profile to broker", async () => {
+  it("DI-08: Origin matrix enables activate-profile for the broker", async () => {
     let seenClientId: string | undefined;
     const adapter = await startAdapter({
+      autoApprovePairing: true,
       productSurface: createSurface({
         requestProductCommand: (command, context) => {
           seenClientId = context?.clientId;
@@ -568,14 +574,6 @@ describe("LocalWsServerAdapter DI-07 operator/logout", () => {
     });
     const clientId = "client_act_ok_001";
     const { ws, queue, hello } = await pairAuthOperator(adapter, clientId);
-    const grant = adapter.issueAccountActivateGrant({
-      clientId,
-      profileId: "1001@pbx.example",
-    });
-    expect(grant.ok).toBe(true);
-    if (!grant.ok) {
-      return;
-    }
     ws.send(
       JSON.stringify({
         protocolVersion: PROTOCOL_MAJOR,
@@ -585,7 +583,7 @@ describe("LocalWsServerAdapter DI-07 operator/logout", () => {
         serverInstanceId: hello.serverInstanceId,
         sessionEpoch: hello.sessionEpoch,
         occurredAt: "2026-07-20T09:00:00.000Z",
-        payload: { profileRef: grant.profileRef, expectedRevision: 1 },
+        payload: { login: "1001@pbx.example", expectedRevision: 1 },
       }),
     );
     const reply = await queue.next();
@@ -602,188 +600,4 @@ describe("LocalWsServerAdapter DI-07 operator/logout", () => {
     ws.close();
   });
 
-  it("DI-08: grant for other profileRef still forbids activate", async () => {
-    let brokerCalls = 0;
-    const adapter = await startAdapter({
-      productSurface: createSurface({
-        requestProductCommand: () => {
-          brokerCalls += 1;
-          return Promise.resolve({ ok: false as const, code: "operation_failed" });
-        },
-      }),
-    });
-    const clientId = "client_act_mismatch_001";
-    const { ws, queue, hello } = await pairAuthOperator(adapter, clientId);
-    const grant = adapter.issueAccountActivateGrant({
-      clientId,
-      profileId: "1001@pbx.example",
-    });
-    expect(grant.ok).toBe(true);
-    ws.send(
-      JSON.stringify({
-        protocolVersion: PROTOCOL_MAJOR,
-        kind: "command",
-        type: "account:activate-profile",
-        requestId: "req_act_mismatch_001",
-        serverInstanceId: hello.serverInstanceId,
-        sessionEpoch: hello.sessionEpoch,
-        occurredAt: "2026-07-20T09:00:00.000Z",
-        payload: { profileRef: "prf_b3RoZXI", expectedRevision: 1 },
-      }),
-    );
-    const reply = await queue.next();
-    expect(reply.kind).toBe("reply");
-    if (reply.kind === "reply" && !reply.ok) {
-      expect(reply.error.code).toBe("forbidden");
-    }
-    expect(brokerCalls).toBe(0);
-    queue.close();
-    ws.close();
-  });
-
-  it("DI-08: disconnect clears grants; re-auth activate without new grant is forbidden", async () => {
-    let brokerCalls = 0;
-    const adapter = await startAdapter({
-      productSurface: createSurface({
-        requestProductCommand: () => {
-          brokerCalls += 1;
-          return Promise.resolve({ ok: false as const, code: "operation_failed" });
-        },
-      }),
-    });
-    const clientId = "client_act_disc_001";
-    const { ws, queue, keys } = await pairAuthOperator(adapter, clientId);
-    const grant = adapter.issueAccountActivateGrant({
-      clientId,
-      profileId: "1001@pbx.example",
-    });
-    expect(grant.ok).toBe(true);
-    if (!grant.ok) {
-      return;
-    }
-    const profileRef = grant.profileRef;
-    queue.close();
-    ws.close();
-    await once(ws, "close");
-    await new Promise((r) => setTimeout(r, 40));
-
-    const session = await authOperatorSession(adapter, clientId, keys);
-    session.ws.send(
-      JSON.stringify({
-        protocolVersion: PROTOCOL_MAJOR,
-        kind: "command",
-        type: "account:activate-profile",
-        requestId: "req_act_disc_001",
-        serverInstanceId: session.hello.serverInstanceId,
-        sessionEpoch: session.hello.sessionEpoch,
-        occurredAt: "2026-07-20T09:00:00.000Z",
-        payload: { profileRef, expectedRevision: 1 },
-      }),
-    );
-    const reply = await session.queue.next();
-    expect(reply.kind).toBe("reply");
-    if (reply.kind === "reply" && !reply.ok) {
-      expect(reply.error.code).toBe("forbidden");
-    }
-    expect(brokerCalls).toBe(0);
-    session.queue.close();
-    session.ws.close();
-  });
-
-  it("DI-08: revoke clears grants; re-pair activate without new grant is forbidden", async () => {
-    let brokerCalls = 0;
-    const adapter = await startAdapter({
-      productSurface: createSurface({
-        requestProductCommand: () => {
-          brokerCalls += 1;
-          return Promise.resolve({ ok: false as const, code: "operation_failed" });
-        },
-      }),
-    });
-    const clientId = "client_act_rev_001";
-    const { ws, queue } = await pairAuthOperator(adapter, clientId);
-    const grant = adapter.issueAccountActivateGrant({
-      clientId,
-      profileId: "1001@pbx.example",
-    });
-    expect(grant.ok).toBe(true);
-    if (!grant.ok) {
-      return;
-    }
-    const profileRef = grant.profileRef;
-    const revoked = await adapter.revokePairedClient(clientId);
-    expect(revoked).toBe(true);
-    expectType(await queue.next(), "sdk:revoked");
-    await once(ws, "close");
-    queue.close();
-
-    const { ws: ws2, queue: queue2, hello } = await pairAuthOperator(
-      adapter,
-      clientId,
-    );
-    ws2.send(
-      JSON.stringify({
-        protocolVersion: PROTOCOL_MAJOR,
-        kind: "command",
-        type: "account:activate-profile",
-        requestId: "req_act_rev_001",
-        serverInstanceId: hello.serverInstanceId,
-        sessionEpoch: hello.sessionEpoch,
-        occurredAt: "2026-07-20T09:00:00.000Z",
-        payload: { profileRef, expectedRevision: 1 },
-      }),
-    );
-    const reply = await queue2.next();
-    expect(reply.kind).toBe("reply");
-    if (reply.kind === "reply" && !reply.ok) {
-      expect(reply.error.code).toBe("forbidden");
-    }
-    expect(brokerCalls).toBe(0);
-    queue2.close();
-    ws2.close();
-  });
-
-  it("DI-08: expired grant strips capability and forbids activate", async () => {
-    let brokerCalls = 0;
-    const adapter = await startAdapter({
-      productSurface: createSurface({
-        requestProductCommand: () => {
-          brokerCalls += 1;
-          return Promise.resolve({ ok: false as const, code: "operation_failed" });
-        },
-      }),
-    });
-    const clientId = "client_act_ttl_001";
-    const { ws, queue, hello } = await pairAuthOperator(adapter, clientId);
-    const grant = adapter.issueAccountActivateGrant({
-      clientId,
-      profileId: "1001@pbx.example",
-      ttlMs: 40,
-    });
-    expect(grant.ok).toBe(true);
-    if (!grant.ok) {
-      return;
-    }
-    await new Promise((r) => setTimeout(r, 80));
-    ws.send(
-      JSON.stringify({
-        protocolVersion: PROTOCOL_MAJOR,
-        kind: "command",
-        type: "account:activate-profile",
-        requestId: "req_act_ttl_001",
-        serverInstanceId: hello.serverInstanceId,
-        sessionEpoch: hello.sessionEpoch,
-        occurredAt: "2026-07-20T09:00:00.000Z",
-        payload: { profileRef: grant.profileRef, expectedRevision: 1 },
-      }),
-    );
-    const reply = await queue.next();
-    expect(reply.kind).toBe("reply");
-    if (reply.kind === "reply" && !reply.ok) {
-      expect(reply.error.code).toBe("forbidden");
-    }
-    expect(brokerCalls).toBe(0);
-    queue.close();
-    ws.close();
-  });
 });

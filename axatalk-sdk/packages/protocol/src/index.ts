@@ -163,6 +163,7 @@ export {
 } from './policy.js';
 
 export {
+  AccountLoginSchema,
   ApplicationIdentitySchema,
   Base64UrlSchema,
   IsoTimestampSchema,
@@ -174,6 +175,7 @@ export {
   RevisionSchema,
   WireJsonObjectSchema,
   WireJsonValueSchema,
+  type AccountLogin,
   type ApplicationIdentity,
   type Base64Url,
   type IsoTimestamp,

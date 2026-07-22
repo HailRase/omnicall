@@ -66,10 +66,6 @@ function createProps(
         capabilityCount: 2,
       },
     ],
-    profileOptions: [{ id: "user@host|sip", label: "user@host" }],
-    selectedClientId: "cli_1",
-    selectedProfileId: "user@host|sip",
-    lastGrant: { ok: true, profileRef: "prf_opaque" },
     addOriginDraft: "",
     errorKey: null,
     busy: false,
@@ -77,9 +73,6 @@ function createProps(
     onAddOrigin: vi.fn(),
     onRefresh: vi.fn(),
     onRevokeClient: vi.fn(),
-    onSelectClientId: vi.fn(),
-    onSelectProfileId: vi.fn(),
-    onIssueActivateGrant: vi.fn(),
     onUnblockOrigin: vi.fn(),
     onBlacklistOrigin: vi.fn(),
     onRemoveAllowedOrigin: vi.fn(),
@@ -117,7 +110,6 @@ describe("SdkModuleSettingsCard", () => {
     expect(screen.getByTestId("sdk-module-tab-blocked")).toBeInTheDocument();
     expect(screen.getByTestId("sdk-module-diagnostics")).toBeInTheDocument();
     expect(screen.getByTestId("sdk-module-hide-toggle")).toBeDisabled();
-    expect(screen.getByTestId("sdk-module-grant-ref")).toHaveTextContent("prf_opaque");
     expect(screen.queryByTestId("sdk-module-blacklist")).not.toBeInTheDocument();
     expect(screen.queryByTestId("sdk-module-attention")).not.toBeInTheDocument();
     expect(document.body.textContent ?? "").not.toMatch(
@@ -147,16 +139,6 @@ describe("SdkModuleSettingsCard", () => {
 
     await openTab(user, "blocked");
     expect(screen.getByTestId("sdk-module-blacklist-empty")).toBeInTheDocument();
-  });
-
-  it("issues activate grant via callback without inline pairing attention", async () => {
-    const user = userEvent.setup();
-    const props = createProps();
-    render(<SdkModuleSettingsCard {...props} />);
-
-    expect(screen.queryByTestId("sdk-module-pending")).not.toBeInTheDocument();
-    await user.click(screen.getByTestId("sdk-module-grant-issue"));
-    expect(props.onIssueActivateGrant).toHaveBeenCalledTimes(1);
   });
 
   it("confirms revoke for a paired client without exposing secrets", async () => {

@@ -70,16 +70,24 @@ Two product risks:
    session token, or secret-storage values on the wire). This is non-negotiable for P12.
 
 3. **Preferred SDK account path (DI-08 + ADR-0018):** privileged `account:activate-profile`
-   using an opaque desktop-approved saved profile reference (`profileRef`):
-   - requires Origin not blacklisted, Origin policy allowing activate, **and** session
-     capability `account.activate`; when policy allows and a saved profile exists, a
-     renderer consent modal Allow is still required on **every** activate (ADR-0018 §E —
-     no lasting skip-consent grant);
-   - desktop hydrates secrets only inside secure storage / Application boundaries;
-   - delegates to the **unified Account sign-in path** (same Facade command family as UI);
-   - preserves **active-session logout-first lock** (ADR-AF-003 / ADR-AF-005);
-   - missing saved profile → typed `not_found` / `interaction_required` + Account UI;
-   - operator Deny on consent → persist activate-disabled for that Origin + `forbidden`;
+   with a **login** string (optional `mode: sip_only | ocp`) — **not** passwords, **not** a
+   Settings-issued temporary `profileRef` grant:
+   - requires Origin not blacklisted, Origin matrix allowing activate, **and** session
+     capability `account.activate` (elevated from Origin matrix; pairing defaults never
+     include it; desktop emits `sdk:permission-changed` when matrix toggles);
+   - desktop looks up a local saved profile by login (trim; case preserved; `1001` matches
+     `1001@domain` local-part); SIP username and OCP login are the same identity;
+   - when a complete SIP and/or OCP method exists, a renderer consent modal offers the
+     available method(s); Allow runs unified Account sign-in (ADR-AF-003);
+   - same login + same `clientId` already signed in → idempotent success
+     (`alreadyAuthenticated`) **without** modal;
+   - same login + **different** `clientId` → reauthorize consent modal;
+   - different login while signed in → immediate `conflict` + `logout_required` and an
+     informational modal (logout-first; ADR-AF-003/005);
+   - Cancel/dismiss → `forbidden` + `authorization_canceled_by_user`; Deny → persist
+     activate-disabled for Origin + `activate_denied_for_origin`;
+   - missing / incomplete saved profile → `not_found` + `account_not_found` /
+     `account_incomplete`;
    - SDK receives only operation result + redacted state — never secrets.
 
 4. **Logout via SDK (DI-07):** `account:prepare-logout` / `account:confirm-logout` map to

@@ -532,11 +532,9 @@ function SoftphoneShellLayoutRoute({
             onDismiss={sdkConnectCeremony.onDismiss}
           />
           <SdkActivateProfileConsentModal
-            open={activateConsentPending !== null}
-            origin={activateConsentPending?.origin ?? null}
-            profileLabel={activateConsentPending?.profileLabel ?? null}
-            onAllow={() => {
-              sdkActivateConsentBridge.settle("allow");
+            pending={activateConsentPending}
+            onAllow={(mode) => {
+              sdkActivateConsentBridge.settle("allow", mode);
             }}
             onDeny={() => {
               sdkActivateConsentBridge.settle("deny");
@@ -695,10 +693,6 @@ function SoftphoneShellLayoutRoute({
                   diagnostics: sdkSettingsPanel.diagnostics,
                   allowedOriginsLive: sdkSettingsPanel.allowedOriginsLive,
                   pairedClients: sdkSettingsPanel.pairedClients,
-                  profileOptions: sdkSettingsPanel.profileOptions,
-                  selectedClientId: sdkSettingsPanel.selectedClientId,
-                  selectedProfileId: sdkSettingsPanel.selectedProfileId,
-                  lastGrant: sdkSettingsPanel.lastGrant,
                   addOriginDraft: sdkSettingsPanel.addOriginDraft,
                   errorKey: sdkSettingsPanel.errorKey,
                   busy: sdkSettingsPanel.busy,
@@ -706,9 +700,6 @@ function SoftphoneShellLayoutRoute({
                   onAddOrigin: sdkSettingsPanel.onAddOrigin,
                   onRefresh: sdkSettingsPanel.onRefresh,
                   onRevokeClient: sdkSettingsPanel.onRevokeClient,
-                  onSelectClientId: sdkSettingsPanel.onSelectClientId,
-                  onSelectProfileId: sdkSettingsPanel.onSelectProfileId,
-                  onIssueActivateGrant: sdkSettingsPanel.onIssueActivateGrant,
                   onUnblockOrigin: sdkSettingsPanel.onUnblockOrigin,
                   onBlacklistOrigin: sdkSettingsPanel.onBlacklistOrigin,
                   onRemoveAllowedOrigin: sdkSettingsPanel.onRemoveAllowedOrigin,

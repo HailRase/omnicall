@@ -12,7 +12,6 @@ import {
 import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
 import {
   parseSdkGatewaySettingsOperation,
-  type SdkActivateGrantResultProjection,
   type SdkGatewaySettingsOperation,
   type SdkGatewaySettingsPolicyPayload,
   type SdkGatewaySettingsResponse,
@@ -31,10 +30,6 @@ export type SdkGatewaySettingsIpcDeps = Readonly<{
   applyPolicy: (
     policy: SdkGatewaySettingsPolicyPayload,
   ) => Promise<LocalWsServerAdapter | null>;
-  issueActivateGrant: (input: {
-    readonly clientId: string;
-    readonly profileId: string;
-  }) => SdkActivateGrantResultProjection;
 }>;
 
 let settingsIpcRegistered = false;
@@ -124,14 +119,6 @@ async function handleSdkGatewaySettingsOperation(
       });
       const snapshot = await buildSdkGatewaySettingsSnapshot(gateway);
       return { ok: true, snapshot };
-    }
-    case "issueActivateGrant": {
-      const grant = runtime.issueActivateGrant({
-        clientId: operation.clientId,
-        profileId: operation.profileId,
-      });
-      const snapshot = await buildSdkGatewaySettingsSnapshot(runtime.getGateway());
-      return { ok: true, grant, snapshot };
     }
     case "allowOriginTrust":
     case "denyOriginTrust": {

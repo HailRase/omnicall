@@ -141,18 +141,18 @@ the same store — not the only gate. Blacklist still wins over allow seed.
 
    - Matrix **shrink** (operator turns a cap off in Settings) applies on the **next**
      command / event fan-out / snapshot **without** requiring re-pair or reconnect.
-   - Matrix **expand** does **not** add capabilities beyond the pairing ceiling; the
-     client must re-pair (or receive an explicit elevate path such as activate grant)
-     to obtain newly enabled caps.
+   - Matrix **expand** does **not** add capabilities beyond the pairing ceiling **except**
+     privileged `account.activate` (see §4).
    - When a required capability is present in session grants but stripped by the live
      matrix → typed **`forbidden`** with details key **`permission_denied`**; do not tear
      the transport solely for that deny.
 4. Privileged `account.activate` and unavailable `window.hide` remain special:
    - `window.hide` — still unavailable in product v1 (ADR-0013);
-   - `account.activate` — matrix flag “activate allowed for this Origin”; actual activate
-     still requires the consent path in §E on **every** activate attempt when enabled.
-     Live matrix off also fails closed via the effective-cap intersection (and the
-     activate-specific gate).
+   - `account.activate` — **not** in pairing defaults. When the Origin matrix enables it,
+     desktop elevates it onto the live session and emits `sdk:permission-changed`
+     (exception to matrix-expand-beyond-pairing). Disable strips it. Actual activate still
+     requires the consent path in §E (with same-client idempotent exception). There is
+     **no** Settings temporary grant TTL / opaque `profileRef` issuance.
 5. While Origin is `denied`, matrix values are stored read-only for Unblock restore and
    **not consulted** for authorization. Consumer Settings must not add/edit allow or
    matrix entries until Unblock.
@@ -162,39 +162,40 @@ Default on first Origin Allow (modal): non-privileged `call_controller` defaults
 `session.logout`, `operator.status.write`). `account.activate` defaults **off** until
 explicitly enabled in the Settings matrix.
 
-### E. Saved-profile activate consent (no passwords on the wire)
+### E. Saved-profile activate consent (login path; no passwords on the wire)
 
 Extends ADR-0013 §B / DI-08 — **does not** introduce raw credential commands.
+**Supersedes** the temporary Settings `profileRef` grant UX (removed).
 
-1. After Origin is `allowed` and the SDK session is authenticated, the host may call
-   `account.activateProfile` with an opaque **`profileRef`**. Desktop may resolve a unique
-   local saved profile; UI may show a human label such as `alex.supervisor`. Integrators
-   must not send SIP passwords or OCP apiKeys.
-2. If Origin matrix has activate **disabled** → immediate **`forbidden`** with details key
-   **`permission_denied`** (or `activate_denied_for_origin`) — **no consent modal**.
-3. If no matching saved profile → **`not_found`** (primary) and optionally surface Account
-   UI via `window.show`; use **`interaction_required`** only when the operator must finish
-   a human Account step already in progress. SDK must not invent credentials.
-4. If a saved profile exists and Origin matrix allows activate → **renderer consent modal**:
-   “Origin X wants to sign in as {profileLabel} — Allow / Deny”.
-5. **Allow (one login only):** desktop loads secrets only from secure storage, runs the
-   unified Account sign-in path (ADR-AF-003), returns success + redacted state. This
-   consent authorizes **this single activate** — the next `activateProfile` requires a
-   **new** consent modal (no lasting “activate grant TTL” that skips the modal).
-6. **Deny:** persist Origin matrix flag **activate disabled**, return **`forbidden`**
-   (`permission_denied` / `activate_denied_for_origin`), keep WS up. Subsequent activate
-   attempts from that Origin receive immediate **`forbidden`** (no modal) until an
-   operator re-enables activate in Settings. **Do not** silent-ignore activate.
-7. **Pending guard (no spam / no hang):** while an activate consent is pending for an
-   Origin/session, additional activate requests are rejected with primary typed
-   **`conflict`** (optional details key `activate_consent_pending`) — do not queue
-   parallel modals. **Any** terminal UI action (Allow, Deny, or dismiss/close of the
-   modal) **clears** pending so the gateway cannot wedge.
-8. Active account session lock: logout-first **`conflict`** unchanged (ADR-AF-003/005).
-9. SIP vs OCP is **not** chosen on the wire by the SDK; it is a property of the **saved
-   profile** inside desktop.
-
-Raw credential provisioning over SDK remains a **future separate ADR** if ever required.
+1. After Origin is `allowed` and the SDK session is authenticated with capability
+   `account.activate` (from Origin matrix — see §D exception below), the host may call
+   `account.activateProfile` with **`login`** (trimmed; case preserved; optional
+   `mode: sip_only | ocp`). Integrators must not send SIP passwords or OCP apiKeys.
+2. If Origin matrix has activate **disabled** → immediate **`forbidden`** +
+   **`permission_denied`** — **no consent modal**.
+3. Desktop resolves a non-draft saved profile by login match (exact trimmed string **or**
+   equal non-empty local-part before `@`). SIP username and OCP login are the same AD
+   identity. Completeness:
+   - SIP method: saved SIP password + domain + server;
+   - OCP method: OCP module enabled + complete OCP config (domain + api key).
+   If none → **`not_found`** + details `account_incomplete` / `account_not_found`.
+4. **Consent modal** (when signed out or first activate for this client):
+   “Origin X wants to sign in as {profileLabel} ({login})” with available method(s) +
+   Allow / Cancel / Deny.
+5. **Allow:** desktop loads secrets only from secure storage, runs unified Account
+   sign-in (ADR-AF-003) for the chosen mode, returns success + redacted state.
+6. **Deny:** persist Origin matrix activate disabled + `forbidden` /
+   `activate_denied_for_origin`. **Cancel/dismiss:** `forbidden` +
+   `authorization_canceled_by_user` (no matrix change).
+7. **Pending guard:** while consent pending → `conflict` + `activate_consent_pending`.
+8. **Session edges:**
+   - same login + same `clientId` already in session → success `alreadyAuthenticated`
+     without modal;
+   - same login + different `clientId` → reauthorize modal;
+   - different login while signed in → `conflict` + `logout_required` **and**
+     informational modal (no account switch without logout).
+9. Optional wire `mode` narrows available methods; when omitted, operator picks among
+   complete methods in the modal.
 
 ### F. Error and reconnect pedagogy (integrator-facing)
 
@@ -204,13 +205,16 @@ Raw credential provisioning over SDK remains a **future separate ADR** if ever r
 | Blacklisted Origin reconnect | Upgrade reject (no JSON) | Client code **`origin_blocked`** (non-retryable) |
 | Capability / activate policy deny | Keep WS | `forbidden` + `permission_denied` |
 | Activate consent Deny | Keep WS | `forbidden` + activate-disabled persisted |
-| Activate consent already pending | Keep WS | Primary **`conflict`** (optional `activate_consent_pending`) — no second modal |
-| No saved profile | Keep WS | `not_found` (+ Account UI as needed) |
+| Activate Cancel/dismiss | Keep WS | `forbidden` + `authorization_canceled_by_user` |
+| Activate consent already pending | Keep WS | Primary **`conflict`** (+ `activate_consent_pending`) |
+| No / incomplete saved profile | Keep WS | `not_found` + `account_not_found` / `account_incomplete` |
+| Other account already signed in | Keep WS | `conflict` + `logout_required` (+ info modal) |
+| Same login already signed in (same client) | Keep WS | success + `alreadyAuthenticated` |
 | Broker / composition not ready | Keep WS | `not_ready` (distinct from Origin deny) |
 
 Integrator-facing copy for blocked Origin (non-normative): explain that the site was
-blocked in Axatalk and the operator must Unblock under Settings → Integrations →
-Axatalk SDK. Machine code remains authoritative.
+blocked in Axatalk and the operator must Unblock under **Settings → Axatalk SDK**.
+Machine code remains authoritative.
 
 ### G. Modal ownership (renderer)
 

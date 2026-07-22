@@ -46,13 +46,6 @@ export type SdkGatewayDiagnosticsProjection = Readonly<{
   windowHideAvailable: false;
 }>;
 
-export type SdkActivateGrantResultProjection =
-  | Readonly<{ ok: true; profileRef: string }>
-  | Readonly<{
-      ok: false;
-      reason: "not_listening" | "invalid_profile" | "ref_too_long" | "ipc_failed";
-    }>;
-
 export type SdkGatewaySettingsPolicyPayload = Readonly<{
   originsManaged: boolean;
   origins: readonly SdkOriginTrustEntry[];
@@ -74,11 +67,6 @@ export type SdkGatewaySettingsOperation =
       op: "setOriginMatrix";
       origin: string;
       matrix: SdkOriginCapabilityMatrix;
-    }>
-  | Readonly<{
-      op: "issueActivateGrant";
-      clientId: string;
-      profileId: string;
     }>;
 
 export type SdkGatewaySettingsSnapshot = Readonly<{
@@ -100,7 +88,6 @@ export type SdkGatewaySettingsResponse =
   | Readonly<{
       ok: true;
       snapshot: SdkGatewaySettingsSnapshot;
-      grant?: SdkActivateGrantResultProjection;
     }>
   | Readonly<{ ok: false; reason: string }>;
 
@@ -236,55 +223,9 @@ export function parseSdkGatewaySettingsOperation(
       }
       return { op, origin: origin.trim(), matrix: matrix as SdkOriginCapabilityMatrix };
     }
-    case "issueActivateGrant": {
-      const clientId = record["clientId"];
-      const profileId = record["profileId"];
-      if (
-        !isNonEmptyString(clientId) ||
-        !isNonEmptyString(profileId) ||
-        clientId.length > MAX_ID_LENGTH ||
-        profileId.length > MAX_ID_LENGTH
-      ) {
-        return null;
-      }
-      return {
-        op,
-        clientId: clientId.trim(),
-        profileId: profileId.trim(),
-      };
-    }
     default:
       return null;
   }
-}
-
-function parseGrant(
-  value: unknown,
-): SdkActivateGrantResultProjection | null {
-  if (typeof value !== "object" || value === null) {
-    return null;
-  }
-  const g = value as Record<string, unknown>;
-  if (Object.keys(g).some((key) => /password|apikey|token|privatekey|secret|bearer/i.test(key))) {
-    return null;
-  }
-  if (g["ok"] === true && typeof g["profileRef"] === "string") {
-    const profileRef = g["profileRef"].trim();
-    if (profileRef.length === 0 || profileRef.length > MAX_ID_LENGTH) {
-      return null;
-    }
-    return { ok: true, profileRef };
-  }
-  if (
-    g["ok"] === false &&
-    (g["reason"] === "not_listening" ||
-      g["reason"] === "invalid_profile" ||
-      g["reason"] === "ref_too_long" ||
-      g["reason"] === "ipc_failed")
-  ) {
-    return { ok: false, reason: g["reason"] };
-  }
-  return null;
 }
 
 /**
@@ -308,14 +249,6 @@ export function parseSdkGatewaySettingsResponse(
   const snapshot = parseSdkGatewaySettingsSnapshot(record["snapshot"]);
   if (snapshot === null) {
     return null;
-  }
-
-  if ("grant" in record) {
-    const grant = parseGrant(record["grant"]);
-    if (grant === null) {
-      return null;
-    }
-    return { ok: true, grant, snapshot };
   }
 
   return { ok: true, snapshot };

@@ -217,10 +217,21 @@ const ruMessages = {
   "settings.integrations.sdk.matrix.callControl": "Управление звонком",
   "settings.integrations.sdk.matrix.activate": "Активация профиля аккаунта",
   "settings.integrations.sdk.activateConsent.title": "Разрешить активацию профиля?",
-  "settings.integrations.sdk.activateConsent.message": (params: Readonly<{ origin: string; profileLabel: string }>) =>
-    `Сайт ${params.origin} запрашивает активацию профиля «${params.profileLabel}».`,
+  "settings.integrations.sdk.activateConsent.message": (params: Readonly<{ origin: string; profileLabel: string; login: string }>) =>
+    `Сайт ${params.origin} запрашивает вход как «${params.profileLabel}» (${params.login}).`,
+  "settings.integrations.sdk.activateConsent.reauthorizeTitle": "Разрешить доступ к текущему сеансу?",
+  "settings.integrations.sdk.activateConsent.reauthorizeMessage": (params: Readonly<{ origin: string; profileLabel: string; login: string }>) =>
+    `Сайт ${params.origin} (другой клиент) запрашивает доступ к уже активному профилю «${params.profileLabel}» (${params.login}).`,
+  "settings.integrations.sdk.activateConsent.logoutRequiredTitle": "Сначала выйдите из профиля",
+  "settings.integrations.sdk.activateConsent.logoutRequiredMessage": (params: Readonly<{ origin: string; profileLabel: string; currentProfileLabel: string }>) =>
+    `Сайт ${params.origin} пытается войти как «${params.profileLabel}», но вы уже в профиле «${params.currentProfileLabel}». Сначала выйдите из текущего профиля.`,
+  "settings.integrations.sdk.activateConsent.modeLabel": "Способ входа",
+  "settings.integrations.sdk.activateConsent.modeSip": "Только SIP",
+  "settings.integrations.sdk.activateConsent.modeOcp": "Модуль OCP",
   "settings.integrations.sdk.activateConsent.allow": "Разрешить",
-  "settings.integrations.sdk.activateConsent.deny": "Запретить",
+  "settings.integrations.sdk.activateConsent.deny": "Запретить сайту",
+  "settings.integrations.sdk.activateConsent.cancel": "Отмена",
+  "settings.integrations.sdk.activateConsent.acknowledge": "Понятно",
   "settings.integrations.sdk.description":
     "Локальный доступ для сайтов через Axatalk SDK. Пароли и ключи остаются только на этом компьютере.",
   "settings.integrations.sdk.bind": "Адрес шлюза",
@@ -1526,10 +1537,21 @@ const enMessages: MessageShape = {
   "settings.integrations.sdk.matrix.callControl": "Control active call",
   "settings.integrations.sdk.matrix.activate": "Activate account profile",
   "settings.integrations.sdk.activateConsent.title": "Allow profile activation?",
-  "settings.integrations.sdk.activateConsent.message": (params: Readonly<{ origin: string; profileLabel: string }>) =>
-    `${params.origin} requests activation of “${params.profileLabel}”.`,
+  "settings.integrations.sdk.activateConsent.message": (params: Readonly<{ origin: string; profileLabel: string; login: string }>) =>
+    `Site ${params.origin} requests sign-in as “${params.profileLabel}” (${params.login}).`,
+  "settings.integrations.sdk.activateConsent.reauthorizeTitle": "Allow access to the current session?",
+  "settings.integrations.sdk.activateConsent.reauthorizeMessage": (params: Readonly<{ origin: string; profileLabel: string; login: string }>) =>
+    `Site ${params.origin} (another client) requests access to the already active profile “${params.profileLabel}” (${params.login}).`,
+  "settings.integrations.sdk.activateConsent.logoutRequiredTitle": "Sign out first",
+  "settings.integrations.sdk.activateConsent.logoutRequiredMessage": (params: Readonly<{ origin: string; profileLabel: string; currentProfileLabel: string }>) =>
+    `Site ${params.origin} wants to sign in as “${params.profileLabel}”, but you are already signed in as “${params.currentProfileLabel}”. Sign out first.`,
+  "settings.integrations.sdk.activateConsent.modeLabel": "Sign-in method",
+  "settings.integrations.sdk.activateConsent.modeSip": "SIP only",
+  "settings.integrations.sdk.activateConsent.modeOcp": "OCP module",
   "settings.integrations.sdk.activateConsent.allow": "Allow",
-  "settings.integrations.sdk.activateConsent.deny": "Deny",
+  "settings.integrations.sdk.activateConsent.deny": "Block site",
+  "settings.integrations.sdk.activateConsent.cancel": "Cancel",
+  "settings.integrations.sdk.activateConsent.acknowledge": "Got it",
   "settings.integrations.sdk.description":
     "Local access for websites through Axatalk SDK. Passwords and keys stay on this computer only.",
   "settings.integrations.sdk.bind": "Gateway address",
@@ -2809,10 +2831,21 @@ const frMessages: MessageShape = {
   "settings.integrations.sdk.matrix.callControl": "Controle d’appel",
   "settings.integrations.sdk.matrix.activate": "Activation du profil de compte",
   "settings.integrations.sdk.activateConsent.title": "Autoriser l’activation du profil ?",
-  "settings.integrations.sdk.activateConsent.message": (params: Readonly<{ origin: string; profileLabel: string }>) =>
-    `${params.origin} demande l’activation de « ${params.profileLabel} ».`,
+  "settings.integrations.sdk.activateConsent.message": (params: Readonly<{ origin: string; profileLabel: string; login: string }>) =>
+    `Le site ${params.origin} demande une connexion en tant que « ${params.profileLabel} » (${params.login}).`,
+  "settings.integrations.sdk.activateConsent.reauthorizeTitle": "Autoriser l’accès à la session actuelle ?",
+  "settings.integrations.sdk.activateConsent.reauthorizeMessage": (params: Readonly<{ origin: string; profileLabel: string; login: string }>) =>
+    `Le site ${params.origin} (autre client) demande l’accès au profil déjà actif « ${params.profileLabel} » (${params.login}).`,
+  "settings.integrations.sdk.activateConsent.logoutRequiredTitle": "Déconnectez-vous d’abord",
+  "settings.integrations.sdk.activateConsent.logoutRequiredMessage": (params: Readonly<{ origin: string; profileLabel: string; currentProfileLabel: string }>) =>
+    `Le site ${params.origin} tente de se connecter en tant que « ${params.profileLabel} », mais vous êtes déjà connecté en tant que « ${params.currentProfileLabel} ». Déconnectez-vous d’abord.`,
+  "settings.integrations.sdk.activateConsent.modeLabel": "Méthode de connexion",
+  "settings.integrations.sdk.activateConsent.modeSip": "SIP uniquement",
+  "settings.integrations.sdk.activateConsent.modeOcp": "Module OCP",
   "settings.integrations.sdk.activateConsent.allow": "Autoriser",
-  "settings.integrations.sdk.activateConsent.deny": "Refuser",
+  "settings.integrations.sdk.activateConsent.deny": "Bloquer le site",
+  "settings.integrations.sdk.activateConsent.cancel": "Annuler",
+  "settings.integrations.sdk.activateConsent.acknowledge": "Compris",
   "settings.integrations.sdk.description":
     "Acces local pour les sites via Axatalk SDK. Mots de passe et cles restent sur cet ordinateur.",
   "settings.integrations.sdk.bind": "Adresse de la passerelle",
@@ -4089,10 +4122,21 @@ const deMessages: MessageShape = {
   "settings.integrations.sdk.matrix.callControl": "Anruf steuern",
   "settings.integrations.sdk.matrix.activate": "Kontoprofil aktivieren",
   "settings.integrations.sdk.activateConsent.title": "Profilaktivierung erlauben?",
-  "settings.integrations.sdk.activateConsent.message": (params: Readonly<{ origin: string; profileLabel: string }>) =>
-    `${params.origin} moechte das Profil „${params.profileLabel}“ aktivieren.`,
+  "settings.integrations.sdk.activateConsent.message": (params: Readonly<{ origin: string; profileLabel: string; login: string }>) =>
+    `Die Site ${params.origin} fordert Anmeldung als „${params.profileLabel}“ (${params.login}).`,
+  "settings.integrations.sdk.activateConsent.reauthorizeTitle": "Zugriff auf die aktuelle Sitzung erlauben?",
+  "settings.integrations.sdk.activateConsent.reauthorizeMessage": (params: Readonly<{ origin: string; profileLabel: string; login: string }>) =>
+    `Die Site ${params.origin} (anderer Client) fordert Zugriff auf das bereits aktive Profil „${params.profileLabel}“ (${params.login}).`,
+  "settings.integrations.sdk.activateConsent.logoutRequiredTitle": "Zuerst abmelden",
+  "settings.integrations.sdk.activateConsent.logoutRequiredMessage": (params: Readonly<{ origin: string; profileLabel: string; currentProfileLabel: string }>) =>
+    `Die Site ${params.origin} möchte sich als „${params.profileLabel}“ anmelden, aber Sie sind bereits als „${params.currentProfileLabel}“ angemeldet. Melden Sie sich zuerst ab.`,
+  "settings.integrations.sdk.activateConsent.modeLabel": "Anmeldemethode",
+  "settings.integrations.sdk.activateConsent.modeSip": "Nur SIP",
+  "settings.integrations.sdk.activateConsent.modeOcp": "OCP-Modul",
   "settings.integrations.sdk.activateConsent.allow": "Erlauben",
-  "settings.integrations.sdk.activateConsent.deny": "Ablehnen",
+  "settings.integrations.sdk.activateConsent.deny": "Site sperren",
+  "settings.integrations.sdk.activateConsent.cancel": "Abbrechen",
+  "settings.integrations.sdk.activateConsent.acknowledge": "Verstanden",
   "settings.integrations.sdk.description":
     "Lokaler Zugriff fuer Websites ueber Axatalk SDK. Passwoerter und Schluessel bleiben nur auf diesem Computer.",
   "settings.integrations.sdk.bind": "Gateway-Adresse",

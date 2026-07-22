@@ -10,8 +10,12 @@ import { z } from 'zod';
 export const AccountActivateProfileCommandSchema: z.ZodReadonly<z.ZodObject<{
     type: z.ZodLiteral<"account:activate-profile">;
     payload: z.ZodReadonly<z.ZodObject<{
-        profileRef: z.ZodString;
+        login: z.ZodString;
         expectedRevision: z.ZodNumber;
+        mode: z.ZodOptional<z.ZodEnum<{
+            sip_only: "sip_only";
+            ocp: "ocp";
+        }>>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"command">;
@@ -36,6 +40,12 @@ export const AccountConfirmLogoutCommandSchema: z.ZodReadonly<z.ZodObject<{
     sessionEpoch: z.ZodString;
     occurredAt: z.ZodString;
 }, z.core.$strip>>;
+
+// @public (undocumented)
+export type AccountLogin = z.infer<typeof AccountLoginSchema>;
+
+// @public
+export const AccountLoginSchema: z.ZodString;
 
 // @public (undocumented)
 export const AccountPrepareLogoutCommandSchema: z.ZodReadonly<z.ZodObject<{
@@ -649,10 +659,10 @@ export const CommandFailureReplySchema: z.ZodReadonly<z.ZodObject<{
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
+            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
-            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
             forbidden: "forbidden";
             revoked: "revoked";
@@ -868,8 +878,12 @@ export const CommandMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodO
 }, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
     type: z.ZodLiteral<"account:activate-profile">;
     payload: z.ZodReadonly<z.ZodObject<{
-        profileRef: z.ZodString;
+        login: z.ZodString;
         expectedRevision: z.ZodNumber;
+        mode: z.ZodOptional<z.ZodEnum<{
+            sip_only: "sip_only";
+            ocp: "ocp";
+        }>>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"command">;
@@ -970,11 +984,11 @@ export type CommandType = z.infer<typeof CommandTypeSchema>;
 
 // @public (undocumented)
 export const CommandTypeSchema: z.ZodEnum<{
-    "window:hide": "window:hide";
     "sdk:get-snapshot": "sdk:get-snapshot";
     "sdk:ping": "sdk:ping";
     "window:show": "window:show";
     "window:get-state": "window:get-state";
+    "window:hide": "window:hide";
     "call:originate": "call:originate";
     "call:answer": "call:answer";
     "call:reject": "call:reject";
@@ -2151,8 +2165,12 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
 }, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
     type: z.ZodLiteral<"account:activate-profile">;
     payload: z.ZodReadonly<z.ZodObject<{
-        profileRef: z.ZodString;
+        login: z.ZodString;
         expectedRevision: z.ZodNumber;
+        mode: z.ZodOptional<z.ZodEnum<{
+            sip_only: "sip_only";
+            ocp: "ocp";
+        }>>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"command">;
@@ -2244,10 +2262,10 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
+            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
-            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
             forbidden: "forbidden";
             revoked: "revoked";
@@ -2799,10 +2817,10 @@ export type ProtocolErrorCode = z.infer<typeof ProtocolErrorCodeSchema>;
 
 // @public (undocumented)
 export const ProtocolErrorCodeSchema: z.ZodEnum<{
+    incompatible_version: "incompatible_version";
     invalid_message: "invalid_message";
     invalid_payload: "invalid_payload";
     unsupported_command: "unsupported_command";
-    incompatible_version: "incompatible_version";
     unauthenticated: "unauthenticated";
     forbidden: "forbidden";
     revoked: "revoked";
@@ -2827,10 +2845,10 @@ export type ProtocolErrorObject = z.infer<typeof ProtocolErrorObjectSchema>;
 // @public
 export const ProtocolErrorObjectSchema: z.ZodReadonly<z.ZodObject<{
     code: z.ZodEnum<{
+        incompatible_version: "incompatible_version";
         invalid_message: "invalid_message";
         invalid_payload: "invalid_payload";
         unsupported_command: "unsupported_command";
-        incompatible_version: "incompatible_version";
         unauthenticated: "unauthenticated";
         forbidden: "forbidden";
         revoked: "revoked";
@@ -2963,10 +2981,10 @@ export const ReplyMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
+            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
-            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
             forbidden: "forbidden";
             revoked: "revoked";
@@ -3736,8 +3754,12 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
 }, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
     type: z.ZodLiteral<"account:activate-profile">;
     payload: z.ZodReadonly<z.ZodObject<{
-        profileRef: z.ZodString;
+        login: z.ZodString;
         expectedRevision: z.ZodNumber;
+        mode: z.ZodOptional<z.ZodEnum<{
+            sip_only: "sip_only";
+            ocp: "ocp";
+        }>>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"command">;
@@ -3829,10 +3851,10 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
+            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
-            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
             forbidden: "forbidden";
             revoked: "revoked";

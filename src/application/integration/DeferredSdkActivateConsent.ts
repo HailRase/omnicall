@@ -2,19 +2,26 @@
  * Single-flight activate consent queue (ADR-0018 §E pending guard).
  */
 
-import type { SdkActivateConsentPort } from "./SdkActivateConsentPort.js";
+import type {
+  SdkActivateConsentDecision,
+  SdkActivateConsentPort,
+  SdkActivateConsentRequest,
+} from "./SdkActivateConsentPort.js";
+import type { SdkActivateMode } from "./ExternalSdkAccountPort.js";
 
 export type SdkActivateConsentPending = Readonly<{
+  kind: SdkActivateConsentRequest["kind"];
   origin: string;
+  login: string;
   profileLabel: string;
-  profileRef: string;
+  availableModes: readonly SdkActivateMode[];
+  preferredMode?: SdkActivateMode;
+  currentProfileLabel?: string | null;
 }>;
 
 type Deferred = {
   readonly pending: SdkActivateConsentPending;
-  readonly resolve: (
-    decision: "allow" | "deny" | "dismiss",
-  ) => void;
+  readonly resolve: (decision: SdkActivateConsentDecision) => void;
 };
 
 /**
@@ -42,20 +49,23 @@ export class DeferredSdkActivateConsent implements SdkActivateConsentPort {
     return this.deferred !== null;
   }
 
-  requestConsent(input: {
-    readonly origin: string;
-    readonly profileLabel: string;
-    readonly profileRef: string;
-  }): Promise<"allow" | "deny" | "dismiss"> {
+  requestConsent(
+    input: SdkActivateConsentRequest,
+  ): Promise<SdkActivateConsentDecision> {
     if (this.deferred !== null) {
-      return Promise.resolve("deny");
+      return Promise.resolve({ decision: "deny" });
     }
-    return new Promise<"allow" | "deny" | "dismiss">((resolve) => {
+    return new Promise<SdkActivateConsentDecision>((resolve) => {
       this.deferred = {
         pending: {
+          kind: input.kind,
           origin: input.origin,
+          login: input.login,
           profileLabel: input.profileLabel,
-          profileRef: input.profileRef,
+          availableModes: input.availableModes,
+          ...(input.preferredMode !== undefined
+            ? { preferredMode: input.preferredMode }
+            : {}),
         },
         resolve,
       };
@@ -63,14 +73,56 @@ export class DeferredSdkActivateConsent implements SdkActivateConsentPort {
     });
   }
 
-  settle(decision: "allow" | "deny" | "dismiss"): boolean {
+  notifyLogoutRequired(input: {
+    readonly origin: string;
+    readonly login: string;
+    readonly profileLabel: string;
+    readonly currentProfileLabel: string | null;
+  }): void {
+    if (this.deferred !== null) {
+      return;
+    }
+    this.deferred = {
+      pending: {
+        kind: "logout_required",
+        origin: input.origin,
+        login: input.login,
+        profileLabel: input.profileLabel,
+        availableModes: [],
+        currentProfileLabel: input.currentProfileLabel,
+      },
+      resolve: () => undefined,
+    };
+    this.onPendingChange(this.deferred.pending);
+  }
+
+  settle(
+    decision: "allow" | "deny" | "dismiss",
+    mode?: SdkActivateMode,
+  ): boolean {
     if (this.deferred === null) {
       return false;
     }
     const entry = this.deferred;
     this.deferred = null;
     this.onPendingChange(null);
-    entry.resolve(decision);
+    if (entry.pending.kind === "logout_required") {
+      entry.resolve({ decision: "dismiss" });
+      return true;
+    }
+    if (decision === "allow") {
+      const resolvedMode =
+        mode ??
+        entry.pending.preferredMode ??
+        entry.pending.availableModes[0];
+      if (resolvedMode === undefined) {
+        entry.resolve({ decision: "dismiss" });
+        return true;
+      }
+      entry.resolve({ decision: "allow", mode: resolvedMode });
+      return true;
+    }
+    entry.resolve({ decision });
     return true;
   }
 }

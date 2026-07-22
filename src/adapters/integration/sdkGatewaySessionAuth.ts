@@ -24,8 +24,7 @@ import {
   isValidSdkPopPublicKey,
   verifySdkPopSignature,
 } from "./sdkGatewayPopCrypto.js";
-import type { SdkAccountActivateGrantStore } from "./sdkAccountActivateGrantStore.js";
-import { elevateAccountActivateCapability } from "./sdkAccountActivateCapability.js";
+import { withOriginMatrixAccountActivate } from "./sdkAccountActivateSession.js";
 
 export const SDK_PAIRING_PENDING_TTL_MS = 5 * 60_000;
 export const SDK_AUTH_SESSION_TTL_MS = 30 * 60_000;
@@ -42,7 +41,6 @@ export type SdkSessionAuthDeps = Readonly<{
     event: string,
     fields: Readonly<Record<string, string | number | boolean>>,
   ) => void;
-  activateGrantStore: SdkAccountActivateGrantStore;
   getOriginMatrixCapabilities: (origin: string) => readonly CapabilityId[];
   getOriginTrustState: (origin: string) => SdkOriginTrustState;
 }>;
@@ -122,14 +120,17 @@ export async function handlePairingRequest(
     return;
   }
   const profile = decision.profile ?? message.requestedProfile;
-  const grantedCapabilities = resolveGrantedCapabilities({
+  const grantedCapabilities = withOriginMatrixAccountActivate(
+    resolveGrantedCapabilities({
     profile,
     requestedCapabilities: message.requestedCapabilities,
     originPolicyCapabilities: deps.getOriginMatrixCapabilities(connection.origin),
     ...(decision.grantedCapabilities !== undefined
       ? { explicitGrants: decision.grantedCapabilities }
       : {}),
-  });
+    }),
+    deps.getOriginMatrixCapabilities(connection.origin),
+  );
   await deps.pairingStore.save({
     clientId: message.clientId,
     origin: connection.origin,
@@ -215,17 +216,12 @@ export async function handleAuthProof(
   }
   connection.authState = "authenticated";
   connection.clientId = message.clientId;
-  connection.grantedCapabilities = paired.grantedCapabilities;
+  connection.grantedCapabilities = withOriginMatrixAccountActivate(
+    paired.grantedCapabilities,
+    deps.getOriginMatrixCapabilities(connection.origin),
+  );
   connection.sessionExpiresAtMs =
     deps.now().getTime() + SDK_AUTH_SESSION_TTL_MS;
-  if (
-    deps.activateGrantStore.hasAnyValidGrant(
-      message.clientId,
-      deps.now().getTime(),
-    )
-  ) {
-    elevateAccountActivateCapability(connection);
-  }
   deps.audit("sdk_gateway_auth_ok", {
     clientId: message.clientId,
     result: "authenticated",

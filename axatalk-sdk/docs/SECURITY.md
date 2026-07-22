@@ -81,7 +81,8 @@ Capabilities are checked for every command, not only during handshake.
 2. **Presentation** — redacted state and window show.
 3. **Operator** — operator status changes.
 4. **Call controller** — call mutations, preferably scoped to calls created by the client.
-5. **Privileged session** — account activation, logout, and window hide with short grants.
+5. **Privileged session** — account activation (Origin matrix + consent), logout, and
+   window hide (hide still unavailable in product v1).
 
 ## Credential Policy
 
@@ -96,7 +97,7 @@ Normal browser SDK flows must not accept:
 Preferred account flow:
 
 1. Origin is `allowed` and the SDK session is authenticated (ADR-0018).
-2. SDK requests activation of a saved profile via opaque `profileRef` (no passwords).
+2. SDK requests activation of a saved account via `login` and optional `mode` (no passwords).
 3. If Origin policy disallows activate → typed `forbidden` + `permission_denied`
    (no modal; do not silent-ignore).
 4. If no local saved profile → typed `not_found` and desktop may show Account sign-in UI.

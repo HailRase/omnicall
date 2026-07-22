@@ -17,6 +17,7 @@ export type ActivateProfileResult = {
     readonly activated: true;
     readonly mode: string;
     readonly profileLabel?: string;
+    readonly alreadyAuthenticated?: boolean;
     readonly revision: number;
 };
 
@@ -72,8 +73,9 @@ export type AxatalkAccountApi = {
         readonly expectedRevision: number;
     }) => Promise<ConfirmLogoutResult>;
     readonly activateProfile: (input: {
-        readonly profileRef: string;
+        readonly login: string;
         readonly expectedRevision: number;
+        readonly mode?: 'sip_only' | 'ocp';
     }) => Promise<ActivateProfileResult>;
 };
 

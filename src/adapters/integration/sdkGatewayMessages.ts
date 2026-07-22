@@ -197,6 +197,26 @@ export function buildSdkRevokedEvent(input: {
   };
 }
 
+export function buildSdkPermissionChangedEvent(input: {
+  readonly identity: SdkGatewayIdentity;
+  readonly now: () => Date;
+  readonly sequence: number;
+  readonly grantedCapabilities: readonly import("@axata/axatalk-protocol").CapabilityId[];
+}): WireMessage {
+  return {
+    protocolVersion: PROTOCOL_MAJOR,
+    kind: "event",
+    type: "sdk:permission-changed",
+    eventId: createSdkOpaqueId("evt"),
+    sequence: input.sequence,
+    serverInstanceId: input.identity.serverInstanceId,
+    sessionEpoch: input.identity.sessionEpoch,
+    occurredAt: createSdkIsoTimestamp(input.now),
+    revision: 0,
+    payload: { grantedCapabilities: [...input.grantedCapabilities] },
+  };
+}
+
 export function createGatewayIdentityShell(
   desktopVersion: string,
 ): Pick<SdkGatewayIdentity, "desktopVersion" | "serverInstanceId" | "sessionEpoch"> {

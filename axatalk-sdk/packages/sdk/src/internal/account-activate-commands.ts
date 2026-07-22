@@ -33,13 +33,15 @@ export type ActivateProfileResult = {
   readonly activated: true;
   readonly mode: string;
   readonly profileLabel?: string;
+  readonly alreadyAuthenticated?: boolean;
   readonly revision: number;
 };
 
 export type AccountActivateCommandApi = {
   readonly activateProfile: (input: {
-    readonly profileRef: string;
+    readonly login: string;
     readonly expectedRevision: number;
+    readonly mode?: 'sip_only' | 'ocp';
   }) => Promise<ActivateProfileResult>;
 };
 
@@ -67,20 +69,23 @@ function readActivateProfileResult(reply: {
     throw createClientError({ code: 'invalid_payload', retryable: false });
   }
   const profileLabel = reply.result['profileLabel'];
+  const alreadyAuthenticated = reply.result['alreadyAuthenticated'];
   if (profileLabel !== undefined) {
     if (typeof profileLabel !== 'string' || profileLabel.length === 0) {
       throw createClientError({ code: 'invalid_payload', retryable: false });
     }
-    return {
-      activated: true,
-      mode,
-      profileLabel,
-      revision: reply.revision
-    };
+  }
+  if (
+    alreadyAuthenticated !== undefined &&
+    typeof alreadyAuthenticated !== 'boolean'
+  ) {
+    throw createClientError({ code: 'invalid_payload', retryable: false });
   }
   return {
     activated: true,
     mode,
+    ...(profileLabel === undefined ? {} : { profileLabel }),
+    ...(alreadyAuthenticated === undefined ? {} : { alreadyAuthenticated }),
     revision: reply.revision
   };
 }
@@ -92,8 +97,9 @@ async function runActivateProfile(
     readonly getGrantedCapabilities: () => readonly CapabilityId[];
   },
   input: {
-    readonly profileRef: string;
+    readonly login: string;
     readonly expectedRevision: number;
+    readonly mode?: 'sip_only' | 'ocp';
   }
 ): Promise<ActivateProfileResult> {
   const notReady = guardReady(deps.connection);

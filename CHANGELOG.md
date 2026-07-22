@@ -11,11 +11,13 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - Root SDK connect ceremony modal: Origin TOFU → pairing stepper (blur overlay поверх любого shell route); для уже trusted Origin — только pairing.
 - Waiting Cancel в ceremony (без blacklist); gateway cancel pending on disconnect + Origin leave-allowed; TTL sweeper для orphaned pairing/TOFU.
+- SDK login activate: `account:activate-profile` принимает `login` (+ optional `mode`); consent modal с выбором SIP/OCP; idempotent same-client; reauthorize для другого clientId; `logout_required` informational modal.
 
 ### Changed
 
 - Pairing / TOFU больше не открывают Settings и не показываются callout’ами в Axatalk SDK card; Settings остаётся policy (trusted/blocked/matrix/revoke).
 - Disconnect mid-TOFU больше не пишет Origin в blacklist (`cancel` ≠ Deny).
+- Убран Settings «Временный доступ к профилю» / temporary `profileRef` grant; `account.activate` поднимается из Origin matrix + `sdk:permission-changed`.
 
 ### Fixed
 

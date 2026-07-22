@@ -34,8 +34,7 @@ import {
   handlePairingRequest,
   type SdkSessionAuthDeps,
 } from "./sdkGatewaySessionAuth.js";
-import type { SdkAccountActivateGrantStore } from "./sdkAccountActivateGrantStore.js";
-import { syncAccountActivateCapabilityForConnection } from "./sdkAccountActivateSession.js";
+import { syncAccountActivateCapabilityFromOriginPolicy } from "./sdkAccountActivateSession.js";
 import type {
   SdkOriginTrustApprover,
   SdkOriginTrustDecision,
@@ -250,7 +249,6 @@ export async function dispatchSdkValidatedMessage(input: {
   readonly now: () => Date;
   readonly connectionCount: number;
   readonly heartbeatSeconds: number;
-  readonly activateGrantStore: SdkAccountActivateGrantStore;
   readonly sendJson: (connection: SdkGatewayConnection, message: WireMessage) => void;
   readonly closeConnection: (connection: SdkGatewayConnection, reason: string) => void;
   readonly startHeartbeat: (connection: SdkGatewayConnection) => void;
@@ -265,14 +263,12 @@ export async function dispatchSdkValidatedMessage(input: {
     input.closeConnection(input.connection, "unauthenticated");
     return;
   }
-  // DI-08: drop stale account.activate before capability routing (grant TTL).
-  syncAccountActivateCapabilityForConnection(
-    input.connection,
-    input.activateGrantStore,
-    input.now().getTime(),
-  );
   const originPolicyCapabilities = input.getOriginMatrixCapabilities(
     input.connection.origin,
+  );
+  syncAccountActivateCapabilityFromOriginPolicy(
+    input.connection,
+    originPolicyCapabilities,
   );
   const effectiveCapabilities = intersectCapabilitiesWithOriginPolicy(
     input.connection.grantedCapabilities,
@@ -326,7 +322,6 @@ export async function dispatchSdkValidatedMessage(input: {
     sendJson: input.sendJson,
     closeConnection: input.closeConnection,
     audit: input.log,
-    activateGrantStore: input.activateGrantStore,
     getOriginMatrixCapabilities: input.getOriginMatrixCapabilities,
     getOriginTrustState: input.getOriginTrustState,
   };
@@ -386,7 +381,6 @@ export async function dispatchSdkValidatedMessage(input: {
         sendJson: input.sendJson,
         closeConnection: input.closeConnection,
         log: input.log,
-        activateGrantStore: input.activateGrantStore,
         effectiveCapabilities,
         isOriginActivateAllowed: (origin) => {
           const caps = input.getOriginMatrixCapabilities(origin);

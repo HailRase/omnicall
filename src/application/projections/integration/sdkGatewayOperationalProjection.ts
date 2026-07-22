@@ -4,7 +4,6 @@
  */
 
 export type {
-  SdkActivateGrantResultProjection,
   SdkGatewayDiagnosticsProjection,
   SdkGatewayOperationalStatus,
   SdkPairedClientProjection,

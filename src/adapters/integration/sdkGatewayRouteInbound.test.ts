@@ -278,7 +278,7 @@ describe("routeSdkInbound", () => {
     const activate = {
       ...getSnapshot,
       type: "account:activate-profile" as const,
-      payload: { profileRef: "prf_dGVzdA", expectedRevision: 1 },
+      payload: { login: "1001@pbx.example", expectedRevision: 1 },
     };
     expect(
       routeSdkInbound(activate, {

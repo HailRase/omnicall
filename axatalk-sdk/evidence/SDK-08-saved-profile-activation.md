@@ -24,18 +24,20 @@
 - No raw credential login / password / apiKey activate APIs
 - No desktop `src/` edits
 - No campaign events
-- No invent `account:list-profiles` (v1 has none; consumer supplies opaque `profileRef`)
+- No invent `account:list-profiles` (v1 has none; consumer supplies the saved-account `login`)
 
 ## Public API surface added
 
 ```ts
 client.account.activateProfile({
-  profileRef: string;      // opaque desktop-approved ref
+  login: string;           // saved-account login
   expectedRevision: number;
+  mode?: 'sip_only' | 'ocp';
 }): Promise<{
   activated: true;
   mode: string;            // narrowly validated (e.g. sip_only / ocp)
   profileLabel?: string;   // optional redacted label
+  alreadyAuthenticated?: boolean;
   revision: number;
 }>
 ```
@@ -58,12 +60,12 @@ Desktop oracle (read-only, cwd repo root): **9** passed
 
 | Case | Expected | Test |
 | --- | --- | --- |
-| Happy path | typed `{ activated, mode, revision, profileLabel? }` | `activateProfile succeeds with opaque profileRef + expectedRevision` |
+| Happy path | typed `{ activated, mode, revision, profileLabel?, alreadyAuthenticated? }` | `activateProfile succeeds with login, mode, and expectedRevision` |
 | Missing cap | `forbidden`, no frame | `returns forbidden without account.activate (no frame)` |
 | Pre-ready | `not_ready` | `fails closed on activate before ready` |
 | Active session / logout-first | typed `conflict`, no auto-retry | `surfaces conflict when desktop rejects active session` |
 | Stale revision | `stale_state` + `currentRevision`, no auto-retry | `surfaces stale_state with currentRevision and does not auto-retry` |
-| Unknown profile | typed `not_found` | `confirm unknown profileRef fails typed` |
+| Unknown login | typed `not_found` | `unknown login fails typed` |
 | Malformed success | `invalid_payload` | `fails closed when activate success omits activated` |
 | Secret-looking result keys | `invalid_payload` (`token`) | `fails closed when activate success includes secret-looking keys` |
 | Forbidden wire secret keys | reply dropped → `timeout` | `ignores wire activate success that embeds forbidden secret keys` |
@@ -73,14 +75,14 @@ Desktop oracle (read-only, cwd repo root): **9** passed
 | Disconnect mid-flight | reject typed; no hangup / confirm-logout; no extra activate | `rejects in-flight activate-profile on disconnect and never tears SIP` |
 | Disconnect after ready | **no** activate / hangup / confirm-logout | `disconnect never sends activate-profile or tears SIP` |
 | Privilege strip regression | sanitize still strips activate/hide | `sanitize still strips account.activate and window.hide always` |
-| Secret hygiene | diagnostics never echo needles / profileRef | `privacy: diagnostics never echo secrets / profile secrets` |
+| Secret hygiene | diagnostics never echo needles / login | `privacy: diagnostics never echo secrets / login` |
 | Events | protocol name only | `subscribes to account:session-activated by protocol name only` |
 | SDK-07 regression | `interaction_required` honesty | `SDK-07 regression: prepareLogout interaction_required still green` |
 | Browser | activate success; strip at pairing; no storage leak; disconnect non-activate | `browser AxatalkClient activateProfile success…` |
 
 ## Checklist (proven)
 
-- [x] approved profile reference DTO (`profileRef` opaque + typed result)
+- [x] saved-account login DTO (`login` + optional mode + typed result)
 - [x] privileged capability gate (`account.activate` granted-only; sanitize still strips request)
 - [x] active-session `conflict` (logout-first) typed, no auto-retry
 - [x] revoke/expiry → subsequent activate `forbidden` (client observes grant loss via `permission-changed`)
@@ -104,9 +106,9 @@ Desktop oracle (read-only, cwd repo root): **9** passed
 ## Secret scan
 
 - `etc/api/sdk.api.md`: no `password` / `apiKey` / `sipPassword` fields (`api:check` enforces)
-- Public activate params: `profileRef` + `expectedRevision` only (type tests)
+- Public activate params: `login` + `expectedRevision` + optional `mode` (type tests)
 - Package tarball: `package:check` PASS; fake-transport / auth-test-peer remain excluded from pack
-- Diagnostics tests assert no secret needles / profileRef echo
+- Diagnostics tests assert no secret needles / login echo
 
 ## Verification (exact counts — implementation session 2026-07-20)
 

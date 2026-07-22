@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import {
+  AccountLoginSchema,
   IsoTimestampSchema,
   OpaqueIdSchema,
   ProtocolVersionSchema,
@@ -210,8 +211,9 @@ export const AccountActivateProfileCommandSchema = z
     type: z.literal('account:activate-profile'),
     payload: z
       .object({
-        profileRef: OpaqueIdSchema,
-        expectedRevision: RevisionSchema
+        login: AccountLoginSchema,
+        expectedRevision: RevisionSchema,
+        mode: z.enum(['sip_only', 'ocp']).optional()
       })
       .readonly()
   })

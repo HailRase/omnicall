@@ -68,15 +68,8 @@ export function SdkModuleSettingsCard(props: SdkModuleSettingsCardProps): JSX.El
             />
             <SdkModuleSettingsClientsSection
               pairedClients={props.pairedClients}
-              profileOptions={props.profileOptions}
-              selectedClientId={props.selectedClientId}
-              selectedProfileId={props.selectedProfileId}
-              lastGrant={props.lastGrant}
               busy={props.busy}
               onRevokeClient={props.onRevokeClient}
-              onSelectClientId={props.onSelectClientId}
-              onSelectProfileId={props.onSelectProfileId}
-              onIssueActivateGrant={props.onIssueActivateGrant}
             />
           </div>
         </TabsContent>
