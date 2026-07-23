@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-23 16:50
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `8b10484`
 
 ## Где
 - `axatalk-sdk/packages/protocol` — `operator:finish-appeal`, статус `post_call_processing`
