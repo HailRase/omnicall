@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-23 17:06
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `837c544`
 
 ## Где
 - `axatalk-sdk/packages/sdk/src/internal/browser-websocket-transport.ts`
