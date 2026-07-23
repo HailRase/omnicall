@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-23 12:32
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `d41cd7c35eaa6bb1e9dd16000c35ce432d725f2f`
 
 ## Где
 - `src/application/integration/sdkActivateTimeouts.ts`
