@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-23 22:44
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `7481ffa`
 
 ## Где
 - `src/application/projections/integration/operatorStatusPresentation.ts`
