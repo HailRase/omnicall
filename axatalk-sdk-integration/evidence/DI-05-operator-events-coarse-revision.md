@@ -16,7 +16,7 @@ talking↔hold transitions.
 
 | Publish | Advance revision? |
 | --- | --- |
-| Coarse status changes (`ready` / `break` / `offline` / `unknown`) | Yes |
+| Coarse status changes (`ready` / `break` / `offline` / `post_call_processing` / `unknown`) | Yes |
 | `ready`/`break` with different `reasonId` | Yes |
 | Same coarse `unknown` (e.g. talking→hold) | Emit event, **no** advance |
 | `operator:session-changed` `connected` flip | Yes |

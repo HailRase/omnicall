@@ -168,8 +168,8 @@ Gate: all call flows pass existing regression tests plus SDK command matrix.
   wire `function_call_type` `sdk` → `external` (`mapOcpCallTypeToWire`) — never leak `"sdk"`
   onto the OCP socket (legacy accepts only `internal`|`external`).
 - Expose operator status/reasons without OCP wire types.
-- Implement prepare/confirm account logout using `AccountLogoutOrchestrationService`.
-- Return `interaction_required` when an OCP reason is needed.
+- Implement single-shot account logout using `AccountLogoutOrchestrationService`.
+- Return `interaction_required` when an OCP reason is needed (`requiresReason` + reasons; no `logoutToken`).
 - Preserve intentional logout recovery disarm/reset semantics.
 
 Gate: SIP-only, OCP live, connected-only, missing snapshot, cancel, and failure paths pass.

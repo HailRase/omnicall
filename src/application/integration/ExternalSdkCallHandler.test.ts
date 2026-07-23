@@ -90,6 +90,10 @@ function createProductSurface(port: ExternalSdkCallPort = createPort()) {
         Promise.resolve(
           err(createPlatformError("not_found", "ocp_operator_profile_missing")),
         ),
+      finishPostCallAppeal: () =>
+        Promise.resolve(
+          err(createPlatformError("not_found", "ocp_operator_profile_missing")),
+        ),
       listOperatorReasons: () => [],
       readOcpSession: () => ({
         isAuthenticated: false,

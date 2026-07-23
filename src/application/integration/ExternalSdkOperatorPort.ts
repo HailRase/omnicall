@@ -27,6 +27,9 @@ export type ExternalSdkOperatorPort = Readonly<{
     readonly targetStatus: "ready" | "break";
     readonly reasonId: number;
   }) => Promise<Result<ChangeOperatorStatusOutcome, PlatformError>>;
+  finishPostCallAppeal: () => Promise<
+    Result<ChangeOperatorStatusOutcome, PlatformError>
+  >;
   listOperatorReasons: () => ReadonlyArray<SdkOperatorReasonDto>;
   readOcpSession: () => SdkOcpSessionView;
   logoutAccountSession: (input?: {

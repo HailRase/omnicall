@@ -1,5 +1,5 @@
 /**
- * DI-07: operator status + prepare/confirm logout + revision contract.
+ * DI-07: operator status + single-shot account:logout + revision contract.
  */
 
 import { describe, expect, it, vi } from "vitest";
@@ -45,6 +45,11 @@ function createPort(
         ok({ kind: "applied" as const, targetStatus: "break" as const, reasonId: 7 }),
       ),
     ),
+    finishPostCallAppeal: vi.fn(() =>
+      Promise.resolve(
+        ok({ kind: "applied" as const, targetStatus: "ready" as const, reasonId: 1 }),
+      ),
+    ),
     listOperatorReasons: vi.fn(() => [...REASONS]),
     readOcpSession: vi.fn(() => ({
       isAuthenticated: true,
@@ -64,15 +69,11 @@ function createPort(
   };
 }
 
-function createHandler(
-  port: ExternalSdkOperatorPort = createPort(),
-  createLogoutToken = () => "logout_token_fixed_001",
-) {
+function createHandler(port: ExternalSdkOperatorPort = createPort()) {
   const revisionClock = new SdkSessionRevisionClock();
   const handler = new ExternalSdkOperatorHandler({
     operatorPort: port,
     revisionClock,
-    createLogoutToken,
   });
   return { handler, revisionClock, port };
 }
@@ -216,13 +217,99 @@ describe("ExternalSdkOperatorHandler", () => {
     expect(revisionClock.peek()).toBe(1);
   });
 
-  it("prepare-logout returns interaction_required with token + reasons", async () => {
-    const { handler, revisionClock } = createHandler();
+  it("finish-appeal advances revision when OCP authenticated in post-call", async () => {
+    const { handler, revisionClock, port } = createHandler();
     const result = await handler.handleCommand(
       {
         ...BASE,
-        type: "account:prepare-logout",
-        requestId: "req_prep_001",
+        type: "operator:finish-appeal",
+        requestId: "req_finish_001",
+        payload: { expectedRevision: 1 },
+      },
+      { clientId: CLIENT },
+    );
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.revision).toBe(2);
+    expect(revisionClock.peek()).toBe(2);
+    expect(port.finishPostCallAppeal).toHaveBeenCalledTimes(1);
+    expect(result.result).toEqual({
+      accepted: true,
+      kind: "applied",
+      targetStatus: "ready",
+      reasonId: 1,
+    });
+  });
+
+  it("finish-appeal rejects missing OCP login as not_found", async () => {
+    const { handler } = createHandler(
+      createPort({
+        readOcpSession: () => ({
+          isAuthenticated: false,
+          isLive: false,
+          hasOperatorSnapshot: false,
+        }),
+      }),
+    );
+    const result = await handler.handleCommand(
+      {
+        ...BASE,
+        type: "operator:finish-appeal",
+        requestId: "req_finish_sip_001",
+        payload: { expectedRevision: 1 },
+      },
+      { clientId: CLIENT },
+    );
+    expect(result).toEqual({
+      ok: false,
+      code: "not_found",
+      retryable: false,
+    });
+  });
+
+  it("finish-appeal outside post-call returns conflict with failure_kind", async () => {
+    const { handler, revisionClock } = createHandler(
+      createPort({
+        finishPostCallAppeal: vi.fn(() =>
+          Promise.resolve(
+            err(
+              createPlatformError(
+                "validation_failed",
+                "not_in_post_call_processing",
+                { reason: "not_in_post_call_processing" },
+              ),
+            ),
+          ),
+        ),
+      }),
+    );
+    const result = await handler.handleCommand(
+      {
+        ...BASE,
+        type: "operator:finish-appeal",
+        requestId: "req_finish_wrong_status_001",
+        payload: { expectedRevision: 1 },
+      },
+      { clientId: CLIENT },
+    );
+    expect(result).toEqual({
+      ok: false,
+      code: "conflict",
+      retryable: false,
+      details: { failure_kind: "not_in_post_call_processing" },
+    });
+    expect(revisionClock.peek()).toBe(1);
+  });
+
+  it("logout without reason returns interaction_required with reasons (no token)", async () => {
+    const { handler, revisionClock, port } = createHandler();
+    const result = await handler.handleCommand(
+      {
+        ...BASE,
+        type: "account:logout",
+        requestId: "req_logout_missing_001",
         payload: { expectedRevision: 1 },
       },
       { clientId: CLIENT },
@@ -232,15 +319,16 @@ describe("ExternalSdkOperatorHandler", () => {
       code: "interaction_required",
       retryable: false,
       details: {
-        logoutToken: "logout_token_fixed_001",
+        requiresReason: true,
         reasons: [{ id: 90, label: "End of shift", kind: "logout" }],
       },
     });
     expect(revisionClock.peek()).toBe(1);
+    expect(port.logoutAccountSession).not.toHaveBeenCalled();
   });
 
-  it("SIP-only prepare-logout returns token without interaction", async () => {
-    const { handler } = createHandler(
+  it("SIP-only logout without reason succeeds and advances revision", async () => {
+    const { handler, revisionClock, port } = createHandler(
       createPort({
         listOperatorReasons: () => [],
         readOcpSession: () => ({
@@ -253,37 +341,34 @@ describe("ExternalSdkOperatorHandler", () => {
     const result = await handler.handleCommand(
       {
         ...BASE,
-        type: "account:prepare-logout",
-        requestId: "req_prep_sip_001",
+        type: "account:logout",
+        requestId: "req_logout_sip_001",
         payload: { expectedRevision: 1 },
       },
       { clientId: CLIENT },
     );
-    expect(result).toEqual({
-      ok: true,
-      result: { logoutToken: "logout_token_fixed_001", requiresReason: false },
-      revision: 1,
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.revision).toBe(2);
+    expect(revisionClock.peek()).toBe(2);
+    expect(port.logoutAccountSession).toHaveBeenCalledWith({});
+    expect(result.result).toEqual({
+      loggedOut: true,
+      ocpStep: "operator_logout",
+      operatorSnapshotMissing: false,
     });
   });
 
-  it("confirm-logout advances revision on success", async () => {
+  it("logout with reasonId advances revision on success", async () => {
     const { handler, revisionClock, port } = createHandler();
-    await handler.handleCommand(
-      {
-        ...BASE,
-        type: "account:prepare-logout",
-        requestId: "req_prep_002",
-        payload: { expectedRevision: 1 },
-      },
-      { clientId: CLIENT },
-    );
     const result = await handler.handleCommand(
       {
         ...BASE,
-        type: "account:confirm-logout",
-        requestId: "req_confirm_001",
+        type: "account:logout",
+        requestId: "req_logout_001",
         payload: {
-          logoutToken: "logout_token_fixed_001",
           reasonId: 90,
           expectedRevision: 1,
         },
@@ -304,54 +389,14 @@ describe("ExternalSdkOperatorHandler", () => {
     });
   });
 
-  it("confirm missing reason returns interaction_required again", async () => {
-    const { handler } = createHandler();
-    await handler.handleCommand(
-      {
-        ...BASE,
-        type: "account:prepare-logout",
-        requestId: "req_prep_003",
-        payload: { expectedRevision: 1 },
-      },
-      { clientId: CLIENT },
-    );
+  it("logout invalid reason returns invalid_payload", async () => {
+    const { handler, port } = createHandler();
     const result = await handler.handleCommand(
       {
         ...BASE,
-        type: "account:confirm-logout",
-        requestId: "req_confirm_missing_001",
+        type: "account:logout",
+        requestId: "req_logout_bad_001",
         payload: {
-          logoutToken: "logout_token_fixed_001",
-          expectedRevision: 1,
-        },
-      },
-      { clientId: CLIENT },
-    );
-    expect(result.ok).toBe(false);
-    if (result.ok) {
-      return;
-    }
-    expect(result.code).toBe("interaction_required");
-  });
-
-  it("confirm invalid reason returns invalid_payload", async () => {
-    const { handler } = createHandler();
-    await handler.handleCommand(
-      {
-        ...BASE,
-        type: "account:prepare-logout",
-        requestId: "req_prep_004",
-        payload: { expectedRevision: 1 },
-      },
-      { clientId: CLIENT },
-    );
-    const result = await handler.handleCommand(
-      {
-        ...BASE,
-        type: "account:confirm-logout",
-        requestId: "req_confirm_bad_001",
-        payload: {
-          logoutToken: "logout_token_fixed_001",
           reasonId: 999,
           expectedRevision: 1,
         },
@@ -361,38 +406,6 @@ describe("ExternalSdkOperatorHandler", () => {
     expect(result).toEqual({
       ok: false,
       code: "invalid_payload",
-      retryable: false,
-    });
-  });
-
-  it("cancel pending logout does not call logoutAccountSession", async () => {
-    const { handler, port } = createHandler();
-    await handler.handleCommand(
-      {
-        ...BASE,
-        type: "account:prepare-logout",
-        requestId: "req_prep_005",
-        payload: { expectedRevision: 1 },
-      },
-      { clientId: CLIENT },
-    );
-    expect(handler.cancelPendingLogout("logout_token_fixed_001")).toBe(true);
-    const result = await handler.handleCommand(
-      {
-        ...BASE,
-        type: "account:confirm-logout",
-        requestId: "req_confirm_cancel_001",
-        payload: {
-          logoutToken: "logout_token_fixed_001",
-          reasonId: 90,
-          expectedRevision: 1,
-        },
-      },
-      { clientId: CLIENT },
-    );
-    expect(result).toEqual({
-      ok: false,
-      code: "not_found",
       retryable: false,
     });
     expect(port.logoutAccountSession).not.toHaveBeenCalled();
@@ -419,24 +432,12 @@ describe("ExternalSdkOperatorHandler", () => {
           ),
       }),
     );
-    await handler.handleCommand(
-      {
-        ...BASE,
-        type: "account:prepare-logout",
-        requestId: "req_prep_006",
-        payload: { expectedRevision: 1 },
-      },
-      { clientId: CLIENT },
-    );
     const result = await handler.handleCommand(
       {
         ...BASE,
-        type: "account:confirm-logout",
-        requestId: "req_confirm_reason_001",
-        payload: {
-          logoutToken: "logout_token_fixed_001",
-          expectedRevision: 1,
-        },
+        type: "account:logout",
+        requestId: "req_logout_reason_001",
+        payload: { expectedRevision: 1 },
       },
       { clientId: CLIENT },
     );
@@ -447,114 +448,82 @@ describe("ExternalSdkOperatorHandler", () => {
     expect(result.code).toBe("interaction_required");
   });
 
-  it("does not leak apiKey / OCP wire keys in replies", async () => {
+  it("does not leak apiKey / OCP wire keys / logoutToken in replies", async () => {
     const { handler } = createHandler();
-    const prepare = await handler.handleCommand(
+    const reply = await handler.handleCommand(
       {
         ...BASE,
-        type: "account:prepare-logout",
-        requestId: "req_prep_leak_001",
+        type: "account:logout",
+        requestId: "req_logout_leak_001",
         payload: { expectedRevision: 1 },
       },
       { clientId: CLIENT },
     );
-    const serialized = JSON.stringify(prepare);
+    const serialized = JSON.stringify(reply);
     expect(serialized).not.toMatch(/apiKey/i);
     expect(serialized).not.toMatch(/ocpAuthToken/i);
     expect(serialized).not.toMatch(/password/i);
     expect(serialized).not.toMatch(/proxy_users/i);
+    expect(serialized).not.toMatch(/logoutToken/i);
   });
 
-  it("abortClientSession clears pending logout without calling logout", async () => {
-    const { handler, port } = createHandler();
-    await handler.handleCommand(
-      {
-        ...BASE,
-        type: "account:prepare-logout",
-        requestId: "req_prep_abort_001",
-        payload: { expectedRevision: 1 },
-      },
-      { clientId: CLIENT },
-    );
-    expect(handler.clearPendingLogoutsForClient(CLIENT)).toBe(1);
-    const result = await handler.handleCommand(
-      {
-        ...BASE,
-        type: "account:confirm-logout",
-        requestId: "req_confirm_abort_001",
-        payload: {
-          logoutToken: "logout_token_fixed_001",
-          reasonId: 90,
-          expectedRevision: 1,
+  it("product abortClientSession is a no-op (no pending logout tokens)", () => {
+    const { handler, port, revisionClock } = createHandler();
+    const product = new ExternalSdkProductHandler({
+      readHandler: new ExternalSdkReadHandler({
+        readProductState: () => ({
+          signedIn: false,
+          profileLabel: null,
+          registrationState: "idle",
+          registrationReasonCode: null,
+          calls: [],
+          ocpEnabled: false,
+          ocpConnected: false,
+          operatorStatus: null,
+          operatorReasonId: null,
+          operatorReasonLabelKey: null,
+        }),
+        revisionClock,
+        ownership: new SdkCallOwnershipRegistry(),
+      }),
+      callHandler: new ExternalSdkCallHandler({
+        callPort: {
+          makeCall: vi.fn(),
+          answerCall: vi.fn(),
+          rejectCall: vi.fn(),
+          hangupCall: vi.fn(),
+          holdCall: vi.fn(),
+          resumeCall: vi.fn(),
+          muteCall: vi.fn(),
+          unmuteCall: vi.fn(),
+          sendDtmf: vi.fn(),
         },
-      },
-      { clientId: CLIENT },
-    );
-    expect(result).toEqual({
-      ok: false,
-      code: "not_found",
-      retryable: false,
+        ownership: new SdkCallOwnershipRegistry(),
+        revisionClock,
+      }),
+      operatorHandler: handler,
+      accountHandler: new ExternalSdkAccountHandler({
+        accountPort: {
+          activateSavedProfileByLogin: () =>
+            Promise.resolve(
+              err(createPlatformError("forbidden", "sdk_activate_not_used")),
+            ),
+          lookupSavedProfileByLogin: () =>
+            Promise.resolve(
+              err(createPlatformError("forbidden", "sdk_activate_not_used")),
+            ),
+          getActivateSessionView: () => ({
+            signedIn: false,
+            currentLogin: null,
+            currentMode: null,
+            profileLabel: null,
+          }),
+        },
+        revisionClock,
+      }),
     });
+    expect(product.abortClientSession(CLIENT)).toBe(0);
     expect(port.logoutAccountSession).not.toHaveBeenCalled();
-  });
-
-  it("prepare supersedes prior pending token for same client", async () => {
-    let tokenSeq = 0;
-    const { handler, port } = createHandler(createPort(), () => {
-      tokenSeq += 1;
-      return `logout_token_${tokenSeq}`;
-    });
-    await handler.handleCommand(
-      {
-        ...BASE,
-        type: "account:prepare-logout",
-        requestId: "req_prep_super_001",
-        payload: { expectedRevision: 1 },
-      },
-      { clientId: CLIENT },
-    );
-    await handler.handleCommand(
-      {
-        ...BASE,
-        type: "account:prepare-logout",
-        requestId: "req_prep_super_002",
-        payload: { expectedRevision: 1 },
-      },
-      { clientId: CLIENT },
-    );
-    const stale = await handler.handleCommand(
-      {
-        ...BASE,
-        type: "account:confirm-logout",
-        requestId: "req_confirm_stale_tok",
-        payload: {
-          logoutToken: "logout_token_1",
-          reasonId: 90,
-          expectedRevision: 1,
-        },
-      },
-      { clientId: CLIENT },
-    );
-    expect(stale).toEqual({
-      ok: false,
-      code: "not_found",
-      retryable: false,
-    });
-    const fresh = await handler.handleCommand(
-      {
-        ...BASE,
-        type: "account:confirm-logout",
-        requestId: "req_confirm_fresh_tok",
-        payload: {
-          logoutToken: "logout_token_2",
-          reasonId: 90,
-          expectedRevision: 1,
-        },
-      },
-      { clientId: CLIENT },
-    );
-    expect(fresh.ok).toBe(true);
-    expect(port.logoutAccountSession).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -605,6 +574,15 @@ describe("ExternalSdkOperatorHandler shared revision clock", () => {
     const operatorHandler = new ExternalSdkOperatorHandler({
       operatorPort: {
         changeOperatorStatus,
+        finishPostCallAppeal: vi.fn(() =>
+          Promise.resolve(
+            ok({
+              kind: "applied" as const,
+              targetStatus: "ready" as const,
+              reasonId: 1,
+            }),
+          ),
+        ),
         listOperatorReasons: () => [...REASONS],
         readOcpSession: () => ({
           isAuthenticated: true,

@@ -25,11 +25,9 @@ import type {
 export type { AxatalkEvent, PublicEventType };
 export { AxatalkClientError, isAxatalkClientError, isOriginBlockedError, PUBLIC_EVENT_TYPES };
 export type { ActivateProfileResult } from '../internal/account-activate-commands.js';
+export type { LogoutResult } from '../internal/account-logout-commands.js';
 export type {
-  ConfirmLogoutResult,
-  PrepareLogoutResult
-} from '../internal/account-logout-commands.js';
-export type {
+  OperatorFinishAppealResult,
   OperatorReason,
   OperatorReasonsResult,
   OperatorStatusChangeResult
@@ -200,11 +198,11 @@ export function createAxatalkClient(
     }),
     operator: Object.freeze({
       getReasons: () => product.getOperatorReasons(),
-      changeStatus: (input) => product.changeOperatorStatus(input)
+      changeStatus: (input) => product.changeOperatorStatus(input),
+      finishAppeal: (input) => product.finishOperatorAppeal(input)
     }),
     account: Object.freeze({
-      prepareLogout: (input) => product.prepareLogout(input),
-      confirmLogout: (input) => product.confirmLogout(input),
+      logout: (input) => product.logout(input),
       activateProfile: (input) => product.activateProfile(input)
     })
   };

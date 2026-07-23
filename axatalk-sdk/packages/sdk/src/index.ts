@@ -29,11 +29,11 @@ export {
   type AxatalkWindowApi,
   type ActivateProfileResult,
   type CallMutationResult,
-  type ConfirmLogoutResult,
+  type LogoutResult,
   type OperatorReason,
   type OperatorReasonsResult,
+  type OperatorFinishAppealResult,
   type OperatorStatusChangeResult,
-  type PrepareLogoutResult,
   type PublicEventType
 } from './public/axatalk-client.js';
 

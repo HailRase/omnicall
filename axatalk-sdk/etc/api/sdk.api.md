@@ -68,14 +68,10 @@ export type AuthSessionSnapshot = {
 
 // @public
 export type AxatalkAccountApi = {
-    readonly prepareLogout: (input: {
-        readonly expectedRevision: number;
-    }) => Promise<PrepareLogoutResult>;
-    readonly confirmLogout: (input: {
-        readonly logoutToken: string;
+    readonly logout: (input: {
         readonly reasonId?: number;
         readonly expectedRevision: number;
-    }) => Promise<ConfirmLogoutResult>;
+    }) => Promise<LogoutResult>;
     readonly activateProfile: (input: {
         readonly login: string;
         readonly expectedRevision: number;
@@ -184,6 +180,9 @@ export type AxatalkOperatorApi = {
         readonly reasonId?: number;
         readonly expectedRevision: number;
     }) => Promise<OperatorStatusChangeResult>;
+    readonly finishAppeal: (input: {
+        readonly expectedRevision: number;
+    }) => Promise<OperatorFinishAppealResult>;
 };
 
 // @public (undocumented)
@@ -201,12 +200,6 @@ export type AxatalkWindowApi = {
 // @public (undocumented)
 export type CallMutationResult = {
     readonly callId: string;
-    readonly revision: number;
-};
-
-// @public
-export type ConfirmLogoutResult = {
-    readonly loggedOut: boolean;
     readonly revision: number;
 };
 
@@ -295,6 +288,15 @@ export type JitterSource = {
 };
 
 // @public
+export type LogoutResult = {
+    readonly loggedOut: true;
+    readonly revision: number;
+};
+
+// @public
+export type OperatorFinishAppealResult = OperatorStatusChangeResult;
+
+// @public
 export type OperatorReason = {
     readonly id: number;
     readonly label: string;
@@ -328,13 +330,6 @@ export type PopKeyStore = {
     readonly load: () => Promise<StoredPopIdentity | undefined>;
     readonly save: (identity: StoredPopIdentity) => Promise<void>;
     readonly clear: () => Promise<void>;
-};
-
-// @public
-export type PrepareLogoutResult = {
-    readonly logoutToken: string;
-    readonly requiresReason: boolean;
-    readonly revision: number;
 };
 
 // @public

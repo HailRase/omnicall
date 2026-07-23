@@ -300,6 +300,69 @@ describe('AxatalkClient operator success and fail-closed', () => {
     });
   });
 
+  it('finishAppeal succeeds with expectedRevision', async () => {
+    const harness = createHarness();
+    await reachReady(harness);
+    const pending = harness.client.operator.finishAppeal({
+      expectedRevision: 13
+    });
+    await waitFor(() =>
+      Boolean(findSentType(harness.transports.last()!, 'operator:finish-appeal'))
+    );
+    const sent = findSentType(
+      harness.transports.last()!,
+      'operator:finish-appeal'
+    ) as {
+      payload: { expectedRevision: number };
+    };
+    expect(sent.payload).toEqual({ expectedRevision: 13 });
+    expect(
+      replyCommandSuccess(
+        harness.transports.last()!,
+        'operator:finish-appeal',
+        {
+          accepted: true,
+          kind: 'applied',
+          targetStatus: 'ready',
+          reasonId: 1
+        },
+        14
+      )
+    ).toBe(true);
+    await expect(pending).resolves.toEqual({
+      accepted: true,
+      kind: 'applied',
+      targetStatus: 'ready',
+      reasonId: 1,
+      revision: 14
+    });
+  });
+
+  it('finishAppeal surfaces conflict when not in post-call processing', async () => {
+    const harness = createHarness();
+    await reachReady(harness);
+    const pending = harness.client.operator.finishAppeal({
+      expectedRevision: 13
+    });
+    await waitFor(() =>
+      Boolean(findSentType(harness.transports.last()!, 'operator:finish-appeal'))
+    );
+    expect(
+      replyCommandFailure(harness.transports.last()!, 'operator:finish-appeal', {
+        code: 'conflict',
+        retryable: false,
+        details: { failure_kind: 'not_in_post_call_processing' }
+      })
+    ).toBe(true);
+    await expect(pending).rejects.toSatisfy(
+      (error: unknown) =>
+        isAxatalkClientError(error) && error.code === 'conflict'
+    );
+    expect(
+      countSentType(harness.transports.last()!, 'operator:finish-appeal')
+    ).toBe(1);
+  });
+
   it('returns forbidden without operator.status.write (no frame)', async () => {
     const harness = createHarness({
       grantedCapabilities: [
@@ -395,21 +458,21 @@ describe('AxatalkClient operator success and fail-closed', () => {
 });
 
 describe('AxatalkClient account logout workflows', () => {
-  it('prepare → interaction_required with details; never auto-confirm', async () => {
+  it('logout → interaction_required with requiresReason; never auto-retries', async () => {
     const harness = createHarness();
     await reachReady(harness);
-    const pending = harness.client.account.prepareLogout({
+    const pending = harness.client.account.logout({
       expectedRevision: 13
     });
     await waitFor(() =>
-      Boolean(findSentType(harness.transports.last()!, 'account:prepare-logout'))
+      Boolean(findSentType(harness.transports.last()!, 'account:logout'))
     );
     expect(
-      replyCommandFailure(harness.transports.last()!, 'account:prepare-logout', {
+      replyCommandFailure(harness.transports.last()!, 'account:logout', {
         code: 'interaction_required',
         retryable: false,
         details: {
-          logoutToken: 'logout_token_fixed_001',
+          requiresReason: true,
           reasons: [{ id: 90, label: 'End of shift', kind: 'logout' }]
         }
       })
@@ -419,80 +482,68 @@ describe('AxatalkClient account logout workflows', () => {
         return false;
       }
       expect(error.details).toEqual({
-        logoutToken: 'logout_token_fixed_001',
+        requiresReason: true,
         reasons: [{ id: 90, label: 'End of shift', kind: 'logout' }]
       });
+      expect(error.details).not.toHaveProperty('logoutToken');
       return true;
     });
-    expect(
-      countSentType(harness.transports.last()!, 'account:confirm-logout')
-    ).toBe(0);
+    expect(countSentType(harness.transports.last()!, 'account:logout')).toBe(1);
   });
 
-  it('SIP-only prepare returns token; confirm succeeds', async () => {
+  it('SIP-only logout succeeds without reasonId', async () => {
     const harness = createHarness();
     await reachReady(harness);
-    const preparePending = harness.client.account.prepareLogout({
+    const pending = harness.client.account.logout({
       expectedRevision: 13
     });
     await waitFor(() =>
-      Boolean(findSentType(harness.transports.last()!, 'account:prepare-logout'))
+      Boolean(findSentType(harness.transports.last()!, 'account:logout'))
     );
+    const sent = findSentType(harness.transports.last()!, 'account:logout') as {
+      payload: { expectedRevision: number; reasonId?: number };
+    };
+    expect(sent.payload).toEqual({ expectedRevision: 13 });
     expect(
       replyCommandSuccess(
         harness.transports.last()!,
-        'account:prepare-logout',
-        { logoutToken: 'logout_sip_001', requiresReason: false },
-        13
-      )
-    ).toBe(true);
-    await expect(preparePending).resolves.toEqual({
-      logoutToken: 'logout_sip_001',
-      requiresReason: false,
-      revision: 13
-    });
-
-    const confirmPending = harness.client.account.confirmLogout({
-      logoutToken: 'logout_sip_001',
-      expectedRevision: 13
-    });
-    await waitFor(() =>
-      Boolean(findSentType(harness.transports.last()!, 'account:confirm-logout'))
-    );
-    expect(
-      replyCommandSuccess(
-        harness.transports.last()!,
-        'account:confirm-logout',
+        'account:logout',
         { loggedOut: true, ocpStep: 'skipped', operatorSnapshotMissing: true },
         14
       )
     ).toBe(true);
-    await expect(confirmPending).resolves.toEqual({
+    await expect(pending).resolves.toEqual({
       loggedOut: true,
       revision: 14
     });
   });
 
-  it('confirm with stale/unknown token fails typed; never invents success', async () => {
+  it('logout with reasonId succeeds', async () => {
     const harness = createHarness();
     await reachReady(harness);
-    const pending = harness.client.account.confirmLogout({
-      logoutToken: 'logout_missing_001',
+    const pending = harness.client.account.logout({
+      reasonId: 90,
       expectedRevision: 13
     });
     await waitFor(() =>
-      Boolean(findSentType(harness.transports.last()!, 'account:confirm-logout'))
+      Boolean(findSentType(harness.transports.last()!, 'account:logout'))
     );
+    const sent = findSentType(harness.transports.last()!, 'account:logout') as {
+      payload: { expectedRevision: number; reasonId: number };
+    };
+    expect(sent.payload).toEqual({ reasonId: 90, expectedRevision: 13 });
     expect(
-      replyCommandFailure(harness.transports.last()!, 'account:confirm-logout', {
-        code: 'not_found',
-        retryable: false
-      })
+      replyCommandSuccess(
+        harness.transports.last()!,
+        'account:logout',
+        { loggedOut: true, ocpStep: 'completed', operatorSnapshotMissing: false },
+        14
+      )
     ).toBe(true);
-    await expect(pending).rejects.toSatisfy(
-      (error: unknown) =>
-        isAxatalkClientError(error) && error.code === 'not_found'
-    );
+    await expect(pending).resolves.toEqual({
+      loggedOut: true,
+      revision: 14
+    });
   });
 
   it('returns forbidden without session.logout (no frame)', async () => {
@@ -505,30 +556,28 @@ describe('AxatalkClient account logout workflows', () => {
     });
     await reachReady(harness);
     await expect(
-      harness.client.account.prepareLogout({ expectedRevision: 13 })
+      harness.client.account.logout({ expectedRevision: 13 })
     ).rejects.toSatisfy(
       (error: unknown) =>
         isAxatalkClientError(error) && error.code === 'forbidden'
     );
-    expect(
-      countSentType(harness.transports.last()!, 'account:prepare-logout')
-    ).toBe(0);
+    expect(countSentType(harness.transports.last()!, 'account:logout')).toBe(0);
   });
 
-  it('fails closed when prepare success omits logoutToken', async () => {
+  it('fails closed when logout success omits loggedOut', async () => {
     const harness = createHarness();
     await reachReady(harness);
-    const pending = harness.client.account.prepareLogout({
+    const pending = harness.client.account.logout({
       expectedRevision: 13
     });
     await waitFor(() =>
-      Boolean(findSentType(harness.transports.last()!, 'account:prepare-logout'))
+      Boolean(findSentType(harness.transports.last()!, 'account:logout'))
     );
     expect(
       replyCommandSuccess(
         harness.transports.last()!,
-        'account:prepare-logout',
-        { requiresReason: false },
+        'account:logout',
+        { accepted: true },
         13
       )
     ).toBe(true);
@@ -541,11 +590,11 @@ describe('AxatalkClient account logout workflows', () => {
   it('times out when logout reply never arrives', async () => {
     const harness = createHarness();
     await reachReady(harness);
-    const pending = harness.client.account.prepareLogout({
+    const pending = harness.client.account.logout({
       expectedRevision: 13
     });
     await waitFor(() =>
-      Boolean(findSentType(harness.transports.last()!, 'account:prepare-logout'))
+      Boolean(findSentType(harness.transports.last()!, 'account:logout'))
     );
     harness.scheduler.advanceBy(500);
     await expect(pending).rejects.toSatisfy(
@@ -557,7 +606,7 @@ describe('AxatalkClient account logout workflows', () => {
   it('fails closed on mutate before ready', async () => {
     const harness = createHarness();
     await expect(
-      harness.client.account.prepareLogout({ expectedRevision: 1 })
+      harness.client.account.logout({ expectedRevision: 1 })
     ).rejects.toSatisfy(
       (error: unknown) =>
         isAxatalkClientError(error) && error.code === 'not_ready'
@@ -612,20 +661,18 @@ describe('AxatalkClient operator/logout reconnect and disconnect safety', () => 
     expect(replyToGetSnapshot(next, buildSnapshotMessage(30), 30)).toBe(true);
     await waitFor(() => harness.client.getRevision() === 30);
     expect(countSentType(next, 'operator:change-status')).toBe(0);
-    expect(countSentType(next, 'account:confirm-logout')).toBe(0);
+    expect(countSentType(next, 'account:logout')).toBe(0);
   });
 
-  it('rejects in-flight confirm-logout on reconnect and never replays', async () => {
+  it('rejects in-flight logout on reconnect and never replays', async () => {
     const harness = createHarness();
     await reachReady(harness);
     const firstTransport = harness.transports.last()!;
-    const pending = harness.client.account.confirmLogout({
-      logoutToken: 'logout_inflight_001',
+    const pending = harness.client.account.logout({
+      reasonId: 90,
       expectedRevision: 13
     });
-    await waitFor(() =>
-      Boolean(findSentType(firstTransport, 'account:confirm-logout'))
-    );
+    await waitFor(() => Boolean(findSentType(firstTransport, 'account:logout')));
     firstTransport.simulateClose(1006, 'drop');
     await waitFor(() => harness.client.getState() === 'reconnecting');
     await expect(pending).rejects.toSatisfy(
@@ -650,44 +697,40 @@ describe('AxatalkClient operator/logout reconnect and disconnect safety', () => 
     await waitFor(() => Boolean(findSentType(next, 'sdk:get-snapshot')));
     expect(replyToGetSnapshot(next, buildSnapshotMessage(31), 31)).toBe(true);
     await waitFor(() => harness.client.getRevision() === 31);
-    expect(countSentType(next, 'account:confirm-logout')).toBe(0);
+    expect(countSentType(next, 'account:logout')).toBe(0);
   });
 
-  it('disconnect after prepare does not confirm logout or hangup', async () => {
+  it('disconnect after getReasons does not send logout or hangup', async () => {
     const harness = createHarness();
     await reachReady(harness);
     const transport = harness.transports.last()!;
-    const pending = harness.client.account.prepareLogout({
-      expectedRevision: 13
-    });
+    const pending = harness.client.operator.getReasons();
     await waitFor(() =>
-      Boolean(findSentType(transport, 'account:prepare-logout'))
+      Boolean(findSentType(transport, 'operator:get-reasons'))
     );
     expect(
       replyCommandSuccess(
         transport,
-        'account:prepare-logout',
-        { logoutToken: 'logout_held_001', requiresReason: false },
+        'operator:get-reasons',
+        {
+          reasons: [{ id: 90, label: 'End of shift', kind: 'logout' }]
+        },
         13
       )
     ).toBe(true);
     await expect(pending).resolves.toEqual({
-      logoutToken: 'logout_held_001',
-      requiresReason: false,
+      reasons: [{ id: 90, label: 'End of shift', kind: 'logout' }],
       revision: 13
     });
     harness.client.disconnect();
     await flush();
-    expect(countSentType(transport, 'account:confirm-logout')).toBe(0);
+    expect(countSentType(transport, 'account:logout')).toBe(0);
     expect(countSentType(transport, 'call:hangup')).toBe(0);
     expect(harness.client.getState()).toBe('closed');
-    const allConfirm = harness.transports
+    const allLogout = harness.transports
       .all()
-      .reduce(
-        (sum, item) => sum + countSentType(item, 'account:confirm-logout'),
-        0
-      );
-    expect(allConfirm).toBe(0);
+      .reduce((sum, item) => sum + countSentType(item, 'account:logout'), 0);
+    expect(allLogout).toBe(0);
   });
 
   it('SDK-06 regression: disconnect after originate still sends no hangup', async () => {
@@ -714,25 +757,25 @@ describe('AxatalkClient operator/logout reconnect and disconnect safety', () => 
     harness.client.disconnect();
     await flush();
     expect(countSentType(transport, 'call:hangup')).toBe(0);
-    expect(countSentType(transport, 'account:confirm-logout')).toBe(0);
+    expect(countSentType(transport, 'account:logout')).toBe(0);
   });
 
-  it('privacy: diagnostics never echo logoutToken / destinations', async () => {
+  it('privacy: diagnostics never echo secret needles / destinations', async () => {
     const harness = createHarness();
     await reachReady(harness);
-    const pending = harness.client.account.prepareLogout({
+    const pending = harness.client.account.logout({
       expectedRevision: 13
     });
     await waitFor(() =>
-      Boolean(findSentType(harness.transports.last()!, 'account:prepare-logout'))
+      Boolean(findSentType(harness.transports.last()!, 'account:logout'))
     );
     expect(
-      replyCommandFailure(harness.transports.last()!, 'account:prepare-logout', {
+      replyCommandFailure(harness.transports.last()!, 'account:logout', {
         code: 'interaction_required',
         retryable: false,
         details: {
-          logoutToken: 'logout_secret_needle_xyz',
-          reasons: [{ id: 1, label: 'X', kind: 'logout' }]
+          requiresReason: true,
+          reasons: [{ id: 1, label: 'logout_secret_needle_xyz', kind: 'logout' }]
         }
       })
     ).toBe(true);

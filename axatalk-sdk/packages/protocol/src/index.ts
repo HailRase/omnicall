@@ -59,8 +59,7 @@ export {
 
 export {
   AccountActivateProfileCommandSchema,
-  AccountConfirmLogoutCommandSchema,
-  AccountPrepareLogoutCommandSchema,
+  AccountLogoutCommandSchema,
   CallAnswerCommandSchema,
   CallHangupCommandSchema,
   CallHoldCommandSchema,
@@ -74,6 +73,7 @@ export {
   CommandMessageSchema,
   CommandTypeSchema,
   OperatorChangeStatusCommandSchema,
+  OperatorFinishAppealCommandSchema,
   OperatorGetReasonsCommandSchema,
   SdkGetSnapshotCommandSchema,
   SdkPingCommandSchema,

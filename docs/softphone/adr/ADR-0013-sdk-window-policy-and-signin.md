@@ -90,9 +90,10 @@ Two product risks:
      `account_incomplete`;
    - SDK receives only operation result + redacted state — never secrets.
 
-4. **Logout via SDK (DI-07):** `account:prepare-logout` / `account:confirm-logout` map to
+4. **Logout via SDK (DI-07):** `account:logout` maps to
    existing `AccountLogoutOrchestrationService` / avatar-equivalent workflow, including
-   `interaction_required` when an OCP reason is needed. Intentional logout recovery
+   `interaction_required` when an OCP reason is needed (`requiresReason` + reasons list;
+   no `logoutToken`). Intentional logout recovery
    disarm/reset semantics are preserved. This does **not** add a second human logout UI.
 
 5. **Raw credential provisioning**, if a future business requirement proves unavoidable, is

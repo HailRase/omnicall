@@ -9,14 +9,15 @@ import {
   isAxatalkClientError,
   type AxatalkClient,
   type CallMutationResult,
-  type PrepareLogoutResult
+  type LogoutResult,
+  type OperatorReason
 } from '../index.js';
 import {
   SAFE_REQUESTED_CAPABILITIES,
   activateIfGranted,
   loadRevision,
+  logoutDemo,
   originateDemoCall,
-  prepareLogoutDemo,
   waitForReady
 } from '../../../../examples/crm-pairing-lite/src/crm-app.js';
 import { formatSafeError, toSafeErrorView } from '../../../../examples/crm-pairing-lite/src/safe-error.js';
@@ -39,11 +40,12 @@ test('example helpers align with public AxatalkClient', () => {
     | { readonly ok: true; readonly result: CallMutationResult }
     | { readonly ok: false; readonly safeError: string; readonly code?: string }
   >();
-  expectTypeOf(prepareLogoutDemo).returns.resolves.toMatchTypeOf<
-    | { readonly kind: 'prepared'; readonly result: PrepareLogoutResult }
+  expectTypeOf(logoutDemo).returns.resolves.toMatchTypeOf<
+    | { readonly kind: 'logged_out'; readonly result: LogoutResult }
     | {
         readonly kind: 'interaction_required';
-        readonly logoutToken: string;
+        readonly requiresReason: true;
+        readonly reasons: readonly OperatorReason[];
         readonly safeError: string;
       }
     | { readonly kind: 'failed'; readonly safeError: string; readonly code?: string }

@@ -12,10 +12,10 @@ Demonstrates:
 
 1. Pairing → `ready` → snapshot subscribe
 2. Call originate with revision bind + typed `forbidden` when cap missing
-3. `prepareLogout` `interaction_required` honesty
+3. Single-shot `logout` `interaction_required` honesty (no `logoutToken`)
 4. Optional `activateProfile` only when the **fake peer grants** `account.activate`
    (never via `requestedCapabilities`)
-5. `disconnect()` leaves calls / account session alone (zero hangup / confirm-logout / activate)
+5. `disconnect()` leaves calls / account session alone (zero hangup / logout / activate)
 
 ## Run
 

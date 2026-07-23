@@ -25,7 +25,7 @@
 - No invent `account:list-profiles`
 - No teaching `requestedCapabilities: ['account.activate']` as a working pattern
 - No raw credential login / SIP password / OCP apiKey APIs
-- No mutation replay / disconnect hangup / confirm-logout / activate helpers
+- No mutation replay / disconnect hangup / logout / activate helpers
 - No privilege-strip weakening
 
 ## Deliverables
@@ -60,8 +60,8 @@ Root `README.md` Start Here / Current Status points at the guide without claimin
 | Fake-peer driver | `packages/sdk/src/docs/crm-pairing-lite-harness.ts`, `crm-pairing-lite-demo.ts` |
 
 Demo proves: pairing → ready → snapshot; originate + local `forbidden` without `call.originate`;
-`prepareLogout` `interaction_required`; activate only when peer **grants** `account.activate`;
-`disconnect()` adds zero hangup / confirm-logout / activate frames.
+`logout` `interaction_required`; activate only when peer **grants** `account.activate`;
+`disconnect()` adds zero hangup / logout / activate frames.
 
 ### C. Tests that would fail on revert
 

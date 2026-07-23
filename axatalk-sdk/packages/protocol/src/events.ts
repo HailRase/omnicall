@@ -142,7 +142,9 @@ export const OperatorSessionChangedEventSchema = z
     payload: z
       .object({
         connected: z.boolean(),
-        status: z.enum(['ready', 'break', 'offline', 'unknown']).optional()
+        status: z
+          .enum(['ready', 'break', 'offline', 'post_call_processing', 'unknown'])
+          .optional()
       })
       .readonly()
   })
@@ -155,7 +157,13 @@ export const OperatorStatusChangedEventSchema = z
     type: z.literal('operator:status-changed'),
     payload: z
       .object({
-        status: z.enum(['ready', 'break', 'offline', 'unknown']),
+        status: z.enum([
+          'ready',
+          'break',
+          'offline',
+          'post_call_processing',
+          'unknown'
+        ]),
         reasonId: z.number().int().nonnegative().optional(),
         reasonLabelKey: z.string().min(1).max(128).optional()
       })

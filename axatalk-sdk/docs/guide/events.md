@@ -21,13 +21,15 @@ Constant: `PUBLIC_EVENT_TYPES` from `@axata/axatalk-sdk`.
 | `account:session-activated` | Account signed-in projection |
 | `account:session-ended` | Account signed-out projection |
 | `operator:session-changed` | Operator connectivity (`connected`) |
-| `operator:status-changed` | Coarse Ready / Break / offline / unknown UI |
+| `operator:status-changed` | Coarse Ready / Break / offline / post_call_processing / unknown UI |
 | `window:visibility-changed` | Softphone window state |
 | `sdk:server-shutdown` | Prompt reconnect / wait for desktop |
 
 Desktop (Axatalk) emits the operator events above from OCP Domain Events via
 `ExternalSdkEventMapper` (DI-05 follow-up). Mid-call OCP statuses (talking, hold, …)
-project as public `unknown`. Campaign events remain out of v1.
+project as public `unknown`. **Post-call processing** projects as
+`post_call_processing` so CRM can enable `operator.finishAppeal`. Campaign events remain
+out of v1.
 
 ## Usage
 
@@ -65,10 +67,13 @@ Rules:
   from events.
 - On `event.sequence_gap` diagnostics the client already triggers `getSnapshot()`.
 - Desktop **coarse-advances** the shared session revision when public coarse status
-  changes (`ready|break|offline|unknown`), when `reasonId` changes on `ready|break`,
-  or when `connected` flips — not on every talking↔hold transition inside `unknown`.
+  changes (`ready|break|offline|post_call_processing|unknown`), when `reasonId` changes on
+  `ready|break`, or when `connected` flips — not on every talking↔hold transition inside
+  `unknown`.
 - `operator:change-status` reply includes `kind: "applied" | "reserved"` — reserved
   means post-call booking, not an immediate Break/Ready chip.
+- `operator:finish-appeal` applies the reserved (or default Ready) status and is valid
+  only while public status is `post_call_processing`.
 
 ## Anti-corruption rules
 

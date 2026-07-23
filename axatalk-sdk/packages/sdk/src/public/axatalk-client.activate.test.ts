@@ -576,7 +576,7 @@ describe('AxatalkClient activate reconnect / disconnect / privacy', () => {
     expect(harness.client.getState()).toBe('closed');
     expect(countSentType(transport, 'account:activate-profile')).toBe(1);
     expect(countSentType(transport, 'call:hangup')).toBe(0);
-    expect(countSentType(transport, 'account:confirm-logout')).toBe(0);
+    expect(countSentType(transport, 'account:logout')).toBe(0);
     const allActivate = harness.transports
       .all()
       .reduce(
@@ -611,7 +611,7 @@ describe('AxatalkClient activate reconnect / disconnect / privacy', () => {
     await flush();
     expect(countSentType(transport, 'account:activate-profile')).toBe(0);
     expect(countSentType(transport, 'call:hangup')).toBe(0);
-    expect(countSentType(transport, 'account:confirm-logout')).toBe(0);
+    expect(countSentType(transport, 'account:logout')).toBe(0);
     const allActivate = harness.transports
       .all()
       .reduce(
@@ -657,34 +657,35 @@ describe('AxatalkClient activate reconnect / disconnect / privacy', () => {
     expect(serialized).not.toContain('agent@example.com');
   });
 
-  it('SDK-07 regression: prepareLogout interaction_required still green', async () => {
+  it('SDK-07 regression: logout interaction_required still green', async () => {
     const harness = createHarness({
       grantedCapabilities: [...BASE_CAPS, 'account.activate', 'operator.status.write']
     });
     await reachReady(harness);
-    const pending = harness.client.account.prepareLogout({
+    const pending = harness.client.account.logout({
       expectedRevision: 13
     });
     await waitFor(() =>
-      Boolean(findSentType(harness.transports.last()!, 'account:prepare-logout'))
+      Boolean(findSentType(harness.transports.last()!, 'account:logout'))
     );
     expect(
-      replyCommandFailure(harness.transports.last()!, 'account:prepare-logout', {
+      replyCommandFailure(harness.transports.last()!, 'account:logout', {
         code: 'interaction_required',
         retryable: false,
         details: {
-          logoutToken: 'logout_held_act_001',
+          requiresReason: true,
           reasons: [{ id: 1, label: 'X', kind: 'logout' }]
         }
       })
     ).toBe(true);
-    await expect(pending).rejects.toSatisfy(
-      (error: unknown) =>
-        isAxatalkClientError(error) && error.code === 'interaction_required'
-    );
-    expect(
-      countSentType(harness.transports.last()!, 'account:confirm-logout')
-    ).toBe(0);
+    await expect(pending).rejects.toSatisfy((error: unknown) => {
+      if (!isAxatalkClientError(error) || error.code !== 'interaction_required') {
+        return false;
+      }
+      expect(error.details).not.toHaveProperty('logoutToken');
+      return true;
+    });
+    expect(countSentType(harness.transports.last()!, 'account:logout')).toBe(1);
   });
 });
 

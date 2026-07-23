@@ -25,10 +25,10 @@ export const COMMAND_TYPES = [
   'call:unmute',
   'call:send-dtmf',
   'account:activate-profile',
-  'account:prepare-logout',
-  'account:confirm-logout',
+  'account:logout',
   'operator:get-reasons',
-  'operator:change-status'
+  'operator:change-status',
+  'operator:finish-appeal'
 ] as const;
 
 /** @public */
@@ -219,27 +219,17 @@ export const AccountActivateProfileCommandSchema = z
   })
   .readonly();
 
-/** @public */
-export const AccountPrepareLogoutCommandSchema = z
+/**
+ * Single-shot account logout (CRM chooses reason via `operator:get-reasons`).
+ * No prepare/confirm token handshake.
+ * @public
+ */
+export const AccountLogoutCommandSchema = z
   .object({
     ...commandEnvelopeBase,
-    type: z.literal('account:prepare-logout'),
+    type: z.literal('account:logout'),
     payload: z
       .object({
-        expectedRevision: RevisionSchema
-      })
-      .readonly()
-  })
-  .readonly();
-
-/** @public */
-export const AccountConfirmLogoutCommandSchema = z
-  .object({
-    ...commandEnvelopeBase,
-    type: z.literal('account:confirm-logout'),
-    payload: z
-      .object({
-        logoutToken: OpaqueIdSchema,
         reasonId: z.number().int().nonnegative().optional(),
         expectedRevision: RevisionSchema
       })
@@ -271,6 +261,23 @@ export const OperatorChangeStatusCommandSchema = z
   })
   .readonly();
 
+/**
+ * Finish OCP post-call appeal (apply reserved Ready/Break or default Ready).
+ * Allowed only while operator is in post-call processing; target comes from desktop.
+ * @public
+ */
+export const OperatorFinishAppealCommandSchema = z
+  .object({
+    ...commandEnvelopeBase,
+    type: z.literal('operator:finish-appeal'),
+    payload: z
+      .object({
+        expectedRevision: RevisionSchema
+      })
+      .readonly()
+  })
+  .readonly();
+
 /** @public */
 export const CommandMessageSchema = z.discriminatedUnion('type', [
   SdkGetSnapshotCommandSchema,
@@ -288,10 +295,10 @@ export const CommandMessageSchema = z.discriminatedUnion('type', [
   CallUnmuteCommandSchema,
   CallSendDtmfCommandSchema,
   AccountActivateProfileCommandSchema,
-  AccountPrepareLogoutCommandSchema,
-  AccountConfirmLogoutCommandSchema,
+  AccountLogoutCommandSchema,
   OperatorGetReasonsCommandSchema,
-  OperatorChangeStatusCommandSchema
+  OperatorChangeStatusCommandSchema,
+  OperatorFinishAppealCommandSchema
 ]);
 
 /** @public */

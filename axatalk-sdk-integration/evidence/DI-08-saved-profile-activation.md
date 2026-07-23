@@ -43,7 +43,7 @@ WS (DI-04 auth + caps)
 peek() = current aggregate R
 account:activate-profile success → advance() → reply.revision = R+1
 stale expectedRevision → stale_state + currentRevision (no sign-in)
-reads / prepare-logout remain peek-only (DI-07)
+reads / logout remain peek-or-mutate per DI-07 (no prepare token)
 ```
 
 Shared `SdkSessionRevisionClock` + shared `SdkAggregateMutex` (`__sdk_account__`) from `bindSdkBrokerSession`.

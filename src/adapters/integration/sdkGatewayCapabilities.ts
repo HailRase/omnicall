@@ -21,6 +21,7 @@ const COMMAND_CAPABILITY: Readonly<
   "window:hide": "window.hide",
   "operator:get-reasons": "operator.status.write",
   "operator:change-status": "operator.status.write",
+  "operator:finish-appeal": "operator.status.write",
   "call:originate": "call.originate",
   "call:answer": "call.control",
   "call:reject": "call.control",
@@ -31,8 +32,7 @@ const COMMAND_CAPABILITY: Readonly<
   "call:unmute": "call.control",
   "call:send-dtmf": "call.control",
   "account:activate-profile": "account.activate",
-  "account:prepare-logout": "session.logout",
-  "account:confirm-logout": "session.logout",
+  "account:logout": "session.logout",
 };
 
 export function requiredCapabilityForCommand(

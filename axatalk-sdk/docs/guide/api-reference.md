@@ -23,7 +23,6 @@ integrator-oriented summaries; the inventory is the complete export list for SDK
 | type | `AxatalkOperatorApi` |
 | type | `AxatalkWindowApi` |
 | type | `CallMutationResult` |
-| type | `ConfirmLogoutResult` |
 | const | `CONNECTION_STATES` |
 | type | `ConnectionState` |
 | function | `createAuthClient` |
@@ -42,12 +41,13 @@ integrator-oriented summaries; the inventory is the complete export list for SDK
 | function | `isAxatalkClientError` |
 | function | `isOriginBlockedError` |
 | type | `JitterSource` |
+| type | `LogoutResult` |
+| type | `OperatorFinishAppealResult` |
 | type | `OperatorReason` |
 | type | `OperatorReasonsResult` |
 | type | `OperatorStatusChangeResult` |
 | type | `PairingRequiredInfo` |
 | type | `PopKeyStore` |
-| type | `PrepareLogoutResult` |
 | const | `PUBLIC_EVENT_TYPES` |
 | type | `PublicEventType` |
 | type | `ReconnectPolicy` |
@@ -105,8 +105,7 @@ Result: `{ callId, revision }`. Failures: see [Errors](./errors.md).
 
 | Method | Capability | Notes |
 | --- | --- | --- |
-| `prepareLogout({ expectedRevision })` | `session.logout` | May throw `interaction_required` + `logoutToken` |
-| `confirmLogout({ logoutToken, reasonId?, expectedRevision })` | `session.logout` | Host confirms; cancel = abandon token |
+| `logout({ reasonId?, expectedRevision })` | `session.logout` | Single-shot; may throw `interaction_required` + `requiresReason` / `reasons` (no `logoutToken`) |
 | `activateProfile({ login, expectedRevision, mode? })` | **`account.activate` (server-granted)** | Saved-account login; optional `sip_only` / `ocp`; never secrets |
 
 ## `client.operator`
@@ -115,6 +114,7 @@ Result: `{ callId, revision }`. Failures: see [Errors](./errors.md).
 | --- | --- |
 | `getReasons()` | read path (session) |
 | `changeStatus({ target, reasonId?, expectedRevision })` | `operator.status.write` |
+| `finishAppeal({ expectedRevision })` | `operator.status.write` — only while public status is `post_call_processing`; OCP login required |
 
 ## `client.window`
 

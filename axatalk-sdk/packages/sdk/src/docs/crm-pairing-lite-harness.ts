@@ -42,13 +42,15 @@ export type FakePeerHarness = {
   readonly grantedCapabilities: readonly DemoCap[];
   readonly reachReady: () => Promise<void>;
   readonly replyOriginateSuccess: (callId: string, revision: number) => Promise<void>;
-  readonly replyPrepareInteractionRequired: (logoutToken: string) => Promise<void>;
+  readonly replyLogoutInteractionRequired: (
+    reasons: readonly { readonly id: number; readonly label: string; readonly kind: string }[]
+  ) => Promise<void>;
   readonly replyActivateSuccess: (revision: number) => Promise<void>;
   readonly countCommand: (type: string) => number;
   readonly disconnectAndCountSensitive: () => {
     readonly activate: number;
     readonly hangup: number;
-    readonly confirmLogout: number;
+    readonly logout: number;
   };
 };
 
@@ -171,12 +173,12 @@ export function createFakePeerHarness(input?: {
         revision
       );
     },
-    replyPrepareInteractionRequired: async (logoutToken) => {
-      await waitForCommand('account:prepare-logout');
-      replyCommandFailure(transports.last()!, 'account:prepare-logout', {
+    replyLogoutInteractionRequired: async (reasons) => {
+      await waitForCommand('account:logout');
+      replyCommandFailure(transports.last()!, 'account:logout', {
         code: 'interaction_required',
         retryable: false,
-        details: { logoutToken, requiresReason: true }
+        details: { requiresReason: true, reasons }
       });
     },
     replyActivateSuccess: async (revision) => {
@@ -192,14 +194,13 @@ export function createFakePeerHarness(input?: {
     disconnectAndCountSensitive: () => {
       const beforeActivate = countSentType(transports.last()!, 'account:activate-profile');
       const beforeHangup = countSentType(transports.last()!, 'call:hangup');
-      const beforeConfirm = countSentType(transports.last()!, 'account:confirm-logout');
+      const beforeLogout = countSentType(transports.last()!, 'account:logout');
       client.disconnect();
       return {
         activate:
           countSentType(transports.last()!, 'account:activate-profile') - beforeActivate,
         hangup: countSentType(transports.last()!, 'call:hangup') - beforeHangup,
-        confirmLogout:
-          countSentType(transports.last()!, 'account:confirm-logout') - beforeConfirm
+        logout: countSentType(transports.last()!, 'account:logout') - beforeLogout
       };
     }
   };

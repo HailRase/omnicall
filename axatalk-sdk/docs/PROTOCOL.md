@@ -97,17 +97,23 @@ Loopback HTTP discovery (not WS-only): **ADR-0015**.
 ### Account
 
 - `account:activate-profile`
-- `account:prepare-logout`
-- `account:confirm-logout`
+- `account:logout`
 
 ### Operator
 
 - `operator:get-reasons`
 - `operator:change-status`
+- `operator:finish-appeal`
 
 Protocol v1 does not include raw SIP or OCP credential commands.
 
 Public operator/account mapping vs F-028 E-12: **ADR-0017** (O-OCP-1).
+
+`operator:finish-appeal` applies the reserved Ready/Break (or default Ready) **only** while
+the operator is in post-call processing. Missing OCP login → `not_found`. Wrong status →
+`conflict` with `details.failure_kind: "not_in_post_call_processing"`. Capability:
+`operator.status.write`. Public snapshot/event status includes `post_call_processing` so
+hosts can enable the control without guessing.
 
 ## Event Namespaces
 

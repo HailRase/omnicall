@@ -26,6 +26,9 @@ export function mapPlatformErrorToSdkCode(
   ) {
     return "conflict";
   }
+  if (isNotInPostCallProcessingError(error)) {
+    return "conflict";
+  }
   switch (error.code) {
     case "validation_failed":
       return "invalid_payload";
@@ -45,6 +48,13 @@ export function mapPlatformErrorToSdkCode(
     default:
       return "operation_failed";
   }
+}
+
+export function isNotInPostCallProcessingError(error: PlatformError): boolean {
+  return (
+    error.message === "not_in_post_call_processing" ||
+    isCauseReason(error.cause, "not_in_post_call_processing")
+  );
 }
 
 function isCauseReason(cause: unknown, reason: string): boolean {

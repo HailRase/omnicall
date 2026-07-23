@@ -43,11 +43,11 @@ export class ExternalSdkProductHandler implements ExternalCommandHandler {
   }
 
   /**
-   * Disconnect/revoke cleanup: abandon pending logout tokens for client.
-   * Does not end SIP calls or account sessions (ADR-0017 O-OWN-1).
+   * Disconnect/revoke cleanup hook (no SIP tear).
+   * Single-shot logout has no pending tokens — returns 0.
    */
-  abortClientSession(clientId: string): number {
-    return this.operatorHandler.clearPendingLogoutsForClient(clientId);
+  abortClientSession(_clientId: string): number {
+    return 0;
   }
 
   handleCommand(

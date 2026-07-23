@@ -86,10 +86,11 @@ the public WS.**
 
 | Public protocol (v1) | Maps to desktop | E-12 channel | Notes |
 | --- | --- | --- | --- |
-| Snapshot `operator.*` (redacted) | `getOcpConnectionState` / projections | `ocp:get-session-state` | Read via snapshot/events, not a public OCP channel name |
+| Snapshot `operator.*` (redacted) | `getOcpConnectionState` / projections | `ocp:get-session-state` | Read via snapshot/events, not a public OCP channel name; status enum includes `post_call_processing` |
 | `operator:get-reasons` | existing reason query used by logout/status UI | — (not an E-12 channel) | Returns reason ids + safe labels |
-| `operator:change-status` `{ target: "ready" \| "break", reasonId?: number }` | `changeOcpStatusFromHost` (`callType: "sdk"`) → OCP wire `function_call_type: "external"` | `ocp:change-status-ready` / `ocp:change-status-break` | Public single command; desktop splits ready/break; wire map in adapter |
-| `account:prepare-logout` / `account:confirm-logout` | Account logout orchestration (AF-003/005) | related to `ocp:logout` internally when OCP active | Public flow is account-scoped; may return `interaction_required` |
+| `operator:change-status` `{ target: "ready" \| "break", reasonId?: number }` | `changeOcpStatusFromHost` (`callType: "sdk"`) → OCP wire `function_call_type: "external"` | `ocp:change-status-ready` / `ocp:change-status-break` | Public single command; desktop splits ready/break; wire map in adapter; during busy/post-call may `kind: "reserved"` |
+| `operator:finish-appeal` `{ expectedRevision }` | `finishOcpPostCallAppeal` (`callType: "sdk"`) → `FinishPostCallAppealUseCase` → apply Ready/Break | same apply path as finish UI | Only when OCP status is post-call processing; missing OCP login → `not_found`; wrong status → `conflict` + `failure_kind` |
+| `account:logout` | Account logout orchestration (AF-003/005) | related to `ocp:logout` internally when OCP active | Public single-shot; may return `interaction_required` + reasons (no `logoutToken`) |
 | — | — | `ocp:authenticate` | **Not public** (ADR-0013; secrets forbidden) |
 | — | — | `ocp:disconnect` | **Not public**; session end projected as account/operator events |
 

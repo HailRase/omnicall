@@ -44,7 +44,7 @@ describe('SDK-09 example smoke (fake peer)', () => {
     expect(report.disconnectSensitive).toEqual({
       activate: 0,
       hangup: 0,
-      confirmLogout: 0
+      logout: 0
     });
     expect(report.storageUsesWebStorage).toBe(false);
   });

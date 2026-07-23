@@ -22,7 +22,6 @@ const SDK_ALLOWED_SYMBOLS = new Set([
   'AxatalkOperatorApi',
   'AxatalkWindowApi',
   'CallMutationResult',
-  'ConfirmLogoutResult',
   'CONNECTION_STATES',
   'ConnectionState',
   'DiagnosticEvent',
@@ -32,13 +31,14 @@ const SDK_ALLOWED_SYMBOLS = new Set([
   'FakeScheduler',
   'HeartbeatPolicy',
   'JitterSource',
+  'LogoutResult',
+  'OperatorFinishAppealResult',
   'OperatorReason',
   'OperatorReasonsResult',
   'OperatorStatusChangeResult',
   'PUBLIC_EVENT_TYPES',
   'PairingRequiredInfo',
   'PopKeyStore',
-  'PrepareLogoutResult',
   'PublicEventType',
   'ReconnectPolicy',
   'Scheduler',
@@ -62,9 +62,9 @@ const SDK_ALLOWED_SYMBOLS = new Set([
 /** Top-level exports forbidden (namespaced methods are not separate symbols). */
 const SDK_FORBIDDEN_SYMBOLS = new Set([
   'activateProfile',
-  'prepareLogout',
-  'confirmLogout',
+  'logout',
   'changeStatus',
+  'finishAppeal',
   'getReasons'
 ]);
 
@@ -181,15 +181,21 @@ for (const name of packages) {
         );
         process.exit(1);
       }
-      if (/^\s*readonly prepareLogout:/m.test(body)) {
+      if (/^\s*readonly logout:/m.test(body)) {
         console.error(
-          'Root-level prepareLogout is forbidden; use namespaced AxatalkAccountApi'
+          'Root-level logout is forbidden; use namespaced AxatalkAccountApi'
         );
         process.exit(1);
       }
       if (/^\s*readonly changeStatus:/m.test(body)) {
         console.error(
           'Root-level changeStatus is forbidden; use namespaced AxatalkOperatorApi'
+        );
+        process.exit(1);
+      }
+      if (/^\s*readonly finishAppeal:/m.test(body)) {
+        console.error(
+          'Root-level finishAppeal is forbidden; use namespaced AxatalkOperatorApi'
         );
         process.exit(1);
       }
@@ -206,12 +212,24 @@ for (const name of packages) {
       console.error('AxatalkClient must expose namespaced operator API');
       process.exit(1);
     }
+    if (!report.includes('finishAppeal')) {
+      console.error('AxatalkOperatorApi must expose finishAppeal');
+      process.exit(1);
+    }
     if (!report.includes('readonly account:')) {
       console.error('AxatalkClient must expose namespaced account API');
       process.exit(1);
     }
     if (!report.includes('activateProfile')) {
       console.error('AxatalkAccountApi must expose activateProfile (SDK-08)');
+      process.exit(1);
+    }
+    if (!report.includes('readonly logout:')) {
+      console.error('AxatalkAccountApi must expose logout (single-shot)');
+      process.exit(1);
+    }
+    if (!symbols.includes('LogoutResult')) {
+      console.error('SDK API must export LogoutResult');
       process.exit(1);
     }
     if (!symbols.includes('ActivateProfileResult')) {

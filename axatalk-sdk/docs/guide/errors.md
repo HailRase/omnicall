@@ -12,10 +12,10 @@ Detect with `isAxatalkClientError(error)` then branch on `error.code`.
 | `not_ready` | Client not in `ready` **or** desktop product broker not ready | Wait / show connecting; distinct from Origin blacklist |
 | `timeout` | No reply in budget | Surface retry UI; do **not** auto-replay non-idempotent cmds |
 | `stale_state` | Revision mismatch; often has `currentRevision`. Causes include another SDK mutate, **or** desktop coarse-advance after UI/OCP operator status/session change | `getSnapshot()`; retry **once** with new revision if user still intends |
-| `conflict` | Aggregate busy / active session / race / activate consent already pending | Show conflict; for activate often logout-first; wait if consent pending |
+| `conflict` | Aggregate busy / active session / race / activate consent already pending / finish-appeal outside post-call (`details.failure_kind: "not_in_post_call_processing"`) | Show conflict; for activate often logout-first; wait if consent pending; for finish-appeal wait until `operator.status === "post_call_processing"` |
 | `not_found` | Unknown call / reason / login / no saved account | Refresh; for activate correct login or guide human to Account UI |
 | `invalid_payload` | Wire/result shape failed closed | Treat as bug / desktop mismatch; do not parse secrets from `details` |
-| `interaction_required` | Human step needed (logout reason **or** manual sign-in in progress) | Logout: `details.logoutToken`. Activate: complete Account UI |
+| `interaction_required` | Human step needed (logout reason **or** manual sign-in in progress) | Logout: `details.requiresReason` + `details.reasons` (no `logoutToken`). Activate: complete Account UI |
 | `revoked` | Session revoked | Clear client; re-pair |
 | `incompatible_version` | Protocol mismatch | Upgrade SDK or desktop; stop |
 | `not_owner` | Another tab/client owns mutation | Coordinate multi-tab; do not force |

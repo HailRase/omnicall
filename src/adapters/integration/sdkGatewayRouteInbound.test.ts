@@ -254,14 +254,34 @@ describe("routeSdkInbound", () => {
     });
   });
 
-  it("routes account:prepare-logout to command_broker (DI-07)", () => {
-    const prepare = {
+  it("routes operator:finish-appeal to command_broker", () => {
+    const finishAppeal = {
       ...getSnapshot,
-      type: "account:prepare-logout" as const,
+      type: "operator:finish-appeal" as const,
       payload: { expectedRevision: 1 },
     };
     expect(
-      routeSdkInbound(prepare, {
+      routeSdkInbound(finishAppeal, {
+        handshakeComplete: true,
+        authState: "authenticated",
+        grantedCapabilities: ["operator.status.write"],
+      }),
+    ).toEqual({
+      action: "command_broker",
+      requestId: "req_test_001",
+      commandType: "operator:finish-appeal",
+      message: finishAppeal,
+    });
+  });
+
+  it("routes account:logout to command_broker (DI-07)", () => {
+    const logout = {
+      ...getSnapshot,
+      type: "account:logout" as const,
+      payload: { reasonId: 90, expectedRevision: 1 },
+    };
+    expect(
+      routeSdkInbound(logout, {
         handshakeComplete: true,
         authState: "authenticated",
         grantedCapabilities: ["session.logout"],
@@ -269,8 +289,8 @@ describe("routeSdkInbound", () => {
     ).toEqual({
       action: "command_broker",
       requestId: "req_test_001",
-      commandType: "account:prepare-logout",
-      message: prepare,
+      commandType: "account:logout",
+      message: logout,
     });
   });
 

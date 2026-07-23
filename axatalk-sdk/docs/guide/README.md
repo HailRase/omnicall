@@ -19,7 +19,7 @@ Example (fake peer only): [`examples/crm-pairing-lite/`](../../examples/crm-pair
 | 6 | [Events catalog](./events.md) | Public protocol event names |
 | 7 | [Errors catalog](./errors.md) | Stable codes + host next steps |
 | 8 | [Reconnect & multi-tab](./reconnect-multi-tab.md) | Fresh snapshot; no mutation replay |
-| 9 | [Logout workflow](./logout-workflow.md) | prepare → confirm / abandon |
+| 9 | [Logout workflow](./logout-workflow.md) | single-shot logout / abandon |
 | 10 | [Saved-account activation](./saved-profile-activation.md) | Login + optional mode; server-grant only |
 | 11 | [Upgrade & deprecation](./upgrade-deprecation.md) | Additive fields; protocol vs package |
 | 12 | [Compatibility matrix](./compatibility-matrix.md) | Browser + SDK↔desktop gates (DI-10 cells) |
@@ -30,7 +30,7 @@ Example (fake peer only): [`examples/crm-pairing-lite/`](../../examples/crm-pair
 1. Never request `account.activate` or `window.hide` at pairing — SDK strips them.
 2. Never pass SIP password / OCP apiKey through the SDK.
 3. Never store PoP keys or tokens in `localStorage` / `sessionStorage`.
-4. Reconnect never replays mutations; disconnect never hangup / confirm-logout / activate.
+4. Reconnect never replays mutations; disconnect never hangup / logout / activate.
 5. Document only symbols that exist in `etc/api/sdk.api.md` today.
 
 ## Related (agents / architecture)

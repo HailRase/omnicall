@@ -8,8 +8,8 @@ import type { ExternalHandlerResult } from "@ports/integration/ExternalCommandHa
 import type { SdkOperatorReasonDto } from "./ExternalSdkOperatorPort.js";
 import { sdkFail } from "./externalSdkCallHelpers.js";
 
-export function interactionRequired(
-  logoutToken: string,
+/** Logout needs a CRM-chosen OCP reason — no pending token. */
+export function interactionRequiredLogout(
   reasons: ReadonlyArray<SdkOperatorReasonDto>,
 ): ExternalHandlerResult {
   return {
@@ -17,20 +17,10 @@ export function interactionRequired(
     code: "interaction_required",
     retryable: false,
     details: {
-      logoutToken,
+      requiresReason: true,
       reasons: reasons.map(reasonToWire),
     },
   };
-}
-
-export function defaultLogoutToken(): string {
-  const bytes = new Uint8Array(16);
-  crypto.getRandomValues(bytes);
-  let hex = "";
-  for (const byte of bytes) {
-    hex += byte.toString(16).padStart(2, "0");
-  }
-  return `logout_${hex}`;
 }
 
 export function reasonToWire(reason: SdkOperatorReasonDto): WireJsonObject {
@@ -62,20 +52,16 @@ export function parseChangeStatusPayload(
   return { target, reasonId };
 }
 
-export function parseConfirmLogoutPayload(
+export function parseLogoutPayload(
   payload: unknown,
-): { readonly logoutToken: string; readonly reasonId?: number } | null {
+): { readonly reasonId?: number } | null {
   if (typeof payload !== "object" || payload === null) {
     return null;
   }
   const record = payload as Record<string, unknown>;
-  const logoutToken = record["logoutToken"];
-  if (typeof logoutToken !== "string" || logoutToken.length === 0) {
-    return null;
-  }
   const reasonId = record["reasonId"];
   if (reasonId === undefined) {
-    return { logoutToken };
+    return {};
   }
   if (
     typeof reasonId !== "number" ||
@@ -84,7 +70,7 @@ export function parseConfirmLogoutPayload(
   ) {
     return null;
   }
-  return { logoutToken, reasonId };
+  return { reasonId };
 }
 
 export function assertClientId(

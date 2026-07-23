@@ -38,16 +38,26 @@ describe('@axata/axatalk-sdk type smoke', () => {
   it('exposes namespaced operator and account activate/logout (no root / no secrets)', () => {
     expectTypeOf<AxatalkClient>().toHaveProperty('operator');
     expectTypeOf<AxatalkClient>().toHaveProperty('account');
-    expectTypeOf<AxatalkClient>().not.toHaveProperty('prepareLogout');
-    expectTypeOf<AxatalkClient>().not.toHaveProperty('confirmLogout');
+    expectTypeOf<AxatalkClient>().not.toHaveProperty('logout');
     expectTypeOf<AxatalkClient>().not.toHaveProperty('changeStatus');
     expectTypeOf<AxatalkClient>().not.toHaveProperty('getReasons');
     expectTypeOf<AxatalkClient>().not.toHaveProperty('activateProfile');
     expectTypeOf<AxatalkClient['operator']>().toHaveProperty('getReasons');
     expectTypeOf<AxatalkClient['operator']>().toHaveProperty('changeStatus');
-    expectTypeOf<AxatalkClient['account']>().toHaveProperty('prepareLogout');
-    expectTypeOf<AxatalkClient['account']>().toHaveProperty('confirmLogout');
+    expectTypeOf<AxatalkClient['operator']>().toHaveProperty('finishAppeal');
+    expectTypeOf<AxatalkClient['account']>().toHaveProperty('logout');
+    expectTypeOf<AxatalkClient['account']>().not.toHaveProperty('prepareLogout');
+    expectTypeOf<AxatalkClient['account']>().not.toHaveProperty('confirmLogout');
     expectTypeOf<AxatalkClient['account']>().toHaveProperty('activateProfile');
+    expectTypeOf<
+      Parameters<AxatalkClient['account']['logout']>[0]
+    >().toHaveProperty('expectedRevision');
+    expectTypeOf<
+      Parameters<AxatalkClient['account']['logout']>[0]
+    >().toHaveProperty('reasonId');
+    expectTypeOf<
+      Parameters<AxatalkClient['account']['logout']>[0]
+    >().not.toHaveProperty('logoutToken');
     expectTypeOf<
       Parameters<AxatalkClient['account']['activateProfile']>[0]
     >().toHaveProperty('login');

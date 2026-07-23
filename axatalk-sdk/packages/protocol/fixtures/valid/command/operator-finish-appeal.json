@@ -1,0 +1,12 @@
+{
+  "protocolVersion": 1,
+  "kind": "command",
+  "type": "operator:finish-appeal",
+  "requestId": "req_test_finish_001",
+  "serverInstanceId": "srv_test_001",
+  "sessionEpoch": "epoch_test_001",
+  "occurredAt": "2026-07-23T12:00:00.000Z",
+  "payload": {
+    "expectedRevision": 12
+  }
+}

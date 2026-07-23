@@ -145,8 +145,8 @@ function routeCommand(
     message.type === "call:send-dtmf" ||
     message.type === "operator:get-reasons" ||
     message.type === "operator:change-status" ||
-    message.type === "account:prepare-logout" ||
-    message.type === "account:confirm-logout" ||
+    message.type === "operator:finish-appeal" ||
+    message.type === "account:logout" ||
     message.type === "account:activate-profile"
   ) {
     return {

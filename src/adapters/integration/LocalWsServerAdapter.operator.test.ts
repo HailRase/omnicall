@@ -370,7 +370,7 @@ describe("LocalWsServerAdapter DI-07 operator/logout", () => {
     ws.close();
   });
 
-  it("forwards interaction_required details for prepare-logout", async () => {
+  it("forwards interaction_required details for account:logout", async () => {
     const adapter = await startAdapter({
       productSurface: createSurface({
         requestProductCommand: () =>
@@ -378,7 +378,7 @@ describe("LocalWsServerAdapter DI-07 operator/logout", () => {
             ok: false as const,
             code: "interaction_required" as const,
             details: {
-              logoutToken: "logout_ws_001",
+              requiresReason: true,
               reasons: [{ id: 90, label: "End", kind: "logout" }],
             },
           }),
@@ -392,8 +392,8 @@ describe("LocalWsServerAdapter DI-07 operator/logout", () => {
       JSON.stringify({
         protocolVersion: PROTOCOL_MAJOR,
         kind: "command",
-        type: "account:prepare-logout",
-        requestId: "req_prep_ws_001",
+        type: "account:logout",
+        requestId: "req_logout_ws_001",
         serverInstanceId: hello.serverInstanceId,
         sessionEpoch: hello.sessionEpoch,
         occurredAt: "2026-07-20T09:00:00.000Z",
@@ -405,10 +405,11 @@ describe("LocalWsServerAdapter DI-07 operator/logout", () => {
     if (reply.kind === "reply" && !reply.ok) {
       expect(reply.error.code).toBe("interaction_required");
       expect(reply.error.details).toEqual({
-        logoutToken: "logout_ws_001",
+        requiresReason: true,
         reasons: [{ id: 90, label: "End", kind: "logout" }],
       });
       expect(JSON.stringify(reply)).not.toMatch(/apiKey/i);
+      expect(JSON.stringify(reply)).not.toMatch(/logoutToken/i);
     }
     queue.close();
     ws.close();

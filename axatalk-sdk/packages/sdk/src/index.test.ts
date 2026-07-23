@@ -14,7 +14,7 @@ describe('@axata/axatalk-sdk workspace smoke', () => {
     expect(mod.PUBLIC_EVENT_TYPES).not.toContain('CallAnswered');
     expect(mod).not.toHaveProperty('originate');
     expect(mod).not.toHaveProperty('activateProfile');
-    expect(mod).not.toHaveProperty('prepareLogout');
+    expect(mod).not.toHaveProperty('logout');
     expect(mod).not.toHaveProperty('changeStatus');
   });
 

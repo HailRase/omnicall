@@ -48,3 +48,14 @@ export function buildOperatorChangeStatusBody(
     ...(input.reasonId !== undefined ? { reasonId: input.reasonId } : {})
   });
 }
+
+export function buildOperatorFinishAppealBody(
+  identity: WireIdentity,
+  input: {
+    readonly expectedRevision: number;
+  }
+): string {
+  return envelope('operator:finish-appeal', identity, {
+    expectedRevision: input.expectedRevision
+  });
+}

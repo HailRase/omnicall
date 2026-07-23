@@ -26,31 +26,16 @@ export const AccountActivateProfileCommandSchema: z.ZodReadonly<z.ZodObject<{
 }, z.core.$strip>>;
 
 // @public (undocumented)
-export const AccountConfirmLogoutCommandSchema: z.ZodReadonly<z.ZodObject<{
-    type: z.ZodLiteral<"account:confirm-logout">;
-    payload: z.ZodReadonly<z.ZodObject<{
-        logoutToken: z.ZodString;
-        reasonId: z.ZodOptional<z.ZodNumber>;
-        expectedRevision: z.ZodNumber;
-    }, z.core.$strip>>;
-    protocolVersion: z.ZodNumber;
-    kind: z.ZodLiteral<"command">;
-    requestId: z.ZodString;
-    serverInstanceId: z.ZodString;
-    sessionEpoch: z.ZodString;
-    occurredAt: z.ZodString;
-}, z.core.$strip>>;
-
-// @public (undocumented)
 export type AccountLogin = z.infer<typeof AccountLoginSchema>;
 
 // @public
 export const AccountLoginSchema: z.ZodString;
 
-// @public (undocumented)
-export const AccountPrepareLogoutCommandSchema: z.ZodReadonly<z.ZodObject<{
-    type: z.ZodLiteral<"account:prepare-logout">;
+// @public
+export const AccountLogoutCommandSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"account:logout">;
     payload: z.ZodReadonly<z.ZodObject<{
+        reasonId: z.ZodOptional<z.ZodNumber>;
         expectedRevision: z.ZodNumber;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
@@ -649,7 +634,7 @@ export const ClientHelloSchema: z.ZodReadonly<z.ZodObject<{
 }, z.core.$strip>>;
 
 // @public (undocumented)
-export const COMMAND_TYPES: readonly ["sdk:get-snapshot", "sdk:ping", "window:show", "window:get-state", "window:hide", "call:originate", "call:answer", "call:reject", "call:hangup", "call:hold", "call:resume", "call:mute", "call:unmute", "call:send-dtmf", "account:activate-profile", "account:prepare-logout", "account:confirm-logout", "operator:get-reasons", "operator:change-status"];
+export const COMMAND_TYPES: readonly ["sdk:get-snapshot", "sdk:ping", "window:show", "window:get-state", "window:hide", "call:originate", "call:answer", "call:reject", "call:hangup", "call:hold", "call:resume", "call:mute", "call:unmute", "call:send-dtmf", "account:activate-profile", "account:logout", "operator:get-reasons", "operator:change-status", "operator:finish-appeal"];
 
 // @public (undocumented)
 export type CommandFailureReply = z.infer<typeof CommandFailureReplySchema>;
@@ -659,10 +644,10 @@ export const CommandFailureReplySchema: z.ZodReadonly<z.ZodObject<{
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
-            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
+            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
             forbidden: "forbidden";
             revoked: "revoked";
@@ -688,11 +673,11 @@ export const CommandFailureReplySchema: z.ZodReadonly<z.ZodObject<{
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
-        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
+        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -703,10 +688,10 @@ export const CommandFailureReplySchema: z.ZodReadonly<z.ZodObject<{
         "call:unmute": "call:unmute";
         "call:send-dtmf": "call:send-dtmf";
         "account:activate-profile": "account:activate-profile";
-        "account:prepare-logout": "account:prepare-logout";
-        "account:confirm-logout": "account:confirm-logout";
+        "account:logout": "account:logout";
         "operator:get-reasons": "operator:get-reasons";
         "operator:change-status": "operator:change-status";
+        "operator:finish-appeal": "operator:finish-appeal";
     }>;
     serverInstanceId: z.ZodString;
     sessionEpoch: z.ZodString;
@@ -892,20 +877,8 @@ export const CommandMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodO
     sessionEpoch: z.ZodString;
     occurredAt: z.ZodString;
 }, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
-    type: z.ZodLiteral<"account:prepare-logout">;
+    type: z.ZodLiteral<"account:logout">;
     payload: z.ZodReadonly<z.ZodObject<{
-        expectedRevision: z.ZodNumber;
-    }, z.core.$strip>>;
-    protocolVersion: z.ZodNumber;
-    kind: z.ZodLiteral<"command">;
-    requestId: z.ZodString;
-    serverInstanceId: z.ZodString;
-    sessionEpoch: z.ZodString;
-    occurredAt: z.ZodString;
-}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
-    type: z.ZodLiteral<"account:confirm-logout">;
-    payload: z.ZodReadonly<z.ZodObject<{
-        logoutToken: z.ZodString;
         reasonId: z.ZodOptional<z.ZodNumber>;
         expectedRevision: z.ZodNumber;
     }, z.core.$strip>>;
@@ -940,6 +913,17 @@ export const CommandMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodO
     serverInstanceId: z.ZodString;
     sessionEpoch: z.ZodString;
     occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:finish-appeal">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
 }, z.core.$strip>>], "type">;
 
 // @public (undocumented)
@@ -954,11 +938,11 @@ export const CommandSuccessReplySchema: z.ZodReadonly<z.ZodObject<{
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
-        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
+        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -969,10 +953,10 @@ export const CommandSuccessReplySchema: z.ZodReadonly<z.ZodObject<{
         "call:unmute": "call:unmute";
         "call:send-dtmf": "call:send-dtmf";
         "account:activate-profile": "account:activate-profile";
-        "account:prepare-logout": "account:prepare-logout";
-        "account:confirm-logout": "account:confirm-logout";
+        "account:logout": "account:logout";
         "operator:get-reasons": "operator:get-reasons";
         "operator:change-status": "operator:change-status";
+        "operator:finish-appeal": "operator:finish-appeal";
     }>;
     serverInstanceId: z.ZodString;
     sessionEpoch: z.ZodString;
@@ -984,11 +968,11 @@ export type CommandType = z.infer<typeof CommandTypeSchema>;
 
 // @public (undocumented)
 export const CommandTypeSchema: z.ZodEnum<{
-    "window:hide": "window:hide";
     "sdk:get-snapshot": "sdk:get-snapshot";
     "sdk:ping": "sdk:ping";
     "window:show": "window:show";
     "window:get-state": "window:get-state";
+    "window:hide": "window:hide";
     "call:originate": "call:originate";
     "call:answer": "call:answer";
     "call:reject": "call:reject";
@@ -999,10 +983,10 @@ export const CommandTypeSchema: z.ZodEnum<{
     "call:unmute": "call:unmute";
     "call:send-dtmf": "call:send-dtmf";
     "account:activate-profile": "account:activate-profile";
-    "account:prepare-logout": "account:prepare-logout";
-    "account:confirm-logout": "account:confirm-logout";
+    "account:logout": "account:logout";
     "operator:get-reasons": "operator:get-reasons";
     "operator:change-status": "operator:change-status";
+    "operator:finish-appeal": "operator:finish-appeal";
 }>;
 
 // @public
@@ -1386,10 +1370,11 @@ export const EventMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
     payload: z.ZodReadonly<z.ZodObject<{
         connected: z.ZodBoolean;
         status: z.ZodOptional<z.ZodEnum<{
-            unknown: "unknown";
             ready: "ready";
             break: "break";
+            unknown: "unknown";
             offline: "offline";
+            post_call_processing: "post_call_processing";
         }>>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
@@ -1404,10 +1389,11 @@ export const EventMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
     type: z.ZodLiteral<"operator:status-changed">;
     payload: z.ZodReadonly<z.ZodObject<{
         status: z.ZodEnum<{
-            unknown: "unknown";
             ready: "ready";
             break: "break";
+            unknown: "unknown";
             offline: "offline";
+            post_call_processing: "post_call_processing";
         }>;
         reasonId: z.ZodOptional<z.ZodNumber>;
         reasonLabelKey: z.ZodOptional<z.ZodString>;
@@ -1630,6 +1616,20 @@ export const OperatorChangeStatusCommandSchema: z.ZodReadonly<z.ZodObject<{
     occurredAt: z.ZodString;
 }, z.core.$strip>>;
 
+// @public
+export const OperatorFinishAppealCommandSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:finish-appeal">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+}, z.core.$strip>>;
+
 // @public (undocumented)
 export const OperatorGetReasonsCommandSchema: z.ZodReadonly<z.ZodObject<{
     type: z.ZodLiteral<"operator:get-reasons">;
@@ -1648,10 +1648,11 @@ export const OperatorSessionChangedEventSchema: z.ZodReadonly<z.ZodObject<{
     payload: z.ZodReadonly<z.ZodObject<{
         connected: z.ZodBoolean;
         status: z.ZodOptional<z.ZodEnum<{
-            unknown: "unknown";
             ready: "ready";
             break: "break";
+            unknown: "unknown";
             offline: "offline";
+            post_call_processing: "post_call_processing";
         }>>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
@@ -1669,10 +1670,11 @@ export const OperatorStatusChangedEventSchema: z.ZodReadonly<z.ZodObject<{
     type: z.ZodLiteral<"operator:status-changed">;
     payload: z.ZodReadonly<z.ZodObject<{
         status: z.ZodEnum<{
-            unknown: "unknown";
             ready: "ready";
             break: "break";
+            unknown: "unknown";
             offline: "offline";
+            post_call_processing: "post_call_processing";
         }>;
         reasonId: z.ZodOptional<z.ZodNumber>;
         reasonLabelKey: z.ZodOptional<z.ZodString>;
@@ -1947,8 +1949,8 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
         version: z.ZodString;
     }, z.core.$strip>>;
     requestedProfile: z.ZodEnum<{
-        presentation: "presentation";
         operator: "operator";
+        presentation: "presentation";
         call_controller: "call_controller";
     }>;
     requestedCapabilities: z.ZodArray<z.ZodEnum<{
@@ -1975,8 +1977,8 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     type: z.ZodLiteral<"pairing:approved">;
     clientId: z.ZodString;
     profile: z.ZodEnum<{
-        presentation: "presentation";
         operator: "operator";
+        presentation: "presentation";
         call_controller: "call_controller";
     }>;
     grantedCapabilities: z.ZodArray<z.ZodEnum<{
@@ -2179,20 +2181,8 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     sessionEpoch: z.ZodString;
     occurredAt: z.ZodString;
 }, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
-    type: z.ZodLiteral<"account:prepare-logout">;
+    type: z.ZodLiteral<"account:logout">;
     payload: z.ZodReadonly<z.ZodObject<{
-        expectedRevision: z.ZodNumber;
-    }, z.core.$strip>>;
-    protocolVersion: z.ZodNumber;
-    kind: z.ZodLiteral<"command">;
-    requestId: z.ZodString;
-    serverInstanceId: z.ZodString;
-    sessionEpoch: z.ZodString;
-    occurredAt: z.ZodString;
-}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
-    type: z.ZodLiteral<"account:confirm-logout">;
-    payload: z.ZodReadonly<z.ZodObject<{
-        logoutToken: z.ZodString;
         reasonId: z.ZodOptional<z.ZodNumber>;
         expectedRevision: z.ZodNumber;
     }, z.core.$strip>>;
@@ -2227,6 +2217,17 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     serverInstanceId: z.ZodString;
     sessionEpoch: z.ZodString;
     occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:finish-appeal">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
 }, z.core.$strip>>], "type">, z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObject<{
     ok: z.ZodLiteral<true>;
     revision: z.ZodNumber;
@@ -2235,11 +2236,11 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
-        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
+        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -2250,10 +2251,10 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
         "call:unmute": "call:unmute";
         "call:send-dtmf": "call:send-dtmf";
         "account:activate-profile": "account:activate-profile";
-        "account:prepare-logout": "account:prepare-logout";
-        "account:confirm-logout": "account:confirm-logout";
+        "account:logout": "account:logout";
         "operator:get-reasons": "operator:get-reasons";
         "operator:change-status": "operator:change-status";
+        "operator:finish-appeal": "operator:finish-appeal";
     }>;
     serverInstanceId: z.ZodString;
     sessionEpoch: z.ZodString;
@@ -2262,10 +2263,10 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
-            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
+            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
             forbidden: "forbidden";
             revoked: "revoked";
@@ -2291,11 +2292,11 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
-        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
+        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -2306,10 +2307,10 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
         "call:unmute": "call:unmute";
         "call:send-dtmf": "call:send-dtmf";
         "account:activate-profile": "account:activate-profile";
-        "account:prepare-logout": "account:prepare-logout";
-        "account:confirm-logout": "account:confirm-logout";
+        "account:logout": "account:logout";
         "operator:get-reasons": "operator:get-reasons";
         "operator:change-status": "operator:change-status";
+        "operator:finish-appeal": "operator:finish-appeal";
     }>;
     serverInstanceId: z.ZodString;
     sessionEpoch: z.ZodString;
@@ -2644,10 +2645,11 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     payload: z.ZodReadonly<z.ZodObject<{
         connected: z.ZodBoolean;
         status: z.ZodOptional<z.ZodEnum<{
-            unknown: "unknown";
             ready: "ready";
             break: "break";
+            unknown: "unknown";
             offline: "offline";
+            post_call_processing: "post_call_processing";
         }>>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
@@ -2662,10 +2664,11 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     type: z.ZodLiteral<"operator:status-changed">;
     payload: z.ZodReadonly<z.ZodObject<{
         status: z.ZodEnum<{
-            unknown: "unknown";
             ready: "ready";
             break: "break";
+            unknown: "unknown";
             offline: "offline";
+            post_call_processing: "post_call_processing";
         }>;
         reasonId: z.ZodOptional<z.ZodNumber>;
         reasonLabelKey: z.ZodOptional<z.ZodString>;
@@ -2798,10 +2801,11 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
         operator: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
             connected: z.ZodBoolean;
             status: z.ZodOptional<z.ZodEnum<{
-                unknown: "unknown";
                 ready: "ready";
                 break: "break";
+                unknown: "unknown";
                 offline: "offline";
+                post_call_processing: "post_call_processing";
             }>>;
             reasonId: z.ZodOptional<z.ZodNumber>;
             reasonLabelKey: z.ZodOptional<z.ZodString>;
@@ -2954,11 +2958,11 @@ export const ReplyMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
-        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
+        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -2969,10 +2973,10 @@ export const ReplyMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
         "call:unmute": "call:unmute";
         "call:send-dtmf": "call:send-dtmf";
         "account:activate-profile": "account:activate-profile";
-        "account:prepare-logout": "account:prepare-logout";
-        "account:confirm-logout": "account:confirm-logout";
+        "account:logout": "account:logout";
         "operator:get-reasons": "operator:get-reasons";
         "operator:change-status": "operator:change-status";
+        "operator:finish-appeal": "operator:finish-appeal";
     }>;
     serverInstanceId: z.ZodString;
     sessionEpoch: z.ZodString;
@@ -2981,10 +2985,10 @@ export const ReplyMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
-            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
+            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
             forbidden: "forbidden";
             revoked: "revoked";
@@ -3010,11 +3014,11 @@ export const ReplyMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
-        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
+        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -3025,10 +3029,10 @@ export const ReplyMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
         "call:unmute": "call:unmute";
         "call:send-dtmf": "call:send-dtmf";
         "account:activate-profile": "account:activate-profile";
-        "account:prepare-logout": "account:prepare-logout";
-        "account:confirm-logout": "account:confirm-logout";
+        "account:logout": "account:logout";
         "operator:get-reasons": "operator:get-reasons";
         "operator:change-status": "operator:change-status";
+        "operator:finish-appeal": "operator:finish-appeal";
     }>;
     serverInstanceId: z.ZodString;
     sessionEpoch: z.ZodString;
@@ -3257,10 +3261,11 @@ export const SnapshotMessageSchema: z.ZodReadonly<z.ZodObject<{
         operator: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
             connected: z.ZodBoolean;
             status: z.ZodOptional<z.ZodEnum<{
-                unknown: "unknown";
                 ready: "ready";
                 break: "break";
+                unknown: "unknown";
                 offline: "offline";
+                post_call_processing: "post_call_processing";
             }>>;
             reasonId: z.ZodOptional<z.ZodNumber>;
             reasonLabelKey: z.ZodOptional<z.ZodString>;
@@ -3275,10 +3280,11 @@ export const SnapshotMessageSchema: z.ZodReadonly<z.ZodObject<{
 export const SnapshotOperatorSectionSchema: z.ZodReadonly<z.ZodObject<{
     connected: z.ZodBoolean;
     status: z.ZodOptional<z.ZodEnum<{
-        unknown: "unknown";
         ready: "ready";
         break: "break";
+        unknown: "unknown";
         offline: "offline";
+        post_call_processing: "post_call_processing";
     }>>;
     reasonId: z.ZodOptional<z.ZodNumber>;
     reasonLabelKey: z.ZodOptional<z.ZodString>;
@@ -3350,10 +3356,11 @@ export const SnapshotSectionsSchema: z.ZodReadonly<z.ZodObject<{
     operator: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
         connected: z.ZodBoolean;
         status: z.ZodOptional<z.ZodEnum<{
-            unknown: "unknown";
             ready: "ready";
             break: "break";
+            unknown: "unknown";
             offline: "offline";
+            post_call_processing: "post_call_processing";
         }>>;
         reasonId: z.ZodOptional<z.ZodNumber>;
         reasonLabelKey: z.ZodOptional<z.ZodString>;
@@ -3548,8 +3555,8 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
         version: z.ZodString;
     }, z.core.$strip>>;
     requestedProfile: z.ZodEnum<{
-        presentation: "presentation";
         operator: "operator";
+        presentation: "presentation";
         call_controller: "call_controller";
     }>;
     requestedCapabilities: z.ZodArray<z.ZodEnum<{
@@ -3576,8 +3583,8 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     type: z.ZodLiteral<"pairing:approved">;
     clientId: z.ZodString;
     profile: z.ZodEnum<{
-        presentation: "presentation";
         operator: "operator";
+        presentation: "presentation";
         call_controller: "call_controller";
     }>;
     grantedCapabilities: z.ZodArray<z.ZodEnum<{
@@ -3780,20 +3787,8 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     sessionEpoch: z.ZodString;
     occurredAt: z.ZodString;
 }, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
-    type: z.ZodLiteral<"account:prepare-logout">;
+    type: z.ZodLiteral<"account:logout">;
     payload: z.ZodReadonly<z.ZodObject<{
-        expectedRevision: z.ZodNumber;
-    }, z.core.$strip>>;
-    protocolVersion: z.ZodNumber;
-    kind: z.ZodLiteral<"command">;
-    requestId: z.ZodString;
-    serverInstanceId: z.ZodString;
-    sessionEpoch: z.ZodString;
-    occurredAt: z.ZodString;
-}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
-    type: z.ZodLiteral<"account:confirm-logout">;
-    payload: z.ZodReadonly<z.ZodObject<{
-        logoutToken: z.ZodString;
         reasonId: z.ZodOptional<z.ZodNumber>;
         expectedRevision: z.ZodNumber;
     }, z.core.$strip>>;
@@ -3828,6 +3823,17 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     serverInstanceId: z.ZodString;
     sessionEpoch: z.ZodString;
     occurredAt: z.ZodString;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:finish-appeal">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        expectedRevision: z.ZodNumber;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"command">;
+    requestId: z.ZodString;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
 }, z.core.$strip>>], "type">, z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObject<{
     ok: z.ZodLiteral<true>;
     revision: z.ZodNumber;
@@ -3836,11 +3842,11 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
-        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
+        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -3851,10 +3857,10 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
         "call:unmute": "call:unmute";
         "call:send-dtmf": "call:send-dtmf";
         "account:activate-profile": "account:activate-profile";
-        "account:prepare-logout": "account:prepare-logout";
-        "account:confirm-logout": "account:confirm-logout";
+        "account:logout": "account:logout";
         "operator:get-reasons": "operator:get-reasons";
         "operator:change-status": "operator:change-status";
+        "operator:finish-appeal": "operator:finish-appeal";
     }>;
     serverInstanceId: z.ZodString;
     sessionEpoch: z.ZodString;
@@ -3863,10 +3869,10 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
-            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
+            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
             forbidden: "forbidden";
             revoked: "revoked";
@@ -3892,11 +3898,11 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
-        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
+        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -3907,10 +3913,10 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
         "call:unmute": "call:unmute";
         "call:send-dtmf": "call:send-dtmf";
         "account:activate-profile": "account:activate-profile";
-        "account:prepare-logout": "account:prepare-logout";
-        "account:confirm-logout": "account:confirm-logout";
+        "account:logout": "account:logout";
         "operator:get-reasons": "operator:get-reasons";
         "operator:change-status": "operator:change-status";
+        "operator:finish-appeal": "operator:finish-appeal";
     }>;
     serverInstanceId: z.ZodString;
     sessionEpoch: z.ZodString;
@@ -4245,10 +4251,11 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     payload: z.ZodReadonly<z.ZodObject<{
         connected: z.ZodBoolean;
         status: z.ZodOptional<z.ZodEnum<{
-            unknown: "unknown";
             ready: "ready";
             break: "break";
+            unknown: "unknown";
             offline: "offline";
+            post_call_processing: "post_call_processing";
         }>>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
@@ -4263,10 +4270,11 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     type: z.ZodLiteral<"operator:status-changed">;
     payload: z.ZodReadonly<z.ZodObject<{
         status: z.ZodEnum<{
-            unknown: "unknown";
             ready: "ready";
             break: "break";
+            unknown: "unknown";
             offline: "offline";
+            post_call_processing: "post_call_processing";
         }>;
         reasonId: z.ZodOptional<z.ZodNumber>;
         reasonLabelKey: z.ZodOptional<z.ZodString>;
@@ -4399,10 +4407,11 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
         operator: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
             connected: z.ZodBoolean;
             status: z.ZodOptional<z.ZodEnum<{
-                unknown: "unknown";
                 ready: "ready";
                 break: "break";
+                unknown: "unknown";
                 offline: "offline";
+                post_call_processing: "post_call_processing";
             }>>;
             reasonId: z.ZodOptional<z.ZodNumber>;
             reasonLabelKey: z.ZodOptional<z.ZodString>;

@@ -134,8 +134,8 @@ Single-page with tabbed sections is also OK if UX stays crisp — still cover **
 - Honest empty/error states if OCP not available
 
 ### F. Logout workflow
-- `prepareLogout` → show `interaction_required` honesty → `confirmLogout` / abandon path
-  per logout-workflow guide
+- `logout` → show `interaction_required` honesty (`requiresReason` + reasons) → retry with
+  `reasonId` / abandon path (do not call again) per logout-workflow guide
 
 ### G. Activate profile (privileged)
 - UI that explains operator must issue grant in desktop Settings first

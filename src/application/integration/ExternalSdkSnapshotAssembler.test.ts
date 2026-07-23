@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SnapshotSectionsSchema } from "@axata/axatalk-protocol";
+import { OperatorStatus } from "@domain/integration/ocp/OperatorStatus.js";
 
 import { assembleSdkSnapshotProductSections } from "./ExternalSdkSnapshotAssembler.js";
 import type { SdkProductStateSnapshot } from "./ExternalSdkProductState.js";
@@ -57,5 +58,33 @@ describe("ExternalSdkSnapshotAssembler", () => {
     );
     expect(sections.operator).toEqual({ connected: false });
     expect(JSON.stringify(sections)).not.toMatch(/apiKey|ocpAuthToken|password/i);
+  });
+
+  it("projects post_call_processing for finish-appeal visibility", () => {
+    const sections = assembleSdkSnapshotProductSections(
+      baseState({
+        ocpEnabled: true,
+        ocpConnected: true,
+        operatorStatus: OperatorStatus.POST_CALL_PROCESSING,
+        operatorReasonId: 5,
+        operatorReasonLabelKey: "ocp.operatorStatus.postCallProcessing",
+      }),
+    );
+    expect(sections.operator).toEqual({
+      connected: true,
+      status: "post_call_processing",
+      reasonId: 5,
+      reasonLabelKey: "ocp.operatorStatus.postCallProcessing",
+    });
+    const merged = SnapshotSectionsSchema.safeParse({
+      session: {
+        clientId: "client_test_001",
+        grantedCapabilities: ["session.read.redacted", "operator.status.write"],
+        authenticated: true,
+      },
+      ...sections,
+      window: { visible: true },
+    });
+    expect(merged.success).toBe(true);
   });
 });

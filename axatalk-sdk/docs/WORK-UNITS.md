@@ -252,7 +252,7 @@ Prerequisites: SDK-06; desktop DI-07 done.
 
 Agent prompt:
 
-> Add operator status and prepare/confirm logout workflows through public DTOs. OCP remains
+> Add operator status and single-shot logout workflows through public DTOs. OCP remains
 > optional and its wire protocol must not enter the SDK.
 
 Status: **`done`** (2026-07-20) — `/sdk-review` PASS
@@ -262,23 +262,22 @@ Public API (namespaced only):
 ```ts
 client.operator.getReasons()
 client.operator.changeStatus({ target, reasonId?, expectedRevision })
-client.account.prepareLogout({ expectedRevision })
-client.account.confirmLogout({ logoutToken, reasonId?, expectedRevision })
+client.account.logout({ reasonId?, expectedRevision })
 ```
 
-Command matrix: `operator:get-reasons` / `operator:change-status` / `account:prepare-logout` /
-`account:confirm-logout`. Cancel = abandon token / disconnect (no invent `account:cancel-logout`).
+Command matrix: `operator:get-reasons` / `operator:change-status` / `account:logout`.
+Cancel = do not call logout / disconnect (no invent `account:cancel-logout`; no `logoutToken`).
 
 Non-goals held: SDK-08 activate; window.hide; campaigns; OCP wire; desktop `src/`; npm publish;
-auto-retry; confirm-on-disconnect; root-level mutations.
+auto-retry; logout-on-disconnect; root-level mutations.
 
 Checklist:
 
 - [x] operator state and reasons.
 - [x] status change.
-- [x] prepare logout.
+- [x] single-shot logout.
 - [x] interaction-required result.
-- [x] confirm/cancel logout.
+- [x] cancel logout (abandon / disconnect).
 - [x] SIP-only behavior.
 - [x] OCP reason and recovery tests.
 - [x] reconnect does not replay operator/logout mutations.
@@ -291,7 +290,7 @@ Evidence:
 
 - Unit evidence: `axatalk-sdk/evidence/SDK-07-operator-logout-workflows.md`
 - Workflow tests: `packages/sdk/src/public/axatalk-client.operator.test.ts` (+ browser operator path)
-- SIP-only regression evidence: empty reasons / `not_found` status / prepare-without-interaction in operator tests
+- SIP-only regression evidence: empty reasons / `not_found` status / logout-without-reason in operator tests
 - Reviewer: `/sdk-review` **PASS** 2026-07-20 — zero Blockers; Low remediated same day (operator `conflict` test); independent post-fix: sdk src **88**, workspace **96**, types **6**, browser **6**, api **46**, desktop oracle **33**; F-011 remains `in progress`; DI-10 still blocked on SDK-08…09; next `/sdk-project` SDK-08 only
 - Explicit non-goals: no SDK-08; F-011 not `implemented`; DI-10 still blocked on SDK-08…09
 
@@ -317,7 +316,7 @@ only; never client-default-requestable via `sanitizeRequestedCapabilities`).
 
 Non-goals held: SDK-09 docs; npm publish; F-011 `implemented`; `window.hide`; raw credentials;
 desktop `src/` edits; campaign events; invent `account:list-profiles`; pairing escalate;
-auto-replay on reconnect; activate/hangup/confirm-logout on disconnect.
+auto-replay on reconnect; activate/hangup/logout on disconnect.
 
 Checklist:
 

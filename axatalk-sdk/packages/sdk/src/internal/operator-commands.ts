@@ -1,5 +1,5 @@
 /**
- * Capability-gated operator command runner (SDK-07).
+ * Capability-gated operator command runner (SDK-07 + finish-appeal).
  */
 
 import type { CapabilityId, CommandType } from '@axata/axatalk-protocol';
@@ -8,6 +8,7 @@ import { createClientError } from './client-errors.js';
 import type { ConnectionSession } from './connection-session.js';
 import {
   buildOperatorChangeStatusBody,
+  buildOperatorFinishAppealBody,
   buildOperatorGetReasonsBody
 } from './operator-wire.js';
 import {
@@ -40,6 +41,9 @@ export type OperatorStatusChangeResult = {
   readonly revision: number;
 };
 
+/** Finish-appeal success reuses the same public shape as applied change-status. @public */
+export type OperatorFinishAppealResult = OperatorStatusChangeResult;
+
 export type OperatorCommandApi = {
   readonly getReasons: () => Promise<OperatorReasonsResult>;
   readonly changeStatus: (input: {
@@ -47,6 +51,9 @@ export type OperatorCommandApi = {
     readonly reasonId?: number;
     readonly expectedRevision: number;
   }) => Promise<OperatorStatusChangeResult>;
+  readonly finishAppeal: (input: {
+    readonly expectedRevision: number;
+  }) => Promise<OperatorFinishAppealResult>;
 };
 
 function readOperatorReasons(reply: {
@@ -172,6 +179,12 @@ export function createOperatorCommandApi(deps: {
       runOperatorCommand(
         'operator:change-status',
         (fields) => buildOperatorChangeStatusBody(fields, input),
+        readStatusChangeResult
+      ),
+    finishAppeal: (input) =>
+      runOperatorCommand(
+        'operator:finish-appeal',
+        (fields) => buildOperatorFinishAppealBody(fields, input),
         readStatusChangeResult
       )
   };

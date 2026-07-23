@@ -2984,14 +2984,16 @@ export class AccountBootstrapFacade {
 
   /**
    * - Purpose: finish post-call appeal (apply reserved status or Ready).
+   * - Inputs: optional correlation + callType (UI internal default; SDK uses "sdk").
    */
   finishOcpPostCallAppeal(
     input: Readonly<{
       correlationId?: CorrelationId;
+      callType?: "internal" | "external" | "sdk";
     }> = {},
   ): Promise<Result<ChangeOperatorStatusOutcome, PlatformError>> {
     return this.ocpIntegration.finishPostCallAppeal.execute({
-      callType: "internal",
+      callType: input.callType ?? "internal",
       ...(input.correlationId !== undefined ? { correlationId: input.correlationId } : {}),
     });
   }

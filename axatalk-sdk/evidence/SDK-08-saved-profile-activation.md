@@ -72,12 +72,12 @@ Desktop oracle (read-only, cwd repo root): **9** passed
 | Timeout | `timeout` | `times out when activate reply never arrives` |
 | Cap revoke mid-session | subsequent `forbidden`, no frame | `subsequent activate forbidden after grant stripped via permission-changed` |
 | Reconnect mid-flight | reject typed; **zero** auto-resend | `rejects in-flight activate-profile on reconnect and never replays` |
-| Disconnect mid-flight | reject typed; no hangup / confirm-logout; no extra activate | `rejects in-flight activate-profile on disconnect and never tears SIP` |
-| Disconnect after ready | **no** activate / hangup / confirm-logout | `disconnect never sends activate-profile or tears SIP` |
+| Disconnect mid-flight | reject typed; no hangup / logout; no extra activate | `rejects in-flight activate-profile on disconnect and never tears SIP` |
+| Disconnect after ready | **no** activate / hangup / logout | `disconnect never sends activate-profile or tears SIP` |
 | Privilege strip regression | sanitize still strips activate/hide | `sanitize still strips account.activate and window.hide always` |
 | Secret hygiene | diagnostics never echo needles / login | `privacy: diagnostics never echo secrets / login` |
 | Events | protocol name only | `subscribes to account:session-activated by protocol name only` |
-| SDK-07 regression | `interaction_required` honesty | `SDK-07 regression: prepareLogout interaction_required still green` |
+| SDK-07 regression | `interaction_required` honesty | `SDK-07 regression: logout interaction_required still green` |
 | Browser | activate success; strip at pairing; no storage leak; disconnect non-activate | `browser AxatalkClient activateProfile success…` |
 
 ## Checklist (proven)
@@ -143,7 +143,7 @@ Desktop oracle (optional, read-only): **9** passed.
 
 Low: missing explicit `disconnect()` while `activateProfile` in-flight.
 
-Fix: `rejects in-flight activate-profile on disconnect and never tears SIP` — typed reject; activate count stays **1**; zero hangup / confirm-logout; state `closed`.
+Fix: `rejects in-flight activate-profile on disconnect and never tears SIP` — typed reject; activate count stays **1**; zero hangup / logout; state `closed`.
 
 Post-fix counts: sdk src **106**, workspace test suite **114**.
 

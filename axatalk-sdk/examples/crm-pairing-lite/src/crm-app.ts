@@ -7,7 +7,8 @@ import {
   isAxatalkClientError,
   type AxatalkClient,
   type CallMutationResult,
-  type PrepareLogoutResult
+  type LogoutResult,
+  type OperatorReason
 } from '@axata/axatalk-sdk';
 
 import { formatSafeError } from './safe-error.js';
@@ -63,29 +64,65 @@ export async function originateDemoCall(
   }
 }
 
-export type PrepareLogoutOutcome =
-  | { readonly kind: 'prepared'; readonly result: PrepareLogoutResult }
+export type LogoutOutcome =
+  | { readonly kind: 'logged_out'; readonly result: LogoutResult }
   | {
       readonly kind: 'interaction_required';
-      readonly logoutToken: string;
+      readonly requiresReason: true;
+      readonly reasons: readonly OperatorReason[];
       readonly safeError: string;
     }
   | { readonly kind: 'failed'; readonly safeError: string; readonly code?: string };
 
-export async function prepareLogoutDemo(
-  client: AxatalkClient
-): Promise<PrepareLogoutOutcome> {
+function readLogoutReasons(details: Readonly<Record<string, unknown>> | undefined): {
+  readonly requiresReason: true;
+  readonly reasons: readonly OperatorReason[];
+} | undefined {
+  if (details === undefined || details['requiresReason'] !== true) {
+    return undefined;
+  }
+  const raw = details['reasons'];
+  if (!Array.isArray(raw)) {
+    return undefined;
+  }
+  const reasons: OperatorReason[] = [];
+  for (const item of raw) {
+    if (typeof item !== 'object' || item === null) {
+      return undefined;
+    }
+    const record = item as Readonly<Record<string, unknown>>;
+    const id = record['id'];
+    const label = record['label'];
+    const kind = record['kind'];
+    if (
+      typeof id !== 'number' ||
+      typeof label !== 'string' ||
+      (kind !== 'ready' && kind !== 'break' && kind !== 'logout')
+    ) {
+      return undefined;
+    }
+    reasons.push({ id, label, kind });
+  }
+  return { requiresReason: true, reasons };
+}
+
+/**
+ * Single-shot logout. Host cancels by not calling again (no logoutToken).
+ * Prefer `getReasons()` + filter `kind === 'logout'` before retrying with reasonId.
+ */
+export async function logoutDemo(client: AxatalkClient): Promise<LogoutOutcome> {
   const expectedRevision = await loadRevision(client);
   try {
-    const result = await client.account.prepareLogout({ expectedRevision });
-    return { kind: 'prepared', result };
+    const result = await client.account.logout({ expectedRevision });
+    return { kind: 'logged_out', result };
   } catch (error: unknown) {
     if (isAxatalkClientError(error) && error.code === 'interaction_required') {
-      const token = error.details?.['logoutToken'];
-      if (typeof token === 'string' && token.length > 0) {
+      const parsed = readLogoutReasons(error.details);
+      if (parsed !== undefined) {
         return {
           kind: 'interaction_required',
-          logoutToken: token,
+          requiresReason: true,
+          reasons: parsed.reasons,
           safeError: formatSafeError(error)
         };
       }

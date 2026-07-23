@@ -1,8 +1,8 @@
 # DI-07 — Operator Status and Logout Workflow (evidence)
 
-**Date:** 2026-07-20  
+**Date:** 2026-07-20 (contract refresh 2026-07-23 — single-shot logout)  
 **Status:** `done` (`/sdk-review` PASS 2026-07-20; Low remediation same day)  
-**Desktop version:** `0.11.2` (unchanged)  
+**Desktop version:** `0.11.2` (unchanged at original close)  
 **Feature:** F-011 remains `in progress` (not `implemented`)
 
 ## Scope landed
@@ -13,20 +13,19 @@ Authenticated, capability-bound sessions gain **operator status + account logout
 | --- | --- | --- |
 | `operator:get-reasons` | `operator.status.write` | `ExternalSdkOperatorHandler` → projection DTO mapper (peek-only revision) |
 | `operator:change-status` | `operator.status.write` | → Facade `changeOcpStatusFromHost({ callType: "sdk" })` via `createSdkOperatorPortFromFacade`; OCP adapter maps wire `function_call_type` to `"external"` (`mapOcpCallTypeToWire`) |
-| `account:prepare-logout` | `session.logout` | pending logoutToken; may return `interaction_required` + reasons |
-| `account:confirm-logout` | `session.logout` | → `logoutAccountSession` / `AccountLogoutOrchestrationService` |
+| `operator:finish-appeal` | `operator.status.write` | → Facade `finishOcpPostCallAppeal({ callType: "sdk" })` → `FinishPostCallAppealUseCase` (only post-call processing; OCP login required) |
+| `account:logout` | `session.logout` | → `logoutAccountSession` / `AccountLogoutOrchestrationService`; may return `interaction_required` + `{ requiresReason: true, reasons }` (**no** `logoutToken`) |
 
-Cancel = abandon / `cancelPendingLogout(token)` / `clearPendingLogoutsForClient` on disconnect — no SIP tear.  
-Prepare supersedes prior pending tokens for the same `clientId`.  
-Still `not_ready`: `account:activate-profile` (DI-08). Still product-denied: `window:hide`.
+Cancel = do not call logout / disconnect — no SIP tear.  
+Still `not_ready` historically for activate until DI-08. Still product-denied: `window:hide`.
 
 ## Revision contract (preserved from DI-06 / ADR-0017 O-OWN-1)
 
 ```text
 peek() = current aggregate R
-operator:change-status / account:confirm-logout success
+operator:change-status / operator:finish-appeal / account:logout success
   -> advance() -> reply.revision = R+1
-operator:get-reasons / account:prepare-logout (incl. interaction_required)
+operator:get-reasons / account:logout interaction_required
   -> peek only (no advance)
 ```
 
@@ -37,7 +36,7 @@ Verified: snapshot revision is valid `expectedRevision` for operator mutate.
 
 ```text
 WS (DI-04 auth + caps)
-  -> routeSdkInbound → command_broker for operator:* / account:prepare|confirm-logout
+  -> routeSdkInbound → command_broker for operator:* / account:logout
   -> SdkRequestDedupCache (TTL 120s)
   -> MainToRendererBroker (+ clientId; failure details for interaction_required)
   -> ExternalSdkProductHandler
@@ -47,12 +46,12 @@ WS (DI-04 auth + caps)
 WS disconnect/revoke
   -> productSurface.onClientSessionEnded(clientId)
   -> IPC sdk-broker:client-session-ended
-  -> abortClientSession → clear pending logout only (no SIP tear)
+  -> abortClientSession → no auto-logout / no SIP tear
 ```
 
 - No second Facade / Call Engine in main.
 - Public DTOs only — no OCP wire frames, channels, apiKeys on WS/IPC/logs.
-- SIP-only: empty reasons; status → `not_found`; prepare → token without interaction.
+- SIP-only: empty reasons; status → `not_found`; logout may succeed without reasonId.
 
 ## Key files
 
@@ -73,48 +72,10 @@ WS disconnect/revoke
 - `src/ports/integration/ExternalCommandHandler.ts` / `MainToRendererBrokerPort.ts` (`details`)
 - `src/shared/ipc/SdkBrokerContract.ts` (`details` + client-session-ended)
 
-## Verification (independent `/sdk-review` + Low remediation 2026-07-20)
-
-### Focused DI-04…DI-07 set (+ Low remediation)
-
-```bash
-npx vitest run \
-  src/adapters/integration/LocalWsServerAdapter.test.ts \
-  src/adapters/integration/LocalWsServerAdapter.auth.test.ts \
-  src/adapters/integration/LocalWsServerAdapter.product.test.ts \
-  src/adapters/integration/LocalWsServerAdapter.call.test.ts \
-  src/adapters/integration/LocalWsServerAdapter.operator.test.ts \
-  src/adapters/integration/sdkGatewayRouteInbound.test.ts \
-  src/adapters/integration/MainToRendererBroker.test.ts \
-  src/ports/integration/sdk-dependency-boundary.test.ts \
-  src/application/integration/ExternalSdkCallHandler.test.ts \
-  src/application/integration/ExternalSdkOperatorHandler.test.ts \
-  src/application/integration/createSdkOperatorPortFromFacade.test.ts \
-  src/application/integration/mapSdkOperatorReasons.test.ts \
-  src/application/integration/ExternalSdkSnapshotAssembler.test.ts \
-  src/application/integration/ExternalSdkEventMapper.test.ts \
-  src/application/integration/sdkPrivacyRedaction.test.ts \
-  src/application/integration/SdkCallOwnershipRegistry.test.ts \
-  src/shared/ipc/SdkBrokerContract.test.ts
-```
-
-**Result (pre-remediation gate):** **104 passed**  
-**Result (post-Low remediation focused + contract):** see full suite below (operator + binding + shared-clock + disconnect notify covered).
-
-### Full suite / gates
-
-| Check | Result |
-| --- | --- |
-| `npm test` | **2458 passed / 1 skipped** |
-| `npm run lint` | PASS |
-| `npm run typecheck` | PASS (`tsc` node + web exit 0) |
-| `npm run registry:check` | **74 found / 0 missing** |
-| `package.json` version | **0.11.2** |
-
 ## Residual risks
 
 - Packaged E2E / remaining DI-10 smoke still open for F-011 close.
-- No dedicated public protocol cancel-logout command (abandon / disconnect / supersede).
+- No dedicated public protocol cancel-logout command (abandon / disconnect).
 - Operator push events + coarse-advance: see DI-05 follow-up `evidence/DI-05-operator-events-coarse-revision.md` (2026-07-23).
 - `kind: "applied"` on `operator:change-status` means OCP command was **sent** (WS write ok); softphone projection updates when OCP pushes `users` / `OperatorStatusChanged` (not optimistic).
 
@@ -124,6 +85,8 @@ npx vitest run \
 
 **Fix:** adapter-only map `sdk` → wire `external` (`mapOcpCallTypeToWire`). Facade binding remains `callType: "sdk"` (no silent downgrade of Application audit).
 
+**Contract refresh:** prepare/confirm + `logoutToken` removed; public wire is single-shot `account:logout`.
+
 ## Reviewer
 
-`/sdk-review` DI-07 **PASS** 2026-07-20. Lows remediated same day (callType binding test, shared-clock snapshot→operator, disconnect clears pending logout). Wire map fix 2026-07-23 is additive (adapter + docs); do not mark F-011 `implemented` without live OCP smoke.
+`/sdk-review` DI-07 **PASS** 2026-07-20. Lows remediated same day. Wire map fix 2026-07-23 is additive (adapter + docs); single-shot logout docs/tests aligned 2026-07-23. Do not mark F-011 `implemented` without live OCP smoke.

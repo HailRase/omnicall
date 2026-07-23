@@ -176,7 +176,6 @@ export function bindSdkBrokerSession(
       handler,
       ownership,
       dispose: () => {
-        operatorHandler.clearAllPendingLogouts();
         ownership.clearAll();
       },
     };
@@ -245,7 +244,6 @@ export function bindSdkBrokerSession(
       unsubscribeBroker();
       unsubscribeClientEnded();
       unsubscribeEvents();
-      operatorHandler.clearAllPendingLogouts();
       ownership.clearAll();
       void softphone.setSdkBrokerReady({ ready: false });
     },

@@ -38,7 +38,7 @@ async function waitFor(predicate: () => boolean, attempts = 100): Promise<void> 
   throw new Error('waitFor timeout');
 }
 
-test('browser AxatalkClient operator getReasons + prepareLogout; disconnect does not confirm', async () => {
+test('browser AxatalkClient operator getReasons + logout; disconnect does not logout', async () => {
   const scheduler = createFakeScheduler(1_700_000_000_000);
   const transports = createFakeTransportController();
   const client = createAxatalkClient({
@@ -116,27 +116,30 @@ test('browser AxatalkClient operator getReasons + prepareLogout; disconnect does
   ).toBe(true);
   await expect(reasonsPending).resolves.toEqual({ reasons: [], revision: 13 });
 
-  const preparePending = client.account.prepareLogout({ expectedRevision: 13 });
-  await waitFor(() => Boolean(findSentType(second, 'account:prepare-logout')));
+  const logoutPending = client.account.logout({ expectedRevision: 13 });
+  await waitFor(() => Boolean(findSentType(second, 'account:logout')));
   expect(
-    replyCommandFailure(second, 'account:prepare-logout', {
+    replyCommandFailure(second, 'account:logout', {
       code: 'interaction_required',
       retryable: false,
       details: {
-        logoutToken: 'logout_browser_001',
+        requiresReason: true,
         reasons: [{ id: 90, label: 'End', kind: 'logout' }]
       }
     })
   ).toBe(true);
-  await expect(preparePending).rejects.toSatisfy(
-    (error: unknown) =>
-      isAxatalkClientError(error) && error.code === 'interaction_required'
-  );
-  expect(countSentType(second, 'account:confirm-logout')).toBe(0);
+  await expect(logoutPending).rejects.toSatisfy((error: unknown) => {
+    if (!isAxatalkClientError(error) || error.code !== 'interaction_required') {
+      return false;
+    }
+    expect(error.details).not.toHaveProperty('logoutToken');
+    return true;
+  });
+  expect(countSentType(second, 'account:logout')).toBe(1);
 
   client.disconnect();
   await flush();
-  expect(countSentType(second, 'account:confirm-logout')).toBe(0);
+  expect(countSentType(second, 'account:logout')).toBe(1);
   expect(window.localStorage.length).toBe(0);
   expect(window.sessionStorage.length).toBe(0);
 });

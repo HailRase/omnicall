@@ -88,8 +88,8 @@ For originate, answer, reject, hang up, hold, resume, mute, unmute, and DTMF:
 - SIP-only activation with OCP absent;
 - active-session login requires logout first;
 - OCP status change uses Facade `callType: "sdk"` (audit); OCP wire `function_call_type` is `external` via `mapOcpCallTypeToWire` (never leak `"sdk"` on OCP WS);
-- prepare logout returns reasons or direct SIP-only path;
-- confirm, cancel, missing reason, invalid reason, and failure;
+- single-shot logout returns reasons via `interaction_required` or direct SIP-only success;
+- cancel (do not call logout), missing reason, invalid reason, and failure;
 - intentional logout disarms recovery and resets OCP projections;
 - connected-only OCP disconnect plus SIP teardown;
 - saved-profile activation keeps secrets desktop-only;

@@ -32,6 +32,9 @@ export type SdkOperatorFacadeBinding = Readonly<{
     readonly reasonId: number;
     readonly callType?: "external" | "sdk";
   }) => Promise<Result<ChangeOperatorStatusOutcome, PlatformError>>;
+  finishOcpPostCallAppeal: (input?: {
+    readonly callType?: "internal" | "external" | "sdk";
+  }) => Promise<Result<ChangeOperatorStatusOutcome, PlatformError>>;
   getOcpReasonsSnapshot: () => SdkOperatorReasonsProjection;
   getOcpSessionSnapshot: () => SdkOperatorFacadeSessionSnapshot;
   getOcpOperatorSnapshot: () => SdkOperatorFacadeOperatorSnapshot;
@@ -60,6 +63,10 @@ export function createSdkOperatorPortFromFacade(
       facade.changeOcpStatusFromHost({
         targetStatus: input.targetStatus,
         reasonId: input.reasonId,
+        callType: "sdk",
+      }),
+    finishPostCallAppeal: () =>
+      facade.finishOcpPostCallAppeal({
         callType: "sdk",
       }),
     listOperatorReasons: () => {

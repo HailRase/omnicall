@@ -1,16 +1,18 @@
 # Logout Workflow
 
-Commands: `account:prepare-logout` → optional human step → `account:confirm-logout`.  
-There is **no** `account:cancel-logout` command.
+Single-shot command: `account:logout`.  
+There is **no** prepare/confirm handshake and **no** `logoutToken`.
 
-## Happy path (no interaction)
+Reasons come from `client.operator.getReasons()` — filter `kind === 'logout'`.
+
+## Happy path (reason known or SIP-only)
 
 ```ts
-const prepared = await client.account.prepareLogout({ expectedRevision });
-await client.account.confirmLogout({
-  logoutToken: prepared.logoutToken,
-  expectedRevision: prepared.revision
+await client.account.logout({
+  reasonId, // optional when desktop does not require a reason
+  expectedRevision
 });
+// → { loggedOut: true, revision }
 ```
 
 ## Interaction required (OCP / reason UI)
@@ -18,20 +20,18 @@ await client.account.confirmLogout({
 ```ts
 import { isAxatalkClientError } from '@axata/axatalk-sdk';
 
+const { reasons } = await client.operator.getReasons();
+const logoutReasons = reasons.filter((r) => r.kind === 'logout');
+
 try {
-  await client.account.prepareLogout({ expectedRevision });
+  await client.account.logout({ expectedRevision });
 } catch (error: unknown) {
   if (!isAxatalkClientError(error) || error.code !== 'interaction_required') {
     throw error;
   }
-  const logoutToken = error.details?.['logoutToken'];
-  if (typeof logoutToken !== 'string') {
-    // Fail closed — do not invent a token
-    return;
-  }
-  // Host modal: pick reasonId, then:
-  // await client.account.confirmLogout({ logoutToken, reasonId, expectedRevision: ... })
-  // Cancel = abandon token (and/or disconnect). Never auto-confirm.
+  // details: { requiresReason: true, reasons: [...] } — NO logoutToken
+  const reasonId = /* host modal pick from logoutReasons / details.reasons */;
+  await client.account.logout({ reasonId, expectedRevision: /* fresh */ });
 }
 ```
 
@@ -39,16 +39,16 @@ try {
 
 | User action | SDK action |
 | --- | --- |
-| Dismiss modal | Drop `logoutToken`; do nothing |
-| Navigate away | Same — abandon |
-| `disconnect()` | Does **not** confirm logout |
+| Dismiss modal | Do **not** call `logout` again |
+| Navigate away | Same — simply abandon |
+| `disconnect()` | Does **not** auto-logout |
 
 ## SIP-only
 
-Desktop may return prepare success without `interaction_required` when no OCP reason
-workflow applies. Still bind `expectedRevision` and handle `stale_state` / `conflict`.
+Desktop may accept logout without `reasonId` when no OCP reason workflow applies.
+Still bind `expectedRevision` and handle `stale_state` / `conflict`.
 
 ## Reconnect
 
-Never replay `prepareLogout` / `confirmLogout` after reconnect. Re-read snapshot;
-start a new prepare if the operator still wants logout.
+Never replay `logout` after reconnect. Re-read snapshot; start a new logout if the
+operator still wants to sign out.

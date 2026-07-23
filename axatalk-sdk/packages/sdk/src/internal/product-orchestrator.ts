@@ -69,8 +69,8 @@ export type ProductOrchestrator = {
   readonly sendDtmf: CallCommandApi['sendDtmf'];
   readonly getOperatorReasons: OperatorCommandApi['getReasons'];
   readonly changeOperatorStatus: OperatorCommandApi['changeStatus'];
-  readonly prepareLogout: AccountLogoutCommandApi['prepareLogout'];
-  readonly confirmLogout: AccountLogoutCommandApi['confirmLogout'];
+  readonly finishOperatorAppeal: OperatorCommandApi['finishAppeal'];
+  readonly logout: AccountLogoutCommandApi['logout'];
   readonly activateProfile: AccountActivateCommandApi['activateProfile'];
   readonly dispose: () => void;
 };
@@ -262,8 +262,8 @@ export function createProductOrchestrator(deps: {
     sendDtmf: calls.sendDtmf,
     getOperatorReasons: operator.getReasons,
     changeOperatorStatus: operator.changeStatus,
-    prepareLogout: accountLogout.prepareLogout,
-    confirmLogout: accountLogout.confirmLogout,
+    finishOperatorAppeal: operator.finishAppeal,
+    logout: accountLogout.logout,
     activateProfile: accountActivate.activateProfile,
     dispose: () => {
       invalidate();

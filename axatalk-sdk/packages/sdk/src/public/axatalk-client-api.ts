@@ -6,12 +6,10 @@ import type { CapabilityId, SnapshotMessage } from '@axata/axatalk-protocol';
 
 import type { ActivateProfileResult } from '../internal/account-activate-commands.js';
 import type { AxatalkClientError } from '../internal/client-errors.js';
-import type {
-  ConfirmLogoutResult,
-  PrepareLogoutResult
-} from '../internal/account-logout-commands.js';
+import type { LogoutResult } from '../internal/account-logout-commands.js';
 import type { ConnectionState } from '../internal/connection-state.js';
 import type {
+  OperatorFinishAppealResult,
   OperatorReasonsResult,
   OperatorStatusChangeResult
 } from '../internal/operator-commands.js';
@@ -89,6 +87,7 @@ export type AxatalkCallsApi = {
 
 /**
  * Operator status namespace (`operator.status.write`). No campaign events.
+ * Finish appeal is only valid during post-call processing (desktop-enforced).
  * @public
  */
 export type AxatalkOperatorApi = {
@@ -98,23 +97,22 @@ export type AxatalkOperatorApi = {
     readonly reasonId?: number;
     readonly expectedRevision: number;
   }) => Promise<OperatorStatusChangeResult>;
+  readonly finishAppeal: (input: {
+    readonly expectedRevision: number;
+  }) => Promise<OperatorFinishAppealResult>;
 };
 
 /**
- * Account namespace: logout (`session.logout`) + privileged activate
- * (`account.activate`, server-granted only). Cancel logout = abandon token /
- * disconnect — no public cancel command. No raw credentials / list-profiles.
+ * Account namespace: single-shot logout (`session.logout`) + privileged activate
+ * (`account.activate`, server-granted only). Cancel logout = do not call logout.
+ * No raw credentials / list-profiles.
  * @public
  */
 export type AxatalkAccountApi = {
-  readonly prepareLogout: (input: {
-    readonly expectedRevision: number;
-  }) => Promise<PrepareLogoutResult>;
-  readonly confirmLogout: (input: {
-    readonly logoutToken: string;
+  readonly logout: (input: {
     readonly reasonId?: number;
     readonly expectedRevision: number;
-  }) => Promise<ConfirmLogoutResult>;
+  }) => Promise<LogoutResult>;
   readonly activateProfile: (input: {
     readonly login: string;
     readonly expectedRevision: number;

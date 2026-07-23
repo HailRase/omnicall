@@ -74,6 +74,26 @@ describe("ExternalSdkEventMapper", () => {
     });
   });
 
+  it("maps POST_CALL_PROCESSING to public post_call_processing", () => {
+    const draft = mapDomainEventToSdkPublicDraft(
+      createOperatorStatusChangedEvent(createCorrelationId(), {
+        operatorId: 42,
+        prevStatus: OperatorStatus.TALKING,
+        newStatus: OperatorStatus.POST_CALL_PROCESSING,
+        reasonId: 5,
+        timestamp: Date.now(),
+      }),
+    );
+    expect(draft).toEqual({
+      type: "operator:status-changed",
+      payload: {
+        status: "post_call_processing",
+        reasonId: 5,
+        reasonLabelKey: "ocp.operatorStatus.postCallProcessing",
+      },
+    });
+  });
+
   it("maps OperatorSessionStarted and OperatorSessionEnded", () => {
     expect(
       mapDomainEventToSdkPublicDraft(

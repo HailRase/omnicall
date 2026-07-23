@@ -135,7 +135,7 @@ test('browser AxatalkClient activateProfile success; disconnect non-activate; no
   await flush();
   expect(countSentType(second, 'account:activate-profile')).toBe(1);
   expect(countSentType(second, 'call:hangup')).toBe(0);
-  expect(countSentType(second, 'account:confirm-logout')).toBe(0);
+  expect(countSentType(second, 'account:logout')).toBe(0);
 
   expect(window.localStorage.length).toBe(0);
   expect(window.sessionStorage.length).toBe(0);

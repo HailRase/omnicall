@@ -1,6 +1,8 @@
 /**
- * Application operator/logout handler (DI-07 / ADR-0017 O-OCP-1).
+ * Application operator/logout/finish-appeal handler (DI-07 / ADR-0017 O-OCP-1).
  * Maps public protocol → F-028 Facade with callType "sdk". Reads peek-only.
+ * Logout is single-shot `account:logout` (CRM supplies reasonId).
+ * Finish appeal is `operator:finish-appeal` (OCP login + post-call processing only).
  */
 
 import type { CommandMessage } from "@axata/axatalk-protocol";
@@ -22,18 +24,13 @@ import {
   sdkCallSuccess,
   sdkFail,
 } from "./externalSdkCallHelpers.js";
-import {
-  confirmLogoutCommand,
-  prepareLogoutCommand,
-  type PendingLogout,
-} from "./externalSdkLogoutCommands.js";
+import { logoutAccountCommand } from "./externalSdkLogoutCommands.js";
 import {
   assertClientId,
-  defaultLogoutToken,
   parseChangeStatusPayload,
   reasonToWire,
 } from "./externalSdkOperatorHelpers.js";
-import { mapPlatformErrorToSdkCode } from "./mapPlatformErrorToSdkCode.js";
+import { mapPlatformErrorToSdkCode, isNotInPostCallProcessingError } from "./mapPlatformErrorToSdkCode.js";
 import { resolveSdkStatusReasonId } from "./mapSdkOperatorReasons.js";
 import { SdkAggregateMutex } from "./SdkAggregateMutex.js";
 import type { SdkSessionRevisionClock } from "./SdkSessionRevisionClock.js";
@@ -41,20 +38,18 @@ import type { SdkSessionRevisionClock } from "./SdkSessionRevisionClock.js";
 const OPERATOR_COMMAND_TYPES = new Set<string>([
   "operator:get-reasons",
   "operator:change-status",
-  "account:prepare-logout",
-  "account:confirm-logout",
+  "operator:finish-appeal",
+  "account:logout",
 ]);
 
 const ACCOUNT_LOCK_KEY = "__sdk_account__";
 const IDEMPOTENCY_TTL_MS = 120_000;
-const LOGOUT_TOKEN_TTL_MS = 120_000;
 
 export type ExternalSdkOperatorHandlerOptions = Readonly<{
   operatorPort: ExternalSdkOperatorPort;
   revisionClock: SdkSessionRevisionClock;
   mutex?: SdkAggregateMutex;
   nowMs?: () => number;
-  createLogoutToken?: () => string;
 }>;
 
 type CachedReply = Readonly<{
@@ -70,46 +65,18 @@ export class ExternalSdkOperatorHandler implements ExternalCommandHandler {
   private readonly revisionClock: SdkSessionRevisionClock;
   private readonly mutex: SdkAggregateMutex;
   private readonly nowMs: () => number;
-  private readonly createLogoutToken: () => string;
   private readonly idempotency = new Map<string, CachedReply>();
   private readonly inFlight = new Map<string, Promise<ExternalHandlerResult>>();
-  private readonly pendingLogouts = new Map<string, PendingLogout>();
 
   constructor(options: ExternalSdkOperatorHandlerOptions) {
     this.operatorPort = options.operatorPort;
     this.revisionClock = options.revisionClock;
     this.mutex = options.mutex ?? new SdkAggregateMutex();
     this.nowMs = options.nowMs ?? (() => Date.now());
-    this.createLogoutToken =
-      options.createLogoutToken ?? defaultLogoutToken;
   }
 
   handlesCommandType(commandType: string): boolean {
     return OPERATOR_COMMAND_TYPES.has(commandType);
-  }
-
-  /** Cancel pending prepare without tearing SIP (abandon / supersede). */
-  cancelPendingLogout(logoutToken: string): boolean {
-    return this.pendingLogouts.delete(logoutToken);
-  }
-
-  /** Clear all pending tokens for one client (disconnect/revoke) — no SIP tear. */
-  clearPendingLogoutsForClient(clientId: string): number {
-    let cleared = 0;
-    for (const [token, entry] of this.pendingLogouts) {
-      if (entry.clientId === clientId) {
-        this.pendingLogouts.delete(token);
-        cleared += 1;
-      }
-    }
-    return cleared;
-  }
-
-  /** Clear every pending logout token (composition dispose) — no SIP tear. */
-  clearAllPendingLogouts(): number {
-    const cleared = this.pendingLogouts.size;
-    this.pendingLogouts.clear();
-    return cleared;
   }
 
   handleCommand(
@@ -168,7 +135,7 @@ export class ExternalSdkOperatorHandler implements ExternalCommandHandler {
       return Promise.resolve(this.handleGetReasons());
     }
     return this.mutex.runExclusive(ACCOUNT_LOCK_KEY, () =>
-      this.handleMutation(message, clientId),
+      this.handleMutation(message),
     );
   }
 
@@ -182,20 +149,21 @@ export class ExternalSdkOperatorHandler implements ExternalCommandHandler {
 
   private handleMutation(
     message: CommandMessage,
-    clientId: string,
   ): Promise<ExternalHandlerResult> {
     switch (message.type) {
       case "operator:change-status":
         return this.handleChangeStatus(message.payload);
-      case "account:prepare-logout":
-        return Promise.resolve(
-          prepareLogoutCommand(this.logoutDeps(), message.payload, clientId),
-        );
-      case "account:confirm-logout":
-        return confirmLogoutCommand(
-          this.logoutDeps(),
+      case "operator:finish-appeal":
+        return this.handleFinishAppeal(message.payload);
+      case "account:logout":
+        return logoutAccountCommand(
+          {
+            operatorPort: this.operatorPort,
+            revisionClock: this.revisionClock,
+            requireFreshRevision: (payload: unknown) =>
+              this.requireFreshRevision(payload),
+          },
           message.payload,
-          clientId,
         );
       default:
         return Promise.resolve(sdkFail("unsupported_command"));
@@ -243,18 +211,34 @@ export class ExternalSdkOperatorHandler implements ExternalCommandHandler {
     );
   }
 
-  private logoutDeps() {
-    return {
-      operatorPort: this.operatorPort,
-      revisionClock: this.revisionClock,
-      pendingLogouts: this.pendingLogouts,
-      createLogoutToken: this.createLogoutToken,
-      nowMs: this.nowMs,
-      tokenTtlMs: LOGOUT_TOKEN_TTL_MS,
-      requireFreshRevision: (payload: unknown) =>
-        this.requireFreshRevision(payload),
-      prunePendingLogouts: () => this.prunePendingLogouts(),
-    };
+  private async handleFinishAppeal(
+    payload: unknown,
+  ): Promise<ExternalHandlerResult> {
+    const gate = this.requireFreshRevision(payload);
+    if (!gate.ok) {
+      return gate;
+    }
+    const session = this.operatorPort.readOcpSession();
+    if (!session.isAuthenticated || !session.hasOperatorSnapshot) {
+      return sdkFail("not_found");
+    }
+    const result = await this.operatorPort.finishPostCallAppeal();
+    if (!result.ok) {
+      return sdkFail(mapPlatformErrorToSdkCode(result.error), {
+        ...(isNotInPostCallProcessingError(result.error)
+          ? { failure_kind: "not_in_post_call_processing" }
+          : {}),
+      });
+    }
+    return sdkCallSuccess(
+      {
+        accepted: true,
+        kind: result.value.kind,
+        targetStatus: result.value.targetStatus,
+        reasonId: result.value.reasonId,
+      },
+      this.revisionClock.advance(),
+    );
   }
 
   private requireFreshRevision(
@@ -276,16 +260,6 @@ export class ExternalSdkOperatorHandler implements ExternalCommandHandler {
     for (const [id, entry] of this.idempotency) {
       if (entry.expiresAt <= now) {
         this.idempotency.delete(id);
-      }
-    }
-    this.prunePendingLogouts();
-  }
-
-  private prunePendingLogouts(): void {
-    const now = this.nowMs();
-    for (const [token, entry] of this.pendingLogouts) {
-      if (entry.expiresAt <= now) {
-        this.pendingLogouts.delete(token);
       }
     }
   }

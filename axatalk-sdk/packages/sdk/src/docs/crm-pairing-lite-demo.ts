@@ -5,7 +5,7 @@
 import {
   activateIfGranted,
   originateDemoCall,
-  prepareLogoutDemo,
+  logoutDemo,
   subscribeSnapshotRevision,
   waitForReady
 } from '../../../../examples/crm-pairing-lite/src/crm-app.js';
@@ -24,7 +24,7 @@ export type DemoReport = {
   readonly disconnectSensitive: {
     readonly activate: number;
     readonly hangup: number;
-    readonly confirmLogout: number;
+    readonly logout: number;
   };
   readonly storageUsesWebStorage: boolean;
 };
@@ -126,8 +126,10 @@ export async function runCrmPairingLiteDemo(): Promise<DemoReport> {
   expectLocalForbiddenNoFrame(forbiddenHarness, forbidden);
   forbiddenHarness.client.disconnect();
 
-  const logoutPending = prepareLogoutDemo(harness.client);
-  const logoutReply = harness.replyPrepareInteractionRequired('logout_tok_demo_001');
+  const logoutPending = logoutDemo(harness.client);
+  const logoutReply = harness.replyLogoutInteractionRequired([
+    { id: 90, label: 'End of shift', kind: 'logout' }
+  ]);
   const [logout] = await Promise.all([logoutPending, logoutReply]);
 
   const activatePending = activateIfGranted(harness.client, 'profile_ref_demo_001');

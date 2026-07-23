@@ -59,7 +59,9 @@ export type SnapshotCallSummary = z.infer<typeof SnapshotCallSummarySchema>;
 export const SnapshotOperatorSectionSchema = z
   .object({
     connected: z.boolean(),
-    status: z.enum(['ready', 'break', 'offline', 'unknown']).optional(),
+    status: z
+      .enum(['ready', 'break', 'offline', 'post_call_processing', 'unknown'])
+      .optional(),
     reasonId: z.number().int().nonnegative().optional(),
     reasonLabelKey: z.string().min(1).max(128).optional()
   })

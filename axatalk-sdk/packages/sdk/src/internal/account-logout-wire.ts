@@ -1,5 +1,5 @@
 /**
- * Account logout wire builders (SDK-07). Schema-aligned outbound frames.
+ * Account logout wire builder — single-shot `account:logout`.
  */
 
 import { PROTOCOL_MAJOR } from '@axata/axatalk-protocol';
@@ -30,25 +30,14 @@ function envelope(
   });
 }
 
-export function buildAccountPrepareLogoutBody(
-  identity: WireIdentity,
-  input: { readonly expectedRevision: number }
-): string {
-  return envelope('account:prepare-logout', identity, {
-    expectedRevision: input.expectedRevision
-  });
-}
-
-export function buildAccountConfirmLogoutBody(
+export function buildAccountLogoutBody(
   identity: WireIdentity,
   input: {
-    readonly logoutToken: string;
     readonly reasonId?: number;
     readonly expectedRevision: number;
   }
 ): string {
-  return envelope('account:confirm-logout', identity, {
-    logoutToken: input.logoutToken,
+  return envelope('account:logout', identity, {
     expectedRevision: input.expectedRevision,
     ...(input.reasonId !== undefined ? { reasonId: input.reasonId } : {})
   });
