@@ -7,12 +7,12 @@
 
 ## Scope landed
 
-Authenticated, capability-bound sessions gain **operator status + account logout** mapped to existing F-028 Application behavior with `callType: "sdk"`:
+Authenticated, capability-bound sessions gain **operator status + account logout** mapped to existing F-028 Application behavior with Facade `callType: "sdk"` (ADR-0017 O-OCP-1):
 
 | Public command | Capability | Path |
 | --- | --- | --- |
 | `operator:get-reasons` | `operator.status.write` | `ExternalSdkOperatorHandler` → projection DTO mapper (peek-only revision) |
-| `operator:change-status` | `operator.status.write` | → Facade `changeOcpStatusFromHost({ callType: "sdk" })` via `createSdkOperatorPortFromFacade` |
+| `operator:change-status` | `operator.status.write` | → Facade `changeOcpStatusFromHost({ callType: "sdk" })` via `createSdkOperatorPortFromFacade`; OCP adapter maps wire `function_call_type` to `"external"` (`mapOcpCallTypeToWire`) |
 | `account:prepare-logout` | `session.logout` | pending logoutToken; may return `interaction_required` + reasons |
 | `account:confirm-logout` | `session.logout` | → `logoutAccountSession` / `AccountLogoutOrchestrationService` |
 
@@ -64,6 +64,8 @@ WS disconnect/revoke
 - `src/application/integration/externalSdkOperatorHelpers.ts`
 - `src/application/integration/ExternalSdkProductHandler.ts`
 - `src/application/facades/AccountBootstrapFacade.ts` (`callType` on `changeOcpStatusFromHost`)
+- `src/adapters/integration/ocp/mapOcpCallTypeToWire.ts` (`sdk` → OCP wire `external`)
+- `src/adapters/integration/ocp/buildOcpCommandPayload.ts`
 - `src/adapters/integration/sdkGatewayRouteInbound.ts`
 - `src/adapters/integration/LocalWsSessionRegistry.ts` (`onClientSessionEnded`)
 - `src/main/sdk/createSdkGatewayProductSurface.ts`
@@ -114,7 +116,14 @@ npx vitest run \
 - Packaged E2E / remaining DI-10 smoke still open for F-011 close.
 - No dedicated public protocol cancel-logout command (abandon / disconnect / supersede).
 - Operator push events + coarse-advance: see DI-05 follow-up `evidence/DI-05-operator-events-coarse-revision.md` (2026-07-23).
+- `kind: "applied"` on `operator:change-status` means OCP command was **sent** (WS write ok); softphone projection updates when OCP pushes `users` / `OperatorStatusChanged` (not optimistic).
+
+## Follow-up fix (2026-07-23)
+
+**Bug:** Application `callType: "sdk"` was forwarded verbatim as OCP `function_call_type: "sdk"`. Legacy OCP accepts only `internal`|`external`, so SDK status changes replied `applied` while softphone/OCP stayed Ready.
+
+**Fix:** adapter-only map `sdk` → wire `external` (`mapOcpCallTypeToWire`). Facade binding remains `callType: "sdk"` (no silent downgrade of Application audit).
 
 ## Reviewer
 
-`/sdk-review` DI-07 **PASS** 2026-07-20. Lows remediated same day (callType binding test, shared-clock snapshot→operator, disconnect clears pending logout). Next: `/sdk-integration` DI-08 only. Do not mark F-011 `implemented`.
+`/sdk-review` DI-07 **PASS** 2026-07-20. Lows remediated same day (callType binding test, shared-clock snapshot→operator, disconnect clears pending logout). Wire map fix 2026-07-23 is additive (adapter + docs); do not mark F-011 `implemented` without live OCP smoke.

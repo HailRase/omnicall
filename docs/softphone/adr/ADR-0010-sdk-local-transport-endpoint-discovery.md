@@ -40,7 +40,9 @@ DI-03/SDK-03 implement transport.
 
 5. **No product data before auth:** handshake framing may exist in DI-03, but snapshots,
    events, and product commands are impossible until DI-04 authentication succeeds
-   (ADR-0011).
+   (ADR-0011). Desktop must **serialize inbound handlers per WebSocket connection** so
+   async auth (DI-04 PoP) cannot race a following command on the same socket
+   (see ADR-0016 / `PROTOCOL.md` inbound ordering).
 
 6. **Endpoint discovery (closed for desktop side):**
    - Desktop publishes a **stable local discovery document** only on loopback (exact path

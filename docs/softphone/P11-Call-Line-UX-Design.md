@@ -9,7 +9,7 @@ Related: `LF-011`, `LF-021`, `LF-022`, `LF-023`, `LF-057` (overlay blocking). Fe
 | # | Topic | Decision |
 |---|--------|----------|
 | 1 | `ActiveCallControlsPanel` | **Removed** from ControlsZone. Hold/mute/transfer/hangup/resume live on `CallLineRow`. Error retry banner on active-unheld row. DTMF stays on dialpad only. |
-| 2 | `OutgoingCallCard` | Shown only when `lastError !== null` or pre-line outgoing (`Connecting`/`Failed` without matching line in shell). |
+| 2 | `OutgoingCallCard` | Shown only for pre-line outbound **Connecting** (no matching line in shell). Terminal `CallFailed` clears to Idle and surfaces a toast via `lastOutgoingFailure` — no sticky Failed card. |
 | 3 | Transfer | Row transfer icon calls existing `useTransferActions.handleStartTransfer` (opens `TransferPanel` in ControlsZone). |
 | 4 | Single-line list | `CallLinesShell.visible` when `lines.length >= 1` (not only 2+). |
 
@@ -17,7 +17,7 @@ Related: `LF-011`, `LF-021`, `LF-022`, `LF-023`, `LF-057` (overlay blocking). Fe
 
 | State | Projection inputs | UI |
 |-------|-------------------|-----|
-| Idle (no lines) | `multiLineCallProjection.lines` empty | No `CallLinesShell`; optional slim `OutgoingCallCard` on dial/connect error |
+| Idle (no lines) | `multiLineCallProjection.lines` empty | No `CallLinesShell`; outbound failures use notification toast (`lastOutgoingFailure`) |
 | Connecting / Ringing | line `state`, `displayLabel`, no `activeSinceMs` | Row with status label; hangup or answer primary |
 | Active unheld | `state: Active`, `isActiveUnheld`, controls projection | Icon row (transfer, hold, mute); hangup primary; duration timer |
 | Active muted | `muted: true` | Muted badge; unmute icon |
@@ -40,7 +40,9 @@ Related: `LF-011`, `LF-021`, `LF-022`, `LF-023`, `LF-057` (overlay blocking). Fe
 │ │ [operation error + Retry]                       │   │
 │ └─────────────────────────────────────────────────┘   │
 └───────────────────────────────────────────────────────┘
-┌─ OutgoingCallCard (pre-line / error only) ──────────┐
+┌─ OutgoingCallCard (pre-line Connecting only) ───────┐
+└───────────────────────────────────────────────────────┘
+┌─ Notification toast on CallFailed (not a card) ─────┐
 └───────────────────────────────────────────────────────┘
 ```
 

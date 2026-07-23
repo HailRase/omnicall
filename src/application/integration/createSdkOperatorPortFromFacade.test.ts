@@ -1,5 +1,6 @@
 /**
- * DI-07 Low remediation: callType "sdk" binding must not silently use "external".
+ * DI-07: callType "sdk" binding must not silently use "external" at the Facade.
+ * OCP wire mapping (sdk → external) lives only in adapters (`mapOcpCallTypeToWire`).
  */
 
 import { describe, expect, it, vi } from "vitest";

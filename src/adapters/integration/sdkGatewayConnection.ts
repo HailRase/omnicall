@@ -39,6 +39,11 @@ export type SdkGatewayConnection = {
   lastActivityMs: number;
   inboundTimestampsMs: number[];
   outboundQueueDepth: number;
+  /**
+   * Promise chain that serializes async inbound handlers for this socket.
+   * Preserves wire order so `sdk:auth-proof` completes before a following `sdk:ping`.
+   */
+  inboundTail: Promise<void>;
   handshakeTimer: ReturnType<typeof setTimeout> | null;
   idleTimer: ReturnType<typeof setTimeout> | null;
   heartbeatTimer: ReturnType<typeof setInterval> | null;
@@ -64,11 +69,26 @@ export function createSdkGatewayConnection(
     lastActivityMs: nowMs,
     inboundTimestampsMs: [],
     outboundQueueDepth: 0,
+    inboundTail: Promise.resolve(),
     handshakeTimer: null,
     idleTimer: null,
     heartbeatTimer: null,
     awaitingPong: false,
   };
+}
+
+/**
+ * Enqueue one inbound task so handlers for a connection run strictly in receive order.
+ * Prior task failures never skip later frames; task errors are swallowed to keep the chain.
+ */
+export function enqueueSdkGatewayInbound(
+  connection: SdkGatewayConnection,
+  task: () => Promise<void>,
+): void {
+  connection.inboundTail = connection.inboundTail
+    .catch(() => undefined)
+    .then(task)
+    .catch(() => undefined);
 }
 
 export function clearSdkGatewayConnectionTimers(

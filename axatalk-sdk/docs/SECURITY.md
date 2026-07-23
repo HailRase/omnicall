@@ -126,6 +126,9 @@ administrative feature with its own ADR, capability, local approval, audit, and 
 
 ## Command Safety
 
+- **Inbound frames are serialized per WebSocket connection** on the desktop gateway
+  (receive order). Async auth/pairing handlers must not race later commands on the same
+  socket (e.g. `sdk:auth-proof` then immediate `sdk:ping`).
 - Mutations are serialized per call or account aggregate.
 - Destructive commands support ownership/lease policy and expected revision.
 - Conflicts return stable errors such as `conflict`, `stale_state`, or `not_owner`.

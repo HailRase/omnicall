@@ -59,8 +59,7 @@ export function CallContextShell({
     callLinesShell.lines.some((line) => line.callId === callProjection.activeCallId);
 
   const showOutgoingCard =
-    (callProjection.state === "Connecting" || callProjection.state === "Failed") &&
-    !hasLineForActiveCall;
+    callProjection.state === "Connecting" && !hasLineForActiveCall;
 
   const isTransferMode = transferPanelShell.visible;
   const isTransferSuccessCelebration = transferSuccessCelebration.visible;

@@ -20,7 +20,7 @@ import {
   nextBrokerRequestId,
   toProductRequest,
 } from "./mainToRendererBrokerHelpers.js";
-import { brokerTimeoutMsForCommand } from "@application/integration/sdkActivateTimeouts.js";
+import { brokerTimeoutMsForCommand } from "@shared/integration/sdkActivateTimeouts.js";
 
 /** Default product-request timeout across the IPC hop (ms). */
 export const SDK_BROKER_DEFAULT_TIMEOUT_MS = 5_000;

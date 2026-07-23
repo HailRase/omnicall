@@ -18,6 +18,7 @@ import type {
 
 import type { ExternalSdkCallPort } from "./ExternalSdkCallPort.js";
 import {
+  mapPlatformErrorToSdkFailure,
   mapUcResultToSdk,
   readExpectedRevision,
   readStringField,
@@ -25,7 +26,6 @@ import {
   sdkCallSuccess,
   sdkFail,
 } from "./externalSdkCallHelpers.js";
-import { mapPlatformErrorToSdkCode } from "./mapPlatformErrorToSdkCode.js";
 import { SdkAggregateMutex } from "./SdkAggregateMutex.js";
 import type { SdkCallOwnershipRegistry } from "./SdkCallOwnershipRegistry.js";
 import type { SdkSessionRevisionClock } from "./SdkSessionRevisionClock.js";
@@ -165,7 +165,7 @@ export class ExternalSdkCallHandler implements ExternalCommandHandler {
     }
     const result = await this.callPort.makeCall(destination);
     if (!result.ok) {
-      return sdkFail(mapPlatformErrorToSdkCode(result.error));
+      return mapPlatformErrorToSdkFailure(result.error);
     }
     const callId = String(result.value.id);
     this.ownership.assignOwner(callId, clientId);
@@ -276,7 +276,7 @@ export class ExternalSdkCallHandler implements ExternalCommandHandler {
     for (const tone of digits) {
       const result = await this.callPort.sendDtmf(callId, tone);
       if (!result.ok) {
-        return sdkFail(mapPlatformErrorToSdkCode(result.error));
+        return mapPlatformErrorToSdkFailure(result.error);
       }
     }
     return { ok: true, result: {}, revision: 0 };

@@ -30,7 +30,7 @@
 | `IncomingCallStatusMessage` | `src/renderer/components/call/IncomingCallStatusMessage.tsx` | `IncomingCallStatusMessageProps` | incoming-call-status | — |
 | `MultiCallHoldAllIndicator` | `src/renderer/components/call/MultiCallHoldAllIndicator.tsx` | `MultiCallHoldAllIndicatorProps` | multi-call-hold-all-indicator | — |
 | `MultiLineCallList` | `src/renderer/components/call/MultiLineCallList.tsx` | `MultiLineCallListProps` | multi-line-call-list | — |
-| `OutgoingCallCard` | `src/renderer/components/call/OutgoingCallCard.tsx` | `OutgoingCallCardProps` | outgoing-call-card, call-state-label, call-failed-alert | — |
+| `OutgoingCallCard` | `src/renderer/components/call/OutgoingCallCard.tsx` | `OutgoingCallCardProps` | outgoing-call-card, call-state-label | Connecting-only pre-line card; terminal failures → notification (`lastOutgoingFailure`) |
 | `RejectReasonSelector` | `src/renderer/components/call/RejectReasonSelector.tsx` | `RejectReasonSelectorProps` | reject-reason-select | — |
 | `ScreenSharePickerDialog` | `src/renderer/components/call/ScreenSharePickerDialog.tsx` | `ScreenSharePickerDialogProps` | screen-share-picker-dialog, screen-share-picker-tab-screen, screen-share-picker-tab-window, screen-share-picker-tab-chrome-tab, screen-share-picker-grid, screen-share-picker-error, screen-share-picker-cancel, screen-share-picker-confirm | — |
 | `TransferPanel` | `src/renderer/components/call/TransferPanel.tsx` | `TransferPanelProps` | transfer-panel, transfer-source-line, transfer-target-input, transfer-target-divider, transfer-target-candidates, transfer-next-step, transfer-consultation-line, transfer-in-progress-indicator, control-attended-transfer, transfer-disabled-reason | — |

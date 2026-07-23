@@ -131,4 +131,4 @@ Focused re-verify after remediation: **140 passed** (includes `sdkAccountActivat
 - Broker hop for `account:activate-profile` only uses `SDK_ACTIVATE_BROKER_TIMEOUT_MS` (~240s); other commands remain 5s.
 - After Allow: auth budget by mode (sip 60s / OCP stage sum + slack); budget expiry cancels in-flight OCP via `cancelOcpSignInAttempt`.
 - Additive failure details: `activate_phase`, `auth_mode`, `failure_kind` (incl. `session_exist`).
-- SSoT: `src/application/integration/sdkActivateTimeouts.ts` + protocol constants; ADR-0018 §E/F + PROTOCOL.md updated.
+- SSoT: `src/shared/integration/sdkActivateTimeouts.ts` (+ Application re-export) + protocol constants; ADR-0018 §E/F + PROTOCOL.md updated.

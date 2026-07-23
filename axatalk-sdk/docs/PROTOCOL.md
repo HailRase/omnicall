@@ -55,6 +55,12 @@ No product snapshot or PII is sent before authentication succeeds.
 
 Proof-of-possession and pairing ceremony: **ADR-0016**.
 
+**Desktop inbound ordering (normative for gateway):** for each WebSocket connection,
+desktop processes inbound frames **strictly in receive order** (serialize async handlers
+per connection). Clients may send `sdk:auth-proof` and immediately follow with `sdk:ping`
+(or other commands) without an artificial delay; the gateway must not evaluate the ping
+until proof handling has finished (success → `authenticated`, or fail-closed close).
+
 ## Endpoint Discovery
 
 Loopback HTTP discovery (not WS-only): **ADR-0015**.
@@ -201,10 +207,14 @@ Wire details keys (inside `forbidden` / related failures — no secrets):
   (ADR-0018 timeout sync)
 - `auth_mode` — `"sip_only"` | `"ocp"` when the failure occurred after mode selection
 - `failure_kind` — allowlisted semantic key (`timeout`, `session_exist`,
-  `credentials_timeout`, `http_failed`, …); never raw SIP/OCP exception text
+  `credentials_timeout`, `http_failed`, `sip_not_registered`, …); never raw
+  SIP/OCP exception text. For `call:originate`, desktop may reply
+  `operation_failed` + `failure_kind: "sip_not_registered"` **without** emitting
+  `call:outgoing` / `call:failed` when SIP REGISTER is not active (no call
+  lifecycle side effects).
 
 Activate wall budgets (constants in `@axata/axatalk-protocol` / desktop
-`sdkActivateTimeouts.ts`):
+`src/shared/integration/sdkActivateTimeouts.ts`):
 
 - Consent TTL: `SDK_ACTIVATE_CONSENT_TTL_MS` (120 s)
 - SIP-only auth: `SDK_ACTIVATE_SIP_ONLY_AUTH_BUDGET_MS` (60 s)

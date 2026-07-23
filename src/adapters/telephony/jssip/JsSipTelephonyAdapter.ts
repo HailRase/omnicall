@@ -42,6 +42,10 @@ import { createPlatformError, normalizeUnknownError } from "@shared/errors/index
 import { err, ok } from "@shared/result/index.js";
 import type { Result } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
+import {
+  createSipNotRegisteredCause,
+  SIP_NOT_REGISTERED_OUTBOUND_MESSAGE,
+} from "@shared/telephony/sipOutboundErrors.js";
 import type { RTCSession } from "@hailrase/jssip/lib/RTCSession.js";
 import type { JsSipDisconnectEvent, JsSipUaPort, JsSipUserAgentFactory } from "./JsSipUaPort.js";
 import { mapTelephonyIncomingNotification } from "../mapTelephonyIncomingNotification.js";
@@ -465,13 +469,21 @@ export class JsSipTelephonyAdapter implements TelephonyGateway {
     return ua.isConnected() && ua.isRegistered();
   }
 
+  isRegistered(): boolean {
+    return this.effectiveIsRegistered();
+  }
+
   async makeCall(command: MakeCallCommand): Promise<Result<MakeCallProgress, PlatformError>> {
     const { callId, number, correlationId, mediaMode } = command;
     this.lastCorrelationId = correlationId;
 
     if (this.ua === null || !this.effectiveIsRegistered() || this.storedAccount === null) {
       return err(
-        createPlatformError("operation_failed", "SIP not registered for outbound call"),
+        createPlatformError(
+          "operation_failed",
+          SIP_NOT_REGISTERED_OUTBOUND_MESSAGE,
+          createSipNotRegisteredCause(),
+        ),
       );
     }
 

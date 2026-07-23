@@ -383,6 +383,38 @@ describe("ExternalSdkCallHandler", () => {
     });
   });
 
+  it("maps SIP not registered originate to operation_failed + failure_kind", async () => {
+    const port = createPort({
+      makeCall: vi.fn(() =>
+        Promise.resolve(
+          err(
+            createPlatformError(
+              "operation_failed",
+              "SIP not registered for outbound call",
+              { reason: "sip_not_registered" },
+            ),
+          ),
+        ),
+      ),
+    });
+    const { handler } = createHandler(port);
+    const result = await handler.handleCommand(
+      {
+        ...BASE,
+        type: "call:originate",
+        requestId: "req_sip_unreg",
+        payload: { destination: "1", expectedRevision: 1 },
+      },
+      { clientId: "client_a" },
+    );
+    expect(result).toEqual({
+      ok: false,
+      code: "operation_failed",
+      retryable: false,
+      details: { failure_kind: "sip_not_registered" },
+    });
+  });
+
   it("maps unknown call control failure to not_found", async () => {
     const port = createPort({
       hangupCall: vi.fn(() =>

@@ -371,6 +371,7 @@ function SoftphoneShellLayoutRoute({
       projection: callBindings.activeCallControlsProjection,
       onRetry: callBindings.callActions.handleRetryLastOperation,
     },
+    outgoingFailure: callBindings.callProjection.lastOutgoingFailure,
     dtmfError: callBindings.callProjection.lastDtmfError,
     transferFailure: callBindings.transferPanelShell.failureMessage,
     logoutErrorMessage: sessionLogoutActions.shell.logoutErrorMessage,

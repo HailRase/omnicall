@@ -76,8 +76,12 @@ export class MockTelephonyGateway implements TelephonyGateway {
   private blindTransferScenario: MockBlindTransferScenario;
   private attendedTransferScenario: MockAttendedTransferScenario;
   private readonly delayMs: number;
-  private registered = false;
-  private transportConnected = false;
+  /**
+   * Call-centric unit tests start registered so MakeCall preflight matches a ready UA.
+   * Use unregister() when a test needs an unregistered mock.
+   */
+  private registered = true;
+  private transportConnected = true;
   private readonly makeCallCommands: MakeCallCommand[] = [];
   private readonly answerCallCommands: AnswerCallCommand[] = [];
   private readonly dialedNumbers: string[] = [];

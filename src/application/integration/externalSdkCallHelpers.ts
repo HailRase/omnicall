@@ -7,6 +7,8 @@ import type { PlatformError } from "@shared/errors/index.js";
 import type { Result } from "@shared/result/index.js";
 import type { ExternalHandlerResult } from "@ports/integration/ExternalCommandHandler.js";
 
+import { isSipNotRegisteredError } from "@shared/telephony/sipOutboundErrors.js";
+
 import { mapPlatformErrorToSdkCode } from "./mapPlatformErrorToSdkCode.js";
 
 export function sdkCallSuccess(
@@ -29,13 +31,21 @@ export function mapUcResultToSdk(
   result: Result<unknown, PlatformError>,
 ): ExternalHandlerResult {
   if (!result.ok) {
-    return {
-      ok: false,
-      code: mapPlatformErrorToSdkCode(result.error),
-      retryable: false,
-    };
+    return mapPlatformErrorToSdkFailure(result.error);
   }
   return { ok: true, result: {}, revision: 0 };
+}
+
+/**
+ * Full SDK failure including allowlisted details (originate SIP preflight).
+ */
+export function mapPlatformErrorToSdkFailure(
+  error: PlatformError,
+): ExternalHandlerResult {
+  if (isSipNotRegisteredError(error)) {
+    return sdkFail("operation_failed", { failure_kind: "sip_not_registered" });
+  }
+  return sdkFail(mapPlatformErrorToSdkCode(error));
 }
 
 export function readExpectedRevision(payload: unknown): number | null {

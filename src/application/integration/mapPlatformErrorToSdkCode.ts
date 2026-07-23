@@ -5,10 +5,14 @@
 import type { ProtocolErrorCode } from "@axata/axatalk-protocol";
 import { ACCOUNT_SIGN_IN_LOGOUT_REQUIRED_MESSAGE } from "@application/facades/accountSignInCommand.js";
 import type { PlatformError } from "@shared/errors/index.js";
+import { isSipNotRegisteredError } from "@shared/telephony/sipOutboundErrors.js";
 
 export function mapPlatformErrorToSdkCode(
   error: PlatformError,
 ): ProtocolErrorCode {
+  if (isSipNotRegisteredError(error)) {
+    return "operation_failed";
+  }
   if (
     error.code === "validation_failed" &&
     (error.message === "ocp_logout_reason_required" ||

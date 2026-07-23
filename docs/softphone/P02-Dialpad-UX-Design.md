@@ -15,9 +15,7 @@
 - `calling`: outgoing call requested and connecting started.
 - `progress`: provisional progress indicator for 180/183.
 - `activeCallDtmfMode`: active call with keypad sending DTMF.
-- `failedBusy`: call failed with busy reason and busy tone indicator.
-- `failedUnavailable`: call failed with unavailable reason and failed tone indicator.
-- `failedRejected`: call failed with rejected reason and failed tone indicator.
+- `failedBusy` / `failedUnavailable` / `failedRejected`: legacy DialpadUiState labels retained for typing; terminal outbound failures now project to Idle + `lastOutgoingFailure` and a global notification (no sticky `OutgoingCallCard`).
 - `disabledByNotRegistered`: registration gate blocks call action.
 - `disabledByOcpReserved`: legacy operator platform reserved gate blocks call action.
 - `disabledBySecondSessionPolicy`: second-session policy blocks call action.

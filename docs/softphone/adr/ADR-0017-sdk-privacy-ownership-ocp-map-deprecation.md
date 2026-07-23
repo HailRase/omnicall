@@ -78,11 +78,17 @@ E-12 `OcpHostApiContract` stays an **internal** host-command baseline
 `callType: 'sdk'` at the Facade boundary. **No OCP wire frames, channels, or apiKeys cross
 the public WS.**
 
+**OCP wire `function_call_type`:** legacy `proxy_users` accepts only `internal` |
+`external`. Application audit keeps `sdk`; the OCP adapter maps `sdk` → `external` in
+`mapOcpCallTypeToWire` / `buildOcpCommandPayload` before `ws.send`. Do **not** pass
+`function_call_type: "sdk"` on the OCP socket, and do **not** silently change Facade
+`callType` from `"sdk"` to `"external"` (DI-07 binding test).
+
 | Public protocol (v1) | Maps to desktop | E-12 channel | Notes |
 | --- | --- | --- | --- |
 | Snapshot `operator.*` (redacted) | `getOcpConnectionState` / projections | `ocp:get-session-state` | Read via snapshot/events, not a public OCP channel name |
 | `operator:get-reasons` | existing reason query used by logout/status UI | — (not an E-12 channel) | Returns reason ids + safe labels |
-| `operator:change-status` `{ target: "ready" \| "break", reasonId?: number }` | `changeOcpStatusFromHost` | `ocp:change-status-ready` / `ocp:change-status-break` | Public single command; desktop splits ready/break |
+| `operator:change-status` `{ target: "ready" \| "break", reasonId?: number }` | `changeOcpStatusFromHost` (`callType: "sdk"`) → OCP wire `function_call_type: "external"` | `ocp:change-status-ready` / `ocp:change-status-break` | Public single command; desktop splits ready/break; wire map in adapter |
 | `account:prepare-logout` / `account:confirm-logout` | Account logout orchestration (AF-003/005) | related to `ocp:logout` internally when OCP active | Public flow is account-scoped; may return `interaction_required` |
 | — | — | `ocp:authenticate` | **Not public** (ADR-0013; secrets forbidden) |
 | — | — | `ocp:disconnect` | **Not public**; session end projected as account/operator events |

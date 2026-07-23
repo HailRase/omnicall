@@ -1,6 +1,8 @@
 /**
  * Bind F-028 Facade host methods to ExternalSdkOperatorPort (DI-07 / ADR-0017 O-OCP-1).
- * Always uses callType "sdk" — never silent "external".
+ * Always uses callType "sdk" at the Facade — never silent "external".
+ * OCP WebSocket wire still receives function_call_type "external" via
+ * `mapOcpCallTypeToWire` (legacy proxy_users accepts only internal|external).
  */
 
 import type { PlatformError } from "@shared/errors/index.js";

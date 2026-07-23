@@ -14,6 +14,8 @@ import { err, ok } from "@shared/result/index.js";
 import type { PlatformError } from "@shared/errors/index.js";
 import type { Result } from "@shared/result/index.js";
 
+import { mapOcpCallTypeToWire } from "./mapOcpCallTypeToWire.js";
+
 function buildWireType(command: string, entity: string): string {
   return entity.length > 0 ? `${command}_${entity}` : command;
 }
@@ -26,7 +28,8 @@ function buildProxyUsersStatusPayload(
   return {
     operator_id: operatorId,
     reason_id: reasonId,
-    function_call_type: callType,
+    // OCP rejects unknown values; never forward Application-only "sdk".
+    function_call_type: mapOcpCallTypeToWire(callType),
   };
 }
 

@@ -37,6 +37,7 @@ function createBaseInput(overrides: Partial<HookInput> = {}): HookInput {
       projection: createCallControlsProjection(),
       onRetry: vi.fn(),
     },
+    outgoingFailure: null,
     dtmfError: null,
     transferFailure: null,
     logoutErrorMessage: null,
@@ -242,6 +243,30 @@ describe("useActionNotifications", () => {
       expect.objectContaining({
         messageKey: "account.success.sipRegistrationSucceeded",
         functionId: "sip.recovery",
+      }),
+    );
+  });
+
+  it("emits localized outgoing failure notification once per episode", () => {
+    const input = createBaseInput({
+      outgoingFailure: {
+        reason: "busy",
+        callId: "call-1",
+        occurredAt: "2026-07-23T12:00:00.000Z",
+      },
+    });
+    const { rerender } = renderHook((props: HookInput) => useActionNotifications(props), {
+      initialProps: input,
+    });
+
+    rerender({ ...input });
+
+    expect(input.notifications.notify).toHaveBeenCalledTimes(1);
+    expect(input.notifications.notify).toHaveBeenCalledWith(
+      expect.objectContaining({
+        level: "error",
+        messageKey: "notification.outgoing.failed.busy",
+        functionId: "call.outgoing",
       }),
     );
   });

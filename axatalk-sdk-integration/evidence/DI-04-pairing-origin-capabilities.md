@@ -85,3 +85,18 @@ npm run registry:check # 68 found / 0 missing
 - Types extracted to `localWsServerAdapterTypes.ts` (file-size gate)
 
 Next unit: DI-05 via `/sdk-integration`.
+
+## Follow-up (2026-07-23) — per-connection inbound serialization
+
+**Issue:** SDK sends `sdk:auth-proof` then immediately `sdk:ping` (no delay). Desktop
+dispatched inbound with `void` async handlers, so ping could observe `authState !==
+authenticated` and reply `unauthenticated` while proof was still verifying.
+
+**Fix (desktop only; SDK unchanged):**
+- `SdkGatewayConnection.inboundTail` + `enqueueSdkGatewayInbound`
+- `parseAndDispatchLocalWsSession` awaits dispatch on that chain (receive order)
+- Regression: `LocalWsServerAdapter.auth.test.ts` (back-to-back proof+ping, no sleep);
+  unit: `sdkGatewayConnection.test.ts`
+- Docs aligned: `PROTOCOL.md`, `SECURITY.md`, ADR-0016, `TEST-MATRIX.md`, F-011 evidence
+
+**Non-goals:** no protocol v1 shape change; no SDK rewrite; version not bumped.

@@ -85,6 +85,8 @@ export {
   type DialpadDisabledContext,
   type DialpadMode,
   type DialpadUiState,
+  type OutgoingFailureNotification,
+  type OutgoingFailureNotificationReason,
 } from "./projections/telephony/callProjection.js";
 export {
   createActiveCallControlsProjection,

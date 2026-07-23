@@ -377,6 +377,10 @@ export const bgMessages: MessageShape = {
   "outgoing.tone.failed": "Неуспешно",
   "outgoing.tone.ringback": "Обратен сигнал",
   "outgoing.unknownNumber": "Неизвестен номер",
+  "notification.outgoing.failed.busy": "Номерът е зает",
+  "notification.outgoing.failed.rejected": "Обаждането е отхвърлено",
+  "notification.outgoing.failed.unavailable": "Абонатът е недостъпен",
+  "notification.outgoing.failed.generic": "Неуспешно осъществяване на обаждане",
   "recovery.channel.attempt": (params: Readonly<{ attempt: number; maxAttempts: number }>) =>
     `Опит ${params.attempt} от ${params.maxAttempts}`,
   "recovery.channel.status.disconnected": "Прекъсната",

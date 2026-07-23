@@ -19,6 +19,19 @@ export type DialpadUiState =
   | "disabledByHoldAllInProgress"
   | "disabledByConnectingInProgress";
 
+/** One-shot toast signal for terminal outbound failures (no sticky Failed card). */
+export type OutgoingFailureNotificationReason =
+  | "busy"
+  | "rejected"
+  | "unavailable"
+  | "failed";
+
+export type OutgoingFailureNotification = Readonly<{
+  reason: OutgoingFailureNotificationReason;
+  callId: string | null;
+  occurredAt: string;
+}>;
+
 export type CallProjection = Readonly<{
   activeCallId: string | null;
   state: CallState | "Idle";
@@ -26,6 +39,7 @@ export type CallProjection = Readonly<{
   dtmfPanelCallId: string | null;
   uiState: DialpadUiState;
   lastError: string | null;
+  lastOutgoingFailure: OutgoingFailureNotification | null;
   lastDtmfError: string | null;
   lastDtmfTone: string | null;
   muted: boolean;
@@ -46,6 +60,7 @@ export function initialCallProjection(): CallProjection {
     dtmfPanelCallId: null,
     uiState: "idle",
     lastError: null,
+    lastOutgoingFailure: null,
     lastDtmfError: null,
     lastDtmfTone: null,
     muted: false,
@@ -71,6 +86,7 @@ export function reduceCallProjection(
         uiState: "calling",
         mode: "number",
         lastError: null,
+        lastOutgoingFailure: null,
         muted: false,
         toneIndicator: "none",
       };
@@ -125,6 +141,7 @@ export function reduceCallProjection(
         asOptionalString(event["callId"]),
         asOptionalString(event["reason"]),
         asOptionalString(event["details"]),
+        typeof event.occurredAt === "string" ? event.occurredAt : new Date().toISOString(),
       );
     case "CallEnded": {
       const endedCallId = asOptionalString(event["callId"]);
@@ -274,44 +291,50 @@ function mapFailureState(
   callId: string | null,
   reason: string | null,
   details: string | null,
+  occurredAt: string,
 ): CallProjection {
-  if (reason === "busy") {
-    return {
-      ...projection,
-      activeCallId: callId,
-      state: "Failed",
-      uiState: "failedBusy",
-      lastError: details ?? "Busy",
-      muted: false,
-    };
-  }
-  if (reason === "rejected") {
-    return {
-      ...projection,
-      activeCallId: callId,
-      state: "Failed",
-      uiState: "failedRejected",
-      lastError: details ?? "Rejected",
-      muted: false,
-    };
-  }
-  if (reason === "unavailable") {
-    return {
-      ...projection,
-      activeCallId: callId,
-      state: "Failed",
-      uiState: "failedUnavailable",
-      lastError: details ?? "Unavailable",
-      muted: false,
-    };
-  }
+  const failureReason = mapOutgoingFailureReason(reason);
   return {
     ...projection,
-    activeCallId: callId,
-    state: "Failed",
-    uiState: "failedUnavailable",
-    lastError: details ?? "Call failed",
+    activeCallId: null,
+    state: "Idle",
+    uiState: "idle",
+    lastError: details ?? defaultFailureDetails(failureReason),
+    lastOutgoingFailure: {
+      reason: failureReason,
+      callId,
+      occurredAt,
+    },
     muted: false,
+    toneIndicator: "none",
   };
+}
+
+function defaultFailureDetails(reason: OutgoingFailureNotificationReason): string {
+  switch (reason) {
+    case "busy":
+      return "Busy";
+    case "rejected":
+      return "Rejected";
+    case "unavailable":
+      return "Unavailable";
+    case "failed":
+      return "Call failed";
+  }
+}
+
+function mapOutgoingFailureReason(
+  reason: string | null,
+): OutgoingFailureNotificationReason {
+  if (reason === "busy") {
+    return "busy";
+  }
+  if (reason === "rejected") {
+    return "rejected";
+  }
+  if (reason === "unavailable") {
+    return "unavailable";
+  }
+  return "failed";
 }
 

@@ -28,6 +28,11 @@ import { createCorrelationId } from "@shared/correlation-id/index.js";
 import type { CorrelationId } from "@shared/correlation-id/index.js";
 import { createPlatformError, normalizeUnknownError } from "@shared/errors/index.js";
 import { err, isErr, ok, type Result } from "@shared/result/index.js";
+import {
+  createSipNotRegisteredCause,
+  SIP_NOT_REGISTERED_OUTBOUND_MESSAGE,
+  SIP_NOT_REGISTERED_REASON,
+} from "@shared/telephony/sipOutboundErrors.js";
 import type { CallTracker } from "./CallTracker.js";
 import type { MultiCallPolicyService } from "./MultiCallPolicyService.js";
 import type { CallVideoMediaProjection } from "../../projections/media/CallVideoMediaProjection.js";
@@ -78,6 +83,25 @@ export class OutgoingCallOrchestrator {
     );
     if (isErr(blockResult)) {
       return err(blockResult.error);
+    }
+
+    if (!this.deps.telephonyGateway.isRegistered()) {
+      this.deps.logger.warn("outgoing_call_rejected_not_registered", {
+        correlationId,
+        featureId: "F-003",
+        boundedContext: "Telephony",
+        operation: "make_call",
+        previousState: "Idle",
+        nextState: "Idle",
+        result: SIP_NOT_REGISTERED_REASON,
+      });
+      return err(
+        createPlatformError(
+          "operation_failed",
+          SIP_NOT_REGISTERED_OUTBOUND_MESSAGE,
+          createSipNotRegisteredCause(),
+        ),
+      );
     }
 
     const holdAllResult = await this.deps.multiCallPolicyService.holdAllActiveLines(

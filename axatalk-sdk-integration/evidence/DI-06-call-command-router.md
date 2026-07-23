@@ -109,3 +109,20 @@ npx vitest run \
 - Desktop version stays `0.11.2`
 - No transfer backlog work
 - No second Application composition in main
+
+## Follow-up (2026-07-23) — SIP unregistered originate preflight
+
+When SIP is not REGISTER-ed, `OutgoingCallOrchestrator.makeCall` fails closed **before**
+`OutgoingCallRequested` / hold-all / gateway INVITE:
+
+| Signal | Value |
+| --- | --- |
+| PlatformError message | `SIP not registered for outbound call` |
+| cause.reason | `sip_not_registered` |
+| SDK reply | `operation_failed` + `details.failure_kind: "sip_not_registered"` |
+| Public events | none (`call:outgoing` / `call:failed` not emitted) |
+
+Mid-flight `CallFailed` (busy/rejected/unavailable/…) still emits `call:failed` for SDK hosts;
+desktop UI projects Idle + `lastOutgoingFailure` toast (no sticky `OutgoingCallCard`).
+
+Docs: `axatalk-sdk/docs/PROTOCOL.md`, `axatalk-sdk/docs/guide/errors.md`, Feature Registry F-003/F-011.

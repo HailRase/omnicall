@@ -44,6 +44,9 @@ were left to SDK-01 so DI-03 transport cannot invent them.
      `v1|{serverInstanceId}|{sessionEpoch}|{origin}|{clientId}|{challengeId}|{nonce}`.
    - Mismatch, expiry, unknown client, or bad signature → fail closed (`unauthenticated` /
      connection close per fixtures). No snapshot before success.
+   - Desktop gateway **must serialize inbound handlers per connection** so a following
+     `sdk:ping` (auth confirmation) cannot be evaluated before proof completion. Clients
+     are not required to insert delays between proof and ping.
 
 4. **Replay:** `challengeId` and `nonce` are single-use within a bounded server cache.
    Replayed proofs fail closed.

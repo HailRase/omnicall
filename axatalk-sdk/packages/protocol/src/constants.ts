@@ -137,7 +137,7 @@ export const FORBIDDEN_WIRE_KEYS = [
 
 /**
  * SDK `account:activate-profile` wall budgets (ADR-0018 activate timeout sync).
- * Must stay aligned with desktop `sdkActivateTimeouts.ts`
+ * Must stay aligned with desktop `src/shared/integration/sdkActivateTimeouts.ts`
  * (consent 120s + max(sip 60s, ocp stages 110s+5s slack) + hop 5s = 240s).
  * @public
  */

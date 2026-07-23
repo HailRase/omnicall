@@ -162,7 +162,7 @@ describe("MainToRendererBroker", () => {
     expect(broker.getPendingCount()).toBe(1);
 
     const { SDK_ACTIVATE_BROKER_TIMEOUT_MS } = await import(
-      "@application/integration/sdkActivateTimeouts.js"
+      "@shared/integration/sdkActivateTimeouts.js"
     );
     await vi.advanceTimersByTimeAsync(SDK_ACTIVATE_BROKER_TIMEOUT_MS - 5_000);
     await expect(pending).resolves.toEqual({ ok: false, code: "timeout" });

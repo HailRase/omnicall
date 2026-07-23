@@ -140,6 +140,8 @@ export type AttendedTransferCommand = Readonly<{
 export interface TelephonyGateway {
   register(command: RegisterAccountCommand): Promise<Result<void, PlatformError>>;
   unregister(correlationId: CorrelationId): Promise<Result<void, PlatformError>>;
+  /** True when the live UA is connected and REGISTER-ed for outbound dialing. */
+  isRegistered(): boolean;
   makeCall(command: MakeCallCommand): Promise<Result<MakeCallProgress, PlatformError>>;
   answerCall(command: AnswerCallCommand): Promise<Result<void, PlatformError>>;
   rejectCall(command: RejectCallCommand): Promise<Result<void, PlatformError>>;

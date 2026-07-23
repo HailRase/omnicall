@@ -438,7 +438,9 @@ export class ChangeOperatorStatusUseCase {
 6. `sendCommand()` → если `Result.err` → логировать + вернуть err  
 
 **`callType` в командах:**  
-Все команды изменения статуса принимают `callType: 'internal' | 'external' | 'sdk'`. Renderer UI → `'internal'`. Host-page API → `'external'`. Будущий браузерный SDK → `'sdk'`. Use Case **не зависит** от источника — он только передаёт callType в OcpCommand. Это обеспечивает аудит и позволит разграничить права в будущем (см. [EXT](#ext--задел-на-будущее--external-sdk-gateway)).
+Все команды изменения статуса принимают `callType: 'internal' | 'external' | 'sdk'`. Renderer UI → `'internal'`. Host-page API → `'external'`. Публичный Axatalk SDK (DI-07) → `'sdk'` на Facade/Use Case (аудит). Use Case **не зависит** от источника — он только передаёт callType в `OcpCommand`.
+
+**OCP wire (обязательно):** legacy `proxy_users` принимает только `function_call_type: 'internal' | 'external'`. Адаптер `mapOcpCallTypeToWire` / `buildOcpCommandPayload` мапит Application `'sdk'` → wire `'external'`. Не отправлять `"sdk"` на OCP socket и не подменять Facade `callType` на `"external"` молча (см. ADR-0017 O-OCP-1).
 
 **`LogoutOperatorUseCase` — каскад:**  
 Logout из OCP и logout из SIP — **разные операции**. По умолчанию `cascadeSipLogout: false`. Если оператор хочет выйти и из SIP — это отдельная опция. Не создавай double-logout как в legacy. `change_status_to_logout` отправляется только один раз.

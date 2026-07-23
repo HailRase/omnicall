@@ -164,7 +164,9 @@ Gate: all call flows pass existing regression tests plus SDK command matrix.
 ## Phase DI-07 — Operator and Logout
 
 - Reuse F-028 E-12 through an explicit public protocol mapper.
-- Use `callType: "sdk"` for SDK-originated audit trail.
+- Use `callType: "sdk"` for SDK-originated **Application** audit trail; OCP adapter maps
+  wire `function_call_type` `sdk` → `external` (`mapOcpCallTypeToWire`) — never leak `"sdk"`
+  onto the OCP socket (legacy accepts only `internal`|`external`).
 - Expose operator status/reasons without OCP wire types.
 - Implement prepare/confirm account logout using `AccountLogoutOrchestrationService`.
 - Return `interaction_required` when an OCP reason is needed.

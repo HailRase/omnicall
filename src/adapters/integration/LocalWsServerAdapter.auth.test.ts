@@ -308,6 +308,7 @@ describe("LocalWsServerAdapter DI-04 auth", () => {
       nonce: challenge.nonce,
     });
 
+    // Back-to-back proof+ping (no artificial delay): inbound must stay ordered.
     authWs.send(
       JSON.stringify({
         protocolVersion: PROTOCOL_MAJOR,
@@ -319,8 +320,6 @@ describe("LocalWsServerAdapter DI-04 auth", () => {
         occurredAt: "2026-07-20T09:00:00.000Z",
       }),
     );
-    await new Promise((r) => setTimeout(r, 50));
-
     authWs.send(
       JSON.stringify({
         protocolVersion: PROTOCOL_MAJOR,
@@ -383,6 +382,84 @@ describe("LocalWsServerAdapter DI-04 auth", () => {
     expect(joined).not.toContain(challenge.nonce);
     expect(joined).not.toContain(keys.publicKeyBase64Url);
     expect(joined).not.toContain("password");
+    authQueue.close();
+    authWs.close();
+  });
+
+  it("accepts sdk:ping immediately after auth-proof without client delay", async () => {
+    const keys = generateSdkPopTestKeyPair();
+    const adapter = await startAdapter();
+    const port = boundPort(adapter);
+
+    const pairWs = openClient(port);
+    await waitOpen(pairWs);
+    const pairQueue = attachMessageQueue(pairWs);
+    await handshake(pairQueue, pairWs);
+    pairWs.send(
+      JSON.stringify({
+        protocolVersion: PROTOCOL_MAJOR,
+        kind: "pairing",
+        type: "pairing:request",
+        clientId: "client_race_001",
+        clientPublicKey: keys.publicKeyBase64Url,
+        keyAlgorithm: "ECDSA-P256-SHA256",
+        application: { name: "fixture-crm", version: "1.0.0" },
+        requestedProfile: "presentation",
+        requestedCapabilities: ["session.read.redacted", "window.show"],
+        occurredAt: "2026-07-20T09:00:00.000Z",
+      }),
+    );
+    expectMessageType(await pairQueue.next(), "pairing:pending");
+    expectMessageType(await pairQueue.next(), "pairing:approved");
+    pairQueue.close();
+    pairWs.close();
+    await once(pairWs, "close");
+
+    const authWs = openClient(port);
+    await waitOpen(authWs);
+    const authQueue = attachMessageQueue(authWs);
+    const hello = await handshake(authQueue, authWs, "client_race_001");
+    const challenge = hello.authChallenge!;
+    const signature = signSdkPopPayload({
+      privateKey: keys.privateKey,
+      serverInstanceId: hello.serverInstanceId,
+      sessionEpoch: hello.sessionEpoch,
+      origin: TEST_ORIGIN,
+      clientId: "client_race_001",
+      challengeId: challenge.challengeId,
+      nonce: challenge.nonce,
+    });
+
+    authWs.send(
+      JSON.stringify({
+        protocolVersion: PROTOCOL_MAJOR,
+        kind: "auth",
+        type: "sdk:auth-proof",
+        challengeId: challenge.challengeId,
+        clientId: "client_race_001",
+        signature,
+        occurredAt: "2026-07-23T11:23:53.899Z",
+      }),
+    );
+    authWs.send(
+      JSON.stringify({
+        protocolVersion: PROTOCOL_MAJOR,
+        kind: "command",
+        type: "sdk:ping",
+        requestId: "auth_ping_race_001",
+        serverInstanceId: hello.serverInstanceId,
+        sessionEpoch: hello.sessionEpoch,
+        occurredAt: "2026-07-23T11:23:53.899Z",
+        payload: {},
+      }),
+    );
+
+    await expect(authQueue.next()).resolves.toMatchObject({
+      kind: "reply",
+      ok: true,
+      requestId: "auth_ping_race_001",
+      commandType: "sdk:ping",
+    });
     authQueue.close();
     authWs.close();
   });
@@ -613,8 +690,6 @@ describe("LocalWsServerAdapter DI-04 auth", () => {
         occurredAt: "2026-07-20T09:00:00.000Z",
       }),
     );
-    await new Promise((r) => setTimeout(r, 50));
-
     authWs.send(
       JSON.stringify({
         protocolVersion: PROTOCOL_MAJOR,

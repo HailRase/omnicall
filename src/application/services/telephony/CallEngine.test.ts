@@ -140,6 +140,39 @@ describe("CallEngine", () => {
     vi.useRealTimers();
   });
 
+  it("rejects outbound makeCall before events when SIP is not registered", async () => {
+    const events = new InMemoryDomainEventBus();
+    const publishedTypes: string[] = [];
+    events.subscribe((event) => {
+      publishedTypes.push(event.type);
+    });
+    const media = new MockMediaGateway();
+    const telephony = new MockTelephonyGateway({
+      makeCallScenario: "answered",
+    });
+    await telephony.unregister(createCorrelationId());
+
+    const engine = new CallEngine(
+      telephony,
+      media,
+      new InMemorySettingsRepository(),
+      events,
+      createTestLogger(),
+    );
+    const result = await engine.makeCall({
+      phoneNumber: createPhoneNumber("1"),
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) {
+      return;
+    }
+    expect(result.error.message).toBe("SIP not registered for outbound call");
+    expect(telephony.getMakeCallCommands()).toHaveLength(0);
+    expect(publishedTypes).not.toContain("OutgoingCallRequested");
+    expect(publishedTypes).not.toContain("CallFailed");
+  });
+
   it("maps rejected failures to failed tone", async () => {
     const events = new InMemoryDomainEventBus();
     const media = new MockMediaGateway();

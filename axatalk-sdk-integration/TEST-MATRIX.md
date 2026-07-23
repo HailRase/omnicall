@@ -31,6 +31,9 @@ the complete repository preflight and packaged integration matrix.
 - pairing approval, denial, expiry, and revoke;
 - replayed challenge, session, and request ID;
 - capability escalation and per-command enforcement;
+- **per-connection inbound serialization** — `sdk:auth-proof` then immediate `sdk:ping`
+  (no client delay) must succeed when PoP is valid (`LocalWsServerAdapter.auth.test.ts`,
+  `sdkGatewayConnection.test.ts`);
 - frame/depth/connection/rate/queue limits;
 - slow consumer and heartbeat timeout;
 - occupied port and second application instance;
@@ -84,7 +87,7 @@ For originate, answer, reject, hang up, hold, resume, mute, unmute, and DTMF:
 
 - SIP-only activation with OCP absent;
 - active-session login requires logout first;
-- OCP status change uses `callType: "sdk"`;
+- OCP status change uses Facade `callType: "sdk"` (audit); OCP wire `function_call_type` is `external` via `mapOcpCallTypeToWire` (never leak `"sdk"` on OCP WS);
 - prepare logout returns reasons or direct SIP-only path;
 - confirm, cancel, missing reason, invalid reason, and failure;
 - intentional logout disarms recovery and resets OCP projections;

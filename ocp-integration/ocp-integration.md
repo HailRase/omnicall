@@ -205,7 +205,9 @@ sequenceDiagram
 | Busy | → Ready/Break | `update` | `proxy_post_call_status` |
 | Any (logout) | → Logout | `change_status_to_logout` | `proxy_users` |
 
-Payload always includes `operator_id` and optionally `reason_id`. Internal UI changes set `function_call_type: 'internal'`; external API calls via `window.Softphone.ocpModule` set `'external'`.
+Payload always includes `operator_id` and optionally `reason_id`. Internal UI changes set `function_call_type: 'internal'`; external API calls via `window.Softphone.ocpModule` / E-12 host and the public Axatalk SDK set `'external'` on the **OCP wire**.
+
+**Axatalk note (F-011 / DI-07):** Application Facade audit uses `callType: 'sdk'` for SDK-originated mutations. The OCP adapter (`mapOcpCallTypeToWire`) maps `sdk` → wire `external` because legacy OCP accepts only `internal` | `external`. Never send `function_call_type: "sdk"` on the OCP WebSocket.
 
 ### Client-side transition rules
 

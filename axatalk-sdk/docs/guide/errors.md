@@ -21,7 +21,7 @@ Detect with `isAxatalkClientError(error)` then branch on `error.code`.
 | `not_owner` | Another tab/client owns mutation | Coordinate multi-tab; do not force |
 | `unauthenticated` | Auth required | Reconnect / pair |
 | `rate_limited` | Back off | Honor retryable; jitter |
-| `operation_failed` | Generic failure | Show failure; log code only |
+| `operation_failed` | Generic failure | Show failure; log code only. For `call:originate`, check `details.failure_kind === "sip_not_registered"` — SIP not registered; do not expect `call:failed` event (preflight deny). |
 | `local_network_permission_required` / `_denied` | Browser LNA / loopback | Guide user to allow local network |
 | `discovery_unreachable` | Desktop discovery failed | Is desktop running? Gateway always-on per ADR-0018 |
 | `origin_blocked` | Blacklisted Origin — upgrade rejected (no wire JSON) | Operator Unblock in Settings → Axatalk SDK; do not auto-retry |
