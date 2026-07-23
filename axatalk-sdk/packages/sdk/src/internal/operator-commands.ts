@@ -32,10 +32,13 @@ export type OperatorReasonsResult = {
   readonly revision: number;
 };
 
+/** Outcome of `operator:change-status` / finish-appeal success. @public */
+export type OperatorStatusChangeKind = 'applied' | 'reserved';
+
 /** @public */
 export type OperatorStatusChangeResult = {
   readonly accepted: boolean;
-  readonly kind: string;
+  readonly kind: OperatorStatusChangeKind;
   readonly targetStatus: string;
   readonly reasonId: number;
   readonly revision: number;
@@ -98,8 +101,7 @@ function readStatusChangeResult(reply: {
   const reasonId = reply.result['reasonId'];
   if (
     accepted !== true ||
-    typeof kind !== 'string' ||
-    kind.length === 0 ||
+    (kind !== 'applied' && kind !== 'reserved') ||
     typeof targetStatus !== 'string' ||
     targetStatus.length === 0 ||
     typeof reasonId !== 'number' ||

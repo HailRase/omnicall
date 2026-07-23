@@ -7,6 +7,7 @@ import { SdkSessionRevisionClock } from "./SdkSessionRevisionClock.js";
 function statusDraft(
   status: string,
   reasonId?: number,
+  reserved?: Readonly<{ target: "ready" | "break"; reasonId: number }>,
 ): SdkPublicEventDraft {
   return {
     type: "operator:status-changed",
@@ -14,6 +15,12 @@ function statusDraft(
       status,
       ...(reasonId !== undefined ? { reasonId } : {}),
       reasonLabelKey: `ocp.operatorStatus.${status}`,
+      ...(reserved !== undefined
+        ? {
+            reservedTarget: reserved.target,
+            reservedReasonId: reserved.reasonId,
+          }
+        : {}),
     },
   };
 }
@@ -94,5 +101,28 @@ describe("SdkOperatorEventRevisionGate", () => {
     expect(result.advanced).toBe(false);
     expect(result.revision).toBe(1);
     expect(clock.peek()).toBe(1);
+  });
+
+  it("advances when reservedTarget changes while coarse stays unknown", () => {
+    const clock = new SdkSessionRevisionClock();
+    const gate = new SdkOperatorEventRevisionGate();
+
+    const talking = gate.preparePublish(statusDraft("unknown", 4), clock);
+    expect(talking.advanced).toBe(true);
+    expect(talking.revision).toBe(2);
+
+    const reserved = gate.preparePublish(
+      statusDraft("unknown", 4, { target: "break", reasonId: 7 }),
+      clock,
+    );
+    expect(reserved.advanced).toBe(true);
+    expect(reserved.revision).toBe(3);
+
+    const same = gate.preparePublish(
+      statusDraft("unknown", 4, { target: "break", reasonId: 7 }),
+      clock,
+    );
+    expect(same.advanced).toBe(false);
+    expect(same.revision).toBe(3);
   });
 });

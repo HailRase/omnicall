@@ -18,6 +18,8 @@ Fail closed. If a pattern is not listed as allowed, treat it as forbidden.
 | Invent `account:list-profiles` | Not in protocol v1 | Supply the saved-account `login` from your product |
 | Auto-logout on disconnect | Destructive side effect | Host calls `logout` only after user confirms; cancel = do not call |
 | Treat Origin substring / wildcard as OK | Exact Origin only | Exact approved Origin string |
+| Separate CRM `reserveStatus` / busy preflight | Leaks OCP FSM; races | Always `operator.changeStatus`; read `kind` |
+| Treat public mid-call `unknown` as full OCP enum | Anti-corruption breach | Coarse statuses only; booking via `reservedTarget` |
 
 ## Privilege fortress (activate)
 

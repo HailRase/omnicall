@@ -284,7 +284,7 @@ describe('AxatalkClient operator success and fail-closed', () => {
         'operator:change-status',
         {
           accepted: true,
-          kind: 'break',
+          kind: 'applied',
           targetStatus: 'break',
           reasonId: 10
         },
@@ -293,9 +293,42 @@ describe('AxatalkClient operator success and fail-closed', () => {
     ).toBe(true);
     await expect(pending).resolves.toEqual({
       accepted: true,
-      kind: 'break',
+      kind: 'applied',
       targetStatus: 'break',
       reasonId: 10,
+      revision: 14
+    });
+  });
+
+  it('changeStatus accepts kind reserved for post-call booking', async () => {
+    const harness = createHarness();
+    await reachReady(harness);
+    const pending = harness.client.operator.changeStatus({
+      target: 'ready',
+      reasonId: 1,
+      expectedRevision: 13
+    });
+    await waitFor(() =>
+      Boolean(findSentType(harness.transports.last()!, 'operator:change-status'))
+    );
+    expect(
+      replyCommandSuccess(
+        harness.transports.last()!,
+        'operator:change-status',
+        {
+          accepted: true,
+          kind: 'reserved',
+          targetStatus: 'ready',
+          reasonId: 1
+        },
+        14
+      )
+    ).toBe(true);
+    await expect(pending).resolves.toEqual({
+      accepted: true,
+      kind: 'reserved',
+      targetStatus: 'ready',
+      reasonId: 1,
       revision: 14
     });
   });

@@ -341,10 +341,13 @@ export type OperatorReasonsResult = {
     readonly revision: number;
 };
 
+// @public
+export type OperatorStatusChangeKind = 'applied' | 'reserved';
+
 // @public (undocumented)
 export type OperatorStatusChangeResult = {
     readonly accepted: boolean;
-    readonly kind: string;
+    readonly kind: OperatorStatusChangeKind;
     readonly targetStatus: string;
     readonly reasonId: number;
     readonly revision: number;

@@ -3,10 +3,10 @@
 Aligns with [`etc/api/sdk.api.md`](../../etc/api/sdk.api.md).  
 If this page disagrees with the API report, the **report wins**.
 
-**Full public inventory:** **54** symbols (see table below). Method/namespace sections are
+**Full public inventory:** **55** symbols (see table below). Method/namespace sections are
 integrator-oriented summaries; the inventory is the complete export list.
 
-## Public symbol inventory (54)
+## Public symbol inventory (55)
 
 | Kind | Symbol |
 | --- | --- |
@@ -51,6 +51,7 @@ integrator-oriented summaries; the inventory is the complete export list.
 | type | `OperatorFinishAppealResult` |
 | type | `OperatorReason` |
 | type | `OperatorReasonsResult` |
+| type | `OperatorStatusChangeKind` |
 | type | `OperatorStatusChangeResult` |
 | type | `PairingRequiredInfo` |
 | type | `PopKeyStore` |
@@ -125,8 +126,11 @@ Result: `{ callId, revision }`. Failures: see [Errors](./errors.md).
 | Method | Capability |
 | --- | --- |
 | `getReasons()` | read path (session) |
-| `changeStatus({ target, reasonId?, expectedRevision })` | `operator.status.write` |
+| `changeStatus({ target, reasonId?, expectedRevision })` | `operator.status.write` — desktop returns `kind: "applied" \| "reserved"` |
 | `finishAppeal({ expectedRevision })` | `operator.status.write` — only while public status is `post_call_processing`; OCP login required |
+
+Result type: `OperatorStatusChangeResult` (`kind` is only `"applied" | "reserved"`).  
+Full host recipe: [Operator status & reservation](./operator-status-reservation.md).
 
 ## `client.window`
 

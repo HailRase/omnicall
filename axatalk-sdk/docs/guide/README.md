@@ -18,13 +18,14 @@ Example (fake peer only): [`examples/crm-pairing-lite/`](../../examples/crm-pair
 | 5 | [Pairing quick start](./pairing-quick-start.md) | Connect → pair → ready → snapshot |
 | 6 | [API reference](./api-reference.md) | Namespaced methods only |
 | 7 | [Events catalog](./events.md) | Public protocol event names |
-| 8 | [Errors catalog](./errors.md) | Stable codes + host next steps |
-| 9 | [Reconnect & multi-tab](./reconnect-multi-tab.md) | Fresh snapshot; no mutation replay |
-| 10 | [Logout workflow](./logout-workflow.md) | single-shot logout / abandon |
-| 11 | [Saved-account activation](./saved-profile-activation.md) | Login + optional mode; server-grant only |
-| 12 | [Upgrade & deprecation](./upgrade-deprecation.md) | Additive fields; protocol vs package |
-| 13 | [Compatibility matrix](./compatibility-matrix.md) | Browser + SDK↔desktop gates (DI-10 cells) |
-| 14 | [Release, rollback, revoke & support](./release-and-support.md) | RC tag, SBOM, provenance, stable gate |
+| 8 | [Operator status & reservation](./operator-status-reservation.md) | `changeStatus` applied\|reserved; finish-appeal |
+| 9 | [Errors catalog](./errors.md) | Stable codes + host next steps |
+| 10 | [Reconnect & multi-tab](./reconnect-multi-tab.md) | Fresh snapshot; no mutation replay |
+| 11 | [Logout workflow](./logout-workflow.md) | single-shot logout / abandon |
+| 12 | [Saved-account activation](./saved-profile-activation.md) | Login + optional mode; server-grant only |
+| 13 | [Upgrade & deprecation](./upgrade-deprecation.md) | Additive fields; protocol vs package |
+| 14 | [Compatibility matrix](./compatibility-matrix.md) | Browser + SDK↔desktop gates (DI-10 cells) |
+| 15 | [Release, rollback, revoke & support](./release-and-support.md) | RC tag, SBOM, provenance, stable gate |
 
 ## Hard rules (every page assumes these)
 

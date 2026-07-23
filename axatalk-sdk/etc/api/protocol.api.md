@@ -1372,9 +1372,9 @@ export const EventMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
         status: z.ZodOptional<z.ZodEnum<{
             ready: "ready";
             break: "break";
-            unknown: "unknown";
             offline: "offline";
             post_call_processing: "post_call_processing";
+            unknown: "unknown";
         }>>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
@@ -1391,12 +1391,17 @@ export const EventMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
         status: z.ZodEnum<{
             ready: "ready";
             break: "break";
-            unknown: "unknown";
             offline: "offline";
             post_call_processing: "post_call_processing";
+            unknown: "unknown";
         }>;
         reasonId: z.ZodOptional<z.ZodNumber>;
         reasonLabelKey: z.ZodOptional<z.ZodString>;
+        reservedTarget: z.ZodOptional<z.ZodEnum<{
+            ready: "ready";
+            break: "break";
+        }>>;
+        reservedReasonId: z.ZodOptional<z.ZodNumber>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -1650,9 +1655,9 @@ export const OperatorSessionChangedEventSchema: z.ZodReadonly<z.ZodObject<{
         status: z.ZodOptional<z.ZodEnum<{
             ready: "ready";
             break: "break";
-            unknown: "unknown";
             offline: "offline";
             post_call_processing: "post_call_processing";
+            unknown: "unknown";
         }>>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
@@ -1672,12 +1677,17 @@ export const OperatorStatusChangedEventSchema: z.ZodReadonly<z.ZodObject<{
         status: z.ZodEnum<{
             ready: "ready";
             break: "break";
-            unknown: "unknown";
             offline: "offline";
             post_call_processing: "post_call_processing";
+            unknown: "unknown";
         }>;
         reasonId: z.ZodOptional<z.ZodNumber>;
         reasonLabelKey: z.ZodOptional<z.ZodString>;
+        reservedTarget: z.ZodOptional<z.ZodEnum<{
+            ready: "ready";
+            break: "break";
+        }>>;
+        reservedReasonId: z.ZodOptional<z.ZodNumber>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -2647,9 +2657,9 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
         status: z.ZodOptional<z.ZodEnum<{
             ready: "ready";
             break: "break";
-            unknown: "unknown";
             offline: "offline";
             post_call_processing: "post_call_processing";
+            unknown: "unknown";
         }>>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
@@ -2666,12 +2676,17 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
         status: z.ZodEnum<{
             ready: "ready";
             break: "break";
-            unknown: "unknown";
             offline: "offline";
             post_call_processing: "post_call_processing";
+            unknown: "unknown";
         }>;
         reasonId: z.ZodOptional<z.ZodNumber>;
         reasonLabelKey: z.ZodOptional<z.ZodString>;
+        reservedTarget: z.ZodOptional<z.ZodEnum<{
+            ready: "ready";
+            break: "break";
+        }>>;
+        reservedReasonId: z.ZodOptional<z.ZodNumber>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -2803,12 +2818,17 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
             status: z.ZodOptional<z.ZodEnum<{
                 ready: "ready";
                 break: "break";
-                unknown: "unknown";
                 offline: "offline";
                 post_call_processing: "post_call_processing";
+                unknown: "unknown";
             }>>;
             reasonId: z.ZodOptional<z.ZodNumber>;
             reasonLabelKey: z.ZodOptional<z.ZodString>;
+            reservedTarget: z.ZodOptional<z.ZodEnum<{
+                ready: "ready";
+                break: "break";
+            }>>;
+            reservedReasonId: z.ZodOptional<z.ZodNumber>;
         }, z.core.$strip>>>;
         window: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
             visible: z.ZodBoolean;
@@ -3263,12 +3283,17 @@ export const SnapshotMessageSchema: z.ZodReadonly<z.ZodObject<{
             status: z.ZodOptional<z.ZodEnum<{
                 ready: "ready";
                 break: "break";
-                unknown: "unknown";
                 offline: "offline";
                 post_call_processing: "post_call_processing";
+                unknown: "unknown";
             }>>;
             reasonId: z.ZodOptional<z.ZodNumber>;
             reasonLabelKey: z.ZodOptional<z.ZodString>;
+            reservedTarget: z.ZodOptional<z.ZodEnum<{
+                ready: "ready";
+                break: "break";
+            }>>;
+            reservedReasonId: z.ZodOptional<z.ZodNumber>;
         }, z.core.$strip>>>;
         window: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
             visible: z.ZodBoolean;
@@ -3276,18 +3301,29 @@ export const SnapshotMessageSchema: z.ZodReadonly<z.ZodObject<{
     }, z.core.$strip>>;
 }, z.core.$strip>>;
 
+// @public
+export const SnapshotOperatorReservedTargetSchema: z.ZodEnum<{
+    ready: "ready";
+    break: "break";
+}>;
+
 // @public (undocumented)
 export const SnapshotOperatorSectionSchema: z.ZodReadonly<z.ZodObject<{
     connected: z.ZodBoolean;
     status: z.ZodOptional<z.ZodEnum<{
         ready: "ready";
         break: "break";
-        unknown: "unknown";
         offline: "offline";
         post_call_processing: "post_call_processing";
+        unknown: "unknown";
     }>>;
     reasonId: z.ZodOptional<z.ZodNumber>;
     reasonLabelKey: z.ZodOptional<z.ZodString>;
+    reservedTarget: z.ZodOptional<z.ZodEnum<{
+        ready: "ready";
+        break: "break";
+    }>>;
+    reservedReasonId: z.ZodOptional<z.ZodNumber>;
 }, z.core.$strip>>;
 
 // @public (undocumented)
@@ -3358,12 +3394,17 @@ export const SnapshotSectionsSchema: z.ZodReadonly<z.ZodObject<{
         status: z.ZodOptional<z.ZodEnum<{
             ready: "ready";
             break: "break";
-            unknown: "unknown";
             offline: "offline";
             post_call_processing: "post_call_processing";
+            unknown: "unknown";
         }>>;
         reasonId: z.ZodOptional<z.ZodNumber>;
         reasonLabelKey: z.ZodOptional<z.ZodString>;
+        reservedTarget: z.ZodOptional<z.ZodEnum<{
+            ready: "ready";
+            break: "break";
+        }>>;
+        reservedReasonId: z.ZodOptional<z.ZodNumber>;
     }, z.core.$strip>>>;
     window: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
         visible: z.ZodBoolean;
@@ -4253,9 +4294,9 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
         status: z.ZodOptional<z.ZodEnum<{
             ready: "ready";
             break: "break";
-            unknown: "unknown";
             offline: "offline";
             post_call_processing: "post_call_processing";
+            unknown: "unknown";
         }>>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
@@ -4272,12 +4313,17 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
         status: z.ZodEnum<{
             ready: "ready";
             break: "break";
-            unknown: "unknown";
             offline: "offline";
             post_call_processing: "post_call_processing";
+            unknown: "unknown";
         }>;
         reasonId: z.ZodOptional<z.ZodNumber>;
         reasonLabelKey: z.ZodOptional<z.ZodString>;
+        reservedTarget: z.ZodOptional<z.ZodEnum<{
+            ready: "ready";
+            break: "break";
+        }>>;
+        reservedReasonId: z.ZodOptional<z.ZodNumber>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -4409,12 +4455,17 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
             status: z.ZodOptional<z.ZodEnum<{
                 ready: "ready";
                 break: "break";
-                unknown: "unknown";
                 offline: "offline";
                 post_call_processing: "post_call_processing";
+                unknown: "unknown";
             }>>;
             reasonId: z.ZodOptional<z.ZodNumber>;
             reasonLabelKey: z.ZodOptional<z.ZodString>;
+            reservedTarget: z.ZodOptional<z.ZodEnum<{
+                ready: "ready";
+                break: "break";
+            }>>;
+            reservedReasonId: z.ZodOptional<z.ZodNumber>;
         }, z.core.$strip>>>;
         window: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
             visible: z.ZodBoolean;

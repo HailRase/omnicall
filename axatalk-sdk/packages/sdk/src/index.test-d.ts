@@ -5,6 +5,8 @@ import type {
   AxatalkClient,
   AxatalkClientOptions,
   ConnectionState,
+  OperatorStatusChangeKind,
+  OperatorStatusChangeResult,
   PopKeyStore,
   PublicEventType,
   TransportPort
@@ -89,5 +91,8 @@ describe('@axata/axatalk-sdk type smoke', () => {
     expectTypeOf<'operator:status-changed'>().toExtend<PublicEventType>();
     expectTypeOf<'account:session-activated'>().toExtend<PublicEventType>();
     expectTypeOf<'account:session-ended'>().toExtend<PublicEventType>();
+    expectTypeOf<OperatorStatusChangeResult['kind']>().toEqualTypeOf<OperatorStatusChangeKind>();
+    expectTypeOf<'applied'>().toExtend<OperatorStatusChangeKind>();
+    expectTypeOf<'reserved'>().toExtend<OperatorStatusChangeKind>();
   });
 });

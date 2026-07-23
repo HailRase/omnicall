@@ -103,7 +103,7 @@ Clients must never persist pairing secrets, tokens, or PoP private material in
 
 | Channel | Guidance |
 | --- | --- |
-| Integrators | Follow `docs/guide/`; public surface = `etc/api/sdk.api.md` (**54** symbols) |
+| Integrators | Follow `docs/guide/`; public surface = `etc/api/sdk.api.md` (**55** symbols) |
 | Protocol | `etc/api/protocol.api.md` (allowlisted; report wins) |
 | Desktop gate | F-011 remains **in progress** until DI-10 / P12 close |
 | Browser baseline | Chromium / Edge (Chromium) only until DI-10 matrix expands |

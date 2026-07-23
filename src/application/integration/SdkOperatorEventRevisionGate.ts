@@ -18,6 +18,8 @@ type LastOperatorPublish = Readonly<{
   status: string | undefined;
   reasonId: number | undefined;
   connected: boolean | undefined;
+  reservedTarget: string | undefined;
+  reservedReasonId: number | undefined;
 }>;
 
 function readPublicStatus(payload: WireJsonObject): string | undefined {
@@ -39,10 +41,28 @@ function readConnected(payload: WireJsonObject): boolean | undefined {
   return typeof connected === "boolean" ? connected : undefined;
 }
 
+function readReservedTarget(payload: WireJsonObject): string | undefined {
+  const reservedTarget = payload["reservedTarget"];
+  return reservedTarget === "ready" || reservedTarget === "break"
+    ? reservedTarget
+    : undefined;
+}
+
+function readReservedReasonId(payload: WireJsonObject): number | undefined {
+  const reservedReasonId = payload["reservedReasonId"];
+  return typeof reservedReasonId === "number" &&
+    Number.isInteger(reservedReasonId) &&
+    reservedReasonId >= 0
+    ? reservedReasonId
+    : undefined;
+}
+
 function shouldAdvanceStatus(
   previous: LastOperatorPublish,
   nextStatus: string | undefined,
   nextReasonId: number | undefined,
+  nextReservedTarget: string | undefined,
+  nextReservedReasonId: number | undefined,
 ): boolean {
   if (nextStatus === undefined) {
     return false;
@@ -53,6 +73,15 @@ function shouldAdvanceStatus(
   if (
     (nextStatus === "ready" || nextStatus === "break") &&
     previous.reasonId !== nextReasonId
+  ) {
+    return true;
+  }
+  if (previous.reservedTarget !== nextReservedTarget) {
+    return true;
+  }
+  if (
+    nextReservedTarget !== undefined &&
+    previous.reservedReasonId !== nextReservedReasonId
   ) {
     return true;
   }
@@ -67,6 +96,8 @@ export class SdkOperatorEventRevisionGate {
     status: undefined,
     reasonId: undefined,
     connected: undefined,
+    reservedTarget: undefined,
+    reservedReasonId: undefined,
   };
 
   /**
@@ -92,7 +123,17 @@ export class SdkOperatorEventRevisionGate {
     if (draft.type === "operator:status-changed") {
       const nextStatus = readPublicStatus(draft.payload);
       const nextReasonId = readReasonId(draft.payload);
-      if (shouldAdvanceStatus(this.last, nextStatus, nextReasonId)) {
+      const nextReservedTarget = readReservedTarget(draft.payload);
+      const nextReservedReasonId = readReservedReasonId(draft.payload);
+      if (
+        shouldAdvanceStatus(
+          this.last,
+          nextStatus,
+          nextReasonId,
+          nextReservedTarget,
+          nextReservedReasonId,
+        )
+      ) {
         clock.advance();
         advanced = true;
       }
@@ -100,6 +141,8 @@ export class SdkOperatorEventRevisionGate {
         ...this.last,
         status: nextStatus,
         reasonId: nextReasonId,
+        reservedTarget: nextReservedTarget,
+        reservedReasonId: nextReservedReasonId,
       };
     } else {
       const nextConnected = readConnected(draft.payload);

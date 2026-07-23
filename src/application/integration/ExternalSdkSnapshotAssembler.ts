@@ -5,7 +5,10 @@
 
 import type { WireJsonObject } from "@axata/axatalk-protocol";
 
-import { mapSdkOperatorStatus } from "./mapSdkOperatorStatus.js";
+import {
+  mapSdkOperatorStatus,
+  mapSdkReservedOperatorTarget,
+} from "./mapSdkOperatorStatus.js";
 import { mapSdkPublicCallState } from "./mapSdkPublicCallState.js";
 import { mapSdkRegistrationState } from "./mapSdkRegistrationState.js";
 import {
@@ -60,17 +63,32 @@ export function assembleSdkSnapshotProductSections(
     operator: {
       connected: state.ocpConnected,
       ...(state.ocpConnected
-        ? {
-            status: mapSdkOperatorStatus(state.operatorStatus),
-            ...(state.operatorReasonId !== null
-              ? { reasonId: state.operatorReasonId }
-              : {}),
-            ...(state.operatorReasonLabelKey !== null
-              ? { reasonLabelKey: state.operatorReasonLabelKey.slice(0, 128) }
-              : {}),
-          }
+        ? buildConnectedOperatorSection(state)
         : {}),
     },
+  };
+}
+
+function buildConnectedOperatorSection(
+  state: SdkProductStateSnapshot,
+): WireJsonObject {
+  const reservedTarget = mapSdkReservedOperatorTarget(state.reservedStatus);
+  return {
+    status: mapSdkOperatorStatus(state.operatorStatus),
+    ...(state.operatorReasonId !== null
+      ? { reasonId: state.operatorReasonId }
+      : {}),
+    ...(state.operatorReasonLabelKey !== null
+      ? { reasonLabelKey: state.operatorReasonLabelKey.slice(0, 128) }
+      : {}),
+    ...(reservedTarget !== null
+      ? {
+          reservedTarget,
+          ...(state.reservedReasonId !== null
+            ? { reservedReasonId: state.reservedReasonId }
+            : {}),
+        }
+      : {}),
   };
 }
 

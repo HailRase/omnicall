@@ -28,6 +28,8 @@ function baseState(
     operatorStatus: null,
     operatorReasonId: null,
     operatorReasonLabelKey: null,
+    reservedStatus: null,
+    reservedReasonId: null,
     ...overrides,
   };
 }
@@ -75,6 +77,38 @@ describe("ExternalSdkSnapshotAssembler", () => {
       status: "post_call_processing",
       reasonId: 5,
       reasonLabelKey: "ocp.operatorStatus.postCallProcessing",
+    });
+    const merged = SnapshotSectionsSchema.safeParse({
+      session: {
+        clientId: "client_test_001",
+        grantedCapabilities: ["session.read.redacted", "operator.status.write"],
+        authenticated: true,
+      },
+      ...sections,
+      window: { visible: true },
+    });
+    expect(merged.success).toBe(true);
+  });
+
+  it("projects reservedTarget while busy without changing coarse status", () => {
+    const sections = assembleSdkSnapshotProductSections(
+      baseState({
+        ocpEnabled: true,
+        ocpConnected: true,
+        operatorStatus: OperatorStatus.TALKING,
+        operatorReasonId: 4,
+        operatorReasonLabelKey: "ocp.operatorStatus.talking",
+        reservedStatus: OperatorStatus.BREAK,
+        reservedReasonId: 7,
+      }),
+    );
+    expect(sections.operator).toEqual({
+      connected: true,
+      status: "unknown",
+      reasonId: 4,
+      reasonLabelKey: "ocp.operatorStatus.talking",
+      reservedTarget: "break",
+      reservedReasonId: 7,
     });
     const merged = SnapshotSectionsSchema.safeParse({
       session: {

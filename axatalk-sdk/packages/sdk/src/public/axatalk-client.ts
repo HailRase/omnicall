@@ -35,6 +35,7 @@ export type {
   OperatorFinishAppealResult,
   OperatorReason,
   OperatorReasonsResult,
+  OperatorStatusChangeKind,
   OperatorStatusChangeResult
 } from '../internal/operator-commands.js';
 export type {

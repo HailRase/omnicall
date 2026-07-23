@@ -38,6 +38,8 @@ export type SdkStoreProjectionSlice = Readonly<{
   ocpOperatorStatusProjection: Readonly<{
     status: SdkProductStateSnapshot["operatorStatus"];
     reasonId: number;
+    reservedStatus: SdkProductStateSnapshot["reservedStatus"];
+    reservedReasonId: number | null;
   }>;
 }>;
 
@@ -76,6 +78,12 @@ export function readSdkProductStateFromStore(
       operatorStatus !== null
         ? OPERATOR_STATUS_LABEL_KEY[operatorStatus]
         : null,
+    reservedStatus: ocpConnected
+      ? store.ocpOperatorStatusProjection.reservedStatus
+      : null,
+    reservedReasonId: ocpConnected
+      ? store.ocpOperatorStatusProjection.reservedReasonId
+      : null,
   };
 }
 

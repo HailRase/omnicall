@@ -18,6 +18,9 @@ Electron E2E).
 - Browser defaults for `transportFactory` / `scheduler` / `jitter` (still injectable for tests)
 - Guide: `docs/guide/transport.md`
 - Public surface: see `etc/api/sdk.api.md` (allowlisted symbols)
+- Operator post-call booking observability: optional snapshot/event `reservedTarget` /
+  `reservedReasonId`; `OperatorStatusChangeResult.kind` narrowed to `"applied" | "reserved"`;
+  guide `docs/guide/operator-status-reservation.md` (no separate reserve command)
 
 ### Not included
 

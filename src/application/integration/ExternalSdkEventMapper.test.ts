@@ -8,6 +8,7 @@ import { createOperatorStatusChangedEvent } from "@domain/integration/ocp/events
 import { createOperatorSessionStartedEvent } from "@domain/integration/ocp/events/OperatorSessionStarted.js";
 import { createOperatorSessionEndedEvent } from "@domain/integration/ocp/events/OperatorSessionEnded.js";
 import { createOperatorLoggedOutEvent } from "@domain/integration/ocp/events/OperatorLoggedOut.js";
+import { createOperatorStatusReservationSetEvent } from "@domain/integration/ocp/events/OperatorStatusReservationSet.js";
 
 import { mapDomainEventToSdkPublicDraft } from "./ExternalSdkEventMapper.js";
 
@@ -131,5 +132,51 @@ describe("ExternalSdkEventMapper", () => {
         }),
       ),
     ).toBeNull();
+  });
+
+  it("maps OperatorStatusReservationSet to status-changed with reservedTarget", () => {
+    const draft = mapDomainEventToSdkPublicDraft(
+      createOperatorStatusReservationSetEvent(createCorrelationId(), {
+        operatorId: 42,
+        reservedStatus: OperatorStatus.BREAK,
+        reservedReasonId: 7,
+      }),
+      { currentStatus: "unknown" },
+    );
+    expect(draft).toEqual({
+      type: "operator:status-changed",
+      payload: {
+        status: "unknown",
+        reservedTarget: "break",
+        reservedReasonId: 7,
+      },
+    });
+    expect(JSON.stringify(draft)).not.toContain("operatorId");
+  });
+
+  it("enriches OperatorStatusChanged with reserved booking from context", () => {
+    const draft = mapDomainEventToSdkPublicDraft(
+      createOperatorStatusChangedEvent(createCorrelationId(), {
+        operatorId: 42,
+        prevStatus: OperatorStatus.TALKING,
+        newStatus: OperatorStatus.POST_CALL_PROCESSING,
+        reasonId: 5,
+        timestamp: Date.now(),
+      }),
+      {
+        reservedTarget: "ready",
+        reservedReasonId: 1,
+      },
+    );
+    expect(draft).toEqual({
+      type: "operator:status-changed",
+      payload: {
+        status: "post_call_processing",
+        reasonId: 5,
+        reasonLabelKey: "ocp.operatorStatus.postCallProcessing",
+        reservedTarget: "ready",
+        reservedReasonId: 1,
+      },
+    });
   });
 });

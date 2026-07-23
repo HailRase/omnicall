@@ -26,6 +26,9 @@ export type SdkProductStateSnapshot = Readonly<{
   operatorStatus: OperatorStatus | null;
   operatorReasonId: number | null;
   operatorReasonLabelKey: string | null;
+  /** Local post-call booking (Ready/Break); null when idle / cleared. */
+  reservedStatus: OperatorStatus | null;
+  reservedReasonId: number | null;
 }>;
 
 export type SdkProductStateReader = () => SdkProductStateSnapshot;

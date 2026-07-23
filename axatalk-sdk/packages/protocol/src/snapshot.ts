@@ -55,6 +55,13 @@ export const SnapshotCallSummarySchema = z
 /** @public */
 export type SnapshotCallSummary = z.infer<typeof SnapshotCallSummarySchema>;
 
+/**
+ * Post-call booking (Ready/Break after the current busy/PCP cycle).
+ * Omitted when no reservation is active. Additive / compatible (ADR-0012).
+ * @public
+ */
+export const SnapshotOperatorReservedTargetSchema = z.enum(['ready', 'break']);
+
 /** @public */
 export const SnapshotOperatorSectionSchema = z
   .object({
@@ -63,7 +70,9 @@ export const SnapshotOperatorSectionSchema = z
       .enum(['ready', 'break', 'offline', 'post_call_processing', 'unknown'])
       .optional(),
     reasonId: z.number().int().nonnegative().optional(),
-    reasonLabelKey: z.string().min(1).max(128).optional()
+    reasonLabelKey: z.string().min(1).max(128).optional(),
+    reservedTarget: SnapshotOperatorReservedTargetSchema.optional(),
+    reservedReasonId: z.number().int().nonnegative().optional()
   })
   .readonly();
 

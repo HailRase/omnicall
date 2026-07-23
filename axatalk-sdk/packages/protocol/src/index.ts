@@ -205,6 +205,7 @@ export {
   SnapshotAccountSectionSchema,
   SnapshotCallSummarySchema,
   SnapshotMessageSchema,
+  SnapshotOperatorReservedTargetSchema,
   SnapshotOperatorSectionSchema,
   SnapshotRegistrationSectionSchema,
   SnapshotSectionsSchema,

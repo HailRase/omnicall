@@ -21,7 +21,7 @@ Constant: `PUBLIC_EVENT_TYPES` from `@axata/axatalk-sdk`.
 | `account:session-activated` | Account signed-in projection |
 | `account:session-ended` | Account signed-out projection |
 | `operator:session-changed` | Operator connectivity (`connected`) |
-| `operator:status-changed` | Coarse Ready / Break / offline / post_call_processing / unknown UI |
+| `operator:status-changed` | Coarse Ready / Break / offline / post_call_processing / unknown UI; optional `reservedTarget` / `reservedReasonId` |
 | `window:visibility-changed` | Softphone window state |
 | `sdk:server-shutdown` | Prompt reconnect / wait for desktop |
 
@@ -46,7 +46,7 @@ stop();
 
 ```ts
 client.subscribe('operator:status-changed', (event) => {
-  // Update UI from event.payload.status / reasonId — hint only.
+  // Update UI from event.payload.status / reasonId / reservedTarget — hint only.
   void event.payload;
 });
 
@@ -68,10 +68,14 @@ Rules:
 - On `event.sequence_gap` diagnostics the client already triggers `getSnapshot()`.
 - Desktop **coarse-advances** the shared session revision when public coarse status
   changes (`ready|break|offline|post_call_processing|unknown`), when `reasonId` changes on
-  `ready|break`, or when `connected` flips — not on every talking↔hold transition inside
-  `unknown`.
+  `ready|break`, when `connected` flips, or when post-call **reservation**
+  (`reservedTarget` / `reservedReasonId`) changes — not on every talking↔hold transition
+  inside `unknown`.
 - `operator:change-status` reply includes `kind: "applied" | "reserved"` — reserved
   means post-call booking, not an immediate Break/Ready chip.
+- Snapshot / `operator:status-changed` may include additive `reservedTarget` /
+  `reservedReasonId` so hosts recover booking after reconnect (see
+  [Operator status & reservation](./operator-status-reservation.md)).
 - `operator:finish-appeal` applies the reserved (or default Ready) status and is valid
   only while public status is `post_call_processing`.
 

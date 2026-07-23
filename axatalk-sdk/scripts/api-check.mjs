@@ -35,6 +35,7 @@ const SDK_ALLOWED_SYMBOLS = new Set([
   'OperatorFinishAppealResult',
   'OperatorReason',
   'OperatorReasonsResult',
+  'OperatorStatusChangeKind',
   'OperatorStatusChangeResult',
   'PUBLIC_EVENT_TYPES',
   'PairingRequiredInfo',

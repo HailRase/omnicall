@@ -165,7 +165,10 @@ export const OperatorStatusChangedEventSchema = z
           'unknown'
         ]),
         reasonId: z.number().int().nonnegative().optional(),
-        reasonLabelKey: z.string().min(1).max(128).optional()
+        reasonLabelKey: z.string().min(1).max(128).optional(),
+        /** Post-call booking target; omitted when cleared / idle. */
+        reservedTarget: z.enum(['ready', 'break']).optional(),
+        reservedReasonId: z.number().int().nonnegative().optional()
       })
       .readonly()
   })

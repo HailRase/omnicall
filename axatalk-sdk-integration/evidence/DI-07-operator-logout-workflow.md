@@ -78,6 +78,7 @@ WS disconnect/revoke
 - No dedicated public protocol cancel-logout command (abandon / disconnect).
 - Operator push events + coarse-advance: see DI-05 follow-up `evidence/DI-05-operator-events-coarse-revision.md` (2026-07-23).
 - `kind: "applied"` on `operator:change-status` means OCP command was **sent** (WS write ok); softphone projection updates when OCP pushes `users` / `OperatorStatusChanged` (not optimistic).
+- `kind: "reserved"` means post-call booking via `update_post_call_status` (busy/PCP); chip does not flip. Additive snapshot/event fields `reservedTarget` / `reservedReasonId` — see `DI-05-operator-reserved-observability.md`.
 
 ## Follow-up fix (2026-07-23)
 

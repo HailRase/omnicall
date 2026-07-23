@@ -33,6 +33,7 @@ export {
   type OperatorReason,
   type OperatorReasonsResult,
   type OperatorFinishAppealResult,
+  type OperatorStatusChangeKind,
   type OperatorStatusChangeResult,
   type PublicEventType
 } from './public/axatalk-client.js';

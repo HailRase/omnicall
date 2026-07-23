@@ -56,5 +56,10 @@ Shared-clock DI-06/DI-07 operator/call suites remain green (no contract downgrad
 
 ## Non-goals (preserved)
 
-- Protocol schema change, campaign events, operator ownership, snapshot auto-patch,
-  Use Case FSM changes, package version bump
+- Campaign events, operator ownership, snapshot auto-patch, Use Case FSM changes,
+  package version bump
+
+## Follow-up (2026-07-23)
+
+Post-call reservation observability (`reservedTarget` / `reservedReasonId` + revision
+advance on booking change): `DI-05-operator-reserved-observability.md`.

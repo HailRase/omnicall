@@ -13,6 +13,12 @@ import { ExternalSdkReadHandler } from "@application/integration/ExternalSdkRead
 import { createSdkAccountPortFromFacade } from "@application/integration/createSdkAccountPortFromFacade.js";
 import { createSdkOperatorPortFromFacade } from "@application/integration/createSdkOperatorPortFromFacade.js";
 import { mapDomainEventToSdkPublicDraft } from "@application/integration/ExternalSdkEventMapper.js";
+import type { SdkOperatorEventMapContext } from "@application/integration/ExternalSdkEventMapper.js";
+import type { SdkProductStateSnapshot } from "@application/integration/ExternalSdkProductState.js";
+import {
+  mapSdkOperatorStatus,
+  mapSdkReservedOperatorTarget,
+} from "@application/integration/mapSdkOperatorStatus.js";
 import { readSdkProductStateFromStore } from "@application/integration/readSdkProductStateFromStore.js";
 import { SdkAggregateMutex } from "@application/integration/SdkAggregateMutex.js";
 import { SdkCallOwnershipRegistry } from "@application/integration/SdkCallOwnershipRegistry.js";
@@ -47,6 +53,19 @@ export type BindSdkBrokerSessionOptions = Readonly<{
   /** When false/undefined, operator snapshot section is omitted (SIP-only safe). */
   ocpModuleEnabled?: boolean;
 }>;
+
+function buildOperatorEventContext(
+  state: SdkProductStateSnapshot,
+): SdkOperatorEventMapContext {
+  if (!state.ocpConnected) {
+    return {};
+  }
+  return {
+    currentStatus: mapSdkOperatorStatus(state.operatorStatus),
+    reservedTarget: mapSdkReservedOperatorTarget(state.reservedStatus),
+    reservedReasonId: state.reservedReasonId,
+  };
+}
 
 /**
  * - Purpose: attach typed broker + event bridge to one composition instance.
@@ -198,7 +217,16 @@ export function bindSdkBrokerSession(
         ownership.finalize(callIdValue);
       }
     }
-    const draft = mapDomainEventToSdkPublicDraft(event);
+    const productState = readSdkProductStateFromStore(
+      useAccountBootstrapStore.getState(),
+      {
+        ocpModuleEnabled: options.ocpModuleEnabled === true,
+      },
+    );
+    const draft = mapDomainEventToSdkPublicDraft(
+      event,
+      buildOperatorEventContext(productState),
+    );
     if (draft === null) {
       return;
     }

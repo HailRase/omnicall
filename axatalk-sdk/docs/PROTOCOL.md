@@ -109,11 +109,20 @@ Protocol v1 does not include raw SIP or OCP credential commands.
 
 Public operator/account mapping vs F-028 E-12: **ADR-0017** (O-OCP-1).
 
+`operator:change-status` is the **only** public mutation for Ready/Break intent. Desktop
+resolves mode from current OCP state (`auto`): idle → apply (`change_status_to_*`);
+busy / post-call processing → reserve (`update_post_call_status`). Success result always
+includes `kind: "applied" | "reserved"` plus `targetStatus` / `reasonId`. There is **no**
+separate `operator:reserve-status` command (hosts must not decide mode client-side).
+
 `operator:finish-appeal` applies the reserved Ready/Break (or default Ready) **only** while
 the operator is in post-call processing. Missing OCP login → `not_found`. Wrong status →
 `conflict` with `details.failure_kind: "not_in_post_call_processing"`. Capability:
 `operator.status.write`. Public snapshot/event status includes `post_call_processing` so
-hosts can enable the control without guessing.
+hosts can enable the control without guessing. Optional additive fields
+`reservedTarget` / `reservedReasonId` on snapshot operator section and
+`operator:status-changed` expose the active post-call booking after reconnect (compatible
+per ADR-0012).
 
 ## Event Namespaces
 
@@ -164,7 +173,8 @@ The authenticated snapshot contains independently versioned sections:
 - account session state;
 - aggregated SIP registration/connectivity state;
 - active call summaries;
-- redacted operator/OCP state when enabled;
+- redacted operator/OCP state when enabled (coarse status; optional
+  `reservedTarget` / `reservedReasonId` for post-call booking);
 - window state;
 - snapshot revision and server instance metadata.
 
