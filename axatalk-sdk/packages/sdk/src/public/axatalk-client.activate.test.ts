@@ -423,7 +423,7 @@ describe('AxatalkClient activateProfile success and fail-closed', () => {
         14
       )
     ).toBe(true);
-    harness.scheduler.advanceBy(500);
+    harness.scheduler.advanceBy(240_000);
     await expect(pending).rejects.toSatisfy(
       (error: unknown) =>
         isAxatalkClientError(error) && error.code === 'timeout'
@@ -442,10 +442,47 @@ describe('AxatalkClient activateProfile success and fail-closed', () => {
         findSentType(harness.transports.last()!, 'account:activate-profile')
       )
     );
-    harness.scheduler.advanceBy(500);
+    harness.scheduler.advanceBy(5_000);
+    // Still waiting — activate uses SDK_ACTIVATE_CLIENT_TIMEOUT_MS, not 5s default.
+    expect(harness.client.getState()).toBe('ready');
+    harness.scheduler.advanceBy(240_000 - 5_000);
     await expect(pending).rejects.toSatisfy(
       (error: unknown) =>
         isAxatalkClientError(error) && error.code === 'timeout'
+    );
+  });
+
+  it('surfaces consent-phase timeout details from wire failure', async () => {
+    const harness = createHarness();
+    await reachReady(harness);
+    const pending = harness.client.account.activateProfile({
+      login: 'agent@example.com',
+      expectedRevision: 13
+    });
+    await waitFor(() =>
+      Boolean(
+        findSentType(harness.transports.last()!, 'account:activate-profile')
+      )
+    );
+    expect(
+      replyCommandFailure(
+        harness.transports.last()!,
+        'account:activate-profile',
+        {
+          code: 'timeout',
+          retryable: false,
+          details: {
+            activate_phase: 'consent',
+            failure_kind: 'timeout'
+          }
+        }
+      )
+    ).toBe(true);
+    await expect(pending).rejects.toSatisfy(
+      (error: unknown) =>
+        isAxatalkClientError(error) &&
+        error.code === 'timeout' &&
+        error.details?.['activate_phase'] === 'consent'
     );
   });
 

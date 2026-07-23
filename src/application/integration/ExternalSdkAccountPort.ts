@@ -46,6 +46,14 @@ export type ExternalSdkAccountPort = Readonly<{
     mode: SdkActivateMode,
   ) => Promise<Result<SdkActivateProfileOutcome, PlatformError>>;
 
+  /**
+   * Best-effort cancel of in-flight activate sign-in after auth budget expiry.
+   * OCP: cancel attempt; sip_only: no-op / fail-closed without claiming success.
+   */
+  cancelInFlightActivateSignIn?: (
+    mode: SdkActivateMode,
+  ) => Promise<void> | void;
+
   /** Current account session projection for same-login / logout-required gates. */
   getActivateSessionView: () => SdkActivateSessionView;
 }>;

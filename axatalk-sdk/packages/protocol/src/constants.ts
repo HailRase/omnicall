@@ -134,3 +134,23 @@ export const FORBIDDEN_WIRE_KEYS = [
   'privateKey',
   'authorization'
 ] as const;
+
+/**
+ * SDK `account:activate-profile` wall budgets (ADR-0018 activate timeout sync).
+ * Must stay aligned with desktop `sdkActivateTimeouts.ts`
+ * (consent 120s + max(sip 60s, ocp stages 110s+5s slack) + hop 5s = 240s).
+ * @public
+ */
+export const SDK_ACTIVATE_CONSENT_TTL_MS = 120_000 as const;
+
+/** @public */
+export const SDK_ACTIVATE_SIP_ONLY_AUTH_BUDGET_MS = 60_000 as const;
+
+/** @public */
+export const SDK_ACTIVATE_OCP_AUTH_BUDGET_MS = 115_000 as const;
+
+/**
+ * Client correlator floor for `account:activate-profile` only.
+ * @public
+ */
+export const SDK_ACTIVATE_CLIENT_TIMEOUT_MS = 240_000 as const;

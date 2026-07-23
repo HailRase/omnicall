@@ -47,6 +47,12 @@ export function createSdkAccountPortFromFacade(
       lookupSavedProfileByLoginViaFacade(options, login),
     activateSavedProfileByLogin: (login, mode) =>
       activateSavedProfileByLoginViaFacade(options, login, mode),
+    cancelInFlightActivateSignIn: async (mode) => {
+      if (mode !== "ocp") {
+        return;
+      }
+      await options.facade.cancelOcpSignInAttempt();
+    },
     getActivateSessionView: () => options.getActivateSessionView(),
   };
 }

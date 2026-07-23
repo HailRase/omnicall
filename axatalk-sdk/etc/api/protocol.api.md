@@ -688,11 +688,11 @@ export const CommandFailureReplySchema: z.ZodReadonly<z.ZodObject<{
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
-        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -954,11 +954,11 @@ export const CommandSuccessReplySchema: z.ZodReadonly<z.ZodObject<{
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
-        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -984,11 +984,11 @@ export type CommandType = z.infer<typeof CommandTypeSchema>;
 
 // @public (undocumented)
 export const CommandTypeSchema: z.ZodEnum<{
+    "window:hide": "window:hide";
     "sdk:get-snapshot": "sdk:get-snapshot";
     "sdk:ping": "sdk:ping";
     "window:show": "window:show";
     "window:get-state": "window:get-state";
-    "window:hide": "window:hide";
     "call:originate": "call:originate";
     "call:answer": "call:answer";
     "call:reject": "call:reject";
@@ -2235,11 +2235,11 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
-        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -2291,11 +2291,11 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
-        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -2954,11 +2954,11 @@ export const ReplyMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
-        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -3010,11 +3010,11 @@ export const ReplyMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
-        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -3043,6 +3043,18 @@ export type Revision = z.infer<typeof RevisionSchema>;
 
 // @public
 export const RevisionSchema: z.ZodNumber;
+
+// @public
+export const SDK_ACTIVATE_CLIENT_TIMEOUT_MS: 240000;
+
+// @public
+export const SDK_ACTIVATE_CONSENT_TTL_MS: 120000;
+
+// @public (undocumented)
+export const SDK_ACTIVATE_OCP_AUTH_BUDGET_MS: 115000;
+
+// @public (undocumented)
+export const SDK_ACTIVATE_SIP_ONLY_AUTH_BUDGET_MS: 60000;
 
 // @public (undocumented)
 export const SdkGetSnapshotCommandSchema: z.ZodReadonly<z.ZodObject<{
@@ -3824,11 +3836,11 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
-        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -3880,11 +3892,11 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
-        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";

@@ -190,14 +190,27 @@ Extends ADR-0013 §B / DI-08 — **does not** introduce raw credential commands.
    gateway snapshot after persist (not blacklist — Origin stays `allowed`). **Cancel/dismiss:**
    `forbidden` + `authorization_canceled_by_user` (no matrix change).
 7. **Pending guard:** while consent pending → `conflict` + `activate_consent_pending`.
-8. **Session edges:**
+8. **Consent TTL (120 s):** if the operator does not Allow/Deny/Cancel within
+   `SDK_ACTIVATE_CONSENT_TTL_MS`, the modal auto-dismisses and the command fails with
+   **`timeout`** + details `activate_phase: "consent"` (pending cleared — retry may open
+   a new modal). Human Cancel remains **`forbidden`** + `authorization_canceled_by_user`.
+9. **Auth budgets after Allow:** auth wait starts only after the operator chooses a mode
+   (picker when `mode` omitted). Budgets:
+   - `sip_only` → `SDK_ACTIVATE_SIP_ONLY_AUTH_BUDGET_MS` (60 s);
+   - `ocp` → sum of `OCP_SIGN_IN_STAGE_TIMEOUT_MS` + slack (`SDK_ACTIVATE_OCP_AUTH_BUDGET_MS`);
+   - wall hop for broker + SDK correlator = consent TTL + max(sip, ocp) + hop slack
+     (`SDK_ACTIVATE_CLIENT_TIMEOUT_MS` / `SDK_ACTIVATE_BROKER_TIMEOUT_MS`, ~240 s).
+   On auth-budget expiry desktop cancels in-flight OCP sign-in (best-effort) and returns
+   **`timeout`** + `activate_phase: "sign_in"` + `auth_mode` + `failure_kind`. Stage timeouts
+   and `ocp_session_exist` map to typed failures with the same details shape (no OCP wire).
+10. **Session edges:**
    - same login + same `clientId` already in session → success `alreadyAuthenticated`
      without modal;
-   - same login + different `clientId` → reauthorize modal;
+   - same login + different `clientId` → reauthorize modal (same consent TTL);
    - different login while signed in → `conflict` + `logout_required` **and**
      informational modal (no account switch without logout).
-9. Optional wire `mode` narrows available methods; when omitted, operator picks among
-   complete methods in the modal.
+11. Optional wire `mode` narrows available methods; when omitted, operator picks among
+   complete methods in the modal. Non-activate broker commands keep the default **5 s** hop.
 
 ### F. Error and reconnect pedagogy (integrator-facing)
 
@@ -208,10 +221,13 @@ Extends ADR-0013 §B / DI-08 — **does not** introduce raw credential commands.
 | Capability / activate policy deny | Keep WS | `forbidden` + `permission_denied` |
 | Activate consent Deny | Keep WS | `forbidden` + activate-disabled persisted |
 | Activate Cancel/dismiss | Keep WS | `forbidden` + `authorization_canceled_by_user` |
+| Activate consent TTL | Keep WS | `timeout` + `activate_phase: consent` (modal cleared) |
 | Activate consent already pending | Keep WS | Primary **`conflict`** (+ `activate_consent_pending`) |
 | No / incomplete saved profile | Keep WS | `not_found` + `account_not_found` / `account_incomplete` |
 | Other account already signed in | Keep WS | `conflict` + `logout_required` (+ info modal) |
 | Same login already signed in (same client) | Keep WS | success + `alreadyAuthenticated` |
+| Auth stage / budget timeout after Allow | Keep WS | `timeout` + `activate_phase: sign_in` + `auth_mode` + `failure_kind` |
+| OCP session already exists | Keep WS | `operation_failed` + `failure_kind: session_exist` + `activate_phase: sign_in` |
 | Broker / composition not ready | Keep WS | `not_ready` (distinct from Origin deny) |
 
 Integrator-facing copy for blocked Origin (non-normative): explain that the site was

@@ -38,6 +38,13 @@ export {
 } from './public/axatalk-client.js';
 
 export {
+  SDK_ACTIVATE_CLIENT_TIMEOUT_MS,
+  SDK_ACTIVATE_CONSENT_TTL_MS,
+  SDK_ACTIVATE_OCP_AUTH_BUDGET_MS,
+  SDK_ACTIVATE_SIP_ONLY_AUTH_BUDGET_MS
+} from '@axata/axatalk-protocol';
+
+export {
   CONNECTION_STATES,
   type ConnectionState
 } from './internal/connection-state.js';

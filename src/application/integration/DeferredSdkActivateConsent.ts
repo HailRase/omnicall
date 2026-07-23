@@ -1,5 +1,5 @@
 /**
- * Single-flight activate consent queue (ADR-0018 §E pending guard).
+ * Single-flight activate consent queue (ADR-0018 §E pending guard + consent TTL).
  */
 
 import type {
@@ -9,6 +9,7 @@ import type {
 } from "./SdkActivateConsentPort.js";
 import type { SdkActivateMode } from "./ExternalSdkAccountPort.js";
 import { createCorrelationId } from "@shared/correlation-id/createCorrelationId.js";
+import { SDK_ACTIVATE_CONSENT_TTL_MS } from "./sdkActivateTimeouts.js";
 
 export type SdkActivateConsentPending = Readonly<{
   kind: SdkActivateConsentRequest["kind"];
@@ -27,10 +28,17 @@ export type SdkActivateConsentPending = Readonly<{
 type Deferred = {
   readonly pending: SdkActivateConsentPending;
   readonly resolve: (decision: SdkActivateConsentDecision) => void;
+  readonly clearTtl: () => void;
 };
+
+export type ConsentTimeoutScheduler = (
+  callback: () => void,
+  ms: number,
+) => { readonly clear: () => void };
 
 /**
  * Renderer-owned deferred consent: one pending modal; duplicates rejected by handler.
+ * Activate/reauthorize episodes auto-dismiss with `timeout` after consent TTL.
  */
 export class DeferredSdkActivateConsent implements SdkActivateConsentPort {
   private deferred: Deferred | null = null;
@@ -38,16 +46,31 @@ export class DeferredSdkActivateConsent implements SdkActivateConsentPort {
     pending: SdkActivateConsentPending | null,
   ) => void;
   private readonly createAttentionId: () => string;
+  private readonly consentTtlMs: number;
+  private readonly scheduleTimeout: ConsentTimeoutScheduler;
 
   constructor(input?: {
     readonly onPendingChange?: (
       pending: SdkActivateConsentPending | null,
     ) => void;
     readonly createAttentionId?: () => string;
+    readonly consentTtlMs?: number;
+    readonly scheduleTimeout?: ConsentTimeoutScheduler;
   }) {
     this.onPendingChange = input?.onPendingChange ?? (() => undefined);
     this.createAttentionId =
       input?.createAttentionId ?? (() => createCorrelationId());
+    this.consentTtlMs = input?.consentTtlMs ?? SDK_ACTIVATE_CONSENT_TTL_MS;
+    this.scheduleTimeout =
+      input?.scheduleTimeout ??
+      ((callback, ms) => {
+        const handle = setTimeout(callback, ms);
+        return {
+          clear: () => {
+            clearTimeout(handle);
+          },
+        };
+      });
   }
 
   getPending(): SdkActivateConsentPending | null {
@@ -65,6 +88,16 @@ export class DeferredSdkActivateConsent implements SdkActivateConsentPort {
       return Promise.resolve({ decision: "deny" });
     }
     return new Promise<SdkActivateConsentDecision>((resolve) => {
+      const ttl = this.scheduleTimeout(() => {
+        if (this.deferred === null) {
+          return;
+        }
+        const entry = this.deferred;
+        this.deferred = null;
+        this.onPendingChange(null);
+        entry.resolve({ decision: "timeout" });
+      }, this.consentTtlMs);
+
       this.deferred = {
         pending: {
           kind: input.kind,
@@ -78,6 +111,7 @@ export class DeferredSdkActivateConsent implements SdkActivateConsentPort {
             : {}),
         },
         resolve,
+        clearTtl: ttl.clear,
       };
       this.onPendingChange(this.deferred.pending);
     });
@@ -103,6 +137,7 @@ export class DeferredSdkActivateConsent implements SdkActivateConsentPort {
         currentProfileLabel: input.currentProfileLabel,
       },
       resolve: () => undefined,
+      clearTtl: () => undefined,
     };
     this.onPendingChange(this.deferred.pending);
   }
@@ -116,6 +151,7 @@ export class DeferredSdkActivateConsent implements SdkActivateConsentPort {
     }
     const entry = this.deferred;
     this.deferred = null;
+    entry.clearTtl();
     this.onPendingChange(null);
     if (entry.pending.kind === "logout_required") {
       entry.resolve({ decision: "dismiss" });

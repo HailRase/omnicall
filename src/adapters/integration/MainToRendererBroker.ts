@@ -20,6 +20,7 @@ import {
   nextBrokerRequestId,
   toProductRequest,
 } from "./mainToRendererBrokerHelpers.js";
+import { brokerTimeoutMsForCommand } from "@application/integration/sdkActivateTimeouts.js";
 
 /** Default product-request timeout across the IPC hop (ms). */
 export const SDK_BROKER_DEFAULT_TIMEOUT_MS = 5_000;
@@ -235,9 +236,13 @@ export class MainToRendererBroker implements MainToRendererBrokerPort {
     }
 
     return new Promise<BrokerRequestResult>((resolve) => {
+      const timeoutMs = brokerTimeoutMsForCommand(
+        product.commandType,
+        this.timeoutMs,
+      );
       const timer = setTimeout(() => {
         this.settlePending(brokerRequestId, { ok: false, code: "timeout" });
-      }, this.timeoutMs);
+      }, timeoutMs);
 
       this.pending.set(brokerRequestId, {
         protocolRequestId: product.requestId,
@@ -248,7 +253,7 @@ export class MainToRendererBroker implements MainToRendererBrokerPort {
       this.onLog?.("sdk_broker_request_sent", {
         commandType: product.commandType,
         pendingCount: this.pending.size,
-        timeoutMs: this.timeoutMs,
+        timeoutMs,
       });
     });
   }

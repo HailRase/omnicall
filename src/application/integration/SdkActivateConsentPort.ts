@@ -21,7 +21,9 @@ export type SdkActivateConsentRequest = Readonly<{
 export type SdkActivateConsentDecision =
   | Readonly<{ decision: "allow"; mode: SdkActivateMode }>
   | Readonly<{ decision: "deny" }>
-  | Readonly<{ decision: "dismiss" }>;
+  | Readonly<{ decision: "dismiss" }>
+  /** Consent modal TTL elapsed — maps to wire `timeout` + `activate_phase: consent`. */
+  | Readonly<{ decision: "timeout" }>;
 
 export type SdkActivateConsentPort = Readonly<{
   requestConsent(

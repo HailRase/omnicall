@@ -397,6 +397,90 @@ describe("ExternalSdkAccountHandler", () => {
     });
   });
 
+  it("consent TTL maps to timeout + activate_phase consent", async () => {
+    const requestConsent = vi.fn(() =>
+      Promise.resolve({ decision: "timeout" as const }),
+    );
+    const activateSavedProfileByLogin = vi.fn(() =>
+      Promise.resolve(
+        ok({ mode: "sip_only" as const, profileLabel: "Agent 1001" }),
+      ),
+    );
+    const { handler } = createHandler(createPort({ activateSavedProfileByLogin }), {
+      consentPort: { requestConsent },
+      isConsentPending: () => false,
+    });
+    const result = await handler.handleCommand(
+      {
+        ...BASE,
+        type: "account:activate-profile",
+        requestId: "req_act_consent_ttl_001",
+        payload: { login: LOGIN, expectedRevision: 1 },
+      },
+      { clientId: CLIENT, origin: ORIGIN },
+    );
+    expect(activateSavedProfileByLogin).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      ok: false,
+      code: "timeout",
+      retryable: false,
+      details: {
+        activate_phase: "consent",
+        failure_kind: "timeout",
+      },
+    });
+  });
+
+  it("maps ocp session_exist after Allow with failure_kind details", async () => {
+    const requestConsent = vi.fn(() =>
+      Promise.resolve({ decision: "allow" as const, mode: "ocp" as const }),
+    );
+    const { handler } = createHandler(
+      createPort({
+        lookupSavedProfileByLogin: () =>
+          Promise.resolve(
+            ok({
+              profileId: "profile_1001",
+              profileLabel: "Agent 1001",
+              username: LOGIN,
+              availableModes: ["ocp" as const],
+            }),
+          ),
+        activateSavedProfileByLogin: () =>
+          Promise.resolve(
+            err(
+              createPlatformError("operation_failed", "ocp_session_exist", {
+                reason: "ocp_session_exist",
+              }),
+            ),
+          ),
+      }),
+      {
+        consentPort: { requestConsent },
+        isConsentPending: () => false,
+      },
+    );
+    const result = await handler.handleCommand(
+      {
+        ...BASE,
+        type: "account:activate-profile",
+        requestId: "req_act_session_exist_001",
+        payload: { login: LOGIN, expectedRevision: 1, mode: "ocp" },
+      },
+      { clientId: CLIENT, origin: ORIGIN },
+    );
+    expect(result).toEqual({
+      ok: false,
+      code: "operation_failed",
+      retryable: false,
+      details: {
+        activate_phase: "sign_in",
+        auth_mode: "ocp",
+        failure_kind: "session_exist",
+      },
+    });
+  });
+
   it("missing profile under consent path returns not_found before modal", async () => {
     const onDenied = vi.fn();
     const requestConsent = vi.fn(() =>

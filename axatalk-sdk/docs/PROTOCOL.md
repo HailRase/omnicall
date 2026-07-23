@@ -197,6 +197,20 @@ Wire details keys (inside `forbidden` / related failures — no secrets):
 - `activate_denied_for_origin` — activate blocked for Origin after consent Deny / policy
 - `activate_consent_pending` — optional details key with primary wire code `conflict` when
   a second activate arrives while the consent modal is open (ADR-0018)
+- `activate_phase` — `"consent"` | `"sign_in"` on activate timeouts / sign-in failures
+  (ADR-0018 timeout sync)
+- `auth_mode` — `"sip_only"` | `"ocp"` when the failure occurred after mode selection
+- `failure_kind` — allowlisted semantic key (`timeout`, `session_exist`,
+  `credentials_timeout`, `http_failed`, …); never raw SIP/OCP exception text
+
+Activate wall budgets (constants in `@axata/axatalk-protocol` / desktop
+`sdkActivateTimeouts.ts`):
+
+- Consent TTL: `SDK_ACTIVATE_CONSENT_TTL_MS` (120 s)
+- SIP-only auth: `SDK_ACTIVATE_SIP_ONLY_AUTH_BUDGET_MS` (60 s)
+- OCP auth: `SDK_ACTIVATE_OCP_AUTH_BUDGET_MS` (sum of desktop OCP stage timeouts + slack)
+- Client/broker hop for `account:activate-profile` only:
+  `SDK_ACTIVATE_CLIENT_TIMEOUT_MS` (~240 s). Other commands keep the default short hop.
 
 Raw exceptions and upstream SIP/OCP messages never cross the boundary.
 

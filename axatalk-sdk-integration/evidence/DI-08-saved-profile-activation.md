@@ -124,3 +124,11 @@ Focused re-verify after remediation: **140 passed** (includes `sdkAccountActivat
 ## Reviewer
 
 `/sdk-review` **PASS** 2026-07-20 — DI-08 closed to **`done`**; Lows remediated same day. Next: `/sdk-integration` **DI-09 only**. Do not mark F-011 `implemented`. Version stays `0.11.2`.
+
+## Delta — activate timeout sync (2026-07-23)
+
+- Consent TTL (`SDK_ACTIVATE_CONSENT_TTL_MS` = 120s) auto-dismiss → wire `timeout` + `activate_phase: consent`.
+- Broker hop for `account:activate-profile` only uses `SDK_ACTIVATE_BROKER_TIMEOUT_MS` (~240s); other commands remain 5s.
+- After Allow: auth budget by mode (sip 60s / OCP stage sum + slack); budget expiry cancels in-flight OCP via `cancelOcpSignInAttempt`.
+- Additive failure details: `activate_phase`, `auth_mode`, `failure_kind` (incl. `session_exist`).
+- SSoT: `src/application/integration/sdkActivateTimeouts.ts` + protocol constants; ADR-0018 §E/F + PROTOCOL.md updated.

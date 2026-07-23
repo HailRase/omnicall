@@ -9,6 +9,10 @@ import type { CapabilityId } from '@axata/axatalk-protocol';
 import type { EventMessage } from '@axata/axatalk-protocol';
 import type { PairingProfile } from '@axata/axatalk-protocol';
 import type { ProtocolErrorCode } from '@axata/axatalk-protocol';
+import { SDK_ACTIVATE_CLIENT_TIMEOUT_MS } from '@axata/axatalk-protocol';
+import { SDK_ACTIVATE_CONSENT_TTL_MS } from '@axata/axatalk-protocol';
+import { SDK_ACTIVATE_OCP_AUTH_BUDGET_MS } from '@axata/axatalk-protocol';
+import { SDK_ACTIVATE_SIP_ONLY_AUTH_BUDGET_MS } from '@axata/axatalk-protocol';
 import type { SnapshotMessage } from '@axata/axatalk-protocol';
 import type { WireJsonObject } from '@axata/axatalk-protocol';
 
@@ -352,6 +356,14 @@ export type Scheduler = {
     readonly now: () => number;
     readonly setTimeout: (callback: () => void, delayMs: number) => TimerHandle;
 };
+
+export { SDK_ACTIVATE_CLIENT_TIMEOUT_MS }
+
+export { SDK_ACTIVATE_CONSENT_TTL_MS }
+
+export { SDK_ACTIVATE_OCP_AUTH_BUDGET_MS }
+
+export { SDK_ACTIVATE_SIP_ONLY_AUTH_BUDGET_MS }
 
 // @public
 export type StoredPopIdentity = {

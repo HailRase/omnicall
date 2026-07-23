@@ -16,9 +16,11 @@ await client.account.activateProfile({
 | Pairing request | **Never** — stripped by `sanitizeRequestedCapabilities` |
 | Consent | Renderer modal Allow/Deny on **every** activate when policy allows and a profile exists |
 | Consent scope | **One activation only** — next activate asks again; no lasting skip-consent TTL |
+| Consent TTL | **120 s** — unanswered modal auto-clears; SDK gets `timeout` + `activate_phase: consent` |
 | Secrets | SDK never accepts/returns SIP password or OCP apiKey |
 | Account lookup | Desktop resolves the requested saved account by `login`; no profile-list command exists in v1 |
 | SIP vs OCP | Optional `mode` requests `sip_only` or `ocp`; desktop validates it against the saved account |
+| Client wait | `activateProfile` waits `SDK_ACTIVATE_CLIENT_TIMEOUT_MS` (~240 s), not the default 5 s |
 
 ## Flow (ADR-0018 §E)
 
@@ -30,11 +32,11 @@ await client.account.activateProfile({
    - Origin activate policy off → `forbidden` + `permission_denied` (**no modal**).
    - No matching saved account → `not_found` (+ Account UI as needed).
    - Saved account found + policy on → renderer consent modal:
-     - Allow → one unified Account sign-in with local secrets;
+     - Allow → auth budget starts for the chosen mode (sip_only or OCP stage sum);
      - Deny → persist activate-disabled for Origin + `forbidden`; later attempts denied
        until the Origin matrix re-enables `account.activate`;
      - While modal open, duplicate activate → `conflict` / pending (no spam);
-     - Any close/choice clears pending (no hang).
+     - Consent TTL / any close/choice clears pending (no hang).
 5. Active session → `conflict` (logout-first) unchanged. A successful no-op may return
    `alreadyAuthenticated: true`.
 
@@ -49,7 +51,18 @@ await client.account.activateProfile({
 | `not_found` | Unknown `login` / no saved account | Correct the login or wait for human sign-in in desktop UI |
 | `interaction_required` | Human must complete an in-progress Account UI step | Focus softphone; poll snapshot `signedIn` — do not invent credentials |
 | `invalid_payload` | Malformed / secret-looking reply | Fail closed; do not parse secrets |
-| `timeout` | No reply | Surface retry; no auto-replay |
+| `timeout` | Consent TTL **or** auth budget / stage timeout (`details.activate_phase`) | Retry only after modal cleared; inspect `failure_kind` / softphone UI for OCP |
+| `operation_failed` | e.g. `failure_kind: session_exist` after Allow | Direct operator to softphone SESSION_EXIST / retry UX |
+
+```ts
+} catch (error: unknown) {
+  if (isAxatalkClientError(error) && error.code === 'timeout') {
+    const phase = error.details?.['activate_phase'];
+    // phase === 'consent' → operator never answered; safe to retry
+    // phase === 'sign_in' → auth failed after Allow; check softphone
+  }
+}
+```
 
 ## Example pattern (Origin matrix + consent)
 
@@ -66,7 +79,7 @@ try {
     mode: 'sip_only'
   });
 } catch (error: unknown) {
-  // Handle forbidden / conflict / stale_state / not_found / interaction_required
+  // Handle forbidden / conflict / stale_state / not_found / timeout / operation_failed
   void error;
 }
 ```

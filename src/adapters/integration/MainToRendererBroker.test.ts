@@ -137,6 +137,38 @@ describe("MainToRendererBroker", () => {
     expect(broker.getPendingCount()).toBe(0);
   });
 
+  it("uses long hop timeout for account:activate-profile only", async () => {
+    vi.useFakeTimers();
+    const { broker } = createLoopbackPair({ timeoutMs: 100, autoReply: false });
+    broker.setReady(true);
+
+    const activate = {
+      protocolVersion: 1,
+      kind: "command",
+      type: "account:activate-profile",
+      requestId: "req_act_broker_ttl_001",
+      serverInstanceId: "srv_fixture",
+      sessionEpoch: "epoch_fixture",
+      occurredAt: "2026-07-20T12:00:00.000Z",
+      payload: {
+        login: "1001",
+        expectedRevision: 1,
+      },
+    };
+    const pending = broker.request(activate);
+    expect(broker.getPendingCount()).toBe(1);
+
+    await vi.advanceTimersByTimeAsync(5_000);
+    expect(broker.getPendingCount()).toBe(1);
+
+    const { SDK_ACTIVATE_BROKER_TIMEOUT_MS } = await import(
+      "@application/integration/sdkActivateTimeouts.js"
+    );
+    await vi.advanceTimersByTimeAsync(SDK_ACTIVATE_BROKER_TIMEOUT_MS - 5_000);
+    await expect(pending).resolves.toEqual({ ok: false, code: "timeout" });
+    expect(broker.getPendingCount()).toBe(0);
+  });
+
   it("cancels a pending request with operation_failed", async () => {
     const { broker } = createLoopbackPair({ autoReply: false });
     broker.setReady(true);

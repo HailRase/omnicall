@@ -2,8 +2,8 @@
 
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
-**Updated:** 2026-07-22
-**Tests:** `2580+ passed` (2026-07-22; compact OCP progress + activate consent UX + matrix sync)
+**Updated:** 2026-07-23
+**Tests:** targeted activate-timeout suite PASS (2026-07-23; consent TTL + broker/SDK activate hop budgets)
 **Lint / typecheck:** PASS (web `tsc` green)
 
 **Auth Flow Refactoring / Hardening:** implementation + automated gate complete 2026-07-17 — independent account/OCP/SIP state, five-stage OCP progress, crash-safe saved profiles/secrets, one-click saved-profile entry, persistent auth errors and rolling 24-hour notification journal (F-029). Real staging OCP smoke SM-1…20 remains external verification. Version: `0.11.0`.

@@ -157,3 +157,10 @@ Post-fix counts: sdk src **106**, workspace test suite **114**.
 ## Reviewer
 
 `/sdk-review` **PASS** 2026-07-20 — privilege fortress, secret non-exfil, non-replay, disconnect non-tear verified; next `/sdk-project` **SDK-09 only**. Do not mark F-011 `implemented`; do not unblock DI-10.
+
+## Delta — activate timeout sync (2026-07-23)
+
+- `activateProfile` correlator uses `SDK_ACTIVATE_CLIENT_TIMEOUT_MS` (~240s), not the global 5s default.
+- Re-exports protocol budget constants from `@axata/axatalk-sdk`.
+- Wire failure details (`activate_phase`, `failure_kind`) surface on `AxatalkClientError.details`.
+- Guide: `docs/guide/saved-profile-activation.md`; PROTOCOL.md details table updated.

@@ -4,6 +4,7 @@
  */
 
 import type { CapabilityId } from '@axata/axatalk-protocol';
+import { SDK_ACTIVATE_CLIENT_TIMEOUT_MS } from '@axata/axatalk-protocol';
 
 import { buildAccountActivateProfileBody } from './account-activate-wire.js';
 import { createClientError } from './client-errors.js';
@@ -121,6 +122,7 @@ async function runActivateProfile(
   const result = await deps.connection.request({
     requestId,
     commandType: 'account:activate-profile',
+    timeoutMs: SDK_ACTIVATE_CLIENT_TIMEOUT_MS,
     body: buildAccountActivateProfileBody(
       {
         requestId,
