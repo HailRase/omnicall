@@ -51,6 +51,7 @@ browser Local Network Access / loopback permission policy (**ADR-0015**).
 | Discovery | Loopback HTTP discovery only; never embed secrets in discovery docs |
 | Permission denied | Map to stable client errors (`local_network_permission_*`) — not silent success |
 | Mixed content | Prefer documented desktop endpoint URL your product already approved |
+| Client transport | Use SDK default `createBrowserWebSocketTransport` — see [transport](./transport.md) |
 
 Do not invent a `fetch` fallback to desktop HTTP APIs from the page.
 

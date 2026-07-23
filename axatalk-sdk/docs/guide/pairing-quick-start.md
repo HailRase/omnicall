@@ -36,18 +36,10 @@ const client = createAxatalkClient({
     'session.logout',
     'operator.status.write'
   ],
-  keyStore,
-  transportFactory: () => {
-    throw new Error('inject your TransportPort factory for the browser WS');
-  },
-  scheduler: {
-    now: () => Date.now(),
-    setTimeout: (cb, ms) => {
-      const id = setTimeout(cb, ms);
-      return { clear: () => clearTimeout(id) };
-    }
-  },
-  jitter: { nextUnitInterval: () => Math.random() }
+  keyStore
+  // Omitting transportFactory / scheduler / jitter uses browser defaults:
+  // createBrowserWebSocketTransport, createBrowserScheduler, createBrowserJitterSource.
+  // Unit tests should inject FakeTransport + createFakeScheduler + createFixedJitterSource.
 });
 
 client.onPairingRequired((info) => {
@@ -96,3 +88,4 @@ void revision;
 - [ ] `getSnapshot()` / `getRevision()` before mutations
 - [ ] Typed errors via `isAxatalkClientError`
 - [ ] Do not confuse Origin deny / `origin_blocked` with product `not_ready` (broker / composition)
+- [ ] Transport: see [Transport](./transport.md) — do not invent a second reconnect layer on the socket

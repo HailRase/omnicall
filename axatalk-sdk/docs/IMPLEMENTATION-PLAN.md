@@ -108,6 +108,11 @@ Gate:
 - fake timers show no leaked timers/listeners/promises;
 - diagnostics contain no payloads.
 
+**Follow-up (2026-07-23):** official production adapter
+`createBrowserWebSocketTransport` + optional browser defaults for
+`transportFactory` / `scheduler` / `jitter` shipped; see
+`evidence/SDK-browser-websocket-transport.md` and `docs/guide/transport.md`.
+
 ## Phase SDK-04 — Authentication and Capabilities
 
 Purpose: connect securely to the desktop gateway.

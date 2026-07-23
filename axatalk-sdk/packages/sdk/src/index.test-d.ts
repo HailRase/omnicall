@@ -6,9 +6,16 @@ import type {
   AxatalkClientOptions,
   ConnectionState,
   PopKeyStore,
-  PublicEventType
+  PublicEventType,
+  TransportPort
 } from './index.js';
-import { createAuthClient, createAxatalkClient } from './index.js';
+import {
+  createAuthClient,
+  createAxatalkClient,
+  createBrowserJitterSource,
+  createBrowserScheduler,
+  createBrowserWebSocketTransport
+} from './index.js';
 
 describe('@axata/axatalk-sdk type smoke', () => {
   it('keeps AuthClient without product methods', () => {
@@ -30,6 +37,12 @@ describe('@axata/axatalk-sdk type smoke', () => {
     expectTypeOf<AxatalkClient['calls']>().toHaveProperty('sendDtmf');
     expectTypeOf<AxatalkClient['window']>().not.toHaveProperty('hide');
     expectTypeOf<AxatalkClientOptions>().toHaveProperty('origin');
+    expectTypeOf<AxatalkClientOptions['transportFactory']>().toEqualTypeOf<
+      (() => TransportPort) | undefined
+    >();
+    expectTypeOf(createBrowserWebSocketTransport).toBeFunction();
+    expectTypeOf(createBrowserScheduler).toBeFunction();
+    expectTypeOf(createBrowserJitterSource).toBeFunction();
     expectTypeOf<PopKeyStore>().toHaveProperty('clear');
     expectTypeOf<'call:incoming'>().toExtend<PublicEventType>();
     expectTypeOf<'ready'>().toExtend<ConnectionState>();

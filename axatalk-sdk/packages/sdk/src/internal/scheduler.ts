@@ -108,3 +108,33 @@ export function createFixedJitterSource(value: number): JitterSource {
     nextUnitInterval: () => value
   };
 }
+
+/**
+ * Browser / production scheduler over `Date` and `setTimeout`.
+ * Prefer {@link createFakeScheduler} in unit tests.
+ * @public
+ */
+export function createBrowserScheduler(): Scheduler {
+  return {
+    now: () => Date.now(),
+    setTimeout: (callback, delayMs) => {
+      const id = setTimeout(callback, delayMs);
+      return {
+        clear: () => {
+          clearTimeout(id);
+        }
+      };
+    }
+  };
+}
+
+/**
+ * Browser / production jitter via `Math.random`.
+ * Prefer {@link createFixedJitterSource} in unit tests.
+ * @public
+ */
+export function createBrowserJitterSource(): JitterSource {
+  return {
+    nextUnitInterval: () => Math.random()
+  };
+}

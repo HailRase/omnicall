@@ -54,8 +54,11 @@ are stable.
 - Protocol decisions: **SDK-01 done**
 - Protocol package: **SDK-02 done**
 - Transport / auth / client APIs: **SDK-03…SDK-08 done**
+- Official browser WebSocket adapter + optional transport/scheduler/jitter defaults: **done**
+  (`createBrowserWebSocketTransport`, guide `docs/guide/transport.md`)
 - Developer docs & examples: **SDK-09 done** (`evidence/SDK-09-developer-docs-examples.md`)
-- Public API: `AxatalkClient` namespaces (lifecycle, `calls`, `account`, `operator`, `window.show`) — **47** symbols
+- Public API: `AxatalkClient` namespaces (lifecycle, `calls`, `account`, `operator`, `window.show`)
+  — see `etc/api/sdk.api.md` for the current allowlisted symbol count
 - Release candidate staging: **SDK-10 Mode A done** — RC-ready / stable-blocked; **no** npm `latest`; prerelease mode `rc` entered (`0.1.0-rc.0` on `changeset version`)
 - F-011 / P12: **not closed** — desktop DI-10 remains **blocked** until explicit `/sdk-integration` DI-10 intake
 - Production readiness: not claimed

@@ -19,7 +19,9 @@
 ## Deprecation window
 
 See **ADR-0017**. Deprecated symbols receive a documented window before removal.
-RC staging (SDK-10 Mode A) freezes the public API at `etc/api/sdk.api.md` (**47** symbols).
+RC staging (SDK-10 Mode A) freezes the public API at `etc/api/sdk.api.md` (**54** symbols,
+including official browser transport helpers). Additive optional options
+(`transportFactory?`, `scheduler?`, `jitter?`) are compatible; removals remain breaking.
 No npm `latest` / stable until DI-10 closes packaged E2E gates.
 
 ## Rollback / revoke (ops)

@@ -8,13 +8,16 @@ Packages remain `private: true` / `0.0.0` in the incubating workspace until a hu
 authorizes registry publish. Stable / `latest` is **blocked on desktop DI-10** (packaged
 Electron E2E).
 
-### Included since incubation (SDK-00…SDK-09)
+### Included since incubation (SDK-00…SDK-09 + transport defaults)
 
 - `AxatalkClient` lifecycle: connect, pair, ready, disconnect, revoke, incompatible
 - Namespaces: `calls`, `account`, `operator`, `window.show`
 - Fail-closed capabilities; privileged caps stripped at pairing (`account.activate`, `window.hide`)
 - Bounded reconnect with fresh snapshot; no mutation replay
-- Public surface frozen at **47** API report symbols (`etc/api/sdk.api.md`)
+- Official browser WebSocket adapter: `createBrowserWebSocketTransport`
+- Browser defaults for `transportFactory` / `scheduler` / `jitter` (still injectable for tests)
+- Guide: `docs/guide/transport.md`
+- Public surface: see `etc/api/sdk.api.md` (allowlisted symbols)
 
 ### Not included
 

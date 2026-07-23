@@ -50,6 +50,7 @@ function listFiles(dir, suffix) {
 const requiredGuide = [
   'README.md',
   'installation.md',
+  'transport.md',
   'pairing-quick-start.md',
   'api-reference.md',
   'events.md',
@@ -105,22 +106,22 @@ const apiReport = fs.readFileSync(path.join(root, 'etc', 'api', 'sdk.api.md'), '
 const reportExports = [...apiReport.matchAll(/^export (?:type|class|function|const) (\w+)/gm)].map(
   (match) => match[1]
 );
-if (reportExports.length !== 48) {
-  console.error(`Expected 48 sdk.api.md exports, found ${reportExports.length}`);
+if (reportExports.length !== 54) {
+  console.error(`Expected 54 sdk.api.md exports, found ${reportExports.length}`);
   process.exit(1);
 }
 
 const apiReference = fs.readFileSync(path.join(guideRoot, 'api-reference.md'), 'utf8');
 const inventoryMatch = apiReference.match(
-  /## Public symbol inventory \(48\)([\s\S]*?)## Factories/
+  /## Public symbol inventory \(54\)([\s\S]*?)## Factories/
 );
 if (!inventoryMatch) {
-  console.error('api-reference.md missing Public symbol inventory (48) section');
+  console.error('api-reference.md missing Public symbol inventory (54) section');
   process.exit(1);
 }
 const inventoryExports = [...inventoryMatch[1].matchAll(/`(\w+)`/g)].map((match) => match[1]);
-if (inventoryExports.length !== 48) {
-  console.error(`api-reference inventory has ${inventoryExports.length} symbols, expected 48`);
+if (inventoryExports.length !== 54) {
+  console.error(`api-reference inventory has ${inventoryExports.length} symbols, expected 54`);
   process.exit(1);
 }
 const sortedReport = [...reportExports].sort().join(',');

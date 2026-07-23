@@ -39,7 +39,8 @@ Must not own:
 
 Owns:
 
-- browser WebSocket transport;
+- official browser WebSocket transport (`createBrowserWebSocketTransport`) behind
+  injectable `TransportPort` / `transportFactory` (tests and non-DOM hosts may inject);
 - handshake and session lifecycle;
 - request correlation, timeouts, cancellation, and bounded reconnect;
 - typed method groups and subscriptions;
@@ -52,7 +53,8 @@ Must not own:
 - command arbitration;
 - telephony state transitions;
 - credentials or profile persistence;
-- Electron window behavior.
+- Electron window behavior;
+- desktop listening sockets (Electron main owns the gateway).
 
 ### `@axata/axatalk-sdk-testing`
 
@@ -64,10 +66,11 @@ It must never contain production credentials or desktop implementation code.
 The constructor accepts only client and transport configuration:
 
 - application/client identity;
-- endpoint discovery strategy;
+- endpoint URL (and discovery strategy where documented);
 - requested capabilities;
 - reconnect and timeout policy;
-- optional diagnostics sink.
+- optional diagnostics sink;
+- optional `transportFactory` / `scheduler` / `jitter` (browser defaults when omitted).
 
 The constructor does not connect, pair, authenticate, or sign in.
 
@@ -125,7 +128,8 @@ SDK-00 must record exact versions after checking current stable releases.
 
 - TypeScript in strict mode.
 - ESM-first package output with explicit exports.
-- A browser-compatible WebSocket abstraction injected behind an internal transport port.
+- A browser-compatible WebSocket abstraction injected behind an internal transport port,
+  with the official production adapter `createBrowserWebSocketTransport`.
 - One runtime schema system for all protocol messages.
 - Vitest for unit and contract tests.
 - API Extractor or an equivalent deterministic API-report gate.

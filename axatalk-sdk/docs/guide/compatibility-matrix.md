@@ -18,8 +18,8 @@ or a human-named waiver. Do not treat DI-10 WU `done` as F-011/`implemented`.
 
 | Check | Status | Count / note |
 | --- | --- | --- |
-| `api:check` `@axata/axatalk-sdk` | PASS | **47** symbols |
-| `api:check` `@axata/axatalk-protocol` | PASS | **169** symbols |
+| `api:check` `@axata/axatalk-sdk` | PASS | **54** symbols |
+| `api:check` `@axata/axatalk-protocol` | PASS | see `etc/api/protocol.api.md` |
 | Tarball fortress | PASS | no `fake-transport` / `auth-test-peer` / docs harness |
 | `docs:check` | PASS | secret + privilege scans |
 

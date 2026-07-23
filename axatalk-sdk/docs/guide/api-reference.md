@@ -3,10 +3,10 @@
 Aligns with [`etc/api/sdk.api.md`](../../etc/api/sdk.api.md).  
 If this page disagrees with the API report, the **report wins**.
 
-**Full public inventory:** **48** symbols (see table below). Method/namespace sections are
-integrator-oriented summaries; the inventory is the complete export list for SDK-09.
+**Full public inventory:** **54** symbols (see table below). Method/namespace sections are
+integrator-oriented summaries; the inventory is the complete export list.
 
-## Public symbol inventory (48)
+## Public symbol inventory (54)
 
 | Kind | Symbol |
 | --- | --- |
@@ -22,11 +22,17 @@ integrator-oriented summaries; the inventory is the complete export list for SDK
 | type | `AxatalkEvent` |
 | type | `AxatalkOperatorApi` |
 | type | `AxatalkWindowApi` |
+| type | `BrowserWebSocketConstructor` |
+| type | `BrowserWebSocketLike` |
 | type | `CallMutationResult` |
 | const | `CONNECTION_STATES` |
 | type | `ConnectionState` |
 | function | `createAuthClient` |
 | function | `createAxatalkClient` |
+| function | `createBrowserJitterSource` |
+| function | `createBrowserScheduler` |
+| function | `createBrowserWebSocketTransport` |
+| type | `CreateBrowserWebSocketTransportOptions` |
 | function | `createFakeScheduler` |
 | function | `createFixedJitterSource` |
 | function | `createIndexedDbPopKeyStore` |
@@ -65,9 +71,15 @@ integrator-oriented summaries; the inventory is the complete export list for SDK
 | --- | --- |
 | `createAxatalkClient(options)` | Preferred public client |
 | `createAuthClient(options)` | Auth/lifecycle only (no product namespaces) |
+| `createBrowserWebSocketTransport` | Official browser `TransportPort` (default `transportFactory`) |
+| `createBrowserScheduler` / `createBrowserJitterSource` | Production timer/jitter defaults |
 | `createMemoryPopKeyStore` / `createIndexedDbPopKeyStore` | PoP persistence |
 | `createFakeScheduler` / `createFixedJitterSource` | Deterministic tests |
 | `createRecordingDiagnosticsSink` | Redaction-safe diagnostics |
+
+`AuthClientOptions` / `AxatalkClientOptions`: `transportFactory`, `scheduler`, and `jitter`
+are **optional** in browsers (defaults above). Inject fakes in unit tests. See
+[Transport](./transport.md).
 
 ## `AxatalkClient` lifecycle
 
@@ -118,21 +130,9 @@ Result: `{ callId, revision }`. Failures: see [Errors](./errors.md).
 
 ## `client.window`
 
-| Method | Capability | Notes |
-| --- | --- | --- |
-| `show()` | `window.show` | Desktop restores/raises the shell per ADR-0013 local focus policy (rate-limited). |
-| `getState()` | read | |
-| ~~`hide()`~~ | — | **Not available in v1 product** |
+| Method | Notes |
+| --- | --- |
+| `show()` | Capability `window.show` |
+| `getState()` | Visibility projection |
 
-## Errors
-
-`AxatalkClientError` + `isAxatalkClientError(value)`.  
-Fields: `code`, `retryable`, `currentRevision?`, `details?`.
-
-## Not in the public API
-
-- Root-level `originate` / `activateProfile` (namespaced only)
-- Credential login methods
-- `account:list-profiles`
-- Domain Event names
-- `window.hide`
+`hide` is **not** on the public client (ADR-0013).

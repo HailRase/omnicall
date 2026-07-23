@@ -8,6 +8,9 @@ describe('@axata/axatalk-sdk workspace smoke', () => {
     const mod = await import('./index.js');
     expect(typeof mod.createAuthClient).toBe('function');
     expect(typeof mod.createAxatalkClient).toBe('function');
+    expect(typeof mod.createBrowserWebSocketTransport).toBe('function');
+    expect(typeof mod.createBrowserScheduler).toBe('function');
+    expect(typeof mod.createBrowserJitterSource).toBe('function');
     expect(mod.CONNECTION_STATES).toContain('ready');
     expect(mod.PUBLIC_EVENT_TYPES).toContain('call:incoming');
     expect(mod.PUBLIC_EVENT_TYPES).toContain('operator:status-changed');

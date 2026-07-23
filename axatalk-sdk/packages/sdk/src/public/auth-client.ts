@@ -18,6 +18,11 @@ import type { PopKeyStore } from '../internal/pop-key-store.js';
 import type { ReconnectPolicy } from '../internal/reconnect-policy.js';
 import type { HeartbeatPolicy } from '../internal/heartbeat-controller.js';
 import type { JitterSource, Scheduler } from '../internal/scheduler.js';
+import { createBrowserWebSocketTransport } from '../internal/browser-websocket-transport.js';
+import {
+  createBrowserJitterSource,
+  createBrowserScheduler
+} from '../internal/scheduler.js';
 import type { TransportFactory } from '../internal/transport-port.js';
 
 /**
@@ -54,9 +59,21 @@ export type AuthClientOptions = {
   readonly requestedProfile: PairingProfile;
   readonly requestedCapabilities?: readonly CapabilityId[];
   readonly keyStore: PopKeyStore;
-  readonly transportFactory: TransportFactory;
-  readonly scheduler: Scheduler;
-  readonly jitter: JitterSource;
+  /**
+   * Fresh {@link TransportPort} per connect/reconnect.
+   * Defaults to {@link createBrowserWebSocketTransport} when omitted.
+   */
+  readonly transportFactory?: TransportFactory;
+  /**
+   * Clock/timers. Defaults to {@link createBrowserScheduler} when omitted.
+   * Inject {@link createFakeScheduler} in unit tests.
+   */
+  readonly scheduler?: Scheduler;
+  /**
+   * Reconnect jitter. Defaults to {@link createBrowserJitterSource} when omitted.
+   * Inject {@link createFixedJitterSource} in unit tests.
+   */
+  readonly jitter?: JitterSource;
   readonly diagnostics?: DiagnosticsSink;
   readonly defaultRequestTimeoutMs?: number;
   readonly reconnect?: ReconnectPolicy;
@@ -95,11 +112,16 @@ export function createAuthClient(options: AuthClientOptions): AuthClient {
     current: ReturnType<typeof createAuthOrchestrator> | undefined;
   } = { current: undefined };
 
+  const transportFactory =
+    options.transportFactory ?? createBrowserWebSocketTransport;
+  const scheduler = options.scheduler ?? createBrowserScheduler();
+  const jitter = options.jitter ?? createBrowserJitterSource();
+
   const connection = createConnectionSession({
     url: options.url,
-    transportFactory: options.transportFactory,
-    scheduler: options.scheduler,
-    jitter: options.jitter,
+    transportFactory,
+    scheduler,
+    jitter,
     ...(options.diagnostics !== undefined
       ? { diagnostics: options.diagnostics }
       : {}),
@@ -124,7 +146,7 @@ export function createAuthClient(options: AuthClientOptions): AuthClient {
     requestedProfile: options.requestedProfile,
     requestedCapabilities: options.requestedCapabilities ?? [],
     keyStore: options.keyStore,
-    scheduler: options.scheduler,
+    scheduler,
     ...(options.diagnostics !== undefined
       ? { diagnostics: options.diagnostics }
       : {}),
@@ -181,7 +203,7 @@ export function createAuthClient(options: AuthClientOptions): AuthClient {
           resolve(connection.getState());
           return;
         }
-        const timer = options.scheduler.setTimeout(() => {
+        const timer = scheduler.setTimeout(() => {
           unsubscribe();
           reject(new Error('waitUntil timeout'));
         }, timeoutMs);

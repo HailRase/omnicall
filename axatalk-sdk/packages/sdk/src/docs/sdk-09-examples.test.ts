@@ -144,6 +144,7 @@ describe('SDK-09 docs/example secret & privilege scan', () => {
     const required = [
       'README.md',
       'installation.md',
+      'transport.md',
       'pairing-quick-start.md',
       'api-reference.md',
       'events.md',
@@ -165,18 +166,18 @@ describe('SDK-09 docs/example secret & privilege scan', () => {
     const reportExports = [
       ...apiReport.matchAll(/^export (?:type|class|function|const) (\w+)/gm)
     ].map((match) => match[1]);
-    expect(reportExports).toHaveLength(47);
+    expect(reportExports).toHaveLength(54);
 
     const apiReference = readFileSync(path.join(guideRoot, 'api-reference.md'), 'utf8');
-    expect(apiReference).toMatch(/\*\*47\*\* symbols/);
+    expect(apiReference).toMatch(/\*\*54\*\* symbols/);
     const inventoryBlock = apiReference.match(
-      /## Public symbol inventory \(47\)([\s\S]*?)## Factories/
+      /## Public symbol inventory \(54\)([\s\S]*?)## Factories/
     );
     expect(inventoryBlock).not.toBeNull();
     const inventoryExports = [
       ...(inventoryBlock?.[1] ?? '').matchAll(/`(\w+)`/g)
     ].map((match) => match[1]);
-    expect(inventoryExports).toHaveLength(47);
+    expect(inventoryExports).toHaveLength(54);
     expect([...inventoryExports].sort()).toEqual([...reportExports].sort());
   });
 });

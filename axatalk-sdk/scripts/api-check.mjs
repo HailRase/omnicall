@@ -50,13 +50,19 @@ const SDK_ALLOWED_SYMBOLS = new Set([
   'TransportPort',
   'createAuthClient',
   'createAxatalkClient',
+  'createBrowserJitterSource',
+  'createBrowserScheduler',
+  'createBrowserWebSocketTransport',
   'createFakeScheduler',
   'createFixedJitterSource',
   'createIndexedDbPopKeyStore',
   'createMemoryPopKeyStore',
   'createRecordingDiagnosticsSink',
   'isAxatalkClientError',
-  'isOriginBlockedError'
+  'isOriginBlockedError',
+  'BrowserWebSocketConstructor',
+  'BrowserWebSocketLike',
+  'CreateBrowserWebSocketTransportOptions'
 ]);
 
 /** Top-level exports forbidden (namespaced methods are not separate symbols). */

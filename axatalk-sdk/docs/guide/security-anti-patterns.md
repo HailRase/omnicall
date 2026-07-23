@@ -13,6 +13,8 @@ Fail closed. If a pattern is not listed as allowed, treat it as forbidden.
 | Log pairing material, tokens, phones, reply payloads | PII / secret leak | Log `code`, `retryable`, `requestId`, command type only |
 | Auto-replay mutations after reconnect | Non-idempotent; can double-originate | Bind `expectedRevision` on a **fresh** snapshot; user re-issues |
 | Hang up / logout / activate on `disconnect()` | Desktop session must survive SDK crash | `disconnect()` closes transport only |
+| Custom reconnect inside `TransportPort` | Session owns bounded reconnect + snapshot | Thin `createBrowserWebSocketTransport` only |
+| Binary WebSocket frames / own JSON parser in transport | Protocol validation is above the port | Text frames via `TransportPort.onMessage` |
 | Invent `account:list-profiles` | Not in protocol v1 | Supply the saved-account `login` from your product |
 | Auto-logout on disconnect | Destructive side effect | Host calls `logout` only after user confirms; cancel = do not call |
 | Treat Origin substring / wildcard as OK | Exact Origin only | Exact approved Origin string |

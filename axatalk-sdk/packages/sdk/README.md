@@ -2,20 +2,25 @@
 
 Browser SDK client for Axatalk Desktop.
 
-**Status:** SDK-05 — read-only `AxatalkClient` (lifecycle, snapshot, typed events,
-capability-gated `window.show`). Call/operator/account mutations arrive in later units.
+**Status:** product namespaces through SDK-08 + official browser WebSocket transport defaults.
+Call/operator/account mutations and lifecycle are on `AxatalkClient`.
 
 Depends on `@axata/axatalk-protocol` only. Must never import Axatalk Desktop Domain,
 Application, Electron, JsSIP, React, or Zustand.
 
-Public surface:
+Public surface (highlights):
 
-- `createAuthClient` — pairing / PoP / capabilities (SDK-04)
-- `createAxatalkClient` — read-only product API on top of auth (SDK-05)
+- `createAuthClient` — pairing / PoP / capabilities
+- `createAxatalkClient` — product API on top of auth
+- `createBrowserWebSocketTransport` — official `TransportPort` over browser `WebSocket`
+- `createBrowserScheduler` / `createBrowserJitterSource` — production timer/jitter defaults
+- `createIndexedDbPopKeyStore` / `createMemoryPopKeyStore` — PoP persistence
 
-Internal production modules (not exported from package entry):
+Constructor options `transportFactory`, `scheduler`, and `jitter` are **optional** in
+browsers (defaults above). Unit tests should still inject FakeTransport + fake scheduler.
 
-- injectable `TransportPort`
+Internal production modules (not all exported as helpers):
+
 - explicit connection state machine
 - request correlation, timeouts, abort/disconnect cleanup
 - heartbeat and bounded jittered reconnect
@@ -23,3 +28,5 @@ Internal production modules (not exported from package entry):
 
 `FakeTransport` / test helpers live under `src/internal/` for unit tests only and are
 excluded from the published `dist/` tarball.
+
+See `docs/guide/transport.md` for the transport contract.

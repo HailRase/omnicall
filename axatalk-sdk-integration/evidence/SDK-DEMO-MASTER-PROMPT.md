@@ -35,8 +35,8 @@ This is **not** the fake-peer `examples/crm-pairing-lite`. Connect to the **live
    - Browser: ESM + **import map** (or equivalent) pointing at built `dist/` files under
      `../axatalk-sdk/packages/{sdk,protocol}/dist/…` and protocol’s `zod` dependency
      (resolve from `axatalk-sdk/node_modules/zod` or vendor a single ESM path — document it).
-   - Implement a real browser `TransportPort` over `WebSocket` (the guide’s stub that throws
-     must be replaced for the demo).
+   - Use SDK `createBrowserWebSocketTransport` (or omit `transportFactory` for the browser
+     default). Do **not** invent a second reconnect layer on the raw `WebSocket`.
 5. **Security / product rules (must follow):**
    - Never request privileged caps at pairing: `account.activate`, `window.hide`.
    - Never put SIP passwords / OCP apiKeys in the page.
@@ -61,7 +61,7 @@ This is **not** the fake-peer `examples/crm-pairing-lite`. Connect to the **live
 5. `axatalk-sdk/docs/guide/errors.md`
 6. `axatalk-sdk/docs/guide/logout-workflow.md`
 7. `axatalk-sdk/docs/guide/saved-profile-activation.md`
-8. `axatalk-sdk/etc/api/sdk.api.md` (public surface truth — **47** symbols)
+8. `axatalk-sdk/etc/api/sdk.api.md` (public surface truth — **54** symbols)
 9. `docs/softphone/adr/ADR-0013-sdk-window-policy-and-signin.md`
 10. Existing smoke reference (patterns only): `axatalk-sdk-integration/scripts/di10-browser-smoke*`
 

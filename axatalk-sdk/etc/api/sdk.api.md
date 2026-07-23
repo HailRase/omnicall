@@ -48,9 +48,9 @@ export type AuthClientOptions = {
     readonly requestedProfile: PairingProfile;
     readonly requestedCapabilities?: readonly CapabilityId[];
     readonly keyStore: PopKeyStore;
-    readonly transportFactory: TransportFactory;
-    readonly scheduler: Scheduler;
-    readonly jitter: JitterSource;
+    readonly transportFactory?: TransportFactory;
+    readonly scheduler?: Scheduler;
+    readonly jitter?: JitterSource;
     readonly diagnostics?: DiagnosticsSink;
     readonly defaultRequestTimeoutMs?: number;
     readonly reconnect?: ReconnectPolicy;
@@ -197,6 +197,24 @@ export type AxatalkWindowApi = {
     }>;
 };
 
+// @public
+export type BrowserWebSocketConstructor = {
+    new (url: string): BrowserWebSocketLike;
+    readonly OPEN: number;
+};
+
+// @public
+export type BrowserWebSocketLike = {
+    readonly readyState: number;
+    binaryType: string;
+    onopen: ((ev: Event) => void) | null;
+    onmessage: ((ev: MessageEvent) => void) | null;
+    onerror: ((ev: Event) => void) | null;
+    onclose: ((ev: CloseEvent) => void) | null;
+    send: (data: string) => void;
+    close: (code?: number, reason?: string) => void;
+};
+
 // @public (undocumented)
 export type CallMutationResult = {
     readonly callId: string;
@@ -214,6 +232,20 @@ export function createAuthClient(options: AuthClientOptions): AuthClient;
 
 // @public
 export function createAxatalkClient(options: AxatalkClientOptions): AxatalkClient;
+
+// @public
+export function createBrowserJitterSource(): JitterSource;
+
+// @public
+export function createBrowserScheduler(): Scheduler;
+
+// @public
+export function createBrowserWebSocketTransport(options?: CreateBrowserWebSocketTransportOptions): TransportPort;
+
+// @public
+export type CreateBrowserWebSocketTransportOptions = {
+    readonly webSocket?: BrowserWebSocketConstructor;
+};
 
 // @public
 export function createFakeScheduler(startMs?: number): FakeScheduler;
@@ -386,7 +418,7 @@ export type TransportErrorInfo = {
     readonly message: string;
 };
 
-// @public (undocumented)
+// @public
 export type TransportFactory = () => TransportPort;
 
 // @public

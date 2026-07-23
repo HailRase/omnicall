@@ -1,7 +1,7 @@
 /**
  * `@axata/axatalk-sdk` — browser client for Axatalk Desktop local protocol.
  *
- * SDK-08: AxatalkClient with privileged namespaced account.activateProfile.
+ * SDK-08+: AxatalkClient with namespaced product APIs + official browser WebSocket transport.
  *
  * @packageDocumentation
  */
@@ -56,6 +56,13 @@ export {
   type StoredPopIdentity
 } from './internal/pop-key-store.js';
 
+export {
+  createBrowserWebSocketTransport,
+  type BrowserWebSocketConstructor,
+  type BrowserWebSocketLike,
+  type CreateBrowserWebSocketTransportOptions
+} from './internal/browser-websocket-transport.js';
+
 export type {
   TransportCloseInfo,
   TransportErrorInfo,
@@ -70,6 +77,8 @@ export type {
   TimerHandle
 } from './internal/scheduler.js';
 export {
+  createBrowserJitterSource,
+  createBrowserScheduler,
   createFakeScheduler,
   createFixedJitterSource
 } from './internal/scheduler.js';

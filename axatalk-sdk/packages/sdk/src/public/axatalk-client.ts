@@ -9,8 +9,13 @@ import {
   isAxatalkClientError
 } from '../internal/client-errors.js';
 import { isOriginBlockedError } from '../internal/origin-policy-errors.js';
+import { createBrowserWebSocketTransport } from '../internal/browser-websocket-transport.js';
 import { createConnectionSession } from '../internal/connection-session.js';
 import { createProductOrchestrator } from '../internal/product-orchestrator.js';
+import {
+  createBrowserJitterSource,
+  createBrowserScheduler
+} from '../internal/scheduler.js';
 import {
   PUBLIC_EVENT_TYPES,
   type AxatalkEvent,
@@ -57,11 +62,16 @@ export function createAxatalkClient(
     current: ReturnType<typeof createProductOrchestrator> | undefined;
   } = { current: undefined };
 
+  const transportFactory =
+    options.transportFactory ?? createBrowserWebSocketTransport;
+  const scheduler = options.scheduler ?? createBrowserScheduler();
+  const jitter = options.jitter ?? createBrowserJitterSource();
+
   const connection = createConnectionSession({
     url: options.url,
-    transportFactory: options.transportFactory,
-    scheduler: options.scheduler,
-    jitter: options.jitter,
+    transportFactory,
+    scheduler,
+    jitter,
     ...(options.diagnostics !== undefined
       ? { diagnostics: options.diagnostics }
       : {}),
@@ -90,7 +100,7 @@ export function createAxatalkClient(
     requestedProfile: options.requestedProfile,
     requestedCapabilities: options.requestedCapabilities ?? [],
     keyStore: options.keyStore,
-    scheduler: options.scheduler,
+    scheduler,
     ...(options.diagnostics !== undefined
       ? { diagnostics: options.diagnostics }
       : {}),
@@ -104,7 +114,7 @@ export function createAxatalkClient(
 
   const product = createProductOrchestrator({
     connection,
-    scheduler: options.scheduler,
+    scheduler,
     getGrantedCapabilities: () => orchestrator.getGrantedCapabilities(),
     snapshotWaitTimeoutMs: options.defaultRequestTimeoutMs ?? 5_000,
     ...(options.diagnostics !== undefined
@@ -164,7 +174,7 @@ export function createAxatalkClient(
           resolve(connection.getState());
           return;
         }
-        const timer = options.scheduler.setTimeout(() => {
+        const timer = scheduler.setTimeout(() => {
           unsubscribe();
           reject(new Error('waitUntil timeout'));
         }, timeoutMs);

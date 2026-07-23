@@ -14,16 +14,17 @@ Example (fake peer only): [`examples/crm-pairing-lite/`](../../examples/crm-pair
 | 1 | [Security anti-patterns](./security-anti-patterns.md) | What never to do |
 | 2 | [Capabilities matrix](./capabilities.md) | Profile defaults vs privileged grants |
 | 3 | [Installation & support](./installation.md) | Engines, ESM, browsers, HTTPS→loopback |
-| 4 | [Pairing quick start](./pairing-quick-start.md) | Connect → pair → ready → snapshot |
-| 5 | [API reference](./api-reference.md) | Namespaced methods only |
-| 6 | [Events catalog](./events.md) | Public protocol event names |
-| 7 | [Errors catalog](./errors.md) | Stable codes + host next steps |
-| 8 | [Reconnect & multi-tab](./reconnect-multi-tab.md) | Fresh snapshot; no mutation replay |
-| 9 | [Logout workflow](./logout-workflow.md) | single-shot logout / abandon |
-| 10 | [Saved-account activation](./saved-profile-activation.md) | Login + optional mode; server-grant only |
-| 11 | [Upgrade & deprecation](./upgrade-deprecation.md) | Additive fields; protocol vs package |
-| 12 | [Compatibility matrix](./compatibility-matrix.md) | Browser + SDK↔desktop gates (DI-10 cells) |
-| 13 | [Release, rollback, revoke & support](./release-and-support.md) | RC tag, SBOM, provenance, stable gate |
+| 4 | [Transport (WebSocket port)](./transport.md) | Official browser WS adapter + injection rules |
+| 5 | [Pairing quick start](./pairing-quick-start.md) | Connect → pair → ready → snapshot |
+| 6 | [API reference](./api-reference.md) | Namespaced methods only |
+| 7 | [Events catalog](./events.md) | Public protocol event names |
+| 8 | [Errors catalog](./errors.md) | Stable codes + host next steps |
+| 9 | [Reconnect & multi-tab](./reconnect-multi-tab.md) | Fresh snapshot; no mutation replay |
+| 10 | [Logout workflow](./logout-workflow.md) | single-shot logout / abandon |
+| 11 | [Saved-account activation](./saved-profile-activation.md) | Login + optional mode; server-grant only |
+| 12 | [Upgrade & deprecation](./upgrade-deprecation.md) | Additive fields; protocol vs package |
+| 13 | [Compatibility matrix](./compatibility-matrix.md) | Browser + SDK↔desktop gates (DI-10 cells) |
+| 14 | [Release, rollback, revoke & support](./release-and-support.md) | RC tag, SBOM, provenance, stable gate |
 
 ## Hard rules (every page assumes these)
 
