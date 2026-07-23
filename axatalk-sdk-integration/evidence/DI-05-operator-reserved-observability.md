@@ -24,6 +24,10 @@ without leaking OCP wire / numeric enums. Preserve existing `changeStatus` →
 **Non-goals:** new `operator:reserve-status`, campaign events, optimistic chip flip,
 SemVer bump, blocking unrelated SDK commands while reserved.
 
+**Desktop UI follow-up (2026-07-23):** OperatorStatusSelector dropdown marks the reserved
+Ready/Break reason as `isCurrent` during busy/PCP (chip still coarse). Finish without
+local booking remains Ready — see `axatalk-sdk/docs/guide/operator-status-reservation.md`.
+
 ## Key files
 
 - Protocol: `axatalk-sdk/packages/protocol/src/snapshot.ts`, `events.ts`, fixture

@@ -319,6 +319,14 @@ describe("useOperatorStatusSelector", () => {
 
     expect(result.current.finishAppeal.visible).toBe(true);
     expect(result.current.finishAppeal.statusLabel).toBe("Toilet break");
+    expect(result.current.vm.breakItems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ reasonId: 7, isCurrent: true }),
+      ]),
+    );
+    expect(result.current.vm.readyItems.every((item) => !item.isCurrent)).toBe(
+      true,
+    );
 
     await act(async () => {
       result.current.onFinishAppeal();
@@ -327,6 +335,35 @@ describe("useOperatorStatusSelector", () => {
 
     expect(finishOcpPostCallAppeal).toHaveBeenCalledTimes(1);
     expect(result.current.finishAppeal.submitting).toBe(false);
+  });
+
+  it("marks reserved break as current in dropdown during post-call processing", () => {
+    setAuthenticatedReady();
+    useAccountBootstrapStore.setState({
+      ocpOperatorStatusProjection: {
+        ...useAccountBootstrapStore.getState().ocpOperatorStatusProjection,
+        status: OperatorStatus.POST_CALL_PROCESSING,
+        isBusy: true,
+        reasonId: 5,
+        reservedStatus: OperatorStatus.BREAK,
+        reservedReasonId: 7,
+      },
+    });
+    const { result } = renderHook(() =>
+      useOperatorStatusSelector({
+        facade: null,
+        isSipRegistered: true,
+        dndEnabled: false,
+        onOpenIntegrationsSettings: vi.fn(),
+      }),
+    );
+
+    expect(
+      result.current.vm.breakItems.find((item) => item.reasonId === 7)?.isCurrent,
+    ).toBe(true);
+    expect(
+      result.current.vm.breakItems.find((item) => item.reasonId === 11)?.isCurrent,
+    ).toBe(false);
   });
 
   it("keeps finish appeal available after reserve notify throws", async () => {

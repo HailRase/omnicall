@@ -33,6 +33,23 @@ Apply of a booking is a separate explicit step:
 await client.operator.finishAppeal({ expectedRevision });
 ```
 
+**Finish target (desktop):** `finishAppeal` applies the **local** booking
+(`reservedTarget` / `reservedReasonId` on the last snapshot) or **defaults to Ready**
+when no booking is present. Always `await changeStatus` and confirm
+`kind: "reserved"` (or re-read snapshot `reservedTarget`) before finishing.
+Do not finish from optimistic CRM UI alone.
+
+## Desktop UI (Axatalk OperatorStatusSelector)
+
+| Surface | Behavior while booking is active |
+| --- | --- |
+| Header chip | Coarse / system label (e.g. post-call processing) — does **not** flip to Break/Ready |
+| Dropdown options | Reserved Ready/Break reason is `isCurrent` (green/orange current chrome, inert) |
+| Finish footer | `Завершить обращение: {reserved reason \| Доступен}` — same booking as finish target |
+
+Booking chrome uses the same projection fields as the public snapshot
+(`reservedTarget` / `reservedReasonId`). No separate reserve command.
+
 ## Observability (additive, compatible)
 
 | Surface | Fields |
@@ -57,6 +74,7 @@ is still active without `reservedTarget` on the fresh snapshot.
 | --- | --- |
 | CRM checks “is busy?” then calls a reserve API | Always `changeStatus`; read `kind` |
 | Treat `kind: "reserved"` as chip = Break/Ready | Keep showing coarse status; show booking UI from `reservedTarget` |
+| Call `finishAppeal` without a confirmed booking | Await `changeStatus` → `reserved`; expect Ready if snapshot has no `reservedTarget` |
 | Block all SDK commands while reserved | Only serialize mutations via revision/mutex; finish-appeal stays available in PCP |
 | Mirror OCP `RESERVED_TO_CALL` (queue) as booking | Different concept; public API does not expose that enum |
 

@@ -512,12 +512,14 @@ export {
   resolveOperatorStatusChangeModeFromProjection,
   resolvePostCallFinishTarget,
   resolvePostCallFinishAppealProjection,
+  resolveOperatorStatusOptionIsCurrent,
   type OcpOperatorStatusLabelKey,
   type OperatorStatusChangeMode,
   type OperatorStatusValue,
   type OperatorStatusTone,
   type PostCallFinishTarget,
   type PostCallFinishAppealProjection,
+  type OperatorStatusOptionCurrentInput,
 } from "./projections/integration/operatorStatusPresentation.js";
 export { FinishPostCallAppealUseCase } from "./use-cases/integration/ocp/FinishPostCallAppealUseCase.js";
 export type { FinishPostCallAppealInput } from "./use-cases/integration/ocp/FinishPostCallAppealUseCase.js";
