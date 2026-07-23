@@ -99,8 +99,21 @@ npm run registry:check  # 71 found / 0 missing
 - SDK-05 client package interoperability gate still pending (paired with this unit)
 - OCP module flag sampled at broker bind time (settings change until rebind deferred)
 - Initial post-auth push snapshot deferred; clients use `sdk:get-snapshot` + event stream + gap resync
-- Full operator session-changed events from OCP projections deferred beyond Domain Event mapper subset
+
+## Follow-up (2026-07-23) — operator public events + coarse-advance
+
+Closed the DI-05 mapper gap for O-OCP-1 push events (protocol already defined the types):
+
+| Domain Event | Public draft | Revision |
+| --- | --- | --- |
+| `OperatorStatusChanged` | `operator:status-changed` (coarse + reasonId/labelKey) | Advance when coarse status changes, or `reasonId` on ready/break |
+| `OperatorSessionStarted` / `Ended` | `operator:session-changed` (`connected`) | Advance on `connected` flip |
+| `OperatorLoggedOut` | omitted (SessionEnded already covers disconnect) | — |
+
+Evidence: `axatalk-sdk-integration/evidence/DI-05-operator-events-coarse-revision.md`.  
+DI-05 status remains **`done`** (additive follow-up; not reopened).
 
 ## Reviewer
 
-`/sdk-review` **PASS** (2026-07-20 re-gate). Prior FAIL High closed: `sdkGatewayRouteInbound.test.ts` `window:hide` payload includes `expectedRevision: 12` (schema-valid deny); `npm run typecheck` exits 0; ADR-0013 deny semantics unchanged. No Blockers. DI-05 → `done`. F-011 remains `in progress`. Version `0.11.2` unchanged. Next: DI-06 only.
+`/sdk-review` **PASS** (2026-07-20 re-gate). Prior FAIL High closed: `sdkGatewayRouteInbound.test.ts` `window:hide` payload includes `expectedRevision: 12` (schema-valid deny); `npm run typecheck` exits 0; ADR-0013 deny semantics unchanged. No Blockers. DI-05 → `done`. F-011 remains `in progress`. Version `0.11.2` unchanged. Next: DI-06 only.  
+Operator-events follow-up (2026-07-23): request `/sdk-review` on evidence `DI-05-operator-events-coarse-revision.md` (additive; DI-05 stays `done`).

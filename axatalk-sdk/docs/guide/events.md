@@ -20,10 +20,14 @@ Constant: `PUBLIC_EVENT_TYPES` from `@axata/axatalk-sdk`.
 | `registration:changed` | SIP registration badge |
 | `account:session-activated` | Account signed-in projection |
 | `account:session-ended` | Account signed-out projection |
-| `operator:session-changed` | Operator connectivity |
-| `operator:status-changed` | Ready / break UI |
+| `operator:session-changed` | Operator connectivity (`connected`) |
+| `operator:status-changed` | Coarse Ready / Break / offline / unknown UI |
 | `window:visibility-changed` | Softphone window state |
 | `sdk:server-shutdown` | Prompt reconnect / wait for desktop |
+
+Desktop (Axatalk) emits the operator events above from OCP Domain Events via
+`ExternalSdkEventMapper` (DI-05 follow-up). Mid-call OCP statuses (talking, hold, …)
+project as public `unknown`. Campaign events remain out of v1.
 
 ## Usage
 
@@ -36,6 +40,36 @@ const stop = client.subscribe('account:session-activated', (event) => {
 stop();
 ```
 
+### Operator + revision (host recipe)
+
+```ts
+client.subscribe('operator:status-changed', (event) => {
+  // Update UI from event.payload.status / reasonId — hint only.
+  void event.payload;
+});
+
+client.subscribe('operator:session-changed', (event) => {
+  void event.payload.connected;
+});
+
+// Before operator:change-status / other mutations:
+const revision =
+  client.getRevision() ?? (await client.getSnapshot()).revision;
+```
+
+Rules:
+
+- **Do not** use `event.revision` alone as the next `expectedRevision` without a
+  fresh snapshot when you are unsure the cache is current.
+- Snapshot remains source of truth; the SDK does **not** patch the snapshot cache
+  from events.
+- On `event.sequence_gap` diagnostics the client already triggers `getSnapshot()`.
+- Desktop **coarse-advances** the shared session revision when public coarse status
+  changes (`ready|break|offline|unknown`), when `reasonId` changes on `ready|break`,
+  or when `connected` flips — not on every talking↔hold transition inside `unknown`.
+- `operator:change-status` reply includes `kind: "applied" | "reserved"` — reserved
+  means post-call booking, not an immediate Break/Ready chip.
+
 ## Anti-corruption rules
 
 | Do | Do not |
@@ -43,3 +77,4 @@ stop();
 | Match on `PUBLIC_EVENT_TYPES` | Listen for internal Domain Event strings |
 | Treat payload as redacted DTO | Assume full phone numbers / secrets |
 | Re-fetch snapshot on sequence gaps | Patch local call graph from partial events blindly |
+| Treat operator status as coarse enum | Expect full OCP numeric status mirror |

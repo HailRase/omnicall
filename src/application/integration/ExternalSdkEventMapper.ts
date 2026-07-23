@@ -1,11 +1,17 @@
 /**
  * Map Domain Events → public SDK event drafts (DI-05).
  * Never forwards Domain JSON; campaign events are omitted (ADR-0017 O-CAMP-1).
+ * OperatorLoggedOut is omitted when OperatorSessionEnded already covers disconnect.
  */
 
 import type { DomainEvent } from "@domain/index.js";
+import {
+  isOperatorStatus,
+  OPERATOR_STATUS_LABEL_KEY,
+} from "@domain/integration/ocp/OperatorStatus.js";
 import type { WireJsonObject } from "@axata/axatalk-protocol";
 
+import { mapSdkOperatorStatus } from "./mapSdkOperatorStatus.js";
 import { mapSdkPublicCallState } from "./mapSdkPublicCallState.js";
 import { mapSdkRegistrationState } from "./mapSdkRegistrationState.js";
 import {
@@ -27,7 +33,9 @@ export type SdkPublicEventDraft = Readonly<{
     | "call:unmuted"
     | "registration:changed"
     | "account:session-activated"
-    | "account:session-ended";
+    | "account:session-ended"
+    | "operator:status-changed"
+    | "operator:session-changed";
   payload: WireJsonObject;
 }>;
 
@@ -83,9 +91,45 @@ export function mapDomainEventToSdkPublicDraft(
         type: "account:session-activated",
         payload: optionalProfileLabel(event),
       };
+    case "OperatorStatusChanged":
+      return operatorStatusDraft(event);
+    case "OperatorSessionStarted":
+      return {
+        type: "operator:session-changed",
+        payload: { connected: true },
+      };
+    case "OperatorSessionEnded":
+      return {
+        type: "operator:session-changed",
+        payload: { connected: false },
+      };
     default:
       return null;
   }
+}
+
+function operatorStatusDraft(event: DomainEvent): SdkPublicEventDraft | null {
+  const newStatusRaw = event["newStatus"];
+  if (!isOperatorStatus(newStatusRaw)) {
+    return null;
+  }
+  const status = mapSdkOperatorStatus(newStatusRaw);
+  const reasonIdRaw = event["reasonId"];
+  const reasonId =
+    typeof reasonIdRaw === "number" &&
+    Number.isInteger(reasonIdRaw) &&
+    reasonIdRaw >= 0
+      ? reasonIdRaw
+      : undefined;
+  const reasonLabelKey = OPERATOR_STATUS_LABEL_KEY[newStatusRaw];
+  return {
+    type: "operator:status-changed",
+    payload: {
+      status,
+      ...(reasonId !== undefined ? { reasonId } : {}),
+      reasonLabelKey: reasonLabelKey.slice(0, 128),
+    },
+  };
 }
 
 function callDraft(

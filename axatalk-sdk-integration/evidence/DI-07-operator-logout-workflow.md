@@ -111,10 +111,9 @@ npx vitest run \
 
 ## Residual risks
 
-- SDK-07 browser client package still pending (non-blocking; protocol DTOs from SDK-02).
-- Packaged E2E deferred to DI-10.
-- `account:activate-profile` deferred to DI-08.
+- Packaged E2E / remaining DI-10 smoke still open for F-011 close.
 - No dedicated public protocol cancel-logout command (abandon / disconnect / supersede).
+- Operator push events + coarse-advance: see DI-05 follow-up `evidence/DI-05-operator-events-coarse-revision.md` (2026-07-23).
 
 ## Reviewer
 

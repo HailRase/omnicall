@@ -11,7 +11,7 @@ Detect with `isAxatalkClientError(error)` then branch on `error.code`.
 | `forbidden` | Missing capability, Origin policy deny (`permission_denied`), or activate consent Deny | Disable control; open Axatalk SDK Settings; do not tight-loop |
 | `not_ready` | Client not in `ready` **or** desktop product broker not ready | Wait / show connecting; distinct from Origin blacklist |
 | `timeout` | No reply in budget | Surface retry UI; do **not** auto-replay non-idempotent cmds |
-| `stale_state` | Revision mismatch; often has `currentRevision` | `getSnapshot()`; retry **once** with new revision if user still intends |
+| `stale_state` | Revision mismatch; often has `currentRevision`. Causes include another SDK mutate, **or** desktop coarse-advance after UI/OCP operator status/session change | `getSnapshot()`; retry **once** with new revision if user still intends |
 | `conflict` | Aggregate busy / active session / race / activate consent already pending | Show conflict; for activate often logout-first; wait if consent pending |
 | `not_found` | Unknown call / reason / login / no saved account | Refresh; for activate correct login or guide human to Account UI |
 | `invalid_payload` | Wire/result shape failed closed | Treat as bug / desktop mismatch; do not parse secrets from `details` |

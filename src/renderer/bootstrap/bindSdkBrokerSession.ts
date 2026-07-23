@@ -16,6 +16,10 @@ import { mapDomainEventToSdkPublicDraft } from "@application/integration/Externa
 import { readSdkProductStateFromStore } from "@application/integration/readSdkProductStateFromStore.js";
 import { SdkAggregateMutex } from "@application/integration/SdkAggregateMutex.js";
 import { SdkCallOwnershipRegistry } from "@application/integration/SdkCallOwnershipRegistry.js";
+import {
+  isSdkOperatorPublicEventType,
+  SdkOperatorEventRevisionGate,
+} from "@application/integration/SdkOperatorEventRevisionGate.js";
 import { SdkSessionRevisionClock } from "@application/integration/SdkSessionRevisionClock.js";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import { withMatrixCapability } from "@application/index.js";
@@ -52,6 +56,7 @@ export function bindSdkBrokerSession(
   options: BindSdkBrokerSessionOptions,
 ): BoundSdkBrokerSession {
   const revisionClock = new SdkSessionRevisionClock();
+  const operatorEventRevisionGate = new SdkOperatorEventRevisionGate();
   const ownership = new SdkCallOwnershipRegistry();
   const accountMutex = new SdkAggregateMutex();
   const readHandler = new ExternalSdkReadHandler({
@@ -198,11 +203,14 @@ export function bindSdkBrokerSession(
     if (draft === null) {
       return;
     }
+    const revision = isSdkOperatorPublicEventType(draft.type)
+      ? operatorEventRevisionGate.preparePublish(draft, revisionClock).revision
+      : handler.getRevision();
     void softphone.publishSdkGatewayEvent({
       draft: {
         type: draft.type,
         payload: draft.payload,
-        revision: handler.getRevision(),
+        revision,
       },
     });
   });
