@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-23 17:25
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `55a97de`
 
 ## Где
 - `axatalk-sdk/packages/protocol` — snapshot/event schemas + fixture
