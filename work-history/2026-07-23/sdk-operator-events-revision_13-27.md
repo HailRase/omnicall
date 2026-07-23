@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-23 13:27
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `04c16a4`
 
 ## Где
 - `src/application/integration/ExternalSdkEventMapper.ts`
