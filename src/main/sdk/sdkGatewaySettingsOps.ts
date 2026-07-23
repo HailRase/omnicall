@@ -12,6 +12,7 @@ import type {
   SdkPendingPairingProjection,
   SdkPendingOriginTrustProjection,
 } from "@shared/ipc/SdkGatewaySettingsContract.js";
+import { computeSdkPendingExpiresAtIso } from "@shared/integration/sdkOperatorModalTimeouts.js";
 
 export function resolveSdkGatewayAllowedOrigins(
   policy: SdkGatewaySettingsPolicyPayload,
@@ -74,10 +75,13 @@ export async function buildSdkGatewaySettingsSnapshot(
       expiresAt: pending.expiresAt,
     }));
 
+  const originTrustTtlMs = gateway.getOperatorModalTimeouts().originTrustTtlMs;
   const pendingOriginTrust: SdkPendingOriginTrustProjection[] =
     gateway.listPendingOriginTrust().map((entry) => ({
       originTrustRequestId: entry.originTrustRequestId,
       origin: entry.origin,
+      createdAt: entry.createdAt,
+      expiresAt: computeSdkPendingExpiresAtIso(entry.createdAt, originTrustTtlMs),
     }));
 
   return {

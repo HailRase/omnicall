@@ -16,11 +16,11 @@ await client.account.activateProfile({
 | Pairing request | **Never** — stripped by `sanitizeRequestedCapabilities` |
 | Consent | Renderer modal Allow/Deny on **every** activate when policy allows and a profile exists |
 | Consent scope | **One activation only** — next activate asks again; no lasting skip-consent TTL |
-| Consent TTL | **120 s** — unanswered modal auto-clears; SDK gets `timeout` + `activate_phase: consent` |
+| Consent TTL | **120 s** — unanswered modal auto-clears; softphone header shows muted `MM:SS` countdown; SDK gets `timeout` + `activate_phase: consent` |
 | Secrets | SDK never accepts/returns SIP password or OCP apiKey |
 | Account lookup | Desktop resolves the requested saved account by `login`; no profile-list command exists in v1 |
 | SIP vs OCP | Optional `mode` requests `sip_only` or `ocp`; desktop validates it against the saved account |
-| Client wait | `activateProfile` waits `SDK_ACTIVATE_CLIENT_TIMEOUT_MS` (~240 s), not the default 5 s |
+| Client wait | `activateProfile` waits `SDK_ACTIVATE_CLIENT_TIMEOUT_MS` (~420 s, max Settings consent + auth), not the default 5 s. Modal countdown default remains 120 s (operator Settings). |
 
 ## Flow (ADR-0018 §E)
 
@@ -53,6 +53,7 @@ await client.account.activateProfile({
 | `invalid_payload` | Malformed / secret-looking reply | Fail closed; do not parse secrets |
 | `timeout` | Consent TTL **or** auth budget / stage timeout (`details.activate_phase`) | Retry only after modal cleared; inspect `failure_kind` / softphone UI for OCP |
 | `operation_failed` | e.g. `failure_kind: session_exist` after Allow | Direct operator to softphone SESSION_EXIST / retry UX |
+| `operation_failed` (no details) | Transport reconnect mid-consent (should be rare after Desktop inbound-queue release) | Keep one client/WS during consent; retry activate after reconnect |
 
 ```ts
 } catch (error: unknown) {

@@ -13,6 +13,13 @@ import {
   type SdkOriginTrustEntry,
   type SdkOriginTrustState,
 } from "./SdkOriginTrust.js";
+import {
+  parseSdkOperatorModalTimeouts,
+  SDK_OPERATOR_MODAL_TIMEOUT_DEFAULTS,
+  type SdkOperatorModalTimeouts,
+} from "@shared/integration/sdkOperatorModalTimeouts.js";
+
+export type { SdkOperatorModalTimeouts };
 
 /** Max exact Origin entries in the trust store. */
 export const MAX_SDK_ALLOWED_ORIGINS = 64;
@@ -31,11 +38,17 @@ export type SdkIntegrationSettings = Readonly<{
    * False keeps boot-time env allow seed until first managed save.
    */
   originsManaged: boolean;
+  /**
+   * Operator modal deadlines (consent / Origin TOFU / pairing). Desktop SSoT;
+   * missing blob → historical defaults (120s / 5m / 5m).
+   */
+  operatorModalTimeouts: SdkOperatorModalTimeouts;
 }>;
 
 export const SDK_INTEGRATION_DEFAULTS: SdkIntegrationSettings = {
   origins: [],
   originsManaged: false,
+  operatorModalTimeouts: { ...SDK_OPERATOR_MODAL_TIMEOUT_DEFAULTS },
 };
 
 function isValidOriginString(value: string): boolean {
@@ -170,7 +183,11 @@ export function migrateLegacySdkIntegrationSettings(
   if (origins.length > MAX_SDK_ALLOWED_ORIGINS) {
     return null;
   }
-  return { origins, originsManaged };
+  return {
+    origins,
+    originsManaged,
+    operatorModalTimeouts: { ...SDK_OPERATOR_MODAL_TIMEOUT_DEFAULTS },
+  };
 }
 
 /**
@@ -222,6 +239,9 @@ export function parseSdkIntegrationSettings(
   return {
     origins,
     originsManaged,
+    operatorModalTimeouts: parseSdkOperatorModalTimeouts(
+      record["operatorModalTimeouts"],
+    ),
   };
 }
 

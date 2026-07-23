@@ -195,6 +195,9 @@ export async function applySdkGatewayPolicy(
 
   if (gateway !== null) {
     gateway.setOriginTrustEntries(originTrustEntries);
+    if (policy.operatorModalTimeouts !== undefined) {
+      gateway.setOperatorModalTimeouts(policy.operatorModalTimeouts);
+    }
     return gateway;
   }
 

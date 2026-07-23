@@ -7,6 +7,13 @@ import type {
 } from "@shared/ipc/SdkGatewaySettingsContract.js";
 import { useSdkConnectCeremony } from "./useSdkConnectCeremony.js";
 
+const TRUST: SdkPendingOriginTrustProjection = {
+  originTrustRequestId: "trust_1",
+  origin: "https://crm.example",
+  createdAt: "2026-07-22T11:55:00.000Z",
+  expiresAt: "2026-07-22T12:00:00.000Z",
+};
+
 type CeremonyProps = Readonly<{
   pendingOriginTrust: readonly SdkPendingOriginTrustProjection[];
   pendingPairing: readonly SdkPendingPairingProjection[];
@@ -18,6 +25,7 @@ function baseInput(
   overrides: Partial<{
     onAllowOriginTrust: ReturnType<typeof vi.fn>;
     onDenyOriginTrust: ReturnType<typeof vi.fn>;
+    onCancelOriginTrust: ReturnType<typeof vi.fn>;
     onApprovePairing: ReturnType<typeof vi.fn>;
     onDenyPairing: ReturnType<typeof vi.fn>;
     isOriginAllowed: (origin: string) => boolean;
@@ -30,6 +38,7 @@ function baseInput(
     isOriginAllowed: overrides.isOriginAllowed ?? props.isOriginAllowed ?? (() => true),
     onAllowOriginTrust: overrides.onAllowOriginTrust ?? vi.fn(),
     onDenyOriginTrust: overrides.onDenyOriginTrust ?? vi.fn(),
+    onCancelOriginTrust: overrides.onCancelOriginTrust ?? vi.fn(),
     onApprovePairing: overrides.onApprovePairing ?? vi.fn(),
     onDenyPairing: overrides.onDenyPairing ?? vi.fn(),
   };
@@ -42,9 +51,7 @@ describe("useSdkConnectCeremony", () => {
       useSdkConnectCeremony(
         baseInput(
           {
-            pendingOriginTrust: [
-              { originTrustRequestId: "trust_1", origin: "https://crm.example" },
-            ],
+            pendingOriginTrust: [TRUST],
             pendingPairing: [],
           },
           { isOriginAllowed },
@@ -60,8 +67,10 @@ describe("useSdkConnectCeremony", () => {
       showStepper: true,
       originTrustRequestId: "trust_1",
       pairing: null,
+      expiresAt: TRUST.expiresAt,
     });
     expect(result.current.onCancelWaiting).toBeTypeOf("function");
+    expect(result.current.onDeadlineExpired).toBeTypeOf("function");
   });
 
   it("bridges allow transport into waiting then pairing without closing", () => {
@@ -81,9 +90,7 @@ describe("useSdkConnectCeremony", () => {
       (props: CeremonyProps) => useSdkConnectCeremony(baseInput(props, { onAllowOriginTrust })),
       {
         initialProps: {
-          pendingOriginTrust: [
-            { originTrustRequestId: "trust_1", origin: "https://crm.example" },
-          ],
+          pendingOriginTrust: [TRUST],
           pendingPairing: [] as readonly SdkPendingPairingProjection[],
         } satisfies CeremonyProps,
       },
@@ -94,6 +101,9 @@ describe("useSdkConnectCeremony", () => {
     });
     expect(onAllowOriginTrust).toHaveBeenCalledWith("trust_1");
     expect(result.current.view.open && result.current.view.step).toBe("waiting");
+    expect(result.current.view.open && result.current.view.expiresAt).toEqual(
+      expect.any(String),
+    );
 
     rerender({ pendingOriginTrust: [], pendingPairing });
     expect(result.current.view).toMatchObject({
@@ -101,6 +111,7 @@ describe("useSdkConnectCeremony", () => {
       step: "pairing",
       showStepper: true,
       pairing: { pairingRequestId: "pair_1" },
+      expiresAt: "2026-07-22T12:00:00.000Z",
     });
   });
 
@@ -114,9 +125,7 @@ describe("useSdkConnectCeremony", () => {
         ),
       {
         initialProps: {
-          pendingOriginTrust: [
-            { originTrustRequestId: "trust_1", origin: "https://crm.example" },
-          ],
+          pendingOriginTrust: [TRUST],
           pendingPairing: [] as readonly SdkPendingPairingProjection[],
         } satisfies CeremonyProps,
       },
@@ -125,7 +134,6 @@ describe("useSdkConnectCeremony", () => {
     act(() => {
       result.current.onAllowTransport();
     });
-    // Allow clears Origin trust pending in the snapshot; bridge stays in waiting.
     rerender({
       pendingOriginTrust: [],
       pendingPairing: [],
@@ -137,6 +145,25 @@ describe("useSdkConnectCeremony", () => {
     });
     expect(result.current.view).toEqual({ open: false });
     expect(onDenyPairing).not.toHaveBeenCalled();
+    expect(onDenyOriginTrust).not.toHaveBeenCalled();
+  });
+
+  it("deadline expired on transport cancels without blacklist deny", () => {
+    const onCancelOriginTrust = vi.fn();
+    const onDenyOriginTrust = vi.fn();
+    const { result } = renderHook(() =>
+      useSdkConnectCeremony(
+        baseInput(
+          { pendingOriginTrust: [TRUST], pendingPairing: [] },
+          { onCancelOriginTrust, onDenyOriginTrust },
+        ),
+      ),
+    );
+
+    act(() => {
+      result.current.onDeadlineExpired();
+    });
+    expect(onCancelOriginTrust).toHaveBeenCalledWith("trust_1");
     expect(onDenyOriginTrust).not.toHaveBeenCalled();
   });
 
@@ -199,6 +226,7 @@ describe("useSdkConnectCeremony", () => {
       step: "pairing",
       showStepper: false,
       pairing: { pairingRequestId: "pair_2" },
+      expiresAt: "2026-07-22T12:00:00.000Z",
     });
   });
 
@@ -210,9 +238,7 @@ describe("useSdkConnectCeremony", () => {
         useSdkConnectCeremony(baseInput(props, { onDenyOriginTrust, onDenyPairing })),
       {
         initialProps: {
-          pendingOriginTrust: [
-            { originTrustRequestId: "trust_1", origin: "https://crm.example" },
-          ],
+          pendingOriginTrust: [TRUST],
           pendingPairing: [] as readonly SdkPendingPairingProjection[],
         } satisfies CeremonyProps,
       },

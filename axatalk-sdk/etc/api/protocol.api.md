@@ -3069,7 +3069,7 @@ export type Revision = z.infer<typeof RevisionSchema>;
 export const RevisionSchema: z.ZodNumber;
 
 // @public
-export const SDK_ACTIVATE_CLIENT_TIMEOUT_MS: 240000;
+export const SDK_ACTIVATE_CLIENT_TIMEOUT_MS: 420000;
 
 // @public
 export const SDK_ACTIVATE_CONSENT_TTL_MS: 120000;

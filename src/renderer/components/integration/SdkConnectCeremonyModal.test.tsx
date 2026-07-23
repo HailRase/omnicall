@@ -18,7 +18,7 @@ afterEach(() => {
   setRendererLanguage("ru");
 });
 
-function transportView(): SdkConnectCeremonyView {
+function transportView(expiresAt: string): SdkConnectCeremonyView {
   return {
     open: true,
     step: "transport",
@@ -26,10 +26,11 @@ function transportView(): SdkConnectCeremonyView {
     showStepper: true,
     originTrustRequestId: "trust_1",
     pairing: null,
+    expiresAt,
   };
 }
 
-function pairingView(showStepper: boolean): SdkConnectCeremonyView {
+function pairingView(showStepper: boolean, expiresAt: string): SdkConnectCeremonyView {
   return {
     open: true,
     step: "pairing",
@@ -42,8 +43,9 @@ function pairingView(showStepper: boolean): SdkConnectCeremonyView {
       origin: "https://crm.example",
       applicationName: "CRM Tab",
       profile: "presentation",
-      expiresAt: "2026-07-22T12:00:00.000Z",
+      expiresAt,
     },
+    expiresAt,
   };
 }
 
@@ -54,16 +56,18 @@ const idleHandlers = {
   onDenyPairing: () => undefined,
   onCancelWaiting: () => undefined,
   onDismiss: () => undefined,
+  onDeadlineExpired: () => undefined,
 };
 
 describe("SdkConnectCeremonyModal", () => {
-  it("renders transport step with stepper and allow/deny", async () => {
+  it("renders transport step with stepper, deadline, and allow/deny", async () => {
     const user = userEvent.setup();
     const onAllowTransport = vi.fn();
     const onDenyTransport = vi.fn();
+    const expiresAt = new Date(Date.now() + 90_000).toISOString();
     render(
       <SdkConnectCeremonyModal
-        view={transportView()}
+        view={transportView(expiresAt)}
         busy={false}
         {...idleHandlers}
         onAllowTransport={onAllowTransport}
@@ -72,6 +76,9 @@ describe("SdkConnectCeremonyModal", () => {
     );
 
     expect(screen.getByTestId("sdk-connect-ceremony-modal")).toBeInTheDocument();
+    expect(screen.getByTestId("sdk-connect-ceremony-deadline")).toHaveTextContent(
+      /^\d{2}:\d{2}$/,
+    );
     expect(screen.getByText("Connection")).toBeInTheDocument();
     expect(screen.getByText("Pairing")).toBeInTheDocument();
     await user.click(screen.getByTestId("sdk-connect-ceremony-allow-transport"));
@@ -83,9 +90,10 @@ describe("SdkConnectCeremonyModal", () => {
   it("renders pairing-only without stepper when origin already trusted", async () => {
     const user = userEvent.setup();
     const onApprovePairing = vi.fn();
+    const expiresAt = new Date(Date.now() + 120_000).toISOString();
     render(
       <SdkConnectCeremonyModal
-        view={pairingView(false)}
+        view={pairingView(false, expiresAt)}
         busy={false}
         {...idleHandlers}
         onApprovePairing={onApprovePairing}
@@ -94,6 +102,9 @@ describe("SdkConnectCeremonyModal", () => {
 
     expect(screen.queryByText("Connection")).not.toBeInTheDocument();
     expect(screen.getByTestId("sdk-connect-ceremony-pairing-meta")).toBeInTheDocument();
+    expect(screen.getByTestId("sdk-connect-ceremony-deadline")).toHaveTextContent(
+      /^\d{2}:\d{2}$/,
+    );
     await user.click(screen.getByTestId("sdk-connect-ceremony-approve-pair_1"));
     expect(onApprovePairing).toHaveBeenCalledTimes(1);
   });
@@ -111,6 +122,7 @@ describe("SdkConnectCeremonyModal", () => {
           showStepper: true,
           originTrustRequestId: null,
           pairing: null,
+          expiresAt: new Date(Date.now() + 45_000).toISOString(),
         }}
         busy={false}
         {...idleHandlers}

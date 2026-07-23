@@ -4,6 +4,7 @@ import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createDefaultSdkOriginCapabilityMatrix } from "@application/index.js";
+import { SDK_OPERATOR_MODAL_TIMEOUT_DEFAULTS } from "@shared/integration/sdkOperatorModalTimeouts.js";
 import { setRendererLanguage } from "../../../i18n/index.js";
 import { setupJsdomRadix } from "../../../test/setupJsdomRadix.js";
 import { SdkModuleSettingsCard } from "./SdkModuleSettingsCard.js";
@@ -39,6 +40,7 @@ function createProps(
           previouslyAllowed: false,
         },
       ],
+      operatorModalTimeouts: { ...SDK_OPERATOR_MODAL_TIMEOUT_DEFAULTS },
     },
     diagnostics: {
       status: "listening",
@@ -78,6 +80,7 @@ function createProps(
     onRemoveAllowedOrigin: vi.fn(),
     onRenameAllowedOrigin: vi.fn(),
     onSetOriginMatrix: vi.fn(),
+    onOperatorModalTimeoutsChange: vi.fn(),
     ...overrides,
   };
 }
@@ -132,6 +135,7 @@ describe("SdkModuleSettingsCard", () => {
                 previouslyAllowed: true,
               },
             ],
+            operatorModalTimeouts: { ...SDK_OPERATOR_MODAL_TIMEOUT_DEFAULTS },
           },
         })}
       />,
@@ -139,6 +143,14 @@ describe("SdkModuleSettingsCard", () => {
 
     await openTab(user, "blocked");
     expect(screen.getByTestId("sdk-module-blacklist-empty")).toBeInTheDocument();
+  });
+
+  it("renders operator modal timeout selects on main tab", () => {
+    render(<SdkModuleSettingsCard {...createProps()} />);
+    expect(screen.getByTestId("sdk-module-timeouts")).toBeInTheDocument();
+    expect(screen.getByTestId("sdk-timeout-consent")).toBeInTheDocument();
+    expect(screen.getByTestId("sdk-timeout-origin-trust")).toBeInTheDocument();
+    expect(screen.getByTestId("sdk-timeout-pairing")).toBeInTheDocument();
   });
 
   it("confirms revoke for a paired client without exposing secrets", async () => {

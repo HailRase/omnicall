@@ -25,8 +25,10 @@ import {
   verifySdkPopSignature,
 } from "./sdkGatewayPopCrypto.js";
 import { withOriginMatrixAccountActivate } from "./sdkAccountActivateSession.js";
+import { SDK_PAIRING_PENDING_TTL_MS as PAIRING_PENDING_TTL_MS } from "@shared/integration/sdkOperatorModalTimeouts.js";
 
-export const SDK_PAIRING_PENDING_TTL_MS = 5 * 60_000;
+/** Pairing pending TTL. SSoT: sdkOperatorModalTimeouts. */
+export const SDK_PAIRING_PENDING_TTL_MS = PAIRING_PENDING_TTL_MS;
 export const SDK_AUTH_SESSION_TTL_MS = 30 * 60_000;
 
 export type SdkSessionAuthDeps = Readonly<{
@@ -43,6 +45,8 @@ export type SdkSessionAuthDeps = Readonly<{
   ) => void;
   getOriginMatrixCapabilities: (origin: string) => readonly CapabilityId[];
   getOriginTrustState: (origin: string) => SdkOriginTrustState;
+  /** Live Settings pairing TTL (defaults to SDK_PAIRING_PENDING_TTL_MS). */
+  getPairingPendingTtlMs?: () => number;
 }>;
 
 export async function handlePairingRequest(
@@ -55,8 +59,10 @@ export async function handlePairingRequest(
     return;
   }
   const createdAt = createSdkIsoTimestamp(deps.now);
+  const pairingTtlMs =
+    deps.getPairingPendingTtlMs?.() ?? SDK_PAIRING_PENDING_TTL_MS;
   const expiresAt = createSdkIsoTimestamp(
-    () => new Date(deps.now().getTime() + SDK_PAIRING_PENDING_TTL_MS),
+    () => new Date(deps.now().getTime() + pairingTtlMs),
   );
   const pending = {
     pairingRequestId: createSdkOpaqueId("pair"),

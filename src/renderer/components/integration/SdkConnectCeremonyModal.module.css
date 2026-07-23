@@ -13,6 +13,19 @@
   box-shadow: var(--shadow-menu-elevated);
 }
 
+.title-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  min-width: 0;
+}
+
+.title-text {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
 .stepper {
   display: flex;
   align-items: center;

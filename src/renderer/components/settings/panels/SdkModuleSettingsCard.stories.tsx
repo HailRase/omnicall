@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { createDefaultSdkOriginCapabilityMatrix } from "@application/index.js";
+import { SDK_OPERATOR_MODAL_TIMEOUT_DEFAULTS } from "@shared/integration/sdkOperatorModalTimeouts.js";
 import { SdkModuleSettingsCard } from "./SdkModuleSettingsCard.js";
 
 const meta = {
@@ -36,6 +37,7 @@ const baseArgs = {
         previouslyAllowed: false,
       },
     ],
+    operatorModalTimeouts: { ...SDK_OPERATOR_MODAL_TIMEOUT_DEFAULTS },
   },
   diagnostics: {
     status: "listening" as const,
@@ -75,6 +77,7 @@ const baseArgs = {
   onRemoveAllowedOrigin: () => undefined,
   onRenameAllowedOrigin: () => undefined,
   onSetOriginMatrix: () => undefined,
+  onOperatorModalTimeoutsChange: () => undefined,
 };
 
 export const Light: Story = {

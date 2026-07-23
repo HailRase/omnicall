@@ -328,6 +328,23 @@
   max-width: 28rem;
 }
 
+.timeouts-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-top: var(--space-xs);
+  max-width: 22rem;
+}
+
+.timeout-field {
+  max-width: none;
+}
+
+.timeout-select {
+  width: 12rem;
+  max-width: 12rem;
+}
+
 .diagnostics-label {
   color: var(--color-text-secondary);
   font-size: 0.8125rem;

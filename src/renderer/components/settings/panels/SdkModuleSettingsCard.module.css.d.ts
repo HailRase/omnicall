@@ -43,6 +43,9 @@ declare const classes: {
   readonly statusHeader: string;
   readonly statusHeaderText: string;
   readonly tabPanel: string;
+  readonly timeoutField: string;
+  readonly timeoutSelect: string;
+  readonly timeoutsList: string;
   readonly trustedAccordion: string;
 };
 export default classes;

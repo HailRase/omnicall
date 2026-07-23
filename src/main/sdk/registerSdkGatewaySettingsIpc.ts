@@ -121,7 +121,8 @@ async function handleSdkGatewaySettingsOperation(
       return { ok: true, snapshot };
     }
     case "allowOriginTrust":
-    case "denyOriginTrust": {
+    case "denyOriginTrust":
+    case "cancelOriginTrust": {
       const gateway = runtime.getGateway();
       if (gateway === null) return { ok: false, reason: "gateway_unavailable" };
       const pending = gateway.listPendingOriginTrust().find(
@@ -134,7 +135,9 @@ async function handleSdkGatewaySettingsOperation(
       const settled =
         operation.op === "allowOriginTrust"
           ? gateway.allowOriginTrust(pending.originTrustRequestId)
-          : gateway.denyOriginTrust(pending.originTrustRequestId);
+          : operation.op === "denyOriginTrust"
+            ? gateway.denyOriginTrust(pending.originTrustRequestId)
+            : gateway.cancelOriginTrust(pending.originTrustRequestId);
       if (!settled) return { ok: false, reason: "origin_trust_not_found" };
       return { ok: true, snapshot: await buildSdkGatewaySettingsSnapshot(gateway) };
     }

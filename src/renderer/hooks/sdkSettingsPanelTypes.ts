@@ -6,6 +6,7 @@ import type {
   SdkPendingOriginTrustProjection,
 } from "@shared/ipc/SdkGatewaySettingsContract.js";
 import type { SdkOriginCapabilityMatrix } from "@application/index.js";
+import type { SdkOperatorModalTimeouts } from "@shared/integration/sdkOperatorModalTimeouts.js";
 
 export type SdkSettingsPanelErrorKey =
   | "settings.integrations.sdk.error.saveFailed"
@@ -31,6 +32,7 @@ export type UseSdkSettingsPanelResult = Readonly<{
   onRevokeClient: (clientId: string) => void;
   onAllowOriginTrust: (originTrustRequestId: string) => void;
   onDenyOriginTrust: (originTrustRequestId: string) => void;
+  onCancelOriginTrust: (originTrustRequestId: string) => void;
   onUnblockOrigin: (origin: string) => void;
   onBlacklistOrigin: (origin: string) => void;
   onRemoveAllowedOrigin: (origin: string) => void;
@@ -38,5 +40,8 @@ export type UseSdkSettingsPanelResult = Readonly<{
   onSetOriginMatrix: (
     origin: string,
     matrix: SdkOriginCapabilityMatrix,
+  ) => void;
+  onOperatorModalTimeoutsChange: (
+    next: Partial<SdkOperatorModalTimeouts>,
   ) => void;
 }>;

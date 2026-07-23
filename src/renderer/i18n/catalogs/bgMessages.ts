@@ -711,6 +711,18 @@ export const bgMessages: MessageShape = {
   "settings.integrations.sdk.activateConsent.cancelGroupAria": "Отказ и допълнителни действия",
   "settings.integrations.sdk.activateConsent.moreActionsAria": "Допълнителни действия",
   "settings.integrations.sdk.activateConsent.acknowledge": "Разбрах",
+  "settings.integrations.sdk.modal.deadlineAria": (params: Readonly<{ time: string }>) =>
+    `Остават ${params.time}`,
+  "settings.integrations.sdk.timeouts.title": "Време за потвърждения",
+  "settings.integrations.sdk.timeouts.hint":
+    "Колко да се чака решението на оператора в SDK модалките. Обратно броене MM:SS в заглавието. Интеграторът трябва да чака отговора на Desktop, без по-къс локален таймер.",
+  "settings.integrations.sdk.timeouts.consent": "Активиране на профил",
+  "settings.integrations.sdk.timeouts.originTrust": "Разрешение на сайта",
+  "settings.integrations.sdk.timeouts.pairing": "Сдвояване",
+  "settings.integrations.sdk.timeouts.option.seconds": (params: Readonly<{ count: number }>) =>
+    `${String(params.count)} с`,
+  "settings.integrations.sdk.timeouts.option.minutes": (params: Readonly<{ count: number }>) =>
+    `${String(params.count)} мин`,
   "settings.integrations.sdk.description":
     "Локален достъп за сайтове чрез Axatalk SDK. Паролите и ключовете остават само на този компютър.",
   "settings.integrations.sdk.bind": "Адрес на шлюза",

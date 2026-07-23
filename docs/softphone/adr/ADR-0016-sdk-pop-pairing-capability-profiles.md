@@ -47,6 +47,8 @@ were left to SDK-01 so DI-03 transport cannot invent them.
    - Desktop gateway **must serialize inbound handlers per connection** so a following
      `sdk:ping` (auth confirmation) cannot be evaluated before proof completion. Clients
      are not required to insert delays between proof and ping.
+   - After authentication, long `account:activate-profile` hops **release** that queue while
+     pending (ADR-0018 §E.12) so ready-state `sdk:ping` heartbeats are not starved.
 
 4. **Replay:** `challengeId` and `nonce` are single-use within a bounded server cache.
    Replayed proofs fail closed.
@@ -78,6 +80,13 @@ Wire shapes (schemas land in SDK-02; semantics frozen here):
   "expiresAt": "<iso>"
 }
 ```
+
+`expiresAt` is `now +` live pairing TTL (SSoT:
+`src/shared/integration/sdkOperatorModalTimeouts.ts`, default
+`SDK_PAIRING_PENDING_TTL_MS` = **5 min**; override via Settings → Axatalk SDK → Main).
+Softphone ceremony modal shows a muted `MM:SS` countdown to that deadline; on expiry
+desktop denies pending (`pairing:denied`) — same as operator Deny. Do not invent a
+separate UI-only pairing timer; CRM must wait for Desktop `pairing:approved|denied`.
 
 **Desktop local approve (Settings / system prompt; not a browser secret):** operator
 confirms Origin, app name, requested profile. Desktop persists binding

@@ -60,17 +60,23 @@ import type {
   SdkPairingPendingRequest,
 } from "./sdkGatewayPairingTypes.js";
 import type { SdkGatewayDiagnosticsProjection } from "@shared/ipc/SdkGatewaySettingsContract.js";
+import {
+  normalizeSdkOperatorModalTimeouts,
+  SDK_OPERATOR_MODAL_TIMEOUT_DEFAULTS,
+  SDK_ORIGIN_TRUST_PENDING_TTL_MS,
+  SDK_PENDING_SWEEP_INTERVAL_MS,
+  type SdkOperatorModalTimeouts,
+} from "@shared/integration/sdkOperatorModalTimeouts.js";
 
 export type {
   LocalWsServerAdapterOptions,
   LocalWsStartResult,
 } from "./localWsServerAdapterTypes.js";
 
-/** Origin TOFU wait TTL — cancel (no blacklist) when exceeded. */
-export const SDK_ORIGIN_TRUST_PENDING_TTL_MS = 5 * 60_000;
-
-/** How often pending TOFU/pairing are swept for expiry. */
-export const SDK_PENDING_SWEEP_INTERVAL_MS = 15_000;
+export {
+  SDK_ORIGIN_TRUST_PENDING_TTL_MS,
+  SDK_PENDING_SWEEP_INTERVAL_MS,
+};
 
 function resolveInitialOriginTrustEntries(
   options: LocalWsServerAdapterOptions,
@@ -109,6 +115,9 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
   private listening = false;
   private lastErrorCode: string | null = null;
   private pendingSweepTimer: ReturnType<typeof setInterval> | null = null;
+  private operatorModalTimeouts: SdkOperatorModalTimeouts = {
+    ...SDK_OPERATOR_MODAL_TIMEOUT_DEFAULTS,
+  };
 
   constructor(options: LocalWsServerAdapterOptions) {
     this.desktopVersion = options.desktopVersion;
@@ -298,12 +307,20 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
     }
   }
 
+  setOperatorModalTimeouts(timeouts: SdkOperatorModalTimeouts): void {
+    this.operatorModalTimeouts = normalizeSdkOperatorModalTimeouts(timeouts);
+  }
+
+  getOperatorModalTimeouts(): SdkOperatorModalTimeouts {
+    return this.operatorModalTimeouts;
+  }
+
   private sweepExpiredPending(): void {
     const nowMs = this.now().getTime();
     const deniedPairing = this.deferredApprover.denyExpired(nowMs);
     const cancelledTrust = this.deferredOriginTrustApprover.cancelExpired(
       nowMs,
-      SDK_ORIGIN_TRUST_PENDING_TTL_MS,
+      this.operatorModalTimeouts.originTrustTtlMs,
     );
     if (deniedPairing > 0 || cancelledTrust > 0) {
       this.log("sdk_gateway_pending_sweep", {
@@ -323,6 +340,11 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
 
   denyOriginTrust(originTrustRequestId: string): boolean {
     return this.deferredOriginTrustApprover.deny(originTrustRequestId);
+  }
+
+  /** TTL / disconnect path — cancel without blacklisting Origin. */
+  cancelOriginTrust(originTrustRequestId: string): boolean {
+    return this.deferredOriginTrustApprover.cancel(originTrustRequestId);
   }
 
   /**
@@ -492,6 +514,7 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
       },
       getOriginMatrixCapabilities: (origin) =>
         this.getOriginMatrixCapabilities(origin),
+      getPairingPendingTtlMs: () => this.operatorModalTimeouts.pairingTtlMs,
       getAccepting: () => this.accepting,
       getListening: () => this.listening,
       resolveWsHostPort: () =>

@@ -423,7 +423,7 @@ describe('AxatalkClient activateProfile success and fail-closed', () => {
         14
       )
     ).toBe(true);
-    harness.scheduler.advanceBy(240_000);
+    harness.scheduler.advanceBy(420_000);
     await expect(pending).rejects.toSatisfy(
       (error: unknown) =>
         isAxatalkClientError(error) && error.code === 'timeout'
@@ -445,7 +445,7 @@ describe('AxatalkClient activateProfile success and fail-closed', () => {
     harness.scheduler.advanceBy(5_000);
     // Still waiting — activate uses SDK_ACTIVATE_CLIENT_TIMEOUT_MS, not 5s default.
     expect(harness.client.getState()).toBe('ready');
-    harness.scheduler.advanceBy(240_000 - 5_000);
+    harness.scheduler.advanceBy(420_000 - 5_000);
     await expect(pending).rejects.toSatisfy(
       (error: unknown) =>
         isAxatalkClientError(error) && error.code === 'timeout'

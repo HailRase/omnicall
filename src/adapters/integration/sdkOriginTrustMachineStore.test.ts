@@ -10,6 +10,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   createDefaultUserSettings,
   createSettingsAccountKey,
+  SDK_INTEGRATION_DEFAULTS,
 } from "@domain/index.js";
 import { NodeFileSystemAdapter } from "@infrastructure/filesystem/NodeFileSystemAdapter.js";
 import { FileSettingsRepository } from "@adapters/settings/FileSettingsRepository.js";
@@ -63,6 +64,7 @@ describe("sdkOriginTrustMachineStore + boot hydrate", () => {
             previouslyAllowed: false,
           },
         ],
+        operatorModalTimeouts: { ...SDK_INTEGRATION_DEFAULTS.operatorModalTimeouts },
       },
     });
 
@@ -105,6 +107,7 @@ describe("sdkOriginTrustMachineStore + boot hydrate", () => {
             previouslyAllowed: true,
           },
         ],
+        operatorModalTimeouts: { ...SDK_INTEGRATION_DEFAULTS.operatorModalTimeouts },
       },
     });
 
@@ -169,7 +172,18 @@ describe("sdkOriginTrustMachineStore + boot hydrate", () => {
     const sipKey = createSettingsAccountKey("sip|bob@example.com");
     const origin = "https://mirror.example";
 
-    await repository.saveUserSettings(sipKey, createDefaultUserSettings());
+    const customTimeouts = {
+      consentTtlMs: 60_000,
+      originTrustTtlMs: 120_000,
+      pairingTtlMs: 180_000,
+    };
+    await repository.saveUserSettings(sipKey, {
+      ...createDefaultUserSettings(),
+      sdkIntegration: {
+        ...SDK_INTEGRATION_DEFAULTS,
+        operatorModalTimeouts: customTimeouts,
+      },
+    });
     const settings = {
       originsManaged: true,
       origins: [
@@ -180,6 +194,7 @@ describe("sdkOriginTrustMachineStore + boot hydrate", () => {
           previouslyAllowed: false,
         },
       ],
+      operatorModalTimeouts: { ...SDK_INTEGRATION_DEFAULTS.operatorModalTimeouts },
     };
     await saveSdkOriginTrustMachineStore({ storageRoot, filesystem, settings });
     await mirrorSdkOriginTrustToProfileBuckets({
@@ -192,6 +207,7 @@ describe("sdkOriginTrustMachineStore + boot hydrate", () => {
     const mirrored = await repository.getUserSettings(sipKey);
     expect(mirrored.sdkIntegration.origins[0]?.origin).toBe(origin);
     expect(mirrored.sdkIntegration.origins[0]?.state).toBe("denied");
+    expect(mirrored.sdkIntegration.operatorModalTimeouts).toEqual(customTimeouts);
   });
 
   it("migrates denied rows from SIP profile silo into machine-common store", async () => {
@@ -213,6 +229,7 @@ describe("sdkOriginTrustMachineStore + boot hydrate", () => {
             previouslyAllowed: false,
           },
         ],
+        operatorModalTimeouts: { ...SDK_INTEGRATION_DEFAULTS.operatorModalTimeouts },
       },
     });
 

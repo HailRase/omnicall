@@ -70,6 +70,7 @@ describe("DeferredSdkActivateConsent", () => {
       availableModes: ["sip_only"],
     });
     expect(deferred.isPending()).toBe(true);
+    expect(deferred.getPending()?.expiresAt).toEqual(expect.any(String));
 
     await vi.advanceTimersByTimeAsync(1_000);
     await expect(pending).resolves.toEqual({ decision: "timeout" });

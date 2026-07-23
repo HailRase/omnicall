@@ -129,6 +129,9 @@ administrative feature with its own ADR, capability, local approval, audit, and 
 - **Inbound frames are serialized per WebSocket connection** on the desktop gateway
   (receive order). Async auth/pairing handlers must not race later commands on the same
   socket (e.g. `sdk:auth-proof` then immediate `sdk:ping`).
+- **Exception:** `account:activate-profile` releases the inbound queue while awaiting
+  operator consent / auth so client `sdk:ping` heartbeats still complete (otherwise SDK
+  reconnects and the in-flight activate fails with bare `operation_failed`).
 - Mutations are serialized per call or account aggregate.
 - Destructive commands support ownership/lease policy and expected revision.
 - Conflicts return stable errors such as `conflict`, `stale_state`, or `not_owner`.

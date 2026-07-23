@@ -61,6 +61,12 @@ per connection). Clients may send `sdk:auth-proof` and immediately follow with `
 (or other commands) without an artificial delay; the gateway must not evaluate the ping
 until proof handling has finished (success → `authenticated`, or fail-closed close).
 
+**Exception — long activate hop:** `account:activate-profile` may wait on operator consent
+for up to `SDK_ACTIVATE_CLIENT_TIMEOUT_MS`. That hop **must release** the per-connection
+inbound queue while pending so client heartbeats (`sdk:ping`) are still answered. Holding
+the queue for the whole consent wait causes SDK reconnect → bare `operation_failed` on the
+in-flight activate (no `activate_phase`). Auth-proof ordering above is unchanged.
+
 ## Endpoint Discovery
 
 Loopback HTTP discovery (not WS-only): **ADR-0015**.
@@ -236,7 +242,8 @@ Activate wall budgets (constants in `@axata/axatalk-protocol` / desktop
 - SIP-only auth: `SDK_ACTIVATE_SIP_ONLY_AUTH_BUDGET_MS` (60 s)
 - OCP auth: `SDK_ACTIVATE_OCP_AUTH_BUDGET_MS` (sum of desktop OCP stage timeouts + slack)
 - Client/broker hop for `account:activate-profile` only:
-  `SDK_ACTIVATE_CLIENT_TIMEOUT_MS` (~240 s). Other commands keep the default short hop.
+  `SDK_ACTIVATE_CLIENT_TIMEOUT_MS` (~420 s = max Settings consent 300s + auth + hop).
+  Operator modal countdown default remains 120 s. Other commands keep the default short hop.
 
 Raw exceptions and upstream SIP/OCP messages never cross the boundary.
 

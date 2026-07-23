@@ -11,6 +11,8 @@ declare const classes: {
   readonly stepLabel: string;
   readonly stepRail: string;
   readonly stepper: string;
+  readonly titleRow: string;
+  readonly titleText: string;
   readonly waitingPulse: string;
 };
 export default classes;

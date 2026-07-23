@@ -309,6 +309,7 @@ function SoftphoneShellLayoutRoute({
       ) || sdkSettingsPanel.allowedOriginsLive.includes(origin),
     onAllowOriginTrust: sdkSettingsPanel.onAllowOriginTrust,
     onDenyOriginTrust: sdkSettingsPanel.onDenyOriginTrust,
+    onCancelOriginTrust: sdkSettingsPanel.onCancelOriginTrust,
     onApprovePairing: sdkSettingsPanel.onApprovePairing,
     onDenyPairing: sdkSettingsPanel.onDenyPairing,
   });
@@ -545,6 +546,7 @@ function SoftphoneShellLayoutRoute({
             onDenyPairing={sdkConnectCeremony.onDenyPairing}
             onCancelWaiting={sdkConnectCeremony.onCancelWaiting}
             onDismiss={sdkConnectCeremony.onDismiss}
+            onDeadlineExpired={sdkConnectCeremony.onDeadlineExpired}
           />
           <SdkActivateProfileConsentModal
             pending={activateConsentPending}
@@ -720,6 +722,8 @@ function SoftphoneShellLayoutRoute({
                   onRemoveAllowedOrigin: sdkSettingsPanel.onRemoveAllowedOrigin,
                   onRenameAllowedOrigin: sdkSettingsPanel.onRenameAllowedOrigin,
                   onSetOriginMatrix: sdkSettingsPanel.onSetOriginMatrix,
+                  onOperatorModalTimeoutsChange:
+                    sdkSettingsPanel.onOperatorModalTimeoutsChange,
                 },
               }}
               account={{

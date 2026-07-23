@@ -63,6 +63,7 @@ export type LocalWsSessionRegistryDeps = Readonly<{
   /** Fired after a connection leaves the registry (close / terminate). */
   onConnectionRemoved?: (connection: SdkGatewayConnection) => void;
   onLog?: SdkGatewayLogFn;
+  getPairingPendingTtlMs?: () => number;
 }>;
 
 export class LocalWsSessionRegistry {
@@ -88,6 +89,7 @@ export class LocalWsSessionRegistry {
   private readonly challenges = new SdkAuthChallengeCache();
   private readonly requestDedup = new SdkRequestDedupCache();
   private readonly onLog: SdkGatewayLogFn | undefined;
+  private readonly getPairingPendingTtlMs: (() => number) | undefined;
   private revokeEventSequence = 0;
 
   constructor(deps: LocalWsSessionRegistryDeps) {
@@ -104,6 +106,7 @@ export class LocalWsSessionRegistry {
     this.getProductSurface = deps.getProductSurface ?? (() => null);
     this.onConnectionRemoved = deps.onConnectionRemoved;
     this.onLog = deps.onLog;
+    this.getPairingPendingTtlMs = deps.getPairingPendingTtlMs;
   }
 
   get size(): number {
@@ -323,6 +326,9 @@ export class LocalWsSessionRegistry {
       log: (event, fields) => {
         this.log(event, fields);
       },
+      ...(this.getPairingPendingTtlMs !== undefined
+        ? { getPairingPendingTtlMs: this.getPairingPendingTtlMs }
+        : {}),
     });
   }
 

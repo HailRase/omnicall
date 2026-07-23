@@ -190,16 +190,20 @@ Extends ADR-0013 §B / DI-08 — **does not** introduce raw credential commands.
    gateway snapshot after persist (not blacklist — Origin stays `allowed`). **Cancel/dismiss:**
    `forbidden` + `authorization_canceled_by_user` (no matrix change).
 7. **Pending guard:** while consent pending → `conflict` + `activate_consent_pending`.
-8. **Consent TTL (120 s):** if the operator does not Allow/Deny/Cancel within
-   `SDK_ACTIVATE_CONSENT_TTL_MS`, the modal auto-dismisses and the command fails with
-   **`timeout`** + details `activate_phase: "consent"` (pending cleared — retry may open
-   a new modal). Human Cancel remains **`forbidden`** + `authorization_canceled_by_user`.
+8. **Consent TTL (Settings, default 120 s):** if the operator does not Allow/Deny/Cancel
+   within the live consent TTL (`SdkIntegrationSettings.operatorModalTimeouts.consentTtlMs`,
+   default `SDK_ACTIVATE_CONSENT_TTL_MS`), the modal auto-dismisses and the command fails
+   with **`timeout`** + details `activate_phase: "consent"` (pending cleared — retry may
+   open a new modal). Human Cancel remains **`forbidden`** + `authorization_canceled_by_user`.
 9. **Auth budgets after Allow:** auth wait starts only after the operator chooses a mode
    (picker when `mode` omitted). Budgets:
    - `sip_only` → `SDK_ACTIVATE_SIP_ONLY_AUTH_BUDGET_MS` (60 s);
    - `ocp` → sum of `OCP_SIGN_IN_STAGE_TIMEOUT_MS` + slack (`SDK_ACTIVATE_OCP_AUTH_BUDGET_MS`);
-   - wall hop for broker + SDK correlator = consent TTL + max(sip, ocp) + hop slack
-     (`SDK_ACTIVATE_CLIENT_TIMEOUT_MS` / `SDK_ACTIVATE_BROKER_TIMEOUT_MS`, ~240 s).
+   - wall hop for broker + SDK correlator = **max Settings consent** (300 s) + max(sip, ocp)
+     + hop slack (`SDK_ACTIVATE_CLIENT_TIMEOUT_MS` / `SDK_ACTIVATE_BROKER_TIMEOUT_MS`,
+     **~420 s**). Modal countdown still uses the **configured** consent TTL (default 120 s);
+     the hop ceiling lets CRM wait for a Desktop terminal reply without inventing a shorter
+     timer. Default-consent hop remains ~240 s for documentation of the common path.
    On auth-budget expiry desktop cancels in-flight OCP sign-in (best-effort) and returns
    **`timeout`** + `activate_phase: "sign_in"` + `auth_mode` + `failure_kind`. Stage timeouts
    and `ocp_session_exist` map to typed failures with the same details shape (no OCP wire).
@@ -211,6 +215,12 @@ Extends ADR-0013 §B / DI-08 — **does not** introduce raw credential commands.
      informational modal (no account switch without logout).
 11. Optional wire `mode` narrows available methods; when omitted, operator picks among
    complete methods in the modal. Non-activate broker commands keep the default **5 s** hop.
+12. **Inbound queue release during activate hop (2026-07-23):** per-connection inbound
+    serialization (ADR-0016 auth-proof ordering) must **not** hold the queue for the whole
+    activate broker wait. Desktop detaches `account:activate-profile` via
+    `releasesSdkInboundQueueWhilePending` so `sdk:ping` heartbeats are answered. Holding the
+    queue caused CRM reconnect ≈ heartbeat miss (~5–20 s) and bare wire-less
+    `operation_failed` (no `activate_phase`) while Desktop still had the consent modal open.
 
 ### F. Error and reconnect pedagogy (integrator-facing)
 
@@ -222,6 +232,7 @@ Extends ADR-0013 §B / DI-08 — **does not** introduce raw credential commands.
 | Activate consent Deny | Keep WS | `forbidden` + activate-disabled persisted |
 | Activate Cancel/dismiss | Keep WS | `forbidden` + `authorization_canceled_by_user` |
 | Activate consent TTL | Keep WS | `timeout` + `activate_phase: consent` (modal cleared) |
+| Heartbeat miss because activate held inbound queue (pre-fix) | Client reconnect | bare `operation_failed` (no details) — **fixed**: activate releases inbound queue |
 | Activate consent already pending | Keep WS | Primary **`conflict`** (+ `activate_consent_pending`) |
 | No / incomplete saved profile | Keep WS | `not_found` + `account_not_found` / `account_incomplete` |
 | Other account already signed in | Keep WS | `conflict` + `logout_required` (+ info modal) |
@@ -261,6 +272,35 @@ Machine code remains authoritative.
    reports the decision over the typed broker/IPC (DI-11 names events in evidence).
 5. Main must not invent a second product composition; renderer Application owns the
    decision projection and Settings persistence path.
+6. **Operator modal deadline UI (2026-07-23):** each operator-facing SDK modal header
+   shows a subtle `MM:SS` countdown (`SdkModalDeadlineTimer`, token `--color-text-muted`,
+   light/dark). Budgets are **not** uniform 30 s — SSoT is
+   `src/shared/integration/sdkOperatorModalTimeouts.ts` with live values from
+   **Settings → Axatalk SDK → Main → Confirmation wait times**
+   (`SdkIntegrationSettings.operatorModalTimeouts`). Defaults match historical fixed TTLs
+   (no downgrade). Gateway sweeper, pairing `expiresAt`, consent bridge, and UI countdown
+   all read the live values after `applyPolicy` / boot hydrate.
+   | Modal / step | Default TTL | On UI/gateway expiry |
+   | --- | --- | --- |
+   | Activate / reauthorize consent | `SDK_ACTIVATE_CONSENT_TTL_MS` (120 s; Settings 30s–5m) | wire `timeout` + `activate_phase: consent` (no UI dismiss → `authorization_canceled_by_user`) |
+   | Origin TOFU (ceremony transport) | `SDK_ORIGIN_TRUST_PENDING_TTL_MS` (5 min; Settings 1–10m) | **cancel** (no blacklist) via `cancelOriginTrust` IPC + quiet close; Escape/Deny still Deny |
+   | Pairing approve | `SDK_PAIRING_PENDING_TTL_MS` (5 min; Settings 1–10m) | deny → `pairing:denied` |
+   | Ceremony waiting (post-Allow, pre-`pairing:request`) | `SDK_CEREMONY_WAITING_PAIRING_TIMEOUT_MS` (45 s) | close local bridge only (not a Settings field) |
+   | `logout_required` info modal | none | no countdown / no auto-timeout |
+   Projections carry `expiresAt` (`pendingOriginTrust`, pairing, consent pending) so UI
+   and gateway cannot drift. Do **not** invent parallel UI-only timers that Deny Origin
+   on timeout (that would blacklist). Integrators (CRM) must **wait** for Desktop terminal
+   outcomes for ceremony/activate — do not mirror these TTLs with shorter CRM timers.
+
+### G.7 Settings-configurable operator timeouts (2026-07-23)
+
+- Persist under `UserSettings.sdkIntegration.operatorModalTimeouts`.
+- Bounds/presets: `sdkOperatorModalTimeouts.ts` (`normalize` / `parse`).
+- Push path: Settings panel → `persistSdkIntegrationSettings` → gateway `applyPolicy`
+  → `LocalWsServerAdapter.setOperatorModalTimeouts` +
+  `sdkActivateConsentBridge.setConsentTtlMs`.
+- Activate hop ceiling stays at **max consent** so increasing Settings consent never
+  outruns the SDK correlator / broker.
 
 ### H. Discovery CORS (with ADR-0015)
 

@@ -52,6 +52,7 @@ export type LocalWsSessionInboundDeps = Readonly<{
   closeConnection: (connection: SdkGatewayConnection, reason: string) => void;
   isSessionExpired: (connection: SdkGatewayConnection) => boolean;
   log: SdkGatewayLogFn;
+  getPairingPendingTtlMs?: () => number;
 }>;
 
 /**
@@ -101,6 +102,9 @@ export function parseAndDispatchLocalWsSession(
       log: deps.log,
       isSessionExpired: deps.isSessionExpired,
       productSurface: deps.productSurface,
+      ...(deps.getPairingPendingTtlMs !== undefined
+        ? { getPairingPendingTtlMs: deps.getPairingPendingTtlMs }
+        : {}),
     });
   });
 }

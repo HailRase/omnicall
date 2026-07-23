@@ -160,7 +160,7 @@ Post-fix counts: sdk src **106**, workspace test suite **114**.
 
 ## Delta — activate timeout sync (2026-07-23)
 
-- `activateProfile` correlator uses `SDK_ACTIVATE_CLIENT_TIMEOUT_MS` (~240s), not the global 5s default.
+- `activateProfile` correlator uses `SDK_ACTIVATE_CLIENT_TIMEOUT_MS` (~420s = max Settings consent + auth), not the global 5s default.
 - Re-exports protocol budget constants from `@axata/axatalk-sdk`.
 - Wire failure details (`activate_phase`, `failure_kind`) surface on `AxatalkClientError.details`.
 - Guide: `docs/guide/saved-profile-activation.md`; PROTOCOL.md details table updated.

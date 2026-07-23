@@ -9,5 +9,6 @@ declare const styles: {
   readonly menu: string;
   readonly modeList: string;
   readonly title: string;
+  readonly titleRow: string;
 };
 export = styles;

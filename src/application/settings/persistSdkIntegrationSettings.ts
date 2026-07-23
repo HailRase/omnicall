@@ -51,6 +51,7 @@ export async function persistSdkIntegrationSettings(input: {
     policy: {
       originsManaged: input.next.originsManaged,
       origins: input.next.origins,
+      operatorModalTimeouts: input.next.operatorModalTimeouts,
     },
   });
   if (!response.ok) {

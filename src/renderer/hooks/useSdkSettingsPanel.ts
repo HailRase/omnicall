@@ -31,6 +31,8 @@ import type {
   UseSdkSettingsPanelResult,
 } from "./sdkSettingsPanelTypes.js";
 import { subscribeSdkIntegrationSettingsChanged } from "../bootstrap/sdkIntegrationSettingsSync.js";
+import { sdkActivateConsentBridge } from "../bootstrap/sdkActivateConsentBridge.js";
+import { normalizeSdkOperatorModalTimeouts } from "@shared/integration/sdkOperatorModalTimeouts.js";
 
 export type {
   SdkSettingsPanelErrorKey,
@@ -90,10 +92,11 @@ export function useSdkSettingsPanel(
     const response = await invokeSdkGatewaySettings({ op: "getSnapshot" });
     applySnapshot(response);
     if (response.ok && response.snapshot.origins !== undefined) {
-      setSettings({
+      setSettings((prev) => ({
         originsManaged: true,
-        origins: response.snapshot.origins,
-      });
+        origins: response.snapshot.origins!,
+        operatorModalTimeouts: prev.operatorModalTimeouts,
+      }));
     }
   }, [applySnapshot, invokeSdkGatewaySettings]);
 
@@ -111,6 +114,11 @@ export function useSdkSettingsPanel(
       }
       setErrorKey(null);
       onActiveUserSettingsRefresh(settingsResult.value);
+      const persisted = settingsResult.value.sdkIntegration;
+      const timeouts = normalizeSdkOperatorModalTimeouts(
+        persisted.operatorModalTimeouts,
+      );
+      sdkActivateConsentBridge.setConsentTtlMs(timeouts.consentTtlMs);
       const response = await invokeSdkGatewaySettings({ op: "getSnapshot" });
       applySnapshot(response);
       const snapshotOrigins =
@@ -119,13 +127,28 @@ export function useSdkSettingsPanel(
           : null;
       const live: SdkIntegrationSettings =
         snapshotOrigins !== null
-          ? { originsManaged: true, origins: snapshotOrigins }
-          : settingsResult.value.sdkIntegration;
+          ? {
+              originsManaged: true,
+              origins: snapshotOrigins,
+              operatorModalTimeouts: timeouts,
+            }
+          : {
+              ...persisted,
+              operatorModalTimeouts: timeouts,
+            };
       setSettings(live);
+      // Push timeouts (+ origins) into live gateway so sweeper/pairing match Settings.
+      void invokeSdkGatewaySettings({
+        op: "applyPolicy",
+        policy: {
+          originsManaged: live.originsManaged,
+          origins: live.origins,
+          operatorModalTimeouts: live.operatorModalTimeouts,
+        },
+      });
       if (
         snapshotOrigins !== null &&
-        JSON.stringify(live.origins) !==
-          JSON.stringify(settingsResult.value.sdkIntegration.origins)
+        JSON.stringify(live.origins) !== JSON.stringify(persisted.origins)
       ) {
         const mirrored = await facade.saveUserSettings({
           ...settingsResult.value,
@@ -160,9 +183,18 @@ export function useSdkSettingsPanel(
     if (facade === null) return;
     setBusy(true);
     try {
+      const normalized: SdkIntegrationSettings = {
+        ...next,
+        operatorModalTimeouts: normalizeSdkOperatorModalTimeouts(
+          next.operatorModalTimeouts,
+        ),
+      };
+      sdkActivateConsentBridge.setConsentTtlMs(
+        normalized.operatorModalTimeouts.consentTtlMs,
+      );
       const result = await persistSdkIntegrationSettings({
         facade,
-        next,
+        next: normalized,
         invoke: invokeSdkGatewaySettings,
         onRefresh: onActiveUserSettingsRefresh,
       });
@@ -187,13 +219,20 @@ export function useSdkSettingsPanel(
         await persistAndApply({
           originsManaged: true,
           origins: response.snapshot.origins,
+          operatorModalTimeouts: settings.operatorModalTimeouts,
         });
       }
       setErrorKey(response.ok ? null : mapSdkGatewayOpError(operation));
     } finally {
       setBusy(false);
     }
-  }, [applySnapshot, invokeSdkGatewaySettings, persistAndApply, settings.origins]);
+  }, [
+    applySnapshot,
+    invokeSdkGatewaySettings,
+    persistAndApply,
+    settings.origins,
+    settings.operatorModalTimeouts,
+  ]);
 
   const onRefresh = useCallback((): void => {
     void refreshSnapshot();
@@ -241,6 +280,9 @@ export function useSdkSettingsPanel(
     onDenyOriginTrust: (originTrustRequestId) => {
       void runOp({ op: "denyOriginTrust", originTrustRequestId });
     },
+    onCancelOriginTrust: (originTrustRequestId) => {
+      void runOp({ op: "cancelOriginTrust", originTrustRequestId });
+    },
     onUnblockOrigin: (origin) => {
       void runOp({ op: "unblockOrigin", origin });
     },
@@ -270,6 +312,16 @@ export function useSdkSettingsPanel(
     },
     onSetOriginMatrix: (origin, matrix) => {
       void runOp({ op: "setOriginMatrix", origin, matrix });
+    },
+    onOperatorModalTimeoutsChange: (partial) => {
+      const next: SdkIntegrationSettings = {
+        ...settings,
+        operatorModalTimeouts: normalizeSdkOperatorModalTimeouts({
+          ...settings.operatorModalTimeouts,
+          ...partial,
+        }),
+      };
+      void persistAndApply(next);
     },
   };
 }

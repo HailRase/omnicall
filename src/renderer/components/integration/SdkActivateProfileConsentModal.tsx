@@ -23,6 +23,7 @@ import {
   DropdownMenuTrigger,
 } from "../ui/index.js";
 import formStyles from "../settings/SettingsForm.module.css";
+import { SdkModalDeadlineTimer } from "./SdkModalDeadlineTimer.js";
 import styles from "./SdkActivateProfileConsentModal.module.css";
 
 export type SdkActivateProfileConsentModalProps = Readonly<{
@@ -99,7 +100,16 @@ export function SdkActivateProfileConsentModal(
         onEscapeKeyDown={props.onDismiss}
       >
         <AlertDialogHeader className={styles.header}>
-          <AlertDialogTitle className={styles.title}>{t(titleKey)}</AlertDialogTitle>
+          <div className={styles.titleRow}>
+            <AlertDialogTitle className={styles.title}>{t(titleKey)}</AlertDialogTitle>
+            {kind !== "logout_required" ? (
+              <SdkModalDeadlineTimer
+                expiresAt={pending?.expiresAt}
+                active={open}
+                testId="sdk-activate-consent-deadline"
+              />
+            ) : null}
+          </div>
           <AlertDialogDescription className={styles.description}>
             {message}
           </AlertDialogDescription>

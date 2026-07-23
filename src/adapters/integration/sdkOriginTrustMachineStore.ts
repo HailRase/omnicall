@@ -71,6 +71,9 @@ export function mergeSdkIntegrationTrustSettings(
   return {
     originsManaged: base.originsManaged || overlay.originsManaged,
     origins: mergeSdkOriginTrustEntries(base.origins, overlay.origins),
+    // Timeouts live in UserSettings; prefer overlay (caller) then base.
+    operatorModalTimeouts:
+      overlay.operatorModalTimeouts ?? base.operatorModalTimeouts,
   };
 }
 
@@ -165,7 +168,12 @@ export async function mirrorSdkOriginTrustToProfileBuckets(input: {
       const current = await settingsRepository.getUserSettings(key);
       await settingsRepository.saveUserSettings(key, {
         ...current,
-        sdkIntegration: input.settings,
+        // Origins from machine SoT; keep per-profile operator modal TTLs.
+        sdkIntegration: {
+          ...current.sdkIntegration,
+          originsManaged: input.settings.originsManaged,
+          origins: input.settings.origins,
+        },
       });
     } catch {
       // Corrupt / locked bucket — skip; admission uses machine store.
@@ -271,6 +279,7 @@ export async function hydrateSdkOriginTrustForGatewayBoot(input: {
     settings: {
       originsManaged: machine.originsManaged || originTrustEntries.length > 0,
       origins: originTrustEntries,
+      operatorModalTimeouts: machine.operatorModalTimeouts,
     },
     originTrustEntries,
   };
@@ -287,6 +296,7 @@ export async function persistSdkOriginTrustMachineFromEntries(input: {
   const settings: SdkIntegrationSettings = {
     originsManaged: input.originsManaged ?? true,
     origins: input.origins,
+    operatorModalTimeouts: { ...SDK_INTEGRATION_DEFAULTS.operatorModalTimeouts },
   };
   await saveSdkOriginTrustMachineStore({
     storageRoot: input.storageRoot,

@@ -7,6 +7,7 @@ import styles from "./SdkModuleSettingsCard.module.css";
 import { SdkModuleSettingsBlockedSitesSection } from "./SdkModuleSettingsBlockedSitesSection.js";
 import { SdkModuleSettingsClientsSection } from "./SdkModuleSettingsClientsSection.js";
 import { SdkModuleSettingsStatusSection } from "./SdkModuleSettingsStatusSection.js";
+import { SdkModuleSettingsTimeoutsSection } from "./SdkModuleSettingsTimeoutsSection.js";
 import { SdkModuleSettingsTrustedSitesSection } from "./SdkModuleSettingsTrustedSitesSection.js";
 import type { SdkModuleSettingsCardProps } from "./sdkModuleSettingsCardTypes.js";
 
@@ -65,6 +66,11 @@ export function SdkModuleSettingsCard(props: SdkModuleSettingsCardProps): JSX.El
               diagnostics={props.diagnostics}
               busy={props.busy}
               onRefresh={props.onRefresh}
+            />
+            <SdkModuleSettingsTimeoutsSection
+              timeouts={props.settings.operatorModalTimeouts}
+              busy={props.busy}
+              onChange={props.onOperatorModalTimeoutsChange}
             />
             <SdkModuleSettingsClientsSection
               pairedClients={props.pairedClients}

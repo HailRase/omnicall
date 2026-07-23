@@ -21,6 +21,7 @@ function upsertOrigin(
 ): SdkIntegrationSettings {
   const without = settings.origins.filter((row) => row.origin !== entry.origin);
   return {
+    ...settings,
     originsManaged: true,
     origins: [...without, entry],
   };
@@ -31,6 +32,7 @@ function removeOrigin(
   origin: string,
 ): SdkIntegrationSettings {
   return {
+    ...settings,
     originsManaged: true,
     origins: settings.origins.filter((row) => row.origin !== origin),
   };

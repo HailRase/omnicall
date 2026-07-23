@@ -5,6 +5,7 @@
 import {
   allowSdkOrigin,
   denySdkOrigin,
+  SDK_INTEGRATION_DEFAULTS,
   type SdkOriginTrustEntry,
 } from "@domain/index.js";
 
@@ -17,7 +18,11 @@ export function applySdkOriginTrustDecision(
   if (input.decision.decision === "cancel") {
     return entries;
   }
-  const settings = { originsManaged: true as const, origins: [...entries] };
+  const settings = {
+    originsManaged: true as const,
+    origins: [...entries],
+    operatorModalTimeouts: SDK_INTEGRATION_DEFAULTS.operatorModalTimeouts,
+  };
   const next =
     input.decision.decision === "allow"
       ? allowSdkOrigin(settings, input.origin)

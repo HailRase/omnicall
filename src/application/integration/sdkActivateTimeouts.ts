@@ -12,6 +12,7 @@ export {
   SDK_ACTIVATE_OCP_AUTH_SLACK_MS,
   SDK_ACTIVATE_SIP_ONLY_AUTH_BUDGET_MS,
   brokerTimeoutMsForCommand,
+  releasesSdkInboundQueueWhilePending,
   sdkActivateAuthBudgetMs,
   type SdkActivateAuthMode,
 } from "@shared/integration/sdkActivateTimeouts.js";

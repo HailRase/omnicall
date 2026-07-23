@@ -8,6 +8,7 @@ import type {
   SdkOriginCapabilityMatrix,
   SdkOriginTrustEntry,
 } from "@domain/settings/SdkOriginTrust.js";
+import { parseSdkOperatorModalTimeouts } from "@shared/integration/sdkOperatorModalTimeouts.js";
 
 export type SdkGatewayOperationalStatus = "disabled" | "listening";
 
@@ -46,9 +47,17 @@ export type SdkGatewayDiagnosticsProjection = Readonly<{
   windowHideAvailable: false;
 }>;
 
+export type SdkOperatorModalTimeoutsPolicy = Readonly<{
+  consentTtlMs: number;
+  originTrustTtlMs: number;
+  pairingTtlMs: number;
+}>;
+
 export type SdkGatewaySettingsPolicyPayload = Readonly<{
   originsManaged: boolean;
   origins: readonly SdkOriginTrustEntry[];
+  /** Optional — omit → gateway keeps previous / defaults. */
+  operatorModalTimeouts?: SdkOperatorModalTimeoutsPolicy;
 }>;
 
 export type SdkGatewaySettingsOperation =
@@ -58,7 +67,7 @@ export type SdkGatewaySettingsOperation =
   | Readonly<{ op: "denyPairing"; pairingRequestId: string }>
   | Readonly<{ op: "revokeClient"; clientId: string }>
   | Readonly<{
-      op: "allowOriginTrust" | "denyOriginTrust";
+      op: "allowOriginTrust" | "denyOriginTrust" | "cancelOriginTrust";
       origin?: string;
       originTrustRequestId?: string;
     }>
@@ -82,6 +91,9 @@ export type SdkGatewaySettingsSnapshot = Readonly<{
 export type SdkPendingOriginTrustProjection = Readonly<{
   originTrustRequestId: string;
   origin: string;
+  createdAt: string;
+  /** Wall deadline for operator TOFU (createdAt + SDK_ORIGIN_TRUST_PENDING_TTL_MS). */
+  expiresAt: string;
 }>;
 
 export type SdkGatewaySettingsResponse =
@@ -143,9 +155,13 @@ function parsePolicy(value: unknown): SdkGatewaySettingsPolicyPayload | null {
       matrix: row["matrix"] as SdkOriginTrustEntry["matrix"],
     });
   }
+  const timeoutsRaw = record["operatorModalTimeouts"];
   return {
     originsManaged: record["originsManaged"],
     origins,
+    ...(timeoutsRaw !== undefined
+      ? { operatorModalTimeouts: parseSdkOperatorModalTimeouts(timeoutsRaw) }
+      : {}),
   };
 }
 
@@ -189,7 +205,8 @@ export function parseSdkGatewaySettingsOperation(
       return { op, clientId: clientId.trim() };
     }
     case "allowOriginTrust":
-    case "denyOriginTrust": {
+    case "denyOriginTrust":
+    case "cancelOriginTrust": {
       const origin = record["origin"];
       const originTrustRequestId = record["originTrustRequestId"];
       if (

@@ -21,6 +21,11 @@ export type SdkActivateConsentPending = Readonly<{
    * Unique per consent episode — shell window raise dedupe (ADR-0013), like pairingRequestId.
    */
   attentionId: string;
+  /**
+   * Wall deadline for activate/reauthorize consent TTL countdown.
+   * Absent for informational `logout_required` (no auto-timeout).
+   */
+  expiresAt?: string;
   preferredMode?: SdkActivateMode;
   currentProfileLabel?: string | null;
 }>;
@@ -46,7 +51,7 @@ export class DeferredSdkActivateConsent implements SdkActivateConsentPort {
     pending: SdkActivateConsentPending | null,
   ) => void;
   private readonly createAttentionId: () => string;
-  private readonly consentTtlMs: number;
+  private consentTtlMs: number;
   private readonly scheduleTimeout: ConsentTimeoutScheduler;
 
   constructor(input?: {
@@ -71,6 +76,17 @@ export class DeferredSdkActivateConsent implements SdkActivateConsentPort {
           },
         };
       });
+  }
+
+  /** Live Settings override — applies to the next consent episode only. */
+  setConsentTtlMs(consentTtlMs: number): void {
+    if (Number.isFinite(consentTtlMs) && consentTtlMs > 0) {
+      this.consentTtlMs = Math.trunc(consentTtlMs);
+    }
+  }
+
+  getConsentTtlMs(): number {
+    return this.consentTtlMs;
   }
 
   getPending(): SdkActivateConsentPending | null {
@@ -98,6 +114,7 @@ export class DeferredSdkActivateConsent implements SdkActivateConsentPort {
         entry.resolve({ decision: "timeout" });
       }, this.consentTtlMs);
 
+      const expiresAt = new Date(Date.now() + this.consentTtlMs).toISOString();
       this.deferred = {
         pending: {
           kind: input.kind,
@@ -106,6 +123,7 @@ export class DeferredSdkActivateConsent implements SdkActivateConsentPort {
           profileLabel: input.profileLabel,
           availableModes: input.availableModes,
           attentionId: this.createAttentionId(),
+          expiresAt,
           ...(input.preferredMode !== undefined
             ? { preferredMode: input.preferredMode }
             : {}),

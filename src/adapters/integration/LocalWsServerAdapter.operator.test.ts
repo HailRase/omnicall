@@ -601,4 +601,89 @@ describe("LocalWsServerAdapter DI-07 operator/logout", () => {
     ws.close();
   });
 
+  it("answers sdk:ping while activate-profile broker hop is still pending", async () => {
+    let resolveActivate:
+      | ((value: Awaited<ReturnType<SdkGatewayProductSurface["requestProductCommand"]>>) => void)
+      | undefined;
+    const adapter = await startAdapter({
+      autoApprovePairing: true,
+      productSurface: createSurface({
+        requestProductCommand: (command) => {
+          if (
+            command.kind === "command" &&
+            command.type === "account:activate-profile"
+          ) {
+            return new Promise((resolve) => {
+              resolveActivate = resolve;
+            });
+          }
+          return Promise.resolve({ ok: false as const, code: "unsupported_command" });
+        },
+      }),
+    });
+    const { ws, queue, hello } = await pairAuthOperator(
+      adapter,
+      "client_act_ping_overlap_001",
+    );
+    ws.send(
+      JSON.stringify({
+        protocolVersion: PROTOCOL_MAJOR,
+        kind: "command",
+        type: "account:activate-profile",
+        requestId: "req_act_pending_001",
+        serverInstanceId: hello.serverInstanceId,
+        sessionEpoch: hello.sessionEpoch,
+        occurredAt: "2026-07-20T09:00:00.000Z",
+        payload: { login: "1001@pbx.example", expectedRevision: 1 },
+      }),
+    );
+    // Give the detached activate hop a tick to claim the broker without holding inbound.
+    await new Promise((r) => setTimeout(r, 40));
+    ws.send(
+      JSON.stringify({
+        protocolVersion: PROTOCOL_MAJOR,
+        kind: "command",
+        type: "sdk:ping",
+        requestId: "req_ping_during_act_001",
+        serverInstanceId: hello.serverInstanceId,
+        sessionEpoch: hello.sessionEpoch,
+        occurredAt: "2026-07-20T09:00:00.000Z",
+        payload: {},
+      }),
+    );
+    const pingReply = await queue.next();
+    expect(pingReply).toMatchObject({
+      kind: "reply",
+      ok: true,
+      commandType: "sdk:ping",
+      requestId: "req_ping_during_act_001",
+    });
+    expect(resolveActivate).toBeTypeOf("function");
+    resolveActivate!({
+      ok: true,
+      revision: 4,
+      reply: {
+        protocolVersion: PROTOCOL_MAJOR,
+        kind: "reply",
+        ok: true,
+        requestId: "req_act_pending_001",
+        commandType: "account:activate-profile",
+        serverInstanceId: hello.serverInstanceId,
+        sessionEpoch: hello.sessionEpoch,
+        occurredAt: "2026-07-20T09:00:00.000Z",
+        revision: 4,
+        result: { activated: true, mode: "sip_only" },
+      },
+    });
+    const activateReply = await queue.next();
+    expect(activateReply).toMatchObject({
+      kind: "reply",
+      ok: true,
+      commandType: "account:activate-profile",
+      requestId: "req_act_pending_001",
+    });
+    queue.close();
+    ws.close();
+  });
+
 });

@@ -234,6 +234,18 @@ const ruMessages = {
   "settings.integrations.sdk.activateConsent.cancelGroupAria": "Отмена и дополнительные действия",
   "settings.integrations.sdk.activateConsent.moreActionsAria": "Дополнительные действия",
   "settings.integrations.sdk.activateConsent.acknowledge": "Понятно",
+  "settings.integrations.sdk.modal.deadlineAria": (params: Readonly<{ time: string }>) =>
+    `Осталось ${params.time}`,
+  "settings.integrations.sdk.timeouts.title": "Срок ожидания подтверждений",
+  "settings.integrations.sdk.timeouts.hint":
+    "Сколько ждать ответа оператора в модалках SDK. Обратный отсчёт MM:SS в заголовке. Сайт-интегратор должен ждать ответ Desktop, а не ставить свой короткий таймер.",
+  "settings.integrations.sdk.timeouts.consent": "Активация профиля",
+  "settings.integrations.sdk.timeouts.originTrust": "Разрешение сайта",
+  "settings.integrations.sdk.timeouts.pairing": "Сопряжение",
+  "settings.integrations.sdk.timeouts.option.seconds": (params: Readonly<{ count: number }>) =>
+    `${String(params.count)} с`,
+  "settings.integrations.sdk.timeouts.option.minutes": (params: Readonly<{ count: number }>) =>
+    `${String(params.count)} мин`,
   "settings.integrations.sdk.description":
     "Локальный доступ для сайтов через Axatalk SDK. Пароли и ключи остаются только на этом компьютере.",
   "settings.integrations.sdk.bind": "Адрес шлюза",
@@ -1560,6 +1572,18 @@ const enMessages: MessageShape = {
   "settings.integrations.sdk.activateConsent.cancelGroupAria": "Cancel and more actions",
   "settings.integrations.sdk.activateConsent.moreActionsAria": "More actions",
   "settings.integrations.sdk.activateConsent.acknowledge": "Got it",
+  "settings.integrations.sdk.modal.deadlineAria": (params: Readonly<{ time: string }>) =>
+    `${params.time} remaining`,
+  "settings.integrations.sdk.timeouts.title": "Confirmation wait times",
+  "settings.integrations.sdk.timeouts.hint":
+    "How long to wait for the operator in SDK modals. MM:SS countdown in the header. Integrators must wait for the Desktop reply instead of using a shorter local timer.",
+  "settings.integrations.sdk.timeouts.consent": "Profile activation",
+  "settings.integrations.sdk.timeouts.originTrust": "Site permission",
+  "settings.integrations.sdk.timeouts.pairing": "Pairing",
+  "settings.integrations.sdk.timeouts.option.seconds": (params: Readonly<{ count: number }>) =>
+    `${String(params.count)} s`,
+  "settings.integrations.sdk.timeouts.option.minutes": (params: Readonly<{ count: number }>) =>
+    `${String(params.count)} min`,
   "settings.integrations.sdk.description":
     "Local access for websites through Axatalk SDK. Passwords and keys stay on this computer only.",
   "settings.integrations.sdk.bind": "Gateway address",
@@ -2860,6 +2884,18 @@ const frMessages: MessageShape = {
   "settings.integrations.sdk.activateConsent.cancelGroupAria": "Annuler et actions supplementaires",
   "settings.integrations.sdk.activateConsent.moreActionsAria": "Actions supplementaires",
   "settings.integrations.sdk.activateConsent.acknowledge": "Compris",
+  "settings.integrations.sdk.modal.deadlineAria": (params: Readonly<{ time: string }>) =>
+    `Il reste ${params.time}`,
+  "settings.integrations.sdk.timeouts.title": "Delais de confirmation",
+  "settings.integrations.sdk.timeouts.hint":
+    "Temps d’attente pour l’operateur dans les modales SDK. Compte a rebours MM:SS dans l’en-tete. L’integrateur doit attendre la reponse Desktop, sans timer local plus court.",
+  "settings.integrations.sdk.timeouts.consent": "Activation du profil",
+  "settings.integrations.sdk.timeouts.originTrust": "Autorisation du site",
+  "settings.integrations.sdk.timeouts.pairing": "Appariement",
+  "settings.integrations.sdk.timeouts.option.seconds": (params: Readonly<{ count: number }>) =>
+    `${String(params.count)} s`,
+  "settings.integrations.sdk.timeouts.option.minutes": (params: Readonly<{ count: number }>) =>
+    `${String(params.count)} min`,
   "settings.integrations.sdk.description":
     "Acces local pour les sites via Axatalk SDK. Mots de passe et cles restent sur cet ordinateur.",
   "settings.integrations.sdk.bind": "Adresse de la passerelle",
@@ -4157,6 +4193,18 @@ const deMessages: MessageShape = {
   "settings.integrations.sdk.activateConsent.cancelGroupAria": "Abbrechen und weitere Aktionen",
   "settings.integrations.sdk.activateConsent.moreActionsAria": "Weitere Aktionen",
   "settings.integrations.sdk.activateConsent.acknowledge": "Verstanden",
+  "settings.integrations.sdk.modal.deadlineAria": (params: Readonly<{ time: string }>) =>
+    `Noch ${params.time}`,
+  "settings.integrations.sdk.timeouts.title": "Wartezeiten fuer Bestaetigungen",
+  "settings.integrations.sdk.timeouts.hint":
+    "Wie lange in SDK-Modalen auf den Operator gewartet wird. MM:SS-Countdown im Header. Integratoren muessen auf die Desktop-Antwort warten und keinen kuerzeren lokalen Timer setzen.",
+  "settings.integrations.sdk.timeouts.consent": "Profilaktivierung",
+  "settings.integrations.sdk.timeouts.originTrust": "Site-Freigabe",
+  "settings.integrations.sdk.timeouts.pairing": "Kopplung",
+  "settings.integrations.sdk.timeouts.option.seconds": (params: Readonly<{ count: number }>) =>
+    `${String(params.count)} s`,
+  "settings.integrations.sdk.timeouts.option.minutes": (params: Readonly<{ count: number }>) =>
+    `${String(params.count)} Min.`,
   "settings.integrations.sdk.description":
     "Lokaler Zugriff fuer Websites ueber Axatalk SDK. Passwoerter und Schluessel bleiben nur auf diesem Computer.",
   "settings.integrations.sdk.bind": "Gateway-Adresse",

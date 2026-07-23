@@ -21,6 +21,29 @@ describe("SdkIntegrationSettings", () => {
     ).toEqual({
       originsManaged: true,
       origins: [],
+      operatorModalTimeouts: SDK_INTEGRATION_DEFAULTS.operatorModalTimeouts,
+    });
+  });
+
+  it("parses operatorModalTimeouts and falls back to defaults when missing", () => {
+    expect(
+      parseSdkIntegrationSettings({
+        originsManaged: true,
+        origins: [],
+        operatorModalTimeouts: {
+          consentTtlMs: 60_000,
+          originTrustTtlMs: 120_000,
+          pairingTtlMs: 180_000,
+        },
+      }),
+    ).toEqual({
+      originsManaged: true,
+      origins: [],
+      operatorModalTimeouts: {
+        consentTtlMs: 60_000,
+        originTrustTtlMs: 120_000,
+        pairingTtlMs: 180_000,
+      },
     });
   });
 
@@ -80,6 +103,7 @@ describe("SdkIntegrationSettings", () => {
           previouslyAllowed: true,
         },
       ],
+      operatorModalTimeouts: SDK_INTEGRATION_DEFAULTS.operatorModalTimeouts,
     });
     expect(parseSdkIntegrationSettings(legacy)).toEqual(migrated);
     expect(migrated).not.toHaveProperty("enabled");

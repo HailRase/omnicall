@@ -15,6 +15,7 @@ const activatePending: SdkActivateConsentPending = {
   profileLabel: "Agent 1001",
   availableModes: ["sip_only", "ocp"],
   attentionId: "att_test_1",
+  expiresAt: new Date(Date.now() + 120_000).toISOString(),
 };
 
 describe("SdkActivateProfileConsentModal", () => {
@@ -33,6 +34,7 @@ describe("SdkActivateProfileConsentModal", () => {
 
     expect(screen.getByTestId("sdk-activate-consent-cancel")).toBeInTheDocument();
     expect(screen.getByTestId("sdk-activate-consent-allow")).toBeInTheDocument();
+    expect(screen.getByTestId("sdk-activate-consent-deadline")).toBeInTheDocument();
     expect(screen.queryByTestId("sdk-activate-consent-deny")).not.toBeInTheDocument();
 
     await userEvent.click(screen.getByTestId("sdk-activate-consent-more"));

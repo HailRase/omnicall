@@ -11,6 +11,7 @@ import {
   AlertDialogTitle,
   Button,
 } from "../ui/index.js";
+import { SdkModalDeadlineTimer } from "./SdkModalDeadlineTimer.js";
 import styles from "./SdkConnectCeremonyModal.module.css";
 
 export type SdkConnectCeremonyModalProps = Readonly<{
@@ -22,6 +23,7 @@ export type SdkConnectCeremonyModalProps = Readonly<{
   onDenyPairing: () => void;
   onCancelWaiting: () => void;
   onDismiss: () => void;
+  onDeadlineExpired: () => void;
 }>;
 
 function CeremonyStepper(props: {
@@ -63,6 +65,7 @@ function CeremonyStepper(props: {
 /**
  * Root overlay for SDK Origin trust + pairing (F-011 / ADR-0018 presentation).
  * Escape: Deny transport/pairing, or cancel waiting (no blacklist).
+ * Deadline expiry: cancel TOFU / deny pairing / close waiting (same gateway semantics).
  */
 export function SdkConnectCeremonyModal(
   props: SdkConnectCeremonyModalProps,
@@ -73,6 +76,7 @@ export function SdkConnectCeremonyModal(
   const origin = open ? props.view.origin : "";
   const showStepper = open ? props.view.showStepper : false;
   const pairing = open ? props.view.pairing : null;
+  const expiresAt = open ? props.view.expiresAt : null;
   const appName = pairing?.applicationName ?? "";
 
   const title =
@@ -111,8 +115,16 @@ export function SdkConnectCeremonyModal(
         }}
       >
         <AlertDialogHeader>
+          <div className={styles.titleRow}>
+            <AlertDialogTitle className={styles.titleText}>{title}</AlertDialogTitle>
+            <SdkModalDeadlineTimer
+              expiresAt={expiresAt}
+              active={open}
+              onExpired={props.onDeadlineExpired}
+              testId="sdk-connect-ceremony-deadline"
+            />
+          </div>
           {showStepper ? <CeremonyStepper step={step} /> : null}
-          <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription className={styles.description}>
             {description}
           </AlertDialogDescription>

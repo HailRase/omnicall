@@ -18,6 +18,7 @@ const transportView: SdkConnectCeremonyView = {
   showStepper: true,
   originTrustRequestId: "trust_1",
   pairing: null,
+  expiresAt: new Date(Date.now() + 90_000).toISOString(),
 };
 
 const pairingView: SdkConnectCeremonyView = {
@@ -32,8 +33,9 @@ const pairingView: SdkConnectCeremonyView = {
     origin: "https://crm.example",
     applicationName: "CRM Tab",
     profile: "presentation",
-    expiresAt: "2026-07-22T12:00:00.000Z",
+    expiresAt: new Date(Date.now() + 120_000).toISOString(),
   },
+  expiresAt: new Date(Date.now() + 120_000).toISOString(),
 };
 
 const baseHandlers = {
@@ -44,6 +46,7 @@ const baseHandlers = {
   onDenyPairing: () => undefined,
   onCancelWaiting: () => undefined,
   onDismiss: () => undefined,
+  onDeadlineExpired: () => undefined,
 };
 
 export const TransportLight: Story = {
@@ -79,6 +82,7 @@ export const WaitingLight: Story = {
       showStepper: true,
       originTrustRequestId: null,
       pairing: null,
+      expiresAt: new Date(Date.now() + 45_000).toISOString(),
     },
   },
   parameters: { theme: "light" },

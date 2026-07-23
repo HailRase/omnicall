@@ -21,5 +21,8 @@ describe("sdkActivateTimeouts application re-export", () => {
         5_000,
       ),
     ).toBe(fromShared.SDK_ACTIVATE_BROKER_TIMEOUT_MS);
+    expect(fromApplication.releasesSdkInboundQueueWhilePending).toBe(
+      fromShared.releasesSdkInboundQueueWhilePending,
+    );
   });
 });

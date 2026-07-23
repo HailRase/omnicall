@@ -42,6 +42,7 @@ const sdkCardDefaults = {
   onRemoveAllowedOrigin: vi.fn(),
   onRenameAllowedOrigin: vi.fn(),
   onSetOriginMatrix: vi.fn(),
+  onOperatorModalTimeoutsChange: vi.fn(),
 } satisfies SdkModuleSettingsCardProps;
 
 export const settingsIntegrationsTestDefaults = {
@@ -69,6 +70,7 @@ export const settingsIntegrationsStoryDefaults = {
       onRemoveAllowedOrigin: () => undefined,
       onRenameAllowedOrigin: () => undefined,
       onSetOriginMatrix: () => undefined,
+      onOperatorModalTimeoutsChange: () => undefined,
     } satisfies SdkModuleSettingsCardProps,
   },
 } as const;

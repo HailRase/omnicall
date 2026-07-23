@@ -55,6 +55,7 @@ import {
 } from "./OcpIntegrationSettings.js";
 import {
   parseSdkIntegrationSettings,
+  SDK_INTEGRATION_DEFAULTS,
   type SdkIntegrationSettings,
 } from "./SdkIntegrationSettings.js";
 
@@ -555,7 +556,7 @@ function readSdkIntegration(
   const parsed = parseSdkIntegrationSettings(record["sdkIntegration"]);
   if (parsed === null) {
     errors.push("sdkIntegration_invalid");
-    return { origins: [], originsManaged: false };
+    return { ...SDK_INTEGRATION_DEFAULTS };
   }
   return parsed;
 }

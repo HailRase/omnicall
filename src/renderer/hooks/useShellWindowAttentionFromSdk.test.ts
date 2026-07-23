@@ -48,29 +48,31 @@ describe("useShellWindowAttentionFromSdk", () => {
 
   it("raises again for a new consent episode with the same origin and profile", () => {
     const raiseWindow = vi.fn().mockResolvedValue({ ok: true });
+    type Props = { activateConsentPending: SdkActivateConsentPending | null };
+    const initialProps: Props = {
+      activateConsentPending: pending({ attentionId: "att_1" }),
+    };
     const { rerender } = renderHook(
-      (props: { activateConsentPending: SdkActivateConsentPending | null }) =>
+      (props: Props) =>
         useShellWindowAttentionFromSdk({
           activateConsentPending: props.activateConsentPending,
           raiseWindow,
           onOperatorAttention: () => () => undefined,
         }),
-      {
-        initialProps: {
-          activateConsentPending: pending({ attentionId: "att_1" }),
-        },
-      },
+      { initialProps },
     );
 
     expect(raiseWindow).toHaveBeenCalledTimes(1);
 
     act(() => {
-      rerender({ activateConsentPending: null });
+      const cleared: Props = { activateConsentPending: null };
+      rerender(cleared);
     });
     act(() => {
-      rerender({
+      const next: Props = {
         activateConsentPending: pending({ attentionId: "att_2" }),
-      });
+      };
+      rerender(next);
     });
 
     expect(raiseWindow).toHaveBeenCalledTimes(2);

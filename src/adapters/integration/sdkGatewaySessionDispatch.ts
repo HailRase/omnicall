@@ -25,6 +25,7 @@ import {
 } from "./sdkGatewayMessages.js";
 import type { SdkPairingApprover } from "./sdkGatewayPairingTypes.js";
 import type { SdkGatewayPairingStore } from "./sdkGatewayPairingStore.js";
+import { releasesSdkInboundQueueWhilePending } from "@shared/integration/sdkActivateTimeouts.js";
 import { dispatchSdkProductRoute } from "./sdkGatewayProductDispatch.js";
 import type { SdkGatewayProductSurface } from "./sdkGatewayProductSurface.js";
 import { SdkRequestDedupCache } from "./sdkGatewayRequestDedup.js";
@@ -258,6 +259,7 @@ export async function dispatchSdkValidatedMessage(input: {
   ) => void;
   readonly isSessionExpired: (connection: SdkGatewayConnection) => boolean;
   readonly productSurface: SdkGatewayProductSurface | null;
+  readonly getPairingPendingTtlMs?: () => number;
 }): Promise<void> {
   if (input.isSessionExpired(input.connection)) {
     input.closeConnection(input.connection, "unauthenticated");
@@ -324,6 +326,9 @@ export async function dispatchSdkValidatedMessage(input: {
     audit: input.log,
     getOriginMatrixCapabilities: input.getOriginMatrixCapabilities,
     getOriginTrustState: input.getOriginTrustState,
+    ...(input.getPairingPendingTtlMs !== undefined
+      ? { getPairingPendingTtlMs: input.getPairingPendingTtlMs }
+      : {}),
   };
   if (route.action === "pairing_request") {
     const trust = await ensureSdkOriginTrusted(originCtx);
@@ -370,7 +375,7 @@ export async function dispatchSdkValidatedMessage(input: {
     return;
   }
   if (route.action === "command_broker" || route.action === "command_window") {
-    await dispatchSdkProductRoute({
+    const productWork = dispatchSdkProductRoute({
       route,
       productSurface: input.productSurface,
       context: {
@@ -407,6 +412,24 @@ export async function dispatchSdkValidatedMessage(input: {
         });
       },
     });
+    // Long activate hop must not block per-connection inbound serialization —
+    // client heartbeats (`sdk:ping`) need to proceed (ADR-0018 activate / PROTOCOL).
+    if (
+      route.action === "command_broker" &&
+      releasesSdkInboundQueueWhilePending(route.commandType)
+    ) {
+      void productWork.catch((error: unknown) => {
+        const message =
+          error instanceof Error ? error.message.slice(0, 120) : "unknown";
+        input.log("sdk_gateway_detached_command_failed", {
+          commandType: route.commandType,
+          requestId: route.requestId,
+          result: message,
+        });
+      });
+      return;
+    }
+    await productWork;
     return;
   }
   if (route.action === "close") {

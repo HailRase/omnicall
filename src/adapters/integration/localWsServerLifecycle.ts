@@ -56,6 +56,7 @@ export async function bindLocalWsListening(input: {
   ) => ExternalGatewayValidationResult<WireMessage>;
   readonly now: () => Date;
   readonly onLog?: SdkGatewayLogFn;
+  readonly getPairingPendingTtlMs?: () => number;
 }): Promise<
   | {
       readonly ok: true;
@@ -96,6 +97,9 @@ export async function bindLocalWsListening(input: {
       ? { onConnectionRemoved: input.onConnectionRemoved }
       : {}),
     ...(input.onLog !== undefined ? { onLog: input.onLog } : {}),
+    ...(input.getPairingPendingTtlMs !== undefined
+      ? { getPairingPendingTtlMs: input.getPairingPendingTtlMs }
+      : {}),
   });
   const bound = await bindLocalWsServer({
     host: input.host,

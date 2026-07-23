@@ -97,9 +97,14 @@ function parsePendingOriginTrust(
   if (!isPlainObject(value) || hasForbiddenKey(value)) return null;
   const originTrustRequestId = parseId(value["originTrustRequestId"]);
   const origin = parseExactOrigin(value["origin"]);
-  return originTrustRequestId === null || origin === null
+  const createdAt = parseLabel(value["createdAt"]);
+  const expiresAt = parseLabel(value["expiresAt"]);
+  return originTrustRequestId === null ||
+    origin === null ||
+    createdAt === null ||
+    expiresAt === null
     ? null
-    : { originTrustRequestId, origin };
+    : { originTrustRequestId, origin, createdAt, expiresAt };
 }
 
 export function parseDiagnosticsProjection(

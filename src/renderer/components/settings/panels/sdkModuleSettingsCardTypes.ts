@@ -5,6 +5,7 @@ import type {
   SdkPairedClientProjection,
 } from "@shared/ipc/SdkGatewaySettingsContract.js";
 import type { SdkOriginCapabilityMatrix } from "@application/index.js";
+import type { SdkOperatorModalTimeouts } from "@shared/integration/sdkOperatorModalTimeouts.js";
 
 export type SdkModuleSettingsCardProps = Readonly<{
   settings: SdkIntegrationSettings;
@@ -23,4 +24,7 @@ export type SdkModuleSettingsCardProps = Readonly<{
   onRemoveAllowedOrigin: (origin: string) => void;
   onRenameAllowedOrigin: (previousOrigin: string, nextOrigin: string) => void;
   onSetOriginMatrix: (origin: string, matrix: SdkOriginCapabilityMatrix) => void;
+  onOperatorModalTimeoutsChange: (
+    next: Partial<SdkOperatorModalTimeouts>,
+  ) => void;
 }>;
