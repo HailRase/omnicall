@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-24 17:29
 **Статус:** выполнено
-**Коммит:** `24bbf21`
+**Коммит:** `b5c399d`
 
 ## Где
 - `src/renderer/shells/BootstrapSplashShell.tsx` (+ css/test/stories)
