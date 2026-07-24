@@ -120,6 +120,7 @@
   "common.close": "Затвори",
   "common.dash": "—",
   "bootstrap.error.initializationFailed": "Неуспешна инициализация",
+  "bootstrap.brand": "Axatalk",
   "account.title": "SIP акаунт",
   "account.field.username": "Потребителско име",
   "account.field.password": "Парола",

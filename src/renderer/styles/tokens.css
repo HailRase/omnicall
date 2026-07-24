@@ -54,7 +54,7 @@
 
   color-scheme: light;
 
-  /* Surfaces */
+  /* Surfaces — keep # hex in sync with src/shared/platform/startupSplashColors.ts */
   --color-bg-app: #f3f6fb;
   --color-bg-surface: #ffffff;
   --color-bg-surface-elevated: #ffffff;

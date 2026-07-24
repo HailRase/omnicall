@@ -8,8 +8,174 @@
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Axatalk</title>
+    <!--
+      Pre-React splash colors must match:
+      - src/shared/platform/startupSplashColors.ts
+      - --color-bg-app in src/renderer/styles/tokens.css
+      Removed by src/renderer/main.tsx once React mounts.
+    -->
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #f3f6fb;
+        color: #1a2332;
+        font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        html,
+        body {
+          background: #111722;
+          color: #e8eef8;
+        }
+
+        #boot-splash .boot-mark {
+          background: rgba(74, 127, 212, 0.18);
+          border-color: rgba(74, 127, 212, 0.4);
+          color: #4a7fd4;
+        }
+
+        #boot-splash .boot-glow {
+          background: rgba(74, 127, 212, 0.28);
+        }
+
+        #boot-splash .boot-message {
+          color: #9aa8bd;
+        }
+
+        #boot-splash .boot-track {
+          background: #1a2435;
+        }
+
+        #boot-splash .boot-indicator {
+          background: #4a7fd4;
+        }
+      }
+
+      #boot-splash {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 0;
+        pointer-events: none;
+      }
+
+      #boot-splash .boot-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        text-align: center;
+        max-width: 280px;
+        padding: 24px;
+      }
+
+      #boot-splash .boot-mark-wrap {
+        position: relative;
+        width: 72px;
+        height: 72px;
+        display: grid;
+        place-items: center;
+      }
+
+      #boot-splash .boot-glow {
+        position: absolute;
+        inset: 0;
+        border-radius: 9999px;
+        background: rgba(59, 111, 196, 0.28);
+        filter: blur(14px);
+        opacity: 0.85;
+      }
+
+      #boot-splash .boot-mark {
+        position: relative;
+        width: 56px;
+        height: 56px;
+        display: grid;
+        place-items: center;
+        border-radius: 9999px;
+        background: rgba(255, 255, 255, 0.88);
+        border: 1px solid rgba(59, 111, 196, 0.35);
+        color: #3b6fc4;
+        font-size: 22px;
+        font-weight: 600;
+        line-height: 1;
+      }
+
+      #boot-splash .boot-brand {
+        margin: 0;
+        font-size: 1.125rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+
+      #boot-splash .boot-message {
+        margin: 0;
+        font-size: 0.8125rem;
+        line-height: 1.5;
+        color: #5b6b82;
+      }
+
+      #boot-splash .boot-track {
+        width: 160px;
+        height: 8px;
+        margin-top: 4px;
+        overflow: hidden;
+        border-radius: 9999px;
+        background: #eef2f8;
+      }
+
+      #boot-splash .boot-indicator {
+        width: 50%;
+        height: 100%;
+        border-radius: inherit;
+        background: #3b6fc4;
+        animation: boot-indeterminate 1.2s ease-in-out infinite;
+      }
+
+      @keyframes boot-indeterminate {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(200%);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        #boot-splash .boot-indicator {
+          width: 40%;
+          animation: none;
+          transform: none;
+        }
+      }
+
+      #root {
+        position: relative;
+        z-index: 1;
+        min-height: 100%;
+      }
+    </style>
   </head>
   <body>
+    <div id="boot-splash" aria-hidden="true">
+      <div class="boot-content">
+        <div class="boot-mark-wrap">
+          <span class="boot-glow"></span>
+          <span class="boot-mark">A</span>
+        </div>
+        <p class="boot-brand">Axatalk</p>
+        <p class="boot-message">Loading…</p>
+        <div class="boot-track">
+          <div class="boot-indicator"></div>
+        </div>
+      </div>
+    </div>
     <div id="root"></div>
     <script type="module" src="./main.tsx"></script>
   </body>

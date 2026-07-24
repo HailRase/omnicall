@@ -27,7 +27,7 @@ styles/        tokens.css, globals.css; co-located *.module.css (UI-4 complete)
 | FSD layer | This repo | Notes |
 | --- | --- | --- |
 | app | `bootstrap/`, `App.tsx`, `stores/` | composition + global read models |
-| pages | `App` + `SoftphoneReadyShell` | single desktop surface |
+| pages | `App` + `BootstrapSplashShell` / `SoftphoneReadyShell` | single desktop surface; splash until bootstrap ready |
 | widgets | `shells/`, `SoftphoneLayout` | may keep `shells/` name in docs |
 | features | `hooks/use*Shell`, `hooks/use*Actions` | co-locate per feature when refactoring |
 | entities | **absent** | Domain/Application own entities |
@@ -108,6 +108,7 @@ Document components via JSDoc `@uiMeta` + Storybook; catalog: `npm run ui:catalo
 
 `App.tsx` stays a thin shell (< 60 lines). Feature wiring lives in `src/renderer/shells/`:
 
+- `BootstrapSplashShell` — presentational boot splash while `useAccountBootstrap` is `loading` / `error` (no facade/SIP)
 - `SoftphoneReadyShell` — post-bootstrap orchestration inside `SoftphoneLayout`
 - `SoftphoneShellHeader` — global header controls
 - SIP recovery UX: header (`SoftphoneShellHeader`) + settings system state panel — no dedicated recovery overlay shell.
@@ -115,6 +116,13 @@ Document components via JSDoc `@uiMeta` + Storybook; catalog: `npm run ui:catalo
 - `CallFeatureShell` — split target: Context + Controls + Overlays widgets
 - `OperatorFeatureShell` — status selector, timer, logout modal
 - `AuthAccountShell` — account panel when auth allows
+
+### Bootstrap splash contract
+
+1. **Pre-React:** `index.html` `#boot-splash` + `BrowserWindow.backgroundColor` from `startupSplashColors` (keep hex in sync with `--color-bg-app`).
+2. **React loading/error:** `BootstrapSplashShell` only — presentational; copy via i18n (`bootstrap.*`).
+3. **Ready:** `SoftphoneReadyShell`; splash unmounts. Do not mount ReadyShell during composition/`initialize`.
+4. **Boundaries:** splash must not call Use Cases, SIP, Electron IPC, or repositories. Provisional `data-theme` from OS `prefers-color-scheme` may apply before settings hydrate.
 
 Shells may use hooks and facades; components inside shells remain dumb.
 

@@ -122,7 +122,7 @@ The shell must represent these global states:
 
 | State | Meaning | UX Requirement |
 |-------|---------|----------------|
-| `booting` | App is starting | Show app loading state. |
+| `booting` | App is starting | Show branded bootstrap splash (`BootstrapSplashShell`): Axatalk mark, `bootstrap.loading`, indeterminate progress; pre-React `#boot-splash` + window `backgroundColor` avoid white flash; respect `prefers-reduced-motion`. |
 | `sipOnlyReady` | SIP-only mode ready | Hide legacy operator platform-only controls. |
 | `ocpAuthenticating` | legacy operator auth in progress | Show legacy operator platform loading state. |
 | `ocpSessionExists` | legacy operator platform rejected duplicate session | Show recoverable error. |

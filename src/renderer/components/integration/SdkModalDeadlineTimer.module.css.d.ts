@@ -1,4 +1,4 @@
-declare const styles: {
+declare const classes: {
   readonly timer: string;
 };
-export default styles;
+export default classes;

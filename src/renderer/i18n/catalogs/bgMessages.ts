@@ -115,6 +115,7 @@ export const bgMessages: MessageShape = {
   "activeCall.panel.micOn": "вкл.",
   "activeCall.panel.title": "Управление на обаждането",
   "bootstrap.error.initializationFailed": "Неуспешна инициализация",
+  "bootstrap.brand": "Axatalk",
   "bootstrap.loading": "Зареждане на приложението…",
   "call.controls.answerLineAria": (params: Readonly<{ displayName: string }>) =>
     `Отговори на обаждане ${params.displayName}`,

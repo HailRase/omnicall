@@ -4,6 +4,7 @@ import { useAccountBootstrap } from "./hooks/useAccountBootstrap.js";
 import { useAppShutdown } from "./hooks/useAppShutdown.js";
 import { useSoftphoneShellChrome } from "./hooks/useSoftphoneShellChrome.js";
 import { useI18n } from "./i18n/index.js";
+import { BootstrapSplashShell } from "./shells/BootstrapSplashShell.js";
 import { SoftphoneReadyShell } from "./shells/SoftphoneReadyShell.js";
 import styles from "./App.module.css";
 
@@ -27,17 +28,16 @@ export function App(): JSX.Element {
         </div>
       ) : null}
 
-      {status === "loading" && (
-        <p data-testid="bootstrap-loading">{t("bootstrap.loading")}</p>
-      )}
+      {status === "loading" ? <BootstrapSplashShell variant="loading" /> : null}
 
-      {status === "error" && (
-        <p className={styles.error} data-testid="bootstrap-error" role="alert">
-          {errorMessage}
-        </p>
-      )}
+      {status === "error" ? (
+        <BootstrapSplashShell
+          variant="error"
+          message={errorMessage ?? t("bootstrap.error.initializationFailed")}
+        />
+      ) : null}
 
-      {status === "ready" && facade !== null && (
+      {status === "ready" && facade !== null ? (
         <HashRouter>
           <SoftphoneReadyShell
             facade={facade}
@@ -45,7 +45,7 @@ export function App(): JSX.Element {
             isShuttingDown={isShuttingDown}
           />
         </HashRouter>
-      )}
+      ) : null}
     </main>
   );
 }

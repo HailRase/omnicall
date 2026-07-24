@@ -14,6 +14,10 @@ import { parseShellWindowRaisePayload } from "@shared/ipc/ShellWindowRaiseContra
 import { createConsoleLogger } from "@infrastructure/logging/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { MAIN_WINDOW_INITIAL_BOUNDS } from "@shared/platform/mainWindowBounds.js";
+import {
+  STARTUP_SPLASH_BG_DARK,
+  STARTUP_SPLASH_BG_LIGHT,
+} from "@shared/platform/startupSplashColors.js";
 import type { AppIconTheme } from "./resolveAppIconPath.js";
 import { resolveAppIconPath } from "./resolveAppIconPath.js";
 import { applyAppIcon } from "./loadAppIcon.js";
@@ -94,6 +98,10 @@ function resolveFramelessShell(): boolean {
   );
 }
 
+function resolveStartupWindowBackground(): string {
+  return nativeTheme.shouldUseDarkColors ? STARTUP_SPLASH_BG_DARK : STARTUP_SPLASH_BG_LIGHT;
+}
+
 function createMainWindow(): BrowserWindow {
   const iconPath = resolveAppIconPath(resolveAppIconTheme());
   const frameless = resolveFramelessShell();
@@ -106,6 +114,7 @@ function createMainWindow(): BrowserWindow {
     fullscreenable: false,
     resizable: false,
     show: false,
+    backgroundColor: resolveStartupWindowBackground(),
     frame: !frameless,
     webPreferences: {
       preload: join(__dirname, "../preload/index.js"),

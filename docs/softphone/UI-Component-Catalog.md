@@ -6,7 +6,7 @@
 
 | Component | Path | Exported props | Test IDs | @uiMeta |
 | --- | --- | --- | --- | --- |
-| `App` | `src/renderer/App.tsx` | `—` | softphone-shell, shutdown-progress, shutdown-error, bootstrap-loading, bootstrap-error | — |
+| `App` | `src/renderer/App.tsx` | `—` | softphone-shell, shutdown-progress, shutdown-error | — |
 | `AccountPanel` | `src/renderer/components/account/AccountPanel.tsx` | `—` | account-panel, account-mode-tabs, account-mode-sip, account-mode-ocp, account-error, account-username, account-forget-saved-password, account-domain, account-server, account-password-hint, account-ocp-login, account-ocp-domain, account-save-profile-row, account-save-profile-checkbox, account-remember-password-row, account-remember-password-checkbox, account-recovery-actions, account-authorize | — |
 | `AccountPasswordField` | `src/renderer/components/account/AccountPasswordField.tsx` | `—` | — | — |
 | `DeleteSavedAccountProfileConfirmationModal` | `src/renderer/components/account/DeleteSavedAccountProfileConfirmationModal.tsx` | `DeleteSavedAccountProfileConfirmationModalProps` | delete-saved-account-profile-modal, delete-saved-account-profile-cancel, delete-saved-account-profile-confirm | — |
@@ -30,7 +30,7 @@
 | `IncomingCallStatusMessage` | `src/renderer/components/call/IncomingCallStatusMessage.tsx` | `IncomingCallStatusMessageProps` | incoming-call-status | — |
 | `MultiCallHoldAllIndicator` | `src/renderer/components/call/MultiCallHoldAllIndicator.tsx` | `MultiCallHoldAllIndicatorProps` | multi-call-hold-all-indicator | — |
 | `MultiLineCallList` | `src/renderer/components/call/MultiLineCallList.tsx` | `MultiLineCallListProps` | multi-line-call-list | — |
-| `OutgoingCallCard` | `src/renderer/components/call/OutgoingCallCard.tsx` | `OutgoingCallCardProps` | outgoing-call-card, call-state-label | Connecting-only pre-line card; terminal failures → notification (`lastOutgoingFailure`) |
+| `OutgoingCallCard` | `src/renderer/components/call/OutgoingCallCard.tsx` | `OutgoingCallCardProps` | outgoing-call-card, call-state-label | — |
 | `RejectReasonSelector` | `src/renderer/components/call/RejectReasonSelector.tsx` | `RejectReasonSelectorProps` | reject-reason-select | — |
 | `ScreenSharePickerDialog` | `src/renderer/components/call/ScreenSharePickerDialog.tsx` | `ScreenSharePickerDialogProps` | screen-share-picker-dialog, screen-share-picker-tab-screen, screen-share-picker-tab-window, screen-share-picker-tab-chrome-tab, screen-share-picker-grid, screen-share-picker-error, screen-share-picker-cancel, screen-share-picker-confirm | — |
 | `TransferPanel` | `src/renderer/components/call/TransferPanel.tsx` | `TransferPanelProps` | transfer-panel, transfer-source-line, transfer-target-input, transfer-target-divider, transfer-target-candidates, transfer-next-step, transfer-consultation-line, transfer-in-progress-indicator, control-attended-transfer, transfer-disabled-reason | — |
@@ -54,6 +54,7 @@
 | `IconTooltip` | `src/renderer/components/icons/IconTooltip.tsx` | `IconTooltipProps` | icon-tooltip-bubble, icon-tooltip-host | — |
 | `SdkActivateProfileConsentModal` | `src/renderer/components/integration/SdkActivateProfileConsentModal.tsx` | `SdkActivateProfileConsentModalProps` | sdk-activate-consent-modal, sdk-activate-consent-modes, sdk-activate-consent-dismiss, sdk-activate-consent-cancel, sdk-activate-consent-more, sdk-activate-consent-deny, sdk-activate-consent-allow | — |
 | `SdkConnectCeremonyModal` | `src/renderer/components/integration/SdkConnectCeremonyModal.tsx` | `SdkConnectCeremonyModalProps` | sdk-connect-ceremony-modal, sdk-connect-ceremony-waiting, sdk-connect-ceremony-pairing-meta, sdk-connect-ceremony-deny-transport, sdk-connect-ceremony-allow-transport, sdk-connect-ceremony-cancel-waiting, sdk-connect-ceremony-deny-pairing | — |
+| `SdkModalDeadlineTimer` | `src/renderer/components/integration/SdkModalDeadlineTimer.tsx` | `SdkModalDeadlineTimerProps` | — | — |
 | `OcpCampaignEventModal` | `src/renderer/components/integration/ocp/OcpCampaignEventModal.tsx` | `OcpCampaignEventModalProps` | ocp-campaign-modal, ocp-campaign-details, ocp-campaign-reject, ocp-campaign-accept | f=F-028 lf=LF-047 |
 | `OcpConnectionBanner` | `src/renderer/components/integration/ocp/OcpConnectionBanner.tsx` | `OcpConnectionBannerProps` | ocp-connection-banner-anchor, ocp-connection-banner, ocp-connection-banner-message, ocp-retry-connect | — |
 | `OcpLogoutReasonModal` | `src/renderer/components/integration/ocp/OcpLogoutReasonModal.tsx` | `OcpLogoutReasonModalProps` | ocp-logout-cancel-action, ocp-logout-confirm, ocp-logout-reasons-empty | f=F-028 lf=LF-048 |
@@ -82,6 +83,7 @@
 | `SdkModuleSettingsOriginMatrix` | `src/renderer/components/settings/panels/SdkModuleSettingsOriginMatrix.tsx` | `—` | — | — |
 | `SdkModuleSettingsPairedSection` | `src/renderer/components/settings/panels/SdkModuleSettingsPairedSection.tsx` | `—` | sdk-module-paired | — |
 | `SdkModuleSettingsStatusSection` | `src/renderer/components/settings/panels/SdkModuleSettingsStatusSection.tsx` | `—` | sdk-module-diagnostics, sdk-module-refresh, sdk-module-bind | — |
+| `SdkModuleSettingsTimeoutsSection` | `src/renderer/components/settings/panels/SdkModuleSettingsTimeoutsSection.tsx` | `—` | sdk-module-timeouts, sdk-timeout-consent, sdk-timeout-origin-trust, sdk-timeout-pairing | f=F-011 lf=LF-051 |
 | `SdkModuleSettingsTrustedSiteItem` | `src/renderer/components/settings/panels/SdkModuleSettingsTrustedSiteItem.tsx` | `—` | — | — |
 | `SdkModuleSettingsTrustedSitesSection` | `src/renderer/components/settings/panels/SdkModuleSettingsTrustedSitesSection.tsx` | `—` | sdk-module-allowed-origins, sdk-module-origin-add-input, sdk-module-origin-add, sdk-module-origins-empty, sdk-module-trusted-accordion | — |
 | `SettingsAccountPanel` | `src/renderer/components/settings/panels/SettingsAccountPanel.tsx` | `SettingsAccountPanelProps` | settings-account-panel | — |
@@ -92,6 +94,7 @@
 | `SettingsIntegrationsPanel` | `src/renderer/components/settings/panels/SettingsIntegrationsPanel.tsx` | `SettingsIntegrationsPanelProps` | settings-integrations-panel | f=F-028,F-011 |
 | `SettingsNotificationHistoryPanel` | `src/renderer/components/settings/panels/SettingsNotificationHistoryPanel.tsx` | `—` | settings-notification-history, settings-notification-history-error, settings-notification-history-loading, settings-notification-history-empty, settings-notification-history-page, settings-notification-history-page-size | — |
 | `SettingsPlaceholderPanel` | `src/renderer/components/settings/panels/SettingsPlaceholderPanel.tsx` | `SettingsPlaceholderPanelProps` | — | — |
+| `SettingsPreferencesTransferSection` | `src/renderer/components/settings/panels/SettingsPreferencesTransferSection.tsx` | `SettingsPreferencesTransferSectionProps` | settings-preferences-transfer, settings-preferences-transfer-status, settings-preferences-export, settings-preferences-import | — |
 | `SettingsSessionsPanel` | `src/renderer/components/settings/panels/SettingsSessionsPanel.tsx` | `SettingsSessionsPanelProps` | settings-sessions-panel, settings-multi-sessions-toggle, settings-multi-sessions-hint, settings-auto-answer-enabled-toggle, settings-auto-answer-hint, settings-auto-answer-timeout, settings-auto-answer-during-active-session-toggle, settings-auto-answer-during-active-session-hint | — |
 | `SettingsSystemStateOcpTab` | `src/renderer/components/settings/panels/SettingsSystemStateOcpTab.tsx` | `SettingsSystemStateOcpTabProps` | settings-system-state-ocp-tab, settings-ocp-recovery-actions | lf=LF-057 f=F-016,F-028 |
 | `SettingsSystemStatePanel` | `src/renderer/components/settings/panels/SettingsSystemStatePanel.tsx` | `SettingsSystemStatePanelProps` | settings-system-state-panel, settings-system-state-tabs, settings-system-state-tab-sip, settings-system-state-tab-ocp, settings-sip-recovery-server, settings-sip-auto-reconnect-toggle, settings-sip-recovery-registration, settings-sip-auto-reregister-toggle, settings-sip-auto-register-startup-toggle, settings-sip-journal, settings-sip-journal-empty, settings-sip-journal-entry, settings-sip-journal-clear | lf=LF-008,LF-057 f=F-014,F-016,F-021 smoke=R7- |
@@ -114,6 +117,7 @@
 | `ShellRoutePanelOutlet` | `src/renderer/navigation/ShellRoutePanelOutlet.tsx` | `—` | shell-route-panel-outlet | — |
 | `ShellRouteDataController` | `src/renderer/navigation/routeData/ShellRouteDataController.tsx` | `—` | — | — |
 | `AuthAccountShell` | `src/renderer/shells/AuthAccountShell.tsx` | `—` | — | — |
+| `BootstrapSplashShell` | `src/renderer/shells/BootstrapSplashShell.tsx` | `BootstrapSplashShellProps` | — | lf=LF-002 f=F-016 |
 | `SessionFeatureShell` | `src/renderer/shells/SessionFeatureShell.tsx` | `—` | — | — |
 | `SoftphoneReadyShell` | `src/renderer/shells/SoftphoneReadyShell.tsx` | `—` | — | — |
 | `SoftphoneShellHeader` | `src/renderer/shells/SoftphoneShellHeader.tsx` | `—` | shell-header | lf=LF-011,LF-076,LF-086 f=F-016 smoke=R7- |
