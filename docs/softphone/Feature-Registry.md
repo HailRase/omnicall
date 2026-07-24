@@ -531,7 +531,8 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - **Settings authorization gate (ADR-AF-004, corrective):** before SIP-ready, Account is the **only** available Settings section; sidebar + route/overlay guard disable and redirect all other sections with reason `settings.nav.disabled.authorizeFirst`; after SIP registration all permitted sections return; active-call overlay remains mounted.
   - **Account password visibility:** SIP account password fields expose show/hide toggle with accessible labels (`AccountPasswordField`, `form.password.show` / `form.password.hide` icons).
   - **Settings sidebar:** collapsed icon rail with `IconTooltip` section labels (`placement: right`); expanded labels overlay content without shrinking the panel; long labels wrap up to two lines; no duplicate overlay header ? content header shows `????????? ({??????})` and a minimal close icon.
-  - **Settings sections:** Account (SIP auth), General (theme LF-082), **????????? ???????** (`system-state` ? ADR-0004), Sessions (multi-call), Diagnostics (F-017 stub), Codecs (stub), Headset (P10 stub).
+  - **Settings sections:** Account (SIP auth), General (theme LF-082 + F-030 preferences transfer), **????????? ???????** (`system-state` ? ADR-0004), Sessions (multi-call), Diagnostics (F-017 stub), Codecs (stub), Headset (P10 stub).
+  - **Preferences transfer (F-030):** Settings → General export/import portable `axatalk.preferences` JSON (no secrets); see `P11-Operator-Preferences-Export-Design.md`.
   - **`SettingsSystemStatePanel`:** current server/registration state, auto-reconnect/reregister policies, manual actions (?????????????? ??????, ??????????????????) with disabled reasons, transport+registration journal.
   - Icon `settings.system-state` in Icon Registry + catalog.
   - **`multiSessionsEnabled` toggle** in settings UI (facade + port; no Use Case) ? shipped P11 WU4; enables R7-5 re-smoke via Settings ? Sessions.
@@ -1000,3 +1001,26 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
   - SIP-only sign-in success is two journaled toasts (`account.success.sipTransportConnected`, `account.success.sipRegistrationSucceeded`); SIP connect/register errors attach toast action `account.notification.openSystemStateAction` («Состояние системы»).
 - Architecture: ADR-AF-007; `UserNotificationCaptureService` → `UserNotificationJournalRepository` → file/in-memory adapters.
 - Implementation evidence: `RecordUserNotificationUseCase`, `QueryUserNotificationJournalUseCase`, `FileUserNotificationJournalRepository`, `useNotifications`, `SettingsNotificationHistoryPanel`, `NotificationHistoryTable`, `toUserNotificationAccountDisplayLabel`, `deriveAccountSignInNotificationFeedback`.
+
+## F-030: Operator Preferences Export And Import
+
+- Legacy IDs: `LF-076`, `LF-077` (portable prefs transfer; secrets remain machine-local per F-023)
+- Context: Settings
+- Priority: high
+- Status: **implemented** (2026-07-24)
+- Owner: TBD
+- Inputs: operator Export/Import in Settings → General; active profile `UserSettings`; native JSON file dialogs
+- Outputs: portable `axatalk.preferences` v1 JSON; imported prefs applied to active profile via `migrateUserSettings`
+- Acceptance Criteria:
+  - Export includes portable preferences only (no SIP password, OCP API key, SDK pairing).
+  - Machine device ids (`preferredAudio/Video`, headset preferred) and `dismissedUpdateBannerVersion` are cleared; `ocpIntegration.linked` reset to `false`.
+  - Import targets the **active** profile; invalid / newer unsupported schema or formatVersion fails closed without mutation.
+  - Older `UserSettings.schemaVersion` inside a bundle migrates forward; new fields on a newer app get defaults.
+  - `SETTINGS_SCHEMA_VERSION` is not bumped by this feature; bundle uses `PREFERENCES_EXPORT_FORMAT_VERSION`.
+  - UI copy (all locales) states secrets are excluded and re-login / device reselect may be required.
+- Test Coverage:
+  - Unit: `PreferencesExportDocument.test.ts`, `OperatorPreferencesUseCases.test.ts`
+  - Component: `SettingsPreferencesTransferSection.test.tsx`
+  - E2E: deferred (native dialogs)
+- Design: `docs/softphone/P11-Operator-Preferences-Export-Design.md`
+- Implementation evidence: `PreferencesExportDocument.ts`; `ExportOperatorPreferencesUseCase` / `ImportOperatorPreferencesUseCase`; `PreferencesFileGateway` + Mock/Preload; `registerPreferencesFileIpc`; facade `exportOperatorPreferences` / `importOperatorPreferences`; `usePreferencesTransferActions`; Settings → General transfer section; i18n `settings.general.preferences.transfer.*`

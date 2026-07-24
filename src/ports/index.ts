@@ -78,6 +78,12 @@ export type {
   ContactCsvFileGateway,
   ContactCsvImportDialogResult,
 } from "./settings/ContactCsvFileGateway.js";
+export type {
+  PreferencesExportDialogInput,
+  PreferencesExportDialogResult,
+  PreferencesFileGateway,
+  PreferencesImportDialogResult,
+} from "./settings/PreferencesFileGateway.js";
 export type { FileSystemPort } from "./filesystem/FileSystemPort.js";
 export type {
   SecretStoragePort,

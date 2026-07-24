@@ -16,6 +16,7 @@ import {
 } from "@application/index.js";
 import { useI18n, type TranslationKey } from "../../../i18n/index.js";
 import { SettingsNumberInput } from "../SettingsNumberInput.js";
+import { SettingsPreferencesTransferSection } from "./SettingsPreferencesTransferSection.js";
 import { Button, Select } from "../../ui/index.js";
 import formStyles from "../SettingsForm.module.css";
 
@@ -40,6 +41,10 @@ export type SettingsGeneralPanelProps = Readonly<{
   isCheckingUpdates: boolean;
   onCheckForUpdates: () => void;
   onOpenDownloadPage: () => void;
+  preferencesTransferBusy?: boolean;
+  preferencesTransferStatusMessage?: string | null;
+  onExportPreferences?: () => void;
+  onImportPreferences?: () => void;
 }>;
 
 const THEME_OPTIONS: ReadonlyArray<Readonly<{ value: AppTheme; label: TranslationKey }>> = [
@@ -93,8 +98,14 @@ export function SettingsGeneralPanel({
   isCheckingUpdates,
   onCheckForUpdates,
   onOpenDownloadPage,
+  preferencesTransferBusy = false,
+  preferencesTransferStatusMessage = null,
+  onExportPreferences,
+  onImportPreferences,
 }: SettingsGeneralPanelProps): JSX.Element {
   const { t } = useI18n();
+  const showPreferencesTransfer =
+    onExportPreferences !== undefined && onImportPreferences !== undefined;
 
   const languageItems = SUPPORTED_LANGUAGES.map((locale) => ({
     value: locale,
@@ -285,6 +296,15 @@ export function SettingsGeneralPanel({
           </div>
         </div>
       </fieldset>
+
+      {showPreferencesTransfer ? (
+        <SettingsPreferencesTransferSection
+          isBusy={preferencesTransferBusy}
+          statusMessage={preferencesTransferStatusMessage}
+          onExport={onExportPreferences}
+          onImport={onImportPreferences}
+        />
+      ) : null}
 
       <fieldset className={formStyles.sectionCard}>
         <legend className={formStyles.sectionTitle}>

@@ -2,9 +2,9 @@
 
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
-**Updated:** 2026-07-23
-**Tests:** focused operator-events + DI-06/07 shared-clock PASS (2026-07-23; mapper + coarse-advance gate)
-**Lint / typecheck:** lint PASS; web `tsc` has pre-existing fail in `useShellWindowAttentionFromSdk.test.ts` (unrelated to operator-events)
+**Updated:** 2026-07-24
+**Tests:** F-030 preferences export/import unit+component PASS (2026-07-24); prior operator-events + DI-06/07 shared-clock PASS
+**Lint / typecheck:** i18n catalog parity PASS; focused vitest PASS for F-030 slice
 
 **Auth Flow Refactoring / Hardening:** implementation + automated gate complete 2026-07-17 — independent account/OCP/SIP state, five-stage OCP progress, crash-safe saved profiles/secrets, one-click saved-profile entry, persistent auth errors and rolling 24-hour notification journal (F-029). Real staging OCP smoke SM-1…20 remains external verification. Version: `0.11.0`.
 
@@ -45,6 +45,7 @@ Design: `P13-Video-Calls-Design.md`. ADR: `adr/ADR-0008-video-calls-media-mode.m
 | Call UI design parity (T-007) | done | `handoffs/P11-Call-UI-Design-Parity-Handoff.md` |
 | F-023 Local account profiles (T-011) | done | `P11-Local-Account-Profiles-Design.md` |
 | F-024 Saved SIP profiles (T-012) | done | `handoffs/P11-F024-Saved-Account-Profiles-Handoff.md` |
+| F-030 Preferences export/import | done | `P11-Operator-Preferences-Export-Design.md` |
 
 **P11 phase gate:** WU0–WU5 + post-WU5 polish + Call UI parity **done**. **T-008** SIP transport/register refactor **done** (LF-009/LF-057 header + «Состояние системы»). **F-022 / LF-084 codec preferences** **done** (T-009 UI + T-010 adapter, `5692747`…`bb085f8`). Remaining for phase close: UI-6 Radix modals, draggable widget (LF-056), toast placement (LF-060). **LF-082 theme** done 2026-06-26.
 

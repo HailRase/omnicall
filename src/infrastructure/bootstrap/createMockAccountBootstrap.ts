@@ -24,6 +24,7 @@ import type {
   CallHistoryRepository,
   ContactRepository,
   ContactCsvFileGateway,
+  PreferencesFileGateway,
   SecretStoragePort,
   OcpGateway,
   OcpProxyAuthenticatePort,
@@ -41,6 +42,7 @@ export type CreateAccountBootstrapOptions = Readonly<{
   savedAccountProfileRepository?: SavedAccountProfileRepository;
   contactRepository?: ContactRepository;
   contactCsvFileGateway?: ContactCsvFileGateway;
+  preferencesFileGateway?: PreferencesFileGateway;
   callHistoryRepository?: CallHistoryRepository;
   secretStoragePort?: SecretStoragePort;
   userNotificationJournalRepository?: UserNotificationJournalRepository;
@@ -109,6 +111,9 @@ export function createMockAccountBootstrap(
       : {}),
     ...(options.contactCsvFileGateway !== undefined
       ? { contactCsvFileGateway: options.contactCsvFileGateway }
+      : {}),
+    ...(options.preferencesFileGateway !== undefined
+      ? { preferencesFileGateway: options.preferencesFileGateway }
       : {}),
     ...(options.secretStoragePort !== undefined
       ? { secretStoragePort: options.secretStoragePort }

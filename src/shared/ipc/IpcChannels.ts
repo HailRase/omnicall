@@ -18,6 +18,8 @@ export const IPC_CHANNELS = {
   secretsInvoke: "secrets:invoke",
   contactsCsvOpenImportDialog: "contacts-csv:open-import-dialog",
   contactsCsvSaveExportDialog: "contacts-csv:save-export-dialog",
+  preferencesOpenImportDialog: "preferences:open-import-dialog",
+  preferencesSaveExportDialog: "preferences:save-export-dialog",
   headsetSetPreferredDeviceId: "headset:set-preferred-device-id",
   mediaListDisplaySources: "media:list-display-sources",
   mediaSetPendingDisplaySource: "media:set-pending-display-source",
@@ -51,4 +53,9 @@ export type {
   ContactsCsvSaveExportDialogPayload,
   ContactsCsvSaveExportDialogResponse,
 } from "./ContactsCsvFileContract.js";
+export type {
+  PreferencesOpenImportDialogResponse,
+  PreferencesSaveExportDialogPayload,
+  PreferencesSaveExportDialogResponse,
+} from "./PreferencesFileContract.js";
 export type { SetNativeThemePayload, SetNativeThemeResponse } from "./SetNativeThemeContract.js";

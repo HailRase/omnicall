@@ -69,3 +69,12 @@ No persisted blob → `createDefaultUserSettings()` (v1).
 ## Out of scope (WU4)
 
 Full settings panels, Electron IPC file store, legacy operator platform-only field UI, Use Cases for boolean config toggles.
+
+## Operator preferences transfer (F-030)
+
+Cross-PC transfer does **not** change `SETTINGS_SCHEMA_VERSION`. It uses a separate portable bundle:
+
+- Format id: `axatalk.preferences`
+- Format version: `PREFERENCES_EXPORT_FORMAT_VERSION` (independent of this schema table)
+- Design: `P11-Operator-Preferences-Export-Design.md`
+- Import always runs `migrateUserSettings` so older blobs gain new fields with defaults on newer apps; newer schema/format into older apps fails closed (no downgrade).

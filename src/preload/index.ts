@@ -25,6 +25,11 @@ import {
   parseContactsCsvSaveExportDialogResponse,
 } from "@shared/ipc/ContactsCsvFileContract.js";
 import {
+  parsePreferencesOpenImportDialogResponse,
+  parsePreferencesSaveExportDialogPayload,
+  parsePreferencesSaveExportDialogResponse,
+} from "@shared/ipc/PreferencesFileContract.js";
+import {
   parseSecretStorageOperation,
   parseSecretStorageResponse,
 } from "@shared/ipc/SecretStorageContract.js";
@@ -232,6 +237,30 @@ const softphoneApi: SoftphonePreloadApi = {
       parsedPayload,
     );
     const parsed = parseContactsCsvSaveExportDialogResponse(response);
+    if (parsed === null) {
+      return { ok: false, reason: "invalid_response" };
+    }
+    return parsed;
+  },
+  openPreferencesImportDialog: async () => {
+    const response: unknown = await ipcRenderer.invoke(IPC_CHANNELS.preferencesOpenImportDialog);
+    const parsed = parsePreferencesOpenImportDialogResponse(response);
+    if (parsed === null) {
+      return { ok: false, reason: "invalid_response" };
+    }
+    return parsed;
+  },
+  savePreferencesExportDialog: async (payload) => {
+    const parsedPayload = parsePreferencesSaveExportDialogPayload(payload);
+    if (parsedPayload === null) {
+      return { ok: false, reason: "invalid_payload" };
+    }
+
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.preferencesSaveExportDialog,
+      parsedPayload,
+    );
+    const parsed = parsePreferencesSaveExportDialogResponse(response);
     if (parsed === null) {
       return { ok: false, reason: "invalid_response" };
     }

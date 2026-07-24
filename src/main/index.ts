@@ -22,6 +22,7 @@ import { ShellWindowAttentionController } from "./shellWindow/ShellWindowAttenti
 import { registerProfilesPersistenceIpc } from "./profiles/registerProfilesPersistenceIpc.js";
 import { registerSecretStorageIpc } from "./secrets/registerSecretStorageIpc.js";
 import { registerContactsCsvIpc } from "./contacts/registerContactsCsvIpc.js";
+import { registerPreferencesFileIpc } from "./settings/registerPreferencesFileIpc.js";
 import { AppShutdownCoordinator } from "./lifecycle/AppShutdownCoordinator.js";
 import { installApplicationMenu } from "./lifecycle/createApplicationMenu.js";
 import { installDeveloperWebContentsShortcuts } from "./lifecycle/installDeveloperWebContentsShortcuts.js";
@@ -540,6 +541,7 @@ void app.whenReady().then(() => {
   registerProfilesPersistenceIpc();
   registerSecretStorageIpc();
   registerContactsCsvIpc();
+  registerPreferencesFileIpc();
   registerSdkBrokerIpc();
   setupHidPermissions();
   registerDisplayCaptureIpc();

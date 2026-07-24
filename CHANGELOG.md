@@ -9,6 +9,7 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ### Added
 
+- **F-030** Перенос настроек оператора: Settings → General → экспорт/импорт portable JSON (`axatalk.preferences` v1) без паролей, API-ключей и SDK pairing; device id сбрасываются; на новой версии приложения недостающие поля поднимаются через `migrateUserSettings` с дефолтами (даунгрейд схемы/formatVersion — fail closed).
 - Root SDK connect ceremony modal: Origin TOFU → pairing stepper (blur overlay поверх любого shell route); для уже trusted Origin — только pairing.
 - Waiting Cancel в ceremony (без blacklist); gateway cancel pending on disconnect + Origin leave-allowed; TTL sweeper для orphaned pairing/TOFU.
 - SDK login activate: `account:activate-profile` принимает `login` (+ optional `mode`); consent modal с выбором SIP/OCP; idempotent same-client; reauthorize для другого clientId; `logout_required` informational modal.

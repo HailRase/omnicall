@@ -27,6 +27,7 @@ import { useShellWindowAttentionFromCalls } from "../hooks/useShellWindowAttenti
 import { useShellWindowAttentionFromSdk } from "../hooks/useShellWindowAttentionFromSdk.js";
 import { useAppUpdate } from "../hooks/useAppUpdate.js";
 import { useSettingsActions } from "../hooks/useSettingsActions.js";
+import { usePreferencesTransferActions } from "../hooks/usePreferencesTransferActions.js";
 import { useOcpSettingsPanel } from "../hooks/useOcpSettingsPanel.js";
 import { useSdkSettingsPanel } from "../hooks/useSdkSettingsPanel.js";
 import { useOperatorStatusSelector } from "../hooks/useOperatorStatusSelector.js";
@@ -201,6 +202,11 @@ function SoftphoneShellLayoutRoute({
     backgroundCheckOnMount: true,
     dismissedUpdateBannerVersion: settingsActions.userSettings.dismissedUpdateBannerVersion,
     onDismissUpdateBannerVersion: settingsActions.onDismissUpdateBannerVersion,
+  });
+  const preferencesTransfer = usePreferencesTransferActions({
+    facade,
+    currentVersion: appUpdate.snapshot.currentVersion,
+    onSettingsImported: settingsActions.applyUserSettingsSnapshot,
   });
   const resolveNotificationTitle = useCallback(
     (descriptor: NotificationDescriptor): string =>
@@ -625,6 +631,14 @@ function SoftphoneShellLayoutRoute({
               isCheckingUpdates={appUpdate.isChecking}
               onCheckForUpdates={appUpdate.onCheckForUpdates}
               onOpenDownloadPage={appUpdate.onOpenDownloadPage}
+              preferencesTransferBusy={preferencesTransfer.isTransferBusy}
+              preferencesTransferStatusMessage={preferencesTransfer.transferStatusMessage}
+              onExportPreferences={() => {
+                void preferencesTransfer.exportPreferences();
+              }}
+              onImportPreferences={() => {
+                void preferencesTransfer.importPreferences();
+              }}
               systemState={{
                 shell: sipSystemStateShell,
                 ocpShell: ocpSystemState.shell,

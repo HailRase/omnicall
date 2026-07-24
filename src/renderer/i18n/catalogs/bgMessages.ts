@@ -453,6 +453,21 @@ export const bgMessages: MessageShape = {
   "settings.diagnostics.title": "Диагностика",
   "settings.general.aboutLegend": "За приложението",
   "settings.general.appearanceLegend": "Външен вид",
+  "settings.general.preferences.transfer.legend": "Пренос на настройки",
+  "settings.general.preferences.transfer.description":
+    "Експортът пренася предпочитанията на активния профил на друг компютър. Пароли, API ключове и SDK обвързвания не се включват.",
+  "settings.general.preferences.transfer.secretsNote":
+    "След импорт влезте отново и при нужда потвърдете доверените SDK сайтове. Изберете микрофон, камера и слушалки на новия компютър.",
+  "settings.general.preferences.transfer.export": "Експортиране",
+  "settings.general.preferences.transfer.import": "Импортиране",
+  "settings.general.preferences.transfer.exportSucceeded": (params: Readonly<{ fileName: string }>) =>
+    `Настройките са експортирани: ${params.fileName}`,
+  "settings.general.preferences.transfer.importSucceeded":
+    "Настройките са импортирани. Изберете устройства и влезте отново при нужда.",
+  "settings.general.preferences.transfer.exportFailed": "Неуспешен експорт на настройките.",
+  "settings.general.preferences.transfer.importFailed":
+    "Неуспешен импорт на настройките. Проверете файла и версията на приложението.",
+  "settings.general.preferences.transfer.unavailable": "Преносът на настройки е недостъпен в момента.",
   "settings.general.autoReregisterDescription": "Повторна регистрация при загуба на транспорт или грешка при регистрация",
   "settings.general.autoReregisterLabel": "Автоматична SIP пререгистрация",
   "settings.general.checkingUpdates": "Проверява се…",

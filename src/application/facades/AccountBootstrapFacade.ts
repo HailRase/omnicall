@@ -63,6 +63,7 @@ import type {
   CallHistoryRepository,
   ContactRepository,
   ContactCsvFileGateway,
+  PreferencesFileGateway,
   TelephonyGateway,
   MediaGateway,
   SecretStoragePort,
@@ -187,6 +188,8 @@ import { CallContactUseCase } from "../use-cases/telephony/CallContactUseCase.js
 import { ImportContactsCsvUseCase } from "../use-cases/contacts/ImportContactsCsvUseCase.js";
 import { ExportContactsCsvUseCase } from "../use-cases/contacts/ExportContactsCsvUseCase.js";
 import type { ContactsCsvImportSummary } from "../use-cases/contacts/ImportContactsCsvUseCase.js";
+import { ExportOperatorPreferencesUseCase } from "../use-cases/settings/ExportOperatorPreferencesUseCase.js";
+import { ImportOperatorPreferencesUseCase } from "../use-cases/settings/ImportOperatorPreferencesUseCase.js";
 import { CallHistoryRecordingOrchestrationService } from "../services/contacts/CallHistoryRecordingOrchestrationService.js";
 import { MockHeadsetGateway } from "@adapters/mock/MockHeadsetGateway.js";
 import { LOCAL_SAVED_PROFILE_NOT_FOUND_MESSAGE } from "../projections/settings/isLocalSavedProfileNotFoundError.js";
@@ -235,6 +238,21 @@ export type ContactsCsvExportOutcome = Readonly<
   | { kind: "exported"; contactCount: number; savedFileName: string }
 >;
 
+export type OperatorPreferencesImportOutcome = Readonly<
+  | { kind: "cancelled" }
+  | {
+      kind: "imported";
+      settings: UserSettings;
+      sourceProfileKey: string | null;
+      sourceAppVersion: string | null;
+    }
+>;
+
+export type OperatorPreferencesExportOutcome = Readonly<
+  | { kind: "cancelled" }
+  | { kind: "exported"; savedFileName: string; profileKey: string }
+>;
+
 export type ProfileScopedDataProjectionHandlers = Readonly<{
   setContactsLoading: () => void;
   setContactsLoaded: (contacts: ReadonlyArray<Contact>) => void;
@@ -253,6 +271,7 @@ export type AccountBootstrapFacadeDeps = Readonly<{
   callHistoryRepository?: CallHistoryRepository;
   contactRepository?: ContactRepository;
   contactCsvFileGateway?: ContactCsvFileGateway;
+  preferencesFileGateway?: PreferencesFileGateway;
   secretStoragePort?: SecretStoragePort;
   userNotificationJournalRepository?: UserNotificationJournalRepository;
   hostIntegrationGateway?: HostIntegrationGateway;
@@ -339,6 +358,9 @@ export class AccountBootstrapFacade {
   private readonly importContactsCsvUseCase: ImportContactsCsvUseCase;
   private readonly exportContactsCsvUseCase: ExportContactsCsvUseCase;
   private readonly contactCsvFileGateway: ContactCsvFileGateway | null;
+  private readonly exportOperatorPreferencesUseCase: ExportOperatorPreferencesUseCase;
+  private readonly importOperatorPreferencesUseCase: ImportOperatorPreferencesUseCase;
+  private readonly preferencesFileGateway: PreferencesFileGateway | null;
 
   private sipSessionRegistered = false;
   /** SIP WebSocket transport reached connected (ADR-0004) — independent of REGISTER. */
@@ -469,6 +491,15 @@ export class AccountBootstrapFacade {
       deps.logger,
     );
     this.contactCsvFileGateway = deps.contactCsvFileGateway ?? null;
+    this.exportOperatorPreferencesUseCase = new ExportOperatorPreferencesUseCase(
+      deps.settingsRepository,
+      deps.logger,
+    );
+    this.importOperatorPreferencesUseCase = new ImportOperatorPreferencesUseCase(
+      deps.settingsRepository,
+      deps.logger,
+    );
+    this.preferencesFileGateway = deps.preferencesFileGateway ?? null;
     const callHistoryRecordingOrchestration = new CallHistoryRecordingOrchestrationService(
       recordCallHistoryUseCase,
       deps.logger,
@@ -1356,6 +1387,76 @@ export class AccountBootstrapFacade {
       kind: "exported",
       contactCount: exportResult.value.contactCount,
       savedFileName: saveResult.savedFileName,
+    });
+  }
+
+  async importOperatorPreferences(
+    correlationId?: CorrelationId,
+  ): Promise<Result<OperatorPreferencesImportOutcome, PlatformError>> {
+    if (this.preferencesFileGateway === null) {
+      return err(
+        createPlatformError("operation_failed", "Preferences file gateway is unavailable"),
+      );
+    }
+
+    const dialogResult = await this.preferencesFileGateway.openImportDialog();
+    if (dialogResult.kind === "cancelled") {
+      return ok({ kind: "cancelled" });
+    }
+    if (dialogResult.kind === "error") {
+      return err(createPlatformError("operation_failed", dialogResult.reason));
+    }
+
+    const importResult = await this.importOperatorPreferencesUseCase.execute({
+      jsonContents: dialogResult.contents,
+      ...(correlationId !== undefined ? { correlationId } : {}),
+    });
+    if (isErr(importResult)) {
+      return importResult;
+    }
+
+    await this.applyHeadsetUserSettings(importResult.value.settings);
+
+    return ok({
+      kind: "imported",
+      settings: importResult.value.settings,
+      sourceProfileKey: importResult.value.sourceProfileKey,
+      sourceAppVersion: importResult.value.sourceAppVersion,
+    });
+  }
+
+  async exportOperatorPreferences(
+    input: Readonly<{ correlationId?: CorrelationId; appVersion?: string | null }> = {},
+  ): Promise<Result<OperatorPreferencesExportOutcome, PlatformError>> {
+    if (this.preferencesFileGateway === null) {
+      return err(
+        createPlatformError("operation_failed", "Preferences file gateway is unavailable"),
+      );
+    }
+
+    const exportResult = await this.exportOperatorPreferencesUseCase.execute({
+      ...(input.correlationId !== undefined ? { correlationId: input.correlationId } : {}),
+      ...(input.appVersion !== undefined ? { appVersion: input.appVersion } : {}),
+    });
+    if (isErr(exportResult)) {
+      return exportResult;
+    }
+
+    const saveResult = await this.preferencesFileGateway.saveExportDialog({
+      contents: exportResult.value.jsonContents,
+      suggestedFileName: buildPreferencesExportFileName(),
+    });
+    if (saveResult.kind === "cancelled") {
+      return ok({ kind: "cancelled" });
+    }
+    if (saveResult.kind === "error") {
+      return err(createPlatformError("operation_failed", saveResult.reason));
+    }
+
+    return ok({
+      kind: "exported",
+      savedFileName: saveResult.savedFileName,
+      profileKey: exportResult.value.profileKey,
     });
   }
 
@@ -4183,4 +4284,9 @@ const SIP_PASSWORD_REQUIRED_MESSAGE = "SIP password is required";
 function buildContactsCsvExportFileName(): string {
   const datePart = new Date().toISOString().slice(0, 10);
   return `contacts-export-${datePart}.csv`;
+}
+
+function buildPreferencesExportFileName(): string {
+  const datePart = new Date().toISOString().slice(0, 10);
+  return `axatalk-preferences-${datePart}.json`;
 }

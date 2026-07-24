@@ -428,6 +428,21 @@ const ruMessages = {
   "settings.general.recoveryIntervalHint": (params: Readonly<{ minSec: number }>) =>
     `Фиксированная задержка между попытками (минимум ${params.minSec} с)`,
   "settings.general.recoveryIntervalSecShort": "сек",
+  "settings.general.preferences.transfer.legend": "Перенос настроек",
+  "settings.general.preferences.transfer.description":
+    "Экспорт переносит предпочтения активного профиля на другой ПК. Пароли, API-ключи и привязки SDK не включаются.",
+  "settings.general.preferences.transfer.secretsNote":
+    "После импорта войдите в аккаунт заново и при необходимости заново подтвердите доверенные сайты SDK. Устройства микрофона/камеры/гарнитуры нужно выбрать на новом ПК.",
+  "settings.general.preferences.transfer.export": "Экспортировать",
+  "settings.general.preferences.transfer.import": "Импортировать",
+  "settings.general.preferences.transfer.exportSucceeded": (params: Readonly<{ fileName: string }>) =>
+    `Настройки экспортированы: ${params.fileName}`,
+  "settings.general.preferences.transfer.importSucceeded":
+    "Настройки импортированы. Выберите устройства и войдите в аккаунт при необходимости.",
+  "settings.general.preferences.transfer.exportFailed": "Не удалось экспортировать настройки.",
+  "settings.general.preferences.transfer.importFailed":
+    "Не удалось импортировать настройки. Проверьте файл и версию приложения.",
+  "settings.general.preferences.transfer.unavailable": "Перенос настроек сейчас недоступен.",
   "settings.general.aboutLegend": "О программе",
   "settings.general.currentVersion": "Текущая версия",
   "settings.general.latestVersion": (params: Readonly<{ version: string }>) =>
@@ -1762,6 +1777,21 @@ const enMessages: MessageShape = {
   "settings.general.recoveryIntervalHint": (params) =>
     `Fixed delay between attempts (minimum ${params.minSec} sec)`,
   "settings.general.recoveryIntervalSecShort": "sec",
+  "settings.general.preferences.transfer.legend": "Transfer settings",
+  "settings.general.preferences.transfer.description":
+    "Export moves the active profile preferences to another PC. Passwords, API keys, and SDK pairings are not included.",
+  "settings.general.preferences.transfer.secretsNote":
+    "After import, sign in again and re-confirm trusted SDK sites if needed. Choose microphone, camera, and headset devices on the new PC.",
+  "settings.general.preferences.transfer.export": "Export",
+  "settings.general.preferences.transfer.import": "Import",
+  "settings.general.preferences.transfer.exportSucceeded": (params: Readonly<{ fileName: string }>) =>
+    `Settings exported: ${params.fileName}`,
+  "settings.general.preferences.transfer.importSucceeded":
+    "Settings imported. Select devices and sign in again if needed.",
+  "settings.general.preferences.transfer.exportFailed": "Could not export settings.",
+  "settings.general.preferences.transfer.importFailed":
+    "Could not import settings. Check the file and application version.",
+  "settings.general.preferences.transfer.unavailable": "Settings transfer is unavailable right now.",
   "settings.general.aboutLegend": "About",
   "settings.general.currentVersion": "Current version",
   "settings.general.latestVersion": (params) => `Latest version: ${params.version}`,
@@ -3074,6 +3104,21 @@ const frMessages: MessageShape = {
   "settings.general.recoveryIntervalHint": (params) =>
     `Delai fixe entre tentatives (minimum ${params.minSec} s)`,
   "settings.general.recoveryIntervalSecShort": "s",
+  "settings.general.preferences.transfer.legend": "Transfert des parametres",
+  "settings.general.preferences.transfer.description":
+    "L'export transferre les preferences du profil actif vers un autre PC. Mots de passe, cles API et associations SDK exclus.",
+  "settings.general.preferences.transfer.secretsNote":
+    "Apres import, reconnectez-vous et reconfirmez les sites SDK de confiance si besoin. Choisissez micro, camera et casque sur le nouveau PC.",
+  "settings.general.preferences.transfer.export": "Exporter",
+  "settings.general.preferences.transfer.import": "Importer",
+  "settings.general.preferences.transfer.exportSucceeded": (params: Readonly<{ fileName: string }>) =>
+    `Parametres exportes : ${params.fileName}`,
+  "settings.general.preferences.transfer.importSucceeded":
+    "Parametres importes. Selectionnez les peripheriques et reconnectez-vous si besoin.",
+  "settings.general.preferences.transfer.exportFailed": "Echec de l'export des parametres.",
+  "settings.general.preferences.transfer.importFailed":
+    "Echec de l'import des parametres. Verifiez le fichier et la version de l'application.",
+  "settings.general.preferences.transfer.unavailable": "Le transfert des parametres est indisponible.",
   "settings.general.aboutLegend": "A propos",
   "settings.general.currentVersion": "Version actuelle",
   "settings.general.latestVersion": (params) => `Derniere version: ${params.version}`,
@@ -4383,6 +4428,21 @@ const deMessages: MessageShape = {
   "settings.general.recoveryIntervalHint": (params) =>
     `Feste Verzoegerung zwischen Versuchen (Minimum ${params.minSec} s)`,
   "settings.general.recoveryIntervalSecShort": "s",
+  "settings.general.preferences.transfer.legend": "Einstellungen uebertragen",
+  "settings.general.preferences.transfer.description":
+    "Der Export uebertraegt die Einstellungen des aktiven Profils auf einen anderen PC. Passwoerter, API-Schluessel und SDK-Kopplungen sind ausgeschlossen.",
+  "settings.general.preferences.transfer.secretsNote":
+    "Nach dem Import erneut anmelden und vertrauenswuerdige SDK-Sites bei Bedarf bestaetigen. Mikrofon, Kamera und Headset auf dem neuen PC auswaehlen.",
+  "settings.general.preferences.transfer.export": "Exportieren",
+  "settings.general.preferences.transfer.import": "Importieren",
+  "settings.general.preferences.transfer.exportSucceeded": (params: Readonly<{ fileName: string }>) =>
+    `Einstellungen exportiert: ${params.fileName}`,
+  "settings.general.preferences.transfer.importSucceeded":
+    "Einstellungen importiert. Geraete auswaehlen und bei Bedarf erneut anmelden.",
+  "settings.general.preferences.transfer.exportFailed": "Einstellungen konnten nicht exportiert werden.",
+  "settings.general.preferences.transfer.importFailed":
+    "Einstellungen konnten nicht importiert werden. Datei und App-Version pruefen.",
+  "settings.general.preferences.transfer.unavailable": "Einstellungenstransfer ist derzeit nicht verfuegbar.",
   "settings.general.aboutLegend": "Info",
   "settings.general.currentVersion": "Aktuelle Version",
   "settings.general.latestVersion": (params) => `Neueste Version: ${params.version}`,

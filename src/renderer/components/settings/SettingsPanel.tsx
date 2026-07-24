@@ -81,6 +81,10 @@ export type SettingsPanelProps = Readonly<{
   isCheckingUpdates: boolean;
   onCheckForUpdates: () => void;
   onOpenDownloadPage: () => void;
+  preferencesTransferBusy?: boolean;
+  preferencesTransferStatusMessage?: string | null;
+  onExportPreferences?: () => void;
+  onImportPreferences?: () => void;
   systemState: Readonly<{
     shell: SipSystemStateShellView;
     ocpShell: OcpSystemStateShellView;
@@ -236,6 +240,10 @@ export function SettingsPanel({
   isCheckingUpdates,
   onCheckForUpdates,
   onOpenDownloadPage,
+  preferencesTransferBusy,
+  preferencesTransferStatusMessage,
+  onExportPreferences,
+  onImportPreferences,
   systemState,
   codecPreferences,
   onAudioCodecEnabledChange,
@@ -371,6 +379,10 @@ export function SettingsPanel({
           isCheckingUpdates={isCheckingUpdates}
           onCheckForUpdates={onCheckForUpdates}
           onOpenDownloadPage={onOpenDownloadPage}
+          preferencesTransferBusy={preferencesTransferBusy}
+          preferencesTransferStatusMessage={preferencesTransferStatusMessage}
+          onExportPreferences={onExportPreferences}
+          onImportPreferences={onImportPreferences}
         />
       );
       break;

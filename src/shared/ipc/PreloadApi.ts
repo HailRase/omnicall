@@ -24,6 +24,11 @@ import type {
   ContactsCsvSaveExportDialogResponse,
 } from "./ContactsCsvFileContract.js";
 import type {
+  PreferencesOpenImportDialogResponse,
+  PreferencesSaveExportDialogPayload,
+  PreferencesSaveExportDialogResponse,
+} from "./PreferencesFileContract.js";
+import type {
   SecretStorageOperation,
   SecretStorageResponse,
 } from "./SecretStorageContract.js";
@@ -77,6 +82,10 @@ export type SoftphonePreloadApi = Readonly<{
   saveContactsCsvExportDialog: (
     payload: ContactsCsvSaveExportDialogPayload,
   ) => Promise<ContactsCsvSaveExportDialogResponse>;
+  openPreferencesImportDialog: () => Promise<PreferencesOpenImportDialogResponse>;
+  savePreferencesExportDialog: (
+    payload: PreferencesSaveExportDialogPayload,
+  ) => Promise<PreferencesSaveExportDialogResponse>;
   setHeadsetPreferredDeviceId: (
     deviceId: string | null,
   ) => Promise<Readonly<{ ok: boolean }>>;

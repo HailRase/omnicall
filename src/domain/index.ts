@@ -35,6 +35,24 @@ export {
   MAX_AUTO_ANSWER_TIMEOUT_SEC,
   SETTINGS_SCHEMA_VERSION,
 } from "./settings/UserSettings.js";
+export type {
+  PreferencesExportDocumentV1,
+  PreferencesExportFormatId,
+  PreferencesExportFormatVersion,
+  PreferencesExportParseErrorCode,
+  PreferencesExportParseResult,
+} from "./settings/PreferencesExportDocument.js";
+export {
+  PREFERENCES_EXPORT_FORMAT_ID,
+  PREFERENCES_EXPORT_FORMAT_VERSION,
+  assertPreferencesJsonExcludesSecrets,
+  buildPreferencesExportDocument,
+  createPortableDefaultUserSettings,
+  parsePreferencesExportDocument,
+  parsePreferencesExportJson,
+  serializePreferencesExportDocument,
+  toPortableUserSettings,
+} from "./settings/PreferencesExportDocument.js";
 export {
   DEFAULT_AUTO_FULLSCREEN_ON_CONFERENCE,
   DEFAULT_CONFERENCE_NUMBER_SUBSTRING,
