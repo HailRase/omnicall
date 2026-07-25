@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-25 18:20
 **Статус:** выполнено
-**Коммит:** `93a826b`
+**Коммит:** `1ec3bce`
 
 ## Где
 - Splash: `#boot-splash`, `bootSplashDom`, `useBootSplashController`, colors `#42AAFF`
