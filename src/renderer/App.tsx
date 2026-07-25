@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import { HashRouter } from "react-router-dom";
 import { useAccountBootstrap } from "./hooks/useAccountBootstrap.js";
 import { useAppShutdown } from "./hooks/useAppShutdown.js";
+import { useBootSplashController } from "./hooks/useBootSplashController.js";
 import { useSoftphoneShellChrome } from "./hooks/useSoftphoneShellChrome.js";
 import { useI18n } from "./i18n/index.js";
 import { BootstrapSplashShell } from "./shells/BootstrapSplashShell.js";
@@ -11,6 +12,7 @@ import styles from "./App.module.css";
 export function App(): JSX.Element {
   const { t } = useI18n();
   const { facade, status, errorMessage } = useAccountBootstrap();
+  const { showReadyShell } = useBootSplashController(status, t("bootstrap.loading"));
   const shellChrome = useSoftphoneShellChrome({ facade });
   const { isShuttingDown, shutdownErrorKey, shutdownProgressKey } = useAppShutdown({ facade });
 
@@ -28,8 +30,6 @@ export function App(): JSX.Element {
         </div>
       ) : null}
 
-      {status === "loading" ? <BootstrapSplashShell variant="loading" /> : null}
-
       {status === "error" ? (
         <BootstrapSplashShell
           variant="error"
@@ -37,7 +37,7 @@ export function App(): JSX.Element {
         />
       ) : null}
 
-      {status === "ready" && facade !== null ? (
+      {showReadyShell && facade !== null ? (
         <HashRouter>
           <SoftphoneReadyShell
             facade={facade}

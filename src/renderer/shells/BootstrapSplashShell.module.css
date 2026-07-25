@@ -18,7 +18,7 @@
   background:
     radial-gradient(
       55% 45% at 50% 38%,
-      color-mix(in srgb, var(--color-accent-primary) 18%, transparent) 0%,
+      color-mix(in srgb, var(--color-brand-splash-mid) 16%, transparent) 0%,
       transparent 70%
     ),
     radial-gradient(
@@ -26,8 +26,9 @@
       color-mix(in srgb, var(--color-bg-surface-highlight) 80%, transparent) 0%,
       transparent 65%
     );
-  opacity: 0.9;
-  animation: atmosphere-breathe 4.5s ease-in-out infinite;
+  opacity: 0.88;
+  /* Opacity-only — avoid scale fight with the ball bounce. */
+  animation: atmosphere-breathe 5.5s ease-in-out infinite;
 }
 
 .content {
@@ -38,42 +39,73 @@
   align-items: center;
   gap: var(--space-sm);
   padding: var(--space-lg);
-  max-width: 280px;
+  max-width: 17.5rem;
   text-align: center;
-  animation: content-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* No enter fade: handoff from #boot-splash must be invisible. */
 }
 
-.mark {
+.ball-stage {
   position: relative;
-  width: 72px;
-  height: 72px;
-  display: grid;
-  place-items: center;
+  width: 5.75rem;
+  height: 8.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
   margin-bottom: var(--space-2xs);
 }
 
-.mark-glow {
-  position: absolute;
-  inset: 0;
-  border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--color-accent-primary) 28%, transparent);
-  filter: blur(14px);
-  opacity: 0.85;
-  animation: mark-pulse 2.4s ease-in-out infinite;
-}
-
-.mark-core {
+/*
+ * Ball + icon share one transform tree (squash/stretch together).
+ * Duration must match BOOTSTRAP_SPLASH_BOUNCE_MS (1200) + index.html.
+ */
+.ball {
   position: relative;
   z-index: 1;
-  width: 56px;
-  height: 56px;
+  width: 5.5rem;
+  height: 5.5rem;
   display: grid;
   place-items: center;
   border-radius: var(--radius-full);
-  background: color-mix(in srgb, var(--color-bg-surface) 88%, var(--color-accent-primary));
-  border: 1px solid color-mix(in srgb, var(--color-accent-primary) 35%, var(--color-border-default));
-  box-shadow: var(--shadow-tooltip);
-  color: var(--color-accent-primary);
+  color: var(--color-text-on-accent);
+  background: linear-gradient(
+    165deg,
+    var(--color-brand-splash-from) 0%,
+    var(--color-brand-splash-mid) 48%,
+    var(--color-brand-splash-to) 100%
+  );
+  box-shadow:
+    0 0.55rem 1.35rem color-mix(in srgb, var(--color-brand-splash-mid) 38%, transparent),
+    inset 0 0.12rem 0.4rem color-mix(in srgb, white 32%, transparent);
+  transform-origin: 50% 100%;
+  will-change: transform;
+  animation: ball-bounce 1200ms cubic-bezier(0.45, 0.05, 0.25, 1) infinite;
+}
+
+/* Oval ground shadow — ellipse below the ball (not under its opaque fill). */
+.ball-shadow {
+  position: absolute;
+  bottom: -0.2rem;
+  left: 50%;
+  width: 3.5rem;
+  height: 0.85rem;
+  margin-left: -1.75rem;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-text-primary) 38%, transparent);
+  box-shadow: 0 0 10px 3px color-mix(in srgb, var(--color-text-primary) 20%, transparent);
+  filter: blur(1.5px);
+  transform-origin: center center;
+  will-change: transform, opacity;
+  animation: ball-shadow 1200ms cubic-bezier(0.45, 0.05, 0.25, 1) infinite;
+  pointer-events: none;
+}
+
+.ball-stage[data-settled="true"] .ball {
+  animation: ball-settle 480ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.ball-stage[data-settled="true"] .ball-shadow {
+  animation: shadow-settle 480ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 .brand {
@@ -92,8 +124,15 @@
 }
 
 .progress {
-  width: 160px;
+  width: 12.5rem;
+  max-width: 100%;
   margin-top: var(--space-xs);
+  --progress-fill: linear-gradient(
+    90deg,
+    var(--color-brand-splash-from),
+    var(--color-brand-splash-mid),
+    var(--color-brand-splash-to)
+  );
 }
 
 .error-message {
@@ -104,63 +143,134 @@
   word-break: break-word;
 }
 
-@keyframes content-enter {
-  from {
-    opacity: 0;
-    transform: translateY(8px) scale(0.98);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
 @keyframes atmosphere-breathe {
   0%,
   100% {
-    opacity: 0.75;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scale(1.03);
-  }
-}
-
-@keyframes mark-pulse {
-  0%,
-  100% {
-    opacity: 0.55;
-    transform: scale(0.92);
+    opacity: 0.78;
   }
 
   50% {
     opacity: 0.95;
-    transform: scale(1.05);
+  }
+}
+
+/* Mild squash/stretch — denser keys for smoother perceived physics */
+@keyframes ball-bounce {
+  0% {
+    transform: translateY(0) scaleX(1.1) scaleY(0.9);
+  }
+
+  8% {
+    transform: translateY(0) scaleX(1.02) scaleY(0.98);
+  }
+
+  18% {
+    transform: translateY(-0.85rem) scaleX(0.97) scaleY(1.03);
+  }
+
+  38% {
+    transform: translateY(-3.15rem) scaleX(0.93) scaleY(1.07);
+  }
+
+  50% {
+    transform: translateY(-3.35rem) scaleX(0.95) scaleY(1.05);
+  }
+
+  68% {
+    transform: translateY(-1.55rem) scaleX(0.98) scaleY(1.02);
+  }
+
+  86% {
+    transform: translateY(-0.15rem) scaleX(1.03) scaleY(0.97);
+  }
+
+  94% {
+    transform: translateY(0) scaleX(1.07) scaleY(0.93);
+  }
+
+  100% {
+    transform: translateY(0) scaleX(1.1) scaleY(0.9);
+  }
+}
+
+@keyframes ball-shadow {
+  0%,
+  100% {
+    transform: scaleX(1.15) scaleY(1);
+    opacity: 0.85;
+  }
+
+  8% {
+    transform: scaleX(1.05) scaleY(1);
+    opacity: 0.7;
+  }
+
+  18% {
+    transform: scaleX(0.9) scaleY(0.95);
+    opacity: 0.45;
+  }
+
+  38%,
+  50% {
+    transform: scaleX(0.55) scaleY(0.85);
+    opacity: 0.22;
+  }
+
+  68% {
+    transform: scaleX(0.8) scaleY(0.92);
+    opacity: 0.4;
+  }
+
+  86% {
+    transform: scaleX(1.02) scaleY(1);
+    opacity: 0.65;
+  }
+
+  94% {
+    transform: scaleX(1.1) scaleY(1);
+    opacity: 0.78;
+  }
+}
+
+@keyframes ball-settle {
+  from {
+    transform: translateY(-0.9rem) scaleX(0.97) scaleY(1.03);
+  }
+
+  to {
+    transform: translateY(0) scaleX(1.04) scaleY(0.96);
+  }
+}
+
+@keyframes shadow-settle {
+  from {
+    transform: scaleX(0.78);
+    opacity: 0.35;
+  }
+
+  to {
+    transform: scaleX(1.1);
+    opacity: 0.8;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .atmosphere,
-  .mark-glow,
-  .content {
+  .ball,
+  .ball-shadow {
     animation: none;
-  }
-
-  .content {
-    opacity: 1;
-    transform: none;
   }
 
   .atmosphere {
     opacity: 0.85;
+  }
+
+  .ball {
     transform: none;
   }
 
-  .mark-glow {
-    opacity: 0.7;
-    transform: none;
+  .ball-shadow {
+    opacity: 0.28;
+    transform: scaleX(1);
   }
 }

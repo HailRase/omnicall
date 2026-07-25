@@ -110,6 +110,14 @@
   --color-accent-primary-active: #3565b5;
   --color-text-on-accent: #ffffff;
 
+  /*
+   * Brand splash cyan (single-stage #boot-splash mark).
+   * Sync: startupSplashColors.ts, index.html #boot-splash — mid = #42AAFF
+   */
+  --color-brand-splash-from: #6bc4ff;
+  --color-brand-splash-mid: #42aaff;
+  --color-brand-splash-to: #2a8fd9;
+
   /* Overlay */
   --color-overlay-scrim: rgb(26 35 50 / 35%);
   --color-overlay-scrim-strong: rgb(26 35 50 / 48%);
@@ -221,6 +229,11 @@
   --color-accent-primary-hover: #5a8fd9;
   --color-accent-primary-active: #3d6fc0;
   --color-text-on-accent: #ffffff;
+
+  /* Brand splash cyan stays the same in dark theme (product mark, not UI accent). */
+  --color-brand-splash-from: #6bc4ff;
+  --color-brand-splash-mid: #42aaff;
+  --color-brand-splash-to: #2a8fd9;
 
   /* Overlay */
   --color-overlay-scrim: rgb(8 12 20 / 55%);

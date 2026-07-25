@@ -18,7 +18,3 @@ createRoot(rootElement).render(
     <App />
   </StrictMode>,
 );
-
-queueMicrotask(() => {
-  document.getElementById("boot-splash")?.remove();
-});

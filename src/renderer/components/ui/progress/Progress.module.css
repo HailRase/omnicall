@@ -26,13 +26,13 @@
   width: 100%;
   height: 100%;
   border-radius: inherit;
-  background: var(--color-accent-primary);
+  background: var(--progress-fill, var(--color-accent-primary));
   transition: transform 180ms ease;
   will-change: transform;
 }
 
 .tone-default .indicator {
-  background: var(--color-accent-primary);
+  background: var(--progress-fill, var(--color-accent-primary));
 }
 
 .tone-success .indicator {

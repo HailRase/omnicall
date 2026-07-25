@@ -9,6 +9,7 @@
 - **Migration checklist:** [`guides/Distribution-Migration-Checklist.md`](guides/Distribution-Migration-Checklist.md)
 - Live snapshot: `docs/softphone/STATUS.md`
 - Task queue: `docs/softphone/TASK-QUEUE.md`
+- Bootstrap splash (single-stage `#boot-splash`): `docs/softphone/Bootstrap-Splash-Contract.md`
 - UI Kit plan: `docs/ui-kit/UI-KIT.md`
 - UI Kit visual canon: `docs/ui-kit/VISUAL-SPEC.md`
 - **SIP transport/register refactor (T-008):** `docs/softphone/TRANSPORT-REGISTER-STATE-REFACTORING.md`

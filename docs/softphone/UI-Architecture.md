@@ -119,10 +119,13 @@ Document components via JSDoc `@uiMeta` + Storybook; catalog: `npm run ui:catalo
 
 ### Bootstrap splash contract
 
-1. **Pre-React:** `index.html` `#boot-splash` + `BrowserWindow.backgroundColor` from `startupSplashColors` (keep hex in sync with `--color-bg-app`).
-2. **React loading/error:** `BootstrapSplashShell` only — presentational; copy via i18n (`bootstrap.*`).
-3. **Ready:** `SoftphoneReadyShell`; splash unmounts. Do not mount ReadyShell during composition/`initialize`.
-4. **Boundaries:** splash must not call Use Cases, SIP, Electron IPC, or repositories. Provisional `data-theme` from OS `prefers-color-scheme` may apply before settings hydrate.
+Canonical detail: [`Bootstrap-Splash-Contract.md`](./Bootstrap-Splash-Contract.md).
+
+1. **Single-stage loading:** only `#boot-splash` until settle — React drives it via `useBootSplashController` + `bootSplashDom` (no React loading splash).
+2. **Pre-React / loading:** `index.html` `#boot-splash` + `BrowserWindow.backgroundColor` from `startupSplashColors` (mid `#42AAFF`; sync `--color-brand-splash-*`).
+3. **Error:** dismiss HTML splash, then presentational `BootstrapSplashShell` (`variant="error"`, i18n `bootstrap.*`).
+4. **Ready:** after settle, mount `SoftphoneReadyShell` under `#boot-splash`, then crossfade-exit splash (`beginBootSplashExit`); do not mount ReadyShell during composition/`initialize`.
+5. **Boundaries:** splash must not call Use Cases, SIP, Electron IPC, or repositories. Provisional `data-theme` from OS `prefers-color-scheme` may apply before settings hydrate.
 
 Shells may use hooks and facades; components inside shells remain dumb.
 

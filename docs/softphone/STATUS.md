@@ -2,9 +2,10 @@
 
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
-**Updated:** 2026-07-24
-**Tests:** F-016/LF-002 bootstrap splash component PASS (2026-07-24); F-030 preferences export/import PASS; prior operator-events + DI-06/07 shared-clock PASS
-**Lint / typecheck:** splash slice eslint/stylelint/i18n/ui:catalog PASS; focused vitest PASS; full-repo `tsc` still has pre-existing unrelated errors (SDK IPC / F-030 import optional props)
+**Updated:** 2026-07-25
+**Tests:** F-016/LF-002 single-stage bootstrap splash PASS (2026-07-25 — `#boot-splash` only, mid `#42AAFF`, settle + crossfade exit, oval shadow, `bootSplashDom` / `useBootSplashController`); F-030 preferences export/import PASS; prior operator-events + DI-06/07 shared-clock PASS
+**Lint / typecheck:** splash slice focused vitest expected PASS; full-repo `tsc` may still have pre-existing unrelated errors (SDK IPC / F-030 import optional props)
+**Splash contract:** `docs/softphone/Bootstrap-Splash-Contract.md` — single-stage `#boot-splash` + exit crossfade; do not reintroduce React loading splash handoff
 
 **Auth Flow Refactoring / Hardening:** implementation + automated gate complete 2026-07-17 — independent account/OCP/SIP state, five-stage OCP progress, crash-safe saved profiles/secrets, one-click saved-profile entry, persistent auth errors and rolling 24-hour notification journal (F-029). Real staging OCP smoke SM-1…20 remains external verification. Version: `0.11.0`.
 

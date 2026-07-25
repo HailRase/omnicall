@@ -57,6 +57,7 @@
 | `call.outgoing` | Outgoing call indicator | `Phone` | `PhoneIcon` | `OutgoingCallCard` | active |
 | `call.phone-off` | Connection lost | `PhoneOff` | `PhoneOffIcon` | `SettingsSystemStatePanel` (Phase 6) | planned |
 | `overlay.close` | Close overlay/modal | `X` | `XIcon` | `ShellOverlaySheet`, modals, `OcpToastStack`, transfer cancel, SDK origin edit cancel | active |
+| `bootstrap.mark` | Bootstrap splash brand ball mark | `Phone` | `PhoneIcon` | `BootstrapSplashShell` | active |
 | `dial.call` | Place outgoing call | `PhoneOutgoing` | — | `Dialpad` | active |
 | `dial.videoCall` | Place outgoing video call | `Video` | — | `Dialpad` | active |
 | `dial.delete` | Delete last digit | `Delete` | `DeleteIcon` | `Dialpad` | active |

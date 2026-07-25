@@ -141,6 +141,7 @@ export type IconSemanticId =
   | "call.outgoing"
   | "call.phone-off"
   | "overlay.close"
+  | "bootstrap.mark"
   | "dial.call"
   | "dial.videoCall"
   | "dial.delete"
@@ -488,6 +489,13 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
       "VideoFullscreenModal",
       "SdkModuleSettingsOriginAddressEditor: cancel",
     ],
+  },
+  "bootstrap.mark": {
+    static: Phone,
+    animated: PhoneIcon,
+    defaultLabelKey: "bootstrap.brand",
+    defaultSize: 36,
+    usage: ["BootstrapSplashShell"],
   },
   "dial.call": {
     static: PhoneOutgoing,

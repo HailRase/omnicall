@@ -33,13 +33,23 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const LoadingLight: Story = {
-  render: (): JSX.Element => <BootstrapSplashShell variant="loading" />,
+  render: (): JSX.Element => <BootstrapSplashShell variant="loading" progress={48} />,
   parameters: { theme: "light" },
 };
 
 export const LoadingDark: Story = {
-  render: (): JSX.Element => <BootstrapSplashShell variant="loading" />,
+  render: (): JSX.Element => <BootstrapSplashShell variant="loading" progress={48} />,
   parameters: { theme: "dark" },
+};
+
+export const LoadingIndeterminate: Story = {
+  render: (): JSX.Element => <BootstrapSplashShell variant="loading" />,
+  parameters: { theme: "light" },
+};
+
+export const LoadingSettled: Story = {
+  render: (): JSX.Element => <BootstrapSplashShell variant="loading" progress={100} />,
+  parameters: { theme: "light" },
 };
 
 export const ErrorLight: Story = {
