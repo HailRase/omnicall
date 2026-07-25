@@ -20,6 +20,7 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ### Changed
 
+- **F-016 / LF-002** Bootstrap splash bounce: чуть быстрее (1000ms), плавнее цикл (linear + seamless keyframes); settle без телепорта (freeze текущего pose → ease to rest); тень без animated `filter: blur`; progress-тики дешевле — без смены single-stage контракта.
 - Pairing / TOFU больше не открывают Settings и не показываются callout’ами в Axatalk SDK card; Settings остаётся policy (trusted/blocked/matrix/revoke).
 - Disconnect mid-TOFU больше не пишет Origin в blacklist (`cancel` ≠ Deny).
 - Убран Settings «Временный доступ к профилю» / temporary `profileRef` grant; `account.activate` поднимается из Origin matrix + `sdk:permission-changed`.

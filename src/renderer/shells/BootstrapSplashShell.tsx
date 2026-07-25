@@ -4,7 +4,10 @@ import { resolveBootstrapSplashAnimationDelayMs } from "@shared/platform/startup
 import { useI18n } from "../i18n/index.js";
 import { AppIcon } from "../components/icons/AppIcon.js";
 import { Progress } from "../components/ui/progress/index.js";
-import { dismissBootSplash } from "../helpers/bootSplashDom.js";
+import {
+  dismissBootSplash,
+  settleSplashBallMotion,
+} from "../helpers/bootSplashDom.js";
 import styles from "./BootstrapSplashShell.module.css";
 
 export type BootstrapSplashShellProps = Readonly<
@@ -44,6 +47,9 @@ export function BootstrapSplashShell(props: BootstrapSplashShellProps): JSX.Elem
       ? clampProgress(props.progress)
       : null;
   const settled = progress !== null && progress >= 100;
+  const ballRef = useRef<HTMLDivElement>(null);
+  const shadowRef = useRef<HTMLDivElement>(null);
+  const settleAppliedRef = useRef(false);
 
   // Sync bounce phase with pre-React #boot-splash (same wall-clock modulo period).
   const bounceDelayStyleRef = useRef<CSSProperties | null>(null);
@@ -58,6 +64,15 @@ export function BootstrapSplashShell(props: BootstrapSplashShellProps): JSX.Elem
   useLayoutEffect(() => {
     dismissBootSplash();
   }, []);
+
+  // Freeze current bounce pose, then ease down — never swap settle keyframes mid-air.
+  useLayoutEffect(() => {
+    if (!settled || settleAppliedRef.current) {
+      return;
+    }
+    settleAppliedRef.current = true;
+    settleSplashBallMotion(ballRef.current, shadowRef.current);
+  }, [settled]);
 
   return (
     <div
@@ -76,10 +91,18 @@ export function BootstrapSplashShell(props: BootstrapSplashShellProps): JSX.Elem
           data-testid="bootstrap-ball-stage"
           aria-hidden
         >
-          <div className={styles.ball} style={settled ? undefined : bounceDelayStyle}>
+          <div
+            ref={ballRef}
+            className={styles.ball}
+            style={settled ? undefined : bounceDelayStyle}
+          >
             <AppIcon id="bootstrap.mark" size={36} decorative preferAnimated={false} />
           </div>
-          <div className={styles.ballShadow} style={settled ? undefined : bounceDelayStyle} />
+          <div
+            ref={shadowRef}
+            className={styles.ballShadow}
+            style={settled ? undefined : bounceDelayStyle}
+          />
         </div>
         <p className={styles.brand}>{t("bootstrap.brand")}</p>
         {isError ? (

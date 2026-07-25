@@ -3,7 +3,7 @@
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
 **Updated:** 2026-07-25
-**Tests:** F-016/LF-002 single-stage bootstrap splash PASS (2026-07-25 — `#boot-splash` only, mid `#42AAFF`, settle + crossfade exit, oval shadow, `bootSplashDom` / `useBootSplashController`); F-030 preferences export/import PASS; prior operator-events + DI-06/07 shared-clock PASS
+**Tests:** F-016/LF-002 single-stage bootstrap splash PASS (2026-07-25 — `#boot-splash` only, mid `#42AAFF`, 1000ms linear bounce, freeze→rest settle without teleport, crossfade exit, radial oval shadow without animated blur, `bootSplashDom` / `useBootSplashController`); F-030 preferences export/import PASS; prior operator-events + DI-06/07 shared-clock PASS
 **Lint / typecheck:** splash slice focused vitest expected PASS; full-repo `tsc` may still have pre-existing unrelated errors (SDK IPC / F-030 import optional props)
 **Splash contract:** `docs/softphone/Bootstrap-Splash-Contract.md` — single-stage `#boot-splash` + exit crossfade; do not reintroduce React loading splash handoff
 

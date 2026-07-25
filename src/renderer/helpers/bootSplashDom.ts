@@ -8,6 +8,13 @@
 /** Fade-out duration — keep in sync with `#boot-splash` CSS transition. */
 export const BOOT_SPLASH_EXIT_MS = 420;
 
+/** Ball/shadow ease-to-rest after bounce — keep in sync with CSS comments. */
+export const BOOT_SPLASH_SETTLE_MS = 420;
+
+const REST_BALL_TRANSFORM = "translateY(0) scaleX(1.05) scaleY(0.95)";
+const REST_SHADOW_TRANSFORM = "scaleX(1.08)";
+const REST_SHADOW_OPACITY = "0.78";
+
 function getBootSplash(): HTMLElement | null {
   return document.getElementById("boot-splash");
 }
@@ -23,6 +30,64 @@ function prefersReducedMotion(): boolean {
   return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
+/**
+ * Freeze a running bounce at the current computed transform, then ease to rest.
+ * Replacing `@keyframes` mid-flight would teleport the ball from apex to ground.
+ */
+export function settleSplashBallMotion(
+  ball: HTMLElement | null,
+  shadow: HTMLElement | null,
+): void {
+  const reduced = prefersReducedMotion();
+  const settleMs = reduced ? 0 : BOOT_SPLASH_SETTLE_MS;
+
+  if (ball !== null) {
+    const current = reduced ? REST_BALL_TRANSFORM : getComputedStyle(ball).transform;
+    ball.style.animation = "none";
+    ball.style.transition = "none";
+    ball.style.transform = current === "none" ? REST_BALL_TRANSFORM : current;
+    if (!reduced) {
+      void ball.offsetWidth;
+      ball.style.transition = `transform ${String(settleMs)}ms cubic-bezier(0.22, 1, 0.36, 1)`;
+    }
+    ball.style.transform = REST_BALL_TRANSFORM;
+  }
+
+  if (shadow !== null) {
+    const currentTransform = reduced
+      ? REST_SHADOW_TRANSFORM
+      : getComputedStyle(shadow).transform;
+    const currentOpacity = reduced
+      ? REST_SHADOW_OPACITY
+      : getComputedStyle(shadow).opacity;
+    shadow.style.animation = "none";
+    shadow.style.transition = "none";
+    shadow.style.transform =
+      currentTransform === "none" ? REST_SHADOW_TRANSFORM : currentTransform;
+    shadow.style.opacity = currentOpacity;
+    if (!reduced) {
+      void shadow.offsetWidth;
+      shadow.style.transition = [
+        `transform ${String(settleMs)}ms cubic-bezier(0.22, 1, 0.36, 1)`,
+        `opacity ${String(settleMs)}ms cubic-bezier(0.22, 1, 0.36, 1)`,
+      ].join(", ");
+    }
+    shadow.style.transform = REST_SHADOW_TRANSFORM;
+    shadow.style.opacity = REST_SHADOW_OPACITY;
+  }
+}
+
+function markBootSplashSettled(root: HTMLElement): void {
+  if (root.dataset.settled === "true") {
+    return;
+  }
+  settleSplashBallMotion(
+    root.querySelector<HTMLElement>(".boot-ball"),
+    root.querySelector<HTMLElement>(".boot-shadow"),
+  );
+  root.dataset.settled = "true";
+}
+
 /** Updates the determinate progress fill (0–100). Switches off indeterminate mode. */
 export function updateBootSplashProgress(percent: number): void {
   const root = getBootSplash();
@@ -33,11 +98,14 @@ export function updateBootSplashProgress(percent: number): void {
 
   const clamped = clampPercent(percent);
   root.dataset.progressMode = "determinate";
-  indicator.style.transform =
+  const nextTransform =
     clamped >= 100 ? "translateX(0%)" : `translateX(-${100 - clamped}%)`;
+  if (indicator.style.transform !== nextTransform) {
+    indicator.style.transform = nextTransform;
+  }
 
   if (clamped >= 100) {
-    root.dataset.settled = "true";
+    markBootSplashSettled(root);
   } else {
     delete root.dataset.settled;
   }
@@ -54,11 +122,6 @@ export function setBootSplashMessage(message: string): void {
 
 /** Forces the bounce into the settled landing pose (also implied by progress 100). */
 export function settleBootSplash(): void {
-  const root = getBootSplash();
-  if (root === null) {
-    return;
-  }
-  root.dataset.settled = "true";
   updateBootSplashProgress(100);
 }
 

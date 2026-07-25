@@ -39,17 +39,41 @@ OS app icon plate (`build-app-icons.py`) may differ; splash mid is `#42AAFF`.
 | --- | --- |
 | Mark | Lucide **Phone** SVG in `#boot-splash` (not `PhoneOutgoing`) |
 | Atmosphere | `.boot-atmosphere` cyan radial |
-| Ground shadow | `.boot-shadow` — **ellipse** (`border-radius: 50%`), placed below the ball; soft via light `blur` + `box-shadow` (not a flat pill / not invisible under the ball) |
+| Ground shadow | `.boot-shadow` — **ellipse** (`border-radius: 50%` + radial-gradient soft edge), placed below the ball; **no** animated `filter: blur` (paint jank). Softness via radial fade only |
+| Ball look | Flat brand gradient + soft outer/inset shadow (no sphere/3D shading, no `perspective` / `rotateX`) |
 | Loading text | Pre-React: `navigator.language` map; after React: `bootstrap.loading` via `setBootSplashMessage` |
 | Progress | Indeterminate until React; then determinate (`data-progress-mode="determinate"`) |
 
 ## Motion
 
-- Bounce **1200ms** on `#boot-splash` only (`BOOTSTRAP_SPLASH_BOUNCE_MS`).
-- Animate `transform` / `opacity` only (plus shadow scale/opacity).
-- Sequence on ready: settle ball (`data-settled`, ~700ms) → mount ready shell under splash → exit crossfade (`data-exiting` / `beginBootSplashExit`, ~420ms) → `dismissBootSplash`.
+- Bounce **1000ms** on `#boot-splash` only (`BOOTSTRAP_SPLASH_BOUNCE_MS` in `startupSplashColors.ts`).
+- Timing: **`linear`** + **ballistic Y samples** `Y ≈ H·4·t·(1−t)` at equal time steps — fast leave from ground, decelerate to apex, accelerate into landing (real gravity feel). Do **not** space keyframes evenly in height.
+- `0%` transform **must equal** `100%` (seamless loop, no ground dwell). Contact squash only near 0%/100%.
+- Animate `transform` / `opacity` only on the bounce/shadow layers.
+- **Settle (no teleport):** when progress hits 100%, `settleSplashBallMotion` freezes the **current** computed transform, then eases to the rest pose (`BOOT_SPLASH_SETTLE_MS` ≈ 420ms). Never replace the bounce with a settle `@keyframes` mid-flight — that teleports the ball from apex to ground.
+- Sequence on ready: settle ball (`data-settled`, ~700ms hold including freeze→rest) → mount ready shell under splash → exit crossfade (`data-exiting` / `beginBootSplashExit`, ~420ms) → `dismissBootSplash`.
 - Opaque `#boot-splash` background (synced with `STARTUP_SPLASH_BG_*`) so the crossfade does not flash through mixed layers.
 - Respect `prefers-reduced-motion` (skip bounce/exit transitions).
+
+### Sync surfaces (do not drift)
+
+| Surface | Role |
+| --- | --- |
+| `src/renderer/index.html` `#boot-splash` | Production loading visuals (source of truth for first paint) |
+| `BootstrapSplashShell.module.css` | Storybook / error parity for ball motion + sphere look |
+| `BOOTSTRAP_SPLASH_BOUNCE_MS` | Period constant for optional Storybook phase-lock delay |
+| `useBootstrapSplashProgress` | Visual progress only (~160ms tick, integer %, asymptote ≤88 until ready) |
+
+When changing bounce duration, keyframes, shadow shape, or brand stops — update **all** sync surfaces + this contract in the same change.
+
+### Performance / anti-jank (mandatory)
+
+1. Prefer compositor-friendly properties (`transform`, `opacity`) for the bounce loop.
+2. Do **not** put animated `filter` / layout-affecting properties on `.boot-ball` / `.boot-shadow`.
+3. Do **not** drive the production bounce with React / `react-spring` / `framer-motion` — splash must work pre-React; JS springs also compete with bootstrap on the main thread.
+4. Progress updates must stay cheap: throttle ticks, skip identical `transform` writes in `bootSplashDom`.
+5. Keep animation timing **`linear`** and encode gravity in keyframe **positions** (parabolic samples). A single ease on the whole cycle fights ballistic motion.
+6. Do **not** swap bounce → settle via CSS `@keyframes` on `data-settled` — use `settleSplashBallMotion` (freeze → transition) only.
 
 ## Boundaries
 
@@ -62,5 +86,6 @@ OS app icon plate (`build-app-icons.py`) may differ; splash mid is `#42AAFF`.
 - `bootSplashDom.test.ts`
 - `useBootSplashController.test.ts`
 - `useBootstrapSplashProgress.test.ts`
+- `startupSplashColors.test.ts` (bounce period + brand stops)
 - `BootstrapSplashShell.test.tsx` (error + Storybook loading)
 - Storybook: `Shells/BootstrapSplashShell`

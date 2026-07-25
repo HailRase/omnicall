@@ -21,8 +21,8 @@ export const BRAND_SPLASH_MID = "#42AAFF";
 /** Splash cyan depth stop. */
 export const BRAND_SPLASH_TO = "#2A8FD9";
 
-/** Bounce loop length (ms) for `#boot-splash` CSS. */
-export const BOOTSTRAP_SPLASH_BOUNCE_MS = 1200;
+/** Bounce loop length (ms) for `#boot-splash` CSS — keep in sync with index.html + BootstrapSplashShell. */
+export const BOOTSTRAP_SPLASH_BOUNCE_MS = 1000;
 
 /**
  * Negative CSS animation-delay helper (Storybook / optional React ball demos).

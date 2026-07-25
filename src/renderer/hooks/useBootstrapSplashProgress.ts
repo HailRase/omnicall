@@ -3,7 +3,8 @@ import { useEffect, useState } from "react";
 type BootstrapStatus = "loading" | "ready" | "error";
 
 const SETTLE_MS = 700;
-const TICK_MS = 80;
+/** Visual bar only — keep below bounce jank; CSS indicator already eases ~180ms. */
+const TICK_MS = 160;
 
 export type BootstrapSplashProgress = Readonly<{
   /** Visual 0–100 progress for the splash bar. */
@@ -32,8 +33,11 @@ export function useBootstrapSplashProgress(status: BootstrapStatus): BootstrapSp
       const timerId = window.setInterval(() => {
         const elapsedSec = (performance.now() - startedAt) / 1000;
         // Asymptotic approach — never claims full completion until ready.
-        const next = Math.min(88, 6 + 82 * (1 - Math.exp(-elapsedSec / 1.85)));
-        setProgress(next);
+        const next = Math.min(
+          88,
+          Math.round(6 + 82 * (1 - Math.exp(-elapsedSec / 1.85))),
+        );
+        setProgress((prev) => (prev === next ? prev : next));
       }, TICK_MS);
 
       return () => {

@@ -41,8 +41,12 @@
         }
 
         #boot-splash .boot-shadow {
-          background: rgba(0, 0, 0, 0.55);
-          box-shadow: 0 0 10px 3px rgba(0, 0, 0, 0.28);
+          background: radial-gradient(
+            ellipse at center,
+            rgba(0, 0, 0, 0.62) 0%,
+            rgba(0, 0, 0, 0.28) 42%,
+            transparent 72%
+          );
         }
 
         #boot-splash {
@@ -133,7 +137,8 @@
           inset 0 0.12rem 0.4rem rgba(255, 255, 255, 0.35);
         transform-origin: 50% 100%;
         will-change: transform;
-        animation: boot-ball-bounce 1200ms cubic-bezier(0.45, 0.05, 0.25, 1) infinite;
+        /* linear + parabolic Y samples = gravity (fast leave, slow apex, fast fall) */
+        animation: boot-ball-bounce 1000ms linear infinite;
       }
 
       #boot-splash .boot-ball svg {
@@ -142,29 +147,24 @@
         display: block;
       }
 
-      /* Oval ground shadow — ellipse below the ball (not under its opaque fill). */
+      /* Oval ground shadow — radial soft edge, no animated filter:blur. */
       #boot-splash .boot-shadow {
         position: absolute;
         bottom: -0.2rem;
         left: 50%;
-        width: 3.5rem;
-        height: 0.85rem;
-        margin-left: -1.75rem;
+        width: 3.6rem;
+        height: 0.9rem;
+        margin-left: -1.8rem;
         border-radius: 50%;
-        background: rgba(26, 35, 50, 0.38);
-        box-shadow: 0 0 10px 3px rgba(26, 35, 50, 0.2);
-        filter: blur(1.5px);
+        background: radial-gradient(
+          ellipse at center,
+          rgba(26, 35, 50, 0.48) 0%,
+          rgba(26, 35, 50, 0.22) 42%,
+          transparent 72%
+        );
         transform-origin: center center;
         will-change: transform, opacity;
-        animation: boot-ball-shadow 1200ms cubic-bezier(0.45, 0.05, 0.25, 1) infinite;
-      }
-
-      #boot-splash[data-settled="true"] .boot-ball {
-        animation: boot-ball-settle 480ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-      }
-
-      #boot-splash[data-settled="true"] .boot-shadow {
-        animation: boot-shadow-settle 480ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        animation: boot-ball-shadow 1000ms linear infinite;
       }
 
       #boot-splash .boot-brand {
@@ -216,86 +216,76 @@
         }
       }
 
+      /*
+        Ballistic bounce: Y ≈ H·4·t·(1−t) sampled at equal time (linear timing).
+        Fast off the ground → decelerate to apex → accelerate into landing.
+        0% === 100% for a seamless loop. Settle is freeze→rest in bootSplashDom.
+      */
       @keyframes boot-ball-bounce {
         0% {
-          transform: translateY(0) scaleX(1.1) scaleY(0.9);
+          transform: translateY(0) scaleX(1.18) scaleY(0.82);
         }
-        8% {
-          transform: translateY(0) scaleX(1.02) scaleY(0.98);
+        6% {
+          transform: translateY(-0.81rem) scaleX(1.04) scaleY(0.96);
         }
-        18% {
-          transform: translateY(-0.85rem) scaleX(0.97) scaleY(1.03);
+        12% {
+          transform: translateY(-1.52rem) scaleX(0.98) scaleY(1.02);
         }
-        38% {
-          transform: translateY(-3.15rem) scaleX(0.93) scaleY(1.07);
+        25% {
+          transform: translateY(-2.7rem) scaleX(0.95) scaleY(1.05);
+        }
+        37% {
+          transform: translateY(-3.36rem) scaleX(0.94) scaleY(1.06);
         }
         50% {
-          transform: translateY(-3.35rem) scaleX(0.95) scaleY(1.05);
+          transform: translateY(-3.6rem) scaleX(0.93) scaleY(1.07);
         }
-        68% {
-          transform: translateY(-1.55rem) scaleX(0.98) scaleY(1.02);
+        63% {
+          transform: translateY(-3.36rem) scaleX(0.94) scaleY(1.06);
         }
-        86% {
-          transform: translateY(-0.15rem) scaleX(1.03) scaleY(0.97);
+        75% {
+          transform: translateY(-2.7rem) scaleX(0.95) scaleY(1.05);
+        }
+        88% {
+          transform: translateY(-1.52rem) scaleX(0.98) scaleY(1.02);
         }
         94% {
-          transform: translateY(0) scaleX(1.07) scaleY(0.93);
+          transform: translateY(-0.81rem) scaleX(1.04) scaleY(0.96);
         }
         100% {
-          transform: translateY(0) scaleX(1.1) scaleY(0.9);
+          transform: translateY(0) scaleX(1.18) scaleY(0.82);
         }
       }
 
       @keyframes boot-ball-shadow {
         0%,
         100% {
-          transform: scaleX(1.15) scaleY(1);
-          opacity: 0.85;
+          transform: scaleX(1.24) scaleY(1);
+          opacity: 0.92;
         }
-        8% {
-          transform: scaleX(1.05) scaleY(1);
-          opacity: 0.7;
+        6%,
+        94% {
+          transform: scaleX(1.06) scaleY(0.98);
+          opacity: 0.62;
         }
-        18% {
-          transform: scaleX(0.9) scaleY(0.95);
+        12%,
+        88% {
+          transform: scaleX(0.88) scaleY(0.94);
           opacity: 0.45;
         }
-        38%,
+        25%,
+        75% {
+          transform: scaleX(0.62) scaleY(0.88);
+          opacity: 0.26;
+        }
+        37%,
+        63% {
+          transform: scaleX(0.5) scaleY(0.84);
+          opacity: 0.16;
+        }
         50% {
-          transform: scaleX(0.55) scaleY(0.85);
-          opacity: 0.22;
-        }
-        68% {
-          transform: scaleX(0.8) scaleY(0.92);
-          opacity: 0.4;
-        }
-        86% {
-          transform: scaleX(1.02) scaleY(1);
-          opacity: 0.65;
-        }
-        94% {
-          transform: scaleX(1.1) scaleY(1);
-          opacity: 0.78;
-        }
-      }
-
-      @keyframes boot-ball-settle {
-        from {
-          transform: translateY(-0.9rem) scaleX(0.97) scaleY(1.03);
-        }
-        to {
-          transform: translateY(0) scaleX(1.04) scaleY(0.96);
-        }
-      }
-
-      @keyframes boot-shadow-settle {
-        from {
-          transform: scaleX(0.78);
-          opacity: 0.35;
-        }
-        to {
-          transform: scaleX(1.1);
-          opacity: 0.8;
+          transform: scaleX(0.44) scaleY(0.8);
+          opacity: 0.12;
         }
       }
 
@@ -330,7 +320,7 @@
         }
 
         #boot-splash .boot-shadow {
-          opacity: 0.28;
+          opacity: 0.35;
           transform: scaleX(1);
         }
 

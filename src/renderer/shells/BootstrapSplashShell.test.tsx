@@ -20,6 +20,7 @@ vi.mock("../i18n/index.js", () => ({
 
 vi.mock("../helpers/bootSplashDom.js", () => ({
   dismissBootSplash: vi.fn(),
+  settleSplashBallMotion: vi.fn(),
 }));
 
 describe("BootstrapSplashShell", () => {
