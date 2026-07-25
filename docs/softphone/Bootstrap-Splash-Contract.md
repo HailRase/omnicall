@@ -40,7 +40,7 @@ OS app icon plate (`build-app-icons.py`) may differ; splash mid is `#42AAFF`.
 | Mark | Lucide **Phone** SVG in `#boot-splash` (not `PhoneOutgoing`) |
 | Atmosphere | `.boot-atmosphere` cyan radial |
 | Ground shadow | `.boot-shadow` — **ellipse** (`border-radius: 50%` + radial-gradient soft edge), placed below the ball; **no** animated `filter: blur` (paint jank). Softness via radial fade only |
-| Ball look | Flat brand gradient + soft outer/inset shadow (no sphere/3D shading, no `perspective` / `rotateX`) |
+| Ball look | Brand gradient + **subtle static volume** (soft highlight / depth radials + light inset rim). No `perspective` / `rotateX` — bounce motion stays 2D ballistic |
 | Loading text | Pre-React: `navigator.language` map; after React: `bootstrap.loading` via `setBootSplashMessage` |
 | Progress | Indeterminate until React; then determinate (`data-progress-mode="determinate"`) |
 

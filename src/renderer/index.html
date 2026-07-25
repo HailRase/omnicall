@@ -121,7 +121,7 @@
         justify-content: flex-end;
       }
 
-      /* Brand: #6BC4FF → #42AAFF → #2A8FD9 */
+      /* Brand: #6BC4FF → #42AAFF → #2A8FD9 — light static volume (no perspective/rotateX) */
       #boot-splash .boot-ball {
         position: relative;
         z-index: 1;
@@ -131,10 +131,23 @@
         place-items: center;
         border-radius: 9999px;
         color: #ffffff;
-        background: linear-gradient(165deg, #6bc4ff 0%, #42aaff 48%, #2a8fd9 100%);
+        background:
+          radial-gradient(
+            circle at 32% 28%,
+            rgba(255, 255, 255, 0.34) 0%,
+            rgba(255, 255, 255, 0.08) 28%,
+            transparent 52%
+          ),
+          radial-gradient(
+            circle at 70% 78%,
+            rgba(20, 70, 120, 0.22) 0%,
+            transparent 50%
+          ),
+          linear-gradient(165deg, #6bc4ff 0%, #42aaff 48%, #2a8fd9 100%);
         box-shadow:
           0 0.55rem 1.35rem rgba(66, 170, 255, 0.42),
-          inset 0 0.12rem 0.4rem rgba(255, 255, 255, 0.35);
+          inset 0 0.14rem 0.42rem rgba(255, 255, 255, 0.38),
+          inset 0 -0.22rem 0.45rem rgba(20, 80, 140, 0.22);
         transform-origin: 50% 100%;
         will-change: transform;
         /* linear + parabolic Y samples = gravity (fast leave, slow apex, fast fall) */
