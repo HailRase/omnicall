@@ -7,6 +7,10 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+### Fixed
+
+- **LF-060 / F-016** Product toasts no longer overlap frameless window controls in the compact shell: Sonner `mobileOffset` mirrors chrome-safe insets, and the softphone viewport keeps corner placement under Sonner’s `max-width: 600px` mobile path (Win/Linux/macOS).
+
 ## [0.14.0] - 2026-07-26
 
 ### Added

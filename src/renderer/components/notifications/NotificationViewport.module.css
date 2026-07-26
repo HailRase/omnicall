@@ -5,3 +5,53 @@
 .viewport :global([data-sonner-toaster]) {
   pointer-events: auto;
 }
+
+/*
+ * Softphone compact shell is 360–420px wide. Sonner treats max-width: 600px as
+ * "mobile" and forces full-bleed left+right, which ignores corner placement and
+ * can paint toasts into frameless window-control zones. Keep desktop corner
+ * geometry while still honoring chrome-safe --mobile-offset-* from props.
+ */
+@media (max-width: 600px) {
+  .viewport :global([data-sonner-toaster]) {
+    width: var(--width);
+  }
+
+  .viewport :global([data-sonner-toaster][data-x-position="right"]) {
+    right: var(--mobile-offset-right);
+    left: auto;
+  }
+
+  .viewport :global([data-sonner-toaster][data-x-position="left"]) {
+    left: var(--mobile-offset-left);
+    right: auto;
+  }
+
+  .viewport :global([data-sonner-toaster][data-x-position="center"]) {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+  }
+
+  .viewport :global([data-sonner-toaster] [data-sonner-toast]) {
+    width: var(--width);
+  }
+
+  .viewport :global([data-sonner-toaster][data-x-position="right"] [data-sonner-toast]) {
+    right: 0;
+    left: auto;
+  }
+
+  .viewport :global([data-sonner-toaster][data-x-position="left"] [data-sonner-toast]) {
+    left: 0;
+    right: auto;
+  }
+
+  .viewport :global([data-sonner-toaster][data-y-position="top"]) {
+    top: var(--mobile-offset-top);
+  }
+
+  .viewport :global([data-sonner-toaster][data-y-position="bottom"]) {
+    bottom: var(--mobile-offset-bottom);
+  }
+}

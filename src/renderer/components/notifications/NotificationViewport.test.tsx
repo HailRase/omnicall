@@ -344,6 +344,38 @@ describe("NotificationViewport", () => {
     expect(toaster.style.getPropertyValue("--offset-top")).toBe(
       "var(--incoming-call-banner-top)",
     );
+    expect(toaster.style.getPropertyValue("--offset-right")).toBe(
+      "calc(24px + var(--shell-window-controls-safe-inline-end))",
+    );
+    expect(toaster.style.getPropertyValue("--mobile-offset-top")).toBe(
+      "var(--incoming-call-banner-top)",
+    );
+    expect(toaster.style.getPropertyValue("--mobile-offset-right")).toBe(
+      "calc(24px + var(--shell-window-controls-safe-inline-end))",
+    );
+  });
+
+  it("mirrors chrome-safe mobile offsets for bottom placement under Sonner mobile width", async () => {
+    render(
+      <NotificationViewport
+        placement="bottom-right"
+        stacking="stacked"
+        durationMs={10_000}
+        maxVisible={3}
+        items={[baseItem]}
+        onDismiss={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(document.querySelector("[data-sonner-toaster]")).not.toBeNull();
+    });
+
+    const toaster = document.querySelector("[data-sonner-toaster]") as HTMLElement;
+    expect(toaster.style.getPropertyValue("--offset-bottom")).toBe("24px");
+    expect(toaster.style.getPropertyValue("--mobile-offset-bottom")).toBe("24px");
+    expect(toaster.style.getPropertyValue("--mobile-offset-right")).toBe("24px");
+    expect(toaster.style.getPropertyValue("--mobile-offset-top")).toBe("24px");
   });
 
 });

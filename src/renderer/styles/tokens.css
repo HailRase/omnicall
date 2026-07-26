@@ -19,7 +19,10 @@
   --font-weight-semibold: 600;
   --line-height-ui: 1.5;
 
-  /* Shell chrome (frameless titlebar + macOS traffic lights) */
+  /* Shell chrome (frameless titlebar + macOS traffic lights).
+     Floating toasts/banners that can sit in top corners must clear these insets
+     on Win/Linux/macOS — see UI-Design-System.md «Floating UI vs window controls»
+     and resolveNotificationToasterOffset (Sonner offset + mobileOffset). */
   --shell-titlebar-controls-height: 34px;
   --shell-mac-traffic-lights-width: 68px;
   --shell-frameless-controls-width: 144px;

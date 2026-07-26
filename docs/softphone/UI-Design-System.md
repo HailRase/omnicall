@@ -46,8 +46,22 @@ Semantic names only:
 - `--space-xs` … `--space-xl`
 - `--radius-control`, `--radius-panel`
 - `--z-overlay`, `--z-modal`, `--z-toast`
+- Shell chrome (frameless titlebar): `--shell-titlebar-controls-height`, `--shell-window-controls-safe-inline-start`, `--shell-window-controls-safe-inline-end`, `--incoming-call-banner-top`
 
 Migrate values from legacy globals without visual redesign in UI-1 (done via WU5).
+
+### Floating UI vs window controls (mandatory)
+
+Frameless shell owns custom window controls (Win/Linux trailing buttons; macOS traffic lights). Any **fixed** toast, banner, or compact overlay that can sit in a top corner **must** clear that chrome on all platforms:
+
+| Token / helper | Use |
+| --- | --- |
+| `--incoming-call-banner-top` | Vertical inset below titlebar (shared by incoming call, update banner, OCP connection banner, top toasts) |
+| `--shell-window-controls-safe-inline-start` | Horizontal inset for macOS traffic lights |
+| `--shell-window-controls-safe-inline-end` | Horizontal inset for Win/Linux window buttons |
+| `resolveNotificationToasterOffset` | Product Sonner `offset` **and** `mobileOffset` (compact width &lt; 600px triggers Sonner mobile path) |
+
+Do **not** rely on Sonner’s default `mobileOffset` (16px) in the softphone shell. Prefer corner geometry over Sonner’s mobile full-bleed when the host is a narrow desktop window (`NotificationViewport.module.css`).
 
 ## Primitives (`shared/ui/` — target)
 
