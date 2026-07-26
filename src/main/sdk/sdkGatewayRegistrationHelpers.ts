@@ -24,6 +24,7 @@ export function createSdkGatewaySecretStorage(): MainProcessSecretStorageAdapter
 
 export function registerSdkGatewayPublishEventIpc(
   getGateway: () => LocalWsServerAdapter | null,
+  onDrop?: (reason: "invalid_payload" | "gateway_unavailable") => void,
 ): void {
   if (publishEventIpcRegistered || typeof ipcMain?.handle !== "function") {
     return;
@@ -31,8 +32,13 @@ export function registerSdkGatewayPublishEventIpc(
   publishEventIpcRegistered = true;
   ipcMain.handle(IPC_CHANNELS.sdkGatewayPublishEvent, (_event, payload: unknown) => {
     const parsed = parseSdkGatewayPublishEventIpcPayload(payload);
+    if (parsed === null) {
+      onDrop?.("invalid_payload");
+      return { ok: false as const, delivered: 0 };
+    }
     const gateway = getGateway();
-    if (parsed === null || gateway === null) {
+    if (gateway === null) {
+      onDrop?.("gateway_unavailable");
       return { ok: false as const, delivered: 0 };
     }
     const delivered = gateway.publishPublicEvent(parsed.draft);

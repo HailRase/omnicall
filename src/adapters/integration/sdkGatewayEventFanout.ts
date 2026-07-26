@@ -110,13 +110,15 @@ export function deliverSdkEventToConnection(input: {
       return false;
     }
   }
-  input.connection.eventSequence += 1;
+  // Validate before bumping sequence so a schema reject cannot punch a hole
+  // that clients interpret as event.sequence_gap.
+  const nextSequence = input.connection.eventSequence + 1;
   const candidate = {
     protocolVersion: PROTOCOL_MAJOR,
     kind: "event" as const,
     type: input.draft.type,
     eventId: createSdkOpaqueId("evt"),
-    sequence: input.connection.eventSequence,
+    sequence: nextSequence,
     serverInstanceId: input.identity.serverInstanceId,
     sessionEpoch: input.identity.sessionEpoch,
     occurredAt: createSdkIsoTimestamp(input.now),
@@ -127,6 +129,7 @@ export function deliverSdkEventToConnection(input: {
   if (!validated.success) {
     return false;
   }
+  input.connection.eventSequence = nextSequence;
   input.sendJson(input.connection, validated.data);
   return true;
 }

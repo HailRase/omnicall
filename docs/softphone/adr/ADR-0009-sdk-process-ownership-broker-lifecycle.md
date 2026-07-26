@@ -56,7 +56,10 @@ Lifecycle hazards that must be decided before DI-02:
      replay.
    - **App quit / restart:** main stops accepting new WS connections and cancels pending
      broker work **before** telephony cleanup begins; clients receive `sdk:server-shutdown`
-     when possible; server instance ID / session epoch change after restart.
+     when possible (`LocalWsServerAdapter.beginAppShutdown` → `reasonCode: "app_quit"`;
+     `stop` → `"gateway_stop"`; idempotent announce before `terminateAll`); hard process
+     kill may omit the event — clients fall back to disconnect/heartbeat. Server instance
+     ID / session epoch change after restart.
    - **Gateway disable or startup failure:** observable in diagnostics; **must not** block
      SIP-only startup, active calls, logout, or optional OCP.
 

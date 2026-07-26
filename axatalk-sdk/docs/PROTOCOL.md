@@ -184,12 +184,20 @@ second preview does not emit that reason (see ADR-0019 / OCP-Call-Context).
 ### Window and SDK
 
 - `window:visibility-changed`
-- `sdk:permission-changed`
-- `sdk:revoked`
-- `sdk:server-shutdown`
+- `sdk:permission-changed` — auth lifecycle (not in public `subscribe` surface); shares
+  per-connection `sequence` with product events
+- `sdk:revoked` — auth lifecycle; shares `sequence`; connection closes after delivery
+- `sdk:server-shutdown` — public; desktop emits best-effort on controlled quit/stop
+  (`app_quit` / `gateway_stop`) before tearing down sockets (ADR-0009)
 
 Internal retry events, ringtone/tone events, raw SIP status codes, adapter events, headset
 events, and raw OCP messages are not public events.
+
+**Sequence invariant:** one monotonic `sequence` per authenticated connection for every
+`kind: "event"` frame. Clients must advance their cursor for auth lifecycle events even
+when those types are not exposed via `subscribe`, otherwise the next public event can
+false-trigger `event.sequence_gap`. Desktop validates event candidates before bumping
+sequence so a schema reject cannot punch a hole.
 
 ## Snapshot
 

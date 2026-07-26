@@ -17,6 +17,7 @@ import {
 import { createSdkOpaqueId } from "./sdkGatewayIds.js";
 import {
   buildSdkPermissionChangedEvent,
+  buildSdkServerShutdownEvent,
   type SdkGatewayIdentity,
 } from "./sdkGatewayMessages.js";
 import type { SdkPairingApprover } from "./sdkGatewayPairingTypes.js";
@@ -240,6 +241,51 @@ export class LocalWsSessionRegistry {
     });
   }
 
+  /**
+   * ADR-0009: emit `sdk:server-shutdown` to authenticated readers before sockets drop.
+   * Uses the same per-connection sequence as product events (validate-then-bump).
+   */
+  announceServerShutdown(reasonCode: string): number {
+    const identity = this.getIdentity();
+    if (identity === null) {
+      return 0;
+    }
+    const trimmedReason = reasonCode.trim().slice(0, 64);
+    let delivered = 0;
+    for (const connection of this.connections.values()) {
+      if (connection.authState !== "authenticated") {
+        continue;
+      }
+      if (!connection.grantedCapabilities.includes("session.read.redacted")) {
+        continue;
+      }
+      const nextSequence = connection.eventSequence + 1;
+      const candidate = buildSdkServerShutdownEvent({
+        identity,
+        now: this.now,
+        sequence: nextSequence,
+        ...(trimmedReason.length > 0 ? { reasonCode: trimmedReason } : {}),
+      });
+      const validated = this.validateWire(candidate);
+      if (!validated.success) {
+        this.log("sdk_gateway_shutdown_event_invalid", {
+          connectionCount: this.connections.size,
+        });
+        continue;
+      }
+      connection.eventSequence = nextSequence;
+      this.sendJson(connection, validated.data);
+      delivered += 1;
+    }
+    if (delivered > 0) {
+      this.log("sdk_gateway_server_shutdown_announced", {
+        delivered,
+        reasonCode: trimmedReason.length > 0 ? trimmedReason : "unspecified",
+      });
+    }
+    return delivered;
+  }
+
   terminateAll(): void {
     for (const connection of [...this.connections.values()]) {
       clearSdkGatewayConnectionTimers(connection);
@@ -280,6 +326,10 @@ export class LocalWsSessionRegistry {
     const identity = this.getIdentity();
     const draft = parseSdkPublicEventDraft(draftInput);
     if (identity === null || draft === null) {
+      this.log("sdk_gateway_public_event_dropped", {
+        reason: identity === null ? "missing_identity" : "invalid_draft",
+        connectionCount: this.connections.size,
+      });
       return 0;
     }
     return fanoutSdkPublicEvent({

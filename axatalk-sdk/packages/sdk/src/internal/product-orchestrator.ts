@@ -239,6 +239,10 @@ export function createProductOrchestrator(deps: {
       inbound.message.type === 'sdk:permission-changed' ||
       inbound.message.type === 'sdk:revoked'
     ) {
+      // Auth lifecycle events share the per-connection wire sequence with product
+      // events. Advance hub sequence (no public listeners) so the next public
+      // event does not false-trigger event.sequence_gap / snapshot storms.
+      hub.handleEvent(inbound.message, deps.connection.getState());
       if (inbound.message.type === 'sdk:revoked') {
         invalidate();
       }

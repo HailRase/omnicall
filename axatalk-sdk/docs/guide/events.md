@@ -34,6 +34,11 @@ project as public `unknown`. **Post-call processing** projects as
 `post_call_processing` so CRM can enable `operator.finishAppeal`. Campaign notify
 events require `operator.campaign.read` (ADR-0019); accept/reject stay on desktop UI.
 
+`sdk:server-shutdown` is emitted best-effort on controlled desktop/gateway stop
+(`beginAppShutdown` → `reasonCode: "app_quit"`; `stop` → `"gateway_stop"`) **before**
+sockets terminate (ADR-0009). Hard process kill may omit it — rely on disconnect /
+heartbeat as fallback.
+
 ### Call ACD context (OCP `get_main_acallid`)
 
 When OCP resolves ACD context for a live SIP call, desktop emits:
@@ -48,6 +53,11 @@ When OCP resolves ACD context for a live SIP call, desktop emits:
 
 Empty/direct queue → `call:acd-context` still fires with `queue: ""`;
 `queueLabel` on `call:*` omitted. Details: `docs/softphone/OCP-Call-Context.md`.
+
+**Enrichment idempotency (hosts):** the secondary `call:*` + `queueLabel` re-emit
+is **not** a new offer. Key local CRM state by `payload.callId` and treat a later
+`call:incoming` / `call:outgoing` / `call:answered` with the same `callId` as an
+additive update (attach `queueLabel`), never as a second lead/card.
 
 **Snapshot recovery:** `getSnapshot().sections.calls[].acdContext` carries the same
 MainCallIDInfo wire (capability-gated) so reconnect does not require a live
@@ -132,6 +142,21 @@ Rules:
   [Operator status & reservation](./operator-status-reservation.md)).
 - `operator:finish-appeal` applies the reserved (or default Ready) status and is valid
   only while public status is `post_call_processing`.
+
+## Wire sequence (product + auth)
+
+Per authenticated Local WS connection, **all** `kind: "event"` frames share one
+monotonic `sequence` — including non-public auth lifecycle events
+(`sdk:permission-changed`, `sdk:revoked`) and public product events.
+
+| Rule | Behavior |
+| --- | --- |
+| Public subscribe | `AxatalkClient.subscribe` delivers only `PUBLIC_EVENT_TYPES` |
+| Auth lifecycle | Handled by auth orchestrator; **still advances** the client sequence cursor so the next public event does not false-gap |
+| Fan-out | Desktop validates the wire candidate **before** bumping `eventSequence` |
+| Gap recovery | Real gaps (lost frames) → `event.sequence_gap` → automatic `getSnapshot()` |
+
+Hosts must not assume `sequence` only counts subscribed public types.
 
 ## Anti-corruption rules
 

@@ -12,6 +12,7 @@ import {
   buildCallIncomingEvent,
   buildPairingApproved,
   buildPairingPending,
+  buildPermissionChanged,
   buildServerHello,
   buildSnapshotMessage,
   buildWindowVisibilityEvent,
@@ -192,6 +193,25 @@ describe('AxatalkClient snapshot and events', () => {
     });
     expect(replyToGetSnapshot(transport, buildSnapshotMessage(20), 20)).toBe(true);
     await waitFor(() => harness.client.getRevision() === 20);
+  });
+
+  it('does not false-gap when auth permission-changed shares the wire sequence', async () => {
+    const harness = createHarness();
+    await reachReady(harness);
+    const transport = harness.transports.last()!;
+    const snapshotSendsBefore = countGetSnapshotSends(transport);
+    transport.simulateMessage(buildCallIncomingEvent(1));
+    await flush();
+    transport.simulateMessage(
+      buildPermissionChanged(['session.read.redacted', 'window.show'])
+    );
+    await flush();
+    transport.simulateMessage(buildCallIncomingEvent(3));
+    await flush();
+    expect(
+      harness.diagnostics.events.some((event) => event.code === 'event.sequence_gap')
+    ).toBe(false);
+    expect(countGetSnapshotSends(transport)).toBe(snapshotSendsBefore);
   });
 
   it('replaces snapshot cache after reconnect', async () => {

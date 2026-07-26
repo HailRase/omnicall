@@ -113,6 +113,8 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
   private sessions: LocalWsSessionRegistry | null = null;
   private accepting = true;
   private listening = false;
+  /** Prevents duplicate `sdk:server-shutdown` when beginAppShutdown + stop both run. */
+  private shutdownAnnounced = false;
   private lastErrorCode: string | null = null;
   private pendingSweepTimer: ReturnType<typeof setInterval> | null = null;
   private operatorModalTimeouts: SdkOperatorModalTimeouts = {
@@ -187,6 +189,19 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
 
   publishPublicEvent(draft: unknown): number {
     return this.sessions?.publishPublicEvent(draft) ?? 0;
+  }
+
+  /**
+   * ADR-0009: best-effort `sdk:server-shutdown` to authenticated SDK clients.
+   * Idempotent within one adapter lifetime until the next successful start.
+   */
+  announceServerShutdown(reasonCode: string): number {
+    if (this.shutdownAnnounced) {
+      return 0;
+    }
+    const delivered = this.sessions?.announceServerShutdown(reasonCode) ?? 0;
+    this.shutdownAnnounced = true;
+    return delivered;
   }
 
   getStatus(): ExternalClientGatewayStatus {
@@ -456,20 +471,24 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
 
   beginAppShutdown(): void {
     this.accepting = false;
+    const delivered = this.announceServerShutdown("app_quit");
     this.log("sdk_gateway_begin_shutdown", {
       connectionCount: this.getConnectionCount(),
+      shutdownDelivered: delivered,
     });
   }
 
   cancelAppShutdown(): void {
     if (this.listening) {
       this.accepting = true;
+      // Shutdown already announced — clients must treat epoch change after restart.
       this.log("sdk_gateway_cancel_shutdown", { listening: true });
     }
   }
 
   async stop(): Promise<void> {
     this.accepting = false;
+    this.announceServerShutdown("gateway_stop");
     await this.disposeAll();
     this.log("sdk_gateway_stopped", { listening: false });
   }
@@ -539,6 +558,7 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
     this.httpServer = bound.httpServer;
     this.wss = bound.wss;
     this.listening = true;
+    this.shutdownAnnounced = false;
     this.lastErrorCode = null;
     this.startPendingSweep();
     return { ok: true, host: bound.host, port: bound.port };

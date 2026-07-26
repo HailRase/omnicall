@@ -123,8 +123,14 @@ administrative feature with its own ADR, capability, local approval, audit, and 
 - Events are delivered per authorized session, never indiscriminately broadcast.
 - Contacts, call history, raw SIP URIs, OCP wire IDs, and upstream error text are excluded
   from protocol v1 unless separately approved.
+- **Exception (ADR-0020):** `call:acd-context` and snapshot `calls[].acdContext` may carry
+  OCP MainCallIDInfo wire (`acallid`, `caller_id`, `called_id`, …) only when
+  `ocp.acd_context.read` is granted (default on `operator` / `call_controller` profiles;
+  Origin matrix can disable). Ordinary `call:*` / campaign DTOs stay redacted.
 - Logs contain command type, request ID, client ID, correlation ID, result, and duration only.
 - Payloads and authorization headers are never logged.
+- Publish-path failures (`sdk_gateway_publish_event_dropped`,
+  `sdk_gateway_event_publish_failed`) log allowlisted fields only (no event payloads).
 
 ## Command Safety
 

@@ -114,8 +114,13 @@ grants remain authoritative on every command (ADR-0011).
 | Profile | Default granted capabilities |
 | --- | --- |
 | `presentation` | `session.read.redacted`, `window.show` |
-| `operator` | presentation + `operator.status.write`, `operator.campaign.read` (ADR-0019), `session.logout` |
-| `call_controller` | operator + `call.originate`, `call.control` |
+| `operator` | presentation + `operator.status.write`, `operator.campaign.read` (ADR-0019), `ocp.acd_context.read` (ADR-0020), `session.logout` |
+| `call_controller` | operator + `call.originate`, `call.control` (+ same campaign/ACD read caps) |
+
+Live SSoT: `DEFAULT_CAPABILITY_PROFILES` in `@axata/axatalk-protocol`
+(`axatalk-sdk/packages/protocol/src/constants.ts`). Origin matrix (ADR-0018) may
+narrow grants at runtime; `ocp.acd_context.read` exposes unmasked OCP party ids on
+`call:acd-context` / snapshot `acdContext` — keep Origin matrix tight for shared PCs.
 
 Privileged capabilities **never** appear in default profiles:
 

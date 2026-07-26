@@ -217,6 +217,30 @@ export function buildSdkPermissionChangedEvent(input: {
   };
 }
 
+/** ADR-0009: graceful desktop/gateway stop signal for authenticated clients. */
+export function buildSdkServerShutdownEvent(input: {
+  readonly identity: SdkGatewayIdentity;
+  readonly now: () => Date;
+  readonly sequence: number;
+  readonly reasonCode?: string;
+}): WireMessage {
+  return {
+    protocolVersion: PROTOCOL_MAJOR,
+    kind: "event",
+    type: "sdk:server-shutdown",
+    eventId: createSdkOpaqueId("evt"),
+    sequence: input.sequence,
+    serverInstanceId: input.identity.serverInstanceId,
+    sessionEpoch: input.identity.sessionEpoch,
+    occurredAt: createSdkIsoTimestamp(input.now),
+    revision: 0,
+    payload:
+      input.reasonCode !== undefined && input.reasonCode.length > 0
+        ? { reasonCode: input.reasonCode.slice(0, 64) }
+        : {},
+  };
+}
+
 export function createGatewayIdentityShell(
   desktopVersion: string,
 ): Pick<SdkGatewayIdentity, "desktopVersion" | "serverInstanceId" | "sessionEpoch"> {

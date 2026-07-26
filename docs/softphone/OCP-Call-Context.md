@@ -2,7 +2,7 @@
 
 - **Feature:** F-028 (extends E-09 / E-10); SDK surface F-011 / DI-05
 - **Legacy parity:** LF-037, LF-038, LF-039, LF-040 (via F-028; P07 removed per ADR-0005)
-- **Updated:** 2026-07-26 (dlg_stop single-shot wire + hangup race; campaign FSM + ADR-0020)
+- **Updated:** 2026-07-26 (SDK event delivery reliability + dual UI/SDK ownership; campaign FSM + ADR-0020)
 
 ## Purpose
 
@@ -254,9 +254,38 @@ stopCleared();
 Notes:
 
 - Re-emit for queue uses an existing public `call:*` type — **not** a new event name.
+- **Host idempotency:** key CRM call UI by desktop `callId`. A later `call:incoming` /
+  `call:outgoing` / `call:answered` with the same `callId` after `call:acd-context` is an
+  **enrichment** (attach `queueLabel`), never a second offer/card.
 - Empty / direct queue → no `queueLabel`; `call:acd-context` / snapshot `acdContext` may still carry wire with `queue: ""`.
 - Campaign offered/cleared are protocol v1 (ADR-0019); payloads never carry OCP wire ids.
 - Second preview while modal open is held desktop-side; hosts see Cleared→Offered only on accept/reject/clear promote.
+
+## Dual projection ownership (UI vs SDK)
+
+| Concern | Owner | Must stay aligned |
+| --- | --- | --- |
+| Desktop modal / badges | `OcpProjectionHub` → `CampaignEventProjection` / `CallOcpContextProjection` | Store projections for UI |
+| Public SDK notify | Domain Events from `OcpSessionLifecycleService` / `OcpTelephonyBridgeService` → `ExternalSdkEventMapper` → Local WS | Wire + snapshot |
+
+Both paths consume the same OCP entity parse. Prefer Domain Event publish for any new
+SDK-visible campaign/ACD signal; do not invent a third mapper from raw OCP frames into
+the gateway. If UI clears campaign without publishing `OperatorCampaignCleared`, SDK hosts
+diverge — clear/reset paths must publish Domain Events (lifecycle already does for
+accept/reject/supersede/session reset).
+
+## SDK event delivery reliability (F-011)
+
+| Guarantee | Implementation |
+| --- | --- |
+| Per-connection fan-out | `sdkGatewayEventFanout` — no broadcast across clients |
+| Capability fail-closed | `session.read.redacted` + campaign/ACD caps |
+| Sequence holes avoided | validateWire **before** `eventSequence++` |
+| Auth events vs public subscribe | `sdk:permission-changed` / `sdk:revoked` advance SDK sequence cursor without public listeners |
+| Controlled quit | `sdk:server-shutdown` (`app_quit` / `gateway_stop`) before socket terminate |
+| Publish observability | IPC `ok: false` logged in main + renderer (allowlisted fields only) |
+
+Hosts still treat snapshot as source of truth after reconnect or `event.sequence_gap`.
 
 ## Key files
 

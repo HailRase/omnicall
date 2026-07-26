@@ -110,7 +110,16 @@ export async function startSdkGateway(options: {
   }
 
   lastDesktopVersion = options.desktopVersion;
-  registerSdkGatewayPublishEventIpc(() => gateway);
+  registerSdkGatewayPublishEventIpc(
+    () => gateway,
+    (reason) => {
+      logger.warn("sdk_gateway_publish_event_dropped", {
+        operation: "sdk_gateway_publish_event",
+        reason,
+        result: "error",
+      });
+    },
+  );
   registerSdkGatewaySettingsIpc({
     getGateway: () => gateway,
     applyPolicy: (policy) => applySdkGatewayPolicy(policy),

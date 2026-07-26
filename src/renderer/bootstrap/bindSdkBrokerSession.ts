@@ -242,13 +242,37 @@ export function bindSdkBrokerSession(
       const revision = isSdkOperatorPublicEventType(draft.type)
         ? operatorEventRevisionGate.preparePublish(draft, revisionClock).revision
         : handler.getRevision();
-      void softphone.publishSdkGatewayEvent({
-        draft: {
-          type: draft.type,
-          payload: draft.payload,
-          revision,
-        },
-      });
+      const eventType = draft.type;
+      void softphone
+        .publishSdkGatewayEvent({
+          draft: {
+            type: eventType,
+            payload: draft.payload,
+            revision,
+          },
+        })
+        .then((result) => {
+          if (result.ok) {
+            return;
+          }
+          // Allowlisted fields only — never payloads / phones / tokens.
+          console.warn("sdk_gateway_event_publish_failed", {
+            featureId: "F-011",
+            operation: "publishSdkGatewayEvent",
+            eventType,
+            result: "error",
+          });
+        })
+        .catch((error: unknown) => {
+          console.warn("sdk_gateway_event_publish_failed", {
+            featureId: "F-011",
+            operation: "publishSdkGatewayEvent",
+            eventType,
+            result: "error",
+            reason:
+              error instanceof Error ? error.name : "unknown_reject",
+          });
+        });
     }
   });
 

@@ -572,4 +572,31 @@ describe("LocalWsServerAdapter DI-05 product surface", () => {
     expect(delivered).toBe(0);
     expect(hello.serverInstanceId.length).toBeGreaterThan(0);
   });
+
+  it("emits sdk:server-shutdown on beginAppShutdown before teardown", async () => {
+    const adapter = await startAdapter();
+    const { ws, queue } = await pairAndAuth(adapter, "client_shutdown_001");
+    expect(
+      adapter.publishPublicEvent({
+        type: "registration:changed",
+        payload: { state: "registered" },
+        revision: 1,
+      }),
+    ).toBe(1);
+    const evt1 = await queue.next();
+    expect(evt1).toMatchObject({ kind: "event", sequence: 1 });
+    adapter.beginAppShutdown();
+    const shutdown = await queue.next();
+    expect(shutdown).toMatchObject({
+      kind: "event",
+      type: "sdk:server-shutdown",
+      sequence: 2,
+      payload: { reasonCode: "app_quit" },
+    });
+    const validated = validateWireMessage(shutdown);
+    expect(validated.success).toBe(true);
+    // Idempotent: stop must not emit a second shutdown.
+    await adapter.stop();
+    await once(ws, "close");
+  });
 });
