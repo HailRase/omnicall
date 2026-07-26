@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-26 20:28
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `8f05421`
 
 ## Где
 - `src/renderer/components/notifications/resolveNotificationToasterOffset.ts`
