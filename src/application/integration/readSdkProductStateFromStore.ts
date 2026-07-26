@@ -41,6 +41,17 @@ export type SdkStoreProjectionSlice = Readonly<{
     reservedStatus: SdkProductStateSnapshot["reservedStatus"];
     reservedReasonId: number | null;
   }>;
+  ocpCallContextProjection?: Readonly<{
+    byCallId: Readonly<
+      Record<
+        string,
+        Readonly<{
+          queueName: string | null;
+          resolveState: string;
+        }>
+      >
+    >;
+  }>;
 }>;
 
 export type ReadSdkProductStateOptions = Readonly<{
@@ -58,7 +69,11 @@ export function readSdkProductStateFromStore(
       ? store.projection.sipUsername
       : null;
   const calls = store.multiLineCallProjection.lines.map((line) =>
-    toCallLine(line, store.incomingCallProjection.callId),
+    toCallLine(
+      line,
+      store.incomingCallProjection.callId,
+      store.ocpCallContextProjection?.byCallId[line.callId]?.queueName ?? null,
+    ),
   );
   const ocpConnected =
     options.ocpModuleEnabled && store.ocpSessionProjection.isAuthenticated;
@@ -90,11 +105,16 @@ export function readSdkProductStateFromStore(
 function toCallLine(
   line: SdkStoreProjectionSlice["multiLineCallProjection"]["lines"][number],
   incomingCallId: string | null,
+  queueName: string | null,
 ): SdkProductCallLine {
   const direction =
     incomingCallId !== null && incomingCallId === line.callId
       ? "inbound"
       : "outbound";
+  const trimmedQueue =
+    queueName !== null && queueName.trim().length > 0
+      ? queueName.trim().slice(0, 128)
+      : null;
   return {
     callId: line.callId,
     state: line.state,
@@ -102,5 +122,6 @@ function toCallLine(
     remoteNumber: line.remoteNumber,
     remoteDisplayName: line.displayLabel,
     muted: line.muted,
+    queueLabel: trimmedQueue,
   };
 }

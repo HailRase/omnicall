@@ -139,6 +139,7 @@ export type IconSemanticId =
   | "call.transfer"
   | "call.incoming"
   | "call.outgoing"
+  | "call.queue"
   | "call.phone-off"
   | "overlay.close"
   | "bootstrap.mark"
@@ -461,6 +462,12 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.call.incoming",
     defaultSize: 20,
     usage: ["IncomingCallOverlay", "IncomingCallSessionCard"],
+  },
+  "call.queue": {
+    static: Headphones,
+    defaultLabelKey: "icons.call.queue",
+    defaultSize: 12,
+    usage: ["CallContextBadges: queue-info-label"],
   },
   "call.outgoing": {
     static: Phone,

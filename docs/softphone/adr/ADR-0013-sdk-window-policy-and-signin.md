@@ -39,6 +39,7 @@ Two product risks:
    | --- | --- | --- |
    | SDK `window:show` | `SdkWindowCommandHandler` | capability + Origin matrix; **1s rate limit** |
    | Incoming / outgoing call | renderer edge → IPC `shell:window-raise` | once per `callId`; no shared 1s with SDK show |
+   | OCP preview campaign offer | renderer `useShellWindowAttentionFromCampaign` → IPC `shell:window-raise` (`ocp_campaign_offer`) | once per `activeCampaign.id`; **not** progressive badges; same `bringBrowserWindowToFront` |
    | Origin TOFU pending | main gateway `onOriginTrustPending` | raise + attention event → snapshot refresh → root `SdkConnectCeremonyModal` (transport step) |
    | Pairing pending | main gateway `onPairingPending` | raise + attention → snapshot refresh → root `SdkConnectCeremonyModal` (pairing step; no Settings redirect) |
    | Activate consent pending | renderer → IPC raise | once per consent episode (`attentionId`, like pairingRequestId); not once per origin+profile forever |

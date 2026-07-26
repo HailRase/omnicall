@@ -15,6 +15,7 @@
 - **SIP transport/register refactor (T-008):** `docs/softphone/TRANSPORT-REGISTER-STATE-REFACTORING.md`
 - **Axatalk SDK project:** `axatalk-sdk/README.md`
 - **Desktop SDK integration (F-011/P12):** `axatalk-sdk-integration/README.md`
+- **OCP queue + campaign UI (F-028):** `docs/softphone/OCP-Call-Context.md`
 
 ## Commands (`.cursor/commands/`)
 

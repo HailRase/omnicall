@@ -48,7 +48,12 @@ export const SnapshotCallSummarySchema = z
     remoteNumber: RedactedPhoneSchema.optional(),
     remoteDisplayName: RedactedDisplayNameSchema.optional(),
     muted: z.boolean().optional(),
-    ownerClientId: OpaqueIdSchema.optional()
+    ownerClientId: OpaqueIdSchema.optional(),
+    /**
+     * ACD queue title from desktop OCP call context (F-028).
+     * Additive / compatible. Omitted when direct/internal or unknown.
+     */
+    queueLabel: z.string().min(1).max(128).optional()
   })
   .readonly();
 

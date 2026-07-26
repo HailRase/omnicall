@@ -154,4 +154,24 @@ describe("parseOcpMessage", () => {
       expect(result.value.data.code).toBe("SESSION_EXIST");
     }
   });
+
+  it("parses calls MainCallIDInfo with empty queue (direct/internal)", () => {
+    const result = parseOcpMessage({
+      action: "get_main_acallid",
+      entity: "calls",
+      payload: {
+        acall_id: "acall-1",
+        event: "incomingCallProgress",
+        caller_id: "+100",
+        called_id: "+200",
+        queue: "",
+      },
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok && result.value.entity === "calls" && "event" in result.value.data) {
+      expect(result.value.data.queue).toBe("");
+      expect(result.value.data.acallId).toBe("acall-1");
+    }
+  });
 });
+

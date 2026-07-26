@@ -9,10 +9,10 @@ Constant: `PUBLIC_EVENT_TYPES` from `@axata/axatalk-sdk`.
 
 | Type | Typical host reaction |
 | --- | --- |
-| `call:incoming` | Offer answer/reject UI |
-| `call:outgoing` | Show dialing |
-| `call:ringing` | Ringing indicator |
-| `call:answered` | Active call UI |
+| `call:incoming` | Offer answer/reject UI; optional additive `queueLabel` (ACD) |
+| `call:outgoing` | Show dialing; optional `queueLabel` |
+| `call:ringing` | Ringing indicator; optional `queueLabel` |
+| `call:answered` | Active call UI; optional `queueLabel` |
 | `call:ended` | Tear down call UI |
 | `call:failed` | Error toast (no raw SIP text) |
 | `call:held` / `call:resumed` | Hold state |
@@ -30,6 +30,15 @@ Desktop (Axatalk) emits the operator events above from OCP Domain Events via
 project as public `unknown`. **Post-call processing** projects as
 `post_call_processing` so CRM can enable `operator.finishAppeal`. Campaign events remain
 out of v1.
+
+### Call queue label (OCP ACD, additive)
+
+When OCP resolves an ACD queue for a live SIP call, desktop may re-emit an existing
+`call:*` event (usually `call:incoming` / `call:outgoing` / `call:answered`) with
+optional `payload.queueLabel` (max 128). The same field appears on snapshot call
+summaries. **Never** expect legacy DOM names (`OCPincomingCallProgress`) or OCP
+`acallid`. Empty/direct queue → field omitted. Details:
+`docs/softphone/OCP-Call-Context.md`.
 
 ## Usage
 

@@ -162,6 +162,7 @@ export const CallAnsweredEventSchema: z.ZodReadonly<z.ZodObject<{
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -193,6 +194,7 @@ export const CallEndedEventSchema: z.ZodReadonly<z.ZodObject<{
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -224,6 +226,7 @@ export const CallFailedEventSchema: z.ZodReadonly<z.ZodObject<{
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -270,6 +273,7 @@ export const CallHeldEventSchema: z.ZodReadonly<z.ZodObject<{
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -316,6 +320,7 @@ export const CallIncomingEventSchema: z.ZodReadonly<z.ZodObject<{
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -362,6 +367,7 @@ export const CallMutedEventSchema: z.ZodReadonly<z.ZodObject<{
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -408,6 +414,7 @@ export const CallOutgoingEventSchema: z.ZodReadonly<z.ZodObject<{
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -469,6 +476,7 @@ export const CallResumedEventSchema: z.ZodReadonly<z.ZodObject<{
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -500,6 +508,7 @@ export const CallRingingEventSchema: z.ZodReadonly<z.ZodObject<{
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -562,6 +571,7 @@ export const CallUnmutedEventSchema: z.ZodReadonly<z.ZodObject<{
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -644,10 +654,10 @@ export const CommandFailureReplySchema: z.ZodReadonly<z.ZodObject<{
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
+            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
-            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
             forbidden: "forbidden";
             revoked: "revoked";
@@ -673,11 +683,11 @@ export const CommandFailureReplySchema: z.ZodReadonly<z.ZodObject<{
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
-        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -938,11 +948,11 @@ export const CommandSuccessReplySchema: z.ZodReadonly<z.ZodObject<{
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
-        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -968,11 +978,11 @@ export type CommandType = z.infer<typeof CommandTypeSchema>;
 
 // @public (undocumented)
 export const CommandTypeSchema: z.ZodEnum<{
+    "window:hide": "window:hide";
     "sdk:get-snapshot": "sdk:get-snapshot";
     "sdk:ping": "sdk:ping";
     "window:show": "window:show";
     "window:get-state": "window:get-state";
-    "window:hide": "window:hide";
     "call:originate": "call:originate";
     "call:answer": "call:answer";
     "call:reject": "call:reject";
@@ -1059,6 +1069,7 @@ export const EventMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -1087,6 +1098,7 @@ export const EventMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -1115,6 +1127,7 @@ export const EventMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -1143,6 +1156,7 @@ export const EventMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -1171,6 +1185,7 @@ export const EventMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -1199,6 +1214,7 @@ export const EventMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -1227,6 +1243,7 @@ export const EventMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -1255,6 +1272,7 @@ export const EventMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -1283,6 +1301,7 @@ export const EventMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -1311,6 +1330,7 @@ export const EventMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -2344,6 +2364,7 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -2372,6 +2393,7 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -2400,6 +2422,7 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -2428,6 +2451,7 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -2456,6 +2480,7 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -2484,6 +2509,7 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -2512,6 +2538,7 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -2540,6 +2567,7 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -2568,6 +2596,7 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -2596,6 +2625,7 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -2812,6 +2842,7 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
             remoteDisplayName: z.ZodOptional<z.ZodString>;
             muted: z.ZodOptional<z.ZodBoolean>;
             ownerClientId: z.ZodOptional<z.ZodString>;
+            queueLabel: z.ZodOptional<z.ZodString>;
         }, z.core.$strip>>>>;
         operator: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
             connected: z.ZodBoolean;
@@ -2978,11 +3009,11 @@ export const ReplyMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
-        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -3005,10 +3036,10 @@ export const ReplyMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
+            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
-            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
             forbidden: "forbidden";
             revoked: "revoked";
@@ -3034,11 +3065,11 @@ export const ReplyMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
-        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -3216,6 +3247,7 @@ export const SnapshotCallSummarySchema: z.ZodReadonly<z.ZodObject<{
     remoteDisplayName: z.ZodOptional<z.ZodString>;
     muted: z.ZodOptional<z.ZodBoolean>;
     ownerClientId: z.ZodOptional<z.ZodString>;
+    queueLabel: z.ZodOptional<z.ZodString>;
 }, z.core.$strip>>;
 
 // @public (undocumented)
@@ -3277,6 +3309,7 @@ export const SnapshotMessageSchema: z.ZodReadonly<z.ZodObject<{
             remoteDisplayName: z.ZodOptional<z.ZodString>;
             muted: z.ZodOptional<z.ZodBoolean>;
             ownerClientId: z.ZodOptional<z.ZodString>;
+            queueLabel: z.ZodOptional<z.ZodString>;
         }, z.core.$strip>>>>;
         operator: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
             connected: z.ZodBoolean;
@@ -3388,6 +3421,7 @@ export const SnapshotSectionsSchema: z.ZodReadonly<z.ZodObject<{
         remoteDisplayName: z.ZodOptional<z.ZodString>;
         muted: z.ZodOptional<z.ZodBoolean>;
         ownerClientId: z.ZodOptional<z.ZodString>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>>>;
     operator: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
         connected: z.ZodBoolean;
@@ -3981,6 +4015,7 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -4009,6 +4044,7 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -4037,6 +4073,7 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -4065,6 +4102,7 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -4093,6 +4131,7 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -4121,6 +4160,7 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -4149,6 +4189,7 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -4177,6 +4218,7 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -4205,6 +4247,7 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -4233,6 +4276,7 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
             inbound: "inbound";
             outbound: "outbound";
         }>>;
+        queueLabel: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
     kind: z.ZodLiteral<"event">;
@@ -4449,6 +4493,7 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
             remoteDisplayName: z.ZodOptional<z.ZodString>;
             muted: z.ZodOptional<z.ZodBoolean>;
             ownerClientId: z.ZodOptional<z.ZodString>;
+            queueLabel: z.ZodOptional<z.ZodString>;
         }, z.core.$strip>>>>;
         operator: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
             connected: z.ZodBoolean;

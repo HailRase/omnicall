@@ -2,13 +2,14 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import clsx from "clsx";
 import { useEffect, useRef, type JSX, type KeyboardEvent, type MouseEvent } from "react";
 
-import type { IncomingCallUiState } from "@application/index.js";
+import type { CallContextBadge, IncomingCallUiState } from "@application/index.js";
 
 import { formatAutoAnswerCountdownLabel } from "../../helpers/formatAutoAnswerCountdownLabel.js";
 
 import { useI18n } from "../../i18n/index.js";
 
 import { AppIcon } from "../icons/index.js";
+import { CallContextBadges } from "./CallContextBadges.js";
 import { IncomingCallRejectControl } from "./IncomingCallRejectControl.js";
 import { IncomingCallStatusMessage } from "./IncomingCallStatusMessage.js";
 import { TruncatedTextLine } from "./TruncatedTextLine.js";
@@ -24,6 +25,7 @@ export type IncomingCallOverlayProps = Readonly<{
   videoAnswerDisabledReason?: string | null;
   rejectDisabledReason: string | null;
   rejectChoiceEnabled?: boolean;
+  contextBadges?: ReadonlyArray<CallContextBadge>;
   onOpenCallSurface: () => void;
   onAnswer: () => void;
   onAnswerWithVideo?: (() => void) | undefined;
@@ -101,6 +103,7 @@ export function IncomingCallOverlay({
   videoAnswerDisabledReason = null,
   rejectDisabledReason,
   rejectChoiceEnabled = false,
+  contextBadges = [],
   onOpenCallSurface,
   onAnswer,
   onAnswerWithVideo,
@@ -240,6 +243,7 @@ export function IncomingCallOverlay({
                     {hasName && callerNumber !== null ? (
                       <TruncatedTextLine text={callerNumber} className={styles.secondaryNumber} />
                     ) : null}
+                    <CallContextBadges badges={contextBadges} density="compact" />
                     {autoAnswerActive && autoAnswerSecondsRemaining !== null ? (
                       <p
                         className={styles.autoAnswerHint}

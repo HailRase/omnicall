@@ -13,6 +13,8 @@ export type SdkProductCallLine = Readonly<{
   remoteNumber: string | null;
   remoteDisplayName: string | null;
   muted: boolean;
+  /** Non-empty ACD queue title from OCP call context; null when absent. */
+  queueLabel: string | null;
 }>;
 
 export type SdkProductStateSnapshot = Readonly<{

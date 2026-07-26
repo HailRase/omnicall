@@ -1,10 +1,11 @@
 import clsx from "clsx";
 import type { JSX } from "react";
-import type { CallLineCardViewModel } from "@application/index.js";
+import type { CallContextBadge, CallLineCardViewModel } from "@application/index.js";
 import { useCallDuration } from "../../hooks/useCallDuration.js";
 import { useI18n, type TranslationKey } from "../../i18n/index.js";
 import { AppIcon } from "../icons/AppIcon.js";
 import type { IconSemanticId } from "../icons/iconCatalog.js";
+import { CallContextBadges } from "./CallContextBadges.js";
 import styles from "./CallSessionCard.module.css";
 
 export type CallSessionCardProps = Readonly<{
@@ -12,6 +13,7 @@ export type CallSessionCardProps = Readonly<{
   isActive?: boolean;
   compact?: boolean;
   showSelectionChrome?: boolean;
+  contextBadges?: ReadonlyArray<CallContextBadge>;
   onClick?: () => void;
 }>;
 
@@ -26,6 +28,7 @@ export function CallSessionCard({
   isActive = false,
   compact = false,
   showSelectionChrome,
+  contextBadges = [],
   onClick,
 }: CallSessionCardProps): JSX.Element {
   const { t } = useI18n();
@@ -130,6 +133,7 @@ export function CallSessionCard({
           </span>
           <span className={styles.identityText}>
             <span className={styles.name}>{line.displayName}</span>
+            <CallContextBadges badges={contextBadges} density="compact" />
           </span>
         </div>
         {duration.length > 0 ? (

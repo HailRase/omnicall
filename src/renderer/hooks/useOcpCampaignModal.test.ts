@@ -72,6 +72,29 @@ function createFacade(overrides?: {
 }
 
 describe("useOcpCampaignModal", () => {
+  it("does not open modal for progressive campaign context", () => {
+    useAccountBootstrapStore.setState({
+      ocpCampaignEventProjection: reduceCampaignEventFromPayload({
+        ...campaign,
+        progressive: true,
+      }),
+      ocpOperatorStatusProjection: reduceOperatorStatusFromUsers(
+        initialOperatorStatusProjection(),
+        {
+          operatorId: 7,
+          status: OperatorStatus.READY,
+          reasonId: 1,
+          statusSince: "2026-07-14T10:00:00.000Z",
+        },
+      ),
+    });
+    const { result } = renderHook(() =>
+      useOcpCampaignModal({ facade: createFacade() }),
+    );
+    expect(result.current.open).toBe(false);
+    expect(result.current.campaign).toBeNull();
+  });
+
   it("stays closed when no active campaign", () => {
     const { result } = renderHook(() =>
       useOcpCampaignModal({ facade: createFacade() }),

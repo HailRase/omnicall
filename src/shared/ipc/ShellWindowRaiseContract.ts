@@ -1,10 +1,11 @@
 /**
- * Shell window raise IPC contract (ADR-0013 / telephony + SDK operator attention).
+ * Shell window raise IPC contract (ADR-0013 / telephony + SDK + OCP operator attention).
  */
 
 export const SHELL_WINDOW_RAISE_REASONS = [
   "incoming_call",
   "outgoing_call",
+  "ocp_campaign_offer",
   "sdk_origin_trust",
   "sdk_pairing",
   "sdk_activate_consent",

@@ -13,7 +13,13 @@ Stable / `latest` is **blocked on desktop DI-10**.
 - Runtime Zod schemas for local protocol v1
 - Inferred TypeScript types + golden fixtures (`./fixtures/*`)
 - Compatibility and negative fixtures for handshake, auth, commands, events, replies
-- Public surface frozen at **169** API report symbols (`etc/api/protocol.api.md`)
+- Public surface tracked in `etc/api/protocol.api.md` (api:check gate)
+
+### Additive (compatible, desktop DI-05 follow-up 2026-07-26)
+
+- Optional `queueLabel` (string 1…128) on call event payloads and `SnapshotCallSummary`
+  for ACD queue titles from desktop OCP call context. Omitted when unknown/direct.
+  Does not introduce new event types or campaign events. API report updated via `api:check`.
 
 ### Not included
 

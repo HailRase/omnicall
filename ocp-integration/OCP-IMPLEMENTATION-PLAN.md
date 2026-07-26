@@ -581,7 +581,7 @@ src/application/services/integration/
   - localStorage кэш ключ `ocp-break-reasons-{operatorId}`
   - Тест: фильтрация по parentStatus
 - [x] `campaignEventProjection`:
-  - State: `{ activeCampaign: OcpCampaignEventPayload | null }`
+  - State: `{ activeCampaign: OcpCampaignEventPayload | null; progressiveContext: OcpCampaignEventPayload | null }` — preview (`progressive: false`) → `activeCampaign` (modal); progressive → `progressiveContext` (badges only). See `docs/softphone/OCP-Call-Context.md`.
   - Тест: set/clear
 
 #### Bridge Services
@@ -873,7 +873,7 @@ src/renderer/hooks/useOcpLogoutModal.ts + .test.ts
 `OcpNotificationService` (E-05) вызывает порт `OcpNotificationPresenter` (сейчас `NoopOcpNotificationPresenter`). В E-09 UI даёт реализацию: `present(payload)` → map в `NotificationDescriptor` → `notify(...)` из `useNotifications` в `SoftphoneReadyShell` (тот же канал, что телефония/аккаунт). Никаких новых toast-механизмов и Zustand store для нотификаций — переиспользовать существующий хук. Store имеет смысл только позже, если toast sink понадобится вне React (host-page / SDK).
 
 **`CampaignEventModal`:**  
-Не закрывается по Escape (обязательный выбор — принять или отклонить). Показывается когда `campaignEventProjection.activeCampaign !== null`. После Accept/Reject — `campaignEventProjection` очищается.
+Не закрывается по Escape (обязательный выбор — принять или отклонить). Показывается когда `campaignEventProjection.activeCampaign !== null` (**только non-progressive preview**). Progressive → бейджи на call surfaces, без модалки. Модалка: center + blur scrim, компактный phone hero. После Accept/Reject / CallEnded — слоты очищаются. Queue badges: `CallOcpContextProjection` (`docs/softphone/OCP-Call-Context.md`).
 
 ### Файловая структура
 

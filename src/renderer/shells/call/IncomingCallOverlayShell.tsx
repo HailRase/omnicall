@@ -4,6 +4,7 @@ import { IncomingCallOverlay } from "../../components/call/IncomingCallOverlay.j
 import { useAutoAnswerCountdown } from "../../hooks/useAutoAnswerCountdown.js";
 import type { CallFeatureShellBindings } from "../../hooks/useCallFeatureShell.js";
 import { useIncomingCallOverlayActions } from "../../hooks/useIncomingCallOverlayActions.js";
+import { useCallContextBadges } from "../../hooks/useCallContextBadges.js";
 import { useIncomingCallOverlayShell } from "../../hooks/useIncomingCallOverlayShell.js";
 import type { UseOcpRejectWithBreakResult } from "../../hooks/useOcpRejectWithBreak.js";
 import type { UseOverlayShellResult } from "../../hooks/useOverlayShell.js";
@@ -54,6 +55,10 @@ export function IncomingCallOverlayShell({
     callBindings.incomingCallProjection.autoAnswerExpiresAt,
     callBindings.incomingCallProjection.uiState === "autoAnswerCountdown",
   );
+  const contextBadges = useCallContextBadges(
+    callBindings.incomingCallProjection.callId,
+    callBindings.incomingCallShell.identity.callerNumber,
+  );
 
   return (
     <IncomingCallOverlay
@@ -68,6 +73,7 @@ export function IncomingCallOverlayShell({
       }
       rejectDisabledReason={callBindings.incomingCallActions.rejectDisabledReason}
       rejectChoiceEnabled={ocpRejectWithBreak.rejectChoiceEnabled}
+      contextBadges={contextBadges}
       onOpenCallSurface={overlayActions.handleOpenCallSurface}
       onAnswer={overlayActions.handleAnswer}
       onAnswerWithVideo={

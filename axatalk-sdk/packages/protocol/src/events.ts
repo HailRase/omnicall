@@ -59,7 +59,12 @@ const CallEventPayloadSchema = z
     state: PublicCallStateSchema,
     remoteNumber: RedactedPhoneSchema.optional(),
     remoteDisplayName: RedactedDisplayNameSchema.optional(),
-    direction: z.enum(['inbound', 'outbound']).optional()
+    direction: z.enum(['inbound', 'outbound']).optional(),
+    /**
+     * ACD queue title from desktop OCP call context (F-028).
+     * Additive / compatible. Never a raw OCP wire id (`acallid`).
+     */
+    queueLabel: z.string().min(1).max(128).optional()
   })
   .readonly();
 

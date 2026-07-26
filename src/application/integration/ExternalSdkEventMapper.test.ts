@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
-import { createIncomingCallReceivedEvent } from "@domain/telephony/events/callEvents.js";
+import {
+  createCallAnsweredEvent,
+  createIncomingCallReceivedEvent,
+} from "@domain/telephony/events/callEvents.js";
 import { createCallId } from "@domain/telephony/CallId.js";
 import { createPhoneNumber } from "@domain/telephony/PhoneNumber.js";
 import { OperatorStatus } from "@domain/integration/ocp/OperatorStatus.js";
@@ -9,6 +12,7 @@ import { createOperatorSessionStartedEvent } from "@domain/integration/ocp/event
 import { createOperatorSessionEndedEvent } from "@domain/integration/ocp/events/OperatorSessionEnded.js";
 import { createOperatorLoggedOutEvent } from "@domain/integration/ocp/events/OperatorLoggedOut.js";
 import { createOperatorStatusReservationSetEvent } from "@domain/integration/ocp/events/OperatorStatusReservationSet.js";
+import { createCallOcpContextResolvedEvent } from "@domain/integration/ocp/events/CallOcpContextResolved.js";
 
 import { mapDomainEventToSdkPublicDraft } from "./ExternalSdkEventMapper.js";
 
@@ -176,6 +180,45 @@ describe("ExternalSdkEventMapper", () => {
         reasonLabelKey: "ocp.operatorStatus.postCallProcessing",
         reservedTarget: "ready",
         reservedReasonId: 1,
+      },
+    });
+  });
+
+  it("maps CallOcpContextResolved to call:incoming with queueLabel and without acallid", () => {
+    const draft = mapDomainEventToSdkPublicDraft(
+      createCallOcpContextResolvedEvent(createCorrelationId(), {
+        callId: "call_map_queue_1",
+        direction: "incoming",
+        queueName: "Support ACD",
+      }),
+    );
+    expect(draft).toEqual({
+      type: "call:incoming",
+      payload: {
+        callId: "call_map_queue_1",
+        state: "ringing",
+        direction: "inbound",
+        queueLabel: "Support ACD",
+      },
+    });
+    expect(JSON.stringify(draft)).not.toContain("acall");
+    expect(JSON.stringify(draft)).not.toContain("acallid");
+  });
+
+  it("attaches queueLabel from context on later call:answered", () => {
+    const draft = mapDomainEventToSdkPublicDraft(
+      createCallAnsweredEvent(createCorrelationId(), {
+        callId: createCallId("call_map_queue_2"),
+      }),
+      {
+        queueLabelByCallId: { call_map_queue_2: "Sales" },
+      },
+    );
+    expect(draft).toMatchObject({
+      type: "call:answered",
+      payload: {
+        callId: "call_map_queue_2",
+        queueLabel: "Sales",
       },
     });
   });

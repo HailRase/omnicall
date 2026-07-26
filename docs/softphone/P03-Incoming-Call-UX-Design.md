@@ -16,7 +16,7 @@
 - `incomingRinging`: incoming overlay visible with pulsing icon.
 - `callerIdentityLoading`: caller identity is loading from adapter boundary data.
 - `callerIdentityResolved`: display name parsed from SIP boundary and projected.
-- `queueInfoPending`: queue badge shows loading placeholder until P07 queue sync.
+- `queueInfoPending`: queue badge shows loading placeholder until F-028 `CallOcpContextProjection` resolves (`get_main_acallid`); empty queue = direct/internal (badge hidden). See `OCP-Call-Context.md`.
 - `autoAnswerCountdown`: countdown label and progress bar while auto-answer timer is active.
 - `dndAutoRejecting`: incoming is auto-rejected with 486 and overlay is hidden.
 - `answering`: answer action in progress, reject control disabled.

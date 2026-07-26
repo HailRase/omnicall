@@ -171,6 +171,23 @@ export class OcpIntegrationComposition {
       ocpGateway: deps.ocpGateway,
       isOcpAuthenticated,
       logger: deps.logger,
+      callContext: {
+        markPending: (callId, direction) => {
+          this.projectionHub.markCallOcpContextPending(callId, direction);
+        },
+        resolve: (callId, input) => {
+          this.projectionHub.resolveCallOcpContext(callId, input);
+        },
+        markUnavailable: (callId) => {
+          this.projectionHub.markCallOcpContextUnavailable(callId);
+        },
+        clear: (callId) => {
+          this.projectionHub.clearCallOcpContext(callId);
+        },
+      },
+      clearCampaignOnCallTerminal: () => {
+        this.projectionHub.clearActiveCampaign();
+      },
     });
     this.dndBridge = new OcpDndBridgeService({
       eventPublisher: deps.eventPublisher,

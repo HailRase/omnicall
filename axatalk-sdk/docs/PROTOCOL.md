@@ -145,6 +145,11 @@ per ADR-0012).
 - `call:muted`
 - `call:unmuted`
 
+Call event / snapshot call-summary payloads may include additive optional
+`queueLabel` (desktop-safe ACD title from F-028 OCP call context). Omitted when
+unknown or direct/internal. Never carries OCP wire ids (`acallid`). See
+`docs/softphone/OCP-Call-Context.md`.
+
 ### Registration and account
 
 - `registration:changed`

@@ -24,6 +24,7 @@ import { useOverlayShell } from "../hooks/useOverlayShell.js";
 import { useShellWindowLayout } from "../hooks/useShellWindowLayout.js";
 import { useShellWindowControls } from "../hooks/useShellWindowControls.js";
 import { useShellWindowAttentionFromCalls } from "../hooks/useShellWindowAttentionFromCalls.js";
+import { useShellWindowAttentionFromCampaign } from "../hooks/useShellWindowAttentionFromCampaign.js";
 import { useShellWindowAttentionFromSdk } from "../hooks/useShellWindowAttentionFromSdk.js";
 import { useAppUpdate } from "../hooks/useAppUpdate.js";
 import { useSettingsActions } from "../hooks/useSettingsActions.js";
@@ -299,6 +300,12 @@ function SoftphoneShellLayoutRoute({
   useShellWindowAttentionFromCalls({
     incomingCallProjection: callBindings.incomingCallProjection,
     callProjection: callBindings.callProjection,
+  });
+  const ocpCampaignEventProjection = useAccountBootstrapStore(
+    (state) => state.ocpCampaignEventProjection,
+  );
+  useShellWindowAttentionFromCampaign({
+    campaignEventProjection: ocpCampaignEventProjection,
   });
   const { onRefresh: refreshSdkSnapshotForAttention } = sdkSettingsPanel;
   useShellWindowAttentionFromSdk({

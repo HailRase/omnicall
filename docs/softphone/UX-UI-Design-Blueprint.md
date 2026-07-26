@@ -248,7 +248,7 @@ Campaign modal must show:
 - timeout state if provided
 - progressive campaign behavior without unnecessary modal
 
-Campaign UX exists only when legacy operator integration is enabled.
+Campaign UX exists when **OCP Module (F-028)** is authenticated (not the removed legacy operator stack). Preview (`progressive: false`) → centered Dialog with blur; progressive → badges on call surfaces only. Queue/campaign projection rules: `docs/softphone/OCP-Call-Context.md`.
 
 ## History UX
 

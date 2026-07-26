@@ -1,9 +1,13 @@
 declare const classes: {
+  readonly overlayBlur: string;
   readonly content: string;
-  readonly details: string;
+  readonly header: string;
+  readonly description: string;
+  readonly body: string;
+  readonly phoneLabel: string;
+  readonly phone: string;
+  readonly meta: string;
+  readonly strategy: string;
   readonly footer: string;
-  readonly row: string;
-  readonly term: string;
-  readonly value: string;
 };
 export default classes;

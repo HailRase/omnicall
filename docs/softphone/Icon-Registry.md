@@ -30,6 +30,7 @@
 | `settings.system-state` | Settings system state section (SIP transport/register) | `Gauge` | — | `SettingsSidebar` (Phase 6) | planned |
 | `settings.codecs` | Settings codecs section | `AudioLines` | `AudioLinesIcon` | `SettingsSidebar` | active |
 | `settings.headset` | Settings headset section | `Headphones` | — | `SettingsSidebar` | active |
+| `call.queue` | OCP ACD queue badge on call surfaces | `Headphones` | — | `CallContextBadges` | active |
 | `settings.integrations` | Settings integrations parent group | `Plug` | — | `SettingsSidebar` | active |
 | `settings.integrations.ocp` | Settings OCP Module child under Integrations | `Server` | — | `SettingsSidebar` | active |
 | `settings.integrations.sdk` | Settings Axatalk SDK child under Integrations | `Blocks` | — | `SettingsSidebar` | active |

@@ -1,7 +1,7 @@
 /**
  * - Purpose: gateway-driven OCP projection hub implementing OcpOperatorReadModel.
  * - Inputs: OcpGateway transport states/messages, optional reasons cache hydration.
- * - Outputs: dual-FSM session/operator/reasons/campaign snapshots for Use Cases and UI.
+ * - Outputs: dual-FSM session/operator/reasons/campaign/call-context snapshots for Use Cases and UI.
  */
 
 import type { OperatorProfile } from "@domain/integration/ocp/OperatorProfile.js";
@@ -18,6 +18,16 @@ import {
   clearCampaignEvent,
   type CampaignEventProjection,
 } from "../projections/integration/campaignEventProjection.js";
+import {
+  clearCallOcpContext,
+  initialCallOcpContextProjection,
+  markCallOcpContextPending,
+  markCallOcpContextUnavailable,
+  resolveCallOcpContext,
+  resetCallOcpContextProjection,
+  type CallOcpContextDirection,
+  type CallOcpContextProjection,
+} from "../projections/integration/callOcpContextProjection.js";
 import {
   initialOcpReasonsProjection,
   reduceOcpReasonsFromPayload,
@@ -59,6 +69,8 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
   private operator: OperatorStatusProjection = initialOperatorStatusProjection();
   private reasons: OcpReasonsProjection = initialOcpReasonsProjection();
   private campaign: CampaignEventProjection = initialCampaignEventProjection();
+  private callOcpContext: CallOcpContextProjection =
+    initialCallOcpContextProjection();
   private readonly unsubscribers: Unsubscribe[] = [];
   private readonly changeListeners = new Set<() => void>();
   private authFeedbackNonce = 0;
@@ -117,6 +129,46 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
 
   getCampaignProjection(): CampaignEventProjection {
     return this.campaign;
+  }
+
+  getCallOcpContextProjection(): CallOcpContextProjection {
+    return this.callOcpContext;
+  }
+
+  markCallOcpContextPending(
+    callId: string,
+    direction: CallOcpContextDirection,
+  ): void {
+    this.callOcpContext = markCallOcpContextPending(this.callOcpContext, {
+      callId,
+      direction,
+    });
+    this.notifyChangeListeners();
+  }
+
+  resolveCallOcpContext(
+    callId: string,
+    input: Readonly<{ acallId: string; queueName: string | null }>,
+  ): void {
+    this.callOcpContext = resolveCallOcpContext(this.callOcpContext, {
+      callId,
+      acallId: input.acallId,
+      queueName: input.queueName,
+    });
+    this.notifyChangeListeners();
+  }
+
+  markCallOcpContextUnavailable(callId: string): void {
+    this.callOcpContext = markCallOcpContextUnavailable(
+      this.callOcpContext,
+      callId,
+    );
+    this.notifyChangeListeners();
+  }
+
+  clearCallOcpContext(callId: string): void {
+    this.callOcpContext = clearCallOcpContext(this.callOcpContext, callId);
+    this.notifyChangeListeners();
   }
 
   getCurrentOperatorProfile(): OperatorProfile | null {
@@ -234,6 +286,7 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
     this.session = initialOcpSessionProjection();
     this.operator = initialOperatorStatusProjection();
     this.campaign = initialCampaignEventProjection();
+    this.callOcpContext = resetCallOcpContextProjection();
     this.notifyChangeListeners();
   }
 

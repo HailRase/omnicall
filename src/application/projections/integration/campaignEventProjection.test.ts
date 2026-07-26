@@ -5,7 +5,7 @@ import {
 } from "./campaignEventProjection.js";
 import type { OcpCampaignEventPayload } from "@domain/integration/ocp/protocol/OcpIncomingMessage.js";
 
-const campaign: OcpCampaignEventPayload = {
+const base: OcpCampaignEventPayload = {
   id: "c1",
   callId: "call-1",
   queueId: "q1",
@@ -23,10 +23,25 @@ const campaign: OcpCampaignEventPayload = {
 };
 
 describe("campaignEventProjection", () => {
-  it("sets and clears active campaign", () => {
-    let projection = reduceCampaignEventFromPayload(campaign);
+  it("routes non-progressive to activeCampaign modal slot", () => {
+    const projection = reduceCampaignEventFromPayload(base);
     expect(projection.activeCampaign?.id).toBe("c1");
+    expect(projection.progressiveContext).toBeNull();
+  });
+
+  it("routes progressive to progressiveContext without modal slot", () => {
+    const projection = reduceCampaignEventFromPayload({
+      ...base,
+      progressive: true,
+    });
+    expect(projection.activeCampaign).toBeNull();
+    expect(projection.progressiveContext?.id).toBe("c1");
+  });
+
+  it("clears both slots", () => {
+    let projection = reduceCampaignEventFromPayload(base);
     projection = clearCampaignEvent();
     expect(projection.activeCampaign).toBeNull();
+    expect(projection.progressiveContext).toBeNull();
   });
 });

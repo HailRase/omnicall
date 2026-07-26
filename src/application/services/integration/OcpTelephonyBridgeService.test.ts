@@ -27,11 +27,37 @@ describe("OcpTelephonyBridgeService", () => {
     gateway.simulateAuthSuccess(42);
 
     const bus = new InMemoryDomainEventBus();
+    const hubMarks: string[] = [];
+    const publishedTypes: string[] = [];
+    const resolvedPayloads: unknown[] = [];
+    bus.subscribe((event) => {
+      publishedTypes.push(event.type);
+      if (event.type === "CallOcpContextResolved") {
+        resolvedPayloads.push(event);
+      }
+    });
     const bridge = new OcpTelephonyBridgeService({
       eventPublisher: bus,
       ocpGateway: gateway,
       isOcpAuthenticated: () => true,
       logger: createTestLogger({ featureId: "F-028", boundedContext: "Integration" }),
+      callContext: {
+        markPending: (callId, direction) => {
+          hubMarks.push(`pending:${callId}:${direction}`);
+        },
+        resolve: (callId, input) => {
+          hubMarks.push(`resolve:${callId}:${input.acallId}:${input.queueName ?? ""}`);
+        },
+        markUnavailable: (callId) => {
+          hubMarks.push(`unavailable:${callId}`);
+        },
+        clear: (callId) => {
+          hubMarks.push(`clear:${callId}`);
+        },
+      },
+      clearCampaignOnCallTerminal: () => {
+        hubMarks.push("clearCampaign");
+      },
     });
 
     const callId = createCallId("call-1");
@@ -46,9 +72,27 @@ describe("OcpTelephonyBridgeService", () => {
 
     gateway.simulateMessage({
       entity: "calls",
-      data: { acallId: "acall-9", userLogin: "op" },
+      data: {
+        acallId: "acall-9",
+        event: "incomingCallProgress",
+        callerId: "+1",
+        calledId: "+2",
+        queue: "Support",
+      },
     });
     expect(bridge.getCorrelationAcallId(callId)).toBe("acall-9");
+    expect(hubMarks).toContain("pending:call-1:incoming");
+    expect(hubMarks).toContain("resolve:call-1:acall-9:Support");
+    expect(publishedTypes.filter((type) => type === "CallOcpContextResolved")).toHaveLength(
+      1,
+    );
+    expect(resolvedPayloads[0]).toMatchObject({
+      type: "CallOcpContextResolved",
+      callId: "call-1",
+      direction: "incoming",
+      queueName: "Support",
+    });
+    expect(JSON.stringify(resolvedPayloads[0])).not.toContain("acall-9");
 
     gateway.clearSentCommands();
     bus.publish(createCallEndedEvent(createCorrelationId(), { callId }));
@@ -58,6 +102,8 @@ describe("OcpTelephonyBridgeService", () => {
       acallId: "acall-9",
     });
     expect(bridge.getCorrelationAcallId(callId)).toBeUndefined();
+    expect(hubMarks).toContain("clear:call-1");
+    expect(hubMarks).toContain("clearCampaign");
 
     bridge.dispose();
   });
@@ -70,6 +116,13 @@ describe("OcpTelephonyBridgeService", () => {
       ocpGateway: gateway,
       isOcpAuthenticated: () => false,
       logger: createTestLogger({ featureId: "F-028", boundedContext: "Integration" }),
+      callContext: {
+        markPending: () => undefined,
+        resolve: () => undefined,
+        markUnavailable: () => undefined,
+        clear: () => undefined,
+      },
+      clearCampaignOnCallTerminal: () => undefined,
     });
 
     bus.publish(

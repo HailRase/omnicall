@@ -87,6 +87,7 @@ the public WS.**
 | Public protocol (v1) | Maps to desktop | E-12 channel | Notes |
 | --- | --- | --- | --- |
 | Snapshot `operator.*` (redacted) | `getOcpConnectionState` / projections | `ocp:get-session-state` | Read via snapshot/events, not a public OCP channel name; status enum includes `post_call_processing` |
+| Snapshot / `call:*` additive `queueLabel` | `CallOcpContextProjection.queueName` via `CallOcpContextResolved` + mapper | — (not an E-12 channel) | Desktop-safe ACD title only; **never** `acallid` / OCP wire; omitted when empty/direct; see `OCP-Call-Context.md` |
 | `operator:get-reasons` | existing reason query used by logout/status UI | — (not an E-12 channel) | Returns reason ids + safe labels |
 | `operator:change-status` `{ target: "ready" \| "break", reasonId?: number }` | `changeOcpStatusFromHost` (`callType: "sdk"`) → OCP wire `function_call_type: "external"` | `ocp:change-status-ready` / `ocp:change-status-break` | Public single command; desktop splits ready/break; wire map in adapter; during busy/post-call may `kind: "reserved"` |
 | `operator:finish-appeal` `{ expectedRevision }` | `finishOcpPostCallAppeal` (`callType: "sdk"`) → `FinishPostCallAppealUseCase` → apply Ready/Break | same apply path as finish UI | Only when OCP status is post-call processing; missing OCP login → `not_found`; wrong status → `conflict` + `failure_kind` |

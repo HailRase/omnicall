@@ -51,6 +51,13 @@ describe("OcpTelephonyBridge integration (E-10)", () => {
       ocpGateway: gateway,
       isOcpAuthenticated: () => true,
       logger: createTestLogger({ featureId: "F-028", boundedContext: "Integration" }),
+      callContext: {
+        markPending: () => undefined,
+        resolve: () => undefined,
+        markUnavailable: () => undefined,
+        clear: () => undefined,
+      },
+      clearCampaignOnCallTerminal: () => undefined,
     });
     return { gateway, bus, bridge };
   }
@@ -169,6 +176,13 @@ describe("OcpTelephonyBridge integration (E-10)", () => {
       ocpGateway: gateway,
       isOcpAuthenticated: () => false,
       logger: createTestLogger({ featureId: "F-028", boundedContext: "Integration" }),
+      callContext: {
+        markPending: () => undefined,
+        resolve: () => undefined,
+        markUnavailable: () => undefined,
+        clear: () => undefined,
+      },
+      clearCampaignOnCallTerminal: () => undefined,
     });
 
     bus.publish(

@@ -58,6 +58,18 @@ function readString(record: Record<string, unknown>, key: string): string | null
   return value.trim();
 }
 
+/** Like readString but allows empty after trim (OCP internal/direct calls use ""). */
+function readStringAllowEmpty(
+  record: Record<string, unknown>,
+  key: string,
+): string | null {
+  const value = record[key];
+  if (typeof value !== "string") {
+    return null;
+  }
+  return value.trim();
+}
+
 function readOptionalString(
   record: Record<string, unknown>,
   key: string,
@@ -325,7 +337,8 @@ function parseCallsPayload(payload: unknown): OcpCallsPayload | null {
   if (event !== null) {
     const callerId = readString(payload, "caller_id");
     const calledId = readString(payload, "called_id");
-    const queue = readString(payload, "queue");
+    // Empty queue is valid: direct/internal incoming (no ACD queue label).
+    const queue = readStringAllowEmpty(payload, "queue");
     if (callerId === null || calledId === null || queue === null) {
       return null;
     }

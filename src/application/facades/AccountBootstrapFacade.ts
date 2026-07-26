@@ -3157,6 +3157,12 @@ export class AccountBootstrapFacade {
     return this.ocpIntegration.projectionHub.getCampaignProjection();
   }
 
+  getOcpCallContextSnapshot(): ReturnType<
+    OcpIntegrationComposition["projectionHub"]["getCallOcpContextProjection"]
+  > {
+    return this.ocpIntegration.projectionHub.getCallOcpContextProjection();
+  }
+
   subscribeOcpProjections(listener: () => void): () => void {
     return this.ocpIntegration.projectionHub.subscribe(listener);
   }

@@ -17,6 +17,12 @@ describe("ShellWindowRaiseContract", () => {
         dedupeKey: "c1",
       }),
     ).toEqual({ reason: "incoming_call", dedupeKey: "c1" });
+    expect(
+      parseShellWindowRaisePayload({
+        reason: "ocp_campaign_offer",
+        dedupeKey: "camp_1",
+      }),
+    ).toEqual({ reason: "ocp_campaign_offer", dedupeKey: "camp_1" });
     expect(parseShellWindowRaisePayload({ reason: "nope" })).toBeNull();
   });
 

@@ -123,6 +123,23 @@ describe("OcpFullFlow integration (E-13)", () => {
         ocpGateway: gateway,
         isOcpAuthenticated: () => hub.getSessionProjection().isAuthenticated,
         logger,
+        callContext: {
+          markPending: (callId, direction) => {
+            hub.markCallOcpContextPending(callId, direction);
+          },
+          resolve: (callId, input) => {
+            hub.resolveCallOcpContext(callId, input);
+          },
+          markUnavailable: (callId) => {
+            hub.markCallOcpContextUnavailable(callId);
+          },
+          clear: (callId) => {
+            hub.clearCallOcpContext(callId);
+          },
+        },
+        clearCampaignOnCallTerminal: () => {
+          hub.clearActiveCampaign();
+        },
       });
 
       const connectResult = await connectOcp.execute({

@@ -3,6 +3,7 @@
  * Never forwards Domain JSON; campaign events are omitted (ADR-0017 O-CAMP-1).
  * OperatorLoggedOut is omitted when OperatorSessionEnded already covers disconnect.
  * Post-call reservation is additive on operator:status-changed (reservedTarget).
+ * OCP ACD queue is additive queueLabel on call:* (never acallid / OCP wire).
  */
 
 import type { DomainEvent } from "@domain/index.js";
@@ -18,12 +19,16 @@ import {
   type SdkPublicOperatorStatus,
   type SdkPublicReservedTarget,
 } from "./mapSdkOperatorStatus.js";
-import { mapSdkPublicCallState } from "./mapSdkPublicCallState.js";
+import {
+  mapSdkPublicCallState,
+  type SdkPublicCallState,
+} from "./mapSdkPublicCallState.js";
 import { mapSdkRegistrationState } from "./mapSdkRegistrationState.js";
 import {
   redactDisplayNameForSdk,
   redactPhoneForSdk,
 } from "./sdkPrivacyRedaction.js";
+import type { SdkProductCallLine } from "./ExternalSdkProductState.js";
 
 export type SdkPublicEventDraft = Readonly<{
   type:
@@ -46,12 +51,17 @@ export type SdkPublicEventDraft = Readonly<{
 }>;
 
 /**
- * Projection context for operator drafts (reservation is not on Domain Event alone).
+ * Projection context for operator drafts (reservation is not on Domain Event alone)
+ * and optional per-call ACD queue labels from CallOcpContextProjection.
  */
 export type SdkOperatorEventMapContext = Readonly<{
   currentStatus?: SdkPublicOperatorStatus;
   reservedTarget?: SdkPublicReservedTarget | null;
   reservedReasonId?: number | null;
+  /** Non-empty queue labels keyed by opaque SIP callId. */
+  queueLabelByCallId?: Readonly<Record<string, string>>;
+  /** Live call lines — used to pick public call:* type on queue resolve. */
+  callLines?: readonly SdkProductCallLine[];
 }>;
 
 /**
@@ -63,25 +73,27 @@ export function mapDomainEventToSdkPublicDraft(
 ): SdkPublicEventDraft | null {
   switch (event.type) {
     case "IncomingCallReceived":
-      return callDraft("call:incoming", event, "ringing", "inbound");
+      return callDraft("call:incoming", event, "ringing", "inbound", context);
     case "OutgoingCallRequested":
-      return callDraft("call:outgoing", event, "connecting", "outbound");
+      return callDraft("call:outgoing", event, "connecting", "outbound", context);
     case "CallProgressReceived":
-      return callDraft("call:ringing", event, "connecting", "outbound");
+      return callDraft("call:ringing", event, "connecting", "outbound", context);
     case "CallAnswered":
-      return callDraft("call:answered", event, "active");
+      return callDraft("call:answered", event, "active", undefined, context);
     case "CallEnded":
-      return callDraft("call:ended", event, "ended");
+      return callDraft("call:ended", event, "ended", undefined, context);
     case "CallFailed":
-      return callDraft("call:failed", event, "failed");
+      return callDraft("call:failed", event, "failed", undefined, context);
     case "CallHeld":
-      return callDraft("call:held", event, "held");
+      return callDraft("call:held", event, "held", undefined, context);
     case "CallResumed":
-      return callDraft("call:resumed", event, "active");
+      return callDraft("call:resumed", event, "active", undefined, context);
     case "CallMuted":
-      return callDraft("call:muted", event, "active");
+      return callDraft("call:muted", event, "active", undefined, context);
     case "CallUnmuted":
-      return callDraft("call:unmuted", event, "active");
+      return callDraft("call:unmuted", event, "active", undefined, context);
+    case "CallOcpContextResolved":
+      return callOcpContextResolvedDraft(event, context);
     case "RegistrationSucceeded":
       return {
         type: "registration:changed",
@@ -205,11 +217,73 @@ function reservedPayload(context: SdkOperatorEventMapContext): WireJsonObject {
   };
 }
 
+function callOcpContextResolvedDraft(
+  event: DomainEvent,
+  context: SdkOperatorEventMapContext,
+): SdkPublicEventDraft | null {
+  const callId = readString(event, "callId");
+  const queueName = readString(event, "queueName");
+  if (callId === null || queueName === null) {
+    return null;
+  }
+  const queueLabel = queueName.slice(0, 128);
+  if (queueLabel.length === 0) {
+    return null;
+  }
+  const directionRaw = readString(event, "direction");
+  const direction: "inbound" | "outbound" =
+    directionRaw === "outgoing" ? "outbound" : "inbound";
+  const line = context.callLines?.find((entry) => entry.callId === callId);
+  const typeAndState = resolvePublicCallTypeForQueueEnrichment(line, direction);
+  if (typeAndState === null) {
+    return null;
+  }
+  return {
+    type: typeAndState.type,
+    payload: {
+      callId,
+      state: typeAndState.state,
+      direction,
+      queueLabel,
+    },
+  };
+}
+
+function resolvePublicCallTypeForQueueEnrichment(
+  line: SdkProductCallLine | undefined,
+  direction: "inbound" | "outbound",
+): Readonly<{
+  type: SdkPublicEventDraft["type"];
+  state: SdkPublicCallState;
+}> | null {
+  if (line !== undefined) {
+    const publicState = mapSdkPublicCallState(line.state);
+    if (publicState === null || publicState === "ended" || publicState === "failed") {
+      return null;
+    }
+    if (publicState === "held" || publicState === "active" || publicState === "ending") {
+      return { type: "call:answered", state: publicState === "ending" ? "active" : publicState };
+    }
+    if (direction === "inbound") {
+      return { type: "call:incoming", state: publicState };
+    }
+    return {
+      type: publicState === "connecting" ? "call:outgoing" : "call:ringing",
+      state: publicState,
+    };
+  }
+  if (direction === "inbound") {
+    return { type: "call:incoming", state: "ringing" };
+  }
+  return { type: "call:outgoing", state: "connecting" };
+}
+
 function callDraft(
   type: SdkPublicEventDraft["type"],
   event: DomainEvent,
   state: string,
-  direction?: "inbound" | "outbound",
+  direction: "inbound" | "outbound" | undefined,
+  context: SdkOperatorEventMapContext,
 ): SdkPublicEventDraft | null {
   const callId = readString(event, "callId");
   if (callId === null) {
@@ -233,6 +307,7 @@ function callDraft(
   }
   const phone = readString(event, "phoneNumber");
   const display = readString(event, "displayName");
+  const queueLabel = context.queueLabelByCallId?.[callId];
   return {
     type,
     payload: {
@@ -242,6 +317,9 @@ function callDraft(
       ...(phone !== null ? { remoteNumber: redactPhoneForSdk(phone) } : {}),
       ...(display !== null
         ? { remoteDisplayName: redactDisplayNameForSdk(display) }
+        : {}),
+      ...(queueLabel !== undefined && queueLabel.length > 0
+        ? { queueLabel: queueLabel.slice(0, 128) }
         : {}),
     },
   };

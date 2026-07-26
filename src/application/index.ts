@@ -534,6 +534,23 @@ export {
   clearCampaignEvent,
   type CampaignEventProjection,
 } from "./projections/integration/campaignEventProjection.js";
+export {
+  initialCallOcpContextProjection,
+  markCallOcpContextPending,
+  resolveCallOcpContext,
+  markCallOcpContextUnavailable,
+  clearCallOcpContext,
+  type CallOcpContextProjection,
+  type CallOcpContextEntry,
+  type CallOcpContextDirection,
+  type CallOcpContextResolveState,
+} from "./projections/integration/callOcpContextProjection.js";
+export {
+  deriveCallContextBadges,
+  type CallContextBadge,
+  type CallContextBadgeKind,
+  type DeriveCallContextBadgesInput,
+} from "./projections/integration/deriveCallContextBadges.js";
 export { OcpProjectionHub } from "./read-models/OcpProjectionHub.js";
 export { OcpIntegrationComposition } from "./services/integration/OcpIntegrationComposition.js";
 export {

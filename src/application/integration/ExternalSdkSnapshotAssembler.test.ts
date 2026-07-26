@@ -21,6 +21,7 @@ function baseState(
         remoteNumber: "+15551237890",
         remoteDisplayName: "Alice",
         muted: false,
+        queueLabel: null,
       },
     ],
     ocpEnabled: false,
@@ -82,6 +83,39 @@ describe("ExternalSdkSnapshotAssembler", () => {
       session: {
         clientId: "client_test_001",
         grantedCapabilities: ["session.read.redacted", "operator.status.write"],
+        authenticated: true,
+      },
+      ...sections,
+      window: { visible: true },
+    });
+    expect(merged.success).toBe(true);
+  });
+
+  it("includes additive queueLabel on call summary without OCP wire ids", () => {
+    const sections = assembleSdkSnapshotProductSections(
+      baseState({
+        calls: [
+          {
+            callId: "call_test_001",
+            state: "Ringing",
+            direction: "inbound",
+            remoteNumber: "+15551237890",
+            remoteDisplayName: "Alice",
+            muted: false,
+            queueLabel: "Support ACD",
+          },
+        ],
+      }),
+    );
+    expect(sections.calls[0]).toMatchObject({
+      callId: "call_test_001",
+      queueLabel: "Support ACD",
+    });
+    expect(JSON.stringify(sections.calls)).not.toMatch(/acall/i);
+    const merged = SnapshotSectionsSchema.safeParse({
+      session: {
+        clientId: "client_test_001",
+        grantedCapabilities: ["session.read.redacted"],
         authenticated: true,
       },
       ...sections,

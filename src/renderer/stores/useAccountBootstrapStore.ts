@@ -95,6 +95,10 @@ import {
   initialCampaignEventProjection,
   type CampaignEventProjection,
 } from "@application/projections/integration/campaignEventProjection.js";
+import {
+  initialCallOcpContextProjection,
+  type CallOcpContextProjection,
+} from "@application/projections/integration/callOcpContextProjection.js";
 
 type AccountBootstrapStore = Readonly<{
   projection: AccountBootstrapProjection;
@@ -114,6 +118,7 @@ type AccountBootstrapStore = Readonly<{
   ocpOperatorStatusProjection: OperatorStatusProjection;
   ocpReasonsProjection: OcpReasonsProjection;
   ocpCampaignEventProjection: CampaignEventProjection;
+  ocpCallContextProjection: CallOcpContextProjection;
   bindFacade: (facade: AccountBootstrapFacade) => () => void;
   setCallMode: (mode: DialpadMode, dtmfPanelCallId?: string | null) => void;
   setIncomingUiState: (uiState: IncomingCallUiState) => void;
@@ -153,6 +158,7 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
   ocpOperatorStatusProjection: initialOperatorStatusProjection(),
   ocpReasonsProjection: initialOcpReasonsProjection(),
   ocpCampaignEventProjection: initialCampaignEventProjection(),
+  ocpCallContextProjection: initialCallOcpContextProjection(),
 
   bindFacade: (facade) => {
     facade.setHeadsetProjectionSources(
@@ -173,6 +179,7 @@ export const useAccountBootstrapStore = create<AccountBootstrapStore>((set) => (
         ocpOperatorStatusProjection: facade.getOcpOperatorSnapshot(),
         ocpReasonsProjection: facade.getOcpReasonsSnapshot(),
         ocpCampaignEventProjection: facade.getOcpCampaignSnapshot(),
+        ocpCallContextProjection: facade.getOcpCallContextSnapshot(),
       });
     };
     syncOcpProjections();

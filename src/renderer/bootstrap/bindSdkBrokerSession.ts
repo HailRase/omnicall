@@ -54,13 +54,24 @@ export type BindSdkBrokerSessionOptions = Readonly<{
   ocpModuleEnabled?: boolean;
 }>;
 
-function buildOperatorEventContext(
+function buildSdkEventMapContext(
   state: SdkProductStateSnapshot,
 ): SdkOperatorEventMapContext {
+  const queueLabelByCallId: Record<string, string> = {};
+  for (const line of state.calls) {
+    if (line.queueLabel !== null && line.queueLabel.length > 0) {
+      queueLabelByCallId[line.callId] = line.queueLabel;
+    }
+  }
+  const base: SdkOperatorEventMapContext = {
+    queueLabelByCallId,
+    callLines: state.calls,
+  };
   if (!state.ocpConnected) {
-    return {};
+    return base;
   }
   return {
+    ...base,
     currentStatus: mapSdkOperatorStatus(state.operatorStatus),
     reservedTarget: mapSdkReservedOperatorTarget(state.reservedStatus),
     reservedReasonId: state.reservedReasonId,
@@ -225,7 +236,7 @@ export function bindSdkBrokerSession(
     );
     const draft = mapDomainEventToSdkPublicDraft(
       event,
-      buildOperatorEventContext(productState),
+      buildSdkEventMapContext(productState),
     );
     if (draft === null) {
       return;

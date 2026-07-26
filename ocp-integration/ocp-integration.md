@@ -337,7 +337,9 @@ Listens to SIP lifecycle CustomEvents (`incomingCallProgress`, `outgoingCallEnde
 
 ### OCP responses → UI
 
-`useWs` dispatches `OCP{event}` CustomEvents (e.g. `OCPincomingCallProgress`). `useQueueInfoListeners` maps queue names for display.
+**Legacy jssip-phone:** `useWs` dispatches `OCP{event}` CustomEvents (e.g. `OCPincomingCallProgress`). `useQueueInfoListeners` maps queue names for display.
+
+**Axatalk (F-028, authoritative):** no DOM CustomEvents. `OcpTelephonyBridgeService` + `OcpProjectionHub` fill `CallOcpContextProjection` / `CampaignEventProjection`; UI uses `deriveCallContextBadges` + `CallContextBadges` / `OcpCampaignEventModal`. Contract: [`docs/softphone/OCP-Call-Context.md`](../docs/softphone/OCP-Call-Context.md).
 
 ### Call end (`useSoftPhoneDlgStop`)
 

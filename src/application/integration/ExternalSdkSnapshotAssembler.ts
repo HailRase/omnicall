@@ -112,5 +112,8 @@ function mapCallLine(
       : {}),
     muted: line.muted,
     ...(ownerClientId !== undefined ? { ownerClientId } : {}),
+    ...(line.queueLabel !== null && line.queueLabel.length > 0
+      ? { queueLabel: line.queueLabel.slice(0, 128) }
+      : {}),
   };
 }
