@@ -60,6 +60,7 @@ describe("persistSdkIntegrationSettings", () => {
       policy: {
         originsManaged: true,
         origins: [],
+        operatorModalTimeouts: SDK_INTEGRATION_DEFAULTS.operatorModalTimeouts,
       },
     });
     expect(JSON.stringify(invoke.mock.calls)).not.toMatch(/password|apiKey|token/i);

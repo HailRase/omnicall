@@ -3,6 +3,7 @@ import {
   SETTINGS_SCHEMA_VERSION,
   createDefaultUserSettings,
 } from "@domain/settings/UserSettings.js";
+import { SDK_INTEGRATION_DEFAULTS } from "@domain/settings/SdkIntegrationSettings.js";
 import { migrateUserSettings } from "./migrateUserSettings.js";
 
 describe("migrateUserSettings", () => {
@@ -83,6 +84,7 @@ describe("migrateUserSettings", () => {
       expect(result.value.sdkIntegration).toEqual({
         origins: [],
         originsManaged: false,
+        operatorModalTimeouts: SDK_INTEGRATION_DEFAULTS.operatorModalTimeouts,
       });
     }
   });
