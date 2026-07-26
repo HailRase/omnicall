@@ -4,6 +4,7 @@
   gap: var(--space-2xs);
   margin-top: var(--space-2xs);
   max-width: 100%;
+  min-width: 0;
 }
 
 .rowCompact {
@@ -12,6 +13,28 @@
   gap: 4px;
   margin-top: 2px;
   max-width: 100%;
+  min-width: 0;
+}
+
+/**
+ * Queue ACD chip: transparent fill, gray border, ellipsis + tooltip for overflow.
+ * Overrides Badge muted tone via co-located product styles (not a new UI Kit tone).
+ */
+.queueBadge {
+  max-width: min(100%, 12rem);
+  min-width: 0;
+  overflow: hidden;
+  border-color: var(--color-border-default);
+  background: transparent;
+  color: var(--color-text-primary);
+}
+
+.queueLabel {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .pending {

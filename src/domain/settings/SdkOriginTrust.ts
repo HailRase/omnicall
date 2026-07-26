@@ -15,6 +15,8 @@ export const SDK_ORIGIN_MATRIX_CAPABILITY_IDS = [
   "session.read.redacted",
   "window.show",
   "operator.status.write",
+  "operator.campaign.read",
+  "ocp.acd_context.read",
   "session.logout",
   "call.originate",
   "call.control",
@@ -47,6 +49,8 @@ export function createDefaultSdkOriginCapabilityMatrix(): SdkOriginCapabilityMat
       "session.read.redacted": true,
       "window.show": true,
       "operator.status.write": true,
+      "operator.campaign.read": true,
+      "ocp.acd_context.read": true,
       "session.logout": true,
       "call.originate": true,
       "call.control": true,
@@ -54,6 +58,17 @@ export function createDefaultSdkOriginCapabilityMatrix(): SdkOriginCapabilityMat
     },
   };
 }
+
+/**
+ * Additive defaults for matrix keys introduced after an Origin was persisted.
+ * Missing keys must not wipe the whole trust store (ADR-0019 / ADR-0020).
+ */
+export const SDK_ORIGIN_MATRIX_ADDITIVE_DEFAULTS: Readonly<
+  Partial<Record<SdkOriginMatrixCapabilityId, boolean>>
+> = {
+  "operator.campaign.read": true,
+  "ocp.acd_context.read": true,
+};
 
 export function listEnabledMatrixCapabilities(
   matrix: SdkOriginCapabilityMatrix,

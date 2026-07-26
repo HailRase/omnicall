@@ -128,6 +128,60 @@ export function buildPopSigningPayload(parts: {
 }): string;
 
 // @public (undocumented)
+export const CallAcdContextEventSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:acd-context">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        main_acallid: z.ZodOptional<z.ZodString>;
+        acallid: z.ZodString;
+        event: z.ZodString;
+        caller_id: z.ZodString;
+        called_id: z.ZodString;
+        queue: z.ZodString;
+        user_login: z.ZodString;
+        phase: z.ZodOptional<z.ZodEnum<{
+            progress: "progress";
+            accepted: "accepted";
+        }>>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export type CallAcdContextPayload = z.infer<typeof CallAcdContextPayloadSchema>;
+
+// @public
+export const CallAcdContextPayloadSchema: z.ZodReadonly<z.ZodObject<{
+    callId: z.ZodString;
+    main_acallid: z.ZodOptional<z.ZodString>;
+    acallid: z.ZodString;
+    event: z.ZodString;
+    caller_id: z.ZodString;
+    called_id: z.ZodString;
+    queue: z.ZodString;
+    user_login: z.ZodString;
+    phase: z.ZodOptional<z.ZodEnum<{
+        progress: "progress";
+        accepted: "accepted";
+    }>>;
+    direction: z.ZodOptional<z.ZodEnum<{
+        inbound: "inbound";
+        outbound: "outbound";
+    }>>;
+}, z.core.$strip>>;
+
+// @public (undocumented)
 export const CallAnswerCommandSchema: z.ZodReadonly<z.ZodObject<{
     type: z.ZodLiteral<"call:answer">;
     payload: z.ZodReadonly<z.ZodObject<{
@@ -584,7 +638,7 @@ export const CallUnmutedEventSchema: z.ZodReadonly<z.ZodObject<{
 }, z.core.$strip>>;
 
 // @public
-export const CAPABILITY_IDS: readonly ["session.read.redacted", "window.show", "window.hide", "operator.status.write", "call.originate", "call.control", "account.activate", "session.logout"];
+export const CAPABILITY_IDS: readonly ["session.read.redacted", "window.show", "window.hide", "operator.status.write", "operator.campaign.read", "ocp.acd_context.read", "call.originate", "call.control", "account.activate", "session.logout"];
 
 // @public (undocumented)
 export type CapabilityId = z.infer<typeof CapabilityIdSchema>;
@@ -595,6 +649,8 @@ export const CapabilityIdListSchema: z.ZodArray<z.ZodEnum<{
     "window.show": "window.show";
     "window.hide": "window.hide";
     "operator.status.write": "operator.status.write";
+    "operator.campaign.read": "operator.campaign.read";
+    "ocp.acd_context.read": "ocp.acd_context.read";
     "call.originate": "call.originate";
     "call.control": "call.control";
     "account.activate": "account.activate";
@@ -607,6 +663,8 @@ export const CapabilityIdSchema: z.ZodEnum<{
     "window.show": "window.show";
     "window.hide": "window.hide";
     "operator.status.write": "operator.status.write";
+    "operator.campaign.read": "operator.campaign.read";
+    "ocp.acd_context.read": "ocp.acd_context.read";
     "call.originate": "call.originate";
     "call.control": "call.control";
     "account.activate": "account.activate";
@@ -634,6 +692,8 @@ export const ClientHelloSchema: z.ZodReadonly<z.ZodObject<{
         "window.show": "window.show";
         "window.hide": "window.hide";
         "operator.status.write": "operator.status.write";
+        "operator.campaign.read": "operator.campaign.read";
+        "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
         "account.activate": "account.activate";
@@ -1002,8 +1062,8 @@ export const CommandTypeSchema: z.ZodEnum<{
 // @public
 export const DEFAULT_CAPABILITY_PROFILES: {
     readonly presentation: readonly ["session.read.redacted", "window.show"];
-    readonly operator: readonly ["session.read.redacted", "window.show", "operator.status.write", "session.logout"];
-    readonly call_controller: readonly ["session.read.redacted", "window.show", "operator.status.write", "session.logout", "call.originate", "call.control"];
+    readonly operator: readonly ["session.read.redacted", "window.show", "operator.status.write", "operator.campaign.read", "ocp.acd_context.read", "session.logout"];
+    readonly call_controller: readonly ["session.read.redacted", "window.show", "operator.status.write", "operator.campaign.read", "ocp.acd_context.read", "session.logout", "call.originate", "call.control"];
 };
 
 // @public
@@ -1044,7 +1104,7 @@ export const DiscoveryDocumentSchema: z.ZodReadonly<z.ZodObject<{
 }, z.core.$strip>>;
 
 // @public (undocumented)
-export const EVENT_TYPES: readonly ["call:incoming", "call:outgoing", "call:ringing", "call:answered", "call:ended", "call:failed", "call:held", "call:resumed", "call:muted", "call:unmuted", "registration:changed", "account:session-activated", "account:session-ended", "operator:session-changed", "operator:status-changed", "window:visibility-changed", "sdk:permission-changed", "sdk:revoked", "sdk:server-shutdown"];
+export const EVENT_TYPES: readonly ["call:incoming", "call:outgoing", "call:ringing", "call:answered", "call:ended", "call:failed", "call:held", "call:resumed", "call:muted", "call:unmuted", "call:acd-context", "registration:changed", "account:session-activated", "account:session-ended", "operator:session-changed", "operator:status-changed", "operator:campaign-offered", "operator:campaign-cleared", "window:visibility-changed", "sdk:permission-changed", "sdk:revoked", "sdk:server-shutdown"];
 
 // @public (undocumented)
 export type EventMessage = z.infer<typeof EventMessageSchema>;
@@ -1341,6 +1401,34 @@ export const EventMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
     occurredAt: z.ZodString;
     revision: z.ZodNumber;
 }, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:acd-context">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        main_acallid: z.ZodOptional<z.ZodString>;
+        acallid: z.ZodString;
+        event: z.ZodString;
+        caller_id: z.ZodString;
+        called_id: z.ZodString;
+        queue: z.ZodString;
+        user_login: z.ZodString;
+        phase: z.ZodOptional<z.ZodEnum<{
+            progress: "progress";
+            accepted: "accepted";
+        }>>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
     type: z.ZodLiteral<"registration:changed">;
     payload: z.ZodReadonly<z.ZodObject<{
         state: z.ZodEnum<{
@@ -1432,6 +1520,48 @@ export const EventMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
     occurredAt: z.ZodString;
     revision: z.ZodNumber;
 }, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:campaign-offered">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        campaignId: z.ZodString;
+        mode: z.ZodEnum<{
+            preview: "preview";
+            progressive: "progressive";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        companyLabel: z.ZodOptional<z.ZodString>;
+        strategyLabel: z.ZodOptional<z.ZodString>;
+        selectionLabel: z.ZodOptional<z.ZodString>;
+        queueLabel: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:campaign-cleared">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        campaignId: z.ZodString;
+        reasonCode: z.ZodOptional<z.ZodEnum<{
+            accepted: "accepted";
+            rejected: "rejected";
+            call_ended: "call_ended";
+            session_reset: "session_reset";
+            superseded: "superseded";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
     type: z.ZodLiteral<"window:visibility-changed">;
     payload: z.ZodReadonly<z.ZodObject<{
         visible: z.ZodBoolean;
@@ -1452,6 +1582,8 @@ export const EventMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
             "window.show": "window.show";
             "window.hide": "window.hide";
             "operator.status.write": "operator.status.write";
+            "operator.campaign.read": "operator.campaign.read";
+            "ocp.acd_context.read": "ocp.acd_context.read";
             "call.originate": "call.originate";
             "call.control": "call.control";
             "account.activate": "account.activate";
@@ -1509,11 +1641,14 @@ export const EventTypeSchema: z.ZodEnum<{
     "call:resumed": "call:resumed";
     "call:muted": "call:muted";
     "call:unmuted": "call:unmuted";
+    "call:acd-context": "call:acd-context";
     "registration:changed": "registration:changed";
     "account:session-activated": "account:session-activated";
     "account:session-ended": "account:session-ended";
     "operator:session-changed": "operator:session-changed";
     "operator:status-changed": "operator:status-changed";
+    "operator:campaign-offered": "operator:campaign-offered";
+    "operator:campaign-cleared": "operator:campaign-cleared";
     "window:visibility-changed": "window:visibility-changed";
     "sdk:permission-changed": "sdk:permission-changed";
     "sdk:revoked": "sdk:revoked";
@@ -1547,6 +1682,8 @@ export const HandshakeMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.Zo
         "window.show": "window.show";
         "window.hide": "window.hide";
         "operator.status.write": "operator.status.write";
+        "operator.campaign.read": "operator.campaign.read";
+        "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
         "account.activate": "account.activate";
@@ -1621,6 +1758,86 @@ export type OpaqueId = z.infer<typeof OpaqueIdSchema>;
 
 // @public
 export const OpaqueIdSchema: z.ZodString;
+
+// @public (undocumented)
+export const OperatorCampaignClearedEventSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:campaign-cleared">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        campaignId: z.ZodString;
+        reasonCode: z.ZodOptional<z.ZodEnum<{
+            accepted: "accepted";
+            rejected: "rejected";
+            call_ended: "call_ended";
+            session_reset: "session_reset";
+            superseded: "superseded";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export type OperatorCampaignClearedPayload = z.infer<typeof OperatorCampaignClearedPayloadSchema>;
+
+// @public (undocumented)
+export const OperatorCampaignClearedPayloadSchema: z.ZodReadonly<z.ZodObject<{
+    campaignId: z.ZodString;
+    reasonCode: z.ZodOptional<z.ZodEnum<{
+        accepted: "accepted";
+        rejected: "rejected";
+        call_ended: "call_ended";
+        session_reset: "session_reset";
+        superseded: "superseded";
+    }>>;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export const OperatorCampaignOfferedEventSchema: z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:campaign-offered">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        campaignId: z.ZodString;
+        mode: z.ZodEnum<{
+            preview: "preview";
+            progressive: "progressive";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        companyLabel: z.ZodOptional<z.ZodString>;
+        strategyLabel: z.ZodOptional<z.ZodString>;
+        selectionLabel: z.ZodOptional<z.ZodString>;
+        queueLabel: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>;
+
+// @public (undocumented)
+export type OperatorCampaignOfferedPayload = z.infer<typeof OperatorCampaignOfferedPayloadSchema>;
+
+// @public
+export const OperatorCampaignOfferedPayloadSchema: z.ZodReadonly<z.ZodObject<{
+    campaignId: z.ZodString;
+    mode: z.ZodEnum<{
+        preview: "preview";
+        progressive: "progressive";
+    }>;
+    remoteNumber: z.ZodOptional<z.ZodString>;
+    companyLabel: z.ZodOptional<z.ZodString>;
+    strategyLabel: z.ZodOptional<z.ZodString>;
+    selectionLabel: z.ZodOptional<z.ZodString>;
+    queueLabel: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>>;
 
 // @public (undocumented)
 export const OperatorChangeStatusCommandSchema: z.ZodReadonly<z.ZodObject<{
@@ -1741,6 +1958,8 @@ export const PairingApprovedSchema: z.ZodReadonly<z.ZodObject<{
         "window.show": "window.show";
         "window.hide": "window.hide";
         "operator.status.write": "operator.status.write";
+        "operator.campaign.read": "operator.campaign.read";
+        "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
         "account.activate": "account.activate";
@@ -1786,6 +2005,8 @@ export const PairingMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodO
         "window.show": "window.show";
         "window.hide": "window.hide";
         "operator.status.write": "operator.status.write";
+        "operator.campaign.read": "operator.campaign.read";
+        "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
         "account.activate": "account.activate";
@@ -1814,6 +2035,8 @@ export const PairingMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodO
         "window.show": "window.show";
         "window.hide": "window.hide";
         "operator.status.write": "operator.status.write";
+        "operator.campaign.read": "operator.campaign.read";
+        "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
         "account.activate": "account.activate";
@@ -1876,6 +2099,8 @@ export const PairingRequestSchema: z.ZodReadonly<z.ZodObject<{
         "window.show": "window.show";
         "window.hide": "window.hide";
         "operator.status.write": "operator.status.write";
+        "operator.campaign.read": "operator.campaign.read";
+        "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
         "account.activate": "account.activate";
@@ -1942,6 +2167,8 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
         "window.show": "window.show";
         "window.hide": "window.hide";
         "operator.status.write": "operator.status.write";
+        "operator.campaign.read": "operator.campaign.read";
+        "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
         "account.activate": "account.activate";
@@ -1979,8 +2206,8 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
         version: z.ZodString;
     }, z.core.$strip>>;
     requestedProfile: z.ZodEnum<{
-        operator: "operator";
         presentation: "presentation";
+        operator: "operator";
         call_controller: "call_controller";
     }>;
     requestedCapabilities: z.ZodArray<z.ZodEnum<{
@@ -1988,6 +2215,8 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
         "window.show": "window.show";
         "window.hide": "window.hide";
         "operator.status.write": "operator.status.write";
+        "operator.campaign.read": "operator.campaign.read";
+        "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
         "account.activate": "account.activate";
@@ -2007,8 +2236,8 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     type: z.ZodLiteral<"pairing:approved">;
     clientId: z.ZodString;
     profile: z.ZodEnum<{
-        operator: "operator";
         presentation: "presentation";
+        operator: "operator";
         call_controller: "call_controller";
     }>;
     grantedCapabilities: z.ZodArray<z.ZodEnum<{
@@ -2016,6 +2245,8 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
         "window.show": "window.show";
         "window.hide": "window.hide";
         "operator.status.write": "operator.status.write";
+        "operator.campaign.read": "operator.campaign.read";
+        "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
         "account.activate": "account.activate";
@@ -2266,11 +2497,11 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
-        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -2293,10 +2524,10 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
+            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
-            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
             forbidden: "forbidden";
             revoked: "revoked";
@@ -2322,11 +2553,11 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
-        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -2636,6 +2867,34 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     occurredAt: z.ZodString;
     revision: z.ZodNumber;
 }, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:acd-context">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        main_acallid: z.ZodOptional<z.ZodString>;
+        acallid: z.ZodString;
+        event: z.ZodString;
+        caller_id: z.ZodString;
+        called_id: z.ZodString;
+        queue: z.ZodString;
+        user_login: z.ZodString;
+        phase: z.ZodOptional<z.ZodEnum<{
+            progress: "progress";
+            accepted: "accepted";
+        }>>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
     type: z.ZodLiteral<"registration:changed">;
     payload: z.ZodReadonly<z.ZodObject<{
         state: z.ZodEnum<{
@@ -2727,6 +2986,48 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     occurredAt: z.ZodString;
     revision: z.ZodNumber;
 }, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:campaign-offered">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        campaignId: z.ZodString;
+        mode: z.ZodEnum<{
+            preview: "preview";
+            progressive: "progressive";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        companyLabel: z.ZodOptional<z.ZodString>;
+        strategyLabel: z.ZodOptional<z.ZodString>;
+        selectionLabel: z.ZodOptional<z.ZodString>;
+        queueLabel: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:campaign-cleared">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        campaignId: z.ZodString;
+        reasonCode: z.ZodOptional<z.ZodEnum<{
+            accepted: "accepted";
+            rejected: "rejected";
+            call_ended: "call_ended";
+            session_reset: "session_reset";
+            superseded: "superseded";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
     type: z.ZodLiteral<"window:visibility-changed">;
     payload: z.ZodReadonly<z.ZodObject<{
         visible: z.ZodBoolean;
@@ -2747,6 +3048,8 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
             "window.show": "window.show";
             "window.hide": "window.hide";
             "operator.status.write": "operator.status.write";
+            "operator.campaign.read": "operator.campaign.read";
+            "ocp.acd_context.read": "ocp.acd_context.read";
             "call.originate": "call.originate";
             "call.control": "call.control";
             "account.activate": "account.activate";
@@ -2803,6 +3106,8 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
                 "window.show": "window.show";
                 "window.hide": "window.hide";
                 "operator.status.write": "operator.status.write";
+                "operator.campaign.read": "operator.campaign.read";
+                "ocp.acd_context.read": "ocp.acd_context.read";
                 "call.originate": "call.originate";
                 "call.control": "call.control";
                 "account.activate": "account.activate";
@@ -2860,6 +3165,18 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
                 break: "break";
             }>>;
             reservedReasonId: z.ZodOptional<z.ZodNumber>;
+            campaign: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+                campaignId: z.ZodString;
+                mode: z.ZodEnum<{
+                    preview: "preview";
+                    progressive: "progressive";
+                }>;
+                remoteNumber: z.ZodOptional<z.ZodString>;
+                companyLabel: z.ZodOptional<z.ZodString>;
+                strategyLabel: z.ZodOptional<z.ZodString>;
+                selectionLabel: z.ZodOptional<z.ZodString>;
+                queueLabel: z.ZodOptional<z.ZodString>;
+            }, z.core.$strip>>>;
         }, z.core.$strip>>>;
         window: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
             visible: z.ZodBoolean;
@@ -3132,6 +3449,8 @@ export const SdkPermissionChangedEventSchema: z.ZodReadonly<z.ZodObject<{
             "window.show": "window.show";
             "window.hide": "window.hide";
             "operator.status.write": "operator.status.write";
+            "operator.campaign.read": "operator.campaign.read";
+            "ocp.acd_context.read": "ocp.acd_context.read";
             "call.originate": "call.originate";
             "call.control": "call.control";
             "account.activate": "account.activate";
@@ -3270,6 +3589,8 @@ export const SnapshotMessageSchema: z.ZodReadonly<z.ZodObject<{
                 "window.show": "window.show";
                 "window.hide": "window.hide";
                 "operator.status.write": "operator.status.write";
+                "operator.campaign.read": "operator.campaign.read";
+                "ocp.acd_context.read": "ocp.acd_context.read";
                 "call.originate": "call.originate";
                 "call.control": "call.control";
                 "account.activate": "account.activate";
@@ -3327,11 +3648,37 @@ export const SnapshotMessageSchema: z.ZodReadonly<z.ZodObject<{
                 break: "break";
             }>>;
             reservedReasonId: z.ZodOptional<z.ZodNumber>;
+            campaign: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+                campaignId: z.ZodString;
+                mode: z.ZodEnum<{
+                    preview: "preview";
+                    progressive: "progressive";
+                }>;
+                remoteNumber: z.ZodOptional<z.ZodString>;
+                companyLabel: z.ZodOptional<z.ZodString>;
+                strategyLabel: z.ZodOptional<z.ZodString>;
+                selectionLabel: z.ZodOptional<z.ZodString>;
+                queueLabel: z.ZodOptional<z.ZodString>;
+            }, z.core.$strip>>>;
         }, z.core.$strip>>>;
         window: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
             visible: z.ZodBoolean;
         }, z.core.$strip>>>;
     }, z.core.$strip>>;
+}, z.core.$strip>>;
+
+// @public
+export const SnapshotOperatorCampaignSchema: z.ZodReadonly<z.ZodObject<{
+    campaignId: z.ZodString;
+    mode: z.ZodEnum<{
+        preview: "preview";
+        progressive: "progressive";
+    }>;
+    remoteNumber: z.ZodOptional<z.ZodString>;
+    companyLabel: z.ZodOptional<z.ZodString>;
+    strategyLabel: z.ZodOptional<z.ZodString>;
+    selectionLabel: z.ZodOptional<z.ZodString>;
+    queueLabel: z.ZodOptional<z.ZodString>;
 }, z.core.$strip>>;
 
 // @public
@@ -3357,6 +3704,18 @@ export const SnapshotOperatorSectionSchema: z.ZodReadonly<z.ZodObject<{
         break: "break";
     }>>;
     reservedReasonId: z.ZodOptional<z.ZodNumber>;
+    campaign: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+        campaignId: z.ZodString;
+        mode: z.ZodEnum<{
+            preview: "preview";
+            progressive: "progressive";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        companyLabel: z.ZodOptional<z.ZodString>;
+        strategyLabel: z.ZodOptional<z.ZodString>;
+        selectionLabel: z.ZodOptional<z.ZodString>;
+        queueLabel: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>>;
 }, z.core.$strip>>;
 
 // @public (undocumented)
@@ -3382,6 +3741,8 @@ export const SnapshotSectionsSchema: z.ZodReadonly<z.ZodObject<{
             "window.show": "window.show";
             "window.hide": "window.hide";
             "operator.status.write": "operator.status.write";
+            "operator.campaign.read": "operator.campaign.read";
+            "ocp.acd_context.read": "ocp.acd_context.read";
             "call.originate": "call.originate";
             "call.control": "call.control";
             "account.activate": "account.activate";
@@ -3439,6 +3800,18 @@ export const SnapshotSectionsSchema: z.ZodReadonly<z.ZodObject<{
             break: "break";
         }>>;
         reservedReasonId: z.ZodOptional<z.ZodNumber>;
+        campaign: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+            campaignId: z.ZodString;
+            mode: z.ZodEnum<{
+                preview: "preview";
+                progressive: "progressive";
+            }>;
+            remoteNumber: z.ZodOptional<z.ZodString>;
+            companyLabel: z.ZodOptional<z.ZodString>;
+            strategyLabel: z.ZodOptional<z.ZodString>;
+            selectionLabel: z.ZodOptional<z.ZodString>;
+            queueLabel: z.ZodOptional<z.ZodString>;
+        }, z.core.$strip>>>;
     }, z.core.$strip>>>;
     window: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
         visible: z.ZodBoolean;
@@ -3453,6 +3826,8 @@ export const SnapshotSessionSectionSchema: z.ZodReadonly<z.ZodObject<{
         "window.show": "window.show";
         "window.hide": "window.hide";
         "operator.status.write": "operator.status.write";
+        "operator.campaign.read": "operator.campaign.read";
+        "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
         "account.activate": "account.activate";
@@ -3467,7 +3842,7 @@ export const SnapshotWindowSectionSchema: z.ZodReadonly<z.ZodObject<{
 }, z.core.$strip>>;
 
 // @public
-export const V1_DEFERRED_CAMPAIGN_EVENTS: readonly ["operator:campaign-offered", "operator:campaign-cleared"];
+export const V1_DEFERRED_CAMPAIGN_EVENTS: readonly [];
 
 // @public
 export const V1_PRODUCT_UNAVAILABLE_COMMANDS: readonly ["window:hide"];
@@ -3593,6 +3968,8 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
         "window.show": "window.show";
         "window.hide": "window.hide";
         "operator.status.write": "operator.status.write";
+        "operator.campaign.read": "operator.campaign.read";
+        "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
         "account.activate": "account.activate";
@@ -3630,8 +4007,8 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
         version: z.ZodString;
     }, z.core.$strip>>;
     requestedProfile: z.ZodEnum<{
-        operator: "operator";
         presentation: "presentation";
+        operator: "operator";
         call_controller: "call_controller";
     }>;
     requestedCapabilities: z.ZodArray<z.ZodEnum<{
@@ -3639,6 +4016,8 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
         "window.show": "window.show";
         "window.hide": "window.hide";
         "operator.status.write": "operator.status.write";
+        "operator.campaign.read": "operator.campaign.read";
+        "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
         "account.activate": "account.activate";
@@ -3658,8 +4037,8 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     type: z.ZodLiteral<"pairing:approved">;
     clientId: z.ZodString;
     profile: z.ZodEnum<{
-        operator: "operator";
         presentation: "presentation";
+        operator: "operator";
         call_controller: "call_controller";
     }>;
     grantedCapabilities: z.ZodArray<z.ZodEnum<{
@@ -3667,6 +4046,8 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
         "window.show": "window.show";
         "window.hide": "window.hide";
         "operator.status.write": "operator.status.write";
+        "operator.campaign.read": "operator.campaign.read";
+        "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
         "account.activate": "account.activate";
@@ -3917,11 +4298,11 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
-        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -3944,10 +4325,10 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
+            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
-            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
             forbidden: "forbidden";
             revoked: "revoked";
@@ -3973,11 +4354,11 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
+        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
-        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -4287,6 +4668,34 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     occurredAt: z.ZodString;
     revision: z.ZodNumber;
 }, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"call:acd-context">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        callId: z.ZodString;
+        main_acallid: z.ZodOptional<z.ZodString>;
+        acallid: z.ZodString;
+        event: z.ZodString;
+        caller_id: z.ZodString;
+        called_id: z.ZodString;
+        queue: z.ZodString;
+        user_login: z.ZodString;
+        phase: z.ZodOptional<z.ZodEnum<{
+            progress: "progress";
+            accepted: "accepted";
+        }>>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
     type: z.ZodLiteral<"registration:changed">;
     payload: z.ZodReadonly<z.ZodObject<{
         state: z.ZodEnum<{
@@ -4378,6 +4787,48 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     occurredAt: z.ZodString;
     revision: z.ZodNumber;
 }, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:campaign-offered">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        campaignId: z.ZodString;
+        mode: z.ZodEnum<{
+            preview: "preview";
+            progressive: "progressive";
+        }>;
+        remoteNumber: z.ZodOptional<z.ZodString>;
+        companyLabel: z.ZodOptional<z.ZodString>;
+        strategyLabel: z.ZodOptional<z.ZodString>;
+        selectionLabel: z.ZodOptional<z.ZodString>;
+        queueLabel: z.ZodOptional<z.ZodString>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
+    type: z.ZodLiteral<"operator:campaign-cleared">;
+    payload: z.ZodReadonly<z.ZodObject<{
+        campaignId: z.ZodString;
+        reasonCode: z.ZodOptional<z.ZodEnum<{
+            accepted: "accepted";
+            rejected: "rejected";
+            call_ended: "call_ended";
+            session_reset: "session_reset";
+            superseded: "superseded";
+        }>>;
+    }, z.core.$strip>>;
+    protocolVersion: z.ZodNumber;
+    kind: z.ZodLiteral<"event">;
+    eventId: z.ZodString;
+    sequence: z.ZodNumber;
+    serverInstanceId: z.ZodString;
+    sessionEpoch: z.ZodString;
+    occurredAt: z.ZodString;
+    revision: z.ZodNumber;
+}, z.core.$strip>>, z.ZodReadonly<z.ZodObject<{
     type: z.ZodLiteral<"window:visibility-changed">;
     payload: z.ZodReadonly<z.ZodObject<{
         visible: z.ZodBoolean;
@@ -4398,6 +4849,8 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
             "window.show": "window.show";
             "window.hide": "window.hide";
             "operator.status.write": "operator.status.write";
+            "operator.campaign.read": "operator.campaign.read";
+            "ocp.acd_context.read": "ocp.acd_context.read";
             "call.originate": "call.originate";
             "call.control": "call.control";
             "account.activate": "account.activate";
@@ -4454,6 +4907,8 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
                 "window.show": "window.show";
                 "window.hide": "window.hide";
                 "operator.status.write": "operator.status.write";
+                "operator.campaign.read": "operator.campaign.read";
+                "ocp.acd_context.read": "ocp.acd_context.read";
                 "call.originate": "call.originate";
                 "call.control": "call.control";
                 "account.activate": "account.activate";
@@ -4511,6 +4966,18 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
                 break: "break";
             }>>;
             reservedReasonId: z.ZodOptional<z.ZodNumber>;
+            campaign: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+                campaignId: z.ZodString;
+                mode: z.ZodEnum<{
+                    preview: "preview";
+                    progressive: "progressive";
+                }>;
+                remoteNumber: z.ZodOptional<z.ZodString>;
+                companyLabel: z.ZodOptional<z.ZodString>;
+                strategyLabel: z.ZodOptional<z.ZodString>;
+                selectionLabel: z.ZodOptional<z.ZodString>;
+                queueLabel: z.ZodOptional<z.ZodString>;
+            }, z.core.$strip>>>;
         }, z.core.$strip>>>;
         window: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
             visible: z.ZodBoolean;

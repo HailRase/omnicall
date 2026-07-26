@@ -62,6 +62,11 @@ export type OcpSessionProjection = Readonly<{
    * Never the SIP PBX domain from `entity:creds` — those hosts are independent.
    */
   domain: string | null;
+  /**
+   * Login used for OCP HTTP `/proxy/authenticate` (wire `user_login` on call sync).
+   * Cleared on `resetToIdle`; preserved across transport flaps like `domain`.
+   */
+  authenticatedLogin: string | null;
   authFeedback: OcpAuthFeedback | null;
   reconnectAttempt: number;
   /** Unified OCP→SIP authorization progress for Account / Integrations UI. */
@@ -97,6 +102,7 @@ function withDerivedFields(
     connectionState: deriveLegacyOcpConnectionState(snapshot),
     isAuthenticated: deriveIsOcpAuthenticated(snapshot),
     domain: base.domain,
+    authenticatedLogin: base.authenticatedLogin,
     authFeedback: base.authFeedback,
     reconnectAttempt: base.reconnectAttempt,
     authorizationProgress: base.authorizationProgress,
@@ -111,6 +117,7 @@ export function initialOcpSessionProjection(): OcpSessionProjection {
     authorizationState: dual.authorizationState,
     activeAttemptId: null,
     domain: null,
+    authenticatedLogin: null,
     authFeedback: null,
     reconnectAttempt: 0,
     authorizationProgress: initialAuthorizationProgressProjection(),
@@ -153,6 +160,7 @@ export function reduceOcpSessionFromServerState(
     authorizationState: next.authorizationState,
     activeAttemptId: projection.activeAttemptId,
     domain: projection.domain,
+    authenticatedLogin: projection.authenticatedLogin,
     authFeedback:
       next.authorizationState.phase === "authorized"
         ? null
@@ -203,6 +211,7 @@ export function reduceOcpSessionFromAuthorization(
     authorizationState: next.authorizationState,
     activeAttemptId: projection.activeAttemptId,
     domain: projection.domain,
+    authenticatedLogin: projection.authenticatedLogin,
     authFeedback:
       next.authorizationState.phase === "authorized"
         ? null
@@ -222,6 +231,7 @@ export function reduceOcpSessionFromTerminate(
     authorizationState: next.authorizationState,
     activeAttemptId: null,
     domain: projection.domain,
+    authenticatedLogin: projection.authenticatedLogin,
     authFeedback: null,
     reconnectAttempt: 0,
     authorizationProgress: projection.authorizationProgress,
@@ -262,6 +272,16 @@ export function applyOcpSessionDomain(
   return {
     ...projection,
     domain,
+  };
+}
+
+export function applyOcpSessionAuthenticatedLogin(
+  projection: OcpSessionProjection,
+  authenticatedLogin: string,
+): OcpSessionProjection {
+  return {
+    ...projection,
+    authenticatedLogin,
   };
 }
 
@@ -351,6 +371,12 @@ export function selectOcpDomain(projection: OcpSessionProjection): string | null
   return projection.domain;
 }
 
+export function selectOcpAuthenticatedLogin(
+  projection: OcpSessionProjection,
+): string | null {
+  return projection.authenticatedLogin;
+}
+
 export function selectPrimaryRecoveryAction(
   projection: OcpSessionProjection,
 ): OcpRecoveryAction | null {
@@ -388,6 +414,7 @@ export function resetOcpAuthorizationIdle(
     authorizationState: idleOcpAuthorizationState(),
     activeAttemptId: projection.activeAttemptId,
     domain: projection.domain,
+    authenticatedLogin: projection.authenticatedLogin,
     authFeedback: projection.authFeedback,
     reconnectAttempt: projection.reconnectAttempt,
     authorizationProgress: projection.authorizationProgress,

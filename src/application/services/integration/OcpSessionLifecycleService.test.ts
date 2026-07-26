@@ -99,6 +99,62 @@ describe("OcpSessionLifecycleService", () => {
     hub.dispose();
   });
 
+  it("publishes OperatorCampaignOffered from campaign_events and supersedes prior", () => {
+    const gateway = new MockOcpGateway();
+    const bus = new InMemoryDomainEventBus();
+    const published: string[] = [];
+    bus.subscribe((event) => {
+      published.push(event.type);
+    });
+    const hub = new OcpProjectionHub({ ocpGateway: gateway });
+    const lifecycle = new OcpSessionLifecycleService({
+      ocpGateway: gateway,
+      operatorReadModel: hub,
+      eventPublisher: bus,
+      logger: createTestLogger({ featureId: "F-028", boundedContext: "Integration" }),
+      getSessionDomain: () => "ocp.example",
+    });
+
+    const campaignBase = {
+      id: "camp_1",
+      callId: "ocp-call",
+      queueId: "q1",
+      abonentId: "a1",
+      companyId: "co1",
+      queueTitle: "Support",
+      selectionId: "s1",
+      isAnswered: false,
+      progressive: false,
+      clientPhone: "+15551237890",
+      companyTitle: "Acme",
+      strategyTitle: "Strat",
+      selectionTitle: "Sel",
+      strategyCallId: "sc1",
+    };
+
+    gateway.connect({ domain: "ocp.example", authToken: "token" });
+    gateway.simulateMessage({
+      entity: "campaign_events",
+      data: campaignBase,
+    });
+    gateway.simulateMessage({
+      entity: "campaign_events",
+      data: { ...campaignBase, id: "camp_2" },
+    });
+
+    expect(published).toEqual([
+      "OperatorCampaignOffered",
+      "OperatorCampaignCleared",
+      "OperatorCampaignOffered",
+    ]);
+
+    lifecycle.publishCampaignCleared("camp_2", "accepted");
+    expect(published).toContain("OperatorCampaignCleared");
+
+    lifecycle.dispose();
+    hub.dispose();
+  });
+
   it("publishes OperatorCredentialsReceived without password payload", () => {
     const gateway = new MockOcpGateway();
     const bus = new InMemoryDomainEventBus();

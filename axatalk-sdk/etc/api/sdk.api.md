@@ -368,7 +368,7 @@ export type PopKeyStore = {
 };
 
 // @public
-export const PUBLIC_EVENT_TYPES: readonly ["call:incoming", "call:outgoing", "call:ringing", "call:answered", "call:ended", "call:failed", "call:held", "call:resumed", "call:muted", "call:unmuted", "registration:changed", "account:session-activated", "account:session-ended", "operator:session-changed", "operator:status-changed", "window:visibility-changed", "sdk:server-shutdown"];
+export const PUBLIC_EVENT_TYPES: readonly ["call:incoming", "call:outgoing", "call:ringing", "call:answered", "call:ended", "call:failed", "call:held", "call:resumed", "call:muted", "call:unmuted", "call:acd-context", "registration:changed", "account:session-activated", "account:session-ended", "operator:session-changed", "operator:status-changed", "operator:campaign-offered", "operator:campaign-cleared", "window:visibility-changed", "sdk:server-shutdown"];
 
 // @public (undocumented)
 export type PublicEventType = (typeof PUBLIC_EVENT_TYPES)[number];

@@ -45,6 +45,8 @@ const validOrigin = {
       "session.read.redacted": true,
       "window.show": true,
       "operator.status.write": true,
+      "operator.campaign.read": true,
+      "ocp.acd_context.read": true,
       "session.logout": true,
       "call.originate": true,
       "call.control": true,

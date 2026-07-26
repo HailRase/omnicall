@@ -9,6 +9,7 @@ import {
   mapSdkOperatorStatus,
   mapSdkReservedOperatorTarget,
 } from "./mapSdkOperatorStatus.js";
+import { mapSdkCampaignOfferedPayload } from "./mapSdkCampaignPayload.js";
 import { mapSdkPublicCallState } from "./mapSdkPublicCallState.js";
 import { mapSdkRegistrationState } from "./mapSdkRegistrationState.js";
 import {
@@ -73,6 +74,10 @@ function buildConnectedOperatorSection(
   state: SdkProductStateSnapshot,
 ): WireJsonObject {
   const reservedTarget = mapSdkReservedOperatorTarget(state.reservedStatus);
+  const campaign =
+    state.activeCampaign !== null
+      ? mapSdkCampaignOfferedPayload(state.activeCampaign)
+      : null;
   return {
     status: mapSdkOperatorStatus(state.operatorStatus),
     ...(state.operatorReasonId !== null
@@ -89,6 +94,7 @@ function buildConnectedOperatorSection(
             : {}),
         }
       : {}),
+    ...(campaign !== null ? { campaign } : {}),
   };
 }
 

@@ -6,7 +6,6 @@ import type {
   CommandMessage,
   CommandSuccessReply,
   DiscoveryDocument,
-  EVENT_TYPES,
   EventMessage,
   PROTOCOL_ERROR_CODES,
   ProtocolErrorCode,
@@ -43,10 +42,10 @@ describe('@axata/axatalk-protocol type surface', () => {
     >().toExtend<CapabilityId>();
   });
 
-  it('does not include deferred campaign events in EventMessage', () => {
+  it('includes campaign events in EventMessage (ADR-0019)', () => {
     type EventType = EventMessage['type'];
-    type Campaign = (typeof V1_DEFERRED_CAMPAIGN_EVENTS)[number];
-    expectTypeOf<Extract<EventType, Campaign>>().toBeNever();
-    expectTypeOf<(typeof EVENT_TYPES)[number]>().not.toEqualTypeOf<Campaign>();
+    expectTypeOf<'operator:campaign-offered'>().toExtend<EventType>();
+    expectTypeOf<'operator:campaign-cleared'>().toExtend<EventType>();
+    expectTypeOf<(typeof V1_DEFERRED_CAMPAIGN_EVENTS)[number]>().toBeNever();
   });
 });

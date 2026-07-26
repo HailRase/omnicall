@@ -12,7 +12,7 @@ import { ExternalSdkProductHandler } from "@application/integration/ExternalSdkP
 import { ExternalSdkReadHandler } from "@application/integration/ExternalSdkReadHandler.js";
 import { createSdkAccountPortFromFacade } from "@application/integration/createSdkAccountPortFromFacade.js";
 import { createSdkOperatorPortFromFacade } from "@application/integration/createSdkOperatorPortFromFacade.js";
-import { mapDomainEventToSdkPublicDraft } from "@application/integration/ExternalSdkEventMapper.js";
+import { mapDomainEventToSdkPublicDrafts } from "@application/integration/ExternalSdkEventMapper.js";
 import type { SdkOperatorEventMapContext } from "@application/integration/ExternalSdkEventMapper.js";
 import type { SdkProductStateSnapshot } from "@application/integration/ExternalSdkProductState.js";
 import {
@@ -234,23 +234,22 @@ export function bindSdkBrokerSession(
         ocpModuleEnabled: options.ocpModuleEnabled === true,
       },
     );
-    const draft = mapDomainEventToSdkPublicDraft(
+    const drafts = mapDomainEventToSdkPublicDrafts(
       event,
       buildSdkEventMapContext(productState),
     );
-    if (draft === null) {
-      return;
+    for (const draft of drafts) {
+      const revision = isSdkOperatorPublicEventType(draft.type)
+        ? operatorEventRevisionGate.preparePublish(draft, revisionClock).revision
+        : handler.getRevision();
+      void softphone.publishSdkGatewayEvent({
+        draft: {
+          type: draft.type,
+          payload: draft.payload,
+          revision,
+        },
+      });
     }
-    const revision = isSdkOperatorPublicEventType(draft.type)
-      ? operatorEventRevisionGate.preparePublish(draft, revisionClock).revision
-      : handler.getRevision();
-    void softphone.publishSdkGatewayEvent({
-      draft: {
-        type: draft.type,
-        payload: draft.payload,
-        revision,
-      },
-    });
   });
 
   const assertBrokerReady = (): void => {

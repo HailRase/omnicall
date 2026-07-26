@@ -77,6 +77,7 @@ function createProductSurface(port: ExternalSdkCallPort = createPort()) {
       operatorReasonLabelKey: null,
       reservedStatus: null,
       reservedReasonId: null,
+      activeCampaign: null,
     }),
     revisionClock,
     ownership,

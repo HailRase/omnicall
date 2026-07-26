@@ -17,6 +17,17 @@ export type SdkProductCallLine = Readonly<{
   queueLabel: string | null;
 }>;
 
+/** Active campaign offer fields for snapshot (pre-redaction). */
+export type SdkProductCampaignOffer = Readonly<{
+  campaignId: string;
+  progressive: boolean;
+  clientPhone: string;
+  companyTitle: string;
+  strategyTitle: string;
+  selectionTitle: string;
+  queueTitle: string;
+}>;
+
 export type SdkProductStateSnapshot = Readonly<{
   signedIn: boolean;
   profileLabel: string | null;
@@ -31,6 +42,8 @@ export type SdkProductStateSnapshot = Readonly<{
   /** Local post-call booking (Ready/Break); null when idle / cleared. */
   reservedStatus: OperatorStatus | null;
   reservedReasonId: number | null;
+  /** Preview or progressive campaign slot; null when cleared. */
+  activeCampaign: SdkProductCampaignOffer | null;
 }>;
 
 export type SdkProductStateReader = () => SdkProductStateSnapshot;

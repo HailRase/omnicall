@@ -57,17 +57,49 @@ function mergeSnapshotSections(input: {
   readonly productSections: WireJsonObject;
   readonly windowVisible: boolean;
 }): SnapshotSections | null {
+  const productSections = stripUnauthorizedCampaign(
+    input.productSections,
+    input.grantedCapabilities,
+  );
   const candidate = {
     session: {
       clientId: input.clientId,
       grantedCapabilities: [...input.grantedCapabilities],
       authenticated: true as const,
     },
-    ...input.productSections,
+    ...productSections,
     window: { visible: input.windowVisible },
   };
   const parsed = SnapshotSectionsSchema.safeParse(candidate);
   return parsed.success ? parsed.data : null;
+}
+
+/**
+ * Campaign snapshot requires `operator.campaign.read` (ADR-0019).
+ * Strip without dropping the rest of the operator section.
+ */
+function stripUnauthorizedCampaign(
+  productSections: WireJsonObject,
+  grantedCapabilities: readonly CapabilityId[],
+): WireJsonObject {
+  if (grantedCapabilities.includes("operator.campaign.read")) {
+    return productSections;
+  }
+  const operator = productSections["operator"];
+  const operatorParsed = WireJsonObjectSchema.safeParse(operator);
+  if (!operatorParsed.success || !("campaign" in operatorParsed.data)) {
+    return productSections;
+  }
+  const rest: Record<string, WireJsonObject[string]> = {};
+  for (const [key, value] of Object.entries(operatorParsed.data)) {
+    if (key !== "campaign") {
+      rest[key] = value;
+    }
+  }
+  return {
+    ...productSections,
+    operator: rest,
+  };
 }
 
 export function buildWindowVisibilityEvent(input: {

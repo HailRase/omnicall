@@ -7,6 +7,7 @@
 
 import {
   createDefaultSdkOriginCapabilityMatrix,
+  SDK_ORIGIN_MATRIX_ADDITIVE_DEFAULTS,
   SDK_ORIGIN_MATRIX_CAPABILITY_IDS,
   type SdkOriginCapabilityMatrix,
   type SdkOriginMatrixCapabilityId,
@@ -105,10 +106,16 @@ function parseMatrix(value: unknown): ParseMatrixResult {
   const capabilities = {} as Record<SdkOriginMatrixCapabilityId, boolean>;
   for (const id of SDK_ORIGIN_MATRIX_CAPABILITY_IDS) {
     const flag = caps[id];
-    if (typeof flag !== "boolean") {
-      return { ok: false };
+    if (typeof flag === "boolean") {
+      capabilities[id] = flag;
+      continue;
     }
-    capabilities[id] = flag;
+    const additiveDefault = SDK_ORIGIN_MATRIX_ADDITIVE_DEFAULTS[id];
+    if (typeof additiveDefault === "boolean") {
+      capabilities[id] = additiveDefault;
+      continue;
+    }
+    return { ok: false };
   }
   return { ok: true, matrix: { capabilities } };
 }

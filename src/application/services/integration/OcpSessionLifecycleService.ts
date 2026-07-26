@@ -5,12 +5,17 @@
  */
 
 import type { OperatorStatus as OperatorStatusType } from "@domain/integration/ocp/OperatorStatus.js";
+import { createOperatorCampaignClearedEvent } from "@domain/integration/ocp/events/OperatorCampaignCleared.js";
+import { createOperatorCampaignOfferedEvent } from "@domain/integration/ocp/events/OperatorCampaignOffered.js";
 import { createOperatorCredentialsReceivedEvent } from "@domain/integration/ocp/events/OperatorCredentialsReceived.js";
 import { createOperatorLoggedOutEvent } from "@domain/integration/ocp/events/OperatorLoggedOut.js";
 import { createOperatorSessionEndedEvent } from "@domain/integration/ocp/events/OperatorSessionEnded.js";
 import { createOperatorSessionStartedEvent } from "@domain/integration/ocp/events/OperatorSessionStarted.js";
 import { createOperatorStatusChangedEvent } from "@domain/integration/ocp/events/OperatorStatusChanged.js";
-import type { OcpIncomingMessage } from "@domain/integration/ocp/protocol/OcpIncomingMessage.js";
+import type {
+  OcpCampaignEventPayload,
+  OcpIncomingMessage,
+} from "@domain/integration/ocp/protocol/OcpIncomingMessage.js";
 import type { DomainEventPublisher, Logger } from "@ports/index.js";
 import type { OcpGateway } from "@ports/integration/OcpGateway.js";
 import type { OcpOperatorReadModel } from "@ports/integration/OcpOperatorReadModel.js";
@@ -34,6 +39,7 @@ export class OcpSessionLifecycleService {
   private readonly unsubscribers: Array<() => void> = [];
   private sessionStartedPublished = false;
   private previousStatus: OperatorStatusType | null = null;
+  private previousCampaignId: string | null = null;
   private terminateHandled = false;
 
   constructor(private readonly deps: OcpSessionLifecycleServiceDeps) {
@@ -48,6 +54,7 @@ export class OcpSessionLifecycleService {
           this.terminateHandled = false;
           this.sessionStartedPublished = false;
           this.previousStatus = null;
+          this.previousCampaignId = null;
         }
       }),
     );
@@ -69,8 +76,38 @@ export class OcpSessionLifecycleService {
       this.handleUsers(message.data);
       return;
     }
+    if (message.entity === "campaign_events") {
+      this.handleCampaignOffered(message.data);
+      return;
+    }
     if (message.entity === "creds") {
       this.handleCreds();
+    }
+  }
+
+  /**
+   * Publish cleared for call-end / accept / reject / logout paths (hub clear).
+   */
+  publishCampaignCleared(
+    campaignId: string,
+    reasonCode:
+      | "accepted"
+      | "rejected"
+      | "call_ended"
+      | "session_reset"
+      | "superseded",
+  ): void {
+    if (campaignId.trim().length === 0) {
+      return;
+    }
+    this.deps.eventPublisher.publish(
+      createOperatorCampaignClearedEvent(createCorrelationId(), {
+        campaignId,
+        reasonCode,
+      }),
+    );
+    if (this.previousCampaignId === campaignId) {
+      this.previousCampaignId = null;
     }
   }
 
@@ -161,5 +198,32 @@ export class OcpSessionLifecycleService {
     this.deps.eventPublisher.publish(
       createOperatorCredentialsReceivedEvent(createCorrelationId()),
     );
+  }
+
+  private handleCampaignOffered(data: OcpCampaignEventPayload): void {
+    const correlationId = createCorrelationId();
+    if (
+      this.previousCampaignId !== null &&
+      this.previousCampaignId !== data.id
+    ) {
+      this.deps.eventPublisher.publish(
+        createOperatorCampaignClearedEvent(correlationId, {
+          campaignId: this.previousCampaignId,
+          reasonCode: "superseded",
+        }),
+      );
+    }
+    this.deps.eventPublisher.publish(
+      createOperatorCampaignOfferedEvent(correlationId, {
+        campaignId: data.id,
+        progressive: data.progressive,
+        clientPhone: data.clientPhone,
+        companyTitle: data.companyTitle,
+        strategyTitle: data.strategyTitle,
+        selectionTitle: data.selectionTitle,
+        queueTitle: data.queueTitle,
+      }),
+    );
+    this.previousCampaignId = data.id;
   }
 }

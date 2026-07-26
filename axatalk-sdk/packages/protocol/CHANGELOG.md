@@ -19,7 +19,15 @@ Stable / `latest` is **blocked on desktop DI-10**.
 
 - Optional `queueLabel` (string 1…128) on call event payloads and `SnapshotCallSummary`
   for ACD queue titles from desktop OCP call context. Omitted when unknown/direct.
-  Does not introduce new event types or campaign events. API report updated via `api:check`.
+- **ADR-0019 campaign events (same day):** public `operator:campaign-offered` /
+  `operator:campaign-cleared`; capability `operator.campaign.read` (default on
+  `operator` / `call_controller` profiles); optional snapshot `operator.campaign`
+  (same redacted shape as offered). `V1_DEFERRED_CAMPAIGN_EVENTS` is now empty.
+  Accept/reject commands remain out of scope. API report updated via `api:check`.
+- **ADR-0020 ACD wire (same day):** `call:acd-context` carries OCP MainCallIDInfo
+  snake_case fields (`acallid`, `main_acallid`, …) under capability
+  `ocp.acd_context.read` (default on `operator` / `call_controller`). Additive
+  `queueLabel` on `call:*` remains free of wire ids.
 
 ### Not included
 

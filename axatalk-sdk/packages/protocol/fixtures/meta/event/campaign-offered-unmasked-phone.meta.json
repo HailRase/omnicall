@@ -1,0 +1,4 @@
+{
+  "expectedErrorCode": "invalid_payload",
+  "notes": "Unmasked phone must fail RedactedPhoneSchema (ADR-0017 O-PII-1)"
+}

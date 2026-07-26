@@ -13,6 +13,12 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 - **F-028 / LF-039** Preview campaign offer raises the softphone window when hidden/minimized via shared ADR-0013 path (`ocp_campaign_offer` → `shell:window-raise` → `bringBrowserWindowToFront`); progressive badges do not raise.
 - **F-016 / LF-002** Bootstrap splash: macOS-like branded loading/error (`BootstrapSplashShell`), pre-React `#boot-splash`, `BrowserWindow.backgroundColor` synced with `--color-bg-app` (no white flash); bootstrap/`initialize` gate unchanged.
 
+### Fixed
+
+- **F-028 / LF-037** OCP `get_main_acallid` wire: SIP CallId as `acallid` + `user_login` + `caller_id`/`called_id` + lifecycle `event` (was incorrect `call_id`-only payload). Inbound MainCallIDInfo accepts live `acallid`/`main_acallid` (not only `acall_id`). Contract: `docs/softphone/OCP-Call-Context.md`.
+- **F-011 / F-028** Public SDK event `call:acd-context` — semantic ACD resolve DTO (`queueLabel`, `phase`, `direction`, masked `remoteNumber`, `localPartyLabel`); never OCP `acallid`. Additive `queueLabel` on `call:*` retained.
+- **F-028 / LF-037** Queue badge: transparent fill, gray border, ellipsis + tooltip for long queue titles.
+
 ## [0.13.0] - 2026-07-26
 
 ### Added

@@ -246,7 +246,7 @@ src/domain/integration/ocp/
   - `{ kind: 'change_status_to_break'; operatorId: number; reasonId: number; callType: 'internal' | 'external' | 'sdk' }`
   - `{ kind: 'change_status_to_logout'; operatorId: number; reasonId: number; callType: 'internal' | 'external' | 'sdk' }`
   - `{ kind: 'update_post_call_status'; operatorId: number; reasonId: number; reservedStatus: OperatorStatus }`
-  - `{ kind: 'get_main_acallid'; callId: string }`
+  - `{ kind: 'get_main_acallid'; callId; userLogin; callerId; calledId; lifecycleEvent }` — wire: `acallid` + `user_login` + `caller_id` + `called_id` + `event` (see `OCP-Call-Context.md`)
   - `{ kind: 'dlg_stop'; callId: string; acallId?: string }`
   - `{ kind: 'campaign_accept'; operatorId: number; campaignEventId: string }`
   - `{ kind: 'campaign_reject'; operatorId: number; campaignEventId: string }`

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { OperatorStatus } from "@domain/integration/ocp/OperatorStatus.js";
 import {
   applyOcpAuthFeedback,
+  applyOcpSessionAuthenticatedLogin,
   applyOcpSessionDomain,
   initialOcpSessionProjection,
   reduceOcpSessionFromConnectionState,
@@ -9,6 +10,7 @@ import {
   reduceOcpSessionFromServerState,
   selectIsOcpConnected,
   selectOcpAuthFeedback,
+  selectOcpAuthenticatedLogin,
   selectOcpAuthorizationState,
   selectOcpDomain,
   selectOcpServerState,
@@ -85,6 +87,18 @@ describe("ocpSessionProjection", () => {
         server: "sip.example",
       },
     });
+    expect(selectOcpDomain(projection)).toBe("ocp.example");
+  });
+
+  it("preserves authenticatedLogin across transport reconnect", () => {
+    let projection = applyOcpSessionAuthenticatedLogin(
+      applyOcpSessionDomain(initialOcpSessionProjection(), "ocp.example"),
+      "yura.supervisor",
+    );
+    expect(selectOcpAuthenticatedLogin(projection)).toBe("yura.supervisor");
+    projection = reduceOcpSessionFromServerState(projection, "reconnecting");
+    projection = reduceOcpSessionFromServerState(projection, "connected");
+    expect(selectOcpAuthenticatedLogin(projection)).toBe("yura.supervisor");
     expect(selectOcpDomain(projection)).toBe("ocp.example");
   });
 

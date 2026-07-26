@@ -122,6 +122,7 @@ describe("OcpFullFlow integration (E-13)", () => {
         eventPublisher: bus,
         ocpGateway: gateway,
         isOcpAuthenticated: () => hub.getSessionProjection().isAuthenticated,
+        getOcpUserLogin: () => hub.getSessionProjection().authenticatedLogin,
         logger,
         callContext: {
           markPending: (callId, direction) => {
@@ -159,11 +160,13 @@ describe("OcpFullFlow integration (E-13)", () => {
           statusSince: "2026-07-14T12:00:00.000Z",
         },
       });
+      hub.setSessionAuthenticatedLogin("op42");
 
       const session = hub.getSessionProjection();
       const operator = hub.getOperatorProjection();
       expect(session.isAuthenticated).toBe(true);
       expect(session.connectionState).toBe("authenticated");
+      expect(session.authenticatedLogin).toBe("op42");
       expect(operator.status).toBe(OperatorStatus.READY);
       expect(operator.operatorId).toBe(42);
 
@@ -194,6 +197,10 @@ describe("OcpFullFlow integration (E-13)", () => {
       expect(gateway.getLastSentCommand()).toEqual({
         kind: "get_main_acallid",
         callId,
+        userLogin: "op42",
+        callerId: "+700",
+        calledId: "op42",
+        lifecycleEvent: "incomingCallProgress",
       });
 
       gateway.simulateMessage({

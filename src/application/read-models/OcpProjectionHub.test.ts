@@ -54,9 +54,11 @@ describe("OcpProjectionHub socket epoch", () => {
     hub.beginAttempt(attemptId);
     gateway.simulateAuthSuccess(7);
     hub.setSessionDomain("ocp.example");
+    hub.setSessionAuthenticatedLogin("agent.one");
     hub.setReservedStatus(OperatorStatus.BREAK, 3);
 
     expect(hub.getSessionProjection().isAuthenticated).toBe(true);
+    expect(hub.getSessionProjection().authenticatedLogin).toBe("agent.one");
     expect(hub.getOperatorProjection().operatorId).toBe(7);
 
     hub.resetToIdle();
@@ -65,6 +67,7 @@ describe("OcpProjectionHub socket epoch", () => {
       serverState: "disconnected",
       isAuthenticated: false,
       domain: null,
+      authenticatedLogin: null,
       activeAttemptId: null,
       reconnectAttempt: 0,
       authFeedback: null,

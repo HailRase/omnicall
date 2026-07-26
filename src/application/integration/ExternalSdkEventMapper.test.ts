@@ -13,11 +13,16 @@ import { createOperatorSessionEndedEvent } from "@domain/integration/ocp/events/
 import { createOperatorLoggedOutEvent } from "@domain/integration/ocp/events/OperatorLoggedOut.js";
 import { createOperatorStatusReservationSetEvent } from "@domain/integration/ocp/events/OperatorStatusReservationSet.js";
 import { createCallOcpContextResolvedEvent } from "@domain/integration/ocp/events/CallOcpContextResolved.js";
+import { createOperatorCampaignOfferedEvent } from "@domain/integration/ocp/events/OperatorCampaignOffered.js";
+import { createOperatorCampaignClearedEvent } from "@domain/integration/ocp/events/OperatorCampaignCleared.js";
 
-import { mapDomainEventToSdkPublicDraft } from "./ExternalSdkEventMapper.js";
+import {
+  mapDomainEventToSdkPublicDraft,
+  mapDomainEventToSdkPublicDrafts,
+} from "./ExternalSdkEventMapper.js";
 
 describe("ExternalSdkEventMapper", () => {
-  it("maps incoming call with redacted phone and omits campaign events", () => {
+  it("maps incoming call with redacted phone", () => {
     const event = createIncomingCallReceivedEvent(createCorrelationId(), {
       callId: createCallId("call_map_001"),
       phoneNumber: createPhoneNumber("+15551237890"),
@@ -32,13 +37,49 @@ describe("ExternalSdkEventMapper", () => {
         direction: "inbound",
       },
     });
-    expect(
-      mapDomainEventToSdkPublicDraft({
-        type: "CampaignOffered",
-        correlationId: createCorrelationId(),
-        occurredAt: new Date().toISOString(),
+  });
+
+  it("maps OperatorCampaignOffered to redacted operator:campaign-offered", () => {
+    const draft = mapDomainEventToSdkPublicDraft(
+      createOperatorCampaignOfferedEvent(createCorrelationId(), {
+        campaignId: "camp_map_001",
+        progressive: false,
+        clientPhone: "+15551237890",
+        companyTitle: "Acme",
+        strategyTitle: "Strat",
+        selectionTitle: "Sel",
+        queueTitle: "Support",
       }),
-    ).toBeNull();
+    );
+    expect(draft).toEqual({
+      type: "operator:campaign-offered",
+      payload: {
+        campaignId: "camp_map_001",
+        mode: "preview",
+        remoteNumber: "+*******7890",
+        companyLabel: "Acme",
+        strategyLabel: "Strat",
+        selectionLabel: "Sel",
+        queueLabel: "Support",
+      },
+    });
+  });
+
+  it("maps OperatorCampaignCleared with reasonCode", () => {
+    expect(
+      mapDomainEventToSdkPublicDraft(
+        createOperatorCampaignClearedEvent(createCorrelationId(), {
+          campaignId: "camp_map_001",
+          reasonCode: "call_ended",
+        }),
+      ),
+    ).toEqual({
+      type: "operator:campaign-cleared",
+      payload: {
+        campaignId: "camp_map_001",
+        reasonCode: "call_ended",
+      },
+    });
   });
 
   it("maps OperatorStatusChanged to coarse public status without OCP ids", () => {
@@ -184,15 +225,40 @@ describe("ExternalSdkEventMapper", () => {
     });
   });
 
-  it("maps CallOcpContextResolved to call:incoming with queueLabel and without acallid", () => {
-    const draft = mapDomainEventToSdkPublicDraft(
+  it("maps CallOcpContextResolved to call:acd-context wire + call:* queueLabel", () => {
+    const drafts = mapDomainEventToSdkPublicDrafts(
       createCallOcpContextResolvedEvent(createCorrelationId(), {
         callId: "call_map_queue_1",
         direction: "incoming",
         queueName: "Support ACD",
+        phase: "progress",
+        localPartyLabel: "yura.supervisor",
+        ocp: {
+          mainAcallId: "main-9",
+          acallId: "acall-9",
+          event: "incomingCallProgress",
+          callerId: "37500508954",
+          calledId: "yura.supervisor",
+          queue: "Support ACD",
+        },
       }),
     );
-    expect(draft).toEqual({
+    expect(drafts[0]).toEqual({
+      type: "call:acd-context",
+      payload: {
+        callId: "call_map_queue_1",
+        main_acallid: "main-9",
+        acallid: "acall-9",
+        event: "incomingCallProgress",
+        caller_id: "37500508954",
+        called_id: "yura.supervisor",
+        queue: "Support ACD",
+        user_login: "yura.supervisor",
+        phase: "progress",
+        direction: "inbound",
+      },
+    });
+    expect(drafts[1]).toEqual({
       type: "call:incoming",
       payload: {
         callId: "call_map_queue_1",
@@ -201,8 +267,7 @@ describe("ExternalSdkEventMapper", () => {
         queueLabel: "Support ACD",
       },
     });
-    expect(JSON.stringify(draft)).not.toContain("acall");
-    expect(JSON.stringify(draft)).not.toContain("acallid");
+    expect(JSON.stringify(drafts[1])).not.toContain("acallid");
   });
 
   it("attaches queueLabel from context on later call:answered", () => {

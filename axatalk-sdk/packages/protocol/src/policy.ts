@@ -28,7 +28,8 @@ export function productDenialCodeForCommand(
 }
 
 /**
- * Campaign event types are out of protocol v1 (ADR-0017 / O-CAMP-1).
+ * Historical helper (ADR-0017 deferral). After ADR-0019 the deferred list is empty,
+ * so this always returns false for current protocol majors.
  * @public
  */
 export function isDeferredCampaignEventType(type: string): boolean {

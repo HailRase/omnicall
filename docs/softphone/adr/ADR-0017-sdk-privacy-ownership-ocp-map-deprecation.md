@@ -66,10 +66,12 @@ future capability requires a new ADR.
 
 ### O-CAMP-1 — Campaign events
 
-`operator:campaign-offered` and `operator:campaign-cleared` are **out of protocol v1**.
-They remain listed in PROTOCOL.md as future candidates behind a later capability
-(`operator.campaign.read`) and privacy review. SDK-05/DI-05 must not emit or subscribe to
-them. Desktop internal campaign UI (F-028) is unchanged.
+**Superseded by [ADR-0019](./ADR-0019-sdk-campaign-events-v1.md) (2026-07-26).**
+
+Original decision deferred `operator:campaign-offered` / `operator:campaign-cleared`
+past v1 pending privacy review. ADR-0019 admits them into protocol v1 behind
+`operator.campaign.read` with a redacted public DTO (O-PII-1 masks). Desktop F-028
+UI remains the accept/reject control surface.
 
 ### O-OCP-1 — Public protocol ↔ F-028 E-12 map
 
@@ -88,6 +90,7 @@ the public WS.**
 | --- | --- | --- | --- |
 | Snapshot `operator.*` (redacted) | `getOcpConnectionState` / projections | `ocp:get-session-state` | Read via snapshot/events, not a public OCP channel name; status enum includes `post_call_processing` |
 | Snapshot / `call:*` additive `queueLabel` | `CallOcpContextProjection.queueName` via `CallOcpContextResolved` + mapper | — (not an E-12 channel) | Desktop-safe ACD title only; **never** `acallid` / OCP wire; omitted when empty/direct; see `OCP-Call-Context.md` |
+| `call:acd-context` | Same Domain Event → OCP MainCallIDInfo wire fields + `callId` | — | **ADR-0020** CRM exception: `acallid` / `main_acallid` / parties; gated by `ocp.acd_context.read` |
 | `operator:get-reasons` | existing reason query used by logout/status UI | — (not an E-12 channel) | Returns reason ids + safe labels |
 | `operator:change-status` `{ target: "ready" \| "break", reasonId?: number }` | `changeOcpStatusFromHost` (`callType: "sdk"`) → OCP wire `function_call_type: "external"` | `ocp:change-status-ready` / `ocp:change-status-break` | Public single command; desktop splits ready/break; wire map in adapter; during busy/post-call may `kind: "reserved"` |
 | `operator:finish-appeal` `{ expectedRevision }` | `finishOcpPostCallAppeal` (`callType: "sdk"`) → `FinishPostCallAppealUseCase` → apply Ready/Break | same apply path as finish UI | Only when OCP status is post-call processing; missing OCP login → `not_found`; wrong status → `conflict` + `failure_kind` |
@@ -114,7 +117,7 @@ not reuse raw OCP wire property names such as `apiKey`, `ocpAuthToken`, or proxy
 | --- | --- |
 | Unmasked phones in v1 | Privacy/XSS blast radius |
 | Auto lease steal between tabs | Surprising control loss; deferred |
-| Campaign events in v1 | Privacy review incomplete |
+| Campaign events in v1 | Privacy review incomplete at accept time — **revised in ADR-0019** |
 | Expose `ocp:*` channel names on WS | Leaks internal E-12 / invites secret payloads |
 
 ## Consequences

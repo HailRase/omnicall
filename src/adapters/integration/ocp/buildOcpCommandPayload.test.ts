@@ -54,4 +54,32 @@ describe("buildOcpCommandPayload", () => {
       });
     }
   });
+
+  it("maps get_main_acallid SIP callId to wire acallid + parties + user_login + event", () => {
+    const result = buildOcpCommandPayload({
+      kind: "get_main_acallid",
+      callId: "sip-session-1",
+      userLogin: "yura.supervisor",
+      callerId: "37500932367",
+      calledId: "yura.supervisor",
+      lifecycleEvent: "incomingCallProgress",
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value).toEqual({
+      command: "get_main_acallid",
+      entity: "calls",
+      type: "get_main_acallid_calls",
+      payload: {
+        acallid: "sip-session-1",
+        user_login: "yura.supervisor",
+        caller_id: "37500932367",
+        called_id: "yura.supervisor",
+        event: "incomingCallProgress",
+      },
+    });
+    expect(result.value.payload).not.toHaveProperty("call_id");
+  });
 });

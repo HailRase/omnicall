@@ -20,6 +20,7 @@ type LastOperatorPublish = Readonly<{
   connected: boolean | undefined;
   reservedTarget: string | undefined;
   reservedReasonId: number | undefined;
+  campaignId: string | undefined;
 }>;
 
 function readPublicStatus(payload: WireJsonObject): string | undefined {
@@ -98,6 +99,7 @@ export class SdkOperatorEventRevisionGate {
     connected: undefined,
     reservedTarget: undefined,
     reservedReasonId: undefined,
+    campaignId: undefined,
   };
 
   /**
@@ -110,7 +112,9 @@ export class SdkOperatorEventRevisionGate {
   ): SdkOperatorEventPublishResult {
     if (
       draft.type !== "operator:status-changed" &&
-      draft.type !== "operator:session-changed"
+      draft.type !== "operator:session-changed" &&
+      draft.type !== "operator:campaign-offered" &&
+      draft.type !== "operator:campaign-cleared"
     ) {
       return {
         draft,
@@ -144,7 +148,7 @@ export class SdkOperatorEventRevisionGate {
         reservedTarget: nextReservedTarget,
         reservedReasonId: nextReservedReasonId,
       };
-    } else {
+    } else if (draft.type === "operator:session-changed") {
       const nextConnected = readConnected(draft.payload);
       if (
         nextConnected !== undefined &&
@@ -157,6 +161,32 @@ export class SdkOperatorEventRevisionGate {
         ...this.last,
         connected: nextConnected,
       };
+    } else if (draft.type === "operator:campaign-offered") {
+      const nextCampaignId = readCampaignId(draft.payload);
+      if (
+        nextCampaignId !== undefined &&
+        this.last.campaignId !== nextCampaignId
+      ) {
+        clock.advance();
+        advanced = true;
+      }
+      this.last = {
+        ...this.last,
+        campaignId: nextCampaignId,
+      };
+    } else {
+      const clearedId = readCampaignId(draft.payload);
+      if (this.last.campaignId !== undefined) {
+        clock.advance();
+        advanced = true;
+      } else if (clearedId !== undefined) {
+        clock.advance();
+        advanced = true;
+      }
+      this.last = {
+        ...this.last,
+        campaignId: undefined,
+      };
     }
 
     return {
@@ -167,10 +197,20 @@ export class SdkOperatorEventRevisionGate {
   }
 }
 
+function readCampaignId(payload: WireJsonObject): string | undefined {
+  const campaignId = payload["campaignId"];
+  return typeof campaignId === "string" && campaignId.length > 0
+    ? campaignId
+    : undefined;
+}
+
 export function isSdkOperatorPublicEventType(
   type: SdkPublicEventDraft["type"],
 ): boolean {
   return (
-    type === "operator:status-changed" || type === "operator:session-changed"
+    type === "operator:status-changed" ||
+    type === "operator:session-changed" ||
+    type === "operator:campaign-offered" ||
+    type === "operator:campaign-cleared"
   );
 }

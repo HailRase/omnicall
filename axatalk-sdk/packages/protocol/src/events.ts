@@ -25,11 +25,14 @@ export const EVENT_TYPES = [
   'call:resumed',
   'call:muted',
   'call:unmuted',
+  'call:acd-context',
   'registration:changed',
   'account:session-activated',
   'account:session-ended',
   'operator:session-changed',
   'operator:status-changed',
+  'operator:campaign-offered',
+  'operator:campaign-cleared',
   'window:visibility-changed',
   'sdk:permission-changed',
   'sdk:revoked',
@@ -98,6 +101,48 @@ export const CallResumedEventSchema = callEventSchema('call:resumed');
 export const CallMutedEventSchema = callEventSchema('call:muted');
 /** @public */
 export const CallUnmutedEventSchema = callEventSchema('call:unmuted');
+
+/**
+ * OCP MainCallIDInfo on the public SDK wire (ADR-0020 CRM exception).
+ * Field names match live OCP snake_case (`acallid`, `main_acallid`, …).
+ * Requires `ocp.acd_context.read` (+ `session.read.redacted`) at fan-out.
+ * @public
+ */
+export const CallAcdContextPayloadSchema = z
+  .object({
+    /** Desktop SIP / session call id (correlation with other `call:*` events). */
+    callId: OpaqueIdSchema,
+    /** OCP main ACD call id when present on the wire. */
+    main_acallid: z.string().min(1).max(256).optional(),
+    /** OCP correlated call id (not the desktop SIP `callId`). */
+    acallid: z.string().min(1).max(256),
+    /** OCP lifecycle event name (e.g. `incomingCallProgress`). */
+    event: z.string().min(1).max(128),
+    caller_id: z.string().min(1).max(128),
+    called_id: z.string().min(1).max(128),
+    /** ACD queue title; empty string for direct/internal calls. */
+    queue: z.string().max(128),
+    user_login: z.string().min(1).max(128),
+    /**
+     * Additive helper: lifecycle phase of the sync.
+     * `progress` ≈ ringing/connecting; `accepted` ≈ answered refresh.
+     */
+    phase: z.enum(['progress', 'accepted']).optional(),
+    direction: z.enum(['inbound', 'outbound']).optional()
+  })
+  .readonly();
+
+/** @public */
+export type CallAcdContextPayload = z.infer<typeof CallAcdContextPayloadSchema>;
+
+/** @public */
+export const CallAcdContextEventSchema = z
+  .object({
+    ...eventEnvelopeBase,
+    type: z.literal('call:acd-context'),
+    payload: CallAcdContextPayloadSchema
+  })
+  .readonly();
 
 /** @public */
 export const RegistrationChangedEventSchema = z
@@ -179,6 +224,66 @@ export const OperatorStatusChangedEventSchema = z
   })
   .readonly();
 
+/**
+ * Redacted campaign offer (ADR-0019). Titles are desktop-safe; phone masked.
+ * @public
+ */
+export const OperatorCampaignOfferedPayloadSchema = z
+  .object({
+    campaignId: OpaqueIdSchema,
+    mode: z.enum(['preview', 'progressive']),
+    remoteNumber: RedactedPhoneSchema.optional(),
+    companyLabel: z.string().min(1).max(128).optional(),
+    strategyLabel: z.string().min(1).max(128).optional(),
+    selectionLabel: z.string().min(1).max(128).optional(),
+    queueLabel: z.string().min(1).max(128).optional()
+  })
+  .readonly();
+
+/** @public */
+export type OperatorCampaignOfferedPayload = z.infer<
+  typeof OperatorCampaignOfferedPayloadSchema
+>;
+
+/** @public */
+export const OperatorCampaignOfferedEventSchema = z
+  .object({
+    ...eventEnvelopeBase,
+    type: z.literal('operator:campaign-offered'),
+    payload: OperatorCampaignOfferedPayloadSchema
+  })
+  .readonly();
+
+/** @public */
+export const OperatorCampaignClearedPayloadSchema = z
+  .object({
+    campaignId: OpaqueIdSchema,
+    reasonCode: z
+      .enum([
+        'accepted',
+        'rejected',
+        'call_ended',
+        'session_reset',
+        'superseded'
+      ])
+      .optional()
+  })
+  .readonly();
+
+/** @public */
+export type OperatorCampaignClearedPayload = z.infer<
+  typeof OperatorCampaignClearedPayloadSchema
+>;
+
+/** @public */
+export const OperatorCampaignClearedEventSchema = z
+  .object({
+    ...eventEnvelopeBase,
+    type: z.literal('operator:campaign-cleared'),
+    payload: OperatorCampaignClearedPayloadSchema
+  })
+  .readonly();
+
 /** @public */
 export const WindowVisibilityChangedEventSchema = z
   .object({
@@ -232,7 +337,9 @@ export const SdkServerShutdownEventSchema = z
   .readonly();
 
 /**
- * Protocol v1 public events. Campaign events are intentionally absent (O-CAMP-1).
+ * Protocol v1 public events.
+ * Campaign events require `operator.campaign.read` (ADR-0019).
+ * `call:acd-context` requires `ocp.acd_context.read` (ADR-0020).
  * @public
  */
 export const EventMessageSchema = z.discriminatedUnion('type', [
@@ -246,11 +353,14 @@ export const EventMessageSchema = z.discriminatedUnion('type', [
   CallResumedEventSchema,
   CallMutedEventSchema,
   CallUnmutedEventSchema,
+  CallAcdContextEventSchema,
   RegistrationChangedEventSchema,
   AccountSessionActivatedEventSchema,
   AccountSessionEndedEventSchema,
   OperatorSessionChangedEventSchema,
   OperatorStatusChangedEventSchema,
+  OperatorCampaignOfferedEventSchema,
+  OperatorCampaignClearedEventSchema,
   WindowVisibilityChangedEventSchema,
   SdkPermissionChangedEventSchema,
   SdkRevokedEventSchema,

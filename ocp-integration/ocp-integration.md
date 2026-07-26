@@ -304,7 +304,7 @@ WS `entity: terminate` → `window.Softphone.logout()` (no reason modal).
 | `change_status_to_logout` | `proxy_users` | Logout with reason |
 | `update` | `proxy_post_call_status` | Reserve next status while busy |
 | `update` | `campaign_events` | Campaign accept/reject |
-| `get_main_acallid` | `calls` | Sync call IDs with OCP |
+| `get_main_acallid` | `calls` | Sync call IDs with OCP. **Wire payload (Axatalk):** `{ acallid, user_login, caller_id, called_id, event }` — never `call_id`. See `docs/softphone/OCP-Call-Context.md` |
 | `dlg_stop` | `calls` | Dialog end notification |
 | `logging` | — | Send action logs to OCP |
 

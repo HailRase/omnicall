@@ -25,7 +25,9 @@ export const SAFE_REQUESTED_CAPABILITIES = [
   'call.originate',
   'call.control',
   'session.logout',
-  'operator.status.write'
+  'operator.status.write',
+  'operator.campaign.read',
+  'ocp.acd_context.read'
 ] as const;
 
 export async function waitForReady(

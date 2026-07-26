@@ -31,6 +31,7 @@ function baseState(
     operatorReasonLabelKey: null,
     reservedStatus: null,
     reservedReasonId: null,
+    activeCampaign: null,
     ...overrides,
   };
 }
@@ -122,6 +123,37 @@ describe("ExternalSdkSnapshotAssembler", () => {
       window: { visible: true },
     });
     expect(merged.success).toBe(true);
+  });
+
+  it("includes redacted operator.campaign when activeCampaign is set", () => {
+    const sections = assembleSdkSnapshotProductSections(
+      baseState({
+        ocpEnabled: true,
+        ocpConnected: true,
+        operatorStatus: OperatorStatus.READY,
+        operatorReasonId: 1,
+        operatorReasonLabelKey: "ocp.operatorStatus.ready",
+        activeCampaign: {
+          campaignId: "camp_snap_001",
+          progressive: false,
+          clientPhone: "+15551237890",
+          companyTitle: "Acme",
+          strategyTitle: "Strat",
+          selectionTitle: "Sel",
+          queueTitle: "Support",
+        },
+      }),
+    );
+    expect(sections.operator).toMatchObject({
+      connected: true,
+      campaign: {
+        campaignId: "camp_snap_001",
+        mode: "preview",
+        remoteNumber: "+*******7890",
+        companyLabel: "Acme",
+        queueLabel: "Support",
+      },
+    });
   });
 
   it("projects reservedTarget while busy without changing coarse status", () => {

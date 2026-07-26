@@ -2,6 +2,7 @@ import type { JSX } from "react";
 import type { CallContextBadge } from "@application/index.js";
 import { useI18n } from "../../i18n/index.js";
 import { Badge } from "../ui/badge/Badge.js";
+import { Tooltip } from "../ui/tooltip/Tooltip.js";
 import styles from "./CallContextBadges.module.css";
 
 export type CallContextBadgesProps = Readonly<{
@@ -46,17 +47,20 @@ export function CallContextBadges({
           );
         }
         if (badge.kind === "queue") {
+          const queueName = badge.value ?? "";
           return (
-            <Badge
-              key={`queue:${badge.value ?? ""}`}
-              tone="info"
-              size="sm"
-              iconId="call.queue"
-              title={t("call.context.queue")}
-              data-testid="queue-info-label"
-            >
-              {badge.value}
-            </Badge>
+            <Tooltip key={`queue:${queueName}`} label={queueName}>
+              <Badge
+                tone="muted"
+                size="sm"
+                iconId="call.queue"
+                className={styles.queueBadge}
+                title={t("call.context.queue")}
+                data-testid="queue-info-label"
+              >
+                <span className={styles.queueLabel}>{queueName}</span>
+              </Badge>
+            </Tooltip>
           );
         }
         if (badge.kind === "progressive") {

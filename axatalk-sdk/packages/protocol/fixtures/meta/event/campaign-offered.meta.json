@@ -1,4 +1,3 @@
 {
-  "expectedErrorCode": "invalid_message",
-  "notes": "Campaign events deferred past v1 (O-CAMP-1)"
+  "notes": "ADR-0019 — campaign offered under operator.campaign.read; redacted payload"
 }

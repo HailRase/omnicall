@@ -173,5 +173,33 @@ describe("parseOcpMessage", () => {
       expect(result.value.data.acallId).toBe("acall-1");
     }
   });
+
+  it("parses live OCP MainCallIDInfo with acallid / main_acallid (no underscore)", () => {
+    const result = parseOcpMessage({
+      action: "get_main_acallid",
+      entity: "calls",
+      payload: {
+        main_acallid: "rEB-main-1",
+        acallid: "rEB-acall-2",
+        event: "incomingCallProgress",
+        caller_id: "37500508954",
+        called_id: "yura.supervisor",
+        queue: "Голос. 1 - RU",
+      },
+      user_login: "yura.supervisor",
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok || result.value.entity !== "calls" || !("event" in result.value.data)) {
+      return;
+    }
+    expect(result.value.data).toEqual({
+      mainAcallId: "rEB-main-1",
+      acallId: "rEB-acall-2",
+      event: "incomingCallProgress",
+      callerId: "37500508954",
+      calledId: "yura.supervisor",
+      queue: "Голос. 1 - RU",
+    });
+  });
 });
 

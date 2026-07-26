@@ -114,7 +114,7 @@ grants remain authoritative on every command (ADR-0011).
 | Profile | Default granted capabilities |
 | --- | --- |
 | `presentation` | `session.read.redacted`, `window.show` |
-| `operator` | presentation + `operator.status.write`, `session.logout` |
+| `operator` | presentation + `operator.status.write`, `operator.campaign.read` (ADR-0019), `session.logout` |
 | `call_controller` | operator + `call.originate`, `call.control` |
 
 Privileged capabilities **never** appear in default profiles:

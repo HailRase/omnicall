@@ -58,6 +58,20 @@ function readString(record: Record<string, unknown>, key: string): string | null
   return value.trim();
 }
 
+/** First non-empty string among wire key aliases (OCP uses both `acallid` and `acall_id`). */
+function readStringAlias(
+  record: Record<string, unknown>,
+  keys: readonly string[],
+): string | null {
+  for (const key of keys) {
+    const value = readString(record, key);
+    if (value !== null) {
+      return value;
+    }
+  }
+  return null;
+}
+
 /** Like readString but allows empty after trim (OCP internal/direct calls use ""). */
 function readStringAllowEmpty(
   record: Record<string, unknown>,
@@ -80,6 +94,19 @@ function readOptionalString(
   }
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function readOptionalStringAlias(
+  record: Record<string, unknown>,
+  keys: readonly string[],
+): string | undefined {
+  for (const key of keys) {
+    const value = readOptionalString(record, key);
+    if (value !== undefined) {
+      return value;
+    }
+  }
+  return undefined;
 }
 
 function readNumber(record: Record<string, unknown>, key: string): number | null {
@@ -329,7 +356,8 @@ function parseCallsPayload(payload: unknown): OcpCallsPayload | null {
   if (!isRecord(payload)) {
     return null;
   }
-  const acallId = readString(payload, "acall_id");
+  // Live OCP sends `acallid` / `main_acallid` (no underscore); some fixtures use `acall_id`.
+  const acallId = readStringAlias(payload, ["acallid", "acall_id"]);
   if (acallId === null) {
     return null;
   }
@@ -342,7 +370,10 @@ function parseCallsPayload(payload: unknown): OcpCallsPayload | null {
     if (callerId === null || calledId === null || queue === null) {
       return null;
     }
-    const mainAcallId = readOptionalString(payload, "main_acall_id");
+    const mainAcallId = readOptionalStringAlias(payload, [
+      "main_acallid",
+      "main_acall_id",
+    ]);
     return {
       ...(mainAcallId !== undefined ? { mainAcallId } : {}),
       acallId,

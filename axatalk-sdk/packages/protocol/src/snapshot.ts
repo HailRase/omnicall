@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { PublicCallStateSchema } from './call-state.js';
 import { CapabilityIdListSchema } from './capabilities.js';
+import { OperatorCampaignOfferedPayloadSchema } from './events.js';
 import {
   IsoTimestampSchema,
   OpaqueIdSchema,
@@ -67,6 +68,13 @@ export type SnapshotCallSummary = z.infer<typeof SnapshotCallSummarySchema>;
  */
 export const SnapshotOperatorReservedTargetSchema = z.enum(['ready', 'break']);
 
+/**
+ * Active campaign offer for reconnect recovery (ADR-0019).
+ * Same redacted shape as `operator:campaign-offered` payload.
+ * @public
+ */
+export const SnapshotOperatorCampaignSchema = OperatorCampaignOfferedPayloadSchema;
+
 /** @public */
 export const SnapshotOperatorSectionSchema = z
   .object({
@@ -77,7 +85,9 @@ export const SnapshotOperatorSectionSchema = z
     reasonId: z.number().int().nonnegative().optional(),
     reasonLabelKey: z.string().min(1).max(128).optional(),
     reservedTarget: SnapshotOperatorReservedTargetSchema.optional(),
-    reservedReasonId: z.number().int().nonnegative().optional()
+    reservedReasonId: z.number().int().nonnegative().optional(),
+    /** Present while an offer is active; omit when cleared / unauthorized. */
+    campaign: SnapshotOperatorCampaignSchema.optional()
   })
   .readonly();
 

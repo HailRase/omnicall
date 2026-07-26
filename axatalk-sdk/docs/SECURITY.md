@@ -68,6 +68,8 @@ Server-issued capabilities are the only authorization source:
 - `window.show`
 - `window.hide`
 - `operator.status.write`
+- `operator.campaign.read`
+- `ocp.acd_context.read`
 - `call.originate`
 - `call.control`
 - `account.activate`

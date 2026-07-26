@@ -89,10 +89,18 @@ export function buildOcpCommandPayload(
     }
     case "get_main_acallid": {
       const entity = "calls";
+      // OCP wire quirk: SIP CallId is sent as `acallid` (no underscore).
+      // Inbound MainCallIDInfo uses `acall_id` — do not conflate the two.
       return ok({
         command: cmd.kind,
         entity,
-        payload: { call_id: cmd.callId },
+        payload: {
+          acallid: cmd.callId,
+          user_login: cmd.userLogin,
+          caller_id: cmd.callerId,
+          called_id: cmd.calledId,
+          event: cmd.lifecycleEvent,
+        },
         type: buildWireType(cmd.kind, entity),
       });
     }

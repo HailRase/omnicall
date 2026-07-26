@@ -25,7 +25,9 @@ describe("CallContextBadges", () => {
       />,
     );
     expect(screen.getByTestId("call-context-badges")).toBeInTheDocument();
-    expect(screen.getByTestId("queue-info-label")).toHaveTextContent("Support");
+    const queue = screen.getByTestId("queue-info-label");
+    expect(queue).toHaveTextContent("Support");
+    expect(queue.className).toMatch(/queueBadge/);
     expect(screen.getAllByTestId("incoming-campaign-context").length).toBeGreaterThanOrEqual(2);
   });
 

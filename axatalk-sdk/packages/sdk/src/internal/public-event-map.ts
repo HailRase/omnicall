@@ -17,11 +17,14 @@ export const PUBLIC_EVENT_TYPES = [
   'call:resumed',
   'call:muted',
   'call:unmuted',
+  'call:acd-context',
   'registration:changed',
   'account:session-activated',
   'account:session-ended',
   'operator:session-changed',
   'operator:status-changed',
+  'operator:campaign-offered',
+  'operator:campaign-cleared',
   'window:visibility-changed',
   'sdk:server-shutdown'
 ] as const satisfies readonly EventType[];

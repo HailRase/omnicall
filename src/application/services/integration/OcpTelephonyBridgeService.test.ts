@@ -40,6 +40,7 @@ describe("OcpTelephonyBridgeService", () => {
       eventPublisher: bus,
       ocpGateway: gateway,
       isOcpAuthenticated: () => true,
+      getOcpUserLogin: () => "op.test",
       logger: createTestLogger({ featureId: "F-028", boundedContext: "Integration" }),
       callContext: {
         markPending: (callId, direction) => {
@@ -68,11 +69,19 @@ describe("OcpTelephonyBridgeService", () => {
         direction: "incoming",
       }),
     );
-    expect(gateway.getLastSentCommand()?.kind).toBe("get_main_acallid");
+    expect(gateway.getLastSentCommand()).toEqual({
+      kind: "get_main_acallid",
+      callId,
+      userLogin: "op.test",
+      callerId: "+123",
+      calledId: "op.test",
+      lifecycleEvent: "incomingCallProgress",
+    });
 
     gateway.simulateMessage({
       entity: "calls",
       data: {
+        mainAcallId: "main-9",
         acallId: "acall-9",
         event: "incomingCallProgress",
         callerId: "+1",
@@ -91,8 +100,17 @@ describe("OcpTelephonyBridgeService", () => {
       callId: "call-1",
       direction: "incoming",
       queueName: "Support",
+      phase: "progress",
+      localPartyLabel: "op.test",
+      ocp: {
+        mainAcallId: "main-9",
+        acallId: "acall-9",
+        event: "incomingCallProgress",
+        callerId: "+1",
+        calledId: "+2",
+        queue: "Support",
+      },
     });
-    expect(JSON.stringify(resolvedPayloads[0])).not.toContain("acall-9");
 
     gateway.clearSentCommands();
     bus.publish(createCallEndedEvent(createCorrelationId(), { callId }));
@@ -108,6 +126,51 @@ describe("OcpTelephonyBridgeService", () => {
     bridge.dispose();
   });
 
+  it("skips get_main_acallid when OCP login is missing", () => {
+    const gateway = new MockOcpGateway();
+    const config = createOcpConnectionConfig({
+      domain: "ocp.example",
+      authToken: "token",
+    });
+    expect(config.ok).toBe(true);
+    if (!config.ok) {
+      return;
+    }
+    gateway.connect(config.value);
+    gateway.simulateAuthSuccess(42);
+
+    const bus = new InMemoryDomainEventBus();
+    const unavailable: string[] = [];
+    const bridge = new OcpTelephonyBridgeService({
+      eventPublisher: bus,
+      ocpGateway: gateway,
+      isOcpAuthenticated: () => true,
+      getOcpUserLogin: () => null,
+      logger: createTestLogger({ featureId: "F-028", boundedContext: "Integration" }),
+      callContext: {
+        markPending: () => undefined,
+        resolve: () => undefined,
+        markUnavailable: (callId) => {
+          unavailable.push(callId);
+        },
+        clear: () => undefined,
+      },
+      clearCampaignOnCallTerminal: () => undefined,
+    });
+
+    const callId = createCallId("no-login");
+    bus.publish(
+      createIncomingCallReceivedEvent(createCorrelationId(), {
+        callId,
+        phoneNumber: createPhoneNumber("+999"),
+        direction: "incoming",
+      }),
+    );
+    expect(gateway.getSentCommands()).toHaveLength(0);
+    expect(unavailable).toEqual(["no-login"]);
+    bridge.dispose();
+  });
+
   it("skips commands when not authenticated", () => {
     const gateway = new MockOcpGateway();
     const bus = new InMemoryDomainEventBus();
@@ -115,6 +178,7 @@ describe("OcpTelephonyBridgeService", () => {
       eventPublisher: bus,
       ocpGateway: gateway,
       isOcpAuthenticated: () => false,
+      getOcpUserLogin: () => "op.test",
       logger: createTestLogger({ featureId: "F-028", boundedContext: "Integration" }),
       callContext: {
         markPending: () => undefined,

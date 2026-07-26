@@ -144,10 +144,14 @@ per ADR-0012).
 - `call:resumed`
 - `call:muted`
 - `call:unmuted`
+- `call:acd-context` — OCP MainCallIDInfo wire (`acallid`, `main_acallid?`,
+  `event`, `caller_id`, `called_id`, `queue`, `user_login`) + desktop `callId`;
+  requires `ocp.acd_context.read` (ADR-0020). Optional helpers: `phase`, `direction`.
 
 Call event / snapshot call-summary payloads may include additive optional
 `queueLabel` (desktop-safe ACD title from F-028 OCP call context). Omitted when
-unknown or direct/internal. Never carries OCP wire ids (`acallid`). See
+unknown or direct/internal. Never carries OCP wire ids (`acallid`). Prefer
+`call:acd-context` for CRM handlers that need `main_acallid`. See
 `docs/softphone/OCP-Call-Context.md`.
 
 ### Registration and account
@@ -160,11 +164,14 @@ unknown or direct/internal. Never carries OCP wire ids (`acallid`). See
 
 - `operator:session-changed`
 - `operator:status-changed`
+- `operator:campaign-offered` — requires `operator.campaign.read` (ADR-0019)
+- `operator:campaign-cleared` — requires `operator.campaign.read` (ADR-0019)
 
-Campaign events are **deferred past v1** (ADR-0017 / O-CAMP-1):
-
-- `operator:campaign-offered` — future capability only
-- `operator:campaign-cleared` — future capability only
+Campaign payloads are redacted (ADR-0017 O-PII-1): opaque `campaignId`,
+`mode` (`preview` | `progressive`), optional masked `remoteNumber`, optional
+desktop-safe labels (`companyLabel`, `strategyLabel`, `selectionLabel`,
+`queueLabel`). Never OCP wire ids (`acallid`, `strategyCallId`, …). Accept/reject
+commands remain out of v1 (desktop modal owns control).
 
 ### Window and SDK
 
@@ -185,7 +192,8 @@ The authenticated snapshot contains independently versioned sections:
 - aggregated SIP registration/connectivity state;
 - active call summaries;
 - redacted operator/OCP state when enabled (coarse status; optional
-  `reservedTarget` / `reservedReasonId` for post-call booking);
+  `reservedTarget` / `reservedReasonId` for post-call booking; optional
+  `campaign` offer when `operator.campaign.read` is granted);
 - window state;
 - snapshot revision and server instance metadata.
 
@@ -302,7 +310,7 @@ below with ADR-0014…0017. IDs match the P12 handoff.
 | O-CAP-1 | Default capability sets per pairing profile | ADR-0016 | DI-04 |
 | O-PII-1 | Exact PII redaction levels / mask formats | ADR-0017 | SDK-05, DI-05 |
 | O-OWN-1 | Exact call ownership and lease semantics | ADR-0017 | SDK-06, DI-06 |
-| O-CAMP-1 | Whether campaign events enter v1 or a later capability | ADR-0017 — deferred past v1 | SDK-05, DI-05 |
+| O-CAMP-1 | Whether campaign events enter v1 or a later capability | ADR-0017 deferred → **ADR-0019** admits `operator:campaign-*` + `operator.campaign.read` | SDK-05, DI-05 |
 | O-OCP-1 | Public operator field names vs F-028 E-12 map | ADR-0017 | DI-07 |
 
 Policy baselines (still closed from DI-00 / ADR-0018): loopback-only bind, exact Origin

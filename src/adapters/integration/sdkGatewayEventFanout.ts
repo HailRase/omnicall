@@ -18,6 +18,17 @@ import { createSdkIsoTimestamp, createSdkOpaqueId } from "./sdkGatewayIds.js";
 import type { SdkGatewayIdentity } from "./sdkGatewayMessages.js";
 
 const EVENT_READ_CAPABILITY: CapabilityId = "session.read.redacted";
+const CAMPAIGN_READ_CAPABILITY: CapabilityId = "operator.campaign.read";
+const ACD_CONTEXT_READ_CAPABILITY: CapabilityId = "ocp.acd_context.read";
+
+const CAMPAIGN_EVENT_TYPES: ReadonlySet<EventType> = new Set([
+  "operator:campaign-offered",
+  "operator:campaign-cleared",
+]);
+
+const ACD_CONTEXT_EVENT_TYPES: ReadonlySet<EventType> = new Set([
+  "call:acd-context",
+]);
 
 export type SdkPublicEventDraftInput = Readonly<{
   type: EventType;
@@ -71,13 +82,33 @@ export function deliverSdkEventToConnection(input: {
   if (input.connection.authState !== "authenticated") {
     return false;
   }
-  const readable =
-    input.originPolicyCapabilities === undefined
-      ? input.connection.grantedCapabilities.includes(EVENT_READ_CAPABILITY)
-      : input.connection.grantedCapabilities.includes(EVENT_READ_CAPABILITY) &&
-        input.originPolicyCapabilities.includes(EVENT_READ_CAPABILITY);
+  const readable = hasEffectiveCapability(
+    input.connection.grantedCapabilities,
+    input.originPolicyCapabilities,
+    EVENT_READ_CAPABILITY,
+  );
   if (!readable) {
     return false;
+  }
+  if (CAMPAIGN_EVENT_TYPES.has(input.draft.type)) {
+    const campaignReadable = hasEffectiveCapability(
+      input.connection.grantedCapabilities,
+      input.originPolicyCapabilities,
+      CAMPAIGN_READ_CAPABILITY,
+    );
+    if (!campaignReadable) {
+      return false;
+    }
+  }
+  if (ACD_CONTEXT_EVENT_TYPES.has(input.draft.type)) {
+    const acdReadable = hasEffectiveCapability(
+      input.connection.grantedCapabilities,
+      input.originPolicyCapabilities,
+      ACD_CONTEXT_READ_CAPABILITY,
+    );
+    if (!acdReadable) {
+      return false;
+    }
   }
   input.connection.eventSequence += 1;
   const candidate = {
@@ -98,6 +129,20 @@ export function deliverSdkEventToConnection(input: {
   }
   input.sendJson(input.connection, validated.data);
   return true;
+}
+
+function hasEffectiveCapability(
+  granted: readonly CapabilityId[],
+  originPolicyCapabilities: readonly CapabilityId[] | undefined,
+  capability: CapabilityId,
+): boolean {
+  if (!granted.includes(capability)) {
+    return false;
+  }
+  if (originPolicyCapabilities === undefined) {
+    return true;
+  }
+  return originPolicyCapabilities.includes(capability);
 }
 
 export function fanoutSdkPublicEvent(input: {

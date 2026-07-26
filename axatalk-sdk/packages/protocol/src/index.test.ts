@@ -140,11 +140,23 @@ describe('@axata/axatalk-protocol compatibility and constants', () => {
     expect(REQUEST_DEDUP_TTL_SECONDS).toBe(120);
   });
 
-  it('excludes campaign events from v1 unions', () => {
-    for (const deferred of V1_DEFERRED_CAMPAIGN_EVENTS) {
-      expect(EVENT_TYPES.includes(deferred as never)).toBe(false);
-      expect(isDeferredCampaignEventType(deferred)).toBe(true);
-    }
+  it('includes campaign events in v1 unions (ADR-0019)', () => {
+    expect(EVENT_TYPES).toContain('operator:campaign-offered');
+    expect(EVENT_TYPES).toContain('operator:campaign-cleared');
+    expect(V1_DEFERRED_CAMPAIGN_EVENTS).toEqual([]);
+    expect(isDeferredCampaignEventType('operator:campaign-offered')).toBe(
+      false
+    );
+    expect(DEFAULT_CAPABILITY_PROFILES.operator).toContain(
+      'operator.campaign.read'
+    );
+    expect(DEFAULT_CAPABILITY_PROFILES.operator).toContain('ocp.acd_context.read');
+    expect(DEFAULT_CAPABILITY_PROFILES.presentation).not.toContain(
+      'operator.campaign.read'
+    );
+    expect(DEFAULT_CAPABILITY_PROFILES.presentation).not.toContain(
+      'ocp.acd_context.read'
+    );
   });
 
   it('fails closed on oversized messages without throwing', () => {

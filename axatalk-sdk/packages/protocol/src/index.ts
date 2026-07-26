@@ -105,6 +105,8 @@ export {
 export {
   AccountSessionActivatedEventSchema,
   AccountSessionEndedEventSchema,
+  CallAcdContextEventSchema,
+  CallAcdContextPayloadSchema,
   CallAnsweredEventSchema,
   CallEndedEventSchema,
   CallFailedEventSchema,
@@ -118,6 +120,10 @@ export {
   EVENT_TYPES,
   EventMessageSchema,
   EventTypeSchema,
+  OperatorCampaignClearedEventSchema,
+  OperatorCampaignClearedPayloadSchema,
+  OperatorCampaignOfferedEventSchema,
+  OperatorCampaignOfferedPayloadSchema,
   OperatorSessionChangedEventSchema,
   OperatorStatusChangedEventSchema,
   RegistrationChangedEventSchema,
@@ -125,8 +131,11 @@ export {
   SdkRevokedEventSchema,
   SdkServerShutdownEventSchema,
   WindowVisibilityChangedEventSchema,
+  type CallAcdContextPayload,
   type EventMessage,
-  type EventType
+  type EventType,
+  type OperatorCampaignClearedPayload,
+  type OperatorCampaignOfferedPayload
 } from './events.js';
 
 export {
@@ -205,6 +214,7 @@ export {
   SnapshotAccountSectionSchema,
   SnapshotCallSummarySchema,
   SnapshotMessageSchema,
+  SnapshotOperatorCampaignSchema,
   SnapshotOperatorReservedTargetSchema,
   SnapshotOperatorSectionSchema,
   SnapshotRegistrationSectionSchema,

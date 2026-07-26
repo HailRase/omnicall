@@ -1,12 +1,12 @@
-# Project Status (live)
+﻿# Project Status (live)
 
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
 **Updated:** 2026-07-26
-**Tests:** F-028/F-011 OCP queue→SDK `queueLabel` PASS (2026-07-26 — bridge `CallOcpContextResolved` + mapper/snapshot; focused vitest); F-028 UI call context PASS; F-016/LF-002 bootstrap splash PASS; F-030 preferences export/import PASS; prior operator-events + DI-06/07 shared-clock PASS
-**Lint / typecheck:** OCP/SDK queueLabel focused vitest PASS; full-repo `tsc` may still have pre-existing unrelated errors (SDK IPC / F-030 import optional props)
+**Tests:** F-028/F-011 OCP campaign→SDK `operator:campaign-*` + `queueLabel` PASS (2026-07-26 — ADR-0019; axatalk-sdk preflight PASS; focused desktop vitest); F-028 UI call context PASS; F-016/LF-002 bootstrap splash PASS; F-030 preferences export/import PASS; prior operator-events + DI-06/07 shared-clock PASS
+**Lint / typecheck:** axatalk-sdk preflight PASS; OCP/SDK campaign+queueLabel focused vitest PASS; full-repo `tsc` may still have pre-existing unrelated errors (SDK IPC / F-030 import optional props)
 **Splash contract:** `docs/softphone/Bootstrap-Splash-Contract.md` — single-stage `#boot-splash` + exit crossfade; do not reintroduce React loading splash handoff
-**OCP call context:** `docs/softphone/OCP-Call-Context.md` — queue from `get_main_acallid`; desktop badges/modal; preview campaign raises shell via ADR-0013 (`ocp_campaign_offer`); SDK additive `queueLabel` on `call:*` (no `acallid`, no DOM CustomEvent, no campaign in v1)
+**OCP call context:** `docs/softphone/OCP-Call-Context.md` — queue from `get_main_acallid` (wire: `acallid` + parties + `event`; never outbound `call_id`); desktop queue badge (transparent/gray/ellipsis+tooltip); SDK `call:acd-context` = full MainCallIDInfo wire under `ocp.acd_context.read` (ADR-0020) + additive `queueLabel` on `call:*`; campaign notify `operator:campaign-*` (ADR-0019; never OCP wire ids on campaign / `call:*`)
 
 **Auth Flow Refactoring / Hardening:** implementation + automated gate complete 2026-07-17 — independent account/OCP/SIP state, five-stage OCP progress, crash-safe saved profiles/secrets, one-click saved-profile entry, persistent auth errors and rolling 24-hour notification journal (F-029). Real staging OCP smoke SM-1…20 remains external verification. Version: `0.13.0`.
 

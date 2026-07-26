@@ -41,7 +41,25 @@ export type OcpCommand =
       reasonId: number;
       reservedStatus: OperatorStatus;
     }>
-  | Readonly<{ kind: "get_main_acallid"; callId: string }>
+  | Readonly<{
+      kind: "get_main_acallid";
+      /** SIP CallId (JsSIP session id). Wire key is `acallid` — not OCP main call id. */
+      callId: string;
+      /** OCP connect login (`/proxy/authenticate`). Wire key `user_login`. */
+      userLogin: string;
+      /**
+       * Wire `caller_id` / `called_id` (legacy parity).
+       * Incoming: caller = remote, called = operator login.
+       * Outgoing: caller = operator login, called = remote.
+       */
+      callerId: string;
+      calledId: string;
+      /**
+       * Legacy SIP lifecycle name for OCP (`incomingCallProgress`, …).
+       * Wire key `event`. Not a Domain Event type string.
+       */
+      lifecycleEvent: string;
+    }>
   | Readonly<{ kind: "dlg_stop"; callId: string; acallId?: string }>
   | Readonly<{
       kind: "campaign_accept";

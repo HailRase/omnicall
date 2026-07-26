@@ -12,6 +12,7 @@ import {
   createCallFailedEvent,
   createCallId,
   createIncomingCallReceivedEvent,
+  createOutgoingCallRequestedEvent,
   createOutgoingCallStartedEvent,
   createPhoneNumber,
 } from "@domain/index.js";
@@ -50,6 +51,7 @@ describe("OcpTelephonyBridge integration (E-10)", () => {
       eventPublisher: bus,
       ocpGateway: gateway,
       isOcpAuthenticated: () => true,
+      getOcpUserLogin: () => "op.bridge",
       logger: createTestLogger({ featureId: "F-028", boundedContext: "Integration" }),
       callContext: {
         markPending: () => undefined,
@@ -77,6 +79,10 @@ describe("OcpTelephonyBridge integration (E-10)", () => {
     expect(gateway.getLastSentCommand()).toEqual({
       kind: "get_main_acallid",
       callId,
+      userLogin: "op.bridge",
+      callerId: "+100",
+      calledId: "op.bridge",
+      lifecycleEvent: "incomingCallProgress",
     });
     bridge.dispose();
   });
@@ -84,8 +90,13 @@ describe("OcpTelephonyBridge integration (E-10)", () => {
   it("OutgoingCallStarted and CallAnswered request main acallId", () => {
     const { gateway, bus, bridge } = createAuthenticatedBridge();
     const outId = createCallId("out-1");
-    const ansId = createCallId("ans-1");
 
+    bus.publish(
+      createOutgoingCallRequestedEvent(createCorrelationId(), {
+        callId: outId,
+        phoneNumber: createPhoneNumber("+200"),
+      }),
+    );
     bus.publish(
       createOutgoingCallStartedEvent(createCorrelationId(), {
         callId: outId,
@@ -94,17 +105,25 @@ describe("OcpTelephonyBridge integration (E-10)", () => {
     expect(gateway.getLastSentCommand()).toEqual({
       kind: "get_main_acallid",
       callId: outId,
+      userLogin: "op.bridge",
+      callerId: "op.bridge",
+      calledId: "+200",
+      lifecycleEvent: "outgoingCallProgress",
     });
 
     gateway.clearSentCommands();
     bus.publish(
       createCallAnsweredEvent(createCorrelationId(), {
-        callId: ansId,
+        callId: outId,
       }),
     );
     expect(gateway.getLastSentCommand()).toEqual({
       kind: "get_main_acallid",
-      callId: ansId,
+      callId: outId,
+      userLogin: "op.bridge",
+      callerId: "op.bridge",
+      calledId: "+200",
+      lifecycleEvent: "outgoingCallAccepted",
     });
     bridge.dispose();
   });
@@ -142,6 +161,12 @@ describe("OcpTelephonyBridge integration (E-10)", () => {
     const callId = createCallId("fail-1");
 
     bus.publish(
+      createOutgoingCallRequestedEvent(createCorrelationId(), {
+        callId,
+        phoneNumber: createPhoneNumber("+400"),
+      }),
+    );
+    bus.publish(
       createOutgoingCallStartedEvent(createCorrelationId(), {
         callId,
       }),
@@ -175,6 +200,7 @@ describe("OcpTelephonyBridge integration (E-10)", () => {
       eventPublisher: bus,
       ocpGateway: gateway,
       isOcpAuthenticated: () => false,
+      getOcpUserLogin: () => "op.bridge",
       logger: createTestLogger({ featureId: "F-028", boundedContext: "Integration" }),
       callContext: {
         markPending: () => undefined,

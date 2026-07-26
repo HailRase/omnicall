@@ -11,6 +11,8 @@ pairing; the desktop decides grants. Privileged caps are **never** pairing-defau
 | `window.show` | No | `client.window.show` |
 | `window.hide` | **Yes** | **Unavailable in v1 product** — do not ship |
 | `operator.status.write` | No | `client.operator.changeStatus` |
+| `operator.campaign.read` | No | Subscribe `operator:campaign-*` + snapshot `operator.campaign` |
+| `ocp.acd_context.read` | No | Subscribe `call:acd-context` (OCP MainCallIDInfo wire, ADR-0020) |
 | `call.originate` | No | `client.calls.originate` |
 | `call.control` | No | answer/reject/hangup/hold/mute/DTMF |
 | `session.logout` | No | prepare/confirm logout |
@@ -21,8 +23,8 @@ pairing; the desktop decides grants. Privileged caps are **never** pairing-defau
 | Profile | Default caps (non-privileged) |
 | --- | --- |
 | `presentation` | `session.read.redacted`, `window.show` |
-| `operator` | presentation + `operator.status.write`, `session.logout` |
-| `call_controller` | operator + `call.originate`, `call.control` |
+| `operator` | presentation + `operator.status.write`, `operator.campaign.read`, `ocp.acd_context.read`, `session.logout` |
+| `call_controller` | operator + `call.originate`, `call.control` (includes `ocp.acd_context.read`) |
 
 Source: `@axata/axatalk-protocol` `DEFAULT_CAPABILITY_PROFILES`.  
 `account.activate` and `window.hide` are **never** in these defaults.

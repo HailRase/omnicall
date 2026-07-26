@@ -3167,8 +3167,10 @@ export class AccountBootstrapFacade {
     return this.ocpIntegration.projectionHub.subscribe(listener);
   }
 
-  clearOcpActiveCampaign(): void {
-    this.ocpIntegration.projectionHub.clearActiveCampaign();
+  clearOcpActiveCampaign(
+    reasonCode: "accepted" | "rejected" = "accepted",
+  ): void {
+    this.ocpIntegration.clearCampaignAndPublish(reasonCode);
   }
 
   /**

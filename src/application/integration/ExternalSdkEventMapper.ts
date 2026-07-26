@@ -1,9 +1,11 @@
 /**
  * Map Domain Events → public SDK event drafts (DI-05).
- * Never forwards Domain JSON; campaign events are omitted (ADR-0017 O-CAMP-1).
+ * Never forwards Domain JSON or OCP wire objects.
+ * Campaign offers map to operator:campaign-* (ADR-0019); phone/labels redacted.
  * OperatorLoggedOut is omitted when OperatorSessionEnded already covers disconnect.
  * Post-call reservation is additive on operator:status-changed (reservedTarget).
- * OCP ACD queue is additive queueLabel on call:* (never acallid / OCP wire).
+ * OCP ACD: `call:acd-context` carries MainCallIDInfo wire fields (ADR-0020);
+ * additive `queueLabel` on call:* stays desktop-safe (no wire ids).
  */
 
 import type { DomainEvent } from "@domain/index.js";
@@ -11,7 +13,7 @@ import {
   isOperatorStatus,
   OPERATOR_STATUS_LABEL_KEY,
 } from "@domain/integration/ocp/OperatorStatus.js";
-import type { WireJsonObject } from "@axata/axatalk-protocol";
+import { OpaqueIdSchema, type WireJsonObject } from "@axata/axatalk-protocol";
 
 import {
   mapSdkOperatorStatus,
@@ -24,6 +26,7 @@ import {
   type SdkPublicCallState,
 } from "./mapSdkPublicCallState.js";
 import { mapSdkRegistrationState } from "./mapSdkRegistrationState.js";
+import { mapSdkCampaignOfferedPayload } from "./mapSdkCampaignPayload.js";
 import {
   redactDisplayNameForSdk,
   redactPhoneForSdk,
@@ -42,11 +45,14 @@ export type SdkPublicEventDraft = Readonly<{
     | "call:resumed"
     | "call:muted"
     | "call:unmuted"
+    | "call:acd-context"
     | "registration:changed"
     | "account:session-activated"
     | "account:session-ended"
     | "operator:status-changed"
-    | "operator:session-changed";
+    | "operator:session-changed"
+    | "operator:campaign-offered"
+    | "operator:campaign-cleared";
   payload: WireJsonObject;
 }>;
 
@@ -65,77 +71,159 @@ export type SdkOperatorEventMapContext = Readonly<{
 }>;
 
 /**
- * Returns null when the Domain Event has no public SDK counterpart.
+ * Returns all public drafts for a Domain Event (0+). Prefer this when one Domain
+ * Event may fan out to multiple protocol events (e.g. ACD context).
+ */
+export function mapDomainEventToSdkPublicDrafts(
+  event: DomainEvent,
+  context: SdkOperatorEventMapContext = {},
+): readonly SdkPublicEventDraft[] {
+  switch (event.type) {
+    case "IncomingCallReceived": {
+      const draft = callDraft(
+        "call:incoming",
+        event,
+        "ringing",
+        "inbound",
+        context,
+      );
+      return draft === null ? [] : [draft];
+    }
+    case "OutgoingCallRequested": {
+      const draft = callDraft(
+        "call:outgoing",
+        event,
+        "connecting",
+        "outbound",
+        context,
+      );
+      return draft === null ? [] : [draft];
+    }
+    case "CallProgressReceived": {
+      const draft = callDraft(
+        "call:ringing",
+        event,
+        "connecting",
+        "outbound",
+        context,
+      );
+      return draft === null ? [] : [draft];
+    }
+    case "CallAnswered": {
+      const draft = callDraft(
+        "call:answered",
+        event,
+        "active",
+        undefined,
+        context,
+      );
+      return draft === null ? [] : [draft];
+    }
+    case "CallEnded": {
+      const draft = callDraft("call:ended", event, "ended", undefined, context);
+      return draft === null ? [] : [draft];
+    }
+    case "CallFailed": {
+      const draft = callDraft(
+        "call:failed",
+        event,
+        "failed",
+        undefined,
+        context,
+      );
+      return draft === null ? [] : [draft];
+    }
+    case "CallHeld": {
+      const draft = callDraft("call:held", event, "held", undefined, context);
+      return draft === null ? [] : [draft];
+    }
+    case "CallResumed": {
+      const draft = callDraft(
+        "call:resumed",
+        event,
+        "active",
+        undefined,
+        context,
+      );
+      return draft === null ? [] : [draft];
+    }
+    case "CallMuted": {
+      const draft = callDraft("call:muted", event, "active", undefined, context);
+      return draft === null ? [] : [draft];
+    }
+    case "CallUnmuted": {
+      const draft = callDraft(
+        "call:unmuted",
+        event,
+        "active",
+        undefined,
+        context,
+      );
+      return draft === null ? [] : [draft];
+    }
+    case "CallOcpContextResolved":
+      return callOcpContextResolvedDrafts(event, context);
+    case "RegistrationSucceeded":
+      return [{ type: "registration:changed", payload: { state: "registered" } }];
+    case "RegistrationFailed":
+      return [{ type: "registration:changed", payload: { state: "failed" } }];
+    case "SipRegistrationCleared":
+      return [
+        {
+          type: "registration:changed",
+          payload: { state: mapSdkRegistrationState("idle") },
+        },
+      ];
+    case "UserSessionEnded":
+      return [
+        { type: "account:session-ended", payload: { reasonCode: "ended" } },
+      ];
+    case "AccountSessionActivated":
+      return [
+        {
+          type: "account:session-activated",
+          payload: optionalProfileLabel(event),
+        },
+      ];
+    case "OperatorStatusChanged": {
+      const draft = operatorStatusDraft(event, context);
+      return draft === null ? [] : [draft];
+    }
+    case "OperatorStatusReservationSet": {
+      const draft = operatorReservationDraft(event, context);
+      return draft === null ? [] : [draft];
+    }
+    case "OperatorSessionStarted":
+      return [
+        { type: "operator:session-changed", payload: { connected: true } },
+      ];
+    case "OperatorSessionEnded":
+      return [
+        { type: "operator:session-changed", payload: { connected: false } },
+      ];
+    case "OperatorCampaignOffered": {
+      const draft = operatorCampaignOfferedDraft(event);
+      return draft === null ? [] : [draft];
+    }
+    case "OperatorCampaignCleared": {
+      const draft = operatorCampaignClearedDraft(event);
+      return draft === null ? [] : [draft];
+    }
+    default:
+      return [];
+  }
+}
+
+/**
+ * Returns the first public draft, or null. Prefer `mapDomainEventToSdkPublicDrafts`
+ * when a Domain Event may emit more than one protocol event.
  */
 export function mapDomainEventToSdkPublicDraft(
   event: DomainEvent,
   context: SdkOperatorEventMapContext = {},
 ): SdkPublicEventDraft | null {
-  switch (event.type) {
-    case "IncomingCallReceived":
-      return callDraft("call:incoming", event, "ringing", "inbound", context);
-    case "OutgoingCallRequested":
-      return callDraft("call:outgoing", event, "connecting", "outbound", context);
-    case "CallProgressReceived":
-      return callDraft("call:ringing", event, "connecting", "outbound", context);
-    case "CallAnswered":
-      return callDraft("call:answered", event, "active", undefined, context);
-    case "CallEnded":
-      return callDraft("call:ended", event, "ended", undefined, context);
-    case "CallFailed":
-      return callDraft("call:failed", event, "failed", undefined, context);
-    case "CallHeld":
-      return callDraft("call:held", event, "held", undefined, context);
-    case "CallResumed":
-      return callDraft("call:resumed", event, "active", undefined, context);
-    case "CallMuted":
-      return callDraft("call:muted", event, "active", undefined, context);
-    case "CallUnmuted":
-      return callDraft("call:unmuted", event, "active", undefined, context);
-    case "CallOcpContextResolved":
-      return callOcpContextResolvedDraft(event, context);
-    case "RegistrationSucceeded":
-      return {
-        type: "registration:changed",
-        payload: { state: "registered" },
-      };
-    case "RegistrationFailed":
-      return {
-        type: "registration:changed",
-        payload: { state: "failed" },
-      };
-    case "SipRegistrationCleared":
-      return {
-        type: "registration:changed",
-        payload: { state: mapSdkRegistrationState("idle") },
-      };
-    case "UserSessionEnded":
-      return {
-        type: "account:session-ended",
-        payload: { reasonCode: "ended" },
-      };
-    case "AccountSessionActivated":
-      return {
-        type: "account:session-activated",
-        payload: optionalProfileLabel(event),
-      };
-    case "OperatorStatusChanged":
-      return operatorStatusDraft(event, context);
-    case "OperatorStatusReservationSet":
-      return operatorReservationDraft(event, context);
-    case "OperatorSessionStarted":
-      return {
-        type: "operator:session-changed",
-        payload: { connected: true },
-      };
-    case "OperatorSessionEnded":
-      return {
-        type: "operator:session-changed",
-        payload: { connected: false },
-      };
-    default:
-      return null;
-  }
+  const drafts = mapDomainEventToSdkPublicDrafts(event, context);
+  return drafts[0] ?? null;
 }
 
 function operatorStatusDraft(
@@ -217,35 +305,106 @@ function reservedPayload(context: SdkOperatorEventMapContext): WireJsonObject {
   };
 }
 
-function callOcpContextResolvedDraft(
+function callOcpContextResolvedDrafts(
   event: DomainEvent,
   context: SdkOperatorEventMapContext,
-): SdkPublicEventDraft | null {
+): readonly SdkPublicEventDraft[] {
   const callId = readString(event, "callId");
-  const queueName = readString(event, "queueName");
-  if (callId === null || queueName === null) {
-    return null;
-  }
-  const queueLabel = queueName.slice(0, 128);
-  if (queueLabel.length === 0) {
-    return null;
+  const localPartyLabel = readString(event, "localPartyLabel");
+  const ocp = readOcpWire(event);
+  if (callId === null || localPartyLabel === null || ocp === null) {
+    return [];
   }
   const directionRaw = readString(event, "direction");
   const direction: "inbound" | "outbound" =
     directionRaw === "outgoing" ? "outbound" : "inbound";
+  const phaseRaw = readString(event, "phase");
+  const phase: "progress" | "accepted" =
+    phaseRaw === "accepted" ? "accepted" : "progress";
+
+  const drafts: SdkPublicEventDraft[] = [
+    {
+      type: "call:acd-context",
+      payload: {
+        callId,
+        ...(ocp.mainAcallId !== undefined
+          ? { main_acallid: ocp.mainAcallId }
+          : {}),
+        acallid: ocp.acallId,
+        event: ocp.event,
+        caller_id: ocp.callerId,
+        called_id: ocp.calledId,
+        queue: ocp.queue,
+        user_login: localPartyLabel.slice(0, 128),
+        phase,
+        direction,
+      },
+    },
+  ];
+
+  const queueLabel = ocp.queue.trim().slice(0, 128);
+  if (queueLabel.length === 0) {
+    return drafts;
+  }
   const line = context.callLines?.find((entry) => entry.callId === callId);
   const typeAndState = resolvePublicCallTypeForQueueEnrichment(line, direction);
-  if (typeAndState === null) {
+  if (typeAndState !== null) {
+    drafts.push({
+      type: typeAndState.type,
+      payload: {
+        callId,
+        state: typeAndState.state,
+        direction,
+        queueLabel,
+      },
+    });
+  }
+  return drafts;
+}
+
+function readOcpWire(event: DomainEvent): Readonly<{
+  mainAcallId?: string;
+  acallId: string;
+  event: string;
+  callerId: string;
+  calledId: string;
+  queue: string;
+}> | null {
+  const raw = event["ocp"];
+  if (typeof raw !== "object" || raw === null) {
     return null;
   }
+  const record = raw as Record<string, unknown>;
+  const acallId =
+    typeof record["acallId"] === "string" ? record["acallId"].trim() : "";
+  const eventName =
+    typeof record["event"] === "string" ? record["event"].trim() : "";
+  const callerId =
+    typeof record["callerId"] === "string" ? record["callerId"].trim() : "";
+  const calledId =
+    typeof record["calledId"] === "string" ? record["calledId"].trim() : "";
+  if (
+    acallId.length === 0 ||
+    eventName.length === 0 ||
+    callerId.length === 0 ||
+    calledId.length === 0
+  ) {
+    return null;
+  }
+  const queue =
+    typeof record["queue"] === "string" ? record["queue"].slice(0, 128) : "";
+  const mainRaw = record["mainAcallId"];
+  const mainAcallId =
+    typeof mainRaw === "string" && mainRaw.trim().length > 0
+      ? mainRaw.trim().slice(0, 256)
+      : undefined;
   return {
-    type: typeAndState.type,
-    payload: {
-      callId,
-      state: typeAndState.state,
-      direction,
-      queueLabel,
-    },
+    ...(mainAcallId !== undefined ? { mainAcallId } : {}),
+    acallId: acallId.slice(0, 256),
+    event: eventName.slice(0, 128),
+    callerId: callerId.slice(0, 128),
+    calledId: calledId.slice(0, 128),
+    queue,
   };
 }
 
@@ -328,6 +487,61 @@ function callDraft(
 function optionalProfileLabel(event: DomainEvent): WireJsonObject {
   const label = readString(event, "profileKey");
   return label !== null ? { profileLabel: label.slice(0, 128) } : {};
+}
+
+function operatorCampaignOfferedDraft(
+  event: DomainEvent,
+): SdkPublicEventDraft | null {
+  const campaignId = readString(event, "campaignId");
+  if (campaignId === null) {
+    return null;
+  }
+  const progressive = event["progressive"] === true;
+  const payload = mapSdkCampaignOfferedPayload({
+    campaignId,
+    progressive,
+    clientPhone: readString(event, "clientPhone") ?? "",
+    companyTitle: readString(event, "companyTitle") ?? "",
+    strategyTitle: readString(event, "strategyTitle") ?? "",
+    selectionTitle: readString(event, "selectionTitle") ?? "",
+    queueTitle: readString(event, "queueTitle") ?? "",
+  });
+  if (payload === null) {
+    return null;
+  }
+  return {
+    type: "operator:campaign-offered",
+    payload,
+  };
+}
+
+function operatorCampaignClearedDraft(
+  event: DomainEvent,
+): SdkPublicEventDraft | null {
+  const campaignId = readString(event, "campaignId");
+  if (campaignId === null) {
+    return null;
+  }
+  const campaignIdParsed = OpaqueIdSchema.safeParse(campaignId.trim());
+  if (!campaignIdParsed.success) {
+    return null;
+  }
+  const reasonRaw = event["reasonCode"];
+  const reasonCode =
+    reasonRaw === "accepted" ||
+    reasonRaw === "rejected" ||
+    reasonRaw === "call_ended" ||
+    reasonRaw === "session_reset" ||
+    reasonRaw === "superseded"
+      ? reasonRaw
+      : undefined;
+  return {
+    type: "operator:campaign-cleared",
+    payload: {
+      campaignId: campaignIdParsed.data,
+      ...(reasonCode !== undefined ? { reasonCode } : {}),
+    },
+  };
 }
 
 function readString(event: DomainEvent, key: string): string | null {

@@ -59,12 +59,14 @@ export const PROTOCOL_DEPRECATION_MIN_DAYS = 90 as const;
  */
 export const PROTOCOL_DEPRECATION_MIN_DESKTOP_MINORS = 2 as const;
 
-/** Capability IDs (ADR-0011 / ADR-0016). @public */
+/** Capability IDs (ADR-0011 / ADR-0016 / ADR-0020). @public */
 export const CAPABILITY_IDS = [
   'session.read.redacted',
   'window.show',
   'window.hide',
   'operator.status.write',
+  'operator.campaign.read',
+  'ocp.acd_context.read',
   'call.originate',
   'call.control',
   'account.activate',
@@ -85,12 +87,16 @@ export const DEFAULT_CAPABILITY_PROFILES = {
     'session.read.redacted',
     'window.show',
     'operator.status.write',
+    'operator.campaign.read',
+    'ocp.acd_context.read',
     'session.logout'
   ],
   call_controller: [
     'session.read.redacted',
     'window.show',
     'operator.status.write',
+    'operator.campaign.read',
+    'ocp.acd_context.read',
     'session.logout',
     'call.originate',
     'call.control'
@@ -111,14 +117,12 @@ export const PRIVILEGED_CAPABILITIES = ['account.activate', 'window.hide'] as co
 export const V1_PRODUCT_UNAVAILABLE_COMMANDS = ['window:hide'] as const;
 
 /**
- * Campaign event types deferred past protocol v1 (ADR-0017 / O-CAMP-1).
- * Must not appear in v1 event unions.
+ * Historical placeholder: campaign events entered protocol v1 in ADR-0019.
+ * Kept as an empty list so `isDeferredCampaignEventType` remains a stable export
+ * and always returns false for current majors.
  * @public
  */
-export const V1_DEFERRED_CAMPAIGN_EVENTS = [
-  'operator:campaign-offered',
-  'operator:campaign-cleared'
-] as const;
+export const V1_DEFERRED_CAMPAIGN_EVENTS = [] as const;
 
 /**
  * Keys that must never appear on the public wire (ADR-0017 / SECURITY.md).

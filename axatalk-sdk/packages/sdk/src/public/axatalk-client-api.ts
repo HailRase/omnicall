@@ -86,7 +86,9 @@ export type AxatalkCallsApi = {
 };
 
 /**
- * Operator status namespace (`operator.status.write`). No campaign events.
+ * Operator status namespace (`operator.status.write`).
+ * Campaign notify events use `operator.campaign.read` (subscribe / snapshot).
+ * ACD MainCallIDInfo events use `ocp.acd_context.read` (`call:acd-context`).
  * Finish appeal is only valid during post-call processing (desktop-enforced).
  * @public
  */

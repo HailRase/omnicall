@@ -282,6 +282,7 @@ export class OcpAuthenticateAndConnectService {
     const ephemeralToken = authResult.value.token;
     this.tokenScope.begin(attemptId, ephemeralToken);
     this.deps.projectionHub.setSessionDomain(domain);
+    this.deps.projectionHub.setSessionAuthenticatedLogin(login);
     this.deps.onExecutionStage?.("submitting_token_to_ocp", attemptId);
 
     const connectResult = await this.deps.connectOcp.execute({

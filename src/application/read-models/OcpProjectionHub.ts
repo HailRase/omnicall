@@ -37,6 +37,7 @@ import {
   applyAuthorizationProgress,
   applyOcpActiveAttemptId,
   applyOcpAuthFeedback,
+  applyOcpSessionAuthenticatedLogin,
   applyOcpSessionDomain,
   clearOcpAuthFeedback,
   initialOcpSessionProjection,
@@ -188,6 +189,16 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
     this.notifyChangeListeners();
   }
 
+  /** Persist OCP connect login for call-sync wire (`user_login`). */
+  setSessionAuthenticatedLogin(login: string): void {
+    const trimmed = login.trim();
+    if (trimmed.length === 0) {
+      return;
+    }
+    this.session = applyOcpSessionAuthenticatedLogin(this.session, trimmed);
+    this.notifyChangeListeners();
+  }
+
   /**
    * Begin or supersede an OCP attempt. Late events with a different id are ignored.
    */
@@ -270,9 +281,27 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
     this.notifyChangeListeners();
   }
 
-  clearActiveCampaign(): void {
+  /**
+   * Clears preview + progressive slots. Returns the cleared campaign id when one
+   * was active (for SDK cleared events).
+   */
+  clearActiveCampaign(): string | null {
+    const previous =
+      this.campaign.activeCampaign?.id ??
+      this.campaign.progressiveContext?.id ??
+      null;
     this.campaign = clearCampaignEvent();
     this.notifyChangeListeners();
+    return previous;
+  }
+
+  /** Snapshot of the active campaign id without clearing (preview preferred). */
+  getActiveCampaignId(): string | null {
+    return (
+      this.campaign.activeCampaign?.id ??
+      this.campaign.progressiveContext?.id ??
+      null
+    );
   }
 
   /**

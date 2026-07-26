@@ -17,28 +17,46 @@ Constant: `PUBLIC_EVENT_TYPES` from `@axata/axatalk-sdk`.
 | `call:failed` | Error toast (no raw SIP text) |
 | `call:held` / `call:resumed` | Hold state |
 | `call:muted` / `call:unmuted` | Mute state |
+| `call:acd-context` | OCP MainCallIDInfo wire (`acallid` / `main_acallid` / parties / `queue`) — needs `ocp.acd_context.read` (ADR-0020) |
 | `registration:changed` | SIP registration badge |
 | `account:session-activated` | Account signed-in projection |
 | `account:session-ended` | Account signed-out projection |
 | `operator:session-changed` | Operator connectivity (`connected`) |
 | `operator:status-changed` | Coarse Ready / Break / offline / post_call_processing / unknown UI; optional `reservedTarget` / `reservedReasonId` |
+| `operator:campaign-offered` | OCP campaign offer (`mode: preview \| progressive`); redacted labels/phone — needs `operator.campaign.read` |
+| `operator:campaign-cleared` | Offer cleared (`reasonCode` optional) — needs `operator.campaign.read` |
 | `window:visibility-changed` | Softphone window state |
 | `sdk:server-shutdown` | Prompt reconnect / wait for desktop |
 
 Desktop (Axatalk) emits the operator events above from OCP Domain Events via
 `ExternalSdkEventMapper` (DI-05 follow-up). Mid-call OCP statuses (talking, hold, …)
 project as public `unknown`. **Post-call processing** projects as
-`post_call_processing` so CRM can enable `operator.finishAppeal`. Campaign events remain
-out of v1.
+`post_call_processing` so CRM can enable `operator.finishAppeal`. Campaign notify
+events require `operator.campaign.read` (ADR-0019); accept/reject stay on desktop UI.
 
-### Call queue label (OCP ACD, additive)
+### Call ACD context (OCP `get_main_acallid`)
 
-When OCP resolves an ACD queue for a live SIP call, desktop may re-emit an existing
-`call:*` event (usually `call:incoming` / `call:outgoing` / `call:answered`) with
-optional `payload.queueLabel` (max 128). The same field appears on snapshot call
-summaries. **Never** expect legacy DOM names (`OCPincomingCallProgress`) or OCP
-`acallid`. Empty/direct queue → field omitted. Details:
-`docs/softphone/OCP-Call-Context.md`.
+When OCP resolves ACD context for a live SIP call, desktop emits:
+
+1. **`call:acd-context`** — full OCP MainCallIDInfo wire (prefer for CRM):
+   - `callId` (desktop SIP id) + `main_acallid?`, `acallid`, `event`,
+     `caller_id`, `called_id`, `queue`, `user_login`
+   - optional `phase` / `direction`
+   - requires `ocp.acd_context.read` (ADR-0020)
+2. **Additive `queueLabel` on an existing `call:*`** — desktop-safe title only
+   (no wire ids; omitted when empty).
+
+Empty/direct queue → `call:acd-context` still fires with `queue: ""`;
+`queueLabel` on `call:*` omitted. Details: `docs/softphone/OCP-Call-Context.md`.
+
+```ts
+client.subscribe('call:acd-context', (event) => {
+  void event.payload.main_acallid;
+  void event.payload.acallid;
+  void event.payload.queue;
+  void event.payload.user_login;
+});
+```
 
 ## Usage
 
@@ -63,9 +81,25 @@ client.subscribe('operator:session-changed', (event) => {
   void event.payload.connected;
 });
 
+client.subscribe('operator:campaign-offered', (event) => {
+  // Redacted DTO only — never expect OCP wire ids.
+  void event.payload.campaignId;
+  void event.payload.mode;
+  void event.payload.remoteNumber;
+});
+
+client.subscribe('operator:campaign-cleared', (event) => {
+  void event.payload.campaignId;
+  void event.payload.reasonCode;
+});
+
 // Before operator:change-status / other mutations:
 const revision =
   client.getRevision() ?? (await client.getSnapshot()).revision;
+
+// Reconnect recovery for an active offer:
+const snapshot = await client.getSnapshot();
+void snapshot.sections.operator?.campaign;
 ```
 
 Rules:

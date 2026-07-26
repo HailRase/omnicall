@@ -170,6 +170,8 @@ export class OcpIntegrationComposition {
       eventPublisher: deps.eventPublisher,
       ocpGateway: deps.ocpGateway,
       isOcpAuthenticated,
+      getOcpUserLogin: () =>
+        this.projectionHub.getSessionProjection().authenticatedLogin,
       logger: deps.logger,
       callContext: {
         markPending: (callId, direction) => {
@@ -186,7 +188,7 @@ export class OcpIntegrationComposition {
         },
       },
       clearCampaignOnCallTerminal: () => {
-        this.projectionHub.clearActiveCampaign();
+        this.clearCampaignAndPublish("call_ended");
       },
     });
     this.dndBridge = new OcpDndBridgeService({
@@ -299,6 +301,22 @@ export class OcpIntegrationComposition {
 
   /** Cold-start OCP projections after intentional logout (LF-048 / ADR-AF-002). */
   resetProjectionsToIdleAfterUserLogout(): void {
+    const campaignId = this.projectionHub.getActiveCampaignId();
     this.projectionHub.resetToIdle();
+    if (campaignId !== null) {
+      this.sessionLifecycle.publishCampaignCleared(campaignId, "session_reset");
+    }
+  }
+
+  /**
+   * Clear campaign projection and publish SDK-facing cleared Domain Event.
+   */
+  clearCampaignAndPublish(
+    reasonCode: "accepted" | "rejected" | "call_ended" | "session_reset",
+  ): void {
+    const campaignId = this.projectionHub.clearActiveCampaign();
+    if (campaignId !== null) {
+      this.sessionLifecycle.publishCampaignCleared(campaignId, reasonCode);
+    }
   }
 }

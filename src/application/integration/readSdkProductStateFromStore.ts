@@ -52,6 +52,20 @@ export type SdkStoreProjectionSlice = Readonly<{
       >
     >;
   }>;
+  ocpCampaignEventProjection?: Readonly<{
+    activeCampaign: SdkCampaignPayloadSlice | null;
+    progressiveContext: SdkCampaignPayloadSlice | null;
+  }>;
+}>;
+
+type SdkCampaignPayloadSlice = Readonly<{
+  id: string;
+  progressive: boolean;
+  clientPhone: string;
+  companyTitle: string;
+  strategyTitle: string;
+  selectionTitle: string;
+  queueTitle: string;
 }>;
 
 export type ReadSdkProductStateOptions = Readonly<{
@@ -99,6 +113,32 @@ export function readSdkProductStateFromStore(
     reservedReasonId: ocpConnected
       ? store.ocpOperatorStatusProjection.reservedReasonId
       : null,
+    activeCampaign: ocpConnected
+      ? readActiveCampaignOffer(store.ocpCampaignEventProjection)
+      : null,
+  };
+}
+
+function readActiveCampaignOffer(
+  projection:
+    | SdkStoreProjectionSlice["ocpCampaignEventProjection"]
+    | undefined,
+): SdkProductStateSnapshot["activeCampaign"] {
+  if (projection === undefined) {
+    return null;
+  }
+  const source = projection.activeCampaign ?? projection.progressiveContext;
+  if (source === null) {
+    return null;
+  }
+  return {
+    campaignId: source.id,
+    progressive: source.progressive,
+    clientPhone: source.clientPhone,
+    companyTitle: source.companyTitle,
+    strategyTitle: source.strategyTitle,
+    selectionTitle: source.selectionTitle,
+    queueTitle: source.queueTitle,
   };
 }
 

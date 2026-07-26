@@ -705,6 +705,8 @@ export const bgMessages: MessageShape = {
   "settings.integrations.sdk.matrix.windowShow": "Показване на softphone прозореца",
   "settings.integrations.sdk.matrix.windowHide": "Скриване на softphone прозореца",
   "settings.integrations.sdk.matrix.operatorStatus": "Смяна на операторски статус",
+  "settings.integrations.sdk.matrix.operatorCampaign": "Събития от OCP кампании",
+  "settings.integrations.sdk.matrix.ocpAcdContext": "OCP ACD контекст на обаждане (main_acallid)",
   "settings.integrations.sdk.matrix.sessionLogout": "Изход от сесия",
   "settings.integrations.sdk.matrix.callOriginate": "Изходящо обаждане",
   "settings.integrations.sdk.matrix.callControl": "Управление на обаждане",
