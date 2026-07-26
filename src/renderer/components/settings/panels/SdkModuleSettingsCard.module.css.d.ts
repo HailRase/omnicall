@@ -36,7 +36,13 @@ declare const classes: {
   readonly originCard: string;
   readonly originEditRow: string;
   readonly permissionField: string;
+  readonly permissionLabel: string;
+  readonly permissionRow: string;
   readonly permissionSelect: string;
+  readonly permissionToggle: string;
+  readonly permissionToggleAllowed: string;
+  readonly permissionToggleDenied: string;
+  readonly permissionToggleLabel: string;
   readonly sectionStack: string;
   readonly sectionTabTrigger: string;
   readonly sectionTabs: string;

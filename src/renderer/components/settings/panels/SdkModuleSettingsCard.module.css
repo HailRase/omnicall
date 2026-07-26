@@ -275,8 +275,85 @@
 .matrix-list {
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: var(--space-2xs);
   max-width: none;
+}
+
+.permission-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  min-height: 2.25rem;
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: var(--radius-panel);
+  background: color-mix(in srgb, var(--color-bg-surface) 72%, transparent);
+}
+
+.permission-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.35;
+  color: var(--color-text-primary);
+}
+
+.permission-toggle {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 1.75rem;
+  padding: 0.2rem 0.55rem 0.2rem 0.4rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease,
+    opacity 120ms ease;
+}
+
+.permission-toggle:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.permission-toggle:focus-visible {
+  outline: 2px solid var(--color-outline-focus);
+  outline-offset: 2px;
+}
+
+.permission-toggle-allowed {
+  color: var(--color-status-online);
+  background: color-mix(in srgb, var(--color-status-online) 14%, var(--color-bg-surface));
+  border-color: color-mix(in srgb, var(--color-status-online) 42%, transparent);
+}
+
+.permission-toggle-allowed:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-status-online) 22%, var(--color-bg-surface));
+  border-color: color-mix(in srgb, var(--color-status-online) 58%, transparent);
+}
+
+.permission-toggle-denied {
+  color: var(--color-status-failed);
+  background: color-mix(in srgb, var(--color-status-failed) 12%, var(--color-bg-surface));
+  border-color: color-mix(in srgb, var(--color-status-failed) 40%, transparent);
+}
+
+.permission-toggle-denied:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-status-failed) 20%, var(--color-bg-surface));
+  border-color: color-mix(in srgb, var(--color-status-failed) 55%, transparent);
+}
+
+.permission-toggle-label {
+  white-space: nowrap;
 }
 
 .permission-field {

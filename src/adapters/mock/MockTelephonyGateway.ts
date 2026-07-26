@@ -58,6 +58,11 @@ export type MockTelephonyGatewayOptions = Readonly<{
   holdScenario?: MockHoldScenario;
   resumeScenario?: MockResumeScenario;
   hangupScenario?: MockHangupScenario;
+  /**
+   * When true, successful hangup awaits callEndedHandler (JsSIP terminate→ended parity).
+   * Default false keeps legacy unit tests that expect hangup alone to publish CallEnded.
+   */
+  hangupNotifiesEnded?: boolean;
   blindTransferScenario?: MockBlindTransferScenario;
   attendedTransferScenario?: MockAttendedTransferScenario;
   delayMs?: number;
@@ -73,6 +78,7 @@ export class MockTelephonyGateway implements TelephonyGateway {
   private holdScenario: MockHoldScenario;
   private resumeScenario: MockResumeScenario;
   private hangupScenario: MockHangupScenario;
+  private hangupNotifiesEnded: boolean;
   private blindTransferScenario: MockBlindTransferScenario;
   private attendedTransferScenario: MockAttendedTransferScenario;
   private readonly delayMs: number;
@@ -159,6 +165,7 @@ export class MockTelephonyGateway implements TelephonyGateway {
       this.holdScenario = "success";
       this.resumeScenario = "success";
       this.hangupScenario = "success";
+      this.hangupNotifiesEnded = false;
       this.blindTransferScenario = "success";
       this.attendedTransferScenario = "success";
       this.delayMs = delayMs;
@@ -176,10 +183,15 @@ export class MockTelephonyGateway implements TelephonyGateway {
     this.holdScenario = scenarioOrOptions.holdScenario ?? "success";
     this.resumeScenario = scenarioOrOptions.resumeScenario ?? "success";
     this.hangupScenario = scenarioOrOptions.hangupScenario ?? "success";
+    this.hangupNotifiesEnded = scenarioOrOptions.hangupNotifiesEnded ?? false;
     this.blindTransferScenario = scenarioOrOptions.blindTransferScenario ?? "success";
     this.attendedTransferScenario =
       scenarioOrOptions.attendedTransferScenario ?? "success";
     this.delayMs = scenarioOrOptions.delayMs ?? 0;
+  }
+
+  setHangupNotifiesEnded(enabled: boolean): void {
+    this.hangupNotifiesEnded = enabled;
   }
 
   setScenario(scenario: MockTelephonyScenario): void {
@@ -496,20 +508,24 @@ export class MockTelephonyGateway implements TelephonyGateway {
     return ok(undefined);
   }
 
-  hangup(command: HangupCommand): Promise<Result<void, PlatformError>> {
+  async hangup(command: HangupCommand): Promise<Result<void, PlatformError>> {
     if (this.hangupScenario === "failure") {
-      return Promise.resolve(
-        err(
-          createPlatformError(
-            "operation_failed",
-            `Hangup failed for ${command.callId}`,
-          ),
+      return err(
+        createPlatformError(
+          "operation_failed",
+          `Hangup failed for ${command.callId}`,
         ),
       );
     }
 
     this.hangupCalls.push(command.callId);
-    return Promise.resolve(ok(undefined));
+    if (this.hangupNotifiesEnded && this.callEndedHandler !== null) {
+      await this.callEndedHandler({
+        callId: command.callId,
+        correlationId: command.correlationId,
+      });
+    }
+    return ok(undefined);
   }
 
   holdCall(command: HoldCallCommand): Promise<Result<void, PlatformError>> {

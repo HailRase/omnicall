@@ -11,7 +11,7 @@ Use against a real or staging OCP WebSocket. Automated coverage is in `OcpFullFl
 | SM-1 | Settings → Integrations → OCP → Connect and sign in | Progress stages visible; READY in header only after SIP registered | ☐ |
 | SM-2 | READY → BREAK (reason) | Orange status dot / break label | ☐ |
 | SM-3 | Incoming call while authenticated | `get_main_acallid` in WS logs | ☐ |
-| SM-4 | Call ends | `dlg_stop` in WS logs (with acallId when known) | ☐ |
+| SM-4 | Call ends (local hangup, remote end, reject, outbound fail) | Exactly one `dlg_stop` with `payload.acallid` = SIP session id (`type: dlg_stop_calls`); no `call_id` | ☐ |
 | SM-5 | Logout with reason | `change_status_to_logout` + disconnect; SIP cascade if authenticated | ☐ |
 | SM-6 | WS disconnect ~10s | Connection banner → reconnect attempts (capped) | ☐ |
 | SM-7 | SESSION_EXIST | Non-blocking toast; retry connect allowed; no reconnect loop | ☐ |

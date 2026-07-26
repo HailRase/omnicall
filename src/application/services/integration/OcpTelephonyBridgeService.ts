@@ -78,6 +78,8 @@ export class OcpTelephonyBridgeService {
     string,
     ReturnType<typeof setTimeout>
   >();
+  /** Ensures at most one dlg_stop per SIP callId (hangup/session race, Reject+Ended). */
+  private readonly dlgStopSentCallIds = new Set<string>();
   private pendingCorrelationCallId: string | null = null;
 
   constructor(private readonly deps: OcpTelephonyBridgeServiceDeps) {
@@ -111,6 +113,7 @@ export class OcpTelephonyBridgeService {
     this.remotePartyByCallId.clear();
     this.lifecycleEventByCallId.clear();
     this.publishedQueueByCallId.clear();
+    this.dlgStopSentCallIds.clear();
     this.pendingCorrelationCallId = null;
   }
 
@@ -151,6 +154,8 @@ export class OcpTelephonyBridgeService {
       }
       case "CallEnded":
       case "CallFailed":
+      case "CallRejected":
+      case "CallRejectedByDnd":
         this.sendDlgStop(readCallId(event));
         this.deps.clearCampaignOnCallTerminal();
         return;
@@ -344,12 +349,35 @@ export class OcpTelephonyBridgeService {
     if (callId === null) {
       return;
     }
-    const acallId = this.callCorrelationMap.get(callId);
+    this.clearCallLocalState(callId);
+    if (this.dlgStopSentCallIds.has(callId)) {
+      this.deps.logger.info("ocp_telephony_bridge_dlg_stop_skipped_duplicate", {
+        featureId: FEATURE_ID,
+        boundedContext: BOUNDED_CONTEXT,
+        operation: "dlg_stop",
+        callId,
+        result: "duplicate",
+      });
+      return;
+    }
+    this.dlgStopSentCallIds.add(callId);
+    // Wire `acallid` is SIP CallId (same quirk as get_main_acallid), not OCP MainCallIDInfo id.
     const result = this.deps.ocpGateway.sendCommand({
       kind: "dlg_stop",
       callId,
-      ...(acallId !== undefined ? { acallId } : {}),
     });
+    if (!result.ok) {
+      this.deps.logger.warn("ocp_telephony_bridge_dlg_stop_failed", {
+        featureId: FEATURE_ID,
+        boundedContext: BOUNDED_CONTEXT,
+        operation: "dlg_stop",
+        callId,
+        result: result.error.code,
+      });
+    }
+  }
+
+  private clearCallLocalState(callId: string): void {
     this.callCorrelationMap.delete(callId);
     this.callDirectionMap.delete(callId);
     this.remotePartyByCallId.delete(callId);
@@ -360,15 +388,6 @@ export class OcpTelephonyBridgeService {
     }
     this.clearPendingTimeout(callId);
     this.deps.callContext.clear(callId);
-    if (!result.ok) {
-      this.deps.logger.warn("ocp_telephony_bridge_dlg_stop_failed", {
-        featureId: FEATURE_ID,
-        boundedContext: BOUNDED_CONTEXT,
-        operation: "dlg_stop",
-        callId,
-        result: result.error.code,
-      });
-    }
   }
 
   private armPendingTimeout(callId: string): void {

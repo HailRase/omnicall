@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { JSX } from "react";
 import {
   withMatrixCapability,
@@ -5,7 +6,7 @@ import {
   type SdkOriginMatrixCapabilityId,
 } from "@application/index.js";
 import { useI18n } from "../../../i18n/index.js";
-import { FormField, Select } from "../../ui/index.js";
+import { AppIcon } from "../../icons/index.js";
 import styles from "./SdkModuleSettingsCard.module.css";
 import {
   SDK_ORIGIN_MATRIX_LABEL_KEYS,
@@ -23,7 +24,7 @@ type Props = Readonly<{
 type PermissionValue = "allowed" | "denied";
 
 /**
- * - Purpose: per-Origin permission Selects (allowed/denied) with label above each control.
+ * - Purpose: per-Origin permission rows with green check / red cross status chips.
  */
 export function SdkModuleSettingsOriginMatrix({
   origin,
@@ -32,17 +33,6 @@ export function SdkModuleSettingsOriginMatrix({
   onSetOriginMatrix,
 }: Props): JSX.Element {
   const { t } = useI18n();
-
-  const permissionItems = [
-    {
-      value: "allowed" as const,
-      label: t("settings.integrations.sdk.permission.allowed"),
-    },
-    {
-      value: "denied" as const,
-      label: t("settings.integrations.sdk.permission.denied"),
-    },
-  ];
 
   function setCapability(
     capability: SdkOriginMatrixCapabilityId,
@@ -59,36 +49,56 @@ export function SdkModuleSettingsOriginMatrix({
       className={styles.matrixBlock}
       data-testid={`sdk-origin-matrix-${origin}`}
     >
-      <div className={styles.matrixList}>
+      <div className={styles.matrixList} role="list">
         {SDK_ORIGIN_MATRIX_UI_CAPABILITY_IDS.map((capability) => {
           const labelKey = SDK_ORIGIN_MATRIX_LABEL_KEYS[capability];
-          const selectId = `sdk-matrix-${capability}-${origin}`;
           const techId = SDK_ORIGIN_MATRIX_TECH_IDS[capability];
+          const capabilityLabel = t(labelKey);
           const value: PermissionValue =
             matrix.capabilities[capability] === true ? "allowed" : "denied";
+          const isAllowed = value === "allowed";
+          const stateLabel = isAllowed
+            ? t("settings.integrations.sdk.permission.allowed")
+            : t("settings.integrations.sdk.permission.denied");
+          const nextValue: PermissionValue = isAllowed ? "denied" : "allowed";
 
           return (
-            <FormField
+            <div
               key={capability}
-              label={<span title={techId}>{t(labelKey)}</span>}
-              disabled={busy}
-              className={styles.permissionField}
+              className={styles.permissionRow}
+              role="listitem"
             >
-              <Select
-                id={selectId}
-                className={styles.permissionSelect}
-                size="sm"
-                items={permissionItems}
-                value={value}
+              <span className={styles.permissionLabel} title={techId}>
+                {capabilityLabel}
+              </span>
+              <button
+                type="button"
+                className={clsx(
+                  styles.permissionToggle,
+                  isAllowed
+                    ? styles.permissionToggleAllowed
+                    : styles.permissionToggleDenied,
+                )}
                 disabled={busy}
+                aria-pressed={isAllowed}
+                aria-label={`${capabilityLabel}: ${stateLabel}`}
+                title={stateLabel}
                 data-testid={`sdk-matrix-${capability}-${origin}`}
-                onValueChange={(next) => {
-                  if (next === "allowed" || next === "denied") {
-                    setCapability(capability, next);
-                  }
+                onClick={() => {
+                  setCapability(capability, nextValue);
                 }}
-              />
-            </FormField>
+              >
+                <AppIcon
+                  id={
+                    isAllowed ? "sdk.permission.allowed" : "sdk.permission.denied"
+                  }
+                  decorative
+                  preferAnimated={false}
+                  size={16}
+                />
+                <span className={styles.permissionToggleLabel}>{stateLabel}</span>
+              </button>
+            </div>
           );
         })}
       </div>

@@ -128,7 +128,7 @@ describe("OcpTelephonyBridge integration (E-10)", () => {
     bridge.dispose();
   });
 
-  it("CallEnded → dlg_stop with correlated acallId", () => {
+  it("CallEnded → dlg_stop with SIP callId wire (correlation cleared)", () => {
     const { gateway, bus, bridge } = createAuthenticatedBridge();
     const callId = createCallId("end-1");
 
@@ -150,13 +150,12 @@ describe("OcpTelephonyBridge integration (E-10)", () => {
     expect(gateway.getLastSentCommand()).toEqual({
       kind: "dlg_stop",
       callId,
-      acallId: "acall-42",
     });
     expect(bridge.getCorrelationAcallId(callId)).toBeUndefined();
     bridge.dispose();
   });
 
-  it("CallFailed clears correlation map and sends dlg_stop", () => {
+  it("CallFailed clears correlation map and sends dlg_stop once", () => {
     const { gateway, bus, bridge } = createAuthenticatedBridge();
     const callId = createCallId("fail-1");
 
@@ -187,7 +186,6 @@ describe("OcpTelephonyBridge integration (E-10)", () => {
     expect(gateway.getLastSentCommand()).toEqual({
       kind: "dlg_stop",
       callId,
-      acallId: "acall-fail",
     });
     expect(bridge.getCorrelationAcallId(callId)).toBeUndefined();
     bridge.dispose();

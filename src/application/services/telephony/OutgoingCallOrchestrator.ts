@@ -294,8 +294,27 @@ export class OutgoingCallOrchestrator {
     correlationId: CorrelationId,
     details: string,
   ): Promise<Result<Call, ReturnType<typeof createPlatformError>>> {
-    const failedTransition = applyCallTransition(call, "failed");
-    const failedCall = failedTransition.transition.ok ? failedTransition.call : call;
+    // Local hangup during Connecting may already have published CallEnded and
+    // untracked; makeCall's progress wait then settles with call_ended_before_answer.
+    // Skip CallFailed so OCP/history see a single terminal outcome.
+    const tracked = this.deps.callTracker.getTrackedCall(call.id);
+    if (!tracked.ok) {
+      this.deps.logger.info("outgoing_call_fail_skipped_already_finalized", {
+        correlationId,
+        featureId: "F-003",
+        boundedContext: "Telephony",
+        operation: "make_call",
+        previousState: call.state,
+        nextState: call.state,
+        result: "already_finalized",
+        normalizedError: details,
+      });
+      this.deps.videoMediaProjection.remove(call.id);
+      return err(createPlatformError("operation_failed", details));
+    }
+
+    const failedTransition = applyCallTransition(tracked.value, "failed");
+    const failedCall = failedTransition.transition.ok ? failedTransition.call : tracked.value;
     const reason = mapCallFailureReason(details);
 
     this.deps.eventPublisher.publish(

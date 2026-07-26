@@ -2,7 +2,7 @@
 
 - **Feature:** F-028 (extends E-09 / E-10); SDK surface F-011 / DI-05
 - **Legacy parity:** LF-037, LF-038, LF-039, LF-040 (via F-028; P07 removed per ADR-0005)
-- **Updated:** 2026-07-26 (campaign single-modal FSM + ADR-0020 snapshot `acdContext`)
+- **Updated:** 2026-07-26 (dlg_stop single-shot wire + hangup race; campaign FSM + ADR-0020)
 
 ## Purpose
 
@@ -34,7 +34,49 @@ Application command (`OcpCommand`) uses camelCase; only
 **Do not** send `call_id` for this command (legacy/working hosts expect `acallid`).
 **Do not** rename Domain `callId` → `acallId` on the command: after the server
 answers, inbound OCP call id is a different identifier stored in the bridge
-correlation map for `dlg_stop`.
+correlation map for queue / SDK ACD context (not for `dlg_stop` wire).
+
+## Outbound `dlg_stop` wire contract
+
+Application command: `{ kind: "dlg_stop", callId }` (SIP CallId only).
+
+| Application (`OcpCommand`) | Wire JSON | Meaning |
+| --- | --- | --- |
+| `callId` | **`payload.acallid`** | Same SIP CallId used in outbound `get_main_acallid` |
+| — | `command: "dlg_stop"` | |
+| — | `entity: "calls"` | |
+| — | `type: "dlg_stop_calls"` | |
+
+**Canonical wire frame:**
+
+```json
+{
+  "command": "dlg_stop",
+  "entity": "calls",
+  "payload": { "acallid": "<sip-session-id>" },
+  "type": "dlg_stop_calls"
+}
+```
+
+**Do not** send `call_id`, `acall_id`, or the inbound OCP MainCallIDInfo id on
+`dlg_stop`. Hosts match the dialog by the same `acallid` that was sent on
+`get_main_acallid`.
+
+### Single-shot `dlg_stop` (mandatory)
+
+Exactly **one** `dlg_stop` per SIP `callId` while OCP is authenticated.
+
+| Trigger Domain events | Notes |
+| --- | --- |
+| `CallEnded` | Normal hangup / remote end / missed |
+| `CallFailed` | Outbound failure (busy, reject, etc.) |
+| `CallRejected` / `CallRejectedByDnd` | Local reject (may not emit `CallEnded`) |
+
+`OcpTelephonyBridgeService` dedupes with an in-memory set (`dlgStopSentCallIds`).
+Telephony also avoids duplicate `CallEnded` when local hangup races JsSIP
+`session.terminate()` → `ended`/`failed` → `handleCallEnded`, and skips
+`CallFailed` when the call was already finalized by hangup
+(`call_ended_before_answer` after local cancel).
 
 ### Inbound `entity: calls` (MainCallIDInfo)
 
@@ -125,7 +167,7 @@ Rules:
    local `BrowserWindow` call from React.
 7. **SIP-only / OCP offline:** all badges and modal hidden; SDK `queueLabel` / campaign absent.
 8. **Correlation:** exact SIP `callId` via `OcpTelephonyBridgeService` pending map — no `session.id.includes`.
-9. **Cleanup:** `CallEnded` / `CallFailed` clear call context entry and campaign slots; logout `resetToIdle` clears both; SDK emits `operator:campaign-cleared` with `reasonCode` (`accepted` / `rejected` / `call_ended` / `session_reset`).
+9. **Cleanup:** `CallEnded` / `CallFailed` / `CallRejected` / `CallRejectedByDnd` → one `dlg_stop` + clear call context + campaign slots; logout `resetToIdle` clears both; SDK emits `operator:campaign-cleared` with `reasonCode` (`accepted` / `rejected` / `call_ended` / `session_reset`).
 10. **SDK privacy:** `call:acd-context` and snapshot `calls[].acdContext` may carry OCP MainCallIDInfo wire under `ocp.acd_context.read` (ADR-0020). Other `call:*` fields / campaign DTOs stay free of `acallid`; campaign remains redacted under `operator.campaign.read`.
 
 ## Layers

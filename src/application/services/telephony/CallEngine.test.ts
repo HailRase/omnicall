@@ -874,6 +874,39 @@ describe("CallEngine", () => {
     expect(telephony.getHangupCalls()).toEqual(["active-3"]);
   });
 
+  it("publishes CallEnded once when hangup also notifies session ended", async () => {
+    const telephony = new MockTelephonyGateway({
+      makeCallScenario: "answered",
+      hangupNotifiesEnded: true,
+    });
+    const events = new InMemoryDomainEventBus();
+    const publishedTypes: string[] = [];
+    events.subscribe((event) => {
+      publishedTypes.push(event.type);
+    });
+    const engine = new CallEngine(
+      telephony,
+      new MockMediaGateway(),
+      new InMemorySettingsRepository(),
+      events,
+      createTestLogger(),
+    );
+    telephony.setCallEndedHandler(async (notification) => {
+      await engine.handleCallEnded(notification.callId, notification.correlationId);
+    });
+
+    const callId = createCallId("active-hangup-once");
+    await engine.makeCall({
+      callId,
+      phoneNumber: createPhoneNumber("+12025550199"),
+    });
+
+    const hangupResult = await engine.hangupCall({ callId });
+    expect(hangupResult.ok).toBe(true);
+    expect(publishedTypes.filter((type) => type === "CallEnded")).toHaveLength(1);
+    expect(publishedTypes).toContain("CallHangupRequested");
+  });
+
   it("returns hold failure when gateway rejects command", async () => {
     const telephony = new MockTelephonyGateway({ makeCallScenario: "answered" });
     telephony.setHoldScenario("failure");

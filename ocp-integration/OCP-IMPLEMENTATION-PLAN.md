@@ -247,7 +247,7 @@ src/domain/integration/ocp/
   - `{ kind: 'change_status_to_logout'; operatorId: number; reasonId: number; callType: 'internal' | 'external' | 'sdk' }`
   - `{ kind: 'update_post_call_status'; operatorId: number; reasonId: number; reservedStatus: OperatorStatus }`
   - `{ kind: 'get_main_acallid'; callId; userLogin; callerId; calledId; lifecycleEvent }` — wire: `acallid` + `user_login` + `caller_id` + `called_id` + `event` (see `OCP-Call-Context.md`)
-  - `{ kind: 'dlg_stop'; callId: string; acallId?: string }`
+  - `{ kind: 'dlg_stop'; callId: string }` — wire: `{ acallid: callId }` only (SIP id; see `OCP-Call-Context.md`)
   - `{ kind: 'campaign_accept'; operatorId: number; campaignEventId: string }`
   - `{ kind: 'campaign_reject'; operatorId: number; campaignEventId: string }`
   - `{ kind: 'logging'; payload: Record<string, unknown> }` — для action-логов
@@ -590,7 +590,7 @@ src/application/services/integration/
   - `IncomingCallReceived` → `get_main_acallid`
   - `OutgoingCallStarted` → `get_main_acallid`
   - `CallAnswered` → `get_main_acallid` (sync)
-  - `CallEnded` / `CallFailed` → `dlg_stop` (lookup из OcpCallCorrelationMap)
+  - `CallEnded` / `CallFailed` / `CallRejected` / `CallRejectedByDnd` → one `dlg_stop` (wire `acallid` = SIP callId; bridge dedupe)
   - `entity: 'calls'` → обновить OcpCallCorrelationMap
   - Map очищается при CallEnded/CallFailed
   - Если `!isAuthenticated` → пропускать команды
@@ -936,7 +936,7 @@ Selector `selectIsCallButtonBlocked` из `operatorStatusProjection`. Подкл
 
 - [x] `OcpTelephonyBridgeService` — полная реализация:
   - Events → команды: IncomingCallReceived/OutgoingCallStarted/CallAnswered → `get_main_acallid`
-  - CallEnded/CallFailed → `dlg_stop` (с acallId из OcpCallCorrelationMap)
+  - CallEnded/CallFailed/CallRejected → one `dlg_stop` (wire `acallid` = SIP callId; bridge dedupe)
   - `entity: 'calls'` → заполнить OcpCallCorrelationMap
   - Map очищается при CallEnded/CallFailed
   - Guard: `if (!isAuthenticated) return`
@@ -948,7 +948,7 @@ Selector `selectIsCallButtonBlocked` из `operatorStatusProjection`. Подкл
 - [x] i18n: `ocp.dialpad.reservedToCall`, `ocp.incomingCall.rejectWithBreakReason`, `ocp.incomingCall.rejectWithoutBreak`, `ocp.incomingCall.breakModal.*`
 - [x] Integration test `OcpTelephonyBridge.integration.test.ts`:
   - `IncomingCallReceived` → `get_main_acallid` отправлен
-  - `CallEnded` → `dlg_stop` с правильным acallId
+  - `CallEnded` → one `dlg_stop` with wire `acallid` = SIP callId
   - Без OCP auth → команды не отправляются
   - `status === RESERVED_TO_CALL` → `selectIsCallButtonBlocked === true`
 

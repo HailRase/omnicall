@@ -163,6 +163,8 @@ export type IconSemanticId =
   | "updates.available"
   | "notification.success"
   | "notification.error"
+  | "sdk.permission.allowed"
+  | "sdk.permission.denied"
   | "account.authProgress.status.completed"
   | "account.authProgress.status.active"
   | "account.authProgress.status.pending"
@@ -644,6 +646,19 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.overlay.close",
     defaultSize: 16,
     usage: ["NotificationViewport: error toast icon"],
+  },
+  "sdk.permission.allowed": {
+    static: CircleCheck,
+    animated: CircleCheckIcon,
+    defaultLabelKey: "settings.integrations.sdk.permission.allowed",
+    defaultSize: 16,
+    usage: ["SdkModuleSettingsOriginMatrix: allowed permission chip"],
+  },
+  "sdk.permission.denied": {
+    static: CircleX,
+    defaultLabelKey: "settings.integrations.sdk.permission.denied",
+    defaultSize: 16,
+    usage: ["SdkModuleSettingsOriginMatrix: denied permission chip"],
   },
   "account.authProgress.status.completed": {
     static: CircleCheck,

@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import {
   createCallEndedEvent,
+  createCallFailedEvent,
   createCallId,
+  createCallRejectedEvent,
   createIncomingCallReceivedEvent,
   createPhoneNumber,
 } from "@domain/index.js";
@@ -117,12 +119,108 @@ describe("OcpTelephonyBridgeService", () => {
     expect(gateway.getLastSentCommand()).toEqual({
       kind: "dlg_stop",
       callId,
-      acallId: "acall-9",
     });
     expect(bridge.getCorrelationAcallId(callId)).toBeUndefined();
     expect(hubMarks).toContain("clear:call-1");
     expect(hubMarks).toContain("clearCampaign");
 
+    bridge.dispose();
+  });
+
+  it("sends dlg_stop on CallRejected when authenticated", () => {
+    const gateway = new MockOcpGateway();
+    const config = createOcpConnectionConfig({
+      domain: "ocp.example",
+      authToken: "token",
+    });
+    expect(config.ok).toBe(true);
+    if (!config.ok) {
+      return;
+    }
+    gateway.connect(config.value);
+    gateway.simulateAuthSuccess(42);
+
+    const bus = new InMemoryDomainEventBus();
+    const bridge = new OcpTelephonyBridgeService({
+      eventPublisher: bus,
+      ocpGateway: gateway,
+      isOcpAuthenticated: () => true,
+      getOcpUserLogin: () => "op.test",
+      logger: createTestLogger({ featureId: "F-028", boundedContext: "Integration" }),
+      callContext: {
+        markPending: () => undefined,
+        resolve: () => undefined,
+        markUnavailable: () => undefined,
+        clear: () => undefined,
+      },
+      clearCampaignOnCallTerminal: () => undefined,
+    });
+
+    const callId = createCallId("reject-1");
+    bus.publish(
+      createIncomingCallReceivedEvent(createCorrelationId(), {
+        callId,
+        phoneNumber: createPhoneNumber("+321"),
+        direction: "incoming",
+      }),
+    );
+    gateway.clearSentCommands();
+    bus.publish(
+      createCallRejectedEvent(createCorrelationId(), {
+        callId,
+        reason: null,
+      }),
+    );
+    expect(gateway.getLastSentCommand()).toEqual({
+      kind: "dlg_stop",
+      callId,
+    });
+    bridge.dispose();
+  });
+
+  it("sends dlg_stop only once when CallEnded then CallFailed for same call", () => {
+    const gateway = new MockOcpGateway();
+    const config = createOcpConnectionConfig({
+      domain: "ocp.example",
+      authToken: "token",
+    });
+    expect(config.ok).toBe(true);
+    if (!config.ok) {
+      return;
+    }
+    gateway.connect(config.value);
+    gateway.simulateAuthSuccess(42);
+
+    const bus = new InMemoryDomainEventBus();
+    const bridge = new OcpTelephonyBridgeService({
+      eventPublisher: bus,
+      ocpGateway: gateway,
+      isOcpAuthenticated: () => true,
+      getOcpUserLogin: () => "op.test",
+      logger: createTestLogger({ featureId: "F-028", boundedContext: "Integration" }),
+      callContext: {
+        markPending: () => undefined,
+        resolve: () => undefined,
+        markUnavailable: () => undefined,
+        clear: () => undefined,
+      },
+      clearCampaignOnCallTerminal: () => undefined,
+    });
+
+    const callId = createCallId("dup-stop");
+    bus.publish(createCallEndedEvent(createCorrelationId(), { callId }));
+    bus.publish(
+      createCallFailedEvent(createCorrelationId(), {
+        callId,
+        reason: "busy",
+        details: "call_ended_before_answer",
+      }),
+    );
+    const dlgStops = gateway
+      .getSentCommands()
+      .filter((command) => command.kind === "dlg_stop");
+    expect(dlgStops).toHaveLength(1);
+    expect(dlgStops[0]).toEqual({ kind: "dlg_stop", callId });
     bridge.dispose();
   });
 

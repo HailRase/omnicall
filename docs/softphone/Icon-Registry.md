@@ -81,6 +81,8 @@
 | `account.authProgress.status.pending` | OCP sign-in stage pending | `CircleDashed` | `CircleDashedIcon` | `OcpSignInProgress` | active |
 | `account.authProgress.status.failed` | OCP sign-in stage failed | `CircleAlert` | `BadgeAlertIcon` | `OcpSignInProgress` | active |
 | `account.authProgress.status.timeout` | OCP sign-in stage timed out | `Hourglass` | `HourglassIcon` | `OcpSignInProgress` | active |
+| `sdk.permission.allowed` | SDK origin capability allowed | `CircleCheck` | `CircleCheckIcon` | `SdkModuleSettingsOriginMatrix` | active |
+| `sdk.permission.denied` | SDK origin capability denied | `CircleX` | — | `SdkModuleSettingsOriginMatrix` | active |
 
 ## Adding an entry
 

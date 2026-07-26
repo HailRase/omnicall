@@ -434,6 +434,22 @@ export class IncomingCallOrchestrator {
       callId,
       correlationId: resolvedCorrelationId,
     });
+
+    // Local hangup may publish CallEnded + untrack while we awaited stopTone.
+    // Do not emit a duplicate terminal event (OCP dlg_stop / history / projections).
+    if (this.deps.callTracker.resolveForEnded(callId) === null) {
+      this.deps.logger.info("call_ended_skipped_already_finalized", {
+        correlationId: resolvedCorrelationId,
+        featureId: "F-004",
+        boundedContext: "Telephony",
+        operation: "handle_call_ended",
+        previousState: trackedCall.state,
+        nextState: ended.call.state,
+        result: "already_finalized",
+      });
+      return;
+    }
+
     this.deps.eventPublisher.publish(
       createIncomingRingtoneStoppedEvent(resolvedCorrelationId, { callId }),
     );

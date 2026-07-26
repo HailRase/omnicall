@@ -55,6 +55,27 @@ describe("buildOcpCommandPayload", () => {
     }
   });
 
+  it("maps dlg_stop SIP callId to wire acallid only", () => {
+    const result = buildOcpCommandPayload({
+      kind: "dlg_stop",
+      callId: "7f0ps2ft8dbf7k29cgjv04mgnrb06d",
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.value).toEqual({
+      command: "dlg_stop",
+      entity: "calls",
+      type: "dlg_stop_calls",
+      payload: {
+        acallid: "7f0ps2ft8dbf7k29cgjv04mgnrb06d",
+      },
+    });
+    expect(result.value.payload).not.toHaveProperty("call_id");
+    expect(result.value.payload).not.toHaveProperty("acall_id");
+  });
+
   it("maps get_main_acallid SIP callId to wire acallid + parties + user_login + event", () => {
     const result = buildOcpCommandPayload({
       kind: "get_main_acallid",

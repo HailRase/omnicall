@@ -60,7 +60,11 @@ export type OcpCommand =
        */
       lifecycleEvent: string;
     }>
-  | Readonly<{ kind: "dlg_stop"; callId: string; acallId?: string }>
+  | Readonly<{
+      kind: "dlg_stop";
+      /** SIP CallId / JsSIP session.id. Wire key is `acallid` (same as get_main_acallid). */
+      callId: string;
+    }>
   | Readonly<{
       kind: "campaign_accept";
       operatorId: number;

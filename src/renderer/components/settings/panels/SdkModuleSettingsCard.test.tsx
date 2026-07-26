@@ -196,17 +196,17 @@ describe("SdkModuleSettingsCard", () => {
     expect(props.onBlacklistOrigin).toHaveBeenCalledWith("https://crm.example");
   });
 
-  it("changes permission via Select inside expanded accordion", async () => {
+  it("toggles permission chip inside expanded accordion", async () => {
     const user = userEvent.setup();
     const onSetOriginMatrix = vi.fn();
     render(<SdkModuleSettingsCard {...createProps({ onSetOriginMatrix })} />);
 
     await openTab(user, "trusted");
     await openTrustedSite(user, "https://crm.example");
-    const select = screen.getByTestId("sdk-matrix-call.control-https://crm.example");
-    await user.click(select);
-    const denied = await screen.findByRole("option", { name: "Denied" });
-    await user.click(denied);
+    const toggle = screen.getByTestId("sdk-matrix-call.control-https://crm.example");
+    expect(toggle).toHaveAttribute("aria-pressed", "true");
+    expect(toggle).toHaveTextContent("Allowed");
+    await user.click(toggle);
 
     expect(onSetOriginMatrix).toHaveBeenCalled();
     const [, nextMatrix] = onSetOriginMatrix.mock.calls[0] as [

@@ -94,7 +94,7 @@ describe("Ocp protocol exhaustive unions", () => {
         calledId: "op",
         lifecycleEvent: "incomingCallProgress",
       },
-      { kind: "dlg_stop", callId: "call-1", acallId: "acall-1" },
+      { kind: "dlg_stop", callId: "call-1" },
       { kind: "campaign_accept", operatorId: 1, campaignEventId: "evt-1" },
       { kind: "campaign_reject", operatorId: 1, campaignEventId: "evt-1" },
       { kind: "logging", payload: { action: "test" } },

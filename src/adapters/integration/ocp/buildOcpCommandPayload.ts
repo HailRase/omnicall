@@ -106,14 +106,14 @@ export function buildOcpCommandPayload(
     }
     case "dlg_stop": {
       const entity = "calls";
-      const payload: Record<string, unknown> = { call_id: cmd.callId };
-      if (cmd.acallId !== undefined) {
-        payload["acall_id"] = cmd.acallId;
-      }
+      // Same wire quirk as get_main_acallid: SIP CallId → `acallid` (no underscore).
+      // Do not send call_id / acall_id — live OCP hosts expect `{ acallid }` only.
       return ok({
         command: cmd.kind,
         entity,
-        payload,
+        payload: {
+          acallid: cmd.callId,
+        },
         type: buildWireType(cmd.kind, entity),
       });
     }

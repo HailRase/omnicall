@@ -212,7 +212,6 @@ describe("OcpFullFlow integration (E-13)", () => {
       expect(gateway.getLastSentCommand()).toEqual({
         kind: "dlg_stop",
         callId,
-        acallId: "acall-e13",
       });
 
       gateway.clearSentCommands();
