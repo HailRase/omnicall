@@ -48,6 +48,16 @@ export type SdkStoreProjectionSlice = Readonly<{
         Readonly<{
           queueName: string | null;
           resolveState: string;
+          acdWire?: Readonly<{
+            mainAcallId?: string;
+            acallId: string;
+            event: string;
+            callerId: string;
+            calledId: string;
+            queue: string;
+            userLogin: string;
+            phase: "progress" | "accepted";
+          }> | null;
         }>
       >
     >;
@@ -55,6 +65,8 @@ export type SdkStoreProjectionSlice = Readonly<{
   ocpCampaignEventProjection?: Readonly<{
     activeCampaign: SdkCampaignPayloadSlice | null;
     progressiveContext: SdkCampaignPayloadSlice | null;
+    pendingPreview?: SdkCampaignPayloadSlice | null;
+    phase?: string;
   }>;
 }>;
 
@@ -86,7 +98,7 @@ export function readSdkProductStateFromStore(
     toCallLine(
       line,
       store.incomingCallProjection.callId,
-      store.ocpCallContextProjection?.byCallId[line.callId]?.queueName ?? null,
+      store.ocpCallContextProjection?.byCallId[line.callId],
     ),
   );
   const ocpConnected =
@@ -145,16 +157,22 @@ function readActiveCampaignOffer(
 function toCallLine(
   line: SdkStoreProjectionSlice["multiLineCallProjection"]["lines"][number],
   incomingCallId: string | null,
-  queueName: string | null,
+  callContext:
+    | NonNullable<
+        SdkStoreProjectionSlice["ocpCallContextProjection"]
+      >["byCallId"][string]
+    | undefined,
 ): SdkProductCallLine {
   const direction =
     incomingCallId !== null && incomingCallId === line.callId
       ? "inbound"
       : "outbound";
+  const queueName = callContext?.queueName ?? null;
   const trimmedQueue =
     queueName !== null && queueName.trim().length > 0
       ? queueName.trim().slice(0, 128)
       : null;
+  const wire = callContext?.acdWire ?? null;
   return {
     callId: line.callId,
     state: line.state,
@@ -163,5 +181,20 @@ function toCallLine(
     remoteDisplayName: line.displayLabel,
     muted: line.muted,
     queueLabel: trimmedQueue,
+    acdContext:
+      wire !== null
+        ? {
+            ...(wire.mainAcallId !== undefined
+              ? { mainAcallId: wire.mainAcallId }
+              : {}),
+            acallId: wire.acallId,
+            event: wire.event,
+            callerId: wire.callerId,
+            calledId: wire.calledId,
+            queue: wire.queue,
+            userLogin: wire.userLogin,
+            phase: wire.phase,
+          }
+        : null,
   };
 }

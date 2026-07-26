@@ -253,6 +253,8 @@ export class OcpIntegrationComposition {
       eventPublisher: deps.eventPublisher,
       logger: deps.logger,
       getSessionDomain: () => this.projectionHub.getSessionProjection().domain,
+      applyCampaignOffer: (payload) =>
+        this.projectionHub.applyCampaignOffer(payload),
     });
     this.sipCascadeBridge = new OcpSipCascadeBridgeService({
       eventPublisher: deps.eventPublisher,
@@ -309,14 +311,18 @@ export class OcpIntegrationComposition {
   }
 
   /**
-   * Clear campaign projection and publish SDK-facing cleared Domain Event.
+   * Clear visible campaign; promote pending preview when present.
+   * Publishes Cleared then Offered (promoted) for SDK clients.
    */
   clearCampaignAndPublish(
     reasonCode: "accepted" | "rejected" | "call_ended" | "session_reset",
   ): void {
-    const campaignId = this.projectionHub.clearActiveCampaign();
-    if (campaignId !== null) {
-      this.sessionLifecycle.publishCampaignCleared(campaignId, reasonCode);
+    const { clearedId, promoted } = this.projectionHub.clearActiveCampaign();
+    if (clearedId !== null) {
+      this.sessionLifecycle.publishCampaignCleared(clearedId, reasonCode);
+    }
+    if (promoted !== null) {
+      this.sessionLifecycle.publishCampaignOffered(promoted);
     }
   }
 }

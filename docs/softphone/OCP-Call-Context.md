@@ -2,7 +2,7 @@
 
 - **Feature:** F-028 (extends E-09 / E-10); SDK surface F-011 / DI-05
 - **Legacy parity:** LF-037, LF-038, LF-039, LF-040 (via F-028; P07 removed per ADR-0005)
-- **Updated:** 2026-07-26 (ADR-0019 campaign SDK events)
+- **Updated:** 2026-07-26 (campaign single-modal FSM + ADR-0020 snapshot `acdContext`)
 
 ## Purpose
 
@@ -14,9 +14,9 @@ call-id matching, or host `softphone-queue-info`.
 
 | Source | Wire | Application state | Desktop UI | Public SDK |
 | --- | --- | --- | --- | --- |
-| ACD queue | `get_main_acallid` → `entity: calls` (`OcpMainCallIdInfoPayload.queue`) | `CallOcpContextProjection` | Badge on incoming / active call | Additive `queueLabel` on `call:*` events + snapshot call summary |
-| Campaign preview | `entity: campaign_events` + `progressive: false` | `CampaignEventProjection.activeCampaign` | Centered blur modal (accept/reject) | `operator:campaign-offered` (`mode: preview`) + snapshot `operator.campaign` — requires `operator.campaign.read` (ADR-0019) |
-| Campaign progressive | `entity: campaign_events` + `progressive: true` | `CampaignEventProjection.progressiveContext` | Badges only (no modal) | `operator:campaign-offered` (`mode: progressive`) + snapshot `operator.campaign` |
+| ACD queue | `get_main_acallid` → `entity: calls` (`OcpMainCallIdInfoPayload.queue`) | `CallOcpContextProjection` (`queueName` + full `acdWire`) | Badge on incoming / active call | Additive `queueLabel` on `call:*` / snapshot; `call:acd-context` live; snapshot `calls[].acdContext` under `ocp.acd_context.read` (ADR-0020) |
+| Campaign preview | `entity: campaign_events` + `progressive: false` | `CampaignEventProjection.activeCampaign` (+ optional `pendingPreview`) | Centered blur modal (accept/reject) | `operator:campaign-offered` (`mode: preview`) + snapshot `operator.campaign` — requires `operator.campaign.read` (ADR-0019) |
+| Campaign progressive | `entity: campaign_events` + `progressive: true` | `CampaignEventProjection.progressiveContext` | Badges only (no modal) | `operator:campaign-offered` (`mode: progressive`) when no preview modal open; snapshot `operator.campaign` |
 
 ## Outbound `get_main_acallid` wire contract
 
@@ -68,13 +68,55 @@ Party / lifecycle resolution in `OcpTelephonyBridgeService`:
   - `CallAnswered` → `incomingCallAccepted` / `outgoingCallAccepted` (by call direction)
 - refuses to send when login, remote, or lifecycle event is missing (`markUnavailable` + warn)
 
+## Campaign FSM (single modal)
+
+`CampaignEventProjection` is a single-modal FSM:
+
+| Field | Role |
+| --- | --- |
+| `phase` | `idle` \| `preview_offered` \| `progressive_offered` |
+| `activeCampaign` | Non-progressive preview → blocking accept/reject modal |
+| `progressiveContext` | Progressive dial → badges only (no modal) |
+| `pendingPreview` | At most one held preview while the modal is still open |
+
+Rules:
+
+1. **Idle → preview:** first non-progressive `campaign_events` → `activeCampaign`, phase
+   `preview_offered`, emit SDK `operator:campaign-offered` (`mode: preview`).
+2. **Second preview while modal open:** do **not** wipe/supersede the visible modal.
+   Store the new payload in `pendingPreview` (single slot; later preview replaces the held one).
+   No SDK Offered/Cleared for the hold itself. Protocol `reasonCode: superseded` remains
+   for compatibility; desktop **no longer emits** it for a second preview.
+3. **Accept / reject / clear:** clear visible offer → if `pendingPreview` present, promote
+   it into `activeCampaign` and emit SDK **Cleared then Offered** (promoted id). Otherwise
+   return to `idle` after Cleared.
+4. **Progressive while preview open:** update `progressiveContext` / badges only; do **not**
+   emit SDK `operator:campaign-offered` and do **not** close the modal
+   (`emitOffered: false`). When idle (no preview), progressive emits Offered as usual.
+5. **Snapshot `operator.campaign`:** redacted DTO from `activeCampaign ?? progressiveContext`
+   (gated by `operator.campaign.read`). Held `pendingPreview` is **not** exposed on the
+   snapshot until promoted.
+
+## Snapshot recovery (campaign + ACD)
+
+| Surface | Recovery field | Capability | Notes |
+| --- | --- | --- | --- |
+| Campaign offer | `sections.operator.campaign` | `operator.campaign.read` | Same redacted shape as Offered; `activeCampaign ?? progressiveContext` |
+| ACD queue title | `calls[].queueLabel` | `session.read.redacted` | Desktop-safe; never wire ids |
+| ACD MainCallIDInfo | `calls[].acdContext` | `ocp.acd_context.read` | Additive snake_case wire (`main_acallid?`, `acallid`, `event`, parties, `queue`, `user_login`, optional `phase` / `direction`); stripped without capability |
+| Live ACD | `call:acd-context` | `ocp.acd_context.read` | Unchanged live event; projection stores full `acdWire` per SIP `callId` |
+
+`CallOcpContextProjection` keeps `acdWire` after resolve so reconnect/`getSnapshot` can rebuild
+`acdContext` without replaying OCP. Empty/direct queue still recovers wire with `queue: ""`;
+`queueLabel` stays omitted.
+
 ## Rules
 
 1. **Queue badge (incoming only):** show when `direction === "incoming"` and `queueName` is non-empty after resolve.
 2. **Direct / internal incoming:** OCP may return empty `queue` — parse keeps `queue: ""`; projection stores `queueName: null`; UI hides queue (no SIP `isInternal` flag); SDK omits `queueLabel`.
 3. **Pending:** `resolveState: "pending"` shows a short skeleton; after 5s without resolve → `unavailable` (hide).
 4. **One queue label:** OCP `calls.queue` wins over `campaign.queueTitle` (no duplicate tags).
-5. **Modal:** only non-progressive (`activeCampaign`). Progressive never opens the modal.
+5. **Modal:** only non-progressive (`activeCampaign`). Progressive never opens the modal. Second preview → `pendingPreview` hold (see Campaign FSM).
 6. **Shell raise (preview only):** when `activeCampaign` appears, renderer edge
    `useShellWindowAttentionFromCampaign` → IPC `shell:window-raise`
    (`reason: ocp_campaign_offer`, dedupe = campaign `id`) → main
@@ -83,8 +125,8 @@ Party / lifecycle resolution in `OcpTelephonyBridgeService`:
    local `BrowserWindow` call from React.
 7. **SIP-only / OCP offline:** all badges and modal hidden; SDK `queueLabel` / campaign absent.
 8. **Correlation:** exact SIP `callId` via `OcpTelephonyBridgeService` pending map — no `session.id.includes`.
-9. **Cleanup:** `CallEnded` / `CallFailed` clear call context entry and campaign slots; logout `resetToIdle` clears both; SDK emits `operator:campaign-cleared` with `reasonCode`.
-10. **SDK privacy:** `call:acd-context` may carry OCP MainCallIDInfo wire under `ocp.acd_context.read` (ADR-0020). `call:*` / campaign / snapshot stay free of `acallid`; campaign DTOs remain redacted under `operator.campaign.read`.
+9. **Cleanup:** `CallEnded` / `CallFailed` clear call context entry and campaign slots; logout `resetToIdle` clears both; SDK emits `operator:campaign-cleared` with `reasonCode` (`accepted` / `rejected` / `call_ended` / `session_reset`).
+10. **SDK privacy:** `call:acd-context` and snapshot `calls[].acdContext` may carry OCP MainCallIDInfo wire under `ocp.acd_context.read` (ADR-0020). Other `call:*` fields / campaign DTOs stay free of `acallid`; campaign remains redacted under `operator.campaign.read`.
 
 ## Layers
 
@@ -157,9 +199,10 @@ const stopCleared = client.subscribe('operator:campaign-cleared', (event) => {
 // Authoritative recovery after reconnect:
 const snapshot = await client.getSnapshot();
 for (const call of snapshot.sections.calls ?? []) {
-  void call.queueLabel;
+  void call.queueLabel; // session.read.redacted
+  void call.acdContext; // ocp.acd_context.read — MainCallIDInfo wire
 }
-void snapshot.sections.operator?.campaign;
+void snapshot.sections.operator?.campaign; // activeCampaign ?? progressiveContext
 
 stopIncoming();
 stopCampaign();
@@ -169,8 +212,9 @@ stopCleared();
 Notes:
 
 - Re-emit for queue uses an existing public `call:*` type — **not** a new event name.
-- Empty / direct queue → no enrichment event; field omitted from snapshot.
+- Empty / direct queue → no `queueLabel`; `call:acd-context` / snapshot `acdContext` may still carry wire with `queue: ""`.
 - Campaign offered/cleared are protocol v1 (ADR-0019); payloads never carry OCP wire ids.
+- Second preview while modal open is held desktop-side; hosts see Cleared→Offered only on accept/reject/clear promote.
 
 ## Key files
 
@@ -192,7 +236,7 @@ Notes:
 | Modal UI | `src/renderer/components/integration/ocp/OcpCampaignEventModal.tsx` |
 | Shell raise | `src/renderer/hooks/useShellWindowAttentionFromCampaign.ts` → `shell:window-raise` |
 | Protocol | `axatalk-sdk/packages/protocol/src/events.ts`, `snapshot.ts` |
-| ADR | `docs/softphone/adr/ADR-0019-sdk-campaign-events-v1.md` |
+| ADR | `docs/softphone/adr/ADR-0019-sdk-campaign-events-v1.md`, `ADR-0020-sdk-ocp-acd-context-wire.md` |
 
 ## Out of scope
 

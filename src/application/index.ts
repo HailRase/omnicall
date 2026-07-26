@@ -534,7 +534,11 @@ export {
   initialCampaignEventProjection,
   reduceCampaignEventFromPayload,
   clearCampaignEvent,
+  deriveCampaignOfferPhase,
   type CampaignEventProjection,
+  type CampaignOfferUiPhase,
+  type CampaignReduceOutcome,
+  type CampaignClearResult,
 } from "./projections/integration/campaignEventProjection.js";
 export {
   initialCallOcpContextProjection,
@@ -546,6 +550,7 @@ export {
   type CallOcpContextEntry,
   type CallOcpContextDirection,
   type CallOcpContextResolveState,
+  type CallOcpContextAcdWire,
 } from "./projections/integration/callOcpContextProjection.js";
 export {
   deriveCallContextBadges,

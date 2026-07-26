@@ -17,7 +17,10 @@ import {
   reduceCampaignEventFromPayload,
   clearCampaignEvent,
   type CampaignEventProjection,
+  type CampaignReduceOutcome,
+  type CampaignClearResult,
 } from "../projections/integration/campaignEventProjection.js";
+import type { OcpCampaignEventPayload } from "@domain/integration/ocp/protocol/OcpIncomingMessage.js";
 import {
   clearCallOcpContext,
   initialCallOcpContextProjection,
@@ -25,6 +28,7 @@ import {
   markCallOcpContextUnavailable,
   resolveCallOcpContext,
   resetCallOcpContextProjection,
+  type CallOcpContextAcdWire,
   type CallOcpContextDirection,
   type CallOcpContextProjection,
 } from "../projections/integration/callOcpContextProjection.js";
@@ -149,12 +153,17 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
 
   resolveCallOcpContext(
     callId: string,
-    input: Readonly<{ acallId: string; queueName: string | null }>,
+    input: Readonly<{
+      acallId: string;
+      queueName: string | null;
+      acdWire: CallOcpContextAcdWire;
+    }>,
   ): void {
     this.callOcpContext = resolveCallOcpContext(this.callOcpContext, {
       callId,
       acallId: input.acallId,
       queueName: input.queueName,
+      acdWire: input.acdWire,
     });
     this.notifyChangeListeners();
   }
@@ -282,17 +291,27 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
   }
 
   /**
-   * Clears preview + progressive slots. Returns the cleared campaign id when one
-   * was active (for SDK cleared events).
+   * Apply campaign_events onto projection (single-modal hold). Idempotent when
+   * both hub gateway listener and lifecycle invoke the same payload.
    */
-  clearActiveCampaign(): string | null {
-    const previous =
-      this.campaign.activeCampaign?.id ??
-      this.campaign.progressiveContext?.id ??
-      null;
-    this.campaign = clearCampaignEvent();
+  applyCampaignOffer(payload: OcpCampaignEventPayload): CampaignReduceOutcome {
+    const { projection, outcome } = reduceCampaignEventFromPayload(
+      this.campaign,
+      payload,
+    );
+    this.campaign = projection;
     this.notifyChangeListeners();
-    return previous;
+    return outcome;
+  }
+
+  /**
+   * Clears visible offer; promotes `pendingPreview` when present.
+   */
+  clearActiveCampaign(): CampaignClearResult {
+    const result = clearCampaignEvent(this.campaign);
+    this.campaign = result.projection;
+    this.notifyChangeListeners();
+    return result;
   }
 
   /** Snapshot of the active campaign id without clearing (preview preferred). */
@@ -365,9 +384,8 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
       return;
     }
 
-    if (message.entity === "campaign_events") {
-      this.campaign = reduceCampaignEventFromPayload(message.data);
-    }
+    // campaign_events: applied solely via `applyCampaignOffer` from
+    // OcpSessionLifecycleService (single-modal FSM + Domain Events).
 
     this.notifyChangeListeners();
   }

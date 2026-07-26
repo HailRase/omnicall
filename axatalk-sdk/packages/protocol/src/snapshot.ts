@@ -40,6 +40,28 @@ export const SnapshotRegistrationSectionSchema = z
   })
   .readonly();
 
+/**
+ * Capability-gated MainCallIDInfo wire on snapshot call lines (ADR-0020).
+ * Present only with `ocp.acd_context.read`. `callId` lives on the parent summary.
+ * @public
+ */
+export const SnapshotCallAcdContextSchema = z
+  .object({
+    main_acallid: z.string().min(1).max(256).optional(),
+    acallid: z.string().min(1).max(256),
+    event: z.string().min(1).max(128),
+    caller_id: z.string().min(1).max(128),
+    called_id: z.string().min(1).max(128),
+    queue: z.string().max(128),
+    user_login: z.string().min(1).max(128),
+    phase: z.enum(['progress', 'accepted']).optional(),
+    direction: z.enum(['inbound', 'outbound']).optional()
+  })
+  .readonly();
+
+/** @public */
+export type SnapshotCallAcdContext = z.infer<typeof SnapshotCallAcdContextSchema>;
+
 /** @public */
 export const SnapshotCallSummarySchema = z
   .object({
@@ -54,7 +76,12 @@ export const SnapshotCallSummarySchema = z
      * ACD queue title from desktop OCP call context (F-028).
      * Additive / compatible. Omitted when direct/internal or unknown.
      */
-    queueLabel: z.string().min(1).max(128).optional()
+    queueLabel: z.string().min(1).max(128).optional(),
+    /**
+     * Full OCP MainCallIDInfo wire for reconnect (ADR-0020).
+     * Stripped without `ocp.acd_context.read`.
+     */
+    acdContext: SnapshotCallAcdContextSchema.optional()
   })
   .readonly();
 

@@ -24,10 +24,16 @@ Stable / `latest` is **blocked on desktop DI-10**.
   `operator` / `call_controller` profiles); optional snapshot `operator.campaign`
   (same redacted shape as offered). `V1_DEFERRED_CAMPAIGN_EVENTS` is now empty.
   Accept/reject commands remain out of scope. API report updated via `api:check`.
+  Cleared `reasonCode` still includes `superseded` for compatibility; desktop
+  hold-until-idle for a second preview does not emit that reason (promote →
+  Cleared then Offered).
 - **ADR-0020 ACD wire (same day):** `call:acd-context` carries OCP MainCallIDInfo
   snake_case fields (`acallid`, `main_acallid`, …) under capability
   `ocp.acd_context.read` (default on `operator` / `call_controller`). Additive
   `queueLabel` on `call:*` remains free of wire ids.
+- **ADR-0020 snapshot recovery (same day):** optional `SnapshotCallSummary.acdContext`
+  (same MainCallIDInfo snake_case shape, no parent `callId` repeat) for reconnect;
+  stripped without `ocp.acd_context.read`. Live `call:acd-context` unchanged.
 
 ### Not included
 

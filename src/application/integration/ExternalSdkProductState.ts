@@ -6,6 +6,18 @@
 import type { CallState, RegistrationState } from "@domain/index.js";
 import type { OperatorStatus } from "@domain/integration/ocp/OperatorStatus.js";
 
+/** Pre-wire ACD context for snapshot (mapped to snake_case at assemble). */
+export type SdkProductCallAcdContext = Readonly<{
+  mainAcallId?: string;
+  acallId: string;
+  event: string;
+  callerId: string;
+  calledId: string;
+  queue: string;
+  userLogin: string;
+  phase: "progress" | "accepted";
+}>;
+
 export type SdkProductCallLine = Readonly<{
   callId: string;
   state: CallState | "Idle";
@@ -15,6 +27,8 @@ export type SdkProductCallLine = Readonly<{
   muted: boolean;
   /** Non-empty ACD queue title from OCP call context; null when absent. */
   queueLabel: string | null;
+  /** Full MainCallIDInfo for snapshot recovery; null when unresolved. */
+  acdContext: SdkProductCallAcdContext | null;
 }>;
 
 /** Active campaign offer fields for snapshot (pre-redaction). */

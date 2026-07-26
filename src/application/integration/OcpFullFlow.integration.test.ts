@@ -256,6 +256,7 @@ describe("OcpFullFlow integration (E-13)", () => {
         eventPublisher: bus,
         logger,
         getSessionDomain: () => hub.getSessionProjection().domain,
+        applyCampaignOffer: (payload) => hub.applyCampaignOffer(payload),
       });
 
       await connectOcp.execute({

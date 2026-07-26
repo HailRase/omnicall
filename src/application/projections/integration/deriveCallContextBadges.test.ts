@@ -28,7 +28,27 @@ function entry(
     acallId: null,
     queueName: null,
     resolveState: "pending",
+    acdWire: null,
     ...overrides,
+  };
+}
+
+function campaignProj(
+  overrides: Partial<{
+    activeCampaign: OcpCampaignEventPayload | null;
+    progressiveContext: OcpCampaignEventPayload | null;
+  }>,
+) {
+  return {
+    phase:
+      overrides.activeCampaign != null
+        ? ("preview_offered" as const)
+        : overrides.progressiveContext != null
+          ? ("progressive_offered" as const)
+          : ("idle" as const),
+    activeCampaign: overrides.activeCampaign ?? null,
+    progressiveContext: overrides.progressiveContext ?? null,
+    pendingPreview: null,
   };
 }
 
@@ -39,7 +59,7 @@ describe("deriveCallContextBadges", () => {
       remotePhone: "+100",
       ocpAuthenticated: false,
       entry: entry({ callId: "c1", resolveState: "resolved", queueName: "Q" }),
-      campaign: { activeCampaign: null, progressiveContext: progressive },
+      campaign: campaignProj({ progressiveContext: progressive }),
     });
     expect(badges).toEqual([]);
   });
@@ -51,7 +71,7 @@ describe("deriveCallContextBadges", () => {
         remotePhone: "+1",
         ocpAuthenticated: true,
         entry: entry({ callId: "c1", resolveState: "pending" }),
-        campaign: { activeCampaign: null, progressiveContext: null },
+        campaign: campaignProj({}),
       }).map((b) => b.kind),
     ).toEqual(["queuePending"]);
 
@@ -65,7 +85,7 @@ describe("deriveCallContextBadges", () => {
           resolveState: "resolved",
           queueName: "Support",
         }),
-        campaign: { activeCampaign: null, progressiveContext: null },
+        campaign: campaignProj({}),
       }),
     ).toEqual([{ kind: "queue", value: "Support" }]);
 
@@ -79,7 +99,7 @@ describe("deriveCallContextBadges", () => {
           resolveState: "resolved",
           queueName: null,
         }),
-        campaign: { activeCampaign: null, progressiveContext: null },
+        campaign: campaignProj({}),
       }),
     ).toEqual([]);
   });
@@ -94,7 +114,7 @@ describe("deriveCallContextBadges", () => {
         resolveState: "resolved",
         queueName: "ACD",
       }),
-      campaign: { activeCampaign: null, progressiveContext: progressive },
+      campaign: campaignProj({ progressiveContext: progressive }),
     });
     expect(badges).toEqual([
       { kind: "queue", value: "ACD" },
@@ -115,7 +135,7 @@ describe("deriveCallContextBadges", () => {
         resolveState: "resolved",
         queueName: "ShouldHide",
       }),
-      campaign: { activeCampaign: null, progressiveContext: null },
+      campaign: campaignProj({}),
     });
     expect(badges).toEqual([]);
   });

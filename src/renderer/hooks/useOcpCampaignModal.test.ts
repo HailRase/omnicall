@@ -44,7 +44,10 @@ afterEach(() => {
 
 function setOperatorAndCampaign(operatorId: number): void {
   useAccountBootstrapStore.setState({
-    ocpCampaignEventProjection: reduceCampaignEventFromPayload(campaign),
+    ocpCampaignEventProjection: reduceCampaignEventFromPayload(
+      initialCampaignEventProjection(),
+      campaign,
+    ).projection,
     ocpOperatorStatusProjection: reduceOperatorStatusFromUsers(
       initialOperatorStatusProjection(),
       {
@@ -74,10 +77,13 @@ function createFacade(overrides?: {
 describe("useOcpCampaignModal", () => {
   it("does not open modal for progressive campaign context", () => {
     useAccountBootstrapStore.setState({
-      ocpCampaignEventProjection: reduceCampaignEventFromPayload({
-        ...campaign,
-        progressive: true,
-      }),
+      ocpCampaignEventProjection: reduceCampaignEventFromPayload(
+        initialCampaignEventProjection(),
+        {
+          ...campaign,
+          progressive: true,
+        },
+      ).projection,
       ocpOperatorStatusProjection: reduceOperatorStatusFromUsers(
         initialOperatorStatusProjection(),
         {

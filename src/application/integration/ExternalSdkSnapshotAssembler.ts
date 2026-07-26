@@ -121,5 +121,22 @@ function mapCallLine(
     ...(line.queueLabel !== null && line.queueLabel.length > 0
       ? { queueLabel: line.queueLabel.slice(0, 128) }
       : {}),
+    ...(line.acdContext !== null
+      ? {
+          acdContext: {
+            ...(line.acdContext.mainAcallId !== undefined
+              ? { main_acallid: line.acdContext.mainAcallId }
+              : {}),
+            acallid: line.acdContext.acallId,
+            event: line.acdContext.event,
+            caller_id: line.acdContext.callerId,
+            called_id: line.acdContext.calledId,
+            queue: line.acdContext.queue,
+            user_login: line.acdContext.userLogin,
+            phase: line.acdContext.phase,
+            direction: line.direction,
+          },
+        }
+      : {}),
   };
 }

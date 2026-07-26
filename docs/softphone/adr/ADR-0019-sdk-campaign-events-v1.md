@@ -50,14 +50,25 @@ leakage. Queue titles already ship as additive `queueLabel` on `call:*`.
    - `campaignId` — opaque id of the cleared offer
    - optional `reasonCode` — `accepted` | `rejected` | `call_ended` |
      `session_reset` | `superseded`
+   - **`superseded` retained in the protocol enum for compatibility.** Desktop
+     single-modal FSM **does not emit** Cleared with `superseded` when a second
+     preview arrives while the modal is open — that offer is **held** in
+     `pendingPreview` until accept/reject/clear (see below).
 
 5. **Snapshot recovery:** optional additive `operator.campaign` object with the same
    redacted fields as offered (present only while an offer is active and the client
-   has `operator.campaign.read`). Omitted otherwise.
+   has `operator.campaign.read`). Desktop maps `activeCampaign ?? progressiveContext`.
+   Held `pendingPreview` is not exposed until promoted. Omitted otherwise.
 
 6. **Desktop mapping:** Domain Events `OperatorCampaignOffered` /
    `OperatorCampaignCleared` → `ExternalSdkEventMapper` → Local WS. No Domain Event
    names, OCP entities, or raw payloads cross the public wire.
+
+   **Single-modal hold (desktop behavior, 2026-07-26):** at most one preview modal.
+   A second preview while offered is held until idle (accept/reject/clear) → clear
+   visible → promote pending → emit **Cleared then Offered**. Progressive while
+   preview is open updates badges only (no SDK Offered, modal stays open). Details:
+   `docs/softphone/OCP-Call-Context.md` (Campaign FSM).
 
 7. **Out of v1 scope (explicit non-goals):**
    - Public `operator:campaign-accept` / `operator:campaign-reject` commands
@@ -81,6 +92,9 @@ leakage. Queue titles already ship as additive `queueLabel` on `call:*`.
 - Origin matrix + Settings i18n gain `operator.campaign.read`.
 - Existing Origins without the new matrix key load via additive migration (no settings wipe).
 - Clients without the capability see no campaign events/section (fail closed).
+- Hosts must not assume a second preview immediately supersedes the first over SDK;
+  expect hold-until-idle (Cleared→Offered on promote). `reasonCode: superseded` may
+  still appear in older clients/docs but is not emitted by current desktop for that case.
 - Docs: `PROTOCOL.md`, `OCP-Call-Context.md`, guide `events.md` / `capabilities.md`
   updated in the same change set.
 

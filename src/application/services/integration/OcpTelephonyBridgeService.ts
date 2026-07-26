@@ -17,7 +17,10 @@ import type {
 import type { DomainEventPublisher, Logger } from "@ports/index.js";
 import type { OcpGateway } from "@ports/integration/OcpGateway.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
-import type { CallOcpContextDirection } from "../../projections/integration/callOcpContextProjection.js";
+import type {
+  CallOcpContextAcdWire,
+  CallOcpContextDirection,
+} from "../../projections/integration/callOcpContextProjection.js";
 
 const FEATURE_ID = "F-028";
 const BOUNDED_CONTEXT = "Integration";
@@ -36,7 +39,11 @@ export type OcpTelephonyBridgeCallContextPort = Readonly<{
   markPending: (callId: string, direction: CallOcpContextDirection) => void;
   resolve: (
     callId: string,
-    input: Readonly<{ acallId: string; queueName: string | null }>,
+    input: Readonly<{
+      acallId: string;
+      queueName: string | null;
+      acdWire: CallOcpContextAcdWire;
+    }>,
   ) => void;
   markUnavailable: (callId: string) => void;
   clear: (callId: string) => void;
@@ -168,19 +175,39 @@ export class OcpTelephonyBridgeService {
     if (!isMainCallIdInfo(message.data)) {
       return;
     }
+    const localPartyLabel = this.deps.getOcpUserLogin()?.trim();
+    if (localPartyLabel === undefined || localPartyLabel.length === 0) {
+      return;
+    }
+    const phase = mapLifecycleEventToPhase(
+      this.lifecycleEventByCallId.get(pendingCallId),
+    );
     const queueName = readQueueName(message.data);
-    this.deps.callContext.resolve(pendingCallId, { acallId, queueName });
-    this.publishAcdContextIfNeeded(pendingCallId, message.data);
+    const acdWire: CallOcpContextAcdWire = {
+      ...(message.data.mainAcallId !== undefined
+        ? { mainAcallId: message.data.mainAcallId }
+        : {}),
+      acallId: message.data.acallId,
+      event: message.data.event,
+      callerId: message.data.callerId,
+      calledId: message.data.calledId,
+      queue: message.data.queue,
+      userLogin: localPartyLabel,
+      phase,
+    };
+    this.deps.callContext.resolve(pendingCallId, {
+      acallId,
+      queueName,
+      acdWire,
+    });
+    this.publishAcdContextIfNeeded(pendingCallId, message.data, acdWire);
   }
 
   private publishAcdContextIfNeeded(
     callId: string,
     data: OcpMainCallIdInfoPayload,
+    acdWire: CallOcpContextAcdWire,
   ): void {
-    const localPartyLabel = this.deps.getOcpUserLogin()?.trim();
-    if (localPartyLabel === undefined || localPartyLabel.length === 0) {
-      return;
-    }
     const wireKey = [
       data.acallId,
       data.event,
@@ -191,9 +218,6 @@ export class OcpTelephonyBridgeService {
       return;
     }
     const direction = this.callDirectionMap.get(callId) ?? "incoming";
-    const phase = mapLifecycleEventToPhase(
-      this.lifecycleEventByCallId.get(callId),
-    );
     const queueName = readQueueName(data) ?? "";
     this.publishedQueueByCallId.set(callId, wireKey);
     this.deps.eventPublisher.publish(
@@ -201,17 +225,17 @@ export class OcpTelephonyBridgeService {
         callId,
         direction,
         queueName,
-        phase,
-        localPartyLabel,
+        phase: acdWire.phase,
+        localPartyLabel: acdWire.userLogin,
         ocp: {
-          ...(data.mainAcallId !== undefined
-            ? { mainAcallId: data.mainAcallId }
+          ...(acdWire.mainAcallId !== undefined
+            ? { mainAcallId: acdWire.mainAcallId }
             : {}),
-          acallId: data.acallId,
-          event: data.event,
-          callerId: data.callerId,
-          calledId: data.calledId,
-          queue: data.queue,
+          acallId: acdWire.acallId,
+          event: acdWire.event,
+          callerId: acdWire.callerId,
+          calledId: acdWire.calledId,
+          queue: acdWire.queue,
         },
       }),
     );

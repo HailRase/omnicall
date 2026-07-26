@@ -23,8 +23,8 @@ Constant: `PUBLIC_EVENT_TYPES` from `@axata/axatalk-sdk`.
 | `account:session-ended` | Account signed-out projection |
 | `operator:session-changed` | Operator connectivity (`connected`) |
 | `operator:status-changed` | Coarse Ready / Break / offline / post_call_processing / unknown UI; optional `reservedTarget` / `reservedReasonId` |
-| `operator:campaign-offered` | OCP campaign offer (`mode: preview \| progressive`); redacted labels/phone — needs `operator.campaign.read` |
-| `operator:campaign-cleared` | Offer cleared (`reasonCode` optional) — needs `operator.campaign.read` |
+| `operator:campaign-offered` | OCP campaign offer (`mode: preview \| progressive`); redacted labels/phone — needs `operator.campaign.read`. Desktop holds a second preview until the modal clears (no immediate supersede). |
+| `operator:campaign-cleared` | Offer cleared (`reasonCode` optional) — needs `operator.campaign.read`. After clear+promote: Cleared then Offered. |
 | `window:visibility-changed` | Softphone window state |
 | `sdk:server-shutdown` | Prompt reconnect / wait for desktop |
 
@@ -49,6 +49,10 @@ When OCP resolves ACD context for a live SIP call, desktop emits:
 Empty/direct queue → `call:acd-context` still fires with `queue: ""`;
 `queueLabel` on `call:*` omitted. Details: `docs/softphone/OCP-Call-Context.md`.
 
+**Snapshot recovery:** `getSnapshot().sections.calls[].acdContext` carries the same
+MainCallIDInfo wire (capability-gated) so reconnect does not require a live
+replay. `queueLabel` stays on every `session.read.redacted` call summary.
+
 ```ts
 client.subscribe('call:acd-context', (event) => {
   void event.payload.main_acallid;
@@ -56,6 +60,12 @@ client.subscribe('call:acd-context', (event) => {
   void event.payload.queue;
   void event.payload.user_login;
 });
+
+const snapshot = await client.getSnapshot();
+for (const call of snapshot.sections.calls ?? []) {
+  void call.queueLabel;
+  void call.acdContext?.acallid;
+}
 ```
 
 ## Usage
@@ -83,6 +93,7 @@ client.subscribe('operator:session-changed', (event) => {
 
 client.subscribe('operator:campaign-offered', (event) => {
   // Redacted DTO only — never expect OCP wire ids.
+  // Desktop may hold a second preview until accept/reject; then Cleared → Offered.
   void event.payload.campaignId;
   void event.payload.mode;
   void event.payload.remoteNumber;
@@ -90,16 +101,16 @@ client.subscribe('operator:campaign-offered', (event) => {
 
 client.subscribe('operator:campaign-cleared', (event) => {
   void event.payload.campaignId;
-  void event.payload.reasonCode;
+  void event.payload.reasonCode; // superseded retained in schema; desktop hold path does not emit it
 });
 
 // Before operator:change-status / other mutations:
 const revision =
   client.getRevision() ?? (await client.getSnapshot()).revision;
 
-// Reconnect recovery for an active offer:
-const snapshot = await client.getSnapshot();
-void snapshot.sections.operator?.campaign;
+// Reconnect recovery for an active offer (visible preview or progressive; not held pending):
+const campaignSnapshot = await client.getSnapshot();
+void campaignSnapshot.sections.operator?.campaign;
 ```
 
 Rules:

@@ -49,6 +49,14 @@ phone) is insufficient for that customer integration.
    `main_acallid` / `acallid` for direct/internal calls; UI badge and
    `queueLabel` stay omitted when empty.
 
+5. **Snapshot recovery (additive):** authenticated `calls[]` summaries may include
+   optional `acdContext` — the same MainCallIDInfo snake_case shape as the live
+   event payload (without repeating parent `callId`). Present only when desktop
+   has stored `acdWire` for that SIP call **and** the client has
+   `ocp.acd_context.read`; stripped otherwise. Live `call:acd-context` is
+   unchanged. `queueLabel` remains available to all `session.read.redacted`
+   clients.
+
 ## Alternatives Considered
 
 | Alternative | Why not |
@@ -62,10 +70,12 @@ phone) is insufficient for that customer integration.
 - ADR-0017 mapping table for `call:acd-context` points here for the wire
   exception; campaign / `queueLabel` rules unchanged.
 - Origin matrix + Settings i18n gain `ocp.acd_context.read`.
-- Fan-out fails closed without the capability.
+- Fan-out / snapshot strip fails closed without the capability.
+- Reconnect hosts recover ACD wire from `getSnapshot().sections.calls[].acdContext`
+  without waiting for a replayed live event (desktop `CallOcpContextProjection.acdWire`).
 
 ## Architecture Checks
 
 - Domain keeps camelCase `ocp` block; snake_case only at SDK mapper boundary.
 - OCP remains optional; SIP-only unaffected.
-
+

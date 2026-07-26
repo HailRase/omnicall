@@ -22,6 +22,7 @@ function baseState(
         remoteDisplayName: "Alice",
         muted: false,
         queueLabel: null,
+        acdContext: null,
       },
     ],
     ocpEnabled: false,
@@ -104,6 +105,7 @@ describe("ExternalSdkSnapshotAssembler", () => {
             remoteDisplayName: "Alice",
             muted: false,
             queueLabel: "Support ACD",
+            acdContext: null,
           },
         ],
       }),
@@ -123,6 +125,43 @@ describe("ExternalSdkSnapshotAssembler", () => {
       window: { visible: true },
     });
     expect(merged.success).toBe(true);
+  });
+
+  it("includes acdContext wire on call summary for reconnect", () => {
+    const sections = assembleSdkSnapshotProductSections(
+      baseState({
+        calls: [
+          {
+            callId: "call_test_001",
+            state: "Ringing",
+            direction: "inbound",
+            remoteNumber: "+15551237890",
+            remoteDisplayName: "Alice",
+            muted: false,
+            queueLabel: "Support ACD",
+            acdContext: {
+              mainAcallId: "main-1",
+              acallId: "acall-1",
+              event: "incomingCallProgress",
+              callerId: "37500508954",
+              calledId: "op.test",
+              queue: "Support ACD",
+              userLogin: "op.test",
+              phase: "progress",
+            },
+          },
+        ],
+      }),
+    );
+    expect(sections.calls[0]).toMatchObject({
+      queueLabel: "Support ACD",
+      acdContext: {
+        main_acallid: "main-1",
+        acallid: "acall-1",
+        user_login: "op.test",
+        queue: "Support ACD",
+      },
+    });
   });
 
   it("includes redacted operator.campaign when activeCampaign is set", () => {

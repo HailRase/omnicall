@@ -57,8 +57,12 @@ function mergeSnapshotSections(input: {
   readonly productSections: WireJsonObject;
   readonly windowVisible: boolean;
 }): SnapshotSections | null {
-  const productSections = stripUnauthorizedCampaign(
+  let productSections = stripUnauthorizedCampaign(
     input.productSections,
+    input.grantedCapabilities,
+  );
+  productSections = stripUnauthorizedAcdContext(
+    productSections,
     input.grantedCapabilities,
   );
   const candidate = {
@@ -99,6 +103,40 @@ function stripUnauthorizedCampaign(
   return {
     ...productSections,
     operator: rest,
+  };
+}
+
+/**
+ * ACD wire on call summaries requires `ocp.acd_context.read` (ADR-0020).
+ * Keeps additive `queueLabel` for session.read.redacted clients.
+ */
+function stripUnauthorizedAcdContext(
+  productSections: WireJsonObject,
+  grantedCapabilities: readonly CapabilityId[],
+): WireJsonObject {
+  if (grantedCapabilities.includes("ocp.acd_context.read")) {
+    return productSections;
+  }
+  const calls = productSections["calls"];
+  if (!Array.isArray(calls)) {
+    return productSections;
+  }
+  const strippedCalls = calls.map((entry) => {
+    const parsed = WireJsonObjectSchema.safeParse(entry);
+    if (!parsed.success || !("acdContext" in parsed.data)) {
+      return entry;
+    }
+    const rest: Record<string, WireJsonObject[string]> = {};
+    for (const [key, value] of Object.entries(parsed.data)) {
+      if (key !== "acdContext") {
+        rest[key] = value;
+      }
+    }
+    return rest;
+  });
+  return {
+    ...productSections,
+    calls: strippedCalls,
   };
 }
 

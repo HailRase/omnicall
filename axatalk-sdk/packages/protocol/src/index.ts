@@ -212,6 +212,7 @@ export {
 
 export {
   SnapshotAccountSectionSchema,
+  SnapshotCallAcdContextSchema,
   SnapshotCallSummarySchema,
   SnapshotMessageSchema,
   SnapshotOperatorCampaignSchema,
@@ -221,6 +222,7 @@ export {
   SnapshotSectionsSchema,
   SnapshotSessionSectionSchema,
   SnapshotWindowSectionSchema,
+  type SnapshotCallAcdContext,
   type SnapshotCallSummary,
   type SnapshotMessage,
   type SnapshotSections

@@ -154,6 +154,12 @@ unknown or direct/internal. Never carries OCP wire ids (`acallid`). Prefer
 `call:acd-context` for CRM handlers that need `main_acallid`. See
 `docs/softphone/OCP-Call-Context.md`.
 
+Snapshot call summaries may also include additive optional `acdContext` — the
+same OCP MainCallIDInfo snake_case fields as `call:acd-context` (without
+repeating parent `callId`), gated by `ocp.acd_context.read` (ADR-0020). Stripped
+without the capability. Used for reconnect recovery; live `call:acd-context`
+remains the primary push path.
+
 ### Registration and account
 
 - `registration:changed`
@@ -171,7 +177,9 @@ Campaign payloads are redacted (ADR-0017 O-PII-1): opaque `campaignId`,
 `mode` (`preview` | `progressive`), optional masked `remoteNumber`, optional
 desktop-safe labels (`companyLabel`, `strategyLabel`, `selectionLabel`,
 `queueLabel`). Never OCP wire ids (`acallid`, `strategyCallId`, …). Accept/reject
-commands remain out of v1 (desktop modal owns control).
+commands remain out of v1 (desktop modal owns control). Cleared `reasonCode`
+includes `superseded` for schema compatibility; desktop hold-until-idle for a
+second preview does not emit that reason (see ADR-0019 / OCP-Call-Context).
 
 ### Window and SDK
 
@@ -190,7 +198,8 @@ The authenticated snapshot contains independently versioned sections:
 - SDK session and granted capabilities;
 - account session state;
 - aggregated SIP registration/connectivity state;
-- active call summaries;
+- active call summaries (`queueLabel` for redacted session readers; optional
+  `acdContext` wire when `ocp.acd_context.read` is granted);
 - redacted operator/OCP state when enabled (coarse status; optional
   `reservedTarget` / `reservedReasonId` for post-call booking; optional
   `campaign` offer when `operator.campaign.read` is granted);

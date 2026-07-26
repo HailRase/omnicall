@@ -2206,8 +2206,8 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
         version: z.ZodString;
     }, z.core.$strip>>;
     requestedProfile: z.ZodEnum<{
-        presentation: "presentation";
         operator: "operator";
+        presentation: "presentation";
         call_controller: "call_controller";
     }>;
     requestedCapabilities: z.ZodArray<z.ZodEnum<{
@@ -2236,8 +2236,8 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     type: z.ZodLiteral<"pairing:approved">;
     clientId: z.ZodString;
     profile: z.ZodEnum<{
-        presentation: "presentation";
         operator: "operator";
+        presentation: "presentation";
         call_controller: "call_controller";
     }>;
     grantedCapabilities: z.ZodArray<z.ZodEnum<{
@@ -2497,11 +2497,11 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
-        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
+        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -2524,10 +2524,10 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
-            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
+            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
             forbidden: "forbidden";
             revoked: "revoked";
@@ -2553,11 +2553,11 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
-        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
+        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -2581,13 +2581,13 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     payload: z.ZodReadonly<z.ZodObject<{
         callId: z.ZodString;
         state: z.ZodEnum<{
+            failed: "failed";
             ringing: "ringing";
             connecting: "connecting";
             active: "active";
             held: "held";
             ending: "ending";
             ended: "ended";
-            failed: "failed";
         }>;
         remoteNumber: z.ZodOptional<z.ZodString>;
         remoteDisplayName: z.ZodOptional<z.ZodString>;
@@ -2610,13 +2610,13 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     payload: z.ZodReadonly<z.ZodObject<{
         callId: z.ZodString;
         state: z.ZodEnum<{
+            failed: "failed";
             ringing: "ringing";
             connecting: "connecting";
             active: "active";
             held: "held";
             ending: "ending";
             ended: "ended";
-            failed: "failed";
         }>;
         remoteNumber: z.ZodOptional<z.ZodString>;
         remoteDisplayName: z.ZodOptional<z.ZodString>;
@@ -2639,13 +2639,13 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     payload: z.ZodReadonly<z.ZodObject<{
         callId: z.ZodString;
         state: z.ZodEnum<{
+            failed: "failed";
             ringing: "ringing";
             connecting: "connecting";
             active: "active";
             held: "held";
             ending: "ending";
             ended: "ended";
-            failed: "failed";
         }>;
         remoteNumber: z.ZodOptional<z.ZodString>;
         remoteDisplayName: z.ZodOptional<z.ZodString>;
@@ -2668,13 +2668,13 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     payload: z.ZodReadonly<z.ZodObject<{
         callId: z.ZodString;
         state: z.ZodEnum<{
+            failed: "failed";
             ringing: "ringing";
             connecting: "connecting";
             active: "active";
             held: "held";
             ending: "ending";
             ended: "ended";
-            failed: "failed";
         }>;
         remoteNumber: z.ZodOptional<z.ZodString>;
         remoteDisplayName: z.ZodOptional<z.ZodString>;
@@ -2697,13 +2697,13 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     payload: z.ZodReadonly<z.ZodObject<{
         callId: z.ZodString;
         state: z.ZodEnum<{
+            failed: "failed";
             ringing: "ringing";
             connecting: "connecting";
             active: "active";
             held: "held";
             ending: "ending";
             ended: "ended";
-            failed: "failed";
         }>;
         remoteNumber: z.ZodOptional<z.ZodString>;
         remoteDisplayName: z.ZodOptional<z.ZodString>;
@@ -2726,13 +2726,13 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     payload: z.ZodReadonly<z.ZodObject<{
         callId: z.ZodString;
         state: z.ZodEnum<{
+            failed: "failed";
             ringing: "ringing";
             connecting: "connecting";
             active: "active";
             held: "held";
             ending: "ending";
             ended: "ended";
-            failed: "failed";
         }>;
         remoteNumber: z.ZodOptional<z.ZodString>;
         remoteDisplayName: z.ZodOptional<z.ZodString>;
@@ -2755,13 +2755,13 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     payload: z.ZodReadonly<z.ZodObject<{
         callId: z.ZodString;
         state: z.ZodEnum<{
+            failed: "failed";
             ringing: "ringing";
             connecting: "connecting";
             active: "active";
             held: "held";
             ending: "ending";
             ended: "ended";
-            failed: "failed";
         }>;
         remoteNumber: z.ZodOptional<z.ZodString>;
         remoteDisplayName: z.ZodOptional<z.ZodString>;
@@ -2784,13 +2784,13 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     payload: z.ZodReadonly<z.ZodObject<{
         callId: z.ZodString;
         state: z.ZodEnum<{
+            failed: "failed";
             ringing: "ringing";
             connecting: "connecting";
             active: "active";
             held: "held";
             ending: "ending";
             ended: "ended";
-            failed: "failed";
         }>;
         remoteNumber: z.ZodOptional<z.ZodString>;
         remoteDisplayName: z.ZodOptional<z.ZodString>;
@@ -2813,13 +2813,13 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     payload: z.ZodReadonly<z.ZodObject<{
         callId: z.ZodString;
         state: z.ZodEnum<{
+            failed: "failed";
             ringing: "ringing";
             connecting: "connecting";
             active: "active";
             held: "held";
             ending: "ending";
             ended: "ended";
-            failed: "failed";
         }>;
         remoteNumber: z.ZodOptional<z.ZodString>;
         remoteDisplayName: z.ZodOptional<z.ZodString>;
@@ -2842,13 +2842,13 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     payload: z.ZodReadonly<z.ZodObject<{
         callId: z.ZodString;
         state: z.ZodEnum<{
+            failed: "failed";
             ringing: "ringing";
             connecting: "connecting";
             active: "active";
             held: "held";
             ending: "ending";
             ended: "ended";
-            failed: "failed";
         }>;
         remoteNumber: z.ZodOptional<z.ZodString>;
         remoteDisplayName: z.ZodOptional<z.ZodString>;
@@ -2898,10 +2898,10 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     type: z.ZodLiteral<"registration:changed">;
     payload: z.ZodReadonly<z.ZodObject<{
         state: z.ZodEnum<{
-            failed: "failed";
             registered: "registered";
             unregistering: "unregistering";
             unregistered: "unregistered";
+            failed: "failed";
         }>;
         reasonCode: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
@@ -2944,11 +2944,11 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     payload: z.ZodReadonly<z.ZodObject<{
         connected: z.ZodBoolean;
         status: z.ZodOptional<z.ZodEnum<{
+            unknown: "unknown";
             ready: "ready";
             break: "break";
             offline: "offline";
             post_call_processing: "post_call_processing";
-            unknown: "unknown";
         }>>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
@@ -2963,11 +2963,11 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     type: z.ZodLiteral<"operator:status-changed">;
     payload: z.ZodReadonly<z.ZodObject<{
         status: z.ZodEnum<{
+            unknown: "unknown";
             ready: "ready";
             break: "break";
             offline: "offline";
             post_call_processing: "post_call_processing";
-            unknown: "unknown";
         }>;
         reasonId: z.ZodOptional<z.ZodNumber>;
         reasonLabelKey: z.ZodOptional<z.ZodString>;
@@ -3121,23 +3121,23 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
         }, z.core.$strip>>>;
         registration: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
             state: z.ZodEnum<{
-                failed: "failed";
                 registered: "registered";
                 unregistering: "unregistering";
                 unregistered: "unregistered";
+                failed: "failed";
             }>;
             reasonCode: z.ZodOptional<z.ZodString>;
         }, z.core.$strip>>>;
         calls: z.ZodOptional<z.ZodArray<z.ZodReadonly<z.ZodObject<{
             callId: z.ZodString;
             state: z.ZodEnum<{
+                failed: "failed";
                 ringing: "ringing";
                 connecting: "connecting";
                 active: "active";
                 held: "held";
                 ending: "ending";
                 ended: "ended";
-                failed: "failed";
             }>;
             direction: z.ZodEnum<{
                 inbound: "inbound";
@@ -3148,15 +3148,32 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
             muted: z.ZodOptional<z.ZodBoolean>;
             ownerClientId: z.ZodOptional<z.ZodString>;
             queueLabel: z.ZodOptional<z.ZodString>;
+            acdContext: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+                main_acallid: z.ZodOptional<z.ZodString>;
+                acallid: z.ZodString;
+                event: z.ZodString;
+                caller_id: z.ZodString;
+                called_id: z.ZodString;
+                queue: z.ZodString;
+                user_login: z.ZodString;
+                phase: z.ZodOptional<z.ZodEnum<{
+                    progress: "progress";
+                    accepted: "accepted";
+                }>>;
+                direction: z.ZodOptional<z.ZodEnum<{
+                    inbound: "inbound";
+                    outbound: "outbound";
+                }>>;
+            }, z.core.$strip>>>;
         }, z.core.$strip>>>>;
         operator: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
             connected: z.ZodBoolean;
             status: z.ZodOptional<z.ZodEnum<{
+                unknown: "unknown";
                 ready: "ready";
                 break: "break";
                 offline: "offline";
                 post_call_processing: "post_call_processing";
-                unknown: "unknown";
             }>>;
             reasonId: z.ZodOptional<z.ZodNumber>;
             reasonLabelKey: z.ZodOptional<z.ZodString>;
@@ -3544,19 +3561,41 @@ export const SnapshotAccountSectionSchema: z.ZodReadonly<z.ZodObject<{
 }, z.core.$strip>>;
 
 // @public (undocumented)
+export type SnapshotCallAcdContext = z.infer<typeof SnapshotCallAcdContextSchema>;
+
+// @public
+export const SnapshotCallAcdContextSchema: z.ZodReadonly<z.ZodObject<{
+    main_acallid: z.ZodOptional<z.ZodString>;
+    acallid: z.ZodString;
+    event: z.ZodString;
+    caller_id: z.ZodString;
+    called_id: z.ZodString;
+    queue: z.ZodString;
+    user_login: z.ZodString;
+    phase: z.ZodOptional<z.ZodEnum<{
+        progress: "progress";
+        accepted: "accepted";
+    }>>;
+    direction: z.ZodOptional<z.ZodEnum<{
+        inbound: "inbound";
+        outbound: "outbound";
+    }>>;
+}, z.core.$strip>>;
+
+// @public (undocumented)
 export type SnapshotCallSummary = z.infer<typeof SnapshotCallSummarySchema>;
 
 // @public (undocumented)
 export const SnapshotCallSummarySchema: z.ZodReadonly<z.ZodObject<{
     callId: z.ZodString;
     state: z.ZodEnum<{
+        failed: "failed";
         ringing: "ringing";
         connecting: "connecting";
         active: "active";
         held: "held";
         ending: "ending";
         ended: "ended";
-        failed: "failed";
     }>;
     direction: z.ZodEnum<{
         inbound: "inbound";
@@ -3567,6 +3606,23 @@ export const SnapshotCallSummarySchema: z.ZodReadonly<z.ZodObject<{
     muted: z.ZodOptional<z.ZodBoolean>;
     ownerClientId: z.ZodOptional<z.ZodString>;
     queueLabel: z.ZodOptional<z.ZodString>;
+    acdContext: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+        main_acallid: z.ZodOptional<z.ZodString>;
+        acallid: z.ZodString;
+        event: z.ZodString;
+        caller_id: z.ZodString;
+        called_id: z.ZodString;
+        queue: z.ZodString;
+        user_login: z.ZodString;
+        phase: z.ZodOptional<z.ZodEnum<{
+            progress: "progress";
+            accepted: "accepted";
+        }>>;
+        direction: z.ZodOptional<z.ZodEnum<{
+            inbound: "inbound";
+            outbound: "outbound";
+        }>>;
+    }, z.core.$strip>>>;
 }, z.core.$strip>>;
 
 // @public (undocumented)
@@ -3604,23 +3660,23 @@ export const SnapshotMessageSchema: z.ZodReadonly<z.ZodObject<{
         }, z.core.$strip>>>;
         registration: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
             state: z.ZodEnum<{
-                failed: "failed";
                 registered: "registered";
                 unregistering: "unregistering";
                 unregistered: "unregistered";
+                failed: "failed";
             }>;
             reasonCode: z.ZodOptional<z.ZodString>;
         }, z.core.$strip>>>;
         calls: z.ZodOptional<z.ZodArray<z.ZodReadonly<z.ZodObject<{
             callId: z.ZodString;
             state: z.ZodEnum<{
+                failed: "failed";
                 ringing: "ringing";
                 connecting: "connecting";
                 active: "active";
                 held: "held";
                 ending: "ending";
                 ended: "ended";
-                failed: "failed";
             }>;
             direction: z.ZodEnum<{
                 inbound: "inbound";
@@ -3631,15 +3687,32 @@ export const SnapshotMessageSchema: z.ZodReadonly<z.ZodObject<{
             muted: z.ZodOptional<z.ZodBoolean>;
             ownerClientId: z.ZodOptional<z.ZodString>;
             queueLabel: z.ZodOptional<z.ZodString>;
+            acdContext: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+                main_acallid: z.ZodOptional<z.ZodString>;
+                acallid: z.ZodString;
+                event: z.ZodString;
+                caller_id: z.ZodString;
+                called_id: z.ZodString;
+                queue: z.ZodString;
+                user_login: z.ZodString;
+                phase: z.ZodOptional<z.ZodEnum<{
+                    progress: "progress";
+                    accepted: "accepted";
+                }>>;
+                direction: z.ZodOptional<z.ZodEnum<{
+                    inbound: "inbound";
+                    outbound: "outbound";
+                }>>;
+            }, z.core.$strip>>>;
         }, z.core.$strip>>>>;
         operator: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
             connected: z.ZodBoolean;
             status: z.ZodOptional<z.ZodEnum<{
+                unknown: "unknown";
                 ready: "ready";
                 break: "break";
                 offline: "offline";
                 post_call_processing: "post_call_processing";
-                unknown: "unknown";
             }>>;
             reasonId: z.ZodOptional<z.ZodNumber>;
             reasonLabelKey: z.ZodOptional<z.ZodString>;
@@ -3691,11 +3764,11 @@ export const SnapshotOperatorReservedTargetSchema: z.ZodEnum<{
 export const SnapshotOperatorSectionSchema: z.ZodReadonly<z.ZodObject<{
     connected: z.ZodBoolean;
     status: z.ZodOptional<z.ZodEnum<{
+        unknown: "unknown";
         ready: "ready";
         break: "break";
         offline: "offline";
         post_call_processing: "post_call_processing";
-        unknown: "unknown";
     }>>;
     reasonId: z.ZodOptional<z.ZodNumber>;
     reasonLabelKey: z.ZodOptional<z.ZodString>;
@@ -3721,10 +3794,10 @@ export const SnapshotOperatorSectionSchema: z.ZodReadonly<z.ZodObject<{
 // @public (undocumented)
 export const SnapshotRegistrationSectionSchema: z.ZodReadonly<z.ZodObject<{
     state: z.ZodEnum<{
-        failed: "failed";
         registered: "registered";
         unregistering: "unregistering";
         unregistered: "unregistered";
+        failed: "failed";
     }>;
     reasonCode: z.ZodOptional<z.ZodString>;
 }, z.core.$strip>>;
@@ -3756,23 +3829,23 @@ export const SnapshotSectionsSchema: z.ZodReadonly<z.ZodObject<{
     }, z.core.$strip>>>;
     registration: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
         state: z.ZodEnum<{
-            failed: "failed";
             registered: "registered";
             unregistering: "unregistering";
             unregistered: "unregistered";
+            failed: "failed";
         }>;
         reasonCode: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>>;
     calls: z.ZodOptional<z.ZodArray<z.ZodReadonly<z.ZodObject<{
         callId: z.ZodString;
         state: z.ZodEnum<{
+            failed: "failed";
             ringing: "ringing";
             connecting: "connecting";
             active: "active";
             held: "held";
             ending: "ending";
             ended: "ended";
-            failed: "failed";
         }>;
         direction: z.ZodEnum<{
             inbound: "inbound";
@@ -3783,15 +3856,32 @@ export const SnapshotSectionsSchema: z.ZodReadonly<z.ZodObject<{
         muted: z.ZodOptional<z.ZodBoolean>;
         ownerClientId: z.ZodOptional<z.ZodString>;
         queueLabel: z.ZodOptional<z.ZodString>;
+        acdContext: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+            main_acallid: z.ZodOptional<z.ZodString>;
+            acallid: z.ZodString;
+            event: z.ZodString;
+            caller_id: z.ZodString;
+            called_id: z.ZodString;
+            queue: z.ZodString;
+            user_login: z.ZodString;
+            phase: z.ZodOptional<z.ZodEnum<{
+                progress: "progress";
+                accepted: "accepted";
+            }>>;
+            direction: z.ZodOptional<z.ZodEnum<{
+                inbound: "inbound";
+                outbound: "outbound";
+            }>>;
+        }, z.core.$strip>>>;
     }, z.core.$strip>>>>;
     operator: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
         connected: z.ZodBoolean;
         status: z.ZodOptional<z.ZodEnum<{
+            unknown: "unknown";
             ready: "ready";
             break: "break";
             offline: "offline";
             post_call_processing: "post_call_processing";
-            unknown: "unknown";
         }>>;
         reasonId: z.ZodOptional<z.ZodNumber>;
         reasonLabelKey: z.ZodOptional<z.ZodString>;
@@ -4007,8 +4097,8 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
         version: z.ZodString;
     }, z.core.$strip>>;
     requestedProfile: z.ZodEnum<{
-        presentation: "presentation";
         operator: "operator";
+        presentation: "presentation";
         call_controller: "call_controller";
     }>;
     requestedCapabilities: z.ZodArray<z.ZodEnum<{
@@ -4037,8 +4127,8 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     type: z.ZodLiteral<"pairing:approved">;
     clientId: z.ZodString;
     profile: z.ZodEnum<{
-        presentation: "presentation";
         operator: "operator";
+        presentation: "presentation";
         call_controller: "call_controller";
     }>;
     grantedCapabilities: z.ZodArray<z.ZodEnum<{
@@ -4298,11 +4388,11 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
-        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
+        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -4325,10 +4415,10 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
-            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
+            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
             forbidden: "forbidden";
             revoked: "revoked";
@@ -4354,11 +4444,11 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     kind: z.ZodLiteral<"reply">;
     requestId: z.ZodString;
     commandType: z.ZodEnum<{
-        "window:hide": "window:hide";
         "sdk:get-snapshot": "sdk:get-snapshot";
         "sdk:ping": "sdk:ping";
         "window:show": "window:show";
         "window:get-state": "window:get-state";
+        "window:hide": "window:hide";
         "call:originate": "call:originate";
         "call:answer": "call:answer";
         "call:reject": "call:reject";
@@ -4382,13 +4472,13 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     payload: z.ZodReadonly<z.ZodObject<{
         callId: z.ZodString;
         state: z.ZodEnum<{
+            failed: "failed";
             ringing: "ringing";
             connecting: "connecting";
             active: "active";
             held: "held";
             ending: "ending";
             ended: "ended";
-            failed: "failed";
         }>;
         remoteNumber: z.ZodOptional<z.ZodString>;
         remoteDisplayName: z.ZodOptional<z.ZodString>;
@@ -4411,13 +4501,13 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     payload: z.ZodReadonly<z.ZodObject<{
         callId: z.ZodString;
         state: z.ZodEnum<{
+            failed: "failed";
             ringing: "ringing";
             connecting: "connecting";
             active: "active";
             held: "held";
             ending: "ending";
             ended: "ended";
-            failed: "failed";
         }>;
         remoteNumber: z.ZodOptional<z.ZodString>;
         remoteDisplayName: z.ZodOptional<z.ZodString>;
@@ -4440,13 +4530,13 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     payload: z.ZodReadonly<z.ZodObject<{
         callId: z.ZodString;
         state: z.ZodEnum<{
+            failed: "failed";
             ringing: "ringing";
             connecting: "connecting";
             active: "active";
             held: "held";
             ending: "ending";
             ended: "ended";
-            failed: "failed";
         }>;
         remoteNumber: z.ZodOptional<z.ZodString>;
         remoteDisplayName: z.ZodOptional<z.ZodString>;
@@ -4469,13 +4559,13 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     payload: z.ZodReadonly<z.ZodObject<{
         callId: z.ZodString;
         state: z.ZodEnum<{
+            failed: "failed";
             ringing: "ringing";
             connecting: "connecting";
             active: "active";
             held: "held";
             ending: "ending";
             ended: "ended";
-            failed: "failed";
         }>;
         remoteNumber: z.ZodOptional<z.ZodString>;
         remoteDisplayName: z.ZodOptional<z.ZodString>;
@@ -4498,13 +4588,13 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     payload: z.ZodReadonly<z.ZodObject<{
         callId: z.ZodString;
         state: z.ZodEnum<{
+            failed: "failed";
             ringing: "ringing";
             connecting: "connecting";
             active: "active";
             held: "held";
             ending: "ending";
             ended: "ended";
-            failed: "failed";
         }>;
         remoteNumber: z.ZodOptional<z.ZodString>;
         remoteDisplayName: z.ZodOptional<z.ZodString>;
@@ -4527,13 +4617,13 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     payload: z.ZodReadonly<z.ZodObject<{
         callId: z.ZodString;
         state: z.ZodEnum<{
+            failed: "failed";
             ringing: "ringing";
             connecting: "connecting";
             active: "active";
             held: "held";
             ending: "ending";
             ended: "ended";
-            failed: "failed";
         }>;
         remoteNumber: z.ZodOptional<z.ZodString>;
         remoteDisplayName: z.ZodOptional<z.ZodString>;
@@ -4556,13 +4646,13 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     payload: z.ZodReadonly<z.ZodObject<{
         callId: z.ZodString;
         state: z.ZodEnum<{
+            failed: "failed";
             ringing: "ringing";
             connecting: "connecting";
             active: "active";
             held: "held";
             ending: "ending";
             ended: "ended";
-            failed: "failed";
         }>;
         remoteNumber: z.ZodOptional<z.ZodString>;
         remoteDisplayName: z.ZodOptional<z.ZodString>;
@@ -4585,13 +4675,13 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     payload: z.ZodReadonly<z.ZodObject<{
         callId: z.ZodString;
         state: z.ZodEnum<{
+            failed: "failed";
             ringing: "ringing";
             connecting: "connecting";
             active: "active";
             held: "held";
             ending: "ending";
             ended: "ended";
-            failed: "failed";
         }>;
         remoteNumber: z.ZodOptional<z.ZodString>;
         remoteDisplayName: z.ZodOptional<z.ZodString>;
@@ -4614,13 +4704,13 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     payload: z.ZodReadonly<z.ZodObject<{
         callId: z.ZodString;
         state: z.ZodEnum<{
+            failed: "failed";
             ringing: "ringing";
             connecting: "connecting";
             active: "active";
             held: "held";
             ending: "ending";
             ended: "ended";
-            failed: "failed";
         }>;
         remoteNumber: z.ZodOptional<z.ZodString>;
         remoteDisplayName: z.ZodOptional<z.ZodString>;
@@ -4643,13 +4733,13 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     payload: z.ZodReadonly<z.ZodObject<{
         callId: z.ZodString;
         state: z.ZodEnum<{
+            failed: "failed";
             ringing: "ringing";
             connecting: "connecting";
             active: "active";
             held: "held";
             ending: "ending";
             ended: "ended";
-            failed: "failed";
         }>;
         remoteNumber: z.ZodOptional<z.ZodString>;
         remoteDisplayName: z.ZodOptional<z.ZodString>;
@@ -4699,10 +4789,10 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     type: z.ZodLiteral<"registration:changed">;
     payload: z.ZodReadonly<z.ZodObject<{
         state: z.ZodEnum<{
-            failed: "failed";
             registered: "registered";
             unregistering: "unregistering";
             unregistered: "unregistered";
+            failed: "failed";
         }>;
         reasonCode: z.ZodOptional<z.ZodString>;
     }, z.core.$strip>>;
@@ -4745,11 +4835,11 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     payload: z.ZodReadonly<z.ZodObject<{
         connected: z.ZodBoolean;
         status: z.ZodOptional<z.ZodEnum<{
+            unknown: "unknown";
             ready: "ready";
             break: "break";
             offline: "offline";
             post_call_processing: "post_call_processing";
-            unknown: "unknown";
         }>>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
@@ -4764,11 +4854,11 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     type: z.ZodLiteral<"operator:status-changed">;
     payload: z.ZodReadonly<z.ZodObject<{
         status: z.ZodEnum<{
+            unknown: "unknown";
             ready: "ready";
             break: "break";
             offline: "offline";
             post_call_processing: "post_call_processing";
-            unknown: "unknown";
         }>;
         reasonId: z.ZodOptional<z.ZodNumber>;
         reasonLabelKey: z.ZodOptional<z.ZodString>;
@@ -4922,23 +5012,23 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
         }, z.core.$strip>>>;
         registration: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
             state: z.ZodEnum<{
-                failed: "failed";
                 registered: "registered";
                 unregistering: "unregistering";
                 unregistered: "unregistered";
+                failed: "failed";
             }>;
             reasonCode: z.ZodOptional<z.ZodString>;
         }, z.core.$strip>>>;
         calls: z.ZodOptional<z.ZodArray<z.ZodReadonly<z.ZodObject<{
             callId: z.ZodString;
             state: z.ZodEnum<{
+                failed: "failed";
                 ringing: "ringing";
                 connecting: "connecting";
                 active: "active";
                 held: "held";
                 ending: "ending";
                 ended: "ended";
-                failed: "failed";
             }>;
             direction: z.ZodEnum<{
                 inbound: "inbound";
@@ -4949,15 +5039,32 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
             muted: z.ZodOptional<z.ZodBoolean>;
             ownerClientId: z.ZodOptional<z.ZodString>;
             queueLabel: z.ZodOptional<z.ZodString>;
+            acdContext: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
+                main_acallid: z.ZodOptional<z.ZodString>;
+                acallid: z.ZodString;
+                event: z.ZodString;
+                caller_id: z.ZodString;
+                called_id: z.ZodString;
+                queue: z.ZodString;
+                user_login: z.ZodString;
+                phase: z.ZodOptional<z.ZodEnum<{
+                    progress: "progress";
+                    accepted: "accepted";
+                }>>;
+                direction: z.ZodOptional<z.ZodEnum<{
+                    inbound: "inbound";
+                    outbound: "outbound";
+                }>>;
+            }, z.core.$strip>>>;
         }, z.core.$strip>>>>;
         operator: z.ZodOptional<z.ZodReadonly<z.ZodObject<{
             connected: z.ZodBoolean;
             status: z.ZodOptional<z.ZodEnum<{
+                unknown: "unknown";
                 ready: "ready";
                 break: "break";
                 offline: "offline";
                 post_call_processing: "post_call_processing";
-                unknown: "unknown";
             }>>;
             reasonId: z.ZodOptional<z.ZodNumber>;
             reasonLabelKey: z.ZodOptional<z.ZodString>;

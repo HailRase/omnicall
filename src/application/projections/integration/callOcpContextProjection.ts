@@ -1,12 +1,26 @@
 /**
- * - Purpose: per-call OCP ACD context (queue name) from get_main_acallid responses.
- * - Inputs: SIP call lifecycle marks + OCP calls entity payloads.
- * - Outputs: serializable map for incoming queue badges (hide when empty = direct/internal).
+ * - Purpose: per-call OCP ACD context from get_main_acallid / MainCallIDInfo.
+ * - Inputs: SIP call lifecycle marks + resolved OCP wire fields.
+ * - Outputs: queue badge state + stored wire for SDK snapshot recovery (ADR-0020).
  */
 
 export type CallOcpContextDirection = "incoming" | "outgoing";
 
 export type CallOcpContextResolveState = "pending" | "resolved" | "unavailable";
+
+export type CallOcpContextResolvedPhase = "progress" | "accepted";
+
+/** Stored MainCallIDInfo for snapshot / reconnect (camelCase in Application). */
+export type CallOcpContextAcdWire = Readonly<{
+  mainAcallId?: string;
+  acallId: string;
+  event: string;
+  callerId: string;
+  calledId: string;
+  queue: string;
+  userLogin: string;
+  phase: CallOcpContextResolvedPhase;
+}>;
 
 export type CallOcpContextEntry = Readonly<{
   callId: string;
@@ -15,6 +29,8 @@ export type CallOcpContextEntry = Readonly<{
   /** Non-empty ACD queue title; null when direct/internal or unknown. */
   queueName: string | null;
   resolveState: CallOcpContextResolveState;
+  /** Full wire when resolved; null while pending/unavailable. */
+  acdWire: CallOcpContextAcdWire | null;
 }>;
 
 export type CallOcpContextProjection = Readonly<{
@@ -39,6 +55,7 @@ export function markCallOcpContextPending(
         acallId: previous?.acallId ?? null,
         queueName: previous?.queueName ?? null,
         resolveState: "pending",
+        acdWire: previous?.acdWire ?? null,
       },
     },
   };
@@ -50,6 +67,7 @@ export function resolveCallOcpContext(
     callId: string;
     acallId: string;
     queueName: string | null;
+    acdWire: CallOcpContextAcdWire;
   }>,
 ): CallOcpContextProjection {
   const previous = projection.byCallId[input.callId];
@@ -68,6 +86,7 @@ export function resolveCallOcpContext(
         acallId: input.acallId,
         queueName: normalizedQueue,
         resolveState: "resolved",
+        acdWire: input.acdWire,
       },
     },
   };

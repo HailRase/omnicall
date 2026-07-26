@@ -5,10 +5,25 @@ import {
   markCallOcpContextPending,
   markCallOcpContextUnavailable,
   resolveCallOcpContext,
+  type CallOcpContextAcdWire,
 } from "./callOcpContextProjection.js";
 
+function wire(
+  overrides: Partial<CallOcpContextAcdWire> &
+    Pick<CallOcpContextAcdWire, "acallId" | "queue">,
+): CallOcpContextAcdWire {
+  return {
+    event: "incomingCallProgress",
+    callerId: "+1",
+    calledId: "op",
+    userLogin: "op",
+    phase: "progress",
+    ...overrides,
+  };
+}
+
 describe("callOcpContextProjection", () => {
-  it("marks pending, resolves queue, and clears on end", () => {
+  it("marks pending, resolves queue + acdWire, and clears on end", () => {
     let projection = initialCallOcpContextProjection();
     projection = markCallOcpContextPending(projection, {
       callId: "c1",
@@ -20,12 +35,14 @@ describe("callOcpContextProjection", () => {
       callId: "c1",
       acallId: "a1",
       queueName: "  Sales  ",
+      acdWire: wire({ acallId: "a1", queue: "Sales", mainAcallId: "m1" }),
     });
     expect(projection.byCallId.c1).toMatchObject({
       acallId: "a1",
       queueName: "Sales",
       resolveState: "resolved",
       direction: "incoming",
+      acdWire: { acallId: "a1", mainAcallId: "m1", userLogin: "op" },
     });
 
     projection = clearCallOcpContext(projection, "c1");
@@ -41,10 +58,12 @@ describe("callOcpContextProjection", () => {
       callId: "c2",
       acallId: "a2",
       queueName: "   ",
+      acdWire: wire({ acallId: "a2", queue: "" }),
     });
     expect(projection.byCallId.c2).toMatchObject({
       queueName: null,
       resolveState: "resolved",
+      acdWire: { queue: "" },
     });
   });
 
@@ -60,6 +79,7 @@ describe("callOcpContextProjection", () => {
       callId: "c3",
       acallId: "a3",
       queueName: "Q",
+      acdWire: wire({ acallId: "a3", queue: "Q" }),
     });
     const afterResolved = markCallOcpContextUnavailable(projection, "c3");
     expect(afterResolved.byCallId.c3?.resolveState).toBe("resolved");

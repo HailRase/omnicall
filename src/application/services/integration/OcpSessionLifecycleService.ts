@@ -27,12 +27,27 @@ const BOUNDED_CONTEXT = "Integration";
 /** Sentinel reason id for server-forced terminate (no logout modal). */
 export const OCP_SERVER_TERMINATE_REASON_ID = 0;
 
+export type CampaignOfferApplyOutcome =
+  | Readonly<{ kind: "offered"; payload: OcpCampaignEventPayload }>
+  | Readonly<{ kind: "updated"; payload: OcpCampaignEventPayload }>
+  | Readonly<{ kind: "held"; activeId: string; pendingId: string }>
+  | Readonly<{
+      kind: "progressive";
+      payload: OcpCampaignEventPayload;
+      emitOffered: boolean;
+    }>;
+
 export type OcpSessionLifecycleServiceDeps = Readonly<{
   ocpGateway: OcpGateway;
   operatorReadModel: OcpOperatorReadModel;
   eventPublisher: DomainEventPublisher;
   logger: Logger;
   getSessionDomain: () => string | null;
+  /**
+   * Sole writer for campaign projection + single-modal hold.
+   * Wired to `OcpProjectionHub.applyCampaignOffer` in composition.
+   */
+  applyCampaignOffer: (payload: OcpCampaignEventPayload) => CampaignOfferApplyOutcome;
 }>;
 
 export class OcpSessionLifecycleService {
@@ -201,20 +216,28 @@ export class OcpSessionLifecycleService {
   }
 
   private handleCampaignOffered(data: OcpCampaignEventPayload): void {
-    const correlationId = createCorrelationId();
-    if (
-      this.previousCampaignId !== null &&
-      this.previousCampaignId !== data.id
-    ) {
-      this.deps.eventPublisher.publish(
-        createOperatorCampaignClearedEvent(correlationId, {
-          campaignId: this.previousCampaignId,
-          reasonCode: "superseded",
-        }),
-      );
+    const outcome = this.deps.applyCampaignOffer(data);
+    if (outcome.kind === "held") {
+      this.deps.logger.info("ocp_campaign_offer_held_until_idle", {
+        featureId: FEATURE_ID,
+        boundedContext: BOUNDED_CONTEXT,
+        activeId: outcome.activeId,
+        pendingId: outcome.pendingId,
+      });
+      return;
     }
+    if (outcome.kind === "progressive" && !outcome.emitOffered) {
+      // Preview modal still open — progressive badges update locally only.
+      return;
+    }
+    this.publishCampaignOffered(outcome.payload);
+    this.previousCampaignId = outcome.payload.id;
+  }
+
+  /** Used after clear+promote from pending preview. */
+  publishCampaignOffered(data: OcpCampaignEventPayload): void {
     this.deps.eventPublisher.publish(
-      createOperatorCampaignOfferedEvent(correlationId, {
+      createOperatorCampaignOfferedEvent(createCorrelationId(), {
         campaignId: data.id,
         progressive: data.progressive,
         clientPhone: data.clientPhone,

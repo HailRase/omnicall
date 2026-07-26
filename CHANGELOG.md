@@ -7,17 +7,16 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [0.14.0] - 2026-07-26
+
 ### Added
 
-- **F-011 / F-028 / LF-037 / LF-065** OCP ACD queue for external hosts: additive optional `queueLabel` on public SDK `call:*` events and snapshot call summaries (from `CallOcpContextResolved` / `CallOcpContextProjection`). No `acallid`, no DOM `OCPincomingCallProgress` / `dispatchEvent`, campaign events still out of protocol v1 (ADR-0017). Contract: `docs/softphone/OCP-Call-Context.md`.
-- **F-028 / LF-039** Preview campaign offer raises the softphone window when hidden/minimized via shared ADR-0013 path (`ocp_campaign_offer` → `shell:window-raise` → `bringBrowserWindowToFront`); progressive badges do not raise.
-- **F-016 / LF-002** Bootstrap splash: macOS-like branded loading/error (`BootstrapSplashShell`), pre-React `#boot-splash`, `BrowserWindow.backgroundColor` synced with `--color-bg-app` (no white flash); bootstrap/`initialize` gate unchanged.
+- **F-028** Campaign single-modal FSM: `idle` → `preview_offered` / `progressive_offered`; second preview held in `pendingPreview` until accept/reject; promote emits Cleared then Offered (no dual modal). Contract: `OCP-Call-Context.md`, ADR-0019.
+- **F-011 / ADR-0020** Snapshot recovery: additive `calls[].acdContext` (MainCallIDInfo wire) under `ocp.acd_context.read`; `queueLabel` unchanged for redacted clients.
 
-### Fixed
+### Changed
 
-- **F-028 / LF-037** OCP `get_main_acallid` wire: SIP CallId as `acallid` + `user_login` + `caller_id`/`called_id` + lifecycle `event` (was incorrect `call_id`-only payload). Inbound MainCallIDInfo accepts live `acallid`/`main_acallid` (not only `acall_id`). Contract: `docs/softphone/OCP-Call-Context.md`.
-- **F-011 / F-028** Public SDK event `call:acd-context` — semantic ACD resolve DTO (`queueLabel`, `phase`, `direction`, masked `remoteNumber`, `localPartyLabel`); never OCP `acallid`. Additive `queueLabel` on `call:*` retained.
-- **F-028 / LF-037** Queue badge: transparent fill, gray border, ellipsis + tooltip for long queue titles.
+- Second OCP preview no longer supersedes the open modal (held until idle); protocol `reasonCode: superseded` retained for compatibility but not emitted for that path.
 
 ## [0.13.0] - 2026-07-26
 
