@@ -194,6 +194,7 @@ export function createAxatalkClient(
     subscribe: product.subscribe,
     window: Object.freeze({
       show: () => product.showWindow(),
+      hide: (input) => product.hideWindow(input),
       getState: () => product.getWindowState()
     }),
     calls: Object.freeze({

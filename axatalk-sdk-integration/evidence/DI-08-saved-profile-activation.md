@@ -13,7 +13,8 @@ Authenticated sessions with **short-lived privileged grant** may activate a desk
 | --- | --- | --- | --- |
 | `account:activate-profile` | privileged `account.activate` (never in pairing defaults) | `SdkAccountActivateGrantStore` per `clientId`+`profileRef` (TTL 120s) | `ExternalSdkAccountHandler` → `createSdkAccountPortFromFacade` → `AccountBootstrapFacade.signInAccount` |
 
-Still product-denied: `window:hide`.  
+Still product-denied on this gate day: `window:hide`
+(**superseded 2026-07-27** — product-available; see `DI-05-window-hide-product.md`).  
 SDK-08 browser client package may remain pending (non-blocking; protocol DTOs from SDK-02).
 
 ## Security model (ADR-0013 §B + ADR-0016 + AF-003/005/006)

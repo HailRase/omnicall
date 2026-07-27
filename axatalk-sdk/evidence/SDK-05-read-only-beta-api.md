@@ -5,6 +5,9 @@
 **Feature:** F-011 remains `in progress` (not `implemented`)  
 **Desktop DI-10:** still blocked on SDK-06…SDK-09 (SDK-05 alone does not unblock)
 
+> **Superseded note (2026-07-27):** `client.window.hide` is on the public product API
+> (ADR-0013 amendment). “No window.hide” below describes SDK-05 read-only scope day only.
+
 ## Prerequisites verified
 
 | Check | Result |
@@ -32,7 +35,8 @@ Helpers (test-only, not in npm tarball): `replyToGetSnapshotReplyOnly`, `replyTo
 4. **Typed `subscribe`** — public anti-corruption events; unsubscribe.
 5. **Sequence gap resync** — gap diagnostic + automatic `getSnapshot`.
 6. **Reconnect** — cache/sequence cleared; pending acquisitions rejected; fresh snapshot after re-auth.
-7. **`window.show` / `window.getState`** — capability-gated; no `window.hide`; malformed `visible` fail-closed.
+7. **`window.show` / `window.getState`** — capability-gated; **SDK-05 day:** no `window.hide`
+   export (**superseded** — `hide` added with ADR-0013 product enablement); malformed `visible` fail-closed.
 8. **Fail-closed** — pre-ready → `not_ready`; missing caps → `forbidden`.
 9. **API** — **37** symbols; mutations forbidden.
 10. **Browser** — Chromium constructor + snapshot path.

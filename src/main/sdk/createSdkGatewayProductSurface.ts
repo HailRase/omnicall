@@ -12,13 +12,24 @@ import {
   parseSdkBrokerClientSessionEndedIpcPayload,
   type SdkBrokerClientSessionEndedIpcPayload,
 } from "@shared/ipc/SdkBrokerContract.js";
+import type { SdkHideTrayController } from "../shellWindow/SdkHideTrayController.js";
+import type { ShellTelephonyBusyMirror } from "../shellWindow/ShellTelephonyBusyMirror.js";
 
 export function createSdkGatewayProductSurface(input: {
   readonly getBroker: () => MainToRendererBroker | null;
   readonly getMainWindow: () => BrowserWindow | null;
+  readonly telephonyBusy?: ShellTelephonyBusyMirror;
+  readonly hideTray?: SdkHideTrayController;
 }): SdkGatewayProductSurface {
   const windowHandler = new SdkWindowCommandHandler({
     getMainWindow: input.getMainWindow,
+    isTelephonyBusy: () => input.telephonyBusy?.isBusy() ?? false,
+    onHidden: () => {
+      input.hideTray?.ensureVisible();
+    },
+    onShown: () => {
+      input.hideTray?.dispose();
+    },
   });
   return {
     isProductReady: () => input.getBroker()?.isReady() ?? false,
@@ -33,6 +44,8 @@ export function createSdkGatewayProductSurface(input: {
       return broker.request(command, context);
     },
     showWindow: () => windowHandler.show(),
+    hideWindow: (expectedRevision: number) =>
+      windowHandler.hide(expectedRevision),
     getWindowState: () => windowHandler.getState(),
     onClientSessionEnded: (clientId: string) => {
       const payload: SdkBrokerClientSessionEndedIpcPayload = { clientId };

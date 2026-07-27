@@ -126,7 +126,9 @@ Privileged capabilities **never** appear in default profiles:
 
 - `account.activate` — Origin matrix enable + per-request consent (DI-08 / ADR-0013 /
   ADR-0018). **Not** a Settings temporary grant TTL.
-- `window.hide` — unavailable in protocol v1 product surface (ADR-0013)
+- `window.hide` — product-available under ADR-0013 (amended 2026-07-27); Origin matrix
+  grant only (default **off**); never pairing-default; telephony-busy deny + tray Show
+  recovery. Same elevation pattern as `account.activate` (without per-request consent).
 
 Requested capabilities outside the selected profile are ignored or require explicit admin
 override in Settings (DI-09); they are never auto-escalated from the browser.

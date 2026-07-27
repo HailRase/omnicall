@@ -9,6 +9,10 @@ DOCUMENT.
 Accepted (2026-07-20) — activate consent UX / per-Origin activate deny **extended by
 ADR-0018** (2026-07-21). Raw credential ban unchanged.
 
+**Amended (2026-07-27):** `window:hide` enabled on the product surface under the
+recovery + active-call policy in §A.2–A.3 (replaces the prior “unavailable until tray ADR”
+product deny).
+
 ## Context
 
 - **Features:** F-011, F-001, F-024, F-028, F-029
@@ -49,15 +53,26 @@ Two product risks:
    WebSocket connect/reconnect without operator interaction. Domain / Call Engine
    never import Electron.
 
-2. **`window:hide` (privileged, capability `window.hide`):** **Unavailable in protocol v1
-   product surface until** a dedicated tray/background + active-call policy ADR (or an
-   amendment to this ADR) is Accepted. Until then:
-   - command is rejected with `forbidden` / `unsupported_command` as fixtures specify;
-   - Settings UX must not offer hide-as-enabled (DI-09 checklist).
+2. **`window:hide` (privileged, capability `window.hide`):** **Available** on the protocol v1
+   product surface under this amendment. Rules:
+   - Capability is **privileged**: never in pairing profile defaults; never requested via
+     client `sanitizeRequestedCapabilities`. Desktop elevates it only when the Origin
+     matrix enables `window.hide` (same elevation pattern as `account.activate`).
+   - Command requires `payload.expectedRevision` (schema). Mismatch → `conflict`.
+   - Native hide runs in **main** (`BrowserWindow.hide`) after capability + telephony busy
+     checks. Success emits `window:visibility-changed` with `visible: false`.
+   - **Recovery (mandatory):** while the softphone is SDK-hidden, main keeps a **minimal
+     system tray** with a Show action that restores via the shared
+     `bringBrowserWindowToFront` helper. Authorized `window:show`, second-instance focus,
+     and telephony raise edges also restore. Full minimize-to-tray / close-to-tray product
+     UX remains a separate P11 shell deliverable; this tray exists so hide cannot strand
+     the operator without CRM.
+   - Settings Origin matrix exposes an enable toggle for `window.hide` (default **off**).
 
-3. **Active/incoming call rule (when hide eventually lands):** hide is denied during
-   incoming or active calls unless an explicit future policy allows it. Focus-stealing show
-   operations remain rate-limited.
+3. **Active/incoming call rule:** hide is **denied** while the softphone has ringing,
+   connecting, or established call context (renderer mirrors busy → main via typed IPC;
+   main does not import Call Engine). Denial code: `conflict`. Focus-stealing show
+   operations remain rate-limited (1s for SDK `window:show`).
 
 4. **Ownership:** native window mutations execute in **main** after capability/policy checks
    (ADR-0009). They do not go through Call Engine.
@@ -105,15 +120,20 @@ Two product risks:
 
 | Alternative | Why not |
 | --- | --- |
-| Enable `window:hide` immediately | No tray recovery; call stranding |
+| Enable `window:hide` with no recovery | Call / focus stranding — rejected; tray Show + `window:show` required |
+| Keep product-deny forever | Blocks CRM host UX that must dismiss softphone when idle |
 | Allow SDK SIP/OCP password login in v1 | Bypasses AF-003; secret exfiltration via XSS |
 | Separate SDK-only sign-in Facade in main | Second composition; forbidden by ADR-0009 |
 
 ## Consequences
 
-- DI-05 ships show only; DI-09 keeps hide disabled until policy exists.
+- DI-05 show path unchanged; hide is an additive privileged command on the same main
+  window handler + product surface.
+- DI-09 Settings matrix includes `window.hide` (default off); the old permanently-disabled
+  hide Switch is removed in favor of the matrix row.
 - DI-08 is security-gated; ADR-AF-003/005/006 regression tests are mandatory.
-- CRM integrators document “pair + activate saved profile”, not “send password”.
+- CRM integrators document “pair + activate saved profile”, not “send password”; hide is
+  documented as matrix-granted + idle-only.
 
 ## Architecture Checks
 

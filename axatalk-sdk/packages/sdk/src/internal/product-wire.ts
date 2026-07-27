@@ -59,3 +59,22 @@ export function buildWindowGetStateBody(input: {
     payload: {}
   });
 }
+
+export function buildWindowHideBody(input: {
+  readonly requestId: string;
+  readonly serverInstanceId: string;
+  readonly sessionEpoch: string;
+  readonly occurredAtMs: number;
+  readonly expectedRevision: number;
+}): string {
+  return JSON.stringify({
+    protocolVersion: PROTOCOL_MAJOR,
+    kind: 'command',
+    type: 'window:hide',
+    requestId: input.requestId,
+    serverInstanceId: input.serverInstanceId,
+    sessionEpoch: input.sessionEpoch,
+    occurredAt: isoNow(input.occurredAtMs),
+    payload: { expectedRevision: input.expectedRevision }
+  });
+}

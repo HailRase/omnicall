@@ -42,8 +42,12 @@ This is **not** the fake-peer `examples/crm-pairing-lite`. Connect to the **live
    - Never put SIP passwords / OCP apiKeys in the page.
    - PoP keys: IndexedDB store in browser (`createIndexedDbPopKeyStore`) — never
      `localStorage` / `sessionStorage`.
-   - `window.show` / `window.getState` allowed; **`window.hide` must stay unavailable**
-     (ADR-0013) — show disabled UI + explanation, do not pretend it works.
+   - `window.show` / `window.getState` always (when `window.show` granted).
+   - `window.hide` is **product-available** (ADR-0013 amended 2026-07-27): never request at
+     pairing; enable via Axatalk Settings → SDK Origin matrix; call
+     `client.window.hide({ expectedRevision })`. Demo must wire the button when grant is
+     present; without grant show disabled + “enable in Origin matrix”. On `conflict` during
+     a call, explain telephony-busy deny; recovery = tray Show / `window.show`.
    - Call mutations always pass fresh `expectedRevision` from last snapshot/event.
    - Errors: show `code` / `retryable` / `currentRevision` via `isAxatalkClientError` —
      never dump secrets or raw wire dumps.
@@ -121,7 +125,8 @@ Single-page with tabbed sections is also OK if UX stays crisp — still cover **
 
 ### C. Window
 - `window.show`, `window.getState`
-- `window.hide`: visible but disabled + ADR-0013 note
+- `window.hide({ expectedRevision })` when `window.hide` granted; disabled + matrix hint otherwise
+- Demo conflict path: busy call → hide denied; idle → hide + restore via show/tray
 
 ### D. Calls (full matrix)
 - Originate (destination input — use opaque-friendly examples like `ext:1001` or dial string)
@@ -174,7 +179,7 @@ If Settings Origins UI is the primary path, document **both** env allowlist and 
 ## Out of scope
 
 - Publishing npm packages / renaming scopes
-- Enabling `window.hide`
+- Re-disabling `window.hide` / inventing permanent product deny
 - Changing softphone Domain / Call Engine
 - Transfer R6 backlog
 - Marking F-011 implemented
@@ -186,7 +191,7 @@ If Settings Origins UI is the primary path, document **both** env allowlist and 
 - [ ] No heavy bundler/UI framework installs
 - [ ] Live WS to desktop works after Origin approve
 - [ ] All scenarios A–H present with polished UX
-- [ ] Hide disabled honestly; show works
+- [ ] Hide works when matrix-granted; honest disabled without grant; busy → conflict
 - [ ] README.md (EN) + HOW-TO-RU.md (short RU)
 - [ ] Agent final chat reply: **short Russian bullet list** — what to do, what to test,
       how to allow SDK ↔ softphone communication

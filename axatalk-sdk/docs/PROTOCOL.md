@@ -86,7 +86,7 @@ Loopback HTTP discovery (not WS-only): **ADR-0015**.
 
 - `window:show`
 - `window:get-state`
-- `window:hide` — privileged and policy-gated; unavailable in v1 product surface (ADR-0013)
+- `window:hide` — privileged (`window.hide`); Origin matrix; telephony-busy deny; tray recovery (ADR-0013)
 
 ### Calls
 

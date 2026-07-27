@@ -51,7 +51,7 @@ the complete repository preflight and packaged integration matrix.
 - pre-auth Settings → Axatalk SDK reachable; OCP Module still gated (ADR-AF-004);
 - activate: matrix off → `permission_denied` without modal; matrix on → modal every login;
 - activate Deny → activate-disabled; pending duplicate → conflict; dismiss clears pending;
-- no passwords / apiKeys on wire; `window.hide` still unavailable;
+- no passwords / apiKeys on wire; `window.hide` privileged + matrix-gated (ADR-0013);
 - SIP-only regression green with OCP disabled;
 - **multi-Origin:** two allowed Origins with different matrices receive independent pairing
   grants; commands honor each Origin’s matrix;
@@ -109,7 +109,8 @@ For originate, answer, reject, hang up, hold, resume, mute, unmute, and DTMF:
 - login activate: matrix enables `account.activate`; consent method picker; same-client
   idempotent; different client reauthorize; logout_required; cancel vs deny details;
 - unavailable/destroyed window returns typed failure;
-- hide is unavailable until tray/background policy is implemented;
+- hide succeeds when Origin matrix grants `window.hide` and telephony is idle;
+- hide without grant → `forbidden`; busy call → `conflict`; tray Show / `window.show` recovers;
 - hide is denied during incoming/active call unless explicitly allowed;
 - window state events reflect real main-process state.
 

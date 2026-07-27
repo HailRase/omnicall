@@ -71,7 +71,8 @@ Rules:
 3. **Allow:** Origin → `allowed`; WebSocket session continues; desktop initializes the
    **per-Origin capability matrix** to non-privileged `call_controller` defaults
    (ADR-0016 catalog minus privileged ids). `account.activate` defaults **off**.
-   `window.hide` remains unavailable (ADR-0013). Fine-grained matrix edits stay in Settings.
+   `window.hide` defaults **off** and is elevated from the Origin matrix like activate
+   (ADR-0013 amended 2026-07-27). Fine-grained matrix edits stay in Settings.
 4. **Deny (first time):** send typed wire failure **`forbidden`** with stable details key
    **`origin_denied`**, then **close** the socket. Persist Origin as `denied`.
 5. **Repeat from blacklist:** **do not establish** the WebSocket (HTTP upgrade reject). No
@@ -110,7 +111,7 @@ the same store — not the only gate. Blacklist still wins over allow seed.
    - **Per-Origin capability matrix** (see §D) — Settings UI exposes **all** matrix
      capability toggles per allowed Origin (`session.read.redacted`, `window.show`,
      `operator.status.write`, `session.logout`, `call.originate`, `call.control`,
-     `account.activate`); `window.hide` is shown disabled (ADR-0013);
+     `account.activate`); `window.hide` is a normal matrix toggle (default off; ADR-0013);
    - Diagnostics (listen status, bind port, connection counts) without secrets;
    - Paired client revoke controls (from DI-09) remain here; policy lists themselves are
      editable pre-auth.
@@ -146,8 +147,9 @@ the same store — not the only gate. Blacklist still wins over allow seed.
    - When a required capability is present in session grants but stripped by the live
      matrix → typed **`forbidden`** with details key **`permission_denied`**; do not tear
      the transport solely for that deny.
-4. Privileged `account.activate` and unavailable `window.hide` remain special:
-   - `window.hide` — still unavailable in product v1 (ADR-0013);
+4. Privileged `account.activate` and `window.hide` remain special:
+   - `window.hide` — product-available; matrix default **off**; never pairing-default;
+     deny while telephony busy; tray recovery (ADR-0013);
    - `account.activate` — **not** in pairing defaults. When the Origin matrix enables it,
      desktop elevates it onto the live session and emits `sdk:permission-changed`
      (exception to matrix-expand-beyond-pairing). Disable strips it. Actual activate still

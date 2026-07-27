@@ -89,7 +89,8 @@ Root `eslint .` previously also walked nested `axatalk-sdk/**` (separate workspa
 
 - DI-02 must implement real IPC broker without second Application composition
 - Schema tightness discoveries when wiring live mappers (DI-05+) must go through ADR/fixtures, not a second schema stack
-- `window:hide` remains schema-valid but product-denied (`forbidden`) until ADR-0013 tray policy
+- `window:hide` schema-valid; **DI-01 gate day** product-denied until tray policy
+  (**superseded 2026-07-27** — product-available under ADR-0013 amendment)
 - Manual SIP/OCP/call smoke still deferred (SMOKE-CHECKLIST; DI-10)
 
 ## Handoff checklist (Execution Template)

@@ -45,7 +45,7 @@ The SDK is not done because packages build or methods exist. All gates below are
 - [ ] SIP-only mode without OCP.
 - [ ] Optional operator state and status changes.
 - [ ] Logout reason workflow.
-- [ ] Window show; hide only if approved by policy.
+- [x] Window show; hide under ADR-0013 amendment (privileged + busy deny + tray recovery).
 
 ## Testing
 

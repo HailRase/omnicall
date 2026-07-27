@@ -191,7 +191,8 @@ Gate: no secret crosses protocol or logs; ADR-AF-003/005/006 regressions pass.
   server status, and safe diagnostics.
 - Add all translations for `ru`, `en`, `fr`, `de`, and `bg`.
 - Never display reusable bearer secrets for copy/paste into browser bundles.
-- Define tray/background policy before enabling `window:hide`.
+- `window:hide` product-available (ADR-0013 amended 2026-07-27): Origin matrix grant,
+  telephony-busy deny, hide-only tray Show recovery — do not reintroduce permanent deny.
 
 Gate: UI, accessibility, i18n, migration, and security tests pass.
 

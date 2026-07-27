@@ -95,9 +95,10 @@ Ask me at least these (adapt if already answered in chat):
 ### D. Hard stops to remind me
 
 - Do not mark F-011 `implemented` from handshake-only evidence
-- Do not enable `window.hide` for green cells
+- `window.hide` is product-available (ADR-0013 amendment 2026-07-27) — do not re-disable;
+  smoke green cells may exercise hide under matrix + idle telephony
 - Do not publish npm `latest` while P12/F-011 open
-- Do not start a fictional DI-11
+- Do not invent a fictional DI-12
 - Transfer R6 backlog stays untouched
 
 ## First action

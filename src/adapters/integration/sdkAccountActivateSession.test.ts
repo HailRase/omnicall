@@ -47,4 +47,30 @@ describe("sdkAccountActivateSession", () => {
       withOriginMatrixAccountActivate(["call.control", "account.activate"], []),
     ).toEqual(["call.control"]);
   });
+
+  it("elevates window.hide from Origin matrix alongside activate", () => {
+    expect(
+      withOriginMatrixAccountActivate(["window.show"], ["window.hide"]),
+    ).toEqual(["window.show", "window.hide"]);
+    const connection = createSdkGatewayConnection(
+      "conn_hide",
+      {
+        readyState: 1,
+        send: () => undefined,
+        close: () => undefined,
+        terminate: () => undefined,
+        ping: () => undefined,
+        on: () => undefined,
+      },
+      "https://crm.example",
+      0,
+    );
+    connection.authState = "authenticated";
+    expect(
+      syncAccountActivateCapabilityFromOriginPolicy(connection, [
+        "window.hide",
+      ]),
+    ).toBe(true);
+    expect(connection.grantedCapabilities).toContain("window.hide");
+  });
 });

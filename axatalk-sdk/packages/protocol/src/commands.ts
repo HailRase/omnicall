@@ -96,8 +96,9 @@ export const WindowGetStateCommandSchema = z
   .readonly();
 
 /**
- * Schema exists for future tray/background policy. Unavailable in v1 product
- * surface (ADR-0013) — use `isCommandAvailableInProductV1` / policy helpers.
+ * Hide softphone window (privileged `window.hide`). Product rules: Origin matrix
+ * grant, expectedRevision match, deny while telephony busy, tray recovery
+ * (ADR-0013 amended 2026-07-27).
  * @public
  */
 export const WindowHideCommandSchema = z

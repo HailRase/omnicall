@@ -48,7 +48,8 @@ export type SdkInboundRoute =
   | {
       readonly action: "command_window";
       readonly requestId: string;
-      readonly commandType: "window:show" | "window:get-state";
+      readonly commandType: "window:show" | "window:get-state" | "window:hide";
+      readonly expectedRevision?: number;
     }
   | {
       readonly action: "command_not_ready";
@@ -106,8 +107,8 @@ function routeCommand(
     };
   }
 
-  // ADR-0013: v1-unavailable commands (e.g. window:hide) → forbidden before
-  // capability / not_ready fall-through.
+  // ADR-0013: empty V1_PRODUCT_UNAVAILABLE_COMMANDS — hide gated by capability /
+  // matrix / telephony busy / expectedRevision instead of product-deny.
   const productDenial = productDenialCodeForCommand(message.type);
   if (productDenial !== null) {
     return {
@@ -165,10 +166,35 @@ function routeCommand(
     };
   }
 
-  // window:hide denied earlier via productDenial; unknown cmds stay not_ready.
+  if (message.type === "window:hide") {
+    const expectedRevision =
+      typeof message.payload === "object" &&
+      message.payload !== null &&
+      "expectedRevision" in message.payload &&
+      typeof message.payload.expectedRevision === "number"
+        ? message.payload.expectedRevision
+        : undefined;
+    if (expectedRevision === undefined) {
+      return {
+        action: "command_deny",
+        requestId: message.requestId,
+        commandType: message.type,
+        code: "invalid_payload",
+      };
+    }
+    return {
+      action: "command_window",
+      requestId: message.requestId,
+      commandType: message.type,
+      expectedRevision,
+    };
+  }
+
+  // Exhaustive for current COMMAND_TYPES; unknown future types stay not_ready.
+  const pending = message as CommandMessage;
   return {
     action: "command_not_ready",
-    requestId: message.requestId,
-    commandType: message.type,
+    requestId: pending.requestId,
+    commandType: pending.type,
   };
 }

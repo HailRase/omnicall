@@ -41,6 +41,6 @@ describe("SettingsIntegrationsPanel", () => {
 
     expect(screen.queryByTestId("ocp-module-settings-card")).not.toBeInTheDocument();
     expect(screen.getByTestId("sdk-module-settings-card")).toBeInTheDocument();
-    expect(screen.getByTestId("sdk-module-hide-toggle")).toBeDisabled();
+    expect(screen.queryByTestId("sdk-module-hide-toggle")).toBeNull();
   });
 });

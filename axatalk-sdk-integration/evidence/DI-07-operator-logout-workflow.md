@@ -17,7 +17,9 @@ Authenticated, capability-bound sessions gain **operator status + account logout
 | `account:logout` | `session.logout` | → `logoutAccountSession` / `AccountLogoutOrchestrationService`; may return `interaction_required` + `{ requiresReason: true, reasons }` (**no** `logoutToken`) |
 
 Cancel = do not call logout / disconnect — no SIP tear.  
-Still `not_ready` historically for activate until DI-08. Still product-denied: `window:hide`.
+Still `not_ready` historically for activate until DI-08. Still product-denied on this
+gate day: `window:hide` (**superseded 2026-07-27** — product-available; see
+`DI-05-window-hide-product.md`).
 
 ## Revision contract (preserved from DI-06 / ADR-0017 O-OWN-1)
 

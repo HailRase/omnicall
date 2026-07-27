@@ -35,6 +35,12 @@ export type AxatalkWindowApi = {
     readonly visible: boolean;
     readonly revision: number;
   }>;
+  readonly hide: (input: {
+    readonly expectedRevision: number;
+  }) => Promise<{
+    readonly visible: boolean;
+    readonly revision: number;
+  }>;
   readonly getState: () => Promise<{
     readonly visible: boolean;
     readonly revision: number;

@@ -11,8 +11,10 @@ Electron E2E).
 ### Included since incubation (SDK-00…SDK-09 + transport defaults)
 
 - `AxatalkClient` lifecycle: connect, pair, ready, disconnect, revoke, incompatible
-- Namespaces: `calls`, `account`, `operator`, `window.show`
+- Namespaces: `calls`, `account`, `operator`, `window` (`show` / `hide` / `getState`)
 - Fail-closed capabilities; privileged caps stripped at pairing (`account.activate`, `window.hide`)
+- `client.window.hide({ expectedRevision })` product-available (ADR-0013 amended
+  2026-07-27): Origin matrix grant, telephony-busy `conflict`, tray Show recovery
 - Bounded reconnect with fresh snapshot; no mutation replay
 - Official browser WebSocket adapter: `createBrowserWebSocketTransport`
 - Browser defaults for `transportFactory` / `scheduler` / `jitter` (still injectable for tests)

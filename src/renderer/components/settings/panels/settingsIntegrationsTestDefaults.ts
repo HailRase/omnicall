@@ -26,7 +26,7 @@ const sdkCardDefaults = {
     pairedClientCount: 0,
     allowedOriginsCount: 0,
     lastErrorCode: null,
-    windowHideAvailable: false,
+    windowHideAvailable: true,
   },
   allowedOriginsLive: [],
   pairedClients: [],

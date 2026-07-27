@@ -42,6 +42,7 @@ function createSurface(
     requestProductCommand: () =>
       Promise.resolve({ ok: false as const, code: "unsupported_command" }),
     showWindow: () => ({ ok: true, revision: 1, visible: true }),
+    hideWindow: () => ({ ok: true, revision: 1, visible: false }),
     getWindowState: () => ({ ok: true, visible: false, revision: 1 }),
     ...overrides,
   };

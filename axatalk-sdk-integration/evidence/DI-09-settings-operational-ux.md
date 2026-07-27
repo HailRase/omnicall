@@ -5,6 +5,10 @@
 **Desktop version:** `0.11.2` (unchanged)  
 **Feature:** F-011 remains `in progress` (not `implemented`)
 
+> **Superseded note (2026-07-27):** `window:hide` is product-available (Origin matrix,
+> telephony-busy deny, tray Show). Main-tab permanent “hide unavailable” UI was removed;
+> see ADR-0013 amendment + `DI-05-window-hide-product.md`. Text below reflects DI-09 gate day.
+
 ## Scope landed
 
 Settings → Integrations → **SDK Server** operational surface (UI Kit):
@@ -17,14 +21,14 @@ Settings → Integrations → **SDK Server** operational surface (UI Kit):
 | Paired clients | Public metadata only; revoke via existing `revokePairedClient` (no SIP/account tear-down) |
 | Pending pairing | Approve / deny |
 | Activate grant | Desktop-owned `issueAccountActivateGrant` → opaque `profileRef` only |
-| Diagnostics | Allowlisted counts/bind/status/lastErrorCode; `windowHideAvailable: false` |
-| Hide | Permanently disabled with ADR-0013 reason |
+| Diagnostics | Allowlisted counts/bind/status/lastErrorCode; `windowHideAvailable` projection |
+| Hide | **DI-09 gate day:** permanently disabled with ADR-0013 reason (**superseded 2026-07-27** — matrix toggle) |
 
 ## Hard-stop invariants preserved
 
 - No second Facade / Call Engine / SIP stack in main
 - No secrets (passwords, apiKeys, tokens, PoP private keys) in UI / WS / IPC / diagnostics
-- `window:hide` remains product-denied
+- `window:hide` product-denied **on DI-09 gate day** (superseded 2026-07-27)
 - F-011 not marked `implemented`; version remains `0.11.2`
 - DI-10 not started
 
@@ -70,7 +74,9 @@ npx vitest run \
 | `npm run registry:check` | **74 found / 0 missing** |
 | `package.json` version | **0.11.2** |
 
-Also re-verified: i18n key parity (`messages.test.ts`); `window:hide` product denial (`sdkGatewayRouteInbound.test.ts`).
+Also re-verified **on DI-09 gate day**: i18n key parity (`messages.test.ts`);
+`window:hide` product denial (`sdkGatewayRouteInbound.test.ts`) —
+**superseded 2026-07-27** (deny removed; matrix + busy policy).
 
 ## Low remediations (post-gate, same day)
 

@@ -294,7 +294,8 @@ Do not reintroduce `max-width: none` on shared Settings form stacks without an A
 
 Three UI Kit Tabs (same pattern as Account mode tabs, `indicator="slide"`):
 
-1. **Main** — gateway status (+ refresh), paired clients, single “window hide unavailable” note  
+1. **Main** — gateway status (+ refresh), paired clients (no global hide toggle — `window.hide`
+   lives on Trusted sites Origin matrix, default off; ADR-0013)  
 2. **Trusted sites** — add site; each site is a UI Kit Accordion item (permissions as labeled Selects allowed/denied; address edit with explicit Save/Cancel)  
 3. **Blocked sites** — origin left, Unblock right  
 

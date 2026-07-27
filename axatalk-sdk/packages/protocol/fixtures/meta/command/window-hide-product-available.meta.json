@@ -1,0 +1,3 @@
+{
+  "notes": "window:hide is product-available after ADR-0013 amendment (2026-07-27). Gateways enforce privileged capability + Origin matrix + telephony busy + expectedRevision; not V1_PRODUCT_UNAVAILABLE_COMMANDS."
+}

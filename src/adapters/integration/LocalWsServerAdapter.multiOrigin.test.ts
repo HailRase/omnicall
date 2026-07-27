@@ -92,6 +92,7 @@ function createSurface(
       });
     },
     showWindow: () => ({ ok: true, revision: 1, visible: true }),
+    hideWindow: () => ({ ok: true, revision: 1, visible: false }),
     getWindowState: () => ({ ok: true, visible: false, revision: 1 }),
     ...overrides,
   };

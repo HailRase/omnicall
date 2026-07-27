@@ -97,12 +97,13 @@ describe("MainToRendererBroker", () => {
     }
   });
 
-  it("returns typed failure for window:hide without invoking the probe handler", async () => {
+  it("forwards window:hide to probe which rejects as unsupported_command (main-owned path)", async () => {
     const { broker, handler } = createLoopbackPair();
     broker.setReady(true);
-    await expect(
-      broker.request(readJson("valid/command/window-hide-schema-only.json")),
-    ).resolves.toEqual({ ok: false, code: "forbidden" });
+    const result = await broker.request(
+      readJson("valid/command/window-hide-schema-only.json"),
+    );
+    expect(result).toEqual({ ok: false, code: "unsupported_command" });
     expect(handler.getHandleCount()).toBe(0);
   });
 

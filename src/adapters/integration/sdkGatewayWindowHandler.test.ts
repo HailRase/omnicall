@@ -90,4 +90,48 @@ describe("SdkWindowCommandHandler", () => {
     });
     expect(bringBrowserWindowToFront).not.toHaveBeenCalled();
   });
+
+  it("hides successfully when revision matches and telephony is idle", () => {
+    const hide = vi.fn();
+    const window = {
+      ...createMockWindow(),
+      hide,
+    };
+    const onHidden = vi.fn();
+    const handler = new SdkWindowCommandHandler({
+      getMainWindow: () => window as unknown as Electron.BrowserWindow,
+      onHidden,
+    });
+
+    expect(handler.hide(1)).toEqual({
+      ok: true,
+      revision: 1,
+      visible: false,
+    });
+    expect(hide).toHaveBeenCalledTimes(1);
+    expect(onHidden).toHaveBeenCalledTimes(1);
+    expect(handler.getRevision()).toBe(2);
+  });
+
+  it("returns conflict on hide revision mismatch", () => {
+    const window = createMockWindow();
+    const handler = new SdkWindowCommandHandler({
+      getMainWindow: () => window as unknown as Electron.BrowserWindow,
+    });
+    expect(handler.hide(99)).toEqual({ ok: false, code: "conflict" });
+  });
+
+  it("returns conflict on hide while telephony busy", () => {
+    const hide = vi.fn();
+    const window = {
+      ...createMockWindow(),
+      hide,
+    };
+    const handler = new SdkWindowCommandHandler({
+      getMainWindow: () => window as unknown as Electron.BrowserWindow,
+      isTelephonyBusy: () => true,
+    });
+    expect(handler.hide(1)).toEqual({ ok: false, code: "conflict" });
+    expect(hide).not.toHaveBeenCalled();
+  });
 });

@@ -16,7 +16,7 @@ export const EMPTY_SDK_DIAGNOSTICS: SdkGatewayDiagnosticsProjection = {
   pairedClientCount: 0,
   allowedOriginsCount: 0,
   lastErrorCode: null,
-  windowHideAvailable: false,
+  windowHideAvailable: true,
 };
 
 export type SdkGatewayInvoker = (

@@ -50,7 +50,7 @@ const baseArgs = {
     pairedClientCount: 1,
     allowedOriginsCount: 2,
     lastErrorCode: null,
-    windowHideAvailable: false as const,
+    windowHideAvailable: true as const,
   },
   allowedOriginsLive: ["https://crm.example", "https://ops.example"],
   pairedClients: [

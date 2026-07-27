@@ -31,11 +31,11 @@ describe("SdkBrokerProbeHandler", () => {
     expect(handler.getHandleCount()).toBe(1);
   });
 
-  it("rejects window:hide and non-ping product commands", async () => {
+  it("rejects window:hide as unsupported_command on the probe (main-owned native path)", async () => {
     const handler = new SdkBrokerProbeHandler();
     await expect(
       handler.handleCommand(readJson("valid/command/window-hide-schema-only.json")),
-    ).resolves.toMatchObject({ ok: false, code: "forbidden" });
+    ).resolves.toMatchObject({ ok: false, code: "unsupported_command" });
     expect(handler.getHandleCount()).toBe(0);
   });
 

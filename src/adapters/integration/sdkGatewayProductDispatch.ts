@@ -25,7 +25,8 @@ export type SdkProductCommandRoute =
   | {
       readonly action: "command_window";
       readonly requestId: string;
-      readonly commandType: "window:show" | "window:get-state";
+      readonly commandType: "window:show" | "window:get-state" | "window:hide";
+      readonly expectedRevision?: number;
     };
 
 export type SdkProductDispatchContext = Readonly<{
@@ -124,6 +125,7 @@ export async function handleSdkProductCommand(input: {
       input,
       identity,
       input.route.commandType,
+      input.route.expectedRevision,
     );
     input.requestDedup.complete(
       requestId,
@@ -132,7 +134,7 @@ export async function handleSdkProductCommand(input: {
     );
     // Reply before visibility event (DI-05 ordering contract).
     input.sendJson(input.connection, windowResult.reply);
-    if (windowResult.shownRevision !== undefined) {
+    if (windowResult.visibilityEvent !== undefined) {
       input.connection.eventSequence += 1;
       input.emitToConnection(
         input.connection,
@@ -140,8 +142,8 @@ export async function handleSdkProductCommand(input: {
           identity,
           now: input.now,
           sequence: input.connection.eventSequence,
-          revision: windowResult.shownRevision,
-          visible: true,
+          revision: windowResult.visibilityEvent.revision,
+          visible: windowResult.visibilityEvent.visible,
         }),
       );
     }
@@ -170,8 +172,12 @@ export async function handleSdkProductCommand(input: {
 function executeWindowCommand(
   input: Parameters<typeof handleSdkProductCommand>[0],
   identity: SdkGatewayIdentity,
-  commandType: "window:show" | "window:get-state",
-): { readonly reply: WireMessage; readonly shownRevision?: number } {
+  commandType: "window:show" | "window:get-state" | "window:hide",
+  expectedRevision: number | undefined,
+): {
+  readonly reply: WireMessage;
+  readonly visibilityEvent?: { readonly revision: number; readonly visible: boolean };
+} {
   if (commandType === "window:get-state") {
     const state = input.product.getWindowState();
     if (!state.ok) {
@@ -207,6 +213,53 @@ function executeWindowCommand(
     };
   }
 
+  if (commandType === "window:hide") {
+    if (expectedRevision === undefined) {
+      return {
+        reply: buildCommandFailureReply({
+          requestId: input.route.requestId,
+          commandType,
+          code: "invalid_payload",
+          identity,
+          now: input.now,
+        }),
+      };
+    }
+    const hidden = input.product.hideWindow(expectedRevision);
+    if (!hidden.ok) {
+      input.log("sdk_gateway_command", {
+        commandType,
+        requestId: input.route.requestId,
+        result: hidden.code,
+      });
+      return {
+        reply: buildCommandFailureReply({
+          requestId: input.route.requestId,
+          commandType,
+          code: hidden.code,
+          identity,
+          now: input.now,
+        }),
+      };
+    }
+    input.log("sdk_gateway_command", {
+      commandType,
+      requestId: input.route.requestId,
+      result: "ok",
+    });
+    return {
+      reply: buildCommandSuccessReply({
+        requestId: input.route.requestId,
+        commandType,
+        identity,
+        now: input.now,
+        revision: hidden.revision,
+        result: { visible: false },
+      }),
+      visibilityEvent: { revision: hidden.revision, visible: false },
+    };
+  }
+
   const shown = input.product.showWindow();
   if (!shown.ok) {
     input.log("sdk_gateway_command", {
@@ -238,7 +291,7 @@ function executeWindowCommand(
       revision: shown.revision,
       result: { visible: true },
     }),
-    shownRevision: shown.revision,
+    visibilityEvent: { revision: shown.revision, visible: true },
   };
 }
 

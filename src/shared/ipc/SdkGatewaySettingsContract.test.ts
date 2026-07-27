@@ -15,7 +15,7 @@ const listeningDiagnostics = {
   pairedClientCount: 1,
   allowedOriginsCount: 1,
   lastErrorCode: null,
-  windowHideAvailable: false as const,
+  windowHideAvailable: true as const,
 };
 
 const validPairedClient = {

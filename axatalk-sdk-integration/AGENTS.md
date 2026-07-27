@@ -72,7 +72,8 @@ At the end:
   delegate to existing public methods or Use Cases.
 - Do not change existing OCP host behavior silently; add a mapper and compatibility tests.
 - Do not add raw credential sign-in to protocol v1.
-- Do not implement hide before tray/background and active-call policies are approved.
+- Do not re-disable `window.hide` or remove tray/busy policy without an ADR amendment
+  (ADR-0013 product-available 2026-07-27: matrix + telephony-busy deny + tray Show).
 - Do not modify transfer backlog behavior.
 
 ## Testing Rules

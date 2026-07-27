@@ -11,6 +11,8 @@ export const IPC_CHANNELS = {
   shellApplyWindowLayout: "shell:apply-window-layout",
   /** Renderer → main: raise softphone above other apps (ADR-0013). */
   shellWindowRaise: "shell:window-raise",
+  /** Renderer → main: telephony busy mirror for SDK window:hide deny (ADR-0013). */
+  shellTelephonyBusy: "shell:telephony-busy",
   /** Main → renderer: operator must decide SDK pairing / Origin trust. */
   shellOperatorAttention: "shell:operator-attention",
   profilesGetStorageRoot: "profiles:get-storage-root",

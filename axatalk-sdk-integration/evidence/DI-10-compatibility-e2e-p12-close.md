@@ -1,5 +1,9 @@
 # DI-10 — Compatibility, E2E, and P12 Close (evidence)
 
+> **Superseded note (2026-07-27):** `window:hide` is product-available under ADR-0013
+> amendment. Rows below that claim “hide unavailable = PASS” describe DI-10 gate day only.
+> Current smoke: `SMOKE-CHECKLIST.md` + `DI-05-window-hide-product.md`.
+
 **Date:** 2026-07-21  
 **Mode:** Gate closed after remediation + re-`/sdk-review`  
 **Desktop version:** `0.11.2` (unchanged; no SemVer bump — F-011 not closed)  
@@ -169,7 +173,7 @@ Record fields:
 | Call command matrix on controlled SIP | **OPEN** |
 | SIP-only with gateway off/on (manual) | **OPEN** (automated start-denial / disable covered) |
 | OCP optional operator smoke | **OPEN** |
-| `window:hide` unavailable | **PASS** (product deny tests; not weakened) |
+| `window:hide` unavailable **on DI-10 gate day** | **PASS** (historical; superseded 2026-07-27 — product-available) |
 
 Overall smoke: **PARTIAL** — transport/security packaged subset PASS; product pairing/call/OCP cells OPEN.
 
@@ -180,7 +184,7 @@ Overall smoke: **PARTIAL** — transport/security packaged subset PASS; product 
 | Single renderer Application composition | Held — no second Facade |
 | Main owns socket; broker for product | Held |
 | Origin / PoP / capabilities / redaction | Held — no weaken |
-| `window:hide` | Still unavailable |
+| `window:hide` | Unavailable **on DI-10 gate day** — superseded 2026-07-27 (product-available) |
 | Formal `/arch-review` | Deferred — no structural redesign this unit |
 | Formal security review beyond self-check | Deferred to close of remaining OPEN cells / Mode B |
 | Independent `/sdk-review` | **PASS** 2026-07-21 — DI-10 `done`; F-011/P12 not closed |

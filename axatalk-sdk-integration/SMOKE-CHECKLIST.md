@@ -63,8 +63,11 @@ Do not record credentials, tokens, full phone numbers, or customer data.
 - [ ] Removing/blacklisting an Origin while pairing is pending closes that socket and clears pending (paired clients remain until explicit revoke).
 - [ ] Focus behavior follows rate and local policy (ADR-0013 bring-to-front; no permanent always-on-top).
 - [ ] Destroyed/unavailable window returns a typed error.
-- [ ] `window:hide` is unavailable unless its policy and tray recovery are implemented.
-- [ ] Active/incoming call policy prevents unsafe hiding.
+- [ ] `window:hide` succeeds when Origin matrix grants `window.hide`, telephony is idle, and
+      `expectedRevision` matches (SDK `client.window.hide`).
+- [ ] Hide without matrix grant returns `forbidden` / `permission_denied`.
+- [ ] Active/incoming/connecting call (telephony busy) returns `conflict` and does not hide.
+- [ ] After successful hide, tray Show (or `window.show`) restores the window.
 
 ## Call Commands
 

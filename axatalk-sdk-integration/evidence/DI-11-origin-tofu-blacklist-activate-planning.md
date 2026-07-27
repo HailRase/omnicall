@@ -27,7 +27,9 @@
    dismiss/choice clears pending.
 9. Discovery CORS: ACAO for `unknown` + `allowed` only; never for `denied`.
 10. F-011 / P12 close requires DI-11 `/sdk-review` PASS (or waiver), not DI-10 alone.
-11. Raw SIP/OCP credential login via SDK **deferred**. `window.hide` still unavailable.
+11. Raw SIP/OCP credential login via SDK **deferred**.
+    `window.hide` was still unavailable at planning time — **superseded 2026-07-27**
+    (ADR-0013 amendment / `DI-05-window-hide-product.md`).
 
 ## Docs updated (2026-07-21 refactor)
 
@@ -41,5 +43,5 @@
 
 - Implementing code in the docs session
 - Closing F-011 / P12 / DI-10 / DI-11
-- Enabling `window.hide`
+- Re-disabling `window.hide` after ADR-0013 product enablement (2026-07-27)
 - npm publish / SemVer bump

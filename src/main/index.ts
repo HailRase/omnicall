@@ -11,6 +11,7 @@ import { parseOpenExternalUrlPayload } from "@shared/ipc/OpenExternalUrlContract
 import { parseSetNativeThemePayload } from "@shared/ipc/SetNativeThemeContract.js";
 import { parseShellWindowLayoutPayload } from "@shared/ipc/ShellWindowLayoutContract.js";
 import { parseShellWindowRaisePayload } from "@shared/ipc/ShellWindowRaiseContract.js";
+import { parseShellTelephonyBusyPayload } from "@shared/ipc/ShellTelephonyBusyContract.js";
 import { createConsoleLogger } from "@infrastructure/logging/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import { MAIN_WINDOW_INITIAL_BOUNDS } from "@shared/platform/mainWindowBounds.js";
@@ -49,6 +50,8 @@ import {
   beginSdkGatewayAppShutdown,
   cancelSdkGatewayAppShutdown,
   getShellWindowAttentionController,
+  getSdkHideTrayController,
+  getShellTelephonyBusyMirror,
   setSdkGatewayPrimaryInstance,
   setShellWindowAttentionController,
   startSdkGateway,
@@ -464,6 +467,16 @@ function registerIpcHandlers(): void {
         reason: raised.code === "duplicate" ? ("duplicate" as const) : ("not_ready" as const),
       };
     }
+    getSdkHideTrayController().dispose();
+    return { ok: true as const };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.shellTelephonyBusy, (_event, payload: unknown) => {
+    const parsed = parseShellTelephonyBusyPayload(payload);
+    if (parsed === null) {
+      return { ok: false as const, reason: "invalid_payload" as const };
+    }
+    getShellTelephonyBusyMirror().setBusy(parsed.busy);
     return { ok: true as const };
   });
 
@@ -521,9 +534,11 @@ if (!gotSingleInstanceLock) {
         mainWindow.restore();
       }
       mainWindow.focus();
+      getSdkHideTrayController().dispose();
       return;
     }
     attention.raise({ reason: "second_instance" });
+    getSdkHideTrayController().dispose();
   });
 }
 

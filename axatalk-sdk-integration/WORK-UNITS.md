@@ -611,7 +611,8 @@ Agent prompt:
 > `forbidden`/`origin_blocked`/`not_found`/`conflict`). Update SDK client error mapping +
 > tests.
 > Do not mark F-011 implemented unless P12 close criteria (DI-10+DI-11) are met.
-> Do not enable `window.hide`. Do not invent DI-12.
+> Follow-up (2026-07-27): `window.hide` enabled under ADR-0013 amendment (matrix + busy deny + tray).
+> Do not invent DI-12 unless a new Integration WU is opened in WORK-UNITS.
 
 Checklist:
 
@@ -648,4 +649,6 @@ Checklist:
 - Regression risks: ADR-AF-004 nav tests; DI-04 Origin tests; env allowlist seed behavior
 - Reviewer: `/sdk-review` **PASS** (2026-07-21) — prior boot-hydrate Blocker cleared; High/Low noted
 - Evidence: `axatalk-sdk-integration/evidence/DI-11-origin-tofu-blacklist-activate.md`
-- Explicit: F-011 still `in progress`; P12 open; SemVer `0.12.0`; `window.hide` unavailable
+- Explicit: F-011 still `in progress`; P12 open; SemVer `0.12.0` at DI-11 close.
+  Follow-up 2026-07-27: `window.hide` product-available (ADR-0013 amendment) — see
+  `evidence/DI-05-window-hide-product.md`.

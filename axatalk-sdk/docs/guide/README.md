@@ -30,9 +30,11 @@ Example (fake peer only): [`examples/crm-pairing-lite/`](../../examples/crm-pair
 ## Hard rules (every page assumes these)
 
 1. Never request `account.activate` or `window.hide` at pairing — SDK strips them.
+   Grant both only via Axatalk Settings → SDK Origin matrix; then call
+   `client.account.activateProfile` / `client.window.hide({ expectedRevision })`.
 2. Never pass SIP password / OCP apiKey through the SDK.
 3. Never store PoP keys or tokens in `localStorage` / `sessionStorage`.
-4. Reconnect never replays mutations; disconnect never hangup / logout / activate.
+4. Reconnect never replays mutations; disconnect never hangup / logout / activate / hide.
 5. Document only symbols that exist in `etc/api/sdk.api.md` today.
 
 ## Related (agents / architecture)

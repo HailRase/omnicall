@@ -59,12 +59,16 @@ describe("MockMainToRendererBroker", () => {
     ]);
   });
 
-  it("denies window:hide on the v1 product surface", async () => {
+  it("accepts schema-valid window:hide on the mock broker (product-available; gateway owns native path)", async () => {
     const broker = new MockMainToRendererBroker();
     broker.setReady(true);
-    await expect(
-      broker.request(readJson("valid/command/window-hide-schema-only.json")),
-    ).resolves.toEqual({ ok: false, code: "forbidden" });
+    const result = await broker.request(
+      readJson("valid/command/window-hide-schema-only.json"),
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok && result.reply.ok) {
+      expect(result.reply.commandType).toBe("window:hide");
+    }
   });
 
   it("rejects non-command wire messages", async () => {

@@ -4,6 +4,11 @@
 **Desktop version:** `0.12.0` (MINOR — DI-11 user-visible TOFU/Settings)  
 **Work unit status:** `done` — `/sdk-review` **PASS** 2026-07-21; High/Low remediated same day  
 
+> **Superseded note (2026-07-27):** `window.hide` is product-available under ADR-0013
+> amendment (matrix + telephony-busy deny + tray). See
+> `evidence/DI-05-window-hide-product.md`. Rows below that say “hide unavailable”
+> describe DI-11 gate day only.
+
 **ADR:** ADR-0018 Accepted  
 
 ## Prerequisites verified
@@ -15,7 +20,7 @@
 | DI-10 `done` (`/sdk-review` PASS 2026-07-21) | PASS |
 | F-011 stays `in progress` | PASS (not marked implemented) |
 | P12 stays open | PASS |
-| `window.hide` still unavailable | PASS |
+| `window.hide` unavailable **on DI-11 gate day** (superseded 2026-07-27) | PASS (historical) |
 | No `sdk-demo/` re-added to softphone | PASS |
 
 ## Review refactor (2026-07-21) — blockers closed
@@ -124,7 +129,8 @@ cd axatalk-sdk && npx vitest run \
 - F-011 remains **`in progress`**
 - P12 remains **open**
 - SemVer remains **`0.11.2`**
-- `window.hide` still unavailable
+- `window.hide` unavailable **on DI-11 gate day** — superseded 2026-07-27
+  (`DI-05-window-hide-product.md`)
 - DI-10 OPEN smoke (Settings pair/revoke + live SIP/OCP call) **not** completed in this unit
 - No npm publish / Mode B
 - DI-11 not marked `done` until `/sdk-review` PASS

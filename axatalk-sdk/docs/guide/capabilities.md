@@ -9,7 +9,7 @@ pairing; the desktop decides grants. Privileged caps are **never** pairing-defau
 | --- | --- | --- |
 | `session.read.redacted` | No | Snapshot / events |
 | `window.show` | No | `client.window.show` |
-| `window.hide` | **Yes** | **Unavailable in v1 product** — do not ship |
+| `window.hide` | **Yes** | `client.window.hide` — Origin matrix only; idle telephony; tray recovery |
 | `operator.status.write` | No | `client.operator.changeStatus` |
 | `operator.campaign.read` | No | Subscribe `operator:campaign-*` + snapshot `operator.campaign` |
 | `ocp.acd_context.read` | No | Subscribe `call:acd-context` (OCP MainCallIDInfo wire, ADR-0020) |

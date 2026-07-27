@@ -41,7 +41,7 @@ export async function buildSdkGatewaySettingsSnapshot(
         pairedClientCount: 0,
         allowedOriginsCount: 0,
         lastErrorCode: "gateway_unavailable",
-        windowHideAvailable: false,
+        windowHideAvailable: true,
       },
       origins: [],
       pendingOriginTrust: [],

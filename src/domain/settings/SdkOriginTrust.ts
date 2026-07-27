@@ -8,12 +8,14 @@
 export type SdkOriginTrustState = "unknown" | "allowed" | "denied";
 
 /**
- * Matrix-governed capability ids (catalog minus unavailable `window.hide`).
- * Privileged `account.activate` is a matrix flag; grants still require consent path.
+ * Matrix-governed capability ids (catalog including privileged matrix toggles).
+ * Privileged `account.activate` / `window.hide` are matrix flags; grants still
+ * require elevation path (never pairing defaults).
  */
 export const SDK_ORIGIN_MATRIX_CAPABILITY_IDS = [
   "session.read.redacted",
   "window.show",
+  "window.hide",
   "operator.status.write",
   "operator.campaign.read",
   "ocp.acd_context.read",
@@ -42,12 +44,13 @@ export type SdkOriginTrustEntry = Readonly<{
   previouslyAllowed: boolean;
 }>;
 
-/** Non-privileged call_controller defaults; `account.activate` off (ADR-0018 §D). */
+/** Non-privileged call_controller defaults; privileged caps off (ADR-0018 §D). */
 export function createDefaultSdkOriginCapabilityMatrix(): SdkOriginCapabilityMatrix {
   return {
     capabilities: {
       "session.read.redacted": true,
       "window.show": true,
+      "window.hide": false,
       "operator.status.write": true,
       "operator.campaign.read": true,
       "ocp.acd_context.read": true,
@@ -68,6 +71,7 @@ export const SDK_ORIGIN_MATRIX_ADDITIVE_DEFAULTS: Readonly<
 > = {
   "operator.campaign.read": true,
   "ocp.acd_context.read": true,
+  "window.hide": false,
 };
 
 export function listEnabledMatrixCapabilities(

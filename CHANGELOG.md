@@ -5,6 +5,14 @@ All notable user-visible changes to **Axatalk** are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
+## [0.15.0] - 2026-07-27
+
+### Added
+
+- **F-011 / ADR-0013** SDK `client.window.hide({ expectedRevision })`: privileged Origin-matrix
+  grant, deny while ringing/connecting/established (`conflict`), minimal tray Show recovery
+  while SDK-hidden; Settings matrix toggle `window.hide` (default off).
+
 ## [Unreleased]
 
 ### Fixed

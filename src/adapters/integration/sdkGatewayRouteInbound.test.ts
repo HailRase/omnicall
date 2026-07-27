@@ -139,11 +139,10 @@ describe("routeSdkInbound", () => {
     });
   });
 
-  it("denies window:hide as forbidden on v1 product surface (ADR-0013)", () => {
+  it("routes window:hide as command_window when capability granted (ADR-0013)", () => {
     const hide = {
       ...getSnapshot,
       type: "window:hide" as const,
-      // Schema-valid deny fixture (protocol requires expectedRevision); product still forbidden (ADR-0013).
       payload: { expectedRevision: 12 },
     };
     expect(
@@ -151,6 +150,26 @@ describe("routeSdkInbound", () => {
         handshakeComplete: true,
         authState: "authenticated",
         grantedCapabilities: ["window.hide"],
+      }),
+    ).toEqual({
+      action: "command_window",
+      requestId: "req_test_001",
+      commandType: "window:hide",
+      expectedRevision: 12,
+    });
+  });
+
+  it("denies window:hide without window.hide capability", () => {
+    const hide = {
+      ...getSnapshot,
+      type: "window:hide" as const,
+      payload: { expectedRevision: 12 },
+    };
+    expect(
+      routeSdkInbound(hide, {
+        handshakeComplete: true,
+        authState: "authenticated",
+        grantedCapabilities: ["window.show"],
       }),
     ).toEqual({
       action: "command_deny",

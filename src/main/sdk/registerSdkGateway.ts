@@ -33,6 +33,8 @@ import {
   unregisterSdkGatewayPublishEventIpcForTests,
 } from "./sdkGatewayRegistrationHelpers.js";
 import type { ShellWindowAttentionController } from "../shellWindow/ShellWindowAttentionController.js";
+import { SdkHideTrayController } from "../shellWindow/SdkHideTrayController.js";
+import { ShellTelephonyBusyMirror } from "../shellWindow/ShellTelephonyBusyMirror.js";
 import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
 import type { ShellOperatorAttentionPayload } from "@shared/ipc/ShellWindowRaiseContract.js";
 
@@ -46,6 +48,8 @@ let primaryInstance = true;
 let lastDesktopVersion = "0.0.0";
 let originTrustStorageRoot: string | null = null;
 let shellWindowAttention: ShellWindowAttentionController | null = null;
+let telephonyBusyMirror: ShellTelephonyBusyMirror | null = null;
+let hideTrayController: SdkHideTrayController | null = null;
 
 export function setShellWindowAttentionController(
   controller: ShellWindowAttentionController | null,
@@ -55,6 +59,29 @@ export function setShellWindowAttentionController(
 
 export function getShellWindowAttentionController(): ShellWindowAttentionController | null {
   return shellWindowAttention;
+}
+
+export function getShellTelephonyBusyMirror(): ShellTelephonyBusyMirror {
+  if (telephonyBusyMirror === null) {
+    telephonyBusyMirror = new ShellTelephonyBusyMirror();
+  }
+  return telephonyBusyMirror;
+}
+
+export function getSdkHideTrayController(): SdkHideTrayController {
+  if (hideTrayController === null) {
+    hideTrayController = new SdkHideTrayController({
+      getMainWindow: () => BrowserWindow.getAllWindows()[0] ?? null,
+      log: (event, fields) => {
+        logger.info(event, {
+          correlationId: createCorrelationId(),
+          operation: "sdk_hide_tray",
+          ...fields,
+        });
+      },
+    });
+  }
+  return hideTrayController;
 }
 
 function broadcastOperatorAttention(
@@ -159,6 +186,8 @@ export async function startSdkGateway(options: {
       createSdkGatewayProductSurface({
         getBroker: () => getSdkBroker(),
         getMainWindow: () => BrowserWindow.getAllWindows()[0] ?? null,
+        telephonyBusy: getShellTelephonyBusyMirror(),
+        hideTray: getSdkHideTrayController(),
       }),
     );
   }

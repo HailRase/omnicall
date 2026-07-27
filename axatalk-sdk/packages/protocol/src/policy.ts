@@ -6,8 +6,8 @@ import type { CommandType } from './commands.js';
 
 /**
  * Whether a command type is available on the v1 product surface.
- * `window:hide` remains schema-valid for future use but must be denied in v1
- * (ADR-0013) with `forbidden` / `unsupported_command` per gateway policy.
+ * After ADR-0013 amendment (2026-07-27) the unavailable list is empty;
+ * `window:hide` is gated by capability / Origin matrix / telephony busy instead.
  * @public
  */
 export function isCommandAvailableInProductV1(type: CommandType): boolean {

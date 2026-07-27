@@ -43,6 +43,7 @@ function createSoftphonePreloadApiMock(
     closeWindow: vi.fn().mockResolvedValue({ ok: true }),
     applyShellWindowLayout: vi.fn().mockResolvedValue(undefined),
     raiseShellWindow: vi.fn().mockResolvedValue({ ok: true }),
+    setShellTelephonyBusy: vi.fn().mockResolvedValue({ ok: true }),
     onShellOperatorAttention: vi.fn().mockReturnValue(() => {}),
     openContactsCsvImportDialog: vi.fn().mockResolvedValue({ ok: true, cancelled: true }),
     saveContactsCsvExportDialog: vi.fn().mockResolvedValue({ ok: true, cancelled: true }),

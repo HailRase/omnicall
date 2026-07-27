@@ -143,7 +143,7 @@ export function parseDiagnosticsProjection(
     pairedClientCount === null ||
     allowedOriginsCount === null ||
     !(typeof lastErrorCode === "string" || lastErrorCode === null) ||
-    value["windowHideAvailable"] !== false
+    typeof value["windowHideAvailable"] !== "boolean"
   ) {
     return null;
   }
@@ -158,7 +158,7 @@ export function parseDiagnosticsProjection(
     pairedClientCount,
     allowedOriginsCount,
     lastErrorCode,
-    windowHideAvailable: false,
+    windowHideAvailable: value["windowHideAvailable"],
   };
 }
 

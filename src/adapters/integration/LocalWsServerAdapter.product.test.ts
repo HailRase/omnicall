@@ -21,6 +21,7 @@ import {
   generateSdkPopTestKeyPair,
   signSdkPopPayload,
 } from "./sdkGatewayPopCrypto.js";
+import { withMatrixCapability } from "@domain/settings/SdkOriginTrust.js";
 
 const TEST_ORIGIN = "https://crm.example";
 const adapters: LocalWsServerAdapter[] = [];
@@ -66,6 +67,7 @@ function createProductSurface(
       });
     },
     showWindow: () => ({ ok: true, revision: 2, visible: true }),
+    hideWindow: () => ({ ok: true, revision: 3, visible: false }),
     getWindowState: () => ({ ok: true, visible: false, revision: 1 }),
     ...overrides,
   };
@@ -435,6 +437,81 @@ describe("LocalWsServerAdapter DI-05 product surface", () => {
     });
     expect(showCount).toBe(1);
     expect(logs.join(" ")).not.toMatch(/\+1|password|nonce|signature/i);
+    queue.close();
+    ws.close();
+  });
+
+  it("requires window.hide for window:hide and succeeds via shell path", async () => {
+    let hideCount = 0;
+    const adapter = await startAdapter({
+      productSurface: createProductSurface({
+        hideWindow: (expectedRevision) => {
+          hideCount += 1;
+          expect(expectedRevision).toBe(2);
+          return { ok: true, revision: 3, visible: false };
+        },
+        getWindowState: () => ({ ok: true, visible: true, revision: 2 }),
+      }),
+    });
+    const origin = adapter
+      .getOriginTrustEntries()
+      .find((entry) => entry.origin === TEST_ORIGIN);
+    expect(origin?.matrix).not.toBeNull();
+    if (origin?.matrix != null) {
+      adapter.setOriginTrustEntries([
+        {
+          ...origin,
+          matrix: withMatrixCapability(origin.matrix, "window.hide", true),
+        },
+      ]);
+    }
+    const { ws, queue, hello } = await pairAndAuth(adapter, "client_win_hide");
+    ws.send(
+      JSON.stringify({
+        protocolVersion: PROTOCOL_MAJOR,
+        kind: "command",
+        type: "window:get-state",
+        requestId: "req_win_state",
+        serverInstanceId: hello.serverInstanceId,
+        sessionEpoch: hello.sessionEpoch,
+        occurredAt: "2026-07-20T09:00:00.000Z",
+        payload: {},
+      }),
+    );
+    const stateReply = await queue.next();
+    expect(stateReply).toMatchObject({
+      kind: "reply",
+      ok: true,
+      result: { visible: true },
+    });
+    const revision =
+      stateReply.kind === "reply" && stateReply.ok ? stateReply.revision : 2;
+    ws.send(
+      JSON.stringify({
+        protocolVersion: PROTOCOL_MAJOR,
+        kind: "command",
+        type: "window:hide",
+        requestId: "req_win_hide",
+        serverInstanceId: hello.serverInstanceId,
+        sessionEpoch: hello.sessionEpoch,
+        occurredAt: "2026-07-20T09:00:01.000Z",
+        payload: { expectedRevision: revision },
+      }),
+    );
+    const reply = await queue.next();
+    expect(reply).toMatchObject({
+      kind: "reply",
+      ok: true,
+      commandType: "window:hide",
+      result: { visible: false },
+    });
+    const visibility = await queue.next();
+    expect(visibility).toMatchObject({
+      kind: "event",
+      type: "window:visibility-changed",
+      payload: { visible: false },
+    });
+    expect(hideCount).toBe(1);
     queue.close();
     ws.close();
   });

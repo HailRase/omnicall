@@ -4,6 +4,10 @@
 **Status:** `done` — `/sdk-review` **PASS** 2026-07-20  
 **Prerequisites:** SDK-00 `done`, SDK-01 `done` (`/sdk-review` PASS). Desktop DI-01 still `pending`.
 
+> **Superseded note (2026-07-27):** `V1_PRODUCT_UNAVAILABLE_COMMANDS` is empty;
+> `window:hide` is product-available (ADR-0013 amendment). Policy text below that says
+> “unavailable in v1” describes SDK-02 gate day only.
+
 **Reviewer:** Independent `/sdk-review` **PASS** 2026-07-20. Follow-up fix same day closed High/Low:
 
 - High: `sdk:permission-changed` → `CapabilityIdListSchema`; `reply.result` / error `details` → `WireJsonObjectSchema` (no `unknown`; known PII keys mask-checked).
@@ -18,7 +22,9 @@ Open checklist “desktop consumes fixtures” remains DI-01.
 - Safe validators (`unknown` → schema) with size/depth/forbidden-key fail-closed codes.
 - Golden fixtures under `packages/protocol/fixtures/{valid,invalid,meta}/`.
 - Compatibility helpers: negotiate / incompatible / deprecation drop gate.
-- Policy helpers: `window:hide` schema-valid but unavailable in v1 product surface; campaign events absent from v1 unions.
+- Policy helpers: `window:hide` schema-valid; **SDK-02 gate day** product surface denied via
+  `V1_PRODUCT_UNAVAILABLE_COMMANDS` (**emptied 2026-07-27** — hide product-available);
+  campaign events deferred historically (now ADR-0019).
 - No `AxatalkClient`, transport, crypto runtime, desktop `src/` product changes, or DI-* implementation.
 
 ## Public API surface (intentional)
@@ -46,7 +52,8 @@ Exports from `@axata/axatalk-protocol`:
 - Event/snapshot phone + display-name fields require ADR-0017 mask formats.
 - Fixtures are synthetic; no real secrets/PII.
 - PoP fields are schema-only (no private key material in package).
-- `window:hide` parses as schema but `productDenialCodeForCommand` → `forbidden` for v1 product surface (ADR-0013).
+- `window:hide` parses as schema; **SDK-02 gate day** `productDenialCodeForCommand` →
+  `forbidden` (**emptied list 2026-07-27** — product-available under ADR-0013 amendment).
 
 ## Tests and package checks
 
@@ -84,7 +91,8 @@ Evidence: `axatalk-sdk-integration/evidence/DI-01-protocol-ports-mocks.md`.
 
 - DI-01 may discover schema tightness issues (opaque-id regex, mask refinements, reply `result` as open record) when wiring real mappers — resolve via ADR or additive fixture updates, not a second schema stack.
 - Zod ~78 KiB gzip may be revisited if a later size gate fails (Valibot alternative already recorded in ADR-0014).
-- `window:hide` remains in command union for future policy; product gateways must enforce denial until ADR-0013 tray policy lands.
+- `window:hide` remains in the command union; product gateways enforce privileged matrix +
+  telephony-busy policy (ADR-0013 amended 2026-07-27) — not a permanent v1 deny.
 - Full interop freeze still requires DI-01 fixture consume + later DI-02/SDK-04 auth runtime.
 
 ## Evidence paths

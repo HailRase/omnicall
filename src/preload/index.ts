@@ -12,6 +12,7 @@ import {
   parseShellWindowRaisePayload,
   parseShellWindowRaiseResponse,
 } from "@shared/ipc/ShellWindowRaiseContract.js";
+import { parseShellTelephonyBusyPayload } from "@shared/ipc/ShellTelephonyBusyContract.js";
 import { parseProfilesStorageRootResponse } from "@shared/ipc/ProfilesStorageContract.js";
 import type { SoftphonePreloadApi } from "@shared/ipc/PreloadApi.js";
 import type { OpenExternalUrlResponse } from "@shared/ipc/OpenExternalUrlContract.js";
@@ -204,6 +205,25 @@ const softphoneApi: SoftphonePreloadApi = {
       return { ok: false, reason: "invalid_payload" };
     }
     return parsedResponse;
+  },
+  setShellTelephonyBusy: async (payload) => {
+    const parsed = parseShellTelephonyBusyPayload(payload);
+    if (parsed === null) {
+      return { ok: false, reason: "invalid_payload" };
+    }
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.shellTelephonyBusy,
+      parsed,
+    );
+    if (
+      typeof response !== "object" ||
+      response === null ||
+      !("ok" in response) ||
+      typeof (response as { ok: unknown }).ok !== "boolean"
+    ) {
+      return { ok: false, reason: "invalid_payload" };
+    }
+    return { ok: (response as { ok: boolean }).ok };
   },
   onShellOperatorAttention: (handler) => {
     const listener = (_event: Electron.IpcRendererEvent, payload: unknown): void => {

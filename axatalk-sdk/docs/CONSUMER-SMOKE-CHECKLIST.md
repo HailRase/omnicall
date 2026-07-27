@@ -45,6 +45,10 @@ Use this checklist for SDK-09 examples and every release candidate.
 - [ ] Timeout and cancellation are distinguishable.
 - [ ] Conflict, stale state, not owner, and interaction required are documented.
 - [ ] Mutation is not replayed after reconnect.
+- [ ] `window.show` / `window.getState` work with `window.show` grant.
+- [ ] `window.hide({ expectedRevision })` succeeds when Origin matrix grants `window.hide`
+      and telephony is idle; without grant → `forbidden`; busy call → `conflict`.
+- [ ] After hide, tray Show or `window.show` restores visibility.
 
 ## Security
 

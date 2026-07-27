@@ -5,6 +5,10 @@
 **Feature:** F-011 remains `in progress` (not `implemented`)  
 **Desktop DI-10:** still `blocked` (awaits explicit `/sdk-integration` DI-10 intake; not auto-started; no waiver)
 
+> **Superseded note (2026-07-27):** Guides now document `client.window.hide` as
+> product-available (privileged Origin matrix). “No window.hide as available” below
+> describes SDK-09 gate day only.
+
 ## Prerequisites verified
 
 | Check | Result |
@@ -21,7 +25,8 @@
 - No F-011 `implemented`
 - No DI-10 unblock / auto-start
 - No new public methods / protocol commands
-- No `window.hide` as available product API
+- No `window.hide` as available product API **on SDK-09 gate day**
+  (**superseded 2026-07-27** — documented as available; see `guide/api-reference.md`)
 - No invent `account:list-profiles`
 - No teaching `requestedCapabilities: ['account.activate']` as a working pattern
 - No raw credential login / SIP password / OCP apiKey APIs
@@ -136,7 +141,8 @@ Post-Low verification (2026-07-20): sdk src **115** (+2), workspace **123** (+2)
 
 ## Manual secret / privilege scan
 
-- Guide quick start: no `account.activate` / `window.hide` / Web Storage / `sipPassword`
+- Guide quick start: no pairing-request of `account.activate` / `window.hide` / Web Storage /
+  `sipPassword` (hide remains matrix-grant after ready — ADR-0013)
 - Example `src/**/*.ts`: no `localStorage` / `sessionStorage` / credential property keys / privileged `requestedCapabilities`
 - Activate docs: saved-account `login` + optional mode; grant via Origin matrix, never pairing request
 - Anti-patterns page may mention forbidden words in prose tables (marked WRONG; not as working APIs)

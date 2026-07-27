@@ -43,8 +43,8 @@ export type SdkGatewayDiagnosticsProjection = Readonly<{
   pairedClientCount: number;
   allowedOriginsCount: number;
   lastErrorCode: string | null;
-  /** ADR-0013: hide remains product-unavailable. */
-  windowHideAvailable: false;
+  /** ADR-0013: product surface supports window:hide (matrix-gated). */
+  windowHideAvailable: boolean;
 }>;
 
 export type SdkOperatorModalTimeoutsPolicy = Readonly<{

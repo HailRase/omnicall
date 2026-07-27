@@ -53,7 +53,7 @@ function createProps(
       pairedClientCount: 1,
       allowedOriginsCount: 1,
       lastErrorCode: null,
-      windowHideAvailable: false,
+      windowHideAvailable: true,
     },
     allowedOriginsLive: ["https://crm.example"],
     pairedClients: [
@@ -112,7 +112,8 @@ describe("SdkModuleSettingsCard", () => {
     expect(screen.getByTestId("sdk-module-tab-trusted")).toBeInTheDocument();
     expect(screen.getByTestId("sdk-module-tab-blocked")).toBeInTheDocument();
     expect(screen.getByTestId("sdk-module-diagnostics")).toBeInTheDocument();
-    expect(screen.getByTestId("sdk-module-hide-toggle")).toBeDisabled();
+    expect(screen.queryByTestId("sdk-module-hide-toggle")).toBeNull();
+    expect(screen.queryByTestId("sdk-module-hide-disabled")).toBeNull();
     expect(screen.queryByTestId("sdk-module-blacklist")).not.toBeInTheDocument();
     expect(screen.queryByTestId("sdk-module-attention")).not.toBeInTheDocument();
     expect(document.body.textContent ?? "").not.toMatch(

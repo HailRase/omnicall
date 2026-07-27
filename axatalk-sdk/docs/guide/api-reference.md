@@ -137,6 +137,7 @@ Full host recipe: [Operator status & reservation](./operator-status-reservation.
 | Method | Notes |
 | --- | --- |
 | `show()` | Capability `window.show` |
+| `hide({ expectedRevision })` | Privileged capability `window.hide` — Origin matrix grant only; denied while telephony busy (`conflict`) |
 | `getState()` | Visibility projection |
 
-`hide` is **not** on the public client (ADR-0013).
+`hide` stays **privileged**: never request it at pairing; enable in Axatalk Settings → SDK Origin matrix. Recovery uses tray Show + `show()` (ADR-0013).

@@ -22,6 +22,7 @@ import {
   replyToGetSnapshotReplyOnly,
   replyToGetSnapshotWithMismatch,
   replyToWindowGetStateMalformed,
+  replyToWindowHide,
   replyToWindowShow
 } from '../internal/auth-test-peer.js';
 import { createFakeTransportController } from '../internal/fake-transport.js';
@@ -136,7 +137,8 @@ describe('AxatalkClient constructor', () => {
     expect(harness.client.getCachedSnapshot()).toBeUndefined();
     expect(harness.client).not.toHaveProperty('originate');
     expect(harness.client).not.toHaveProperty('hide');
-    expect(harness.client.window).not.toHaveProperty('hide');
+    expect(harness.client.window).toHaveProperty('hide');
+    expect(harness.client.window).toHaveProperty('show');
     expect(harness.client.calls).toBeTypeOf('object');
     expect(harness.client.calls).toHaveProperty('originate');
   });
@@ -383,6 +385,50 @@ describe('AxatalkClient window.show', () => {
     await waitFor(() => Boolean(findSentType(second, 'sdk:get-snapshot')));
     expect(replyToGetSnapshot(second)).toBe(true);
     await expect(harness.client.window.show()).rejects.toSatisfy(
+      (error: unknown) =>
+        isAxatalkClientError(error) && error.code === 'forbidden'
+    );
+  });
+});
+
+describe('AxatalkClient window.hide', () => {
+  it('requires window.hide capability and emits visibility path', async () => {
+    const harness = createHarness();
+    await reachReady(harness);
+    harness.transports.last()!.simulateMessage(
+      buildPermissionChanged([
+        'session.read.redacted',
+        'window.show',
+        'window.hide'
+      ])
+    );
+    await flush();
+    const visibility: boolean[] = [];
+    harness.client.subscribe('window:visibility-changed', (event) => {
+      visibility.push(event.payload.visible);
+    });
+    const hidePromise = harness.client.window.hide({ expectedRevision: 13 });
+    await waitFor(() =>
+      Boolean(findSentType(harness.transports.last()!, 'window:hide'))
+    );
+    expect(replyToWindowHide(harness.transports.last()!)).toBe(true);
+    harness.transports.last()!.simulateMessage(
+      buildWindowVisibilityEvent(3, false, 15)
+    );
+    await expect(hidePromise).resolves.toEqual({
+      visible: false,
+      revision: 15
+    });
+    await flush();
+    expect(visibility).toEqual([false]);
+  });
+
+  it('returns forbidden without window.hide grant', async () => {
+    const harness = createHarness();
+    await reachReady(harness);
+    await expect(
+      harness.client.window.hide({ expectedRevision: 13 })
+    ).rejects.toSatisfy(
       (error: unknown) =>
         isAxatalkClientError(error) && error.code === 'forbidden'
     );

@@ -5,6 +5,9 @@
 **Desktop version:** `0.11.2` (unchanged)  
 **Feature:** F-011 remains `in progress` (not `implemented`)
 
+> **Superseded note (2026-07-27):** `window:hide` is product-available — see
+> `DI-05-window-hide-product.md`. “product-denied: window:hide” below is DI-06 gate day only.
+
 ## Scope landed
 
 Authenticated, capability-bound sessions gain telephony **call mutation** surface terminating in the existing renderer Application composition and Call Engine:
@@ -19,7 +22,8 @@ Authenticated, capability-bound sessions gain telephony **call mutation** surfac
 | `call:mute` / `call:unmute` | `call.control` | Mute/Unmute UC; owner required |
 | `call:send-dtmf` | `call.control` | `SendDtmfUseCase` per digit; owner required |
 
-Still `not_ready` / product-denied: operator/*, account/*, `window:hide`.
+Still `not_ready` / product-denied **on DI-06 gate day**: operator/*, account/*,
+`window:hide` (`window:hide` **superseded 2026-07-27** — product-available).
 
 ## Revision contract (ADR-0017 O-OWN-1)
 

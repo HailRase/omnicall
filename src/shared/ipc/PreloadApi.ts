@@ -10,6 +10,7 @@ import type {
   ShellWindowRaisePayload,
   ShellWindowRaiseResponse,
 } from "./ShellWindowRaiseContract.js";
+import type { ShellTelephonyBusyPayload } from "./ShellTelephonyBusyContract.js";
 import type { OpenExternalUrlPayload, OpenExternalUrlResponse } from "./OpenExternalUrlContract.js";
 import type { SetNativeThemePayload, SetNativeThemeResponse } from "./SetNativeThemeContract.js";
 import type { ShellWindowControlResponse } from "./ShellWindowControlContract.js";
@@ -74,6 +75,10 @@ export type SoftphonePreloadApi = Readonly<{
   raiseShellWindow: (
     payload: ShellWindowRaisePayload,
   ) => Promise<ShellWindowRaiseResponse>;
+  /** ADR-0013: mirror telephony busy for SDK window:hide deny. */
+  setShellTelephonyBusy: (
+    payload: ShellTelephonyBusyPayload,
+  ) => Promise<Readonly<{ ok: boolean; reason?: "invalid_payload" }>>;
   /** Main → renderer: SDK pairing / Origin trust needs operator decision. */
   onShellOperatorAttention: (
     handler: (payload: ShellOperatorAttentionPayload) => void,

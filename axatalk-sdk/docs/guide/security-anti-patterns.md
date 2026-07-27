@@ -7,7 +7,7 @@ Fail closed. If a pattern is not listed as allowed, treat it as forbidden.
 | Anti-pattern | Why | Correct approach |
 | --- | --- | --- |
 | `requestedCapabilities: ['account.activate']` at pairing | Privileged; SDK **strips** it (`sanitizeRequestedCapabilities`) | Operator grants via desktop Settings (DI-09); SDK receives grant on wire |
-| Requesting `window.hide` | Privileged + **unavailable in v1 product** | Do not call; do not document as available |
+| Requesting `window.hide` at pairing | Privileged — client sanitize always strips it | Grant via Axatalk Settings Origin matrix; then call `client.window.hide` |
 | SIP password / OCP `apiKey` in SDK calls | Secrets must stay in desktop secure storage | Saved-account `login` + `account.activateProfile` when granted |
 | Persist PoP / tokens in `localStorage` / `sessionStorage` | XSS-readable | `createIndexedDbPopKeyStore` (browser) or `createMemoryPopKeyStore` (tests) |
 | Log pairing material, tokens, phones, reply payloads | PII / secret leak | Log `code`, `retryable`, `requestId`, command type only |

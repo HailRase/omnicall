@@ -388,7 +388,7 @@ export class LocalWsServerAdapter implements ExternalClientGateway {
       pairedClientCount,
       allowedOriginsCount: this.getAllowedOrigins().length,
       lastErrorCode: this.lastErrorCode,
-      windowHideAvailable: false,
+      windowHideAvailable: true,
     };
   }
 

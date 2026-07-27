@@ -5,6 +5,10 @@
 **Desktop version:** `0.11.2` (unchanged)  
 **Feature:** F-011 remains `in progress` (not `implemented`)
 
+> **Superseded note (2026-07-27):** `window:hide` product enablement landed in
+> `DI-05-window-hide-product.md` (ADR-0013 amendment). Non-goals / deny rows below
+> describe the original DI-05 read-only gate day only.
+
 ## Prerequisites verified
 
 | Check | Result |

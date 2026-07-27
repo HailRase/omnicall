@@ -268,8 +268,9 @@ client.account.logout({ reasonId?, expectedRevision })
 Command matrix: `operator:get-reasons` / `operator:change-status` / `account:logout`.
 Cancel = do not call logout / disconnect (no invent `account:cancel-logout`; no `logoutToken`).
 
-Non-goals held: SDK-08 activate; window.hide; campaigns; OCP wire; desktop `src/`; npm publish;
-auto-retry; logout-on-disconnect; root-level mutations.
+Non-goals held **on SDK-07 gate day**: SDK-08 activate; window.hide; campaigns; OCP wire;
+desktop `src/`; npm publish; auto-retry; logout-on-disconnect; root-level mutations
+(`window.hide` later product-available 2026-07-27).
 
 Checklist:
 
@@ -314,8 +315,9 @@ client.account.activateProfile({ login, expectedRevision, mode? })
 Command: `account:activate-profile` · Capability: privileged `account.activate` (server-granted
 only; never client-default-requestable via `sanitizeRequestedCapabilities`).
 
-Non-goals held: SDK-09 docs; npm publish; F-011 `implemented`; `window.hide`; raw credentials;
-desktop `src/` edits; campaign events; invent `account:list-profiles`; pairing escalate;
+Non-goals held **on SDK-08 gate day**: SDK-09 docs; npm publish; F-011 `implemented`;
+`window.hide` (later product-available 2026-07-27); raw credentials; desktop `src/` edits;
+campaign events; invent `account:list-profiles`; pairing escalate;
 auto-replay on reconnect; activate/hangup/logout on disconnect.
 
 Checklist:
@@ -352,9 +354,11 @@ Agent prompt:
 Public surface documented: `etc/api/sdk.api.md` — **47** symbols (unchanged).
 No new public methods. Privileged strip unchanged. Fake peer not packed.
 
-Non-goals held: SDK-10; npm publish; F-011 `implemented`; DI-10 unblock; desktop `src/`;
-`window.hide` as available; invent `account:list-profiles`; pairing escalate for
-`account.activate`; raw credential APIs; mutation replay / disconnect hangup helpers.
+Non-goals held **on SDK-09 gate day**: SDK-10; npm publish; F-011 `implemented`; DI-10 unblock;
+desktop `src/`; invent `account:list-profiles`; pairing escalate for `account.activate`;
+raw credential APIs; mutation replay / disconnect hangup helpers.
+(`window.hide` as available was a non-goal then — **superseded 2026-07-27**; guides now
+document `client.window.hide`.)
 
 Checklist:
 

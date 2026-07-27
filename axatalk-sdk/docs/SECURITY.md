@@ -84,7 +84,7 @@ Capabilities are checked for every command, not only during handshake.
 3. **Operator** — operator status changes.
 4. **Call controller** — call mutations, preferably scoped to calls created by the client.
 5. **Privileged session** — account activation (Origin matrix + consent), logout, and
-   window hide (hide still unavailable in product v1).
+   window hide (privileged; matrix-gated; product-available per ADR-0013 amendment).
 
 ## Credential Policy
 
@@ -143,9 +143,9 @@ administrative feature with its own ADR, capability, local approval, audit, and 
 - Mutations are serialized per call or account aggregate.
 - Destructive commands support ownership/lease policy and expected revision.
 - Conflicts return stable errors such as `conflict`, `stale_state`, or `not_owner`.
-- `window.hide` is unavailable in protocol v1 until tray/background policy is accepted
-  (ADR-0013). When later enabled, hide remains denied during incoming or active calls
-  unless that policy explicitly allows it.
+- `window.hide` is product-available under ADR-0013 (amended 2026-07-27): privileged
+  Origin-matrix grant, `expectedRevision` match, deny while ringing/connecting/established
+  (`conflict`), and minimal tray Show recovery while SDK-hidden.
 - Focus-stealing window operations are rate-limited. Authorized `window.show` raises the
   desktop shell above other apps per ADR-0013 local focus policy (restore/show/focus/
   z-order; temporary always-on-top pulse must restore any prior pin — never leave the
@@ -154,6 +154,7 @@ administrative feature with its own ADR, capability, local approval, audit, and 
   consent); TOFU/pairing present via root `SdkConnectCeremonyModal` (not Settings
   auto-open). Telephony raises are
   not subject to the SDK `window.show` 1s rate limit (edge per callId instead).
+  Successful show/raise disposes the hide-only tray.
 - Logout requires the OCP reason workflow when applicable.
 
 ## Compatibility Safety

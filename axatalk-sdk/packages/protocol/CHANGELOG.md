@@ -35,6 +35,11 @@ Stable / `latest` is **blocked on desktop DI-10**.
   (same MainCallIDInfo snake_case shape, no parent `callId` repeat) for reconnect;
   stripped without `ocp.acd_context.read`. Live `call:acd-context` unchanged.
 
+- **ADR-0013 amendment (2026-07-27):** `window:hide` product-available;
+  `V1_PRODUCT_UNAVAILABLE_COMMANDS` emptied (stable export retained). Privileged
+  capability `window.hide` — Origin matrix only; telephony-busy deny is a desktop
+  product rule (not a permanent protocol deny list entry).
+
 ### Not included
 
 - Stable npm `latest` publish

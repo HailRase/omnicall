@@ -197,4 +197,5 @@ P12 closes only when:
 3. Do not mark F-011 `implemented` until remaining DI-10 smoke/waivers land (DI-11 already PASS).
 4. Keep Domain free of protocol / Zod / Electron / ws imports; gateway must not import
    Facades/Call Engine.
-5. Do not enable `window.hide`. Do not invent DI-12.
+5. `window.hide` is product-available (ADR-0013 amendment 2026-07-27) — do not re-disable it;
+   do not invent DI-12.

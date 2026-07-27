@@ -77,16 +77,13 @@ describe("MockExternalCommandHandler / MockExternalQueryHandler", () => {
     });
   });
 
-  it("command handler denies window:hide", async () => {
+  it("command handler accepts window:hide as product-available (native path is gateway)", async () => {
     const handler = new MockExternalCommandHandler();
     await expect(
       handler.handleCommand(
         readJson("valid/command/window-hide-schema-only.json"),
       ),
-    ).resolves.toEqual({
-      ok: false,
-      code: "forbidden",
-      retryable: false,
-    });
+    ).resolves.toMatchObject({ ok: true });
+    expect(handler.getHandledTypes()).toEqual(["window:hide"]);
   });
 });

@@ -32,7 +32,7 @@ describe("persistSdkIntegrationSettings", () => {
             pairedClientCount: 0,
             allowedOriginsCount: 0,
             lastErrorCode: null,
-            windowHideAvailable: false as const,
+            windowHideAvailable: true as const,
           },
           origins: [],
           pendingOriginTrust: [],

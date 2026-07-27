@@ -1,14 +1,16 @@
 /**
- * Native window show / get-state for SDK gateway (DI-05 / ADR-0009/0013).
+ * Native window show / hide / get-state for SDK gateway (DI-05 / ADR-0009/0013).
  *
  * Uses shared bring-to-front (ADR-0013). Rate-limited focus-stealing for
  * `window:show` remains mandatory and lives here (not shared with telephony).
+ * Hide is privileged + telephony-busy gated; tray recovery is owned by callers.
  */
 
 import type { BrowserWindow } from "electron";
 
 import { bringBrowserWindowToFront } from "@adapters/platform/bringBrowserWindowToFront.js";
 import type {
+  SdkWindowHideResult,
   SdkWindowShowResult,
   SdkWindowStateResult,
 } from "./sdkGatewayProductSurface.js";
@@ -18,6 +20,15 @@ export type SdkWindowHandlerOptions = Readonly<{
   /** Minimum ms between successful show/focus actions (focus-stealing guard). */
   minShowIntervalMs?: number;
   nowMs?: () => number;
+  /**
+   * True while ringing / connecting / established call context exists.
+   * Injected from main telephony-busy mirror (renderer projection → IPC).
+   */
+  isTelephonyBusy?: () => boolean;
+  /** Called after a successful hide so main can ensure tray recovery. */
+  onHidden?: () => void;
+  /** Called after a successful show so main can drop hide-only tray if unused. */
+  onShown?: () => void;
 }>;
 
 const DEFAULT_MIN_SHOW_INTERVAL_MS = 1_000;
@@ -26,6 +37,9 @@ export class SdkWindowCommandHandler {
   private readonly getMainWindow: () => BrowserWindow | null;
   private readonly minShowIntervalMs: number;
   private readonly nowMs: () => number;
+  private readonly isTelephonyBusy: () => boolean;
+  private readonly onHidden: (() => void) | undefined;
+  private readonly onShown: (() => void) | undefined;
   private lastShowMs = 0;
   private revision = 1;
 
@@ -34,6 +48,9 @@ export class SdkWindowCommandHandler {
     this.minShowIntervalMs =
       options.minShowIntervalMs ?? DEFAULT_MIN_SHOW_INTERVAL_MS;
     this.nowMs = options.nowMs ?? (() => Date.now());
+    this.isTelephonyBusy = options.isTelephonyBusy ?? (() => false);
+    this.onHidden = options.onHidden;
+    this.onShown = options.onShown;
   }
 
   show(): SdkWindowShowResult {
@@ -52,7 +69,26 @@ export class SdkWindowCommandHandler {
     this.lastShowMs = now;
     const revision = this.revision;
     this.revision += 1;
+    this.onShown?.();
     return { ok: true, revision, visible: true };
+  }
+
+  hide(expectedRevision: number): SdkWindowHideResult {
+    const window = this.resolveWindow();
+    if (window === null) {
+      return { ok: false, code: "not_ready" };
+    }
+    if (expectedRevision !== this.revision) {
+      return { ok: false, code: "conflict" };
+    }
+    if (this.isTelephonyBusy()) {
+      return { ok: false, code: "conflict" };
+    }
+    window.hide();
+    const revision = this.revision;
+    this.revision += 1;
+    this.onHidden?.();
+    return { ok: true, revision, visible: false };
   }
 
   getState(): SdkWindowStateResult {
@@ -62,6 +98,11 @@ export class SdkWindowCommandHandler {
     }
     const revision = this.revision;
     return { ok: true, visible: window.isVisible(), revision };
+  }
+
+  /** Current visibility revision (for tests / diagnostics). */
+  getRevision(): number {
+    return this.revision;
   }
 
   private resolveWindow(): BrowserWindow | null {

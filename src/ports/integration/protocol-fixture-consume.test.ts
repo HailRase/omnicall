@@ -90,17 +90,17 @@ describe("DI-01 protocol fixture consume (byte-identical SDK-02 corpus)", () => 
     }
   });
 
-  it("parses window:hide schema but marks it unavailable in v1 product surface", () => {
+  it("parses window:hide and marks it available on v1 product surface (ADR-0013)", () => {
     const value = readJson("valid/command/window-hide-schema-only.json");
     const parsed = validateWireMessage(value);
     expect(parsed.success).toBe(true);
     if (parsed.success && parsed.data.kind === "command") {
-      expect(isCommandAvailableInProductV1(parsed.data.type)).toBe(false);
-      expect(productDenialCodeForCommand(parsed.data.type)).toBe("forbidden");
+      expect(isCommandAvailableInProductV1(parsed.data.type)).toBe(true);
+      expect(productDenialCodeForCommand(parsed.data.type)).toBeNull();
     }
     const meta = readJson(
-      "meta/command/window-hide-product-deny.meta.json",
-    ) as { expectedErrorCode: string };
-    expect(meta.expectedErrorCode).toBe("forbidden");
+      "meta/command/window-hide-product-available.meta.json",
+    ) as { notes: string };
+    expect(meta.notes).toMatch(/product-available/i);
   });
 });

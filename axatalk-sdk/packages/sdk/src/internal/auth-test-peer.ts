@@ -270,6 +270,13 @@ export function replyToWindowShow(
   return replyToCommand(transport, 'window:show', { visible: true }, revision);
 }
 
+export function replyToWindowHide(
+  transport: FakeTransport,
+  revision = 15
+): boolean {
+  return replyToCommand(transport, 'window:hide', { visible: false }, revision);
+}
+
 /** Malformed window success reply (non-boolean visible). */
 export function replyToWindowGetStateMalformed(
   transport: FakeTransport,

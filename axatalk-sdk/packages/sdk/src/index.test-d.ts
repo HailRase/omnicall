@@ -37,7 +37,8 @@ describe('@axata/axatalk-sdk type smoke', () => {
     expectTypeOf<AxatalkClient>().not.toHaveProperty('hide');
     expectTypeOf<AxatalkClient['calls']>().toHaveProperty('originate');
     expectTypeOf<AxatalkClient['calls']>().toHaveProperty('sendDtmf');
-    expectTypeOf<AxatalkClient['window']>().not.toHaveProperty('hide');
+    expectTypeOf<AxatalkClient['window']>().toHaveProperty('hide');
+    expectTypeOf<AxatalkClient['window']>().toHaveProperty('show');
     expectTypeOf<AxatalkClientOptions>().toHaveProperty('origin');
     expectTypeOf<AxatalkClientOptions['transportFactory']>().toEqualTypeOf<
       (() => TransportPort) | undefined

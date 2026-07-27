@@ -110,11 +110,13 @@ export const DEFAULT_CAPABILITY_PROFILES = {
 export const PRIVILEGED_CAPABILITIES = ['account.activate', 'window.hide'] as const;
 
 /**
- * Commands that exist as schemas for future use but are unavailable in the v1
- * product surface (ADR-0013 / ADR-0016). Product gateways must deny these.
+ * Commands that exist as schemas but are unavailable on the v1 product surface.
+ * Empty after ADR-0013 amendment (2026-07-27): `window:hide` is product-available
+ * under privileged + telephony-busy + tray-recovery policy. Kept as a stable export
+ * so gateways can keep calling `productDenialCodeForCommand`.
  * @public
  */
-export const V1_PRODUCT_UNAVAILABLE_COMMANDS = ['window:hide'] as const;
+export const V1_PRODUCT_UNAVAILABLE_COMMANDS = [] as const;
 
 /**
  * Historical placeholder: campaign events entered protocol v1 in ADR-0019.

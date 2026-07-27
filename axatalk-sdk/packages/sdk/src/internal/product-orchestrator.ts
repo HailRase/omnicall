@@ -63,6 +63,9 @@ export type ProductOrchestrator = {
     listener: (event: Extract<AxatalkEvent, { type: T }>) => void
   ) => () => void;
   readonly showWindow: () => Promise<WindowStateResult>;
+  readonly hideWindow: (input: {
+    readonly expectedRevision: number;
+  }) => Promise<WindowStateResult>;
   readonly getWindowState: () => Promise<WindowStateResult>;
   readonly originateCall: CallCommandApi['originateCall'];
   readonly controlCall: CallCommandApi['controlCall'];
@@ -260,6 +263,7 @@ export function createProductOrchestrator(deps: {
     getSnapshot: () => getSnapshotInternal(),
     subscribe: hub.subscribe,
     showWindow: windowApi.showWindow,
+    hideWindow: windowApi.hideWindow,
     getWindowState: windowApi.getWindowState,
     originateCall: calls.originateCall,
     controlCall: calls.controlCall,

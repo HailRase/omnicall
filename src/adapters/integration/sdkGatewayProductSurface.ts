@@ -13,6 +13,10 @@ export type SdkWindowShowResult =
   | { readonly ok: true; readonly revision: number; readonly visible: true }
   | { readonly ok: false; readonly code: ProtocolErrorCode };
 
+export type SdkWindowHideResult =
+  | { readonly ok: true; readonly revision: number; readonly visible: false }
+  | { readonly ok: false; readonly code: ProtocolErrorCode };
+
 export type SdkWindowStateResult =
   | { readonly ok: true; readonly visible: boolean; readonly revision: number }
   | { readonly ok: false; readonly code: ProtocolErrorCode };
@@ -29,6 +33,7 @@ export type SdkGatewayProductSurface = Readonly<{
     context?: SdkProductCommandContext,
   ) => Promise<BrokerRequestResult>;
   showWindow: () => SdkWindowShowResult;
+  hideWindow: (expectedRevision: number) => SdkWindowHideResult;
   getWindowState: () => SdkWindowStateResult;
   /** Fan-out already-validated public event drafts from renderer. */
   onPublishPublicEvent?: (draft: unknown) => void;
