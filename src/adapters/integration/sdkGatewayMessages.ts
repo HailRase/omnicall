@@ -13,7 +13,7 @@ import {
   type ProtocolErrorCode,
   type WireJsonObject,
   type WireMessage,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 
 import {
   createSdkBase64UrlNonce,
@@ -201,7 +201,7 @@ export function buildSdkPermissionChangedEvent(input: {
   readonly identity: SdkGatewayIdentity;
   readonly now: () => Date;
   readonly sequence: number;
-  readonly grantedCapabilities: readonly import("@axata/axatalk-protocol").CapabilityId[];
+  readonly grantedCapabilities: readonly import("@softomnitel/omnicall-protocol").CapabilityId[];
 }): WireMessage {
   return {
     protocolVersion: PROTOCOL_MAJOR,

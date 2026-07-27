@@ -7,7 +7,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import {
   DISCOVERY_PATH,
   WS_PATH,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 
 import { buildDiscoveryDocument, type SdkGatewayIdentity } from "./sdkGatewayMessages.js";
 

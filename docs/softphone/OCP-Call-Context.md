@@ -6,8 +6,8 @@
 
 ## Purpose
 
-Document how Axatalk projects OCP ACD queue names and campaign offers onto call UI **and**
-onto the public Axatalk SDK — **without** legacy DOM CustomEvents, substring
+Document how OmniCall projects OCP ACD queue names and campaign offers onto call UI **and**
+onto the public OmniCall Kit — **without** legacy DOM CustomEvents, substring
 call-id matching, or host `softphone-queue-info`.
 
 ## Sources
@@ -198,15 +198,15 @@ UI never talks to the OCP WebSocket. Accept/Reject go through Facade Use Cases.
 External hosts never use `window.dispatchEvent` / `OCPincomingCallProgress`.
 Public SDK does **not** expose accept/reject commands in v1 (desktop modal owns control).
 
-## Legacy CustomEvent → Axatalk map
+## Legacy CustomEvent → OmniCall map
 
-| Legacy (jssip-phone) | Axatalk replacement |
+| Legacy (jssip-phone) | OmniCall replacement |
 | --- | --- |
 | `incomingCallProgress` … `outgoingCallEnded` DOM events | Domain call events → SDK `call:incoming` / `call:outgoing` / `call:answered` / `call:ended` / … |
 | `OCPincomingCallProgress` / `OCP` + event name | `CallOcpContextResolved` + projection; SDK `call:acd-context` (wire) + additive `queueLabel` |
 | `campaignEvents` CustomEvent | Desktop `CampaignEventProjection` + modal/badges; SDK `operator:campaign-offered` / `cleared` |
 | `softphone-queue-info` | Not ported (embed contract rejected) |
-| `window.Softphone` | Axatalk SDK (`@axata/axatalk-sdk`) over Local WS |
+| `window.Softphone` | OmniCall Kit (`@softomnitel/omnicall-kit`) over Local WS |
 
 ## Public SDK: subscribe / snapshot
 
@@ -215,9 +215,9 @@ Requires `session.read.redacted`. Campaign notify/snapshot also require
 (both default on `operator` / `call_controller`; Origin matrix toggles in Settings).
 
 ```ts
-import { createAxatalkClient } from '@axata/axatalk-sdk';
+import { createOmniCallClient } from '@softomnitel/omnicall-kit';
 
-const client = createAxatalkClient(/* transport options */);
+const client = createOmniCallClient(/* transport options */);
 await client.connect();
 // … pair / authenticate …
 
@@ -306,7 +306,7 @@ Hosts still treat snapshot as source of truth after reconnect or `event.sequence
 | Badges UI | `src/renderer/components/call/CallContextBadges.tsx` |
 | Modal UI | `src/renderer/components/integration/ocp/OcpCampaignEventModal.tsx` |
 | Shell raise | `src/renderer/hooks/useShellWindowAttentionFromCampaign.ts` → `shell:window-raise` |
-| Protocol | `axatalk-sdk/packages/protocol/src/events.ts`, `snapshot.ts` |
+| Protocol | `omnicall-kit/packages/protocol/src/events.ts`, `snapshot.ts` |
 | ADR | `docs/softphone/adr/ADR-0019-sdk-campaign-events-v1.md`, `ADR-0020-sdk-ocp-acd-context-wire.md` |
 
 ## Out of scope

@@ -70,7 +70,7 @@ legacy operator platform messages must be typed and validated before entering Ap
 
 ## Host API Rules
 
-Legacy embed `window.Softphone` is **not ported** to Axatalk.
+Legacy embed `window.Softphone` is **not ported** to OmniCall.
 
 External browser tabs must use:
 
@@ -89,7 +89,7 @@ Forbidden:
 
 DOM events as a host-page embed bus are legacy-only (jssip-phone).
 
-Axatalk product code must not rely on CustomEvents for CRM ↔ softphone command transport.
+OmniCall product code must not rely on CustomEvents for CRM ↔ softphone command transport.
 
 If a DOM event appears at a browser boundary temporarily, it must:
 

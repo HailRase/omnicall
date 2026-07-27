@@ -13,7 +13,7 @@ import {
   isOperatorStatus,
   OPERATOR_STATUS_LABEL_KEY,
 } from "@domain/integration/ocp/OperatorStatus.js";
-import { OpaqueIdSchema, type WireJsonObject } from "@axata/axatalk-protocol";
+import { OpaqueIdSchema, type WireJsonObject } from "@softomnitel/omnicall-protocol";
 
 import {
   mapSdkOperatorStatus,

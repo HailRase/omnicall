@@ -44,6 +44,7 @@ export type {
 } from "./settings/PreferencesExportDocument.js";
 export {
   PREFERENCES_EXPORT_FORMAT_ID,
+  LEGACY_PREFERENCES_EXPORT_FORMAT_ID,
   PREFERENCES_EXPORT_FORMAT_VERSION,
   assertPreferencesJsonExcludesSecrets,
   buildPreferencesExportDocument,

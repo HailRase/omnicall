@@ -40,7 +40,7 @@ export type SettingsSidebarProps = Readonly<{
  * - Purpose: render collapsible settings navigation using UI Kit Sidebar primitives.
  * - Inputs: active section, expanded flag, availability VM, section and expand callbacks.
  * - Outputs: icon rail with flyout expand, nested Integrations → OCP Module, top-level
- *   Axatalk SDK below Integrations, gated tooltips.
+ *   OmniCall Kit below Integrations, gated tooltips.
  */
 export function SettingsSidebar({
   activeSection,
@@ -393,7 +393,7 @@ function resolveOpenGroupsForSection(sectionId: SettingsSectionId): ReadonlyArra
 
 /**
  * First leaf that the availability VM allows (tree order). Used for group click target
- * when some children are gated (e.g. pre-auth OCP off, Axatalk SDK on).
+ * when some children are gated (e.g. pre-auth OCP off, OmniCall Kit on).
  */
 function resolveFirstEnabledNavChild(
   group: SettingsNavGroup,

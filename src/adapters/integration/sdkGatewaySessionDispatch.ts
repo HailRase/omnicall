@@ -7,7 +7,7 @@ import type {
   ClientHello,
   ProtocolErrorCode,
   WireMessage,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 import type { SdkOriginTrustState } from "@domain/index.js";
 
 import { SdkAuthChallengeCache } from "./sdkGatewayAuthChallenge.js";

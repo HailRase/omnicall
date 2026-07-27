@@ -3,7 +3,7 @@
  * (`account.activate`, `window.hide` — ADR-0013/0018).
  */
 
-import type { CapabilityId } from "@axata/axatalk-protocol";
+import type { CapabilityId } from "@softomnitel/omnicall-protocol";
 
 import type { SdkGatewayConnection } from "./sdkGatewayConnection.js";
 import {

@@ -10,7 +10,7 @@ import type { OperatorStatus } from "../OperatorStatus.js";
  * Application / Facade audit source for status mutations.
  * - `internal` — softphone UI
  * - `external` — E-12 host API
- * - `sdk` — public Axatalk SDK (DI-07); **must** map to OCP wire `external`
+ * - `sdk` — public OmniCall Kit (DI-07); **must** map to OCP wire `external`
  *   via `mapOcpCallTypeToWire` — OCP `function_call_type` is only `internal`|`external`
  */
 export type OcpCommandCallType = "internal" | "external" | "sdk";

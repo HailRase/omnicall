@@ -41,10 +41,10 @@ export type SettingsGeneralPanelProps = Readonly<{
   isCheckingUpdates: boolean;
   onCheckForUpdates: () => void;
   onOpenDownloadPage: () => void;
-  preferencesTransferBusy?: boolean;
-  preferencesTransferStatusMessage?: string | null;
-  onExportPreferences?: () => void;
-  onImportPreferences?: () => void;
+  preferencesTransferBusy?: boolean | undefined;
+  preferencesTransferStatusMessage?: string | null | undefined;
+  onExportPreferences?: (() => void) | undefined;
+  onImportPreferences?: (() => void) | undefined;
 }>;
 
 const THEME_OPTIONS: ReadonlyArray<Readonly<{ value: AppTheme; label: TranslationKey }>> = [

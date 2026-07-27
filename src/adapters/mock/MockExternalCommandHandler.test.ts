@@ -11,7 +11,7 @@ import {
 
 const fixturesRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  "../../../axatalk-sdk/packages/protocol/fixtures",
+  "../../../omnicall-kit/packages/protocol/fixtures",
 );
 
 function readJson(relativePath: string): unknown {

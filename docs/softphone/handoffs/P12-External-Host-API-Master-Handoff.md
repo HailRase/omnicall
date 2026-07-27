@@ -1,4 +1,4 @@
-# P12 External Host API and Axatalk SDK — Master Handoff
+# P12 External Host API and OmniCall Kit — Master Handoff
 
 ## Status
 
@@ -8,21 +8,21 @@
 | Legacy | LF-051, LF-065, LF-080, LF-081 |
 | Phase | P12 External Host API Compatibility |
 | Feature status | **in progress** (DI-01…DI-11 `done`; DI-11 `/sdk-review` PASS 2026-07-21; F-011/P12 not closed — OPEN DI-10 smoke) |
-| Branch | `feature/axatalk-sdk` |
+| Branch | `feature/omnicall-kit` |
 | Desktop version | `0.12.0` |
 | DI-00 | `done` — `/sdk-review` PASS 2026-07-20 |
 | SDK-00…SDK-10 Mode A | `done` — SDK-10 RC-ready / stable-blocked (no npm `latest`); `/sdk-review` PASS 2026-07-20 |
-| DI-01 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-01-protocol-ports-mocks.md` |
-| DI-02 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-02-typed-main-renderer-broker.md` |
-| DI-03 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-03-loopback-websocket-transport.md` |
-| DI-04 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-04-pairing-origin-capabilities.md` |
-| DI-05 | **`done`** — `/sdk-review` PASS 2026-07-20 re-gate; evidence `axatalk-sdk-integration/evidence/DI-05-read-only-snapshot-events-window-show.md` |
-| DI-06 | **`done`** — call command router + revision-contract fix; evidence `axatalk-sdk-integration/evidence/DI-06-call-command-router.md` |
-| DI-07 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-07-operator-logout-workflow.md` |
-| DI-08 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-08-saved-profile-activation.md` |
-| DI-09 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `axatalk-sdk-integration/evidence/DI-09-settings-operational-ux.md` |
-| DI-10 | **`done`** — `/sdk-review` PASS 2026-07-21; packaged handshake/hostile/incompat real; pair/revoke/call/SIP OPEN — `axatalk-sdk-integration/evidence/DI-10-compatibility-e2e-p12-close.md` |
-| DI-11 | **`done`** — `/sdk-review` **PASS** 2026-07-21 (boot hydrate + machine-common `sdk-origin-trust.json`; denied wins over env seed); evidence `axatalk-sdk-integration/evidence/DI-11-origin-tofu-blacklist-activate.md` |
+| DI-01 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `omnicall-kit-integration/evidence/DI-01-protocol-ports-mocks.md` |
+| DI-02 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `omnicall-kit-integration/evidence/DI-02-typed-main-renderer-broker.md` |
+| DI-03 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `omnicall-kit-integration/evidence/DI-03-loopback-websocket-transport.md` |
+| DI-04 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `omnicall-kit-integration/evidence/DI-04-pairing-origin-capabilities.md` |
+| DI-05 | **`done`** — `/sdk-review` PASS 2026-07-20 re-gate; evidence `omnicall-kit-integration/evidence/DI-05-read-only-snapshot-events-window-show.md` |
+| DI-06 | **`done`** — call command router + revision-contract fix; evidence `omnicall-kit-integration/evidence/DI-06-call-command-router.md` |
+| DI-07 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `omnicall-kit-integration/evidence/DI-07-operator-logout-workflow.md` |
+| DI-08 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `omnicall-kit-integration/evidence/DI-08-saved-profile-activation.md` |
+| DI-09 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `omnicall-kit-integration/evidence/DI-09-settings-operational-ux.md` |
+| DI-10 | **`done`** — `/sdk-review` PASS 2026-07-21; packaged handshake/hostile/incompat real; pair/revoke/call/SIP OPEN — `omnicall-kit-integration/evidence/DI-10-compatibility-e2e-p12-close.md` |
+| DI-11 | **`done`** — `/sdk-review` **PASS** 2026-07-21 (boot hydrate + machine-common `sdk-origin-trust.json`; denied wins over env seed); evidence `omnicall-kit-integration/evidence/DI-11-origin-tofu-blacklist-activate.md` |
 | Next | Complete remaining OPEN DI-10 smoke cells (pair/revoke/call/SIP) or record human-named waivers → F-011/`implemented` / P12 close (DI-11 already PASS). |
 
 ## Mission
@@ -34,14 +34,14 @@ SDK and Electron-native local gateway while preserving every existing softphone 
 
 | Package | Path |
 | --- | --- |
-| SDK project | `axatalk-sdk/README.md` |
-| SDK work units | `axatalk-sdk/docs/WORK-UNITS.md` |
-| Desktop integration | `axatalk-sdk-integration/README.md` |
-| Desktop work units | `axatalk-sdk-integration/WORK-UNITS.md` |
-| Test matrix | `axatalk-sdk-integration/TEST-MATRIX.md` |
-| Manual smoke | `axatalk-sdk-integration/SMOKE-CHECKLIST.md` |
-| Baseline snapshot | `axatalk-sdk-integration/00-SNAPSHOT.md` |
-| DI-00 evidence | `axatalk-sdk-integration/evidence/DI-00-baseline.md` |
+| SDK project | `omnicall-kit/README.md` |
+| SDK work units | `omnicall-kit/docs/WORK-UNITS.md` |
+| Desktop integration | `omnicall-kit-integration/README.md` |
+| Desktop work units | `omnicall-kit-integration/WORK-UNITS.md` |
+| Test matrix | `omnicall-kit-integration/TEST-MATRIX.md` |
+| Manual smoke | `omnicall-kit-integration/SMOKE-CHECKLIST.md` |
+| Baseline snapshot | `omnicall-kit-integration/00-SNAPSHOT.md` |
+| DI-00 evidence | `omnicall-kit-integration/evidence/DI-00-baseline.md` |
 
 ## Architecture Decisions (DI-00)
 
@@ -86,7 +86,7 @@ SDK and Electron-native local gateway while preserving every existing softphone 
 ### Protocol precision decisions (SDK-01)
 
 Previously open O-* rows are **closed** in ADR-0014…0017 and
-`axatalk-sdk/docs/PROTOCOL.md`. Desktop must implement them as written (no silent drift).
+`omnicall-kit/docs/PROTOCOL.md`. Desktop must implement them as written (no silent drift).
 
 | ID | Topic | Resolution |
 | --- | --- | --- |
@@ -146,8 +146,8 @@ Independent `/sdk-review` is required after every work unit.
 - [ ] SDK server disabled or failed does not block core softphone.
 - [ ] SDK disconnect/revoke never terminates calls or account sessions.
 
-Manual checklist: `axatalk-sdk-integration/SMOKE-CHECKLIST.md`.  
-Automated matrix: `axatalk-sdk-integration/TEST-MATRIX.md`.
+Manual checklist: `omnicall-kit-integration/SMOKE-CHECKLIST.md`.  
+Automated matrix: `omnicall-kit-integration/TEST-MATRIX.md`.
 
 ## Documentation Gate
 

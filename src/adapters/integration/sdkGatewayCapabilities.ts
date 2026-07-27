@@ -9,7 +9,7 @@ import {
   type CapabilityId,
   type CommandType,
   type PairingProfile,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 
 /** Capability required for a command; undefined means auth-only (e.g. sdk:ping). */
 const COMMAND_CAPABILITY: Readonly<

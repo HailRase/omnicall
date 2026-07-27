@@ -16,12 +16,12 @@ discovery ACAO; `denied` must not).
 - **Legacy:** LF-080
 - **Roadmap:** P12
 - **Contexts:** Integration
-- **Layers:** Electron main (gateway), `@axata/axatalk-sdk` transport
+- **Layers:** Electron main (gateway), `@softomnitel/omnicall-kit` transport
 
 ADR-0010 closed loopback-only bind and fail-closed port ownership, but left exact discovery
 URL/schema and HTTPS→loopback browser feasibility to SDK-01. Chrome/Edge Local Network
 Access (LNA) now covers WebSockets; Firefox has aligned LNA for WebSockets. Evidence:
-`axatalk-sdk/evidence/SDK-01-browser-spike.md`.
+`omnicall-kit/evidence/SDK-01-browser-spike.md`.
 
 ## Decision
 
@@ -37,8 +37,8 @@ bootstrap (harder to version, no cacheable GET, poorer CRM diagnostics).
    settings later; discovery documents always list concrete endpoints the instance owns.
    Occupied port → gateway fails closed (ADR-0010); core softphone still starts.
 
-2. **URL (v1):** `GET http://127.0.0.1:17341/axatalk/v1/discovery`  
-   (and `http://[::1]:17341/axatalk/v1/discovery` when IPv6 loopback is enabled).
+2. **URL (v1):** `GET http://127.0.0.1:17341/omnicall/v1/discovery`  
+   (and `http://[::1]:17341/omnicall/v1/discovery` when IPv6 loopback is enabled).
 
 3. **Method/headers:** GET only. No cookies. No `Authorization`. CORS for browser tabs:
    reflect **exact** Origin in `Access-Control-Allow-Origin` when Origin state is
@@ -59,7 +59,7 @@ bootstrap (harder to version, no cacheable GET, poorer CRM diagnostics).
 | `protocolMax` | number | Inclusive protocol major max |
 | `desktopVersion` | string | Informational SemVer |
 | `serverInstanceId` | string | Opaque; changes on desktop restart |
-| `wsUrl` | string | e.g. `ws://127.0.0.1:17341/axatalk/v1/ws` |
+| `wsUrl` | string | e.g. `ws://127.0.0.1:17341/omnicall/v1/ws` |
 | `maxMessageBytes` | number | Matches gateway frame limit |
 | `heartbeatSeconds` | number | Server heartbeat policy hint |
 | `pairingRequired` | boolean | Hint only; auth still required |
@@ -71,7 +71,7 @@ credentials, capability grants.
    Removals/renames/semantic changes require `discoveryVersion` bump. SDK clients that do
    not understand the document fail closed with a stable client error (no silent guess).
 
-6. **WS path:** `ws://127.0.0.1:17341/axatalk/v1/ws` (same host/port as discovery).
+6. **WS path:** `ws://127.0.0.1:17341/omnicall/v1/ws` (same host/port as discovery).
 
 ### O-BRW-1 — Supported browser matrix (P12)
 
@@ -96,7 +96,7 @@ Stable i18n key IDs reserved for DI-09 (no Russian/English copy frozen here):
 | Key ID | Purpose |
 | --- | --- |
 | `sdk.lna.loopback.required.title` | User must allow loopback/local-network access |
-| `sdk.lna.loopback.required.body` | Explain Axatalk Desktop local connection |
+| `sdk.lna.loopback.required.body` | Explain OmniCall Desktop local connection |
 | `sdk.lna.loopback.denied.title` | User blocked permission |
 | `sdk.lna.loopback.denied.body` | How to re-enable via site settings |
 | `sdk.lna.unsupportedBrowser.title` | Browser not in support matrix |
@@ -109,7 +109,7 @@ Localized sentences stay in desktop/CRM UI, not on the wire.
 
 Permissions-Policy guidance for embedders (document in SDK-09): prefer
 `Permissions-Policy: loopback-network=(self "https://crm.example")` (and `local-network`
-only if ever needed). Axatalk v1 targets **loopback only**, not LAN devices.
+only if ever needed). OmniCall v1 targets **loopback only**, not LAN devices.
 
 ## Alternatives Considered
 
@@ -136,5 +136,5 @@ only if ever needed). Axatalk v1 targets **loopback only**, not LAN devices.
 ## Related Links
 
 - Closes: O-DISC-1, O-DISC-2, O-BRW-1, O-BRW-2
-- Evidence: `axatalk-sdk/evidence/SDK-01-browser-spike.md`
+- Evidence: `omnicall-kit/evidence/SDK-01-browser-spike.md`
 - Related: ADR-0010, ADR-0011, ADR-0018, MDN Local network access

@@ -24,7 +24,7 @@ vi.mock("electron", () => ({
 }));
 
 describe("ElectronSafeStorageSecretService", () => {
-  const secretsRoot = join(tmpdir(), `axatalk-secrets-test-${Date.now()}`);
+  const secretsRoot = join(tmpdir(), `omnicall-secrets-test-${Date.now()}`);
 
   afterEach(async () => {
     await rm(secretsRoot, { recursive: true, force: true });

@@ -1,16 +1,16 @@
 /**
  * Deterministic ExternalClientGateway test double (DI-01).
- * No sockets, Electron, or JsSIP. Fail closed via `@axata/axatalk-protocol` validators.
+ * No sockets, Electron, or JsSIP. Fail closed via `@softomnitel/omnicall-protocol` validators.
  */
 
 import type {
   DiscoveryDocument,
   WireMessage,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 import {
   validateDiscoveryDocument,
   validateWireMessage,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 import type {
   ExternalClientGateway,
   ExternalClientGatewayStatus,

@@ -7,7 +7,7 @@ import {
   type CapabilityId,
   type DiscoveryDocument,
   type WireMessage,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 import type {
   ExternalClientGateway,
   ExternalClientGatewayStatus,

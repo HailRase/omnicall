@@ -1,4 +1,4 @@
-# Release Playbook (Axatalk)
+# Release Playbook (OmniCall)
 
 Operational guide for **distribution releases** (F-019, F-020). Agents: use with `/release` and `.cursor/rules/version-release.mdc`.
 
@@ -26,10 +26,10 @@ Operational guide for **distribution releases** (F-019, F-020). Agents: use with
 | --- | --- |
 | `package.json` version | `0.0.2` (no `v`) |
 | Git tag | `v0.0.2` |
-| Release title | `Axatalk v0.0.2` or `Axatalk 0.0.2` |
-| Windows installer | `Axatalk-0.0.2-win-x64.exe` (NSIS) · `Axatalk-0.0.2-win-x64.msi` (IT) |
-| macOS | `Axatalk-0.0.2-mac-arm64.dmg` |
-| Linux AppImage (CI) | `Axatalk-0.0.2-linux-x86_64.AppImage` |
+| Release title | `OmniCall v0.0.2` or `OmniCall 0.0.2` |
+| Windows installer | `OmniCall-0.0.2-win-x64.exe` (NSIS) · `OmniCall-0.0.2-win-x64.msi` (IT) |
+| macOS | `OmniCall-0.0.2-mac-arm64.dmg` |
+| Linux AppImage (CI) | `OmniCall-0.0.2-linux-x86_64.AppImage` |
 
 ## Release cut procedure (`/release`)
 
@@ -51,7 +51,7 @@ From user request or SemVer table above. Confirm no duplicate tag on GitHub.
 2. Public bullets in `distribution/CHANGELOG.md` must be **English** and user-facing (no F-XXX IDs, no private URLs)
 3. Clear `[Unreleased]` sections (keep headings) in the internal changelog
 4. Update compare links at bottom of `CHANGELOG.md`
-5. Release notes on **axatalk-releases** are generated automatically from `distribution/CHANGELOG.md` (see `distribution/RELEASE-NOTES-CONTRACT.md`)
+5. Release notes on **omnicall-releases** are generated automatically from `distribution/CHANGELOG.md` (see `distribution/RELEASE-NOTES-CONTRACT.md`)
 
 ### 4. Bump `package.json` version
 
@@ -63,7 +63,7 @@ Only the `version` field.
 npm run release:sync-manifest
 ```
 
-Updates dev manifest copies + `distribution/update-manifest.json` (payload for **axatalk-releases**). URLs point to public distribution repo.
+Updates dev manifest copies + `distribution/update-manifest.json` (payload for **omnicall-releases**). URLs point to public distribution repo.
 
 ### 6. Commit on `main`
 
@@ -81,28 +81,28 @@ git push origin main
 git push origin vX.Y.Z
 ```
 
-**Order matters:** commit on `main` **before** tag. CI pushes manifest to **axatalk-releases** `main` after publish.
+**Order matters:** commit on `main` **before** tag. CI pushes manifest to **omnicall-releases** `main` after publish.
 
-**Prerequisite:** secret `AXATALK_RELEASES_TOKEN` in repo Actions (see `guides/Distribution-Migration-Checklist.md`).
+**Prerequisite:** secret `OMNICALL_RELEASES_TOKEN` in repo Actions (see `guides/Distribution-Migration-Checklist.md`).
 
 ### 8. CI / CD (automatic on tag)
 
 | Workflow | Trigger | Result |
 | --- | --- | --- |
 | `ci.yml` | push to `main` | test, lint, typecheck, registry |
-| `release.yml` | push tag `v*.*.*` | build in softphone-electron → publish to **axatalk-releases** |
+| `release.yml` | push tag `v*.*.*` | build in softphone-electron → publish to **omnicall-releases** |
 
 Monitor: [Actions → Release](https://github.com/HailRase/softphone-electron/actions/workflows/release.yml)
 
-User-facing release: https://github.com/HailRase/axatalk-releases/releases
+User-facing release: https://github.com/HailRase/omnicall-releases/releases
 
 **Do not** use **Re-run** on an old workflow for a new fix — use **Run workflow** or push a new tag.
 
 ### 9. Verify (agent or human)
 
-1. **axatalk-releases** Release `vX.Y.Z` has `.exe`, `.msi`, `.dmg`, `.AppImage` (installers only)
+1. **omnicall-releases** Release `vX.Y.Z` has `.exe`, `.msi`, `.dmg`, `.AppImage` (installers only)
 2. Direct download URLs return 200 (not 404)
-3. Raw manifest: `https://raw.githubusercontent.com/HailRase/axatalk-releases/main/update-manifest.json`
+3. Raw manifest: `https://raw.githubusercontent.com/HailRase/omnicall-releases/main/update-manifest.json`
 4. Optional: in-app **Настройки → О программе → Проверить обновления**
 
 ### 10. Post-release docs
@@ -121,7 +121,7 @@ For testing installers without a release cut:
 
 ## workflow_dispatch vs tag
 
-| Mode | Builds | Publishes to axatalk-releases |
+| Mode | Builds | Publishes to omnicall-releases |
 | --- | --- | --- |
 | `workflow_dispatch` | Yes | **No** |
 | Push tag `v*.*.*` | Yes | **Yes** (direct API upload per OS + manifest sync) |
@@ -130,7 +130,7 @@ For testing installers without a release cut:
 
 - Packaging uses `scripts/run-electron-builder.mjs` (`--publish never`, tokens cleared)
 - **Never** enable electron-builder auto-publish (F-020 uses manual manifest)
-- Release workflow **does not use GitHub Artifacts** — installers upload directly to axatalk-releases via API
+- Release workflow **does not use GitHub Artifacts** — installers upload directly to omnicall-releases via API
 
 ## Related docs
 

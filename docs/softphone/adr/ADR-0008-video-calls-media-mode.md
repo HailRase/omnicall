@@ -6,7 +6,7 @@ Accepted (2026-07-09)
 
 ## Context
 
-Legacy softphone used a global `audioOnly` setting, which forces users into Settings before every video call. Axatalk currently hard-disables video in JsSIP (`video: false`). Full video parity (F-027) must not break existing audio calls, mute, hold, headset, or codecs.
+Legacy softphone used a global `audioOnly` setting, which forces users into Settings before every video call. OmniCall currently hard-disables video in JsSIP (`video: false`). Full video parity (F-027) must not break existing audio calls, mute, hold, headset, or codecs.
 
 Affected: **F-027**, Media | Telephony | Settings | UI. Layers: Domain → Application → Ports → Adapters → UI.
 

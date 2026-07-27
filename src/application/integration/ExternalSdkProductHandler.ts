@@ -6,7 +6,7 @@ import {
   isCommandAvailableInProductV1,
   productDenialCodeForCommand,
   validateWireMessage,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 import type {
   ExternalCommandContext,
   ExternalCommandHandler,
@@ -46,7 +46,8 @@ export class ExternalSdkProductHandler implements ExternalCommandHandler {
    * Disconnect/revoke cleanup hook (no SIP tear).
    * Single-shot logout has no pending tokens — returns 0.
    */
-  abortClientSession(_clientId: string): number {
+  abortClientSession(clientId: string): number {
+    void clientId;
     return 0;
   }
 

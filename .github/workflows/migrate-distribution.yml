@@ -1,7 +1,7 @@
 name: Migrate distribution releases
 
-# One-time: copy installer assets from softphone-electron releases to axatalk-releases.
-# Secrets: AXATALK_RELEASES_TOKEN (write axatalk-releases only).
+# One-time: copy installer assets from softphone-electron releases to omnicall-releases.
+# Secrets: OMNICALL_RELEASES_TOKEN (write omnicall-releases only).
 # Source read uses github.token (same repo). Guide: guides/Distribution-Migration-Checklist.md
 
 on:
@@ -30,22 +30,22 @@ jobs:
 
       - name: Verify distribution token
         env:
-          DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.AXATALK_RELEASES_TOKEN }}
+          DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.OMNICALL_RELEASES_TOKEN }}
         run: |
           if [ -z "$DISTRIBUTION_GITHUB_TOKEN" ]; then
-            echo "::error::AXATALK_RELEASES_TOKEN secret is empty. Add fine-grained PAT with Contents read+write on axatalk-releases."
+            echo "::error::OMNICALL_RELEASES_TOKEN secret is empty. Add fine-grained PAT with Contents read+write on omnicall-releases."
             exit 1
           fi
           node --input-type=module -e "
             import { verifyDistributionToken } from './scripts/github-distribution-api.mjs';
-            await verifyDistributionToken(process.env.DISTRIBUTION_GITHUB_TOKEN.trim(), 'HailRase/axatalk-releases');
+            await verifyDistributionToken(process.env.DISTRIBUTION_GITHUB_TOKEN.trim(), 'HailRase/omnicall-releases');
             console.log('Distribution token OK');
           "
 
-      - name: Migrate releases to axatalk-releases
+      - name: Migrate releases to omnicall-releases
         env:
           SOURCE_GITHUB_TOKEN: ${{ github.token }}
-          DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.AXATALK_RELEASES_TOKEN }}
+          DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.OMNICALL_RELEASES_TOKEN }}
         run: |
           TAGS="${{ github.event.inputs.tags }}"
           TAG_ARGS=""

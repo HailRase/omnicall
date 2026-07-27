@@ -145,5 +145,5 @@ Two product risks:
 
 - Feature Registry: F-011, F-001, F-024, F-028
 - ADR-AF-003, ADR-AF-005, ADR-AF-006
-- `axatalk-sdk/docs/SECURITY.md` (Credential Policy)
+- `omnicall-kit/docs/SECURITY.md` (Credential Policy)
 - Related: ADR-0009, ADR-0011, ADR-0012, ADR-0018

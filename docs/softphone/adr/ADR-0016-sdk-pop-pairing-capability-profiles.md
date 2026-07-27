@@ -14,7 +14,7 @@ Accepted (2026-07-20) — closes **O-POP-1**, **O-POP-2**, **O-CAP-1** (SDK-01; 
 - **Legacy:** LF-080, LF-081
 - **Roadmap:** P12
 - **Contexts:** Integration, Settings
-- **Layers:** Main pairing store, `@axata/axatalk-sdk` auth, Settings UI (DI-09)
+- **Layers:** Main pairing store, `@softomnitel/omnicall-kit` auth, Settings UI (DI-09)
 
 ADR-0011 closed Origin, pairing requirement, capability names, replay, and revoke policy.
 Cryptographic proof-of-possession, approve payload shape, and default capability profiles
@@ -83,7 +83,7 @@ Wire shapes (schemas land in SDK-02; semantics frozen here):
 
 `expiresAt` is `now +` live pairing TTL (SSoT:
 `src/shared/integration/sdkOperatorModalTimeouts.ts`, default
-`SDK_PAIRING_PENDING_TTL_MS` = **5 min**; override via Settings → Axatalk SDK → Main).
+`SDK_PAIRING_PENDING_TTL_MS` = **5 min**; override via Settings → OmniCall Kit → Main).
 Softphone ceremony modal shows a muted `MM:SS` countdown to that deadline; on expiry
 desktop denies pending (`pairing:denied`) — same as operator Deny. Do not invent a
 separate UI-only pairing timer; CRM must wait for Desktop `pairing:approved|denied`.
@@ -117,8 +117,8 @@ grants remain authoritative on every command (ADR-0011).
 | `operator` | presentation + `operator.status.write`, `operator.campaign.read` (ADR-0019), `ocp.acd_context.read` (ADR-0020), `session.logout` |
 | `call_controller` | operator + `call.originate`, `call.control` (+ same campaign/ACD read caps) |
 
-Live SSoT: `DEFAULT_CAPABILITY_PROFILES` in `@axata/axatalk-protocol`
-(`axatalk-sdk/packages/protocol/src/constants.ts`). Origin matrix (ADR-0018) may
+Live SSoT: `DEFAULT_CAPABILITY_PROFILES` in `@softomnitel/omnicall-protocol`
+(`omnicall-kit/packages/protocol/src/constants.ts`). Origin matrix (ADR-0018) may
 narrow grants at runtime; `ocp.acd_context.read` exposes unmasked OCP party ids on
 `call:acd-context` / snapshot `acdContext` — keep Origin matrix tight for shared PCs.
 
@@ -157,4 +157,4 @@ override in Settings (DI-09); they are never auto-escalated from the browser.
 ## Related Links
 
 - Closes: O-POP-1, O-POP-2, O-CAP-1
-- Related: ADR-0011, ADR-0013, `axatalk-sdk/docs/SECURITY.md`
+- Related: ADR-0011, ADR-0013, `omnicall-kit/docs/SECURITY.md`

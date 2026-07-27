@@ -66,7 +66,7 @@ describe("Contacts CSV Use Cases", () => {
       contact: {
         displayName: "Alex Agent",
         primaryPhone: "+12025550100",
-        company: "Axatalk",
+        company: "OmniCall",
       },
     });
 
@@ -78,6 +78,6 @@ describe("Contacts CSV Use Cases", () => {
 
     expect(result.value.contactCount).toBe(1);
     expect(result.value.csvContents.startsWith(`${CONTACT_CSV_CANONICAL_HEADER}\n`)).toBe(true);
-    expect(result.value.csvContents).toContain("Alex Agent,+12025550100,,Axatalk,");
+    expect(result.value.csvContents).toContain("Alex Agent,+12025550100,,OmniCall,");
   });
 });

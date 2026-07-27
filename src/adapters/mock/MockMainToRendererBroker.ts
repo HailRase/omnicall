@@ -3,12 +3,12 @@
  * No IPC, preload, or BrowserWindow. Validates `unknown` with protocol schemas.
  */
 
-import type { CommandMessage, ReplyMessage, WireJsonObject } from "@axata/axatalk-protocol";
+import type { CommandMessage, ReplyMessage, WireJsonObject } from "@softomnitel/omnicall-protocol";
 import {
   isCommandAvailableInProductV1,
   productDenialCodeForCommand,
   validateWireMessage,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 import type {
   BrokerProductRequest,
   BrokerRequestResult,

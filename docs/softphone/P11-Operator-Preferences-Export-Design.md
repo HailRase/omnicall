@@ -15,11 +15,11 @@ Allow an operator to move **portable preferences** of the active account profile
 
 ## Format
 
-File: UTF-8 JSON (`*.json`), suggested name `axatalk-preferences-YYYY-MM-DD.json`.
+File: UTF-8 JSON (`*.json`), suggested name `omnicall-preferences-YYYY-MM-DD.json`.
 
 | Field | Meaning |
 | --- | --- |
-| `format` | Always `axatalk.preferences` |
+| `format` | Always `omnicall.preferences` |
 | `formatVersion` | Bundle format (`1` today). Independent of `UserSettings.schemaVersion`. |
 | `exportedAt` | ISO-8601 timestamp |
 | `appVersion` | Optional exporter app version (informational) |

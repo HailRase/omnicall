@@ -7,7 +7,7 @@
 import type {
   ProtocolErrorCode,
   WireJsonObject,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 
 export type ExternalHandlerSuccess = Readonly<{
   ok: true;

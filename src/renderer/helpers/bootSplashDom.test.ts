@@ -48,9 +48,9 @@ describe("bootSplashDom", () => {
 
     const root = document.getElementById("boot-splash");
     const indicator = document.getElementById("boot-splash-indicator");
-    expect(root?.dataset.progressMode).toBe("determinate");
+    expect(root?.dataset['progressMode']).toBe("determinate");
     expect(indicator?.style.transform).toBe("translateX(-58%)");
-    expect(root?.dataset.settled).toBeUndefined();
+    expect(root?.dataset['settled']).toBeUndefined();
   });
 
   it("marks settled at 100% and freezes bounce without keyframe swap", () => {
@@ -62,7 +62,7 @@ describe("bootSplashDom", () => {
 
     updateBootSplashProgress(100);
 
-    expect(document.getElementById("boot-splash")?.dataset.settled).toBe("true");
+    expect(document.getElementById("boot-splash")?.dataset['settled']).toBe("true");
     expect(ball?.style.animation).toBe("none");
     expect(ball?.style.transform).toBe("translateY(0) scaleX(1.05) scaleY(0.95)");
   });
@@ -76,7 +76,7 @@ describe("bootSplashDom", () => {
 
   it("settleBootSplash forces 100% and settled", () => {
     settleBootSplash();
-    expect(document.getElementById("boot-splash")?.dataset.settled).toBe("true");
+    expect(document.getElementById("boot-splash")?.dataset['settled']).toBe("true");
     expect(document.getElementById("boot-splash-indicator")?.style.transform).toBe(
       "translateX(0%)",
     );
@@ -86,7 +86,7 @@ describe("bootSplashDom", () => {
     vi.useFakeTimers();
     const exitPromise = beginBootSplashExit();
 
-    expect(document.getElementById("boot-splash")?.dataset.exiting).toBe("true");
+    expect(document.getElementById("boot-splash")?.dataset['exiting']).toBe("true");
 
     await vi.advanceTimersByTimeAsync(BOOT_SPLASH_EXIT_MS + 80);
     await exitPromise;

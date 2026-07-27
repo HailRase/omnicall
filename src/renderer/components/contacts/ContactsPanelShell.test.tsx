@@ -93,7 +93,7 @@ describe("ContactsPanelShell", () => {
               id: "agent-1",
               displayName: "Alice",
               primaryPhone: "101",
-              company: "Axata",
+              company: "SoftOmniTel",
               callDisabledReason: null,
             },
             {

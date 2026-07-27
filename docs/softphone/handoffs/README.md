@@ -1,7 +1,7 @@
 # Handoffs
 
 - Purpose: work-unit deliverables and gate checklists for implementation agents.
-- Active: **P11** files (`P11-*`), **P10 extensibility** (`P10-Headset-Extensibility-*`), and planned **P12 External Host API / Axatalk SDK**.
+- Active: **P11** files (`P11-*`), **P10 extensibility** (`P10-Headset-Extensibility-*`), and planned **P12 External Host API / OmniCall Kit**.
 - Archive: completed phases **P02–P08** in `archive/P0N/`.
 - Live status: `../STATUS.md`.
 
@@ -23,7 +23,7 @@ See also: `../HEADSET-VENDOR-ONBOARDING.md`
 |---------|-------|
 | `P12-External-Host-API-Master-Handoff.md` | F-011 architecture, security, regression, WU order, and completion gates |
 
-Execution packages: `../../../axatalk-sdk/README.md` and `../../../axatalk-sdk-integration/README.md`.
+Execution packages: `../../../omnicall-kit/README.md` and `../../../omnicall-kit-integration/README.md`.
 
 ## Active (P11)
 

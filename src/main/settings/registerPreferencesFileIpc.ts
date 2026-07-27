@@ -38,7 +38,7 @@ function showPreferencesOpenDialog(
 ): Promise<OpenDialogReturnValue> {
   focusParentWindow(parentWindow);
   const openDialogOptions: OpenDialogOptions = {
-    title: "Import Axatalk Preferences",
+    title: "Import OmniCall Preferences",
     defaultPath: app.getPath("documents"),
     properties: ["openFile"],
     filters: [{ name: "JSON", extensions: ["json"] }],
@@ -52,7 +52,7 @@ function showPreferencesSaveDialog(
 ): Promise<SaveDialogReturnValue> {
   focusParentWindow(parentWindow);
   const saveDialogOptions: SaveDialogOptions = {
-    title: "Export Axatalk Preferences",
+    title: "Export OmniCall Preferences",
     defaultPath: join(app.getPath("documents"), suggestedFileName),
     filters: [{ name: "JSON", extensions: ["json"] }],
   };

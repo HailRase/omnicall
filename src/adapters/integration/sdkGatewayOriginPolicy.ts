@@ -26,11 +26,11 @@ export function parseSdkOriginAllowlist(
     .filter((part) => part.length > 0);
 }
 
-/** Load default allow seed from `AXATALK_SDK_ALLOWED_ORIGINS` (exact CSV). */
+/** Load default allow seed from `OMNICALL_SDK_ALLOWED_ORIGINS` (exact CSV). */
 export function loadSdkOriginAllowlistFromEnv(
   env: NodeJS.ProcessEnv = process.env,
 ): readonly string[] {
-  return parseSdkOriginAllowlist(env["AXATALK_SDK_ALLOWED_ORIGINS"]);
+  return parseSdkOriginAllowlist(env["OMNICALL_SDK_ALLOWED_ORIGINS"]);
 }
 
 function normalizeOriginHeader(

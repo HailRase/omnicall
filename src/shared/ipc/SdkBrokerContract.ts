@@ -1,6 +1,6 @@
 /**
  * Typed IPC envelopes for the main↔renderer SDK broker (F-011 / DI-02 / ADR-0009).
- * Structural fail-closed parsers only — full wire validation uses `@axata/axatalk-protocol`
+ * Structural fail-closed parsers only — full wire validation uses `@softomnitel/omnicall-protocol`
  * in main/renderer adapters, not in preload.
  */
 
@@ -8,7 +8,7 @@ import {
   PROTOCOL_ERROR_CODES,
   type ProtocolErrorCode,
   type WireJsonObject,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 
 const PROTOCOL_ERROR_CODE_SET: ReadonlySet<string> = new Set(PROTOCOL_ERROR_CODES);
 

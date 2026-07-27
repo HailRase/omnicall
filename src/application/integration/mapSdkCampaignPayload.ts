@@ -2,7 +2,7 @@
  * Build redacted public campaign DTO (ADR-0019). Never includes OCP wire ids.
  */
 
-import { OpaqueIdSchema, type WireJsonObject } from "@axata/axatalk-protocol";
+import { OpaqueIdSchema, type WireJsonObject } from "@softomnitel/omnicall-protocol";
 
 import { redactPhoneForSdk } from "./sdkPrivacyRedaction.js";
 

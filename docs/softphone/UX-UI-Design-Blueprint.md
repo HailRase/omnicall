@@ -290,7 +290,7 @@ Shared primitives in `SettingsForm.module.css` constrain Settings body content s
 
 Do not reintroduce `max-width: none` on shared Settings form stacks without an ADR-level layout decision.
 
-### Axatalk SDK Settings IA (F-011)
+### OmniCall Kit Settings IA (F-011)
 
 Three UI Kit Tabs (same pattern as Account mode tabs, `indicator="slide"`):
 
@@ -317,7 +317,7 @@ Window raise on activate consent uses a unique `attentionId` per episode (ADR-00
 second request after Cancel still brings the softphone to front.
 
 Attention for Origin TOFU / pairing is a root overlay (`SdkConnectCeremonyModal`) above any
-shell route (including Settings). Settings → Axatalk SDK does not host pending TOFU/pairing
+shell route (including Settings). Settings → OmniCall Kit does not host pending TOFU/pairing
 callouts. Pending must clear with the socket/policy (disconnect → TOFU cancel without
 blacklist; pairing deny-by-connection; Origin leave-allowed closes WS without auto-revoke;
 waiting Cancel/Escape). See ADR-0018 §G.

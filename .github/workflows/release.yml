@@ -1,6 +1,6 @@
 name: Release
 
-# Tag v*.*.* → build on matrix → direct upload to axatalk-releases (no GitHub Artifacts).
+# Tag v*.*.* → build on matrix → direct upload to omnicall-releases (no GitHub Artifacts).
 # workflow_dispatch → build validation only (no publish, no Artifacts).
 # Guide: guides/RELEASE-PLAYBOOK.md, guides/Distribution-Migration-Checklist.md
 
@@ -102,10 +102,10 @@ jobs:
           DEST_DIR: release-staging
         run: node scripts/collect-installer-artifacts.mjs
 
-      - name: Publish installers to axatalk-releases
+      - name: Publish installers to omnicall-releases
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         env:
-          DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.AXATALK_RELEASES_TOKEN }}
+          DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.OMNICALL_RELEASES_TOKEN }}
           RELEASE_TAG: ${{ github.ref_name }}
           PAYLOAD_DIR: release-staging
         run: node scripts/publish-distribution-release.mjs
@@ -128,15 +128,15 @@ jobs:
       - name: Sync distribution manifest
         run: node scripts/sync-release-manifest.mjs
 
-      - name: Push distribution docs to axatalk-releases main
+      - name: Push distribution docs to omnicall-releases main
         env:
-          GITHUB_TOKEN: ${{ secrets.AXATALK_RELEASES_TOKEN }}
-          DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.AXATALK_RELEASES_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.OMNICALL_RELEASES_TOKEN }}
+          DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.OMNICALL_RELEASES_TOKEN }}
           DIST_COMMIT_MSG: "chore(release): sync manifest for ${{ github.ref_name }}"
         run: node scripts/push-distribution-repo.mjs
 
-      - name: Publish release notes to axatalk-releases
+      - name: Publish release notes to omnicall-releases
         env:
-          DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.AXATALK_RELEASES_TOKEN }}
+          DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.OMNICALL_RELEASES_TOKEN }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: node scripts/update-distribution-release-notes.mjs

@@ -5,7 +5,7 @@ import {
   DISCOVERY_PATH,
   WS_PATH,
   validateWireMessage,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 import { InMemorySecretStorageAdapter } from "@adapters/secrets/InMemorySecretStorageAdapter.js";
 import { afterEach, describe, expect, it } from "vitest";
 import { WebSocket } from "ws";

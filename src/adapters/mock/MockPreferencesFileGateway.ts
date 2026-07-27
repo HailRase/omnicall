@@ -35,7 +35,7 @@ export class MockPreferencesFileGateway implements PreferencesFileGateway {
       exportResult:
         options.exportResult ?? {
           kind: "success",
-          savedFileName: "axatalk-preferences.json",
+          savedFileName: "omnicall-preferences.json",
         },
       lastExportInput: null,
     };

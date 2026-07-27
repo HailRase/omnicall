@@ -438,7 +438,7 @@ export class ChangeOperatorStatusUseCase {
 6. `sendCommand()` → если `Result.err` → логировать + вернуть err  
 
 **`callType` в командах:**  
-Все команды изменения статуса принимают `callType: 'internal' | 'external' | 'sdk'`. Renderer UI → `'internal'`. Host-page API → `'external'`. Публичный Axatalk SDK (DI-07) → `'sdk'` на Facade/Use Case (аудит). Use Case **не зависит** от источника — он только передаёт callType в `OcpCommand`.
+Все команды изменения статуса принимают `callType: 'internal' | 'external' | 'sdk'`. Renderer UI → `'internal'`. Host-page API → `'external'`. Публичный OmniCall Kit (DI-07) → `'sdk'` на Facade/Use Case (аудит). Use Case **не зависит** от источника — он только передаёт callType в `OcpCommand`.
 
 **OCP wire (обязательно):** legacy `proxy_users` принимает только `function_call_type: 'internal' | 'external'`. Адаптер `mapOcpCallTypeToWire` / `buildOcpCommandPayload` мапит Application `'sdk'` → wire `'external'`. Не отправлять `"sdk"` на OCP socket и не подменять Facade `callType` на `"external"` молча (см. ADR-0017 O-OCP-1).
 
@@ -1012,7 +1012,7 @@ Opt-in draft may temporarily key metadata by OCP login/host before creds. After 
 **Зависимости:** E-04, E-05
 
 ### Цель
-Typed external OCP command surface for future browser-tab integration. **Не** порт legacy `window.Softphone` / `authenticateOCPModule` (это был embed widget в старой CRM). В Axatalk вкладка браузера будет ходить через `ExternalClientGateway` + `ExternalCommandRouter` (WS → main) — реализация gateway позже.
+Typed external OCP command surface for future browser-tab integration. **Не** порт legacy `window.Softphone` / `authenticateOCPModule` (это был embed widget в старой CRM). В OmniCall вкладка браузера будет ходить через `ExternalClientGateway` + `ExternalCommandRouter` (WS → main) — реализация gateway позже.
 
 ### Направление реализации
 
@@ -1041,7 +1041,7 @@ src/application/facades/AccountBootstrapFacade.ts  — external OCP command meth
 - [x] Tests: contract + facade host methods
 
 ### Примечания
-> Legacy jssip-phone used `window.Softphone` for script-embed widgets. Axatalk replaces that with ExternalClientGateway (future). E-12 only prepares contract + Facade entry points.
+> Legacy jssip-phone used `window.Softphone` for script-embed widgets. OmniCall replaces that with ExternalClientGateway (future). E-12 only prepares contract + Facade entry points.
 
 ---
 

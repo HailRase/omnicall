@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SDK_ACTIVATE_CLIENT_TIMEOUT_MS } from "@axata/axatalk-protocol";
+import { SDK_ACTIVATE_CLIENT_TIMEOUT_MS } from "@softomnitel/omnicall-protocol";
 import { OCP_SIGN_IN_STAGE_TIMEOUT_MS } from "@domain/integration/ocp/OcpSignInProgress.js";
 
 import {

@@ -40,7 +40,7 @@ afterEach(async () => {
 });
 
 async function createTempRoot(): Promise<string> {
-  const root = await mkdtemp(join(tmpdir(), "axatalk-origin-trust-"));
+  const root = await mkdtemp(join(tmpdir(), "omnicall-origin-trust-"));
   tempRoots.push(root);
   return root;
 }
@@ -115,7 +115,7 @@ describe("sdkOriginTrustMachineStore + boot hydrate", () => {
       storageRoot,
       filesystem,
       env: {
-        AXATALK_SDK_ALLOWED_ORIGINS: `${deniedOrigin},https://other.example`,
+        OMNICALL_SDK_ALLOWED_ORIGINS: `${deniedOrigin},https://other.example`,
       },
     });
 
@@ -136,7 +136,7 @@ describe("sdkOriginTrustMachineStore + boot hydrate", () => {
     const secondBoot = await hydrateSdkOriginTrustForGatewayBoot({
       storageRoot,
       filesystem,
-      env: { AXATALK_SDK_ALLOWED_ORIGINS: deniedOrigin },
+      env: { OMNICALL_SDK_ALLOWED_ORIGINS: deniedOrigin },
     });
     expect(reloaded.settings.origins[0]?.state).toBe("denied");
     expect(
@@ -157,7 +157,7 @@ describe("sdkOriginTrustMachineStore + boot hydrate", () => {
       hydrateSdkOriginTrustForGatewayBoot({
         storageRoot,
         filesystem,
-        env: { AXATALK_SDK_ALLOWED_ORIGINS: "https://evil.example" },
+        env: { OMNICALL_SDK_ALLOWED_ORIGINS: "https://evil.example" },
       }),
     ).rejects.toBeInstanceOf(SdkOriginTrustStoreCorruptError);
 
@@ -245,7 +245,7 @@ describe("sdkOriginTrustMachineStore + boot hydrate", () => {
     const hydrated = await hydrateSdkOriginTrustForGatewayBoot({
       storageRoot,
       filesystem,
-      env: { AXATALK_SDK_ALLOWED_ORIGINS: deniedOrigin },
+      env: { OMNICALL_SDK_ALLOWED_ORIGINS: deniedOrigin },
     });
     expect(evaluateSdkOriginUpgrade(deniedOrigin, hydrated.originTrustEntries)).toEqual({
       action: "reject",

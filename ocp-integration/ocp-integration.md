@@ -1,4 +1,4 @@
-# OCP Module Integration in jssip-phone (AxaTalk Legacy)
+# OCP Module Integration in jssip-phone (Legacy Softphone)
 
 **Source project:** `C:\Users\User\Desktop\jssip-phone`  
 **Document date:** 2026-07-13  
@@ -205,9 +205,9 @@ sequenceDiagram
 | Busy | → Ready/Break | `update` | `proxy_post_call_status` |
 | Any (logout) | → Logout | `change_status_to_logout` | `proxy_users` |
 
-Payload always includes `operator_id` and optionally `reason_id`. Internal UI changes set `function_call_type: 'internal'`; external API calls via `window.Softphone.ocpModule` / E-12 host and the public Axatalk SDK set `'external'` on the **OCP wire**.
+Payload always includes `operator_id` and optionally `reason_id`. Internal UI changes set `function_call_type: 'internal'`; external API calls via `window.Softphone.ocpModule` / E-12 host and the public OmniCall Kit set `'external'` on the **OCP wire**.
 
-**Axatalk note (F-011 / DI-07):** Application Facade audit uses `callType: 'sdk'` for SDK-originated mutations. The OCP adapter (`mapOcpCallTypeToWire`) maps `sdk` → wire `external` because legacy OCP accepts only `internal` | `external`. Never send `function_call_type: "sdk"` on the OCP WebSocket.
+**OmniCall note (F-011 / DI-07):** Application Facade audit uses `callType: 'sdk'` for SDK-originated mutations. The OCP adapter (`mapOcpCallTypeToWire`) maps `sdk` → wire `external` because legacy OCP accepts only `internal` | `external`. Never send `function_call_type: "sdk"` on the OCP WebSocket.
 
 ### Client-side transition rules
 
@@ -304,8 +304,8 @@ WS `entity: terminate` → `window.Softphone.logout()` (no reason modal).
 | `change_status_to_logout` | `proxy_users` | Logout with reason |
 | `update` | `proxy_post_call_status` | Reserve next status while busy |
 | `update` | `campaign_events` | Campaign accept/reject |
-| `get_main_acallid` | `calls` | Sync call IDs with OCP. **Wire payload (Axatalk):** `{ acallid, user_login, caller_id, called_id, event }` — never `call_id`. See `docs/softphone/OCP-Call-Context.md` |
-| `dlg_stop` | `calls` | Dialog end. **Wire payload (Axatalk):** `{ acallid }` = SIP CallId (same as `get_main_acallid`). Never `call_id` / `acall_id`. Exactly one per call — see `docs/softphone/OCP-Call-Context.md` |
+| `get_main_acallid` | `calls` | Sync call IDs with OCP. **Wire payload (OmniCall):** `{ acallid, user_login, caller_id, called_id, event }` — never `call_id`. See `docs/softphone/OCP-Call-Context.md` |
+| `dlg_stop` | `calls` | Dialog end. **Wire payload (OmniCall):** `{ acallid }` = SIP CallId (same as `get_main_acallid`). Never `call_id` / `acall_id`. Exactly one per call — see `docs/softphone/OCP-Call-Context.md` |
 | `logging` | — | Send action logs to OCP |
 
 ### Incoming entities
@@ -339,7 +339,7 @@ Listens to SIP lifecycle CustomEvents (`incomingCallProgress`, `outgoingCallEnde
 
 **Legacy jssip-phone:** `useWs` dispatches `OCP{event}` CustomEvents (e.g. `OCPincomingCallProgress`). `useQueueInfoListeners` maps queue names for display.
 
-**Axatalk (F-028, authoritative):** no DOM CustomEvents. `OcpTelephonyBridgeService` + `OcpProjectionHub` fill `CallOcpContextProjection` / `CampaignEventProjection`; UI uses `deriveCallContextBadges` + `CallContextBadges` / `OcpCampaignEventModal`. Contract: [`docs/softphone/OCP-Call-Context.md`](../docs/softphone/OCP-Call-Context.md).
+**OmniCall (F-028, authoritative):** no DOM CustomEvents. `OcpTelephonyBridgeService` + `OcpProjectionHub` fill `CallOcpContextProjection` / `CampaignEventProjection`; UI uses `deriveCallContextBadges` + `CallContextBadges` / `OcpCampaignEventModal`. Contract: [`docs/softphone/OCP-Call-Context.md`](../docs/softphone/OCP-Call-Context.md).
 
 ### Call end (`useSoftPhoneDlgStop`)
 
@@ -559,7 +559,7 @@ No Redux/Zustand for OCP. `campaignEventState` is exposed from context but dupli
 
 ---
 
-## Migration Notes (jssip-phone → Enterprise Softphone / Axatalk)
+## Migration Notes (jssip-phone → Enterprise Softphone / OmniCall)
 
 | Legacy (jssip-phone) | Target (softphone repo) |
 |----------------------|-------------------------|
@@ -574,12 +574,12 @@ No Redux/Zustand for OCP. `campaignEventState` is exposed from context but dupli
 Recommended split per `JSSIP_PHONE_AUDIT.md`:
 
 - **OCP domain** — status FSM, reason model, transition rules
-- **Telephony domain** — SIP sessions (already separate in Axatalk)
+- **Telephony domain** — SIP sessions (already separate in OmniCall)
 - **Headset domain** — HID (already migrated; see `headset-integration/headset-integration.md`)
 
 Replace the CustomEvent bus with typed port interfaces and domain events per `Architecture-Constitution.md`.
 
-### Suggested implementation order in Axatalk
+### Suggested implementation order in OmniCall
 
 1. Operator port + WS adapter (auth, users, reasons, status commands)
 2. Domain status FSM + Use Cases (`ChangeOperatorStatus`, `LogoutOperator`)

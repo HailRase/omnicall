@@ -1,5 +1,5 @@
 /**
- * Parse distribution/CHANGELOG.md and format a GitHub Release body for axatalk-releases.
+ * Parse distribution/CHANGELOG.md and format a GitHub Release body for omnicall-releases.
  */
 
 import { readFileSync, existsSync } from 'node:fs';
@@ -92,7 +92,7 @@ export function formatDistributionReleaseBody({ tag, entry }) {
   }
 
   const lines = [
-    `## Axatalk v${version}`,
+    `## OmniCall v${version}`,
     '',
     `**Release date:** ${entry.date}`,
     '',
@@ -105,10 +105,10 @@ export function formatDistributionReleaseBody({ tag, entry }) {
   appendSection(lines, 'Known Notes', entry.sections.knownNotes);
 
   lines.push('### Distribution artifacts', '');
-  lines.push(`- Windows: \`Axatalk-${version}-win-x64.exe\`, \`Axatalk-${version}-win-x64.msi\``);
-  lines.push(`- macOS: \`Axatalk-${version}-mac-arm64.dmg\``);
+  lines.push(`- Windows: \`OmniCall-${version}-win-x64.exe\`, \`OmniCall-${version}-win-x64.msi\``);
+  lines.push(`- macOS: \`OmniCall-${version}-mac-arm64.dmg\``);
   lines.push(
-    `- Linux: \`Axatalk-${version}-linux-x86_64.AppImage\`, \`Axatalk-${version}-linux-amd64.deb\``,
+    `- Linux: \`OmniCall-${version}-linux-x86_64.AppImage\`, \`OmniCall-${version}-linux-amd64.deb\``,
   );
   lines.push('');
   lines.push('### Updates', '');

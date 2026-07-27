@@ -7,7 +7,7 @@ DOCUMENT.
 ## Status
 
 Accepted (2026-07-20) — **amended 2026-07-21 by ADR-0018**: gateway rollback / disable is
-an engineering env kill-switch (`AXATALK_SDK_GATEWAY=0`), **not** a consumer Settings
+an engineering env kill-switch (`OMNICALL_SDK_GATEWAY=0`), **not** a consumer Settings
 listener toggle (DI-09 enable flag removed by DI-11). Process ownership unchanged.
 
 ## Context
@@ -21,7 +21,7 @@ listener toggle (DI-09 enable flag removed by DI-11). Process ownership unchange
 F-011 requires a browser SDK over a local WebSocket. The softphone already owns Facades,
 Call Engine, SIP/OCP sessions, and projections inside a **single renderer Application
 composition**. Moving that composition into main for P12 would be a multi-phase rewrite and
-violates the frozen non-goals in `axatalk-sdk-integration/00-SNAPSHOT.md`.
+violates the frozen non-goals in `omnicall-kit-integration/00-SNAPSHOT.md`.
 
 Lifecycle hazards that must be decided before DI-02:
 
@@ -81,7 +81,7 @@ Lifecycle hazards that must be decided before DI-02:
 - DI-03+ gateway code never imports Domain or Facades.
 - Observability: broker timeouts, reload rejects, and shutdown cancels use allowlisted log
   fields only (no payloads/secrets).
-- Rollback: set `AXATALK_SDK_GATEWAY=0` (or omit gateway startup) without touching SIP
+- Rollback: set `OMNICALL_SDK_GATEWAY=0` (or omit gateway startup) without touching SIP
   bootstrap — **not** a Settings listener toggle (ADR-0018 supersedes the earlier
   “SDK settings flag” rollback wording from DI-09 era).
 
@@ -96,6 +96,6 @@ Lifecycle hazards that must be decided before DI-02:
 
 - Feature Registry: F-011
 - Roadmap: P12
-- Plans: `axatalk-sdk-integration/IMPLEMENTATION-PLAN.md`, `axatalk-sdk/docs/PROTOCOL.md`
+- Plans: `omnicall-kit-integration/IMPLEMENTATION-PLAN.md`, `omnicall-kit/docs/PROTOCOL.md`
 - Related: ADR-0010, ADR-0011, ADR-0012, ADR-0013, ADR-0018
 - Handoff: `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`

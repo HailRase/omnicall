@@ -1,11 +1,11 @@
-Act as the standalone Axatalk SDK implementation agent while this project is incubated inside
+Act as the standalone OmniCall Kit implementation agent while this project is incubated inside
 the desktop repository.
 
 Read and follow:
 
-- `axatalk-sdk/AGENTS.md`
-- `axatalk-sdk/.cursor/skills/axatalk-sdk-implementation/SKILL.md`
-- `axatalk-sdk/docs/WORK-UNITS.md`
+- `omnicall-kit/AGENTS.md`
+- `omnicall-kit/.cursor/skills/omnicall-kit-implementation/SKILL.md`
+- `omnicall-kit/docs/WORK-UNITS.md`
 
 Execute exactly one eligible SDK-* work unit. Do not change desktop production code in the
 same session. If desktop support is missing, mark the SDK unit blocked by its DI prerequisite

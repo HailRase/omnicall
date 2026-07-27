@@ -10,7 +10,7 @@ import {
   type SnapshotSections,
   type WireJsonObject,
   type WireMessage,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 
 import { createSdkIsoTimestamp, createSdkOpaqueId } from "./sdkGatewayIds.js";
 import type { SdkGatewayIdentity } from "./sdkGatewayMessages.js";
@@ -121,10 +121,10 @@ function stripUnauthorizedAcdContext(
   if (!Array.isArray(calls)) {
     return productSections;
   }
-  const strippedCalls = calls.map((entry) => {
+  const strippedCalls = calls.map((entry: unknown) => {
     const parsed = WireJsonObjectSchema.safeParse(entry);
     if (!parsed.success || !("acdContext" in parsed.data)) {
-      return entry;
+      return parsed.success ? parsed.data : {};
     }
     const rest: Record<string, WireJsonObject[string]> = {};
     for (const [key, value] of Object.entries(parsed.data)) {

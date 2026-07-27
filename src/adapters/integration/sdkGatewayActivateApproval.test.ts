@@ -3,7 +3,7 @@
  */
 
 import { describe, expect, it, vi } from "vitest";
-import { PROTOCOL_MAJOR, type WireMessage } from "@axata/axatalk-protocol";
+import { PROTOCOL_MAJOR, type WireMessage } from "@softomnitel/omnicall-protocol";
 
 import { createSdkGatewayConnection } from "./sdkGatewayConnection.js";
 import { denyActivateWhenOriginPolicyForbids } from "./sdkGatewayActivateApproval.js";

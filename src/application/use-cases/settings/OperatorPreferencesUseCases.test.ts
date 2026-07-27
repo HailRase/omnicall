@@ -88,7 +88,7 @@ describe("OperatorPreferencesUseCases", () => {
     const importUseCase = new ImportOperatorPreferencesUseCase(repository, logger);
 
     const imported = await importUseCase.execute({
-      jsonContents: JSON.stringify({ format: "not-axatalk" }),
+      jsonContents: JSON.stringify({ format: "not-omnicall" }),
     });
     expect(imported.ok).toBe(false);
 

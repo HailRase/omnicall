@@ -1,6 +1,10 @@
 import type { UpdateBannerDismissStore } from "@ports/updates/UpdateBannerDismissStore.js";
 
-export const UPDATE_BANNER_DISMISS_STORAGE_KEY = "axatalk.dismissed-update-banner-version";
+export const UPDATE_BANNER_DISMISS_STORAGE_KEY = "omnicall.dismissed-update-banner-version";
+
+/** LEGACY: pre-rebrand localStorage key — read once and migrate. */
+export const LEGACY_UPDATE_BANNER_DISMISS_STORAGE_KEY =
+  "axatalk.dismissed-update-banner-version";
 
 function readBrowserStorage(): Storage | null {
   if (typeof globalThis.localStorage === "undefined") {
@@ -8,6 +12,19 @@ function readBrowserStorage(): Storage | null {
   }
 
   return globalThis.localStorage;
+}
+
+function migrateLegacyDismissKey(storage: Storage): void {
+  const current = storage.getItem(UPDATE_BANNER_DISMISS_STORAGE_KEY);
+  if (current !== null && current.trim().length > 0) {
+    return;
+  }
+  const legacy = storage.getItem(LEGACY_UPDATE_BANNER_DISMISS_STORAGE_KEY);
+  if (legacy === null || legacy.trim().length === 0) {
+    return;
+  }
+  storage.setItem(UPDATE_BANNER_DISMISS_STORAGE_KEY, legacy.trim());
+  storage.removeItem(LEGACY_UPDATE_BANNER_DISMISS_STORAGE_KEY);
 }
 
 /**
@@ -21,6 +38,8 @@ export class LocalStorageUpdateBannerDismissStore implements UpdateBannerDismiss
     if (storage === null) {
       return null;
     }
+
+    migrateLegacyDismissKey(storage);
 
     const raw = storage.getItem(UPDATE_BANNER_DISMISS_STORAGE_KEY);
     if (raw === null) {
@@ -38,6 +57,7 @@ export class LocalStorageUpdateBannerDismissStore implements UpdateBannerDismiss
     }
 
     storage.setItem(UPDATE_BANNER_DISMISS_STORAGE_KEY, latestVersion.trim());
+    storage.removeItem(LEGACY_UPDATE_BANNER_DISMISS_STORAGE_KEY);
   }
 }
 

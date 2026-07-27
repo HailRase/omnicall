@@ -22,8 +22,8 @@ import type {
 import type { SdkPairingApprover } from "./sdkGatewayPairingTypes.js";
 import type { SdkGatewayProductSurface } from "./sdkGatewayProductSurface.js";
 import { LocalWsSessionRegistry } from "./LocalWsSessionRegistry.js";
-import type { WireMessage } from "@axata/axatalk-protocol";
-import type { CapabilityId } from "@axata/axatalk-protocol";
+import type { WireMessage } from "@softomnitel/omnicall-protocol";
+import type { CapabilityId } from "@softomnitel/omnicall-protocol";
 import type { ExternalGatewayValidationResult } from "@ports/integration/ExternalClientGateway.js";
 
 export async function bindLocalWsListening(input: {

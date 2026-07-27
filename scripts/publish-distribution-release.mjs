@@ -1,6 +1,6 @@
 /**
- * Publish installers from dist-payload/ to axatalk-releases GitHub Release.
- * Uses DISTRIBUTION_GITHUB_TOKEN (PAT with Contents read+write on axatalk-releases).
+ * Publish installers from dist-payload/ to omnicall-releases GitHub Release.
+ * Uses DISTRIBUTION_GITHUB_TOKEN (PAT with Contents read+write on omnicall-releases).
  */
 
 import { readdirSync } from 'node:fs';
@@ -16,7 +16,7 @@ import {
 function readToken() {
   const raw =
     process.env.DISTRIBUTION_GITHUB_TOKEN ??
-    process.env.AXATALK_RELEASES_TOKEN ??
+    process.env.OMNICALL_RELEASES_TOKEN ??
     process.env.GITHUB_TOKEN;
   if (typeof raw !== 'string') {
     return '';
@@ -48,7 +48,7 @@ if (files.length === 0) {
   process.exit(1);
 }
 
-const title = `Axatalk ${tag}`;
+const title = `OmniCall ${tag}`;
 const notes = generateDistributionReleaseNotes(tag);
 
 async function main() {

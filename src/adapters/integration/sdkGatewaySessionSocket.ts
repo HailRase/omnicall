@@ -2,7 +2,7 @@
  * Socket lifecycle helpers for LocalWsSessionRegistry (DI-03/DI-04).
  */
 
-import type { WireMessage } from "@axata/axatalk-protocol";
+import type { WireMessage } from "@softomnitel/omnicall-protocol";
 import type { RawData } from "ws";
 import { WebSocket } from "ws";
 

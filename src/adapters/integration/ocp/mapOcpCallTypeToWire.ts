@@ -2,7 +2,7 @@
  * Map Application OcpCommandCallType → OCP WebSocket `function_call_type`.
  *
  * OCP wire accepts only `internal` | `external` (legacy proxy_users contract).
- * Application keeps `sdk` for Axatalk audit (ADR-0017 O-OCP-1); adapters must not
+ * Application keeps `sdk` for OmniCall audit (ADR-0017 O-OCP-1); adapters must not
  * leak `sdk` onto the OCP socket.
  */
 

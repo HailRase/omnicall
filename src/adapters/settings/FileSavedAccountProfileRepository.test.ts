@@ -21,7 +21,7 @@ async function createTestRepository(): Promise<{
   root: string;
   filesystem: NodeFileSystemAdapter;
 }> {
-  const root = await mkdtemp(join(tmpdir(), "axatalk-saved-profiles-"));
+  const root = await mkdtemp(join(tmpdir(), "omnicall-saved-profiles-"));
   tempRoots.push(root);
   const filesystem = new NodeFileSystemAdapter();
   const repository = new FileSavedAccountProfileRepository({

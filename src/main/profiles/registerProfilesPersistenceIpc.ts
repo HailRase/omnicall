@@ -1,7 +1,7 @@
 import { resolve } from "node:path";
 import { app, ipcMain } from "electron";
 import { NodeFileSystemAdapter } from "@infrastructure/filesystem/NodeFileSystemAdapter.js";
-import { resolveAxatalkProfilesStorageRoot } from "@infrastructure/bootstrap/resolveAxatalkProfilesStorageRoot.js";
+import { resolveOmniCallProfilesStorageRoot } from "@infrastructure/bootstrap/resolveOmniCallProfilesStorageRoot.js";
 import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
 import {
   parseProfilesFilesystemOperation,
@@ -14,10 +14,10 @@ const filesystem = new NodeFileSystemAdapter();
 /**
  * - Purpose: register main-process IPC for profiles storage root and filesystem ops.
  * - Inputs: Electron app userData path and validated absolute file paths.
- * - Outputs: ipcMain handlers scoped to Axatalk profiles storage root.
+ * - Outputs: ipcMain handlers scoped to OmniCall profiles storage root.
  */
 export function registerProfilesPersistenceIpc(): void {
-  const storageRoot = resolveAxatalkProfilesStorageRoot(app.getPath("userData"));
+  const storageRoot = resolveOmniCallProfilesStorageRoot(app.getPath("userData"));
 
   ipcMain.handle(IPC_CHANNELS.profilesGetStorageRoot, (): ProfilesStorageRootResponse => ({
     storageRoot,

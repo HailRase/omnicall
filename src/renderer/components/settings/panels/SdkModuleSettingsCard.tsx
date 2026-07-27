@@ -16,7 +16,7 @@ export type { SdkModuleSettingsCardProps } from "./sdkModuleSettingsCardTypes.js
 type SdkSettingsTab = "main" | "trusted" | "blocked";
 
 /**
- * - Purpose: present Axatalk SDK operational controls (DI-09/DI-11); no secrets in DOM.
+ * - Purpose: present OmniCall Kit operational controls (DI-09/DI-11); no secrets in DOM.
  *   Origin TOFU / pairing ceremony lives in root SdkConnectCeremonyModal.
  * @uiMeta f=F-011 lf=LF-051,LF-065
  */

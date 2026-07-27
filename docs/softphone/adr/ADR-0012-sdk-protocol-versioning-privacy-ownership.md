@@ -22,7 +22,7 @@ browser tabs cannot corrupt call state.
 
 ## Decision
 
-1. **Protocol identity:** Protocol version is independent from `@axata/axatalk-sdk` and Axatalk
+1. **Protocol identity:** Protocol version is independent from `@softomnitel/omnicall-kit` and OmniCall
    Desktop package versions. Handshake negotiates min/max protocol, SDK version, desktop
    version, capabilities, server instance ID, session epoch, and snapshot revision.
 
@@ -31,7 +31,7 @@ browser tabs cannot corrupt call state.
    - Remove/rename/type/semantics change = breaking → new protocol major + migration window.
    - Desktop supports documented **current and previous** protocol majors during migration.
    - Incompatible clients receive `incompatible_version` **before** any product state/PII.
-   - Golden fixtures are shared and tested in both `axatalk-sdk` and desktop (SDK-02 / DI-01).
+   - Golden fixtures are shared and tested in both `omnicall-kit` and desktop (SDK-02 / DI-01).
 
 3. **DTO boundary:** Public commands, replies, events, and snapshots are discriminated
    unions of JSON-safe DTOs. Machine-readable error codes only (see PROTOCOL.md). Localized
@@ -97,6 +97,6 @@ browser tabs cannot corrupt call state.
 ## Related Links
 
 - Feature Registry: F-011, F-028 (E-12 baseline)
-- `axatalk-sdk/docs/PROTOCOL.md`
-- `axatalk-sdk/docs/SECURITY.md`
+- `omnicall-kit/docs/PROTOCOL.md`
+- `omnicall-kit/docs/SECURITY.md`
 - Related: ADR-0009, ADR-0011, ADR-0013

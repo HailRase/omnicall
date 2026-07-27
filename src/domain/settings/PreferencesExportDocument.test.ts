@@ -109,6 +109,22 @@ describe("PreferencesExportDocument", () => {
     });
   });
 
+  it("accepts LEGACY preferences format id and normalizes to omnicall.preferences", () => {
+    const parsed = parsePreferencesExportDocument({
+      format: "axatalk.preferences",
+      formatVersion: PREFERENCES_EXPORT_FORMAT_VERSION,
+      exportedAt: "2026-07-24T12:00:00.000Z",
+      profileKey: "legacy@example.com",
+      settings: createPortableDefaultUserSettings(),
+    });
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      return;
+    }
+    expect(parsed.value.format).toBe(PREFERENCES_EXPORT_FORMAT_ID);
+    expect(parsed.value.profileKey).toBe("legacy@example.com");
+  });
+
   it("fails closed on newer unsupported formatVersion", () => {
     const parsed = parsePreferencesExportDocument({
       format: PREFERENCES_EXPORT_FORMAT_ID,

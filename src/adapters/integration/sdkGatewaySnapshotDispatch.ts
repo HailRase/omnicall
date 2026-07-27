@@ -2,8 +2,8 @@
  * Snapshot delivery after broker get-snapshot (DI-05).
  */
 
-import type { ProtocolErrorCode, CapabilityId, WireMessage } from "@axata/axatalk-protocol";
-import { validateWireMessage } from "@axata/axatalk-protocol";
+import type { ProtocolErrorCode, CapabilityId, WireMessage } from "@softomnitel/omnicall-protocol";
+import { validateWireMessage } from "@softomnitel/omnicall-protocol";
 
 import type { SdkGatewayConnection } from "./sdkGatewayConnection.js";
 import {

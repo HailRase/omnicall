@@ -145,7 +145,11 @@ async function handleSdkGatewaySettingsOperation(
       const gateway = runtime.getGateway();
       if (gateway === null) return { ok: false, reason: "gateway_unavailable" };
       const next = unblockSdkOrigin(
-        { originsManaged: true, origins: gateway.getOriginTrustEntries() },
+        {
+          originsManaged: true,
+          origins: gateway.getOriginTrustEntries(),
+          operatorModalTimeouts: gateway.getOperatorModalTimeouts(),
+        },
         operation.origin,
       );
       if (next === null) return { ok: false, reason: "origin_not_denied" };
@@ -156,7 +160,11 @@ async function handleSdkGatewaySettingsOperation(
       const gateway = runtime.getGateway();
       if (gateway === null) return { ok: false, reason: "gateway_unavailable" };
       const next = setSdkOriginCapabilityMatrix(
-        { originsManaged: true, origins: gateway.getOriginTrustEntries() },
+        {
+          originsManaged: true,
+          origins: gateway.getOriginTrustEntries(),
+          operatorModalTimeouts: gateway.getOperatorModalTimeouts(),
+        },
         operation.origin,
         operation.matrix,
       );

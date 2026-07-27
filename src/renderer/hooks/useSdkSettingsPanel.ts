@@ -1,4 +1,4 @@
-/** Bind Settings → Axatalk SDK card to settings + gateway IPC. */
+/** Bind Settings → OmniCall Kit card to settings + gateway IPC. */
 import { useCallback, useEffect, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {

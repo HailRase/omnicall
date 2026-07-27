@@ -71,7 +71,7 @@ describe("SettingsSidebar", () => {
     expect(screen.getByText("Диагностика")).toBeVisible();
   });
 
-  it("disables gated sections before account session but keeps top-level Axatalk SDK", () => {
+  it("disables gated sections before account session but keeps top-level OmniCall Kit", () => {
     renderSidebar({
       activeSection: "account",
       sectionAvailability: preAuthAvailability,
@@ -85,7 +85,7 @@ describe("SettingsSidebar", () => {
     expect(screen.getByTestId("settings-nav-general")).toBeDisabled();
     expect(screen.getByTestId("settings-nav-sessions")).toBeDisabled();
     expect(screen.getByTestId("settings-nav-diagnostics")).toBeDisabled();
-    // Integrations (OCP-only group) stays gated; Axatalk SDK is a top-level leaf below it.
+    // Integrations (OCP-only group) stays gated; OmniCall Kit is a top-level leaf below it.
     expect(screen.getByTestId("settings-nav-integrations")).toBeDisabled();
     expect(screen.getByTestId("settings-nav-integrations-sdk")).toBeEnabled();
   });
@@ -139,7 +139,7 @@ describe("SettingsSidebar", () => {
     expect(onSectionChange).not.toHaveBeenCalled();
   });
 
-  it("navigates to Axatalk SDK top-level leaf when pre-auth", async () => {
+  it("navigates to OmniCall Kit top-level leaf when pre-auth", async () => {
     vi.useRealTimers();
     const user = userEvent.setup();
     const onSectionChange = vi.fn();
@@ -181,7 +181,7 @@ describe("SettingsSidebar", () => {
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
   });
 
-  it("shows nested OCP Module under Integrations and Axatalk SDK as sibling below", async () => {
+  it("shows nested OCP Module under Integrations and OmniCall Kit as sibling below", async () => {
     vi.useRealTimers();
     const user = userEvent.setup();
     const onSectionChange = vi.fn();

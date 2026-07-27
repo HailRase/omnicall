@@ -42,8 +42,9 @@ describe("enqueueSdkGatewayInbound", () => {
       await firstGate;
       order.push(2);
     });
-    enqueueSdkGatewayInbound(connection, async () => {
+    enqueueSdkGatewayInbound(connection, () => {
       order.push(3);
+      return Promise.resolve();
     });
 
     await vi.waitFor(() => {
@@ -63,12 +64,13 @@ describe("enqueueSdkGatewayInbound", () => {
     );
     const order: number[] = [];
 
-    enqueueSdkGatewayInbound(connection, async () => {
+    enqueueSdkGatewayInbound(connection, () => {
       order.push(1);
-      throw new Error("boom");
+      return Promise.reject(new Error("boom"));
     });
-    enqueueSdkGatewayInbound(connection, async () => {
+    enqueueSdkGatewayInbound(connection, () => {
       order.push(2);
+      return Promise.resolve();
     });
 
     await connection.inboundTail;

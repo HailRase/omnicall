@@ -5,7 +5,7 @@
 import { join } from "node:path";
 
 import type { LocalWsServerAdapter } from "@adapters/integration/LocalWsServerAdapter.js";
-import { resolveAxatalkProfilesStorageRoot } from "@infrastructure/bootstrap/resolveAxatalkProfilesStorageRoot.js";
+import { resolveOmniCallProfilesStorageRoot } from "@infrastructure/bootstrap/resolveOmniCallProfilesStorageRoot.js";
 import { IPC_CHANNELS } from "@shared/ipc/IpcChannels.js";
 import { parseSdkGatewayPublishEventIpcPayload } from "@shared/ipc/SdkGatewayEventContract.js";
 import { app, ipcMain } from "electron";
@@ -16,7 +16,7 @@ import { MainProcessSecretStorageAdapter } from "../secrets/MainProcessSecretSto
 let publishEventIpcRegistered = false;
 
 export function createSdkGatewaySecretStorage(): MainProcessSecretStorageAdapter {
-  const storageRoot = resolveAxatalkProfilesStorageRoot(app.getPath("userData"));
+  const storageRoot = resolveOmniCallProfilesStorageRoot(app.getPath("userData"));
   return new MainProcessSecretStorageAdapter(
     new ElectronSafeStorageSecretService(join(storageRoot, "secrets")),
   );

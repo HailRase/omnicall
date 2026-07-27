@@ -32,7 +32,7 @@ describe("useBootstrapSplashProgress", () => {
     const { result, rerender } = renderHook(
       ({ status }: { status: "loading" | "ready" | "error" }) =>
         useBootstrapSplashProgress(status),
-      { initialProps: { status: "loading" as const } },
+      { initialProps: { status: "loading" as "loading" | "ready" | "error" } },
     );
 
     rerender({ status: "ready" });

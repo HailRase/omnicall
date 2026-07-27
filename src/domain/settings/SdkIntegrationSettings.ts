@@ -2,7 +2,7 @@
  * - Purpose: persisted local SDK gateway Origin trust + matrix (DI-11 / ADR-0018).
  * - Inputs: unknown boundary payloads from settings JSON.
  * - Outputs: typed SdkIntegrationSettings or null when invalid.
- * - Note: listener enable toggle removed; env AXATALK_SDK_GATEWAY=0 is kill-switch only.
+ * - Note: listener enable toggle removed; env OMNICALL_SDK_GATEWAY=0 is kill-switch only.
  */
 
 import {

@@ -1,6 +1,6 @@
-appId: com.axata.axatalk
-productName: Axatalk
-copyright: Copyright © 2026 Axata
+appId: com.softomnitel.omnicall
+productName: OmniCall
+copyright: Copyright © 2026 SoftOmniTel
 directories:
   buildResources: build
   # Per-platform output is set in package.json build:* scripts (dist/win, dist/mac, dist/linux, dist/all).
@@ -21,7 +21,7 @@ npmRebuild: false
 publish: null
 generateUpdatesFilesForAllChannels: false
 win:
-  executableName: Axatalk
+  executableName: OmniCall
   icon: icon.ico
   target:
     - nsis
@@ -48,13 +48,13 @@ mac:
     - dmg
   artifactName: ${productName}-${version}-mac-${arch}.${ext}
   extendInfo:
-    NSMicrophoneUsageDescription: Axatalk needs microphone access for voice calls.
-    NSCameraUsageDescription: Axatalk may use the camera for video calls.
+    NSMicrophoneUsageDescription: OmniCall needs microphone access for voice calls.
+    NSCameraUsageDescription: OmniCall may use the camera for video calls.
 dmg:
   artifactName: ${productName}-${version}-mac-${arch}.${ext}
 linux:
   category: Network
-  maintainer: Axata
+  maintainer: SoftOmniTel
   syncDesktopName: true
   icon: icons
   target:

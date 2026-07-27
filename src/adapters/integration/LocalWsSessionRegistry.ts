@@ -2,8 +2,8 @@
  * Connection registry for loopback WS gateway (DI-03 transport + DI-04 auth).
  */
 
-import type { WireMessage } from "@axata/axatalk-protocol";
-import type { CapabilityId } from "@axata/axatalk-protocol";
+import type { WireMessage } from "@softomnitel/omnicall-protocol";
+import type { CapabilityId } from "@softomnitel/omnicall-protocol";
 import type { SdkOriginTrustState } from "@domain/index.js";
 
 import { SdkAuthChallengeCache } from "./sdkGatewayAuthChallenge.js";

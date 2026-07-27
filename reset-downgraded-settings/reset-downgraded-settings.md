@@ -11,7 +11,7 @@
 - `src/renderer/App.tsx`
 - `docs/softphone/P11-Settings-Schema-Design.md`
 
-**Symptom today:** opening an older Axatalk build after a newer build wrote settings shows raw red text on the main shell, e.g.
+**Symptom today:** opening an older OmniCall build after a newer build wrote settings shows raw red text on the main shell, e.g.
 
 ```txt
 settings_corrupt:unsupported_schema_version:uns…
@@ -59,7 +59,7 @@ P11 design intentionally **hard-fails** unknown versions to avoid silently overr
 
 ### Option A — Downgrade not supported (fail closed + clear UX)
 
-**Idea:** Older builds must not pretend they can use data written by newer builds. Detect `schema_too_new` and show a localized blocking screen: “Settings were created by a newer version. Please update Axatalk.”
+**Idea:** Older builds must not pretend they can use data written by newer builds. Detect `schema_too_new` and show a localized blocking screen: “Settings were created by a newer version. Please update OmniCall.”
 
 | | |
 | --- | --- |
@@ -109,7 +109,7 @@ P11 design intentionally **hard-fails** unknown versions to avoid silently overr
 
 ---
 
-## Recommended implementation for Axatalk
+## Recommended implementation for OmniCall
 
 **Primary policy: Option A + Option C**
 
@@ -248,7 +248,7 @@ Do **not** start this while SDK-02 (or other SDK WUs) are in flight unless expli
 For developers hitting the red banner today:
 
 1. Prefer running the **same or newer** build that wrote the settings.
-2. Or manually reset the profile settings file under Electron `userData` profiles storage (Mac: typically under `~/Library/Application Support/Axatalk/…`) — this loses local prefs for that profile.
+2. Or manually reset the profile settings file under Electron `userData` profiles storage (Mac: typically under `~/Library/Application Support/OmniCall/…`) — this loses local prefs for that profile.
 3. Do **not** hand-edit `schemaVersion` downward in JSON as a “fix.”
 
 ---
@@ -263,4 +263,4 @@ For developers hitting the red banner today:
 | D — Silent defaults | Reject for `UserSettings` |
 | E — UI swallow | Reject |
 
-**One-line policy:** *Axatalk does not silently downgrade settings; it explains the mismatch and only resets after the user confirms.*
+**One-line policy:** *OmniCall does not silently downgrade settings; it explains the mismatch and only resets after the user confirms.*

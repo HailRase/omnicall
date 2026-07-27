@@ -118,8 +118,9 @@ export function clearCallOcpContext(
   if (projection.byCallId[callId] === undefined) {
     return projection;
   }
-  const { [callId]: _removed, ...rest } = projection.byCallId;
-  return { byCallId: rest };
+  const next = { ...projection.byCallId };
+  delete next[callId];
+  return { byCallId: next };
 }
 
 export function resetCallOcpContextProjection(): CallOcpContextProjection {

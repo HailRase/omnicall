@@ -9,12 +9,13 @@ import {
   initialCampaignEventProjection,
   type CampaignEventProjection,
 } from "@application/index.js";
-import type { OcpCampaignEventPayload } from "@domain/integration/ocp/protocol/OcpIncomingMessage.js";
 import { useShellWindowAttentionFromCampaign } from "./useShellWindowAttentionFromCampaign.js";
 
+type CampaignPayload = NonNullable<CampaignEventProjection["activeCampaign"]>;
+
 function previewCampaign(
-  overrides: Partial<OcpCampaignEventPayload> = {},
-): OcpCampaignEventPayload {
+  overrides: Partial<CampaignPayload> = {},
+): CampaignPayload {
   return {
     id: "camp_1",
     callId: "call_1",
@@ -38,8 +39,10 @@ describe("useShellWindowAttentionFromCampaign", () => {
   it("raises once per preview campaign id", () => {
     const raiseWindow = vi.fn().mockResolvedValue({ ok: true });
     const withOffer: CampaignEventProjection = {
+      phase: "preview_offered",
       activeCampaign: previewCampaign({ id: "camp_offer_1" }),
       progressiveContext: null,
+      pendingPreview: null,
     };
 
     const { rerender } = renderHook(
@@ -66,11 +69,13 @@ describe("useShellWindowAttentionFromCampaign", () => {
   it("does not raise for progressive-only campaign context", () => {
     const raiseWindow = vi.fn().mockResolvedValue({ ok: true });
     const progressiveOnly: CampaignEventProjection = {
+      phase: "progressive_offered",
       activeCampaign: null,
       progressiveContext: previewCampaign({
         id: "camp_prog_1",
         progressive: true,
       }),
+      pendingPreview: null,
     };
 
     renderHook(() =>
@@ -86,8 +91,10 @@ describe("useShellWindowAttentionFromCampaign", () => {
   it("raises again after clear when a new preview campaign arrives", () => {
     const raiseWindow = vi.fn().mockResolvedValue({ ok: true });
     const first: CampaignEventProjection = {
+      phase: "preview_offered",
       activeCampaign: previewCampaign({ id: "camp_a" }),
       progressiveContext: null,
+      pendingPreview: null,
     };
 
     const { rerender } = renderHook(
@@ -106,8 +113,10 @@ describe("useShellWindowAttentionFromCampaign", () => {
     });
     rerender({
       campaignEventProjection: {
+        phase: "preview_offered",
         activeCampaign: previewCampaign({ id: "camp_b" }),
         progressiveContext: null,
+        pendingPreview: null,
       },
     });
 

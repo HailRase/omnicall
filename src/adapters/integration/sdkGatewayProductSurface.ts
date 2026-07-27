@@ -6,7 +6,7 @@
 import type {
   ProtocolErrorCode,
   WireMessage,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 import type { BrokerRequestResult } from "@ports/integration/MainToRendererBrokerPort.js";
 
 export type SdkWindowShowResult =

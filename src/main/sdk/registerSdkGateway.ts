@@ -13,7 +13,7 @@ import {
   persistSdkOriginTrustMachineFromEntries,
 } from "@adapters/integration/sdkOriginTrustMachineStore.js";
 import type { SdkOriginTrustEntry } from "@domain/index.js";
-import { resolveAxatalkProfilesStorageRoot } from "@infrastructure/bootstrap/resolveAxatalkProfilesStorageRoot.js";
+import { resolveOmniCallProfilesStorageRoot } from "@infrastructure/bootstrap/resolveOmniCallProfilesStorageRoot.js";
 import { createConsoleLogger } from "@infrastructure/logging/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import type {
@@ -152,7 +152,7 @@ export async function startSdkGateway(options: {
     applyPolicy: (policy) => applySdkGatewayPolicy(policy),
   });
 
-  const killSwitchOff = process.env["AXATALK_SDK_GATEWAY"] === "0";
+  const killSwitchOff = process.env["OMNICALL_SDK_GATEWAY"] === "0";
   const bootTrust = await resolveBootOriginTrustEntries(options);
   // Fail-closed: corrupt/unreadable machine store → do not listen (no env-only reopen).
   const enabled = !killSwitchOff && bootTrust.ok;
@@ -323,7 +323,7 @@ async function resolveBootOriginTrustEntries(options: {
     };
   }
 
-  const defaultStorageRoot = resolveAxatalkProfilesStorageRoot(
+  const defaultStorageRoot = resolveOmniCallProfilesStorageRoot(
     app.getPath("userData"),
   );
 
@@ -352,7 +352,7 @@ async function persistLiveOriginTrust(
 ): Promise<void> {
   const storageRoot =
     originTrustStorageRoot ??
-    resolveAxatalkProfilesStorageRoot(app.getPath("userData"));
+    resolveOmniCallProfilesStorageRoot(app.getPath("userData"));
   try {
     await persistSdkOriginTrustMachineFromEntries({
       storageRoot,

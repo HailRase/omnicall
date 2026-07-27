@@ -1,8 +1,8 @@
 declare const classes: {
-  readonly row: string;
-  readonly rowCompact: string;
+  readonly pending: string;
   readonly queueBadge: string;
   readonly queueLabel: string;
-  readonly pending: string;
+  readonly row: string;
+  readonly rowCompact: string;
 };
 export default classes;

@@ -57,6 +57,7 @@ import {
   startSdkGateway,
   stopSdkGateway,
 } from "./sdk/registerSdkGateway.js";
+import { migrateLegacyAppDataIfNeeded } from "@infrastructure/bootstrap/resolveOmniCallProfilesStorageRoot.js";
 
 const logger = createConsoleLogger({
   boundedContext: "Integration",
@@ -555,6 +556,22 @@ void app.whenReady().then(() => {
     operation: "app_ready",
     result: "started",
   });
+
+  try {
+    const migrationResult = migrateLegacyAppDataIfNeeded(app.getPath("userData"));
+    logger.info("legacy_app_data_migration", {
+      correlationId,
+      operation: "migrate_legacy_app_data",
+      result: migrationResult,
+    });
+  } catch (error: unknown) {
+    logger.warn("legacy_app_data_migration_failed", {
+      correlationId,
+      operation: "migrate_legacy_app_data",
+      result: "failed",
+      code: error instanceof Error ? error.name : "unknown",
+    });
+  }
 
   registerIpcHandlers();
   registerProfilesPersistenceIpc();

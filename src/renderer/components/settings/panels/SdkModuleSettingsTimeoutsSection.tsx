@@ -42,7 +42,7 @@ function toItems(
 }
 
 /**
- * - Purpose: Settings → Axatalk SDK → Main — operator modal TTL selects (Desktop SSoT).
+ * - Purpose: Settings → OmniCall Kit → Main — operator modal TTL selects (Desktop SSoT).
  * @uiMeta f=F-011 lf=LF-051
  */
 export function SdkModuleSettingsTimeoutsSection({

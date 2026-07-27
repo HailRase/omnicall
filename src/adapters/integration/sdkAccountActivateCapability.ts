@@ -2,7 +2,7 @@
  * Elevate / strip short-lived account.activate on a live connection (DI-08).
  */
 
-import type { CapabilityId } from "@axata/axatalk-protocol";
+import type { CapabilityId } from "@softomnitel/omnicall-protocol";
 
 import type { SdkGatewayConnection } from "./sdkGatewayConnection.js";
 

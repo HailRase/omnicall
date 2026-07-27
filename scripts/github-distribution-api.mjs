@@ -1,5 +1,5 @@
 /**
- * GitHub Releases API helpers for axatalk-releases (distribution writes).
+ * GitHub Releases API helpers for omnicall-releases (distribution writes).
  * Uses Bearer token directly — avoids gh CLI / GITHUB_TOKEN conflicts in Actions.
  */
 

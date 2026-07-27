@@ -2,7 +2,7 @@
  * Origin TOFU gate after handshake / before pairing+auth (DI-11 / ADR-0018).
  */
 
-import type { CommandType, WireMessage } from "@axata/axatalk-protocol";
+import type { CommandType, WireMessage } from "@softomnitel/omnicall-protocol";
 import type { SdkOriginTrustState } from "@domain/index.js";
 
 import type { SdkGatewayConnection } from "./sdkGatewayConnection.js";

@@ -1,9 +1,23 @@
 # Changelog
 
-All notable user-visible changes to **Axatalk** are documented here.
+All notable user-visible changes to **OmniCall** are documented here.
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
-Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
+Versioning: SemVer from `package.json`. Git tag: `v<version>`.
+
+## [1.0.0] - 2026-07-27
+
+### Changed
+
+- **Brand / MAJOR:** product is **OmniCall** (author SoftOmniTel); `appId` `com.softomnitel.omnicall`; installers `OmniCall-*`; distribution `HailRase/omnicall-releases` (`OMNICALL_RELEASES_TOKEN`). Previous product/SDK names and package scopes are retired.
+- **SDK / protocol packages:** `@softomnitel/omnicall-kit` (OmniCall Kit) and `@softomnitel/omnicall-protocol` (OmniCall Protocol); public API `OmniCallClient` / `createOmniCallClient` (breaking rename of the previous client factory/class).
+- **Protocol paths:** `/omnicall/v1/discovery` and `/omnicall/v1/ws` (breaking path prefix change).
+- **Env:** `OMNICALL_SDK_GATEWAY`, `OMNICALL_SDK_ALLOWED_ORIGINS` (breaking rename of previous `*_SDK_*` env keys).
+- **Storage:** app data under `userData/omnicall`; preferences export format `omnicall.preferences`.
+
+### Added
+
+- One-shot migration from pre-rebrand userData into OmniCall storage; preferences import accepts the previous format id; update-banner dismiss migrates the previous localStorage key.
 
 ## [0.15.0] - 2026-07-27
 
@@ -35,7 +49,7 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 ### Added
 
 - **F-028 / LF-037…040** OCP call context: имя очереди ACD на входящем/активном звонке (`CallOcpContextProjection` + `CallContextBadges`); progressive campaign — только бейджи; preview campaign — компактная модалка по центру с blur; пустая очередь = прямой/внутренний (без бейджа). Контракт: `docs/softphone/OCP-Call-Context.md`.
-- **F-030** Перенос настроек оператора: Settings → General → экспорт/импорт portable JSON (`axatalk.preferences` v1) без паролей, API-ключей и SDK pairing; device id сбрасываются; на новой версии приложения недостающие поля поднимаются через `migrateUserSettings` с дефолтами (даунгрейд схемы/formatVersion — fail closed).
+- **F-030** Перенос настроек оператора: Settings → General → экспорт/импорт portable JSON (`omnicall.preferences` v1) без паролей, API-ключей и SDK pairing; device id сбрасываются; на новой версии приложения недостающие поля поднимаются через `migrateUserSettings` с дефолтами (даунгрейд схемы/formatVersion — fail closed).
 - Root SDK connect ceremony modal: Origin TOFU → pairing stepper (blur overlay поверх любого shell route); для уже trusted Origin — только pairing.
 - Waiting Cancel в ceremony (без blacklist); gateway cancel pending on disconnect + Origin leave-allowed; TTL sweeper для orphaned pairing/TOFU.
 - SDK login activate: `account:activate-profile` принимает `login` (+ optional `mode`); consent modal с выбором SIP/OCP; idempotent same-client; reauthorize для другого clientId; `logout_required` informational modal.
@@ -46,7 +60,7 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 ### Changed
 
 - **F-016 / LF-002** Bootstrap splash bounce: чуть быстрее (1000ms), плавнее цикл (linear + seamless keyframes); settle без телепорта (freeze текущего pose → ease to rest); тень без animated `filter: blur`; progress-тики дешевле — без смены single-stage контракта.
-- Pairing / TOFU больше не открывают Settings и не показываются callout’ами в Axatalk SDK card; Settings остаётся policy (trusted/blocked/matrix/revoke).
+- Pairing / TOFU больше не открывают Settings и не показываются callout’ами в OmniCall Kit card; Settings остаётся policy (trusted/blocked/matrix/revoke).
 - Disconnect mid-TOFU больше не пишет Origin в blacklist (`cancel` ≠ Deny).
 - Убран Settings «Временный доступ к профилю» / temporary `profileRef` grant; `account.activate` поднимается из Origin matrix + `sdk:permission-changed`.
 - OCP progress Dialog снят с `AccountPanel` / Settings mount — только shell host, чтобы overlay не пропадал при закрытых Settings.
@@ -62,13 +76,13 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - SDK Origin TOFU: первое подключение неизвестного Origin показывает modal Allow/Deny.
 - Чёрный список Origin с Unblock (restore matrix для ранее allowed; first-Deny → unknown).
-- Per-Origin capability matrix в Settings → Integrations → Axatalk SDK.
+- Per-Origin capability matrix в Settings → Integrations → OmniCall Kit.
 - Consent modal на каждый `account.activateProfile` (когда matrix разрешает activate).
-- Pre-auth доступ к Settings → Axatalk SDK (OCP Module по-прежнему gated).
+- Pre-auth доступ к Settings → OmniCall Kit (OCP Module по-прежнему gated).
 
 ### Changed
 
-- SDK gateway всегда слушает loopback (toggle enable в Settings убран; kill-switch только `AXATALK_SDK_GATEWAY=0`).
+- SDK gateway всегда слушает loopback (toggle enable в Settings убран; kill-switch только `OMNICALL_SDK_GATEWAY=0`).
 - Origin trust хранится machine-common (`sdk-origin-trust.json`); blacklist побеждает env seed.
 - Схема UserSettings v11 (миграция `enabled`/flat allowlist → trust states + matrix).
 
@@ -292,7 +306,7 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 - F-022: video-кодеки в настройках — future-only (read-only, без reorder/toggle)
 - F-022: порядок audio-кодеков применяется на новых RTC-сессиях (JsSIP adapter, dual-layer apply)
-- Публичный README и структурированные release notes на `axatalk-releases` (автогенерация из `distribution/CHANGELOG.md`)
+- Публичный README и структурированные release notes на `omnicall-releases` (автогенерация из `distribution/CHANGELOG.md`)
 
 ### Fixed
 
@@ -350,8 +364,8 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ### Changed
 
-- Публикация релизов на публичный `axatalk-releases` (тест пайплайна дистрибуции)
-- Фильтр assets: только установщики `Axatalk-{version}-*`, без `win-unpacked`
+- Публикация релизов на публичный `omnicall-releases` (тест пайплайна дистрибуции)
+- Фильтр assets: только установщики `OmniCall-{version}-*`, без `win-unpacked`
 
 ## [0.0.2] - 2026-07-01
 
@@ -374,7 +388,7 @@ Versioning: SemVer from `package.json` (pre-1.0). Git tag: `v<version>`.
 
 ### Added
 
-- Initial Axatalk distribution (Windows, macOS, Linux installers)
+- Initial OmniCall distribution (Windows, macOS, Linux installers)
 - F-020 manual in-app update check (manifest on `main`, no auto-install)
 - F-019 packaging via electron-builder and GitHub Actions
 

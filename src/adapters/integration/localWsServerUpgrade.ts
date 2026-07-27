@@ -5,7 +5,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Duplex } from "node:stream";
 
-import { WS_PATH } from "@axata/axatalk-protocol";
+import { WS_PATH } from "@softomnitel/omnicall-protocol";
 import type { SdkOriginTrustEntry } from "@domain/index.js";
 import type { WebSocketServer } from "ws";
 

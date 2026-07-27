@@ -11,7 +11,7 @@ import {
   type EventType,
   type WireJsonObject,
   type WireMessage,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 
 import type { SdkGatewayConnection } from "./sdkGatewayConnection.js";
 import { createSdkIsoTimestamp, createSdkOpaqueId } from "./sdkGatewayIds.js";

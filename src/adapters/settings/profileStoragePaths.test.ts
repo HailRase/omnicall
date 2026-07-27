@@ -33,7 +33,7 @@ describe("profileStoragePaths", () => {
 
   it("resolves settings file path under profiles/settings directory", () => {
     const accountKey = createSettingsAccountKey("1001@pbx.example");
-    const filePath = resolveProfileSettingsFilePath("/tmp/axatalk", accountKey);
+    const filePath = resolveProfileSettingsFilePath("/tmp/omnicall", accountKey);
 
     expect(filePath).toContain("profiles");
     expect(filePath).toContain("settings");

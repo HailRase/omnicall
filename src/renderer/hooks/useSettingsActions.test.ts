@@ -27,10 +27,10 @@ function createSoftphonePreloadApiMock(
   return {
     getPlatformVersion: vi.fn().mockResolvedValue({
       version: "0.0.1",
-      name: "Axatalk",
+      name: "OmniCall",
       platform: "win32",
     }),
-    getProfilesStorageRoot: vi.fn().mockResolvedValue({ storageRoot: "/tmp/axatalk-profiles" }),
+    getProfilesStorageRoot: vi.fn().mockResolvedValue({ storageRoot: "/tmp/omnicall-profiles" }),
     invokeProfilesFilesystem: vi.fn().mockResolvedValue({ ok: true }),
     invokeSecretStorage: vi.fn().mockResolvedValue({ ok: true }),
     openExternalUrl: vi.fn().mockResolvedValue({ ok: true }),

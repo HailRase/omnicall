@@ -5,12 +5,12 @@
  * Finish appeal is `operator:finish-appeal` (OCP login + post-call processing only).
  */
 
-import type { CommandMessage } from "@axata/axatalk-protocol";
+import type { CommandMessage } from "@softomnitel/omnicall-protocol";
 import {
   isCommandAvailableInProductV1,
   productDenialCodeForCommand,
   validateWireMessage,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 import type {
   ExternalCommandContext,
   ExternalCommandHandler,

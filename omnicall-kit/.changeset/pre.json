@@ -1,0 +1,10 @@
+{
+  "mode": "pre",
+  "tag": "rc",
+  "initialVersions": {
+    "@softomnitel/example-crm-pairing-lite": "0.0.0",
+    "@softomnitel/omnicall-protocol": "0.0.0",
+    "@softomnitel/omnicall-kit": "0.0.0"
+  },
+  "changesets": []
+}

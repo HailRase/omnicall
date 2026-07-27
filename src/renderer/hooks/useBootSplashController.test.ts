@@ -44,26 +44,26 @@ describe("useBootSplashController", () => {
     expect(document.getElementById("boot-splash-message")?.textContent).toBe(
       "Loading application…",
     );
-    expect(document.getElementById("boot-splash")?.dataset.progressMode).toBe("determinate");
+    expect(document.getElementById("boot-splash")?.dataset['progressMode']).toBe("determinate");
   });
 
   it("crossfades: ready shell may show while splash exits, then splash is removed", async () => {
     const { result, rerender } = renderHook(
       ({ status }: { status: "loading" | "ready" | "error" }) =>
         useBootSplashController(status, "Loading application…"),
-      { initialProps: { status: "loading" as const } },
+      { initialProps: { status: "loading" as "loading" | "ready" | "error" } },
     );
 
     rerender({ status: "ready" });
     expect(result.current.showReadyShell).toBe(false);
-    expect(document.getElementById("boot-splash")?.dataset.settled).toBe("true");
+    expect(document.getElementById("boot-splash")?.dataset['settled']).toBe("true");
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(700);
     });
 
     expect(result.current.showReadyShell).toBe(true);
-    expect(document.getElementById("boot-splash")?.dataset.exiting).toBe("true");
+    expect(document.getElementById("boot-splash")?.dataset['exiting']).toBe("true");
     expect(document.getElementById("boot-splash")).not.toBeNull();
 
     await act(async () => {
@@ -77,7 +77,7 @@ describe("useBootSplashController", () => {
     const { result, rerender } = renderHook(
       ({ status }: { status: "loading" | "ready" | "error" }) =>
         useBootSplashController(status, "Loading application…"),
-      { initialProps: { status: "loading" as const } },
+      { initialProps: { status: "loading" as "loading" | "ready" | "error" } },
     );
 
     rerender({ status: "error" });

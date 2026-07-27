@@ -1,6 +1,6 @@
 /**
  * DI-01: consume SDK-02 golden fixtures byte-identical from
- * `axatalk-sdk/packages/protocol/fixtures/**` via `@axata/axatalk-protocol` validators.
+ * `omnicall-kit/packages/protocol/fixtures/**` via `@softomnitel/omnicall-protocol` validators.
  * No translation, renaming, or local schema fork.
  */
 
@@ -14,12 +14,12 @@ import {
   productDenialCodeForCommand,
   validateDiscoveryDocument,
   validateWireMessage,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 import { describe, expect, it } from "vitest";
 
 const fixturesRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  "../../../axatalk-sdk/packages/protocol/fixtures",
+  "../../../omnicall-kit/packages/protocol/fixtures",
 );
 
 function readJson(relativePath: string): unknown {

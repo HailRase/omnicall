@@ -219,11 +219,11 @@ const softphoneApi: SoftphonePreloadApi = {
       typeof response !== "object" ||
       response === null ||
       !("ok" in response) ||
-      typeof (response as { ok: unknown }).ok !== "boolean"
+      typeof response.ok !== "boolean"
     ) {
       return { ok: false, reason: "invalid_payload" };
     }
-    return { ok: (response as { ok: boolean }).ok };
+    return { ok: response.ok };
   },
   onShellOperatorAttention: (handler) => {
     const listener = (_event: Electron.IpcRendererEvent, payload: unknown): void => {

@@ -3,12 +3,12 @@
  * Capability + Origin matrix gated in main; consent modal for activate / reauthorize.
  */
 
-import type { CommandMessage } from "@axata/axatalk-protocol";
+import type { CommandMessage } from "@softomnitel/omnicall-protocol";
 import {
   isCommandAvailableInProductV1,
   productDenialCodeForCommand,
   validateWireMessage,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 import type {
   ExternalCommandContext,
   ExternalCommandHandler,

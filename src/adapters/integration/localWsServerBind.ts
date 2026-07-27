@@ -4,7 +4,7 @@
 
 import { createServer, type Server as HttpServer } from "node:http";
 
-import { DISCOVERY_PATH } from "@axata/axatalk-protocol";
+import { DISCOVERY_PATH } from "@softomnitel/omnicall-protocol";
 import { WebSocketServer } from "ws";
 
 import type { SdkOriginTrustEntry } from "@domain/index.js";

@@ -108,7 +108,7 @@ not reuse raw OCP wire property names such as `apiKey`, `ocpAuthToken`, or proxy
 3. After publishing protocol major `N+1`, major `N-1` (if any) is unsupported; major `N`
    remains supported for **at least 90 days or two desktop minor releases**, whichever is
    longer, then may be removed in a desktop release that documents the drop.
-4. Deprecation notices appear in `axatalk-sdk` changelog and PROTOCOL.md; incompatible
+4. Deprecation notices appear in `omnicall-kit` changelog and PROTOCOL.md; incompatible
    clients receive `incompatible_version` before any product state.
 
 ## Alternatives Considered

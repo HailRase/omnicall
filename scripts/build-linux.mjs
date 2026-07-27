@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 const repoRoot = fileURLToPath(new URL('..', import.meta.url));
 
 function canCreateFileSymlink() {
-  const probeDir = join(tmpdir(), 'axatalk-symlink-probe');
+  const probeDir = join(tmpdir(), 'OmniCall-symlink-probe');
   const linkPath = join(probeDir, 'probe-link');
   const targetPath = join(probeDir, 'probe-target');
 

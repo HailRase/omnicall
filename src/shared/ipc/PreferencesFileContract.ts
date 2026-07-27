@@ -148,7 +148,7 @@ export function sanitizePreferencesSavedFileName(value: unknown): string {
     }
   }
 
-  return "axatalk-preferences.json";
+  return "omnicall-preferences.json";
 }
 
 function utf8ByteLength(value: string): number {

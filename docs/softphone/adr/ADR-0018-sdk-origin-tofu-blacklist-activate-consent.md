@@ -15,9 +15,9 @@ Accepted (2026-07-21) — decisions frozen with product owner 2026-07-21 (docs r
 - **Roadmap:** P12
 - **Contexts:** Integration, Settings, Account
 - **Layers:** Electron main (gateway upgrade policy), Application settings projections,
-  Renderer Settings UI + consent modals, `@axata/axatalk-sdk` error mapping
+  Renderer Settings UI + consent modals, `@softomnitel/omnicall-kit` error mapping
 - **Amends:** ADR-0011 §Decision.1 (pre-allowlist-only upgrade), ADR-0013 §B (activate UX),
-  ADR-AF-004 (Settings pre-auth gate exception for Axatalk SDK), ADR-0009 Consequences
+  ADR-AF-004 (Settings pre-auth gate exception for OmniCall Kit), ADR-0009 Consequences
   rollback (Settings listener flag → env kill-switch only), ADR-0015 discovery CORS
   eligibility for `unknown` Origins
 - **Does not change:** ADR-0013 raw-credential ban; ADR-0009 process ownership / broker;
@@ -39,14 +39,14 @@ fixes Origin trust UX and clarifies activate-with-saved-profile consent.
 
 ### A. Always-on loopback gateway
 
-1. When the Axatalk Desktop process starts as the primary instance, the SDK loopback
+1. When the OmniCall Desktop process starts as the primary instance, the SDK loopback
    gateway **always listens** on the documented bind (`127.0.0.1:17341` per ADR-0015)
    subject only to single-instance ownership and occupied-port fail-closed (ADR-0010).
 2. The Settings control that **disables / enables the SDK server listener** is **removed**.
    Operators manage trust via Origin allow / blacklist / capability policy — not by
    stopping the listener. (DI-09 shipped an enable toggle; DI-11 removes it — policy
    change, not a documentation typo against ADR-0009’s earlier rollback wording.)
-3. Env overrides that force the gateway off (`AXATALK_SDK_GATEWAY=0`) remain an
+3. Env overrides that force the gateway off (`OMNICALL_SDK_GATEWAY=0`) remain an
    **engineering / enterprise kill-switch** only; they are not exposed as a normal
    Settings toggle. Documented for support, not for integrator onboarding.
 
@@ -93,18 +93,18 @@ Pre-seeded / managed Origins (IT policy files) may enter as `allowed` without a 
 enterprise may disable TOFU and require pre-seed only (compat mode). Default product
 behavior for consumer desktop is TOFU as above.
 
-Env `AXATALK_SDK_ALLOWED_ORIGINS` becomes an optional **seed / managed allow** input into
+Env `OMNICALL_SDK_ALLOWED_ORIGINS` becomes an optional **seed / managed allow** input into
 the same store — not the only gate. Blacklist still wins over allow seed.
 
-### C. Settings IA — Axatalk SDK (pre-auth)
+### C. Settings IA — OmniCall Kit (pre-auth)
 
-1. **ADR-AF-004 exception:** Settings → **Axatalk SDK** is available **before** account
+1. **ADR-AF-004 exception:** Settings → **OmniCall Kit** is available **before** account
    session activation. **Integrations → OCP Module** and other Settings sections remain
    gated as today.
 2. Navigation placement: **top-level** Settings nav leaf **immediately below** the
    Integrations group (not nested under Integrations children). Integrations remains
-   OCP Module only; Axatalk SDK is a sibling section in the rail order.
-3. Axatalk SDK Settings contains at least:
+   OCP Module only; OmniCall Kit is a sibling section in the rail order.
+3. OmniCall Kit Settings contains at least:
    - **Blacklist** (denied Origins) with Unblock;
    - **Allowed Origins / Domains** with per-Origin create / edit (URL rename keeps matrix) /
      delete and quick blacklist (not a bulk textarea replace);
@@ -121,12 +121,12 @@ the same store — not the only gate. Blacklist still wins over allow seed.
    profiles remain account-scoped (ADR-AF-003/006).
 
    **DI-11 implementation:** durable SoT is
-   `profiles/sdk-origin-trust.json` under the Axatalk storage root (see
+   `profiles/sdk-origin-trust.json` under the OmniCall storage root (see
    `sdkOriginTrustMachineStore.ts`). Boot hydrates the live gateway from this file
    before upgrade/discovery. Legacy per-profile `UserSettings.sdkIntegration` rows are
    one-shot migrated into the machine file when it is empty; Settings may still mirror
    trust into the active account bucket for UX, but cold-start admission uses the
-   machine-common store. `AXATALK_SDK_ALLOWED_ORIGINS` remains an allow seed only —
+   machine-common store. `OMNICALL_SDK_ALLOWED_ORIGINS` remains an allow seed only —
    persisted `denied` always wins.
 
 ### D. Per-Origin capability policy matrix
@@ -244,7 +244,7 @@ Extends ADR-0013 §B / DI-08 — **does not** introduce raw credential commands.
 | Broker / composition not ready | Keep WS | `not_ready` (distinct from Origin deny) |
 
 Integrator-facing copy for blocked Origin (non-normative): explain that the site was
-blocked in Axatalk and the operator must Unblock under **Settings → Axatalk SDK**.
+blocked in OmniCall and the operator must Unblock under **Settings → OmniCall Kit**.
 Machine code remains authoritative.
 
 ### G. Modal ownership (renderer)
@@ -257,7 +257,7 @@ Machine code remains authoritative.
    - first-contact Origin trust (transport Allow/Deny) then, after Allow, pairing in the
      **same** modal (stepper);
    - pairing-only when the Origin is already `allowed`.
-   Settings → Axatalk SDK remains policy management (trusted/blocked, matrix, revoke,
+   Settings → OmniCall Kit remains policy management (trusted/blocked, matrix, revoke,
    diagnostics) and **must not** host pending TOFU/pairing callouts or auto-open for
    pairing attention. Security gates stay sequential (ADR-0018 Origin before ADR-0016
    pairing); the overlay is presentation only.
@@ -278,7 +278,7 @@ Machine code remains authoritative.
    shows a subtle `MM:SS` countdown (`SdkModalDeadlineTimer`, token `--color-text-muted`,
    light/dark). Budgets are **not** uniform 30 s — SSoT is
    `src/shared/integration/sdkOperatorModalTimeouts.ts` with live values from
-   **Settings → Axatalk SDK → Main → Confirmation wait times**
+   **Settings → OmniCall Kit → Main → Confirmation wait times**
    (`SdkIntegrationSettings.operatorModalTimeouts`). Defaults match historical fixed TTLs
    (no downgrade). Gateway sweeper, pairing `expiresAt`, consent bridge, and UI countdown
    all read the live values after `applyPolicy` / boot hydrate.
@@ -328,7 +328,7 @@ fail-closed per ADR-0015.
 | Settings toggle to stop listener | Hides trust problems; breaks discovery expectations |
 | Silent ignore on activate deny | Causes reconnect/retry storms; opaque CRM bugs |
 | Send SIP/OCP passwords on activate | Violates ADR-0013; XSS exfiltration |
-| Pre-auth edit of all Settings | Violates ADR-AF-004; only Axatalk SDK is excepted |
+| Pre-auth edit of all Settings | Violates ADR-AF-004; only OmniCall Kit is excepted |
 | Single global capability matrix | Rejected — product requires per-Origin matrix |
 | Unblock always → `unknown` | Rejected — previously allowed Origins must restore matrix |
 | Long-lived notification for TOFU | Rejected — too easy to ignore; use renderer modal |
@@ -340,7 +340,7 @@ fail-closed per ADR-0015.
 - DI-09 Settings card is superseded/extended by DI-11 IA (§C–D); listener enable toggle
   removed; hide remains disabled.
 - ADR-0009 rollback wording updated: env kill-switch, not Settings flag.
-- ADR-AF-004 gains a narrow pre-auth exception; tests must cover deep links to Axatalk SDK
+- ADR-AF-004 gains a narrow pre-auth exception; tests must cover deep links to OmniCall Kit
   pre-auth and continued block of OCP Module.
 - ADR-0015 CORS eligibility includes `unknown` for TOFU bootstrap.
 - SDK guides (`SECURITY`, pairing, saved-profile activation, errors) must describe TOFU,
@@ -360,7 +360,7 @@ fail-closed per ADR-0015.
 ## Related Links
 
 - Feature Registry: F-011
-- Work unit: `axatalk-sdk-integration/WORK-UNITS.md` — DI-11
-- `axatalk-sdk/docs/SECURITY.md`
+- Work unit: `omnicall-kit-integration/WORK-UNITS.md` — DI-11
+- `omnicall-kit/docs/SECURITY.md`
 - Related: ADR-0009, ADR-0011, ADR-0013, ADR-0015, ADR-0016, ADR-AF-003, ADR-AF-004,
   ADR-AF-005

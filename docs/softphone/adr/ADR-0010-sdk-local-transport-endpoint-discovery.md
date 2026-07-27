@@ -16,7 +16,7 @@ Accepted (2026-07-20) — open items **closed by SDK-01** (ADR-0015, 2026-07-20)
 - **Contexts:** Integration
 - **Layers:** Electron main infrastructure, public protocol (SDK package)
 
-Browser tabs must reach Axatalk over a local WebSocket. Loopback is not trust. Endpoint
+Browser tabs must reach OmniCall over a local WebSocket. Loopback is not trust. Endpoint
 discovery, port ownership, and HTTPS→local WS browser policies must be decided before
 DI-03/SDK-03 implement transport.
 
@@ -62,11 +62,11 @@ DI-03/SDK-03 implement transport.
 
 ## Open Decisions
 
-**Closed by SDK-01** — see **ADR-0015** and `axatalk-sdk/evidence/SDK-01-browser-spike.md`.
+**Closed by SDK-01** — see **ADR-0015** and `omnicall-kit/evidence/SDK-01-browser-spike.md`.
 
 | ID | Resolution |
 | --- | --- |
-| O-DISC-1 | `GET http://127.0.0.1:17341/axatalk/v1/discovery`; schema in ADR-0015 |
+| O-DISC-1 | `GET http://127.0.0.1:17341/omnicall/v1/discovery`; schema in ADR-0015 |
 | O-DISC-2 | Tiny loopback HTTP helper on the gateway listener (not WS-only) |
 | O-BRW-1 | Chrome/Edge/Firefox supported with LNA allow; Safari unsupported in P12 |
 | O-BRW-2 | Stable i18n key IDs reserved; copy lands in DI-09 |
@@ -97,6 +97,6 @@ Desktop agents must implement ADR-0015 as written; inventing alternate URLs is a
 ## Related Links
 
 - Feature Registry: F-011
-- `axatalk-sdk/docs/PROTOCOL.md` (Closed Decisions / ADR-0015)
-- `axatalk-sdk/docs/SECURITY.md`
+- `omnicall-kit/docs/PROTOCOL.md` (Closed Decisions / ADR-0015)
+- `omnicall-kit/docs/SECURITY.md`
 - Related: ADR-0009, ADR-0011

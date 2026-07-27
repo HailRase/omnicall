@@ -9,7 +9,7 @@ import {
   WS_PATH,
   validateWireMessage,
   type WireMessage,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 import { InMemorySecretStorageAdapter } from "@adapters/secrets/InMemorySecretStorageAdapter.js";
 import { afterEach, describe, expect, it } from "vitest";
 import { WebSocket, type RawData } from "ws";
@@ -662,7 +662,6 @@ describe("LocalWsServerAdapter DI-07 operator/logout", () => {
     expect(resolveActivate).toBeTypeOf("function");
     resolveActivate!({
       ok: true,
-      revision: 4,
       reply: {
         protocolVersion: PROTOCOL_MAJOR,
         kind: "reply",

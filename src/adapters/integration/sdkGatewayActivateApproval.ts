@@ -3,7 +3,7 @@
  * Temporary Settings grant removed — matrix + consent modal are the gates.
  */
 
-import type { WireMessage } from "@axata/axatalk-protocol";
+import type { WireMessage } from "@softomnitel/omnicall-protocol";
 
 import type { SdkGatewayConnection } from "./sdkGatewayConnection.js";
 import {

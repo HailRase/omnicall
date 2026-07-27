@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SnapshotSectionsSchema } from "@axata/axatalk-protocol";
+import { SnapshotSectionsSchema } from "@softomnitel/omnicall-protocol";
 import { OperatorStatus } from "@domain/integration/ocp/OperatorStatus.js";
 
 import { assembleSdkSnapshotProductSections } from "./ExternalSdkSnapshotAssembler.js";

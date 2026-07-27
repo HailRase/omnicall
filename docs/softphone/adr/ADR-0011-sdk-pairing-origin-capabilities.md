@@ -53,7 +53,7 @@ revocation before any product state is exposed (DI-04).
    - `account.activate`
    - `session.logout`
 
-   Capability levels follow `axatalk-sdk/docs/SECURITY.md` (Unauthenticated → Privileged).
+   Capability levels follow `omnicall-kit/docs/SECURITY.md` (Unauthenticated → Privileged).
 
 6. **Replay / idempotency:** Nonces on handshake, unique request IDs, expiry, and a bounded
    deduplication cache. Replayed challenge, session, or request ID fails closed. Mutations
@@ -93,7 +93,7 @@ DI-03 transport must not invent crypto or capability grants; DI-04 implements AD
 
 - DI-04 owns implementation and independent security review gate.
 - DI-05+ product paths assume authenticated + capability-checked sessions.
-- Rollback: revoke all clients / stop gateway via env kill-switch (`AXATALK_SDK_GATEWAY=0`)
+- Rollback: revoke all clients / stop gateway via env kill-switch (`OMNICALL_SDK_GATEWAY=0`)
   per ADR-0018 (not a consumer Settings listener toggle).
 
 ## Architecture Checks
@@ -105,5 +105,5 @@ DI-03 transport must not invent crypto or capability grants; DI-04 implements AD
 ## Related Links
 
 - Feature Registry: F-011
-- `axatalk-sdk/docs/SECURITY.md`
+- `omnicall-kit/docs/SECURITY.md`
 - Related: ADR-0009, ADR-0010, ADR-0012, ADR-0018, ADR-AF-006

@@ -3,7 +3,7 @@
  * Advances session revision only on meaningful public operator changes.
  */
 
-import type { WireJsonObject } from "@axata/axatalk-protocol";
+import type { WireJsonObject } from "@softomnitel/omnicall-protocol";
 
 import type { SdkPublicEventDraft } from "./ExternalSdkEventMapper.js";
 import type { SdkSessionRevisionClock } from "./SdkSessionRevisionClock.js";

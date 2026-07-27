@@ -435,7 +435,7 @@ describe("AccountBootstrapFacade integration", () => {
       sipAutoReconnectEnabled: false,
     };
 
-    const root = await mkdtemp(join(tmpdir(), "axatalk-facade-legacy-"));
+    const root = await mkdtemp(join(tmpdir(), "omnicall-facade-legacy-"));
     const filesystem = new NodeFileSystemAdapter();
 
     try {

@@ -2,7 +2,7 @@
  * Client revoke for LocalWsSessionRegistry.
  */
 
-import type { WireMessage } from "@axata/axatalk-protocol";
+import type { WireMessage } from "@softomnitel/omnicall-protocol";
 
 import type { SdkGatewayConnection } from "./sdkGatewayConnection.js";
 import {

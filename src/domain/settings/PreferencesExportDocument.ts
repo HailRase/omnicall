@@ -7,7 +7,10 @@ import { migrateUserSettings } from "./migrateUserSettings.js";
 import { OCP_INTEGRATION_DEFAULTS } from "./OcpIntegrationSettings.js";
 
 /** Stable document id for operator preferences transfer files. */
-export const PREFERENCES_EXPORT_FORMAT_ID = "axatalk.preferences" as const;
+export const PREFERENCES_EXPORT_FORMAT_ID = "omnicall.preferences" as const;
+
+/** LEGACY: pre-rebrand export format id — accepted on import only. */
+export const LEGACY_PREFERENCES_EXPORT_FORMAT_ID = "axatalk.preferences" as const;
 
 /** Bundle format version (independent from UserSettings.schemaVersion). */
 export const PREFERENCES_EXPORT_FORMAT_VERSION = 1 as const;
@@ -131,7 +134,11 @@ export function parsePreferencesExportDocument(raw: unknown): PreferencesExportP
   }
 
   const record = raw as Record<string, unknown>;
-  if (record["format"] !== PREFERENCES_EXPORT_FORMAT_ID) {
+  const formatId = record["format"];
+  const formatAccepted =
+    formatId === PREFERENCES_EXPORT_FORMAT_ID ||
+    formatId === LEGACY_PREFERENCES_EXPORT_FORMAT_ID;
+  if (!formatAccepted) {
     return fail("unsupported_format", "preferences_unsupported_format");
   }
 

@@ -3,12 +3,12 @@
  * Ownership + expectedRevision + per-call serialization → existing Use Cases.
  */
 
-import type { CommandMessage } from "@axata/axatalk-protocol";
+import type { CommandMessage } from "@softomnitel/omnicall-protocol";
 import {
   isCommandAvailableInProductV1,
   productDenialCodeForCommand,
   validateWireMessage,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 import { createCallId, type CallId } from "@domain/index.js";
 import type {
   ExternalCommandContext,

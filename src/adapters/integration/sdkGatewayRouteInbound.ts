@@ -7,15 +7,15 @@ import type {
   PairingRequest,
   ProtocolErrorCode,
   WireMessage,
-} from "@axata/axatalk-protocol";
-import { productDenialCodeForCommand } from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
+import { productDenialCodeForCommand } from "@softomnitel/omnicall-protocol";
 
 import {
   connectionHasCapability,
   requiredCapabilityForCommand,
 } from "./sdkGatewayCapabilities.js";
 import type { SdkGatewayAuthState } from "./sdkGatewayConnection.js";
-import type { CapabilityId } from "@axata/axatalk-protocol";
+import type { CapabilityId } from "@softomnitel/omnicall-protocol";
 
 export type SdkConnectionRouteView = Readonly<{
   handshakeComplete: boolean;

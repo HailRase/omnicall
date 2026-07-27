@@ -36,7 +36,7 @@ async function createTestRepository(
   root: string;
   filesystem: NodeFileSystemAdapter;
 }> {
-  const root = await mkdtemp(join(tmpdir(), "axatalk-contacts-"));
+  const root = await mkdtemp(join(tmpdir(), "omnicall-contacts-"));
   tempRoots.push(root);
   const filesystem = new NodeFileSystemAdapter();
   const repository = new FileContactRepository({

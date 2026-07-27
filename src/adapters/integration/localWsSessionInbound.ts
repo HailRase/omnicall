@@ -2,7 +2,7 @@
  * Inbound parse + dispatch for LocalWsSessionRegistry (keeps registry under size budget).
  */
 
-import type { WireMessage } from "@axata/axatalk-protocol";
+import type { WireMessage } from "@softomnitel/omnicall-protocol";
 
 import type { SdkAuthChallengeCache } from "./sdkGatewayAuthChallenge.js";
 import type { SdkGatewayLimits } from "./sdkGatewayConfig.js";
@@ -20,7 +20,7 @@ import type {
   SdkOriginTrustDecision,
 } from "./sdkGatewayOriginTrustApprover.js";
 import type { SdkOriginTrustState } from "@domain/index.js";
-import type { CapabilityId } from "@axata/axatalk-protocol";
+import type { CapabilityId } from "@softomnitel/omnicall-protocol";
 import { dispatchSdkValidatedMessage } from "./sdkGatewaySessionDispatch.js";
 import { startSdkGatewayHeartbeat } from "./sdkGatewaySessionSocket.js";
 import type { SdkGatewayLogFn } from "./localWsServerHelpers.js";

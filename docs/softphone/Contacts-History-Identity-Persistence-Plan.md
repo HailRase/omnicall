@@ -8,7 +8,7 @@ This plan is written for agents with no prior conversation context. Follow it st
 
 ## Goals
 
-- Persist contacts and call history on Windows, macOS, and Linux under the existing Axatalk profile storage.
+- Persist contacts and call history on Windows, macOS, and Linux under the existing OmniCall profile storage.
 - Scope contacts and call history to the same `SettingsAccountKey` used by per-account settings.
 - Resolve one caller identity consistently in history, incoming calls, outgoing calls, and active call lines.
 - Add iPhone-like history details with calm grouped actions, clear metadata, and safe destructive actions.
@@ -68,8 +68,8 @@ Every implementation agent must read these files before coding:
 
 ### Profile Persistence
 
-- Existing profile root: `{userData}/axatalk/profiles/`.
-- Real path resolver: `resolveAxatalkProfilesStorageRoot()`.
+- Existing profile root: `{userData}/omnicall/profiles/`.
+- Real path resolver: `resolveOmniCallProfilesStorageRoot()`.
 - Renderer bridge: `resolveRealBootstrapDiskOptions()` + `PreloadFileSystemAdapter`.
 - Main IPC sandbox: `registerProfilesPersistenceIpc()`.
 - File boundary: `FileSystemPort`.
@@ -93,7 +93,7 @@ Every implementation agent must read these files before coding:
 Use the existing profiles root and add two per-profile directories:
 
 ```txt
-{userData}/axatalk/profiles/
+{userData}/omnicall/profiles/
   index.json
   settings/
     {encodedProfileKey}.json
@@ -105,9 +105,9 @@ Use the existing profiles root and add two per-profile directories:
 
 Platform examples are determined by Electron `app.getPath("userData")`:
 
-- Windows: `%APPDATA%/Axatalk/axatalk/profiles/...`
-- macOS: `~/Library/Application Support/Axatalk/axatalk/profiles/...`
-- Linux: `~/.config/Axatalk/axatalk/profiles/...`
+- Windows: `%APPDATA%/OmniCall/omnicall/profiles/...`
+- macOS: `~/Library/Application Support/OmniCall/omnicall/profiles/...`
+- Linux: `~/.config/OmniCall/omnicall/profiles/...`
 
 ## Persisted Document Schemas
 

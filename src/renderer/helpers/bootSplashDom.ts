@@ -78,14 +78,14 @@ export function settleSplashBallMotion(
 }
 
 function markBootSplashSettled(root: HTMLElement): void {
-  if (root.dataset.settled === "true") {
+  if (root.dataset['settled'] === "true") {
     return;
   }
   settleSplashBallMotion(
     root.querySelector<HTMLElement>(".boot-ball"),
     root.querySelector<HTMLElement>(".boot-shadow"),
   );
-  root.dataset.settled = "true";
+  root.dataset['settled'] = "true";
 }
 
 /** Updates the determinate progress fill (0–100). Switches off indeterminate mode. */
@@ -97,7 +97,7 @@ export function updateBootSplashProgress(percent: number): void {
   }
 
   const clamped = clampPercent(percent);
-  root.dataset.progressMode = "determinate";
+  root.dataset['progressMode'] = "determinate";
   const nextTransform =
     clamped >= 100 ? "translateX(0%)" : `translateX(-${100 - clamped}%)`;
   if (indicator.style.transform !== nextTransform) {
@@ -107,7 +107,7 @@ export function updateBootSplashProgress(percent: number): void {
   if (clamped >= 100) {
     markBootSplashSettled(root);
   } else {
-    delete root.dataset.settled;
+    delete root.dataset['settled'];
   }
 }
 
@@ -140,13 +140,13 @@ export function beginBootSplashExit(): Promise<void> {
     return Promise.resolve();
   }
 
-  if (root.dataset.exiting === "true") {
+  if (root.dataset['exiting'] === "true") {
     return waitForBootSplashExit(root);
   }
 
   // Force style flush so the opacity transition always runs from 1 → 0.
   void root.offsetWidth;
-  root.dataset.exiting = "true";
+  root.dataset['exiting'] = "true";
   return waitForBootSplashExit(root);
 }
 

@@ -8,7 +8,7 @@ vi.mock("../i18n/index.js", () => ({
   useI18n: () => ({
     t: (key: string) => {
       if (key === "bootstrap.brand") {
-        return "Axatalk";
+        return "OmniCall";
       }
       if (key === "bootstrap.loading") {
         return "Loading application…";
@@ -35,7 +35,7 @@ describe("BootstrapSplashShell", () => {
     expect(root).toHaveAttribute("role", "status");
     expect(root).toHaveAttribute("aria-busy", "true");
     expect(root).not.toHaveAttribute("data-settled");
-    expect(within(root).getByText("Axatalk")).toBeInTheDocument();
+    expect(within(root).getByText("OmniCall")).toBeInTheDocument();
     expect(within(root).getByText("Loading application…")).toBeInTheDocument();
     expect(within(root).getByRole("progressbar")).toHaveAttribute("aria-valuenow", "42");
     expect(within(root).getByTestId("bootstrap-ball-stage")).not.toHaveAttribute("data-settled");

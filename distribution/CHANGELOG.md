@@ -1,6 +1,6 @@
 # Changelog
 
-Public release history for **Axatalk** distribution builds.
+Public release history for **OmniCall** distribution builds.
 
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer. Git tag: `v<version>`.
@@ -11,13 +11,13 @@ Versioning: SemVer. Git tag: `v<version>`.
 
 - SDK Origin first-contact TOFU Allow/Deny modal
 - Origin blacklist with Unblock restore rules
-- Per-Origin capability matrix in Settings → Integrations → Axatalk SDK
+- Per-Origin capability matrix in Settings → Integrations → OmniCall Kit
 - Activate-profile consent modal (every login when matrix allows activate)
-- Pre-auth access to Axatalk SDK Settings (OCP Module remains gated)
+- Pre-auth access to OmniCall Kit Settings (OCP Module remains gated)
 
 ### Changed
 
-- SDK gateway always listens on loopback (Settings enable toggle removed; kill-switch `AXATALK_SDK_GATEWAY=0` only)
+- SDK gateway always listens on loopback (Settings enable toggle removed; kill-switch `OMNICALL_SDK_GATEWAY=0` only)
 - Machine-common Origin trust store; blacklist wins over env allow seed
 
 ## [0.11.2] - 2026-07-19
@@ -306,7 +306,7 @@ Versioning: SemVer. Git tag: `v<version>`.
 
 ### Added
 
-- Initial Axatalk distribution (Windows, macOS, Linux installers)
+- Initial OmniCall distribution (Windows, macOS, Linux installers)
 - Manual in-app update check using the public update manifest (no auto-install)
 - Desktop packaging for Windows, macOS, and Linux
 

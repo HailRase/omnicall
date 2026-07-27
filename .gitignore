@@ -24,4 +24,4 @@ Thumbs.db
 !.env.production
 
 # DI-10 browser smoke ephemeral profile
-axatalk-sdk-integration/evidence/.di10-edge-profile/
+omnicall-kit-integration/evidence/.di10-edge-profile/

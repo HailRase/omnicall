@@ -13,7 +13,7 @@ OCP wire” for the dedicated `call:acd-context` event only.
 
 - **Features:** F-011 (SDK), F-028 (OCP call context)
 - **Contexts:** Integration
-- **Layers:** `@axata/axatalk-protocol`, Application mappers, Local WS fan-out
+- **Layers:** `@softomnitel/omnicall-protocol`, Application mappers, Local WS fan-out
 
 Desktop already syncs OCP `get_main_acallid` → MainCallIDInfo. CRM hosts that
 previously consumed the raw OCP WebSocket require the same fields

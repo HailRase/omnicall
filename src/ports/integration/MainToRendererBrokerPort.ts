@@ -9,7 +9,7 @@ import type {
   ProtocolErrorCode,
   ReplyMessage,
   WireJsonObject,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 
 /**
  * Narrow broker envelope after protocol validation. Public DTOs only —

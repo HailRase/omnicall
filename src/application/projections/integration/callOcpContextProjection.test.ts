@@ -29,7 +29,7 @@ describe("callOcpContextProjection", () => {
       callId: "c1",
       direction: "incoming",
     });
-    expect(projection.byCallId.c1?.resolveState).toBe("pending");
+    expect(projection.byCallId["c1"]?.resolveState).toBe("pending");
 
     projection = resolveCallOcpContext(projection, {
       callId: "c1",
@@ -37,7 +37,7 @@ describe("callOcpContextProjection", () => {
       queueName: "  Sales  ",
       acdWire: wire({ acallId: "a1", queue: "Sales", mainAcallId: "m1" }),
     });
-    expect(projection.byCallId.c1).toMatchObject({
+    expect(projection.byCallId["c1"]).toMatchObject({
       acallId: "a1",
       queueName: "Sales",
       resolveState: "resolved",
@@ -46,7 +46,7 @@ describe("callOcpContextProjection", () => {
     });
 
     projection = clearCallOcpContext(projection, "c1");
-    expect(projection.byCallId.c1).toBeUndefined();
+    expect(projection.byCallId["c1"]).toBeUndefined();
   });
 
   it("treats empty queue as resolved null (direct/internal)", () => {
@@ -60,7 +60,7 @@ describe("callOcpContextProjection", () => {
       queueName: "   ",
       acdWire: wire({ acallId: "a2", queue: "" }),
     });
-    expect(projection.byCallId.c2).toMatchObject({
+    expect(projection.byCallId["c2"]).toMatchObject({
       queueName: null,
       resolveState: "resolved",
       acdWire: { queue: "" },
@@ -73,7 +73,7 @@ describe("callOcpContextProjection", () => {
       direction: "incoming",
     });
     projection = markCallOcpContextUnavailable(projection, "c3");
-    expect(projection.byCallId.c3?.resolveState).toBe("unavailable");
+    expect(projection.byCallId["c3"]?.resolveState).toBe("unavailable");
 
     projection = resolveCallOcpContext(projection, {
       callId: "c3",
@@ -82,6 +82,6 @@ describe("callOcpContextProjection", () => {
       acdWire: wire({ acallId: "a3", queue: "Q" }),
     });
     const afterResolved = markCallOcpContextUnavailable(projection, "c3");
-    expect(afterResolved.byCallId.c3?.resolveState).toBe("resolved");
+    expect(afterResolved.byCallId["c3"]?.resolveState).toBe("resolved");
   });
 });

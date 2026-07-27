@@ -1,5 +1,5 @@
 /**
- * Push distribution payload (README, manifest, changelog, contract) to axatalk-releases main.
+ * Push distribution payload (README, manifest, changelog, contract) to omnicall-releases main.
  * Handles empty repository (initial commit) — required before GitHub Releases API works.
  */
 
@@ -18,7 +18,7 @@ const isCli =
 function readToken() {
   const raw =
     process.env.DISTRIBUTION_GITHUB_TOKEN ??
-    process.env.AXATALK_RELEASES_TOKEN ??
+    process.env.OMNICALL_RELEASES_TOKEN ??
     process.env.GITHUB_TOKEN;
   if (typeof raw !== 'string') {
     return '';
@@ -70,7 +70,7 @@ export function pushDistributionRepo({ token, commitMsg }) {
       ? commitMsg
       : 'chore: sync distribution manifest and README';
 
-  const tmp = mkdtempSync(join(tmpdir(), 'axatalk-dist-'));
+  const tmp = mkdtempSync(join(tmpdir(), 'OmniCall-dist-'));
 
   try {
     cloneDistributionRepo(tmp, token, DISTRIBUTION_REPO);
@@ -109,7 +109,7 @@ export function pushDistributionRepo({ token, commitMsg }) {
 const token = readToken();
 if (isCli) {
   if (token.length === 0) {
-    console.error('DISTRIBUTION_GITHUB_TOKEN or GITHUB_TOKEN is required (write axatalk-releases).');
+    console.error('DISTRIBUTION_GITHUB_TOKEN or GITHUB_TOKEN is required (write omnicall-releases).');
     process.exit(1);
   }
 

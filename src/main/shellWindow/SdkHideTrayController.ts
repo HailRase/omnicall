@@ -53,11 +53,11 @@ export class SdkHideTrayController {
       return;
     }
     const tray = new Tray(image);
-    tray.setToolTip("Axatalk");
+    tray.setToolTip("OmniCall");
     tray.setContextMenu(
       Menu.buildFromTemplate([
         {
-          label: "Show Axatalk",
+          label: "Show OmniCall",
           click: () => {
             this.restoreMainWindow();
           },

@@ -8,7 +8,7 @@ import {
   isCommandAvailableInProductV1,
   productDenialCodeForCommand,
   validateWireMessage,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 import type {
   BrokerRequestResult,
   MainToRendererBrokerPort,

@@ -1,6 +1,6 @@
 # Headset Integration in jssip-phone (Jabra & Plantronics/Poly)
 
-**Source project:** `D:\Axata\JSSIP-PROJECTS\jssip-phone` or `C:\Users\User\Desktop\jssip-phone` 
+**Source project:** `D:\SoftOmniTel\JSSIP-PROJECTS\jssip-phone` or `C:\Users\User\Desktop\jssip-phone` 
 **Document date:** 2026-07-09  
 **Integration technology:** Web HID API (`navigator.hid`) — no Jabra SDK, no Plantronics Spokes/Poly Lens SDK
 
@@ -1059,7 +1059,7 @@ Duplicate tree exists at `js-sip-electron/src/` (mirror of above).
 
 ## Related In-Repo Documentation
 
-- `D:\Axata\JSSIP-PROJECTS\jssip-phone\docs\webHID-connection\en.md`
-- `D:\Axata\JSSIP-PROJECTS\jssip-phone\docs\webHID-connection\ru.md`
-- `D:\Axata\JSSIP-PROJECTS\jssip-phone\src\modules\headsetAdapters\README.md`
-- `D:\Axata\JSSIP-PROJECTS\jssip-phone\src\modules\sessionHeadsetOrchestrator\README.md`
+- `D:\SoftOmniTel\JSSIP-PROJECTS\jssip-phone\docs\webHID-connection\en.md`
+- `D:\SoftOmniTel\JSSIP-PROJECTS\jssip-phone\docs\webHID-connection\ru.md`
+- `D:\SoftOmniTel\JSSIP-PROJECTS\jssip-phone\src\modules\headsetAdapters\README.md`
+- `D:\SoftOmniTel\JSSIP-PROJECTS\jssip-phone\src\modules\sessionHeadsetOrchestrator\README.md`

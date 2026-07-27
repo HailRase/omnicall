@@ -11,7 +11,7 @@ import {
   type KeyObject,
 } from "node:crypto";
 
-import { buildPopSigningPayload } from "@axata/axatalk-protocol";
+import { buildPopSigningPayload } from "@softomnitel/omnicall-protocol";
 
 /** Node `asymmetricKeyDetails.namedCurve` for Web Crypto P-256 (ADR-0016). */
 export const SDK_POP_NAMED_CURVE = "prime256v1" as const;

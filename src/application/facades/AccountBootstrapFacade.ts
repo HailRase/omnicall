@@ -4296,5 +4296,5 @@ function buildContactsCsvExportFileName(): string {
 
 function buildPreferencesExportFileName(): string {
   const datePart = new Date().toISOString().slice(0, 10);
-  return `axatalk-preferences-${datePart}.json`;
+  return `omnicall-preferences-${datePart}.json`;
 }

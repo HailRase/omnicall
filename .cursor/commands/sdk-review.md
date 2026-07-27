@@ -1,17 +1,17 @@
-Review one completed Axatalk SDK or Desktop SDK integration work unit without implementing
+Review one completed OmniCall Kit or Desktop SDK integration work unit without implementing
 production fixes.
 
 For SDK-* work read:
 
-- `axatalk-sdk/AGENTS.md`
-- `axatalk-sdk/docs/WORK-UNITS.md`
-- `axatalk-sdk/docs/DEFINITION-OF-DONE.md`
+- `omnicall-kit/AGENTS.md`
+- `omnicall-kit/docs/WORK-UNITS.md`
+- `omnicall-kit/docs/DEFINITION-OF-DONE.md`
 
 For DI-* work read:
 
-- `axatalk-sdk-integration/AGENTS.md`
-- `axatalk-sdk-integration/WORK-UNITS.md`
-- `axatalk-sdk-integration/TEST-MATRIX.md`
+- `omnicall-kit-integration/AGENTS.md`
+- `omnicall-kit-integration/WORK-UNITS.md`
+- `omnicall-kit-integration/TEST-MATRIX.md`
 
 Always read the shared protocol and security documents. Verify checklist, diff, tests,
 security, API compatibility, regression evidence, and cross-track fixture parity.

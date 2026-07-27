@@ -29,7 +29,7 @@ afterEach(async () => {
 });
 
 async function createTempStorageRoot(): Promise<string> {
-  const root = await mkdtemp(join(tmpdir(), "axatalk-bootstrap-"));
+  const root = await mkdtemp(join(tmpdir(), "omnicall-bootstrap-"));
   tempRoots.push(root);
   return root;
 }

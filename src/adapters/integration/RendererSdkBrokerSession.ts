@@ -8,12 +8,12 @@ import type {
   ProtocolErrorCode,
   ReplyMessage,
   WireJsonObject,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 import {
   isCommandAvailableInProductV1,
   productDenialCodeForCommand,
   validateWireMessage,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 import type {
   ExternalCommandHandler,
   ExternalHandlerResult,

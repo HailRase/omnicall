@@ -2,7 +2,7 @@
  * Activate error mapping + auth-budget race helpers (DI-08 / ADR-0018 timeout sync).
  */
 
-import type { WireJsonObject } from "@axata/axatalk-protocol";
+import type { WireJsonObject } from "@softomnitel/omnicall-protocol";
 import { ACCOUNT_SIGN_IN_LOGOUT_REQUIRED_MESSAGE } from "@application/facades/accountSignInCommand.js";
 import { mapAuthorizationFailureKind } from "@application/projections/settings/authorizationProgressProjection.js";
 import type { ExternalHandlerResult } from "@ports/integration/ExternalCommandHandler.js";

@@ -3,12 +3,12 @@
  * Mutations (call/operator/account) stay on dedicated handlers (DI-06+).
  */
 
-import type { WireJsonObject } from "@axata/axatalk-protocol";
+import type { WireJsonObject } from "@softomnitel/omnicall-protocol";
 import {
   isCommandAvailableInProductV1,
   productDenialCodeForCommand,
   validateWireMessage,
-} from "@axata/axatalk-protocol";
+} from "@softomnitel/omnicall-protocol";
 import type {
   ExternalCommandContext,
   ExternalCommandHandler,

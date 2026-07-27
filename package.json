@@ -1,10 +1,10 @@
 {
-  "name": "Axatalk",
-  "version": "0.15.0",
+  "name": "OmniCall",
+  "version": "1.0.0",
   "private": true,
   "description": "Softphone Platform",
-  "author": "Axata",
-  "desktopName": "axatalk",
+  "author": "SoftOmniTel",
+  "desktopName": "omnicall",
   "main": "out/main/index.js",
   "type": "module",
   "engines": {
@@ -40,7 +40,7 @@
     "i18n:check": "node scripts/check-i18n-hardcoded.mjs"
   },
   "dependencies": {
-    "@axata/axatalk-protocol": "file:axatalk-sdk/packages/protocol",
+    "@softomnitel/omnicall-protocol": "file:omnicall-kit/packages/protocol",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",

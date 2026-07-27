@@ -33,10 +33,10 @@ export default tseslint.config(
       "node_modules/**",
       "scripts/**",
       // DI-* Node smoke harnesses (same class as root scripts/** — not product TS).
-      "axatalk-sdk-integration/scripts/**",
+      "omnicall-kit-integration/scripts/**",
       ".storybook/**",
       // Nested SDK workspace has its own ESLint/tsconfig (SDK-00+). Do not lint it from desktop root.
-      "axatalk-sdk/**",
+      "omnicall-kit/**",
     ],
   },
   js.configs.recommended,
@@ -133,8 +133,8 @@ export default tseslint.config(
           patterns: [
             {
               group: [
-                "@axata/axatalk-protocol",
-                "@axata/axatalk-protocol/*",
+                "@softomnitel/omnicall-protocol",
+                "@softomnitel/omnicall-protocol/*",
                 "zod",
                 "zod/*",
                 "electron",
@@ -143,7 +143,7 @@ export default tseslint.config(
                 "ws/*",
               ],
               message:
-                "Domain must not import @axata/axatalk-protocol, Zod, Electron, or ws (F-011 / ADR-0009).",
+                "Domain must not import @softomnitel/omnicall-protocol, Zod, Electron, or ws (F-011 / ADR-0009).",
             },
           ],
         },

@@ -1,4 +1,4 @@
-# Руководство пользователя Axatalk
+# Руководство пользователя OmniCall
 
 Краткая инструкция по скачиванию, установке и ежедневной работе в десктопном софтфоне.
 
@@ -10,15 +10,15 @@
 
 Актуальные установщики — на странице релизов GitHub:
 
-**https://github.com/HailRase/axatalk-releases/releases/latest**
+**https://github.com/HailRase/omnicall-releases/releases/latest**
 
 | ОС | Файл | Как выбрать |
 | --- | --- | --- |
-| Windows | `Axatalk-<версия>-win-x64.exe` | Скачать `.exe` (обычная установка) |
-| Windows (IT) | `Axatalk-<версия>-win-x64.msi` | MSI для GPO / `msiexec` |
-| macOS (Apple Silicon) | `Axatalk-<версия>-mac-arm64.dmg` | Скачать `.dmg` |
-| Linux | `Axatalk-<версия>-linux-x86_64.AppImage` | **Рекомендуется** |
-| Linux (Debian/Ubuntu) | `Axatalk-<версия>-linux-amd64.deb` | Только через терминал или GDebi |
+| Windows | `OmniCall-<версия>-win-x64.exe` | Скачать `.exe` (обычная установка) |
+| Windows (IT) | `OmniCall-<версия>-win-x64.msi` | MSI для GPO / `msiexec` |
+| macOS (Apple Silicon) | `OmniCall-<версия>-mac-arm64.dmg` | Скачать `.dmg` |
+| Linux | `OmniCall-<версия>-linux-x86_64.AppImage` | **Рекомендуется** |
+| Linux (Debian/Ubuntu) | `OmniCall-<версия>-linux-amd64.deb` | Только через терминал или GDebi |
 
 Версию можно посмотреть в названии файла или в разделе **О программе** после установки.
 
@@ -32,13 +32,13 @@
 
 ### macOS
 
-Откройте `.dmg`, перетащите **Axatalk** в **Программы**. При первом запуске разрешите приложение в **Конфиденциальность и безопасность**.
+Откройте `.dmg`, перетащите **OmniCall** в **Программы**. При первом запуске разрешите приложение в **Конфиденциальность и безопасность**.
 
 ### Linux — AppImage (рекомендуется)
 
 ```bash
-chmod +x Axatalk-*-linux-x86_64.AppImage
-./Axatalk-*-linux-x86_64.AppImage
+chmod +x OmniCall-*-linux-x86_64.AppImage
+./OmniCall-*-linux-x86_64.AppImage
 ```
 
 ### Linux — `.deb`
@@ -47,7 +47,7 @@ chmod +x Axatalk-*-linux-x86_64.AppImage
 
 ```bash
 cd ~/Downloads
-sudo apt install ./Axatalk-*-linux-amd64.deb
+sudo apt install ./OmniCall-*-linux-amd64.deb
 ```
 
 Подробности и обходные пути: [`install-instruction.md`](install-instruction.md), раздел Linux.
@@ -56,7 +56,7 @@ sudo apt install ./Axatalk-*-linux-amd64.deb
 
 ## 3. Первый запуск
 
-1. Запустите **Axatalk** из меню ОС или ярлыка.
+1. Запустите **OmniCall** из меню ОС или ярлыка.
 2. Дождитесь исчезновения надписи «Booting application…».
 3. Откройте **Настройки** (аватар в шапке → пункт меню).
 4. Раздел **Аккаунт** — введите данные SIP от администратора:
@@ -135,12 +135,12 @@ sudo apt install ./Axatalk-*-linux-amd64.deb
 
 ## 9. Проверка обновлений
 
-Axatalk **не устанавливает** обновления автоматически — только сообщает о новой версии.
+OmniCall **не устанавливает** обновления автоматически — только сообщает о новой версии.
 
 1. **Настройки** → **Общее** → **О программе**.
 2. Нажмите **Проверить обновления**.
 3. Если версия новее установленной — откроется страница скачивания в браузере.
-4. Скачайте установщик с [GitHub Releases](https://github.com/HailRase/axatalk-releases/releases/latest) и установите поверх (или по инструкции вашей ОС).
+4. Скачайте установщик с [GitHub Releases](https://github.com/HailRase/omnicall-releases/releases/latest) и установите поверх (или по инструкции вашей ОС).
 
 Проверка работает в сборках, собранных с URL manifest (production). В dev-режиме кнопка может быть недоступна.
 
@@ -153,7 +153,7 @@ Axatalk **не устанавливает** обновления автомат�
 | Не регистрируется SIP | Проверить сервер, `wss`/`ws`, сертификат, логин/пароль |
 | Нет звука | Микрофон и динамики в настройках ОС |
 | Linux: App Center закрылся при `.deb` | `sudo apt install ./файл.deb` или AppImage |
-| Linux: приложение сразу закрывается | Запуск из терминала `/opt/Axatalk/axatalk`, см. install-instruction |
+| Linux: приложение сразу закрывается | Запуск из терминала `/opt/OmniCall/omnicall`, см. install-instruction |
 | «Проверка обновлений недоступна» | Нужна production-сборка с manifest URL |
 | Windows SmartScreen | «Подробнее» → «Выполнить в любом случае» |
 

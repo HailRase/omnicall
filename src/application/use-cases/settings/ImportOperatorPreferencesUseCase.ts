@@ -60,8 +60,8 @@ export class ImportOperatorPreferencesUseCase {
       featureId: "F-030",
       boundedContext: "Settings",
       operation: "import_operator_preferences",
-      profileKey,
-      sourceProfileKey: parsed.value.profileKey,
+      profileKey: profileKey ?? undefined,
+      sourceProfileKey: parsed.value.profileKey ?? undefined,
       schemaVersion: parsed.value.settings.schemaVersion,
       result: "succeeded",
     });

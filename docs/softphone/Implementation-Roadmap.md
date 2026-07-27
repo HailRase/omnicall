@@ -526,8 +526,8 @@ Replace legacy embed `window.Softphone` with Electron-native external integratio
 
 Execution package:
 
-- Standalone SDK: `axatalk-sdk/README.md`
-- Desktop integration: `axatalk-sdk-integration/README.md`
+- Standalone SDK: `omnicall-kit/README.md`
+- Desktop integration: `omnicall-kit-integration/README.md`
 - Work units: SDK-00…SDK-10 and DI-00…DI-10; execute one reviewed unit per agent session.
 
 Order:

@@ -14,7 +14,7 @@ inclusion; privacy masks still follow ADR-0017 O-PII-1.
 - **Features:** F-011 (SDK), F-028 (OCP campaign UI)
 - **Legacy:** LF-038, LF-039 (notify parity); LF-040 accept/reject remains desktop UI
 - **Contexts:** Integration, Operator
-- **Layers:** `@axata/axatalk-protocol`, Application mappers (DI-05), Local WS fan-out
+- **Layers:** `@softomnitel/omnicall-protocol`, Application mappers (DI-05), Local WS fan-out
 
 ADR-0017 deferred `operator:campaign-offered` / `operator:campaign-cleared` past v1
 because the privacy DTO was incomplete. Desktop F-028 now projects campaign offers

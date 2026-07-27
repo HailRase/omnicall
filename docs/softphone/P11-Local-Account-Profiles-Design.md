@@ -53,7 +53,7 @@ Normalization helpers live in `src/domain/settings/` (pure functions, unit-teste
 
 ## Persistence layout
 
-Injected root: `{userData}/axatalk/profiles/` (exact path from Electron main or test temp dir).
+Injected root: `{userData}/omnicall/profiles/` (exact path from Electron main or test temp dir).
 
 ```txt
 profiles/

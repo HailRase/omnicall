@@ -2,7 +2,7 @@
  * Per-connection state for the loopback SDK gateway (DI-03/DI-04).
  */
 
-import type { CapabilityId } from "@axata/axatalk-protocol";
+import type { CapabilityId } from "@softomnitel/omnicall-protocol";
 import type { RawData } from "ws";
 
 import type { SdkGatewayLimits } from "./sdkGatewayConfig.js";

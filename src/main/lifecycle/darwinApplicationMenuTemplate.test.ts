@@ -26,17 +26,17 @@ function collectRoles(
 
 describe("buildDarwinApplicationMenuTemplate", () => {
   it("includes App and Edit top-level menus only in production mode", () => {
-    const template = buildDarwinApplicationMenuTemplate("Axatalk");
+    const template = buildDarwinApplicationMenuTemplate("OmniCall");
 
-    expect(template.map((item) => item.label)).toEqual(["Axatalk", "Edit"]);
+    expect(template.map((item) => item.label)).toEqual(["OmniCall", "Edit"]);
   });
 
   it("adds View menu with developer roles only when enabled", () => {
-    const template = buildDarwinApplicationMenuTemplate("Axatalk", {
+    const template = buildDarwinApplicationMenuTemplate("OmniCall", {
       includeDeveloperViewMenu: true,
     });
 
-    expect(template.map((item) => item.label)).toEqual(["Axatalk", "Edit", "View"]);
+    expect(template.map((item) => item.label)).toEqual(["OmniCall", "Edit", "View"]);
     const roles = collectRoles(template);
 
     for (const role of getMacosDevViewMenuRoles()) {
@@ -45,11 +45,11 @@ describe("buildDarwinApplicationMenuTemplate", () => {
   });
 
   it("omits View menu in production mode", () => {
-    const template = buildDarwinApplicationMenuTemplate("Axatalk", {
+    const template = buildDarwinApplicationMenuTemplate("OmniCall", {
       includeDeveloperViewMenu: false,
     });
 
-    expect(template.map((item) => item.label)).toEqual(["Axatalk", "Edit"]);
+    expect(template.map((item) => item.label)).toEqual(["OmniCall", "Edit"]);
     const roles = collectRoles(template);
 
     for (const role of getMacosDevViewMenuRoles()) {
@@ -58,7 +58,7 @@ describe("buildDarwinApplicationMenuTemplate", () => {
   });
 
   it("registers native edit roles required for Cmd+C/V/A shortcuts", () => {
-    const template = buildDarwinApplicationMenuTemplate("Axatalk");
+    const template = buildDarwinApplicationMenuTemplate("OmniCall");
     const roles = collectRoles(template);
 
     for (const role of getMacosEditMenuRoles()) {
