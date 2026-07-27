@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-27 11:19
 **Статус:** выполнено
-**Коммит:** `f689950`
+**Коммит:** `048d2b4`
 
 ## Где
 - `axatalk-sdk/packages/protocol/src/operator-status.ts`
