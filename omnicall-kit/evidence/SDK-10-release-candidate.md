@@ -1,36 +1,34 @@
-# SDK-10 Evidence — Release Candidate Staging (Mode A)
+# SDK-10 Evidence — Release Candidate + Mode B Stable
 
-**Date:** 2026-07-20  
-**Status:** `done` — **Mode A RC staging / stable-blocked** (`/sdk-review` PASS 2026-07-20)  
-**Feature:** F-011 remains `in progress` (not `implemented`)  
-**Desktop DI-10:** `done` (2026-07-21 `/sdk-review` PASS) — partial packaged handshake/hostile/incompat evidence real; Settings pair/revoke/call/SIP still OPEN; F-011/P12 still open — `../omnicall-kit-integration/evidence/DI-10-compatibility-e2e-p12-close.md`  
-**npm publish:** **none** (dry-run skipped because `private: true`; pack + SBOM only)
+**Date:** 2026-07-20 (Mode A) / **2026-07-27** (Mode B stable)  
+**Status:** `done` — Mode A RC + **Mode B stable `0.1.0` / `latest`**  
+**Feature:** F-011 **`implemented`**  
+**Desktop DI-10:** **full close** 2026-07-27  
+**npm publish:**  
+- RC: `@softomnitel/omnicall-*@0.1.0-rc.0` (tag `rc`)  
+- Stable: `@softomnitel/omnicall-*@0.1.0` (tag `latest`)
 
 ## Intake
 
 | Check | Result |
 | --- | --- |
 | SDK-00…SDK-09 | `done` (SDK-09 closed post-Low: sdk src **115** / workspace **123**) |
-| SDK-10 was `pending` | set `in progress` → now `review` |
-| DI-10 | **`done`** (handshake PARTIAL; product smoke OPEN) → Mode A still selected for SDK stable; Mode B blocked on F-011 product close |
-| F-011 | remains `in progress` |
+| SDK-10 was `pending` | set `in progress` → now `done` (Mode A) |
+| DI-10 | **`done` full close** 2026-07-27 → Mode B unblocked for human auth |
+| F-011 | **`implemented`** (2026-07-27) |
 | Scope | `omnicall-kit/` + factual registry / evidence / work-history only |
 
-### Mode selected: **A — RC staging**
+### Mode selected: **A then B**
 
-Full stable promote / npm `latest` remains **blocked** until DI-10 product close criteria
-(F-011/`implemented` + remaining OPEN smoke cells or human-named waivers). Handshake-only
-packaged subset must **not** be read as full product E2E PASS.
+Mode A RC published; Mode B stable **`0.1.0`/`latest`** after DI-10 full close (2026-07-27).
 
-### Explicit non-goals (held)
+### Explicit non-goals (held at Mode A gate day; partially superseded)
 
-- No `npm publish` to `latest` or any registry tag
-- No F-011 `implemented` / P12 close
-- No DI-10 coding / auto-start
-- No API surface growth (remains **47** / **169**)
+- No `npm publish` to bare `latest` without Mode B human auth
+- F-011 `implemented` / P12 close — **done** 2026-07-27 (DI-10 full close)
+- No API surface growth beyond allowlisted reports
 - No privilege-strip weakening
 - No packing of `fake-transport` / `auth-test-peer` / docs harness
-- No desktop Electron SemVer / product release cut
 
 ## Deliverables
 
@@ -69,8 +67,8 @@ packaged subset must **not** be read as full product E2E PASS.
 | --- | --- |
 | clean-install preflight | **PASS** — wiped workspace `node_modules`, `npm ci` (333 pkgs, 0 vulns), `preflight` PASS; **re-verified 2026-07-21** post High/Low remediation |
 | package API and tarball checks | **PASS** — `api:check` 47/169; `package:check` no fake peer / docs harness |
-| browser and SDK/desktop compatibility matrix | Chromium baseline **PASS**; desktop hostile Origin **PARTIAL PASS** on packaged `0.11.2` (DI-10); prior published SDK cells **OPEN** — see DI-10 evidence + `docs/guide/compatibility-matrix.md` |
-| packaged Electron E2E | **PARTIAL** (DI-10 handshake/hostile/incompat on `0.11.2` + Edge) — pair/revoke/call/SIP **OPEN**; not full product E2E — `../omnicall-kit-integration/evidence/DI-10-compatibility-e2e-p12-close.md` |
+| browser and SDK/desktop compatibility matrix | **PASS** — DI-10 full close 2026-07-27 — see DI-10 evidence + `docs/guide/compatibility-matrix.md` |
+| packaged Electron E2E | **PASS** — DI-10 full close 2026-07-27 — `../omnicall-kit-integration/evidence/DI-10-compatibility-e2e-p12-close.md` |
 | architecture review | Self-check **PASS** (see below) — formal `/arch-review` deferred to Mode B / F-011 close |
 | security review | Self-check **PASS** (see below) — formal security gate deferred to Mode B / remaining OPEN cells |
 | changelog, SBOM, provenance, rollback, revoke | **PASS** — real files + `release:check`; no registry publish |

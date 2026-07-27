@@ -54,10 +54,10 @@ Native window commands remain in main.
 
 ## Current Status
 
-- F-011: **in progress** (DI-01…DI-11 `done`; F-011/P12 not closed — remaining OPEN DI-10 smoke; SDK-00…SDK-10 Mode A `done`)
+- F-011: **`implemented`** (2026-07-27 — DI-00…DI-11 `done`; DI-10 **full close**; Mode B npm **`0.1.0`/`latest`**)
 - ADRs: ADR-0009…0013 Accepted; precision rows closed by SDK-01 ADR-0014…0017 (`done`)
 - SDK-02: `@softomnitel/omnicall-protocol` `done`; desktop consumes same fixtures (DI-01)
-- P12 handoff: `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`
+- P12 handoff: `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md` (**P12 closed** 2026-07-27)
 - Baseline: `evidence/DI-00-baseline.md`
 - DI-01 evidence: `evidence/DI-01-protocol-ports-mocks.md`
 - DI-02 evidence: `evidence/DI-02-typed-main-renderer-broker.md` (`/sdk-review` PASS)
@@ -75,9 +75,9 @@ Native window commands remain in main.
 - SDK Settings UX: **`done`** (DI-09) — origins/paired/revoke/grant/diagnostics; hide disabled;
   **listener enable toggle superseded by DI-11** (always-on gateway per ADR-0018 — `done`)
 - Read-only event/snapshot transport: implemented (DI-05 `done`)
-- DI-10 evidence: `evidence/DI-10-compatibility-e2e-p12-close.md` (`done` — `/sdk-review` PASS 2026-07-21; handshake subset; pair/call/SIP OPEN)
+- DI-10 evidence: `evidence/DI-10-compatibility-e2e-p12-close.md` (`done` — `/sdk-review` PASS 2026-07-21; **full close** 2026-07-27)
 - DI-11 evidence: `evidence/DI-11-origin-tofu-blacklist-activate.md` (`done` — `/sdk-review` PASS 2026-07-21)
-- Next: remaining OPEN DI-10 smoke/waivers → F-011/`implemented` / P12 close (DI-11 already PASS)
+- Next: optional npm Teams private; further SDK SemVer as needed (Mode B **`0.1.0`** shipped)
 - DI-11 planning (decisions frozen): `evidence/DI-11-origin-tofu-blacklist-activate-planning.md`
 
-Do not claim P12 complete until remaining packaged smoke/waivers pass (DI-00…DI-11 reviewed).
+P12 / F-011 closed 2026-07-27 (DI-00…DI-11 reviewed; DI-10 full close).

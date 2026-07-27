@@ -25,7 +25,7 @@ compatible. Removals / renames remain breaking. Optional client options
 (`transportFactory?`, `scheduler?`, `jitter?`) and optional protocol fields
 (`reservedTarget` / `reservedReasonId`) are compatible.
 
-No npm `latest` / stable until DI-10 / F-011 product close criteria pass.
+Stable npm `latest` is **`0.1.0`** (Mode B, 2026-07-27). Prefer pinning for production CRMs.
 
 
 ## Rollback / revoke (ops)

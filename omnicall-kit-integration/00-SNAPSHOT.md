@@ -9,8 +9,8 @@ recorded evidence on 2026-07-20.
 
 - OmniCall Desktop version: `0.12.0`
 - Branch / commits (DI-00): `feature/omnicall-kit` — code preflight `5114c02`; docs `18fb3f1`
-- F-011 Host Integration Contract: `in progress` (DI-01…DI-11 `done`; not `implemented` — remaining OPEN DI-10 smoke)
-- P12 External Host API Compatibility: architecture closed (DI-00); DI-01…DI-11 `done` (packaged handshake PARTIAL; pair/call/SIP OPEN; ADR-0018 DI-11 `/sdk-review` PASS)
+- F-011 Host Integration Contract: **`implemented`** (2026-07-27 — DI-01…DI-11 `done`; DI-10 full close)
+- P12 External Host API Compatibility: **closed** (2026-07-27; DI-10 full close; ADR-0018 DI-11 `/sdk-review` PASS)
 - F-028 OCP command subset E-12: implemented
 - SIP-only product path: implemented and mandatory
 - OCP module: optional

@@ -24,7 +24,13 @@
     "docs:check": "node ./scripts/docs-check.mjs",
     "preflight": "node ./scripts/preflight.mjs",
     "sbom": "node ./scripts/sbom.mjs",
+    "release:preflight": "node ./scripts/preflight.mjs",
     "release:check": "node ./scripts/release-check.mjs",
+    "release:version": "node ./scripts/release-version.mjs",
+    "release:prepare": "node ./scripts/release-prepare-publishable.mjs",
+    "release:publish-rc": "node ./scripts/release-publish.mjs rc",
+    "release:publish-stable": "node ./scripts/release-publish.mjs stable",
+    "release:sbom": "node ./scripts/sbom.mjs",
     "changeset": "changeset"
   },
   "devDependencies": {

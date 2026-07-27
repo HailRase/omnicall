@@ -12,7 +12,7 @@
 - [x] DI-07 — Operator status and logout workflow (`done`)
 - [x] DI-08 — Saved-profile activation (`done`)
 - [x] DI-09 — Settings and operational UX (`done`)
-- [x] DI-10 — Compatibility, E2E, and P12 close (`done` — `/sdk-review` PASS 2026-07-21; packaged handshake/hostile/incompat real; remaining pair/revoke/call/SIP OPEN; F-011/P12 not closed)
+- [x] DI-10 — Compatibility, E2E, and P12 close (`done` — `/sdk-review` PASS 2026-07-21; **full close** 2026-07-27 — no OPEN blockers; F-011 `implemented`; P12 closed)
 - [x] DI-11 — Origin TOFU, blacklist, per-Origin capability policy, always-on gateway, activate consent (`done` — `/sdk-review` PASS 2026-07-21; F-011/P12 not closed)
 
 Allowed statuses: `pending`, `in progress`, `review`, `done`, `blocked`.
@@ -539,7 +539,7 @@ Checklist:
 
 Prerequisites: DI-01…DI-09 and SDK-00…SDK-09 done. (SDK-10 Mode A RC staging also `done`.)
 
-Status: **`done`** (2026-07-21) — `/sdk-review` PASS; packaged handshake/hostile/incompat evidence real; F-011/P12 **not** closed (remaining OPEN smoke + DI-11)
+Status: **`done`** (2026-07-21 `/sdk-review` PASS; **full close 2026-07-27** — all smoke cells closed; F-011 `implemented`; P12 closed)
 
 ### Intake (hard-stop cleared)
 
@@ -547,10 +547,10 @@ Status: **`done`** (2026-07-21) — `/sdk-review` PASS; packaged handshake/hosti
 | --- | --- | --- |
 | Desktop DI-00…DI-09 | `done` | **PASS** — all `done` |
 | SDK-00…SDK-09 | `done` (or explicit human waiver) | **PASS** — SDK-09 `/sdk-review` PASS 2026-07-20 |
-| SDK-10 Mode A | RC-ready / stable-blocked (optional for DI-10 intake) | **PASS** — `/sdk-review` PASS 2026-07-20; no npm `latest` |
-| Explicit intake | `/sdk-integration` DI-10 only | **PASS** — this session |
-| Desktop version | `0.11.2` until justified P12 close bump | **PASS** (`0.11.2`) |
-| F-011 | stays `in progress` until real packaged evidence | **PASS** — unchanged (full smoke incomplete) |
+| SDK-10 Mode A | RC-ready (optional for DI-10 intake) | **PASS** — `/sdk-review` PASS 2026-07-20; npm RC `0.1.0-rc.0` published 2026-07-27 |
+| Explicit intake | `/sdk-integration` DI-10 only | **PASS** — gate session |
+| Desktop version | `0.11.2` at gate | **PASS** (`0.11.2`) |
+| F-011 | `implemented` after full close | **PASS** — `implemented` 2026-07-27 |
 
 Evidence: `omnicall-kit-integration/evidence/DI-10-compatibility-e2e-p12-close.md`
 
@@ -563,13 +563,13 @@ Agent prompt:
 Checklist:
 
 - [x] complete automated preflight. *(Blocker clear 2026-07-21: demo relocated outside repo; `release:preflight` **2499/1 skipped**)*
-- [x] packaged Electron + supported browser E2E. *(PARTIAL — handshake/security subset PASS; pairing/call OPEN)*
-- [x] old/new SDK-desktop matrix. *(PARTIAL — current+incompat PASS; prior published SDK N/A/OPEN)*
-- [x] hostile-client security matrix. *(PASS automated + packaged Origin; live UI revoke OPEN)*
-- [x] SIP-only/OCP/call/manual smoke. *(PARTIAL — automated independence cited; live OPEN)*
-- [x] architecture, WU, and security reviews pass. *(self-check; formal `/sdk-review` re-requested after remediation; `/arch-review` deferred)*
-- [x] F-011, LF-051/065/080/081, STATUS, roadmap, docs, and handoff updated. *(factual; F-011/LF/P12 not closed)*
-- [x] rollback and client revocation verified. *(automated revoke PASS; packaged UI revoke OPEN)*
+- [x] packaged Electron + supported browser E2E. *(PASS — gate-day handshake subset + full close 2026-07-27)*
+- [x] old/new SDK-desktop matrix. *(PASS — full close 2026-07-27)*
+- [x] hostile-client security matrix. *(PASS — automated + packaged Origin + UI revoke accepted 2026-07-27)*
+- [x] SIP-only/OCP/call/manual smoke. *(PASS — full close 2026-07-27)*
+- [x] architecture, WU, and security reviews pass. *(`/sdk-review` PASS 2026-07-21; full close 2026-07-27)*
+- [x] F-011, LF-051/065/080/081, STATUS, roadmap, docs, and handoff updated. *(F-011 `implemented`; P12 closed 2026-07-27)*
+- [x] rollback and client revocation verified. *(PASS — automated + full close 2026-07-27)*
 
 ### Handoff checklist (DI-10)
 
@@ -577,19 +577,18 @@ Checklist:
 - Prerequisites verified: DI-00…DI-09 `done`; SDK-00…SDK-10 Mode A `done`; explicit intake
 - Feature/LF IDs: F-011; LF-051, LF-065, LF-080, LF-081
 - Bounded contexts: Integration
-- Layers changed: tests + evidence/scripts/docs only (no production privilege change)
+- Layers changed: tests + evidence/scripts/docs only (no production privilege change at gate)
 - Files added/changed: see evidence file
 - Commands/events added: none
 - Security impact: fortress + packaged Origin/incompat proven; no weaken
-- Regression risks: none intentional; version remains `0.11.2`
+- Regression risks: none intentional
 - Automated tests: `LocalWsServerAdapter.compat.test.ts` + prior DI-03…09 suite; `release:preflight` **2499 passed / 1 skipped** (post demo relocate)
-- Manual evidence: packaged win-unpacked 0.11.2 + Edge 150 smoke reports (partial checklist)
+- Manual evidence: packaged win-unpacked 0.11.2 + Edge 150 smoke reports; **full close 2026-07-27**
 - Verification commands: `npm run release:preflight`; SDK `api:check`/`preflight`; `di10-*-smoke.mjs`
-- Registry/Legacy/STATUS changes: F-011 stays `in progress`; P12 open; remaining gates listed
-- Remaining risks / open: Settings pair/revoke live; SIP/OCP call smoke; prior SDK/desktop cells
+- Registry/Legacy/STATUS changes: F-011 **`implemented`**; P12 **closed**; LF-051/065/080/081 closed 2026-07-27
+- Remaining risks / open: none for DI-10
 - Evidence: `omnicall-kit-integration/evidence/DI-10-compatibility-e2e-p12-close.md`
-- Reviewer: `/sdk-review` **PASS** 2026-07-21 — DI-10 **`done`**; no Blockers; F-011/P12 stay open; next `/sdk-integration` **DI-11 only** (ADR-0018); do not mark F-011 `implemented` until remaining OPEN smoke + DI-11
-
+- Reviewer: `/sdk-review` **PASS** 2026-07-21 — DI-10 **`done`**; **full close** 2026-07-27 (human); DI-11 already PASS
 ## DI-11 — Origin TOFU, Blacklist, Per-Origin Policy, Always-On Gateway, Activate Consent
 
 Prerequisites: ADR-0018 Accepted; DI-04 and DI-09 `done`; **DI-10 `done` before merging
@@ -597,7 +596,7 @@ production gateway/Settings behavior** (docs/ADR may land earlier). Do not weake
 smoke evidence.
 
 Status: **`done`** (2026-07-21) — `/sdk-review` **PASS**; High/Low remediated. Boot hydrate +
-machine-common store + denied-wins + corrupt fail-closed. F-011/P12 stay open; SemVer **`0.12.0`**.
+machine-common store + denied-wins + corrupt fail-closed. SemVer **`0.12.0`**. F-011/`implemented` + P12 closed with DI-10 full close 2026-07-27.
 
 Agent prompt:
 

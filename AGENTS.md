@@ -13,7 +13,8 @@
 - UI Kit plan: `docs/ui-kit/UI-KIT.md`
 - UI Kit visual canon: `docs/ui-kit/VISUAL-SPEC.md`
 - **SIP transport/register refactor (T-008):** `docs/softphone/TRANSPORT-REGISTER-STATE-REFACTORING.md`
-- **OmniCall Kit project:** `omnicall-kit/README.md`
+- **OmniCall Kit project:** `omnicall-kit/README.md` (incubation copy)
+- **OmniCall Kit GitHub (private):** https://github.com/HailRase/omnicall-kit — publishable protocol + kit
 - **Desktop SDK integration (F-011/P12):** `omnicall-kit-integration/README.md`
 - **OCP queue + campaign UI (F-028):** `docs/softphone/OCP-Call-Context.md`
 

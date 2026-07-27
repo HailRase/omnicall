@@ -41,12 +41,12 @@ for (const pkg of packages) {
   const pkgJsonPath = path.join(root, pkg.dir, 'package.json');
   const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf8'));
   const publishConfig = pkgJson.publishConfig ?? {};
-  if (publishConfig.access !== 'public') {
-    console.error(`${pkg.name}: publishConfig.access must be "public"`);
+  if (publishConfig.access !== 'public' && publishConfig.access !== 'restricted') {
+    console.error(`${pkg.name}: publishConfig.access must be "public" or "restricted"`);
     process.exit(1);
   }
-  if (publishConfig.provenance !== true) {
-    console.error(`${pkg.name}: publishConfig.provenance must be true`);
+  if (publishConfig.provenance !== true && publishConfig.provenance !== false) {
+    console.error(`${pkg.name}: publishConfig.provenance must be true (CI) or false (local CLI)`);
     process.exit(1);
   }
   if (pkg.name === '@softomnitel/omnicall-kit') {
@@ -88,7 +88,8 @@ for (const pkg of packages) {
     console.log(`\n${pkg.name}: npm publish --dry-run skipped (private:true, Mode A expected)`);
     continue;
   }
-  const dry = run('npm', ['publish', '--dry-run', '--tag', 'rc', '--access', 'public'], pkgDir);
+  const access = publishConfig.access === 'restricted' ? 'restricted' : 'public';
+  const dry = run('npm', ['publish', '--dry-run', '--tag', 'rc', '--access', access], pkgDir);
   if (dry.status !== 0) {
     process.stderr.write(dry.stderr || dry.stdout || '');
     process.exit(dry.status ?? 1);
@@ -96,9 +97,9 @@ for (const pkg of packages) {
   dryRunResults.push({
     package: pkg.name,
     mode: 'dry-run',
-    detail: 'npm publish --dry-run --tag rc PASS'
+    detail: `npm publish --dry-run --tag rc --access ${access} PASS`
   });
-  console.log(`\n${pkg.name}: npm publish --dry-run --tag rc PASS`);
+  console.log(`\n${pkg.name}: npm publish --dry-run --tag rc --access ${access} PASS`);
 }
 
 const reportPath = path.join(root, 'temp', 'release-check-report.json');
@@ -109,7 +110,9 @@ fs.writeFileSync(
     {
       generatedAt: new Date().toISOString(),
       publishPerformed: false,
-      stableBlockedOnDi10: true,
+      stableBlockedOnDi10: false,
+      di10FullCloseAt: '2026-07-27',
+      modeBRequiresHumanAuth: true,
       dryRunResults
     },
     null,

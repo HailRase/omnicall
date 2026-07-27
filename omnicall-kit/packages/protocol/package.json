@@ -1,9 +1,9 @@
 {
   "name": "@softomnitel/omnicall-protocol",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "OmniCall local protocol v1 runtime schemas, inferred types, and compatibility fixtures",
   "type": "module",
-  "private": true,
+  "private": false,
   "license": "UNLICENSED",
   "engines": {
     "node": ">=20.19.0"
@@ -31,7 +31,16 @@
   },
   "publishConfig": {
     "access": "public",
-    "provenance": true
+    "provenance": false
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HailRase/omnicall-kit.git",
+    "directory": "packages/protocol"
+  },
+  "homepage": "https://github.com/HailRase/omnicall-kit#readme",
+  "bugs": {
+    "url": "https://github.com/HailRase/omnicall-kit/issues"
   },
   "dependencies": {
     "zod": "4.4.3"

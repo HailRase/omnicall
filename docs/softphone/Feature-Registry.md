@@ -303,7 +303,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Legacy IDs: `LF-051`, `LF-065`, `LF-080`, `LF-081`
 - Context: Integration
 - Priority: critical
-- Status: **in progress** (legacy `window.Softphone` **not ported**; architecture gate DI-00 `done`; SDK-00…SDK-10 Mode A `done` (RC-ready / stable-blocked; no npm `latest`); publish names `@softomnitel/omnicall-kit` + `@softomnitel/omnicall-protocol`; DI-01…DI-11 **`done`** (DI-10 packaged handshake/hostile/incompat PASS; Settings pair/revoke/call/SIP smoke **OPEN**; **ADR-0018** / DI-11 `/sdk-review` **PASS** 2026-07-21; **ADR-0021** shared-desk call control + granular `call.answer|reject|hangup|hold|mute` matrix 2026-07-27); F-011 not `implemented` until remaining DI-10 smoke (or waiver); P12 not closed — `omnicall-kit-integration/evidence/DI-10-compatibility-e2e-p12-close.md`, `omnicall-kit-integration/evidence/DI-11-origin-tofu-blacklist-activate.md`)
+- Status: **`implemented`** (2026-07-27 — DI-10 **full close**; Mode B npm **`@softomnitel/omnicall-kit@0.1.0`** + **`@softomnitel/omnicall-protocol@0.1.0`** (`latest`); RC `0.1.0-rc.0` on tag `rc`; DI-00…DI-11 **`done`**; **ADR-0018** / DI-11 PASS; **ADR-0021** — evidence `omnicall-kit-integration/evidence/DI-10-compatibility-e2e-p12-close.md`, `omnicall-kit-integration/evidence/DI-11-origin-tofu-blacklist-activate.md`)
 - Owner: TBD
 - Inputs: external commands from browser tabs via WS (not DOM globals)
 - Outputs: typed commands routed to Facade / Use Cases with `callType: 'sdk'` (F-028 E-12 host methods retain `callType: 'external'`)
@@ -320,7 +320,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - Test Coverage:
   - Unit: command payload parsing (F-028 E-12); DI-01 fixture corpus consume + mock gateway/broker + Domain dependency-boundary
   - Integration: DI-02 broker loopback; DI-03 loopback WS bind/limits/handshake/unauth deny/teardown; DI-04 Origin/pairing/PoP/capabilities/revoke; DI-05 redacted snapshot/events/`window:show`; DI-06 call commands via Call Engine (ownership/revision/idempotency); DI-07 operator/logout (`callType: "sdk"`, single-shot `account:logout` + `reasonId`, `interaction_required` without token); DI-08 saved-profile activate (`login` + Origin matrix `account.activate` + consent method picker; logout-first `conflict`); DI-09 Settings SDK Server card (origins/paired/revoke, hide disabled); **DI-11 `done`** (ADR-0018 TOFU/blacklist/per-Origin matrix/always-on gateway/activate consent/boot hydrate; schema v11); Settings UI (2026-07-21): three UI Kit Tabs (Main / Trusted sites / Blocked sites, Account-like slide indicator); trusted sites as UI Kit Accordion with FormField+Select permissions (allowed/denied) and explicit address Save/Cancel via UI Kit `IconButton` ghost; remove/blacklist confirms use AlertDialog `asChild` + UI Kit `Button` (ghost/destructive); blocked row origin+Unblock; shared Settings content measure (`SettingsForm.module.css`)
-  - E2E: DI-10 packaged win-unpacked `0.11.2` + Edge Chromium handshake/hostile/incompat **PASS** (partial); Settings pair/revoke + SIP/OCP call matrix **OPEN** — see `omnicall-kit-integration/evidence/DI-10-compatibility-e2e-p12-close.md`
+  - E2E: DI-10 packaged win-unpacked `0.11.2` + Edge Chromium + **full close 2026-07-27** — see `omnicall-kit-integration/evidence/DI-10-compatibility-e2e-p12-close.md`
 - Implementation plans: `omnicall-kit/README.md`; `omnicall-kit-integration/README.md`; `omnicall-kit-integration/WORK-UNITS.md` (DI-00…DI-11); `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`
 - ADR-0018: `docs/softphone/adr/ADR-0018-sdk-origin-tofu-blacklist-activate-consent.md`
 - Architecture ADRs: `docs/softphone/adr/ADR-0009-sdk-process-ownership-broker-lifecycle.md`; `ADR-0010`; `ADR-0011`; `ADR-0012`; `ADR-0013`; `ADR-0014`; `ADR-0015`; `ADR-0016`; `ADR-0017`
@@ -359,10 +359,10 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - DI-08 evidence: `omnicall-kit-integration/evidence/DI-08-saved-profile-activation.md`
 - SDK-08 evidence: `omnicall-kit/evidence/SDK-08-saved-profile-activation.md` (`done` — `/sdk-review` PASS; privileged `account.activateProfile` client)
 - SDK-09 evidence: `omnicall-kit/evidence/SDK-09-developer-docs-examples.md` (`done` — developer guide + fake-peer example; not published)
-- SDK-10 evidence: `omnicall-kit/evidence/SDK-10-release-candidate.md` (`done` — Mode A RC staging; stable/packaged E2E blocked on DI-10; no npm `latest`)
+- SDK-10 evidence: `omnicall-kit/evidence/SDK-10-release-candidate.md` (`done` — Mode A RC + Mode B stable **`0.1.0`** / `latest`)
 - SDK typing DX (2026-07-27, additive): integrator re-exports (`SnapshotMessage`, `CapabilityId`, …), `OmniCallEventOf`, tightened activate/operator result DTOs, typed error readers; guide `omnicall-kit/docs/guide/typescript.md`; public surface **77** symbols (`etc/api/sdk.api.md`); no product command / security policy change
 - DI-09 evidence: `omnicall-kit-integration/evidence/DI-09-settings-operational-ux.md`
-- DI-10 evidence: `omnicall-kit-integration/evidence/DI-10-compatibility-e2e-p12-close.md` (`done` — `/sdk-review` PASS 2026-07-21; F-011 not closed)
+- DI-10 evidence: `omnicall-kit-integration/evidence/DI-10-compatibility-e2e-p12-close.md` (`done` — full close 2026-07-27; F-011/`implemented`; P12 closed; Mode B `0.1.0`)
 - DI-11 planning: `omnicall-kit-integration/evidence/DI-11-origin-tofu-blacklist-activate-planning.md`
 - DI-11 evidence: `omnicall-kit-integration/evidence/DI-11-origin-tofu-blacklist-activate.md` (`done` — `/sdk-review` PASS 2026-07-21)
 - DI-11 follow-up (2026-07-22): live `grants ∩ Origin matrix` on commands/events/snapshots; multi-Origin isolation tests `LocalWsServerAdapter.multiOrigin.test.ts`; ADR-0018 §D / SECURITY / capabilities / TEST-MATRIX aligned

@@ -1,82 +1,75 @@
-# OmniCall Kit Project
+# OmniCall Kit
 
-This directory is the incubating npm workspace for `@softomnitel/omnicall-protocol` and `@softomnitel/omnicall-kit`.
-It remains inside the desktop repository until protocol v1 and compatibility fixtures are
-stable enough to extract. Never create a nested Git repository here.
+Publishable npm workspace for SoftOmniTel:
+
+| Package | npm name |
+| --- | --- |
+| Protocol | `@softomnitel/omnicall-protocol` |
+| Browser SDK | `@softomnitel/omnicall-kit` |
+
+Scoped under npm org **`softomnitel`**. Packages are configured for **private** (`restricted`) publish. npm **Teams** is required before registry publish; until then use this private GitHub repo for source access.
+
+- **Standalone GitHub repo:** [HailRase/omnicall-kit](https://github.com/HailRase/omnicall-kit) (private) — publishable source.
+- **Desktop incubation copy:** softphone tree `omnicall-kit/` (coupled with integration track).
+- Desktop counterpart docs (when inside softphone): [`../omnicall-kit-integration/README.md`](../omnicall-kit-integration/README.md).
 
 ## Goal
 
-Publish a strictly typed browser SDK that connects to OmniCall Desktop through a secure
-local protocol without exposing Electron, SIP, JsSIP, OCP wire objects, or internal
-Domain Events.
+Strictly typed browser SDK that connects to OmniCall Desktop through a secure local protocol without exposing Electron, SIP, JsSIP, OCP wire objects, or internal Domain Events.
 
-## Start Here
+## Start here
 
-### Integrators (developer docs)
+### Integrators
 
-1. [`docs/guide/README.md`](docs/guide/README.md) — canonical developer guide
-2. [`examples/crm-pairing-lite/`](examples/crm-pairing-lite/) — fake-peer CRM example
-3. Public API report: [`etc/api/sdk.api.md`](etc/api/sdk.api.md)
+1. [`docs/guide/README.md`](docs/guide/README.md)
+2. [`examples/crm-pairing-lite/`](examples/crm-pairing-lite/)
+3. API report: [`etc/api/sdk.api.md`](etc/api/sdk.api.md)
+4. npm access: [`guides/npm-org-and-access.md`](guides/npm-org-and-access.md)
 
-### Agents (implementation)
+### Release
 
-Every agent must read these files in order:
+1. [`guides/RELEASE-PLAYBOOK.md`](guides/RELEASE-PLAYBOOK.md)
+2. [`docs/guide/release-and-support.md`](docs/guide/release-and-support.md)
+
+### Agents
 
 1. [`AGENTS.md`](AGENTS.md)
 2. [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 3. [`docs/SECURITY.md`](docs/SECURITY.md)
 4. [`docs/PROTOCOL.md`](docs/PROTOCOL.md)
-5. [`docs/IMPLEMENTATION-PLAN.md`](docs/IMPLEMENTATION-PLAN.md)
-6. [`docs/WORK-UNITS.md`](docs/WORK-UNITS.md)
-7. [`docs/DEFINITION-OF-DONE.md`](docs/DEFINITION-OF-DONE.md)
-8. [`docs/CONSUMER-SMOKE-CHECKLIST.md`](docs/CONSUMER-SMOKE-CHECKLIST.md)
-9. [`docs/DEPENDENCIES.md`](docs/DEPENDENCIES.md)
+5. [`docs/DEFINITION-OF-DONE.md`](docs/DEFINITION-OF-DONE.md)
 
-The desktop counterpart is documented in
-[`../omnicall-kit-integration/README.md`](../omnicall-kit-integration/README.md).
+## Current status
 
-## Repository Strategy
+- SDK-00…SDK-10: done
+- DI-10 desktop gate: **full close** 2026-07-27 (F-011 `implemented`; P12 closed)
+- npm registry: Mode B cut **`0.1.0`** (local) — **npm `latest` publish pending OTP/automation token**; RC `0.1.0-rc.0` already on `rc`
+- Production readiness: stable version cut; registry `latest` awaiting publish auth
 
-The recommended end state is a separate publishable repository containing:
-
-- `@softomnitel/omnicall-protocol` — runtime schemas and public TypeScript contracts;
-- `@softomnitel/omnicall-kit` — browser client;
-- optional `@softomnitel/omnicall-kit-testing` — deterministic test server and fixtures.
-
-During protocol incubation, this directory remains inside the desktop repository so both
-tracks can evolve atomically. Extract it only after protocol v1 and compatibility fixtures
-are stable.
-
-## Current Status
-
-- Planning: complete
-- Workspace / tooling / CI: **SDK-00 done**
-- Protocol decisions: **SDK-01 done**
-- Protocol package: **SDK-02 done**
-- Transport / auth / client APIs: **SDK-03…SDK-08 done**
-- Official browser WebSocket adapter + optional transport/scheduler/jitter defaults: **done**
-  (`createBrowserWebSocketTransport`, guide `docs/guide/transport.md`)
-- Developer docs & examples: **SDK-09 done** (`evidence/SDK-09-developer-docs-examples.md`)
-- Public API: `OmniCallClient` namespaces (lifecycle, `calls`, `account`, `operator`, `window.show` / `window.hide` / `window.getState`)
-  — see `etc/api/sdk.api.md` for the current allowlisted symbol count
-- Release candidate staging: **SDK-10 Mode A done** — RC-ready / stable-blocked; **no** npm `latest`; prerelease mode `rc` entered (`0.1.0-rc.0` on `changeset version`)
-- F-011 / P12: **not closed** — desktop DI-10 remains **blocked** until explicit `/sdk-integration` DI-10 intake
-- Production readiness: not claimed
-
-### Local commands
+## Local commands
 
 ```bash
-cd omnicall-kit
 npm ci
-npm run preflight
+npm run release:preflight
 npm run release:check
 ```
 
 Node engines: `>=20.19.0`.
 
-## Non-Negotiable Release Rule
+## Release scripts (OmniCall-style)
 
-No public npm release is allowed until:
+| Script | Purpose |
+| --- | --- |
+| `npm run release:preflight` | Full gate |
+| `npm run release:version` | Apply changesets |
+| `npm run release:prepare` | Flip packages to publishable |
+| `npm run release:check` | Pack / SBOM / dry-run |
+| `npm run release:publish-rc` | Private publish `--tag rc` |
+| `npm run release:publish-stable` | Private publish `--tag latest` (DI-10 gate) |
+
+## Non-negotiable release rule
+
+No stable npm release until:
 
 - desktop secure transport and pairing gates pass;
 - protocol compatibility tests pass in both directions;

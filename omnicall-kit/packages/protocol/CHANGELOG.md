@@ -1,12 +1,18 @@
 # @softomnitel/omnicall-protocol
 
-## Unreleased — RC staging (SDK-10 Mode A)
+## 0.1.0
 
-First public release candidate target: **`0.1.0-rc.0`** on npm dist-tag **`rc`**
-(linked with `@softomnitel/omnicall-kit`).
+### Minor Changes
 
-Packages remain `private: true` / `0.0.0` until authorized RC publish.
-Stable / `latest` is **blocked on desktop DI-10**.
+- First **stable** public release (Mode B) after DI-10 full close (2026-07-27).
+  Runtime Zod schemas, inferred types, and golden fixtures for OmniCall local protocol v1.
+  npm dist-tag **`latest`**. Linked with `@softomnitel/omnicall-kit@0.1.0`.
+
+## 0.1.0-rc.0
+
+### Minor Changes
+
+- First public release candidate (Mode A). Protocol package for RC consumers on tag `rc`.
 
 ### Typing DX (additive, 2026-07-27)
 
@@ -20,32 +26,9 @@ Stable / `latest` is **blocked on desktop DI-10**.
 - Compatibility and negative fixtures for handshake, auth, commands, events, replies
 - Public surface tracked in `etc/api/protocol.api.md` (api:check gate)
 
-### Additive (compatible, desktop DI-05 follow-up 2026-07-26)
+### Additive (compatible)
 
-- Optional `queueLabel` (string 1…128) on call event payloads and `SnapshotCallSummary`
-  for ACD queue titles from desktop OCP call context. Omitted when unknown/direct.
-- **ADR-0019 campaign events (same day):** public `operator:campaign-offered` /
-  `operator:campaign-cleared`; capability `operator.campaign.read` (default on
-  `operator` / `call_controller` profiles); optional snapshot `operator.campaign`
-  (same redacted shape as offered). `V1_DEFERRED_CAMPAIGN_EVENTS` is now empty.
-  Accept/reject commands remain out of scope. API report updated via `api:check`.
-  Cleared `reasonCode` still includes `superseded` for compatibility; desktop
-  hold-until-idle for a second preview does not emit that reason (promote →
-  Cleared then Offered).
-- **ADR-0020 ACD wire (same day):** `call:acd-context` carries OCP MainCallIDInfo
-  snake_case fields (`acallid`, `main_acallid`, …) under capability
-  `ocp.acd_context.read` (default on `operator` / `call_controller`). Additive
-  `queueLabel` on `call:*` remains free of wire ids.
-- **ADR-0020 snapshot recovery (same day):** optional `SnapshotCallSummary.acdContext`
-  (same MainCallIDInfo snake_case shape, no parent `callId` repeat) for reconnect;
-  stripped without `ocp.acd_context.read`. Live `call:acd-context` unchanged.
-
-- **ADR-0013 amendment (2026-07-27):** `window:hide` product-available;
-  `V1_PRODUCT_UNAVAILABLE_COMMANDS` emptied (stable export retained). Privileged
-  capability `window.hide` — Origin matrix only; telephony-busy deny is a desktop
-  product rule (not a permanent protocol deny list entry).
-
-### Not included
-
-- Stable npm `latest` publish
-- Desktop Domain / Electron types (forbidden dependency)
+- Optional `queueLabel` on call events / `SnapshotCallSummary` (ACD queue titles)
+- ADR-0019 campaign events + `operator.campaign.read`
+- ADR-0020 `call:acd-context` + snapshot `acdContext` under `ocp.acd_context.read`
+- ADR-0013 amendment: `window:hide` product-available; `window.hide` capability

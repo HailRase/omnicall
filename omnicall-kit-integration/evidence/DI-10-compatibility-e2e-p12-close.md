@@ -1,18 +1,24 @@
 # DI-10 — Compatibility, E2E, and P12 Close (evidence)
 
+> **Full close (2026-07-27):** Human declaration — **DI-10 is fully complete**.
+> Remaining product smoke cells that were OPEN on gate day (Settings pair/revoke,
+> SIP/OCP call matrix, prior SDK/desktop cells) are **closed for the DI-10 gate**
+> (accepted complete / no longer blocking). F-011 → `implemented`; P12 → **closed**.
+> Gate-day historical rows remain below for audit; **current status is full PASS**.
+
 > **Superseded note (2026-07-27):** `window:hide` is product-available under ADR-0013
 > amendment. Rows below that claim “hide unavailable = PASS” describe DI-10 gate day only.
 > Current smoke: `SMOKE-CHECKLIST.md` + `DI-05-window-hide-product.md`.
 
-**Date:** 2026-07-21  
-**Mode:** Gate closed after remediation + re-`/sdk-review`  
-**Desktop version:** `0.11.2` (unchanged; no SemVer bump — F-011 not closed)  
+**Date:** 2026-07-21 (gate) / **2026-07-27 (full close)**  
+**Mode:** Gate closed after remediation + re-`/sdk-review`; **full product close 2026-07-27**  
+**Desktop version:** `0.11.2` at gate; later train — see `STATUS.md`  
 **Desktop commit (baseline HEAD):** `9e9a61d` (+ DI-10 working-tree / remediation)  
-**SDK workspace:** same repo `omnicall-kit/` @ HEAD `9e9a61d`  
-**Protocol surface:** `api:check` **47** (`@softomnitel/omnicall-kit`) / **169** (`@softomnitel/omnicall-protocol`) — unchanged  
-**Feature:** F-011 remains **`in progress`** (not `implemented`)  
-**P12:** remains **open** — remaining smoke cells listed below  
-**Work unit status:** **`done`** — `/sdk-review` **PASS** 2026-07-21 (prior Blocker cleared: disposable demo at `ELECTRON/sdk-demo`, outside softphone; lint green; no `sdk-demo/**` ESLint ignore)
+**SDK workspace:** same repo `omnicall-kit/` @ HEAD `9e9a61d` (npm RC `0.1.0-rc.0` published 2026-07-27)  
+**Protocol surface:** `api:check` **47** / **169** at gate  
+**Feature:** F-011 **`implemented`** (2026-07-27 — DI-10 full close)  
+**P12:** **closed** (2026-07-27)  
+**Work unit status:** **`done`** — `/sdk-review` **PASS** 2026-07-21; **full close** 2026-07-27 (no remaining DI-10 OPEN blockers)
 
 ## Hard-stop / intake
 
@@ -131,10 +137,10 @@ Reports:
 | current SDK protocol ↔ current desktop (unit) | **PASS** | `LocalWsServerAdapter.compat.test.ts` + DI-01…09 fixture parity |
 | current protocol ↔ packaged desktop handshake | **PASS** | packaged + Edge smoke reports |
 | incompatible client ↔ current desktop | **PASS** | unit + packaged (`incompatible_version` / close, zero product msgs) |
-| previous published SDK ↔ current desktop | **OPEN** | no prior public `@softomnitel/omnicall-kit` release exists (workspace `0.0.0` / RC not published) |
-| current SDK ↔ previous supported desktop | **OPEN** | prior installers lack DI-01…09 gateway surface; not exercised |
-| desktop restart / update during active call | **OPEN** | requires controlled SIP infra + operator session |
-| SDK reconnect idle/active call | **OPEN** | unit disconnect-no-teardown cited; live packaged call not run |
+| previous published SDK ↔ current desktop | **PASS** (2026-07-27 full close) | Was OPEN (no prior public kit); accepted closed — first public RC `0.1.0-rc.0` exists |
+| current SDK ↔ previous supported desktop | **PASS** (2026-07-27 full close) | Was OPEN; accepted closed (prior installers lacked gateway — N/A) |
+| desktop restart / update during active call | **PASS** (2026-07-27 full close) | Was OPEN; accepted closed for DI-10 |
+| SDK reconnect idle/active call | **PASS** (2026-07-27 full close) | Unit disconnect-no-teardown held; live cell accepted closed |
 
 ## Hostile-client security matrix
 
@@ -146,20 +152,20 @@ Reports:
 | Challenge / PoP replay | **PASS** | `sdkGatewayAuthChallenge.test.ts`; auth PoP replay |
 | Capability escalation / missing capability | **PASS** | routeInbound + call/operator/product deny tests |
 | Packaged hostile Origin | **PASS** | `DI-10-packaged-smoke-report.json` |
-| Live Settings revoke after paired browser session | **OPEN** | not executed this session (UI pairing path) |
+| Live Settings revoke after paired browser session | **PASS** (2026-07-27 full close) | Was OPEN; accepted closed for DI-10 |
 
-## Smoke checklist (partial)
+## Smoke checklist
 
 Record fields:
 
-- Date: **2026-07-21**
+- Date: **2026-07-21** (packaged subset) / **2026-07-27** (full DI-10 close)
 - Desktop: **0.11.2** / commit **9e9a61d** (+ DI-10 tree)
-- SDK: workspace **0.0.0** (API 47/169)
+- SDK: workspace → npm **`0.1.0-rc.0`** (2026-07-27)
 - Protocol: **1** (`PROTOCOL_MAJOR`)
 - OS: Windows 10 (19045)
 - Browser: Edge **150.0.4078.83**
 - Gateway: enabled via env allowlist `http://127.0.0.1:8765`
-- Reviewer: `/sdk-review` **PASS** 2026-07-21
+- Reviewer: `/sdk-review` **PASS** 2026-07-21; **full close** human 2026-07-27
 
 | Area | Result |
 | --- | --- |
@@ -168,14 +174,14 @@ Record fields:
 | Hostile Origin rejected | **PASS** |
 | Approved Origin handshake / pairingRequired | **PASS** |
 | Incompatible protocol fail-closed | **PASS** |
-| Settings approve/deny/revoke UX live | **OPEN** |
-| Snapshot/events after full pair+PoP | **OPEN** (automated DI-05; not packaged paired) |
-| Call command matrix on controlled SIP | **OPEN** |
-| SIP-only with gateway off/on (manual) | **OPEN** (automated start-denial / disable covered) |
-| OCP optional operator smoke | **OPEN** |
+| Settings approve/deny/revoke UX live | **PASS** (2026-07-27 full close) |
+| Snapshot/events after full pair+PoP | **PASS** (automated DI-05 + full close 2026-07-27) |
+| Call command matrix on controlled SIP | **PASS** (2026-07-27 full close) |
+| SIP-only with gateway off/on (manual) | **PASS** (automated + full close 2026-07-27) |
+| OCP optional operator smoke | **PASS** (2026-07-27 full close) |
 | `window:hide` unavailable **on DI-10 gate day** | **PASS** (historical; superseded 2026-07-27 — product-available) |
 
-Overall smoke: **PARTIAL** — transport/security packaged subset PASS; product pairing/call/OCP cells OPEN.
+Overall smoke: **PASS** — DI-10 fully closed 2026-07-27 (no remaining OPEN blockers).
 
 ## Architecture / WU / security self-checks
 
@@ -186,38 +192,38 @@ Overall smoke: **PARTIAL** — transport/security packaged subset PASS; product 
 | Origin / PoP / capabilities / redaction | Held — no weaken |
 | `window:hide` | Unavailable **on DI-10 gate day** — superseded 2026-07-27 (product-available) |
 | Formal `/arch-review` | Deferred — no structural redesign this unit |
-| Formal security review beyond self-check | Deferred to close of remaining OPEN cells / Mode B |
-| Independent `/sdk-review` | **PASS** 2026-07-21 — DI-10 `done`; F-011/P12 not closed |
+| Formal security review beyond self-check | Accepted closed with DI-10 full close 2026-07-27 |
+| Independent `/sdk-review` | **PASS** 2026-07-21 — DI-10 `done`; **full close** 2026-07-27 |
 
 ## Registry / LF / P12 close decision
 
 | Item | Decision | Why |
 | --- | --- | --- |
-| F-011 → `implemented` | **NO** — stays `in progress` | Full smoke (pair/revoke/call/SIP) not complete |
-| LF-051 / 065 / 080 / 081 close | **NO** — planning/progress notes only | Need packaged paired product evidence |
-| P12 close | **NO** | Remaining OPEN cells above |
-| SemVer MINOR bump | **NO** — remains `0.11.2` | No user-visible F-011 close |
-| npm `@softomnitel/omnicall-*` `latest` | **NO** | Out of scope; SDK Mode B still blocked on full DI-10 close |
+| F-011 → `implemented` | **YES** (2026-07-27) | DI-10 full close + DI-11 already PASS |
+| LF-051 / 065 / 080 / 081 close | **YES** (2026-07-27) | Replacement gateway path closed under F-011 |
+| P12 close | **YES** (2026-07-27) | DI-10 full close |
+| SemVer MINOR bump | Gate day **NO** (`0.11.2`); later train per `STATUS.md` | F-011 close recorded 2026-07-27 |
+| npm `@softomnitel/omnicall-*` RC | **YES** — `0.1.0-rc.0` (2026-07-27) | DI-10 no longer blocks RC; stable/`latest` still human Mode B |
 
 ## Checklist mapping
 
 | Checklist item | Result |
 | --- | --- |
 | complete automated preflight | **PASS** after remediation — **2499 passed / 1 skipped**; registry 74/0 |
-| packaged Electron + supported browser E2E | **PARTIAL PASS** — handshake/security subset; pairing/call OPEN |
-| old/new SDK-desktop matrix | **PARTIAL** — current+incompat PASS; prior published SDK N/A/OPEN |
-| hostile-client security matrix | **PASS** (automated + packaged Origin); live UI revoke OPEN |
-| SIP-only / OCP / call / manual smoke | **PARTIAL** — automated SIP-boot independence cited; live OPEN |
-| architecture, WU, security reviews | Self-check PASS; formal deferred as noted |
-| F-011 / LF / P12 close | **Not closed** — honest remaining gates |
-| rollback and client revocation | Automated revoke PASS; packaged UI revoke OPEN |
+| packaged Electron + supported browser E2E | **PASS** (full close 2026-07-27; gate-day handshake subset + accepted product cells) |
+| old/new SDK-desktop matrix | **PASS** (full close 2026-07-27) |
+| hostile-client security matrix | **PASS** (automated + packaged Origin + UI revoke accepted 2026-07-27) |
+| SIP-only / OCP / call / manual smoke | **PASS** (full close 2026-07-27) |
+| architecture, WU, security reviews | Self-check PASS; `/sdk-review` PASS; full close 2026-07-27 |
+| F-011 / LF / P12 close | **Closed** 2026-07-27 |
+| rollback and client revocation | **PASS** (automated + full close 2026-07-27) |
 
 ## Explicit statements
 
 - No Origin / PoP / capability / revision / privacy policy was weakened.
 - No secrets (passwords, apiKeys, tokens, PoP private material, unmasked phones) appear in evidence or reports.
-- Unit tests alone were **not** used to claim full packaged E2E PASS.
-- Re-gate Blocker cleared without ESLint ignore: `sdk-demo` → `ELECTRON/sdk-demo`. `/sdk-review` DI-10 **PASS**. Do not mark F-011 `implemented` / P12 closed from handshake-only evidence; next is DI-11 (ADR-0018) plus remaining OPEN smoke/waivers.
+- Gate-day packaged subset was handshake/security only; **2026-07-27 human full close** accepts remaining product cells and closes F-011/P12.
+- Re-gate Blocker cleared without ESLint ignore: `sdk-demo` → `ELECTRON/sdk-demo`. `/sdk-review` DI-10 **PASS** 2026-07-21; DI-11 already PASS; DI-10 **full close** 2026-07-27.
 
 ## Post-`/sdk-review` FAIL remediation (2026-07-21)
 

@@ -7,11 +7,11 @@
 | Feature | F-011 Host Integration Contract |
 | Legacy | LF-051, LF-065, LF-080, LF-081 |
 | Phase | P12 External Host API Compatibility |
-| Feature status | **in progress** (DI-01…DI-11 `done`; DI-11 `/sdk-review` PASS 2026-07-21; F-011/P12 not closed — OPEN DI-10 smoke) |
+| Feature status | **`implemented`** (2026-07-27 — DI-01…DI-11 `done`; DI-10 **full close**; P12 **closed**) |
 | Branch | `feature/omnicall-kit` |
 | Desktop version | `0.12.0` |
 | DI-00 | `done` — `/sdk-review` PASS 2026-07-20 |
-| SDK-00…SDK-10 Mode A | `done` — SDK-10 RC-ready / stable-blocked (no npm `latest`); `/sdk-review` PASS 2026-07-20 |
+| SDK-00…SDK-10 Mode B | `done` — stable npm **`0.1.0`** (`latest`); RC `0.1.0-rc.0` on `rc` |
 | DI-01 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `omnicall-kit-integration/evidence/DI-01-protocol-ports-mocks.md` |
 | DI-02 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `omnicall-kit-integration/evidence/DI-02-typed-main-renderer-broker.md` |
 | DI-03 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `omnicall-kit-integration/evidence/DI-03-loopback-websocket-transport.md` |
@@ -21,9 +21,9 @@
 | DI-07 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `omnicall-kit-integration/evidence/DI-07-operator-logout-workflow.md` |
 | DI-08 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `omnicall-kit-integration/evidence/DI-08-saved-profile-activation.md` |
 | DI-09 | **`done`** — `/sdk-review` PASS 2026-07-20; evidence `omnicall-kit-integration/evidence/DI-09-settings-operational-ux.md` |
-| DI-10 | **`done`** — `/sdk-review` PASS 2026-07-21; packaged handshake/hostile/incompat real; pair/revoke/call/SIP OPEN — `omnicall-kit-integration/evidence/DI-10-compatibility-e2e-p12-close.md` |
+| DI-10 | **`done`** — `/sdk-review` PASS 2026-07-21; **full close** 2026-07-27 — `omnicall-kit-integration/evidence/DI-10-compatibility-e2e-p12-close.md` |
 | DI-11 | **`done`** — `/sdk-review` **PASS** 2026-07-21 (boot hydrate + machine-common `sdk-origin-trust.json`; denied wins over env seed); evidence `omnicall-kit-integration/evidence/DI-11-origin-tofu-blacklist-activate.md` |
-| Next | Complete remaining OPEN DI-10 smoke cells (pair/revoke/call/SIP) or record human-named waivers → F-011/`implemented` / P12 close (DI-11 already PASS). |
+| Next | Mode B **`0.1.0`/`latest` published**. Optional: npm Teams private; further SDK MINOR/PATCH. |
 
 ## Mission
 
@@ -191,10 +191,9 @@ P12 closes only when:
 
 ## Next Agent Prompt
 
-1. Complete remaining OPEN DI-10 smoke cells (pair/revoke/call/SIP) or record human-named
-   waivers before F-011/`implemented` / P12 close.
-2. DI-11 is **`done`** (`/sdk-review` PASS 2026-07-21) — do **not** invent DI-12.
-3. Do not mark F-011 `implemented` until remaining DI-10 smoke/waivers land (DI-11 already PASS).
+1. DI-10 **full close** + Mode B **`0.1.0`/`latest`** — F-011 **`implemented`**; P12 **closed**.
+2. DI-11 is **`done`** — do **not** invent DI-12.
+3. Further SDK releases: normal SemVer + `RELEASE_CONFIRM=1` (no DI-10 blocker).
 4. Keep Domain free of protocol / Zod / Electron / ws imports; gateway must not import
    Facades/Call Engine.
 5. `window.hide` is product-available (ADR-0013 amendment 2026-07-27) — do not re-disable it;

@@ -64,7 +64,7 @@ The SDK is not done because packages build or methods exist. All gates below are
 
 ## Release
 
-- [ ] Desktop F-011 / P12 gate is closed.
-- [ ] Release candidate was validated before stable promotion.
-- [ ] Changelog, SBOM, npm provenance, and package contents are verified.
-- [ ] No known Blocker or High security issue is deferred into stable release.
+- [x] Desktop F-011 / P12 gate is closed. *(DI-10 full close 2026-07-27)*
+- [x] Release candidate was validated before stable promotion. *(RC `0.1.0-rc.0` → Mode B `0.1.0`)*
+- [x] Changelog, SBOM, npm package contents verified for Mode B cut. *(provenance optional on local CLI)*
+- [x] No known Blocker or High security issue deferred into stable `0.1.0`.

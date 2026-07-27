@@ -52,13 +52,9 @@ JSON bytes.
 
 ## Publish posture
 
-- Packages remain `private: true` / `0.0.0` during incubation and **SDK-10 Mode A** (RC staging).
-- `publishConfig.access=public` and `publishConfig.provenance=true` are scaffolded and
-  verified by `npm run release:check`.
-- First public RC target: `0.1.0-rc.0` on npm dist-tag **`rc`** (never `latest` while DI-10 open).
-- Workspace is in changesets **prerelease mode** (`.changeset/pre.json`, tag `rc`) so
-  `changeset version` yields `0.1.0-rc.0`, not bare `0.1.0`.
-- CI / local scripts pack tarballs and generate SBOM (`npm run sbom`); they **never** run
-  `npm publish` to a registry from automation in this track.
-- Stable / `latest` publish is fail-closed until desktop DI-10 packaged E2E evidence exists
-  (or an explicit human waiver). See `docs/guide/release-and-support.md`.
+- Packages versioned for registry release (**`0.1.0`** stable / Mode B).
+- `publishConfig.access=public` (Free org interim; Teams → `restricted` optional later) and
+  `publishConfig.provenance` may be false for local CLI (CI can enable).
+- First RC: `0.1.0-rc.0` on tag **`rc`** (2026-07-27).
+- First stable: **`0.1.0`** on tag **`latest`** (Mode B after DI-10 full close).
+- See `docs/guide/release-and-support.md`.

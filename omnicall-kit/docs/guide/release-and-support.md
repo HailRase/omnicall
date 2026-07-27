@@ -3,62 +3,49 @@
 Canonical release procedure for `@softomnitel/omnicall-protocol` and `@softomnitel/omnicall-kit`.
 This page documents **RC staging readiness** and fail-closed stable promotion.
 
-**Mode A (current):** RC artifacts and dry-run are allowed.  
-**Stable / `latest` publish:** blocked until desktop **DI-10** is `done` with packaged
-Electron E2E evidence (or an explicit human waiver naming deferred cells).
+**Mode B (current):** stable **`0.1.0`** on npm dist-tag **`latest`** (after DI-10 full close 2026-07-27).  
+**RC:** `0.1.0-rc.0` remains on dist-tag **`rc`**.
 
 ## Versioning strategy
 
 | Item | Policy |
 | --- | --- |
-| First public RC | `0.1.0-rc.0` for both packages (linked bump) |
-| npm dist-tag for RC | **`rc`** (never `latest`) |
-| Stable promote | Only after RC validation window + DI-10 E2E PASS |
+| First RC | `0.1.0-rc.0` (tag `rc`) — published 2026-07-27 |
+| First stable | **`0.1.0`** (tag `latest`) — Mode B after DI-10 full close |
+| npm access | **`public`** on Free org (future Teams → `restricted` optional) |
 | Tooling | `@changesets/cli` — see `.changeset/` |
-| Workspace today | Packages remain `private: true` / `0.0.0` until a human authorizes RC publish |
+| Playbook | `guides/RELEASE-PLAYBOOK.md` |
 
-Linked packages: bump `@softomnitel/omnicall-protocol` and `@softomnitel/omnicall-kit` together for the first RC so
-consumer installs resolve a matching workspace pair.
+Linked packages: bump `@softomnitel/omnicall-protocol` and `@softomnitel/omnicall-kit` together.
 
-### Changeset workflow (when human authorizes publish)
-
-Workspace is already in **prerelease mode** (`.changeset/pre.json`, tag `rc`).
-That is required so `changeset version` produces **`0.1.0-rc.0`**, not bare `0.1.0`.
-
-```bash
-cd omnicall-kit
-# Confirm pre mode (must exist before versioning RC):
-#   .changeset/pre.json → mode=pre, tag=rc
-# If missing: npx changeset pre enter rc
-
-# 1. Confirm DI-10 / waiver gate for the intended tag
-# 2. Flip private:false ONLY for @softomnitel/omnicall-protocol and @softomnitel/omnicall-kit
-#    (required: config privatePackages.version=false skips private pkgs)
-npx changeset version       # applies pending changesets → 0.1.0-rc.0 + CHANGELOG
-npm run preflight
-npm run release:check       # pack, publishConfig, SBOM, dry-run
-# RC only — always pass --tag rc (matches pre tag):
-npm publish -w @softomnitel/omnicall-protocol --tag rc --access public --provenance
-npm publish -w @softomnitel/omnicall-kit --tag rc --access public --provenance
-```
-
-Never run `npm publish` without `--tag rc` for the first public cut.  
-Never publish `latest` / omit tag until Mode B (DI-10 done) and RC validation complete.
-
-### Stable promote (Mode B only)
+### Mode B stable (completed 2026-07-27)
 
 ```bash
 npx changeset pre exit
-npx changeset version       # exits prerelease; yields stable version
-# then publish with --tag latest only after DI-10 E2E PASS
+npm run release:version          # → 0.1.0
+npm run release:prepare
+npm run release:preflight
+npm run release:check
+RELEASE_CONFIRM=1 RELEASE_DI10_DONE=1 npm run release:publish-stable
+```
+
+Published: `@softomnitel/omnicall-protocol@0.1.0` + `@softomnitel/omnicall-kit@0.1.0` (`latest`).
+
+### Historical RC workflow (Mode A — already done)
+
+```bash
+# Was used for 0.1.0-rc.0 on tag rc
+npm run release:version
+npm run release:prepare
+RELEASE_CONFIRM=1 npm run release:publish-rc
 ```
 
 ## Provenance & package fortress
 
 | Check | Required |
 | --- | --- |
-| `publishConfig.access` | `public` |
-| `publishConfig.provenance` | `true` |
+| `publishConfig.access` | `public` (Free org) or `restricted` (Teams) |
+| `publishConfig.provenance` | `true` on CI; may be `false` for local CLI |
 | `@softomnitel/omnicall-kit` `files` | `dist`, `LICENSE`, `README.md` only |
 | Forbidden in tarball | `fake-transport`, `auth-test-peer`, `src/docs` harness, tests |
 | Example app | `examples/crm-pairing-lite` stays `private: true` (not an npm release) |

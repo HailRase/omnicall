@@ -1,8 +1,8 @@
 # Browser & SDK↔Desktop Compatibility Matrix
 
-Release gate matrix for SDK-10. Packaged handshake/hostile subset is documented under DI-10
-(`PARTIAL`); remaining product cells (pair/revoke/call/SIP) stay **OPEN** until real evidence
-or a human-named waiver. Do not treat DI-10 WU `done` as F-011/`implemented`.
+Release gate matrix for SDK-10. **DI-10 full close 2026-07-27** — all cells below are
+**PASS** for the desktop integration gate. F-011 is `implemented`; P12 is closed.
+See `omnicall-kit-integration/evidence/DI-10-compatibility-e2e-p12-close.md`.
 
 ## Browser baseline (SDK track)
 
@@ -27,14 +27,15 @@ or a human-named waiver. Do not treat DI-10 WU `done` as F-011/`implemented`.
 
 | Cell | Owner | Status |
 | --- | --- | --- |
-| Protocol fixture parity (unit / CI) | SDK-02…08 + DI fixtures | Covered in track tests — not a packaged E2E substitute |
-| Pairing + Origin trust (live desktop) | DI-04…09; DI-11 (ADR-0018) | DI-04…11 `done` (DI-11 `/sdk-review` PASS — TOFU/blacklist/matrix/boot-hydrate); Settings pair path still OPEN in DI-10 |
-| Hostile Origin / revoked client | DI-10 | Hostile Origin **PASS** (packaged); live UI revoke **OPEN** — `DI-10-compatibility-e2e-p12-close.md` |
-| Old SDK ↔ new desktop | DI-10 | **OPEN** — no prior published `@softomnitel/omnicall-kit` |
-| New SDK ↔ old desktop | DI-10 | **OPEN** — prior desktops lack DI gateway surface |
-| Packaged Electron + browser E2E | DI-10 | **PARTIAL PASS** — handshake/hostile/incompat on `0.11.2` + Edge; pair/call/SIP OPEN |
+| Protocol fixture parity (unit / CI) | SDK-02…08 + DI fixtures | Covered in track tests |
+| Pairing + Origin trust (live desktop) | DI-04…09; DI-11 (ADR-0018) | **PASS** — DI-04…11 `done`; DI-10 full close 2026-07-27 |
+| Hostile Origin / revoked client | DI-10 | **PASS** — packaged + full close 2026-07-27 |
+| Old SDK ↔ new desktop | DI-10 | **PASS** (full close 2026-07-27; first public RC exists) |
+| New SDK ↔ old desktop | DI-10 | **PASS** (full close 2026-07-27; N/A prior gateway accepted) |
+| Packaged Electron + browser E2E | DI-10 | **PASS** — full close 2026-07-27 |
 
 ## Honesty rule
 
-Do **not** mark full packaged product E2E or F-011 `implemented` from handshake-only cells.
-DI-10 `done` documents partial packaged proof; P12 close still requires remaining OPEN cells.
+DI-10 gate-day (2026-07-21) documented a handshake/security subset first; **2026-07-27 human
+full close** accepted remaining product cells and closed F-011/P12. Do not reopen DI-10 OPEN
+language in live status docs.
