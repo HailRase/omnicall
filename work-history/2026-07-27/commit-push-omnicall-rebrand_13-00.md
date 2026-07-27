@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-27 13:00
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `320f7aa`
 
 ## Где
 - весь working tree ребрендинга OmniCall / SoftOmniTel
@@ -16,4 +16,4 @@
 Зафиксировать и отправить ребрендинг на remote.
 
 ## Результат
-- см. hash после push
+- hash `320f7aa`; ветка `feature/omnicall-softomnitel-rebrand`
