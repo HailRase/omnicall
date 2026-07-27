@@ -57,4 +57,4 @@ not in this markdown. Unit proof: `auth-client.test.ts` / activate privilege tes
 | --- | --- |
 | `client.disconnect()` | Close WS; reject in-flight; **no** hangup / logout / activate |
 | Reconnect after drop | New auth + **fresh** `getSnapshot`; **no** automatic mutation replay |
-| Tab B races Tab A | Expect `conflict` / `not_owner`; do not retry blindly |
+| Tab B races Tab A | Expect `stale_state` / `conflict`; do not retry blindly |

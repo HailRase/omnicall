@@ -709,7 +709,12 @@ export const bgMessages: MessageShape = {
   "settings.integrations.sdk.matrix.ocpAcdContext": "OCP ACD контекст на обаждане (main_acallid)",
   "settings.integrations.sdk.matrix.sessionLogout": "Изход от сесия",
   "settings.integrations.sdk.matrix.callOriginate": "Изходящо обаждане",
-  "settings.integrations.sdk.matrix.callControl": "Управление на обаждане",
+  "settings.integrations.sdk.matrix.callControl": "Пълно управление на обаждане (вкл. DTMF)",
+  "settings.integrations.sdk.matrix.callAnswer": "Отговор на обаждане",
+  "settings.integrations.sdk.matrix.callReject": "Отхвърляне на входящо",
+  "settings.integrations.sdk.matrix.callHangup": "Завършване на обаждане",
+  "settings.integrations.sdk.matrix.callHold": "Задържане / възобновяване",
+  "settings.integrations.sdk.matrix.callMute": "Микрофон вкл/изкл",
   "settings.integrations.sdk.matrix.activate": "Активиране на профил на акаунт",
   "settings.integrations.sdk.activateConsent.title": "Разрешаване на активиране на профил?",
   "settings.integrations.sdk.activateConsent.message": (params: Readonly<{ origin: string; profileLabel: string; login: string }>) =>

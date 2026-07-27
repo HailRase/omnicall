@@ -1,5 +1,5 @@
 /**
- * Unit tests for live Origin-policy capability intersection (ADR-0018).
+ * Unit tests for live Origin-policy capability intersection (ADR-0018 / ADR-0021).
  */
 
 import { describe, expect, it } from "vitest";
@@ -27,6 +27,15 @@ describe("intersectCapabilitiesWithOriginPolicy", () => {
       ),
     ).toEqual([]);
   });
+
+  it("expands call.control umbrella before ∩ policy", () => {
+    expect(
+      intersectCapabilitiesWithOriginPolicy(
+        ["session.read.redacted", "call.control"],
+        ["session.read.redacted", "call.hold", "call.mute"],
+      ),
+    ).toEqual(["session.read.redacted", "call.hold", "call.mute"]);
+  });
 });
 
 describe("isRequiredCapabilityBlockedByOriginPolicy", () => {
@@ -48,5 +57,15 @@ describe("isRequiredCapabilityBlockedByOriginPolicy", () => {
         required: "call.originate",
       }),
     ).toBe(false);
+  });
+
+  it("detects matrix strip of granular when pairing only had umbrella", () => {
+    expect(
+      isRequiredCapabilityBlockedByOriginPolicy({
+        granted: ["call.control", "session.read.redacted"],
+        originPolicyCapabilities: ["session.read.redacted"],
+        required: "call.hold",
+      }),
+    ).toBe(true);
   });
 });

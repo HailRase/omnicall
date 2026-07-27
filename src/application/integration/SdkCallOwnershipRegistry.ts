@@ -1,5 +1,6 @@
 /**
- * In-memory SDK call ownership (DI-06 / ADR-0017 O-OWN-1).
+ * In-memory SDK call ownership (DI-06 / ADR-0017 / ADR-0021).
+ * Informational only for snapshot `ownerClientId` — control is not gated on owner.
  * Aggregate revision lives on SdkSessionRevisionClock — not per-call.
  * Process-lifetime only — no disk secrets, no Domain storage.
  */

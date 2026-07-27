@@ -1,5 +1,5 @@
 /**
- * - Purpose: map ADR-0018 Origin matrix capability ids to Settings i18n keys.
+ * - Purpose: map ADR-0018 / ADR-0021 Origin matrix capability ids to Settings i18n keys.
  * - Inputs: SdkOriginMatrixCapabilityId.
  * - Outputs: TranslationKey for toggle labels (no localized text here).
  */
@@ -19,6 +19,11 @@ export const SDK_ORIGIN_MATRIX_LABEL_KEYS: Readonly<
   "session.logout": "settings.integrations.sdk.matrix.sessionLogout",
   "call.originate": "settings.integrations.sdk.matrix.callOriginate",
   "call.control": "settings.integrations.sdk.matrix.callControl",
+  "call.answer": "settings.integrations.sdk.matrix.callAnswer",
+  "call.reject": "settings.integrations.sdk.matrix.callReject",
+  "call.hangup": "settings.integrations.sdk.matrix.callHangup",
+  "call.hold": "settings.integrations.sdk.matrix.callHold",
+  "call.mute": "settings.integrations.sdk.matrix.callMute",
   "account.activate": "settings.integrations.sdk.matrix.activate",
 };
 
@@ -35,6 +40,11 @@ export const SDK_ORIGIN_MATRIX_TECH_IDS: Readonly<
   "session.logout": "session.logout",
   "call.originate": "call.originate",
   "call.control": "call.control",
+  "call.answer": "call.answer",
+  "call.reject": "call.reject",
+  "call.hangup": "call.hangup",
+  "call.hold": "call.hold",
+  "call.mute": "call.mute",
   "account.activate": "account.activate",
 };
 

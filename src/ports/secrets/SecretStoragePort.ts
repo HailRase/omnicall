@@ -41,8 +41,14 @@ export const OCP_PROXY_API_KEY_SECRET_ID = "ocp-proxy-api-key" as const;
 /** Secret-storage scope for SDK gateway paired clients (DI-04). */
 export const SDK_PAIRING_SCOPE_KEY = "sdk-gateway" as const;
 
-/** Index blob listing paired client IDs (JSON string array). */
+/**
+ * Index blob listing paired client IDs (JSON string array).
+ * Corrupt loads are recovered by SdkGatewayPairingStore (purge + empty list).
+ */
 export const SDK_PAIRED_CLIENTS_INDEX_SECRET_ID = "paired-clients-index" as const;
 
-/** Prefix for per-client pairing binding blobs (`paired-client:<clientId>`). */
+/**
+ * Prefix for per-client pairing binding blobs (`paired-client:<clientId>`).
+ * Corrupt loads are purged; auth/findActive fail closed until re-pair.
+ */
 export const SDK_PAIRED_CLIENT_SECRET_ID_PREFIX = "paired-client:" as const;

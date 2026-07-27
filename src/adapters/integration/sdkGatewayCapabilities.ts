@@ -1,11 +1,13 @@
 /**
- * Capability checks and profile grants for SDK gateway (DI-04 / ADR-0011/0016).
+ * Capability checks and profile grants for SDK gateway (DI-04 / ADR-0011/0016 / ADR-0021).
  */
 
 import {
+  expandCallControlUmbrella,
   defaultCapabilitiesForProfile,
   isCapabilityInDefaultProfile,
   isPrivilegedCapability,
+  sessionHasCapability,
   type CapabilityId,
   type CommandType,
   type PairingProfile,
@@ -23,13 +25,13 @@ const COMMAND_CAPABILITY: Readonly<
   "operator:change-status": "operator.status.write",
   "operator:finish-appeal": "operator.status.write",
   "call:originate": "call.originate",
-  "call:answer": "call.control",
-  "call:reject": "call.control",
-  "call:hangup": "call.control",
-  "call:hold": "call.control",
-  "call:resume": "call.control",
-  "call:mute": "call.control",
-  "call:unmute": "call.control",
+  "call:answer": "call.answer",
+  "call:reject": "call.reject",
+  "call:hangup": "call.hangup",
+  "call:hold": "call.hold",
+  "call:resume": "call.hold",
+  "call:mute": "call.mute",
+  "call:unmute": "call.mute",
   "call:send-dtmf": "call.control",
   "account:activate-profile": "account.activate",
   "account:logout": "session.logout",
@@ -48,14 +50,12 @@ export function connectionHasCapability(
   granted: readonly CapabilityId[],
   required: CapabilityId | null,
 ): boolean {
-  if (required === null) {
-    return true;
-  }
-  return granted.includes(required);
+  return sessionHasCapability(granted, required);
 }
 
 /**
- * Live session ceiling (ADR-0018 §D): pairing grants ∩ current Origin matrix.
+ * Live session ceiling (ADR-0018 §D / ADR-0021):
+ * expand pairing `call.control` umbrella, then ∩ current Origin matrix.
  * Matrix shrink applies immediately; matrix expand never adds caps beyond pairing grants.
  */
 export function intersectCapabilitiesWithOriginPolicy(
@@ -65,13 +65,14 @@ export function intersectCapabilitiesWithOriginPolicy(
   if (originPolicyCapabilities.length === 0) {
     return [];
   }
+  const expanded = expandCallControlUmbrella(granted);
   const policy = new Set<CapabilityId>(originPolicyCapabilities);
-  return granted.filter((id) => policy.has(id));
+  return expanded.filter((id) => policy.has(id));
 }
 
 /**
- * True when the session was paired/elevated with `required` but the live Origin
- * matrix no longer allows it → wire `forbidden` + details `permission_denied`.
+ * True when the session was paired/elevated with `required` (or umbrella) but the live
+ * Origin matrix no longer allows it → wire `forbidden` + details `permission_denied`.
  */
 export function isRequiredCapabilityBlockedByOriginPolicy(input: {
   readonly granted: readonly CapabilityId[];
@@ -81,9 +82,13 @@ export function isRequiredCapabilityBlockedByOriginPolicy(input: {
   if (input.required === null) {
     return false;
   }
-  return (
-    input.granted.includes(input.required) &&
-    !input.originPolicyCapabilities.includes(input.required)
+  const expandedGranted = expandCallControlUmbrella(input.granted);
+  if (!sessionHasCapability(expandedGranted, input.required)) {
+    return false;
+  }
+  return !sessionHasCapability(
+    input.originPolicyCapabilities,
+    input.required,
   );
 }
 
@@ -119,7 +124,7 @@ export function resolveGrantedCapabilities(input: {
     return grants;
   }
   const policySet = new Set<CapabilityId>(input.originPolicyCapabilities);
-  return grants.filter((id) => policySet.has(id));
+  return expandCallControlUmbrella(grants).filter((id) => policySet.has(id));
 }
 
 function filterSafeGrants(

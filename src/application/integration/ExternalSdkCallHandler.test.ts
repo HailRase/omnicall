@@ -272,8 +272,8 @@ describe("ExternalSdkCallHandler", () => {
     expect(port.makeCall).not.toHaveBeenCalled();
   });
 
-  it("returns not_owner for cross-client control", async () => {
-    const { handler, ownership } = createHandler();
+  it("allows cross-client control for shared desk (ADR-0021)", async () => {
+    const { handler, ownership, port } = createHandler();
     ownership.assignOwner("call_out_001", "client_a");
     const result = await handler.handleCommand(
       {
@@ -284,11 +284,23 @@ describe("ExternalSdkCallHandler", () => {
       },
       { clientId: "client_b" },
     );
-    expect(result).toEqual({
-      ok: false,
-      code: "not_owner",
-      retryable: false,
-    });
+    expect(result.ok).toBe(true);
+    expect(port.holdCall).toHaveBeenCalledTimes(1);
+  });
+
+  it("allows control of unowned desktop/UI call", async () => {
+    const { handler, port } = createHandler();
+    const result = await handler.handleCommand(
+      {
+        ...BASE,
+        type: "call:mute",
+        requestId: "req_mute_unowned",
+        payload: { callId: "call_ui_001", expectedRevision: 1 },
+      },
+      { clientId: "client_crm" },
+    );
+    expect(result.ok).toBe(true);
+    expect(port.muteCall).toHaveBeenCalledTimes(1);
   });
 
   it("allows owner hold/resume/mute/unmute/dtmf/hangup via reply revision chain", async () => {

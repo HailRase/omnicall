@@ -49,22 +49,28 @@ const CALL_CAPS = [
   'session.read.redacted',
   'window.show',
   'call.originate',
-  'call.control'
+  'call.control',
+  'call.answer',
+  'call.reject',
+  'call.hangup',
+  'call.hold',
+  'call.mute'
 ] as const;
 
+type CallTestCap =
+  | 'session.read.redacted'
+  | 'window.show'
+  | 'call.originate'
+  | 'call.control'
+  | 'call.answer'
+  | 'call.reject'
+  | 'call.hangup'
+  | 'call.hold'
+  | 'call.mute';
+
 function createHarness(input?: {
-  readonly requestedCapabilities?: readonly (
-    | 'session.read.redacted'
-    | 'window.show'
-    | 'call.originate'
-    | 'call.control'
-  )[];
-  readonly grantedCapabilities?: readonly (
-    | 'session.read.redacted'
-    | 'window.show'
-    | 'call.originate'
-    | 'call.control'
-  )[];
+  readonly requestedCapabilities?: readonly CallTestCap[];
+  readonly grantedCapabilities?: readonly CallTestCap[];
   readonly requestedProfile?: 'presentation' | 'call_controller';
 }) {
   const scheduler = createFakeScheduler(1_700_000_000_000);
@@ -367,7 +373,7 @@ describe('OmniCallClient calls fail-closed and typed errors', () => {
     expect(countSentType(harness.transports.last()!, 'call:originate')).toBe(0);
   });
 
-  it('returns forbidden without call.control for hold', async () => {
+  it('returns forbidden without call.hold or call.control for hold', async () => {
     const harness = createHarness({
       grantedCapabilities: [
         'session.read.redacted',
@@ -386,6 +392,28 @@ describe('OmniCallClient calls fail-closed and typed errors', () => {
         isOmniCallClientError(error) && error.code === 'forbidden'
     );
     expect(countSentType(harness.transports.last()!, 'call:hold')).toBe(0);
+  });
+
+  it('holds with granular call.hold without umbrella call.control', async () => {
+    const harness = createHarness({
+      grantedCapabilities: [
+        'session.read.redacted',
+        'window.show',
+        'call.hold'
+      ]
+    });
+    await reachReady(harness);
+    await expectCallSuccess(
+      harness,
+      'call:hold',
+      () =>
+        harness.client.calls.hold({
+          callId: 'call_1',
+          expectedRevision: 13
+        }),
+      'call_1',
+      14
+    );
   });
 
   it('surfaces stale_state with currentRevision and does not auto-retry', async () => {

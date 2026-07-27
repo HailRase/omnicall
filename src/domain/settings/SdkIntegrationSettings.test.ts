@@ -108,4 +108,99 @@ describe("SdkIntegrationSettings", () => {
     expect(parseSdkIntegrationSettings(legacy)).toEqual(migrated);
     expect(migrated).not.toHaveProperty("enabled");
   });
+
+  it("inherits missing granular call caps from call.control (ADR-0021)", () => {
+    const parsed = parseSdkIntegrationSettings({
+      originsManaged: true,
+      origins: [
+        {
+          origin: "https://crm.example.com",
+          state: "allowed",
+          previouslyAllowed: true,
+          matrix: {
+            capabilities: {
+              "session.read.redacted": true,
+              "window.show": true,
+              "window.hide": false,
+              "operator.status.write": true,
+              "operator.campaign.read": true,
+              "ocp.acd_context.read": true,
+              "session.logout": true,
+              "call.originate": true,
+              "call.control": true,
+              "account.activate": false,
+            },
+          },
+        },
+      ],
+    });
+    expect(parsed).not.toBeNull();
+    expect(parsed?.origins[0]?.matrix?.capabilities["call.answer"]).toBe(true);
+    expect(parsed?.origins[0]?.matrix?.capabilities["call.hangup"]).toBe(true);
+    expect(parsed?.origins[0]?.matrix?.capabilities["call.mute"]).toBe(true);
+  });
+
+  it("inherits granular false when call.control was false", () => {
+    const parsed = parseSdkIntegrationSettings({
+      originsManaged: true,
+      origins: [
+        {
+          origin: "https://crm.example.com",
+          state: "allowed",
+          previouslyAllowed: true,
+          matrix: {
+            capabilities: {
+              "session.read.redacted": true,
+              "window.show": true,
+              "window.hide": false,
+              "operator.status.write": false,
+              "operator.campaign.read": false,
+              "ocp.acd_context.read": false,
+              "session.logout": false,
+              "call.originate": false,
+              "call.control": false,
+              "account.activate": false,
+            },
+          },
+        },
+      ],
+    });
+    expect(parsed?.origins[0]?.matrix?.capabilities["call.hold"]).toBe(false);
+    expect(parsed?.origins[0]?.matrix?.capabilities["call.reject"]).toBe(false);
+  });
+
+  it("normalizes inconsistent umbrella true + granular false on parse", () => {
+    const parsed = parseSdkIntegrationSettings({
+      originsManaged: true,
+      origins: [
+        {
+          origin: "https://crm.example.com",
+          state: "allowed",
+          previouslyAllowed: true,
+          matrix: {
+            capabilities: {
+              "session.read.redacted": true,
+              "window.show": true,
+              "window.hide": false,
+              "operator.status.write": true,
+              "operator.campaign.read": true,
+              "ocp.acd_context.read": true,
+              "session.logout": true,
+              "call.originate": true,
+              "call.control": true,
+              "call.answer": true,
+              "call.reject": true,
+              "call.hangup": true,
+              "call.hold": false,
+              "call.mute": true,
+              "account.activate": false,
+            },
+          },
+        },
+      ],
+    });
+    expect(parsed?.origins[0]?.matrix?.capabilities["call.control"]).toBe(false);
+    expect(parsed?.origins[0]?.matrix?.capabilities["call.hold"]).toBe(false);
+    expect(parsed?.origins[0]?.matrix?.capabilities["call.mute"]).toBe(true);
+  });
 });

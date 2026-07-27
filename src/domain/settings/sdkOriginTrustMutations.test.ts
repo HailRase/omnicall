@@ -4,6 +4,7 @@ import {
   allowSdkOrigin,
   denySdkOrigin,
   renameAllowedSdkOrigin,
+  setSdkOriginCapabilityMatrix,
   unblockSdkOrigin,
 } from "./sdkOriginTrustMutations.js";
 import {
@@ -74,5 +75,25 @@ describe("sdkOriginTrustMutations", () => {
     expect(
       renameAllowedSdkOrigin(denied!, "https://a.example", "https://blocked.example"),
     ).toBeNull();
+  });
+
+  it("setOriginMatrix normalizes inconsistent call.control vs granular (ADR-0021)", () => {
+    const allowed = allowSdkOrigin(SDK_INTEGRATION_DEFAULTS, "https://crm.example");
+    expect(allowed).not.toBeNull();
+    const inconsistent = {
+      capabilities: {
+        ...createDefaultSdkOriginCapabilityMatrix().capabilities,
+        "call.control": true,
+        "call.hangup": false,
+      },
+    };
+    const next = setSdkOriginCapabilityMatrix(
+      allowed!,
+      "https://crm.example",
+      inconsistent,
+    );
+    expect(next?.origins[0]?.matrix?.capabilities["call.control"]).toBe(false);
+    expect(next?.origins[0]?.matrix?.capabilities["call.hangup"]).toBe(false);
+    expect(next?.origins[0]?.matrix?.capabilities["call.mute"]).toBe(true);
   });
 });

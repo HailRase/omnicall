@@ -71,7 +71,8 @@ Server-issued capabilities are the only authorization source:
 - `operator.campaign.read`
 - `ocp.acd_context.read`
 - `call.originate`
-- `call.control`
+- `call.control` (umbrella + DTMF)
+- `call.answer` / `call.reject` / `call.hangup` / `call.hold` / `call.mute` (ADR-0021)
 - `account.activate`
 - `session.logout`
 
@@ -81,10 +82,33 @@ Capabilities are checked for every command, not only during handshake.
 
 1. **Unauthenticated** — handshake and pairing request only.
 2. **Presentation** — redacted state and window show.
-3. **Operator** — operator status changes.
-4. **Call controller** — call mutations, preferably scoped to calls created by the client.
+3. **Operator** — operator status changes (and campaign/ACD read when granted).
+4. **Call controller** — originate + shared-desk call control (ADR-0021): any
+   authenticated paired session with live `pairing ∩ Origin matrix` grants may
+   answer / reject / hangup / hold / mute / DTMF (per capability) for **any** live
+   OmniCall call on that desk (UI-, headset-, or SDK-started). Snapshot
+   `ownerClientId` is informational only and does **not** authorize or deny control.
 5. **Privileged session** — account activation (Origin matrix + consent), logout, and
    window hide (privileged; matrix-gated; product-available per ADR-0013 amendment).
+
+## Shared Desk Residual Risk (ADR-0021)
+
+Accepted threat: XSS or a malicious script on an **allowed** Origin that completed
+pairing + PoP and still holds live call capabilities can control the whole desk call
+surface (not only calls it originated).
+
+Mandatory mitigations (do not weaken):
+
+- exact Origin match; blacklist rejects upgrade;
+- pairing Approve + PoP; revoke hard-deletes pairing and closes the session;
+- live `pairingGrants ∩ currentOriginMatrix` on every command; matrix shrink →
+  `forbidden` + `permission_denied` without tearing SIP;
+- granular matrix toggles (and umbrella `call.control` for DTMF);
+- redacted snapshot/events; no SIP/OCP secrets on the public wire;
+- disconnect / revoke never ends active SIP calls (operator keeps desk telephony).
+
+Operators who need a narrower surface must disable the corresponding Origin matrix
+rows (or revoke the pairing) — not rely on ownership.
 
 ## Credential Policy
 
@@ -141,8 +165,9 @@ administrative feature with its own ADR, capability, local approval, audit, and 
   operator consent / auth so client `sdk:ping` heartbeats still complete (otherwise SDK
   reconnects and the in-flight activate fails with bare `operation_failed`).
 - Mutations are serialized per call or account aggregate.
-- Destructive commands support ownership/lease policy and expected revision.
-- Conflicts return stable errors such as `conflict`, `stale_state`, or `not_owner`.
+- Destructive commands require capability checks (ADR-0021 shared desk) and expected revision.
+- Conflicts return stable errors such as `conflict` or `stale_state`. Wire `not_owner`
+  remains defined but is not used for shared-desk call control.
 - `window.hide` is product-available under ADR-0013 (amended 2026-07-27): privileged
   Origin-matrix grant, `expectedRevision` match, deny while ringing/connecting/established
   (`conflict`), and minimal tray Show recovery while SDK-hidden.
@@ -184,7 +209,8 @@ old request IDs and state, reauthenticates, and obtains a fresh snapshot.
 - duplicate request IDs;
 - capability escalation, per-Origin matrix deny, and revoked clients;
 - activate consent Deny / pending guard / missing profile / logout-first conflict;
-- conflicting commands from two tabs;
+- conflicting commands from two tabs (shared desk: `stale_state` / `conflict`, not ownership);
+- shared-desk cross-client control and matrix granular strip → `permission_denied`;
 - oversized frames, deep JSON, connection flood, and slow consumers;
 - secret and PII absence in logs and unauthorized events;
 - occupied port and second Electron instance;

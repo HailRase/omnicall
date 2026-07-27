@@ -8,6 +8,7 @@
  */
 
 export {
+  CALL_CONTROL_GRANULAR_CAPABILITIES,
   CAPABILITY_IDS,
   DEFAULT_CAPABILITY_PROFILES,
   DEFAULT_DISCOVERY_HOST,
@@ -41,9 +42,11 @@ export {
   CapabilityIdListSchema,
   CapabilityIdSchema,
   defaultCapabilitiesForProfile,
+  expandCallControlUmbrella,
   isCapabilityInDefaultProfile,
   isPrivilegedCapability,
   PairingProfileSchema,
+  sessionHasCapability,
   type CapabilityId,
   type PairingProfile
 } from './capabilities.js';

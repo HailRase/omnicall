@@ -1,8 +1,12 @@
 /**
- * Capability-gated call mutation runner (SDK-06).
+ * Capability-gated call mutation runner (SDK-06 / ADR-0021).
  */
 
-import type { CapabilityId, CommandType } from '@softomnitel/omnicall-protocol';
+import {
+  sessionHasCapability,
+  type CapabilityId,
+  type CommandType
+} from '@softomnitel/omnicall-protocol';
 
 import {
   buildCallControlBody,
@@ -11,7 +15,10 @@ import {
 } from './call-wire.js';
 import type { ConnectionSession } from './connection-session.js';
 import {
-  guardCapability,
+  createClientError,
+  type OmniCallClientError
+} from './client-errors.js';
+import {
   guardReady,
   mapReplyFailure,
   readCallMutationResult,
@@ -33,6 +40,16 @@ export type CallControlType =
   | 'call:mute'
   | 'call:unmute';
 
+const CONTROL_CAPABILITY: Readonly<Record<CallControlType, CapabilityId>> = {
+  'call:answer': 'call.answer',
+  'call:reject': 'call.reject',
+  'call:hangup': 'call.hangup',
+  'call:hold': 'call.hold',
+  'call:resume': 'call.hold',
+  'call:mute': 'call.mute',
+  'call:unmute': 'call.mute'
+};
+
 export type CallCommandApi = {
   readonly originateCall: (input: {
     readonly destination: string;
@@ -48,6 +65,16 @@ export type CallCommandApi = {
     readonly expectedRevision: number;
   }) => Promise<CallMutationResult>;
 };
+
+function guardCallCapability(
+  granted: readonly CapabilityId[],
+  capability: CapabilityId
+): OmniCallClientError | undefined {
+  if (!sessionHasCapability(granted, capability)) {
+    return createClientError({ code: 'forbidden', retryable: false });
+  }
+  return undefined;
+}
 
 export function createCallCommandApi(deps: {
   readonly connection: ConnectionSession;
@@ -68,7 +95,7 @@ export function createCallCommandApi(deps: {
     if (notReady !== undefined) {
       return Promise.reject(notReady);
     }
-    const missingCap = guardCapability(
+    const missingCap = guardCallCapability(
       deps.getGrantedCapabilities(),
       capability
     );
@@ -103,7 +130,7 @@ export function createCallCommandApi(deps: {
         buildCallOriginateBody(fields, input)
       ),
     controlCall: (type, input) =>
-      runCallMutation(type, 'call.control', (fields) =>
+      runCallMutation(type, CONTROL_CAPABILITY[type], (fields) =>
         buildCallControlBody(type, fields, input)
       ),
     sendDtmf: (input) =>

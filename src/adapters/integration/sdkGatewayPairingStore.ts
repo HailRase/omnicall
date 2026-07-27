@@ -1,5 +1,9 @@
 /**
  * Secure paired-client persistence via SecretStoragePort (DI-04 / ADR-0011).
+ *
+ * Corrupt / undecryptable blobs are purged and treated as missing so Settings
+ * and gateway auth stay available; clients must re-pair (fail-closed for that
+ * binding). SIP/account secrets are out of scope — they keep hard failures.
  */
 
 import {
@@ -8,6 +12,7 @@ import {
   type CapabilityId,
   type PairingProfile,
 } from "@softomnitel/omnicall-protocol";
+import { createConsoleLogger } from "@infrastructure/logging/index.js";
 import type { SecretStoragePort } from "@ports/secrets/SecretStoragePort.js";
 import {
   createSecretStorageScopeKey,
@@ -15,6 +20,7 @@ import {
   SDK_PAIRED_CLIENTS_INDEX_SECRET_ID,
   SDK_PAIRING_SCOPE_KEY,
 } from "@ports/secrets/SecretStoragePort.js";
+import { createCorrelationId } from "@shared/correlation-id/index.js";
 
 import type {
   SdkPairedClientPublicMeta,
@@ -25,8 +31,38 @@ const scopeKey = createSecretStorageScopeKey(SDK_PAIRING_SCOPE_KEY);
 const PROFILE_SET = new Set<string>(PAIRING_PROFILES);
 const CAPABILITY_SET = new Set<string>(CAPABILITY_IDS);
 
+const logger = createConsoleLogger({
+  boundedContext: "Integration",
+  featureId: "F-011",
+});
+
 function clientSecretId(clientId: string): string {
   return `${SDK_PAIRED_CLIENT_SECRET_ID_PREFIX}${clientId}`;
+}
+
+/**
+ * Load pairing secret; on storage failure purge the blob and return null.
+ * Does not swallow SIP-scope errors — this helper is pairing-scope only.
+ */
+async function loadPairingSecret(
+  secrets: SecretStoragePort,
+  secretId: string,
+): Promise<string | null> {
+  try {
+    return await secrets.loadSecret(scopeKey, secretId);
+  } catch (error: unknown) {
+    logger.warn("sdk_pairing_secret_load_recovered", {
+      correlationId: createCorrelationId(),
+      operation: "sdk_pairing_store_load",
+      result: error instanceof Error ? error.message : "secret_load_failed",
+    });
+    try {
+      await secrets.deleteSecret(scopeKey, secretId);
+    } catch {
+      // Best-effort purge; next load still returns null via catch.
+    }
+    return null;
+  }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -129,20 +165,20 @@ export class SdkGatewayPairingStore {
 
   async get(clientId: string): Promise<SdkPairedClientRecord | null> {
     return parseRecord(
-      await this.secrets.loadSecret(scopeKey, clientSecretId(clientId)),
+      await loadPairingSecret(this.secrets, clientSecretId(clientId)),
     );
   }
 
   async listPublic(): Promise<readonly SdkPairedClientPublicMeta[]> {
     const ids = parseClientIds(
-      await this.secrets.loadSecret(scopeKey, SDK_PAIRED_CLIENTS_INDEX_SECRET_ID),
+      await loadPairingSecret(this.secrets, SDK_PAIRED_CLIENTS_INDEX_SECRET_ID),
     );
     const out: SdkPairedClientPublicMeta[] = [];
     const staleIds: string[] = [];
     for (const clientId of ids) {
       const record = await this.get(clientId);
       if (record === null || record.revokedAt !== null) {
-        // Drop missing / legacy soft-revoked rows — they must not linger in UI or index.
+        // Drop missing / legacy soft-revoked / corrupt rows — must not linger in UI.
         staleIds.push(clientId);
         continue;
       }
@@ -161,7 +197,7 @@ export class SdkGatewayPairingStore {
       JSON.stringify(record),
     );
     const ids = parseClientIds(
-      await this.secrets.loadSecret(scopeKey, SDK_PAIRED_CLIENTS_INDEX_SECRET_ID),
+      await loadPairingSecret(this.secrets, SDK_PAIRED_CLIENTS_INDEX_SECRET_ID),
     );
     if (!ids.includes(record.clientId)) {
       ids.push(record.clientId);
@@ -184,7 +220,7 @@ export class SdkGatewayPairingStore {
   async remove(clientId: string): Promise<boolean> {
     const existing = await this.get(clientId);
     const ids = parseClientIds(
-      await this.secrets.loadSecret(scopeKey, SDK_PAIRED_CLIENTS_INDEX_SECRET_ID),
+      await loadPairingSecret(this.secrets, SDK_PAIRED_CLIENTS_INDEX_SECRET_ID),
     );
     const nextIds = ids.filter((id) => id !== clientId);
     if (existing === null && nextIds.length === ids.length) {

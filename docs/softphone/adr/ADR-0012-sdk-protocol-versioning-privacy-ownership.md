@@ -47,10 +47,15 @@ browser tabs cannot corrupt call state.
 
 5. **Call ownership / aggregate safety (principles closed):**
    - Mutations serialize per call or account aggregate.
-   - Destructive/control commands require ownership or lease check and expected revision
-     where applicable; conflicts return `conflict`, `stale_state`, or `not_owner`.
-   - Prefer scoping `call.control` to calls originated by that client when practical;
-     answering inbound may use a documented exception with capability `call.control`.
+   - **Superseded for control authorization by
+     [ADR-0017](./ADR-0017-sdk-privacy-ownership-ocp-map-deprecation.md) O-OWN-1 and
+     [ADR-0021](./ADR-0021-sdk-shared-desk-call-control.md):** shared desk — any
+     capability-authorized paired client may mutate a live call; `ownerClientId` is
+     informational; wire `not_owner` is retained but not used on this path. Concurrency
+     remains `expectedRevision` + idempotent `requestId` (`conflict` / `stale_state`).
+   - Historical note (pre-ADR-0021): principles mentioned ownership/lease checks and
+     scoping `call.control` to originated calls — **do not** reintroduce that gate without
+     a new ADR.
    - Duplicate request IDs are idempotent or rejected as specified by protocol fixtures —
      never silently applied twice.
    - Client disconnect / timeout does **not** auto-replay mutations.
@@ -70,7 +75,7 @@ browser tabs cannot corrupt call state.
 | --- | --- |
 | O-SCHEMA-1 | Zod schemas → inferred types; fixture layout in ADR-0014 |
 | O-PII-1 | Single v1 level `session.read.redacted` with mask formats in ADR-0017 |
-| O-OWN-1 | Owner = originate/answer client; `expectedRevision`; no steal in v1 |
+| O-OWN-1 | Closed in ADR-0017; control gate amended by ADR-0021 (shared desk) |
 | O-CAMP-1 | Campaign events deferred past protocol v1 |
 | O-OCP-1 | Public ↔ E-12 map table in ADR-0017; no `ocp:*` / secrets on public WS |
 
@@ -99,4 +104,4 @@ browser tabs cannot corrupt call state.
 - Feature Registry: F-011, F-028 (E-12 baseline)
 - `omnicall-kit/docs/PROTOCOL.md`
 - `omnicall-kit/docs/SECURITY.md`
-- Related: ADR-0009, ADR-0011, ADR-0013
+- Related: ADR-0009, ADR-0011, ADR-0013, ADR-0017, ADR-0021

@@ -10,12 +10,14 @@ import {
   EVENT_TYPES,
   REQUEST_DEDUP_TTL_SECONDS,
   V1_DEFERRED_CAMPAIGN_EVENTS,
+  expandCallControlUmbrella,
   findForbiddenWireKeys,
   isCommandAvailableInProductV1,
   isDeferredCampaignEventType,
   isIncompatibleProtocolVersion,
   negotiateProtocolVersion,
   productDenialCodeForCommand,
+  sessionHasCapability,
   validateDiscoveryDocument,
   validateWireMessage
 } from './index.js';
@@ -127,10 +129,15 @@ describe('@softomnitel/omnicall-protocol compatibility and constants', () => {
 
   it('locks capability ids and default profiles', () => {
     expect(CAPABILITY_IDS).toContain('session.read.redacted');
+    expect(CAPABILITY_IDS).toContain('call.answer');
+    expect(CAPABILITY_IDS).toContain('call.mute');
     expect(DEFAULT_CAPABILITY_PROFILES.presentation).toEqual([
       'session.read.redacted',
       'window.show'
     ]);
+    expect(DEFAULT_CAPABILITY_PROFILES.call_controller).toContain('call.control');
+    expect(DEFAULT_CAPABILITY_PROFILES.call_controller).toContain('call.answer');
+    expect(DEFAULT_CAPABILITY_PROFILES.call_controller).toContain('call.hangup');
     expect(DEFAULT_CAPABILITY_PROFILES.call_controller).not.toContain(
       'account.activate'
     );
@@ -138,6 +145,22 @@ describe('@softomnitel/omnicall-protocol compatibility and constants', () => {
       'window.hide'
     );
     expect(REQUEST_DEDUP_TTL_SECONDS).toBe(120);
+  });
+
+  it('expands call.control umbrella and satisfies granular caps (ADR-0021)', () => {
+    const expanded = expandCallControlUmbrella([
+      'session.read.redacted',
+      'call.control'
+    ]);
+    expect(expanded).toContain('call.answer');
+    expect(expanded).toContain('call.reject');
+    expect(expanded).toContain('call.hangup');
+    expect(expanded).toContain('call.hold');
+    expect(expanded).toContain('call.mute');
+    expect(sessionHasCapability(['call.control'], 'call.hold')).toBe(true);
+    expect(sessionHasCapability(['call.hold'], 'call.hold')).toBe(true);
+    expect(sessionHasCapability(['call.answer'], 'call.hold')).toBe(false);
+    expect(sessionHasCapability(['call.hold'], 'call.control')).toBe(false);
   });
 
   it('includes campaign events in v1 unions (ADR-0019)', () => {

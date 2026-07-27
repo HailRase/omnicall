@@ -93,9 +93,11 @@ export type {
 } from "./settings/SdkOriginTrust.js";
 export {
   SDK_ORIGIN_MATRIX_CAPABILITY_IDS,
+  SDK_ORIGIN_CALL_GRANULAR_IDS,
   createDefaultSdkOriginCapabilityMatrix,
   isMatrixCapabilityEnabled,
   listEnabledMatrixCapabilities,
+  normalizeSdkOriginCallMatrix,
   withMatrixCapability,
 } from "./settings/SdkOriginTrust.js";
 export {

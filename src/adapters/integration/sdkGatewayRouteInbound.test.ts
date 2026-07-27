@@ -213,7 +213,7 @@ describe("routeSdkInbound", () => {
     });
   });
 
-  it("denies call:hangup without call.control capability", () => {
+  it("denies call:hangup without call.hangup or call.control", () => {
     const hangup = {
       ...getSnapshot,
       type: "call:hangup" as const,
@@ -230,6 +230,46 @@ describe("routeSdkInbound", () => {
       requestId: "req_test_001",
       commandType: "call:hangup",
       code: "forbidden",
+    });
+  });
+
+  it("routes call:hangup with granular call.hangup (ADR-0021)", () => {
+    const hangup = {
+      ...getSnapshot,
+      type: "call:hangup" as const,
+      payload: { callId: "call_001", expectedRevision: 1 },
+    };
+    expect(
+      routeSdkInbound(hangup, {
+        handshakeComplete: true,
+        authState: "authenticated",
+        grantedCapabilities: ["call.hangup"],
+      }),
+    ).toEqual({
+      action: "command_broker",
+      requestId: "req_test_001",
+      commandType: "call:hangup",
+      message: hangup,
+    });
+  });
+
+  it("routes call:hangup with umbrella call.control (ADR-0021)", () => {
+    const hangup = {
+      ...getSnapshot,
+      type: "call:hangup" as const,
+      payload: { callId: "call_001", expectedRevision: 1 },
+    };
+    expect(
+      routeSdkInbound(hangup, {
+        handshakeComplete: true,
+        authState: "authenticated",
+        grantedCapabilities: ["call.control"],
+      }),
+    ).toEqual({
+      action: "command_broker",
+      requestId: "req_test_001",
+      commandType: "call:hangup",
+      message: hangup,
     });
   });
 

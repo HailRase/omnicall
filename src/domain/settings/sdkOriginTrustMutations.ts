@@ -11,6 +11,7 @@ import {
 } from "./SdkIntegrationSettings.js";
 import {
   createDefaultSdkOriginCapabilityMatrix,
+  normalizeSdkOriginCallMatrix,
   type SdkOriginCapabilityMatrix,
   type SdkOriginTrustEntry,
 } from "./SdkOriginTrust.js";
@@ -57,7 +58,7 @@ export function allowSdkOrigin(
   return upsertOrigin(settings, {
     origin,
     state: "allowed",
-    matrix,
+    matrix: normalizeSdkOriginCallMatrix(matrix),
     previouslyAllowed: true,
   });
 }
@@ -124,7 +125,7 @@ export function setSdkOriginCapabilityMatrix(
   }
   return upsertOrigin(settings, {
     ...existing,
-    matrix,
+    matrix: normalizeSdkOriginCallMatrix(matrix),
     previouslyAllowed: true,
   });
 }

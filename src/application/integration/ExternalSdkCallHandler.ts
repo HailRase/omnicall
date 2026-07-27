@@ -1,6 +1,8 @@
 /**
- * Application call-command handler (DI-06 / ADR-0017 O-OWN-1).
- * Ownership + expectedRevision + per-call serialization → existing Use Cases.
+ * Application call-command handler (DI-06 / ADR-0017 / ADR-0021).
+ * expectedRevision + per-call serialization → existing Use Cases.
+ * Ownership is informational (snapshot); control is capability-gated for any
+ * authenticated paired client (shared desk — no cross-client not_owner deny).
  */
 
 import type { CommandMessage } from "@softomnitel/omnicall-protocol";
@@ -189,10 +191,7 @@ export class ExternalSdkCallHandler implements ExternalCommandHandler {
     if (expectedRevision !== sessionRevision) {
       return sdkCallStale(sessionRevision);
     }
-    const ownerGate = this.checkOwnerGate(type, callIdRaw, clientId);
-    if (ownerGate !== null) {
-      return ownerGate;
-    }
+    // ADR-0021: shared desk — any capability-authorized client may control.
     const callId = createCallId(callIdRaw);
     const ucResult = await this.invokeControl(type, callId, payload);
     if (!ucResult.ok) {
@@ -211,31 +210,6 @@ export class ExternalSdkCallHandler implements ExternalCommandHandler {
       { callId: callIdRaw, accepted: true },
       this.revisionClock.advance(),
     );
-  }
-
-  private checkOwnerGate(
-    type: string,
-    callIdRaw: string,
-    clientId: string,
-  ): ExternalHandlerResult | null {
-    const record = this.ownership.get(callIdRaw);
-    if (type === "call:answer" || type === "call:reject") {
-      if (
-        record !== undefined &&
-        !record.terminal &&
-        record.ownerClientId !== clientId
-      ) {
-        return sdkFail("not_owner");
-      }
-      return null;
-    }
-    if (record === undefined || record.terminal) {
-      return sdkFail("not_owner");
-    }
-    if (record.ownerClientId !== clientId) {
-      return sdkFail("not_owner");
-    }
-    return null;
   }
 
   private async invokeControl(

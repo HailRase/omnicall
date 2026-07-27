@@ -69,7 +69,7 @@ Native window commands remain in main.
 - DI-08 evidence: `evidence/DI-08-saved-profile-activation.md` (`done` — `/sdk-review` PASS)
 - DI-09 evidence: `evidence/DI-09-settings-operational-ux.md` (`done` — `/sdk-review` PASS)
 - OCP E-12 command subset: implemented
-- External gateway: loopback WS + pairing/PoP/capabilities + read-only + call + operator/logout + activate-profile (DI-08 `done`); mock retained
+- External gateway: loopback WS + pairing/PoP/capabilities + read-only + call + operator/logout + activate-profile (DI-08 `done`); mock retained; **ADR-0021** shared-desk call control + granular call matrix (2026-07-27)
 - External handlers: `ExternalSdkProductHandler` (read + call + operator + account activate)
 - Main-to-renderer command broker: real IPC adapter `done` (DI-02); mock retained for unit tests
 - SDK Settings UX: **`done`** (DI-09) — origins/paired/revoke/grant/diagnostics; hide disabled;

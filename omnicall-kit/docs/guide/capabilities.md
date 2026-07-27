@@ -13,10 +13,29 @@ pairing; the desktop decides grants. Privileged caps are **never** pairing-defau
 | `operator.status.write` | No | `client.operator.changeStatus` |
 | `operator.campaign.read` | No | Subscribe `operator:campaign-*` + snapshot `operator.campaign` |
 | `ocp.acd_context.read` | No | Subscribe `call:acd-context` (OCP MainCallIDInfo wire, ADR-0020) |
-| `call.originate` | No | `client.calls.originate` |
-| `call.control` | No | answer/reject/hangup/hold/mute/DTMF |
+| `call.originate` | No | `client.calls.originate` — CRM sends destination; OmniCall runs Call Engine |
+| `call.control` | No | Umbrella: answer/reject/hangup/hold/mute **and** DTMF |
+| `call.answer` | No | `client.calls.answer` (also satisfied by `call.control`) |
+| `call.reject` | No | `client.calls.reject` |
+| `call.hangup` | No | `client.calls.hangup` |
+| `call.hold` | No | hold / resume |
+| `call.mute` | No | mute / unmute (mic off/on) |
 | `session.logout` | No | prepare/confirm logout |
 | `account.activate` | **Yes** | `client.account.activateProfile` — desktop grant only |
+
+## Shared desk (ADR-0021)
+
+Any client that completed Origin trust + pairing + PoP and holds the live
+`pairing ∩ Origin matrix` grant may control the **same** OmniCall call state.
+A new tab or browser after its own pairing sees the same snapshot/events.
+Ownership on the wire is informational only; it does not block control.
+
+Desktop Origin matrix write/load normalizes `call.control` = AND(granular caps):
+never silent-enables a granular row; clears the umbrella when any granular flag is
+false (prevents hand-edited `call.control:true` from authorizing a disabled action
+via umbrella semantics).
+
+Transfer and conference are **not** exposed on the SDK.
 
 ## Profile defaults (pairing approve)
 
@@ -24,7 +43,7 @@ pairing; the desktop decides grants. Privileged caps are **never** pairing-defau
 | --- | --- |
 | `presentation` | `session.read.redacted`, `window.show` |
 | `operator` | presentation + `operator.status.write`, `operator.campaign.read`, `ocp.acd_context.read`, `session.logout` |
-| `call_controller` | operator + `call.originate`, `call.control` (includes `ocp.acd_context.read`) |
+| `call_controller` | operator + `call.originate`, `call.control`, granular `call.answer|reject|hangup|hold|mute` |
 
 Source: `@softomnitel/omnicall-protocol` `DEFAULT_CAPABILITY_PROFILES`.  
 `account.activate` and `window.hide` are **never** in these defaults.

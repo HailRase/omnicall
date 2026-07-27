@@ -127,6 +127,9 @@ export function buildPopSigningPayload(parts: {
     readonly nonce: string;
 }): string;
 
+// @public
+export const CALL_CONTROL_GRANULAR_CAPABILITIES: readonly ["call.answer", "call.reject", "call.hangup", "call.hold", "call.mute"];
+
 // @public (undocumented)
 export const CallAcdContextEventSchema: z.ZodReadonly<z.ZodObject<{
     type: z.ZodLiteral<"call:acd-context">;
@@ -638,7 +641,7 @@ export const CallUnmutedEventSchema: z.ZodReadonly<z.ZodObject<{
 }, z.core.$strip>>;
 
 // @public
-export const CAPABILITY_IDS: readonly ["session.read.redacted", "window.show", "window.hide", "operator.status.write", "operator.campaign.read", "ocp.acd_context.read", "call.originate", "call.control", "account.activate", "session.logout"];
+export const CAPABILITY_IDS: readonly ["session.read.redacted", "window.show", "window.hide", "operator.status.write", "operator.campaign.read", "ocp.acd_context.read", "call.originate", "call.control", "call.answer", "call.reject", "call.hangup", "call.hold", "call.mute", "account.activate", "session.logout"];
 
 // @public (undocumented)
 export type CapabilityId = z.infer<typeof CapabilityIdSchema>;
@@ -653,6 +656,11 @@ export const CapabilityIdListSchema: z.ZodArray<z.ZodEnum<{
     "ocp.acd_context.read": "ocp.acd_context.read";
     "call.originate": "call.originate";
     "call.control": "call.control";
+    "call.answer": "call.answer";
+    "call.reject": "call.reject";
+    "call.hangup": "call.hangup";
+    "call.hold": "call.hold";
+    "call.mute": "call.mute";
     "account.activate": "account.activate";
     "session.logout": "session.logout";
 }>>;
@@ -667,6 +675,11 @@ export const CapabilityIdSchema: z.ZodEnum<{
     "ocp.acd_context.read": "ocp.acd_context.read";
     "call.originate": "call.originate";
     "call.control": "call.control";
+    "call.answer": "call.answer";
+    "call.reject": "call.reject";
+    "call.hangup": "call.hangup";
+    "call.hold": "call.hold";
+    "call.mute": "call.mute";
     "account.activate": "account.activate";
     "session.logout": "session.logout";
 }>;
@@ -696,6 +709,11 @@ export const ClientHelloSchema: z.ZodReadonly<z.ZodObject<{
         "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
+        "call.answer": "call.answer";
+        "call.reject": "call.reject";
+        "call.hangup": "call.hangup";
+        "call.hold": "call.hold";
+        "call.mute": "call.mute";
         "account.activate": "account.activate";
         "session.logout": "session.logout";
     }>>;
@@ -1063,7 +1081,7 @@ export const CommandTypeSchema: z.ZodEnum<{
 export const DEFAULT_CAPABILITY_PROFILES: {
     readonly presentation: readonly ["session.read.redacted", "window.show"];
     readonly operator: readonly ["session.read.redacted", "window.show", "operator.status.write", "operator.campaign.read", "ocp.acd_context.read", "session.logout"];
-    readonly call_controller: readonly ["session.read.redacted", "window.show", "operator.status.write", "operator.campaign.read", "ocp.acd_context.read", "session.logout", "call.originate", "call.control"];
+    readonly call_controller: readonly ["session.read.redacted", "window.show", "operator.status.write", "operator.campaign.read", "ocp.acd_context.read", "session.logout", "call.originate", "call.control", "call.answer", "call.reject", "call.hangup", "call.hold", "call.mute"];
 };
 
 // @public
@@ -1586,6 +1604,11 @@ export const EventMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
             "ocp.acd_context.read": "ocp.acd_context.read";
             "call.originate": "call.originate";
             "call.control": "call.control";
+            "call.answer": "call.answer";
+            "call.reject": "call.reject";
+            "call.hangup": "call.hangup";
+            "call.hold": "call.hold";
+            "call.mute": "call.mute";
             "account.activate": "account.activate";
             "session.logout": "session.logout";
         }>>;
@@ -1656,6 +1679,9 @@ export const EventTypeSchema: z.ZodEnum<{
 }>;
 
 // @public
+export function expandCallControlUmbrella(grants: readonly CapabilityId[]): readonly CapabilityId[];
+
+// @public
 export function findForbiddenWireKeys(value: unknown): readonly string[];
 
 // @public
@@ -1686,6 +1712,11 @@ export const HandshakeMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.Zo
         "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
+        "call.answer": "call.answer";
+        "call.reject": "call.reject";
+        "call.hangup": "call.hangup";
+        "call.hold": "call.hold";
+        "call.mute": "call.mute";
         "account.activate": "account.activate";
         "session.logout": "session.logout";
     }>>;
@@ -1962,6 +1993,11 @@ export const PairingApprovedSchema: z.ZodReadonly<z.ZodObject<{
         "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
+        "call.answer": "call.answer";
+        "call.reject": "call.reject";
+        "call.hangup": "call.hangup";
+        "call.hold": "call.hold";
+        "call.mute": "call.mute";
         "account.activate": "account.activate";
         "session.logout": "session.logout";
     }>>;
@@ -2009,6 +2045,11 @@ export const PairingMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodO
         "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
+        "call.answer": "call.answer";
+        "call.reject": "call.reject";
+        "call.hangup": "call.hangup";
+        "call.hold": "call.hold";
+        "call.mute": "call.mute";
         "account.activate": "account.activate";
         "session.logout": "session.logout";
     }>>;
@@ -2039,6 +2080,11 @@ export const PairingMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodO
         "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
+        "call.answer": "call.answer";
+        "call.reject": "call.reject";
+        "call.hangup": "call.hangup";
+        "call.hold": "call.hold";
+        "call.mute": "call.mute";
         "account.activate": "account.activate";
         "session.logout": "session.logout";
     }>>;
@@ -2103,6 +2149,11 @@ export const PairingRequestSchema: z.ZodReadonly<z.ZodObject<{
         "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
+        "call.answer": "call.answer";
+        "call.reject": "call.reject";
+        "call.hangup": "call.hangup";
+        "call.hold": "call.hold";
+        "call.mute": "call.mute";
         "account.activate": "account.activate";
         "session.logout": "session.logout";
     }>>;
@@ -2171,6 +2222,11 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
         "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
+        "call.answer": "call.answer";
+        "call.reject": "call.reject";
+        "call.hangup": "call.hangup";
+        "call.hold": "call.hold";
+        "call.mute": "call.mute";
         "account.activate": "account.activate";
         "session.logout": "session.logout";
     }>>;
@@ -2219,6 +2275,11 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
         "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
+        "call.answer": "call.answer";
+        "call.reject": "call.reject";
+        "call.hangup": "call.hangup";
+        "call.hold": "call.hold";
+        "call.mute": "call.mute";
         "account.activate": "account.activate";
         "session.logout": "session.logout";
     }>>;
@@ -2249,6 +2310,11 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
         "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
+        "call.answer": "call.answer";
+        "call.reject": "call.reject";
+        "call.hangup": "call.hangup";
+        "call.hold": "call.hold";
+        "call.mute": "call.mute";
         "account.activate": "account.activate";
         "session.logout": "session.logout";
     }>>;
@@ -3052,6 +3118,11 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
             "ocp.acd_context.read": "ocp.acd_context.read";
             "call.originate": "call.originate";
             "call.control": "call.control";
+            "call.answer": "call.answer";
+            "call.reject": "call.reject";
+            "call.hangup": "call.hangup";
+            "call.hold": "call.hold";
+            "call.mute": "call.mute";
             "account.activate": "account.activate";
             "session.logout": "session.logout";
         }>>;
@@ -3110,6 +3181,11 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
                 "ocp.acd_context.read": "ocp.acd_context.read";
                 "call.originate": "call.originate";
                 "call.control": "call.control";
+                "call.answer": "call.answer";
+                "call.reject": "call.reject";
+                "call.hangup": "call.hangup";
+                "call.hold": "call.hold";
+                "call.mute": "call.mute";
                 "account.activate": "account.activate";
                 "session.logout": "session.logout";
             }>>;
@@ -3482,6 +3558,11 @@ export const SdkPermissionChangedEventSchema: z.ZodReadonly<z.ZodObject<{
             "ocp.acd_context.read": "ocp.acd_context.read";
             "call.originate": "call.originate";
             "call.control": "call.control";
+            "call.answer": "call.answer";
+            "call.reject": "call.reject";
+            "call.hangup": "call.hangup";
+            "call.hold": "call.hold";
+            "call.mute": "call.mute";
             "account.activate": "account.activate";
             "session.logout": "session.logout";
         }>>;
@@ -3565,6 +3646,9 @@ export const ServerHelloSchema: z.ZodReadonly<z.ZodObject<{
     heartbeatSeconds: z.ZodNumber;
     occurredAt: z.ZodString;
 }, z.core.$strip>>;
+
+// @public
+export function sessionHasCapability(granted: readonly CapabilityId[], required: CapabilityId | null): boolean;
 
 // @public (undocumented)
 export const SnapshotAccountSectionSchema: z.ZodReadonly<z.ZodObject<{
@@ -3661,6 +3745,11 @@ export const SnapshotMessageSchema: z.ZodReadonly<z.ZodObject<{
                 "ocp.acd_context.read": "ocp.acd_context.read";
                 "call.originate": "call.originate";
                 "call.control": "call.control";
+                "call.answer": "call.answer";
+                "call.reject": "call.reject";
+                "call.hangup": "call.hangup";
+                "call.hold": "call.hold";
+                "call.mute": "call.mute";
                 "account.activate": "account.activate";
                 "session.logout": "session.logout";
             }>>;
@@ -3830,6 +3919,11 @@ export const SnapshotSectionsSchema: z.ZodReadonly<z.ZodObject<{
             "ocp.acd_context.read": "ocp.acd_context.read";
             "call.originate": "call.originate";
             "call.control": "call.control";
+            "call.answer": "call.answer";
+            "call.reject": "call.reject";
+            "call.hangup": "call.hangup";
+            "call.hold": "call.hold";
+            "call.mute": "call.mute";
             "account.activate": "account.activate";
             "session.logout": "session.logout";
         }>>;
@@ -3932,6 +4026,11 @@ export const SnapshotSessionSectionSchema: z.ZodReadonly<z.ZodObject<{
         "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
+        "call.answer": "call.answer";
+        "call.reject": "call.reject";
+        "call.hangup": "call.hangup";
+        "call.hold": "call.hold";
+        "call.mute": "call.mute";
         "account.activate": "account.activate";
         "session.logout": "session.logout";
     }>>;
@@ -4074,6 +4173,11 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
         "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
+        "call.answer": "call.answer";
+        "call.reject": "call.reject";
+        "call.hangup": "call.hangup";
+        "call.hold": "call.hold";
+        "call.mute": "call.mute";
         "account.activate": "account.activate";
         "session.logout": "session.logout";
     }>>;
@@ -4122,6 +4226,11 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
         "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
+        "call.answer": "call.answer";
+        "call.reject": "call.reject";
+        "call.hangup": "call.hangup";
+        "call.hold": "call.hold";
+        "call.mute": "call.mute";
         "account.activate": "account.activate";
         "session.logout": "session.logout";
     }>>;
@@ -4152,6 +4261,11 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
         "ocp.acd_context.read": "ocp.acd_context.read";
         "call.originate": "call.originate";
         "call.control": "call.control";
+        "call.answer": "call.answer";
+        "call.reject": "call.reject";
+        "call.hangup": "call.hangup";
+        "call.hold": "call.hold";
+        "call.mute": "call.mute";
         "account.activate": "account.activate";
         "session.logout": "session.logout";
     }>>;
@@ -4955,6 +5069,11 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
             "ocp.acd_context.read": "ocp.acd_context.read";
             "call.originate": "call.originate";
             "call.control": "call.control";
+            "call.answer": "call.answer";
+            "call.reject": "call.reject";
+            "call.hangup": "call.hangup";
+            "call.hold": "call.hold";
+            "call.mute": "call.mute";
             "account.activate": "account.activate";
             "session.logout": "session.logout";
         }>>;
@@ -5013,6 +5132,11 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
                 "ocp.acd_context.read": "ocp.acd_context.read";
                 "call.originate": "call.originate";
                 "call.control": "call.control";
+                "call.answer": "call.answer";
+                "call.reject": "call.reject";
+                "call.hangup": "call.hangup";
+                "call.hold": "call.hold";
+                "call.mute": "call.mute";
                 "account.activate": "account.activate";
                 "session.logout": "session.logout";
             }>>;

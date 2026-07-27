@@ -7,6 +7,8 @@
 
 import {
   createDefaultSdkOriginCapabilityMatrix,
+  normalizeSdkOriginCallMatrix,
+  SDK_ORIGIN_CALL_GRANULAR_IDS,
   SDK_ORIGIN_MATRIX_ADDITIVE_DEFAULTS,
   SDK_ORIGIN_MATRIX_CAPABILITY_IDS,
   type SdkOriginCapabilityMatrix,
@@ -110,6 +112,14 @@ function parseMatrix(value: unknown): ParseMatrixResult {
       capabilities[id] = flag;
       continue;
     }
+    if (
+      (SDK_ORIGIN_CALL_GRANULAR_IDS as readonly string[]).includes(id)
+    ) {
+      // ADR-0021: missing granular → inherit persisted umbrella call.control.
+      const umbrella = caps["call.control"];
+      capabilities[id] = umbrella === true;
+      continue;
+    }
     const additiveDefault = SDK_ORIGIN_MATRIX_ADDITIVE_DEFAULTS[id];
     if (typeof additiveDefault === "boolean") {
       capabilities[id] = additiveDefault;
@@ -117,7 +127,11 @@ function parseMatrix(value: unknown): ParseMatrixResult {
     }
     return { ok: false };
   }
-  return { ok: true, matrix: { capabilities } };
+  // ADR-0021: persist-read path keeps umbrella = AND(granular); never silent-enable.
+  return {
+    ok: true,
+    matrix: normalizeSdkOriginCallMatrix({ capabilities }),
+  };
 }
 
 function parseTrustEntry(value: unknown): SdkOriginTrustEntry | null {

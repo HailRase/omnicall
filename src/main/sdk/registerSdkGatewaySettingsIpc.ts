@@ -50,7 +50,20 @@ export function registerSdkGatewaySettingsIpc(
       if (parsed === null || deps === null) {
         return { ok: false, reason: "invalid_operation" };
       }
-      return handleSdkGatewaySettingsOperation(parsed, deps);
+      try {
+        return await handleSdkGatewaySettingsOperation(parsed, deps);
+      } catch (error: unknown) {
+        const reason =
+          error instanceof Error && error.message.length > 0
+            ? error.message
+            : "operation_failed";
+        logger.error("sdk_gateway_settings_operation_failed", {
+          correlationId: createCorrelationId(),
+          operation: "sdk_gateway_settings",
+          result: reason,
+        });
+        return { ok: false, reason };
+      }
     },
   );
 }

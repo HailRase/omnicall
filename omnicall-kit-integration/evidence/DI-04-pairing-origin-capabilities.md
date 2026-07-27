@@ -20,6 +20,8 @@
 1. **Exact Origin allowlist** — upgrade fails closed on missing / `null` / non-exact / empty allowlist (`sdkGatewayOriginPolicy.ts`). Source: options or `OMNICALL_SDK_ALLOWED_ORIGINS` CSV.
 2. **Pairing ceremony** — `pairing:request` → `pending` → local approve/deny → `approved`/`denied`; grants from ADR-0016 profiles (no privileged auto-escalation).
 3. **Secure storage** — `SdkGatewayPairingStore` via `SecretStoragePort` (main: `ElectronSafeStorageSecretService` + `MainProcessSecretStorageAdapter`; tests: in-memory).
+   - **Follow-up 2026-07-27:** corrupt/undecryptable pairing blobs are purged and treated as
+     missing (re-pair required). Does not soften SIP/account `secret_load_failed`.
 4. **PoP auth** — `authChallenge` in server-hello for paired clients; ECDSA P-256 IEEE-P1363 verify (`node:crypto.verify`); single-use challenge cache.
 5. **Capabilities** — checked per command; unauth → `unauthenticated`; missing grant → `forbidden`; capable product paths → `not_ready` until DI-05 (`sdk:ping` OK after auth).
 6. **Revoke/expiry** — `revokePairedClient` / `revokeSdkPairedClient` emits `sdk:revoked`, closes sessions; does not touch SIP/OCP; auth session TTL fail-closed.
@@ -100,3 +102,18 @@ authenticated` and reply `unauthenticated` while proof was still verifying.
 - Docs aligned: `PROTOCOL.md`, `SECURITY.md`, ADR-0016, `TEST-MATRIX.md`, F-011 evidence
 
 **Non-goals:** no protocol v1 shape change; no SDK rewrite; version not bumped.
+
+## Follow-up (2026-07-27) — corrupt pairing secret recovery
+
+**Issue:** Settings `sdk-gateway:settings-invoke` threw unhandled `secret_load_failed` when
+Electron `safeStorage` could not decrypt the pairing index/client blob (foreign DPAPI key,
+corrupt file). Snapshot build called `SdkGatewayPairingStore.listPublic()` without recovery.
+
+**Fix (desktop only; fail-closed for the binding, fail-open for Settings):**
+- `loadPairingSecret` in `sdkGatewayPairingStore.ts` — catch → purge → `null`
+- `ElectronSafeStorageSecretService.loadSecret` — purge corrupt file, still return
+  `secret_load_failed` (SIP/account UX unchanged)
+- `registerSdkGatewaySettingsIpc` — catch → `{ ok: false, reason }` (no unhandled reject)
+- ADR-0011 Consequences + F-011 registry evidence updated
+
+**Operator recovery:** re-pair the browser client after purge; SIP passwords unaffected.

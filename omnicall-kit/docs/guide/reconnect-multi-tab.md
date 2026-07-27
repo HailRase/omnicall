@@ -32,10 +32,15 @@ client.onStateChange((state) => {
 
 ## Multi-tab guidance
 
+Shared desk (ADR-0021): every authorized paired client may control the same call when
+the Origin matrix grants the action. Snapshot/events stay identical across tabs/browsers
+after each client completes pairing + connect + matrix.
+
 | Scenario | Expect | Host action |
 | --- | --- | --- |
-| Two tabs originate | `conflict` / `not_owner` | Single-writer UX; disable duplicate controls |
-| Tab A holds, Tab B hangs up | Ownership / conflict errors | Refresh snapshot; sync UI from events |
+| Two tabs originate | `conflict` / `stale_state` | Single-writer UX; disable duplicate controls |
+| Tab A holds, Tab B hangs up | Both succeed if capable; later tab may see `stale_state` | Refresh snapshot; sync UI from events |
+| New browser after pairing | Same call state as other clients | `getSnapshot()` + subscribe |
 | Shared PoP install id | Same client identity | Prefer one active controller tab |
 
 Never implement “retry all failed mutations on reconnect” helpers.

@@ -40,15 +40,16 @@ future capability requires a new ADR.
 
 ### O-OWN-1 — Call ownership, idempotency, and revision policy
 
-1. **Owner:** the authenticated SDK `clientId` that successfully completes `call:originate`
-   owns that call for control mutations. For inbound calls, the client that successfully
-   completes `call:answer` becomes owner. Ownership lasts until the call reaches a terminal
-   state (ended/failed) or a future ADR defines an explicit transfer command.
+1. **Owner (informational):** the authenticated SDK `clientId` that successfully completes
+   `call:originate` is recorded as snapshot `ownerClientId` for that call. For inbound
+   calls, the client that successfully completes `call:answer` is recorded. Recording lasts
+   until the call reaches a terminal state. **Control authorization is not ownership-gated**
+   — see [ADR-0021](./ADR-0021-sdk-shared-desk-call-control.md) (amends this bullet).
 
-2. **Control gate:** `call.control` mutations (hold/resume/mute/unmute/DTMF/hangup/reject as
-   applicable) require the caller to be the recorded owner. Non-owners receive `not_owner`.
-   Protocol v1 has **no** `call:claim-control` and **no** automatic ownership steal between
-   tabs.
+2. **Control gate (superseded by ADR-0021):** shared desk — any authenticated session with
+   the required capability (`call.control` umbrella or granular `call.answer|reject|hangup|hold|mute`)
+   may mutate a live call. Wire `not_owner` is retained but not emitted on this path.
+   Protocol v1 has **no** `call:claim-control` (unnecessary under shared desk).
 
 3. **`expectedRevision`:** all call and account mutations in v1 require `expectedRevision`
    equal to the server aggregate revision; mismatch → `stale_state`. This is the concurrency
@@ -58,9 +59,10 @@ future capability requires a new ADR.
    cached reply and never applies a second side effect. Dedup TTL default: **120 seconds**
    (exact constant locked in SDK-02 fixtures).
 
-5. **Multi-tab:** same Origin with a different `clientId` is a different principal; without
-   ownership → `not_owner` or `conflict`. After reconnect, the same `clientId` must
-   reauthenticate and resync; the SDK never replays mutations (ADR-0011/0012).
+5. **Multi-tab:** same Origin with a different `clientId` is a different principal for
+   pairing/audit; control is shared when both hold capabilities (ADR-0021). After reconnect,
+   the same `clientId` must reauthenticate and resync; the SDK never replays mutations
+   (ADR-0011/0012).
 
 6. **Disconnect:** SDK disconnect/revoke never ends calls or account sessions.
 

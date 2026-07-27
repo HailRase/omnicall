@@ -59,7 +59,12 @@ export const PROTOCOL_DEPRECATION_MIN_DAYS = 90 as const;
  */
 export const PROTOCOL_DEPRECATION_MIN_DESKTOP_MINORS = 2 as const;
 
-/** Capability IDs (ADR-0011 / ADR-0016 / ADR-0020). @public */
+/**
+ * Capability IDs (ADR-0011 / ADR-0016 / ADR-0020 / ADR-0021).
+ * Granular `call.answer|reject|hangup|hold|mute` are additive; `call.control`
+ * remains the umbrella (includes DTMF + all granular actions).
+ * @public
+ */
 export const CAPABILITY_IDS = [
   'session.read.redacted',
   'window.show',
@@ -69,8 +74,25 @@ export const CAPABILITY_IDS = [
   'ocp.acd_context.read',
   'call.originate',
   'call.control',
+  'call.answer',
+  'call.reject',
+  'call.hangup',
+  'call.hold',
+  'call.mute',
   'account.activate',
   'session.logout'
+] as const;
+
+/**
+ * Granular call-control caps covered by umbrella `call.control` (ADR-0021).
+ * @public
+ */
+export const CALL_CONTROL_GRANULAR_CAPABILITIES = [
+  'call.answer',
+  'call.reject',
+  'call.hangup',
+  'call.hold',
+  'call.mute'
 ] as const;
 
 /** Pairing profile ids (ADR-0016). @public */
@@ -99,7 +121,12 @@ export const DEFAULT_CAPABILITY_PROFILES = {
     'ocp.acd_context.read',
     'session.logout',
     'call.originate',
-    'call.control'
+    'call.control',
+    'call.answer',
+    'call.reject',
+    'call.hangup',
+    'call.hold',
+    'call.mute'
   ]
 } as const;
 

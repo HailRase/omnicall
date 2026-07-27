@@ -89,6 +89,14 @@ Also re-verified **on DI-09 gate day**: i18n key parity (`messages.test.ts`);
 - SDK-08/09 browser package work may remain pending (non-blocking for desktop DI-09)
 - Machine-wide gateway policy is persisted per active account settings bucket; first Settings apply overrides env allowlist when `originsManaged`
 
+## Follow-up (2026-07-27) — pairing secret resilience
+
+Settings `getSnapshot` no longer dies on corrupt Electron `safeStorage` pairing blobs
+(`secret_load_failed` in `SdkGatewayPairingStore.listPublic`). Bad `sdk-gateway` index /
+`paired-client:*` entries are purged; UI shows empty paired list until re-pair. SIP/account
+secret failures remain hard. IPC handler returns `{ ok: false, reason }` instead of an
+unhandled Electron handler reject. See ADR-0011 Consequences + Feature Registry F-011.
+
 ## Reviewer
 
 `/sdk-review` **PASS** 2026-07-20 — DI-09 closed to **`done`**; Lows remediated same day. Next: **`/sdk-integration` DI-10 only** (separate session).

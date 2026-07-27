@@ -5,6 +5,24 @@ All notable user-visible changes to **OmniCall** are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
+## [Unreleased]
+
+## [1.1.0] - 2026-07-27
+
+### Added
+
+- **F-011 / ADR-0021** Shared-desk SDK call control: any paired client with Origin-matrix
+  grants may answer/reject/hangup/hold/mute (and originate); informational ownership only.
+  Granular matrix permissions `call.answer|reject|hangup|hold|mute` plus umbrella
+  `call.control` (includes DTMF). No SDK transfer/conference. Origin matrix write path
+  normalizes `call.control` = AND(granular) so hand-edited IPC/settings blobs cannot leave
+  umbrella true while a granular row is false.
+
+### Fixed
+
+- **LF-060 / F-016** Product toasts no longer overlap frameless window controls in the compact shell: Sonner `mobileOffset` mirrors chrome-safe insets, and the softphone viewport keeps corner placement under Sonner’s `max-width: 600px` mobile path (Win/Linux/macOS).
+- **F-011 / DI-04+DI-09** Corrupt Electron `safeStorage` pairing blobs no longer crash Settings (`sdk-gateway:settings-invoke` / `secret_load_failed`): pairing store purges bad index/client secrets and continues; Settings IPC returns structured `{ ok:false }`; SIP/account secrets still fail hard. Re-pair required after purge.
+
 ## [1.0.0] - 2026-07-27
 
 ### Changed
@@ -26,12 +44,6 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 - **F-011 / ADR-0013** SDK `client.window.hide({ expectedRevision })`: privileged Origin-matrix
   grant, deny while ringing/connecting/established (`conflict`), minimal tray Show recovery
   while SDK-hidden; Settings matrix toggle `window.hide` (default off).
-
-## [Unreleased]
-
-### Fixed
-
-- **LF-060 / F-016** Product toasts no longer overlap frameless window controls in the compact shell: Sonner `mobileOffset` mirrors chrome-safe insets, and the softphone viewport keeps corner placement under Sonner’s `max-width: 600px` mobile path (Win/Linux/macOS).
 
 ## [0.14.0] - 2026-07-26
 

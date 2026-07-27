@@ -28,7 +28,7 @@ Raw `error.details` remains `WireJsonObject | undefined` for additive keys.
 | `interaction_required` | Human step needed (logout reason **or** manual sign-in in progress) | Logout: `details.requiresReason` + `details.reasons` (no `logoutToken`). Activate: complete Account UI |
 | `revoked` | Session revoked | Clear client; re-pair |
 | `incompatible_version` | Protocol mismatch | Upgrade SDK or desktop; stop |
-| `not_owner` | Another tab/client owns mutation | Coordinate multi-tab; do not force |
+| `not_owner` | Reserved; **not** used for shared-desk call control (ADR-0021) | Treat as unexpected for call mutations; refresh snapshot |
 | `unauthenticated` | Auth required | Reconnect / pair |
 | `rate_limited` | Back off | Honor retryable; jitter |
 | `operation_failed` | Generic failure | Show failure; log code only. For `call:originate`, check `details.failure_kind === "sip_not_registered"` — SIP not registered; do not expect `call:failed` event (preflight deny). |

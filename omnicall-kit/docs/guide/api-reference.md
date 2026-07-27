@@ -131,10 +131,10 @@ All mutations require `expectedRevision` from a fresh snapshot.
 | Method | Capability |
 | --- | --- |
 | `originate({ destination, expectedRevision })` | `call.originate` |
-| `answer` / `reject` / `hangup` | `call.control` |
-| `hold` / `resume` | `call.control` |
-| `mute` / `unmute` | `call.control` |
-| `sendDtmf({ callId, digits, expectedRevision })` | `call.control` |
+| `answer` / `reject` / `hangup` | `call.answer` / `call.reject` / `call.hangup` (or umbrella `call.control`) |
+| `hold` / `resume` | `call.hold` (or `call.control`) |
+| `mute` / `unmute` | `call.mute` (or `call.control`) |
+| `sendDtmf({ callId, digits, expectedRevision })` | `call.control` only |
 
 Result: `{ callId, revision }`. Failures: see [Errors](./errors.md).
 

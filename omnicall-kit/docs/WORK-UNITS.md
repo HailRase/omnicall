@@ -240,7 +240,7 @@ Evidence:
 
 - Unit evidence: `omnicall-kit/evidence/SDK-06-call-control-api.md`
 - Command matrix: same (table + DI-06 citation)
-- Race tests: reconnect non-replay; disconnect-no-hangup; stale_state/conflict/not_owner; pre-ready/forbidden
+- Race tests: reconnect non-replay; disconnect-no-hangup; stale_state/conflict; capability deny / matrix `permission_denied`; shared-desk cross-client control (ADR-0021; wire `not_owner` reserved unused on this path); pre-ready/forbidden
 - Desktop mapping evidence: DI-06 oracle **17** tests green (read-only); client is protocol consumer only
 - Independent verification (implementation session): sdk src **66**, workspace preflight **74**, types **5**, browser **5**, api **39** (was **37**), desktop oracle **17**
 - Reviewer: `/sdk-review` **PASS** 2026-07-20 — zero Blockers; Low remediated same day (malformed callId → `invalid_payload`); independent post-fix: sdk src **67**, workspace **75**, types **5**, browser **5**, api **39**, desktop oracle **17**; F-011 remains `in progress`; DI-10 still blocked on SDK-07…09; next `/sdk-project` SDK-07 only

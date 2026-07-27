@@ -279,9 +279,15 @@ Raw exceptions and upstream SIP/OCP messages never cross the boundary.
 
 ## Ownership, Idempotency, Revision
 
-Frozen in **ADR-0017** (O-OWN-1): owner = originate/answer client; `expectedRevision`
-required on mutations; duplicate `requestId` returns cached reply; no ownership steal in v1;
-disconnect does not end calls.
+**ADR-0017** (O-OWN-1) + **ADR-0021** (shared desk):
+
+- Snapshot may record informational `ownerClientId` after SDK originate/answer.
+- **Control is capability-gated for any paired client** (not ownership-gated).
+- Granular caps `call.answer|reject|hangup|hold|mute` or umbrella `call.control`
+  (umbrella also covers DTMF).
+- `expectedRevision` required on mutations; duplicate `requestId` returns cached reply.
+- Disconnect does not end calls.
+- Transfer / conference are not public SDK commands.
 
 ## Versioning and Deprecation
 

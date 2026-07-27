@@ -26,6 +26,7 @@ recorded evidence on 2026-07-20.
 | ADR-0012 | Protocol versioning, privacy, call ownership |
 | ADR-0013 | Window policy + SDK sign-in vs ADR-AF-003 |
 | ADR-0018 | Origin TOFU, blacklist, per-Origin matrix, always-on gateway, activate consent |
+| ADR-0021 | Shared-desk call control + granular call matrix capabilities |
 
 Evidence: `omnicall-kit-integration/evidence/DI-00-baseline.md`  
 Handoff: `docs/softphone/handoffs/P12-External-Host-API-Master-Handoff.md`
