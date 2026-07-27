@@ -9,6 +9,7 @@ import type {
   EventMessage,
   PROTOCOL_ERROR_CODES,
   ProtocolErrorCode,
+  PublicOperatorStatus,
   V1_DEFERRED_CAMPAIGN_EVENTS,
   WireJsonValue,
   WireMessage
@@ -47,5 +48,11 @@ describe('@axata/axatalk-protocol type surface', () => {
     expectTypeOf<'operator:campaign-offered'>().toExtend<EventType>();
     expectTypeOf<'operator:campaign-cleared'>().toExtend<EventType>();
     expectTypeOf<(typeof V1_DEFERRED_CAMPAIGN_EVENTS)[number]>().toBeNever();
+  });
+
+  it('shares PublicOperatorStatus across snapshot and status events', () => {
+    type StatusChanged = Extract<EventMessage, { type: 'operator:status-changed' }>;
+    expectTypeOf<StatusChanged['payload']['status']>().toEqualTypeOf<PublicOperatorStatus>();
+    expectTypeOf<'post_call_processing'>().toExtend<PublicOperatorStatus>();
   });
 });

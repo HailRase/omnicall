@@ -6,14 +6,25 @@ import type { ProtocolErrorCode, WireJsonObject } from '@axata/axatalk-protocol'
 
 /**
  * Typed failure for AxatalkClient commands.
- * Optional `details` carries safe protocol error details (e.g. interaction_required).
+ * Prefer `isAxatalkClientError` + `readInteractionRequiredDetails` /
+ * `readConflictErrorDetails` / `readOperationFailedDetails` over raw `details` indexing.
  * @public
  */
 export class AxatalkClientError extends Error {
   override readonly name = 'AxatalkClientError';
+
+  /** Stable protocol / client error code. */
   readonly code: ProtocolErrorCode;
+
+  /** Whether a later retry may succeed without user policy change. */
   readonly retryable: boolean;
+
+  /** Present on many `stale_state` failures — refresh snapshot before retry. */
   readonly currentRevision: number | undefined;
+
+  /**
+   * Safe JSON details (never secrets). Shape varies by `code`; use typed readers.
+   */
   readonly details: WireJsonObject | undefined;
 
   constructor(input: {

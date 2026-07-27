@@ -1480,9 +1480,9 @@ export const EventMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
         status: z.ZodOptional<z.ZodEnum<{
             ready: "ready";
             break: "break";
-            unknown: "unknown";
             offline: "offline";
             post_call_processing: "post_call_processing";
+            unknown: "unknown";
         }>>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
@@ -1499,9 +1499,9 @@ export const EventMessageSchema: z.ZodDiscriminatedUnion<[z.ZodReadonly<z.ZodObj
         status: z.ZodEnum<{
             ready: "ready";
             break: "break";
-            unknown: "unknown";
             offline: "offline";
             post_call_processing: "post_call_processing";
+            unknown: "unknown";
         }>;
         reasonId: z.ZodOptional<z.ZodNumber>;
         reasonLabelKey: z.ZodOptional<z.ZodString>;
@@ -1892,9 +1892,9 @@ export const OperatorSessionChangedEventSchema: z.ZodReadonly<z.ZodObject<{
         status: z.ZodOptional<z.ZodEnum<{
             ready: "ready";
             break: "break";
-            unknown: "unknown";
             offline: "offline";
             post_call_processing: "post_call_processing";
+            unknown: "unknown";
         }>>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
@@ -1914,9 +1914,9 @@ export const OperatorStatusChangedEventSchema: z.ZodReadonly<z.ZodObject<{
         status: z.ZodEnum<{
             ready: "ready";
             break: "break";
-            unknown: "unknown";
             offline: "offline";
             post_call_processing: "post_call_processing";
+            unknown: "unknown";
         }>;
         reasonId: z.ZodOptional<z.ZodNumber>;
         reasonLabelKey: z.ZodOptional<z.ZodString>;
@@ -2206,8 +2206,8 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
         version: z.ZodString;
     }, z.core.$strip>>;
     requestedProfile: z.ZodEnum<{
-        presentation: "presentation";
         operator: "operator";
+        presentation: "presentation";
         call_controller: "call_controller";
     }>;
     requestedCapabilities: z.ZodArray<z.ZodEnum<{
@@ -2236,8 +2236,8 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     type: z.ZodLiteral<"pairing:approved">;
     clientId: z.ZodString;
     profile: z.ZodEnum<{
-        presentation: "presentation";
         operator: "operator";
+        presentation: "presentation";
         call_controller: "call_controller";
     }>;
     grantedCapabilities: z.ZodArray<z.ZodEnum<{
@@ -2524,12 +2524,12 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
-            forbidden: "forbidden";
-            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
+            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
+            forbidden: "forbidden";
             revoked: "revoked";
             not_ready: "not_ready";
             not_found: "not_found";
@@ -2946,9 +2946,9 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
         status: z.ZodOptional<z.ZodEnum<{
             ready: "ready";
             break: "break";
-            unknown: "unknown";
             offline: "offline";
             post_call_processing: "post_call_processing";
+            unknown: "unknown";
         }>>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
@@ -2965,9 +2965,9 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
         status: z.ZodEnum<{
             ready: "ready";
             break: "break";
-            unknown: "unknown";
             offline: "offline";
             post_call_processing: "post_call_processing";
+            unknown: "unknown";
         }>;
         reasonId: z.ZodOptional<z.ZodNumber>;
         reasonLabelKey: z.ZodOptional<z.ZodString>;
@@ -3171,9 +3171,9 @@ export const ProtocolDocumentSchema: z.ZodUnion<readonly [z.ZodReadonly<z.ZodObj
             status: z.ZodOptional<z.ZodEnum<{
                 ready: "ready";
                 break: "break";
-                unknown: "unknown";
                 offline: "offline";
                 post_call_processing: "post_call_processing";
+                unknown: "unknown";
             }>>;
             reasonId: z.ZodOptional<z.ZodNumber>;
             reasonLabelKey: z.ZodOptional<z.ZodString>;
@@ -3295,6 +3295,18 @@ export const PublicCallStateSchema: z.ZodEnum<{
     ending: "ending";
     ended: "ended";
     failed: "failed";
+}>;
+
+// @public (undocumented)
+export type PublicOperatorStatus = z.infer<typeof PublicOperatorStatusSchema>;
+
+// @public
+export const PublicOperatorStatusSchema: z.ZodEnum<{
+    ready: "ready";
+    break: "break";
+    offline: "offline";
+    post_call_processing: "post_call_processing";
+    unknown: "unknown";
 }>;
 
 // @public (undocumented)
@@ -3710,9 +3722,9 @@ export const SnapshotMessageSchema: z.ZodReadonly<z.ZodObject<{
             status: z.ZodOptional<z.ZodEnum<{
                 ready: "ready";
                 break: "break";
-                unknown: "unknown";
                 offline: "offline";
                 post_call_processing: "post_call_processing";
+                unknown: "unknown";
             }>>;
             reasonId: z.ZodOptional<z.ZodNumber>;
             reasonLabelKey: z.ZodOptional<z.ZodString>;
@@ -3766,9 +3778,9 @@ export const SnapshotOperatorSectionSchema: z.ZodReadonly<z.ZodObject<{
     status: z.ZodOptional<z.ZodEnum<{
         ready: "ready";
         break: "break";
-        unknown: "unknown";
         offline: "offline";
         post_call_processing: "post_call_processing";
+        unknown: "unknown";
     }>>;
     reasonId: z.ZodOptional<z.ZodNumber>;
     reasonLabelKey: z.ZodOptional<z.ZodString>;
@@ -3879,9 +3891,9 @@ export const SnapshotSectionsSchema: z.ZodReadonly<z.ZodObject<{
         status: z.ZodOptional<z.ZodEnum<{
             ready: "ready";
             break: "break";
-            unknown: "unknown";
             offline: "offline";
             post_call_processing: "post_call_processing";
+            unknown: "unknown";
         }>>;
         reasonId: z.ZodOptional<z.ZodNumber>;
         reasonLabelKey: z.ZodOptional<z.ZodString>;
@@ -4097,8 +4109,8 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
         version: z.ZodString;
     }, z.core.$strip>>;
     requestedProfile: z.ZodEnum<{
-        presentation: "presentation";
         operator: "operator";
+        presentation: "presentation";
         call_controller: "call_controller";
     }>;
     requestedCapabilities: z.ZodArray<z.ZodEnum<{
@@ -4127,8 +4139,8 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     type: z.ZodLiteral<"pairing:approved">;
     clientId: z.ZodString;
     profile: z.ZodEnum<{
-        presentation: "presentation";
         operator: "operator";
+        presentation: "presentation";
         call_controller: "call_controller";
     }>;
     grantedCapabilities: z.ZodArray<z.ZodEnum<{
@@ -4415,12 +4427,12 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
     ok: z.ZodLiteral<false>;
     error: z.ZodReadonly<z.ZodObject<{
         code: z.ZodEnum<{
-            forbidden: "forbidden";
-            incompatible_version: "incompatible_version";
             invalid_message: "invalid_message";
             invalid_payload: "invalid_payload";
             unsupported_command: "unsupported_command";
+            incompatible_version: "incompatible_version";
             unauthenticated: "unauthenticated";
+            forbidden: "forbidden";
             revoked: "revoked";
             not_ready: "not_ready";
             not_found: "not_found";
@@ -4837,9 +4849,9 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
         status: z.ZodOptional<z.ZodEnum<{
             ready: "ready";
             break: "break";
-            unknown: "unknown";
             offline: "offline";
             post_call_processing: "post_call_processing";
+            unknown: "unknown";
         }>>;
     }, z.core.$strip>>;
     protocolVersion: z.ZodNumber;
@@ -4856,9 +4868,9 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
         status: z.ZodEnum<{
             ready: "ready";
             break: "break";
-            unknown: "unknown";
             offline: "offline";
             post_call_processing: "post_call_processing";
+            unknown: "unknown";
         }>;
         reasonId: z.ZodOptional<z.ZodNumber>;
         reasonLabelKey: z.ZodOptional<z.ZodString>;
@@ -5062,9 +5074,9 @@ export const WireMessageSchema: z.ZodUnion<readonly [z.ZodDiscriminatedUnion<[z.
             status: z.ZodOptional<z.ZodEnum<{
                 ready: "ready";
                 break: "break";
-                unknown: "unknown";
                 offline: "offline";
                 post_call_processing: "post_call_processing";
+                unknown: "unknown";
             }>>;
             reasonId: z.ZodOptional<z.ZodNumber>;
             reasonLabelKey: z.ZodOptional<z.ZodString>;

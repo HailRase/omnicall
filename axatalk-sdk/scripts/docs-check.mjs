@@ -53,6 +53,7 @@ const requiredGuide = [
   'transport.md',
   'pairing-quick-start.md',
   'api-reference.md',
+  'typescript.md',
   'events.md',
   'operator-status-reservation.md',
   'errors.md',
@@ -104,25 +105,35 @@ if (/account\.activate|window\.hide|localStorage|sessionStorage|sipPassword/.tes
 }
 
 const apiReport = fs.readFileSync(path.join(root, 'etc', 'api', 'sdk.api.md'), 'utf8');
-const reportExports = [...apiReport.matchAll(/^export (?:type|class|function|const) (\w+)/gm)].map(
+const typedExports = [
+  ...apiReport.matchAll(/^export (?:type|class|function|const) (\w+)/gm)
+].map((match) => match[1]);
+const bracedExports = [...apiReport.matchAll(/^export \{ (\w+) \}$/gm)].map(
   (match) => match[1]
 );
-if (reportExports.length !== 55) {
-  console.error(`Expected 55 sdk.api.md exports, found ${reportExports.length}`);
+const reportExports = [...new Set([...typedExports, ...bracedExports])];
+if (reportExports.length === 0) {
+  console.error('sdk.api.md has zero export symbols');
   process.exit(1);
 }
+const expectedCount = reportExports.length;
 
 const apiReference = fs.readFileSync(path.join(guideRoot, 'api-reference.md'), 'utf8');
 const inventoryMatch = apiReference.match(
-  /## Public symbol inventory \(55\)([\s\S]*?)## Factories/
-  );
+  /## Public symbol inventory \((\d+)\)([\s\S]*?)## Factories/
+);
 if (!inventoryMatch) {
-  console.error('api-reference.md missing Public symbol inventory (55) section');
+  console.error(
+    'api-reference.md missing Public symbol inventory (N) section before ## Factories'
+  );
   process.exit(1);
 }
-const inventoryExports = [...inventoryMatch[1].matchAll(/`(\w+)`/g)].map((match) => match[1]);
-if (inventoryExports.length !== 55) {
-  console.error(`api-reference inventory has ${inventoryExports.length} symbols, expected 55`);
+const inventoryCount = Number(inventoryMatch[1]);
+const inventoryExports = [...inventoryMatch[2].matchAll(/`(\w+)`/g)].map((match) => match[1]);
+if (inventoryCount !== expectedCount || inventoryExports.length !== expectedCount) {
+  console.error(
+    `api-reference inventory count mismatch: heading=${inventoryCount}, rows=${inventoryExports.length}, sdk.api.md=${expectedCount}`
+  );
   process.exit(1);
 }
 const sortedReport = [...reportExports].sort().join(',');

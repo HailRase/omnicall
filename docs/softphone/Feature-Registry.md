@@ -357,6 +357,7 @@ Every aggregated feature in this registry must map to one or more `LF-XXX` legac
 - SDK-08 evidence: `axatalk-sdk/evidence/SDK-08-saved-profile-activation.md` (`done` — `/sdk-review` PASS; privileged `account.activateProfile` client)
 - SDK-09 evidence: `axatalk-sdk/evidence/SDK-09-developer-docs-examples.md` (`done` — developer guide + fake-peer example; not published)
 - SDK-10 evidence: `axatalk-sdk/evidence/SDK-10-release-candidate.md` (`done` — Mode A RC staging; stable/packaged E2E blocked on DI-10; no npm `latest`)
+- SDK typing DX (2026-07-27, additive): integrator re-exports (`SnapshotMessage`, `CapabilityId`, …), `AxatalkEventOf`, tightened activate/operator result DTOs, typed error readers; guide `axatalk-sdk/docs/guide/typescript.md`; public surface **77** symbols (`etc/api/sdk.api.md`); no product command / security policy change
 - DI-09 evidence: `axatalk-sdk-integration/evidence/DI-09-settings-operational-ux.md`
 - DI-10 evidence: `axatalk-sdk-integration/evidence/DI-10-compatibility-e2e-p12-close.md` (`done` — `/sdk-review` PASS 2026-07-21; F-011 not closed)
 - DI-11 planning: `axatalk-sdk-integration/evidence/DI-11-origin-tofu-blacklist-activate-planning.md`

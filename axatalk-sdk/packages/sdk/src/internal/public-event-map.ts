@@ -35,6 +35,19 @@ export type PublicEventType = (typeof PUBLIC_EVENT_TYPES)[number];
 /** Public anti-corruption event DTO (protocol names only). @public */
 export type AxatalkEvent = Extract<EventMessage, { type: PublicEventType }>;
 
+/**
+ * Narrow `AxatalkEvent` by protocol event name (integrator helper).
+ * @example
+ * ```ts
+ * type Incoming = AxatalkEventOf<'call:incoming'>;
+ * ```
+ * @public
+ */
+export type AxatalkEventOf<T extends PublicEventType> = Extract<
+  AxatalkEvent,
+  { type: T }
+>;
+
 const PUBLIC_SET = new Set<string>(PUBLIC_EVENT_TYPES);
 
 export function isPublicEventType(type: string): type is PublicEventType {

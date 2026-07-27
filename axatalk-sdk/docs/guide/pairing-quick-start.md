@@ -85,22 +85,22 @@ void revision;
 - [ ] Blacklisted → no upgrade (`origin_blocked`); Unblock restores prior `allowed` matrix when applicable
 - [ ] PoP in IndexedDB (browser) or memory (tests) — never Web Storage
 - [ ] Privileged caps **not** in `requestedCapabilities` (and would be stripped anyway)
-- [ ] After ready: enable `window.hide` / `account.activate` only in Axatalk Settings →
-      SDK Origin matrix, then call `client.window.hide({ expectedRevision })` /
-      `activateProfile` (never request those caps at pairing)
+- [ ] After ready: grant privileged window-hide / saved-profile activate only in Axatalk
+      Settings → SDK Origin matrix (never request those caps at pairing) — see
+      [Capabilities](./capabilities.md) and [API reference — window / account](./api-reference.md)
 - [ ] `getSnapshot()` / `getRevision()` before mutations
-- [ ] Typed errors via `isAxatalkClientError`
+- [ ] Typed errors via `isAxatalkClientError` / readers in [TypeScript](./typescript.md)
 - [ ] Do not confuse Origin deny / `origin_blocked` with product `not_ready` (broker / composition)
 - [ ] Transport: see [Transport](./transport.md) — do not invent a second reconnect layer on the socket
 
 ## Privileged window hide (after ready)
 
-`window.hide` is **product-available** in protocol v1 (ADR-0013 amended 2026-07-27).
+Window hide is **product-available** in protocol v1 (ADR-0013 amended 2026-07-27).
+Do **not** request privileged hide/activate capability ids at pairing.
 
-1. Operator enables `window.hide` for your Origin in Axatalk → Settings → Axatalk SDK
-   (Trusted sites matrix; default **off**).
-2. Host calls `client.window.hide({ expectedRevision })` with a fresh revision.
-3. Desktop denies with `conflict` while ringing / connecting / in-call; recovery is
-   tray Show or `client.window.show()`.
+Operator enables hide for your Origin in Axatalk → Settings → Axatalk SDK
+(Trusted sites matrix; default **off**), then the host uses the window namespace
+with a fresh revision. Telephony-busy replies are `conflict`; recovery is tray Show
+or `client.window.show()`.
 
-See [API reference — window](./api-reference.md) and [Capabilities](./capabilities.md).
+Full recipe: [API reference — window](./api-reference.md) and [Capabilities](./capabilities.md).

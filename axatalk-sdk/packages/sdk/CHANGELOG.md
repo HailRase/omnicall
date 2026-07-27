@@ -8,6 +8,19 @@ Packages remain `private: true` / `0.0.0` in the incubating workspace until a hu
 authorizes registry publish. Stable / `latest` is **blocked on desktop DI-10** (packaged
 Electron E2E).
 
+### Typing DX (additive, 2026-07-27)
+
+- Re-export integrator DTOs from `@axata/axatalk-sdk`: `SnapshotMessage`,
+  `SnapshotSections`, `SnapshotCallSummary`, `CapabilityId`, `ProtocolErrorCode`,
+  `PublicOperatorStatus`, `WireJsonObject`
+- `AxatalkEventOf<'event-name'>` helper; tightened
+  `ActivateProfileResult.mode` → `ActivateProfileMode`,
+  `OperatorStatusChangeResult.accepted` → `true`,
+  `targetStatus` → `PublicOperatorStatus`
+- Typed error helpers: `isInteractionRequiredError` /
+  `readInteractionRequiredDetails`, conflict / operation_failed readers
+- Guide: `docs/guide/typescript.md`; inventory sync via `docs:check` (no hardcoded count)
+
 ### Included since incubation (SDK-00…SDK-09 + transport defaults)
 
 - `AxatalkClient` lifecycle: connect, pair, ready, disconnect, revoke, incompatible

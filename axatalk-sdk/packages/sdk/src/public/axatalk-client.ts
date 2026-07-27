@@ -19,6 +19,7 @@ import {
 import {
   PUBLIC_EVENT_TYPES,
   type AxatalkEvent,
+  type AxatalkEventOf,
   type PublicEventType
 } from '../internal/public-event-map.js';
 import type { PairingRequiredInfo } from './auth-client.js';
@@ -27,9 +28,12 @@ import type {
   AxatalkClientOptions
 } from './axatalk-client-api.js';
 
-export type { AxatalkEvent, PublicEventType };
+export type { AxatalkEvent, AxatalkEventOf, PublicEventType };
 export { AxatalkClientError, isAxatalkClientError, isOriginBlockedError, PUBLIC_EVENT_TYPES };
-export type { ActivateProfileResult } from '../internal/account-activate-commands.js';
+export type {
+  ActivateProfileMode,
+  ActivateProfileResult
+} from '../internal/account-activate-commands.js';
 export type { LogoutResult } from '../internal/account-logout-commands.js';
 export type {
   OperatorFinishAppealResult,
@@ -47,6 +51,26 @@ export type {
   AxatalkWindowApi,
   CallMutationResult
 } from './axatalk-client-api.js';
+export {
+  isConflictError,
+  isInteractionRequiredError,
+  isOperationFailedError,
+  readConflictErrorDetails,
+  readInteractionRequiredDetails,
+  readOperationFailedDetails,
+  type ConflictErrorDetails,
+  type InteractionRequiredDetails,
+  type OperationFailedDetails
+} from '../internal/client-error-details.js';
+export type {
+  CapabilityId,
+  ProtocolErrorCode,
+  PublicOperatorStatus,
+  SnapshotCallSummary,
+  SnapshotMessage,
+  SnapshotSections,
+  WireJsonObject
+} from './protocol-reexports.js';
 
 /**
  * Create an Axatalk client. Does not connect, pair, auth, or fetch.

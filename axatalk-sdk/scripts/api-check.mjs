@@ -9,6 +9,7 @@ const packages = ['protocol', 'sdk'];
 
 /** SDK-08 allowlist — auth + read + calls + operator/logout + activate result. */
 const SDK_ALLOWED_SYMBOLS = new Set([
+  'ActivateProfileMode',
   'ActivateProfileResult',
   'AuthClient',
   'AuthClientOptions',
@@ -19,10 +20,13 @@ const SDK_ALLOWED_SYMBOLS = new Set([
   'AxatalkClientError',
   'AxatalkClientOptions',
   'AxatalkEvent',
+  'AxatalkEventOf',
   'AxatalkOperatorApi',
   'AxatalkWindowApi',
   'CallMutationResult',
+  'CapabilityId',
   'CONNECTION_STATES',
+  'ConflictErrorDetails',
   'ConnectionState',
   'DiagnosticEvent',
   'DiagnosticLevel',
@@ -30,8 +34,10 @@ const SDK_ALLOWED_SYMBOLS = new Set([
   'DiagnosticsSink',
   'FakeScheduler',
   'HeartbeatPolicy',
+  'InteractionRequiredDetails',
   'JitterSource',
   'LogoutResult',
+  'OperationFailedDetails',
   'OperatorFinishAppealResult',
   'OperatorReason',
   'OperatorReasonsResult',
@@ -40,15 +46,25 @@ const SDK_ALLOWED_SYMBOLS = new Set([
   'PUBLIC_EVENT_TYPES',
   'PairingRequiredInfo',
   'PopKeyStore',
+  'ProtocolErrorCode',
   'PublicEventType',
+  'PublicOperatorStatus',
   'ReconnectPolicy',
   'Scheduler',
+  'SDK_ACTIVATE_CLIENT_TIMEOUT_MS',
+  'SDK_ACTIVATE_CONSENT_TTL_MS',
+  'SDK_ACTIVATE_OCP_AUTH_BUDGET_MS',
+  'SDK_ACTIVATE_SIP_ONLY_AUTH_BUDGET_MS',
+  'SnapshotCallSummary',
+  'SnapshotMessage',
+  'SnapshotSections',
   'StoredPopIdentity',
   'TimerHandle',
   'TransportCloseInfo',
   'TransportErrorInfo',
   'TransportFactory',
   'TransportPort',
+  'WireJsonObject',
   'createAuthClient',
   'createAxatalkClient',
   'createBrowserJitterSource',
@@ -60,7 +76,13 @@ const SDK_ALLOWED_SYMBOLS = new Set([
   'createMemoryPopKeyStore',
   'createRecordingDiagnosticsSink',
   'isAxatalkClientError',
+  'isConflictError',
+  'isInteractionRequiredError',
+  'isOperationFailedError',
   'isOriginBlockedError',
+  'readConflictErrorDetails',
+  'readInteractionRequiredDetails',
+  'readOperationFailedDetails',
   'BrowserWebSocketConstructor',
   'BrowserWebSocketLike',
   'CreateBrowserWebSocketTransportOptions'
@@ -98,12 +120,14 @@ function run(command, args, cwd) {
  * @returns {string[]}
  */
 function listPublicSymbols(report) {
-  const matches = [
+  const typed = [
     ...report.matchAll(
-      /^\s*(export\s+(?:declare\s+)?(?:class|function|const|interface|type|enum)\s+(\w+))/gm
+      /^\s*export\s+(?:declare\s+)?(?:class|function|const|interface|type|enum)\s+(\w+)/gm
     )
-  ];
-  return matches.map((m) => m[2]).filter((name) => typeof name === 'string');
+  ].map((m) => m[1]);
+  // API Extractor re-exports: `export { SnapshotMessage }`
+  const braced = [...report.matchAll(/^export \{ (\w+) \}$/gm)].map((m) => m[1]);
+  return [...new Set([...typed, ...braced].filter((name) => typeof name === 'string'))];
 }
 
 const reportDir = path.join(root, 'etc', 'api');

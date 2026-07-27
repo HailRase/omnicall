@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 import { PublicCallStateSchema } from './call-state.js';
 import { CapabilityIdListSchema } from './capabilities.js';
+import { PublicOperatorStatusSchema } from './operator-status.js';
 import {
   IsoTimestampSchema,
   OpaqueIdSchema,
@@ -12,6 +13,10 @@ import {
 } from './primitives.js';
 
 export { PublicCallStateSchema, type PublicCallState } from './call-state.js';
+export {
+  PublicOperatorStatusSchema,
+  type PublicOperatorStatus
+} from './operator-status.js';
 
 /** @public */
 export const EVENT_TYPES = [
@@ -192,9 +197,7 @@ export const OperatorSessionChangedEventSchema = z
     payload: z
       .object({
         connected: z.boolean(),
-        status: z
-          .enum(['ready', 'break', 'offline', 'post_call_processing', 'unknown'])
-          .optional()
+        status: PublicOperatorStatusSchema.optional()
       })
       .readonly()
   })
@@ -207,13 +210,7 @@ export const OperatorStatusChangedEventSchema = z
     type: z.literal('operator:status-changed'),
     payload: z
       .object({
-        status: z.enum([
-          'ready',
-          'break',
-          'offline',
-          'post_call_processing',
-          'unknown'
-        ]),
+        status: PublicOperatorStatusSchema,
         reasonId: z.number().int().nonnegative().optional(),
         reasonLabelKey: z.string().min(1).max(128).optional(),
         /** Post-call booking target; omitted when cleared / idle. */

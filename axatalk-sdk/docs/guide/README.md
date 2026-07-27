@@ -17,6 +17,7 @@ Example (fake peer only): [`examples/crm-pairing-lite/`](../../examples/crm-pair
 | 4 | [Transport (WebSocket port)](./transport.md) | Official browser WS adapter + injection rules |
 | 5 | [Pairing quick start](./pairing-quick-start.md) | Connect → pair → ready → snapshot |
 | 6 | [API reference](./api-reference.md) | Namespaced methods only |
+| 6a | [TypeScript](./typescript.md) | Imports, `AxatalkEventOf`, error readers, inventory sync |
 | 7 | [Events catalog](./events.md) | Public protocol event names |
 | 8 | [Operator status & reservation](./operator-status-reservation.md) | `changeStatus` applied\|reserved; finish-appeal |
 | 9 | [Errors catalog](./errors.md) | Stable codes + host next steps |

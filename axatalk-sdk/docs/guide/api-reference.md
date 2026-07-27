@@ -3,13 +3,16 @@
 Aligns with [`etc/api/sdk.api.md`](../../etc/api/sdk.api.md).  
 If this page disagrees with the API report, the **report wins**.
 
-**Full public inventory:** **55** symbols (see table below). Method/namespace sections are
+**Full public inventory:** **77** symbols (see table below). Method/namespace sections are
 integrator-oriented summaries; the inventory is the complete export list.
 
-## Public symbol inventory (55)
+Typing DX (imports, `AxatalkEventOf`, error readers): [TypeScript](./typescript.md).
+
+## Public symbol inventory (77)
 
 | Kind | Symbol |
 | --- | --- |
+| type | `ActivateProfileMode` |
 | type | `ActivateProfileResult` |
 | type | `AuthClient` |
 | type | `AuthClientOptions` |
@@ -20,11 +23,14 @@ integrator-oriented summaries; the inventory is the complete export list.
 | class | `AxatalkClientError` |
 | type | `AxatalkClientOptions` |
 | type | `AxatalkEvent` |
+| type | `AxatalkEventOf` |
 | type | `AxatalkOperatorApi` |
 | type | `AxatalkWindowApi` |
 | type | `BrowserWebSocketConstructor` |
 | type | `BrowserWebSocketLike` |
 | type | `CallMutationResult` |
+| re-export | `CapabilityId` |
+| type | `ConflictErrorDetails` |
 | const | `CONNECTION_STATES` |
 | type | `ConnectionState` |
 | function | `createAuthClient` |
@@ -44,10 +50,15 @@ integrator-oriented summaries; the inventory is the complete export list.
 | type | `DiagnosticsSink` |
 | type | `FakeScheduler` |
 | type | `HeartbeatPolicy` |
+| type | `InteractionRequiredDetails` |
 | function | `isAxatalkClientError` |
+| function | `isConflictError` |
+| function | `isInteractionRequiredError` |
+| function | `isOperationFailedError` |
 | function | `isOriginBlockedError` |
 | type | `JitterSource` |
 | type | `LogoutResult` |
+| type | `OperationFailedDetails` |
 | type | `OperatorFinishAppealResult` |
 | type | `OperatorReason` |
 | type | `OperatorReasonsResult` |
@@ -55,16 +66,29 @@ integrator-oriented summaries; the inventory is the complete export list.
 | type | `OperatorStatusChangeResult` |
 | type | `PairingRequiredInfo` |
 | type | `PopKeyStore` |
+| re-export | `ProtocolErrorCode` |
 | const | `PUBLIC_EVENT_TYPES` |
 | type | `PublicEventType` |
+| re-export | `PublicOperatorStatus` |
+| function | `readConflictErrorDetails` |
+| function | `readInteractionRequiredDetails` |
+| function | `readOperationFailedDetails` |
 | type | `ReconnectPolicy` |
 | type | `Scheduler` |
+| re-export | `SDK_ACTIVATE_CLIENT_TIMEOUT_MS` |
+| re-export | `SDK_ACTIVATE_CONSENT_TTL_MS` |
+| re-export | `SDK_ACTIVATE_OCP_AUTH_BUDGET_MS` |
+| re-export | `SDK_ACTIVATE_SIP_ONLY_AUTH_BUDGET_MS` |
+| re-export | `SnapshotCallSummary` |
+| re-export | `SnapshotMessage` |
+| re-export | `SnapshotSections` |
 | type | `StoredPopIdentity` |
 | type | `TimerHandle` |
 | type | `TransportCloseInfo` |
 | type | `TransportErrorInfo` |
 | type | `TransportFactory` |
 | type | `TransportPort` |
+| re-export | `WireJsonObject` |
 
 ## Factories
 
@@ -97,7 +121,7 @@ are **optional** in browsers (defaults above). Inject fakes in unit tests. See
 | `getSnapshot()` | `Promise<SnapshotMessage>` |
 | `getCachedSnapshot()` | cached snapshot or `undefined` |
 | `getRevision()` | `number \| undefined` |
-| `subscribe(type, listener)` | unsubscribe |
+| `subscribe(type, listener)` | unsubscribe — payload narrowed by `type` (`AxatalkEventOf`) |
 | `preauthDropCount()` | diagnostics counter |
 
 ## `client.calls`
@@ -118,8 +142,8 @@ Result: `{ callId, revision }`. Failures: see [Errors](./errors.md).
 
 | Method | Capability | Notes |
 | --- | --- | --- |
-| `logout({ reasonId?, expectedRevision })` | `session.logout` | Single-shot; may throw `interaction_required` + `requiresReason` / `reasons` (no `logoutToken`) |
-| `activateProfile({ login, expectedRevision, mode? })` | **`account.activate` (server-granted)** | Saved-account login; optional `sip_only` / `ocp`; never secrets |
+| `logout({ reasonId?, expectedRevision })` | `session.logout` | Single-shot; may throw `interaction_required` — use `readInteractionRequiredDetails` (no `logoutToken`) |
+| `activateProfile({ login, expectedRevision, mode? })` | **`account.activate` (server-granted)** | `mode?: ActivateProfileMode` (`sip_only` \| `ocp`); never secrets |
 
 ## `client.operator`
 
@@ -129,7 +153,8 @@ Result: `{ callId, revision }`. Failures: see [Errors](./errors.md).
 | `changeStatus({ target, reasonId?, expectedRevision })` | `operator.status.write` — desktop returns `kind: "applied" \| "reserved"` |
 | `finishAppeal({ expectedRevision })` | `operator.status.write` — only while public status is `post_call_processing`; OCP login required |
 
-Result type: `OperatorStatusChangeResult` (`kind` is only `"applied" | "reserved"`).  
+Result type: `OperatorStatusChangeResult` (`accepted: true`, `kind: "applied" \| "reserved"`,
+`targetStatus: PublicOperatorStatus`).  
 Full host recipe: [Operator status & reservation](./operator-status-reservation.md).
 
 ## `client.window`

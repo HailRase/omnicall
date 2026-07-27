@@ -2,7 +2,12 @@
  * Capability-gated operator command runner (SDK-07 + finish-appeal).
  */
 
-import type { CapabilityId, CommandType } from '@axata/axatalk-protocol';
+import type {
+  CapabilityId,
+  CommandType,
+  PublicOperatorStatus
+} from '@axata/axatalk-protocol';
+import { PublicOperatorStatusSchema } from '@axata/axatalk-protocol';
 
 import { createClientError } from './client-errors.js';
 import type { ConnectionSession } from './connection-session.js';
@@ -37,9 +42,9 @@ export type OperatorStatusChangeKind = 'applied' | 'reserved';
 
 /** @public */
 export type OperatorStatusChangeResult = {
-  readonly accepted: boolean;
+  readonly accepted: true;
   readonly kind: OperatorStatusChangeKind;
-  readonly targetStatus: string;
+  readonly targetStatus: PublicOperatorStatus;
   readonly reasonId: number;
   readonly revision: number;
 };
@@ -97,13 +102,13 @@ function readStatusChangeResult(reply: {
 }): OperatorStatusChangeResult {
   const accepted = reply.result['accepted'];
   const kind = reply.result['kind'];
-  const targetStatus = reply.result['targetStatus'];
+  const targetStatusRaw = reply.result['targetStatus'];
   const reasonId = reply.result['reasonId'];
+  const statusParsed = PublicOperatorStatusSchema.safeParse(targetStatusRaw);
   if (
     accepted !== true ||
     (kind !== 'applied' && kind !== 'reserved') ||
-    typeof targetStatus !== 'string' ||
-    targetStatus.length === 0 ||
+    !statusParsed.success ||
     typeof reasonId !== 'number' ||
     !Number.isInteger(reasonId) ||
     reasonId < 0
@@ -113,7 +118,7 @@ function readStatusChangeResult(reply: {
   return {
     accepted: true,
     kind,
-    targetStatus,
+    targetStatus: statusParsed.data,
     reasonId,
     revision: reply.revision
   };

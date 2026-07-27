@@ -4,6 +4,16 @@ Stable machine-readable codes. **Never** treat localized text as protocol.
 
 Detect with `isAxatalkClientError(error)` then branch on `error.code`.
 
+For common detail shapes prefer typed helpers (do not index `details` ad hoc):
+
+| Helper | When |
+| --- | --- |
+| `isInteractionRequiredError` + `readInteractionRequiredDetails` | logout reason step |
+| `isConflictError` + `readConflictErrorDetails` | `failure_kind`, `activate_consent_pending` |
+| `isOperationFailedError` + `readOperationFailedDetails` | e.g. `sip_not_registered` |
+
+Raw `error.details` remains `WireJsonObject | undefined` for additive keys.
+
 ## Codes hosts must handle
 
 | Code | Meaning | Host next step |
@@ -40,7 +50,15 @@ Detect with `isAxatalkClientError(error)` then branch on `error.code`.
 Every mutation example should follow this shape:
 
 ```ts
-import { isAxatalkClientError } from '@axata/axatalk-sdk';
+import {
+  isAxatalkClientError,
+  isConflictError,
+  isInteractionRequiredError,
+  isOperationFailedError,
+  readConflictErrorDetails,
+  readInteractionRequiredDetails,
+  readOperationFailedDetails
+} from '@axata/axatalk-sdk';
 
 async function originateSafe(
   client: {
@@ -59,26 +77,32 @@ async function originateSafe(
   try {
     await client.calls.originate({ destination, expectedRevision: revision });
   } catch (error: unknown) {
+    if (isOperationFailedError(error)) {
+      const details = readOperationFailedDetails(error.details);
+      if (details?.failure_kind === 'sip_not_registered') {
+        return;
+      }
+    }
+    if (isConflictError(error)) {
+      void readConflictErrorDetails(error.details);
+      return;
+    }
+    if (isInteractionRequiredError(error)) {
+      void readInteractionRequiredDetails(error.details);
+      return;
+    }
     if (!isAxatalkClientError(error)) throw error;
     switch (error.code) {
       case 'forbidden':
-        // Capability missing — update UI
         break;
       case 'not_ready':
-        // Wait for ready
         break;
       case 'stale_state': {
         const next = error.currentRevision ?? (await client.getSnapshot()).revision;
-        // Host decides whether to retry once with `next`
         void next;
         break;
       }
-      case 'conflict':
-      case 'interaction_required':
-        // Surface to operator; never auto-confirm
-        break;
       default:
-        // Log code + retryable only — never dump details/payloads
         break;
     }
   }

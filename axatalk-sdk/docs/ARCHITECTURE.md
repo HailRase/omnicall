@@ -78,12 +78,15 @@ The public surface is grouped:
 
 - client lifecycle: connect, disconnect, get connection state, get snapshot;
 - `calls`: originate, answer, reject, hang up, hold, resume, mute, unmute, DTMF;
-- `account`: activate a saved profile, prepare logout, confirm logout;
-- `operator`: get reasons, change status;
-- `window`: show, get visibility; hide only if desktop grants it;
-- events: typed subscription by event name and unsubscribe.
+- `account`: single-shot logout, privileged saved-profile activate;
+- `operator`: get reasons, change status, finish appeal;
+- `window`: show, get visibility, privileged hide (Origin matrix grant);
+- events: typed subscription by event name (`AxatalkEventOf`) and unsubscribe;
+- integrator type re-exports: snapshot / capability / operator status DTOs from protocol
+  (schemas and fixtures remain on `@axata/axatalk-protocol`).
 
-The exact v1 list is frozen by SDK-02. New methods require protocol review.
+Exact symbol inventory: `etc/api/sdk.api.md` + `docs/guide/api-reference.md`.
+New product methods require protocol review; additive type helpers are compatible.
 
 ## State Model
 

@@ -5,6 +5,8 @@
 
 import {
   isAxatalkClientError,
+  isInteractionRequiredError,
+  readInteractionRequiredDetails,
   type AxatalkClient,
   type CallMutationResult,
   type LogoutResult,
@@ -76,38 +78,6 @@ export type LogoutOutcome =
     }
   | { readonly kind: 'failed'; readonly safeError: string; readonly code?: string };
 
-function readLogoutReasons(details: Readonly<Record<string, unknown>> | undefined): {
-  readonly requiresReason: true;
-  readonly reasons: readonly OperatorReason[];
-} | undefined {
-  if (details === undefined || details['requiresReason'] !== true) {
-    return undefined;
-  }
-  const raw = details['reasons'];
-  if (!Array.isArray(raw)) {
-    return undefined;
-  }
-  const reasons: OperatorReason[] = [];
-  for (const item of raw) {
-    if (typeof item !== 'object' || item === null) {
-      return undefined;
-    }
-    const record = item as Readonly<Record<string, unknown>>;
-    const id = record['id'];
-    const label = record['label'];
-    const kind = record['kind'];
-    if (
-      typeof id !== 'number' ||
-      typeof label !== 'string' ||
-      (kind !== 'ready' && kind !== 'break' && kind !== 'logout')
-    ) {
-      return undefined;
-    }
-    reasons.push({ id, label, kind });
-  }
-  return { requiresReason: true, reasons };
-}
-
 /**
  * Single-shot logout. Host cancels by not calling again (no logoutToken).
  * Prefer `getReasons()` + filter `kind === 'logout'` before retrying with reasonId.
@@ -118,8 +88,8 @@ export async function logoutDemo(client: AxatalkClient): Promise<LogoutOutcome> 
     const result = await client.account.logout({ expectedRevision });
     return { kind: 'logged_out', result };
   } catch (error: unknown) {
-    if (isAxatalkClientError(error) && error.code === 'interaction_required') {
-      const parsed = readLogoutReasons(error.details);
+    if (isInteractionRequiredError(error)) {
+      const parsed = readInteractionRequiredDetails(error.details);
       if (parsed !== undefined) {
         return {
           kind: 'interaction_required',

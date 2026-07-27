@@ -4,7 +4,10 @@
 
 import type { CapabilityId, SnapshotMessage } from '@axata/axatalk-protocol';
 
-import type { ActivateProfileResult } from '../internal/account-activate-commands.js';
+import type {
+  ActivateProfileMode,
+  ActivateProfileResult
+} from '../internal/account-activate-commands.js';
 import type { AxatalkClientError } from '../internal/client-errors.js';
 import type { LogoutResult } from '../internal/account-logout-commands.js';
 import type { ConnectionState } from '../internal/connection-state.js';
@@ -29,18 +32,29 @@ export type CallMutationResult = {
   readonly revision: number;
 };
 
-/** @public */
+/**
+ * Window visibility commands.
+ * `hide` is privileged (`window.hide`) — Origin matrix grant only; never request
+ * at pairing. Telephony-busy → `conflict` (ADR-0013).
+ * @public
+ */
 export type AxatalkWindowApi = {
+  /** Raise / show desktop window (`window.show`). */
   readonly show: () => Promise<{
     readonly visible: boolean;
     readonly revision: number;
   }>;
+  /**
+   * Hide to tray / background when granted (`window.hide`).
+   * Requires explicit Origin-matrix grant; stripped from pairing requests.
+   */
   readonly hide: (input: {
     readonly expectedRevision: number;
   }) => Promise<{
     readonly visible: boolean;
     readonly revision: number;
   }>;
+  /** Current visibility projection. */
   readonly getState: () => Promise<{
     readonly visible: boolean;
     readonly revision: number;
@@ -124,7 +138,7 @@ export type AxatalkAccountApi = {
   readonly activateProfile: (input: {
     readonly login: string;
     readonly expectedRevision: number;
-    readonly mode?: 'sip_only' | 'ocp';
+    readonly mode?: ActivateProfileMode;
   }) => Promise<ActivateProfileResult>;
 };
 
@@ -150,9 +164,17 @@ export type AxatalkClient = {
     timeoutMs?: number
   ) => Promise<ConnectionState>;
   readonly getConnectError: () => AxatalkClientError | undefined;
+  /** Fresh authenticated snapshot (also after reconnect). */
   readonly getSnapshot: () => Promise<SnapshotMessage>;
+  /** Last cached snapshot; `undefined` before first successful fetch. */
   readonly getCachedSnapshot: () => SnapshotMessage | undefined;
+  /** Aggregate revision from cache, if any. */
   readonly getRevision: () => number | undefined;
+  /**
+   * Subscribe to a public product event. Listener payload is narrowed by `type`.
+   * Lifecycle `sdk:permission-changed` / `sdk:revoked` are not delivered here —
+   * use `getGrantedCapabilities` / connection state (`revoked`).
+   */
   readonly subscribe: <T extends PublicEventType>(
     type: T,
     listener: (event: Extract<AxatalkEvent, { type: T }>) => void

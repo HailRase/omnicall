@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { PublicCallStateSchema } from './call-state.js';
 import { CapabilityIdListSchema } from './capabilities.js';
 import { OperatorCampaignOfferedPayloadSchema } from './events.js';
+import { PublicOperatorStatusSchema } from './operator-status.js';
 import {
   IsoTimestampSchema,
   OpaqueIdSchema,
@@ -106,9 +107,7 @@ export const SnapshotOperatorCampaignSchema = OperatorCampaignOfferedPayloadSche
 export const SnapshotOperatorSectionSchema = z
   .object({
     connected: z.boolean(),
-    status: z
-      .enum(['ready', 'break', 'offline', 'post_call_processing', 'unknown'])
-      .optional(),
+    status: PublicOperatorStatusSchema.optional(),
     reasonId: z.number().int().nonnegative().optional(),
     reasonLabelKey: z.string().min(1).max(128).optional(),
     reservedTarget: SnapshotOperatorReservedTargetSchema.optional(),

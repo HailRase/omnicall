@@ -27,12 +27,13 @@ const SECRET_RESULT_KEYS = new Set([
   'privateKey'
 ]);
 
-const MODE_PATTERN = /^[a-z][a-z0-9_]{0,31}$/;
+/** Documented activate modes accepted by protocol v1 desktop. @public */
+export type ActivateProfileMode = 'sip_only' | 'ocp';
 
 /** Successful activate-profile. @public */
 export type ActivateProfileResult = {
   readonly activated: true;
-  readonly mode: string;
+  readonly mode: ActivateProfileMode;
   readonly profileLabel?: string;
   readonly alreadyAuthenticated?: boolean;
   readonly revision: number;
@@ -42,9 +43,13 @@ export type AccountActivateCommandApi = {
   readonly activateProfile: (input: {
     readonly login: string;
     readonly expectedRevision: number;
-    readonly mode?: 'sip_only' | 'ocp';
+    readonly mode?: ActivateProfileMode;
   }) => Promise<ActivateProfileResult>;
 };
+
+function isActivateProfileMode(value: string): value is ActivateProfileMode {
+  return value === 'sip_only' || value === 'ocp';
+}
 
 function hasSecretResultKeys(
   result: Readonly<Record<string, unknown>>
@@ -66,7 +71,11 @@ function readActivateProfileResult(reply: {
   }
   const activated = reply.result['activated'];
   const mode = reply.result['mode'];
-  if (activated !== true || typeof mode !== 'string' || !MODE_PATTERN.test(mode)) {
+  if (
+    activated !== true ||
+    typeof mode !== 'string' ||
+    !isActivateProfileMode(mode)
+  ) {
     throw createClientError({ code: 'invalid_payload', retryable: false });
   }
   const profileLabel = reply.result['profileLabel'];
@@ -100,7 +109,7 @@ async function runActivateProfile(
   input: {
     readonly login: string;
     readonly expectedRevision: number;
-    readonly mode?: 'sip_only' | 'ocp';
+    readonly mode?: ActivateProfileMode;
   }
 ): Promise<ActivateProfileResult> {
   const notReady = guardReady(deps.connection);

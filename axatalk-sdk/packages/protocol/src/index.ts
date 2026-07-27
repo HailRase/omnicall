@@ -103,6 +103,11 @@ export {
 } from './call-state.js';
 
 export {
+  PublicOperatorStatusSchema,
+  type PublicOperatorStatus
+} from './operator-status.js';
+
+export {
   AccountSessionActivatedEventSchema,
   AccountSessionEndedEventSchema,
   CallAcdContextEventSchema,

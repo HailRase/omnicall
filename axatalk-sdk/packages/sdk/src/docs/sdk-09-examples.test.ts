@@ -116,8 +116,15 @@ describe('SDK-09 docs/example secret & privilege scan', () => {
       path.join(guideRoot, 'pairing-quick-start.md'),
       'utf8'
     );
+    // Capability ids belong in capabilities/api-reference — not in pairing teach path.
     expect(quickStart).not.toMatch(/account\.activate/);
     expect(quickStart).not.toMatch(/window\.hide/);
+    expect(quickStart).not.toMatch(
+      /requestedCapabilities:\s*\[[^\]]*'account\.activate'/s
+    );
+    expect(quickStart).not.toMatch(
+      /requestedCapabilities:\s*\[[^\]]*'window\.hide'/s
+    );
     expect(quickStart).not.toMatch(/localStorage/);
     expect(quickStart).not.toMatch(/sessionStorage/);
     expect(quickStart).not.toMatch(/sipPassword/);
@@ -147,6 +154,7 @@ describe('SDK-09 docs/example secret & privilege scan', () => {
       'transport.md',
       'pairing-quick-start.md',
       'api-reference.md',
+      'typescript.md',
       'events.md',
       'errors.md',
       'capabilities.md',
@@ -163,21 +171,27 @@ describe('SDK-09 docs/example secret & privilege scan', () => {
 
   it('api-reference inventory lists exactly the sdk.api.md public exports', () => {
     const apiReport = readFileSync(path.join(sdkRoot, 'etc', 'api', 'sdk.api.md'), 'utf8');
-    const reportExports = [
+    const typedExports = [
       ...apiReport.matchAll(/^export (?:type|class|function|const) (\w+)/gm)
     ].map((match) => match[1]);
-    expect(reportExports).toHaveLength(55);
+    const bracedExports = [
+      ...apiReport.matchAll(/^export \{ (\w+) \}$/gm)
+    ].map((match) => match[1]);
+    const reportExports = [...new Set([...typedExports, ...bracedExports])];
+    expect(reportExports.length).toBeGreaterThan(0);
 
     const apiReference = readFileSync(path.join(guideRoot, 'api-reference.md'), 'utf8');
-    expect(apiReference).toMatch(/\*\*55\*\* symbols/);
     const inventoryBlock = apiReference.match(
-      /## Public symbol inventory \(55\)([\s\S]*?)## Factories/
+      /## Public symbol inventory \((\d+)\)([\s\S]*?)## Factories/
     );
     expect(inventoryBlock).not.toBeNull();
+    const inventoryCount = Number(inventoryBlock?.[1]);
     const inventoryExports = [
-      ...(inventoryBlock?.[1] ?? '').matchAll(/`(\w+)`/g)
+      ...(inventoryBlock?.[2] ?? '').matchAll(/`(\w+)`/g)
     ].map((match) => match[1]);
-    expect(inventoryExports).toHaveLength(55);
+    expect(inventoryCount).toBe(reportExports.length);
+    expect(inventoryExports).toHaveLength(reportExports.length);
+    expect(apiReference).toContain(`**${reportExports.length}** symbols`);
     expect([...inventoryExports].sort()).toEqual([...reportExports].sort());
   });
 });

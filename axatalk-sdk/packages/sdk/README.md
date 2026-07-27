@@ -15,6 +15,8 @@ Public surface (highlights):
 - `createBrowserWebSocketTransport` — official `TransportPort` over browser `WebSocket`
 - `createBrowserScheduler` / `createBrowserJitterSource` — production timer/jitter defaults
 - `createIndexedDbPopKeyStore` / `createMemoryPopKeyStore` — PoP persistence
+- Type helpers: `AxatalkEventOf`, snapshot/capability re-exports, typed error readers
+  (`readInteractionRequiredDetails`, …) — see `docs/guide/typescript.md`
 
 Constructor options `transportFactory`, `scheduler`, and `jitter` are **optional** in
 browsers (defaults above). Unit tests should still inject FakeTransport + fake scheduler.

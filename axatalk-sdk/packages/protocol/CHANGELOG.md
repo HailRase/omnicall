@@ -8,6 +8,11 @@ First public release candidate target: **`0.1.0-rc.0`** on npm dist-tag **`rc`**
 Packages remain `private: true` / `0.0.0` until authorized RC publish.
 Stable / `latest` is **blocked on desktop DI-10**.
 
+### Typing DX (additive, 2026-07-27)
+
+- Shared `PublicOperatorStatus` / `PublicOperatorStatusSchema` used by snapshot +
+  operator status events (same wire values; no semantic change)
+
 ### Included since incubation (SDK-00…SDK-09)
 
 - Runtime Zod schemas for local protocol v1

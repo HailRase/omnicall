@@ -5,21 +5,27 @@
 ```ts
 
 import type { ApplicationIdentity } from '@axata/axatalk-protocol';
-import type { CapabilityId } from '@axata/axatalk-protocol';
+import { CapabilityId } from '@axata/axatalk-protocol';
 import type { EventMessage } from '@axata/axatalk-protocol';
 import type { PairingProfile } from '@axata/axatalk-protocol';
-import type { ProtocolErrorCode } from '@axata/axatalk-protocol';
+import { ProtocolErrorCode } from '@axata/axatalk-protocol';
+import { PublicOperatorStatus } from '@axata/axatalk-protocol';
 import { SDK_ACTIVATE_CLIENT_TIMEOUT_MS } from '@axata/axatalk-protocol';
 import { SDK_ACTIVATE_CONSENT_TTL_MS } from '@axata/axatalk-protocol';
 import { SDK_ACTIVATE_OCP_AUTH_BUDGET_MS } from '@axata/axatalk-protocol';
 import { SDK_ACTIVATE_SIP_ONLY_AUTH_BUDGET_MS } from '@axata/axatalk-protocol';
-import type { SnapshotMessage } from '@axata/axatalk-protocol';
-import type { WireJsonObject } from '@axata/axatalk-protocol';
+import { SnapshotCallSummary } from '@axata/axatalk-protocol';
+import { SnapshotMessage } from '@axata/axatalk-protocol';
+import { SnapshotSections } from '@axata/axatalk-protocol';
+import { WireJsonObject } from '@axata/axatalk-protocol';
+
+// @public
+export type ActivateProfileMode = 'sip_only' | 'ocp';
 
 // @public
 export type ActivateProfileResult = {
     readonly activated: true;
-    readonly mode: string;
+    readonly mode: ActivateProfileMode;
     readonly profileLabel?: string;
     readonly alreadyAuthenticated?: boolean;
     readonly revision: number;
@@ -75,7 +81,7 @@ export type AxatalkAccountApi = {
     readonly activateProfile: (input: {
         readonly login: string;
         readonly expectedRevision: number;
-        readonly mode?: 'sip_only' | 'ocp';
+        readonly mode?: ActivateProfileMode;
     }) => Promise<ActivateProfileResult>;
 };
 
@@ -152,15 +158,11 @@ export class AxatalkClientError extends Error {
         readonly currentRevision?: number;
         readonly details?: WireJsonObject;
     });
-    // (undocumented)
     readonly code: ProtocolErrorCode;
-    // (undocumented)
     readonly currentRevision: number | undefined;
-    // (undocumented)
     readonly details: WireJsonObject | undefined;
     // (undocumented)
     readonly name = "AxatalkClientError";
-    // (undocumented)
     readonly retryable: boolean;
 }
 
@@ -170,6 +172,11 @@ export type AxatalkClientOptions = AuthClientOptions;
 // @public
 export type AxatalkEvent = Extract<EventMessage, {
     type: PublicEventType;
+}>;
+
+// @public
+export type AxatalkEventOf<T extends PublicEventType> = Extract<AxatalkEvent, {
+    type: T;
 }>;
 
 // @public
@@ -185,7 +192,7 @@ export type AxatalkOperatorApi = {
     }) => Promise<OperatorFinishAppealResult>;
 };
 
-// @public (undocumented)
+// @public
 export type AxatalkWindowApi = {
     readonly show: () => Promise<{
         readonly visible: boolean;
@@ -225,6 +232,14 @@ export type BrowserWebSocketLike = {
 export type CallMutationResult = {
     readonly callId: string;
     readonly revision: number;
+};
+
+export { CapabilityId }
+
+// @public
+export type ConflictErrorDetails = {
+    readonly failure_kind?: string;
+    readonly activate_consent_pending?: boolean;
 };
 
 // @public
@@ -314,8 +329,29 @@ export type HeartbeatPolicy = {
     readonly timeoutMs: number;
 };
 
+// @public
+export type InteractionRequiredDetails = {
+    readonly requiresReason: true;
+    readonly reasons: readonly OperatorReason[];
+};
+
 // @public (undocumented)
 export function isAxatalkClientError(value: unknown): value is AxatalkClientError;
+
+// @public (undocumented)
+export function isConflictError(error: unknown): error is AxatalkClientError & {
+    readonly code: 'conflict';
+};
+
+// @public (undocumented)
+export function isInteractionRequiredError(error: unknown): error is AxatalkClientError & {
+    readonly code: 'interaction_required';
+};
+
+// @public (undocumented)
+export function isOperationFailedError(error: unknown): error is AxatalkClientError & {
+    readonly code: 'operation_failed';
+};
 
 // @public
 export function isOriginBlockedError(value: unknown): value is AxatalkClientError;
@@ -329,6 +365,11 @@ export type JitterSource = {
 export type LogoutResult = {
     readonly loggedOut: true;
     readonly revision: number;
+};
+
+// @public
+export type OperationFailedDetails = {
+    readonly failure_kind?: string;
 };
 
 // @public
@@ -352,9 +393,9 @@ export type OperatorStatusChangeKind = 'applied' | 'reserved';
 
 // @public (undocumented)
 export type OperatorStatusChangeResult = {
-    readonly accepted: boolean;
+    readonly accepted: true;
     readonly kind: OperatorStatusChangeKind;
-    readonly targetStatus: string;
+    readonly targetStatus: PublicOperatorStatus;
     readonly reasonId: number;
     readonly revision: number;
 };
@@ -373,11 +414,24 @@ export type PopKeyStore = {
     readonly clear: () => Promise<void>;
 };
 
+export { ProtocolErrorCode }
+
 // @public
 export const PUBLIC_EVENT_TYPES: readonly ["call:incoming", "call:outgoing", "call:ringing", "call:answered", "call:ended", "call:failed", "call:held", "call:resumed", "call:muted", "call:unmuted", "call:acd-context", "registration:changed", "account:session-activated", "account:session-ended", "operator:session-changed", "operator:status-changed", "operator:campaign-offered", "operator:campaign-cleared", "window:visibility-changed", "sdk:server-shutdown"];
 
 // @public (undocumented)
 export type PublicEventType = (typeof PUBLIC_EVENT_TYPES)[number];
+
+export { PublicOperatorStatus }
+
+// @public
+export function readConflictErrorDetails(details: WireJsonObject | undefined): ConflictErrorDetails | undefined;
+
+// @public
+export function readInteractionRequiredDetails(details: WireJsonObject | undefined): InteractionRequiredDetails | undefined;
+
+// @public
+export function readOperationFailedDetails(details: WireJsonObject | undefined): OperationFailedDetails | undefined;
 
 // @public
 export type ReconnectPolicy = {
@@ -400,6 +454,12 @@ export { SDK_ACTIVATE_CONSENT_TTL_MS }
 export { SDK_ACTIVATE_OCP_AUTH_BUDGET_MS }
 
 export { SDK_ACTIVATE_SIP_ONLY_AUTH_BUDGET_MS }
+
+export { SnapshotCallSummary }
+
+export { SnapshotMessage }
+
+export { SnapshotSections }
 
 // @public
 export type StoredPopIdentity = {
@@ -440,5 +500,7 @@ export type TransportPort = {
     readonly onClose: (handler: (info: TransportCloseInfo) => void) => () => void;
     readonly onError: (handler: (info: TransportErrorInfo) => void) => () => void;
 };
+
+export { WireJsonObject }
 
 ```

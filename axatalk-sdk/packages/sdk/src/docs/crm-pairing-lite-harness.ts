@@ -32,6 +32,8 @@ export type DemoCap =
   | 'call.originate'
   | 'call.control'
   | 'operator.status.write'
+  | 'operator.campaign.read'
+  | 'ocp.acd_context.read'
   | 'account.activate';
 
 export type FakePeerHarness = {

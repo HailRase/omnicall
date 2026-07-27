@@ -1,14 +1,19 @@
 import { describe, expectTypeOf, it } from 'vitest';
 
 import type {
+  ActivateProfileMode,
+  ActivateProfileResult,
   AuthClient,
   AxatalkClient,
   AxatalkClientOptions,
+  AxatalkEventOf,
   ConnectionState,
   OperatorStatusChangeKind,
   OperatorStatusChangeResult,
   PopKeyStore,
   PublicEventType,
+  PublicOperatorStatus,
+  SnapshotMessage,
   TransportPort
 } from './index.js';
 import {
@@ -16,7 +21,9 @@ import {
   createAxatalkClient,
   createBrowserJitterSource,
   createBrowserScheduler,
-  createBrowserWebSocketTransport
+  createBrowserWebSocketTransport,
+  isInteractionRequiredError,
+  readInteractionRequiredDetails
 } from './index.js';
 
 describe('@axata/axatalk-sdk type smoke', () => {
@@ -95,5 +102,18 @@ describe('@axata/axatalk-sdk type smoke', () => {
     expectTypeOf<OperatorStatusChangeResult['kind']>().toEqualTypeOf<OperatorStatusChangeKind>();
     expectTypeOf<'applied'>().toExtend<OperatorStatusChangeKind>();
     expectTypeOf<'reserved'>().toExtend<OperatorStatusChangeKind>();
+    expectTypeOf<OperatorStatusChangeResult['accepted']>().toEqualTypeOf<true>();
+    expectTypeOf<OperatorStatusChangeResult['targetStatus']>().toEqualTypeOf<PublicOperatorStatus>();
+  });
+
+  it('re-exports protocol DTOs and event/error helpers for integrators', () => {
+    expectTypeOf<SnapshotMessage['kind']>().toEqualTypeOf<'snapshot'>();
+    expectTypeOf<AxatalkEventOf<'call:incoming'>['type']>().toEqualTypeOf<'call:incoming'>();
+    expectTypeOf<ActivateProfileResult['mode']>().toEqualTypeOf<ActivateProfileMode>();
+    expectTypeOf<'sip_only'>().toExtend<ActivateProfileMode>();
+    expectTypeOf(readInteractionRequiredDetails).toBeFunction();
+    expectTypeOf(isInteractionRequiredError).toBeFunction();
+    type IncomingPayload = AxatalkEventOf<'call:incoming'>['payload'];
+    expectTypeOf<IncomingPayload>().toHaveProperty('callId');
   });
 });
