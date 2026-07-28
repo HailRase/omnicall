@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-28 15:30
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `1ffd6e9`
 
 ## Где
 - GitHub Actions secret `OMNICALL_RELEASES_TOKEN`
