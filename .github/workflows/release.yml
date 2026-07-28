@@ -111,7 +111,7 @@ jobs:
       - name: Publish installers to omnicall-releases
         if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
         env:
-          DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.OMNICALL_RELEASES_TOKEN }}
+          DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.OMNICALL_RELEASES_TOKEN || secrets.AXATALK_RELEASES_TOKEN }}
           RELEASE_TAG: ${{ github.ref_name }}
           PAYLOAD_DIR: release-staging
         run: node scripts/publish-distribution-release.mjs
@@ -136,13 +136,13 @@ jobs:
 
       - name: Push distribution docs to omnicall-releases main
         env:
-          GITHUB_TOKEN: ${{ secrets.OMNICALL_RELEASES_TOKEN }}
-          DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.OMNICALL_RELEASES_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.OMNICALL_RELEASES_TOKEN || secrets.AXATALK_RELEASES_TOKEN }}
+          DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.OMNICALL_RELEASES_TOKEN || secrets.AXATALK_RELEASES_TOKEN }}
           DIST_COMMIT_MSG: "chore(release): sync manifest for ${{ github.ref_name }}"
         run: node scripts/push-distribution-repo.mjs
 
       - name: Publish release notes to omnicall-releases
         env:
-          DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.OMNICALL_RELEASES_TOKEN }}
+          DISTRIBUTION_GITHUB_TOKEN: ${{ secrets.OMNICALL_RELEASES_TOKEN || secrets.AXATALK_RELEASES_TOKEN }}
           RELEASE_TAG: ${{ github.ref_name }}
         run: node scripts/update-distribution-release-notes.mjs
