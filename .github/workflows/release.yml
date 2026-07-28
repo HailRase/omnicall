@@ -35,6 +35,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Build OmniCall Protocol
+        run: npm run build:protocol
+
       - name: Run tests
         run: npm run test
 
@@ -78,6 +81,9 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Build OmniCall Protocol
+        run: npm run build:protocol
 
       - name: Set up Python
         uses: actions/setup-python@v5

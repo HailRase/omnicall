@@ -1,6 +1,6 @@
 {
   "name": "OmniCall",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "description": "Softphone Platform",
   "author": "SoftOmniTel",
@@ -20,6 +20,8 @@
     "build:linux": "node scripts/check-node-version.mjs && npm run build:icons && npm run build:dist && node scripts/build-linux.mjs",
     "build:all": "node scripts/check-node-version.mjs && npm run build:dist && node scripts/run-electron-builder.mjs --win --mac --linux -c.directories.output=dist/all",
     "preview": "electron-vite preview",
+    "build:protocol": "npm run build --prefix omnicall-kit/packages/protocol -- --force",
+    "postinstall": "npm run build:protocol",
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "eslint . && npm run lint:css",
@@ -36,7 +38,7 @@
     "release:update-notes": "node scripts/update-distribution-release-notes.mjs",
     "release:backfill-notes": "node scripts/backfill-distribution-release-notes.mjs",
     "release:migrate-distribution": "node scripts/migrate-distribution-releases.mjs",
-    "release:preflight": "npm run test && npm run lint && npm run typecheck && npm run registry:check",
+    "release:preflight": "npm run build:protocol && npm run test && npm run lint && npm run typecheck && npm run registry:check",
     "i18n:check": "node scripts/check-i18n-hardcoded.mjs"
   },
   "dependencies": {

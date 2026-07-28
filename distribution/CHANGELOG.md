@@ -5,6 +5,16 @@ Public release history for **OmniCall** distribution builds.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer. Git tag: `v<version>`.
 
+## [1.1.1] - 2026-07-28
+
+### Fixed
+
+- Release pipeline builds the OmniCall Protocol package before tests so installer publish can complete (first published 1.x installers after the failed `v1.1.0` CI run)
+
+### Notes
+
+- Includes all user-facing changes from 1.1.0 / 1.0.0 (OmniCall rebrand, shared-desk SDK call control, toast viewport fixes)
+
 ## [1.1.0] - 2026-07-28
 
 ### Added

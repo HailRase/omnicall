@@ -3,7 +3,7 @@
 > **Authoritative snapshot for agents.** Update after each closed WU or RAT step. Reviewer skills read this during Discovery.
 
 **Updated:** 2026-07-28
-**Version:** `1.1.0` (brand: **OmniCall** / SoftOmniTel; packages `@softomnitel/omnicall-kit` + `@softomnitel/omnicall-protocol`)
+**Version:** `1.1.1` (brand: **OmniCall** / SoftOmniTel; packages `@softomnitel/omnicall-kit` + `@softomnitel/omnicall-protocol`)
 **Tests:** full root vitest **2741 passed** (1 skipped); omnicall-kit protocol/sdk call tests + `api:check` PASS; `i18n:check` PASS
 **Lint / typecheck:** `npm run lint` PASS · `npm run typecheck` PASS · `npm run registry:check` **75/0**
 **Splash contract:** `docs/softphone/Bootstrap-Splash-Contract.md` — single-stage `#boot-splash` + exit crossfade; do not reintroduce React loading splash handoff
@@ -84,8 +84,8 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 | Field | Value |
 | --- | --- |
-| Shipped | **1.1.0** (2026-07-28) — OmniCall rebrand + shared-desk SDK call control + toast viewport geometry |
-| Previous | **1.0.0** (rebrand), **0.15.0**…**0.12.0**, **0.11.2** — OCP/SDK/auth hardening trail |
+| Shipped | **1.1.1** (2026-07-28) — CI builds protocol `dist/` before tests; first published 1.x installers (rebrand + SDK call control + toast geometry) |
+| Previous | **1.1.0** tag CI failed (missing protocol build); **1.0.0**, **0.15.0**…**0.12.0**, **0.11.2** |
 | Next cut | PATCH hotfix as needed; npm `latest` OTP for `@softomnitel/omnicall-kit` if still pending |
 | Source repo | `HailRase/softphone-electron` (target: **private**) |
 | Distribution | [`HailRase/omnicall-releases`](https://github.com/HailRase/omnicall-releases) (public: installers + manifest) |

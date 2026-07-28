@@ -7,6 +7,12 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-07-28
+
+### Fixed
+
+- Release/CI preflight builds `@softomnitel/omnicall-protocol` after `npm ci` (`build:protocol` / `postinstall`) so Vitest can resolve the package `dist/` entry. Unblocks installer publish after the failed `v1.1.0` tag run.
+
 ## [1.1.0] - 2026-07-28
 
 ### Added
@@ -409,7 +415,8 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v1.1.0...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v1.1.1...main
+[1.1.1]: https://github.com/HailRase/softphone-electron/releases/tag/v1.1.1
 [1.1.0]: https://github.com/HailRase/softphone-electron/releases/tag/v1.1.0
 [1.0.0]: https://github.com/HailRase/softphone-electron/releases/tag/v1.0.0
 [0.15.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.15.0
