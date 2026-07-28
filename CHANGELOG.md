@@ -7,7 +7,7 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 ## [Unreleased]
 
-## [1.1.0] - 2026-07-27
+## [1.1.0] - 2026-07-28
 
 ### Added
 
@@ -20,6 +20,7 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 ### Fixed
 
+- **LF-060 / F-016** Toast viewport stays inside the BrowserWindow through compact↔Settings resize: Sonner width is clamped to the available shell, top toasts clear the titlebar, and edge insets stay at 24px.
 - **LF-060 / F-016** Product toasts no longer overlap frameless window controls in the compact shell: Sonner `mobileOffset` mirrors chrome-safe insets, and the softphone viewport keeps corner placement under Sonner’s `max-width: 600px` mobile path (Win/Linux/macOS).
 - **F-011 / DI-04+DI-09** Corrupt Electron `safeStorage` pairing blobs no longer crash Settings (`sdk-gateway:settings-invoke` / `secret_load_failed`): pairing store purges bad index/client secrets and continues; Settings IPC returns structured `{ ok:false }`; SIP/account secrets still fail hard. Re-pair required after purge.
 
@@ -408,7 +409,13 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v0.11.2...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v1.1.0...main
+[1.1.0]: https://github.com/HailRase/softphone-electron/releases/tag/v1.1.0
+[1.0.0]: https://github.com/HailRase/softphone-electron/releases/tag/v1.0.0
+[0.15.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.15.0
+[0.14.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.14.0
+[0.13.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.13.0
+[0.12.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.12.0
 [0.11.2]: https://github.com/HailRase/softphone-electron/releases/tag/v0.11.2
 [0.11.1]: https://github.com/HailRase/softphone-electron/releases/tag/v0.11.1
 [0.11.0]: https://github.com/HailRase/softphone-electron/releases/tag/v0.11.0

@@ -84,9 +84,9 @@ See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 | Field | Value |
 | --- | --- |
-| Shipped | **0.12.0** (code bump 2026-07-21; tag/publish via `/release`) — DI-11 Origin TOFU / blacklist / per-Origin matrix / activate consent |
-| Previous | **0.11.2**, **0.11.1**, **0.11.0** — OCP modal Disconnect/reconnect, Auth Flow Hardening (F-029) |
-| Next cut | Tag/publish as needed; DI-10/F-011/P12 no longer blocking — or PATCH hotfix |
+| Shipped | **1.1.0** (2026-07-28) — OmniCall rebrand + shared-desk SDK call control + toast viewport geometry |
+| Previous | **1.0.0** (rebrand), **0.15.0**…**0.12.0**, **0.11.2** — OCP/SDK/auth hardening trail |
+| Next cut | PATCH hotfix as needed; npm `latest` OTP for `@softomnitel/omnicall-kit` if still pending |
 | Source repo | `HailRase/softphone-electron` (target: **private**) |
 | Distribution | [`HailRase/omnicall-releases`](https://github.com/HailRase/omnicall-releases) (public: installers + manifest) |
 | Manifest (live) | `omnicall-releases/main/update-manifest.json` |

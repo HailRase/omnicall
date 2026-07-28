@@ -5,6 +5,36 @@ Public release history for **OmniCall** distribution builds.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).  
 Versioning: SemVer. Git tag: `v<version>`.
 
+## [1.1.0] - 2026-07-28
+
+### Added
+
+- Shared-desk OmniCall Kit call control: paired sites with matrix grants can answer, reject, hang up, hold, mute, and originate (no transfer/conference over SDK)
+- Granular call permissions in Settings → Integrations → OmniCall Kit, with umbrella call-control grant
+- Operator preferences export/import (portable JSON without passwords or pairing secrets)
+- Single-stage bootstrap splash with brand mark
+- OCP queue name on call cards; progressive/preview campaign UI with centered preview modal
+- SDK connect ceremony (Origin trust + pairing) and activate-profile consent flow
+- Privileged SDK window hide with tray Show recovery while hidden
+
+### Changed
+
+- Product rebrand to **OmniCall** (SoftOmniTel): installers `OmniCall-*`, app id `com.softomnitel.omnicall`
+- OmniCall Kit packages `@softomnitel/omnicall-kit` / `@softomnitel/omnicall-protocol`; protocol paths under `/omnicall/v1/`
+
+### Fixed
+
+- Toasts stay inside the window through compact ↔ Settings resize and clear frameless titlebar controls
+- Corrupt SDK pairing secrets no longer crash Settings; re-pair after purge
+- Auto-open DevTools on startup disabled
+
+## [1.0.0] - 2026-07-27
+
+### Changed
+
+- **MAJOR:** product renamed to OmniCall (SoftOmniTel); previous product/SDK names retired
+- App data migrates once into OmniCall storage; preferences format id `omnicall.preferences`
+
 ## [0.12.0] - 2026-07-21
 
 ### Added
