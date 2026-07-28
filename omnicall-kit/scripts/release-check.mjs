@@ -88,8 +88,8 @@ for (const pkg of packages) {
     console.log(`\n${pkg.name}: npm publish --dry-run skipped (private:true, Mode A expected)`);
     continue;
   }
-  const access = publishConfig.access === 'restricted' ? 'restricted' : 'public';
-  const dry = run('npm', ['publish', '--dry-run', '--tag', 'rc', '--access', access], pkgDir);
+  const access = pkgJson.publishConfig?.access === 'restricted' ? 'restricted' : 'public';
+  const dry = run('npm', ['publish', '--dry-run', '--tag', 'latest', '--access', access], pkgDir);
   if (dry.status !== 0) {
     process.stderr.write(dry.stderr || dry.stdout || '');
     process.exit(dry.status ?? 1);
@@ -97,9 +97,9 @@ for (const pkg of packages) {
   dryRunResults.push({
     package: pkg.name,
     mode: 'dry-run',
-    detail: `npm publish --dry-run --tag rc --access ${access} PASS`
+    detail: `npm publish --dry-run --tag latest --access ${access} PASS`
   });
-  console.log(`\n${pkg.name}: npm publish --dry-run --tag rc --access ${access} PASS`);
+  console.log(`\n${pkg.name}: npm publish --dry-run --tag latest --access ${access} PASS`);
 }
 
 const reportPath = path.join(root, 'temp', 'release-check-report.json');

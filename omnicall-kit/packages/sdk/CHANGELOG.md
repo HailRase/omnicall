@@ -1,5 +1,21 @@
 # @softomnitel/omnicall-kit
 
+## 0.1.2
+
+### Patch Changes
+
+- README для интеграторов: убраны ссылки на приватный GitHub и внутренние
+  файлы репозитория (docs/api/examples). Документация самодостаточна в npm
+  README. Из `package.json` убраны `repository` / `homepage` / `bugs` на
+  закрытый репозиторий. API без изменений.
+
+## 0.1.1
+
+### Patch Changes
+
+- Обновлён npm README: эталонная русская документация для CRM-интегратора
+  (установка, быстрый старт, понятия, API Reference, FAQ). API без изменений.
+
 ## 0.1.0
 
 ### Minor Changes

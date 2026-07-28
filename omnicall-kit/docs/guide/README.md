@@ -1,13 +1,21 @@
 # OmniCall Kit — Developer Guide
 
-Canonical developer documentation for `@softomnitel/omnicall-kit` while the workspace incubates
-inside the desktop repository. **RC staging (SDK-10 Mode A)** — not on npm `latest`;
-stable blocked on desktop DI-10.
+Canonical developer documentation for `@softomnitel/omnicall-kit`.
+
+**Status (2026-07-27+):** F-011 **implemented**; desktop DI-10 **closed**; npm
+`@softomnitel/omnicall-kit@0.1.0` / `@softomnitel/omnicall-protocol@0.1.0`
+(`latest`); RC `0.1.0-rc.0` on tag `rc`.
 
 Public contract truth: [`etc/api/sdk.api.md`](../../etc/api/sdk.api.md).  
 Example (fake peer only): [`examples/crm-pairing-lite/`](../../examples/crm-pairing-lite/).
 
-## Read in this order
+## RU / Integrators
+
+| Page | Purpose |
+| --- | --- |
+| **[Русский гайд разработчика](./RU-DEVELOPER-GUIDE.md)** | Один канонический файл: быстрый старт → API → prod checklist (также публикуется как npm README пакета `@softomnitel/omnicall-kit`) |
+
+## Read in this order (EN)
 
 | # | Page | Purpose |
 | --- | --- | --- |
@@ -42,4 +50,4 @@ Example (fake peer only): [`examples/crm-pairing-lite/`](../../examples/crm-pair
 
 - [`../ARCHITECTURE.md`](../ARCHITECTURE.md), [`../SECURITY.md`](../SECURITY.md), [`../PROTOCOL.md`](../PROTOCOL.md)
 - Desktop grant UX (operators elevate `account.activate`): DI-09 — Settings integrations
-- Feature Registry: F-011 remains **in progress** until DI-10 / P12 close (SDK-10 Mode A does not flip it)
+- Feature Registry: **F-011 implemented** (DI-10 full close 2026-07-27)

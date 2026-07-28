@@ -1,6 +1,6 @@
 {
   "name": "@softomnitel/omnicall-kit",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Browser client for OmniCall Desktop local protocol (OmniCallClient read path + call control)",
   "type": "module",
   "private": false,
@@ -33,14 +33,5 @@
   "publishConfig": {
     "access": "public",
     "provenance": false
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/HailRase/omnicall-kit.git",
-    "directory": "packages/sdk"
-  },
-  "homepage": "https://github.com/HailRase/omnicall-kit#readme",
-  "bugs": {
-    "url": "https://github.com/HailRase/omnicall-kit/issues"
   }
 }
