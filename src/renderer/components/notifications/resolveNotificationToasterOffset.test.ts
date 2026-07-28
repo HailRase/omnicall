@@ -2,21 +2,21 @@ import { describe, expect, it } from "vitest";
 import { resolveNotificationToasterOffset } from "./resolveNotificationToasterOffset.js";
 
 describe("resolveNotificationToasterOffset", () => {
-  it("clears titlebar and trailing window controls for top-right", () => {
+  it("keeps top-right within the compact shell edge", () => {
     expect(resolveNotificationToasterOffset("top-right")).toEqual({
       top: "var(--incoming-call-banner-top)",
-      right: "calc(24px + var(--shell-window-controls-safe-inline-end))",
+      right: 24,
       bottom: 24,
       left: 24,
     });
   });
 
-  it("clears titlebar and leading traffic lights for top-left", () => {
+  it("keeps top-left within the compact shell edge", () => {
     expect(resolveNotificationToasterOffset("top-left")).toEqual({
       top: "var(--incoming-call-banner-top)",
       right: 24,
       bottom: 24,
-      left: "calc(24px + var(--shell-window-controls-safe-inline-start))",
+      left: 24,
     });
   });
 

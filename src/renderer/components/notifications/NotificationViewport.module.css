@@ -4,17 +4,31 @@
 
 .viewport :global([data-sonner-toaster]) {
   pointer-events: auto;
+  /*
+   * Sonner's default --width is wider than the smallest supported shell.
+   * Keep both its viewport and individual toast inside the BrowserWindow while
+   * the window animates between compact and Settings layouts.
+   */
+  --notification-viewport-width: min(
+    var(--width),
+    calc(100vw - 2 * var(--space-lg))
+  );
+  width: var(--notification-viewport-width);
+  transition:
+    width 180ms ease-out,
+    right 180ms ease-out,
+    left 180ms ease-out;
 }
 
 /*
  * Softphone compact shell is 360–420px wide. Sonner treats max-width: 600px as
- * "mobile" and forces full-bleed left+right, which ignores corner placement and
- * can paint toasts into frameless window-control zones. Keep desktop corner
- * geometry while still honoring chrome-safe --mobile-offset-* from props.
+ * "mobile" and forces full-bleed left+right, which ignores corner placement.
+ * Keep desktop corner geometry and constrain the toast itself to the available
+ * BrowserWindow width. Window controls sit above top toasts, not alongside them.
  */
 @media (max-width: 600px) {
   .viewport :global([data-sonner-toaster]) {
-    width: var(--width);
+    width: var(--notification-viewport-width);
   }
 
   .viewport :global([data-sonner-toaster][data-x-position="right"]) {
@@ -34,7 +48,7 @@
   }
 
   .viewport :global([data-sonner-toaster] [data-sonner-toast]) {
-    width: var(--width);
+    width: var(--notification-viewport-width);
   }
 
   .viewport :global([data-sonner-toaster][data-x-position="right"] [data-sonner-toast]) {
@@ -53,5 +67,11 @@
 
   .viewport :global([data-sonner-toaster][data-y-position="bottom"]) {
     bottom: var(--mobile-offset-bottom);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viewport :global([data-sonner-toaster]) {
+    transition: none;
   }
 }

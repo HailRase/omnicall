@@ -57,11 +57,11 @@ Frameless shell owns custom window controls (Win/Linux trailing buttons; macOS t
 | Token / helper | Use |
 | --- | --- |
 | `--incoming-call-banner-top` | Vertical inset below titlebar (shared by incoming call, update banner, OCP connection banner, top toasts) |
-| `--shell-window-controls-safe-inline-start` | Horizontal inset for macOS traffic lights |
-| `--shell-window-controls-safe-inline-end` | Horizontal inset for Win/Linux window buttons |
-| `resolveNotificationToasterOffset` | Product Sonner `offset` **and** `mobileOffset` (compact width &lt; 600px triggers Sonner mobile path) |
+| `--shell-window-controls-safe-inline-start` | Horizontal inset for macOS traffic lights when the floating UI occupies the titlebar |
+| `--shell-window-controls-safe-inline-end` | Horizontal inset for Win/Linux window buttons when the floating UI occupies the titlebar |
+| `resolveNotificationToasterOffset` | Product Sonner `offset` **and** `mobileOffset`; top toasts use the shared vertical inset and the normal 24px horizontal edge, because they render below titlebar controls |
 
-Do **not** rely on Sonner’s default `mobileOffset` (16px) in the softphone shell. Prefer corner geometry over Sonner’s mobile full-bleed when the host is a narrow desktop window (`NotificationViewport.module.css`).
+Do **not** rely on Sonner’s default `mobileOffset` (16px) in the softphone shell. Prefer corner geometry over Sonner’s mobile full-bleed when the host is a narrow desktop window. `NotificationViewport.module.css` must also clamp the toaster and each toast to `100vw - 48px`; the compact shell is 360–420px, so a fixed Sonner width must never overflow during window-layout transitions.
 
 ## Primitives (`shared/ui/` — target)
 

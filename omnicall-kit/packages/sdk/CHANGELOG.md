@@ -1,5 +1,21 @@
 # @softomnitel/omnicall-kit
 
+## 0.1.4
+
+### Patch Changes
+
+- Clarified that successful mutation replies do not update the SDK snapshot cache:
+  hosts must carry `result.revision` for an intentional mutation chain or obtain a
+  fresh snapshot before the next mutation. API unchanged.
+
+## 0.1.3
+
+### Patch Changes
+
+- npm README now documents successful reply formats for every public command,
+  revision handling, and the complete `operator.changeStatus` /
+  `operator.finishAppeal` reservation flow. API unchanged.
+
 ## 0.1.2
 
 ### Patch Changes

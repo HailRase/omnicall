@@ -37,6 +37,6 @@ describe('@softomnitel/omnicall-kit workspace smoke', () => {
     ) {
       throw new Error('Invalid package.json');
     }
-    expect(packageJson.dependencies).toEqual({ '@softomnitel/omnicall-protocol': '0.0.0' });
+    expect(packageJson.dependencies).toEqual({ '@softomnitel/omnicall-protocol': '0.1.0' });
   });
 });

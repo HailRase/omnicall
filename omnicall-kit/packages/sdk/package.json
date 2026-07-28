@@ -1,6 +1,6 @@
 {
   "name": "@softomnitel/omnicall-kit",
-  "version": "0.1.2",
+  "version": "0.1.4",
   "description": "Browser client for OmniCall Desktop local protocol (OmniCallClient read path + call control)",
   "type": "module",
   "private": false,

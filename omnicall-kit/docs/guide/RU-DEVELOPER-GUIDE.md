@@ -327,7 +327,9 @@ Snapshot — источник UI state после `ready` и после кажд
 Правила:
 
 1. Перед мутацией: `client.getRevision() ?? (await client.getSnapshot()).revision`.
-2. После успеха: используйте `revision` из результата / обновите snapshot.
+2. После успеха: `result.revision` — новый revision Desktop, но `getRevision()` всё
+   ещё возвращает revision последнего snapshot. Для цепочки мутаций храните
+   `result.revision` сами либо вызовите `getSnapshot()`.
 3. После `stale_state`: новый snapshot; **не** слепой retry со старым числом.
 4. Events **не** патчат snapshot cache — при gap SDK сам тянет snapshot.
 5. Desktop coarse-advances revision на смене coarse operator status, reasonId, connected, reservation booking — не на каждом talking↔hold внутри `unknown`.

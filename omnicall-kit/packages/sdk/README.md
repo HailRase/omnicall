@@ -39,6 +39,7 @@ console.log(snapshot.revision);
 - [Основные понятия](#основные-понятия)
 - [Состояния и события](#состояния-и-события)
 - [API Reference](#api-reference)
+- [Форматы успешных ответов](#форматы-успешных-ответов)
 - [Рецепты](#рецепты)
 - [Ошибки и FAQ](#ошибки-и-faq)
 - [Миграция и совместимость](#миграция-и-совместимость)
@@ -66,7 +67,7 @@ npm install @softomnitel/omnicall-kit
 закрытом npm registry:
 
 ```bash
-npm install @softomnitel/omnicall-kit@0.1.2
+npm install @softomnitel/omnicall-kit@0.1.4
 ```
 
 Пакет ESM-only. Импортируйте его через `import`, а не `require`.
@@ -101,7 +102,7 @@ const client = createOmniCallClient({
   url: 'ws://127.0.0.1:17341/omnicall/v1/ws',
   origin: window.location.origin,
   application: { name: 'my-crm', version: '1.0.0' },
-  sdkVersion: '0.1.2',
+  sdkVersion: '0.1.4',
   requestedProfile: 'call_controller',
   requestedCapabilities: [
     'session.read.redacted',
@@ -203,8 +204,69 @@ const result = await client.calls.originate({
 console.log(result.callId, result.revision);
 ```
 
+`getRevision()` читает только revision кэшированного snapshot. Успешная мутация
+возвращает новый `result.revision`, но не патчит этот кэш. Для следующей команды
+либо сохраните `result.revision` как локальную последовательность мутаций, либо
+сначала вызовите `getSnapshot()`; после события, reconnect или действий другой
+вкладки выбирайте только свежий snapshot.
+
 Не повторяйте автоматически `originate`, `hangup`, `logout` или
 `activateProfile` после reconnect. Эти действия могут сработать дважды.
+
+## Форматы успешных ответов
+
+Асинхронная команда либо завершается типизированным успешным результатом, либо
+отклоняет `Promise` с `OmniCallClientError`. Ошибка никогда не приходит как
+частично успешный объект. Поле `revision` в успешном результате — версия Desktop
+после команды. Это **не** обновляет `getRevision()`: кэш snapshot меняет только
+`getSnapshot()`, а события его не патчат.
+
+| Команда | Успешный ответ | Как обрабатывать |
+| --- | --- | --- |
+| `calls.*` | `{ callId, revision }` | Команда принята для этого звонка. Фазу звонка показывайте по событию или snapshot, а не предполагаемому результату команды. |
+| `operator.getReasons()` | `{ reasons: [{ id, label, kind }], revision }` | Фильтруйте по `kind`; в следующую команду передавайте выбранный числовой `id`. |
+| `operator.changeStatus()` | `{ accepted: true, kind, targetStatus, reasonId, revision }` | Обязательно ветвитесь по `kind`: `applied` меняет статус сейчас, `reserved` только бронирует `targetStatus`/`reasonId` до конца обращения. |
+| `operator.finishAppeal()` | Та же форма, что у `changeStatus()` | Разрешён только при `post_call_processing`; применяет бронь либо Desktop-default Ready. |
+| `account.logout()` | `{ loggedOut: true, revision }` | Очищайте UI сессии после ответа/события или подтверждающего snapshot. `interaction_required` — это отклонение Promise, а не вариант успеха. |
+| `account.activateProfile()` | `{ activated: true, mode, profileLabel?, alreadyAuthenticated?, revision }` | `alreadyAuthenticated: true` — успешный no-op. В ответе никогда нет пароля или ключа OCP. |
+| `window.show()` / `hide()` / `getState()` | `{ visible, revision }` | Используйте фактическое `visible`; `show()` и `getState()` не требуют `expectedRevision`. |
+
+### Смена статуса и резервирование
+
+`changeStatus()` — единственная публичная команда для намерения Ready/Break.
+Не создавайте отдельный reserve API и не решайте на стороне CRM, занят ли оператор:
+Desktop сам выбирает результат.
+
+```ts
+const result = await client.operator.changeStatus({
+  target: 'break',
+  reasonId: 12,
+  expectedRevision: await getRevision()
+});
+
+if (result.kind === 'applied') {
+  // targetStatus применён сейчас; обновление UI всё равно подтвердят событие/snapshot.
+} else {
+  // Бронь после текущего обращения: текущий статус-chip не становится Break.
+  // result.targetStatus и result.reasonId — забронированные значения.
+}
+```
+
+При `kind: 'reserved'` текущий публичный статус может остаться `unknown` во
+время звонка или стать `post_call_processing` после него. Долгоживущую бронь
+восстанавливайте только из свежего
+`snapshot.sections.operator?.reservedTarget` /
+`reservedReasonId` или `operator:status-changed`, особенно после reconnect.
+
+Когда snapshot показывает `post_call_processing`, вызовите
+`finishAppeal({ expectedRevision })`. Его успешный ответ имеет ту же форму:
+`kind: 'applied'`, `targetStatus` и `reasonId` — значения, фактически применённые
+Desktop. Вне post-call команда отклоняется `conflict`
+(`failure_kind: 'not_in_post_call_processing'`); ждите корректный snapshot, а не
+повторяйте запрос в цикле.
+
+`error.details` остаётся расширяемым объектом. Не разбирайте его произвольные
+поля: используйте type guard и `read*Details` из раздела API Reference.
 
 ## Состояния и события
 

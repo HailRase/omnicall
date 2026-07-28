@@ -3,8 +3,11 @@
 Canonical release procedure for `@softomnitel/omnicall-protocol` and `@softomnitel/omnicall-kit`.
 This page documents **RC staging readiness** and fail-closed stable promotion.
 
-**Mode B (current):** stable **`0.1.2`** on npm dist-tag **`latest`** (README без ссылок на приватный GitHub, 2026-07-28).  
-**Prior:** `0.1.1` (docs refresh), `0.1.0` (Mode B after DI-10).  
+**Mode B (current):** stable **`0.1.4`** on npm dist-tag **`latest`** (revision-cache
+semantics and reply-format documentation, 2026-07-28).
+**Prior:** `0.1.3` (reply-format and operator-reservation docs), `0.1.2` (npm README
+self-contained), `0.1.1` (docs refresh), `0.1.0`
+(Mode B after DI-10).
 **RC:** `0.1.0-rc.0` remains on dist-tag **`rc`**.
 
 ## Versioning strategy

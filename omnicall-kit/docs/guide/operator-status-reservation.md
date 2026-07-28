@@ -19,6 +19,43 @@ const result = await client.operator.changeStatus({
 Do **not** invent `operator:reserve-status` or branch on mid-call OCP numeric statuses
 in the browser. Public coarse status during a call is usually `unknown`.
 
+## Success reply: fields and handling
+
+`changeStatus()` and `finishAppeal()` resolve with the same complete shape:
+
+```ts
+type OperatorStatusChangeResult = {
+  readonly accepted: true;
+  readonly kind: 'applied' | 'reserved';
+  readonly targetStatus: PublicOperatorStatus;
+  readonly reasonId: number;
+  readonly revision: number;
+};
+```
+
+| Field | Meaning | Host action |
+| --- | --- | --- |
+| `accepted` | Always literal `true` on success. Rejections are thrown as `OmniCallClientError`, not returned here. | Do not create a `false` branch. |
+| `kind` | `applied` means Desktop applied the target now; `reserved` means it stored a post-call booking. | This is the required branch for UI behavior. |
+| `targetStatus` | The requested effective Ready/Break target. For `reserved`, it is the booked target, **not** the current coarse status. | Use for an immediate confirmation message only; recover persistent booking from snapshot/event. |
+| `reasonId` | The accepted reason, including a Desktop-selected default when the request omitted `reasonId`. | Keep it with the booking/status label, not the requested optional value. |
+| `revision` | Revision after this mutation. | Refresh snapshot before another mutation when UI/event cache may have changed. |
+
+For example, a successful in-call Break request may be:
+
+```ts
+{
+  accepted: true,
+  kind: 'reserved',
+  targetStatus: 'break',
+  reasonId: 12,
+  revision: 47
+}
+```
+
+It confirms a **booking**, not an immediate `break` state. The current snapshot can
+remain `unknown` during a call or become `post_call_processing` afterwards.
+
 ## When desktop reserves vs applies
 
 | Current operator situation | `changeStatus` outcome |
@@ -38,6 +75,11 @@ await client.operator.finishAppeal({ expectedRevision });
 when no booking is present. Always `await changeStatus` and confirm
 `kind: "reserved"` (or re-read snapshot `reservedTarget`) before finishing.
 Do not finish from optimistic CRM UI alone.
+
+`finishAppeal` returns `kind: 'applied'` with the target and reason that Desktop
+actually applied. It can reject with `conflict` and
+`details.failure_kind: 'not_in_post_call_processing'`; wait for the snapshot status
+instead of retrying outside post-call processing.
 
 ## Desktop UI (OmniCall OperatorStatusSelector)
 

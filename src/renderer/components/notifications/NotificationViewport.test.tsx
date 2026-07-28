@@ -324,7 +324,7 @@ describe("NotificationViewport", () => {
     expect(getComputedStyle(toaster as Element).pointerEvents).toBe("auto");
   });
 
-  it("offsets top placement below shell window controls", async () => {
+  it("keeps top placement below the titlebar and at the compact shell edge", async () => {
     render(
       <NotificationViewport
         placement="top-right"
@@ -344,15 +344,11 @@ describe("NotificationViewport", () => {
     expect(toaster.style.getPropertyValue("--offset-top")).toBe(
       "var(--incoming-call-banner-top)",
     );
-    expect(toaster.style.getPropertyValue("--offset-right")).toBe(
-      "calc(24px + var(--shell-window-controls-safe-inline-end))",
-    );
+    expect(toaster.style.getPropertyValue("--offset-right")).toBe("24px");
     expect(toaster.style.getPropertyValue("--mobile-offset-top")).toBe(
       "var(--incoming-call-banner-top)",
     );
-    expect(toaster.style.getPropertyValue("--mobile-offset-right")).toBe(
-      "calc(24px + var(--shell-window-controls-safe-inline-end))",
-    );
+    expect(toaster.style.getPropertyValue("--mobile-offset-right")).toBe("24px");
   });
 
   it("mirrors chrome-safe mobile offsets for bottom placement under Sonner mobile width", async () => {

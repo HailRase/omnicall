@@ -2,9 +2,9 @@
 
 Canonical developer documentation for `@softomnitel/omnicall-kit`.
 
-**Status (2026-07-27+):** F-011 **implemented**; desktop DI-10 **closed**; npm
-`@softomnitel/omnicall-kit@0.1.0` / `@softomnitel/omnicall-protocol@0.1.0`
-(`latest`); RC `0.1.0-rc.0` on tag `rc`.
+**Status (2026-07-28):** F-011 **implemented**; desktop DI-10 **closed**; npm
+`@softomnitel/omnicall-kit@0.1.4` / `@softomnitel/omnicall-protocol@0.1.0`
+(latest); RC `0.1.0-rc.0` on tag `rc`.
 
 Public contract truth: [`etc/api/sdk.api.md`](../../etc/api/sdk.api.md).  
 Example (fake peer only): [`examples/crm-pairing-lite/`](../../examples/crm-pairing-lite/).
@@ -35,6 +35,33 @@ Example (fake peer only): [`examples/crm-pairing-lite/`](../../examples/crm-pair
 | 13 | [Upgrade & deprecation](./upgrade-deprecation.md) | Additive fields; protocol vs package |
 | 14 | [Compatibility matrix](./compatibility-matrix.md) | Browser + SDK↔desktop gates (DI-10 cells) |
 | 15 | [Release, rollback, revoke & support](./release-and-support.md) | RC tag, SBOM, provenance, stable gate |
+
+## Command replies: read before wiring UI
+
+Every asynchronous command either resolves with its documented typed result or rejects
+with `OmniCallClientError`; it never resolves with a partial-error object. A successful
+`revision` is the Desktop revision after the command. It does **not** patch the
+snapshot cache: `getRevision()` still returns the last snapshot revision until
+`getSnapshot()` succeeds.
+
+| Command family | Successful reply | Host handling |
+| --- | --- | --- |
+| `calls.*` | `{ callId, revision }` | The command was accepted for that call; render the resulting state from events/snapshot, not from an assumed call phase. |
+| `operator.getReasons()` | `{ reasons: [{ id, label, kind }], revision }` | Show only the matching `kind`; pass the selected numeric `id` in the next command. |
+| `operator.changeStatus()` | `{ accepted: true, kind, targetStatus, reasonId, revision }` | Branch on `kind`: `applied` changed the status now; `reserved` booked `targetStatus`/`reasonId` for post-call and must not flip the current chip. |
+| `operator.finishAppeal()` | Same shape as `changeStatus` | Valid only at `post_call_processing`; applies the booking or Desktop's default Ready. |
+| `account.logout()` | `{ loggedOut: true, revision }` | Clear signed-in UI only after the result/event or a confirming snapshot; `interaction_required` is a rejected Promise, not a success variant. |
+| `account.activateProfile()` | `{ activated: true, mode, profileLabel?, alreadyAuthenticated?, revision }` | `alreadyAuthenticated: true` means a successful no-op; never expect credentials in the reply. |
+| `window.show()` / `hide()` / `getState()` | `{ visible, revision }` | Use the returned factual visibility; `show()` and `getState()` do not take `expectedRevision`. |
+
+For a deliberate chain of mutations, carry the successful `result.revision` yourself;
+otherwise fetch a snapshot before the next mutation. After a public event, reconnect,
+or another tab's action, only a fresh snapshot is authoritative — events do not patch
+the SDK snapshot cache.
+
+Do not parse raw WebSocket replies or `error.details` ad hoc. Use public SDK results and
+the typed error readers from [TypeScript](./typescript.md). For the complete reservation
+flow, including recovery after reconnect, see [Operator status & reservation](./operator-status-reservation.md).
 
 ## Hard rules (every page assumes these)
 

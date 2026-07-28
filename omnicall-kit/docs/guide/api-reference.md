@@ -153,9 +153,11 @@ Result: `{ callId, revision }`. Failures: see [Errors](./errors.md).
 | `changeStatus({ target, reasonId?, expectedRevision })` | `operator.status.write` — desktop returns `kind: "applied" \| "reserved"` |
 | `finishAppeal({ expectedRevision })` | `operator.status.write` — only while public status is `post_call_processing`; OCP login required |
 
-Result type: `OperatorStatusChangeResult` (`accepted: true`, `kind: "applied" \| "reserved"`,
-`targetStatus: PublicOperatorStatus`).  
-Full host recipe: [Operator status & reservation](./operator-status-reservation.md).
+Result type: `OperatorStatusChangeResult`:
+`{ accepted: true, kind: "applied" | "reserved", targetStatus: PublicOperatorStatus, reasonId: number, revision: number }`.
+`targetStatus` / `reasonId` are the accepted booking values when `kind` is
+`"reserved"`; they do not mean that the current coarse status already changed.
+See the full host recipe: [Operator status & reservation](./operator-status-reservation.md).
 
 ## `client.window`
 
