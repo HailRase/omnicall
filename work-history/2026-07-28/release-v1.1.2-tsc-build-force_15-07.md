@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-28 15:07
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `9a11336`
 
 ## Где
 - `package.json` (`build:protocol`: `tsc -b omnicall-kit/packages/protocol --force`)
