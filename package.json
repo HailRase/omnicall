@@ -1,6 +1,6 @@
 {
   "name": "OmniCall",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "private": true,
   "description": "Softphone Platform",
   "author": "SoftOmniTel",
@@ -20,7 +20,7 @@
     "build:linux": "node scripts/check-node-version.mjs && npm run build:icons && npm run build:dist && node scripts/build-linux.mjs",
     "build:all": "node scripts/check-node-version.mjs && npm run build:dist && node scripts/run-electron-builder.mjs --win --mac --linux -c.directories.output=dist/all",
     "preview": "electron-vite preview",
-    "build:protocol": "npm run build --prefix omnicall-kit/packages/protocol -- --force",
+    "build:protocol": "tsc -b omnicall-kit/packages/protocol --force",
     "postinstall": "npm run build:protocol",
     "test": "vitest run",
     "test:watch": "vitest",

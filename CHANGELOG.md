@@ -7,6 +7,12 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 ## [Unreleased]
 
+## [1.1.2] - 2026-07-28
+
+### Fixed
+
+- `build:protocol` uses `tsc -b … --force` (valid with project references). Fixes `npm ci`/`postinstall` failure from invalid `tsc --force` without `--build` on the `v1.1.1` tag run.
+
 ## [1.1.1] - 2026-07-28
 
 ### Fixed
@@ -415,7 +421,8 @@ Versioning: SemVer from `package.json`. Git tag: `v<version>`.
 
 - CI electron-builder publish blocked (`run-electron-builder.mjs`, `--publish never`)
 
-[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v1.1.1...main
+[Unreleased]: https://github.com/HailRase/softphone-electron/compare/v1.1.2...main
+[1.1.2]: https://github.com/HailRase/softphone-electron/releases/tag/v1.1.2
 [1.1.1]: https://github.com/HailRase/softphone-electron/releases/tag/v1.1.1
 [1.1.0]: https://github.com/HailRase/softphone-electron/releases/tag/v1.1.0
 [1.0.0]: https://github.com/HailRase/softphone-electron/releases/tag/v1.0.0
