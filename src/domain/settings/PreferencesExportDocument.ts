@@ -58,8 +58,9 @@ const FORBIDDEN_SECRET_FIELD_FRAGMENTS = [
 
 /**
  * - Purpose: strip machine-local and non-portable fields before export/import.
- * - Inputs: validated UserSettings aggregate.
- * - Outputs: portable UserSettings safe to move across PCs (no secrets).
+ * - Inputs: validated UserSettings aggregate (v12 includes `externalServices`).
+ * - Outputs: portable UserSettings; External Services config kept; journal excluded
+ *   because it is not part of UserSettings; SIP/OCP/SDK secrets never present here.
  */
 export function toPortableUserSettings(settings: UserSettings): UserSettings {
   return {
@@ -215,7 +216,8 @@ export function createPortableDefaultUserSettings(): UserSettings {
 
 /**
  * - Purpose: reject preferences JSON that contains secret-like field names.
- * - Inputs: serialized JSON text.
+ * - Inputs: serialized JSON text (property names only; External Services header
+ *   keys live in `key`/`value` rows and are portable authored configuration).
  * - Outputs: void or throws preferences_secret_field_forbidden error.
  */
 export function assertPreferencesJsonExcludesSecrets(json: string): void {

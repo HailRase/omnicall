@@ -1,8 +1,10 @@
 // @vitest-environment jsdom
 import { act, cleanup, renderHook } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { BOOTSTRAP_SPLASH_MIN_VISIBLE_MS } from "@shared/platform/startupSplashColors.js";
 import { BOOT_SPLASH_EXIT_MS } from "../helpers/bootSplashDom.js";
 import { useBootSplashController } from "./useBootSplashController.js";
+import { BOOT_SPLASH_PROGRESS_SETTLE_MS } from "./useBootstrapSplashProgress.js";
 
 function mountBootSplash(): void {
   document.body.innerHTML = `
@@ -15,7 +17,9 @@ function mountBootSplash(): void {
 
 describe("useBootSplashController", () => {
   beforeEach(() => {
-    vi.useFakeTimers();
+    vi.useFakeTimers({
+      toFake: ["setTimeout", "clearTimeout", "setInterval", "clearInterval", "performance"],
+    });
     mountBootSplash();
     vi.stubGlobal(
       "matchMedia",
@@ -56,10 +60,17 @@ describe("useBootSplashController", () => {
 
     rerender({ status: "ready" });
     expect(result.current.showReadyShell).toBe(false);
+    expect(document.getElementById("boot-splash")?.dataset['settled']).not.toBe("true");
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(BOOTSTRAP_SPLASH_MIN_VISIBLE_MS);
+    });
+
+    expect(result.current.showReadyShell).toBe(false);
     expect(document.getElementById("boot-splash")?.dataset['settled']).toBe("true");
 
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(700);
+      await vi.advanceTimersByTimeAsync(BOOT_SPLASH_PROGRESS_SETTLE_MS);
     });
 
     expect(result.current.showReadyShell).toBe(true);

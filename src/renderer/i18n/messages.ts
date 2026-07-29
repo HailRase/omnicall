@@ -13,11 +13,163 @@ const ruMessages = {
   "settings.nav.headset": "Гарнитура",
   "settings.nav.integrations": "Интеграции",
   "settings.nav.integrations.ocp": "OCP Module",
+  "settings.nav.integrations.externalServices": "External Services",
   "settings.nav.integrations.sdk": "OmniCall Kit",
   "icons.settings.integrations": "Интеграции",
   "icons.settings.integrations.ocp": "OCP Module",
+  "icons.settings.integrations.externalServices": "External Services",
   "icons.settings.integrations.sdk": "OmniCall Kit",
   "settings.integrations.description": "Подключение внешних модулей к softphone.",
+  "settings.integrations.externalServices.title": "External Services",
+  "settings.integrations.externalServices.description":
+    "Исходящие HTTP-автоматизации по событиям звонка для активного профиля.",
+  "settings.integrations.externalServices.actions.create": "Новая коллекция",
+  "settings.integrations.externalServices.actions.import": "Импорт",
+  "settings.integrations.externalServices.actions.retry": "Повторить",
+  "settings.integrations.externalServices.actions.open": "Открыть",
+  "settings.integrations.externalServices.actions.rename": "Переименовать",
+  "settings.integrations.externalServices.actions.duplicate": "Дублировать",
+  "settings.integrations.externalServices.actions.export": "Экспорт",
+  "settings.integrations.externalServices.actions.delete": "Удалить",
+  "settings.integrations.externalServices.actions.save": "Сохранить",
+  "settings.integrations.externalServices.actions.cancel": "Отмена",
+  "settings.integrations.externalServices.actions.menu": "Действия коллекции",
+  "settings.integrations.externalServices.actions.editVariables": "Переменные",
+  "settings.integrations.externalServices.actions.back": "Назад",
+  "settings.integrations.externalServices.collections.emptyTitle": "Коллекций пока нет",
+  "settings.integrations.externalServices.collections.emptyDescription":
+    "Создайте коллекцию HTTP-запросов или импортируйте JSON-файл.",
+  "settings.integrations.externalServices.collections.enabledCount": (params: Readonly<{
+    enabled: number;
+    total: number;
+  }>) => `${params.enabled}/${params.total} вкл.`,
+  "settings.integrations.externalServices.collections.toggleLabel": (params: Readonly<{
+    name: string;
+  }>) => `Включить коллекцию «${params.name}»`,
+  "settings.integrations.externalServices.collections.nameLabel": "Название коллекции",
+  "settings.integrations.externalServices.collections.namePlaceholder": "Например, CRM",
+  "settings.integrations.externalServices.collections.createTitle": "Новая коллекция",
+  "settings.integrations.externalServices.collections.renameTitle": "Переименовать коллекцию",
+  "settings.integrations.externalServices.collections.deleteTitle": "Удалить коллекцию?",
+  "settings.integrations.externalServices.collections.deleteDescription": (params: Readonly<{
+    name: string;
+  }>) =>
+    `Коллекция «${params.name}» и все её запросы будут удалены из активного профиля.`,
+  "settings.integrations.externalServices.collections.variablesTitle": "Переменные коллекции",
+  "settings.integrations.externalServices.collections.variablesDescription":
+    "Ключи доступны в шаблонах как {{name}}. Экспорт может содержать учётные данные.",
+  "settings.integrations.externalServices.collections.variablesAdd": "Добавить переменную",
+  "settings.integrations.externalServices.collections.variablesKey": "Ключ",
+  "settings.integrations.externalServices.collections.variablesValue": "Значение",
+  "settings.integrations.externalServices.collections.variablesRemove": "Удалить переменную",
+  "settings.integrations.externalServices.collections.variablesEmpty": "Переменных пока нет.",
+  "settings.integrations.externalServices.journal.sectionTitle": "Журнал",
+  "settings.integrations.externalServices.journal.sectionDescription":
+    "Последние результаты автоматических и ручных HTTP-запросов появятся здесь.",
+  "settings.integrations.externalServices.journal.open": "Открыть журнал",
+  "settings.integrations.externalServices.journal.emptyTitle": "Записей пока нет",
+  "settings.integrations.externalServices.journal.emptyDescription":
+    "После автоматических или ручных запусков здесь появятся последние 100 попыток.",
+  "settings.integrations.externalServices.journal.loadError":
+    "Не удалось загрузить журнал External Services.",
+  "settings.integrations.externalServices.journal.retry": "Повторить",
+  "settings.integrations.externalServices.journal.capHint":
+    "Показаны последние 100 записей.",
+  "settings.integrations.externalServices.journal.noStatus": "Нет статуса",
+  "settings.integrations.externalServices.journal.durationValue": (params: Readonly<{
+    duration: number;
+  }>) => `${params.duration} мс`,
+  "settings.integrations.externalServices.journal.url": "URL",
+  "settings.integrations.externalServices.journal.headers": "Заголовки",
+  "settings.integrations.externalServices.journal.headersEmpty": "Нет заголовков",
+  "settings.integrations.externalServices.journal.body": "Тело ответа",
+  "settings.integrations.externalServices.journal.truncated": "Тело ответа обрезано.",
+  "settings.integrations.externalServices.journal.error": "Ошибка",
+  "settings.integrations.externalServices.journal.outcome.http_success": "Успех",
+  "settings.integrations.externalServices.journal.outcome.http_error": "Ошибка HTTP",
+  "settings.integrations.externalServices.journal.outcome.network_error": "Сеть",
+  "settings.integrations.externalServices.journal.outcome.timeout": "Таймаут",
+  "settings.integrations.externalServices.journal.outcome.aborted": "Отменено",
+  "settings.integrations.externalServices.trigger.manual_run": "Ручной запуск",
+  "settings.integrations.externalServices.disabled.loading": "Загрузка External Services…",
+  "settings.integrations.externalServices.disabled.busy": "Сохранение…",
+  "settings.integrations.externalServices.disabled.unavailable":
+    "External Services сейчас недоступны.",
+  "settings.integrations.externalServices.loadError":
+    "Не удалось загрузить External Services. Повторите попытку.",
+  "settings.integrations.externalServices.saveError":
+    "Не удалось сохранить изменения External Services.",
+  "settings.integrations.externalServices.importExport.importSucceeded": (params: Readonly<{
+    name: string;
+  }>) => `Коллекция «${params.name}» импортирована.`,
+  "settings.integrations.externalServices.importExport.exportSucceeded": (params: Readonly<{
+    fileName: string;
+  }>) => `Коллекция сохранена в ${params.fileName}.`,
+  "settings.integrations.externalServices.importExport.importFailed":
+    "Не удалось импортировать коллекцию.",
+  "settings.integrations.externalServices.importExport.exportFailed":
+    "Не удалось экспортировать коллекцию.",
+  "settings.integrations.externalServices.importExport.credentialsNote":
+    "Экспортируемые файлы могут содержать токены из заголовков и query.",
+  "settings.integrations.externalServices.validation.nameRequired": "Укажите название коллекции.",
+  "settings.integrations.externalServices.validation.nameTooLong":
+    "Название коллекции слишком длинное.",
+  "settings.integrations.externalServices.requests.create": "Новый запрос",
+  "settings.integrations.externalServices.requests.emptyTitle": "Запросов пока нет",
+  "settings.integrations.externalServices.requests.statusEnabled": "Включён",
+  "settings.integrations.externalServices.requests.statusDisabled": "Выключен",
+  "settings.integrations.externalServices.requests.enabledCount": (params: Readonly<{ enabled: number; total: number }>) => `${params.enabled}/${params.total} вкл.`,
+  "settings.integrations.externalServices.requests.toggleLabel": (params: Readonly<{ name: string }>) => `Включить запрос «${params.name}»`,
+  "settings.integrations.externalServices.requests.menuLabel": "Действия запроса",
+  "settings.integrations.externalServices.requests.variablesTitle": "Переменные коллекции",
+  "settings.integrations.externalServices.editor.name": "Название запроса",
+  "settings.integrations.externalServices.editor.enabled": "Включён",
+  "settings.integrations.externalServices.editor.method": "Метод",
+  "settings.integrations.externalServices.editor.url": "URL",
+  "settings.integrations.externalServices.editor.query": "Query-параметры",
+  "settings.integrations.externalServices.editor.headers": "Заголовки",
+  "settings.integrations.externalServices.editor.key": "Ключ",
+  "settings.integrations.externalServices.editor.value": "Значение",
+  "settings.integrations.externalServices.editor.removeRow": "Удалить строку",
+  "settings.integrations.externalServices.editor.bodyMode": "Формат тела",
+  "settings.integrations.externalServices.editor.body": "Тело запроса",
+  "settings.integrations.externalServices.editor.triggersTitle": "Автоматические события",
+  "settings.integrations.externalServices.bodyMode.none": "Без тела",
+  "settings.integrations.externalServices.bodyMode.json": "JSON",
+  "settings.integrations.externalServices.bodyMode.x-www-form-urlencoded": "Форма URL-encoded",
+  "settings.integrations.externalServices.bodyMode.raw": "Текст",
+  "settings.integrations.externalServices.trigger.incoming_ringing": "Входящий звонок",
+  "settings.integrations.externalServices.trigger.outgoing_connecting": "Исходящее соединение",
+  "settings.integrations.externalServices.trigger.call_answered": "Звонок отвечен",
+  "settings.integrations.externalServices.trigger.call_ended": "Звонок завершён",
+  "settings.integrations.externalServices.trigger.call_rejected": "Звонок отклонён",
+  "settings.integrations.externalServices.trigger.call_missed": "Пропущенный звонок",
+  "settings.integrations.externalServices.trigger.campaign_offered": "Кампания предложена",
+  "settings.integrations.externalServices.trigger.campaign_accepted": "Кампания принята",
+  "settings.integrations.externalServices.trigger.campaign_rejected": "Кампания отклонена",
+  "settings.integrations.externalServices.trigger.acd_context_appeared": "Контекст ACD получен",
+  "settings.integrations.externalServices.run.now": "Запустить сейчас",
+  "settings.integrations.externalServices.run.success": "Запрос выполнен",
+  "settings.integrations.externalServices.run.error": "Запрос не выполнен",
+  "settings.integrations.externalServices.run.status": "Статус",
+  "settings.integrations.externalServices.run.noStatus": "Нет статуса",
+  "settings.integrations.externalServices.run.duration": "Длительность",
+  "settings.integrations.externalServices.run.truncated": "Тело ответа обрезано.",
+  "settings.integrations.externalServices.run.invalidJson": "Подставленный JSON недействителен.",
+  "settings.integrations.externalServices.editor.addRow": "Добавить строку",
+  "settings.integrations.externalServices.editor.discardTitle": "Отменить изменения?",
+  "settings.integrations.externalServices.editor.discardDescription":
+    "Несохранённые изменения запроса будут потеряны.",
+  "settings.integrations.externalServices.editor.discard": "Отменить изменения",
+  "settings.integrations.externalServices.run.queued": "Запрос поставлен в очередь",
+  "settings.integrations.externalServices.run.running": "Запрос выполняется",
+  "settings.integrations.externalServices.run.durationValue": (params: Readonly<{ duration: number }>) =>
+    `${params.duration} мс`,
+  "settings.integrations.externalServices.run.category.http": "Ошибка HTTP-ответа",
+  "settings.integrations.externalServices.run.category.network": "Сетевая ошибка",
+  "settings.integrations.externalServices.run.category.timeout": "Превышено время ожидания",
+  "settings.integrations.externalServices.run.category.aborted": "Запрос отменён",
+  "settings.integrations.externalServices.run.category.validation": "Ошибка проверки запроса",
   "settings.integrations.ocp.title": "OCP Module",
   "settings.integrations.ocp.description": "Операторская платформа OCP: логин, домен, API-ключ и подключение.",
   "settings.integrations.ocp.editOnly.description": "Настройка OCP для активного профиля. Вход и восстановление — только в разделе «Аккаунт».",
@@ -1381,11 +1533,119 @@ const enMessages: MessageShape = {
   "settings.nav.headset": "Headset",
   "settings.nav.integrations": "Integrations",
   "settings.nav.integrations.ocp": "OCP Module",
+  "settings.nav.integrations.externalServices": "External Services",
   "settings.nav.integrations.sdk": "OmniCall Kit",
   "icons.settings.integrations": "Integrations",
   "icons.settings.integrations.ocp": "OCP Module",
+  "icons.settings.integrations.externalServices": "External Services",
   "icons.settings.integrations.sdk": "OmniCall Kit",
   "settings.integrations.description": "Connect external modules to the softphone.",
+  "settings.integrations.externalServices.title": "External Services",
+  "settings.integrations.externalServices.description":
+    "Outbound HTTP automations triggered by call events for the active profile.",
+  "settings.integrations.externalServices.actions.create": "New collection",
+  "settings.integrations.externalServices.actions.import": "Import",
+  "settings.integrations.externalServices.actions.retry": "Retry",
+  "settings.integrations.externalServices.actions.open": "Open",
+  "settings.integrations.externalServices.actions.rename": "Rename",
+  "settings.integrations.externalServices.actions.duplicate": "Duplicate",
+  "settings.integrations.externalServices.actions.export": "Export",
+  "settings.integrations.externalServices.actions.delete": "Delete",
+  "settings.integrations.externalServices.actions.save": "Save",
+  "settings.integrations.externalServices.actions.cancel": "Cancel",
+  "settings.integrations.externalServices.actions.menu": "Collection actions",
+  "settings.integrations.externalServices.actions.editVariables": "Variables",
+  "settings.integrations.externalServices.collections.emptyTitle": "No collections yet",
+  "settings.integrations.externalServices.collections.emptyDescription":
+    "Create an HTTP request collection or import a JSON file.",
+  "settings.integrations.externalServices.collections.enabledCount": (params: Readonly<{
+    enabled: number;
+    total: number;
+  }>) => `${params.enabled}/${params.total} on`,
+  "settings.integrations.externalServices.collections.toggleLabel": (params: Readonly<{
+    name: string;
+  }>) => `Enable collection “${params.name}”`,
+  "settings.integrations.externalServices.collections.nameLabel": "Collection name",
+  "settings.integrations.externalServices.collections.namePlaceholder": "For example, CRM",
+  "settings.integrations.externalServices.collections.createTitle": "New collection",
+  "settings.integrations.externalServices.collections.renameTitle": "Rename collection",
+  "settings.integrations.externalServices.collections.deleteTitle": "Delete collection?",
+  "settings.integrations.externalServices.collections.deleteDescription": (params: Readonly<{
+    name: string;
+  }>) =>
+    `Collection “${params.name}” and all of its requests will be removed from the active profile.`,
+  "settings.integrations.externalServices.collections.variablesTitle": "Collection variables",
+  "settings.integrations.externalServices.collections.variablesDescription":
+    "Keys are available in templates as {{name}}. Exports may include credentials.",
+  "settings.integrations.externalServices.collections.variablesAdd": "Add variable",
+  "settings.integrations.externalServices.collections.variablesKey": "Key",
+  "settings.integrations.externalServices.collections.variablesValue": "Value",
+  "settings.integrations.externalServices.collections.variablesRemove": "Remove variable",
+  "settings.integrations.externalServices.collections.variablesEmpty": "No variables yet.",
+  "settings.integrations.externalServices.journal.sectionTitle": "Journal",
+  "settings.integrations.externalServices.journal.sectionDescription":
+    "Recent automatic and manual HTTP results will appear here.",
+  "settings.integrations.externalServices.journal.open": "Open journal",
+  "settings.integrations.externalServices.journal.emptyTitle": "No journal entries yet",
+  "settings.integrations.externalServices.journal.emptyDescription":
+    "After automatic or manual runs, the latest 100 attempts appear here.",
+  "settings.integrations.externalServices.journal.loadError":
+    "Could not load the External Services journal.",
+  "settings.integrations.externalServices.journal.retry": "Retry",
+  "settings.integrations.externalServices.journal.capHint": "Showing the latest 100 entries.",
+  "settings.integrations.externalServices.journal.noStatus": "No status",
+  "settings.integrations.externalServices.journal.durationValue": (params: Readonly<{
+    duration: number;
+  }>) => `${params.duration} ms`,
+  "settings.integrations.externalServices.journal.url": "URL",
+  "settings.integrations.externalServices.journal.headers": "Headers",
+  "settings.integrations.externalServices.journal.headersEmpty": "No headers",
+  "settings.integrations.externalServices.journal.body": "Response body",
+  "settings.integrations.externalServices.journal.truncated": "Response body truncated.",
+  "settings.integrations.externalServices.journal.error": "Error",
+  "settings.integrations.externalServices.journal.outcome.http_success": "Success",
+  "settings.integrations.externalServices.journal.outcome.http_error": "HTTP error",
+  "settings.integrations.externalServices.journal.outcome.network_error": "Network",
+  "settings.integrations.externalServices.journal.outcome.timeout": "Timeout",
+  "settings.integrations.externalServices.journal.outcome.aborted": "Aborted",
+  "settings.integrations.externalServices.trigger.manual_run": "Manual run",
+  "settings.integrations.externalServices.disabled.loading": "Loading External Services…",
+  "settings.integrations.externalServices.disabled.busy": "Saving…",
+  "settings.integrations.externalServices.disabled.unavailable":
+    "External Services are unavailable right now.",
+  "settings.integrations.externalServices.loadError":
+    "Could not load External Services. Try again.",
+  "settings.integrations.externalServices.saveError":
+    "Could not save External Services changes.",
+  "settings.integrations.externalServices.importExport.importSucceeded": (params: Readonly<{
+    name: string;
+  }>) => `Collection “${params.name}” imported.`,
+  "settings.integrations.externalServices.importExport.exportSucceeded": (params: Readonly<{
+    fileName: string;
+  }>) => `Collection saved to ${params.fileName}.`,
+  "settings.integrations.externalServices.importExport.importFailed":
+    "Could not import the collection.",
+  "settings.integrations.externalServices.importExport.exportFailed":
+    "Could not export the collection.",
+  "settings.integrations.externalServices.importExport.credentialsNote":
+    "Exported files may contain tokens from headers and query values.",
+  "settings.integrations.externalServices.validation.nameRequired": "Enter a collection name.",
+  "settings.integrations.externalServices.validation.nameTooLong":
+    "Collection name is too long.",
+  "settings.integrations.externalServices.editor.addRow": "Add row",
+  "settings.integrations.externalServices.editor.discardTitle": "Discard changes?",
+  "settings.integrations.externalServices.editor.discardDescription":
+    "Unsaved request changes will be lost.",
+  "settings.integrations.externalServices.editor.discard": "Discard changes",
+  "settings.integrations.externalServices.run.queued": "Request queued",
+  "settings.integrations.externalServices.run.running": "Request running",
+  "settings.integrations.externalServices.run.durationValue": (params: Readonly<{ duration: number }>) =>
+    `${params.duration} ms`,
+  "settings.integrations.externalServices.run.category.http": "HTTP response error",
+  "settings.integrations.externalServices.run.category.network": "Network error",
+  "settings.integrations.externalServices.run.category.timeout": "Request timed out",
+  "settings.integrations.externalServices.run.category.aborted": "Request aborted",
+  "settings.integrations.externalServices.run.category.validation": "Request validation error",
   "settings.integrations.ocp.title": "OCP Module",
   "settings.integrations.ocp.description": "OCP operator platform: login, domain, API key, and connection.",
   "settings.integrations.ocp.editOnly.description": "Configure OCP for the active profile. Sign-in and recovery live only on the Account tab.",
@@ -2722,11 +2982,121 @@ const frMessages: MessageShape = {
   "settings.nav.headset": "Micro-casque",
   "settings.nav.integrations": "Integrations",
   "settings.nav.integrations.ocp": "OCP Module",
+  "settings.nav.integrations.externalServices": "External Services",
   "settings.nav.integrations.sdk": "OmniCall Kit",
   "icons.settings.integrations": "Integrations",
   "icons.settings.integrations.ocp": "OCP Module",
+  "icons.settings.integrations.externalServices": "External Services",
   "icons.settings.integrations.sdk": "OmniCall Kit",
   "settings.integrations.description": "Connecter des modules externes au softphone.",
+  "settings.integrations.externalServices.title": "External Services",
+  "settings.integrations.externalServices.description":
+    "Automations HTTP sortantes declenchees par les evenements d'appel pour le profil actif.",
+  "settings.integrations.externalServices.actions.create": "Nouvelle collection",
+  "settings.integrations.externalServices.actions.import": "Importer",
+  "settings.integrations.externalServices.actions.retry": "Reessayer",
+  "settings.integrations.externalServices.actions.open": "Ouvrir",
+  "settings.integrations.externalServices.actions.rename": "Renommer",
+  "settings.integrations.externalServices.actions.duplicate": "Dupliquer",
+  "settings.integrations.externalServices.actions.export": "Exporter",
+  "settings.integrations.externalServices.actions.delete": "Supprimer",
+  "settings.integrations.externalServices.actions.save": "Enregistrer",
+  "settings.integrations.externalServices.actions.cancel": "Annuler",
+  "settings.integrations.externalServices.actions.menu": "Actions de la collection",
+  "settings.integrations.externalServices.actions.editVariables": "Variables",
+  "settings.integrations.externalServices.collections.emptyTitle": "Aucune collection",
+  "settings.integrations.externalServices.collections.emptyDescription":
+    "Creez une collection de requetes HTTP ou importez un fichier JSON.",
+  "settings.integrations.externalServices.collections.enabledCount": (params: Readonly<{
+    enabled: number;
+    total: number;
+  }>) => `${params.enabled}/${params.total} actives`,
+  "settings.integrations.externalServices.collections.toggleLabel": (params: Readonly<{
+    name: string;
+  }>) => `Activer la collection « ${params.name} »`,
+  "settings.integrations.externalServices.collections.nameLabel": "Nom de la collection",
+  "settings.integrations.externalServices.collections.namePlaceholder": "Par exemple, CRM",
+  "settings.integrations.externalServices.collections.createTitle": "Nouvelle collection",
+  "settings.integrations.externalServices.collections.renameTitle": "Renommer la collection",
+  "settings.integrations.externalServices.collections.deleteTitle": "Supprimer la collection ?",
+  "settings.integrations.externalServices.collections.deleteDescription": (params: Readonly<{
+    name: string;
+  }>) =>
+    `La collection « ${params.name} » et toutes ses requetes seront supprimees du profil actif.`,
+  "settings.integrations.externalServices.collections.variablesTitle": "Variables de collection",
+  "settings.integrations.externalServices.collections.variablesDescription":
+    "Les cles sont disponibles dans les modeles comme {{name}}. Les exports peuvent contenir des identifiants.",
+  "settings.integrations.externalServices.collections.variablesAdd": "Ajouter une variable",
+  "settings.integrations.externalServices.collections.variablesKey": "Cle",
+  "settings.integrations.externalServices.collections.variablesValue": "Valeur",
+  "settings.integrations.externalServices.collections.variablesRemove": "Supprimer la variable",
+  "settings.integrations.externalServices.collections.variablesEmpty": "Aucune variable.",
+  "settings.integrations.externalServices.journal.sectionTitle": "Journal",
+  "settings.integrations.externalServices.journal.sectionDescription":
+    "Les resultats HTTP automatiques et manuels recents apparaitront ici.",
+  "settings.integrations.externalServices.journal.open": "Ouvrir le journal",
+  "settings.integrations.externalServices.journal.emptyTitle": "Aucune entree de journal",
+  "settings.integrations.externalServices.journal.emptyDescription":
+    "Apres les executions automatiques ou manuelles, les 100 dernieres tentatives apparaissent ici.",
+  "settings.integrations.externalServices.journal.loadError":
+    "Impossible de charger le journal External Services.",
+  "settings.integrations.externalServices.journal.retry": "Reessayer",
+  "settings.integrations.externalServices.journal.capHint":
+    "Affichage des 100 dernieres entrees.",
+  "settings.integrations.externalServices.journal.noStatus": "Aucun statut",
+  "settings.integrations.externalServices.journal.durationValue": (params: Readonly<{
+    duration: number;
+  }>) => `${params.duration} ms`,
+  "settings.integrations.externalServices.journal.url": "URL",
+  "settings.integrations.externalServices.journal.headers": "En-tetes",
+  "settings.integrations.externalServices.journal.headersEmpty": "Aucun en-tete",
+  "settings.integrations.externalServices.journal.body": "Corps de la reponse",
+  "settings.integrations.externalServices.journal.truncated": "Corps de la reponse tronque.",
+  "settings.integrations.externalServices.journal.error": "Erreur",
+  "settings.integrations.externalServices.journal.outcome.http_success": "Succes",
+  "settings.integrations.externalServices.journal.outcome.http_error": "Erreur HTTP",
+  "settings.integrations.externalServices.journal.outcome.network_error": "Reseau",
+  "settings.integrations.externalServices.journal.outcome.timeout": "Delai depasse",
+  "settings.integrations.externalServices.journal.outcome.aborted": "Annule",
+  "settings.integrations.externalServices.trigger.manual_run": "Execution manuelle",
+  "settings.integrations.externalServices.disabled.loading": "Chargement d'External Services…",
+  "settings.integrations.externalServices.disabled.busy": "Enregistrement…",
+  "settings.integrations.externalServices.disabled.unavailable":
+    "External Services est indisponible pour le moment.",
+  "settings.integrations.externalServices.loadError":
+    "Impossible de charger External Services. Reessayez.",
+  "settings.integrations.externalServices.saveError":
+    "Impossible d'enregistrer les modifications External Services.",
+  "settings.integrations.externalServices.importExport.importSucceeded": (params: Readonly<{
+    name: string;
+  }>) => `Collection « ${params.name} » importee.`,
+  "settings.integrations.externalServices.importExport.exportSucceeded": (params: Readonly<{
+    fileName: string;
+  }>) => `Collection enregistree dans ${params.fileName}.`,
+  "settings.integrations.externalServices.importExport.importFailed":
+    "Impossible d'importer la collection.",
+  "settings.integrations.externalServices.importExport.exportFailed":
+    "Impossible d'exporter la collection.",
+  "settings.integrations.externalServices.importExport.credentialsNote":
+    "Les fichiers exportes peuvent contenir des jetons issus des en-tetes et des parametres.",
+  "settings.integrations.externalServices.validation.nameRequired":
+    "Saisissez un nom de collection.",
+  "settings.integrations.externalServices.validation.nameTooLong":
+    "Le nom de la collection est trop long.",
+  "settings.integrations.externalServices.editor.addRow": "Ajouter une ligne",
+  "settings.integrations.externalServices.editor.discardTitle": "Abandonner les modifications ?",
+  "settings.integrations.externalServices.editor.discardDescription":
+    "Les modifications non enregistrees de la requete seront perdues.",
+  "settings.integrations.externalServices.editor.discard": "Abandonner les modifications",
+  "settings.integrations.externalServices.run.queued": "Requete mise en file d'attente",
+  "settings.integrations.externalServices.run.running": "Requete en cours d'execution",
+  "settings.integrations.externalServices.run.durationValue": (params: Readonly<{ duration: number }>) =>
+    `${params.duration} ms`,
+  "settings.integrations.externalServices.run.category.http": "Erreur de reponse HTTP",
+  "settings.integrations.externalServices.run.category.network": "Erreur reseau",
+  "settings.integrations.externalServices.run.category.timeout": "Delai de la requete depasse",
+  "settings.integrations.externalServices.run.category.aborted": "Requete annulee",
+  "settings.integrations.externalServices.run.category.validation": "Erreur de validation de la requete",
   "settings.integrations.ocp.title": "OCP Module",
   "settings.integrations.ocp.description": "Plateforme operateur OCP : login, domaine, cle API et connexion.",
   "settings.integrations.ocp.editOnly.description": "Configurez OCP pour le profil actif. Connexion et recuperation uniquement dans Compte.",
@@ -4060,11 +4430,121 @@ const deMessages: MessageShape = {
   "settings.nav.headset": "Headset",
   "settings.nav.integrations": "Integrationen",
   "settings.nav.integrations.ocp": "OCP Module",
+  "settings.nav.integrations.externalServices": "External Services",
   "settings.nav.integrations.sdk": "OmniCall Kit",
   "icons.settings.integrations": "Integrationen",
   "icons.settings.integrations.ocp": "OCP Module",
+  "icons.settings.integrations.externalServices": "External Services",
   "icons.settings.integrations.sdk": "OmniCall Kit",
   "settings.integrations.description": "Externe Module mit dem Softphone verbinden.",
+  "settings.integrations.externalServices.title": "External Services",
+  "settings.integrations.externalServices.description":
+    "Ausgehende HTTP-Automatisierungen fuer Anrufereignisse des aktiven Profils.",
+  "settings.integrations.externalServices.actions.create": "Neue Sammlung",
+  "settings.integrations.externalServices.actions.import": "Importieren",
+  "settings.integrations.externalServices.actions.retry": "Erneut versuchen",
+  "settings.integrations.externalServices.actions.open": "Oeffnen",
+  "settings.integrations.externalServices.actions.rename": "Umbenennen",
+  "settings.integrations.externalServices.actions.duplicate": "Duplizieren",
+  "settings.integrations.externalServices.actions.export": "Exportieren",
+  "settings.integrations.externalServices.actions.delete": "Loeschen",
+  "settings.integrations.externalServices.actions.save": "Speichern",
+  "settings.integrations.externalServices.actions.cancel": "Abbrechen",
+  "settings.integrations.externalServices.actions.menu": "Sammlungsaktionen",
+  "settings.integrations.externalServices.actions.editVariables": "Variablen",
+  "settings.integrations.externalServices.collections.emptyTitle": "Noch keine Sammlungen",
+  "settings.integrations.externalServices.collections.emptyDescription":
+    "Erstellen Sie eine HTTP-Anfragesammlung oder importieren Sie eine JSON-Datei.",
+  "settings.integrations.externalServices.collections.enabledCount": (params: Readonly<{
+    enabled: number;
+    total: number;
+  }>) => `${params.enabled}/${params.total} an`,
+  "settings.integrations.externalServices.collections.toggleLabel": (params: Readonly<{
+    name: string;
+  }>) => `Sammlung „${params.name}“ aktivieren`,
+  "settings.integrations.externalServices.collections.nameLabel": "Sammlungsname",
+  "settings.integrations.externalServices.collections.namePlaceholder": "Zum Beispiel CRM",
+  "settings.integrations.externalServices.collections.createTitle": "Neue Sammlung",
+  "settings.integrations.externalServices.collections.renameTitle": "Sammlung umbenennen",
+  "settings.integrations.externalServices.collections.deleteTitle": "Sammlung loeschen?",
+  "settings.integrations.externalServices.collections.deleteDescription": (params: Readonly<{
+    name: string;
+  }>) =>
+    `Sammlung „${params.name}“ und alle zugehoerigen Anfragen werden aus dem aktiven Profil entfernt.`,
+  "settings.integrations.externalServices.collections.variablesTitle": "Sammlungsvariablen",
+  "settings.integrations.externalServices.collections.variablesDescription":
+    "Schluessel sind in Vorlagen als {{name}} verfuegbar. Exporte koennen Zugangsdaten enthalten.",
+  "settings.integrations.externalServices.collections.variablesAdd": "Variable hinzufuegen",
+  "settings.integrations.externalServices.collections.variablesKey": "Schluessel",
+  "settings.integrations.externalServices.collections.variablesValue": "Wert",
+  "settings.integrations.externalServices.collections.variablesRemove": "Variable entfernen",
+  "settings.integrations.externalServices.collections.variablesEmpty": "Noch keine Variablen.",
+  "settings.integrations.externalServices.journal.sectionTitle": "Journal",
+  "settings.integrations.externalServices.journal.sectionDescription":
+    "Aktuelle automatische und manuelle HTTP-Ergebnisse erscheinen hier.",
+  "settings.integrations.externalServices.journal.open": "Journal oeffnen",
+  "settings.integrations.externalServices.journal.emptyTitle": "Noch keine Journaleintraege",
+  "settings.integrations.externalServices.journal.emptyDescription":
+    "Nach automatischen oder manuellen Laeufen erscheinen hier die letzten 100 Versuche.",
+  "settings.integrations.externalServices.journal.loadError":
+    "External-Services-Journal konnte nicht geladen werden.",
+  "settings.integrations.externalServices.journal.retry": "Erneut versuchen",
+  "settings.integrations.externalServices.journal.capHint":
+    "Es werden die letzten 100 Eintraege angezeigt.",
+  "settings.integrations.externalServices.journal.noStatus": "Kein Status",
+  "settings.integrations.externalServices.journal.durationValue": (params: Readonly<{
+    duration: number;
+  }>) => `${params.duration} ms`,
+  "settings.integrations.externalServices.journal.url": "URL",
+  "settings.integrations.externalServices.journal.headers": "Header",
+  "settings.integrations.externalServices.journal.headersEmpty": "Keine Header",
+  "settings.integrations.externalServices.journal.body": "Antwortkoerper",
+  "settings.integrations.externalServices.journal.truncated": "Antwortkoerper gekuerzt.",
+  "settings.integrations.externalServices.journal.error": "Fehler",
+  "settings.integrations.externalServices.journal.outcome.http_success": "Erfolg",
+  "settings.integrations.externalServices.journal.outcome.http_error": "HTTP-Fehler",
+  "settings.integrations.externalServices.journal.outcome.network_error": "Netzwerk",
+  "settings.integrations.externalServices.journal.outcome.timeout": "Zeitueberschreitung",
+  "settings.integrations.externalServices.journal.outcome.aborted": "Abgebrochen",
+  "settings.integrations.externalServices.trigger.manual_run": "Manueller Lauf",
+  "settings.integrations.externalServices.disabled.loading": "External Services werden geladen…",
+  "settings.integrations.externalServices.disabled.busy": "Speichern…",
+  "settings.integrations.externalServices.disabled.unavailable":
+    "External Services sind derzeit nicht verfuegbar.",
+  "settings.integrations.externalServices.loadError":
+    "External Services konnten nicht geladen werden. Bitte erneut versuchen.",
+  "settings.integrations.externalServices.saveError":
+    "External-Services-Aenderungen konnten nicht gespeichert werden.",
+  "settings.integrations.externalServices.importExport.importSucceeded": (params: Readonly<{
+    name: string;
+  }>) => `Sammlung „${params.name}“ importiert.`,
+  "settings.integrations.externalServices.importExport.exportSucceeded": (params: Readonly<{
+    fileName: string;
+  }>) => `Sammlung in ${params.fileName} gespeichert.`,
+  "settings.integrations.externalServices.importExport.importFailed":
+    "Sammlung konnte nicht importiert werden.",
+  "settings.integrations.externalServices.importExport.exportFailed":
+    "Sammlung konnte nicht exportiert werden.",
+  "settings.integrations.externalServices.importExport.credentialsNote":
+    "Exportierte Dateien koennen Token aus Headern und Query-Werten enthalten.",
+  "settings.integrations.externalServices.validation.nameRequired":
+    "Geben Sie einen Sammlungsnamen ein.",
+  "settings.integrations.externalServices.validation.nameTooLong":
+    "Der Sammlungsname ist zu lang.",
+  "settings.integrations.externalServices.editor.addRow": "Zeile hinzufuegen",
+  "settings.integrations.externalServices.editor.discardTitle": "Aenderungen verwerfen?",
+  "settings.integrations.externalServices.editor.discardDescription":
+    "Nicht gespeicherte Anfrageaenderungen gehen verloren.",
+  "settings.integrations.externalServices.editor.discard": "Aenderungen verwerfen",
+  "settings.integrations.externalServices.run.queued": "Anfrage eingereiht",
+  "settings.integrations.externalServices.run.running": "Anfrage wird ausgefuehrt",
+  "settings.integrations.externalServices.run.durationValue": (params: Readonly<{ duration: number }>) =>
+    `${params.duration} ms`,
+  "settings.integrations.externalServices.run.category.http": "HTTP-Antwortfehler",
+  "settings.integrations.externalServices.run.category.network": "Netzwerkfehler",
+  "settings.integrations.externalServices.run.category.timeout": "Zeitueberschreitung der Anfrage",
+  "settings.integrations.externalServices.run.category.aborted": "Anfrage abgebrochen",
+  "settings.integrations.externalServices.run.category.validation": "Validierungsfehler der Anfrage",
   "settings.integrations.ocp.title": "OCP Module",
   "settings.integrations.ocp.description": "OCP-Operatorplattform: Login, Domain, API-Schluessel und Verbindung.",
   "settings.integrations.ocp.editOnly.description": "OCP fuer das aktive Profil konfigurieren. Anmeldung und Wiederherstellung nur unter Konto.",

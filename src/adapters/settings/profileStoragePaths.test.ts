@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";import { createSettingsAccountKey 
 import {
   decodeProfileKeyFromFileName,
   encodeProfileKeyForFileName,
+  resolveExternalServicesJournalFilePath,
   resolveProfileSettingsFilePath,
 } from "./profileStoragePaths.js";
 
@@ -37,6 +38,18 @@ describe("profileStoragePaths", () => {
 
     expect(filePath).toContain("profiles");
     expect(filePath).toContain("settings");
+    expect(filePath.endsWith(".json")).toBe(true);
+  });
+
+  it("resolves External Services journal path under profiles/external-services-journal", () => {
+    const accountKey = createSettingsAccountKey("1001@pbx.example");
+    const filePath = resolveExternalServicesJournalFilePath(
+      "/tmp/omnicall",
+      accountKey,
+    );
+
+    expect(filePath).toContain("profiles");
+    expect(filePath).toContain("external-services-journal");
     expect(filePath.endsWith(".json")).toBe(true);
   });
 });

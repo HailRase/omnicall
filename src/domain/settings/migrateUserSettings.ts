@@ -18,6 +18,10 @@ import {
   SDK_INTEGRATION_DEFAULTS,
   parseSdkIntegrationSettings,
 } from "./SdkIntegrationSettings.js";
+import {
+  EXTERNAL_SERVICES_DEFAULTS,
+  parseExternalServicesSettings,
+} from "../integration/external-services/index.js";
 
 export type UserSettingsV0Legacy = Readonly<{
   multiCallSettings: MultiCallSettings;
@@ -68,6 +72,7 @@ export function migrateUserSettings(
   }
 
   if (
+    version === 11 ||
     version === 10 ||
     version === 9 ||
     version === 8 ||
@@ -140,6 +145,16 @@ function coerceToCurrentUserSettings(
       error: { code: "validation_failed", message: "sdkIntegration_invalid" },
     };
   }
+  const externalServices = parseExternalServicesForMigration(record);
+  if (externalServices === null) {
+    return {
+      ok: false,
+      error: {
+        code: "validation_failed",
+        message: "externalServices_invalid",
+      },
+    };
+  }
   const candidate = {
     ...record,
     schemaVersion: SETTINGS_SCHEMA_VERSION,
@@ -186,6 +201,7 @@ function coerceToCurrentUserSettings(
         : DEFAULT_ENABLE_LOCAL_VIDEO_AFTER_CONNECT,
     ocpIntegration: parsedOcp,
     sdkIntegration: parsedSdk,
+    externalServices,
   };
   const validated = validateUserSettings(candidate);
   if (!validated.ok) {
@@ -195,6 +211,17 @@ function coerceToCurrentUserSettings(
     };
   }
   return { ok: true, value: validated.value };
+}
+
+function parseExternalServicesForMigration(
+  record: Record<string, unknown>,
+): UserSettings["externalServices"] | null {
+  const raw = record["externalServices"];
+  if (raw === undefined) {
+    return EXTERNAL_SERVICES_DEFAULTS;
+  }
+  const parsed = parseExternalServicesSettings(raw);
+  return parsed.ok ? parsed.value : null;
 }
 
 function migrateV1ToCurrent(record: Record<string, unknown>): UserSettings {
@@ -243,6 +270,7 @@ function migrateV1ToCurrent(record: Record<string, unknown>): UserSettings {
     enableLocalVideoAfterConnect: defaults.enableLocalVideoAfterConnect,
     ocpIntegration: OCP_INTEGRATION_DEFAULTS,
     sdkIntegration: SDK_INTEGRATION_DEFAULTS,
+    externalServices: EXTERNAL_SERVICES_DEFAULTS,
   };
 }
 

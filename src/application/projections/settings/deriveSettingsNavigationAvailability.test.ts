@@ -55,6 +55,9 @@ describe("deriveSettingsNavigationAvailability", () => {
     });
     expect(resolveAllowedSettingsSection(preAuth, "general")).toBe("account");
     expect(resolveAllowedSettingsSection(preAuth, "integrations")).toBe("account");
+    expect(resolveAllowedSettingsSection(preAuth, "integrations-external-services")).toBe(
+      "account",
+    );
     expect(resolveAllowedSettingsSection(preAuth, "integrations-sdk")).toBe(
       "integrations-sdk",
     );
@@ -66,6 +69,9 @@ describe("deriveSettingsNavigationAvailability", () => {
     });
     expect(resolveAllowedSettingsSection(postAuth, "codecs")).toBe("codecs");
     expect(resolveAllowedSettingsSection(postAuth, "integrations")).toBe("integrations");
+    expect(
+      resolveAllowedSettingsSection(postAuth, "integrations-external-services"),
+    ).toBe("integrations-external-services");
     expect(resolveAllowedSettingsSection(postAuth, "integrations-sdk")).toBe(
       "integrations-sdk",
     );

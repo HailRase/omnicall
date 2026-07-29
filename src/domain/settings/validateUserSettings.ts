@@ -58,6 +58,11 @@ import {
   SDK_INTEGRATION_DEFAULTS,
   type SdkIntegrationSettings,
 } from "./SdkIntegrationSettings.js";
+import {
+  EXTERNAL_SERVICES_DEFAULTS,
+  parseExternalServicesSettings,
+  type ExternalServicesSettings,
+} from "../integration/external-services/index.js";
 
 export type ValidateUserSettingsResult =
   | Readonly<{ ok: true; value: UserSettings }>
@@ -183,6 +188,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
   );
   const ocpIntegration = readOcpIntegration(record, errors);
   const sdkIntegration = readSdkIntegration(record, errors);
+  const externalServices = readExternalServices(record, errors);
 
   if (errors.length > 0) {
     return { ok: false, errors };
@@ -225,6 +231,7 @@ export function validateUserSettings(value: unknown): ValidateUserSettingsResult
       enableLocalVideoAfterConnect,
       ocpIntegration,
       sdkIntegration,
+      externalServices,
     },
   };
 }
@@ -559,4 +566,20 @@ function readSdkIntegration(
     return { ...SDK_INTEGRATION_DEFAULTS };
   }
   return parsed;
+}
+
+function readExternalServices(
+  record: Record<string, unknown>,
+  errors: string[],
+): ExternalServicesSettings {
+  const parsed = parseExternalServicesSettings(record["externalServices"]);
+  if (!parsed.ok) {
+    errors.push(
+      ...parsed.errors.map(
+        (error) => `externalServices.${error.path}_${error.code}`,
+      ),
+    );
+    return EXTERNAL_SERVICES_DEFAULTS;
+  }
+  return parsed.value;
 }

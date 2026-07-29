@@ -7,6 +7,7 @@ export const PROFILES_DIRECTORY_NAME = "profiles";
 export const SETTINGS_DIRECTORY_NAME = "settings";
 export const CONTACTS_DIRECTORY_NAME = "contacts";
 export const CALL_HISTORY_DIRECTORY_NAME = "call-history";
+export const EXTERNAL_SERVICES_JOURNAL_DIRECTORY_NAME = "external-services-journal";
 export const PROFILES_INDEX_FILE_NAME = "index.json";
 export const SAVED_ACCOUNT_PROFILES_FILE_NAME = "saved-accounts.json";
 export const USER_NOTIFICATION_JOURNAL_FILE_NAME = "notification-journal.json";
@@ -195,6 +196,36 @@ export function resolveProfileCallHistoryFilePath(
   const encodedKey = encodeProfileKeyForFileName(accountKey);
   return joinStoragePath(
     resolveProfileCallHistoryDirectoryPath(storageRoot),
+    `${encodedKey}.json`,
+  );
+}
+
+/**
+ * - Purpose: resolve per-profile External Services journal directory path.
+ * - Inputs: storage root absolute path.
+ * - Outputs: external-services-journal directory absolute path.
+ */
+export function resolveExternalServicesJournalDirectoryPath(
+  storageRoot: string,
+): string {
+  return joinStoragePath(
+    resolveProfilesRootPath(storageRoot),
+    EXTERNAL_SERVICES_JOURNAL_DIRECTORY_NAME,
+  );
+}
+
+/**
+ * - Purpose: resolve on-disk External Services journal file for one profile key.
+ * - Inputs: storage root and profile key.
+ * - Outputs: journal JSON file absolute path.
+ */
+export function resolveExternalServicesJournalFilePath(
+  storageRoot: string,
+  accountKey: SettingsAccountKey,
+): string {
+  const encodedKey = encodeProfileKeyForFileName(accountKey);
+  return joinStoragePath(
+    resolveExternalServicesJournalDirectoryPath(storageRoot),
     `${encodedKey}.json`,
   );
 }

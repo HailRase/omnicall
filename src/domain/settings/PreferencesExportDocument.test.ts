@@ -3,6 +3,7 @@ import {
   buildPreferencesExportDocument,
   createDefaultUserSettings,
   createPortableDefaultUserSettings,
+  parseExternalServicesSettings,
   parsePreferencesExportDocument,
   parsePreferencesExportJson,
   PREFERENCES_EXPORT_FORMAT_ID,
@@ -11,6 +12,53 @@ import {
   SETTINGS_SCHEMA_VERSION,
   toPortableUserSettings,
 } from "@domain/index.js";
+
+const EXTERNAL_SERVICES_FIXTURE = (() => {
+  const parsed = parseExternalServicesSettings({
+    collections: [
+      {
+        id: "a0b1c2d3-e4f5-4a67-8b90-123456789012",
+        name: "CRM",
+        enabled: true,
+        variables: [{ key: "base_url", value: "https://crm.example.test" }],
+        requests: [
+          {
+            id: "b0b1c2d3-e4f5-4a67-8b90-123456789012",
+            name: "Notify",
+            enabled: true,
+            method: "POST",
+            url: "{{base_url}}/events",
+            query: [
+              {
+                id: "d0b1c2d3-e4f5-4a67-8b90-123456789012",
+                key: "source",
+                value: "softphone",
+                enabled: true,
+              },
+            ],
+            headers: [
+              {
+                id: "c0b1c2d3-e4f5-4a67-8b90-123456789012",
+                key: "Authorization",
+                value: "Bearer portable-authored-secret",
+                enabled: true,
+              },
+            ],
+            body: {
+              mode: "json",
+              value: "{\"event\":\"{{event_type}}\"}",
+            },
+            triggers: ["call_answered", "incoming_ringing"],
+          },
+        ],
+      },
+    ],
+  });
+  if (!parsed.ok) {
+    throw new Error("Failed to build External Services preferences fixture.");
+  }
+  return parsed.value;
+})();
 
 describe("PreferencesExportDocument", () => {
   it("clears machine-local fields and resets ocp.linked on portable sanitize", () => {
@@ -64,6 +112,61 @@ describe("PreferencesExportDocument", () => {
     expect(parsed.value.settings.theme).toBe(document.settings.theme);
   });
 
+  it("round-trips External Services definitions exactly under formatVersion 1", () => {
+    const document = buildPreferencesExportDocument({
+      settings: {
+        ...createDefaultUserSettings(),
+        externalServices: EXTERNAL_SERVICES_FIXTURE,
+      },
+      profileKey: "alice@example.com",
+      appVersion: "0.13.0",
+      exportedAt: "2026-07-29T12:00:00.000Z",
+    });
+    const json = serializePreferencesExportDocument(document);
+
+    expect(json).toContain("externalServices");
+    expect(json).toContain("Bearer portable-authored-secret");
+    expect(json).toContain("Authorization");
+    expect(json.toLowerCase()).not.toContain("\"password\"");
+    expect(json).not.toContain("external-services-journal");
+    expect(json).not.toContain("\"journal\"");
+    expect(json).not.toContain("manual_run");
+
+    const parsed = parsePreferencesExportJson(json);
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      return;
+    }
+    expect(parsed.value.formatVersion).toBe(PREFERENCES_EXPORT_FORMAT_VERSION);
+    expect(parsed.value.settings.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
+    expect(parsed.value.settings.externalServices).toEqual(EXTERNAL_SERVICES_FIXTURE);
+  });
+
+  it("preserves authored Authorization header values as portable configuration", () => {
+    const document = buildPreferencesExportDocument({
+      settings: {
+        ...createDefaultUserSettings(),
+        externalServices: EXTERNAL_SERVICES_FIXTURE,
+      },
+      exportedAt: "2026-07-29T12:00:00.000Z",
+    });
+    const parsed = parsePreferencesExportJson(
+      serializePreferencesExportDocument(document),
+    );
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      return;
+    }
+    const header =
+      parsed.value.settings.externalServices.collections[0]?.requests[0]?.headers[0];
+    expect(header).toEqual({
+      id: "c0b1c2d3-e4f5-4a67-8b90-123456789012",
+      key: "Authorization",
+      value: "Bearer portable-authored-secret",
+      enabled: true,
+    });
+  });
+
   it("migrates older UserSettings schema inside the bundle on import", () => {
     const current = createDefaultUserSettings();
     const raw = {
@@ -107,6 +210,7 @@ describe("PreferencesExportDocument", () => {
       autoConnect: true,
       linked: false,
     });
+    expect(parsed.value.settings.externalServices).toEqual({ collections: [] });
   });
 
   it("accepts LEGACY preferences format id and normalizes to omnicall.preferences", () => {

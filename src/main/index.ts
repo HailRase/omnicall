@@ -28,6 +28,8 @@ import { registerProfilesPersistenceIpc } from "./profiles/registerProfilesPersi
 import { registerSecretStorageIpc } from "./secrets/registerSecretStorageIpc.js";
 import { registerContactsCsvIpc } from "./contacts/registerContactsCsvIpc.js";
 import { registerPreferencesFileIpc } from "./settings/registerPreferencesFileIpc.js";
+import { registerExternalServicesHttpIpc } from "./integration/registerExternalServicesHttpIpc.js";
+import { registerExternalServicesCollectionFileIpc } from "./integration/registerExternalServicesCollectionFileIpc.js";
 import { AppShutdownCoordinator } from "./lifecycle/AppShutdownCoordinator.js";
 import { installApplicationMenu } from "./lifecycle/createApplicationMenu.js";
 import { installDeveloperWebContentsShortcuts } from "./lifecycle/installDeveloperWebContentsShortcuts.js";
@@ -578,6 +580,8 @@ void app.whenReady().then(() => {
   registerSecretStorageIpc();
   registerContactsCsvIpc();
   registerPreferencesFileIpc();
+  registerExternalServicesHttpIpc();
+  registerExternalServicesCollectionFileIpc();
   registerSdkBrokerIpc();
   setupHidPermissions();
   registerDisplayCaptureIpc();

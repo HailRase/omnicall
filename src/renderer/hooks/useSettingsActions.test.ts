@@ -61,6 +61,18 @@ function createSoftphonePreloadApiMock(
     }),
     setSdkBrokerReady: vi.fn().mockResolvedValue({ ok: true }),
     onSdkClientSessionEnded: vi.fn().mockReturnValue(() => {}),
+    executeExternalServiceHttp: vi.fn().mockResolvedValue({
+      kind: "network_error",
+      code: "unknown",
+      durationMs: 0,
+      message: "not implemented in test mock",
+    }),
+    openExternalServicesCollectionImportDialog: vi
+      .fn()
+      .mockResolvedValue({ ok: true, cancelled: true }),
+    saveExternalServicesCollectionExportDialog: vi
+      .fn()
+      .mockResolvedValue({ ok: true, cancelled: true }),
     ...overrides,
   };
 }

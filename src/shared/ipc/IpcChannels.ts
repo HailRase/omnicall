@@ -37,6 +37,14 @@ export const IPC_CHANNELS = {
   sdkGatewayPublishEvent: "sdk-gateway:publish-event",
   /** Renderer → main: Settings operational controls for local SDK gateway (DI-09). */
   sdkGatewaySettingsInvoke: "sdk-gateway:settings-invoke",
+  /** Renderer → main: External Services outbound HTTP (F-031 / ADR-0022). */
+  externalServicesHttpExecute: "external-services:http-execute",
+  /** Renderer → main: External Services single-collection import dialog (F-031). */
+  externalServicesCollectionOpenImportDialog:
+    "external-services:collection-open-import-dialog",
+  /** Renderer → main: External Services single-collection export dialog (F-031). */
+  externalServicesCollectionSaveExportDialog:
+    "external-services:collection-save-export-dialog",
 } as const;
 
 export type IpcChannel =
@@ -61,3 +69,12 @@ export type {
   PreferencesSaveExportDialogResponse,
 } from "./PreferencesFileContract.js";
 export type { SetNativeThemePayload, SetNativeThemeResponse } from "./SetNativeThemeContract.js";
+export type {
+  ExternalServicesHttpRequestDto,
+  ExternalServicesHttpResponseDto,
+} from "./ExternalServicesHttpContract.js";
+export type {
+  ExternalServicesCollectionOpenImportDialogResponse,
+  ExternalServicesCollectionSaveExportDialogPayload,
+  ExternalServicesCollectionSaveExportDialogResponse,
+} from "./ExternalServicesCollectionFileContract.js";

@@ -50,6 +50,47 @@ describe("migrateUserSettings", () => {
     }
   });
 
+  it("migrates v11 with an External Services default without data loss", () => {
+    const v11 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 11 as const,
+    };
+    delete (v11 as { externalServices?: unknown }).externalServices;
+
+    const result = migrateUserSettings(v11);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
+      expect(result.value.externalServices).toEqual({ collections: [] });
+    }
+  });
+
+  it("preserves validated External Services data from v11", () => {
+    const v11 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 11 as const,
+      externalServices: {
+        collections: [
+          {
+            id: "a0b1c2d3-e4f5-4a67-8b90-123456789012",
+            name: "CRM",
+            enabled: true,
+            variables: [],
+            requests: [],
+          },
+        ],
+      },
+    };
+
+    const result = migrateUserSettings(v11);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.externalServices.collections[0]?.name).toBe("CRM");
+    }
+  });
+
   it("migrates v6 payload to v8 with OCP integration defaults", () => {
     const v6 = {
       ...createDefaultUserSettings(),

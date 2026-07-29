@@ -195,6 +195,8 @@ describe("SettingsSidebar", () => {
     expect(screen.getByTestId("settings-nav-group-integrations-group")).toBeInTheDocument();
     expect(screen.getByTestId("settings-nav-integrations-ocp")).toBeInTheDocument();
     expect(screen.getByText("OCP Module")).toBeVisible();
+    expect(screen.getByTestId("settings-nav-integrations-external-services")).toBeInTheDocument();
+    expect(screen.getByText("External Services")).toBeVisible();
     expect(screen.getByTestId("settings-nav-integrations-sdk")).toBeInTheDocument();
     expect(screen.queryByTestId("settings-nav-group-integrations-group")).not.toContainElement(
       screen.getByTestId("settings-nav-integrations-sdk"),
@@ -202,6 +204,21 @@ describe("SettingsSidebar", () => {
 
     await user.click(screen.getByTestId("settings-nav-integrations-ocp"));
     expect(onSectionChange).toHaveBeenCalledWith("integrations");
+
+    await user.click(screen.getByTestId("settings-nav-integrations-external-services"));
+    expect(onSectionChange).toHaveBeenCalledWith("integrations-external-services");
+  });
+
+  it("keeps External Services gated before account session", () => {
+    renderSidebar({
+      activeSection: "integrations",
+      expanded: true,
+      sectionAvailability: preAuthAvailability,
+    });
+
+    expect(
+      screen.getByTestId("settings-nav-integrations-external-services"),
+    ).toBeDisabled();
   });
 
   it("opens first Integrations child when parent is clicked while collapsed", async () => {

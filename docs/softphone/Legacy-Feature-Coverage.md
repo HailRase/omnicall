@@ -52,7 +52,7 @@ Deprecated operator-related IDs (non-exhaustive): `LF-001`–`LF-005`, `LF-018`�
 | Legacy ID | Phase | Context | Priority | Legacy Feature | Legacy Modules | Acceptance Focus |
 |-----------|-------|---------|----------|----------------|----------------|------------------|
 | LF-001 | P01 | Operator | Critical | Legacy WebSocket token authorization (removed) | `useWs`, `StatusesProvider` | legacy operator integration authenticates by token and remains optional. |
-| LF-002 | P01 | UI | Critical | Legacy loading screen → SIP-only bootstrap splash | `SoftPhonePlug` → `#boot-splash` (+ error `BootstrapSplashShell`) | Startup shows single-stage branded bounce-ball splash (`#42AAFF`, CSS ~1000ms, freeze→rest settle) for whole bootstrap loading/settle; error shell on failure; contract `Bootstrap-Splash-Contract.md`; no legacy operator auth gate. |
+| LF-002 | P01 | UI | Critical | Legacy loading screen → SIP-only bootstrap splash | `SoftPhonePlug` → `#boot-splash` (+ error `BootstrapSplashShell`) | Startup shows single-stage branded bounce-ball splash (`#42AAFF`, CSS ~1000ms, UI min dwell 4000ms then freeze→rest settle) for whole bootstrap loading/settle; error shell on failure; contract `Bootstrap-Splash-Contract.md`; no legacy operator auth gate. |
 | LF-003 | P01 | UI | Critical | Session already exists screen | `SoftPhonePlug`, `useWs` | Legacy `SESSION_EXIST` maps to recoverable UI state. |
 | LF-004 | P01 | UI | Critical | Invalid token screen | `SoftPhonePlug` | Invalid token maps to explicit access error UI. |
 | LF-005 | P01 | Telephony | Critical | Auto SIP authorization from WS credentials | `StatusesProvider`, `authorize` | Legacy credentials trigger SIP registration through Use Cases. |

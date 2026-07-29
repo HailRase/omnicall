@@ -54,6 +54,15 @@ import type {
   SdkGatewaySettingsOperation,
   SdkGatewaySettingsResponse,
 } from "./SdkGatewaySettingsContract.js";
+import type {
+  ExternalServicesHttpRequestDto,
+  ExternalServicesHttpResponseDto,
+} from "./ExternalServicesHttpContract.js";
+import type {
+  ExternalServicesCollectionOpenImportDialogResponse,
+  ExternalServicesCollectionSaveExportDialogPayload,
+  ExternalServicesCollectionSaveExportDialogResponse,
+} from "./ExternalServicesCollectionFileContract.js";
 
 export type SoftphonePreloadApi = Readonly<{
   getPlatformVersion: () => Promise<PlatformVersionResponse>;
@@ -124,6 +133,16 @@ export type SoftphonePreloadApi = Readonly<{
   invokeSdkGatewaySettings: (
     operation: SdkGatewaySettingsOperation,
   ) => Promise<SdkGatewaySettingsResponse>;
+  /** F-031: execute one outbound External Services HTTP request in main. */
+  executeExternalServiceHttp: (
+    request: ExternalServicesHttpRequestDto,
+  ) => Promise<ExternalServicesHttpResponseDto>;
+  /** F-031: open JSON dialog for single-collection import. */
+  openExternalServicesCollectionImportDialog: () => Promise<ExternalServicesCollectionOpenImportDialogResponse>;
+  /** F-031: save JSON dialog for single-collection export. */
+  saveExternalServicesCollectionExportDialog: (
+    payload: ExternalServicesCollectionSaveExportDialogPayload,
+  ) => Promise<ExternalServicesCollectionSaveExportDialogResponse>;
 }>;
 
 declare global {

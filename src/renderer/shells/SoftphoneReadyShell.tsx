@@ -32,6 +32,7 @@ import { useSettingsActions } from "../hooks/useSettingsActions.js";
 import { usePreferencesTransferActions } from "../hooks/usePreferencesTransferActions.js";
 import { useOcpSettingsPanel } from "../hooks/useOcpSettingsPanel.js";
 import { useSdkSettingsPanel } from "../hooks/useSdkSettingsPanel.js";
+import { useExternalServicesPanel } from "../hooks/useExternalServicesPanel.js";
 import { useOperatorStatusSelector } from "../hooks/useOperatorStatusSelector.js";
 import { mapOcpNotificationToToastDescriptor } from "../integration/ocp/createOcpToastNotificationPresenter.js";
 import { useAccountBootstrapStore } from "../stores/useAccountBootstrapStore.js";
@@ -296,6 +297,13 @@ function SoftphoneShellLayoutRoute({
   });
   const sdkSettingsPanel = useSdkSettingsPanel({
     facade,
+    onActiveUserSettingsRefresh: settingsActions.applyUserSettingsSnapshot,
+  });
+  const externalServicesPanel = useExternalServicesPanel({
+    facade,
+    sectionActive:
+      overlayShell.settingsOpen &&
+      overlayShell.settingsSection === "integrations-external-services",
     onActiveUserSettingsRefresh: settingsActions.applyUserSettingsSnapshot,
   });
   useShellWindowAttentionFromCalls({
@@ -751,6 +759,12 @@ function SoftphoneShellLayoutRoute({
                   onSetOriginMatrix: sdkSettingsPanel.onSetOriginMatrix,
                   onOperatorModalTimeoutsChange:
                     sdkSettingsPanel.onOperatorModalTimeoutsChange,
+                },
+                externalServices: {
+                  collectionsView: externalServicesPanel.collectionsView,
+                  requestsView: externalServicesPanel.requestsView,
+                  requestEditor: externalServicesPanel.requestEditor,
+                  variablesDialog: externalServicesPanel.variablesDialog,
                 },
               }}
               account={{

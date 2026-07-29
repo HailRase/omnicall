@@ -56,6 +56,7 @@ import {
   Maximize2,
   Minimize2,
   Plug,
+  Webhook,
   X,
 } from "lucide-react";
 import {
@@ -116,6 +117,7 @@ export type IconSemanticId =
   | "settings.headset"
   | "settings.integrations"
   | "settings.integrations.ocp"
+  | "settings.integrations.external-services"
   | "settings.integrations.sdk"
   | "settings.notifications"
   | "settings.nav.expand"
@@ -310,6 +312,12 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.settings.integrations.ocp",
     defaultSize: 18,
     usage: ["SettingsSidebar: settings-nav-integrations-ocp"],
+  },
+  "settings.integrations.external-services": {
+    static: Webhook,
+    defaultLabelKey: "icons.settings.integrations.externalServices",
+    defaultSize: 18,
+    usage: ["SettingsSidebar: settings-nav-integrations-external-services"],
   },
   "settings.integrations.sdk": {
     static: Blocks,

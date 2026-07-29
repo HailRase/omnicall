@@ -4,6 +4,8 @@ import { MockContactCsvFileGateway } from "@adapters/mock/MockContactCsvFileGate
 import { PreloadContactCsvFileGateway } from "@adapters/platform/PreloadContactCsvFileGateway.js";
 import { MockPreferencesFileGateway } from "@adapters/mock/MockPreferencesFileGateway.js";
 import { PreloadPreferencesFileGateway } from "@adapters/platform/PreloadPreferencesFileGateway.js";
+import { MockExternalServicesCollectionFileGateway } from "@adapters/mock/MockExternalServicesCollectionFileGateway.js";
+import { PreloadExternalServicesCollectionFileGateway } from "@adapters/platform/PreloadExternalServicesCollectionFileGateway.js";
 import { readBootstrapConfigFromUrl } from "./readBootstrapConfig.js";
 import type { RendererBootstrapOptions } from "./readBootstrapConfig.js";
 import { resolveRealBootstrapDiskOptions } from "./resolveRealBootstrapDiskOptions.js";
@@ -28,6 +30,9 @@ export async function createRendererComposition(): Promise<RendererComposition> 
   const preferencesFileGateway = isReal
     ? new PreloadPreferencesFileGateway()
     : new MockPreferencesFileGateway();
+  const externalServicesCollectionFileGateway = isReal
+    ? new PreloadExternalServicesCollectionFileGateway()
+    : new MockExternalServicesCollectionFileGateway();
   const facade = createSoftphoneComposition({
     mode: bootstrapOptions.adapterMode,
     bootstrapConfig: bootstrapOptions.config,
@@ -35,6 +40,7 @@ export async function createRendererComposition(): Promise<RendererComposition> 
     ...diskOptions,
     contactCsvFileGateway,
     preferencesFileGateway,
+    externalServicesCollectionFileGateway,
   });
 
   return { facade, bootstrapOptions };

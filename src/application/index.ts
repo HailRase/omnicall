@@ -525,6 +525,72 @@ export {
 } from "./projections/integration/operatorStatusPresentation.js";
 export { FinishPostCallAppealUseCase } from "./use-cases/integration/ocp/FinishPostCallAppealUseCase.js";
 export type { FinishPostCallAppealInput } from "./use-cases/integration/ocp/FinishPostCallAppealUseCase.js";
+export { SaveExternalServicesSettingsUseCase } from "./use-cases/integration/SaveExternalServicesSettingsUseCase.js";
+export type {
+  SaveExternalServicesSettingsInput,
+  SaveExternalServicesSettingsOutcome,
+} from "./use-cases/integration/SaveExternalServicesSettingsUseCase.js";
+export { QueryExternalServicesUseCase } from "./use-cases/integration/QueryExternalServicesUseCase.js";
+export type {
+  QueryExternalServicesInput,
+  QueryExternalServicesOutcome,
+  ExternalServicesCollectionView,
+} from "./use-cases/integration/QueryExternalServicesUseCase.js";
+export {
+  deriveExternalServicesCollectionsPanel,
+  deriveExternalServicesCollectionsFromSettings,
+  type ExternalServicesCollectionSummaryVm,
+  type ExternalServicesCollectionVariableVm,
+  type ExternalServicesCollectionsLoadState,
+  type ExternalServicesCollectionsPanelVm,
+} from "./projections/integration/deriveExternalServicesCollectionsPanel.js";
+export {
+  deriveExternalServicesJournalPanel,
+  deriveExternalServicesJournalFromOutcome,
+  EXTERNAL_SERVICES_JOURNAL_UI_LIMIT,
+  type ExternalServicesJournalHeaderVm,
+  type ExternalServicesJournalEntryVm,
+  type ExternalServicesJournalOutcomeVm,
+  type ExternalServicesJournalLoadState,
+  type ExternalServicesJournalPanelVm,
+} from "./projections/integration/deriveExternalServicesJournalPanel.js";
+export {
+  createExternalServiceCollection,
+  renameExternalServiceCollection,
+  toggleExternalServiceCollection,
+  deleteExternalServiceCollection,
+  duplicateExternalServiceCollection,
+  replaceExternalServiceCollectionVariables,
+  type ExternalServicesCollectionMutationError,
+  type ExternalServicesCollectionMutationResult,
+} from "./services/integration/external-services/mutateExternalServicesCollections.js";
+export {
+  createExternalServiceRequest,
+  renameExternalServiceRequest,
+  toggleExternalServiceRequest,
+  deleteExternalServiceRequest,
+  duplicateExternalServiceRequest,
+  replaceExternalServiceRequest,
+  type ExternalServicesRequestMutationError,
+  type ExternalServicesRequestMutationResult,
+} from "./services/integration/external-services/mutateExternalServicesRequests.js";
+export type {
+  ExternalServicesSettings,
+  ExternalServiceCollection,
+  ExternalServiceCollectionId,
+  ExternalServiceVariable,
+} from "@domain/index.js";
+export { EXTERNAL_SERVICES_DEFAULTS, MAX_EXTERNAL_SERVICE_NAME_LENGTH } from "@domain/index.js";
+export { ExportExternalServiceCollectionUseCase } from "./use-cases/integration/ExportExternalServiceCollectionUseCase.js";
+export type {
+  ExportExternalServiceCollectionInput,
+  ExportExternalServiceCollectionOutcome,
+} from "./use-cases/integration/ExportExternalServiceCollectionUseCase.js";
+export { ImportExternalServiceCollectionUseCase } from "./use-cases/integration/ImportExternalServiceCollectionUseCase.js";
+export type {
+  ImportExternalServiceCollectionInput,
+  ImportExternalServiceCollectionOutcome,
+} from "./use-cases/integration/ImportExternalServiceCollectionUseCase.js";
 export {
   initialOcpReasonsProjection,
   reduceOcpReasonsFromPayload,

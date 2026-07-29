@@ -25,6 +25,7 @@ import type {
   ContactRepository,
   ContactCsvFileGateway,
   PreferencesFileGateway,
+  ExternalServicesCollectionFileGateway,
   SecretStoragePort,
   OcpGateway,
   OcpProxyAuthenticatePort,
@@ -33,6 +34,10 @@ import type {
   UserNotificationJournalRepository,
 } from "@ports/index.js";
 import { createHeadsetGateway } from "./createHeadsetGateway.js";
+import { createExternalServicesCompositionForBootstrap } from "./createExternalServicesCompositionForBootstrap.js";
+import type { ExternalServicesComposition } from "@application/services/integration/external-services/ExternalServicesComposition.js";
+import type { Clock, OutboundHttpPort, UuidGenerator } from "@ports/index.js";
+import type { ExternalServicesJournalRepository } from "@ports/integration/ExternalServicesJournalRepository.js";
 
 export type CreateAccountBootstrapOptions = Readonly<{
   bootstrapConfig?: AppBootstrapConfig;
@@ -43,6 +48,7 @@ export type CreateAccountBootstrapOptions = Readonly<{
   contactRepository?: ContactRepository;
   contactCsvFileGateway?: ContactCsvFileGateway;
   preferencesFileGateway?: PreferencesFileGateway;
+  externalServicesCollectionFileGateway?: ExternalServicesCollectionFileGateway;
   callHistoryRepository?: CallHistoryRepository;
   secretStoragePort?: SecretStoragePort;
   userNotificationJournalRepository?: UserNotificationJournalRepository;
@@ -50,6 +56,11 @@ export type CreateAccountBootstrapOptions = Readonly<{
   ocpProxyAuthenticate?: OcpProxyAuthenticatePort;
   ocpReasonsCache?: OcpReasonsCachePort;
   ocpNotificationPresenter?: OcpNotificationPresenter;
+  outboundHttp?: OutboundHttpPort;
+  externalServicesJournalRepository?: ExternalServicesJournalRepository;
+  externalServicesClock?: Clock;
+  externalServicesUuidGenerator?: UuidGenerator;
+  externalServicesComposition?: ExternalServicesComposition;
   telephonyScenario?: "success" | "failure";
   makeCallScenario?:
     | "connecting"
@@ -90,6 +101,26 @@ export function createMockAccountBootstrap(
     new MockMediaGateway(options.mediaScenario ?? "success"),
   );
   const hostIntegrationGateway = new MockHostIntegrationGateway();
+  const logger = createTestLogger({ featureId: "F-001", boundedContext: "Telephony" });
+  const externalServicesComposition =
+    options.externalServicesComposition ??
+    createExternalServicesCompositionForBootstrap({
+      mode: "mock",
+      logger: createTestLogger({ featureId: "F-031", boundedContext: "Integration" }),
+      settingsRepository,
+      ...(options.outboundHttp !== undefined
+        ? { outboundHttp: options.outboundHttp }
+        : {}),
+      ...(options.externalServicesJournalRepository !== undefined
+        ? { journalRepository: options.externalServicesJournalRepository }
+        : {}),
+      ...(options.externalServicesClock !== undefined
+        ? { clock: options.externalServicesClock }
+        : {}),
+      ...(options.externalServicesUuidGenerator !== undefined
+        ? { uuidGenerator: options.externalServicesUuidGenerator }
+        : {}),
+    });
 
   return new AccountBootstrapFacade({
     telephonyGateway,
@@ -115,6 +146,12 @@ export function createMockAccountBootstrap(
     ...(options.preferencesFileGateway !== undefined
       ? { preferencesFileGateway: options.preferencesFileGateway }
       : {}),
+    ...(options.externalServicesCollectionFileGateway !== undefined
+      ? {
+          externalServicesCollectionFileGateway:
+            options.externalServicesCollectionFileGateway,
+        }
+      : {}),
     ...(options.secretStoragePort !== undefined
       ? { secretStoragePort: options.secretStoragePort }
       : {}),
@@ -124,7 +161,8 @@ export function createMockAccountBootstrap(
             options.userNotificationJournalRepository,
         }
       : {}),
+    externalServicesComposition,
     hostIntegrationGateway,
-    logger: createTestLogger({ featureId: "F-001", boundedContext: "Telephony" }),
+    logger,
   });
 }

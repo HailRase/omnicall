@@ -25,6 +25,13 @@ export const BRAND_SPLASH_TO = "#2A8FD9";
 export const BOOTSTRAP_SPLASH_BOUNCE_MS = 1000;
 
 /**
+ * Minimum time the loading splash stays visible before settle/exit (ms).
+ * UI-only dwell — does not delay `initialize`. Skipped when `prefers-reduced-motion: reduce`.
+ * Keep in sync with `useBootstrapSplashProgress` + `Bootstrap-Splash-Contract.md`.
+ */
+export const BOOTSTRAP_SPLASH_MIN_VISIBLE_MS = 4000;
+
+/**
  * Negative CSS animation-delay helper (Storybook / optional React ball demos).
  * Production loading uses a single HTML splash, so phase sync is unused there.
  */

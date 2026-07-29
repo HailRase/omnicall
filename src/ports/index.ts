@@ -133,6 +133,30 @@ export type {
   OcpProxyAuthenticateOutcome,
   OcpProxyAuthenticatePort,
 } from "./integration/OcpProxyAuthenticatePort.js";
+export type {
+  ExternalServicesCollectionExportDialogInput,
+  ExternalServicesCollectionExportDialogResult,
+  ExternalServicesCollectionFileGateway,
+  ExternalServicesCollectionImportDialogResult,
+} from "./integration/ExternalServicesCollectionFileGateway.js";
+export type {
+  ExternalServicesJournalRepository,
+} from "./integration/ExternalServicesJournalRepository.js";
+export {
+  EXTERNAL_SERVICES_JOURNAL_MAX_ENTRIES,
+} from "./integration/ExternalServicesJournalRepository.js";
+export type {
+  OutboundHttpErrorCode,
+  OutboundHttpPort,
+  OutboundHttpRequest,
+  OutboundHttpResult,
+} from "./integration/OutboundHttpPort.js";
+export {
+  OUTBOUND_HTTP_ERROR_CODES,
+  OUTBOUND_HTTP_TIMEOUT_MS,
+} from "./integration/OutboundHttpPort.js";
+export type { Clock } from "./shared/Clock.js";
+export type { UuidGenerator } from "./shared/UuidGenerator.js";
 export type { DndReadModel } from "./settings/DndReadModel.js";
 export type { Logger, LogContext, LogEntry, LogLevel } from "./logging/index.js";
 export type {

@@ -124,9 +124,9 @@ Canonical detail: [`Bootstrap-Splash-Contract.md`](./Bootstrap-Splash-Contract.m
 1. **Single-stage loading:** only `#boot-splash` until settle — React drives it via `useBootSplashController` + `bootSplashDom` (no React loading splash).
 2. **Pre-React / loading:** `index.html` `#boot-splash` + `BrowserWindow.backgroundColor` from `startupSplashColors` (mid `#42AAFF`; sync `--color-brand-splash-*`).
 3. **Error:** dismiss HTML splash, then presentational `BootstrapSplashShell` (`variant="error"`, i18n `bootstrap.*`).
-4. **Ready:** after settle, mount `SoftphoneReadyShell` under `#boot-splash`, then crossfade-exit splash (`beginBootSplashExit`); do not mount ReadyShell during composition/`initialize`.
-5. **Boundaries:** splash must not call Use Cases, SIP, Electron IPC, or repositories. Provisional `data-theme` from OS `prefers-color-scheme` may apply before settings hydrate.
-6. **Motion:** CSS bounce on `#boot-splash` (`BOOTSTRAP_SPLASH_BOUNCE_MS` = 1000, `linear` + ballistic/parabolic Y samples for gravity). Settle via `settleSplashBallMotion` (freeze current pose → ease to rest) — never mid-air keyframe swap. No JS spring libs for production loading; keep `index.html` and `BootstrapSplashShell.module.css` in sync.
+4. **Ready:** after min visible dwell (if any) + settle, mount `SoftphoneReadyShell` under `#boot-splash`, then crossfade-exit splash (`beginBootSplashExit`); do not mount ReadyShell during composition/`initialize`.
+5. **Boundaries:** splash must not call Use Cases, SIP, Electron IPC, or repositories. Provisional `data-theme` from OS `prefers-color-scheme` may apply before settings hydrate. Min dwell must not delay `initialize`.
+6. **Motion:** CSS bounce on `#boot-splash` (`BOOTSTRAP_SPLASH_BOUNCE_MS` = 1000, `linear` + ballistic/parabolic Y samples for gravity). Min UI dwell `BOOTSTRAP_SPLASH_MIN_VISIBLE_MS` = 4000 before settle (skipped under `prefers-reduced-motion`). Settle via `settleSplashBallMotion` (freeze current pose → ease to rest) — never mid-air keyframe swap. No JS spring libs for production loading; keep `index.html` and `BootstrapSplashShell.module.css` in sync.
 
 Shells may use hooks and facades; components inside shells remain dumb.
 

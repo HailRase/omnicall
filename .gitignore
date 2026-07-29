@@ -25,3 +25,7 @@ Thumbs.db
 
 # DI-10 browser smoke ephemeral profile
 omnicall-kit-integration/evidence/.di10-edge-profile/
+axatalk-sdk-integration/evidence/.di10-edge-profile/
+
+# Local SDK pack/release scratch
+axatalk-sdk/temp/

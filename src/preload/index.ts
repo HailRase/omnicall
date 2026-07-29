@@ -54,6 +54,15 @@ import {
   parseSdkGatewaySettingsOperation,
   parseSdkGatewaySettingsResponse,
 } from "@shared/ipc/SdkGatewaySettingsContract.js";
+import {
+  parseExternalServicesHttpRequestDto,
+  parseExternalServicesHttpResponseDto,
+} from "@shared/ipc/ExternalServicesHttpContract.js";
+import {
+  parseExternalServicesCollectionOpenImportDialogResponse,
+  parseExternalServicesCollectionSaveExportDialogPayload,
+  parseExternalServicesCollectionSaveExportDialogResponse,
+} from "@shared/ipc/ExternalServicesCollectionFileContract.js";
 
 const softphoneApi: SoftphonePreloadApi = {
   getPlatformVersion: () => ipcRenderer.invoke(IPC_CHANNELS.platformGetVersion),
@@ -406,6 +415,55 @@ const softphoneApi: SoftphonePreloadApi = {
         reason: "invalid_response",
       }
     );
+  },
+  executeExternalServiceHttp: async (request) => {
+    const parsed = parseExternalServicesHttpRequestDto(request);
+    if (parsed === null) {
+      return {
+        kind: "network_error",
+        code: "unknown",
+        durationMs: 0,
+        message: "Invalid External Services HTTP payload.",
+      };
+    }
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.externalServicesHttpExecute,
+      parsed,
+    );
+    return (
+      parseExternalServicesHttpResponseDto(response) ?? {
+        kind: "network_error",
+        code: "unknown",
+        durationMs: 0,
+        message: "Invalid External Services HTTP IPC response.",
+      }
+    );
+  },
+  openExternalServicesCollectionImportDialog: async () => {
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.externalServicesCollectionOpenImportDialog,
+    );
+    const parsed = parseExternalServicesCollectionOpenImportDialogResponse(response);
+    if (parsed === null) {
+      return { ok: false, reason: "invalid_response" };
+    }
+    return parsed;
+  },
+  saveExternalServicesCollectionExportDialog: async (payload) => {
+    const parsedPayload = parseExternalServicesCollectionSaveExportDialogPayload(payload);
+    if (parsedPayload === null) {
+      return { ok: false, reason: "invalid_payload" };
+    }
+
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.externalServicesCollectionSaveExportDialog,
+      parsedPayload,
+    );
+    const parsed = parseExternalServicesCollectionSaveExportDialogResponse(response);
+    if (parsed === null) {
+      return { ok: false, reason: "invalid_response" };
+    }
+    return parsed;
   },
 };
 

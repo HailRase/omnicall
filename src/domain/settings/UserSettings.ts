@@ -41,8 +41,12 @@ import {
   SDK_INTEGRATION_DEFAULTS,
   type SdkIntegrationSettings,
 } from "./SdkIntegrationSettings.js";
+import {
+  EXTERNAL_SERVICES_DEFAULTS,
+  type ExternalServicesSettings,
+} from "../integration/external-services/ExternalServicesSettings.js";
 
-export const SETTINGS_SCHEMA_VERSION = 11 as const;
+export const SETTINGS_SCHEMA_VERSION = 12 as const;
 
 export type SettingsSchemaVersion = typeof SETTINGS_SCHEMA_VERSION;
 
@@ -94,6 +98,8 @@ export type UserSettings = Readonly<{
   ocpIntegration: OcpIntegrationSettings;
   /** Local SDK WebSocket gateway preferences (no secrets / pairing keys). */
   sdkIntegration: SdkIntegrationSettings;
+  /** Profile-scoped outbound HTTP automation definitions. */
+  externalServices: ExternalServicesSettings;
 }>;
 
 export { MIN_SIP_REREGISTER_INTERVAL_SEC, MIN_SIP_RECONNECT_INTERVAL_SEC };
@@ -139,5 +145,6 @@ export function createDefaultUserSettings(): UserSettings {
     enableLocalVideoAfterConnect: DEFAULT_ENABLE_LOCAL_VIDEO_AFTER_CONNECT,
     ocpIntegration: OCP_INTEGRATION_DEFAULTS,
     sdkIntegration: SDK_INTEGRATION_DEFAULTS,
+    externalServices: EXTERNAL_SERVICES_DEFAULTS,
   };
 }

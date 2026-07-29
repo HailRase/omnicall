@@ -21,12 +21,29 @@ describe("SettingsIntegrationsPanel", () => {
         sectionId="integrations"
         ocp={settingsIntegrationsTestDefaults.integrations.ocp}
         sdk={settingsIntegrationsTestDefaults.integrations.sdk}
+        externalServices={settingsIntegrationsTestDefaults.integrations.externalServices}
       />,
     );
 
     expect(screen.getByTestId("ocp-module-settings-card")).toBeInTheDocument();
     expect(screen.queryByTestId("ocp-module-connect")).not.toBeInTheDocument();
     expect(screen.queryByTestId("ocp-module-disconnect")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("sdk-module-settings-card")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("external-services-collections")).not.toBeInTheDocument();
+  });
+
+  it("renders External Services collections on integrations-external-services section", () => {
+    render(
+      <SettingsIntegrationsPanel
+        sectionId="integrations-external-services"
+        ocp={settingsIntegrationsTestDefaults.integrations.ocp}
+        sdk={settingsIntegrationsTestDefaults.integrations.sdk}
+        externalServices={settingsIntegrationsTestDefaults.integrations.externalServices}
+      />,
+    );
+
+    expect(screen.getByTestId("external-services-collections")).toBeInTheDocument();
+    expect(screen.queryByTestId("ocp-module-settings-card")).not.toBeInTheDocument();
     expect(screen.queryByTestId("sdk-module-settings-card")).not.toBeInTheDocument();
   });
 
@@ -36,6 +53,7 @@ describe("SettingsIntegrationsPanel", () => {
         sectionId="integrations-sdk"
         ocp={settingsIntegrationsTestDefaults.integrations.ocp}
         sdk={settingsIntegrationsTestDefaults.integrations.sdk}
+        externalServices={settingsIntegrationsTestDefaults.integrations.externalServices}
       />,
     );
 
