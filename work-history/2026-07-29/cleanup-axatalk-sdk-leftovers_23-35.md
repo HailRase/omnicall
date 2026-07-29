@@ -1,4 +1,4 @@
-﻿# Cleanup legacy axatalk-sdk folders
+# Cleanup legacy axatalk-sdk folders
 
 **Дата:** 2026-07-29 23:35
 **Статус:** выполнено
