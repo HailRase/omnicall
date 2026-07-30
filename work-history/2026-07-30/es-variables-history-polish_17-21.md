@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-30 17:21
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `cdb8d0e`
 
 ## Где
 - `src/renderer/i18n/messages.ts`, `src/renderer/i18n/catalogs/bgMessages.ts`

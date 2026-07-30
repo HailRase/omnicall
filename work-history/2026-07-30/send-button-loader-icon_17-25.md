@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-30 17:25
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `cdb8d0e`
 
 ## Где
 - `src/renderer/components/settings/external-services/ExternalServicesRequestUrlBar.tsx`

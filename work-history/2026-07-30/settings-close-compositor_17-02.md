@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-30 17:02
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `cdb8d0e`
 
 ## Где
 - `src/main/shellWindow/`, `src/renderer/components/settings/`, `src/renderer/hooks/`
