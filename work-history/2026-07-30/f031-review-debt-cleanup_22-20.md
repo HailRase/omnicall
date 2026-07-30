@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-30 22:20
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `2e42fea5`
 
 ## Где
 - `src/renderer/hooks/useExternalServicesPanel.ts`
