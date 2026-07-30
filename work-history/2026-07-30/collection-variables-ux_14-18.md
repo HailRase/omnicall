@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-30 14:18
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `cfc066b`
 
 ## Где
 - `src/domain/integration/external-services/template/normalizeExternalServiceCollectionVariables.ts`
