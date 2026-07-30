@@ -33,9 +33,9 @@
 | `settings.codecs` | Settings codecs section | `AudioLines` | `AudioLinesIcon` | `SettingsSidebar` | active |
 | `settings.headset` | Settings headset section | `Headphones` | — | `SettingsSidebar` | active |
 | `call.queue` | OCP ACD queue badge on call surfaces | `Headphones` | — | `CallContextBadges` | active |
-| `settings.integrations` | Settings integrations parent group | `Plug` | — | `SettingsSidebar` | active |
-| `settings.integrations.ocp` | Settings OCP Module child under Integrations | `Server` | — | `SettingsSidebar` | active |
-| `settings.integrations.external-services` | Settings External Services child under Integrations | `Webhook` | — | `SettingsSidebar` | active |
+| `settings.integrations` | Settings Integrations cluster (collapsed rail icon; expanded section label) | `Plug` | — | `SettingsSidebar` | active |
+| `settings.integrations.ocp` | Settings OCP Module row in Integrations cluster | `Server` | — | `SettingsSidebar` | active |
+| `settings.integrations.external-services` | Settings External Services row in Integrations cluster | `Webhook` | — | `SettingsSidebar` | active |
 | `settings.integrations.external-services.send` | Send / Run now for External Services request | `Send` | — | `ExternalServicesRequestEditor` | active |
 | `settings.integrations.external-services.add` | New collection or quick-add request in External Services sidebar | `Plus` | — | `ExternalServicesSidebar` | active |
 | `settings.integrations.external-services.panelExpand` | Expand Response/History pane height | `Maximize2` | — | `ExternalServicesResponsePane` | active |

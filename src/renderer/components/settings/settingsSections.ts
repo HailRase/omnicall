@@ -106,6 +106,8 @@ export const SETTINGS_NAV_TREE: ReadonlyArray<SettingsNavNode> = [
     iconId: "settings.headset",
     testId: "settings-nav-headset",
   },
+  // Always-open cluster in expanded SettingsSidebar (no accordion). Collapsed rail
+  // shows group icon only. OmniCall Kit stays a top-level leaf below (ADR-0018).
   {
     kind: "group",
     id: "integrations-group",

@@ -1,16 +1,19 @@
 declare const classes: {
   readonly childButton: string;
+  readonly childButtonActive: string;
   readonly childIconSlot: string;
   readonly childLabel: string;
   readonly content: string;
   readonly disabledNavWrap: string;
-  readonly groupChevron: string;
-  readonly groupChevronOpen: string;
+  readonly groupLabel: string;
+  readonly groupLabelBlocked: string;
+  readonly groupLabelText: string;
   readonly header: string;
   readonly iconSlot: string;
   readonly label: string;
   readonly menu: string;
   readonly menuButton: string;
+  readonly navGroup: string;
   readonly provider: string;
   readonly root: string;
   readonly sidebar: string;

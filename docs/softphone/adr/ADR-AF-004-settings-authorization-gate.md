@@ -36,7 +36,7 @@ Gate condition was originally **SIP ready / registered**. **ADR-AF-005** superse
 
 3. **Route / overlay guard:** direct navigation to a blocked Settings section redirects to Account via the existing navigation API (`replace`, no history pollution). Call context and active-call overlay remain mounted; no data loss of Account draft inputs beyond normal React remount rules for the Account panel itself.
 
-4. **UI wiring:** shell hook → `SettingsPanel` → `SettingsSidebar` consumes the availability VM. Disabled items use UI Kit disabled + tooltip; components do not invent business checks. For nav **groups**, the parent control is disabled only when **every** child is blocked; click / expand targets the first **enabled** child in tree order. OmniCall Kit is a **top-level** leaf (not an Integrations child), so Integrations may remain fully gated pre-auth while SDK stays reachable.
+4. **UI wiring:** shell hook → `SettingsPanel` → `SettingsSidebar` consumes the availability VM. Disabled items use soft muted chrome + tooltip (not hard opacity collapse); components do not invent business checks. For nav **groups**, use an **always-open cluster** when the sidebar is expanded (section label + children always visible; no accordion). The parent/label is disabled only when **every** child is blocked; click targets the first **enabled** child in tree order. Collapsed icon rail shows only the group icon (children hidden). OmniCall Kit is a **top-level** leaf (not an Integrations child), so Integrations may remain fully gated pre-auth while SDK stays reachable.
 
 5. **After SIP-ready:** all permitted sections return. Existing overlay layout, deep links from header menu, and active-call overlay behavior remain unchanged.
 

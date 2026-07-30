@@ -178,7 +178,7 @@ Corrective track completed: SIP/OCP Account sign-in, avatar-only Application-own
 
 - Application: `deriveSettingsNavigationAvailability` / `resolveAllowedSettingsSection`; `deriveOcpModuleEditShell`
 - Route guard: `useOverlayShell` clamps open/set/deep-link/diagnostics to Account while pre-auth (`replace`, preserves `settingsReturnTo`)
-- Sidebar: `SettingsSidebar` + `SettingsPanel` consume availability VM; disabled non-Account items + tooltip `settings.nav.disabled.authorizeFirst`; OmniCall Kit is a top-level leaf below Integrations (pre-auth reachable); Integrations/OCP remains gated until account session
+- Sidebar: `SettingsSidebar` + `SettingsPanel` consume availability VM; disabled non-Account items + tooltip `settings.nav.disabled.authorizeFirst`; OmniCall Kit is a top-level leaf below Integrations (pre-auth reachable); Integrations is an always-open cluster (OCP + External Services) when expanded — gated until account session, no accordion
 - OCP Module edit-only: `useOcpSettingsPanel` binds active SIP settings bucket; removed Connect/Disconnect/login picker/auth retry; dual status `ocp-module-server-status` / `ocp-module-authorization-status`; recovery CTA → Account
 - i18n: `settings.integrations.ocp.editOnly.description` / `activeProfile` / `openAccountForRecovery` (ru/en/fr/de/bg)
 - Tests: availability unit; sidebar pre-auth disable; overlay redirect suite; OCP Module edit-only component tests; typecheck + lint + i18n green

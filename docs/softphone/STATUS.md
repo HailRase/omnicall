@@ -4,7 +4,8 @@
 
 **Updated:** 2026-07-30
 **Version:** `1.1.2` (brand: **OmniCall** / SoftOmniTel; packages `@softomnitel/omnicall-kit` + `@softomnitel/omnicall-protocol`)
-**Tests:** full root vitest **2886 passed** (1 skipped); omnicall-kit protocol/sdk call tests + `api:check` PASS; `i18n:check` PASS
+**Tests:** full root vitest baseline **2886 passed** (1 skipped) + SettingsSidebar cluster polish (+4 cases); omnicall-kit protocol/sdk call tests + `api:check` PASS; `i18n:check` PASS
+**Settings nav:** Integrations = always-open cluster when expanded (canon: `UI-Design-System.md` § Settings Nav Groups)
 **Lint / typecheck:** `npm run lint` PASS · `npm run typecheck` PASS · `npm run registry:check` **75/0**
 **Splash contract:** `docs/softphone/Bootstrap-Splash-Contract.md` — single-stage `#boot-splash` + min visible dwell 4000ms + exit crossfade; do not reintroduce React loading splash handoff; do not delay `initialize` for dwell
 **OCP call context:** `docs/softphone/OCP-Call-Context.md` — queue from `get_main_acallid` (wire: `acallid` + parties + `event`; never outbound `call_id`); desktop queue badge; SDK `call:acd-context` + snapshot `calls[].acdContext` under `ocp.acd_context.read` (ADR-0020) + additive `queueLabel`; campaign single-modal FSM + `operator:campaign-*` (ADR-0019); dual UI/SDK ownership + delivery reliability sections documented
