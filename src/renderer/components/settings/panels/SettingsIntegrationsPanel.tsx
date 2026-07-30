@@ -28,18 +28,20 @@ export function SettingsIntegrationsPanel({
   externalServices,
 }: SettingsIntegrationsPanelProps): JSX.Element {
   const { t } = useI18n();
+  const isExternalServices = sectionId === "integrations-external-services";
 
   return (
-    <div className={formStyles.panelStack} data-testid="settings-integrations-panel">
+    <div
+      className={isExternalServices ? formStyles.panelStackFull : formStyles.panelStack}
+      data-testid="settings-integrations-panel"
+    >
       {sectionId === "integrations" ? (
         <>
           <p className={formStyles.blockHint}>{t("settings.integrations.description")}</p>
           <OcpModuleSettingsCard {...ocp} />
         </>
       ) : null}
-      {sectionId === "integrations-external-services" ? (
-        <ExternalServicesPanel {...externalServices} />
-      ) : null}
+      {isExternalServices ? <ExternalServicesPanel {...externalServices} /> : null}
       {sectionId === "integrations-sdk" ? <SdkModuleSettingsCard {...sdk} /> : null}
     </div>
   );

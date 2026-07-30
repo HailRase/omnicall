@@ -11,6 +11,7 @@ declare const classes: {
   readonly fieldValue: string;
   readonly languageSelectField: string;
   readonly panelStack: string;
+  readonly panelStackFull: string;
   readonly sectionCard: string;
   readonly sectionTitle: string;
   readonly segmentOption: string;

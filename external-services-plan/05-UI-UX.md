@@ -16,70 +16,84 @@
 
 Extend `SettingsIntegrationsPanelProps.sectionId` and render an External Services shell for the new leaf. The panel remains presentational and receives props from a dedicated shell hook/facade query.
 
-## Smart navigation state
+## Workspace layout (Postman-like skeleton)
 
-Use one product-local panel with explicit view state:
+Use one full-bleed product workspace (not a wizard of stacked screens):
 
-```ts
-type ExternalServicesScreen =
-  | Readonly<{ kind: "collections" }>
-  | Readonly<{ kind: "requests"; collectionId: string }>
-  | Readonly<{ kind: "request_detail"; collectionId: string; requestId: string }>;
+```txt
+┌─ Sidebar (COLLECTIONS) ─┬─ Main workspace ─────────────────────────┐
+│ Tree: collection folders│ Breadcrumb · Save · overflow             │
+│ + request rows (METHOD) │ Method · URL · Send                      │
+│ Empty-folder card       │ Tabs: Params | Headers | Body | Triggers │
+│                         │ ─────────────────────────────────────── │
+│                         │ Response | History (journal)             │
+└─────────────────────────┴─────────────────────────────────────────┘
 ```
 
-- View state is ephemeral renderer navigation state; persisted selection is unnecessary.
-- Browser-style Back returns detail → requests → collections and restores focus to the activating row.
-- Deleted selected items return to their valid parent.
+- Layout is inspired by Postman; it is **not** a Postman feature clone (no Scripts/Auth/Cookies/Bulk Edit/nested folders).
+- Light and dark themes share identical markup; colors use semantic tokens only.
+- Settings content padding is cancelled so the workspace fills the leaf.
+
+## Smart navigation state
+
+```ts
+type ExternalServicesSelection =
+  | Readonly<{ kind: "none" }>
+  | Readonly<{ kind: "collection"; collectionId: string }>
+  | Readonly<{ kind: "request"; collectionId: string; requestId: string }>;
+```
+
+- Selection is ephemeral renderer state; persisted selection is unnecessary.
+- Sidebar and workspace stay mounted together; switching selection updates the main pane.
+- Unsaved request edits require discard confirmation before changing selection.
+- Deleted selected items return to their valid parent (collection or none).
 - Settings overlay remains mounted without replacing call context.
 
 ## Screen inventory
 
-### Collections
+### Sidebar (collections tree)
 
-- Header: title, short description, New collection, Import collection.
-- Rows: name, enabled-request count Badge, collection Switch, open action, overflow menu.
-- Menu: rename, duplicate, export, delete.
-- Journal section is anchored at the bottom after all collection rows.
-- Empty state composes existing UI Kit primitives locally; do not create a duplicate generic Card/EmptyState.
+- Header: COLLECTIONS label, New collection, Import collection.
+- Expandable collection folders with overflow menu (rename, variables, duplicate, export, delete, new request).
+- Request rows: method color badge + name; overflow (enable/disable, rename, duplicate, delete).
+- Empty collection card: “Collection is empty” + New request.
+- Global empty state: purpose copy + New collection / Import.
 
 Test IDs:
 
 ```txt
+external-services-workspace
 external-services-collections
 external-services-create-collection
 external-services-import-collection
 external-services-collection-{id}
-external-services-collection-toggle-{id}
-external-services-collection-enabled-count-{id}
 external-services-collection-menu-{id}
-external-services-journal-section
+external-services-request-{id}
 ```
 
-### Requests
+### Collection workspace
 
-- Breadcrumb/back, collection name, collection toggle, enabled count, New request.
-- Flat rows: request name, method Badge, enabled/disabled Badge, fast Switch, open action, overflow menu.
-- Menu: rename, duplicate, delete.
-- Collection variables table appears above or in a dedicated Tabs section without nested folders.
+- Shown when a collection is selected and no request is open.
+- Breadcrumb with collection name; Variables action; New request.
+- Empty-folder card when `requestCount === 0`.
+- Otherwise: variables preview table + enabled count.
+- Bottom pane: Response | History (journal).
 
 Test IDs:
 
 ```txt
 external-services-requests
 external-services-create-request
-external-services-request-{id}
-external-services-request-toggle-{id}
-external-services-request-status-{id}
 external-services-collection-variables
 ```
 
-### Request detail
+### Request workspace
 
-- Header: back, editable name, enabled Switch, delete action.
-- Form sections: method + URL; query table; headers table; body mode + editor; event trigger switches.
-- Sticky action row: Save and Run now.
-- Run result panel: success/error tone, status when available, duration, body, truncation marker, JSON validity warning.
-- Unsaved changes require explicit discard confirmation before back/delete/navigation.
+- Breadcrumb: collection › editable name; enabled Switch; Save; delete overflow.
+- URL bar: method Select + URL Input + icon-only Send (`settings.integrations.external-services.send`); Send enabled when URL is non-empty.
+- Tabs: Params (query table), Headers (count badge), Body (mode + editor), Triggers (event switches).
+- Bottom pane: Response (run result / empty prompt) | History (journal).
+- Unsaved changes require discard confirmation before selection change.
 
 Test IDs:
 
@@ -97,9 +111,12 @@ external-services-trigger-{eventType}
 external-services-save
 external-services-run-now
 external-services-run-result
+external-services-response-pane
+external-services-response-empty
+external-services-discard-changes
 ```
 
-### Journal
+### Journal (History tab)
 
 - Latest 100 records, newest first in UI.
 - Row summary: timestamp, request/collection snapshot names, event, outcome, status, duration.
@@ -110,6 +127,7 @@ external-services-run-result
 Test IDs:
 
 ```txt
+external-services-journal-section
 external-services-journal
 external-services-journal-empty
 external-services-journal-entry-{id}
@@ -120,20 +138,21 @@ external-services-journal-retry
 
 | State | Behavior |
 | --- | --- |
-| Loading | Skeleton rows; mutation/run controls disabled with translated reason. |
-| Empty collections | Explain purpose; primary New collection and secondary Import. |
-| Empty requests | Explain collection is empty; primary New request. |
+| Loading | Skeleton/disabled mutation controls with translated reason. |
+| Empty collections | Sidebar empty + welcome workspace; New collection / Import. |
+| Empty requests | Empty-folder card in sidebar and collection workspace. |
 | Load error | Alert + Retry; retain call shell and navigation. |
 | Save pending | Disable duplicate submits; preserve draft. |
-| Save error | Inline Alert; preserve all input and focus first invalid field when applicable. |
-| Run queued | Button loading; label indicates queued/running without claiming network start. |
-| Run success | Show 2xx status, duration, body, truncation. |
-| Run HTTP error | Show non-2xx status and body. |
-| Run network/timeout error | Show category, duration, no fake status. |
-| Invalid JSON | Warning near body and result; Run remains allowed. |
+| Save error | Inline Alert; preserve all input. |
+| Run queued | Send button loading; label indicates queued/running. |
+| Run success | Response tab shows 2xx status, duration, body, truncation. |
+| Run HTTP error | Response tab shows non-2xx status and body. |
+| Run network/timeout error | Response tab shows category, duration, no fake status. |
+| Invalid JSON | Warning near body and result; Send remains allowed. |
 | Disabled collection/request | Fast toggles remain available; automatic-fire meaning is explained. |
 | Pre-auth | Navigation disabled using existing account authorization reason. |
 | Import conflict | Import as copy with regenerated IDs and explicit resulting name. |
+| Dirty navigation | Discard confirmation before selection change. |
 
 ## UI Kit composition
 
@@ -146,19 +165,17 @@ Reuse current exports from `src/renderer/components/ui/index.ts`:
 - `Badge`, `Alert`, `Notification`, `Progress`
 - `Table`, `Accordion`
 
-`Skeleton` and `Spinner` exist under `src/renderer/components/ui/skeleton/` and `spinner/` but are not currently exported by the root barrel; reuse their subfolder exports or add a generic barrel export through the UI Kit workflow.
-
-Product-specific list rows, key/value editors, result panels, and journal entries compose these primitives with CSS Modules and semantic tokens. If implementation discovers a missing generic primitive, stop that UI WU and propose a separate `/ui-kit` family before local duplication.
+Product-specific tree rows, key/value editors, response panes, and journal entries compose these primitives with CSS Modules and semantic tokens. If implementation discovers a missing generic primitive, stop that UI WU and propose a separate `/ui-kit` family before local duplication.
 
 ## Accessibility
 
 - Every Switch has a visible label or controlled `aria-label`.
 - Key/value table controls have row-specific labels and accessible remove actions.
-- Method/body Select controls are connected through FormField.
+- Method/body Select controls are connected through FormField or labelled inputs.
 - Dialog/AlertDialog own focus, escape, outside-click, and restore behavior.
 - Results use `role="status"` for completion and `role="alert"` only for actionable errors.
-- Back/navigation and destructive flows restore focus deterministically.
-- Fast toggles expose enabled state in text/Badge, not color alone.
+- Selection and destructive flows restore focus deterministically.
+- Fast toggles expose enabled state in text, not color alone.
 - Keyboard users can create, edit, save, run, and delete without pointer input.
 
 ## Theme and density
@@ -188,6 +205,9 @@ settings.integrations.externalServices.validation.*
 settings.integrations.externalServices.disabled.*
 settings.integrations.externalServices.importExport.*
 settings.integrations.externalServices.confirm.*
+settings.integrations.externalServices.sidebar.*
+settings.integrations.externalServices.workspace.*
+settings.integrations.externalServices.tabs.*
 ```
 
 No hardcoded visible copy, icon labels, placeholder text, status labels, or validation messages may exist in renderer/Application projections.
@@ -198,23 +218,25 @@ Candidate product components:
 
 ```txt
 src/renderer/components/settings/external-services/ExternalServicesPanel.tsx
-src/renderer/components/settings/external-services/ExternalServicesCollectionsView.tsx
-src/renderer/components/settings/external-services/ExternalServicesCollectionRow.tsx
+src/renderer/components/settings/external-services/ExternalServicesSidebar.tsx
+src/renderer/components/settings/external-services/ExternalServicesWelcome.tsx
 src/renderer/components/settings/external-services/ExternalServicesRequestsView.tsx
-src/renderer/components/settings/external-services/ExternalServicesRequestRow.tsx
 src/renderer/components/settings/external-services/ExternalServicesRequestEditor.tsx
+src/renderer/components/settings/external-services/ExternalServicesResponsePane.tsx
 src/renderer/components/settings/external-services/ExternalServicesKeyValueTable.tsx
 src/renderer/components/settings/external-services/ExternalServicesTriggerList.tsx
 src/renderer/components/settings/external-services/ExternalServicesRunResult.tsx
 src/renderer/components/settings/external-services/ExternalServicesJournal.tsx
+src/renderer/components/settings/external-services/ExternalServicesCollectionsDialogs.tsx
 src/renderer/hooks/useExternalServicesShell.ts
 src/renderer/hooks/useExternalServicesActions.ts
+src/renderer/hooks/useExternalServicesPanel.ts
 ```
 
 Keep each component ≤150 lines and each hook ≤200 lines; split editor sections before budgets are exceeded.
 
 ## UI verification
 
-- Component tests cover empty/loading/error, row toggles/counts, navigation/back/focus, validation, unsaved confirmation, Run states, redaction display, and journal cap rendering.
-- Storybook covers critical collections/editor/result/journal surfaces in light and dark without real facade/HTTP.
+- Component tests cover empty/loading/error, tree selection, validation, unsaved confirmation, Run states, redaction display, and journal cap rendering.
+- Storybook covers workspace/editor/result/journal surfaces in light and dark without real facade/HTTP.
 - `npm run i18n:check` and `npm run ui:catalog` pass.

@@ -1,5 +1,5 @@
-import { OCP_INTEGRATION_DEFAULTS, SDK_INTEGRATION_DEFAULTS } from "@application/index.js";
 import { vi } from "vitest";
+import { OCP_INTEGRATION_DEFAULTS, SDK_INTEGRATION_DEFAULTS } from "@application/index.js";
 import type { OcpModuleSettingsCardProps } from "./OcpModuleSettingsCard.js";
 import type { SdkModuleSettingsCardProps } from "./SdkModuleSettingsCard.js";
 import type { ExternalServicesPanelProps } from "../external-services/ExternalServicesPanel.js";
@@ -46,45 +46,59 @@ const sdkCardDefaults = {
   onOperatorModalTimeoutsChange: vi.fn(),
 } satisfies SdkModuleSettingsCardProps;
 
-const externalServicesCollectionsDefaults = {
-  collections: [],
-  loadState: "ready" as const,
-  busy: false,
-  errorMessage: null,
-  statusMessage: null,
-  nameDialog: {
-    open: false,
-    mode: "create" as const,
-    value: "",
-    errorMessage: null,
-  },
-  deleteDialog: {
-    open: false,
-    collectionName: "",
-  },
+const journal = {
+  panel: { loadState: "ready" as const, entries: [], capped: false },
   onRetry: vi.fn(),
-  onCreate: vi.fn(),
-  onImport: vi.fn(),
-  onOpenCollection: vi.fn(),
-  onToggleCollection: vi.fn(),
-  onRenameCollection: vi.fn(),
-  onDuplicateCollection: vi.fn(),
-  onExportCollection: vi.fn(),
-  onEditVariables: vi.fn(),
-  onDeleteCollection: vi.fn(),
-  onNameDialogOpenChange: vi.fn(),
-  onNameDialogValueChange: vi.fn(),
-  onNameDialogSubmit: vi.fn(),
-  onDeleteDialogOpenChange: vi.fn(),
-  onDeleteDialogConfirm: vi.fn(),
-  journal: {
-    panel: { loadState: "ready" as const, entries: [], capped: false },
-    onRetry: vi.fn(),
-  },
 };
 
 const externalServicesDefaults = {
-  collectionsView: externalServicesCollectionsDefaults,
+  sidebar: {
+    collections: [],
+    selection: { kind: "none" as const },
+    busy: false,
+    loadState: "ready" as const,
+    onCreateCollection: vi.fn(),
+    onImportCollection: vi.fn(),
+    onSelectCollection: vi.fn(),
+    onSelectRequest: vi.fn(),
+    onCreateRequest: vi.fn(),
+    onRenameCollection: vi.fn(),
+    onDuplicateCollection: vi.fn(),
+    onExportCollection: vi.fn(),
+    onEditVariables: vi.fn(),
+    onDeleteCollection: vi.fn(),
+    onToggleRequest: vi.fn(),
+    onRenameRequest: vi.fn(),
+    onDuplicateRequest: vi.fn(),
+    onDeleteRequest: vi.fn(),
+  },
+  welcome: { journal },
+  requestsView: null,
+  requestEditor: null,
+  dialogs: {
+    busy: false,
+    errorMessage: null,
+    statusMessage: null,
+    nameDialog: {
+      open: false,
+      mode: "create" as const,
+      value: "",
+      errorMessage: null,
+    },
+    deleteDialog: {
+      open: false,
+      collectionName: "",
+    },
+    discardDialogOpen: false,
+    onRetry: vi.fn(),
+    onNameDialogOpenChange: vi.fn(),
+    onNameDialogValueChange: vi.fn(),
+    onNameDialogSubmit: vi.fn(),
+    onDeleteDialogOpenChange: vi.fn(),
+    onDeleteDialogConfirm: vi.fn(),
+    onDiscardDialogOpenChange: vi.fn(),
+    onDiscardConfirm: vi.fn(),
+  },
   variablesDialog: null,
 } satisfies ExternalServicesPanelProps;
 
@@ -117,27 +131,40 @@ export const settingsIntegrationsStoryDefaults = {
       onOperatorModalTimeoutsChange: () => undefined,
     } satisfies SdkModuleSettingsCardProps,
     externalServices: {
-      collectionsView: {
-        ...externalServicesCollectionsDefaults,
-        onRetry: () => undefined,
-        onCreate: () => undefined,
-        onImport: () => undefined,
-        onOpenCollection: () => undefined,
-        onToggleCollection: () => undefined,
+      ...externalServicesDefaults,
+      sidebar: {
+        ...externalServicesDefaults.sidebar,
+        onCreateCollection: () => undefined,
+        onImportCollection: () => undefined,
+        onSelectCollection: () => undefined,
+        onSelectRequest: () => undefined,
+        onCreateRequest: () => undefined,
         onRenameCollection: () => undefined,
         onDuplicateCollection: () => undefined,
         onExportCollection: () => undefined,
         onEditVariables: () => undefined,
         onDeleteCollection: () => undefined,
+        onToggleRequest: () => undefined,
+        onRenameRequest: () => undefined,
+        onDuplicateRequest: () => undefined,
+        onDeleteRequest: () => undefined,
+      },
+      welcome: {
+        journal: {
+          panel: { loadState: "ready", entries: [], capped: false },
+          onRetry: () => undefined,
+        },
+      },
+      dialogs: {
+        ...externalServicesDefaults.dialogs,
+        onRetry: () => undefined,
         onNameDialogOpenChange: () => undefined,
         onNameDialogValueChange: () => undefined,
         onNameDialogSubmit: () => undefined,
         onDeleteDialogOpenChange: () => undefined,
         onDeleteDialogConfirm: () => undefined,
-        journal: {
-          panel: { loadState: "ready", entries: [], capped: false },
-          onRetry: () => undefined,
-        },
+        onDiscardDialogOpenChange: () => undefined,
+        onDiscardConfirm: () => undefined,
       },
       variablesDialog: null,
     } satisfies ExternalServicesPanelProps,

@@ -34,6 +34,7 @@
 | `settings.integrations` | Settings integrations parent group | `Plug` | — | `SettingsSidebar` | active |
 | `settings.integrations.ocp` | Settings OCP Module child under Integrations | `Server` | — | `SettingsSidebar` | active |
 | `settings.integrations.external-services` | Settings External Services child under Integrations | `Webhook` | — | `SettingsSidebar` | active |
+| `settings.integrations.external-services.send` | Send / Run now for External Services request | `Send` | — | `ExternalServicesRequestEditor` | active |
 | `settings.integrations.sdk` | Settings OmniCall Kit child under Integrations | `Blocks` | — | `SettingsSidebar` | active |
 | `settings.notifications` | Settings notification history section | `Bell` | `BellIcon` | `SettingsSidebar` | active |
 | `settings.nav.expand` | Expand settings sidebar | `ChevronRight` | `ChevronRightIcon` | `SettingsSidebar` | active |

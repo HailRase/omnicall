@@ -761,9 +761,11 @@ function SoftphoneShellLayoutRoute({
                     sdkSettingsPanel.onOperatorModalTimeoutsChange,
                 },
                 externalServices: {
-                  collectionsView: externalServicesPanel.collectionsView,
+                  sidebar: externalServicesPanel.sidebar,
+                  welcome: externalServicesPanel.welcome,
                   requestsView: externalServicesPanel.requestsView,
                   requestEditor: externalServicesPanel.requestEditor,
+                  dialogs: externalServicesPanel.dialogs,
                   variablesDialog: externalServicesPanel.variablesDialog,
                 },
               }}

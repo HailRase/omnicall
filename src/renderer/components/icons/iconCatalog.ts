@@ -45,6 +45,7 @@ import {
   RotateCcw,
   Server,
   Settings,
+  Send,
   SlidersHorizontal,
   Trash2,
   User,
@@ -118,6 +119,7 @@ export type IconSemanticId =
   | "settings.integrations"
   | "settings.integrations.ocp"
   | "settings.integrations.external-services"
+  | "settings.integrations.external-services.send"
   | "settings.integrations.sdk"
   | "settings.notifications"
   | "settings.nav.expand"
@@ -318,6 +320,12 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.settings.integrations.externalServices",
     defaultSize: 18,
     usage: ["SettingsSidebar: settings-nav-integrations-external-services"],
+  },
+  "settings.integrations.external-services.send": {
+    static: Send,
+    defaultLabelKey: "icons.settings.integrations.externalServices.send",
+    defaultSize: 14,
+    usage: ["ExternalServicesRequestEditor: external-services-run-now"],
   },
   "settings.integrations.sdk": {
     static: Blocks,

@@ -621,6 +621,7 @@ export const bgMessages: MessageShape = {
   "icons.settings.integrations": "Интеграции",
   "icons.settings.integrations.ocp": "OCP Module",
   "icons.settings.integrations.externalServices": "External Services",
+  "icons.settings.integrations.externalServices.send": "Изпрати",
   "icons.settings.integrations.sdk": "OmniCall Kit",
   "settings.integrations.description": "Свързване на външни модули към softphone.",
   "settings.integrations.externalServices.title": "External Services",
@@ -698,6 +699,7 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalServices.disabled.busy": "Запазване…",
   "settings.integrations.externalServices.disabled.unavailable":
     "External Services в момента не са налични.",
+  "settings.integrations.externalServices.disabled.urlRequired": "Въведете URL на заявката.",
   "settings.integrations.externalServices.loadError":
     "Неуспешно зареждане на External Services. Опитайте отново.",
   "settings.integrations.externalServices.saveError":
@@ -773,6 +775,25 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalServices.run.category.timeout": "Времето за заявката изтече",
   "settings.integrations.externalServices.run.category.aborted": "Заявката е прекратена",
   "settings.integrations.externalServices.run.category.validation": "Грешка при проверката на заявката",
+  "settings.integrations.externalServices.run.send": "Изпрати",
+  "settings.integrations.externalServices.editor.urlPlaceholder": "Въведете URL или поставете текст",
+  "settings.integrations.externalServices.sidebar.collections": "Колекции",
+  "settings.integrations.externalServices.sidebar.emptyCollection": "Колекцията е празна",
+  "settings.integrations.externalServices.sidebar.expand": (params: Readonly<{ name: string }>) =>
+    `Разгъни колекция „${params.name}“`,
+  "settings.integrations.externalServices.sidebar.collapse": (params: Readonly<{ name: string }>) =>
+    `Свий колекция „${params.name}“`,
+  "settings.integrations.externalServices.workspace.selectPrompt":
+    "Изберете заявка в колекция или създайте нова",
+  "settings.integrations.externalServices.workspace.responseEmpty":
+    "Изпратете, за да получите отговор",
+  "settings.integrations.externalServices.workspace.breadcrumb": "Път на заявката",
+  "settings.integrations.externalServices.tabs.params": "Params",
+  "settings.integrations.externalServices.tabs.headers": "Headers",
+  "settings.integrations.externalServices.tabs.body": "Body",
+  "settings.integrations.externalServices.tabs.triggers": "Triggers",
+  "settings.integrations.externalServices.tabs.response": "Response",
+  "settings.integrations.externalServices.tabs.history": "History",
   "settings.integrations.ocp.title": "OCP Module",
   "settings.integrations.ocp.description": "Операторска платформа OCP: логин, домейн, API ключ и връзка.",
   "settings.integrations.ocp.editOnly.description": "Настройка на OCP за активния профил. Вход и възстановяване — само в раздел Акаунт.",

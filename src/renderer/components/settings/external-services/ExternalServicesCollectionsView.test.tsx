@@ -5,9 +5,9 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { setupJsdomRadix } from "../../../test/setupJsdomRadix.js";
 import {
-  ExternalServicesCollectionsView,
-  type ExternalServicesCollectionsViewProps,
-} from "./ExternalServicesCollectionsView.js";
+  ExternalServicesSidebar,
+  type ExternalServicesSidebarProps,
+} from "./ExternalServicesSidebar.js";
 
 beforeEach(() => {
   setupJsdomRadix();
@@ -17,111 +17,66 @@ afterEach(() => {
   cleanup();
 });
 
-function renderView(
-  overrides: Partial<ExternalServicesCollectionsViewProps> = {},
+function renderSidebar(
+  overrides: Partial<ExternalServicesSidebarProps> = {},
 ): ReturnType<typeof render> {
-  const props: ExternalServicesCollectionsViewProps = {
+  const props: ExternalServicesSidebarProps = {
     collections: [],
-    loadState: "ready",
+    selection: { kind: "none" },
     busy: false,
-    errorMessage: null,
-    statusMessage: null,
-    nameDialog: {
-      open: false,
-      mode: "create",
-      value: "",
-      errorMessage: null,
-    },
-    deleteDialog: {
-      open: false,
-      collectionName: "",
-    },
-    onRetry: vi.fn(),
-    onCreate: vi.fn(),
-    onImport: vi.fn(),
-    onOpenCollection: vi.fn(),
-    onToggleCollection: vi.fn(),
+    loadState: "ready",
+    onCreateCollection: vi.fn(),
+    onImportCollection: vi.fn(),
+    onSelectCollection: vi.fn(),
+    onSelectRequest: vi.fn(),
+    onCreateRequest: vi.fn(),
     onRenameCollection: vi.fn(),
     onDuplicateCollection: vi.fn(),
     onExportCollection: vi.fn(),
     onEditVariables: vi.fn(),
     onDeleteCollection: vi.fn(),
-    onNameDialogOpenChange: vi.fn(),
-    onNameDialogValueChange: vi.fn(),
-    onNameDialogSubmit: vi.fn(),
-    onDeleteDialogOpenChange: vi.fn(),
-    onDeleteDialogConfirm: vi.fn(),
-    journal: {
-      panel: { loadState: "ready", entries: [], capped: false },
-      onRetry: vi.fn(),
-    },
+    onToggleRequest: vi.fn(),
+    onRenameRequest: vi.fn(),
+    onDuplicateRequest: vi.fn(),
+    onDeleteRequest: vi.fn(),
     ...overrides,
   };
-  return render(<ExternalServicesCollectionsView {...props} />);
+  return render(<ExternalServicesSidebar {...props} />);
 }
 
-describe("ExternalServicesCollectionsView", () => {
+describe("ExternalServicesSidebar", () => {
   it("renders empty state with create and import actions", async () => {
     const user = userEvent.setup();
-    const onCreate = vi.fn();
-    const onImport = vi.fn();
-    renderView({ onCreate, onImport });
+    const onCreateCollection = vi.fn();
+    const onImportCollection = vi.fn();
+    renderSidebar({ onCreateCollection, onImportCollection });
 
     expect(screen.getByTestId("external-services-collections")).toBeInTheDocument();
-    expect(screen.getByTestId("external-services-journal-section")).toBeInTheDocument();
     await user.click(screen.getByTestId("external-services-create-collection"));
-    expect(onCreate).toHaveBeenCalledOnce();
+    expect(onCreateCollection).toHaveBeenCalledOnce();
     await user.click(screen.getByTestId("external-services-import-collection"));
-    expect(onImport).toHaveBeenCalledOnce();
+    expect(onImportCollection).toHaveBeenCalledOnce();
   });
 
-  it("shows enabled count and toggles a collection without drill-down", async () => {
+  it("selects a request from an expanded collection tree", async () => {
     const user = userEvent.setup();
-    const onToggleCollection = vi.fn();
-    renderView({
+    const onSelectRequest = vi.fn();
+    const collectionId = "a0b1c2d3-e4f5-4a67-8b90-123456789012";
+    const requestId = "b0b1c2d3-e4f5-4a67-8b90-123456789012";
+    renderSidebar({
       collections: [
         {
-          id: "a0b1c2d3-e4f5-4a67-8b90-123456789012",
+          id: collectionId,
           name: "CRM",
           enabled: true,
-          enabledRequestCount: 1,
-          requestCount: 2,
-          variables: [],
+          requests: [{ id: requestId, name: "Webhook", method: "POST", enabled: true }],
         },
       ],
-      onToggleCollection,
+      onSelectRequest,
     });
 
-    expect(
-      screen.getByTestId(
-        "external-services-collection-enabled-count-a0b1c2d3-e4f5-4a67-8b90-123456789012",
-      ),
-    ).toHaveTextContent("1/2");
-    await user.click(
-      screen.getByTestId(
-        "external-services-collection-toggle-a0b1c2d3-e4f5-4a67-8b90-123456789012",
-      ),
-    );
-    expect(onToggleCollection).toHaveBeenCalledWith(
-      "a0b1c2d3-e4f5-4a67-8b90-123456789012",
-      false,
-    );
-  });
-
-  it("renders load error with retry", async () => {
-    const user = userEvent.setup();
-    const onRetry = vi.fn();
-    renderView({
-      loadState: "error",
-      errorMessage: "Could not load External Services. Try again.",
-      onRetry,
-    });
-
-    await user.click(
-      screen.getByRole("button", {
-        name: "Повторить",
-      }),
-    );
-    expect(onRetry).toHaveBeenCalledOnce();
+    expect(screen.getByTestId(`external-services-collection-${collectionId}`)).toBeInTheDocument();
+    await user.click(screen.getByTestId(`external-services-request-${requestId}`));
+    expect(onSelectRequest).toHaveBeenCalledWith(collectionId, requestId);
   });
 });

@@ -1,7 +1,7 @@
 /**
- * - Purpose: compose External Services shell and actions for Settings wiring.
+ * - Purpose: compose External Services Postman-like Settings workspace props.
  * - Inputs: facade, section activity, and active UserSettings refresh callback.
- * - Outputs: presentational props for collections view and variables dialog.
+ * - Outputs: presentational sidebar, panes, dialogs, and variables dialog props.
  */
 
 import { useCallback, useMemo, useState } from "react";
@@ -15,11 +15,19 @@ import { useI18n, translateCurrent, type TranslationKey } from "../i18n/index.js
 import { useExternalServicesActions } from "./useExternalServicesActions.js";
 import { useExternalServicesJournal } from "./useExternalServicesJournal.js";
 import { useExternalServicesShell } from "./useExternalServicesShell.js";
-import type { ExternalServicesNameDialogMode } from "../components/settings/external-services/ExternalServicesCollectionsView.js";
-import type { ExternalServicesCollectionsViewProps } from "../components/settings/external-services/ExternalServicesCollectionsView.js";
+import type { ExternalServicesNameDialogMode } from "../components/settings/external-services/ExternalServicesCollectionsDialogs.js";
+import type { ExternalServicesCollectionsDialogsProps } from "../components/settings/external-services/ExternalServicesCollectionsDialogs.js";
 import type { ExternalServicesVariablesDialogProps } from "../components/settings/external-services/ExternalServicesVariablesDialog.js";
-import type { ExternalServicesRequestDraft, ExternalServicesRequestEditorProps } from "../components/settings/external-services/ExternalServicesRequestEditor.js";
+import type {
+  ExternalServicesRequestDraft,
+  ExternalServicesRequestEditorProps,
+} from "../components/settings/external-services/ExternalServicesRequestEditor.js";
 import type { ExternalServicesRequestsViewProps } from "../components/settings/external-services/ExternalServicesRequestsView.js";
+import type {
+  ExternalServicesSidebarProps,
+  ExternalServicesSidebarSelection,
+} from "../components/settings/external-services/ExternalServicesSidebar.js";
+import type { ExternalServicesWelcomeProps } from "../components/settings/external-services/ExternalServicesWelcome.js";
 import { useExternalServicesRequestActions } from "./useExternalServicesRequestActions.js";
 
 type UseExternalServicesPanelInput = Readonly<{
@@ -29,9 +37,11 @@ type UseExternalServicesPanelInput = Readonly<{
 }>;
 
 export type UseExternalServicesPanelResult = Readonly<{
-  collectionsView: ExternalServicesCollectionsViewProps;
+  sidebar: ExternalServicesSidebarProps;
+  welcome: ExternalServicesWelcomeProps | null;
   requestsView: ExternalServicesRequestsViewProps | null;
   requestEditor: ExternalServicesRequestEditorProps | null;
+  dialogs: ExternalServicesCollectionsDialogsProps;
   variablesDialog: ExternalServicesVariablesDialogProps | null;
 }>;
 
@@ -49,15 +59,12 @@ type DeleteDialogState = Readonly<{
   collectionName: string;
 }>;
 
-type Screen =
-  | Readonly<{ kind: "collections" }>
-  | Readonly<{ kind: "requests"; collectionId: string }>
-  | Readonly<{ kind: "request_detail"; collectionId: string; requestId: string }>;
+type PendingSelection = ExternalServicesSidebarSelection;
 
 /**
- * - Purpose: orchestrate External Services collections UI for SoftphoneReadyShell.
+ * - Purpose: orchestrate External Services workspace UI for SoftphoneReadyShell.
  * - Inputs: facade and settings refresh callback.
- * - Outputs: presentational collections/variables props only.
+ * - Outputs: presentational workspace props only.
  */
 export function useExternalServicesPanel(
   input: UseExternalServicesPanelInput,
@@ -88,11 +95,10 @@ export function useExternalServicesPanel(
       onActiveUserSettingsRefresh(settings);
     },
   });
-  const [screen, setScreen] = useState<Screen>({ kind: "collections" });
-  const journal = useExternalServicesJournal({
-    facade,
-    active: sectionActive && screen.kind === "collections",
-  });
+  const [selection, setSelection] = useState<ExternalServicesSidebarSelection>({ kind: "none" });
+  const [pendingSelection, setPendingSelection] = useState<PendingSelection | null>(null);
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const journal = useExternalServicesJournal({ facade, active: sectionActive });
 
   const [nameDialog, setNameDialog] = useState<NameDialogState>({
     open: false,
@@ -115,10 +121,77 @@ export function useExternalServicesPanel(
     useState<ExternalServicesRequestEditorProps["runState"]>("idle");
   const [requestErrorKey, setRequestErrorKey] = useState<TranslationKey | null>(null);
 
-  const findCollection = useCallback(
+  const isDirty = savedDraft !== null && draft !== null && JSON.stringify(draft) !== JSON.stringify(savedDraft);
+
+  const findCollectionSummary = useCallback(
     (collectionId: string): ExternalServicesCollectionSummaryVm | undefined =>
       shell.panel.collections.find((entry) => entry.id === collectionId),
     [shell.panel.collections],
+  );
+
+  const clearEditor = useCallback((): void => {
+    setDraft(null);
+    setSavedDraft(null);
+    setRunResult(null);
+    setRunState("idle");
+    setRequestErrorKey(null);
+  }, []);
+
+  const applySelection = useCallback(
+    (next: ExternalServicesSidebarSelection): void => {
+      if (next.kind === "request") {
+        const collection = shell.settings.collections.find((item) => item.id === next.collectionId);
+        const request = collection?.requests.find((item) => item.id === next.requestId);
+        if (collection === undefined || request === undefined) {
+          setSelection({ kind: "none" });
+          clearEditor();
+          return;
+        }
+        const nextDraft = {
+          id: request.id,
+          name: request.name,
+          enabled: request.enabled,
+          method: request.method,
+          url: request.url,
+          query: request.query.map((row) => ({
+            id: row.id,
+            key: row.key,
+            value: row.value,
+            enabled: row.enabled,
+          })),
+          headers: request.headers.map((row) => ({
+            id: row.id,
+            key: row.key,
+            value: row.value,
+            enabled: row.enabled,
+          })),
+          body: { mode: request.body.mode, value: request.body.value },
+          triggers: [...request.triggers],
+        };
+        setDraft(nextDraft);
+        setSavedDraft(nextDraft);
+        setRunResult(null);
+        setRunState("idle");
+        setRequestErrorKey(null);
+        setSelection(next);
+        return;
+      }
+      clearEditor();
+      setSelection(next);
+    },
+    [clearEditor, shell.settings.collections],
+  );
+
+  const requestSelectionChange = useCallback(
+    (next: ExternalServicesSidebarSelection): void => {
+      if (isDirty) {
+        setPendingSelection(next);
+        setDiscardOpen(true);
+        return;
+      }
+      applySelection(next);
+    },
+    [applySelection, isDirty],
   );
 
   const handleNameSubmit = useCallback(async (): Promise<void> => {
@@ -139,38 +212,32 @@ export function useExternalServicesPanel(
       }));
       return;
     }
-    if (result.kind === "success") {
-      setNameDialog({
-        open: false,
-        mode: "create",
-        collectionId: null,
-        value: "",
-        errorKey: null,
-      });
-    }
+    setNameDialog({ open: false, mode: "create", collectionId: null, value: "", errorKey: null });
   }, [actions, nameDialog]);
 
   const handleDeleteConfirm = useCallback(async (): Promise<void> => {
     if (deleteDialog.collectionId === null) {
       return;
     }
-    const result = await actions.deleteCollection(deleteDialog.collectionId);
+    const collectionId = deleteDialog.collectionId;
+    const result = await actions.deleteCollection(collectionId);
     if (result.kind !== "error") {
       setDeleteDialog({ open: false, collectionId: null, collectionName: "" });
+      if (
+        (selection.kind === "collection" && selection.collectionId === collectionId) ||
+        (selection.kind === "request" && selection.collectionId === collectionId)
+      ) {
+        applySelection({ kind: "none" });
+      }
     }
-  }, [actions, deleteDialog.collectionId]);
+  }, [actions, applySelection, deleteDialog.collectionId, selection]);
 
   const handleSaveVariables = useCallback(
-    async (
-      variables: ReadonlyArray<ExternalServicesCollectionVariableVm>,
-    ): Promise<void> => {
+    async (variables: ReadonlyArray<ExternalServicesCollectionVariableVm>): Promise<void> => {
       if (variablesCollection === null) {
         return;
       }
-      const result = await actions.saveCollectionVariables(
-        variablesCollection.id,
-        variables,
-      );
+      const result = await actions.saveCollectionVariables(variablesCollection.id, variables);
       if (result.kind === "success") {
         setVariablesCollection(null);
       }
@@ -178,25 +245,135 @@ export function useExternalServicesPanel(
     [actions, variablesCollection],
   );
 
-  const collectionsView = useMemo((): ExternalServicesCollectionsViewProps => {
+  const createRequestInCollection = useCallback(
+    async (collectionId: string): Promise<void> => {
+      if (isDirty) {
+        setPendingSelection({ kind: "collection", collectionId });
+        setDiscardOpen(true);
+        return;
+      }
+      const result = await requestActions.create(collectionId);
+      if (result.kind === "error") {
+        setRequestErrorKey(result.messageKey);
+        return;
+      }
+      if (result.request === undefined) {
+        clearEditor();
+        setSelection({ kind: "collection", collectionId });
+        return;
+      }
+      setDraft(result.request);
+      setSavedDraft(result.request);
+      setRunResult(null);
+      setRunState("idle");
+      setRequestErrorKey(null);
+      setSelection({ kind: "request", collectionId, requestId: result.request.id });
+    },
+    [clearEditor, isDirty, requestActions],
+  );
+
+  const journalProps = useMemo(
+    () => ({
+      panel: journal.panel,
+      onRetry: () => {
+        void journal.refresh();
+      },
+    }),
+    [journal],
+  );
+
+  const sidebar = useMemo((): ExternalServicesSidebarProps => {
     return {
-      collections: shell.panel.collections,
+      collections: shell.settings.collections.map((collection) => ({
+        id: collection.id,
+        name: collection.name,
+        enabled: collection.enabled,
+        requests: collection.requests.map((request) => ({
+          id: request.id,
+          name: request.name,
+          method: request.method,
+          enabled: request.enabled,
+        })),
+      })),
+      selection,
+      busy: actions.busy || requestActions.busy,
       loadState: shell.panel.loadState,
+      onCreateCollection: () => {
+        setNameDialog({ open: true, mode: "create", collectionId: null, value: "", errorKey: null });
+      },
+      onImportCollection: () => {
+        void actions.importCollection();
+      },
+      onSelectCollection: (collectionId) => {
+        requestSelectionChange({ kind: "collection", collectionId });
+      },
+      onSelectRequest: (collectionId, requestId) => {
+        requestSelectionChange({ kind: "request", collectionId, requestId });
+      },
+      onCreateRequest: (collectionId) => {
+        void createRequestInCollection(collectionId);
+      },
+      onRenameCollection: (collectionId) => {
+        const collection = findCollectionSummary(collectionId);
+        if (collection === undefined) return;
+        setNameDialog({ open: true, mode: "rename", collectionId, value: collection.name, errorKey: null });
+      },
+      onDuplicateCollection: (collectionId) => {
+        void actions.duplicateCollection(collectionId);
+      },
+      onExportCollection: (collectionId) => {
+        void actions.exportCollection(collectionId);
+      },
+      onEditVariables: (collectionId) => {
+        const collection = findCollectionSummary(collectionId);
+        if (collection !== undefined) setVariablesCollection(collection);
+      },
+      onDeleteCollection: (collectionId) => {
+        const collection = findCollectionSummary(collectionId);
+        if (collection === undefined) return;
+        setDeleteDialog({ open: true, collectionId, collectionName: collection.name });
+      },
+      onToggleRequest: (collectionId, requestId, enabled) => {
+        void requestActions.toggle(collectionId, requestId, enabled);
+      },
+      onRenameRequest: (collectionId, requestId) => {
+        const request = shell.settings.collections
+          .find((item) => item.id === collectionId)
+          ?.requests.find((item) => item.id === requestId);
+        if (request !== undefined) void requestActions.rename(collectionId, requestId, request.name);
+      },
+      onDuplicateRequest: (collectionId, requestId) => {
+        void requestActions.duplicate(collectionId, requestId);
+      },
+      onDeleteRequest: (collectionId, requestId) => {
+        void requestActions.delete(collectionId, requestId).then((result) => {
+          if (result.kind === "error") return;
+          if (selection.kind === "request" && selection.requestId === requestId) {
+            applySelection({ kind: "collection", collectionId });
+          }
+        });
+      },
+    };
+  }, [
+    actions,
+    applySelection,
+    createRequestInCollection,
+    findCollectionSummary,
+    requestActions,
+    requestSelectionChange,
+    selection,
+    shell.panel.loadState,
+    shell.settings.collections,
+  ]);
+
+  const dialogs = useMemo((): ExternalServicesCollectionsDialogsProps => {
+    return {
       busy: actions.busy,
       errorMessage: shell.errorKey !== null ? t(shell.errorKey) : null,
       statusMessage:
         shell.statusMessageKey !== null
-          ? formatExternalServicesStatusMessage(
-              shell.statusMessageKey,
-              shell.statusMessageParams,
-            )
+          ? formatExternalServicesStatusMessage(shell.statusMessageKey, shell.statusMessageParams)
           : null,
-      journal: {
-        panel: journal.panel,
-        onRetry: () => {
-          void journal.refresh();
-        },
-      },
       nameDialog: {
         open: nameDialog.open,
         mode: nameDialog.mode,
@@ -207,118 +384,60 @@ export function useExternalServicesPanel(
         open: deleteDialog.open,
         collectionName: deleteDialog.collectionName,
       },
+      discardDialogOpen: discardOpen,
       onRetry: () => {
         void shell.refresh();
       },
-      onCreate: () => {
-        setNameDialog({
-          open: true,
-          mode: "create",
-          collectionId: null,
-          value: "",
-          errorKey: null,
-        });
-      },
-      onImport: () => {
-        void actions.importCollection();
-      },
-      onOpenCollection: (collectionId) => setScreen({ kind: "requests", collectionId }),
-      onToggleCollection: (collectionId, enabled) => {
-        void actions.toggleCollection(collectionId, enabled);
-      },
-      onRenameCollection: (collectionId) => {
-        const collection = findCollection(collectionId);
-        if (collection === undefined) {
-          return;
-        }
-        setNameDialog({
-          open: true,
-          mode: "rename",
-          collectionId,
-          value: collection.name,
-          errorKey: null,
-        });
-      },
-      onDuplicateCollection: (collectionId) => {
-        void actions.duplicateCollection(collectionId);
-      },
-      onExportCollection: (collectionId) => {
-        void actions.exportCollection(collectionId);
-      },
-      onEditVariables: (collectionId) => {
-        const collection = findCollection(collectionId);
-        if (collection !== undefined) {
-          setVariablesCollection(collection);
-        }
-      },
-      onDeleteCollection: (collectionId) => {
-        const collection = findCollection(collectionId);
-        if (collection === undefined) {
-          return;
-        }
-        setDeleteDialog({
-          open: true,
-          collectionId,
-          collectionName: collection.name,
-        });
-      },
       onNameDialogOpenChange: (open) => {
         if (!open) {
-          setNameDialog({
-            open: false,
-            mode: "create",
-            collectionId: null,
-            value: "",
-            errorKey: null,
-          });
+          setNameDialog({ open: false, mode: "create", collectionId: null, value: "", errorKey: null });
           return;
         }
         setNameDialog((previous) => ({ ...previous, open: true }));
       },
       onNameDialogValueChange: (value) => {
-        setNameDialog((previous) => ({
-          ...previous,
-          value,
-          errorKey: null,
-        }));
+        setNameDialog((previous) => ({ ...previous, value, errorKey: null }));
       },
       onNameDialogSubmit: () => {
         void handleNameSubmit();
       },
       onDeleteDialogOpenChange: (open) => {
-        if (!open) {
-          setDeleteDialog({ open: false, collectionId: null, collectionName: "" });
-        }
+        if (!open) setDeleteDialog({ open: false, collectionId: null, collectionName: "" });
       },
       onDeleteDialogConfirm: () => {
         void handleDeleteConfirm();
       },
+      onDiscardDialogOpenChange: setDiscardOpen,
+      onDiscardConfirm: () => {
+        if (pendingSelection !== null) {
+          applySelection(pendingSelection);
+          setPendingSelection(null);
+        }
+        setDiscardOpen(false);
+      },
     };
   }, [
-    actions,
+    actions.busy,
+    applySelection,
     deleteDialog,
-    findCollection,
+    discardOpen,
     handleDeleteConfirm,
     handleNameSubmit,
-    journal,
     nameDialog,
+    pendingSelection,
     shell,
     t,
   ]);
 
   const variablesDialog = useMemo((): ExternalServicesVariablesDialogProps | null => {
-    if (variablesCollection === null) {
-      return null;
-    }
+    if (variablesCollection === null) return null;
     return {
       open: true,
       collectionName: variablesCollection.name,
       initialVariables: variablesCollection.variables,
       busy: actions.busy,
       onOpenChange: (open) => {
-        if (!open) {
-          setVariablesCollection(null);
-        }
+        if (!open) setVariablesCollection(null);
       },
       onSave: (variables) => {
         void handleSaveVariables(variables);
@@ -326,64 +445,61 @@ export function useExternalServicesPanel(
     };
   }, [actions.busy, handleSaveVariables, variablesCollection]);
 
-  const selectedCollection = screen.kind === "collections" ? null : shell.settings.collections.find((item) => item.id === screen.collectionId);
+  const selectedCollection =
+    selection.kind === "none"
+      ? null
+      : shell.settings.collections.find((item) => item.id === selection.collectionId) ?? null;
+
+  const welcome = useMemo((): ExternalServicesWelcomeProps | null => {
+    if (selection.kind !== "none") return null;
+    return { journal: journalProps };
+  }, [journalProps, selection.kind]);
+
   const requestsView = useMemo((): ExternalServicesRequestsViewProps | null => {
-    if (screen.kind !== "requests" || selectedCollection === undefined || selectedCollection === null) return null;
+    if (selection.kind !== "collection" || selectedCollection === null) return null;
     return {
       collection: {
         ...selectedCollection,
         enabledRequestCount: selectedCollection.requests.filter((item) => item.enabled).length,
         requestCount: selectedCollection.requests.length,
       },
-      requests: selectedCollection.requests,
       busy: requestActions.busy,
-      onBack: () => setScreen({ kind: "collections" }),
-      onCreate: () => { void requestActions.create(selectedCollection.id); },
-      onOpen: (requestId) => {
-        const request = selectedCollection.requests.find((item) => item.id === requestId);
-        if (request === undefined) return;
-        setDraft(request);
-        setSavedDraft(request);
-        setRunResult(null);
-        setRunState("idle");
-        setRequestErrorKey(null);
-        setScreen({ kind: "request_detail", collectionId: selectedCollection.id, requestId });
+      journal: journalProps,
+      onCreate: () => {
+        void createRequestInCollection(selectedCollection.id);
       },
-      onToggle: (requestId, enabled) => { void requestActions.toggle(selectedCollection.id, requestId, enabled); },
-      onRename: (requestId) => {
-        const request = selectedCollection.requests.find((item) => item.id === requestId);
-        if (request !== undefined) void requestActions.rename(selectedCollection.id, requestId, request.name);
+      onEditVariables: () => {
+        const summary = findCollectionSummary(selectedCollection.id);
+        if (summary !== undefined) setVariablesCollection(summary);
       },
-      onDuplicate: (requestId) => { void requestActions.duplicate(selectedCollection.id, requestId); },
-      onDelete: (requestId) => { void requestActions.delete(selectedCollection.id, requestId); },
     };
-  }, [requestActions, screen.kind, selectedCollection]);
+  }, [
+    createRequestInCollection,
+    findCollectionSummary,
+    journalProps,
+    requestActions.busy,
+    selectedCollection,
+    selection.kind,
+  ]);
+
   const requestEditor = useMemo((): ExternalServicesRequestEditorProps | null => {
-    if (screen.kind !== "request_detail" || selectedCollection === undefined || selectedCollection === null || draft === null) return null;
+    if (selection.kind !== "request" || selectedCollection === null || draft === null) return null;
     return {
+      collectionName: selectedCollection.name,
       draft,
       busy: requestActions.busy,
       errorMessage: requestErrorKey === null ? null : t(requestErrorKey),
-      isDirty: savedDraft === null || JSON.stringify(draft) !== JSON.stringify(savedDraft),
       runState,
       runResult,
+      journal: journalProps,
       onChange: setDraft,
-      onBack: () => {
-        setScreen({ kind: "requests", collectionId: selectedCollection.id });
-        setDraft(null);
-        setSavedDraft(null);
-        setRunResult(null);
-        setRequestErrorKey(null);
-      },
       onDelete: () => {
         void requestActions.delete(selectedCollection.id, draft.id).then((result) => {
           if (result.kind === "error") {
             setRequestErrorKey(result.messageKey);
             return;
           }
-          setScreen({ kind: "requests", collectionId: selectedCollection.id });
-          setDraft(null);
-          setSavedDraft(null);
+          applySelection({ kind: "collection", collectionId: selectedCollection.id });
         });
       },
       onSave: () => {
@@ -399,8 +515,6 @@ export function useExternalServicesPanel(
       onRunNow: () => {
         if (facade === null || shell.profileKey === null) return;
         const profileKey = shell.profileKey;
-        const request = selectedCollection.requests.find((item) => item.id === draft.id);
-        if (request === undefined) return;
         setRunResult(null);
         setRequestErrorKey(null);
         setRunState("queued");
@@ -412,21 +526,42 @@ export function useExternalServicesPanel(
           }
           setSavedDraft(draft);
           setRunState("running");
+          const persistedRequest = selectedCollection.requests.find((item) => item.id === draft.id);
+          if (persistedRequest === undefined) {
+            setRequestErrorKey("settings.integrations.externalServices.saveError");
+            setRunState("idle");
+            return;
+          }
           const result = await facade.runExternalServiceRequestNow({
             collectionId: selectedCollection.id,
-            requestId: request.id,
+            requestId: persistedRequest.id,
             expectedSettingsRevision: saveResult.settingsRevision,
             profileKey,
             occurredAt: new Date().toISOString(),
           });
           setRunResult(result);
           setRunState("idle");
+          void journal.refresh();
         });
       },
     };
-  }, [draft, facade, requestActions, requestErrorKey, runResult, runState, savedDraft, screen.kind, selectedCollection, shell.profileKey, t]);
+  }, [
+    applySelection,
+    draft,
+    facade,
+    journal,
+    journalProps,
+    requestActions,
+    requestErrorKey,
+    runResult,
+    runState,
+    selectedCollection,
+    selection.kind,
+    shell.profileKey,
+    t,
+  ]);
 
-  return { collectionsView, requestsView, requestEditor, variablesDialog };
+  return { sidebar, welcome, requestsView, requestEditor, dialogs, variablesDialog };
 }
 
 function formatExternalServicesStatusMessage(

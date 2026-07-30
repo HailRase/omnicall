@@ -18,6 +18,7 @@ const ruMessages = {
   "icons.settings.integrations": "Интеграции",
   "icons.settings.integrations.ocp": "OCP Module",
   "icons.settings.integrations.externalServices": "External Services",
+  "icons.settings.integrations.externalServices.send": "Отправить",
   "icons.settings.integrations.sdk": "OmniCall Kit",
   "settings.integrations.description": "Подключение внешних модулей к softphone.",
   "settings.integrations.externalServices.title": "External Services",
@@ -95,6 +96,7 @@ const ruMessages = {
   "settings.integrations.externalServices.disabled.busy": "Сохранение…",
   "settings.integrations.externalServices.disabled.unavailable":
     "External Services сейчас недоступны.",
+  "settings.integrations.externalServices.disabled.urlRequired": "Укажите URL запроса.",
   "settings.integrations.externalServices.loadError":
     "Не удалось загрузить External Services. Повторите попытку.",
   "settings.integrations.externalServices.saveError":
@@ -170,6 +172,25 @@ const ruMessages = {
   "settings.integrations.externalServices.run.category.timeout": "Превышено время ожидания",
   "settings.integrations.externalServices.run.category.aborted": "Запрос отменён",
   "settings.integrations.externalServices.run.category.validation": "Ошибка проверки запроса",
+  "settings.integrations.externalServices.run.send": "Отправить",
+  "settings.integrations.externalServices.editor.urlPlaceholder": "Введите URL или вставьте текст",
+  "settings.integrations.externalServices.sidebar.collections": "Коллекции",
+  "settings.integrations.externalServices.sidebar.emptyCollection": "Коллекция пуста",
+  "settings.integrations.externalServices.sidebar.expand": (params: Readonly<{ name: string }>) =>
+    `Развернуть коллекцию «${params.name}»`,
+  "settings.integrations.externalServices.sidebar.collapse": (params: Readonly<{ name: string }>) =>
+    `Свернуть коллекцию «${params.name}»`,
+  "settings.integrations.externalServices.workspace.selectPrompt":
+    "Выберите запрос в коллекции или создайте новый",
+  "settings.integrations.externalServices.workspace.responseEmpty":
+    "Нажмите «Отправить», чтобы получить ответ",
+  "settings.integrations.externalServices.workspace.breadcrumb": "Путь запроса",
+  "settings.integrations.externalServices.tabs.params": "Params",
+  "settings.integrations.externalServices.tabs.headers": "Headers",
+  "settings.integrations.externalServices.tabs.body": "Body",
+  "settings.integrations.externalServices.tabs.triggers": "Triggers",
+  "settings.integrations.externalServices.tabs.response": "Response",
+  "settings.integrations.externalServices.tabs.history": "History",
   "settings.integrations.ocp.title": "OCP Module",
   "settings.integrations.ocp.description": "Операторская платформа OCP: логин, домен, API-ключ и подключение.",
   "settings.integrations.ocp.editOnly.description": "Настройка OCP для активного профиля. Вход и восстановление — только в разделе «Аккаунт».",
@@ -1538,6 +1559,7 @@ const enMessages: MessageShape = {
   "icons.settings.integrations": "Integrations",
   "icons.settings.integrations.ocp": "OCP Module",
   "icons.settings.integrations.externalServices": "External Services",
+  "icons.settings.integrations.externalServices.send": "Send",
   "icons.settings.integrations.sdk": "OmniCall Kit",
   "settings.integrations.description": "Connect external modules to the softphone.",
   "settings.integrations.externalServices.title": "External Services",
@@ -1613,6 +1635,7 @@ const enMessages: MessageShape = {
   "settings.integrations.externalServices.disabled.busy": "Saving…",
   "settings.integrations.externalServices.disabled.unavailable":
     "External Services are unavailable right now.",
+  "settings.integrations.externalServices.disabled.urlRequired": "Enter a request URL.",
   "settings.integrations.externalServices.loadError":
     "Could not load External Services. Try again.",
   "settings.integrations.externalServices.saveError":
@@ -1646,6 +1669,25 @@ const enMessages: MessageShape = {
   "settings.integrations.externalServices.run.category.timeout": "Request timed out",
   "settings.integrations.externalServices.run.category.aborted": "Request aborted",
   "settings.integrations.externalServices.run.category.validation": "Request validation error",
+  "settings.integrations.externalServices.run.send": "Send",
+  "settings.integrations.externalServices.editor.urlPlaceholder": "Enter URL or paste text",
+  "settings.integrations.externalServices.sidebar.collections": "Collections",
+  "settings.integrations.externalServices.sidebar.emptyCollection": "Collection is empty",
+  "settings.integrations.externalServices.sidebar.expand": (params: Readonly<{ name: string }>) =>
+    `Expand collection “${params.name}”`,
+  "settings.integrations.externalServices.sidebar.collapse": (params: Readonly<{ name: string }>) =>
+    `Collapse collection “${params.name}”`,
+  "settings.integrations.externalServices.workspace.selectPrompt":
+    "Select a request in a collection or create a new one",
+  "settings.integrations.externalServices.workspace.responseEmpty":
+    "Send to get a successful response",
+  "settings.integrations.externalServices.workspace.breadcrumb": "Request path",
+  "settings.integrations.externalServices.tabs.params": "Params",
+  "settings.integrations.externalServices.tabs.headers": "Headers",
+  "settings.integrations.externalServices.tabs.body": "Body",
+  "settings.integrations.externalServices.tabs.triggers": "Triggers",
+  "settings.integrations.externalServices.tabs.response": "Response",
+  "settings.integrations.externalServices.tabs.history": "History",
   "settings.integrations.ocp.title": "OCP Module",
   "settings.integrations.ocp.description": "OCP operator platform: login, domain, API key, and connection.",
   "settings.integrations.ocp.editOnly.description": "Configure OCP for the active profile. Sign-in and recovery live only on the Account tab.",
@@ -2987,6 +3029,7 @@ const frMessages: MessageShape = {
   "icons.settings.integrations": "Integrations",
   "icons.settings.integrations.ocp": "OCP Module",
   "icons.settings.integrations.externalServices": "External Services",
+  "icons.settings.integrations.externalServices.send": "Envoyer",
   "icons.settings.integrations.sdk": "OmniCall Kit",
   "settings.integrations.description": "Connecter des modules externes au softphone.",
   "settings.integrations.externalServices.title": "External Services",
@@ -3063,6 +3106,7 @@ const frMessages: MessageShape = {
   "settings.integrations.externalServices.disabled.busy": "Enregistrement…",
   "settings.integrations.externalServices.disabled.unavailable":
     "External Services est indisponible pour le moment.",
+  "settings.integrations.externalServices.disabled.urlRequired": "Saisissez l'URL de la requete.",
   "settings.integrations.externalServices.loadError":
     "Impossible de charger External Services. Reessayez.",
   "settings.integrations.externalServices.saveError":
@@ -3097,6 +3141,25 @@ const frMessages: MessageShape = {
   "settings.integrations.externalServices.run.category.timeout": "Delai de la requete depasse",
   "settings.integrations.externalServices.run.category.aborted": "Requete annulee",
   "settings.integrations.externalServices.run.category.validation": "Erreur de validation de la requete",
+  "settings.integrations.externalServices.run.send": "Envoyer",
+  "settings.integrations.externalServices.editor.urlPlaceholder": "Entrez une URL ou collez du texte",
+  "settings.integrations.externalServices.sidebar.collections": "Collections",
+  "settings.integrations.externalServices.sidebar.emptyCollection": "La collection est vide",
+  "settings.integrations.externalServices.sidebar.expand": (params: Readonly<{ name: string }>) =>
+    `Developper la collection « ${params.name} »`,
+  "settings.integrations.externalServices.sidebar.collapse": (params: Readonly<{ name: string }>) =>
+    `Reduire la collection « ${params.name} »`,
+  "settings.integrations.externalServices.workspace.selectPrompt":
+    "Selectionnez une requete dans une collection ou creez-en une",
+  "settings.integrations.externalServices.workspace.responseEmpty":
+    "Envoyez pour obtenir une reponse",
+  "settings.integrations.externalServices.workspace.breadcrumb": "Chemin de la requete",
+  "settings.integrations.externalServices.tabs.params": "Params",
+  "settings.integrations.externalServices.tabs.headers": "Headers",
+  "settings.integrations.externalServices.tabs.body": "Body",
+  "settings.integrations.externalServices.tabs.triggers": "Triggers",
+  "settings.integrations.externalServices.tabs.response": "Response",
+  "settings.integrations.externalServices.tabs.history": "History",
   "settings.integrations.ocp.title": "OCP Module",
   "settings.integrations.ocp.description": "Plateforme operateur OCP : login, domaine, cle API et connexion.",
   "settings.integrations.ocp.editOnly.description": "Configurez OCP pour le profil actif. Connexion et recuperation uniquement dans Compte.",
@@ -4435,6 +4498,7 @@ const deMessages: MessageShape = {
   "icons.settings.integrations": "Integrationen",
   "icons.settings.integrations.ocp": "OCP Module",
   "icons.settings.integrations.externalServices": "External Services",
+  "icons.settings.integrations.externalServices.send": "Senden",
   "icons.settings.integrations.sdk": "OmniCall Kit",
   "settings.integrations.description": "Externe Module mit dem Softphone verbinden.",
   "settings.integrations.externalServices.title": "External Services",
@@ -4511,6 +4575,7 @@ const deMessages: MessageShape = {
   "settings.integrations.externalServices.disabled.busy": "Speichern…",
   "settings.integrations.externalServices.disabled.unavailable":
     "External Services sind derzeit nicht verfuegbar.",
+  "settings.integrations.externalServices.disabled.urlRequired": "Geben Sie eine Anfrage-URL ein.",
   "settings.integrations.externalServices.loadError":
     "External Services konnten nicht geladen werden. Bitte erneut versuchen.",
   "settings.integrations.externalServices.saveError":
@@ -4545,6 +4610,25 @@ const deMessages: MessageShape = {
   "settings.integrations.externalServices.run.category.timeout": "Zeitueberschreitung der Anfrage",
   "settings.integrations.externalServices.run.category.aborted": "Anfrage abgebrochen",
   "settings.integrations.externalServices.run.category.validation": "Validierungsfehler der Anfrage",
+  "settings.integrations.externalServices.run.send": "Senden",
+  "settings.integrations.externalServices.editor.urlPlaceholder": "URL eingeben oder Text einfuegen",
+  "settings.integrations.externalServices.sidebar.collections": "Sammlungen",
+  "settings.integrations.externalServices.sidebar.emptyCollection": "Sammlung ist leer",
+  "settings.integrations.externalServices.sidebar.expand": (params: Readonly<{ name: string }>) =>
+    `Sammlung „${params.name}“ aufklappen`,
+  "settings.integrations.externalServices.sidebar.collapse": (params: Readonly<{ name: string }>) =>
+    `Sammlung „${params.name}“ einklappen`,
+  "settings.integrations.externalServices.workspace.selectPrompt":
+    "Waehlen Sie eine Anfrage in einer Sammlung oder erstellen Sie eine neue",
+  "settings.integrations.externalServices.workspace.responseEmpty":
+    "Senden, um eine Antwort zu erhalten",
+  "settings.integrations.externalServices.workspace.breadcrumb": "Anfragepfad",
+  "settings.integrations.externalServices.tabs.params": "Params",
+  "settings.integrations.externalServices.tabs.headers": "Headers",
+  "settings.integrations.externalServices.tabs.body": "Body",
+  "settings.integrations.externalServices.tabs.triggers": "Triggers",
+  "settings.integrations.externalServices.tabs.response": "Response",
+  "settings.integrations.externalServices.tabs.history": "History",
   "settings.integrations.ocp.title": "OCP Module",
   "settings.integrations.ocp.description": "OCP-Operatorplattform: Login, Domain, API-Schluessel und Verbindung.",
   "settings.integrations.ocp.editOnly.description": "OCP fuer das aktive Profil konfigurieren. Anmeldung und Wiederherstellung nur unter Konto.",

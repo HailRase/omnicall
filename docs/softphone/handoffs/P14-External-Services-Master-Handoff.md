@@ -7,7 +7,7 @@
 | Feature | F-031 External Services (Outbound HTTP Automations) |
 | Legacy | `_none_` (new product feature; no LF parity) |
 | Phase | P14 External Services |
-| Feature status | **in-progress** (WU-10 journal UI complete 2026-07-29) |
+| Feature status | **in-progress** (WU-10 journal UI complete; Postman-like workspace polish 2026-07-30) |
 | Branch | `feature/external-services` |
 | Task | T-052 claimed (`/logic` → `/ui`) |
 | Plan | `external-services-plan/` |
@@ -47,9 +47,9 @@ Services without coupling telephony/OCP/SDK paths to network latency or response
 | WU-05 | Profile persistence and lifecycle wiring | **done** | File journal document + `FileExternalServicesJournalRepository`; Save/Query Use Cases; `AccountSessionActivated`/`UserSessionEnded` lifecycle; profile A/B + in-flight + corrupt fail-visible tests; typecheck PASS |
 | WU-06 | F-030 preferences export/import extension | **done** | External Services nested round-trip in `omnicall.preferences` v1; journal excluded; facade `replaceActiveSettings` after import; Preferences/UseCase/runtime refresh tests; `P11-Operator-Preferences-Export-Design.md` synced |
 | WU-07 | Collection JSON import/export | **done** | Domain document + Export/Import Use Cases; typed IPC/preload/main collection file gateway (2 MiB); facade import/export; round-trip/collision/cancel/fail-closed tests; typecheck PASS |
-| WU-08 | Navigation and collections UI | **done** | Integrations leaf beside OCP; SDK top-level preserved; collection summaries/CRUD/import/export/variables; journal placement; i18n five locales; nav/panel/component tests + light/dark stories |
-| WU-09 | Requests editor and Run now UI | **done** | Request list badges/toggle + editor fields, key/value rows, triggers, save/delete/discard; facade Run now queued/running/result feedback; five locales; focused component/mutation tests and light/dark stories |
-| WU-10 | Journal UI | **done** | Journal VM + hook; accordion diagnostics (*** headers, truncation, cap 100); empty/loading/error/retry; five locales; projection/component tests + light/dark stories; typecheck/i18n/ui:catalog PASS |
+| WU-08 | Navigation and collections UI | **done** | Integrations leaf beside OCP; SDK top-level preserved; Postman-like COLLECTIONS sidebar tree (2026-07-30); collection CRUD/import/export/variables; i18n five locales; nav/panel/component tests + light/dark stories |
+| WU-09 | Requests editor and Run now UI | **done** | Request workspace URL bar + Params/Headers/Body/Triggers tabs + Send/Response (2026-07-30); save/delete/discard; facade Run now queued/running/result; five locales; focused tests and light/dark stories |
+| WU-10 | Journal UI | **done** | Journal VM + hook; History tab in response pane (*** headers, truncation, cap 100); empty/loading/error/retry; five locales; projection/component tests + light/dark stories; typecheck/i18n/ui:catalog PASS |
 | WU-11 | Real event integration hardening | pending | — |
 | WU-12 | Documentation close, preflight, release decision | pending | — |
 

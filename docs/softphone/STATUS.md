@@ -18,7 +18,7 @@
 | Field | Value |
 | --- | --- |
 | Feature | **F-031** External Services (Outbound HTTP Automations) |
-| Status | **in-progress** (WU-10 journal UI done) |
+| Status | **in-progress** (WU-10 journal UI done; Postman-like workspace polish 2026-07-30) |
 | Branch | `feature/external-services` |
 | Task | **T-052** claimed — `/logic` → `/ui` |
 | Plan | `external-services-plan/` · progress `external-services-plan/PROGRESS.md` |

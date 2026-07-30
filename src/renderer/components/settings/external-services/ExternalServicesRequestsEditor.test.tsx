@@ -11,6 +11,11 @@ import {
 import { ExternalServicesRequestsView } from "./ExternalServicesRequestsView.js";
 import { ExternalServicesRunResult } from "./ExternalServicesRunResult.js";
 
+const journal = {
+  panel: { loadState: "ready" as const, entries: [], capped: false },
+  onRetry: vi.fn(),
+};
+
 const draft: ExternalServicesRequestDraft = {
   id: "a0b1c2d3-e4f5-4a67-8b90-123456789012",
   name: "CRM event",
@@ -27,61 +32,45 @@ beforeEach(setupJsdomRadix);
 afterEach(cleanup);
 
 describe("External Services requests UI", () => {
-  it("renders the requests empty state and request badges with a fast toggle", async () => {
+  it("renders the collection workspace empty state and create action", async () => {
     const user = userEvent.setup();
-    const onToggle = vi.fn();
-    const { rerender } = render(
+    const onCreate = vi.fn();
+    render(
       <ExternalServicesRequestsView
-        collection={{ id: "collection", name: "CRM", enabled: true, enabledRequestCount: 0, requestCount: 0, variables: [] }}
-        requests={[]}
+        collection={{
+          id: "collection",
+          name: "CRM",
+          enabled: true,
+          enabledRequestCount: 0,
+          requestCount: 0,
+          variables: [],
+        }}
         busy={false}
-        onBack={vi.fn()}
-        onCreate={vi.fn()}
-        onOpen={vi.fn()}
-        onToggle={onToggle}
-        onRename={vi.fn()}
-        onDuplicate={vi.fn()}
-        onDelete={vi.fn()}
+        journal={journal}
+        onCreate={onCreate}
+        onEditVariables={vi.fn()}
       />,
     );
-    expect(screen.getByText("Запросов пока нет")).toBeInTheDocument();
-
-    rerender(
-      <ExternalServicesRequestsView
-        collection={{ id: "collection", name: "CRM", enabled: true, enabledRequestCount: 1, requestCount: 1, variables: [] }}
-        requests={[{ id: draft.id, name: draft.name, enabled: true, method: "POST" }]}
-        busy={false}
-        onBack={vi.fn()}
-        onCreate={vi.fn()}
-        onOpen={vi.fn()}
-        onToggle={onToggle}
-        onRename={vi.fn()}
-        onDuplicate={vi.fn()}
-        onDelete={vi.fn()}
-      />,
-    );
-    expect(screen.getByText("POST")).toBeInTheDocument();
-    expect(screen.getByTestId(`external-services-request-status-${draft.id}`)).toHaveTextContent("Включён");
-    await user.click(screen.getByTestId(`external-services-request-toggle-${draft.id}`));
-    expect(onToggle).toHaveBeenCalledWith(draft.id, false);
+    expect(screen.getByText("Коллекция пуста")).toBeInTheDocument();
+    await user.click(screen.getByTestId("external-services-create-request"));
+    expect(onCreate).toHaveBeenCalledOnce();
   });
 
-  it("emits editor field, table, trigger, save, delete, and discard intents", async () => {
+  it("emits editor field, table, trigger, save, delete, and send intents", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     const onSave = vi.fn();
     const onDelete = vi.fn();
-    const onBack = vi.fn();
     const onRunNow = vi.fn();
     render(
       <ExternalServicesRequestEditor
+        collectionName="CRM"
         draft={draft}
         busy={false}
         errorMessage={null}
-        isDirty
         runState="idle"
         runResult={null}
-        onBack={onBack}
+        journal={journal}
         onChange={onChange}
         onSave={onSave}
         onRunNow={onRunNow}
@@ -93,24 +82,63 @@ describe("External Services requests UI", () => {
     expect(onChange).toHaveBeenCalled();
     await user.click(screen.getByTestId("external-services-request-method"));
     await user.click(screen.getByText("PUT"));
+    await user.click(screen.getByText("Body"));
     await user.click(screen.getByTestId("external-services-body-mode"));
     await user.click(screen.getByText("Текст"));
     await user.clear(screen.getByTestId("external-services-body-editor"));
     await user.type(screen.getByTestId("external-services-body-editor"), "event={{event_type}}");
+    await user.click(screen.getByText("Params"));
     await user.click(screen.getAllByRole("button", { name: "Добавить строку" })[0]!);
     expect(onChange).toHaveBeenCalled();
+    await user.click(screen.getByText("Triggers"));
     await user.click(screen.getByTestId("external-services-trigger-call_answered"));
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ triggers: [] }));
     await user.click(screen.getByTestId("external-services-save"));
-    await user.click(screen.getByRole("button", { name: "Удалить" }));
+    await user.click(screen.getByRole("button", { name: "Действия запроса" }));
+    await user.click(screen.getByRole("menuitem", { name: "Удалить" }));
+    expect(screen.getByTestId("external-services-run-now")).toBeEnabled();
     await user.click(screen.getByTestId("external-services-run-now"));
     expect(onSave).toHaveBeenCalledOnce();
     expect(onDelete).toHaveBeenCalledOnce();
     expect(onRunNow).toHaveBeenCalledOnce();
-    await user.click(screen.getByRole("button", { name: "Назад" }));
-    expect(screen.getByText("Отменить изменения?")).toBeInTheDocument();
-    await user.click(screen.getByTestId("external-services-discard-changes"));
-    expect(onBack).toHaveBeenCalledOnce();
+  });
+
+  it("disables send when URL is empty and enables when URL is filled", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const { rerender } = render(
+      <ExternalServicesRequestEditor
+        collectionName="CRM"
+        draft={{ ...draft, url: "" }}
+        busy={false}
+        errorMessage={null}
+        runState="idle"
+        runResult={null}
+        journal={journal}
+        onChange={onChange}
+        onSave={vi.fn()}
+        onRunNow={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+    expect(screen.getByTestId("external-services-run-now")).toBeDisabled();
+    rerender(
+      <ExternalServicesRequestEditor
+        collectionName="CRM"
+        draft={draft}
+        busy={false}
+        errorMessage={null}
+        runState="idle"
+        runResult={null}
+        journal={journal}
+        onChange={onChange}
+        onSave={vi.fn()}
+        onRunNow={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+    expect(screen.getByTestId("external-services-run-now")).toBeEnabled();
+    await user.hover(screen.getByTestId("external-services-run-now"));
   });
 
   it.each([

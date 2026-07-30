@@ -32,9 +32,40 @@ export type UseExternalServicesRequestActionsResult = Readonly<{
 }>;
 
 export type ExternalServicesRequestActionResult = Readonly<
-  | { kind: "success"; settingsRevision: number }
+  | {
+      kind: "success";
+      settingsRevision: number;
+      requestId?: string;
+      request?: ExternalServicesRequestDraft;
+    }
   | { kind: "error"; messageKey: TranslationKey }
 >;
+
+type SettingsRequest = ExternalServicesSettings["collections"][number]["requests"][number];
+
+function toRequestDraft(request: SettingsRequest): ExternalServicesRequestDraft {
+  return {
+    id: request.id,
+    name: request.name,
+    enabled: request.enabled,
+    method: request.method,
+    url: request.url,
+    query: request.query.map((row) => ({
+      id: row.id,
+      key: row.key,
+      value: row.value,
+      enabled: row.enabled,
+    })),
+    headers: request.headers.map((row) => ({
+      id: row.id,
+      key: row.key,
+      value: row.value,
+      enabled: row.enabled,
+    })),
+    body: { mode: request.body.mode, value: request.body.value },
+    triggers: [...request.triggers],
+  };
+}
 
 /** - Purpose: bind request mutations to Application functions and facade persistence.
  * - Inputs: settings snapshot, revision, facade and snapshot callback.
@@ -60,7 +91,24 @@ export function useExternalServicesRequestActions(input: Input): UseExternalServ
   }, [busy, persist]);
   return {
     busy,
-    create: (collectionId) => mutate(() => createExternalServiceRequest(settings, collectionId, uuidGenerator)),
+    create: async (collectionId) => {
+      if (busy) return { kind: "error", messageKey: "settings.integrations.externalServices.disabled.busy" };
+      const created = createExternalServiceRequest(settings, collectionId, uuidGenerator);
+      if (!created.ok) return { kind: "error", messageKey: "settings.integrations.externalServices.saveError" };
+      const createdRequest = created.settings.collections
+        .find((entry) => entry.id === collectionId)
+        ?.requests.at(-1);
+      const result = await persist(created.settings);
+      if (result.kind !== "success" || createdRequest === undefined) {
+        return result;
+      }
+      return {
+        kind: "success",
+        settingsRevision: result.settingsRevision,
+        requestId: createdRequest.id,
+        request: toRequestDraft(createdRequest),
+      };
+    },
     rename: (collectionId, requestId, name) => mutate(() => renameExternalServiceRequest(settings, collectionId, requestId, name)),
     toggle: (collectionId, requestId, enabled) => mutate(() => toggleExternalServiceRequest(settings, collectionId, requestId, enabled)),
     duplicate: (collectionId, requestId) => mutate(() => duplicateExternalServiceRequest(settings, collectionId, requestId, uuidGenerator)),

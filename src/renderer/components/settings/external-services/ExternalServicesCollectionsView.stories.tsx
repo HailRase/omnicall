@@ -1,101 +1,137 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { ExternalServicesCollectionsView } from "./ExternalServicesCollectionsView.js";
+import { ExternalServicesPanel } from "./ExternalServicesPanel.js";
+import type { ExternalServicesPanelProps } from "./ExternalServicesPanel.js";
+
+const noop = (): void => undefined;
+
+const journal = {
+  panel: { loadState: "ready" as const, entries: [], capped: false },
+  onRetry: noop,
+};
+
+const baseProps: ExternalServicesPanelProps = {
+  sidebar: {
+    collections: [],
+    selection: { kind: "none" },
+    busy: false,
+    loadState: "ready",
+    onCreateCollection: noop,
+    onImportCollection: noop,
+    onSelectCollection: noop,
+    onSelectRequest: noop,
+    onCreateRequest: noop,
+    onRenameCollection: noop,
+    onDuplicateCollection: noop,
+    onExportCollection: noop,
+    onEditVariables: noop,
+    onDeleteCollection: noop,
+    onToggleRequest: noop,
+    onRenameRequest: noop,
+    onDuplicateRequest: noop,
+    onDeleteRequest: noop,
+  },
+  welcome: { journal },
+  requestsView: null,
+  requestEditor: null,
+  dialogs: {
+    busy: false,
+    errorMessage: null,
+    statusMessage: null,
+    nameDialog: { open: false, mode: "create", value: "", errorMessage: null },
+    deleteDialog: { open: false, collectionName: "" },
+    discardDialogOpen: false,
+    onRetry: noop,
+    onNameDialogOpenChange: noop,
+    onNameDialogValueChange: noop,
+    onNameDialogSubmit: noop,
+    onDeleteDialogOpenChange: noop,
+    onDeleteDialogConfirm: noop,
+    onDiscardDialogOpenChange: noop,
+    onDiscardConfirm: noop,
+  },
+  variablesDialog: null,
+};
 
 const meta = {
-  title: "Settings/External Services Collections",
-  component: ExternalServicesCollectionsView,
-  parameters: {
-    layout: "padded",
-  },
-} satisfies Meta<typeof ExternalServicesCollectionsView>;
+  title: "Settings/External Services Workspace",
+  component: ExternalServicesPanel,
+  parameters: { layout: "fullscreen" },
+} satisfies Meta<typeof ExternalServicesPanel>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const noop = (): void => undefined;
-
-const baseArgs = {
-  busy: false,
-  errorMessage: null,
-  statusMessage: null,
-  nameDialog: {
-    open: false,
-    mode: "create" as const,
-    value: "",
-    errorMessage: null,
-  },
-  deleteDialog: {
-    open: false,
-    collectionName: "",
-  },
-  onRetry: noop,
-  onCreate: noop,
-  onImport: noop,
-  onOpenCollection: noop,
-  onToggleCollection: noop,
-  onRenameCollection: noop,
-  onDuplicateCollection: noop,
-  onExportCollection: noop,
-  onEditVariables: noop,
-  onDeleteCollection: noop,
-  onNameDialogOpenChange: noop,
-  onNameDialogValueChange: noop,
-  onNameDialogSubmit: noop,
-  onDeleteDialogOpenChange: noop,
-  onDeleteDialogConfirm: noop,
-  journal: {
-    panel: { loadState: "ready" as const, entries: [], capped: false },
-    onRetry: noop,
-  },
-};
-
 export const EmptyLight: Story = {
-  args: {
-    ...baseArgs,
-    collections: [],
-    loadState: "ready",
-  },
+  args: baseProps,
   globals: { theme: "light" },
 };
 
 export const EmptyDark: Story = {
-  args: {
-    ...baseArgs,
-    collections: [],
-    loadState: "ready",
-  },
+  args: baseProps,
   globals: { theme: "dark" },
 };
 
-export const WithCollectionsLight: Story = {
+export const WithTreeLight: Story = {
   args: {
-    ...baseArgs,
-    loadState: "ready",
-    collections: [
-      {
-        id: "a0b1c2d3-e4f5-4a67-8b90-123456789012",
-        name: "CRM",
-        enabled: true,
-        enabledRequestCount: 2,
-        requestCount: 3,
-        variables: [{ key: "base_url", value: "https://crm.example" }],
+    ...baseProps,
+    sidebar: {
+      ...baseProps.sidebar,
+      collections: [
+        {
+          id: "a0b1c2d3-e4f5-4a67-8b90-123456789012",
+          name: "Bitrix 24",
+          enabled: true,
+          requests: [
+            {
+              id: "b0b1c2d3-e4f5-4a67-8b90-123456789012",
+              name: "Удаление пользователя",
+              method: "GET",
+              enabled: true,
+            },
+          ],
+        },
+        {
+          id: "c0b1c2d3-e4f5-4a67-8b90-123456789012",
+          name: "1C",
+          enabled: true,
+          requests: [],
+        },
+      ],
+      selection: {
+        kind: "request",
+        collectionId: "a0b1c2d3-e4f5-4a67-8b90-123456789012",
+        requestId: "b0b1c2d3-e4f5-4a67-8b90-123456789012",
       },
-      {
+    },
+    welcome: null,
+    requestEditor: {
+      collectionName: "Bitrix 24",
+      draft: {
         id: "b0b1c2d3-e4f5-4a67-8b90-123456789012",
-        name: "Billing",
-        enabled: false,
-        enabledRequestCount: 0,
-        requestCount: 1,
-        variables: [],
+        name: "Удаление пользователя",
+        enabled: true,
+        method: "GET",
+        url: "https://example.bitrix24.ru/rest/user.delete",
+        query: [],
+        headers: [],
+        body: { mode: "none", value: "" },
+        triggers: [],
       },
-    ],
+      busy: false,
+      errorMessage: null,
+      runState: "idle",
+      runResult: null,
+      journal,
+      onChange: noop,
+      onSave: noop,
+      onRunNow: noop,
+      onDelete: noop,
+    },
   },
   globals: { theme: "light" },
 };
 
-export const WithCollectionsDark: Story = {
-  args: {
-    ...WithCollectionsLight.args,
-  },
+export const WithTreeDark: Story = {
+  ...WithTreeLight,
   globals: { theme: "dark" },
 };

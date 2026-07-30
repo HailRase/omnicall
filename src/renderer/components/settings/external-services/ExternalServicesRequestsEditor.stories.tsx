@@ -3,6 +3,10 @@ import { ExternalServicesRequestEditor } from "./ExternalServicesRequestEditor.j
 import { ExternalServicesRequestsView } from "./ExternalServicesRequestsView.js";
 
 const noop = (): void => undefined;
+const journal = {
+  panel: { loadState: "ready" as const, entries: [], capped: false },
+  onRetry: noop,
+};
 
 const meta = {
   title: "Settings/External Services Requests",
@@ -22,24 +26,12 @@ const collection = {
   variables: [{ key: "base_url", value: "https://crm.example" }],
 };
 
-const request = {
-  id: "b0b1c2d3-e4f5-4a67-8b90-123456789012",
-  name: "Call event",
-  enabled: true,
-  method: "POST",
-};
-
 const requestViewArgs = {
   collection,
-  requests: [request],
   busy: false,
-  onBack: noop,
+  journal,
   onCreate: noop,
-  onOpen: noop,
-  onToggle: noop,
-  onRename: noop,
-  onDuplicate: noop,
-  onDelete: noop,
+  onEditVariables: noop,
 };
 
 export const RequestsLight: Story = {
@@ -56,8 +48,12 @@ export const EditorRunResultLight: Story = {
   args: requestViewArgs,
   render: () => (
     <ExternalServicesRequestEditor
+      collectionName="CRM"
       draft={{
-        ...request,
+        id: "b0b1c2d3-e4f5-4a67-8b90-123456789012",
+        name: "Call event",
+        enabled: true,
+        method: "POST",
         url: "https://crm.example/events",
         query: [{ id: "query", key: "source", value: "phone", enabled: true }],
         headers: [{ id: "header", key: "X-Source", value: "omnicall", enabled: true }],
@@ -66,10 +62,17 @@ export const EditorRunResultLight: Story = {
       }}
       busy={false}
       errorMessage={null}
-      isDirty={false}
       runState="idle"
-      runResult={{ kind: "error", category: "http", status: 422, durationMs: 85, body: "{\"error\":\"invalid\"}", bodyTruncated: false, jsonValidity: "valid" }}
-      onBack={noop}
+      runResult={{
+        kind: "error",
+        category: "http",
+        status: 422,
+        durationMs: 85,
+        body: "{\"error\":\"invalid\"}",
+        bodyTruncated: false,
+        jsonValidity: "valid",
+      }}
+      journal={journal}
       onChange={noop}
       onSave={noop}
       onRunNow={noop}

@@ -22,7 +22,7 @@
 | Journal write fails after successful HTTP | Misclassified result | Return/classify transport independently; structured journal failure log |
 | Main/preload contract broadens attack surface | Renderer privilege escalation | Narrow typed validated IPC, no raw IPC/path/Node exposure, disposer and byte limits |
 | Settings schema downgrade | Older app rejects profile | Standard fail-closed v12 behavior and migration docs; no silent downgrade |
-| UI scope becomes Postman clone | Delay/maintenance burden | Flat focused v1 editor, existing UI Kit, no scripts/auth/chaining/nested folders |
+| UI scope becomes Postman clone | Delay/maintenance burden | Adopt Postman-like **layout skeleton** only (sidebar tree + URL bar + tabs + Response/History); keep flat focused v1 editor, existing UI Kit; no scripts/auth/chaining/nested folders |
 
 ## Explicit non-goals
 
