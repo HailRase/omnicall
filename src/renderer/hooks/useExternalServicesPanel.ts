@@ -4,7 +4,7 @@
  * - Outputs: presentational sidebar, panes, dialogs, and variables dialog props.
  */
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import type {
   ExternalServicesCollectionSummaryVm,
@@ -125,6 +125,26 @@ export function useExternalServicesPanel(
   const [runState, setRunState] =
     useState<ExternalServicesRequestEditorProps["runState"]>("idle");
   const [requestErrorKey, setRequestErrorKey] = useState<TranslationKey | null>(null);
+  const [queueRefresh, setQueueRefresh] = useState(0);
+  const waitingCountRef = useRef(0);
+
+  useEffect(() => {
+    if (!sectionActive || facade === null) return;
+    const timer = window.setInterval(() => {
+      const waitingCount = facade.getExternalServicesWaitingJobs().length;
+      setQueueRefresh((value) => value + 1);
+      if (waitingCount < waitingCountRef.current) {
+        window.setTimeout(() => {
+          void journal.refresh();
+        }, 500);
+        window.setTimeout(() => {
+          void journal.refresh();
+        }, 2000);
+      }
+      waitingCountRef.current = waitingCount;
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [facade, journal, sectionActive]);
 
   const isDirty = savedDraft !== null && draft !== null && JSON.stringify(draft) !== JSON.stringify(savedDraft);
 
@@ -570,7 +590,12 @@ export function useExternalServicesPanel(
   ]);
 
   const requestEditor = useMemo((): ExternalServicesRequestEditorProps | null => {
-    if (selection.kind !== "request" || selectedCollection === null || draft === null) return null;
+    if (
+      selection.kind !== "request" ||
+      selectedCollection === null ||
+      draft === null ||
+      facade === null
+    ) return null;
     return {
       collectionName: selectedCollection.name,
       draft,
@@ -579,6 +604,21 @@ export function useExternalServicesPanel(
       runState,
       runResult,
       journal: journalProps,
+      queue: {
+        items: facade.getExternalServicesWaitingJobs().map((waiting) => ({
+          jobId: waiting.job.jobId,
+          collectionName: waiting.job.collectionName,
+          requestName: waiting.job.requestName,
+          method: waiting.job.request.method,
+          eventType: waiting.job.trigger.eventType,
+          occurredAt: waiting.job.trigger.occurredAt,
+          fireAt: waiting.fireAt,
+        })),
+        onCancel: (jobId) => {
+          facade.cancelExternalServiceQueuedJob(jobId);
+          setQueueRefresh((value) => value + 1);
+        },
+      },
       onChange: setDraft,
       onCommitName: (name) => {
         setDraft((previous) => (previous === null ? previous : { ...previous, name }));
@@ -652,6 +692,7 @@ export function useExternalServicesPanel(
     journal,
     journalProps,
     requestActions,
+    queueRefresh,
     requestErrorKey,
     runResult,
     runState,

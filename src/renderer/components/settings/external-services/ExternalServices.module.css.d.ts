@@ -56,6 +56,12 @@ declare const classes: {
   readonly methodPut: string;
   readonly nameDialogBody: string;
   readonly panel: string;
+  readonly queueCountdown: string;
+  readonly queueList: string;
+  readonly queueMain: string;
+  readonly queueMeta: string;
+  readonly queueRequestName: string;
+  readonly queueRow: string;
   readonly responseEmpty: string;
   readonly responseEmptyText: string;
   readonly responsePane: string;
@@ -117,6 +123,12 @@ declare const classes: {
   readonly treeRequests: string;
   readonly treeRowActions: string;
   readonly treeRowSelected: string;
+  readonly triggerControls: string;
+  readonly triggerDelay: string;
+  readonly triggerDelayInput: string;
+  readonly triggerDelayLabel: string;
+  readonly triggerDelayUnit: string;
+  readonly triggerLabel: string;
   readonly triggerList: string;
   readonly triggerListTitle: string;
   readonly triggerRow: string;

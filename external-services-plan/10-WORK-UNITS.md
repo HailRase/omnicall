@@ -11,7 +11,7 @@ WU-00
   → WU-01 → WU-02 → WU-03 → WU-04 → WU-05
                                       ├→ WU-06 → WU-07
                                       └→ WU-08 → WU-09 → WU-10
-  → all above → WU-11 → WU-12
+  → all above → WU-11 → WU-13 → WU-12
 ```
 
 Only one primary WU is executed per continuation prompt. Do not start UI before WU-04 is done.
@@ -683,6 +683,35 @@ Real event wiring is intentionally last so stable logic/UI cannot compromise cal
 - [ ] Re-invite/hold cannot create false ringing.
 - [ ] Campaign/ACD add no OCP wire surface.
 - [ ] Call path has no latency/failure coupling.
+
+### Continue hint
+
+`Implement WU-13 from external-services-plan/10-WORK-UNITS.md`
+
+---
+
+## WU-13 — Per-trigger delay, queue monitor, logout warning
+
+### Goal
+
+Automatic trigger bindings optionally delay dispatch by 0–180 seconds while Queue exposes and cancels waiting snapshots.
+
+### How
+
+1. Migrate triggers into `{ eventType, delaySeconds }` bindings in settings v13 without losing enabled codes.
+2. Capture the dispatch snapshot at event time, schedule it in Application, and revalidate lifecycle/revision before FIFO enqueue.
+3. Cancel waiting work on logout, revision, profile generation, dispose, or Queue intent without a journal entry.
+4. Add inline trigger delay, Queue tab, logout warning, compact journal names, five-locale copy, tests, ADR-0023, and evidence.
+
+### Boundaries
+
+- No durable queue, retry, sleep recovery, call-end cancellation, raw renderer HTTP, or in-flight abort.
+
+### Done when
+
+- [ ] Delay zero preserves immediate dispatch and manual run ignores delay.
+- [ ] Waiting Queue rows can be cancelled and logout warns only when rows exist.
+- [ ] Snapshot-at-event, lifecycle cancellation, migration, and UI states are tested.
 
 ### Continue hint
 

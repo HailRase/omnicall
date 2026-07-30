@@ -19,6 +19,7 @@ import { ExternalServicesInlineRename } from "./ExternalServicesInlineRename.js"
 import { ExternalServicesKeyValueTable } from "./ExternalServicesKeyValueTable.js";
 import type { ExternalServicesKeyValueRow } from "./ExternalServicesKeyValueTable.js";
 import type { ExternalServicesJournalProps } from "./ExternalServicesJournal.js";
+import type { ExternalServicesQueueProps } from "./ExternalServicesQueue.js";
 import { ExternalServicesRequestUrlBar } from "./ExternalServicesRequestUrlBar.js";
 import { ExternalServicesResponsePane } from "./ExternalServicesResponsePane.js";
 import type { ExternalServicesRunResultValue } from "./ExternalServicesRunResult.js";
@@ -41,7 +42,10 @@ export type ExternalServicesRequestDraft = Readonly<{
   query: ReadonlyArray<ExternalServicesKeyValueRow>;
   headers: ReadonlyArray<ExternalServicesKeyValueRow>;
   body: Readonly<{ mode: string; value: string }>;
-  triggers: ReadonlyArray<ExternalServicesAutomaticEventType>;
+  triggers: ReadonlyArray<Readonly<{
+    eventType: ExternalServicesAutomaticEventType;
+    delaySeconds: number;
+  }>>;
 }>;
 
 export type ExternalServicesRequestEditorProps = Readonly<{
@@ -52,6 +56,7 @@ export type ExternalServicesRequestEditorProps = Readonly<{
   runState: "idle" | "queued" | "running";
   runResult: ExternalServicesRunResultValue | null;
   journal: ExternalServicesJournalProps;
+  queue?: ExternalServicesQueueProps;
   onChange: (draft: ExternalServicesRequestDraft) => void;
   onCommitName: (name: string) => void;
   onSave: () => void;
@@ -81,6 +86,7 @@ export function ExternalServicesRequestEditor(
     runState,
     runResult,
     journal,
+    queue,
     onChange,
     onCommitName,
     onSave,
@@ -272,6 +278,7 @@ export function ExternalServicesRequestEditor(
           runState={runState}
           runResult={runResult}
           journal={journal}
+          {...(queue !== undefined ? { queue } : {})}
         />
       </div>
     </section>

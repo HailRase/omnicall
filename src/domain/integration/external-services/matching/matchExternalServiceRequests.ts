@@ -14,6 +14,7 @@ import type { ExternalServiceTriggerContext } from "../template/buildExternalSer
 export type MatchedExternalServiceRequest = Readonly<{
   collection: ExternalServiceCollection;
   request: ExternalServiceRequest;
+  delaySeconds: number;
 }>;
 
 const FOCUS_GATED_EVENT_TYPES = new Set([
@@ -42,11 +43,14 @@ export function matchExternalServiceRequests(
   return settings.collections.flatMap((collection) =>
     collection.enabled
       ? collection.requests
-          .filter(
-            (request) =>
-              request.enabled && request.triggers.includes(eventType),
-          )
-          .map((request) => ({ collection, request }))
+          .flatMap((request) => {
+            const binding = request.triggers.find(
+              (triggerBinding) => triggerBinding.eventType === eventType,
+            );
+            return request.enabled && binding !== undefined
+              ? [{ collection, request, delaySeconds: binding.delaySeconds }]
+              : [];
+          })
       : [],
   );
 }

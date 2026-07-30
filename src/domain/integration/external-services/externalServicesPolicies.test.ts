@@ -33,7 +33,7 @@ function createRequest(
     query: [],
     headers: [],
     body: { mode: "none", value: "" },
-    triggers: ["call_answered"],
+    triggers: [{ eventType: "call_answered", delaySeconds: 0 }],
     ...overrides,
   };
 }

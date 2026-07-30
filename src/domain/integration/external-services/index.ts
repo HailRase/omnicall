@@ -24,10 +24,12 @@ export type {
   ExternalServiceKeyValue,
   ExternalServiceRequest,
   ExternalServiceRequestBody,
+  ExternalServiceTriggerBinding,
 } from "./ExternalServiceHttpDefinition.js";
 export {
   EXTERNAL_SERVICE_BODY_MODES,
   EXTERNAL_SERVICE_HTTP_METHODS,
+  MAX_EXTERNAL_SERVICE_TRIGGER_DELAY_SECONDS,
   isExternalServiceBodyMode,
   isExternalServiceHttpMethod,
 } from "./ExternalServiceHttpDefinition.js";

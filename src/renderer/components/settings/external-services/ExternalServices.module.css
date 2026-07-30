@@ -860,7 +860,7 @@
   flex: 1 1 8rem;
   min-width: 0;
   color: var(--color-text-primary);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1138,6 +1138,110 @@
 
 .trigger-row:hover {
   background: var(--color-bg-surface);
+}
+
+.trigger-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trigger-controls {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.trigger-delay {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+}
+
+.trigger-delay-label {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.trigger-delay-unit {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.trigger-delay-input {
+  width: 3.25rem;
+  min-height: 1.75rem;
+  padding: 0 var(--space-2xs);
+  border: 1px solid var(--color-border-control);
+  border-radius: var(--radius-control);
+  background: var(--color-bg-surface);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.queue-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  margin: 0;
+  padding: var(--space-sm);
+  list-style: none;
+  overflow: hidden;
+}
+
+.queue-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-width: 0;
+  padding: var(--space-2xs) var(--space-xs);
+  border-radius: var(--radius-control);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-xs);
+}
+
+.queue-row:hover {
+  background: var(--color-bg-surface);
+}
+
+.queue-main {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.queue-request-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.queue-meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.queue-countdown {
+  flex: 0 0 auto;
+  min-width: 3rem;
+  color: var(--color-text-primary);
+  font-size: var(--font-size-sm);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--font-weight-semibold);
+  text-align: right;
 }
 
 .sticky-actions {

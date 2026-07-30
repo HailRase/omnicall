@@ -59,7 +59,7 @@ export const EditorRunResultLight: Story = {
         query: [{ id: "query", key: "source", value: "phone", enabled: true }],
         headers: [{ id: "header", key: "X-Source", value: "omnicall", enabled: true }],
         body: { mode: "json", value: "{\"event\":\"call_answered\"}" },
-        triggers: ["call_answered"],
+        triggers: [{ eventType: "call_answered", delaySeconds: 0 }],
       }}
       busy={false}
       errorMessage={null}

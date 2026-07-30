@@ -18,6 +18,7 @@ import {
   ExternalServicesRunResult,
   type ExternalServicesRunResultValue,
 } from "./ExternalServicesRunResult.js";
+import { ExternalServicesQueue, type ExternalServicesQueueProps } from "./ExternalServicesQueue.js";
 import styles from "./ExternalServices.module.css";
 
 const DEFAULT_HEIGHT_PX = 280;
@@ -28,6 +29,7 @@ export type ExternalServicesResponsePaneProps = Readonly<{
   runState: "idle" | "queued" | "running";
   runResult: ExternalServicesRunResultValue | null;
   journal: ExternalServicesJournalProps;
+  queue?: ExternalServicesQueueProps | undefined;
 }>;
 
 /**
@@ -40,6 +42,7 @@ export function ExternalServicesResponsePane({
   runState,
   runResult,
   journal,
+  queue,
 }: ExternalServicesResponsePaneProps): JSX.Element {
   const { t } = useI18n();
   const [collapsed, setCollapsed] = useState(false);
@@ -100,6 +103,9 @@ export function ExternalServicesResponsePane({
             <TabsTrigger value="history">
               {t("settings.integrations.externalServices.tabs.history")}
             </TabsTrigger>
+            <TabsTrigger value="queue" data-testid="external-services-queue-tab">
+              {t("settings.integrations.externalServices.tabs.queue")}
+            </TabsTrigger>
           </TabsList>
           <IconControlButton
             iconId={toggleIconId}
@@ -126,6 +132,9 @@ export function ExternalServicesResponsePane({
         </TabsContent>
         <TabsContent value="history" className={styles.responseTabContent}>
           <ExternalServicesJournal {...journal} />
+        </TabsContent>
+        <TabsContent value="queue" className={styles.responseTabContent}>
+          <ExternalServicesQueue items={queue?.items ?? []} onCancel={queue?.onCancel ?? (() => undefined)} />
         </TabsContent>
       </Tabs>
     </section>

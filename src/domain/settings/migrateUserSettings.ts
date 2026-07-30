@@ -72,6 +72,7 @@ export function migrateUserSettings(
   }
 
   if (
+    version === 12 ||
     version === 11 ||
     version === 10 ||
     version === 9 ||
@@ -220,8 +221,46 @@ function parseExternalServicesForMigration(
   if (raw === undefined) {
     return EXTERNAL_SERVICES_DEFAULTS;
   }
-  const parsed = parseExternalServicesSettings(raw);
+  const parsed = parseExternalServicesSettings(migrateExternalServiceTriggers(raw));
   return parsed.ok ? parsed.value : null;
+}
+
+function migrateExternalServiceTriggers(value: unknown): unknown {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return value;
+  }
+  const settings = value as Record<string, unknown>;
+  if (!Array.isArray(settings["collections"])) {
+    return value;
+  }
+  return {
+    ...settings,
+    collections: settings["collections"].map((collection) => {
+      if (typeof collection !== "object" || collection === null || Array.isArray(collection)) {
+        return collection;
+      }
+      const collectionRecord = collection as Record<string, unknown>;
+      if (!Array.isArray(collectionRecord["requests"])) {
+        return collection;
+      }
+      return {
+        ...collectionRecord,
+        requests: collectionRecord["requests"].map((request) => {
+          if (typeof request !== "object" || request === null || Array.isArray(request)) {
+            return request;
+          }
+          const requestRecord = request as Record<string, unknown>;
+          const triggers = requestRecord["triggers"];
+          return Array.isArray(triggers) && triggers.every((item) => typeof item === "string")
+            ? {
+                ...requestRecord,
+                triggers: triggers.map((eventType) => ({ eventType, delaySeconds: 0 })),
+              }
+            : request;
+        }),
+      };
+    }),
+  };
 }
 
 function migrateV1ToCurrent(record: Record<string, unknown>): UserSettings {

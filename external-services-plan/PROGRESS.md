@@ -18,6 +18,7 @@
 | WU-09 | Requests editor and Run now UI | done | 2026-07-30 | Request workspace URL bar + Params/Headers/Body/Triggers tabs + Send/Response (polish); mutation hook; unsaved-discard; ru/en/fr/de/bg i18n; light/dark stories; focused tests PASS |
 | WU-10 | Journal UI | done | 2026-07-30 | Journal panel VM + History tab in response pane (cap 100, redacted headers, truncation); empty/loading/error/retry; ru/en/fr/de/bg i18n; projection/component tests + light/dark stories PASS |
 | WU-11 | Real event integration hardening | done | 2026-07-30 | `callFocusProjection`; committed store focus reducer; `readExternalServicesProductStateFromStore`; post-commit `bindExternalServicesAutomation`; focus/reader/binder/automation tests; typecheck/lint/registry PASS |
+| WU-13 | Per-trigger delay, queue monitor, logout warning | in_progress | 2026-07-30 | ADR-0023; schema v13; scheduler, Queue, and logout warning in progress |
 | WU-12 | Documentation close, preflight, and release decision | pending | 2026-07-29 | — |
 
 ## State rules
@@ -26,4 +27,4 @@
 - Exactly one primary WU may be `in_progress`.
 - Mark `done` only after its tests, canonical docs, and work-history evidence exist.
 - Record blockers in the Evidence column and stop before dependent WUs.
-- Current next WU: `WU-12`.
+- Current next WU: `WU-13`.

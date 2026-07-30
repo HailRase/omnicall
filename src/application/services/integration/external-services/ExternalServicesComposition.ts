@@ -40,7 +40,9 @@ import {
 } from "../../../use-cases/integration/SaveExternalServicesSettingsUseCase.js";
 import { ExternalServicesAutomationService } from "./ExternalServicesAutomationService.js";
 import { ExternalServicesDispatchQueue } from "./ExternalServicesDispatchQueue.js";
+import { ExternalServicesDelayScheduler } from "./ExternalServicesDelayScheduler.js";
 import type { ExternalServiceExecutionResult } from "./ExternalServiceExecutionResult.js";
+import type { ExternalServicesWaitingJob } from "./ExternalServicesDelayScheduler.js";
 import type { ExternalServicesProductSnapshot } from "./ExternalServicesProductSnapshot.js";
 import { ExternalServicesRuntimeRegistry } from "./ExternalServicesRuntimeRegistry.js";
 
@@ -56,6 +58,7 @@ export type ExternalServicesCompositionDeps = Readonly<{
 export class ExternalServicesComposition {
   readonly registry: ExternalServicesRuntimeRegistry;
   readonly queue: ExternalServicesDispatchQueue;
+  readonly scheduler: ExternalServicesDelayScheduler;
   readonly automation: ExternalServicesAutomationService;
   readonly runNow: RunExternalServiceRequestNowUseCase;
   readonly saveSettings: SaveExternalServicesSettingsUseCase | null;
@@ -83,9 +86,16 @@ export class ExternalServicesComposition {
       },
       logger: deps.logger,
     });
+    this.scheduler = new ExternalServicesDelayScheduler({
+      clock: deps.clock,
+      registry: this.registry,
+      enqueue: (job) => this.queue.enqueue(job),
+      logger: deps.logger,
+    });
     this.automation = new ExternalServicesAutomationService({
       registry: this.registry,
       queue: this.queue,
+      scheduler: this.scheduler,
       uuidGenerator: deps.uuidGenerator,
       logger: deps.logger,
     });
@@ -141,17 +151,20 @@ export class ExternalServicesComposition {
     this.queue.dropPendingWhere(
       (job) => job.lifecycleGeneration !== generation,
     );
+    this.scheduler.cancelWhere((job) => job.lifecycleGeneration !== generation);
   }
 
   replaceActiveSettings(settings: ExternalServicesSettings): void {
     this.registry.replaceSettings(settings);
     const revision = this.registry.getSnapshot().settingsRevision;
     this.queue.dropPendingWhere((job) => job.settingsRevision !== revision);
+    this.scheduler.cancelWhere((job) => job.settingsRevision !== revision);
   }
 
   invalidateLifecycle(): void {
     this.registry.invalidateLifecycle();
     this.queue.dropPendingWhere(() => true);
+    this.scheduler.cancelWhere(() => true);
   }
 
   handleCommittedEvent(
@@ -167,11 +180,17 @@ export class ExternalServicesComposition {
     return this.runNow.execute(input);
   }
 
-  saveExternalServicesSettings(input: SaveExternalServicesSettingsInput) {
+  async saveExternalServicesSettings(input: SaveExternalServicesSettingsInput) {
     if (this.saveSettings === null) {
       return Promise.reject(new Error("external_services_settings_unavailable"));
     }
-    return this.saveSettings.execute(input);
+    const result = await this.saveSettings.execute(input);
+    if (result.ok) {
+      const revision = result.value.settingsRevision;
+      this.queue.dropPendingWhere((job) => job.settingsRevision !== revision);
+      this.scheduler.cancelWhere((job) => job.settingsRevision !== revision);
+    }
+    return result;
   }
 
   queryExternalServices(input: QueryExternalServicesInput) {
@@ -181,6 +200,14 @@ export class ExternalServicesComposition {
     return this.query.execute(input);
   }
 
+  getWaitingJobs(): ReadonlyArray<ExternalServicesWaitingJob> {
+    return this.scheduler.getWaiting();
+  }
+
+  cancelExternalServiceQueuedJob(jobId: string): boolean {
+    return this.scheduler.cancel(jobId);
+  }
+
   exportExternalServiceCollection(input: ExportExternalServiceCollectionInput) {
     if (this.exportCollection === null) {
       return Promise.reject(new Error("external_services_export_unavailable"));
@@ -188,14 +215,21 @@ export class ExternalServicesComposition {
     return this.exportCollection.execute(input);
   }
 
-  importExternalServiceCollection(input: ImportExternalServiceCollectionInput) {
+  async importExternalServiceCollection(input: ImportExternalServiceCollectionInput) {
     if (this.importCollection === null) {
       return Promise.reject(new Error("external_services_import_unavailable"));
     }
-    return this.importCollection.execute(input);
+    const result = await this.importCollection.execute(input);
+    if (result.ok) {
+      const revision = this.registry.getSnapshot().settingsRevision;
+      this.queue.dropPendingWhere((job) => job.settingsRevision !== revision);
+      this.scheduler.cancelWhere((job) => job.settingsRevision !== revision);
+    }
+    return result;
   }
 
   dispose(): void {
+    this.scheduler.dispose();
     this.queue.dispose();
   }
 }

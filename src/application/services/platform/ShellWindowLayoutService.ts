@@ -19,6 +19,10 @@ export type ShellWindowLayoutServiceInput = Readonly<{
   reducedMotion: boolean;
 }>;
 
+/** Renderer-safe alias for settings close hold (= BrowserWindow layout animation). */
+export const SETTINGS_SHELL_LAYOUT_ANIMATION_MS =
+  SHELL_WINDOW_LAYOUT.animationDurationMs;
+
 export class ShellWindowLayoutService {
   constructor(private readonly gateway: ShellWindowGateway) {}
 

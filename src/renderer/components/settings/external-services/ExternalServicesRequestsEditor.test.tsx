@@ -25,7 +25,7 @@ const draft: ExternalServicesRequestDraft = {
   query: [{ id: "query-1", key: "source", value: "phone", enabled: true }],
   headers: [{ id: "header-1", key: "X-Token", value: "safe", enabled: true }],
   body: { mode: "json", value: "{\"event\":\"call\"}" },
-  triggers: ["call_answered"],
+  triggers: [{ eventType: "call_answered", delaySeconds: 0 }],
 };
 
 beforeEach(setupJsdomRadix);
@@ -179,6 +179,7 @@ describe("External Services requests UI", () => {
     await user.click(screen.getAllByRole("button", { name: "Добавить строку" })[0]!);
     expect(onChange).toHaveBeenCalled();
     await user.click(screen.getByRole("tab", { name: /Triggers/ }));
+    expect(screen.getByTestId("external-services-trigger-delay-call_answered")).toBeInTheDocument();
     await user.click(screen.getByTestId("external-services-trigger-call_answered"));
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ triggers: [] }));
     await user.click(screen.getByTestId("external-services-save"));

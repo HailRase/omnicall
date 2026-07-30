@@ -422,6 +422,7 @@ export const bgMessages: MessageShape = {
   "session.logout.confirmAria": "Потвърди прекратяването на сесията",
   "session.logout.confirmDialogAria": "Потвърждение за прекратяване на сесията",
   "session.logout.confirmMessage": "Има активно обаждане. Да приключат ли обажданията и да излезете?",
+  "session.logout.delayedJobsWarning": "Чакащите автоматизации ще бъдат отменени.",
   "session.logout.disabled.inProgress": "Изходът е в ход",
   "session.logout.disabled.registrationInProgress": "Регистрацията е в ход",
   "session.logout.title": "Край на сесията",
@@ -825,6 +826,11 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalServices.tabs.variables": "Variables",
   "settings.integrations.externalServices.tabs.response": "Response",
   "settings.integrations.externalServices.tabs.history": "History",
+  "settings.integrations.externalServices.tabs.queue": "Опашка",
+  "settings.integrations.externalServices.editor.triggerDelay": "Закъснение",
+  "settings.integrations.externalServices.editor.triggerDelayUnit": "с",
+  "settings.integrations.externalServices.queue.empty": "Няма отложени заявки",
+  "settings.integrations.externalServices.queue.cancel": "Премахни от опашката",
   "settings.integrations.externalServices.variables.syntaxHint":
     "Синтаксис {{име}}. Вмъкване в URL или Body с фокус.",
   "settings.integrations.externalServices.variables.insertTargetLabel": (params: Readonly<{

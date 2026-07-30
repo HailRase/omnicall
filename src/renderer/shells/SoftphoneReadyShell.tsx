@@ -127,6 +127,10 @@ function SoftphoneShellLayoutRoute({
   }, [overlayShell]);
   const shellNavigation = useShellNavigation();
   const [settingsSidebarExpanded, setSettingsSidebarExpanded] = useState(false);
+  /** Stays true through opaque close hold so shell chrome does not flash under the overlay. */
+  const [settingsOverlayVisible, setSettingsOverlayVisible] = useState(false);
+  const settingsChromeActive =
+    overlayShell.settingsOpen || settingsOverlayVisible;
   const [activateConsentPending, setActivateConsentPending] =
     useState<SdkActivateConsentPending | null>(null);
   useEffect(() => subscribeSdkActivateConsent(setActivateConsentPending), []);
@@ -417,7 +421,7 @@ function SoftphoneShellLayoutRoute({
   });
   const windowControls = useShellWindowControls({
     isShuttingDown,
-    settingsOpen: overlayShell.settingsOpen,
+    settingsOpen: settingsChromeActive,
   });
 
   return (
@@ -430,7 +434,7 @@ function SoftphoneShellLayoutRoute({
             userAvatarMenu={userAvatarMenu}
             userAvatarMenuActions={userAvatarMenuActions}
             windowControls={windowControls}
-            suppressWindowControls={overlayShell.settingsOpen}
+            suppressWindowControls={settingsChromeActive}
             operatorStatusSlot={
               <OperatorStatusSelector
                 vm={operatorStatusSelector.vm}
@@ -539,7 +543,7 @@ function SoftphoneShellLayoutRoute({
               accountActions.authorizationProgress.failedExecutionStage !== null
             }
             busy={accountActions.submitting}
-            density={overlayShell.settingsOpen ? "comfortable" : "compact"}
+            density={settingsChromeActive ? "comfortable" : "compact"}
             onDisconnect={accountActions.handleOcpSignInDisconnect}
             onReconnect={accountActions.handleOcpSignInReconnect}
             onSuccessSettled={accountActions.handleOcpSignInSuccessSettled}
@@ -611,6 +615,7 @@ function SoftphoneShellLayoutRoute({
             open={overlayShell.settingsOpen}
             onClose={overlayShell.closeOverlay}
             windowControls={windowControls}
+            onVisibleChange={setSettingsOverlayVisible}
           >
             <SettingsPanel
               activeSection={overlayShell.settingsSection}

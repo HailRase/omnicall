@@ -10,6 +10,13 @@ import type {
 } from "./ExternalServiceIds.js";
 import type { ExternalServiceAutomaticEventType } from "./ExternalServiceEventType.js";
 
+export const MAX_EXTERNAL_SERVICE_TRIGGER_DELAY_SECONDS = 180;
+
+export type ExternalServiceTriggerBinding = Readonly<{
+  eventType: ExternalServiceAutomaticEventType;
+  delaySeconds: number;
+}>;
+
 export const EXTERNAL_SERVICE_HTTP_METHODS = [
   "GET",
   "POST",
@@ -52,7 +59,7 @@ export type ExternalServiceRequest = Readonly<{
   query: ReadonlyArray<ExternalServiceKeyValue>;
   headers: ReadonlyArray<ExternalServiceKeyValue>;
   body: ExternalServiceRequestBody;
-  triggers: ReadonlyArray<ExternalServiceAutomaticEventType>;
+  triggers: ReadonlyArray<ExternalServiceTriggerBinding>;
 }>;
 
 export function isExternalServiceHttpMethod(

@@ -134,9 +134,9 @@ export function interpolateShellWindowBounds(
 }
 
 /**
- * - Purpose: map animation elapsed time to eased progress matching settings overlay CSS.
- * - Inputs: elapsed ms, duration ms, easing kind.
- * - Outputs: progress in 0..1.
+ * - Purpose: map animation elapsed time to eased progress for BrowserWindow layout (F-016).
+ * - Inputs: elapsed ms, duration ms, easing kind (open vs close).
+ * - Outputs: progress in 0..1 (settings overlay close hold uses the same duration).
  */
 export function resolveShellWindowAnimationProgress(
   elapsedMs: number,

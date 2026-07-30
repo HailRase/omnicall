@@ -4431,6 +4431,14 @@ export class AccountBootstrapFacade {
     this.deps.externalServicesComposition?.handleCommittedEvent(event, snapshot);
   }
 
+  getExternalServicesWaitingJobs() {
+    return this.deps.externalServicesComposition?.getWaitingJobs() ?? [];
+  }
+
+  cancelExternalServiceQueuedJob(jobId: string): boolean {
+    return this.deps.externalServicesComposition?.cancelExternalServiceQueuedJob(jobId) ?? false;
+  }
+
   runExternalServiceRequestNow(
     input: RunExternalServiceRequestNowInput,
   ): Promise<ExternalServiceExecutionResult> {

@@ -20,6 +20,8 @@ import {
   type ExternalServiceKeyValue,
   type ExternalServiceRequest,
   type ExternalServiceRequestBody,
+  type ExternalServiceTriggerBinding,
+  MAX_EXTERNAL_SERVICE_TRIGGER_DELAY_SECONDS,
 } from "./ExternalServiceHttpDefinition.js";
 import {
   MAX_EXTERNAL_SERVICE_NAME_LENGTH,
@@ -212,7 +214,7 @@ function parseTriggers(
   value: unknown,
   path: string,
   errors: ExternalServicesSettingsValidationError[],
-): ExternalServiceAutomaticEventType[] {
+): ExternalServiceTriggerBinding[] {
   if (!Array.isArray(value)) {
     invalid(errors, path, "not_array");
     return [];
@@ -220,15 +222,26 @@ function parseTriggers(
   const seen = new Set<string>();
   return value.map((trigger, index) => {
     const triggerPath = `${path}[${index}]`;
-    if (!isExternalServiceAutomaticEventType(trigger)) {
+    if (!isRecord(trigger) || !isExternalServiceAutomaticEventType(trigger["eventType"])) {
       invalid(errors, triggerPath, "invalid");
-      return "incoming_ringing";
+      return Object.freeze({ eventType: "incoming_ringing" as const, delaySeconds: 0 });
     }
-    if (seen.has(trigger)) {
+    const eventType: ExternalServiceAutomaticEventType = trigger["eventType"];
+    if (seen.has(eventType)) {
       invalid(errors, triggerPath, "duplicate");
     }
-    seen.add(trigger);
-    return trigger;
+    seen.add(eventType);
+    const delaySeconds = trigger["delaySeconds"];
+    if (
+      typeof delaySeconds !== "number" ||
+      !Number.isInteger(delaySeconds) ||
+      delaySeconds < 0 ||
+      delaySeconds > MAX_EXTERNAL_SERVICE_TRIGGER_DELAY_SECONDS
+    ) {
+      invalid(errors, `${triggerPath}.delaySeconds`, "invalid_delay");
+      return Object.freeze({ eventType, delaySeconds: 0 });
+    }
+    return Object.freeze({ eventType, delaySeconds });
   });
 }
 

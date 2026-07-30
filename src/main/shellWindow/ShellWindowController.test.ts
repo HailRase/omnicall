@@ -23,6 +23,7 @@ type MockBrowserWindow = {
 
 function createMockWindow(bounds: Electron.Rectangle): MockBrowserWindow {
   let currentBounds = { ...bounds };
+  let restoreBounds = { ...bounds };
   let maximized = false;
   const handlers = new Map<string, Array<() => void>>();
 
@@ -39,13 +40,27 @@ function createMockWindow(bounds: Electron.Rectangle): MockBrowserWindow {
     setMinimumSize: vi.fn(),
     isMaximized: vi.fn(() => maximized),
     maximize: vi.fn(() => {
+      if (maximized) {
+        return;
+      }
+      restoreBounds = { ...currentBounds };
+      currentBounds = {
+        x: WORK_AREA.x,
+        y: WORK_AREA.y,
+        width: WORK_AREA.width,
+        height: WORK_AREA.height,
+      };
       maximized = true;
       for (const handler of handlers.get("maximize") ?? []) {
         handler();
       }
     }),
     unmaximize: vi.fn(() => {
+      if (!maximized) {
+        return;
+      }
       maximized = false;
+      currentBounds = { ...restoreBounds };
       for (const handler of handlers.get("unmaximize") ?? []) {
         handler();
       }
@@ -167,6 +182,12 @@ describe("ShellWindowController", () => {
     expect(controller.toggleMaximize()).toEqual({ ok: true });
     expect(window.maximize).toHaveBeenCalledTimes(1);
     expect(controller.isMaximized()).toBe(true);
+    expect(window.getBounds()).toEqual({
+      x: WORK_AREA.x,
+      y: WORK_AREA.y,
+      width: WORK_AREA.width,
+      height: WORK_AREA.height,
+    });
 
     expect(controller.toggleMaximize()).toEqual({ ok: true });
     expect(window.unmaximize).toHaveBeenCalledTimes(1);
@@ -176,6 +197,44 @@ describe("ShellWindowController", () => {
       width: SHELL_WINDOW_LAYOUT.settingsMinWidth,
       height: 900,
     });
+  });
+
+  it("closes maximized settings to compact from work-area bounds without settings-min snap", async () => {
+    const compactBounds = {
+      x: 1920 - 420 - SHELL_WINDOW_LAYOUT.screenMargin,
+      y: 1080 - 720 - SHELL_WINDOW_LAYOUT.screenMargin,
+      width: 420,
+      height: 720,
+    };
+    const window = createMockWindow(compactBounds);
+    const controller = new ShellWindowController(
+      window as unknown as Electron.BrowserWindow,
+      () => WORK_AREA,
+    );
+
+    controller.placeCompactAtStartup();
+    await controller.applyLayout("settings", 0, true);
+    expect(controller.toggleMaximize()).toEqual({ ok: true });
+    expect(window.getBounds()).toEqual({
+      x: WORK_AREA.x,
+      y: WORK_AREA.y,
+      width: WORK_AREA.width,
+      height: WORK_AREA.height,
+    });
+
+    window.setBounds.mockClear();
+    await controller.applyLayout("compact", 0, true);
+
+    expect(window.unmaximize).toHaveBeenCalled();
+    const widths = window.setBounds.mock.calls.map((call) => {
+      const partial = call[0] as Partial<Electron.Rectangle>;
+      return partial.width;
+    });
+    expect(widths).not.toContain(SHELL_WINDOW_LAYOUT.settingsMinWidth);
+    // Continuity pin: re-apply work-area size after Electron restore, then compact target.
+    expect(widths[0]).toBe(WORK_AREA.width);
+    expect(window.getBounds()).toEqual(compactBounds);
+    expect(controller.isMaximized()).toBe(false);
   });
 
   it("restores compact width and height after settings resize", async () => {

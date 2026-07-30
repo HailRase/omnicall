@@ -10,6 +10,7 @@ import type { Logger, UuidGenerator } from "@ports/index.js";
 import { createCorrelationId } from "@shared/correlation-id/index.js";
 import type { ExternalServiceDispatchJob } from "./ExternalServiceDispatchJob.js";
 import type { ExternalServicesDispatchQueue } from "./ExternalServicesDispatchQueue.js";
+import type { ExternalServicesDelayScheduler } from "./ExternalServicesDelayScheduler.js";
 import type { ExternalServicesProductSnapshot } from "./ExternalServicesProductSnapshot.js";
 import type { ExternalServicesRuntimeRegistry } from "./ExternalServicesRuntimeRegistry.js";
 import { ExternalServicesCallContextTracker } from "./ExternalServicesCallContextTracker.js";
@@ -18,6 +19,7 @@ import { mapDomainEventToExternalServiceTrigger } from "./mapDomainEventToExtern
 export type ExternalServicesAutomationServiceDeps = Readonly<{
   registry: ExternalServicesRuntimeRegistry;
   queue: ExternalServicesDispatchQueue;
+  scheduler: ExternalServicesDelayScheduler;
   uuidGenerator: UuidGenerator;
   logger: Logger;
   tracker?: ExternalServicesCallContextTracker;
@@ -54,7 +56,7 @@ export class ExternalServicesAutomationService {
         mapped.focusedAtEvent,
       );
       for (const match of matches) {
-        this.deps.queue.enqueue(
+        this.deps.scheduler.schedule(
           createAutomaticJob({
             match,
             trigger: mapped.trigger,
@@ -64,6 +66,7 @@ export class ExternalServicesAutomationService {
             jobId: this.deps.uuidGenerator.generate(),
             correlationId: createCorrelationId(),
           }),
+          match.delaySeconds,
         );
       }
     } catch (error: unknown) {
