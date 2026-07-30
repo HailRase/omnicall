@@ -79,7 +79,7 @@ Base catalog:
 - `user_login`
 - `hangup_reason`
 
-Campaign/ACD fields are additive only when already present in typed Domain/Application projections. Collection variables include user-defined entries such as `base_url`. Every occurrence of `{{name}}` is replaced; an absent variable becomes the literal `undefined`.
+Campaign/ACD fields are additive only when already present in typed Domain/Application projections. Collection variables include user-defined entries such as `base_url` (shared constants for the collection; edited via collection Variables dialog / preview). Every occurrence of `{{name}}` is replaced; an absent variable becomes the literal `undefined`. Duplicate collection keys and empty-key-with-value rows are rejected on save; colliding system names are soft-warned and overridden at run time. The request editor Variables tab must list the Domain system catalog so operators can discover names such as `call_id` / `user_login` without developer docs.
 
 ## Run now and result UX
 

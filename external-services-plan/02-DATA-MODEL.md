@@ -65,6 +65,8 @@ Invariants:
 - Trimmed non-empty collection name with a documented maximum length of 120 characters.
 - Variable keys are trimmed, non-empty, case-sensitive, and unique within the collection.
 - Empty values are valid; `base_url` is conventional, not reserved or automatically inserted.
+- Mutation/normalize rejects duplicate keys and rows with an empty key plus a non-empty value; blank key+value draft rows are dropped.
+- Authored keys that match system catalog names are allowed but overridden at run time (UI soft-warns).
 - Request IDs are unique across the entire settings aggregate, not only a collection.
 - There is no nested folder field or count limit.
 

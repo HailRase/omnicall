@@ -61,7 +61,19 @@ const ruMessages = {
     `Коллекция «${params.name}» и все её запросы будут удалены из активного профиля.`,
   "settings.integrations.externalServices.collections.variablesTitle": "Переменные коллекции",
   "settings.integrations.externalServices.collections.variablesDescription":
-    "Ключи доступны в шаблонах как {{name}}. Экспорт может содержать учётные данные.",
+    "Свои константы для всех запросов коллекции. В URL, Params, Headers и Body пишите {{ключ}}.",
+  "settings.integrations.externalServices.collections.variablesHint":
+    "Общие значения коллекции (хост, токен). Системные поля звонка — во вкладке Variables у запроса; системные имена нельзя подменить.",
+  "settings.integrations.externalServices.collections.variablesExample":
+    "Пример: {{base_url}}/hooks/ring · {{api_token}}",
+  "settings.integrations.externalServices.collections.variablesKeyPlaceholder": "base_url",
+  "settings.integrations.externalServices.collections.variablesValuePlaceholder":
+    "https://crm.example.com",
+  "settings.integrations.externalServices.collections.variablesToken": "Плейсхолдер",
+  "settings.integrations.externalServices.collections.variablesSystemWarning":
+    "Ключ совпадает с системным именем — при запуске значение задаст система.",
+  "settings.integrations.externalServices.collections.variablesSystemHint":
+    "Системное имя будет перекрыто при запуске.",
   "settings.integrations.externalServices.collections.variablesAdd": "Добавить переменную",
   "settings.integrations.externalServices.collections.variablesKey": "Ключ",
   "settings.integrations.externalServices.collections.variablesValue": "Значение",
@@ -119,6 +131,10 @@ const ruMessages = {
   "settings.integrations.externalServices.validation.nameRequired": "Укажите название коллекции.",
   "settings.integrations.externalServices.validation.nameTooLong":
     "Название коллекции слишком длинное.",
+  "settings.integrations.externalServices.validation.duplicateVariableKey":
+    "Ключ переменной должен быть уникальным.",
+  "settings.integrations.externalServices.validation.emptyVariableKey":
+    "Укажите ключ или очистите значение.",
   "settings.integrations.externalServices.requests.create": "Новый запрос",
   "settings.integrations.externalServices.requests.emptyTitle": "Запросов пока нет",
   "settings.integrations.externalServices.requests.renameTitle": "Переименовать запрос",
@@ -143,6 +159,8 @@ const ruMessages = {
   "settings.integrations.externalServices.editor.bodyMode": "Формат тела",
   "settings.integrations.externalServices.editor.body": "Тело запроса",
   "settings.integrations.externalServices.editor.triggersTitle": "Автоматические события",
+  "settings.integrations.externalServices.editor.triggersHint":
+    "Запрос отправится при выбранных событиях, если коллекция и запрос включены. События звонка срабатывают только для сфокусированной линии. Подставляемые поля — во вкладке Variables.",
   "settings.integrations.externalServices.bodyMode.none": "Без тела",
   "settings.integrations.externalServices.bodyMode.json": "JSON",
   "settings.integrations.externalServices.bodyMode.x-www-form-urlencoded": "Форма URL-encoded",
@@ -180,7 +198,8 @@ const ruMessages = {
   "settings.integrations.externalServices.run.category.aborted": "Запрос отменён",
   "settings.integrations.externalServices.run.category.validation": "Ошибка проверки запроса",
   "settings.integrations.externalServices.run.send": "Отправить",
-  "settings.integrations.externalServices.editor.urlPlaceholder": "Введите URL или вставьте текст",
+  "settings.integrations.externalServices.editor.urlPlaceholder":
+    "https://example.com/hook?id={{call_id}}",
   "settings.integrations.externalServices.sidebar.collections": "Коллекции",
   "settings.integrations.externalServices.sidebar.emptyCollection": "Коллекция пуста",
   "settings.integrations.externalServices.sidebar.expand": (params: Readonly<{ name: string }>) =>
@@ -198,8 +217,58 @@ const ruMessages = {
   "settings.integrations.externalServices.tabs.headers": "Headers",
   "settings.integrations.externalServices.tabs.body": "Body",
   "settings.integrations.externalServices.tabs.triggers": "Triggers",
+  "settings.integrations.externalServices.tabs.variables": "Variables",
   "settings.integrations.externalServices.tabs.response": "Response",
   "settings.integrations.externalServices.tabs.history": "History",
+  "settings.integrations.externalServices.variables.syntaxHint":
+    "Синтаксис {{имя}}. Вставка в URL или Body с фокусом.",
+  "settings.integrations.externalServices.variables.insertTargetLabel": (params: Readonly<{
+    target: string;
+  }>) => `Цель: ${params.target}`,
+  "settings.integrations.externalServices.variables.insertTarget.url": "URL",
+  "settings.integrations.externalServices.variables.insertTarget.body": "Body",
+  "settings.integrations.externalServices.variables.insert": "Вставить",
+  "settings.integrations.externalServices.variables.insertAria": (params: Readonly<{
+    token: string;
+  }>) => `Вставить ${params.token}`,
+  "settings.integrations.externalServices.variables.group.always": "Всегда",
+  "settings.integrations.externalServices.variables.group.call": "Звонок",
+  "settings.integrations.externalServices.variables.group.campaign": "Кампания",
+  "settings.integrations.externalServices.variables.group.acd": "ACD",
+  "settings.integrations.externalServices.variables.label.timestamp": "Время",
+  "settings.integrations.externalServices.variables.label.event_type": "Тип события",
+  "settings.integrations.externalServices.variables.label.user_login": "Логин",
+  "settings.integrations.externalServices.variables.label.call_id": "ID звонка",
+  "settings.integrations.externalServices.variables.label.caller_id": "Звонящий",
+  "settings.integrations.externalServices.variables.label.called_id": "Вызываемый",
+  "settings.integrations.externalServices.variables.label.call_direction": "Направление",
+  "settings.integrations.externalServices.variables.label.hangup_reason": "Причина завершения",
+  "settings.integrations.externalServices.variables.label.campaign_id": "ID кампании",
+  "settings.integrations.externalServices.variables.label.campaign_progressive": "Прогрессивная",
+  "settings.integrations.externalServices.variables.label.campaign_client_phone": "Телефон клиента",
+  "settings.integrations.externalServices.variables.label.campaign_company": "Компания",
+  "settings.integrations.externalServices.variables.label.campaign_strategy": "Стратегия",
+  "settings.integrations.externalServices.variables.label.campaign_selection": "Выборка",
+  "settings.integrations.externalServices.variables.label.queue_name": "Очередь",
+  "settings.integrations.externalServices.variables.label.acd_phase": "Фаза ACD",
+  "settings.integrations.externalServices.variables.label.acd_event": "Событие ACD",
+  "settings.integrations.externalServices.variables.desc.timestamp": "ISO-8601 UTC",
+  "settings.integrations.externalServices.variables.desc.event_type": "Код события триггера",
+  "settings.integrations.externalServices.variables.desc.user_login": "Логин активного профиля",
+  "settings.integrations.externalServices.variables.desc.call_id": "Идентификатор звонка",
+  "settings.integrations.externalServices.variables.desc.caller_id": "Номер или ID звонящего",
+  "settings.integrations.externalServices.variables.desc.called_id": "Номер или ID вызываемого",
+  "settings.integrations.externalServices.variables.desc.call_direction": "inbound или outbound",
+  "settings.integrations.externalServices.variables.desc.hangup_reason": "Причина hangup",
+  "settings.integrations.externalServices.variables.desc.campaign_id": "Идентификатор кампании",
+  "settings.integrations.externalServices.variables.desc.campaign_progressive": "true или false",
+  "settings.integrations.externalServices.variables.desc.campaign_client_phone": "Телефон клиента",
+  "settings.integrations.externalServices.variables.desc.campaign_company": "Название компании",
+  "settings.integrations.externalServices.variables.desc.campaign_strategy": "Стратегия кампании",
+  "settings.integrations.externalServices.variables.desc.campaign_selection": "Выборка кампании",
+  "settings.integrations.externalServices.variables.desc.queue_name": "Имя очереди",
+  "settings.integrations.externalServices.variables.desc.acd_phase": "Текущая фаза",
+  "settings.integrations.externalServices.variables.desc.acd_event": "Код ACD-события",
   "settings.integrations.ocp.title": "OCP Module",
   "settings.integrations.ocp.description": "Операторская платформа OCP: логин, домен, API-ключ и подключение.",
   "settings.integrations.ocp.editOnly.description": "Настройка OCP для активного профиля. Вход и восстановление — только в разделе «Аккаунт».",
@@ -1614,7 +1683,19 @@ const enMessages: MessageShape = {
     `Collection “${params.name}” and all of its requests will be removed from the active profile.`,
   "settings.integrations.externalServices.collections.variablesTitle": "Collection variables",
   "settings.integrations.externalServices.collections.variablesDescription":
-    "Keys are available in templates as {{name}}. Exports may include credentials.",
+    "Shared constants for every request in this collection. Use {{key}} in URL, Params, Headers, and Body.",
+  "settings.integrations.externalServices.collections.variablesHint":
+    "Collection-wide values (host, token). Call system fields live on the request Variables tab; system names cannot be overridden.",
+  "settings.integrations.externalServices.collections.variablesExample":
+    "Example: {{base_url}}/hooks/ring · {{api_token}}",
+  "settings.integrations.externalServices.collections.variablesKeyPlaceholder": "base_url",
+  "settings.integrations.externalServices.collections.variablesValuePlaceholder":
+    "https://crm.example.com",
+  "settings.integrations.externalServices.collections.variablesToken": "Placeholder",
+  "settings.integrations.externalServices.collections.variablesSystemWarning":
+    "A key matches a system name — the system value wins at run time.",
+  "settings.integrations.externalServices.collections.variablesSystemHint":
+    "System name will be overridden at run time.",
   "settings.integrations.externalServices.collections.variablesAdd": "Add variable",
   "settings.integrations.externalServices.collections.variablesKey": "Key",
   "settings.integrations.externalServices.collections.variablesValue": "Value",
@@ -1671,6 +1752,10 @@ const enMessages: MessageShape = {
   "settings.integrations.externalServices.validation.nameRequired": "Enter a collection name.",
   "settings.integrations.externalServices.validation.nameTooLong":
     "Collection name is too long.",
+  "settings.integrations.externalServices.validation.duplicateVariableKey":
+    "Variable keys must be unique.",
+  "settings.integrations.externalServices.validation.emptyVariableKey":
+    "Enter a key or clear the value.",
   "settings.integrations.externalServices.requests.renameTitle": "Rename request",
   "settings.integrations.externalServices.requests.nameLabel": "Request name",
   "settings.integrations.externalServices.requests.actionEnable": "Enable",
@@ -1690,7 +1775,10 @@ const enMessages: MessageShape = {
   "settings.integrations.externalServices.run.category.aborted": "Request aborted",
   "settings.integrations.externalServices.run.category.validation": "Request validation error",
   "settings.integrations.externalServices.run.send": "Send",
-  "settings.integrations.externalServices.editor.urlPlaceholder": "Enter URL or paste text",
+  "settings.integrations.externalServices.editor.urlPlaceholder":
+    "https://example.com/hook?id={{call_id}}",
+  "settings.integrations.externalServices.editor.triggersHint":
+    "The request runs on selected events when both collection and request are enabled. Call events fire only for the focused line. Available fields are listed on the Variables tab.",
   "settings.integrations.externalServices.sidebar.collections": "Collections",
   "settings.integrations.externalServices.sidebar.emptyCollection": "Collection is empty",
   "settings.integrations.externalServices.sidebar.expand": (params: Readonly<{ name: string }>) =>
@@ -1707,8 +1795,58 @@ const enMessages: MessageShape = {
   "settings.integrations.externalServices.tabs.headers": "Headers",
   "settings.integrations.externalServices.tabs.body": "Body",
   "settings.integrations.externalServices.tabs.triggers": "Triggers",
+  "settings.integrations.externalServices.tabs.variables": "Variables",
   "settings.integrations.externalServices.tabs.response": "Response",
   "settings.integrations.externalServices.tabs.history": "History",
+  "settings.integrations.externalServices.variables.syntaxHint":
+    "Syntax {{name}}. Inserts into the focused URL or Body.",
+  "settings.integrations.externalServices.variables.insertTargetLabel": (params: Readonly<{
+    target: string;
+  }>) => `Target: ${params.target}`,
+  "settings.integrations.externalServices.variables.insertTarget.url": "URL",
+  "settings.integrations.externalServices.variables.insertTarget.body": "Body",
+  "settings.integrations.externalServices.variables.insert": "Insert",
+  "settings.integrations.externalServices.variables.insertAria": (params: Readonly<{
+    token: string;
+  }>) => `Insert ${params.token}`,
+  "settings.integrations.externalServices.variables.group.always": "Always",
+  "settings.integrations.externalServices.variables.group.call": "Call",
+  "settings.integrations.externalServices.variables.group.campaign": "Campaign",
+  "settings.integrations.externalServices.variables.group.acd": "ACD",
+  "settings.integrations.externalServices.variables.label.timestamp": "Timestamp",
+  "settings.integrations.externalServices.variables.label.event_type": "Event type",
+  "settings.integrations.externalServices.variables.label.user_login": "Login",
+  "settings.integrations.externalServices.variables.label.call_id": "Call ID",
+  "settings.integrations.externalServices.variables.label.caller_id": "Caller",
+  "settings.integrations.externalServices.variables.label.called_id": "Called",
+  "settings.integrations.externalServices.variables.label.call_direction": "Direction",
+  "settings.integrations.externalServices.variables.label.hangup_reason": "Hangup reason",
+  "settings.integrations.externalServices.variables.label.campaign_id": "Campaign ID",
+  "settings.integrations.externalServices.variables.label.campaign_progressive": "Progressive",
+  "settings.integrations.externalServices.variables.label.campaign_client_phone": "Client phone",
+  "settings.integrations.externalServices.variables.label.campaign_company": "Company",
+  "settings.integrations.externalServices.variables.label.campaign_strategy": "Strategy",
+  "settings.integrations.externalServices.variables.label.campaign_selection": "Selection",
+  "settings.integrations.externalServices.variables.label.queue_name": "Queue",
+  "settings.integrations.externalServices.variables.label.acd_phase": "ACD phase",
+  "settings.integrations.externalServices.variables.label.acd_event": "ACD event",
+  "settings.integrations.externalServices.variables.desc.timestamp": "ISO-8601 UTC",
+  "settings.integrations.externalServices.variables.desc.event_type": "Trigger event code",
+  "settings.integrations.externalServices.variables.desc.user_login": "Active profile login",
+  "settings.integrations.externalServices.variables.desc.call_id": "Softphone call ID",
+  "settings.integrations.externalServices.variables.desc.caller_id": "Caller number or ID",
+  "settings.integrations.externalServices.variables.desc.called_id": "Called number or ID",
+  "settings.integrations.externalServices.variables.desc.call_direction": "inbound or outbound",
+  "settings.integrations.externalServices.variables.desc.hangup_reason": "Hangup reason",
+  "settings.integrations.externalServices.variables.desc.campaign_id": "Campaign identifier",
+  "settings.integrations.externalServices.variables.desc.campaign_progressive": "true or false",
+  "settings.integrations.externalServices.variables.desc.campaign_client_phone": "Campaign client phone",
+  "settings.integrations.externalServices.variables.desc.campaign_company": "Campaign company",
+  "settings.integrations.externalServices.variables.desc.campaign_strategy": "Campaign strategy",
+  "settings.integrations.externalServices.variables.desc.campaign_selection": "Campaign selection",
+  "settings.integrations.externalServices.variables.desc.queue_name": "Queue name",
+  "settings.integrations.externalServices.variables.desc.acd_phase": "Current ACD phase",
+  "settings.integrations.externalServices.variables.desc.acd_event": "ACD event code",
   "settings.integrations.ocp.title": "OCP Module",
   "settings.integrations.ocp.description": "OCP operator platform: login, domain, API key, and connection.",
   "settings.integrations.ocp.editOnly.description": "Configure OCP for the active profile. Sign-in and recovery live only on the Account tab.",
@@ -3096,7 +3234,19 @@ const frMessages: MessageShape = {
     `La collection « ${params.name} » et toutes ses requetes seront supprimees du profil actif.`,
   "settings.integrations.externalServices.collections.variablesTitle": "Variables de collection",
   "settings.integrations.externalServices.collections.variablesDescription":
-    "Les cles sont disponibles dans les modeles comme {{name}}. Les exports peuvent contenir des identifiants.",
+    "Constantes partagees pour toutes les requetes. Ecrivez {{cle}} dans URL, Params, Headers et Body.",
+  "settings.integrations.externalServices.collections.variablesHint":
+    "Valeurs communes (hote, jeton). Les champs systeme d'appel sont dans l'onglet Variables de la requete ; les noms systeme ne peuvent pas etre remplaces.",
+  "settings.integrations.externalServices.collections.variablesExample":
+    "Exemple : {{base_url}}/hooks/ring · {{api_token}}",
+  "settings.integrations.externalServices.collections.variablesKeyPlaceholder": "base_url",
+  "settings.integrations.externalServices.collections.variablesValuePlaceholder":
+    "https://crm.example.com",
+  "settings.integrations.externalServices.collections.variablesToken": "Placeholder",
+  "settings.integrations.externalServices.collections.variablesSystemWarning":
+    "Une cle correspond a un nom systeme — la valeur systeme gagne a l'execution.",
+  "settings.integrations.externalServices.collections.variablesSystemHint":
+    "Le nom systeme sera ecrase a l'execution.",
   "settings.integrations.externalServices.collections.variablesAdd": "Ajouter une variable",
   "settings.integrations.externalServices.collections.variablesKey": "Cle",
   "settings.integrations.externalServices.collections.variablesValue": "Valeur",
@@ -3155,6 +3305,10 @@ const frMessages: MessageShape = {
     "Saisissez un nom de collection.",
   "settings.integrations.externalServices.validation.nameTooLong":
     "Le nom de la collection est trop long.",
+  "settings.integrations.externalServices.validation.duplicateVariableKey":
+    "Les cles de variable doivent etre uniques.",
+  "settings.integrations.externalServices.validation.emptyVariableKey":
+    "Saisissez une cle ou effacez la valeur.",
   "settings.integrations.externalServices.requests.renameTitle": "Renommer la requete",
   "settings.integrations.externalServices.requests.nameLabel": "Nom de la requete",
   "settings.integrations.externalServices.requests.actionEnable": "Activer",
@@ -3174,7 +3328,10 @@ const frMessages: MessageShape = {
   "settings.integrations.externalServices.run.category.aborted": "Requete annulee",
   "settings.integrations.externalServices.run.category.validation": "Erreur de validation de la requete",
   "settings.integrations.externalServices.run.send": "Envoyer",
-  "settings.integrations.externalServices.editor.urlPlaceholder": "Entrez une URL ou collez du texte",
+  "settings.integrations.externalServices.editor.urlPlaceholder":
+    "https://example.com/hook?id={{call_id}}",
+  "settings.integrations.externalServices.editor.triggersHint":
+    "La requete part sur les evenements selectionnes si la collection et la requete sont activees. Les evenements d'appel ne partent que pour la ligne focalisee. Champs disponibles dans l'onglet Variables.",
   "settings.integrations.externalServices.sidebar.collections": "Collections",
   "settings.integrations.externalServices.sidebar.emptyCollection": "La collection est vide",
   "settings.integrations.externalServices.sidebar.expand": (params: Readonly<{ name: string }>) =>
@@ -4578,7 +4735,19 @@ const deMessages: MessageShape = {
     `Sammlung „${params.name}“ und alle zugehoerigen Anfragen werden aus dem aktiven Profil entfernt.`,
   "settings.integrations.externalServices.collections.variablesTitle": "Sammlungsvariablen",
   "settings.integrations.externalServices.collections.variablesDescription":
-    "Schluessel sind in Vorlagen als {{name}} verfuegbar. Exporte koennen Zugangsdaten enthalten.",
+    "Gemeinsame Konstanten fuer alle Anfragen. Schreiben Sie {{schluessel}} in URL, Params, Headers und Body.",
+  "settings.integrations.externalServices.collections.variablesHint":
+    "Sammlungswerte (Host, Token). Systemfelder des Anrufs stehen im Reiter Variables der Anfrage; Systemnamen koennen nicht ersetzt werden.",
+  "settings.integrations.externalServices.collections.variablesExample":
+    "Beispiel: {{base_url}}/hooks/ring · {{api_token}}",
+  "settings.integrations.externalServices.collections.variablesKeyPlaceholder": "base_url",
+  "settings.integrations.externalServices.collections.variablesValuePlaceholder":
+    "https://crm.example.com",
+  "settings.integrations.externalServices.collections.variablesToken": "Platzhalter",
+  "settings.integrations.externalServices.collections.variablesSystemWarning":
+    "Ein Schluessel entspricht einem Systemnamen — zur Laufzeit gewinnt der Systemwert.",
+  "settings.integrations.externalServices.collections.variablesSystemHint":
+    "Systemname wird zur Laufzeit ueberschrieben.",
   "settings.integrations.externalServices.collections.variablesAdd": "Variable hinzufuegen",
   "settings.integrations.externalServices.collections.variablesKey": "Schluessel",
   "settings.integrations.externalServices.collections.variablesValue": "Wert",
@@ -4637,6 +4806,10 @@ const deMessages: MessageShape = {
     "Geben Sie einen Sammlungsnamen ein.",
   "settings.integrations.externalServices.validation.nameTooLong":
     "Der Sammlungsname ist zu lang.",
+  "settings.integrations.externalServices.validation.duplicateVariableKey":
+    "Variablenschluessel muessen eindeutig sein.",
+  "settings.integrations.externalServices.validation.emptyVariableKey":
+    "Schluessel eingeben oder Wert leeren.",
   "settings.integrations.externalServices.requests.renameTitle": "Anfrage umbenennen",
   "settings.integrations.externalServices.requests.nameLabel": "Anfragenname",
   "settings.integrations.externalServices.requests.actionEnable": "Aktivieren",
@@ -4656,7 +4829,10 @@ const deMessages: MessageShape = {
   "settings.integrations.externalServices.run.category.aborted": "Anfrage abgebrochen",
   "settings.integrations.externalServices.run.category.validation": "Validierungsfehler der Anfrage",
   "settings.integrations.externalServices.run.send": "Senden",
-  "settings.integrations.externalServices.editor.urlPlaceholder": "URL eingeben oder Text einfuegen",
+  "settings.integrations.externalServices.editor.urlPlaceholder":
+    "https://example.com/hook?id={{call_id}}",
+  "settings.integrations.externalServices.editor.triggersHint":
+    "Die Anfrage laeuft bei gewaehlten Ereignissen, wenn Sammlung und Anfrage aktiviert sind. Anrufereignisse nur fuer die fokussierte Leitung. Felder stehen im Tab Variables.",
   "settings.integrations.externalServices.sidebar.collections": "Sammlungen",
   "settings.integrations.externalServices.sidebar.emptyCollection": "Sammlung ist leer",
   "settings.integrations.externalServices.sidebar.expand": (params: Readonly<{ name: string }>) =>

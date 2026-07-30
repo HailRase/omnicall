@@ -65,6 +65,9 @@ export function ExternalServicesTriggerList({
       <h4 className={styles.triggerListTitle}>
         {t("settings.integrations.externalServices.editor.triggersTitle")}
       </h4>
+      <p className={styles.description}>
+        {t("settings.integrations.externalServices.editor.triggersHint")}
+      </p>
       {eventTypes.map((eventType) => {
         const checked = triggers.includes(eventType);
         return (

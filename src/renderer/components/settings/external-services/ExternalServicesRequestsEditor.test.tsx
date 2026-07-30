@@ -53,8 +53,94 @@ describe("External Services requests UI", () => {
       />,
     );
     expect(screen.getByText("Коллекция пуста")).toBeInTheDocument();
+    expect(screen.getByTestId("external-services-collection-variables")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Общие значения коллекции/, { exact: false }),
+    ).toBeInTheDocument();
     await user.click(screen.getByTestId("external-services-create-request"));
     expect(onCreate).toHaveBeenCalledOnce();
+  });
+
+  it("shows collection variable tokens in the selected-collection preview", () => {
+    render(
+      <ExternalServicesRequestsView
+        collection={{
+          id: "collection",
+          name: "CRM",
+          enabled: true,
+          enabledRequestCount: 1,
+          requestCount: 1,
+          variables: [{ key: "base_url", value: "https://crm.example.test" }],
+        }}
+        busy={false}
+        journal={journal}
+        onCreate={vi.fn()}
+        onEditVariables={vi.fn()}
+        onRename={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("{{base_url}}")).toBeInTheDocument();
+    expect(screen.getByText("https://crm.example.test")).toBeInTheDocument();
+  });
+
+  it("shows system variables catalog and inserts token into URL", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <ExternalServicesRequestEditor
+        collectionName="CRM"
+        draft={draft}
+        busy={false}
+        errorMessage={null}
+        runState="idle"
+        runResult={null}
+        journal={journal}
+        onChange={onChange}
+        onCommitName={vi.fn()}
+        onSave={vi.fn()}
+        onRunNow={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+    expect(screen.queryByTestId("external-services-url-template-hint")).not.toBeInTheDocument();
+    await user.click(screen.getByText("Variables"));
+    expect(screen.getByTestId("external-services-system-variables")).toBeInTheDocument();
+    expect(screen.getByTestId("external-services-variable-call_id")).toBeInTheDocument();
+    expect(screen.getByText("ID звонка")).toBeInTheDocument();
+    await user.click(screen.getByTestId("external-services-variable-insert-call_id"));
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ url: "https://crm.example/events{{call_id}}" }),
+    );
+  });
+
+  it("inserts token into body when body is focused", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <ExternalServicesRequestEditor
+        collectionName="CRM"
+        draft={draft}
+        busy={false}
+        errorMessage={null}
+        runState="idle"
+        runResult={null}
+        journal={journal}
+        onChange={onChange}
+        onCommitName={vi.fn()}
+        onSave={vi.fn()}
+        onRunNow={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+    await user.click(screen.getByText("Body"));
+    await user.click(screen.getByTestId("external-services-body-editor"));
+    await user.click(screen.getByText("Variables"));
+    await user.click(screen.getByTestId("external-services-variable-insert-caller_id"));
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({ value: "{\"event\":\"call\"}{{caller_id}}" }),
+      }),
+    );
   });
 
   it("emits editor field, table, trigger, save, delete, and send intents", async () => {
@@ -89,10 +175,10 @@ describe("External Services requests UI", () => {
     await user.click(screen.getByTestId("external-services-body-mode-raw"));
     await user.clear(screen.getByTestId("external-services-body-editor"));
     await user.type(screen.getByTestId("external-services-body-editor"), "event={{event_type}}");
-    await user.click(screen.getByText(/Params/));
+    await user.click(screen.getByRole("tab", { name: /Params/ }));
     await user.click(screen.getAllByRole("button", { name: "Добавить строку" })[0]!);
     expect(onChange).toHaveBeenCalled();
-    await user.click(screen.getByText(/Triggers/));
+    await user.click(screen.getByRole("tab", { name: /Triggers/ }));
     await user.click(screen.getByTestId("external-services-trigger-call_answered"));
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ triggers: [] }));
     await user.click(screen.getByTestId("external-services-save"));

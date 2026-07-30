@@ -65,6 +65,29 @@ export type {
   ExternalServiceTriggerContext,
 } from "./template/buildExternalServiceVariables.js";
 export { buildExternalServiceVariables } from "./template/buildExternalServiceVariables.js";
+export type {
+  ExternalServiceVariableCatalogEntry,
+  ExternalServiceVariableCatalogGroupId,
+} from "./template/ExternalServiceVariableCatalog.js";
+export {
+  EXTERNAL_SERVICE_SYSTEM_VARIABLE_NAMES,
+  EXTERNAL_SERVICE_VARIABLE_CATALOG,
+  EXTERNAL_SERVICE_VARIABLE_CATALOG_GROUPS,
+  formatExternalServiceVariableToken,
+  isExternalServiceSystemVariableName,
+  listExternalServiceVariableCatalogByGroup,
+} from "./template/ExternalServiceVariableCatalog.js";
+export type {
+  ExternalServiceCollectionVariableRowInspection,
+  ExternalServiceCollectionVariableRowIssue,
+  ExternalServiceCollectionVariablesNormalizeError,
+  NormalizeExternalServiceCollectionVariablesResult,
+} from "./template/normalizeExternalServiceCollectionVariables.js";
+export {
+  hasBlockingExternalServiceCollectionVariableIssues,
+  inspectExternalServiceCollectionVariableRows,
+  normalizeExternalServiceCollectionVariables,
+} from "./template/normalizeExternalServiceCollectionVariables.js";
 export type { ExternalServiceVariables } from "./template/resolveExternalServiceTemplate.js";
 export { resolveExternalServiceTemplate } from "./template/resolveExternalServiceTemplate.js";
 export { redactExternalServiceHeaders } from "./security/redactExternalServiceHeaders.js";

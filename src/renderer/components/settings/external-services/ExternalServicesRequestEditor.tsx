@@ -1,7 +1,5 @@
-import type { JSX } from "react";
+import { useState, type JSX } from "react";
 import { useI18n } from "../../../i18n/index.js";
-import { AppIcon } from "../../icons/AppIcon.js";
-import { IconTooltip } from "../../icons/IconTooltip.js";
 import {
   Button,
   DropdownMenu,
@@ -9,8 +7,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   FormField,
-  Input,
-  Select,
   Switch,
   Tabs,
   TabsContent,
@@ -23,8 +19,13 @@ import { ExternalServicesInlineRename } from "./ExternalServicesInlineRename.js"
 import { ExternalServicesKeyValueTable } from "./ExternalServicesKeyValueTable.js";
 import type { ExternalServicesKeyValueRow } from "./ExternalServicesKeyValueTable.js";
 import type { ExternalServicesJournalProps } from "./ExternalServicesJournal.js";
+import { ExternalServicesRequestUrlBar } from "./ExternalServicesRequestUrlBar.js";
 import { ExternalServicesResponsePane } from "./ExternalServicesResponsePane.js";
 import type { ExternalServicesRunResultValue } from "./ExternalServicesRunResult.js";
+import {
+  ExternalServicesSystemVariablesHelp,
+  type ExternalServicesVariableInsertTarget,
+} from "./ExternalServicesSystemVariablesHelp.js";
 import {
   ExternalServicesTriggerList,
   type ExternalServicesAutomaticEventType,
@@ -88,13 +89,19 @@ export function ExternalServicesRequestEditor(
   } = props;
   const change = (patch: Partial<ExternalServicesRequestDraft>): void =>
     onChange({ ...draft, ...patch });
-  const canSend = draft.url.trim().length > 0;
-  const sendDisabledReason = canSend
-    ? null
-    : t("settings.integrations.externalServices.disabled.urlRequired");
+  const [insertTarget, setInsertTarget] = useState<ExternalServicesVariableInsertTarget>("url");
+  const bodyInsertAvailable = draft.body.mode !== "none";
   const enabledQueryCount = draft.query.filter((row) => row.enabled).length;
   const enabledHeaderCount = draft.headers.filter((row) => row.enabled).length;
   const enabledTriggerCount = draft.triggers.length;
+  const insertToken = (token: string): void => {
+    if (insertTarget === "body" && bodyInsertAvailable) {
+      change({ body: { ...draft.body, value: `${draft.body.value}${token}` } });
+      return;
+    }
+    change({ url: `${draft.url}${token}` });
+    setInsertTarget("url");
+  };
 
   return (
     <section className={styles.editorWorkspace} data-testid="external-services-request-editor">
@@ -160,47 +167,16 @@ export function ExternalServicesRequestEditor(
         </p>
       ) : null}
 
-      <div className={styles.urlBar}>
-        <Select
-          value={draft.method}
-          disabled={busy}
-          data-testid="external-services-request-method"
-          items={["GET", "POST", "PUT", "PATCH", "DELETE"].map((value) => ({
-            value,
-            label: value,
-          }))}
-          onValueChange={(method) => change({ method })}
-        />
-        <Input
-          value={draft.url}
-          disabled={busy}
-          data-testid="external-services-request-url"
-          placeholder={t("settings.integrations.externalServices.editor.urlPlaceholder")}
-          onChange={(event) => change({ url: event.currentTarget.value })}
-        />
-        <IconTooltip
-          label={sendDisabledReason ?? t("settings.integrations.externalServices.run.send")}
-        >
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            loading={runState !== "idle"}
-            disabled={!canSend}
-            aria-label={t("settings.integrations.externalServices.run.send")}
-            className={styles.sendButton}
-            data-testid="external-services-run-now"
-            onClick={onRunNow}
-          >
-            <AppIcon
-              id="settings.integrations.external-services.send"
-              size={14}
-              decorative
-              preferAnimated={false}
-            />
-          </Button>
-        </IconTooltip>
-      </div>
+      <ExternalServicesRequestUrlBar
+        method={draft.method}
+        url={draft.url}
+        busy={busy}
+        runState={runState}
+        onMethodChange={(method) => change({ method })}
+        onUrlChange={(url) => change({ url })}
+        onUrlFocus={() => setInsertTarget("url")}
+        onRunNow={onRunNow}
+      />
 
       <div className={styles.editorSplit}>
         <div className={styles.editorTabsPane}>
@@ -226,6 +202,9 @@ export function ExternalServicesRequestEditor(
                   t("settings.integrations.externalServices.tabs.triggers"),
                   enabledTriggerCount,
                 )}
+              </TabsTrigger>
+              <TabsTrigger value="variables">
+                {t("settings.integrations.externalServices.tabs.variables")}
               </TabsTrigger>
             </TabsList>
             <TabsContent value="params" className={styles.editorTabBody}>
@@ -265,6 +244,7 @@ export function ExternalServicesRequestEditor(
                     value={draft.body.value}
                     disabled={busy}
                     data-testid="external-services-body-editor"
+                    onFocus={() => setInsertTarget("body")}
                     onChange={(event) =>
                       change({ body: { ...draft.body, value: event.currentTarget.value } })
                     }
@@ -277,6 +257,13 @@ export function ExternalServicesRequestEditor(
                 triggers={draft.triggers}
                 disabled={busy}
                 onChange={(triggers) => change({ triggers })}
+              />
+            </TabsContent>
+            <TabsContent value="variables" className={styles.editorTabBody}>
+              <ExternalServicesSystemVariablesHelp
+                insertTarget={insertTarget}
+                bodyInsertAvailable={bodyInsertAvailable}
+                onInsertToken={insertToken}
               />
             </TabsContent>
           </Tabs>

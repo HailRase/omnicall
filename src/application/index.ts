@@ -581,6 +581,25 @@ export type {
   ExternalServiceVariable,
 } from "@domain/index.js";
 export { EXTERNAL_SERVICES_DEFAULTS, MAX_EXTERNAL_SERVICE_NAME_LENGTH } from "@domain/index.js";
+export {
+  EXTERNAL_SERVICE_SYSTEM_VARIABLE_NAMES,
+  EXTERNAL_SERVICE_VARIABLE_CATALOG,
+  EXTERNAL_SERVICE_VARIABLE_CATALOG_GROUPS,
+  formatExternalServiceVariableToken,
+  hasBlockingExternalServiceCollectionVariableIssues,
+  inspectExternalServiceCollectionVariableRows,
+  isExternalServiceSystemVariableName,
+  listExternalServiceVariableCatalogByGroup,
+  normalizeExternalServiceCollectionVariables,
+} from "@domain/index.js";
+export type {
+  ExternalServiceCollectionVariableRowInspection,
+  ExternalServiceCollectionVariableRowIssue,
+  ExternalServiceCollectionVariablesNormalizeError,
+  ExternalServiceVariableCatalogEntry,
+  ExternalServiceVariableCatalogGroupId,
+  NormalizeExternalServiceCollectionVariablesResult,
+} from "@domain/index.js";
 export { ExportExternalServiceCollectionUseCase } from "./use-cases/integration/ExportExternalServiceCollectionUseCase.js";
 export type {
   ExportExternalServiceCollectionInput,

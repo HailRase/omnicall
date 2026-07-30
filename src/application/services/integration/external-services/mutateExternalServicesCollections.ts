@@ -6,19 +6,21 @@
 
 import {
   MAX_EXTERNAL_SERVICE_NAME_LENGTH,
+  normalizeExternalServiceCollectionVariables,
   regenerateExternalServiceCollectionIds,
   resolveImportedExternalServiceCollectionName,
   type ExternalServiceCollection,
   type ExternalServiceCollectionId,
   type ExternalServicesSettings,
-  type ExternalServiceVariable,
 } from "@domain/index.js";
 import type { UuidGenerator } from "@ports/index.js";
 
 export type ExternalServicesCollectionMutationError =
   | "collection_not_found"
   | "name_required"
-  | "name_too_long";
+  | "name_too_long"
+  | "duplicate_variable_key"
+  | "empty_variable_key";
 
 export type ExternalServicesCollectionMutationResult =
   | Readonly<{ ok: true; settings: ExternalServicesSettings }>
@@ -153,20 +155,16 @@ export function replaceExternalServiceCollectionVariables(
     return { ok: false, error: "collection_not_found" };
   }
 
-  const nextVariables: ReadonlyArray<ExternalServiceVariable> = Object.freeze(
-    variables
-      .map((variable) => ({
-        key: variable.key.trim(),
-        value: variable.value,
-      }))
-      .filter((variable) => variable.key.length > 0),
-  );
+  const normalized = normalizeExternalServiceCollectionVariables(variables);
+  if (!normalized.ok) {
+    return { ok: false, error: normalized.error };
+  }
 
   return {
     ok: true,
     settings: replaceCollection(settings, index, {
       ...settings.collections[index]!,
-      variables: nextVariables,
+      variables: normalized.variables,
     }),
   };
 }

@@ -1,5 +1,6 @@
 import type { JSX } from "react";
 import clsx from "clsx";
+import { formatExternalServiceVariableToken } from "@application/index.js";
 import { useI18n } from "../../../i18n/index.js";
 import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../ui/index.js";
 import { ExternalServicesInlineRename } from "./ExternalServicesInlineRename.js";
@@ -72,9 +73,7 @@ export function ExternalServicesRequestsView({
       </header>
 
       <div className={styles.editorSplit}>
-        <div
-          className={clsx(styles.editorTabsPane, isEmpty && styles.editorTabsPaneCentered)}
-        >
+        <div className={styles.editorTabsPane}>
           {isEmpty ? (
             <div className={styles.emptyFolderCard}>
               <p className={styles.emptyTitle}>
@@ -89,50 +88,68 @@ export function ExternalServicesRequestsView({
                 </Button>
               </div>
             </div>
-          ) : (
-            <section
-              className={styles.variablesTable}
-              data-testid="external-services-collection-variables"
-            >
+          ) : null}
+
+          <section
+            className={clsx(styles.variablesTable, isEmpty && styles.variablesTableAfterEmpty)}
+            data-testid="external-services-collection-variables"
+          >
+            <div className={styles.variablesHeader}>
               <h4 className={styles.sectionTitle}>
                 {t("settings.integrations.externalServices.requests.variablesTitle")}
               </h4>
-              <p className={styles.description}>
-                {t("settings.integrations.externalServices.requests.enabledCount", {
-                  enabled: collection.enabledRequestCount,
-                  total: collection.requestCount,
-                })}
-              </p>
-              <Table>
-                <TableHeader>
+              {!isEmpty ? (
+                <p className={styles.variablesMeta}>
+                  {t("settings.integrations.externalServices.requests.enabledCount", {
+                    enabled: collection.enabledRequestCount,
+                    total: collection.requestCount,
+                  })}
+                </p>
+              ) : null}
+            </div>
+            <p className={styles.variablesHint}>
+              {t("settings.integrations.externalServices.collections.variablesHint")}
+            </p>
+            <p className={styles.variablesExample}>
+              {t("settings.integrations.externalServices.collections.variablesExample")}
+            </p>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>
+                    {t("settings.integrations.externalServices.collections.variablesKey")}
+                  </TableHead>
+                  <TableHead>
+                    {t("settings.integrations.externalServices.collections.variablesToken")}
+                  </TableHead>
+                  <TableHead>
+                    {t("settings.integrations.externalServices.collections.variablesValue")}
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {collection.variables.length === 0 ? (
                   <TableRow>
-                    <TableHead>
-                      {t("settings.integrations.externalServices.collections.variablesKey")}
-                    </TableHead>
-                    <TableHead>
-                      {t("settings.integrations.externalServices.collections.variablesValue")}
-                    </TableHead>
+                    <TableCell colSpan={3}>
+                      {t("settings.integrations.externalServices.collections.variablesEmpty")}
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {collection.variables.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={2}>
-                        {t("settings.integrations.externalServices.collections.variablesEmpty")}
+                ) : (
+                  collection.variables.map((variable) => (
+                    <TableRow key={variable.key}>
+                      <TableCell>{variable.key}</TableCell>
+                      <TableCell>
+                        <code className={styles.variablesTokenPreview}>
+                          {formatExternalServiceVariableToken(variable.key)}
+                        </code>
                       </TableCell>
+                      <TableCell>{variable.value}</TableCell>
                     </TableRow>
-                  ) : (
-                    collection.variables.map((variable) => (
-                      <TableRow key={variable.key}>
-                        <TableCell>{variable.key}</TableCell>
-                        <TableCell>{variable.value}</TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </section>
-          )}
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </section>
         </div>
         <ExternalServicesResponsePane runState="idle" runResult={null} journal={journal} />
       </div>

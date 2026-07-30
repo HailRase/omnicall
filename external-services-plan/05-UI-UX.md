@@ -77,9 +77,17 @@ external-services-request-{id}
 - Shown when a collection is selected and no request is open.
 - Breadcrumb: click-to-edit collection name (text → sized input → blur commits rename).
 - Variables action; New request.
-- Empty-folder card centered when `requestCount === 0`.
-- Otherwise: variables preview table + enabled count.
+- Empty-folder card when `requestCount === 0` (top of pane; not full-pane centered when variables preview follows).
+- Always: compact collection-variables preview (hint + example + key / `{{token}}` / value table); enabled count when requests exist.
 - Bottom pane: Response | History (journal) with expand/collapse toggle.
+
+### Collection variables dialog
+
+- Compact description: shared constants + `{{key}}` syntax for URL/Params/Headers/Body.
+- Example line (`{{base_url}}/hooks/ring`).
+- Live Domain inspection: blocking empty-key-with-value and duplicate keys; soft warning when key equals a system catalog name (system wins at run time).
+- Token preview per row; placeholders `base_url` / `https://crm.example.com`.
+- Save blocked until blocking issues clear; mutation backstop returns the same errors.
 
 Test IDs:
 
@@ -88,6 +96,9 @@ external-services-requests
 external-services-collection-name
 external-services-create-request
 external-services-collection-variables
+external-services-collection-variables-editor
+external-services-variables-example
+external-services-variables-system-warning
 ```
 
 ### Request workspace
@@ -95,11 +106,15 @@ external-services-collection-variables
 - Breadcrumb: collection › click-to-edit request name (blur commits); enabled Switch; Save; delete overflow.
 - Sidebar rename opens rename dialog (request scope); breadcrumb rename persists immediately.
 - URL bar: method Select + URL Input + icon-only Send (`settings.integrations.external-services.send`); Send enabled when URL is non-empty.
-- Tabs: Params / Headers / Triggers show `(N)` for enabled/selected counts when N > 0; Body uses horizontal radio body-mode selector (none/json/urlencoded/raw only).
+- Tabs: Params / Headers / Body / Triggers / Variables; Params/Headers/Triggers show `(N)` for enabled/selected counts when N > 0; Body uses horizontal radio body-mode selector (none/json/urlencoded/raw only).
 - Compact key/value rows for Params and Headers (narrow inputs + compact Add row).
-- Triggers list uses padded card layout under tabs.
+- Triggers list uses padded card layout under tabs and explains focused-line + Variables tab.
+- Variables tab: compact catalog (groups always/call/campaign/acd) with short label + `{{token}}` + brief description, insert-target line, and Insert into focused URL/Body.
+- URL placeholder demonstrates `{{call_id}}`.
+- Collection variables dialog clarifies custom vs system names (system precedence) with validation (see Collection variables dialog).
 - Bottom pane: taller Response | History with collapse/expand icon toggle.
 - Unsaved changes require discard confirmation before selection change.
+- Tab panel content starts ~12–16px below the tab list (no stacked extra gap).
 
 Test IDs:
 
@@ -116,6 +131,10 @@ external-services-body-mode-{mode}
 external-services-body-editor
 external-services-triggers
 external-services-trigger-{eventType}
+external-services-system-variables
+external-services-variables-insert-target
+external-services-variable-{name}
+external-services-variable-insert-{name}
 external-services-save
 external-services-run-now
 external-services-run-result
@@ -224,6 +243,7 @@ settings.integrations.externalServices.requests.*
 settings.integrations.externalServices.editor.*
 settings.integrations.externalServices.bodyMode.*
 settings.integrations.externalServices.trigger.*
+settings.integrations.externalServices.variables.*
 settings.integrations.externalServices.run.*
 settings.integrations.externalServices.journal.*
 settings.integrations.externalServices.validation.*

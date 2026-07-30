@@ -666,7 +666,19 @@ export const bgMessages: MessageShape = {
     `Колекция „${params.name}“ и всичките ѝ заявки ще бъдат премахнати от активния профил.`,
   "settings.integrations.externalServices.collections.variablesTitle": "Променливи на колекцията",
   "settings.integrations.externalServices.collections.variablesDescription":
-    "Ключовете са достъпни в шаблоните като {{name}}. Експортът може да съдържа идентификационни данни.",
+    "Общи константи за всички заявки в колекцията. В URL, Params, Headers и Body пишете {{ключ}}.",
+  "settings.integrations.externalServices.collections.variablesHint":
+    "Общи стойности (хост, токен). Системните полета на обаждането са във вкладката Variables на заявката; системните имена не могат да се подменят.",
+  "settings.integrations.externalServices.collections.variablesExample":
+    "Пример: {{base_url}}/hooks/ring · {{api_token}}",
+  "settings.integrations.externalServices.collections.variablesKeyPlaceholder": "base_url",
+  "settings.integrations.externalServices.collections.variablesValuePlaceholder":
+    "https://crm.example.com",
+  "settings.integrations.externalServices.collections.variablesToken": "Плейсхолдър",
+  "settings.integrations.externalServices.collections.variablesSystemWarning":
+    "Ключът съвпада със системно име — при изпълнение печели системната стойност.",
+  "settings.integrations.externalServices.collections.variablesSystemHint":
+    "Системното име ще бъде презаписано при изпълнение.",
   "settings.integrations.externalServices.collections.variablesAdd": "Добави променлива",
   "settings.integrations.externalServices.collections.variablesKey": "Ключ",
   "settings.integrations.externalServices.collections.variablesValue": "Стойност",
@@ -724,6 +736,10 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalServices.validation.nameRequired": "Въведете име на колекцията.",
   "settings.integrations.externalServices.validation.nameTooLong":
     "Името на колекцията е твърде дълго.",
+  "settings.integrations.externalServices.validation.duplicateVariableKey":
+    "Ключовете на променливите трябва да са уникални.",
+  "settings.integrations.externalServices.validation.emptyVariableKey":
+    "Въведете ключ или изчистете стойността.",
   "settings.integrations.externalServices.requests.create": "Нова заявка",
   "settings.integrations.externalServices.requests.emptyTitle": "Все още няма заявки",
   "settings.integrations.externalServices.requests.renameTitle": "Преименуване на заявка",
@@ -785,7 +801,10 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalServices.run.category.aborted": "Заявката е прекратена",
   "settings.integrations.externalServices.run.category.validation": "Грешка при проверката на заявката",
   "settings.integrations.externalServices.run.send": "Изпрати",
-  "settings.integrations.externalServices.editor.urlPlaceholder": "Въведете URL или поставете текст",
+  "settings.integrations.externalServices.editor.urlPlaceholder":
+    "https://example.com/hook?id={{call_id}}",
+  "settings.integrations.externalServices.editor.triggersHint":
+    "Заявката се изпраща при избраните събития, ако колекцията и заявката са включени. Събитията за обаждане важат само за фокусираната линия. Полетата са в раздела Variables.",
   "settings.integrations.externalServices.sidebar.collections": "Колекции",
   "settings.integrations.externalServices.sidebar.emptyCollection": "Колекцията е празна",
   "settings.integrations.externalServices.sidebar.expand": (params: Readonly<{ name: string }>) =>
@@ -803,8 +822,58 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalServices.tabs.headers": "Headers",
   "settings.integrations.externalServices.tabs.body": "Body",
   "settings.integrations.externalServices.tabs.triggers": "Triggers",
+  "settings.integrations.externalServices.tabs.variables": "Variables",
   "settings.integrations.externalServices.tabs.response": "Response",
   "settings.integrations.externalServices.tabs.history": "History",
+  "settings.integrations.externalServices.variables.syntaxHint":
+    "Синтаксис {{име}}. Вмъкване в URL или Body с фокус.",
+  "settings.integrations.externalServices.variables.insertTargetLabel": (params: Readonly<{
+    target: string;
+  }>) => `Цел: ${params.target}`,
+  "settings.integrations.externalServices.variables.insertTarget.url": "URL",
+  "settings.integrations.externalServices.variables.insertTarget.body": "Body",
+  "settings.integrations.externalServices.variables.insert": "Вмъкни",
+  "settings.integrations.externalServices.variables.insertAria": (params: Readonly<{
+    token: string;
+  }>) => `Вмъкни ${params.token}`,
+  "settings.integrations.externalServices.variables.group.always": "Винаги",
+  "settings.integrations.externalServices.variables.group.call": "Обаждане",
+  "settings.integrations.externalServices.variables.group.campaign": "Кампания",
+  "settings.integrations.externalServices.variables.group.acd": "ACD",
+  "settings.integrations.externalServices.variables.label.timestamp": "Време",
+  "settings.integrations.externalServices.variables.label.event_type": "Тип събитие",
+  "settings.integrations.externalServices.variables.label.user_login": "Логин",
+  "settings.integrations.externalServices.variables.label.call_id": "ID на обаждането",
+  "settings.integrations.externalServices.variables.label.caller_id": "Обаждащ",
+  "settings.integrations.externalServices.variables.label.called_id": "Повикан",
+  "settings.integrations.externalServices.variables.label.call_direction": "Посока",
+  "settings.integrations.externalServices.variables.label.hangup_reason": "Причина за край",
+  "settings.integrations.externalServices.variables.label.campaign_id": "ID на кампанията",
+  "settings.integrations.externalServices.variables.label.campaign_progressive": "Прогресивна",
+  "settings.integrations.externalServices.variables.label.campaign_client_phone": "Телефон на клиент",
+  "settings.integrations.externalServices.variables.label.campaign_company": "Компания",
+  "settings.integrations.externalServices.variables.label.campaign_strategy": "Стратегия",
+  "settings.integrations.externalServices.variables.label.campaign_selection": "Избор",
+  "settings.integrations.externalServices.variables.label.queue_name": "Опашка",
+  "settings.integrations.externalServices.variables.label.acd_phase": "Фаза ACD",
+  "settings.integrations.externalServices.variables.label.acd_event": "Събитие ACD",
+  "settings.integrations.externalServices.variables.desc.timestamp": "ISO-8601 UTC",
+  "settings.integrations.externalServices.variables.desc.event_type": "Код на събитието",
+  "settings.integrations.externalServices.variables.desc.user_login": "Логин на активния профил",
+  "settings.integrations.externalServices.variables.desc.call_id": "Идентификатор на обаждането",
+  "settings.integrations.externalServices.variables.desc.caller_id": "Номер или ID на обаждащия",
+  "settings.integrations.externalServices.variables.desc.called_id": "Номер или ID на повикания",
+  "settings.integrations.externalServices.variables.desc.call_direction": "inbound или outbound",
+  "settings.integrations.externalServices.variables.desc.hangup_reason": "Причина за hangup",
+  "settings.integrations.externalServices.variables.desc.campaign_id": "Идентификатор на кампанията",
+  "settings.integrations.externalServices.variables.desc.campaign_progressive": "true или false",
+  "settings.integrations.externalServices.variables.desc.campaign_client_phone": "Телефон на клиент",
+  "settings.integrations.externalServices.variables.desc.campaign_company": "Име на компанията",
+  "settings.integrations.externalServices.variables.desc.campaign_strategy": "Стратегия на кампанията",
+  "settings.integrations.externalServices.variables.desc.campaign_selection": "Избор на кампанията",
+  "settings.integrations.externalServices.variables.desc.queue_name": "Име на опашката",
+  "settings.integrations.externalServices.variables.desc.acd_phase": "Текуща фаза",
+  "settings.integrations.externalServices.variables.desc.acd_event": "Код на ACD събитие",
   "settings.integrations.ocp.title": "OCP Module",
   "settings.integrations.ocp.description": "Операторска платформа OCP: логин, домейн, API ключ и връзка.",
   "settings.integrations.ocp.editOnly.description": "Настройка на OCP за активния профил. Вход и възстановяване — само в раздел Акаунт.",

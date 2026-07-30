@@ -107,6 +107,23 @@ ACD variables from `CallOcpContextResolved`:
 
 Do not expose `mainAcallId`, `acallId`, raw OCP payloads, OCP auth material, or SDK private fields in v1. This deliberately uses the desktop-safe queue/context subset and does not expand F-028 wire surface.
 
+### Discoverability (product UI)
+
+- Domain SSoT: `src/domain/integration/external-services/template/ExternalServiceVariableCatalog.ts` (`EXTERNAL_SERVICE_VARIABLE_CATALOG`, `EXTERNAL_SERVICE_SYSTEM_VARIABLE_NAMES`).
+- Request editor Variables tab renders that catalog with localized descriptions and Insert into URL/Body.
+- Collection workspace always shows a compact custom-variables preview (hint, example, `{{token}}` column).
+- Collection variables dialog: example syntax, live inspection via `inspectExternalServiceCollectionVariableRows`, save blocked on duplicate/empty-key-with-value; soft warning for system-name collisions.
+- Normalize/save path: `normalizeExternalServiceCollectionVariables` (Domain) used by `replaceExternalServiceCollectionVariables`.
+- URL bar hint + collection-variables dialog explain `{{name}}` syntax and system-name precedence.
+- Keep UI catalog names in sync with `buildExternalServiceVariables` and campaign/ACD mappers; extend Domain catalog first when adding variables.
+
+## Collection variables (authored)
+
+- Purpose: shared constants for all requests in one collection (`base_url`, tokens, tenant ids).
+- Syntax in templates: `{{key}}` (case-sensitive, non-nested).
+- Not the same as system Variables tab entries; system merge order still wins on name collision.
+- Empty values allowed; unique keys required; blank draft rows dropped on save.
+
 ## Merge precedence
 
 Build one string dictionary in this order:

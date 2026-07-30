@@ -92,6 +92,8 @@ Stable automatic codes: `incoming_ringing`, `outgoing_connecting`, `call_answere
 - Focus gate: every call-related trigger requires focused call at evaluation time.
 - Base variables: `call_id`, `caller_id`, `called_id`, `timestamp`, `call_direction`,
   `event_type`, `user_login`, `hangup_reason` (+ additive campaign/ACD when present).
+- Product discoverability: Domain `EXTERNAL_SERVICE_VARIABLE_CATALOG` + request editor Variables tab
+  (Insert into URL/Body); URL hint; collection-variables dialog notes system precedence.
 - Missing `{{name}}` → literal `undefined`.
 - WU-03 maps campaign offer/accept/reject and safe ACD queue/phase/event fields; WU-11 wires the post-commit focus projection.
 

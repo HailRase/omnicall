@@ -30,6 +30,9 @@
 - [ ] Missing variable becomes literal `undefined`.
 - [ ] Required base, call, campaign, and safe ACD variables map from typed facts.
 - [ ] No raw OCP wire IDs/secrets are exposed.
+- [ ] Request editor Variables tab lists the Domain system catalog with Insert into URL/Body and explains syntax, missing→`undefined`, and system precedence over collection keys.
+- [ ] Selected collection workspace shows a compact custom-variables preview (hint, example, `{{token}}` column).
+- [ ] Collection variables dialog blocks duplicate keys and empty-key-with-value; soft-warns on system-name collisions.
 
 ## Execution
 

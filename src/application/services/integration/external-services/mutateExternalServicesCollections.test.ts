@@ -96,7 +96,7 @@ describe("mutateExternalServicesCollections", () => {
       EXTERNAL_SERVICES_TEST_COLLECTION_ID,
       [
         { key: " token ", value: "abc" },
-        { key: "", value: "ignored" },
+        { key: "", value: "" },
       ],
     );
     expect(replaced.ok).toBe(true);
@@ -106,5 +106,18 @@ describe("mutateExternalServicesCollections", () => {
     expect(replaced.settings.collections[0]?.variables).toEqual([
       { key: "token", value: "abc" },
     ]);
+
+    expect(
+      replaceExternalServiceCollectionVariables(settings, EXTERNAL_SERVICES_TEST_COLLECTION_ID, [
+        { key: "token", value: "a" },
+        { key: "token", value: "b" },
+      ]),
+    ).toEqual({ ok: false, error: "duplicate_variable_key" });
+
+    expect(
+      replaceExternalServiceCollectionVariables(settings, EXTERNAL_SERVICES_TEST_COLLECTION_ID, [
+        { key: "", value: "orphan" },
+      ]),
+    ).toEqual({ ok: false, error: "empty_variable_key" });
   });
 });

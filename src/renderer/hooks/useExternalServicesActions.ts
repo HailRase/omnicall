@@ -286,5 +286,11 @@ function mapMutationError(
   if (error === "name_too_long") {
     return "settings.integrations.externalServices.validation.nameTooLong";
   }
+  if (error === "duplicate_variable_key") {
+    return "settings.integrations.externalServices.validation.duplicateVariableKey";
+  }
+  if (error === "empty_variable_key") {
+    return "settings.integrations.externalServices.validation.emptyVariableKey";
+  }
   return "settings.integrations.externalServices.saveError";
 }
