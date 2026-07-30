@@ -173,7 +173,7 @@ function normalizeKeyValueRows(value: unknown): unknown {
   if (!Array.isArray(value)) {
     return value;
   }
-  return value.map((row) => {
+  return value.map((row: unknown): unknown => {
     if (!isPlainObject(row)) {
       return row;
     }

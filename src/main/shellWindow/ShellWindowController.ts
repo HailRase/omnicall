@@ -1,12 +1,13 @@
 /**
  * - Purpose: own compact snapshot and apply settings-driven window layout in main (F-016).
  * - Inputs: BrowserWindow, display work area, layout commands.
- * - Outputs: animated or instant bounds transitions; settings-only maximize.
+ * - Outputs: instant bounds transitions; layout-owned settings work-area fill (no OS maximize).
  */
 
 import type { BrowserWindow } from "electron";
 import {
   computeCenteredBounds,
+  computeWorkAreaBounds,
   resolveShellWindowMaximizable,
   resolveShellWindowMinimumSize,
   resolveShellWindowResizable,
@@ -27,6 +28,7 @@ export type ShellWindowControllerState = Readonly<{
   };
   activeMode: ShellWindowLayoutMode | null;
   settingsSessionHeight: number;
+  settingsWorkAreaFill: boolean;
 }>;
 
 export type ShellWindowMaximizedChangeHandler = (maximized: boolean) => void;
@@ -38,22 +40,16 @@ export class ShellWindowController {
   };
   private activeMode: ShellWindowLayoutMode | null = null;
   private settingsSessionHeight: number = SHELL_WINDOW_LAYOUT.compactDefaultHeight;
+  /** Layout-owned settings fill of the work area (UI maximize). Never OS BrowserWindow maximize. */
+  private settingsWorkAreaFill = false;
   private animationGeneration = 0;
   private cancelActiveAnimation: (() => void) | null = null;
   private maximizedChangeHandler: ShellWindowMaximizedChangeHandler | null = null;
-  /** When true, unmaximize must not snap to settings-min bounds (layout transition owns from-bounds). */
-  private suppressSettingsUnmaximizeSnap = false;
 
   constructor(
     private readonly window: BrowserWindow,
     private readonly getWorkArea: () => ShellWindowWorkArea,
   ) {
-    this.window.on("maximize", () => {
-      this.maximizedChangeHandler?.(true);
-    });
-    this.window.on("unmaximize", () => {
-      this.handleUnmaximize();
-    });
     this.window.on("resized", () => {
       this.captureSettingsSessionHeight();
     });
@@ -68,11 +64,13 @@ export class ShellWindowController {
       compactDimensions: { ...this.compactDimensions },
       activeMode: this.activeMode,
       settingsSessionHeight: this.settingsSessionHeight,
+      settingsWorkAreaFill: this.settingsWorkAreaFill,
     };
   }
 
+  /** UI maximize projection: settings fills the work area via setBounds. */
   isMaximized(): boolean {
-    return this.window.isMaximized();
+    return this.settingsWorkAreaFill;
   }
 
   placeCompactAtStartup(): void {
@@ -92,6 +90,7 @@ export class ShellWindowController {
     );
     this.window.setBounds(target);
     this.activeMode = "compact";
+    this.setSettingsWorkAreaFill(false);
     this.applyWindowChromePolicy("compact");
   }
 
@@ -103,8 +102,7 @@ export class ShellWindowController {
     this.cancelActiveAnimation?.();
     this.cancelActiveAnimation = null;
 
-    // Animate from the on-screen maximized rectangle; do not snap via settings restore.
-    const animationFrom = this.exitMaximizedForLayoutTransition();
+    const animationFrom = this.toShellRectangle(this.window.getBounds());
     const workArea = this.getWorkArea();
 
     if (mode !== "compact" && this.activeMode === "compact") {
@@ -115,10 +113,14 @@ export class ShellWindowController {
     }
 
     if (mode === "settings") {
-      this.settingsSessionHeight = Math.max(
-        animationFrom.height,
-        SHELL_WINDOW_LAYOUT.settingsMinHeight,
-      );
+      if (!this.settingsWorkAreaFill) {
+        this.settingsSessionHeight = Math.max(
+          animationFrom.height,
+          SHELL_WINDOW_LAYOUT.settingsMinHeight,
+        );
+      }
+    } else {
+      this.setSettingsWorkAreaFill(false);
     }
 
     // Commit mode before animation so re-entrant applyLayout during transition
@@ -133,12 +135,15 @@ export class ShellWindowController {
       );
     }
 
-    const target = resolveShellWindowTargetBounds(
-      mode,
-      workArea,
-      this.compactDimensions,
-      mode === "settings" ? this.settingsSessionHeight : animationFrom.height,
-    );
+    const target =
+      mode === "settings" && this.settingsWorkAreaFill
+        ? computeWorkAreaBounds(workArea)
+        : resolveShellWindowTargetBounds(
+            mode,
+            workArea,
+            this.compactDimensions,
+            mode === "settings" ? this.settingsSessionHeight : animationFrom.height,
+          );
 
     const generation = ++this.animationGeneration;
     const duration = reducedMotion ? 0 : animationDurationMs;
@@ -173,41 +178,23 @@ export class ShellWindowController {
       return { ok: false, reason: "not_settings_mode" };
     }
 
-    if (this.window.isMaximized()) {
-      this.window.unmaximize();
+    if (this.settingsWorkAreaFill) {
+      this.window.setBounds(this.resolveSettingsRestoredBounds(this.getWorkArea()));
+      this.setSettingsWorkAreaFill(false);
       return { ok: true };
     }
 
-    this.window.maximize();
+    this.window.setBounds(computeWorkAreaBounds(this.getWorkArea()));
+    this.setSettingsWorkAreaFill(true);
     return { ok: true };
   }
 
-  private handleUnmaximize(): void {
-    if (this.activeMode === "settings" && !this.suppressSettingsUnmaximizeSnap) {
-      this.applySettingsMinimumBounds();
+  private setSettingsWorkAreaFill(next: boolean): void {
+    if (this.settingsWorkAreaFill === next) {
+      return;
     }
-    this.maximizedChangeHandler?.(false);
-  }
-
-  /**
-   * Leave maximized state for a layout animation without the settings restore snap.
-   * Electron restores pre-maximize bounds on unmaximize; pin back to the captured
-   * maximized rectangle so the next bounds animation starts from what the user saw.
-   */
-  private exitMaximizedForLayoutTransition(): ShellWindowRectangle {
-    if (!this.window.isMaximized()) {
-      return this.toShellRectangle(this.window.getBounds());
-    }
-
-    const maximizedBounds = this.toShellRectangle(this.window.getBounds());
-    this.suppressSettingsUnmaximizeSnap = true;
-    try {
-      this.window.unmaximize();
-    } finally {
-      this.suppressSettingsUnmaximizeSnap = false;
-    }
-    this.window.setBounds(maximizedBounds);
-    return maximizedBounds;
+    this.settingsWorkAreaFill = next;
+    this.maximizedChangeHandler?.(next);
   }
 
   private toShellRectangle(bounds: Electron.Rectangle): ShellWindowRectangle {
@@ -220,7 +207,7 @@ export class ShellWindowController {
   }
 
   private captureSettingsSessionHeight(): void {
-    if (this.activeMode !== "settings" || this.window.isMaximized()) {
+    if (this.activeMode !== "settings" || this.settingsWorkAreaFill) {
       return;
     }
     const bounds = this.window.getBounds();
@@ -238,13 +225,7 @@ export class ShellWindowController {
     );
   }
 
-  private applySettingsMinimumBounds(): void {
-    const target = this.resolveSettingsMinimumBounds(this.getWorkArea());
-    this.window.setBounds(target);
-    this.settingsSessionHeight = target.height;
-  }
-
-  private resolveSettingsMinimumBounds(
+  private resolveSettingsRestoredBounds(
     workArea: ShellWindowWorkArea,
   ): ShellWindowRectangle {
     const height = Math.max(

@@ -842,6 +842,10 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalServices.variables.insertAria": (params: Readonly<{
     token: string;
   }>) => `Вмъкни ${params.token}`,
+  "settings.integrations.externalServices.variables.autocompleteLabel":
+    "Подсказки за шаблонни променливи",
+  "settings.integrations.externalServices.variables.autocompleteKind.system": "Системна",
+  "settings.integrations.externalServices.variables.autocompleteKind.collection": "Колекция",
   "settings.integrations.externalServices.variables.group.always": "Общи",
   "settings.integrations.externalServices.variables.group.call": "Обаждане",
   "settings.integrations.externalServices.variables.group.campaign": "Кампания",

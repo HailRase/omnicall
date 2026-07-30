@@ -58,7 +58,7 @@ const FORBIDDEN_SECRET_FIELD_FRAGMENTS = [
 
 /**
  * - Purpose: strip machine-local and non-portable fields before export/import.
- * - Inputs: validated UserSettings aggregate (v12 includes `externalServices`).
+ * - Inputs: validated UserSettings aggregate (v13 includes `externalServices` trigger delays).
  * - Outputs: portable UserSettings; External Services config kept; journal excluded
  *   because it is not part of UserSettings; SIP/OCP/SDK secrets never present here.
  */

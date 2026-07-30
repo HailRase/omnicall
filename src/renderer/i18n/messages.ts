@@ -236,6 +236,10 @@ const ruMessages = {
   "settings.integrations.externalServices.variables.insertAria": (params: Readonly<{
     token: string;
   }>) => `Вставить ${params.token}`,
+  "settings.integrations.externalServices.variables.autocompleteLabel":
+    "Подсказки переменных шаблона",
+  "settings.integrations.externalServices.variables.autocompleteKind.system": "Системная",
+  "settings.integrations.externalServices.variables.autocompleteKind.collection": "Коллекция",
   "settings.integrations.externalServices.variables.group.always": "Общие",
   "settings.integrations.externalServices.variables.group.call": "Звонок",
   "settings.integrations.externalServices.variables.group.campaign": "Кампания",
@@ -1820,6 +1824,10 @@ const enMessages: MessageShape = {
   "settings.integrations.externalServices.variables.insertAria": (params: Readonly<{
     token: string;
   }>) => `Insert ${params.token}`,
+  "settings.integrations.externalServices.variables.autocompleteLabel":
+    "Template variable suggestions",
+  "settings.integrations.externalServices.variables.autocompleteKind.system": "System",
+  "settings.integrations.externalServices.variables.autocompleteKind.collection": "Collection",
   "settings.integrations.externalServices.variables.group.always": "General",
   "settings.integrations.externalServices.variables.group.call": "Call",
   "settings.integrations.externalServices.variables.group.campaign": "Campaign",

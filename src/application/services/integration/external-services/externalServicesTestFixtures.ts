@@ -35,7 +35,7 @@ export function createExternalServicesTestSettings(
       enabled: boolean;
     }>>;
     body?: Readonly<{ mode: string; value: string }>;
-    triggers?: ReadonlyArray<string>;
+    triggers?: ReadonlyArray<Readonly<{ eventType: string; delaySeconds: number }>>;
   }> = {},
 ): ExternalServicesSettings {
   const parsed = parseExternalServicesSettings({
@@ -65,7 +65,9 @@ export function createExternalServicesTestSettings(
               mode: "json",
               value: "{\"event\":\"{{event_type}}\"}",
             },
-            triggers: overrides.triggers ?? ["call_answered"],
+            triggers: overrides.triggers ?? [
+              { eventType: "call_answered", delaySeconds: 0 },
+            ],
           },
         ],
       },

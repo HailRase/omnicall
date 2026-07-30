@@ -110,6 +110,7 @@ external-services-variables-system-warning
 - Compact key/value rows for Params and Headers (narrow inputs + compact Add row).
 - Triggers list uses padded card layout under tabs and explains focused-line + Variables tab.
 - Variables tab: compact catalog (groups always/call/campaign/acd) with short label + `{{token}}` + brief description, insert-target line, and Insert into focused URL/Body.
+- Template fields (URL, Params/Headers values, Body): typing `{{` opens variable autocomplete (system + collection); prefix filters; Enter/click inserts `{{name}}`; single `{` does not open.
 - URL placeholder demonstrates `{{call_id}}`.
 - Collection variables dialog clarifies custom vs system names (system precedence) with validation (see Collection variables dialog).
 - Bottom pane: taller Response | History with collapse/expand icon toggle.
@@ -135,6 +136,8 @@ external-services-system-variables
 external-services-variables-insert-target
 external-services-variable-{name}
 external-services-variable-insert-{name}
+external-services-template-autocomplete
+external-services-template-autocomplete-option-{name}
 external-services-save
 external-services-run-now
 external-services-run-result

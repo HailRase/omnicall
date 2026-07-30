@@ -50,6 +50,7 @@ export const EditorRunResultLight: Story = {
   render: () => (
     <ExternalServicesRequestEditor
       collectionName="CRM"
+      collectionVariableKeys={["base_url"]}
       draft={{
         id: "b0b1c2d3-e4f5-4a67-8b90-123456789012",
         name: "Call event",

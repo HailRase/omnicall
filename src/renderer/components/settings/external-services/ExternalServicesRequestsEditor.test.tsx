@@ -89,6 +89,7 @@ describe("External Services requests UI", () => {
     render(
       <ExternalServicesRequestEditor
         collectionName="CRM"
+        collectionVariableKeys={["base_url"]}
         draft={draft}
         busy={false}
         errorMessage={null}
@@ -119,6 +120,7 @@ describe("External Services requests UI", () => {
     render(
       <ExternalServicesRequestEditor
         collectionName="CRM"
+        collectionVariableKeys={["base_url"]}
         draft={draft}
         busy={false}
         errorMessage={null}
@@ -136,11 +138,10 @@ describe("External Services requests UI", () => {
     await user.click(screen.getByTestId("external-services-body-editor"));
     await user.click(screen.getByText("Variables"));
     await user.click(screen.getByTestId("external-services-variable-insert-caller_id"));
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({
-        body: expect.objectContaining({ value: "{\"event\":\"call\"}{{caller_id}}" }),
-      }),
-    );
+    const lastDraft = onChange.mock.calls.at(-1)?.[0] as
+      | Readonly<{ body?: Readonly<{ value?: string }> }>
+      | undefined;
+    expect(lastDraft?.body?.value).toBe("{\"event\":\"call\"}{{caller_id}}");
   });
 
   it("emits editor field, table, trigger, save, delete, and send intents", async () => {
@@ -153,6 +154,7 @@ describe("External Services requests UI", () => {
     render(
       <ExternalServicesRequestEditor
         collectionName="CRM"
+        collectionVariableKeys={["base_url"]}
         draft={draft}
         busy={false}
         errorMessage={null}
@@ -198,6 +200,7 @@ describe("External Services requests UI", () => {
     render(
       <ExternalServicesRequestEditor
         collectionName="CRM"
+        collectionVariableKeys={["base_url"]}
         draft={draft}
         busy={false}
         errorMessage={null}
@@ -225,6 +228,7 @@ describe("External Services requests UI", () => {
     const { rerender } = render(
       <ExternalServicesRequestEditor
         collectionName="CRM"
+        collectionVariableKeys={[]}
         draft={{ ...draft, url: "" }}
         busy={false}
         errorMessage={null}
@@ -242,6 +246,7 @@ describe("External Services requests UI", () => {
     rerender(
       <ExternalServicesRequestEditor
         collectionName="CRM"
+        collectionVariableKeys={["base_url"]}
         draft={draft}
         busy={false}
         errorMessage={null}
@@ -263,6 +268,7 @@ describe("External Services requests UI", () => {
     const { rerender } = render(
       <ExternalServicesRequestEditor
         collectionName="CRM"
+        collectionVariableKeys={["base_url"]}
         draft={draft}
         busy={false}
         errorMessage={null}
@@ -284,6 +290,7 @@ describe("External Services requests UI", () => {
     rerender(
       <ExternalServicesRequestEditor
         collectionName="CRM"
+        collectionVariableKeys={["base_url"]}
         draft={draft}
         busy={true}
         errorMessage={null}
@@ -308,6 +315,7 @@ describe("External Services requests UI", () => {
     render(
       <ExternalServicesRequestEditor
         collectionName="CRM"
+        collectionVariableKeys={[]}
         draft={{ ...draft, body: { mode: "none", value: "" } }}
         busy={false}
         errorMessage={null}
@@ -331,6 +339,7 @@ describe("External Services requests UI", () => {
     render(
       <ExternalServicesRequestEditor
         collectionName="CRM"
+        collectionVariableKeys={[]}
         draft={{ ...draft, body: { mode: "json", value: "{\"a\":1}" } }}
         busy={false}
         errorMessage={null}

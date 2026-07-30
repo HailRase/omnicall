@@ -2,7 +2,8 @@ import type { JSX } from "react";
 import { useI18n } from "../../../i18n/index.js";
 import { AppIcon } from "../../icons/AppIcon.js";
 import { IconTooltip } from "../../icons/IconTooltip.js";
-import { Button, Input, Select } from "../../ui/index.js";
+import { Button, Select } from "../../ui/index.js";
+import { ExternalServicesTemplateField } from "./templateAutocomplete/ExternalServicesTemplateField.js";
 import styles from "./ExternalServices.module.css";
 
 export type ExternalServicesRequestUrlBarProps = Readonly<{
@@ -10,15 +11,17 @@ export type ExternalServicesRequestUrlBarProps = Readonly<{
   url: string;
   busy: boolean;
   runState: "idle" | "queued" | "running";
+  collectionVariableKeys: ReadonlyArray<string>;
   onMethodChange: (method: string) => void;
   onUrlChange: (url: string) => void;
   onUrlFocus: () => void;
+  onUrlCaretChange: (caretIndex: number) => void;
   onRunNow: () => void;
 }>;
 
 /**
  * - Purpose: method/URL/Send bar for External Services requests.
- * - Inputs: draft method/url, busy/run state, change and run intents.
+ * - Inputs: draft method/url, busy/run state, template keys, change and run intents.
  * - Outputs: presentational URL-bar intents only.
  * @uiMeta f=F-031
  */
@@ -27,9 +30,11 @@ export function ExternalServicesRequestUrlBar({
   url,
   busy,
   runState,
+  collectionVariableKeys,
   onMethodChange,
   onUrlChange,
   onUrlFocus,
+  onUrlCaretChange,
   onRunNow,
 }: ExternalServicesRequestUrlBarProps): JSX.Element {
   const { t } = useI18n();
@@ -51,13 +56,16 @@ export function ExternalServicesRequestUrlBar({
           }))}
           onValueChange={onMethodChange}
         />
-        <Input
+        <ExternalServicesTemplateField
+          variant="input"
           value={url}
           disabled={busy}
+          collectionVariableKeys={collectionVariableKeys}
           data-testid="external-services-request-url"
           placeholder={t("settings.integrations.externalServices.editor.urlPlaceholder")}
           onFocus={onUrlFocus}
-          onChange={(event) => onUrlChange(event.currentTarget.value)}
+          onCaretChange={onUrlCaretChange}
+          onValueChange={onUrlChange}
         />
         <IconTooltip
           label={sendDisabledReason ?? t("settings.integrations.externalServices.run.send")}

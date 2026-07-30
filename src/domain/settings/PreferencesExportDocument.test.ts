@@ -48,7 +48,10 @@ const EXTERNAL_SERVICES_FIXTURE = (() => {
               mode: "json",
               value: "{\"event\":\"{{event_type}}\"}",
             },
-            triggers: ["call_answered", "incoming_ringing"],
+            triggers: [
+              { eventType: "call_answered", delaySeconds: 0 },
+              { eventType: "incoming_ringing", delaySeconds: 0 },
+            ],
           },
         ],
       },

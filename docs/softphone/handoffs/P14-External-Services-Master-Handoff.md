@@ -7,12 +7,12 @@
 | Feature | F-031 External Services (Outbound HTTP Automations) |
 | Legacy | `_none_` (new product feature; no LF parity) |
 | Phase | P14 External Services |
-| Feature status | **in-progress** (WU-11 real event integration complete; closeout → WU-12) |
+| Feature status | **implemented** (WU-12 closeout 2026-07-30) |
 | Branch | `feature/external-services` |
-| Task | T-052 claimed (`/logic` → `/ui`) |
-| Plan | `external-services-plan/` |
-| ADR | [ADR-0022](../adr/ADR-0022-external-services-http-isolation.md) — **Accepted** |
-| Next | **WU-12** documentation close, preflight, and release decision |
+| Task | T-052 **done** |
+| Plan | `external-services-plan/` (all WUs **done**) |
+| ADR | [ADR-0022](../adr/ADR-0022-external-services-http-isolation.md) + [ADR-0023](../adr/ADR-0023-external-services-per-trigger-delay.md) — **Accepted** |
+| Next | `/review` for F-031; SemVer MINOR `1.1.2`→`1.2.0` pending explicit ship authorization |
 
 ## Mission
 
@@ -40,18 +40,19 @@ Services without coupling telephony/OCP/SDK paths to network latency or response
 | WU | Title | Status | Evidence |
 | --- | --- | --- | --- |
 | WU-00 | Registry, ADR, handoff bootstrap | **done** | F-031 registry; T-052; STATUS; this handoff; ADR-0022 Proposed; `npm run registry:check`; `external-services-plan/PROGRESS.md` |
-| WU-01 | Domain data model and settings migration | **done** | Immutable parser/types; `UserSettings` v12; focused tests, typecheck, targeted lint, registry PASS; global lint blocked by pre-existing SDK dist files |
+| WU-01 | Domain data model and settings migration | **done** | Immutable parser/types; `UserSettings` v12; focused tests, typecheck, targeted lint, registry PASS |
 | WU-02 | Ports and mock adapters | **done** | HTTP/journal/collection-file, clock and UUID ports; deterministic mocks; focused contract tests; ADR-0022 Accepted |
 | WU-03 | Variable resolver and event matcher | **done** | Pure matcher/template/request/security policies; typed call/campaign/ACD mapper and tracker; focused tests + typecheck PASS |
-| WU-04 | Execution engine and manual run | **done** | Queue max-3/FIFO; execute/manual Use Cases; journal redaction; typed IPC + main `fetch` redirects≤5/1 MiB/10s; composition synthetic `handleExternalServicesCommittedEvent`; focused tests + typecheck PASS |
-| WU-05 | Profile persistence and lifecycle wiring | **done** | File journal document + `FileExternalServicesJournalRepository`; Save/Query Use Cases; `AccountSessionActivated`/`UserSessionEnded` lifecycle; profile A/B + in-flight + corrupt fail-visible tests; typecheck PASS |
-| WU-06 | F-030 preferences export/import extension | **done** | External Services nested round-trip in `omnicall.preferences` v1; journal excluded; facade `replaceActiveSettings` after import; Preferences/UseCase/runtime refresh tests; `P11-Operator-Preferences-Export-Design.md` synced |
-| WU-07 | Collection JSON import/export | **done** | Domain document + Export/Import Use Cases; typed IPC/preload/main collection file gateway (2 MiB); facade import/export; round-trip/collision/cancel/fail-closed tests; typecheck PASS |
-| WU-08 | Navigation and collections UI | **done** | Integrations leaf beside OCP; SDK top-level preserved; Postman-like COLLECTIONS sidebar tree (2026-07-30); collection CRUD/import/export/variables; i18n five locales; nav/panel/component tests + light/dark stories |
-| WU-09 | Requests editor and Run now UI | **done** | Request workspace URL bar + Params/Headers/Body/Triggers tabs + Send/Response (2026-07-30); save/delete/discard; facade Run now queued/running/result; five locales; focused tests and light/dark stories |
-| WU-10 | Journal UI | **done** | Journal VM + hook; History tab in response pane (*** headers, truncation, cap 100); empty/loading/error/retry; five locales; projection/component tests + light/dark stories; typecheck/i18n/ui:catalog PASS |
-| WU-11 | Real event integration hardening | **done** | Application call-focus projection; post-commit renderer binder; typed structural snapshot; focused multi-call, campaign/ACD, terminal, and non-blocking tests; typecheck/lint/registry PASS |
-| WU-12 | Documentation close, preflight, release decision | pending | — |
+| WU-04 | Execution engine and manual run | **done** | Queue max-3/FIFO; execute/manual Use Cases; journal redaction; typed IPC + main `fetch` redirects≤5/1 MiB/10s; composition synthetic entry; focused tests + typecheck PASS |
+| WU-05 | Profile persistence and lifecycle wiring | **done** | File journal document + `FileExternalServicesJournalRepository`; Save/Query Use Cases; lifecycle wiring; profile A/B + in-flight + corrupt tests; typecheck PASS |
+| WU-06 | F-030 preferences export/import extension | **done** | External Services nested round-trip in `omnicall.preferences` v1; journal excluded; facade `replaceActiveSettings`; Preferences tests; design synced |
+| WU-07 | Collection JSON import/export | **done** | Domain document + Export/Import Use Cases; typed IPC/preload/main collection file gateway (2 MiB); facade import/export; round-trip/fail-closed tests |
+| WU-08 | Navigation and collections UI | **done** | Integrations leaf beside OCP; SDK top-level preserved; Postman-like COLLECTIONS sidebar; five locales; nav/panel tests + light/dark stories |
+| WU-09 | Requests editor and Run now UI | **done** | Request workspace URL bar + tabs + Send/Response; save/delete/discard; facade Run now; five locales; focused tests and stories |
+| WU-10 | Journal UI | **done** | History tab (*** headers, truncation, cap 100); empty/loading/error/retry; five locales; projection/component tests + stories |
+| WU-11 | Real event integration hardening | **done** | Application call-focus projection; post-commit binder; typed snapshot; multi-call/campaign/ACD/non-blocking tests |
+| WU-13 | Per-trigger delay, queue monitor, logout warning | **done** | Schema v13 bindings; DelayScheduler; Queue UI; logout warning; ADR-0023; migration + scheduler tests |
+| WU-12 | Documentation close, preflight, release decision | **done** | Acceptance audited; v13 fixture/lint closeout; full gates PASS; registry/STATUS/TASK-QUEUE synced; SemVer pending ship auth |
 
 Live machine status: `external-services-plan/PROGRESS.md`.
 
@@ -66,21 +67,26 @@ Live machine status: `external-services-plan/PROGRESS.md`.
 | Local/private URL allowance; no SSRF denylist | Accepted |
 | Redirects ≤5; strip protected headers on origin change; 1 MiB / 16 KiB / 100 | Accepted |
 
-**Gate:** Accepted at WU-02 port freeze; WU-04 implemented ADR HTTP limits/redirect/header strip in main.
-Do not start UI before WU-04 is done (WU-04 complete — UI begins at WU-08 after WU-05…WU-07).
+## ADR-0023 gate
 
-## Runtime composition (target)
+| Decision | State |
+| --- | --- |
+| Trigger bindings `{ eventType, delaySeconds }` 0–180 | Accepted |
+| Snapshot-at-event; revalidate before FIFO enqueue | Accepted |
+| Waiting cancel on lifecycle/revision/dispose/Queue; no journal for drops | Accepted |
+| Manual Run ignores delay | Accepted |
+
+## Runtime composition
 
 ```txt
 UI → Facade / Use Cases → ExternalServicesAutomationService
+  → ExternalServicesDelayScheduler → ExternalServicesDispatchQueue
   → OutboundHttpPort + JournalRepository
   → Preload adapter → typed IPC → Electron main HTTP
 ```
 
-- Compose in softphone composition / real account bootstrap via `createExternalServicesCompositionForBootstrap`.
-- Synthetic test entry: `AccountBootstrapFacade.handleExternalServicesCommittedEvent` / `runExternalServiceRequestNow`.
-- `bindExternalServicesAutomation` registers after `bindFacade`, reads committed projections, and disposes before facade teardown.
-- Dispose composition in facade `dispose()`; the renderer binder is independently disposed by `useAccountBootstrap`.
+- Compose via `createExternalServicesCompositionForBootstrap`.
+- `bindExternalServicesAutomation` registers after `bindFacade`, reads committed projections, disposes with bootstrap.
 - Zero collections → inert matching; SIP-only preserved.
 
 ## Trigger / variable / focus matrix
@@ -90,26 +96,24 @@ Stable automatic codes: `incoming_ringing`, `outgoing_connecting`, `call_answere
 `campaign_rejected`, `acd_context_appeared`. Manual: `manual_run`.
 
 - Focus gate: every call-related trigger requires focused call at evaluation time.
+- Optional per-trigger delay 0–180s (event-time snapshot).
 - Base variables: `call_id`, `caller_id`, `called_id`, `timestamp`, `call_direction`,
   `event_type`, `user_login`, `hangup_reason` (+ additive campaign/ACD when present).
-- Product discoverability: Domain `EXTERNAL_SERVICE_VARIABLE_CATALOG` + request editor Variables tab
-  (Insert into URL/Body); URL hint; collection-variables dialog notes system precedence.
 - Missing `{{name}}` → literal `undefined`.
-- WU-03 maps campaign offer/accept/reject and safe ACD queue/phase/event fields; WU-11 wires the post-commit focus projection.
 
 ## Settings schema and F-030
 
 | Item | Target |
 | --- | --- |
-| Schema | `UserSettings` **v12** nested `externalServices` (WU-01 done) |
+| Schema | `UserSettings` **v13** nested `externalServices` (v12 string triggers migrate) |
 | Default | Empty collections; inert |
-| F-030 | Include config; exclude journal; disclose portable credentials in authored headers/query; runtime refresh on successful import (WU-06 done) |
-| Collection file | Versioned OmniCall JSON; regenerate IDs on import (WU-07 done) |
+| F-030 | Include config; exclude journal; portable authored headers/query; runtime refresh on import |
+| Collection file | Versioned OmniCall JSON; regenerate IDs on import |
 
 ## Acceptance
 
-Product/architecture/security gate: `external-services-plan/11-ACCEPTANCE.md`.
-F-031 registry status becomes `implemented` only when WU-12 acceptance passes.
+Product gate: `external-services-plan/11-ACCEPTANCE.md` — closed 2026-07-30 with residual
+hook-size debt noted (`useExternalServicesPanel`).
 
 ## Non-regression
 
@@ -121,10 +125,9 @@ F-031 registry status becomes `implemented` only when WU-12 acceptance passes.
 ## Open risks
 
 See `external-services-plan/12-RISKS-NONGOALS.md`. Residual: local/private SSRF and
-plain-HTTP credential exposure accepted in v1 per product law.
+plain-HTTP credential exposure accepted in v1; large panel hook split deferred.
 
 ## Review gate
 
-- After each WU: update this table + `PROGRESS.md` + work-history; keep registry truthful.
-- Stop for `/preflight` or `/review` when a WU Done-when checklist requires it.
-- Continue hint after WU-11: `Run /preflight for F-031, then implement WU-12`
+- WU-12 complete. Next command: `/review` for F-031 External Services.
+- SemVer/manifest bump requires explicit user authorization.

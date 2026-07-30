@@ -25,14 +25,14 @@ File: UTF-8 JSON (`*.json`), suggested name `omnicall-preferences-YYYY-MM-DD.jso
 | `exportedAt` | ISO-8601 timestamp |
 | `appVersion` | Optional exporter app version (informational) |
 | `profileKey` | Optional source `SettingsAccountKey` (informational; import targets **active** profile) |
-| `settings` | Portable `UserSettings` after sanitize (v12 includes `externalServices`) |
+| `settings` | Portable `UserSettings` after sanitize (v13 includes `externalServices` trigger delays) |
 | `transfer.authMaterialOmitted` | Always `true` |
 | `transfer.machineDeviceIdsCleared` | Always `true` |
 | `transfer.ocpLinkedReset` | Always `true` |
 
 Domain SSoT: `src/domain/settings/PreferencesExportDocument.ts`.
 
-Outer `PREFERENCES_EXPORT_FORMAT_VERSION` stays **1**; F-031 nests under migrated `UserSettings` (schema **12**).
+Outer `PREFERENCES_EXPORT_FORMAT_VERSION` stays **1**; F-031 nests under migrated `UserSettings` (schema **13**; v12 string triggers migrate to `{ eventType, delaySeconds }`).
 
 ## Portable sanitize (export + import)
 
@@ -46,7 +46,7 @@ Always cleared / reset before write:
 
 Included without stripping:
 
-- `externalServices` collections, requests, variables, query/header rows, body modes, triggers, enable flags
+- `externalServices` collections, requests, variables, query/header rows, body modes, trigger bindings (incl. `delaySeconds`), enable flags
 - Authored External Services header/query **values** (product decision: portable configuration, not a secrets vault)
 
 Excluded:
@@ -65,7 +65,7 @@ Secret-like JSON **property names** (`password`, `token`, `credential`, `secret`
 | Newer `formatVersion` → older app | `unsupported_format_version` — import fails; no mutation |
 | Corrupt / wrong `format` | Fail closed; active profile settings and F-031 runtime unchanged |
 
-`SETTINGS_SCHEMA_VERSION` evolves with product settings (v12 for F-031). Bundle evolution uses `PREFERENCES_EXPORT_FORMAT_VERSION` only when the outer document shape changes.
+`SETTINGS_SCHEMA_VERSION` evolves with product settings (v13 for F-031 delays). Bundle evolution uses `PREFERENCES_EXPORT_FORMAT_VERSION` only when the outer document shape changes.
 
 ## Architecture slice
 

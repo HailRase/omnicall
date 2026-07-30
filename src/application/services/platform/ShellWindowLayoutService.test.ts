@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from "vitest";
-import { SHELL_WINDOW_LAYOUT } from "@domain/platform/ShellWindowLayout.js";
 import type { ShellWindowGateway } from "@ports/platform/ShellWindowGateway.js";
 import {
   resolveShellWindowLayoutMode,
@@ -32,7 +31,7 @@ describe("resolveShellWindowLayoutMode", () => {
 });
 
 describe("ShellWindowLayoutService", () => {
-  it("requests settings layout when overlay opens", async () => {
+  it("requests settings layout instantly when overlay opens", async () => {
     const gateway = createGatewayMock();
     const service = new ShellWindowLayoutService(gateway);
 
@@ -44,12 +43,12 @@ describe("ShellWindowLayoutService", () => {
 
     expect(gateway.applyLayout).toHaveBeenCalledWith({
       mode: "settings",
-      animationDurationMs: SHELL_WINDOW_LAYOUT.animationDurationMs,
+      animationDurationMs: 0,
       reducedMotion: false,
     });
   });
 
-  it("requests video-fullscreen layout when video session is fullscreen", async () => {
+  it("requests video-fullscreen layout instantly", async () => {
     const gateway = createGatewayMock();
     const service = new ShellWindowLayoutService(gateway);
 
@@ -61,12 +60,12 @@ describe("ShellWindowLayoutService", () => {
 
     expect(gateway.applyLayout).toHaveBeenCalledWith({
       mode: "video-fullscreen",
-      animationDurationMs: SHELL_WINDOW_LAYOUT.animationDurationMs,
+      animationDurationMs: 0,
       reducedMotion: false,
     });
   });
 
-  it("requests compact layout without animation when settings close", async () => {
+  it("requests compact layout instantly when settings close", async () => {
     const gateway = createGatewayMock();
     const service = new ShellWindowLayoutService(gateway);
 

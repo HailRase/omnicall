@@ -91,6 +91,47 @@ describe("migrateUserSettings", () => {
     }
   });
 
+  it("migrates v12 string triggers to v13 delay bindings without losing codes", () => {
+    const v12 = {
+      ...createDefaultUserSettings(),
+      schemaVersion: 12 as const,
+      externalServices: {
+        collections: [
+          {
+            id: "a0b1c2d3-e4f5-4a67-8b90-123456789012",
+            name: "CRM",
+            enabled: true,
+            variables: [],
+            requests: [
+              {
+                id: "b0b1c2d3-e4f5-4a67-8b90-123456789012",
+                name: "Notify",
+                enabled: true,
+                method: "POST",
+                url: "https://crm.example.test/events",
+                query: [],
+                headers: [],
+                body: { mode: "none", value: "" },
+                triggers: ["call_answered", "incoming_ringing"],
+              },
+            ],
+          },
+        ],
+      },
+    };
+
+    const result = migrateUserSettings(v12);
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.schemaVersion).toBe(SETTINGS_SCHEMA_VERSION);
+      expect(result.value.externalServices.collections[0]?.requests[0]?.triggers).toEqual([
+        { eventType: "call_answered", delaySeconds: 0 },
+        { eventType: "incoming_ringing", delaySeconds: 0 },
+      ]);
+    }
+  });
+
   it("migrates v6 payload to v8 with OCP integration defaults", () => {
     const v6 = {
       ...createDefaultUserSettings(),

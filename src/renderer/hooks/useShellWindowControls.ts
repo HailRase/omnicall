@@ -23,7 +23,7 @@ type UseShellWindowControlsInput = Readonly<{
 
 /**
  * - Purpose: bind custom shell window controls to preload lifecycle IPC (F-016).
- * - Inputs: shutdown flag and settings-open flag for maximize availability.
+ * - Inputs: shutdown flag and settings-open flag for work-area fill affordance.
  * - Outputs: platform-aware window control callbacks for presentational UI.
  */
 export function useShellWindowControls(

@@ -31,6 +31,7 @@ Do not update I18N coverage, CHANGELOG, release manifests, or feature status to 
 | WU-09 | I18N coverage editor/Run namespaces and UI test/Storybook evidence. |
 | WU-10 | I18N coverage journal namespace and redaction/truncation UI evidence. |
 | WU-11 | F-031 event/focus integration evidence; F-028 consume-only note; no OCP protocol acceptance changes. |
+| WU-13 | ADR-0023; schema v13 delay bindings; Queue/logout i18n; migration evidence. |
 | WU-12 | F-031 implemented only when all acceptance passes; STATUS/TASK-QUEUE/handoff close; release docs only if shipping. |
 
 ## Master handoff contents
@@ -113,7 +114,7 @@ Only WU-12 decides release handling:
 
 Before marking WU-12 done:
 
-- [ ] Plan, registry, STATUS, TASK-QUEUE, handoff, ADR, I18N coverage, and F-030 design agree.
-- [ ] No plan-only acceptance contradicts implemented behavior.
-- [ ] Every `done` WU has code/test/doc/work-history evidence.
-- [ ] Feature status is not `implemented` while a quality gate remains open.
+- [x] Plan, registry, STATUS, TASK-QUEUE, handoff, ADR, I18N coverage, and F-030 design agree.
+- [x] No plan-only acceptance contradicts implemented behavior.
+- [x] Every `done` WU has code/test/doc/work-history evidence.
+- [x] Feature status is not `implemented` while a quality gate remains open.

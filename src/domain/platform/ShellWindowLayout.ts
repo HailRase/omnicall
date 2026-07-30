@@ -27,6 +27,7 @@ export const SHELL_WINDOW_LAYOUT = {
   settingsWidth: 1000,
   settingsMinWidth: 1000,
   settingsMinHeight: 560,
+  /** Retained for IPC contract compatibility; layout service always applies `0`. */
   animationDurationMs: 280,
   screenMargin: 16,
 } as const;
@@ -48,12 +49,14 @@ export function resolveShellWindowResizable(mode: ShellWindowLayoutMode): boolea
 }
 
 /**
- * - Purpose: resolve whether maximize is allowed for a layout mode (F-016).
+ * - Purpose: resolve whether OS BrowserWindow maximizable is enabled (F-016).
  * - Inputs: compact, settings, or video-fullscreen layout mode.
- * - Outputs: true only in settings mode.
+ * - Outputs: always false — work-area fill is layout-owned via setBounds, never OS maximize.
  */
-export function resolveShellWindowMaximizable(mode: ShellWindowLayoutMode): boolean {
-  return mode === "settings";
+export function resolveShellWindowMaximizable(
+  _mode: ShellWindowLayoutMode,
+): boolean {
+  return false;
 }
 
 /**
@@ -89,12 +92,7 @@ export function resolveShellWindowTargetBounds(
   settingsSessionHeight: number,
 ): ShellWindowRectangle {
   if (mode === "video-fullscreen") {
-    return {
-      x: workArea.x,
-      y: workArea.y,
-      width: workArea.width,
-      height: workArea.height,
-    };
+    return computeWorkAreaBounds(workArea);
   }
 
   if (mode === "settings") {
@@ -111,6 +109,22 @@ export function resolveShellWindowTargetBounds(
     compactDimensions.height,
     SHELL_WINDOW_LAYOUT.screenMargin,
   );
+}
+
+/**
+ * - Purpose: fill the display work area without OS maximize (F-016 / F-027).
+ * - Inputs: display work area rectangle.
+ * - Outputs: bounds matching the work area.
+ */
+export function computeWorkAreaBounds(
+  workArea: ShellWindowWorkArea,
+): ShellWindowRectangle {
+  return {
+    x: workArea.x,
+    y: workArea.y,
+    width: workArea.width,
+    height: workArea.height,
+  };
 }
 
 /**

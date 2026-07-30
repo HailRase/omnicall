@@ -151,7 +151,7 @@ function MacOsShellWindowControls({
 }
 
 /**
- * - Purpose: render custom shell window controls; settings-only maximize (F-016).
+ * - Purpose: render custom shell window controls; settings work-area fill toggle (F-016).
  * - Inputs: platform visibility, shutdown, maximize state, and control callbacks.
  * - Outputs: draggable-safe window control buttons for frameless shell.
  * @uiMeta lf=LF-079 f=F-016

@@ -23,7 +23,7 @@ function createValidSettings(): unknown {
             query: [{ id: ROW_ID, key: "source", value: "softphone", enabled: true }],
             headers: [],
             body: { mode: "json", value: "{\"event\":\"{{event_type}}\"}" },
-            triggers: ["call_answered"],
+            triggers: [{ eventType: "call_answered", delaySeconds: 0 }],
           },
         ],
       },
@@ -76,14 +76,14 @@ describe("parseExternalServicesSettings", () => {
         requests: Array<{
           method: string;
           body: { mode: string; value: string };
-          triggers: string[];
+          triggers: Array<{ eventType: string; delaySeconds: number }>;
         }>;
       }>;
     };
     const request = settings.collections[0]!.requests[0]!;
     request.method = "OPTIONS";
     request.body = { mode: "none", value: "must not persist" };
-    request.triggers = ["manual_run"];
+    request.triggers = [{ eventType: "manual_run", delaySeconds: 0 }];
 
     const result = parseExternalServicesSettings(settings);
 
@@ -100,6 +100,29 @@ describe("parseExternalServicesSettings", () => {
       expect(result.errors).toContainEqual({
         path: "collections[0].requests[0].triggers[0]",
         code: "invalid",
+      });
+    }
+  });
+
+  it("rejects delay outside 0–180 seconds", () => {
+    const settings = createValidSettings() as {
+      collections: Array<{
+        requests: Array<{
+          triggers: Array<{ eventType: string; delaySeconds: number }>;
+        }>;
+      }>;
+    };
+    settings.collections[0]!.requests[0]!.triggers = [
+      { eventType: "call_answered", delaySeconds: 181 },
+    ];
+
+    const result = parseExternalServicesSettings(settings);
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errors).toContainEqual({
+        path: "collections[0].requests[0].triggers[0].delaySeconds",
+        code: "invalid_delay",
       });
     }
   });

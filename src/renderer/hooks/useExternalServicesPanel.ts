@@ -589,6 +589,20 @@ export function useExternalServicesPanel(
     selection.kind,
   ]);
 
+  const waitingQueueItems = useMemo(() => {
+    if (facade === null) return [];
+    void queueRefresh;
+    return facade.getExternalServicesWaitingJobs().map((waiting) => ({
+      jobId: waiting.job.jobId,
+      collectionName: waiting.job.collectionName,
+      requestName: waiting.job.requestName,
+      method: waiting.job.request.method,
+      eventType: waiting.job.trigger.eventType,
+      occurredAt: waiting.job.trigger.occurredAt,
+      fireAt: waiting.fireAt,
+    }));
+  }, [facade, queueRefresh]);
+
   const requestEditor = useMemo((): ExternalServicesRequestEditorProps | null => {
     if (
       selection.kind !== "request" ||
@@ -598,6 +612,7 @@ export function useExternalServicesPanel(
     ) return null;
     return {
       collectionName: selectedCollection.name,
+      collectionVariableKeys: selectedCollection.variables.map((item) => item.key),
       draft,
       busy: requestActions.busy,
       errorMessage: requestErrorKey === null ? null : t(requestErrorKey),
@@ -605,15 +620,7 @@ export function useExternalServicesPanel(
       runResult,
       journal: journalProps,
       queue: {
-        items: facade.getExternalServicesWaitingJobs().map((waiting) => ({
-          jobId: waiting.job.jobId,
-          collectionName: waiting.job.collectionName,
-          requestName: waiting.job.requestName,
-          method: waiting.job.request.method,
-          eventType: waiting.job.trigger.eventType,
-          occurredAt: waiting.job.trigger.occurredAt,
-          fireAt: waiting.fireAt,
-        })),
+        items: waitingQueueItems,
         onCancel: (jobId) => {
           facade.cancelExternalServiceQueuedJob(jobId);
           setQueueRefresh((value) => value + 1);
@@ -692,7 +699,6 @@ export function useExternalServicesPanel(
     journal,
     journalProps,
     requestActions,
-    queueRefresh,
     requestErrorKey,
     runResult,
     runState,
@@ -700,6 +706,7 @@ export function useExternalServicesPanel(
     selection.kind,
     shell.profileKey,
     t,
+    waitingQueueItems,
   ]);
 
   return { sidebar, welcome, requestsView, requestEditor, dialogs, variablesDialog };

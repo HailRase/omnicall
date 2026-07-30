@@ -106,6 +106,7 @@ export const WithTreeLight: Story = {
     welcome: null,
     requestEditor: {
       collectionName: "Bitrix 24",
+      collectionVariableKeys: [],
       draft: {
         id: "b0b1c2d3-e4f5-4a67-8b90-123456789012",
         name: "Удаление пользователя",

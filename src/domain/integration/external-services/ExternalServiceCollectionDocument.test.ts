@@ -45,7 +45,7 @@ function createFixtureCollection() {
               },
             ],
             body: { mode: "json", value: "{\"event\":\"{{event_type}}\"}" },
-            triggers: ["call_answered"],
+            triggers: [{ eventType: "call_answered", delaySeconds: 0 }],
           },
         ],
       },

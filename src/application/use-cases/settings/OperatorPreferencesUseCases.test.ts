@@ -37,7 +37,7 @@ const EXTERNAL_SERVICES_FIXTURE = (() => {
               },
             ],
             body: { mode: "raw", value: "ping" },
-            triggers: ["call_ended"],
+            triggers: [{ eventType: "call_ended", delaySeconds: 0 }],
           },
         ],
       },

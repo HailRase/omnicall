@@ -17,8 +17,8 @@
 | `shell.diagnostics` | Settings diagnostics section | `Activity` | `ActivityIcon` | `SettingsSidebar` | active |
 | `shell.restart` | Controlled app restart | `RotateCcw` | `RotateCcwIcon` | `ShellWindowControls` | active |
 | `shell.window.minimize` | Minimize frameless window | `Minus` | — | `ShellWindowControls` | active |
-| `shell.window.maximize` | Maximize window (settings mode only) | `Square` | — | `ShellWindowControls` | active |
-| `shell.window.restore` | Restore maximized window to settings size | `SquareStack` | — | `ShellWindowControls` | active |
+| `shell.window.maximize` | Fill work area in settings (layout-owned, not OS maximize) | `Square` | — | `ShellWindowControls` | active |
+| `shell.window.restore` | Restore settings size from work-area fill | `SquareStack` | — | `ShellWindowControls` | active |
 | `shell.window.close` | Close frameless window | `X` | — | `ShellWindowControls` | active |
 | `shell.nav.back` | Navigate back in shell panel | `ChevronLeft` | `ChevronLeftIcon` | `ShellDialpadPanel` | active |
 | `shell.contacts` | Open contacts list | `Users` | — | `Dialpad` | active |

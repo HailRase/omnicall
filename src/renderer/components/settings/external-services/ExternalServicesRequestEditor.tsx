@@ -1,4 +1,4 @@
-import { useState, type JSX } from "react";
+import { useRef, useState, type JSX } from "react";
 import { useI18n } from "../../../i18n/index.js";
 import {
   Button,
@@ -12,7 +12,6 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
-  Textarea,
 } from "../../ui/index.js";
 import { ExternalServicesBodyModeRadios } from "./ExternalServicesBodyModeRadios.js";
 import { ExternalServicesInlineRename } from "./ExternalServicesInlineRename.js";
@@ -31,6 +30,8 @@ import {
   ExternalServicesTriggerList,
   type ExternalServicesAutomaticEventType,
 } from "./ExternalServicesTriggerList.js";
+import { ExternalServicesTemplateField } from "./templateAutocomplete/ExternalServicesTemplateField.js";
+import { insertTemplateTokenAtCaret } from "./templateAutocomplete/insertTemplateTokenAtCaret.js";
 import styles from "./ExternalServices.module.css";
 
 export type ExternalServicesRequestDraft = Readonly<{
@@ -50,6 +51,7 @@ export type ExternalServicesRequestDraft = Readonly<{
 
 export type ExternalServicesRequestEditorProps = Readonly<{
   collectionName: string;
+  collectionVariableKeys: ReadonlyArray<string>;
   draft: ExternalServicesRequestDraft;
   busy: boolean;
   errorMessage: string | null;
@@ -70,7 +72,7 @@ function tabCountLabel(base: string, count: number): string {
 
 /**
  * - Purpose: Postman-like request editor with URL bar, tabs, and response pane.
- * - Inputs: draft projection, collection name, run/journal state, intent callbacks.
+ * - Inputs: draft projection, collection vars, run/journal state, intent callbacks.
  * - Outputs: presentational editor intents without HTTP or mutation logic.
  * @uiMeta f=F-031
  */
@@ -80,6 +82,7 @@ export function ExternalServicesRequestEditor(
   const { t } = useI18n();
   const {
     collectionName,
+    collectionVariableKeys,
     draft,
     busy,
     errorMessage,
@@ -96,16 +99,27 @@ export function ExternalServicesRequestEditor(
   const change = (patch: Partial<ExternalServicesRequestDraft>): void =>
     onChange({ ...draft, ...patch });
   const [insertTarget, setInsertTarget] = useState<ExternalServicesVariableInsertTarget>("url");
+  const urlCaretRef = useRef<number | null>(null);
+  const bodyCaretRef = useRef<number | null>(null);
   const bodyInsertAvailable = draft.body.mode !== "none";
   const enabledQueryCount = draft.query.filter((row) => row.enabled).length;
   const enabledHeaderCount = draft.headers.filter((row) => row.enabled).length;
   const enabledTriggerCount = draft.triggers.length;
+
   const insertToken = (token: string): void => {
     if (insertTarget === "body" && bodyInsertAvailable) {
-      change({ body: { ...draft.body, value: `${draft.body.value}${token}` } });
+      const applied = insertTemplateTokenAtCaret(
+        draft.body.value,
+        token,
+        bodyCaretRef.current,
+      );
+      bodyCaretRef.current = applied.nextCaret;
+      change({ body: { ...draft.body, value: applied.nextValue } });
       return;
     }
-    change({ url: `${draft.url}${token}` });
+    const applied = insertTemplateTokenAtCaret(draft.url, token, urlCaretRef.current);
+    urlCaretRef.current = applied.nextCaret;
+    change({ url: applied.nextValue });
     setInsertTarget("url");
   };
 
@@ -178,9 +192,13 @@ export function ExternalServicesRequestEditor(
         url={draft.url}
         busy={busy}
         runState={runState}
+        collectionVariableKeys={collectionVariableKeys}
         onMethodChange={(method) => change({ method })}
         onUrlChange={(url) => change({ url })}
         onUrlFocus={() => setInsertTarget("url")}
+        onUrlCaretChange={(caretIndex) => {
+          urlCaretRef.current = caretIndex;
+        }}
         onRunNow={onRunNow}
       />
 
@@ -219,6 +237,7 @@ export function ExternalServicesRequestEditor(
                 label={t("settings.integrations.externalServices.editor.query")}
                 rows={draft.query}
                 disabled={busy}
+                collectionVariableKeys={collectionVariableKeys}
                 onChange={(query) => change({ query })}
               />
             </TabsContent>
@@ -228,6 +247,7 @@ export function ExternalServicesRequestEditor(
                 label={t("settings.integrations.externalServices.editor.headers")}
                 rows={draft.headers}
                 disabled={busy}
+                collectionVariableKeys={collectionVariableKeys}
                 onChange={(headers) => change({ headers })}
               />
             </TabsContent>
@@ -246,13 +266,18 @@ export function ExternalServicesRequestEditor(
               />
               {draft.body.mode !== "none" ? (
                 <FormField label={t("settings.integrations.externalServices.editor.body")}>
-                  <Textarea
+                  <ExternalServicesTemplateField
+                    variant="textarea"
                     value={draft.body.value}
                     disabled={busy}
+                    collectionVariableKeys={collectionVariableKeys}
                     data-testid="external-services-body-editor"
                     onFocus={() => setInsertTarget("body")}
-                    onChange={(event) =>
-                      change({ body: { ...draft.body, value: event.currentTarget.value } })
+                    onCaretChange={(caretIndex) => {
+                      bodyCaretRef.current = caretIndex;
+                    }}
+                    onValueChange={(bodyValue) =>
+                      change({ body: { ...draft.body, value: bodyValue } })
                     }
                   />
                 </FormField>

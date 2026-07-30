@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   computeBottomRightBounds,
   computeCenteredBounds,
+  computeWorkAreaBounds,
   interpolateShellWindowBounds,
   resolveShellWindowAnimationProgress,
   resolveShellWindowMaximizable,
@@ -33,9 +34,9 @@ describe("resolveShellWindowResizable", () => {
 });
 
 describe("resolveShellWindowMaximizable", () => {
-  it("enables maximize only in settings mode", () => {
+  it("keeps OS maximizable disabled in every layout mode", () => {
     expect(resolveShellWindowMaximizable("compact")).toBe(false);
-    expect(resolveShellWindowMaximizable("settings")).toBe(true);
+    expect(resolveShellWindowMaximizable("settings")).toBe(false);
     expect(resolveShellWindowMaximizable("video-fullscreen")).toBe(false);
   });
 });
@@ -138,6 +139,17 @@ describe("computeCenteredBounds", () => {
       y: 180,
       width: 1000,
       height: 720,
+    });
+  });
+});
+
+describe("computeWorkAreaBounds", () => {
+  it("matches the work area rectangle", () => {
+    expect(computeWorkAreaBounds(WORK_AREA)).toEqual({
+      x: 0,
+      y: 0,
+      width: 1920,
+      height: 1080,
     });
   });
 });

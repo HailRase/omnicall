@@ -235,28 +235,29 @@ function migrateExternalServiceTriggers(value: unknown): unknown {
   }
   return {
     ...settings,
-    collections: settings["collections"].map((collection) => {
+    collections: settings["collections"].map((collection: unknown): unknown => {
       if (typeof collection !== "object" || collection === null || Array.isArray(collection)) {
         return collection;
       }
       const collectionRecord = collection as Record<string, unknown>;
       if (!Array.isArray(collectionRecord["requests"])) {
-        return collection;
+        return collectionRecord;
       }
       return {
         ...collectionRecord,
-        requests: collectionRecord["requests"].map((request) => {
+        requests: collectionRecord["requests"].map((request: unknown): unknown => {
           if (typeof request !== "object" || request === null || Array.isArray(request)) {
             return request;
           }
           const requestRecord = request as Record<string, unknown>;
           const triggers = requestRecord["triggers"];
-          return Array.isArray(triggers) && triggers.every((item) => typeof item === "string")
-            ? {
-                ...requestRecord,
-                triggers: triggers.map((eventType) => ({ eventType, delaySeconds: 0 })),
-              }
-            : request;
+          if (!Array.isArray(triggers) || !triggers.every((item) => typeof item === "string")) {
+            return requestRecord;
+          }
+          return {
+            ...requestRecord,
+            triggers: triggers.map((eventType) => ({ eventType, delaySeconds: 0 })),
+          };
         }),
       };
     }),

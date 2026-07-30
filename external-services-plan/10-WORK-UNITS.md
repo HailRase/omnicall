@@ -709,9 +709,9 @@ Automatic trigger bindings optionally delay dispatch by 0–180 seconds while Qu
 
 ### Done when
 
-- [ ] Delay zero preserves immediate dispatch and manual run ignores delay.
-- [ ] Waiting Queue rows can be cancelled and logout warns only when rows exist.
-- [ ] Snapshot-at-event, lifecycle cancellation, migration, and UI states are tested.
+- [x] Delay zero preserves immediate dispatch and manual run ignores delay.
+- [x] Waiting Queue rows can be cancelled and logout warns only when rows exist.
+- [x] Snapshot-at-event, lifecycle cancellation, migration, and UI states are tested.
 
 ### Continue hint
 
@@ -772,11 +772,11 @@ F-031 is not complete while evidence, i18n, profile portability, isolation, or c
 
 ### Done when
 
-- [ ] `11-ACCEPTANCE.md` is fully satisfied or explicit blockers are recorded.
-- [ ] Full automated gates pass.
-- [ ] Registry/STATUS/TASK-QUEUE/handoff/I18N/F-030/ADR/PROGRESS agree.
-- [ ] SemVer decision follows release rule and user authorization.
-- [ ] `/review` is the next recommended command.
+- [x] `11-ACCEPTANCE.md` is fully satisfied or explicit blockers are recorded.
+- [x] Full automated gates pass.
+- [x] Registry/STATUS/TASK-QUEUE/handoff/I18N/F-030/ADR/PROGRESS agree.
+- [x] SemVer decision follows release rule and user authorization.
+- [x] `/review` is the next recommended command.
 
 ### Continue hint
 

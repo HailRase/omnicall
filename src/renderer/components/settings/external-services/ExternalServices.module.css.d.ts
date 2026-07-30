@@ -103,6 +103,12 @@ declare const classes: {
   readonly systemVariablesTarget: string;
   readonly systemVariablesTitle: string;
   readonly systemVariablesToken: string;
+  readonly templateAutocompleteHost: string;
+  readonly templateAutocompleteKind: string;
+  readonly templateAutocompleteOption: string;
+  readonly templateAutocompleteOptionActive: string;
+  readonly templateAutocompletePopup: string;
+  readonly templateAutocompleteToken: string;
   readonly tree: string;
   readonly treeChevron: string;
   readonly treeChevronOpen: string;

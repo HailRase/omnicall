@@ -1,6 +1,7 @@
 import type { JSX } from "react";
 import { useI18n } from "../../../i18n/index.js";
 import { Button, Input, Switch } from "../../ui/index.js";
+import { ExternalServicesTemplateField } from "./templateAutocomplete/ExternalServicesTemplateField.js";
 import styles from "./ExternalServices.module.css";
 
 export type ExternalServicesKeyValueRow = Readonly<{
@@ -15,12 +16,13 @@ export type ExternalServicesKeyValueTableProps = Readonly<{
   label: string;
   rows: ReadonlyArray<ExternalServicesKeyValueRow>;
   disabled: boolean;
+  collectionVariableKeys: ReadonlyArray<string>;
   onChange: (rows: ReadonlyArray<ExternalServicesKeyValueRow>) => void;
 }>;
 
 /**
  * - Purpose: compact query/header key-value editor rows.
- * - Inputs: rows, disabled state, localized label and callback.
+ * - Inputs: rows, disabled state, template keys, localized label and callback.
  * - Outputs: immutable row-change intents without request construction.
  * @uiMeta f=F-031
  */
@@ -29,6 +31,7 @@ export function ExternalServicesKeyValueTable({
   label,
   rows,
   disabled,
+  collectionVariableKeys,
   onChange,
 }: ExternalServicesKeyValueTableProps): JSX.Element {
   const { t } = useI18n();
@@ -51,13 +54,15 @@ export function ExternalServicesKeyValueTable({
               aria-label={`${label}: ${t("settings.integrations.externalServices.editor.key")}`}
               onChange={(event) => update(row.id, { key: event.currentTarget.value })}
             />
-            <Input
+            <ExternalServicesTemplateField
+              variant="input"
               value={row.value}
               size="sm"
               className={styles.keyValueField}
               disabled={disabled}
+              collectionVariableKeys={collectionVariableKeys}
               aria-label={`${label}: ${t("settings.integrations.externalServices.editor.value")}`}
-              onChange={(event) => update(row.id, { value: event.currentTarget.value })}
+              onValueChange={(value) => update(row.id, { value })}
             />
             <div className={styles.keyValueEnabled}>
               <Switch
