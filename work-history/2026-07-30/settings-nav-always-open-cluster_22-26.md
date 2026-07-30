@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-30 22:26
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `2306698e`
 
 ## Где
 - `src/renderer/components/settings/SettingsSidebar.tsx`
