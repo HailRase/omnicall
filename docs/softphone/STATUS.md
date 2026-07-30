@@ -25,7 +25,7 @@
 | Handoff | `handoffs/P14-External-Services-Master-Handoff.md` |
 | ADR | ADR-0022 + ADR-0023 (**Accepted**) |
 | Release | MINOR `1.1.2` → `1.2.0` **pending** explicit ship authorization |
-| Next | `/review` for F-031 gate |
+| Next | SemVer MINOR `1.2.0` pending ship auth; P11 UI-6 Radix modals |
 | Non-overlap | Not F-011 inbound SDK; not F-028 OCP control; outbound webhooks only |
 
 ## Active phase
@@ -65,14 +65,14 @@ Design: `P13-Video-Calls-Design.md`. ADR: `adr/ADR-0008-video-calls-media-mode.m
 | F-024 Saved SIP profiles (T-012) | done | `handoffs/P11-F024-Saved-Account-Profiles-Handoff.md` |
 | F-030 Preferences export/import | done | `P11-Operator-Preferences-Export-Design.md` |
 
-**P11 phase gate:** WU0–WU5 + post-WU5 polish + Call UI parity **done**. **T-008** SIP transport/register refactor **done** (LF-009/LF-057 header + «Состояние системы»). **F-022 / LF-084 codec preferences** **done** (T-009 UI + T-010 adapter, `5692747`…`bb085f8`). Remaining for phase close: UI-6 Radix modals, draggable widget (LF-056), toast placement (LF-060). **LF-082 theme** done 2026-06-26.
+**P11 phase gate:** WU0–WU5 + post-WU5 polish + Call UI parity **done**. **T-008** SIP transport/register refactor **done** (LF-009/LF-057 header + «Состояние системы»). **F-022 / LF-084 codec preferences** **done** (T-009 UI + T-010 adapter, `5692747`…`bb085f8`). **LF-060** toast viewport geometry **done** (T-051). **LF-082 theme** done 2026-06-26. Remaining for phase close: UI-6 Radix modals, draggable widget (LF-056).
 
 ## Next work (priority)
 
 See also: `TASK-QUEUE.md` for agent claim/done workflow.
 
 1. **F-027** WU8 manual SBC smoke (checklist) → then registry **implemented** — `handoffs/P13-Video-Calls-WU8-SBC-Smoke-Checklist.md` (do not interrupt without explicit claim)
-2. **F-031 / T-052** External Services — `/review` gate; SemVer MINOR pending ship auth
+2. **F-031 / T-052** External Services — gate PASS; SemVer MINOR pending ship auth (`/release`)
 3. P11 polish: UI-6 Radix modals — `/ui`
 4. **F-008** DTMF real adapter — `/adapter`
 

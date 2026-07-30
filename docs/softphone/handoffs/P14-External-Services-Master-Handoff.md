@@ -125,7 +125,8 @@ hook-size debt noted (`useExternalServicesPanel`).
 ## Open risks
 
 See `external-services-plan/12-RISKS-NONGOALS.md`. Residual: local/private SSRF and
-plain-HTTP credential exposure accepted in v1; large panel hook split deferred.
+plain-HTTP credential exposure accepted in v1. Panel hook size debt cleared
+(`useExternalServicesPanel` → `externalServicesPanel/*`).
 
 ## Review gate
 

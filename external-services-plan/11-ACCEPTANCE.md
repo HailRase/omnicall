@@ -97,7 +97,7 @@
 - [x] No Call Engine, SIP state, OCP wire, SDK command, headset, or transfer behavior changed.
 - [x] SIP-only bootstrap works with no External Services configured.
 - [x] No `any`, `@ts-ignore`, `as unknown as`, or deprecated API exists in touched code.
-- [ ] File/function/component/hook budgets are met. _(residual: `useExternalServicesPanel` ~695 lines; composition-only debt, no behavior gap — follow-up split)_
+- [x] File/function/component/hook budgets are met. _(panel orchestrator split into `externalServicesPanel/*` composition hooks + builders; 2026-07-30)_
 
 ## Documentation and gates
 
@@ -110,5 +110,5 @@
 ## WU-12 gate notes (2026-07-30)
 
 - Automated: `npm run test` **2886 passed** / 1 skipped; `typecheck` PASS; `lint` PASS; `i18n:check` PASS; `ui:catalog` PASS; `registry:check` **75/0**; release preflight body (test+lint+typecheck+registry) PASS after F-031 fixture/lint closeout.
-- Residual (non-blocking for product gate): `useExternalServicesPanel` remains a large composition hook — candidate follow-up split, not a behavior gap.
+- Residual cleared: `useExternalServicesPanel` split into `externalServicesPanel/*` (selection/queue/dialogs/workspace + builders).
 - SemVer: MINOR `1.1.2` → `1.2.0` **pending explicit user ship authorization** (no tag/build/push/manifest sync in WU-12).
