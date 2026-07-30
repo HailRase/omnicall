@@ -196,7 +196,7 @@ describe("SettingsSidebar", () => {
     expect(screen.getByTestId("settings-nav-integrations-ocp")).toBeInTheDocument();
     expect(screen.getByText("OCP Module")).toBeVisible();
     expect(screen.getByTestId("settings-nav-integrations-external-services")).toBeInTheDocument();
-    expect(screen.getByText("External Services")).toBeVisible();
+    expect(screen.getByText("Внешние сервисы")).toBeVisible();
     expect(screen.getByTestId("settings-nav-integrations-sdk")).toBeInTheDocument();
     expect(screen.queryByTestId("settings-nav-group-integrations-group")).not.toContainElement(
       screen.getByTestId("settings-nav-integrations-sdk"),

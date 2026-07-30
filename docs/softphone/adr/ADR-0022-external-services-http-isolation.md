@@ -40,6 +40,8 @@ Adapters / Infrastructure / Electron main; no Domain technology imports.
 - Focus eligibility is read from a typed Application snapshot at event evaluation time.
 - Every call-related automatic trigger (including ringing) fires only when its call is focused.
 - Domain stays free of React/Zustand; store remains projection-only.
+- WU-11 implements `callFocusProjection` in the same committed store update as call projections.
+- The post-commit binder reads that structural snapshot after `bindFacade`; its callback only enqueues work.
 
 ### 4. Profile pending cancellation vs in-flight completion
 

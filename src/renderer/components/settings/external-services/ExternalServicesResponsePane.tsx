@@ -34,7 +34,7 @@ export function ExternalServicesResponsePane({
 
   return (
     <section className={styles.responsePane} data-testid="external-services-response-pane">
-      <Tabs defaultValue="response">
+      <Tabs defaultValue="response" className={styles.responseTabs}>
         <TabsList>
           <TabsTrigger value="response">
             {t("settings.integrations.externalServices.tabs.response")}

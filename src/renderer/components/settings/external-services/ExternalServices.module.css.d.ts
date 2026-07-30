@@ -47,6 +47,7 @@ declare const classes: {
   readonly responseEmptyText: string;
   readonly responsePane: string;
   readonly responseTabContent: string;
+  readonly responseTabs: string;
   readonly resultBody: string;
   readonly row: string;
   readonly rowActions: string;

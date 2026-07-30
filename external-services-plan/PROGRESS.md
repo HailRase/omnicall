@@ -17,7 +17,7 @@
 | WU-08 | Navigation and collections UI | done | 2026-07-30 | Settings leaf + Postman-like COLLECTIONS sidebar tree (polish); Application summaries/mutations; shell/actions/panel hooks; i18n ru/en/fr/de/bg; tests + light/dark stories; `typecheck`/`i18n:check`/`ui:catalog` PASS |
 | WU-09 | Requests editor and Run now UI | done | 2026-07-30 | Request workspace URL bar + Params/Headers/Body/Triggers tabs + Send/Response (polish); mutation hook; unsaved-discard; ru/en/fr/de/bg i18n; light/dark stories; focused tests PASS |
 | WU-10 | Journal UI | done | 2026-07-30 | Journal panel VM + History tab in response pane (cap 100, redacted headers, truncation); empty/loading/error/retry; ru/en/fr/de/bg i18n; projection/component tests + light/dark stories PASS |
-| WU-11 | Real event integration hardening | pending | 2026-07-29 | — |
+| WU-11 | Real event integration hardening | done | 2026-07-30 | `callFocusProjection`; committed store focus reducer; `readExternalServicesProductStateFromStore`; post-commit `bindExternalServicesAutomation`; focus/reader/binder/automation tests; typecheck/lint/registry PASS |
 | WU-12 | Documentation close, preflight, and release decision | pending | 2026-07-29 | — |
 
 ## State rules
@@ -26,4 +26,4 @@
 - Exactly one primary WU may be `in_progress`.
 - Mark `done` only after its tests, canonical docs, and work-history evidence exist.
 - Record blockers in the Evidence column and stop before dependent WUs.
-- Current next WU: `WU-11`.
+- Current next WU: `WU-12`.

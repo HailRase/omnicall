@@ -292,8 +292,6 @@ describe("External Services profile lifecycle", () => {
       },
       {
         profileKey: profileA,
-        settings,
-        settingsRevision: 1,
         focusedCallId: callId,
       },
     );

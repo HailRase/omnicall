@@ -18,13 +18,13 @@
 | Field | Value |
 | --- | --- |
 | Feature | **F-031** External Services (Outbound HTTP Automations) |
-| Status | **in-progress** (WU-10 journal UI done; Postman-like workspace polish 2026-07-30) |
+| Status | **in-progress** (WU-11 real event integration and focus hardening done) |
 | Branch | `feature/external-services` |
 | Task | **T-052** claimed — `/logic` → `/ui` |
 | Plan | `external-services-plan/` · progress `external-services-plan/PROGRESS.md` |
 | Handoff | `handoffs/P14-External-Services-Master-Handoff.md` |
 | ADR | `adr/ADR-0022-external-services-http-isolation.md` (**Accepted**) |
-| Next WU | **WU-11** — real event integration and focus hardening |
+| Next WU | **WU-12** — documentation close, preflight, and release decision |
 | Non-overlap | Not F-011 inbound SDK; not F-028 OCP control; outbound webhooks only |
 
 ## Active phase

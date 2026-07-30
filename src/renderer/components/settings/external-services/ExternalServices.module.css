@@ -312,6 +312,8 @@
 }
 
 .response-pane {
+  display: flex;
+  flex-direction: column;
   flex: 1 1 45%;
   min-height: 10rem;
   overflow: hidden;
@@ -320,10 +322,18 @@
   padding: var(--space-sm) var(--space-md);
 }
 
+.response-tabs {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+}
+
 .response-tab-content {
+  flex: 1 1 auto;
+  min-height: 0;
   padding-top: var(--space-sm);
   overflow: auto;
-  max-height: 100%;
 }
 
 .response-empty {

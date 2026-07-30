@@ -5,14 +5,11 @@
  */
 
 import type {
-  ExternalServicesSettings,
   SettingsAccountKey,
 } from "@domain/index.js";
 
 export type ExternalServicesProductSnapshot = Readonly<{
   profileKey: SettingsAccountKey;
-  settings: ExternalServicesSettings;
-  settingsRevision: number;
   focusedCallId: string | null;
   userLogin?: string;
 }>;

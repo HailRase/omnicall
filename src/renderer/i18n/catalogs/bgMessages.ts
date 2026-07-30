@@ -616,15 +616,15 @@ export const bgMessages: MessageShape = {
   "settings.nav.headset": "Слушалки",
   "settings.nav.integrations": "Интеграции",
   "settings.nav.integrations.ocp": "OCP Module",
-  "settings.nav.integrations.externalServices": "External Services",
+  "settings.nav.integrations.externalServices": "Външни услуги",
   "settings.nav.integrations.sdk": "OmniCall Kit",
   "icons.settings.integrations": "Интеграции",
   "icons.settings.integrations.ocp": "OCP Module",
-  "icons.settings.integrations.externalServices": "External Services",
+  "icons.settings.integrations.externalServices": "Външни услуги",
   "icons.settings.integrations.externalServices.send": "Изпрати",
   "icons.settings.integrations.sdk": "OmniCall Kit",
   "settings.integrations.description": "Свързване на външни модули към softphone.",
-  "settings.integrations.externalServices.title": "External Services",
+  "settings.integrations.externalServices.title": "Външни услуги",
   "settings.integrations.externalServices.description":
     "Изходящи HTTP автоматизации по събития от обаждания за активния профил.",
   "settings.integrations.externalServices.actions.create": "Нова колекция",
@@ -675,7 +675,7 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalServices.journal.emptyDescription":
     "След автоматични или ръчни изпълнения тук се показват последните 100 опита.",
   "settings.integrations.externalServices.journal.loadError":
-    "Неуспешно зареждане на журнала External Services.",
+    "Неуспешно зареждане на журнала на външните услуги.",
   "settings.integrations.externalServices.journal.retry": "Опитай отново",
   "settings.integrations.externalServices.journal.capHint":
     "Показани са последните 100 записа.",
@@ -695,15 +695,15 @@ export const bgMessages: MessageShape = {
   "settings.integrations.externalServices.journal.outcome.timeout": "Изчакване",
   "settings.integrations.externalServices.journal.outcome.aborted": "Отменено",
   "settings.integrations.externalServices.trigger.manual_run": "Ръчно изпълнение",
-  "settings.integrations.externalServices.disabled.loading": "Зареждане на External Services…",
+  "settings.integrations.externalServices.disabled.loading": "Зареждане на външни услуги…",
   "settings.integrations.externalServices.disabled.busy": "Запазване…",
   "settings.integrations.externalServices.disabled.unavailable":
-    "External Services в момента не са налични.",
+    "Външните услуги в момента не са налични.",
   "settings.integrations.externalServices.disabled.urlRequired": "Въведете URL на заявката.",
   "settings.integrations.externalServices.loadError":
-    "Неуспешно зареждане на External Services. Опитайте отново.",
+    "Неуспешно зареждане на външните услуги. Опитайте отново.",
   "settings.integrations.externalServices.saveError":
-    "Неуспешно запазване на промените в External Services.",
+    "Неуспешно запазване на промените във външните услуги.",
   "settings.integrations.externalServices.importExport.importSucceeded": (params: Readonly<{
     name: string;
   }>) => `Колекция „${params.name}“ е импортирана.`,

@@ -7,12 +7,12 @@
 | Feature | F-031 External Services (Outbound HTTP Automations) |
 | Legacy | `_none_` (new product feature; no LF parity) |
 | Phase | P14 External Services |
-| Feature status | **in-progress** (WU-10 journal UI complete; Postman-like workspace polish 2026-07-30) |
+| Feature status | **in-progress** (WU-11 real event integration complete; closeout → WU-12) |
 | Branch | `feature/external-services` |
 | Task | T-052 claimed (`/logic` → `/ui`) |
 | Plan | `external-services-plan/` |
 | ADR | [ADR-0022](../adr/ADR-0022-external-services-http-isolation.md) — **Accepted** |
-| Next | **WU-11** real event integration and focus hardening |
+| Next | **WU-12** documentation close, preflight, and release decision |
 
 ## Mission
 
@@ -50,7 +50,7 @@ Services without coupling telephony/OCP/SDK paths to network latency or response
 | WU-08 | Navigation and collections UI | **done** | Integrations leaf beside OCP; SDK top-level preserved; Postman-like COLLECTIONS sidebar tree (2026-07-30); collection CRUD/import/export/variables; i18n five locales; nav/panel/component tests + light/dark stories |
 | WU-09 | Requests editor and Run now UI | **done** | Request workspace URL bar + Params/Headers/Body/Triggers tabs + Send/Response (2026-07-30); save/delete/discard; facade Run now queued/running/result; five locales; focused tests and light/dark stories |
 | WU-10 | Journal UI | **done** | Journal VM + hook; History tab in response pane (*** headers, truncation, cap 100); empty/loading/error/retry; five locales; projection/component tests + light/dark stories; typecheck/i18n/ui:catalog PASS |
-| WU-11 | Real event integration hardening | pending | — |
+| WU-11 | Real event integration hardening | **done** | Application call-focus projection; post-commit renderer binder; typed structural snapshot; focused multi-call, campaign/ACD, terminal, and non-blocking tests; typecheck/lint/registry PASS |
 | WU-12 | Documentation close, preflight, release decision | pending | — |
 
 Live machine status: `external-services-plan/PROGRESS.md`.
@@ -79,8 +79,8 @@ UI → Facade / Use Cases → ExternalServicesAutomationService
 
 - Compose in softphone composition / real account bootstrap via `createExternalServicesCompositionForBootstrap`.
 - Synthetic test entry: `AccountBootstrapFacade.handleExternalServicesCommittedEvent` / `runExternalServiceRequestNow`.
-- Bind `bindExternalServicesAutomation` after `bindFacade` (post-commit projections) — **WU-11**.
-- Dispose composition in facade `dispose()`; binder disposal lands with WU-11.
+- `bindExternalServicesAutomation` registers after `bindFacade`, reads committed projections, and disposes before facade teardown.
+- Dispose composition in facade `dispose()`; the renderer binder is independently disposed by `useAccountBootstrap`.
 - Zero collections → inert matching; SIP-only preserved.
 
 ## Trigger / variable / focus matrix
@@ -125,4 +125,4 @@ plain-HTTP credential exposure accepted in v1 per product law.
 
 - After each WU: update this table + `PROGRESS.md` + work-history; keep registry truthful.
 - Stop for `/preflight` or `/review` when a WU Done-when checklist requires it.
-- Continue hint after WU-10: `Implement WU-11 from external-services-plan/10-WORK-UNITS.md`
+- Continue hint after WU-11: `Run /preflight for F-031, then implement WU-12`

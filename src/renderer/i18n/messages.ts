@@ -13,15 +13,15 @@ const ruMessages = {
   "settings.nav.headset": "Гарнитура",
   "settings.nav.integrations": "Интеграции",
   "settings.nav.integrations.ocp": "OCP Module",
-  "settings.nav.integrations.externalServices": "External Services",
+  "settings.nav.integrations.externalServices": "Внешние сервисы",
   "settings.nav.integrations.sdk": "OmniCall Kit",
   "icons.settings.integrations": "Интеграции",
   "icons.settings.integrations.ocp": "OCP Module",
-  "icons.settings.integrations.externalServices": "External Services",
+  "icons.settings.integrations.externalServices": "Внешние сервисы",
   "icons.settings.integrations.externalServices.send": "Отправить",
   "icons.settings.integrations.sdk": "OmniCall Kit",
   "settings.integrations.description": "Подключение внешних модулей к softphone.",
-  "settings.integrations.externalServices.title": "External Services",
+  "settings.integrations.externalServices.title": "Внешние сервисы",
   "settings.integrations.externalServices.description":
     "Исходящие HTTP-автоматизации по событиям звонка для активного профиля.",
   "settings.integrations.externalServices.actions.create": "Новая коллекция",
@@ -72,7 +72,7 @@ const ruMessages = {
   "settings.integrations.externalServices.journal.emptyDescription":
     "После автоматических или ручных запусков здесь появятся последние 100 попыток.",
   "settings.integrations.externalServices.journal.loadError":
-    "Не удалось загрузить журнал External Services.",
+    "Не удалось загрузить журнал внешних сервисов.",
   "settings.integrations.externalServices.journal.retry": "Повторить",
   "settings.integrations.externalServices.journal.capHint":
     "Показаны последние 100 записей.",
@@ -92,15 +92,15 @@ const ruMessages = {
   "settings.integrations.externalServices.journal.outcome.timeout": "Таймаут",
   "settings.integrations.externalServices.journal.outcome.aborted": "Отменено",
   "settings.integrations.externalServices.trigger.manual_run": "Ручной запуск",
-  "settings.integrations.externalServices.disabled.loading": "Загрузка External Services…",
+  "settings.integrations.externalServices.disabled.loading": "Загрузка внешних сервисов…",
   "settings.integrations.externalServices.disabled.busy": "Сохранение…",
   "settings.integrations.externalServices.disabled.unavailable":
-    "External Services сейчас недоступны.",
+    "Внешние сервисы сейчас недоступны.",
   "settings.integrations.externalServices.disabled.urlRequired": "Укажите URL запроса.",
   "settings.integrations.externalServices.loadError":
-    "Не удалось загрузить External Services. Повторите попытку.",
+    "Не удалось загрузить внешние сервисы. Повторите попытку.",
   "settings.integrations.externalServices.saveError":
-    "Не удалось сохранить изменения External Services.",
+    "Не удалось сохранить изменения внешних сервисов.",
   "settings.integrations.externalServices.importExport.importSucceeded": (params: Readonly<{
     name: string;
   }>) => `Коллекция «${params.name}» импортирована.`,
@@ -3024,15 +3024,15 @@ const frMessages: MessageShape = {
   "settings.nav.headset": "Micro-casque",
   "settings.nav.integrations": "Integrations",
   "settings.nav.integrations.ocp": "OCP Module",
-  "settings.nav.integrations.externalServices": "External Services",
+  "settings.nav.integrations.externalServices": "Services externes",
   "settings.nav.integrations.sdk": "OmniCall Kit",
   "icons.settings.integrations": "Integrations",
   "icons.settings.integrations.ocp": "OCP Module",
-  "icons.settings.integrations.externalServices": "External Services",
+  "icons.settings.integrations.externalServices": "Services externes",
   "icons.settings.integrations.externalServices.send": "Envoyer",
   "icons.settings.integrations.sdk": "OmniCall Kit",
   "settings.integrations.description": "Connecter des modules externes au softphone.",
-  "settings.integrations.externalServices.title": "External Services",
+  "settings.integrations.externalServices.title": "Services externes",
   "settings.integrations.externalServices.description":
     "Automations HTTP sortantes declenchees par les evenements d'appel pour le profil actif.",
   "settings.integrations.externalServices.actions.create": "Nouvelle collection",
@@ -3082,7 +3082,7 @@ const frMessages: MessageShape = {
   "settings.integrations.externalServices.journal.emptyDescription":
     "Apres les executions automatiques ou manuelles, les 100 dernieres tentatives apparaissent ici.",
   "settings.integrations.externalServices.journal.loadError":
-    "Impossible de charger le journal External Services.",
+    "Impossible de charger le journal des services externes.",
   "settings.integrations.externalServices.journal.retry": "Reessayer",
   "settings.integrations.externalServices.journal.capHint":
     "Affichage des 100 dernieres entrees.",
@@ -3102,15 +3102,15 @@ const frMessages: MessageShape = {
   "settings.integrations.externalServices.journal.outcome.timeout": "Delai depasse",
   "settings.integrations.externalServices.journal.outcome.aborted": "Annule",
   "settings.integrations.externalServices.trigger.manual_run": "Execution manuelle",
-  "settings.integrations.externalServices.disabled.loading": "Chargement d'External Services…",
+  "settings.integrations.externalServices.disabled.loading": "Chargement des services externes…",
   "settings.integrations.externalServices.disabled.busy": "Enregistrement…",
   "settings.integrations.externalServices.disabled.unavailable":
-    "External Services est indisponible pour le moment.",
+    "Les services externes sont indisponibles pour le moment.",
   "settings.integrations.externalServices.disabled.urlRequired": "Saisissez l'URL de la requete.",
   "settings.integrations.externalServices.loadError":
-    "Impossible de charger External Services. Reessayez.",
+    "Impossible de charger les services externes. Reessayez.",
   "settings.integrations.externalServices.saveError":
-    "Impossible d'enregistrer les modifications External Services.",
+    "Impossible d'enregistrer les modifications des services externes.",
   "settings.integrations.externalServices.importExport.importSucceeded": (params: Readonly<{
     name: string;
   }>) => `Collection « ${params.name} » importee.`,
@@ -4493,15 +4493,15 @@ const deMessages: MessageShape = {
   "settings.nav.headset": "Headset",
   "settings.nav.integrations": "Integrationen",
   "settings.nav.integrations.ocp": "OCP Module",
-  "settings.nav.integrations.externalServices": "External Services",
+  "settings.nav.integrations.externalServices": "Externe Dienste",
   "settings.nav.integrations.sdk": "OmniCall Kit",
   "icons.settings.integrations": "Integrationen",
   "icons.settings.integrations.ocp": "OCP Module",
-  "icons.settings.integrations.externalServices": "External Services",
+  "icons.settings.integrations.externalServices": "Externe Dienste",
   "icons.settings.integrations.externalServices.send": "Senden",
   "icons.settings.integrations.sdk": "OmniCall Kit",
   "settings.integrations.description": "Externe Module mit dem Softphone verbinden.",
-  "settings.integrations.externalServices.title": "External Services",
+  "settings.integrations.externalServices.title": "Externe Dienste",
   "settings.integrations.externalServices.description":
     "Ausgehende HTTP-Automatisierungen fuer Anrufereignisse des aktiven Profils.",
   "settings.integrations.externalServices.actions.create": "Neue Sammlung",
@@ -4551,7 +4551,7 @@ const deMessages: MessageShape = {
   "settings.integrations.externalServices.journal.emptyDescription":
     "Nach automatischen oder manuellen Laeufen erscheinen hier die letzten 100 Versuche.",
   "settings.integrations.externalServices.journal.loadError":
-    "External-Services-Journal konnte nicht geladen werden.",
+    "Journal der externen Dienste konnte nicht geladen werden.",
   "settings.integrations.externalServices.journal.retry": "Erneut versuchen",
   "settings.integrations.externalServices.journal.capHint":
     "Es werden die letzten 100 Eintraege angezeigt.",
@@ -4571,15 +4571,15 @@ const deMessages: MessageShape = {
   "settings.integrations.externalServices.journal.outcome.timeout": "Zeitueberschreitung",
   "settings.integrations.externalServices.journal.outcome.aborted": "Abgebrochen",
   "settings.integrations.externalServices.trigger.manual_run": "Manueller Lauf",
-  "settings.integrations.externalServices.disabled.loading": "External Services werden geladen…",
+  "settings.integrations.externalServices.disabled.loading": "Externe Dienste werden geladen…",
   "settings.integrations.externalServices.disabled.busy": "Speichern…",
   "settings.integrations.externalServices.disabled.unavailable":
-    "External Services sind derzeit nicht verfuegbar.",
+    "Externe Dienste sind derzeit nicht verfuegbar.",
   "settings.integrations.externalServices.disabled.urlRequired": "Geben Sie eine Anfrage-URL ein.",
   "settings.integrations.externalServices.loadError":
-    "External Services konnten nicht geladen werden. Bitte erneut versuchen.",
+    "Externe Dienste konnten nicht geladen werden. Bitte erneut versuchen.",
   "settings.integrations.externalServices.saveError":
-    "External-Services-Aenderungen konnten nicht gespeichert werden.",
+    "Aenderungen der externen Dienste konnten nicht gespeichert werden.",
   "settings.integrations.externalServices.importExport.importSucceeded": (params: Readonly<{
     name: string;
   }>) => `Sammlung „${params.name}“ importiert.`,
