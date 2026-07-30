@@ -229,7 +229,7 @@ export type {
   SipConnectionJournalEntry,
   SipConnectionJournalCategory,
 } from "./services/recovery/SipConnectionJournal.js";
-export { ShellWindowLayoutService, SETTINGS_SHELL_LAYOUT_ANIMATION_MS } from "./services/platform/ShellWindowLayoutService.js";
+export { ShellWindowLayoutService } from "./services/platform/ShellWindowLayoutService.js";
 export type { ShellWindowLayoutServiceInput } from "./services/platform/ShellWindowLayoutService.js";
 export { SessionTeardownOrchestrationService } from "./services/platform/SessionTeardownOrchestrationService.js";
 export type {

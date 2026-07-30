@@ -1,9 +1,8 @@
 // @vitest-environment jsdom
 import "@testing-library/jest-dom/vitest";
-import { act, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { SETTINGS_SHELL_LAYOUT_ANIMATION_MS } from "@application/index.js";
+import { describe, expect, it, vi } from "vitest";
 import { deriveSettingsNavigationAvailability } from "@application/index.js";
 import { SettingsFullscreenOverlay } from "./SettingsFullscreenOverlay.js";
 import { SettingsPanel } from "./SettingsPanel.js";
@@ -88,10 +87,6 @@ const panelProps = {
 };
 
 describe("SettingsFullscreenOverlay", () => {
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
   it("renders when open and closes on button click", async () => {
     const user = userEvent.setup();
     const onClose = vi.fn();
@@ -127,8 +122,7 @@ describe("SettingsFullscreenOverlay", () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it("holds opaque overlay until window layout duration elapses when closed", () => {
-    vi.useFakeTimers();
+  it("unmounts immediately when closed", () => {
     const onClose = vi.fn();
     const onVisibleChange = vi.fn();
 
@@ -156,19 +150,6 @@ describe("SettingsFullscreenOverlay", () => {
       </SettingsFullscreenOverlay>,
     );
 
-    const overlay = container.querySelector('[data-testid="settings-overlay"]');
-    expect(overlay).not.toBeNull();
-    expect(overlay).toHaveAttribute("data-closing", "true");
-    expect(onVisibleChange).toHaveBeenLastCalledWith(true);
-
-    act(() => {
-      vi.advanceTimersByTime(SETTINGS_SHELL_LAYOUT_ANIMATION_MS - 1);
-    });
-    expect(container.querySelector('[data-testid="settings-overlay"]')).not.toBeNull();
-
-    act(() => {
-      vi.advanceTimersByTime(1);
-    });
     expect(container.querySelector('[data-testid="settings-overlay"]')).toBeNull();
     expect(onVisibleChange).toHaveBeenLastCalledWith(false);
   });

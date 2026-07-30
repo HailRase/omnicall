@@ -1,4 +1,5 @@
 import type { JSX } from "react";
+import clsx from "clsx";
 import type {
   ExternalServicesJournalEntryVm,
   ExternalServicesJournalOutcomeVm,
@@ -47,6 +48,14 @@ const EVENT_KEYS: Readonly<Record<string, TranslationKey>> = {
   manual_run: "settings.integrations.externalServices.trigger.manual_run",
 };
 
+const METHOD_CLASS: Readonly<Record<string, string>> = {
+  GET: styles.methodGet,
+  POST: styles.methodPost,
+  PUT: styles.methodPut,
+  PATCH: styles.methodPatch,
+  DELETE: styles.methodDelete,
+};
+
 type Translator = ReturnType<typeof useI18n>["t"];
 
 export type ExternalServicesJournalEntryProps = Readonly<{
@@ -83,18 +92,31 @@ export function ExternalServicesJournalEntry({
             {entry.requestName} · {entry.collectionName}
           </span>
           <span className={styles.journalSummaryMeta}>
+            <span
+              className={clsx(
+                styles.methodBadge,
+                METHOD_CLASS[entry.method] ?? styles.methodGet,
+              )}
+              data-testid={`external-services-journal-method-${entry.id}`}
+            >
+              {entry.method}
+            </span>
+            <span className={styles.journalSummarySep} aria-hidden="true" />
             <Badge tone="muted" size="sm">
               {eventLabel}
             </Badge>
+            <span className={styles.journalSummarySep} aria-hidden="true" />
             <Badge tone={OUTCOME_TONES[entry.outcome]} size="sm">
               {t(OUTCOME_KEYS[entry.outcome])}
             </Badge>
-            <span>
+            <span className={styles.journalSummarySep} aria-hidden="true" />
+            <span className={styles.journalSummaryStat}>
               {entry.status === null
                 ? t("settings.integrations.externalServices.journal.noStatus")
                 : String(entry.status)}
             </span>
-            <span>
+            <span className={styles.journalSummarySep} aria-hidden="true" />
+            <span className={styles.journalSummaryStat}>
               {t("settings.integrations.externalServices.journal.durationValue", {
                 duration: entry.durationMs,
               })}

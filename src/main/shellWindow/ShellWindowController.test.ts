@@ -116,9 +116,9 @@ describe("ShellWindowController", () => {
   it("enables resize and maximize after settings layout transition completes", async () => {
     const window = createMockWindow({
       x: 1920 - 420 - SHELL_WINDOW_LAYOUT.screenMargin,
-      y: 1080 - 720 - SHELL_WINDOW_LAYOUT.screenMargin,
+      y: 1080 - SHELL_WINDOW_LAYOUT.compactDefaultHeight - SHELL_WINDOW_LAYOUT.screenMargin,
       width: 420,
-      height: 720,
+      height: SHELL_WINDOW_LAYOUT.compactDefaultHeight,
     });
     const controller = new ShellWindowController(
       window as unknown as Electron.BrowserWindow,

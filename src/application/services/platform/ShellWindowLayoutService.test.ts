@@ -66,20 +66,20 @@ describe("ShellWindowLayoutService", () => {
     });
   });
 
-  it("requests compact layout when overlays close", async () => {
+  it("requests compact layout without animation when settings close", async () => {
     const gateway = createGatewayMock();
     const service = new ShellWindowLayoutService(gateway);
 
     await service.syncLayout({
       settingsOpen: false,
       videoFullscreen: false,
-      reducedMotion: true,
+      reducedMotion: false,
     });
 
     expect(gateway.applyLayout).toHaveBeenCalledWith({
       mode: "compact",
-      animationDurationMs: SHELL_WINDOW_LAYOUT.animationDurationMs,
-      reducedMotion: true,
+      animationDurationMs: 0,
+      reducedMotion: false,
     });
   });
 });

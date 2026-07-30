@@ -236,7 +236,7 @@ const ruMessages = {
   "settings.integrations.externalServices.variables.insertAria": (params: Readonly<{
     token: string;
   }>) => `Вставить ${params.token}`,
-  "settings.integrations.externalServices.variables.group.always": "Всегда",
+  "settings.integrations.externalServices.variables.group.always": "Общие",
   "settings.integrations.externalServices.variables.group.call": "Звонок",
   "settings.integrations.externalServices.variables.group.campaign": "Кампания",
   "settings.integrations.externalServices.variables.group.acd": "ACD",
@@ -1820,7 +1820,7 @@ const enMessages: MessageShape = {
   "settings.integrations.externalServices.variables.insertAria": (params: Readonly<{
     token: string;
   }>) => `Insert ${params.token}`,
-  "settings.integrations.externalServices.variables.group.always": "Always",
+  "settings.integrations.externalServices.variables.group.always": "General",
   "settings.integrations.externalServices.variables.group.call": "Call",
   "settings.integrations.externalServices.variables.group.campaign": "Campaign",
   "settings.integrations.externalServices.variables.group.acd": "ACD",
@@ -3225,6 +3225,7 @@ const frMessages: MessageShape = {
   "settings.integrations.externalServices.actions.cancel": "Annuler",
   "settings.integrations.externalServices.actions.menu": "Actions de la collection",
   "settings.integrations.externalServices.actions.editVariables": "Variables",
+  "settings.integrations.externalServices.variables.group.always": "Général",
   "settings.integrations.externalServices.collections.emptyTitle": "Aucune collection",
   "settings.integrations.externalServices.collections.emptyDescription":
     "Creez une collection de requetes HTTP ou importez un fichier JSON.",
@@ -4732,6 +4733,7 @@ const deMessages: MessageShape = {
   "settings.integrations.externalServices.actions.cancel": "Abbrechen",
   "settings.integrations.externalServices.actions.menu": "Sammlungsaktionen",
   "settings.integrations.externalServices.actions.editVariables": "Variablen",
+  "settings.integrations.externalServices.variables.group.always": "Allgemein",
   "settings.integrations.externalServices.collections.emptyTitle": "Noch keine Sammlungen",
   "settings.integrations.externalServices.collections.emptyDescription":
     "Erstellen Sie eine HTTP-Anfragesammlung oder importieren Sie eine JSON-Datei.",

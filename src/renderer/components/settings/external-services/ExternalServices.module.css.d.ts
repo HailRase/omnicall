@@ -37,6 +37,8 @@ declare const classes: {
   readonly journalSummary: string;
   readonly journalSummaryMeta: string;
   readonly journalSummaryNames: string;
+  readonly journalSummarySep: string;
+  readonly journalSummaryStat: string;
   readonly journalSummaryTime: string;
   readonly journalTrigger: string;
   readonly keyValueAdd: string;

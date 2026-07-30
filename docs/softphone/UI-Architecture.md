@@ -57,7 +57,7 @@ PanelNav        — Call | History only (History full-screen when idle, no activ
 
 **Call-center rule:** Settings and Diagnostics open as **overlays**, not full panel replacement, while a call is established. Operator must keep line context.
 
-**Settings close motion (F-016):** BrowserWindow bounds animation is the only close carrier (`SETTINGS_SHELL_LAYOUT_ANIMATION_MS` / `SHELL_WINDOW_LAYOUT.animationDurationMs`). `SettingsFullscreenOverlay` stays fully opaque for that hold (`data-closing`, `.panel-holding`) and must **not** fade/slide out — opacity exit causes underlay flicker during resize. Shell chrome (`suppressWindowControls`, OCP density) follows `onVisibleChange`, not the first `settingsOpen === false`. Maximized→compact must animate from work-area bounds without an intermediate settings-min snap (`ShellWindowController.exitMaximizedForLayoutTransition`).
+**Settings close transition (F-016):** Settings→compact sends an instant (`0ms`) layout command; `SettingsFullscreenOverlay` unmounts immediately. Compact bounds still restore bottom-right, and maximized settings close without a visible settings-min restore snap. Settings open and video-fullscreen retain their existing transition policy.
 
 **Shell routing (Phase 1+):** `HashRouter` wraps ready-state UI in `App.tsx`. `ShellNavigationController` keeps `SoftphoneLayout` mounted on a parent layout route; child hash routes (`/`, `/history`, `/contacts/*`) select panel state only via `ShellRoutePanelOutlet` in `OverlayLayer`. Typed navigation: `useShellNavigation` + `src/renderer/navigation/*`. Settings remain overlay-driven (`useOverlayShell`) until settings route alignment (Phase 5). Call state stays in Zustand projections — routes must not own telephony state.
 

@@ -219,6 +219,7 @@ function buildJournalEntry(
     collectionName: job.collectionName,
     requestId: job.requestId,
     requestName: job.requestName,
+    method: job.request.method,
     eventType: job.trigger.eventType,
     startedAt: startedAt.toISOString(),
     durationMs: result.durationMs,

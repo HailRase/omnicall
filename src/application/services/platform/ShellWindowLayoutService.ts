@@ -19,18 +19,15 @@ export type ShellWindowLayoutServiceInput = Readonly<{
   reducedMotion: boolean;
 }>;
 
-/** Renderer-safe alias for settings close hold (= BrowserWindow layout animation). */
-export const SETTINGS_SHELL_LAYOUT_ANIMATION_MS =
-  SHELL_WINDOW_LAYOUT.animationDurationMs;
-
 export class ShellWindowLayoutService {
   constructor(private readonly gateway: ShellWindowGateway) {}
 
   async syncLayout(input: ShellWindowLayoutServiceInput): Promise<void> {
     const mode = resolveShellWindowLayoutMode(input);
+    const isSettingsClose = !input.settingsOpen && !input.videoFullscreen;
     const command: ApplyShellWindowLayoutCommand = {
       mode,
-      animationDurationMs: SHELL_WINDOW_LAYOUT.animationDurationMs,
+      animationDurationMs: isSettingsClose ? 0 : SHELL_WINDOW_LAYOUT.animationDurationMs,
       reducedMotion: input.reducedMotion,
     };
 

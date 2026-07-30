@@ -73,12 +73,14 @@ export function ExternalServicesRequestUrlBar({
             data-testid="external-services-run-now"
             onClick={onRunNow}
           >
-            <AppIcon
-              id="settings.integrations.external-services.send"
-              size={14}
-              decorative
-              preferAnimated={false}
-            />
+            {runState === "idle" ? (
+              <AppIcon
+                id="settings.integrations.external-services.send"
+                size={14}
+                decorative
+                preferAnimated={false}
+              />
+            ) : null}
           </Button>
         </IconTooltip>
       </div>

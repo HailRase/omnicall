@@ -7,9 +7,11 @@
 import {
   EXTERNAL_SERVICE_AUTOMATIC_EVENT_TYPES,
   EXTERNAL_SERVICE_JOURNAL_OUTCOMES,
+  isExternalServiceHttpMethod,
   isExternalServiceUuid,
   type ExternalServiceCollectionId,
   type ExternalServiceEventType,
+  type ExternalServiceHttpMethod,
   type ExternalServiceJournalEntry,
   type ExternalServiceJournalOutcome,
   type ExternalServiceKeyValue,
@@ -143,6 +145,14 @@ function parseJournalEntry(
   const errorCode = record["errorCode"];
   const errorMessage = record["errorMessage"];
   const headersRaw = record["requestHeaders"];
+  const methodRaw = record["method"];
+  // Legacy v1 rows may omit method; default GET so existing journals still load.
+  const method: ExternalServiceHttpMethod | null =
+    methodRaw === undefined
+      ? "GET"
+      : isExternalServiceHttpMethod(methodRaw)
+        ? methodRaw
+        : null;
 
   if (
     id === null ||
@@ -156,6 +166,7 @@ function parseJournalEntry(
     requestUrl === null ||
     responseBody === null ||
     correlationId === null ||
+    method === null ||
     !isExternalServiceUuid(collectionId) ||
     !isExternalServiceUuid(requestId) ||
     !EVENT_TYPES.has(eventType) ||
@@ -202,6 +213,7 @@ function parseJournalEntry(
       collectionName,
       requestId: requestId as ExternalServiceRequestId,
       requestName,
+      method,
       eventType: eventType as ExternalServiceEventType,
       startedAt,
       durationMs,

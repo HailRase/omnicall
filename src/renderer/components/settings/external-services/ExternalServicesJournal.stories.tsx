@@ -20,6 +20,7 @@ const fixtureEntry: ExternalServicesJournalEntryVm = {
   startedAt: "2026-07-29T12:00:00.000Z",
   collectionName: "CRM",
   requestName: "Notify",
+  method: "POST",
   eventType: "manual_run",
   outcome: "http_success",
   status: 200,

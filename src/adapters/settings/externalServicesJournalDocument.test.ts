@@ -28,6 +28,7 @@ function createEntry(id: string): ExternalServiceJournalEntry {
     collectionName: "Main",
     requestId: "00000000-0000-4000-8000-000000000002" as ExternalServiceRequestId,
     requestName: "Notify",
+    method: "POST",
     eventType: "manual_run",
     startedAt: "2026-07-29T00:00:00.000Z",
     durationMs: 10,
@@ -68,6 +69,45 @@ describe("externalServicesJournalDocument", () => {
       "second",
       "first",
     ]);
+    expect(parsed.value.entries[0]?.method).toBe("POST");
+  });
+
+  it("defaults missing method on legacy journal rows", () => {
+    const legacy = createEntry("legacy");
+    const parsed = parseExternalServicesJournalDocument(
+      {
+        format: "omnicall.external-services-journal",
+        formatVersion: 1,
+        entries: [
+          {
+            id: legacy.id,
+            profileKey: legacy.profileKey,
+            collectionId: legacy.collectionId,
+            collectionName: legacy.collectionName,
+            requestId: legacy.requestId,
+            requestName: legacy.requestName,
+            eventType: legacy.eventType,
+            startedAt: legacy.startedAt,
+            durationMs: legacy.durationMs,
+            outcome: legacy.outcome,
+            status: legacy.status,
+            requestUrl: legacy.requestUrl,
+            requestHeaders: legacy.requestHeaders,
+            responseBody: legacy.responseBody,
+            responseBodyTruncated: legacy.responseBodyTruncated,
+            errorCode: legacy.errorCode,
+            errorMessage: legacy.errorMessage,
+            correlationId: legacy.correlationId,
+          },
+        ],
+      },
+      profileKey,
+    );
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) {
+      return;
+    }
+    expect(parsed.value.entries[0]?.method).toBe("GET");
   });
 
   it("rejects unsupported format and unredacted protected headers", () => {

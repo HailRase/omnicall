@@ -23,6 +23,7 @@ function createEntry(
     startedAt: "2026-07-29T12:00:00.000Z",
     collectionName: "CRM",
     requestName: "Notify",
+    method: "POST",
     eventType: "manual_run",
     outcome: "http_success",
     status: 200,
@@ -98,6 +99,8 @@ describe("ExternalServicesJournal", () => {
     expect(screen.getByTestId("external-services-journal")).toBeInTheDocument();
     expect(screen.getByText("Показаны последние 100 записей.")).toBeInTheDocument();
     expect(screen.getByTestId("external-services-journal-entry-entry-new")).toBeInTheDocument();
+    expect(screen.getByTestId("external-services-journal-method-entry-new")).toHaveTextContent("POST");
+    expect(screen.getByTestId("external-services-journal-method-entry-old")).toHaveTextContent("POST");
 
     const entry = screen.getByTestId("external-services-journal-entry-entry-new");
     await user.click(entry.querySelector("button") ?? entry);

@@ -31,6 +31,7 @@ function createEntry(
     collectionName: "CRM",
     requestId: "00000000-0000-4000-8000-000000000002" as ExternalServiceRequestId,
     requestName: "Notify",
+    method: "POST",
     eventType: "manual_run",
     startedAt: "2026-07-29T12:00:00.000Z",
     durationMs: 42,
@@ -69,6 +70,7 @@ describe("deriveExternalServicesJournalPanel", () => {
 
     expect(panel.loadState).toBe("ready");
     expect(panel.entries.map((entry) => entry.id)).toEqual(["newer", "older"]);
+    expect(panel.entries[0]?.method).toBe("POST");
     expect(panel.entries[0]?.requestHeaders[0]?.value).toBe("***");
     expect(panel.entries[0]?.requestHeaders[0]?.value).not.toContain("Bearer");
   });

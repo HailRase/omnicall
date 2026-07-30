@@ -10,7 +10,10 @@ import type {
   ExternalServiceCollectionId,
   ExternalServiceRequestId,
 } from "./ExternalServiceIds.js";
-import type { ExternalServiceKeyValue } from "./ExternalServiceHttpDefinition.js";
+import type {
+  ExternalServiceHttpMethod,
+  ExternalServiceKeyValue,
+} from "./ExternalServiceHttpDefinition.js";
 
 export const EXTERNAL_SERVICE_JOURNAL_OUTCOMES = [
   "http_success",
@@ -30,6 +33,7 @@ export type ExternalServiceJournalEntry = Readonly<{
   collectionName: string;
   requestId: ExternalServiceRequestId;
   requestName: string;
+  method: ExternalServiceHttpMethod;
   eventType: ExternalServiceEventType;
   startedAt: string;
   durationMs: number;

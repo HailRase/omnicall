@@ -63,6 +63,7 @@ function createEntry(
     collectionName: "Main",
     requestId: "00000000-0000-4000-8000-000000000002" as ExternalServiceRequestId,
     requestName: "Notify",
+    method: "POST",
     eventType: "manual_run",
     startedAt: "2026-07-29T00:00:00.000Z",
     durationMs: 12,

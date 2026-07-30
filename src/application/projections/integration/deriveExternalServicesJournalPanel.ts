@@ -33,6 +33,7 @@ export type ExternalServicesJournalEntryVm = Readonly<{
   startedAt: string;
   collectionName: string;
   requestName: string;
+  method: string;
   eventType: string;
   outcome: ExternalServicesJournalOutcomeVm;
   status: number | null;
@@ -92,6 +93,7 @@ function toJournalEntryVm(
     startedAt: entry.startedAt,
     collectionName: entry.collectionName,
     requestName: entry.requestName,
+    method: entry.method,
     eventType: entry.eventType,
     outcome: entry.outcome,
     status: entry.status,

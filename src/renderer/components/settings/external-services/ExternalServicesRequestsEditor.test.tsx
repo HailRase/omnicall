@@ -259,6 +259,50 @@ describe("External Services requests UI", () => {
     await user.hover(screen.getByTestId("external-services-run-now"));
   });
 
+  it("replaces send icon with loader while request is running", () => {
+    const { rerender } = render(
+      <ExternalServicesRequestEditor
+        collectionName="CRM"
+        draft={draft}
+        busy={false}
+        errorMessage={null}
+        runState="idle"
+        runResult={null}
+        journal={journal}
+        onChange={vi.fn()}
+        onCommitName={vi.fn()}
+        onSave={vi.fn()}
+        onRunNow={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+    const idleButton = screen.getByTestId("external-services-run-now");
+    expect(idleButton).not.toHaveAttribute("aria-busy");
+    expect(idleButton.querySelector("svg")).not.toBeNull();
+    expect(idleButton.querySelector("[class*='spinner']")).toBeNull();
+
+    rerender(
+      <ExternalServicesRequestEditor
+        collectionName="CRM"
+        draft={draft}
+        busy={true}
+        errorMessage={null}
+        runState="running"
+        runResult={null}
+        journal={journal}
+        onChange={vi.fn()}
+        onCommitName={vi.fn()}
+        onSave={vi.fn()}
+        onRunNow={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+    const runningButton = screen.getByTestId("external-services-run-now");
+    expect(runningButton).toHaveAttribute("aria-busy", "true");
+    expect(runningButton.querySelector("svg")).toBeNull();
+    expect(runningButton.querySelector("[class*='spinner']")).not.toBeNull();
+  });
+
   it("hides body editor when body mode is none", async () => {
     const user = userEvent.setup();
     render(
