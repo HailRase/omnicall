@@ -48,9 +48,12 @@ const baseHeaderArgs = {
     platform: "win32" as const,
     showNativeWindowControls: true,
     isShuttingDown: false,
+    maximizeEnabled: false,
+    isMaximized: false,
     onMinimize: noop,
     onClose: noop,
     onRestart: noop,
+    onToggleMaximize: noop,
   },
 };
 

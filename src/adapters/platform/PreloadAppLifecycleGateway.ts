@@ -42,6 +42,42 @@ export class PreloadAppLifecycleGateway implements AppLifecycleGateway {
     return parseShellWindowControlResponse(response) ?? { ok: false, reason: "invalid_response" };
   }
 
+  async toggleMaximizeWindow(): ReturnType<AppLifecycleGateway["toggleMaximizeWindow"]> {
+    const softphone = window.softphone;
+    if (softphone === undefined) {
+      return { ok: false, reason: "preload_unavailable" };
+    }
+
+    const response: unknown = await softphone.toggleMaximizeWindow();
+    return parseShellWindowControlResponse(response) ?? { ok: false, reason: "invalid_response" };
+  }
+
+  async getWindowMaximized(): ReturnType<AppLifecycleGateway["getWindowMaximized"]> {
+    const softphone = window.softphone;
+    if (softphone === undefined) {
+      return { ok: false };
+    }
+
+    const response: unknown = await softphone.getWindowMaximized();
+    if (typeof response !== "object" || response === null) {
+      return { ok: false };
+    }
+    const candidate = response as Record<string, unknown>;
+    if (candidate["ok"] !== true || typeof candidate["maximized"] !== "boolean") {
+      return { ok: false };
+    }
+    return { ok: true, maximized: candidate["maximized"] };
+  }
+
+  onWindowMaximizedChanged(handler: (maximized: boolean) => void): () => void {
+    const softphone = window.softphone;
+    if (softphone === undefined) {
+      return () => {};
+    }
+
+    return softphone.onWindowMaximizedChanged(handler);
+  }
+
   onBeforeClose(handler: (payload: AppShutdownPayload) => void): () => void {
     const softphone = window.softphone;
     if (softphone === undefined) {

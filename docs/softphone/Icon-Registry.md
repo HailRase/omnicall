@@ -17,6 +17,8 @@
 | `shell.diagnostics` | Settings diagnostics section | `Activity` | `ActivityIcon` | `SettingsSidebar` | active |
 | `shell.restart` | Controlled app restart | `RotateCcw` | `RotateCcwIcon` | `ShellWindowControls` | active |
 | `shell.window.minimize` | Minimize frameless window | `Minus` | — | `ShellWindowControls` | active |
+| `shell.window.maximize` | Maximize window (settings mode only) | `Square` | — | `ShellWindowControls` | active |
+| `shell.window.restore` | Restore maximized window to settings size | `SquareStack` | — | `ShellWindowControls` | active |
 | `shell.window.close` | Close frameless window | `X` | — | `ShellWindowControls` | active |
 | `shell.nav.back` | Navigate back in shell panel | `ChevronLeft` | `ChevronLeftIcon` | `ShellDialpadPanel` | active |
 | `shell.contacts` | Open contacts list | `Users` | — | `Dialpad` | active |
@@ -35,6 +37,9 @@
 | `settings.integrations.ocp` | Settings OCP Module child under Integrations | `Server` | — | `SettingsSidebar` | active |
 | `settings.integrations.external-services` | Settings External Services child under Integrations | `Webhook` | — | `SettingsSidebar` | active |
 | `settings.integrations.external-services.send` | Send / Run now for External Services request | `Send` | — | `ExternalServicesRequestEditor` | active |
+| `settings.integrations.external-services.add` | New collection or quick-add request in External Services sidebar | `Plus` | — | `ExternalServicesSidebar` | active |
+| `settings.integrations.external-services.panelExpand` | Expand Response/History pane height | `Maximize2` | — | `ExternalServicesResponsePane` | active |
+| `settings.integrations.external-services.panelCollapse` | Collapse Response/History pane | `Minimize2` | — | `ExternalServicesResponsePane` | active |
 | `settings.integrations.sdk` | Settings OmniCall Kit child under Integrations | `Blocks` | — | `SettingsSidebar` | active |
 | `settings.notifications` | Settings notification history section | `Bell` | `BellIcon` | `SettingsSidebar` | active |
 | `settings.nav.expand` | Expand settings sidebar | `ChevronRight` | `ChevronRightIcon` | `SettingsSidebar` | active |

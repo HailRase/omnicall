@@ -49,6 +49,7 @@ describe("External Services requests UI", () => {
         journal={journal}
         onCreate={onCreate}
         onEditVariables={vi.fn()}
+        onRename={vi.fn()}
       />,
     );
     expect(screen.getByText("Коллекция пуста")).toBeInTheDocument();
@@ -62,6 +63,7 @@ describe("External Services requests UI", () => {
     const onSave = vi.fn();
     const onDelete = vi.fn();
     const onRunNow = vi.fn();
+    const onCommitName = vi.fn();
     render(
       <ExternalServicesRequestEditor
         collectionName="CRM"
@@ -72,6 +74,7 @@ describe("External Services requests UI", () => {
         runResult={null}
         journal={journal}
         onChange={onChange}
+        onCommitName={onCommitName}
         onSave={onSave}
         onRunNow={onRunNow}
         onDelete={onDelete}
@@ -83,14 +86,13 @@ describe("External Services requests UI", () => {
     await user.click(screen.getByTestId("external-services-request-method"));
     await user.click(screen.getByText("PUT"));
     await user.click(screen.getByText("Body"));
-    await user.click(screen.getByTestId("external-services-body-mode"));
-    await user.click(screen.getByText("Текст"));
+    await user.click(screen.getByTestId("external-services-body-mode-raw"));
     await user.clear(screen.getByTestId("external-services-body-editor"));
     await user.type(screen.getByTestId("external-services-body-editor"), "event={{event_type}}");
-    await user.click(screen.getByText("Params"));
+    await user.click(screen.getByText(/Params/));
     await user.click(screen.getAllByRole("button", { name: "Добавить строку" })[0]!);
     expect(onChange).toHaveBeenCalled();
-    await user.click(screen.getByText("Triggers"));
+    await user.click(screen.getByText(/Triggers/));
     await user.click(screen.getByTestId("external-services-trigger-call_answered"));
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ triggers: [] }));
     await user.click(screen.getByTestId("external-services-save"));
@@ -101,6 +103,33 @@ describe("External Services requests UI", () => {
     expect(onSave).toHaveBeenCalledOnce();
     expect(onDelete).toHaveBeenCalledOnce();
     expect(onRunNow).toHaveBeenCalledOnce();
+  });
+
+  it("commits breadcrumb rename on blur", async () => {
+    const user = userEvent.setup();
+    const onCommitName = vi.fn();
+    render(
+      <ExternalServicesRequestEditor
+        collectionName="CRM"
+        draft={draft}
+        busy={false}
+        errorMessage={null}
+        runState="idle"
+        runResult={null}
+        journal={journal}
+        onChange={vi.fn()}
+        onCommitName={onCommitName}
+        onSave={vi.fn()}
+        onRunNow={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+    await user.click(screen.getByTestId("external-services-request-name"));
+    const input = screen.getByTestId("external-services-request-name");
+    await user.clear(input);
+    await user.type(input, "Renamed webhook");
+    await user.tab();
+    expect(onCommitName).toHaveBeenCalledWith("Renamed webhook");
   });
 
   it("disables send when URL is empty and enables when URL is filled", async () => {
@@ -116,6 +145,7 @@ describe("External Services requests UI", () => {
         runResult={null}
         journal={journal}
         onChange={onChange}
+        onCommitName={vi.fn()}
         onSave={vi.fn()}
         onRunNow={vi.fn()}
         onDelete={vi.fn()}
@@ -132,6 +162,7 @@ describe("External Services requests UI", () => {
         runResult={null}
         journal={journal}
         onChange={onChange}
+        onCommitName={vi.fn()}
         onSave={vi.fn()}
         onRunNow={vi.fn()}
         onDelete={vi.fn()}
@@ -139,6 +170,54 @@ describe("External Services requests UI", () => {
     );
     expect(screen.getByTestId("external-services-run-now")).toBeEnabled();
     await user.hover(screen.getByTestId("external-services-run-now"));
+  });
+
+  it("hides body editor when body mode is none", async () => {
+    const user = userEvent.setup();
+    render(
+      <ExternalServicesRequestEditor
+        collectionName="CRM"
+        draft={{ ...draft, body: { mode: "none", value: "" } }}
+        busy={false}
+        errorMessage={null}
+        runState="idle"
+        runResult={null}
+        journal={journal}
+        onChange={vi.fn()}
+        onCommitName={vi.fn()}
+        onSave={vi.fn()}
+        onRunNow={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+    await user.click(screen.getByText("Body"));
+    expect(screen.queryByTestId("external-services-body-editor")).not.toBeInTheDocument();
+  });
+
+  it("clears body value when switching body mode to none", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <ExternalServicesRequestEditor
+        collectionName="CRM"
+        draft={{ ...draft, body: { mode: "json", value: "{\"a\":1}" } }}
+        busy={false}
+        errorMessage={null}
+        runState="idle"
+        runResult={null}
+        journal={journal}
+        onChange={onChange}
+        onCommitName={vi.fn()}
+        onSave={vi.fn()}
+        onRunNow={vi.fn()}
+        onDelete={vi.fn()}
+      />,
+    );
+    await user.click(screen.getByText("Body"));
+    await user.click(screen.getByTestId("external-services-body-mode-none"));
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({ body: { mode: "none", value: "" } }),
+    );
   });
 
   it.each([

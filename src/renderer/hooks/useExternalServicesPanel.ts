@@ -16,6 +16,7 @@ import { useExternalServicesActions } from "./useExternalServicesActions.js";
 import { useExternalServicesJournal } from "./useExternalServicesJournal.js";
 import { useExternalServicesShell } from "./useExternalServicesShell.js";
 import type { ExternalServicesNameDialogMode } from "../components/settings/external-services/ExternalServicesCollectionsDialogs.js";
+import type { ExternalServicesNameDialogScope } from "../components/settings/external-services/ExternalServicesCollectionsDialogs.js";
 import type { ExternalServicesCollectionsDialogsProps } from "../components/settings/external-services/ExternalServicesCollectionsDialogs.js";
 import type { ExternalServicesVariablesDialogProps } from "../components/settings/external-services/ExternalServicesVariablesDialog.js";
 import type {
@@ -48,7 +49,9 @@ export type UseExternalServicesPanelResult = Readonly<{
 type NameDialogState = Readonly<{
   open: boolean;
   mode: ExternalServicesNameDialogMode;
+  scope: ExternalServicesNameDialogScope;
   collectionId: string | null;
+  requestId: string | null;
   value: string;
   errorKey: TranslationKey | null;
 }>;
@@ -103,7 +106,9 @@ export function useExternalServicesPanel(
   const [nameDialog, setNameDialog] = useState<NameDialogState>({
     open: false,
     mode: "create",
+    scope: "collection",
     collectionId: null,
+    requestId: null,
     value: "",
     errorKey: null,
   });
@@ -198,12 +203,23 @@ export function useExternalServicesPanel(
     const result =
       nameDialog.mode === "create"
         ? await actions.createCollection(nameDialog.value)
-        : nameDialog.collectionId === null
-          ? {
-              kind: "error" as const,
-              messageKey: "settings.integrations.externalServices.saveError",
-            }
-          : await actions.renameCollection(nameDialog.collectionId, nameDialog.value);
+        : nameDialog.scope === "request"
+          ? nameDialog.collectionId === null || nameDialog.requestId === null
+            ? {
+                kind: "error" as const,
+                messageKey: "settings.integrations.externalServices.saveError",
+              }
+            : await requestActions.rename(
+                nameDialog.collectionId,
+                nameDialog.requestId,
+                nameDialog.value,
+              )
+          : nameDialog.collectionId === null
+            ? {
+                kind: "error" as const,
+                messageKey: "settings.integrations.externalServices.saveError",
+              }
+            : await actions.renameCollection(nameDialog.collectionId, nameDialog.value);
 
     if (result.kind === "error") {
       setNameDialog((previous) => ({
@@ -212,8 +228,28 @@ export function useExternalServicesPanel(
       }));
       return;
     }
-    setNameDialog({ open: false, mode: "create", collectionId: null, value: "", errorKey: null });
-  }, [actions, nameDialog]);
+    if (
+      nameDialog.scope === "request" &&
+      nameDialog.requestId !== null &&
+      draft !== null &&
+      draft.id === nameDialog.requestId
+    ) {
+      const nextName = nameDialog.value.trim();
+      setDraft({ ...draft, name: nextName });
+      setSavedDraft((previous) =>
+        previous === null ? previous : { ...previous, name: nextName },
+      );
+    }
+    setNameDialog({
+      open: false,
+      mode: "create",
+      scope: "collection",
+      collectionId: null,
+      requestId: null,
+      value: "",
+      errorKey: null,
+    });
+  }, [actions, draft, nameDialog, requestActions]);
 
   const handleDeleteConfirm = useCallback(async (): Promise<void> => {
     if (deleteDialog.collectionId === null) {
@@ -299,7 +335,15 @@ export function useExternalServicesPanel(
       busy: actions.busy || requestActions.busy,
       loadState: shell.panel.loadState,
       onCreateCollection: () => {
-        setNameDialog({ open: true, mode: "create", collectionId: null, value: "", errorKey: null });
+        setNameDialog({
+          open: true,
+          mode: "create",
+          scope: "collection",
+          collectionId: null,
+          requestId: null,
+          value: "",
+          errorKey: null,
+        });
       },
       onImportCollection: () => {
         void actions.importCollection();
@@ -316,7 +360,15 @@ export function useExternalServicesPanel(
       onRenameCollection: (collectionId) => {
         const collection = findCollectionSummary(collectionId);
         if (collection === undefined) return;
-        setNameDialog({ open: true, mode: "rename", collectionId, value: collection.name, errorKey: null });
+        setNameDialog({
+          open: true,
+          mode: "rename",
+          scope: "collection",
+          collectionId,
+          requestId: null,
+          value: collection.name,
+          errorKey: null,
+        });
       },
       onDuplicateCollection: (collectionId) => {
         void actions.duplicateCollection(collectionId);
@@ -334,13 +386,35 @@ export function useExternalServicesPanel(
         setDeleteDialog({ open: true, collectionId, collectionName: collection.name });
       },
       onToggleRequest: (collectionId, requestId, enabled) => {
-        void requestActions.toggle(collectionId, requestId, enabled);
+        void requestActions.toggle(collectionId, requestId, enabled).then((result) => {
+          if (result.kind === "error") {
+            setRequestErrorKey(result.messageKey);
+            return;
+          }
+          setDraft((previous) => {
+            if (previous === null || previous.id !== requestId) return previous;
+            return { ...previous, enabled };
+          });
+          setSavedDraft((previous) => {
+            if (previous === null || previous.id !== requestId) return previous;
+            return { ...previous, enabled };
+          });
+        });
       },
       onRenameRequest: (collectionId, requestId) => {
         const request = shell.settings.collections
           .find((item) => item.id === collectionId)
           ?.requests.find((item) => item.id === requestId);
-        if (request !== undefined) void requestActions.rename(collectionId, requestId, request.name);
+        if (request === undefined) return;
+        setNameDialog({
+          open: true,
+          mode: "rename",
+          scope: "request",
+          collectionId,
+          requestId,
+          value: request.name,
+          errorKey: null,
+        });
       },
       onDuplicateRequest: (collectionId, requestId) => {
         void requestActions.duplicate(collectionId, requestId);
@@ -377,6 +451,7 @@ export function useExternalServicesPanel(
       nameDialog: {
         open: nameDialog.open,
         mode: nameDialog.mode,
+        scope: nameDialog.scope,
         value: nameDialog.value,
         errorMessage: nameDialog.errorKey !== null ? t(nameDialog.errorKey) : null,
       },
@@ -390,7 +465,15 @@ export function useExternalServicesPanel(
       },
       onNameDialogOpenChange: (open) => {
         if (!open) {
-          setNameDialog({ open: false, mode: "create", collectionId: null, value: "", errorKey: null });
+          setNameDialog({
+            open: false,
+            mode: "create",
+            scope: "collection",
+            collectionId: null,
+            requestId: null,
+            value: "",
+            errorKey: null,
+          });
           return;
         }
         setNameDialog((previous) => ({ ...previous, open: true }));
@@ -463,7 +546,7 @@ export function useExternalServicesPanel(
         enabledRequestCount: selectedCollection.requests.filter((item) => item.enabled).length,
         requestCount: selectedCollection.requests.length,
       },
-      busy: requestActions.busy,
+      busy: requestActions.busy || actions.busy,
       journal: journalProps,
       onCreate: () => {
         void createRequestInCollection(selectedCollection.id);
@@ -472,8 +555,12 @@ export function useExternalServicesPanel(
         const summary = findCollectionSummary(selectedCollection.id);
         if (summary !== undefined) setVariablesCollection(summary);
       },
+      onRename: (name) => {
+        void actions.renameCollection(selectedCollection.id, name);
+      },
     };
   }, [
+    actions,
     createRequestInCollection,
     findCollectionSummary,
     journalProps,
@@ -493,6 +580,19 @@ export function useExternalServicesPanel(
       runResult,
       journal: journalProps,
       onChange: setDraft,
+      onCommitName: (name) => {
+        setDraft((previous) => (previous === null ? previous : { ...previous, name }));
+        void requestActions.rename(selectedCollection.id, draft.id, name).then((result) => {
+          if (result.kind === "error") {
+            setRequestErrorKey(result.messageKey);
+            return;
+          }
+          setSavedDraft((previous) =>
+            previous === null ? previous : { ...previous, name },
+          );
+          setRequestErrorKey(null);
+        });
+      },
       onDelete: () => {
         void requestActions.delete(selectedCollection.id, draft.id).then((result) => {
           if (result.kind === "error") {

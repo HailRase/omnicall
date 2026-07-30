@@ -1,6 +1,8 @@
 import type { JSX } from "react";
+import clsx from "clsx";
 import { useI18n } from "../../../i18n/index.js";
 import { Button, Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../ui/index.js";
+import { ExternalServicesInlineRename } from "./ExternalServicesInlineRename.js";
 import type { ExternalServicesJournalProps } from "./ExternalServicesJournal.js";
 import { ExternalServicesResponsePane } from "./ExternalServicesResponsePane.js";
 import styles from "./ExternalServices.module.css";
@@ -18,11 +20,12 @@ export type ExternalServicesRequestsViewProps = Readonly<{
   journal: ExternalServicesJournalProps;
   onCreate: () => void;
   onEditVariables: () => void;
+  onRename: (name: string) => void;
 }>;
 
 /**
  * - Purpose: collection workspace when no request is selected.
- * - Inputs: collection summary, journal props, create/variables intents.
+ * - Inputs: collection summary, journal props, create/variables/rename intents.
  * - Outputs: Postman-like empty-folder and variables surface.
  * @uiMeta f=F-031
  */
@@ -32,30 +35,51 @@ export function ExternalServicesRequestsView({
   journal,
   onCreate,
   onEditVariables,
+  onRename,
 }: ExternalServicesRequestsViewProps): JSX.Element {
   const { t } = useI18n();
+  const isEmpty = collection.requestCount === 0;
 
   return (
     <section className={styles.collectionWorkspace} data-testid="external-services-requests">
       <header className={styles.editorTopBar}>
-        <nav className={styles.breadcrumb} aria-label={t("settings.integrations.externalServices.workspace.breadcrumb")}>
-          <span className={styles.breadcrumbItem}>{collection.name}</span>
+        <nav
+          className={styles.breadcrumb}
+          aria-label={t("settings.integrations.externalServices.workspace.breadcrumb")}
+        >
+          <ExternalServicesInlineRename
+            value={collection.name}
+            disabled={busy}
+            ariaLabel={t("settings.integrations.externalServices.collections.nameLabel")}
+            testId="external-services-collection-name"
+            onCommit={onRename}
+          />
         </nav>
         <div className={styles.editorTopActions}>
           <Button type="button" variant="outline" size="sm" disabled={busy} onClick={onEditVariables}>
             {t("settings.integrations.externalServices.actions.editVariables")}
           </Button>
-          <Button type="button" size="sm" disabled={busy} data-testid="external-services-create-request" onClick={onCreate}>
+          <Button
+            type="button"
+            size="sm"
+            disabled={busy}
+            data-testid="external-services-create-request"
+            onClick={onCreate}
+          >
             {t("settings.integrations.externalServices.requests.create")}
           </Button>
         </div>
       </header>
 
       <div className={styles.editorSplit}>
-        <div className={styles.editorTabsPane}>
-          {collection.requestCount === 0 ? (
+        <div
+          className={clsx(styles.editorTabsPane, isEmpty && styles.editorTabsPaneCentered)}
+        >
+          {isEmpty ? (
             <div className={styles.emptyFolderCard}>
-              <p className={styles.emptyTitle}>{t("settings.integrations.externalServices.sidebar.emptyCollection")}</p>
+              <p className={styles.emptyTitle}>
+                {t("settings.integrations.externalServices.sidebar.emptyCollection")}
+              </p>
               <p className={styles.emptyDescription}>
                 {t("settings.integrations.externalServices.requests.emptyTitle")}
               </p>
@@ -66,7 +90,10 @@ export function ExternalServicesRequestsView({
               </div>
             </div>
           ) : (
-            <section className={styles.variablesTable} data-testid="external-services-collection-variables">
+            <section
+              className={styles.variablesTable}
+              data-testid="external-services-collection-variables"
+            >
               <h4 className={styles.sectionTitle}>
                 {t("settings.integrations.externalServices.requests.variablesTitle")}
               </h4>
@@ -79,8 +106,12 @@ export function ExternalServicesRequestsView({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t("settings.integrations.externalServices.collections.variablesKey")}</TableHead>
-                    <TableHead>{t("settings.integrations.externalServices.collections.variablesValue")}</TableHead>
+                    <TableHead>
+                      {t("settings.integrations.externalServices.collections.variablesKey")}
+                    </TableHead>
+                    <TableHead>
+                      {t("settings.integrations.externalServices.collections.variablesValue")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

@@ -53,11 +53,11 @@ type ExternalServicesSelection =
 
 ### Sidebar (collections tree)
 
-- Header: COLLECTIONS label, New collection, Import collection.
-- Expandable collection folders with overflow menu (rename, variables, duplicate, export, delete, new request).
-- Request rows: method color badge + name; overflow (enable/disable, rename, duplicate, delete).
+- Header: COLLECTIONS label, icon-only New collection (`+`), Import collection (visible hover on surface-alt).
+- Expandable collection folders; quick-add `+` left of overflow menu; overflow (rename, variables, duplicate, export, delete, new request).
+- Request children have **no left indent**; compact method badge font; overflow (enable/disable, rename dialog, duplicate, delete).
 - Empty collection card: “Collection is empty” + New request.
-- Global empty state: purpose copy + New collection / Import.
+- Global empty state: centered vertically/horizontally + New collection / Import.
 
 Test IDs:
 
@@ -67,6 +67,7 @@ external-services-collections
 external-services-create-collection
 external-services-import-collection
 external-services-collection-{id}
+external-services-collection-add-{id}
 external-services-collection-menu-{id}
 external-services-request-{id}
 ```
@@ -74,25 +75,30 @@ external-services-request-{id}
 ### Collection workspace
 
 - Shown when a collection is selected and no request is open.
-- Breadcrumb with collection name; Variables action; New request.
-- Empty-folder card when `requestCount === 0`.
+- Breadcrumb: click-to-edit collection name (text → sized input → blur commits rename).
+- Variables action; New request.
+- Empty-folder card centered when `requestCount === 0`.
 - Otherwise: variables preview table + enabled count.
-- Bottom pane: Response | History (journal).
+- Bottom pane: Response | History (journal) with expand/collapse toggle.
 
 Test IDs:
 
 ```txt
 external-services-requests
+external-services-collection-name
 external-services-create-request
 external-services-collection-variables
 ```
 
 ### Request workspace
 
-- Breadcrumb: collection › editable name; enabled Switch; Save; delete overflow.
+- Breadcrumb: collection › click-to-edit request name (blur commits); enabled Switch; Save; delete overflow.
+- Sidebar rename opens rename dialog (request scope); breadcrumb rename persists immediately.
 - URL bar: method Select + URL Input + icon-only Send (`settings.integrations.external-services.send`); Send enabled when URL is non-empty.
-- Tabs: Params (query table), Headers (count badge), Body (mode + editor), Triggers (event switches).
-- Bottom pane: Response (run result / empty prompt) | History (journal).
+- Tabs: Params / Headers / Triggers show `(N)` for enabled/selected counts when N > 0; Body uses horizontal radio body-mode selector (none/json/urlencoded/raw only).
+- Compact key/value rows for Params and Headers (narrow inputs + compact Add row).
+- Triggers list uses padded card layout under tabs.
+- Bottom pane: taller Response | History with collapse/expand icon toggle.
 - Unsaved changes require discard confirmation before selection change.
 
 Test IDs:
@@ -106,20 +112,24 @@ external-services-request-url
 external-services-query-table
 external-services-headers-table
 external-services-body-mode
+external-services-body-mode-{mode}
 external-services-body-editor
+external-services-triggers
 external-services-trigger-{eventType}
 external-services-save
 external-services-run-now
 external-services-run-result
 external-services-response-pane
+external-services-response-pane-toggle
 external-services-response-empty
 external-services-discard-changes
 ```
 
 ### Journal (History tab)
 
+- No duplicate “Journal” heading/description under History tab (tab label is enough).
+- Compact single-line collapsed summary: time · names · badges · status · duration.
 - Latest 100 records, newest first in UI.
-- Row summary: timestamp, request/collection snapshot names, event, outcome, status, duration.
 - Expandable detail: URL, redacted headers, error, and truncated body.
 - Empty state, loading state, load error with Retry.
 - No rerun-from-journal or response-driven action in v1.
@@ -133,6 +143,19 @@ external-services-journal-empty
 external-services-journal-entry-{id}
 external-services-journal-retry
 ```
+
+### Create / rename dialogs
+
+- Create collection dialog title is **only** “Collection name” (no separate “New collection” title); title and input have spacing.
+- Rename collection / rename request use dedicated titles; request rename from sidebar menu opens the dialog.
+
+### Workspace polish (2026-07-30 follow-up)
+
+- Empty workspace welcome shows only the centered select prompt.
+- Response/History pane height is drag-resizable (`external-services-response-resize`) and collapsible.
+- Request rows show an absolute top-left enabled/disabled status dot; overflow menu actions are Enable/Disable (not state labels).
+- Compact fixed-width Params/Headers key/value fields; body editor hidden when mode is `none`.
+- Method badge ↔ request name gap tightened; `⋯` menu trigger matches quick-add hover treatment.
 
 ## UX states
 
@@ -165,7 +188,9 @@ Reuse current exports from `src/renderer/components/ui/index.ts`:
 - `Badge`, `Alert`, `Notification`, `Progress`
 - `Table`, `Accordion`
 
-Product-specific tree rows, key/value editors, response panes, and journal entries compose these primitives with CSS Modules and semantic tokens. If implementation discovers a missing generic primitive, stop that UI WU and propose a separate `/ui-kit` family before local duplication.
+- Product-specific tree rows, key/value editors, body-mode radios, inline breadcrumb rename, response panes, and journal entries compose these primitives with CSS Modules and semantic tokens.
+- Body-mode uses a **local** accessible radio group (not a new UI Kit Radio family). Propose `/ui-kit` Radio only if another product surface needs the same primitive.
+- If implementation discovers another missing generic primitive, stop that UI WU and propose a separate `/ui-kit` family before local duplication.
 
 ## Accessibility
 

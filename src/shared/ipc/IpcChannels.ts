@@ -8,6 +8,10 @@ export const IPC_CHANNELS = {
   appRequestRestart: "app:request-restart",
   shellWindowMinimize: "shell:window-minimize",
   shellWindowClose: "shell:window-close",
+  shellWindowToggleMaximize: "shell:window-toggle-maximize",
+  shellWindowGetMaximized: "shell:window-get-maximized",
+  /** Main → renderer: BrowserWindow maximize/restore changed (settings-only). */
+  shellWindowMaximizedChanged: "shell:window-maximized-changed",
   shellApplyWindowLayout: "shell:apply-window-layout",
   /** Renderer → main: raise softphone above other apps (ADR-0013). */
   shellWindowRaise: "shell:window-raise",

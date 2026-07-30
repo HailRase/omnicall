@@ -58,9 +58,11 @@ describe("ExternalServicesSidebar", () => {
     expect(onImportCollection).toHaveBeenCalledOnce();
   });
 
-  it("selects a request from an expanded collection tree", async () => {
+  it("selects a request, quick-adds, and toggles enable via menu action", async () => {
     const user = userEvent.setup();
     const onSelectRequest = vi.fn();
+    const onCreateRequest = vi.fn();
+    const onToggleRequest = vi.fn();
     const collectionId = "a0b1c2d3-e4f5-4a67-8b90-123456789012";
     const requestId = "b0b1c2d3-e4f5-4a67-8b90-123456789012";
     renderSidebar({
@@ -73,10 +75,18 @@ describe("ExternalServicesSidebar", () => {
         },
       ],
       onSelectRequest,
+      onCreateRequest,
+      onToggleRequest,
     });
 
     expect(screen.getByTestId(`external-services-collection-${collectionId}`)).toBeInTheDocument();
+    expect(screen.getByTestId(`external-services-request-status-${requestId}`)).toBeInTheDocument();
     await user.click(screen.getByTestId(`external-services-request-${requestId}`));
     expect(onSelectRequest).toHaveBeenCalledWith(collectionId, requestId);
+    await user.click(screen.getByTestId(`external-services-collection-add-${collectionId}`));
+    expect(onCreateRequest).toHaveBeenCalledWith(collectionId);
+    await user.click(screen.getByTestId(`external-services-request-menu-${requestId}`));
+    await user.click(screen.getByRole("menuitem", { name: "Выключить" }));
+    expect(onToggleRequest).toHaveBeenCalledWith(collectionId, requestId, false);
   });
 });

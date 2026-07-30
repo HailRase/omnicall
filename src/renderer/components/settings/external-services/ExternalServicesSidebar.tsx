@@ -2,7 +2,14 @@ import { useState, type JSX } from "react";
 import clsx from "clsx";
 import { useI18n } from "../../../i18n/index.js";
 import { AppIcon } from "../../icons/AppIcon.js";
-import { Button, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "../../ui/index.js";
+import {
+  Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../../ui/index.js";
 import styles from "./ExternalServices.module.css";
 
 export type ExternalServicesSidebarRequest = Readonly<{
@@ -80,7 +87,9 @@ export function ExternalServicesSidebar({
   onDeleteRequest,
 }: ExternalServicesSidebarProps): JSX.Element {
   const { t } = useI18n();
-  const [expanded, setExpanded] = useState<ReadonlySet<string>>(() => new Set(collections.map((c) => c.id)));
+  const [expanded, setExpanded] = useState<ReadonlySet<string>>(
+    () => new Set(collections.map((c) => c.id)),
+  );
   const controlsDisabled = busy || loadState === "loading" || loadState === "unavailable";
 
   const toggleExpanded = (collectionId: string): void => {
@@ -96,43 +105,62 @@ export function ExternalServicesSidebar({
   };
 
   return (
-    <aside className={styles.sidebar} data-testid="external-services-collections" aria-label={t("settings.integrations.externalServices.sidebar.collections")}>
+    <aside
+      className={styles.sidebar}
+      data-testid="external-services-collections"
+      aria-label={t("settings.integrations.externalServices.sidebar.collections")}
+    >
       <div className={styles.sidebarHeader}>
-        <p className={styles.sidebarTitle}>{t("settings.integrations.externalServices.sidebar.collections")}</p>
+        <p className={styles.sidebarTitle}>
+          {t("settings.integrations.externalServices.sidebar.collections")}
+        </p>
         <div className={styles.sidebarHeaderActions}>
-          <Button
+          <button
             type="button"
-            variant="ghost"
-            size="sm"
+            className={clsx(styles.sidebarHeaderButton, styles.sidebarIconButton)}
             disabled={controlsDisabled}
             data-testid="external-services-create-collection"
             aria-label={t("settings.integrations.externalServices.actions.create")}
             onClick={onCreateCollection}
           >
-            +
-          </Button>
-          <Button
+            <AppIcon
+              id="settings.integrations.external-services.add"
+              size={14}
+              decorative
+              preferAnimated={false}
+            />
+          </button>
+          <button
             type="button"
-            variant="ghost"
-            size="sm"
+            className={styles.sidebarHeaderButton}
             disabled={controlsDisabled}
             data-testid="external-services-import-collection"
             onClick={onImportCollection}
           >
             {t("settings.integrations.externalServices.actions.import")}
-          </Button>
+          </button>
         </div>
       </div>
 
       {loadState === "ready" && collections.length === 0 ? (
         <div className={styles.sidebarEmpty}>
-          <p className={styles.emptyTitle}>{t("settings.integrations.externalServices.collections.emptyTitle")}</p>
-          <p className={styles.emptyDescription}>{t("settings.integrations.externalServices.collections.emptyDescription")}</p>
+          <p className={styles.emptyTitle}>
+            {t("settings.integrations.externalServices.collections.emptyTitle")}
+          </p>
+          <p className={styles.emptyDescription}>
+            {t("settings.integrations.externalServices.collections.emptyDescription")}
+          </p>
           <div className={styles.emptyActions}>
             <Button type="button" size="sm" disabled={controlsDisabled} onClick={onCreateCollection}>
               {t("settings.integrations.externalServices.actions.create")}
             </Button>
-            <Button type="button" size="sm" variant="outline" disabled={controlsDisabled} onClick={onImportCollection}>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              disabled={controlsDisabled}
+              onClick={onImportCollection}
+            >
               {t("settings.integrations.externalServices.actions.import")}
             </Button>
           </div>
@@ -146,7 +174,11 @@ export function ExternalServicesSidebar({
             const collectionSelected =
               selection.kind === "collection" && selection.collectionId === collection.id;
             return (
-              <li key={collection.id} className={styles.treeCollection} data-testid={`external-services-collection-${collection.id}`}>
+              <li
+                key={collection.id}
+                className={styles.treeCollection}
+                data-testid={`external-services-collection-${collection.id}`}
+              >
                 <div className={clsx(styles.treeFolderRow, collectionSelected && styles.treeRowSelected)}>
                   <button
                     type="button"
@@ -154,14 +186,22 @@ export function ExternalServicesSidebar({
                     aria-expanded={isExpanded}
                     aria-label={
                       isExpanded
-                        ? t("settings.integrations.externalServices.sidebar.collapse", { name: collection.name })
-                        : t("settings.integrations.externalServices.sidebar.expand", { name: collection.name })
+                        ? t("settings.integrations.externalServices.sidebar.collapse", {
+                            name: collection.name,
+                          })
+                        : t("settings.integrations.externalServices.sidebar.expand", {
+                            name: collection.name,
+                          })
                     }
                     onClick={() => {
                       toggleExpanded(collection.id);
                     }}
                   >
-                    <AppIcon id="ui.select.chevron" decorative className={clsx(styles.treeChevron, isExpanded && styles.treeChevronOpen)} />
+                    <AppIcon
+                      id="ui.select.chevron"
+                      decorative
+                      className={clsx(styles.treeChevron, isExpanded && styles.treeChevronOpen)}
+                    />
                   </button>
                   <button
                     type="button"
@@ -176,48 +216,91 @@ export function ExternalServicesSidebar({
                   >
                     <span className={styles.treeFolderName}>{collection.name}</span>
                   </button>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        disabled={controlsDisabled}
-                        aria-label={t("settings.integrations.externalServices.actions.menu")}
-                        data-testid={`external-services-collection-menu-${collection.id}`}
-                      >
-                        ⋯
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start">
-                      <DropdownMenuItem disabled={controlsDisabled} onSelect={() => onCreateRequest(collection.id)}>
-                        {t("settings.integrations.externalServices.requests.create")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem disabled={controlsDisabled} onSelect={() => onRenameCollection(collection.id)}>
-                        {t("settings.integrations.externalServices.actions.rename")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem disabled={controlsDisabled} onSelect={() => onEditVariables(collection.id)}>
-                        {t("settings.integrations.externalServices.actions.editVariables")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem disabled={controlsDisabled} onSelect={() => onDuplicateCollection(collection.id)}>
-                        {t("settings.integrations.externalServices.actions.duplicate")}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem disabled={controlsDisabled} onSelect={() => onExportCollection(collection.id)}>
-                        {t("settings.integrations.externalServices.actions.export")}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem disabled={controlsDisabled} destructive onSelect={() => onDeleteCollection(collection.id)}>
-                        {t("settings.integrations.externalServices.actions.delete")}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <div className={styles.treeRowActions}>
+                    <button
+                      type="button"
+                      className={styles.treeQuickAdd}
+                      disabled={controlsDisabled}
+                      aria-label={t("settings.integrations.externalServices.requests.create")}
+                      data-testid={`external-services-collection-add-${collection.id}`}
+                      onClick={() => onCreateRequest(collection.id)}
+                    >
+                      <AppIcon
+                        id="settings.integrations.external-services.add"
+                        size={12}
+                        decorative
+                        preferAnimated={false}
+                      />
+                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          className={styles.treeMenuTrigger}
+                          disabled={controlsDisabled}
+                          aria-label={t("settings.integrations.externalServices.actions.menu")}
+                          data-testid={`external-services-collection-menu-${collection.id}`}
+                        >
+                          ⋯
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start">
+                        <DropdownMenuItem
+                          disabled={controlsDisabled}
+                          onSelect={() => onCreateRequest(collection.id)}
+                        >
+                          {t("settings.integrations.externalServices.requests.create")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          disabled={controlsDisabled}
+                          onSelect={() => onRenameCollection(collection.id)}
+                        >
+                          {t("settings.integrations.externalServices.actions.rename")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          disabled={controlsDisabled}
+                          onSelect={() => onEditVariables(collection.id)}
+                        >
+                          {t("settings.integrations.externalServices.actions.editVariables")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          disabled={controlsDisabled}
+                          onSelect={() => onDuplicateCollection(collection.id)}
+                        >
+                          {t("settings.integrations.externalServices.actions.duplicate")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          disabled={controlsDisabled}
+                          onSelect={() => onExportCollection(collection.id)}
+                        >
+                          {t("settings.integrations.externalServices.actions.export")}
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          disabled={controlsDisabled}
+                          destructive
+                          onSelect={() => onDeleteCollection(collection.id)}
+                        >
+                          {t("settings.integrations.externalServices.actions.delete")}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </div>
 
                 {isExpanded ? (
                   collection.requests.length === 0 ? (
                     <div className={styles.treeEmptyFolder}>
-                      <p className={styles.treeEmptyText}>{t("settings.integrations.externalServices.sidebar.emptyCollection")}</p>
-                      <Button type="button" size="sm" variant="outline" disabled={controlsDisabled} onClick={() => onCreateRequest(collection.id)}>
+                      <p className={styles.treeEmptyText}>
+                        {t("settings.integrations.externalServices.sidebar.emptyCollection")}
+                      </p>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={controlsDisabled}
+                        onClick={() => onCreateRequest(collection.id)}
+                      >
                         {t("settings.integrations.externalServices.requests.create")}
                       </Button>
                     </div>
@@ -230,7 +313,22 @@ export function ExternalServicesSidebar({
                           selection.requestId === request.id;
                         return (
                           <li key={request.id}>
-                            <div className={clsx(styles.treeRequestRow, selected && styles.treeRowSelected)}>
+                            <div
+                              className={clsx(
+                                styles.treeRequestRow,
+                                selected && styles.treeRowSelected,
+                              )}
+                            >
+                              <span
+                                className={clsx(
+                                  styles.treeRequestStatus,
+                                  request.enabled
+                                    ? styles.treeRequestStatusOn
+                                    : styles.treeRequestStatusOff,
+                                )}
+                                aria-hidden="true"
+                                data-testid={`external-services-request-status-${request.id}`}
+                              />
                               <button
                                 type="button"
                                 className={styles.treeRequestButton}
@@ -238,47 +336,75 @@ export function ExternalServicesSidebar({
                                 data-testid={`external-services-request-${request.id}`}
                                 onClick={() => onSelectRequest(collection.id, request.id)}
                               >
-                                <span className={clsx(styles.methodBadge, METHOD_CLASS[request.method] ?? styles.methodGet)}>
+                                <span
+                                  className={clsx(
+                                    styles.methodBadge,
+                                    METHOD_CLASS[request.method] ?? styles.methodGet,
+                                  )}
+                                >
                                   {request.method}
                                 </span>
-                                <span className={clsx(styles.treeRequestName, !request.enabled && styles.treeRequestDisabled)}>
+                                <span
+                                  className={clsx(
+                                    styles.treeRequestName,
+                                    !request.enabled && styles.treeRequestDisabled,
+                                  )}
+                                >
                                   {request.name}
                                 </span>
                               </button>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    type="button"
-                                    variant="ghost"
-                                    size="sm"
-                                    disabled={controlsDisabled}
-                                    aria-label={t("settings.integrations.externalServices.requests.menuLabel")}
-                                  >
-                                    ⋯
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="start">
-                                  <DropdownMenuItem
-                                    disabled={controlsDisabled}
-                                    onSelect={() => onToggleRequest(collection.id, request.id, !request.enabled)}
-                                  >
-                                    {t(
-                                      request.enabled
-                                        ? "settings.integrations.externalServices.requests.statusDisabled"
-                                        : "settings.integrations.externalServices.requests.statusEnabled",
-                                    )}
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem disabled={controlsDisabled} onSelect={() => onRenameRequest(collection.id, request.id)}>
-                                    {t("settings.integrations.externalServices.actions.rename")}
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem disabled={controlsDisabled} onSelect={() => onDuplicateRequest(collection.id, request.id)}>
-                                    {t("settings.integrations.externalServices.actions.duplicate")}
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem disabled={controlsDisabled} destructive onSelect={() => onDeleteRequest(collection.id, request.id)}>
-                                    {t("settings.integrations.externalServices.actions.delete")}
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                              <div className={styles.treeRowActions}>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <button
+                                      type="button"
+                                      className={styles.treeMenuTrigger}
+                                      disabled={controlsDisabled}
+                                      aria-label={t(
+                                        "settings.integrations.externalServices.requests.menuLabel",
+                                      )}
+                                      data-testid={`external-services-request-menu-${request.id}`}
+                                    >
+                                      ⋯
+                                    </button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="start">
+                                    <DropdownMenuItem
+                                      disabled={controlsDisabled}
+                                      onSelect={() =>
+                                        onToggleRequest(collection.id, request.id, !request.enabled)
+                                      }
+                                    >
+                                      {t(
+                                        request.enabled
+                                          ? "settings.integrations.externalServices.requests.actionDisable"
+                                          : "settings.integrations.externalServices.requests.actionEnable",
+                                      )}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      disabled={controlsDisabled}
+                                      onSelect={() => onRenameRequest(collection.id, request.id)}
+                                    >
+                                      {t("settings.integrations.externalServices.actions.rename")}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      disabled={controlsDisabled}
+                                      onSelect={() =>
+                                        onDuplicateRequest(collection.id, request.id)
+                                      }
+                                    >
+                                      {t("settings.integrations.externalServices.actions.duplicate")}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      disabled={controlsDisabled}
+                                      destructive
+                                      onSelect={() => onDeleteRequest(collection.id, request.id)}
+                                    >
+                                      {t("settings.integrations.externalServices.actions.delete")}
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
                             </div>
                           </li>
                         );

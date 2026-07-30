@@ -7,6 +7,7 @@ import {
 import { parseOpenExternalUrlPayload } from "@shared/ipc/OpenExternalUrlContract.js";
 import { parseSetNativeThemePayload } from "@shared/ipc/SetNativeThemeContract.js";
 import { parseShellWindowLayoutPayload } from "@shared/ipc/ShellWindowLayoutContract.js";
+import { parseShellWindowMaximizedChangedPayload } from "@shared/ipc/ShellWindowMaximizedContract.js";
 import {
   parseShellOperatorAttentionPayload,
   parseShellWindowRaisePayload,
@@ -192,6 +193,33 @@ const softphoneApi: SoftphonePreloadApi = {
   requestAppRestart: () => ipcRenderer.invoke(IPC_CHANNELS.appRequestRestart),
   minimizeWindow: () => ipcRenderer.invoke(IPC_CHANNELS.shellWindowMinimize),
   closeWindow: () => ipcRenderer.invoke(IPC_CHANNELS.shellWindowClose),
+  toggleMaximizeWindow: () =>
+    ipcRenderer.invoke(IPC_CHANNELS.shellWindowToggleMaximize),
+  getWindowMaximized: async () => {
+    const response: unknown = await ipcRenderer.invoke(
+      IPC_CHANNELS.shellWindowGetMaximized,
+    );
+    if (typeof response !== "object" || response === null) {
+      return { ok: false, reason: "invalid_response" };
+    }
+    const candidate = response as Record<string, unknown>;
+    if (candidate["ok"] === true && typeof candidate["maximized"] === "boolean") {
+      return { ok: true as const, maximized: candidate["maximized"] };
+    }
+    return { ok: false as const, reason: "invalid_response" };
+  },
+  onWindowMaximizedChanged: (handler) => {
+    const listener = (_event: Electron.IpcRendererEvent, payload: unknown): void => {
+      const parsed = parseShellWindowMaximizedChangedPayload(payload);
+      if (parsed !== null) {
+        handler(parsed.maximized);
+      }
+    };
+    ipcRenderer.on(IPC_CHANNELS.shellWindowMaximizedChanged, listener);
+    return () => {
+      ipcRenderer.removeListener(IPC_CHANNELS.shellWindowMaximizedChanged, listener);
+    };
+  },
   applyShellWindowLayout: async (payload) => {
     const parsed = parseShellWindowLayoutPayload(payload);
     if (parsed === null) {

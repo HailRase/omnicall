@@ -36,6 +36,7 @@
   --shell-mac-traffic-light-close: #ff5f57;
   --shell-mac-traffic-light-minimize: #febc2e;
   --shell-mac-traffic-light-restart: #28c840;
+  --shell-mac-traffic-light-maximize: #28c840;
   --shell-mac-traffic-light-glyph: rgb(0 0 0 / 55%);
   --shell-mac-traffic-light-restart-glyph: rgb(0 0 0 / 65%);
 
@@ -182,6 +183,7 @@
   --shell-mac-traffic-light-close: #ff5f57;
   --shell-mac-traffic-light-minimize: #febc2e;
   --shell-mac-traffic-light-restart: #28c840;
+  --shell-mac-traffic-light-maximize: #28c840;
   --shell-mac-traffic-light-glyph: rgb(0 0 0 / 55%);
   --shell-mac-traffic-light-restart-glyph: rgb(0 0 0 / 65%);
 

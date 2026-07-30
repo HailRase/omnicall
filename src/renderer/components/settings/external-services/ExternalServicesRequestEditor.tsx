@@ -1,6 +1,5 @@
 import type { JSX } from "react";
 import { useI18n } from "../../../i18n/index.js";
-import type { TranslationKey } from "../../../i18n/messages.js";
 import { AppIcon } from "../../icons/AppIcon.js";
 import { IconTooltip } from "../../icons/IconTooltip.js";
 import {
@@ -19,6 +18,8 @@ import {
   TabsTrigger,
   Textarea,
 } from "../../ui/index.js";
+import { ExternalServicesBodyModeRadios } from "./ExternalServicesBodyModeRadios.js";
+import { ExternalServicesInlineRename } from "./ExternalServicesInlineRename.js";
 import { ExternalServicesKeyValueTable } from "./ExternalServicesKeyValueTable.js";
 import type { ExternalServicesKeyValueRow } from "./ExternalServicesKeyValueTable.js";
 import type { ExternalServicesJournalProps } from "./ExternalServicesJournal.js";
@@ -29,13 +30,6 @@ import {
   type ExternalServicesAutomaticEventType,
 } from "./ExternalServicesTriggerList.js";
 import styles from "./ExternalServices.module.css";
-
-const bodyModeKeys: Readonly<Record<string, TranslationKey>> = {
-  none: "settings.integrations.externalServices.bodyMode.none",
-  json: "settings.integrations.externalServices.bodyMode.json",
-  "x-www-form-urlencoded": "settings.integrations.externalServices.bodyMode.x-www-form-urlencoded",
-  raw: "settings.integrations.externalServices.bodyMode.raw",
-};
 
 export type ExternalServicesRequestDraft = Readonly<{
   id: string;
@@ -58,10 +52,15 @@ export type ExternalServicesRequestEditorProps = Readonly<{
   runResult: ExternalServicesRunResultValue | null;
   journal: ExternalServicesJournalProps;
   onChange: (draft: ExternalServicesRequestDraft) => void;
+  onCommitName: (name: string) => void;
   onSave: () => void;
   onRunNow: () => void;
   onDelete: () => void;
 }>;
+
+function tabCountLabel(base: string, count: number): string {
+  return count > 0 ? `${base} (${count})` : base;
+}
 
 /**
  * - Purpose: Postman-like request editor with URL bar, tabs, and response pane.
@@ -69,28 +68,51 @@ export type ExternalServicesRequestEditorProps = Readonly<{
  * - Outputs: presentational editor intents without HTTP or mutation logic.
  * @uiMeta f=F-031
  */
-export function ExternalServicesRequestEditor(props: ExternalServicesRequestEditorProps): JSX.Element {
+export function ExternalServicesRequestEditor(
+  props: ExternalServicesRequestEditorProps,
+): JSX.Element {
   const { t } = useI18n();
-  const { collectionName, draft, busy, errorMessage, runState, runResult, journal, onChange, onSave, onRunNow, onDelete } = props;
-  const change = (patch: Partial<ExternalServicesRequestDraft>): void => onChange({ ...draft, ...patch });
+  const {
+    collectionName,
+    draft,
+    busy,
+    errorMessage,
+    runState,
+    runResult,
+    journal,
+    onChange,
+    onCommitName,
+    onSave,
+    onRunNow,
+    onDelete,
+  } = props;
+  const change = (patch: Partial<ExternalServicesRequestDraft>): void =>
+    onChange({ ...draft, ...patch });
   const canSend = draft.url.trim().length > 0;
   const sendDisabledReason = canSend
     ? null
     : t("settings.integrations.externalServices.disabled.urlRequired");
+  const enabledQueryCount = draft.query.filter((row) => row.enabled).length;
+  const enabledHeaderCount = draft.headers.filter((row) => row.enabled).length;
+  const enabledTriggerCount = draft.triggers.length;
 
   return (
     <section className={styles.editorWorkspace} data-testid="external-services-request-editor">
       <header className={styles.editorTopBar}>
-        <nav className={styles.breadcrumb} aria-label={t("settings.integrations.externalServices.workspace.breadcrumb")}>
+        <nav
+          className={styles.breadcrumb}
+          aria-label={t("settings.integrations.externalServices.workspace.breadcrumb")}
+        >
           <span className={styles.breadcrumbItem}>{collectionName}</span>
-          <span className={styles.breadcrumbSep} aria-hidden="true">›</span>
-          <Input
+          <span className={styles.breadcrumbSep} aria-hidden="true">
+            ›
+          </span>
+          <ExternalServicesInlineRename
             value={draft.name}
             disabled={busy}
-            aria-label={t("settings.integrations.externalServices.editor.name")}
-            data-testid="external-services-request-name"
-            className={styles.breadcrumbNameInput}
-            onChange={(event) => change({ name: event.currentTarget.value })}
+            ariaLabel={t("settings.integrations.externalServices.editor.name")}
+            testId="external-services-request-name"
+            onCommit={onCommitName}
           />
         </nav>
         <div className={styles.editorTopActions}>
@@ -101,12 +123,25 @@ export function ExternalServicesRequestEditor(props: ExternalServicesRequestEdit
             aria-label={t("settings.integrations.externalServices.editor.enabled")}
             onCheckedChange={(enabled) => change({ enabled })}
           />
-          <Button type="button" variant="outline" size="sm" loading={busy} data-testid="external-services-save" onClick={onSave}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            loading={busy}
+            data-testid="external-services-save"
+            onClick={onSave}
+          >
             {t("settings.integrations.externalServices.actions.save")}
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button type="button" variant="ghost" size="sm" disabled={busy} aria-label={t("settings.integrations.externalServices.requests.menuLabel")}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                disabled={busy}
+                aria-label={t("settings.integrations.externalServices.requests.menuLabel")}
+              >
                 ⋯
               </Button>
             </DropdownMenuTrigger>
@@ -119,14 +154,21 @@ export function ExternalServicesRequestEditor(props: ExternalServicesRequestEdit
         </div>
       </header>
 
-      {errorMessage !== null ? <p className={styles.editorError} role="alert">{errorMessage}</p> : null}
+      {errorMessage !== null ? (
+        <p className={styles.editorError} role="alert">
+          {errorMessage}
+        </p>
+      ) : null}
 
       <div className={styles.urlBar}>
         <Select
           value={draft.method}
           disabled={busy}
           data-testid="external-services-request-method"
-          items={["GET", "POST", "PUT", "PATCH", "DELETE"].map((value) => ({ value, label: value }))}
+          items={["GET", "POST", "PUT", "PATCH", "DELETE"].map((value) => ({
+            value,
+            label: value,
+          }))}
           onValueChange={(method) => change({ method })}
         />
         <Input
@@ -164,12 +206,27 @@ export function ExternalServicesRequestEditor(props: ExternalServicesRequestEdit
         <div className={styles.editorTabsPane}>
           <Tabs defaultValue="params">
             <TabsList>
-              <TabsTrigger value="params">{t("settings.integrations.externalServices.tabs.params")}</TabsTrigger>
-              <TabsTrigger value="headers">
-                {`${t("settings.integrations.externalServices.tabs.headers")}${draft.headers.length > 0 ? ` (${draft.headers.length})` : ""}`}
+              <TabsTrigger value="params">
+                {tabCountLabel(
+                  t("settings.integrations.externalServices.tabs.params"),
+                  enabledQueryCount,
+                )}
               </TabsTrigger>
-              <TabsTrigger value="body">{t("settings.integrations.externalServices.tabs.body")}</TabsTrigger>
-              <TabsTrigger value="triggers">{t("settings.integrations.externalServices.tabs.triggers")}</TabsTrigger>
+              <TabsTrigger value="headers">
+                {tabCountLabel(
+                  t("settings.integrations.externalServices.tabs.headers"),
+                  enabledHeaderCount,
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="body">
+                {t("settings.integrations.externalServices.tabs.body")}
+              </TabsTrigger>
+              <TabsTrigger value="triggers">
+                {tabCountLabel(
+                  t("settings.integrations.externalServices.tabs.triggers"),
+                  enabledTriggerCount,
+                )}
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="params" className={styles.editorTabBody}>
               <ExternalServicesKeyValueTable
@@ -190,30 +247,45 @@ export function ExternalServicesRequestEditor(props: ExternalServicesRequestEdit
               />
             </TabsContent>
             <TabsContent value="body" className={styles.editorTabBody}>
-              <FormField label={t("settings.integrations.externalServices.editor.bodyMode")}>
-                <Select
-                  value={draft.body.mode}
-                  disabled={busy}
-                  data-testid="external-services-body-mode"
-                  items={Object.entries(bodyModeKeys).map(([value, key]) => ({ value, label: t(key) }))}
-                  onValueChange={(mode) => change({ body: { ...draft.body, mode } })}
-                />
-              </FormField>
-              <FormField label={t("settings.integrations.externalServices.editor.body")}>
-                <Textarea
-                  value={draft.body.value}
-                  disabled={busy}
-                  data-testid="external-services-body-editor"
-                  onChange={(event) => change({ body: { ...draft.body, value: event.currentTarget.value } })}
-                />
-              </FormField>
+              <ExternalServicesBodyModeRadios
+                value={draft.body.mode}
+                disabled={busy}
+                onChange={(mode) =>
+                  change({
+                    body: {
+                      mode,
+                      value: mode === "none" ? "" : draft.body.value,
+                    },
+                  })
+                }
+              />
+              {draft.body.mode !== "none" ? (
+                <FormField label={t("settings.integrations.externalServices.editor.body")}>
+                  <Textarea
+                    value={draft.body.value}
+                    disabled={busy}
+                    data-testid="external-services-body-editor"
+                    onChange={(event) =>
+                      change({ body: { ...draft.body, value: event.currentTarget.value } })
+                    }
+                  />
+                </FormField>
+              ) : null}
             </TabsContent>
             <TabsContent value="triggers" className={styles.editorTabBody}>
-              <ExternalServicesTriggerList triggers={draft.triggers} disabled={busy} onChange={(triggers) => change({ triggers })} />
+              <ExternalServicesTriggerList
+                triggers={draft.triggers}
+                disabled={busy}
+                onChange={(triggers) => change({ triggers })}
+              />
             </TabsContent>
           </Tabs>
         </div>
-        <ExternalServicesResponsePane runState={runState} runResult={runResult} journal={journal} />
+        <ExternalServicesResponsePane
+          runState={runState}
+          runResult={runResult}
+          journal={journal}
+        />
       </div>
     </section>
   );

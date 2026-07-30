@@ -32,6 +32,7 @@ const requestViewArgs = {
   journal,
   onCreate: noop,
   onEditVariables: noop,
+  onRename: noop,
 };
 
 export const RequestsLight: Story = {
@@ -74,6 +75,7 @@ export const EditorRunResultLight: Story = {
       }}
       journal={journal}
       onChange={noop}
+      onCommitName={noop}
       onSave={noop}
       onRunNow={noop}
       onDelete={noop}

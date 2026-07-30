@@ -133,15 +133,60 @@ export function replaceExternalServiceRequest(
     return located;
   }
 
+  const normalized = normalizeRequestReplacement(request);
   return validateSettings(
     replaceRequest(
       settings,
       located.collectionIndex,
       located.collection.requests.map((entry, index) =>
-        index === located.requestIndex ? request : entry,
+        index === located.requestIndex ? normalized : entry,
       ),
     ),
   );
+}
+
+function normalizeRequestReplacement(request: unknown): unknown {
+  if (!isPlainObject(request)) {
+    return request;
+  }
+
+  const bodyValue = request["body"];
+  const body = isPlainObject(bodyValue) ? bodyValue : { mode: "none", value: "" };
+  const mode = body["mode"];
+  const normalizedBody =
+    mode === "none"
+      ? { mode: "none", value: "" }
+      : {
+          mode,
+          value: typeof body["value"] === "string" ? body["value"] : "",
+        };
+
+  return {
+    ...request,
+    body: normalizedBody,
+    query: normalizeKeyValueRows(request["query"]),
+    headers: normalizeKeyValueRows(request["headers"]),
+  };
+}
+
+function normalizeKeyValueRows(value: unknown): unknown {
+  if (!Array.isArray(value)) {
+    return value;
+  }
+  return value.map((row) => {
+    if (!isPlainObject(row)) {
+      return row;
+    }
+    const key = typeof row["key"] === "string" ? row["key"].trim() : "";
+    if (key.length === 0) {
+      return { ...row, key: "", enabled: false };
+    }
+    return { ...row, key };
+  });
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function updateRequest(

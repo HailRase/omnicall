@@ -22,12 +22,21 @@ export type ShellWindowCompactDimensions = Readonly<{
 export const SHELL_WINDOW_LAYOUT = {
   compactDefaultWidth: 420,
   compactDefaultHeight: 625,
+  compactMinWidth: 360,
+  compactMinHeight: 560,
   settingsWidth: 1000,
+  settingsMinWidth: 1000,
+  settingsMinHeight: 560,
   animationDurationMs: 280,
   screenMargin: 16,
 } as const;
 
 export type ShellWindowLayoutEasing = "settings-open" | "settings-close";
+
+export type ShellWindowMinimumSize = Readonly<{
+  width: number;
+  height: number;
+}>;
 
 /**
  * - Purpose: resolve whether the shell window accepts user resize for a layout mode (F-016).
@@ -36,6 +45,36 @@ export type ShellWindowLayoutEasing = "settings-open" | "settings-close";
  */
 export function resolveShellWindowResizable(mode: ShellWindowLayoutMode): boolean {
   return mode === "settings";
+}
+
+/**
+ * - Purpose: resolve whether maximize is allowed for a layout mode (F-016).
+ * - Inputs: compact, settings, or video-fullscreen layout mode.
+ * - Outputs: true only in settings mode.
+ */
+export function resolveShellWindowMaximizable(mode: ShellWindowLayoutMode): boolean {
+  return mode === "settings";
+}
+
+/**
+ * - Purpose: resolve BrowserWindow minimum size for a layout mode (F-016).
+ * - Inputs: compact, settings, or video-fullscreen layout mode.
+ * - Outputs: minimum width/height for the active mode.
+ */
+export function resolveShellWindowMinimumSize(
+  mode: ShellWindowLayoutMode,
+): ShellWindowMinimumSize {
+  if (mode === "settings") {
+    return {
+      width: SHELL_WINDOW_LAYOUT.settingsMinWidth,
+      height: SHELL_WINDOW_LAYOUT.settingsMinHeight,
+    };
+  }
+
+  return {
+    width: SHELL_WINDOW_LAYOUT.compactMinWidth,
+    height: SHELL_WINDOW_LAYOUT.compactMinHeight,
+  };
 }
 
 /**

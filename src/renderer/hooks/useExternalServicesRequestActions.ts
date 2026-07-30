@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { AccountBootstrapFacade } from "@application/facades/AccountBootstrapFacade.js";
 import {
   createExternalServiceRequest,
@@ -19,16 +19,34 @@ type Input = Readonly<{
   settingsRevision: number;
   onSaved: (settings: UserSettings, revision: number) => void;
 }>;
+
 const uuidGenerator = { generate: (): string => globalThis.crypto.randomUUID() };
 
 export type UseExternalServicesRequestActionsResult = Readonly<{
   busy: boolean;
   create: (collectionId: string) => Promise<ExternalServicesRequestActionResult>;
-  rename: (collectionId: string, requestId: string, name: string) => Promise<ExternalServicesRequestActionResult>;
-  toggle: (collectionId: string, requestId: string, enabled: boolean) => Promise<ExternalServicesRequestActionResult>;
-  duplicate: (collectionId: string, requestId: string) => Promise<ExternalServicesRequestActionResult>;
-  delete: (collectionId: string, requestId: string) => Promise<ExternalServicesRequestActionResult>;
-  replace: (collectionId: string, draft: ExternalServicesRequestDraft) => Promise<ExternalServicesRequestActionResult>;
+  rename: (
+    collectionId: string,
+    requestId: string,
+    name: string,
+  ) => Promise<ExternalServicesRequestActionResult>;
+  toggle: (
+    collectionId: string,
+    requestId: string,
+    enabled: boolean,
+  ) => Promise<ExternalServicesRequestActionResult>;
+  duplicate: (
+    collectionId: string,
+    requestId: string,
+  ) => Promise<ExternalServicesRequestActionResult>;
+  delete: (
+    collectionId: string,
+    requestId: string,
+  ) => Promise<ExternalServicesRequestActionResult>;
+  replace: (
+    collectionId: string,
+    draft: ExternalServicesRequestDraft,
+  ) => Promise<ExternalServicesRequestActionResult>;
 }>;
 
 export type ExternalServicesRequestActionResult = Readonly<
@@ -67,34 +85,108 @@ function toRequestDraft(request: SettingsRequest): ExternalServicesRequestDraft 
   };
 }
 
-/** - Purpose: bind request mutations to Application functions and facade persistence.
+/**
+ * - Purpose: bind request mutations to Application functions and facade persistence.
  * - Inputs: settings snapshot, revision, facade and snapshot callback.
  * - Outputs: async request mutation intents with a shared busy state.
  */
-export function useExternalServicesRequestActions(input: Input): UseExternalServicesRequestActionsResult {
+export function useExternalServicesRequestActions(
+  input: Input,
+): UseExternalServicesRequestActionsResult {
   const { facade, settings, settingsRevision, onSaved } = input;
   const [busy, setBusy] = useState(false);
-  const persist = useCallback(async (next: ExternalServicesSettings): Promise<ExternalServicesRequestActionResult> => {
-    if (facade === null) return { kind: "error", messageKey: "settings.integrations.externalServices.disabled.unavailable" };
-    setBusy(true);
-    try {
-      const result = await facade.saveExternalServicesSettings(next, settingsRevision);
-      if (!result.ok) return { kind: "error", messageKey: "settings.integrations.externalServices.saveError" };
-      onSaved(result.value.settings, result.value.settingsRevision);
-      return { kind: "success", settingsRevision: result.value.settingsRevision };
-    } finally { setBusy(false); }
-  }, [facade, onSaved, settingsRevision]);
-  const mutate = useCallback(async (fn: () => { ok: true; settings: ExternalServicesSettings } | { ok: false }): Promise<ExternalServicesRequestActionResult> => {
-    if (busy) return { kind: "error", messageKey: "settings.integrations.externalServices.disabled.busy" };
-    const result = fn();
-    return result.ok ? persist(result.settings) : { kind: "error", messageKey: "settings.integrations.externalServices.saveError" };
-  }, [busy, persist]);
+  const settingsRef = useRef(settings);
+  const revisionRef = useRef(settingsRevision);
+  const busyRef = useRef(busy);
+
+  useEffect(() => {
+    settingsRef.current = settings;
+  }, [settings]);
+
+  useEffect(() => {
+    revisionRef.current = settingsRevision;
+  }, [settingsRevision]);
+
+  useEffect(() => {
+    busyRef.current = busy;
+  }, [busy]);
+
+  const persist = useCallback(
+    async (next: ExternalServicesSettings): Promise<ExternalServicesRequestActionResult> => {
+      if (facade === null) {
+        return {
+          kind: "error",
+          messageKey: "settings.integrations.externalServices.disabled.unavailable",
+        };
+      }
+      setBusy(true);
+      busyRef.current = true;
+      try {
+        const result = await facade.saveExternalServicesSettings(
+          next,
+          revisionRef.current,
+        );
+        if (!result.ok) {
+          return {
+            kind: "error",
+            messageKey: "settings.integrations.externalServices.saveError",
+          };
+        }
+        revisionRef.current = result.value.settingsRevision;
+        settingsRef.current = result.value.settings.externalServices;
+        onSaved(result.value.settings, result.value.settingsRevision);
+        return { kind: "success", settingsRevision: result.value.settingsRevision };
+      } finally {
+        setBusy(false);
+        busyRef.current = false;
+      }
+    },
+    [facade, onSaved],
+  );
+
+  const mutate = useCallback(
+    async (
+      fn: (
+        current: ExternalServicesSettings,
+      ) => { ok: true; settings: ExternalServicesSettings } | { ok: false },
+    ): Promise<ExternalServicesRequestActionResult> => {
+      if (busyRef.current) {
+        return {
+          kind: "error",
+          messageKey: "settings.integrations.externalServices.disabled.busy",
+        };
+      }
+      const result = fn(settingsRef.current);
+      return result.ok
+        ? persist(result.settings)
+        : {
+            kind: "error",
+            messageKey: "settings.integrations.externalServices.saveError",
+          };
+    },
+    [persist],
+  );
+
   return {
     busy,
     create: async (collectionId) => {
-      if (busy) return { kind: "error", messageKey: "settings.integrations.externalServices.disabled.busy" };
-      const created = createExternalServiceRequest(settings, collectionId, uuidGenerator);
-      if (!created.ok) return { kind: "error", messageKey: "settings.integrations.externalServices.saveError" };
+      if (busyRef.current) {
+        return {
+          kind: "error",
+          messageKey: "settings.integrations.externalServices.disabled.busy",
+        };
+      }
+      const created = createExternalServiceRequest(
+        settingsRef.current,
+        collectionId,
+        uuidGenerator,
+      );
+      if (!created.ok) {
+        return {
+          kind: "error",
+          messageKey: "settings.integrations.externalServices.saveError",
+        };
+      }
       const createdRequest = created.settings.collections
         .find((entry) => entry.id === collectionId)
         ?.requests.at(-1);
@@ -109,10 +201,31 @@ export function useExternalServicesRequestActions(input: Input): UseExternalServ
         request: toRequestDraft(createdRequest),
       };
     },
-    rename: (collectionId, requestId, name) => mutate(() => renameExternalServiceRequest(settings, collectionId, requestId, name)),
-    toggle: (collectionId, requestId, enabled) => mutate(() => toggleExternalServiceRequest(settings, collectionId, requestId, enabled)),
-    duplicate: (collectionId, requestId) => mutate(() => duplicateExternalServiceRequest(settings, collectionId, requestId, uuidGenerator)),
-    delete: (collectionId, requestId) => mutate(() => deleteExternalServiceRequest(settings, collectionId, requestId)),
-    replace: (collectionId, draft) => mutate(() => replaceExternalServiceRequest(settings, collectionId, draft.id, draft)),
+    rename: (collectionId, requestId, name) =>
+      mutate((current) =>
+        renameExternalServiceRequest(current, collectionId, requestId, name),
+      ),
+    toggle: (collectionId, requestId, enabled) =>
+      mutate((current) =>
+        toggleExternalServiceRequest(current, collectionId, requestId, enabled),
+      ),
+    duplicate: (collectionId, requestId) =>
+      mutate((current) =>
+        duplicateExternalServiceRequest(current, collectionId, requestId, uuidGenerator),
+      ),
+    delete: (collectionId, requestId) =>
+      mutate((current) =>
+        deleteExternalServiceRequest(current, collectionId, requestId),
+      ),
+    replace: (collectionId, draft) =>
+      mutate((current) =>
+        replaceExternalServiceRequest(current, collectionId, draft.id, {
+          ...draft,
+          body:
+            draft.body.mode === "none"
+              ? { mode: "none", value: "" }
+              : draft.body,
+        }),
+      ),
   };
 }

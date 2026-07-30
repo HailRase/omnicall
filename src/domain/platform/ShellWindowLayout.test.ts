@@ -4,6 +4,8 @@ import {
   computeCenteredBounds,
   interpolateShellWindowBounds,
   resolveShellWindowAnimationProgress,
+  resolveShellWindowMaximizable,
+  resolveShellWindowMinimumSize,
   resolveShellWindowResizable,
   resolveShellWindowTargetBounds,
   SHELL_WINDOW_LAYOUT,
@@ -27,6 +29,34 @@ describe("resolveShellWindowResizable", () => {
 
   it("disables user resize in video-fullscreen mode", () => {
     expect(resolveShellWindowResizable("video-fullscreen")).toBe(false);
+  });
+});
+
+describe("resolveShellWindowMaximizable", () => {
+  it("enables maximize only in settings mode", () => {
+    expect(resolveShellWindowMaximizable("compact")).toBe(false);
+    expect(resolveShellWindowMaximizable("settings")).toBe(true);
+    expect(resolveShellWindowMaximizable("video-fullscreen")).toBe(false);
+  });
+});
+
+describe("resolveShellWindowMinimumSize", () => {
+  it("uses settings floor in settings mode", () => {
+    expect(resolveShellWindowMinimumSize("settings")).toEqual({
+      width: SHELL_WINDOW_LAYOUT.settingsMinWidth,
+      height: SHELL_WINDOW_LAYOUT.settingsMinHeight,
+    });
+  });
+
+  it("uses compact floor outside settings", () => {
+    expect(resolveShellWindowMinimumSize("compact")).toEqual({
+      width: SHELL_WINDOW_LAYOUT.compactMinWidth,
+      height: SHELL_WINDOW_LAYOUT.compactMinHeight,
+    });
+    expect(resolveShellWindowMinimumSize("video-fullscreen")).toEqual({
+      width: SHELL_WINDOW_LAYOUT.compactMinWidth,
+      height: SHELL_WINDOW_LAYOUT.compactMinHeight,
+    });
   });
 });
 

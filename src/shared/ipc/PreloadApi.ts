@@ -79,6 +79,11 @@ export type SoftphonePreloadApi = Readonly<{
   requestAppRestart: () => Promise<ShellWindowControlResponse>;
   minimizeWindow: () => Promise<ShellWindowControlResponse>;
   closeWindow: () => Promise<ShellWindowControlResponse>;
+  toggleMaximizeWindow: () => Promise<ShellWindowControlResponse>;
+  getWindowMaximized: () => Promise<
+    Readonly<{ ok: true; maximized: boolean } | { ok: false; reason?: string }>
+  >;
+  onWindowMaximizedChanged: (handler: (maximized: boolean) => void) => () => void;
   applyShellWindowLayout: (payload: ShellWindowLayoutPayload) => Promise<void>;
   /** ADR-0013: raise softphone above other apps (telephony / consent). */
   raiseShellWindow: (

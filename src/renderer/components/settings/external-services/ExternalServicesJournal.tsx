@@ -34,17 +34,10 @@ export function ExternalServicesJournal({
       className={styles.journalSection}
       data-testid="external-services-journal-section"
     >
-      <h4 className={styles.journalTitle}>
-        {t("settings.integrations.externalServices.journal.sectionTitle")}
-      </h4>
-      <p className={styles.description}>
-        {t("settings.integrations.externalServices.journal.sectionDescription")}
-      </p>
-
       {panel.loadState === "loading" ? (
         <div className={styles.loadingStack} aria-busy="true">
-          <Skeleton shape="rectangle" height={48} />
-          <Skeleton shape="rectangle" height={48} />
+          <Skeleton shape="rectangle" height={32} />
+          <Skeleton shape="rectangle" height={32} />
         </div>
       ) : null}
 

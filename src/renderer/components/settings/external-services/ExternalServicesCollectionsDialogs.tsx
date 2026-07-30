@@ -21,8 +21,10 @@ import {
   FormField,
   Input,
 } from "../../ui/index.js";
+import styles from "./ExternalServices.module.css";
 
 export type ExternalServicesNameDialogMode = "create" | "rename";
+export type ExternalServicesNameDialogScope = "collection" | "request";
 
 export type ExternalServicesCollectionsDialogsProps = Readonly<{
   busy: boolean;
@@ -31,6 +33,7 @@ export type ExternalServicesCollectionsDialogsProps = Readonly<{
   nameDialog: Readonly<{
     open: boolean;
     mode: ExternalServicesNameDialogMode;
+    scope: ExternalServicesNameDialogScope;
     value: string;
     errorMessage: string | null;
   }>;
@@ -86,13 +89,12 @@ export function ExternalServicesCollectionsDialogs({
         </Alert>
       ) : null}
 
-      {statusMessage !== null ? (
-        <p role="status">{statusMessage}</p>
-      ) : null}
+      {statusMessage !== null ? <p role="status">{statusMessage}</p> : null}
 
       <NameDialog
         open={nameDialog.open}
         mode={nameDialog.mode}
+        scope={nameDialog.scope}
         value={nameDialog.value}
         errorMessage={nameDialog.errorMessage}
         busy={busy}
@@ -120,7 +122,12 @@ export function ExternalServicesCollectionsDialogs({
               </Button>
             </AlertDialogCancel>
             <AlertDialogAction asChild>
-              <Button type="button" variant="destructive" loading={busy} onClick={onDeleteDialogConfirm}>
+              <Button
+                type="button"
+                variant="destructive"
+                loading={busy}
+                onClick={onDeleteDialogConfirm}
+              >
                 {t("settings.integrations.externalServices.actions.delete")}
               </Button>
             </AlertDialogAction>
@@ -131,7 +138,9 @@ export function ExternalServicesCollectionsDialogs({
       <AlertDialog open={discardDialogOpen} onOpenChange={onDiscardDialogOpenChange}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t("settings.integrations.externalServices.editor.discardTitle")}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("settings.integrations.externalServices.editor.discardTitle")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {t("settings.integrations.externalServices.editor.discardDescription")}
             </AlertDialogDescription>
@@ -162,6 +171,7 @@ export function ExternalServicesCollectionsDialogs({
 type NameDialogProps = Readonly<{
   open: boolean;
   mode: ExternalServicesNameDialogMode;
+  scope: ExternalServicesNameDialogScope;
   value: string;
   errorMessage: string | null;
   busy: boolean;
@@ -170,9 +180,26 @@ type NameDialogProps = Readonly<{
   onSubmit: () => void;
 }>;
 
+function resolveNameDialogTitle(
+  mode: ExternalServicesNameDialogMode,
+  scope: ExternalServicesNameDialogScope,
+):
+  | "settings.integrations.externalServices.collections.nameLabel"
+  | "settings.integrations.externalServices.collections.renameTitle"
+  | "settings.integrations.externalServices.requests.renameTitle" {
+  if (mode === "create") {
+    return "settings.integrations.externalServices.collections.nameLabel";
+  }
+  if (scope === "request") {
+    return "settings.integrations.externalServices.requests.renameTitle";
+  }
+  return "settings.integrations.externalServices.collections.renameTitle";
+}
+
 function NameDialog({
   open,
   mode,
+  scope,
   value,
   errorMessage,
   busy,
@@ -182,6 +209,11 @@ function NameDialog({
 }: NameDialogProps): JSX.Element {
   const { t } = useI18n();
   const [draft, setDraft] = useState(value);
+  const titleKey = resolveNameDialogTitle(mode, scope);
+  const fieldLabel =
+    scope === "request"
+      ? t("settings.integrations.externalServices.requests.nameLabel")
+      : t("settings.integrations.externalServices.collections.nameLabel");
 
   useEffect(() => {
     if (open) {
@@ -196,37 +228,43 @@ function NameDialog({
         closeLabel={t("settings.integrations.externalServices.actions.cancel")}
       >
         <DialogHeader>
-          <DialogTitle>
-            {t(
-              mode === "create"
-                ? "settings.integrations.externalServices.collections.createTitle"
-                : "settings.integrations.externalServices.collections.renameTitle",
-            )}
-          </DialogTitle>
+          <DialogTitle>{t(titleKey)}</DialogTitle>
         </DialogHeader>
-        <FormField
-          label={t("settings.integrations.externalServices.collections.nameLabel")}
-          error={errorMessage}
-        >
-          <Input
-            value={draft}
-            disabled={busy}
-            placeholder={t("settings.integrations.externalServices.collections.namePlaceholder")}
-            onChange={(event) => {
-              const next = event.currentTarget.value;
-              setDraft(next);
-              onValueChange(next);
-            }}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                event.preventDefault();
-                onSubmit();
+        <div className={styles.nameDialogBody}>
+          <FormField
+            label={mode === "create" ? undefined : fieldLabel}
+            error={errorMessage}
+          >
+            <Input
+              value={draft}
+              disabled={busy}
+              aria-label={fieldLabel}
+              placeholder={
+                scope === "request"
+                  ? undefined
+                  : t("settings.integrations.externalServices.collections.namePlaceholder")
               }
-            }}
-          />
-        </FormField>
+              onChange={(event) => {
+                const next = event.currentTarget.value;
+                setDraft(next);
+                onValueChange(next);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  onSubmit();
+                }
+              }}
+            />
+          </FormField>
+        </div>
         <DialogFooter>
-          <Button type="button" variant="outline" disabled={busy} onClick={() => onOpenChange(false)}>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={busy}
+            onClick={() => onOpenChange(false)}
+          >
             {t("settings.integrations.externalServices.actions.cancel")}
           </Button>
           <Button type="button" loading={busy} onClick={onSubmit}>

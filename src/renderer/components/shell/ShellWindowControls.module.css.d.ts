@@ -3,9 +3,11 @@ declare const classes: {
   readonly controlsFrameless: string;
   readonly controlsMacOs: string;
   readonly controlsMacOsTrafficLights: string;
+  readonly macOsRestartAfterTrafficLights: string;
   readonly trafficLight: string;
   readonly trafficLightClose: string;
   readonly trafficLightGlyph: string;
+  readonly trafficLightMaximize: string;
   readonly trafficLightMinimize: string;
   readonly trafficLightRestart: string;
   readonly trafficLightRestartGlyph: string;

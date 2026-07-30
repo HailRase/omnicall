@@ -130,6 +130,44 @@ describe("mutateExternalServicesRequests", () => {
     }
   });
 
+  it("normalizes body none leftover value and empty enabled key rows on replace", () => {
+    const settings = createExternalServicesTestSettings();
+    const request = settings.collections[0]?.requests[0];
+    expect(request).toBeDefined();
+    if (request === undefined) {
+      return;
+    }
+
+    const replaced = replaceExternalServiceRequest(
+      settings,
+      EXTERNAL_SERVICES_TEST_COLLECTION_ID,
+      EXTERNAL_SERVICES_TEST_REQUEST_ID,
+      {
+        ...request,
+        enabled: false,
+        body: { mode: "none", value: "{\"stale\":true}" },
+        query: [
+          ...request.query,
+          {
+            id: "a1b2c3d4-e5f6-4789-8abc-def012345678",
+            key: "   ",
+            value: "x",
+            enabled: true,
+          },
+        ],
+      },
+    );
+
+    expect(replaced.ok).toBe(true);
+    if (!replaced.ok) {
+      return;
+    }
+    const saved = replaced.settings.collections[0]?.requests[0];
+    expect(saved?.enabled).toBe(false);
+    expect(saved?.body).toEqual({ mode: "none", value: "" });
+    expect(saved?.query.at(-1)).toMatchObject({ key: "", enabled: false, value: "x" });
+  });
+
   it("reports missing collection and request identifiers", () => {
     const settings = createExternalServicesTestSettings();
     expect(

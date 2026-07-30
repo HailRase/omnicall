@@ -49,9 +49,12 @@ const windowControls = {
   platform: "linux" as const,
   showNativeWindowControls: true,
   isShuttingDown: false,
+  maximizeEnabled: false,
+  isMaximized: false,
   onMinimize: vi.fn(),
   onClose: vi.fn(),
   onRestart: vi.fn(),
+  onToggleMaximize: vi.fn(),
 };
 
 describe("SoftphoneShellHeader", () => {

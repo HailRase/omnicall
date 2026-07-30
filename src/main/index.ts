@@ -138,6 +138,14 @@ function createMainWindow(): BrowserWindow {
     const display = screen.getDisplayMatching(mainWindow.getBounds());
     return display.workArea;
   });
+  shellWindowController.onMaximizedChange((maximized) => {
+    if (mainWindow.isDestroyed()) {
+      return;
+    }
+    mainWindow.webContents.send(IPC_CHANNELS.shellWindowMaximizedChanged, {
+      maximized,
+    });
+  });
 
   mainWindow.on("ready-to-show", () => {
     shellWindowController?.placeCompactAtStartup();
@@ -434,6 +442,23 @@ function registerIpcHandlers(): void {
 
     mainWindow.minimize();
     return { ok: true as const };
+  });
+
+  ipcMain.handle(IPC_CHANNELS.shellWindowToggleMaximize, () => {
+    if (shellWindowController === null) {
+      return { ok: false as const, reason: "not_ready" };
+    }
+    return shellWindowController.toggleMaximize();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.shellWindowGetMaximized, () => {
+    if (shellWindowController === null) {
+      return { ok: false as const };
+    }
+    return {
+      ok: true as const,
+      maximized: shellWindowController.isMaximized(),
+    };
   });
 
   ipcMain.handle(IPC_CHANNELS.shellWindowClose, () => {

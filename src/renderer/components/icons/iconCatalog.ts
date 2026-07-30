@@ -41,12 +41,15 @@ import {
   PhoneOutgoing,
   Pencil,
   Play,
+  Plus,
   RefreshCcw,
   RotateCcw,
   Server,
   Settings,
   Send,
   SlidersHorizontal,
+  Square,
+  SquareStack,
   Trash2,
   User,
   UserRoundPlus,
@@ -102,6 +105,8 @@ export type IconSemanticId =
   | "shell.diagnostics"
   | "shell.restart"
   | "shell.window.minimize"
+  | "shell.window.maximize"
+  | "shell.window.restore"
   | "shell.window.close"
   | "shell.nav.back"
   | "shell.contacts"
@@ -120,6 +125,9 @@ export type IconSemanticId =
   | "settings.integrations.ocp"
   | "settings.integrations.external-services"
   | "settings.integrations.external-services.send"
+  | "settings.integrations.external-services.add"
+  | "settings.integrations.external-services.panelExpand"
+  | "settings.integrations.external-services.panelCollapse"
   | "settings.integrations.sdk"
   | "settings.notifications"
   | "settings.nav.expand"
@@ -210,6 +218,18 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.shell.window.minimize",
     defaultSize: 16,
     usage: ["ShellWindowControls: control-window-minimize"],
+  },
+  "shell.window.maximize": {
+    static: Square,
+    defaultLabelKey: "icons.shell.window.maximize",
+    defaultSize: 16,
+    usage: ["ShellWindowControls: control-window-maximize"],
+  },
+  "shell.window.restore": {
+    static: SquareStack,
+    defaultLabelKey: "icons.shell.window.restore",
+    defaultSize: 16,
+    usage: ["ShellWindowControls: control-window-maximize (restore)"],
   },
   "shell.window.close": {
     static: X,
@@ -326,6 +346,27 @@ export const ICON_CATALOG: Record<IconSemanticId, IconCatalogEntry> = {
     defaultLabelKey: "icons.settings.integrations.externalServices.send",
     defaultSize: 14,
     usage: ["ExternalServicesRequestEditor: external-services-run-now"],
+  },
+  "settings.integrations.external-services.add": {
+    static: Plus,
+    defaultLabelKey: "icons.settings.integrations.externalServices.add",
+    defaultSize: 14,
+    usage: [
+      "ExternalServicesSidebar: external-services-create-collection",
+      "ExternalServicesSidebar: quick-add request",
+    ],
+  },
+  "settings.integrations.external-services.panelExpand": {
+    static: Maximize2,
+    defaultLabelKey: "icons.settings.integrations.externalServices.panelExpand",
+    defaultSize: 14,
+    usage: ["ExternalServicesResponsePane: expand"],
+  },
+  "settings.integrations.external-services.panelCollapse": {
+    static: Minimize2,
+    defaultLabelKey: "icons.settings.integrations.externalServices.panelCollapse",
+    defaultSize: 14,
+    usage: ["ExternalServicesResponsePane: collapse"],
   },
   "settings.integrations.sdk": {
     static: Blocks,

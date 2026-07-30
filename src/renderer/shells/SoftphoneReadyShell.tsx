@@ -415,7 +415,10 @@ function SoftphoneShellLayoutRoute({
     eventPublisher: facade.eventPublisher,
     notifications,
   });
-  const windowControls = useShellWindowControls({ isShuttingDown });
+  const windowControls = useShellWindowControls({
+    isShuttingDown,
+    settingsOpen: overlayShell.settingsOpen,
+  });
 
   return (
     <SoftphoneLayout

@@ -1,17 +1,21 @@
 /**
  * - Purpose: own compact snapshot and apply settings-driven window layout in main (F-016).
  * - Inputs: BrowserWindow, display work area, layout commands.
- * - Outputs: animated or instant bounds transitions.
+ * - Outputs: animated or instant bounds transitions; settings-only maximize.
  */
 
 import type { BrowserWindow } from "electron";
 import {
+  computeCenteredBounds,
+  resolveShellWindowMaximizable,
+  resolveShellWindowMinimumSize,
   resolveShellWindowResizable,
   resolveShellWindowTargetBounds,
   SHELL_WINDOW_LAYOUT,
   type ShellWindowCompactDimensions,
   type ShellWindowLayoutEasing,
   type ShellWindowLayoutMode,
+  type ShellWindowRectangle,
   type ShellWindowWorkArea,
 } from "@domain/platform/ShellWindowLayout.js";
 import { animateWindowBounds } from "./animateWindowBounds.js";
@@ -22,7 +26,10 @@ export type ShellWindowControllerState = Readonly<{
     height: number;
   };
   activeMode: ShellWindowLayoutMode | null;
+  settingsSessionHeight: number;
 }>;
+
+export type ShellWindowMaximizedChangeHandler = (maximized: boolean) => void;
 
 export class ShellWindowController {
   private compactDimensions: ShellWindowCompactDimensions = {
@@ -30,19 +37,40 @@ export class ShellWindowController {
     height: SHELL_WINDOW_LAYOUT.compactDefaultHeight,
   };
   private activeMode: ShellWindowLayoutMode | null = null;
+  private settingsSessionHeight: number = SHELL_WINDOW_LAYOUT.compactDefaultHeight;
   private animationGeneration = 0;
   private cancelActiveAnimation: (() => void) | null = null;
+  private maximizedChangeHandler: ShellWindowMaximizedChangeHandler | null = null;
 
   constructor(
     private readonly window: BrowserWindow,
     private readonly getWorkArea: () => ShellWindowWorkArea,
-  ) {}
+  ) {
+    this.window.on("maximize", () => {
+      this.maximizedChangeHandler?.(true);
+    });
+    this.window.on("unmaximize", () => {
+      this.handleUnmaximize();
+    });
+    this.window.on("resized", () => {
+      this.captureSettingsSessionHeight();
+    });
+  }
+
+  onMaximizedChange(handler: ShellWindowMaximizedChangeHandler): void {
+    this.maximizedChangeHandler = handler;
+  }
 
   getState(): ShellWindowControllerState {
     return {
       compactDimensions: { ...this.compactDimensions },
       activeMode: this.activeMode,
+      settingsSessionHeight: this.settingsSessionHeight,
     };
+  }
+
+  isMaximized(): boolean {
+    return this.window.isMaximized();
   }
 
   placeCompactAtStartup(): void {
@@ -62,7 +90,7 @@ export class ShellWindowController {
     );
     this.window.setBounds(target);
     this.activeMode = "compact";
-    this.applyResizePolicy("compact");
+    this.applyWindowChromePolicy("compact");
   }
 
   async applyLayout(
@@ -72,6 +100,8 @@ export class ShellWindowController {
   ): Promise<void> {
     this.cancelActiveAnimation?.();
     this.cancelActiveAnimation = null;
+
+    this.exitMaximizedIfNeeded();
 
     const currentBounds = this.window.getBounds();
     const workArea = this.getWorkArea();
@@ -83,12 +113,19 @@ export class ShellWindowController {
       };
     }
 
+    if (mode === "settings") {
+      this.settingsSessionHeight = Math.max(
+        currentBounds.height,
+        SHELL_WINDOW_LAYOUT.settingsMinHeight,
+      );
+    }
+
     // Commit mode before animation so re-entrant applyLayout during transition
     // does not re-snapshot compact dimensions from mid/fullscreen bounds.
     this.activeMode = mode;
 
     if (mode === "compact") {
-      this.applyResizePolicy("compact");
+      this.applyWindowChromePolicy("compact");
       this.compactDimensions = sanitizeCompactDimensions(
         this.compactDimensions,
         workArea,
@@ -99,7 +136,7 @@ export class ShellWindowController {
       mode,
       workArea,
       this.compactDimensions,
-      currentBounds.height,
+      mode === "settings" ? this.settingsSessionHeight : currentBounds.height,
     );
 
     const generation = ++this.animationGeneration;
@@ -126,12 +163,82 @@ export class ShellWindowController {
     }
 
     if (mode === "settings") {
-      this.applyResizePolicy("settings");
+      this.applyWindowChromePolicy("settings");
     }
   }
 
-  private applyResizePolicy(mode: ShellWindowLayoutMode): void {
+  toggleMaximize(): Readonly<{ ok: true } | { ok: false; reason: string }> {
+    if (this.activeMode !== "settings") {
+      return { ok: false, reason: "not_settings_mode" };
+    }
+
+    if (this.window.isMaximized()) {
+      this.window.unmaximize();
+      return { ok: true };
+    }
+
+    this.window.maximize();
+    return { ok: true };
+  }
+
+  private handleUnmaximize(): void {
+    if (this.activeMode === "settings") {
+      this.applySettingsMinimumBounds();
+    }
+    this.maximizedChangeHandler?.(false);
+  }
+
+  private exitMaximizedIfNeeded(): void {
+    if (!this.window.isMaximized()) {
+      return;
+    }
+    this.window.unmaximize();
+  }
+
+  private captureSettingsSessionHeight(): void {
+    if (this.activeMode !== "settings" || this.window.isMaximized()) {
+      return;
+    }
+    const bounds = this.window.getBounds();
+    const workArea = this.getWorkArea();
+    const margin = SHELL_WINDOW_LAYOUT.screenMargin * 2;
+    const looksLikeWorkArea =
+      bounds.width >= workArea.width - margin &&
+      bounds.height >= workArea.height - margin;
+    if (looksLikeWorkArea) {
+      return;
+    }
+    this.settingsSessionHeight = Math.max(
+      bounds.height,
+      SHELL_WINDOW_LAYOUT.settingsMinHeight,
+    );
+  }
+
+  private applySettingsMinimumBounds(): void {
+    const target = this.resolveSettingsMinimumBounds(this.getWorkArea());
+    this.window.setBounds(target);
+    this.settingsSessionHeight = target.height;
+  }
+
+  private resolveSettingsMinimumBounds(
+    workArea: ShellWindowWorkArea,
+  ): ShellWindowRectangle {
+    const height = Math.max(
+      this.settingsSessionHeight,
+      SHELL_WINDOW_LAYOUT.settingsMinHeight,
+    );
+    return computeCenteredBounds(
+      workArea,
+      SHELL_WINDOW_LAYOUT.settingsMinWidth,
+      height,
+    );
+  }
+
+  private applyWindowChromePolicy(mode: ShellWindowLayoutMode): void {
+    const minimum = resolveShellWindowMinimumSize(mode);
+    this.window.setMinimumSize(minimum.width, minimum.height);
     this.window.setResizable(resolveShellWindowResizable(mode));
+    this.window.setMaximizable(resolveShellWindowMaximizable(mode));
   }
 }
 

@@ -82,6 +82,7 @@ const externalServicesDefaults = {
     nameDialog: {
       open: false,
       mode: "create" as const,
+      scope: "collection" as const,
       value: "",
       errorMessage: null,
     },

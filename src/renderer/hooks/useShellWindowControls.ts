@@ -8,27 +8,32 @@ export type ShellWindowControlsViewModel = Readonly<{
   platform: PlatformVersionResponse["platform"];
   showNativeWindowControls: boolean;
   isShuttingDown: boolean;
+  maximizeEnabled: boolean;
+  isMaximized: boolean;
   onMinimize: () => void;
   onClose: () => void;
   onRestart: () => void;
+  onToggleMaximize: () => void;
 }>;
 
 type UseShellWindowControlsInput = Readonly<{
   isShuttingDown: boolean;
+  settingsOpen: boolean;
 }>;
 
 /**
  * - Purpose: bind custom shell window controls to preload lifecycle IPC (F-016).
- * - Inputs: shutdown-in-progress flag from app shutdown hook.
+ * - Inputs: shutdown flag and settings-open flag for maximize availability.
  * - Outputs: platform-aware window control callbacks for presentational UI.
  */
 export function useShellWindowControls(
   input: UseShellWindowControlsInput,
 ): ShellWindowControlsViewModel {
-  const { isShuttingDown } = input;
+  const { isShuttingDown, settingsOpen } = input;
   const lifecycleGatewayRef = useRef(new PreloadAppLifecycleGateway());
   const platformGatewayRef = useRef(new PreloadPlatformInfoGateway());
   const [platform, setPlatform] = useState<PlatformVersionResponse["platform"]>("linux");
+  const [isMaximized, setIsMaximized] = useState(false);
 
   useEffect(() => {
     void (async () => {
@@ -48,7 +53,28 @@ export function useShellWindowControls(
     };
   }, [platform]);
 
+  useEffect(() => {
+    const gateway = lifecycleGatewayRef.current;
+    const unsubscribe = gateway.onWindowMaximizedChanged(setIsMaximized);
+
+    void (async () => {
+      const result = await gateway.getWindowMaximized();
+      if (result.ok) {
+        setIsMaximized(result.maximized);
+      }
+    })();
+
+    return unsubscribe;
+  }, []);
+
+  useEffect(() => {
+    if (!settingsOpen) {
+      setIsMaximized(false);
+    }
+  }, [settingsOpen]);
+
   const showNativeWindowControls = true;
+  const maximizeEnabled = settingsOpen;
 
   const onMinimize = useCallback((): void => {
     if (isShuttingDown) {
@@ -71,15 +97,35 @@ export function useShellWindowControls(
     void lifecycleGatewayRef.current.requestRestart();
   }, [isShuttingDown]);
 
+  const onToggleMaximize = useCallback((): void => {
+    if (isShuttingDown || !settingsOpen) {
+      return;
+    }
+    void lifecycleGatewayRef.current.toggleMaximizeWindow();
+  }, [isShuttingDown, settingsOpen]);
+
   return useMemo(
     () => ({
       platform,
       showNativeWindowControls,
       isShuttingDown,
+      maximizeEnabled,
+      isMaximized,
       onMinimize,
       onClose,
       onRestart,
+      onToggleMaximize,
     }),
-    [isShuttingDown, onClose, onMinimize, onRestart, platform, showNativeWindowControls],
+    [
+      isMaximized,
+      isShuttingDown,
+      maximizeEnabled,
+      onClose,
+      onMinimize,
+      onRestart,
+      onToggleMaximize,
+      platform,
+      showNativeWindowControls,
+    ],
   );
 }
