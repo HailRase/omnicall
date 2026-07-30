@@ -45,7 +45,7 @@ Semantic names only:
 - `--color-border-subtle`, `--color-accent-primary`
 - `--space-xs` … `--space-xl`
 - `--radius-control`, `--radius-panel`
-- `--z-overlay`, `--z-modal`, `--z-toast`
+- `--z-overlay`, `--z-shell-modal-overlay`, `--z-shell-status-banner` (OCP reconnect banner above Settings), `--z-modal`, `--z-toast`
 - Shell chrome (frameless titlebar): `--shell-titlebar-controls-height`, `--shell-window-controls-safe-inline-start`, `--shell-window-controls-safe-inline-end`, `--incoming-call-banner-top`
 
 Migrate values from legacy globals without visual redesign in UI-1 (done via WU5).

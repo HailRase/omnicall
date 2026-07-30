@@ -303,12 +303,21 @@ Activate consent is a root overlay (`SdkActivateProfileConsentModal`): login fro
 lookup saved profile → method picker when SIP and OCP are both complete. No Settings
 “temporary profile access / profileRef grant”.  
 
-After Allow (OCP mode) — and for any other OCP-backed sign-in (Account Login, Reconnect) —
-the **same** root overlay `OcpSignInProgress` shows stage progress with Disconnect/Reconnect.
+After Allow (OCP mode) — and for any other **user-initiated** OCP-backed sign-in (Account Login,
+modal Reconnect, SDK activate with `uiSurface: modal`) — the **same** root overlay
+`OcpSignInProgress` shows stage progress with Disconnect/Reconnect.
 It is mounted in `SoftphoneReadyShell` (not inside Settings Account), so dialpad / contacts /
 history / settings all share it. Density: `comfortable` when Settings is open, `compact` on
 the main softphone window (smaller type/gaps; stage status **icons only**, failure tooltip
 retained).
+
+**Unexpected OCP socket drop (auto-recovery):** do **not** open `OcpSignInProgress`. Use
+global `OcpConnectionBanner` in the shell **overlay layer** (same mount family as
+`OcpSignInProgress`) with `--z-shell-status-banner` so it stays visible over dialpad,
+contacts, history, video, and Settings fullscreen (`reconnecting` N/max → `failed` + Retry).
+Still below Dialog/modals. Background recovery uses `authorizationProgress.uiSurface: silent`
+so the sign-in Dialog gate stays closed. Manual banner Retry / System State Retry server may
+open the modal when the Application marks progress `modal` again.
 
 Activate consent footer: **Cancel** split-button (chevron → **Block site** / Deny) + **Allow**.
 Deny persists `account.activate=false` on the Origin matrix (ADR-0018 §E); Settings Trusted

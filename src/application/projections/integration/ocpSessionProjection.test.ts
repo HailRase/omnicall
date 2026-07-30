@@ -4,6 +4,7 @@ import {
   applyOcpAuthFeedback,
   applyOcpSessionAuthenticatedLogin,
   applyOcpSessionDomain,
+  beginOcpTransportRecoveryAttempt,
   initialOcpSessionProjection,
   reduceOcpSessionFromConnectionState,
   reduceOcpSessionFromMessage,
@@ -73,6 +74,26 @@ describe("ocpSessionProjection", () => {
     expect(projection.reconnectAttempt).toBe(2);
     projection = reduceOcpSessionFromServerState(projection, "connected");
     expect(projection.reconnectAttempt).toBe(0);
+  });
+
+  it("keeps recovery attempt across disconnect while transport recovery is active", () => {
+    let projection = beginOcpTransportRecoveryAttempt(
+      initialOcpSessionProjection(),
+      2,
+    );
+    expect(projection.transportRecoveryActive).toBe(true);
+    expect(projection.transportRecoveryAttempt).toBe(2);
+    expect(projection.serverState).toBe("reconnecting");
+
+    projection = reduceOcpSessionFromServerState(projection, "disconnected");
+    expect(projection.transportRecoveryActive).toBe(true);
+    expect(projection.reconnectAttempt).toBe(2);
+
+    // Brief WS connect during recovery must keep banner ownership until clear*.
+    projection = reduceOcpSessionFromServerState(projection, "connected");
+    expect(projection.transportRecoveryActive).toBe(true);
+    expect(projection.transportRecoveryAttempt).toBe(2);
+    expect(projection.reconnectAttempt).toBe(2);
   });
 
   it("keeps OCP proxy domain when creds carry a distinct SIP domain", () => {

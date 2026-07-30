@@ -4,6 +4,7 @@ import {
   applyAuthorizationExecutionStage,
   applyAuthorizationProgressStage,
   initialAuthorizationProgressProjection,
+  withAuthorizationProgressUiSurface,
 } from "./authorizationProgressProjection.js";
 import {
   isColdIdleAuthorizationProgress,
@@ -18,6 +19,18 @@ describe("shouldOpenOcpSignInProgressModal", () => {
     expect(
       isColdIdleAuthorizationProgress(initialAuthorizationProgressProjection()),
     ).toBe(true);
+  });
+
+  it("returns false for silent background transport recovery", () => {
+    const progress = withAuthorizationProgressUiSurface(
+      applyAuthorizationExecutionStage(
+        initialAuthorizationProgressProjection(),
+        "requesting_authorization_token",
+        "transport-recovery-1",
+      ),
+      "silent",
+    );
+    expect(shouldOpenOcpSignInProgressModal(progress)).toBe(false);
   });
 
   it("returns true while an execution stage is active", () => {

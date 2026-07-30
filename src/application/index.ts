@@ -460,11 +460,18 @@ export {
 export {
   initialAuthorizationProgressProjection,
   applyAuthorizationProgressStage,
+  applyAuthorizationExecutionStage,
   clearAuthorizationProgress,
   mapAuthorizationFailureStage,
+  withAuthorizationProgressUiSurface,
   type AuthorizationProgressProjection,
   type AuthorizationProgressStage,
+  type AuthorizationProgressUiSurface,
 } from "./projections/settings/authorizationProgressProjection.js";
+export {
+  shouldOpenOcpSignInProgressModal,
+  isColdIdleAuthorizationProgress,
+} from "./projections/settings/shouldOpenOcpSignInProgressModal.js";
 export {
   isAuthorizationRetryableStage,
   resolveAuthorizationRetryStrategy,

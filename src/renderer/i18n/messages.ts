@@ -615,9 +615,9 @@ const ruMessages = {
     `Завершить обращение: ${params?.status ?? ""}`,
   "ocp.connection.reconnectingTitle": "OCP",
   "ocp.connection.reconnecting": (params: Readonly<{ attempt: number; max: number }>) =>
-    `Переподключение… (попытка ${params.attempt} из ${params.max})`,
+    `Переподключение ${params.attempt}/${params.max}`,
   "ocp.connection.failedTitle": "OCP",
-  "ocp.connection.failed": "Не удалось подключиться. Попробовать снова?",
+  "ocp.connection.failed": "Нет соединения",
   "ocp.connection.retry": "Повторить",
   "ocp.proxyStatus.sessionExist.title": "Сессия уже активна",
   "ocp.proxyStatus.sessionExist.message":
@@ -2201,9 +2201,9 @@ const enMessages: MessageShape = {
     `Finish contact: ${params?.status ?? ""}`,
   "ocp.connection.reconnectingTitle": "OCP",
   "ocp.connection.reconnecting": (params) =>
-    `Reconnecting… (attempt ${params.attempt} of ${params.max})`,
+    `Reconnecting ${params.attempt}/${params.max}`,
   "ocp.connection.failedTitle": "OCP",
-  "ocp.connection.failed": "Could not connect. Try again?",
+  "ocp.connection.failed": "No connection",
   "ocp.connection.retry": "Retry",
   "ocp.proxyStatus.sessionExist.title": "Session already active",
   "ocp.proxyStatus.sessionExist.message":
@@ -3712,9 +3712,9 @@ const frMessages: MessageShape = {
     `Terminer le contact : ${params?.status ?? ""}`,
   "ocp.connection.reconnectingTitle": "OCP",
   "ocp.connection.reconnecting": (params) =>
-    `Reconnexion… (tentative ${params.attempt} sur ${params.max})`,
+    `Reconnexion ${params.attempt}/${params.max}`,
   "ocp.connection.failedTitle": "OCP",
-  "ocp.connection.failed": "Connexion impossible. Reessayer ?",
+  "ocp.connection.failed": "Pas de connexion",
   "ocp.connection.retry": "Reessayer",
   "ocp.proxyStatus.sessionExist.title": "Session deja active",
   "ocp.proxyStatus.sessionExist.message":
@@ -5220,10 +5220,10 @@ const deMessages: MessageShape = {
     `Kontakt beenden: ${params?.status ?? ""}`,
   "ocp.connection.reconnectingTitle": "OCP",
   "ocp.connection.reconnecting": (params) =>
-    `Erneute Verbindung… (Versuch ${params.attempt} von ${params.max})`,
+    `Reconnect ${params.attempt}/${params.max}`,
   "ocp.connection.failedTitle": "OCP",
-  "ocp.connection.failed": "Verbindung fehlgeschlagen. Erneut versuchen?",
-  "ocp.connection.retry": "Erneut versuchen",
+  "ocp.connection.failed": "Keine Verbindung",
+  "ocp.connection.retry": "Wiederholen",
   "ocp.proxyStatus.sessionExist.title": "Sitzung bereits aktiv",
   "ocp.proxyStatus.sessionExist.message":
     "Dieses OCP-Konto wird bereits in einem anderen Client verwendet. Schliessen Sie die andere Sitzung oder aendern Sie das Token in den Einstellungen.",

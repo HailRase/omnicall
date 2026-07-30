@@ -1219,9 +1219,9 @@ export const bgMessages: MessageShape = {
     `Завърши обръщението: ${params?.status ?? ""}`,
   "ocp.connection.reconnectingTitle": "OCP",
   "ocp.connection.reconnecting": (params) =>
-    `Повторно свързване… (опит ${params.attempt} от ${params.max})`,
+    `Свързване ${params.attempt}/${params.max}`,
   "ocp.connection.failedTitle": "OCP",
-  "ocp.connection.failed": "Неуспешно свързване. Отново?",
+  "ocp.connection.failed": "Няма връзка",
   "ocp.connection.retry": "Повтори",
   "ocp.proxyStatus.sessionExist.title": "Сесията вече е активна",
   "ocp.proxyStatus.sessionExist.message":

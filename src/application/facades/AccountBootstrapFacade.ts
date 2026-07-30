@@ -83,6 +83,7 @@ import {
 import {
   applyAuthorizationExecutionStage,
   clearAuthorizationProgress,
+  withAuthorizationProgressUiSurface,
   type AuthorizationProgressStage,
 } from "../projections/settings/authorizationProgressProjection.js";
 import type { ChangeOperatorStatusOutcome } from "../use-cases/integration/ocp/ChangeOperatorStatusUseCase.js";
@@ -808,7 +809,12 @@ export class AccountBootstrapFacade {
       // Deferred call: INVALID_TOKEN arrives after construction; HTTP re-auth via connectOcp.
       reauthenticateOnInvalidToken: () => this.connectOcp(),
       // Application-owned fresh-token reconnect (ADR-AF-002) — never adapter stale token.
-      recoverTransportWithFreshToken: (correlationId) => this.connectOcp(correlationId),
+      // Silent progress: banner only; do not open OcpSignInProgress Dialog.
+      recoverTransportWithFreshToken: (correlationId) =>
+        this.connectOcp({
+          correlationId,
+          progressUiSurface: "silent",
+        }),
     });
     this.accountLogoutOrchestration = new AccountLogoutOrchestrationService({
       readOcpSession: () => {
@@ -3643,6 +3649,8 @@ export class AccountBootstrapFacade {
           login?: string;
           accountKey?: SettingsAccountKey;
           correlationId?: CorrelationId;
+          /** Default modal; transport auto-recovery must pass silent. */
+          progressUiSurface?: "modal" | "silent";
         }>
       | CorrelationId,
   ): Promise<Result<void, PlatformError>> {
@@ -3650,6 +3658,7 @@ export class AccountBootstrapFacade {
       typeof input === "string" ? input : input?.correlationId;
     const scopedInput =
       typeof input === "object" && input !== undefined ? input : undefined;
+    const progressUiSurface = scopedInput?.progressUiSurface ?? "modal";
     const usesLoginPickerScope =
       scopedInput !== undefined &&
       (scopedInput.login !== undefined || scopedInput.accountKey !== undefined);
@@ -3737,6 +3746,7 @@ export class AccountBootstrapFacade {
       login,
       apiKey,
       correlationId: attemptCorrelationId,
+      progressUiSurface,
     });
 
     if (isErr(signInResult)) {
@@ -3893,10 +3903,13 @@ export class AccountBootstrapFacade {
         : [];
     this.ocpIntegration.projectionHub.setAuthorizationProgress(
       applyAuthorizationExecutionStage(
-        {
-          ...clearAuthorizationProgress(),
-          completedExecutionStages: completed,
-        },
+        withAuthorizationProgressUiSurface(
+          {
+            ...clearAuthorizationProgress(),
+            completedExecutionStages: completed,
+          },
+          "modal",
+        ),
         firstStage,
         correlationId,
       ),

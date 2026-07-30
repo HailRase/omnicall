@@ -779,4 +779,31 @@ describe("useAccountActions", () => {
       expect(result.current.ocpSignInModalOpen).toBe(true);
     });
   });
+
+  it("does not open progress modal for silent transport recovery progress", async () => {
+    const { facade } = createFacadeMock();
+    const { result } = renderHook(() => useAccountActions({ facade }));
+
+    act(() => {
+      useAccountBootstrapStore.setState({
+        ocpSessionProjection: {
+          ...initialOcpSessionProjection(),
+          authorizationProgress: {
+            ...applyAuthorizationExecutionStage(
+              initialAuthorizationProgressProjection(),
+              "requesting_authorization_token",
+              "transport-recovery-1",
+              Date.now(),
+            ),
+            uiSurface: "silent",
+          },
+        },
+      });
+    });
+
+    await waitFor(() => {
+      expect(result.current.authorizationProgress.uiSurface).toBe("silent");
+    });
+    expect(result.current.ocpSignInModalOpen).toBe(false);
+  });
 });

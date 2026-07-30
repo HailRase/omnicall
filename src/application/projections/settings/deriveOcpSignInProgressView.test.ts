@@ -114,4 +114,29 @@ describe("deriveOcpSignInProgressView", () => {
     expect(view.overallPercent).toBe(100);
     expect(view.stages.every((stage) => stage.state === "completed")).toBe(true);
   });
+
+  it("shows active token stage after reconnecting from a ready checklist", () => {
+    const ready = applyAuthorizationProgressStage(
+      initialAuthorizationProgressProjection(),
+      "ready",
+      "corr-ready",
+    );
+    const token = applyAuthorizationExecutionStage(
+      ready,
+      "requesting_authorization_token",
+      "corr-reconnect",
+      0,
+    );
+    const view = deriveOcpSignInProgressView(token, 7_500);
+    const active = view.stages.find(
+      (entry) => entry.stage === "requesting_authorization_token",
+    );
+
+    expect(view.overallState).toBe("active");
+    expect(active?.state).toBe("active");
+    expect(active?.percent).toBe(50);
+    expect(
+      view.stages.filter((entry) => entry.state === "completed"),
+    ).toHaveLength(4);
+  });
 });

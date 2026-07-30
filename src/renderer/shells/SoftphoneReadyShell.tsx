@@ -273,8 +273,16 @@ function SoftphoneShellLayoutRoute({
   const ocpAuthFeedback = useAccountBootstrapStore(
     (state) => state.ocpSessionProjection.authFeedback,
   );
+  const ocpTransportRecoveryActive = useAccountBootstrapStore(
+    (state) => state.ocpSessionProjection.transportRecoveryActive,
+  );
   useEffect(() => {
     if (ocpAuthFeedback === null) {
+      return;
+    }
+    // Auto-recovery already shows OcpConnectionBanner — skip duplicate token toasts.
+    if (ocpTransportRecoveryActive) {
+      facade.clearOcpAuthFeedback();
       return;
     }
     const messageKey = mapOcpAuthFeedbackToMessageKey(ocpAuthFeedback.reason);
@@ -291,7 +299,13 @@ function SoftphoneShellLayoutRoute({
       },
     });
     facade.clearOcpAuthFeedback();
-  }, [facade, notifications, ocpAuthFeedback, openSystemState]);
+  }, [
+    facade,
+    notifications,
+    ocpAuthFeedback,
+    ocpTransportRecoveryActive,
+    openSystemState,
+  ]);
   const ocpSettingsPanel = useOcpSettingsPanel({
     facade,
     onActiveUserSettingsRefresh: settingsActions.applyUserSettingsSnapshot,
@@ -444,18 +458,6 @@ function SoftphoneShellLayoutRoute({
               />
             }
           />
-          <OcpConnectionBanner
-            visible={
-              operatorStatusSelector.vm.isReconnecting ||
-              operatorStatusSelector.vm.isFailed
-            }
-            mode={
-              operatorStatusSelector.vm.isFailed ? "failed" : "reconnecting"
-            }
-            reconnectAttempt={operatorStatusSelector.vm.reconnectAttempt}
-            maxReconnectAttempts={operatorStatusSelector.vm.maxReconnectAttempts}
-            onRetry={operatorStatusSelector.onRetryConnect}
-          />
         </>
       }
       context={
@@ -547,6 +549,19 @@ function SoftphoneShellLayoutRoute({
             onDisconnect={accountActions.handleOcpSignInDisconnect}
             onReconnect={accountActions.handleOcpSignInReconnect}
             onSuccessSettled={accountActions.handleOcpSignInSuccessSettled}
+          />
+          {/* Global like OcpSignInProgress: above Settings/routes; below Dialogs. */}
+          <OcpConnectionBanner
+            visible={
+              operatorStatusSelector.vm.isReconnecting ||
+              operatorStatusSelector.vm.isFailed
+            }
+            mode={
+              operatorStatusSelector.vm.isFailed ? "failed" : "reconnecting"
+            }
+            reconnectAttempt={operatorStatusSelector.vm.reconnectAttempt}
+            maxReconnectAttempts={operatorStatusSelector.vm.maxReconnectAttempts}
+            onRetry={operatorStatusSelector.onRetryConnect}
           />
           <OcpCampaignEventModal
             open={ocpCampaignModal.open}

@@ -220,9 +220,15 @@ export function useOperatorStatusSelector(
     dropdownDisabledReasonKey: null,
     readyItems,
     breakItems,
-    isReconnecting: session.connectionState === "reconnecting",
-    isFailed: session.connectionState === "failed",
-    reconnectAttempt: session.reconnectAttempt,
+    isReconnecting:
+      session.transportRecoveryActive ||
+      session.connectionState === "reconnecting",
+    isFailed:
+      !session.transportRecoveryActive && session.connectionState === "failed",
+    reconnectAttempt:
+      session.transportRecoveryAttempt > 0
+        ? session.transportRecoveryAttempt
+        : session.reconnectAttempt,
     maxReconnectAttempts: OCP_MAX_RECONNECT_ATTEMPTS,
   };
 

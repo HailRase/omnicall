@@ -43,7 +43,9 @@ import {
   applyOcpAuthFeedback,
   applyOcpSessionAuthenticatedLogin,
   applyOcpSessionDomain,
+  beginOcpTransportRecoveryAttempt,
   clearOcpAuthFeedback,
+  clearOcpTransportRecovery,
   initialOcpSessionProjection,
   reduceOcpSessionFromAuthorization,
   reduceOcpSessionFromServerState,
@@ -253,6 +255,40 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
     this.notifyChangeListeners();
   }
 
+  /**
+   * Begin/refresh Application-owned unexpected-drop recovery presentation.
+   * Keeps the global banner visible across disconnect/HTTP/connect flaps.
+   */
+  beginTransportRecoveryAttempt(
+    attemptId: CorrelationId,
+    attempt: number,
+  ): void {
+    this.activeSocketEpoch = this.deps.ocpGateway.getSocketEpoch?.() ?? null;
+    this.session = applyOcpActiveAttemptId(this.session, attemptId);
+    this.session = beginOcpTransportRecoveryAttempt(this.session, attempt);
+    this.notifyChangeListeners();
+  }
+
+  /** Clear recovery presentation (success / cancel / supersede). */
+  clearTransportRecovery(): void {
+    const next = clearOcpTransportRecovery(this.session);
+    if (next === this.session) {
+      return;
+    }
+    this.session = next;
+    this.notifyChangeListeners();
+  }
+
+  /**
+   * Cap reached for Application-owned transport recovery — surface failed banner
+   * (Retry via OperatorStatus / System State) without opening the sign-in Dialog.
+   */
+  markTransportRecoveryExhausted(): void {
+    this.session = clearOcpTransportRecovery(this.session);
+    this.session = reduceOcpSessionFromServerState(this.session, "failed");
+    this.notifyChangeListeners();
+  }
+
   setAuthFeedback(reason: OcpAuthFeedbackReason): void {
     this.authFeedbackNonce += 1;
     this.session = applyOcpAuthFeedback(
@@ -361,6 +397,14 @@ export class OcpProjectionHub implements OcpOperatorReadModel {
       this.session.serverState === "disconnected" &&
       this.session.authorizationState.phase === "idle";
     if (isColdIdle && state !== "disconnected") {
+      return;
+    }
+    // During Application recovery, ignore socket close/fail flaps so the banner
+    // stays on reconnecting until success, exhaustion, or explicit cancel.
+    if (
+      this.session.transportRecoveryActive &&
+      (state === "disconnected" || state === "failed")
+    ) {
       return;
     }
     this.session = reduceOcpSessionFromServerState(this.session, state);
