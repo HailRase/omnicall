@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-30 16:21
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `e2dbf9a`
 
 ## Где
 - `src/main/shellWindow/ShellWindowController.ts`

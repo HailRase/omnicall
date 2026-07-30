@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-30 16:18
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `e2dbf9a`
 
 ## Где
 - `src/renderer/components/settings/external-services/ExternalServicesTriggerList.tsx`

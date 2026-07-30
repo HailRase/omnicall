@@ -2,7 +2,7 @@
 
 **Дата:** 2026-07-30 15:50
 **Статус:** выполнено
-**Коммит:** —
+**Коммит:** `e2dbf9a`
 
 ## Где
 - `src/application/services/integration/external-services/ExternalServicesDelayScheduler.ts`
