@@ -24,5 +24,6 @@
 
 ## Результат
 - Tag: https://github.com/HailRase/softphone-electron/releases/tag/v1.2.0
-- Actions Release: https://github.com/HailRase/softphone-electron/actions/runs/30611626381 (poll in progress at cut time)
-- Distribution: https://github.com/HailRase/omnicall-releases/releases/tag/v1.2.0
+- Actions Release: https://github.com/HailRase/softphone-electron/actions/runs/30611626381 — **success** (win/mac/linux + finalize manifest)
+- Distribution: https://github.com/HailRase/omnicall-releases/releases/tag/v1.2.0 — `.exe`/`.msi`/`.dmg`/`.AppImage`/`.deb` HTTP 200
+- Manifest live: `latestVersion` **1.2.0**
