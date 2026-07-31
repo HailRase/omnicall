@@ -54,8 +54,9 @@ export function resolveShellWindowResizable(mode: ShellWindowLayoutMode): boolea
  * - Outputs: always false — work-area fill is layout-owned via setBounds, never OS maximize.
  */
 export function resolveShellWindowMaximizable(
-  _mode: ShellWindowLayoutMode,
+  mode: ShellWindowLayoutMode,
 ): boolean {
+  void mode;
   return false;
 }
 

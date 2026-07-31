@@ -162,19 +162,23 @@ describe("OcpTransportRecoveryService", () => {
   it("preserves attempt budget when recoverWithFreshToken disarms via cancelAll", async () => {
     const gateway = new MockOcpGateway();
     const hub = new OcpProjectionHub({ ocpGateway: gateway });
-    let service: OcpTransportRecoveryService;
-    const recover = vi.fn(async () => {
+    const holder: { service: OcpTransportRecoveryService | null } = {
+      service: null,
+    };
+    const recover = vi.fn(() => {
       // Mimic backedSignIn.execute → cancelTransportRecovery during recovery connect.
-      service.cancelAll("sign_in_supersede");
-      service.cancelAll("fresh_token_connect");
-      return err(
-        createPlatformError("operation_failed", "ocp_http_auth_failed", {
-          reason: "ocp_http_auth_failed",
-        }),
+      holder.service?.cancelAll("sign_in_supersede");
+      holder.service?.cancelAll("fresh_token_connect");
+      return Promise.resolve(
+        err(
+          createPlatformError("operation_failed", "ocp_http_auth_failed", {
+            reason: "ocp_http_auth_failed",
+          }),
+        ),
       );
     });
 
-    service = new OcpTransportRecoveryService({
+    holder.service = new OcpTransportRecoveryService({
       ocpGateway: gateway,
       projectionHub: hub,
       recoverWithFreshToken: recover,
@@ -182,6 +186,7 @@ describe("OcpTransportRecoveryService", () => {
       reconnectDelayMs: 100,
       maxReconnectAttempts: 3,
     });
+    const service = holder.service;
 
     const attemptId = createCorrelationId();
     hub.beginAttempt(attemptId);
@@ -247,20 +252,24 @@ describe("OcpTransportRecoveryService", () => {
   it("keeps recovery presentation across intentional disconnect during recover", async () => {
     const gateway = new MockOcpGateway();
     const hub = new OcpProjectionHub({ ocpGateway: gateway });
-    let service: OcpTransportRecoveryService;
-    const recover = vi.fn(async () => {
-      service.cancelAll("fresh_token_connect");
+    const holder: { service: OcpTransportRecoveryService | null } = {
+      service: null,
+    };
+    const recover = vi.fn(() => {
+      holder.service?.cancelAll("fresh_token_connect");
       gateway.disconnect("logout");
       expect(hub.getSessionProjection().transportRecoveryActive).toBe(true);
       expect(hub.getSessionProjection().serverState).toBe("reconnecting");
-      return err(
-        createPlatformError("operation_failed", "ocp_http_auth_failed", {
-          reason: "ocp_http_auth_failed",
-        }),
+      return Promise.resolve(
+        err(
+          createPlatformError("operation_failed", "ocp_http_auth_failed", {
+            reason: "ocp_http_auth_failed",
+          }),
+        ),
       );
     });
 
-    service = new OcpTransportRecoveryService({
+    holder.service = new OcpTransportRecoveryService({
       ocpGateway: gateway,
       projectionHub: hub,
       recoverWithFreshToken: recover,
@@ -268,6 +277,7 @@ describe("OcpTransportRecoveryService", () => {
       reconnectDelayMs: 50,
       maxReconnectAttempts: 2,
     });
+    const service = holder.service;
 
     const attemptId = createCorrelationId();
     hub.beginAttempt(attemptId);
@@ -291,21 +301,25 @@ describe("OcpTransportRecoveryService", () => {
   it("keeps recovery banner ownership across brief WS connected during recover", async () => {
     const gateway = new MockOcpGateway();
     const hub = new OcpProjectionHub({ ocpGateway: gateway });
-    let service: OcpTransportRecoveryService;
-    const recover = vi.fn(async () => {
-      service.cancelAll("fresh_token_connect");
+    const holder: { service: OcpTransportRecoveryService | null } = {
+      service: null,
+    };
+    const recover = vi.fn(() => {
+      holder.service?.cancelAll("fresh_token_connect");
       gateway.disconnect("logout");
       gateway.connect({ domain: "ocp.example.com", authToken: "t2" });
       expect(hub.getSessionProjection().transportRecoveryActive).toBe(true);
       expect(hub.getSessionProjection().transportRecoveryAttempt).toBe(1);
-      return err(
-        createPlatformError("operation_failed", "ocp_http_auth_failed", {
-          reason: "ocp_http_auth_failed",
-        }),
+      return Promise.resolve(
+        err(
+          createPlatformError("operation_failed", "ocp_http_auth_failed", {
+            reason: "ocp_http_auth_failed",
+          }),
+        ),
       );
     });
 
-    service = new OcpTransportRecoveryService({
+    holder.service = new OcpTransportRecoveryService({
       ocpGateway: gateway,
       projectionHub: hub,
       recoverWithFreshToken: recover,
@@ -313,6 +327,7 @@ describe("OcpTransportRecoveryService", () => {
       reconnectDelayMs: 50,
       maxReconnectAttempts: 3,
     });
+    const service = holder.service;
 
     const attemptId = createCorrelationId();
     hub.beginAttempt(attemptId);
